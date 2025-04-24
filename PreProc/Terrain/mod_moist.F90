@@ -29,18 +29,18 @@ module mod_moist
 
   subroutine read_moist(fname,rmoist,tsl,snow,jx,iy,ns,lrmoist,ltsl)
     implicit none
-    character(len=256) , intent(in) :: fname
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rmoist , tsl
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: snow
-    integer(ik4) , intent(in) :: jx , iy , ns
-    logical , intent(out) :: lrmoist , ltsl
-    integer(ik4) :: ncid , istat
-    integer(ik4) :: dimid , njx , niy , nlev , ntime
-    integer(ik4) :: idmoist , idsnow , idtsl
-    integer(ik4) :: istart(4) , icount(4)
-    real(rkx) , dimension(:,:,:) , allocatable :: moist_in , tsl_in
-    real(rkx) , dimension(:,:) , allocatable :: snow_in
-    logical :: lsnw , lmrso , ltemp
+    character(len=256), intent(in) :: fname
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rmoist, tsl
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: snow
+    integer(ik4), intent(in) :: jx, iy, ns
+    logical, intent(out) :: lrmoist, ltsl
+    integer(ik4) :: ncid, istat
+    integer(ik4) :: dimid, njx, niy, nlev, ntime
+    integer(ik4) :: idmoist, idsnow, idtsl
+    integer(ik4) :: istart(4), icount(4)
+    real(rkx), dimension(:,:,:), allocatable :: moist_in, tsl_in
+    real(rkx), dimension(:,:), allocatable :: snow_in
+    logical :: lsnw, lmrso, ltemp
 
     lrmoist = .false.
     ltemp = .false.
@@ -70,7 +70,7 @@ module mod_moist
     end if
     if ( njx /= jx-3 ) then
       write(stderr,*) 'Moisture file is not coming from a previous run'
-      write(stderr,*) 'JX : ', jx , njx+3
+      write(stderr,*) 'JX : ', jx, njx+3
       return
     end if
     istat = nf90_inq_dimid(ncid,'iy',dimid)
@@ -88,7 +88,7 @@ module mod_moist
     end if
     if ( niy /= iy-3 ) then
       write(stderr,*) 'Moisture file is not coming from a previous run'
-      write(stderr,*) 'IY : ', iy , niy+3
+      write(stderr,*) 'IY : ', iy, niy+3
       return
     end if
 

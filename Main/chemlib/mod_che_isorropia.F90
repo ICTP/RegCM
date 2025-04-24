@@ -66,31 +66,31 @@ module mod_che_isorropia
     use mod_che_molwg
     implicit none
     character(len = 15) :: scasi
-    integer(ik4) , parameter :: nctrl = 2
-    integer(ik4) , parameter :: nother = 9
-    integer(ik4) , parameter :: ncomp = 8
-    integer(ik4) , parameter :: nions = 10
-    integer(ik4) , parameter :: ngasaq = 3
-    integer(ik4) , parameter :: nslds = 19
-    real(rkx) , parameter :: w_so4 = 98.0_rkx
-    real(rkx) , parameter :: w_ano3 = 62.0_rkx
-    real(rkx) , parameter :: w_anh4 = 18.0_rkx
-    real(rkx) , parameter :: massfactor = 1000.0_rkx
-    real(rkx) , parameter :: dtaesolv = 900.0_rkx
-    real(rkx) , parameter :: conmin = 1.0e-30_rkx
+    integer(ik4), parameter :: nctrl = 2
+    integer(ik4), parameter :: nother = 9
+    integer(ik4), parameter :: ncomp = 8
+    integer(ik4), parameter :: nions = 10
+    integer(ik4), parameter :: ngasaq = 3
+    integer(ik4), parameter :: nslds = 19
+    real(rkx), parameter :: w_so4 = 98.0_rkx
+    real(rkx), parameter :: w_ano3 = 62.0_rkx
+    real(rkx), parameter :: w_anh4 = 18.0_rkx
+    real(rkx), parameter :: massfactor = 1000.0_rkx
+    real(rkx), parameter :: dtaesolv = 900.0_rkx
+    real(rkx), parameter :: conmin = 1.0e-30_rkx
 
-    real(rkx) , dimension(ncomp) :: wi , wt
-    real(rkx) , dimension(ngasaq) :: gas
-    real(rkx) , dimension(nslds) :: aersld
-    real(rkx) , dimension(nions+ngasaq+2) :: aerliq
-    real(rkx) , dimension(nctrl) :: cntrl
-    real(rkx) , dimension(nother) :: other
-    integer(ik4) :: i , j , k
-    real(rkx) :: tempi , rhi
+    real(rkx), dimension(ncomp) :: wi, wt
+    real(rkx), dimension(ngasaq) :: gas
+    real(rkx), dimension(nslds) :: aersld
+    real(rkx), dimension(nions+ngasaq+2) :: aerliq
+    real(rkx), dimension(nctrl) :: cntrl
+    real(rkx), dimension(nother) :: other
+    integer(ik4) :: i, j, k
+    real(rkx) :: tempi, rhi
 
-    do k = 1 , kz
-      do j = jci1 , jci2
-        do i = ici1 , ici2
+    do k = 1, kz
+      do j = jci1, jci2
+        do i = ici1, ici2
           cntrl(1) = d_zero
           cntrl(2) = 1.0_rkx
           wt = d_zero
@@ -168,7 +168,7 @@ module mod_che_isorropia
 !  inut:
 !  1. [wi]
 !     real(rkx) array of length [8].
-!     concentrations , expressed in moles/m3. depending on the type of
+!     concentrations, expressed in moles/m3. depending on the type of
 !     problem solved (specified in cntrl(1)), wi contains either
 !     gas+aerosol or aerosol only concentratios.
 !     wi(1) - sodium
@@ -193,9 +193,9 @@ module mod_che_isorropia
 !     parameters that control the type of problem solved.
 !
 !     cntrl(1): defines the type of problem solved.
-!     0 - forward problem is solved. in this case , array wi contains
+!     0 - forward problem is solved. in this case, array wi contains
 !         gas and aerosol concentrations together.
-!     1 - reverse problem is solved. in this case , array wi contains
+!     1 - reverse problem is solved. in this case, array wi contains
 !         aerosol concentrations only.
 !
 !     cntrl(2): defines the state of the aerosol
@@ -205,7 +205,7 @@ module mod_che_isorropia
 !  ouput:
 !  1. [wt]
 !     real(rkx) array of length [8].
-!     total concentrations (gas+aerosol) of species , expressed in moles/m3.
+!     total concentrations (gas+aerosol) of species, expressed in moles/m3.
 !     if the foreward probelm is solved (cntrl(1) = 0), array wt is
 !     identical to array wi.
 !     wt(1) - total sodium
@@ -219,14 +219,14 @@ module mod_che_isorropia
 !
 !  2. [gas]
 !     real(rkx) array of length [03].
-!     gaseous species concentrations , expressed in moles/m3.
+!     gaseous species concentrations, expressed in moles/m3.
 !     gas(1) - nh3
 !     gas(2) - hno3
 !     gas(3) - hcl
 !
 !  3. [aerliq]
 !     real(rkx) array of length [15].
-!     liquid aerosol species concentrations , expressed in moles/m3.
+!     liquid aerosol species concentrations, expressed in moles/m3.
 !     aerliq(01) - h+(aq)
 !     aerliq(02) - na+(aq)
 !     aerliq(03) - nh4+(aq)
@@ -245,7 +245,7 @@ module mod_che_isorropia
 !
 !  4. [aersld]
 !     real(rkx) array of length [19].
-!     solid aerosol species concentrations , expressed in moles/m3.
+!     solid aerosol species concentrations, expressed in moles/m3.
 !     aersld(01) - nano3(s)
 !     aersld(02) - nh4no3(s)
 !     aersld(03) - nacl(s)
@@ -278,14 +278,14 @@ module mod_che_isorropia
 !     0 - aerosol is wet
 !     1 - aerosol is dry
 !
-!     other(2): aerosol sulfate ratio , defined as (in moles/m3) :
+!     other(2): aerosol sulfate ratio, defined as (in moles/m3) :
 !               (total ammonia + total na) / (total sulfate)
 !
 !     other(3): sulfate ratio based on aerosol properties that defines
 !               a sulfate poor system:
 !               (aerosol ammonia + aerosol na) / (aerosol sulfate)
 !
-!     other(4): aerosol sodium ratio , defined as (in moles/m3) :
+!     other(4): aerosol sodium ratio, defined as (in moles/m3) :
 !               (total na) / (total sulfate)
 !
 !     other(5): ionic strength of the aqueous aerosol (if it exists).
@@ -293,16 +293,16 @@ module mod_che_isorropia
 !     other(6): total number of calls to the activity coefficient
 !               calculation subroutine.
 !
-!     other(7): sulfate ratio with crustal species , defined as (in moles/m3) :
+!     other(7): sulfate ratio with crustal species, defined as (in moles/m3) :
 !               (total ammonia + total crustal species + total na) / (total sulfate)
 !
-!     other(8): crustal species + sodium ratio , defined as (in moles/m3) :
+!     other(8): crustal species + sodium ratio, defined as (in moles/m3) :
 !               (total crustal species + total na) / (total sulfate)
 !
-!     other(9): crustal species ratio , defined as (in moles/m3) :
+!     other(9): crustal species ratio, defined as (in moles/m3) :
 !               (total crustal species) / (total sulfate)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -314,16 +314,16 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     implicit none
     integer(ik4) :: i
-    real(rkx) :: rhi , tempi
-    integer(ik4) , parameter :: nctrl = 2
-    integer(ik4) , parameter :: nother = 9
+    real(rkx) :: rhi, tempi
+    integer(ik4), parameter :: nctrl = 2
+    integer(ik4), parameter :: nother = 9
     character(len = 15) :: scasi
-    real(rkx) , dimension(ncomp) :: wi , wt
-    real(rkx) , dimension(ngasaq) :: gas
-    real(rkx) , dimension(nslds) :: aersld
-    real(rkx) , dimension(nions+ngasaq+2) :: aerliq
-    real(rkx) , dimension(nctrl) :: cntrl
-    real(rkx) , dimension(nother) :: other
+    real(rkx), dimension(ncomp) :: wi, wt
+    real(rkx), dimension(ngasaq) :: gas
+    real(rkx), dimension(nslds) :: aersld
+    real(rkx), dimension(nions+ngasaq+2) :: aerliq
+    real(rkx), dimension(nctrl) :: cntrl
+    real(rkx), dimension(nother) :: other
 !
 ! *** default values *************************************************
 !
@@ -622,11 +622,11 @@ module mod_che_isorropia
            3.11,2.92,2.71,2.49,2.26,2.02,1.76,1.50,1.22,0.94,0.64]
 
 !
-! *** problem type (0 = foreward , 1=reverse)
+! *** problem type (0 = foreward, 1=reverse)
 ! ******************************
     iprob = nint(cntrl(1))
 !
-! *** aerosol state (0 = solid+liquid , 1=metastable)
+! *** aerosol state (0 = solid+liquid, 1=metastable)
 ! **********************
     metstbl = nint(cntrl(2))
 !
@@ -679,16 +679,16 @@ module mod_che_isorropia
     gas(2) = ghno3
     gas(3) = ghcl
 !
-    do i = 1 , 7               ! liquid aerosol species
+    do i = 1, 7               ! liquid aerosol species
       aerliq(i) = molal(i)
     end do
-    do i = 1 , ngasaq
+    do i = 1, ngasaq
       aerliq(7+1+i) = gasaq(i)
     end do
     aerliq(7+1) = water*1.0e3_rkx/18.0_rkx
     aerliq(7+ngasaq+2) = coh
 !
-    do i = 8 , 10               ! liquid aerosol species
+    do i = 8, 10               ! liquid aerosol species
       aerliq(i+5) = molal(i)
     end do
 !
@@ -753,7 +753,7 @@ module mod_che_isorropia
 !
 ! ======================= arguments / usage ===========================
 !
-! *** note: if negative values are given for a parameter , it is
+! *** note: if negative values are given for a parameter, it is
 !     ignored and the current value is used instead.
 !  &
 !  inut:
@@ -777,13 +777,13 @@ module mod_che_isorropia
 !  3. [epsi]
 !     double precition variable.
 !     defines the convergence criterion for all iterative processes
-!     in isorropia , except those for activity coefficient calculations
+!     in isorropia, except those for activity coefficient calculations
 !     (epsacti controls that).
 !
 !  4. [maxiti]
 !     integer(ik4) :: variable.
 !     defines the maximum number of iterations for all iterative
-!     processes in isorropia , except for activity coefficient calculations
+!     processes in isorropia, except for activity coefficient calculations
 !     (nsweepi controls that).
 !
 !  5. [nsweepi]
@@ -800,7 +800,7 @@ module mod_che_isorropia
 !     integer(ik4) :: variable.
 !     defines the number of subdivisions needed for the initial root
 !     tracking for the bisection method. usually this parameter should
-!     not be altered , but is included for completeness.
+!     not be altered, but is included for completeness.
 !
 !  8. [nadj]
 !     integer(ik4) :: variable.
@@ -809,7 +809,7 @@ module mod_che_isorropia
 !     0 - no adjustment done (default)
 !     1 - do adjustment
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -820,8 +820,8 @@ module mod_che_isorropia
                        nadji)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: epsacti , epsi
-    integer(ik4) :: iacalci , maxiti , nadji , ndivi , nsweepi
+    real(rkx) :: epsacti, epsi
+    integer(ik4) :: iacalci, maxiti, nadji, ndivi, nsweepi
     integer(ik4) :: wftypi
 !
 ! *** setup solution parameters
@@ -847,7 +847,7 @@ module mod_che_isorropia
 !
 ! *** the parameters are those of subroutine setparm
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -858,8 +858,8 @@ module mod_che_isorropia
                        nadji)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: epsacti , epsi
-    integer(ik4) :: iacalci , maxiti , nadji , ndivi , nsweepi
+    real(rkx) :: epsacti, epsi
+    integer(ik4) :: iacalci, maxiti, nadji, ndivi, nsweepi
     integer(ik4) :: wftypi
 !
 ! *** get solution parameters
@@ -881,7 +881,7 @@ module mod_che_isorropia
 ! *** this subroutine initializes all global variables for ammonium
 !     sulfate aerosol systems (subroutine isrp1)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -891,18 +891,18 @@ module mod_che_isorropia
   subroutine init1(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: coef , rhi , t0 , t0t , tcf , tempi
-    integer(ik4) :: i , irh
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
+    integer(ik4) :: i, irh
+    real(rkx), dimension(ncomp) :: wi
 !
 ! *** save input variables in common block
 ! ******************************
     if ( iprob==0 ) then                   ! forward calculation
-      do i = 1 , ncomp
+      do i = 1, ncomp
         w(i) = max(wi(i),tiny1)
       end do
     else
-      do i = 1 , ncomp                     ! reverse calculation
+      do i = 1, ncomp                     ! reverse calculation
         waer(i) = max(wi(i),tiny1)
         w(i) = zero
       end do
@@ -967,7 +967,7 @@ module mod_che_isorropia
     coh = zero
     water = tiny1
 !
-    do i = 1 , npair
+    do i = 1, npair
       molalr(i) = zero
       gama(i) = 0.1_rkx
       gamin(i) = great
@@ -975,16 +975,16 @@ module mod_che_isorropia
       m0(i) = 1e5_rkx
     end do
 !
-    do i = 1 , npair
+    do i = 1, npair
       gama(i) = 0.1_rkx
     end do
 !
-    do i = 1 , nions
+    do i = 1, nions
       molal(i) = zero
     end do
     coh = zero
 !
-    do i = 1 , ngasaq
+    do i = 1, ngasaq
       gasaq(i) = zero
     end do
 !
@@ -1024,37 +1024,37 @@ module mod_che_isorropia
 ! m0(01) = awsc(irh)      ! nacl
 ! if (m0(01)  <  100.0) then
 ! ic = m0(01)
-! call kmtab(ic ,298.0 ,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                            xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                            xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx) m0(01) = m0(01)*exp(ln10*(gi0-gii))
 ! end if
 !!
 ! m0(02) = awss(irh)      ! (na)2so4
 ! if (m0(02)  <  100.0) then
 ! ic = 3.0*m0(02)
-! call kmtab(ic ,298.0 ,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(02) = m0(02)*exp(ln10*(gi0-gii))
 ! end if
 !!
 ! m0(03) = awsn(irh)      ! nano3
 ! if (m0(03)  <  100.0) then
 ! ic = m0(03)
-! call kmtab(ic ,298.0 ,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(03) = m0(03)*exp(ln10*(gi0-gii))
 ! end if
 !!
     m0(04) = awas(irh)        ! (nh4)2so4
 !!      if (m0(04)  <  100.0) then
 !!         ic = 3.0*m0(04)
-!!         call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,
+!!         call kmtab(ic ,298.0,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,
 !!     &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx)
 !!         call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,
 !!     &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx)
@@ -1064,37 +1064,37 @@ module mod_che_isorropia
 ! m0(05) = awan(irh)      ! nh4no3
 ! if (m0(05)  <  100.0) then
 ! ic     = m0(05)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(05) = m0(05)*exp(ln10*(gi0-gii))
 ! end if
 !!
 ! m0(06) = awac(irh)      ! nh4cl
 ! if (m0(06)  <  100.0) then
 ! ic = m0(06)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(06) = m0(06)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(07) = awsa(irh)        ! 2h-so4
 ! if (m0(07)  <  100.0) then
 ! ic = 3.0*m0(07)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(07) = m0(07)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(08) = awsa(irh)        ! h-hso4
-! if (m0(08)  <  100.0) then     ! these are redundant , because m0(8)
+! if (m0(08)  <  100.0) then     ! these are redundant, because m0(8)
 ! is not used ic = m0(08)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
 !c         call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
 ! ,xx ,xx ,xx ,xx) & m0(08) = m0(08)*exp(ln10*(gi0-gii))
@@ -1103,31 +1103,31 @@ module mod_che_isorropia
     m0(09) = awab(irh)        ! nh4hso4
 ! if (m0(09)  <  100.0) then
 ! ic = m0(09)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,gii ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,gii ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(09) = m0(09)*exp(ln10*(gi0-gii))
 ! end if
 !
 ! m0(12) = awsb(irh)      ! nahso4
 ! if (m0(12)  <  100.0) then
 ! ic = m0(12)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,gi0 , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,gi0, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,gii , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,gii, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(12) = m0(12)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(13) = awlc(irh)        ! (nh4)3h(so4)2
 ! if (m0(13)  <  100.0) then
 ! ic     = 4.0*m0(13)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g130   = 0.2*(3.0*gi0+2.0*gii)
 ! call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g13i   = 0.2*(3.0*gi0+2.0*gii)
 ! m0(13) = m0(13)*exp(ln10*real(g130-g13i,rkx))
 ! end if
@@ -1145,7 +1145,7 @@ module mod_che_isorropia
     crrat = zero
     nofer = 0
     stkofl = .false.
-    do i = 1 , nerrmx
+    do i = 1, nerrmx
       errstk(i) = -999
       errmsg(i) = 'message n/a'
     end do
@@ -1156,9 +1156,9 @@ module mod_che_isorropia
 ! *** isorropia code
 ! *** subroutine init2
 ! *** this subroutine initializes all global variables for ammonium ,
-!     nitrate , sulfate aerosol systems (subroutine isrp2)
+!     nitrate, sulfate aerosol systems (subroutine isrp2)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -1168,18 +1168,18 @@ module mod_che_isorropia
   subroutine init2(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: coef , rhi , t0 , t0t , tcf , tempi
-    integer(ik4) :: i , irh
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
+    integer(ik4) :: i, irh
+    real(rkx), dimension(ncomp) :: wi
 !
 ! *** save input variables in common block
 ! ******************************
     if ( iprob==0 ) then                   ! forward calculation
-      do i = 1 , ncomp
+      do i = 1, ncomp
         w(i) = max(wi(i),tiny1)
       end do
     else
-      do i = 1 , ncomp                     ! reverse calculation
+      do i = 1, ncomp                     ! reverse calculation
         waer(i) = max(wi(i),tiny1)
         w(i) = zero
       end do
@@ -1260,7 +1260,7 @@ module mod_che_isorropia
     coh = zero
     water = tiny1
 !
-    do i = 1 , npair
+    do i = 1, npair
       molalr(i) = zero
       gama(i) = 0.1_rkx
       gamin(i) = great
@@ -1268,16 +1268,16 @@ module mod_che_isorropia
       m0(i) = 1e5_rkx
     end do
 !
-    do i = 1 , npair
+    do i = 1, npair
       gama(i) = 0.1_rkx
     end do
 !
-    do i = 1 , nions
+    do i = 1, nions
       molal(i) = zero
     end do
     coh = zero
 !
-    do i = 1 , ngasaq
+    do i = 1, ngasaq
       gasaq(i) = zero
     end do
 !
@@ -1317,77 +1317,77 @@ module mod_che_isorropia
 ! m0(01) = awsc(irh)      ! nacl
 ! if (m0(01)  <  100.0) then
 ! ic = m0(01)
-! call kmtab(ic ,298.0 ,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(01) = m0(01)*exp(ln10*(gi0-gii))
 ! end if
 !
 ! m0(02) = awss(irh)      ! (na)2so4
 ! if (m0(02)  <  100.0) then
 ! ic = 3.0*m0(02)
-! call kmtab(ic ,298.0 ,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(02) = m0(02)*exp(ln10*(gi0-gii))
 ! end if
 !
 ! m0(03) = awsn(irh)      ! nano3
 ! if (m0(03)  <  100.0) then
 ! ic = m0(03)
-! call kmtab(ic ,298.0 ,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(03) = m0(03)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(04) = awas(irh)        ! (nh4)2so4
 ! if (m0(04)  <  100.0) then
 ! ic = 3.0*m0(04)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(04) = m0(04)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(05) = awan(irh)        ! nh4no3
 ! if (m0(05)  <  100.0) then
 ! ic     = m0(05)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(05) = m0(05)*exp(ln10*(gi0-gii))
 ! end if
 !
 ! m0(06) = awac(irh)      ! nh4cl
 ! if (m0(06)  <  100.0) then
 ! ic = m0(06)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(06) = m0(06)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(07) = awsa(irh)        ! 2h-so4
 ! if (m0(07)  <  100.0) then
 ! ic = 3.0*m0(07)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(07) = m0(07)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(08) = awsa(irh)        ! h-hso4
-! if (m0(08)  <  100.0) then     ! these are redundant , because m0(8)
+! if (m0(08)  <  100.0) then     ! these are redundant, because m0(8)
 ! is not used ic = m0(08)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
 !c         call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
 ! ,xx ,xx ,xx ,xx) & m0(08) = m0(08)*exp(ln10*(gi0-gii))
@@ -1396,31 +1396,31 @@ module mod_che_isorropia
     m0(09) = awab(irh)        ! nh4hso4
 ! if (m0(09)  <  100.0) then
 ! ic = m0(09)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,gii ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,gii ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(09) = m0(09)*exp(ln10*(gi0-gii))
 ! end if
 !
 ! m0(12) = awsb(irh)      ! nahso4
 ! if (m0(12)  <  100.0) then
 ! ic = m0(12)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,gi0 , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,gi0, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,gii , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,gii, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(12) = m0(12)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(13) = awlc(irh)        ! (nh4)3h(so4)2
 ! if (m0(13)  <  100.0) then
 ! ic     = 4.0*m0(13)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g130   = 0.2*(3.0*gi0+2.0*gii)
 ! call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g13i   = 0.2*(3.0*gi0+2.0*gii)
 ! m0(13) = m0(13)*exp(ln10*real(g130-g13i,rkx))
 ! end if
@@ -1438,7 +1438,7 @@ module mod_che_isorropia
     crrat = zero
     nofer = 0
     stkofl = .false.
-    do i = 1 , nerrmx
+    do i = 1, nerrmx
       errstk(i) = -999
       errmsg(i) = 'message n/a'
     end do
@@ -1449,10 +1449,10 @@ module mod_che_isorropia
 ! *** isorropia code
 ! *** subroutine isoinit3
 ! *** this subroutine initializes all global variables for ammonium ,
-!     sodium , chloride , nitrate , sulfate aerosol systems (subroutine
+!     sodium, chloride, nitrate, sulfate aerosol systems (subroutine
 !     isrp3)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -1462,18 +1462,18 @@ module mod_che_isorropia
   subroutine isoinit3(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: coef , rhi , t0 , t0t , tcf , tempi
-    integer(ik4) :: i , irh
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
+    integer(ik4) :: i, irh
+    real(rkx), dimension(ncomp) :: wi
 !
 ! *** save input variables in common block
 ! ******************************
     if ( iprob==0 ) then                   ! forward calculation
-      do i = 1 , ncomp
+      do i = 1, ncomp
         w(i) = max(wi(i),tiny1)
       end do
     else
-      do i = 1 , ncomp                     ! reverse calculation
+      do i = 1, ncomp                     ! reverse calculation
         waer(i) = max(wi(i),tiny1)
         w(i) = zero
       end do
@@ -1571,28 +1571,28 @@ module mod_che_isorropia
     drmlcab = 0.378_rkx      ! (nh4)3h(so4)2 & nh4hso4
     drmlcas = 0.690_rkx      ! (nh4)3h(so4)2 & (nh4)2so4
     drmasan = 0.600_rkx      ! (nh4)2so4     & nh4no3
-    drmg1 = 0.460_rkx        ! (nh4)2so4 , nh4no3 , na2so4 , nh4cl
-    drmg2 = 0.691_rkx        ! (nh4)2so4 , na2so4 , nh4cl
-    drmg3 = 0.697_rkx        ! (nh4)2so4 , na2so4
-    drmh1 = 0.240_rkx        ! na2so4 , nano3 , nacl , nh4no3 , nh4cl
-    drmh2 = 0.596_rkx        ! na2so4 , nano3 , nacl , nh4cl
-    drmi1 = 0.240_rkx        ! lc , nahso4 , nh4hso4 , na2so4 , (nh4)2so4
-    drmi2 = 0.363_rkx        ! lc , nahso4 , na2so4 , (nh4)2so4  - no data -
-    drmi3 = 0.610_rkx        ! lc , na2so4 , (nh4)2so4
-    drmq1 = 0.494_rkx        ! (nh4)2so4 , nh4no3 , na2so4
-    drmr1 = 0.663_rkx        ! na2so4 , nano3 , nacl
-    drmr2 = 0.735_rkx        ! na2so4 , nacl
-    drmr3 = 0.673_rkx        ! nano3 , nacl
-    drmr4 = 0.694_rkx        ! na2so4 , nacl , nh4cl
-    drmr5 = 0.731_rkx        ! na2so4 , nh4cl
-    drmr6 = 0.596_rkx        ! na2so4 , nano3 , nh4cl
-    drmr7 = 0.380_rkx        ! na2so4 , nano3 , nacl , nh4no3
-    drmr8 = 0.380_rkx        ! na2so4 , nacl , nh4no3
-    drmr9 = 0.494_rkx        ! na2so4 , nh4no3
-    drmr10 = 0.476_rkx       ! na2so4 , nano3 , nh4no3
-    drmr11 = 0.340_rkx       ! na2so4 , nacl , nh4no3 , nh4cl
-    drmr12 = 0.460_rkx       ! na2so4 , nh4no3 , nh4cl
-    drmr13 = 0.438_rkx       ! na2so4 , nano3 , nh4no3 , nh4cl
+    drmg1 = 0.460_rkx        ! (nh4)2so4, nh4no3, na2so4, nh4cl
+    drmg2 = 0.691_rkx        ! (nh4)2so4, na2so4, nh4cl
+    drmg3 = 0.697_rkx        ! (nh4)2so4, na2so4
+    drmh1 = 0.240_rkx        ! na2so4, nano3, nacl, nh4no3, nh4cl
+    drmh2 = 0.596_rkx        ! na2so4, nano3, nacl, nh4cl
+    drmi1 = 0.240_rkx        ! lc, nahso4, nh4hso4, na2so4, (nh4)2so4
+    drmi2 = 0.363_rkx        ! lc, nahso4, na2so4, (nh4)2so4  - no data -
+    drmi3 = 0.610_rkx        ! lc, na2so4, (nh4)2so4
+    drmq1 = 0.494_rkx        ! (nh4)2so4, nh4no3, na2so4
+    drmr1 = 0.663_rkx        ! na2so4, nano3, nacl
+    drmr2 = 0.735_rkx        ! na2so4, nacl
+    drmr3 = 0.673_rkx        ! nano3, nacl
+    drmr4 = 0.694_rkx        ! na2so4, nacl, nh4cl
+    drmr5 = 0.731_rkx        ! na2so4, nh4cl
+    drmr6 = 0.596_rkx        ! na2so4, nano3, nh4cl
+    drmr7 = 0.380_rkx        ! na2so4, nano3, nacl, nh4no3
+    drmr8 = 0.380_rkx        ! na2so4, nacl, nh4no3
+    drmr9 = 0.494_rkx        ! na2so4, nh4no3
+    drmr10 = 0.476_rkx       ! na2so4, nano3, nh4no3
+    drmr11 = 0.340_rkx       ! na2so4, nacl, nh4no3, nh4cl
+    drmr12 = 0.460_rkx       ! na2so4, nh4no3, nh4cl
+    drmr13 = 0.438_rkx       ! na2so4, nano3, nh4no3, nh4cl
 ! if (int(temp) .ne. 298) then
 ! t0       = 298.15d0
 ! tcf      = 1.0/temp - 1.0/t0
@@ -1631,7 +1631,7 @@ module mod_che_isorropia
     coh = zero
     water = tiny1
 !
-    do i = 1 , npair
+    do i = 1, npair
       molalr(i) = zero
       gama(i) = 0.1_rkx
       gamin(i) = great
@@ -1639,16 +1639,16 @@ module mod_che_isorropia
       m0(i) = 1e5_rkx
     end do
 !
-    do i = 1 , npair
+    do i = 1, npair
       gama(i) = 0.1_rkx
     end do
 !
-    do i = 1 , nions
+    do i = 1, nions
       molal(i) = zero
     end do
     coh = zero
 !
-    do i = 1 , ngasaq
+    do i = 1, ngasaq
       gasaq(i) = zero
     end do
 !
@@ -1688,77 +1688,77 @@ module mod_che_isorropia
     m0(01) = awsc(irh)        ! nacl
 ! if (m0(01)  <  100.0) then
 ! ic = m0(01)
-! call kmtab(ic ,298.0 ,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(01) = m0(01)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(02) = awss(irh)        ! (na)2so4
 ! if (m0(02)  <  100.0) then
 ! ic = 3.0*m0(02)
-! call kmtab(ic ,298.0 ,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(02) = m0(02)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(03) = awsn(irh)        ! nano3
 ! if (m0(03)  <  100.0) then
 ! ic = m0(03)
-! call kmtab(ic ,298.0 ,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) c        m0(03) = m0(03)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(04) = awas(irh)        ! (nh4)2so4
 ! if (m0(04)  <  100.0) then
 ! ic = 3.0*m0(04)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(04) = m0(04)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(05) = awan(irh)        ! nh4no3
 ! if (m0(05)  <  100.0) then
 ! ic     = m0(05)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(05) = m0(05)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(06) = awac(irh)        ! nh4cl
 ! if (m0(06)  <  100.0) then
 ! ic = m0(06)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(06) = m0(06)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(07) = awsa(irh)        ! 2h-so4
 ! if (m0(07)  <  100.0) then
 ! ic = 3.0*m0(07)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(07) = m0(07)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(08) = awsa(irh)        ! h-hso4
-! if (m0(08)  <  100.0) then     ! these are redundant , because m0(8)
+! if (m0(08)  <  100.0) then     ! these are redundant, because m0(8)
 ! is not used ic = m0(08)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
 !c         call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
 ! ,xx ,xx ,xx ,xx) & m0(08) = m0(08)*exp(ln10*(gi0-gii))
@@ -1767,31 +1767,31 @@ module mod_che_isorropia
     m0(09) = awab(irh)        ! nh4hso4
 ! if (m0(09)  <  100.0) then
 ! ic = m0(09)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,gii ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,gii ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(09) = m0(09)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(12) = awsb(irh)        ! nahso4
 ! if (m0(12)  <  100.0) then
 ! ic = m0(12)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,gi0 , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,gi0, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,gii , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,gii, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(12) = m0(12)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(13) = awlc(irh)        ! (nh4)3h(so4)2
 ! if (m0(13)  <  100.0) then
 ! ic     = 4.0*m0(13)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g130   = 0.2*(3.0*gi0+2.0*gii)
 ! call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g13i   = 0.2*(3.0*gi0+2.0*gii)
 ! m0(13) = m0(13)*exp(ln10*real(g130-g13i,rkx))
 ! end if
@@ -1808,7 +1808,7 @@ module mod_che_isorropia
     crrat = zero
     nofer = 0
     stkofl = .false.
-    do i = 1 , nerrmx
+    do i = 1, nerrmx
       errstk(i) = -999
       errmsg(i) = 'message n/a'
     end do
@@ -1819,10 +1819,10 @@ module mod_che_isorropia
 ! *** isorropia code ii
 ! *** subroutine init4
 ! *** this subroutine initializes all global variables for ammonium ,
-!     sodium , chloride , nitrate , sulfate , calcium , potassium , magnesium
+!     sodium, chloride, nitrate, sulfate, calcium, potassium, magnesium
 !     aerosol systems (subroutine isrp4)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -1831,18 +1831,18 @@ module mod_che_isorropia
   subroutine init4(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: coef , rhi , t0 , t0t , tcf , tempi
-    integer(ik4) :: i , irh
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
+    integer(ik4) :: i, irh
+    real(rkx), dimension(ncomp) :: wi
 !
 ! *** save input variables in common block
 ! ******************************
     if ( iprob==0 ) then                   ! forward calculation
-      do i = 1 , ncomp
+      do i = 1, ncomp
         w(i) = max(wi(i),tiny1)
       end do
     else
-      do i = 1 , ncomp                     ! reverse calculation
+      do i = 1, ncomp                     ! reverse calculation
         waer(i) = max(wi(i),tiny1)
         w(i) = zero
       end do
@@ -1865,7 +1865,7 @@ module mod_che_isorropia
     xk7 = 1.817_rkx      ! (nh4)2so4(s)     <==> 2*nh4(aq) + so4(aq)
     xk8 = 37.661_rkx     ! nacl(s)          <==> na(aq)    + cl(aq)
 ! xk10 = 5.746e-17_rkx ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! isorr
-    xk10 = 4.199e-17_rkx   ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! (mozurkewich , 1993)
+    xk10 = 4.199e-17_rkx   ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! (mozurkewich, 1993)
 ! xk10 = 2.985e-17_rkx ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! sequil
     xk11 = 2.413e4_rkx     ! nahso4(s)        <==> na(aq)    + hso4(aq)
     xk12 = 1.382e2_rkx     ! nh4hso4(s)       <==> nh4(aq)   + hso4(aq)
@@ -1905,7 +1905,7 @@ module mod_che_isorropia
       xk8 = xk8*exp(-1.56_rkx*(t0t-1.0_rkx)+16.900_rkx*coef)
       xk9 = xk9*exp(-8.22_rkx*(t0t-1.0_rkx)+16.010_rkx*coef)
 !   xk10 = xk10*exp(-74.38_rkx*(t0t-1.0_rkx) +  6.120_rkx*coef) ! isorr
-      xk10 = xk10*exp(-74.7351_rkx*(t0t-1.0_rkx)+6.025_rkx*coef)       ! (mozurkewich , 1993)
+      xk10 = xk10*exp(-74.7351_rkx*(t0t-1.0_rkx)+6.025_rkx*coef)       ! (mozurkewich, 1993)
 !   xk10 = xk10*exp(-75.11_rkx*(t0t-1.0_rkx) + 13.460_rkx*coef) ! sequil
       xk11 = xk11*exp(0.79_rkx*(t0t-1.0_rkx)+14.746_rkx*coef)
       xk12 = xk12*exp(-2.87_rkx*(t0t-1.0_rkx)+15.830_rkx*coef)
@@ -1983,63 +1983,63 @@ module mod_che_isorropia
     drmlcab = 0.378_rkx      ! (nh4)3h(so4)2 & nh4hso4
     drmlcas = 0.690_rkx      ! (nh4)3h(so4)2 & (nh4)2so4
     drmasan = 0.600_rkx      ! (nh4)2so4     & nh4no3
-    drmg1 = 0.460_rkx        ! (nh4)2so4 , nh4no3 , na2so4 , nh4cl
-    drmg2 = 0.691_rkx        ! (nh4)2so4 , na2so4 , nh4cl
-    drmg3 = 0.697_rkx        ! (nh4)2so4 , na2so4
-    drmh1 = 0.240_rkx        ! na2so4 , nano3 , nacl , nh4no3 , nh4cl
-    drmh2 = 0.596_rkx        ! na2so4 , nano3 , nacl , nh4cl
-    drmi1 = 0.240_rkx        ! lc , nahso4 , nh4hso4 , na2so4 , (nh4)2so4
-    drmi2 = 0.363_rkx        ! lc , nahso4 , na2so4 , (nh4)2so4  - no data -
-    drmi3 = 0.610_rkx        ! lc , na2so4 , (nh4)2so4
-    drmq1 = 0.494_rkx        ! (nh4)2so4 , nh4no3 , na2so4
-    drmr1 = 0.663_rkx        ! na2so4 , nano3 , nacl
-    drmr2 = 0.735_rkx        ! na2so4 , nacl
-    drmr3 = 0.673_rkx        ! nano3 , nacl
-    drmr4 = 0.694_rkx        ! na2so4 , nacl , nh4cl
-    drmr5 = 0.731_rkx        ! na2so4 , nh4cl
-    drmr6 = 0.596_rkx        ! na2so4 , nano3 , nh4cl
-    drmr7 = 0.380_rkx        ! na2so4 , nano3 , nacl , nh4no3
-    drmr8 = 0.380_rkx        ! na2so4 , nacl , nh4no3
-    drmr9 = 0.494_rkx        ! na2so4 , nh4no3
-    drmr10 = 0.476_rkx       ! na2so4 , nano3 , nh4no3
-    drmr11 = 0.340_rkx       ! na2so4 , nacl , nh4no3 , nh4cl
-    drmr12 = 0.460_rkx       ! na2so4 , nh4no3 , nh4cl
-    drmr13 = 0.438_rkx       ! na2so4 , nano3 , nh4no3 , nh4cl
+    drmg1 = 0.460_rkx        ! (nh4)2so4, nh4no3, na2so4, nh4cl
+    drmg2 = 0.691_rkx        ! (nh4)2so4, na2so4, nh4cl
+    drmg3 = 0.697_rkx        ! (nh4)2so4, na2so4
+    drmh1 = 0.240_rkx        ! na2so4, nano3, nacl, nh4no3, nh4cl
+    drmh2 = 0.596_rkx        ! na2so4, nano3, nacl, nh4cl
+    drmi1 = 0.240_rkx        ! lc, nahso4, nh4hso4, na2so4, (nh4)2so4
+    drmi2 = 0.363_rkx        ! lc, nahso4, na2so4, (nh4)2so4  - no data -
+    drmi3 = 0.610_rkx        ! lc, na2so4, (nh4)2so4
+    drmq1 = 0.494_rkx        ! (nh4)2so4, nh4no3, na2so4
+    drmr1 = 0.663_rkx        ! na2so4, nano3, nacl
+    drmr2 = 0.735_rkx        ! na2so4, nacl
+    drmr3 = 0.673_rkx        ! nano3, nacl
+    drmr4 = 0.694_rkx        ! na2so4, nacl, nh4cl
+    drmr5 = 0.731_rkx        ! na2so4, nh4cl
+    drmr6 = 0.596_rkx        ! na2so4, nano3, nh4cl
+    drmr7 = 0.380_rkx        ! na2so4, nano3, nacl, nh4no3
+    drmr8 = 0.380_rkx        ! na2so4, nacl, nh4no3
+    drmr9 = 0.494_rkx        ! na2so4, nh4no3
+    drmr10 = 0.476_rkx       ! na2so4, nano3, nh4no3
+    drmr11 = 0.340_rkx       ! na2so4, nacl, nh4no3, nh4cl
+    drmr12 = 0.460_rkx       ! na2so4, nh4no3, nh4cl
+    drmr13 = 0.438_rkx       ! na2so4, nano3, nh4no3, nh4cl
 !
-    drmo1 = 0.460_rkx        ! (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 , mgso4
-    drmo2 = 0.691_rkx        ! (nh4)2so4 , nh4cl , na2so4 , k2so4 , mgso4
-    drmo3 = 0.697_rkx        ! (nh4)2so4 , na2so4 , k2so4 , mgso4
-    drml1 = 0.240_rkx        ! k2so4 , mgso4 , khso4 , nh4hso4 , nahso4 , (nh4)2so4 , na2so4 , lc
-    drml2 = 0.363_rkx        ! k2so4 , mgso4 , khso4 , nahso4 , (nh4)2so4 , na2so4 , lc
-    drml3 = 0.610_rkx        ! k2so4 , mgso4 , khso4 , (nh4)2so4 , na2so4 , lc
-    drmm1 = 0.240_rkx        ! k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3 , nh4no3
-    drmm2 = 0.596_rkx        ! k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3
-    drmp1 = 0.200_rkx        ! ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
-    drmp2 = 0.240_rkx        ! ca(no3)2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
-    drmp3 = 0.240_rkx        ! ca(no3)2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
-    drmp4 = 0.240_rkx        ! k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
-    drmp5 = 0.240_rkx        ! k2so4 , kno3 , kcl , mgso4 , nano3 , nacl , nh4no3 , nh4cl
+    drmo1 = 0.460_rkx        ! (nh4)2so4, nh4no3, nh4cl, na2so4, k2so4, mgso4
+    drmo2 = 0.691_rkx        ! (nh4)2so4, nh4cl, na2so4, k2so4, mgso4
+    drmo3 = 0.697_rkx        ! (nh4)2so4, na2so4, k2so4, mgso4
+    drml1 = 0.240_rkx        ! k2so4, mgso4, khso4, nh4hso4, nahso4, (nh4)2so4, na2so4, lc
+    drml2 = 0.363_rkx        ! k2so4, mgso4, khso4, nahso4, (nh4)2so4, na2so4, lc
+    drml3 = 0.610_rkx        ! k2so4, mgso4, khso4, (nh4)2so4, na2so4, lc
+    drmm1 = 0.240_rkx        ! k2so4, na2so4, mgso4, nh4cl, nacl, nano3, nh4no3
+    drmm2 = 0.596_rkx        ! k2so4, na2so4, mgso4, nh4cl, nacl, nano3
+    drmp1 = 0.200_rkx        ! ca(no3)2, cacl2, k2so4, kno3, kcl, mgso4, mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
+    drmp2 = 0.240_rkx        ! ca(no3)2, k2so4, kno3, kcl, mgso4, mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
+    drmp3 = 0.240_rkx        ! ca(no3)2, k2so4, kno3, kcl, mgso4, mg(no3)2, nano3, nacl, nh4no3, nh4cl
+    drmp4 = 0.240_rkx        ! k2so4, kno3, kcl, mgso4, mg(no3)2, nano3, nacl, nh4no3, nh4cl
+    drmp5 = 0.240_rkx        ! k2so4, kno3, kcl, mgso4, nano3, nacl, nh4no3, nh4cl
 !
-    drmv1 = 0.494_rkx        ! (nh4)2so4 , nh4no3 , na2so4 , k2so4 , mgso4
+    drmv1 = 0.494_rkx        ! (nh4)2so4, nh4no3, na2so4, k2so4, mgso4
 !
 !
-! drmo1   = 0.1d0    ! (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 ,
-! mgso4 drmo2   = 0.1d0    ! (nh4)2so4 , nh4cl , na2so4 , k2so4 , mgso4
-! drmo3   = 0.1d0    ! (nh4)2so4 , na2so4 , k2so4 , mgso4
-! drml1   = 0.1d0    ! k2so4 , mgso4 , khso4 , nh4hso4 , nahso4 ,
-! (nh4)2so4 , na2so4 , lc drml2   = 0.1d0    ! k2so4 , mgso4 , khso4 ,
-! nahso4 , (nh4)2so4 , na2so4 , lc drml3   = 0.1d0    ! k2so4 , mgso4 ,
-! khso4 , (nh4)2so4 , na2so4 , lc drmm1   = 0.1d0    ! k2so4 , na2so4 ,
-! mgso4 , nh4cl , nacl , nano3 , nh4no3 drmm2   = 0.1d0    ! k2so4 ,
-! na2so4 , mgso4 , nh4cl , nacl , nano3 drmp1   = 0.1d0    ! ca(no3)2 ,
-! cacl2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , mgcl2 , nano3 , nacl
-! , nh4no3 , nh4cl drmp2   = 0.1d0    ! ca(no3)2 , k2so4 , kno3 , kcl ,
-! mgso4 , mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl drmp3   =
-! 0.1d0    ! ca(no3)2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , nano3 ,
-! nacl , nh4no3 , nh4cl drmp4   = 0.1d0    ! k2so4 , kno3 , kcl , mgso4
-! , mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl drmp5   = 0.1d0    ! k2so4
-! , kno3 , kcl , mgso4 , nano3 , nacl , nh4no3 , nh4cl drmv1   = 0.1d0
-! ! (nh4)2so4 , nh4no3 , na2so4 , k2so4 , mgso4 if (int(temp) .ne. 298)
+! drmo1   = 0.1d0    ! (nh4)2so4, nh4no3, nh4cl, na2so4, k2so4 ,
+! mgso4 drmo2   = 0.1d0    ! (nh4)2so4, nh4cl, na2so4, k2so4, mgso4
+! drmo3   = 0.1d0    ! (nh4)2so4, na2so4, k2so4, mgso4
+! drml1   = 0.1d0    ! k2so4, mgso4, khso4, nh4hso4, nahso4 ,
+! (nh4)2so4, na2so4, lc drml2   = 0.1d0    ! k2so4, mgso4, khso4 ,
+! nahso4, (nh4)2so4, na2so4, lc drml3   = 0.1d0    ! k2so4, mgso4 ,
+! khso4, (nh4)2so4, na2so4, lc drmm1   = 0.1d0    ! k2so4, na2so4 ,
+! mgso4, nh4cl, nacl, nano3, nh4no3 drmm2   = 0.1d0    ! k2so4 ,
+! na2so4, mgso4, nh4cl, nacl, nano3 drmp1   = 0.1d0    ! ca(no3)2 ,
+! cacl2, k2so4, kno3, kcl, mgso4, mg(no3)2, mgcl2, nano3, nacl
+!, nh4no3, nh4cl drmp2   = 0.1d0    ! ca(no3)2, k2so4, kno3, kcl ,
+! mgso4, mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl drmp3   =
+! 0.1d0    ! ca(no3)2, k2so4, kno3, kcl, mgso4, mg(no3)2, nano3 ,
+! nacl, nh4no3, nh4cl drmp4   = 0.1d0    ! k2so4, kno3, kcl, mgso4
+!, mg(no3)2, nano3, nacl, nh4no3, nh4cl drmp5   = 0.1d0    ! k2so4
+!, kno3, kcl, mgso4, nano3, nacl, nh4no3, nh4cl drmv1   = 0.1d0
+! ! (nh4)2so4, nh4no3, na2so4, k2so4, mgso4 if (int(temp) .ne. 298)
 ! then t0       = 298.15d0
 ! tcf      = 1.0/temp - 1.0/t0
 ! drmlcab  = drmlcab*exp( 507.506*tcf)
@@ -2077,7 +2077,7 @@ module mod_che_isorropia
     coh = zero
     water = tiny1
 !
-    do i = 1 , npair
+    do i = 1, npair
       molalr(i) = zero
       gama(i) = 0.1_rkx
       gamin(i) = great
@@ -2085,16 +2085,16 @@ module mod_che_isorropia
       m0(i) = 1e5_rkx
     end do
 !
-    do i = 1 , npair
+    do i = 1, npair
       gama(i) = 0.1_rkx
     end do
 !
-    do i = 1 , nions
+    do i = 1, nions
       molal(i) = zero
     end do
     coh = zero
 !
-    do i = 1 , ngasaq
+    do i = 1, ngasaq
       gasaq(i) = zero
     end do
 !
@@ -2134,77 +2134,77 @@ module mod_che_isorropia
     m0(01) = awsc(irh)        ! nacl
 ! if (m0(01)  <  100.0) then
 ! ic = m0(01)
-! call kmtab(ic ,298.0 ,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                            xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                            xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx , &                            xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx, &                            xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(01) = m0(01)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(02) = awss(irh)        ! (na)2so4
 ! if (m0(02)  <  100.0) then
 ! ic = 3.0*m0(02)
-! call kmtab(ic ,298.0 ,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(02) = m0(02)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(03) = awsn(irh)        ! nano3
 ! if (m0(03)  <  100.0) then
 ! ic = m0(03)
-! call kmtab(ic ,298.0 ,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(03) = m0(03)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(04) = awas(irh)        ! (nh4)2so4
 ! if (m0(04)  <  100.0) then
 ! ic = 3.0*m0(04)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(04) = m0(04)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(05) = awan(irh)        ! nh4no3
 ! if (m0(05)  <  100.0) then
 ! ic     = m0(05)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(05) = m0(05)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(06) = awac(irh)        ! nh4cl
 ! if (m0(06)  <  100.0) then
 ! ic = m0(06)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(06) = m0(06)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(07) = awsa(irh)        ! 2h-so4
 ! if (m0(07)  <  100.0) then
 ! ic = 3.0*m0(07)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(07) = m0(07)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(08) = awsa(irh)        ! h-hso4
-! if (m0(08)  <  100.0) then     ! these are redundant , because m0(8)
+! if (m0(08)  <  100.0) then     ! these are redundant, because m0(8)
 ! is not used ic = m0(08)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
 !c         call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
 ! ,xx ,xx ,xx ,xx) & m0(08) = m0(08)*exp(ln10*(gi0-gii))
@@ -2213,31 +2213,31 @@ module mod_che_isorropia
     m0(09) = awab(irh)        ! nh4hso4
 ! if (m0(09)  <  100.0) then
 ! ic = m0(09)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,gii ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
+! ,gii ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(09) = m0(09)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(12) = awsb(irh)        ! nahso4
 ! if (m0(12)  <  100.0) then
 ! ic = m0(12)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,gi0 , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,gi0, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,gii , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,gii, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(12) = m0(12)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(13) = awlc(irh)        ! (nh4)3h(so4)2
 ! if (m0(13)  <  100.0) then
 ! ic     = 4.0*m0(13)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g130   = 0.2*(3.0*gi0+2.0*gii)
 ! call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g13i   = 0.2*(3.0*gi0+2.0*gii)
 ! m0(13) = m0(13)*exp(ln10*real(g130-g13i,rkx))
 ! end if
@@ -2245,90 +2245,90 @@ module mod_che_isorropia
     m0(15) = awcn(irh)        ! ca(no3)2
 ! if (m0(15)  <  100.0) then
 ! ic = m0(15)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx , &                             gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx, &                             gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             gii ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             gii ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(15) = m0(15)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(16) = awcc(irh)        ! cacl2
 ! if (m0(16)  <  100.0) then
 ! ic = m0(16)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx , &                             xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx, &                             xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,gii ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,gii ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(16) = m0(16)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(17) = awps(irh)        ! k2so4
 ! if (m0(17)  <  100.0) then
 ! ic = m0(17)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx , &                             xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx, &                             xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,gii ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,gii ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(17) = m0(17)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(18) = awpb(irh)        ! khso4
 ! if (m0(18)  <  100.0) then
 ! ic = m0(18)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx , &                             xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx, &                             xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,gii ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,gii ,xx ,xx ,xx
 ! ,xx ,xx) m0(18) = m0(18)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(19) = awpn(irh)        ! kno3
 ! if (m0(19)  <  100.0) then
 ! ic = m0(19)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx , &                             xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx, &                             xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,gii ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,gii ,xx ,xx
 ! ,xx ,xx) m0(19) = m0(19)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(20) = awpc(irh)        ! kcl
 ! if (m0(20)  <  100.0) then
 ! ic = m0(20)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx , &                             xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx, &                             xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,gii ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx) m0(20) = m0(20)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(21) = awms(irh)        ! mgso4
 ! if (m0(21)  <  100.0) then
 ! ic = m0(21)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,gii
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,gii
 ! ,xx ,xx) m0(21) = m0(21)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(22) = awmn(irh)        ! mg(no3)2
 ! if (m0(22)  <  100.0) then
 ! ic = m0(22)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
 ! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gii ,xx) m0(22) = m0(22)*exp(ln10*(gi0-gii))
 ! end if
 !
     m0(23) = awmc(irh)        ! mgcl2
 ! if (m0(23)  <  100.0) then
 ! ic = m0(23)
-! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! call kmtab(ic ,298.0,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gi0) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx ,xx, &                             xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,gii) m0(23) = m0(23)*exp(ln10*(gi0-gii))
 ! end if
 !
@@ -2345,7 +2345,7 @@ module mod_che_isorropia
     crrat = 2._rkx
     nofer = 0
     stkofl = .false.
-    do i = 1 , nerrmx
+    do i = 1, nerrmx
       errstk(i) = -999
       errmsg(i) = 'message n/a'
     end do
@@ -2356,11 +2356,11 @@ module mod_che_isorropia
 ! *** isorropia code
 ! *** subroutine adjust
 ! *** adjusts for mass balance between volatile species and sulfate
-!     first calculate the excess of each precursor , and if it exists , then
+!     first calculate the excess of each precursor, and if it exists, then
 !     adjust sequentialy aerosol phase species which contain the excess
 !     precursor.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -2370,8 +2370,8 @@ module mod_che_isorropia
   subroutine adjust(wi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: excl , exnh4 , exno3 , exs4
-    real(rkx) , dimension(:) :: wi
+    real(rkx) :: excl, exnh4, exno3, exs4
+    real(rkx), dimension(:) :: wi
 !
 ! *** for ammonium *****************************************************
 !
@@ -2384,7 +2384,7 @@ module mod_che_isorropia
 
     end if
     exnh4 = max(exnh4,zero)
-    if ( exnh4>=tiny1 ) then        ! no excess nh4 , go to next precursor
+    if ( exnh4>=tiny1 ) then        ! no excess nh4, go to next precursor
 !
       if ( molal(3)>exnh4 ) then   ! adjust aqueous phase nh4
         molal(3) = molal(3) - exnh4
@@ -2446,7 +2446,7 @@ module mod_che_isorropia
       exno3 = molal(7) + cnh4no3 - wi(4)
     end if
     exno3 = max(exno3,zero)
-    if ( exno3>=tiny1 ) then        ! no excess no3 , go to next precursor
+    if ( exno3>=tiny1 ) then        ! no excess no3, go to next precursor
 !
       if ( molal(7)>exno3 ) then   ! adjust aqueous phase no3
         molal(7) = molal(7) - exno3
@@ -2474,7 +2474,7 @@ module mod_che_isorropia
       excl = molal(4) + cnh4cl - wi(5)
     end if
     excl = max(excl,zero)
-    if ( excl>=tiny1 ) then        ! no excess cl , go to next precursor
+    if ( excl>=tiny1 ) then        ! no excess cl, go to next precursor
 !
       if ( molal(4)>excl ) then   ! adjust aqueous phase cl
         molal(4) = molal(4) - excl
@@ -2499,7 +2499,7 @@ module mod_che_isorropia
  300  exs4 = molal(5) + molal(6) + 2._rkx*clc + cnh42s4 + cnh4hs4 +       &
                cna2so4 + cnahso4 - wi(2)
     exs4 = max(exs4,zero)           ! calculate excess (solution - input)
-    if ( exs4>=tiny1 ) then        ! no excess so4 , return
+    if ( exs4>=tiny1 ) then        ! no excess so4, return
 !
       if ( molal(6)>exs4 ) then   ! adjust aqueous phase hso4
         molal(6) = molal(6) - exs4
@@ -2555,7 +2555,7 @@ module mod_che_isorropia
 ! *** calculates the limiting nh4+/so4 ratio of a sulfate poor system
 !     (i.e. sulfate ratio = 2.0) for given so4 level and rh
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -2564,13 +2564,13 @@ module mod_che_isorropia
 !
   real(rkx) function getasr(so4i,rhi)
     implicit none
-    real(rkx) :: a1 , rat , wf
-    integer(ik4) :: ia1 , indr , inds , indsh , indsl , iposh , iposl
-    integer , parameter :: nso4s = 14
-    integer , parameter :: nrhs = 20
-    integer , parameter :: nasrd = nso4s*nrhs
-    real(rkx) :: so4i , rhi
-    real(rkx) :: asrat(nasrd) , asso4(nso4s)
+    real(rkx) :: a1, rat, wf
+    integer(ik4) :: ia1, indr, inds, indsh, indsl, iposh, iposl
+    integer, parameter :: nso4s = 14
+    integer, parameter :: nrhs = 20
+    integer, parameter :: nasrd = nso4s*nrhs
+    real(rkx) :: so4i, rhi
+    real(rkx) :: asrat(nasrd), asso4(nso4s)
 !
     asso4 = [1.0E-9,2.5E-9,5.0E-9,7.5E-9,1.0E-8,2.5E-8,5.0E-8,7.5E-8,    &
             1.0E-7,2.5E-7,5.0E-7,7.5E-7,1.0E-6,5.0E-6]
@@ -2631,13 +2631,13 @@ module mod_che_isorropia
                      1.978930,1.979428,1.979879,1.980302,1.980686,        &
                      1.981060,1.981401,1.981722,1.982025,1.982312]
 !
-! ** solve using full computations , not look-up tables **************
+! ** solve using full computations, not look-up tables **************
 !
 ! w(2) = waer(2)
 ! w(3) = waer(2)*2.0001d0
 ! call calca2
 ! sulratw = molal(3)/waer(2)
-! call init1 (wi , rhi , tempi)   ! re-initialize common block
+! call init1 (wi, rhi, tempi)   ! re-initialize common block
 !
 ! *** calculate indices ************************************************
 !
@@ -2673,9 +2673,9 @@ module mod_che_isorropia
 !     and does not significantly perturb the hso4-so4 equilibrium. the
 !     hydrochloric acid dissolved is calculated from the
 !     hcl(g) <-> (h+) + (cl-)
-!     equilibrium , using the (h+) from the sulfates.
+!     equilibrium, using the (h+) from the sulfates.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -2685,7 +2685,7 @@ module mod_che_isorropia
   subroutine calcha
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: alfa , delt , diak , x
+    real(rkx) :: alfa, delt, diak, x
     real(rkx) :: kapa
 ! character errinf*40
 !
@@ -2700,7 +2700,7 @@ module mod_che_isorropia
       delt = 0.5_rkx*(-(kapa+alfa)+diak)
 !   if (delt/kapa > 0.1d0) then
 !   write (errinf ,'(1pe10.3)') delt/kapa*100.0
-!   call pusherr (0033 , errinf)
+!   call pusherr (0033, errinf)
 !   end if
     end if
 !
@@ -2724,11 +2724,11 @@ module mod_che_isorropia
 !     that does not significantly perturb the hso4-so4 equilibrium.
 !     the hydrochloric acid dissolved is calculated from the
 !     hcl(g) -> hcl(aq)   and  hcl(aq) ->  (h+) + (cl-)
-!     equilibria , using (h+) from the sulfates.
+!     equilibria, using (h+) from the sulfates.
 !
 !     this is the version used by the inverse problem sover
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -2738,7 +2738,7 @@ module mod_che_isorropia
   subroutine calchap
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: alfa , delt
+    real(rkx) :: alfa, delt
 !
 ! *** is there a liquid phase?
 ! ******************************************
@@ -2760,12 +2760,12 @@ module mod_che_isorropia
 ! *** subroutine calcna
 ! *** calculates nitrates speciation
 !
-!     nitric acid in the liquid phase is assumed a minor species , that
+!     nitric acid in the liquid phase is assumed a minor species, that
 !     does not significantly perturb the hso4-so4 equilibrium. the nitric
 !     acid dissolved is calculated from the hno3(g) -> (h+) + (no3-)
-!     equilibrium , using the (h+) from the sulfates.
+!     equilibrium, using the (h+) from the sulfates.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -2775,7 +2775,7 @@ module mod_che_isorropia
   subroutine calcna
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: alfa , delt , diak , x
+    real(rkx) :: alfa, delt, diak, x
     real(rkx) :: kapa
 ! character errinf*40
 !
@@ -2790,7 +2790,7 @@ module mod_che_isorropia
       delt = 0.5_rkx*(-(kapa+alfa)+diak)
 !   if (delt/kapa > 0.1d0) then
 !   write (errinf ,'(1pe10.3)') delt/kapa*100.0
-!   call pusherr (0019 , errinf)    ! warning error: no solution
+!   call pusherr (0019, errinf)    ! warning error: no solution
 !   end if
     end if
 !
@@ -2810,14 +2810,14 @@ module mod_che_isorropia
 ! *** subroutine calcnap
 ! *** calculates nitrates speciation
 !
-!     nitric acid in the liquid phase is assumed a minor species , that
+!     nitric acid in the liquid phase is assumed a minor species, that
 !     does not significantly perturb the hso4-so4 equilibrium. the nitric
 !     acid dissolved is calculated from the hno3(g) -> hno3(aq) and
-!     hno3(aq) -> (h+) + (cl-) equilibria , using (h+) from the sulfates.
+!     hno3(aq) -> (h+) + (cl-) equilibria, using (h+) from the sulfates.
 !
 !     this is the version used by the inverse problem sover
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -2827,7 +2827,7 @@ module mod_che_isorropia
   subroutine calcnap
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: alfa , delt
+    real(rkx) :: alfa, delt
 !
 ! *** is there a liquid phase?
 ! ******************************************
@@ -2842,7 +2842,7 @@ module mod_che_isorropia
     molal(7) = molal(7) - delt
     ghno3 = molal(1)*molal(7)/alfa
 
-    write (*,*) alfa , molal(1) , molal(7) , ghno3 , delt
+    write (*,*) alfa, molal(1), molal(7), ghno3, delt
   end subroutine calcnap
 
 !======================================================================
@@ -2851,14 +2851,14 @@ module mod_che_isorropia
 ! *** subroutine calcnh3
 ! *** calculates ammonia in gas phase
 !
-!     ammonia in the gas phase is assumed a minor species , that
+!     ammonia in the gas phase is assumed a minor species, that
 !     does not significantly perturb the aerosol equilibrium.
 !     ammonia gas is calculated from the nh3(g) + (h+)(l) <==> (nh4+)(l)
-!     equilibrium , using (h+), (nh4+) from the aerosol solution.
+!     equilibrium, using (h+), (nh4+) from the aerosol solution.
 !
 !     this is the version used by the direct problem
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -2868,7 +2868,7 @@ module mod_che_isorropia
   subroutine calcnh3
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a1 , bb , cc , chi1 , chi2 , diak , psi
+    real(rkx) :: a1, bb, cc, chi1, chi2, diak, psi
 !
 ! *** is there a liquid phase?
 ! ******************************************
@@ -2903,11 +2903,11 @@ module mod_che_isorropia
 ! *** calculates ammonia in gas phase
 !
 !     ammonia gas is calculated from the nh3(g) + (h+)(l) <==> (nh4+)(l)
-!     equilibrium , using (h+), (nh4+) from the aerosol solution.
+!     equilibrium, using (h+), (nh4+) from the aerosol solution.
 !
 !     this is the version used by the inverse problem solver
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -2934,11 +2934,11 @@ module mod_che_isorropia
 ! *** isorropia code
 ! *** subroutine calcnha
 !
-!     this subroutine calculates the dissolution of hcl , hno3 at
-!     the presence of (h ,so4). hcl , hno3 are considered minor species ,
+!     this subroutine calculates the dissolution of hcl, hno3 at
+!     the presence of (h ,so4). hcl, hno3 are considered minor species ,
 !     that do not significantly affect the equilibrium point.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -2948,9 +2948,9 @@ module mod_che_isorropia
   subroutine calcnha
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a3 , a4 , c1 , c2 , c3 , chi3 , chi4 , delcl , delno , omega
+    real(rkx) :: a3, a4, c1, c2, c3, chi3, chi4, delcl, delno, omega
     integer(ik4) :: islv
-    real(rkx) m1 , m2 , m3
+    real(rkx) m1, m2, m3
     character(len = 40) :: errinf
 !
 ! *** special case; water = zero
@@ -3020,7 +3020,7 @@ module mod_che_isorropia
 !
 ! if ((delcl+delno)/molal(1) > 0.1d0) then
 ! write (errinf ,'(1pe10.3)') (delcl+delno)/molal(1)*100.0
-! call pusherr (0021 , errinf)
+! call pusherr (0021, errinf)
 ! end if
 !
 ! *** effect on liquid phase
@@ -3043,11 +3043,11 @@ module mod_che_isorropia
 !
 !     this subroutine calculates the gas phase nitric and hydrochloric
 !     acid. concentrations are calculated from the dissolution
-!     equilibria , using (h+), (cl-), (no3-) in the aerosol phase.
+!     equilibria, using (h+), (cl-), (no3-) in the aerosol phase.
 !
 !     this is the version used by the inverse problem solver
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -3057,7 +3057,7 @@ module mod_che_isorropia
   subroutine calcnhp
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a3 , a4 , delt
+    real(rkx) :: a3, a4, delt
 !
 ! *** is there a liquid phase?
 ! ******************************************
@@ -3067,7 +3067,7 @@ module mod_che_isorropia
 ! ***********************************
     a3 = xk3*r*temp*(water/gama(11))**2
     a4 = xk4*r*temp*(water/gama(10))**2
-    molal(1) = molal(1) + waer(4) + waer(5)    ! h+ increases because no3 , cl are added.
+    molal(1) = molal(1) + waer(4) + waer(5)    ! h+ increases because no3, cl are added.
 !
 ! *** calculate concentrations
 ! ****************************************** *** assume that 'delt'
@@ -3092,13 +3092,13 @@ module mod_che_isorropia
 ! *** subroutine calchco3
 ! *** corrects for h+ when crustals are in excess
 !
-!     carbonates are in excess , hco3- is assumed a minor species ,
+!     carbonates are in excess, hco3- is assumed a minor species ,
 !     the h+ concentration is calculated from the
 !     co2(aq) + h2o <-> (hco3-) + (h+)
 !     hco3- <-> (h+) + (co3--) equilibrium.
 !     the co3-- concentration is assumed negligible with respect to hco3-
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -3162,7 +3162,7 @@ module mod_che_isorropia
 ! *** subroutine calcamaq
 ! *** this subroutine calculates the nh3(aq) generated from (h ,nh4+).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -3172,8 +3172,8 @@ module mod_che_isorropia
   subroutine calcamaq(nh4i,ohi,delt)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a22 , akw , bb , cc , dd , del1 , del2 , delt
-    real(rkx) :: ohi , om1 , om2
+    real(rkx) :: a22, akw, bb, cc, dd, del1, del2, delt
+    real(rkx) :: ohi, om1, om2
     real(rkx) :: nh4i
 ! character errinf*40
 !
@@ -3207,7 +3207,7 @@ module mod_che_isorropia
 !
 ! if (delta/hyd > 0.1d0) then
 ! write (errinf ,'(1pe10.3)') delta/hyd*100.0
-! call pusherr (0020 , errinf)
+! call pusherr (0020, errinf)
 ! end if
   end subroutine calcamaq
 !
@@ -3218,7 +3218,7 @@ module mod_che_isorropia
 !
 !     this subroutine calculates the nh3(aq) generated from (h ,nh4+).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -3228,8 +3228,8 @@ module mod_che_isorropia
   subroutine calcamaq2(ggnh3,nh4i,ohi,nh3aq)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a22 , akw , alf1 , alf2 , bb , cc , del , ggnh3 , ohi
-    real(rkx) :: nh4i , nh3aq
+    real(rkx) :: a22, akw, alf1, alf2, bb, cc, del, ggnh3, ohi
+    real(rkx) :: nh4i, nh3aq
 !
 ! *** equilibrium constants
 !
@@ -3260,7 +3260,7 @@ module mod_che_isorropia
 !
 !     this subroutine calculates the hcl(aq) generated from (h+,cl-).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -3270,7 +3270,7 @@ module mod_che_isorropia
   subroutine calcclaq(cli,hi,delt)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a32 , bb , cc , dd , del1 , del2 , delt , hi , om1 , om2
+    real(rkx) :: a32, bb, cc, dd, del1, del2, delt, hi, om1, om2
     real(rkx) :: cli
 !
 ! *** equilibrium constants
@@ -3306,7 +3306,7 @@ module mod_che_isorropia
 !
 !     this subroutine calculates the hcl(aq) generated from (h+,cl-).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -3316,7 +3316,7 @@ module mod_che_isorropia
   subroutine calcclaq2(ggcl,cli,hi,claq)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a32 , akw , alf1 , alf2 , claq , coef , del1 , ggcl , hi
+    real(rkx) :: a32, akw, alf1, alf2, claq, coef, del1, ggcl, hi
     real(rkx) :: cli
 !
 ! *** equilibrium constants
@@ -3346,7 +3346,7 @@ module mod_che_isorropia
 !
 !     this subroutine calculates the hno3(aq) generated from (h ,no3-).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -3356,8 +3356,8 @@ module mod_che_isorropia
   subroutine calcniaq(no3i,hi,delt)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a42 , bb , cc , dd , del1 , del2 , om1 , om2
-    real(rkx) :: no3i , hi , delt
+    real(rkx) :: a42, bb, cc, dd, del1, del2, om1, om2
+    real(rkx) :: no3i, hi, delt
 !
 ! *** equilibrium constants
 !
@@ -3377,7 +3377,7 @@ module mod_che_isorropia
 ! *** get appropriate root.
 !
     if ( del1<zero .or. del1>hi .or. del1>no3i ) then
-      !print * , delt
+      !print *, delt
       delt = zero
     else
       delt = del1
@@ -3398,7 +3398,7 @@ module mod_che_isorropia
 !
 !     this subroutine calculates the undissociated hno3(aq)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -3408,8 +3408,8 @@ module mod_che_isorropia
   subroutine calcniaq2(ggno3,no3i,hi,no3aq)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a42 , akw , alf1 , alf2 , alf3 , bb , cc , del1 , ggno3 , hi
-    real(rkx) :: no3i , no3aq
+    real(rkx) :: a42, akw, alf1, alf2, alf3, bb, cc, del1, ggno3, hi
+    real(rkx) :: no3i, no3aq
 !
 ! *** equilibrium constants
 !
@@ -3442,7 +3442,7 @@ module mod_che_isorropia
 !     1. ion pair concentrations (from [molar] array)
 !     2. water content of liquid aerosol phase (from zsr correlation)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -3452,7 +3452,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aml5 , frcl , frnh4 , frno3 , hso4i , so4i , tots4
+    real(rkx) :: aml5, frcl, frnh4, frno3, hso4i, so4i, tots4
     integer(ik4) :: i
     character(len=1) :: sc
 !
@@ -3639,7 +3639,7 @@ module mod_che_isorropia
       aml5 = waer(3) - 2._rkx*molalr(4)             ! "free" nh4
       molalr(5) = max(min(aml5,waer(4)),zero)      ! nh4no3 = min("free", no3)
 !
-!   *** nh4-so4-no3-na-cl system ; sulfate poor , sodium poor case
+!   *** nh4-so4-no3-na-cl system ; sulfate poor, sodium poor case
 !
     else if ( sc=='q' ) then
       molalr(2) = psi1                                     ! na2so4
@@ -3647,7 +3647,7 @@ module mod_che_isorropia
       molalr(5) = psi5                                     ! nh4no3
       molalr(6) = psi4                                     ! nh4cl
 !
-!   *** nh4-so4-no3-na-cl system ; sulfate poor , sodium rich case
+!   *** nh4-so4-no3-na-cl system ; sulfate poor, sodium rich case
 !
     else if ( sc=='r' ) then
       molalr(1) = psi3                                     ! nacl
@@ -3668,7 +3668,7 @@ module mod_che_isorropia
       molalr(21) = psi8                                     ! mgso4
 !
 !   *** nh4-so4-no3-na-cl-ca-k-mg system ; sulfate poor ,
-!   crustal&sodium rich , crustal poor case
+!   crustal&sodium rich, crustal poor case
     else if ( sc=='u' ) then
       molalr(1) = psi3                                     ! nacl
       molalr(2) = psi1                                     ! na2so4
@@ -3679,7 +3679,7 @@ module mod_che_isorropia
       molalr(21) = psi8                                     ! mgso4
 !
 !   *** nh4-so4-no3-na-cl-ca-k-mg system ; sulfate poor ,
-!   crustal&sodium rich , crustal rich case
+!   crustal&sodium rich, crustal rich case
     else if ( sc=='w' ) then
       molalr(1) = psi7                                     ! nacl
       molalr(3) = psi8                                     ! nano3
@@ -3697,13 +3697,13 @@ module mod_che_isorropia
 !   *** unknown case
 !
 !   else
-!   call pusherr (1001 , ' ') ! fatal error: case not supported
+!   call pusherr (1001, ' ') ! fatal error: case not supported
     end if
 !
 ! *** calculate water content ; zsr correlation ***********************
 !
     water = zero
-    do i = 1 , npair
+    do i = 1, npair
       water = water + molalr(i)/m0(i)
     end do
     water = max(water,tiny1)
@@ -3719,7 +3719,7 @@ module mod_che_isorropia
 !     solutions ; the 'dry' solution (subroutine drycase) and the
 !     'saturated liquid' solution (subroutine liqcase).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -3737,11 +3737,11 @@ module mod_che_isorropia
       subroutine liqcase
       end subroutine liqcase
     end interface
-    real(rkx) :: clco , cna2so , cnaclo , cnahso , cnano , cnh42so , cnh4clo , &
-         cnh4hso , cnh4n3o , dambis , damchl , damg , damnit , damsul ,   &
-         dhag , dlc , dnag , dsobis , dsochl , dsonit
-    real(rkx) :: dsosul , ghclo , ghno3o , gnh3o , onemwf , rhdry , rhi , &
-         rhliq , wf
+    real(rkx) :: clco, cna2so, cnaclo, cnahso, cnano, cnh42so, cnh4clo, &
+         cnh4hso, cnh4n3o, dambis, damchl, damg, damnit, damsul,   &
+         dhag, dlc, dnag, dsobis, dsochl, dsonit
+    real(rkx) :: dsosul, ghclo, ghno3o, gnh3o, onemwf, rhdry, rhi, &
+         rhliq, wf
     integer(ik4) :: i
 !
 ! *** find weight factor **********************************************
@@ -3792,7 +3792,7 @@ module mod_che_isorropia
 !   *** adjust things for the case that the liquid sub predicts dry
 !   aerosol
       if ( water<=tiny1 ) then
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero             ! aqueous phase
         end do
         water = zero
@@ -3875,7 +3875,7 @@ module mod_che_isorropia
 !     solutions ; the 'dry' solution (subroutine drycase) and the
 !     'saturated liquid' solution (subroutine liqcase).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -3892,14 +3892,14 @@ module mod_che_isorropia
       subroutine liqcase
       end subroutine liqcase
     end interface
-    real(rkx) :: ccac2l , ccan32o , ccaso , ck2so , ckclo , ckhso , ckn3o , &
-         clco , cmgc2l , cmgn32o , cmgso , cna2so , cnaclo , cnahso , cnano , &
-         cnh42so , cnh4clo , cnh4hso , cnh4n3o , dambis
-    real(rkx) :: damchl , damg , damnit , damsul , dcachl , dcanit , dcasul , &
-         dhag , dlc , dmgchl , dmgnit , dmgsul , dnag , dpobis , dpochl , &
-         dponit , dposul , dsobis , dsochl , dsonit
-    real(rkx) :: dsosul , ghclo , ghno3o , gnh3o , onemwf , rhdry , rhi , &
-         rhliq , wf
+    real(rkx) :: ccac2l, ccan32o, ccaso, ck2so, ckclo, ckhso, ckn3o, &
+         clco, cmgc2l, cmgn32o, cmgso, cna2so, cnaclo, cnahso, cnano, &
+         cnh42so, cnh4clo, cnh4hso, cnh4n3o, dambis
+    real(rkx) :: damchl, damg, damnit, damsul, dcachl, dcanit, dcasul, &
+         dhag, dlc, dmgchl, dmgnit, dmgsul, dnag, dpobis, dpochl, &
+         dponit, dposul, dsobis, dsochl, dsonit
+    real(rkx) :: dsosul, ghclo, ghno3o, gnh3o, onemwf, rhdry, rhi, &
+         rhliq, wf
     integer(ik4) :: i
 !
 ! *** find weight factor **********************************************
@@ -3973,7 +3973,7 @@ module mod_che_isorropia
 ! *** adjust things for the case that the liquid sub predicts dry
 ! aerosol
     if ( water<=tiny1 ) then
-      do i = 1 , nions
+      do i = 1, nions
         molal(i) = zero               ! aqueous phase
       end do
       water = zero
@@ -4095,7 +4095,7 @@ module mod_che_isorropia
 !     solutions ; the 'dry' solution (subroutine drycase) and the
 !     'saturated liquid' solution (subroutine liqcase).   (reverse problem)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -4113,10 +4113,10 @@ module mod_che_isorropia
       subroutine liqcase
       end subroutine liqcase
     end interface
-    real(rkx) :: a2 , a3 , a4 , a8 , clco , cna2so , cnaclo , cnahso , cnano , &
-         cnh42so , cnh4clo , cnh4hso , cnh4n3o , dambis , dlc , dsobis ,  &
-         hien , hieq , onemwf , rhdry
-    real(rkx) :: rhi , rhliq , wf
+    real(rkx) :: a2, a3, a4, a8, clco, cna2so, cnaclo, cnahso, cnano, &
+         cnh42so, cnh4clo, cnh4hso, cnh4n3o, dambis, dlc, dsobis,  &
+         hien, hieq, onemwf, rhdry
+    real(rkx) :: rhi, rhliq, wf
     integer(ik4) :: i
 !
 ! *** find weight factor **********************************************
@@ -4165,7 +4165,7 @@ module mod_che_isorropia
 !   aerosol
       if ( water<=tiny1 ) then
         water = zero
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call drycase
@@ -4237,7 +4237,7 @@ module mod_che_isorropia
 !     solutions ; the 'dry' solution (subroutine drycase) and the
 !     'saturated liquid' solution (subroutine liqcase).   (reverse problem)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -4255,11 +4255,11 @@ module mod_che_isorropia
       subroutine liqcase
       end subroutine liqcase
     end interface
-    real(rkx) :: a2 , a3 , a4 , a8 , ccac2l , ccan32o , ccaso , ck2so , ckclo ,&
-         ckhso , ckn3o , clco , cmgc2l , cmgn32o , cmgso , cna2so ,       &
-         cnaclo , cnahso , cnano , cnh42so
-    real(rkx) :: cnh4clo , cnh4hso , cnh4n3o , dambis , dlc , dpobis , &
-         dsobis , hien , hieq , onemwf , rhdry , rhi , rhliq , wf
+    real(rkx) :: a2, a3, a4, a8, ccac2l, ccan32o, ccaso, ck2so, ckclo ,&
+         ckhso, ckn3o, clco, cmgc2l, cmgn32o, cmgso, cna2so,       &
+         cnaclo, cnahso, cnano, cnh42so
+    real(rkx) :: cnh4clo, cnh4hso, cnh4n3o, dambis, dlc, dpobis, &
+         dsobis, hien, hieq, onemwf, rhdry, rhi, rhliq, wf
     integer(ik4) :: i
 !
 ! *** find weight factor **********************************************
@@ -4331,7 +4331,7 @@ module mod_che_isorropia
 ! aerosol
     if ( water<=tiny1 ) then
       water = zero
-      do i = 1 , nions
+      do i = 1, nions
         molal(i) = zero
       end do
       call drycase
@@ -4415,7 +4415,7 @@ module mod_che_isorropia
 ! *** subroutine calchs4
 ! *** this subroutine calculates the hso4 generated from (h ,so4).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -4425,10 +4425,10 @@ module mod_che_isorropia
   subroutine calchs4(hi,so4i,hso4i,delta)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a8 , bb , cc , dd , delta , delta1 , delta2 , hi , &
-         hso4i , so4i , sqdd
+    real(rkx) :: a8, bb, cc, dd, delta, delta1, delta2, hi, &
+         hso4i, so4i, sqdd
 !
-! *** if too little water , dont solve
+! *** if too little water, dont solve
 !
     if ( water<=1D1*tiny1 ) then
       delta = zero
@@ -4462,11 +4462,11 @@ module mod_che_isorropia
 !
 ! ** compare delta to total h+ ; estimate effect of hso4 ***************
 !
-! hyd = max(hi , molal(1))
+! hyd = max(hi, molal(1))
 ! if (hyd > tiny1) then
 ! if (delta/hyd > 0.1d0) then
 ! write (errinf ,'(1pe10.3)') delta/hyd*100.0
-! call pusherr (0020 , errinf)
+! call pusherr (0020, errinf)
 ! end if
 ! end if
 !
@@ -4477,7 +4477,7 @@ module mod_che_isorropia
 ! *** isorropia code
 ! *** subroutine calcph
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -4487,7 +4487,7 @@ module mod_che_isorropia
   subroutine calcph(gg,hi,ohi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: akw , bb , cc , cn , dd , gg , hi , ohi
+    real(rkx) :: akw, bb, cc, cn, dd, gg, hi, ohi
 !
     akw = xkw*rh*water*water
     cn = sqrt(akw)
@@ -4517,7 +4517,7 @@ module mod_che_isorropia
 !     method. the binary activity coefficients are calculated by
 !     kusik-meisner relation (subroutine kmtab or subroutine kmful).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 !
 ! *** written by christos fountoukis & athanasios nenes
@@ -4550,7 +4550,7 @@ module mod_che_isorropia
 !     aerosol system. the binary activity coefficients are calculated by
 !     kusik-meisner relation (subroutine kmtab or subroutine kmful4).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 !
 ! *** written by christos fountoukis & athanasios nenes
@@ -4560,31 +4560,31 @@ module mod_che_isorropia
   subroutine calcact4
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: errin , errou
-    integer(ik4) :: i , j
-    real(rkx) , dimension(6,4) :: g0
-    real(rkx) , dimension(6) :: f1
-    real(rkx) , dimension(4) :: f2a , f2b
-    real(rkx) :: zpl , zmi , agama , sion , h , ch
-    real(rkx) :: mpl , xij , yji
+    real(rkx) :: errin, errou
+    integer(ik4) :: i, j
+    real(rkx), dimension(6,4) :: g0
+    real(rkx), dimension(6) :: f1
+    real(rkx), dimension(4) :: f2a, f2b
+    real(rkx) :: zpl, zmi, agama, sion, h, ch
+    real(rkx) :: mpl, xij, yji
     data g0/24*0_rkx/
 !
 ! *** save activities in old array *************************************
 !
     if ( frst ) then               ! outer loop
-      do i = 1 , npair
+      do i = 1, npair
         gamou(i) = gama(i)
       end do
     end if
 !
-    do i = 1 , npair               ! inner loop
+    do i = 1, npair               ! inner loop
       gamin(i) = gama(i)
     end do
 !
 ! *** calculate ionic activity of solution *****************************
 !
     ionic = 0.0
-    do i = 1 , nions
+    do i = 1, nions
       ionic = ionic + molal(i)*z(i)*z(i)
     end do
     ionic = max(min(0.5_rkx*ionic/water,100._rkx),tiny1)
@@ -4612,7 +4612,7 @@ module mod_che_isorropia
     sion = sqrt(ionic)
     h = agama*sion/(1+sion)
 !
-    do i = 1 , 4
+    do i = 1, 4
       f1(i) = 0.0
       f2a(i) = 0.0
       f2b(i) = 0.0
@@ -4620,10 +4620,10 @@ module mod_che_isorropia
     f1(5) = 0.0
     f1(6) = 0.0
 !
-    do i = 1 , 3
+    do i = 1, 3
       zpl = z(i)
       mpl = molal(i)/water
-      do j = 1 , 4
+      do j = 1, 4
         zmi = z(j+3)
         ch = 0.25_rkx*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
@@ -4633,10 +4633,10 @@ module mod_che_isorropia
       end do
     end do
 !
-    do i = 4 , 6
+    do i = 4, 6
       zpl = z(i+4)
       mpl = molal(i+4)/water
-      do j = 1 , 4
+      do j = 1, 4
         zmi = z(j+3)
         if ( j==3 ) then
           if ( i==4 .or. i==6 ) go to 100
@@ -4680,7 +4680,7 @@ module mod_che_isorropia
 !
 ! *** convert log (gama) coefficients to gama **************************
 !
-    do i = 1 , npair
+    do i = 1, npair
       gama(i) = max(-5.0_rkx,min(gama(i),5.0_rkx))       ! f77 library routine
       gama(i) = 10.0**gama(i)
 !   gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
@@ -4692,7 +4692,7 @@ module mod_che_isorropia
 !
     if ( frst ) then
       errou = zero                       ! convergence criterion
-      do i = 1 , npair
+      do i = 1, npair
         errou = max(errou,abs((gamou(i)-gama(i))/gamou(i)))
       end do
       calaou = errou>=epsact             ! setup flags
@@ -4702,7 +4702,7 @@ module mod_che_isorropia
 ! innr calculation loop ; always
 !
     errin = zero                         ! convergence criterion
-    do i = 1 , npair
+    do i = 1, npair
       errin = max(errin,abs((gamin(i)-gama(i))/gamin(i)))
     end do
     calain = errin>=epsact
@@ -4712,12 +4712,12 @@ module mod_che_isorropia
     contains
       real(rkx) function ga(i,j)
         implicit none
-        integer(ik4) , intent(in) :: i , j
+        integer(ik4), intent(in) :: i, j
         ga = (f1(i)/z(i)+f2a(j)/z(j+3))/(z(i)+z(j+3)) - h
       end function ga
       real(rkx) function gb(i,j)
         implicit none
-        integer(ik4) , intent(in) :: i , j
+        integer(ik4), intent(in) :: i, j
         gb = (f1(i)/z(i+4)+f2b(j)/z(j+3))/(z(i+4)+z(j+3)) - h
       end function gb
   end subroutine calcact4
@@ -4731,7 +4731,7 @@ module mod_che_isorropia
 !     the binary activity coefficients are calculated by
 !     kusik-meisner relation (subroutine kmtab or subroutine kmful3).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 !
 ! *** written by christos fountoukis & athanasios nenes
@@ -4741,30 +4741,30 @@ module mod_che_isorropia
   subroutine calcact3
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: errin , errou
-    integer(ik4) :: i , j
-    real(rkx) , dimension(6,4) :: g0
-    real(rkx) , dimension(3) ::  f1
-    real(rkx) , dimension(4) ::  f2
-    real(rkx) :: zpl , zmi , agama , sion , h , ch
-    real(rkx) :: mpl , xij , yji
+    real(rkx) :: errin, errou
+    integer(ik4) :: i, j
+    real(rkx), dimension(6,4) :: g0
+    real(rkx), dimension(3) ::  f1
+    real(rkx), dimension(4) ::  f2
+    real(rkx) :: zpl, zmi, agama, sion, h, ch
+    real(rkx) :: mpl, xij, yji
 !
 ! *** save activities in old array *************************************
 !
     if ( frst ) then               ! outer loop
-      do i = 1 , 13
+      do i = 1, 13
         gamou(i) = gama(i)
       end do
     end if
 !
-    do i = 1 , 13                 ! inner loop
+    do i = 1, 13                 ! inner loop
       gamin(i) = gama(i)
     end do
 !
 ! *** calculate ionic activity of solution *****************************
 !
     ionic = 0.0
-    do i = 1 , 7
+    do i = 1, 7
       ionic = ionic + molal(i)*z(i)*z(i)
     end do
     ionic = max(min(0.5_rkx*ionic/water,100._rkx),tiny1)
@@ -4791,16 +4791,16 @@ module mod_che_isorropia
     sion = sqrt(ionic)
     h = agama*sion/(1+sion)
 !
-    do i = 1 , 3
+    do i = 1, 3
       f1(i) = 0.0
       f2(i) = 0.0
     end do
     f2(4) = 0.0
 !
-    do i = 1 , 3
+    do i = 1, 3
       zpl = z(i)
       mpl = molal(i)/water
-      do j = 1 , 4
+      do j = 1, 4
         zmi = z(j+3)
         ch = 0.25_rkx*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
@@ -4830,7 +4830,7 @@ module mod_che_isorropia
 !
 ! *** convert log (gama) coefficients to gama **************************
 !
-    do i = 1 , 13
+    do i = 1, 13
       gama(i) = max(-5.0_rkx,min(gama(i),5.0_rkx))       ! f77 library routine
       gama(i) = 10.0_rkx**gama(i)
 !     gama(i) = exp(ln10*gama(i))
@@ -4844,7 +4844,7 @@ module mod_che_isorropia
 !
     if ( frst ) then
       errou = zero                       ! convergence criterion
-      do i = 1 , 13
+      do i = 1, 13
         errou = max(errou,abs((gamou(i)-gama(i))/gamou(i)))
       end do
       calaou = errou>=epsact             ! setup flags
@@ -4854,7 +4854,7 @@ module mod_che_isorropia
 ! innr calculation loop ; always
 !
     errin = zero                         ! convergence criterion
-    do i = 1 , 13
+    do i = 1, 13
       errin = max(errin,abs((gamin(i)-gama(i))/gamin(i)))
     end do
     calain = errin>=epsact
@@ -4863,7 +4863,7 @@ module mod_che_isorropia
     contains
       real(rkx) function g(i,j)
         implicit none
-        integer(ik4) , intent(in) :: i , j
+        integer(ik4), intent(in) :: i, j
         g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
       end function g
   end subroutine calcact3
@@ -4877,7 +4877,7 @@ module mod_che_isorropia
 !     the binary activity coefficients are calculated by
 !     kusik-meisner relation (subroutine kmtab or subroutine kmful2).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 !
 ! *** written by christos fountoukis & athanasios nenes
@@ -4887,18 +4887,18 @@ module mod_che_isorropia
   subroutine calcact2
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: errin , errou
-    integer(ik4) :: i , j
-    real(rkx) , dimension(6,4) :: g0
-    real(rkx) , dimension(3) :: f1
-    real(rkx) , dimension(4) :: f2
-    real(rkx) :: zpl , zmi , agama , sion , h , ch
-    real(rkx) :: mpl , xij , yji
+    real(rkx) :: errin, errou
+    integer(ik4) :: i, j
+    real(rkx), dimension(6,4) :: g0
+    real(rkx), dimension(3) :: f1
+    real(rkx), dimension(4) :: f2
+    real(rkx) :: zpl, zmi, agama, sion, h, ch
+    real(rkx) :: mpl, xij, yji
 !
 ! *** save activities in old array *************************************
 !
     if ( frst ) then            ! outer loop
-      do i = 7 , 10
+      do i = 7, 10
         gamou(i) = gama(i)
       end do
       gamou(4) = gama(4)
@@ -4906,7 +4906,7 @@ module mod_che_isorropia
       gamou(13) = gama(13)
     end if
 !
-    do i = 7 , 10                  ! inner loop
+    do i = 7, 10                  ! inner loop
       gamin(i) = gama(i)
     end do
     gamin(4) = gama(4)
@@ -4918,7 +4918,7 @@ module mod_che_isorropia
     ionic = 0.0
     molal(2) = zero
     molal(4) = zero
-    do i = 1 , 7
+    do i = 1, 7
       ionic = ionic + molal(i)*z(i)*z(i)
     end do
     ionic = max(min(0.5_rkx*ionic/water,100._rkx),tiny1)
@@ -4944,16 +4944,16 @@ module mod_che_isorropia
     sion = sqrt(ionic)
     h = agama*sion/(1+sion)
 !
-    do i = 1 , 3
+    do i = 1, 3
       f1(i) = 0.0
       f2(i) = 0.0
     end do
     f2(4) = 0.0
 !
-    do i = 1 , 3 , 2
+    do i = 1, 3, 2
       zpl = z(i)
       mpl = molal(i)/water
-      do j = 2 , 4
+      do j = 2, 4
         zmi = z(j+3)
         ch = 0.25_rkx*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
@@ -4983,7 +4983,7 @@ module mod_che_isorropia
 !
 ! *** convert log (gama) coefficients to gama **************************
 !
-    do i = 7 , 10
+    do i = 7, 10
       gama(i) = max(-5.0_rkx,min(gama(i),5.0_rkx))       ! f77 library routine
       gama(i) = 10.0**gama(i)
 !   gama(i) = exp(ln10*gama(i))
@@ -5015,7 +5015,7 @@ module mod_che_isorropia
 !
     if ( frst ) then
       errou = zero                       ! convergence criterion
-      do i = 7 , 10
+      do i = 7, 10
         errou = max(errou,abs((gamou(i)-gama(i))/gamou(i)))
       end do
       errou = max(errou,abs((gamou(4)-gama(4))/gamou(4)))
@@ -5029,7 +5029,7 @@ module mod_che_isorropia
 ! innr calculation loop ; always
 !
     errin = zero                         ! convergence criterion
-    do i = 7 , 10
+    do i = 7, 10
       errin = max(errin,abs((gamin(i)-gama(i))/gamin(i)))
     end do
     errin = max(errin,abs((gamin(4)-gama(4))/gamin(4)))
@@ -5041,7 +5041,7 @@ module mod_che_isorropia
     contains
       real(rkx) function g(i,j)
         implicit none
-        integer(ik4) , intent(in) :: i , j
+        integer(ik4), intent(in) :: i, j
         g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
       end function g
   end subroutine calcact2
@@ -5055,7 +5055,7 @@ module mod_che_isorropia
 !     the binary activity coefficients are calculated by
 !     kusik-meisner relation (subroutine kmtab or subroutine kmful1).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 !
 ! *** written by christos fountoukis & athanasios nenes
@@ -5065,18 +5065,18 @@ module mod_che_isorropia
   subroutine calcact1
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: errin , errou
-    integer(ik4) :: i , j
-    real(rkx) , dimension(6,4) :: g0
-    real(rkx) , dimension(3) :: f1
-    real(rkx) , dimension(4) :: f2
-    real(rkx) :: zpl , zmi , agama , sion , h , ch
-    real(rkx) :: mpl , xij , yji
+    real(rkx) :: errin, errou
+    integer(ik4) :: i, j
+    real(rkx), dimension(6,4) :: g0
+    real(rkx), dimension(3) :: f1
+    real(rkx), dimension(4) :: f2
+    real(rkx) :: zpl, zmi, agama, sion, h, ch
+    real(rkx) :: mpl, xij, yji
 !
 ! *** save activities in old array *************************************
 !
     if ( frst ) then            ! outer loop
-      do i = 7 , 9
+      do i = 7, 9
         gamou(i) = gama(i)
       end do
       gamou(4) = gama(4)
@@ -5084,7 +5084,7 @@ module mod_che_isorropia
       gamou(13) = gama(13)
     end if
 !
-    do i = 7 , 9                  ! inner loop
+    do i = 7, 9                  ! inner loop
       gamin(i) = gama(i)
     end do
     gamin(4) = gama(4)
@@ -5097,7 +5097,7 @@ module mod_che_isorropia
     molal(2) = zero
     molal(4) = zero
     molal(7) = zero
-    do i = 1 , 7
+    do i = 1, 7
       ionic = ionic + molal(i)*z(i)*z(i)
     end do
     ionic = max(min(0.5_rkx*ionic/water,100._rkx),tiny1)
@@ -5122,16 +5122,16 @@ module mod_che_isorropia
     sion = sqrt(ionic)
     h = agama*sion/(1+sion)
 !
-    do i = 1 , 3
+    do i = 1, 3
       f1(i) = 0.0
       f2(i) = 0.0
     end do
     f2(4) = 0.0
 !
-    do i = 1 , 3 , 2
+    do i = 1, 3, 2
       zpl = z(i)
       mpl = molal(i)/water
-      do j = 2 , 3
+      do j = 2, 3
         zmi = z(j+3)
         ch = 0.25_rkx*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
@@ -5151,7 +5151,7 @@ module mod_che_isorropia
 ! gama(06) = g(3 ,1)*zz(06)                     ! nh4cl
     gama(07) = g(1,2)*zz(07)                        ! 2h-so4
     gama(08) = g(1,3)*zz(08)                        ! h-hso4
-    gama(09) = 0.5_rkx*(gama(04)+gama(07))             ! nh4hso4 ; aim (wexler & seinfeld , 1991)
+    gama(09) = 0.5_rkx*(gama(04)+gama(07))             ! nh4hso4 ; aim (wexler & seinfeld, 1991)
 ! gama(10) = g(1 ,4)*zz(10)                     ! hno3
 ! gama(11) = g(1 ,1)*zz(11)                     ! hcl
 ! gama(12) = g(2 ,3)*zz(12)                     ! nahso4
@@ -5161,7 +5161,7 @@ module mod_che_isorropia
 !
 ! *** convert log (gama) coefficients to gama **************************
 !
-    do i = 7 , 9
+    do i = 7, 9
       gama(i) = max(-5.0_rkx,min(gama(i),5.0_rkx))       ! f77 library routine
       gama(i) = 10.0**gama(i)
 !   gama(i) = exp(ln10*gama(i))
@@ -5175,7 +5175,7 @@ module mod_che_isorropia
 ! gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
 ! gama(4) = gamin(4)*(1.0-urf) + urf*gama(4)  ! under-relax gama's
 !
-! gama(5) = max(-5.0d0 , min(gama(5),5.0d0) ) ! f77 library routine
+! gama(5) = max(-5.0d0, min(gama(5),5.0d0) ) ! f77 library routine
 ! gama(5) = 10.0**gama(5)
 ! gama(i) = exp(ln10*gama(i))
 ! gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
@@ -5193,11 +5193,11 @@ module mod_che_isorropia
 !
     if ( frst ) then
       errou = zero                       ! convergence criterion
-      do i = 7 , 9
+      do i = 7, 9
         errou = max(errou,abs((gamou(i)-gama(i))/gamou(i)))
       end do
       errou = max(errou,abs((gamou(4)-gama(4))/gamou(4)))
-!   errou = max(errou , abs((gamou(5)-gama(5))/gamou(5)))
+!   errou = max(errou, abs((gamou(5)-gama(5))/gamou(5)))
       errou = max(errou,abs((gamou(13)-gama(13))/gamou(13)))
 !
       calaou = errou>=epsact             ! setup flags
@@ -5207,18 +5207,18 @@ module mod_che_isorropia
 ! innr calculation loop ; always
 !
     errin = zero                         ! convergence criterion
-    do i = 7 , 9
+    do i = 7, 9
       errin = max(errin,abs((gamin(i)-gama(i))/gamin(i)))
     end do
     errin = max(errin,abs((gamin(4)-gama(4))/gamin(4)))
-! errin = max (errin , abs((gamin(5)-gama(5))/gamin(5)))
+! errin = max (errin, abs((gamin(5)-gama(5))/gamin(5)))
     errin = max(errin,abs((gamin(13)-gama(13))/gamin(13)))
     calain = errin>=epsact
 !
     iclact = iclact + 1                  ! increment activity call counter
     contains
       real(rkx) function g(i,j)
-        integer(ik4) , intent(in) :: i , j
+        integer(ik4), intent(in) :: i, j
         g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
       end function g
   end subroutine calcact1
@@ -5229,7 +5229,7 @@ module mod_che_isorropia
 ! *** subroutine rstgam
 ! *** resets activity coefficient arrays to default value of 0.1
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -5240,7 +5240,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     implicit none
     integer(ik4) :: i
-    do i = 1 , npair
+    do i = 1, npair
       gama(i) = 0.1_rkx
     end do
   end subroutine rstgam
@@ -5253,7 +5253,7 @@ module mod_che_isorropia
 !     for an ammonium-sulfate-nitrate-chloride-sodium-calcium-potassium-magnesium
 !     aerosol system.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 !
 ! *** written by christos fountoukis & athanasios nenes
@@ -5263,17 +5263,17 @@ module mod_che_isorropia
   subroutine kmful4(ionic,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10, &
                     g11,g12,g15,g16,g17,g18,g19,g20,g21,g22,g23)
     implicit none
-    real(rkx) :: cf1 , cf2 , g01 , g02 , g03 , g04 , g05 , g06 , g07 , g08 , &
-         g09 , g10 , g11 , g12 , g15 , g16 , g17 , g18 , g19 , g20
-    real(rkx) :: g21 , g22 , g23 , sion , tc , ti , z01 , z02 , z03 , z04 , &
-         z05 , z06 , z07 , z08 , z10 , z11 , z15 , z16 , z17 , z19
-    real(rkx) :: z20 , z21 , z22 , z23
-    real(rkx) :: ionic , temp
-    data z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11 , z15 ,&
-         z16 , z17 , z19 , z20 , z21 , z22 , z23 &
-         /1.0_rkx , 2.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , &
-         1.0_rkx , 1.0_rkx , 2.0_rkx ,  2.0_rkx , 2.0_rkx , 1.0_rkx , 1.0_rkx , 4.0_rkx , &
-         2.0_rkx , 2.0_rkx/
+    real(rkx) :: cf1, cf2, g01, g02, g03, g04, g05, g06, g07, g08, &
+         g09, g10, g11, g12, g15, g16, g17, g18, g19, g20
+    real(rkx) :: g21, g22, g23, sion, tc, ti, z01, z02, z03, z04, &
+         z05, z06, z07, z08, z10, z11, z15, z16, z17, z19
+    real(rkx) :: z20, z21, z22, z23
+    real(rkx) :: ionic, temp
+    data z01, z02, z03, z04, z05, z06, z07, z08, z10, z11, z15 ,&
+         z16, z17, z19, z20, z21, z22, z23 &
+         /1.0_rkx, 2.0_rkx, 1.0_rkx, 2.0_rkx, 1.0_rkx, 1.0_rkx, 2.0_rkx, 1.0_rkx, &
+         1.0_rkx, 1.0_rkx, 2.0_rkx,  2.0_rkx, 2.0_rkx, 1.0_rkx, 1.0_rkx, 4.0_rkx, &
+         2.0_rkx, 2.0_rkx/
 !
     sion = sqrt(ionic)
 !
@@ -5337,7 +5337,7 @@ module mod_che_isorropia
 ! *** calculates binary activity coefficients by kusik-meissner method
 !     for an ammonium-sulfate-nitrate-chloride-sodium aerosol system.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 !
 ! *** written by christos fountoukis & athanasios nenes
@@ -5347,13 +5347,13 @@ module mod_che_isorropia
   subroutine kmful3(ionic,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10, &
                       g11,g12)
     implicit none
-    real(rkx) :: cf1 , cf2 , g01 , g02 , g03 , g04 , g05 , g06 , g07 , g08 , &
-         g09 , g10 , g11 , g12 , sion , tc , ti , z01 , z02 , z03
-    real(rkx) :: z04 , z05 , z06 , z07 , z08 , z10 , z11
-    real(rkx) :: ionic , temp
-    data z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11 &
-      /1.0_rkx , 2.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , &
-       1.0_rkx , 1.0_rkx/
+    real(rkx) :: cf1, cf2, g01, g02, g03, g04, g05, g06, g07, g08, &
+         g09, g10, g11, g12, sion, tc, ti, z01, z02, z03
+    real(rkx) :: z04, z05, z06, z07, z08, z10, z11
+    real(rkx) :: ionic, temp
+    data z01, z02, z03, z04, z05, z06, z07, z08, z10, z11 &
+      /1.0_rkx, 2.0_rkx, 1.0_rkx, 2.0_rkx, 1.0_rkx, 1.0_rkx, 2.0_rkx, 1.0_rkx, &
+       1.0_rkx, 1.0_rkx/
 !
     sion = sqrt(ionic)
 !
@@ -5400,7 +5400,7 @@ module mod_che_isorropia
 ! *** calculates binary activity coefficients by kusik-meissner method
 !     for an ammonium-sulfate-nitrate aerosol system.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 !
 ! *** written by christos fountoukis & athanasios nenes
@@ -5409,28 +5409,28 @@ module mod_che_isorropia
 !
   subroutine kmful2(ionic,temp,g04,g05,g07,g08,g09,g10)
     implicit none
-    real(rkx) :: cf1 , cf2 , g04 , g05 , g07 , g08 , g09 , g10 , sion , &
-         tc , ti , z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10
+    real(rkx) :: cf1, cf2, g04, g05, g07, g08, g09, g10, sion, &
+         tc, ti, z01, z02, z03, z04, z05, z06, z07, z08, z10
     real(rkx) :: z11
-    real(rkx) :: ionic , temp
-    data z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11 &
-      /1.0_rkx , 2.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , &
-       1.0_rkx , 1.0_rkx/
+    real(rkx) :: ionic, temp
+    data z01, z02, z03, z04, z05, z06, z07, z08, z10, z11 &
+      /1.0_rkx, 2.0_rkx, 1.0_rkx, 2.0_rkx, 1.0_rkx, 1.0_rkx, 2.0_rkx, 1.0_rkx, &
+       1.0_rkx, 1.0_rkx/
 !
     sion = sqrt(ionic)
 !
 ! *** coefficients at 25 oc
 !
-! call mkbi(2.230 , ionic , sion , z01 , g01)
-! call mkbi(-0.19 , ionic , sion , z02 , g02)
-! call mkbi(-0.39 , ionic , sion , z03 , g03)
+! call mkbi(2.230, ionic, sion, z01, g01)
+! call mkbi(-0.19, ionic, sion, z02, g02)
+! call mkbi(-0.39, ionic, sion, z03, g03)
     call mkbi(-0.25_rkx,ionic,sion,z04,g04)
     call mkbi(-1.15_rkx,ionic,sion,z05,g05)
-! call mkbi(0.820 , ionic , sion , z06 , g06)
+! call mkbi(0.820, ionic, sion, z06, g06)
     call mkbi(-.100_rkx,ionic,sion,z07,g07)
     call mkbi(8.000_rkx,ionic,sion,z08,g08)
     call mkbi(2.600_rkx,ionic,sion,z10,g10)
-! call mkbi(6.000 , ionic , sion , z11 , g11)
+! call mkbi(6.000, ionic, sion, z11, g11)
 !
 ! *** correct for t other than 298 k
 !
@@ -5462,7 +5462,7 @@ module mod_che_isorropia
 ! *** calculates binary activity coefficients by kusik-meissner method
 !     for an ammonium-sulfate aerosol system.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 !
 ! *** written by christos fountoukis & athanasios nenes
@@ -5471,27 +5471,27 @@ module mod_che_isorropia
 !
   subroutine kmful1(ionic,temp,g04,g07,g08)
     implicit none
-    real(rkx) :: cf1 , cf2 , g04 , g07 , g08 , sion , tc , ti , &
-         z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11
-    real(rkx) :: ionic , temp
-    data z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11 &
-      /1.0_rkx , 2.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , &
-       1.0_rkx , 1.0_rkx/
+    real(rkx) :: cf1, cf2, g04, g07, g08, sion, tc, ti, &
+         z01, z02, z03, z04, z05, z06, z07, z08, z10, z11
+    real(rkx) :: ionic, temp
+    data z01, z02, z03, z04, z05, z06, z07, z08, z10, z11 &
+      /1.0_rkx, 2.0_rkx, 1.0_rkx, 2.0_rkx, 1.0_rkx, 1.0_rkx, 2.0_rkx, 1.0_rkx, &
+       1.0_rkx, 1.0_rkx/
 !
     sion = sqrt(ionic)
 !
 ! *** coefficients at 25 oc
 !
-! call mkbi(2.230_rkx , ionic , sion , z01 , g01)
-! call mkbi(-0.19_rkx , ionic , sion , z02 , g02)
-! call mkbi(-0.39_rkx , ionic , sion , z03 , g03)
+! call mkbi(2.230_rkx, ionic, sion, z01, g01)
+! call mkbi(-0.19_rkx, ionic, sion, z02, g02)
+! call mkbi(-0.39_rkx, ionic, sion, z03, g03)
     call mkbi(-0.25_rkx,ionic,sion,z04,g04)
-! call mkbi(-1.15_rkx , ionic , sion , z05 , g05)
-! call mkbi(0.820_rkx , ionic , sion , z06 , g06)
+! call mkbi(-1.15_rkx, ionic, sion, z05, g05)
+! call mkbi(0.820_rkx, ionic, sion, z06, g06)
     call mkbi(-.100_rkx,ionic,sion,z07,g07)
     call mkbi(8.000_rkx,ionic,sion,z08,g08)
-! call mkbi(2.600_rkx , ionic , sion , z10 , g10)
-! call mkbi(6.000_rkx , ionic , sion , z11 , g11)
+! call mkbi(2.600_rkx, ionic, sion, z10, g10)
+! call mkbi(6.000_rkx, ionic, sion, z11, g11)
 !
 ! *** correct for t other than 298 k
 !
@@ -5522,7 +5522,7 @@ module mod_che_isorropia
 ! *** subroutine mkbi
 ! *** calculates binary activity coefficients by kusik-meissner method.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -5531,7 +5531,7 @@ module mod_che_isorropia
 !
   subroutine mkbi(q,ionic,sion,zip,bi)
     implicit none
-    real(rkx) :: b , bi , c , q , sion , xx , zip
+    real(rkx) :: b, bi, c, q, sion, xx, zip
     real(rkx) :: ionic
     b = 0.75_rkx - .065_rkx*q
     c = 1.0_rkx
@@ -5547,10 +5547,10 @@ module mod_che_isorropia
 ! *** subroutine kmtab
 ! *** calculates binary activity coefficients by kusik-meissner method.
 !     the computations have been performed and the results are stored in
-!     lookup tables. the ionic activity 'ionic' is input , and the array
+!     lookup tables. the ionic activity 'ionic' is input, and the array
 !     'binarr' is returned with the binary coefficients.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -5560,12 +5560,12 @@ module mod_che_isorropia
   subroutine kmtab(ino,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10,g11, &
                      g12,g15,g16,g17,g18,g19,g20,g21,g22,g23)
     implicit none
-    real(rkx) :: g01 , g02 , g03 , g04 , g05 , g06 , g07 , g08 , g09 , &
-                 g10 , g11 , g12 , g13 , g14 , g15 , g16 , g17 , g18 , &
-                 g19 , g20 , g21 , g22 , g23
+    real(rkx) :: g01, g02, g03, g04, g05, g06, g07, g08, g09, &
+                 g10, g11, g12, g13, g14, g15, g16, g17, g18, &
+                 g19, g20, g21, g22, g23
     integer(ik4) :: ind
-    real(rkx) :: ino , temp
-    real(rkx) , dimension(23) :: binarray
+    real(rkx) :: ino, temp
+    real(rkx), dimension(23) :: binarray
 !
 ! *** find temperature range
 !
@@ -5618,16 +5618,16 @@ module mod_che_isorropia
 !     compute the index in the binary activity coefficient array
 !     based on the input ionic strength.
 !
-!     chris nolte , 6/16/05
+!     chris nolte, 6/16/05
 !
 !      implicit none
 !      real(rkx) in
 !      if (in  <=  0.300000e+02) then
-!         ibacpos = min(nint( 0.200000e+02*in) + 1 , 600)
+!         ibacpos = min(nint( 0.200000e+02*in) + 1, 600)
 !      else
 !         ibacpos =   600+nint( 0.200000e+01*in- 0.600000e+02)
 !      end if
-!      ibacpos = min(ibacpos , 741)
+!      ibacpos = min(ibacpos, 741)
 !      return
 !      end
 !======================================================================
@@ -5636,12 +5636,12 @@ module mod_che_isorropia
 ! *** subroutine km198
 ! *** calculates binary activity coefficients by kusik-meissner method.
 !     the computations have been performed and the results are stored in
-!     lookup tables. the ionic activity 'in' is input , and the array
+!     lookup tables. the ionic activity 'in' is input, and the array
 !     'binarr' is returned with the binary coefficients.
 !
 !     temperature is 198k
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -5651,14 +5651,14 @@ module mod_che_isorropia
   subroutine km198(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rkx) , dimension(23) :: binarr
+    real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
-    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
-                                  bnc05m , bnc06m , bnc07m , bnc08m ,     &
-                                  bnc09m , bnc10m , bnc11m , bnc12m ,     &
-                                  bnc13m , bnc14m , bnc15m , bnc16m ,     &
-                                  bnc17m , bnc18m , bnc19m , bnc20m ,     &
-                                  bnc21m , bnc22m , bnc23m
+    real(rkx), dimension(561) :: bnc01m, bnc02m, bnc03m, bnc04m,     &
+                                  bnc05m, bnc06m, bnc07m, bnc08m,     &
+                                  bnc09m, bnc10m, bnc11m, bnc12m,     &
+                                  bnc13m, bnc14m, bnc15m, bnc16m,     &
+                                  bnc17m, bnc18m, bnc19m, bnc20m,     &
+                                  bnc21m, bnc22m, bnc23m
 !
 ! *** nacl
 !
@@ -7464,12 +7464,12 @@ module mod_che_isorropia
 ! *** subroutine km223
 ! *** calculates binary activity coefficients by kusik-meissner method.
 !     the computations have been performed and the results are stored in
-!     lookup tables. the ionic activity 'in' is input , and the array
+!     lookup tables. the ionic activity 'in' is input, and the array
 !     'binarr' is returned with the binary coefficients.
 !
 !     temperature is 223k
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -7479,14 +7479,14 @@ module mod_che_isorropia
   subroutine km223(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rkx) , dimension(23) :: binarr
+    real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
-    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
-                                  bnc05m , bnc06m , bnc07m , bnc08m ,     &
-                                  bnc09m , bnc10m , bnc11m , bnc12m ,     &
-                                  bnc13m , bnc14m , bnc15m , bnc16m ,     &
-                                  bnc17m , bnc18m , bnc19m , bnc20m ,     &
-                                  bnc21m , bnc22m , bnc23m
+    real(rkx), dimension(561) :: bnc01m, bnc02m, bnc03m, bnc04m,     &
+                                  bnc05m, bnc06m, bnc07m, bnc08m,     &
+                                  bnc09m, bnc10m, bnc11m, bnc12m,     &
+                                  bnc13m, bnc14m, bnc15m, bnc16m,     &
+                                  bnc17m, bnc18m, bnc19m, bnc20m,     &
+                                  bnc21m, bnc22m, bnc23m
 !
 ! *** nacl
 !
@@ -9297,12 +9297,12 @@ module mod_che_isorropia
 ! *** subroutine km248
 ! *** calculates binary activity coefficients by kusik-meissner method.
 !     the computations have been performed and the results are stored in
-!     lookup tables. the ionic activity 'in' is input , and the array
+!     lookup tables. the ionic activity 'in' is input, and the array
 !     'binarr' is returned with the binary coefficients.
 !
 !     temperature is 248k
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -9312,14 +9312,14 @@ module mod_che_isorropia
   subroutine km248(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rkx) , dimension(23) :: binarr
+    real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
-    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
-                                  bnc05m , bnc06m , bnc07m , bnc08m ,     &
-                                  bnc09m , bnc10m , bnc11m , bnc12m ,     &
-                                  bnc13m , bnc14m , bnc15m , bnc16m ,     &
-                                  bnc17m , bnc18m , bnc19m , bnc20m ,     &
-                                  bnc21m , bnc22m , bnc23m
+    real(rkx), dimension(561) :: bnc01m, bnc02m, bnc03m, bnc04m,     &
+                                  bnc05m, bnc06m, bnc07m, bnc08m,     &
+                                  bnc09m, bnc10m, bnc11m, bnc12m,     &
+                                  bnc13m, bnc14m, bnc15m, bnc16m,     &
+                                  bnc17m, bnc18m, bnc19m, bnc20m,     &
+                                  bnc21m, bnc22m, bnc23m
 !
 ! *** nacl
 !
@@ -11127,12 +11127,12 @@ module mod_che_isorropia
 ! *** subroutine km273
 ! *** calculates binary activity coefficients by kusik-meissner method.
 !     the computations have been performed and the results are stored in
-!     lookup tables. the ionic activity 'in' is input , and the array
+!     lookup tables. the ionic activity 'in' is input, and the array
 !     'binarr' is returned with the binary coefficients.
 !
 !     temperature is 273k
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -11142,14 +11142,14 @@ module mod_che_isorropia
   subroutine km273(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rkx) , dimension(23) :: binarr
+    real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
-    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
-                                  bnc05m , bnc06m , bnc07m , bnc08m ,     &
-                                  bnc09m , bnc10m , bnc11m , bnc12m ,     &
-                                  bnc13m , bnc14m , bnc15m , bnc16m ,     &
-                                  bnc17m , bnc18m , bnc19m , bnc20m ,     &
-                                  bnc21m , bnc22m , bnc23m
+    real(rkx), dimension(561) :: bnc01m, bnc02m, bnc03m, bnc04m,     &
+                                  bnc05m, bnc06m, bnc07m, bnc08m,     &
+                                  bnc09m, bnc10m, bnc11m, bnc12m,     &
+                                  bnc13m, bnc14m, bnc15m, bnc16m,     &
+                                  bnc17m, bnc18m, bnc19m, bnc20m,     &
+                                  bnc21m, bnc22m, bnc23m
 !
 ! *** nacl
 !
@@ -12948,12 +12948,12 @@ module mod_che_isorropia
 ! *** subroutine km298
 ! *** calculates binary activity coefficients by kusik-meissner method.
 !     the computations have been performed and the results are stored in
-!     lookup tables. the ionic activity 'in' is input , and the array
+!     lookup tables. the ionic activity 'in' is input, and the array
 !     'binarr' is returned with the binary coefficients.
 !
 !     temperature is 298k
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -12963,14 +12963,14 @@ module mod_che_isorropia
   subroutine km298(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rkx) , dimension(23) :: binarr
+    real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
-    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
-                                  bnc05m , bnc06m , bnc07m , bnc08m ,     &
-                                  bnc09m , bnc10m , bnc11m , bnc12m ,     &
-                                  bnc13m , bnc14m , bnc15m , bnc16m ,     &
-                                  bnc17m , bnc18m , bnc19m , bnc20m ,     &
-                                  bnc21m , bnc22m , bnc23m
+    real(rkx), dimension(561) :: bnc01m, bnc02m, bnc03m, bnc04m,     &
+                                  bnc05m, bnc06m, bnc07m, bnc08m,     &
+                                  bnc09m, bnc10m, bnc11m, bnc12m,     &
+                                  bnc13m, bnc14m, bnc15m, bnc16m,     &
+                                  bnc17m, bnc18m, bnc19m, bnc20m,     &
+                                  bnc21m, bnc22m, bnc23m
 !
 ! *** nacl
 !
@@ -14763,12 +14763,12 @@ module mod_che_isorropia
 ! *** subroutine km323
 ! *** calculates binary activity coefficients by kusik-meissner method.
 !     the computations have been performed and the results are stored in
-!     lookup tables. the ionic activity 'in' is input , and the array
+!     lookup tables. the ionic activity 'in' is input, and the array
 !     'binarr' is returned with the binary coefficients.
 !
 !     temperature is 323k
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -14778,14 +14778,14 @@ module mod_che_isorropia
   subroutine km323(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rkx) , dimension(23) :: binarr
+    real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
-    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
-                                  bnc05m , bnc06m , bnc07m , bnc08m ,     &
-                                  bnc09m , bnc10m , bnc11m , bnc12m ,     &
-                                  bnc13m , bnc14m , bnc15m , bnc16m ,     &
-                                  bnc17m , bnc18m , bnc19m , bnc20m ,     &
-                                  bnc21m , bnc22m , bnc23m
+    real(rkx), dimension(561) :: bnc01m, bnc02m, bnc03m, bnc04m,     &
+                                  bnc05m, bnc06m, bnc07m, bnc08m,     &
+                                  bnc09m, bnc10m, bnc11m, bnc12m,     &
+                                  bnc13m, bnc14m, bnc15m, bnc16m,     &
+                                  bnc17m, bnc18m, bnc19m, bnc20m,     &
+                                  bnc21m, bnc22m, bnc23m
 !
 ! *** nacl
 !
@@ -16587,21 +16587,21 @@ module mod_che_isorropia
 !
 !  eample:
 !             str = 'test1.dat     '
-!             call chrbln (str , iblk)
+!             call chrbln (str, iblk)
 !
-!  ater execution of this code segment , "iblk" has the value "9", which &
+!  ater execution of this code segment, "iblk" has the value "9", which &
 !  i the position of the last non-blank character of "str".
 !
 !**********************************************************************
 !
   subroutine chrbln(str,iblk)
     implicit none
-    integer(ik4) :: i , ilen
+    integer(ik4) :: i, ilen
     character(len=*) str
     integer(ik4) :: iblk
     iblk = 1                         ! substring pointer (default= 1)
     ilen = len(str)                  ! length of string
-    do i = ilen , 1 , -1
+    do i = ilen, 1, -1
       if ( str(i:i)/=' ' .and. str(i:i)/=char(0) ) then
         iblk = i
         return
@@ -16625,19 +16625,19 @@ module mod_che_isorropia
 !             string    = 'aaaa    '
 !             call shftrght (string)
 !
-!  ater execution of this code segment , string contains the value
+!  ater execution of this code segment, string contains the value
 !  '    aaaa'.
 !
 !************************************************************************
 !
   subroutine shftrght(chr)
     implicit none
-    integer(ik4) :: i , i1 , i2
+    integer(ik4) :: i, i1, i2
     character(len=*) :: chr
     i1 = len(chr)                ! total length of string
     call chrbln(chr,i2)           ! position of last non-blank character
     if ( i2==i1 ) return
-    do i = i2 , 1 , -1            ! shift characters
+    do i = i2, 1, -1            ! shift characters
       chr(i1+i-i2:i1+i-i2) = chr(i:i)
       chr(i:i) = ' '
     end do
@@ -16656,24 +16656,24 @@ module mod_che_isorropia
 !  sring     is the character variable with the string to be edited &
 !  od        is the old character which is to be replaced &
 !  nw        is the new character which old is to be replaced with &
-!  irr       is 0 if everything went well , is 1 if 'new' contains 'old'.
-!             in this case , this is invalid , and no change is done.
+!  irr       is 0 if everything went well, is 1 if 'new' contains 'old'.
+!             in this case, this is invalid, and no change is done.
 !
 !  eample:
 !             string    = 'aaaa'
 !             old       = 'a'
 !             new       = 'b'
-!             call rplstr (string , old , new)
+!             call rplstr (string, old, new)
 !
-!  ater execution of this code segment , string contains the value &
+!  ater execution of this code segment, string contains the value &
 !  'bbb'.
 !
 !************************************************************************
 !
   subroutine rplstr(string,old,new,ierr)
     implicit none
-    integer(ik4) :: ilo , ip
-    character(len=*) :: string , old , new
+    integer(ik4) :: ilo, ip
+    character(len=*) :: string, old, new
     integer(ik4) :: ierr
 !
 ! *** initialize
@@ -16705,26 +16705,26 @@ module mod_che_isorropia
 !
 !  pogram unit   : subroutine inptd &
 !  prpose        : prompts user for a value (double). a default value
-!                   is provided , so if user presses <enter>, the default
+!                   is provided, so if user presses <enter>, the default
 !                   is used. &
 !  athor         : athanasios nenes
 !
 !  ====================== arguments / usage =============================
 !
 !  vr        is the real(rkx) variable which value is to be saved &
-!  df        is a real(rkx) variable , with the default value of var. &
+!  df        is a real(rkx) variable, with the default value of var. &
 !  pompt     is a character varible containing the prompt string. &
 !  pfmt      is a character variable containing the format specifier
 !             for the default value def. &
-!  irr       is an integer(ik4) :: error flag , and has the values:
+!  irr       is an integer(ik4) :: error flag, and has the values:
 !             0 - no error detected.
 !             1 - invalid format and/or invalid default value.
 !             2 - bad value specified by user
 !
 !  eample:
-!             call inptd (var , 1.0d0 , 'give value for a ', '*', ierr)
+!             call inptd (var, 1.0d0, 'give value for a ', '*', ierr)
 !
-!  ater execution of this code segment , the user is prompted for the &
+!  ater execution of this code segment, the user is prompted for the &
 !  vlue of variable var. if <enter> is pressed (ie no value is specified) &
 !  ten 1.0 is assigned to var. the default value is displayed in free- &
 !  frmat. the error status is specified by variable ierr
@@ -16734,10 +16734,10 @@ module mod_che_isorropia
   subroutine inptd(var,def,prompt,prfmt,ierr)
     implicit none
     integer(ik4) :: iend
-    character(len=*) :: prompt , prfmt
+    character(len=*) :: prompt, prfmt
     character(len=128) :: buffer
-    real(rkx) :: def , var
-    integer(ik4) :: ierr , ires
+    real(rkx) :: def, var
+    integer(ik4) :: ierr, ires
 !
     ierr = 0
 !
@@ -16752,7 +16752,7 @@ module mod_che_isorropia
 !
 ! *** prompt user for input and read it ********************************
 !
-    write (*,*) prompt , ' [' , buffer(1:iend) , ']: '
+    write (*,*) prompt, ' [', buffer(1:iend), ']: '
     read (*,'(a)',iostat=ires) buffer
     if ( ires /= 0 ) then
       ierr = 2       ! bad number given by user
@@ -16784,20 +16784,20 @@ module mod_che_isorropia
 !
 !  ====================== arguments / usage =============================
 !
-!  init      is a integer(ik4) :: variable , the file unit which the file is
+!  init      is a integer(ik4) :: variable, the file unit which the file is
 !             connected to.
 !
 !  eample:
 !             call pushend (10)
 !
-!  ater execution of this code segment , the pointer of unit 10 is &
+!  ater execution of this code segment, the pointer of unit 10 is &
 !  pshed to its end.
 !
 !**********************************************************************
 !
   subroutine pushend(iunit)
     implicit none
-    integer(ik4) :: iunit , ierr
+    integer(ik4) :: iunit, ierr
 !
 !**********************************************************************
 !
@@ -16808,7 +16808,7 @@ module mod_che_isorropia
     inquire (unit = iunit,opened = opned)
     if ( .not.opned ) return
 !
-! *** iunit connected , push pointer to end
+! *** iunit connected, push pointer to end
 ! ******************************
     do
       read (iunit,'()',iostat=ierr)
@@ -16830,25 +16830,25 @@ module mod_che_isorropia
 !  flename   is the character variable with the file name &
 !  dfext     is the character variable with extension (including '.',
 !             ex. '.dat') &
-!  oerwrite  is a logical value , .true. overwrites any existing extension
+!  oerwrite  is a logical value, .true. overwrites any existing extension
 !             in "filename" with "defext", .false. puts "defext" only if
 !             there is no extension in "filename".
 !
 !  eample:
 !             filename1 = 'test.dat'
 !             filename2 = 'test.dat'
-!             call appendext (filename1 , '.txt', .false.)
-!             call appendext (filename2 , '.txt', .true. )
+!             call appendext (filename1, '.txt', .false.)
+!             call appendext (filename2, '.txt', .true. )
 !
-!  ater execution of this code segment , "filename1" has the value &
+!  ater execution of this code segment, "filename1" has the value &
 !  'est.dat', while "filename2" has the value 'test.txt'
 !
 !**********************************************************************
 !
   subroutine appendext(filename,defext,overwrite)
     implicit none
-    integer(ik4) :: idot , iend
-    character(len=*) :: filename , defext
+    integer(ik4) :: idot, iend
+    character(len=*) :: filename, defext
     logical :: overwrite
     call chrbln(filename,iend)
     if ( filename(1:1)==' ' .and. iend==1 ) return      ! filename empty
@@ -16865,7 +16865,7 @@ module mod_che_isorropia
 !     x**3 + a1*x**2 + a2*x + a3 = 0.0
 !     the equation is solved analytically.
 !
-!     parameters a1 , a2 , a3 are specified by the user. the minimum
+!     parameters a1, a2, a3 are specified by the user. the minimum
 !     nonegative root is returned in variable 'root'. if no root is
 !     found (which is greater than zero), root has the value 1d30.
 !     and the flag islv has a value greater than zero.
@@ -16873,16 +16873,16 @@ module mod_che_isorropia
 !     solution formula is found in page 32 of:
 !     mathematical handbook of formulas and tables
 !     schaum's outline series
-!     murray spieger , mcgraw-hill , new york , 1968
-!     (greek translation: by sotirios persides , espi , athens , 1976)
+!     murray spieger, mcgraw-hill, new york, 1968
+!     (greek translation: by sotirios persides, espi, athens, 1976)
 !
-!     a special case is considered seperately ; when a3 = 0 , then
-!     one root is x = 0.0 , and the other two from the solution of the
+!     a special case is considered seperately ; when a3 = 0, then
+!     one root is x = 0.0, and the other two from the solution of the
 !     quadratic equation x**2 + a1*x + a2 = 0.0
 !     this special case is considered because the analytical formula
 !     does not yield accurate results (due to numerical roundoff errors)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -16891,9 +16891,9 @@ module mod_che_isorropia
 !
   subroutine poly3(a1,a2,a3,root,islv)
     implicit none
-    real(rkx) :: a1 , a2 , a3 , coef , d , eps , expon , pi , q , r , &
-         root , s , sqd , ssig , t , thet , thet1 , thet2 , tsig , zero
-    integer(ik4) :: i , islv , ix
+    real(rkx) :: a1, a2, a3, coef, d, eps, expon, pi, q, r, &
+         root, s, sqd, ssig, t, thet, thet1, thet2, tsig, zero
+    integer(ik4) :: i, islv, ix
     parameter (expon = 1._rkx/3._rkx,zero = 0._rkx, &
                thet1 = 120._rkx/180._rkx,       &
                thet2 = 240._rkx/180._rkx, &
@@ -16918,7 +16918,7 @@ module mod_che_isorropia
 !
 !   *** normal case : cubic equation
 !   ************************************
-!   defne parameters q , r , s , t , d
+!   defne parameters q, r, s, t, d
 !
       islv = 1
       q = (3._rkx*a2-a1*a1)/9._rkx
@@ -16927,7 +16927,7 @@ module mod_che_isorropia
 !
 !   *** calculate roots
 !   *************************************************
-!   d  0 , three real(rkx) :: roots
+!   d  0, three real(rkx) :: roots
 !
       if ( d<-eps ) then           ! d < -eps  : d < zero
         ix = 3
@@ -16937,7 +16937,7 @@ module mod_che_isorropia
         x(2) = coef*cos(thet+thet1*pi) - expon*a1
         x(3) = coef*cos(thet+thet2*pi) - expon*a1
 !
-!     d  0 , three real(rkx) :: (one double) roots
+!     d  0, three real(rkx) :: (one double) roots
 !
       else if ( d<=eps ) then       ! -eps <= d <= eps  : d = zero
         ix = 2
@@ -16946,7 +16946,7 @@ module mod_che_isorropia
         x(1) = 2._rkx*s - expon*a1
         x(2) = -s - expon*a1
 !
-!     d  0 , one real(rkx) :: root
+!     d  0, one real(rkx) :: root
 !
       else                          ! d > eps  : d > zero
         ix = 1
@@ -16962,7 +16962,7 @@ module mod_che_isorropia
 ! *** select appropriate root *****************************************
 !
     root = 1.e30_rkx
-    do i = 1 , ix
+    do i = 1, ix
       if ( x(i)>zero ) then
         root = min(root,x(i))
         islv = 0
@@ -16978,25 +16978,25 @@ module mod_che_isorropia
 !     x**3 + a1*x**2 + a2*x + a3 = 0.0
 !     the equation is solved numerically (bisection).
 !
-!     parameters a1 , a2 , a3 are specified by the user. the minimum
+!     parameters a1, a2, a3 are specified by the user. the minimum
 !     nonegative root is returned in variable 'root'. if no root is
 !     found (which is greater than zero), root has the value 1d30.
 !     and the flag islv has a value greater than zero.
 !
-!     rtlw , rthi define the interval which the root is looked for.
+!     rtlw, rthi define the interval which the root is looked for.
 !
 !======================================================================
 !
   subroutine poly3b(a1,a2,a3,rtlw,rthi,root,islv)
 !
     implicit none
-    real(rkx) :: a1 , a2 , a3 , dx , root , rthi , &
-         rtlw , x1 , x2 , x3 , y1 , y2 , y3
-    integer(ik4) :: i , islv
-    real(rkx) , parameter :: zero = 0._rkx
-    real(rkx) , parameter :: eps = 1e-15_rkx
-    integer(ik4) , parameter :: maxit = 100
-    integer(ik4) , parameter :: ndiv = 5
+    real(rkx) :: a1, a2, a3, dx, root, rthi, &
+         rtlw, x1, x2, x3, y1, y2, y3
+    integer(ik4) :: i, islv
+    real(rkx), parameter :: zero = 0._rkx
+    real(rkx), parameter :: eps = 1e-15_rkx
+    integer(ik4), parameter :: maxit = 100
+    integer(ik4), parameter :: ndiv = 5
 !
 ! *** initial values for bisection *************************************
 !
@@ -17010,7 +17010,7 @@ module mod_che_isorropia
 ! *** root tracking ; for the range of hi and lo ***********************
 !
     dx = (rthi-rtlw)/float(ndiv)
-    do i = 1 , ndiv
+    do i = 1, ndiv
       x2 = x1 + dx
       y2 = func(x2)
       if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100      ! (y1*y2 < zero)
@@ -17031,7 +17031,7 @@ module mod_che_isorropia
 ! *** bisection *******************************************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = func(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -17053,7 +17053,7 @@ module mod_che_isorropia
     contains
       real(rkx) function func(x)
         implicit none
-        real(rkx) , intent(in) :: x
+        real(rkx), intent(in) :: x
         func = x**30 + a1*x**2 + a2*x + a3
       end function func
   end subroutine poly3b
@@ -17061,11 +17061,11 @@ module mod_che_isorropia
 !      program driver
 !      real(rkx) root
 !
-!      call poly3 (-1.d0 , 1.d0 , -1.d0 , root , islv)
+!      call poly3 (-1.d0, 1.d0, -1.d0, root, islv)
 !      if (islv.ne.0) stop 'error in poly3'
 !      write (*,*) 'root =', root
 !
-!      call poly3b (-1.d0 , 1.d0 , -1.d0 , -10.d0 , 10.d0 , root , islv)
+!      call poly3b (-1.d0, 1.d0, -1.d0, -10.d0, 10.d0, root, islv)
 !      if (islv.ne.0) stop 'error in poly3b'
 !      write (*,*) 'root =', root
 !
@@ -17077,18 +17077,18 @@ module mod_che_isorropia
 ! *** 10^x function ; alternate of library routine ; used because it is
 !     much faster but without great loss in accuracy. ,
 !     maximum error is 2%, execution time is 42% of the library routine
-!     (on a 80286/80287 machine , using lahey fortran 77 v.3.0).
+!     (on a 80286/80287 machine, using lahey fortran 77 v.3.0).
 !
 !     exponent range is between -k and k (k is the real(rkx) :: argument 'k')
 !     max value for k: 9.999
-!     if x < -k , x is set to -k , if x > k , x is set to k
+!     if x < -k, x is set to -k, if x > k, x is set to k
 !
-!     the exponent is calculated by the product adec*aint , where adec
+!     the exponent is calculated by the product adec*aint, where adec
 !     is the mantissa and aint is the magnitude (exponent). both
 !     mantissa and magnitude are pre-calculated and stored in lookup
 !     tables ; this leads to the increased speed.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -17097,10 +17097,10 @@ module mod_che_isorropia
 !
     function ex10(x,k)
     implicit none
-    real(rkx) :: x , ex10 , y , k
-    real(rkx) , dimension(20) :: aint10
-    real(rkx) , dimension(200) :: adec10
-    integer(ik4) :: k1 , k2
+    real(rkx) :: x, ex10, y, k
+    real(rkx), dimension(20) :: aint10
+    real(rkx), dimension(200) :: adec10
+    integer(ik4) :: k1, k2
 !
 ! *** common block definition
 !
@@ -17165,9 +17165,9 @@ module mod_che_isorropia
                       0.8511E+01,0.8710E+01,0.8913E+01,0.9120E+01,        &
                       0.9333E+01,0.9550E+01,0.9772E+01,0.1000E+02]
 !
-! *** limit x to [-k , k] range
+! *** limit x to [-k, k] range
 ! *****************************************
-    y = max(-k,min(x,k))           ! min: -9.999 , max: 9.999
+    y = max(-k,min(x,k))           ! min: -9.999, max: 9.999
 !
 ! *** get integer(ik4) :: and decimal part *************************************
 !
@@ -17185,7 +17185,7 @@ module mod_che_isorropia
 ! *** subroutine pusherr
 ! *** this subroutine saves an error message in the error stack
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -17216,7 +17216,7 @@ module mod_che_isorropia
 ! *** subroutine iserrinf
 ! *** this subroutine obtains a copy of the error stack (& messages)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -17226,14 +17226,14 @@ module mod_che_isorropia
   subroutine iserrinf(errstki,errmsgi,noferi,stkofli)
     use mod_che_common_isorropia
     implicit none
-    integer(ik4) :: i , noferi
-    character(len=40) , dimension(nerrmx) :: errmsgi
-    integer(ik4) , dimension(nerrmx) :: errstki
+    integer(ik4) :: i, noferi
+    character(len=40), dimension(nerrmx) :: errmsgi
+    integer(ik4), dimension(nerrmx) :: errstki
     logical :: stkofli
 !
 ! *** obtain whole error stack ****************************************
 !
-    do i = 1 , nofer               ! error messages & codes
+    do i = 1, nofer               ! error messages & codes
       errstki(i) = errstk(i)
       errmsgi(i) = errmsg(i)
     end do
@@ -17247,7 +17247,7 @@ module mod_che_isorropia
 ! *** subroutine errstat
 ! *** this subroutine reports error messages to unit 'io'
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -17257,16 +17257,16 @@ module mod_che_isorropia
   subroutine errstat(io,ierr,errinf)
     use mod_che_common_isorropia
     implicit none
-    integer(ik4) :: iend , ierr , io , iok
+    integer(ik4) :: iend, ierr, io, iok
     character(len=4) :: cer
     character(len=29) :: ncis
     character(len=27) :: ncif
     character(len=26) :: nsis
     character(len=24) :: nsif
     character(len=*) :: errinf
-    data ncis/'no convergence in subroutine '/ ,                          &
-         ncif/'no convergence in function '/ ,                            &
-         nsis/'no solution in subroutine '/ ,                             &
+    data ncis/'no convergence in subroutine '/,                          &
+         ncif/'no convergence in function '/,                            &
+         nsis/'no solution in subroutine '/,                             &
          nsif/'no solution in function '/
 !
 ! *** write error in character *****************************************
@@ -17275,7 +17275,7 @@ module mod_che_isorropia
     call rplstr(cer,' ','0',iok)         ! replace blanks with zeros
     call chrbln(errinf,iend)             ! last position of errinf char
 !
-! *** write error type (fatal , warning )
+! *** write error type (fatal, warning )
 ! *******************************
     if ( ierr==0 ) then
       write (io,99001) 'no errors detected '
@@ -17286,10 +17286,10 @@ module mod_che_isorropia
       go to 100
 !
     else if ( ierr>1000 ) then
-      write (io,99002) 'fatal' , cer
+      write (io,99002) 'fatal', cer
 !
     else
-      write (io,99002) 'warning' , cer
+      write (io,99002) 'warning', cer
     end if
 !
 ! *** write error message **********************************************
@@ -17308,21 +17308,21 @@ module mod_che_isorropia
 !   waring messages
 !
     else if ( ierr==0001 ) then
-      write (io,99001) nsis , errinf
+      write (io,99001) nsis, errinf
 !
     else if ( ierr==0002 ) then
-      write (io,99001) ncis , errinf
+      write (io,99001) ncis, errinf
 !
     else if ( ierr==0003 ) then
-      write (io,99001) nsif , errinf
+      write (io,99001) nsif, errinf
 !
     else if ( ierr==0004 ) then
-      write (io,99001) ncif , errinf
+      write (io,99001) ncif, errinf
 !
     else if ( ierr==0019 ) then
       write (io,99001) 'hno3(aq) affects h+, which '//                    &
                        'might affect so4/hso4 ratio'
-      write (io,99001) 'direct increase in h+ [' , errinf(1:iend) , '] %'
+      write (io,99001) 'direct increase in h+ [', errinf(1:iend), '] %'
 !
     else if ( ierr==0020 ) then
       if ( w(4)>tiny1 .and. w(5)>tiny1 ) then
@@ -17332,23 +17332,23 @@ module mod_che_isorropia
         write (io,99001) 'hso4-so4 equilibrium might affect nh3 '//       &
                          'dissolution'
       end if
-      write (io,99001) 'direct decrease in h+ [' , errinf(1:iend) , '] %'
+      write (io,99001) 'direct decrease in h+ [', errinf(1:iend), '] %'
 !
     else if ( ierr==0021 ) then
       write (io,99001) 'hno3(aq),hcl(aq) affect h+, which '//             &
                        'might affect so4/hso4 ratio'
-      write (io,99001) 'direct increase in h+ [' , errinf(1:iend) , '] %'
+      write (io,99001) 'direct increase in h+ [', errinf(1:iend), '] %'
 !
     else if ( ierr==0022 ) then
       write (io,99001) 'hcl(g) equilibrium yields nonphysical '//         &
                        'dissolution'
-      write (io,99001) 'a tiny1 amount [' , errinf(1:iend) ,              &
+      write (io,99001) 'a tiny1 amount [', errinf(1:iend),              &
                        '] is '//'assumed to be dissolved'
 !
     else if ( ierr==0033 ) then
       write (io,99001) 'hcl(aq) affects h+, which '//                     &
                        'might affect so4/hso4 ratio'
-      write (io,99001) 'direct increase in h+ [' , errinf(1:iend) , '] %'
+      write (io,99001) 'direct increase in h+ [', errinf(1:iend), '] %'
 !
     else if ( ierr==0050 ) then
       write (io,99001) 'too much sodium given as input.'
@@ -17403,7 +17403,7 @@ module mod_che_isorropia
 !  2. [ncmp]
 !     integer(ik4) :: variable.
 !     the number of components needed in input array wi
-!     (or , the number of major species accounted for by isorropia)
+!     (or, the number of major species accounted for by isorropia)
 !
 !  3. [nion]
 !     integer(ik4) :: variable
@@ -17431,7 +17431,7 @@ module mod_che_isorropia
 !     real(rkx) variable
 !     the value used for a very large number.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -17441,8 +17441,8 @@ module mod_che_isorropia
   subroutine isorinf(versi,ncmp,nion,naqgas,nsol,nerr,tin,grt)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: grt , tin
-    integer(ik4) :: naqgas , ncmp , nerr , nion , nsol
+    real(rkx) :: grt, tin
+    integer(ik4) :: naqgas, ncmp, nerr, nion, nsol
     character(len=*) :: versi
 !
 ! *** assign info
@@ -17466,7 +17466,7 @@ module mod_che_isorropia
 !     the composition regime is determined by the sulfate ratio and by
 !     the ambient relative humidity.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -17476,8 +17476,8 @@ module mod_che_isorropia
   subroutine isrp1f(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: dc , rhi , tempi
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx) :: dc, rhi, tempi
+    real(rkx), dimension(ncomp) :: wi
 !
 ! *** initialize all variables in common block
 ! **************************
@@ -17564,7 +17564,7 @@ module mod_che_isorropia
 !     the composition regime is determined by the sulfate ratio and by
 !     the ambient relative humidity.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -17574,8 +17574,8 @@ module mod_che_isorropia
   subroutine isrp2f(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: rhi , tempi
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx) :: rhi, tempi
+    real(rkx), dimension(ncomp) :: wi
 !
 ! *** initialize all variables in common block
 ! **************************
@@ -17609,9 +17609,9 @@ module mod_che_isorropia
       end if
 !
 !   *** sulfate rich (no acid)
-!   for solving this case , nitric acid is assumed a minor species ,
+!   for solving this case, nitric acid is assumed a minor species ,
 !   that does not significantly perturb the hso4-so4 equilibrium.
-!   subroutines calcb? are called , and then the nitric acid is
+!   subroutines calcb? are called, and then the nitric acid is
 !   dissolved from the hno3(g) -> (h+) + (no3-) equilibrium.
 !
     else if ( 1.0<=sulrat .and. sulrat<2.0 ) then
@@ -17645,9 +17645,9 @@ module mod_che_isorropia
       call calcna                 ! hno3(g) dissolution
 !
 !   *** sulfate rich (free acid)
-!   for solving this case , nitric acid is assumed a minor species ,
+!   for solving this case, nitric acid is assumed a minor species ,
 !   that does not significantly perturb the hso4-so4 equilibrium
-!   subroutine calcc? is called , and then the nitric acid is dissolved
+!   subroutine calcc? is called, and then the nitric acid is dissolved
 !   from the hno3(g) -> (h+) + (no3-) equilibrium.
 !
     else if ( sulrat<1.0 ) then
@@ -17681,7 +17681,7 @@ module mod_che_isorropia
 !     the composition regime is determined by the sulfate & sodium
 !     ratios and by the ambient relative humidity.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -17691,15 +17691,15 @@ module mod_che_isorropia
   subroutine isrp3f(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: rest , rhi , tempi
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx) :: rest, rhi, tempi
+    real(rkx), dimension(ncomp) :: wi
 !
 ! *** adjust for too little ammonium and chloride
 ! ***********************
     wi(3) = max(wi(3),1.e-10_rkx)      ! nh4+ : 1e-4 umoles/m3
     wi(5) = max(wi(5),1.e-10_rkx)      ! cl-  : 1e-4 umoles/m3
 !
-! *** adjust for too little sodium , sulfate and nitrate combined
+! *** adjust for too little sodium, sulfate and nitrate combined
 ! ********
     if ( wi(1)+wi(2)+wi(4)<=1e-10_rkx ) then
       wi(1) = 1.e-10_rkx     ! na+  : 1e-4 umoles/m3
@@ -17820,7 +17820,7 @@ module mod_che_isorropia
         call calci6                  ! no solids
       end if
 !
-      call calcnha                ! minor species: hno3 , hcl
+      call calcnha                ! minor species: hno3, hcl
       call calcnh3                !                nh3
 !
 !   *** sulfate rich (free acid)
@@ -17844,7 +17844,7 @@ module mod_che_isorropia
         call calcj3
       end if
 !
-      call calcnha                ! minor species: hno3 , hcl
+      call calcnha                ! minor species: hno3, hcl
       call calcnh3                !                nh3
     end if
   end subroutine isrp3f
@@ -17859,7 +17859,7 @@ module mod_che_isorropia
 !     the composition regime is determined by the sulfate & sodium
 !     ratios and by the ambient relative humidity.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -17868,18 +17868,18 @@ module mod_che_isorropia
   subroutine isrp4f(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: cafri , ccacl2i , ccano32i , ccaso4i , clfri , cmgcl2i , &
-         cmgno32i , cmgso4i , cna2so4i , cnacli , cnano3i , frmgi ,       &
-         frso4i , rest , rest1 , rest2 , rest3 , rhi , tempi
-    real(rkx) , dimension(ncomp) :: wi
-    real(rkx) :: nafri , no3fri , no3fr
+    real(rkx) :: cafri, ccacl2i, ccano32i, ccaso4i, clfri, cmgcl2i, &
+         cmgno32i, cmgso4i, cna2so4i, cnacli, cnano3i, frmgi,       &
+         frso4i, rest, rest1, rest2, rest3, rhi, tempi
+    real(rkx), dimension(ncomp) :: wi
+    real(rkx) :: nafri, no3fri, no3fr
 !
 ! *** adjust for too little ammonium and chloride
 ! ***********************
 ! wi(3) = max (wi(3), 1.d-10)  ! nh4+ : 1e-4 umoles/m3
 ! wi(5) = max (wi(5), 1.d-10)  ! cl-  : 1e-4 umoles/m3
 !
-! *** adjust for too little sodium , sulfate and nitrate combined
+! *** adjust for too little sodium, sulfate and nitrate combined
 ! ********
 ! if (wi(1)+wi(2)+wi(4)  <=  1d-10) then
 ! wi(1) = 1.d-10  ! na+  : 1e-4 umoles/m3
@@ -17931,18 +17931,18 @@ module mod_che_isorropia
         w(1) = zero                               ! adjust na amount
         w(7) = zero                               ! adjust k amount
         w(8) = zero                               ! adjust mg amount
-        call pusherr(0051,'isrp4f')               ! warning error: ca , na , k , mg in excess
+        call pusherr(0051,'isrp4f')               ! warning error: ca, na, k, mg in excess
 !
       else if ( w(1)>rest1 ) then                    ! na > 2*frso4+frcl+frno3 ?
         w(1) = (one-1e-6_rkx)*rest1                  ! adjust na amount
         w(7) = zero                               ! adjust k amount
         w(8) = zero                               ! adjust mg amount
-        call pusherr(0052,'isrp4f')               ! warning error: na , k , mg in excess
+        call pusherr(0052,'isrp4f')               ! warning error: na, k, mg in excess
 !
       else if ( w(8)>rest2 ) then                    ! mg > 2*frso4+frcl+frno3 ?
         w(8) = (one-1e-6_rkx)*rest2                  ! adjust mg amount
         w(7) = zero                               ! adjust k amount
-        call pusherr(0053,'isrp4f')               ! warning error: k , mg in excess
+        call pusherr(0053,'isrp4f')               ! warning error: k, mg in excess
 !
       else if ( w(7)>rest3 ) then                    ! k > 2*frso4+frcl+frno3 ?
         w(7) = (one-1e-6_rkx)*rest3                  ! adjust k amount
@@ -17956,7 +17956,7 @@ module mod_che_isorropia
     crnarat = (w(1)+w(6)+w(7)+w(8))/w(2)
     crrat = (w(6)+w(7)+w(8))/w(2)
 !
-! *** find calculation regime from (so4rat , crnarat , crrat , rrh)
+! *** find calculation regime from (so4rat, crnarat, crrat, rrh)
 ! ********
 ! *** sulfate poor: rso4>2; (dust + sodium) poor: r(cr+na)<2
 !
@@ -17968,27 +17968,27 @@ module mod_che_isorropia
 !
       else if ( rh<drnh4no3 ) then
         scase = 'o1'
-        call calco1                  ! caso4 , nh4no3 , nh4cl , (nh4)2so4 , mgso4 , na2so4 , k2so4
+        call calco1                  ! caso4, nh4no3, nh4cl, (nh4)2so4, mgso4, na2so4, k2so4
 !
       else if ( drnh4no3<=rh .and. rh<drnh4cl ) then
         scase = 'o2'
-        call calco2                  ! caso4 , nh4cl , (nh4)2so4 , mgso4 , na2so4 , k2so4
+        call calco2                  ! caso4, nh4cl, (nh4)2so4, mgso4, na2so4, k2so4
 !
       else if ( drnh4cl<=rh .and. rh<drnh42s4 ) then
         scase = 'o3'
-        call calco3                  ! caso4 , (nh4)2so4 , mgso4 , na2so4 , k2so4
+        call calco3                  ! caso4, (nh4)2so4, mgso4, na2so4, k2so4
 !
       else if ( drnh42s4<=rh .and. rh<drmgso4 ) then
         scase = 'o4'
-        call calco4                  ! caso4 , mgso4 , na2so4 , k2so4
+        call calco4                  ! caso4, mgso4, na2so4, k2so4
 !
       else if ( drmgso4<=rh .and. rh<drna2so4 ) then
         scase = 'o5'
-        call calco5                  ! caso4 , na2so4 , k2so4
+        call calco5                  ! caso4, na2so4, k2so4
 !
       else if ( drna2so4<=rh .and. rh<drk2so4 ) then
         scase = 'o6'
-        call calco6                  ! caso4 , k2so4
+        call calco6                  ! caso4, k2so4
 !
       else if ( drk2so4<=rh ) then
         scase = 'o7'
@@ -18007,31 +18007,31 @@ module mod_che_isorropia
 !
         else if ( rh<drnh4no3 ) then
           scase = 'm1'
-          call calcm1               ! caso4 , nh4no3 , nh4cl , mgso4 , na2so4 , k2so4 , nacl , nano3
+          call calcm1               ! caso4, nh4no3, nh4cl, mgso4, na2so4, k2so4, nacl, nano3
 !
         else if ( drnh4no3<=rh .and. rh<drnano3 ) then
           scase = 'm2'
-          call calcm2               ! caso4 , nh4cl , mgso4 , na2so4 , k2so4 , nacl , nano3
+          call calcm2               ! caso4, nh4cl, mgso4, na2so4, k2so4, nacl, nano3
 !
         else if ( drnano3<=rh .and. rh<drnacl ) then
           scase = 'm3'
-          call calcm3               ! caso4 , nh4cl , mgso4 , na2so4 , k2so4 , nacl
+          call calcm3               ! caso4, nh4cl, mgso4, na2so4, k2so4, nacl
 !
         else if ( drnacl<=rh .and. rh<drnh4cl ) then
           scase = 'm4'
-          call calcm4               ! caso4 , nh4cl , mgso4 , na2so4 , k2so4
+          call calcm4               ! caso4, nh4cl, mgso4, na2so4, k2so4
 !
         else if ( drnh4cl<=rh .and. rh<drmgso4 ) then
           scase = 'm5'
-          call calcm5               ! caso4 , mgso4 , na2so4 , k2so4
+          call calcm5               ! caso4, mgso4, na2so4, k2so4
 !
         else if ( drmgso4<=rh .and. rh<drna2so4 ) then
           scase = 'm6'
-          call calcm6               ! caso4 , na2so4 , k2so4
+          call calcm6               ! caso4, na2so4, k2so4
 !
         else if ( drna2so4<=rh .and. rh<drk2so4 ) then
           scase = 'm7'
-          call calcm7               ! caso4 , k2so4
+          call calcm7               ! caso4, k2so4
 !
         else if ( drk2so4<=rh ) then
           scase = 'm8'
@@ -18049,56 +18049,56 @@ module mod_che_isorropia
 !
         else if ( rh<drcacl2 ) then
           scase = 'p1'
-          call calcp1                ! caso4 , ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 ,
-!       ! mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+          call calcp1                ! caso4, ca(no3)2, cacl2, k2so4, kno3, kcl, mgso4 ,
+!       ! mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
         else if ( drcacl2<=rh .and. rh<drmgcl2 ) then
           scase = 'p2'
-          call calcp2               ! caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 ,
-!       ! mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+          call calcp2               ! caso4, ca(no3)2, k2so4, kno3, kcl, mgso4 ,
+!       ! mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
         else if ( drmgcl2<=rh .and. rh<drcano32 ) then
           scase = 'p3'
-          call calcp3               ! caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 ,
-!       ! mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
+          call calcp3               ! caso4, ca(no3)2, k2so4, kno3, kcl, mgso4 ,
+!       ! mg(no3)2, nano3, nacl, nh4no3, nh4cl
 !
         else if ( drcano32<=rh .and. rh<drmgno32 ) then
           scase = 'p4'
-          call calcp4               ! caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!       ! mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
+          call calcp4               ! caso4, k2so4, kno3, kcl, mgso4 ,
+!       ! mg(no3)2, nano3, nacl, nh4no3, nh4cl
 !
         else if ( drmgno32<=rh .and. rh<drnh4no3 ) then
           scase = 'p5'
-          call calcp5               ! caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!       ! nano3 , nacl , nh4no3 , nh4cl
+          call calcp5               ! caso4, k2so4, kno3, kcl, mgso4 ,
+!       ! nano3, nacl, nh4no3, nh4cl
 !
         else if ( drnh4no3<=rh .and. rh<drnano3 ) then
           scase = 'p6'
-          call calcp6               ! caso4 , k2so4 , kno3 , kcl , mgso4 , nano3 , nacl , nh4cl
+          call calcp6               ! caso4, k2so4, kno3, kcl, mgso4, nano3, nacl, nh4cl
 !
         else if ( drnano3<=rh .and. rh<drnacl ) then
           scase = 'p7'
-          call calcp7               ! caso4 , k2so4 , kno3 , kcl , mgso4 , nacl , nh4cl
+          call calcp7               ! caso4, k2so4, kno3, kcl, mgso4, nacl, nh4cl
 !
         else if ( drnacl<=rh .and. rh<drnh4cl ) then
           scase = 'p8'
-          call calcp8               ! caso4 , k2so4 , kno3 , kcl , mgso4 , nh4cl
+          call calcp8               ! caso4, k2so4, kno3, kcl, mgso4, nh4cl
 !
         else if ( drnh4cl<=rh .and. rh<drkcl ) then
           scase = 'p9'
-          call calcp9               ! caso4 , k2so4 , kno3 , kcl , mgso4
+          call calcp9               ! caso4, k2so4, kno3, kcl, mgso4
 !
         else if ( drkcl<=rh .and. rh<drmgso4 ) then
           scase = 'p10'
-          call calcp10               ! caso4 , k2so4 , kno3 , mgso4
+          call calcp10               ! caso4, k2so4, kno3, mgso4
 !
         else if ( drmgso4<=rh .and. rh<drkno3 ) then
           scase = 'p11'
-          call calcp11               ! caso4 , k2so4 , kno3
+          call calcp11               ! caso4, k2so4, kno3
 !
         else if ( drkno3<=rh .and. rh<drk2so4 ) then
           scase = 'p12'
-          call calcp12               ! caso4 , k2so4
+          call calcp12               ! caso4, k2so4
 !
         else if ( drk2so4<=rh ) then
           scase = 'p13'
@@ -18152,7 +18152,7 @@ module mod_che_isorropia
         call calcl9                ! caso4 &
       end if
 !
-      call calcnha                ! minor species: hno3 , hcl
+      call calcnha                ! minor species: hno3, hcl
       call calcnh3                !                nh3
 !
 !   *** sulfate super rich (free acid): rso4<1;
@@ -18180,7 +18180,7 @@ module mod_che_isorropia
         call calck4               ! caso4
       end if
 !
-      call calcnha                  ! minor species: hno3 , hcl
+      call calcnha                  ! minor species: hno3, hcl
       call calcnh3                  !                nh3
 !
     end if
@@ -18196,13 +18196,13 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat >= 2.0)
 !     2. liquid aerosol phase only possible
 !
-!     for calculations , a bisection is performed towards x , the
+!     for calculations, a bisection is performed towards x, the
 !     amount of hydrogen ions (h+) found in the liquid phase.
 !     for each estimation of h+, function funcb2a calculates the
 !     concentration of ions from the nh3(gas) - nh4+(liq) equilibrium.
 !     electroneutrality is used as the objective function.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -18212,7 +18212,7 @@ module mod_che_isorropia
   subroutine calca2
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: dx , omehi , omelo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: dx, omehi, omelo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -18237,7 +18237,7 @@ module mod_che_isorropia
 ! *** root tracking ; for the range of hi and lo **********************
 !
     dx = (omehi-omelo)/float(ndiv)
-    do i = 1 , ndiv
+    do i = 1, ndiv
       x2 = max(x1-dx,omelo)
       y2 = funca2(x2)
       if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100     ! (y1*y2 < zero)
@@ -18254,7 +18254,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funca2(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -18287,7 +18287,7 @@ module mod_che_isorropia
   real(rkx) function funca2(omegi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a1 , a2 , a3 , denom , omegi , psi , zeta
+    real(rkx) :: a1, a2, a3, denom, omegi, psi, zeta
     integer(ik4) :: i
     real(rkx) :: lamda
 !
@@ -18299,7 +18299,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a1 = xk1*water/gama(7)*(gama(8)/gama(7))**2.
       a2 = xk2*r*temp/xkw*(gama(8)/gama(9))**2.
       a3 = xkw*rh*water*water
@@ -18339,11 +18339,11 @@ module mod_che_isorropia
 !     2. solid aerosol only
 !     3. solids possible : (nh4)2so4
 !
-!     a simple material balance is performed , and the solid (nh4)2so4
+!     a simple material balance is performed, and the solid (nh4)2so4
 !     is calculated from the sulfates. the excess ammonia remains in
 !     the gas phase.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -18364,14 +18364,14 @@ module mod_che_isorropia
 ! *** case b4
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. liquid aerosol phase only possible
 !
-!     for calculations , a bisection is performed with respect to h+.
+!     for calculations, a bisection is performed with respect to h+.
 !     the objective function is the difference between the estimated h+
 !     and that calculated from electroneutrality.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -18381,7 +18381,7 @@ module mod_che_isorropia
   subroutine calcb4
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: ak1 , bb , bet , cc , dd , gam
+    real(rkx) :: ak1, bb, bet, cc, dd, gam
     integer(ik4) :: i
 !
 ! *** solve equations **************************************************
@@ -18392,7 +18392,7 @@ module mod_che_isorropia
 !
 ! *** calculate water content ******************************************
 !
-    call calcb1a           ! get dry salt content , and use for water.
+    call calcb1a           ! get dry salt content, and use for water.
     molalr(13) = clc
     molalr(9) = cnh4hs4
     molalr(4) = cnh42s4
@@ -18403,7 +18403,7 @@ module mod_che_isorropia
 !
     molal(3) = w(3)       ! nh4i
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       ak1 = xk1*((gama(8)/gama(7))**2)*(water/gama(7))
       bet = w(2)
       gam = molal(3)
@@ -18433,11 +18433,11 @@ module mod_che_isorropia
 ! *** case b3
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. both liquid & solid phase is possible
 !     3. solids possible: (nh4)2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -18447,7 +18447,7 @@ module mod_che_isorropia
   subroutine calcb3
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: tlc , tnh42s4 , tnh4hs4 , x , y
+    real(rkx) :: tlc, tnh42s4, tnh4hs4, x, y
 !
 ! *** calculate equivalent amount of hso4 and so4
 ! ***********************
@@ -18480,14 +18480,14 @@ module mod_che_isorropia
 !     2. both liquid & solid phase is possible
 !     3. solids possible: (nh4)2so4
 !
-!     for calculations , a bisection is performed towards zeta , the
+!     for calculations, a bisection is performed towards zeta, the
 !     amount of solid (nh4)2so4 dissolved in the liquid phase.
-!     for each estimation of zeta , function funcb3a calculates the
+!     for each estimation of zeta, function funcb3a calculates the
 !     amount of h+ produced (based on the so4 released into the
 !     solution). the solubility product of (nh4)2so4 is used as the
 !     objective function.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -18497,8 +18497,8 @@ module mod_che_isorropia
   subroutine calcb3a(tlc,tnh42s4)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: dz , tlc , tnh42s4 , y1 , y2 , y3 , &
-         yhi , ylo , z1 , z2 , z3 , zhi , zk , zlo
+    real(rkx) :: dz, tlc, tnh42s4, y1, y2, y3, &
+         yhi, ylo, z1, z2, z3, zhi, zk, zlo
     integer(ik4) :: i
 !
     calaou = .true.           ! outer loop activity calculation flag
@@ -18516,7 +18516,7 @@ module mod_che_isorropia
 ! *** root tracking ; for the range of hi and lo ***********************
 !
     dz = (zhi-zlo)/float(ndiv)
-    do i = 1 , ndiv
+    do i = 1, ndiv
       z2 = z1 + dz
       y2 = funcb3a(z2,tlc,tnh42s4)
       if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100     ! (y1*y2 < zero)
@@ -18530,14 +18530,14 @@ module mod_che_isorropia
     if ( abs(y2)<eps ) then       ! x2 is a solution
       return
 !
-!   *** { ylo , yhi } < 0.0 the solution is always undersaturated with
+!   *** { ylo, yhi } < 0.0 the solution is always undersaturated with
 !   lc
     else if ( ylo<zero .and. yhi<zero ) then
       z1 = zhi
       z2 = zhi
       go to 200
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   lc
     else if ( ylo>zero .and. yhi>zero ) then
       z1 = zlo
@@ -18551,7 +18551,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       z3 = 0.5_rkx*(z1+z2)
       y3 = funcb3a(z3,tlc,tnh42s4)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -18585,7 +18585,7 @@ module mod_che_isorropia
   real(rkx) function funcb3a(zk,y,x)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: dd , grat1 , x , y , zk
+    real(rkx) :: dd, grat1, x, y, zk
     integer(ik4) :: i
     real(rkx) :: kk
 !
@@ -18593,7 +18593,7 @@ module mod_che_isorropia
 !
     frst = .true.
     calain = .true.
-    do i = 1 , nsweep
+    do i = 1, nsweep
       grat1 = xk1*water/gama(7)*(gama(8)/gama(7))**2.
       dd = sqrt((zk+grat1+y)**24.0*y*grat1)
       kk = 0.5_rkx*(-(zk+grat1+y)+dd)
@@ -18632,7 +18632,7 @@ module mod_che_isorropia
 !
 !     speciation calculations is based on the hso4 <--> so4 equilibrium.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -18642,7 +18642,7 @@ module mod_che_isorropia
   subroutine calcb3b(y,x)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: dd , grat1 , x , y
+    real(rkx) :: dd, grat1, x, y
     integer(ik4) :: i
     real(rkx) :: kk
 !
@@ -18652,7 +18652,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       grat1 = xk1*water/gama(7)*(gama(8)/gama(7))**2.
       dd = sqrt((grat1+y)**24.0*(x+y)*grat1)
       kk = 0.5_rkx*(-(grat1+y)+dd)
@@ -18679,15 +18679,15 @@ module mod_che_isorropia
 ! *** case b2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : lc , (nh4)2so4
+!     3. solids possible : lc, (nh4)2so4
 !
-!     there are two possible regimes here , depending on the sulfate ratio:
+!     there are two possible regimes here, depending on the sulfate ratio:
 !     1. when both lc and (nh4)2so4 are possible (subroutine calcb2a)
 !     2. when only lc is possible (subroutine calcb2b).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -18697,7 +18697,7 @@ module mod_che_isorropia
   subroutine calcb2
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: x , y
+    real(rkx) :: x, y
 !
 ! *** calculate equivalent amount of hso4 and so4
 ! ***********************
@@ -18724,17 +18724,17 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate rich (1.0 < sulrat < 2.0)
 !     2. solid phase only possible
-!     3. solids possible: lc , (nh4)2so4
+!     3. solids possible: lc, (nh4)2so4
 !
-!     there are two possible regimes here , depending on relative humidity:
+!     there are two possible regimes here, depending on relative humidity:
 !     1. when rh >= mdrh ; liquid phase possible (mdrh region)
 !     2. when rh < mdrh  ; only solid phase possible
 !
-!     for solid calculations , a material balance based on the stoichimetric
+!     for solid calculations, a material balance based on the stoichimetric
 !     proportion of ammonium and sulfate is done to calculate the amount
 !     of lc and (nh4)2so4 in the solid phase.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -18744,7 +18744,7 @@ module mod_che_isorropia
   subroutine calcb2a(tlc,tnh42s4)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: tlc , tnh42s4
+    real(rkx) :: tlc, tnh42s4
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -18769,14 +18769,14 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate rich (1.0 < sulrat < 2.0)
 !     2. solid phase only possible
-!     3. solids possible: lc , (nh4)2so4
+!     3. solids possible: lc, (nh4)2so4
 !
 !     this is the case where the relative humidity is in the mutual
 !     drh region. the solution is assumed to be the sum of two weighted
 !     solutions ; the solid phase only (subroutine calcb2a1) and the
 !     the solid with liquid phase (subroutine calcb3).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -18786,7 +18786,7 @@ module mod_che_isorropia
   subroutine calcb2a2(tlc,tnh42s4)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: clco , cnh42so , onemwf , tlc , tnh42s4 , wf
+    real(rkx) :: clco, cnh42so, onemwf, tlc, tnh42s4, wf
 !
 ! *** find weight factor **********************************************
 !
@@ -18834,14 +18834,14 @@ module mod_che_isorropia
 !     2. both liquid & solid phase is possible
 !     3. solids possible: lc
 !
-!     for calculations , a bisection is performed towards zeta , the
+!     for calculations, a bisection is performed towards zeta, the
 !     amount of solid lc dissolved in the liquid phase.
-!     for each estimation of zeta , function funcb2a calculates the
-!     amount of h+ produced (based on the hso4 , so4 released into the
+!     for each estimation of zeta, function funcb2a calculates the
+!     amount of h+ produced (based on the hso4, so4 released into the
 !     solution). the solubility product of lc is used as the objective
 !     function.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -18851,8 +18851,8 @@ module mod_che_isorropia
   subroutine calcb2b(tlc,tnh4hs4)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: dx , tlc , tnh4hs4 , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo , zhi , zlo
+    real(rkx) :: dx, tlc, tnh4hs4, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo, zhi, zlo
     integer(ik4) :: i
 !
     calaou = .true.         ! outer loop activity calculation flag
@@ -18870,7 +18870,7 @@ module mod_che_isorropia
 ! *** root tracking ; for the range of hi and lo
 ! ************************
     dx = (zhi-zlo)/ndiv
-    do i = 1 , ndiv
+    do i = 1, ndiv
       x2 = x1 - dx
       y2 = funcb2b(x2,tnh4hs4,tlc)
       if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100     ! (y1*y2 < zero)
@@ -18884,14 +18884,14 @@ module mod_che_isorropia
     if ( abs(y2)<eps ) then       ! x2 is a solution
       return
 !
-!   *** { ylo , yhi } < 0.0 the solution is always undersaturated with
+!   *** { ylo, yhi } < 0.0 the solution is always undersaturated with
 !   lc
     else if ( ylo<zero .and. yhi<zero ) then
       x1 = zhi
       x2 = zhi
       go to 200
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   lc
     else if ( ylo>zero .and. yhi>zero ) then
       x1 = zlo
@@ -18905,7 +18905,7 @@ module mod_che_isorropia
 ! *** perform bisection
 ! *************************************************
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcb2b(x3,tnh4hs4,tlc)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -18939,14 +18939,14 @@ module mod_che_isorropia
   real(rkx) function funcb2b(x,tnh4hs4,tlc)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: delta , grat2 , omega , parm , tlc , tnh4hs4 , x
+    real(rkx) :: delta, grat2, omega, parm, tlc, tnh4hs4, x
     integer(ik4) :: i
 !
 ! *** solve equations **************************************************
 !
     frst = .true.
     calain = .true.
-    do i = 1 , nsweep
+    do i = 1, nsweep
       grat2 = xk1*water*(gama(8)/gama(7))**2/gama(7)
       parm = x + grat2
       delta = parm*parm + 4.0*(x+tnh4hs4)*grat2    ! diakrinousa
@@ -18981,15 +18981,15 @@ module mod_che_isorropia
 ! *** case b1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : lc , (nh4)2so4 , nh4hso4
+!     3. solids possible : lc, (nh4)2so4, nh4hso4
 !
-!     there are two possible regimes here , depending on relative humidity:
+!     there are two possible regimes here, depending on relative humidity:
 !     1. when rh >= mdrh ; liquid phase possible (mdrh region)
 !     2. when rh < mdrh  ; only solid phase possible (subroutine calcb1a)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19022,15 +19022,15 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate rich
 !     2. there is no liquid phase
-!     3. solids possible: lc , { (nh4)2so4  xor  nh4hso4 } (one of two
+!     3. solids possible: lc, { (nh4)2so4  xor  nh4hso4 } (one of two
 !                         but not both)
 !
-!     a simple material balance is performed , and the amount of lc
+!     a simple material balance is performed, and the amount of lc
 !     is calculated from the (nh4)2so4 and nh4hso4 which is least
 !     abundant (stoichimetrically). the remaining excess of salt
 !     is mixed with the lc.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19040,7 +19040,7 @@ module mod_che_isorropia
   subroutine calcb1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: x , y
+    real(rkx) :: x, y
 !
 ! *** setup parameters ************************************************
 !
@@ -19069,7 +19069,7 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate rich
 !     2. there is both a liquid & solid phase
-!     3. solids possible: lc , { (nh4)2so4  xor  nh4hso4 } (one of two
+!     3. solids possible: lc, { (nh4)2so4  xor  nh4hso4 } (one of two
 !                         but not both)
 !
 !     this is the case where the relative humidity is in the mutual
@@ -19077,7 +19077,7 @@ module mod_che_isorropia
 !     solutions ; the solid phase only (subroutine calcb1a) and the
 !     the solid with liquid phase (subroutine calcb2).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19087,7 +19087,7 @@ module mod_che_isorropia
   subroutine calcb1b
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: clco , cnh42so , cnh4hso , onemwf , wf
+    real(rkx) :: clco, cnh42so, cnh4hso, onemwf, wf
 !
 ! *** find weight factor **********************************************
 !
@@ -19136,10 +19136,10 @@ module mod_che_isorropia
 ! *** case c2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , free acid (sulrat < 1.0)
+!     1. sulfate rich, free acid (sulrat < 1.0)
 !     2. there is only a liquid phase
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19149,9 +19149,9 @@ module mod_che_isorropia
   subroutine calcc2
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: bb , cc , parm , psi
+    real(rkx) :: bb, cc, parm, psi
     integer(ik4) :: i
-    real(rkx) :: lamda , kapa
+    real(rkx) :: lamda, kapa
 !
     calaou = .true.          ! outer loop activity calculation flag
     frst = .true.
@@ -19161,7 +19161,7 @@ module mod_che_isorropia
 !
     lamda = w(3)              ! nh4hso4 initially in solution
     psi = w(2) - w(3)         ! h2so4 in solution
-    do i = 1 , nsweep
+    do i = 1, nsweep
       parm = water*xk1/gama(7)*(gama(8)/gama(7))**2.
       bb = psi + parm
       cc = -parm*(lamda+psi)
@@ -19191,11 +19191,11 @@ module mod_che_isorropia
 ! *** case c1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , free acid (sulrat < 1.0)
+!     1. sulfate rich, free acid (sulrat < 1.0)
 !     2. there is both a liquid & solid phase
 !     3. solids possible: nh4hso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19205,9 +19205,9 @@ module mod_che_isorropia
   subroutine calcc1
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: dx , x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, x1, x2, x3, y1, y2, y3, yhi, ylo
     integer(ik4) :: i
-    real(rkx) :: klo , khi
+    real(rkx) :: klo, khi
 !
     calaou = .true.      ! outer loop activity calculation flag
     klo = tiny1
@@ -19224,7 +19224,7 @@ module mod_che_isorropia
 ! *** root tracking ; for the range of hi and lo ***********************
 !
     dx = (khi-klo)/float(ndiv)
-    do i = 1 , ndiv
+    do i = 1, ndiv
       x2 = x1 + dx
       y2 = funcc1(x2)
       if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100      ! (y1*y2  <  zero)
@@ -19238,12 +19238,12 @@ module mod_che_isorropia
     if ( abs(y2)<eps ) then       ! x2 is a solution
       return
 !
-!   *** { ylo , yhi } < 0.0  solution is always undersaturated with
+!   *** { ylo, yhi } < 0.0  solution is always undersaturated with
 !   nh4hs04
     else if ( ylo<zero .and. yhi<zero ) then
       return
 !
-!   *** { ylo , yhi } > 0.0 solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 solution is always supersaturated with
 !   nh4hs04
     else if ( ylo>zero .and. yhi>zero ) then
       x1 = klo
@@ -19257,7 +19257,7 @@ module mod_che_isorropia
 ! *** perform bisection of dissolved nh4hso4 **************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcc1(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -19287,7 +19287,7 @@ module mod_che_isorropia
 !     function that solves the system of equations for case c1
 !     and returns the value of the zeroed function in funcc1.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19297,9 +19297,9 @@ module mod_che_isorropia
   real(rkx) function funcc1(kapa)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: bb , cc , par1 , par2 , psi
+    real(rkx) :: bb, cc, par1, par2, psi
     integer(ik4) :: i
-    real(rkx) :: kapa , lamda
+    real(rkx) :: kapa, lamda
 !
 ! *** solve equations **************************************************
 !
@@ -19308,7 +19308,7 @@ module mod_che_isorropia
     par2 = one
 !
     psi = w(2) - w(3)
-    do i = 1 , nsweep
+    do i = 1, nsweep
       par1 = xk1*water/gama(7)*(gama(8)/gama(7))**2
       par2 = xk12*(water/gama(9))**2
       bb = psi + par1
@@ -19347,7 +19347,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0)
 !     2. there is olny a liquid phase
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19358,8 +19358,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , p4 , psi4hi , psi4lo , &
-         x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo , yy
+    real(rkx) :: delta, dx, p4, psi4hi, psi4lo, &
+         x1, x2, x3, y1, y2, y3, yhi, ylo, yy
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -19399,7 +19399,7 @@ module mod_che_isorropia
 ! *** root tracking ; for the range of hi and lo **********************
 !
     dx = (psi4hi-psi4lo)/float(ndiv)
-    do i = 1 , ndiv
+    do i = 1, ndiv
       x2 = x1 + dx
       y2 = funcd3(x2)
       if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 200     ! (y1*y2 < zero)
@@ -19413,8 +19413,8 @@ module mod_che_isorropia
     if ( abs(y2)<eps ) then       ! x2 is a solution
       return
 !
-!   *** { ylo , yhi } < 0.0 the solution is always undersaturated with
-!   nh3 & phyically i dont know when this might happen , but i have put
+!   *** { ylo, yhi } < 0.0 the solution is always undersaturated with
+!   nh3 & phyically i dont know when this might happen, but i have put
 !   this & brach in for completeness. i assume there is no solution;
 !   all no3 goes to the gas phase.
 !
@@ -19423,8 +19423,8 @@ module mod_che_isorropia
       yy = funcd3(p4)
       go to 400
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
-!   nh3 & thi happens when sul.rat. = 2.0 , so some nh4+ from sulfate
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
+!   nh3 & thi happens when sul.rat. = 2.0, so some nh4+ from sulfate
 !   evaporates and goes to the gas phase ; so i redefine the lo and hi
 !   limits of psi4 and proceed again with root tracking.
 !
@@ -19447,7 +19447,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 200 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcd3(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -19492,7 +19492,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: abb , ahi , bb , denm , p4
+    real(rkx) :: abb, ahi, bb, denm, p4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -19503,7 +19503,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a2 = water/gama(4)
       if ( a2 > 1.0e-3_rkx ) then
         a2 = a2*a2*a2
@@ -19588,7 +19588,7 @@ module mod_che_isorropia
 !     2. there is both a liquid & solid phase
 !     3. solids possible : (nh4)2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19599,8 +19599,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , p4 , psi4hi , psi4lo , &
-         x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo , yy
+    real(rkx) :: delta, dx, p4, psi4hi, psi4lo, &
+         x1, x2, x3, y1, y2, y3, yhi, ylo, yy
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -19640,12 +19640,12 @@ module mod_che_isorropia
 ! *** root tracking ; for the range of hi and lo **********************
 !
     dx = (psi4hi-psi4lo)/float(ndiv)
-    do i = 1 , ndiv
+    do i = 1, ndiv
       x2 = x1 + dx
       y2 = funcd2(x2)
       if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) then
 !
-!     thi is done , in case if y(psi4lo)>0 , but y(psi4lo+dx) < 0
+!     thi is done, in case if y(psi4lo)>0, but y(psi4lo+dx) < 0
 !     (i.e.undersat)
         if ( y1<=y2 ) go to 200       ! (y1*y2 < zero)
       end if
@@ -19659,8 +19659,8 @@ module mod_che_isorropia
     if ( abs(y2)<eps ) then       ! x2 is a solution
       return
 !
-!   *** { ylo , yhi } < 0.0 the solution is always undersaturated with
-!   nh3 & phyically i dont know when this might happen , but i have put
+!   *** { ylo, yhi } < 0.0 the solution is always undersaturated with
+!   nh3 & phyically i dont know when this might happen, but i have put
 !   this & brach in for completeness. i assume there is no solution;
 !   all no3 goes to the gas phase.
 !
@@ -19669,8 +19669,8 @@ module mod_che_isorropia
       yy = funcd2(p4)
       go to 400
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
-!   nh3 & thi happens when sul.rat. = 2.0 , so some nh4+ from sulfate
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
+!   nh3 & thi happens when sul.rat. = 2.0, so some nh4+ from sulfate
 !   evaporates and goes to the gas phase ; so i redefine the lo and hi
 !   limits of psi4 and proceed again with root tracking.
 !
@@ -19693,7 +19693,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 200 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcd2(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -19710,7 +19710,7 @@ module mod_che_isorropia
 ! *** converged ; return **********************************************
 !
 300 continue
-    x3 = min(x1,x2)  ! 0.5d0*(x1+x2)  ! get "low" side , it's acidic soln.
+    x3 = min(x1,x2)  ! 0.5d0*(x1+x2)  ! get "low" side, it's acidic soln.
     y3 = funcd2(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -19738,8 +19738,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: abb , ahi , bb , denm , p4
-    integer(ik4) :: i , islv
+    real(rkx) :: abb, ahi, bb, denm, p4
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -19751,7 +19751,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a2 = xk7*(water/gama(4))**3
       a3 = xk4*r*temp*(water/gama(10))**2
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -19769,9 +19769,9 @@ module mod_che_isorropia
 !
       psi3 = a3*a4*chi3*(chi4-psi4) - psi1*(2._rkx*psi2+psi1+psi4)
       psi3 = psi3/(a3*a4*(chi4-psi4)+2._rkx*psi2+psi1+psi4)
-!   psi3  = min(max(psi3 , zero), chi3)
+!   psi3  = min(max(psi3, zero), chi3)
 !
-      bb = psi4 - psi3    ! (bb > 0 , acidic solution , <0 alkaline)
+      bb = psi4 - psi3    ! (bb > 0, acidic solution, <0 alkaline)
 !
 !   do ot change computation scheme for h+, all others did not work
 !   well.
@@ -19816,13 +19816,13 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0)
 !     2. solid aerosol only
-!     3. solids possible : (nh4)2so4 , nh4no3
+!     3. solids possible : (nh4)2so4, nh4no3
 !
 !     there are two regimes defined by relative humidity:
 !     1. rh < mdrh ; only solid phase possible (subroutine calcd1a)
 !     2. rh >= mdrh ; liquid phase possible (mdrh region)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19855,14 +19855,14 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0)
 !     2. solid aerosol only
-!     3. solids possible : (nh4)2so4 , nh4no3
+!     3. solids possible : (nh4)2so4, nh4no3
 !
-!     the solid (nh4)2so4 is calculated from the sulfates , while nh4no3
+!     the solid (nh4)2so4 is calculated from the sulfates, while nh4no3
 !     is calculated from nh3-hno3 equilibrium. 'ze' is the amount of
 !     nh4no3 that volatizes when all possilbe nh4no3 is initially in
 !     the solid phase.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19872,7 +19872,7 @@ module mod_che_isorropia
   subroutine calcd1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: diak , om , omps , parm , ps , x , ze
+    real(rkx) :: diak, om, omps, parm, ps, x, ze
 !
 ! *** setup parameters ************************************************
 !
@@ -19906,9 +19906,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -19919,8 +19919,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rkx) :: delta , dx , psi6hi , psi6lo , &
-         x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, psi6hi, psi6lo, &
+         x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -19936,7 +19936,7 @@ module mod_che_isorropia
     psi1 = chi1
     psi2 = chi2
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
     water = chi2/m0(4) + chi1/m0(2)
 !
@@ -19952,7 +19952,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcg5a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -19969,7 +19969,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcg5a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -20009,9 +20009,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20022,7 +20022,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rkx) :: akk , bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: akk, bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -20033,7 +20033,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a2 = xk7*(water/gama(4))**3
@@ -20054,7 +20054,7 @@ module mod_che_isorropia
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
         bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
-        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
+        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar, 19/11/01
         psi4 = 0.5_rkx*(-bb-sqrt(dd))
       else
         psi4 = tiny1
@@ -20104,9 +20104,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20117,8 +20117,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rkx) :: delta , dx , psi6hi , psi6lo , &
-         x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, psi6hi, psi6lo, &
+         x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -20133,7 +20133,7 @@ module mod_che_isorropia
 !
     psi2 = chi2
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
     water = chi2/m0(4) + chi1/m0(2)
 !
@@ -20149,7 +20149,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcg4a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -20166,7 +20166,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcg4a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -20206,9 +20206,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20219,9 +20219,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rkx) :: bb , cc , cli , dd , hi , ohi , so4i , x
-    integer(ik4) :: i , islv
-    real(rkx) :: nai , nh4i , no3i
+    real(rkx) :: bb, cc, cli, dd, hi, ohi, so4i, x
+    integer(ik4) :: i, islv
+    real(rkx) :: nai, nh4i, no3i
 !
 ! *** setup parameters ************************************************
 !
@@ -20232,7 +20232,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a2 = xk7*(water/gama(4))**3
@@ -20252,7 +20252,7 @@ module mod_che_isorropia
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
         bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
-        dd = max(bb*bb-4._rkx*cc,zero)        ! patch proposed by uma shankar , 19/11/2001
+        dd = max(bb*bb-4._rkx*cc,zero)        ! patch proposed by uma shankar, 19/11/2001
         psi4 = 0.5_rkx*(-bb-sqrt(dd))
       else
         psi4 = tiny1
@@ -20302,7 +20302,7 @@ module mod_che_isorropia
       cnh4cl = zero
       cna2so4 = max(chi1-psi1,zero)
 !
-!   *** calculate molalr array , water and activities
+!   *** calculate molalr array, water and activities
 !   **********************
       call calcmr
 !
@@ -20327,9 +20327,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. liquid & solid phase are both possible
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20343,11 +20343,11 @@ module mod_che_isorropia
 !
 ! *** regime depends on the existance of water and of the rh
 ! ************
-    if ( w(4)>tiny1 .and. w(5)>tiny1 ) then     ! no3 ,cl exist , water possible
+    if ( w(4)>tiny1 .and. w(5)>tiny1 ) then     ! no3 ,cl exist, water possible
       scase = 'g3 ; subcase 1'
       call calcg3a
       scase = 'g3 ; subcase 1'
-    else                                        ! no3 , cl non existant
+    else                                        ! no3, cl non existant
       scase = 'g1 ; subcase 1'
       call calcg1a
       scase = 'g1 ; subcase 1'
@@ -20355,14 +20355,14 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmg3 ) then           ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcg1a
         scase = 'g3 ; subcase 2'
         return
       else
-        scase = 'g3 ; subcase 3'      ! mdrh region (na2so4 , nh42s4)
+        scase = 'g3 ; subcase 3'      ! mdrh region (na2so4, nh42s4)
         call calcmdrh(rh,drmg3,drnh42s4,calcg1a,calcg4)
         scase = 'g3 ; subcase 3'
       end if
@@ -20378,9 +20378,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20391,9 +20391,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rkx) :: delta , dx , psi6hi , psi6lo , &
-         x1 , x2 , x3 , y1 , y2 , y3
-    integer(ik4) :: i , islv
+    real(rkx) :: delta, dx, psi6hi, psi6lo, &
+         x1, x2, x3, y1, y2, y3
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -20406,7 +20406,7 @@ module mod_che_isorropia
     chi6 = w(5)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
     water = tiny1
 !
@@ -20422,7 +20422,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcg3a(x2)
 !
@@ -20440,7 +20440,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcg3a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -20499,9 +20499,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20512,8 +20512,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rkx) :: bb , cc , dd , hi , ohi , psi20 , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, cc, dd, hi, ohi, psi20, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -20524,7 +20524,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a2 = xk7*(water/gama(4))**3
@@ -20544,7 +20544,7 @@ module mod_che_isorropia
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
         bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
-        dd = max(bb*bb-4._rkx*cc,zero)         ! patch proposed by uma shankar , 19/11/01
+        dd = max(bb*bb-4._rkx*cc,zero)         ! patch proposed by uma shankar, 19/11/01
         psi4 = 0.5_rkx*(-bb-sqrt(dd))
       else
         psi4 = tiny1
@@ -20599,9 +20599,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. liquid & solid phase are both possible
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20615,11 +20615,11 @@ module mod_che_isorropia
 !
 ! *** regime depends on the existance of nitrates
 ! ***********************
-    if ( w(4)>tiny1 ) then          ! no3 exists , water possible
+    if ( w(4)>tiny1 ) then          ! no3 exists, water possible
       scase = 'g2 ; subcase 1'
       call calcg2a
       scase = 'g2 ; subcase 1'
-    else                            ! no3 non existant , water not possible
+    else                            ! no3 non existant, water not possible
       scase = 'g1 ; subcase 1'
       call calcg1a
       scase = 'g1 ; subcase 1'
@@ -20630,24 +20630,24 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmg2 ) then                ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcg1a
         scase = 'g2 ; subcase 2'
       else
         if ( w(5)>tiny1 ) then
-          scase = 'g2 ; subcase 3'         ! mdrh (nh4cl , na2so4 , nh42s4)
+          scase = 'g2 ; subcase 3'         ! mdrh (nh4cl, na2so4, nh42s4)
           call calcmdrh(rh,drmg2,drnh4cl,calcg1a,calcg3a)
           scase = 'g2 ; subcase 3'
         end if
         if ( water<=tiny1 .and. rh>=drmg3 ) then
-          scase = 'g2 ; subcase 4'         ! mdrh (na2so4 , nh42s4)
+          scase = 'g2 ; subcase 4'         ! mdrh (na2so4, nh42s4)
           call calcmdrh(rh,drmg3,drnh42s4,calcg1a,calcg4)
           scase = 'g2 ; subcase 4'
         else
           water = tiny1
-          do i = 1 , nions
+          do i = 1, nions
             molal(i) = zero
           end do
           call calcg1a
@@ -20666,9 +20666,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20679,9 +20679,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rkx) :: delta , dx , psi6hi , psi6lo , &
-         x1 , x2 , x3 , y1 , y2 , y3
-    integer(ik4) :: i , islv
+    real(rkx) :: delta, dx, psi6hi, psi6lo, &
+         x1, x2, x3, y1, y2, y3
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -20710,7 +20710,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcg2a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -20727,7 +20727,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcg2a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -20745,7 +20745,7 @@ module mod_che_isorropia
 !
 200 continue
     x3 = 0.5_rkx*(x1+x2)
-    if ( x3<=tiny2 ) then     ! practically no nitrates , so dry solution
+    if ( x3<=tiny2 ) then     ! practically no nitrates, so dry solution
       water = tiny1
     else
       y3 = funcg2a(x3)
@@ -20790,9 +20790,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20803,9 +20803,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rkx) :: bb , cc , dd , delt , deno , hi , ohi , &
-         psi20 , psi31 , psi32 , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, cc, dd, delt, deno, hi, ohi, &
+         psi20, psi31, psi32, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -20817,7 +20817,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a2 = xk7*(water/gama(4))**3
@@ -20844,7 +20844,7 @@ module mod_che_isorropia
       molal(6) = zero                                 ! hso4
       molal(7) = psi5                                 ! no3i
 !
-!   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
+!   molal (1) = max(chi5 - psi5, tiny1)*a5/psi5   ! hi
       smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
       call calcph(smin,hi,ohi)
       molal(1) = hi
@@ -20885,7 +20885,7 @@ module mod_che_isorropia
       ghcl = max(ghcl-psi3,tiny1)
       cnh4cl = psi3
 !
-!   *** calculate molalr array , water and activities
+!   *** calculate molalr array, water and activities
 !   **********************
       call calcmr
 !
@@ -20913,13 +20913,13 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. solid aerosol only
-!     3. solids possible : (nh4)2so4 , nh4no3 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4no3, nh4cl, na2so4
 !
-!     there are two possible regimes here , depending on relative humidity:
+!     there are two possible regimes here, depending on relative humidity:
 !     1. when rh >= mdrh ; liquid phase possible (mdrh region)
 !     2. when rh < mdrh  ; only solid phase possible (subroutine calcg1a)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20952,14 +20952,14 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0)
 !     2. solid aerosol only
-!     3. solids possible : (nh4)2so4 , nh4no3
+!     3. solids possible : (nh4)2so4, nh4no3
 !
-!     solid (nh4)2so4 is calculated from the sulfates , while nh4no3
+!     solid (nh4)2so4 is calculated from the sulfates, while nh4no3
 !     is calculated from nh3-hno3 equilibrium. 'ze' is the amount of
 !     nh4no3 that volatizes when all possilbe nh4no3 is initially in
 !     the solid phase.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -20969,10 +20969,10 @@ module mod_che_isorropia
   subroutine calcg1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a1 , a2 , alf , bb , bet , cc , dd , &
-         dd1 , dd2 , frna , gam , rtsq , so4fr , sqdd , &
-         sqdd1 , sqdd2 , theta1 , theta2
-    real(rkx) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2
+    real(rkx) :: a1, a2, alf, bb, bet, cc, dd, &
+         dd1, dd2, frna, gam, rtsq, so4fr, sqdd, &
+         sqdd1, sqdd2, theta1, theta2
+    real(rkx) :: lamda, lamda1, lamda2, kapa, kapa1, kapa2
 !
 ! *** calculate non volatile solids ***********************************
 !
@@ -21002,7 +21002,7 @@ module mod_che_isorropia
     dd = bb*bb - 4.0_rkx*cc
     if ( dd>=zero ) then        ! solve each reaction seperately
 !
-!   two roots for kapa , check and see if any valid
+!   two roots for kapa, check and see if any valid
 !
       sqdd = sqrt(dd)
       kapa1 = 0.5_rkx*(-bb+sqdd)
@@ -21068,7 +21068,7 @@ module mod_che_isorropia
       end if
     end if
 !
-! if oth kapa , lamda are > 0 , then apply existance criterion
+! if oth kapa, lamda are > 0, then apply existance criterion
 !
     if ( kapa>zero .and. lamda>zero ) then
       if ( bet<lamda/theta1 ) then
@@ -21097,9 +21097,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -21110,8 +21110,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frna , psi6hi , psi6lo , &
-         x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
+         x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -21128,7 +21128,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -21140,7 +21140,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funch6a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -21157,7 +21157,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funch6a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -21197,9 +21197,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -21210,7 +21210,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -21226,7 +21226,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -21297,9 +21297,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -21310,8 +21310,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frna , psi6hi , psi6lo , &
-         x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
+         x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of nitrates
@@ -21337,7 +21337,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -21349,7 +21349,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funch5a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -21366,7 +21366,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funch5a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -21408,7 +21408,7 @@ module mod_che_isorropia
 !     2. there is both a liquid & solid phase
 !     3. solids possible : none
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -21419,8 +21419,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , cc , dd , hi , ohi , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, cc, dd, hi, ohi, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -21435,7 +21435,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -21520,7 +21520,7 @@ module mod_che_isorropia
 !     2. there is both a liquid & solid phase
 !     3. solids possible : na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -21531,8 +21531,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frna , psi6hi , psi6lo , &
-         x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
+         x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of nitrates
@@ -21558,7 +21558,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -21570,7 +21570,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funch4a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -21587,7 +21587,7 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
 100 continue
-    do i = 1 , maxit
+    do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funch4a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -21627,9 +21627,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -21640,8 +21640,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , cc , dd , delt , hi , ohi , psi31 , psi32 , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, cc, dd, delt, hi, ohi, psi31, psi32, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -21656,7 +21656,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -21764,9 +21764,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : nh4cl , na2so4
+!     3. solids possible : nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -21777,13 +21777,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frna , psi6hi , psi6lo , &
-         x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
+         x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of nitrates
 ! ***********************
-    if ( w(4)<=tiny1 ) then          ! no3 not exist , water not possible
+    if ( w(4)<=tiny1 ) then          ! no3 not exist, water not possible
       scase = 'h3'
       call calch1a
       scase = 'h3'
@@ -21804,7 +21804,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -21816,7 +21816,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funch3a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -21832,7 +21832,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funch3a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -21870,9 +21870,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -21883,9 +21883,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , cc , dd , delt , diak , hi , ohi , &
-         psi31 , psi32 , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, cc, dd, delt, diak, hi, ohi, &
+         psi31, psi32, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -21900,7 +21900,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -22014,17 +22014,17 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : nh4cl , na2so4 , nano3 , nacl
+!     3. solids possible : nh4cl, na2so4, nano3, nacl
 !
 !     there are three regimes in this case:
 !     1. nh4no3(s) possible. liquid & solid aerosol (subroutine calch2a)
-!     2. nh4no3(s) not possible , and rh < mdrh. solid aerosol only
-!     3. nh4no3(s) not possible , and rh >= mdrh. (mdrh region)
+!     2. nh4no3(s) not possible, and rh < mdrh. solid aerosol only
+!     3. nh4no3(s) not possible, and rh >= mdrh. (mdrh region)
 !
-!     regimes 2. and 3. are considered to be the same as cases h1a , h2b
+!     regimes 2. and 3. are considered to be the same as cases h1a, h2b
 !     respectively (because mdrh points coincide).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22037,11 +22037,11 @@ module mod_che_isorropia
 !
 ! *** regime depends on the existance of nitrates
 ! ***********************
-    if ( w(4)>tiny1 ) then          ! no3 exists , water possible
+    if ( w(4)>tiny1 ) then          ! no3 exists, water possible
       scase = 'h2 ; subcase 1'
       call calch2a
       scase = 'h2 ; subcase 1'
-    else                            ! no3 non existant , water not possible
+    else                            ! no3 non existant, water not possible
       scase = 'h2 ; subcase 1'
       call calch1a
       scase = 'h2 ; subcase 1'
@@ -22064,9 +22064,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : nh4cl , na2so4
+!     3. solids possible : nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22077,8 +22077,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frna , psi6hi , psi6lo , &
-         x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
+         x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -22095,7 +22095,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -22107,7 +22107,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funch2a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -22123,7 +22123,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funch2a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -22161,9 +22161,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22174,9 +22174,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: a64 , aa , bb , cc , dd , delt , diak , hi , ohi , psi31 , &
-         psi32 , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: a64, aa, bb, cc, dd, delt, diak, hi, ohi, psi31, &
+         psi32, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -22192,7 +22192,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -22312,13 +22312,13 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4no3 , nh4cl , na2so4
+!     3. solids possible : nh4no3, nh4cl, na2so4
 !
-!     there are two possible regimes here , depending on relative humidity:
+!     there are two possible regimes here, depending on relative humidity:
 !     1. when rh >= mdrh ; liquid phase possible (mdrh region)
 !     2. when rh < mdrh  ; only solid phase possible (subroutine calch1a)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22351,9 +22351,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4no3 , nh4cl , nano3 , na2so4
+!     3. solids possible : nh4no3, nh4cl, nano3, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22363,9 +22363,9 @@ module mod_che_isorropia
   subroutine calch1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a1 , a2 , alf , bb , bet , cc , clfr , dd , dd1 , dd2 , &
-         gam , rtsq , sqdd , sqdd1 , sqdd2 , theta1 , theta2
-    real(rkx) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2 , nafr , &
+    real(rkx) :: a1, a2, alf, bb, bet, cc, clfr, dd, dd1, dd2, &
+         gam, rtsq, sqdd, sqdd1, sqdd2, theta1, theta2
+    real(rkx) :: lamda, lamda1, lamda2, kapa, kapa1, kapa2, nafr, &
          no3fr
 !
 ! *** calculate non volatile solids ***********************************
@@ -22398,7 +22398,7 @@ module mod_che_isorropia
     dd = bb*bb - 4.0_rkx*cc
     if ( dd>=zero ) then        ! solve each reaction seperately
 !
-!   two roots for kapa , check and see if any valid
+!   two roots for kapa, check and see if any valid
 !
       sqdd = sqrt(dd)
       kapa1 = 0.5_rkx*(-bb+sqdd)
@@ -22464,7 +22464,7 @@ module mod_che_isorropia
       end if
     end if
 !
-! if oth kapa , lamda are > 0 , then apply existance criterion
+! if oth kapa, lamda are > 0, then apply existance criterion
 !
     if ( kapa>zero .and. lamda>zero ) then
       if ( bet<lamda/theta1 ) then
@@ -22491,11 +22491,11 @@ module mod_che_isorropia
 ! *** case i6
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4
+!     3. solids possible : (nh4)2so4, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22506,7 +22506,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , cc , dd
+    real(rkx) :: bb, cc, dd
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -22533,7 +22533,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a6 = xk1*water/gama(7)*(gama(8)/gama(7))**2.
 !
@@ -22572,11 +22572,11 @@ module mod_che_isorropia
 ! *** case i5
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4
+!     3. solids possible : (nh4)2so4, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22587,8 +22587,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -22613,7 +22613,7 @@ module mod_che_isorropia
     psi4lo = zero                  ! low  limit
     psi4hi = chi4                  ! high limit
 !
-! *** if na2so4(s) = 0 , call funci5b for y4=0
+! *** if na2so4(s) = 0, call funci5b for y4=0
 ! ***************************
     if ( chi4<=tiny1 ) then
       y1 = funci5a(zero)
@@ -22634,7 +22634,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi4hi-psi4lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funci5a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -22642,7 +22642,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   nh4cl
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -22654,7 +22654,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funci5a(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -22683,11 +22683,11 @@ module mod_che_isorropia
 ! *** case i5
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
 !     3. solids possible : na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22698,7 +22698,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , cc , dd , p4
+    real(rkx) :: bb, cc, dd, p4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -22709,7 +22709,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = xk5*(water/gama(2))**3
       a5 = xk7*(water/gama(4))**3
@@ -22755,11 +22755,11 @@ module mod_che_isorropia
 ! *** case i4
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4
+!     3. solids possible : (nh4)2so4, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22770,8 +22770,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -22796,7 +22796,7 @@ module mod_che_isorropia
     psi4lo = zero                  ! low  limit
     psi4hi = chi4                  ! high limit
 !
-! *** if na2so4(s) = 0 , call funci4b for y4=0
+! *** if na2so4(s) = 0, call funci4b for y4=0
 ! ***************************
     if ( chi4<=tiny1 ) then
       y1 = funci4a(zero)
@@ -22817,7 +22817,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi4hi-psi4lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funci4a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -22825,7 +22825,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   nh4cl
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -22837,7 +22837,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funci4a(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -22865,11 +22865,11 @@ module mod_che_isorropia
 ! *** case i4
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4
+!     3. solids possible : (nh4)2so4, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22880,7 +22880,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , cc , dd , p4
+    real(rkx) :: bb, cc, dd, p4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -22891,7 +22891,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = xk5*(water/gama(2))**3
       a5 = xk7*(water/gama(4))**3
@@ -22941,19 +22941,19 @@ module mod_che_isorropia
 ! *** case i3
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4 , nahso4 , lc
+!     3. solids possible : (nh4)2so4, na2so4, nahso4, lc
 !
 !     there are three regimes in this case:
 !     1.(na ,nh4)hso4(s) possible. liquid & solid aerosol (subroutine calci3a)
-!     2.(na ,nh4)hso4(s) not possible , and rh < mdrh. solid aerosol only
-!     3.(na ,nh4)hso4(s) not possible , and rh >= mdrh. solid & liquid aerosol
+!     2.(na ,nh4)hso4(s) not possible, and rh < mdrh. solid aerosol only
+!     3.(na ,nh4)hso4(s) not possible, and rh >= mdrh. solid & liquid aerosol
 !
-!     regimes 2. and 3. are considered to be the same as cases i1a , i2b
+!     regimes 2. and 3. are considered to be the same as cases i1a, i2b
 !     respectively
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -22979,7 +22979,7 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmi3 ) then            ! solid solution
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calci1a
@@ -22999,11 +22999,11 @@ module mod_che_isorropia
 ! *** case i3 ; subcase 1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4 , lc
+!     3. solids possible : (nh4)2so4, na2so4, lc
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23014,8 +23014,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi
+    real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
+         y1, y2, y3, yhi
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -23054,7 +23054,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi2hi-psi2lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funci3a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -23062,7 +23062,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   lc
       if ( y2>eps ) y2 = funci3a(zero)
     end if
@@ -23070,7 +23070,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funci3a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -23097,11 +23097,11 @@ module mod_che_isorropia
 ! *** case i3 ; subcase 1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4 , lc
+!     3. solids possible : (nh4)2so4, na2so4, lc
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23112,8 +23112,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi
+    real(rkx) :: dx, p2, psi4hi, psi4lo, x1, x2, x3, &
+         y1, y2, y3, yhi
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -23122,7 +23122,7 @@ module mod_che_isorropia
     psi4lo = zero                  ! low  limit for psi4
     psi4hi = chi4                  ! high limit for psi4
 !
-! *** if nh3 = 0 , call funci3b for y4=0
+! *** if nh3 = 0, call funci3b for y4=0
 ! ********************************
     if ( chi4<=tiny1 ) then
       funci3a = funci3b(zero)
@@ -23144,7 +23144,7 @@ module mod_che_isorropia
 !     *** root tracking ; for the range of hi and lo
 !     **********************
         dx = (psi4hi-psi4lo)/float(ndiv)
-        do i = 1 , ndiv
+        do i = 1, ndiv
           x2 = max(x1-dx,psi4lo)
           y2 = funci3b(x2)
           if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50  ! (y1*y2 < zero)
@@ -23152,7 +23152,7 @@ module mod_che_isorropia
           y1 = y2
         end do
 !
-!     *** { ylo , yhi } > 0.0 the solution is always supersaturated
+!     *** { ylo, yhi } > 0.0 the solution is always supersaturated
 !     with na2so4
         if ( y2>eps ) y2 = funci3b(psi4lo)
       end if
@@ -23160,7 +23160,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funci3b(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -23193,9 +23193,9 @@ module mod_che_isorropia
 ! *** case i3 ; subcase 2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4 , lc
+!     3. solids possible : (nh4)2so4, na2so4, lc
 !
 !     solution is saved in common block /case/
 !
@@ -23205,7 +23205,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , cc , dd , p4
+    real(rkx) :: bb, cc, dd, p4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -23219,7 +23219,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = xk5*(water/gama(2))**3
       a5 = xk7*(water/gama(4))**3
@@ -23269,19 +23269,19 @@ module mod_che_isorropia
 ! *** case i2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4 , nahso4 , lc
+!     3. solids possible : (nh4)2so4, na2so4, nahso4, lc
 !
 !     there are three regimes in this case:
 !     1. nh4hso4(s) possible. liquid & solid aerosol (subroutine calci2a)
-!     2. nh4hso4(s) not possible , and rh < mdrh. solid aerosol only
-!     3. nh4hso4(s) not possible , and rh >= mdrh. solid & liquid aerosol
+!     2. nh4hso4(s) not possible, and rh < mdrh. solid aerosol only
+!     3. nh4hso4(s) not possible, and rh >= mdrh. solid & liquid aerosol
 !
-!     regimes 2. and 3. are considered to be the same as cases i1a , i2b
+!     regimes 2. and 3. are considered to be the same as cases i1a, i2b
 !     respectively
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23307,7 +23307,7 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmi2 ) then            ! solid solution only
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calci1a
@@ -23327,11 +23327,11 @@ module mod_che_isorropia
 ! *** case i2 ; subcase a
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4 , nahso4 , lc
+!     3. solids possible : (nh4)2so4, na2so4, nahso4, lc
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23342,8 +23342,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi
+    real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
+         y1, y2, y3, yhi
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -23382,7 +23382,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi2hi-psi2lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funci2a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -23390,7 +23390,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   lc
       if ( y2>eps ) y2 = funci2a(zero)
     end if
@@ -23398,7 +23398,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funci2a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -23425,11 +23425,11 @@ module mod_che_isorropia
 ! *** case i2 ; subcase 1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , na2so4 , nahso4 , lc
+!     3. solids possible : (nh4)2so4, na2so4, nahso4, lc
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23440,8 +23440,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , cc , dd , p2
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, cc, dd, p2
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -23455,7 +23455,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a3 = xk11*(water/gama(12))**2
       a4 = xk5*(water/gama(2))**3
@@ -23532,15 +23532,15 @@ module mod_che_isorropia
 ! *** case i1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4no3 , nh4cl , na2so4
+!     3. solids possible : nh4no3, nh4cl, na2so4
 !
-!     there are two possible regimes here , depending on relative humidity:
+!     there are two possible regimes here, depending on relative humidity:
 !     1. when rh >= mdrh ; liquid phase possible (mdrh region)
 !     2. when rh < mdrh  ; only solid phase possible (subroutine calci1a)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23575,11 +23575,11 @@ module mod_che_isorropia
 ! *** case i1 ; subcase 1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4hso4 , nahso4 , (nh4)2so4 , na2so4 , lc
+!     3. solids possible : nh4hso4, nahso4, (nh4)2so4, na2so4, lc
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23589,7 +23589,7 @@ module mod_che_isorropia
   subroutine calci1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: frnh4 , frso4
+    real(rkx) :: frnh4, frso4
 !
 ! *** calculate non volatile solids ***********************************
 !
@@ -23631,10 +23631,10 @@ module mod_che_isorropia
 ! *** case j3
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , free acid (sulrat < 1.0)
+!     1. sulfate rich, free acid (sulrat < 1.0)
 !     2. there is only a liquid phase
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23644,9 +23644,9 @@ module mod_che_isorropia
   subroutine calcj3
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a3 , bb , cc , chi1 , chi2 , dd , psi1 , psi2
+    real(rkx) :: a3, bb, cc, chi1, chi2, dd, psi1, psi2
     integer(ik4) :: i
-    real(rkx) :: lamda , kapa
+    real(rkx) :: lamda, kapa
 !
 ! *** setup parameters ************************************************
 !
@@ -23662,7 +23662,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a3 = xk1*water/gama(7)*(gama(8)/gama(7))**2
 !
@@ -23702,11 +23702,11 @@ module mod_che_isorropia
 ! *** case j2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , free acid (sulrat < 1.0)
+!     1. sulfate rich, free acid (sulrat < 1.0)
 !     2. there is both a liquid & solid phase
 !     3. solids possible : nahso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23717,8 +23717,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casej
     implicit none
-    real(rkx) :: dx , psi1hi , psi1lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi1hi, psi1lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -23743,7 +23743,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi1hi-psi1lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcj2(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -23751,7 +23751,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   nh42so4
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -23763,7 +23763,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funcj2(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -23791,11 +23791,11 @@ module mod_che_isorropia
 ! *** case j2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , free acid (sulrat < 1.0)
+!     1. sulfate rich, free acid (sulrat < 1.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23806,7 +23806,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casej
     implicit none
-    real(rkx) :: bb , cc , dd , p1
+    real(rkx) :: bb, cc, dd, p1
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -23820,7 +23820,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk11*(water/gama(12))**2
       a3 = xk1*water/gama(7)*(gama(8)/gama(7))**2
@@ -23865,11 +23865,11 @@ module mod_che_isorropia
 ! *** case j1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , free acid (sulrat < 1.0)
+!     1. sulfate rich, free acid (sulrat < 1.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : nh4hso4 , nahso4
+!     3. solids possible : nh4hso4, nahso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23880,8 +23880,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casej
     implicit none
-    real(rkx) :: dx , psi1hi , psi1lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi1hi, psi1lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -23907,7 +23907,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi1hi-psi1lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcj1(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -23915,7 +23915,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   nh42so4
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -23927,7 +23927,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funcj1(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -23954,11 +23954,11 @@ module mod_che_isorropia
 ! *** case j1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , free acid (sulrat < 1.0)
+!     1. sulfate rich, free acid (sulrat < 1.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 ! *** updated by christos fountoukis
@@ -23969,7 +23969,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casej
     implicit none
-    real(rkx) :: bb , cc , dd , p1
+    real(rkx) :: bb, cc, dd, p1
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -23982,7 +23982,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk11*(water/gama(12))**2
       a2 = xk12*(water/gama(09))**2
@@ -24032,8 +24032,8 @@ module mod_che_isorropia
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
 !     3. solids possible : caso4
-!     4. completely dissolved: nh4no3 , nh4cl , (nh4)2so4 , mgso4 , na2so4 , k2so4
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+!     4. completely dissolved: nh4no3, nh4cl, (nh4)2so4, mgso4, na2so4, k2so4
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -24043,8 +24043,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
+    real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -24077,7 +24077,7 @@ module mod_che_isorropia
     psi7 = chi7
     psi8 = chi8
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
     water = chi2/m0(4) + chi1/m0(2) + chi7/m0(17) + chi8/m0(21)
     water = max(water,tiny1)
@@ -24094,7 +24094,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco7(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -24110,7 +24110,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funco7(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -24149,8 +24149,8 @@ module mod_che_isorropia
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
 !     3. solids possible : caso4
-!     4. completely dissolved: nh4no3 , nh4cl , (nh4)2so4 , mgso4 , na2so4 , k2so4
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+!     4. completely dissolved: nh4no3, nh4cl, (nh4)2so4, mgso4, na2so4, k2so4
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -24160,7 +24160,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -24171,7 +24171,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -24189,7 +24189,7 @@ module mod_che_isorropia
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
         bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
-        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
+        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar, 19/11/01
         psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = max(min(psi4,chi4),zero)
       else
@@ -24210,7 +24210,7 @@ module mod_che_isorropia
 !
 !   *** calculate hso4 speciation and return
 !   *******************************
-!   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
+!   molal (1) = max(chi5 - psi5, tiny1)*a5/psi5   ! hi
       smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
              - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
@@ -24230,7 +24230,7 @@ module mod_che_isorropia
       cmgso4 = zero
       ccaso4 = chi9
 !
-!   *** calculate molalr array , water and activities
+!   *** calculate molalr array, water and activities
 !   **********************
       call calcmr
 !
@@ -24254,9 +24254,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4
-!     4. completely dissolved: nh4no3 , nh4cl , (nh4)2so4 , mgso4 , na2so4
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+!     3. solids possible : k2so4, caso4
+!     4. completely dissolved: nh4no3, nh4cl, (nh4)2so4, mgso4, na2so4
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -24266,8 +24266,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
+    real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -24298,7 +24298,7 @@ module mod_che_isorropia
     psi7 = zero
     psi8 = chi8
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
     water = chi2/m0(4) + chi1/m0(2) + chi7/m0(17) + chi8/m0(21)
     water = max(water,tiny1)
@@ -24315,7 +24315,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco6(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -24331,7 +24331,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funco6(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -24369,9 +24369,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4
-!     4. completely dissolved: nh4no3 , nh4cl , (nh4)2so4 , mgso4 , na2so4
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+!     3. solids possible : caso4, k2so4
+!     4. completely dissolved: nh4no3, nh4cl, (nh4)2so4, mgso4, na2so4
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -24381,8 +24381,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, cc, dd, hi, ohi, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -24392,7 +24392,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -24411,7 +24411,7 @@ module mod_che_isorropia
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
         bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
-        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
+        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar, 19/11/01
         psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = max(min(psi4,chi4),zero)
       else
@@ -24443,7 +24443,7 @@ module mod_che_isorropia
 !
 !   *** calculate hso4 speciation and return
 !   *******************************
-!   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
+!   molal (1) = max(chi5 - psi5, tiny1)*a5/psi5   ! hi
       smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
              - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
@@ -24463,7 +24463,7 @@ module mod_che_isorropia
       cmgso4 = zero
       ccaso4 = chi9
 !
-!   *** calculate molalr array , water and activities
+!   *** calculate molalr array, water and activities
 !   **********************
       call calcmr
 !
@@ -24487,9 +24487,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4
-!     4. completely dissolved: nh4no3 , nh4cl , (nh4)2so4 , mgso4
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+!     3. solids possible : k2so4, caso4, na2so4
+!     4. completely dissolved: nh4no3, nh4cl, (nh4)2so4, mgso4
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -24499,8 +24499,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
+    real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -24530,7 +24530,7 @@ module mod_che_isorropia
     psi7 = zero
     psi8 = chi8
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
     water = chi2/m0(4) + chi1/m0(2) + chi7/m0(17) + chi8/m0(21)
     water = max(water,tiny1)
@@ -24547,7 +24547,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco5(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -24563,7 +24563,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funco5(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -24601,9 +24601,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4
-!     4. completely dissolved: nh4no3 , nh4cl , (nh4)2so4 , mgso4
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+!     3. solids possible : k2so4, caso4, na2so4
+!     4. completely dissolved: nh4no3, nh4cl, (nh4)2so4, mgso4
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -24613,8 +24613,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, cc, dd, hi, ohi, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -24624,7 +24624,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -24643,7 +24643,7 @@ module mod_che_isorropia
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
         bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
-        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
+        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar, 19/11/01
         psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = max(min(psi4,chi4),zero)
       else
@@ -24683,7 +24683,7 @@ module mod_che_isorropia
 !
 !   *** calculate hso4 speciation and return
 !   *******************************
-!   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
+!   molal (1) = max(chi5 - psi5, tiny1)*a5/psi5   ! hi
       smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
              - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
@@ -24703,7 +24703,7 @@ module mod_che_isorropia
       cmgso4 = zero
       ccaso4 = chi9
 !
-!   *** calculate molalr array , water and activities
+!   *** calculate molalr array, water and activities
 !   **********************
       call calcmr
 !
@@ -24727,9 +24727,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : na2so4 , k2so4 , mgso4 , caso4
-!     4. completely dissolved: nh4no3 , nh4cl , (nh4)2so4
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+!     3. solids possible : na2so4, k2so4, mgso4, caso4
+!     4. completely dissolved: nh4no3, nh4cl, (nh4)2so4
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -24739,9 +24739,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
-    integer(ik4) :: i , islv
+    real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -24769,7 +24769,7 @@ module mod_che_isorropia
     psi7 = zero
     psi8 = chi8
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
     water = chi2/m0(4) + chi1/m0(2) + chi7/m0(17) + chi8/m0(21)
     water = max(water,tiny1)
@@ -24786,7 +24786,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco4(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -24802,7 +24802,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funco4(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -24859,9 +24859,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -24871,8 +24871,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, cc, dd, hi, ohi, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -24883,7 +24883,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -24905,7 +24905,7 @@ module mod_che_isorropia
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
         bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
-        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
+        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar, 19/11/01
         psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = max(min(psi4,chi4),zero)
       else
@@ -24937,7 +24937,7 @@ module mod_che_isorropia
 !
 !   *** calculate hso4 speciation and return
 !   *******************************
-!   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
+!   molal (1) = max(chi5 - psi5, tiny1)*a5/psi5   ! hi
       smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
              - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
@@ -24979,9 +24979,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 , mgso4 , caso4
+!     3. solids possible : (nh4)2so4, nh4no3, nh4cl, na2so4, k2so4, mgso4, caso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -24994,11 +24994,11 @@ module mod_che_isorropia
 !
 ! *** regime depends on the existance of water and of the rh
 ! ************
-    if ( w(4)>tiny1 .and. w(5)>tiny1 ) then     ! no3 ,cl exist , water possible
+    if ( w(4)>tiny1 .and. w(5)>tiny1 ) then     ! no3 ,cl exist, water possible
       scase = 'o3 ; subcase 1'
       call calco3a
       scase = 'o3 ; subcase 1'
-    else                                        ! no3 , cl non existant
+    else                                        ! no3, cl non existant
       scase = 'o1 ; subcase 1'
       call calco1a
       scase = 'o1 ; subcase 1'
@@ -25006,14 +25006,14 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmo3 ) then           ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calco1a
         scase = 'o3 ; subcase 2'
         return
       else
-        scase = 'o3 ; subcase 3'      ! mdrh region (na2so4 , nh42s4 , k2so4 , mgso4 , caso4)
+        scase = 'o3 ; subcase 3'      ! mdrh region (na2so4, nh42s4, k2so4, mgso4, caso4)
         call calcmdrh2(rh,drmo3,drnh42s4,calco1a,calco4)
         scase = 'o3 ; subcase 3'
       end if
@@ -25029,10 +25029,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , na2so4 , k2so4 , mgso4 , caso4
-!     4. completely dissolved: nh4no3 , nh4cl
+!     3. solids possible : (nh4)2so4, na2so4, k2so4, mgso4, caso4
+!     4. completely dissolved: nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -25042,9 +25042,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
-    integer(ik4) :: i , islv
+    real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -25085,7 +25085,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco3a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -25101,7 +25101,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funco3a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -25158,10 +25158,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , na2so4 , k2so4 , mgso4 , caso4
-!     4. completely dissolved: nh4no3 , nh4cl
+!     3. solids possible : (nh4)2so4, na2so4, k2so4, mgso4, caso4
+!     4. completely dissolved: nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -25171,8 +25171,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: a65 , bb , cc , dd , deno , hi , ohi , psi20 , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: a65, bb, cc, dd, deno, hi, ohi, psi20, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -25186,7 +25186,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a2 = xk7*(water/gama(4))**3
@@ -25207,7 +25207,7 @@ module mod_che_isorropia
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
         bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
-        dd = max(bb*bb-4._rkx*cc,zero)         ! patch proposed by uma shankar , 19/11/01
+        dd = max(bb*bb-4._rkx*cc,zero)         ! patch proposed by uma shankar, 19/11/01
         psi4 = 0.5_rkx*(-bb-sqrt(dd))
       else
         psi4 = tiny1
@@ -25231,7 +25231,7 @@ module mod_che_isorropia
         if ( islv==0 ) psi2 = min(max(psi20,zero),chi2)
       end if
 !   psi2 = 0.5d0*(2.0d0*sqrt(a2/a7)*psi7 - psi4)
-!   psi2 = min (max(psi2 , zero), chi2)
+!   psi2 = min (max(psi2, zero), chi2)
 !
 !   *** save concentrations in molal array
 !   ******************************
@@ -25245,7 +25245,7 @@ module mod_che_isorropia
       molal(9) = 2.0_rkx*psi7                           ! ki
       molal(10) = psi8                                 ! mgi
 !
-!   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
+!   molal (1) = max(chi5 - psi5, tiny1)*a5/psi5   ! hi
       smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
              - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
@@ -25257,7 +25257,7 @@ module mod_che_isorropia
       ghno3 = max(chi5-psi5,tiny1)
       ghcl = max(chi6-psi6,tiny1)
 !
-!   cna2so4  = max(chi1 - psi1 , zero)
+!   cna2so4  = max(chi1 - psi1, zero)
       cnh42s4 = max(chi2-psi2,zero)
       cnh4no3 = zero
       cnh4cl = zero
@@ -25265,7 +25265,7 @@ module mod_che_isorropia
       cmgso4 = zero
       ccaso4 = chi9
 !
-!   *** calculate molalr array , water and activities
+!   *** calculate molalr array, water and activities
 !   **********************
       call calcmr
 !
@@ -25289,9 +25289,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 , mgso4 , caso4
+!     3. solids possible : (nh4)2so4, nh4no3, nh4cl, na2so4, k2so4, mgso4, caso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -25304,11 +25304,11 @@ module mod_che_isorropia
 !
 ! *** regime depends on the existance of nitrates
 ! ***********************
-    if ( w(4)>tiny1 ) then          ! no3 exists , water possible
+    if ( w(4)>tiny1 ) then          ! no3 exists, water possible
       scase = 'o2 ; subcase 1'
       call calco2a
       scase = 'o2 ; subcase 1'
-    else                            ! no3 non existant , water not possible
+    else                            ! no3 non existant, water not possible
       scase = 'o1 ; subcase 1'
       call calco1a
       scase = 'o1 ; subcase 1'
@@ -25319,24 +25319,24 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmo2 ) then                ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calco1a
         scase = 'o2 ; subcase 2'
       else
         if ( w(5)>tiny1 ) then
-          scase = 'o2 ; subcase 3'         ! mdrh (nh4cl , na2so4 , nh42s4 , k2so4 , mgso4 , caso4)
+          scase = 'o2 ; subcase 3'         ! mdrh (nh4cl, na2so4, nh42s4, k2so4, mgso4, caso4)
           call calcmdrh2(rh,drmo2,drnh4cl,calco1a,calco3a)
           scase = 'o2 ; subcase 3'
         end if
         if ( water<=tiny1 .and. rh>=drmo3 ) then
-          scase = 'o2 ; subcase 4'         ! mdrh (na2so4 , nh42s4 , k2so4 , mgso4 , caso4)
+          scase = 'o2 ; subcase 4'         ! mdrh (na2so4, nh42s4, k2so4, mgso4, caso4)
           call calcmdrh2(rh,drmo3,drnh42s4,calco1a,calco4)
           scase = 'o2 ; subcase 4'
         else
           water = tiny1
-          do i = 1 , nions
+          do i = 1, nions
             molal(i) = zero
           end do
           call calco1a
@@ -25355,10 +25355,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4 , k2so4 , mgso4 , caso4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4, k2so4, mgso4, caso4
 !     4. completely dissolved: nh4no3
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -25368,9 +25368,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: cafr , nafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
-    integer(ik4) :: i , islv
+    real(rkx) :: cafr, nafr, delta, dx, frk, frmg, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters *************************************************
 !
@@ -25411,7 +25411,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   ***********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco2a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -25427,7 +25427,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ************************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funco2a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -25444,7 +25444,7 @@ module mod_che_isorropia
 ! *** converged ; return ***********************************************
 !
  200  x3 = 0.5_rkx*(x1+x2)
-    if ( x3<=tiny2 ) then     ! practically no nitrates , so dry solution
+    if ( x3<=tiny2 ) then     ! practically no nitrates, so dry solution
       water = tiny1
     else
       y3 = funco2a(x3)
@@ -25488,9 +25488,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. (rsulfate > 2.0 ; r(cr+na) < 2.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : (nh4)2so4 , nh4cl , na2so4 , k2so4 , mgso4 , caso4
+!     3. solids possible : (nh4)2so4, nh4cl, na2so4, k2so4, mgso4, caso4
 !     4. completely dissolved: nh4no3
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -25500,9 +25500,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rkx) :: a65 , bb , cc , dd , delt , deno , hi , ohi , psi20 , &
-         psi31 , psi32 , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: a65, bb, cc, dd, delt, deno, hi, ohi, psi20, &
+         psi31, psi32, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -25515,7 +25515,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a2 = xk7*(water/gama(4))**3
@@ -25551,7 +25551,7 @@ module mod_che_isorropia
         if ( islv==0 ) psi2 = min(max(psi20,zero),chi2)
       end if
 !   psi2 = 0.5d0*(2.0d0*sqrt(a2/a7)*psi7 - psi4)
-!   psi2 = min (psi2 , chi2)
+!   psi2 = min (psi2, chi2)
 !
 !   *** save concentrations in molal array
 !   ******************************
@@ -25565,7 +25565,7 @@ module mod_che_isorropia
       molal(9) = 2.0_rkx*psi7                           ! ki
       molal(10) = psi8                                 ! mgi
 !
-!   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
+!   molal (1) = max(chi5 - psi5, tiny1)*a5/psi5   ! hi
       smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
              - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
@@ -25577,7 +25577,7 @@ module mod_che_isorropia
       ghno3 = max(chi5-psi5,tiny1)
       ghcl = max(chi6-psi6,tiny1)
 !
-!   cna2so4  = max(chi1 - psi1 , zero)
+!   cna2so4  = max(chi1 - psi1, zero)
       cnh42s4 = max(chi2-psi2,zero)
       cnh4no3 = zero
       ck2so4 = max(chi7-psi7,zero)
@@ -25612,7 +25612,7 @@ module mod_che_isorropia
       ghcl = max(ghcl-psi3,tiny1)
       cnh4cl = psi3
 !
-!   *** calculate molalr array , water and activities
+!   *** calculate molalr array, water and activities
 !   *********************
       call calcmr
 !
@@ -25640,13 +25640,13 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 , mgso4 , caso4
+!     3. solids possible : (nh4)2so4, nh4no3, nh4cl, na2so4, k2so4, mgso4, caso4
 !
-!     there are two possible regimes here , depending on relative humidity:
+!     there are two possible regimes here, depending on relative humidity:
 !     1. when rh >= mdrh ; liquid phase possible (mdrh region)
 !     2. when rh < mdrh  ; only solid phase possible (subroutine calco1a)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -25677,14 +25677,14 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. solid aerosol only
-!     3. solids possible : (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 , mgso4 , caso4
+!     3. solids possible : (nh4)2so4, nh4no3, nh4cl, na2so4, k2so4, mgso4, caso4
 !
-!     solid (nh4)2so4 is calculated from the sulfates , while nh4no3
+!     solid (nh4)2so4 is calculated from the sulfates, while nh4no3
 !     is calculated from nh3-hno3 equilibrium. 'ze' is the amount of
 !     nh4no3 that volatizes when all possilbe nh4no3 is initially in
 !     the solid phase.
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -25693,10 +25693,10 @@ module mod_che_isorropia
   subroutine calco1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a1 , a2 , alf , bb , bet , cafr , cc , dd , dd1 , dd2 , &
-         frk , frmg , frna , gam , rtsq , so4fr , sqdd , sqdd1 , sqdd2 , &
-         theta1 , theta2
-    real(rkx) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2
+    real(rkx) :: a1, a2, alf, bb, bet, cafr, cc, dd, dd1, dd2, &
+         frk, frmg, frna, gam, rtsq, so4fr, sqdd, sqdd1, sqdd2, &
+         theta1, theta2
+    real(rkx) :: lamda, lamda1, lamda2, kapa, kapa1, kapa2
 !
 ! *** calculate non volatile solids ***********************************
 !
@@ -25724,7 +25724,7 @@ module mod_che_isorropia
     rtsq = r*temp*r*temp
     a1 = xk6/rtsq
     a2 = xk10/rtsq
-    !print * , a2
+    !print *, a2
 !
     theta1 = gam - bet*(a2/a1)
     theta2 = a2/a1
@@ -25736,7 +25736,7 @@ module mod_che_isorropia
     dd = bb*bb - 4.0_rkx*cc
     if ( dd>=zero ) then        ! solve each reaction seperately
 !
-!   two roots for kapa , check and see if any valid
+!   two roots for kapa, check and see if any valid
 !
       sqdd = sqrt(dd)
       kapa1 = 0.5_rkx*(-bb+sqdd)
@@ -25802,7 +25802,7 @@ module mod_che_isorropia
       end if
     end if
 !
-! if oth kapa , lamda are > 0 , then apply existance criterion
+! if oth kapa, lamda are > 0, then apply existance criterion
 !
     if ( kapa>zero .and. lamda>zero ) then
       if ( bet<lamda/theta1 ) then
@@ -25832,9 +25832,9 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
 !     3. solids possible : caso4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl , mgso4 , na2so4 , k2so4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl, mgso4, na2so4, k2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -25844,8 +25844,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -25871,7 +25871,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -25883,7 +25883,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm8(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -25899,7 +25899,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcm8(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -25938,9 +25938,9 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
 !     3. solids possible : caso4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl , mgso4 , na2so4 , k2so4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl, mgso4, na2so4, k2so4
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -25949,7 +25949,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -25968,7 +25968,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
 !   a1  = xk5 *(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -26047,10 +26047,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl , mgso4 , na2so4
+!     3. solids possible : caso4, k2so4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl, mgso4, na2so4
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -26059,8 +26059,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -26086,7 +26086,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -26098,7 +26098,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm7(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -26114,7 +26114,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcm7(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -26152,10 +26152,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl , mgso4 , na2so4
+!     3. solids possible : caso4, k2so4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl, mgso4, na2so4
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -26164,8 +26164,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, cc, dd, hi, ohi, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -26183,7 +26183,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
 !   a1  = xk5 *(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -26272,10 +26272,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , na2so4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl , mgso4
+!     3. solids possible : caso4, k2so4, na2so4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl, mgso4
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -26284,8 +26284,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -26311,7 +26311,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -26323,7 +26323,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm6(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -26339,7 +26339,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcm6(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -26377,10 +26377,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , na2so4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl , mgso4
+!     3. solids possible : caso4, k2so4, na2so4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl, mgso4
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -26389,8 +26389,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , cc , dd , hi , ohi , riz , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, cc, dd, hi, ohi, riz, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -26408,7 +26408,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -26524,10 +26524,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl
+!     3. solids possible : caso4, k2so4, na2so4, mgso4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -26536,8 +26536,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -26563,7 +26563,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -26575,7 +26575,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm5(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -26591,7 +26591,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcm5(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -26629,10 +26629,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl
+!     3. solids possible : caso4, k2so4, na2so4, mgso4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -26641,8 +26641,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , cc , dd , hi , ohi , riz , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, cc, dd, hi, ohi, riz, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -26660,7 +26660,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
@@ -26715,7 +26715,7 @@ module mod_che_isorropia
       end if
 !
 !   if (chi9 > tiny1 .and. water > tiny1) then   !k2so4
-!   call poly3 (psi1+psi10 ,zero ,-a9/4.d0 , psi9 , islv)
+!   call poly3 (psi1+psi10 ,zero ,-a9/4.d0, psi9, islv)
 !   if (islv == 0) then
 !   psi9 = min (psi9 ,chi9)
 !   else
@@ -26776,10 +26776,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4 , nh4cl
-!     4. completely dissolved: nh4no3 , nano3 , nacl
+!     3. solids possible : caso4, k2so4, na2so4, mgso4, nh4cl
+!     4. completely dissolved: nh4no3, nano3, nacl
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -26788,8 +26788,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of nitrates
@@ -26824,7 +26824,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -26836,7 +26836,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm4(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -26852,7 +26852,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcm4(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -26890,10 +26890,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4 , nh4cl
-!     4. completely dissolved: nh4no3 , nano3 , nacl
+!     3. solids possible : caso4, k2so4, na2so4, mgso4, nh4cl
+!     4. completely dissolved: nh4no3, nano3, nacl
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -26902,9 +26902,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , cc , dd , delt , hi , ohi , psi31 , psi32 , riz , &
-         smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, cc, dd, delt, hi, ohi, psi31, psi32, riz, &
+         smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -26922,7 +26922,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a3 = xk6/(r*temp*r*temp)
@@ -26978,7 +26978,7 @@ module mod_che_isorropia
       end if
 !
 !   if (chi9 > tiny1 .and. water > tiny1) then   !k2so4
-!   call poly3 (psi1+psi10 ,zero ,-a9/4.d0 , psi9 , islv)
+!   call poly3 (psi1+psi10 ,zero ,-a9/4.d0, psi9, islv)
 !   if (islv == 0) then
 !   psi9 = min (psi9 ,chi9)
 !   else
@@ -27067,10 +27067,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4 , nh4cl , nacl
-!     4. completely dissolved: nh4no3 , nano3
+!     3. solids possible : caso4, k2so4, na2so4, mgso4, nh4cl, nacl
+!     4. completely dissolved: nh4no3, nano3
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -27079,13 +27079,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of nitrates
 ! ***********************
-    if ( w(4)<=tiny1 ) then          ! no3 not exist , water not possible
+    if ( w(4)<=tiny1 ) then          ! no3 not exist, water not possible
       scase = 'm3 ; subcase 1'
       call calcm1a
       scase = 'm3 ; subcase 1'
@@ -27115,7 +27115,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -27127,7 +27127,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm3(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -27143,7 +27143,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcm3(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -27181,10 +27181,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4 , nh4cl , nacl
-!     4. completely dissolved: nh4no3 , nano3
+!     3. solids possible : caso4, k2so4, na2so4, mgso4, nh4cl, nacl
+!     4. completely dissolved: nh4no3, nano3
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -27193,9 +27193,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , cc , dd , delt , diak , hi , ohi , psi31 , psi32 , &
-         riz , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, cc, dd, delt, diak, hi, ohi, psi31, psi32, &
+         riz, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -27213,7 +27213,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a3 = xk6/(r*temp*r*temp)
@@ -27247,7 +27247,7 @@ module mod_che_isorropia
 !   gkama = psi6*(2.d0*psi1+psi8)-a7
 !   diak = max(vita**2 - 4.0d0*gkama ,zero)
 !   psi7 = 0.5d0*( -vita + sqrt(diak) )
-!   psi7 = max(min(psi7 , chi7), zero)
+!   psi7 = max(min(psi7, chi7), zero)
 !   end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
@@ -27284,7 +27284,7 @@ module mod_che_isorropia
       end if
 !
 !   if (chi9 > tiny1 .and. water > tiny1) then   !k2so4
-!   call poly3 (psi1+psi10 ,zero ,-a9/4.d0 , psi9 , islv)
+!   call poly3 (psi1+psi10 ,zero ,-a9/4.d0, psi9, islv)
 !   if (islv == 0) then
 !   psi9 = min (psi9 ,chi9)
 !   else
@@ -27373,17 +27373,17 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3
+!     3. solids possible : caso4, k2so4, na2so4, mgso4, nh4cl, nacl, nano3
 !
 !     there are three regimes in this case:
 !     1. nh4no3(s) possible. liquid & solid aerosol (subroutine calch2a)
-!     2. nh4no3(s) not possible , and rh < mdrh. solid aerosol only
-!     3. nh4no3(s) not possible , and rh >= mdrh. (mdrh region)
+!     2. nh4no3(s) not possible, and rh < mdrh. solid aerosol only
+!     3. nh4no3(s) not possible, and rh >= mdrh. (mdrh region)
 !
-!     regimes 2. and 3. are considered to be the same as cases m1a , m2b
+!     regimes 2. and 3. are considered to be the same as cases m1a, m2b
 !     respectively (because mdrh points coincide).
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -27396,11 +27396,11 @@ module mod_che_isorropia
 ! *** regime depends on the existance of nitrates
 ! ***********************
     call calcm1a
-    if ( cnh4no3>tiny1 ) then          ! no3 exists , water possible
+    if ( cnh4no3>tiny1 ) then          ! no3 exists, water possible
       scase = 'm2 ; subcase 1'
       call calcm2a
       scase = 'm2 ; subcase 1'
-    else                            ! no3 non existant , water not possible
+    else                            ! no3 non existant, water not possible
       scase = 'm2 ; subcase 1'
       call calcm1a
       scase = 'm2 ; subcase 1'
@@ -27423,10 +27423,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3
+!     3. solids possible : caso4, k2so4, na2so4, mgso4, nh4cl, nacl, nano3
 !     4. completely dissolved: nh4no3
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -27435,8 +27435,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
+         psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -27462,7 +27462,7 @@ module mod_che_isorropia
     chi6 = max(w(5)-chi7,zero)                      ! hcl(g)
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -27474,7 +27474,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm2a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -27490,7 +27490,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcm2a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -27528,10 +27528,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3
+!     3. solids possible : caso4, k2so4, na2so4, mgso4, nh4cl, nacl, nano3
 !     4. completely dissolved: nh4no3
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by  christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -27540,9 +27540,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: a64 , aa , bb , cc , dd , delt , diak , hi , ohi , psi31 , &
-         psi32 , riz , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: a64, aa, bb, cc, dd, delt, diak, hi, ohi, psi31, &
+         psi32, riz, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -27560,7 +27560,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk5*(water/gama(2))**3
       a3 = xk6/(r*temp*r*temp)
@@ -27595,7 +27595,7 @@ module mod_che_isorropia
 !   gkama = psi6*(2.d0*psi1+psi8)-a7
 !   diak = max(vita**2 - 4.0d0*gkama ,zero)
 !   psi7 = 0.5d0*( -vita + sqrt(diak) )
-!   psi7 = max(min(psi7 , chi7), zero)
+!   psi7 = max(min(psi7, chi7), zero)
 !   end if
 !
 !   if (chi8 > tiny1 .and. water > tiny1) then     ! nano3 dissolution
@@ -27603,7 +27603,7 @@ module mod_che_isorropia
 !   gkam = psi5*(2.d0*psi1+psi8)-a8
 !   dia  = bit**2 - 4.0d0*gkam
 !   psi8 = 0.5d0*( -bit + sqrt(dia) )
-!   psi8 = max(min(psi8 , chi8), zero)
+!   psi8 = max(min(psi8, chi8), zero)
 !   end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
@@ -27648,7 +27648,7 @@ module mod_che_isorropia
       end if
 !
 !   if (chi9 > tiny1 .and. water > tiny1) then   !k2so4
-!   call poly3 (psi1+psi10 ,zero ,-a9/4.d0 , psi9 , islv)
+!   call poly3 (psi1+psi10 ,zero ,-a9/4.d0, psi9, islv)
 !   if (islv == 0) then
 !   psi9 = max (min (psi9 ,chi9), zero)
 !   else
@@ -27737,13 +27737,13 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3 , nh4no3
+!     3. solids possible : caso4, k2so4, na2so4, mgso4, nh4cl, nacl, nano3, nh4no3
 !
-!     there are two possible regimes here , depending on relative humidity:
+!     there are two possible regimes here, depending on relative humidity:
 !     1. when rh >= mdrh ; liquid phase possible (mdrh region)
 !     2. when rh < mdrh  ; only solid phase possible (subroutine calch1a)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -27775,9 +27775,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr < 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3 , nh4no3
+!     3. solids possible : caso4, k2so4, na2so4, mgso4, nh4cl, nacl, nano3, nh4no3
 !
-! *** copyright 1996-2000 , university of miami , carnegie mellon university
+! *** copyright 1996-2000, university of miami, carnegie mellon university
 ! *** written by christos fountoukis & athanasios nenes
 !
 !======================================================================
@@ -27785,10 +27785,10 @@ module mod_che_isorropia
   subroutine calcm1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a1 , a2 , alf , bb , bet , cafr , cc , clfr , dd , &
-         dd1 , dd2 , frk , frmg , gam , rtsq , so4fr , sqdd , sqdd1 , &
-         sqdd2 , theta1 , theta2
-    real(rkx) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2 , nafr , &
+    real(rkx) :: a1, a2, alf, bb, bet, cafr, cc, clfr, dd, &
+         dd1, dd2, frk, frmg, gam, rtsq, so4fr, sqdd, sqdd1, &
+         sqdd2, theta1, theta2
+    real(rkx) :: lamda, lamda1, lamda2, kapa, kapa1, kapa2, nafr, &
               no3fr
 !
 ! *** calculate non volatile solids ***********************************
@@ -27829,7 +27829,7 @@ module mod_che_isorropia
     dd = bb*bb - 4.0_rkx*cc
     if ( dd>=zero ) then        ! solve each reaction seperately
 !
-!   two roots for kapa , check and see if any valid
+!   two roots for kapa, check and see if any valid
 !
       sqdd = sqrt(dd)
       kapa1 = 0.5_rkx*(-bb+sqdd)
@@ -27895,7 +27895,7 @@ module mod_che_isorropia
       end if
     end if
 !
-! if oth kapa , lamda are > 0 , then apply existance criterion
+! if oth kapa, lamda are > 0, then apply existance criterion
 !
     if ( kapa>zero .and. lamda>zero ) then
       if ( bet<lamda/theta1 ) then
@@ -27925,10 +27925,10 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
 !     3. solids possible : caso4
-!     4. completely dissolved: ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     4. completely dissolved: ca(no3)2, cacl2, k2so4, kno3, kcl, mgso4 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -27938,8 +27938,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -27987,7 +27987,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -27999,7 +27999,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp13(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -28015,7 +28015,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp13(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -28055,10 +28055,10 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
 !     3. solids possible : caso4
-!     4. completely dissolved: ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     4. completely dissolved: ca(no3)2, cacl2, k2so4, kno3, kcl, mgso4 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -28068,7 +28068,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -28094,7 +28094,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -28147,9 +28147,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -28202,11 +28202,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4
-!     4. completely dissolved: ca(no3)2 , cacl2 , kno3 , kcl , mgso4 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4
+!     4. completely dissolved: ca(no3)2, cacl2, kno3, kcl, mgso4 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -28216,8 +28216,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -28265,7 +28265,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -28277,7 +28277,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp12(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -28293,7 +28293,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp12(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -28331,11 +28331,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4
-!     4. completely dissolved: ca(no3)2 , cacl2 , kno3 , kcl , mgso4 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4
+!     4. completely dissolved: ca(no3)2, cacl2, kno3, kcl, mgso4 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -28345,8 +28345,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , hi , ohi , smin , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, hi, ohi, smin, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -28371,7 +28371,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -28438,9 +28438,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -28492,11 +28492,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3
-!     4. completely dissolved: ca(no3)2 , cacl2 , kcl , mgso4 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3
+!     4. completely dissolved: ca(no3)2, cacl2, kcl, mgso4 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -28506,8 +28506,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -28555,7 +28555,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -28567,7 +28567,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp11(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -28583,7 +28583,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp11(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -28621,11 +28621,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3
-!     4. completely dissolved: ca(no3)2 , cacl2 , kcl , mgso4 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3
+!     4. completely dissolved: ca(no3)2, cacl2, kcl, mgso4 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -28635,9 +28635,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delta , gkama , hi , &
-         ohi , smin , vhta , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delta, gkama, hi, &
+         ohi, smin, vhta, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -28661,7 +28661,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -28737,9 +28737,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -28792,11 +28792,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4
-!     4. completely dissolved: ca(no3)2 , cacl2 , kcl ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3, mgso4
+!     4. completely dissolved: ca(no3)2, cacl2, kcl ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -28806,8 +28806,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -28855,7 +28855,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -28867,7 +28867,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp10(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -28883,7 +28883,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp10(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -28921,11 +28921,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4
-!     4. completely dissolved: ca(no3)2 , cacl2 , kcl ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3, mgso4
+!     4. completely dissolved: ca(no3)2, cacl2, kcl ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -28935,9 +28935,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delta , gkama , hi , &
-         ohi , smin , vhta , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delta, gkama, hi, &
+         ohi, smin, vhta, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -28961,7 +28961,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -29037,9 +29037,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -29092,11 +29092,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -29106,8 +29106,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -29155,7 +29155,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -29167,7 +29167,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp9(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -29183,7 +29183,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp9(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -29221,11 +29221,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -29235,9 +29235,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delta , gkama , hi , &
-         ohi , smin , vhta , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delta, gkama, hi, &
+         ohi, smin, vhta, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -29261,7 +29261,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -29344,9 +29344,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -29399,11 +29399,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -29413,8 +29413,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -29462,7 +29462,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -29474,7 +29474,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp8(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -29490,7 +29490,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp8(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -29528,11 +29528,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -29542,9 +29542,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , gkama , &
-         hi , ohi , psi31 , psi32 , smin , vhta , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, gkama, &
+         hi, ohi, psi31, psi32, smin, vhta, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -29568,7 +29568,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -29651,9 +29651,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -29734,11 +29734,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nh4no3
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nano3, nh4no3
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -29748,8 +29748,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -29797,7 +29797,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -29809,7 +29809,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp7(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -29825,7 +29825,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp7(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -29863,11 +29863,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nh4no3
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nano3, nh4no3
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -29877,9 +29877,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
-         gkama , hi , ohi , psi31 , psi32 , smin , vhta , vita , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
+         gkama, hi, ohi, psi31, psi32, smin, vhta, vita, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -29903,7 +29903,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -29995,9 +29995,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -30078,11 +30078,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl , nano3
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nh4no3
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl, nano3
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nh4no3
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -30092,8 +30092,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -30141,7 +30141,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -30153,7 +30153,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp6(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -30169,7 +30169,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp6(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -30207,11 +30207,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl , nano3
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nh4no3
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl, nano3
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nh4no3
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -30221,9 +30221,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
-         gkama , hi , ohi , psi31 , psi32 , smin , vhta , vita , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
+         gkama, hi, ohi, psi31, psi32, smin, vhta, vita, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -30247,7 +30247,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -30350,9 +30350,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -30433,10 +30433,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!                          nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3, kcl, mgso4 ,
+!                          nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -30449,11 +30449,11 @@ module mod_che_isorropia
 !
 ! *** regime depends on the existance of water and of the rh
 ! ************
-    if ( w(4)>tiny1 ) then     ! no3 exist , water possible
+    if ( w(4)>tiny1 ) then     ! no3 exist, water possible
       scase = 'p5 ; subcase 1'
       call calcp5a
       scase = 'p5 ; subcase 1'
-    else                                        ! no3 , cl non existant
+    else                                        ! no3, cl non existant
       scase = 'p1 ; subcase 1'
       call calcp1a
       scase = 'p1 ; subcase 1'
@@ -30461,15 +30461,15 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmp5 ) then           ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcp1a
         scase = 'p5 ; subcase 2'
         return
       else
-        scase = 'p5 ; subcase 3'      ! mdrh region (caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!     nano3 , nacl , nh4no3 , nh4cl)
+        scase = 'p5 ; subcase 3'      ! mdrh region (caso4, k2so4, kno3, kcl, mgso4 ,
+!     nano3, nacl, nh4no3, nh4cl)
         call calcmdrh2(rh,drmp5,drnh4no3,calcp1a,calcp6)
         scase = 'p5 ; subcase 3'
       end if
@@ -30485,11 +30485,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl , nano3 , nh4no3
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl, nano3, nh4no3
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -30499,8 +30499,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -30548,7 +30548,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -30560,7 +30560,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp5(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -30576,7 +30576,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp5(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -30614,11 +30614,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl , nano3 , nh4no3
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl, nano3, nh4no3
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -30628,10 +30628,10 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
-         gkama , hi , ohi , psi21 , psi22 , psi31 , psi32 , smin , &
-         vhta , vita , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
+         gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, &
+         vhta, vita, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -30655,7 +30655,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -30758,9 +30758,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -30869,10 +30869,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!                          mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3, kcl, mgso4 ,
+!                          mg(no3)2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -30885,11 +30885,11 @@ module mod_che_isorropia
 !
 ! *** regime depends on the existance of water and of the rh
 ! ************
-    if ( w(4)>tiny1 ) then     ! no3 exist , water possible
+    if ( w(4)>tiny1 ) then     ! no3 exist, water possible
       scase = 'p4 ; subcase 1'
       call calcp4a
       scase = 'p4 ; subcase 1'
-    else                                        ! no3 , cl non existant
+    else                                        ! no3, cl non existant
       scase = 'p1 ; subcase 1'
       call calcp1a
       scase = 'p1 ; subcase 1'
@@ -30898,15 +30898,15 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmp4 ) then           ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcp1a
         scase = 'p4 ; subcase 2'
         return
       else
-        scase = 'p4 ; subcase 3'      ! mdrh region (caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!     mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl)
+        scase = 'p4 ; subcase 3'      ! mdrh region (caso4, k2so4, kno3, kcl, mgso4 ,
+!     mg(no3)2, nano3, nacl, nh4no3, nh4cl)
         call calcmdrh2(rh,drmp4,drmgno32,calcp1a,calcp5a)
         scase = 'p4 ; subcase 3'
       end if
@@ -30922,10 +30922,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl , nano3 , nh4no3 , mg(no3)2
-!     4. completely dissolved: ca(no3)2 , cacl2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl, nano3, nh4no3, mg(no3)2
+!     4. completely dissolved: ca(no3)2, cacl2, mgcl2
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -30935,8 +30935,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -30984,7 +30984,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -30996,7 +30996,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp4(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -31012,7 +31012,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp4(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -31050,10 +31050,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl , nano3 , nh4no3 , mg(no3)2
-!     4. completely dissolved: ca(no3)2 , cacl2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl, nano3, nh4no3, mg(no3)2
+!     4. completely dissolved: ca(no3)2, cacl2, mgcl2
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -31063,10 +31063,10 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
-         gkama , hi , ohi , psi21 , psi22 , psi31 , psi32 , smin , vhta , &
-         vita , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
+         gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, vhta, &
+         vita, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -31090,7 +31090,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -31193,9 +31193,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -31304,10 +31304,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 ,
-!                          mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, ca(no3)2, k2so4, kno3, kcl, mgso4 ,
+!                          mg(no3)2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -31320,11 +31320,11 @@ module mod_che_isorropia
 !
 ! *** regime depends on the existance of water and of the rh
 ! ************
-    if ( w(4)>tiny1 .and. w(5)>tiny1 ) then     ! no3 ,cl exist , water possible
+    if ( w(4)>tiny1 .and. w(5)>tiny1 ) then     ! no3 ,cl exist, water possible
       scase = 'p3 ; subcase 1'
       call calcp3a
       scase = 'p3 ; subcase 1'
-    else                                        ! no3 , cl non existant
+    else                                        ! no3, cl non existant
       scase = 'p1 ; subcase 1'
       call calcp1a
       scase = 'p1 ; subcase 1'
@@ -31332,15 +31332,15 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmp3 ) then           ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcp1a
         scase = 'p3 ; subcase 2'
         return
       else
-        scase = 'p3 ; subcase 3'      ! mdrh region (caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 ,
-!     mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl)
+        scase = 'p3 ; subcase 3'      ! mdrh region (caso4, ca(no3)2, k2so4, kno3, kcl, mgso4 ,
+!     mg(no3)2, nano3, nacl, nh4no3, nh4cl)
         call calcmdrh2(rh,drmp3,drcano32,calcp1a,calcp4a)
         scase = 'p3 ; subcase 3'
       end if
@@ -31356,11 +31356,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl ,
-!                          nano3 , nh4no3 , mg(no3)2 , ca(no3)2
-!     4. completely dissolved: cacl2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl ,
+!                          nano3, nh4no3, mg(no3)2, ca(no3)2
+!     4. completely dissolved: cacl2, mgcl2
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -31370,8 +31370,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
+         frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -31419,7 +31419,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -31431,7 +31431,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp3(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -31447,7 +31447,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp3(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -31485,11 +31485,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl ,
-!                          nano3 , nh4no3 , mg(no3)2 , ca(no3)2
-!     4. completely dissolved: cacl2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl ,
+!                          nano3, nh4no3, mg(no3)2, ca(no3)2
+!     4. completely dissolved: cacl2, mgcl2
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -31499,10 +31499,10 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
-         gkama , hi , ohi , psi21 , psi22 , psi31 , psi32 , smin , vhta , &
-         vita , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
+         gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, vhta, &
+         vita, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -31526,7 +31526,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -31629,9 +31629,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -31740,17 +31740,17 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 ,
-!                          mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, ca(no3)2, k2so4, kno3, kcl, mgso4 ,
+!                          mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
 !     there are three regimes in this case:
 !     1. cacl2(s) possible. liquid & solid aerosol (subroutine calcl2a)
-!     2. cacl2(s) not possible , and rh < mdrh. solid aerosol only
-!     3. cacl2(s) not possible , and rh >= mdrh. solid & liquid aerosol
+!     2. cacl2(s) not possible, and rh < mdrh. solid aerosol only
+!     3. cacl2(s) not possible, and rh >= mdrh. solid & liquid aerosol
 !
-!     regimes 2. and 3. are considered to be the same as cases p1a , p2b
+!     regimes 2. and 3. are considered to be the same as cases p1a, p2b
 !     respectively
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -31776,38 +31776,38 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmp2 ) then                ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcp1a
         scase = 'p2 ; subcase 2'
       else
         if ( cmgcl2>tiny1 ) then
-          scase = 'p2 ; subcase 3'         ! mdrh (caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 , mgcl2 ,
-!       mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl)
+          scase = 'p2 ; subcase 3'         ! mdrh (caso4, ca(no3)2, k2so4, kno3, kcl, mgso4, mgcl2 ,
+!       mg(no3)2, nano3, nacl, nh4no3, nh4cl)
           call calcmdrh2(rh,drmp2,drmgcl2,calcp1a,calcp3a)
           scase = 'p2 ; subcase 3'
         end if
         if ( water<=tiny1 .and. rh>=drmp3 .and. rh<drmp4 ) then
-          scase = 'p2 ; subcase 4'         ! mdrh (caso4 , k2so4 , kno3 , kcl , mgso4 , cano32 ,
-!       mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl)
+          scase = 'p2 ; subcase 4'         ! mdrh (caso4, k2so4, kno3, kcl, mgso4, cano32 ,
+!       mg(no3)2, nano3, nacl, nh4no3, nh4cl)
           call calcmdrh2(rh,drmp3,drcano32,calcp1a,calcp4a)
           scase = 'p2 ; subcase 4'
         end if
         if ( water<=tiny1 .and. rh>=drmp4 .and. rh<drmp5 ) then
-          scase = 'p2 ; subcase 5'         ! mdrh (caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!       mgno32 , nano3 , nacl , nh4no3 , nh4cl)
+          scase = 'p2 ; subcase 5'         ! mdrh (caso4, k2so4, kno3, kcl, mgso4 ,
+!       mgno32, nano3, nacl, nh4no3, nh4cl)
           call calcmdrh2(rh,drmp4,drmgno32,calcp1a,calcp5a)
           scase = 'p2 ; subcase 5'
         end if
         if ( water<=tiny1 .and. rh>=drmp5 ) then
-          scase = 'p2 ; subcase 6'         ! mdrh (caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!       nano3 , nacl , nh4no3 , nh4cl)
+          scase = 'p2 ; subcase 6'         ! mdrh (caso4, k2so4, kno3, kcl, mgso4 ,
+!       nano3, nacl, nh4no3, nh4cl)
           call calcmdrh2(rh,drmp5,drnh4no3,calcp1a,calcp6)
           scase = 'p2 ; subcase 6'
         else
           water = tiny1
-          do i = 1 , nions
+          do i = 1, nions
             molal(i) = zero
           end do
           call calcp1a
@@ -31826,11 +31826,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl ,
-!                          nano3 , nh4no3 , mg(no3)2 , ca(no3)2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl ,
+!                          nano3, nh4no3, mg(no3)2, ca(no3)2
 !     4. completely dissolved: cacl2
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -31840,9 +31840,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , &
-         frno3 , frso4 , psi6hi , psi6lo , x1 , x2 ,  &
-         x3 , y1 , y2 , y3
+    real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, &
+         frno3, frso4, psi6hi, psi6lo, x1, x2,  &
+         x3, y1, y2, y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -31890,7 +31890,7 @@ module mod_che_isorropia
     chi2 = zero
 !
     psi6lo = tiny1
-    psi6hi = chi6 - tiny1    ! min(chi6-tiny1 , chi4)
+    psi6hi = chi6 - tiny1    ! min(chi6-tiny1, chi4)
 !
 ! *** initial values for bisection ************************************
 !
@@ -31902,7 +31902,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp2a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -31918,7 +31918,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcp2a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -31956,11 +31956,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl ,
-!                          nano3 , nh4no3 , mg(no3)2 , ca(no3)2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl ,
+!                          nano3, nh4no3, mg(no3)2, ca(no3)2, mgcl2
 !     4. completely dissolved: cacl2
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -31970,10 +31970,10 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
-         gkama , hi , ohi , psi21 , psi22 , psi31 , psi32 , smin , vhta , &
-         vita , x
-    integer(ik4) :: i , islv
+    real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
+         gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, vhta, &
+         vita, x
+    integer(ik4) :: i, islv
 !
 ! *** setup parameters ************************************************
 !
@@ -31997,7 +31997,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
       a5 = xk4*r*temp*(water/gama(10))**2
@@ -32100,9 +32100,9 @@ module mod_che_isorropia
 !   equals co2(aq)
 !   diak  = sqrt( (alfa1)**2 + 4.0d0*alfa1*x)
 !   delt1 = 0.5d0*(-alfa1 + diak)
-!   delt1 = min ( max (delt1 , zero), x)
+!   delt1 = min ( max (delt1, zero), x)
 !   delt2 = alfa2
-!   delt2 = min ( delt2 , delt1)
+!   delt2 = min ( delt2, delt1)
 !   molal(1) = delt1 + delt2                      ! h+
 !   else
 !
@@ -32211,14 +32211,14 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 ,
-!                          mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, ca(no3)2, cacl2, k2so4, kno3, kcl, mgso4 ,
+!                          mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-!     there are two possible regimes here , depending on relative humidity:
+!     there are two possible regimes here, depending on relative humidity:
 !     1. when rh >= mdrh ; liquid phase possible (mdrh region)
 !     2. when rh < mdrh  ; only solid phase possible (subroutine calcp1a)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -32250,10 +32250,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 ,
-!                          mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, ca(no3)2, cacl2, k2so4, kno3, kcl, mgso4 ,
+!                          mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -32262,10 +32262,10 @@ module mod_che_isorropia
   subroutine calcp1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a1 , a2 , alf , bb , bet , cafr , cc , clfr , dd , &
-         dd1 , dd2 , frk , frmg , gam , rtsq , so4fr , sqdd , sqdd1 , &
-         sqdd2 , theta1 , theta2
-    real(rkx) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2 , nafr , &
+    real(rkx) :: a1, a2, alf, bb, bet, cafr, cc, clfr, dd, &
+         dd1, dd2, frk, frmg, gam, rtsq, so4fr, sqdd, sqdd1, &
+         sqdd2, theta1, theta2
+    real(rkx) :: lamda, lamda1, lamda2, kapa, kapa1, kapa2, nafr, &
               no3fr
 !
 ! *** calculate non volatile solids ***********************************
@@ -32323,7 +32323,7 @@ module mod_che_isorropia
     dd = bb*bb - 4.0_rkx*cc
     if ( dd>=zero ) then        ! solve each reaction seperately
 !
-!   two roots for kapa , check and see if any valid
+!   two roots for kapa, check and see if any valid
 !
       sqdd = sqrt(dd)
       kapa1 = 0.5_rkx*(-bb+sqdd)
@@ -32389,7 +32389,7 @@ module mod_che_isorropia
       end if
     end if
 !
-! if oth kapa , lamda are > 0 , then apply existance criterion
+! if oth kapa, lamda are > 0, then apply existance criterion
 !
     if ( kapa>zero .and. lamda>zero ) then
       if ( bet<lamda/theta1 ) then
@@ -32416,12 +32416,12 @@ module mod_che_isorropia
 ! *** case l9
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
 !     3. solids possible : caso4
-!     4. completely dissolved: nh4hso4 , nahso4 , lc , (nh4)2so4 , khso4 , mgso4 , na2so4 , k2so4
+!     4. completely dissolved: nh4hso4, nahso4, lc, (nh4)2so4, khso4, mgso4, na2so4, k2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -32431,7 +32431,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , cc , dd
+    real(rkx) :: bb, cc, dd
     integer(ik4) :: i
     real(rkx) :: lamda
 !
@@ -32465,7 +32465,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk1*water/gama(7)*(gama(8)/gama(7))**2.
 !
@@ -32513,12 +32513,12 @@ module mod_che_isorropia
 ! *** case l8
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4
-!     4. completely dissolved: nh4hso4 , nahso4 , lc , (nh4)2so4 , khso4 , mgso4 , na2so4
+!     3. solids possible : k2so4, caso4
+!     4. completely dissolved: nh4hso4, nahso4, lc, (nh4)2so4, khso4, mgso4, na2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -32528,8 +32528,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi6hi , psi6lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi6hi, psi6lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -32579,7 +32579,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi6hi-psi6lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcl8(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -32587,7 +32587,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   k2so4
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -32598,7 +32598,7 @@ module mod_che_isorropia
       return
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funcl8(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -32626,13 +32626,13 @@ module mod_che_isorropia
 ! *** case l8
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4
-!     4. completely dissolved: nh4hso4 , nahso4 , lc , (nh4)2so4 , khso4 , mgso4 , na2so4
+!     3. solids possible : k2so4, caso4
+!     4. completely dissolved: nh4hso4, nahso4, lc, (nh4)2so4, khso4, mgso4, na2so4
 !
 !     solution is saved in common block /case/
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -32642,7 +32642,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: bb , cc , dd , p6
+    real(rkx) :: bb, cc, dd, p6
     integer(ik4) :: i
     real(rkx) :: lamda
 !
@@ -32657,7 +32657,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk1*(water)*(gama(8)**2)/(gama(7)**3)
 !
@@ -32708,12 +32708,12 @@ module mod_che_isorropia
 ! *** case l7
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , na2so4
-!     4. completely dissolved: nh4hso4 , nahso4 , lc , (nh4)2so4 , khso4 , mgso4
+!     3. solids possible : k2so4, caso4, na2so4
+!     4. completely dissolved: nh4hso4, nahso4, lc, (nh4)2so4, khso4, mgso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -32723,8 +32723,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -32774,7 +32774,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi4hi-psi4lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcl7(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -32782,7 +32782,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   k2so4
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -32793,7 +32793,7 @@ module mod_che_isorropia
       return
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funcl7(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -32821,13 +32821,13 @@ module mod_che_isorropia
 ! *** case l7
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , na2so4
-!     4. completely dissolved: nh4hso4 , nahso4 , lc , (nh4)2so4 , khso4 , mgso4
+!     3. solids possible : k2so4, caso4, na2so4
+!     4. completely dissolved: nh4hso4, nahso4, lc, (nh4)2so4, khso4, mgso4
 !
 !     solution is saved in common block /case/
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -32837,8 +32837,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , cc , dd , p4
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, cc, dd, p4
+    integer(ik4) :: i, islv
     real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
@@ -32853,7 +32853,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = xk5*(water/gama(2))**3
       a6 = xk17*(water/gama(17))**3
@@ -32862,7 +32862,7 @@ module mod_che_isorropia
 !   caculate dissociation quantities
 !
 !   psi6 = 0.5d0*(sqrt(a6/a4)*(2.d0*psi4+psi3)-psi8)             ! psi6
-!   psi6 = min (max (psi6 , zero), chi6)
+!   psi6 = min (max (psi6, zero), chi6)
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
@@ -32922,12 +32922,12 @@ module mod_che_isorropia
 ! *** case l6
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , na2so4
-!     4. completely dissolved: nh4hso4 , nahso4 , lc , (nh4)2so4 , khso4
+!     3. solids possible : k2so4, caso4, mgso4, na2so4
+!     4. completely dissolved: nh4hso4, nahso4, lc, (nh4)2so4, khso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -32937,8 +32937,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -32988,7 +32988,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi4hi-psi4lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcl6(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -32996,7 +32996,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   k2so4
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -33008,7 +33008,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funcl6(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -33036,12 +33036,12 @@ module mod_che_isorropia
 ! *** case l6
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , na2so4
+!     3. solids possible : k2so4, caso4, mgso4, na2so4
 !
 !     solution is saved in common block /case/
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -33051,8 +33051,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , cc , dd , p4
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, cc, dd, p4
+    integer(ik4) :: i, islv
     real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
@@ -33067,7 +33067,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = xk5*(water/gama(2))**3
       a6 = xk17*(water/gama(17))**3
@@ -33076,7 +33076,7 @@ module mod_che_isorropia
 !   caculate dissociation quantities
 !
 !   psi6 = 0.5d0*(sqrt(a6/a4)*(2.d0*psi4+psi3)-psi8)             ! psi6
-!   psi6 = min (max (psi6 , zero), chi6)
+!   psi6 = min (max (psi6, zero), chi6)
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
@@ -33137,12 +33137,12 @@ module mod_che_isorropia
 ! *** case l5
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , na2so4
-!     4. completely dissolved: nh4hso4 , nahso4 , lc , (nh4)2so4
+!     3. solids possible : k2so4, caso4, mgso4, khso4, na2so4
+!     4. completely dissolved: nh4hso4, nahso4, lc, (nh4)2so4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -33152,8 +33152,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -33205,7 +33205,7 @@ module mod_che_isorropia
 !   **********************
 
       dx = (psi4hi-psi4lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = max(x1-dx,psi4lo)
         y2 = funcl5(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -33213,7 +33213,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   na2so4
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -33225,7 +33225,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funcl5(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -33253,13 +33253,13 @@ module mod_che_isorropia
 ! *** case l5
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , na2so4
-!     4. completely dissolved: nh4hso4 , nahso4 , lc , (nh4)2so4
+!     3. solids possible : k2so4, caso4, mgso4, khso4, na2so4
+!     4. completely dissolved: nh4hso4, nahso4, lc, (nh4)2so4
 !
 !     solution is saved in common block /case/
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -33269,8 +33269,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , bita , cama , cc , dd , delt , p4
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
+    integer(ik4) :: i, islv
     real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
@@ -33285,7 +33285,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = xk5*(water/gama(2))**3
       a6 = xk17*(water/gama(17))**3
@@ -33295,7 +33295,7 @@ module mod_che_isorropia
 !   caculate dissociation quantities
 !
 !   psi6 = 0.5d0*(sqrt(a6/a4)*(2.d0*psi4+psi3)-psi8)             ! psi6
-!   psi6 = min (max (psi6 , zero), chi6)
+!   psi6 = min (max (psi6, zero), chi6)
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
@@ -33364,12 +33364,12 @@ module mod_che_isorropia
 ! *** case l4
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , (nh4)2so4 , na2so4
-!     4. completely dissolved: nh4hso4 , nahso4 , lc
+!     3. solids possible : k2so4, caso4, mgso4, khso4, (nh4)2so4, na2so4
+!     4. completely dissolved: nh4hso4, nahso4, lc
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -33379,8 +33379,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -33430,7 +33430,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi4hi-psi4lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcl4(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -33438,7 +33438,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   na2so4 **
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -33450,7 +33450,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funcl4(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -33478,13 +33478,13 @@ module mod_che_isorropia
 ! *** case l4
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , (nh4)2so4 , na2so4
-!     4. completely dissolved: nh4hso4 , nahso4 , lc
+!     3. solids possible : k2so4, caso4, mgso4, khso4, (nh4)2so4, na2so4
+!     4. completely dissolved: nh4hso4, nahso4, lc
 !
 !     solution is saved in common block /case/
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -33494,8 +33494,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , bita , cama , cc , dd , delt , p4
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
+    integer(ik4) :: i, islv
     real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
@@ -33509,7 +33509,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = xk5*(water/gama(2))**3
       a5 = xk7*(water/gama(4))**3
@@ -33532,7 +33532,7 @@ module mod_che_isorropia
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
 !   psi6 = 0.5d0*(sqrt(a6/a4)*(2.d0*psi4+psi3)-psi8)             ! psi6
-!   psi6 = min (max (psi6 , zero), chi6)
+!   psi6 = min (max (psi6, zero), chi6)
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
@@ -33591,19 +33591,19 @@ module mod_che_isorropia
 ! *** case l3
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , nh4hso4 , nahso4 , (nh4)2so4 , na2so4 , lc
+!     3. solids possible : k2so4, caso4, mgso4, khso4, nh4hso4, nahso4, (nh4)2so4, na2so4, lc
 !
 !     there are three regimes in this case:
 !     1.(na ,nh4)hso4(s) possible. liquid & solid aerosol (subroutine calci3a)
-!     2.(na ,nh4)hso4(s) not possible , and rh < mdrh. solid aerosol only
-!     3.(na ,nh4)hso4(s) not possible , and rh >= mdrh. solid & liquid aerosol
+!     2.(na ,nh4)hso4(s) not possible, and rh < mdrh. solid aerosol only
+!     3.(na ,nh4)hso4(s) not possible, and rh >= mdrh. solid & liquid aerosol
 !
-!     regimes 2. and 3. are considered to be the same as cases i1a , i2b
+!     regimes 2. and 3. are considered to be the same as cases i1a, i2b
 !     respectively
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -33628,7 +33628,7 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drml3 ) then            ! solid solution
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcl1a
@@ -33648,12 +33648,12 @@ module mod_che_isorropia
 ! *** case l3 ; subcase 1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , (nh4)2so4 , na2so4 , lc
-!     4. completely dissolved: nh4hso4 , nahso4
+!     3. solids possible : k2so4, caso4, mgso4, khso4, (nh4)2so4, na2so4, lc
+!     4. completely dissolved: nh4hso4, nahso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -33663,8 +33663,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi
+    real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
+         y1, y2, y3, yhi
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -33709,7 +33709,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi2hi-psi2lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funcl3a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -33717,7 +33717,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   lc
       if ( y2>eps ) y2 = funcl3a(zero)
     end if
@@ -33725,7 +33725,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcl3a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -33752,12 +33752,12 @@ module mod_che_isorropia
 ! *** case l3 ; subcase 1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , (nh4)2so4 , na2so4 , lc
-!     4. completely dissolved: nh4hso4 , nahso4
+!     3. solids possible : k2so4, caso4, mgso4, khso4, (nh4)2so4, na2so4, lc
+!     4. completely dissolved: nh4hso4, nahso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -33767,8 +33767,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi
+    real(rkx) :: dx, p2, psi4hi, psi4lo, x1, x2, x3, &
+         y1, y2, y3, yhi
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -33778,7 +33778,7 @@ module mod_che_isorropia
     psi4lo = zero                  ! low  limit for psi4
     psi4hi = chi4                  ! high limit for psi4
 !
-! *** if nh3 = 0 , call funcl3b for y4=0
+! *** if nh3 = 0, call funcl3b for y4=0
 ! ********************************
     if ( chi4<=tiny1 ) then
       funcl3a = funcl3b(zero)
@@ -33800,7 +33800,7 @@ module mod_che_isorropia
 !     *** root tracking ; for the range of hi and lo
 !     **********************
         dx = (psi4hi-psi4lo)/float(ndiv)
-        do i = 1 , ndiv
+        do i = 1, ndiv
           x2 = max(x1-dx,psi4lo)
           y2 = funcl3b(x2)
           if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50  ! (y1*y2 < zero)
@@ -33808,7 +33808,7 @@ module mod_che_isorropia
           y1 = y2
         end do
 !
-!     *** { ylo , yhi } > 0.0 the solution is always supersaturated
+!     *** { ylo, yhi } > 0.0 the solution is always supersaturated
 !     with na2so4
         if ( y2>eps ) y2 = funcl3b(psi4lo)
       end if
@@ -33816,7 +33816,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funcl3b(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -33849,13 +33849,13 @@ module mod_che_isorropia
 ! *** case l3 ; subcase 2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= sulrat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= sulrat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , (nh4)2so4 , na2so4 , lc
-!     4. completely dissolved: nh4hso4 , nahso4
+!     3. solids possible : k2so4, caso4, mgso4, khso4, (nh4)2so4, na2so4, lc
+!     4. completely dissolved: nh4hso4, nahso4
 !
 !     solution is saved in common block /case/
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -33865,8 +33865,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , bita , cama , cc , dd , delt , p4
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
+    integer(ik4) :: i, islv
     real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
@@ -33878,7 +33878,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = xk5*(water/gama(2))**3
       a5 = xk7*(water/gama(4))**3
@@ -33901,7 +33901,7 @@ module mod_che_isorropia
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
 !   psi6 = 0.5d0*(sqrt(a6/a4)*(2.d0*psi4+psi3)-psi8)             ! psi6
-!   psi6 = min (max (psi6 , zero), chi6)
+!   psi6 = min (max (psi6, zero), chi6)
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
@@ -33960,19 +33960,19 @@ module mod_che_isorropia
 ! *** case l2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , nh4hso4 , nahso4 , (nh4)2so4 , na2so4 , lc
+!     3. solids possible : k2so4, caso4, mgso4, khso4, nh4hso4, nahso4, (nh4)2so4, na2so4, lc
 !
 !     there are three regimes in this case:
 !     1. nh4hso4(s) possible. liquid & solid aerosol (subroutine calcl2a)
-!     2. nh4hso4(s) not possible , and rh < mdrh. solid aerosol only
-!     3. nh4hso4(s) not possible , and rh >= mdrh. solid & liquid aerosol
+!     2. nh4hso4(s) not possible, and rh < mdrh. solid aerosol only
+!     3. nh4hso4(s) not possible, and rh >= mdrh. solid & liquid aerosol
 !
-!     regimes 2. and 3. are considered to be the same as cases l1a , l2b
+!     regimes 2. and 3. are considered to be the same as cases l1a, l2b
 !     respectively
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -33998,7 +33998,7 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drml2 ) then            ! solid solution only
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcl1a
@@ -34019,12 +34019,12 @@ module mod_che_isorropia
 ! *** case l2 ; subcase 1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , nahso4 , (nh4)2so4 , na2so4 , lc
+!     3. solids possible : k2so4, caso4, mgso4, khso4, nahso4, (nh4)2so4, na2so4, lc
 !     4. completely dissolved: nh4hso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -34034,8 +34034,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi
+    real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
+         y1, y2, y3, yhi
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34077,7 +34077,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi2hi-psi2lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funcl2a(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
@@ -34085,7 +34085,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   na2so4
       if ( y2>eps ) y2 = funcl2a(zero)
     end if
@@ -34093,7 +34093,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcl2a(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -34120,12 +34120,12 @@ module mod_che_isorropia
 ! *** case l2 ; subcase 1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , nahso4 , (nh4)2so4 , na2so4 , lc
+!     3. solids possible : k2so4, caso4, mgso4, khso4, nahso4, (nh4)2so4, na2so4, lc
 !     4. completely dissolved: nh4hso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -34135,8 +34135,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi
+    real(rkx) :: dx, p2, psi4hi, psi4lo, x1, x2, x3, &
+         y1, y2, y3, yhi
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34146,7 +34146,7 @@ module mod_che_isorropia
     psi4lo = zero                  ! low  limit for psi4
     psi4hi = chi4                  ! high limit for psi4
 !
-! *** if nh3 = 0 , call funcl3b for y4=0
+! *** if nh3 = 0, call funcl3b for y4=0
 ! ********************************
 
     if ( chi4<=tiny1 ) then
@@ -34171,7 +34171,7 @@ module mod_che_isorropia
 !     *** root tracking ; for the range of hi and lo
 !     **********************
         dx = (psi4hi-psi4lo)/float(ndiv)
-        do i = 1 , ndiv
+        do i = 1, ndiv
           x2 = max(x1-dx,psi4lo)
           y2 = funcl2b(x2)
           if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50  ! (y1*y2 < zero)
@@ -34179,7 +34179,7 @@ module mod_che_isorropia
           y1 = y2
         end do
 !
-!     *** { ylo , yhi } > 0.0 the solution is always supersaturated
+!     *** { ylo, yhi } > 0.0 the solution is always supersaturated
 !     with lc
         if ( y2>eps ) y2 = funcl2b(psi4lo)
       end if
@@ -34187,7 +34187,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funcl2b(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -34220,12 +34220,12 @@ module mod_che_isorropia
 ! *** case l2 ; subcase 2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , nahso4 , (nh4)2so4 , na2so4 , lc
+!     3. solids possible : k2so4, caso4, mgso4, khso4, nahso4, (nh4)2so4, na2so4, lc
 !     4. completely dissolved: nh4hso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -34235,8 +34235,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: aa , bb , bita , cama , cc , dd , delt , p4
-    integer(ik4) :: i , islv
+    real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
+    integer(ik4) :: i, islv
     real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
@@ -34255,7 +34255,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a3 = xk11*(water/gama(12))**2
       a4 = xk5*(water/gama(2))**3
@@ -34291,7 +34291,7 @@ module mod_che_isorropia
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
 !   psi6 = 0.5d0*(sqrt(a6/a4)*(2.d0*psi4+psi3)-psi8)             ! psi6
-!   psi6 = min (max (psi6 , zero), chi6)
+!   psi6 = min (max (psi6, zero), chi6)
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
@@ -34350,15 +34350,15 @@ module mod_che_isorropia
 ! *** case l1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , nh4hso4 , nahso4 , (nh4)2so4 , na2so4 , lc
+!     3. solids possible : k2so4, caso4, mgso4, khso4, nh4hso4, nahso4, (nh4)2so4, na2so4, lc
 !
-!     there are two possible regimes here , depending on relative humidity:
+!     there are two possible regimes here, depending on relative humidity:
 !     1. when rh >= mdrh ; liquid phase possible (mdrh region)
 !     2. when rh < mdrh  ; only solid phase possible (subroutine calci1a)
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2006, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -34393,11 +34393,11 @@ module mod_che_isorropia
 ! *** case l1a
 !
 !     the main characteristics of this regime are:
-!     1. sulfate rich , no free acid (1.0 <= so4rat < 2.0)
+!     1. sulfate rich, no free acid (1.0 <= so4rat < 2.0)
 !     2. solid aerosol only
-!     3. solids possible : k2so4 , caso4 , mgso4 , khso4 , nh4hso4 , nahso4 , (nh4)2so4 , na2so4 , lc
+!     3. solids possible : k2so4, caso4, mgso4, khso4, nh4hso4, nahso4, (nh4)2so4, na2so4, lc
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -34406,7 +34406,7 @@ module mod_che_isorropia
   subroutine calcl1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: cafr , frk , frmg , frna , frnh4 , frso4
+    real(rkx) :: cafr, frk, frmg, frna, frnh4, frso4
 !
 ! *** calculate non volatile solids ***********************************
 !
@@ -34440,14 +34440,14 @@ module mod_che_isorropia
       cnh4hs4 = 3._rkx*min(frso4,clc)
       clc = max(clc-frso4,zero)
 !   if (ck2so4 > tiny1) then
-!   frso4  = max(frso4-cnh4hs4/3.d0 , zero)
+!   frso4  = max(frso4-cnh4hs4/3.d0, zero)
 !   ckhso4 = 2.d0*frso4
-!   ck2so4 = max(ck2so4-frso4 , zero)
+!   ck2so4 = max(ck2so4-frso4, zero)
 !   end if
 !   if (cna2so4 > tiny1) then
-!   frso4   = max(frso4-ckhso4/2.d0 , zero)
+!   frso4   = max(frso4-ckhso4/2.d0, zero)
 !   cnahso4 = 2.d0*frso4
-!   cna2so4 = max(cna2so4-frso4 , zero)
+!   cna2so4 = max(cna2so4-frso4, zero)
 !   end if
 !
       if ( cna2so4>tiny1 ) then
@@ -34476,11 +34476,11 @@ module mod_che_isorropia
 ! *** case k4
 !
 !     the main characteristics of this regime are:
-!     1. sulfate super rich , free acid (so4rat < 1.0)
+!     1. sulfate super rich, free acid (so4rat < 1.0)
 !     2. there is both a liquid & solid phase
 !     3. solids possible : caso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -34490,7 +34490,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rkx) :: bb , cc , dd , psi4
+    real(rkx) :: bb, cc, dd, psi4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34512,7 +34512,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a4 = xk1*water/gama(7)*(gama(8)/gama(7))**2
 !
@@ -34553,11 +34553,11 @@ module mod_che_isorropia
 ! *** case k3
 !
 !     the main characteristics of this regime are:
-!     1. sulfate super rich , free acid (so4rat < 1.0)
+!     1. sulfate super rich, free acid (so4rat < 1.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : khso4 , caso4
+!     3. solids possible : khso4, caso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -34567,8 +34567,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rkx) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi3hi, psi3lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34596,7 +34596,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi3hi-psi3lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funck3(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -34604,7 +34604,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   khso4
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -34616,7 +34616,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funck3(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -34644,11 +34644,11 @@ module mod_che_isorropia
 ! *** case k3
 !
 !     the main characteristics of this regime are:
-!     1. sulfate super rich , free acid (so4rat < 1.0)
+!     1. sulfate super rich, free acid (so4rat < 1.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : khso4 , caso4
+!     3. solids possible : khso4, caso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -34658,7 +34658,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rkx) :: bb , cc , dd , p1 , psi4
+    real(rkx) :: bb, cc, dd, p1, psi4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34675,7 +34675,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a3 = xk18*(water/gama(18))**2
       a4 = xk1*water/gama(7)*(gama(8)/gama(7))**2
@@ -34725,11 +34725,11 @@ module mod_che_isorropia
 ! *** case k2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate super rich , free acid (so4rat < 1.0)
+!     1. sulfate super rich, free acid (so4rat < 1.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : nahso4 , khso4 , caso4
+!     3. solids possible : nahso4, khso4, caso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -34739,8 +34739,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rkx) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi3hi, psi3lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34768,7 +34768,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi3hi-psi3lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funck2(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -34776,7 +34776,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   khso4
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -34788,7 +34788,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funck2(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -34816,11 +34816,11 @@ module mod_che_isorropia
 ! *** case k2
 !
 !     the main characteristics of this regime are:
-!     1. sulfate super rich , free acid (so4rat < 1.0)
+!     1. sulfate super rich, free acid (so4rat < 1.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : nahso4 , khso4 , caso4
+!     3. solids possible : nahso4, khso4, caso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -34830,7 +34830,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rkx) :: bb , cc , dd , p1 , psi4
+    real(rkx) :: bb, cc, dd, p1, psi4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34845,7 +34845,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a2 = xk11*(water/gama(12))**2
       a3 = xk18*(water/gama(18))**2
@@ -34898,11 +34898,11 @@ module mod_che_isorropia
 ! *** case k1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate super rich , free acid (so4rat < 1.0)
+!     1. sulfate super rich, free acid (so4rat < 1.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : nh4hso4 , nahso4 , khso4 , caso4
+!     3. solids possible : nh4hso4, nahso4, khso4, caso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -34912,8 +34912,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rkx) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx, psi3hi, psi3lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34941,7 +34941,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
       dx = (psi3hi-psi3lo)/float(ndiv)
-      do i = 1 , ndiv
+      do i = 1, ndiv
         x2 = x1 - dx
         y2 = funck1(x2)
         if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
@@ -34949,7 +34949,7 @@ module mod_che_isorropia
         y1 = y2
       end do
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   khso4
       ylo = y1                      ! save y-value at hi position
       if ( ylo>zero .and. yhi>zero ) then
@@ -34961,7 +34961,7 @@ module mod_che_isorropia
 !
 !   *** perform bisection
 !   ***********************************************
- 50   do i = 1 , maxit
+ 50   do i = 1, maxit
         x3 = 0.5_rkx*(x1+x2)
         y3 = funck1(x3)
         if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
@@ -34989,11 +34989,11 @@ module mod_che_isorropia
 ! *** case k1
 !
 !     the main characteristics of this regime are:
-!     1. sulfate super rich , free acid (so4rat < 1.0)
+!     1. sulfate super rich, free acid (so4rat < 1.0)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : nh4hso4 , nahso4 , khso4 , caso4
+!     3. solids possible : nh4hso4, nahso4, khso4, caso4
 !
-! *** copyright 1996-2006 , university of miami , carnegie mellon university
+! *** copyright 1996-2006, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -35003,7 +35003,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rkx) :: bb , cc , dd , p1 , psi4
+    real(rkx) :: bb, cc, dd, p1, psi4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -35017,7 +35017,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a1 = xk12*(water/gama(09))**2
       a2 = xk11*(water/gama(12))**2
@@ -35076,7 +35076,7 @@ module mod_che_isorropia
 !     the composition regime is determined by the sulfate ratio and by
 !     the ambient relative humidity.
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -35085,8 +35085,8 @@ module mod_che_isorropia
   subroutine isrp1r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: rhi , tempi
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx) :: rhi, tempi
+    real(rkx), dimension(ncomp) :: wi
 !
 ! *** initialize common block variables
 ! *********************************
@@ -35094,7 +35094,7 @@ module mod_che_isorropia
 !
 ! *** calculate sulfate ratio
 ! *******************************************
-    if ( rh>=drnh42s4 ) then           ! wet aerosol , need nh4 at sratio = 2.0
+    if ( rh>=drnh42s4 ) then           ! wet aerosol, need nh4 at sratio = 2.0
       sulratw = getasr(waer(2),rhi)         ! aerosol sulfate ratio
     else
       sulratw = 2.0_rkx                       ! dry aerosol sulfate ratio
@@ -35186,7 +35186,7 @@ module mod_che_isorropia
 !     the composition regime is determined by the sulfate ratio and by
 !     the ambient relative humidity.
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -35195,13 +35195,13 @@ module mod_che_isorropia
   subroutine isrp2r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: rhi , tempi
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx) :: rhi, tempi
+    real(rkx), dimension(ncomp) :: wi
     logical :: tryliq
 !
 ! *** initialize all variables in common block
 ! **************************
-    tryliq = .true.               ! assume liquid phase , sulfate poor limit
+    tryliq = .true.               ! assume liquid phase, sulfate poor limit
 !
  100  call init2(wi,rhi,tempi)
 !
@@ -35239,8 +35239,8 @@ module mod_che_isorropia
 !
 !   *** sulfate rich (no acid)
 !
-!   for solving this case , nitric acid and ammonia in the gas phase are
-!   assumed a minor species , that do not significantly affect the
+!   for solving this case, nitric acid and ammonia in the gas phase are
+!   assumed a minor species, that do not significantly affect the
 !   aerosol equilibrium.
 !
     else if ( 1.0<=sulrat .and. sulrat<sulratw ) then
@@ -35276,15 +35276,15 @@ module mod_che_isorropia
 !
 !   *** add the no3 to the solution now and calculate partitioning.
 !
-      molal(7) = waer(4)             ! there is always water , so no3(aer) is no3-
+      molal(7) = waer(4)             ! there is always water, so no3(aer) is no3-
       molal(1) = molal(1) + waer(4)  ! add h+ to balance out
-      call calcnap            ! hno3 , nh3 dissolved
+      call calcnap            ! hno3, nh3 dissolved
       call calcnh3p
 !
 !   *** sulfate rich (free acid)
 !
-!   for solving this case , nitric acid and ammonia in the gas phase are
-!   assumed a minor species , that do not significantly affect the
+!   for solving this case, nitric acid and ammonia in the gas phase are
+!   assumed a minor species, that do not significantly affect the
 !   aerosol equilibrium.
 !
     else if ( sulrat<1.0 ) then
@@ -35310,10 +35310,10 @@ module mod_che_isorropia
 !
 !   *** add the no3 to the solution now and calculate partitioning.
 !
-      molal(7) = waer(4)             ! there is always water , so no3(aer) is no3-
+      molal(7) = waer(4)             ! there is always water, so no3(aer) is no3-
       molal(1) = molal(1) + waer(4)  ! add h+ to balance out
 !
-      call calcnap                   ! hno3 , nh3 dissolved
+      call calcnap                   ! hno3, nh3 dissolved
       call calcnh3p
     end if
 !
@@ -35334,7 +35334,7 @@ module mod_che_isorropia
 !     the composition regime is determined by the sulfate & sodium
 !     ratios and by the ambient relative humidity.
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -35343,9 +35343,9 @@ module mod_che_isorropia
   subroutine isrp3r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: frso4 , rhi , sri , tempi
+    real(rkx) :: frso4, rhi, sri, tempi
     integer(ik4) :: i
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx), dimension(ncomp) :: wi
     logical :: tryliq
 ! &
 ! ** adjust for too little ammonium and chloride ***********************
@@ -35364,7 +35364,7 @@ module mod_che_isorropia
 ! rest = 2.d0*waer(2) + waer(4) + waer(5)
 ! if (waer(1) > rest) then            ! na > 2*so4+cl+no3 ?
 ! waer(1) = (one-1d-6)*rest         ! adjust na amount
-! call pusherr (0050 , 'isrp3r')     ! warning error: na adjusted
+! call pusherr (0050, 'isrp3r')     ! warning error: na adjusted
 ! end if
 !
 ! *** calculate sulfate & sodium ratios
@@ -35454,7 +35454,7 @@ module mod_che_isorropia
 !   *** sulfate rich (no acid)
 !
     else if ( 1.0<=sulrat .and. sulrat<sulratw ) then
-      do i = 1 , ncomp
+      do i = 1, ncomp
         w(i) = waer(i)
       end do
 !
@@ -35494,13 +35494,13 @@ module mod_che_isorropia
         scase = 'i6'
       end if
 !
-      call calcnhp                ! hno3 , nh3 , hcl in gas phase
+      call calcnhp                ! hno3, nh3, hcl in gas phase
       call calcnh3p
 !
 !   *** sulfate rich (free acid)
 !
     else if ( sulrat<1.0 ) then
-      do i = 1 , ncomp
+      do i = 1, ncomp
         w(i) = waer(i)
       end do
 !
@@ -35525,12 +35525,12 @@ module mod_che_isorropia
         scase = 'j3'
       end if
 !
-      call calcnhp                ! hno3 , nh3 , hcl in gas phase
+      call calcnhp                ! hno3, nh3, hcl in gas phase
       call calcnh3p
 !
     end if
 !
-! *** if after calculations , sulratw < sulrat < 2.0
+! *** if after calculations, sulratw < sulrat < 2.0
 ! and water = 0          => sulfate rich case.
 !
     if ( sulratw<=sulrat .and. sulrat<2.0 .and. water<=tiny1 ) then
@@ -35548,7 +35548,7 @@ module mod_che_isorropia
 !     the composition regime is determined by the sulfate & sodium
 !     ratios and by the ambient relative humidity.
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -35557,9 +35557,9 @@ module mod_che_isorropia
   subroutine isrp4r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: frso4 , rhi , sri , tempi
+    real(rkx) :: frso4, rhi, sri, tempi
     integer(ik4) :: i
-    real(rkx) , dimension(ncomp) :: wi
+    real(rkx), dimension(ncomp) :: wi
     logical :: tryliq
 !
 ! ** adjust for too little ammonium and chloride ***********************
@@ -35580,10 +35580,10 @@ module mod_che_isorropia
 ! rest = 2.d0*waer(2) + waer(4) + waer(5)
 ! if (waer(1) > rest) then            ! na > 2*so4+cl+no3 ?
 ! waer(1) = (one-1d-6)*rest         ! adjust na amount
-! call pusherr (0050 , 'isrp3r')     ! warning error: na adjusted
+! call pusherr (0050, 'isrp3r')     ! warning error: na adjusted
 ! end if
 !
-! *** calculate sulfate , crustal & sodium ratios
+! *** calculate sulfate, crustal & sodium ratios
 ! ***********************
     if ( tryliq ) then                               ! ** wet aerosol
       frso4 = waer(2) - waer(1)/2.0_rkx - waer(6) - waer(7)/2.0_rkx - waer(8)
@@ -35612,27 +35612,27 @@ module mod_che_isorropia
 !
       else if ( rh<drnh4no3 ) then
         scase = 'v1'
-        call calcv1                  ! caso4 , nh4no3 , nh4cl , (nh4)2so4 , mgso4 , na2so4 , k2so4
+        call calcv1                  ! caso4, nh4no3, nh4cl, (nh4)2so4, mgso4, na2so4, k2so4
 !
       else if ( drnh4no3<=rh .and. rh<drnh4cl ) then
         scase = 'v2'
-        call calcv2                  ! caso4 , nh4cl , (nh4)2so4 , mgso4 , na2so4 , k2so4
+        call calcv2                  ! caso4, nh4cl, (nh4)2so4, mgso4, na2so4, k2so4
 !
       else if ( drnh4cl<=rh .and. rh<drnh42s4 ) then
         scase = 'v3'
-        call calcv3                  ! caso4 , (nh4)2so4 , mgso4 , na2so4 , k2so4
+        call calcv3                  ! caso4, (nh4)2so4, mgso4, na2so4, k2so4
 !
       else if ( drnh42s4<=rh .and. rh<drmgso4 ) then
         scase = 'v4'
-        call calcv4                  ! caso4 , mgso4 , na2so4 , k2so4
+        call calcv4                  ! caso4, mgso4, na2so4, k2so4
 !
       else if ( drmgso4<=rh .and. rh<drna2so4 ) then
         scase = 'v5'
-        call calcv5                  ! caso4 , na2so4 , k2so4
+        call calcv5                  ! caso4, na2so4, k2so4
 !
       else if ( drna2so4<=rh .and. rh<drk2so4 ) then
         scase = 'v6'
-        call calcv6                  ! caso4 , k2so4
+        call calcv6                  ! caso4, k2so4
 !
       else if ( drk2so4<=rh ) then
         scase = 'v7'
@@ -35651,31 +35651,31 @@ module mod_che_isorropia
 !
         else if ( rh<drnh4no3 ) then
           scase = 'u1'
-          call calcu1                ! caso4 , nh4no3 , nh4cl , mgso4 , na2so4 , k2so4 , nacl , nano3
+          call calcu1                ! caso4, nh4no3, nh4cl, mgso4, na2so4, k2so4, nacl, nano3
 !
         else if ( drnh4no3<=rh .and. rh<drnano3 ) then
           scase = 'u2'
-          call calcu2               ! caso4 , nh4cl , mgso4 , na2so4 , k2so4 , nacl , nano3
+          call calcu2               ! caso4, nh4cl, mgso4, na2so4, k2so4, nacl, nano3
 !
         else if ( drnano3<=rh .and. rh<drnacl ) then
           scase = 'u3'
-          call calcu3               ! caso4 , nh4cl , mgso4 , na2so4 , k2so4 , nacl
+          call calcu3               ! caso4, nh4cl, mgso4, na2so4, k2so4, nacl
 !
         else if ( drnacl<=rh .and. rh<drnh4cl ) then
           scase = 'u4'
-          call calcu4               ! caso4 , nh4cl , mgso4 , na2so4 , k2so4
+          call calcu4               ! caso4, nh4cl, mgso4, na2so4, k2so4
 !
         else if ( drnh4cl<=rh .and. rh<drmgso4 ) then
           scase = 'u5'
-          call calcu5               ! caso4 , mgso4 , na2so4 , k2so4
+          call calcu5               ! caso4, mgso4, na2so4, k2so4
 !
         else if ( drmgso4<=rh .and. rh<drna2so4 ) then
           scase = 'u6'
-          call calcu6               ! caso4 , na2so4 , k2so4
+          call calcu6               ! caso4, na2so4, k2so4
 !
         else if ( drna2so4<=rh .and. rh<drk2so4 ) then
           scase = 'u7'
-          call calcu7               ! caso4 , k2so4
+          call calcu7               ! caso4, k2so4
 !
         else if ( drk2so4<=rh ) then
           scase = 'u8'
@@ -35692,56 +35692,56 @@ module mod_che_isorropia
 !
         else if ( rh<drcacl2 ) then
           scase = 'w1'
-          call calcw1                ! caso4 , ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 ,
-!       ! mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+          call calcw1                ! caso4, ca(no3)2, cacl2, k2so4, kno3, kcl, mgso4 ,
+!       ! mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
         else if ( drcacl2<=rh .and. rh<drmgcl2 ) then
           scase = 'w2'
-          call calcw2               ! caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 ,
-!       ! mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+          call calcw2               ! caso4, ca(no3)2, k2so4, kno3, kcl, mgso4 ,
+!       ! mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
         else if ( drmgcl2<=rh .and. rh<drcano32 ) then
           scase = 'w3'
-          call calcw3               ! caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 ,
-!       ! mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
+          call calcw3               ! caso4, ca(no3)2, k2so4, kno3, kcl, mgso4 ,
+!       ! mg(no3)2, nano3, nacl, nh4no3, nh4cl
 !
         else if ( drcano32<=rh .and. rh<drmgno32 ) then
           scase = 'w4'
-          call calcw4               ! caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!       ! mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
+          call calcw4               ! caso4, k2so4, kno3, kcl, mgso4 ,
+!       ! mg(no3)2, nano3, nacl, nh4no3, nh4cl
 !
         else if ( drmgno32<=rh .and. rh<drnh4no3 ) then
           scase = 'w5'
-          call calcw5               ! caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!       ! nano3 , nacl , nh4no3 , nh4cl
+          call calcw5               ! caso4, k2so4, kno3, kcl, mgso4 ,
+!       ! nano3, nacl, nh4no3, nh4cl
 !
         else if ( drnh4no3<=rh .and. rh<drnano3 ) then
           scase = 'w6'
-          call calcw6               ! caso4 , k2so4 , kno3 , kcl , mgso4 , nano3 , nacl , nh4cl
+          call calcw6               ! caso4, k2so4, kno3, kcl, mgso4, nano3, nacl, nh4cl
 !
         else if ( drnano3<=rh .and. rh<drnacl ) then
           scase = 'w7'
-          call calcw7               ! caso4 , k2so4 , kno3 , kcl , mgso4 , nacl , nh4cl
+          call calcw7               ! caso4, k2so4, kno3, kcl, mgso4, nacl, nh4cl
 !
         else if ( drnacl<=rh .and. rh<drnh4cl ) then
           scase = 'w8'
-          call calcw8               ! caso4 , k2so4 , kno3 , kcl , mgso4 , nh4cl
+          call calcw8               ! caso4, k2so4, kno3, kcl, mgso4, nh4cl
 !
         else if ( drnh4cl<=rh .and. rh<drkcl ) then
           scase = 'w9'
-          call calcw9               ! caso4 , k2so4 , kno3 , kcl , mgso4
+          call calcw9               ! caso4, k2so4, kno3, kcl, mgso4
 !
         else if ( drkcl<=rh .and. rh<drmgso4 ) then
           scase = 'w10'
-          call calcw10               ! caso4 , k2so4 , kno3 , mgso4
+          call calcw10               ! caso4, k2so4, kno3, mgso4
 !
         else if ( drmgso4<=rh .and. rh<drkno3 ) then
           scase = 'w11'
-          call calcw11               ! caso4 , k2so4 , kno3
+          call calcw11               ! caso4, k2so4, kno3
 !
         else if ( drkno3<=rh .and. rh<drk2so4 ) then
           scase = 'w12'
-          call calcw12               ! caso4 , k2so4
+          call calcw12               ! caso4, k2so4
 !
         else if ( drk2so4<=rh ) then
           scase = 'w13'
@@ -35753,7 +35753,7 @@ module mod_che_isorropia
 !   *** sulfate rich (no acid): 1<rso4<2;
 !
     else if ( 1.0<=so4rat .and. so4rat<sulratw ) then
-      do i = 1 , ncomp
+      do i = 1, ncomp
         w(i) = waer(i)
       end do
 !
@@ -35798,13 +35798,13 @@ module mod_che_isorropia
         call calcl9                ! caso4
       end if
 !
-      call calcnhp                  ! minor species: hno3 , hcl
+      call calcnhp                  ! minor species: hno3, hcl
       call calcnh3p                 !                nh3
 !
 !   *** sulfate super rich (free acid): rso4<1;
 !
     else if ( so4rat<1.0 ) then
-      do i = 1 , ncomp
+      do i = 1, ncomp
         w(i) = waer(i)
       end do
 !
@@ -35829,12 +35829,12 @@ module mod_che_isorropia
         call calck4               ! caso4
       end if
 !
-      call calcnhp                    ! minor species: hno3 , hcl
+      call calcnhp                    ! minor species: hno3, hcl
       call calcnh3p                   !                nh3
 !
     end if
 !
-! *** if after calculations , sulratw < so4rat < 2.0
+! *** if after calculations, sulratw < so4rat < 2.0
 ! and water = 0          => sulfate rich case.
 !
     if ( sulratw<=so4rat .and. so4rat<2.0 .and. water<=tiny1 ) then
@@ -35853,7 +35853,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0)
 !     2. liquid aerosol phase only possible
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -35862,9 +35862,9 @@ module mod_che_isorropia
   subroutine calcs2
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: a2 , akw , del , hi , hso4i , ohi , so4i
+    real(rkx) :: a2, akw, del, hi, hso4i, ohi, so4i
     integer(ik4) :: i
-    real(rkx) nh4i , nh3gi , nh3aq
+    real(rkx) nh4i, nh3gi, nh3aq
 !
 ! *** setup parameters ************************************************
 !
@@ -35879,7 +35879,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !   a21  = xk21*water*r*temp
       a2 = xk2*r*temp/xkw/rh*(gama(8)/gama(9))**2.
       akw = xkw*rh*water*water
@@ -35934,11 +35934,11 @@ module mod_che_isorropia
 !     2. solid aerosol only
 !     3. solids possible : (nh4)2so4
 !
-!     a simple material balance is performed , and the solid (nh4)2so4
+!     a simple material balance is performed, and the solid (nh4)2so4
 !     is calculated from the sulfates. the excess ammonia remains in
 !     the gas phase.
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -35965,7 +35965,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0)
 !     2. there is only a liquid phase
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -35975,9 +35975,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , aml5 , del , gg , hi , hso4i , ohi , so4i
+    real(rkx) :: akw, aml5, del, gg, hi, hso4i, ohi, so4i
     integer(ik4) :: i
-    real(rkx) :: nh4i , no3i , nh3aq , no3aq
+    real(rkx) :: nh4i, no3i, nh3aq, no3aq
 !
 ! *** setup parameters ************************************************
 !
@@ -35995,7 +35995,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a2 = xk2*r*temp/xkw/rh*(gama(8)/gama(9))**2.
 !   a21   = xk21*water*r*temp
       a3 = xk4*r*temp*(water/gama(10))**2
@@ -36068,7 +36068,7 @@ module mod_che_isorropia
 !     2. there is both a liquid & solid phase
 !     3. solids possible : (nh4)2so4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -36078,8 +36078,8 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: dx , p4 , psi1hi , psi1lo , x1 , x2 , x3 , &
-         y1 , y2 , y3 , yhi , ylo , yy
+    real(rkx) :: dx, p4, psi1hi, psi1lo, x1, x2, x3, &
+         y1, y2, y3, yhi, ylo, yy
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -36106,7 +36106,7 @@ module mod_che_isorropia
 ! *** root tracking ; for the range of hi and lo **********************
 !
     dx = (psi1hi-psi1lo)/float(ndiv)
-    do i = 1 , ndiv
+    do i = 1, ndiv
       x2 = max(x1-dx,zero)
       y2 = funcn2(x2)
       if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100     ! (y1*y2 < zero)
@@ -36120,14 +36120,14 @@ module mod_che_isorropia
     if ( abs(y2)<eps ) then       ! x2 is a solution
       return
 !
-!   *** { ylo , yhi } < 0.0 the solution is always undersaturated with
+!   *** { ylo, yhi } < 0.0 the solution is always undersaturated with
 !   nh3
     else if ( ylo<zero .and. yhi<zero ) then
       p4 = chi4
       yy = funcn2(p4)
       return
 !
-!   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
+!   *** { ylo, yhi } > 0.0 the solution is always supersaturated with
 !   nh3
     else if ( ylo>zero .and. yhi>zero ) then
       p4 = tiny1
@@ -36140,7 +36140,7 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+ 100  do i = 1, maxit
       x3 = 0.5_rkx*(x1+x2)
       y3 = funcn2(x3)
       if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -36174,9 +36174,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , del , gg , hi , hso4i , ohi , p1 , so4i
+    real(rkx) :: akw, del, gg, hi, hso4i, ohi, p1, so4i
     integer(ik4) :: i
-    real(rkx) :: nh4i , no3i , nh3aq , no3aq
+    real(rkx) :: nh4i, no3i, nh3aq, no3aq
 !
 ! *** setup parameters ************************************************
 !
@@ -36186,7 +36186,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a2 = xk2*r*temp/xkw/rh*(gama(8)/gama(9))**2.
 !   a21   = xk21*water*r*temp
       a3 = xk4*r*temp*(water/gama(10))**2
@@ -36241,7 +36241,7 @@ module mod_che_isorropia
       ghno3 = hi*no3i/a3
       gnh3 = nh4i/hi/a2           !   nh3aq/a21
 !
-!   *** calculate molalr array , water and activities
+!   *** calculate molalr array, water and activities
 !   **********************
       call calcmr
 !
@@ -36265,13 +36265,13 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0)
 !     2. solid aerosol only
-!     3. solids possible : (nh4)2so4 , nh4no3
+!     3. solids possible : (nh4)2so4, nh4no3
 !
 !     there are two regimes defined by relative humidity:
 !     1. rh < mdrh  ; only solid phase possible (subroutine calcn1a)
 !     2. rh >= mdrh ; liquid phase possible (mdrh region)
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -36303,9 +36303,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0)
 !     2. solid aerosol only
-!     3. solids possible : (nh4)2so4 , nh4no3
+!     3. solids possible : (nh4)2so4, nh4no3
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -36314,7 +36314,7 @@ module mod_che_isorropia
   subroutine calcn1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: psi1 , psi2
+    real(rkx) :: psi1, psi2
 !
 ! *** setup parameters *************************************************
 !
@@ -36353,7 +36353,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); sodium poor (sodrat < 2.0)
 !     2. liquid and solid phases are possible
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -36363,10 +36363,10 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
-         hi , hso4i , ohi , so4i
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
+         hi, hso4i, ohi, so4i
     integer(ik4) :: i
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq
 !
 ! *** setup parameters ************************************************
 !
@@ -36391,7 +36391,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       akw = xkw*rh*water*water                  ! h2o       <==> h+
 !
 !   ion concentrations
@@ -36458,7 +36458,7 @@ module mod_che_isorropia
       if ( .not.(frst .and. calaou .or. .not.frst .and. calain) ) exit
       call calcact
     end do
-! call pusherr (0002 , 'calcq5')    ! warning error: no convergence
+! call pusherr (0002, 'calcq5')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -36492,7 +36492,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); sodium poor (sodrat < 2.0)
 !     2. liquid and solid phases are possible
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -36502,11 +36502,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
-         hi , hso4i , ohi , psi1o , root3 , so4i
-    integer(ik4) :: i , islv
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
+         hi, hso4i, ohi, psi1o, root3, so4i
+    integer(ik4) :: i, islv
     logical :: psconv1
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq
 !
 ! *** setup parameters ************************************************
 !
@@ -36543,7 +36543,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a5 = xk5*(water/gama(2))**3             ! na2so4    <==> na+
       akw = xkw*rh*water*water                  ! h2o       <==> h+
 !
@@ -36633,7 +36633,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcq4')    ! warning error: no convergence
+! call pusherr (0002, 'calcq4')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -36666,9 +36666,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : nh4cl , na2so4 , nano3 , nacl
+!     3. solids possible : nh4cl, na2so4, nano3, nacl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -36677,7 +36677,7 @@ module mod_che_isorropia
   subroutine calcq3
     use mod_che_common_isorropia
     implicit none
-    logical :: exno , excl
+    logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
 !
@@ -36694,7 +36694,7 @@ module mod_che_isorropia
       call calcq1a                   ! solid
       scase = 'q3 ; subcase 2'
     else
-      scase = 'q3 ; subcase 3'       ! mdrh (nh4)2so4 , na2so4
+      scase = 'q3 ; subcase 3'       ! mdrh (nh4)2so4, na2so4
       call calcmdrp(rh,drmg3,drnh42s4,calcq1a,calcq4)
       scase = 'q3 ; subcase 3'
     end if
@@ -36710,7 +36710,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); sodium poor (sodrat < 2.0)
 !     2. liquid and solid phases are possible
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -36720,11 +36720,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
-         hi , hso4i , ohi , psi1o , psi6o , root1 , root3 , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv1 , psconv6
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
+         hi, hso4i, ohi, psi1o, psi6o, root1, root3, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv1, psconv6
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq
 !
 ! *** setup parameters ************************************************
 !
@@ -36768,7 +36768,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a5 = xk5*(water/gama(2))**3          ! na2so4    <==> na+
       a7 = xk7*(water/gama(4))**3          ! (nh4)2so4 <==> nh4+
       akw = xkw*rh*water*water               ! h2o       <==> h+
@@ -36874,7 +36874,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcq3a')    ! warning error: no convergence
+! call pusherr (0002, 'calcq3a')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -36907,9 +36907,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. solid & liquid aerosol possible
-!     3. solids possible : nh4cl , na2so4 , nano3 , nacl
+!     3. solids possible : nh4cl, na2so4, nano3, nacl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -36918,7 +36918,7 @@ module mod_che_isorropia
   subroutine calcq2
     use mod_che_common_isorropia
     implicit none
-    logical :: exno , excl
+    logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
 !
@@ -36936,7 +36936,7 @@ module mod_che_isorropia
         call calcq1a                 ! solid
         scase = 'q2 ; subcase 2'
       else
-        scase = 'q2 ; subcase 3'     ! mdrh (nh4)2so4 , na2so4 , nh4cl
+        scase = 'q2 ; subcase 3'     ! mdrh (nh4)2so4, na2so4, nh4cl
         call calcmdrp(rh,drmg2,drnh4cl,calcq1a,calcq3a)
         scase = 'q2 ; subcase 3'
       end if
@@ -36946,7 +36946,7 @@ module mod_che_isorropia
       call calcq1a                   ! solid
       scase = 'q2 ; subcase 2'
     else
-      scase = 'q2 ; subcase 4'       ! mdrh (nh4)2so4 , na2so4
+      scase = 'q2 ; subcase 4'       ! mdrh (nh4)2so4, na2so4
       call calcmdrp(rh,drmg3,drnh42s4,calcq1a,calcq4)
       scase = 'q2 ; subcase 4'
     end if
@@ -36962,7 +36962,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); sodium poor (sodrat < 2.0)
 !     2. liquid and solid phases are possible
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -36972,13 +36972,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
-         hi , hso4i , ohi , psi1o , psi4o , psi6o , root1 , root2 ,   &
-         root2a , root2b , root3
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
+         hi, hso4i, ohi, psi1o, psi4o, psi6o, root1, root2,   &
+         root2a, root2b, root3
     real(rkx) :: so4i
-    integer(ik4) :: i , islv
-    logical :: psconv1 , psconv4 , psconv6
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    integer(ik4) :: i, islv
+    logical :: psconv1, psconv4, psconv6
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq
 !
 ! *** setup parameters ************************************************
 !
@@ -37025,7 +37025,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a5 = xk5*(water/gama(2))**3          ! na2so4    <==> na+
       a14 = xk14*(water/gama(6))**2        ! nh4cl     <==> nh4+
       a7 = xk7*(water/gama(4))**3          ! (nh4)2so4 <==> na+
@@ -37157,7 +37157,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcq2a')    ! warning error: no convergence
+! call pusherr (0002, 'calcq2a')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -37190,9 +37190,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4no3 , nh4cl , (nh4)2so4 , na2so4
+!     3. solids possible : nh4no3, nh4cl, (nh4)2so4, na2so4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -37201,7 +37201,7 @@ module mod_che_isorropia
   subroutine calcq1
     use mod_che_common_isorropia
     implicit none
-    logical :: exno , excl
+    logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
 !
@@ -37214,7 +37214,7 @@ module mod_che_isorropia
         call calcq1a                 ! solid
         scase = 'q1 ; subcase 1'
       else
-        scase = 'q1 ; subcase 2'     ! mdrh (nh4)2so4 , na2so4 , nh4cl , nh4no3
+        scase = 'q1 ; subcase 2'     ! mdrh (nh4)2so4, na2so4, nh4cl, nh4no3
         call calcmdrp(rh,drmg1,drnh4no3,calcq1a,calcq2a)
         scase = 'q1 ; subcase 2'
       end if
@@ -37225,7 +37225,7 @@ module mod_che_isorropia
         call calcq1a                 ! solid
         scase = 'q1 ; subcase 1'
       else
-        scase = 'q1 ; subcase 3'     ! mdrh (nh4)2so4 , na2so4 , nh4no3
+        scase = 'q1 ; subcase 3'     ! mdrh (nh4)2so4, na2so4, nh4no3
         call calcmdrp(rh,drmq1,drnh4no3,calcq1a,calcq2a)
         scase = 'q1 ; subcase 3'
       end if
@@ -37236,7 +37236,7 @@ module mod_che_isorropia
         call calcq1a                 ! solid
         scase = 'q1 ; subcase 1'
       else
-        scase = 'q1 ; subcase 4'     ! mdrh (nh4)2so4 , na2so4 , nh4cl
+        scase = 'q1 ; subcase 4'     ! mdrh (nh4)2so4, na2so4, nh4cl
         call calcmdrp(rh,drmg2,drnh4cl,calcq1a,calcq3a)
         scase = 'q1 ; subcase 4'
       end if
@@ -37246,7 +37246,7 @@ module mod_che_isorropia
       call calcq1a                   ! solid
       scase = 'q1 ; subcase 1'
     else
-      scase = 'q1 ; subcase 5'       ! mdrh (nh4)2so4 , na2so4
+      scase = 'q1 ; subcase 5'       ! mdrh (nh4)2so4, na2so4
       call calcmdrp(rh,drmg3,drnh42s4,calcq1a,calcq4)
       scase = 'q1 ; subcase 5'
     end if
@@ -37261,9 +37261,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium poor (sodrat < 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4no3 , nh4cl , (nh4)2so4 , na2so4
+!     3. solids possible : nh4no3, nh4cl, (nh4)2so4, na2so4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -37272,7 +37272,7 @@ module mod_che_isorropia
   subroutine calcq1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: frnh3 , frso4
+    real(rkx) :: frnh3, frso4
 !
 ! *** calculate solids
 ! **************************************************
@@ -37283,11 +37283,11 @@ module mod_che_isorropia
     frnh3 = max(waer(3)-2._rkx*cnh42s4,zero)
 !
     cnh4no3 = min(frnh3,waer(4))
-! frno3   = max (waer(4)-cnh4no3 , zero)
+! frno3   = max (waer(4)-cnh4no3, zero)
     frnh3 = max(frnh3-cnh4no3,zero)
 !
     cnh4cl = min(frnh3,waer(5))
-! frcl    = max (waer(5)-cnh4cl , zero)
+! frcl    = max (waer(5)-cnh4cl, zero)
     frnh3 = max(frnh3-cnh4cl,zero)
 !
 ! *** other phases
@@ -37309,7 +37309,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); sodium rich (sodrat >= 2.0)
 !     2. there is only a liquid phase
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -37319,10 +37319,10 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
-         hi , hso4i , ohi , so4i
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
+         hi, hso4i, ohi, so4i
     integer(ik4) :: i
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq
 !
 ! *** setup parameters ************************************************
 !
@@ -37351,7 +37351,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       akw = xkw*rh*water*water                        ! h2o    <==> h+
 !
       nai = waer(1)
@@ -37415,7 +37415,7 @@ module mod_che_isorropia
       if ( .not.(frst .and. calaou .or. .not.frst .and. calain) ) exit
       call calcact
     end do
-! call pusherr (0002 , 'calcr6')    ! warning error: no convergence
+! call pusherr (0002, 'calcr6')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -37449,7 +37449,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); sodium rich (sodrat >= 2.0)
 !     2. liquid and solid phases are possible
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -37459,12 +37459,12 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
-         hi , hso4i , ohi , psio , root , so4i
-    integer(ik4) :: i , islv
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
+         hi, hso4i, ohi, psio, root, so4i
+    integer(ik4) :: i, islv
     logical :: psconv
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
-    logical :: nean , neac , nesn , nesc
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq
+    logical :: nean, neac, nesn, nesc
 !
 ! *** setup parameters ************************************************
 !
@@ -37509,7 +37509,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a5 = xk5*(water/gama(2))**3                   ! na2so4 <==> na+
       akw = xkw*rh*water*water                        ! h2o    <==> h+
 !
@@ -37598,7 +37598,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcr5')    ! warning error: no convergence
+! call pusherr (0002, 'calcr5')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -37632,9 +37632,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4no3 , nh4cl , na2so4 , nano3 , nacl
+!     3. solids possible : nh4no3, nh4cl, na2so4, nano3, nacl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -37643,7 +37643,7 @@ module mod_che_isorropia
   subroutine calcr4
     use mod_che_common_isorropia
     implicit none
-    logical :: exan , exac , exsn , exsc
+    logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
 ! **************
@@ -37684,7 +37684,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); sodium rich (sodrat >= 2.0)
 !     2. liquid and solid phases are possible
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -37694,11 +37694,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
-         hi , hso4i , ohi , psio1 , psio4 , root , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv1 , psconv4
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
+         hi, hso4i, ohi, psio1, psio4, root, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv1, psconv4
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq
 !
 ! *** setup parameters ************************************************
 !
@@ -37737,7 +37737,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a5 = xk5*(water/gama(2))**3                   ! na2so4 <==> na+
       a14 = xk14*(water/gama(6))**2                 ! nh4cl  <==> nh4+
       akw = xkw*rh*water*water                        ! h2o    <==> h+
@@ -37841,7 +37841,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcr4a')    ! warning error: no convergence
+! call pusherr (0002, 'calcr4a')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -37874,9 +37874,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4no3 , nh4cl , na2so4 , nano3 , nacl
+!     3. solids possible : nh4no3, nh4cl, na2so4, nano3, nacl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -37885,7 +37885,7 @@ module mod_che_isorropia
   subroutine calcr3
     use mod_che_common_isorropia
     implicit none
-    logical :: exan , exac , exsn , exsc
+    logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
 ! **************
@@ -37942,7 +37942,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); sodium rich (sodrat >= 2.0)
 !     2. liquid and solid phases are possible
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -37952,13 +37952,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
-         hi , hso4i , ohi , psi1o , psi3o , psi4o , root1 , root2 ,   &
-         root2a , root2b , root3
-    real(rkx) :: root3a , root3b , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv1 , psconv3 , psconv4
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
+         hi, hso4i, ohi, psi1o, psi3o, psi4o, root1, root2,   &
+         root2a, root2b, root3
+    real(rkx) :: root3a, root3b, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv1, psconv3, psconv4
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq
 !
 ! *** setup parameters ************************************************
 !
@@ -38013,7 +38013,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a5 = xk5*(water/gama(2))**3                   ! na2so4 <==> na+
       a8 = xk8*(water/gama(1))**2                   ! nacl   <==> na+
       a14 = xk14*(water/gama(6))**2                 ! nh4cl  <==> nh4+
@@ -38141,15 +38141,15 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcr3a')    ! warning error: no convergence
+! call pusherr (0002, 'calcr3a')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
     if ( cli<=tiny1 .and. waer(5)>tiny1 ) then     !no disslv cl-;solid only
-      do i = 1 , nions
+      do i = 1, nions
         molal(i) = zero
       end do
-      do i = 1 , ngasaq
+      do i = 1, ngasaq
         gasaq(i) = zero
       end do
       call calcr1a
@@ -38184,9 +38184,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4no3 , nh4cl , na2so4 , nano3 , nacl
+!     3. solids possible : nh4no3, nh4cl, na2so4, nano3, nacl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -38195,7 +38195,7 @@ module mod_che_isorropia
   subroutine calcr2
     use mod_che_common_isorropia
     implicit none
-    logical :: exan , exac , exsn , exsc
+    logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
 ! **************
@@ -38280,7 +38280,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); sodium rich (sodrat >= 2.0)
 !     2. liquid and solid phases are possible
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -38290,13 +38290,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
-         hi , hso4i , ohi , psi1o , psi2o , psi3o , psi4o , root1 ,   &
-         root2 , root2a , root2b
-    real(rkx) :: root3 , root3a , root3b , root4 , root4a , root4b , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv1 , psconv2 , psconv3 , psconv4
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
+         hi, hso4i, ohi, psi1o, psi2o, psi3o, psi4o, root1,   &
+         root2, root2a, root2b
+    real(rkx) :: root3, root3a, root3b, root4, root4a, root4b, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv1, psconv2, psconv3, psconv4
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq
 !
 ! *** setup parameters ************************************************
 !
@@ -38358,7 +38358,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a5 = xk5*(water/gama(2))**3                   ! na2so4 <==> na+
       a8 = xk8*(water/gama(1))**2                   ! nacl   <==> na+
       a9 = xk9*(water/gama(3))**2                   ! nano3  <==> na+
@@ -38511,19 +38511,19 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcr2a')    ! warning error: no convergence
+! call pusherr (0002, 'calcr2a')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
     if ( cli<=tiny1 .and. waer(5)>tiny1 ) then     !no disslv cl-;solid only
-      do i = 1 , nions
+      do i = 1, nions
         molal(i) = zero
       end do
-      do i = 1 , ngasaq
+      do i = 1, ngasaq
         gasaq(i) = zero
       end do
       call calcr1a
-    else                                       ! ok , aqueous phase present
+    else                                       ! ok, aqueous phase present
       a2 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2        ! nh3  <==> nh4+
       a3 = xk4*r*temp*(water/gama(10))**2                ! hno3 <==> no3-
       a4 = xk3*r*temp*(water/gama(11))**2                ! hcl  <==> cl-
@@ -38554,9 +38554,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4no3 , nh4cl , na2so4 , nano3 , nacl
+!     3. solids possible : nh4no3, nh4cl, na2so4, nano3, nacl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -38565,7 +38565,7 @@ module mod_che_isorropia
   subroutine calcr1
     use mod_che_common_isorropia
     implicit none
-    logical :: exan , exac , exsn , exsc
+    logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
 ! **************
@@ -38705,9 +38705,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; sodium rich (sodrat >= 2.0)
 !     2. solid aerosol only
-!     3. solids possible : nh4no3 , nh4cl , nano3 , na2so4 , nano3 , nacl
+!     3. solids possible : nh4no3, nh4cl, nano3, na2so4, nano3, nacl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by athanasios nenes
 !
@@ -38716,7 +38716,7 @@ module mod_che_isorropia
   subroutine calcr1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: frcl , frna , frnh3 , frno3
+    real(rkx) :: frcl, frna, frnh3, frno3
 !
 ! *** calculate solids
 ! **************************************************
@@ -38759,7 +38759,7 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -38769,9 +38769,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , ohi , so4i
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, ohi, so4i
     integer(ik4) :: i
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -38804,7 +38804,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       akw = xkw*rh*water*water               ! h2o       <==> h+
 !
@@ -38840,17 +38840,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -38888,7 +38888,7 @@ module mod_che_isorropia
       if ( .not.(frst .and. calaou .or. .not.frst .and. calain) ) exit
       call calcact
     end do
-! call pusherr (0002 , 'calcv7')    ! warning error: no convergence
+! call pusherr (0002, 'calcv7')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -38922,10 +38922,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4
-!     4. completely dissolved: nh4no3 , nh4cl , (nh4)2so4 , mgso4 , na2so4
+!     3. solids possible : k2so4, caso4
+!     4. completely dissolved: nh4no3, nh4cl, (nh4)2so4, mgso4, na2so4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -38935,11 +38935,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi70 , root7 , so4i
-    integer(ik4) :: i , islv
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi70, root7, so4i
+    integer(ik4) :: i, islv
     logical :: psconv7
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -38984,7 +38984,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       akw = xkw*rh*water*water               ! h2o       <==> h+
@@ -39035,17 +39035,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -39090,7 +39090,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcv6')    ! warning error: no convergence
+! call pusherr (0002, 'calcv6')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -39124,10 +39124,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4
-!     4. completely dissolved: nh4no3 , nh4cl , (nh4)2so4 , mgso4
+!     3. solids possible : k2so4, caso4, na2so4
+!     4. completely dissolved: nh4no3, nh4cl, (nh4)2so4, mgso4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -39137,11 +39137,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi1o , psi70 , root1 , root7 , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv7 , psconv1
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi1o, psi70, root1, root7, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv7, psconv1
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -39192,7 +39192,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a1 = xk5*(water/gama(2))**3          ! na2s04    <==> na+
@@ -39261,17 +39261,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -39316,7 +39316,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcv5')    ! warning error: no convergence
+! call pusherr (0002, 'calcv5')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -39350,10 +39350,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4
-!     4. completely dissolved: nh4no3 , nh4cl , (nh4)2so4
+!     3. solids possible : k2so4, caso4, na2so4, mgso4
+!     4. completely dissolved: nh4no3, nh4cl, (nh4)2so4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -39363,11 +39363,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi1o , psi70 , root1 , root7 , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv7 , psconv1
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi1o, psi70, root1, root7, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv7, psconv1
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -39419,7 +39419,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a1 = xk5*(water/gama(2))**3          ! na2s04    <==> na+
@@ -39488,17 +39488,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -39543,7 +39543,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcv4')    ! warning error: no convergence
+! call pusherr (0002, 'calcv4')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -39577,9 +39577,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , (nh4)2so4
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, (nh4)2so4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -39588,7 +39588,7 @@ module mod_che_isorropia
   subroutine calcv3
     use mod_che_common_isorropia
     implicit none
-    logical :: exno , excl
+    logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
 !
@@ -39603,7 +39603,7 @@ module mod_che_isorropia
       call calcv1a                   ! solid
       scase = 'v3 ; subcase 2'
     else
-      scase = 'v3 ; subcase 3'       ! mdrh (caso4 , (nh4)2so4 , mgso4 , na2so4 , k2so4)
+      scase = 'v3 ; subcase 3'       ! mdrh (caso4, (nh4)2so4, mgso4, na2so4, k2so4)
       call calcmdrpii(rh,drmo3,drnh42s4,calcv1a,calcv4)
       scase = 'v3 ; subcase 3'
     end if
@@ -39618,10 +39618,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , (nh4)2so4
-!     4. completely dissolved: nh4no3 , nh4cl
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, (nh4)2so4
+!     4. completely dissolved: nh4no3, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -39631,11 +39631,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi1o , psi60 , psi70 , root1 , root6 , root7 , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv7 , psconv1 , psconv6
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi1o, psi60, psi70, root1, root6, root7, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv7, psconv1, psconv6
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -39691,7 +39691,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a1 = xk5*(water/gama(2))**3          ! na2s04    <==> na+
@@ -39779,17 +39779,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -39834,7 +39834,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcv3')    ! warning error: no convergence
+! call pusherr (0002, 'calcv3')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -39868,9 +39868,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , (nh4)2so4 , nh4cl
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, (nh4)2so4, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -39879,7 +39879,7 @@ module mod_che_isorropia
   subroutine calcv2
     use mod_che_common_isorropia
     implicit none
-    logical :: exno , excl
+    logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
 !
@@ -39897,7 +39897,7 @@ module mod_che_isorropia
         call calcv1a                 ! solid
         scase = 'v2 ; subcase 2'
       else
-        scase = 'v2 ; subcase 3'     ! mdrh caso4 , nh4cl , (nh4)2so4 , mgso4 , na2so4 , k2so4
+        scase = 'v2 ; subcase 3'     ! mdrh caso4, nh4cl, (nh4)2so4, mgso4, na2so4, k2so4
         call calcmdrpii(rh,drmo2,drnh4cl,calcv1a,calcv3a)
         scase = 'v2 ; subcase 3'
       end if
@@ -39907,7 +39907,7 @@ module mod_che_isorropia
       call calcv1a                   ! solid
       scase = 'v2 ; subcase 2'
     else
-      scase = 'v2 ; subcase 4'       ! mdrh caso4 , (nh4)2so4 , mgso4 , na2so4 , k2so4
+      scase = 'v2 ; subcase 4'       ! mdrh caso4, (nh4)2so4, mgso4, na2so4, k2so4
       call calcmdrpii(rh,drmo3,drnh42s4,calcv1a,calcv4)
       scase = 'v2 ; subcase 4'
     end if
@@ -39922,10 +39922,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , (nh4)2so4 , nh4cl
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, (nh4)2so4, nh4cl
 !     4. completely dissolved: nh4no3
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -39935,13 +39935,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi1o , psi40 , psi60 , psi70 , root1 , root4 , root4a , &
-         root4b , root6 , root7
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi1o, psi40, psi60, psi70, root1, root4, root4a, &
+         root4b, root6, root7
     real(rkx) :: so4i
-    integer(ik4) :: i , islv
-    logical :: psconv7 , psconv1 , psconv6 , psconv4
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    integer(ik4) :: i, islv
+    logical :: psconv7, psconv1, psconv6, psconv4
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -40001,7 +40001,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a1 = xk5*(water/gama(2))**3          ! na2s04    <==> na+
@@ -40118,17 +40118,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -40173,7 +40173,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcv2')    ! warning error: no convergence
+! call pusherr (0002, 'calcv2')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -40207,9 +40207,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. solid aerosol only
-!     3. solids possible : (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 , mgso4 , caso4
+!     3. solids possible : (nh4)2so4, nh4no3, nh4cl, na2so4, k2so4, mgso4, caso4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -40218,7 +40218,7 @@ module mod_che_isorropia
   subroutine calcv1
     use mod_che_common_isorropia
     implicit none
-    logical :: exno , excl
+    logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
 !
@@ -40231,7 +40231,7 @@ module mod_che_isorropia
         call calcv1a                 ! solid
         scase = 'v1 ; subcase 1'
       else
-        scase = 'v1 ; subcase 2'     ! mdrh (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 , mgso4 , caso4
+        scase = 'v1 ; subcase 2'     ! mdrh (nh4)2so4, nh4no3, nh4cl, na2so4, k2so4, mgso4, caso4
         call calcmdrpii(rh,drmo1,drnh4no3,calcv1a,calcv2a)
         scase = 'v1 ; subcase 2'
       end if
@@ -40242,7 +40242,7 @@ module mod_che_isorropia
         call calcv1a                 ! solid
         scase = 'v1 ; subcase 1'
       else
-        scase = 'v1 ; subcase 3'     ! mdrh (nh4)2so4 , nh4no3 , na2so4 , k2so4 , mgso4 , caso4
+        scase = 'v1 ; subcase 3'     ! mdrh (nh4)2so4, nh4no3, na2so4, k2so4, mgso4, caso4
         call calcmdrpii(rh,drmv1,drnh4no3,calcv1a,calcv2a)
         scase = 'v1 ; subcase 3'
       end if
@@ -40253,7 +40253,7 @@ module mod_che_isorropia
         call calcv1a                 ! solid
         scase = 'v1 ; subcase 1'
       else
-        scase = 'v1 ; subcase 4'     ! mdrh (nh4)2so4 , nh4cl , na2so4 , k2so4 , mgso4 , caso4
+        scase = 'v1 ; subcase 4'     ! mdrh (nh4)2so4, nh4cl, na2so4, k2so4, mgso4, caso4
         call calcmdrpii(rh,drmo2,drnh4cl,calcv1a,calcv3a)
         scase = 'v1 ; subcase 4'
       end if
@@ -40263,7 +40263,7 @@ module mod_che_isorropia
       call calcv1a                   ! solid
       scase = 'v1 ; subcase 1'
     else
-      scase = 'v1 ; subcase 5'       ! mdrh (nh4)2so4 , na2so4 , k2so4 , mgso4 , caso4
+      scase = 'v1 ; subcase 5'       ! mdrh (nh4)2so4, na2so4, k2so4, mgso4, caso4
       call calcmdrpii(rh,drmo3,drnh42s4,calcv1a,calcv4)
       scase = 'v1 ; subcase 5'
     end if
@@ -40274,7 +40274,7 @@ module mod_che_isorropia
 ! scase = 'v1 ; subcase 1'
 ! else
 ! scase = 'v1 ; subcase 2'  ! liquid & solid phase possible
-! call calcmdrpii (rh , drmo1 , drnh4no3 , calcv1a , calcv2a)
+! call calcmdrpii (rh, drmo1, drnh4no3, calcv1a, calcv2a)
 ! scase = 'v1 ; subcase 2'
 ! end if
 !
@@ -40289,9 +40289,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. solid aerosol only
-!     3. solids possible : (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 , mgso4 , caso4
+!     3. solids possible : (nh4)2so4, nh4no3, nh4cl, na2so4, k2so4, mgso4, caso4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -40300,7 +40300,7 @@ module mod_che_isorropia
   subroutine calcv1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: cafr , frk , frmg , frnh3 , so4fr , nafr
+    real(rkx) :: cafr, frk, frmg, frnh3, so4fr, nafr
 !
 ! *** calculate solids
 ! **************************************************
@@ -40320,11 +40320,11 @@ module mod_che_isorropia
     frnh3 = max(waer(3)-2._rkx*cnh42s4,zero)
 !
     cnh4no3 = min(frnh3,waer(4))
-! frno3   = max (waer(4) - cnh4no3 , zero)
+! frno3   = max (waer(4) - cnh4no3, zero)
     frnh3 = max(frnh3-cnh4no3,zero)
 !
     cnh4cl = min(frnh3,waer(5))
-! frcl    = max (waer(5) - cnh4cl , zero)
+! frcl    = max (waer(5) - cnh4cl, zero)
     frnh3 = max(frnh3-cnh4cl,zero)
 !
 ! *** other phases
@@ -40346,7 +40346,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); crustal+sodium rich (crnarat >= 2.0); crustal poor (crrat<2)
 !     2. there is only a liquid phase
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -40356,9 +40356,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , ohi , so4i
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, ohi, so4i
     integer(ik4) :: i
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -40395,7 +40395,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       akw = xkw*rh*water*water                        ! h2o    <==> h+
 !
@@ -40431,17 +40431,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -40479,7 +40479,7 @@ module mod_che_isorropia
       if ( .not.(frst .and. calaou .or. .not.frst .and. calain) ) exit
       call calcact
     end do
-! call pusherr (0002 , 'calcu8')    ! warning error: no convergence
+! call pusherr (0002, 'calcu8')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -40515,10 +40515,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), crustal+sodium rich (crnarat >= 2.0); crustal poor (crrat<2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl , mgso4 , na2so4
+!     3. solids possible : k2so4, caso4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl, mgso4, na2so4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -40528,11 +40528,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi70 , root7 , so4i
-    integer(ik4) :: i , islv
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi70, root7, so4i
+    integer(ik4) :: i, islv
     logical :: psconv7
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -40592,7 +40592,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       akw = xkw*rh*water*water               ! h2o       <==> h+
@@ -40645,17 +40645,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -40700,7 +40700,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcu7')    ! warning error: no convergence
+! call pusherr (0002, 'calcu7')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -40736,10 +40736,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl , mgso4
+!     3. solids possible : k2so4, caso4, na2so4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl, mgso4
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -40749,11 +40749,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi1o , psi70 , root1 , root7 , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv7 , psconv1
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi1o, psi70, root1, root7, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv7, psconv1
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -40818,7 +40818,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a1 = xk5*(water/gama(2))**3          ! na2s04    <==> na+
@@ -40890,17 +40890,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -40945,7 +40945,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcu6')    ! warning error: no convergence
+! call pusherr (0002, 'calcu6')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -40981,10 +40981,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4
-!     4. completely dissolved: nh4no3 , nh4cl , nano3 , nacl
+!     3. solids possible : k2so4, caso4, na2so4, mgso4
+!     4. completely dissolved: nh4no3, nh4cl, nano3, nacl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -40994,11 +40994,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi1o , psi70 , root1 , root7 , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv7 , psconv1
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi1o, psi70, root1, root7, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv7, psconv1
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -41064,7 +41064,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a1 = xk5*(water/gama(2))**3          ! na2s04    <==> na+
       akw = xkw*rh*water*water               ! h2o       <==> h+
@@ -41134,17 +41134,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -41189,7 +41189,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcu5')    ! warning error: no convergence
+! call pusherr (0002, 'calcu5')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -41225,9 +41225,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), (dust + sodium) rich: r(cr+na)>2; dust poor: rcr<2.
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , nh4cl
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -41236,7 +41236,7 @@ module mod_che_isorropia
   subroutine calcu4
     use mod_che_common_isorropia
     implicit none
-    logical :: exan , exac , exsn , exsc
+    logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
 ! **************
@@ -41274,10 +41274,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , nh4cl
-!     4. completely dissolved: nh4no3 , nano3 , nacl
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, nh4cl
+!     4. completely dissolved: nh4no3, nano3, nacl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -41287,11 +41287,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi1o , psi40 , psi70 , root1 , root4 , root7 , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv7 , psconv1 , psconv4
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi1o, psi40, psi70, root1, root4, root7, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv7, psconv1, psconv4
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -41361,7 +41361,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a1 = xk5*(water/gama(2))**3          ! na2s04    <==> na+
@@ -41448,17 +41448,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -41503,7 +41503,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcu4')    ! warning error: no convergence
+! call pusherr (0002, 'calcu4')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -41539,9 +41539,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), (dust + sodium) rich: r(cr+na)>2; dust poor: rcr<2.
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , nh4cl , nano3
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, nh4cl, nano3
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -41550,7 +41550,7 @@ module mod_che_isorropia
   subroutine calcu3
     use mod_che_common_isorropia
     implicit none
-    logical :: exan , exac , exsn , exsc
+    logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
 ! **************
@@ -41606,10 +41606,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , nh4cl , nacl
-!     4. completely dissolved: nh4no3 , nano3
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, nh4cl, nacl
+!     4. completely dissolved: nh4no3, nano3
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -41619,13 +41619,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi1o , psi30 , psi40 , psi70 , root1 , root3 , root3a , &
-         root3b , root4 , root4a
-    real(rkx) :: root4b , root7 , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv7 , psconv1 , psconv4 , psconv3
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi1o, psi30, psi40, psi70, root1, root3, root3a, &
+         root3b, root4, root4a
+    real(rkx) :: root4b, root7, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv7, psconv1, psconv4, psconv3
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -41699,7 +41699,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a1 = xk5*(water/gama(2))**3          ! na2s04    <==> na+
@@ -41810,17 +41810,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -41865,15 +41865,15 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcu3a')    ! warning error: no convergence
+! call pusherr (0002, 'calcu3a')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
     if ( cli<=tiny1 .and. waer(5)>tiny1 ) then     !no disslv cl-;solid only
-      do i = 1 , nions
+      do i = 1, nions
         molal(i) = zero
       end do
-      do i = 1 , ngasaq
+      do i = 1, ngasaq
         gasaq(i) = zero
       end do
       call calcu1a
@@ -41911,9 +41911,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), (dust + sodium) rich: r(cr+na)>2; dust poor: rcr<2.
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , nh4cl , nano3 , nacl
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, nh4cl, nano3, nacl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -41922,7 +41922,7 @@ module mod_che_isorropia
   subroutine calcu2
     use mod_che_common_isorropia
     implicit none
-    logical :: exan , exac , exsn , exsc
+    logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
 ! **************
@@ -41998,11 +41998,11 @@ module mod_che_isorropia
     end if
 !
 
-! if (w(4) > tiny1) then        ! no3 exists , water possible
+! if (w(4) > tiny1) then        ! no3 exists, water possible
 ! scase = 'u2 ; subcase 1'
 ! call calcu2a
 ! scase = 'u2 ; subcase 1'
-! else                          ! no3 non existant , water not possible
+! else                          ! no3 non existant, water not possible
 ! scase = 'u2 ; subcase 1'
 ! call calcu1a
 ! scase = 'u2 ; subcase 1'
@@ -42015,7 +42015,7 @@ module mod_che_isorropia
 !
 ! else if (water <= tiny1 .and. rh >= drmm2) then  ! mdrh of m2
 ! scase = 'u2 ; subcase 3'
-! call calcmdrpii (rh , drmm2 , drnano3 , calcu1a , calcu3a)
+! call calcmdrpii (rh, drmm2, drnano3, calcu1a, calcu3a)
 ! scase = 'u2 ; subcase 3'
 ! end if
 !
@@ -42030,10 +42030,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), cr+na poor (crnarat < 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , nh4cl , nacl , nano3
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, nh4cl, nacl, nano3
 !     4. completely dissolved: nh4no3
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -42043,14 +42043,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi1o , psi20 , psi30 , psi40 , psi50 , psi70 , root1 , &
-         root3 , root3a , root3b
-    real(rkx) :: root4 , root4a , root4b , root5 , root5a , root5b , &
-         root7 , so4i
-    integer(ik4) :: i , islv
-    logical :: psconv7 , psconv1 , psconv4 , psconv3 , psconv5
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi1o, psi20, psi30, psi40, psi50, psi70, root1, &
+         root3, root3a, root3b
+    real(rkx) :: root4, root4a, root4b, root5, root5a, root5b, &
+         root7, so4i
+    integer(ik4) :: i, islv
+    logical :: psconv7, psconv1, psconv4, psconv3, psconv5
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -42129,7 +42129,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a7 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a1 = xk5*(water/gama(2))**3          ! na2s04    <==> na+
@@ -42262,17 +42262,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -42318,19 +42318,19 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcu2a')    ! warning error: no convergence
+! call pusherr (0002, 'calcu2a')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
     if ( cli<=tiny1 .and. waer(5)>tiny1 ) then     !no disslv cl-;solid only
-      do i = 1 , nions
+      do i = 1, nions
         molal(i) = zero
       end do
-      do i = 1 , ngasaq
+      do i = 1, ngasaq
         gasaq(i) = zero
       end do
       call calcu1a
-    else                                       ! ok , aqueous phase present
+    else                                       ! ok, aqueous phase present
       a2 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2     ! nh3  <==> nh4+
       a3 = xk4*r*temp*(water/gama(10))**2             ! hno3 <==> no3-
       a4 = xk3*r*temp*(water/gama(11))**2             ! hcl  <==> cl-
@@ -42364,9 +42364,9 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (so4rat > 2.0), (dust + sodium) rich: r(cr+na)>2; dust poor: rcr<2.
 !     2. there is both a liquid & solid phase
-!     3. solids possible : k2so4 , caso4 , na2so4 , mgso4 , nh4cl , nano3 , nacl , nh4no3
+!     3. solids possible : k2so4, caso4, na2so4, mgso4, nh4cl, nano3, nacl, nh4no3
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -42375,7 +42375,7 @@ module mod_che_isorropia
   subroutine calcu1
     use mod_che_common_isorropia
     implicit none
-    logical :: exan , exac , exsn , exsc
+    logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
 ! **************
@@ -42495,7 +42495,7 @@ module mod_che_isorropia
 ! scase = 'u1 ; subcase 1'
 ! else
 ! scase = 'u1 ; subcase 2'  ! liquid & solid phase possible
-! call calcmdrpii (rh , drmm1 , drnh4no3 , calcu1a , calcu2a)
+! call calcmdrpii (rh, drmm1, drnh4no3, calcu1a, calcu2a)
 ! scase = 'u1 ; subcase 2'
 ! end if
   end subroutine calcu1
@@ -42510,7 +42510,7 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0); crustal+sodium rich (crnarat >= 2.0); crustal poor (crrat<2)
 !     2. there is only a solid phase
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -42519,7 +42519,7 @@ module mod_che_isorropia
   subroutine calcu1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: cafr , frcl , frk , frmg , frna , frnh3 , frno3 , so4fr
+    real(rkx) :: cafr, frcl, frk, frmg, frna, frnh3, frno3, so4fr
 !
 ! *** calculate solids *************************************************
 !
@@ -42572,10 +42572,10 @@ module mod_che_isorropia
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
 !     3. solids possible : caso4
-!     4. completely dissolved: ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     4. completely dissolved: ca(no3)2, cacl2, k2so4, kno3, kcl, mgso4 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university
+! *** copyright 1996-2008, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -42585,10 +42585,10 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , so4i , kcl
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, so4i, kcl
     integer(ik4) :: i
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -42628,7 +42628,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 
       akw = xkw*rh*water*water               ! h2o       <==> h+
 !
@@ -42663,17 +42663,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -42711,7 +42711,7 @@ module mod_che_isorropia
       if ( .not.(frst .and. calaou .or. .not.frst .and. calain) ) exit
       call calcact
     end do
-! call pusherr (0002 , 'calcw13')    ! warning error: no convergence
+! call pusherr (0002, 'calcw13')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -42752,11 +42752,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4
-!     4. completely dissolved: ca(no3)2 , cacl2 , kno3 , kcl , mgso4 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4
+!     4. completely dissolved: ca(no3)2, cacl2, kno3, kcl, mgso4 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -42766,11 +42766,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi9o , root9 , so4i , kcl
-    integer(ik4) :: i , islv
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi9o, root9, so4i, kcl
+    integer(ik4) :: i, islv
     logical :: psconv9
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -42822,7 +42822,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       akw = xkw*rh*water*water               ! h2o       <==> h+
@@ -42873,17 +42873,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -42928,7 +42928,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw12')    ! warning error: no convergence
+! call pusherr (0002, 'calcw12')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -42969,11 +42969,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3
-!     4. completely dissolved: ca(no3)2 , cacl2 , kcl , mgso4 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3
+!     4. completely dissolved: ca(no3)2, cacl2, kcl, mgso4 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -42983,12 +42983,12 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi9o , root13 , root13a , root13b , root9 , &
-         so4i , kcl
-    integer(ik4) :: i , islv
-    logical :: psconv9 , psconv13
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi13o, psi9o, root13, root13a, root13b, root9, &
+         so4i, kcl
+    integer(ik4) :: i, islv
+    logical :: psconv9, psconv13
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -43046,7 +43046,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a13 = xk19*(water/gama(19))**2       ! kno3      <==> k+
@@ -43118,17 +43118,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -43173,7 +43173,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw11')    ! warning error: no convergence
+! call pusherr (0002, 'calcw11')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -43214,11 +43214,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4
-!     4. completely dissolved: ca(no3)2 , cacl2 , kcl ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3, mgso4
+!     4. completely dissolved: ca(no3)2, cacl2, kcl ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -43228,12 +43228,12 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi9o , root13 , root13a , root13b , root9 , &
-         so4i , kcl
-    integer(ik4) :: i , islv
-    logical :: psconv9 , psconv13
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi13o, psi9o, root13, root13a, root13b, root9, &
+         so4i, kcl
+    integer(ik4) :: i, islv
+    logical :: psconv9, psconv13
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -43293,7 +43293,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a13 = xk19*(water/gama(19))**2       ! kno3      <==> k+
@@ -43365,17 +43365,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -43420,7 +43420,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw10')    ! warning error: no convergence
+! call pusherr (0002, 'calcw10')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -43461,11 +43461,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -43475,12 +43475,12 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi14o , psi9o , root13 , root13a , root13b , &
-         root14 , root14a , root14b , root9 , so4i , kcl
-    integer(ik4) :: i , islv
-    logical :: psconv9 , psconv13 , psconv14
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi13o, psi14o, psi9o, root13, root13a, root13b, &
+         root14, root14a, root14b, root9, so4i, kcl
+    integer(ik4) :: i, islv
+    logical :: psconv9, psconv13, psconv14
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -43543,7 +43543,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a13 = xk19*(water/gama(19))**2       ! kno3      <==> k+
@@ -43636,17 +43636,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -43691,7 +43691,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw9')    ! warning error: no convergence
+! call pusherr (0002, 'calcw9')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -43732,11 +43732,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nano3, nacl, nh4no3
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -43746,13 +43746,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi14o , psi5o , psi9o , root13 , root13a , &
-         root13b , root14 , root14a , root14b
-    real(rkx) :: root5 , root5a , root5b , root9 , so4i , kcl
-    integer(ik4) :: i , islv
-    logical :: psconv9 , psconv13 , psconv14 , psconv5
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi13o, psi14o, psi5o, psi9o, root13, root13a, &
+         root13b, root14, root14a, root14b
+    real(rkx) :: root5, root5a, root5b, root9, so4i, kcl
+    integer(ik4) :: i, islv
+    logical :: psconv9, psconv13, psconv14, psconv5
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -43819,7 +43819,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a13 = xk19*(water/gama(19))**2       ! kno3      <==> k+
@@ -43932,17 +43932,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -43987,7 +43987,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw8')    ! warning error: no convergence
+! call pusherr (0002, 'calcw8')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -44028,11 +44028,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nano3 , nh4no3
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nano3, nh4no3
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -44042,14 +44042,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi14o , psi5o , psi7o , psi9o , root13 , &
-         root13a , root13b , root14 , root14a
-    real(rkx) :: root14b , root5 , root5a , root5b , root7 , root7a , &
-         root7b , root9 , so4i , kcl
-    integer(ik4) :: i , islv
-    logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi13o, psi14o, psi5o, psi7o, psi9o, root13, &
+         root13a, root13b, root14, root14a
+    real(rkx) :: root14b, root5, root5a, root5b, root7, root7a, &
+         root7b, root9, so4i, kcl
+    integer(ik4) :: i, islv
+    logical :: psconv9, psconv13, psconv14, psconv5, psconv7
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -44120,7 +44120,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a13 = xk19*(water/gama(19))**2       ! kno3      <==> k+
@@ -44253,17 +44253,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -44309,7 +44309,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw7')    ! warning error: no convergence
+! call pusherr (0002, 'calcw7')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -44350,11 +44350,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl , nano3
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2 , nh4no3
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl, nano3
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2, nh4no3
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -44364,14 +44364,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , &
-         root13 , root13a , root13b , root14
-    real(rkx) :: root14a , root14b , root5 , root5a , root5b , root7 , &
-         root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
-    integer(ik4) :: i , islv
-    logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, &
+         root13, root13a, root13b, root14
+    real(rkx) :: root14a, root14b, root5, root5a, root5b, root7, &
+         root7a, root7b, root8, root8a, root8b, root9, so4i, kcl
+    integer(ik4) :: i, islv
+    logical :: psconv9, psconv13, psconv14, psconv5, psconv7, psconv8
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -44446,7 +44446,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a13 = xk19*(water/gama(19))**2       ! kno3      <==> k+
@@ -44599,17 +44599,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -44655,7 +44655,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw6')    ! warning error: no convergence
+! call pusherr (0002, 'calcw6')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -44696,11 +44696,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl , nano3 , nh4no3
-!     4. completely dissolved: ca(no3)2 , cacl2 ,
-!                              mg(no3)2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl, nano3, nh4no3
+!     4. completely dissolved: ca(no3)2, cacl2 ,
+!                              mg(no3)2, mgcl2
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -44713,11 +44713,11 @@ module mod_che_isorropia
 !
 ! *** regime depends on the existance of water and of the rh
 ! ************
-    if ( waer(4)>tiny1 ) then     ! no3 exist , water possible
+    if ( waer(4)>tiny1 ) then     ! no3 exist, water possible
       scase = 'w5 ; subcase 1'
       call calcw5a
       scase = 'w5 ; subcase 1'
-    else                                        ! no3 , cl non existant
+    else                                        ! no3, cl non existant
       scase = 'w1 ; subcase 1'
       call calcw1a
       scase = 'w1 ; subcase 1'
@@ -44725,15 +44725,15 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmp5 ) then           ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcw1a
         scase = 'w5 ; subcase 2'
         return
       else
-        scase = 'w5 ; subcase 3'      ! mdrh region (caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!     nano3 , nacl , nh4no3 , nh4cl)
+        scase = 'w5 ; subcase 3'      ! mdrh region (caso4, k2so4, kno3, kcl, mgso4 ,
+!     nano3, nacl, nh4no3, nh4cl)
         call calcmdrpii(rh,drmp5,drnh4no3,calcw1a,calcw6)
         scase = 'w5 ; subcase 3'
       end if
@@ -44749,11 +44749,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl ,
-!                          nano3 , nh4no3
-!     4. completely dissolved: ca(no3)2 , cacl2 , mg(no3)2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl ,
+!                          nano3, nh4no3
+!     4. completely dissolved: ca(no3)2, cacl2, mg(no3)2, mgcl2
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -44763,14 +44763,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , root13 , &
-         root13a , root13b , root14
-    real(rkx) :: root14a , root14b , root5 , root5a , root5b , root7 , &
-         root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
-    integer(ik4) :: i , islv
-    logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, root13, &
+         root13a, root13b, root14
+    real(rkx) :: root14a, root14b, root5, root5a, root5b, root7, &
+         root7a, root7b, root8, root8a, root8b, root9, so4i, kcl
+    integer(ik4) :: i, islv
+    logical :: psconv9, psconv13, psconv14, psconv5, psconv7, psconv8
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -44846,7 +44846,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a13 = xk19*(water/gama(19))**2       ! kno3      <==> k+
@@ -44999,17 +44999,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -45055,7 +45055,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw5')    ! warning error: no convergence
+! call pusherr (0002, 'calcw5')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -45096,10 +45096,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!                          mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, k2so4, kno3, kcl, mgso4 ,
+!                          mg(no3)2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -45112,11 +45112,11 @@ module mod_che_isorropia
 !
 ! *** regime depends on the existance of water and of the rh
 ! ************
-    if ( waer(4)>tiny1 ) then     ! no3 exist , water possible
+    if ( waer(4)>tiny1 ) then     ! no3 exist, water possible
       scase = 'w4 ; subcase 1'
       call calcw4a
       scase = 'w4 ; subcase 1'
-    else                                        ! no3 , cl non existant
+    else                                        ! no3, cl non existant
       scase = 'w1 ; subcase 1'
       call calcw1a
       scase = 'w1 ; subcase 1'
@@ -45124,15 +45124,15 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmp4 ) then           ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcw1a
         scase = 'w4 ; subcase 2'
         return
       else
-        scase = 'w4 ; subcase 3'      ! mdrh region (caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!     mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl)
+        scase = 'w4 ; subcase 3'      ! mdrh region (caso4, k2so4, kno3, kcl, mgso4 ,
+!     mg(no3)2, nano3, nacl, nh4no3, nh4cl)
         call calcmdrpii(rh,drmp4,drmgno32,calcw1a,calcw5a)
         scase = 'w4 ; subcase 3'
       end if
@@ -45148,11 +45148,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl ,
-!                          nano3 , nh4no3 , mg(no3)2
-!     4. completely dissolved: ca(no3)2 , cacl2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl ,
+!                          nano3, nh4no3, mg(no3)2
+!     4. completely dissolved: ca(no3)2, cacl2, mgcl2
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -45162,14 +45162,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , root13 , &
-         root13a , root13b , root14
-    real(rkx) :: root14a , root14b , root5 , root5a , root5b , root7 , &
-         root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
-    integer(ik4) :: i , islv
-    logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, root13, &
+         root13a, root13b, root14
+    real(rkx) :: root14a, root14b, root5, root5a, root5b, root7, &
+         root7a, root7b, root8, root8a, root8b, root9, so4i, kcl
+    integer(ik4) :: i, islv
+    logical :: psconv9, psconv13, psconv14, psconv5, psconv7, psconv8
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -45246,7 +45246,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a13 = xk19*(water/gama(19))**2       ! kno3      <==> k+
@@ -45399,17 +45399,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -45455,7 +45455,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw4')    ! warning error: no convergence
+! call pusherr (0002, 'calcw4')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -45496,10 +45496,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 ,
-!                          mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, ca(no3)2, k2so4, kno3, kcl, mgso4 ,
+!                          mg(no3)2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -45516,7 +45516,7 @@ module mod_che_isorropia
 ! water possible scase = 'w3 ; subcase 1'
 ! call calcw3a
 ! scase = 'w3 ; subcase 1'
-! else                                      ! no3 , cl non existant
+! else                                      ! no3, cl non existant
 ! scase = 'w1 ; subcase 1'
 ! call calcw1a
 ! scase = 'w1 ; subcase 1'
@@ -45529,15 +45529,15 @@ module mod_che_isorropia
       scase = 'w3 ; subcase 1'
     else if ( rh<drmp3 ) then        ! only solids
       water = tiny1
-      do i = 1 , nions
+      do i = 1, nions
         molal(i) = zero
       end do
       call calcw1a
       scase = 'w3 ; subcase 2'
       return
     else
-      scase = 'w3 ; subcase 3'        ! mdrh region (caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 ,
-!   mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl)
+      scase = 'w3 ; subcase 3'        ! mdrh region (caso4, ca(no3)2, k2so4, kno3, kcl, mgso4 ,
+!   mg(no3)2, nano3, nacl, nh4no3, nh4cl)
       call calcmdrpii(rh,drmp3,drcano32,calcw1a,calcw4a)
       scase = 'w3 ; subcase 3'
     end if
@@ -45552,11 +45552,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl ,
-!                          nano3 , nh4no3 , ca(no3)2 , mg(no3)2
-!     4. completely dissolved: cacl2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl ,
+!                          nano3, nh4no3, ca(no3)2, mg(no3)2
+!     4. completely dissolved: cacl2, mgcl2
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -45566,14 +45566,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , &
-         root13 , root13a , root13b , root14
-    real(rkx) :: root14a , root14b , root5 , root5a , root5b , root7 , &
-         root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
-    integer(ik4) :: i , islv
-    logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, &
+         root13, root13a, root13b, root14
+    real(rkx) :: root14a, root14b, root5, root5a, root5b, root7, &
+         root7a, root7b, root8, root8a, root8b, root9, so4i, kcl
+    integer(ik4) :: i, islv
+    logical :: psconv9, psconv13, psconv14, psconv5, psconv7, psconv8
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -45651,7 +45651,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a13 = xk19*(water/gama(19))**2       ! kno3      <==> k+
@@ -45804,17 +45804,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -45860,7 +45860,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw3')    ! warning error: no convergence
+! call pusherr (0002, 'calcw3')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -45901,17 +45901,17 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 ,
-!                          mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, ca(no3)2, k2so4, kno3, kcl, mgso4 ,
+!                          mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
 !     there are three regimes in this case:
 !     1. cacl2(s) possible. liquid & solid aerosol (subroutine calcl2a)
-!     2. cacl2(s) not possible , and rh < mdrh. solid aerosol only
-!     3. cacl2(s) not possible , and rh >= mdrh. solid & liquid aerosol
+!     2. cacl2(s) not possible, and rh < mdrh. solid aerosol only
+!     3. cacl2(s) not possible, and rh >= mdrh. solid & liquid aerosol
 !
-!     regimes 2. and 3. are considered to be the same as cases w1a , w2b
+!     regimes 2. and 3. are considered to be the same as cases w1a, w2b
 !     respectively
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -45937,38 +45937,38 @@ module mod_che_isorropia
     if ( water<=tiny1 ) then
       if ( rh<drmp2 ) then                ! only solids
         water = tiny1
-        do i = 1 , nions
+        do i = 1, nions
           molal(i) = zero
         end do
         call calcw1a
         scase = 'w2 ; subcase 2'
       else
         if ( cmgcl2>tiny1 ) then
-          scase = 'w2 ; subcase 3'         ! mdrh (caso4 , ca(no3)2 , k2so4 , kno3 , kcl , mgso4 , mgcl2 ,
-!       mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl)
+          scase = 'w2 ; subcase 3'         ! mdrh (caso4, ca(no3)2, k2so4, kno3, kcl, mgso4, mgcl2 ,
+!       mg(no3)2, nano3, nacl, nh4no3, nh4cl)
           call calcmdrpii(rh,drmp2,drmgcl2,calcw1a,calcw3a)
           scase = 'w2 ; subcase 3'
         end if
         if ( water<=tiny1 .and. rh>=drmp3 .and. rh<drmp4 ) then
-          scase = 'w2 ; subcase 4'         ! mdrh (caso4 , k2so4 , kno3 , kcl , mgso4 , cano32 ,
-!       mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl)
+          scase = 'w2 ; subcase 4'         ! mdrh (caso4, k2so4, kno3, kcl, mgso4, cano32 ,
+!       mg(no3)2, nano3, nacl, nh4no3, nh4cl)
           call calcmdrpii(rh,drmp3,drcano32,calcw1a,calcw4a)
           scase = 'w2 ; subcase 4'
         end if
         if ( water<=tiny1 .and. rh>=drmp4 .and. rh<drmp5 ) then
-          scase = 'w2 ; subcase 5'         ! mdrh (caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!       mgno32 , nano3 , nacl , nh4no3 , nh4cl)
+          scase = 'w2 ; subcase 5'         ! mdrh (caso4, k2so4, kno3, kcl, mgso4 ,
+!       mgno32, nano3, nacl, nh4no3, nh4cl)
           call calcmdrpii(rh,drmp4,drmgno32,calcw1a,calcw5a)
           scase = 'w2 ; subcase 5'
         end if
         if ( water<=tiny1 .and. rh>=drmp5 ) then
-          scase = 'w2 ; subcase 6'         ! mdrh (caso4 , k2so4 , kno3 , kcl , mgso4 ,
-!       nano3 , nacl , nh4no3 , nh4cl)
+          scase = 'w2 ; subcase 6'         ! mdrh (caso4, k2so4, kno3, kcl, mgso4 ,
+!       nano3, nacl, nh4no3, nh4cl)
           call calcmdrpii(rh,drmp5,drnh4no3,calcw1a,calcw6)
           scase = 'w2 ; subcase 6'
         else
           water = tiny1
-          do i = 1 , nions
+          do i = 1, nions
             molal(i) = zero
           end do
           call calcw1a
@@ -45987,11 +45987,11 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. there is both a liquid & solid phase
-!     3. solids possible : caso4 , k2so4 , kno3 , mgso4 , kcl , nh4cl , nacl ,
-!                          nano3 , nh4no3 , ca(no3)2 , mg(no3)2 , mgcl2
+!     3. solids possible : caso4, k2so4, kno3, mgso4, kcl, nh4cl, nacl ,
+!                          nano3, nh4no3, ca(no3)2, mg(no3)2, mgcl2
 !     4. completely dissolved: cacl2
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -46001,14 +46001,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , root13 , &
-         root13a , root13b , root14
-    real(rkx) :: root14a , root14b , root5 , root5a , root5b , root7 , &
-         root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
-    integer(ik4) :: i , islv
-    logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
-    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
+         ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, root13, &
+         root13a, root13b, root14
+    real(rkx) :: root14a, root14b, root5, root5a, root5b, root7, &
+         root7a, root7b, root8, root8a, root8b, root9, so4i, kcl
+    integer(ik4) :: i, islv
+    logical :: psconv9, psconv13, psconv14, psconv5, psconv7, psconv8
+    real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -46087,7 +46087,7 @@ module mod_che_isorropia
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
-    do i = 1 , nsweep
+    do i = 1, nsweep
 !
       a9 = xk17*(water/gama(17))**3        ! k2so4     <==> k+
       a13 = xk19*(water/gama(19))**2       ! kno3      <==> k+
@@ -46240,17 +46240,17 @@ module mod_che_isorropia
 !   undssociated species equilibria
 !
       if ( hi>ohi ) then
-!     call calcamaq2 (-gg , nh4i , ohi , nh3aq)
+!     call calcamaq2 (-gg, nh4i, ohi, nh3aq)
 !     hi    = akw/ohi
 !     hso4i = zero
 !     else
 !     ggno3 = max(2.d0*so4i + no3i - nai - nh4i - 2.d0*cai
-!     &           - ki - 2.d0*mgi , zero)
-!     ggcl  = max(gg-ggno3 , zero)
-!     if (ggcl  > tiny1) call calcclaq2 (ggcl , cli , hi , claq) ! hcl
+!     &           - ki - 2.d0*mgi, zero)
+!     ggcl  = max(gg-ggno3, zero)
+!     if (ggcl  > tiny1) call calcclaq2 (ggcl, cli, hi, claq) ! hcl
 !     if (ggno3 > tiny1) then
 !     if (ggcl <= tiny1) hi = zero
-!     call calcniaq2 (ggno3 , no3i , hi , no3aq)              ! hno3
+!     call calcniaq2 (ggno3, no3i, hi, no3aq)              ! hno3
 !     end if
 !
 !     conentration adjustments ; hso4 minor species.
@@ -46296,7 +46296,7 @@ module mod_che_isorropia
         exit
       end if
     end do
-! call pusherr (0002 , 'calcw2')    ! warning error: no convergence
+! call pusherr (0002, 'calcw2')    ! warning error: no convergence
 !
 ! *** calculate gas / solid species (liquid in molal already) *********
 !
@@ -46337,14 +46337,14 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 ,
-!                          mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, ca(no3)2, cacl2, k2so4, kno3, kcl, mgso4 ,
+!                          mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-!     there are two possible regimes here , depending on relative humidity:
+!     there are two possible regimes here, depending on relative humidity:
 !     1. when rh >= mdrh ; liquid phase possible (mdrh region)
 !     2. when rh < mdrh  ; only solid phase possible (subroutine calcp1a)
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university ,
+! *** copyright 1996-2008, university of miami, carnegie mellon university ,
 ! *** georgia institute of technology
 ! *** written by christos fountoukis & athanasios nenes
 !
@@ -46376,10 +46376,10 @@ module mod_che_isorropia
 !     the main characteristics of this regime are:
 !     1. sulfate poor (sulrat > 2.0) ; rcr+na >= 2.0 ; rcr > 2)
 !     2. solid aerosol only
-!     3. solids possible : caso4 , ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 ,
-!                          mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+!     3. solids possible : caso4, ca(no3)2, cacl2, k2so4, kno3, kcl, mgso4 ,
+!                          mg(no3)2, mgcl2, nano3, nacl, nh4no3, nh4cl
 !
-! *** copyright 1996-2008 , university of miami , carnegie mellon university
+! *** copyright 1996-2008, university of miami, carnegie mellon university
 ! *** georgia institute of technology
 ! *** written by christos fountoukis and athanasios nenes
 !
@@ -46388,7 +46388,7 @@ module mod_che_isorropia
   subroutine calcw1a
     use mod_che_common_isorropia
     implicit none
-    real(rkx) :: cafr , clfr , frk , frmg , frna , frno3 , so4fr
+    real(rkx) :: cafr, clfr, frk, frmg, frna, frno3, so4fr
 !
 ! *** calculate solids
 ! **************************************************

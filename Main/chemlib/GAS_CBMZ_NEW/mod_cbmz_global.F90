@@ -22,7 +22,7 @@
 
 module mod_cbmz_global
 
-  use mod_cbmz_parameters , only: dp , nreact , nvar
+  use mod_cbmz_parameters, only: dp, nreact, nvar
 
   public
 
@@ -31,7 +31,7 @@ module mod_cbmz_global
   ! declaration of global variables
 
   ! rconst - rate constants (global)
-  real(kind=dp) , dimension(nreact) :: rconst
+  real(kind=dp), dimension(nreact) :: rconst
   ! time - current integration time
   real(kind=dp) :: time
   ! sun - sunlight intensity between [0,1]
@@ -47,9 +47,9 @@ module mod_cbmz_global
   ! dt - integration step
   real(kind=dp) :: dt
   ! atol - absolute tolerance
-  real(kind=dp) , dimension(nvar) :: atol
+  real(kind=dp), dimension(nvar) :: atol
   ! rtol - relative tolerance
-  real(kind=dp) , dimension(nvar) :: rtol
+  real(kind=dp), dimension(nvar) :: rtol
   ! stepmin - lower bound for integration step
   real(kind=dp) :: stepmin
   ! stepmax - upper bound for integration step
@@ -59,8 +59,8 @@ module mod_cbmz_global
 
   ! inlined global variable declarations
 
-  integer , parameter :: nperox = 10
-  real(kind=dp), dimension(nperox,nperox) :: aperox , bperox
+  integer, parameter :: nperox = 10
+  real(kind=dp), dimension(nperox,nperox) :: aperox, bperox
   real(kind=dp), dimension(nperox) :: rk_param
   !the molar concentration of air
   real(kind=dp) :: c_m
@@ -77,16 +77,16 @@ module mod_cbmz_global
   !the temperature field
   real(kind=dp) :: tempnew
 
-  integer , parameter :: jch3o2 = 1
-  integer , parameter :: jethp = 2
-  integer , parameter :: jro2 = 3
-  integer , parameter :: jc2o3 = 4
-  integer , parameter :: jano2 = 5
-  integer , parameter :: jnap = 6
-  integer , parameter :: jisopp = 7
-  integer , parameter :: jisopn = 8
-  integer , parameter :: jisopo2 = 9
-  integer , parameter :: jxo2 = 10
+  integer, parameter :: jch3o2 = 1
+  integer, parameter :: jethp = 2
+  integer, parameter :: jro2 = 3
+  integer, parameter :: jc2o3 = 4
+  integer, parameter :: jano2 = 5
+  integer, parameter :: jnap = 6
+  integer, parameter :: jisopp = 7
+  integer, parameter :: jisopn = 8
+  integer, parameter :: jisopo2 = 9
+  integer, parameter :: jxo2 = 10
 
   real(kind=dp) :: jval_o31d
   real(kind=dp) :: jval_o33p
@@ -109,13 +109,13 @@ module mod_cbmz_global
 
   real(kind=dp) :: zenith
   real(kind=dp) :: prnew
-  real(kind=dp) , pointer , dimension(:) :: xr
-  real(kind=dp) , pointer , dimension(:) :: xrin
-  real(kind=dp) , pointer , dimension(:) :: xrout
-  real(kind=dp) , pointer , dimension(:) :: c
-  real(kind=dp) , pointer , dimension(:) :: var
-  real(kind=dp) , pointer , dimension(:) :: fix
-  real(kind=dp) , dimension(1,56) :: c_jval
+  real(kind=dp), pointer, contiguous, dimension(:) :: xr
+  real(kind=dp), pointer, contiguous, dimension(:) :: xrin
+  real(kind=dp), pointer, contiguous, dimension(:) :: xrout
+  real(kind=dp), pointer, contiguous, dimension(:) :: c
+  real(kind=dp), pointer, contiguous, dimension(:) :: var
+  real(kind=dp), pointer, contiguous, dimension(:) :: fix
+  real(kind=dp), dimension(1,56) :: c_jval
 
   real(kind=dp) :: altmid ! altitude at midpoint, km
   real(kind=dp) :: dens   ! density molec cm-3

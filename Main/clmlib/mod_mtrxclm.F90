@@ -20,10 +20,10 @@ module mod_mtrxclm
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : idate0 , iqv , solcon , clmfrq , iocnflx , &
-      imask , ilawrence_albedo , ichem , rcmtimer , syncro_srf , &
-      dx , dtsrf , dtrad , igaschem , iaerosol , chtrname , idate1 ,    &
-      idate2 , eccen , obliqr , lambm0 , mvelpp
+  use mod_runparams, only : idate0, iqv, solcon, clmfrq, iocnflx, &
+      imask, ilawrence_albedo, ichem, rcmtimer, syncro_srf, &
+      dx, dtsrf, dtrad, igaschem, iaerosol, chtrname, idate1,    &
+      idate2, eccen, obliqr, lambm0, mvelpp
   use mod_mpmessage
   use mod_constants
   use mod_service
@@ -34,8 +34,8 @@ module mod_mtrxclm
   use mod_stdio
   use mod_sunorbit
 
-  use clm_time_manager , only : get_curr_calday
-  use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
+  use clm_time_manager, only : get_curr_calday
+  use shr_orb_mod, only : shr_orb_cosz, shr_orb_decl, &
                            shr_orb_params
   use clm_varsur,    only : clm_fracveg
 
@@ -48,7 +48,7 @@ module mod_mtrxclm
   public :: albedoclm
 
   interface fill_frame
-    module procedure fill_frame2d , fill_frame3d , fill_frame4d
+    module procedure fill_frame2d, fill_frame3d, fill_frame4d
   end interface fill_frame
 
   contains
@@ -73,14 +73,14 @@ module mod_mtrxclm
 !=======================================================================
 !
   subroutine mtrxclm(lm,lms)
-    use atmdrvMod , only : rcmdrv
-    use clm_comp , only : clm_run1 , clm_run2
+    use atmdrvMod, only : rcmdrv
+    use clm_comp, only : clm_run1, clm_run2
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mtrxclm'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -134,10 +134,10 @@ module mod_mtrxclm
   subroutine initclm(lm,lms)
     use initializeMod
     use shr_orb_mod
-    use clm_varpar,    only : lsmlon , lsmlat
-    use clm_varsur,    only : landmask , landfrac , satbrt_clm
-    use clm_varsur,    only : r2cimask , init_tgb , init_snow , r2coutfrq
-    use clm_varsur,    only : clm2bats_veg , ht_rcm
+    use clm_varpar,    only : lsmlon, lsmlat
+    use clm_varsur,    only : landmask, landfrac, satbrt_clm
+    use clm_varsur,    only : r2cimask, init_tgb, init_snow, r2coutfrq
+    use clm_varsur,    only : clm2bats_veg, ht_rcm
     use clm_varsur,    only : r2cilawrence_albedo
     use clm_varsur,    only : cgaschem, caerosol, numdays
     use atmdrvMod
@@ -147,19 +147,19 @@ module mod_mtrxclm
     use perf_mod
 
 #if (defined VOC)
-    use clm_varpar ,   only : nvoc
+    use clm_varpar,   only : nvoc
 #endif
     use clm_drydep,    only : seq_drydep_init
 !
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
 !
-    integer(ik4) :: i , j , n
-    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: i, j, n
+    integer(ik4) :: year, month, day, hour
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initclm'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -295,8 +295,8 @@ module mod_mtrxclm
     r2cedges = r2cxlatd_all(1,1)
     r2cedgee = r2cxlond_all(1,1)
     r2cedgew = r2cxlond_all(1,1)
-    do i = 1 , iy
-      do j = 1 , jx
+    do i = 1, iy
+      do j = 1, jx
         r2cedgen = dmax1(r2cxlatd_all(j,i),r2cedgen)
         r2cedges = dmin1(r2cxlatd_all(j,i),r2cedges)
         r2cedgee = dmax1(r2cxlond_all(j,i),r2cedgee)
@@ -342,9 +342,9 @@ module mod_mtrxclm
       call rcmdrv()
     end if
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( ichem == 1 ) then
             lm%svegfrac2d(j,i) = clm_fracveg(j,i)
           end if
@@ -364,8 +364,8 @@ module mod_mtrxclm
     end do
 
     ! Correct landmask
-    do i = 1 , iy
-      do j = 1 , jx
+    do i = 1, iy
+      do j = 1, jx
         if ( dabs(landfrac(j,i)-d_one) >= 0.1_rkx .and. &
              dabs(landfrac(j,i))       >= 0.1_rkx ) then
           landmask(j,i) = 3
@@ -377,9 +377,9 @@ module mod_mtrxclm
     ! Initialize accumulation variables at zero
 
     if ( rcmtimer%start( ) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n = 1, nnsg
             if ( landmask(j,i) == 3 ) then
               lm%ldmsk1(n,j,i) = 5
             else
@@ -396,15 +396,15 @@ module mod_mtrxclm
           end do
         end do
       end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           !
           ! Set some clm land surface/vegetation variables to the ones
           ! used in RegCM.  Make sure all are consistent
           !
           lm%lndcat(j,i) = clm2bats_veg(j,i)
           if ( clm2bats_veg(j,i) < 0.1_rkx ) lm%lndcat(j,i) = 15.0_rkx
-          do n = 1 , nnsg
+          do n = 1, nnsg
             lm%lndcat1(n,j,i) = clm2bats_veg(j,i)
             if ( clm2bats_veg(j,i) < 0.1_rkx ) lm%lndcat1(n,j,i) = 15.0_rkx
           end do
@@ -424,14 +424,14 @@ module mod_mtrxclm
   end subroutine initclm
 !
   subroutine albedoclm(lm,lms)
-    use clm_varsur , only : landfrac
+    use clm_varsur, only : landfrac
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i , j , n
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
+    integer(ik4) :: i, j, n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedoclm'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -441,9 +441,9 @@ module mod_mtrxclm
     ! to be equal to 1 which can cause a FPE.  To avoid this
     ! use albedo calculated with BATS method when albedo=1
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           !
           ! Use over land CLM calculated albedo (good when < 1)
           !
@@ -473,8 +473,8 @@ module mod_mtrxclm
 !
   subroutine interfclm(lm,lms,ivers)
     use clmtype
-    use clm_varsur , only : landmask , landfrac
-    use clm_varsur , only : c2r_allout , omap_i , omap_j
+    use clm_varsur, only : landmask, landfrac
+    use clm_varsur, only : c2r_allout, omap_i, omap_j
     use clm_varsur,  only : cgaschem, caerosol
 
 #if (defined VOC)
@@ -487,15 +487,15 @@ module mod_mtrxclm
     ! ivers = 1 : regcm -> clm
     ! ivers = 2 : clm -> regcm
     !
-    integer(ik4) , intent(in) :: ivers
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
+    integer(ik4), intent(in) :: ivers
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
 
-    integer(ik4) :: i , j , ic , jc , ib , kk , n
-    integer(ik4) :: idep , icpu , nout
+    integer(ik4) :: i, j, ic, jc, ib, kk, n
+    integer(ik4) :: idep, icpu, nout
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interfclm'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
@@ -544,9 +544,9 @@ module mod_mtrxclm
 #endif
         if ( caerosol == 1 ) nout = nout + 2
       end if
-      do icpu = 1 , nproc
+      do icpu = 1, nproc
         kk = c2rngc(icpu)
-        do ib = 1 , kk
+        do ib = 1, kk
           j = omap_i(jc)
           i = omap_j(jc)
           c2rtgb(j,i)     = c2r_allout(ib+( 0*kk)+ic)
@@ -579,7 +579,7 @@ module mod_mtrxclm
               lm%voc_em1(j,i)    = c2r_allout(ib+(23*kk)+ic)
               lm%voc_em2(j,i)    = c2r_allout(ib+(24*kk)+ic)
 #endif
-              do n = 1 , ntr
+              do n = 1, ntr
                 lm%dep_vels(j,i,n) = c2r_depout(ib+(kk*(nout-1))+idep)
               end do
             else if ( cgaschem == 1 .and. caerosol /= 1 ) then
@@ -589,7 +589,7 @@ module mod_mtrxclm
               lm%voc_em1(j,i)   = c2r_allout(ib+(21*kk)+ic)
               lm%voc_em2(j,i)   = c2r_allout(ib+(22*kk)+ic)
 #endif
-              do n = 1 , ntr
+              do n = 1, ntr
                 lm%dep_vels(j,i,n) = c2r_depout(ib+(kk*(nout-1))+idep)
               end do
             else if ( cgaschem /= 1 .and. caerosol == 1 ) then
@@ -605,10 +605,10 @@ module mod_mtrxclm
         end if
       end do
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           if ( landmask(j,i) == 1 .or. landmask(j,i) == 3 ) then
-            do n = 1 , nnsg
+            do n = 1, nnsg
               lms%tgbb(n,j,i)   = c2rtgbb(j,i)
               lms%drag(n,j,i)   = c2ruvdrag(j,i)
               lms%prcp(n,j,i)   = r2crnc(j,i) + r2crnnc(j,i)
@@ -646,8 +646,8 @@ module mod_mtrxclm
 !
   subroutine fill_frame2d(a,b)
     implicit none
-    real(rkx) , pointer , intent(in) , dimension(:,:) :: a
-    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: a
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2)
     if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2)
@@ -684,8 +684,8 @@ module mod_mtrxclm
 
   subroutine fill_frame3d(a,b)
     implicit none
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz)
     if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2,kz)
@@ -722,9 +722,9 @@ module mod_mtrxclm
 
   subroutine fill_frame4d(a,b,l)
     implicit none
-    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: a
-    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
-    integer(ik4) , intent(in) :: l
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: a
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
+    integer(ik4), intent(in) :: l
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz,l)
     if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2,kz,l)

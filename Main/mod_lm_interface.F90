@@ -34,13 +34,13 @@ module mod_lm_interface
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
-  use clm_varsur , only : landmask , numdays
-  use clm_varctl , only : filer_rest
-  use clm_time_manager , only : get_step_size
-  use restFileMod , only : restFile_write, restFile_write_binary
-  use restFileMod , only : restFile_filename
-  use spmdMod , only : mpicom
-  use perf_mod , only : t_prf , t_finalizef
+  use clm_varsur, only : landmask, numdays
+  use clm_varctl, only : filer_rest
+  use clm_time_manager, only : get_step_size
+  use restFileMod, only : restFile_write, restFile_write_binary
+  use restFileMod, only : restFile_filename
+  use spmdMod, only : mpicom
+  use perf_mod, only : t_prf, t_finalizef
 #endif
 
 #ifdef CLM45
@@ -56,7 +56,7 @@ module mod_lm_interface
 
   public :: dtbat
 
-  public :: ocncomm , lndcomm
+  public :: ocncomm, lndcomm
 
   public :: import_data_into_surface
   public :: export_data_from_surface
@@ -79,9 +79,9 @@ module mod_lm_interface
   public :: t_finalizef
 #endif
 
-  real(rkx) , pointer , dimension(:,:) :: slp => null( )
-  real(rkx) , pointer , dimension(:,:) :: sfp => null( )
-  real(rkx) , pointer , dimension(:,:) :: slp1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: slp => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: sfp => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: slp1 => null( )
 
   type(lm_exchange) :: lm
   type(lm_state) :: lms
@@ -389,7 +389,7 @@ module mod_lm_interface
   subroutine initialize_surface_model
     implicit none
 #ifdef CLM
-    integer(ik4) :: i , j , n
+    integer(ik4) :: i, j, n
 #endif
     if ( irceideal == 0 ) then
 #ifndef CLM45
@@ -424,10 +424,10 @@ module mod_lm_interface
 
   subroutine surface_model
 #ifdef CLM45
-    use mod_atm_interface , only : voc_em_clm , dustflx_clm , ddepv_clm
+    use mod_atm_interface, only : voc_em_clm, dustflx_clm, ddepv_clm
 #endif
     implicit none
-    integer(ik4) :: i , j , n , nn , ierr
+    integer(ik4) :: i, j, n, nn, ierr
 #ifdef CLM
     if ( rcmtimer%start( ) .or. syncro_rad%will_act(dtsrf) ) then
       r2cdoalb = .true.
@@ -529,15 +529,15 @@ module mod_lm_interface
 #ifdef DEBUG
     ! Sanity check of surface temperatures
     ierr = 0
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( lms%tgrd(n,j,i) < 150.0_rkx ) then
             write(stderr,*) 'Likely error: Surface temperature too low'
             write(stderr,*) 'MYID = ', myid
             write(stderr,*) 'J    = ',j
             write(stderr,*) 'I    = ',i
-            do nn = 1 , nnsg
+            do nn = 1, nnsg
               write(stderr,*) 'N    = ',nn
               write(stderr,*) 'VAL  = ',lms%tgrd(nn,j,i)
               write(stderr,*) 'MASK = ',lm%ldmsk1(n,j,i)
@@ -581,8 +581,8 @@ module mod_lm_interface
 
   subroutine export_data_from_surface(expfie)
     implicit none
-    type(exp_data) , intent(inout) :: expfie
-    integer(ik4) :: j , i
+    type(exp_data), intent(inout) :: expfie
+    integer(ik4) :: j, i
 
     if ( .not. associated(expfie%psfc) ) then
       call fatal(__FILE__,__LINE__, &
@@ -620,24 +620,24 @@ module mod_lm_interface
   subroutine import_data_into_surface(impfie,ldmskb,wetdry,tol)
     use mod_atm_interface
     implicit none
-    type(imp_data) , intent(in) :: impfie
-    real(rkx) , intent(in) :: tol
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
-    integer(ik4) :: i , j , n
+    type(imp_data), intent(in) :: impfie
+    real(rkx), intent(in) :: tol
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ldmskb, wetdry
+    integer(ik4) :: i, j, n
     logical :: flag = .false.
-!    character (len=*) , parameter :: f99001 =                   &
+!    character (len=*), parameter :: f99001 =                   &
 !       "(' ATM land-sea mask is changed at (',I3,',',I3,') : ', &
 !          &A5,' --> ',A5,' [',I2,']')"
-    character (len=*) , parameter :: f99002 =            &
+    character (len=*), parameter :: f99002 =            &
        "(' ATM sea-ice is formed at (',I3,',',I3,') : ', &
           &A5,' --> ',A5,' [',I2,' - ',F12.4,']')"
-    character (len=*) , parameter :: f99003 =            &
+    character (len=*), parameter :: f99003 =            &
        "(' ATM sea-ice is melted at (',I3,',',I3,') : ', &
           &A5,' --> ',A5,' [',I2,' - ',F12.4,']')"
     ! real(rkx) :: toth
-    ! real(rkx) , parameter :: href = d_two * iceminh
-    ! real(rkx) , parameter :: steepf = 1.0_rkx
-    ! integer(ik4) :: ix , jy , imin , imax , jmin , jmax , srad , hveg(22)
+    ! real(rkx), parameter :: href = d_two * iceminh
+    ! real(rkx), parameter :: steepf = 1.0_rkx
+    ! integer(ik4) :: ix, jy, imin, imax, jmin, jmax, srad, hveg(22)
     !
     !-----------------------------------------------------------------------
     ! Retrieve information from OCN component
@@ -809,9 +809,9 @@ module mod_lm_interface
 #ifndef CLM
     integer(ik4) :: k
 #endif
-    integer(ik4) :: i , j , n
-    real(rkx) :: tas , ps , es , qs , qas , uas , rh , desdt
-    real(rkx) :: sws , lws
+    integer(ik4) :: i, j, n
+    real(rkx) :: tas, ps, es, qs, qas, uas, rh, desdt
+    real(rkx) :: sws, lws
 
     ! Fill accumulators
 
@@ -1014,7 +1014,7 @@ module mod_lm_interface
           atm_tgb_out = sum(lms%tgbb,1)*rdnnsg
         end if
         if ( associated(atm_smw_out) ) then
-          do n = 1 , num_soil_layers
+          do n = 1, num_soil_layers
             where ( lm%ldmsk == 1 )
               atm_smw_out(:,:,n) = sum(lms%sw(:,:,:,n),1)*rdnnsg
             elsewhere
@@ -1024,7 +1024,7 @@ module mod_lm_interface
         end if
 #ifdef CLM45
         if ( associated(atm_tsoil_out) ) then
-          do n = 1 , num_soil_layers
+          do n = 1, num_soil_layers
             where ( lm%ldmsk == 1 )
               atm_tsoil_out(:,:,n) = sum(lms%tsoi(:,:,:,n),1)*rdnnsg
             elsewhere
@@ -1076,7 +1076,7 @@ module mod_lm_interface
         if ( associated(srf_rh2m_out) ) then
           srf_rh2m_out = d_zero
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            do n = 1 , nnsg
+            do n = 1, nnsg
               qas = lms%q2m(n,j,i)
               tas = lms%t2m(n,j,i)
               ps = lms%sfcp(n,j,i)
@@ -1092,7 +1092,7 @@ module mod_lm_interface
         if ( associated(srf_v10m_out) ) &
           srf_v10m_out(:,:,1) = lm%v10m
         if ( associated(srf_smw_out) ) then
-          do n = 1 , num_soil_layers
+          do n = 1, num_soil_layers
             where ( lm%ldmsk == 1 )
               srf_smw_out(:,:,n) = sum(lms%sw(:,:,:,n),1)*rdnnsg
             elsewhere
@@ -1101,8 +1101,8 @@ module mod_lm_interface
           end do
         end if
         if ( associated(srf_htindx_out) ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               tas = sum(lms%t2m(:,j,i))*rdnnsg
               ps = sum(lms%sfcp(:,j,i))*rdnnsg
               qs = pfwsat(tas,ps)
@@ -1126,7 +1126,7 @@ module mod_lm_interface
           end where
         end if
         if ( associated(srf_tsoil_out) ) then
-          do n = 1 , num_soil_layers
+          do n = 1, num_soil_layers
             where ( lm%ldmsk == 1 )
               srf_tsoil_out(:,:,n) = sum(lms%tsoi(:,:,:,n),1)*rdnnsg
             elsewhere
@@ -1201,12 +1201,12 @@ module mod_lm_interface
 
   subroutine mslp
     implicit none
-    integer(ik4) :: i , j , n
-    integer(ik4) , parameter :: niter = 20
-    real(rkx) , dimension(jci1:jci2,ici1:ici2) :: mask
-    real(rkx) , parameter :: alpha = lrate*rgas/egrav
-    real(rkx) :: mval , mall
-    real(rkx) :: tstar , hstar , raval
+    integer(ik4) :: i, j, n
+    integer(ik4), parameter :: niter = 20
+    real(rkx), dimension(jci1:jci2,ici1:ici2) :: mask
+    real(rkx), parameter :: alpha = lrate*rgas/egrav
+    real(rkx) :: mval, mall
+    real(rkx) :: tstar, hstar, raval
 
     ! Follow Kallen 1996
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
@@ -1234,30 +1234,30 @@ module mod_lm_interface
                    sfp(j-1,i)+sfp(j+1,i) - &
                    4.0_rkx*sfp(j,i))/mall
     end do
-    do n = 1 , niter
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do n = 1, niter
+      do i = ici1, ici2
+        do j = jci1, jci2
           slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
                                slp1(j-1,i)+slp(j+1,i)-mask(j,i))
         end do
       end do
       if ( ma%has_bdyleft ) then
-        do i = ici1 , ici2
+        do i = ici1, ici2
           slp1(jce1,i) = slp1(jci1,i)
         end do
       end if
       if ( ma%has_bdyright ) then
-        do i = ici1 , ici2
+        do i = ici1, ici2
           slp1(jce2,i) = slp1(jci2,i)
         end do
       end if
       if ( ma%has_bdybottom ) then
-        do j = jce1 , jce2
+        do j = jce1, jce2
           slp1(j,ice1) = slp1(j,ici1)
         end do
       end if
       if ( ma%has_bdytop ) then
-        do j = jce1 , jce2
+        do j = jce1, jce2
           slp1(j,ice2) = slp1(j,ici2)
         end do
       end if
@@ -1268,12 +1268,12 @@ module mod_lm_interface
 
   subroutine compute_maxgust(u10,v10,ua,va,zpbl,gust)
     implicit none
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: u10 , v10
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: ua , va
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: zpbl
-    real(rkx) , dimension(:,:) , pointer , intent(inout) :: gust
-    integer(ik4) :: i , j
-    real(rkx) :: delwind , spd1 , spd2
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: u10, v10
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ua, va
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: zpbl
+    real(rkx), dimension(:,:), pointer, contiguous, intent(inout) :: gust
+    integer(ik4) :: i, j
+    real(rkx) :: delwind, spd1, spd2
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       spd1 = sqrt(u10(j,i)**2+v10(j,i)**2)

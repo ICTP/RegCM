@@ -20,41 +20,41 @@ module mod_header
   use mod_constants
   use mod_mppparam
   use mod_date
-  use mod_dynparam , only : nproc
+  use mod_dynparam, only : nproc
   use mod_stdio
 
   implicit none
 
   private
 
-  public :: whoami , header , checktime , finaltime
+  public :: whoami, header, checktime, finaltime
 
   character (len=32) :: cdata='?'
   character (len=5) :: czone='?'
-  integer(ik4) , dimension(8) :: tval
-  real(rk4) :: start_time , last_time
+  integer(ik4), dimension(8) :: tval
+  real(rk4) :: start_time, last_time
 
   contains
 
   subroutine whoami(myid)
     implicit none
-    integer(ik4) , intent(in) :: myid
-    character(len=*) , parameter :: f99001 = &
+    integer(ik4), intent(in) :: myid
+    character(len=*), parameter :: f99001 = &
         '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
     if ( myid == iocpu ) then
       call cpu_time(start_time)
       last_time = start_time
       write (stdout,"(/,2x,'This is RegCM development version')")
-      write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
+      write (stdout,f99001)  GIT_VER, __DATE__, __TIME__
     end if
 
   end subroutine whoami
 
   subroutine header(myid,nproc)
     implicit none
-    integer(ik4) , intent(in) :: myid , nproc
-    integer(ik4) :: ihost , idir
+    integer(ik4), intent(in) :: myid, nproc
+    integer(ik4) :: ihost, idir
     integer(ik4) :: hostnm
     integer(ik4) :: getcwd
     character (len=32) :: hostname='?'
@@ -85,8 +85,8 @@ module mod_header
 
   subroutine checktime(myid,ctime,period)
     implicit none
-    integer(ik4) , intent(in) :: myid
-    character(len=*) , intent(in) :: ctime , period
+    integer(ik4), intent(in) :: myid
+    character(len=*), intent(in) :: ctime, period
     integer(ik4) :: iunit
     real(rk4) :: check_time
     if ( myid == iocpu ) then
@@ -104,7 +104,7 @@ module mod_header
 
   subroutine finaltime(myid)
     implicit none
-    integer(ik4) , intent (in) :: myid
+    integer(ik4), intent (in) :: myid
     real(rkx) :: finish_time
 
     if ( myid == iocpu ) then

@@ -32,13 +32,13 @@ module mod_bats_albedo
   !
   ! Solar flux partitioned at wavelength of 0.7micr
   !
-  real(rkx) , parameter :: fsol1 = 0.5_rkx
-  real(rkx) , parameter :: fsol2 = 0.5_rkx
+  real(rkx), parameter :: fsol1 = 0.5_rkx
+  real(rkx), parameter :: fsol2 = 0.5_rkx
   !
   ! Short and long wave albedo for new snow
   !
-  real(rkx) , parameter :: snal0 = 0.95_rkx
-  real(rkx) , parameter :: snal1 = 0.65_rkx
+  real(rkx), parameter :: snal0 = 0.95_rkx
+  real(rkx), parameter :: snal1 = 0.65_rkx
 
   public :: albedo
 
@@ -69,15 +69,15 @@ module mod_bats_albedo
 !
   subroutine albedo
     implicit none
-    real(rkx) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
-                 albld , albs , albsd , alwet , cf1 , cff ,     &
-                 conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
-                 dralbs , sl , sl2 , sli , wet
+    real(rkx) :: age, albg, albgl, albgld, albgs, albgsd, albl,  &
+                 albld, albs, albsd, alwet, cf1, cff,     &
+                 conn, cons, czeta, czf, dfalbl, dfalbs, dralbl, &
+                 dralbs, sl, sl2, sli, wet
     ! real(rkx) :: sfac
-    integer(ik4) :: kolour , i
+    integer(ik4) :: kolour, i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedo'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -87,7 +87,7 @@ module mod_bats_albedo
     !
     ! 1.2  set default vegetation and albedo
     !
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       czeta = czenith(i)
       swal(i) = d_zero
       lwal(i) = d_zero

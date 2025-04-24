@@ -20,19 +20,19 @@ module mod_memutil
   use mod_space
   use mod_message
   use mod_constants
-  use mod_date , only : rcm_time_and_date
+  use mod_date, only : rcm_time_and_date
 
   implicit none
 
   private
 
-  public :: memory_init , memory_destroy
-  public :: getmem1d , relmem1d
-  public :: getmem2d , relmem2d
-  public :: getmem3d , relmem3d
-  public :: getmem4d , relmem4d
-  public :: getmem5d , relmem5d
-  public :: assignpnt , remappnt4
+  public :: memory_init, memory_destroy
+  public :: getmem1d, relmem1d
+  public :: getmem2d, relmem2d
+  public :: getmem3d, relmem3d
+  public :: getmem4d, relmem4d
+  public :: getmem5d, relmem5d
+  public :: assignpnt, remappnt4
   !public :: memshare
 
   interface remappnt4
@@ -192,165 +192,165 @@ module mod_memutil
   end interface relmem5d
 
   type pool1d_i
-    type(pool1d_i) , pointer :: next => null()
+    type(pool1d_i), pointer :: next => null()
     type(iarr1d) :: a
   end type pool1d_i
 
   type pool1d_s
-    type(pool1d_s) , pointer :: next => null()
+    type(pool1d_s), pointer :: next => null()
     type(sarr1d) :: a
   end type pool1d_s
 
   type pool1d_l
-    type(pool1d_l) , pointer :: next => null()
+    type(pool1d_l), pointer :: next => null()
     type(larr1d) :: a
   end type pool1d_l
 
   type pool1d_r
-    type(pool1d_r) , pointer :: next => null()
+    type(pool1d_r), pointer :: next => null()
     type(r4arr1d) :: a
   end type pool1d_r
 
   type pool1d_d
-    type(pool1d_d) , pointer :: next => null()
+    type(pool1d_d), pointer :: next => null()
     type(r8arr1d) :: a
   end type pool1d_d
 
   type pool1d_t
-    type(pool1d_t) , pointer :: next => null()
+    type(pool1d_t), pointer :: next => null()
     type(rtarr1d) :: a
   end type pool1d_t
 
   type pool2d_i
-    type(pool2d_i) , pointer :: next => null()
+    type(pool2d_i), pointer :: next => null()
     type(iarr2d) :: a
   end type pool2d_i
 
   type pool2d_s
-    type(pool2d_s) , pointer :: next => null()
+    type(pool2d_s), pointer :: next => null()
     type(sarr2d) :: a
   end type pool2d_s
 
   type pool2d_l
-    type(pool2d_l) , pointer :: next => null()
+    type(pool2d_l), pointer :: next => null()
     type(larr2d) :: a
   end type pool2d_l
 
   type pool2d_r
-    type(pool2d_r) , pointer :: next => null()
+    type(pool2d_r), pointer :: next => null()
     type(r4arr2d) :: a
   end type pool2d_r
 
   type pool2d_d
-    type(pool2d_d) , pointer :: next => null()
+    type(pool2d_d), pointer :: next => null()
     type(r8arr2d) :: a
   end type pool2d_d
 
   type pool3d_s
-    type(pool3d_s) , pointer :: next => null()
+    type(pool3d_s), pointer :: next => null()
     type(sarr3d) :: a
   end type pool3d_s
 
   type pool3d_i
-    type(pool3d_i) , pointer :: next => null()
+    type(pool3d_i), pointer :: next => null()
     type(iarr3d) :: a
   end type pool3d_i
 
   type pool3d_l
-    type(pool3d_l) , pointer :: next => null()
+    type(pool3d_l), pointer :: next => null()
     type(larr3d) :: a
   end type pool3d_l
 
   type pool3d_r
-    type(pool3d_r) , pointer :: next => null()
+    type(pool3d_r), pointer :: next => null()
     type(r4arr3d) :: a
   end type pool3d_r
 
   type pool3d_d
-    type(pool3d_d) , pointer :: next => null()
+    type(pool3d_d), pointer :: next => null()
     type(r8arr3d) :: a
   end type pool3d_d
 
   type pool4d_s
-    type(pool4d_s) , pointer :: next => null()
+    type(pool4d_s), pointer :: next => null()
     type(sarr4d) :: a
   end type pool4d_s
 
   type pool4d_i
-    type(pool4d_i) , pointer :: next => null()
+    type(pool4d_i), pointer :: next => null()
     type(iarr4d) :: a
   end type pool4d_i
 
   type pool4d_l
-    type(pool4d_l) , pointer :: next => null()
+    type(pool4d_l), pointer :: next => null()
     type(larr4d) :: a
   end type pool4d_l
 
   type pool4d_r
-    type(pool4d_r) , pointer :: next => null()
+    type(pool4d_r), pointer :: next => null()
     type(r4arr4d) :: a
   end type pool4d_r
 
   type pool4d_d
-    type(pool4d_d) , pointer :: next => null()
+    type(pool4d_d), pointer :: next => null()
     type(r8arr4d) :: a
   end type pool4d_d
 
   type pool5d_s
-    type(pool5d_s) , pointer :: next => null()
+    type(pool5d_s), pointer :: next => null()
     type(sarr5d) :: a
   end type pool5d_s
 
   type pool5d_i
-    type(pool5d_i) , pointer :: next => null()
+    type(pool5d_i), pointer :: next => null()
     type(iarr5d) :: a
   end type pool5d_i
 
   type pool5d_l
-    type(pool5d_l) , pointer :: next => null()
+    type(pool5d_l), pointer :: next => null()
     type(larr5d) :: a
   end type pool5d_l
 
   type pool5d_r
-    type(pool5d_r) , pointer :: next => null()
+    type(pool5d_r), pointer :: next => null()
     type(r4arr5d) :: a
   end type pool5d_r
 
   type pool5d_d
-    type(pool5d_d) , pointer :: next => null()
+    type(pool5d_d), pointer :: next => null()
     type(r8arr5d) :: a
   end type pool5d_d
 
-  type (pool1d_i) , pointer :: r1di , l1di , c1di , n1di , p1di
-  type (pool1d_s) , pointer :: r1ds , l1ds , c1ds , n1ds , p1ds
-  type (pool1d_l) , pointer :: r1dl , l1dl , c1dl , n1dl , p1dl
-  type (pool1d_r) , pointer :: r1dr , l1dr , c1dr , n1dr , p1dr
-  type (pool1d_d) , pointer :: r1dd , l1dd , c1dd , n1dd , p1dd
-  type (pool1d_t) , pointer :: r1dt , l1dt , c1dt , n1dt , p1dt
+  type (pool1d_i), pointer :: r1di, l1di, c1di, n1di, p1di
+  type (pool1d_s), pointer :: r1ds, l1ds, c1ds, n1ds, p1ds
+  type (pool1d_l), pointer :: r1dl, l1dl, c1dl, n1dl, p1dl
+  type (pool1d_r), pointer :: r1dr, l1dr, c1dr, n1dr, p1dr
+  type (pool1d_d), pointer :: r1dd, l1dd, c1dd, n1dd, p1dd
+  type (pool1d_t), pointer :: r1dt, l1dt, c1dt, n1dt, p1dt
 
-  type (pool2d_i) , pointer :: r2di , l2di , c2di , n2di , p2di
-  type (pool2d_s) , pointer :: r2ds , l2ds , c2ds , n2ds , p2ds
-  type (pool2d_l) , pointer :: r2dl , l2dl , c2dl , n2dl , p2dl
-  type (pool2d_r) , pointer :: r2dr , l2dr , c2dr , n2dr , p2dr
-  type (pool2d_d) , pointer :: r2dd , l2dd , c2dd , n2dd , p2dd
+  type (pool2d_i), pointer :: r2di, l2di, c2di, n2di, p2di
+  type (pool2d_s), pointer :: r2ds, l2ds, c2ds, n2ds, p2ds
+  type (pool2d_l), pointer :: r2dl, l2dl, c2dl, n2dl, p2dl
+  type (pool2d_r), pointer :: r2dr, l2dr, c2dr, n2dr, p2dr
+  type (pool2d_d), pointer :: r2dd, l2dd, c2dd, n2dd, p2dd
 
-  type (pool3d_i) , pointer :: r3di , l3di , c3di , n3di , p3di
-  type (pool3d_s) , pointer :: r3ds , l3ds , c3ds , n3ds , p3ds
-  type (pool3d_l) , pointer :: r3dl , l3dl , c3dl , n3dl , p3dl
-  type (pool3d_r) , pointer :: r3dr , l3dr , c3dr , n3dr , p3dr
-  type (pool3d_d) , pointer :: r3dd , l3dd , c3dd , n3dd , p3dd
+  type (pool3d_i), pointer :: r3di, l3di, c3di, n3di, p3di
+  type (pool3d_s), pointer :: r3ds, l3ds, c3ds, n3ds, p3ds
+  type (pool3d_l), pointer :: r3dl, l3dl, c3dl, n3dl, p3dl
+  type (pool3d_r), pointer :: r3dr, l3dr, c3dr, n3dr, p3dr
+  type (pool3d_d), pointer :: r3dd, l3dd, c3dd, n3dd, p3dd
 
-  type (pool4d_i) , pointer :: r4di , l4di , c4di , n4di , p4di
-  type (pool4d_s) , pointer :: r4ds , l4ds , c4ds , n4ds , p4ds
-  type (pool4d_l) , pointer :: r4dl , l4dl , c4dl , n4dl , p4dl
-  type (pool4d_r) , pointer :: r4dr , l4dr , c4dr , n4dr , p4dr
-  type (pool4d_d) , pointer :: r4dd , l4dd , c4dd , n4dd , p4dd
+  type (pool4d_i), pointer :: r4di, l4di, c4di, n4di, p4di
+  type (pool4d_s), pointer :: r4ds, l4ds, c4ds, n4ds, p4ds
+  type (pool4d_l), pointer :: r4dl, l4dl, c4dl, n4dl, p4dl
+  type (pool4d_r), pointer :: r4dr, l4dr, c4dr, n4dr, p4dr
+  type (pool4d_d), pointer :: r4dd, l4dd, c4dd, n4dd, p4dd
 
-  type (pool5d_i) , pointer :: r5di , l5di , c5di , n5di , p5di
-  type (pool5d_s) , pointer :: r5ds , l5ds , c5ds , n5ds , p5ds
-  type (pool5d_l) , pointer :: r5dl , l5dl , c5dl , n5dl , p5dl
-  type (pool5d_r) , pointer :: r5dr , l5dr , c5dr , n5dr , p5dr
-  type (pool5d_d) , pointer :: r5dd , l5dd , c5dd , n5dd , p5dd
+  type (pool5d_i), pointer :: r5di, l5di, c5di, n5di, p5di
+  type (pool5d_s), pointer :: r5ds, l5ds, c5ds, n5ds, p5ds
+  type (pool5d_l), pointer :: r5dl, l5dl, c5dl, n5dl, p5dl
+  type (pool5d_r), pointer :: r5dr, l5dr, c5dr, n5dr, p5dr
+  type (pool5d_d), pointer :: r5dd, l5dd, c5dd, n5dd, p5dd
 
   integer(ik4) :: ista
 
@@ -440,9 +440,9 @@ module mod_memutil
 
   subroutine getmem1d_l(a,l,h,vn)
     implicit none
-    logical , pointer , dimension(:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l , h
-    character (len=*) , intent(in) :: vn
+    logical, pointer, contiguous, dimension(:), intent(inout) :: a
+    integer(ik4), intent(in) :: l, h
+    character (len=*), intent(in) :: vn
     type (bounds) :: b
     if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
@@ -458,7 +458,7 @@ module mod_memutil
 
   subroutine relmem1d_l(a)
     implicit none
-    logical , pointer , dimension(:) , intent(inout) :: a
+    logical, pointer, contiguous, dimension(:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p1dl => null()
     c1dl => r1dl
@@ -487,9 +487,9 @@ module mod_memutil
 
   subroutine getmem1d_t(a,l,h,vn)
     implicit none
-    type(rcm_time_and_date) , pointer , dimension(:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l , h
-    character (len=*) , intent(in) :: vn
+    type(rcm_time_and_date), pointer, contiguous, dimension(:), intent(inout) :: a
+    integer(ik4), intent(in) :: l, h
+    character (len=*), intent(in) :: vn
     type (bounds) :: b
     if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
@@ -504,7 +504,7 @@ module mod_memutil
 
   subroutine relmem1d_t(a)
     implicit none
-    type(rcm_time_and_date) , pointer , dimension(:) , intent(inout) :: a
+    type(rcm_time_and_date), pointer, contiguous, dimension(:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p1dt => null()
     c1dt => r1dt
@@ -533,9 +533,9 @@ module mod_memutil
 
   subroutine getmem1d_s(a,l,h,vn)
     implicit none
-    integer(2) , pointer , dimension(:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l , h
-    character (len=*) , intent(in) :: vn
+    integer(2), pointer, contiguous, dimension(:), intent(inout) :: a
+    integer(ik4), intent(in) :: l, h
+    character (len=*), intent(in) :: vn
     type (bounds) :: b
     if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
@@ -551,7 +551,7 @@ module mod_memutil
 
   subroutine relmem1d_s(a)
     implicit none
-    integer(2) , pointer , dimension(:) , intent(inout) :: a
+    integer(2), pointer, contiguous, dimension(:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p1ds => null()
     c1ds => r1ds
@@ -580,9 +580,9 @@ module mod_memutil
 
   subroutine getmem1d_i(a,l,h,vn)
     implicit none
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l , h
-    character (len=*) , intent(in) :: vn
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: a
+    integer(ik4), intent(in) :: l, h
+    character (len=*), intent(in) :: vn
     type (bounds) :: b
     if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
@@ -598,7 +598,7 @@ module mod_memutil
 
   subroutine relmem1d_i(a)
     implicit none
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: a
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p1di => null()
     c1di => r1di
@@ -627,9 +627,9 @@ module mod_memutil
 
   subroutine getmem1d_r(a,l,h,vn)
     implicit none
-    real(rk4) , pointer , dimension(:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l , h
-    character (len=*) , intent(in) :: vn
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: a
+    integer(ik4), intent(in) :: l, h
+    character (len=*), intent(in) :: vn
     type (bounds) :: b
     if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
@@ -645,7 +645,7 @@ module mod_memutil
 
   subroutine relmem1d_r(a)
     implicit none
-    real(rk4) , pointer , dimension(:) , intent(inout) :: a
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p1dr => null()
     c1dr => r1dr
@@ -674,9 +674,9 @@ module mod_memutil
 
   subroutine getmem1d_d(a,l,h,vn)
     implicit none
-    real(rk8) , pointer , dimension(:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l , h
-    character (len=*) , intent(in) :: vn
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: a
+    integer(ik4), intent(in) :: l, h
+    character (len=*), intent(in) :: vn
     type (bounds) :: b
     if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
@@ -692,7 +692,7 @@ module mod_memutil
 
   subroutine relmem1d_d(a)
     implicit none
-    real(rk8) , pointer , dimension(:) , intent(inout) :: a
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p1dd => null()
     c1dd => r1dd
@@ -721,8 +721,8 @@ module mod_memutil
 
   subroutine finalize_pool1d_i(n)
     implicit none
-    type(pool1d_i) , intent(inout) , pointer :: n
-    type(pool1d_i) , pointer :: p
+    type(pool1d_i), intent(inout), pointer :: n
+    type(pool1d_i), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -736,8 +736,8 @@ module mod_memutil
 
   subroutine finalize_pool1d_s(n)
     implicit none
-    type(pool1d_s) , intent(inout) , pointer :: n
-    type(pool1d_s) , pointer :: p
+    type(pool1d_s), intent(inout), pointer :: n
+    type(pool1d_s), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -751,8 +751,8 @@ module mod_memutil
 
   subroutine finalize_pool1d_l(n)
     implicit none
-    type(pool1d_l) , intent(inout) , pointer :: n
-    type(pool1d_l) , pointer :: p
+    type(pool1d_l), intent(inout), pointer :: n
+    type(pool1d_l), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -766,8 +766,8 @@ module mod_memutil
 
   subroutine finalize_pool1d_r(n)
     implicit none
-    type(pool1d_r) , intent(inout) , pointer :: n
-    type(pool1d_r) , pointer :: p
+    type(pool1d_r), intent(inout), pointer :: n
+    type(pool1d_r), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -781,8 +781,8 @@ module mod_memutil
 
   subroutine finalize_pool1d_d(n)
     implicit none
-    type(pool1d_d) , intent(inout) , pointer :: n
-    type(pool1d_d) , pointer :: p
+    type(pool1d_d), intent(inout), pointer :: n
+    type(pool1d_d), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -796,8 +796,8 @@ module mod_memutil
 
   subroutine finalize_pool1d_t(n)
     implicit none
-    type(pool1d_t) , intent(inout) , pointer :: n
-    type(pool1d_t) , pointer :: p
+    type(pool1d_t), intent(inout), pointer :: n
+    type(pool1d_t), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -811,10 +811,10 @@ module mod_memutil
 
   subroutine getmem2d_l(a,l1,h1,l2,h2,vn)
     implicit none
-    logical , pointer , dimension(:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(2) :: b
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(2) :: b
     if ( associated(a) ) call relmem2d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -830,7 +830,7 @@ module mod_memutil
 
   subroutine relmem2d_l(a)
     implicit none
-    logical , pointer , dimension(:,:) , intent(inout) :: a
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p2dl => null()
     c2dl => r2dl
@@ -859,10 +859,10 @@ module mod_memutil
 
   subroutine getmem2d_s(a,l1,h1,l2,h2,vn)
     implicit none
-    integer(2) , pointer , dimension(:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(2) :: b
+    integer(2), pointer, contiguous, dimension(:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(2) :: b
     if ( associated(a) ) call relmem2d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -878,7 +878,7 @@ module mod_memutil
 
   subroutine relmem2d_s(a)
     implicit none
-    integer(2) , pointer , dimension(:,:) , intent(inout) :: a
+    integer(2), pointer, contiguous, dimension(:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p2ds => null()
     c2ds => r2ds
@@ -907,10 +907,10 @@ module mod_memutil
 
   subroutine getmem2d_i(a,l1,h1,l2,h2,vn)
     implicit none
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(2) :: b
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(2) :: b
     if ( associated(a) ) call relmem2d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -926,7 +926,7 @@ module mod_memutil
 
   subroutine relmem2d_i(a)
     implicit none
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p2di => null()
     c2di => r2di
@@ -955,10 +955,10 @@ module mod_memutil
 
   subroutine getmem2d_r(a,l1,h1,l2,h2,vn)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(2) :: b
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(2) :: b
     if ( associated(a) ) call relmem2d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -974,7 +974,7 @@ module mod_memutil
 
   subroutine relmem2d_r(a)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: a
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p2dr => null()
     c2dr => r2dr
@@ -1003,10 +1003,10 @@ module mod_memutil
 
   subroutine getmem2d_d(a,l1,h1,l2,h2,vn)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(2) :: b
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(2) :: b
     if ( associated(a) ) call relmem2d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1022,7 +1022,7 @@ module mod_memutil
 
   subroutine relmem2d_d(a)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: a
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p2dd => null()
     c2dd => r2dd
@@ -1051,8 +1051,8 @@ module mod_memutil
 
   subroutine finalize_pool2d_i(n)
     implicit none
-    type(pool2d_i) , intent(inout) , pointer :: n
-    type(pool2d_i) , pointer :: p
+    type(pool2d_i), intent(inout), pointer :: n
+    type(pool2d_i), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1066,8 +1066,8 @@ module mod_memutil
 
   subroutine finalize_pool2d_s(n)
     implicit none
-    type(pool2d_s) , intent(inout) , pointer :: n
-    type(pool2d_s) , pointer :: p
+    type(pool2d_s), intent(inout), pointer :: n
+    type(pool2d_s), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1081,8 +1081,8 @@ module mod_memutil
 
   subroutine finalize_pool2d_l(n)
     implicit none
-    type(pool2d_l) , intent(inout) , pointer :: n
-    type(pool2d_l) , pointer :: p
+    type(pool2d_l), intent(inout), pointer :: n
+    type(pool2d_l), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1096,8 +1096,8 @@ module mod_memutil
 
   subroutine finalize_pool2d_r(n)
     implicit none
-    type(pool2d_r) , intent(inout) , pointer :: n
-    type(pool2d_r) , pointer :: p
+    type(pool2d_r), intent(inout), pointer :: n
+    type(pool2d_r), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1111,8 +1111,8 @@ module mod_memutil
 
   subroutine finalize_pool2d_d(n)
     implicit none
-    type(pool2d_d) , intent(inout) , pointer :: n
-    type(pool2d_d) , pointer :: p
+    type(pool2d_d), intent(inout), pointer :: n
+    type(pool2d_d), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1126,10 +1126,10 @@ module mod_memutil
 
   subroutine getmem3d_l(a,l1,h1,l2,h2,l3,h3,vn)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(3) :: b
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(3) :: b
     if ( associated(a) ) call relmem3d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1146,7 +1146,7 @@ module mod_memutil
 
   subroutine relmem3d_l(a)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(inout) :: a
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p3dl => null()
     c3dl => r3dl
@@ -1175,10 +1175,10 @@ module mod_memutil
 
   subroutine getmem3d_s(a,l1,h1,l2,h2,l3,h3,vn)
     implicit none
-    integer(2) , pointer , dimension(:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(3) :: b
+    integer(2), pointer, contiguous, dimension(:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(3) :: b
     if ( associated(a) ) call relmem3d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1195,7 +1195,7 @@ module mod_memutil
 
   subroutine relmem3d_s(a)
     implicit none
-    integer(2) , pointer , dimension(:,:,:) , intent(inout) :: a
+    integer(2), pointer, contiguous, dimension(:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p3ds => null()
     c3ds => r3ds
@@ -1224,10 +1224,10 @@ module mod_memutil
 
   subroutine getmem3d_i(a,l1,h1,l2,h2,l3,h3,vn)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(3) :: b
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(3) :: b
     if ( associated(a) ) call relmem3d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1244,7 +1244,7 @@ module mod_memutil
 
   subroutine relmem3d_i(a)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p3di => null()
     c3di => r3di
@@ -1273,10 +1273,10 @@ module mod_memutil
 
   subroutine getmem3d_r(a,l1,h1,l2,h2,l3,h3,vn)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(3) :: b
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(3) :: b
     if ( associated(a) ) call relmem3d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1293,7 +1293,7 @@ module mod_memutil
 
   subroutine relmem3d_r(a)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: a
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p3dr => null()
     c3dr => r3dr
@@ -1322,10 +1322,10 @@ module mod_memutil
 
   subroutine getmem3d_d(a,l1,h1,l2,h2,l3,h3,vn)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(3) :: b
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(3) :: b
     if ( associated(a) ) call relmem3d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1342,7 +1342,7 @@ module mod_memutil
 
   subroutine relmem3d_d(a)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: a
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p3dd => null()
     c3dd => r3dd
@@ -1371,8 +1371,8 @@ module mod_memutil
 
   subroutine finalize_pool3d_s(n)
     implicit none
-    type(pool3d_s) , intent(inout) , pointer :: n
-    type(pool3d_s) , pointer :: p
+    type(pool3d_s), intent(inout), pointer :: n
+    type(pool3d_s), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1386,8 +1386,8 @@ module mod_memutil
 
   subroutine finalize_pool3d_i(n)
     implicit none
-    type(pool3d_i) , intent(inout) , pointer :: n
-    type(pool3d_i) , pointer :: p
+    type(pool3d_i), intent(inout), pointer :: n
+    type(pool3d_i), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1401,8 +1401,8 @@ module mod_memutil
 
   subroutine finalize_pool3d_l(n)
     implicit none
-    type(pool3d_l) , intent(inout) , pointer :: n
-    type(pool3d_l) , pointer :: p
+    type(pool3d_l), intent(inout), pointer :: n
+    type(pool3d_l), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1416,8 +1416,8 @@ module mod_memutil
 
   subroutine finalize_pool3d_r(n)
     implicit none
-    type(pool3d_r) , intent(inout) , pointer :: n
-    type(pool3d_r) , pointer :: p
+    type(pool3d_r), intent(inout), pointer :: n
+    type(pool3d_r), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1431,8 +1431,8 @@ module mod_memutil
 
   subroutine finalize_pool3d_d(n)
     implicit none
-    type(pool3d_d) , intent(inout) , pointer :: n
-    type(pool3d_d) , pointer :: p
+    type(pool3d_d), intent(inout), pointer :: n
+    type(pool3d_d), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1446,10 +1446,10 @@ module mod_memutil
 
   subroutine getmem4d_l(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
     implicit none
-    logical , pointer , dimension(:,:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(4) :: b
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(4) :: b
     if ( associated(a) ) call relmem4d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1467,7 +1467,7 @@ module mod_memutil
 
   subroutine relmem4d_l(a)
     implicit none
-    logical , pointer , dimension(:,:,:,:) , intent(inout) :: a
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p4dl => null()
     c4dl => r4dl
@@ -1496,10 +1496,10 @@ module mod_memutil
 
   subroutine getmem4d_s(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
     implicit none
-    integer(2) , pointer , dimension(:,:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(4) :: b
+    integer(2), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(4) :: b
     if ( associated(a) ) call relmem4d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1517,7 +1517,7 @@ module mod_memutil
 
   subroutine relmem4d_s(a)
     implicit none
-    integer(2) , pointer , dimension(:,:,:,:) , intent(inout) :: a
+    integer(2), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p4ds => null()
     c4ds => r4ds
@@ -1546,10 +1546,10 @@ module mod_memutil
 
   subroutine getmem4d_i(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(4) :: b
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(4) :: b
     if ( associated(a) ) call relmem4d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1567,7 +1567,7 @@ module mod_memutil
 
   subroutine relmem4d_i(a)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p4di => null()
     c4di => r4di
@@ -1596,10 +1596,10 @@ module mod_memutil
 
   subroutine getmem4d_r(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(4) :: b
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(4) :: b
     if ( associated(a) ) call relmem4d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1617,7 +1617,7 @@ module mod_memutil
 
   subroutine relmem4d_r(a)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: a
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p4dr => null()
     c4dr => r4dr
@@ -1646,10 +1646,10 @@ module mod_memutil
 
   subroutine getmem4d_d(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(4) :: b
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(4) :: b
     if ( associated(a) ) call relmem4d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1667,7 +1667,7 @@ module mod_memutil
 
   subroutine relmem4d_d(a)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: a
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p4dd => null()
     c4dd => r4dd
@@ -1696,8 +1696,8 @@ module mod_memutil
 
   subroutine finalize_pool4d_s(n)
     implicit none
-    type(pool4d_s) , intent(inout) , pointer :: n
-    type(pool4d_s) , pointer :: p
+    type(pool4d_s), intent(inout), pointer :: n
+    type(pool4d_s), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1711,8 +1711,8 @@ module mod_memutil
 
   subroutine finalize_pool4d_i(n)
     implicit none
-    type(pool4d_i) , intent(inout) , pointer :: n
-    type(pool4d_i) , pointer :: p
+    type(pool4d_i), intent(inout), pointer :: n
+    type(pool4d_i), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1726,8 +1726,8 @@ module mod_memutil
 
   subroutine finalize_pool4d_l(n)
     implicit none
-    type(pool4d_l) , intent(inout) , pointer :: n
-    type(pool4d_l) , pointer :: p
+    type(pool4d_l), intent(inout), pointer :: n
+    type(pool4d_l), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1741,8 +1741,8 @@ module mod_memutil
 
   subroutine finalize_pool4d_r(n)
     implicit none
-    type(pool4d_r) , intent(inout) , pointer :: n
-    type(pool4d_r) , pointer :: p
+    type(pool4d_r), intent(inout), pointer :: n
+    type(pool4d_r), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1756,8 +1756,8 @@ module mod_memutil
 
   subroutine finalize_pool4d_d(n)
     implicit none
-    type(pool4d_d) , intent(inout) , pointer :: n
-    type(pool4d_d) , pointer :: p
+    type(pool4d_d), intent(inout), pointer :: n
+    type(pool4d_d), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -1771,10 +1771,10 @@ module mod_memutil
 
   subroutine getmem5d_l(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
     implicit none
-    logical , pointer , dimension(:,:,:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(5) :: b
+    logical, pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4, l5, h5
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(5) :: b
     if ( associated(a) ) call relmem5d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1793,7 +1793,7 @@ module mod_memutil
 
   subroutine relmem5d_l(a)
     implicit none
-    logical , pointer , dimension(:,:,:,:,:) , intent(inout) :: a
+    logical, pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p5dl => null()
     c5dl => r5dl
@@ -1822,10 +1822,10 @@ module mod_memutil
 
   subroutine getmem5d_s(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
     implicit none
-    integer(2) , pointer , dimension(:,:,:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(5) :: b
+    integer(2), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4, l5, h5
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(5) :: b
     if ( associated(a) ) call relmem5d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1844,7 +1844,7 @@ module mod_memutil
 
   subroutine relmem5d_s(a)
     implicit none
-    integer(2) , pointer , dimension(:,:,:,:,:) , intent(inout) :: a
+    integer(2), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p5ds => null()
     c5ds => r5ds
@@ -1873,10 +1873,10 @@ module mod_memutil
 
   subroutine getmem5d_i(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(5) :: b
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4, l5, h5
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(5) :: b
     if ( associated(a) ) call relmem5d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1895,7 +1895,7 @@ module mod_memutil
 
   subroutine relmem5d_i(a)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:,:) , intent(inout) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p5di => null()
     c5di => r5di
@@ -1924,10 +1924,10 @@ module mod_memutil
 
   subroutine getmem5d_r(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(5) :: b
+    real(rk4), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4, l5, h5
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(5) :: b
     if ( associated(a) ) call relmem5d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1946,7 +1946,7 @@ module mod_memutil
 
   subroutine relmem5d_r(a)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:,:) , intent(inout) :: a
+    real(rk4), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p5dr => null()
     c5dr => r5dr
@@ -1975,10 +1975,10 @@ module mod_memutil
 
   subroutine getmem5d_d(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:,:) , intent(inout) :: a
-    integer(ik4) , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
-    character (len=*) , intent(in) :: vn
-    type (bounds) , dimension(5) :: b
+    real(rk8), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: a
+    integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4, l5, h5
+    character (len=*), intent(in) :: vn
+    type (bounds), dimension(5) :: b
     if ( associated(a) ) call relmem5d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
@@ -1997,7 +1997,7 @@ module mod_memutil
 
   subroutine relmem5d_d(a)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:,:) , intent(inout) :: a
+    real(rk8), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p5dd => null()
     c5dd => r5dd
@@ -2026,8 +2026,8 @@ module mod_memutil
 
   subroutine finalize_pool5d_s(n)
     implicit none
-    type(pool5d_s) , intent(inout) , pointer :: n
-    type(pool5d_s) , pointer :: p
+    type(pool5d_s), intent(inout), pointer :: n
+    type(pool5d_s), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -2041,8 +2041,8 @@ module mod_memutil
 
   subroutine finalize_pool5d_i(n)
     implicit none
-    type(pool5d_i) , intent(inout) , pointer :: n
-    type(pool5d_i) , pointer :: p
+    type(pool5d_i), intent(inout), pointer :: n
+    type(pool5d_i), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -2056,8 +2056,8 @@ module mod_memutil
 
   subroutine finalize_pool5d_l(n)
     implicit none
-    type(pool5d_l) , intent(inout) , pointer :: n
-    type(pool5d_l) , pointer :: p
+    type(pool5d_l), intent(inout), pointer :: n
+    type(pool5d_l), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -2071,8 +2071,8 @@ module mod_memutil
 
   subroutine finalize_pool5d_r(n)
     implicit none
-    type(pool5d_r) , intent(inout) , pointer :: n
-    type(pool5d_r) , pointer :: p
+    type(pool5d_r), intent(inout), pointer :: n
+    type(pool5d_r), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -2086,8 +2086,8 @@ module mod_memutil
 
   subroutine finalize_pool5d_d(n)
     implicit none
-    type(pool5d_d) , intent(inout) , pointer :: n
-    type(pool5d_d) , pointer :: p
+    type(pool5d_d), intent(inout), pointer :: n
+    type(pool5d_d), pointer :: p
     do while ( associated(n) )
       p => n%next
       if ( associated(n%a%space) ) then
@@ -2131,8 +2131,8 @@ module mod_memutil
 
   subroutine assignp1d_l(a,b)
     implicit none
-    logical , pointer , dimension(:) , intent(in) :: a
-    logical , pointer , dimension(:) , intent(inout) :: b
+    logical, pointer, contiguous, dimension(:), intent(in) :: a
+    logical, pointer, contiguous, dimension(:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2142,8 +2142,8 @@ module mod_memutil
 
   subroutine assignp1d_s(a,b)
     implicit none
-    integer(2) , pointer , dimension(:) , intent(in) :: a
-    integer(2) , pointer , dimension(:) , intent(inout) :: b
+    integer(2), pointer, contiguous, dimension(:), intent(in) :: a
+    integer(2), pointer, contiguous, dimension(:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2153,8 +2153,8 @@ module mod_memutil
 
   subroutine assignp1d_i(a,b)
     implicit none
-    integer(ik4) , pointer , dimension(:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: b
+    integer(ik4), pointer, contiguous, dimension(:), intent(in) :: a
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2164,8 +2164,8 @@ module mod_memutil
 
   subroutine assignp1d_r(a,b)
     implicit none
-    real(rk4) , pointer , dimension(:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:) , intent(inout) :: b
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2175,8 +2175,8 @@ module mod_memutil
 
   subroutine assignp1d_d(a,b)
     implicit none
-    real(rk8) , pointer , dimension(:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:) , intent(inout) :: b
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2186,9 +2186,9 @@ module mod_memutil
 
   subroutine assignp1d2_d(a,b,k)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:) , intent(inout) :: b
-    integer , intent(in) :: k
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2198,9 +2198,9 @@ module mod_memutil
 
   subroutine assignp1d2_r(a,b,k)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:) , intent(inout) :: b
-    integer , intent(in) :: k
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2210,8 +2210,8 @@ module mod_memutil
 
   subroutine assignp1d_t(a,b)
     implicit none
-    type(rcm_time_and_date) , pointer , dimension(:) , intent(in) :: a
-    type(rcm_time_and_date) , pointer , dimension(:) , intent(inout) :: b
+    type(rcm_time_and_date), pointer, contiguous, dimension(:), intent(in) :: a
+    type(rcm_time_and_date), pointer, contiguous, dimension(:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2221,8 +2221,8 @@ module mod_memutil
 
   subroutine assignp2d_l(a,b)
     implicit none
-    logical , pointer , dimension(:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:) , intent(inout) :: b
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: a
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2232,8 +2232,8 @@ module mod_memutil
 
   subroutine assignp2d_s(a,b)
     implicit none
-    integer(2) , pointer , dimension(:,:) , intent(in) :: a
-    integer(2) , pointer , dimension(:,:) , intent(inout) :: b
+    integer(2), pointer, contiguous, dimension(:,:), intent(in) :: a
+    integer(2), pointer, contiguous, dimension(:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2243,8 +2243,8 @@ module mod_memutil
 
   subroutine assignp2d_i(a,b)
     implicit none
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: b
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2254,8 +2254,8 @@ module mod_memutil
 
   subroutine assignp2d_r(a,b)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: b
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2265,8 +2265,8 @@ module mod_memutil
 
   subroutine assignp2d_d(a,b)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2276,9 +2276,9 @@ module mod_memutil
 
   subroutine assignp2d3_l(a,b,k)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:) , intent(inout) :: b
-    integer , intent(in) :: k
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: a
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2288,9 +2288,9 @@ module mod_memutil
 
   subroutine assignp2d3_s(a,b,k)
     implicit none
-    integer(2) , pointer , dimension(:,:,:) , intent(in) :: a
-    integer(2) , pointer , dimension(:,:) , intent(inout) :: b
-    integer , intent(in) :: k
+    integer(2), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+    integer(2), pointer, contiguous, dimension(:,:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2300,9 +2300,9 @@ module mod_memutil
 
   subroutine assignp2d3_i(a,b,k)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: b
-    integer , intent(in) :: k
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2312,9 +2312,9 @@ module mod_memutil
 
   subroutine assignp2d3_r(a,b,k)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: b
-    integer , intent(in) :: k
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2324,9 +2324,9 @@ module mod_memutil
 
   subroutine assignp2d3_d(a,b,k)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
-    integer , intent(in) :: k
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2336,8 +2336,8 @@ module mod_memutil
 
   subroutine assignp3d_l(a,b)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:,:) , intent(inout) :: b
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: a
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2347,8 +2347,8 @@ module mod_memutil
 
   subroutine assignp3d_s(a,b)
     implicit none
-    integer(2) , pointer , dimension(:,:,:) , intent(in) :: a
-    integer(2) , pointer , dimension(:,:,:) , intent(inout) :: b
+    integer(2), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+    integer(2), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2358,8 +2358,8 @@ module mod_memutil
 
   subroutine assignp3d_i(a,b)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: b
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2369,8 +2369,8 @@ module mod_memutil
 
   subroutine assignp3d_r(a,b)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: b
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2380,8 +2380,8 @@ module mod_memutil
 
   subroutine assignp3d_d(a,b)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: b
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2391,9 +2391,9 @@ module mod_memutil
 
   subroutine assignp3d4_l(a,b,k)
     implicit none
-    logical , pointer , dimension(:,:,:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:,:) , intent(inout) :: b
-    integer , intent(in) :: k
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2403,9 +2403,9 @@ module mod_memutil
 
   subroutine assignp3d4_s(a,b,k)
     implicit none
-    integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    integer(2) , pointer , dimension(:,:,:) , intent(inout) :: b
-    integer , intent(in) :: k
+    integer(2), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    integer(2), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2415,9 +2415,9 @@ module mod_memutil
 
   subroutine assignp3d4_i(a,b,k)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: b
-    integer , intent(in) :: k
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2427,9 +2427,9 @@ module mod_memutil
 
   subroutine assignp3d4_r(a,b,k)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: b
-    integer , intent(in) :: k
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2439,9 +2439,9 @@ module mod_memutil
 
   subroutine assignp3d4_d(a,b,k)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: b
-    integer , intent(in) :: k
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
+    integer, intent(in) :: k
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2451,9 +2451,9 @@ module mod_memutil
 
   subroutine assignp2d4_l(a,b,k,l)
     implicit none
-    logical , pointer , dimension(:,:,:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:) , intent(inout) :: b
-    integer , intent(in) :: k , l
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: b
+    integer, intent(in) :: k, l
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2463,9 +2463,9 @@ module mod_memutil
 
   subroutine assignp2d4_s(a,b,k,l)
     implicit none
-    integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    integer(2) , pointer , dimension(:,:) , intent(inout) :: b
-    integer , intent(in) :: k , l
+    integer(2), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    integer(2), pointer, contiguous, dimension(:,:), intent(inout) :: b
+    integer, intent(in) :: k, l
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2475,9 +2475,9 @@ module mod_memutil
 
   subroutine assignp2d4_i(a,b,k,l)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: b
-    integer , intent(in) :: k , l
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: b
+    integer, intent(in) :: k, l
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2487,9 +2487,9 @@ module mod_memutil
 
   subroutine assignp2d4_r(a,b,k,l)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: b
-    integer , intent(in) :: k , l
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: b
+    integer, intent(in) :: k, l
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2499,9 +2499,9 @@ module mod_memutil
 
   subroutine assignp2d4_d(a,b,k,l)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
-    integer , intent(in) :: k , l
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: b
+    integer, intent(in) :: k, l
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2511,8 +2511,8 @@ module mod_memutil
 
   subroutine assignp4d_l(a,b)
     implicit none
-    logical , pointer , dimension(:,:,:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:,:,:) , intent(inout) :: b
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2522,8 +2522,8 @@ module mod_memutil
 
   subroutine assignp4d_s(a,b)
     implicit none
-    integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    integer(2) , pointer , dimension(:,:,:,:) , intent(inout) :: b
+    integer(2), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    integer(2), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2533,8 +2533,8 @@ module mod_memutil
 
   subroutine assignp4d_i(a,b)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: b
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2544,8 +2544,8 @@ module mod_memutil
 
   subroutine assignp4d_r(a,b)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: b
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2555,8 +2555,8 @@ module mod_memutil
 
   subroutine assignp4d_d(a,b)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: b
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2566,9 +2566,9 @@ module mod_memutil
 
   subroutine assignp4d5_l(a,b,n)
     implicit none
-    logical , pointer , dimension(:,:,:,:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:,:,:) , intent(inout) :: b
-    integer , intent(in) :: n
+    logical, pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: a
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
+    integer, intent(in) :: n
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2578,9 +2578,9 @@ module mod_memutil
 
   subroutine assignp4d5_s(a,b,n)
     implicit none
-    integer(2) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
-    integer(2) , pointer , dimension(:,:,:,:) , intent(inout) :: b
-    integer , intent(in) :: n
+    integer(2), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: a
+    integer(2), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
+    integer, intent(in) :: n
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2590,9 +2590,9 @@ module mod_memutil
 
   subroutine assignp4d5_i(a,b,n)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: b
-    integer , intent(in) :: n
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
+    integer, intent(in) :: n
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2602,9 +2602,9 @@ module mod_memutil
 
   subroutine assignp4d5_r(a,b,n)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: b
-    integer , intent(in) :: n
+    real(rk4), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
+    integer, intent(in) :: n
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2614,9 +2614,9 @@ module mod_memutil
 
   subroutine assignp4d5_d(a,b,n)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: b
-    integer , intent(in) :: n
+    real(rk8), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
+    integer, intent(in) :: n
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2626,8 +2626,8 @@ module mod_memutil
 
   subroutine assignp5d_l(a,b)
     implicit none
-    logical , pointer , dimension(:,:,:,:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:,:,:,:) , intent(inout) :: b
+    logical, pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: a
+    logical, pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2638,8 +2638,8 @@ module mod_memutil
 
   subroutine assignp5d_s(a,b)
     implicit none
-    integer(2) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
-    integer(2) , pointer , dimension(:,:,:,:,:) , intent(inout) :: b
+    integer(2), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: a
+    integer(2), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2650,8 +2650,8 @@ module mod_memutil
 
   subroutine assignp5d_i(a,b)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:,:,:,:) , intent(inout) :: b
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: a
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2662,8 +2662,8 @@ module mod_memutil
 
   subroutine assignp5d_r(a,b)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:,:,:,:) , intent(inout) :: b
+    real(rk4), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2674,8 +2674,8 @@ module mod_memutil
 
   subroutine assignp5d_d(a,b)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:,:,:,:) , intent(inout) :: b
+    real(rk8), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2686,8 +2686,8 @@ module mod_memutil
 
   subroutine remappnt4_r8(a,b)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: b
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2697,8 +2697,8 @@ module mod_memutil
 
   subroutine remappnt4_r4(a,b)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: b
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2707,149 +2707,149 @@ module mod_memutil
   end subroutine remappnt4_r4
 
 !  subroutine spaceshare_1d_r8r4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk8) , pointer , dimension(:) , intent(in) :: a
-!    real(rk4) , pointer , dimension(:) , intent(inout) :: b
+!    real(rk8), pointer, contiguous, dimension(:), intent(in) :: a
+!    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_1d_r8r4
 
 !  subroutine spaceshare_1d_r4i4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk4) , pointer , dimension(:) , intent(in) :: a
-!    integer(ik4) , pointer , dimension(:) , intent(inout) :: b
+!    real(rk4), pointer, contiguous, dimension(:), intent(in) :: a
+!    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_1d_r4i4
 
 !  subroutine spaceshare_1d_r8i4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk8) , pointer , dimension(:) , intent(in) :: a
-!    integer(ik4) , pointer , dimension(:) , intent(inout) :: b
+!    real(rk8), pointer, contiguous, dimension(:), intent(in) :: a
+!    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_1d_r8i4
 
 !  subroutine spaceshare_1d_r4l4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk4) , pointer , dimension(:) , intent(in) :: a
-!    logical , pointer , dimension(:) , intent(inout) :: b
+!    real(rk4), pointer, contiguous, dimension(:), intent(in) :: a
+!    logical, pointer, contiguous, dimension(:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_1d_r4l4
 
 !  subroutine spaceshare_1d_r8l4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk8) , pointer , dimension(:) , intent(in) :: a
-!    logical , pointer , dimension(:) , intent(inout) :: b
+!    real(rk8), pointer, contiguous, dimension(:), intent(in) :: a
+!    logical, pointer, contiguous, dimension(:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_1d_r8l4
 
 !  subroutine spaceshare_2d_r8r4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-!    real(rk4) , pointer , dimension(:,:) , intent(inout) :: b
+!    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: a
+!    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_2d_r8r4
 
 !  subroutine spaceshare_2d_r4i4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
-!    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: b
+!    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: a
+!    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_2d_r4i4
 
 !  subroutine spaceshare_2d_r8i4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-!    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: b
+!    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: a
+!    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_2d_r8i4
 
 !  subroutine spaceshare_2d_r4l4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
-!    logical , pointer , dimension(:,:) , intent(inout) :: b
+!    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: a
+!    logical, pointer, contiguous, dimension(:,:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 
 !  subroutine spaceshare_2d_r8l4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-!    logical , pointer , dimension(:,:) , intent(inout) :: b
+!    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: a
+!    logical, pointer, contiguous, dimension(:,:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_2d_r8l4
 
 !  subroutine spaceshare_3d_r8r4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
-!    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: b
+!    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+!    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_3d_r8r4
 
 !  subroutine spaceshare_3d_r4i4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: a
-!    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: b
+!    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+!    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_3d_r4i4
 
 !  subroutine spaceshare_3d_r8i4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
-!    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: b
+!    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+!    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_3d_r8i4
 
 !  subroutine spaceshare_3d_r4l4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: a
-!    logical , pointer , dimension(:,:,:) , intent(inout) :: b
+!    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+!    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
 !  end subroutine spaceshare_3d_r4l4
 
 !  subroutine spaceshare_3d_r8l4(a,b)
-!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
 !    implicit none
-!    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
-!    logical , pointer , dimension(:,:,:) , intent(inout) :: b
+!    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: a
+!    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: b
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))

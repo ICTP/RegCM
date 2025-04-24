@@ -15,7 +15,7 @@
 
 module mod_savefile
 
-  use mod_nchelper , only : regcm_vartype
+  use mod_nchelper, only : regcm_vartype
   use mod_intkinds
   use mod_realkinds
   use mod_date
@@ -25,7 +25,7 @@ module mod_savefile
   use mod_mpmessage
   use mod_mppparam
   use mod_memutil
-  use mod_atm_interface , only : tmask
+  use mod_atm_interface, only : tmask
   use mod_lm_interface
   use mod_che_interface
   use mod_che_mppio
@@ -37,161 +37,161 @@ module mod_savefile
   private
 
 #ifndef QUAD_PRECISION
-  integer , parameter :: wrkp = rk8
+  integer, parameter :: wrkp = rk8
 #else
-  integer , parameter :: wrkp = rk16
+  integer, parameter :: wrkp = rk16
 #endif
 
   public :: allocate_mod_savefile
   public :: read_savefile
   public :: write_savefile
 
-  integer(ik4) , parameter :: maxdims = 18
-  integer(ik4) , parameter :: maxvars = 128
+  integer(ik4), parameter :: maxdims = 18
+  integer(ik4), parameter :: maxvars = 128
   integer(ik4) :: ncstatus
 
-  integer(ik4) , parameter :: idjcross = 1
-  integer(ik4) , parameter :: idicross = 2
-  integer(ik4) , parameter :: idjdot = 3
-  integer(ik4) , parameter :: ididot = 4
-  integer(ik4) , parameter :: idkh = 5
-  integer(ik4) , parameter :: idkf = 6
-  integer(ik4) , parameter :: idnsplit = 7
-  integer(ik4) , parameter :: idnnsg = 8
-  integer(ik4) , parameter :: idmonth = 9
-  integer(ik4) , parameter :: idnqx = 10
-  integer(ik4) , parameter :: idspi = 11
-  integer(ik4) , parameter :: idspw = 12
-  integer(ik4) , parameter :: idntr = 13
-  integer(ik4) , parameter :: idtotsp = 14
-  integer(ik4) , parameter :: iddpt = 15
-  integer(ik4) , parameter :: ikern = 16
-  integer(ik4) , parameter :: indep = 17
-  integer(ik4) , parameter :: idndu = 18
+  integer(ik4), parameter :: idjcross = 1
+  integer(ik4), parameter :: idicross = 2
+  integer(ik4), parameter :: idjdot = 3
+  integer(ik4), parameter :: ididot = 4
+  integer(ik4), parameter :: idkh = 5
+  integer(ik4), parameter :: idkf = 6
+  integer(ik4), parameter :: idnsplit = 7
+  integer(ik4), parameter :: idnnsg = 8
+  integer(ik4), parameter :: idmonth = 9
+  integer(ik4), parameter :: idnqx = 10
+  integer(ik4), parameter :: idspi = 11
+  integer(ik4), parameter :: idspw = 12
+  integer(ik4), parameter :: idntr = 13
+  integer(ik4), parameter :: idtotsp = 14
+  integer(ik4), parameter :: iddpt = 15
+  integer(ik4), parameter :: ikern = 16
+  integer(ik4), parameter :: indep = 17
+  integer(ik4), parameter :: idndu = 18
 
-  integer(ik4) , public , pointer , dimension(:,:,:) :: ldmsk1_io => null( )
-  integer(ik4) , public , pointer , dimension(:,:) :: ldmsk_io => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:,:) :: ldmsk1_io => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: ldmsk_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_u_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_v_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_w_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_pai_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_t_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_tke_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm_qx_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: ps_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_u_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_v_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_w_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_pai_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_t_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_tke_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: atm_qx_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: ps_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_u_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_u_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_v_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_v_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_t_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_t_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_w_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_w_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_pp_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_pp_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm1_qx_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm2_qx_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_tke_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_tke_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_u_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_u_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_v_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_v_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_t_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_t_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_w_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_w_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_pp_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_pp_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: atm1_qx_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: atm2_qx_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_tke_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_tke_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: tke_pbl_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tke_pbl_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:) :: psa_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: psb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: psa_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: psb_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:) :: hfx_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: qfx_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: tgbb_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: uvdrag_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: q2m_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: u10m_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: v10m_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: w10m_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: br_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: ram_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: rah_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: ustar_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: zo_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: dtrnof_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: hfx_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: qfx_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: tgbb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: uvdrag_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: q2m_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: u10m_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: v10m_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: w10m_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: br_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: ram_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: rah_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: ustar_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: zo_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: dtrnof_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: ldew_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: snag_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: sncv_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: sfice_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: gwet_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: sw_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: tsoi_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: swvol_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: taf_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: tgrd_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: tgbrd_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: tlef_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: emisv_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: um10_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: eta_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: hi_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: tlak_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: ldew_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: snag_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: sncv_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: sfice_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: gwet_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: sw_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tsoi_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: swvol_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: taf_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tgrd_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tgbrd_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tlef_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: emisv_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: um10_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: eta_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: hi_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: tlak_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:) :: flw_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: flwd_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: fsw_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: sabveg_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: totcf_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: sinc_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: solis_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: solvs_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: solvsd_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: solvl_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: solvld_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: flw_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: flwd_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: fsw_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: sabveg_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: totcf_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: sinc_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: solis_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: solvs_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: solvsd_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: solvl_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: solvld_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: sst_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: tskin_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: tdeltas_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: deltas_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: sst_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tskin_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tdeltas_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: deltas_io => null( )
 
-  integer(ik4) , public , pointer , dimension(:,:) :: kpbl_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: zpbl_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: myjsf_uz0_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: myjsf_vz0_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: myjsf_thz0_io => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: myjsf_qz0_io => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: kpbl_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: zpbl_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: myjsf_uz0_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: myjsf_vz0_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: myjsf_thz0_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: myjsf_qz0_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:) :: cbmf2d_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: cbmf2d_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: fcc_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: fcc_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabsnxt_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabstot_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: gasemstot_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: gasabsnxt_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: gasabstot_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: gasemstot_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: cldfra_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: heatrt_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: o3prof_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: cldfra_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: heatrt_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: o3prof_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: dstor_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: hstor_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: dstor_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: hstor_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:) :: cldefi_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: cldefi_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_ww_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: cu_avg_ww_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: &
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
     qflux_restore_sst_io => null( )
 
 #ifdef CLM
-  real(rkx) , public , pointer , dimension(:,:) :: lndcat_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: lndcat_io => null( )
 #endif
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: swalb_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: lwalb_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: swdiralb_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: swdifalb_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: lwdiralb_io => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: lwdifalb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: swalb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: lwalb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: swdiralb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: swdifalb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: lwdiralb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: lwdifalb_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: tmp_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: tmp_io => null( )
 
   interface myputvar
     module procedure myputvar2dd
@@ -585,7 +585,7 @@ module mod_savefile
     use netcdf
 #endif
     implicit none
-    type (rcm_time_and_date) , intent(in) :: idate
+    type (rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ncid
     character(256) :: ffin
     character(32) :: fbname
@@ -788,11 +788,11 @@ module mod_savefile
   subroutine write_savefile(idate)
     use netcdf
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: ncid , ivcc
-    integer(ik4) , dimension(maxdims) :: dimids
-    integer(ik4) , dimension(maxdims) :: wrkdim
-    integer(ik4) , dimension(maxvars) :: varids
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: ncid, ivcc
+    integer(ik4), dimension(maxdims) :: dimids
+    integer(ik4), dimension(maxdims) :: wrkdim
+    integer(ik4), dimension(maxvars) :: varids
     character(256) :: ffout
     character(32) :: fbname
 #ifdef CLM
@@ -1309,8 +1309,8 @@ module mod_savefile
     use netcdf
 #endif
     implicit none
-    character(*) , intent(in) :: f, m1
-    integer(ik4) , intent(in) :: l
+    character(*), intent(in) :: f, m1
+    integer(ik4), intent(in) :: l
     if ( ncstatus /= nf90_noerr ) then
       write (stderr,*) trim(m1)
 #ifdef PNETCDF
@@ -1329,7 +1329,7 @@ module mod_savefile
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
+    integer(ik4), intent(in) :: ncid
     character(len=*) :: vname
 #ifdef PNETCDF
     ncstatus = nf90mpi_inq_varid(ncid,vname,varid)
@@ -1346,11 +1346,11 @@ module mod_savefile
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid , ityp , i1 , i2
-    integer(ik4) , intent(inout) :: iivar
-    integer(ik4) , dimension(:) , intent(in) :: idims
-    integer(ik4) , dimension(:) , intent(inout) :: ivar
-    character(len=*) , intent(in) :: str
+    integer(ik4), intent(in) :: ncid, ityp, i1, i2
+    integer(ik4), intent(inout) :: iivar
+    integer(ik4), dimension(:), intent(in) :: idims
+    integer(ik4), dimension(:), intent(inout) :: ivar
+    character(len=*), intent(in) :: str
 
     iivar = iivar + 1
 #ifdef PNETCDF
@@ -1371,21 +1371,21 @@ module mod_savefile
 
   subroutine myputvar2dd(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: var
-    integer(ik4) , dimension(:) , intent(in) :: ivar
-    integer(ik4) , intent(inout) :: iivar
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: var
+    integer(ik4), dimension(:), intent(in) :: ivar
+    integer(ik4), intent(inout) :: iivar
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(2) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(2) :: istart, icount
 #else
-    integer(ik4) , dimension(2) :: istart , icount
+    integer(ik4), dimension(2) :: istart, icount
 #endif
     iivar = iivar + 1
     istart(1) = lbound(var,1)
@@ -1402,20 +1402,20 @@ module mod_savefile
 
   subroutine mygetvar2dd(ncid,str,var,skippable)
 #ifdef PNETCDF
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: var
-    logical , optional :: skippable
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: var
+    logical, optional :: skippable
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(2) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(2) :: istart, icount
 #else
-    integer(ik4) , dimension(2) :: istart , icount
+    integer(ik4), dimension(2) :: istart, icount
 #endif
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
@@ -1447,11 +1447,11 @@ module mod_savefile
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid , nx , ny
-    character(len=*) , intent(in) :: str
-    real(rkx) , dimension(nx,ny) , intent(inout) :: var
-    integer(ik4) , dimension(:) , intent(in) :: ivar
-    integer(ik4) , intent(inout) :: iivar
+    integer(ik4), intent(in) :: ncid, nx, ny
+    character(len=*), intent(in) :: str
+    real(rkx), dimension(nx,ny), intent(inout) :: var
+    integer(ik4), dimension(:), intent(in) :: ivar
+    integer(ik4), intent(inout) :: iivar
     iivar = iivar + 1
 #ifdef PNETCDF
     ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var)
@@ -1468,10 +1468,10 @@ module mod_savefile
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    real(rkx) , dimension(:,:) , intent(inout) :: var
-    integer(ik4) , intent(in) :: ivar
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rkx), dimension(:,:), intent(inout) :: var
+    integer(ik4), intent(in) :: ivar
 #ifdef PNETCDF
     ncstatus = nf90mpi_get_var_all(ncid,ivar,var)
 #else
@@ -1482,21 +1482,21 @@ module mod_savefile
 
   subroutine myputvar3dd(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
-    integer(ik4) , dimension(:) , intent(in) :: ivar
-    integer(ik4) , intent(inout) :: iivar
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: var
+    integer(ik4), dimension(:), intent(in) :: ivar
+    integer(ik4), intent(inout) :: iivar
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(3) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(3) :: istart, icount
 #else
-    integer(ik4) , dimension(3) :: istart , icount
+    integer(ik4), dimension(3) :: istart, icount
 #endif
     iivar = iivar + 1
     istart(1) = lbound(var,1)
@@ -1515,19 +1515,19 @@ module mod_savefile
 
   subroutine mygetvar3dd(ncid,str,var)
 #ifdef PNETCDF
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: var
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: var
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(3) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(3) :: istart, icount
 #else
-    integer(ik4) , dimension(3) :: istart , icount
+    integer(ik4), dimension(3) :: istart, icount
 #endif
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
@@ -1545,21 +1545,21 @@ module mod_savefile
 
   subroutine myputvar4dd(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: var
-    integer(ik4) , dimension(:) , intent(in) :: ivar
-    integer(ik4) , intent(inout) :: iivar
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var
+    integer(ik4), dimension(:), intent(in) :: ivar
+    integer(ik4), intent(inout) :: iivar
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(4) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(4) :: istart, icount
 #else
-    integer(ik4) , dimension(4) :: istart , icount
+    integer(ik4), dimension(4) :: istart, icount
 #endif
     iivar = iivar + 1
     istart(1) = lbound(var,1)
@@ -1580,19 +1580,19 @@ module mod_savefile
 
   subroutine mygetvar4dd(ncid,str,var)
 #ifdef PNETCDF
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: var
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: var
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(4) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(4) :: istart, icount
 #else
-    integer(ik4) , dimension(4) :: istart , icount
+    integer(ik4), dimension(4) :: istart, icount
 #endif
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
@@ -1617,11 +1617,11 @@ module mod_savefile
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid , nx
-    character(len=*) , intent(in) :: str
-    integer(ik4) , dimension(nx) , intent(inout) :: var
-    integer(ik4) , dimension(:) , intent(in) :: ivar
-    integer(ik4) , intent(inout) :: iivar
+    integer(ik4), intent(in) :: ncid, nx
+    character(len=*), intent(in) :: str
+    integer(ik4), dimension(nx), intent(inout) :: var
+    integer(ik4), dimension(:), intent(in) :: ivar
+    integer(ik4), intent(inout) :: iivar
     iivar = iivar + 1
 #ifdef PNETCDF
     ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var)
@@ -1638,10 +1638,10 @@ module mod_savefile
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    integer(ik4) , dimension(:) , intent(inout) :: var
-    integer(ik4) , intent(in) :: ivar
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    integer(ik4), dimension(:), intent(inout) :: var
+    integer(ik4), intent(in) :: ivar
 #ifdef PNETCDF
     ncstatus = nf90mpi_get_var_all(ncid,ivar,var)
 #else
@@ -1652,21 +1652,21 @@ module mod_savefile
 
   subroutine myputvar2di(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: var
-    integer(ik4) , dimension(:) , intent(in) :: ivar
-    integer(ik4) , intent(inout) :: iivar
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: var
+    integer(ik4), dimension(:), intent(in) :: ivar
+    integer(ik4), intent(inout) :: iivar
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(2) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(2) :: istart, icount
 #else
-    integer(ik4) , dimension(2) :: istart , icount
+    integer(ik4), dimension(2) :: istart, icount
 #endif
     iivar = iivar + 1
     istart(1) = lbound(var,1)
@@ -1683,19 +1683,19 @@ module mod_savefile
 
   subroutine mygetvar2di(ncid,str,var)
 #ifdef PNETCDF
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: var
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: var
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(2) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(2) :: istart, icount
 #else
-    integer(ik4) , dimension(2) :: istart , icount
+    integer(ik4), dimension(2) :: istart, icount
 #endif
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
@@ -1711,21 +1711,21 @@ module mod_savefile
 
   subroutine myputvar3di(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: var
-    integer(ik4) , dimension(:) , intent(in) :: ivar
-    integer(ik4) , intent(inout) :: iivar
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: var
+    integer(ik4), dimension(:), intent(in) :: ivar
+    integer(ik4), intent(inout) :: iivar
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(3) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(3) :: istart, icount
 #else
-    integer(ik4) , dimension(3) :: istart , icount
+    integer(ik4), dimension(3) :: istart, icount
 #endif
     iivar = iivar + 1
     istart(1) = lbound(var,1)
@@ -1744,19 +1744,19 @@ module mod_savefile
 
   subroutine mygetvar3di(ncid,str,var)
 #ifdef PNETCDF
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: str
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: var
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: var
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(3) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(3) :: istart, icount
 #else
-    integer(ik4) , dimension(3) :: istart , icount
+    integer(ik4), dimension(3) :: istart, icount
 #endif
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
@@ -1775,13 +1775,13 @@ module mod_savefile
   subroutine saveopen(sname,ncid)
 #ifdef PNETCDF
     use pnetcdf
-    use mpi , only : mpi_comm_self
+    use mpi, only : mpi_comm_self
 #else
     use netcdf
 #endif
     implicit none
-    character(len=*) , intent(in) :: sname
-    integer(ik4) , intent(out) :: ncid
+    character(len=*), intent(in) :: sname
+    integer(ik4), intent(out) :: ncid
     integer(ik4) :: imode
     character (len=11) :: ctemp
     integer(ik4) :: ical
@@ -1884,13 +1884,13 @@ module mod_savefile
   subroutine savecreate(sname,ncid)
 #ifdef PNETCDF
     use pnetcdf
-    use mpi , only : mpi_comm_self
+    use mpi, only : mpi_comm_self
 #else
     use netcdf
 #endif
     implicit none
-    character(len=*) , intent(in) :: sname
-    integer(ik4) , intent(out) :: ncid
+    character(len=*), intent(in) :: sname
+    integer(ik4), intent(out) :: ncid
     integer(ik4) :: imode
 #ifndef PNETCDF
 #ifdef NETCDF4_HDF5
@@ -1943,9 +1943,9 @@ module mod_savefile
     use netcdf
 #endif
     implicit none
-    character(len=*) , intent(in) :: sname
-    type (rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) , intent(in) :: ncid
+    character(len=*), intent(in) :: sname
+    type (rcm_time_and_date), intent(in) :: idate
+    integer(ik4), intent(in) :: ncid
     character (len=11) :: ctemp
     ctemp = tochar10(idate)
 #ifdef PNETCDF
@@ -2011,13 +2011,13 @@ module mod_savefile
   integer(ik4) function savedefdim(ncid,dname,dlen) result(dimid)
 #ifdef PNETCDF
     use pnetcdf
-    use mpi , only : mpi_offset_kind
+    use mpi, only : mpi_offset_kind
 #else
     use netcdf
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ncid , dlen
-    character(len=*) , intent(in) :: dname
+    integer(ik4), intent(in) :: ncid, dlen
+    character(len=*), intent(in) :: dname
 #ifdef PNETCDF
     integer(kind=mpi_offset_kind) :: xlen
     xlen = dlen
@@ -2035,8 +2035,8 @@ module mod_savefile
     use netcdf
 #endif
     implicit none
-    character(len=*) , intent(in) :: sname
-    integer(ik4) , intent(inout) :: ncid
+    character(len=*), intent(in) :: sname
+    integer(ik4), intent(inout) :: ncid
 #ifdef PNETCDF
     ncstatus = nf90mpi_close(ncid)
 #else

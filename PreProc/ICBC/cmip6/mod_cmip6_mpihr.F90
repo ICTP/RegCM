@@ -29,19 +29,19 @@ module mod_cmip6_mpihr
 
   private
 
-  character(len=*) , parameter :: mpihr_version = 'v20190710'
-  character(len=*) , parameter :: mpihr_version1 = 'v20190815'
+  character(len=*), parameter :: mpihr_version = 'v20190710'
+  character(len=*), parameter :: mpihr_version1 = 'v20190815'
 
-  public :: read_3d_mpihr , read_2d_mpihr , read_fx_mpihr , read_sst_mpihr
+  public :: read_3d_mpihr, read_2d_mpihr, read_fx_mpihr, read_sst_mpihr
 
   contains
 
     subroutine read_hcoord_mpihr(ncid,lon,lat)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
-      integer(ik4) :: istatus , idimid , ivarid
-      integer(ik4) :: nlon , nlat
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:), intent(inout) :: lon, lat
+      integer(ik4) :: istatus, idimid, ivarid
+      integer(ik4) :: nlon, nlat
       istatus = nf90_inq_dimid(ncid,'lon',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -64,10 +64,10 @@ module mod_cmip6_mpihr
 
     subroutine read_hcoord_sst_mpihr(ncid,lon,lat)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
-      integer(ik4) :: istatus , idimid , ivarid
-      integer(ik4) :: nlon , nlat
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
+      integer(ik4) :: istatus, idimid, ivarid
+      integer(ik4) :: nlon, nlat
       istatus = nf90_inq_dimid(ncid,'i',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon i')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -90,9 +90,9 @@ module mod_cmip6_mpihr
 
     subroutine read_vcoord_mpihr(ncid,ap,b)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: ap , b
-      integer(ik4) :: istatus , idimid , ivarid
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:), intent(inout) :: ap, b
+      integer(ik4) :: istatus, idimid, ivarid
       integer(ik4) :: nlev
       istatus = nf90_inq_dimid(ncid,'lev',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
@@ -112,14 +112,14 @@ module mod_cmip6_mpihr
 
     recursive subroutine read_3d_mpihr(idate,v,lonlyc)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_3d_var) , pointer , intent(inout) :: v
-      logical , optional , intent(in) :: lonlyc
-      integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(4) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_3d_var), pointer, intent(inout) :: v
+      logical, optional, intent(in) :: lonlyc
+      integer(ik4) :: istatus, idimid, it, irec
+      integer(ik4) :: year, month, day, hour, y
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(4) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
       character(len=16) :: ver
 
@@ -225,14 +225,14 @@ module mod_cmip6_mpihr
 
     recursive subroutine read_2d_mpihr(idate,v,lonlyc)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_2d_var) , pointer , intent(inout) :: v
-      logical , optional , intent(in) :: lonlyc
-      integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(3) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_2d_var), pointer, intent(inout) :: v
+      logical, optional, intent(in) :: lonlyc
+      integer(ik4) :: istatus, idimid, it, irec
+      integer(ik4) :: year, month, day, hour, y
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(3) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
 
       if ( v%ncid == -1 ) then
@@ -324,7 +324,7 @@ module mod_cmip6_mpihr
 
     recursive subroutine read_fx_mpihr(v)
       implicit none
-      type(cmip6_2d_var) , pointer , intent(inout) :: v
+      type(cmip6_2d_var), pointer, intent(inout) :: v
       integer(ik4) :: istatus
 
       v%filename = trim(cmip6_fxpath(mpihr_version,v%vname))
@@ -356,14 +356,14 @@ module mod_cmip6_mpihr
 
     recursive subroutine read_sst_mpihr(idate,v,lat,lon)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_2d_var) , intent(inout) :: v
-      real(rkx) , pointer , dimension(:,:) , intent(in) :: lat , lon
-      integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(3) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_2d_var), intent(inout) :: v
+      real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat, lon
+      integer(ik4) :: istatus, idimid, it, irec
+      integer(ik4) :: year, month, day, hour, y
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(3) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
 
       if ( v%ncid == -1 ) then

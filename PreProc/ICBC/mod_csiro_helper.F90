@@ -24,11 +24,11 @@ module mod_csiro_helper
 
   public :: csirvars
   public :: find_csiro_sst
-  public :: find_csiro_dim , find_csiro_topo , find_csiro_file
+  public :: find_csiro_dim, find_csiro_topo, find_csiro_file
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: csirvars = &
-            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: csirvars = &
+            ['ta ', 'XXX', 'hus', 'ua ', 'va ', 'ps ']
 
   character(len=64) :: csirbase1  = '_6hrLev_CSIRO-Mk3-6-0_historical'
   character(len=64) :: csirbase2  = '_6hrLev_CSIRO-Mk3-6-0_rcp'
@@ -38,8 +38,8 @@ module mod_csiro_helper
 
   subroutine find_csiro_sst(fname,idate)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       fname = trim(inpglob)//pthsep//'CSIRO-MK36'//pthsep//'SST'// &
               pthsep//'tos_Omon_CSIRO-Mk3-6-0_historical'// &
@@ -53,11 +53,11 @@ module mod_csiro_helper
 
   subroutine assemble_path(fname,scen,var,d1,d2)
     implicit none
-    character(len=256) , intent(out) :: fname
-    character(len=*) , intent(in) :: scen
-    character(len=*) , intent(in) :: var
-    character(len=*) , intent(in) :: d1
-    character(len=*) , intent(in) :: d2
+    character(len=256), intent(out) :: fname
+    character(len=*), intent(in) :: scen
+    character(len=*), intent(in) :: var
+    character(len=*), intent(in) :: d1
+    character(len=*), intent(in) :: d2
     if ( scen == 'RF' ) then
       fname = trim(inpglob)//pthsep//'CSIRO-MK36'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(csirbase1)//  &
@@ -71,7 +71,7 @@ module mod_csiro_helper
 
   subroutine find_csiro_dim(dim_filename)
     implicit none
-    character(len=256) , intent(out) :: dim_filename
+    character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(dim_filename,'RF','ta','1950010106','1951010100')
@@ -79,19 +79,19 @@ module mod_csiro_helper
 
   subroutine find_csiro_topo(topo_filename)
     implicit none
-    character(len=256) , intent(out) :: topo_filename
+    character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'CSIRO-MK36'//pthsep//'fixed'// &
               pthsep//'orog_fx_CSIRO-Mk3-6-0_historical_r0i0p0.nc'
   end subroutine find_csiro_topo
 
   subroutine find_csiro_file(csiro_filename,var,idate)
     implicit none
-    character(len=256) , intent(out) :: csiro_filename
-    character(len=*) , intent(in) :: var
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
-    integer(ik4) :: iyear1 , iyear2
+    character(len=256), intent(out) :: csiro_filename
+    character(len=*), intent(in) :: var
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
+    integer(ik4) :: iyear1, iyear2
     call split_idate(idate,y,m,d,h)
     select case (var)
       case ('ps')

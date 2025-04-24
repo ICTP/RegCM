@@ -37,14 +37,14 @@ module mod_cloud_texeira
   ! https://doi.org/10.1175/1520-0493(2001)129<1750:CFARHI>2.0.CO;2
   subroutine texeira_cldfrac(qc,qs,rh,rh0,qcrit,fcc)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qs , qc , rh
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: rh0 , qcrit
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
-    integer(ik4) :: i , j , k
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qs, qc, rh
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: rh0, qcrit
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
+    integer(ik4) :: i, j, k
 
-    real(rkx) , parameter :: kappa = 1.0e-6 ! sec-1
-    real(rkx) , parameter :: d = 4.0e-6 ! sec-1
-    real(rkx) :: rhrng , liq , spq
+    real(rkx), parameter :: kappa = 1.0e-6 ! sec-1
+    real(rkx), parameter :: d = 4.0e-6 ! sec-1
+    real(rkx) :: rhrng, liq, spq
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction

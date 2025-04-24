@@ -27,24 +27,24 @@ module mod_clm_fracwet
   subroutine FracWet(numf, filter)
     implicit none
     ! number of filter non-lake points
-    integer(ik4) , intent(in) :: numf
+    integer(ik4), intent(in) :: numf
     ! pft filter for non-lake points
-    integer(ik4) , intent(in) :: filter(numf)
+    integer(ik4), intent(in) :: filter(numf)
     ! fraction of veg not covered by snow (0/1 now) [-]
-    integer(ik4) , pointer :: frac_veg_nosno(:)
+    integer(ik4), pointer, contiguous :: frac_veg_nosno(:)
     ! Maximum allowed dew [mm]
-    real(rk8) , pointer :: dewmx(:)
+    real(rk8), pointer, contiguous :: dewmx(:)
     ! one-sided leaf area index with burying by snow
-    real(rk8) , pointer :: elai(:)
+    real(rk8), pointer, contiguous :: elai(:)
     ! one-sided stem area index with burying by snow
-    real(rk8) , pointer :: esai(:)
+    real(rk8), pointer, contiguous :: esai(:)
     ! total canopy water (mm H2O)
-    real(rk8) , pointer :: h2ocan(:)
+    real(rk8), pointer, contiguous :: h2ocan(:)
     ! fraction of canopy that is wet (0 to 1)
-    real(rk8) , pointer :: fwet(:)
+    real(rk8), pointer, contiguous :: fwet(:)
     ! fraction of foliage that is green and dry [-] (new)
-    real(rk8) , pointer :: fdry(:)
-    integer(ik4) :: fp , p   ! indices
+    real(rk8), pointer, contiguous :: fdry(:)
+    integer(ik4) :: fp, p   ! indices
     real(rk8) :: vegt        ! frac_veg_nosno*lsai
     real(rk8) :: dewmxi      ! inverse of maximum allowed dew [1/mm]
 
@@ -60,7 +60,7 @@ module mod_clm_fracwet
 
     ! Compute fraction of canopy that is wet and dry
 
-    do fp = 1 , numf
+    do fp = 1, numf
       p = filter(fp)
       if ( frac_veg_nosno(p) == 1 ) then
         if ( h2ocan(p) > 0._rk8 ) then

@@ -34,56 +34,56 @@ module mod_ch_fnest
 
   private
 
-  integer(ik4) :: fchem , nrec
-  integer(ik4) , dimension(:) , allocatable :: ncid
+  integer(ik4) :: fchem, nrec
+  integer(ik4), dimension(:), allocatable :: ncid
 
   ! Remember to increase this if we get more chemistry variables !
-  integer(ik4) , parameter :: maxchvar = 64
-  character(len=8) , dimension(maxchvar) :: chnames
+  integer(ik4), parameter :: maxchvar = 64
+  character(len=8), dimension(maxchvar) :: chnames
   character(len=256) :: cbase
 
-  integer(ik4) :: iy_in , jx_in , kz_in , np
+  integer(ik4) :: iy_in, jx_in, kz_in, np
 
-  real(rkx) , dimension(:,:,:) , pointer :: mxc , mxcp , mxcp4
-  real(rkx) , dimension(:,:,:,:) , pointer :: mxc4_1
-  real(rkx) , dimension(:,:,:) , pointer :: pp3d , p3d
-  real(rkx) , dimension(:,:) , pointer :: xlat_in , xlon_in , ht_in
-  real(rkx) , dimension(:,:) , pointer :: p0_in , pstar0 , ps , xps , xps3
-  real(rkx) , dimension(:) , pointer :: sigma_in , plev , sigmar
+  real(rkx), dimension(:,:,:), pointer, contiguous :: mxc, mxcp, mxcp4
+  real(rkx), dimension(:,:,:,:), pointer, contiguous :: mxc4_1
+  real(rkx), dimension(:,:,:), pointer, contiguous :: pp3d, p3d
+  real(rkx), dimension(:,:), pointer, contiguous :: xlat_in, xlon_in, ht_in
+  real(rkx), dimension(:,:), pointer, contiguous :: p0_in, pstar0, ps, xps, xps3
+  real(rkx), dimension(:), pointer, contiguous :: sigma_in, plev, sigmar
   real(rkx) :: pss
   integer(ik4) :: oidyn
   character(len=6) :: iproj_in
-  real(rkx) :: clat_in , clon_in , ds_in
-  real(rkx) :: plat_in , plon_in , ptop_in , xcone_in
-  type(rcm_time_and_date) , dimension(:) , pointer :: itimes
-  real(rkx) , dimension(:) , pointer :: xtimes
-  character(len=64) :: timeunits , timecal
-  integer(ik4) :: ncicbc , ivarps , irec
+  real(rkx) :: clat_in, clon_in, ds_in
+  real(rkx) :: plat_in, plon_in, ptop_in, xcone_in
+  type(rcm_time_and_date), dimension(:), pointer, contiguous :: itimes
+  real(rkx), dimension(:), pointer, contiguous :: xtimes
+  character(len=64) :: timeunits, timecal
+  integer(ik4) :: ncicbc, ivarps, irec
   type(rcm_time_and_date) :: iodate
   type(h_interpolator) :: hint
-  logical , dimension(3) :: mapping
+  logical, dimension(3) :: mapping
 
   data mapping /.false.,.false.,.false./
   data ncicbc /-1/
 
-  public :: init_fnest , get_fnest , close_fnest
+  public :: init_fnest, get_fnest, close_fnest
 
   contains
 
   subroutine init_fnest(idate,cdir,cname,dochem,dooxcl,doaero)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=*) , intent(in) :: cdir , cname
-    logical , intent(in) :: dochem , dooxcl , doaero
-    type(direntry) , pointer , dimension(:) :: listf => null()
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=*), intent(in) :: cdir, cname
+    logical, intent(in) :: dochem, dooxcl, doaero
+    type(direntry), pointer, contiguous, dimension(:) :: listf => null()
     type(rcm_time_and_date) :: imf
     character(len=11) :: cdate
-    character(len=256) :: fname , icbcfilename
-    integer(ik4) :: fnum , nf , is , ie , ip , i , j , k
-    real(rkx) , dimension(2) :: trlat
+    character(len=256) :: fname, icbcfilename
+    integer(ik4) :: fnum, nf, is, ie, ip, i, j, k
+    real(rkx), dimension(2) :: trlat
     real(rkx) :: xsign
-    integer(ik4) :: istatus , idimid , ivarid
-    integer(ik4) , dimension(3) :: istart , icount
+    integer(ik4) :: istatus, idimid, ivarid
+    integer(ik4), dimension(3) :: istart, icount
 
     if ( dochem ) mapping(1) = .true.
     if ( dooxcl ) mapping(2) = .true.
@@ -101,7 +101,7 @@ module mod_ch_fnest
     write(cdate,'(a)') tochar10(imf)
     write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
            trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
-    do nf = 1 , fnum
+    do nf = 1, fnum
       if ( index(listf(nf)%ename,trim(cname)) /= 0 .and. &
            index(listf(nf)%ename,'.nc') /= 0 .and. &
            index(listf(nf)%ename,trim(cdate)) /= 0 .and. &
@@ -118,7 +118,7 @@ module mod_ch_fnest
         ie = index(listf(nf)%ename,trim(cdate)) - 2
         j = 1
         chnames(fchem)(:) = ' '
-        do i = is , ie
+        do i = is, ie
           chnames(fchem)(j:j) = listf(nf)%ename(i:i)
           j = j + 1
         end do
@@ -129,7 +129,7 @@ module mod_ch_fnest
     end if
     allocate(ncid(fchem))
     write(cbase,'(a,a1,a,a1)') trim(cdir),pthsep,trim(cname),'_'
-    do nf = 1 , fchem
+    do nf = 1, fchem
       write(fname,'(a,a,a1,a,a)') trim(cbase), trim(chnames(nf)), &
                   '.', trim(cdate), '.nc'
       istatus = nf90_open(fname,nf90_nowrite,ncid(nf))
@@ -174,7 +174,7 @@ module mod_ch_fnest
     istatus = nf90_get_var(ncid(1), ivarid, xtimes)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable time read error')
-    do i = 1 , nrec
+    do i = 1, nrec
       itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
     end do
 
@@ -315,11 +315,11 @@ module mod_ch_fnest
       pstar0 = p0_in - ptop_in
     end if
 
-    do ip = 1 , np/2
+    do ip = 1, np/2
       plev(ip) = d_half * (minval(pstar0*sigma_in(ip+1)) + &
                            maxval(pstar0*sigma_in(ip))) + ptop_in
     end do
-    do ip = np/2+1 , np
+    do ip = np/2+1, np
       plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in
     end do
 
@@ -331,7 +331,7 @@ module mod_ch_fnest
     call getmem2d(xps,1,jx,1,iy,'mod_nest:xps')
     call getmem2d(xps3,1,jx,1,iy,'mod_nest:xps3')
 
-    do k = 1 , np
+    do k = 1, np
       sigmar(k) = plev(k)/plev(np)
     end do
     pss = plev(np)
@@ -340,20 +340,20 @@ module mod_ch_fnest
 
   subroutine get_fnest(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     character(len=11) :: cdate
-    character(len=256) :: fname , icbcfilename
+    character(len=256) :: fname, icbcfilename
     type(rcm_time_and_date) :: imf
-    integer(ik4) :: nf , i , j , k , l , crec , k0
-    integer(ik4) :: istatus , idimid , ivarid
-    integer(ik4) , dimension(4) :: istart , icount
-    real(rkx) :: prcm , pmpi , pmpj , wt1 , wt2
+    integer(ik4) :: nf, i, j, k, l, crec, k0
+    integer(ik4) :: istatus, idimid, ivarid
+    integer(ik4), dimension(4) :: istart, icount
+    real(rkx) :: prcm, pmpi, pmpj, wt1, wt2
     character(len=8) :: specname
 
     if ( idate > itimes(nrec) ) then
       imf = monfirst(idate)
       write(cdate,'(a)') tochar10(imf)
-      do nf = 1 , fchem
+      do nf = 1, fchem
         istatus = nf90_close(ncid(nf))
         write(fname,'(a,a,a1,a,a)') trim(cbase), trim(chnames(nf)), &
                   '.', trim(cdate), '.nc'
@@ -381,13 +381,13 @@ module mod_ch_fnest
       istatus = nf90_get_var(ncid(1), ivarid, xtimes)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time read error')
-      do i = 1 , nrec
+      do i = 1, nrec
         itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
       end do
     else if ( idate < itimes(1) ) then
       imf = prevmon(idate)
       write(cdate,'(a)') tochar10(imf)
-      do nf = 1 , fchem
+      do nf = 1, fchem
         istatus = nf90_close(ncid(nf))
         write(fname,'(a,a,a1,a,a)') trim(cbase), trim(chnames(nf)), &
                   '.', trim(cdate), '.nc'
@@ -415,7 +415,7 @@ module mod_ch_fnest
       istatus = nf90_get_var(ncid(1), ivarid, xtimes)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time read error')
-      do i = 1 , nrec
+      do i = 1, nrec
         itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
       end do
     end if
@@ -437,7 +437,7 @@ module mod_ch_fnest
     end if
 
     crec = -1
-    do i = 1 , nrec
+    do i = 1, nrec
       if (idate == itimes(i)) then
         crec = i
         exit
@@ -489,16 +489,16 @@ module mod_ch_fnest
       istatus = nf90_get_var(ncid(1), ivarid, pp3d, istart, icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ppa read error')
-      do k = 1 , kz_in
-        do i = 1 , iy_in
-          do j = 1 , jx_in
+      do k = 1, kz_in
+        do i = 1, iy_in
+          do j = 1, jx_in
             p3d(j,i,k) = pstar0(j,i) * sigma_in(k) + &
                          ptop_in + pp3d(j,i,k)
           end do
         end do
       end do
     end if
-    do nf = 1 , fchem
+    do nf = 1, fchem
       istatus = nf90_inq_varid(ncid(nf), 'mixrat', ivarid)
       istatus = nf90_get_var(ncid(nf), ivarid, mxc, istart, icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -509,12 +509,12 @@ module mod_ch_fnest
         call intlin(mxcp,mxc,p3d,jx_in,iy_in,kz_in,plev,np)
       end if
       call h_interpolate_cont(hint,mxcp,mxcp4)
-      do i = 1 , iy
-        do j = 1 , jx
-          do l = 1 , kz
+      do i = 1, iy
+        do j = 1, jx
+          do l = 1, kz
             prcm = ((xps3(j,i)*0.1_rkx-ptop)*sigmah(l)+ptop)*1000.0_rkx
             k0 = -1
-            do k = np , 1 , -1
+            do k = np, 1, -1
               pmpi = plev(k)
               k0 = k
               if (prcm > pmpi) exit
@@ -539,19 +539,19 @@ module mod_ch_fnest
     ! Now we have to map....
     !
     if ( mapping(1) ) then
-      do i = 1 , ncbmz
+      do i = 1, ncbmz
         chv4(:,:,:,i) = mxc4_1(:,:,:,findex(cbmzspec(i)))
       end do
       call write_ch_icbc(idate)
     end if
     if ( mapping(2) ) then
-      do i = 1 , noxsp
+      do i = 1, noxsp
         oxv4(:,:,:,i) = mxc4_1(:,:,:,findex(oxspec(i)))
       end do
       call write_ox_icbc(idate)
     end if
     if ( mapping(3) ) then
-      do i = 1 , naesp
+      do i = 1, naesp
         if ( aespec(i) == 'SOA' ) cycle
         if ( aespec(i) == 'SSLT03' ) cycle
         if ( aespec(i) == 'SSLT04' ) cycle
@@ -578,10 +578,10 @@ module mod_ch_fnest
 
   integer(ik4) function findex(sname) result(i)
     implicit none
-    character(len=*) , intent(in) :: sname
+    character(len=*), intent(in) :: sname
     integer(ik4) :: nf
     i = -1
-    do nf = 1 , fchem
+    do nf = 1, fchem
       if ( trim(chnames(nf)) == trim(sname) ) then
         i = nf
         return
@@ -595,9 +595,9 @@ module mod_ch_fnest
   subroutine close_fnest
     use netcdf
     implicit none
-    integer(ik4) :: istatus , fid
+    integer(ik4) :: istatus, fid
     if ( allocated(ncid) ) then
-      do fid = 1 , size(ncid)
+      do fid = 1, size(ncid)
         if ( ncid(fid) > 0 ) then
           istatus = nf90_close(ncid(fid))
           call checkncerr(istatus,__FILE__,__LINE__, &

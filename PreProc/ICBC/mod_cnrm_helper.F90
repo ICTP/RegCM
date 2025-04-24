@@ -24,11 +24,11 @@ module mod_cnrm_helper
 
   public :: cnrmvars
   public :: find_cnrm_sst
-  public :: find_cnrm_dim , find_cnrm_topo , find_cnrm_file
+  public :: find_cnrm_dim, find_cnrm_topo, find_cnrm_file
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: cnrmvars = &
-            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: cnrmvars = &
+            ['ta ', 'XXX', 'hus', 'ua ', 'va ', 'ps ']
 
   character(len=64) :: cnrmbase1 = '_6hrPlev_CNRM-CM5_historical'
   character(len=64) :: cnrmbase2 = '_6hrPlev_CNRM-CM5_rcp'
@@ -38,11 +38,11 @@ module mod_cnrm_helper
 
   subroutine find_cnrm_sst(fname,idate)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: y1 , y2
-    character(len=6) :: d1 , d2
-    integer(ik4) :: y , m , d , h
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: y1, y2
+    character(len=6) :: d1, d2
+    integer(ik4) :: y, m, d, h
     call split_idate(idate,y,m,d,h)
     if ( y < 2006 ) then
       y1 = (y)/10*10
@@ -78,11 +78,11 @@ module mod_cnrm_helper
 
   subroutine assemble_path(fname,scen,var,d1,d2)
     implicit none
-    character(len=256) , intent(out) :: fname
-    character(len=*) , intent(in) :: scen
-    character(len=*) , intent(in) :: var
-    character(len=*) , intent(in) :: d1
-    character(len=*) , intent(in) :: d2
+    character(len=256), intent(out) :: fname
+    character(len=*), intent(in) :: scen
+    character(len=*), intent(in) :: var
+    character(len=*), intent(in) :: d1
+    character(len=*), intent(in) :: d2
     if ( scen == 'RF' ) then
       fname = trim(inpglob)//pthsep//'CNRM-CM5'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(cnrmbase1)//  &
@@ -96,7 +96,7 @@ module mod_cnrm_helper
 
   subroutine find_cnrm_dim(dim_filename)
     implicit none
-    character(len=256) , intent(out) :: dim_filename
+    character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(dim_filename,'RF','ta','1970010106','1971010100')
@@ -104,19 +104,19 @@ module mod_cnrm_helper
 
   subroutine find_cnrm_topo(topo_filename)
     implicit none
-    character(len=256) , intent(out) :: topo_filename
+    character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'CNRM-CM5'//pthsep//'fixed'// &
               pthsep//'orog_fx_CNRM-CM5_historical_r0i0p0.nc'
   end subroutine find_cnrm_topo
 
   subroutine find_cnrm_file(cnrm_filename,var,idate)
     implicit none
-    character(len=256) , intent(out) :: cnrm_filename
-    character(len=*) , intent(in) :: var
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
-    integer(ik4) :: y1 , y2
+    character(len=256), intent(out) :: cnrm_filename
+    character(len=*), intent(in) :: var
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
+    integer(ik4) :: y1, y2
     call split_idate(idate,y,m,d,h)
     y1 = y
     y2 = y+1

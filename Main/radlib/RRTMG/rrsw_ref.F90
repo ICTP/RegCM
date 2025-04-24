@@ -21,9 +21,9 @@
 ! tref   :  real   : Reference temperature levels for MLS profile
 !------------------------------------------------------------------
 
-      real(kind=rb) , dimension(59) :: pref
-      real(kind=rb) , dimension(59) :: preflog
-      real(kind=rb) , dimension(59) :: tref
+      real(kind=rb), dimension(59) :: pref
+      real(kind=rb), dimension(59) :: preflog
+      real(kind=rb), dimension(59) :: tref
 
       end module rrsw_ref
 

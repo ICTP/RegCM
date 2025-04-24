@@ -25,11 +25,11 @@ module mod_oasis_interface
   use mod_message
   use mod_service
   use mod_mppparam
-  use mod_runparams , only : isocean , dtsec , alarm_out_sav , rcmtimer
-  use mod_bats_common , only : rdnnsg
-  use mod_atm_interface , only : atms , sfs , flwd , flw , fsw , sinc , mddom
-  use mod_lm_interface , only : lms
-  use mod_date , only : lfdomonth , lmidnight
+  use mod_runparams, only : isocean, dtsec, alarm_out_sav, rcmtimer
+  use mod_bats_common, only : rdnnsg
+  use mod_atm_interface, only : atms, sfs, flwd, flw, fsw, sinc, mddom
+  use mod_lm_interface, only : lms
+  use mod_date, only : lfdomonth, lmidnight
 
   use mod_oasis
   use mod_oasis_params
@@ -40,92 +40,92 @@ module mod_oasis_interface
 
   private
 
-  public :: comp_name , comp_id ! -> mod_oasis_params
+  public :: comp_name, comp_id ! -> mod_oasis_params
   public :: oasis_lag           ! -> mod_oasis_params
 
   !--------------------------------------------------------------------
   ! for grid and partition activation
-  ! (dot/cross , external/internal)
-  logical :: l_make_grdde , l_make_grddi , &
-             l_make_grdce , l_make_grdci
-  type(infogrd) , target , allocatable :: grdde , grddi , &
-                                          grdce , grdci
+  ! (dot/cross, external/internal)
+  logical :: l_make_grdde, l_make_grddi, &
+             l_make_grdce, l_make_grdci
+  type(infogrd), target, allocatable :: grdde, grddi, &
+                                          grdce, grdci
 
   !--------------------------------------------------------------------
   ! below the namelist parameters (namelist oasisparam)
-  public :: l_write_grids , write_restart_option ! -> mod_oasis_params
+  public :: l_write_grids, write_restart_option ! -> mod_oasis_params
   public :: oasis_sync_lag                       ! -> mod_oasis_params
-  logical , public :: l_cpl_im_sst , &
-!                      l_cpl_im_sit , & ! not coded
-                      l_cpl_im_wz0 , & ! not tested
-                      l_cpl_im_wust , & ! not tested
-                      l_cpl_ex_u10m , & ! not tested
-                      l_cpl_ex_v10m , & ! not tested
-                      l_cpl_ex_wspd , & ! not tested
-                      l_cpl_ex_wdir , & ! not tested
-                      l_cpl_ex_t2m , & ! not tested
-!                      l_cpl_ex_t10m , & ! not coded
-                      l_cpl_ex_q2m , & ! not tested
-!                      l_cpl_ex_q10m , & ! not coded
-                      l_cpl_ex_slp , &
-                      l_cpl_ex_taux , &
-                      l_cpl_ex_tauy , &
-                      l_cpl_ex_z0 , & ! not tested
-                      l_cpl_ex_ustr , & ! not tested
-                      l_cpl_ex_evap , &
-                      l_cpl_ex_prec , &
-                      l_cpl_ex_nuwa , &
-                      l_cpl_ex_ulhf , &
-                      l_cpl_ex_ushf , &
-                      l_cpl_ex_uwlw , &
-                      l_cpl_ex_dwlw , &
-                      l_cpl_ex_nulw , &
-                      l_cpl_ex_uwsw , &
-                      l_cpl_ex_dwsw , &
-                      l_cpl_ex_ndsw , &
+  logical, public :: l_cpl_im_sst, &
+!                      l_cpl_im_sit, & ! not coded
+                      l_cpl_im_wz0, & ! not tested
+                      l_cpl_im_wust, & ! not tested
+                      l_cpl_ex_u10m, & ! not tested
+                      l_cpl_ex_v10m, & ! not tested
+                      l_cpl_ex_wspd, & ! not tested
+                      l_cpl_ex_wdir, & ! not tested
+                      l_cpl_ex_t2m, & ! not tested
+!                      l_cpl_ex_t10m, & ! not coded
+                      l_cpl_ex_q2m, & ! not tested
+!                      l_cpl_ex_q10m, & ! not coded
+                      l_cpl_ex_slp, &
+                      l_cpl_ex_taux, &
+                      l_cpl_ex_tauy, &
+                      l_cpl_ex_z0, & ! not tested
+                      l_cpl_ex_ustr, & ! not tested
+                      l_cpl_ex_evap, &
+                      l_cpl_ex_prec, &
+                      l_cpl_ex_nuwa, &
+                      l_cpl_ex_ulhf, &
+                      l_cpl_ex_ushf, &
+                      l_cpl_ex_uwlw, &
+                      l_cpl_ex_dwlw, &
+                      l_cpl_ex_nulw, &
+                      l_cpl_ex_uwsw, &
+                      l_cpl_ex_dwsw, &
+                      l_cpl_ex_ndsw, &
                       l_cpl_ex_rhoa ! not tested
   ! OASIS field +++
 
   !--------------------------------------------------------------------
   ! below the variables for the fields' information
-  type(infofld) , allocatable :: im_sst , &
-!                                 im_sit , &
-                                 im_wz0 , &
-                                 im_wust , &
-                                 ex_u10m , &
-                                 ex_v10m , &
-                                 ex_wspd , &
-                                 ex_wdir , &
-                                 ex_t2m , &
-!                                 ex_t10m , &
-                                 ex_q2m , &
-!                                 ex_q10m , &
-                                 ex_slp , &
-                                 ex_taux , &
-                                 ex_tauy , &
-                                 ex_z0 , &
-                                 ex_ustr , &
-                                 ex_evap , &
-                                 ex_prec , &
-                                 ex_nuwa , &
-                                 ex_ulhf , &
-                                 ex_ushf , &
-                                 ex_uwlw , &
-                                 ex_dwlw , &
-                                 ex_nulw , &
-                                 ex_uwsw , &
-                                 ex_dwsw , &
-                                 ex_ndsw , &
+  type(infofld), allocatable :: im_sst, &
+!                                 im_sit, &
+                                 im_wz0, &
+                                 im_wust, &
+                                 ex_u10m, &
+                                 ex_v10m, &
+                                 ex_wspd, &
+                                 ex_wdir, &
+                                 ex_t2m, &
+!                                 ex_t10m, &
+                                 ex_q2m, &
+!                                 ex_q10m, &
+                                 ex_slp, &
+                                 ex_taux, &
+                                 ex_tauy, &
+                                 ex_z0, &
+                                 ex_ustr, &
+                                 ex_evap, &
+                                 ex_prec, &
+                                 ex_nuwa, &
+                                 ex_ulhf, &
+                                 ex_ushf, &
+                                 ex_uwlw, &
+                                 ex_dwlw, &
+                                 ex_nulw, &
+                                 ex_uwsw, &
+                                 ex_dwsw, &
+                                 ex_ndsw, &
                                  ex_rhoa
   ! OASIS field +++
 
   ! OASIS needs double precision arrays. These variables are optional.
   ! Required for the fields to import; recommended for the fields to
   ! export which need a bit of work from the model variables.
-  real(rkx) , dimension(:,:) , allocatable :: cpl_sst , &
-!                                              cpl_sit , &
-                                              cpl_wz0 , &
-                                              cpl_wust , &
+  real(rkx), dimension(:,:), allocatable :: cpl_sst, &
+!                                              cpl_sit, &
+                                              cpl_wz0, &
+                                              cpl_wust, &
                                               cpl_wdir
   ! OASIS field +++
 
@@ -133,19 +133,19 @@ module mod_oasis_interface
   ! They are used when calling the subroutine oasisxregcm_setup_field_array(),
   ! when an array is to be initialized. If not given, the array will be
   ! initialized with zeros.
-  real(rkx) , parameter :: init_sst = tzero + 25.0
+  real(rkx), parameter :: init_sst = tzero + 25.0
   ! OASIS field +++
 
   !--------------------------------------------------------------------
   ! accessibility from oasislib:
-  public :: oasisxregcm_init , oasisxregcm_finalize ! -> mod_oasis_generic
+  public :: oasisxregcm_init, oasisxregcm_finalize ! -> mod_oasis_generic
   public :: oasisxregcm_header                      ! -> mod_oasis_signature
 
   !--------------------------------------------------------------------
   ! from this module:
-  public :: oasisxregcm_params , oasisxregcm_release
+  public :: oasisxregcm_params, oasisxregcm_release
   public :: oasisxregcm_def
-  public :: oasisxregcm_rcv_all , oasisxregcm_snd_all
+  public :: oasisxregcm_rcv_all, oasisxregcm_snd_all
   public :: oasisxregcm_sync_wait
 
   contains
@@ -310,15 +310,15 @@ module mod_oasis_interface
   ! define OASIS grids
   subroutine oasisxregcm_def_grid
     implicit none
-    real(rkx) , pointer , dimension(:,:) :: dlon , dlat ! dot degree coordinates
-    real(rkx) , pointer , dimension(:,:) :: xlon , xlat ! cross degree coordinates
-    real(rkx) , pointer , dimension(:,:) :: lndcat ! land category (15 for ocean)
-    real(rkx) , pointer , dimension(:,:) :: oasisgrid_lon , oasisgrid_lat ! lon, lat
-    real(rkx) , pointer , dimension(:,:,:) :: oasisgrid_clon , & ! lon &
+    real(rkx), pointer, contiguous, dimension(:,:) :: dlon, dlat ! dot degree coordinates
+    real(rkx), pointer, contiguous, dimension(:,:) :: xlon, xlat ! cross degree coordinates
+    real(rkx), pointer, contiguous, dimension(:,:) :: lndcat ! land category (15 for ocean)
+    real(rkx), pointer, contiguous, dimension(:,:) :: oasisgrid_lon, oasisgrid_lat ! lon, lat
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: oasisgrid_clon, & ! lon &
                                               oasisgrid_clat     ! lat of the corners
     ! note: 4 corners (always the case?) in the third dimension, counterclockwisely.
-    real(rkx) , pointer , dimension(:,:) :: oasisgrid_srf ! surface of the grid meshes m2
-    integer(ik4) , pointer , dimension(:,:) :: oasisgrid_mask ! mask, 0 = valid, 1 = mask
+    real(rkx), pointer, contiguous, dimension(:,:) :: oasisgrid_srf ! surface of the grid meshes m2
+    integer(ik4), pointer, contiguous, dimension(:,:) :: oasisgrid_mask ! mask, 0 = valid, 1 = mask
     !                                                          (OASIS convention)
     integer(ik4) :: il_flag ! flag for grid writing by proc 0
     integer(ik4) :: ierror
@@ -418,12 +418,12 @@ module mod_oasis_interface
   subroutine oasisxregcm_make_oasisgrids_d(lon,lat,clon,clat,srf,mask, &
                                            dlon,dlat,xlon,xlat,lndcat)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: dlon , dlat , &
-                                                         xlon , xlat , lndcat
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat , srf
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: clon , clat
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mask
-    integer(ik4) :: i , j
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: dlon, dlat, &
+                                                         xlon, xlat, lndcat
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat, srf
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: clon, clat
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: mask
+    integer(ik4) :: i, j
     !--------------------------------------------------------------------------
     !
     !    ^    corner 2        corner 1
@@ -445,8 +445,8 @@ module mod_oasis_interface
     !                                                         0         0
     call oasisxregcm_allocate_oasisgrids(lon,lat,clon,clat,srf,mask, &
                                          jx,iy,4)
-    do i = 1 , iy
-      do j = 1 , jx
+    do i = 1, iy
+      do j = 1, jx
         ! center
         lon(j,i) = dlon(j,i)
         lat(j,i) = dlat(j,i)
@@ -506,12 +506,12 @@ module mod_oasis_interface
   subroutine oasisxregcm_make_oasisgrids_c(lon,lat,clon,clat,srf,mask, &
                                            dlon,dlat,xlon,xlat,lndcat)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: dlon , dlat , &
-                                                         xlon , xlat , lndcat
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat , srf
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: clon , clat
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mask
-    integer(ik4) :: i , j
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: dlon, dlat, &
+                                                         xlon, xlat, lndcat
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat, srf
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: clon, clat
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: mask
+    integer(ik4) :: i, j
     !--------------------------------------------------------------------------
     !
     !    ^    corner 2        corner 1
@@ -531,8 +531,8 @@ module mod_oasis_interface
     !
     call oasisxregcm_allocate_oasisgrids(lon,lat,clon,clat,srf,mask, &
                                          jx-1,iy-1,4)
-    do i = 1 , iy-1
-      do j = 1 , jx-1
+    do i = 1, iy-1
+      do j = 1, jx-1
         ! center
         lon(j,i) = xlon(j,i)
         lat(j,i) = xlat(j,i)
@@ -566,7 +566,7 @@ module mod_oasis_interface
   ! and optionally reworking them
   subroutine oasisxregcm_rcv_all(time)
     implicit none
-    integer(ik4) , intent(in) :: time ! execution time
+    integer(ik4), intent(in) :: time ! execution time
     logical :: l_act
     !--------------------------------------------------------------------------
 #ifdef DEBUG
@@ -662,9 +662,9 @@ module mod_oasis_interface
   ! with optional prior reworking
   subroutine oasisxregcm_snd_all(time)
     implicit none
-    integer(ik4) , intent(in) :: time ! execution time
-    type(infogrd) , pointer :: grd
-    integer(ik4) :: i , j , ishift , jshift
+    integer(ik4), intent(in) :: time ! execution time
+    type(infogrd), pointer :: grd
+    integer(ik4) :: i, j, ishift, jshift
     logical :: l_write_restart
     !--------------------------------------------------------------------------
     l_write_restart = .false.
@@ -683,7 +683,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_u10m ) then ! eatward near-surface wind (10m-height) [m.s-1]
       grd => ex_u10m%grd
       call oasisxregcm_snd( &
-           sfs%u10m(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           sfs%u10m(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_u10m, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -691,7 +691,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_v10m ) then ! northward near-surface wind (10m-height) [m.s-1]
       grd => ex_v10m%grd
       call oasisxregcm_snd( &
-           sfs%v10m(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           sfs%v10m(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_v10m, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -699,19 +699,19 @@ module mod_oasis_interface
     if ( l_cpl_ex_wspd ) then ! near-surface wind speed (10m-height) [m.s-1]
       grd => ex_wspd%grd
       call oasisxregcm_snd( &
-           sqrt(sfs%u10m(grd%j1:grd%j2 , grd%i1:grd%i2)**2   &
-              + sfs%v10m(grd%j1:grd%j2 , grd%i1:grd%i2)**2), &
+           sqrt(sfs%u10m(grd%j1:grd%j2, grd%i1:grd%i2)**2   &
+              + sfs%v10m(grd%j1:grd%j2, grd%i1:grd%i2)**2), &
            ex_wspd, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
     !
     if ( l_cpl_ex_wdir ) then ! near-surface wind direction (10m-height) [degree]
       grd => ex_wdir%grd
-      do i = grd%i1 , grd%i2
+      do i = grd%i1, grd%i2
         ishift = i - grd%i1 + 1
-        do j = grd%j1 , grd%j2
+        do j = grd%j1, grd%j2
           jshift = j - grd%j1 + 1
-          cpl_wdir(jshift,ishift) = atan2( sfs%u10m(j,i) , sfs%v10m(j,i) ) * raddeg
+          cpl_wdir(jshift,ishift) = atan2( sfs%u10m(j,i), sfs%v10m(j,i) ) * raddeg
           if ( cpl_wdir(jshift,ishift) < d_zero ) &
                cpl_wdir(jshift,ishift) = cpl_wdir(jshift,ishift) + 360_rkx
         end do
@@ -723,7 +723,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_t2m ) then ! near-surface air temperature (2m-height) [K]
       grd => ex_t2m%grd
       call oasisxregcm_snd( &
-           sum( lms%t2m(: , grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
+           sum( lms%t2m(:, grd%j1:grd%j2, grd%i1:grd%i2), 1 ) * rdnnsg, &
            ex_t2m, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -739,7 +739,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_q2m ) then ! near-surface air specific humidity (2m-height) [1]
       grd => ex_q2m%grd
       call oasisxregcm_snd( &
-           sfs%q2m(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           sfs%q2m(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_q2m, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -755,7 +755,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_slp ) then ! sea level pressure [Pa]
       grd => ex_slp%grd
       call oasisxregcm_snd( &
-           atms%ps2d(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           atms%ps2d(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_slp, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -763,7 +763,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_taux) then ! surface eastward wind stress [Pa]
       grd => ex_taux%grd
       call oasisxregcm_snd( &
-           sum( lms%taux(: , grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
+           sum( lms%taux(:, grd%j1:grd%j2, grd%i1:grd%i2), 1 ) * rdnnsg, &
            ex_taux, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -771,7 +771,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_tauy) then ! surface northward wind stress [Pa]
       grd => ex_tauy%grd
       call oasisxregcm_snd( &
-           sum( lms%tauy(: , grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
+           sum( lms%tauy(:, grd%j1:grd%j2, grd%i1:grd%i2), 1 ) * rdnnsg, &
            ex_tauy, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -779,7 +779,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_z0 ) then ! surface roughness length [m]
       grd => ex_z0%grd
       call oasisxregcm_snd( &
-           sfs%zo(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           sfs%zo(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_z0, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -787,7 +787,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_ustr ) then ! surface friction velocity [s-1]
       grd => ex_ustr%grd
       call oasisxregcm_snd( &
-           sfs%ustar(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           sfs%ustar(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_ustr, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -795,7 +795,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_evap ) then ! water evaporation flux [kg.m-2.s-1]
       grd => ex_evap%grd
       call oasisxregcm_snd( &
-           sfs%qfx(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           sfs%qfx(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_evap, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -803,7 +803,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_prec ) then ! precipitation flux [kg.m-2.s-1]
       grd => ex_prec%grd
       call oasisxregcm_snd( &
-           sum( lms%prcp(: , grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
+           sum( lms%prcp(:, grd%j1:grd%j2, grd%i1:grd%i2), 1 ) * rdnnsg, &
            ex_prec, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -811,8 +811,8 @@ module mod_oasis_interface
     if ( l_cpl_ex_nuwa ) then ! net upward water flux [kg.m-2.s-1]
       grd => ex_nuwa%grd
       call oasisxregcm_snd( &
-           sum( lms%evpr(: , grd%j1:grd%j2 , grd%i1:grd%i2) - &
-                lms%prcp(: , grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
+           sum( lms%evpr(:, grd%j1:grd%j2, grd%i1:grd%i2) - &
+                lms%prcp(:, grd%j1:grd%j2, grd%i1:grd%i2), 1 ) * rdnnsg, &
            ex_nuwa, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -820,8 +820,8 @@ module mod_oasis_interface
     if ( l_cpl_ex_ulhf ) then ! surface upward latent heat flux [W.m-2]
       grd => ex_ulhf%grd
       call oasisxregcm_snd( &
-           sum( lms%evpr(: , grd%j1:grd%j2 , grd%i1:grd%i2) &
-           *wlh(lms%t2m(: , grd%j1:grd%j2 , grd%i1:grd%i2)) , 1 ) * rdnnsg, &
+           sum( lms%evpr(:, grd%j1:grd%j2, grd%i1:grd%i2) &
+           *wlh(lms%t2m(:, grd%j1:grd%j2, grd%i1:grd%i2)), 1 ) * rdnnsg, &
            ex_ulhf, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -829,7 +829,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_ushf ) then ! surface upward sensible heat flux [W.m-2]
       grd => ex_ushf%grd
       call oasisxregcm_snd( &
-           sfs%hfx(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           sfs%hfx(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_ushf, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -837,8 +837,8 @@ module mod_oasis_interface
     if ( l_cpl_ex_uwlw ) then ! surface upwelling long-wave radiation flux [W.m-2]
       grd => ex_uwlw%grd
       call oasisxregcm_snd( &
-           flwd(grd%j1:grd%j2 , grd%i1:grd%i2) &
-           + flw(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           flwd(grd%j1:grd%j2, grd%i1:grd%i2) &
+           + flw(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_uwlw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -846,7 +846,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_dwlw ) then ! surface downwelling long-wave radiation flux [W.m-2]
       grd => ex_dwlw%grd
       call oasisxregcm_snd( &
-           flwd(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           flwd(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_dwlw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -854,7 +854,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_nulw ) then ! surface net upward long-wave radiation flux [W.m-2]
       grd => ex_nulw%grd
       call oasisxregcm_snd( &
-           flw(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           flw(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_nulw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -862,8 +862,8 @@ module mod_oasis_interface
     if ( l_cpl_ex_uwsw ) then ! surface upwelling short-wave radiation flux [W.m-2]
       grd => ex_uwsw%grd
       call oasisxregcm_snd( &
-           sinc(grd%j1:grd%j2 , grd%i1:grd%i2) &
-           - fsw(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           sinc(grd%j1:grd%j2, grd%i1:grd%i2) &
+           - fsw(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_uwsw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -871,7 +871,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_dwsw ) then ! surface downwelling short-wave radiation flux [W.m-2]
       grd => ex_dwsw%grd
       call oasisxregcm_snd( &
-           sinc(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           sinc(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_dwsw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -879,7 +879,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_ndsw ) then ! surface net downward short-wave radiation flux [W.m-2]
       grd => ex_ndsw%grd
       call oasisxregcm_snd( &
-           fsw(grd%j1:grd%j2 , grd%i1:grd%i2), &
+           fsw(grd%j1:grd%j2, grd%i1:grd%i2), &
            ex_ndsw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -887,7 +887,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_rhoa ) then ! surface air density [kg.m-3]
       grd => ex_rhoa%grd
       call oasisxregcm_snd( &
-           sum( lms%rhoa(:, grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
+           sum( lms%rhoa(:, grd%j1:grd%j2, grd%i1:grd%i2), 1 ) * rdnnsg, &
            ex_rhoa, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -913,7 +913,7 @@ module mod_oasis_interface
   !   OASIS time = RegCM time + oasis_lag
   subroutine oasisxregcm_sync_wait(time)
     implicit none
-    integer(ik4) , intent(in) :: time ! execution time
+    integer(ik4), intent(in) :: time ! execution time
     !--------------------------------------------------------------------------
     if ( oasis_lag /= 0 ) then
       write(stderr,*) 'error initiating the lag with OASIS'

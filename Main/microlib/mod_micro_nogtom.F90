@@ -57,141 +57,141 @@ module mod_micro_nogtom
   use mod_memutil
   use mod_service
   use mod_regcm_types
-  use mod_constants , only : d_zero , d_one , d_half , d_two , d_1000
-  use mod_constants , only : dlowval , mathpi , ep2
-  use mod_constants , only : tzero , rtice , rtwat_rtice_r
-  use mod_constants , only : c5alvcp , c5alscp , rhoh2o , rovcp
-  use mod_constants , only : wlhfocp , wlhsocp , wlhvocp
-  use mod_constants , only : rwat , wlhs , ep1
-  use mod_constants , only : c5les , c5ies , c4les , c4ies
-  use mod_constants , only : egrav , regrav , ep1
-  use mod_runparams , only : nqx
-  use mod_runparams , only : iqqv => iqv !vapor
-  use mod_runparams , only : iqql => iqc !liquid
-  use mod_runparams , only : iqqr => iqr !rain
-  use mod_runparams , only : iqqi => iqi !ice
-  use mod_runparams , only : iqqs => iqs !snow
-  use mod_runparams , only : dt , rdt
-  use mod_runparams , only : ipptls , ichem , iaerosol , iindirect , rcrit
-  use mod_runparams , only : budget_compute , nssopt , iautoconv
-  use mod_runparams , only : auto_rate_khair , auto_rate_kessl , &
-                             auto_rate_klepi , rcldiff
-  use mod_runparams , only : rkconv , skconv , rcovpmin , rpecons
+  use mod_constants, only : d_zero, d_one, d_half, d_two, d_1000
+  use mod_constants, only : dlowval, mathpi, ep2
+  use mod_constants, only : tzero, rtice, rtwat_rtice_r
+  use mod_constants, only : c5alvcp, c5alscp, rhoh2o, rovcp
+  use mod_constants, only : wlhfocp, wlhsocp, wlhvocp
+  use mod_constants, only : rwat, wlhs, ep1
+  use mod_constants, only : c5les, c5ies, c4les, c4ies
+  use mod_constants, only : egrav, regrav, ep1
+  use mod_runparams, only : nqx
+  use mod_runparams, only : iqqv => iqv !vapor
+  use mod_runparams, only : iqql => iqc !liquid
+  use mod_runparams, only : iqqr => iqr !rain
+  use mod_runparams, only : iqqi => iqi !ice
+  use mod_runparams, only : iqqs => iqs !snow
+  use mod_runparams, only : dt, rdt
+  use mod_runparams, only : ipptls, ichem, iaerosol, iindirect, rcrit
+  use mod_runparams, only : budget_compute, nssopt, iautoconv
+  use mod_runparams, only : auto_rate_khair, auto_rate_kessl, &
+                             auto_rate_klepi, rcldiff
+  use mod_runparams, only : rkconv, skconv, rcovpmin, rpecons
 
 #ifdef DEBUG
-  use mod_runparams , only : stats
+  use mod_runparams, only : stats
 #endif
 
   implicit none
 
   private
 
-  logical , parameter :: lmicro = .true.
-  integer , parameter :: mxqx = 5
+  logical, parameter :: lmicro = .true.
+  integer, parameter :: mxqx = 5
 
   ! critical autoconversion
-  real(rkx) , parameter :: rlcritsnow = 4.e-5_rkx
+  real(rkx), parameter :: rlcritsnow = 4.e-5_rkx
 
-  real(rkx) , parameter :: auto_expon_khair = 1.47_rkx
-  real(rkx) , parameter :: rldcp = d_one/wlhfocp  ! Cp/Lf
+  real(rkx), parameter :: auto_expon_khair = 1.47_rkx
+  real(rkx), parameter :: rldcp = d_one/wlhfocp  ! Cp/Lf
   ! 1/autoconversion time scale (s)
-  real(rkx) , parameter :: autocrit_kessl = 5.e-4_rkx
-  real(rkx) , parameter :: rclcrit_land = 5.e-4_rkx
-  real(rkx) , parameter :: rclcrit_sea = 3.e-4_rkx
-  real(rkx) , parameter :: rhcrit_lnd = 0.80_rkx
-  real(rkx) , parameter :: rhcrit_sea = 0.90_rkx
-  real(rkx) , parameter :: rprc1 = 3.e2_rkx  ! in Sundqvist = 300
-  real(rkx) , parameter :: siglow = 0.8_rkx
+  real(rkx), parameter :: autocrit_kessl = 5.e-4_rkx
+  real(rkx), parameter :: rclcrit_land = 5.e-4_rkx
+  real(rkx), parameter :: rclcrit_sea = 3.e-4_rkx
+  real(rkx), parameter :: rhcrit_lnd = 0.80_rkx
+  real(rkx), parameter :: rhcrit_sea = 0.90_rkx
+  real(rkx), parameter :: rprc1 = 3.e2_rkx  ! in Sundqvist = 300
+  real(rkx), parameter :: siglow = 0.8_rkx
   ! Cloud fraction threshold that defines cloud top
-  real(rkx) , parameter :: cldtopcf = 0.1_rkx
+  real(rkx), parameter :: cldtopcf = 0.1_rkx
   ! Fraction of deposition rate in cloud top layer
-  real(rkx) , parameter :: depliqrefrate = 0.1_rkx
+  real(rkx), parameter :: depliqrefrate = 0.1_rkx
   ! Depth of supercooled liquid water layer (m)
-  real(rkx) , parameter :: depliqrefdepth = 500.0_rkx
+  real(rkx), parameter :: depliqrefdepth = 500.0_rkx
   ! max threshold rh for evaporation for a precip coverage of zero
-  real(rkx) , parameter :: rprecrhmax = 0.7_rkx
+  real(rkx), parameter :: rprecrhmax = 0.7_rkx
   ! evaporation rate coefficient Numerical fit to wet bulb temperature
-  !real(rkx) , parameter :: tw1 = 1329.31_rkx
-  !real(rkx) , parameter :: tw2 = 0.0074615_rkx
-  !real(rkx) , parameter :: tw3 = 0.85e5_rkx
-  !real(rkx) , parameter :: tw4 = 40.637_rkx
-  !real(rkx) , parameter :: tw5 = 275.0_rkx
-  !real(rkx) , parameter :: rtaumel = 1.1880e4_rkx
+  !real(rkx), parameter :: tw1 = 1329.31_rkx
+  !real(rkx), parameter :: tw2 = 0.0074615_rkx
+  !real(rkx), parameter :: tw3 = 0.85e5_rkx
+  !real(rkx), parameter :: tw4 = 40.637_rkx
+  !real(rkx), parameter :: tw5 = 275.0_rkx
+  !real(rkx), parameter :: rtaumel = 1.1880e4_rkx
   ! temperature homogeneous freezing
-  real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
+  real(rkx), parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
   ! initial mass of ice particle
-  real(rkx) , parameter :: iceinit = 1.e-12_rkx
-  real(rkx) , parameter :: rkoop1 = 2.583_rkx
-  real(rkx) , parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
+  real(rkx), parameter :: iceinit = 1.e-12_rkx
+  real(rkx), parameter :: rkoop1 = 2.583_rkx
+  real(rkx), parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
   !------------------------------------------------
-  real(rkx) , parameter :: ciden13 = 8.87_rkx      ! ice density 700**0.333
-  real(rkx) , parameter :: airconduct = 2.4e-2_rkx ! conductivity of air
-  real(rkx) , parameter :: spherefac = (4.0_rkx/3.0_rkx)*mathpi
+  real(rkx), parameter :: ciden13 = 8.87_rkx      ! ice density 700**0.333
+  real(rkx), parameter :: airconduct = 2.4e-2_rkx ! conductivity of air
+  real(rkx), parameter :: spherefac = (4.0_rkx/3.0_rkx)*mathpi
 
-  public :: allocate_mod_nogtom , init_nogtom , nogtom
+  public :: allocate_mod_nogtom, init_nogtom, nogtom
 
   ! Total water and enthalpy budget diagnostics variables
   ! marker for water phase of each species
   ! 0 = vapour, 1 = liquid, 2 = ice
-  integer(ik4) , dimension(mxqx) :: iphase
+  integer(ik4), dimension(mxqx) :: iphase
   ! marks melting linkage for ice categories
   ! ice->liquid, snow->rain
-  integer(ik4) , dimension(mxqx) :: imelt
-  logical , dimension(mxqx) :: lfall
+  integer(ik4), dimension(mxqx) :: imelt
+  logical, dimension(mxqx) :: lfall
 
-  real(rkx) , pointer , dimension(:,:,:):: sumh0 , sumq0
-  real(rkx) , pointer , dimension(:,:,:) :: sumh1 , sumq1
-  real(rkx) , pointer , dimension(:,:) :: errorq , errorh
-  real(rkx) , pointer , dimension(:,:,:):: tentkp
-  real(rkx) , pointer , dimension(:,:,:,:) :: tenqkp
+  real(rkx), pointer, contiguous, dimension(:,:,:):: sumh0, sumq0
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: sumh1, sumq1
+  real(rkx), pointer, contiguous, dimension(:,:) :: errorq, errorh
+  real(rkx), pointer, contiguous, dimension(:,:,:):: tentkp
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: tenqkp
   ! distance from the top of the cloud
-  real(rkx) , pointer , dimension(:,:,:) :: cldtopdist
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cldtopdist
   ! Mass variables
   ! Microphysics
   ! for convection detrainment source and subsidence source/sink terms
-  real(rkx) , pointer , dimension(:,:,:) :: eewmt
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: eewmt
   ! fluxes convergence of species
-  real(rkx) , pointer , dimension(:,:,:) :: qliq
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qliq
 
-  real(rkx) , pointer , dimension(:,:,:) :: eew
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: eew
   ! ice water saturation
-  real(rkx) , pointer , dimension(:,:,:) :: qsice
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qsice
   ! diagnostic mixed phase RH
-  real(rkx) , pointer , dimension(:,:,:) :: qsmix
-  ! Storage for eeliq , eeice
-  real(rkx) , pointer , dimension(:,:,:) :: eeliq
-  real(rkx) , pointer , dimension(:,:,:) :: eeice
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qsmix
+  ! Storage for eeliq, eeice
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: eeliq
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: eeice
   ! water/ice saturation mixing ratio
-  real(rkx) , pointer , dimension(:,:,:) :: eeliqt
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: eeliqt
   ! liq+rain sedim flux
-  real(rkx) , pointer , dimension(:,:,:) :: pfplsl
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pfplsl
   ! ice+snow sedim flux
-  real(rkx) , pointer , dimension(:,:,:) :: pfplsn
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pfplsn
   ! decoupled temperature tendency
-  real(rkx) , pointer , dimension(:,:,:) :: ttendc
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ttendc
   ! critical factors
-  real(rkx) , pointer , dimension(:,:) :: xlcrit
-  real(rkx) , pointer , dimension(:,:) :: rhcrit
+  real(rkx), pointer, contiguous, dimension(:,:) :: xlcrit
+  real(rkx), pointer, contiguous, dimension(:,:) :: rhcrit
   ! fall speeds of three categories
-  real(rkx) , dimension(mxqx) :: vqx
+  real(rkx), dimension(mxqx) :: vqx
   ! decoupled mixing ratios tendency
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxtendc
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxtendc
   ! j,i,n ! generalized precipitation flux
-  real(rkx) , pointer , dimension(:,:,:,:) :: pfplsx
-  real(rkx) , pointer, dimension(:,:,:,:) :: qx
-  real(rkx) , pointer, dimension(:,:,:) :: tx
-  real(rkx) , pointer, dimension(:,:,:) :: pf
-  real(rkx) , pointer, dimension(:,:,:) :: qdetr
-  real(rkx) , pointer, dimension(:,:,:) :: delz
-  real(rkx) , pointer, dimension(:,:,:) :: ph
-  real(rkx) , pointer, dimension(:,:,:) :: rho
-  real(rkx) , pointer, dimension(:,:,:) :: ccn
-  real(rkx) , pointer, dimension(:,:,:) :: pverv
-  real(rkx) , pointer, dimension(:,:,:) :: heatrt
-  real(rkx) , pointer, dimension(:,:,:) :: fcc
-  real(rkx) , pointer, dimension(:,:,:) :: remrat
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: pfplsx
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qx
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tx
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pf
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qdetr
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: delz
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ph
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: rho
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ccn
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pverv
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: heatrt
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: fcc
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: remrat
   ! saturation mixing ratio with respect to water
-  real(rkx) , pointer, dimension(:,:,:) :: qsliq
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qsliq
   ! koop
   ! se T < 0 la nuvola si forma o quando q e' maggiore della liquid
   ! water saturation minima, oppure se e' maggiore del mixing ratio
@@ -212,19 +212,19 @@ module mod_micro_nogtom
   ! a source for cloud ice.
   ! koop modifies the ice saturation mixing ratio for homogeneous
   ! nucleation
-  real(rkx) , pointer, dimension(:,:,:) :: koop
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: koop
   ! Delta pressure
-  real(rkx) , pointer, dimension(:,:,:) :: dpfs
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: dpfs
 
-  real(rkx) , parameter :: zerocf = 0.01_rkx
-  real(rkx) , parameter :: onecf  = 0.99_rkx
+  real(rkx), parameter :: zerocf = 0.01_rkx
+  real(rkx), parameter :: onecf  = 0.99_rkx
 
-  real(rkx) , parameter :: activqx = 1.0e-12_rkx
-  real(rkx) , parameter :: verylowqx = 1.0e-20_rkx
-  real(rkx) , parameter :: activcf = 2.0_rkx*zerocf
-  real(rkx) , parameter :: maxsat  = 0.5_rkx
+  real(rkx), parameter :: activqx = 1.0e-12_rkx
+  real(rkx), parameter :: verylowqx = 1.0e-20_rkx
+  real(rkx), parameter :: activcf = 2.0_rkx*zerocf
+  real(rkx), parameter :: maxsat  = 0.5_rkx
 
-  logical , parameter :: vfqi_tlat = .false.
+  logical, parameter :: vfqi_tlat = .false.
   contains
 
 #include <esatliq.inc>
@@ -280,10 +280,10 @@ module mod_micro_nogtom
   end subroutine allocate_mod_nogtom
 
   subroutine init_nogtom(ldmsk)
-    use mod_runparams , only : vfqr , vfqi , vfqs
+    use mod_runparams, only : vfqr, vfqi, vfqs
     implicit none
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmsk
-    integer(ik4) :: i , j , n
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ldmsk
+    integer(ik4) :: i, j, n
     ! Define species phase, 0 = vapour, 1 = liquid, 2 = ice
     iphase(iqqv) = 0
     iphase(iqql) = 1
@@ -308,7 +308,7 @@ module mod_micro_nogtom
     vqx(iqqs) = vfqs   !1.0_rkx  * sqrt(QX(JL,JK,IQS))
 
     ! Set lfall
-    do n = 1 , nqx
+    do n = 1, nqx
       if ( vqx(n) > d_zero ) then
         lfall(n) = .true. !falling species
       else
@@ -333,68 +333,68 @@ module mod_micro_nogtom
 #ifdef DEBUG
   subroutine nogtom(mo2mc,mc2mo,ngs)
     implicit none
-    type(nogtom_stats) , intent(inout) :: ngs
+    type(nogtom_stats), intent(inout) :: ngs
 #else
   subroutine nogtom(mo2mc,mc2mo)
     implicit none
 #endif
-    type(mod_2_micro) , intent(in) :: mo2mc
-    type(micro_2_mod) , intent(inout) :: mc2mo
+    type(mod_2_micro), intent(in) :: mo2mc
+    type(micro_2_mod), intent(inout) :: mc2mo
 
-    integer(ik4) :: i , j , k , kk , n , m , jn , jo
-    real(rkx) :: tnew , dp , qe , tmpl , tmpi
-    real(rkx) :: qprev , hprev , zdelta , prainx , psnowx
+    integer(ik4) :: i, j, k, kk, n, m, jn, jo
+    real(rkx) :: tnew, dp, qe, tmpl, tmpi
+    real(rkx) :: qprev, hprev, zdelta, prainx, psnowx
     ! for sedimentation source/sink terms
-    real(rkx) , dimension(mxqx) :: fallsrce , fallsink
-    real(rkx) , dimension(mxqx) :: convsrce
+    real(rkx), dimension(mxqx) :: fallsrce, fallsink
+    real(rkx), dimension(mxqx) :: convsrce
     ! n x n matrix storing the LHS of implicit solver
-    real(rkx) , dimension(mxqx,mxqx) :: qlhs
+    real(rkx), dimension(mxqx,mxqx) :: qlhs
     ! explicit sources and sinks "q s exp"=q source explicit
-    real(rkx) , dimension(mxqx,mxqx) :: qsexp
+    real(rkx), dimension(mxqx,mxqx) :: qsexp
     ! implicit sources and sinks "q s imp"=q source/sink implicit
-    real(rkx) , dimension(mxqx,mxqx) :: qsimp
+    real(rkx), dimension(mxqx,mxqx) :: qsimp
     ! Initial values
-    real(rkx) , dimension(mxqx) :: qx0 , qxfg , qxn
-    real(rkx) , dimension(mxqx) :: ratio , sinksum
+    real(rkx), dimension(mxqx) :: qx0, qxfg, qxn
+    real(rkx), dimension(mxqx) :: ratio, sinksum
     ! array for sorting explicit terms
-    ! integer(ik4) , dimension(mxqx) :: iorder
-    real(rkx) :: tk , tc , dens , pbot , snowp , rainp , supsat , subsat
-    real(rkx) :: totcond , qliqfrac , qicefrac , qicetot
-    real(rkx) :: gdp , dtgdp , rdtgdp , alpha1 , ldefr
-    real(rkx) :: facl , faci , facw , corr , acond , zdl , infactor
-    real(rkx) :: alfaw , phases , qexc , rhc , zsig , preclr , arg
-    real(rkx) :: rexplicit , xlcondlim , tmpa , zrh , beta , beta1
-    real(rkx) :: cond , dtdp , cdmax , tdiff , cons1 , qvnew
+    ! integer(ik4), dimension(mxqx) :: iorder
+    real(rkx) :: tk, tc, dens, pbot, snowp, rainp, supsat, subsat
+    real(rkx) :: totcond, qliqfrac, qicefrac, qicetot
+    real(rkx) :: gdp, dtgdp, rdtgdp, alpha1, ldefr
+    real(rkx) :: facl, faci, facw, corr, acond, zdl, infactor
+    real(rkx) :: alfaw, phases, qexc, rhc, zsig, preclr, arg
+    real(rkx) :: rexplicit, xlcondlim, tmpa, zrh, beta, beta1
+    real(rkx) :: cond, dtdp, cdmax, tdiff, cons1, qvnew
     real(rkx) :: lat
     ! local real constants for evaporation
-    real(rkx) :: dpr , denom , dpevap , evapi , evapl , excess
-    real(rkx) :: dqsmixdt , dqsicedt , dqsliqdt
-    real(rkx) :: corqsliq , corqsice , corqsmix , evaplimmix
-    real(rkx) :: ql_incld , qi_incld , qli_incld , ldifdt , sink
+    real(rkx) :: dpr, denom, dpevap, evapi, evapl, excess
+    real(rkx) :: dqsmixdt, dqsicedt, dqsliqdt
+    real(rkx) :: corqsliq, corqsice, corqsmix, evaplimmix
+    real(rkx) :: ql_incld, qi_incld, qli_incld, ldifdt, sink
     ! Cloud coverage and clearsky portion
-    real(rkx) :: covptot , covpclr
-    ! real(rkx) :: botm , rm
-    real(rkx) :: qold , tcond , dqs , chng , chngmax , icenuclei
-    real(rkx) :: qpretot , fluxq
+    real(rkx) :: covptot, covpclr
+    ! real(rkx) :: botm, rm
+    real(rkx) :: qold, tcond, dqs, chng, chngmax, icenuclei
+    real(rkx) :: qpretot, fluxq
     ! constants for deposition process
-    real(rkx) :: vpice , vpliq , xadd , xbdd , cvds , &
-                 qice0 , qinew , rainaut , snowaut
+    real(rkx) :: vpice, vpliq, xadd, xbdd, cvds, &
+                 qice0, qinew, rainaut, snowaut
     ! constants for condensation and turbulent mixing erosion of clouds
-    real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
-                 qp , qsat , cond1 , levap , leros
-    real(rkx) :: qsmixv , ccover , lccover , rain , rainh
-    real(rkx) :: precip , cfpr , acrit
-    logical :: lccn , lerror , ldetr , lconden , lactiv , locast
-    logical :: ltkgt0 , ltklt0 , ltkgthomo , lcloud
-    logical , dimension(mxqx,mxqx) :: lind2
-    integer(ik4) :: ii , jj , ll , imax , nn
-    real(rkx) :: aamax , dum , xsum , swap
-    real(rkx) , dimension(mxqx) :: vv
-    integer(ik4) , dimension(mxqx) :: indx
+    real(rkx) :: dpmxdt, wtot, dtdiab, dtforc, &
+                 qp, qsat, cond1, levap, leros
+    real(rkx) :: qsmixv, ccover, lccover, rain, rainh
+    real(rkx) :: precip, cfpr, acrit
+    logical :: lccn, lerror, ldetr, lconden, lactiv, locast
+    logical :: ltkgt0, ltklt0, ltkgthomo, lcloud
+    logical, dimension(mxqx,mxqx) :: lind2
+    integer(ik4) :: ii, jj, ll, imax, nn
+    real(rkx) :: aamax, dum, xsum, swap
+    real(rkx), dimension(mxqx) :: vv
+    integer(ik4), dimension(mxqx) :: indx
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -510,7 +510,7 @@ module mod_micro_nogtom
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         qprev = sumq0(1,j,i)
         hprev = sumh0(1,j,i)
-        do k = 2 , kz
+        do k = 2, kz
           tnew = tx(k,j,i)
           dp = dpfs(k,j,i)
           qe = qdetr(k,j,i)
@@ -582,8 +582,8 @@ module mod_micro_nogtom
       cldtopdist(k,j,i) = d_zero
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      do k = 2 , kz
-        do kk = 2 , k
+      do k = 2, kz
+        do kk = 2, k
           if ( fcc(kk-1,j,i) > cldtopcf .and. &
                fcc(kk,j,i)  <= cldtopcf ) then
             cldtopdist(k,j,i) = cldtopdist(k,j,i) + delz(kk,j,i)
@@ -625,8 +625,8 @@ module mod_micro_nogtom
       local(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
       ratio,sinksum,lind2,vv,indx)
 #else
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
 #endif
 
         pbot = pf(kzp1,j,i)
@@ -635,12 +635,12 @@ module mod_micro_nogtom
 
         ! Loop over levels
 
-        do k = 1 , kz
+        do k = 1, kz
 
           supsat      = d_zero
           subsat      = d_zero
           ldefr       = d_zero
-          do n = 1 , nqx
+          do n = 1, nqx
             fallsrce(n) = d_zero
             fallsink(n) = d_zero
             convsrce(n) = d_zero
@@ -676,8 +676,8 @@ module mod_micro_nogtom
           ! each of these is a parametrization for a microphysical process.
           !--------------------------------------------------------
           !
-          do n = 1 , nqx
-            do m = 1 , nqx
+          do n = 1, nqx
+            do m = 1, nqx
               qsexp(m,n)  = d_zero
               qsimp(m,n)  = d_zero
             end do
@@ -686,7 +686,7 @@ module mod_micro_nogtom
           !---------------------------------
           ! First guess microphysics
           !---------------------------------
-          do n = 1 , nqx
+          do n = 1, nqx
             qx0(n)  = qx(n,k,j,i)
             qxfg(n) = qx0(n)
           end do
@@ -711,7 +711,7 @@ module mod_micro_nogtom
           end if
 
           qicetot = d_zero
-          do n = 1 , nqx
+          do n = 1, nqx
             if ( iphase(n) == 2 ) then
               qicetot = qicetot + qxfg(n)
             end if
@@ -793,7 +793,7 @@ module mod_micro_nogtom
             !-------------------------------------------------------
             qpretot = d_zero
             if ( k > 1 ) then
-              do n = 1 , nqx
+              do n = 1, nqx
                 if ( lfall(n) ) then
                   ! Source from layer above
                   fallsrce(n) = pfplsx(n,k,j,i)*dtgdp
@@ -803,7 +803,7 @@ module mod_micro_nogtom
                 endif
               end do
             else
-              do n = 1 , nqx
+              do n = 1, nqx
                 if ( lfall(n) ) then
                   qpretot = qpretot + qxfg(n)
                 end if
@@ -841,7 +841,7 @@ module mod_micro_nogtom
             !     supercooled water enhancement at cloud top
             !
             !------------------------------------------------------------------
-            do n = 1 , nqx
+            do n = 1, nqx
               if ( lfall(n) ) then
                 ! Sink to next layer, constant fall speed
                 ! *AMT* now included in first guess.
@@ -1069,7 +1069,7 @@ module mod_micro_nogtom
             ! changed to be uniform distribution in cloud region
             ! previous function based on delta distribution in cloud:
             if ( dqs > d_zero ) then
-              !levap = C*min( dqs/dt , (qi+ql)/C )
+              !levap = C*min( dqs/dt, (qi+ql)/C )
               levap = ccover*min(dqs,qli_incld)
               levap = min(levap,evaplimmix)
               levap = min(levap,max(qsmixv-qxfg(iqqv),d_zero))
@@ -1246,7 +1246,7 @@ module mod_micro_nogtom
               ! crystals
               ! not contact nucleation by contact with heterogeneous
               ! nuclei
-              ! process acts as 1/liqfrac , when liqfrac=1, no speed up
+              ! process acts as 1/liqfrac, when liqfrac=1, no speed up
               ! this is the max(activqx,qliqfrac) factor...
               !---------------------------------------------------------
 
@@ -1550,7 +1550,7 @@ module mod_micro_nogtom
             ! of precipitation occuring in a portion of the grid
             !------------------------------------------------------------
             qpretot = d_zero
-            do n = 1 , nqx
+            do n = 1, nqx
               if ( lfall(n) ) then
                 qpretot = qpretot + qxfg(n)
               end if
@@ -1682,26 +1682,26 @@ module mod_micro_nogtom
           ! this approach is inaccurate, but conserves -
           ! prob best can do with explicit (i.e. not implicit!) terms
           !----------------------------------------------------------
-          do n = 1 , nqx
+          do n = 1, nqx
             sinksum(n) = d_zero
           end do
-          do n = 1 , nqx
-            do m = 1 , nqx
+          do n = 1, nqx
+            do m = 1, nqx
               lind2(m,n) = .false.
             end do
           end do
           !----------------------------
           ! collect sink terms and mark
           !----------------------------
-          do jn = 1 , nqx
-            do n = 1 , nqx
+          do jn = 1, nqx
+            do n = 1, nqx
               sinksum(n) = sinksum(n) - qsexp(n,jn)
             end do
           end do
           !---------------------------------------
           ! calculate overshoot and scaling factor
           !---------------------------------------
-          do n = 1 , nqx
+          do n = 1, nqx
             ratio(n) = max(qx0(n),verylowqx) / &
               max(sinksum(n),max(qx0(n),verylowqx))
           end do
@@ -1713,14 +1713,14 @@ module mod_micro_nogtom
           ! scale the sink terms, in the correct order,
           ! recalculating the scale factor each time
           !--------------------------------------------
-          do n = 1 , nqx
+          do n = 1, nqx
             sinksum(n) = d_zero
           end do
           !----------------
           ! recalculate sum
           !----------------
-          do n = 1 , nqx
-            do jn = 1 , nqx
+          do n = 1, nqx
+            do jn = 1, nqx
               !jo = iorder(n)
               !lind2(jo,jn) = qsexp(jo,jn) < d_zero
               !sinksum(jo) = sinksum(jo) - qsexp(jo,jn)
@@ -1731,7 +1731,7 @@ module mod_micro_nogtom
           !---------------------------
           ! recalculate scaling factor
           !---------------------------
-          do n = 1 , nqx
+          do n = 1, nqx
             !jo = iorder(n)
             !ratio(jo) = max(qx0(jo),verylowqx) / &
             !   max(sinksum(jo),max(qx0(jo),verylowqx))
@@ -1741,8 +1741,8 @@ module mod_micro_nogtom
           !------
           ! scale
           !------
-          do n = 1 , nqx
-            do jn = 1 , nqx
+          do n = 1, nqx
+            do jn = 1, nqx
               !jo = iorder(n)
               !if ( lind2(jo,jn) ) then
               !  qsexp(jo,jn) = qsexp(jo,jn)*ratio(jo)
@@ -1758,12 +1758,12 @@ module mod_micro_nogtom
           ! SOLVE THE LINEAR SYSTEM
 
           ! Set the LHS of equation
-          do n = 1 , nqx
-            do jn = 1 , nqx
+          do n = 1, nqx
+            do jn = 1, nqx
               ! Diagonals: microphysical sink terms+transport
               if ( jn == n ) then
                 qlhs(jn,n) = d_one + fallsink(n)
-                do jo = 1 , nqx
+                do jo = 1, nqx
                   qlhs(jn,n) = qlhs(jn,n) + qsimp(jo,jn)
                 end do
                 ! Non-diagonals: microphysical source terms
@@ -1776,28 +1776,28 @@ module mod_micro_nogtom
 
           ! Set the RHS of equation
 
-          do n = 1 , nqx
+          do n = 1, nqx
             ! Sum the explicit source and sink
             rexplicit = d_zero
-            do jn = 1 , nqx
+            do jn = 1, nqx
               ! Positive, since summed over 2nd index
               rexplicit = rexplicit + qsexp(n,jn)
             end do
             qxn(n) = qx0(n) + rexplicit
           end do
 
-          do n = 1 , nqx
+          do n = 1, nqx
             aamax = d_zero
-            do jn = 1 , nqx
+            do jn = 1, nqx
               if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
             end do
 #ifdef DEBUG
             if ( aamax == d_zero ) then
-              do nn = 1 , nqx
-                write(stderr,'(a,i2,f20.9)') 'QX0 ', nn , qx0(nn)
-                do ll = 1 , nqx
+              do nn = 1, nqx
+                write(stderr,'(a,i2,f20.9)') 'QX0 ', nn, qx0(nn)
+                do ll = 1, nqx
                   write(stderr,'(a,i2,i2,f20.9)') 'QLHS ', &
-                      ll , nn , qlhs(ll,nn)
+                      ll, nn, qlhs(ll,nn)
                 end do
               end do
             end if
@@ -1807,12 +1807,12 @@ module mod_micro_nogtom
           !                                                Ux=y
           ! solve A x = b-------------> LU x = b---------> Ly=b
           !
-          do n = 1 , nqx
+          do n = 1, nqx
             ! This is the loop over columns
             if ( n > 1 ) then
-              do m = 1 , n - 1
+              do m = 1, n - 1
                 xsum = qlhs(m,n)
-                do kk = 1 , m - 1
+                do kk = 1, m - 1
                   xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
                 end do
                 qlhs(m,n) = xsum
@@ -1821,10 +1821,10 @@ module mod_micro_nogtom
             ! Initialize the search for largest pivot element.
             aamax = d_zero
             imax = n
-            do m = n , nqx
+            do m = n, nqx
               xsum = qlhs(m,n)
               if ( n > 1 ) then
-                do kk = 1 , n - 1
+                do kk = 1, n - 1
                   xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
                 end do
                 qlhs(m,n) = xsum
@@ -1839,7 +1839,7 @@ module mod_micro_nogtom
             if ( n /= imax ) then
               ! Do we need to interchange rows? yes, do so...
               ! D = -D !...and change the parity of D.
-              do ii = 1 , nqx
+              do ii = 1, nqx
                 swap = qlhs(imax,ii)
                 qlhs(imax,ii) = qlhs(n,ii)
                 qlhs(n,ii) = swap
@@ -1849,7 +1849,7 @@ module mod_micro_nogtom
             indx(n) = imax
             if ( n /= nqx ) then
               dum = d_one/max(qlhs(n,n),verylowqx)
-              do m = n + 1 , nqx
+              do m = n + 1, nqx
                 qlhs(m,n) = qlhs(m,n)*dum
               end do
             end if
@@ -1864,14 +1864,14 @@ module mod_micro_nogtom
           ! the index of the  first nonvanishing element of B.
           ! We now do the forward substitution, and the only new
           ! wrinkle is to unscramble the permutation as we go.
-          do m = 1 , nqx
+          do m = 1, nqx
             ll = indx(m)
             xsum = qxn(ll)
             qxn(ll) = qxn(m)
             if ( ii == 0 ) then
               if ( abs(xsum) > verylowqx ) ii = m
             else
-              do jj = ii , m - 1
+              do jj = ii, m - 1
                 xsum = xsum - qlhs(m,jj)*qxn(jj)
               end do
             end if
@@ -1879,9 +1879,9 @@ module mod_micro_nogtom
           end do
 
           ! Now we do the backsubstitution
-          do m = nqx , 1 , -1
+          do m = nqx, 1, -1
             xsum = qxn(m)
-            do jj = m + 1 , nqx
+            do jj = m + 1, nqx
               xsum = xsum - qlhs(m,jj)*qxn(jj)
             end do
             ! Store a component of the solution vector qxn.
@@ -1893,7 +1893,7 @@ module mod_micro_nogtom
           !  diagnostic precipitation fluxes
           !  It is this scaled flux that must be used for source to next layer
           !-------------------------------------------------------------------
-          do n = 1 , nqx
+          do n = 1, nqx
             chng = qxn(n) - qx0(n)
             pfplsx(n,k+1,j,i) = fallsink(n)*qxn(n)*rdtgdp
             ! Generalized precipitation flux
@@ -1961,7 +1961,7 @@ module mod_micro_nogtom
         sumh1(1,j,i) = sumh1(1,j,i) + dp*tnew
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        do k = 2 , kz
+        do k = 2, kz
           dp = dpfs(k,j,i)
           tnew = tx(k,j,i)+dt*(ttendc(k,j,i)-tentkp(k,j,i))
           qvnew = qx(iqqv,k,j,i)+dt*(qxtendc(iqqv,k,j,i)-tenqkp(iqqv,k,j,i))
@@ -1977,12 +1977,12 @@ module mod_micro_nogtom
         end do
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        do k = 1 , kz
+        do k = 1, kz
           dp = dpfs(k,j,i)
           dtgdp = dt*egrav/dp
           rain = d_zero
           rainh = d_zero
-          do n = 1 , nqx
+          do n = 1, nqx
             rain = rain + dt*pfplsx(n,k+1,j,i)
             if ( iphase(n) == 1 ) then
               rainh = rainh+wlhvocp*dtgdp*pfplsx(n,k+1,j,i)*dp
@@ -1998,15 +1998,15 @@ module mod_micro_nogtom
         sumh1(k,j,i) = sumh1(k,j,i) / pf(k+1,j,i)
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        do k = 1 , kz
+        do k = 1, kz
           errorq(j,i) = errorq(j,i) + (sumq1(k,j,i)-sumq0(k,j,i))
           errorh(j,i) = errorh(j,i) + (sumh1(k,j,i)-sumh0(k,j,i))
         end do
       end do
 
       lerror = .false.
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           if ( abs(errorq(j,i)) > 1.e-10_rkx .or. &
                abs(errorh(j,i)) > 1.e-10_rkx) then
             if ( abs(errorq(j,i)) > 1.e-10_rkx ) then
@@ -2044,8 +2044,8 @@ module mod_micro_nogtom
     !--------------------------------------------------------------------
 
     ! Rain+liquid, snow+ice
-    ! for each level k = 1 , kzp1, sum of the same phase elements
-    do n = 1 , nqx
+    ! for each level k = 1, kzp1, sum of the same phase elements
+    do n = 1, nqx
       do concurrent ( k = 1:kzp1, j = jci1:jci2, i = ici1:ici2 )
         if ( iphase(n) == 1 ) then
           pfplsl(k,j,i) = pfplsl(k,j,i) + pfplsx(n,k,j,i)
@@ -2092,7 +2092,7 @@ module mod_micro_nogtom
   pure real(rkx) function edem(t,phase)
 !$acc routine seq
     implicit none
-    real(rkx) , intent(in):: t , phase
+    real(rkx), intent(in):: t, phase
     edem = phase * c5alvcp * (d_one/(t-c4les)**2) + &
                (d_one - phase) * c5alscp * (d_one/(t-c4ies)**2)
   end function edem
@@ -2100,7 +2100,7 @@ module mod_micro_nogtom
   pure real(rkx) function eldcpm(t)
 !$acc routine seq
     implicit none
-    real(rkx) , intent(in):: t
+    real(rkx), intent(in):: t
     real(rkx) :: phase
     phase = max(min(d_one,((max(rtice,min(tzero,t))-rtice)* &
                             rtwat_rtice_r)**2),d_zero)
@@ -2110,7 +2110,7 @@ module mod_micro_nogtom
   pure real(rkx) function eewm(t,phase)
 !$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: t , phase
+    real(rkx), intent(in) :: t, phase
     eewm = ep2*(phase * esatliq(t) + (d_one-phase) * esatice(t))
   end function eewm
 
@@ -2129,8 +2129,8 @@ module mod_micro_nogtom
   pure real(rkx) function ice_fallspeed(t,lat)
 !$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: t , lat
-    real(rkx) :: xlat , dsize , w1 , fsp1 , fsp2
+    real(rkx), intent(in) :: t, lat
+    real(rkx) :: xlat, dsize, w1, fsp1, fsp2
 
     ! degrees
     xlat = 90.0_rkx - lat
@@ -2146,11 +2146,11 @@ module mod_micro_nogtom
 
  ! subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
  !   implicit none
- !   real(rkx) , pointer , intent(inout) , dimension(:,:) :: zsqa , zsqb
- !   real(rkx) , pointer , intent(inout) , dimension(:) :: fg
- !   real(rkx) , intent(in) :: proc
- !   integer(ik4) , intent(in) :: src , snk
- !   real(rkx) , intent(in) :: beta
+ !   real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: zsqa, zsqb
+ !   real(rkx), pointer, contiguous, intent(inout), dimension(:) :: fg
+ !   real(rkx), intent(in) :: proc
+ !   integer(ik4), intent(in) :: src, snk
+ !   real(rkx), intent(in) :: beta
  !   zsqa(src,snk) = zsqa(src,snk) + (d_one-beta)*proc
  !   zsqa(snk,src) = zsqa(snk,src) - (d_one-beta)*proc
  !   fg(src) = fg(src) + (d_one-beta)*proc
@@ -2160,18 +2160,18 @@ module mod_micro_nogtom
 
  ! pure function argsort(a) result(b)
  !   implicit none
- !   real(rk8) , intent(in) :: a(:)
- !   integer(ik4) , dimension(size(a)) :: b
- !   integer(ik4) :: n , i , imin , temp1
+ !   real(rk8), intent(in) :: a(:)
+ !   integer(ik4), dimension(size(a)) :: b
+ !   integer(ik4) :: n, i, imin, temp1
  !   real(rk8) :: temp2
- !   real(rk8) , dimension(size(a)) :: a2
+ !   real(rk8), dimension(size(a)) :: a2
  !   a2 = a
  !   n = size(a)
- !   do i = 1 , n
+ !   do i = 1, n
  !     b(i) = i
  !   end do
  !   if ( n == 1 ) return
- !   do i = 1 , n-1
+ !   do i = 1, n-1
  !     imin = minloc(a2(i:),1) + i - 1
  !     if ( imin /= i ) then
  !       temp2 = a2(i)

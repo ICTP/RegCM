@@ -27,16 +27,16 @@ module mod_mkabm
 
   public :: mkabm
 
-  character(len=4) , parameter :: varname = 'abm'
+  character(len=4), parameter :: varname = 'abm'
 
   contains
 
   subroutine mkabm(abmfile,mask,abm)
     implicit none
-    character(len=*) , intent(in) :: abmfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    integer(ik4) , dimension(:,:) , intent(out) :: abm
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: abmfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    integer(ik4), dimension(:,:), intent(out) :: abm
+    integer(ik4) :: i, j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -45,8 +45,8 @@ module mod_mkabm
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     call gfread(gfile,varname,abm,13)
     call gfclose(gfile)
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           abm(j,i) = -1
         end if

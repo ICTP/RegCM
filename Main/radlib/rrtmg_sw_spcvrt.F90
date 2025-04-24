@@ -276,7 +276,7 @@ module rrtmg_sw_spcvrt
     real(kind=rb) :: zcd(nlayers+1,ngptsw), zcu(nlayers+1,ngptsw)
     real(kind=rb) :: zfd(nlayers+1,ngptsw), zfu(nlayers+1,ngptsw)
 
-    real(kind=rb) , parameter :: repclc = 1.0e-12_rb
+    real(kind=rb), parameter :: repclc = 1.0e-12_rb
 
 ! Inactive arrays
 !    real(kind=rb) :: zbbcd(nlayers+1), zbbcu(nlayers+1)
@@ -330,7 +330,7 @@ module rrtmg_sw_spcvrt
 ! Reinitialize g-point counter for each band if output for each band is requested.
       if ( iout > 0 .and. ibm >= 2 ) iw = ngs(ibm-1)
 
-!      do jk = 1 , klev+1
+!      do jk = 1, klev+1
 !        zbbcd(jk) = 0.0_rb
 !        zbbcu(jk) = 0.0_rb
 !        zbbfd(jk) = 0.0_rb
@@ -338,7 +338,7 @@ module rrtmg_sw_spcvrt
 !      end do
 
 ! Top of g-point interval loop within each band (iw is cumulative counter)
-      do jg = 1 , igt
+      do jg = 1, igt
         iw = iw+1
 
 ! Apply adjustments for correct Earth/Sun distance and zenith angle to incoming solar flux
@@ -411,7 +411,7 @@ module rrtmg_sw_spcvrt
 
 
 ! Top of layer loop
-        do jk = 1 , klev
+        do jk = 1, klev
 
 ! Note: two-stream calculations proceed from top to bottom;
 !  RRTMG_SW quantities are given bottom to top and are reversed here

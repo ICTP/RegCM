@@ -9,15 +9,15 @@ module mod_clm_cndecompcascadebgc
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : dtsrf
-  use mod_clm_varcon , only : tfrz , zsoi
-  use mod_clm_varpar , only : nlevsoi, nlevgrnd, nlevdecomp, &
+  use mod_runparams, only : dtsrf
+  use mod_clm_varcon, only : tfrz, zsoi
+  use mod_clm_varpar, only : nlevsoi, nlevgrnd, nlevdecomp, &
           ndecomp_cascade_transitions, ndecomp_pools, nsompools
-  use mod_clm_varpar , only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
-  use mod_clm_varctl , only : spinup_state
+  use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
+  use mod_clm_varctl, only : spinup_state
 #ifdef LCH4
-  use mod_clm_varctl , only : anoxia
-  use mod_clm_ch4varcon , only : mino2lim
+  use mod_clm_varctl, only : anoxia
+  use mod_clm_ch4varcon, only : mino2lim
 #endif
 
   implicit none
@@ -61,39 +61,39 @@ module mod_clm_cndecompcascadebgc
     integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
 
     !-- properties of each pathway along decomposition cascade
-    character(len=8), pointer :: cascade_step_name(:) ! name of transition
+    character(len=8), pointer, contiguous :: cascade_step_name(:) ! name of transition
     ! respired fraction in decomposition step (frac)
-    real(rk8), pointer :: rf_decomp_cascade(:,:,:)
+    real(rk8), pointer, contiguous :: rf_decomp_cascade(:,:,:)
     ! which pool is C taken from for a given decomposition step
-    integer(ik4),  pointer :: cascade_donor_pool(:)
+    integer(ik4),  pointer, contiguous :: cascade_donor_pool(:)
     ! which pool is C added to for a given decomposition step
-    integer(ik4),  pointer :: cascade_receiver_pool(:)
+    integer(ik4),  pointer, contiguous :: cascade_receiver_pool(:)
     ! what fraction of C leaving a given pool passes through a given transition
     ! (frac)
-    real(rk8), pointer :: pathfrac_decomp_cascade(:,:,:)
+    real(rk8), pointer, contiguous :: pathfrac_decomp_cascade(:,:,:)
     !-- properties of each decomposing pool
     ! TRUE => pool has fixed C:N ratio
-    logical,  pointer :: floating_cn_ratio_decomp_pools(:)
+    logical,  pointer, contiguous :: floating_cn_ratio_decomp_pools(:)
     ! name of pool for restart files
-    character(len=8), pointer :: decomp_pool_name_restart(:)
+    character(len=8), pointer, contiguous :: decomp_pool_name_restart(:)
     ! name of pool for history files
-    character(len=8), pointer :: decomp_pool_name_history(:)
+    character(len=8), pointer, contiguous :: decomp_pool_name_history(:)
     ! name of pool for netcdf long names
-    character(len=20), pointer :: decomp_pool_name_long(:)
+    character(len=20), pointer, contiguous :: decomp_pool_name_long(:)
     ! name of pool for netcdf short names
-    character(len=8), pointer :: decomp_pool_name_short(:)
-    logical, pointer :: is_litter(:)     ! TRUE => pool is a litter pool
-    logical, pointer :: is_soil(:)       ! TRUE => pool is a soil pool
-    logical, pointer :: is_cwd(:)        ! TRUE => pool is a cwd pool
+    character(len=8), pointer, contiguous :: decomp_pool_name_short(:)
+    logical, pointer, contiguous :: is_litter(:)     ! TRUE => pool is a litter pool
+    logical, pointer, contiguous :: is_soil(:)       ! TRUE => pool is a soil pool
+    logical, pointer, contiguous :: is_cwd(:)        ! TRUE => pool is a cwd pool
     ! c:n ratio for initialization of pools
-    real(rk8), pointer :: initial_cn_ratio(:)
+    real(rk8), pointer, contiguous :: initial_cn_ratio(:)
     ! initial concentration for seeding at spinup
-    real(rk8), pointer :: initial_stock(:)
-    logical, pointer :: is_metabolic(:)   ! TRUE => pool is metabolic material
-    logical, pointer :: is_cellulose(:)   ! TRUE => pool is cellulose
-    logical, pointer :: is_lignin(:)      ! TRUE => pool is lignin
+    real(rk8), pointer, contiguous :: initial_stock(:)
+    logical, pointer, contiguous :: is_metabolic(:)   ! TRUE => pool is metabolic material
+    logical, pointer, contiguous :: is_cellulose(:)   ! TRUE => pool is cellulose
+    logical, pointer, contiguous :: is_lignin(:)      ! TRUE => pool is lignin
     ! factor for AD spinup associated with each pool
-    real(rk8), pointer :: spinup_factor(:)
+    real(rk8), pointer, contiguous :: spinup_factor(:)
     real(rk8):: rf_l1s1      !respiration fraction litter 1 -> SOM 1
     real(rk8):: rf_l2s2      !respiration fraction litter 2 -> SOM 2
     real(rk8):: rf_l3s3      !respiration fraction litter 3 -> SOM 3
@@ -392,18 +392,18 @@ module mod_clm_cndecompcascadebgc
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     ! column level
     ! rate constant for decomposition (1./sec)
-    real(rk8), pointer :: decomp_k(:,:,:)
-    real(rk8), pointer :: t_scalar(:,:) ! soil temperature scalar for decomp
-    real(rk8), pointer :: w_scalar(:,:) ! soil water scalar for decomp
+    real(rk8), pointer, contiguous :: decomp_k(:,:,:)
+    real(rk8), pointer, contiguous :: t_scalar(:,:) ! soil temperature scalar for decomp
+    real(rk8), pointer, contiguous :: w_scalar(:,:) ! soil water scalar for decomp
     ! fraction by which decomposition is limited by anoxia
-    real(rk8), pointer :: o_scalar(:,:)
+    real(rk8), pointer, contiguous :: o_scalar(:,:)
 
-    real(rk8), pointer :: dz(:,:)   ! soil layer thickness (m)
+    real(rk8), pointer, contiguous :: dz(:,:)   ! soil layer thickness (m)
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: t_soisno(:,:)
-    real(rk8), pointer :: sucsat(:,:)   ! minimum soil suction (mm)
+    real(rk8), pointer, contiguous :: t_soisno(:,:)
+    real(rk8), pointer, contiguous :: sucsat(:,:)   ! minimum soil suction (mm)
     ! soil water potential in each soil layer (MPa)
-    real(rk8), pointer :: soilpsi(:,:)
+    real(rk8), pointer, contiguous :: soilpsi(:,:)
 
     ! samy : (gridded Q10 soil respiration sensitivity parameter) to improve
     ! heterotrophic respiration at the column scale
@@ -413,19 +413,19 @@ module mod_clm_cndecompcascadebgc
     !   feedback
     ! JOURNAL OF GEOPHYSICAL RESEARCH, VOL. 114, G02016,
     !       doi:10.1029/2008JG000850.
-    real(rk8), pointer :: q10(:)
+    real(rk8), pointer, contiguous :: q10(:)
 
 #ifdef LCH4
     ! Ratio of oxygen available to that demanded by roots,
     ! aerobes, & methanotrophs (nlevsoi)
-    real(rk8), pointer :: o2stress_unsat(:,:)
+    real(rk8), pointer, contiguous :: o2stress_unsat(:,:)
     ! Ratio of oxygen available to that demanded by roots,
     ! aerobes, & methanotrophs (nlevsoi)
-    real(rk8), pointer :: o2stress_sat(:,:)
+    real(rk8), pointer, contiguous :: o2stress_sat(:,:)
     ! fractional inundated area (excluding dedicated wetland columns)
-    real(rk8), pointer :: finundated(:)
+    real(rk8), pointer, contiguous :: finundated(:)
 #endif
-    integer(ik4), pointer :: alt_indx(:)  ! current depth of thaw
+    integer(ik4), pointer, contiguous :: alt_indx(:)  ! current depth of thaw
 
     real(rk8) :: dt  ! decomp timestep (seconds)
     real(rk8):: dtd  ! decomp timestep (days)
@@ -546,14 +546,14 @@ module mod_clm_cndecompcascadebgc
       frw(lbc:ubc) = 0._rk8
       nlev_soildecomp_standard = 5
       allocate(fr(lbc:ubc,nlev_soildecomp_standard))
-      do j = 1 , nlev_soildecomp_standard
-        do fc = 1 , num_soilc
+      do j = 1, nlev_soildecomp_standard
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           frw(c) = frw(c) + dz(c,j)
         end do
       end do
-      do j = 1 , nlev_soildecomp_standard
-        do fc = 1 , num_soilc
+      do j = 1, nlev_soildecomp_standard
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           if ( frw(c) /= 0._rk8 ) then
             fr(c,j) = dz(c,j) / frw(c)
@@ -572,8 +572,8 @@ module mod_clm_cndecompcascadebgc
       ! seasonal cycle of atmospheric CO2 concentration in global simulations.
       ! This does not impact the base rates at 25 C, which are calibrated
       ! from microcosm studies.
-      do j = 1 , nlev_soildecomp_standard
-        do fc = 1 , num_soilc
+      do j = 1, nlev_soildecomp_standard
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           if ( j == 1 ) t_scalar(c,:) = 0._rk8
           ! use separate (possibly equal) t funcs above and below
@@ -606,8 +606,8 @@ module mod_clm_cndecompcascadebgc
 
       minpsi = -10.0_rk8;
 
-      do j = 1 , nlev_soildecomp_standard
-        do fc = 1 , num_soilc
+      do j = 1, nlev_soildecomp_standard
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           if ( j == 1 ) w_scalar(c,:) = 0._rk8
           maxpsi = sucsat(c,j) * (-9.8e-6_rk8)
@@ -622,7 +622,7 @@ module mod_clm_cndecompcascadebgc
 
 #ifdef LCH4
       if ( anoxia_wtsat ) then ! Adjust for saturated fraction if unfrozen.
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           if ( alt_indx(c) >= nlev_soildecomp_standard .and. &
                t_soisno(c,1) > tfrz ) then
@@ -636,8 +636,8 @@ module mod_clm_cndecompcascadebgc
       ! Calculate ANOXIA
       if (anoxia) then
         ! Check for anoxia w/o LCH4 now done in controlMod.
-        do j = 1 , nlev_soildecomp_standard
-          do fc = 1 , num_soilc
+        do j = 1, nlev_soildecomp_standard
+          do fc = 1, num_soilc
             c = filter_soilc(fc)
             if ( j == 1 ) o_scalar(c,:) = 0._rk8
             if ( .not. anoxia_wtsat ) then
@@ -669,8 +669,8 @@ module mod_clm_cndecompcascadebgc
       ! the seasonal cycle of atmospheric CO2 concentration in global
       ! simulations. This does not impact the base rates at 25 C, which
       ! are calibrated from microcosm studies.
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           !! use separate (possibly equal) t funcs above and below
           !! freezing point
@@ -694,8 +694,8 @@ module mod_clm_cndecompcascadebgc
       ! Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
       minpsi = -10.0_rk8;
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           maxpsi = sucsat(c,j) * (-9.8e-6_rk8)
           psi = min(soilpsi(c,j),maxpsi)
@@ -719,8 +719,8 @@ module mod_clm_cndecompcascadebgc
     ! Calculate ANOXIA
     ! Check for anoxia w/o LCH4 now done in controlMod.
     if ( anoxia ) then
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           if ( .not. anoxia_wtsat ) then
             o_scalar(c,j) = max(o2stress_unsat(c,j), mino2lim)
@@ -741,8 +741,8 @@ module mod_clm_cndecompcascadebgc
 #if (defined VERTSOILC)
     ! add a term to reduce decomposition rate at depth
     ! for now used a fixed e-folding depth
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         depth_scalar(c,j) = exp(-zsoi(j)/decomp_depth_efolding)
       end do
@@ -750,8 +750,8 @@ module mod_clm_cndecompcascadebgc
 #endif
 
 #if (defined VERTSOILC)
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         decomp_k(c,j,i_litr1) = k_l1 * t_scalar(c,j) * &
                 w_scalar(c,j) * depth_scalar(c,j) * o_scalar(c,j) / dt
@@ -772,8 +772,8 @@ module mod_clm_cndecompcascadebgc
       end do
     end do
 #else
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         decomp_k(c,j,i_litr1) = k_l1 * &
                 t_scalar(c,j) * w_scalar(c,j) * o_scalar(c,j) / dt

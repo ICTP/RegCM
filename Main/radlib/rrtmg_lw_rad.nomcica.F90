@@ -97,12 +97,12 @@
 !------------------------------------------------------------------
 
       subroutine rrtmg_lw_nomcica &
-            (ncol    ,nlay    ,icld    ,idrv    ,lradfor  ,idirect   , &
-             play    ,plev    ,tlay    ,tlev    ,tsfc     ,h2ovmr    , &
-             o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr    ,cfc11vmr  , &
-             cfc12vmr,cfc22vmr,ccl4vmr ,emis    ,inflglw  ,iceflglw  , &
-             liqflglw,cldfr   ,taucld  ,cicewp  ,cliqwp   ,reice     , &
-             reliq   ,tauaer  ,uflx    ,dflx    ,hr       ,uflxc     , &
+            (ncol    ,nlay    ,icld    ,idrv    ,lradfor  ,idirect  , &
+             play    ,plev    ,tlay    ,tlev    ,tsfc     ,h2ovmr   , &
+             o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr    ,cfc11vmr , &
+             cfc12vmr,cfc22vmr,ccl4vmr ,emis    ,inflglw  ,iceflglw , &
+             liqflglw,cldfr   ,taucld  ,cicewp  ,cliqwp   ,reice    , &
+             reliq   ,tauaer  ,uflx    ,dflx    ,hr       ,uflxc    , &
              dflxc   ,hrc     ,aerfolw ,aerfoslw,asaerfolw,asaerfoslw, &
              duflx_dt,duflxc_dt )
 
@@ -550,7 +550,7 @@
          else if (idirect > 0 .and. lradfor ) then
            nlwcall = 2
          end if
-         do n = 1 , nlwcall
+         do n = 1, nlwcall
            if ( idirect == 1 ) then
              if ( n == 1 .and. lradfor)  then
                do k = 1, nlayers

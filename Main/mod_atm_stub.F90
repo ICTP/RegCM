@@ -33,55 +33,55 @@ module mod_atm_stub
 
   private
 
-  type(domain) , public :: mddom
-  type(domain_subgrid) , public :: mdsub
-  type(surfstate) , public :: sfs
+  type(domain), public :: mddom
+  type(domain_subgrid), public :: mdsub
+  type(surfstate), public :: sfs
 
-  type(v3dbound) , public :: xtb , xqb , xub , xvb , xlb , xib , xppb , xwwb
-  type(v2dbound) , public :: xpsb , xtsb , xpaib
+  type(v3dbound), public :: xtb, xqb, xub, xvb, xlb, xib, xppb, xwwb
+  type(v2dbound), public :: xpsb, xtsb, xpaib
 
-  type(lm_exchange) , public :: lm
-  type(lm_state) , public :: lms
+  type(lm_exchange), public :: lm
+  type(lm_state), public :: lms
 
-  integer(ik4) :: ix1 , ix2 , jx1 , jx2
-  integer(ik4) :: id1 , id2 , jd1 , jd2
+  integer(ik4) :: ix1, ix2, jx1, jx2
+  integer(ik4) :: id1, id2, jd1, jd2
 
-  real(rkx) , public :: rdnnsg
+  real(rkx), public :: rdnnsg
   real(rkx) :: rdtbdy
 
-  logical , parameter :: cross = .false.
-  logical , parameter :: dot = .true.
+  logical, parameter :: cross = .false.
+  logical, parameter :: dot = .true.
 
-  real(rkx) , dimension(:,:) , pointer , public :: patm
-  real(rkx) , dimension(:,:) , pointer , public :: tatm
-  real(rkx) , dimension(:,:) , pointer , public :: uatm
-  real(rkx) , dimension(:,:) , pointer , public :: vatm
-  real(rkx) , dimension(:,:) , pointer , public :: thatm
-  real(rkx) , dimension(:,:) , pointer , public :: qvatm
-  real(rkx) , dimension(:,:) , pointer , public :: zatm
-  real(rkx) , dimension(:,:) , pointer , public :: rho
-  real(rkx) , dimension(:,:) , pointer , public :: ps
-  real(rkx) , dimension(:,:) , pointer , public :: tp
-  real(rkx) , dimension(:,:) , pointer , public :: coszrs
-  real(rkx) , dimension(:,:) , pointer , public :: fsw
-  real(rkx) , dimension(:,:) , pointer , public :: flw
-  real(rkx) , dimension(:,:) , pointer , public :: flwd
-  real(rkx) , dimension(:,:) , pointer , public :: solar
-  real(rkx) , dimension(:,:) , pointer , public :: pptc
-  real(rkx) , dimension(:,:) , pointer , public :: pptnc
-  real(rkx) , dimension(:,:) , pointer , public :: swdir
-  real(rkx) , dimension(:,:) , pointer , public :: swdif
-  real(rkx) , dimension(:,:) , pointer , public :: lwdir
-  real(rkx) , dimension(:,:) , pointer , public :: lwdif
-  real(rkx) , dimension(:,:) , pointer , public :: totc
-  real(rkx) , dimension(:,:) , pointer , public :: zeta , fmzf
+  real(rkx), dimension(:,:), pointer, contiguous, public :: patm
+  real(rkx), dimension(:,:), pointer, contiguous, public :: tatm
+  real(rkx), dimension(:,:), pointer, contiguous, public :: uatm
+  real(rkx), dimension(:,:), pointer, contiguous, public :: vatm
+  real(rkx), dimension(:,:), pointer, contiguous, public :: thatm
+  real(rkx), dimension(:,:), pointer, contiguous, public :: qvatm
+  real(rkx), dimension(:,:), pointer, contiguous, public :: zatm
+  real(rkx), dimension(:,:), pointer, contiguous, public :: rho
+  real(rkx), dimension(:,:), pointer, contiguous, public :: ps
+  real(rkx), dimension(:,:), pointer, contiguous, public :: tp
+  real(rkx), dimension(:,:), pointer, contiguous, public :: coszrs
+  real(rkx), dimension(:,:), pointer, contiguous, public :: fsw
+  real(rkx), dimension(:,:), pointer, contiguous, public :: flw
+  real(rkx), dimension(:,:), pointer, contiguous, public :: flwd
+  real(rkx), dimension(:,:), pointer, contiguous, public :: solar
+  real(rkx), dimension(:,:), pointer, contiguous, public :: pptc
+  real(rkx), dimension(:,:), pointer, contiguous, public :: pptnc
+  real(rkx), dimension(:,:), pointer, contiguous, public :: swdir
+  real(rkx), dimension(:,:), pointer, contiguous, public :: swdif
+  real(rkx), dimension(:,:), pointer, contiguous, public :: lwdir
+  real(rkx), dimension(:,:), pointer, contiguous, public :: lwdif
+  real(rkx), dimension(:,:), pointer, contiguous, public :: totc
+  real(rkx), dimension(:,:), pointer, contiguous, public :: zeta, fmzf
 
-  public :: allocate_mod_atm_interface , allocate_surface_model
+  public :: allocate_mod_atm_interface, allocate_surface_model
   public :: setup_model_indexes
-  public :: init_bdy , bdyin , atmval
+  public :: init_bdy, bdyin, atmval
 
   interface timeint
-    module procedure timeint2 , timeint3
+    module procedure timeint2, timeint3
   end interface timeint
 
   contains
@@ -274,12 +274,12 @@ module mod_atm_stub
       write(ndebug,*) 'BOTTOM      = ', ma%bottom
       write(ndebug,*) 'BOTTOMLEFT  = ', ma%bottomleft
       write(ndebug,*) 'LEFT        = ', ma%left
-      write(ndebug,*) 'DOTPEXTJI1 : ', jde1 , jde2 , ide1 , ide2
-      write(ndebug,*) 'DOTPINTJI1 : ', jdi1 , jdi2 , idi1 , idi2
-      write(ndebug,*) 'DOTPINTJI2 : ', jdii1 , jdii2 , idii1 , idii2
-      write(ndebug,*) 'CRXPEXTJI1 : ', jce1 , jce2 , ice1 , ice2
-      write(ndebug,*) 'CRXPINTJI1 : ', jci1 , jci2 , ici1 , ici2
-      write(ndebug,*) 'CRXPINTJI2 : ', jcii1 , jcii2 , icii1 , icii2
+      write(ndebug,*) 'DOTPEXTJI1 : ', jde1, jde2, ide1, ide2
+      write(ndebug,*) 'DOTPINTJI1 : ', jdi1, jdi2, idi1, idi2
+      write(ndebug,*) 'DOTPINTJI2 : ', jdii1, jdii2, idii1, idii2
+      write(ndebug,*) 'CRXPEXTJI1 : ', jce1, jce2, ice1, ice2
+      write(ndebug,*) 'CRXPINTJI1 : ', jci1, jci2, ici1, ici2
+      write(ndebug,*) 'CRXPINTJI2 : ', jcii1, jcii2, icii1, icii2
       write(ndebug,*) 'TOPBDY   : ', ma%has_bdytop
       write(ndebug,*) 'BTMBDY   : ', ma%has_bdybottom
       write(ndebug,*) 'RGTBDY   : ', ma%has_bdyright
@@ -290,9 +290,9 @@ module mod_atm_stub
 
     subroutine allocate_v3dbound(xb,ke,ldot)
       implicit none
-      type(v3dbound) , intent(inout) :: xb
-      integer(ik4) , intent(in) :: ke
-      logical , intent(in) :: ldot
+      type(v3dbound), intent(inout) :: xb
+      integer(ik4), intent(in) :: ke
+      logical, intent(in) :: ldot
       if ( ldot ) then
         call getmem3d(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b0')
         call getmem3d(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b1')
@@ -306,8 +306,8 @@ module mod_atm_stub
 
     subroutine allocate_v2dbound(xb,ldot)
       implicit none
-      type(v2dbound) , intent(inout) :: xb
-      logical , intent(in) :: ldot
+      type(v2dbound), intent(inout) :: xb
+      logical, intent(in) :: ldot
       if ( ldot ) then
         call getmem2d(xb%b0,jde1,jde2,ide1,ide2,'v2dbound:b0')
         call getmem2d(xb%b1,jde1,jde2,ide1,ide2,'v2dbound:b1')
@@ -321,7 +321,7 @@ module mod_atm_stub
 
     subroutine allocate_domain(dom)
       implicit none
-      type(domain) , intent(inout) :: dom
+      type(domain), intent(inout) :: dom
       call getmem2d(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
       call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
@@ -376,7 +376,7 @@ module mod_atm_stub
 
     subroutine allocate_domain_subgrid(sub)
       implicit none
-      type(domain_subgrid) , intent(inout) :: sub
+      type(domain_subgrid), intent(inout) :: sub
       call getmem3d(sub%ht,1,nnsg,jde1,jde2,ide1,ide2,'storage:ht')
       call getmem3d(sub%lndcat,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem3d(sub%lndtex,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndtex')
@@ -394,7 +394,7 @@ module mod_atm_stub
 
     subroutine allocate_surfstate(sfs)
       implicit none
-      type(surfstate) , intent(inout) :: sfs
+      type(surfstate), intent(inout) :: sfs
       call getmem2d(sfs%psa,jce1,jce2,ice1,ice2,'surf:psa')
       call getmem2d(sfs%psdota,jde1,jde2,ide1,ide2,'surf:psdota')
       call getmem2d(sfs%psb,jx1,jx2,ix1,ix2,'surf:psb')
@@ -627,10 +627,10 @@ module mod_atm_stub
       implicit none
       character(len=32) :: appdat
       type (rcm_time_and_date) :: icbc_date
-      integer(ik4) :: i , j , datefound
+      integer(ik4) :: i, j, datefound
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'init_bdy'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
 
@@ -700,8 +700,8 @@ module mod_atm_stub
                      xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
 
       if ( myid == italk ) then
-        write (stdout,*) 'READY  BC from     ' , &
-              tochar10(bdydate1) , ' to ' , tochar10(bdydate2)
+        write (stdout,*) 'READY  BC from     ', &
+              tochar10(bdydate1), ' to ', tochar10(bdydate2)
       end if
 
       bdydate1 = bdydate2
@@ -738,8 +738,8 @@ module mod_atm_stub
       end if
 
       if ( rcmtimer%start( ) ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             sfs%tg(j,i) = xtsb%b0(j,i)
           end do
         end do
@@ -756,7 +756,7 @@ module mod_atm_stub
       character(len=32) :: appdat
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'bdyin'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
 
@@ -820,8 +820,8 @@ module mod_atm_stub
       end if
 
       if ( myid == italk ) then
-        write (stdout,*) 'READY  BC from     ' , &
-              tochar10(bdydate1) , ' to ' , tochar10(bdydate2)
+        write (stdout,*) 'READY  BC from     ', &
+              tochar10(bdydate1), ' to ', tochar10(bdydate2)
       end if
 
       bdydate1 = bdydate2
@@ -833,13 +833,13 @@ module mod_atm_stub
 
     subroutine atmval
       implicit none
-      integer(ik4) :: i , j
-      real(rkx) :: psb , cell , zq , xt
+      integer(ik4) :: i, j
+      real(rkx) :: psb, cell, zq, xt
 
       xt = xbctime
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           tatm(j,i) = xtb%b0(j,i,kz) + xt*xtb%bt(j,i,kz)
           if ( idynamic == 3 ) then
             ps(j,i) = xpsb%b0(j,i) + xt*xpsb%bt(j,i)
@@ -880,12 +880,12 @@ module mod_atm_stub
 
     subroutine timeint2(a,b,c,j1,j2,i1,i2)
       implicit none
-      real(rkx) , pointer , dimension(:,:) , intent(in) :: a , b
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: c
-      integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-      integer(ik4) :: i , j
-      do i = i1 , i2
-        do j = j1 , j2
+      real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: a, b
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: c
+      integer(ik4), intent(in) :: j1, j2, i1, i2
+      integer(ik4) :: i, j
+      do i = i1, i2
+        do j = j1, j2
           c(j,i) = (a(j,i)-b(j,i))*rdtbdy
         end do
       end do
@@ -893,13 +893,13 @@ module mod_atm_stub
 
     subroutine timeint3(a,b,c,j1,j2,i1,i2,k1,k2)
       implicit none
-      real(rkx) , pointer , dimension(:,:,:) , intent(in) :: a , b
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: c
-      integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-      integer(ik4) :: i , j , k
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: a, b
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: c
+      integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+      integer(ik4) :: i, j, k
+      do k = k1, k2
+        do i = i1, i2
+          do j = j1, j2
             c(j,i,k) = (a(j,i,k)-b(j,i,k))*rdtbdy
           end do
         end do
@@ -908,14 +908,14 @@ module mod_atm_stub
 
   subroutine paicompute(xpsb,xtb,xqb,xpaib)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xpsb
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xtb , xqb
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xpaib
-    real(rkx) :: p , tv , zz1 , zz2 , zlr
-    integer(ik4) :: i , j
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xpsb
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xtb, xqb
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xpaib
+    real(rkx) :: p, tv, zz1, zz2, zlr
+    integer(ik4) :: i, j
     ! Hydrostatic initialization of pai
-    do i = ice1 , ice2
-      do j = jce1 , jce2
+    do i = ice1, ice2
+      do j = jce1, jce2
         zz1 = zeta(j,i)
         zlr = stdlrate(yeardayfrac(rcmtimer%idate),dayspy,mddom%xlat(j,i))
         ! zlr = -lrate

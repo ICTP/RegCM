@@ -29,7 +29,7 @@ module mod_che_bionit
   ! manure application rate (kg/m2/s)
   ! fertiliser application rate (kg/m2/s)
   ! soilpH/
-  real(rkx) , pointer, dimension(:,:) :: nmanure , nfert , soilph
+  real(rkx), pointer, contiguous, dimension(:,:) :: nmanure, nfert, soilph
 
   !coefficients and weights derived from neural net analysis
   real(rkx), parameter :: xwgt0 =  0.561651794427011_rkx
@@ -119,10 +119,10 @@ contains
 
   subroutine soilnitro_emissions(ivegcov,wid10)
     implicit none
-    real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: wid10
-    integer(ik4) , dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
+    real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: wid10
+    integer(ik4), dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
     ! local variables
-    integer(ik4) :: i , j, nt
+    integer(ik4) :: i, j, nt
 
     real(rkx) :: &
       canred        ,&    ! canopy reduction factor
@@ -178,8 +178,8 @@ contains
     noxflux       = d_zero
 
 #ifndef CLM45
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         ! cycle on sea points
         if ( ivegcov(j,i) == 0 ) cycle
         ! getting the soil sand percentage, pH and fert rate values
@@ -211,8 +211,8 @@ contains
     end do
 #endif
 #ifdef CLM45
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         ! cycle on sea points
         if ( ivegcov(j,i) == 0 ) cycle
         ! getting the soil sand percentage, pH and fert rate values
@@ -246,8 +246,8 @@ contains
 
 #endif
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
 
         ! calculating what percentage volatilised N gets incorporated
         ! into NH3 and NOx
@@ -326,16 +326,16 @@ contains
     ! update tendency for NO flux
     if ( ichdrdepo == 1 ) then
       if ( idynamic == 3 ) then
-        do i  = ici1 , ici2
-          do j  = jci1 , jci2
+        do i  = ici1, ici2
+          do j  = jci1, jci2
             if ( ivegcov(j,i) == 0 ) cycle
             chiten(j,i,kz,ino) = chiten(j,i,kz,ino) + &
                    noxflux(j,i)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
           end do
         end do
       else
-        do i  = ici1 , ici2
-          do j  = jci1 , jci2
+        do i  = ici1, ici2
+          do j  = jci1, jci2
             if ( ivegcov(j,i) == 0 ) cycle
             chiten(j,i,kz,ino) = chiten(j,i,kz,ino) + &
                    noxflux(j,i)*cpsb(j,i)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
@@ -343,8 +343,8 @@ contains
         end do
       end if
     else if ( ichdrdepo == 2 ) then
-      do i  = ici1 , ici2
-        do j  = jci1 , jci2
+      do i  = ici1, ici2
+        do j  = jci1, jci2
           if ( ivegcov(j,i) == 0 ) cycle
           ! pass the flux to BL scheme
           chifxuw(j,i,ino) = chifxuw(j,i,ino) + noxflux(j,i)
@@ -352,16 +352,16 @@ contains
       end do
     end if
 
-    do i  = ici1 , ici2
-      do j  = jci1 , jci2
+    do i  = ici1, ici2
+      do j  = jci1, jci2
         ! diagnostic source (accumulated)
         cemtrac(j,i,ino) = cemtrac(j,i,ino) + noxflux(j,i)* cfdout
       end do
     end do
 
     if ( ichdiag > 0 ) then
-      do i  = ici1 , ici2
-        do j  = jci1 , jci2
+      do i  = ici1, ici2
+        do j  = jci1, jci2
           cemisdiag(j,i,kz,ino) = cemisdiag(j,i,kz,ino) + &
                noxflux(j,i)/(cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
         end do

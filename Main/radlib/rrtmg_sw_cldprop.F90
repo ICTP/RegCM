@@ -140,7 +140,7 @@
       tauctot(:) = 0._rb
 
       do lay = 1, nlayers
-         do ib = ib1 , ib2
+         do ib = ib1, ib2
             taucldorig(lay,ib) = tauc(ib-15,lay)
             taucloud(lay,ib) = 0.0_rb
             ssacloud(lay,ib) = 1.0_rb
@@ -161,7 +161,7 @@
 ! Apply delta-M scaling here
             if (inflag .eq. 0) then
 
-               do ib = ib1 , ib2
+               do ib = ib1, ib2
                   taucldorig_a = tauc(ib-15,lay)
                   ffp = fsfc(ib-15,lay)
                   ffp1 = 1.0_rb - ffp
@@ -181,7 +181,7 @@
 
 ! Calculation of absorption coefficients due to ice clouds.
                if (ciwp(lay) .eq. 0.0_rb) then
-                  do ib = ib1 , ib2
+                  do ib = ib1, ib2
                      extcoice(ib) = 0.0_rb
                      ssacoice(ib) = 0.0_rb
                      gice(ib)     = 0.0_rb
@@ -276,7 +276,7 @@
                   index = int(factor)
                   if (index .eq. 46) index = 45
                   fint = factor - real(index,kind=rb)
-                  do ib = ib1 , ib2
+                  do ib = ib1, ib2
                      extcoice(ib) = extice3(index,ib) + fint * &
                               (extice3(index+1,ib) - extice3(index,ib))
                      ssacoice(ib) = ssaice3(index,ib) + fint * &
@@ -314,7 +314,7 @@
 
 ! Calculation of absorption coefficients due to water clouds.
                 if (clwp(lay) .eq. 0.0_rb) then
-                   do ib = ib1 , ib2
+                   do ib = ib1, ib2
                       extcoliq(ib) = 0.0_rb
                       ssacoliq(ib) = 0.0_rb
                       gliq(ib) = 0.0_rb
@@ -329,7 +329,7 @@
                    if (index .eq. 0) index = 1
                    if (index .eq. 58) index = 57
                    fint = radliq - 1.5_rb - real(index,kind=rb)
-                   do ib = ib1 , ib2
+                   do ib = ib1, ib2
                       extcoliq(ib) = extliq1(index,ib) + fint * &
                               (extliq1(index+1,ib) - extliq1(index,ib))
                       ssacoliq(ib) = ssaliq1(index,ib) + fint * &
@@ -356,7 +356,7 @@
                    enddo
                 endif
 
-                do ib = ib1 , ib2
+                do ib = ib1, ib2
                    tauliqorig = clwp(lay) * extcoliq(ib)
                    tauiceorig = ciwp(lay) * extcoice(ib)
                    taucldorig(lay,ib) = tauliqorig + tauiceorig

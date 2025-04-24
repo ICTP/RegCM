@@ -45,8 +45,8 @@
 
         subroutine mpi_init_thread(required,provided,ierror)
           implicit none
-          integer , intent(in) :: required
-          integer , intent(out) :: provided , ierror
+          integer, intent(in) :: required
+          integer, intent(out) :: provided, ierror
 
           call mpi_init(ierror)
           provided = 0

@@ -24,7 +24,7 @@ module mod_che_emission
   use mod_service
   use mod_dynparam
 #ifdef CLM45
-  use mod_runparams , only : rcm_megan_enabled
+  use mod_runparams, only : rcm_megan_enabled
 #endif
   use mod_che_common
   use mod_che_param
@@ -38,7 +38,7 @@ module mod_che_emission
 
   private
   !
-  public :: chem_emission , emis_tend
+  public :: chem_emission, emis_tend
   !
   contains
   !
@@ -46,19 +46,19 @@ module mod_che_emission
   !
   subroutine chem_emission(lyear,lmonth,lday,lhour)
     implicit none
-    integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
-    integer(ik4) , save :: curry = -1
-    integer(ik4) , save :: currm = -1
-    integer(ik4) , save :: currd = -1
-    integer(ik4) , save :: ifreq = -1
-    integer(ik4) , save :: currybb = -1
-    integer(ik4) , save :: currmbb = -1
-    integer(ik4) , save :: currdbb = -1
-    integer(ik4) , save :: ifreqbb = -1
+    integer(ik4), intent(in) :: lyear, lmonth, lday, lhour
+    integer(ik4), save :: curry = -1
+    integer(ik4), save :: currm = -1
+    integer(ik4), save :: currd = -1
+    integer(ik4), save :: ifreq = -1
+    integer(ik4), save :: currybb = -1
+    integer(ik4), save :: currmbb = -1
+    integer(ik4), save :: currdbb = -1
+    integer(ik4), save :: ifreqbb = -1
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_emission'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -107,7 +107,7 @@ module mod_che_emission
       chemsrcan(:,:,iochb) = rocemfac * chemsrcan(:,:,iochb)
     end if
 
-    ! Handle biomass burning emissions , possibly at a different frequency
+    ! Handle biomass burning emissions, possibly at a different frequency
     !
     99 continue
 
@@ -164,14 +164,14 @@ module mod_che_emission
   !
   subroutine emis_tend(i,declin)
     implicit none
-    integer(ik4) , intent(in) :: i
-    real(rk8) , intent(in) :: declin
+    integer(ik4), intent(in) :: i
+    real(rk8), intent(in) :: declin
 
-    integer(ik4)  :: j , itr
-    real(rkx) :: daylen , fact , maxelev , amp , dayhr
+    integer(ik4)  :: j, itr
+    real(rkx) :: daylen, fact, maxelev, amp, dayhr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'emis_tend'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -189,7 +189,7 @@ module mod_che_emission
           chemsrc(j,i,iisop) = cvoc_em_clm(j,i,iisop)
         end do
       else
-        do j = jci1 , jci2
+        do j = jci1, jci2
           dayhr = -tan(declin)*tan(cxlat(j,i)*degrad)
           if ( dayhr < -1 .or. dayhr > 1 ) then
             tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
@@ -224,7 +224,7 @@ module mod_che_emission
     ! Modify chemsrc for isoprene from inventory to account for
     ! simplified dirunal cycle
     if ( iisop > 0 ) then
-      do j = jci1 , jci2
+      do j = jci1, jci2
         dayhr = -tan(declin)*tan(cxlat(j,i)*degrad)
         if ( dayhr < -1 .or. dayhr > 1 ) then
           tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
@@ -247,35 +247,35 @@ module mod_che_emission
     ! add the source term to tracer tendency
     !
     if ( ichdrdepo /= 2 ) then
-      do itr = 1 , ntr
+      do itr = 1, ntr
         if ( chtrname(itr)(1:2) == 'DU' .or. &
              chtrname(itr)(1:4) == 'SSLT' .or. &
              chtrname(itr)(1:6) == 'POLLEN'.or. &
              any ( mine_name == chtrname(itr)(1:4) )) cycle
         if ( idynamic == 3 ) then
-          do j = jci1 , jci2
+          do j = jci1, jci2
             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
                   chemsrc(j,i,itr)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
           end do
         else
-          do j = jci1 , jci2
+          do j = jci1, jci2
             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
                 chemsrc(j,i,itr)/(cdzq(j,i,kz)*crhob3d(j,i,kz))*cpsb(j,i)
           end do
         end if
-        do j = jci1 , jci2
+        do j = jci1, jci2
           ! diagnostic for source, cumul
           cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
         end do
         if ( ichdiag > 0 ) then
-          do j = jci1 , jci2
+          do j = jci1, jci2
             cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
                 chemsrc(j,i,itr)/(cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
           end do
         end if
       end do
     else if ( ichdrdepo == 2 ) then
-      do itr = 1 , ntr
+      do itr = 1, ntr
         if ( chtrname(itr)(1:2) == 'DU' .or. &
              chtrname(itr)(1:4) == 'SSLT' .or. &
              chtrname(itr)(1:6) == 'POLLEN'.or. &
@@ -283,12 +283,12 @@ module mod_che_emission
         if ( ibltyp /= 2 ) then
           ! if PBL scheme is not UW then calculate emission tendency
           if ( idynamic == 3 ) then
-            do j = jci1 , jci2
+            do j = jci1, jci2
               chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
                    chemsrc(j,i,itr)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
             end do
           else
-            do j = jci1 , jci2
+            do j = jci1, jci2
               chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
                    chemsrc(j,i,itr)/(cdzq(j,i,kz)*crhob3d(j,i,kz))*cpsb(j,i)
             end do
@@ -296,17 +296,17 @@ module mod_che_emission
         else
           ! otherwise emission is injected in the PBL scheme ( together
           ! with dry deposition) for tend calculation
-          do j = jci1 , jci2
+          do j = jci1, jci2
             chifxuw(j,i,itr) = chifxuw(j,i,itr) + chemsrc(j,i,itr)
           end do
         end if
         ! diagnostic for source, cumul
-        do j = jci1 , jci2
+        do j = jci1, jci2
           cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
         end do
         if ( ichdiag > 0 ) then
           if ( ibltyp /= 2 ) then
-            do j = jci1 , jci2
+            do j = jci1, jci2
             ! in this case we calculate emission tendency diagnostic, but
             ! this term will also be included in BL tendency diagnostic
             ! if UW scheme is used.

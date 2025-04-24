@@ -40,13 +40,13 @@ program regcm
 
   real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif
-  integer(ik4) :: ierr , iprov
+  integer(ik4) :: ierr, iprov
 #ifdef OASIS
   integer :: localCommunicator
 #endif
 #ifdef MPI_SERIAL
   include 'mpif.h'
-  integer(ik4) , parameter :: mpi_thread_single = 0
+  integer(ik4), parameter :: mpi_thread_single = 0
 #endif
 !
 !**********************************************************************

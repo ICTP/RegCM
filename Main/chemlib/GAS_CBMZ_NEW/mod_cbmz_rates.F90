@@ -41,7 +41,7 @@ module mod_cbmz_rates
   !~~~>  arrhenius
   pure real(kind=dp) function arr( a0,b0,c0 )
     implicit none
-    real(kind=dp) , intent(in) :: a0 , b0 , c0
+    real(kind=dp), intent(in) :: a0, b0, c0
     arr = a0 * exp(-b0/temp) * (temp/300.0_dp)**c0
   end function arr
 
@@ -49,15 +49,15 @@ module mod_cbmz_rates
   !~~~> note: the argument b0 has a changed sign when compared to arr
   pure real(kind=dp) function arr2( a0,b0 )
     implicit none
-    real(kind=dp) , intent(in) :: a0 , b0
+    real(kind=dp), intent(in) :: a0, b0
     arr2 = a0 * exp( b0/temp )
   end function arr2
 
   !~~~~~~~~~~~~~~>     added by a. shalaby june 2007 --------------------
   pure real(kind=dp) function arr3fc( a0,b0,a1,b1,fc )
     implicit none
-    real(kind=dp) , intent(in) :: a0 , b0 , a1 , b1 , fc
-    real(kind=dp) :: k1 , k2 , ex
+    real(kind=dp), intent(in) :: a0, b0, a1, b1, fc
+    real(kind=dp) :: k1, k2, ex
     k1 = a0 * (300._dp/temp)**b0
     k2 = a1 * (300._dp/temp)**b1
     ex = 1._dp/(1._dp+(log10(k1*c_m/k2))**2)
@@ -67,8 +67,8 @@ module mod_cbmz_rates
   !~~~~~~~~~~~~~~>     added by a. shalaby june 2007 --------------------
   pure real(kind=dp) function arr4( a0,b0,c0,a1,b1,c1,fc )
     implicit none
-    real(kind=dp) , intent(in) :: a0 , b0 , c0 , a1 , b1 , c1 , fc
-    real(kind=dp) :: k1 , k2 , ex
+    real(kind=dp), intent(in) :: a0, b0, c0, a1, b1, c1, fc
+    real(kind=dp) :: k1, k2, ex
     k1 = a0*((300._dp/temp)**b0)*exp(c0/temp)
     k2 = a1*((300._dp/temp)**b1)*exp(c1/temp)
     ex = 1._dp/(1._dp+(log(k1*c_m/k2))**2)
@@ -77,8 +77,8 @@ module mod_cbmz_rates
 
   pure real(kind=dp) function ep2(a0,c0,a2,c2,a3,c3)
     implicit none
-    real(kind=dp) , intent(in) :: a0 , c0 , a2 , c2 , a3 , c3
-    real(kind=dp) :: k0 , k2 , k3
+    real(kind=dp), intent(in) :: a0, c0, a2, c2, a3, c3
+    real(kind=dp) :: k0, k2, k3
     k0 = a0 * exp(-c0/temp)
     k2 = a2 * exp(-c2/temp)
     k3 = a3 * exp(-c3/temp)
@@ -88,8 +88,8 @@ module mod_cbmz_rates
 
   pure real(kind=dp) function ep3(a1,c1,a2,c2)
     implicit none
-    real(kind=dp) , intent(in) :: a1 , c1 , a2 , c2
-    real(kind=dp) :: k1 , k2
+    real(kind=dp), intent(in) :: a1, c1, a2, c2
+    real(kind=dp) :: k1, k2
     k1 = a1 * exp(-c1/temp)
     k2 = a2 * exp(-c2/temp)
     ep3 = k1 + k2*(1.0e6_dp*cfactor)
@@ -97,8 +97,8 @@ module mod_cbmz_rates
 
   pure real(kind=dp) function fall ( a0,b0,c0,a1,b1,c1,cf)
     implicit none
-    real(kind=dp) , intent(in) :: a0 , b0 , c0 , a1 , b1 , c1 , cf
-    real(kind=dp) :: k0 , k1
+    real(kind=dp), intent(in) :: a0, b0, c0, a1, b1, c1, cf
+    real(kind=dp) :: k0, k1
     k0 = a0 * exp(-b0/temp)* (temp/300.0_dp)**c0
     k1 = a1 * exp(-b1/temp)* (temp/300.0_dp)**c1
     k0 = k0*cfactor*1.0e6_dp
@@ -110,14 +110,14 @@ module mod_cbmz_rates
 
   elemental real(kind=dp) function k_3rd(temp,cair,k0_300k,n,kinf_300k,m,fc)
     implicit none
-    real(kind=dp) , intent(in) :: temp ! temperature [k]
-    real(kind=dp) , intent(in) :: cair ! air concentration [molecules/cm3]
-    real(kind=dp) , intent(in) :: k0_300k   ! low pressure limit at 300 k
-    real(kind=dp) , intent(in) :: n         ! exponent for low pressure limit
-    real(kind=dp) , intent(in) :: kinf_300k ! high pressure limit at 300 k
-    real(kind=dp) , intent(in) :: m         ! exponent for high pressure limit
-    real(kind=dp) , intent(in) :: fc        ! broadening factor (usually fc=0.6)
-    real(kind=dp) :: zt_help , k0_t , kinf_t , k_ratio
+    real(kind=dp), intent(in) :: temp ! temperature [k]
+    real(kind=dp), intent(in) :: cair ! air concentration [molecules/cm3]
+    real(kind=dp), intent(in) :: k0_300k   ! low pressure limit at 300 k
+    real(kind=dp), intent(in) :: n         ! exponent for low pressure limit
+    real(kind=dp), intent(in) :: kinf_300k ! high pressure limit at 300 k
+    real(kind=dp), intent(in) :: m         ! exponent for high pressure limit
+    real(kind=dp), intent(in) :: fc        ! broadening factor (usually fc=0.6)
+    real(kind=dp) :: zt_help, k0_t, kinf_t, k_ratio
     zt_help = 300._dp/temp
     k0_t    = k0_300k   * zt_help**(n) * cair ! k_0   at current t
     kinf_t  = kinf_300k * zt_help**(m)        ! k_inf at current t
@@ -128,16 +128,16 @@ module mod_cbmz_rates
   elemental real(kind=dp) function k_arr (k_298,tdep,temp)
     implicit none
     ! arrhenius function
-    real(kind=dp) , intent(in) :: k_298 ! k at t = 298.15k
-    real(kind=dp) , intent(in) :: tdep  ! temperature dependence
-    real(kind=dp) , intent(in) :: temp  ! temperature
+    real(kind=dp), intent(in) :: k_298 ! k at t = 298.15k
+    real(kind=dp), intent(in) :: tdep  ! temperature dependence
+    real(kind=dp), intent(in) :: temp  ! temperature
     k_arr = k_298 * exp(tdep*(1._dp/temp-3.3540e-3_dp)) ! 1/298.15=3.3540e-3
   end function k_arr
 
   pure real(kind=dp) function arr3( a0,b0,a1,b1)
     implicit none
-    real(kind=dp) , intent(in) :: a0 , b0 , a1 , b1
-    real(kind=dp) :: k1 , k2 , ex
+    real(kind=dp), intent(in) :: a0, b0, a1, b1
+    real(kind=dp) :: k1, k2, ex
     k1 = a0*c_m*(300._dp/temp)**(b0)
     k2 = a1*(300._dp/temp)**(b1)
     ex = 1.0_dp/(1.0_dp+(log(k1/k2))**2)
@@ -145,8 +145,8 @@ module mod_cbmz_rates
   end function arr3
 
   pure real(kind=dp) function cbz1( temp, c_m )
-    real(kind=dp) , intent(in) :: temp , c_m
-    real(kind=dp) :: ka , kb , kc
+    real(kind=dp), intent(in) :: temp, c_m
+    real(kind=dp) :: ka, kb, kc
     ka  = 7.2e-15_dp * exp(785._dp/temp)
     kb  = 1.9e-33_dp * exp(725._dp/temp)
     kc  = 4.1e-16_dp * exp(1440._dp/temp)
@@ -154,8 +154,8 @@ module mod_cbmz_rates
   end function cbz1
 
   pure real(kind=dp) function cbz2( temp, c_m )
-    real(kind=dp) , intent(in) :: temp , c_m
-    real(kind=dp) :: kd , ke
+    real(kind=dp), intent(in) :: temp, c_m
+    real(kind=dp) :: kd, ke
     kd = 2.3e-13_dp*exp(600._dp/temp)
     ke = 1.7e-33_dp*exp(1000._dp/temp)
     cbz2 = kd + c_m*ke
@@ -163,7 +163,7 @@ module mod_cbmz_rates
 
   subroutine loadperoxyparameters
     implicit none
-    integer :: i , j
+    integer :: i, j
 
     aperox(jch3o2,jch3o2)   = 2.5e-13_dp
     aperox(jethp,jethp)     = 6.8e-14_dp
@@ -201,9 +201,9 @@ module mod_cbmz_rates
 
   subroutine peroxyrateconstants
     implicit none
-    integer :: i , j
-    real(kind=dp) , dimension(nperox) :: sperox(nperox)
-    real(kind=dp) , dimension(nperox,nperox) :: rk_perox
+    integer :: i, j
+    real(kind=dp), dimension(nperox) :: sperox(nperox)
+    real(kind=dp), dimension(nperox,nperox) :: rk_perox
 
     sperox(jch3o2)  =  var(indv_ch3o2)!c_ch3o2
     sperox(jethp)   =  var(indv_ethp) ! c_ethp
@@ -237,8 +237,8 @@ module mod_cbmz_rates
 
   pure real(kind=dp) function kdms(temp)
     implicit none
-    real(kind=dp) , intent(in) :: temp
-    real(kind=dp) :: k0 , k1 , k2 , k3 , k4
+    real(kind=dp), intent(in) :: temp
+    real(kind=dp) :: k0, k1, k2, k3, k4
     k0 = temp * exp(-234._dp/temp)
     k1 = 8.46e-10_dp*exp(7230_dp/temp)
     k2 = 2.68e-10_dp*exp(7810_dp/temp)

@@ -24,9 +24,9 @@ module mod_write
 
   private
 
-  public :: setup_outvars , write_domain , lrmoist , lrts
+  public :: setup_outvars, write_domain, lrmoist, lrts
 
-  logical :: lrmoist , lrts
+  logical :: lrmoist, lrts
 
   integer(ik4) :: nvar2d
   integer(ik4) :: nvar3d
@@ -34,13 +34,13 @@ module mod_write
   integer(ik4) :: idtxt ! The position of texture in the v2dvar_base
 
 #ifdef SINGLE_PRECISION_REAL
-  type(ncvariable2d_real) , save, dimension(:), allocatable :: v2dvar_base
-  type(ncvariable3d_real) , save, dimension(:), allocatable :: v3dvar_base
-  type(ncvariable2d_real) , save :: v2dvar_lake
+  type(ncvariable2d_real), save, dimension(:), allocatable :: v2dvar_base
+  type(ncvariable3d_real), save, dimension(:), allocatable :: v3dvar_base
+  type(ncvariable2d_real), save :: v2dvar_lake
 #else
-  type(ncvariable2d_double) , save, dimension(:), allocatable :: v2dvar_base
-  type(ncvariable3d_double) , save, dimension(:), allocatable :: v3dvar_base
-  type(ncvariable2d_double) , save :: v2dvar_lake
+  type(ncvariable2d_double), save, dimension(:), allocatable :: v2dvar_base
+  type(ncvariable3d_double), save, dimension(:), allocatable :: v3dvar_base
+  type(ncvariable2d_double), save :: v2dvar_lake
 #endif
 
   character(len=512) :: landuse_legend =                     &
@@ -271,33 +271,33 @@ module mod_write
                           rmoist,rts,dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,&
                           ts0,zeta,fmz)
     implicit none
-    character (len=*) , intent(in) :: fname
-    logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
-    integer(ik4) , intent(in) :: ntype
-    real(rkx) , dimension(:) , pointer , intent(in) :: sigma
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: xlat , xlon
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: dlat , dlon
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: ulat , ulon
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: vlat , vlon
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: xmap , dmap , coriol
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: umap , vmap
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: mask
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: htgrid , lndout
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: snowam
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: smoist
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: dpth
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: texout
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: ps0
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rmoist
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rts
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: frac_tex
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: pr0
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t0
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rho0
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: z0
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: zeta
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: fmz
-    real(rkx) , intent(in) :: ts0
+    character (len=*), intent(in) :: fname
+    logical, intent(in) :: lsub, lndfudge, texfudge, lakfudge
+    integer(ik4), intent(in) :: ntype
+    real(rkx), dimension(:), pointer, contiguous, intent(in) :: sigma
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: xlat, xlon
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: dlat, dlon
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ulat, ulon
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: vlat, vlon
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: xmap, dmap, coriol
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: umap, vmap
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: mask
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: htgrid, lndout
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: snowam
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: smoist
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: dpth
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: texout
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ps0
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: rmoist
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: rts
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: frac_tex
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: pr0
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: t0
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: rho0
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: z0
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zeta
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: fmz
+    real(rkx), intent(in) :: ts0
 
     type(nc_output_stream) :: ncout
     type(ncoutstream_params) :: opar
@@ -353,7 +353,7 @@ module mod_write
     call outstream_addatt(ncout, &
        ncattribute_logical('initialized_surface_moisture',lsmoist))
 
-    do ivar = 1 , nvar2d
+    do ivar = 1, nvar2d
       v2dvar_base(ivar)%j1 = -1
       v2dvar_base(ivar)%j2 = -1
       v2dvar_base(ivar)%i1 = -1
@@ -376,7 +376,7 @@ module mod_write
     v2dvar_base(10)%rval => smoist
     v2dvar_base(11)%rval => texout
 
-    do ivar = 1 , nvar3d
+    do ivar = 1, nvar3d
       v3dvar_base(ivar)%j1 = -1
       v3dvar_base(ivar)%j2 = -1
       v3dvar_base(ivar)%i1 = -1
@@ -433,11 +433,11 @@ module mod_write
 
     call outstream_enable(ncout,sigma)
 
-    do ivar = 1 , nvar2d
+    do ivar = 1, nvar2d
       call outstream_writevar(ncout,v2dvar_base(ivar))
     end do
 
-    do ivar = 1 , nvar3d
+    do ivar = 1, nvar3d
       call outstream_writevar(ncout,v3dvar_base(ivar))
     end do
 

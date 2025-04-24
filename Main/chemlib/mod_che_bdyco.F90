@@ -39,36 +39,36 @@ module mod_che_bdyco
 
   private
 
-  public :: allocate_mod_che_bdyco , chem_bdyin , chem_bdyval
-  public :: nudge_chi , setup_che_bdycon
-  public :: che_init_bdy , chib0 , chib1 , chibt , ichbdy2trac , oxcl
+  public :: allocate_mod_che_bdyco, chem_bdyin, chem_bdyval
+  public :: nudge_chi, setup_che_bdycon
+  public :: che_init_bdy, chib0, chib1, chibt, ichbdy2trac, oxcl
 
-  type(rcm_time_and_date) , save :: chbdydate1 , chbdydate2
+  type(rcm_time_and_date), save :: chbdydate1, chbdydate2
 
-  real(rkx) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , oxcl
-  real(rkx) , pointer , dimension(:,:) :: cefc , cegc
-  integer(ik4) , pointer , dimension(:) :: ichbdy2trac
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chib0, chib1, chibt, oxcl
+  real(rkx), pointer, contiguous, dimension(:,:) :: cefc, cegc
+  integer(ik4), pointer, contiguous, dimension(:) :: ichbdy2trac
   !
   ! Boundary conditions arrays
   !
-  real(rkx) , pointer , dimension(:,:,:,:) :: chebdy
-  real(rkx) , pointer , dimension(:,:,:) :: fg
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chebdy
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: fg
 
-  integer(ik4) , parameter :: max_input_tracers = 50
-  integer(ik4) , parameter :: noxcl = 5
+  integer(ik4), parameter :: max_input_tracers = 50
+  integer(ik4), parameter :: noxcl = 5
 
   type cbound_area
     logical :: havebound
-    logical , pointer , dimension(:,:) :: bsouth
-    logical , pointer , dimension(:,:) :: bnorth
-    logical , pointer , dimension(:,:) :: beast
-    logical , pointer , dimension(:,:) :: bwest
-    integer(ik4) :: ns , nn , ne , nw
+    logical, pointer, contiguous, dimension(:,:) :: bsouth
+    logical, pointer, contiguous, dimension(:,:) :: bnorth
+    logical, pointer, contiguous, dimension(:,:) :: beast
+    logical, pointer, contiguous, dimension(:,:) :: bwest
+    integer(ik4) :: ns, nn, ne, nw
     integer(ik4) :: nsp
-    integer(ik4) , pointer , dimension(:,:) :: ibnd
+    integer(ik4), pointer, contiguous, dimension(:,:) :: ibnd
   end type cbound_area
   public :: cbound_area
-  type(cbound_area) , public :: cba
+  type(cbound_area), public :: cba
 
   interface nudge_chi
     module procedure nudge_chiten
@@ -106,13 +106,13 @@ module mod_che_bdyco
 
   subroutine che_init_bdy
     implicit none
-    integer(ik4) :: datefound , i , j , k , n, after
+    integer(ik4) :: datefound, i, j, k, n, after
     character(len=32) :: appdat
     type (rcm_time_and_date) :: chbc_date
-    integer(ik4) :: lyear , lmonth , lday , lhour
+    integer(ik4) :: lyear, lmonth, lday, lhour
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'che_init_bdy'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -158,11 +158,11 @@ module mod_che_bdyco
 
       chib0 = d_zero
       after = 0
-      do n = 1 , size(ichbdy2trac)
+      do n = 1, size(ichbdy2trac)
         if ( ichbdy2trac(n) > 0 ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
                 chib0(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)
               end do
             end do
@@ -173,10 +173,10 @@ module mod_che_bdyco
 
       ! handle oxidant climatology
       if ( ioxclim == 1 ) then
-        do n = 1 , noxcl
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+        do n = 1, noxcl
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
                 oxcl(j,i,k,n) = chebdy(j,i,k,after+n)
               end do
             end do
@@ -222,11 +222,11 @@ module mod_che_bdyco
       end if
 
       chib1 = d_zero
-      do n = 1 , size(ichbdy2trac)
+      do n = 1, size(ichbdy2trac)
         if ( ichbdy2trac(n) > 0 ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
                 chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)
               end do
             end do
@@ -235,8 +235,8 @@ module mod_che_bdyco
       end do
 
       if ( myid == italk ) then
-        write (stdout,*) 'READY  CHBC from     ' , &
-            tochar10(chbdydate1) , ' to ' , tochar10(chbdydate2)
+        write (stdout,*) 'READY  CHBC from     ', &
+            tochar10(chbdydate1), ' to ', tochar10(chbdydate2)
       end if
 
       chbdydate1 = chbdydate2
@@ -245,10 +245,10 @@ module mod_che_bdyco
         !
         ! Couple with pstar
         !
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+        do n = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
                 chib0(j,i,k,n) = chib0(j,i,k,n)*psbb0(j,i)
               end do
             end do
@@ -257,10 +257,10 @@ module mod_che_bdyco
         !
         ! Repeat fot T2
         !
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+        do n = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
                 chib1(j,i,k,n) = chib1(j,i,k,n)*psbb1(j,i)
               end do
             end do
@@ -272,10 +272,10 @@ module mod_che_bdyco
       !
       ! Calculate time varying component
       !
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ice1ga , ice2ga
-            do j = jce1ga , jce2ga
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ice1ga, ice2ga
+            do j = jce1ga, jce2ga
               chibt(j,i,k,n) = (chib1(j,i,k,n)-chib0(j,i,k,n))/dtbdys
             end do
           end do
@@ -299,12 +299,12 @@ module mod_che_bdyco
 
   subroutine chem_bdyin
     implicit none
-    integer(ik4) :: i , j , k , n , datefound, after
+    integer(ik4) :: i, j, k, n, datefound, after
     character(len=32) :: appdat
-    integer(ik4) :: lyear , lmonth , lday , lhour
+    integer(ik4) :: lyear, lmonth, lday, lhour
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyin'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -347,11 +347,11 @@ module mod_che_bdyco
 
       chib1 = d_zero
       after = 0
-      do n = 1 , size(ichbdy2trac)
+      do n = 1, size(ichbdy2trac)
         if ( ichbdy2trac(n) > 0 ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
                 chib1(j,i,k,ichbdy2trac(n)) = chebdy(j,i,k,n)
               end do
             end do
@@ -360,10 +360,10 @@ module mod_che_bdyco
         end if
       end do
       if ( ioxclim == 1 ) then
-        do n = 1 , noxcl
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+        do n = 1, noxcl
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
                 oxcl(j,i,k,n) = chebdy(j,i,k,after+n)
               end do
             end do
@@ -372,10 +372,10 @@ module mod_che_bdyco
       end if
 
       if ( idynamic /= 3 ) then
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+        do n = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
                 chib1(j,i,k,n) = chib1(j,i,k,n)*psbb1(j,i)
               end do
             end do
@@ -383,10 +383,10 @@ module mod_che_bdyco
         end do
       end if
       call exchange(chib1,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ice1ga , ice2ga
-            do j = jce1ga , jce2ga
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ice1ga, ice2ga
+            do j = jce1ga, jce2ga
               chibt(j,i,k,n) = (chib1(j,i,k,n)-chib0(j,i,k,n))/dtbdys
             end do
           end do
@@ -398,8 +398,8 @@ module mod_che_bdyco
       end if
 
       if ( myid == italk ) then
-        write (stdout,*) 'READY  CHBC from     ' , &
-            tochar10(chbdydate1) , ' to ' , tochar10(chbdydate2)
+        write (stdout,*) 'READY  CHBC from     ', &
+            tochar10(chbdydate1), ' to ', tochar10(chbdydate2)
       end if
       chbdydate1 = chbdydate2
     else
@@ -413,12 +413,12 @@ module mod_che_bdyco
 
   subroutine chem_bdyval_uncoupled(u,v)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
-    real(rkx) :: xt , windavg , trint
-    integer(ik4) :: itr , i , j , k , n
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
+    real(rkx) :: xt, windavg, trint
+    integer(ik4) :: itr, i, j, k, n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyval_uncoupled'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     xt = xbctime + dt
@@ -428,9 +428,9 @@ module mod_che_bdyco
       ! west boundary:
       !
       if ( ma%has_bdyleft ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
+        do itr = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
               trint = chemt(jci1,i,k,itr)
               windavg = u(jde1,i,k) - u(jdi1,i,k)
               if ( windavg < d_zero ) then
@@ -446,9 +446,9 @@ module mod_che_bdyco
       ! east boundary:
       !
       if ( ma%has_bdyright ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
+        do itr = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
               trint = chemt(jci2,i,k,itr)
               windavg = u(jde2,i,k) - u(jdi2,i,k)
               if ( windavg > d_zero ) then
@@ -464,9 +464,9 @@ module mod_che_bdyco
       ! south boundary:
       !
       if ( ma%has_bdybottom ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do j = jci1 , jci2
+        do itr = 1, ntr
+          do k = 1, kz
+            do j = jci1, jci2
               trint = chemt(j,ici1,k,itr)
               windavg = v(j,ide1,k) - v(j,idi1,k)
               if ( windavg < d_zero ) then
@@ -482,9 +482,9 @@ module mod_che_bdyco
       ! north boundary:
       !
       if ( ma%has_bdytop ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do j = jci1 , jci2
+        do itr = 1, ntr
+          do k = 1, kz
+            do j = jci1, jci2
               trint = chemt(j,ici2,k,itr)
               windavg = v(j,ide2,k) - v(j,idi2,k)
               if ( windavg > d_zero ) then
@@ -514,36 +514,36 @@ module mod_che_bdyco
     ! time dependant boundary conditions is considered
 
     if ( ma%has_bdyleft ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
             chemt(jce1,i,k,n) = chib0(jce1,i,k,n) + xt*chibt(jce1,i,k,n)
           end do
         end do
       end do
     end if
     if ( ma%has_bdyright ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
             chemt(jce2,i,k,n) = chib0(jce2,i,k,n) + xt*chibt(jce2,i,k,n)
           end do
         end do
       end do
     end if
     if ( ma%has_bdybottom ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do j = jce1 , jce2
+      do n = 1, ntr
+        do k = 1, kz
+          do j = jce1, jce2
             chemt(j,ice1,k,n) = chib0(j,ice1,k,n) + xt*chibt(j,ice1,k,n)
           end do
         end do
       end do
     end if
     if ( ma%has_bdytop ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do j = jce1 , jce2
+      do n = 1, ntr
+        do k = 1, kz
+          do j = jce1, jce2
             chemt(j,ice2,k,n) = chib0(j,ice2,k,n) + xt*chibt(j,ice2,k,n)
           end do
         end do
@@ -556,16 +556,16 @@ module mod_che_bdyco
 
   subroutine chem_bdyval_coupled(psa,wue,wui,eue,eui,nve,nvi,sve,svi)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: psa
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: wue , wui
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: eue , eui
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: nve , nvi
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: sve , svi
-    real(rkx) :: xt , windavg , trint
-    integer(ik4) :: itr , i , j , k , n
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: psa
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: wue, wui
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: eue, eui
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: nve, nvi
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: sve, svi
+    real(rkx) :: xt, windavg, trint
+    integer(ik4) :: itr, i, j, k, n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyval_coupled'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     xt = xbctime + dt
@@ -574,9 +574,9 @@ module mod_che_bdyco
       ! West boundary
       !
       if ( ma%has_bdyleft ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
+        do itr = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
               chib(jce1,i,k,itr) = chia(jce1,i,k,itr)
             end do
           end do
@@ -586,9 +586,9 @@ module mod_che_bdyco
       ! East boundary
       !
       if ( ma%has_bdyright ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
+        do itr = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
               chib(jce2,i,k,itr) = chia(jce2,i,k,itr)
             end do
           end do
@@ -598,18 +598,18 @@ module mod_che_bdyco
       ! North and South boundaries
       !
       if ( ma%has_bdybottom ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do j = jci1 , jci2
+        do itr = 1, ntr
+          do k = 1, kz
+            do j = jci1, jci2
               chib(j,ice1,k,itr) = chia(j,ice1,k,itr)
             end do
           end do
         end do
       end if
       if ( ma%has_bdytop ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do j = jci1 , jci2
+        do itr = 1, ntr
+          do k = 1, kz
+            do j = jci1, jci2
               chib(j,ice2,k,itr) = chia(j,ice2,k,itr)
             end do
           end do
@@ -623,9 +623,9 @@ module mod_che_bdyco
       ! west boundary:
       !
       if ( ma%has_bdyleft ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
+        do itr = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
               trint = chia(jci1,i,k,itr)/psa(jci1,i)
               windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
               if ( windavg < d_zero ) then
@@ -641,9 +641,9 @@ module mod_che_bdyco
       ! east boundary:
       !
       if ( ma%has_bdyright ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
+        do itr = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
               trint = chia(jci2,i,k,itr)/psa(jci2,i)
               windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
               if ( windavg > d_zero ) then
@@ -659,9 +659,9 @@ module mod_che_bdyco
       ! south boundary:
       !
       if ( ma%has_bdybottom ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do j = jci1 , jci2
+        do itr = 1, ntr
+          do k = 1, kz
+            do j = jci1, jci2
               trint = chia(j,ici1,k,itr)/psa(j,ici1)
               windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
               if ( windavg < d_zero ) then
@@ -677,9 +677,9 @@ module mod_che_bdyco
       ! north boundary:
       !
       if ( ma%has_bdytop ) then
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do j = jci1 , jci2
+        do itr = 1, ntr
+          do k = 1, kz
+            do j = jci1, jci2
               trint = chia(j,ici2,k,itr)/psa(j,ici2)
               windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
               if ( windavg > d_zero ) then
@@ -709,36 +709,36 @@ module mod_che_bdyco
     ! time dependant boundary conditions is considered
 
     if ( ma%has_bdyleft ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
             chia(jce1,i,k,n) = chib0(jce1,i,k,n) + xt*chibt(jce1,i,k,n)
           end do
         end do
       end do
     end if
     if ( ma%has_bdyright ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
             chia(jce2,i,k,n) = chib0(jce2,i,k,n) + xt*chibt(jce2,i,k,n)
           end do
         end do
       end do
     end if
     if ( ma%has_bdybottom ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do j = jce1 , jce2
+      do n = 1, ntr
+        do k = 1, kz
+          do j = jce1, jce2
             chia(j,ice1,k,n) = chib0(j,ice1,k,n) + xt*chibt(j,ice1,k,n)
           end do
         end do
       end do
     end if
     if ( ma%has_bdytop ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do j = jce1 , jce2
+      do n = 1, ntr
+        do k = 1, kz
+          do j = jce1, jce2
             chia(j,ice2,k,n) = chib0(j,ice2,k,n) + xt*chibt(j,ice2,k,n)
           end do
         end do
@@ -783,25 +783,25 @@ module mod_che_bdyco
   !
   subroutine nudge_chiten(f,ften)
     implicit none
-    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: f
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
 
-    real(rkx) :: xt , xf , xg
-    real(rkx) :: fls0 , fls1 , fls2 , fls3 , fls4
+    real(rkx) :: xt, xf, xg
+    real(rkx) :: fls0, fls1, fls2, fls3, fls4
 
-    integer(ik4) :: i , j , k , n , ib
+    integer(ik4) :: i, j, k, n, ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge_chiten'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
     if ( ichebdy == 0 ) then
       if ( cba%ns /= 0 ) then
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+        do n = 1, ntr
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 if ( .not. cba%bsouth(j,i) ) cycle
                 ib = cba%ibnd(j,i)
                 xf = cefc(ib,k)
@@ -819,10 +819,10 @@ module mod_che_bdyco
       end do
     end if
     if ( cba%nn /= 0 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%bnorth(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -840,10 +840,10 @@ module mod_che_bdyco
       end do
     end if
     if ( cba%nw /= 0 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%bwest(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -861,10 +861,10 @@ module mod_che_bdyco
       end do
     end if
     if ( cba%ne /= 0 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%beast(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -889,10 +889,10 @@ module mod_che_bdyco
 
     xt = xbctime + dt
     if ( cba%ns /= 0 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%bsouth(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -910,10 +910,10 @@ module mod_che_bdyco
       end do
     end if
     if ( cba%nn /= 0 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%bnorth(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -931,10 +931,10 @@ module mod_che_bdyco
       end do
     end if
     if ( cba%nw /= 0 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%bwest(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -952,10 +952,10 @@ module mod_che_bdyco
       end do
     end if
     if ( cba%ne /= 0 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%beast(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -979,27 +979,27 @@ module mod_che_bdyco
 
   subroutine monudgechi(f)
     implicit none
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
 
-    real(rkx) :: xt , xf , xg
-    real(rkx) :: fls0 , fls1 , fls2 , fls3 , fls4
+    real(rkx) :: xt, xf, xg
+    real(rkx) :: fls0, fls1, fls2, fls3, fls4
 
-    integer(ik4) :: i , j , k , n , ib
+    integer(ik4) :: i, j, k, n, ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudgechi'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
     if ( ichebdy == 0 ) then
-      do n = 1 , ntr
-        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+      do n = 1, ntr
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
           fg(j,i,k) = f(j,i,k,n)
         end do
         if ( cba%ns /= 0 ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 if ( .not. cba%bsouth(j,i) ) cycle
                 ib = cba%ibnd(j,i)
                 xf = cefc(ib,k)
@@ -1016,9 +1016,9 @@ module mod_che_bdyco
           end do
         end if
         if ( cba%nn /= 0 ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 if ( .not. cba%bnorth(j,i) ) cycle
                 ib = cba%ibnd(j,i)
                 xf = cefc(ib,k)
@@ -1035,9 +1035,9 @@ module mod_che_bdyco
           end do
         end if
         if ( cba%nw /= 0 ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 if ( .not. cba%bwest(j,i) ) cycle
                 ib = cba%ibnd(j,i)
                 xf = cefc(ib,k)
@@ -1054,9 +1054,9 @@ module mod_che_bdyco
           end do
         end if
         if ( cba%ne /= 0 ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 if ( .not. cba%beast(j,i) ) cycle
                 ib = cba%ibnd(j,i)
                 xf = cefc(ib,k)
@@ -1080,14 +1080,14 @@ module mod_che_bdyco
     end if
 
     xt = xbctime + dt
-    do n = 1 , ntr
-      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+    do n = 1, ntr
+      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
         fg(j,i,k) = (chib0(j,i,k,n) + xt*chibt(j,i,k,n)) - f(j,i,k,n)
       end do
       if ( cba%ns /= 0 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%bsouth(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -1104,9 +1104,9 @@ module mod_che_bdyco
         end do
       end if
       if ( cba%nn /= 0 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%bnorth(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -1123,9 +1123,9 @@ module mod_che_bdyco
         end do
       end if
       if ( cba%nw /= 0 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%bwest(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -1142,9 +1142,9 @@ module mod_che_bdyco
         end do
       end if
       if ( cba%ne /= 0 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( .not. cba%beast(j,i) ) cycle
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
@@ -1168,9 +1168,9 @@ module mod_che_bdyco
 
   subroutine setup_che_bdycon
     implicit none
-    integer(ik4) :: n , k
-    real(rkx) :: fnudge , gnudge
-    real(rkx) , dimension(kz) :: anudgh
+    integer(ik4) :: n, k
+    real(rkx) :: fnudge, gnudge
+    real(rkx), dimension(kz) :: anudgh
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
@@ -1185,8 +1185,8 @@ module mod_che_bdyco
       gnudge = 0.02_rkx/dt2
     end if
     call exponential_nudging(anudgh)
-    do k = 1 , kz
-      do n = 2 , nspgx-1
+    do k = 1, kz
+      do n = 2, nspgx-1
         cefc(n,k) = fnudge*xfune(n,anudgh(k))
         cegc(n,k) = gnudge*xfune(n,anudgh(k))
       end do
@@ -1194,8 +1194,8 @@ module mod_che_bdyco
     contains
       pure real(rkx) function xfune(mm,an)
         implicit none
-        integer(ik4) , intent(in) :: mm
-        real(rkx) , intent(in) :: an
+        integer(ik4), intent(in) :: mm
+        real(rkx), intent(in) :: an
         xfune = exp(-real(mm-2,rkx)/an)
       end function xfune
   end subroutine setup_che_bdycon

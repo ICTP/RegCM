@@ -25,7 +25,7 @@ module mod_oasis_signature
 
   private
 
-  public :: oasisxregcm_header , oasisxregcm_endscreen
+  public :: oasisxregcm_header, oasisxregcm_endscreen
 
   contains
 

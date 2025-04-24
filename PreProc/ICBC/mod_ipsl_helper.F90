@@ -24,11 +24,11 @@ module mod_ipsl_helper
 
   public :: ipvars
   public :: find_ipsl_sst
-  public :: find_ipsl_dim , find_ipsl_topo , find_ipsl_file
+  public :: find_ipsl_dim, find_ipsl_topo, find_ipsl_file
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: ipvars = &
-            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: ipvars = &
+            ['ta ', 'XXX', 'hus', 'ua ', 'va ', 'ps ']
 
   character(len=64) :: ipbase1  = '_6hrLev_IPSL-CM5A-LR_historical'
   character(len=64) :: ipbase2  = '_6hrLev_IPSL-CM5A-LR_rcp'
@@ -38,8 +38,8 @@ module mod_ipsl_helper
 
   subroutine find_ipsl_sst(fname,idate)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       fname = trim(inpglob)//pthsep//'IPSL-CM5A-LR'//pthsep//'SST'// &
               pthsep//'tos_Omon_IPSL-CM5A-LR_historical'// &
@@ -53,11 +53,11 @@ module mod_ipsl_helper
 
   subroutine assemble_path(fname,scen,var,d1,d2)
     implicit none
-    character(len=256) , intent(out) :: fname
-    character(len=*) , intent(in) :: scen
-    character(len=*) , intent(in) :: var
-    character(len=*) , intent(in) :: d1
-    character(len=*) , intent(in) :: d2
+    character(len=256), intent(out) :: fname
+    character(len=*), intent(in) :: scen
+    character(len=*), intent(in) :: var
+    character(len=*), intent(in) :: d1
+    character(len=*), intent(in) :: d2
     if ( scen == 'RF' ) then
       fname = trim(inpglob)//pthsep//'IPSL-CM5A-LR'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(ipbase1)//  &
@@ -71,7 +71,7 @@ module mod_ipsl_helper
 
   subroutine find_ipsl_dim(dim_filename)
     implicit none
-    character(len=256) , intent(out) :: dim_filename
+    character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(dim_filename,'RF','ta','1950010103','1959123121')
@@ -79,19 +79,19 @@ module mod_ipsl_helper
 
   subroutine find_ipsl_topo(topo_filename)
     implicit none
-    character(len=256) , intent(out) :: topo_filename
+    character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'IPSL-CM5A-LR'//pthsep//'fixed'// &
               pthsep//'orog_fx_IPSL-CM5A-LR_historical_r0i0p0.nc'
   end subroutine find_ipsl_topo
 
   subroutine find_ipsl_file(ipsl_filename,var,idate)
     implicit none
-    character(len=256) , intent(out) :: ipsl_filename
-    character(len=*) , intent(in) :: var
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
-    integer(ik4) :: y1 , y2
+    character(len=256), intent(out) :: ipsl_filename
+    character(len=*), intent(in) :: var
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
+    integer(ik4) :: y1, y2
     call split_idate(idate,y,m,d,h)
     select case (var)
       case ('ps')

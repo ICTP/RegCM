@@ -32,28 +32,28 @@ module mod_ox_icbc
 
   integer(ik4) :: l
 
-  integer(ik4) :: oxilon , oxjlat , oxilev , oxitime
-  real(rkx) , pointer , dimension(:) :: oxt42lon
-  real(rkx) , pointer , dimension(:) :: oxt42lat
-  real(rkx) , pointer , dimension(:) :: oxt42hyam , oxt42hybm
+  integer(ik4) :: oxilon, oxjlat, oxilev, oxitime
+  real(rkx), pointer, contiguous, dimension(:) :: oxt42lon
+  real(rkx), pointer, contiguous, dimension(:) :: oxt42lat
+  real(rkx), pointer, contiguous, dimension(:) :: oxt42hyam, oxt42hybm
 !
 ! Oxidant climatology variables
 !
-  real(rkx) :: p0 , r4pt
-  real(rkx) , pointer , dimension(:,:) :: xps
-  real(rkx) , pointer , dimension(:,:,:,:,:) :: oxv2
-  real(rkx) , pointer , dimension(:,:,:) :: xps2 , xinp
-  real(rkx) , pointer , dimension(:,:) :: poxid_3 , xps3
-  real(rkx) , pointer , dimension(:,:,:,:) :: oxv3
+  real(rkx) :: p0, r4pt
+  real(rkx), pointer, contiguous, dimension(:,:) :: xps
+  real(rkx), pointer, contiguous, dimension(:,:,:,:,:) :: oxv2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xps2, xinp
+  real(rkx), pointer, contiguous, dimension(:,:) :: poxid_3, xps3
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: oxv3
 
-  real(rkx) :: prcm , pmpi , pmpj
-  integer(ik4) :: ncid , istatus
-  integer(ik4) :: ncicbc , ivarps , irec
+  real(rkx) :: prcm, pmpi, pmpj
+  integer(ik4) :: ncid, istatus
+  integer(ik4) :: ncicbc, ivarps, irec
 
   type(h_interpolator) :: hint
   type(rcm_time_and_date) :: iodate
 
-  public :: init_ox_icbc , get_ox_icbc , close_ox_icbc
+  public :: init_ox_icbc, get_ox_icbc, close_ox_icbc
 
   data ncid /-1/
   data ncicbc /-1/
@@ -63,8 +63,8 @@ module mod_ox_icbc
   subroutine init_ox_icbc(idate)
     implicit none
     type(rcm_time_and_date) :: idate
-    integer(ik4) :: ivarid , istatus , dimid , is
-    character(len=256) :: oxifile , icbcfilename
+    integer(ik4) :: ivarid, istatus, dimid, is
+    character(len=256) :: oxifile, icbcfilename
 
     r4pt = real(ptop)
 
@@ -166,7 +166,7 @@ module mod_ox_icbc
     istatus = nf90_get_var(ncid,ivarid,xps2)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var PS')
-    do is = 1 , noxsp
+    do is = 1, noxsp
       istatus = nf90_inq_varid(ncid,oxspec(is),ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var '//oxspec(is))
@@ -179,14 +179,14 @@ module mod_ox_icbc
   subroutine get_ox_icbc(idate)
     implicit none
 
-    integer(ik4) :: i , is , j , k , k0
-    type(rcm_time_and_date) , intent(in) :: idate
-    real(rkx) :: wt1 , wt2
+    integer(ik4) :: i, is, j, k, k0
+    type(rcm_time_and_date), intent(in) :: idate
+    real(rkx) :: wt1, wt2
     character(len=256) :: icbcfilename
-    integer(ik4) , dimension(3) :: istart , icount
-    type(rcm_time_and_date) :: d1 , d2
-    type(rcm_time_interval) :: t1 , tt
-    integer(ik4) :: m1 , m2 , istatus
+    integer(ik4), dimension(3) :: istart, icount
+    type(rcm_time_and_date) :: d1, d2
+    type(rcm_time_interval) :: t1, tt
+    integer(ik4) :: m1, m2, istatus
 
     d1 = monfirst(idate)
     d2 = nextmon(d1)
@@ -224,10 +224,10 @@ module mod_ox_icbc
                     'Error read var ps')
     irec = irec + 1
 
-    do is = 1 , noxsp
-      do i = 1 , oxjlat
-        do j = 1 , oxilon
-          do l = 1 , oxilev
+    do is = 1, noxsp
+      do i = 1, oxjlat
+        do j = 1, oxilon
+          do l = 1, oxilev
             xinp(j,i,l) = oxv2(j,l,i,m1,is)*wt2+oxv2(j,l,i,m2,is)*wt1
           end do
         end do
@@ -235,20 +235,20 @@ module mod_ox_icbc
       call h_interpolate_cont(hint,xinp,oxv3(:,:,:,is))
     end do
 
-    do i = 1 , oxjlat
-      do j = 1 , oxilon
+    do i = 1, oxjlat
+      do j = 1, oxilon
         xps(j,i) = xps2(j,i,m1)*wt1+xps2(j,i,m2)*wt2
       end do
     end do
 
     call h_interpolate_cont(hint,xps,xps3)
 
-    do i = 1 , iy
-      do j = 1 , jx
-        do l = 1 , kz
+    do i = 1, iy
+      do j = 1, jx
+        do l = 1, kz
           prcm = ((poxid_3(j,i)*0.1_rkx-r4pt)*sigmah(l)+r4pt)*1000.0_rkx
           k0 = -1
-          do k = oxilev , 1 , -1
+          do k = oxilev, 1, -1
             pmpi = oxt42hyam(k)*p0+xps3(j,i)*oxt42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
@@ -256,7 +256,7 @@ module mod_ox_icbc
           if (k0 == oxilev) then
             pmpj = oxt42hyam(oxilev-1)*p0+xps3(j,i)*oxt42hybm(oxilev-1)
             pmpi = oxt42hyam(oxilev  )*p0+xps3(j,i)*oxt42hybm(oxilev  )
-            do is = 1 , noxsp
+            do is = 1, noxsp
               oxv4(j,i,l,is) = max(oxv3(j,i,oxilev,is) + &
                  (oxv3(j,i,oxilev-1,is) - oxv3(j,i,oxilev,is)) * &
                  (prcm-pmpi)/(pmpi-pmpj),d_zero)
@@ -266,7 +266,7 @@ module mod_ox_icbc
             pmpi = oxt42hyam(k0+1)*p0+xps3(j,i)*oxt42hybm(k0+1)
             wt1 = (prcm-pmpj)/(pmpi-pmpj)
             wt2 = 1.0 - wt1
-            do is = 1 , noxsp
+            do is = 1, noxsp
               oxv4(j,i,l,is) = oxv3(j,i,k0+1,is)*wt1 + oxv3(j,i,k0,is)*wt2
             end do
           end if

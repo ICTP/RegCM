@@ -23,49 +23,49 @@ module mod_cu_grell
   use mod_cu_common
   use mod_constants
   use mod_mpmessage
-  use mod_runparams , only : iqv , igcc , ichem , clfrcv
-  use mod_runparams , only : kfac_deep , kfac_shal , k2_const
+  use mod_runparams, only : iqv, igcc, ichem, clfrcv
+  use mod_runparams, only : kfac_deep, kfac_shal, k2_const
   use mod_regcm_types
 
   implicit none
 
   private
 
-  real(rkx) , parameter :: xacact = -0.99999_rkx
-  real(rkx) , parameter :: zdetr = 650.0_rkx
-  real(rkx) , parameter :: dtime = 900.0_rkx
+  real(rkx), parameter :: xacact = -0.99999_rkx
+  real(rkx), parameter :: zdetr = 650.0_rkx
+  real(rkx), parameter :: dtime = 900.0_rkx
 
-  real(rkx) , pointer , dimension(:,:) :: outq , outt , p , po ,  &
-                              q , qo , t , tn , vsp
-  real(rkx) , pointer , dimension(:,:) :: dby , dbyo , dellah ,       &
-              dellaq , dellat , dkk , he , heo , hes , heso , pwc , &
-              pwcd , pwcdo , pwco , qc , qco , qes , qeso , qrcd ,  &
-              qrcdo , tv , tvo , xdby , xhe , xhes , xpwc , xpwcd , &
-              xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo , cldf
-  real(rkx) , pointer , dimension(:) :: pratec , psur , ter11 , qcrit
-  integer(ik4) , pointer , dimension(:) :: kdet
-  integer(ik4) , pointer , dimension(:) :: kmin , k22 , kb , kbcon , &
-              ktop , iac , jac
-  real(rkx) , pointer , dimension(:) :: xac , xao , bu , buo , edt ,  &
-              edto , edtx , hcd , hcdo , hkb , hkbo , pwcav ,         &
-              pwcavo , pwcev , pwcevo , qcd , qcdo , qck , qcko ,     &
-              qkb , qkbo , vshear , sdp , xxac , xhcd , xhkb , xmb ,  &
-              xpwcav , xpwcev , xqcd , xqck , xqkb
+  real(rkx), pointer, contiguous, dimension(:,:) :: outq, outt, p, po,  &
+                              q, qo, t, tn, vsp
+  real(rkx), pointer, contiguous, dimension(:,:) :: dby, dbyo, dellah,       &
+              dellaq, dellat, dkk, he, heo, hes, heso, pwc, &
+              pwcd, pwcdo, pwco, qc, qco, qes, qeso, qrcd,  &
+              qrcdo, tv, tvo, xdby, xhe, xhes, xpwc, xpwcd, &
+              xq, xqc, xqes, xqrcd, xt, xtv, xz, z, zo, cldf
+  real(rkx), pointer, contiguous, dimension(:) :: pratec, psur, ter11, qcrit
+  integer(ik4), pointer, contiguous, dimension(:) :: kdet
+  integer(ik4), pointer, contiguous, dimension(:) :: kmin, k22, kb, kbcon, &
+              ktop, iac, jac
+  real(rkx), pointer, contiguous, dimension(:) :: xac, xao, bu, buo, edt,  &
+              edto, edtx, hcd, hcdo, hkb, hkbo, pwcav,         &
+              pwcavo, pwcev, pwcevo, qcd, qcdo, qck, qcko,     &
+              qkb, qkbo, vshear, sdp, xxac, xhcd, xhkb, xmb,  &
+              xpwcav, xpwcev, xqcd, xqck, xqkb
 
-  real(rkx) , pointer , dimension(:) :: dtauc , pbcmax ,   &
-              mincld , shrmax , shrmin , edtmax , edtmin ,    &
-              edtmaxo , edtmaxx , edtmino , edtminx , htmax , &
+  real(rkx), pointer, contiguous, dimension(:) :: dtauc, pbcmax,   &
+              mincld, shrmax, shrmin, edtmax, edtmin,    &
+              edtmaxo, edtmaxx, edtmino, edtminx, htmax, &
               htmin
-  integer(ik4) , public , pointer , dimension(:) :: kbmax
-  real(rkx) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
-              mincld2d , shrmax2d , shrmin2d , edtmax2d , edtmin2d ,    &
-              edtmaxo2d , edtmaxx2d , edtmino2d , edtminx2d , htmax2d , &
+  integer(ik4), public, pointer, contiguous, dimension(:) :: kbmax
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: dtauc2d, pbcmax2d,   &
+              mincld2d, shrmax2d, shrmin2d, edtmax2d, edtmin2d,    &
+              edtmaxo2d, edtmaxx2d, edtmino2d, edtminx2d, htmax2d, &
               htmin2d
-  integer(ik4) , public , pointer , dimension(:,:) :: kbmax2d
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: kbmax2d
 
-  integer(ik4) :: ncp , nap
+  integer(ik4) :: ncp, nap
 
-  public :: allocate_mod_cu_grell , cuparan
+  public :: allocate_mod_cu_grell, cuparan
 
   contains
 
@@ -202,13 +202,13 @@ module mod_cu_grell
 
   subroutine cuparan(m2c)
     implicit none
-    type(mod_2_cum) , intent(in) :: m2c
-    integer(ik4) :: i , j , k , kk , n
+    type(mod_2_cum), intent(in) :: m2c
+    integer(ik4) :: i, j, k, kk, n
     ! gcr0   = conversion rate (cloud to rain)
-    ! real(rkx) , parameter :: gcr0 = 0.002_rkx
+    ! real(rkx), parameter :: gcr0 = 0.002_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuparan'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -308,8 +308,8 @@ module mod_cu_grell
     qcrit(:) = d_zero
 
     nap = 0
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if (cuscheme(j,i) == 2 ) then
           nap = nap + 1
           iac(nap) = i
@@ -327,7 +327,7 @@ module mod_cu_grell
 
     ! Pressures in millibar here.
 
-    do n = 1 , nap
+    do n = 1, nap
       i = iac(n)
       j = jac(n)
       psur(n) = m2c%psf(j,i) * d_r100
@@ -350,9 +350,9 @@ module mod_cu_grell
 
     ! Grell scheme requires values bottom -> top
 
-    do k = 1 , kz
+    do k = 1, kz
       kk = kzp1 - k
-      do n = 1 , nap
+      do n = 1, nap
         i = iac(n)
         j = jac(n)
         vsp(n,k) = sqrt(m2c%uas(j,i,kk)**2 + m2c%vas(j,i,kk)**2)
@@ -378,9 +378,9 @@ module mod_cu_grell
     !
     ! return cumulus parameterization
     !
-    do k = 1 , kz
+    do k = 1, kz
       kk = kzp1 - k
-      do n = 1 , nap
+      do n = 1, nap
         i = iac(n)
         j = jac(n)
         cu_tten(j,i,kk) = outt(n,k)
@@ -391,10 +391,10 @@ module mod_cu_grell
     ! build for chemistry 3d table of constant precipitation rate
     ! from the surface to the top of the convection
     if ( ichem == 1 ) then
-      do n = 1 , nap
+      do n = 1, nap
         i = iac(n)
         j = jac(n)
-        do k = 1 , ktop(n)-1
+        do k = 1, ktop(n)-1
           cu_convpr(j,i,kzp1-k) = pratec(n)
         end do
       end do
@@ -402,7 +402,7 @@ module mod_cu_grell
     !
     ! calculate cloud fraction and water content
     !
-    do n = 1 , nap
+    do n = 1, nap
       i = iac(n)
       j = jac(n)
       if ( xac(n) >= d_zero ) then
@@ -413,7 +413,7 @@ module mod_cu_grell
           if ( ktop(n) > 1 .and. kbcon(n) >= 1 ) then
             cu_ktop(j,i) = kzp1 - ktop(n)
             cu_kbot(j,i) = kzp1 - kbcon(n)
-            do k = cu_ktop(j,i) , cu_kbot(j,i)
+            do k = cu_ktop(j,i), cu_kbot(j,i)
               cu_cldfrc(j,i,k) = cldf(n,kzp1-k)
             end do
           end if
@@ -421,7 +421,7 @@ module mod_cu_grell
       end if
     end do
 
-    do n = 1 , nap
+    do n = 1, nap
       i = iac(n)
       j = jac(n)
       if ( pratec(n) > dlowval ) then
@@ -439,13 +439,13 @@ module mod_cu_grell
   !
   subroutine cup
     implicit none
-    real(rkx) :: adw , aup , detdo , detdoq , dg , dh ,   &
-               dhh , dp_s , dq , dt , dv1 , dv1q , dv2 , dv2q , &
-               dv3 , dv3q , dz , dz1 , dz2 , dzo , f ,  &
-               agamma , agamma0 , agamma1 , agamma2 , agammo ,   &
-               agammo0 , mbdt , outtes , pbcdif , qrch , qrcho , &
-               tvbar , tvbaro , xk , mflx
-    integer(ik4) :: n , k , kbcono , kk
+    real(rkx) :: adw, aup, detdo, detdoq, dg, dh,   &
+               dhh, dp_s, dq, dt, dv1, dv1q, dv2, dv2q, &
+               dv3, dv3q, dz, dz1, dz2, dzo, f,  &
+               agamma, agamma0, agamma1, agamma2, agammo,   &
+               agammo0, mbdt, outtes, pbcdif, qrch, qrcho, &
+               tvbar, tvbaro, xk, mflx
+    integer(ik4) :: n, k, kbcono, kk
     logical :: foundtop
 
     ! Variable names carry an "o"-ending (z becomes zo), if they are the
@@ -484,8 +484,8 @@ module mod_cu_grell
     !
     ! environmental conditions, first heights
     !
-    do k = 1 , kz
-      do n = 1 , nap
+    do k = 1, kz
+      do n = 1, nap
         qes(n,k) = max(pfwsat(t(n,k),p(n,k)*d_100),minqq)
         qeso(n,k) = max(pfwsat(tn(n,k),po(n,k)*d_100),minqq)
         q(n,k) = min(q(n,k),qes(n,k))
@@ -495,13 +495,13 @@ module mod_cu_grell
       end do
     end do
 
-    do n = 1 , nap
+    do n = 1, nap
       z(n,1)  = ter11(n) - (log(p(n,1))-log(psur(n)))*rgas*tv(n,1)*regrav
       zo(n,1) = ter11(n) - (log(po(n,1))-log(psur(n)))*rgas*tvo(n,1)*regrav
     end do
 
-    do k = 2 , kz
-      do n = 1 , nap
+    do k = 2, kz
+      do n = 1, nap
         tvbar  = d_half*(tv(n,k)+tv(n,k-1))
         tvbaro = d_half*(tvo(n,k)+tvo(n,k-1))
         z(n,k) = z(n,k-1) - (log(p(n,k))-log(p(n,k-1)))*rgas*tvbar*regrav
@@ -512,8 +512,8 @@ module mod_cu_grell
     !
     ! moist static energy
     !
-    do k = 1 , kz
-      do n = 1 , nap
+    do k = 1, kz
+      do n = 1, nap
         he(n,k) = egrav*z(n,k) + cpd*t(n,k) + wlhv*q(n,k)
         hes(n,k) = egrav*z(n,k) + cpd*t(n,k) + wlhv*qes(n,k)
         if ( he(n,k) >= hes(n,k) ) he(n,k) = hes(n,k)
@@ -532,7 +532,7 @@ module mod_cu_grell
     !
     call maximi2(he,1,kbmax,k22)
 
-    do n = 1 , nap
+    do n = 1, nap
       if ( qcrit(n) < d_zero ) then
         xac(n) = -d_one
       end if
@@ -553,9 +553,9 @@ module mod_cu_grell
     ! decide for convective cloud base
     !
     pointloop: &
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) >= d_zero ) then
-        do k = 1 , kdet(n)
+        do k = 1, kdet(n)
           kk = kdet(n) - k + 1
           dkk(n,k) = d_one - real(kk,rkx)/real(kdet(n),rkx)
         end do
@@ -616,25 +616,25 @@ module mod_cu_grell
     !
     ! determine cloud top
     !
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) >= 0 ) then
         dby(n,kz) = hkb(n) - hes(n,kz)
         dbyo(n,kz) = hkbo(n) - heso(n,kz)
       end if
     end do
-    do k = 1 , kzm1
-      do n = 1 , nap
+    do k = 1, kzm1
+      do n = 1, nap
         if ( xac(n) > xacact ) then
           dby(n,k) = hkb(n) - d_half*(hes(n,k)+hes(n,k+1))
           dbyo(n,k) = hkbo(n) - d_half*(heso(n,k)+heso(n,k+1))
         end if
       end do
     end do
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) > xacact ) then
         foundtop = .false.
         findtop: &
-        do k = kbcon(n) , kz
+        do k = kbcon(n), kz
           if ( dby(n,k) <= d_zero ) then
             ktop(n) = k
             foundtop = .true.
@@ -658,8 +658,8 @@ module mod_cu_grell
     !
     ! moisture and cloud work functions
     !
-    do k = 2 , kzm1
-      do n = 1 , nap
+    do k = 2, kzm1
+      do n = 1, nap
         if ( xac(n) > xacact ) then
           if ( kmin(n) <= 3 ) then
             xac(n) = -d_one
@@ -703,7 +703,7 @@ module mod_cu_grell
       end do
     end do
 
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) > xacact ) then
         k = ktop(n)
 !        dz = d_half*(z(n,k)-z(n,k-1))
@@ -727,8 +727,8 @@ module mod_cu_grell
     !
     ! determine downdraft strength in terms of windshear
     !
-    do kk = 1 , kzm1
-      do n = 1 , nap
+    do kk = 1, kzm1
+      do n = 1, nap
         if ( xac(n) > xacact ) then
           if ( kk <= min(ktop(n),kzm1) .and. kk >= kbcon(n) ) then
             vshear(n) = vshear(n) + &
@@ -739,7 +739,7 @@ module mod_cu_grell
         end if
       end do
     end do
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) > xacact ) then
         vshear(n) = vshear(n) * d_1000/sdp(n)
         edt(n) = d_one - &
@@ -760,8 +760,8 @@ module mod_cu_grell
         buo(n) = d_zero
       end if
     end do
-    do k = 1 , kzm1
-      do n = 1 , nap
+    do k = 1, kzm1
+      do n = 1, nap
         if ( xac(n) > xacact ) then
           if ( k < kmin(n) ) then
             kk = kmin(n) - k
@@ -790,7 +790,7 @@ module mod_cu_grell
       end do
     end do
 
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) > xacact ) then
         if ( bu(n) >= d_zero .or. buo(n) >= d_zero .or. &
           pwcev(n) >= d_zero .or. pwcevo(n) >= d_zero ) then
@@ -808,7 +808,7 @@ module mod_cu_grell
     !
     ! what would the change be?
     !
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) > xacact ) then
         k = 1
         dz = d_half*(z(n,2)-z(n,1))
@@ -825,8 +825,8 @@ module mod_cu_grell
       end if
     end do
 
-    do k = 1 , kzm1
-      do n = 1 , nap
+    do k = 1, kzm1
+      do n = 1, nap
         if ( xac(n) > xacact ) then
           if ( k /= 1 .and. k < ktop(n) ) then
             dv1 = d_half*(he(n,k)+he(n,k+1))
@@ -873,7 +873,7 @@ module mod_cu_grell
     !
     ! cloud top
     !
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) > xacact ) then
         k = ktop(n)
         dp_s = d_100*(p(n,k-1)-p(n,k))
@@ -883,7 +883,7 @@ module mod_cu_grell
         dellaq(n,k) = (qes(n,k)-dv1)*egrav/dp_s
       end if
     end do
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) > xacact ) then
         k = ktop(n)
         xhe(n,k) = dellah(n,k)*mbdt + he(n,k)
@@ -899,8 +899,8 @@ module mod_cu_grell
     !
     ! environmental conditions, first heights
     !
-    do k = 1 , kz
-      do n = 1 , nap
+    do k = 1, kz
+      do n = 1, nap
         if ( xac(n) > xacact ) then
           xqes(n,k) = pfwsat(xt(n,k),p(n,k)*d_100)
           if ( xq(n,k) > xqes(n,k) ) xq(n,k) = xqes(n,k)
@@ -909,21 +909,21 @@ module mod_cu_grell
       end do
     end do
     ! bug fix
-    do k = 1 , kzm1
-      do n = 1 , nap
+    do k = 1, kzm1
+      do n = 1, nap
         if ( xac(n) > xacact ) then
           xqrcd(n,k) = d_half*(xqes(n,k)+xqes(n,k+1))
         end if
       end do
     end do
 
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) > xacact ) then
         xz(n,1) = ter11(n)-(log(p(n,1))-log(psur(n)))*rgas*xtv(n,1)*regrav
        end if
     end do
-    do k = 2 , kz
-      do n = 1 , nap
+    do k = 2, kz
+      do n = 1, nap
         if ( xac(n) > xacact ) then
           tvbar = d_half*(xtv(n,k)+xtv(n,k-1))
           xz(n,k) = xz(n,k-1)-(log(p(n,k))-log(p(n,k-1)))*rgas*tvbar*regrav
@@ -933,8 +933,8 @@ module mod_cu_grell
     !
     ! moist static energy
     !
-    do k = 1 , kz
-      do n = 1 , nap
+    do k = 1, kz
+      do n = 1, nap
         if ( xac(n) > xacact ) then
           xhes(n,k) = egrav*xz(n,k) + cpd*xt(n,k) + wlhv*xqes(n,k)
           if ( xhe(n,k) >= xhes(n,k) ) xhe(n,k) = xhes(n,k)
@@ -944,7 +944,7 @@ module mod_cu_grell
     !
     ! static control
     !
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) > xacact ) then
         xqck(n) = xqkb(n)
         xdby(n,kz) = xhkb(n) - xhes(n,kz)
@@ -953,8 +953,8 @@ module mod_cu_grell
     !
     ! moisture and cloud work functions
     !
-    do k = 1 , kzm1
-      do n = 1 , nap
+    do k = 1, kzm1
+      do n = 1, nap
         if ( xac(n) >= d_zero ) then
           xdby(n,k) = xhkb(n) - d_half*(xhes(n,k)+xhes(n,k+1))
           if ( k > kbcon(n) .and. k < ktop(n) ) then
@@ -977,7 +977,7 @@ module mod_cu_grell
         end if
       end do
     end do
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) >= d_zero ) then
         k = ktop(n)
 !        dz = d_half*(xz(n,k)-xz(n,k-1))
@@ -998,8 +998,8 @@ module mod_cu_grell
     ! downdraft calculations
     ! downdraft moisture properties
     !
-    do k = 1 , kzm1
-      do n = 1 , nap
+    do k = 1, kzm1
+      do n = 1, nap
         if ( xac(n) >= d_zero ) then
           if ( k < kmin(n) ) then
             kk = kmin(n) - k
@@ -1017,7 +1017,7 @@ module mod_cu_grell
         end if
       end do
     end do
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) >= d_zero ) then
         if ( bu(n) >= d_zero ) then
           xac(n) = -d_one
@@ -1033,8 +1033,8 @@ module mod_cu_grell
     !
     ! downdraft cloudwork functions
     !
-    do k = 1 , kzm1
-      do n = 1 , nap
+    do k = 1, kzm1
+      do n = 1, nap
         if ( xac(n) >= d_zero ) then
           if ( k < kmin(n) ) then
             kk = kmin(n) - k
@@ -1079,7 +1079,7 @@ module mod_cu_grell
     !
     ! large scale forcing
     !
-    do n = 1 , nap
+    do n = 1, nap
       if ( xac(n) >= d_zero ) then
         f  = -d_one
         xk = -d_one
@@ -1099,8 +1099,8 @@ module mod_cu_grell
     !
     ! feedback
     !
-    do k = 1 , kz
-      do n = 1 , nap
+    do k = 1, kz
+      do n = 1, nap
         if ( xac(n) >= d_zero ) then
           if ( k <= ktop(n) ) then
             outtes = dellat(n,k)*xmb(n)*secpd
@@ -1113,8 +1113,8 @@ module mod_cu_grell
         end if
       end do
     end do
-    do k = 1 , kz
-      do n = 1 , nap
+    do k = 1, kz
+      do n = 1, nap
         if ( xac(n) >= d_zero ) then
           if ( k <= ktop(n) ) then
             outt(n,k) = outt(n,k) + dellat(n,k)*xmb(n)
@@ -1146,16 +1146,16 @@ module mod_cu_grell
 
      subroutine minimi1(array,ks,ke,kt)
        implicit none
-       integer(ik4) , intent (in) :: ke
-       real(rkx) , intent(in) , pointer , dimension(:,:) :: array
-       integer(ik4) , intent(in) , pointer , dimension(:) :: ks
-       integer(ik4) , intent(inout) , pointer , dimension(:) :: kt
-       integer(ik4) :: n , k
+       integer(ik4), intent (in) :: ke
+       real(rkx), intent(in), pointer, contiguous, dimension(:,:) :: array
+       integer(ik4), intent(in), pointer, contiguous, dimension(:) :: ks
+       integer(ik4), intent(inout), pointer, contiguous, dimension(:) :: kt
+       integer(ik4) :: n, k
        real(rkx) :: x
-       do n = 1 , nap
+       do n = 1, nap
          kt(n) = ks(n)
          x = array(n,ks(n))
-         do k = ks(n) + 1 , ke
+         do k = ks(n) + 1, ke
            if ( array(n,k) < x ) then
              x = array(n,k)
              kt(n) = k
@@ -1166,15 +1166,15 @@ module mod_cu_grell
 
      subroutine minimi2(array,ks,ke,kt)
        implicit none
-       real(rkx) , intent(in) , pointer , dimension(:,:) :: array
-       integer(ik4) , intent(in) , pointer , dimension(:) :: ks , ke
-       integer(ik4) , intent(inout) , pointer , dimension(:) :: kt
-       integer(ik4) :: n , k
+       real(rkx), intent(in), pointer, contiguous, dimension(:,:) :: array
+       integer(ik4), intent(in), pointer, contiguous, dimension(:) :: ks, ke
+       integer(ik4), intent(inout), pointer, contiguous, dimension(:) :: kt
+       integer(ik4) :: n, k
        real(rkx) :: x
-       do n = 1 , nap
+       do n = 1, nap
          kt(n) = ks(n)
          x = array(n,ks(n))
-         do k = ks(n) + 1 , ke(n)
+         do k = ks(n) + 1, ke(n)
            if ( array(n,k) < x ) then
              x = array(n,k)
              kt(n) = k
@@ -1185,15 +1185,15 @@ module mod_cu_grell
 
      subroutine maximi1(array,ks,ke,imax)
       implicit none
-      integer(ik4) , intent (in) :: ks , ke
-      real(rkx) , intent(in) , pointer , dimension(:,:) :: array
-      integer(ik4) , intent(inout) , pointer , dimension(:) :: imax
-      integer(ik4) :: n , k
-      real(rkx) :: x , xar
-      do n = 1 , nap
+      integer(ik4), intent (in) :: ks, ke
+      real(rkx), intent(in), pointer, contiguous, dimension(:,:) :: array
+      integer(ik4), intent(inout), pointer, contiguous, dimension(:) :: imax
+      integer(ik4) :: n, k
+      real(rkx) :: x, xar
+      do n = 1, nap
         imax(n) = ks
         x = array(n,ks)
-        do k = ks , ke
+        do k = ks, ke
           xar = array(n,k)
           if ( xar >= x ) then
             x = xar
@@ -1205,16 +1205,16 @@ module mod_cu_grell
 
     subroutine maximi2(array,ks,ke,imax)
       implicit none
-      integer(ik4) , intent (in) :: ks
-      real(rkx) , intent(in) , pointer , dimension(:,:) :: array
-      integer(ik4) , intent(in) , pointer , dimension(:) :: ke
-      integer(ik4) , intent(inout) , pointer , dimension(:) :: imax
-      integer(ik4) :: n , k
-      real(rkx) :: x , xar
-      do n = 1 , nap
+      integer(ik4), intent (in) :: ks
+      real(rkx), intent(in), pointer, contiguous, dimension(:,:) :: array
+      integer(ik4), intent(in), pointer, contiguous, dimension(:) :: ke
+      integer(ik4), intent(inout), pointer, contiguous, dimension(:) :: imax
+      integer(ik4) :: n, k
+      real(rkx) :: x, xar
+      do n = 1, nap
         imax(n) = ks
         x = array(n,ks)
-        do k = ks , ke(n)
+        do k = ks, ke(n)
           xar = array(n,k)
           if ( xar >= x ) then
             x = xar

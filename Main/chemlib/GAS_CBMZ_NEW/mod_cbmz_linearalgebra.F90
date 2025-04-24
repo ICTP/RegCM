@@ -34,10 +34,10 @@ module mod_cbmz_linearalgebra
   ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   subroutine kppdecomp( jvs, ier )
     implicit none
-    real(kind=dp) , dimension(lu_nonzero) , intent(inout) :: jvs
-    real(kind=dp) , dimension(nvar) ::  w
+    real(kind=dp), dimension(lu_nonzero), intent(inout) :: jvs
+    real(kind=dp), dimension(nvar) ::  w
     real(kind=dp) :: a
-    integer , intent(out) :: ier
+    integer, intent(out) :: ier
     integer :: k, kk, j, jj
 
     ier = 0
@@ -78,9 +78,9 @@ module mod_cbmz_linearalgebra
   subroutine kppsolve ( jvs, x )
     implicit none
     ! jvs - sparse jacobian of variables
-    real(kind=dp) , dimension(lu_nonzero) , intent(in) :: jvs
+    real(kind=dp), dimension(lu_nonzero), intent(in) :: jvs
     ! x - vector for variables
-    real(kind=dp) , dimension(nvar) , intent(inout) :: x
+    real(kind=dp), dimension(nvar), intent(inout) :: x
 
     x(19) = x(19)-jvs(73)*x(8)-jvs(74)*x(12)
     x(26) = x(26)-jvs(103)*x(8)-jvs(104)*x(12)

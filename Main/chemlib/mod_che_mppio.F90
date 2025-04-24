@@ -30,17 +30,17 @@ module mod_che_mppio
 
   private
 
-  real(rkx) , pointer , public , dimension(:,:,:,:) :: rainout_io , washout_io
-  real(rkx) , pointer , public , dimension(:,:,:) :: remdrd_io , convpr_io
-  real(rkx) , pointer , public , dimension(:,:,:) :: duflux_io , voflux_io
-  real(rkx) , pointer , public , dimension(:,:) :: ssw2da_io , sdelt_io ,   &
-                                         sdelq_io , sfracv2d_io , &
-                                         sfracb2d_io , sfracs2d_io , &
+  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: rainout_io, washout_io
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: remdrd_io, convpr_io
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: duflux_io, voflux_io
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: ssw2da_io, sdelt_io,   &
+                                         sdelq_io, sfracv2d_io, &
+                                         sfracb2d_io, sfracs2d_io, &
                                          svegfrac2d_io
-  real(rkx) , pointer , public , dimension(:,:,:,:) :: trac_io
-  real(rkx) , pointer , public , dimension(:,:,:,:) :: chia_io , chib_io
-  real(rkx) , pointer , public , dimension(:,:,:,:) :: chemall_io
-  real(rkx) , pointer , public , dimension(:,:,:,:) :: taucldsp_io
+  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: trac_io
+  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: chia_io, chib_io
+  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: chemall_io
+  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: taucldsp_io
 
   public :: allocate_mod_che_mppio
 

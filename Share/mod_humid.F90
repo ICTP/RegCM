@@ -42,8 +42,8 @@ module mod_humid
     module procedure rh2mxr_p1
   end interface rh2mxr
 
-  public :: mxr2rh , ecmwf_rh2mxr , rh2mxr
-  public :: sph2mxr , mxr2sph
+  public :: mxr2rh, ecmwf_rh2mxr, rh2mxr
+  public :: sph2mxr, mxr2sph
 
   contains
 
@@ -53,9 +53,9 @@ module mod_humid
 
   subroutine sph2mxr_double(q,ni,nj,nk)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
-    integer(ik4) :: i , j , k
+    integer(ik4), intent(in) :: ni, nj, nk
+    real(rk8), intent(inout), dimension(ni,nj,nk) :: q
+    integer(ik4) :: i, j, k
     do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk )
       q(i,j,k) = q(i,j,k) / (1.0D0 - q(i,j,k))
     end do
@@ -63,9 +63,9 @@ module mod_humid
 
   subroutine sph2mxr_single(q,ni,nj,nk)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk4) , intent(inout) , dimension(ni,nj,nk) :: q
-    integer(ik4) :: i , j , k
+    integer(ik4), intent(in) :: ni, nj, nk
+    real(rk4), intent(inout), dimension(ni,nj,nk) :: q
+    integer(ik4) :: i, j, k
     do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk )
       q(i,j,k) = q(i,j,k) / (1.0 - q(i,j,k))
     end do
@@ -73,9 +73,9 @@ module mod_humid
 
   subroutine mxr2sph(q,ni,nj,nk)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
-    integer(ik4) :: i , j , k
+    integer(ik4), intent(in) :: ni, nj, nk
+    real(rkx), intent(inout), dimension(ni,nj,nk) :: q
+    integer(ik4) :: i, j, k
     do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk )
       q(i,j,k) = q(i,j,k) / (d_one + q(i,j,k))
     end do
@@ -83,13 +83,13 @@ module mod_humid
 
   subroutine mxr2rh(t,q,ps,ptop,sigma,ni,nj,nk)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    real(rkx) , intent(in) :: ps , ptop
-    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t
-    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
-    real(rkx) , intent(in) , dimension(nk) :: sigma
-    real(rkx) :: p , qs
-    integer(ik4) :: i , j , k
+    integer(ik4), intent(in) :: ni, nj, nk
+    real(rkx), intent(in) :: ps, ptop
+    real(rkx), intent(in), dimension(ni,nj,nk) :: t
+    real(rkx), intent(inout), dimension(ni,nj,nk) :: q
+    real(rkx), intent(in), dimension(nk) :: sigma
+    real(rkx) :: p, qs
+    integer(ik4) :: i, j, k
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
     !
@@ -103,15 +103,15 @@ module mod_humid
 
   subroutine mxr2rh_o_double(t,q,ps,sigma,ptop,im,jm,km)
     implicit none
-    integer(ik4) , intent(in) :: im , jm , km
-    real(rk8) , intent(in) :: ptop
-    real(rk8) , intent(in) , dimension(im,jm) :: ps
-    real(rk8) , intent(in) , dimension(im,jm,km) :: t
-    real(rk8) , intent(in) , dimension(km) :: sigma
-    real(rk8) , intent(inout) , dimension(im,jm,km) :: q
+    integer(ik4), intent(in) :: im, jm, km
+    real(rk8), intent(in) :: ptop
+    real(rk8), intent(in), dimension(im,jm) :: ps
+    real(rk8), intent(in), dimension(im,jm,km) :: t
+    real(rk8), intent(in), dimension(km) :: sigma
+    real(rk8), intent(inout), dimension(im,jm,km) :: q
 
-    real(rk8) :: p , qs
-    integer(ik4) :: i , j , k
+    real(rk8) :: p, qs
+    integer(ik4) :: i, j, k
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
     ! DATA ON SIGMA LEVELS
@@ -129,16 +129,16 @@ module mod_humid
 
   subroutine mxr2rh_o_single(t,q,ps,sigma,ptop,im,jm,km)
     implicit none
-    integer(ik4) , intent(in) :: im , jm , km
-    real(rkx) , intent(in) :: ptop
-    real(rk4) , intent(in) , dimension(im,jm) :: ps
-    real(rk4) , intent(in) , dimension(im,jm,km) :: t
-    real(rk4) , intent(in) , dimension(km) :: sigma
-    real(rk4) , intent(inout) , dimension(im,jm,km) :: q
+    integer(ik4), intent(in) :: im, jm, km
+    real(rkx), intent(in) :: ptop
+    real(rk4), intent(in), dimension(im,jm) :: ps
+    real(rk4), intent(in), dimension(im,jm,km) :: t
+    real(rk4), intent(in), dimension(km) :: sigma
+    real(rk4), intent(inout), dimension(im,jm,km) :: q
 
     real(rk4) :: qs
     real(rkx) :: p
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i, j, k
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
     ! DATA ON SIGMA LEVELS
@@ -156,12 +156,12 @@ module mod_humid
 
   subroutine mxr2rh_o_double_nonhydro(t,q,p3d,ni,nj,nk)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk8) , intent(in) , dimension(ni,nj,nk) :: p3d , t
-    real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
+    integer(ik4), intent(in) :: ni, nj, nk
+    real(rk8), intent(in), dimension(ni,nj,nk) :: p3d, t
+    real(rk8), intent(inout), dimension(ni,nj,nk) :: q
 
     real(rk8) :: qs
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i, j, k
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
     !
@@ -174,12 +174,12 @@ module mod_humid
 
   subroutine mxr2rh_o_single_nonhydro(t,q,p3d,ni,nj,nk)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk4) , intent(in) , dimension(ni,nj,nk) :: p3d , t
-    real(rk4) , intent(inout) , dimension(ni,nj,nk) :: q
+    integer(ik4), intent(in) :: ni, nj, nk
+    real(rk4), intent(in), dimension(ni,nj,nk) :: p3d, t
+    real(rk4), intent(inout), dimension(ni,nj,nk) :: q
 
     real(rk4) :: qs
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i, j, k
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
     !
@@ -192,16 +192,16 @@ module mod_humid
 
   subroutine rh2mxr_p1(t,q,p,nk)
     implicit none
-    integer(ik4) , intent(in) :: nk
-    real(rkx) , intent(in) , dimension(nk) :: p ! Pa
-    real(rkx) , intent(in) , dimension(nk) :: t ! K
-    real(rkx) , intent(inout) , dimension(nk) :: q ! 0-1
+    integer(ik4), intent(in) :: nk
+    real(rkx), intent(in), dimension(nk) :: p ! Pa
+    real(rkx), intent(in), dimension(nk) :: t ! K
+    real(rkx), intent(inout), dimension(nk) :: q ! 0-1
     real(rkx) :: qs
     integer(ik4) :: k
     !
     ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
     !
-    do k = 1 , nk
+    do k = 1, nk
       qs = pfwsat(t(k),p(k))
       q(k) = max(q(k)*qs,d_zero)
     end do
@@ -210,13 +210,13 @@ module mod_humid
 
   subroutine rh2mxr_p1d(t,q,p,ni,nj,nk)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    real(rkx) , intent(in) , dimension(nk) :: p ! Pa
-    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t ! K
-    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q ! 0-1
+    integer(ik4), intent(in) :: ni, nj, nk
+    real(rkx), intent(in), dimension(nk) :: p ! Pa
+    real(rkx), intent(in), dimension(ni,nj,nk) :: t ! K
+    real(rkx), intent(inout), dimension(ni,nj,nk) :: q ! 0-1
 
     real(rkx) :: qs
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i, j, k
     !
     ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
     !
@@ -229,15 +229,15 @@ module mod_humid
 
   subroutine rh2mxr_p3d(t,q,ps,ptop,sigma,ni,nj,nk)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    real(rkx) , intent(in) :: ptop
-    real(rkx) , intent(in) , dimension(ni,nj) :: ps
-    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t
-    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
-    real(rkx) , intent(in) , dimension(nk) :: sigma
+    integer(ik4), intent(in) :: ni, nj, nk
+    real(rkx), intent(in) :: ptop
+    real(rkx), intent(in), dimension(ni,nj) :: ps
+    real(rkx), intent(in), dimension(ni,nj,nk) :: t
+    real(rkx), intent(inout), dimension(ni,nj,nk) :: q
+    real(rkx), intent(in), dimension(nk) :: sigma
 
-    real(rkx) :: p , qs
-    integer(ik4) :: i , j , k
+    real(rkx) :: p, qs
+    integer(ik4) :: i, j, k
     !
     ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
     !
@@ -251,15 +251,15 @@ module mod_humid
 
   subroutine ecmwf_rh2mxr(t,q,ps,ptop,sigma,ni,nj,nk)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    real(rkx) , intent(in) :: ptop
-    real(rkx) , intent(in) , dimension(ni,nj) :: ps
-    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t
-    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
-    real(rkx) , intent(in) , dimension(nk) :: sigma
+    integer(ik4), intent(in) :: ni, nj, nk
+    real(rkx), intent(in) :: ptop
+    real(rkx), intent(in), dimension(ni,nj) :: ps
+    real(rkx), intent(in), dimension(ni,nj,nk) :: t
+    real(rkx), intent(inout), dimension(ni,nj,nk) :: q
+    real(rkx), intent(in), dimension(nk) :: sigma
 
-    real(rkx) :: p , qs , hl , satvp
-    integer(ik4) :: i , j , k
+    real(rkx) :: p, qs, hl, satvp
+    integer(ik4) :: i, j, k
     !
     ! THIS ROUTINE REPLACES ECMWF RELATIVE HUMIDITY BY MIXING RATIO
     !

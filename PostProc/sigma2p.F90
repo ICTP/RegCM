@@ -23,15 +23,15 @@ program sigma2p
   use mod_intkinds
   use mod_realkinds
   use mod_constants
-  use mod_dynparam , only : iomode , dsmax , dsmin
-  use mod_stdio , only : stderr
+  use mod_dynparam, only : iomode, dsmax, dsmin
+  use mod_stdio, only : stderr
 #ifdef NETCDF4_HDF5
-  use mod_dynparam , only : ncfilter , ncfilter_nparams , ncfilter_params
+  use mod_dynparam, only : ncfilter, ncfilter_nparams, ncfilter_params
 #endif
   use mod_message
   use mod_vertint
   use mod_memutil
-  use mod_sigma , only : init_sigma , half_sigma_coordinate
+  use mod_sigma, only : init_sigma, half_sigma_coordinate
   use mod_zita
   use mod_hgt
   use mod_humid
@@ -40,46 +40,46 @@ program sigma2p
 
   implicit none
 
-  character(256) :: prgname , ncsfile , ncpfile
-  character(128) :: attname , dimname , varname , psunit
-  integer(ik4) :: numarg , istatus , ncid , ncout
+  character(256) :: prgname, ncsfile, ncpfile
+  character(128) :: attname, dimname, varname, psunit
+  integer(ik4) :: numarg, istatus, ncid, ncout
 
-  integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
-  real(rk4) , allocatable , dimension(:) :: sigma , ak , bk
-  real(rk4) , allocatable , dimension(:,:,:) :: tmpvar , qvar , hzvar
-  real(rk4) , allocatable , dimension(:,:,:) :: pp , press , zeta , pai
-  real(rk4) , allocatable , dimension(:,:,:) :: fm , z0 , tvar , qvvar
-  real(rk4) , allocatable , save , dimension(:,:,:) :: pvar , xvar
-  real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslpr , ps0
-  real(rk4) , allocatable , dimension(:) :: avar
-  character , allocatable , dimension(:) :: txtvar
-  real(rk4) , allocatable , dimension(:) :: apvar
-  real(rkx) , allocatable , dimension(:) :: times
-  real(rkx) , allocatable , dimension(:) :: sigfix
-  logical , allocatable , dimension(:) :: lkvarflag , ltvarflag , lchnameflag
-  integer(ik4) , allocatable , dimension(:) :: invarid
-  integer(ik4) , allocatable , dimension(:) :: outvarid
-  integer(ik4) , allocatable , dimension(:) :: varsize
-  integer(ik4) , allocatable , dimension(:) :: intscheme
-  integer(ik4) , allocatable , dimension(:) :: nvdims
-  integer(ik4) , allocatable , dimension(:,:) :: dimsize
-  integer(ik4) , allocatable , dimension(:) :: istart , icount
-  integer(ik4) :: ndims , nvars , natts , udimid , nvatts
-  integer(ik4) :: ivarid , idimid , xtype
-  integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
-  integer(ik4) :: avarid , bvarid , ipsvarid , ishvarid , ppvarid , ip0varid
+  integer(ik4), allocatable, dimension(:) :: dimids, dimlen
+  real(rk4), allocatable, dimension(:) :: sigma, ak, bk
+  real(rk4), allocatable, dimension(:,:,:) :: tmpvar, qvar, hzvar
+  real(rk4), allocatable, dimension(:,:,:) :: pp, press, zeta, pai
+  real(rk4), allocatable, dimension(:,:,:) :: fm, z0, tvar, qvvar
+  real(rk4), allocatable, save, dimension(:,:,:) :: pvar, xvar
+  real(rk4), allocatable, dimension(:,:) :: ps, topo, mslpr, ps0
+  real(rk4), allocatable, dimension(:) :: avar
+  character, allocatable, dimension(:) :: txtvar
+  real(rk4), allocatable, dimension(:) :: apvar
+  real(rkx), allocatable, dimension(:) :: times
+  real(rkx), allocatable, dimension(:) :: sigfix
+  logical, allocatable, dimension(:) :: lkvarflag, ltvarflag, lchnameflag
+  integer(ik4), allocatable, dimension(:) :: invarid
+  integer(ik4), allocatable, dimension(:) :: outvarid
+  integer(ik4), allocatable, dimension(:) :: varsize
+  integer(ik4), allocatable, dimension(:) :: intscheme
+  integer(ik4), allocatable, dimension(:) :: nvdims
+  integer(ik4), allocatable, dimension(:,:) :: dimsize
+  integer(ik4), allocatable, dimension(:) :: istart, icount
+  integer(ik4) :: ndims, nvars, natts, udimid, nvatts
+  integer(ik4) :: ivarid, idimid, xtype
+  integer(ik4) :: jxdimid, iydimid, kzdimid, itdimid, itvarid, ikvarid
+  integer(ik4) :: avarid, bvarid, ipsvarid, ishvarid, ppvarid, ip0varid
   integer(ik4) :: paivarid
-  integer(ik4) :: jx , iy , kz , nt
-  real(rkx) :: ptop , dzita , ztop , zh , a0 , htg
-  integer(ik4) , dimension(4) :: tdimids
-  integer(ik4) , dimension(3) :: psdimids
-  integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
-  integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar , ircm_map
-  logical :: has_t , has_q , has_rh , is_icbc
-  logical :: make_rh , make_hgt , has_sph
-  integer(ik4) :: n3d , ip3d , iodyn , np , ipunit , iresult
-  real(rk4) , allocatable , dimension(:) :: plevs
-  real(rkx) , allocatable , dimension(:) :: zita , zitah
+  integer(ik4) :: jx, iy, kz, nt
+  real(rkx) :: ptop, dzita, ztop, zh, a0, htg
+  integer(ik4), dimension(4) :: tdimids
+  integer(ik4), dimension(3) :: psdimids
+  integer(ik4) :: i, j, k, it, iv, iid1, iid2, ii, i3d, p3d, ich
+  integer(ik4) :: tvarid, qvarid, irhvar, ihgvar, imslpvar, ircm_map
+  logical :: has_t, has_q, has_rh, is_icbc
+  logical :: make_rh, make_hgt, has_sph
+  integer(ik4) :: n3d, ip3d, iodyn, np, ipunit, iresult
+  real(rk4), allocatable, dimension(:) :: plevs
+  real(rkx), allocatable, dimension(:) :: zita, zitah
 
   data has_t /.false./
   data has_q /.false./
@@ -153,7 +153,7 @@ program sigma2p
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error Reading Netcdf file '//trim(ncsfile))
 
-  do i = 1 , natts
+  do i = 1, natts
     istatus = nf90_inq_attname(ncid, nf90_global, i, attname)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read global attribute')
     istatus = nf90_copy_att(ncid, nf90_global, attname, ncout, nf90_global)
@@ -171,7 +171,7 @@ program sigma2p
 
   kz = 0
   nt = 0
-  do i = 1 , ndims
+  do i = 1, ndims
     istatus = nf90_inquire_dimension(ncid, i, dimname, dimlen(i))
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading dimension info')
     if (dimname == 'iy' .or. dimname == 'y') then
@@ -276,7 +276,7 @@ program sigma2p
   invarid = -1
   outvarid = -1
 
-  do i = 1 , nvars
+  do i = 1, nvars
     lkvarflag(i) = .false.
     ltvarflag(i) = .false.
     lchnameflag(i) = .false.
@@ -334,7 +334,7 @@ program sigma2p
       lchnameflag(i) = .true.
     end if
     iv = 1
-    do j = 1 , nvdims(i)
+    do j = 1, nvdims(i)
       if (dimids(j) == kzdimid) then
         lkvarflag(i) = .true.
       else if (dimids(j) == itdimid) then
@@ -378,7 +378,7 @@ program sigma2p
               'Error adding pressure positive')
       cycle
     end if
-    do j = 1 , nvatts
+    do j = 1, nvatts
       istatus = nf90_inq_attname(ncid, i, j, attname)
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error read att for '//trim(varname))
@@ -506,7 +506,7 @@ program sigma2p
                     'Error searching variable kz, sigma or lev.')
     call memory_init
     call init_sigma(kz,0.05_rkx,0.01_rkx)
-    do k = 1 , kz
+    do k = 1, kz
       sigma(k) = real(half_sigma_coordinate(k),rk4)
     end do
     call memory_destroy
@@ -519,7 +519,7 @@ program sigma2p
       allocate(sigfix(kz+1))
       sigfix(1:kz) = sigma
       sigfix(kz+1) = d_one
-      do k = 1 , kz
+      do k = 1, kz
         sigma(k) = 0.5*real(sigfix(k)+sigfix(k+1))
       end do
       deallocate(sigfix)
@@ -542,22 +542,22 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable b.')
     istatus = nf90_get_var(ncid, ivarid, bk)
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable b.')
-    do k = 1 , kz
+    do k = 1, kz
       ! height above the surface here
       zeta(:,:,k) = ak(k) + (bk(k) - d_one) * topo(:,:)
     end do
     if ( is_icbc ) then
-      do k = 1 , kz+1
-        do i = 1 , iy
-          do j = 1 , jx
+      do k = 1, kz+1
+        do i = 1, iy
+          do j = 1, jx
             htg = topo(j,i)
             fm(j,i,k) = md_fmz_h(zita(k),htg,ztop,zh,a0)
           end do
         end do
       end do
-      do k = 1 , kz
-        do i = 1 , iy
-          do j = 1 , jx
+      do k = 1, kz
+        do i = 1, iy
+          do j = 1, jx
             htg = topo(j,i)
             z0(j,i,k) = md_zeta_h(zitah(k),htg,ztop,zh,a0)
           end do
@@ -583,7 +583,7 @@ program sigma2p
 
   ! Write time independent variables
 
-  do i = 1 , nvars
+  do i = 1, nvars
     if ( ltvarflag(i) ) cycle
     if (i == avarid) cycle
     if (i == bvarid) cycle
@@ -630,7 +630,7 @@ program sigma2p
 
   ! Write time dependent variables
 
-  do it = 1 , nt
+  do it = 1, nt
     istart(1) = it
     icount(1) = 1
     istatus = nf90_put_var(ncout, outvarid(itvarid), times(it:it), &
@@ -663,7 +663,7 @@ program sigma2p
       icount(4) = 1
       istatus = nf90_get_var(ncid, ppvarid, pp, istart(1:4), icount(1:4))
       call checkncerr(istatus,__FILE__,__LINE__,'Error reading pp.')
-      do k = 1 , kz
+      do k = 1, kz
         press(:,:,k) = ps0(:,:)*real(sigma(k)) + real(ptop) + pp(:,:,k)
       end do
     else if ( iodyn == 3 ) then
@@ -695,7 +695,7 @@ program sigma2p
       end if
       press = p00 * (pai**cpovr)
     end if
-    do i = 1 , nvars
+    do i = 1, nvars
       if (.not. ltvarflag(i)) cycle
       if (i == avarid) cycle
       if (i == bvarid) cycle
@@ -726,7 +726,7 @@ program sigma2p
           allocate(apvar(ip3d),stat=istatus)
           call checkalloc(istatus,__FILE__,__LINE__,'apvar')
 !$OMP PARALLEL DO
-          do ii = 1 , n3d
+          do ii = 1, n3d
             xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),[jx,iy,kz])
             if ( iodyn == 2 ) then
               if (intscheme(i) == 1) then
@@ -778,7 +778,7 @@ program sigma2p
                   'Error reading var to interpolate.')
           n3d = varsize(i) / dimsize(iv-1,i) / i3d
           ip3d = p3d*n3d
-          do ich = 1 , dimsize(iv-1,i)
+          do ich = 1, dimsize(iv-1,i)
             istart(iv) = it
             icount(iv) = 1
             istart(iv-1) = ich
@@ -789,7 +789,7 @@ program sigma2p
             allocate(apvar(ip3d),stat=istatus)
             call checkalloc(istatus,__FILE__,__LINE__,'apvar')
 !$OMP PARALLEL DO
-            do ii = 1 , n3d
+            do ii = 1, n3d
               xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
                              [jx,iy,kz])
               if ( iodyn == 2 ) then
@@ -870,11 +870,11 @@ program sigma2p
         call nonhydrost(hzvar,tmpvar,press,ps,topo,jx,iy,kz)
         call height_o(pvar,hzvar,tmpvar,ps,topo,press,jx,iy,kz,plevs,np)
       else if ( iodyn == 3 ) then
-        do k = 1 , kz
+        do k = 1, kz
           zeta(:,:,k) = zeta(:,:,k) + topo
         end do
         call height_o(pvar,zeta,tmpvar,ps,topo,press,jx,iy,kz,plevs,np)
-        do k = 1 , kz
+        do k = 1, kz
           zeta(:,:,k) = zeta(:,:,k) - topo
         end do
       else
@@ -951,18 +951,18 @@ program sigma2p
 
   subroutine top2btm(x,nlon1,nlat1,nlev1)
     implicit none
-    integer(ik4) , intent(in) :: nlat1 , nlev1 , nlon1
-    real(rk4) , intent(inout) , dimension(nlon1,nlat1,nlev1) :: x
+    integer(ik4), intent(in) :: nlat1, nlev1, nlon1
+    real(rk4), intent(inout), dimension(nlon1,nlat1,nlev1) :: x
 
-    integer(ik4) :: i , j , k , kr
-    real(rk4) , dimension(nlev1) :: work
+    integer(ik4) :: i, j, k, kr
+    real(rk4), dimension(nlev1) :: work
 
-    do j = 1 , nlat1
-      do i = 1 , nlon1
-        do k = 1 , nlev1
+    do j = 1, nlat1
+      do i = 1, nlon1
+        do k = 1, nlev1
           work(k) = x(i,j,k)
         end do
-        do k = 1 , nlev1
+        do k = 1, nlev1
           kr = nlev1 - k + 1
           x(i,j,k) = work(kr)
         end do
@@ -972,9 +972,9 @@ program sigma2p
 
   subroutine get_np(iu)
     implicit none
-    integer(ik4) , intent(in) :: iu
+    integer(ik4), intent(in) :: iu
     integer(ik4) :: nz ! Unused in sigma2p
-    namelist /pp_param/ nz , np
+    namelist /pp_param/ nz, np
     rewind(iu)
     read(iu, nml=pp_param, iostat=iresult)
     if ( iresult /= 0 ) then
@@ -986,7 +986,7 @@ program sigma2p
 
   subroutine get_plevs(iu)
     implicit none
-    integer(ik4) , intent(in) :: iu
+    integer(ik4), intent(in) :: iu
     namelist /pressure/ plevs
     rewind(iu)
     read(iu, nml=pressure, iostat=iresult)
@@ -1000,8 +1000,8 @@ program sigma2p
 #ifdef NETCDF4_HDF5
   subroutine get_ncfilter(iu)
     implicit none
-    integer(ik4) , intent(in) :: iu
-    namelist /ncfilters/ ncfilter , ncfilter_nparams , ncfilter_params
+    integer(ik4), intent(in) :: iu
+    namelist /ncfilters/ ncfilter, ncfilter_nparams, ncfilter_params
     rewind(iu)
     read(iu, nml=ncfilters, iostat=iresult)
   end subroutine get_ncfilter
@@ -1009,16 +1009,16 @@ program sigma2p
 
   subroutine paicompute(ps,z,t,q,pai,fm,dzita,nx,ny,nz)
     implicit none
-    integer(ik4) , intent(in) :: nx , ny , nz
-    real(rkx) , intent(in) :: dzita
-    real(rk4) , dimension(nx,ny) , intent(in) :: ps
-    real(rk4) , dimension(nx,ny,nz) , intent(in) :: z , t , q
-    real(rk4) , dimension(nx,ny,nz+1) , intent(in) :: fm
-    real(rk4) , dimension(nx,ny,nz) , intent(inout) :: pai
-    real(rk4) :: tv , tv1 , tv2 , p , zb , zdelta , zz , lrt
-    integer(ik4) :: i , j , k
+    integer(ik4), intent(in) :: nx, ny, nz
+    real(rkx), intent(in) :: dzita
+    real(rk4), dimension(nx,ny), intent(in) :: ps
+    real(rk4), dimension(nx,ny,nz), intent(in) :: z, t, q
+    real(rk4), dimension(nx,ny,nz+1), intent(in) :: fm
+    real(rk4), dimension(nx,ny,nz), intent(inout) :: pai
+    real(rk4) :: tv, tv1, tv2, p, zb, zdelta, zz, lrt
+    integer(ik4) :: i, j, k
     ! Hydrostatic initialization of pai
-    do i = 1 , ny
+    do i = 1, ny
       do j = 1, nx
         zdelta = z(j,i,nz)*egrav
         tv1 = t(j,i,nz) * (d_one + ep1*q(j,i,nz))
@@ -1030,9 +1030,9 @@ program sigma2p
         pai(j,i,nz) = (p/p00)**rovcp
       end do
     end do
-    do k = nz-1 , 1 , -1
-      do i = 1 , ny
-        do j = 1 , nx
+    do k = nz-1, 1, -1
+      do i = 1, ny
+        do j = 1, nx
           tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
           tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
           zb = d_two*egrav*dzita/(fm(j,i,k+1)*cpd) + tv1 - tv2

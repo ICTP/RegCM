@@ -28,7 +28,7 @@
 
       integer(kind=im), parameter :: no7  = 16
 
-      real(kind=rb) , dimension(no7) :: fracrefbo
+      real(kind=rb), dimension(no7) :: fracrefbo
       real(kind=rb) :: fracrefao(no7,9)
       real(kind=rb) :: kao(9,5,13,no7)
       real(kind=rb) :: kbo(5,13:59,no7)
@@ -62,7 +62,7 @@
 
       integer(kind=im), parameter :: ng7  = 12
 
-      real(kind=rb) , dimension(ng7) :: fracrefb
+      real(kind=rb), dimension(ng7) :: fracrefb
       real(kind=rb) :: fracrefa(ng7,9)
       real(kind=rb) :: ka(9,5,13,ng7) ,absa(585,ng7)
       real(kind=rb) :: kb(5,13:59,ng7),absb(235,ng7)

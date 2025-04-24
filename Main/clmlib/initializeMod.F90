@@ -12,12 +12,12 @@ module initializeMod
 ! Performs land model initialization
 !
 ! !USES:
-  use shr_kind_mod    , only : r8 => shr_kind_r8
-  use spmdMod         , only : masterproc
-  use shr_sys_mod     , only : shr_sys_flush
-  use abortutils      , only : endrun
-  use clm_varctl      , only : nsrest
-  use clm_varsur      , only : wtxy,vegxy
+  use shr_kind_mod   , only : r8 => shr_kind_r8
+  use spmdMod        , only : masterproc
+  use shr_sys_mod    , only : shr_sys_flush
+  use abortutils     , only : endrun
+  use clm_varctl     , only : nsrest
+  use clm_varsur     , only : wtxy,vegxy
 ! !PUBLIC TYPES:
   implicit none
   save
@@ -66,17 +66,17 @@ contains
 ! !USES:
     use clm_varpar, only : lsmlon, lsmlat, maxpatch
     use clm_varpar, only : clm_varpar_init
-    use decompMod , only : decomp_atm_init, decomp_domg2l
-    use decompMod , only : adecomp,ldecomp
-    use decompMod , only : get_proc_clumps, get_clump_bounds, &
+    use decompMod, only : decomp_atm_init, decomp_domg2l
+    use decompMod, only : adecomp,ldecomp
+    use decompMod, only : get_proc_clumps, get_clump_bounds, &
                            get_proc_bounds, get_proc_bounds_atm, &
                            decomp_lnd_init, decomp_glcp_init
-    use domainMod , only : domain_check,domain_setsame, domain_clean, domain_type
-    use domainMod , only : adomain,ldomain
-    use domainMod , only : alatlon,llatlon,gatm,amask,pftm
-    use domainMod , only : latlon_check, latlon_setsame
-    use areaMod   , only : map_setgatm
-    use surfrdMod , only : surfrd,surfrd_get_grid,surfrd_get_frac,&
+    use domainMod, only : domain_check,domain_setsame, domain_clean, domain_type
+    use domainMod, only : adomain,ldomain
+    use domainMod, only : alatlon,llatlon,gatm,amask,pftm
+    use domainMod, only : latlon_check, latlon_setsame
+    use areaMod  , only : map_setgatm
+    use surfrdMod, only : surfrd,surfrd_get_grid,surfrd_get_frac,&
                            surfrd_get_topo, surfrd_get_latlon,&
                            rcmsurfrd_get_topo, rcmsurfrd_get_frac,&
                            rcmsurfrd_get_latlon,rcmsurfrd_get_grid,&
@@ -334,7 +334,7 @@ contains
        call domain_check(lgdomain)
     endif
 
-    call get_proc_bounds    (begg    , endg)
+    call get_proc_bounds    (begg   , endg)
     call decomp_domg2l(lgdomain,ldomain,ldecomp,begg,endg)
     if (masterproc) then
        write(6,*) 'ldomain status:'
@@ -354,7 +354,7 @@ contains
 
     ! Allocate surface grid dynamic memory (for wtxy and vegxy arrays)
 
-    call get_proc_bounds    (begg    , endg)
+    call get_proc_bounds    (begg   , endg)
     allocate (vegxy(begg:endg,maxpatch), &
               wtxy(begg:endg,maxpatch),  &
               stat=ier)
@@ -401,50 +401,50 @@ contains
 ! !USES:
     use eshr_timemgr_mod, only : eshr_timemgr_clockType, eshr_timemgr_clockInfoType, &
                                  eshr_timemgr_clockGet
-    use clm_atmlnd      , only : init_atm2lnd_type, init_lnd2atm_type, &
+    use clm_atmlnd     , only : init_atm2lnd_type, init_lnd2atm_type, &
                                  clm_a2l, clm_l2a, atm_a2l, atm_l2a
     use initGridCellsMod, only : initGridCells
-    use clm_varctl      , only : finidat, fpftdyn, fndepdyn
-    use clmtypeInitMod  , only : initClmtype
-    use domainMod       , only : gatm
-    use domainMod       , only : ldomain, adomain
-    use decompMod       , only : adecomp,ldecomp
-    use areaMod         , only : map1dl_a2l, map1dl_l2a
-    use areaMod         , only : map_setmapsFM
-    use decompMod       , only : get_proc_clumps, get_clump_bounds, &
+    use clm_varctl     , only : finidat, fpftdyn, fndepdyn
+    use clmtypeInitMod , only : initClmtype
+    use domainMod      , only : gatm
+    use domainMod      , only : ldomain, adomain
+    use decompMod      , only : adecomp,ldecomp
+    use areaMod        , only : map1dl_a2l, map1dl_l2a
+    use areaMod        , only : map_setmapsFM
+    use decompMod      , only : get_proc_clumps, get_clump_bounds, &
                                  get_proc_bounds, get_proc_bounds_atm, &
                                  decomp_lnd_init
-    use filterMod       , only : allocFilters, setFilters
-    use pftdynMod       , only : pftdyn_init, pftdyn_interp
-    use histFldsMod     , only : initHistFlds
-    use histFileMod     , only : htapes_build
-    use restFileMod     , only : restFile_getfile, &
+    use filterMod      , only : allocFilters, setFilters
+    use pftdynMod      , only : pftdyn_init, pftdyn_interp
+    use histFldsMod    , only : initHistFlds
+    use histFileMod    , only : htapes_build
+    use restFileMod    , only : restFile_getfile, &
                                  restFile_open, restFile_close, &
                                  restFile_read, restFile_read_binary
-    use accFldsMod      , only : initAccFlds, initAccClmtype
-    use mkarbinitMod    , only : mkarbinit
-    use ndepFileMod     , only : ndepdyn_init, ndepdyn_interp
+    use accFldsMod     , only : initAccFlds, initAccClmtype
+    use mkarbinitMod   , only : mkarbinit
+    use ndepFileMod    , only : ndepdyn_init, ndepdyn_interp
 #if (defined DGVM)
-    use DGVMMod            , only : resetTimeConstDGVM, resetWeightsDGVM
+    use DGVMMod           , only : resetTimeConstDGVM, resetWeightsDGVM
     use DGVMEcosystemDynMod, only : DGVMEcosystemDynini
 #else
-    use STATICEcosysDynMod , only : EcosystemDynini
+    use STATICEcosysDynMod, only : EcosystemDynini
 #endif
 #if (defined DUST)
-    use DustMod         , only : Dustini
+    use DustMod        , only : Dustini
 #endif
 #if (defined CASA)
-    use CASAMod         , only : initCASA
+    use CASAMod        , only : initCASA
     use CASAPhenologyMod, only : initCASAPhenology
 #endif
 #if (defined RTM)
-    use RtmMod          , only : Rtmini
+    use RtmMod         , only : Rtmini
 #endif
     use clm_time_manager, only : get_curr_date, get_nstep, advance_timestep, &
                                  timemgr_init, timemgr_restart_io, timemgr_restart
-    use fileutils       , only : getfil
+    use fileutils      , only : getfil
 #if (defined VOC)
-    use clm_varvoc      , only : n_start
+    use clm_varvoc     , only : n_start
 #endif
 !
 ! !ARGUMENTS:
@@ -496,9 +496,9 @@ contains
 
     call initClmtype()
 
-    call get_proc_bounds    (begg    , endg)
-    call init_atm2lnd_type  (begg    , endg    , clm_a2l)
-    call init_lnd2atm_type  (begg    , endg    , clm_l2a)
+    call get_proc_bounds    (begg   , endg)
+    call init_atm2lnd_type  (begg   , endg   , clm_a2l)
+    call init_lnd2atm_type  (begg   , endg   , clm_l2a)
 
     call get_proc_bounds_atm(begg_atm, endg_atm)
     call init_atm2lnd_type  (begg_atm, endg_atm, atm_a2l)
@@ -763,7 +763,7 @@ contains
 ! Echo and save model version number
 !
 ! !USES:
-    use clm_varctl  , only : version
+    use clm_varctl , only : version
 !
 ! !ARGUMENTS:
     implicit none

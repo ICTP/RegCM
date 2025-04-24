@@ -30,7 +30,7 @@ module mod_clm_qsat
     real(rk8), intent(out) :: qsdt  ! d(qs)/d(T)
 
     real(rk8) :: t_limit
-    real(rk8) :: td , vp , vp1 , vp2
+    real(rk8) :: td, vp, vp1, vp2
     !
     ! For water vapor (temperature range 0C-100C)
     !

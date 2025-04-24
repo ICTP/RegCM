@@ -44,18 +44,18 @@ module mod_ensemble
     module procedure random_pick_2d_r8
   end interface random_pick
 
-  public :: randify , random_pick
+  public :: randify, random_pick
 
-  integer(ik4) , dimension(:) , pointer :: seed => null( )
+  integer(ik4), dimension(:), contiguous, pointer :: seed => null( )
 
   contains
 
   subroutine random_pick_1d_r4(thesum,values,nv)
     implicit none
-    real(rk4) , intent(in) :: thesum
-    real(rk4) , pointer , dimension(:) , intent(inout) :: values
-    integer(ik4) , intent(in) :: nv
-    real(rk4) , allocatable , dimension(:) :: yi
+    real(rk4), intent(in) :: thesum
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: values
+    integer(ik4), intent(in) :: nv
+    real(rk4), allocatable, dimension(:) :: yi
     real(rk4) :: rsum
     integer(ik4) :: i
     integer(ik4) :: nseed
@@ -90,10 +90,10 @@ module mod_ensemble
 
   subroutine random_pick_1d_r8(thesum,values,nv)
     implicit none
-    real(rk8) , intent(in) :: thesum
-    real(rk8) , pointer , dimension(:) , intent(inout) :: values
-    integer(ik4) , intent(in) :: nv
-    real(rk8) , allocatable , dimension(:) :: yi
+    real(rk8), intent(in) :: thesum
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: values
+    integer(ik4), intent(in) :: nv
+    real(rk8), allocatable, dimension(:) :: yi
     real(rk8) :: rsum
     integer(ik4) :: i
     integer(ik4) :: nseed
@@ -128,19 +128,19 @@ module mod_ensemble
 
   subroutine random_pick_2d_r4(thesum,values,nv)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: thesum
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: values
-    integer(ik4) , intent(in) :: nv
-    real(rk4) , pointer , dimension(:) :: p
-    integer(ik4) :: i , j , is , ie , js , je
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: thesum
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: values
+    integer(ik4), intent(in) :: nv
+    real(rk4), pointer, contiguous, dimension(:) :: p
+    integer(ik4) :: i, j, is, ie, js, je
 
     js = lbound(thesum,2)
     je = ubound(thesum,2)
     is = lbound(thesum,1)
     ie = ubound(thesum,1)
     allocate(p(nv))
-    do j = js , je
-      do i = is , ie
+    do j = js, je
+      do i = is, ie
         call random_pick_1d_r4(thesum(i,j),p,nv)
         values(i,j,1:nv) = p(:)
       end do
@@ -150,19 +150,19 @@ module mod_ensemble
 
   subroutine random_pick_2d_r8(thesum,values,nv)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: thesum
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: values
-    integer(ik4) , intent(in) :: nv
-    real(rk8) , pointer , dimension(:) :: p
-    integer(ik4) :: i , j , is , ie , js , je
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: thesum
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: values
+    integer(ik4), intent(in) :: nv
+    real(rk8), pointer, contiguous, dimension(:) :: p
+    integer(ik4) :: i, j, is, ie, js, je
 
     js = lbound(thesum,2)
     je = ubound(thesum,2)
     is = lbound(thesum,1)
     ie = ubound(thesum,1)
     allocate(p(nv))
-    do j = js , je
-      do i = is , ie
+    do j = js, je
+      do i = is, ie
         call random_pick_1d_r8(thesum(i,j),p,nv)
         values(i,j,1:nv) = p(:)
       end do
@@ -173,7 +173,7 @@ module mod_ensemble
 ! Takes a 3D variable (dVariable3D) and adds random noise to all of its
 ! values.  At point (i,j,k) in dVariable3D, the random noise will be
 ! within the half-open interval:
-!   [-dFrac*dVariable3D(i,j,k) , +dFrac*dVariable3D(i,j,k))
+!   [-dFrac*dVariable3D(i,j,k), +dFrac*dVariable3D(i,j,k))
 !
 ! dVariable3D  -  A 3D floating point array
 !
@@ -181,11 +181,11 @@ module mod_ensemble
 !
   subroutine randify3D(dVariable3D,dFrac,imax,jmax,kmax)
     implicit none
-    integer(ik4) , intent(in) :: imax , jmax , kmax
-    real(rkx) , dimension(imax,kmax,jmax) , intent(inout) :: dVariable3D
-    real(rkx) , intent(in) :: dFrac
+    integer(ik4), intent(in) :: imax, jmax, kmax
+    real(rkx), dimension(imax,kmax,jmax), intent(inout) :: dVariable3D
+    real(rkx), intent(in) :: dFrac
 
-    real(rkx) , dimension(imax,kmax,jmax) :: dChange3D , dRand3D
+    real(rkx), dimension(imax,kmax,jmax) :: dChange3D, dRand3D
     integer(ik4) :: i
     integer(ik4) :: nseed
     real(rk4) :: cputime
@@ -236,18 +236,18 @@ module mod_ensemble
 ! Takes a 2D variable (dVariable2D) and adds random noise to all of its
 ! values.  At point (i,j,k) in dVariable2D, the random noise will be
 ! within the half-open interval:
-!   [-dFrac*dVariable2D(i,j,k) , +dFrac*dVariable2D(i,j,k))
+!   [-dFrac*dVariable2D(i,j,k), +dFrac*dVariable2D(i,j,k))
 !
 ! dVariable2D  -  A 2D floating point array
 ! dFrac        -  Maximum fraction by which to vary any value in dVariable2D
 !
   subroutine randify2D(dVariable2D,dFrac,imax,jmax)
     implicit none
-    integer(ik4) , intent(in) :: imax , jmax
-    real(rkx) , dimension(imax,jmax) , intent(inout) :: dVariable2D
-    real(rkx) , intent(in) :: dFrac
+    integer(ik4), intent(in) :: imax, jmax
+    real(rkx), dimension(imax,jmax), intent(inout) :: dVariable2D
+    real(rkx), intent(in) :: dFrac
 
-    real(rkx) , dimension(imax,jmax) :: dRand2D , dChange2D
+    real(rkx), dimension(imax,jmax) :: dRand2D, dChange2D
     integer(ik4) :: i
     integer(ik4) :: nseed
     real(rk4) :: cputime

@@ -17,22 +17,22 @@ module mod_capecin
 
   implicit none
 
-  real , parameter :: rovg = 29.2716599
+  real, parameter :: rovg = 29.2716599
 
-  real , parameter :: pinc = 100.0 ! Pressure increment (Pa)
+  real, parameter :: pinc = 100.0 ! Pressure increment (Pa)
                                    ! smaller number yields more
                                    ! accurate results, larger
                                    ! number makes code go faster
 
-  integer , parameter :: source = 2 ! Source parcel:
+  integer, parameter :: source = 2 ! Source parcel:
                                     ! 1 = surface
                                     ! 2 = most unstable (max theta-e)
                                     ! 3 = mixed-layer (specify ml_depth)
 
-  real , parameter :: ml_depth =  200.0 ! depth (m) of mixed layer
+  real, parameter :: ml_depth =  200.0 ! depth (m) of mixed layer
                                         ! for source=3
 
-  integer , parameter :: adiabat = 1 ! Formulation of moist adiabat:
+  integer, parameter :: adiabat = 1 ! Formulation of moist adiabat:
                                      ! 1 = pseudoadiabatic, liquid only
                                      ! 2 = reversible, liquid only
                                      ! 3 = pseudoadiabatic, with ice
@@ -47,18 +47,18 @@ module mod_capecin
 
   subroutine getcape(im,jm,km,p,t,rh,cape,cin)
     implicit none
-    integer , intent(in) :: im , jm , km
-    real(4) , intent(in) , dimension(km,jm,im) :: p , t , rh
-    real(4) , intent(out) , dimension(jm,im) :: cape , cin
-    real(4) , dimension(km) :: pa , ta , rha
-    integer :: i , j , k , kk , iloop , icount
+    integer, intent(in) :: im, jm, km
+    real(4), intent(in), dimension(km,jm,im) :: p, t, rh
+    real(4), intent(out), dimension(jm,im) :: cape, cin
+    real(4), dimension(km) :: pa, ta, rha
+    integer :: i, j, k, kk, iloop, icount
     real(4) :: z1
     icount = im * jm
 !$OMP PARALLEL DO PRIVATE (i,j,k,kk,pa,ta,rha,z1)
-    do iloop = 1 , icount
+    do iloop = 1, icount
       i = iloop/jm + 1
       j = iloop - (i-1)*jm
-      do k = 1 , km
+      do k = 1, km
         kk = km - k + 1
         pa(kk) = p(k,j,i)
         ta(kk) = t(k,j,i)
@@ -72,19 +72,19 @@ module mod_capecin
 
   subroutine getcape_moloch(im,jm,km,ps,t,rh,pai,cape,cin)
     implicit none
-    integer , intent(in) :: im , jm , km
-    real(4) , intent(in) , dimension(jm,im) :: ps
-    real(4) , intent(in) , dimension(km,jm,im) :: pai , t , rh
-    real(4) , intent(out) , dimension(jm,im) :: cape , cin
-    real(4) , dimension(km) :: pa , ta , rha
-    integer :: i , j , k , kk , iloop , icount
+    integer, intent(in) :: im, jm, km
+    real(4), intent(in), dimension(jm,im) :: ps
+    real(4), intent(in), dimension(km,jm,im) :: pai, t, rh
+    real(4), intent(out), dimension(jm,im) :: cape, cin
+    real(4), dimension(km) :: pa, ta, rha
+    integer :: i, j, k, kk, iloop, icount
     real(4) :: z1
     icount = im * jm
 !$OMP PARALLEL DO PRIVATE (i,j,k,kk,pa,ta,rha,z1)
-    do iloop = 1 , icount
+    do iloop = 1, icount
       i = iloop/jm + 1
       j = iloop - (i-1)*jm
-      do k = 1 , km
+      do k = 1, km
         kk = km - k + 1
         pa(kk) = 100000.0*pai(k,j,i)**3.5
         ta(kk) = t(k,j,i)
@@ -98,22 +98,22 @@ module mod_capecin
 
   subroutine getcape_hy(im,jm,km,ps,t,rh,sigma,ptop,cape,cin)
     implicit none
-    integer , intent(in) :: im , jm , km
-    real(4) , intent(in) , dimension(jm,im) :: ps
-    real(4) , intent(in) , dimension(km,jm,im) :: t , rh
-    real(8) , intent(in) :: ptop
-    real(4) , intent(in) , dimension(km) :: sigma
-    real(4) , intent(out) , dimension(jm,im) :: cape , cin
-    real(4) , dimension(km) :: pa , ta , rha
-    integer :: i , j , k , kk , iloop , icount
-    real(4) :: ptp , z1
+    integer, intent(in) :: im, jm, km
+    real(4), intent(in), dimension(jm,im) :: ps
+    real(4), intent(in), dimension(km,jm,im) :: t, rh
+    real(8), intent(in) :: ptop
+    real(4), intent(in), dimension(km) :: sigma
+    real(4), intent(out), dimension(jm,im) :: cape, cin
+    real(4), dimension(km) :: pa, ta, rha
+    integer :: i, j, k, kk, iloop, icount
+    real(4) :: ptp, z1
     ptp = real(ptop) * 100.0
     icount = im * jm
 !$OMP PARALLEL DO PRIVATE (i,j,k,kk,pa,ta,rha,z1)
-    do iloop = 1 , icount
+    do iloop = 1, icount
       i = iloop/jm + 1
       j = iloop - (i-1)*jm
-      do k = 1 , km
+      do k = 1, km
         kk = km - k + 1
         pa(kk) = sigma(k)*(ps(j,i)-ptp) + ptp
         ta(kk) = t(k,j,i)
@@ -127,24 +127,24 @@ module mod_capecin
 
   subroutine getcape_nhy(im,jm,km,ps,t,p0,rh,sigma,ptop,pp,cape,cin)
     implicit none
-    integer , intent(in) :: im , jm , km
-    real(4) , intent(in) , dimension(jm,im) :: ps , p0
-    real(4) , intent(in) , dimension(km,jm,im) :: t , rh , pp
-    real(8) , intent(in) :: ptop
-    real(4) , intent(in) , dimension(km) :: sigma
-    real(4) , intent(out) , dimension(jm,im) :: cape , cin
-    real(4) , dimension(km) :: pa , ta , rha
-    integer :: i , j , k , kk , iloop , icount
-    real(4) :: ptp , z1
-    real(4) , dimension(jm,im) :: pstar
+    integer, intent(in) :: im, jm, km
+    real(4), intent(in), dimension(jm,im) :: ps, p0
+    real(4), intent(in), dimension(km,jm,im) :: t, rh, pp
+    real(8), intent(in) :: ptop
+    real(4), intent(in), dimension(km) :: sigma
+    real(4), intent(out), dimension(jm,im) :: cape, cin
+    real(4), dimension(km) :: pa, ta, rha
+    integer :: i, j, k, kk, iloop, icount
+    real(4) :: ptp, z1
+    real(4), dimension(jm,im) :: pstar
     ptp = real(ptop) * 100.0
     pstar = p0 - ptp
     icount = im * jm
 !$OMP PARALLEL DO PRIVATE (i,j,k,kk,pa,ta,rha,z1)
-    do iloop = 1 , icount
+    do iloop = 1, icount
       i = iloop/jm + 1
       j = iloop - (i-1)*jm
-      do k = 1 , km
+      do k = 1, km
         kk = km - k + 1
         pa(kk) = sigma(k)*pstar(j,i) + ptp + pp(k,j,i)
         ta(kk) = t(k,j,i)
@@ -188,51 +188,51 @@ module mod_capecin
   subroutine capecin(nk,z1,p,t,rh,cape,cin)
     implicit none
 
-    integer , intent(in) :: nk
-    real , dimension(nk) , intent(in) :: p , t , rh
-    real , intent(in) :: z1
-    real , intent(out) :: cape , cin
+    integer, intent(in) :: nk
+    real, dimension(nk), intent(in) :: p, t, rh
+    real, intent(in) :: z1
+    real, intent(out) :: cape, cin
 
-    logical :: doit , ice , cloud , not_converged
-    integer :: k , kmax , n , nloop , i
-    real , dimension(nk) :: td , pi , q , th , thv , z
+    logical :: doit, ice, cloud, not_converged
+    integer :: k, kmax, n, nloop, i
+    real, dimension(nk) :: td, pi, q, th, thv, z
 
-    real :: the , maxthe , parea , narea , lfc
-    real :: th1 , p1 , t1 , qv1 , ql1 , qi1 , b1 , pi1
-    real :: thv1 , qt , dp , dz , ps , frac
-    real :: th2 , p2 , t2 , qv2 , ql2 , qi2 , b2 , pi2 , thv2
-    real :: thlast , fliq , fice , tbar , qvbar , qlbar , qibar
-    real :: lhv , lhs , lhf , rm , cpm
-    real :: avgth , avgqv
+    real :: the, maxthe, parea, narea, lfc
+    real :: th1, p1, t1, qv1, ql1, qi1, b1, pi1
+    real :: thv1, qt, dp, dz, ps, frac
+    real :: th2, p2, t2, qv2, ql2, qi2, b2, pi2, thv2
+    real :: thlast, fliq, fice, tbar, qvbar, qlbar, qibar
+    real :: lhv, lhs, lhf, rm, cpm
+    real :: avgth, avgqv
 
-    real , parameter :: wlhv = 2.50080e6
-    real , parameter :: wlhf = 0.33355e6
-    real , parameter :: wlhs = 2.83435e6
-    real , parameter :: cpv = 1846.0932676
-    real , parameter :: cpw = 4186.95
-    real , parameter :: cpi = 2117.27
-    real , parameter :: rgas = 287.0569248
-    real , parameter :: egrav = 9.80665
-    real , parameter :: regrav = 1.0/egrav
-    real , parameter :: tzero = 273.15
-    real , parameter :: cpd = 1004.6992368
-    real , parameter :: rwat = 461.5233169
-    real , parameter :: p00 = 1.000000e5
-    real , parameter :: ep2 = 0.6219770795
-    real , parameter :: lv1   = wlhv+(cpw-cpv)*tzero
-    real , parameter :: lv2   = cpw-cpv
-    real , parameter :: ls1   = wlhs+(cpi-cpv)*tzero
-    real , parameter :: ls2   = cpi-cpv
-    real , parameter :: rp00  = 1.0/p00
-    real , parameter :: reps  = 1.0/ep2
-    real , parameter :: rddcp = rgas/cpd
-    real , parameter :: cpdg  = cpd*regrav
+    real, parameter :: wlhv = 2.50080e6
+    real, parameter :: wlhf = 0.33355e6
+    real, parameter :: wlhs = 2.83435e6
+    real, parameter :: cpv = 1846.0932676
+    real, parameter :: cpw = 4186.95
+    real, parameter :: cpi = 2117.27
+    real, parameter :: rgas = 287.0569248
+    real, parameter :: egrav = 9.80665
+    real, parameter :: regrav = 1.0/egrav
+    real, parameter :: tzero = 273.15
+    real, parameter :: cpd = 1004.6992368
+    real, parameter :: rwat = 461.5233169
+    real, parameter :: p00 = 1.000000e5
+    real, parameter :: ep2 = 0.6219770795
+    real, parameter :: lv1   = wlhv+(cpw-cpv)*tzero
+    real, parameter :: lv2   = cpw-cpv
+    real, parameter :: ls1   = wlhs+(cpi-cpv)*tzero
+    real, parameter :: ls2   = cpi-cpv
+    real, parameter :: rp00  = 1.0/p00
+    real, parameter :: reps  = 1.0/ep2
+    real, parameter :: rddcp = rgas/cpd
+    real, parameter :: cpdg  = cpd*regrav
 
     real, parameter :: converge = 0.0002
 
     ! Get td,pi,q,th,thv
 
-    do k = 1 , nk
+    do k = 1, nk
       pi(k) = (p(k)*rp00)**rddcp
       td(k) = getdewp(t(k),rh(k))
       q(k) = getqvs(p(k),td(k))
@@ -243,7 +243,7 @@ module mod_capecin
     ! get height using the hydrostatic equation
 
     z(1) = z1
-    do k = 2 , nk
+    do k = 2, nk
       dz = -cpdg*0.5*(thv(k)+thv(k-1))*(pi(k)-pi(k-1))
       z(k) = z(k-1) + dz
     end do
@@ -271,7 +271,7 @@ module mod_capecin
         else
           ! find max thetae below 500 mb
           maxthe = 0.0
-          do k = 1 , nk
+          do k = 1, nk
             if ( p(k) >= 50000.0 ) then
               the = getthe(p(k),t(k),td(k),q(k))
               if ( the > maxthe ) then
@@ -362,7 +362,7 @@ module mod_capecin
         nloop = 1 + int( dp/pinc )
         dp = dp/real(nloop)
       end if
-      do n = 1 , nloop
+      do n = 1, nloop
         p1 =  p2
         t1 =  t2
         pi1 = pi2
@@ -468,11 +468,11 @@ module mod_capecin
 
     pure real function getdewp(t,rh)
       implicit none
-      real , intent(in) :: t , rh
-      real , parameter :: b = 18.678
-      real , parameter :: c = 257.14 ! [C]
-      real , parameter :: d = 234.50 ! [C]
-      real :: tc , gm
+      real, intent(in) :: t, rh
+      real, parameter :: b = 18.678
+      real, parameter :: c = 257.14 ! [C]
+      real, parameter :: d = 234.50 ! [C]
+      real :: tc, gm
       tc = t - tzero
       gm = log(rh * exp((b - tc/d)*(tc/(c+tc))))
       getdewp = tzero + c * gm/(b-gm)
@@ -480,7 +480,7 @@ module mod_capecin
 
     pure real function getqvs(p,t)
       implicit none
-      real , intent(in) :: p , t
+      real, intent(in) :: p, t
       real :: es
       es = 611.2*exp(17.67*(t-273.15)/(t-29.65))
       getqvs = ep2*es/(p-es)
@@ -488,7 +488,7 @@ module mod_capecin
 
     pure real function getqvi(p,t)
       implicit none
-      real , intent(in) :: p , t
+      real, intent(in) :: p, t
       real :: es
       es = 611.2*exp(21.8745584*(t-273.15)/(t-7.66))
       getqvi = ep2*es/(p-es)
@@ -496,7 +496,7 @@ module mod_capecin
 
     pure real function getthe(p,t,td,q)
       implicit none
-      real , intent(in) :: p , t , td , q
+      real, intent(in) :: p, t, td, q
       real :: tlcl
       if ( (td-t) >= -0.1 ) then
         tlcl = t

@@ -433,7 +433,7 @@
 ! -- Local variables
       real(kind=rb) :: cldf(ncol,nlayers)             ! cloud fraction
 
-! Mean over the subcolumns (cloud fraction, cloud water , cloud ice) - inactive
+! Mean over the subcolumns (cloud fraction, cloud water, cloud ice) - inactive
 !      real(kind=rb) :: mean_cld_stoch(ncol, nlayers) ! cloud fraction
 !      real(kind=rb) :: mean_clwp_stoch(ncol, nlayers)! cloud water
 !      real(kind=rb) :: mean_ciwp_stoch(ncol, nlayers)! cloud ice
@@ -766,7 +766,7 @@
 
         pure integer(kind=im) function m(k,n)
           implicit none
-          integer (kind=im) , intent(in) :: k , n
+          integer (kind=im), intent(in) :: k, n
           m = ieor (k, ishft (k, n) )
         end function m
 

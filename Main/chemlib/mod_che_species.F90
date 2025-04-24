@@ -24,11 +24,11 @@ module mod_che_species
 
   public
 
-  integer(ik4) , parameter :: nchsp = 25
-  integer(ik4) , parameter :: noxsp = 5
+  integer(ik4), parameter :: nchsp = 25
+  integer(ik4), parameter :: noxsp = 5
 
-  integer(ik4) , parameter :: ninchcodes = 46
-  character(len=8) , dimension(ninchcodes) :: inchtrnames =  &
+  integer(ik4), parameter :: ninchcodes = 46
+  character(len=8), dimension(ninchcodes) :: inchtrnames =  &
    ['O3      ','NO      ','NO2     ','NO3     ','OH      ', &
      'HO2     ','H2O2    ','HNO2    ','HNO3    ','HNO4    ', &
      'SULF    ','SO4     ','H2SO4   ','HONO    ','N2O5    ', &
@@ -40,37 +40,37 @@ module mod_che_species
      'CO2     ','DMS     ','NOX     ','HOX     ','SOX     ', &
      'PAR     ']
 
-  integer(ik4) , parameter :: ich_o3       = 1
-  integer(ik4) , parameter :: ich_no       = 2
-  integer(ik4) , parameter :: ich_no2      = 3
-  integer(ik4) , parameter :: ich_hno3     = 4
-  integer(ik4) , parameter :: ich_n2o5     = 5
-  integer(ik4) , parameter :: ich_h2o2     = 6
-  integer(ik4) , parameter :: ich_ch4      = 7
-  integer(ik4) , parameter :: ich_co       = 8
-  integer(ik4) , parameter :: ich_hcho     = 9
-  integer(ik4) , parameter :: ich_ch3oh    = 10
-  integer(ik4) , parameter :: ich_c2h5oh   = 11
-  integer(ik4) , parameter :: ich_c2h4     = 12
-  integer(ik4) , parameter :: ich_c2h6     = 13
-  integer(ik4) , parameter :: ich_ch3cho   = 14
-  integer(ik4) , parameter :: ich_c3h6     = 15
-  integer(ik4) , parameter :: ich_c3h8     = 16
-  integer(ik4) , parameter :: ich_ch3coch3 = 17
-  integer(ik4) , parameter :: ich_bigene   = 18
-  integer(ik4) , parameter :: ich_bigalk   = 19
-  integer(ik4) , parameter :: ich_isop     = 20
-  integer(ik4) , parameter :: ich_tolue    = 21
-  integer(ik4) , parameter :: ich_pan      = 22
-  integer(ik4) , parameter :: ich_so2      = 23
-  integer(ik4) , parameter :: ich_dms      = 24
-  integer(ik4) , parameter :: ich_so4      = 25
+  integer(ik4), parameter :: ich_o3       = 1
+  integer(ik4), parameter :: ich_no       = 2
+  integer(ik4), parameter :: ich_no2      = 3
+  integer(ik4), parameter :: ich_hno3     = 4
+  integer(ik4), parameter :: ich_n2o5     = 5
+  integer(ik4), parameter :: ich_h2o2     = 6
+  integer(ik4), parameter :: ich_ch4      = 7
+  integer(ik4), parameter :: ich_co       = 8
+  integer(ik4), parameter :: ich_hcho     = 9
+  integer(ik4), parameter :: ich_ch3oh    = 10
+  integer(ik4), parameter :: ich_c2h5oh   = 11
+  integer(ik4), parameter :: ich_c2h4     = 12
+  integer(ik4), parameter :: ich_c2h6     = 13
+  integer(ik4), parameter :: ich_ch3cho   = 14
+  integer(ik4), parameter :: ich_c3h6     = 15
+  integer(ik4), parameter :: ich_c3h8     = 16
+  integer(ik4), parameter :: ich_ch3coch3 = 17
+  integer(ik4), parameter :: ich_bigene   = 18
+  integer(ik4), parameter :: ich_bigalk   = 19
+  integer(ik4), parameter :: ich_isop     = 20
+  integer(ik4), parameter :: ich_tolue    = 21
+  integer(ik4), parameter :: ich_pan      = 22
+  integer(ik4), parameter :: ich_so2      = 23
+  integer(ik4), parameter :: ich_dms      = 24
+  integer(ik4), parameter :: ich_so4      = 25
 
-  integer(ik4) , parameter :: iox_oh       = 1
-  integer(ik4) , parameter :: iox_ho2      = 2
-  integer(ik4) , parameter :: iox_o3       = 3
-  integer(ik4) , parameter :: iox_no3      = 4
-  integer(ik4) , parameter :: iox_h2o2     = 5
+  integer(ik4), parameter :: iox_oh       = 1
+  integer(ik4), parameter :: iox_ho2      = 2
+  integer(ik4), parameter :: iox_o3       = 3
+  integer(ik4), parameter :: iox_no3      = 4
+  integer(ik4), parameter :: iox_h2o2     = 5
 
 end module mod_che_species
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

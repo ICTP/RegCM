@@ -24,29 +24,29 @@ module mod_cbmz_jval1
 
   private
 
-  public :: jvalpro , readhv
+  public :: jvalpro, readhv
 
   contains
 
     subroutine jvalpro(nhv,hvmat,jarray,jparam,jval)
       implicit none
 !
-      real(rkx) , dimension(22,40) :: hvmat
-      real(rkx) , dimension(22) :: jparam
-      real(rkx) , dimension(80,510,56) :: jarray
-      real(rkx) , dimension(56) :: jval
-      integer(ik4) , dimension(22) :: nhv
-      intent (in) hvmat , jarray , jparam , nhv
+      real(rkx), dimension(22,40) :: hvmat
+      real(rkx), dimension(22) :: jparam
+      real(rkx), dimension(80,510,56) :: jarray
+      real(rkx), dimension(56) :: jval
+      integer(ik4), dimension(22) :: nhv
+      intent (in) hvmat, jarray, jparam, nhv
       intent (inout) jval
 !
-      real(rkx) , dimension(56) :: cfac , jfaerz , jfsur
-      real(rkx) :: falt , fzen , x
+      real(rkx), dimension(56) :: cfac, jfaerz, jfsur
+      real(rkx) :: falt, fzen, x
       real(rkx) :: fkn
-      integer(ik4) :: i , ialt , id , ig01 , ig02 , ig11 , ig12 , ig21 ,     &
-                 ig22 , ij , im , iwri , iy , izen , j , jaer , jalb ,  &
-                 jc , jcld , jct , jtem , k , kn
-      real(rkx) , dimension(20,56) :: jfrac
-      real(rkx) , dimension(20) :: jfx
+      integer(ik4) :: i, ialt, id, ig01, ig02, ig11, ig12, ig21,     &
+                 ig22, ij, im, iwri, iy, izen, j, jaer, jalb,  &
+                 jc, jcld, jct, jtem, k, kn
+      real(rkx), dimension(20,56) :: jfrac
+      real(rkx), dimension(20) :: jfx
 !
 !     This Subroutine takes jparams (zenith, altitude, etc.)
 !     and generates jvals from table, for up to 56 species.
@@ -69,17 +69,17 @@ module mod_cbmz_jval1
 !     cfac = 2CLOUD ABOVE-BELOW FACTOR  (link to OPTION below)
 
 !     CORRECT FACTORS BASED ON JTAB AND (jclb*jclbm-1)*(1-jcla*jclam)
-      data cfac/0.000_rkx , 6.175e-1_rkx , 2.079_rkx , 1.774_rkx , 2.407_rkx , &
-                2.479_rkx , 2.365_rkx , 1.495_rkx , 0.000_rkx , 0.000_rkx , &
-                1.424_rkx , 1.732_rkx , 1.180_rkx , 1.202_rkx , 1.373_rkx , &
-                1.538_rkx , 9.732e-1_rkx , 0.000_rkx , 0.000_rkx , 1.228_rkx , &
-                1.911_rkx , 1.831_rkx , 8.667e-1_rkx , 1.481_rkx , 1.170_rkx , &
-                1.336_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-                0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-                0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-                0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-                0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-                0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      data cfac/0.000_rkx, 6.175e-1_rkx, 2.079_rkx, 1.774_rkx, 2.407_rkx, &
+                2.479_rkx, 2.365_rkx, 1.495_rkx, 0.000_rkx, 0.000_rkx, &
+                1.424_rkx, 1.732_rkx, 1.180_rkx, 1.202_rkx, 1.373_rkx, &
+                1.538_rkx, 9.732e-1_rkx, 0.000_rkx, 0.000_rkx, 1.228_rkx, &
+                1.911_rkx, 1.831_rkx, 8.667e-1_rkx, 1.481_rkx, 1.170_rkx, &
+                1.336_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, &
+                0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, &
+                0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, &
+                0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, &
+                0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, &
+                0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, &
                 0.000_rkx/
 
 !     ORIGINAL (OLD) FACTORS CALCULATED BASED  ON JTAB (old correct)
@@ -96,7 +96,7 @@ module mod_cbmz_jval1
 
 !     FACTORS CALCULATED BASED  ON JBASE (OLD)
 !     data  cfac/ 0., 4.896E-01, 1.056E+00, 1.319E+00, 1.134E+00,
-!     *           1.215E+00,   0., 1.255E+00,  0.     ,   0.      ,
+!     *           1.215E+00,   0., 1.255E+00,  0.    ,   0.      ,
 !     *           1.189E+00,1.343E+00,9.741E-01,9.885E-01,1.145E+00,
 !     *           1.281E+00, 7.782E-01,   0.   ,0.000E+00,1.011E+00,
 !     *           1.218E+00,1.281E+00,6.906E-01,1.227E+00, 9.677E-01,
@@ -137,7 +137,7 @@ module mod_cbmz_jval1
 !     NOTE:  Loop was 1,20; before TEMP.  Does DATE use this?  Probably
 !     not do i=1,20
       jparamloop: &
-      do i = 1 , 19
+      do i = 1, 19
         jfx(i) = d_zero
         if ( nhv(i) <= 0 ) exit
         if ( nhv(i) /= 1 ) then
@@ -150,7 +150,7 @@ module mod_cbmz_jval1
 !         (note:  matrix must be monotonically increasing or decreasing)
 
           if ( abs(hvmat(i,1)-hvmat(i,nhv(i))) > dlowval ) then
-            do j = 1 , (nhv(i)-1)
+            do j = 1, (nhv(i)-1)
               if ( abs(hvmat(i,j)-hvmat(i,j+1)) < dlowval ) then
                 exit jparamloop
               end if
@@ -167,7 +167,7 @@ module mod_cbmz_jval1
             end if
 
 !           Enter fraction for parameter inside matrix range
-            do j = 1 , (nhv(i)-1)
+            do j = 1, (nhv(i)-1)
               if ( (jparam(i) >= hvmat(i,j) .and. &
                     jparam(i) <= hvmat(i,j+1)) .or. &
                    (jparam(i) <= hvmat(i,j) .and. &
@@ -189,7 +189,7 @@ module mod_cbmz_jval1
 
 !           TEST WRITE
             if ( iwri == 1 ) then
-              write (57,99001) i , jparam(i) , jfx(i)
+              write (57,99001) i, jparam(i), jfx(i)
               write (57,99002) (hvmat(i,j),j=1,nhv(i))
             end if
           end if
@@ -230,7 +230,7 @@ module mod_cbmz_jval1
       if ( izen < nhv(1) ) ig02 = ig01 + 1
 
 !     Establish base j-values.  Enter into jval output.
-      do jc = 1 , jct
+      do jc = 1, jct
         jval(jc) = jarray(1,ig11,jc)*fzen*falt + jarray(1,ig12,jc) *        &
                   (d_one-fzen)*falt + jarray(1,ig21,jc)*fzen*(d_one-falt) + &
                    jarray(1,ig22,jc)*(d_one-fzen)*(d_one-falt)
@@ -246,38 +246,38 @@ module mod_cbmz_jval1
 
 !     TEST WRITE
       if ( iwri == 1 ) then
-        write (57,99003) izen , ialt , ig11 , ig12 , ig21 , ig22 ,      &
-                         fzen , falt
-        write (57,99004) jval(1) , jarray(1,ig11,1) , jarray(1,ig12,1) ,&
-                         jarray(1,ig21,1) , jarray(1,ig22,1)
-        write (57,99004) jval(2) , jarray(1,ig11,2) , jarray(1,ig12,2) ,&
-                         jarray(1,ig21,2) , jarray(1,ig22,2)
-        write (57,99004) jval(4) , jarray(1,ig11,4) , jarray(1,ig12,4) ,&
-                         jarray(1,ig21,4) , jarray(1,ig22,4)
+        write (57,99003) izen, ialt, ig11, ig12, ig21, ig22,      &
+                         fzen, falt
+        write (57,99004) jval(1), jarray(1,ig11,1), jarray(1,ig12,1) ,&
+                         jarray(1,ig21,1), jarray(1,ig22,1)
+        write (57,99004) jval(2), jarray(1,ig11,2), jarray(1,ig12,2) ,&
+                         jarray(1,ig21,2), jarray(1,ig22,2)
+        write (57,99004) jval(4), jarray(1,ig11,4), jarray(1,ig12,4) ,&
+                         jarray(1,ig21,4), jarray(1,ig22,4)
       end if
 
 !     LOOP: Establish fractional adjustments
 !     LOOP for each fraction.  Set k-index
       k = 1
-      do i = 3 , 19
+      do i = 3, 19
 
 !       Set initial fraction equal to base value
 !       (watch special 11, 12! Make sure base value is OK if nhv=1 and
 !       skipp
-        do jc = 1 , jct
+        do jc = 1, jct
           jfrac(i,jc) = d_one
         end do
 
 !       if(i.eq.6)then
         if ( i == jaer ) then
-          do jc = 1 , jct
+          do jc = 1, jct
             jfaerz(jc) = d_one
           end do
         end if
 
 !       if(i.eq.9)then
         if ( i == jcld ) then
-          do jc = 1 , jct
+          do jc = 1, jct
             jfsur(jc) = d_one
           end do
         end if
@@ -302,14 +302,14 @@ module mod_cbmz_jval1
 !         TEST WRITE:
           if ( fkn < d_zero .or. fkn > d_one ) then
             if ( iwri == 1 ) then
-              write (56,99005) i , k , kn , jfx(i) , fkn
+              write (56,99005) i, k, kn, jfx(i), fkn
             end if
           end if
 
 !         Establish fraction from jarray.
 !         Use zenith interpolation, itself interpolated between two
 !         fractions.
-          do jc = 1 , jct
+          do jc = 1, jct
             jfrac(i,jc) = fkn*(jarray(kn,ig11,jc)*fzen*falt + &
                                jarray(kn,ig12,jc)*(d_one-fzen)*falt + &
                                jarray(kn,ig21,jc)*fzen*(d_one-falt) + &
@@ -335,9 +335,9 @@ module mod_cbmz_jval1
           if ( i == jcld+1 ) then
 !           TEST WRITE
             if ( iwri == 1 ) then
-              write (57,99006) jfrac(jalb,1) , jfrac(jalb,2) , jfrac(jalb,4)
+              write (57,99006) jfrac(jalb,1), jfrac(jalb,2), jfrac(jalb,4)
             end if
-            do jc = 1 , jct
+            do jc = 1, jct
               jfsur(jc) = fkn*(jarray(kn-nhv(jcld),ig01,jc)*fzen + &
                                jarray(kn-nhv(jcld),ig02,jc)*(d_one-fzen)) + &
                   (d_one-fkn)*(jarray(kn+1-nhv(jcld),ig01,jc)*fzen + &
@@ -356,8 +356,8 @@ module mod_cbmz_jval1
             end do
 !           TEST WRITE
             if ( iwri==1 ) then
-              write (57,99007) jfsur(1) , jfsur(2) , jfsur(4) , &
-                 jfrac(jalb,1) , jfrac(jalb,2) , jfrac(jalb,4)
+              write (57,99007) jfsur(1), jfsur(2), jfsur(4), &
+                 jfrac(jalb,1), jfrac(jalb,2), jfrac(jalb,4)
             end if
 !           SPECIAL WRITE FOR CREATING 2CLOUD ABOVE-BELOW CORRECTION
 !           FACTOR. was here, moved below.
@@ -368,7 +368,7 @@ module mod_cbmz_jval1
 !         Establish AEROSOL ZERO fraction:  case i=6, 1st fraction
 !         value. fraction k index is k+1 instead of kn
           if ( i == jaer ) then
-            do jc = 1 , jct
+            do jc = 1, jct
               jfaerz(jc) = (jarray(k+1,ig11,jc)*fzen*falt + &
                             jarray(k+1,ig12,jc)*(d_one-fzen)*falt + &
                             jarray(k+1,ig21,jc)*fzen*(d_one-falt) + &
@@ -378,22 +378,22 @@ module mod_cbmz_jval1
 
 !         TEST WRITE
           if ( iwri == 1 ) then
-            write (57,99008) i , k , kn , jfx(i) , fkn
-            write (57,99009) i , kn , fkn , fzen , falt , jfrac(i,1)
-            write (57,99009) i , kn , fkn , fzen , falt , jfrac(i,2)
-            write (57,99009) i , kn , fkn , fzen , falt , jfrac(i,4)
-            write (57,99010) jarray(kn,ig11,1) , jarray(kn,ig12,1) ,    &
-                             jarray(kn,ig21,1) , jarray(kn,ig22,1) ,    &
-                             jarray(kn+1,ig11,1) , jarray(kn+1,ig12,1) ,&
-                             jarray(kn+1,ig21,1) , jarray(kn+1,ig22,1)
-            write (57,99010) jarray(kn,ig11,2) , jarray(kn,ig12,2) ,    &
-                             jarray(kn,ig21,2) , jarray(kn,ig22,2) ,    &
-                             jarray(kn+1,ig11,2) , jarray(kn+1,ig12,2) ,&
-                             jarray(kn+1,ig21,2) , jarray(kn+1,ig22,2)
-            write (57,99010) jarray(kn,ig11,4) , jarray(kn,ig12,4) ,    &
-                             jarray(kn,ig21,4) , jarray(kn,ig22,4) ,    &
-                             jarray(kn+1,ig11,4) , jarray(kn+1,ig12,4) ,&
-                             jarray(kn+1,ig21,4) , jarray(kn+1,ig22,4)
+            write (57,99008) i, k, kn, jfx(i), fkn
+            write (57,99009) i, kn, fkn, fzen, falt, jfrac(i,1)
+            write (57,99009) i, kn, fkn, fzen, falt, jfrac(i,2)
+            write (57,99009) i, kn, fkn, fzen, falt, jfrac(i,4)
+            write (57,99010) jarray(kn,ig11,1), jarray(kn,ig12,1),    &
+                             jarray(kn,ig21,1), jarray(kn,ig22,1),    &
+                             jarray(kn+1,ig11,1), jarray(kn+1,ig12,1) ,&
+                             jarray(kn+1,ig21,1), jarray(kn+1,ig22,1)
+            write (57,99010) jarray(kn,ig11,2), jarray(kn,ig12,2),    &
+                             jarray(kn,ig21,2), jarray(kn,ig22,2),    &
+                             jarray(kn+1,ig11,2), jarray(kn+1,ig12,2) ,&
+                             jarray(kn+1,ig21,2), jarray(kn+1,ig22,2)
+            write (57,99010) jarray(kn,ig11,4), jarray(kn,ig12,4),    &
+                             jarray(kn,ig21,4), jarray(kn,ig22,4),    &
+                             jarray(kn+1,ig11,4), jarray(kn+1,ig12,4) ,&
+                             jarray(kn+1,ig21,4), jarray(kn+1,ig22,4)
           end if
 
 !         Special adjustment:  cloud height adjustment factors (j=11,
@@ -412,16 +412,16 @@ module mod_cbmz_jval1
 !         fraction (j=6) if(i.eq.11.or.i.eq.12          ) then
           if ( i == jcld+2 .or. i == jcld+3 ) then
             ij = i - 2
-            do jc = 1 , jct
+            do jc = 1, jct
               jfrac(i,jc) = d_one - jfrac(i,jc)*(d_one-jfrac((ij),jc))
               if ( jfrac(i,jc) < 0.1_rkx ) jfrac(i,jc) = 0.1_rkx
               if ( jfrac(i,jc) > 10.0_rkx ) jfrac(i,jc) = 10.0_rkx
             end do
 !           TEST WRITE
             if ( iwri == 1 ) then
-              write (57,99011) i , jfrac(i,1)
-              write (57,99011) i , jfrac(i,2)
-              write (57,99011) i , jfrac(i,4)
+              write (57,99011) i, jfrac(i,1)
+              write (57,99011) i, jfrac(i,2)
+              write (57,99011) i, jfrac(i,4)
             end if
           end if
 
@@ -442,7 +442,7 @@ module mod_cbmz_jval1
           if ( i == jaer+1 ) then
 !           ij=6
             ij = jaer
-            do jc = 1 , jct
+            do jc = 1, jct
               if ( jfaerz(jc) > 0 ) then
                 jfrac(i,jc) = d_one - jfrac(i,jc) * &
                             (d_one-jfrac((ij),jc)/jfaerz(jc))
@@ -454,9 +454,9 @@ module mod_cbmz_jval1
             end do
 !           TEST WRITE
             if ( iwri == 1 ) then
-              write (57,99011) i , jfrac(i,1)
-              write (57,99011) i , jfrac(i,2) , jfaerz(2)
-              write (57,99011) i , jfrac(i,4)
+              write (57,99011) i, jfrac(i,1)
+              write (57,99011) i, jfrac(i,2), jfaerz(2)
+              write (57,99011) i, jfrac(i,4)
             end if
           end if
 
@@ -483,11 +483,11 @@ module mod_cbmz_jval1
 !         if(i.eq.12) then
           if ( i == jcld+3 ) then
 !           TEST WRITE
-            if ( iwri == 1 ) write (57,99012) jfrac(jcld,1) ,         &
-                                  jfrac(jcld,2) , jfrac(jcld,4) ,     &
-                                  jfrac(jcld+1,4) , jfrac(jcld+2,4) , &
+            if ( iwri == 1 ) write (57,99012) jfrac(jcld,1),         &
+                                  jfrac(jcld,2), jfrac(jcld,4),     &
+                                  jfrac(jcld+1,4), jfrac(jcld+2,4), &
                                   jfrac(jcld+3,4)
-            do jc = 1 , jct
+            do jc = 1, jct
 !             2CLOUD AB0VE-BELOW OPTION:  MODIFY HERE..  (use with data
 !             OPTION, abov FINAL CORRECT VERSION
 !             with INDEX CONTROL:
@@ -507,8 +507,8 @@ module mod_cbmz_jval1
 !             *       cfac(jc)*(1.-jfsur(jc))*(1.-jfrac(9,jc)) )
             end do
 !           TEST WRITE
-            if ( iwri == 1 ) write (57,99013) jfrac(jcld,1) ,  &
-                                 jfrac(jcld,2) , jfrac(jcld,4)
+            if ( iwri == 1 ) write (57,99013) jfrac(jcld,1),  &
+                                 jfrac(jcld,2), jfrac(jcld,4)
           end if
 !
 !         SPECIAL WRITE FOR CREATING 2CLOUD ABOVE-BELOW CORRECTION
@@ -549,8 +549,8 @@ module mod_cbmz_jval1
 
           if ( i == jtem ) then
 !           TEST WRITE
-            if ( iwri == 1 ) write (57,99015) i , jparam(i) , &
-                                  jfrac(i,2) , jfrac(i,4)
+            if ( iwri == 1 ) write (57,99015) i, jparam(i), &
+                                  jfrac(i,2), jfrac(i,4)
 
             x = jparam(i)
             if ( jparam(i) > 50 ) then
@@ -559,16 +559,16 @@ module mod_cbmz_jval1
 !             OPTIONAL LINE FOR TESTS
 !             jparam(i)=x
 !             TEST WRITE
-              if ( iwri == 1 ) write (57,99016) ialt , falt , &
-                                   hvmat(jtem,ialt) , hvmat(jtem,ialt+1)
+              if ( iwri == 1 ) write (57,99016) ialt, falt, &
+                                   hvmat(jtem,ialt), hvmat(jtem,ialt+1)
             end if
-            do jc = 1 , jct
+            do jc = 1, jct
               jfrac(jtem,jc) = d_one + 0.1_rkx*x*jfrac(jtem,jc)
             end do
 
 !           TEST WRITE
-            if ( iwri == 1 ) write (57,99017) x , &
-                                  jfrac(jtem,2) , jfrac(jtem,4)
+            if ( iwri == 1 ) write (57,99017) x, &
+                                  jfrac(jtem,2), jfrac(jtem,4)
 
 !           END SPECIAL TEMPERATURE ADJUSTMENT
           end if
@@ -585,21 +585,21 @@ module mod_cbmz_jval1
       end do
 
 !     TEST J-VALUE  FINAL FRACTIONAL ADJUSTMENT
-      if ( iwri == 1 ) write (57,99018) jval(2) , jval(4)
+      if ( iwri == 1 ) write (57,99018) jval(2), jval(4)
 
 !     LOOP TO ADJUST BASE J-VALUE BY FRACTION
 
-      do i = 3 , 19
+      do i = 3, 19
         if ( nhv(i) > 1 ) then
 !         ADJUST BASE J-VALUE BY FRACTION
-          do jc = 1 , jct
+          do jc = 1, jct
             jval(jc) = jval(jc)*jfrac(i,jc)
           end do
 !         TEST J-VALUE  FINAL FRACTIONAL ADJUSTMENT
           if ( iwri == 1 .and. &
                abs(jfrac(i,1)-d_one) < dlowval .and. &
                abs(jfrac(i,2)-d_one) < dlowval ) then
-            write (57,99019) i , jfrac(i,2) , jval(2) , jfrac(i,4) , jval(4)
+            write (57,99019) i, jfrac(i,2), jval(2), jfrac(i,4), jval(4)
           end if
         end if
       end do
@@ -625,7 +625,7 @@ module mod_cbmz_jval1
 !     ADJUSTMENT:  x IS DAY FACTOR, -1. to +1.  NOW MAKE DAY ADJUSTMENT.
       x = d_one + 0.0344_rkx*x
 !     ADJUST BASE J-VALUE FOR DATE
-      do jc = 1 , jct
+      do jc = 1, jct
         jval(jc) = jval(jc)*x
       end do
 
@@ -696,18 +696,18 @@ module mod_cbmz_jval1
       implicit none
 !
       integer(ik4) :: lsin
-      real(rkx) , dimension(22,40) :: hvmat
-      real(rkx) , dimension(22) :: hvmatb
-      real(rkx) , dimension(80,510,56) :: jarray
-      integer(ik4) , dimension(22) :: nhv
+      real(rkx), dimension(22,40) :: hvmat
+      real(rkx), dimension(22) :: hvmatb
+      real(rkx), dimension(80,510,56) :: jarray
+      integer(ik4), dimension(22) :: nhv
       intent (in) lsin
-      intent (inout) hvmat , hvmatb , jarray , nhv
+      intent (inout) hvmat, hvmatb, jarray, nhv
 !
       character(4) :: aaa
-      real(rkx) , dimension(22) :: hvmatz
-      integer(ik4) :: i , ig , iwri , iz , j , jaer , jalb , jc , jcld ,     &
-                 jct , jtem , k , m , n , nmax
-      real(rkx) :: x , y
+      real(rkx), dimension(22) :: hvmatz
+      integer(ik4) :: i, ig, iwri, iz, j, jaer, jalb, jc, jcld,     &
+                 jct, jtem, k, m, n, nmax
+      real(rkx) :: x, y
 !
 !     Output matrix:  jarray(k,ig,jc) for
 !     k=cases:  k=1 base case, k>1 adjustment factors
@@ -746,21 +746,21 @@ module mod_cbmz_jval1
       jtem = 13
 !
 !     ZERO INPUT MATRIX
-      do i = 1 , 22
+      do i = 1, 22
         nhv(i) = 0
         hvmatb(i) = d_zero
-        do j = 1 , 40
+        do j = 1, 40
           hvmat(i,j) = d_zero
         end do
       end do
 
 !     READ INPUT CONTROLS  (note read index, k, as well)
       rewind lsin
-      do i = 1 , 22
+      do i = 1, 22
         read (lsin,99001) aaa
         if ( iwri == 1 ) write (57,99001) aaa
-        read (lsin,99002) k , j , x , y
-        if ( iwri == 1 ) write (57,99002) k , j , x , y
+        read (lsin,99002) k, j, x, y
+        if ( iwri == 1 ) write (57,99002) k, j, x, y
         if ( j == 0 ) exit
         if ( k == 0 ) exit
         nhv(k) = j
@@ -771,7 +771,7 @@ module mod_cbmz_jval1
       end do
 
 !     ALT  ALTITUDE OPTION:  kPa or km
-      do j = 1 , 40
+      do j = 1, 40
         hvmat(22,j) = hvmat(2,j)
 !       ALTITUDE OPTION;  FOR KM, UNCOMMENT THIS LINE.  FOR KPA,
 !       COMMENT OUT hvmat(2,j)=hvmat(21,j)
@@ -792,9 +792,9 @@ module mod_cbmz_jval1
 
 !     SET INITIAL J-VALUES TO ZERO/ONE
 !     J=0 FOR BASE CASE (k=1) AND CLOUD-ADJUSTMENT VALUES (k=11,12)
-      do k = 1 , 80
-        do ig = 1 , 510
-          do jc = 1 , 56
+      do k = 1, 80
+        do ig = 1, 510
+          do jc = 1, 56
             jarray(k,ig,jc) = d_one
             if ( k == 1 ) jarray(k,ig,jc) = d_zero
           end do
@@ -807,21 +807,21 @@ module mod_cbmz_jval1
 !     N REPRESENTS PARAMETER VALUE FROM J-MATRIX.
 !     READ FROM ARRAY AND ENTER IMPLICIT VALUES OMITTED FROM ARRAY
       k = 0
-      do m = 2 , 20
+      do m = 2, 20
         nmax = 1
         if ( m >= 3 ) nmax = nhv(m)
-        if ( iwri == 1 ) write (57,*) m , nmax , k
+        if ( iwri == 1 ) write (57,*) m, nmax, k
 !       (Exit if nhv=0)
         if ( nhv(m) <= 0 ) exit
 !       (Note: for nhv=1, omit from jarray)
         if ( nhv(m) > 1 ) then
-          do n = 1 , nmax
+          do n = 1, nmax
             k = k + 1
-            if ( iwri == 1 ) write (57,*) m , n , k
+            if ( iwri == 1 ) write (57,*) m, n, k
 !           ENTER IMPLICIT VALUES FOR ARRAY (nighttime or base case
 !           adjustment fac
-            do ig = 1 , 510
-              do jc = 1 , 56
+            do ig = 1, 510
+              do jc = 1, 56
                 jarray(k,ig,jc) = hvmatz(m)
               end do
             end do
@@ -842,22 +842,22 @@ module mod_cbmz_jval1
               read (lsin,99001) aaa
               if ( iwri == 1 ) write (57,*) k
               if ( iwri == 1 ) write (57,99001) aaa
-              do i = 1 , nhv(2)
+              do i = 1, nhv(2)
 !               CHANGE GRID OPTION:   SKIP CONTROL - i.le.7 (TUVGRID1).
 !               i.le.8 FOR TUV This  skips read for alt>8 for
 !               cloud-above or cl-alt-above.
 !               if(i.le.7.or.(m.ne.9.and.m.ne.11)) then
                 if ( i <= 8 .or. (m /= jcld .and. m /= jcld+2) ) then
                   read (lsin,99001) aaa
-                  if ( iwri == 1 ) write (57,*) k , i
+                  if ( iwri == 1 ) write (57,*) k, i
                   if ( iwri == 1 ) write (57,99001) aaa
-                  do iz = 1 , (nhv(1)-1)
+                  do iz = 1, (nhv(1)-1)
                     ig = iz + nhv(1)*(i-1)
                     read (lsin,99004) (jarray(k,ig,jc),jc=1,jct)
                     if ( iwri == 1 ) write (57,99004) (jarray(k,ig,jc),jc=1,4)
                     if ( ig == 1 .and. iwri == 1 ) write (57,*) k
                     if ( k == 1 .and. iz <= 2 .and. &
-                         i <= 2 .and. iwri == 1 ) write (57,*) k , i , iz , ig
+                         i <= 2 .and. iwri == 1 ) write (57,*) k, i, iz, ig
                     if ( k == 1 .and. iz <= 2 .and. &
                          i <= 2 .and. iwri == 1 ) then
                       write (57,99004) (jarray(k,ig,jc),jc=1,4)

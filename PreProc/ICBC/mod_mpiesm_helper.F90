@@ -26,11 +26,11 @@ module mod_mpiesm_helper
 
   public :: mpievars
   public :: find_mpiesm_sst
-  public :: find_mpiesm_dim , find_mpiesm_topo , find_mpiesm_file
+  public :: find_mpiesm_dim, find_mpiesm_topo, find_mpiesm_file
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: mpievars = &
-            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'aps']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: mpievars = &
+            ['ta ', 'XXX', 'hus', 'ua ', 'va ', 'aps']
 
   character(len=64) :: mpiebase1  = '_6hrLev_MPI-ESM-MR_historical'
   character(len=64) :: mpiebase2  = '_6hrLev_MPI-ESM-MR_rcp'
@@ -43,12 +43,12 @@ module mod_mpiesm_helper
 
   subroutine find_mpiesm_sst(fname,idate,res)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=1) , intent(in) :: res
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
-    integer(ik4) :: y1 , y2 , m1 , m2
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=1), intent(in) :: res
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
+    integer(ik4) :: y1, y2, m1, m2
     call split_idate(idate,y,m,d,h)
     y1 = y
     m1 = m
@@ -89,12 +89,12 @@ module mod_mpiesm_helper
 
   subroutine assemble_path(fname,scen,var,d1,d2,res)
     implicit none
-    character(len=256) , intent(out) :: fname
-    character(len=*) , intent(in) :: scen
-    character(len=*) , intent(in) :: var
-    character(len=*) , intent(in) :: d1
-    character(len=*) , intent(in) :: d2
-    character(len=1) , intent(in) :: res
+    character(len=256), intent(out) :: fname
+    character(len=*), intent(in) :: scen
+    character(len=*), intent(in) :: var
+    character(len=*), intent(in) :: d1
+    character(len=*), intent(in) :: d2
+    character(len=1), intent(in) :: res
     if ( res == 'M' ) then
       if ( scen == 'RF' ) then
         fname = trim(inpglob)//pthsep//'MPI-ESM-MR'//pthsep//trim(scen)// &
@@ -124,8 +124,8 @@ module mod_mpiesm_helper
 
   subroutine find_mpiesm_dim(dim_filename,res)
     implicit none
-    character(len=256) , intent(out) :: dim_filename
-    character(len=1) , intent(in) :: res
+    character(len=256), intent(out) :: dim_filename
+    character(len=1), intent(in) :: res
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(dim_filename,'RF','ta','1970010100','1970020100',res)
@@ -133,8 +133,8 @@ module mod_mpiesm_helper
 
   subroutine find_mpiesm_topo(topo_filename,res)
     implicit none
-    character(len=256) , intent(out) :: topo_filename
-    character(len=1) , intent(in) :: res
+    character(len=256), intent(out) :: topo_filename
+    character(len=1), intent(in) :: res
     if ( res == 'M' ) then
       topo_filename = trim(inpglob)//pthsep//'MPI-ESM-MR'//pthsep//'fixed'// &
               pthsep//'geosp_fx_MPI-ESM-MR_historical_r1i1p1.nc'
@@ -150,13 +150,13 @@ module mod_mpiesm_helper
 
   subroutine find_mpiesm_file(mpiesm_filename,var,idate,res)
     implicit none
-    character(len=256) , intent(out) :: mpiesm_filename
-    character(len=*) , intent(in) :: var
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=1) , intent(in) :: res
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
-    integer(ik4) :: y1 , y2 , m1 , m2
+    character(len=256), intent(out) :: mpiesm_filename
+    character(len=*), intent(in) :: var
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=1), intent(in) :: res
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
+    integer(ik4) :: y1, y2, m1, m2
     call split_idate(idate,y,m,d,h)
     y1 = y
     m1 = m

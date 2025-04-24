@@ -36,38 +36,38 @@ module mod_pgw
 
   private
 
-  public :: init_pgw , get_pgw , conclude_pgw
+  public :: init_pgw, get_pgw, conclude_pgw
 
   integer :: ncid = -1
-  integer :: ilon , jlat , klev
+  integer :: ilon, jlat, klev
 
-  real(rkx) , pointer , dimension(:) :: glat
-  real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , public , dimension(:) :: plevs
+  real(rkx), pointer, contiguous, dimension(:) :: glat
+  real(rkx), pointer, contiguous, dimension(:) :: glon
+  real(rkx), pointer, contiguous, public, dimension(:) :: plevs
 
-  real(rkx) , pointer , dimension(:,:,:) :: u2 , v2 , q2 , z2 , t2
-  real(rkx) , pointer , dimension(:,:) :: ps2 , ts2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u2, v2, q2, z2, t2
+  real(rkx), pointer, contiguous, dimension(:,:) :: ps2, ts2
 
-  real(rkx) , pointer , dimension(:,:,:) :: d3u , d3v , h3u , h3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3u, d3v, h3u, h3v
 
-  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
+  type(h_interpolator) :: cross_hint, udot_hint, vdot_hint
 
   character(len=256) :: pgwfile
 
-  integer , parameter :: ndelta = 7
-  character(len=10) , dimension(ndelta) :: varname
-  integer , dimension(ndelta) :: ivardelta
-  data varname /'delta_ta ' , 'delta_zg ' , &
-                'delta_hus' , 'delta_ua ' , &
-                'delta_va ' , 'delta_ps ' , &
+  integer, parameter :: ndelta = 7
+  character(len=10), dimension(ndelta) :: varname
+  integer, dimension(ndelta) :: ivardelta
+  data varname /'delta_ta ', 'delta_zg ', &
+                'delta_hus', 'delta_ua ', &
+                'delta_va ', 'delta_ps ', &
                 'delta_ts'/
 
   contains
 
   subroutine init_pgw(filename)
     implicit none
-    character(len=*) , intent(in) :: filename
-    integer :: istatus , idimid , ivarid , kkrec
+    character(len=*), intent(in) :: filename
+    integer :: istatus, idimid, ivarid, kkrec
 
     pgwfile = filename
     istatus = nf90_open(pgwfile,nf90_nowrite,ncid)
@@ -138,7 +138,7 @@ module mod_pgw
       call getmem3d(d3v,1,jx,1,iy,1,klev,'pgw:d3v')
     end if
 
-    do kkrec = 1 , ndelta
+    do kkrec = 1, ndelta
       istatus = nf90_inq_varid(ncid,varname(kkrec),ivardelta(kkrec))
       call checkncerr(istatus,__FILE__,__LINE__, &
         'Error find var '//varname(kkrec))
@@ -147,9 +147,9 @@ module mod_pgw
 
   subroutine get_pgw(month)
     implicit none
-    integer(ik4) , intent(in) :: month
-    integer(ik4) :: istatus , it
-    integer(ik4) , dimension(4) :: icount , istart
+    integer(ik4), intent(in) :: month
+    integer(ik4) :: istatus, it
+    integer(ik4), dimension(4) :: icount, istart
 
     it = month
     istart(1) = 1
@@ -185,7 +185,7 @@ module mod_pgw
     istatus = nf90_get_var(ncid,ivardelta(7),ts2,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(7))
-    write (stdout,*) 'READ IN fields for month:' , month
+    write (stdout,*) 'READ IN fields for month:', month
     call h_interpolate_cont(cross_hint,t2,t4)
     call h_interpolate_cont(cross_hint,q2,q4)
     call h_interpolate_cont(cross_hint,z2,z4)

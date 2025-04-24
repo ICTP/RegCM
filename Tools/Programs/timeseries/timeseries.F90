@@ -30,30 +30,30 @@ program timeseries
 
   implicit none
 
-  character(len=8) , parameter :: hgtname = 'topo    '
-  character(len=8) , parameter :: tasname = 'tas     '
-  character(len=8) , parameter :: prname  = 'pr      '
-  character(len=8) , parameter :: prcname = 'prc     '
-  !character(len=8) , parameter :: tasname = 't2m     '
-  !character(len=8) , parameter :: prname  = 'pr      '
-  !character(len=8) , parameter :: prcname = 'prc     '
+  character(len=8), parameter :: hgtname = 'topo    '
+  character(len=8), parameter :: tasname = 'tas     '
+  character(len=8), parameter :: prname  = 'pr      '
+  character(len=8), parameter :: prcname = 'prc     '
+  !character(len=8), parameter :: tasname = 't2m     '
+  !character(len=8), parameter :: prname  = 'pr      '
+  !character(len=8), parameter :: prcname = 'prc     '
 
-  character(len=256) :: infile , prgname , outname , line
-  integer , parameter :: outunit = 100
+  character(len=256) :: infile, prgname, outname, line
+  integer, parameter :: outunit = 100
   character(len=256) :: charatt
-  character(len=64) :: timeunit , timecal
-  character(len=8) :: c1 , c2 , c3
-  real(rk8) :: lat , lon , iiy , jjx , centeri , centerj
-  real(rk8) , dimension(2) :: trlat
-  real(rk8) , dimension(:) , allocatable :: xtimes
-  integer(ik4) :: istat , imodel , ifpd , iext
-  integer(ik4) :: ncid , ivarid
-  integer(ik4) :: jxdimid , iydimid , itdimid , it , nt
-  integer(ik4) , dimension(4) :: istart , icount
-  integer(ik4) :: itopoid , itempid , iprecid , icprid
-  real(rk8) , dimension(2,2) :: xbuf
-  real(rk8) :: topo , temp , precip , cprc
-  real(rk8) :: wt1 , wt2
+  character(len=64) :: timeunit, timecal
+  character(len=8) :: c1, c2, c3
+  real(rk8) :: lat, lon, iiy, jjx, centeri, centerj
+  real(rk8), dimension(2) :: trlat
+  real(rk8), dimension(:), allocatable :: xtimes
+  integer(ik4) :: istat, imodel, ifpd, iext
+  integer(ik4) :: ncid, ivarid
+  integer(ik4) :: jxdimid, iydimid, itdimid, it, nt
+  integer(ik4), dimension(4) :: istart, icount
+  integer(ik4) :: itopoid, itempid, iprecid, icprid
+  real(rk8), dimension(2,2) :: xbuf
+  real(rk8) :: topo, temp, precip, cprc
+  real(rk8) :: wt1, wt2
   type(rcm_time_and_date) :: idate
   !
   ! Read input file
@@ -220,7 +220,7 @@ program timeseries
     stop
   end if
 
-  do it = 1 , nt
+  do it = 1, nt
     istart(3) = 1
     icount(3) = 1
     istart(4) = it
@@ -237,7 +237,7 @@ program timeseries
     call checkncerr(istat,__FILE__,__LINE__, 'Read '//prcname//' variable')
     cprc = bilinear() * 3600.0D0 ! Change in mm/h
     idate = timeval2date(xtimes(it), timeunit, timecal)
-    write(outunit,'(a,4f9.3)') toiso8601(idate) , temp , precip , cprc , &
+    write(outunit,'(a,4f9.3)') toiso8601(idate), temp, precip, cprc, &
       precip-cprc
   end do
 

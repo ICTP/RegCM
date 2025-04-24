@@ -14,7 +14,7 @@ module mod_clm_decompinit
   use mod_regcm_types
   use mod_service
   use mod_clm_decomp
-  use mod_clm_subgrid , only : subgrid_get_gcellinfo
+  use mod_clm_subgrid, only : subgrid_get_gcellinfo
   use mpi
 
   implicit none
@@ -25,7 +25,7 @@ module mod_clm_decompinit
 
   ! initializes atm grid decomposition into processors
   public :: decompInit_lnd
-  ! initializes g , l , c , p decomp info
+  ! initializes g, l, c, p decomp info
   public :: decompInit_glcp
 
   contains
@@ -83,7 +83,7 @@ module mod_clm_decompinit
     gcomm_gridcell%ic => procinfo%gc
     gcomm_gridcell%id => procinfo%gd
 
-    ! Set default for landunits , column and pfts
+    ! Set default for landunits, column and pfts
 
     procinfo%nlunits = 0
     procinfo%ncols   = 0
@@ -112,13 +112,13 @@ module mod_clm_decompinit
   !
   subroutine decompInit_glcp
     implicit none
-    integer(ik4) :: begg , endg  ! beg , end gridcells
+    integer(ik4) :: begg, endg  ! beg, end gridcells
     integer(ik4) :: ln           ! lnd num gridcells
-    integer(ik4) :: mynumc , mynump , mynuml
-    integer(ik4) :: np , ilunits , icols , ipfts
-    integer(ik4) , pointer , dimension(:) :: lcount
-    integer(ik4) , pointer , dimension(:) :: ccount
-    integer(ik4) , pointer , dimension(:) :: pcount
+    integer(ik4) :: mynumc, mynump, mynuml
+    integer(ik4) :: np, ilunits, icols, ipfts
+    integer(ik4), pointer, contiguous, dimension(:) :: lcount
+    integer(ik4), pointer, contiguous, dimension(:) :: ccount
+    integer(ik4), pointer, contiguous, dimension(:) :: pcount
 
     allocate(lcount(procinfo%begg:procinfo%endg))
     allocate(ccount(procinfo%begg:procinfo%endg))
@@ -130,7 +130,7 @@ module mod_clm_decompinit
 
     begg = procinfo%begg
     endg = procinfo%endg
-    do ln = begg , endg
+    do ln = begg, endg
       call subgrid_get_gcellinfo(ln,nlunits=ilunits,ncols=icols,npfts=ipfts)
       lcount(ln) = ilunits
       ccount(ln) = icols
@@ -172,7 +172,7 @@ module mod_clm_decompinit
     procinfo%ld(:) = 0
     procinfo%cd(:) = 0
     procinfo%pd(:) = 0
-    do np = 2 , nproc
+    do np = 2, nproc
       procinfo%ld(np) = sum(procinfo%lc(1:np-1))
       procinfo%cd(np) = sum(procinfo%cc(1:np-1))
       procinfo%pd(np) = sum(procinfo%pc(1:np-1))
@@ -181,7 +181,7 @@ module mod_clm_decompinit
     allocate(ldecomp%lunxgdc(begg:endg))
     allocate(ldecomp%colxgdc(begg:endg))
     allocate(ldecomp%pftxgdc(begg:endg))
-    do ln = begg , endg
+    do ln = begg, endg
       ldecomp%lunxgdc(ln) = lcount(ln)
       ldecomp%colxgdc(ln) = ccount(ln)
       ldecomp%pftxgdc(ln) = pcount(ln)

@@ -14,7 +14,7 @@ module clm_varvoc
 !
 ! !USES:
   use shr_kind_mod, only : r8 => shr_kind_r8
-  use clm_varpar  , only : nvoc
+  use clm_varpar , only : nvoc
 !
 ! !PUBLIC TYPES:
   implicit none

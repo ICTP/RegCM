@@ -27,16 +27,16 @@ module mod_mkgdp
 
   public :: mkgdp
 
-  character(len=16) , parameter :: varname = 'gdp'
+  character(len=16), parameter :: varname = 'gdp'
 
   contains
 
   subroutine mkgdp(gdpfile,mask,gdp)
     implicit none
-    character(len=*) , intent(in) :: gdpfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: gdp
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: gdpfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:), intent(out) :: gdp
+    integer(ik4) :: i, j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -48,8 +48,8 @@ module mod_mkgdp
 
     call bestaround(gdp,h_missing_value)
 
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           gdp(j,i) = h_missing_value
         else

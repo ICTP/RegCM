@@ -56,14 +56,14 @@ module mod_gn6hnc
 
   private
 
-  public :: get_gn6hnc , init_gn6hnc , conclude_gn6hnc
+  public :: get_gn6hnc, init_gn6hnc, conclude_gn6hnc
 
   ! Dimension of input read from input files
-  integer(ik4) :: nlon , nlat , nulon , nvlat , klev
+  integer(ik4) :: nlon, nlat, nulon, nvlat, klev
 
   ! Pressure levels to interpolate to if dataset is on model sigma levels.
-  integer(ik4) , parameter :: nipl = 38
-  real(rkx) , target , dimension(nipl) :: fplev = &
+  integer(ik4), parameter :: nipl = 38
+  real(rkx), target, dimension(nipl) :: fplev = &
    [  1.0_rkx,   2.0_rkx,   3.0_rkx,   5.0_rkx,   7.0_rkx,  10.0_rkx, &
       20.0_rkx,  30.0_rkx,  50.0_rkx,  70.0_rkx, 100.0_rkx, 125.0_rkx, &
      150.0_rkx, 175.0_rkx, 200.0_rkx, 225.0_rkx, 250.0_rkx, 300.0_rkx, &
@@ -72,92 +72,92 @@ module mod_gn6hnc
      825.0_rkx, 850.0_rkx, 875.0_rkx, 900.0_rkx, 925.0_rkx, 950.0_rkx, &
      975.0_rkx, 1000.0_rkx ]
 
-  integer(ik4) :: npl , nrhlev
-  real(rkx) , pointer , dimension(:) :: pplev
-  real(rkx) , pointer , dimension(:) :: sigmar
-  real(rkx) :: pss , pst
+  integer(ik4) :: npl, nrhlev
+  real(rkx), pointer, contiguous, dimension(:) :: pplev
+  real(rkx), pointer, contiguous, dimension(:) :: sigmar
+  real(rkx) :: pss, pst
 
   ! Whole space
-  real(rkx) , pointer , dimension(:,:,:) :: b2
-  real(rkx) , pointer , dimension(:,:,:) :: d2
-  real(rkx) , pointer , dimension(:,:,:) :: b3
-  real(rkx) , pointer , dimension(:,:,:) :: d3
-  real(rkx) , pointer , dimension(:,:,:) :: d3u
-  real(rkx) , pointer , dimension(:,:,:) :: d3v
-  real(rkx) , pointer , dimension(:,:,:) :: ha_d2_1
-  real(rkx) , pointer , dimension(:,:,:) :: ha_d2_2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3u
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ha_d2_1
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ha_d2_2
 
-  real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rkx) , pointer :: u3v(:,:,:) , v3u(:,:,:)
-  real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rkx) , pointer :: up(:,:,:) , vp(:,:,:)
-  real(rkx) , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
-  real(rkx) , pointer , dimension(:,:,:) :: h3v , h3u
-  real(rkx) , pointer , dimension(:,:) :: topou , topov
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3, v3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: h3, q3, t3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: up, vp
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hp, qp, tp
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: h3v, h3u
+  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
 
   ! Input space
   real(rkx) :: p0
-  real(rkx) , pointer , dimension(:,:) :: psvar , zsvar ! , pmslvar
-  real(rkx) , pointer , dimension(:) :: ak , bk , ak1 , bk1
-  real(rkx) , pointer , dimension(:) :: glat , glon , gltemp
-  real(rkx) , pointer , dimension(:,:,:) :: hvar , hvar1 , qvar , tvar , &
-                                           uvar , vvar , pp3d , pp3d1 , vwork
-  integer(ik4) :: timlen , pstimlen
-  type(rcm_time_and_date) , pointer , dimension(:) :: itimes
-  type(rcm_time_and_date) , pointer , dimension(:) :: ipstimes
-  real(rkx) , pointer , dimension(:) :: xtimes
+  real(rkx), pointer, contiguous, dimension(:,:) :: psvar, zsvar !, pmslvar
+  real(rkx), pointer, contiguous, dimension(:) :: ak, bk, ak1, bk1
+  real(rkx), pointer, contiguous, dimension(:) :: glat, glon, gltemp
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hvar, hvar1, qvar, tvar, &
+                                           uvar, vvar, pp3d, pp3d1, vwork
+  integer(ik4) :: timlen, pstimlen
+  type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
+  type(rcm_time_and_date), pointer, contiguous, dimension(:) :: ipstimes
+  real(rkx), pointer, contiguous, dimension(:) :: xtimes
 
   ! Shared by netcdf I/O routines
-  integer(ik4) , dimension(4) :: icount , istart
+  integer(ik4), dimension(4) :: icount, istart
   ! We will need 6 files (is just one for CAM2)
-  integer(ik4) , parameter :: nvars = 6
-  integer(ik4) , parameter :: nfiles = nvars
-  integer(ik4) , dimension(nvars) :: inet
-  integer(ik4) , dimension(nvars) :: ivar
+  integer(ik4), parameter :: nvars = 6
+  integer(ik4), parameter :: nfiles = nvars
+  integer(ik4), dimension(nvars) :: inet
+  integer(ik4), dimension(nvars) :: ivar
   integer(ik4) :: lyear
 
   character(len=256) :: pathaddname
-  type(rcm_time_and_date) , save :: refdate
-  type(rcm_time_and_date) , save :: filedate
+  type(rcm_time_and_date), save :: refdate
+  type(rcm_time_and_date), save :: filedate
 
-  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
+  type(h_interpolator) :: cross_hint, udot_hint, vdot_hint
 
   data inet /nvars*-1/
 
   character(len=32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
 
-  character(len=3) , target , dimension(nvars) :: cam2vars = &
-                         ['T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS ']
-  character(len=3) , target , dimension(nvars) :: ccsmvars = &
-                         ['T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS ']
+  character(len=3), target, dimension(nvars) :: cam2vars = &
+                         ['T  ', 'Z3 ', 'Q  ', 'U  ', 'V  ', 'PS ']
+  character(len=3), target, dimension(nvars) :: ccsmvars = &
+                         ['T  ', 'Z3 ', 'Q  ', 'U  ', 'V  ', 'PS ']
 
-  character(len=3) , target , dimension(nvars) :: gfsvars = &
-                         ['ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps ']
-  character(len=3) , target , dimension(nvars) :: ec5vars = &
-                         ['ta ' , 'gpa' , 'rha' , 'ua ' , 'va ' , 'XXX']
-  character(len=5) , target , dimension(nvars) :: jra55vars = &
-               ['var11' , 'var7 ' , 'var52' , 'var33' , 'var34' , 'XXX  ']
+  character(len=3), target, dimension(nvars) :: gfsvars = &
+                         ['ta ', 'hga', 'rha', 'ua ', 'va ', 'ps ']
+  character(len=3), target, dimension(nvars) :: ec5vars = &
+                         ['ta ', 'gpa', 'rha', 'ua ', 'va ', 'XXX']
+  character(len=5), target, dimension(nvars) :: jra55vars = &
+               ['var11', 'var7 ', 'var52', 'var33', 'var34', 'XXX  ']
 
-  character(len=4) , dimension(nvars) :: ccsmfname = &
-               ['air ' , 'hgt ' , 'shum' , 'uwnd' , 'vwnd' , 'pres']
+  character(len=4), dimension(nvars) :: ccsmfname = &
+               ['air ', 'hgt ', 'shum', 'uwnd', 'vwnd', 'pres']
 
-  character(len=6) , target , dimension(nvars) :: ec5name = &
-    ['STP   ' , 'GPH   ' , 'RELHUM' , 'U     ' , 'V     ' , 'XXX   ']
-  character(len=8) , target , dimension(nvars) :: jra55name = &
+  character(len=6), target, dimension(nvars) :: ec5name = &
+    ['STP   ', 'GPH   ', 'RELHUM', 'U     ', 'V     ', 'XXX   ']
+  character(len=8), target, dimension(nvars) :: jra55name = &
     ['011_tmp ','007_hgt ','052_rh  ','033_ugrd','034_vgrd','XXXXXXXX']
 
-  character(len=3) , dimension(12) :: mname = &
+  character(len=3), dimension(12) :: mname = &
                          ['JAN','FEB','MAR','APR','MAY','JUN', &
                            'JUL','AUG','SEP','OCT','NOV','DEC']
 
-  character(len=3) , dimension(:) , pointer :: varname
+  character(len=3), dimension(:), pointer :: varname
 
   contains
 
   subroutine init_gn6hnc
     use netcdf
     implicit none
-    integer(ik4) :: istatus , ivar1 , inet1 , inet2 , inet3 , jdim , i , j , k
+    integer(ik4) :: istatus, ivar1, inet1, inet2, inet3, jdim, i, j, k
     character(len=256) :: pathaddname
     real(8) :: dp0
 
@@ -794,7 +794,7 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
-      do j = 1 , nlat
+      do j = 1, nlat
         gltemp(nlat-j+1) = glat(j)
       end do
       glat(:) = gltemp(:)
@@ -886,7 +886,7 @@ module mod_gn6hnc
       call setcal(itimes(1), y360)
       call setcal(ipstimes(1), y360)
       if ( glon(1) > glon(nulon) ) then
-        do i = 1 , nlon
+        do i = 1, nlon
           if ( glon(i) > 180.0 ) then
             glon(i) = glon(i) - 360.0
           end if
@@ -914,13 +914,13 @@ module mod_gn6hnc
     if ( dattyp(1:3) == 'EC_' .or. &
          dattyp(1:3) == 'CN_' .or. &
          dattyp == 'JRA55' ) then
-      do k = 1 , npl
+      do k = 1, npl
         sigmar(k) = (pplev(k)-pplev(npl))/(pplev(1)-pplev(npl))
       end do
       pss = (pplev(1)-pplev(npl))/1000.0_rkx ! Pa -> cb
       pst = pplev(npl)/1000.0_rkx ! Pa -> cb
     else
-      do k = 1 , npl
+      do k = 1, npl
         sigmar(k) = (pplev(npl-k+1)-pplev(1))/(pplev(npl)-pplev(1))
       end do
       pss = (pplev(npl)-pplev(1))/10.0_rkx ! mb -> cb
@@ -940,7 +940,7 @@ module mod_gn6hnc
   subroutine get_gn6hnc(idate)
     use netcdf
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
 
     call readgn6hnc(idate)
     write (stdout,*) 'Read in fields at Date: ', tochar(idate)
@@ -1143,27 +1143,27 @@ module mod_gn6hnc
   subroutine readgn6hnc(idate)
     use netcdf
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: istatus
-    integer(ik4) :: i , it , itps , j , k , timid
+    integer(ik4) :: i, it, itps, j, k, timid
     character(len=256) :: inname
 
     integer(ik4) :: kkrec
-    character(len=64) :: cunit , ccal
+    character(len=64) :: cunit, ccal
     type(rcm_time_interval) :: tdif
     type(rcm_time_and_date) :: pdate
-    integer(ik4) :: year , month , day , hour , y1 , y2 , m1
-    integer(ik4) :: fyear , fmonth , fday , fhour
+    integer(ik4) :: year, month, day, hour, y1, y2, m1
+    integer(ik4) :: fyear, fmonth, fday, fhour
 
-    character(len=*) , parameter :: f99001 = &
+    character(len=*), parameter :: f99001 = &
                              '(i0.4,a,a,i0.4,i0.2,i0.2,a,i0.2,a)'
-    character(len=*) , parameter :: f99002 = &
+    character(len=*), parameter :: f99002 = &
                              '(a,i0.4,"-",i0.2,"-",i0.2,"-",i0.5,".nc")'
-    character(len=*) , parameter :: f99003 = &
+    character(len=*), parameter :: f99003 = &
                              '(i0.4,"/","ccsm.",a,a,".",i0.4,".nc")'
-    character(len=*) , parameter :: f99004 = &
+    character(len=*), parameter :: f99004 = &
                              '(a,a,a,a,a,i0.4,a,i0.4,a)'
-    character(len=*) , parameter :: f99005 = &
+    character(len=*), parameter :: f99005 = &
                              '(a,a,i0.4,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,i0.2,a)'
 
     call split_idate(idate,year,month,day,hour)
@@ -1185,7 +1185,7 @@ module mod_gn6hnc
                       'Error open '//trim(pathaddname))
       write (stdout,*) inet(1), trim(pathaddname)
       varname => gfsvars
-      do kkrec = 1 , 6
+      do kkrec = 1, 6
         istatus = nf90_inq_varid(inet(1),trim(varname(kkrec)),ivar(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find var '//trim(varname(kkrec)))
@@ -1193,38 +1193,38 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet(1),ivar(6),vwork(:,:,1))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(6))
-      do j = 1 , nlat
+      do j = 1, nlat
         psvar(:,nlat-j+1) = vwork(:,j,1)*0.01 ! Go to mb
       end do
       istatus = nf90_get_var(inet(1),ivar(1),vwork)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(1))
-      do j = 1 , nlat
+      do j = 1, nlat
         tvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       istatus = nf90_get_var(inet(1),ivar(2),vwork)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(2))
-      do j = 1 , nlat
+      do j = 1, nlat
         hvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       vwork = 0.0
       istatus = nf90_get_var(inet(1),ivar(3),vwork(:,:,klev-nrhlev+1:klev))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(3))
-      do j = 1 , nlat
+      do j = 1, nlat
         qvar(:,nlat-j+1,:) = vwork(:,j,:)*0.01
       end do
       istatus = nf90_get_var(inet(1),ivar(4),vwork)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(4))
-      do j = 1 , nlat
+      do j = 1, nlat
         uvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       istatus = nf90_get_var(inet(1),ivar(5),vwork)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(5))
-      do j = 1 , nlat
+      do j = 1, nlat
         vvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       call rh2mxr(tvar,qvar,pplev,nlon,nlat,klev)
@@ -1252,7 +1252,7 @@ module mod_gn6hnc
         istatus = nf90_open(pathaddname,nf90_nowrite,inet(1))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error open '//trim(pathaddname))
-        do i = 1 , size(lgmvars)
+        do i = 1, size(lgmvars)
           if ( lgmvars(i) /= 'XXX' ) then
             istatus = nf90_inq_varid(inet(1),trim(lgmvars(i)),ivar(i))
             call checkncerr(istatus,__FILE__,__LINE__, &
@@ -1307,7 +1307,7 @@ module mod_gn6hnc
     else if ( dattyp == 'JRA55' ) then
       varname => ec5vars
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
-        do kkrec = 1 , 5
+        do kkrec = 1, 5
           if ( inet(kkrec) > 0 ) then
             istatus = nf90_close(inet(kkrec))
             call checkncerr(istatus,__FILE__,__LINE__, &
@@ -1315,7 +1315,7 @@ module mod_gn6hnc
           end if
         end do
         ! monthly files, one for each variable
-        do i = 1 , nfiles
+        do i = 1, nfiles
           y1 = year
           m1 = month
           if ( jra55vars(i) /= 'XXX' ) then
@@ -1352,7 +1352,7 @@ module mod_gn6hnc
         istatus = nf90_get_var(inet(1),timid,xtimes)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time')
-        do it = 1 , timlen
+        do it = 1, timlen
           itimes(it) = timeval2date(xtimes(it),cunit,ccal)
         end do
       end if
@@ -1396,7 +1396,7 @@ module mod_gn6hnc
     else if ( dattyp(1:2) == 'E5' ) then
       varname => ec5vars
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
-        do kkrec = 1 , 5
+        do kkrec = 1, 5
           if ( inet(kkrec) > 0 ) then
             istatus = nf90_close(inet(kkrec))
             call checkncerr(istatus,__FILE__,__LINE__, &
@@ -1406,7 +1406,7 @@ module mod_gn6hnc
         ! yearly files, one for each variable
         y1 = year
         y2 = y1+1
-        do i = 1 , nfiles
+        do i = 1, nfiles
           if ( ec5vars(i) /= 'XXX' ) then
             write (inname,f99004) dattyp(4:5),pthsep, &
                'EH5_OM_'//dattyp(4:5)//'_1_', &
@@ -1441,7 +1441,7 @@ module mod_gn6hnc
         istatus = nf90_get_var(inet(1),timid,xtimes)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time')
-        do it = 1 , timlen
+        do it = 1, timlen
           itimes(it) = timeval2date(xtimes(it),cunit,ccal)
         end do
       end if
@@ -1477,7 +1477,7 @@ module mod_gn6hnc
     ! More difficult. Multiple files per variable and per year
     else if ( dattyp(1:3) == 'EC_' ) then
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
-        do kkrec = 1 , 5
+        do kkrec = 1, 5
           if ( inet(kkrec) > 0 ) then
             istatus = nf90_close(inet(kkrec))
             call checkncerr(istatus,__FILE__,__LINE__, &
@@ -1485,7 +1485,7 @@ module mod_gn6hnc
           end if
         end do
         varname => echvars
-        do kkrec = 1 , 5
+        do kkrec = 1, 5
           call find_ecearth_file(pathaddname,varname(kkrec),idate,.false.)
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(kkrec))
           call checkncerr(istatus,__FILE__,__LINE__, &
@@ -1515,7 +1515,7 @@ module mod_gn6hnc
         istatus = nf90_get_var(inet(1),timid,xtimes)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time')
-        do it = 1 , timlen
+        do it = 1, timlen
           itimes(it) = timeval2date(xtimes(it),cunit,ccal)
         end do
       end if
@@ -1554,7 +1554,7 @@ module mod_gn6hnc
       end do
     else if ( dattyp(1:3) == 'ECC' ) then
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
-        do kkrec = 1 , 5
+        do kkrec = 1, 5
           if ( inet(kkrec) > 0 ) then
             istatus = nf90_close(inet(kkrec))
             call checkncerr(istatus,__FILE__,__LINE__, &
@@ -1562,7 +1562,7 @@ module mod_gn6hnc
           end if
         end do
         varname => echcmorvars
-        do kkrec = 1 , 6
+        do kkrec = 1, 6
           if ( trim(varname(kkrec)) == 'XXX' ) cycle
           call find_ecearth_file(pathaddname,varname(kkrec),idate,.true.)
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(kkrec))
@@ -1593,7 +1593,7 @@ module mod_gn6hnc
         istatus = nf90_get_var(inet(1),timid,xtimes)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time')
-        do it = 1 , timlen
+        do it = 1, timlen
           itimes(it) = timeval2date(xtimes(it),cunit,ccal)
         end do
       end if
@@ -1631,9 +1631,9 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet(6),ivar(6),psvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(6))
-      do k = 1 , klev
-        do j = 1 , nlat
-          do i = 1 , nlon
+      do k = 1, klev
+        do j = 1, nlat
+          do i = 1, nlon
             pp3d(i,j,k) = (ak(k) + bk(k)*psvar(i,j))
           end do
         end do
@@ -1676,7 +1676,7 @@ module mod_gn6hnc
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
-          do it = 1 , pstimlen
+          do it = 1, pstimlen
             ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
           istatus = nf90_inq_varid(inet(6), trim(havars(6)), ivar(6))
@@ -1717,7 +1717,7 @@ module mod_gn6hnc
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
-          do it = 1 , pstimlen
+          do it = 1, pstimlen
             ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
           istatus = nf90_inq_varid(inet(6), trim(novars(6)), ivar(6))
@@ -1758,7 +1758,7 @@ module mod_gn6hnc
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
-          do it = 1 , pstimlen
+          do it = 1, pstimlen
             ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
           istatus = nf90_inq_varid(inet(6), trim(ccsm4vars(6)), ivar(6))
@@ -1799,7 +1799,7 @@ module mod_gn6hnc
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
-          do it = 1 , pstimlen
+          do it = 1, pstimlen
             ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
           istatus = nf90_inq_varid(inet(6), trim(csirvars(6)), ivar(6))
@@ -1840,7 +1840,7 @@ module mod_gn6hnc
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
-          do it = 1 , pstimlen
+          do it = 1, pstimlen
             ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
           istatus = nf90_inq_varid(inet(6), trim(mirocvars(6)), ivar(6))
@@ -1868,7 +1868,7 @@ module mod_gn6hnc
                  dattyp(1:3) == 'IP_' .or. &
                  dattyp(1:3) == 'NO_' .or. &
                  dattyp(1:3) == 'CC_' ) then
-              do i = 1 , nfiles-1
+              do i = 1, nfiles-1
                 if ( varname(i) /= 'XXX' ) then
                   istatus = nf90_close(inet(i))
                   call checkncerr(istatus,__FILE__,__LINE__, &
@@ -1876,7 +1876,7 @@ module mod_gn6hnc
                 end if
               end do
             else
-              do i = 1 , nfiles
+              do i = 1, nfiles
                 if ( varname(i) /= 'XXX' ) then
                   istatus = nf90_close(inet(i))
                   call checkncerr(istatus,__FILE__,__LINE__, &
@@ -1899,7 +1899,7 @@ module mod_gn6hnc
         if ( dattyp == 'CAM4N' ) then
           call split_idate(filedate,fyear,fmonth,fday,fhour)
           ! All variables just in a single file. Simpler case.
-          write (inname,f99002) trim(cambase) , fyear, &
+          write (inname,f99002) trim(cambase), fyear, &
                     fmonth, fday, filedate%second_of_day
           pathaddname = trim(inpglob)//'/CAM2/'//trim(inname)
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(1))
@@ -1918,7 +1918,7 @@ module mod_gn6hnc
           varname => cam2vars
         else if ( dattyp == 'CCSMN' ) then
           ! Dataset prepared in mothly files, one for each variable
-          do i = 1 , nfiles
+          do i = 1, nfiles
             write (inname,f99003) year, trim(ccsmfname(i)), &
                       mname(month), year
             pathaddname = trim(inpglob)//'/CCSM/'//trim(inname)
@@ -1929,7 +1929,7 @@ module mod_gn6hnc
           end do
           varname => ccsmvars
         else if ( dattyp(1:3) == 'HA_' ) then
-          do i = 1 , nfiles-1
+          do i = 1, nfiles-1
             if ( havars(i) /= 'XXX' ) then
               call find_hadgem_file(pathaddname,havars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -1941,7 +1941,7 @@ module mod_gn6hnc
           varname => havars
         else if ( dattyp(1:3) == 'NO_' ) then
           ! 6 month files, one for each variable
-          do i = 1 , nfiles-1
+          do i = 1, nfiles-1
             if ( novars(i) /= 'XXX' ) then
               call find_noresm_file(pathaddname,novars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -1953,7 +1953,7 @@ module mod_gn6hnc
           varname => novars
         else if ( dattyp(1:3) == 'CC_' ) then
           ! 3 month files, one for each variable
-          do i = 1 , nfiles-1
+          do i = 1, nfiles-1
             if ( ccsm4vars(i) /= 'XXX' ) then
               call find_ccsm4_file(pathaddname,ccsm4vars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -1965,7 +1965,7 @@ module mod_gn6hnc
           varname => ccsm4vars
         else if ( dattyp(1:3) == 'CA_' ) then
           ! yearly files, one for each variable
-          do i = 1 , nfiles
+          do i = 1, nfiles
             if ( cavars(i) /= 'XXX' ) then
               call find_canesm_file(pathaddname,cavars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -1976,7 +1976,7 @@ module mod_gn6hnc
           end do
           varname => cavars
         else if ( dattyp(1:3) == 'IP_' ) then
-          do i = 1 , nfiles
+          do i = 1, nfiles
             if ( ipvars(i) /= 'XXX' ) then
               call find_ipsl_file(pathaddname,ipvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -1988,7 +1988,7 @@ module mod_gn6hnc
           varname => ipvars
         else if ( dattyp(1:3) == 'GF_' ) then
           ! 5 yearly files, one for each variable
-          do i = 1 , nfiles
+          do i = 1, nfiles
             if ( gfdlvars(i) /= 'XXX' ) then
               call find_gfdl_file(pathaddname,gfdlvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -1999,7 +1999,7 @@ module mod_gn6hnc
           end do
           varname => gfdlvars
         else if ( dattyp(1:3) == 'CN_' ) then
-          do i = 1 , nfiles
+          do i = 1, nfiles
             if ( cnrmvars(i) /= 'XXX' ) then
               call find_cnrm_file(pathaddname,cnrmvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -2012,7 +2012,7 @@ module mod_gn6hnc
           varname => cnrmvars
         else if ( dattyp(1:3) == 'CS_' ) then
           ! yearly files, one for each variable
-          do i = 1 , nfiles-1
+          do i = 1, nfiles-1
             if ( csirvars(i) /= 'XXX' ) then
               call find_csiro_file(pathaddname,csirvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -2023,7 +2023,7 @@ module mod_gn6hnc
           end do
           varname => csirvars
         else if ( dattyp(1:3) == 'MI_' ) then
-          do i = 1 , nfiles-1
+          do i = 1, nfiles-1
             if ( mirocvars(i) /= 'XXX' ) then
               call find_miroc_file(pathaddname,csirvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -2034,7 +2034,7 @@ module mod_gn6hnc
           end do
           varname => mirocvars
         else if ( dattyp(1:3) == 'MP_' ) then
-          do i = 1 , nfiles
+          do i = 1, nfiles
             if ( mpievars(i) /= 'XXX' ) then
               call find_mpiesm_file(pathaddname,mpievars(i),idate,'M')
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -2045,7 +2045,7 @@ module mod_gn6hnc
           end do
           varname => mpievars
         else if ( dattyp(1:3) == 'MPL' ) then
-          do i = 1 , nfiles
+          do i = 1, nfiles
             if ( mpievars(i) /= 'XXX' ) then
               call find_mpiesm_file(pathaddname,mpievars(i),idate,'L')
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -2078,10 +2078,10 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet(1),timid,xtimes)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read time')
-      do it = 1 , timlen
+      do it = 1, timlen
         itimes(it) = timeval2date(xtimes(it),cunit,ccal)
       end do
-      do kkrec = 1 , 6
+      do kkrec = 1, 6
         if ( varname(kkrec) /= 'XXX' ) then
           istatus = nf90_inq_varid(inet(kkrec), &
                           trim(varname(kkrec)), ivar(kkrec))
@@ -2143,9 +2143,9 @@ module mod_gn6hnc
         istatus = nf90_get_var(inet(2),ivar(2),hvar,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var '//varname(2))
-        do k = 1 , klev
-          do j = 1 , nlat
-            do i = 1 , nlon
+        do k = 1, klev
+          do j = 1, nlat
+            do i = 1, nlon
               pp3d(i,j,k) = (ak(k)*p0 + bk(k)*psvar(i,j))
             end do
           end do
@@ -2154,10 +2154,10 @@ module mod_gn6hnc
         pp3d(:,:,:) = pp3d(:,:,:)*0.01
       else if ( dattyp(1:3) == 'HA_' ) then
         ! Data are on sigma Z levels
-        do k = 1 , klev
+        do k = 1, klev
           hvar(:,:,k) = ak(k) + bk(k)*zsvar(:,:)
         end do
-        do k = 1 , klev
+        do k = 1, klev
           hvar1(:,:,k) = ak1(k) + bk1(k)*zsvar(:,:)
         end do
         ! If we have MSLP instead of PS
@@ -2213,20 +2213,20 @@ module mod_gn6hnc
         istatus = nf90_get_var(inet(4),ivar(4),ha_d2_1,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var '//varname(4))
-        do k = 1 , klev
-          do j = 1 , nlat
+        do k = 1, klev
+          do j = 1, nlat
             uvar(1,j,k) = ha_d2_1(1,j,k)
           end do
         end do
-        do k = 1 , klev
-          do j = 1 , nlat
-            do i = 1 , nulon-1
+        do k = 1, klev
+          do j = 1, nlat
+            do i = 1, nulon-1
               uvar(i+1,j,k) = 0.5*(ha_d2_1(i,j,k) + ha_d2_1(i+1,j,k))
             end do
           end do
         end do
-        do k = 1 , klev
-          do j = 1 , nlat
+        do k = 1, klev
+          do j = 1, nlat
             uvar(nlon,j,k) = ha_d2_1(nulon,j,k)
           end do
         end do
@@ -2235,20 +2235,20 @@ module mod_gn6hnc
         istatus = nf90_get_var(inet(5),ivar(5),ha_d2_2,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var '//varname(5))
-        do k = 1 , klev
-          do i = 1 , nlon
+        do k = 1, klev
+          do i = 1, nlon
             vvar(i,1,k) = ha_d2_2(i,1,k)
           end do
         end do
-        do k = 1 , klev
-          do j = 1 , nvlat-1
-            do i = 1 , nlon
+        do k = 1, klev
+          do j = 1, nvlat-1
+            do i = 1, nlon
               vvar(i,j+1,k) = 0.5*(ha_d2_2(i,j,k) + ha_d2_2(i,j+1,k))
             end do
           end do
         end do
-        do k = 1 , klev
-          do i = 1 , nlon
+        do k = 1, klev
+          do i = 1, nlon
             vvar(i,nlat,k) = ha_d2_2(i,nvlat,k)
           end do
         end do

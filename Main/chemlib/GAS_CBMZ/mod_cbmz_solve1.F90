@@ -319,13 +319,13 @@ module mod_cbmz_solve1
 !
       implicit none
       ! Chem index
-      integer(ik4) :: ic , ic1 , ic2 , ic3
+      integer(ik4) :: ic, ic1, ic2, ic3
       ! Chem local index
       integer(ik4) :: is
       ! Vectorization counters
       integer(ik4) :: kk
       ! General counters
-      integer(ik4) :: i , ii
+      integer(ik4) :: i, ii
 !
       ! Species list passed to chemsolve
       integer ncsol(c_cdim)
@@ -374,7 +374,7 @@ module mod_cbmz_solve1
       !  BEGIN ITERATIVE RUNS
       ! ---------------------------------------------------------------
       runiter: &
-      do c_iter = 1 , c_numitr
+      do c_iter = 1, c_numitr
 
         ! RE-SET PARTITIONING OF LUMPED SPECIES BASED ON CHEM. PRODUCTION.
         if ( c_iter >= 2 ) call midlump
@@ -391,7 +391,7 @@ module mod_cbmz_solve1
         ! INITIAL SENHCAT = 1 FOR ODD HYDROGEN; 0 FOR OTHER SPECIES
 
         if ( c_iter == 1 ) then
-          do ii = 1 , 30
+          do ii = 1, 30
             is = 0
             if ( (ii == 8 .or. ii == 9 .or. ii == 10) .or. ii == 3) is = 1
             senhcat(kk,ii) = real(is,rkx)
@@ -416,10 +416,10 @@ module mod_cbmz_solve1
         !
         ! ALSO,  PRESERVE PRIOR CONCENTRATION HERE
         ! xclastq =PRIOR BUT AFTER AQUASOL)
-        do ic = 1 , c_nchem2
+        do ic = 1, c_nchem2
           xclastq(kk,ic) = xc(kk,ic)
         end do
-        do i = 1 , 2
+        do i = 1, 2
           oddhsum(kk,i) = d_zero
           oddhsrc(kk,i) = d_zero
           oddhdel(kk,i) = d_zero
@@ -435,9 +435,9 @@ module mod_cbmz_solve1
         ! -------------------------------------------
 
         ! LOOP TO CALL SPECIES SOLUTION
-        do i = 1 , c_nchem2
+        do i = 1, c_nchem2
           if ( c_cascade(i,1) == 0 ) exit
-          do ic = 1 , nsdim
+          do ic = 1, nsdim
             ncsol(ic) = c_cascade(i,ic)
           end do
           call chemsolve(ncsol)
@@ -463,7 +463,7 @@ module mod_cbmz_solve1
         !
         ! ERROR? comment out?
         ! call chemsolve(ncsol)
-        do ic = 2 , nsdim
+        do ic = 2, nsdim
           ncsol(ic) = 0
         end do
         ncsol(1) = ic3
@@ -482,7 +482,7 @@ module mod_cbmz_solve1
         ! IDENTIFIED BY SPECIAL SPECIES INDEX
         ! THE KEY REACTIONS O3+NO->NO2, NO2+hv->NO+O3 ARE SUMMED IN CPRO.
         !
-        do ic = 2 , nsdim
+        do ic = 2, nsdim
           ncsol(ic) = 0
         end do
         ncsol(1) = c_no3
@@ -601,21 +601,21 @@ module mod_cbmz_solve1
       ! Species list passed to chemsolve
       integer, intent(inout) :: ncsol(c_cdim)
       ! Chem index
-      integer(ik4) :: ic , icc , ics , ics2
+      integer(ik4) :: ic, icc, ics, ics2
       ! Chem local index
-      integer(ik4) :: is , iss , iscs
+      integer(ik4) :: is, iss, iscs
       ! chem index - pair and multi
-      integer(ik4) :: icr1 , icr2 , isr1 , isr2 , icpair
+      integer(ik4) :: icr1, icr2, isr1, isr2, icpair
       ! Aqueous counters
       integer(ik4) :: neq
       ! Chem species counters
-      integer(ik4) :: nc , nc2 , ncc , nsol , nsolv
+      integer(ik4) :: nc, nc2, ncc, nsol, nsolv
       ! Reaction counters
       integer(ik4) :: nr
       ! Vectorization counters
       integer(ik4) :: kk
       ! General counters
-      integer(ik4) :: i , ii
+      integer(ik4) :: i, ii
 
       real(rkx) :: calpha(c_kvec) ! General vector variable
       real(rkx) :: cbeta(c_kvec)  ! General vector variable
@@ -655,7 +655,7 @@ module mod_cbmz_solve1
       !
       nsol = 0
       loopdim: &
-      do nc = 1 , nsdim
+      do nc = 1, nsdim
         ic = ncsol(nc)
         if ( ic > 0 ) then
           ncsol(nc) = c_nppair(c_npequil(ic),2)
@@ -684,14 +684,14 @@ module mod_cbmz_solve1
       ! Note:  loop over nsolv automatically solves for multiple-species group
       !         as well as single pair grouping
       nsolv = 0
-      do is = 1 , nsol
+      do is = 1, nsol
         nsolv = nsolv + 1 + c_nppair(ncsol(is),3)
       end do
       nc = 0
-      do is = 1 , nsol
+      do is = 1, nsol
         ic = ncsol(is)
         if ( ic > 0 ) then
-          do i = 1 , (c_nppair(ic,3)+1)
+          do i = 1, (c_nppair(ic,3)+1)
             icc = ic
             if ( i > 1 ) then
               icc = c_nppair(ic,i+2)
@@ -717,11 +717,11 @@ module mod_cbmz_solve1
       ! PRELIMINARY: CALCULATE REACTION RATES,RP and RL  FOR PRODUCT REACTIONS
       ! ASSOCIATED WITH SPECIES (i.e. that are sources, not sinks)
       !
-      do nc = 1 , nsolv
+      do nc = 1, nsolv
         ics = ncsolv(nc)
         icpair = c_nppair(ics,2)
         if ( c_nnrchp(ics) > 0 ) then
-          do i = 1 , c_nnrchp(ics)
+          do i = 1, c_nnrchp(ics)
             nr = c_nrchmp(ics,i)
             call brpro(nr)
           end do
@@ -731,7 +731,7 @@ module mod_cbmz_solve1
       ! ZERO RPRO, RLOSS, XRP, CPRO.  (XRM, XRRM for multisolve) (
       !      (RPPAIR, RLPAIR, XRPPAIR, XRRPAIR for pair group sums)
       !
-      do i = 1 , nsolv
+      do i = 1, nsolv
         rpro(kk,i) = d_zero
         rloss(kk,i) = d_zero
         xrp(kk,i) = d_zero
@@ -740,7 +740,7 @@ module mod_cbmz_solve1
         rpm(kk,i) = d_zero
         rlm(kk,i) = d_zero
         rself(kk,i) = d_zero
-        do ii = 1 , nsolv
+        do ii = 1, nsolv
           cpro(kk,i,ii) = d_zero
           cpm(kk,i,ii) = d_zero
         end do
@@ -770,7 +770,7 @@ module mod_cbmz_solve1
         ! Also include RAINOUT as loss.
         !
         if ( c_nequil(ics) > 0 ) then
-          do neq = 1 , c_nequil(ics)
+          do neq = 1, c_nequil(ics)
             ic = c_ncequil(ics,neq)
             xrp(kk,nc) = xrp(kk,nc) + xc(kk,ic)*c_h2oliq(kk)*avogadrl
             rpro(kk,nc) = rpro(kk,nc) + rrp(kk,ic)
@@ -810,7 +810,7 @@ module mod_cbmz_solve1
           !
           ! SET INDICES
           !
-          do i = 1 , c_nnrchem(ics)
+          do i = 1, c_nnrchem(ics)
             nr = c_nrchem(ics,i)
             icr1 = c_reactant(nr,1)
             icr2 = c_reactant(nr,2)
@@ -828,7 +828,7 @@ module mod_cbmz_solve1
               !   unless CPRO algorithm changed. )
               !
               if ( c_nppair(icr1,2) == c_nppair(icr2,2)) lself = .true.
-              do ncc = 1 , nsolv
+              do ncc = 1, nsolv
                 if ( ncc /= nc ) then
                   if ( ncsolv(ncc) == icr1 .or. ncsolv(ncc) == icr2) then
                     nc2=ncc
@@ -880,7 +880,7 @@ module mod_cbmz_solve1
             ! CPRO MATRIX  (kk,reactant,product).
             ! (note prodarr=gas-master product)
             !
-            do ncc = 1 , nsolv
+            do ncc = 1, nsolv
               if ( abs(c_prodarr(nr,ncsolv(ncc))) > dlowval ) then
                 icc = ncsolv(ncc)
                 !
@@ -954,7 +954,7 @@ module mod_cbmz_solve1
                   xpair =  xpair - c_pairfac(icr2)
                 end if
               end if
-              do ncc = 1 , nsolv
+              do ncc = 1, nsolv
                 xpair = xpair + c_prodarr(nr,ncsolv(ncc)) * &
                         c_pairfac(ncsolv(ncc))
               end do
@@ -979,7 +979,7 @@ module mod_cbmz_solve1
               ! LOOP THROUGH PAIR GROUPS
               !
               xmulti = d_zero
-              do is = 1 , nsol
+              do is = 1, nsol
                 ic = ncsol(is)
                 !
                 ! ESTABLISH NET PRO/LOSS FOR PAIR GROUP
@@ -993,7 +993,7 @@ module mod_cbmz_solve1
                 ! ERROR HERE  - THIS WAS c_nppair(icpair,.) THROUGHOUT LOOP
                 !             -  SHOULD BE c_nppair(ic,..)
                 !
-                do iss = 1 , (c_nppair(ic,3)+1)
+                do iss = 1, (c_nppair(ic,3)+1)
                  icc = ic
                  if ( iss > 1 ) icc = c_nppair(ic,iss+2)
                  xpair = xpair + c_prodarr(nr,(icc))
@@ -1129,7 +1129,7 @@ module mod_cbmz_solve1
       !
       if ( lself .and. c_iter > 1 ) then
         lself = .false.
-        do nc = 1 , nsolv
+        do nc = 1, nsolv
           if ( rself(kk,nc) > 0.33_rkx*rloss1(kk,nc) ) lself = .true.
         end do
       end if
@@ -1144,9 +1144,9 @@ module mod_cbmz_solve1
       ! subtract CP to multi-species from RLOSS
       !
       if ( nsol > 1 ) then
-        do nc = 1 , nsolv
+        do nc = 1, nsolv
           ics = ncsolv(nc)
-          do ncc = 1 , nsolv
+          do ncc = 1, nsolv
             if ( nssolv(ncc) /= nssolv(nc) ) then
               rpro(kk,nc) = rpro(kk,nc) + cpro(kk,ncc,nc)
             end if
@@ -1206,9 +1206,9 @@ module mod_cbmz_solve1
       ! (RPRO1, RLOSS1 preserves original RPRO, RLOSS w/o adjustments)
       !
       if ( nsolv > 1 ) then
-        do nc = (nsolv-1) , 1 , -1
+        do nc = (nsolv-1), 1, -1
           ics = ncsolv(nc)
-          do ncc = (nc+1) , nsolv
+          do ncc = (nc+1), nsolv
             if ( nssolv(nc) == nssolv(ncc) ) then
               icc = ncsolv(ncc)
               rpro(kk,nc) = rpro(kk,nc) + &
@@ -1235,7 +1235,7 @@ module mod_cbmz_solve1
       !   Order:  primary-to-subspecies chain among paired species
       !   After calculation, add modified CPRO to CP-down-species.
       !
-      do nc = 1 , nsolv
+      do nc = 1, nsolv
         ics = ncsolv(nc)
         is = nssolv(nc)
         icpair = c_nppair(ics,2)
@@ -1262,7 +1262,7 @@ module mod_cbmz_solve1
         !   xcfinr = Cf/Cavg  (used in postlump to get xcout)
         !   NOTE: xcfinr=1 in BACK-EULER solution.
         ! NOTE ERROR CORRECTIONS:
-        !     cbeta: form A(1-exp) + B(exp) , not A + (B-A)*exp
+        !     cbeta: form A(1-exp) + B(exp), not A + (B-A)*exp
         !        (else large-number error and negative value)
         !     ZERO PROTECT for xrr
         !     Use back-Euler for very small values.
@@ -1422,7 +1422,7 @@ module mod_cbmz_solve1
         ! USING THE SAME GAS-AQUEOUS RATIOS AS PRIOR.
         ! ALL CONCENTRATIONS (GAS AND AQUEOUS) ARE UPDATED BY THE RATIO XR/XR
         ! (PRIOR TIME STEP, XRIT, PRESERVED HERE)
-        do  neq = 1 , (c_nequil(ics)+1)
+        do  neq = 1, (c_nequil(ics)+1)
           ic = ics
           if ( neq > 1 ) ic = c_ncequil(ics,(neq-1))
           xc(kk,ic) = xc(kk,ic) *xrr(kk,nc)
@@ -1443,14 +1443,14 @@ module mod_cbmz_solve1
         !
         ! UPDATE CPRO
         !
-        do ncc = 1 , nsolv
+        do ncc = 1, nsolv
           cpro(kk,nc,ncc) = cpro(kk,nc,ncc) * xrr(kk,nc)
         end do
         !
         ! UPDATE RPRO
         !
         if ( nsolv > nc ) then
-          do ncc = (nc+1) , nsolv
+          do ncc = (nc+1), nsolv
             if ( nssolv(nc) == nssolv(ncc) ) then
               rpro(kk,ncc) = rpro(kk,ncc) + cpro(kk,nc,ncc)
             end if
@@ -1493,7 +1493,7 @@ module mod_cbmz_solve1
         !     ics = this species of pair group.
         !      (This loop is equivalent to:
         !           nc = 1, nsolv;   ics = ncsolv(nc) )
-        do is = 1 , nsol
+        do is = 1, nsol
 !          icc=ncsol(is)
 !          icpair=ncsol(is)
           icpair = c_nppair(ncsol(is),2)
@@ -1521,7 +1521,7 @@ module mod_cbmz_solve1
           ! DO FOR ALL SPECIES IN PAIR GROUP
           !
           nc = 0
-          do iss = 1 , (c_nppair(icpair,3)+1)
+          do iss = 1, (c_nppair(icpair,3)+1)
             nc = nc+1
             ics = icpair
 !            ics = c_nppair(icpair,2)   ! no difference
@@ -1534,7 +1534,7 @@ module mod_cbmz_solve1
             ! PAIR GROUP NORMALIZATION.
             ! PAIR ADJUSTMENT OPTION (2008): - SKIP if XRP=RPRO
             ! (zero production)
-            do neq = 1 , (c_nequil(ics)+1)
+            do neq = 1, (c_nequil(ics)+1)
               ic = ics
               if ( neq > 1 ) ic = c_ncequil(ics,(neq-1))
               ! TEST 2008 OPTION:  skip if XRP=RPRO
@@ -1615,7 +1615,7 @@ module mod_cbmz_solve1
           !
           ! CONVERT SOLUTION INTO NEW/OLD RATIO (XRRM/XRM)
           !
-          do is = 1 , nsol
+          do is = 1, nsol
             xrrm(kk,is) = xrrm(kk,is)  / xrm(kk, is)
           end do
         else
@@ -1641,9 +1641,9 @@ module mod_cbmz_solve1
           !
           !  SET ARRAY
           !
-          do is = 1 , nsol
+          do is = 1, nsol
             bx(is) = rpm(kk,is) - rlm(kk,is)
-            do iss = 1 , nsol
+            do iss = 1, nsol
               ax(is,iss) = d_zero - cpm(kk,iss,is)
             end do
             ax(is,is) = rlm(kk,is)
@@ -1656,7 +1656,7 @@ module mod_cbmz_solve1
           ! ENTER RESULT INTO XRRM (ratio adjustment)
           ! OPTION:  Limit size of change, also protect against zero.
           !
-          do is = 1 , nsol
+          do is = 1, nsol
             xrrm(kk,is) = xx(is) + d_one
             if ( xrrm(kk,is) < 0.001_rkx ) xrrm(kk,is) = 0.001_rkx
           end do
@@ -1665,7 +1665,7 @@ module mod_cbmz_solve1
           !
           cgamma(kk) = d_zero
           cbeta(kk) = d_zero
-          do is = 1 , nsol
+          do is = 1, nsol
             ic = c_nppair(ncsol(is),2)
             cgamma(kk) = cgamma(kk) + xrm(kk,is)*c_multfac(ic)
             cbeta(kk) = cbeta(kk) + xrm(kk,is)*xrrm(kk,is)*c_multfac(ic)
@@ -1674,7 +1674,7 @@ module mod_cbmz_solve1
           if ( rlmulti(kk) > d_zero .and. cbeta(kk) > d_zero ) then
             calpha(kk) = (cgamma(kk)/cbeta(kk))*(rpmulti(kk)/rlmulti(kk))
           end if
-          do is = 1 , nsol
+          do is = 1, nsol
             !
             ! OPTION HERE
             !
@@ -1688,7 +1688,7 @@ module mod_cbmz_solve1
         !  ENTER NOXSOLVE/MULTISOLVE VALUES FOR PAIRS AND GAS/AQUEOUS
         !  -------
         !  Enter for all paired species; partition among gas/aqueous
-        do nc = 1 , nsolv
+        do nc = 1, nsolv
           is = nssolv(nc)
           ics = ncsolv(nc)
           !
@@ -1696,7 +1696,7 @@ module mod_cbmz_solve1
           ! THE RATIO XRM/XR
           ! (This preserves prior partitioning among pair species and gas/aqueo
           !
-          do neq = 1 , (c_nequil(ics)+1)
+          do neq = 1, (c_nequil(ics)+1)
             ic = ics
             if ( neq > 1 ) ic = c_ncequil(ics,(neq-1))
             xc(kk,ic) = xc(kk,ic) *xrrm(kk,is)
@@ -1738,10 +1738,10 @@ module mod_cbmz_solve1
       !   Note:  brpro adds losses, cross-production to RP, RL (for record).
       !   Subsequent down-cascade production will be include in next iteration
 
-      do nc = 1 , nsolv
+      do nc = 1, nsolv
         ics = ncsolv(nc)
         if ( c_nnrchem(ics) > 0 ) then
-          do i = 1 , c_nnrchem(ics)
+          do i = 1, c_nnrchem(ics)
             nr = c_nrchem(ics,i)
             call brpro(nr)
           end do
@@ -1764,7 +1764,7 @@ module mod_cbmz_solve1
       !   are reduced by an amount that reflects back-forth  response to
       !   change in rates.  Effective RP, RL is  reduced by linked back-reacti
       !
-      do nc = 1 , nsolv
+      do nc = 1, nsolv
         ics = ncsolv(nc)
         if ( c_exspec(ics,1) /= 0 ) call excorr(ics)
       end do
@@ -1781,9 +1781,9 @@ module mod_cbmz_solve1
       !    so that it preserves full RP, RL for exchanged species
       !    (but may not record back-forth for  down-cascade)
       !
-      do nc = 1 , nsolv
+      do nc = 1, nsolv
         ics = ncsolv(nc)
-        do neq = 1 , (c_nequil(ics)+1)
+        do neq = 1, (c_nequil(ics)+1)
           ic = ics
           if ( neq > 1 ) then
             ic = c_ncequil(ics,neq-1)
@@ -1802,12 +1802,12 @@ module mod_cbmz_solve1
       ! ZERO RRP HERE so that running sum for next iteration includes
       ! down-cascade production.
       !
-      do nc = 1 , nsolv
+      do nc = 1, nsolv
         ics = ncsolv(nc)
         icpair = c_nppair(ics,2)
         rppair(kk,icpair) = d_zero
         rlpair(kk,icpair) = d_zero
-        do neq = 1 , (c_nequil(ics)+1)
+        do neq = 1, (c_nequil(ics)+1)
           ic = ics
           if ( neq > 1 ) then
             ic = c_ncequil(ics,neq-1)
@@ -1860,9 +1860,9 @@ module mod_cbmz_solve1
 
     subroutine brreac(nr)
       implicit none
-      integer(ik4) , intent(in) :: nr
+      integer(ik4), intent(in) :: nr
       ! chem index - pair and multi
-      integer(ik4) :: icr1 , icr2
+      integer(ik4) :: icr1, icr2
       ! Vectorization counters
       integer(ik4) :: kk
 !
@@ -1932,15 +1932,15 @@ module mod_cbmz_solve1
       subroutine brpro(nr)
 !
       implicit none
-      integer(ik4) , intent(in) :: nr
+      integer(ik4), intent(in) :: nr
       ! Chem index
-      integer(ik4) :: ic , ic1 , ic2
+      integer(ik4) :: ic, ic1, ic2
       ! chem index - pair and multi
       integer(ik4) :: icpair
       ! Vectorization counters
       integer(ik4) :: kk
       ! General counters
-      integer(ik4) :: i , n
+      integer(ik4) :: i, n
 !
       real(rkx) :: stoicx            ! stoichiometry sum
 !
@@ -1983,7 +1983,7 @@ module mod_cbmz_solve1
       ! NOTE:  ASSUME IC>0 FOR PRODUCTS IDENTIFIED BY NNPRO.
       !
       if ( c_nnpro(nr) > 0 ) then
-        do n = 1 , c_nnpro(nr)
+        do n = 1, c_nnpro(nr)
           ic = c_product(nr,n)
           rrp(kk,ic) = rrp(kk,ic) + c_rr(kk,nr)*c_stoich(nr,n)
           !
@@ -2042,7 +2042,7 @@ module mod_cbmz_solve1
       ! (SENSHX CALC MUST BE IN ITERATIVE LOOP - SENHCAT CHANGES.)
       senshx(kk,1) = d_zero
       senshx(kk,2) = d_zero
-      do n = 1 , 2
+      do n = 1, 2
         ic = c_reactant(nr,n)
         if ( ic > 0 ) then
           ic = c_npequil(ic)
@@ -2060,7 +2060,7 @@ module mod_cbmz_solve1
       if ( c_nrk(nr) == -13 ) then
         senshx(kk,1) = d_two*senshx(kk,1)
       end if
-      do i = 1 , 2
+      do i = 1, 2
         oddhsum(kk,i) = oddhsum(kk,i) + c_rr(kk,nr)*c_oddhx(nr,i)
         oddhdel(kk,i) = oddhdel(kk,i) + c_rr(kk,nr)*c_oddhx(nr,i)*senshx(kk,i)
         if ( c_oddhx(nr,i) > d_zero ) then
@@ -2142,9 +2142,9 @@ module mod_cbmz_solve1
      subroutine excorr(ic1)
 !
       implicit none
-      integer(ik4) , intent(in) :: ic1
+      integer(ik4), intent(in) :: ic1
       ! Chem index
-      integer(ik4) :: ic , ics
+      integer(ik4) :: ic, ics
       ! Chem local index
       integer(ik4) :: is
       ! Chem index
@@ -2152,11 +2152,11 @@ module mod_cbmz_solve1
       ! Aqueous counters
       integer(ik4) :: neq
       ! Reaction counters
-      integer(ik4) :: nr , np
+      integer(ik4) :: nr, np
       ! Vectorization counters
       integer(ik4) :: kk
       ! General counters
-      integer(ik4) :: i , ii , n
+      integer(ik4) :: i, ii, n
 !
 ! LOCAL VARIABLES
 !
@@ -2189,7 +2189,7 @@ module mod_cbmz_solve1
       !   Exchange reactions are possible with different species partners.
       !   Sum up all exchange reactions with the same species
       !          and solve  simultaneously
-      do nex = 1 , 20
+      do nex = 1, 20
         if ( c_exspec(ic1,nex) == 0 ) return
         icx = c_exspec(ic1,nex)
         !
@@ -2203,7 +2203,7 @@ module mod_cbmz_solve1
         ! SUM EXCHANGE REACTIONS  AS CPRO
         ! (multiple reactions are allowed for single exchange)
         !
-        do  ii = 1 , 5
+        do  ii = 1, 5
           nr = c_exloss(ic1,nex,ii)
           if ( nr > 0 ) then
             cpro(kk,1,2) = cpro(kk,1,2) +  c_rr(kk,nr)
@@ -2243,13 +2243,13 @@ module mod_cbmz_solve1
           !
           ! ZERO AND SUM RPRO, RLOSS, XRP FOR TWO EXCHANGE SPECIES
           !
-          do is = 1 , 2
+          do is = 1, 2
             rloss(kk,is) = d_zero
             rpro(kk,is)  = d_zero
             xrp(kk,is)   = d_zero
             ics = c_npequil(ic1)
             if ( is == 2 ) ics = c_npequil(icx)
-            do neq = 1 , (c_nequil(ics)+1)
+            do neq = 1, (c_nequil(ics)+1)
               ic = ics
               if ( neq > 1 ) ic = c_ncequil(ics,(neq-1))
               calpha(kk) = d_one
@@ -2288,8 +2288,8 @@ module mod_cbmz_solve1
         ! UNDO EXCHANGE PRODUCTION AND LOSS REACTIONS IN PROPORTION TO SIZES
         ! SO THAT TOTAL UNDO IN EACH DIRECTION EQUALS RATEX.
         !
-        do ii = 1 , 5
-          do i = 1 , 2
+        do ii = 1, 5
+          do i = 1, 2
             if ( i == 1 ) nr = c_exloss(ic1,nex,ii)
             if ( i == 2 ) nr = c_expro(ic1,nex,ii)
             !
@@ -2312,7 +2312,7 @@ module mod_cbmz_solve1
               ! UNDO LOSS FROM REACTANTS
               ! 2000 MODIFICATION: UNDO FOR REAL REACTANTS, NOT
               ! GAS EQUIVALENTS (npequil comment out)
-              do n = 1 , 2
+              do n = 1, 2
                 ic = c_reactant(nr,n)
                 if ( ic > 0 ) then
                   ! 2005 CHANGE OPTION:  DON'T SKIP FOR MAIN SPECIES.
@@ -2326,7 +2326,7 @@ module mod_cbmz_solve1
               !  UNDO PRODUCTION.
               !
               if ( c_nnpro(nr) > 0 ) then
-                do n = 1 , c_nnpro(nr)
+                do n = 1, c_nnpro(nr)
                   ic = c_product(nr,n)
                   if ( ic > 0 ) then
                     ! 2005 CHANGE OPTION:  DON'T SKIP FOR MAIN SPECIES.
@@ -2342,7 +2342,7 @@ module mod_cbmz_solve1
               !
               senshx(kk,1) = d_zero
               senshx(kk,2) = d_zero
-              do n = 1 , 2
+              do n = 1, 2
                 ic = c_reactant(nr,n)
                 if ( ic > 0 ) then
                   ic = c_npequil(ic)
@@ -2354,7 +2354,7 @@ module mod_cbmz_solve1
                   end if
                 end if
               end do
-              do n = 1 , 2
+              do n = 1, 2
                 oddhdel(kk,n) = oddhdel(kk,n) - &
                         c_oddhx(nr,n)*undo(kk)*senshx(kk,n)
               end do
@@ -2416,7 +2416,7 @@ module mod_cbmz_solve1
     subroutine noxsolve(ic1,ic2,ic3)
 !
       implicit none
-      integer(ik4) , intent(in) :: ic1 , ic2 , ic3
+      integer(ik4), intent(in) :: ic1, ic2, ic3
       ! Chem index
       integer(ik4) :: ic
       ! Vectorization counters
@@ -2593,7 +2593,7 @@ module mod_cbmz_solve1
       c_notest = abs(d_one-xrrm(1,2)/xrm(1,2))
       pansum = d_zero
       hnosum = d_zero
-      do ic = 1 , c_nchem2
+      do ic = 1, c_nchem2
 !        if ( c_icat(ic) == 5 ) pansum = pansum + xc(c_kkw,ic)
 !FAB BUGFIX c_kkw / kk
          if ( c_icat(ic) == 5 ) pansum = pansum + xc(kk,ic)
@@ -2718,9 +2718,9 @@ module mod_cbmz_solve1
     subroutine ohsolve(ic1,ic2,ic3)
 !
       implicit none
-      integer(ik4) , intent(in) :: ic1 , ic2 , ic3
+      integer(ik4), intent(in) :: ic1, ic2, ic3
       ! Chem index
-      integer(ik4) :: ic  , icc , ics
+      integer(ik4) :: ic , icc, ics
       ! Chem local index
       integer(ik4) :: is
       ! Aqueous counters
@@ -2774,7 +2774,7 @@ module mod_cbmz_solve1
       !  THIS INSURES THAT NET PRODUCTION OF H2O2 IS NO GREATER THAN HX SOURCE
       !
       ncsol(1) = ic3
-      do ic = 2 , nsdim
+      do ic = 2, nsdim
         ncsol(ic) = 0
       end do
       call chemsolve(ncsol)
@@ -2795,20 +2795,20 @@ module mod_cbmz_solve1
       !  AND ZERO RP, RL
       !  ADOPTED FROM CHEMSOLVE
       !
-      do is = 1 , 3 , 2
+      do is = 1, 3, 2
         ics = ic1
         if ( is == 3 ) ics = ic2
         !
         ! REACTIONS
         !
         if ( c_nnrchem(ics) > 0 ) then
-          do i = 1 , c_nnrchem(ics)
+          do i = 1, c_nnrchem(ics)
             nr = c_nrchem(ics,i)
             call brpro(nr)
           end do
         end if
         if ( c_nnrchp(ics) > 0 ) then
-          do i = 1 , c_nnrchp(ics)
+          do i = 1, c_nnrchp(ics)
             nr = c_nrchmp(ics,i)
             call brpro(nr)
           end do
@@ -2830,7 +2830,7 @@ module mod_cbmz_solve1
         ! CONVERTING AQUEOUS INTO GAS UNITS (AVOGADRL)
         !
         if ( c_nequil(ics) > 0 ) then
-          do neq = 1 , c_nequil(ics)
+          do neq = 1, c_nequil(ics)
             ic = c_ncequil(ics,neq)
             xrp(kk,is) = xrp(kk,is) + xc(kk,ic)*c_h2oliq(kk)*avogadrl
             rpro(kk,is) = rpro(kk,is) + rrp(kk,ic)
@@ -2850,7 +2850,7 @@ module mod_cbmz_solve1
         !         RP, RL represent final sum through cascade.
         !  SUBSEQUENT OH CALCULATION uses final sum (RP, RL), not RRP, RRL.
         !
-        do neq = 1 , (c_nequil(ics)+1)
+        do neq = 1, (c_nequil(ics)+1)
           ic = ics
           if ( neq > 1 ) ic = c_ncequil(ics,(neq-1))
           c_rp(kk, ic) = rrp(kk,ic)
@@ -2900,7 +2900,7 @@ module mod_cbmz_solve1
       !
       ! 2009 CHANGE: Do not count lumped species accumulators in PRIOR Hx sum.
       !
-      do ic = 1 , c_nchem2
+      do ic = 1, c_nchem2
         if ( (c_icat(ic) == 3 .or. c_icat(ic) == 9 .or. &
               c_icat(ic) == 10 .or. c_icat(ic) == 8 ) .and. &
              .not. c_lsts(ic) .and. .not. c_llump(ic) )  then
@@ -2939,7 +2939,7 @@ module mod_cbmz_solve1
       !
       ! REPEAT ADD PRIOR OH, HO2 WITH ODDHSUM-2, WITHOUT RO2
       !
-      do ic = 1 , c_nchem2
+      do ic = 1, c_nchem2
         if ( (c_icat(ic) == 8 .or. c_icat(ic) == 9 .or. &
               c_icat(ic) == 10 ) .and. &
               .not. c_lsts(ic) .and. .not. c_llump(ic) )  then
@@ -2981,15 +2981,15 @@ module mod_cbmz_solve1
       ! 2009 CORRECTION: steady state control
       ! (ISSUE TO CHECK!)
       if ( .not. c_lsts(ic1) ) then
-        do i = 1 , 2
-          do neq = 1 , (c_nequil(ic1)+1)
+        do i = 1, 2
+          do neq = 1, (c_nequil(ic1)+1)
             ic = ic1
             if ( neq > 1 ) ic = c_ncequil(ic1,(neq-1))
             calpha(kk) = d_one
             if ( neq > 1 ) calpha(kk) = c_h2oliq(kk)*avogadrl
             oddhloh(kk,i) = oddhloh(kk,i) + xc(kk,ic)*calpha(kk)
           end do
-          do neq = 1 , (c_nequil(ic2)+1)
+          do neq = 1, (c_nequil(ic2)+1)
             ic = ic2
             if ( neq > 1 ) ic = c_ncequil(ic2,(neq-1))
             calpha(kk) = d_one
@@ -3207,12 +3207,12 @@ module mod_cbmz_solve1
       ics = namechem('     CO3')
       if ( ics > 0 ) then
         calpha(kk) = d_zero
-        do neq = 1 , (c_nequil(ics)+1)
+        do neq = 1, (c_nequil(ics)+1)
           icc = ics
           if ( neq > 1 ) icc = c_ncequil(ics,(neq-1))
           calpha(kk) = calpha(kk) + c_rp(kk,icc)
         end do
-        do neq = 1 , (c_nequil(ics)+1)
+        do neq = 1, (c_nequil(ics)+1)
           icc = ics
           if ( neq > 1 ) icc = c_ncequil(ics,(neq-1))
           if ( calpha(kk) >= 0.1_rkx*oddhsrc(kk,1) ) then
@@ -3225,7 +3225,7 @@ module mod_cbmz_solve1
       ! PARTITION OH AND HO2 BETWEEN GAS AND AQUEOUS-EQUILIBRIUM SPECIES
       ! AS IN CHEMSOLVE.  WATCH INDICES! FOR OH, XR(IC2) AND XRP(3).
       !
-      do is = 1 , 3
+      do is = 1, 3
         icc = ic1
         if ( is == 2 ) exit
         if ( is == 3 ) icc = ic2
@@ -3234,7 +3234,7 @@ module mod_cbmz_solve1
             !
             ! AQUEOUS CONCENTRATIONS ARE UPDATED BY THE RATIO XR/XRP.
             !
-            do neq = 1 , c_nequil(icc)
+            do neq = 1, c_nequil(icc)
               ic = c_ncequil(icc,neq)
               if ( ic > 0 ) then
                 xc(kk,ic) = xc(kk,ic) * xc(kk,icc)/xrp(kk,is)
@@ -3244,7 +3244,7 @@ module mod_cbmz_solve1
             ! GAS-MASTER XR IS REDUCED BY AQUEOUS CONCENTRATIONS
             !  WITH UNIT CONVERSION (AVOGADRL)
             !
-            do neq = 1 , c_nequil(icc)
+            do neq = 1, c_nequil(icc)
               ic = c_ncequil(icc,neq)
               if ( ic > 0 ) then
                 xc(kk,icc) = xc(kk,icc) - xc(kk,ic)*c_h2oliq(kk)*avogadrl
@@ -3292,13 +3292,13 @@ module mod_cbmz_solve1
       calpha(kk) = c_rl(kk,ic2)
       cbeta(kk) = c_rp(kk,ic3)
       if ( c_nequil(ic2) > 0 ) then
-        do neq = 1 , c_nequil(ic2)
+        do neq = 1, c_nequil(ic2)
           ic = c_ncequil(ic2,neq)
           calpha(kk) = calpha(kk) + c_rl(kk,ic)
         end do
       end if
       if ( c_nequil(ic3) > 0 ) then
-        do neq = 1 , c_nequil(ic3)
+        do neq = 1, c_nequil(ic3)
           ic = c_ncequil(ic3,neq)
           cbeta(kk) = cbeta(kk) + c_rp(kk,ic)
         end do
@@ -3397,7 +3397,7 @@ module mod_cbmz_solve1
     subroutine setgeom(ic)
 !
       implicit none
-      integer(ik4) , intent(in) :: ic
+      integer(ik4), intent(in) :: ic
       ! Vectorization counters
       integer(ik4) :: kk
       ! Minimum value for geo. avg. parameter
@@ -3520,7 +3520,7 @@ module mod_cbmz_solve1
        ! Reaction counters
        integer(ik4) :: nr
        ! indices used for species categories
-       integer(ik4) :: icat1 , icat2
+       integer(ik4) :: icat1, icat2
        ! Vectorization counters
        integer(ik4) :: kk
        ! General counters
@@ -3541,12 +3541,12 @@ module mod_cbmz_solve1
        ! AND SUM 'CRATE' (ALPHA) = OH+C REACTIONS.
        ! AND SUM GAMMA = NO3 LOSS REACTIONS.
        !
-       do i = 1 , 40
+       do i = 1, 40
          nspecial(i) = 0
        end do
        calpha(kk) = d_one
        cgamma(kk) = d_one
-       do nr = 1 , c_nreac
+       do nr = 1, c_nreac
          !
          ! IDENTIFY SPECIAL REACTIONS BY REACTANT NUMBER
          !       #1:  NO2+hv->NO+O3          #2: NO+O3->NO2
@@ -3744,11 +3744,11 @@ module mod_cbmz_solve1
 !
        implicit none
        ! Chem index
-       integer(ik4) :: ic , ic1 , ic2 , iic , icc , ics
+       integer(ik4) :: ic, ic1, ic2, iic, icc, ics
        ! Aqueous counters
        integer(ik4) :: neq
        ! Reaction counters
-       integer(ik4) :: nr , nrh
+       integer(ik4) :: nr, nrh
        ! Vectorization counters
        integer(ik4) :: kk
        ! General counters
@@ -3768,7 +3768,7 @@ module mod_cbmz_solve1
        !  FOR ALL TRANSPORTED SPECIES.
        !
        loopnchem1:&
-       do ic = 1 , c_nchem1
+       do ic = 1, c_nchem1
          !
          ! possible error with this and other ZERO PROTECT?
          ! 2004 fix - insures no descent to zero->NaN.
@@ -3792,7 +3792,7 @@ module mod_cbmz_solve1
          ! READ FROM REACTION.DAT
          ! ----------------------
          !
-         do i = 1 , c_cdim
+         do i = 1, c_cdim
            ics = c_lump(i,1)
            if ( ics == 0 ) exit
            ic1 = c_lump(i,2)
@@ -3807,7 +3807,7 @@ module mod_cbmz_solve1
            ! TO IMPLEMENT, SEE 'LUMPED SPECIES' BELOW.
            !
            calpha(kk) = d_zero
-           do iic = ic1 , ic2
+           do iic = ic1, ic2
              calpha(kk) = calpha(kk) + xc(kk,iic)
            end do
            if ( abs(calpha(kk)) < dlowval ) then
@@ -3818,7 +3818,7 @@ module mod_cbmz_solve1
            ! CONVERT PARTITION FRACTIONS INTO CONCENTRATIONS. ALSO ENTER XXO.
            ! ALSO ZERO-PROTECT AND ENTER XXO.
            !
-           do iic = ic1 , ic2
+           do iic = ic1, ic2
              c_lsts(iic) = c_lsts(ics)
              !
              ! ORIGINAL VERSION - SET LUMPED SPECIES HERE.
@@ -3836,7 +3836,7 @@ module mod_cbmz_solve1
            ! SET EMISSIONS TO BE LESS THAN INPUT CONCENTRATION
            !   (Input concentration includes emissions;
            !      emissions are only used for timing in expo decay solution)
-           do iic = 1 , c_nchem2
+           do iic = 1, c_nchem2
              if ( c_xcemit(kk,iic) > 0.99_rkx*c_xcin(kk,iic) ) then
                c_xcemit(kk,iic) = 0.99_rkx*c_xcin(kk,iic)
              end if
@@ -3847,11 +3847,11 @@ module mod_cbmz_solve1
        !
        ! SET AQUEOUS CONCENTRATIONS EQUAL TO ZERO
        !
-       do nrh = 1 , c_nreach
+       do nrh = 1, c_nreach
          icc = c_henry(nrh,1)
          if ( icc > 0 ) then
            if ( c_nequil(icc) > 0 ) then
-             do neq = 1 , c_nequil(icc)
+             do neq = 1, c_nequil(icc)
                ic = c_ncequil(icc,neq)
                xc(kk,ic) = d_zero
              end do
@@ -3861,14 +3861,14 @@ module mod_cbmz_solve1
        !
        ! ZERO REACTION RATES (RR) TO PREVENT CARRY-OVER FROM PREVIOUS RUN.
        !
-       do nr = 1 , c_nreac
+       do nr = 1, c_nreac
          c_rr(kk,nr) = d_zero
        end do
        !
        ! ZERO RP, RL, RRP, RRL TO PREVENT CARRY-OVER FROM PREVIOUS RUN
        !         (does not zero RRP, RRL before each iteration, only at start)
        !
-       do ic = 1 , c_nchem2
+       do ic = 1, c_nchem2
          c_rp(kk,ic) = d_zero
          c_rl(kk,ic) = d_zero
          rrp(kk,ic) = d_zero
@@ -3886,7 +3886,7 @@ module mod_cbmz_solve1
        !   Normally set to 1 for all except odd hydrogen.
        !   Odd hydrogen:  HO2 (=Hxsum) factor set to 0.7
        !                  OH  (=FOH)   factor set to 1.
-       do ic = 1 , c_nchem2
+       do ic = 1, c_nchem2
         geomavg(kk,ic) = d_one
        end do
        ic = c_nho2
@@ -3898,7 +3898,7 @@ module mod_cbmz_solve1
        !   This ratio is always ONE for back-Euler solution.
        !   It is set to a different value when the EXPO DECAY solution is used.
        !
-       do ic = 1 , c_nchem2
+       do ic = 1, c_nchem2
          xcfinr(kk,ic) = d_one
        end do
 !
@@ -3947,7 +3947,7 @@ module mod_cbmz_solve1
 !
        implicit none
        ! Chem index
-       integer(ik4) :: ic , ic1 , ic2 , ics
+       integer(ik4) :: ic, ic1, ic2, ics
        ! Vectorization counters
        integer(ik4) :: kk
        ! General counters
@@ -3960,7 +3960,7 @@ module mod_cbmz_solve1
        ! LUMPED SPECIES ARE IDENTIFIED FROM ARRAY LUMP(I,J)
        ! ICS = ACCUMULATOR; IC1-IC2 ARE INDIVIDUAL SPECIES.
        !
-       do i = 1 , c_cdim
+       do i = 1, c_cdim
         ics = c_lump(i,1)
         if ( ics == 0 ) exit
         ic1 = c_lump(i,2)
@@ -3970,14 +3970,14 @@ module mod_cbmz_solve1
         !   (for use in rate calculations)
         !
         xc(kk,ics) = d_zero
-        do ic = ic1 , ic2
+        do ic = ic1, ic2
           xc(kk,ics) = xc(kk,ics) + xc(kk,ic)
         end do
         !
         ! SUM PARTITION CHEM. PRODUCTION RATES
         !
         calpha(kk) = d_zero
-        do ic = ic1 , ic2
+        do ic = ic1, ic2
           !
           ! 2006 ORIGINAL
           !
@@ -3996,7 +3996,7 @@ module mod_cbmz_solve1
         ! OCTOBER 1998 CORRECTION - XXO only.  XR would require POSTLUMP
         !  SUM OF LUMPED SPECIES AND GAS+AQUEOUS.
         !
-        do ic = ic1 , ic2
+        do ic = ic1, ic2
           if ( calpha(kk) > d_zero ) then
             !
             ! 2006 ORIGINAL
@@ -4076,7 +4076,7 @@ module mod_cbmz_solve1
 !
        implicit none
        ! Chem index
-       integer(ik4) :: ic , ic1 , ic2 , ics
+       integer(ik4) :: ic, ic1, ic2, ics
        ! Vectorization counters
        integer(ik4) :: kk
        ! General counters
@@ -4090,7 +4090,7 @@ module mod_cbmz_solve1
        !     where ratio is always for gas-master species
        !    average concentrations also entered into output array (xcav)
        !
-       do ic = 1 , c_nchem2
+       do ic = 1, c_nchem2
          ic1 = c_npequil(ic)
          c_xcav(kk,ic) = xc(kk,ic)
          c_xcout(kk,ic) = xc(kk,ic) * xcfinr(kk, ic1)
@@ -4100,9 +4100,9 @@ module mod_cbmz_solve1
        !        SUM AQUEOUS SPECIES INTO GAS-MASTER SUM (in GAS UNITS)
        !       (Individual aqueous species, aqueous units, are preserved,
        !          but the gas-aq sum is the main output)
-       do ic = 1 , c_nchem2
+       do ic = 1, c_nchem2
          !
-         !    AQUEOUS SPECIES identified by npequil (pointer, aq-to-gas)
+         !    AQUEOUS SPECIES identified by npequil (pointer, contiguous, aq-to-gas)
          !
          ic1 = c_npequil(ic)
          if ( ic1 /= ic ) then
@@ -4116,7 +4116,7 @@ module mod_cbmz_solve1
        ! LUMPED SPECIES ARE IDENTIFIED FROM ARRAY LUMP(I,J)
        ! READ FROM REACTION.DAT
        !
-       do i = 1 , c_cdim
+       do i = 1, c_cdim
          ics = c_lump(i,1)
          if ( ics == 0 ) exit
          ic1 = c_lump(i,2)
@@ -4127,7 +4127,7 @@ module mod_cbmz_solve1
          c_xcout(kk,ics) = d_zero
          c_rp(kk,ics) = d_zero
          c_rl(kk,ics) = d_zero
-         do ic = ic1 , ic2
+         do ic = ic1, ic2
            c_xcout(kk,ics) = c_xcout(kk,ics) + c_xcout(kk,ic)
            c_rp(kk,ics) = c_rp(kk,ics) + c_rp(kk,ic)
            c_rl(kk,ics) = c_rl(kk,ics) + c_rl(kk,ic)
@@ -4135,7 +4135,7 @@ module mod_cbmz_solve1
          !
          ! OPTION:  CONVERT LUMPED SPECIES VALUES (IC1-IC2) INTO PARTITION FR.
          !
-         do ic = ic1 , ic2
+         do ic = ic1, ic2
            kk = 1
            if ( c_kkw > 0 ) kk = c_kkw
            if ( c_xcout(kk,ics) > 0 ) then
@@ -4200,13 +4200,13 @@ module mod_cbmz_solve1
 !
        implicit none
        ! Chem index
-       integer(ik4) :: ic , ic1
+       integer(ik4) :: ic, ic1
        ! Reaction counters
-       integer(ik4) :: nr , nr1
+       integer(ik4) :: nr, nr1
        ! Vectorization counters
        integer(ik4) :: kk
        ! General counters
-       integer(ik4) :: i , j
+       integer(ik4) :: i, j
 
        real(rkx) :: calpha(c_kvec) ! General vector variable
 
@@ -4216,7 +4216,7 @@ module mod_cbmz_solve1
        !
        ! LOOP FOR PARAMETERIZED RO2 REACTIONS
        !
-       do i = 1 , c_nnrro2
+       do i = 1, c_nnrro2
          nr = c_nrro2(i)
          ic = c_reactant(nr,1)
          !
@@ -4237,7 +4237,7 @@ module mod_cbmz_solve1
          !
          ! LOOP TO ADD RO2-RO2 CROSS REACTIONS
          !
-         do j = 1 , c_nnrro2
+         do j = 1, c_nnrro2
            if ( i /= j ) then
              nr1 = c_nrro2(j)
              ic1 = c_reactant(nr1,1)
@@ -4318,15 +4318,15 @@ module mod_cbmz_solve1
        ! Chem index
        integer(ik4) :: ic
        ! Chem index
-       integer(ik4) :: ich , icq
+       integer(ik4) :: ich, icq
        ! aquasolve ion counter
        integer(ik4) :: ionsum
        ! Aquasolve chem index
-       integer(ik4) :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
+       integer(ik4) :: ica1, ica2, icb1, icb2, nra1, nra2, nrb1, nrb2
        ! Aqueous counters
        integer(ik4) :: neq
        ! Reaction counters
-       integer(ik4) :: nrh , nrq
+       integer(ik4) :: nrh, nrq
        ! Vectorization counters
        integer(ik4) :: kk
        ! General counters
@@ -4379,7 +4379,7 @@ module mod_cbmz_solve1
        ! ------------
        ! BEGIN LOOP FOR DIFFUSION-HENRY'S LAW MODIFICATION.
        ! ------------
-       do nrh = 1 , c_nreach
+       do nrh = 1, c_nreach
          ic = c_henry(nrh,1)
          ich = c_ncequil(ic,1)
          !
@@ -4394,7 +4394,7 @@ module mod_cbmz_solve1
            !
            ! PRELIMINARY ZERO
            !
-           do i = 1 , 3
+           do i = 1, 3
              rpro(kk,i) = d_zero
              rloss(kk,i) = d_zero
              xrp(kk,i) = d_zero
@@ -4405,7 +4405,7 @@ module mod_cbmz_solve1
            !
            ! SUM AQUEOUS CONCENTRATIONS IN GAS-EQUIVALENT UNITS (xrp1)
            ! ALSO SUM AQUEOUS PRODUCTION (rpro1) AND LOSS (rloss1)
-           do neq = 1 , c_nequil(ic)
+           do neq = 1, c_nequil(ic)
              icq = c_ncequil(ic,neq)
              if ( icq > 0 ) then
                if ( c_h2oliq(kk) > d_zero ) then
@@ -4622,7 +4622,7 @@ module mod_cbmz_solve1
            xc(kk,c_nohmin) = rateq(kk,1)/xc(kk,c_nhplus)
          end if
        end if
-       do nrh = 1 , c_nreach
+       do nrh = 1, c_nreach
          ic = c_henry(nrh,1)
          if ( c_nequil(ic) > 0 )  then
            if ( c_h2oliq(kk) > d_zero ) then
@@ -4631,7 +4631,7 @@ module mod_cbmz_solve1
            !
            ! SUM AQUEOUS SPECIES INTO THE GAS-MASTER, SUM GAS+AQUEOUS RPRO1.
            !
-           do neq = 1 , c_nequil(ic)
+           do neq = 1, c_nequil(ic)
              icq = c_ncequil(ic,neq)
              if ( icq > 0 ) then
                if ( c_h2oliq(kk) > d_zero ) then
@@ -4645,7 +4645,7 @@ module mod_cbmz_solve1
            ! ION CHEM. INFERRED FROM PRIOR GAS-AQ-ION PARTITIONING AND RPRO1.
            ! ALSO ZERO AQUEOUS CONCENTRATIONS
            !
-           do neq = 1 , c_nequil(ic)
+           do neq = 1, c_nequil(ic)
              icq = c_ncequil(ic,neq)
              if ( icq > 0 ) then
                if ( c_iter > 1 ) then
@@ -4725,7 +4725,7 @@ module mod_cbmz_solve1
        ! LOOP THROUGH HENRY'S LAW TO IDENTIFY GAS-MASTER
        ! AND SOLVE FOR THE ASSOCIATED AQUEOUS GROUP.
        !
-       do nrh = 1 , c_nreach
+       do nrh = 1, c_nreach
          ic = c_henry(nrh,1)
          ich = c_henry(nrh,2)
          if ( c_nequil(ic) <= 0 ) exit
@@ -4768,7 +4768,7 @@ module mod_cbmz_solve1
            ! OR BASE-FORMING REACTIONS FOR THE AQUEOUS GROUP (ICA,NRA,ICB,NRB).
            ! THIS ESTABLISHES SOLUTION PROCEDURE FOR THE GROUP,
            ! TO BE USED BELOW.
-           do neq = 2 , c_nequil(ic)
+           do neq = 2, c_nequil(ic)
              icq = c_ncequil(ic,neq)
              nrq = c_nrequil(ic,neq)
              if ( icq > 0 .and. nrq > 0 ) then

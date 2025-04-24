@@ -6,38 +6,38 @@ program int_dur
   implicit none
 
   ! The variable to search
-  character(len=16) , dimension(2) , parameter :: prenames =  &
+  character(len=16), dimension(2), parameter :: prenames =  &
                  (/'pre ','pre2'/)
-  character(len=16) , dimension(2) , parameter :: timenames = &
+  character(len=16), dimension(2), parameter :: timenames = &
                  (/'time','Time'/)
-  character(len=16) , dimension(5) , parameter :: latnames = &
+  character(len=16), dimension(5), parameter :: latnames = &
                  (/'xlat    ','lat     ','latitude','LAT     ','iy      '/)
-  character(len=16) , dimension(5) , parameter :: lonnames = &
+  character(len=16), dimension(5), parameter :: lonnames = &
                  (/'xlon     ','lon      ','longitude','LON      ','jx       '/)
 
   character(len=256) :: inputfile
   character(len=256) :: outputfile
-  character(len=32) :: dname , vname , aname
-  character(len=64) :: time_unit , time_calendar, time_unitout
-  integer :: ncid , ncout , ixdimid , iydimid , itimid
-  integer :: idlat , idlon , idlatout , idlonout , ndims
+  character(len=32) :: dname, vname, aname
+  character(len=64) :: time_unit, time_calendar, time_unitout
+  integer :: ncid, ncout, ixdimid, iydimid, itimid
+  integer :: idlat, idlon, idlatout, idlonout, ndims
   integer :: istatus
-  integer , dimension(3) :: odims , istart , icount
-  integer :: nvar , ivar , natt , iatt , idpre , idtime
-  integer :: idpreout , iddurout , idtimeout
-  integer :: i , it , iy , jx , nx , ny , nt
-  logical :: coord_2d = .false. , has_coord = .false.
-  real , allocatable , dimension(:,:) :: meanpre , duration , coord
-  real , allocatable , dimension(:) :: coord1d
-  real , allocatable , dimension(:,:,:) :: preslice
-  real(8) :: pcount , sumpre , idursum , inumsum , percent , lastpercent
-  real(8) , dimension(1) :: xtime
-  integer :: iyear , nyear , ndays , nprocessed , maxdays
-  type(rcm_time_and_date) :: idate1 , idate2 , idatecheck
+  integer, dimension(3) :: odims, istart, icount
+  integer :: nvar, ivar, natt, iatt, idpre, idtime
+  integer :: idpreout, iddurout, idtimeout
+  integer :: i, it, iy, jx, nx, ny, nt
+  logical :: coord_2d = .false., has_coord = .false.
+  real, allocatable, dimension(:,:) :: meanpre, duration, coord
+  real, allocatable, dimension(:) :: coord1d
+  real, allocatable, dimension(:,:,:) :: preslice
+  real(8) :: pcount, sumpre, idursum, inumsum, percent, lastpercent
+  real(8), dimension(1) :: xtime
+  integer :: iyear, nyear, ndays, nprocessed, maxdays
+  type(rcm_time_and_date) :: idate1, idate2, idatecheck
   type(rcm_time_interval) :: tdif
-  integer :: year1 , month1 , day1 , hour1
-  integer :: year2 , month2 , day2 , hour2
-  integer :: maxdpy , daypy , dstart
+  integer :: year1, month1, day1, hour1
+  integer :: year2, month2, day2, hour2
+  integer :: maxdpy, daypy, dstart
 
   call get_command_argument(1,value=inputfile)
   call get_command_argument(2,value=outputfile)
@@ -137,13 +137,13 @@ program int_dur
   end if
 
   varloop: &
-  do ivar = 1 , nvar
+  do ivar = 1, nvar
     istatus = nf90_inquire_variable(ncid,ivar,name=vname,natts=natt,ndims=ndims)
     if ( istatus /= nf90_noerr ) then
       write(0,*) 'Cannot inquire variable ',ivar
       stop
     end if
-    do i = 1 , size(prenames)
+    do i = 1, size(prenames)
       if ( vname == prenames(i) ) then
         idpre = ivar
         istatus = nf90_def_var(ncout,vname,nf90_real,odims,idpreout)
@@ -151,7 +151,7 @@ program int_dur
           write(0,*) 'Cannot define variable '//trim(vname)
           stop
         end if
-        do iatt = 1 , natt
+        do iatt = 1, natt
           istatus = nf90_inq_attname(ncid,ivar,iatt,aname)
           if ( istatus /= nf90_noerr ) then
             write(0,*) 'Cannot inquire attribute ',iatt
@@ -166,7 +166,7 @@ program int_dur
         cycle varloop
       end if
     end do
-    do i = 1 , size(latnames)
+    do i = 1, size(latnames)
       if ( vname == latnames(i) ) then
         idlat = ivar
         if ( ndims == 2 ) then
@@ -183,7 +183,7 @@ program int_dur
             stop
           end if
         end if
-        do iatt = 1 , natt
+        do iatt = 1, natt
           istatus = nf90_inq_attname(ncid,ivar,iatt,aname)
           if ( istatus /= nf90_noerr ) then
             write(0,*) 'Cannot inquire attribute ',iatt
@@ -199,7 +199,7 @@ program int_dur
         cycle varloop
       end if
     end do
-    do i = 1 , size(lonnames)
+    do i = 1, size(lonnames)
       if ( vname == lonnames(i) ) then
         idlon = ivar
         if ( ndims == 2 ) then
@@ -216,7 +216,7 @@ program int_dur
             stop
           end if
         end if
-        do iatt = 1 , natt
+        do iatt = 1, natt
           istatus = nf90_inq_attname(ncid,ivar,iatt,aname)
           if ( istatus /= nf90_noerr ) then
             write(0,*) 'Cannot inquire attribute ',iatt
@@ -232,7 +232,7 @@ program int_dur
         cycle varloop
       end if
     end do
-    do i = 1 , size(timenames)
+    do i = 1, size(timenames)
       if ( vname == timenames(i) ) then
         idtime = ivar
         istatus = nf90_def_var(ncout,vname,nf90_double,odims(3:3),idtimeout)
@@ -241,7 +241,7 @@ program int_dur
           stop
         end if
         att_time_loop: &
-        do iatt = 1 , natt
+        do iatt = 1, natt
           istatus = nf90_inq_attname(ncid,ivar,iatt,aname)
           if ( istatus /= nf90_noerr ) then
             write(0,*) 'Cannot inquire attribute ',iatt
@@ -409,7 +409,7 @@ program int_dur
   end if
 
   nprocessed = 1
-  do iyear = year1 , year2
+  do iyear = year1, year2
     lastpercent = 0.0D0
     if ( idate1%calendar == gregorian ) then
       daypy = 365
@@ -434,11 +434,11 @@ program int_dur
     if ( iyear == year2 ) maxdays = ndays
     duration = real(maxdays)
     write(6,*) 'Data read for year :',iyear,', starting computation.'
-    do iy = 1 , ny
-      do jx = 1 , nx
+    do iy = 1, ny
+      do jx = 1, nx
         pcount = 0.0D0
         sumpre = 0.0D0
-        do it = 1 , maxdays
+        do it = 1, maxdays
           if ( preslice(jx,iy,it) >= 1.0 ) then
             sumpre = sumpre + dble(preslice(jx,iy,it))
             pcount = pcount + 1.0D0
@@ -449,12 +449,12 @@ program int_dur
         end if
         idursum = 0.0D0
         inumsum = 0.0D0
-        do it = 1 , maxdays
+        do it = 1, maxdays
           if ( preslice(jx,iy,it) < 1.0 ) then
             idursum = idursum + 1.0D0
           end if
         end do
-        do it = 1 , maxdays
+        do it = 1, maxdays
           if ( preslice(jx,iy,it) < 1.0 .and. preslice(jx,iy,it+1) >= 1.0 ) then
             inumsum = inumsum + 1.0D0
           end if
@@ -464,7 +464,7 @@ program int_dur
         end if
         percent = 100.0D0*(dble((iy-1)*nx+jx)/dble(nx*ny))
         if ( percent > lastpercent+9.999D0 ) then
-          write(6,*) 'Point ',jx , iy,' done ',int(percent),'%'
+          write(6,*) 'Point ',jx, iy,' done ',int(percent),'%'
           lastpercent = percent
         end if
       end do

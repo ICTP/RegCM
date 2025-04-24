@@ -33,27 +33,27 @@ module mod_che_drydep
 
   private
 
-  public :: drydep_aero , drydep_gas , aerodyresis
-  public :: a1 , a2 , a3 , c1 , c2 , c3 , c4 , aa1 , aa2 , aa3
+  public :: drydep_aero, drydep_gas, aerodyresis
+  public :: a1, a2, a3, c1, c2, c3, c4, aa1, aa2, aa3
   !
   ! Dynamic Viscosity Parameters
   !
-  real(rkx) , parameter :: a1 = 1.458e-6_rkx
-  real(rkx) , parameter :: a2 = 1.5_rkx
-  real(rkx) , parameter :: a3 = 110.4_rkx
+  real(rkx), parameter :: a1 = 1.458e-6_rkx
+  real(rkx), parameter :: a2 = 1.5_rkx
+  real(rkx), parameter :: a3 = 110.4_rkx
   !
   ! Molecular Free Path calculation parameters
   !
-  real(rkx) , parameter :: c1 = 6.54e-8_rkx
-  real(rkx) , parameter :: c2 = 1.818e-5_rkx
-  real(rkx) , parameter :: c3 = 1.013e5_rkx
-  real(rkx) , parameter :: c4 = 293.15_rkx
+  real(rkx), parameter :: c1 = 6.54e-8_rkx
+  real(rkx), parameter :: c2 = 1.818e-5_rkx
+  real(rkx), parameter :: c3 = 1.013e5_rkx
+  real(rkx), parameter :: c4 = 293.15_rkx
   !
   ! Cunningham slip correction factor parameters
   !
-  real(rkx) , parameter :: aa1 = 1.257_rkx
-  real(rkx) , parameter :: aa2 = 0.4_rkx
-  real(rkx) , parameter :: aa3 = 1.1_rkx
+  real(rkx), parameter :: aa1 = 1.257_rkx
+  real(rkx), parameter :: aa2 = 0.4_rkx
+  real(rkx), parameter :: aa3 = 1.1_rkx
   !
   ! Number of gas taken into account by drydep scheme
   !
@@ -73,7 +73,7 @@ module mod_che_drydep
   ! from BATS and CLM
   ! Rq2: Since ivegcov is defined even when clm is activated, the dry dep
   ! scheme could in principle be used with CLM.
-  ! BUT , there is also the option of activating CLM PFT level dydep scheme.
+  ! BUT, there is also the option of activating CLM PFT level dydep scheme.
   !
   !NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
   !
@@ -85,108 +85,108 @@ module mod_che_drydep
   !NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
   !
   real(rkx) lai(22,15)
-  real(rkx) z01(22) , z02(22)
+  real(rkx) z01(22), z02(22)
   integer(ik4) :: kk
 
   data (lai(1,kk), kk = 1, 15)/                    &
-           0.1_rkx , 0.1_rkx , 0.1_rkx , 0.5_rkx , 1.0_rkx , &
-           2.0_rkx , 3.0_rkx , 3.5_rkx , 4.0_rkx , 0.1_rkx , &
-           0.1_rkx , 0.1_rkx , 0.1_rkx , 0.1_rkx , 4.0_rkx /
+           0.1_rkx, 0.1_rkx, 0.1_rkx, 0.5_rkx, 1.0_rkx, &
+           2.0_rkx, 3.0_rkx, 3.5_rkx, 4.0_rkx, 0.1_rkx, &
+           0.1_rkx, 0.1_rkx, 0.1_rkx, 0.1_rkx, 4.0_rkx /
 
   data (lai(2,kk), kk = 1, 15)/                    &
-           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , &
-           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , &
-           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx /
+           1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx, &
+           1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx, &
+           1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx /
 
   data (lai(3,kk), kk = 1, 15)/                    &
-           5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx , &
-           5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx , &
-           5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx /
+           5.0_rkx, 5.0_rkx, 5.0_rkx, 5.0_rkx, 5.0_rkx, &
+           5.0_rkx, 5.0_rkx, 5.0_rkx, 5.0_rkx, 5.0_rkx, &
+           5.0_rkx, 5.0_rkx, 5.0_rkx, 5.0_rkx, 5.0_rkx /
 
   data (lai(4,kk), kk = 1, 15)/                    &
-           0.1_rkx , 0.1_rkx , 0.5_rkx , 1.0_rkx , 2.0_rkx , &
-           4.0_rkx , 5.0_rkx , 5.0_rkx , 4.0_rkx , 2.0_rkx , &
-           1.0_rkx , 0.1_rkx , 0.1_rkx , 0.1_rkx , 5.0_rkx /
+           0.1_rkx, 0.1_rkx, 0.5_rkx, 1.0_rkx, 2.0_rkx, &
+           4.0_rkx, 5.0_rkx, 5.0_rkx, 4.0_rkx, 2.0_rkx, &
+           1.0_rkx, 0.1_rkx, 0.1_rkx, 0.1_rkx, 5.0_rkx /
 
   data (lai(5,kk), kk = 1, 15)/                    &
-           0.1_rkx , 0.1_rkx , 0.5_rkx , 1.0_rkx , 2.0_rkx , &
-           4.0_rkx , 5.0_rkx , 5.0_rkx , 4.0_rkx , 2.0_rkx , &
-           1.0_rkx , 0.1_rkx , 0.1_rkx , 0.1_rkx , 5.0_rkx /
+           0.1_rkx, 0.1_rkx, 0.5_rkx, 1.0_rkx, 2.0_rkx, &
+           4.0_rkx, 5.0_rkx, 5.0_rkx, 4.0_rkx, 2.0_rkx, &
+           1.0_rkx, 0.1_rkx, 0.1_rkx, 0.1_rkx, 5.0_rkx /
 
   data (lai(6,kk), kk = 1, 15)/                    &
-           6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx , &
-           6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx , &
-           6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx /
+           6.0_rkx, 6.0_rkx, 6.0_rkx, 6.0_rkx, 6.0_rkx, &
+           6.0_rkx, 6.0_rkx, 6.0_rkx, 6.0_rkx, 6.0_rkx, &
+           6.0_rkx, 6.0_rkx, 6.0_rkx, 6.0_rkx, 6.0_rkx /
 
   data (lai(7,kk), kk = 1, 15)/                    &
-           0.5_rkx , 0.5_rkx , 0.5_rkx , 0.5_rkx , 0.5_rkx , &
-           0.5_rkx , 1.0_rkx , 2.0_rkx , 2.0_rkx , 1.5_rkx , &
-           1.0_rkx , 1.0_rkx , 0.5_rkx , 0.5_rkx , 2.0_rkx  /
+           0.5_rkx, 0.5_rkx, 0.5_rkx, 0.5_rkx, 0.5_rkx, &
+           0.5_rkx, 1.0_rkx, 2.0_rkx, 2.0_rkx, 1.5_rkx, &
+           1.0_rkx, 1.0_rkx, 0.5_rkx, 0.5_rkx, 2.0_rkx  /
 
   data (lai(8,kk), kk = 1, 15)/                    &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx /
 
   data (lai(9,kk), kk = 1, 15)/                    &
-           1.0_rkx , 1.0_rkx , 0.5_rkx , 0.1_rkx , 0.1_rkx , &
-           0.1_rkx , 0.1_rkx , 1.0_rkx , 2.0_rkx , 1.5_rkx , &
-           1.5_rkx , 1.0_rkx , 1.0_rkx , 0.1_rkx , 2.0_rkx /
+           1.0_rkx, 1.0_rkx, 0.5_rkx, 0.1_rkx, 0.1_rkx, &
+           0.1_rkx, 0.1_rkx, 1.0_rkx, 2.0_rkx, 1.5_rkx, &
+           1.5_rkx, 1.0_rkx, 1.0_rkx, 0.1_rkx, 2.0_rkx /
 
   data (lai(10,kk), kk = 1, 15)/                   &
-           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , &
-           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , &
-           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx /
+           1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx, &
+           1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx, &
+           1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx, 1.0_rkx /
 
   data (lai(11,kk), kk = 1, 15)/                   &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx /
 
   data (lai(12,kk), kk = 1, 15)/                   &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx /
 
   data (lai(13,kk), kk = 1, 15)/                   &
-           4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx , &
-           4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx , &
-           4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx /
+           4.0_rkx, 4.0_rkx, 4.0_rkx, 4.0_rkx, 4.0_rkx, &
+           4.0_rkx, 4.0_rkx, 4.0_rkx, 4.0_rkx, 4.0_rkx, &
+           4.0_rkx, 4.0_rkx, 4.0_rkx, 4.0_rkx, 4.0_rkx /
 
   data (lai(14,kk), kk = 1, 15)/                   &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx /
 
   data (lai(15,kk), kk = 1, 15)/                   &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx /
 
   data (lai(16,kk), kk = 1, 15)/                   &
-           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , &
-           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , &
-           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx /
+           3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, &
+           3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, &
+           3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx /
 
   data (lai(17,kk), kk = 1, 15)/                   &
-           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , &
-           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , &
-           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx /
+           3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, &
+           3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, &
+           3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx /
 
   data (lai(18,kk), kk = 1, 15)/                  &
-           3.0_rkx , 3.0_rkx , 3.0_rkx , 4.0_rkx , 4.5_rkx ,&
-           5.0_rkx , 5.0_rkx , 5.0_rkx , 4.0_rkx , 3.0_rkx ,&
-           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 5.0_rkx /
+           3.0_rkx, 3.0_rkx, 3.0_rkx, 4.0_rkx, 4.5_rkx ,&
+           5.0_rkx, 5.0_rkx, 5.0_rkx, 4.0_rkx, 3.0_rkx ,&
+           3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, 5.0_rkx /
 
   data (lai(19,kk), kk = 1, 15)/                  &
-           3.0_rkx , 3.0_rkx , 3.0_rkx , 4.0_rkx , 4.5_rkx ,&
-           5.0_rkx , 5.0_rkx , 5.0_rkx , 4.0_rkx , 3.0_rkx ,&
-           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 5.0_rkx /
+           3.0_rkx, 3.0_rkx, 3.0_rkx, 4.0_rkx, 4.5_rkx ,&
+           5.0_rkx, 5.0_rkx, 5.0_rkx, 4.0_rkx, 3.0_rkx ,&
+           3.0_rkx, 3.0_rkx, 3.0_rkx, 3.0_rkx, 5.0_rkx /
 
   data (lai(20,kk), kk = 1, 15)/                  &
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx ,&
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx ,&
-           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx ,&
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx ,&
+           0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx /
 
   data  z01/0.02_rkx, 0.04_rkx, 0.90_rkx, 0.40_rkx, 0.40_rkx, 2.00_rkx,&
             0.02_rkx, 0.04_rkx, 0.03_rkx, 0.05_rkx, 0.04_rkx, 0.01_rkx,&
@@ -200,16 +200,16 @@ module mod_che_drydep
   !
   ! Zhang stomatal resistance parameters
   !
-  real(rkx) :: tmin(22) , tmax(22)
-  real(rkx) :: rsminz(22) , brs(22)
-  real(rkx) :: topt(22) , bvpd(22)
-  real(rkx) :: psi1(22) , psi2(22)
-  real(rkx) :: rac1(22) , rac2(22)
-  real(rkx) :: rgo(22) , rcutdO(22)
-  real(rkx) :: rcutwO(22) , rcutdS(22)
-  real(rkx) :: rgs(22) , sdmax(22)
-  real(rkx) :: mw(31) , rm(31)
-  real(rkx) :: alphaz(31) , betaz(31)
+  real(rkx) :: tmin(22), tmax(22)
+  real(rkx) :: rsminz(22), brs(22)
+  real(rkx) :: topt(22), bvpd(22)
+  real(rkx) :: psi1(22), psi2(22)
+  real(rkx) :: rac1(22), rac2(22)
+  real(rkx) :: rgo(22), rcutdO(22)
+  real(rkx) :: rcutwO(22), rcutdS(22)
+  real(rkx) :: rgs(22), sdmax(22)
+  real(rkx) :: mw(31), rm(31)
+  real(rkx) :: alphaz(31), betaz(31)
 
   data tmin /  5.0_rkx,    5.0_rkx,   -5.0_rkx,   -5.0_rkx,    0.0_rkx, &
                0.0_rkx,    5.0_rkx, -999.0_rkx,   -5.0_rkx,    5.0_rkx, &
@@ -321,37 +321,37 @@ module mod_che_drydep
   ! CRES   FORM    ACAC   ROOH
   ! ONIT   INIT
 
-  data rm / 0.0_rkx ,   0.0_rkx ,   0.0_rkx ,   0.0_rkx ,    0.0_rkx , &
-            0.0_rkx ,   0.0_rkx ,   0.0_rkx ,   0.0_rkx ,    0.0_rkx , &
-            0.0_rkx ,   0.0_rkx ,   0.0_rkx ,   0.0_rkx ,  100.0_rkx , &
-          100.0_rkx , 100.0_rkx , 100.0_rkx , 100.0_rkx ,    0.0_rkx , &
-          100.0_rkx ,   0.0_rkx   , 0.0_rkx ,   0.0_rkx ,    0.0_rkx , &
-            0.0_rkx ,   0.0_rkx   , 0.0_rkx ,   0.0_rkx ,  100.0_rkx , &
+  data rm / 0.0_rkx,   0.0_rkx,   0.0_rkx,   0.0_rkx,    0.0_rkx, &
+            0.0_rkx,   0.0_rkx,   0.0_rkx,   0.0_rkx,    0.0_rkx, &
+            0.0_rkx,   0.0_rkx,   0.0_rkx,   0.0_rkx,  100.0_rkx, &
+          100.0_rkx, 100.0_rkx, 100.0_rkx, 100.0_rkx,    0.0_rkx, &
+          100.0_rkx,   0.0_rkx  , 0.0_rkx,   0.0_rkx,    0.0_rkx, &
+            0.0_rkx,   0.0_rkx  , 0.0_rkx,   0.0_rkx,  100.0_rkx, &
           100.0_rkx /
 
-  data alphaz /  1.00_rkx , 1.00_rkx , 0.00_rkx , 0.00_rkx , 1.00_rkx , &
-                10.00_rkx , 2.00_rkx , 5.00_rkx , 1.00_rkx , 0.00_rkx , &
-                 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.80_rkx , 0.00_rkx , &
-                 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , &
-                 0.00_rkx , 0.01_rkx , 0.60_rkx , 0.60_rkx , 0.40_rkx , &
-                 0.01_rkx , 2.00_rkx , 1.50_rkx , 0.10_rkx , 0.00_rkx , &
+  data alphaz /  1.00_rkx, 1.00_rkx, 0.00_rkx, 0.00_rkx, 1.00_rkx, &
+                10.00_rkx, 2.00_rkx, 5.00_rkx, 1.00_rkx, 0.00_rkx, &
+                 0.00_rkx, 0.00_rkx, 0.00_rkx, 0.80_rkx, 0.00_rkx, &
+                 0.00_rkx, 0.00_rkx, 0.00_rkx, 0.00_rkx, 0.00_rkx, &
+                 0.00_rkx, 0.01_rkx, 0.60_rkx, 0.60_rkx, 0.40_rkx, &
+                 0.01_rkx, 2.00_rkx, 1.50_rkx, 0.10_rkx, 0.00_rkx, &
                  0.00_rkx /
 
-  data betaz /  0.00_rkx , 1.00_rkx , 0.80_rkx , 1.00_rkx , 1.00_rkx , &
-               10.00_rkx , 2.00_rkx , 5.00_rkx , 0.00_rkx , 0.60_rkx , &
-                0.60_rkx , 0.80_rkx , 0.30_rkx , 0.20_rkx , 0.05_rkx , &
-                0.05_rkx , 0.05_rkx , 0.05_rkx , 0.05_rkx , 0.05_rkx , &
-                0.05_rkx , 0.00_rkx , 0.10_rkx , 0.00_rkx , 0.00_rkx , &
-                0.00_rkx , 0.00_rkx , 0.00_rkx , 0.80_rkx , 0.50_rkx , &
+  data betaz /  0.00_rkx, 1.00_rkx, 0.80_rkx, 1.00_rkx, 1.00_rkx, &
+               10.00_rkx, 2.00_rkx, 5.00_rkx, 0.00_rkx, 0.60_rkx, &
+                0.60_rkx, 0.80_rkx, 0.30_rkx, 0.20_rkx, 0.05_rkx, &
+                0.05_rkx, 0.05_rkx, 0.05_rkx, 0.05_rkx, 0.05_rkx, &
+                0.05_rkx, 0.00_rkx, 0.10_rkx, 0.00_rkx, 0.00_rkx, &
+                0.00_rkx, 0.00_rkx, 0.00_rkx, 0.80_rkx, 0.50_rkx, &
                 0.50_rkx /
 
 
-  data mw / 64.0_rkx ,  98.0_rkx ,  46.0_rkx ,  48.0_rkx ,  34.0_rkx , &
-            63.0_rkx ,  47.0_rkx ,  79.0_rkx ,  17.0_rkx , 121.0_rkx , &
-           135.0_rkx , 183.0_rkx , 147.0_rkx ,  30.0_rkx ,  44.0_rkx , &
-            58.0_rkx ,  72.0_rkx , 128.0_rkx , 106.0_rkx ,  70.0_rkx , &
-            70.0_rkx ,  72.0_rkx ,  32.0_rkx ,  46.0_rkx ,  60.0_rkx , &
-           104.0_rkx ,  46.0_rkx ,  60.0_rkx ,  48.0_rkx ,  77.0_rkx , &
+  data mw / 64.0_rkx,  98.0_rkx,  46.0_rkx,  48.0_rkx,  34.0_rkx, &
+            63.0_rkx,  47.0_rkx,  79.0_rkx,  17.0_rkx, 121.0_rkx, &
+           135.0_rkx, 183.0_rkx, 147.0_rkx,  30.0_rkx,  44.0_rkx, &
+            58.0_rkx,  72.0_rkx, 128.0_rkx, 106.0_rkx,  70.0_rkx, &
+            70.0_rkx,  72.0_rkx,  32.0_rkx,  46.0_rkx,  60.0_rkx, &
+           104.0_rkx,  46.0_rkx,  60.0_rkx,  48.0_rkx,  77.0_rkx, &
            147.0_rkx /
 
   contains
@@ -360,47 +360,47 @@ module mod_che_drydep
                            ph,temp2,sutemp,srad,rh10,      &
                            wind10,zeff,beffdiam,pdepv,ddepv,ustar,ra)
       implicit none
-      integer(ik4) , intent(in) :: i , mbin
-      integer(ik4) , intent(in) , dimension(mbin) :: indsp
-      integer(ik4) , intent(in) , dimension(jci1:jci2) :: ivegcov
-      real(rkx) , dimension(jci1:jci2) , intent(in) :: rh10 , &
-                       srad , sutemp , temp2 , wind10 , zeff
-      real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: ph , roarow , throw
-      real(rkx) , dimension(jci1:jci2) , intent(in) :: ra , ustar
-      real(rkx) , dimension(mbin) , intent(in) :: beffdiam
-      real(rkx) , intent(in) :: rhop
+      integer(ik4), intent(in) :: i, mbin
+      integer(ik4), intent(in), dimension(mbin) :: indsp
+      integer(ik4), intent(in), dimension(jci1:jci2) :: ivegcov
+      real(rkx), dimension(jci1:jci2), intent(in) :: rh10, &
+                       srad, sutemp, temp2, wind10, zeff
+      real(rkx), dimension(jci1:jci2,kz), intent(in) :: ph, roarow, throw
+      real(rkx), dimension(jci1:jci2), intent(in) :: ra, ustar
+      real(rkx), dimension(mbin), intent(in) :: beffdiam
+      real(rkx), intent(in) :: rhop
 
       ! output table to be passed out. Care dimension is ntr
 
-      real(rkx) , intent(out) , dimension(jci1:jci2,kz,ntr) :: pdepv
-      real(rkx) , intent(out) , dimension(jci1:jci2,ntr) :: ddepv
+      real(rkx), intent(out), dimension(jci1:jci2,kz,ntr) :: pdepv
+      real(rkx), intent(out), dimension(jci1:jci2,ntr) :: ddepv
 
-      real(rkx) :: amfp , amob , eb , eim , ein , frx1 , w1 , w2
-      real(rkx) :: pre , prii , priiv , r1 , st , rhsize , pdiff
-      real(rkx) , dimension(jci1:jci2,kz) :: amu
-      real(rkx) , dimension(jci1:jci2) :: anu , schm
-      real(rkx) , dimension(jci1:jci2,kz,mbin) :: cfac , pdepvsub , taurel
-      real(rkx) , dimension(jci1:jci2,mbin) :: rs
+      real(rkx) :: amfp, amob, eb, eim, ein, frx1, w1, w2
+      real(rkx) :: pre, prii, priiv, r1, st, rhsize, pdiff
+      real(rkx), dimension(jci1:jci2,kz) :: amu
+      real(rkx), dimension(jci1:jci2) :: anu, schm
+      real(rkx), dimension(jci1:jci2,kz,mbin) :: cfac, pdepvsub, taurel
+      real(rkx), dimension(jci1:jci2,mbin) :: rs
       real(rkx), dimension(jci1:jci2,2:kz) :: wk, settend
-      real(rkx) , dimension(mbin) :: avesize
-      integer(ik4) :: j , k , lcov , n , ib
+      real(rkx), dimension(mbin) :: avesize
+      integer(ik4) :: j, k, lcov, n, ib
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_aero'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       ! here avesize is a RADIUS of the particle bin in m :
       ! calculated here from bin effective diameter in micrometer
-      do n = 1 , mbin
+      do n = 1, mbin
         avesize(n) = (beffdiam(n) * d_half) * 1.e-6_rkx
       end do
       ! ********************************************************
       ! *   aerosize - dry radius                    !!     ****
       ! *   rhop  - density for each aerosol type           ****
       ! ********************************************************
-      do n = 1 , mbin
-        do k = 1 , kz
-          do j = jci1 , jci2
+      do n = 1, mbin
+        do k = 1, kz
+          do j = jci1, jci2
             !
             ! ********************************************************
             ! *  aerosol gravitational settling velocity          ****
@@ -448,8 +448,8 @@ module mod_che_drydep
       ! * brownian diffusivity ===> sc=v/d               ****
       ! *****************************************************
       !
-      do n = 1 , mbin
-        do j = jci1 , jci2
+      do n = 1, mbin
+        do j = jci1, jci2
           !
           ! *****************************************************
           ! * for now we will not consider the humidity      ****
@@ -474,7 +474,7 @@ module mod_che_drydep
           ! * ****************************************************
           !
         end do
-        do j = jci1 , jci2
+        do j = jci1, jci2
             !
             ! find the right table index for the cell cover ( ocean
             ! and lake are 0 in the ivegcov and 14-15 in the table )
@@ -543,16 +543,16 @@ module mod_che_drydep
       ! average settling and deposition velocities on bin
       ! care we use pdepv and ddpv table that are dimensionned to ntr
       ! and not mbin !
-      do ib = 1 , mbin
+      do ib = 1, mbin
         ! there isw no sub-bin anymore / we consider directly effective radius
         pdepv(:,:,indsp(ib)) = 0.0_rkx
         ddepv(:,indsp(ib))   = 0.0_rkx
-        do k = 1 , kz
-          do j = jci1 , jci2
+        do k = 1, kz
+          do j = jci1, jci2
             pdepv(j,k,indsp(ib)) = pdepvsub(j,k,ib)
           end do
         end do
-        do j = jci1 , jci2
+        do j = jci1, jci2
             ! agregate the dry deposition velocity, remember one cover per grid
             ! cell for now
             ! the dry deposition velocity must account also for the
@@ -567,10 +567,10 @@ module mod_che_drydep
       ! dust and sea salt
       !
       if ( idynamic == 3 ) then
-        do ib = 1 , mbin
+        do ib = 1, mbin
           ! deposition, remember chiten must be consistent with chemt
-          do k = 2 , kz
-            do j = jci1 , jci2
+          do k = 2, kz
+            do j = jci1, jci2
               if ( chemt(j,i,k-1,indsp(ib)) > mintr ) then
                 w1 = cfmz(j,i,k)/cfmz(j,i,k-1)
                 w2 = d_two - w1
@@ -581,8 +581,8 @@ module mod_che_drydep
               end if
             end do
           end do
-          do j = jci1 , jci2
-            do k = 2 , kz - 1
+          do j = jci1, jci2
+            do k = 2, kz - 1
               ! do not apply to the first level
               !settend(j,k) = (wk(j,k+1)*pdepv(j,k+1,indsp(ib)) - &
               !                wk(j,k)*pdepv(j,k,indsp(ib))) / cdzq(j,i,k)
@@ -667,17 +667,17 @@ module mod_che_drydep
             end if
             !
             ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
-            ! also settling , accumulated between two outputs time step)
+            ! also settling, accumulated between two outputs time step)
             ddv_out(j,i,indsp(ib)) = ddv_out(j,i,indsp(ib)) + &
                    ddepv(j,indsp(ib))
           end do
         end do
       else
-        do ib = 1 , mbin
+        do ib = 1, mbin
           ! deposition, remember chiten must be normalised by psb and
           ! consistent with chib
-          do k = 2 , kz
-            do j = jci1 , jci2
+          do k = 2, kz
+            do j = jci1, jci2
               if ( chib(j,i,k-1,indsp(ib)) > mintr * cpsb(j,i) ) then
                 wk(j,k) = (twt(k,1)*chib(j,i,k,indsp(ib)) + &
                            twt(k,2)*chib(j,i,k-1,indsp(ib)))*rdt
@@ -686,8 +686,8 @@ module mod_che_drydep
               end if
             end do
           end do
-          do j = jci1 , jci2
-            do k = 2 , kz - 1
+          do j = jci1, jci2
+            do k = 2, kz - 1
               ! do not apply to the first level
               !settend(j,k) = (wk(j,k+1)*pdepv(j,k+1,indsp(ib)) - &
               !                wk(j,k)*pdepv(j,k,indsp(ib))) / cdzq(j,i,k)
@@ -773,7 +773,7 @@ module mod_che_drydep
             end if
             !
             ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
-            ! also settling , accumulated between two outputs time step)
+            ! also settling, accumulated between two outputs time step)
             ddv_out(j,i,indsp(ib)) = ddv_out(j,i,indsp(ib)) + &
                    ddepv(j,indsp(ib))
           end do
@@ -788,29 +788,29 @@ module mod_che_drydep
                           prec,temp10,xlai,ustar,resa)
       use mod_che_indices
       implicit none
-      integer(ik4) , intent(in) :: i
-      integer(ik4), intent(in) :: lmonth , lday
-      integer(ik4) , intent(in) , dimension(jci1:jci2) :: ivegcov
-      real(rkx) , intent(in) , dimension(jci1:jci2) :: rh10 , srad , tsurf , &
+      integer(ik4), intent(in) :: i
+      integer(ik4), intent(in) :: lmonth, lday
+      integer(ik4), intent(in), dimension(jci1:jci2) :: ivegcov
+      real(rkx), intent(in), dimension(jci1:jci2) :: rh10, srad, tsurf, &
                                             prec, temp10, xlai
-      real(rkx) , dimension(jci1:jci2) , intent(in) :: ustar , resa
+      real(rkx), dimension(jci1:jci2), intent(in) :: ustar, resa
       real(rkx),  dimension(jci1:jci2,ntr) :: drydepvg
 
-      integer(ik4) :: n , j , lcov
-      real(rkx) , dimension(ngasd,jci1:jci2) :: resb, resc
-      real(rkx) , dimension(ngasd,jci1:jci2) :: vdg
-      real(rkx) , dimension(jci1:jci2) :: icz , ddrem
-      real(rkx) , dimension(jci1:jci2) :: lai_f , laimin , laimax , snow
-      real(rkx) :: kd , kav , rdz
+      integer(ik4) :: n, j, lcov
+      real(rkx), dimension(ngasd,jci1:jci2) :: resb, resc
+      real(rkx), dimension(ngasd,jci1:jci2) :: vdg
+      real(rkx), dimension(jci1:jci2) :: icz, ddrem
+      real(rkx), dimension(jci1:jci2) :: lai_f, laimin, laimax, snow
+      real(rkx) :: kd, kav, rdz
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_gas'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       ! Different options for LAI and roughness
       ! for the moment read from
 
-      do j = jci1 , jci2
+      do j = jci1, jci2
         if ( ivegcov(j) == 0 ) then
           lcov = 14
         else if ( ivegcov(j) > 20 ) then
@@ -844,16 +844,16 @@ module mod_che_drydep
       ! according to the gasphase mechanism
       ! vdg in m.s-1
       vdg(:,:) = d_zero
-      do j = jci1 , jci2
-          do n = 1 , ngasd
+      do j = jci1, jci2
+          do n = 1, ngasd
             vdg(n,j) = d_one/(resa(j)+resb(n,j)+resc(n,j))
           end do
       end do
       ! this part depends on the chem mechanism
-      ! for CBMZ , we can certainly improve this.
+      ! for CBMZ, we can certainly improve this.
       drydepvg = d_zero
       drydepvg(jci1:jci2,iso2)  =  vdg(1,jci1:jci2)
-      ! SO2 deposition is used in SULF , AERO and CBMZ simulations
+      ! SO2 deposition is used in SULF, AERO and CBMZ simulations
       if ( igaschem > 0 ) then
         drydepvg(jci1:jci2,ino2)  =  vdg(3,jci1:jci2)!*0.5
         drydepvg(jci1:jci2,io3)   =  vdg(4,jci1:jci2)!*0.5
@@ -871,9 +871,9 @@ module mod_che_drydep
 
       ! Finally : gas phase dry dep tendency calculation
       if ( ichdrdepo == 1 ) then
-        do j = jci1 , jci2
+        do j = jci1, jci2
           rdz = d_one / cdzq(j,i,kz)
-          do n = 1 , ntr
+          do n = 1, ntr
             kd = drydepvg(j,n) * rdz !Kd removal rate in s-1
             if ( idynamic == 3 ) then
               kav = max(chemt(j,i,kz,n),d_zero)*rdt
@@ -904,8 +904,8 @@ module mod_che_drydep
           end do
         end do
       else if ( ichdrdepo == 2 ) then
-        do j = jci1 , jci2
-          do n = 1 , ntr
+        do j = jci1, jci2
+          do n = 1, ntr
             if ( idynamic == 3 ) then
               chifxuw(j,i,n) = chifxuw(j,i,n) - chemt(j,i,kz,n) * drydepvg(j,n)
             else
@@ -925,30 +925,30 @@ module mod_che_drydep
 
     subroutine aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
       implicit none
-      integer(ik4) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: ivegcov
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: temp2
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: wind10
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: rh10
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: sutemp
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: srad
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: zeff
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(out) :: ustar
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(out) :: ra
-      integer(ik4) :: i , j
-      real(rkx) :: vp , tsv
-      real(rkx) :: z , zl , ww
-      real(rkx) :: ptemp2 , es , qs
-      real(rkx) :: wvpm , vptemp , tsw , mol
-      real(rkx) :: z0water , dthv , cun , zdl
-      real(rkx) :: psiu , psit , x , y
-      real(rkx) :: thstar , rib , dtemp , tbar
-      real(rkx) :: ustarsq , utstar , kui
-      real(rkx) :: ratioz , logratio , asq
-      real(rkx) :: aa , cm , ch , fm , fh , zz0
-      real(rkx) , parameter :: z10 = 10.0_rkx
+      integer(ik4), dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: temp2
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: wind10
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: rh10
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: sutemp
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: srad
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: zeff
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(out) :: ustar
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(out) :: ra
+      integer(ik4) :: i, j
+      real(rkx) :: vp, tsv
+      real(rkx) :: z, zl, ww
+      real(rkx) :: ptemp2, es, qs
+      real(rkx) :: wvpm, vptemp, tsw, mol
+      real(rkx) :: z0water, dthv, cun, zdl
+      real(rkx) :: psiu, psit, x, y
+      real(rkx) :: thstar, rib, dtemp, tbar
+      real(rkx) :: ustarsq, utstar, kui
+      real(rkx) :: ratioz, logratio, asq
+      real(rkx) :: aa, cm, ch, fm, fh, zz0
+      real(rkx), parameter :: z10 = 10.0_rkx
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'aerodyresis'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
 
@@ -968,8 +968,8 @@ module mod_che_drydep
       ! *           (0.0-1.0)                           ****
       ! * stdpmb - sea level pressure (mb)              ****
       ! ****************************************************
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
             ww = max(wind10(j,i),1.0_rkx)
             zz0 = zeff(j,i)
             ! ***************************************************************
@@ -1102,43 +1102,43 @@ module mod_che_drydep
     subroutine stomtresis(lai_f,laimin,laimax,ivegcov,igas, &
                           ustar,prec,sd,srad,ts,t2,rh,coszen,rc,rb)
       implicit none
-      integer(ik4) , intent(in) :: igas
-      integer(ik4) , intent(in) , dimension(jci1:jci2) :: ivegcov
-      real(rkx) , dimension(jci1:jci2) , intent(in) :: coszen, srad , &
-                         ts , rh , prec , sd , t2
-      real(rkx) , dimension(jci1:jci2) , intent(in) :: lai_f , laimin , laimax
-      real(rkx) , intent(in) , dimension(jci1:jci2) :: ustar
-      real(rkx) , intent(out) , dimension(igas,jci1:jci2) :: rb , rc
+      integer(ik4), intent(in) :: igas
+      integer(ik4), intent(in), dimension(jci1:jci2) :: ivegcov
+      real(rkx), dimension(jci1:jci2), intent(in) :: coszen, srad, &
+                         ts, rh, prec, sd, t2
+      real(rkx), dimension(jci1:jci2), intent(in) :: lai_f, laimin, laimax
+      real(rkx), intent(in), dimension(jci1:jci2) :: ustar
+      real(rkx), intent(out), dimension(igas,jci1:jci2) :: rb, rc
 
-      integer(ik4) :: j , lcov , ig
-      real(rkx) :: rst, wst , rac , rgs_f
-      real(rkx) :: rdu , rdv , rgo_f
-      real(rkx) :: rcuto_f , rcuts_f
-      real(rkx) :: ww1 , ww2 , ww3
-      real(rkx) :: rdm , rdn , rv , rn
-      real(rkx) :: ratio , sv , fv , fvv
-      real(rkx) :: pardir , pardif
-      real(rkx) :: tmaxk , tmink
-      real(rkx) :: pshad , psun , rshad , rsun
-      real(rkx) :: gshad , gsun , fsun , fshad
-      real(rkx) :: gspar , temps !C
-      real(rkx) :: bt , gt , gw , ryx
-      real(rkx) :: es , d0 , gd , psi
-      real(rkx) :: coedew , dq , usmin
-      real(rkx) :: fsnow , rsnows
-      real(rkx) :: dgas , di , vi
+      integer(ik4) :: j, lcov, ig
+      real(rkx) :: rst, wst, rac, rgs_f
+      real(rkx) :: rdu, rdv, rgo_f
+      real(rkx) :: rcuto_f, rcuts_f
+      real(rkx) :: ww1, ww2, ww3
+      real(rkx) :: rdm, rdn, rv, rn
+      real(rkx) :: ratio, sv, fv, fvv
+      real(rkx) :: pardir, pardif
+      real(rkx) :: tmaxk, tmink
+      real(rkx) :: pshad, psun, rshad, rsun
+      real(rkx) :: gshad, gsun, fsun, fshad
+      real(rkx) :: gspar, temps !C
+      real(rkx) :: bt, gt, gw, ryx
+      real(rkx) :: es, d0, gd, psi
+      real(rkx) :: coedew, dq, usmin
+      real(rkx) :: fsnow, rsnows
+      real(rkx) :: dgas, di, vi
       real(rkx) :: dvh2o, rstom
-      real(rkx) :: rcut , rg , xp
-      logical :: is_dew , is_rain
-      real(rkx) , parameter :: dair = 0.369_rkx * 29.0_rkx + 6.29_rkx
-      real(rkx) , parameter :: dh2o = 0.369_rkx * 18.0_rkx + 6.29_rkx
+      real(rkx) :: rcut, rg, xp
+      logical :: is_dew, is_rain
+      real(rkx), parameter :: dair = 0.369_rkx * 29.0_rkx + 6.29_rkx
+      real(rkx), parameter :: dh2o = 0.369_rkx * 18.0_rkx + 6.29_rkx
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'stomtresis'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
 
-      do j = jci1 , jci2
+      do j = jci1, jci2
           is_rain = .false.
           is_dew  = .false.
           if ( ivegcov(j) == 0 ) then
@@ -1206,7 +1206,7 @@ module mod_che_drydep
                       exp(-coszen(j))
               psun = pardir * 0.5_rkx/coszen(j) + pshad
             end if
-!           print *, 'pshad   psun   ', pshad , psun
+!           print *, 'pshad   psun   ', pshad, psun
             rshad = rsminz(lcov) + brs(lcov) * rsminz(lcov)/pshad
             rsun  = rsminz(lcov) + brs(lcov) * rsminz(lcov)/psun
 
@@ -1416,7 +1416,7 @@ module mod_che_drydep
           !================================================================
           ! Calculate diffusivity for each gas species
           !================================================================
-          do ig = 1 , igas
+          do ig = 1, igas
             dgas = 0.369_rkx * mw(ig) + 6.29_rkx
             di = 0.001_rkx*ts(j)**1.75_rkx * &
               sqrt((29.0_rkx + mw(ig))/mw(ig)/29._rkx)

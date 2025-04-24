@@ -5,29 +5,29 @@ program trend
   implicit none
 
   ! The variable to search
-  character(len=16) , dimension(2) , parameter :: timenames = &
+  character(len=16), dimension(2), parameter :: timenames = &
                  (/'time','Time'/)
-  character(len=16) , dimension(5) , parameter :: latnames = &
+  character(len=16), dimension(5), parameter :: latnames = &
                  (/'xlat    ','lat     ','latitude','LAT     ','iy      '/)
-  character(len=16) , dimension(5) , parameter :: lonnames = &
+  character(len=16), dimension(5), parameter :: lonnames = &
                  (/'xlon     ','lon      ','longitude','LON      ','jx       '/)
 
   character(len=256) :: progname
   character(len=256) :: inputfile
   character(len=256) :: outputfile
   character(len=32) :: varname
-  character(len=32) :: dname , vname , aname
-  integer :: ncid , ncout , ixdimid , iydimid , itimid
-  integer :: idlat , idlon , idlatout , idlonout , ndims
+  character(len=32) :: dname, vname, aname
+  integer :: ncid, ncout, ixdimid, iydimid, itimid
+  integer :: idlat, idlon, idlatout, idlonout, ndims
   integer :: istatus
-  integer , dimension(3) :: odims , istart , icount
-  integer :: nvar , ivar , natt , iatt , idvar , idtime
-  integer :: ivarouta , ivaroutb , ivaroutc
-  integer :: i , nx , ny , nt , ipoint , npoint , it
-  logical :: coord_2d = .false. , has_coord = .false.
-  real , allocatable , dimension(:,:) :: abetrend , reshaped , coord
-  real , allocatable , dimension(:) :: coord1d , a , b , r , atime , x , y
-  real , allocatable , dimension(:,:,:) :: inpindx
+  integer, dimension(3) :: odims, istart, icount
+  integer :: nvar, ivar, natt, iatt, idvar, idtime
+  integer :: ivarouta, ivaroutb, ivaroutc
+  integer :: i, nx, ny, nt, ipoint, npoint, it
+  logical :: coord_2d = .false., has_coord = .false.
+  real, allocatable, dimension(:,:) :: abetrend, reshaped, coord
+  real, allocatable, dimension(:) :: coord1d, a, b, r, atime, x, y
+  real, allocatable, dimension(:,:,:) :: inpindx
 
   call get_command_argument(0,value=progname)
   call get_command_argument(1,value=inputfile)
@@ -125,7 +125,7 @@ program trend
 
   idvar = -1
   varloop: &
-  do ivar = 1 , nvar
+  do ivar = 1, nvar
     istatus = nf90_inquire_variable(ncid,ivar,name=vname,natts=natt,ndims=ndims)
     if ( istatus /= nf90_noerr ) then
       write(0,*) 'Cannot inquire variable ',ivar
@@ -134,7 +134,7 @@ program trend
     if ( vname == varname ) then
       idvar = ivar
     end if
-    do i = 1 , size(latnames)
+    do i = 1, size(latnames)
       if ( vname == latnames(i) ) then
         idlat = ivar
         if ( ndims == 2 ) then
@@ -151,7 +151,7 @@ program trend
             stop
           end if
         end if
-        do iatt = 1 , natt
+        do iatt = 1, natt
           istatus = nf90_inq_attname(ncid,ivar,iatt,aname)
           if ( istatus /= nf90_noerr ) then
             write(0,*) 'Cannot inquire attribute ',iatt
@@ -167,7 +167,7 @@ program trend
         cycle varloop
       end if
     end do
-    do i = 1 , size(lonnames)
+    do i = 1, size(lonnames)
       if ( vname == lonnames(i) ) then
         idlon = ivar
         if ( ndims == 2 ) then
@@ -184,7 +184,7 @@ program trend
             stop
           end if
         end if
-        do iatt = 1 , natt
+        do iatt = 1, natt
           istatus = nf90_inq_attname(ncid,ivar,iatt,aname)
           if ( istatus /= nf90_noerr ) then
             write(0,*) 'Cannot inquire attribute ',iatt
@@ -200,7 +200,7 @@ program trend
         cycle varloop
       end if
     end do
-    do i = 1 , size(timenames)
+    do i = 1, size(timenames)
       if ( vname == timenames(i) ) then
         idtime = ivar
       end if
@@ -357,16 +357,16 @@ program trend
     stop
   end if
 
-  do it = 1 , nt
+  do it = 1, nt
     atime(it) = real(it)
     reshaped(it,:) = reshape(inpindx(:,:,it),(/npoint/))
   end do
 
-  do it = 1 , nt
+  do it = 1, nt
     x(it) = atime(it)
   end do
-  do ipoint = 1 , npoint
-    do it = 1 , nt
+  do ipoint = 1, npoint
+    do it = 1, nt
       y(it) = reshaped(it,ipoint)
     end do
     call linear_regression_coefficients(x,y,nt,a(ipoint),b(ipoint),r(ipoint))
@@ -415,11 +415,11 @@ program trend
    !
    subroutine linear_regression_coefficients(x,y,n,a,b,r)
      implicit none
-     real , dimension(:) , intent(in) :: x , y
-     integer , intent(in) :: n
-     real , intent(out) :: a , b , r
-     real(8) , allocatable , dimension(:) :: yd , xd
-     real(8) :: nn , sx , sy , sxx , syy , sxy , alpha , beta , corr
+     real, dimension(:), intent(in) :: x, y
+     integer, intent(in) :: n
+     real, intent(out) :: a, b, r
+     real(8), allocatable, dimension(:) :: yd, xd
+     real(8) :: nn, sx, sy, sxx, syy, sxy, alpha, beta, corr
      allocate(xd(n),yd(n))
      xd = x(1:n)
      yd = y(1:n)

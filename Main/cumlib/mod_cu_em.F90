@@ -23,17 +23,17 @@ module mod_cu_em
   use mod_dynparam
   use mod_memutil
   use mod_mppparam
-  use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,   &
-    damp , dtmax , entp , minorig , omtrain , omtsnow , tlcrit , iqv , &
-    ichem , clfrcv , ichcumtra , icup , dt
-  use mod_runparams , only : elcrit_ocn , elcrit_lnd , epmax_ocn , epmax_lnd
-  use mod_runparams , only : sigs , sigd
-  use mod_runparams , only : k2_const , kfac_shal , kfac_deep
-  use mod_runparams , only : istochastic
-  use mod_runparams , only : sigs_min , sigs_max
-  use mod_runparams , only : sigd_min , sigd_max
-  use mod_runparams , only : epmax_lnd_min , epmax_lnd_max
-  use mod_runparams , only : elcrit_lnd_min , elcrit_lnd_max
+  use mod_runparams, only : alphae, betae, coeffr, coeffs, cu,   &
+    damp, dtmax, entp, minorig, omtrain, omtsnow, tlcrit, iqv, &
+    ichem, clfrcv, ichcumtra, icup, dt
+  use mod_runparams, only : elcrit_ocn, elcrit_lnd, epmax_ocn, epmax_lnd
+  use mod_runparams, only : sigs, sigd
+  use mod_runparams, only : k2_const, kfac_shal, kfac_deep
+  use mod_runparams, only : istochastic
+  use mod_runparams, only : sigs_min, sigs_max
+  use mod_runparams, only : sigd_min, sigd_max
+  use mod_runparams, only : epmax_lnd_min, epmax_lnd_max
+  use mod_runparams, only : elcrit_lnd_min, elcrit_lnd_max
   use mod_cu_common
   use mod_service
   use mod_regcm_types
@@ -42,32 +42,32 @@ module mod_cu_em
 
   private
 
-  public :: allocate_mod_cu_em , cupemandrv
+  public :: allocate_mod_cu_em, cupemandrv
 
-  real(rkx) , parameter :: mincbmf = 1.0e-30_rkx
-  real(rkx) , parameter :: delt0 = 300.0_rkx
+  real(rkx), parameter :: mincbmf = 1.0e-30_rkx
+  real(rkx), parameter :: delt0 = 300.0_rkx
 
   ! Latent heats
-  real(rkx) , parameter :: clq = 2500.0_rkx
+  real(rkx), parameter :: clq = 2500.0_rkx
 
-  real(rkx) , public , pointer , dimension(:,:) :: cbmf2d
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: cbmf2d
 
-  integer(ik4) :: ncp , nap
+  integer(ik4) :: ncp, nap
 
-  real(rkx) , pointer , dimension(:) :: cbmf , pret , qprime , &
-    tprime , wd , elcrit , epmax
-  real(rkx) , pointer , dimension(:,:) :: fq , ft , fu , fv , pcup , &
-    qcup , qscup , tcup , ucup , vcup , zcup , cldfra , phcup , ppcp
-  real(rkx) , pointer , dimension(:,:,:) :: ftra , tra
-  integer(ik4) , pointer , dimension(:) :: iflag , kbase , ktop , &
-    imap , jmap , ldmsk
+  real(rkx), pointer, contiguous, dimension(:) :: cbmf, pret, qprime, &
+    tprime, wd, elcrit, epmax
+  real(rkx), pointer, contiguous, dimension(:,:) :: fq, ft, fu, fv, pcup, &
+    qcup, qscup, tcup, ucup, vcup, zcup, cldfra, phcup, ppcp
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ftra, tra
+  integer(ik4), pointer, contiguous, dimension(:) :: iflag, kbase, ktop, &
+    imap, jmap, ldmsk
 
   contains
 
   subroutine allocate_mod_cu_em
     implicit none
-    integer(ik4) :: i , nseed
-    integer(ik4) , dimension(:) , allocatable :: seed
+    integer(ik4) :: i, nseed
+    integer(ik4), dimension(:), allocatable :: seed
     integer(ik8) :: sclock
 
     ncp = (jci2-jci1+1) * (ici2-ici1+1)
@@ -120,12 +120,12 @@ module mod_cu_em
   !
   subroutine cupemandrv(m2c)
     implicit none
-    type(mod_2_cum) , intent(in) :: m2c
-    integer(ik4) :: i , j , k , n , kk
-    real(rkx) , dimension(4) :: rfacs
+    type(mod_2_cum), intent(in) :: m2c
+    integer(ik4) :: i, j, k, n, kk
+    real(rkx), dimension(4) :: rfacs
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cupemandrv'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -141,8 +141,8 @@ module mod_cu_em
     end if
 
     nap = 0
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cuscheme(j,i) == 4 ) then
           nap = nap + 1
           imap(nap) = i
@@ -159,8 +159,8 @@ module mod_cu_em
       return
     end if
 
-    do k = 1 , kz
-      do n = 1 , nap
+    do k = 1, kz
+      do n = 1, nap
         i = imap(n)
         j = jmap(n)
         kk = kzp1 - k
@@ -181,8 +181,8 @@ module mod_cu_em
       end do
     end do
 
-    do k = 1 , kzp1
-      do n = 1 , nap
+    do k = 1, kzp1
+      do n = 1, nap
         i = imap(n)
         j = jmap(n)
         kk = kzp1 - k + 1
@@ -190,7 +190,7 @@ module mod_cu_em
       end do
     end do
 
-    do n = 1 , nap
+    do n = 1, nap
       if ( ldmsk(n) > 0 ) then
         elcrit(n) = elcrit_lnd
         epmax(n) = epmax_lnd
@@ -201,13 +201,13 @@ module mod_cu_em
     end do
 
     ! Past history
-    do n = 1 , nap
+    do n = 1, nap
       i = imap(n)
       j = jmap(n)
       cbmf(n) = cbmf2d(j,i) ! [(kg/m**2)/s]
     end do
 
-    do n = 1 , nap
+    do n = 1, nap
       pret(n) = d_zero
       tprime(n) = d_zero
       qprime(n) = d_zero
@@ -217,10 +217,10 @@ module mod_cu_em
     end do
 
     if ( ichem == 1 ) then
-      do n = 1 , nap
+      do n = 1, nap
         i = imap(n)
         j = jmap(n)
-        do k = 1 , kz
+        do k = 1, kz
           kk = kzp1 - k
           tra(n,k,:) = m2c%chias(j,i,kk,:)   ! [kg/kg]
           ftra(n,k,:) = d_zero
@@ -232,13 +232,13 @@ module mod_cu_em
                  iflag,ft,fq,fu,fv,ftra,pret,ppcp,wd,tprime,qprime,   &
                  cbmf,cldfra,kbase,ktop,elcrit,epmax)
 
-    do n = 1 , nap
+    do n = 1, nap
       i = imap(n)
       j = jmap(n)
       cbmf2d(j,i) = cbmf(n)
     end do
 
-    do n = 1 , nap
+    do n = 1, nap
       ! iflag=0: No moist convection; atmosphere stable or surface
       !          temperature < 250K or surface humidity is negative.
       ! iflag=1: Moist convection occurs.
@@ -250,7 +250,7 @@ module mod_cu_em
         i = imap(n)
         j = jmap(n)
         ! Tendencies
-        do k = 1 , kz
+        do k = 1, kz
           kk = kzp1 - k
           cu_tten(j,i,kk) = ft(n,k)
           ! Move specific humidity tendency to mixing ratio tendency
@@ -266,7 +266,7 @@ module mod_cu_em
           cu_ktop(j,i) = kzp1-ktop(n)
           cu_kbot(j,i) = kzp1-kbase(n)
         end if
-        do k = 1 , kz
+        do k = 1, kz
           kk = kzp1 - k
           cu_cldfrc(j,i,k) = cldfra(n,kk)
         end do
@@ -283,11 +283,11 @@ module mod_cu_em
     ! Tracer tendency
     if ( ichem == 1 .and. ichcumtra == 1 .and. &
          (.not. any( icup == 2 .or. icup == 6 )) ) then
-      do n = 1 , nap
+      do n = 1, nap
         if ( iflag(n) == 1 .or. iflag(n) == 4 ) then
           i = imap(n)
           j = jmap(n)
-          do k = 1 , kz
+          do k = 1, kz
             kk = kzp1 - k
             cu_chiten(j,i,kk,:) = ftra(n,k,:)
           end do
@@ -296,7 +296,7 @@ module mod_cu_em
           ! source/sink of rain at level k by difference with level above .If
           ! negative (due torain  evap)   set to zero
           ! from the surface to the top of the convection
-          do k = 1 , ktop(n)-1
+          do k = 1, ktop(n)-1
             kk = kzp1 - k
             cu_convpr(j,i,kk) = max(ppcp(n,k)-ppcp(n,k+1),d_zero)
           end do
@@ -446,37 +446,37 @@ module mod_cu_em
                      ftra,precip,ppcp,wd,tprime,qprime,cbmf,cldfra,kcb, &
                      kct,elcrit,epmax)
     implicit none
-    integer(ik4) , intent(in) :: np , nd , ntra
-    real(rkx) , pointer , dimension(:) , intent(inout) :: cbmf
-    real(rkx) , pointer , dimension(:) , intent(in) :: elcrit , epmax
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: p , q , qs , t , u , v
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: tra
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ph
-    real(rkx) , pointer , dimension(:) , intent(inout) :: precip
-    real(rkx) , pointer , dimension(:) , intent(inout) :: qprime , tprime , wd
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: iflag , kcb , kct
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: fq , ft , fu , fv
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: cldfra , ppcp
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ftra
+    integer(ik4), intent(in) :: np, nd, ntra
+    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: cbmf
+    real(rkx), pointer, contiguous, dimension(:), intent(in) :: elcrit, epmax
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: p, q, qs, t, u, v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: tra
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ph
+    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: precip
+    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: qprime, tprime, wd
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: iflag, kcb, kct
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: fq, ft, fu, fv
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: cldfra, ppcp
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ftra
 
-    real(rkx) :: ad , afac , ahmax , ahmin , alt , altem , am ,          &
-                 anum , asij , awat , b6 , bf2 , bsum , by , byp , c6 ,  &
-                 cape , capem , cbmfold , chi , coeff , cpinv , cwat ,   &
-                 damps , dbo , dbosum , defrac , dei , delm , delp ,     &
-                 denom , dhdp , dpinv , dtma , dtmnx , dtpbl , elacrit , &
-                 ents , fac , fqold , frac , ftold , ftraold , fuold ,   &
-                 fvold , plcl , qp1 , qsm , qstm , qti , rat , revap ,   &
-                 rh , scrit , sigt , sjmax , sjmin , smid , smin ,       &
-                 stemp , tca , traav , tvaplcl , tvpplcl , tvx ,  tvy ,  &
-                 uav , vav , wdtrain , amp1
-    real(rkx) , dimension(nd+1) :: clw , cpn , ep , evap , gz , h , hm , &
-                                   hp , lv , lvcp , m , mp , qp , sigp , &
-                                   tp , tv , tvp , up , vp , water , wt
-    integer(ik4) :: n , nl , i , ihmin , icb , ict , ict1 , j , jtt , k , nk
-    integer(ik4) , dimension(nd+1) :: nent
-    real(rkx) , dimension(nd+1,nd+1) :: elij , ment , qent , sij , uent , vent
-    real(rkx) , dimension(nd+1,nd+1,ntra) :: traent
-    real(rkx) , dimension(nd+1,ntra) :: trap
+    real(rkx) :: ad, afac, ahmax, ahmin, alt, altem, am,          &
+                 anum, asij, awat, b6, bf2, bsum, by, byp, c6,  &
+                 cape, capem, cbmfold, chi, coeff, cpinv, cwat,   &
+                 damps, dbo, dbosum, defrac, dei, delm, delp,     &
+                 denom, dhdp, dpinv, dtma, dtmnx, dtpbl, elacrit, &
+                 ents, fac, fqold, frac, ftold, ftraold, fuold,   &
+                 fvold, plcl, qp1, qsm, qstm, qti, rat, revap,   &
+                 rh, scrit, sigt, sjmax, sjmin, smid, smin,       &
+                 stemp, tca, traav, tvaplcl, tvpplcl, tvx,  tvy,  &
+                 uav, vav, wdtrain, amp1
+    real(rkx), dimension(nd+1) :: clw, cpn, ep, evap, gz, h, hm, &
+                                   hp, lv, lvcp, m, mp, qp, sigp, &
+                                   tp, tv, tvp, up, vp, water, wt
+    integer(ik4) :: n, nl, i, ihmin, icb, ict, ict1, j, jtt, k, nk
+    integer(ik4), dimension(nd+1) :: nent
+    real(rkx), dimension(nd+1,nd+1) :: elij, ment, qent, sij, uent, vent
+    real(rkx), dimension(nd+1,nd+1,ntra) :: traent
+    real(rkx), dimension(nd+1,ntra) :: trap
     logical :: chemcutran
     !
     !   specify switches
@@ -493,7 +493,7 @@ module mod_cu_em
     chemcutran = ( ichem == 1 .and. ichcumtra > 0 )
 
     pointloop: &
-    do  n = 1 , np
+    do  n = 1, np
       !
       ! Calculate arrays of geopotential, heat capacity and static energy
       !
@@ -505,7 +505,7 @@ module mod_cu_em
       tv(1) = t(n,1)*(d_one+q(n,1)*rgowi-q(n,1))
       ahmin = 1.0e12_rkx
       ihmin = nl
-      do i = 2 , nl + 1
+      do i = 2, nl + 1
         tvx = t(n,i)*(d_one+q(n,i)*rgowi-q(n,i))
         tvy = t(n,i-1)*(d_one+q(n,i-1)*rgowi-q(n,i-1))
         gz(i) = gz(i-1) + (rgas*d_half)*(tvx+tvy)*(p(n,i-1)-p(n,i))/ph(n,i)
@@ -530,7 +530,7 @@ module mod_cu_em
       !
       ahmax = d_zero
       nk = minorig
-      do i = minorig , ihmin
+      do i = minorig, ihmin
         if ( hm(i) > ahmax ) then
           nk = i
           ahmax = hm(i)
@@ -562,7 +562,7 @@ module mod_cu_em
       ! Calculate first level above lcl (=icb)
       !
       icb = nl - 1
-      do i = nk + 1 , nl
+      do i = nk + 1, nl
         if ( p(n,i) < plcl ) icb = min(icb,i)
       end do
       if ( icb >= (nl-1) ) then
@@ -578,7 +578,7 @@ module mod_cu_em
       ! liquid water content
       !
       call tlift(n,p,t,q,qs,gz,icb,nk,tvp,tp,clw,nd,nl,1)
-      do i = nk , icb
+      do i = nk, icb
         tvp(i) = tvp(i) - tp(i)*q(n,nk)
       end do
       !
@@ -602,11 +602,11 @@ module mod_cu_em
       ! precipitation falling outside of cloud
       ! these may be functions of tp(i), p(i) and clw(i)
       !
-      do i = 1 , nk
+      do i = 1, nk
         ep(i) = d_zero
         sigp(i) = sigs
       end do
-      do i = nk + 1 , nl
+      do i = nk + 1, nl
         tca = tp(i) - tzero
         if ( tca >= d_zero ) then
           elacrit = elcrit(n)
@@ -623,14 +623,14 @@ module mod_cu_em
       ! Calculate virtual temperature and lifted parcel
       ! virtual temperature
       !
-      do i = icb + 1 , nl
+      do i = icb + 1, nl
         tvp(i) = tvp(i) - tp(i)*q(n,nk)
       end do
       tvp(nl+1) = tvp(nl) - (gz(nl+1)-gz(nl))*rcpd
       !
       ! now initialize various arrays used in the computations
       !
-      do i = 1 , nl + 1
+      do i = 1, nl + 1
         hp(i) = h(i)
         nent(i) = 0
         water(i) = d_zero
@@ -639,7 +639,7 @@ module mod_cu_em
         mp(i) = d_zero
         m(i) = d_zero
         lvcp(i) = lv(i)/cpn(i)
-        do j = 1 , nl + 1
+        do j = 1, nl + 1
           qent(i,j) = q(n,j)
           elij(i,j) = d_zero
           ment(i,j) = d_zero
@@ -647,7 +647,7 @@ module mod_cu_em
           uent(i,j) = u(n,j)
           vent(i,j) = v(n,j)
           if ( chemcutran ) then
-            do k = 1 , ntra
+            do k = 1, ntra
               traent(i,j,k) = tra(n,j,k)
             end do
           end if
@@ -657,16 +657,16 @@ module mod_cu_em
       up(1) = u(n,1)
       vp(1) = v(n,1)
       if ( chemcutran ) then
-        do i = 1 , ntra
+        do i = 1, ntra
           trap(1,i) = tra(n,1,i)
         end do
       end if
-      do i = 2 , nl + 1
+      do i = 2, nl + 1
         qp(i) = q(n,i-1)
         up(i) = u(n,i-1)
         vp(i) = v(n,i-1)
         if ( chemcutran ) then
-          do j = 1 , ntra
+          do j = 1, ntra
             trap(i,j) = tra(n,i-1,j)
           end do
         end if
@@ -680,7 +680,7 @@ module mod_cu_em
       ict = icb + 1
       ict1 = ict
       byp = d_zero
-      do i = icb + 1 , nl - 1
+      do i = icb + 1, nl - 1
         by = (tvp(i)-tv(i))*(ph(n,i)-ph(n,i+1))/p(n,i)
         cape = cape + by
         if ( by >= d_zero ) ict1 = i + 1
@@ -700,7 +700,7 @@ module mod_cu_em
       !
       ! Calculate liquid water static energy of lifted parcel
       !
-      do i = icb , ict
+      do i = icb, ict
         hp(i) = h(nk) + (lv(i)+(cpd-cpw)*t(n,i))*ep(i)*clw(i)
       end do
       !
@@ -717,7 +717,7 @@ module mod_cu_em
       tvaplcl = tv(icb)+(tvp(icb)-tvp(icb+1))*(plcl-p(n,icb)) / &
                                              (p(n,icb)-p(n,icb+1))
       dtpbl = d_zero
-      do i = nk , icb - 1
+      do i = nk, icb - 1
         dtpbl = dtpbl + (tvp(i)-tv(i))*(ph(n,i)-ph(n,i+1))
       end do
       dtpbl = dtpbl/(ph(n,nk)-ph(n,icb))
@@ -741,13 +741,13 @@ module mod_cu_em
       ! calculate rates of mixing, m(i)
       !
       m(icb) = d_zero
-      do i = icb + 1 , ict
+      do i = icb + 1, ict
         k = min(i,ict1)
         dbo = abs(tv(k)-tvp(k)) + entp*0.02_rkx*(ph(n,k)-ph(n,k+1))
         dbosum = dbosum + dbo
         m(i) = cbmf(n)*dbo
       end do
-      do i = icb + 1 , ict
+      do i = icb + 1, ict
         m(i) = m(i)/dbosum
       end do
       !
@@ -755,9 +755,9 @@ module mod_cu_em
       ! total water mixing ratio (qent),
       ! total condensed water (elij), and mixing fraction (sij)
       !
-      do i = icb + 1 , ict
+      do i = icb + 1, ict
         qti = q(n,nk) - ep(i)*clw(i)
-        do j = icb , ict
+        do j = icb, ict
           bf2 = d_one + lv(j)*lv(j)*qs(n,j)/(rwat*t(n,j)*t(n,j)*cpd)
           anum = h(j) - hp(i) + (cpv-cpd)*t(n,j)*(qti-q(n,j))
           denom = h(i) - hp(i) + (cpd-cpv)*(q(n,i)-qti)*t(n,j)
@@ -783,7 +783,7 @@ module mod_cu_em
             uent(i,j) = sij(i,j)*u(n,i) + (d_one-sij(i,j))*u(n,nk)
             vent(i,j) = sij(i,j)*v(n,i) + (d_one-sij(i,j))*v(n,nk)
             if ( chemcutran ) then
-              do k = 1 , ntra
+              do k = 1, ntra
                 traent(i,j,k) = sij(i,j)*tra(n,i,k)+(d_one-sij(i,j))*tra(n,nk,k)
               end do
             end if
@@ -805,7 +805,7 @@ module mod_cu_em
           uent(i,i) = u(n,nk)
           vent(i,i) = v(n,nk)
           if ( chemcutran ) then
-            do j = 1 , ntra
+            do j = 1, ntra
               traent(i,i,j) = tra(n,nk,j)
             end do
           end if
@@ -818,7 +818,7 @@ module mod_cu_em
       ! Normalize entrained air mass fluxes to represent equal
       ! probabilities of mixing
       !
-      do i = icb + 1 , ict
+      do i = icb + 1, ict
         if ( nent(i) /= 0 ) then
           qp1 = q(n,nk) - ep(i)*clw(i)
           anum = h(i) - hp(i) - lv(i)*(qp1-qs(n,i))
@@ -830,7 +830,7 @@ module mod_cu_em
           scrit = max(scrit,d_zero)
           asij = d_zero
           smin = d_one
-          do j = icb , ict
+          do j = icb, ict
             if ( sij(i,j) > d_zero .and. sij(i,j) < 0.9_rkx ) then
               if ( j > i ) then
                 smid = min(sij(i,j),scrit)
@@ -857,11 +857,11 @@ module mod_cu_em
           end do
           asij = max(1.0e-21_rkx,asij)
           asij = d_one/asij
-          do j = icb , ict
+          do j = icb, ict
             ment(i,j) = ment(i,j)*asij
           end do
           bsum = d_zero
-          do j = icb , ict
+          do j = icb, ict
             bsum = bsum + ment(i,j)
           end do
           if ( bsum < 1.0e-18_rkx ) then
@@ -871,7 +871,7 @@ module mod_cu_em
             uent(i,i) = u(n,nk)
             vent(i,i) = v(n,nk)
             if ( chemcutran ) then
-              do j = 1 , ntra
+              do j = 1, ntra
                 traent(i,i,j) = tra(n,nk,j)
               end do
             end if
@@ -893,13 +893,13 @@ module mod_cu_em
         !
         ! Begin downdraft loop
         !
-        do i = ict , 1 , -1
+        do i = ict, 1, -1
           !
           ! Calculate detrained precipitation
           !
           wdtrain = egrav*ep(i)*m(i)*clw(i)
           if ( i > 1 ) then
-            do j = 1 , i - 1
+            do j = 1, i - 1
               awat = elij(j,i) - (d_one-ep(i))*clw(i)
               awat = max(d_zero,awat)
               wdtrain = wdtrain + egrav*awat*ment(j,i)
@@ -972,7 +972,7 @@ module mod_cu_em
               up(i) = up(i+1)*rat + u(n,i)*(d_one-rat)
               vp(i) = vp(i+1)*rat + v(n,i)*(d_one-rat)
               if ( chemcutran ) then
-                do j = 1 , ntra
+                do j = 1, ntra
                   trap(i,j) = trap(i+1,j)*rat + trap(i,j)*(d_one-rat)
                 end do
               end if
@@ -982,7 +982,7 @@ module mod_cu_em
               up(i) = up(i+1)
               vp(i) = vp(i+1)
               if ( chemcutran ) then
-                do j = 1 , ntra
+                do j = 1, ntra
                   trap(i,j) = trap(i+1,j)
                 end do
               end if
@@ -1010,7 +1010,7 @@ module mod_cu_em
       dpinv = 0.01_rkx/(ph(n,1)-ph(n,2))
       am = d_zero
       if ( nk == 1 ) then
-        do k = 2 , ict
+        do k = 2, ict
           am = am + m(k)
         end do
       end if
@@ -1024,17 +1024,17 @@ module mod_cu_em
       fu(n,1) = fu(n,1) + egrav*dpinv*(mp(2)*(up(2)-u(n,1))+am*(u(n,2)-u(n,1)))
       fv(n,1) = fv(n,1) + egrav*dpinv*(mp(2)*(vp(2)-v(n,1))+am*(v(n,2)-v(n,1)))
       if ( chemcutran ) then
-        do j = 1 , ntra
+        do j = 1, ntra
           ftra(n,1,j) = ftra(n,1,j) + egrav*dpinv * &
                  (mp(2)*(trap(2,j)-tra(n,1,j)) + am*(tra(n,2,j)-tra(n,1,j)))
         end do
       end if
-      do j = 2 , ict
+      do j = 2, ict
         fq(n,1) = fq(n,1) + egrav*dpinv*ment(j,1)*(qent(j,1)-q(n,1))
         fu(n,1) = fu(n,1) + egrav*dpinv*ment(j,1)*(uent(j,1)-u(n,1))
         fv(n,1) = fv(n,1) + egrav*dpinv*ment(j,1)*(vent(j,1)-v(n,1))
         if ( chemcutran ) then
-          do k = 1 , ntra
+          do k = 1, ntra
             ftra(n,1,k) = ftra(n,1,k) + &
                     egrav*dpinv*ment(j,1)*(traent(j,1,k)-tra(n,1,k))
           end do
@@ -1046,24 +1046,24 @@ module mod_cu_em
       ! First find the net saturated updraft and downdraft mass fluxes
       ! through each level
       !
-      do i = 2 , ict
+      do i = 2, ict
         dpinv = 0.01_rkx/(ph(n,i)-ph(n,i+1))
         cpinv = d_one/cpn(i)
         ad = d_zero
         amp1 = d_zero
         if ( i >= nk ) then
-          do k = i + 1 , ict + 1
+          do k = i + 1, ict + 1
             amp1 = amp1 + m(k)
           end do
         end if
-        do k = 1 , i
-          do j = i + 1 , ict + 1
+        do k = 1, i
+          do j = i + 1, ict + 1
             amp1 = amp1 + ment(k,j)
           end do
         end do
         if ( (d_two*egrav*dpinv*amp1) >= d_one/dt ) iflag = 4
-        do k = 1 , i - 1
-          do j = i , ict
+        do k = 1, i - 1
+          do j = i, ict
             ad = ad + ment(j,k)
           end do
         end do
@@ -1081,30 +1081,30 @@ module mod_cu_em
         fv(n,i) = fv(n,i) + egrav*dpinv * &
               (amp1*(v(n,i+1)-v(n,i))-ad*(v(n,i)-v(n,i-1)))
         if ( chemcutran ) then
-          do k = 1 , ntra
+          do k = 1, ntra
             ftra(n,i,k) = ftra(n,i,k) + egrav*dpinv * &
                (amp1*(tra(n,i+1,k)-tra(n,i,k))-ad*(tra(n,i,k)-tra(n,i-1,k)))
           end do
         end if
-        do k = 1 , i - 1
+        do k = 1, i - 1
           awat = elij(k,i) - (d_one-ep(i))*clw(i)
           awat = max(awat,d_zero)
           fq(n,i) = fq(n,i) + egrav*dpinv*ment(k,i)*(qent(k,i)-awat-q(n,i))
           fu(n,i) = fu(n,i) + egrav*dpinv*ment(k,i)*(uent(k,i)-u(n,i))
           fv(n,i) = fv(n,i) + egrav*dpinv*ment(k,i)*(vent(k,i)-v(n,i))
           if ( chemcutran ) then
-            do j = 1 , ntra
+            do j = 1, ntra
               ftra(n,i,j) = ftra(n,i,j) + &
                 egrav*dpinv*ment(k,i)*(traent(k,i,j)-tra(n,i,j))
             end do
           end if
         end do
-        do k = i , ict
+        do k = i, ict
           fq(n,i) = fq(n,i) + egrav*dpinv*ment(k,i)*(qent(k,i)-q(n,i))
           fu(n,i) = fu(n,i) + egrav*dpinv*ment(k,i)*(uent(k,i)-u(n,i))
           fv(n,i) = fv(n,i) + egrav*dpinv*ment(k,i)*(vent(k,i)-v(n,i))
           if ( chemcutran ) then
-            do j = 1 , ntra
+            do j = 1, ntra
               ftra(n,i,j) = ftra(n,i,j) + &
                 egrav*dpinv*ment(k,i)*(traent(k,i,j)-tra(n,i,j))
             end do
@@ -1117,7 +1117,7 @@ module mod_cu_em
         fv(n,i) = fv(n,i) + egrav * &
                 (mp(i+1)*(vp(i+1)-v(n,i)) - mp(i)*(vp(i)-v(n,i-1)))*dpinv
         if ( chemcutran ) then
-          do j = 1 , ntra
+          do j = 1, ntra
             ftra(n,i,j) = ftra(n,i,j) + egrav*dpinv * &
              (mp(i+1)*(trap(i+1,j)-tra(n,i,j)) - mp(i)*(trap(i,j)-tra(n,i-1,j)))
           end do
@@ -1146,7 +1146,7 @@ module mod_cu_em
       fv(n,ict-1) = fv(n,ict-1) + frac*fvold * &
                   ((ph(n,ict)-ph(n,ict+1))/(ph(n,ict-1)-ph(n,ict)))
       if ( chemcutran ) then
-        do k = 1 , ntra
+        do k = 1, ntra
           ftraold = ftra(n,ict,k)
           ftra(n,ict,k) = ftra(n,ict,k)*(d_one-frac)
           ftra(n,ict-1,k) = ftra(n,ict-1,k) + frac*ftraold * &
@@ -1160,7 +1160,7 @@ module mod_cu_em
       ents = d_zero
       uav = d_zero
       vav = d_zero
-      do i = 1 , ict
+      do i = 1, ict
         ents = ents + (cpn(i)*ft(n,i)+lv(i)*fq(n,i))*(ph(n,i)-ph(n,i+1))
         uav = uav + fu(n,i)*(ph(n,i)-ph(n,i+1))
         vav = vav + fv(n,i)*(ph(n,i)-ph(n,i+1))
@@ -1168,19 +1168,19 @@ module mod_cu_em
       ents = ents/(ph(n,1)-ph(n,ict+1))
       uav = uav/(ph(n,1)-ph(n,ict+1))
       vav = vav/(ph(n,1)-ph(n,ict+1))
-      do i = 1 , ict
+      do i = 1, ict
         ft(n,i) = ft(n,i) - ents/cpn(i)
         fu(n,i) = (d_one-cu)*(fu(n,i)-uav)
         fv(n,i) = (d_one-cu)*(fv(n,i)-vav)
       end do
       if ( chemcutran ) then
-        do k = 1 , ntra
+        do k = 1, ntra
           traav = d_zero
-          do i = 1 , ict
+          do i = 1, ict
             traav = traav + ftra(n,i,k)*(ph(n,i)-ph(n,i+1))
           end do
           traav = traav/(ph(n,1)-ph(n,ict+1))
-          do i = 1 , ict
+          do i = 1, ict
             ftra(n,i,k) = ftra(n,i,k) - traav
           end do
         end do
@@ -1193,12 +1193,12 @@ module mod_cu_em
       ! Identify Deep concection if cloud depth is > 2000m
       !
       if ( zcup(n,ict) - zcup(n,icb) >= 2000.0_rkx ) then
-        do i = icb , ict
+        do i = icb, ict
           cldfra(n,i) = kfac_deep*log(d_one+(k2_const*d_half*(m(i)+m(i+1))))
           cldfra(n,i) = min(max(0.01_rkx,cldfra(n,i)),0.6_rkx)
         end do
       else
-        do i = icb , ict
+        do i = icb, ict
           cldfra(n,i) = kfac_shal*log(d_one+(k2_const*d_half*(m(i)+m(i+1))))
           cldfra(n,i) = min(max(0.01_rkx,cldfra(n,i)),0.2_rkx)
         end do
@@ -1216,15 +1216,15 @@ module mod_cu_em
       !
       subroutine tlift(n,p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
         implicit none
-        integer(ik4) , intent(in) :: n , nd , nk , nl , kk
-        integer(ik4) , intent(in) :: icb
-        real(rkx) , dimension(:,:) , intent(in) :: p , q , qs , t
-        real(rkx) , dimension(nd) , intent(in) :: gz
-        real(rkx) , dimension(nd) , intent(inout) :: clw , tpk , tvp
-        real(rkx) :: ah0 , ahg , alv , cpinv , cpp , qg , rg , s , tg
+        integer(ik4), intent(in) :: n, nd, nk, nl, kk
+        integer(ik4), intent(in) :: icb
+        real(rkx), dimension(:,:), intent(in) :: p, q, qs, t
+        real(rkx), dimension(nd), intent(in) :: gz
+        real(rkx), dimension(nd), intent(inout) :: clw, tpk, tvp
+        real(rkx) :: ah0, ahg, alv, cpinv, cpp, qg, rg, s, tg
         real(rkx) :: ppa
-        !real(rkx) :: tc , es , denom
-        integer(ik4) :: i , j , nsb , nst
+        !real(rkx) :: tc, es, denom
+        integer(ik4) :: i, j, nsb, nst
         !
         ! calculate certain parcel quantities, including static energy
         !
@@ -1236,10 +1236,10 @@ module mod_cu_em
           !
           ! calculate lifted parcel quantities below cloud base
           !
-          do i = 1 , icb - 1
+          do i = 1, icb - 1
             clw(i) = d_zero
           end do
-          do i = nk , icb - 1
+          do i = nk, icb - 1
             tpk(i) = t(n,nk) - (gz(i)-gz(nk))*cpinv
             tvp(i) = tpk(i)*(d_one+q(n,nk)*rgowi)
           end do
@@ -1253,11 +1253,11 @@ module mod_cu_em
           nst = nl
           nsb = icb + 1
         end if
-        do i = nsb , nst
+        do i = nsb, nst
           tg = t(n,i)
           qg = qs(n,i)
           alv = wlh(tg)
-          do j = 1 , 2
+          do j = 1, 2
             s = d_one/(cpd + alv*alv*qg/(rwat*t(n,i)*t(n,i)))
             ahg = cpd*tg + (cpv-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)
             tg = tg + s*(ah0-ahg)

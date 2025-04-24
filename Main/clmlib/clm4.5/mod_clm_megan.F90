@@ -47,7 +47,7 @@ module mod_clm_megan
   character(len=80), public :: shr_megan_fields_token = ''
   character(len=256), public :: shr_megan_factors_file = ''
 
-  integer(ik4) , parameter :: max_specifier_len = 1024
+  integer(ik4), parameter :: max_specifier_len = 1024
 
   ! MEGAN compound data structure (or user defined type)
   type shr_megan_megcomp_t
@@ -55,12 +55,12 @@ module mod_clm_megan
     character(len=16) :: name
     integer(ik4) :: index
     ! function of plant-function-type (PFT)
-    real(rk8), pointer :: emis_factors(:)
+    real(rk8), pointer, contiguous :: emis_factors(:)
     integer(ik4) :: class_number    ! MEGAN class number
     ! molecular weight of the MEGAN compound (g/mole)
     real(rk8) :: molec_weight
     ! points to next member in the linked list
-    type(shr_megan_megcomp_t) , pointer :: next_megcomp
+    type(shr_megan_megcomp_t), pointer :: next_megcomp
   endtype shr_megan_megcomp_t
 
   type shr_megan_comp_ptr
@@ -93,7 +93,7 @@ module mod_clm_megan
 
   ! private data
   type parser_items_t
-    character(len=16),pointer :: megan_comp_names(:)
+    character(len=16), pointer :: megan_comp_names(:)
     character(len=16) :: mech_comp_name
     integer(ik4) :: n_megan_comps
   end type parser_items_t
@@ -150,8 +150,8 @@ module mod_clm_megan
     character(len=256) :: megan_factors_file = ' '
     character(*),parameter :: F00   = "('(seq_drydep_read) ',2a)"
 
-    namelist /megan_emis_nl/ megan_specifier , megan_factors_file ,  &
-                     shr_megan_mapped_emisfctrs , shr_megan_megcomps_n , &
+    namelist /megan_emis_nl/ megan_specifier, megan_factors_file,  &
+                     shr_megan_mapped_emisfctrs, shr_megan_megcomps_n, &
                      shr_megan_mechcomps_n
 
     if ( myid == iocpu ) then
@@ -175,7 +175,7 @@ module mod_clm_megan
     call bcast(shr_megan_mechcomps_n)
     call bcast(megan_factors_file,256)
     call bcast(shr_megan_mapped_emisfctrs)
-    do i = 1 , maxspc
+    do i = 1, maxspc
       call bcast(megan_specifier(i),max_specifier_len)
     end do
 
@@ -213,7 +213,7 @@ module mod_clm_megan
       if ( spc_len > 0 ) then
         items => get_parser_items( specifier(i) )
 
-        do k = 1 , shr_megan_mechcomps_n
+        do k = 1, shr_megan_mechcomps_n
           if ( trim(shr_megan_mechcomps(k)%name) == &
                trim(items%mech_comp_name) ) then
             call fatal(__FILE__,__LINE__, &
@@ -226,7 +226,7 @@ module mod_clm_megan
         shr_megan_mechcomps(i)%n_megan_comps = items%n_megan_comps
         allocate(shr_megan_mechcomps(i)%megan_comps(items%n_megan_comps))
 
-        do j = 1 , items%n_megan_comps
+        do j = 1, items%n_megan_comps
           shr_megan_mechcomps(i)%megan_comps(j)%ptr => &
                   add_megan_comp( items%megan_comp_names(j) )
         end do
@@ -279,7 +279,7 @@ module mod_clm_megan
     allocate(items%megan_comp_names(nelem))
     items%mech_comp_name = trim(adjustl( spec_entry(:ndxs(1)-1)))
     items%n_megan_comps = nelem
-    do i = 1 , nelem
+    do i = 1, nelem
        items%megan_comp_names(i) = &
                trim(adjustl( spec_entry(ndxs(i)+1:ndxs(i+1)-1)))
     end do

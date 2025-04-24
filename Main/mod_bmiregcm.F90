@@ -42,7 +42,7 @@ module bmiregcm
   use bmif_2_0
 
   use, intrinsic :: iso_c_binding, only: c_ptr, c_loc, c_f_pointer
-  use mod_regcm_interface , only : atm_model
+  use mod_regcm_interface, only : atm_model
 
   implicit none
   private
@@ -146,7 +146,7 @@ contains
   ! Get the name of the model.
   function regcm_component_name(this, name) result (bmi_status)
     class (bmi_regcm), intent(in) :: this
-    character (len=*), pointer, intent(inout) :: name
+    character (len=*), pointer, contiguous, intent(inout) :: name
     integer :: bmi_status
 
     name => component_name
@@ -176,7 +176,7 @@ contains
   ! List input variables.
   function regcm_input_var_names(this, names) result (bmi_status)
     class (bmi_regcm), intent(in) :: this
-    character (*), pointer, intent(inout) :: names(:)
+    character (*), pointer, contiguous, intent(inout) :: names(:)
     integer :: bmi_status
 
     input_items(1) = 'plate_surface__temperature'
@@ -190,7 +190,7 @@ contains
   ! List output variables.
   function regcm_output_var_names(this, names) result (bmi_status)
     class (bmi_regcm), intent(in) :: this
-    character (*), pointer, intent(inout) :: names(:)
+    character (*), pointer, contiguous, intent(inout) :: names(:)
     integer :: bmi_status
 
     names => output_items
@@ -737,7 +737,7 @@ contains
   function regcm_get_ptr_int(this, name, dest_ptr) result (bmi_status)
     class (bmi_regcm), intent(in) :: this
     character (len=*), intent(in) :: name
-    integer, pointer, intent(inout) :: dest_ptr(:)
+    integer, pointer, contiguous, intent(inout) :: dest_ptr(:)
     integer :: bmi_status
     type (c_ptr) :: src
     integer :: n_elements
@@ -752,7 +752,7 @@ contains
   function regcm_get_ptr_float(this, name, dest_ptr) result (bmi_status)
     class (bmi_regcm), intent(in) :: this
     character (len=*), intent(in) :: name
-    real, pointer, intent(inout) :: dest_ptr(:)
+    real, pointer, contiguous, intent(inout) :: dest_ptr(:)
     integer :: bmi_status
     type (c_ptr) :: src
     integer :: n_elements
@@ -772,7 +772,7 @@ contains
   function regcm_get_ptr_double(this, name, dest_ptr) result (bmi_status)
     class (bmi_regcm), intent(in) :: this
     character (len=*), intent(in) :: name
-    double precision, pointer, intent(inout) :: dest_ptr(:)
+    double precision, pointer, contiguous, intent(inout) :: dest_ptr(:)
     integer :: bmi_status
     type (c_ptr) :: src
     integer :: n_elements

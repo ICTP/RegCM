@@ -39,14 +39,14 @@ module mod_cloud_echam5
   !
   subroutine echam5_cldfrac(qc,rh,p,ps,qcrit,fcc)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qc , rh , p
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps , qcrit
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
-    real(rkx) , parameter :: ct = 0.35_rkx
-    real(rkx) , parameter :: cs = 0.85_rkx
-    real(rkx) , parameter :: nx = 4.0_rkx
-    integer(ik4) :: i , j , k
-    real(rkx) :: rhrng , rhcrit , sig
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qc, rh, p
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps, qcrit
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
+    real(rkx), parameter :: ct = 0.35_rkx
+    real(rkx), parameter :: cs = 0.85_rkx
+    real(rkx), parameter :: nx = 4.0_rkx
+    integer(ik4) :: i, j, k
+    real(rkx) :: rhrng, rhcrit, sig
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction

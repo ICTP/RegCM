@@ -27,22 +27,22 @@ module mod_mklaisai
 
   public :: mklaisai
 
-  character(len=16) , parameter :: timedim = 'time'
-  character(len=16) , parameter :: varname1 = 'MONTHLY_LAI'
-  character(len=16) , parameter :: varname2 = 'MONTHLY_SAI'
-  character(len=32) , parameter :: varname3 = 'MONTHLY_HEIGHT_TOP'
-  character(len=32) , parameter :: varname4 = 'MONTHLY_HEIGHT_BOT'
+  character(len=16), parameter :: timedim = 'time'
+  character(len=16), parameter :: varname1 = 'MONTHLY_LAI'
+  character(len=16), parameter :: varname2 = 'MONTHLY_SAI'
+  character(len=32), parameter :: varname3 = 'MONTHLY_HEIGHT_TOP'
+  character(len=32), parameter :: varname4 = 'MONTHLY_HEIGHT_BOT'
 
   contains
 
   subroutine mklaisai(laisaifile,mask, &
                   monthly_lai,monthly_sai,monthly_top,monthly_bot)
     implicit none
-    character(len=*) , intent(in) :: laisaifile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:,:,:) , intent(out) :: monthly_sai , monthly_lai
-    real(rkx) , dimension(:,:,:,:) , intent(out) :: monthly_top , monthly_bot
-    integer(ik4) :: nm , np
+    character(len=*), intent(in) :: laisaifile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:,:,:), intent(out) :: monthly_sai, monthly_lai
+    real(rkx), dimension(:,:,:,:), intent(out) :: monthly_top, monthly_bot
+    integer(ik4) :: nm, np
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -66,14 +66,14 @@ module mod_mklaisai
 
       subroutine inrange(f,mi,ma)
         implicit none
-        real(rkx) , dimension(:,:,:,:) , intent(inout) :: f
-        real(rkx) , intent(in) :: mi , ma
-        integer :: i , j , p , n
-        do n = 1 , nm
+        real(rkx), dimension(:,:,:,:), intent(inout) :: f
+        real(rkx), intent(in) :: mi, ma
+        integer :: i, j, p, n
+        do n = 1, nm
           do p = 1, np
             call bestaround(f(:,:,p,n),h_missing_value)
-            do i = 1 , iysg
-              do j = 1 , jxsg
+            do i = 1, iysg
+              do j = 1, jxsg
                 if ( mask(j,i) < 0.5_rkx ) then
                   f(j,i,p,n) = h_missing_value
                 else

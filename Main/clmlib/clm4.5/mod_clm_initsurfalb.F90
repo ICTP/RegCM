@@ -5,24 +5,24 @@ module mod_clm_initsurfalb
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_constants , only : degrad
+  use mod_constants, only : degrad
   use mod_clm_type
-  use mod_clm_decomp , only : get_proc_bounds
-  use mod_clm_filter , only : filter
-  use mod_clm_varpar , only : nlevsoi , nlevsno , nlevlak , nlevgrnd
-  use mod_clm_varcon , only : zlnd , istsoil , isturb , denice , denh2o , &
-            icol_roof , icol_road_imperv , icol_road_perv , istcrop
-  use mod_clm_fracwet , only : FracWet
-  use mod_clm_surfacealbedo , only : SurfaceAlbedo
+  use mod_clm_decomp, only : get_proc_bounds
+  use mod_clm_filter, only : filter
+  use mod_clm_varpar, only : nlevsoi, nlevsno, nlevlak, nlevgrnd
+  use mod_clm_varcon, only : zlnd, istsoil, isturb, denice, denh2o, &
+            icol_roof, icol_road_imperv, icol_road_perv, istcrop
+  use mod_clm_fracwet, only : FracWet
+  use mod_clm_surfacealbedo, only : SurfaceAlbedo
 #if (defined CN)
   use mod_stdio
   use mod_mpmessage
-  use mod_clm_cnecosystemdyn , only : CNEcosystemDyn
-  use mod_clm_cnvegstructupdate , only : CNVegStructUpdate
+  use mod_clm_cnecosystemdyn, only : CNEcosystemDyn
+  use mod_clm_cnvegstructupdate, only : CNVegStructUpdate
 #else
-  use mod_clm_staticecosysdyn , only : EcosystemDyn , interpMonthlyVeg
+  use mod_clm_staticecosysdyn, only : EcosystemDyn, interpMonthlyVeg
 #endif
-  use mod_clm_urban , only : UrbanAlbedo
+  use mod_clm_urban, only : UrbanAlbedo
 
   implicit none
 
@@ -44,74 +44,74 @@ contains
   !
   subroutine initSurfalb(calday,declin,declinm1)
     implicit none
-    real(rk8) , intent(in) :: calday  ! calendar day for declin
-    real(rk8) , intent(in) :: declin  ! declination angle (radians) for calday
+    real(rk8), intent(in) :: calday  ! calendar day for declin
+    real(rk8), intent(in) :: declin  ! declination angle (radians) for calday
     ! declination angle (radians) for caldaym1
-    real(rk8) , intent(in) , optional :: declinm1
+    real(rk8), intent(in), optional :: declinm1
     ! landunit index associated with each pft
-    integer(ik4) , pointer :: plandunit(:)
+    integer(ik4), pointer, contiguous :: plandunit(:)
     ! column type
-    integer(ik4) , pointer :: ctype(:)
+    integer(ik4), pointer, contiguous :: ctype(:)
     ! landunit index associated with each column
-    integer(ik4) , pointer :: clandunit(:)
+    integer(ik4), pointer, contiguous :: clandunit(:)
     ! gridcell associated with each pft
-    integer(ik4),  pointer :: pgridcell(:)
+    integer(ik4),  pointer, contiguous :: pgridcell(:)
     ! landunit type
-    integer(ik4) , pointer :: itypelun(:)
+    integer(ik4), pointer, contiguous :: itypelun(:)
     ! true => landunit is a lake point
-    logical , pointer :: lakpoi(:)
+    logical, pointer, contiguous :: lakpoi(:)
     ! layer thickness depth (m)
-    real(rk8) , pointer :: dz(:,:)
+    real(rk8), pointer, contiguous :: dz(:,:)
     ! ice lens (kg/m2)
-    real(rk8) , pointer :: h2osoi_ice(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)
     ! liquid water (kg/m2)
-    real(rk8) , pointer :: h2osoi_liq(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)
     ! snow water (mm H2O)
-    real(rk8) , pointer :: h2osno(:)
+    real(rk8), pointer, contiguous :: h2osno(:)
     ! fraction of vegetation not covered by snow (0 OR 1) [-]
-    integer(ik4) , pointer :: frac_veg_nosno_alb(:)
+    integer(ik4), pointer, contiguous :: frac_veg_nosno_alb(:)
     ! daylength (seconds)
-    real(rk8) , pointer :: dayl(:)
+    real(rk8), pointer, contiguous :: dayl(:)
     ! latitude (degrees)
-    real(rk8) , pointer :: latdeg(:)
+    real(rk8), pointer, contiguous :: latdeg(:)
     ! index into column level quantities
-    integer(ik4) , pointer :: pcolumn(:)
+    integer(ik4), pointer, contiguous :: pcolumn(:)
     ! soil water potential in each soil layer (MPa)
-    real(rk8) , pointer :: soilpsi(:,:)
+    real(rk8), pointer, contiguous :: soilpsi(:,:)
     ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
-    real(rk8) , pointer :: h2osoi_vol(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_vol(:,:)
     ! snow height (m)
-    real(rk8) , pointer :: snow_depth(:)
+    real(rk8), pointer, contiguous :: snow_depth(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8) , pointer :: frac_sno(:)
+    real(rk8), pointer, contiguous :: frac_sno(:)
     ! fraction of vegetation not covered by snow (0 OR 1) [-]
-    integer(ik4) , pointer :: frac_veg_nosno(:)
+    integer(ik4), pointer, contiguous :: frac_veg_nosno(:)
     ! fraction of canopy that is wet (0 to 1) (pft-level)
-    real(rk8) , pointer :: fwet(:)
+    real(rk8), pointer, contiguous :: fwet(:)
     ! solar declination angle (radians)
-    real(rk8) , pointer :: decl(:)
+    real(rk8), pointer, contiguous :: decl(:)
     ! fraction of foliage that is green and dry [-] (new)
-    real(rk8) , pointer :: fdry(:)
+    real(rk8), pointer, contiguous :: fdry(:)
     ! one-sided leaf area index, no burying by snow
-    real(rk8) , pointer :: tlai(:)
+    real(rk8), pointer, contiguous :: tlai(:)
     ! one-sided stem area index, no burying by snow
-    real(rk8) , pointer :: tsai(:)
+    real(rk8), pointer, contiguous :: tsai(:)
     ! canopy top (m)
-    real(rk8) , pointer :: htop(:)
+    real(rk8), pointer, contiguous :: htop(:)
     ! canopy bottom (m)
-    real(rk8) , pointer :: hbot(:)
+    real(rk8), pointer, contiguous :: hbot(:)
     ! one-sided leaf area index with burying by snow
-    real(rk8) , pointer :: elai(:)
+    real(rk8), pointer, contiguous :: elai(:)
     ! one-sided stem area index with burying by snow
-    real(rk8) , pointer :: esai(:)
-    integer(ik4) :: l , c , p ! indices
+    real(rk8), pointer, contiguous :: esai(:)
+    integer(ik4) :: l, c, p ! indices
 #if (defined CN)
-    integer(ik4) :: j , fc ! indices
+    integer(ik4) :: j, fc ! indices
 #endif
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending ldunit indices
-    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl ! per-proc beginning and ending ldunit indices
+    integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
 #if (defined CN)
     real(rk8) :: lat    ! latitude (radians) for daylength calculation
     real(rk8) :: temp   ! temporary variable for daylength
@@ -183,7 +183,7 @@ contains
 
     ! Determine variables needed by SurfaceAlbedo for lake points
 
-    do p = begp , endp
+    do p = begp, endp
       l = plandunit(p)
       if ( lakpoi(l) ) then
         fwet(p) = 0._rk8
@@ -204,8 +204,8 @@ contains
     !
 
 #if (defined CN)
-    do j = 1 , nlevgrnd
-      do fc = 1 , filter%num_soilc
+    do j = 1, nlevgrnd
+      do fc = 1, filter%num_soilc
         c = filter%soilc(fc)
         soilpsi(c,j) = -15.0_rk8
       end do
@@ -214,7 +214,7 @@ contains
 
     ! Determine variables needed for SurfaceAlbedo for non-lake points
 
-    do c = begc , endc
+    do c = begc, endc
       l = clandunit(c)
       if ( itypelun(l) == isturb ) then
         ! From Bonan 1996 (LSM technical note)
@@ -251,7 +251,7 @@ contains
     ! before or after the summer solstice.
 
     ! declination for previous timestep
-    do c = begc , endc
+    do c = begc, endc
       l = clandunit(c)
       if ( itypelun(l) == istsoil .or. itypelun(l) == istcrop ) then
         decl(c) = declinm1
@@ -259,7 +259,7 @@ contains
     end do
 
     ! daylength for previous timestep
-    do p = begp , endp
+    do p = begp, endp
       c = pcolumn(p)
       l = plandunit(p)
       if ( itypelun(l) == istsoil .or. itypelun(l) == istcrop ) then
@@ -271,7 +271,7 @@ contains
     end do
 
     ! declination for current timestep
-    do c = begc , endc
+    do c = begc, endc
       l = clandunit(c)
       if ( itypelun(l) == istsoil .or. itypelun(l) == istcrop ) then
         decl(c) = declin
@@ -290,7 +290,7 @@ contains
     call EcosystemDyn(begp,endp,filter%num_nolakep,filter%nolakep,doalb=.true.)
 #endif
 
-    do p = begp , endp
+    do p = begp, endp
       l = plandunit(p)
       if ( .not. lakpoi(l) ) then
         frac_veg_nosno(p) = frac_veg_nosno_alb(p)

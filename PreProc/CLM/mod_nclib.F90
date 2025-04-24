@@ -41,12 +41,12 @@ module mod_nclib
 
   implicit none
 
-  integer(ik4) , intent (in) :: ndim
+  integer(ik4), intent (in) :: ndim
   character(len=256), intent(in) :: filnam
-  real(rk4) , dimension(ndim) :: phymin , phymax
-  integer(ik4) , intent (out) :: ierr , cdfid
+  real(rk4), dimension(ndim) :: phymin, phymax
+  integer(ik4), intent (out) :: ierr, cdfid
 
-  integer(ik4) , parameter :: maxdim = 4
+  integer(ik4), parameter :: maxdim = 4
   character(len=64) :: attnam
   character(len=1)  :: chrid(maxdim)
   integer(ik4) :: k
@@ -57,7 +57,7 @@ module mod_nclib
   if ( ierr/=nf90_noerr ) go to 920
 
 !     define global attributes
-  do k = 1 , ndim
+  do k = 1, ndim
     attnam(1:3) = 'dom'
     attnam(4:4) = chrid(k)
     attnam(5:7) = 'min'
@@ -93,11 +93,11 @@ module mod_nclib
 
   implicit none
 
-  character(len=256) , intent(in) :: filnam
-  integer(ik4) , intent(in) :: ndim
-  integer(ik4) , intent(out) :: cdfid
-  integer(ik4) , intent(out) :: ierr
-  real(rk4) , dimension(ndim) , intent (in) :: varmin , varmax
+  character(len=256), intent(in) :: filnam
+  integer(ik4), intent(in) :: ndim
+  integer(ik4), intent(out) :: cdfid
+  integer(ik4), intent(out) :: ierr
+  real(rk4), dimension(ndim), intent (in) :: varmin, varmax
 
   call crecdf (filnam,cdfid,varmin,varmax,3,ierr)
 
@@ -121,8 +121,8 @@ module mod_nclib
   implicit none
 
 !     Argument declarations.
-  integer(ik4) , intent(in) :: cdfid
-  integer(ik4) , intent(out) :: ierr
+  integer(ik4), intent(in) :: cdfid
+  integer(ik4), intent(out) :: ierr
 
 !     Close requested file.
   ierr = nf90_close(cdfid)
@@ -154,33 +154,33 @@ module mod_nclib
 
   implicit none
 
-  integer(ik4) , intent(in) :: cdfid , ie , je , ke
-  character(len=64) :: varnam , lname , vunit
-  real(rk4) , dimension(ie,je,ke) , intent(in) :: arr
-  real(rk4) , dimension(ie) , intent(in) :: xlon1d
-  real(rk4) , dimension(je) , intent(in) :: xlat1d
-  real(rk4) , dimension(ke) , intent(in) :: sigh
-  integer(ik4) , dimension(3) , intent(in) :: iadim
-  real(rk4) , dimension(3) , intent (in) :: vvarmin , vvarmax
-  real(rk8) , intent(in) :: vtstep
-  real(rk4) , intent(in) :: offset , factor , vmisdat
-  integer(ik4) , intent(in) :: izstag , iotype
+  integer(ik4), intent(in) :: cdfid, ie, je, ke
+  character(len=64) :: varnam, lname, vunit
+  real(rk4), dimension(ie,je,ke), intent(in) :: arr
+  real(rk4), dimension(ie), intent(in) :: xlon1d
+  real(rk4), dimension(je), intent(in) :: xlat1d
+  real(rk4), dimension(ke), intent(in) :: sigh
+  integer(ik4), dimension(3), intent(in) :: iadim
+  real(rk4), dimension(3), intent (in) :: vvarmin, vvarmax
+  real(rk8), intent(in) :: vtstep
+  real(rk4), intent(in) :: offset, factor, vmisdat
+  integer(ik4), intent(in) :: izstag, iotype
 
 !     declarations needed for netcdf-stuff
 
-  real(rk4) , dimension(3) :: varmin , varmax , varstg
-  integer(ik4) , dimension(3) :: vardim
+  real(rk4), dimension(3) :: varmin, varmax, varstg
+  integer(ik4), dimension(3) :: vardim
   real(rk4) :: tstep
-  integer(ik4) :: idtest , it , ndims
+  integer(ik4) :: idtest, it, ndims
   real(rk4) :: rfac
 
 ! *********** declare some auxiliary variables **********
 
-  integer(ik4) :: i , k , iputlev
-  integer(ik4) :: ievar , jevar , kevar
+  integer(ik4) :: i, k, iputlev
+  integer(ik4) :: ievar, jevar, kevar
 
 !     convert real*8 input variables to real*4 variables
-  do i = 1 , 3
+  do i = 1, 3
     varmin(i) = vvarmin(i)
     varmax(i) = vvarmax(i)
   end do
@@ -253,12 +253,12 @@ module mod_nclib
 
   implicit none
 
-  integer(ik4) , intent(in) :: cdfid , ie , je , ke , ndim
-  integer(ik4) , dimension(ndim) , intent(in) :: vardim
-  real(rk4) , dimension(ie) :: xlon1d
-  real(rk4) , dimension(je) :: xlat1d
-  real(rk4) , dimension(ke) :: sigh
-  integer(ik4) , intent(out) :: ierr
+  integer(ik4), intent(in) :: cdfid, ie, je, ke, ndim
+  integer(ik4), dimension(ndim), intent(in) :: vardim
+  real(rk4), dimension(ie) :: xlon1d
+  real(rk4), dimension(je) :: xlat1d
+  real(rk4), dimension(ke) :: sigh
+  integer(ik4), intent(out) :: ierr
 
   integer(ik4) :: ncvid
 
@@ -346,30 +346,30 @@ module mod_nclib
 
   implicit none
 
-  integer(ik4) , intent(in) :: cdfid , ievar , jevar , ie , je , ke , k ,&
+  integer(ik4), intent(in) :: cdfid, ievar, jevar, ie, je, ke, k ,&
                           level
-  character(len=64) , intent(in) :: varnam
-  real(rk4) , dimension(ie,je,ke) , intent(in) :: arr
-  real(rk4) , intent(in) :: vmisdat , rfac , offset
-  integer(ik4) , intent(out) :: ierr
-  real(rk8) , intent(in) :: time
+  character(len=64), intent(in) :: varnam
+  real(rk4), dimension(ie,je,ke), intent(in) :: arr
+  real(rk4), intent(in) :: vmisdat, rfac, offset
+  integer(ik4), intent(out) :: ierr
+  real(rk8), intent(in) :: time
 
-  integer(2) , dimension(ie*je*ke) :: dat
+  integer(2), dimension(ie*je*ke) :: dat
   real(rk4) :: misdat
   real(rk8) :: timeval
-  real(rk8) , dimension(2) :: dvrange
-  integer(ik4) , dimension(4) :: corner , edgeln , did , vardim
-  integer(ik4) :: ndims , ntime
-  integer(ik4) :: idtime , idvar , iflag
-  integer(ik4) :: i , j , ik , ij
-  integer(ik4) , dimension(1) :: istart
+  real(rk8), dimension(2) :: dvrange
+  integer(ik4), dimension(4) :: corner, edgeln, did, vardim
+  integer(ik4) :: ndims, ntime
+  integer(ik4) :: idtime, idvar, iflag
+  integer(ik4) :: i, j, ik, ij
+  integer(ik4), dimension(1) :: istart
 
-  integer(2) , parameter :: shfill = -32767_2
+  integer(2), parameter :: shfill = -32767_2
   ierr = 0
 
   ij = 0
-  do j = 1 , jevar
-    do i = 1 , ievar
+  do j = 1, jevar
+    do i = 1, ievar
       ij = ij + 1
       if ( arr(i,j,k)<vmisdat ) then
         dat(ij) = shfill  ! the lowest integer value, should match min
@@ -396,7 +396,7 @@ module mod_nclib
   if ( ierr/=nf90_noerr ) go to 920
 !     Check if a new time step is starting
   iflag = 0
-  do  i = 1 , ntime
+  do  i = 1, ntime
     istart(1) = i
     ierr = nf90_get_var(cdfid,idtime,timeval,istart)
     if ( ierr/=nf90_noerr ) go to 920
@@ -493,34 +493,34 @@ module mod_nclib
 
   implicit none
 
-  integer(ik4) , parameter :: maxdim = 4
+  integer(ik4), parameter :: maxdim = 4
 
-  integer(ik4) , intent(in) :: cdfid , ndim , iotype
-  character(len=64) , intent(in) :: varnam , clname , clunits
-  integer(ik4) , dimension(ndim) :: vardim
-  real(rk4) , dimension(ndim) :: varmin , varmax
-  real(rk4) , intent(in) :: xscale , offset , misdat
-  integer(ik4) , intent(out) :: ierr
+  integer(ik4), intent(in) :: cdfid, ndim, iotype
+  character(len=64), intent(in) :: varnam, clname, clunits
+  integer(ik4), dimension(ndim) :: vardim
+  real(rk4), dimension(ndim) :: varmin, varmax
+  real(rk4), intent(in) :: xscale, offset, misdat
+  integer(ik4), intent(out) :: ierr
 
-  character(len=64) :: dimnam , dimchk
-  character(len=64) , dimension(10) :: dimnams
-  character(len=5) , dimension(maxdim) :: rdim
-  integer(ik4) , dimension(10) :: dimvals
-  integer(ik4) , dimension(maxdim) :: did
-  integer(ik4) :: numdims , numvars , numgats , dimulim
-  integer(ik4) :: id , idtime , i , k , ik
+  character(len=64) :: dimnam, dimchk
+  character(len=64), dimension(10) :: dimnams
+  character(len=5), dimension(maxdim) :: rdim
+  integer(ik4), dimension(10) :: dimvals
+  integer(ik4), dimension(maxdim) :: did
+  integer(ik4) :: numdims, numvars, numgats, dimulim
+  integer(ik4) :: id, idtime, i, k, ik
   integer(ik4) :: idcoor
-  real(rk4) , dimension(2) :: vrange
-  real(rk8) , dimension(2) :: dvrange
-  character(len=64) , dimension(maxdim) :: long_name
-  character(len=64) , dimension(maxdim) :: units
-  integer(2) , parameter :: shfill = -32767_2
+  real(rk4), dimension(2) :: vrange
+  real(rk8), dimension(2) :: dvrange
+  character(len=64), dimension(maxdim) :: long_name
+  character(len=64), dimension(maxdim) :: units
+  integer(2), parameter :: shfill = -32767_2
 
   data rdim /'lon','lat','level','time'/
   data long_name /'Longitude','Latitude','Height_Index','Time'/
 
   data units / 'degrees_east', 'degrees_north',                     &
-               'level' , 'hours since 1900-1-1 00:00:0.0' /
+               'level', 'hours since 1900-1-1 00:00:0.0' /
 
 
 !     initialize vardim to something negative
@@ -537,7 +537,7 @@ module mod_nclib
   if ( ierr/=nf90_noerr ) go to 920
 
   if ( numdims>0 ) then
-    do i = 1 , numdims
+    do i = 1, numdims
       ierr = nf90_inquire_dimension(cdfid,i,dimnams(i),dimvals(i))
       if ( ierr/=nf90_noerr ) go to 920
     end do
@@ -550,7 +550,7 @@ module mod_nclib
 
 !     define spatial dimensions
   ik = 0
-  do k = 1 , max0(ndim,3)
+  do k = 1, max0(ndim,3)
     if ( vardim(k)>1 ) then
       ik = ik + 1
       dimnam = rdim(k)
@@ -558,7 +558,7 @@ module mod_nclib
       if ( numdims>0 ) then
 !           check if an existing dimension-declaration can be used
 !           instead of defining a new dimension
-        do i = 1 , numdims
+        do i = 1, numdims
           dimchk = dimnams(i)
           if ( ( dimnam(1:3) == dimchk(1:3) ) ) then
             did(ik) = i
@@ -723,29 +723,29 @@ module mod_nclib
 
   implicit none
 
-  integer(ik4) , intent(in) :: cdfid
-  character(len=64) , intent(in) :: varnam
-  real(rk8) , intent(in) :: time
-  integer(ik4) , intent(in) :: k , level , ievar , jevar , ie ,  je , ke
-  real(rk4) , dimension(ie,je,ke) , intent(in) :: arr
-  integer(ik4) , intent(out) :: ierr
-  integer(ik4) , dimension(1) :: istart
+  integer(ik4), intent(in) :: cdfid
+  character(len=64), intent(in) :: varnam
+  real(rk8), intent(in) :: time
+  integer(ik4), intent(in) :: k, level, ievar, jevar, ie,  je, ke
+  real(rk4), dimension(ie,je,ke), intent(in) :: arr
+  integer(ik4), intent(out) :: ierr
+  integer(ik4), dimension(1) :: istart
 
 !     Declaration of local variables
 
   real(rk4), dimension(ie*je*ke) :: dat
   real(rk4) :: misdat
   real(rk8) :: timeval
-  real(rk8) , dimension(2) :: dvrange
+  real(rk8), dimension(2) :: dvrange
 
-  integer(ik4) , dimension(4) :: corner , edgeln , did , vardim
-  integer(ik4) :: ndims , ntime
-  integer(ik4) :: idtime , idvar , iflag
-  integer(ik4) :: i , j , ik , ij
+  integer(ik4), dimension(4) :: corner, edgeln, did, vardim
+  integer(ik4) :: ndims, ntime
+  integer(ik4) :: idtime, idvar, iflag
+  integer(ik4) :: i, j, ik, ij
 
   ij = 0
-  do j = 1 , jevar
-    do i = 1 , ievar
+  do j = 1, jevar
+    do i = 1, ievar
       ij = ij + 1
       dat(ij) = arr(i,j,k)
     end do
@@ -769,7 +769,7 @@ module mod_nclib
 
 !     Check if a new time step is starting
   iflag = 0
-  do i = 1 , ntime
+  do i = 1, ntime
     istart(1) = i
     ierr = nf90_get_var(cdfid,idtime,timeval,istart)
     if ( ierr/=nf90_noerr ) go to 920
@@ -858,28 +858,28 @@ module mod_nclib
 
   implicit none
 
-  integer(ik4) , parameter :: maxdim = 4
+  integer(ik4), parameter :: maxdim = 4
 
-  integer(ik4) , intent(in) :: cdfid
-  integer(ik4) , intent(out) :: ndim
+  integer(ik4), intent(in) :: cdfid
+  integer(ik4), intent(out) :: ndim
   character(len=64), intent(in) :: varnam
-  integer, dimension(4) , intent(out) :: vardim
-  real(rk4) , intent(out) :: misdat
-  integer(ik4) , intent(out) :: ierr
+  integer, dimension(4), intent(out) :: vardim
+  real(rk4), intent(out) :: misdat
+  integer(ik4), intent(out) :: ierr
 
-  character(len=64) , dimension(maxdim) :: dimnam
+  character(len=64), dimension(maxdim) :: dimnam
   character(len=64) :: vnam
-  integer(ik4) :: id , i , k
-  integer(ik4) :: ndims , nvars , ngatts , recdim
-  integer(ik4) , dimension(maxdim) :: dimsiz
-  integer(ik4) :: vartyp , nvatts
+  integer(ik4) :: id, i, k
+  integer(ik4) :: ndims, nvars, ngatts, recdim
+  integer(ik4), dimension(maxdim) :: dimsiz
+  integer(ik4) :: vartyp, nvatts
 
 !     inquire for number of dimensions
   ierr = nf90_inquire(cdfid,ndims,nvars,ngatts,recdim)
   if ( ierr/=nf90_noerr ) go to 920
 
 !     read dimension-table
-  do  i = 1 , ndims
+  do  i = 1, ndims
     ierr = nf90_inquire_dimension(cdfid,i,dimnam(i),dimsiz(i))
     if ( ierr/=nf90_noerr ) go to 920
   end do
@@ -904,7 +904,7 @@ module mod_nclib
   end if
 
 !     get dimensions from dimension-table
-  do k = 1 , ndim
+  do k = 1, ndim
     vardim(k) = dimsiz(vardim(k))
   end do
 
@@ -966,19 +966,19 @@ module mod_nclib
 
   implicit none
 
-  integer(ik4) , intent(in) :: cdfid
-  character(len=64) , intent(in) :: varnam
-  integer(ik4) , intent(out) :: ndim
-  integer, dimension(4) , intent(out) :: vardim
-  real(rk4) , intent(out) :: misdat
-  integer(ik4) , intent(out) :: ierr
+  integer(ik4), intent(in) :: cdfid
+  character(len=64), intent(in) :: varnam
+  integer(ik4), intent(out) :: ndim
+  integer, dimension(4), intent(out) :: vardim
+  real(rk4), intent(out) :: misdat
+  integer(ik4), intent(out) :: ierr
 
   character(len=64), dimension(10) :: dimnam
   character(len=64) :: vnam
-  integer(ik4) :: id , i , k
-  integer(ik4) :: ndims , nvars , ngatts , recdim
-  integer(ik4) , dimension(10) :: dimsiz
-  integer(ik4) :: vartyp , nvatts
+  integer(ik4) :: id, i, k
+  integer(ik4) :: ndims, nvars, ngatts, recdim
+  integer(ik4), dimension(10) :: dimsiz
+  integer(ik4) :: vartyp, nvatts
 
   ierr = 0
 
@@ -990,7 +990,7 @@ module mod_nclib
   end if
 
 !     read dimension-table
-  do  i = 1 , ndims
+  do  i = 1, ndims
     ierr = nf90_inquire_dimension(cdfid,i,dimnam(i),dimsiz(i))
     if ( ierr/=nf90_noerr ) then
       write(stderr,*) 'Error nf90_inquire_dimension ', dimnam(i)
@@ -1024,7 +1024,7 @@ module mod_nclib
   end if
 
 !     get dimensions from dimension-table
-  do k = 1 , ndims
+  do k = 1, ndims
     vardim(k) = dimsiz(vardim(k))
   end do
 
@@ -1064,15 +1064,15 @@ module mod_nclib
 
   implicit none
 !
-  integer(ik4) :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
-             ntim , ntim1
-  character(len=64) :: lnam , units , vnam
-  real(rk4) , dimension(nlon,nlat,nlev,ntim) :: vals
-  intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
+  integer(ik4) :: idcdf, nlat, nlat1, nlev, nlev1, nlon, nlon1,   &
+             ntim, ntim1
+  character(len=64) :: lnam, units, vnam
+  real(rk4), dimension(nlon,nlat,nlev,ntim) :: vals
+  intent (in) nlat, nlat1, nlev, nlev1, nlon, nlon1, ntim,   &
               ntim1
 !
-  integer(ik4) , dimension(4) :: icount , istart
-  integer(ik4) :: iflag , invarid
+  integer(ik4), dimension(4) :: icount, istart
+  integer(ik4) :: iflag, invarid
 !
   istart(1) = nlon1
   icount(1) = nlon
@@ -1098,7 +1098,7 @@ module mod_nclib
   return
 
  920  write(stderr,*) 'ERROR: An error occurred while attempting to ', &
-               'read variable ', vnam , ' at time ', ntim1
+               'read variable ', vnam, ' at time ', ntim1
   write(stderr,*) nf90_strerror(iflag)
 
   call die('readcdfr4','READ ERROR',1)
@@ -1111,18 +1111,18 @@ module mod_nclib
 
   implicit none
 !
-  integer(ik4) :: idcdf , nglat , nglev , nglon , ngtim , nlat , nlat1 , &
-             nlev , nlev1 , nlon , nlon1 , ntim , ntim1
-  character(len=64) :: lnam , units , vnam
-  real(rk4) , dimension(nlon,nlat,nlev,ntim) :: vals
-  intent (in) nglat , nglev , nglon , ngtim , nlat , nlat1 , nlev , &
-              nlev1 , nlon , nlon1 , ntim , ntim1
+  integer(ik4) :: idcdf, nglat, nglev, nglon, ngtim, nlat, nlat1, &
+             nlev, nlev1, nlon, nlon1, ntim, ntim1
+  character(len=64) :: lnam, units, vnam
+  real(rk4), dimension(nlon,nlat,nlev,ntim) :: vals
+  intent (in) nglat, nglev, nglon, ngtim, nlat, nlat1, nlev, &
+              nlev1, nlon, nlon1, ntim, ntim1
   intent (out) vals
 !
-  integer(ik4) :: i , iflag , ii , ilon5 , invarid , j , jj , k , kk ,   &
-             l , ll , nlat2 , nlev2 , nlon2 , ntim2
-  integer(ik4) , dimension(4) :: icount , istart
-  real(rk4) , pointer , dimension(:,:,:,:) :: vals1 , vals2
+  integer(ik4) :: i, iflag, ii, ilon5, invarid, j, jj, k, kk,   &
+             l, ll, nlat2, nlev2, nlon2, ntim2
+  integer(ik4), dimension(4) :: icount, istart
+  real(rk4), pointer, contiguous, dimension(:,:,:,:) :: vals1, vals2
 !
   istart(1) = 1
   icount(1) = nglon
@@ -1143,19 +1143,19 @@ module mod_nclib
   iflag = nf90_get_var(idcdf,invarid,vals1,istart,icount)
   if (iflag /= nf90_noerr) go to 920
 
-  do l = 1 , ngtim
-    do k = 1 , nglev
-      do j = 1 , nglat
-        do i = 1 , nglon
+  do l = 1, ngtim
+    do k = 1, nglev
+      do j = 1, nglat
+        do i = 1, nglon
           vals2(i,j,k,l) = vals1(i,j,k,l)
         end do
       end do
     end do
   end do
-  do l = 1 , ngtim
-    do k = 1 , nglev
-      do j = 1 , nglat
-        do i = 1 , nglon
+  do l = 1, ngtim
+    do k = 1, nglev
+      do j = 1, nglat
+        do i = 1, nglon
           ii = ilon5 + i
           if ( ii>nglon ) ii = ii - nglon
           vals1(ii,j,k,l) = vals2(i,j,k,l)
@@ -1168,10 +1168,10 @@ module mod_nclib
   nlev2 = nlev1 + nlev - 1
   nlat2 = nlat1 + nlat - 1
   nlon2 = nlon1 + nlon - 1
-  do l = ntim1 , ntim2
-    do k = nlev1 , nlev2
-      do j = nlat1 , nlat2
-        do i = nlon1 , nlon2
+  do l = ntim1, ntim2
+    do k = nlev1, nlev2
+      do j = nlat1, nlat2
+        do i = nlon1, nlon2
           ll = l - ntim1 + 1
           kk = k - nlev1 + 1
           jj = j - nlat1 + 1
@@ -1191,7 +1191,7 @@ module mod_nclib
   return
 
  920  write(stderr,*) 'ERROR: An error occurred while attempting to ', &
-               'read variable ', vnam , ' at time ', ntim1
+               'read variable ', vnam, ' at time ', ntim1
   write(stderr,*) nf90_strerror(iflag)
 
   call die('readcdfr4_360','READ ERROR',1)
@@ -1203,19 +1203,19 @@ module mod_nclib
 
   implicit none
 !
-  integer(ik4) :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
-             ntim , ntim1
+  integer(ik4) :: idcdf, nlat, nlat1, nlev, nlev1, nlon, nlon1,   &
+             ntim, ntim1
   character(len=64) :: lnam
   character(len=64) :: units
   character(len=64) :: vnam
-  real(rk4) , dimension(nlon,nlat,nlev,ntim) :: vals
-  intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
+  real(rk4), dimension(nlon,nlat,nlev,ntim) :: vals
+  intent (in) nlat, nlat1, nlev, nlev1, nlon, nlon1, ntim,   &
               ntim1
   intent (out) vals
 !
-  integer(ik4) , dimension(4) :: icount , istart
-  integer(ik4) , dimension(2) :: icount1 , istart1
-  integer(ik4) :: iflag , invarid
+  integer(ik4), dimension(4) :: icount, istart
+  integer(ik4), dimension(2) :: icount1, istart1
+  integer(ik4) :: iflag, invarid
 !
   istart1(1) = nlon1
   icount1(1) = nlon
@@ -1246,7 +1246,7 @@ module mod_nclib
   return
 
  920  write(stderr,*) 'ERROR: An error occurred while attempting to ',  &
-               'read variable ', vnam , ' at time ', ntim1
+               'read variable ', vnam, ' at time ', ntim1
   write(stderr,*) nf90_strerror(iflag)
 
   call die('readcdfr4_iso','READ ERROR',1)

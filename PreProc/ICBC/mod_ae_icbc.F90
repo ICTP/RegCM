@@ -30,28 +30,28 @@ module mod_ae_icbc
 
   private
 
-  integer(ik4) :: aeilon , aejlat , aeilev , aeitime
-  real(rkx) , pointer , dimension(:) :: aet42lon
-  real(rkx) , pointer , dimension(:) :: aet42lat
-  real(rkx) , pointer , dimension(:) :: aet42hyam , aet42hybm
+  integer(ik4) :: aeilon, aejlat, aeilev, aeitime
+  real(rkx), pointer, contiguous, dimension(:) :: aet42lon
+  real(rkx), pointer, contiguous, dimension(:) :: aet42lat
+  real(rkx), pointer, contiguous, dimension(:) :: aet42hyam, aet42hybm
 !
 ! Oxidant climatology variables
 !
-  real(rkx) :: p0 , r4pt
-  real(rkx) , pointer , dimension(:,:) :: xps
-  real(rkx) , pointer , dimension(:,:,:,:,:) :: aev2
-  real(rkx) , pointer , dimension(:,:,:) :: xps2
-  real(rkx) , pointer , dimension(:,:,:) :: xinp
-  real(rkx) , pointer , dimension(:,:) :: paeid_3 , xps3
-  real(rkx) , pointer , dimension(:,:,:,:) :: aev3
+  real(rkx) :: p0, r4pt
+  real(rkx), pointer, contiguous, dimension(:,:) :: xps
+  real(rkx), pointer, contiguous, dimension(:,:,:,:,:) :: aev2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xps2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xinp
+  real(rkx), pointer, contiguous, dimension(:,:) :: paeid_3, xps3
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: aev3
   integer(ik4) :: iyear
-  character(len=8) , dimension(4) :: scendir
+  character(len=8), dimension(4) :: scendir
 
-  real(rkx) :: prcm , pmpi , pmpj
-  integer(ik4) :: ncid , istatus , iscen
-  integer(ik4) :: ncicbc , ivarps , irec
+  real(rkx) :: prcm, pmpi, pmpj
+  integer(ik4) :: ncid, istatus, iscen
+  integer(ik4) :: ncicbc, ivarps, irec
 
-  public :: init_ae_icbc , get_ae_icbc , close_ae_icbc
+  public :: init_ae_icbc, get_ae_icbc, close_ae_icbc
 
   data ncid /-1/
   data ncicbc /-1/
@@ -64,10 +64,10 @@ module mod_ae_icbc
 
   subroutine init_ae_icbc(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: ivarid , istatus , dimid , is
-    integer(ik4) :: nyear , month , nday , nhour
-    character(len=256) :: aefilename , icbcfilename
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: ivarid, istatus, dimid, is
+    integer(ik4) :: nyear, month, nday, nhour
+    character(len=256) :: aefilename, icbcfilename
 
     call split_idate(idate,nyear,month,nday,nhour)
 
@@ -187,7 +187,7 @@ module mod_ae_icbc
     istatus = nf90_get_var(ncid,ivarid,xps2)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var PS')
-    do is = 1 , naesp
+    do is = 1, naesp
       istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
       if ( istatus == nf90_noerr ) then
         istatus = nf90_get_var(ncid,ivarid,aev2(:,:,:,:,is))
@@ -202,16 +202,16 @@ module mod_ae_icbc
   subroutine get_ae_icbc(idate)
     implicit none
 
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: i , l , is , j , k , k0
-    real(rkx) :: wt1 , wt2
-    type(rcm_time_and_date) :: d1 , d2
-    type(rcm_time_interval) :: t1 , tt
-    integer(ik4) :: m1 , m2
-    integer(ik4) :: ivarid , istatus
-    integer(ik4) :: nyear , month , nday , nhour
-    character(len=256) :: aefilename , icbcfilename
-    integer(ik4) , dimension(3) :: istart , icount
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: i, l, is, j, k, k0
+    real(rkx) :: wt1, wt2
+    type(rcm_time_and_date) :: d1, d2
+    type(rcm_time_interval) :: t1, tt
+    integer(ik4) :: m1, m2
+    integer(ik4) :: ivarid, istatus
+    integer(ik4) :: nyear, month, nday, nhour
+    character(len=256) :: aefilename, icbcfilename
+    integer(ik4), dimension(3) :: istart, icount
 
     call split_idate(idate,nyear,month,nday,nhour)
 
@@ -231,7 +231,7 @@ module mod_ae_icbc
       istatus = nf90_get_var(ncid,ivarid,xps2)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var PS')
-      do is = 1 , naesp
+      do is = 1, naesp
         istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
         if ( istatus == nf90_noerr ) then
           istatus = nf90_get_var(ncid,ivarid,aev2(:,:,:,:,is))
@@ -268,10 +268,10 @@ module mod_ae_icbc
     wt1 = real(tohours(t1)/tohours(tt))
     wt2 = 1.0 - wt1
 
-    do is = 1 , naesp
-      do l = 1 , aeilev
-        do i = 1 , aejlat
-          do j = 1 , aeilon
+    do is = 1, naesp
+      do l = 1, aeilev
+        do i = 1, aejlat
+          do j = 1, aeilon
             xinp(j,i,l) = aev2(j,i,l,m1,is)*wt2+aev2(j,i,l,m2,is)*wt1
           end do
         end do
@@ -279,8 +279,8 @@ module mod_ae_icbc
       call h_interpolate_cont(hint,xinp,aev3(:,:,:,is))
     end do
 
-    do i = 1 , aejlat
-      do j = 1 , aeilon
+    do i = 1, aejlat
+      do j = 1, aeilon
         xps(j,i) = xps2(j,i,m1)*wt1+xps2(j,i,m2)*wt2
       end do
     end do
@@ -297,12 +297,12 @@ module mod_ae_icbc
                     'Error read var ps')
     irec = irec + 1
 
-    do i = 1 , iy
-      do j = 1 , jx
-        do l = 1 , kz
+    do i = 1, iy
+      do j = 1, jx
+        do l = 1, kz
           prcm = ((paeid_3(j,i)*0.1_rkx-r4pt)*sigmah(l)+r4pt)*1000.0_rkx
           k0 = -1
-          do k = aeilev , 1 , -1
+          do k = aeilev, 1, -1
             pmpi = aet42hyam(k)*p0+xps3(j,i)*aet42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
@@ -310,7 +310,7 @@ module mod_ae_icbc
           if (k0 == aeilev) then
             pmpj = aet42hyam(aeilev-1)*p0+xps3(j,i)*aet42hybm(aeilev-1)
             pmpi = aet42hyam(aeilev  )*p0+xps3(j,i)*aet42hybm(aeilev  )
-            do is = 1 , naesp
+            do is = 1, naesp
               aev4(j,i,l,is) = max(aev3(j,i,aeilev,is) + &
                  (aev3(j,i,aeilev-1,is) - aev3(j,i,aeilev,is)) * &
                  (prcm-pmpi)/(pmpi-pmpj),d_zero)
@@ -320,7 +320,7 @@ module mod_ae_icbc
             pmpi = aet42hyam(k0+1)*p0+xps3(j,i)*aet42hybm(k0+1)
             wt1 = (prcm-pmpj)/(pmpi-pmpj)
             wt2 = 1.0 - wt1
-            do is = 1 , naesp
+            do is = 1, naesp
               aev4(j,i,l,is) = aev3(j,i,k0+1,is)*wt1 + aev3(j,i,k0,is)*wt2
             end do
           end if

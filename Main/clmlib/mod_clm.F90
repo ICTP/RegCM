@@ -21,8 +21,8 @@ module mod_clm
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_dynparam , only : domname , pthsep
-  use mod_runparams , only : ichem
+  use mod_dynparam, only : domname, pthsep
+  use mod_runparams, only : ichem
 
   implicit none
 
@@ -68,74 +68,74 @@ module mod_clm
 
   integer(ik4) :: c2rcnts
 
-  real(rkx) , pointer , dimension(:,:) :: r2ctb
-  real(rkx) , pointer , dimension(:,:) :: r2ctb_all
-  real(rkx) , pointer , dimension(:,:) :: r2cqb
-  real(rkx) , pointer , dimension(:,:) :: r2cqb_all
-  real(rkx) , pointer , dimension(:,:) :: r2czga
-  real(rkx) , pointer , dimension(:,:) :: r2czga_all
-  real(rkx) , pointer , dimension(:,:) :: r2cpsb
-  real(rkx) , pointer , dimension(:,:) :: r2cpsb_all
-  real(rkx) , pointer , dimension(:,:) :: r2cuxb
-  real(rkx) , pointer , dimension(:,:) :: r2cuxb_all
-  real(rkx) , pointer , dimension(:,:) :: r2cvxb
-  real(rkx) , pointer , dimension(:,:) :: r2cvxb_all
-  real(rkx) , pointer , dimension(:,:) :: r2crnc
-  real(rkx) , pointer , dimension(:,:) :: r2crnc_all
-  real(rkx) , pointer , dimension(:,:) :: r2crnnc
-  real(rkx) , pointer , dimension(:,:) :: r2crnnc_all
-  real(rkx) , pointer , dimension(:,:) :: r2csols
-  real(rkx) , pointer , dimension(:,:) :: r2csols_all
-  real(rkx) , pointer , dimension(:,:) :: r2csoll
-  real(rkx) , pointer , dimension(:,:) :: r2csoll_all
-  real(rkx) , pointer , dimension(:,:) :: r2csolsd
-  real(rkx) , pointer , dimension(:,:) :: r2csolsd_all
-  real(rkx) , pointer , dimension(:,:) :: r2csolld
-  real(rkx) , pointer , dimension(:,:) :: r2csolld_all
-  real(rkx) , pointer , dimension(:,:) :: r2cflwd
-  real(rkx) , pointer , dimension(:,:) :: r2cflwd_all
-  real(rkx) , pointer , dimension(:,:) :: r2ccosz_all
-  real(rkx) , pointer , dimension(:,:) :: r2cxlat_all     ! xlat in radians
-  real(rkx) , pointer , dimension(:,:) :: r2cxlon_all     ! xlon in radians
-  real(rkx) , pointer , dimension(:,:) :: r2cxlatd_all    ! xlat in degrees
-  real(rkx) , pointer , dimension(:,:) :: r2cxlond_all    ! xlon in degrees
-  real(rkx) , pointer , dimension(:,:) :: r2cxlat
-  real(rkx) , pointer , dimension(:,:) :: r2cxlon
-  real(rkx) , pointer , dimension(:,:) :: r2cxlatd
-  real(rkx) , pointer , dimension(:,:) :: r2cxlond
-  real(rkx) , pointer , dimension(:,:) :: c2rtgb
-  real(rkx) , pointer , dimension(:,:) :: c2rsenht
-  real(rkx) , pointer , dimension(:,:) :: c2rlatht
-  real(rkx) , pointer , dimension(:,:) :: c2ralbdirs
-  real(rkx) , pointer , dimension(:,:) :: c2ralbdirl
-  real(rkx) , pointer , dimension(:,:) :: c2ralbdifs
-  real(rkx) , pointer , dimension(:,:) :: c2ralbdifl
-  real(rkx) , pointer , dimension(:,:) :: c2rtaux
-  real(rkx) , pointer , dimension(:,:) :: c2rtauy
-  real(rkx) , pointer , dimension(:,:) :: c2ruvdrag
-  real(rkx) , pointer , dimension(:,:) :: c2rlsmask
-  real(rkx) , pointer , dimension(:,:) :: c2rtgbb
-  real(rkx) , pointer , dimension(:,:) :: c2rsnowc
-  real(rkx) , pointer , dimension(:,:) :: c2rtest
-  real(rkx) , pointer , dimension(:,:) :: c2r2mt
-  real(rkx) , pointer , dimension(:,:) :: c2r2mq
-  real(rkx) , pointer , dimension(:,:) :: c2rtlef
-  real(rkx) , pointer , dimension(:,:) :: c2ru10
-  real(rkx) , pointer , dimension(:,:) :: c2rsm10cm
-  real(rkx) , pointer , dimension(:,:) :: c2rsm1m
-  real(rkx) , pointer , dimension(:,:) :: c2rsmtot
-  real(rkx) , pointer , dimension(:,:) :: c2rinfl
-  real(rkx) , pointer , dimension(:,:) :: c2rro_sur
-  real(rkx) , pointer , dimension(:,:) :: c2rro_sub
-  real(rkx) , pointer , dimension(:,:) :: c2rfracsno
-  real(rkx) , pointer , dimension(:,:) :: c2rfvegnosno
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2ctb
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2ctb_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cqb
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cqb_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2czga
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2czga_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cpsb
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cpsb_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cuxb
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cuxb_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cvxb
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cvxb_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2crnc
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2crnc_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2crnnc
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2crnnc_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2csols
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2csols_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2csoll
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2csoll_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2csolsd
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2csolsd_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2csolld
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2csolld_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cflwd
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cflwd_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2ccosz_all
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cxlat_all     ! xlat in radians
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cxlon_all     ! xlon in radians
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cxlatd_all    ! xlat in degrees
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cxlond_all    ! xlon in degrees
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cxlat
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cxlon
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cxlatd
+  real(rkx), pointer, contiguous, dimension(:,:) :: r2cxlond
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rtgb
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rsenht
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rlatht
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2ralbdirs
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2ralbdirl
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2ralbdifs
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2ralbdifl
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rtaux
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rtauy
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2ruvdrag
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rlsmask
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rtgbb
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rsnowc
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rtest
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2r2mt
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2r2mq
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rtlef
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2ru10
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rsm10cm
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rsm1m
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rsmtot
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rinfl
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rro_sur
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rro_sub
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rfracsno
+  real(rkx), pointer, contiguous, dimension(:,:) :: c2rfvegnosno
 
-  integer(ik4) , pointer , dimension(:,:) :: c2rprocmap
-  integer(ik4) , pointer , dimension(:) :: c2rngc
-  integer(ik4) , pointer , dimension(:) :: c2rdisps
+  integer(ik4), pointer, contiguous, dimension(:,:) :: c2rprocmap
+  integer(ik4), pointer, contiguous, dimension(:) :: c2rngc
+  integer(ik4), pointer, contiguous, dimension(:) :: c2rdisps
 !
-  real(rkx) , pointer , dimension(:,:) :: rs2d
-  real(rkx) , pointer , dimension(:,:) :: ra2d
+  real(rkx), pointer, contiguous, dimension(:,:) :: rs2d
+  real(rkx), pointer, contiguous, dimension(:,:) :: ra2d
 
 end module mod_clm
 !

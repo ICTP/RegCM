@@ -26,63 +26,63 @@ module mod_clm_cndvestablishment
   !
   subroutine Establishment(lbg, ubg, lbp, ubp)
     use mod_clm_type
-    use mod_clm_varpar   , only : numpft
-    use mod_clm_varcon   , only : istsoil
-    use mod_clm_pftvarcon    , only : noveg, nc3_arctic_grass
-    use mod_clm_varcon, only : secspday , rpi , tfrz
+    use mod_clm_varpar  , only : numpft
+    use mod_clm_varcon  , only : istsoil
+    use mod_clm_pftvarcon   , only : noveg, nc3_arctic_grass
+    use mod_clm_varcon, only : secspday, rpi, tfrz
     implicit none
-    integer(ik4) , intent(in) :: lbg, ubg         ! gridcell bounds
-    integer(ik4) , intent(in) :: lbp, ubp         ! pft bounds
+    integer(ik4), intent(in) :: lbg, ubg         ! gridcell bounds
+    integer(ik4), intent(in) :: lbp, ubp         ! pft bounds
 
     ! exclude seasonal decid pfts from tropics [1=true, 0=false]
-    logical , pointer :: pftmayexist(:)
-    integer(ik4) , pointer :: plandunit(:)  ! landunit of corresponding pft
-    integer(ik4) , pointer :: pgridcell(:)  ! gridcell of corresponding pft
-    integer(ik4) , pointer :: ltype(:) ! landunit type for corresponding pft
-    real(rk8), pointer :: tmomin20(:)  ! 20-yr running mean of tmomin
-    real(rk8), pointer :: agdd20(:)    ! 20-yr running mean of agdd
+    logical, pointer, contiguous :: pftmayexist(:)
+    integer(ik4), pointer, contiguous :: plandunit(:)  ! landunit of corresponding pft
+    integer(ik4), pointer, contiguous :: pgridcell(:)  ! gridcell of corresponding pft
+    integer(ik4), pointer, contiguous :: ltype(:) ! landunit type for corresponding pft
+    real(rk8), pointer, contiguous :: tmomin20(:)  ! 20-yr running mean of tmomin
+    real(rk8), pointer, contiguous :: agdd20(:)    ! 20-yr running mean of agdd
     ! accumulated growing degree days above twmax
-    real(rk8), pointer :: agddtw(:)
+    real(rk8), pointer, contiguous :: agddtw(:)
     ! 365-day running mean of tot. precipitation
-    real(rk8), pointer :: prec365(:)
+    real(rk8), pointer, contiguous :: prec365(:)
     !specific leaf area at top of canopy, projected area basis [m^2/gC]
-    real(rk8), pointer :: slatop(:)
+    real(rk8), pointer, contiguous :: slatop(:)
     !dSLA/dLAI, projected area basis [m^2/gC]
-    real(rk8), pointer :: dsladlai(:)
+    real(rk8), pointer, contiguous :: dsladlai(:)
     ! ecophys const - woody pft or not
-    real(rk8), pointer :: woody(:)
+    real(rk8), pointer, contiguous :: woody(:)
     ! ecophys const - tree maximum crown area [m2]
-    real(rk8), pointer :: crownarea_max(:)
+    real(rk8), pointer, contiguous :: crownarea_max(:)
     ! ecophys const - upper limit of temperature of the warmest month
-    real(rk8), pointer :: twmax(:)
+    real(rk8), pointer, contiguous :: twmax(:)
     ! ecophys const - parameter in allometric equation
-    real(rk8), pointer :: reinickerp(:)
+    real(rk8), pointer, contiguous :: reinickerp(:)
     ! ecophys const - wood density (gC/m3)
-    real(rk8), pointer :: dwood(:)
+    real(rk8), pointer, contiguous :: dwood(:)
     ! ecophys const - parameter in allometric
-    real(rk8), pointer :: allom1(:)
+    real(rk8), pointer, contiguous :: allom1(:)
     ! ecophys const - minimum coldest monthly mean temperature
-    real(rk8), pointer :: tcmin(:)
+    real(rk8), pointer, contiguous :: tcmin(:)
     ! ecophys const - maximum coldest monthly mean temperature
-    real(rk8), pointer :: tcmax(:)
+    real(rk8), pointer, contiguous :: tcmax(:)
     ! ecophys const - minimum growing degree days (at or above 5 C)
-    real(rk8), pointer :: gddmin(:)
-    real(rk8), pointer :: leafcmax(:)        ! (gC/m2) ann max leaf C
-    real(rk8), pointer :: deadstemc(:)       ! (gC/m2) dead stem C
-    real(rk8), pointer :: annsum_npp(:)      ! annual sum NPP (gC/m2/yr)
-    real(rk8), pointer :: annsum_litfall(:)  ! annual sum litfall (gC/m2/yr)
+    real(rk8), pointer, contiguous :: gddmin(:)
+    real(rk8), pointer, contiguous :: leafcmax(:)        ! (gC/m2) ann max leaf C
+    real(rk8), pointer, contiguous :: deadstemc(:)       ! (gC/m2) dead stem C
+    real(rk8), pointer, contiguous :: annsum_npp(:)      ! annual sum NPP (gC/m2/yr)
+    real(rk8), pointer, contiguous :: annsum_litfall(:)  ! annual sum litfall (gC/m2/yr)
 
-    integer(ik4) , pointer :: ivt(:)  ! vegetation type for this pft
-    logical , pointer :: present(:)   ! true=> PFT present in patch
-    real(rk8), pointer :: nind(:)     ! number of individuals (#/m**2)
+    integer(ik4), pointer, contiguous :: ivt(:)  ! vegetation type for this pft
+    logical, pointer, contiguous :: present(:)   ! true=> PFT present in patch
+    real(rk8), pointer, contiguous :: nind(:)     ! number of individuals (#/m**2)
 
     ! foliar projective cover on gridcell (fraction)
-    real(rk8), pointer :: fpcgrid(:)
+    real(rk8), pointer, contiguous :: fpcgrid(:)
     ! area that each individual tree takes up (m^2)
-    real(rk8), pointer :: crownarea(:)
+    real(rk8), pointer, contiguous :: crownarea(:)
     ! lpj's growth efficiency
-    real(rk8), pointer :: greffic(:)
-    real(rk8), pointer :: heatstress(:)
+    real(rk8), pointer, contiguous :: greffic(:)
+    real(rk8), pointer, contiguous :: heatstress(:)
 
     integer(ik4)  :: g,l,p,m   ! indices
     ! local gridcell filter for error check

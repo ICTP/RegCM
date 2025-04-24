@@ -70,8 +70,8 @@ END FUNCTION shr_orb_cosz
 
 !===============================================================================
 
-SUBROUTINE shr_orb_params( iyear_AD , eccen  , obliq , mvelp     ,     &
-           &               obliqr   , lambm0 , mvelpp, log_print )
+SUBROUTINE shr_orb_params( iyear_AD, eccen , obliq, mvelp    ,     &
+           &               obliqr  , lambm0, mvelpp, log_print )
 
 !-------------------------------------------------------------------------------
 !
@@ -347,7 +347,7 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen  , obliq , mvelp     ,     &
       end if
       if( (mvelp < SHR_ORB_MVELP_MIN).or.(mvelp > SHR_ORB_MVELP_MAX) ) then
          if ( log_print ) then
-            write(6,F03) 'Input mvelp unreasonable: ' , mvelp
+            write(6,F03) 'Input mvelp unreasonable: ', mvelp
          end if
          call shr_sys_abort()
       end if
@@ -357,7 +357,7 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen  , obliq , mvelp     ,     &
    ELSE  ! Otherwise calculate based on years before present
 
       if ( log_print ) then
-         write(6,F01) 'Calculate orbit for year: ' , iyear_AD
+         write(6,F01) 'Calculate orbit for year: ', iyear_AD
       end if
       yb4_1950AD = 1950.0_SHR_KIND_R8 - real(iyear_AD,SHR_KIND_R8)
       if ( abs(yb4_1950AD) .gt. 1000000.0_SHR_KIND_R8 )then

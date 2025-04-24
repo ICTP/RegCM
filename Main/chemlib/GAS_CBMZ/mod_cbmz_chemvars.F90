@@ -145,7 +145,7 @@ module mod_cbmz_chemvars
 !
   real(rkx) :: c_lat(c_kvec) ! Latitude, degrees
   real(rkx) :: c_lon(c_kvec) ! Longitude, degrees
-  real(rkx) :: c_hour        ! Hour at end , EST (hrs)
+  real(rkx) :: c_hour        ! Hour at end, EST (hrs)
   integer(ik4) :: c_idate        ! Date YYMMDD (YY=100 for 2000)
   real(rkx) :: c_jparam(22)  ! J-value input parameters
 

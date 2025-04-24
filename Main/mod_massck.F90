@@ -35,16 +35,16 @@ module mod_massck
   public :: massck
 
 #ifndef QUAD_PRECISION
-  integer , parameter :: wrkp = rk8
+  integer, parameter :: wrkp = rk8
 #else
-  integer , parameter :: wrkp = rk16
+  integer, parameter :: wrkp = rk16
 #endif
 
-  real(wrkp) , parameter :: q_zero = 0.0_wrkp
-  real(wrkp) , public :: dryini = q_zero
-  real(wrkp) , public :: watini = q_zero
-  real(rk8) , public :: dryerror = d_zero
-  real(rk8) , public :: waterror = d_zero
+  real(wrkp), parameter :: q_zero = 0.0_wrkp
+  real(wrkp), public :: dryini = q_zero
+  real(wrkp), public :: watini = q_zero
+  real(rk8), public :: dryerror = d_zero
+  real(rk8), public :: waterror = d_zero
 
   real(wrkp) :: mcrai = 0.0_wrkp
   real(wrkp) :: mncrai = 0.0_wrkp
@@ -57,12 +57,12 @@ module mod_massck
   subroutine massck
     implicit none
     real(wrkp) :: tttmp
-    real(wrkp) :: tdrym , tdadv , tqmass , tqadv
-    real(wrkp) :: tcrai , tncrai , tqeva
-    real(wrkp) :: drymass , dryadv , qmass , qadv , craim , ncraim , evapm
-    real(wrkp) :: north , south , east , west
-    real(wrkp) :: w1 , w2
-    integer(ik4) :: i , j , k , n
+    real(wrkp) :: tdrym, tdadv, tqmass, tqadv
+    real(wrkp) :: tcrai, tncrai, tqeva
+    real(wrkp) :: drymass, dryadv, qmass, qadv, craim, ncraim, evapm
+    real(wrkp) :: north, south, east, west
+    real(wrkp) :: w1, w2
+    integer(ik4) :: i, j, k, n
 
     w2 = real(dt,wrkp)/86400.0_wrkp
     w1 = 1.0_wrkp - w2
@@ -75,41 +75,41 @@ module mod_massck
     ! Internal dry air mass
     !
     if ( idynamic == 3 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             tdrym = tdrym + dxsq * mo_atm%dz(j,i,k) * mo_atm%rho(j,i,k)
           end do
         end do
       end do
       tdadv = q_zero
       if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = ice1 , ice2
+        do k = 1, kz
+          do i = ice1, ice2
             tdadv = tdadv + mo_atm%u(jde1,i,k) * dt * dx * &
               mo_atm%dz(jce1,i,k) * mo_atm%rho(jce1,i,k)
           end do
         end do
       end if
       if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = ice1 , ice2
+        do k = 1, kz
+          do i = ice1, ice2
             tdadv = tdadv - mo_atm%u(jde2,i,k) * dt * dx * &
               mo_atm%dz(jce2,i,k) * mo_atm%rho(jce2,i,k)
           end do
         end do
       end if
       if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jci1 , jci2
+        do k = 1, kz
+          do j = jci1, jci2
             tdadv = tdadv + mo_atm%v(j,ide1,k) * dt * dx * &
               mo_atm%dz(j,ice1,k) * mo_atm%rho(j,ice1,k)
           end do
         end do
       end if
       if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jci1 , jci2
+        do k = 1, kz
+          do j = jci1, jci2
             tdadv = tdadv - mo_atm%v(j,ide2,k) * dt * dx * &
               mo_atm%dz(j,ice2,k) * mo_atm%rho(j,ice2,k)
           end do
@@ -128,17 +128,17 @@ module mod_massck
       craim = q_zero
       ncraim = q_zero
       evapm = q_zero
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           tcrai = tcrai + crrate(j,i)*dxsq*dt
           tncrai = tncrai + ncrrate(j,i)*dxsq*dt
           tqeva = tqeva + sfs%qfx(j,i)*dxsq*dt
         end do
       end do
-      do n = 1 , nqx
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, nqx
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               tqmass = tqmass + mo_atm%qx(j,i,k,n) * &
                 dxsq * mo_atm%dz(j,i,k) * mo_atm%rho(j,i,k)
             end do
@@ -148,8 +148,8 @@ module mod_massck
         ! Boundary input
         !
         if ( ma%has_bdyleft ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
+          do k = 1, kz
+            do i = ice1, ice2
               tqadv = tqadv + mo_atm%qx(jce1,i,k,n) * &
                 mo_atm%u(jde1,i,k) * dt * dx * &
                 mo_atm%dz(jce1,i,k) * mo_atm%rho(jce1,i,k)
@@ -157,8 +157,8 @@ module mod_massck
           end do
         end if
         if ( ma%has_bdyright ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
+          do k = 1, kz
+            do i = ice1, ice2
               tqadv = tqadv - mo_atm%qx(jce2,i,k,n) * &
                 mo_atm%u(jde2,i,k) * dt * dx * &
                 mo_atm%dz(jce2,i,k) * mo_atm%rho(jce2,i,k)
@@ -166,8 +166,8 @@ module mod_massck
           end do
         end if
         if ( ma%has_bdybottom ) then
-          do k = 1 , kz
-            do j = jci1 , jci2
+          do k = 1, kz
+            do j = jci1, jci2
               tqadv = tqadv + mo_atm%qx(j,ice1,k,n) * &
                 mo_atm%v(j,ide1,k) * dt * dx * &
                 mo_atm%dz(j,ice1,k) * mo_atm%rho(j,ice1,k)
@@ -175,8 +175,8 @@ module mod_massck
           end do
         end if
         if ( ma%has_bdytop ) then
-          do k = 1 , kz
-            do j = jci1 , jci2
+          do k = 1, kz
+            do j = jci1, jci2
               tqadv = tqadv - mo_atm%qx(j,ice2,k,n) * &
                 mo_atm%v(j,ide2,k) * dt * dx * &
                 mo_atm%dz(j,ice2,k) * mo_atm%rho(j,ice2,k)
@@ -186,12 +186,12 @@ module mod_massck
       end do
     else
       tttmp = q_zero
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           tttmp = tttmp + sfs%psa(j,i)
         end do
       end do
-      do k = 1 , kz
+      do k = 1, kz
         tdrym = tdrym + tttmp*dsigma(k)
       end do
       !
@@ -199,32 +199,32 @@ module mod_massck
       !
       tdadv = q_zero
       if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = ice1 , ice2
+        do k = 1, kz
+          do i = ice1, ice2
             west = (atm1%u(jde1,i+1,k)+atm1%u(jde1,i,k))
             tdadv = tdadv + dt*3.e4_wrkp*dsigma(k)*dx*regrav*west
           end do
         end do
       end if
       if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = ice1 , ice2
+        do k = 1, kz
+          do i = ice1, ice2
             east = (atm1%u(jde2,i+1,k)+atm1%u(jde2,i,k))
             tdadv = tdadv - dt*3.e4_wrkp*dsigma(k)*dx*regrav*east
           end do
         end do
       end if
       if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jci1 , jci2
+        do k = 1, kz
+          do j = jci1, jci2
             south = (atm1%v(j+1,ide1,k)+atm1%v(j,ide1,k))
             tdadv = tdadv + dt*3.e4_wrkp*dsigma(k)*dx*regrav*south
           end do
         end do
       end if
       if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jci1 , jci2
+        do k = 1, kz
+          do j = jci1, jci2
             north = (atm1%v(j+1,ide2,k)+atm1%v(j,ide2,k))
             tdadv = tdadv - dt*3.e4_wrkp*dsigma(k)*dx*regrav*north
           end do
@@ -244,18 +244,18 @@ module mod_massck
       craim = q_zero
       ncraim = q_zero
       evapm = q_zero
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           tcrai = tcrai + crrate(j,i)*dxsq*dt
           tncrai = tncrai + ncrrate(j,i)*dxsq*dt
           tqeva = tqeva + sfs%qfx(j,i)*dxsq*dt
         end do
       end do
-      do n = 1 , nqx
-        do k = 1 , kz
+      do n = 1, nqx
+        do k = 1, kz
           tttmp = q_zero
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               tttmp = tttmp + atm1%qx(j,i,k,n)
             end do
           end do
@@ -265,8 +265,8 @@ module mod_massck
         ! Boundary input
         !
         if ( ma%has_bdyleft ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
+          do k = 1, kz
+            do i = ice1, ice2
               west = (atm1%u(jde1,i+1,k)+atm1%u(jde1,i,k)) * &
                    (atm1%qx(jce1,i,k,n)/sfs%psa(jce1,i))
               tqadv = tqadv + dt*3.e4_wrkp*dsigma(k)*dx*regrav*west
@@ -274,8 +274,8 @@ module mod_massck
           end do
         end if
         if ( ma%has_bdyright ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
+          do k = 1, kz
+            do i = ice1, ice2
               east = (atm1%u(jde2,i+1,k)+atm1%u(jde2,i,k)) * &
                    (atm1%qx(jce2,i,k,n)/sfs%psa(jce2,i))
               tqadv = tqadv - dt*3.e4_wrkp*dsigma(k)*dx*regrav*east
@@ -283,8 +283,8 @@ module mod_massck
           end do
         end if
         if ( ma%has_bdybottom ) then
-          do k = 1 , kz
-            do j = jci1 , jci2
+          do k = 1, kz
+            do j = jci1, jci2
               south = (atm1%v(j+1,ide1,k)+atm1%v(j,ide1,k)) * &
                    (atm1%qx(j,ice1,k,n)/sfs%psa(j,ice1))
               tqadv = tqadv + dt*3.e4_wrkp*dsigma(k)*dx*regrav*south
@@ -292,8 +292,8 @@ module mod_massck
           end do
         end if
         if ( ma%has_bdytop ) then
-          do k = 1 , kz
-            do j = jci1 , jci2
+          do k = 1, kz
+            do j = jci1, jci2
               north = (atm1%v(j+1,ide2,k)+atm1%v(j,ide2,k)) * &
                    (atm1%qx(j,ice2,k,n)/sfs%psa(j,ice2))
               tqadv = tqadv - dt*3.e4_wrkp*dsigma(k)*dx*regrav*north
@@ -348,7 +348,7 @@ module mod_massck
                    ' kg, error = ', waterror, ' %'
         write(stdout,'(a)') ' Mean values over past 24 hours :'
 #ifndef RCEMIP
-        write(stdout,'(a,e12.5,a)') ' Dry air boundary    = ', mdryadv , ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Dry air boundary    = ', mdryadv, ' kg.'
         write(stdout,'(a,e12.5,a)') ' Water boundary      = ', mqadv, ' kg.'
         write(stdout,'(a,e12.5,a)') ' Convective rain     = ', mcrai, ' kg.'
         write(stdout,'(a,e12.5,a)') ' Nonconvective rain  = ', mncrai, ' kg.'

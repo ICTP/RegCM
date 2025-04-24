@@ -18,7 +18,7 @@ module mod_rad_tracer
   use mod_intkinds
   use mod_realkinds
   use mod_constants
-  use mod_dynparam , only : kz
+  use mod_dynparam, only : kz
 
   implicit none
 
@@ -63,16 +63,16 @@ module mod_rad_tracer
     ! ptrop  - pressure level of tropopause
     ! pratio - pressure divided by ptrop
     !
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , dimension(n1:n2) , intent(in) :: dlat , ptrop
-    real(rkx) , dimension(n1:n2,kz) , intent(in) :: pmid
-    real(rkx) , dimension(n1:n2) , intent(in) :: n2o0 , ch40 , cfc110 , cfc120
-    real(rkx) , dimension(n1:n2,kz) , intent(out) :: cfc11 , cfc12 , ch4 , n2o
+    integer(ik4), intent(in) :: n1, n2
+    real(rkx), dimension(n1:n2), intent(in) :: dlat, ptrop
+    real(rkx), dimension(n1:n2,kz), intent(in) :: pmid
+    real(rkx), dimension(n1:n2), intent(in) :: n2o0, ch40, cfc110, cfc120
+    real(rkx), dimension(n1:n2,kz), intent(out) :: cfc11, cfc12, ch4, n2o
 #ifndef RCEMIP
     real(rkx) :: alat
 #endif
-    real(rkx) :: pratio , xcfc11 , xcfc12 , xch4 , xn2o
-    integer(ik4) :: n , k
+    real(rkx) :: pratio, xcfc11, xcfc12, xch4, xn2o
+    integer(ik4) :: n, k
 
 #ifdef RCEMIP
     xn2o = 0.3478_rkx
@@ -80,7 +80,7 @@ module mod_rad_tracer
     xcfc11 = 0.7273_rkx
     xcfc12 = 0.4000_rkx
 #endif
-    do k = 1 , kz
+    do k = 1, kz
       do concurrent ( n = n1:n2 )
 #ifndef RCEMIP
         alat = abs(dlat(n))

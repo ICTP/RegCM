@@ -26,18 +26,18 @@ module mod_isaatm
 
   subroutine isaatm(height,temperature,pressure,density)
     implicit none
-    real(rkx) , intent(in) :: height       ! Height in meter
-    real(rkx) , intent(out) :: temperature ! Temperature in K
-    real(rkx) , intent(out) :: pressure    ! Pressure in Pa
-    real(rkx) , intent(out) :: density     ! Density in kg/m^3
+    real(rkx), intent(in) :: height       ! Height in meter
+    real(rkx), intent(out) :: temperature ! Temperature in K
+    real(rkx), intent(out) :: pressure    ! Pressure in Pa
+    real(rkx), intent(out) :: density     ! Density in kg/m^3
 
-    real(rkx) :: h , i , m , n , o
+    real(rkx) :: h, i, m, n, o
 
-    real(rkx) , parameter :: height0 = 0.0_rkx
-    real(rkx) , parameter :: height1 = 11000.0_rkx
-    real(rkx) , parameter :: height2 = 20000.0_rkx
-    real(rkx) , parameter :: height3 = 32000.0_rkx
-    real(rkx) , parameter :: height4 = 47000.0_rkx
+    real(rkx), parameter :: height0 = 0.0_rkx
+    real(rkx), parameter :: height1 = 11000.0_rkx
+    real(rkx), parameter :: height2 = 20000.0_rkx
+    real(rkx), parameter :: height3 = 32000.0_rkx
+    real(rkx), parameter :: height4 = 47000.0_rkx
 
     if ( height >= height0 .and. height <= height1 ) then
       temperature = stdt - lrate*height

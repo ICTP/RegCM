@@ -29,7 +29,7 @@ module mod_bdycod
   use mod_mppparam
   use mod_memutil
   use mod_atm_interface
-  use mod_pbl_interface , only : tkemin
+  use mod_pbl_interface, only : tkemin
   use mod_che_interface
   use mod_lm_interface
   use mod_mpmessage
@@ -38,17 +38,17 @@ module mod_bdycod
   use mod_zita
   use mod_stdatm
   use mod_slabocean
-  use mod_vertint , only : intz1
-  use mod_humid , only : rh2mxr
+  use mod_vertint, only : intz1
+  use mod_humid, only : rh2mxr
 
   implicit none
 
   private
 
   public :: initideal
-  public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
-  public :: sponge , nudge , setup_bdycon , raydamp
-  public :: is_present_qc , is_present_qi
+  public :: allocate_mod_bdycon, init_bdy, bdyin, bdyval
+  public :: sponge, nudge, setup_bdycon, raydamp
+  public :: is_present_qc, is_present_qi
 
   !
   ! West U External  = WUE
@@ -57,53 +57,53 @@ module mod_bdycod
   ! .....
   ! North V Internal = NVI
   !
-  public :: wue , wui , eue , eui
-  public :: wve , wvi , eve , evi
-  public :: sue , sui , nue , nui
-  public :: sve , svi , nve , nvi
+  public :: wue, wui, eue, eui
+  public :: wve, wvi, eve, evi
+  public :: sue, sui, nue, nui
+  public :: sve, svi, nve, nvi
   ! fnudge : are the coefficients for the newtonian term.
   ! gnydge : are the coefficients for the diffusion term.
-  public :: fnudge , gnudge
+  public :: fnudge, gnudge
   !
-  real(rkx) , pointer , dimension(:,:) :: sue => null( )
-  real(rkx) , pointer , dimension(:,:) :: sui => null( )
-  real(rkx) , pointer , dimension(:,:) :: nue => null( )
-  real(rkx) , pointer , dimension(:,:) :: nui => null( )
-  real(rkx) , pointer , dimension(:,:) :: sve => null( )
-  real(rkx) , pointer , dimension(:,:) :: svi => null( )
-  real(rkx) , pointer , dimension(:,:) :: nve => null( )
-  real(rkx) , pointer , dimension(:,:) :: nvi => null( )
-  real(rkx) , pointer , dimension(:,:) :: wue => null( )
-  real(rkx) , pointer , dimension(:,:) :: wui => null( )
-  real(rkx) , pointer , dimension(:,:) :: eue => null( )
-  real(rkx) , pointer , dimension(:,:) :: eui => null( )
-  real(rkx) , pointer , dimension(:,:) :: wve => null( )
-  real(rkx) , pointer , dimension(:,:) :: wvi => null( )
-  real(rkx) , pointer , dimension(:,:) :: eve => null( )
-  real(rkx) , pointer , dimension(:,:) :: evi => null( )
-  real(rkx) , pointer , dimension(:,:) :: psdot => null( )
-  real(rkx) , pointer , dimension(:) :: fcx => null( )
-  real(rkx) , pointer , dimension(:) :: gcx => null( )
-  real(rkx) , pointer , dimension(:) :: fcd => null( )
-  real(rkx) , pointer , dimension(:) :: gcd => null( )
-  real(rkx) , pointer , dimension(:,:) :: hefc => null( )
-  real(rkx) , pointer , dimension(:,:) :: hegc => null( )
-  real(rkx) , pointer , dimension(:,:) :: hefd => null( )
-  real(rkx) , pointer , dimension(:,:) :: hegd => null( )
-  real(rkx) , pointer , dimension(:) :: wgtd => null( )
-  real(rkx) , pointer , dimension(:) :: wgtx => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: fg1 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: fg2 => null( )
-  real(rkx) :: fnudge , gnudge , rdtbdy
+  real(rkx), pointer, contiguous, dimension(:,:) :: sue => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: sui => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: nue => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: nui => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: sve => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: svi => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: nve => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: nvi => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: wue => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: wui => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: eue => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: eui => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: wve => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: wvi => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: eve => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: evi => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: psdot => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: fcx => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: gcx => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: fcd => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: gcd => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: hefc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: hegc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: hefd => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: hegd => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: wgtd => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: wgtx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: fg1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: fg2 => null( )
+  real(rkx) :: fnudge, gnudge, rdtbdy
   real(rk8) :: jday
   integer(ik4) :: som_month
 
-  real(rkx) , parameter , dimension(10) :: qxbval = &
+  real(rkx), parameter, dimension(10) :: qxbval = &
     [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
       0.0_rkx, 0.0_rkx, 1.0e8_rkx, 0.0_rkx, 0.0_rkx ]
 
   interface timeint
-    module procedure timeint2 , timeint3
+    module procedure timeint2, timeint3
   end interface timeint
 
   interface nudge
@@ -139,7 +139,7 @@ module mod_bdycod
     module procedure moraydamp
   end interface raydamp
 
-  logical , parameter :: bdyflow = .true.
+  logical, parameter :: bdyflow = .true.
   logical :: present_qc = .false.
   logical :: present_qi = .false.
 
@@ -147,23 +147,23 @@ module mod_bdycod
 
   subroutine initideal
     implicit none
-    integer(ik4) :: iunit , ierr
+    integer(ik4) :: iunit, ierr
     integer(ik4) :: k
-    real(rkx) :: ps , ts
-    real(rkx) , allocatable , dimension(:) :: zi , ti , qi
+    real(rkx) :: ps, ts
+    real(rkx), allocatable, dimension(:) :: zi, ti, qi
 #ifndef RCEMIP
-    real(rkx) , allocatable , dimension(:) :: g , p , t , u , v , r
-    real(rkx) , allocatable , dimension(:) :: pi , ui , vi
-    integer(ik4) :: i , nlev
+    real(rkx), allocatable, dimension(:) :: g, p, t, u, v, r
+    real(rkx), allocatable, dimension(:) :: pi, ui, vi
+    integer(ik4) :: i, nlev
     integer(ik4) :: nseed
     integer(ik8) :: sclock
-    integer(ik4) , allocatable , dimension(:) :: seed
-    real(rkx) , dimension(1) :: ht
-    real(rkx) , dimension(jce1ga:jce2ga,ice1ga:ice2ga) :: noise
+    integer(ik4), allocatable, dimension(:) :: seed
+    real(rkx), dimension(1) :: ht
+    real(rkx), dimension(jce1ga:jce2ga,ice1ga:ice2ga) :: noise
 
     namelist /dimensions/ nlev
-    namelist /surface/ ps , ts
-    namelist /profile/ g , p , t , u , v , r
+    namelist /surface/ ps, ts
+    namelist /profile/ g, p, t, u, v, r
 
     call random_seed(size=nseed)
     call system_clock(sclock)
@@ -228,7 +228,7 @@ module mod_bdycod
       call intz1(vi,v,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
       call intz1(ti,t,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
       call intz1(qi,r,pi,p,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
-      do k = 1 , kz
+      do k = 1, kz
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
         xtb%b0(:,:,k) = ti(k)
@@ -243,7 +243,7 @@ module mod_bdycod
       call intz1(vi,v,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
       call intz1(ti,t,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
       call intz1(qi,r,zi,g,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
-      do k = 1 , kz
+      do k = 1, kz
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
         xtb%b0(:,:,k) = ti(k)
@@ -260,7 +260,7 @@ module mod_bdycod
       call intz1(vi,v,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
       call intz1(ti,t,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
       call intz1(qi,r,zi,g,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
-      do k = 1 , kz
+      do k = 1, kz
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
         xtb%b0(:,:,k) = ti(k)
@@ -277,15 +277,15 @@ module mod_bdycod
     deallocate(g,p,t,u,v,r)
     deallocate(zi,pi,ti,ui,vi,qi)
 #else
-    real(rkx) :: qs , tvs , tvt
-    real(rkx) , parameter , dimension(3) :: t0s = &
+    real(rkx) :: qs, tvs, tvt
+    real(rkx), parameter, dimension(3) :: t0s = &
                 [ 295.0_rkx, 300.0_rkx, 305.0_rkx ]
-    real(rkx) , parameter , dimension(3) :: q0s = &
+    real(rkx), parameter, dimension(3) :: q0s = &
                 [ 0.012_rkx, 0.01865_rkx, 0.024_rkx ]
-    real(rkx) , parameter :: p0s = 101480
+    real(rkx), parameter :: p0s = 101480
 
-    namelist /surface/ ps , ts
-    namelist /perturbation/ lrcemip_perturb , lrcemip_noise_level
+    namelist /surface/ ps, ts
+    namelist /perturbation/ lrcemip_perturb, lrcemip_noise_level
 
     open(newunit=iunit, file='profile.in', status='old', &
          action='read', iostat=ierr, err=100)
@@ -337,7 +337,7 @@ module mod_bdycod
       call fatal(__FILE__,__LINE__, 'Not implemented...')
     end if
 
-    do k = 1 , kz
+    do k = 1, kz
       if ( zi(k) < 15000.0_rkx ) then
         qi(k) = qs * exp(-zi(k)/4000.0_rkx) * exp((-zi(k)/7500.0_rkx)**2)
         ti(k) = (tvs - lrate * zi(k))/(1.0_rkx + ep1*qi(k))
@@ -349,7 +349,7 @@ module mod_bdycod
 
     xtsb%b0 = ts
     qi = qi/(1.0_rkx-qi)
-    do k = 1 , kz
+    do k = 1, kz
       xub%b0(:,:,k) = 0.0_rkx
       xvb%b0(:,:,k) = 0.0_rkx
       xtb%b0(:,:,k) = ti(k)
@@ -444,12 +444,12 @@ module mod_bdycod
 
   subroutine setup_bdycon
     implicit none
-    real(rkx) , dimension(kz) :: anudge
-    real(rkx) :: xfun , nb2
-    integer(ik4) :: n , k
+    real(rkx), dimension(kz) :: anudge
+    real(rkx) :: xfun, nb2
+    integer(ik4) :: n, k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
 #endif
 #ifdef DEBUG
     call time_begin(subroutine_name,idindx)
@@ -487,12 +487,12 @@ module mod_bdycod
       end if
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
-      do n = 2 , nspgx-1
+      do n = 2, nspgx-1
         xfun = real(nspgx-n,rkx)/real(nspgx-2,rkx)
         fcx(n) = fnudge*xfun
         gcx(n) = gnudge*xfun
       end do
-      do n = 2 , nspgd-1
+      do n = 2, nspgd-1
         xfun = real(nspgd-n,rkx)/real(nspgd-2,rkx)
         fcd(n) = fnudge*xfun
         gcd(n) = gnudge*xfun
@@ -503,25 +503,25 @@ module mod_bdycod
       wgtd(3) = 0.55_rkx
       wgtd(4) = 0.80_rkx
       wgtd(5) = 0.95_rkx
-      do k = 6 , nspgd-1
+      do k = 6, nspgd-1
         wgtd(k) = d_one
       end do
       wgtx(2) = 0.4_rkx
       wgtx(3) = 0.7_rkx
       wgtx(4) = 0.9_rkx
-      do k = 5 , nspgx-1
+      do k = 5, nspgx-1
         wgtx(k) = 1.0_rkx
       end do
     end if
     if ( iboudy == 5 ) then
       call exponential_nudging(anudge)
-      do k = 1 , kz
-        do n = 2 , nspgx-1
+      do k = 1, kz
+        do n = 2, nspgx-1
           xfun = exp(-(real(n-2,rkx)/anudge(k)))
           hefc(n,k) = fnudge*xfun
           hegc(n,k) = gnudge*xfun
         end do
-        do n = 2 , nspgd-1
+        do n = 2, nspgd-1
           xfun = exp(-(real(n-2,rkx)/anudge(k)))
           hefd(n,k) = fnudge*xfun
           hegd(n,k) = gnudge*xfun
@@ -529,15 +529,15 @@ module mod_bdycod
       end do
     end if
     if ( iboudy == 6 ) then
-      do k = 1 , kz
+      do k = 1, kz
         nb2 = d_two * nspgx
-        do n = 2 , nspgx-1
+        do n = 2, nspgx-1
           xfun = d_half * (d_one - cos(mathpi/((n-nb2)/nb2)))
           hefc(n,k) = fnudge*xfun
           hegc(n,k) = gnudge*xfun
         end do
         nb2 = d_two * nspgd
-        do n = 2 , nspgd-1
+        do n = 2, nspgd-1
           xfun = d_half * (d_one - cos(mathpi/((n-nb2)/nb2)))
           hefd(n,k) = fnudge*xfun
           hegd(n,k) = gnudge*xfun
@@ -551,13 +551,13 @@ module mod_bdycod
 
   subroutine init_bdy
     implicit none
-    integer(ik4) :: datefound , i , j , k , n
+    integer(ik4) :: datefound, i, j, k, n
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
     type (rcm_time_interval) :: tdif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init_bdy'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -600,10 +600,10 @@ module mod_bdycod
                      xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0)
 
       if ( ichem == 1 .or. iclimaaer == 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           nhbh0%ps(j,i) = nhbh0%ps(j,i) * d_r10 - ptop
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           nhbh0%tvirt(j,i,k) = xtb%b0(j,i,k)*(d_one+ep1*xqb%b0(j,i,k))
         end do
       end if
@@ -618,10 +618,10 @@ module mod_bdycod
       end if
 
       if ( ichem == 1 .or. iclimaaer == 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           nhbh0%ps(j,i) = xpsb%b0(j,i)
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           nhbh0%tvirt(j,i,k) = xtb%b0(j,i,k)*(d_one+ep1*xqb%b0(j,i,k))
         end do
       end if
@@ -716,10 +716,10 @@ module mod_bdycod
       call read_icbc(nhbh1%ps,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
                      xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           nhbh1%ps(j,i) = nhbh1%ps(j,i) * d_r10 - ptop
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           nhbh1%tvirt(j,i,k) = xtb%b1(j,i,k)*(d_one+ep1*xqb%b1(j,i,k))
         end do
       end if
@@ -734,10 +734,10 @@ module mod_bdycod
       end if
 
       if ( ichem == 1 .or. iclimaaer == 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           nhbh1%ps(j,i) = xpsb%b1(j,i)
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           nhbh1%tvirt(j,i,k) = xtb%b1(j,i,k)*(d_one+ep1*xqb%b1(j,i,k))
         end do
       end if
@@ -762,8 +762,8 @@ module mod_bdycod
     end if
 
     if ( myid == italk ) then
-      write (stdout,*) 'READY  BC from     ' , &
-            tochar10(bdydate1) , ' to ' , tochar10(bdydate2)
+      write (stdout,*) 'READY  BC from     ', &
+            tochar10(bdydate1), ' to ', tochar10(bdydate2)
     end if
 
     bdydate1 = bdydate2
@@ -813,8 +813,8 @@ module mod_bdycod
     if ( rcmtimer%start( ) ) then
       if ( iseaice == 1 ) then
         if ( islab_ocean == 0 ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( mddom%ldmsk(j,i) == 1 ) cycle
               if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
               if ( iocncpl == 1 .or. iwavcpl == 1 ) then
@@ -823,7 +823,7 @@ module mod_bdycod
               if ( xtsb%b0(j,i) <= icetriggert ) then
                 xtsb%b0(j,i) = icetriggert
                 mddom%ldmsk(j,i) = 2
-                do n = 1 , nnsg
+                do n = 1, nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
                     mdsub%ldmsk(n,j,i) = 2
                     lms%sfice(n,j,i) = 1.00_rkx
@@ -840,8 +840,8 @@ module mod_bdycod
 
     if ( iseaice == 1 ) then
       if ( islab_ocean == 0 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             ! Update temperatures over ocean water and lakes
             if ( mddom%ldmsk(j,i) == 1 ) cycle
             if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
@@ -851,7 +851,7 @@ module mod_bdycod
             if ( xtsb%b1(j,i) <= icetriggert ) then
               xtsb%b1(j,i) = icetriggert
               mddom%ldmsk(j,i) = 2
-              do n = 1 , nnsg
+              do n = 1, nnsg
                 if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
                   lms%sfice(n,j,i) = 1.00_rkx
@@ -860,7 +860,7 @@ module mod_bdycod
             else
               if ( mddom%ldmsk(j,i) == 2 ) then
                 ! Decrease the surface ice to melt it
-                do n = 1 , nnsg
+                do n = 1, nnsg
                   if ( mdsub%ldmsk(n,j,i) == 2 ) then
                     lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
                   end if
@@ -910,13 +910,13 @@ module mod_bdycod
   !
   subroutine bdyin
     implicit none
-    integer(ik4) :: i , j , k , n , datefound
+    integer(ik4) :: i, j, k, n, datefound
     character(len=32) :: appdat
     logical :: update_slabocn
     type (rcm_time_interval) :: tdif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -972,10 +972,10 @@ module mod_bdycod
       call read_icbc(nhbh1%ps,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
                      xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           nhbh1%ps(j,i) = nhbh1%ps(j,i) * d_r10 - ptop
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           nhbh1%tvirt(j,i,k) = xtb%b1(j,i,k)*(d_one+ep1*xqb%b1(j,i,k))
         end do
       end if
@@ -990,10 +990,10 @@ module mod_bdycod
       end if
 
       if ( ichem == 1 .or. iclimaaer == 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           nhbh1%ps(j,i) = xpsb%b1(j,i)
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           nhbh1%tvirt(j,i,k) = xtb%b1(j,i,k)*(d_one+ep1*xqb%b1(j,i,k))
         end do
       end if
@@ -1086,8 +1086,8 @@ module mod_bdycod
     !
     if ( iseaice == 1 ) then
       if ( islab_ocean == 0 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             ! Update temperatures over ocean water only
             if ( mddom%ldmsk(j,i) == 1 ) cycle
             ! Skip lake points if lake model active
@@ -1100,7 +1100,7 @@ module mod_bdycod
             if ( xtsb%b1(j,i) <= icetriggert ) then
               xtsb%b1(j,i) = icetriggert
               mddom%ldmsk(j,i) = 2
-              do n = 1 , nnsg
+              do n = 1, nnsg
                 if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
                   lms%sfice(n,j,i) = 1.00_rkx
@@ -1109,7 +1109,7 @@ module mod_bdycod
             else
               if ( mddom%ldmsk(j,i) == 2 ) then
                 ! Decrease the surface ice to melt it
-                do n = 1 , nnsg
+                do n = 1, nnsg
                   if ( mdsub%ldmsk(n,j,i) == 2 ) then
                     lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
                   end if
@@ -1124,8 +1124,8 @@ module mod_bdycod
     call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2,rdtbdy)
 
     if ( myid == italk ) then
-      write (stdout,*) 'READY  BC from     ' , &
-            tochar10(bdydate1) , ' to ' , tochar10(bdydate2)
+      write (stdout,*) 'READY  BC from     ', &
+            tochar10(bdydate1), ' to ', tochar10(bdydate2)
     end if
 
     bdydate1 = bdydate2
@@ -1146,11 +1146,11 @@ module mod_bdycod
   !
   subroutine bdyuv(xt)
     implicit none
-    real(rkx) , intent(in) :: xt
-    integer(ik4) :: i , j , k
+    real(rkx), intent(in) :: xt
+    integer(ik4) :: i, j, k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyuv'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -1158,25 +1158,25 @@ module mod_bdycod
     ! Internal points
     !
     if ( ma%has_bdyleft ) then
-      do concurrent ( i = idi1:idi2 , k = 1:kz )
+      do concurrent ( i = idi1:idi2, k = 1:kz )
         wui(i,k) = atm1%u(jdi1,i,k)
         wvi(i,k) = atm1%v(jdi1,i,k)
       end do
     end if
     if ( ma%has_bdyright ) then
-      do concurrent ( i = idi1:idi2 , k = 1:kz )
+      do concurrent ( i = idi1:idi2, k = 1:kz )
         eui(i,k) = atm1%u(jdi2,i,k)
         evi(i,k) = atm1%v(jdi2,i,k)
       end do
     end if
     if ( ma%has_bdybottom ) then
-      do concurrent ( j = jdi1:jdi2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, k = 1:kz )
         sui(j,k) = atm1%u(j,idi1,k)
         svi(j,k) = atm1%v(j,idi1,k)
       end do
     end if
     if ( ma%has_bdytop ) then
-      do concurrent ( j = jdi1:jdi2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, k = 1:kz )
         nui(j,k) = atm1%u(j,idi2,k)
         nvi(j,k) = atm1%v(j,idi2,k)
       end do
@@ -1191,13 +1191,13 @@ module mod_bdycod
       ! west and east boundaries:
       !
       if ( ma%has_bdyleft ) then
-        do concurrent ( i = ide1:ide2 , k = 1:kz )
+        do concurrent ( i = ide1:ide2, k = 1:kz )
           wue(i,k) = xub%b0(jde1,i,k)
           wve(i,k) = xvb%b0(jde1,i,k)
         end do
       end if
       if ( ma%has_bdyright ) then
-        do concurrent ( i = ide1:ide2 , k = 1:kz )
+        do concurrent ( i = ide1:ide2, k = 1:kz )
           eue(i,k) = xub%b0(jde2,i,k)
           eve(i,k) = xvb%b0(jde2,i,k)
         end do
@@ -1206,13 +1206,13 @@ module mod_bdycod
       ! south and north boundaries:
       !
       if ( ma%has_bdybottom ) then
-        do concurrent ( j = jde1:jde2 , k = 1:kz )
+        do concurrent ( j = jde1:jde2, k = 1:kz )
           sue(j,k) = xub%b0(j,ide1,k)
           sve(j,k) = xvb%b0(j,ide1,k)
         end do
       end if
       if ( ma%has_bdytop ) then
-        do concurrent ( j = jde1:jde2 , k = 1:kz )
+        do concurrent ( j = jde1:jde2, k = 1:kz )
           nue(j,k) = xub%b0(j,ide2,k)
           nve(j,k) = xvb%b0(j,ide2,k)
         end do
@@ -1224,13 +1224,13 @@ module mod_bdycod
       ! west (j = 1) and east (j = jx) boundaries:
       !
       if ( ma%has_bdyleft ) then
-        do concurrent ( i = idi1:idi2 , k = 1:kz )
+        do concurrent ( i = idi1:idi2, k = 1:kz )
           wue(i,k) = (xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k))
           wve(i,k) = (xvb%b0(jde1,i,k) + xt*xvb%bt(jde1,i,k))
         end do
       end if
       if ( ma%has_bdyright ) then
-        do concurrent ( i = idi1:idi2 , k = 1:kz )
+        do concurrent ( i = idi1:idi2, k = 1:kz )
           eue(i,k) = (xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k))
           eve(i,k) = (xvb%b0(jde2,i,k) + xt*xvb%bt(jde2,i,k))
         end do
@@ -1239,13 +1239,13 @@ module mod_bdycod
       ! south and north boundaries:
       !
       if ( ma%has_bdybottom ) then
-        do concurrent ( j = jde1:jde2 , k = 1:kz )
+        do concurrent ( j = jde1:jde2, k = 1:kz )
           sue(j,k) = (xub%b0(j,ide1,k) + xt*xub%bt(j,ide1,k))
           sve(j,k) = (xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k))
         end do
       end if
       if ( ma%has_bdytop ) then
-        do concurrent ( j = jde1:jde2 , k = 1:kz )
+        do concurrent ( j = jde1:jde2, k = 1:kz )
           nue(j,k) = (xub%b0(j,ide2,k) + xt*xub%bt(j,ide2,k))
           nve(j,k) = (xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k))
         end do
@@ -1334,12 +1334,12 @@ module mod_bdycod
   !
   subroutine bdyval
     implicit none
-    integer(ik4) :: i , j , k , n
-    real(rkx) :: qext , qint , qxint , qrat , windavg , tkeint
+    integer(ik4) :: i, j, k, n
+    real(rkx) :: qext, qint, qxint, qrat, windavg, tkeint
     real(rkx) :: xt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyval'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -1354,21 +1354,21 @@ module mod_bdycod
         ! West boundary
         !
         if ( ma%has_bdyleft ) then
-          do concurrent ( i = idi1:idi2 , k = 1:kz )
+          do concurrent ( i = idi1:idi2, k = 1:kz )
             atm2%u(jde1,i,k) = atm1%u(jde1,i,k)
             atm2%v(jde1,i,k) = atm1%v(jde1,i,k)
           end do
-          do concurrent ( i = ici1:ici2 , k = 1:kz )
+          do concurrent ( i = ici1:ici2, k = 1:kz )
             atm2%t(jce1,i,k) = atm1%t(jce1,i,k)
           end do
-          do concurrent ( i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+          do concurrent ( i = ici1:ici2, k = 1:kz, n = 1:nqx )
             atm2%qx(jce1,i,k,n) = atm1%qx(jce1,i,k,n)
           end do
           if ( idynamic == 2 ) then
-            do concurrent ( i = ici1:ici2 , k = 1:kz )
+            do concurrent ( i = ici1:ici2, k = 1:kz )
               atm2%pp(jce1,i,k) = atm1%pp(jce1,i,k)
             end do
-            do concurrent ( i = ici1:ici2 , k = 1:kzp1 )
+            do concurrent ( i = ici1:ici2, k = 1:kzp1 )
               atm2%w(jce1,i,k) = atm1%w(jce1,i,k)
             end do
           else
@@ -1377,7 +1377,7 @@ module mod_bdycod
             end do
           end if
           if ( ibltyp == 2 ) then
-            do concurrent ( i = ici1:ici2 , k = 1:kzp1 )
+            do concurrent ( i = ici1:ici2, k = 1:kzp1 )
               atm2%tke(jce1,i,k) = atm1%tke(jce1,i,k)
             end do
           end if
@@ -1386,21 +1386,21 @@ module mod_bdycod
         ! East boundary
         !
         if ( ma%has_bdyright ) then
-          do concurrent ( i = idi1:idi2 , k = 1:kz )
+          do concurrent ( i = idi1:idi2, k = 1:kz )
             atm2%u(jde2,i,k) = atm1%u(jde2,i,k)
             atm2%v(jde2,i,k) = atm1%v(jde2,i,k)
           end do
-          do concurrent ( i = ici1:ici2 , k = 1:kz )
+          do concurrent ( i = ici1:ici2, k = 1:kz )
             atm2%t(jce2,i,k) = atm1%t(jce2,i,k)
           end do
-          do concurrent ( i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+          do concurrent ( i = ici1:ici2, k = 1:kz, n = 1:nqx )
             atm2%qx(jce2,i,k,n) = atm1%qx(jce2,i,k,n)
           end do
           if ( idynamic == 2 ) then
-            do concurrent ( i = ici1:ici2 , k = 1:kz )
+            do concurrent ( i = ici1:ici2, k = 1:kz )
               atm2%pp(jce2,i,k) = atm1%pp(jce2,i,k)
             end do
-            do concurrent ( i = ici1:ici2 , k = 1:kzp1 )
+            do concurrent ( i = ici1:ici2, k = 1:kzp1 )
               atm2%w(jce2,i,k) = atm1%w(jce2,i,k)
             end do
           else
@@ -1409,7 +1409,7 @@ module mod_bdycod
             end do
           end if
           if ( ibltyp == 2 ) then
-            do concurrent ( i = ici1:ici2 , k = 1:kzp1 )
+            do concurrent ( i = ici1:ici2, k = 1:kzp1 )
               atm2%tke(jce2,i,k) = atm1%tke(jce2,i,k)
             end do
           end if
@@ -1418,21 +1418,21 @@ module mod_bdycod
         ! North and South boundaries
         !
         if ( ma%has_bdybottom ) then
-          do concurrent ( j = jde1:jde2 , k = 1:kz )
+          do concurrent ( j = jde1:jde2, k = 1:kz )
             atm2%u(j,ide1,k) = atm1%u(j,ide1,k)
             atm2%v(j,ide1,k) = atm1%v(j,ide1,k)
           end do
-          do concurrent ( j = jce1:jce2 , k = 1:kz )
+          do concurrent ( j = jce1:jce2, k = 1:kz )
             atm2%t(j,ice1,k) = atm1%t(j,ice1,k)
           end do
-          do concurrent ( j = jce1:jce2 , k = 1:kz , n = 1:nqx )
+          do concurrent ( j = jce1:jce2, k = 1:kz, n = 1:nqx )
             atm2%qx(j,ice1,k,n) = atm1%qx(j,ice1,k,n)
           end do
           if ( idynamic == 2 ) then
-            do concurrent ( j = jce1:jce2 , k = 1:kz )
+            do concurrent ( j = jce1:jce2, k = 1:kz )
               atm2%pp(j,ice1,k) = atm1%pp(j,ice1,k)
             end do
-            do concurrent ( j = jce1:jce2 , k = 1:kzp1 )
+            do concurrent ( j = jce1:jce2, k = 1:kzp1 )
               atm2%w(j,ice1,k) = atm1%w(j,ice1,k)
             end do
           else
@@ -1441,27 +1441,27 @@ module mod_bdycod
             end do
           end if
           if ( ibltyp == 2 ) then
-            do concurrent ( j = jce1:jce2 , k = 1:kzp1 )
+            do concurrent ( j = jce1:jce2, k = 1:kzp1 )
               atm2%tke(j,ice1,k) = atm1%tke(j,ice1,k)
             end do
           end if
         end if
         if ( ma%has_bdytop ) then
-          do concurrent ( j = jde1:jde2 , k = 1:kz )
+          do concurrent ( j = jde1:jde2, k = 1:kz )
             atm2%u(j,ide2,k) = atm1%u(j,ide2,k)
             atm2%v(j,ide2,k) = atm1%v(j,ide2,k)
           end do
-          do concurrent ( j = jce1:jce2 , k = 1:kz )
+          do concurrent ( j = jce1:jce2, k = 1:kz )
             atm2%t(j,ice2,k) = atm1%t(j,ice2,k)
           end do
-          do concurrent ( j = jce1:jce2 , k = 1:kz , n = 1:nqx )
+          do concurrent ( j = jce1:jce2, k = 1:kz, n = 1:nqx )
             atm2%qx(j,ice2,k,n) = atm1%qx(j,ice2,k,n)
           end do
           if ( idynamic == 2 ) then
-            do concurrent ( j = jce1:jce2 , k = 1:kz )
+            do concurrent ( j = jce1:jce2, k = 1:kz )
               atm2%pp(j,ice2,k) = atm1%pp(j,ice2,k)
             end do
-            do concurrent ( j = jce1:jce2 , k = 1:kzp1 )
+            do concurrent ( j = jce1:jce2, k = 1:kzp1 )
               atm2%w(j,ice2,k) = atm1%w(j,ice2,k)
             end do
           else
@@ -1470,7 +1470,7 @@ module mod_bdycod
             end do
           end if
           if ( ibltyp == 2 ) then
-            do concurrent ( j = jce1:jce2 , k = 1:kzp1 )
+            do concurrent ( j = jce1:jce2, k = 1:kzp1 )
               atm2%tke(j,ice2,k) = atm1%tke(j,ice2,k)
             end do
           end if
@@ -2017,8 +2017,8 @@ module mod_bdycod
       end if
     end if
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         ! Update temperatures over ocean water only
         if ( mddom%ldmsk(j,i) /= 0 ) cycle
         ! Skip lake points if lake model active
@@ -2172,7 +2172,7 @@ module mod_bdycod
     if ( idynamic == 3 ) then
       if ( bdyflow ) then
         if ( ma%has_bdyleft ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -2190,7 +2190,7 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -2208,7 +2208,7 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2226,7 +2226,7 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2242,7 +2242,7 @@ module mod_bdycod
         end if
       else
         if ( ma%has_bdyleft ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -2256,7 +2256,7 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -2270,7 +2270,7 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2284,7 +2284,7 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2298,7 +2298,7 @@ module mod_bdycod
     else
       if ( bdyflow ) then
         if ( ma%has_bdyleft ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -2316,7 +2316,7 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -2334,7 +2334,7 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2352,7 +2352,7 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2368,7 +2368,7 @@ module mod_bdycod
         end if
       else
         if ( ma%has_bdyleft ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -2382,7 +2382,7 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -2396,7 +2396,7 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2410,7 +2410,7 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-          do n = iqfrst , nqx
+          do n = iqfrst, nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2702,14 +2702,14 @@ module mod_bdycod
   !
   subroutine sponge4d(bnd,ften,m)
     implicit none
-    integer(ik4) , intent(in) :: m
-    type(v3dbound) , intent(in) :: bnd
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    integer(ik4), intent(in) :: m
+    type(v3dbound), intent(in) :: bnd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
 
-    integer(ik4) :: i , j , k , ib
+    integer(ik4) :: i, j, k, ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'sponge4d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -2759,14 +2759,14 @@ module mod_bdycod
 
   subroutine mosponge4d(f,bnd,m)
     implicit none
-    integer(ik4) , intent(in) :: m
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: f
-    type(v3dbound) , intent(in) :: bnd
+    integer(ik4), intent(in) :: m
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
+    type(v3dbound), intent(in) :: bnd
 
-    integer(ik4) :: i , j , k , ib
+    integer(ik4) :: i, j, k, ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mosponge4d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -2812,12 +2812,12 @@ module mod_bdycod
 
   subroutine spongeuv(bndu,bndv,ftenu,ftenv)
     implicit none
-    type(v3dbound) , intent(in) :: bndu , bndv
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ftenu , ftenv
-    integer(ik4) :: i , j , k , ib
+    type(v3dbound), intent(in) :: bndu, bndv
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ftenu, ftenv
+    integer(ik4) :: i, j, k, ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'spongeuv'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -2875,12 +2875,12 @@ module mod_bdycod
 
   subroutine mospongeuv(fu,fv,bndu,bndv)
     implicit none
-    type(v3dbound) , intent(in) :: bndu , bndv
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: fu , fv
-    integer(ik4) :: i , j , k , ib
+    type(v3dbound), intent(in) :: bndu, bndv
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: fu, fv
+    integer(ik4) :: i, j, k, ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mospongeuv'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -2954,13 +2954,13 @@ module mod_bdycod
 
   subroutine sponge3d(bnd,ften)
     implicit none
-    type(v3dbound) , intent(in) :: bnd
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    integer(ik4) :: i , j , k , ib
+    type(v3dbound), intent(in) :: bnd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
+    integer(ik4) :: i, j, k, ib
     integer(ik4) :: nk
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'sponge3d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -3007,13 +3007,13 @@ module mod_bdycod
 
   subroutine mosponge3d(f,bnd)
     implicit none
-    type(v3dbound) , intent(in) :: bnd
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: f
-    integer(ik4) :: i , j , k , ib
+    type(v3dbound), intent(in) :: bnd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
+    integer(ik4) :: i, j, k, ib
     integer(ik4) :: nk
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mosponge3d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -3060,12 +3060,12 @@ module mod_bdycod
 
   subroutine sponge2d(bnd,ften)
     implicit none
-    type(v2dbound) , intent(in) :: bnd
-    real(rkx) , pointer , intent(inout) , dimension(:,:) :: ften
-    integer(ik4) :: i , j , ib
+    type(v2dbound), intent(in) :: bnd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: ften
+    integer(ik4) :: i, j, ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'sponge2d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( .not. ba_cr%havebound ) then
@@ -3110,12 +3110,12 @@ module mod_bdycod
 
   subroutine mosponge2d(f,bnd)
     implicit none
-    type(v2dbound) , intent(in) :: bnd
-    real(rkx) , pointer , intent(inout) , dimension(:,:) :: f
-    integer(ik4) :: i , j , ib
+    type(v2dbound), intent(in) :: bnd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: f
+    integer(ik4) :: i, j, ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mosponge2d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( .not. ba_cr%havebound ) then
@@ -3183,16 +3183,16 @@ module mod_bdycod
   !
   subroutine nudge4d3d(ibdy,f,bnd,ften,n)
     implicit none
-    integer(ik4) , intent(in) :: ibdy , n
-    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: f
-    type(v3dbound) , intent(in) :: bnd
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    integer(ik4), intent(in) :: ibdy, n
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
+    type(v3dbound), intent(in) :: bnd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
     real(rkx) :: xt
-    integer(ik4) :: i , j , k , ib
-    real(rkx) :: xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    integer(ik4) :: i, j, k, ib
+    real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge4d3d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( .not. ba_cr%havebound ) then
@@ -3204,7 +3204,7 @@ module mod_bdycod
 
     xt = xbctime + dt
 
-    do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+    do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
       fg1(j,i,k) = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k) - f(j,i,k,n)
     end do
 
@@ -3338,15 +3338,15 @@ module mod_bdycod
 
   subroutine monudge4d3d(ibdy,f,bnd,n)
     implicit none
-    integer(ik4) , intent(in) :: ibdy , n
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: f
-    type(v3dbound) , intent(in) :: bnd
+    integer(ik4), intent(in) :: ibdy, n
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
+    type(v3dbound), intent(in) :: bnd
     real(rkx) :: xt
-    integer(ik4) :: i , j , k , ib
-    real(rkx) :: xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    integer(ik4) :: i, j, k, ib
+    real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudge4d3d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( .not. ba_cr%havebound ) then
@@ -3358,7 +3358,7 @@ module mod_bdycod
 
     xt = xbctime + dt
 
-    do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+    do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
       fg1(j,i,k) = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k) - f(j,i,k,n)
     end do
 
@@ -3492,16 +3492,16 @@ module mod_bdycod
 
   subroutine nudgeuv(ibdy,fu,fv,bndu,bndv,ftenu,ftenv)
     implicit none
-    integer(ik4) , intent(in) :: ibdy
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: fu , fv
-    type(v3dbound) , intent(in) :: bndu , bndv
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ftenu , ftenv
+    integer(ik4), intent(in) :: ibdy
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: fu, fv
+    type(v3dbound), intent(in) :: bndu, bndv
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ftenu, ftenv
     real(rkx) :: xt
-    integer(ik4) :: i , j , k , ib
-    real(rkx) :: xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    integer(ik4) :: i, j, k, ib
+    real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudgeuv'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( .not. ba_dt%havebound ) then
@@ -3513,7 +3513,7 @@ module mod_bdycod
 
     xt = xbctime + dt
 
-    do concurrent ( j = jde1ga:jde2ga , i = ide1ga:ide2ga , k = 1:kz )
+    do concurrent ( j = jde1ga:jde2ga, i = ide1ga:ide2ga, k = 1:kz )
       fg1(j,i,k) = ((bndu%b0(j,i,k) + xt*bndu%bt(j,i,k)) - fu(j,i,k))
       fg2(j,i,k) = ((bndv%b0(j,i,k) + xt*bndv%bt(j,i,k)) - fv(j,i,k))
     end do
@@ -3705,15 +3705,15 @@ module mod_bdycod
 
   subroutine monudgeuv(ibdy,fu,fv,bndu,bndv)
     implicit none
-    integer(ik4) , intent(in) :: ibdy
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: fu , fv
-    type(v3dbound) , intent(in) :: bndu , bndv
+    integer(ik4), intent(in) :: ibdy
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: fu, fv
+    type(v3dbound), intent(in) :: bndu, bndv
     real(rkx) :: xt
-    integer(ik4) :: i , j , k , ib
-    real(rkx) :: xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    integer(ik4) :: i, j, k, ib
+    real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudgeuv'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( .not. ba_ut%havebound .and. .not. ba_vt%havebound ) then
@@ -3725,11 +3725,11 @@ module mod_bdycod
 
     xt = xbctime + dt
 
-    do concurrent ( j = jde1ga:jde2ga , i = ice1ga:ice2ga , k = 1:kz )
+    do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
       fg1(j,i,k) = (bndu%b0(j,i,k) + xt*bndu%bt(j,i,k)) - fu(j,i,k)
     end do
 
-    do concurrent ( j = jce1ga:jce2ga , i = ide1ga:ide2ga , k = 1:kz )
+    do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
       fg2(j,i,k) = (bndv%b0(j,i,k) + xt*bndv%bt(j,i,k)) - fv(j,i,k)
     end do
 
@@ -3984,13 +3984,13 @@ module mod_bdycod
 
   subroutine monudge4d(ibdy,f,bnd,n1,n2)
     implicit none
-    integer(ik4) , intent(in) :: ibdy , n1 , n2
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: f
-    type(v3dbound) , intent(in) :: bnd
+    integer(ik4), intent(in) :: ibdy, n1, n2
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
+    type(v3dbound), intent(in) :: bnd
     integer(ik4) :: n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudge4d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( .not. ba_cr%havebound ) then
@@ -3999,7 +3999,7 @@ module mod_bdycod
 #endif
       return
     end if
-    do n = n1 , n2
+    do n = n1, n2
       call monudge4d3d(ibdy,f,bnd,n)
     end do
 #ifdef DEBUG
@@ -4009,14 +4009,14 @@ module mod_bdycod
 
   subroutine nudge4d(ibdy,f,bnd,ften,n1,n2)
     implicit none
-    integer(ik4) , intent(in) :: ibdy , n1 , n2
-    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: f
-    type(v3dbound) , intent(in) :: bnd
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    integer(ik4), intent(in) :: ibdy, n1, n2
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
+    type(v3dbound), intent(in) :: bnd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
     integer(ik4) :: n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge4d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( .not. ba_cr%havebound ) then
@@ -4025,7 +4025,7 @@ module mod_bdycod
 #endif
       return
     end if
-    do n = n1 , n2
+    do n = n1, n2
       call nudge4d3d(ibdy,f,bnd,ften,n)
     end do
 #ifdef DEBUG
@@ -4035,16 +4035,16 @@ module mod_bdycod
 
   subroutine nudge3d(ibdy,f,bnd,ften)
     implicit none
-    integer(ik4) , intent(in) :: ibdy
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: f
-    type(v3dbound) , intent(in) :: bnd
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
+    integer(ik4), intent(in) :: ibdy
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
+    type(v3dbound), intent(in) :: bnd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
     real(rkx) :: xt
-    integer(ik4) :: i , j , k , ns , nk , ib
-    real(rkx) :: xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    integer(ik4) :: i, j, k, ns, nk, ib
+    real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge3d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -4060,7 +4060,7 @@ module mod_bdycod
     !if ( nk == kzp1 ) ns = 2
     xt = xbctime + dt
 
-    do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = ns:nk )
+    do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = ns:nk )
       fg1(j,i,k) = (bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)) - f(j,i,k)
     end do
 
@@ -4194,15 +4194,15 @@ module mod_bdycod
 
   subroutine monudge3d(ibdy,f,bnd)
     implicit none
-    integer(ik4) , intent(in) :: ibdy
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: f
-    type(v3dbound) , intent(in) :: bnd
+    integer(ik4), intent(in) :: ibdy
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
+    type(v3dbound), intent(in) :: bnd
     real(rkx) :: xt
-    integer(ik4) :: i , j , k , ns , nk , ib
-    real(rkx) :: xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    integer(ik4) :: i, j, k, ns, nk, ib
+    real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudge3d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -4218,7 +4218,7 @@ module mod_bdycod
     !if ( nk == kzp1 ) ns = 2
     xt = xbctime + dt
 
-    do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = ns:nk )
+    do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = ns:nk )
       fg1(j,i,k) = (bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)) - f(j,i,k)
     end do
 
@@ -4352,16 +4352,16 @@ module mod_bdycod
 
   subroutine nudge2d(ibdy,f,bnd,ften)
     implicit none
-    integer(ik4) , intent(in) :: ibdy
-    real(rkx) , pointer , intent(in) , dimension(:,:) :: f
-    type(v2dbound) , intent(in) :: bnd
-    real(rkx) , pointer , intent(inout) , dimension(:,:) :: ften
+    integer(ik4), intent(in) :: ibdy
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: f
+    type(v2dbound), intent(in) :: bnd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: ften
     real(rkx) :: xt
-    integer(ik4) :: i , j , ib
-    real(rkx) :: xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    integer(ik4) :: i, j, ib
+    real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge2d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -4374,7 +4374,7 @@ module mod_bdycod
 
     xt = xbctime + dt
 
-    do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga )
+    do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
       fg1(j,i,1) = (bnd%b0(j,i) + xt*bnd%bt(j,i)) - f(j,i)
     end do
 
@@ -4508,15 +4508,15 @@ module mod_bdycod
 
   subroutine monudge2d(ibdy,f,bnd)
     implicit none
-    integer(ik4) , intent(in) :: ibdy
-    real(rkx) , pointer , intent(inout) , dimension(:,:) :: f
-    type(v2dbound) , intent(in) :: bnd
-    integer(ik4) :: i , j , ib
-    real(rkx) :: xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    integer(ik4), intent(in) :: ibdy
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: f
+    type(v2dbound), intent(in) :: bnd
+    integer(ik4) :: i, j, ib
+    real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
     real(rkx) :: xt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudge2d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -4529,7 +4529,7 @@ module mod_bdycod
 
     xt = xbctime + dt
 
-    do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga )
+    do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
       fg1(j,i,1) = (bnd%b0(j,i) + xt*bnd%bt(j,i)) - f(j,i)
     end do
 
@@ -4655,10 +4655,10 @@ module mod_bdycod
 
   subroutine couple(a,c,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: a
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: c
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: a
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: c
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    integer(ik4) :: i, j, k
     do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
       a(j,i,k) = a(j,i,k) * c(j,i)
     end do
@@ -4666,12 +4666,12 @@ module mod_bdycod
 
   subroutine raydampuv(z,u,v,uten,vten,ubnd,vbnd)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
-    type(v3dbound) , intent(in) :: ubnd , vbnd
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten, vten
+    type(v3dbound), intent(in) :: ubnd, vbnd
     real(rkx) :: xt
-    integer(ik4) :: i , j , k , maxk
+    integer(ik4) :: i, j, k, maxk
     real(rkx) :: bval
     xt = xbctime + dt
     maxk = min(kzp1,rayndamp)
@@ -4689,11 +4689,11 @@ module mod_bdycod
 
   subroutine raydampuv_c(z,u,v,uten,vten,sval)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
-    real(rkx) , intent(in) :: sval
-    integer(ik4) :: i , j , k , maxk
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten, vten
+    real(rkx), intent(in) :: sval
+    integer(ik4) :: i, j, k, maxk
     maxk = min(kzp1,rayndamp)
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:maxk )
       uten(j,i,k) = uten(j,i,k) + &
@@ -4707,11 +4707,11 @@ module mod_bdycod
 
   subroutine raydamp3f(z,var,vten,sval)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
-    real(rkx) , intent(in) :: sval
-    integer(ik4) :: i , j , k , maxk
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: var
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vten
+    real(rkx), intent(in) :: sval
+    integer(ik4) :: i, j, k, maxk
     maxk = min(kzp1,rayndamp)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:maxk )
         vten(j,i,k) = vten(j,i,k) + &
@@ -4721,12 +4721,12 @@ module mod_bdycod
 
   subroutine raydamp3(z,var,vten,bnd)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
-    type(v3dbound) , intent(in) :: bnd
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: var
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vten
+    type(v3dbound), intent(in) :: bnd
     real(rkx) :: xt
-    integer(ik4) :: i , j , k , maxk
+    integer(ik4) :: i, j, k, maxk
     real(rkx) :: bval
     xt = xbctime + dt
     maxk = min(kz,rayndamp)
@@ -4739,13 +4739,13 @@ module mod_bdycod
 
   subroutine moraydamp(z,var,bnd,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: var
-    type(v3dbound) , intent(in) :: bnd
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: var
+    type(v3dbound), intent(in) :: bnd
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     real(rkx) :: xt
     real(rkx) :: bval
-    integer(ik4) :: i , j , k , k3
+    integer(ik4) :: i, j, k, k3
     xt = xbctime + dt
     k3 = max(k2,rayndamp)
     do concurrent ( j = j1:j2, i = i1:i2, k = k1:k3 )
@@ -4757,11 +4757,11 @@ module mod_bdycod
 
   subroutine raydampqv(z,var,vten,bnd)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: var
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: vten
-    type(v3dbound) , intent(in) :: bnd
-    integer(ik4) :: i , j , k , maxk
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: vten
+    type(v3dbound), intent(in) :: bnd
+    integer(ik4) :: i, j, k, maxk
     real(rkx) :: xt
     real(rkx) :: bval
     xt = xbctime + dt
@@ -4775,11 +4775,11 @@ module mod_bdycod
 
   subroutine timeint2(a,b,c,j1,j2,i1,i2,rdtb)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: a , b
-    real(rkx) , intent(in) :: rdtb
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: c
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: i , j
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: a, b
+    real(rkx), intent(in) :: rdtb
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: c
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    integer(ik4) :: i, j
     do concurrent ( j = j1:j2, i = i1:i2 )
       c(j,i) = (a(j,i)-b(j,i))*rdtb
     end do
@@ -4787,11 +4787,11 @@ module mod_bdycod
 
   subroutine timeint3(a,b,c,j1,j2,i1,i2,k1,k2,rdtb)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: a , b
-    real(rkx) , intent(in) :: rdtb
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: c
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: a, b
+    real(rkx), intent(in) :: rdtb
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: c
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    integer(ik4) :: i, j, k
     do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
       c(j,i,k) = (a(j,i,k)-b(j,i,k))*rdtb
     end do
@@ -4800,7 +4800,7 @@ module mod_bdycod
   pure real(rkx) function tau(z,zmax,r0,rhd)
 !$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: z , zmax , r0 , rhd
+    real(rkx), intent(in) :: z, zmax, r0, rhd
     if ( z > zmax-rhd ) then
       tau = r0 * (sin(halfpi*(d_one-(zmax-z)/rhd)))**2
     else
@@ -4810,11 +4810,11 @@ module mod_bdycod
 
   subroutine paicompute(ps,z,t,q,pai)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z , t , q
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pai
-    integer(ik4) :: i , j , k
-    real(rkx) :: tv1 , tv2 , lrt , tv , zz , zb , p , zdelta
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z, t, q
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pai
+    integer(ik4) :: i, j, k
+    real(rkx) :: tv1, tv2, lrt, tv, zz, zb, p, zdelta
     ! Hydrostatic initialization of pai
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       zdelta = z(j,i,kz)*egrav
@@ -4839,17 +4839,17 @@ module mod_bdycod
 
   subroutine moloch_static_test1(xt,xq,xu,xv,xps,xts)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xps , xts
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xt , xq , xu , xv
-    integer(ik4) :: i , j , k
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xps, xts
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xt, xq, xu, xv
+    integer(ik4) :: i, j, k
     xts = stdt
     xps = stdpmb
     xu = d_zero
     xv = d_zero
     xq = 1.0e-8_rkx
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+    do k = 1, kz
+      do i = ice1, ice2
+        do j = jce1, jce2
           xt(j,i,k) = max(xts(j,i) - lrate * mo_atm%zeta(j,i,k), 210.0_rkx)
         end do
       end do
@@ -4858,24 +4858,24 @@ module mod_bdycod
 
   subroutine moloch_static_test2(xt,xq,xu,xv,xps,xts)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xps , xts
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xt , xq , xu , xv
-    integer(ik4) :: i , j , k
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xps, xts
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xt, xq, xu, xv
+    integer(ik4) :: i, j, k
     real(rkx) :: zlr
     xu = 10.0_rkx
     xv = d_zero
     xq = d_zero
     xts = stdt
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+    do k = 1, kz
+      do i = ice1, ice2
+        do j = jce1, jce2
           zlr = -lrate
           xt(j,i,k) = max(xts(j,i) + zlr * mo_atm%zeta(j,i,k), 210.0_rkx)
         end do
       end do
     end do
-    do i = ice1 , ice2
-      do j = jce1 , jce2
+    do i = ice1, ice2
+      do j = jce1, jce2
         xps(j,i) = stdpmb * exp(-govr*mo_atm%zeta(j,i,kz)/xt(j,i,kz))
       end do
     end do
@@ -4892,12 +4892,12 @@ module mod_bdycod
   !                   zone (corresponding to optimal relax. coefficients)
   subroutine relax(is, gammin, gammax, alpha)
     implicit none
-    integer(ik4) , intent(in) :: is
-    real(rkx) , intent(in) :: gammin , gammax
-    real(rkx) , dimension(is) , intent(out) :: alpha
-    real(rkx) , dimension(0:2*is) :: p , q , pp , qq
-    real(rkx) :: my , kk , kdt2 , xxx
-    integer(ik4) :: i , j , n
+    integer(ik4), intent(in) :: is
+    real(rkx), intent(in) :: gammin, gammax
+    real(rkx), dimension(is), intent(out) :: alpha
+    real(rkx), dimension(0:2*is) :: p, q, pp, qq
+    real(rkx) :: my, kk, kdt2, xxx
+    integer(ik4) :: i, j, n
 
     n = 1
     p(0) = 0.0_rkx
@@ -4907,26 +4907,26 @@ module mod_bdycod
     my = sqrt(gammax/gammin)
     do
       my = sqrt((my+1.0_rkx/my)/2.0_rkx)
-      do i = 0 , n+n
+      do i = 0, n+n
         pp(i) = 0.0_rkx
         qq(i) = 0.0_rkx
       end do
-      do i = 0 , n
-        do j = 0 , n
+      do i = 0, n
+        do j = 0, n
           pp(i+j) = pp(i+j) + p(i)*p(j) + q(i)*q(j)
           qq(i+j) = qq(i+j) + 2.0_rkx*my*p(i)*q(j)
         end do
       end do
-      do i = 0 , n+n
+      do i = 0, n+n
         p(i) = pp(i)
         q(i) = qq(i)
       end do
       n = 2*n
       if ( n >= is ) exit
     end do
-    do i = n , 1 , -1
+    do i = n, 1, -1
       kk = p(i)/q(i-1)
-      do j = i , 1 , -1
+      do j = i, 1, -1
         xxx = q(j)
         q(j) = p(j) - kk*q(j-1)
         p(j) = xxx
@@ -4943,12 +4943,12 @@ module mod_bdycod
 
   subroutine invert_top_bottom(v)
     implicit none
-    real(rkx) , dimension(:) , intent(inout) :: v
+    real(rkx), dimension(:), intent(inout) :: v
     real(rkx), dimension(size(v)) :: swap
-    integer(ik4) :: nk , k , kk
+    integer(ik4) :: nk, k, kk
     swap = v
     nk = size(v)
-    do k = 1 , nk
+    do k = 1, nk
       kk = nk-k+1
       v(k) = swap(kk)
     end do

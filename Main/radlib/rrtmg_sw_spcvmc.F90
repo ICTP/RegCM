@@ -277,7 +277,7 @@ module rrtmg_sw_spcvmc
       real(kind=rb) :: zcd(nlayers+1,ngptsw), zcu(nlayers+1,ngptsw)
       real(kind=rb) :: zfd(nlayers+1,ngptsw), zfu(nlayers+1,ngptsw)
 
-      real(kind=rb) , parameter :: repclc = 1.0e-12_rb
+      real(kind=rb), parameter :: repclc = 1.0e-12_rb
 
 ! Inactive arrays
 !     real(kind=rb) :: zbbcd(nlayers+1), zbbcu(nlayers+1)
@@ -294,7 +294,7 @@ module rrtmg_sw_spcvmc
       iw = 0
 !     zincflux = 0.0_rb
 
-      do jk = 1 , klev+1
+      do jk = 1, klev+1
         pbbcd(jk) = 0._rb
         pbbcu(jk) = 0._rb
         pbbfd(jk) = 0._rb
@@ -324,7 +324,7 @@ module rrtmg_sw_spcvmc
 
 ! Top of shortwave spectral band loop, jb = 16 -> 29; ibm = 1 -> 14
 
-      do jb = ib1 , ib2
+      do jb = ib1, ib2
         ibm = jb-15
         igt = ngc(ibm)
 
@@ -339,7 +339,7 @@ module rrtmg_sw_spcvmc
 !       end do
 
 ! Top of g-point interval loop within each band (iw is cumulative counter)
-        do jg = 1 , igt
+        do jg = 1, igt
           iw = iw+1
 
 ! Apply adjustment for correct Earth/Sun distance and zenith angle to incoming solar flux
@@ -409,7 +409,7 @@ module rrtmg_sw_spcvmc
           zrupd(klev+1) = palbd(ibm)
 
 ! Top of layer loop
-          do jk = 1 , klev
+          do jk = 1, klev
 
 ! Note: two-stream calculations proceed from top to bottom;
 !  RRTMG_SW quantities are given bottom to top and are reversed here
@@ -542,7 +542,7 @@ module rrtmg_sw_spcvmc
                           lrtchkcld, zgco, prmu0, ztauo, zomco, &
                           zrefo, zrefdo, ztrao, ztrado)
 
-          do jk = 1 , klev
+          do jk = 1, klev
 
 ! Combine clear and cloudy contributions for total sky
             ikl = klev+1-jk
@@ -610,7 +610,7 @@ module rrtmg_sw_spcvmc
 !  Two-stream calculations go from top to bottom;
 !  layer indexing is reversed to go bottom to top for output arrays
 
-          do jk = 1 , klev+1
+          do jk = 1, klev+1
             ikl = klev+2-jk
 
 ! Accumulate spectral fluxes over bands - inactive

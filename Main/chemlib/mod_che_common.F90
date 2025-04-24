@@ -26,8 +26,8 @@ module mod_che_common
   use mod_che_param
   use mod_che_species
   use mod_che_indices
-  use mod_cbmz_global , only : xr , xrin , xrout , c
-  use mod_cbmz_parameters , only : nfix
+  use mod_cbmz_global, only : xr, xrin, xrout, c
+  use mod_cbmz_parameters, only : nfix
 
   implicit none
 
@@ -35,82 +35,82 @@ module mod_che_common
 
   real(rkx) :: cfdout
 
-  integer(ik4) , parameter :: sbin = 2
-  integer(ik4) , parameter :: cbin = 12
+  integer(ik4), parameter :: sbin = 2
+  integer(ik4), parameter :: cbin = 12
   !
   ! Only one cover type per grid cell for now
   !
-  integer(ik4) , parameter :: luc = 1
+  integer(ik4), parameter :: luc = 1
 
   ! tracer indices :
   type tracer
-    integer(ik4) , pointer , dimension(:) :: index
-    integer(ik4) , pointer , dimension(:) :: indcbmz
-    integer(ik4) , pointer , dimension(:) :: indchbdy
-    real(rkx)    , pointer , dimension(:) :: mw
+    integer(ik4), pointer, contiguous, dimension(:) :: index
+    integer(ik4), pointer, contiguous, dimension(:) :: indcbmz
+    integer(ik4), pointer, contiguous, dimension(:) :: indchbdy
+    real(rkx)   , pointer, contiguous, dimension(:) :: mw
   end type tracer
 
   type(tracer) trac
 
   ! tracer variables
 
-  real(rkx) , pointer , dimension(:,:,:,:) :: chi
-  real(rkx) , pointer , dimension(:,:,:,:) :: chiten , chemten
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chi
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten, chemten
 
-  real(rkx) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
-  real(rkx) , pointer , dimension(:,:,:) :: chemsrcbb , chemsrcan
-  real(rkx) , pointer , dimension(:,:,:,:) :: chia , chib , chemt
-  real(rkx) , pointer , dimension(:,:,:) :: dtrace , wdwout , wdrout , ddv_out
-  real(rkx) , pointer , dimension(:,:,:) :: drydepv , cfmz
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: chemsrc, tmpsrc
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: chemsrcbb, chemsrcan
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chia, chib, chemt
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: dtrace, wdwout, wdrout, ddv_out
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: drydepv, cfmz
 
-  real(rkx) , pointer , dimension(:,:,:,:) :: chemall , jphoto
-  integer(ik4) , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chemall, jphoto
+  integer(ik4), pointer, contiguous, dimension(:,:) :: kcumtop, kcumbot, cveg2d
 
-  real(rkx) , pointer , dimension(:,:)   :: chtrsize
-  real(rkx) , pointer , dimension(:)     :: chtrsol
+  real(rkx), pointer, contiguous, dimension(:,:)   :: chtrsize
+  real(rkx), pointer, contiguous, dimension(:)     :: chtrsol
 
-  real(rkx), pointer , dimension(:,:,:)  :: chifxuw , cccn
+  real(rkx), pointer, contiguous, dimension(:,:,:)  :: chifxuw, cccn
 
-  integer(ik4) , pointer , dimension(:) :: isslt , icarb , idust
-  integer(ik4) , pointer , dimension(:,:) :: imine
-  integer(ik4) , parameter :: nphoto = 56
+  integer(ik4), pointer, contiguous, dimension(:) :: isslt, icarb, idust
+  integer(ik4), pointer, contiguous, dimension(:,:) :: imine
+  integer(ik4), parameter :: nphoto = 56
 
-  real(rkx) , pointer , dimension(:,:,:) :: convcldfra , cemtrac , remdrd
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: convcldfra, cemtrac, remdrd
 
   ! diagnostic
-  real(rkx) , pointer , dimension(:,:,:,:) :: washout , rainout
-  real(rkx) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
-          cadvvdiag , cdifhdiag , cconvdiag , cbdydiag , ctbldiag ,  &
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: washout, rainout
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chemdiag, cadvhdiag, &
+          cadvvdiag, cdifhdiag, cconvdiag, cbdydiag, ctbldiag,  &
           cseddpdiag
-  real(rkx) , pointer , dimension(:,:,:,:) :: cemisdiag
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: cemisdiag
 
   !*****************************************************************************
   ! INTERFACE VARIABLES  for chemistry / regcm
   !   the pointer targets are defined in mod_che_interface
   !*****************************************************************************
 
-  real(rkx) , pointer , dimension(:,:,:,:) ::chib3d
-  real(rkx) , pointer , dimension(:,:,:,:) :: cqxb3d
-  real(rkx) , pointer , dimension(:,:) :: bndp0 , bndp1
-  real(rkx) , pointer , dimension(:,:,:) :: tvirt0 , tvirt1
-  real(rkx) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d ,  &
-         crhob3d , cpb3d , cpf3d , cfcc , cza , czq , cdzq , ccldfra , &
-         crembc , cremrat ,  cconvpr , crhb3d , cdrydepflx , cwetdepflx
-  real(rkx) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
-         cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
-         custar , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &
-         cps2d , cps0 , cptrop, cw10m, cdlat,cdlon, cra,czo
-  real(rkx) , pointer , dimension(:,:) :: psbb0 , psbb1 , crho2d
-  real(rkx) , pointer , dimension(:,:) :: czen
-  real(rkx) , pointer , dimension(:,:,:,:) :: ctaucld
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) ::chib3d
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: cqxb3d
+  real(rkx), pointer, contiguous, dimension(:,:) :: bndp0, bndp1
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tvirt0, tvirt1
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ctb3d, cubx3d, cvbx3d,  &
+         crhob3d, cpb3d, cpf3d, cfcc, cza, czq, cdzq, ccldfra, &
+         crembc, cremrat,  cconvpr, crhb3d, cdrydepflx, cwetdepflx
+  real(rkx), pointer, contiguous, dimension(:,:) :: cpsb, ctg, ctga, clndcat, cht, &
+         cssw2da, cvegfrac, cxlai2d, csol2d, csdeltk2d, csdelqk2d, &
+         custar, csfracv2d, csfracb2d, csfracs2d, cxlat, crainc,  &
+         cps2d, cps0, cptrop, cw10m, cdlat,cdlon, cra,czo
+  real(rkx), pointer, contiguous, dimension(:,:) :: psbb0, psbb1, crho2d
+  real(rkx), pointer, contiguous, dimension(:,:) :: czen
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: ctaucld
 #if defined CLM45
   ! Tracer mask that uses MEGAN indices
-  integer(ik4) , pointer , dimension(:) :: bvoc_trmask
-  real(rkx) , pointer , dimension(:,:,:) :: cvoc_em_clm
-  real(rkx) , pointer , dimension(:,:,:) :: cdustflx_clm
-  real(rkx) , pointer , dimension(:,:,:) :: cddepv_clm
-  real(rkx) , pointer , dimension(:,:,:) :: csw_vol
-  real(rkx) , pointer , dimension(:,:,:) :: ctsoi
+  integer(ik4), pointer, contiguous, dimension(:) :: bvoc_trmask
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cvoc_em_clm
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cdustflx_clm
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cddepv_clm
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: csw_vol
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ctsoi
 #endif
 
   contains
@@ -399,7 +399,7 @@ module mod_che_common
     else
       if ( myid == italk ) then
         write (stderr,*) 'Not a valid chemtype simulation : STOP !'
-        write (stderr,*) 'Valid simulations are : ' , &
+        write (stderr,*) 'Valid simulations are : ', &
            'DUST DU12 SSLT DUSS CARB SULF SUCA SUCE AERO CBMZ DCCB POLLEN'
       end if
       call fatal(__FILE__,__LINE__,'INVALID CHEM CONFIGURATION')

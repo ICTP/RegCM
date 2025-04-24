@@ -43,13 +43,13 @@ module mod_cbmz_jacobian
   subroutine jac_sp ( v, f, rct, jvs )
     implicit none
     ! v - concentrations of variable species (local)
-    real(kind=dp) , dimension(nvar) , intent(in) :: v
+    real(kind=dp), dimension(nvar), intent(in) :: v
     ! f - concentrations of fixed species (local)
-    real(kind=dp) , dimension(nfix) , intent(in) :: f
+    real(kind=dp), dimension(nfix), intent(in) :: f
     ! rct - rate constants (local)
-    real(kind=dp) , dimension(nreact) , intent(in) :: rct
+    real(kind=dp), dimension(nreact), intent(in) :: rct
     ! jvs - sparse jacobian of variables
-    real(kind=dp) , dimension(lu_nonzero) , intent(inout) :: jvs
+    real(kind=dp), dimension(lu_nonzero), intent(inout) :: jvs
 
     ! local variables
     ! b - temporary array

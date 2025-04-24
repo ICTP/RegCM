@@ -14,14 +14,14 @@ module atmdrvMod
 ! Read and generate atmospheric grid data at model resolution
 !
 ! !USES:
-  use shr_kind_mod , only : r8 => shr_kind_r8
+  use shr_kind_mod, only : r8 => shr_kind_r8
   use shr_const_mod, only : SHR_CONST_TKFRZ, SHR_CONST_PSTD
-  use abortutils   , only : endrun
-  use spmdMod      , only : masterproc, mpicom, comp_id, MPI_REAL8, MPI_INTEGER, iam
+  use abortutils  , only : endrun
+  use spmdMod     , only : masterproc, mpicom, comp_id, MPI_REAL8, MPI_INTEGER, iam
   use clm_mct_mod
-  use decompMod    , only : gsMap_atm_gdc2glo, perm_atm_gdc2glo
+  use decompMod   , only : gsMap_atm_gdc2glo, perm_atm_gdc2glo
 !c abt rcm
-  use clm_varpar   , only : lsmlon, lsmlat
+  use clm_varpar  , only : lsmlon, lsmlat
 !c abt rcm
   use perf_mod
   use mod_clm
@@ -169,12 +169,12 @@ contains
 !
 ! !USES:
     use nanMod
-    use decompMod   , only : adecomp, get_proc_bounds_atm
-    use clm_atmlnd  , only : clm_mapa2l, atm_a2l, clm_a2l
-    use clm_varctl  , only : offline_atmdir, pertlim
-    use clm_varcon  , only : rair, cpair, co2_ppmv_const, o2_molar_const, tcrit, c13ratio
+    use decompMod  , only : adecomp, get_proc_bounds_atm
+    use clm_atmlnd , only : clm_mapa2l, atm_a2l, clm_a2l
+    use clm_varctl , only : offline_atmdir, pertlim
+    use clm_varcon , only : rair, cpair, co2_ppmv_const, o2_molar_const, tcrit, c13ratio
     use clm_time_manager, only : get_step_size, get_curr_calday, get_curr_date
-    use fileutils   , only : getfil
+    use fileutils  , only : getfil
 !
 ! !ARGUMENTS:
     implicit none
@@ -423,12 +423,12 @@ contains
 !
 ! !USES:
     use nanMod
-    use decompMod   , only : adecomp, get_proc_bounds_atm
-    use clm_atmlnd  , only : clm_mapa2l, atm_a2l, clm_a2l,clm_mapr2l
-    use clm_varctl  , only : offline_atmdir, pertlim
-    use clm_varcon  , only : rair, cpair, co2_ppmv_const, o2_molar_const, tcrit, c13ratio
+    use decompMod  , only : adecomp, get_proc_bounds_atm
+    use clm_atmlnd , only : clm_mapa2l, atm_a2l, clm_a2l,clm_mapr2l
+    use clm_varctl , only : offline_atmdir, pertlim
+    use clm_varcon , only : rair, cpair, co2_ppmv_const, o2_molar_const, tcrit, c13ratio
     use clm_time_manager, only : get_step_size, get_curr_calday, get_curr_date
-    use fileutils   , only : getfil
+    use fileutils  , only : getfil
 !
 ! !ARGUMENTS:
     implicit none
@@ -795,12 +795,12 @@ contains
 !
 ! !USES:
     use nanMod
-    use clm_varctl  , only : offline_atmdir
-    use domainMod   , only : alatlon, latlon_type, latlon_check, latlon_clean
-    use surfrdMod   , only : surfrd_get_latlon
-    use decompMod   , only : adecomp
-    use areaMod     , only : celledge, cellarea,map_setmapsAR
-    use fileutils   , only : getfil
+    use clm_varctl , only : offline_atmdir
+    use domainMod  , only : alatlon, latlon_type, latlon_check, latlon_clean
+    use surfrdMod  , only : surfrd_get_latlon
+    use decompMod  , only : adecomp
+    use areaMod    , only : celledge, cellarea,map_setmapsAR
+    use fileutils  , only : getfil
     use clm_time_manager, only : get_curr_date
     use ncdio
 !
@@ -957,12 +957,12 @@ contains
 !
 ! !USES:
     use nanMod
-    use clm_varctl  , only : offline_atmdir, mksrf_offline_fnavyoro !abt
-    use domainMod   , only : alatlon, latlon_type, latlon_check, latlon_clean
-    use surfrdMod   , only : rcmsurfrd_get_latlon
-    use decompMod   , only : adecomp
-    use areaMod     , only : celledge, cellarea,map_setmapsAR
-    use fileutils   , only : getfil
+    use clm_varctl , only : offline_atmdir, mksrf_offline_fnavyoro !abt
+    use domainMod  , only : alatlon, latlon_type, latlon_check, latlon_clean
+    use surfrdMod  , only : rcmsurfrd_get_latlon
+    use decompMod  , only : adecomp
+    use areaMod    , only : celledge, cellarea,map_setmapsAR
+    use fileutils  , only : getfil
     use clm_time_manager, only : get_curr_date
     use ncdio
 !
@@ -1137,7 +1137,7 @@ end subroutine rcmdrv_init
 !
 ! !USES:
     use clm_varctl, only : offline_atmdir
-    use fileutils , only : getfil
+    use fileutils, only : getfil
     use ncdio
 !
 ! !ARGUMENTS:
@@ -1301,7 +1301,7 @@ end subroutine rcmdrv_init
 !
 ! !USES:
     use clm_varcon, only : sb
-    use fileutils , only : getfil
+    use fileutils, only : getfil
     use ncdio
 !
 ! !ARGUMENTS:
@@ -1341,12 +1341,12 @@ end subroutine rcmdrv_init
     real(r8) b0,b1,b2,b3,b4,b5,b6  !coefficients for esat over ice
     real(r8) tdc, t                !Kelvins to Celcius function and its input
 
-    parameter (a0=6.107799961_r8    , a1=4.436518521e-01_r8, &
+    parameter (a0=6.107799961_r8   , a1=4.436518521e-01_r8, &
                a2=1.428945805e-02_r8, a3=2.650648471e-04_r8, &
                a4=3.031240396e-06_r8, a5=2.034080948e-08_r8, &
                a6=6.136820929e-11_r8)
 
-    parameter (b0=6.109177956_r8    , b1=5.034698970e-01_r8, &
+    parameter (b0=6.109177956_r8   , b1=5.034698970e-01_r8, &
                b2=1.886013408e-02_r8, b3=4.176223716e-04_r8, &
                b4=5.824720280e-06_r8, b5=4.838803174e-08_r8, &
                b6=1.838826904e-10_r8)
@@ -1590,7 +1590,7 @@ end subroutine rcmdrv_init
 !
 ! !USES:
     use clm_varcon, only : sb
-    use fileutils , only : getfil
+    use fileutils, only : getfil
     use ncdio
 !   use mod_clm
 !   use mod_dynparam
@@ -1651,12 +1651,12 @@ end subroutine rcmdrv_init
     real(r8) b0,b1,b2,b3,b4,b5,b6  !coefficients for esat over ice
     real(r8) tdc, t                !Kelvins to Celcius function and its input
 
-    parameter (a0=6.107799961_r8    , a1=4.436518521e-01_r8, &
+    parameter (a0=6.107799961_r8   , a1=4.436518521e-01_r8, &
                a2=1.428945805e-02_r8, a3=2.650648471e-04_r8, &
                a4=3.031240396e-06_r8, a5=2.034080948e-08_r8, &
                a6=6.136820929e-11_r8)
 
-    parameter (b0=6.109177956_r8    , b1=5.034698970e-01_r8, &
+    parameter (b0=6.109177956_r8   , b1=5.034698970e-01_r8, &
                b2=1.886013408e-02_r8, b3=4.176223716e-04_r8, &
                b4=5.824720280e-06_r8, b5=4.838803174e-08_r8, &
                b6=1.838826904e-10_r8)

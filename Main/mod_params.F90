@@ -36,9 +36,9 @@ module mod_params
   use mod_ncio
   use mod_tendency
   use mod_ncout
-  use mod_advection , only : init_advection
-  use mod_sladvection , only : init_sladvection
-  use mod_diffusion , only : allocate_mod_diffusion
+  use mod_advection, only : init_advection
+  use mod_sladvection, only : init_sladvection
+  use mod_diffusion, only : allocate_mod_diffusion
   use mod_savefile
   use mod_slabocean
   use mod_sldepparam
@@ -55,7 +55,7 @@ module mod_params
 
   private
 
-  real(rkx) , parameter :: mindt = 1.0_rkx
+  real(rkx), parameter :: mindt = 1.0_rkx
 
   public :: param
 
@@ -65,157 +65,157 @@ module mod_params
   !
   subroutine param
     implicit none
-    real(rkx) :: afracl , afracs , bb , cc , dlargc , dsmalc , dxtemc , &
-               qk , qkp1 , sig700 , ssum , vqmax , wk , wkp1 , xbot ,   &
-               xtop , xx , yy , mo_c1 , mo_c2 , dl , minfrq
-    real(rkx) , dimension(kzp1) :: fak , fbk
+    real(rkx) :: afracl, afracs, bb, cc, dlargc, dsmalc, dxtemc, &
+               qk, qkp1, sig700, ssum, vqmax, wk, wkp1, xbot,   &
+               xtop, xx, yy, mo_c1, mo_c2, dl, minfrq
+    real(rkx), dimension(kzp1) :: fak, fbk
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
-    integer(ik4) :: i , j , k , kbase , ktop , ns
-    integer(ik8) :: mdate0 , mdate1 , mdate2
-    integer(ik4) :: hspan , ipunit
-    integer(ik4) :: n , len_path
+    integer(ik4) :: i, j, k, kbase, ktop, ns
+    integer(ik8) :: mdate0, mdate1, mdate2
+    integer(ik4) :: hspan, ipunit
+    integer(ik4) :: n, len_path
     character(len=32) :: appdat
     type(rcm_time_interval) :: bdif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'param'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
 #endif
     !
     ! namelist:
     !
-    namelist /restartparam/ ifrest , mdate0 , mdate1 , mdate2
+    namelist /restartparam/ ifrest, mdate0, mdate1, mdate2
 
-    namelist /timeparam/ dtrad , dtsrf , dtcum , dtche , dtabem , dt
+    namelist /timeparam/ dtrad, dtsrf, dtcum, dtche, dtabem, dt
 
-    namelist /outparam/ prestr , ifsave , ifatm , ifrad , ifsrf , ifsub , &
-      iflak , ifshf , ifsts , ifchem , ifopt , outnwf , savfrq , atmfrq , &
-      srffrq , subfrq , lakfrq , radfrq , chemfrq ,optfrq, dirout ,       &
-      uvrotate , enable_atm_vars , enable_srf_vars , enable_rad_vars ,    &
-      enable_sub_vars , enable_sts_vars , enable_lak_vars ,               &
-      enable_opt_vars , enable_che_vars , enable_shf_vars ,               &
-      lsync , idiag , icosp , ifcordex , chechgact ,                      &
-      do_parallel_netcdf_in , do_parallel_netcdf_out
+    namelist /outparam/ prestr, ifsave, ifatm, ifrad, ifsrf, ifsub, &
+      iflak, ifshf, ifsts, ifchem, ifopt, outnwf, savfrq, atmfrq, &
+      srffrq, subfrq, lakfrq, radfrq, chemfrq ,optfrq, dirout,       &
+      uvrotate, enable_atm_vars, enable_srf_vars, enable_rad_vars,    &
+      enable_sub_vars, enable_sts_vars, enable_lak_vars,               &
+      enable_opt_vars, enable_che_vars, enable_shf_vars,               &
+      lsync, idiag, icosp, ifcordex, chechgact,                      &
+      do_parallel_netcdf_in, do_parallel_netcdf_out
 
-    namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
-      icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
-      iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
-      ichem ,  scenario ,  idcsst , iwhitecap , iseaice , iconvlwp ,     &
-      icldmstrat , icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , &
-      icumcloud , islab_ocean , itweak , temp_tend_maxval ,              &
-      wind_tend_maxval , ghg_year_const , ifixsolar , fixedsolarval ,    &
-      irceideal , year_offset , radclimpath , ioasiscpl
+    namelist /physicsparam/ ibltyp, iboudy, isladvec, iqmsl,         &
+      icup_lnd, icup_ocn, ipgf, iemiss, lakemod, ipptls, idiffu,  &
+      iocnflx, iocncpl, iwavcpl, icopcpl, iocnrough, iocnzoq,      &
+      ichem,  scenario,  idcsst, iwhitecap, iseaice, iconvlwp,     &
+      icldmstrat, icldfrac, irrtm, iclimao3, iclimaaer, isolconst, &
+      icumcloud, islab_ocean, itweak, temp_tend_maxval,              &
+      wind_tend_maxval, ghg_year_const, ifixsolar, fixedsolarval,    &
+      irceideal, year_offset, radclimpath, ioasiscpl
 
-    namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
-      upstream_mode , uoffc , stability_enhance , t_extrema ,      &
+    namelist /dynparam/ gnu1, gnu2, diffu_hgtf, ckh, adyndif, &
+      upstream_mode, uoffc, stability_enhance, t_extrema,      &
       q_rel_extrema
 
-    namelist /hydroparam/ nsplit , lstand
+    namelist /hydroparam/ nsplit, lstand
 
-    namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,       &
-      ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge ,  &
-      mo_divfilter , mo_anu2 , mo_nadv , mo_nsound , mo_nzfilt
+    namelist /nonhydroparam/ ifupr, nhbet, nhxkd,       &
+      ifrayd, rayndamp, rayalpha0, rayhd, itopnudge,  &
+      mo_divfilter, mo_anu2, mo_nadv, mo_nsound, mo_nzfilt
 
-    namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
-      iceflglw , liqflglw , icld , irng , imcica , nradfo , rrtm_extend
+    namelist /rrtmparam/ inflgsw, iceflgsw, liqflgsw, inflglw,    &
+      iceflglw, liqflglw, icld, irng, imcica, nradfo, rrtm_extend
 
-    namelist /cldparam/ ncld , rhmax , rhmin , rh0oce , rh0land , tc0 ,  &
-      cllwcv , clfrcvmax , cftotmax , kfac_shal , kfac_deep , k2_const , &
-      lsrfhack , larcticcorr , rcrit , coef_ccn , abulk
+    namelist /cldparam/ ncld, rhmax, rhmin, rh0oce, rh0land, tc0,  &
+      cllwcv, clfrcvmax, cftotmax, kfac_shal, kfac_deep, k2_const, &
+      lsrfhack, larcticcorr, rcrit, coef_ccn, abulk
 
-    namelist /subexparam/ qck1land , qck1oce , gulland , guloce ,  &
-      cevaplnd , cevapoce , caccrlnd , caccroce , conf
+    namelist /subexparam/ qck1land, qck1oce, gulland, guloce,  &
+      cevaplnd, cevapoce, caccrlnd, caccroce, conf
 
-    namelist /microparam/ stats , budget_compute , nssopt ,  &
-      iautoconv , vfqr , vfqi , vfqs , auto_rate_khair ,     &
-      auto_rate_kessl , auto_rate_klepi , rkconv , skconv ,  &
-      rcovpmin , rpecons , rcldiff
+    namelist /microparam/ stats, budget_compute, nssopt,  &
+      iautoconv, vfqr, vfqi, vfqs, auto_rate_khair,     &
+      auto_rate_kessl, auto_rate_klepi, rkconv, skconv,  &
+      rcovpmin, rpecons, rcldiff
 
-    namelist /grellparam/ igcc , shrmin , shrmax , edtmin , &
-      edtmax , edtmino , edtmaxo , edtminx , edtmaxx , pbcmax ,    &
-      mincld , htmin , htmax , skbmax , dtauc, shrmin_ocn ,        &
-      shrmax_ocn , edtmin_ocn, edtmax_ocn, edtmino_ocn ,           &
-      edtmaxo_ocn , edtminx_ocn , edtmaxx_ocn
+    namelist /grellparam/ igcc, shrmin, shrmax, edtmin, &
+      edtmax, edtmino, edtmaxo, edtminx, edtmaxx, pbcmax,    &
+      mincld, htmin, htmax, skbmax, dtauc, shrmin_ocn,        &
+      shrmax_ocn, edtmin_ocn, edtmax_ocn, edtmino_ocn,           &
+      edtmaxo_ocn, edtminx_ocn, edtmaxx_ocn
 
-    namelist /emanparam/ minorig , elcrit_ocn , elcrit_lnd , tlcrit , &
-      entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
-      betae , dtmax , alphae , damp , epmax_ocn , epmax_lnd ,         &
+    namelist /emanparam/ minorig, elcrit_ocn, elcrit_lnd, tlcrit, &
+      entp, sigd, sigs, omtrain, omtsnow, coeffr, coeffs, cu, &
+      betae, dtmax, alphae, damp, epmax_ocn, epmax_lnd,         &
       istochastic
 
-    namelist /emanstochastic/ epmax_lnd_min , epmax_lnd_max , &
-      elcrit_lnd_min , elcrit_lnd_max ,                       &
-      sigs_min , sigs_max , sigd_min , sigd_max
+    namelist /emanstochastic/ epmax_lnd_min, epmax_lnd_max, &
+      elcrit_lnd_min, elcrit_lnd_max,                       &
+      sigs_min, sigs_max, sigd_min, sigd_max
 
-    namelist /tiedtkeparam/ iconv , entrmax , entrdd , entrpen_lnd , &
-      entrpen_ocn , entrscv , entrmid , cprcon , detrpen_lnd ,       &
-      detrpen_ocn , entshalp , rcuc_lnd , rcuc_ocn , rcpec_lnd ,     &
-      rcpec_ocn , rhebc_lnd , rhebc_ocn , rprc_ocn , rprc_lnd ,      &
-      revap_lnd , revap_ocn , cmtcape , lmfpen , lmfmid , lmfdd ,    &
-      lepcld , lmfdudv , lmfscv , lmfuvdis , lmftrac , lmfsmooth ,   &
+    namelist /tiedtkeparam/ iconv, entrmax, entrdd, entrpen_lnd, &
+      entrpen_ocn, entrscv, entrmid, cprcon, detrpen_lnd,       &
+      detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, rcpec_lnd,     &
+      rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd,      &
+      revap_lnd, revap_ocn, cmtcape, lmfpen, lmfmid, lmfdd,    &
+      lepcld, lmfdudv, lmfscv, lmfuvdis, lmftrac, lmfsmooth,   &
       lmfwstar
 
-    namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate , kf_dpp , &
-      kf_min_dtcape , kf_max_dtcape , kf_tkemax , kf_convrate ,        &
+    namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
+      kf_min_dtcape, kf_max_dtcape, kf_tkemax, kf_convrate,        &
       kf_wthreshold
 
-    namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
-      ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
-      ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
-      ismoke , rocemfac, ichlinox , isnowdark, ichdustparam , ichecold ,   &
+    namelist /chemparam/ chemsimtype, ichremlsc, ichremcvc, ichdrdepo, &
+      ichcumtra, ichsolver, idirect, iindirect, ichdustemd,           &
+      ichdiag, ichsursrc, ichebdy, rdstemfac, ichjphcld, ichbion,    &
+      ismoke, rocemfac, ichlinox, isnowdark, ichdustparam, ichecold,   &
       carb_aging_control
 
-    namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
+    namelist /uwparam/ iuwvadv, atwo, rstbl, czero, nuk
 
-    namelist /holtslagparam/ ricr_ocn , ricr_lnd , zhnew_fac , &
-      ifaholtth10 , ifaholt , holtth10iter
+    namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
+      ifaholtth10, ifaholt, holtth10iter
 
 #ifdef CLM
-    namelist /clmparam/ dirclm , imask , clmfrq , ilawrence_albedo
+    namelist /clmparam/ dirclm, imask, clmfrq, ilawrence_albedo
 #endif
 
-    namelist /cplparam/ cpldt , zomax , ustarmax
+    namelist /cplparam/ cpldt, zomax, ustarmax
 
 #ifdef OASIS
-    namelist /oasisparam/ l_write_grids , write_restart_option , &
-                          oasis_sync_lag , &
-                          l_cpl_im_sst , &
-!                          l_cpl_im_sit , &
-                          l_cpl_im_wz0 , &
-                          l_cpl_im_wust , &
-                          l_cpl_ex_u10m , &
-                          l_cpl_ex_v10m , &
-                          l_cpl_ex_wspd , &
-                          l_cpl_ex_wdir , &
-                          l_cpl_ex_t2m , &
-!                          l_cpl_ex_t10m , &
-                          l_cpl_ex_q2m , &
-!                          l_cpl_ex_q10m , &
-                          l_cpl_ex_slp , &
-                          l_cpl_ex_taux , &
-                          l_cpl_ex_tauy , &
-                          l_cpl_ex_z0 , &
-                          l_cpl_ex_ustr , &
-                          l_cpl_ex_evap , &
-                          l_cpl_ex_prec , &
-                          l_cpl_ex_nuwa , &
-                          l_cpl_ex_ulhf , &
-                          l_cpl_ex_ushf , &
-                          l_cpl_ex_uwlw , &
-                          l_cpl_ex_dwlw , &
-                          l_cpl_ex_nulw , &
-                          l_cpl_ex_uwsw , &
-                          l_cpl_ex_dwsw , &
-                          l_cpl_ex_ndsw , &
+    namelist /oasisparam/ l_write_grids, write_restart_option, &
+                          oasis_sync_lag, &
+                          l_cpl_im_sst, &
+!                          l_cpl_im_sit, &
+                          l_cpl_im_wz0, &
+                          l_cpl_im_wust, &
+                          l_cpl_ex_u10m, &
+                          l_cpl_ex_v10m, &
+                          l_cpl_ex_wspd, &
+                          l_cpl_ex_wdir, &
+                          l_cpl_ex_t2m, &
+!                          l_cpl_ex_t10m, &
+                          l_cpl_ex_q2m, &
+!                          l_cpl_ex_q10m, &
+                          l_cpl_ex_slp, &
+                          l_cpl_ex_taux, &
+                          l_cpl_ex_tauy, &
+                          l_cpl_ex_z0, &
+                          l_cpl_ex_ustr, &
+                          l_cpl_ex_evap, &
+                          l_cpl_ex_prec, &
+                          l_cpl_ex_nuwa, &
+                          l_cpl_ex_ulhf, &
+                          l_cpl_ex_ushf, &
+                          l_cpl_ex_uwlw, &
+                          l_cpl_ex_dwlw, &
+                          l_cpl_ex_nulw, &
+                          l_cpl_ex_uwsw, &
+                          l_cpl_ex_dwsw, &
+                          l_cpl_ex_ndsw, &
                           l_cpl_ex_rhoa
     ! OASIS field +++
 #endif
 
-    namelist /slabocparam/ do_qflux_adj , do_restore_sst , &
-      sst_restore_timescale , mixed_layer_depth
+    namelist /slabocparam/ do_qflux_adj, do_restore_sst, &
+      sst_restore_timescale, mixed_layer_depth
 
-    namelist /tweakparam/ itweak_temperature , itweak_solar_irradiance , &
-            itweak_sst , itweak_greenhouse_gases , temperature_tweak ,   &
-            sst_tweak , solar_tweak , gas_tweak_factors
+    namelist /tweakparam/ itweak_temperature, itweak_solar_irradiance, &
+            itweak_sst, itweak_greenhouse_gases, temperature_tweak,   &
+            sst_tweak, solar_tweak, gas_tweak_factors
 
 #ifdef DEBUG
     call time_begin(subroutine_name,idindx)
@@ -1001,8 +1001,8 @@ module mod_params
 #endif
         end if
         if ( do_qflux_adj .eqv. do_restore_sst ) then
-          write (stderr,*) 'do_qflux_adj   = ' , do_qflux_adj
-          write (stderr,*) 'do_restore_sst = ' , do_restore_sst
+          write (stderr,*) 'do_qflux_adj   = ', do_qflux_adj
+          write (stderr,*) 'do_restore_sst = ', do_restore_sst
           write (stderr,*) 'THESE OPTION CANNOT BE EQUAL !!'
           write (stderr,*) 'FIRST DO A RESTORE SST RUN AND THEN AN ADJUST RUN!'
           call fatal(__FILE__,__LINE__, &
@@ -1045,7 +1045,7 @@ module mod_params
 #endif
 #ifdef CLM
       rewind(ipunit)
-      read (ipunit , clmparam, iostat=iretval, err=119)
+      read (ipunit, clmparam, iostat=iretval, err=119)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default CLM parameter.'
 #ifdef DEBUG
@@ -1056,7 +1056,7 @@ module mod_params
 #endif
       if ( iocncpl == 1 .or. iwavcpl == 1 .or. icopcpl == 1 ) then
         rewind(ipunit)
-        read (ipunit , cplparam, iostat=iretval, err=120)
+        read (ipunit, cplparam, iostat=iretval, err=120)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Coupling parameter.'
 #ifdef DEBUG
@@ -1068,7 +1068,7 @@ module mod_params
 
       if ( itweak == 1 ) then
         rewind(ipunit)
-        read (ipunit , tweakparam, iostat=iretval, err=121)
+        read (ipunit, tweakparam, iostat=iretval, err=121)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Tweak parameters absent.'
           write(stdout,*) 'Disable tweaking.'
@@ -1928,7 +1928,7 @@ module mod_params
     end if
 
     if ( idynamic == 1 ) then
-      do ns = 1 , nsplit
+      do ns = 1, nsplit
         dtsplit(ns) = dt*(d_half/real(nsplit-ns+1,rkx))
         dtau(ns) = dtsplit(ns)
       end do
@@ -2115,80 +2115,80 @@ module mod_params
     if ( myid == italk ) then
       if ( ifcordex ) write(stdout,*) &
         'Model will output required CORDEX variables.'
-      write(stdout,*) 'Create SAV files : ' , ifsave
-      write(stdout,*) 'Create ATM files : ' , ifatm
-      write(stdout,*) 'Create RAD files : ' , ifrad
-      write(stdout,*) 'Create SRF files : ' , ifsrf
-      write(stdout,*) 'Create STS files : ' , ifsts
-      write(stdout,*) 'Create SHF files : ' , ifshf
-      if ( nsg > 1 ) write(stdout,*) 'Create SUB files : ' , ifsub
-      if ( lakemod == 1 ) write(stdout,*) 'Create LAK files : ' , iflak
+      write(stdout,*) 'Create SAV files : ', ifsave
+      write(stdout,*) 'Create ATM files : ', ifatm
+      write(stdout,*) 'Create RAD files : ', ifrad
+      write(stdout,*) 'Create SRF files : ', ifsrf
+      write(stdout,*) 'Create STS files : ', ifsts
+      write(stdout,*) 'Create SHF files : ', ifshf
+      if ( nsg > 1 ) write(stdout,*) 'Create SUB files : ', ifsub
+      if ( lakemod == 1 ) write(stdout,*) 'Create LAK files : ', iflak
       if ( ichem == 1 ) then
-        write(stdout,*) 'Create CHE files : ' , ifchem
-        write(stdout,*) 'Create OPT files : ' , ifopt
+        write(stdout,*) 'Create CHE files : ', ifchem
+        write(stdout,*) 'Create OPT files : ', ifopt
       end if
       if ( .not. associated(alarm_out_nwf) ) then
         write(stdout,'(a,f6.1)') ' Monthly new files are created'
       else
-        write(stdout,'(a,f6.1)') ' Frequency in days for new files: ' , outnwf
+        write(stdout,'(a,f6.1)') ' Frequency in days for new files: ', outnwf
       end if
       if ( int(savfrq) == 0 ) then
         write(stdout,'(a,f6.1)') ' Monthly SAV files are written'
       else if ( savfrq > d_zero ) then
-        write(stdout,'(a,f6.1)') ' Frequency in days to create SAV : ' , savfrq
+        write(stdout,'(a,f6.1)') ' Frequency in days to create SAV : ', savfrq
       else
         write(stdout,'(a,f6.1)') ' Monthly SAV files are written'
-        write(stdout,'(a,f6.1)') ' Frequency in days to create SAV : ' , -savfrq
+        write(stdout,'(a,f6.1)') ' Frequency in days to create SAV : ', -savfrq
       end if
-      write(stdout,'(a,f6.1)') ' Frequency in hours to create ATM : ' , atmfrq
-      write(stdout,'(a,f6.1)') ' Frequency in hours to create RAD : ' , radfrq
-      write(stdout,'(a,f6.1)') ' Frequency in hours to create SRF : ' , srffrq
+      write(stdout,'(a,f6.1)') ' Frequency in hours to create ATM : ', atmfrq
+      write(stdout,'(a,f6.1)') ' Frequency in hours to create RAD : ', radfrq
+      write(stdout,'(a,f6.1)') ' Frequency in hours to create SRF : ', srffrq
       if ( nsg > 1 ) &
-        write(stdout,'(a,f6.1)') ' Frequency in hours to create SUB : ' , subfrq
+        write(stdout,'(a,f6.1)') ' Frequency in hours to create SUB : ', subfrq
       if ( lakemod == 1 ) &
-        write(stdout,'(a,f6.1)') ' Frequency in hours to create LAK : ' , lakfrq
+        write(stdout,'(a,f6.1)') ' Frequency in hours to create LAK : ', lakfrq
       if ( ichem == 1 ) then
         write(stdout,'(a,f6.1)') &
-          ' Frequency in hours to create CHE : ' , chemfrq
+          ' Frequency in hours to create CHE : ', chemfrq
         write(stdout,'(a,f6.1)') &
-          ' Frequency in hours to create OPT : ' , optfrq
+          ' Frequency in hours to create OPT : ', optfrq
       end if
 
       write(stdout,*) 'Physical Parameterizations'
-      write(stdout,'(a,i2)') '  Lateral Boundary conditions : ' , iboudy
-      write(stdout,'(a,i2)') '  Semi-Lagrangian Advection   : ' , isladvec
+      write(stdout,'(a,i2)') '  Lateral Boundary conditions : ', iboudy
+      write(stdout,'(a,i2)') '  Semi-Lagrangian Advection   : ', isladvec
       if ( isladvec == 1 ) then
-        write(stdout,'(a,i2)') '  QMSL algorithm used         : ' , iqmsl
+        write(stdout,'(a,i2)') '  QMSL algorithm used         : ', iqmsl
       end if
       if ( any(icup == -1) ) then
         icup(:) = -1
         write(stdout,'(a)') '  Shallow cumulus scheme '
       else
-        write(stdout,'(a,i2)') '  Land cumulus conv. scheme   : ' , icup_lnd
-        write(stdout,'(a,i2)') '  Ocean cumulus conv. scheme  : ' , icup_ocn
+        write(stdout,'(a,i2)') '  Land cumulus conv. scheme   : ', icup_lnd
+        write(stdout,'(a,i2)') '  Ocean cumulus conv. scheme  : ', icup_ocn
       end if
-      write(stdout,'(a,i2)') '  Moisture schem              : ' , ipptls
-      write(stdout,'(a,i2)') '  Ocean Flux scheme           : ' , iocnflx
+      write(stdout,'(a,i2)') '  Moisture schem              : ', ipptls
+      write(stdout,'(a,i2)') '  Ocean Flux scheme           : ', iocnflx
       if ( iocnflx == 2 ) then
-        write(stdout,'(a,i2)') '  Zeng roughness formula      : ' , iocnrough
-        write(stdout,'(a,i2)') '  Zeng roughness method       : ' , iocnzoq
+        write(stdout,'(a,i2)') '  Zeng roughness formula      : ', iocnrough
+        write(stdout,'(a,i2)') '  Zeng roughness method       : ', iocnzoq
       end if
-      write(stdout,'(a,i2)') '  Coupling with ocean         : ' , iocncpl
-      write(stdout,'(a,i2)') '  Coupling with wave          : ' , iwavcpl
-      write(stdout,'(a,i2)') '  Coupling with COP           : ' , icopcpl
-      write(stdout,'(a,i2)') '  Pressure gradient force     : ' , ipgf
-      write(stdout,'(a,i2)') '  Prescribed LW emissivity    : ' , iemiss
+      write(stdout,'(a,i2)') '  Coupling with ocean         : ', iocncpl
+      write(stdout,'(a,i2)') '  Coupling with wave          : ', iwavcpl
+      write(stdout,'(a,i2)') '  Coupling with COP           : ', icopcpl
+      write(stdout,'(a,i2)') '  Pressure gradient force     : ', ipgf
+      write(stdout,'(a,i2)') '  Prescribed LW emissivity    : ', iemiss
 #ifndef CLM
-      write(stdout,'(a,i2)') '  Lake model in BATS          : ' , lakemod
-      write(stdout,'(a,i2)') '  Simulate diurnal sst cycle  : ' , idcsst
-      write(stdout,'(a,i2)') '  Simulate sea ice cover      : ' , iseaice
+      write(stdout,'(a,i2)') '  Lake model in BATS          : ', lakemod
+      write(stdout,'(a,i2)') '  Simulate diurnal sst cycle  : ', idcsst
+      write(stdout,'(a,i2)') '  Simulate sea ice cover      : ', iseaice
 #endif
-      write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ' , ichem
-      write(stdout,'(a,i2)') '  Large scale LWP as convect. : ' , iconvlwp
-      write(stdout,'(a,i2)') '  Cloud fraction scheme       : ' , icldfrac
-      write(stdout,'(a,i2)') '  Marine stratocumulus        : ' , icldmstrat
-      write(stdout,'(a,i2)') '  Climate O3 dataset          : ' , iclimao3
-      write(stdout,'(a,i2)') '  Climate Aerosol dataset     : ' , iclimaaer
+      write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ', ichem
+      write(stdout,'(a,i2)') '  Large scale LWP as convect. : ', iconvlwp
+      write(stdout,'(a,i2)') '  Cloud fraction scheme       : ', icldfrac
+      write(stdout,'(a,i2)') '  Marine stratocumulus        : ', icldmstrat
+      write(stdout,'(a,i2)') '  Climate O3 dataset          : ', iclimao3
+      write(stdout,'(a,i2)') '  Climate Aerosol dataset     : ', iclimaaer
 #ifndef RCEMIP
       write(stdout,*) 'Boundary Pameterizations'
       write(stdout,'(a,i3)') '  Num. of bndy points cross  : ', nspgx
@@ -2201,23 +2201,23 @@ module mod_params
 #endif
 #ifdef CLM
       write(stdout,*) 'CLM Pameterizations'
-      write(stdout,'(a,i2)' ) '  CLM imask                       : ' , imask
+      write(stdout,'(a,i2)' ) '  CLM imask                       : ', imask
       write(stdout,'(a,f9.6)') '  Frequency in hours to write CLM : ', clmfrq
 #endif
       write(stdout,*) 'Model Timestep Pameterizations'
       write(stdout,'(a,f18.6)') '  time step for dynamical '// &
-            'model in seconds : ' , dt
+            'model in seconds : ', dt
       write(stdout,'(a,f18.6)') '  time step for surface   '// &
-            'model in seconds : ' , dtsrf
+            'model in seconds : ', dtsrf
       write(stdout,'(a,f18.6)') '  time step for cumulus   '// &
-            'model in seconds : ' , dtcum
+            'model in seconds : ', dtcum
       write(stdout,'(a,f18.6)') '  time step for radiation '// &
-            'model in seconds : ' , dtrad
+            'model in seconds : ', dtrad
       write(stdout,'(a,f18.6)') '  time step for emission  '// &
-            'model in seconds : ' , dtabem
+            'model in seconds : ', dtabem
       if ( ichem == 1 ) then
         write(stdout,'(a,f18.6)') '  time step for chemistry '// &
-              'model in seconds : ' , dtche
+              'model in seconds : ', dtche
       end if
     end if
 
@@ -2291,11 +2291,11 @@ module mod_params
       fbk = md_bk(zita,mo_ztop,mo_a0)
       ak = md_ak(zitah,mo_ztop,mo_h)
       bk = md_bk(zitah,mo_ztop,mo_a0)
-      do k = 1 , kz
+      do k = 1, kz
         dsigma(k) = (sigma(k+1) - sigma(k))
       end do
     else
-      do k = 1 , kz
+      do k = 1, kz
         hsigma(k) = (sigma(k+1) + sigma(k))*d_half
         dsigma(k) = (sigma(k+1) - sigma(k))
       end do
@@ -2337,7 +2337,7 @@ module mod_params
     call init_micro
     if ( ichem == 1 ) then
       call init_chem
-      do n = 1 , ntr
+      do n = 1, ntr
         call bcast(chtrname(n),6)
       end do
     end if
@@ -2502,7 +2502,7 @@ module mod_params
     twt(1,1) = d_zero
     twt(1,2) = d_zero
     qcon(1) = d_zero
-    do k = 2 , kz
+    do k = 2, kz
       twt(k,1) = (sigma(k)-hsigma(k-1))/(hsigma(k)-hsigma(k-1))
       twt(k,2) = d_one - twt(k,1)
       qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
@@ -2517,9 +2517,9 @@ module mod_params
       ! exceptions to this are treated explicitly in subroutine
       ! "cupara".
       !
-      do kbase = 5 , kz
-        do ktop = 1 , kbase - 3
-          do k = 1 , kz
+      do kbase = 5, kz
+        do ktop = 1, kbase - 3
+          do k = 1, kz
             twght(k,kbase,ktop) = d_zero
             vqflx(k,kbase,ktop) = d_zero
           end do
@@ -2529,12 +2529,12 @@ module mod_params
           bb = log(hsigma(ktop)) + log(hsigma(kbase))
           cc = log(hsigma(ktop))*log(hsigma(kbase))
           ssum = d_zero
-          do k = ktop , kbase
+          do k = ktop, kbase
             xx = log(hsigma(k))
             twght(k,kbase,ktop) = (xx*xx) - (bb*xx) + cc
             ssum = ssum + twght(k,kbase,ktop)*dsigma(k)
           end do
-          do k = ktop , kbase
+          do k = ktop, kbase
             twght(k,kbase,ktop) = twght(k,kbase,ktop)/ssum
           end do
           !
@@ -2551,7 +2551,7 @@ module mod_params
           yy = xbot
           wk = (xx*xx) - (bb*xx) + cc
           qk = -((yy*yy)-(bb*yy)+cc)
-          do k = ktop , kbase
+          do k = ktop, kbase
             xx = log((d_100-ptop)*sigma(k+1)+ptop)
             yy = log((d_100-ptop) * &
                  (sigma(ktop)+sigma(kbase+1)-sigma(k+1))+ptop)
@@ -2564,7 +2564,7 @@ module mod_params
             wk = wkp1
             qk = qkp1
           end do
-          do k = ktop , kbase
+          do k = ktop, kbase
             vqflx(k,kbase,ktop) = vqflx(k,kbase,ktop)*vqrang/vqmax
           end do
         end do
@@ -2575,24 +2575,24 @@ module mod_params
     end if
     if ( any(icup == 2) ) then
       kbmax = kz
-      do k = 1 , kz - 1
+      do k = 1, kz - 1
         if ( hsigma(k) <= skbmax ) kbmax = kz - k
       end do
       if ( myid == italk ) then
         write(stdout,*) 'Grell Convection Scheme used.'
-        write(stdout,'(a,f11.6)') '  Max Shear       : ' , shrmax
-        write(stdout,'(a,f11.6)') '  Min Shear       : ' , shrmin
-        write(stdout,'(a,f11.6)') '  Max PPT eff     : ' , edtmax
-        write(stdout,'(a,f11.6)') '  Min PPT eff     : ' , edtmin
-        write(stdout,'(a,f11.6)') '  Max PPT eff(o)  : ' , edtmaxo
-        write(stdout,'(a,f11.6)') '  Min PPT eff(o)  : ' , edtmino
-        write(stdout,'(a,f11.6)') '  Max PPT eff(x)  : ' , edtmaxx
-        write(stdout,'(a,f11.6)') '  Min PPT eff(x)  : ' , edtminx
-        write(stdout,'(a,f11.6)') '  Max PBC         : ' , pbcmax
-        write(stdout,'(a,f11.6)') '  Min Cloud Depth : ' , mincld
-        write(stdout,'(a,f11.6)') '  Max Cloud Base  : ' , skbmax
-        write(stdout,'(a,f11.6)') '  Max Heating     : ' , htmax
-        write(stdout,'(a,f11.6)') '  Min Heating     : ' , htmin
+        write(stdout,'(a,f11.6)') '  Max Shear       : ', shrmax
+        write(stdout,'(a,f11.6)') '  Min Shear       : ', shrmin
+        write(stdout,'(a,f11.6)') '  Max PPT eff     : ', edtmax
+        write(stdout,'(a,f11.6)') '  Min PPT eff     : ', edtmin
+        write(stdout,'(a,f11.6)') '  Max PPT eff(o)  : ', edtmaxo
+        write(stdout,'(a,f11.6)') '  Min PPT eff(o)  : ', edtmino
+        write(stdout,'(a,f11.6)') '  Max PPT eff(x)  : ', edtmaxx
+        write(stdout,'(a,f11.6)') '  Min PPT eff(x)  : ', edtminx
+        write(stdout,'(a,f11.6)') '  Max PBC         : ', pbcmax
+        write(stdout,'(a,f11.6)') '  Min Cloud Depth : ', mincld
+        write(stdout,'(a,f11.6)') '  Max Cloud Base  : ', skbmax
+        write(stdout,'(a,f11.6)') '  Max Heating     : ', htmax
+        write(stdout,'(a,f11.6)') '  Min Heating     : ', htmin
         if ( igcc == 1 ) then
           write(stdout,*) ' Arakawa-Schubert (1974) Closure Assumption'
         else if ( igcc == 2 ) then
@@ -2777,7 +2777,7 @@ module mod_params
     end if
     if ( any(icup == 1) ) then
       sig700 = (70.0_rkx-ptop)/(d_100-ptop)
-      do k = 1 , kz
+      do k = 1, kz
         k700 = k
         if ( sig700 <= sigma(k+1) .and. sig700 > sigma(k) ) exit
       end do
@@ -2808,12 +2808,12 @@ module mod_params
         write(stdout,'(a,7x,a,11x,a,6x,a,7x,a,7x,a,9x,a)') '# k','sigma','a',&
           'dsigma','twt(1)','twt(2)','qcon'
 
-        do k = 1 , kz
+        do k = 1, kz
           write(stdout, &
             '(1x,i2,5x,f7.4,5x,f7.4,5x,f7.4,5x,f8.4,5x,f8.4,5x,f8.4)') &
-            k , sigma(k) , hsigma(k) , dsigma(k) , twt(k,1) , twt(k,2) , qcon(k)
+            k, sigma(k), hsigma(k), dsigma(k), twt(k,1), twt(k,2), qcon(k)
         end do
-        write(stdout,'(1x,i2,5x,f7.4)') kzp1 , sigma(kzp1)
+        write(stdout,'(1x,i2,5x,f7.4)') kzp1, sigma(kzp1)
       end if
     end if
 
@@ -2823,11 +2823,11 @@ module mod_params
         write(stdout,*) 'THIS RUN IS TO BE CONSIDERED A NON STANDARD SCENARIO!'
         if ( itweak_temperature == 1 ) then
           write(stdout,'(a,f11.6,a)') ' Value added to temperature      : ', &
-                  temperature_tweak , ' K'
+                  temperature_tweak, ' K'
         end if
         if ( itweak_solar_irradiance == 1 ) then
           write(stdout,'(a,f11.6,a)') ' Value added to solar irradiance : ', &
-                  solar_tweak , ' W m-2'
+                  solar_tweak, ' W m-2'
         end if
         if ( itweak_greenhouse_gases == 1 ) then
           write(stdout,'(a,f11.6)') ' CO2 concentration factor        : ', &
@@ -2878,9 +2878,9 @@ module mod_params
    if ( ioasiscpl == 1 ) then
      if ( myid == italk ) then
        write(stdout,*) 'OASIS COUPLING ENABLED!'
-       write(stdout,*) 'Component name is: ' , comp_name
-       write(stdout,"(A,I2)") '   Component id is: ' , comp_id
-       write(stdout,*) '      Sync lag is: ' , oasis_sync_lag
+       write(stdout,*) 'Component name is: ', comp_name
+       write(stdout,"(A,I2)") '   Component id is: ', comp_id
+       write(stdout,*) '      Sync lag is: ', oasis_sync_lag
      end if
      if ( .not. l_cpl_im_sst  .and. &
 !          .not. l_cpl_im_sit  .and. &
@@ -2969,7 +2969,7 @@ module mod_params
       subroutine make_reference_atmosphere
         use mod_nhinterp
         implicit none
-        integer(ik4) :: i , j , k
+        integer(ik4) :: i, j, k
         real(rkx) :: ztop
         call nhsetup(ptop,base_state_pressure,logp_lrate,base_state_ts0)
         mddom%ht = mddom%ht * regrav
@@ -2999,13 +2999,13 @@ module mod_params
                         (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
         end do
         if ( ma%has_bdyleft ) then
-          do i = ice1 , ice2
+          do i = ice1, ice2
             dpsdxm(jce1,i) = (atm0%ps(jci1,i) - atm0%ps(jce1,i)) / &
                         (atm0%ps(jce1,i)*dx8*mddom%msfx(jce1,i))
           end do
         end if
         if ( ma%has_bdyright ) then
-          do i = ice1 , ice2
+          do i = ice1, ice2
             dpsdxm(jce2,i) = (atm0%ps(jce2,i) - atm0%ps(jci2,i)) / &
                         (atm0%ps(jce2,i)*dx8*mddom%msfx(jce2,i))
           end do
@@ -3015,13 +3015,13 @@ module mod_params
                         (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
         end do
         if ( ma%has_bdybottom ) then
-          do j = jce1 , jce2
+          do j = jce1, jce2
             dpsdym(j,ice1) = (atm0%ps(j,ici1) - atm0%ps(j,ice1)) / &
                         (atm0%ps(j,ice1)*dx8*mddom%msfx(j,ice1))
           end do
         end if
         if ( ma%has_bdytop ) then
-          do j = jce1 , jce2
+          do j = jce1, jce2
             dpsdym(j,ice2) = (atm0%ps(j,ice2) - atm0%ps(j,ici2)) / &
                         (atm0%ps(j,ice2)*dx8*mddom%msfx(j,ice2))
           end do
@@ -3044,10 +3044,10 @@ module mod_params
 
       subroutine compute_full_coriolis_coefficients
         implicit none
-        integer(ik4) :: i , j
-        real(rkx) :: rotang , dlat , dlatdy , dlondy
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
+        integer(ik4) :: i, j
+        real(rkx) :: rotang, dlat, dlatdy, dlondy
+        do i = idi1, idi2
+          do j = jdi1, jdi2
             dlat = mddom%dlat(j,i)
             dlatdy = d_half * (mddom%xlat(j-1,i)   + mddom%xlat(j,i) - &
                                mddom%xlat(j-1,i-1) - mddom%xlat(j,i-1))
@@ -3091,7 +3091,7 @@ module mod_params
 
       subroutine compute_moloch_static
         implicit none
-        integer(ik4) :: i , j
+        integer(ik4) :: i, j
         call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
         do concurrent ( j = jdi1:jdi2, i = ice1:ice2 )
@@ -3120,8 +3120,8 @@ module mod_params
 #ifdef RCEMIP
         if ( myid == italk ) then
           write(stdout,'(a)') 'Vertical level height profile: '
-          do k = kz , 1 , -1
-            write(stdout,'(i3,f9.2)') kzp1-k , mo_atm%zeta(jci1,ici1,k)
+          do k = kz, 1, -1
+            write(stdout,'(i3,f9.2)') kzp1-k, mo_atm%zeta(jci1,ici1,k)
           end do
         end if
 #endif
@@ -3133,7 +3133,7 @@ module mod_params
           mo_atm%zetaf(j,i,k) = md_zeta(zita(k), &
                    mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%dz(j,i,k) = mo_atm%zetaf(j,i,k) - mo_atm%zetaf(j,i,k+1)
         end do
         rayzd = mo_ztop
@@ -3144,7 +3144,7 @@ module mod_params
 
       recursive integer(ik4) function gcd_rec(u,v) result(gcd)
         implicit none
-        integer(ik4) , intent(in) :: u , v
+        integer(ik4), intent(in) :: u, v
         if ( mod(u,v) /= 0 ) then
           gcd = gcd_rec(v,mod(u,v))
         else
@@ -3154,7 +3154,7 @@ module mod_params
 
       real(rkx) function check_against_outparams(dt,dec) result(newdt)
         implicit none
-        real(rkx) , intent(in) :: dt , dec
+        real(rkx), intent(in) :: dt, dec
         newdt = int(dt/dec)*dec
         if ( ifshf ) then
           do

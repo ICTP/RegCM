@@ -21,8 +21,8 @@ module mod_che_tend
   use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_runparams , only : iqv , iqc , syncro_che
-  !use mod_runparams , only : rcmtimer , syncro_srf
+  use mod_runparams, only : iqv, iqc, syncro_che
+  !use mod_runparams, only : rcmtimer, syncro_srf
   use mod_mppparam
   use mod_che_common
   use mod_che_indices
@@ -58,33 +58,33 @@ module mod_che_tend
 !
     subroutine tractend2(lmonth,lday,declin)
       implicit none
-      integer(ik4) , intent(in) :: lmonth , lday
-      real(rk8) , intent(in) :: declin
+      integer(ik4), intent(in) :: lmonth, lday
+      real(rk8), intent(in) :: declin
 
 #ifndef CLM45
-      real(rkx) :: facb , facs , facv , pres10 , qsat10 , shu10
+      real(rkx) :: facb, facs, facv, pres10, qsat10, shu10
 #endif
-      real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: rho , ttb,  wl , prec , &
+      real(rkx), dimension(jci1:jci2,kz,ici1:ici2) :: rho, ttb,  wl, prec, &
                                                       convprec
-      real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: hgt , ph
-      real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: fracloud, fracum
-      integer(ik4) , dimension(jci1:jci2,ici1:ici2) :: ivegcov
-      real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: pdepv
-      real(rkx) , dimension(jci1:jci2,ntr,ici1:ici2) :: ddepa ! , ddepg
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: psurf , rh10 , soilw , &
-       srad , temp10 , tsurf , vegfrac , snowfrac , wid10 , zeff , hsurf
-      real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: ncpc
-      real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: bchi
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: ustar
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: xra
-      real(rkx) , dimension(ntr) :: xrho
+      real(rkx), dimension(jci1:jci2,kz,ici1:ici2) :: hgt, ph
+      real(rkx), dimension(jci1:jci2,kz,ici1:ici2) :: fracloud, fracum
+      integer(ik4), dimension(jci1:jci2,ici1:ici2) :: ivegcov
+      real(rkx), dimension(jci1:jci2,kz,ntr,ici1:ici2) :: pdepv
+      real(rkx), dimension(jci1:jci2,ntr,ici1:ici2) :: ddepa !, ddepg
+      real(rkx), dimension(jci1:jci2,ici1:ici2) :: psurf, rh10, soilw, &
+       srad, temp10, tsurf, vegfrac, snowfrac, wid10, zeff, hsurf
+      real(rkx), dimension(jci1:jci2,ici1:ici2,kz) :: ncpc
+      real(rkx), dimension(jci1:jci2,kz,ntr,ici1:ici2) :: bchi
+      real(rkx), dimension(jci1:jci2,ici1:ici2) :: ustar
+      real(rkx), dimension(jci1:jci2,ici1:ici2) :: xra
+      real(rkx), dimension(ntr) :: xrho
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
-!     real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: chevap
-!     real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: checum
-      real(rkx) , dimension (1) :: polrftab
-      integer(ik4) , dimension (1) :: poltab
-      integer(ik4) :: i , j , k , n , ibin
+!     real(rkx), dimension(jci1:jci2,kz,ici1:ici2) :: chevap
+!     real(rkx), dimension(jci1:jci2,kz,ici1:ici2) :: checum
+      real(rkx), dimension (1) :: polrftab
+      integer(ik4), dimension (1) :: poltab
+      integer(ik4) :: i, j, k, n, ibin
       !
       !*********************************************************************
       ! A : PRELIMINARY CALCULATIONS
@@ -105,9 +105,9 @@ module mod_che_tend
       !
       ! the unit: rho - kg/m3, wl - g/m3
       !
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             ! rho(j,i,k) = (sfs%psb(j,i)*a(k)+r8pt)* &
             ! what the hell   1000./287./atm2%t(j,k,i)*sfs%psb(j,i)
             hgt(j,k,i)  = cza(j,i,k)
@@ -138,15 +138,15 @@ module mod_che_tend
       ! upper threshold of 0.8 and accound
       ! both large scale and cumulus cloud)
       ! here cfcc + convcldfra can be > 1  !! Overestimation of removal ?
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
 
             fracloud(j,k,i)  =  cfcc(j,i,k)
             fracum(j,k,i)    =  convcldfra (j,i,k)
 
 !            if ( kcumtop(j,i) > 0 ) then
-!              do kk = kcumtop(j,i) , kz
+!              do kk = kcumtop(j,i), kz
 !                fracum(j,kk,i) = ccldfra(j,i,kk) - cfcc(j,i,kk)
 !                 fracum(j,kk,i) = convcldfra (j,i,kk)
 !              end do
@@ -157,8 +157,8 @@ module mod_che_tend
       !
       ! variables used for natural fluxes and deposition velocities
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           !
           ! care ocean-lake in veg2d is now back type 14-15 !!
           ! ivegcov mask is also defined when CLM45 is used
@@ -181,7 +181,7 @@ module mod_che_tend
 #ifdef CLM45
           vegfrac(j,i) = d_one - csfracb2d(j,i)
           ! csfracb2d points on clm dust emitting ground fraction
-          ! it already accouts for snow and lake mask , and is calculated
+          ! it already accouts for snow and lake mask, and is calculated
           ! as 1 - LAI/0.3 ( cf clm doc ).
 #else
           vegfrac(j,i) = cvegfrac(j,i)
@@ -191,8 +191,8 @@ module mod_che_tend
       end do
       ! Roughness lenght, 10 m wind           !
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           if ( ivegcov(j,i) /= 0 ) then
             zeff(j,i) = czo(j,i)
           else
@@ -229,7 +229,7 @@ module mod_che_tend
       ! SOX CHEMSITRY ( from offline oxidant)
       !
       if ( iso2 > 0 .and. (iso4 > 0 .or. ih2so4 > 0) ) then
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call chemsox(i,wl(:,:,i),fracloud(:,:,i), &
                        fracum(:,:,i),rho(:,:,i),ttb(:,:,i))
         end do
@@ -243,8 +243,8 @@ module mod_che_tend
         call aging_carb
       end if
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
         ! if ( ivegcov(j,i) == 8) print*, 'HE desert',custar(j,i),ustar(j,i), wid10(j,i), cw10m(j,i)
      !FAB TEST
         end do
@@ -291,7 +291,7 @@ module mod_che_tend
       ! update emission tendencies from external inventories
       ! handle biogenic emission fluxes coming from CLM45
       if ( ichsursrc == 1 ) then
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call emis_tend(i,declin)
         end do
       end if
@@ -304,7 +304,7 @@ module mod_che_tend
       ddepa(:,:,:)   = d_zero
       ! ddepg(:,:,:)   = d_zero
       if ( nbin > 0 .and. ichdrdepo > 0 ) then
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call drydep_aero(i,nbin,idust,rhodust,ivegcov(:,i),       &
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
                            temp10(:,i),tsurf(:,i),srad(:,i),        &
@@ -314,8 +314,8 @@ module mod_che_tend
         end do
         ! mineralogical tracers
         if ( nmine > 0 ) then
-          do n = 1 , nmine
-            do i = ici1 , ici2
+          do n = 1, nmine
+            do i = ici1, ici2
               call drydep_aero(i,nbin,imine(:,n),rhodust,ivegcov(:,i), &
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),            &
                            temp10(:,i),tsurf(:,i),srad(:,i),           &
@@ -328,7 +328,7 @@ module mod_che_tend
         end if
       end if
       if ( isslt(1) > 0 .and. ichdrdepo > 0 ) then
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call drydep_aero(i,sbin,isslt,rhosslt,ivegcov(:,i),       &
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
                            temp10(:,i),tsurf(:,i),srad(:,i),        &
@@ -339,7 +339,7 @@ module mod_che_tend
       end if
       if ( icarb(1) > 0 .and. ichdrdepo > 0 ) then
         ibin = count( icarb > 0 )
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call drydep_aero(i,ibin,icarb(1:ibin),rhooc,ivegcov(:,i), &
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
                            temp10(:,i),tsurf(:,i),srad(:,i),        &
@@ -352,7 +352,7 @@ module mod_che_tend
         ibin = 1
         poltab(1) = ipollen
         polrftab(1) = reffpollen
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call drydep_aero(i,ibin,poltab,rhopollen,ivegcov(:,i), &
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),      &
                            temp10(:,i),tsurf(:,i),srad(:,i),     &
@@ -367,7 +367,7 @@ module mod_che_tend
       ! dry deposition for SO2  is calculated also in non gaschem simulations
       !
       if ( (iso2 > 0 .or. igaschem == 1) .and. ichdrdepo > 0 ) then
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call drydep_gas(i,lmonth,lday,ivegcov(:,i),rh10(:,i), &
                           srad(:,i),tsurf(:,i),prec(:,kz,i),    &
                           temp10(:,i),cxlai2d(:,i),     &
@@ -379,7 +379,7 @@ module mod_che_tend
       !
       if ( nbin > 0 .and. ichremlsc == 1 ) then
         xrho(1:nbin) = rhodust
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call wetdepa(i,nbin,idust,dustbed,xrho(1:nbin),ttb(:,:,i), &
                        wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),      &
                        psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),     &
@@ -388,8 +388,8 @@ module mod_che_tend
         ! mineralogical tracers
         if ( nmine > 0 ) then
           xrho(1:nbin) = rhodust
-          do n = 1 , nmine
-            do i = ici1 , ici2
+          do n = 1, nmine
+            do i = ici1, ici2
               call wetdepa(i,nbin,imine(:,n),dustbed,xrho(1:nbin),ttb(:,:,i), &
                            wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),           &
                            psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),          &
@@ -400,7 +400,7 @@ module mod_che_tend
       end if
       if ( isslt(1) > 0 .and. ichremlsc == 1 )  then
         xrho(1:sbin) = rhosslt
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call wetdepa(i,sbin,isslt,ssltbed,xrho(1:sbin),ttb(:,:,i),  &
                        wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),       &
                        psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),      &
@@ -411,7 +411,7 @@ module mod_che_tend
         ibin = count( icarb > 0 )
         ! Yep ?
         xrho(1:ibin) = rhobchl(1)
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call wetdepa(i,ibin,icarb(1:ibin),carbed(1:ibin),xrho(1:ibin),   &
                        ttb(:,:,i),wl(:,:,i),fracloud(:,:,i),fracum(:,:,i), &
                        psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),           &
@@ -424,7 +424,7 @@ module mod_che_tend
         poltab(1) = ipollen
         polrftab(1) = reffpollen
         xrho(1) = rhopollen
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call wetdepa(i,ibin,poltab,polrftab,xrho(1:1),ttb(:,:,i), &
                        wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),     &
                        psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),    &
@@ -435,7 +435,7 @@ module mod_che_tend
       ! Wet Deposition for gasphase species
       !
       if ( igaschem == 1 .and. ichremlsc == 1 ) then
-        do i = ici1 , ici2
+        do i = ici1, ici2
           call sethet(i,bchi(:,:,:,i), dt,psurf(:,i))
         end do
       end if
@@ -473,8 +473,8 @@ module mod_che_tend
       ! set tracer total tracer tendency to zero if so ..
       ! threshold 0.005 mm/s = 432 mm/d
       !
-      !do i = ici1 , ici2
-      !  do j = jci1 , jci2
+      !do i = ici1, ici2
+      !  do j = jci1, jci2
       !    if ( maxval(convprec(j,:,i) + prec(j,:,i)) > 0.001_rkx ) then
       !      chiten (j,i,:,:) = d_zero
       !    end if
@@ -485,10 +485,10 @@ module mod_che_tend
       ! tracer instantaneous burden for diag
       !
       dtrace(:,:,:) = d_zero
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               dtrace(j,i,n) = dtrace(j,i,n) +  &
                   chib3d(j,i,k,n)*cdzq(j,i,k)*crhob3d(j,i,k)
             end do

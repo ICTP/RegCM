@@ -24,9 +24,9 @@ module mod_cbmz_monitor
 
   private
 
-  public :: lookat , spc_names
+  public :: lookat, spc_names
 
-  character(len=15) , parameter , dimension(60) :: spc_names = (/ &
+  character(len=15), parameter, dimension(60) :: spc_names = (/ &
      'CO2            ','H2SO4          ','HCOOH          ', &
      'RCOOH          ','MSA            ','DUMMY          ', &
      'PAN            ','TOL            ','O1D            ', &

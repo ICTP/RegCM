@@ -26,9 +26,9 @@ module mod_mklightning
 
   private
 
-  public :: mklightning , mklightning_init , mklightning_close
+  public :: mklightning, mklightning_init, mklightning_close
 
-  character(len=16) , parameter :: varname = 'lnfm'
+  character(len=16), parameter :: varname = 'lnfm'
 
   type(globalfile) :: gfile
 
@@ -36,7 +36,7 @@ module mod_mklightning
 
   subroutine mklightning_init(lnfmfile)
     implicit none
-    character(len=*) , intent(in) :: lnfmfile
+    character(len=*), intent(in) :: lnfmfile
     character(len=256) :: inpfile
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//lnfmfile
@@ -45,14 +45,14 @@ module mod_mklightning
 
   subroutine mklightning(lightning,mask,it)
     implicit none
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: lightning
-    integer(ik4) , intent(in) :: it
-    integer(ik4) :: i , j
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:), intent(out) :: lightning
+    integer(ik4), intent(in) :: it
+    integer(ik4) :: i, j
     call gfread(gfile,varname,lightning,it,h_missing_value)
     call bestaround(lightning,h_missing_value)
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           lightning(j,i) = h_missing_value
         else

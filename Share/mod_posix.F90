@@ -22,7 +22,7 @@ module mod_posix
 
   private
 
-  type , bind(C) :: dirent
+  type, bind(C) :: dirent
     integer(c_long) :: d_ino
     integer(c_long) :: d_off ! __off_t, check size
     integer(c_short) :: d_reclen
@@ -34,31 +34,31 @@ module mod_posix
     function opendir(a) bind(C,name='opendir')
       import
       type(c_ptr) :: opendir
-      character(len=1, kind=c_char) , intent(in) :: a(*)
+      character(len=1, kind=c_char), intent(in) :: a(*)
     end function opendir
     function readdir(dir) bind(C,name='readdir')
       import
-      type(c_ptr) , value :: dir
+      type(c_ptr), value :: dir
       type(c_ptr) :: readdir
     end function readdir
     function closedir(dir) bind(C,name='closedir')
       import
-      type(c_ptr) , value :: dir
+      type(c_ptr), value :: dir
       integer(c_int) :: closedir
     end function closedir
     subroutine seekdir(dir,pos) bind(C,name='seekdir')
       import
-      type(c_ptr) , value :: dir
+      type(c_ptr), value :: dir
       integer(c_long) :: pos
     end subroutine seekdir
     function telldir(dir) bind(C,name='telldir')
       import
-      type(c_ptr) , value :: dir
+      type(c_ptr), value :: dir
       integer(c_long) :: telldir
     end function telldir
     subroutine rewinddir(dir) bind(C,name='rewinddir')
       import
-      type(c_ptr) , value :: dir
+      type(c_ptr), value :: dir
     end subroutine rewinddir
   end interface
 
@@ -66,20 +66,20 @@ module mod_posix
     character(len=256) :: ename
   end type direntry
 
-  public :: dirlist , direntry
-  public :: replacestr , lower , upper , splitstr , basename
+  public :: dirlist, direntry
+  public :: replacestr, lower, upper, splitstr, basename
 
   contains
 
   subroutine dirlist(path,dire)
     use iso_c_binding
     implicit none
-    character(len=*) , intent(in) :: path
-    type(direntry) , dimension(:) , pointer :: dire
-    type(c_ptr) :: dir , dc
+    character(len=*), intent(in) :: path
+    type(direntry), dimension(:), pointer :: dire
+    type(c_ptr) :: dir, dc
     integer(c_int) :: ires
-    type(dirent) , pointer :: d
-    integer :: i , ic , fnum
+    type(dirent), pointer :: d
+    integer :: i, ic, fnum
 
     if ( associated(dire) ) then
       deallocate(dire)
@@ -103,12 +103,12 @@ module mod_posix
     end if
     call rewinddir(dir)
     allocate(dire(fnum))
-    do i = 1 , fnum
+    do i = 1, fnum
       dc = readdir(dir)
       if ( .not. c_associated(dc) ) exit
       call c_f_pointer(dc,d)
       charloop: &
-      do ic = 1 , 256
+      do ic = 1, 256
         if ( d%d_name(ic) == C_NULL_CHAR ) then
           dire(i)%ename(ic:) = ' '
           exit charloop
@@ -123,7 +123,7 @@ module mod_posix
     implicit none
     character(len=*), intent(in) :: string, search, sub
     character(len=:), allocatable :: mstring
-    integer :: i , stringlen , searchlen
+    integer :: i, stringlen, searchlen
     stringlen = len(string)
     searchlen = len(search)
     if ( stringlen == 0 .or. searchlen == 0 ) then
@@ -153,9 +153,9 @@ module mod_posix
     implicit none
     character(*), intent(in) :: str
     character(len(str)) :: string
-    integer , intent(in) , optional :: istart , istop
+    integer, intent(in), optional :: istart, istop
     integer :: i
-    integer :: ibegin , iend
+    integer :: ibegin, iend
     string = str
     ibegin = 1
     if ( present(istart) ) then
@@ -165,7 +165,7 @@ module mod_posix
     if ( present(istop) ) then
       iend = min(iend,istop)
     end if
-    do i = ibegin , iend
+    do i = ibegin, iend
       select case (str(i:i))
         case ('A':'Z')
           string(i:i) = char(iachar(str(i:i))+32)
@@ -178,9 +178,9 @@ module mod_posix
     implicit none
     character(*), intent(in) :: str
     character(len(str)) :: string
-    integer , intent(in) , optional :: istart , istop
+    integer, intent(in), optional :: istart, istop
     integer :: i
-    integer :: ibegin , iend
+    integer :: ibegin, iend
     string = str
     ibegin = 1
     if ( present(istart) ) then
@@ -190,7 +190,7 @@ module mod_posix
     if ( present(istop) ) then
       iend = min(iend,istop)
     end if
-    do i = ibegin , iend
+    do i = ibegin, iend
       select case (str(i:i))
         case ('a':'z')
           string(i:i) = char(iachar(str(i:i))-32)
@@ -201,22 +201,22 @@ module mod_posix
 
   subroutine splitstr(input_line,array,delimiters,order,nulls)
     implicit none
-    character(len=*) , intent(in) :: input_line
-    character(len=*) , optional, intent(in) :: delimiters
-    character(len=*) , optional , intent(in) :: order
-    character(len=*) , optional , intent(in) :: nulls
-    character(len=:) , allocatable , intent(out) :: array(:)
+    character(len=*), intent(in) :: input_line
+    character(len=*), optional, intent(in) :: delimiters
+    character(len=*), optional, intent(in) :: order
+    character(len=*), optional, intent(in) :: nulls
+    character(len=:), allocatable, intent(out) :: array(:)
 
     integer :: n
-    integer , allocatable , dimension(:) :: ibegin
-    integer , allocatable , dimension(:) :: iterm
-    character(len=:) , allocatable :: dlim
-    character(len=:) , allocatable :: ordr
-    character(len=:) , allocatable  :: nlls
-    integer :: ii , iiii
+    integer, allocatable, dimension(:) :: ibegin
+    integer, allocatable, dimension(:) :: iterm
+    character(len=:), allocatable :: dlim
+    character(len=:), allocatable :: ordr
+    character(len=:), allocatable  :: nlls
+    integer :: ii, iiii
     integer :: icount
     integer :: ilen
-    integer :: i , j , k
+    integer :: i, j, k
     integer :: icol
     integer :: idlim
     integer :: ifound
@@ -261,11 +261,11 @@ module mod_posix
       case (0)
       case default
         icol = 1
-        parseloop: do k = 1 , ilen , 1
+        parseloop: do k = 1, ilen, 1
           ibegin(k) = icol
           if ( index(dlim(1:idlim),input_line(icol:icol)) == 0 ) then
             iterm(k) = ilen
-            do i = 1 , idlim
+            do i = 1, idlim
               ifound = index(input_line(ibegin(k):ilen),dlim(i:i))
               if ( ifound > 0 ) then
                 iterm(k) = min(iterm(k),ifound+ibegin(k)-2)
@@ -301,7 +301,7 @@ module mod_posix
         iiii = 1
     end select
 
-    do j = 1 , icount
+    do j = 1, icount
       if ( iterm(j) < ibegin(j) ) then
         select case ( trim(adjustl(nlls)) )
           case ('ignore', '', 'ignoreend')

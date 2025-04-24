@@ -4,10 +4,10 @@ module mod_clm_time_manager
    use mod_intkinds
    use mod_realkinds
    use mod_mpmessage
-   use mod_constants , only : secpd
-   use mod_dynparam , only : dayspy
-   use mod_runparams , only : idate0
-   use mod_clm_varctl , only : nextdate
+   use mod_constants, only : secpd
+   use mod_dynparam, only : dayspy
+   use mod_runparams, only : idate0
+   use mod_clm_varctl, only : nextdate
 
    implicit none
 
@@ -60,9 +60,9 @@ module mod_clm_time_manager
     ! (i.e. NOT from restart file)
     ! Note: get_start_date gets you the date from the beginning of
     ! the simulation on the restart file.
-    integer(ik4), intent(out) , optional::&
+    integer(ik4), intent(out), optional::&
       tod     ! time of day (seconds past 0Z)
-    integer(ik4) :: ih , yr , mon , day
+    integer(ik4) :: ih, yr, mon, day
 
     call split_idate(idate0,yr,mon,day,ih)
 
@@ -100,7 +100,7 @@ module mod_clm_time_manager
 
   real(rk8) function get_calday(ymd, tod)
     implicit none
-    integer(ik4) , intent(in) :: ymd , tod
+    integer(ik4), intent(in) :: ymd, tod
     ! Return calendar day corresponding to specified time instant.
     ! Calendar day 1.0 = 0Z on Jan 1.
     type (rcm_time_and_date) :: id
@@ -119,7 +119,7 @@ module mod_clm_time_manager
   logical function is_end_curr_month()
     implicit none
     ! Return true if current timestep is last timestep in current month.
-    integer(ik4) :: iy , im , id , ih , imm , iss
+    integer(ik4) :: iy, im, id, ih, imm, iss
     call split_idate(nextdate,iy,im,id,ih,imm,iss)
     is_end_curr_month = ( id == 1 .and. ih == 0 .and. &
                           imm == 0 .and. iss == 0 )
@@ -147,9 +147,9 @@ module mod_clm_time_manager
 
   subroutine getdatetime(currdate,currtime)
     implicit none
-    character(len=8) , intent(out) :: currdate
-    character(len=8) , intent(out) :: currtime
-    integer(ik4) , dimension(8) :: tval
+    character(len=8), intent(out) :: currdate
+    character(len=8), intent(out) :: currtime
+    integer(ik4), dimension(8) :: tval
     call date_and_time(values=tval)
     write(currdate,'(i0.4,i0.2,i0.2)') tval(1), tval(2), tval(3)
     write(currtime,'(i0.2,i0.2,i0.2,i0.2)') tval(5), tval(6), tval(7), 0

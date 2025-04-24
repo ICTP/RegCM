@@ -61,12 +61,12 @@ module mod_cbmz_chemmech
 !     c_rdim: maximum dimension for the number of reactions
 
   ! Maximum dimension for vectorization
-  integer(ik4) , parameter :: c_kvec = 1
+  integer(ik4), parameter :: c_kvec = 1
 
   ! max dimension for number of species
-  integer(ik4) , parameter :: c_cdim = 1511
+  integer(ik4), parameter :: c_cdim = 1511
   ! max dimension for number of reactions
-  integer(ik4) , parameter :: c_rdim = 3211
+  integer(ik4), parameter :: c_rdim = 3211
 !
 ! READ/WRITE AND VECTOR INDICES
 ! c_kkw               Index for diagnostic write output (0 for none)
@@ -79,8 +79,8 @@ module mod_cbmz_chemmech
   integer(ik4) :: c_kkw ! Index for diagnostic write output (0 for none)
   integer(ik4) :: c_kmax    ! Maximum number for vectorization
 !
-  integer(ik4) , parameter :: c_out = 27  ! Output unit
-  integer(ik4) , parameter :: c_rin = 25  ! Input unit for REACTION.DAT (mechanism)
+  integer(ik4), parameter :: c_out = 27  ! Output unit
+  integer(ik4), parameter :: c_rin = 25  ! Input unit for REACTION.DAT (mechanism)
   integer(ik4) :: c_hvin ! Input unit for TUVGRID2 (hv data)
 !
 ! REACTION RATE PARAMETERS:

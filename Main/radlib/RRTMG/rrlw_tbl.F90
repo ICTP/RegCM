@@ -35,9 +35,9 @@
 
       real(kind=rb), parameter :: tblint = 10000.0_rb
 
-      real(kind=rb) , dimension(0:ntbl) :: tau_tbl
-      real(kind=rb) , dimension(0:ntbl) :: exp_tbl
-      real(kind=rb) , dimension(0:ntbl) :: tfn_tbl
+      real(kind=rb), dimension(0:ntbl) :: tau_tbl
+      real(kind=rb), dimension(0:ntbl) :: exp_tbl
+      real(kind=rb), dimension(0:ntbl) :: tfn_tbl
 
       real(kind=rb), parameter :: pade = 0.278_rb
       real(kind=rb) :: bpade

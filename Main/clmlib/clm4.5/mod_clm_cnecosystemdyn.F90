@@ -6,35 +6,35 @@ module mod_clm_cnecosystemdyn
   use mod_intkinds
   use mod_realkinds
   use mod_clm_type
-  use mod_clm_varctl , only: use_c13, use_c14
-  use mod_clm_cnallocation , only : CNAllocationInit
-  use mod_clm_cnphenology , only : CNPhenologyInit
-  use mod_clm_cnfire , only : CNFireInit , CNFireArea, CNFireFluxes
-  use mod_clm_cnc14decay , only : C14_init_BombSpike
-  use mod_clm_surfrd , only : crop_prog
-  use mod_clm_cnsetvalue , only : CNZeroFluxes
-  use mod_clm_cnndynamics , only : CNNDeposition , CNNFixation
-  use mod_clm_cnndynamics , only : CNNLeaching, CNNFert, CNSoyfix
-  use mod_clm_cnmresp , only : CNMResp
-  use mod_clm_cndecomp , only : CNDecompAlloc
-  use mod_clm_cnphenology , only : CNPhenology
-  use mod_clm_cngresp , only : CNGResp
-  use mod_clm_cncstateupdate1 , only : CStateUpdate1,CStateUpdate0
-  use mod_clm_cnnstateupdate1 , only : NStateUpdate1
-  use mod_clm_cngapmortality , only : CNGapMortality
-  use mod_clm_cncstateupdate2 , only : CStateUpdate2, CStateUpdate2h
-  use mod_clm_cnnstateupdate2 , only : NStateUpdate2, NStateUpdate2h
-  use mod_clm_cncstateupdate3 , only : CStateUpdate3
-  use mod_clm_cnnstateupdate3 , only : NStateUpdate3
-  use mod_clm_cnprecisioncontrol , only : CNPrecisionControl
-  use mod_clm_cnvegstructupdate , only : CNVegStructUpdate
-  use mod_clm_cnannualupdate , only : CNAnnualUpdate
-  use mod_clm_cnsummary , only : CSummary, NSummary
-  use mod_clm_cncisoflux , only : CIsoFlux1, CIsoFlux2, CIsoFlux2h, CIsoFlux3
-  use mod_clm_cnc14decay , only : C14Decay, C14BombSpike
-  use mod_clm_pftdyn , only : CNHarvest
-  use mod_clm_cnwoodproducts , only : CNWoodProducts
-  use mod_clm_cnsoillittverttransp , only : CNSoilLittVertTransp
+  use mod_clm_varctl, only: use_c13, use_c14
+  use mod_clm_cnallocation, only : CNAllocationInit
+  use mod_clm_cnphenology, only : CNPhenologyInit
+  use mod_clm_cnfire, only : CNFireInit, CNFireArea, CNFireFluxes
+  use mod_clm_cnc14decay, only : C14_init_BombSpike
+  use mod_clm_surfrd, only : crop_prog
+  use mod_clm_cnsetvalue, only : CNZeroFluxes
+  use mod_clm_cnndynamics, only : CNNDeposition, CNNFixation
+  use mod_clm_cnndynamics, only : CNNLeaching, CNNFert, CNSoyfix
+  use mod_clm_cnmresp, only : CNMResp
+  use mod_clm_cndecomp, only : CNDecompAlloc
+  use mod_clm_cnphenology, only : CNPhenology
+  use mod_clm_cngresp, only : CNGResp
+  use mod_clm_cncstateupdate1, only : CStateUpdate1,CStateUpdate0
+  use mod_clm_cnnstateupdate1, only : NStateUpdate1
+  use mod_clm_cngapmortality, only : CNGapMortality
+  use mod_clm_cncstateupdate2, only : CStateUpdate2, CStateUpdate2h
+  use mod_clm_cnnstateupdate2, only : NStateUpdate2, NStateUpdate2h
+  use mod_clm_cncstateupdate3, only : CStateUpdate3
+  use mod_clm_cnnstateupdate3, only : NStateUpdate3
+  use mod_clm_cnprecisioncontrol, only : CNPrecisionControl
+  use mod_clm_cnvegstructupdate, only : CNVegStructUpdate
+  use mod_clm_cnannualupdate, only : CNAnnualUpdate
+  use mod_clm_cnsummary, only : CSummary, NSummary
+  use mod_clm_cncisoflux, only : CIsoFlux1, CIsoFlux2, CIsoFlux2h, CIsoFlux3
+  use mod_clm_cnc14decay, only : C14Decay, C14BombSpike
+  use mod_clm_pftdyn, only : CNHarvest
+  use mod_clm_cnwoodproducts, only : CNWoodProducts
+  use mod_clm_cnsoillittverttransp, only : CNSoilLittVertTransp
 
   implicit none
 
@@ -51,9 +51,9 @@ module mod_clm_cnecosystemdyn
   !
   subroutine CNEcosystemDynInit(lbg, ubg, lbc, ubc, lbp, ubp )
     implicit none
-    integer(ik4) , intent(in) :: lbg , ubg        ! gridcell bounds
-    integer(ik4) , intent(in) :: lbc , ubc        ! column bounds
-    integer(ik4) , intent(in) :: lbp , ubp        ! pft bounds
+    integer(ik4), intent(in) :: lbg, ubg        ! gridcell bounds
+    integer(ik4), intent(in) :: lbc, ubc        ! column bounds
+    integer(ik4), intent(in) :: lbp, ubp        ! pft bounds
     call CNAllocationInit ( lbc, ubc, lbp, ubp )
     call CNPhenologyInit  ( lbp, ubp )
     call CNFireInit       ( lbg, ubg )

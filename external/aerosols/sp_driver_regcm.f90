@@ -32,62 +32,62 @@ PROGRAM MACv2SP
   REAL, PARAMETER    :: lambda     = 550.0
 
   INTEGER ::           &
-       nlat          , & !< number of latitudes, defined by orography file
-       nlon          , & !< number of longitudes, defined by orography file
-       nlev          , & !< number of vertical levels
-       iret          , & !< netCDF reading return variable
-       ncid          , & !< netCDF file ID
-       latID         , & !< pointer to latitude dimension in netCDF file
-       lonID         , & !< pointer to longitude dimension in netCDF file
-       VarID         , & !< pointer to generic dimension in netCDF file
-       levID         , & !< pointer to level dimension in netCDF file
-       monID         , & !< pointer to month dimension in netCDF file
-       var_t_ID      , & !< pointer to time variable in netCDF file
-       var_lat_ID    , & !< pointer to latitude variable in netCDF file
-       var_lon_ID    , & !< pointer to longitude variable in netCDF file
-       var_z_ID      , & !< pointer to height variable in netCDF file
-       var_aod_ID    , & !< pointer to AOD variable in netCDF file
-       var_asy_ID    , & !< pointer to asymmetry parameter variable in netCDF file
-       var_ssa_ID    , & !< pointer to single-scattering albedo variable in netCDF file
-       var_dNovrN_ID , & !< pointer to change in droplet number variable in netCDF file
-       var_aod_ID_2d , & !< pointer to 2D AOD variable in netCDF file
-       var_asy_ID_2d , & !< pointer to 2D asymmetry parameter variable in netCDF file
-       var_ssa_ID_2d , & !< pointer to 2D single-scattering albedo variable in netCDF file
-       iyear         , & !< index for year loop
-       k             , & !< index for height loop
-       i             , & !< index for latitude loop
-       j             , & !< index for longitude loop
-       n             , & !< index for bin loop
-       m             , & !< index for month loop
+       nlat         , & !< number of latitudes, defined by orography file
+       nlon         , & !< number of longitudes, defined by orography file
+       nlev         , & !< number of vertical levels
+       iret         , & !< netCDF reading return variable
+       ncid         , & !< netCDF file ID
+       latID        , & !< pointer to latitude dimension in netCDF file
+       lonID        , & !< pointer to longitude dimension in netCDF file
+       VarID        , & !< pointer to generic dimension in netCDF file
+       levID        , & !< pointer to level dimension in netCDF file
+       monID        , & !< pointer to month dimension in netCDF file
+       var_t_ID     , & !< pointer to time variable in netCDF file
+       var_lat_ID   , & !< pointer to latitude variable in netCDF file
+       var_lon_ID   , & !< pointer to longitude variable in netCDF file
+       var_z_ID     , & !< pointer to height variable in netCDF file
+       var_aod_ID   , & !< pointer to AOD variable in netCDF file
+       var_asy_ID   , & !< pointer to asymmetry parameter variable in netCDF file
+       var_ssa_ID   , & !< pointer to single-scattering albedo variable in netCDF file
+       var_dNovrN_ID, & !< pointer to change in droplet number variable in netCDF file
+       var_aod_ID_2d, & !< pointer to 2D AOD variable in netCDF file
+       var_asy_ID_2d, & !< pointer to 2D asymmetry parameter variable in netCDF file
+       var_ssa_ID_2d, & !< pointer to 2D single-scattering albedo variable in netCDF file
+       iyear        , & !< index for year loop
+       k            , & !< index for height loop
+       i            , & !< index for latitude loop
+       j            , & !< index for longitude loop
+       n            , & !< index for bin loop
+       m            , & !< index for month loop
        ifile             !< output file index
 
   REAL ::                    &
        year_fr
 
   REAL, ALLOCATABLE ::       &
-       lat(:,:)            , & !< array of latitudes allocated based on nlat
-       lon(:,:)            , & !< array of longitudes allocated based on nlon
-       oro(:,:)            , & !< array of orographic heights (lon,lat)
-       aod(:,:,:,:)        , & !< array for output aerosol optical depth (lon, lat, level, time)
-       ssa(:,:,:,:)        , & !< array for output aerosol single scattering albedo (lon, lat, level, time)
-       asy(:,:,:,:)        , & !< array for output aerosol asymmetry parameter (lon, lat, level, time)
-       aod_int(:,:,:)      , & !< array for output 2D aerosol optical depth (lon, lat, time)
-       ssa_int(:,:,:)      , & !< array for output 2D aerosol single scattering albedo (lon, lat, time)
-       asy_int(:,:,:)      , & !< array for output 2D aerosol asymmetry parameter (lon, lat, time)
-       dNovrN(:,:,:)       , & !< array for output of change in droplet number (lon, lat, level, time)
-       aod_prof(:,:)       , & !< aerosol optical depth profiles by colums (ncolumns,level)
-       ssa_prof(:,:)       , & !< aerosol single scattering albedo profiles by colums (ncolumns,level)
-       asy_prof(:,:)       , & !< aerosol asymmetry parameter by colums (ncolumns,level)
-       dNovrN_prof(:)      , & !< droplet number parameter by colums (ncolumns,level)
-       z(:,:)            , & !< heights by colums (ncolumns,level)
-       dz(:,:)           , & !< layer thicknesses (ncolumns,level)
-       col_lat(:)          , & !< latitudes of columns (ncolumns)
-       col_lon(:)          , & !< longitude of columns (ncolumns)
+       lat(:,:)           , & !< array of latitudes allocated based on nlat
+       lon(:,:)           , & !< array of longitudes allocated based on nlon
+       oro(:,:)           , & !< array of orographic heights (lon,lat)
+       aod(:,:,:,:)       , & !< array for output aerosol optical depth (lon, lat, level, time)
+       ssa(:,:,:,:)       , & !< array for output aerosol single scattering albedo (lon, lat, level, time)
+       asy(:,:,:,:)       , & !< array for output aerosol asymmetry parameter (lon, lat, level, time)
+       aod_int(:,:,:)     , & !< array for output 2D aerosol optical depth (lon, lat, time)
+       ssa_int(:,:,:)     , & !< array for output 2D aerosol single scattering albedo (lon, lat, time)
+       asy_int(:,:,:)     , & !< array for output 2D aerosol asymmetry parameter (lon, lat, time)
+       dNovrN(:,:,:)      , & !< array for output of change in droplet number (lon, lat, level, time)
+       aod_prof(:,:)      , & !< aerosol optical depth profiles by colums (ncolumns,level)
+       ssa_prof(:,:)      , & !< aerosol single scattering albedo profiles by colums (ncolumns,level)
+       asy_prof(:,:)      , & !< aerosol asymmetry parameter by colums (ncolumns,level)
+       dNovrN_prof(:)     , & !< droplet number parameter by colums (ncolumns,level)
+       z(:,:)           , & !< heights by colums (ncolumns,level)
+       dz(:,:)          , & !< layer thicknesses (ncolumns,level)
+       col_lat(:)         , & !< latitudes of columns (ncolumns)
+       col_lon(:)         , & !< longitude of columns (ncolumns)
        col_oro(:)              !< longitude of columns (ncolumns)
   !
   ! read in the orography data and use this to define the input (lat/lon) grid
   !
-  character(len=256) :: prgname , orography
+  character(len=256) :: prgname, orography
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=orography)
 
@@ -121,10 +121,10 @@ PROGRAM MACv2SP
   ALLOCATE (asy_prof(nlon*nlat,nlev))
 
   iret = nf90_inq_varid(ncid, "xlat", VarID)
-  iret = nf90_get_var(ncid, VarID, lat  , start=(/1,1/)  ,count=(/nlon,nlat/))
+  iret = nf90_get_var(ncid, VarID, lat , start=(/1,1/)  ,count=(/nlon,nlat/))
   IF (iret /= NF90_NOERR) STOP 'Error in reading latitudes'
   iret = nf90_inq_varid(ncid, "xlon", VarID)
-  iret = nf90_get_var(ncid, VarID, lon  , start=(/1,1/)  ,count=(/nlon,nlat/))
+  iret = nf90_get_var(ncid, VarID, lon , start=(/1,1/)  ,count=(/nlon,nlat/))
   IF (iret /= NF90_NOERR) STOP 'Error in reading longitudes'
   iret = nf90_inq_varid(ncid, "topo", VarID)
   iret = nf90_get_var(ncid, VarID, oro, start=(/1,1/),count=(/nlon,nlat/))
@@ -139,8 +139,8 @@ PROGRAM MACv2SP
       z(:,k) = z(:,k-1) + dz(:,k)
   END DO
   n = 1
-  do i = 1 , nlat
-    do j = 1 , nlon
+  do i = 1, nlat
+    do j = 1, nlon
       col_lat(n) = lat(j,i)
       col_lon(n) = lon(j,i)
       col_oro(n) = oro(j,i)
@@ -200,70 +200,70 @@ PROGRAM MACv2SP
       m = index(orography,'/',back=.true.)+1
       n = len_trim(orography)
       iret = iret + nf90_create("./MACv2-SP_"//orography(m:n), NF90_CLOBBER, ncid)
-      iret = iret + nf90_def_dim(ncid, 'lat'   ,nlat , latID)
-      iret = iret + nf90_def_dim(ncid, 'lon'   ,nlon , lonID)
-      iret = iret + nf90_def_dim(ncid, 'time'  ,nmon , monID)
-      iret = iret + nf90_def_dim(ncid, 'z'     ,nlev , levID)
+      iret = iret + nf90_def_dim(ncid, 'lat'   ,nlat, latID)
+      iret = iret + nf90_def_dim(ncid, 'lon'   ,nlon, lonID)
+      iret = iret + nf90_def_dim(ncid, 'time'  ,nmon, monID)
+      iret = iret + nf90_def_dim(ncid, 'z'     ,nlev, levID)
       IF (iret /= 6*NF90_NOERR) STOP 'Error in Creating File Dimensions'
       !
       iret = NF90_NOERR
-      iret = iret + nf90_def_var(ncid, 'time'         , NF90_FLOAT, monID, var_t_ID)
-      iret = iret + nf90_def_var(ncid, 'lat'          , NF90_FLOAT, (/lonID,latID/), var_lat_ID)
-      iret = iret + nf90_def_var(ncid, 'lon'          , NF90_FLOAT, (/lonID,latID/), var_lon_ID)
-      iret = iret + nf90_def_var(ncid, 'z'            , NF90_FLOAT, levID, var_z_ID)
-      iret = iret + nf90_def_var(ncid, 'aod'          , NF90_FLOAT, (/lonID,latID,levID,monID/), var_aod_ID)
-      iret = iret + nf90_def_var(ncid, 'ssa'          , NF90_FLOAT, (/lonID,latID,levID,monID/), var_ssa_ID)
-      iret = iret + nf90_def_var(ncid, 'asy'          , NF90_FLOAT, (/lonID,latID,levID,monID/), var_asy_ID)
-      iret = iret + nf90_def_var(ncid, 'dNovrN'       , NF90_FLOAT, (/lonID,latID,monID/), var_dNovrN_ID)
-      iret = iret + nf90_def_var(ncid, 'aod_2D'       , NF90_FLOAT, (/lonID,latID,monID/), var_aod_ID_2d)
-      iret = iret + nf90_def_var(ncid, 'ssa_2D'       , NF90_FLOAT, (/lonID,latID,monID/), var_ssa_ID_2d)
-      iret = iret + nf90_def_var(ncid, 'asy_2D'       , NF90_FLOAT, (/lonID,latID,monID/), var_asy_ID_2d)
+      iret = iret + nf90_def_var(ncid, 'time'        , NF90_FLOAT, monID, var_t_ID)
+      iret = iret + nf90_def_var(ncid, 'lat'         , NF90_FLOAT, (/lonID,latID/), var_lat_ID)
+      iret = iret + nf90_def_var(ncid, 'lon'         , NF90_FLOAT, (/lonID,latID/), var_lon_ID)
+      iret = iret + nf90_def_var(ncid, 'z'           , NF90_FLOAT, levID, var_z_ID)
+      iret = iret + nf90_def_var(ncid, 'aod'         , NF90_FLOAT, (/lonID,latID,levID,monID/), var_aod_ID)
+      iret = iret + nf90_def_var(ncid, 'ssa'         , NF90_FLOAT, (/lonID,latID,levID,monID/), var_ssa_ID)
+      iret = iret + nf90_def_var(ncid, 'asy'         , NF90_FLOAT, (/lonID,latID,levID,monID/), var_asy_ID)
+      iret = iret + nf90_def_var(ncid, 'dNovrN'      , NF90_FLOAT, (/lonID,latID,monID/), var_dNovrN_ID)
+      iret = iret + nf90_def_var(ncid, 'aod_2D'      , NF90_FLOAT, (/lonID,latID,monID/), var_aod_ID_2d)
+      iret = iret + nf90_def_var(ncid, 'ssa_2D'      , NF90_FLOAT, (/lonID,latID,monID/), var_ssa_ID_2d)
+      iret = iret + nf90_def_var(ncid, 'asy_2D'      , NF90_FLOAT, (/lonID,latID,monID/), var_asy_ID_2d)
 
-      iret = iret + nf90_put_att(ncid, var_t_ID       , "long_name", "month of year")
-      iret = iret + nf90_put_att(ncid, var_t_ID       , "units"    , "month")
-      iret = iret + nf90_put_att(ncid, var_lat_ID     , "long_name", "latitude")
-      iret = iret + nf90_put_att(ncid, var_lat_ID     , "units"    , "degrees_north")
-      iret = iret + nf90_put_att(ncid, var_lon_ID     , "long_name", "longitude")
-      iret = iret + nf90_put_att(ncid, var_lon_ID     , "units"    , "degrees_east")
-      iret = iret + nf90_put_att(ncid, var_z_ID       , "long_name", "height above sea-level")
-      iret = iret + nf90_put_att(ncid, var_z_ID       , "units"    , "m")
-      iret = iret + nf90_put_att(ncid, var_z_ID       , "coordinates"    , "lon lat")
-      iret = iret + nf90_put_att(ncid, var_aod_ID     , "long_name", "aerosol optical depth")
-      iret = iret + nf90_put_att(ncid, var_aod_ID     , "units"    ," ")
-      iret = iret + nf90_put_att(ncid, var_aod_ID     , "coordinates"    , "lon lat")
-      iret = iret + nf90_put_att(ncid, var_ssa_ID     , "long_name", "aerosol single scattering albedo")
-      iret = iret + nf90_put_att(ncid, var_ssa_ID     , "units"    ," ")
-      iret = iret + nf90_put_att(ncid, var_ssa_ID     , "coordinates"    , "lon lat")
-      iret = iret + nf90_put_att(ncid, var_asy_ID     , "long_name", "aerosol asymmetry parameter")
-      iret = iret + nf90_put_att(ncid, var_asy_ID     , "units"    ," ")
-      iret = iret + nf90_put_att(ncid, var_asy_ID     , "coordinates"    , "lon lat")
-      iret = iret + nf90_put_att(ncid, var_dNovrN_ID  , "long_name", "normalized change in drop number")
-      iret = iret + nf90_put_att(ncid, var_dNovrN_ID  , "units"    ," ")
-      iret = iret + nf90_put_att(ncid, var_dNovrN_ID  , "coordinates"    , "lon lat")
-      iret = iret + nf90_put_att(ncid, var_aod_ID_2d  , "long_name", "2D aerosol optical depth")
-      iret = iret + nf90_put_att(ncid, var_aod_ID_2d  , "units"    ," ")
-      iret = iret + nf90_put_att(ncid, var_aod_ID_2d  , "coordinates"    , "lon lat")
-      iret = iret + nf90_put_att(ncid, var_ssa_ID_2d  , "long_name", "2D aerosol single scattering albedo")
-      iret = iret + nf90_put_att(ncid, var_ssa_ID_2d  , "units"    ," ")
-      iret = iret + nf90_put_att(ncid, var_ssa_ID_2d  , "coordinates"    , "lon lat")
-      iret = iret + nf90_put_att(ncid, var_asy_ID_2d  , "long_name", "2D aerosol asymmetry parameter")
-      iret = iret + nf90_put_att(ncid, var_asy_ID_2d  , "units"    ," ")
-      iret = iret + nf90_put_att(ncid, var_asy_ID_2d  , "coordinates"    , "lon lat")
+      iret = iret + nf90_put_att(ncid, var_t_ID      , "long_name", "month of year")
+      iret = iret + nf90_put_att(ncid, var_t_ID      , "units"   , "month")
+      iret = iret + nf90_put_att(ncid, var_lat_ID    , "long_name", "latitude")
+      iret = iret + nf90_put_att(ncid, var_lat_ID    , "units"   , "degrees_north")
+      iret = iret + nf90_put_att(ncid, var_lon_ID    , "long_name", "longitude")
+      iret = iret + nf90_put_att(ncid, var_lon_ID    , "units"   , "degrees_east")
+      iret = iret + nf90_put_att(ncid, var_z_ID      , "long_name", "height above sea-level")
+      iret = iret + nf90_put_att(ncid, var_z_ID      , "units"   , "m")
+      iret = iret + nf90_put_att(ncid, var_z_ID      , "coordinates"   , "lon lat")
+      iret = iret + nf90_put_att(ncid, var_aod_ID    , "long_name", "aerosol optical depth")
+      iret = iret + nf90_put_att(ncid, var_aod_ID    , "units"    ," ")
+      iret = iret + nf90_put_att(ncid, var_aod_ID    , "coordinates"   , "lon lat")
+      iret = iret + nf90_put_att(ncid, var_ssa_ID    , "long_name", "aerosol single scattering albedo")
+      iret = iret + nf90_put_att(ncid, var_ssa_ID    , "units"    ," ")
+      iret = iret + nf90_put_att(ncid, var_ssa_ID    , "coordinates"   , "lon lat")
+      iret = iret + nf90_put_att(ncid, var_asy_ID    , "long_name", "aerosol asymmetry parameter")
+      iret = iret + nf90_put_att(ncid, var_asy_ID    , "units"    ," ")
+      iret = iret + nf90_put_att(ncid, var_asy_ID    , "coordinates"   , "lon lat")
+      iret = iret + nf90_put_att(ncid, var_dNovrN_ID , "long_name", "normalized change in drop number")
+      iret = iret + nf90_put_att(ncid, var_dNovrN_ID , "units"    ," ")
+      iret = iret + nf90_put_att(ncid, var_dNovrN_ID , "coordinates"   , "lon lat")
+      iret = iret + nf90_put_att(ncid, var_aod_ID_2d , "long_name", "2D aerosol optical depth")
+      iret = iret + nf90_put_att(ncid, var_aod_ID_2d , "units"    ," ")
+      iret = iret + nf90_put_att(ncid, var_aod_ID_2d , "coordinates"   , "lon lat")
+      iret = iret + nf90_put_att(ncid, var_ssa_ID_2d , "long_name", "2D aerosol single scattering albedo")
+      iret = iret + nf90_put_att(ncid, var_ssa_ID_2d , "units"    ," ")
+      iret = iret + nf90_put_att(ncid, var_ssa_ID_2d , "coordinates"   , "lon lat")
+      iret = iret + nf90_put_att(ncid, var_asy_ID_2d , "long_name", "2D aerosol asymmetry parameter")
+      iret = iret + nf90_put_att(ncid, var_asy_ID_2d , "units"    ," ")
+      iret = iret + nf90_put_att(ncid, var_asy_ID_2d , "coordinates"   , "lon lat")
       iret = iret + nf90_enddef(ncid)
       IF (iret /= 26*NF90_NOERR) STOP 'Error in creating file variables'
       !
       iret = NF90_NOERR
-      iret = iret + nf90_put_var(ncid, var_t_ID       , values=mons)
-      iret = iret + nf90_put_var(ncid, var_lat_ID     , values=lat)
-      iret = iret + nf90_put_var(ncid, var_lon_ID     , values=lon)
-      iret = iret + nf90_put_var(ncid, var_z_ID       , values=z(1,:))
-      iret = iret + nf90_put_var(ncid, var_aod_ID     , values=aod)
-      iret = iret + nf90_put_var(ncid, var_ssa_ID     , values=ssa)
-      iret = iret + nf90_put_var(ncid, var_asy_ID     , values=asy)
-      iret = iret + nf90_put_var(ncid, var_dNovrN_ID  , values=dNovrN)
-      iret = iret + nf90_put_var(ncid, var_aod_ID_2d  , values=aod_int)
-      iret = iret + nf90_put_var(ncid, var_ssa_ID_2d  , values=ssa_int)
-      iret = iret + nf90_put_var(ncid, var_asy_ID_2d  , values=asy_int)
+      iret = iret + nf90_put_var(ncid, var_t_ID      , values=mons)
+      iret = iret + nf90_put_var(ncid, var_lat_ID    , values=lat)
+      iret = iret + nf90_put_var(ncid, var_lon_ID    , values=lon)
+      iret = iret + nf90_put_var(ncid, var_z_ID      , values=z(1,:))
+      iret = iret + nf90_put_var(ncid, var_aod_ID    , values=aod)
+      iret = iret + nf90_put_var(ncid, var_ssa_ID    , values=ssa)
+      iret = iret + nf90_put_var(ncid, var_asy_ID    , values=asy)
+      iret = iret + nf90_put_var(ncid, var_dNovrN_ID , values=dNovrN)
+      iret = iret + nf90_put_var(ncid, var_aod_ID_2d , values=aod_int)
+      iret = iret + nf90_put_var(ncid, var_ssa_ID_2d , values=ssa_int)
+      iret = iret + nf90_put_var(ncid, var_asy_ID_2d , values=asy_int)
       iret = iret + nf90_close(ncid)
       IF (iret /= 10*NF90_NOERR) STOP 'error writing data or in closing file'
     END IF

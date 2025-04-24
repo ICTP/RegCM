@@ -19,7 +19,7 @@ module mod_mppparam
   use mod_realkinds
   use mod_dynparam
   use mod_constants
-  use mod_runparams , only : namelistfile , prgname
+  use mod_runparams, only : namelistfile, prgname
   use mod_mpmessage
   use mod_memutil
   use mod_date
@@ -36,38 +36,38 @@ module mod_mppparam
 
   public :: get_cartcomm
 
-  integer(ik4) , public :: global_cross_istart , global_cross_iend
-  integer(ik4) , public :: global_cross_jstart , global_cross_jend
-  integer(ik4) , public :: global_dot_istart , global_dot_iend
-  integer(ik4) , public :: global_dot_jstart , global_dot_jend
+  integer(ik4), public :: global_cross_istart, global_cross_iend
+  integer(ik4), public :: global_cross_jstart, global_cross_jend
+  integer(ik4), public :: global_dot_istart, global_dot_iend
+  integer(ik4), public :: global_dot_jstart, global_dot_jend
 
-  logical , parameter :: lreorder = .false.
+  logical, parameter :: lreorder = .false.
 
-  type(masked_comm) , public :: lndcomm
-  type(masked_comm) , public :: ocncomm
+  type(masked_comm), public :: lndcomm
+  type(masked_comm), public :: ocncomm
 
-  integer(ik4) , public , parameter :: iocpu = 0 ! The id of the cpu doing I/O
-  integer(ik4) , public , parameter :: italk = 0 ! Who is doing the print ?
+  integer(ik4), public, parameter :: iocpu = 0 ! The id of the cpu doing I/O
+  integer(ik4), public, parameter :: italk = 0 ! Who is doing the print ?
 
 #ifdef MPI_SERIAL
   include 'mpif.h'
   integer(ik4) mpi_status_ignore(mpi_status_size)
   integer(ik4) mpi_statuses_ignore(mpi_status_size,4)
-  integer(ik4) , parameter :: mpi_proc_null = -2
-  integer(ik4) , parameter :: mpi_comm_type_shared = 0
+  integer(ik4), parameter :: mpi_proc_null = -2
+  integer(ik4), parameter :: mpi_comm_type_shared = 0
   interface mpi_sendrecv
     module procedure mpi_sendrecvr8
     module procedure mpi_sendrecvr4
   end interface mpi_sendrecv
 #endif
 
-  public :: set_nproc , broadcast_params
+  public :: set_nproc, broadcast_params
 
   integer(ik4) :: cartesian_communicator
   !integer(ik4) :: node_local_communicator
-  integer(ik4) :: ccid , ccio
+  integer(ik4) :: ccid, ccio
 
-  integer(ik4) , public :: ncout_mpi_info = mpi_info_null
+  integer(ik4), public :: ncout_mpi_info = mpi_info_null
 
   type grid_nc_var2d
     character(len=64) :: varname
@@ -80,8 +80,8 @@ module mod_mppparam
     integer(ik4) :: mynx2 = 0
     integer(ik4) :: myny1 = 0
     integer(ik4) :: myny2 = 0
-    real(rk8) , pointer , dimension(:,:) :: val => null()
-    real(rk8) , pointer , dimension(:,:) :: iobuf => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: val => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: iobuf => null()
   end type grid_nc_var2d
 
   type grid_nc_var3d
@@ -96,8 +96,8 @@ module mod_mppparam
     integer(ik4) :: myny1 = 0
     integer(ik4) :: myny2 = 0
     integer(ik4) :: nz = 0
-    real(rk8) , pointer , dimension(:,:,:) :: val => null()
-    real(rk8) , pointer , dimension(:,:,:) :: iobuf => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: val => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: iobuf => null()
   end type grid_nc_var3d
 
   type grid_nc_var4d
@@ -113,164 +113,164 @@ module mod_mppparam
     integer(ik4) :: myny2 = 0
     integer(ik4) :: nz = 0
     integer(ik4) :: nl = 0
-    real(rk8) , pointer , dimension(:,:,:,:) :: val => null()
-    real(rk8) , pointer , dimension(:,:,:,:) :: iobuf => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:,:) :: val => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:,:) :: iobuf => null()
   end type grid_nc_var4d
 
-  public :: grid_nc_var2d , grid_nc_var3d , grid_nc_var4d
+  public :: grid_nc_var2d, grid_nc_var3d, grid_nc_var4d
 
   interface exchange_array
-    module procedure exchange_array_r8 , &
+    module procedure exchange_array_r8, &
                      exchange_array_r4
   end interface exchange_array
 
   interface cyclic_exchange_array
-    module procedure cyclic_exchange_array_r8 , &
+    module procedure cyclic_exchange_array_r8, &
                      cyclic_exchange_array_r4
   end interface cyclic_exchange_array
 
   interface grid_nc_create
-    module procedure grid_nc_create_var2d , &
-                     grid_nc_create_var3d , &
+    module procedure grid_nc_create_var2d, &
+                     grid_nc_create_var3d, &
                      grid_nc_create_var4d
   end interface grid_nc_create
 
   interface grid_nc_write
-    module procedure grid_nc_write_var2d , &
-                     grid_nc_write_var3d , &
+    module procedure grid_nc_write_var2d, &
+                     grid_nc_write_var3d, &
                      grid_nc_write_var4d
   end interface grid_nc_write
 
   interface grid_nc_destroy
-    module procedure grid_nc_destroy_var2d , &
-                     grid_nc_destroy_var3d , &
+    module procedure grid_nc_destroy_var2d, &
+                     grid_nc_destroy_var3d, &
                      grid_nc_destroy_var4d
   end interface grid_nc_destroy
 
-  public :: grid_nc_create , grid_nc_write , grid_nc_destroy
+  public :: grid_nc_create, grid_nc_write, grid_nc_destroy
 
   interface grid_distribute
-    module procedure real8_2d_distribute ,   &
-                     real8_3d_distribute ,   &
-                     real8_4d_distribute ,   &
-                     real4_2d_distribute ,   &
-                     real4_3d_distribute ,   &
-                     real4_4d_distribute ,   &
-                     integer_2d_distribute , &
-                     integer_3d_distribute , &
-                     integer_4d_distribute , &
-                     logical_2d_distribute , &
-                     logical_3d_distribute , &
+    module procedure real8_2d_distribute,   &
+                     real8_3d_distribute,   &
+                     real8_4d_distribute,   &
+                     real4_2d_distribute,   &
+                     real4_3d_distribute,   &
+                     real4_4d_distribute,   &
+                     integer_2d_distribute, &
+                     integer_3d_distribute, &
+                     integer_4d_distribute, &
+                     logical_2d_distribute, &
+                     logical_3d_distribute, &
                      logical_4d_distribute
   end interface grid_distribute
 
   interface subgrid_distribute
-    module procedure real8_2d_sub_distribute ,   &
-                     real8_3d_sub_distribute ,   &
-                     real4_2d_sub_distribute ,   &
-                     real4_3d_sub_distribute ,   &
-                     integer_2d_sub_distribute , &
-                     integer_3d_sub_distribute , &
+    module procedure real8_2d_sub_distribute,   &
+                     real8_3d_sub_distribute,   &
+                     real4_2d_sub_distribute,   &
+                     real4_3d_sub_distribute,   &
+                     integer_2d_sub_distribute, &
+                     integer_3d_sub_distribute, &
                      logical_2d_sub_distribute
   end interface subgrid_distribute
 
   interface grid_collect
-    module procedure real8_2d_collect ,    &
-                     real8_2d_3d_collect , &
-                     real8_3d_collect ,    &
-                     real8_3d_2d_collect , &
-                     real8_4d_collect ,    &
-                     real8_4d_2d_collect , &
-                     real4_2d_collect ,    &
-                     real4_2d_3d_collect , &
-                     real4_3d_collect ,    &
-                     real4_3d_2d_collect , &
-                     real4_4d_collect ,    &
-                     real4_4d_2d_collect , &
-                     integer_2d_collect ,  &
-                     integer_3d_collect ,  &
-                     integer_4d_collect ,  &
+    module procedure real8_2d_collect,    &
+                     real8_2d_3d_collect, &
+                     real8_3d_collect,    &
+                     real8_3d_2d_collect, &
+                     real8_4d_collect,    &
+                     real8_4d_2d_collect, &
+                     real4_2d_collect,    &
+                     real4_2d_3d_collect, &
+                     real4_3d_collect,    &
+                     real4_3d_2d_collect, &
+                     real4_4d_collect,    &
+                     real4_4d_2d_collect, &
+                     integer_2d_collect,  &
+                     integer_3d_collect,  &
+                     integer_4d_collect,  &
                      logical_2d_collect
   end interface grid_collect
 
   interface subgrid_collect
-    module procedure real8_2d_sub_collect ,   &
-                     real8_3d_sub_collect ,   &
-                     real4_2d_sub_collect ,   &
-                     real4_3d_sub_collect ,   &
-                     integer_2d_sub_collect , &
-                     integer_3d_sub_collect , &
+    module procedure real8_2d_sub_collect,   &
+                     real8_3d_sub_collect,   &
+                     real4_2d_sub_collect,   &
+                     real4_3d_sub_collect,   &
+                     integer_2d_sub_collect, &
+                     integer_3d_sub_collect, &
                      logical_2d_sub_collect
   end interface subgrid_collect
 
   interface exchange
-    module procedure real8_2d_exchange , &
-                     real8_3d_exchange , &
-                     real8_4d_exchange , &
-                     real4_2d_exchange , &
-                     real4_3d_exchange , &
+    module procedure real8_2d_exchange, &
+                     real8_3d_exchange, &
+                     real8_4d_exchange, &
+                     real4_2d_exchange, &
+                     real4_3d_exchange, &
                      real4_4d_exchange
   end interface exchange
 
   interface exchange_lrbt
-    module procedure real8_2d_exchange_left_right_bottom_top , &
-                     real8_3d_exchange_left_right_bottom_top , &
-                     real8_4d_exchange_left_right_bottom_top , &
-                     real4_2d_exchange_left_right_bottom_top , &
-                     real4_3d_exchange_left_right_bottom_top , &
+    module procedure real8_2d_exchange_left_right_bottom_top, &
+                     real8_3d_exchange_left_right_bottom_top, &
+                     real8_4d_exchange_left_right_bottom_top, &
+                     real4_2d_exchange_left_right_bottom_top, &
+                     real4_3d_exchange_left_right_bottom_top, &
                      real4_4d_exchange_left_right_bottom_top
   end interface exchange_lrbt
 
   interface exchange_lr
-    module procedure real8_2d_exchange_left_right , &
-                     real8_3d_exchange_left_right , &
-                     real8_4d_exchange_left_right , &
-                     real4_2d_exchange_left_right , &
-                     real4_3d_exchange_left_right , &
+    module procedure real8_2d_exchange_left_right, &
+                     real8_3d_exchange_left_right, &
+                     real8_4d_exchange_left_right, &
+                     real4_2d_exchange_left_right, &
+                     real4_3d_exchange_left_right, &
                      real4_4d_exchange_left_right
   end interface exchange_lr
 
   interface exchange_bt
-    module procedure real8_2d_exchange_bottom_top , &
-                     real8_3d_exchange_bottom_top , &
-                     real8_4d_exchange_bottom_top , &
-                     real4_2d_exchange_bottom_top , &
-                     real4_3d_exchange_bottom_top , &
+    module procedure real8_2d_exchange_bottom_top, &
+                     real8_3d_exchange_bottom_top, &
+                     real8_4d_exchange_bottom_top, &
+                     real4_2d_exchange_bottom_top, &
+                     real4_3d_exchange_bottom_top, &
                      real4_4d_exchange_bottom_top
   end interface exchange_bt
 
   interface exchange_lb
-    module procedure real8_2d_exchange_left_bottom , &
-                     real8_3d_exchange_left_bottom , &
-                     real8_4d_exchange_left_bottom , &
-                     real4_2d_exchange_left_bottom , &
-                     real4_3d_exchange_left_bottom , &
+    module procedure real8_2d_exchange_left_bottom, &
+                     real8_3d_exchange_left_bottom, &
+                     real8_4d_exchange_left_bottom, &
+                     real4_2d_exchange_left_bottom, &
+                     real4_3d_exchange_left_bottom, &
                      real4_4d_exchange_left_bottom
   end interface exchange_lb
 
   interface exchange_rt
-    module procedure real8_2d_exchange_right_top , &
-                     real8_3d_exchange_right_top , &
-                     real8_4d_exchange_right_top , &
-                     real4_2d_exchange_right_top , &
-                     real4_3d_exchange_right_top , &
+    module procedure real8_2d_exchange_right_top, &
+                     real8_3d_exchange_right_top, &
+                     real8_4d_exchange_right_top, &
+                     real4_2d_exchange_right_top, &
+                     real4_3d_exchange_right_top, &
                      real4_4d_exchange_right_top
   end interface exchange_rt
 
   interface exchange_bdy_lr
-    module procedure real8_bdy_exchange_left_right , &
+    module procedure real8_bdy_exchange_left_right, &
                      real4_bdy_exchange_left_right
   end interface exchange_bdy_lr
 
   interface exchange_bdy_bt
-    module procedure real8_bdy_exchange_bottom_top , &
+    module procedure real8_bdy_exchange_bottom_top, &
                      real4_bdy_exchange_bottom_top
   end interface exchange_bdy_bt
 
   interface grid_fill
-    module procedure real8_2d_grid_fill_extend1 , &
-                     real8_2d_grid_fill_extend2 , &
-                     real4_2d_grid_fill_extend1 , &
+    module procedure real8_2d_grid_fill_extend1, &
+                     real8_2d_grid_fill_extend2, &
+                     real4_2d_grid_fill_extend1, &
                      real4_2d_grid_fill_extend2
   end interface grid_fill
 
@@ -299,16 +299,16 @@ module mod_mppparam
 #ifdef QUAD_PRECISION
   interface sumall
     module procedure sumall_real16, &
-                     sumall_real8 , &
-                     sumall_real4 , &
-                     sumall_int4 ,  &
+                     sumall_real8, &
+                     sumall_real4, &
+                     sumall_int4,  &
                      sumall_int4_array
   end interface sumall
 #else
   interface sumall
-    module procedure sumall_real8 , &
-                     sumall_real4 , &
-                     sumall_int4 ,  &
+    module procedure sumall_real8, &
+                     sumall_real4, &
+                     sumall_int4,  &
                      sumall_int4_array
   end interface sumall
 #endif
@@ -401,7 +401,7 @@ module mod_mppparam
   end interface reorder_subgrid
 
   interface reorder_add_subgrid
-    module procedure reorder_add_subgrid_2d_real8 ,  &
+    module procedure reorder_add_subgrid_2d_real8,  &
                      reorder_add_subgrid_2d3d_real8, &
                      reorder_add_subgrid_3d_real8,   &
                      reorder_add_subgrid_2d_real4,   &
@@ -410,7 +410,7 @@ module mod_mppparam
   end interface reorder_add_subgrid
 
   interface input_reorder
-    module procedure input_reorder_real8 , &
+    module procedure input_reorder_real8, &
                      input_reorder_real4
   end interface input_reorder
 
@@ -513,61 +513,61 @@ module mod_mppparam
     module procedure cross2dot3d
   end interface cross2dot
 
-  type(model_area) , public :: ma
+  type(model_area), public :: ma
 
-  real(rk8) , pointer , dimension(:) :: r8vector1
-  real(rk8) , pointer , dimension(:) :: r8vector2
-  real(rk4) , pointer , dimension(:) :: r4vector1
-  real(rk4) , pointer , dimension(:) :: r4vector2
-  integer(ik4) , pointer , dimension(:) :: i4vector1
-  integer(ik4) , pointer , dimension(:) :: i4vector2
-  logical , pointer , dimension(:) :: lvector1
-  logical , pointer , dimension(:) :: lvector2
-  integer(ik4) , dimension(4) :: window
-  integer(ik4) , pointer , dimension(:) :: windows
-  integer(ik4) , dimension(1) , target :: ifake
-  integer(ik4) , pointer , dimension(:) :: wincount
-  integer(ik4) , pointer , dimension(:) :: windispl
+  real(rk8), pointer, contiguous, dimension(:) :: r8vector1
+  real(rk8), pointer, contiguous, dimension(:) :: r8vector2
+  real(rk4), pointer, contiguous, dimension(:) :: r4vector1
+  real(rk4), pointer, contiguous, dimension(:) :: r4vector2
+  integer(ik4), pointer, contiguous, dimension(:) :: i4vector1
+  integer(ik4), pointer, contiguous, dimension(:) :: i4vector2
+  logical, pointer, contiguous, dimension(:) :: lvector1
+  logical, pointer, contiguous, dimension(:) :: lvector2
+  integer(ik4), dimension(4) :: window
+  integer(ik4), pointer, contiguous, dimension(:) :: windows
+  integer(ik4), dimension(1), target :: ifake
+  integer(ik4), pointer, contiguous, dimension(:) :: wincount
+  integer(ik4), pointer, contiguous, dimension(:) :: windispl
   integer(ik4) :: mpierr
-  real(rk8) , pointer , dimension(:,:,:) :: r8subgrid
-  real(rk4) , pointer , dimension(:,:,:) :: r4subgrid
-  integer(ik4) , pointer , dimension(:,:,:) :: i4subgrid
-  logical , pointer , dimension(:,:,:) :: lsubgrid
-  real(rk8) , pointer , dimension(:,:,:) :: global_r8subgrid
-  real(rk4) , pointer , dimension(:,:,:) :: global_r4subgrid
-  integer(ik4) , pointer , dimension(:,:,:) :: global_i4subgrid
-  logical , pointer , dimension(:,:,:) :: global_lsubgrid
-  real(rk8) , pointer , dimension(:,:) :: global_r8grid
-  real(rk4) , pointer , dimension(:,:) :: global_r4grid
-  integer(ik4) , pointer , dimension(:,:) :: global_i4grid
-  logical , pointer , dimension(:,:) :: global_lgrid
+  real(rk8), pointer, contiguous, dimension(:,:,:) :: r8subgrid
+  real(rk4), pointer, contiguous, dimension(:,:,:) :: r4subgrid
+  integer(ik4), pointer, contiguous, dimension(:,:,:) :: i4subgrid
+  logical, pointer, contiguous, dimension(:,:,:) :: lsubgrid
+  real(rk8), pointer, contiguous, dimension(:,:,:) :: global_r8subgrid
+  real(rk4), pointer, contiguous, dimension(:,:,:) :: global_r4subgrid
+  integer(ik4), pointer, contiguous, dimension(:,:,:) :: global_i4subgrid
+  logical, pointer, contiguous, dimension(:,:,:) :: global_lsubgrid
+  real(rk8), pointer, contiguous, dimension(:,:) :: global_r8grid
+  real(rk4), pointer, contiguous, dimension(:,:) :: global_r4grid
+  integer(ik4), pointer, contiguous, dimension(:,:) :: global_i4grid
+  logical, pointer, contiguous, dimension(:,:) :: global_lgrid
 
-  integer(ik4) , parameter :: tag_bt = 1 ! FROM bottom TO top
-  integer(ik4) , parameter :: tag_tb = 2 ! FROM top TO bottom
-  integer(ik4) , parameter :: tag_lr = 3 ! FROM left TO right
-  integer(ik4) , parameter :: tag_rl = 4 ! FROM right TO left
-  integer(ik4) , parameter :: tag_brtl = 5 ! FROM bottomrigth TO topleft
-  integer(ik4) , parameter :: tag_tlbr = 6 ! FROM topleft TO bottomright
-  integer(ik4) , parameter :: tag_bltr = 7 ! FROM bottomleft TO topright
-  integer(ik4) , parameter :: tag_trbl = 8 ! FROM topright TO bottomleft
+  integer(ik4), parameter :: tag_bt = 1 ! FROM bottom TO top
+  integer(ik4), parameter :: tag_tb = 2 ! FROM top TO bottom
+  integer(ik4), parameter :: tag_lr = 3 ! FROM left TO right
+  integer(ik4), parameter :: tag_rl = 4 ! FROM right TO left
+  integer(ik4), parameter :: tag_brtl = 5 ! FROM bottomrigth TO topleft
+  integer(ik4), parameter :: tag_tlbr = 6 ! FROM topleft TO bottomright
+  integer(ik4), parameter :: tag_bltr = 7 ! FROM bottomleft TO topright
+  integer(ik4), parameter :: tag_trbl = 8 ! FROM topright TO bottomleft
 
-  public :: exchange , exchange_lb , exchange_rt
-  public :: exchange_lr , exchange_bt , exchange_lrbt
-  public :: exchange_bdy_lr , exchange_bdy_bt
-  public :: grid_distribute , grid_collect , grid_fill
-  public :: subgrid_distribute , subgrid_collect
-  public :: uvcross2dot , uvdot2cross , cross2dot , psc2psd
-  public :: tenxtouvten , uvtentotenx
-  public :: bcast , sumall , maxall , minall , meanall
-  public :: gather_r , gather_i
-  public :: allgather_r , allgather_i
-  public :: reorder_subgrid , reorder_glb_subgrid , reorder_add_subgrid
+  public :: exchange, exchange_lb, exchange_rt
+  public :: exchange_lr, exchange_bt, exchange_lrbt
+  public :: exchange_bdy_lr, exchange_bdy_bt
+  public :: grid_distribute, grid_collect, grid_fill
+  public :: subgrid_distribute, subgrid_collect
+  public :: uvcross2dot, uvdot2cross, cross2dot, psc2psd
+  public :: tenxtouvten, uvtentotenx
+  public :: bcast, sumall, maxall, minall, meanall
+  public :: gather_r, gather_i
+  public :: allgather_r, allgather_i
+  public :: reorder_subgrid, reorder_glb_subgrid, reorder_add_subgrid
   public :: input_reorder
   public :: trueforall
   public :: allsync
-  public :: cl_setup , cl_dispose
-  public :: c2l_gs , c2l_ss , l2c_ss
-  public :: glb_c2l_gs , glb_c2l_ss , glb_l2c_ss
+  public :: cl_setup, cl_dispose
+  public :: c2l_gs, c2l_ss, l2c_ss
+  public :: glb_c2l_gs, glb_c2l_ss, glb_l2c_ss
 
   logical, save, public :: on_device = .false.
 
@@ -577,21 +577,21 @@ module mod_mppparam
 
   subroutine mpi_comm_split_type(comm, split_type, key, info, newcomm, ierror)
     implicit none
-    integer(ik4) :: comm , split_type , key , info , newcomm , ierror
+    integer(ik4) :: comm, split_type, key, info, newcomm, ierror
   end subroutine mpi_comm_split_type
 
   subroutine mpi_cart_shift(comm, direction, shift, source, dest, ierror)
     implicit none
-    integer(ik4) :: comm , direction , shift , source , dest , ierror
+    integer(ik4) :: comm, direction, shift, source, dest, ierror
   end subroutine mpi_cart_shift
 
   subroutine mpi_sendrecvr4(sendbuf, sendcount, sendtype, dest, sendtag, &
                             recvbuf, recvcount, recvtype, source, recvtag, &
                             comm, status, ierror)
     implicit none
-    real(rk4) , dimension(:) :: sendbuf , recvbuf
-    integer(ik4) :: sendcount , sendtype , dest , sendtag
-    integer(ik4) :: recvcount , recvtype , source , recvtag , comm
+    real(rk4), dimension(:) :: sendbuf, recvbuf
+    integer(ik4) :: sendcount, sendtype, dest, sendtag
+    integer(ik4) :: recvcount, recvtype, source, recvtag, comm
     integer(ik4) :: status(mpi_status_size)
     integer(ik4) :: ierror
     recvbuf(1:recvcount) = sendbuf(1:sendcount)
@@ -601,9 +601,9 @@ module mod_mppparam
                             recvbuf, recvcount, recvtype, source, recvtag, &
                             comm, status, ierror)
     implicit none
-    real(rk8) , dimension(:) :: sendbuf , recvbuf
-    integer(ik4) :: sendcount , sendtype , dest , sendtag
-    integer(ik4) :: recvcount , recvtype , source , recvtag , comm
+    real(rk8), dimension(:) :: sendbuf, recvbuf
+    integer(ik4) :: sendcount, sendtype, dest, sendtag
+    integer(ik4) :: recvcount, recvtype, source, recvtag, comm
     integer(ik4) :: status(mpi_status_size)
     integer(ik4) :: ierror
     recvbuf(1:recvcount) = sendbuf(1:sendcount)
@@ -612,28 +612,28 @@ module mod_mppparam
   subroutine mpi_cart_create(comm_old,ndims,dims,periods,reorder, &
                              comm_cart,ierror)
     implicit none
-    integer(ik4) :: comm_old , ndims , comm_cart , ierror
-    integer(ik4) , dimension(:) :: dims
+    integer(ik4) :: comm_old, ndims, comm_cart, ierror
+    integer(ik4), dimension(:) :: dims
     logical :: reorder
-    logical , dimension(:) :: periods
+    logical, dimension(:) :: periods
   end subroutine mpi_cart_create
 
   subroutine mpi_cart_coords(comm,rank,maxdims,coords,ierror)
     implicit none
-    integer(ik4) :: comm , rank , maxdims , ierror
-    integer(ik4) , dimension(:) :: coords
+    integer(ik4) :: comm, rank, maxdims, ierror
+    integer(ik4), dimension(:) :: coords
   end subroutine mpi_cart_coords
 
   subroutine mpi_cart_rank(comm,coords,rank,ierror)
     implicit none
-    integer(ik4) :: comm , rank , ierror
-    integer(ik4) , dimension(:) :: coords
+    integer(ik4) :: comm, rank, ierror
+    integer(ik4), dimension(:) :: coords
   end subroutine mpi_cart_rank
 #endif
 
   subroutine bcast_logical(lval)
     implicit none
-    logical , intent(inout) :: lval
+    logical, intent(inout) :: lval
     call mpi_bcast(lval,1,mpi_logical,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -644,7 +644,7 @@ module mod_mppparam
 
   subroutine bcast_int4(ival)
     implicit none
-    integer(ik4) , intent(inout) :: ival
+    integer(ik4), intent(inout) :: ival
     call mpi_bcast(ival,1,mpi_integer4,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -655,7 +655,7 @@ module mod_mppparam
 
   subroutine bcast_int8(ival)
     implicit none
-    integer(rk8) , intent(inout) :: ival
+    integer(rk8), intent(inout) :: ival
     call mpi_bcast(ival,1,mpi_integer8,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -666,7 +666,7 @@ module mod_mppparam
 
   subroutine bcast_real4(rval)
     implicit none
-    real(rk4) , intent(inout) :: rval
+    real(rk4), intent(inout) :: rval
     call mpi_bcast(rval,1,mpi_real4,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -677,7 +677,7 @@ module mod_mppparam
 
   subroutine bcast_real8(rval)
     implicit none
-    real(rk8) , intent(inout) :: rval
+    real(rk8), intent(inout) :: rval
     call mpi_bcast(rval,1,mpi_real8,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -689,7 +689,7 @@ module mod_mppparam
 #ifdef QUAD_PRECISION
   subroutine bcast_real16(rval)
     implicit none
-    real(rk16) , intent(inout) :: rval
+    real(rk16), intent(inout) :: rval
     call mpi_bcast(rval,1,mpi_real16,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -701,7 +701,7 @@ module mod_mppparam
 
   subroutine bcast_arr_logical(lval)
     implicit none
-    logical , dimension(:) , intent(inout) :: lval
+    logical, dimension(:), intent(inout) :: lval
     call mpi_bcast(lval,size(lval),mpi_logical,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -712,8 +712,8 @@ module mod_mppparam
 
   subroutine bcast_arr_character(cval,is)
     implicit none
-    character(len=*) , intent(inout) :: cval
-    integer(ik4) , intent(in) :: is
+    character(len=*), intent(inout) :: cval
+    integer(ik4), intent(in) :: is
     call mpi_bcast(cval,is,mpi_character,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -724,8 +724,8 @@ module mod_mppparam
 
   subroutine bcast_arr_text_list(cval,is)
     implicit none
-    character(len=*) , intent(inout) , dimension(:) :: cval
-    integer(ik4) , intent(in) :: is
+    character(len=*), intent(inout), dimension(:) :: cval
+    integer(ik4), intent(in) :: is
     call mpi_bcast(cval,is*size(cval),mpi_character,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -736,7 +736,7 @@ module mod_mppparam
 
   subroutine bcast_arr_int4(ival)
     implicit none
-    integer(ik4) , dimension(:) , intent(inout) :: ival
+    integer(ik4), dimension(:), intent(inout) :: ival
     call mpi_bcast(ival,size(ival),mpi_integer4,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -747,7 +747,7 @@ module mod_mppparam
 
   subroutine bcast_arr_int8(ival)
     implicit none
-    integer(rk8) , dimension(:) , intent(inout) :: ival
+    integer(rk8), dimension(:), intent(inout) :: ival
     call mpi_bcast(ival,size(ival),mpi_integer8,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -758,7 +758,7 @@ module mod_mppparam
 
   subroutine bcast_arr_real4(rval)
     implicit none
-    real(rk4) , dimension(:) , intent(inout) :: rval
+    real(rk4), dimension(:), intent(inout) :: rval
     call mpi_bcast(rval,size(rval),mpi_real4,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -769,7 +769,7 @@ module mod_mppparam
 
   subroutine bcast_arr_real8(rval)
     implicit none
-    real(rk8) , dimension(:) , intent(inout) :: rval
+    real(rk8), dimension(:), intent(inout) :: rval
     call mpi_bcast(rval,size(rval),mpi_real8,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -780,7 +780,7 @@ module mod_mppparam
 
   subroutine bcast_matr_real8(rval)
     implicit none
-    real(rk8) , dimension(:,:) , intent(inout) :: rval
+    real(rk8), dimension(:,:), intent(inout) :: rval
     call mpi_bcast(rval,size(rval,1)*size(rval,2), &
                    mpi_real8,iocpu,mycomm,mpierr)
 #ifdef DEBUG
@@ -792,7 +792,7 @@ module mod_mppparam
 
   subroutine bcast_matr_real4(rval)
     implicit none
-    real(rk4) , dimension(:,:) , intent(inout) :: rval
+    real(rk4), dimension(:,:), intent(inout) :: rval
     call mpi_bcast(rval,size(rval,1)*size(rval,2), &
                    mpi_real4,iocpu,mycomm,mpierr)
 #ifdef DEBUG
@@ -804,9 +804,9 @@ module mod_mppparam
 
   subroutine bcast_arr_rcm_time_and_date(x)
     implicit none
-    type (rcm_time_and_date) , dimension(:) , intent(inout) :: x
+    type (rcm_time_and_date), dimension(:), intent(inout) :: x
     integer(ik4) :: n
-    do n = 1 , size(x)
+    do n = 1, size(x)
       call bcast(x(n)%calendar)
       call bcast(x(n)%days_from_reference)
       call bcast(x(n)%second_of_day)
@@ -815,7 +815,7 @@ module mod_mppparam
 
   subroutine bcast_rcm_time_and_date(x)
     implicit none
-    type (rcm_time_and_date) , intent(inout) :: x
+    type (rcm_time_and_date), intent(inout) :: x
     call bcast(x%calendar)
     call bcast(x%days_from_reference)
     call bcast(x%second_of_day)
@@ -823,8 +823,8 @@ module mod_mppparam
 
   subroutine trueforall(rlval,rtval)
     implicit none
-    logical , intent(in) :: rlval
-    logical , intent(out) :: rtval
+    logical, intent(in) :: rlval
+    logical, intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_logical,mpi_lor,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -836,8 +836,8 @@ module mod_mppparam
 #ifdef QUAD_PRECISION
   subroutine sumall_real16(rlval,rtval)
     implicit none
-    real(rk16) , intent(in) :: rlval
-    real(rk16) , intent(out) :: rtval
+    real(rk16), intent(in) :: rlval
+    real(rk16), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real16,mpi_sum,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -849,8 +849,8 @@ module mod_mppparam
 
   subroutine sumall_real8(rlval,rtval)
     implicit none
-    real(rk8) , intent(in) :: rlval
-    real(rk8) , intent(out) :: rtval
+    real(rk8), intent(in) :: rlval
+    real(rk8), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_sum,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -861,8 +861,8 @@ module mod_mppparam
 
   subroutine sumall_real4(rlval,rtval)
     implicit none
-    real(rk4) , intent(in) :: rlval
-    real(rk4) , intent(out) :: rtval
+    real(rk4), intent(in) :: rlval
+    real(rk4), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real4,mpi_sum,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -873,8 +873,8 @@ module mod_mppparam
 
   subroutine maxall_real8(rlval,rtval)
     implicit none
-    real(rk8) , intent(in) :: rlval
-    real(rk8) , intent(out) :: rtval
+    real(rk8), intent(in) :: rlval
+    real(rk8), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_max,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -885,8 +885,8 @@ module mod_mppparam
 
   subroutine maxall_real4(rlval,rtval)
     implicit none
-    real(rk4) , intent(in) :: rlval
-    real(rk4) , intent(out) :: rtval
+    real(rk4), intent(in) :: rlval
+    real(rk4), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real4,mpi_max,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -897,8 +897,8 @@ module mod_mppparam
 
   subroutine maxall_integer4(rlval,rtval)
     implicit none
-    integer(ik4) , intent(in) :: rlval
-    integer(ik4) , intent(out) :: rtval
+    integer(ik4), intent(in) :: rlval
+    integer(ik4), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_integer4,mpi_max,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -909,8 +909,8 @@ module mod_mppparam
 
   subroutine meanall_real8(rlval,rtval)
     implicit none
-    real(rk8) , intent(in) :: rlval
-    real(rk8) , intent(out) :: rtval
+    real(rk8), intent(in) :: rlval
+    real(rk8), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_sum,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -922,8 +922,8 @@ module mod_mppparam
 
   subroutine meanall_real4(rlval,rtval)
     implicit none
-    real(rk4) , intent(in) :: rlval
-    real(rk4) , intent(out) :: rtval
+    real(rk4), intent(in) :: rlval
+    real(rk4), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real4,mpi_sum,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
@@ -933,8 +933,8 @@ module mod_mppparam
 
   subroutine minall_real8(rlval,rtval)
     implicit none
-    real(rk8) , intent(in) :: rlval
-    real(rk8) , intent(out) :: rtval
+    real(rk8), intent(in) :: rlval
+    real(rk8), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_min,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -945,8 +945,8 @@ module mod_mppparam
 
   subroutine minall_real4(rlval,rtval)
     implicit none
-    real(rk4) , intent(in) :: rlval
-    real(rk4) , intent(out) :: rtval
+    real(rk4), intent(in) :: rlval
+    real(rk4), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real4,mpi_min,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -957,8 +957,8 @@ module mod_mppparam
 
   subroutine minall_integer4(rlval,rtval)
     implicit none
-    integer(ik4) , intent(in) :: rlval
-    integer(ik4) , intent(out) :: rtval
+    integer(ik4), intent(in) :: rlval
+    integer(ik4), intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_integer4,mpi_min,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -969,8 +969,8 @@ module mod_mppparam
 
   subroutine sumall_int4(ilval,itval)
     implicit none
-    integer(ik4) , intent(in) :: ilval
-    integer(ik4) , intent(out) :: itval
+    integer(ik4), intent(in) :: ilval
+    integer(ik4), intent(out) :: itval
     call mpi_allreduce(ilval,itval,1,mpi_integer4,mpi_sum,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -981,8 +981,8 @@ module mod_mppparam
 
   subroutine sumall_int4_array(ilval,itval)
     implicit none
-    integer(ik4) , dimension(:) , intent(in) :: ilval
-    integer(ik4) , dimension(:) , intent(out) :: itval
+    integer(ik4), dimension(:), intent(in) :: ilval
+    integer(ik4), dimension(:), intent(out) :: itval
     call mpi_allreduce(ilval,itval,size(itval),mpi_integer4, &
                        mpi_sum,mycomm,mpierr)
 #ifdef DEBUG
@@ -995,9 +995,9 @@ module mod_mppparam
 #ifndef USE_MPI3
   subroutine send_array_logical(lval,isize,icpu,itag,req)
     implicit none
-    integer(ik4) , intent(in) :: isize , icpu , itag
-    logical , dimension(isize) , intent(in) :: lval
-    integer(ik4) , intent(out) :: req
+    integer(ik4), intent(in) :: isize, icpu, itag
+    logical, dimension(isize), intent(in) :: lval
+    integer(ik4), intent(out) :: req
     call mpi_isend(lval,isize,mpi_logical,icpu,itag, &
                   cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1010,9 +1010,9 @@ module mod_mppparam
 
   subroutine send_array_int4(ival,isize,icpu,itag,req)
     implicit none
-    integer(ik4) , intent(in) :: isize , icpu , itag
-    integer(ik4) , dimension(isize) , intent(in) :: ival
-    integer(ik4) , intent(out) :: req
+    integer(ik4), intent(in) :: isize, icpu, itag
+    integer(ik4), dimension(isize), intent(in) :: ival
+    integer(ik4), intent(out) :: req
     call mpi_isend(ival,isize,mpi_integer4,icpu,itag, &
                   cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1025,9 +1025,9 @@ module mod_mppparam
 
   subroutine send_array_real4(rval,isize,icpu,itag,req)
     implicit none
-    integer(ik4) , intent(in) :: isize , icpu , itag
-    real(rk4) , dimension(isize) , intent(in) :: rval
-    integer(ik4) , intent(out) :: req
+    integer(ik4), intent(in) :: isize, icpu, itag
+    real(rk4), dimension(isize), intent(in) :: rval
+    integer(ik4), intent(out) :: req
     call mpi_isend(rval,isize,mpi_real4,icpu,itag, &
                   cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1040,9 +1040,9 @@ module mod_mppparam
 
   subroutine send_array_real8(rval,isize,icpu,itag,req)
     implicit none
-    integer(ik4), intent(in) :: isize , icpu , itag
-    real(rk8) , dimension(isize) , intent(in) :: rval
-    integer(ik4) , intent(out) :: req
+    integer(ik4), intent(in) :: isize, icpu, itag
+    real(rk8), dimension(isize), intent(in) :: rval
+    integer(ik4), intent(out) :: req
     call mpi_isend(rval,isize,mpi_real8,icpu,itag, &
                   cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1055,9 +1055,9 @@ module mod_mppparam
 
   subroutine recv_array_logical(lval,isize,icpu,itag,req)
     implicit none
-    integer(ik4) , intent(in) :: isize , icpu , itag
-    logical , dimension(isize) , intent(out) :: lval
-    integer(ik4) , intent(out) :: req
+    integer(ik4), intent(in) :: isize, icpu, itag
+    logical, dimension(isize), intent(out) :: lval
+    integer(ik4), intent(out) :: req
     call mpi_irecv(lval,isize,mpi_logical,icpu,itag, &
                    cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1070,9 +1070,9 @@ module mod_mppparam
 
   subroutine recv_array_int4(ival,isize,icpu,itag,req)
     implicit none
-    integer(ik4) , intent(in) :: isize , icpu , itag
-    integer(ik4) , dimension(isize) , intent(out) :: ival
-    integer(ik4) , intent(out) :: req
+    integer(ik4), intent(in) :: isize, icpu, itag
+    integer(ik4), dimension(isize), intent(out) :: ival
+    integer(ik4), intent(out) :: req
     call mpi_irecv(ival,isize,mpi_integer4,icpu,itag, &
                    cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1085,9 +1085,9 @@ module mod_mppparam
 
   subroutine recv_array_real4(rval,isize,icpu,itag,req)
     implicit none
-    integer(ik4) , intent(in) :: isize , icpu , itag
-    real(rk4) , dimension(isize) , intent(out) :: rval
-    integer(ik4) , intent(out) :: req
+    integer(ik4), intent(in) :: isize, icpu, itag
+    real(rk4), dimension(isize), intent(out) :: rval
+    integer(ik4), intent(out) :: req
     call mpi_irecv(rval,isize,mpi_real4,icpu,itag, &
                    cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1100,9 +1100,9 @@ module mod_mppparam
 
   subroutine recv_array_real8(rval,isize,icpu,itag,req)
     implicit none
-    integer(ik4), intent(in) :: isize , icpu , itag
-    real(rk8) , dimension(isize) , intent(out) :: rval
-    integer(ik4) , intent(out) :: req
+    integer(ik4), intent(in) :: isize, icpu, itag
+    real(rk8), dimension(isize), intent(out) :: rval
+    integer(ik4), intent(out) :: req
     call mpi_irecv(rval,isize,mpi_real8,icpu,itag, &
                    cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1116,10 +1116,10 @@ module mod_mppparam
 
   subroutine exchange_array_r8(rv1,rv2,isize,icpu,tag1,tag2,srq,rrq)
     implicit none
-    integer(ik4) , intent(in) :: isize , icpu , tag1 , tag2
-    real(rk8) , dimension(isize) , intent(in) :: rv1
-    real(rk8) , dimension(isize) , intent(inout) :: rv2
-    integer(ik4) , intent(out) :: srq , rrq
+    integer(ik4), intent(in) :: isize, icpu, tag1, tag2
+    real(rk8), dimension(isize), intent(in) :: rv1
+    real(rk8), dimension(isize), intent(inout) :: rv2
+    integer(ik4), intent(out) :: srq, rrq
     call mpi_irecv(rv2,isize,mpi_real8,icpu,tag1, &
                    cartesian_communicator,rrq,mpierr)
 #ifdef DEBUG
@@ -1138,10 +1138,10 @@ module mod_mppparam
 
   subroutine exchange_array_r4(rv1,rv2,isize,icpu,tag1,tag2,srq,rrq)
     implicit none
-    integer(ik4) , intent(in) :: isize , icpu , tag1 , tag2
-    real(rk4) , dimension(isize) , intent(in) :: rv1
-    real(rk4) , dimension(isize) , intent(inout) :: rv2
-    integer(ik4) , intent(out) :: srq , rrq
+    integer(ik4), intent(in) :: isize, icpu, tag1, tag2
+    real(rk4), dimension(isize), intent(in) :: rv1
+    real(rk4), dimension(isize), intent(inout) :: rv2
+    integer(ik4), intent(out) :: srq, rrq
     call mpi_irecv(rv2,isize,mpi_real4,icpu,tag1, &
                    cartesian_communicator,rrq,mpierr)
 #ifdef DEBUG
@@ -1160,9 +1160,9 @@ module mod_mppparam
 
   subroutine cyclic_exchange_array_r8(rv1,rv2,isize,icpu1,icpu2,itag)
     implicit none
-    real(rk8) , pointer , dimension(:) , intent(in) :: rv1
-    real(rk8) , pointer , dimension(:) , intent(inout) :: rv2
-    integer(ik4) , intent(in) :: isize , icpu1 , icpu2 , itag
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: rv1
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: rv2
+    integer(ik4), intent(in) :: isize, icpu1, icpu2, itag
     call mpi_sendrecv(rv1,isize,mpi_real8,icpu1,itag, &
                       rv2,isize,mpi_real8,icpu2,itag, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
@@ -1176,9 +1176,9 @@ module mod_mppparam
 
   subroutine cyclic_exchange_array_r4(rv1,rv2,isize,icpu1,icpu2,itag)
     implicit none
-    real(rk4) , pointer , dimension(:) , intent(in) :: rv1
-    real(rk4) , pointer , dimension(:) , intent(inout) :: rv2
-    integer(ik4) , intent(in) :: isize , icpu1 , icpu2 , itag
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: rv1
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: rv2
+    integer(ik4), intent(in) :: isize, icpu1, icpu2, itag
     call mpi_sendrecv(rv1,isize,mpi_real4,icpu1,itag, &
                       rv2,isize,mpi_real4,icpu2,itag, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
@@ -1192,10 +1192,10 @@ module mod_mppparam
 
   subroutine set_nproc
     implicit none
-    integer(ik4) , dimension(2) :: cpus_per_dim
-    logical , dimension(2) :: dim_period
-    integer(ik4) , dimension(2) :: isearch
-    integer(ik4) :: imaxcpus , imax1 , imax2 , imiss
+    integer(ik4), dimension(2) :: cpus_per_dim
+    logical, dimension(2) :: dim_period
+    integer(ik4), dimension(2) :: isearch
+    integer(ik4) :: imaxcpus, imax1, imax2, imiss
     integer(ik4) :: maximum_buffer_size
     data dim_period /.false.,.false./
 
@@ -1351,7 +1351,7 @@ module mod_mppparam
             imax2 = ((iy/3)/2)*2
             write(stderr,*) 'Suggested maximum number of CPUS jx: ', imax1
             write(stderr,*) 'Suggested maximum number of CPUS iy: ', imax2
-            write(stderr,*) 'Closest number : ' , imaxcpus
+            write(stderr,*) 'Closest number : ', imaxcpus
             call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
           end if
         end if
@@ -1694,9 +1694,9 @@ module mod_mppparam
 
   integer(ik4) function glosplitw(j1,j2,i1,i2,ls) result(tsize)
     implicit none
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    logical , intent(in) , optional :: ls
-    integer(ik4) :: isize , jsize , lsize , icpu , isub
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    logical, intent(in), optional :: ls
+    integer(ik4) :: isize, jsize, lsize, icpu, isub
     tsize = 0
     if ( nproc == 1 ) return
     isub = 1
@@ -1718,7 +1718,7 @@ module mod_mppparam
     end if
 #endif
     if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
@@ -1731,10 +1731,10 @@ module mod_mppparam
 
   subroutine real8_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , icpu
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         ml(j,i) = mg(j,i)
@@ -1743,10 +1743,10 @@ module mod_mppparam
     end if
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
+        do i = window(1), window(2)
+          do j = window(3), window(4)
             r8vector1(ib) = mg(j,i)
             ib = ib + 1
           end do
@@ -1762,8 +1762,8 @@ module mod_mppparam
 #endif
     !ml(j1:j2,i1:i2) = reshape(r8vector2,shape(ml(j1:j2,i1:i2)))
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
+    do i = i1, i2
+      do j = j1, j2
         ml(j,i) = r8vector2(ib)
         ib = ib + 1
       end do
@@ -1772,10 +1772,10 @@ module mod_mppparam
 
   subroutine real4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , icpu
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         ml(j,i) = mg(j,i)
@@ -1784,10 +1784,10 @@ module mod_mppparam
     end if
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
+        do i = window(1), window(2)
+          do j = window(3), window(4)
             r4vector1(ib) = mg(j,i)
             ib = ib + 1
           end do
@@ -1802,8 +1802,8 @@ module mod_mppparam
     end if
 #endif
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
+    do i = i1, i2
+      do j = j1, j2
         ml(j,i) = r4vector2(ib)
         ib = ib + 1
       end do
@@ -1812,10 +1812,10 @@ module mod_mppparam
 
   subroutine integer4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , icpu
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         ml(j,i) = mg(j,i)
@@ -1824,10 +1824,10 @@ module mod_mppparam
     end if
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
+        do i = window(1), window(2)
+          do j = window(3), window(4)
             i4vector1(ib) = mg(j,i)
             ib = ib + 1
           end do
@@ -1842,8 +1842,8 @@ module mod_mppparam
     end if
 #endif
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
+    do i = i1, i2
+      do j = j1, j2
         ml(j,i) = i4vector2(ib)
         ib = ib + 1
       end do
@@ -1852,10 +1852,10 @@ module mod_mppparam
 
   subroutine logical_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
-    logical , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    logical , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , icpu
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         ml(j,i) = mg(j,i)
@@ -1864,10 +1864,10 @@ module mod_mppparam
     end if
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
+        do i = window(1), window(2)
+          do j = window(3), window(4)
             lvector1(ib) = mg(j,i)
             ib = ib + 1
           end do
@@ -1882,8 +1882,8 @@ module mod_mppparam
     end if
 #endif
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
+    do i = i1, i2
+      do j = j1, j2
         ml(j,i) = lvector2(ib)
         ib = ib + 1
       end do
@@ -1892,9 +1892,9 @@ module mod_mppparam
 
   subroutine real8_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call real8_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
@@ -1902,14 +1902,14 @@ module mod_mppparam
 
   subroutine real8_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    real(rk8) , pointer , dimension(:,:) :: mg2 => null()
-    real(rk8) , pointer , dimension(:,:) :: ml2 => null()
-    integer(ik4) :: tsize , k
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    real(rk8), pointer, contiguous, dimension(:,:) :: mg2 => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null()
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call real8_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
@@ -1918,15 +1918,15 @@ module mod_mppparam
 
   subroutine real8_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    real(rk8) , pointer , dimension(:,:) :: mg2 => null()
-    real(rk8) , pointer , dimension(:,:) :: ml2 => null()
-    integer(ik4) :: tsize , k , n
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model global
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
+    real(rk8), pointer, contiguous, dimension(:,:) :: mg2 => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null()
+    integer(ik4) :: tsize, k, n
     tsize = glosplitw(j1,j2,i1,i2)
-    do n = n1 , n2
-      do k = k1 , k2
+    do n = n1, n2
+      do k = k1, k2
         if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
         call assignpnt(ml,ml2,k,n)
         call real8_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
@@ -1936,9 +1936,9 @@ module mod_mppparam
 
   subroutine real4_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call real4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
@@ -1946,14 +1946,14 @@ module mod_mppparam
 
   subroutine real4_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
-    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
-    integer(ik4) :: tsize , k
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    real(rk4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
+    real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call real4_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
@@ -1962,15 +1962,15 @@ module mod_mppparam
 
   subroutine real4_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
-    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
-    integer(ik4) :: tsize , k , n
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model global
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
+    real(rk4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
+    real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize, k, n
     tsize = glosplitw(j1,j2,i1,i2)
-    do n = n1 , n2
-      do k = k1 , k2
+    do n = n1, n2
+      do k = k1, k2
         if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
         call assignpnt(ml,ml2,k,n)
         call real4_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
@@ -1980,9 +1980,9 @@ module mod_mppparam
 
   subroutine integer_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call integer4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
@@ -1990,14 +1990,14 @@ module mod_mppparam
 
   subroutine integer_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml !model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) , pointer , dimension(:,:) :: mg2 => null()
-    integer(ik4) , pointer , dimension(:,:) :: ml2 => null()
-    integer(ik4) :: tsize , k
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml !model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    integer(ik4), pointer, contiguous, dimension(:,:) :: mg2 => null()
+    integer(ik4), pointer, contiguous, dimension(:,:) :: ml2 => null()
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call integer4_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
@@ -2006,15 +2006,15 @@ module mod_mppparam
 
   subroutine integer_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml !model loc
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) , pointer , dimension(:,:) :: mg2 => null( )
-    integer(ik4) , pointer , dimension(:,:) :: ml2 => null( )
-    integer(ik4) :: tsize , k , n
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model glob
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml !model loc
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
+    integer(ik4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
+    integer(ik4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize, k, n
     tsize = glosplitw(j1,j2,i1,i2)
-    do n = n1 , n2
-      do k = k1 , k2
+    do n = n1, n2
+      do k = k1, k2
         if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
         call assignpnt(ml,ml2,k,n)
         call integer4_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
@@ -2024,9 +2024,9 @@ module mod_mppparam
 
   subroutine logical_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    logical , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    logical , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call logical_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
@@ -2034,14 +2034,14 @@ module mod_mppparam
 
   subroutine logical_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    logical , pointer , dimension(:,:,:) , intent(inout) :: ml !model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    logical , pointer , dimension(:,:) :: mg2 => null()
-    logical , pointer , dimension(:,:) :: ml2 => null()
-    integer(ik4) :: tsize , k
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: ml !model local
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    logical, pointer, contiguous, dimension(:,:) :: mg2 => null()
+    logical, pointer, contiguous, dimension(:,:) :: ml2 => null()
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call logical_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
@@ -2050,15 +2050,15 @@ module mod_mppparam
 
   subroutine logical_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    logical , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
-    logical , pointer , dimension(:,:,:,:) , intent(inout) :: ml !model loc
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    logical , pointer , dimension(:,:) :: mg2 => null( )
-    logical , pointer , dimension(:,:) :: ml2 => null( )
-    integer(ik4) :: tsize , k , n
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model glob
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml !model loc
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
+    logical, pointer, contiguous, dimension(:,:) :: mg2 => null( )
+    logical, pointer, contiguous, dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize, k, n
     tsize = glosplitw(j1,j2,i1,i2)
-    do n = n1 , n2
-      do k = k1 , k2
+    do n = n1, n2
+      do k = k1, k2
         if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
         call assignpnt(ml,ml2,k,n)
         call logical_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
@@ -2068,11 +2068,11 @@ module mod_mppparam
 
   subroutine real8_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , icpu
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
@@ -2087,11 +2087,11 @@ module mod_mppparam
     end if
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
+        do i = window(1), window(2)
+          do j = window(3), window(4)
+            do n = 1, nnsg
               r8vector1(ib) = mg(n,j,i)
               ib = ib + 1
             end do
@@ -2108,18 +2108,18 @@ module mod_mppparam
 #endif
     ib = 1
     if ( present(mask) ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
+      do i = i1, i2
+        do j = j1, j2
+          do n = 1, nnsg
             if ( mask(n,j,i) ) ml(n,j,i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     else
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
+      do i = i1, i2
+        do j = j1, j2
+          do n = 1, nnsg
             ml(n,j,i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -2130,11 +2130,11 @@ module mod_mppparam
 
   subroutine real4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , icpu
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
@@ -2149,11 +2149,11 @@ module mod_mppparam
     end if
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
+        do i = window(1), window(2)
+          do j = window(3), window(4)
+            do n = 1, nnsg
               r4vector1(ib) = mg(n,j,i)
               ib = ib + 1
             end do
@@ -2170,18 +2170,18 @@ module mod_mppparam
 #endif
     ib = 1
     if ( present(mask) ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
+      do i = i1, i2
+        do j = j1, j2
+          do n = 1, nnsg
             if ( mask(n,j,i) ) ml(n,j,i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     else
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
+      do i = i1, i2
+        do j = j1, j2
+          do n = 1, nnsg
             ml(n,j,i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -2192,11 +2192,11 @@ module mod_mppparam
 
   subroutine integer4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
-    integer(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model glb
-    integer(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model loc
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , icpu
+    integer(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model glb
+    integer(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model loc
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
@@ -2211,11 +2211,11 @@ module mod_mppparam
     end if
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
+        do i = window(1), window(2)
+          do j = window(3), window(4)
+            do n = 1, nnsg
               i4vector1(ib) = mg(n,j,i)
               ib = ib + 1
             end do
@@ -2232,18 +2232,18 @@ module mod_mppparam
 #endif
     ib = 1
     if ( present(mask) ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
+      do i = i1, i2
+        do j = j1, j2
+          do n = 1, nnsg
             if ( mask(n,j,i) ) ml(n,j,i) = i4vector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     else
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
+      do i = i1, i2
+        do j = j1, j2
+          do n = 1, nnsg
             ml(n,j,i) = i4vector2(ib)
             ib = ib + 1
           end do
@@ -2254,11 +2254,11 @@ module mod_mppparam
 
   subroutine logical_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model glb
-    logical , pointer , dimension(:,:,:) , intent(inout) :: ml ! model loc
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , icpu
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model glb
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model loc
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
@@ -2273,11 +2273,11 @@ module mod_mppparam
     end if
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
+        do i = window(1), window(2)
+          do j = window(3), window(4)
+            do n = 1, nnsg
               lvector1(ib) = mg(n,j,i)
               ib = ib + 1
             end do
@@ -2294,18 +2294,18 @@ module mod_mppparam
 #endif
     ib = 1
     if ( present(mask) ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
+      do i = i1, i2
+        do j = j1, j2
+          do n = 1, nnsg
             if ( mask(n,j,i) ) ml(n,j,i) = lvector2(ib)
             ib = ib + 1
           end do
         end do
       end do
     else
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
+      do i = i1, i2
+        do j = j1, j2
+          do n = 1, nnsg
             ml(n,j,i) = lvector2(ib)
             ib = ib + 1
           end do
@@ -2316,10 +2316,10 @@ module mod_mppparam
 
   subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
     call real8_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
@@ -2327,10 +2327,10 @@ module mod_mppparam
 
   subroutine real4_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
     call real4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
@@ -2338,15 +2338,15 @@ module mod_mppparam
 
   subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    real(rk8) , pointer , dimension(:,:,:) :: mg2 => null()
-    real(rk8) , pointer , dimension(:,:,:) :: ml2 => null()
-    integer(ik4) :: tsize , k
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model global
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml ! model local
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: mg2 => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: ml2 => null()
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2,.true.)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call real8_2d_do_sub_distribute(mg2,ml2,j1,j2,i1,i2,tsize,mask)
@@ -2355,15 +2355,15 @@ module mod_mppparam
 
   subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    real(rk4) , pointer , dimension(:,:,:) :: mg2 => null()
-    real(rk4) , pointer , dimension(:,:,:) :: ml2 => null()
-    integer(ik4) :: tsize , k
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model global
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml ! model local
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    real(rk4), pointer, contiguous, dimension(:,:,:) :: mg2 => null()
+    real(rk4), pointer, contiguous, dimension(:,:,:) :: ml2 => null()
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2,.true.)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call real4_2d_do_sub_distribute(mg2,ml2,j1,j2,i1,i2,tsize,mask)
@@ -2372,10 +2372,10 @@ module mod_mppparam
 
   subroutine logical_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    logical , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
     call logical_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
@@ -2383,10 +2383,10 @@ module mod_mppparam
 
   subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model locl
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model locl
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
     call integer4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
@@ -2394,15 +2394,15 @@ module mod_mppparam
 
   subroutine integer_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! modl loc
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) , pointer , dimension(:,:,:) :: mg2 => null()
-    integer(ik4) , pointer , dimension(:,:,:) :: ml2 => null()
-    integer(ik4) :: tsize , k
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model glob
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml ! modl loc
+    logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: mg2 => null()
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: ml2 => null()
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2,.true.)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call integer4_2d_do_sub_distribute(mg2,ml2,j1,j2,i1,i2,tsize,mask)
@@ -2411,10 +2411,10 @@ module mod_mppparam
 
   subroutine real8_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , icpu
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         mg(j,i) = ml(j,i)
@@ -2422,8 +2422,8 @@ module mod_mppparam
       return
     end if
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
+    do i = i1, i2
+      do j = j1, j2
         r8vector2(ib) = ml(j,i)
         ib = ib + 1
       end do
@@ -2438,10 +2438,10 @@ module mod_mppparam
 #endif
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
+        do i = window(1), window(2)
+          do j = window(3), window(4)
             mg(j,i) = r8vector1(ib)
             ib = ib + 1
           end do
@@ -2452,10 +2452,10 @@ module mod_mppparam
 
   subroutine real4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , icpu
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         mg(j,i) = ml(j,i)
@@ -2463,8 +2463,8 @@ module mod_mppparam
       return
     end if
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
+    do i = i1, i2
+      do j = j1, j2
         r4vector2(ib) = ml(j,i)
         ib = ib + 1
       end do
@@ -2479,10 +2479,10 @@ module mod_mppparam
 #endif
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
+        do i = window(1), window(2)
+          do j = window(3), window(4)
             mg(j,i) = r4vector1(ib)
             ib = ib + 1
           end do
@@ -2493,10 +2493,10 @@ module mod_mppparam
 
   subroutine integer4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , icpu
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         mg(j,i) = ml(j,i)
@@ -2504,8 +2504,8 @@ module mod_mppparam
       return
     end if
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
+    do i = i1, i2
+      do j = j1, j2
         i4vector2(ib) = ml(j,i)
         ib = ib + 1
       end do
@@ -2520,10 +2520,10 @@ module mod_mppparam
 #endif
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
+        do i = window(1), window(2)
+          do j = window(3), window(4)
             mg(j,i) = i4vector1(ib)
             ib = ib + 1
           end do
@@ -2534,10 +2534,10 @@ module mod_mppparam
 
   subroutine logical_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    logical , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    logical , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , icpu
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         mg(j,i) = ml(j,i)
@@ -2545,8 +2545,8 @@ module mod_mppparam
       return
     end if
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
+    do i = i1, i2
+      do j = j1, j2
         lvector2(ib) = ml(j,i)
         ib = ib + 1
       end do
@@ -2561,10 +2561,10 @@ module mod_mppparam
 #endif
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
+        do i = window(1), window(2)
+          do j = window(3), window(4)
             mg(j,i) = lvector1(ib)
             ib = ib + 1
           end do
@@ -2575,9 +2575,9 @@ module mod_mppparam
 
   subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call real8_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
@@ -2585,11 +2585,11 @@ module mod_mppparam
 
   subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) , intent(in) , optional :: k
-    real(rk8) , pointer , dimension(:,:) :: mg2 => null( )
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: ml    ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    integer(ik4), intent(in), optional :: k
+    real(rk8), pointer, contiguous, dimension(:,:) :: mg2 => null( )
     integer(ik4) :: kk
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
@@ -2601,14 +2601,14 @@ module mod_mppparam
 
   subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
-    real(rk8) , pointer , dimension(:,:) :: mg2 => null( )
-    integer(ik4) :: tsize , k
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null( )
+    real(rk8), pointer, contiguous, dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio )  call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call real8_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
@@ -2617,10 +2617,10 @@ module mod_mppparam
 
   subroutine real8_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg   ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k
-    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg   ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k
+    real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call assignpnt(ml,ml2,k)
@@ -2629,15 +2629,15 @@ module mod_mppparam
 
   subroutine real8_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
-    real(rk8) , pointer , dimension(:,:) :: mg2 => null( )
-    integer(ik4) :: tsize , k , n
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! model glob
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
+    real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null( )
+    real(rk8), pointer, contiguous, dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: tsize, k, n
     tsize = glosplitw(j1,j2,i1,i2)
-    do n = n1 , n2
-      do k = k1 , k2
+    do n = n1, n2
+      do k = k1, k2
         if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
         call assignpnt(ml,ml2,k,n)
         call real8_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
@@ -2647,10 +2647,10 @@ module mod_mppparam
 
   subroutine real8_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml ! model local
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k , n
-    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml ! model local
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k, n
+    real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call assignpnt(ml,ml2,k,n)
@@ -2659,9 +2659,9 @@ module mod_mppparam
 
   subroutine real4_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call real4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
@@ -2669,11 +2669,11 @@ module mod_mppparam
 
   subroutine real4_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) , intent(in) , optional :: k
-    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ml    ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    integer(ik4), intent(in), optional :: k
+    real(rk4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
     integer(ik4) :: kk
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
@@ -2685,14 +2685,14 @@ module mod_mppparam
 
   subroutine real4_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
-    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
-    integer(ik4) :: tsize , k
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
+    real(rk4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio )  call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call real4_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
@@ -2701,10 +2701,10 @@ module mod_mppparam
 
   subroutine real4_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg   ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k
-    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg   ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k
+    real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call assignpnt(ml,ml2,k)
@@ -2713,15 +2713,15 @@ module mod_mppparam
 
   subroutine real4_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
-    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
-    integer(ik4) :: tsize , k , n
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! model glob
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
+    real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
+    real(rk4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: tsize, k, n
     tsize = glosplitw(j1,j2,i1,i2)
-    do n = n1 , n2
-      do k = k1 , k2
+    do n = n1, n2
+      do k = k1, k2
         if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
         call assignpnt(ml,ml2,k,n)
         call real4_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
@@ -2731,10 +2731,10 @@ module mod_mppparam
 
   subroutine real4_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml ! model local
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k , n
-    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml ! model local
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k, n
+    real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call assignpnt(ml,ml2,k,n)
@@ -2743,9 +2743,9 @@ module mod_mppparam
 
   subroutine logical_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    logical , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    logical , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call logical_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
@@ -2753,9 +2753,9 @@ module mod_mppparam
 
   subroutine integer_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
     call integer4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
@@ -2763,14 +2763,14 @@ module mod_mppparam
 
   subroutine integer_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glbl
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) , pointer , dimension(:,:) :: ml2 => null()
-    integer(ik4) , pointer , dimension(:,:) :: mg2 => null()
-    integer(ik4) :: tsize , k
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model glbl
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    integer(ik4), pointer, contiguous, dimension(:,:) :: ml2 => null()
+    integer(ik4), pointer, contiguous, dimension(:,:) :: mg2 => null()
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio )  call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call integer4_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
@@ -2779,15 +2779,15 @@ module mod_mppparam
 
   subroutine integer_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) , pointer , dimension(:,:) :: ml2 => null( )
-    integer(ik4) , pointer , dimension(:,:) :: mg2 => null( )
-    integer(ik4) :: tsize , k , n
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! mdl local
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! mdl glob
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
+    integer(ik4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
+    integer(ik4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: tsize, k, n
     tsize = glosplitw(j1,j2,i1,i2)
-    do n = n1 , n2
-      do k = k1 , k2
+    do n = n1, n2
+      do k = k1, k2
         if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
         call assignpnt(ml,ml2,k,n)
         call integer4_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
@@ -2797,10 +2797,10 @@ module mod_mppparam
 
   subroutine real8_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , icpu
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
       do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
         mg(n,j,i) = ml(n,j,i)
@@ -2808,9 +2808,9 @@ module mod_mppparam
       return
     end if
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        do n = 1 , nnsg
+    do i = i1, i2
+      do j = j1, j2
+        do n = 1, nnsg
           r8vector2(ib) = ml(n,j,i)
           ib = ib + 1
         end do
@@ -2826,11 +2826,11 @@ module mod_mppparam
 #endif
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
+        do i = window(1), window(2)
+          do j = window(3), window(4)
+            do n = 1, nnsg
               mg(n,j,i) = r8vector1(ib)
               ib = ib + 1
             end do
@@ -2842,10 +2842,10 @@ module mod_mppparam
 
   subroutine real4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , icpu
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
       do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
         mg(n,j,i) = ml(n,j,i)
@@ -2853,9 +2853,9 @@ module mod_mppparam
       return
     end if
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        do n = 1 , nnsg
+    do i = i1, i2
+      do j = j1, j2
+        do n = 1, nnsg
           r4vector2(ib) = ml(n,j,i)
           ib = ib + 1
         end do
@@ -2871,11 +2871,11 @@ module mod_mppparam
 #endif
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
+        do i = window(1), window(2)
+          do j = window(3), window(4)
+            do n = 1, nnsg
               mg(n,j,i) = r4vector1(ib)
               ib = ib + 1
             end do
@@ -2887,10 +2887,10 @@ module mod_mppparam
 
   subroutine integer4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model loc
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glb
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , icpu
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model loc
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model glb
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
       do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
         mg(n,j,i) = ml(n,j,i)
@@ -2898,9 +2898,9 @@ module mod_mppparam
       return
     end if
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        do n = 1 , nnsg
+    do i = i1, i2
+      do j = j1, j2
+        do n = 1, nnsg
           i4vector2(ib) = ml(n,j,i)
           ib = ib + 1
         end do
@@ -2916,11 +2916,11 @@ module mod_mppparam
 #endif
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
+        do i = window(1), window(2)
+          do j = window(3), window(4)
+            do n = 1, nnsg
               mg(n,j,i) = i4vector1(ib)
               ib = ib + 1
             end do
@@ -2932,10 +2932,10 @@ module mod_mppparam
 
   subroutine logical_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: ml  ! model loc
-    logical , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glb
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , icpu
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model loc
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model glb
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
+    integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
       do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
         mg(n,j,i) = ml(n,j,i)
@@ -2943,9 +2943,9 @@ module mod_mppparam
       return
     end if
     ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        do n = 1 , nnsg
+    do i = i1, i2
+      do j = j1, j2
+        do n = 1, nnsg
           lvector2(ib) = ml(n,j,i)
           ib = ib + 1
         end do
@@ -2961,11 +2961,11 @@ module mod_mppparam
 #endif
     if ( ccid == ccio ) then
       ib = 1
-      do icpu = 0 , nproc-1
+      do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
+        do i = window(1), window(2)
+          do j = window(3), window(4)
+            do n = 1, nnsg
               mg(n,j,i) = lvector1(ib)
               ib = ib + 1
             end do
@@ -2977,9 +2977,9 @@ module mod_mppparam
 
   subroutine real8_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
     call real8_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
@@ -2987,14 +2987,14 @@ module mod_mppparam
 
   subroutine real8_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model globl
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    real(rk8) , pointer , dimension(:,:,:) :: ml2 => null( )
-    real(rk8) , pointer , dimension(:,:,:) :: mg2 => null( )
-    integer(ik4) :: tsize , k
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! model globl
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: ml2 => null( )
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: mg2 => null( )
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2,.true.)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call real8_2d_do_sub_collect(ml2,mg2,j1,j2,i1,i2,tsize)
@@ -3003,9 +3003,9 @@ module mod_mppparam
 
   subroutine real4_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
     call real4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
@@ -3013,14 +3013,14 @@ module mod_mppparam
 
   subroutine real4_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model globl
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    real(rk4) , pointer , dimension(:,:,:) :: ml2 => null( )
-    real(rk4) , pointer , dimension(:,:,:) :: mg2 => null( )
-    integer(ik4) :: tsize , k
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! model globl
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    real(rk4), pointer, contiguous, dimension(:,:,:) :: ml2 => null( )
+    real(rk4), pointer, contiguous, dimension(:,:,:) :: mg2 => null( )
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2,.true.)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call real4_2d_do_sub_collect(ml2,mg2,j1,j2,i1,i2,tsize)
@@ -3029,9 +3029,9 @@ module mod_mppparam
 
   subroutine integer_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model glob
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
     call integer4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
@@ -3039,14 +3039,14 @@ module mod_mppparam
 
   subroutine integer_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) , pointer , dimension(:,:,:) :: ml2 => null()
-    integer(ik4) , pointer , dimension(:,:,:) :: mg2 => null()
-    integer(ik4) :: tsize , k
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! mdl local
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! mdl glob
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: ml2 => null()
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: mg2 => null()
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2,.true.)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call integer4_2d_do_sub_collect(ml2,mg2,j1,j2,i1,i2,tsize)
@@ -3055,9 +3055,9 @@ module mod_mppparam
 
   subroutine logical_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    logical , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model glob
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
     call logical_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
@@ -3065,14 +3065,14 @@ module mod_mppparam
 
   subroutine logical_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    logical , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
-    logical , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    logical , pointer , dimension(:,:,:) :: ml2 => null()
-    logical , pointer , dimension(:,:,:) :: mg2 => null()
-    integer(ik4) :: tsize , k
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! mdl local
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! mdl glob
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    logical, pointer, contiguous, dimension(:,:,:) :: ml2 => null()
+    logical, pointer, contiguous, dimension(:,:,:) :: mg2 => null()
+    integer(ik4) :: tsize, k
     tsize = glosplitw(j1,j2,i1,i2,.true.)
-    do k = k1 , k2
+    do k = k1, k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
       call logical_2d_do_sub_collect(ml2,mg2,j1,j2,i1,i2,tsize)
@@ -3082,11 +3082,11 @@ module mod_mppparam
 #ifdef USE_MPI3
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: nx , ny
-    integer(ik4) :: lb , rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: nx, ny
+    integer(ik4) :: lb, rb
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3103,20 +3103,20 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdatax
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
@@ -3134,7 +3134,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
@@ -3143,7 +3143,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j2+iex,i1:i2) = rdatax(ib1:ib2)
@@ -3153,12 +3153,12 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1))
@@ -3175,7 +3175,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1-lb:j2+rb,i1-iex) = rdatay(ib1:ib2)
@@ -3184,7 +3184,7 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1-lb:j2+rb,i2+iex) = rdatay(ib1:ib2)
@@ -3198,11 +3198,11 @@ module mod_mppparam
 
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: nx , ny , nk
-    integer(ik4) :: lb , rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: nx, ny, nk
+    integer(ik4) :: lb, rb
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3220,23 +3220,23 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdatax
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
@@ -3255,8 +3255,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
@@ -3266,8 +3266,8 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j2+iex,i1:i2,k) = rdatax(ib1:ib2)
@@ -3278,15 +3278,15 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k)
@@ -3304,8 +3304,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1-lb:j2+rb,i1-iex,k) = rdatay(ib1:ib2)
@@ -3315,8 +3315,8 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1-lb:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
@@ -3332,11 +3332,11 @@ module mod_mppparam
 
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: nx , ny , nk , nn
-    integer(ik4) :: lb , rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: nx, ny, nk, nn
+    integer(ik4) :: lb, rb
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3355,26 +3355,26 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdatax
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
@@ -3394,9 +3394,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j1-iex,i1:i2,k,n) = rdatax(ib1:ib2)
@@ -3407,9 +3407,9 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j2+iex,i1:i2,k,n) = rdatax(ib1:ib2)
@@ -3421,18 +3421,18 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k,n)
@@ -3451,9 +3451,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1-lb:j2+rb,i1-iex,k,n) = rdatay(ib1:ib2)
@@ -3464,9 +3464,9 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1-lb:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
@@ -3483,11 +3483,11 @@ module mod_mppparam
 
   subroutine real4_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: nx , ny
-    integer(ik4) :: lb , rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: nx, ny
+    integer(ik4) :: lb, rb
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3504,20 +3504,20 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdatax
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
@@ -3535,7 +3535,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
@@ -3544,7 +3544,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j2+iex,i1:i2) = rdatax(ib1:ib2)
@@ -3554,12 +3554,12 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1))
@@ -3577,7 +3577,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1-lb:j2+rb,i1-iex) = rdatay(ib1:ib2)
@@ -3586,7 +3586,7 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1-lb:j2+rb,i2+iex) = rdatay(ib1:ib2)
@@ -3600,11 +3600,11 @@ module mod_mppparam
 
   subroutine real4_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: nx , ny , nk
-    integer(ik4) :: lb , rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: nx, ny, nk
+    integer(ik4) :: lb, rb
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3622,23 +3622,23 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdatax
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
@@ -3657,8 +3657,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
@@ -3668,8 +3668,8 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j2+iex,i1:i2,k) = rdatax(ib1:ib2)
@@ -3680,15 +3680,15 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k)
@@ -3706,8 +3706,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1-lb:j2+rb,i1-iex,k) = rdatay(ib1:ib2)
@@ -3717,8 +3717,8 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1-lb:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
@@ -3734,11 +3734,11 @@ module mod_mppparam
 
   subroutine real4_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: nx , ny , nk , nn
-    integer(ik4) :: lb , rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: nx, ny, nk, nn
+    integer(ik4) :: lb, rb
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3757,26 +3757,26 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdatax
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
@@ -3796,9 +3796,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j1-iex,i1:i2,k,n) = rdatax(ib1:ib2)
@@ -3809,9 +3809,9 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j2+iex,i1:i2,k,n) = rdatax(ib1:ib2)
@@ -3823,18 +3823,18 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k,n)
@@ -3853,9 +3853,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1-lb:j2+rb,i1-iex,k,n) = rdatay(ib1:ib2)
@@ -3866,9 +3866,9 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1-lb:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
@@ -3885,9 +3885,9 @@ module mod_mppparam
 
   subroutine real8_2d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: ndx , ndy , nx , ny , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: ndx, ndy, nx, ny, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3900,28 +3900,28 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx+ndy) :: sdata
     real(rk8), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
@@ -3939,7 +3939,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j1-iex,i1:i2) = rdata(ib1:ib2)
@@ -3948,7 +3948,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j2+iex,i1:i2) = rdata(ib1:ib2)
@@ -3957,7 +3957,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1:j2,i1-iex) = rdata(ib1:ib2)
@@ -3966,7 +3966,7 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1:j2,i2+iex) = rdata(ib1:ib2)
@@ -3981,9 +3981,9 @@ module mod_mppparam
 
   subroutine real8_3d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: ndx , ndy , nx , ny , nk , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: ndx, ndy, nx, ny, nk, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3997,35 +3997,35 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx+ndy) :: sdata
     real(rk8), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
@@ -4044,8 +4044,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
@@ -4055,8 +4055,8 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
@@ -4066,8 +4066,8 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%bottom /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
@@ -4077,8 +4077,8 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
@@ -4095,9 +4095,9 @@ module mod_mppparam
   subroutine real8_4d_exchange_left_right_bottom_top(ml,nex,j1,j2, &
                                                      i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ndx , ndy , nx , ny , nk , nn , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: ndx, ndy, nx, ny, nk, nn, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -4112,42 +4112,42 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx+ndy) :: sdata
     real(rk8), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
@@ -4167,9 +4167,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
@@ -4180,9 +4180,9 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
@@ -4193,9 +4193,9 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%bottom /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
@@ -4206,9 +4206,9 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
@@ -4225,9 +4225,9 @@ module mod_mppparam
 
   subroutine real4_2d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: ndx , ndy , nx , ny , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: ndx, ndy, nx, ny, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -4240,28 +4240,28 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx+ndy) :: sdata
     real(rk4), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
@@ -4279,7 +4279,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j1-iex,i1:i2) = rdata(ib1:ib2)
@@ -4288,7 +4288,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j2+iex,i1:i2) = rdata(ib1:ib2)
@@ -4297,7 +4297,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1:j2,i1-iex) = rdata(ib1:ib2)
@@ -4306,7 +4306,7 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1:j2,i2+iex) = rdata(ib1:ib2)
@@ -4321,9 +4321,9 @@ module mod_mppparam
 
   subroutine real4_3d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: ndx , ndy , nx , ny , nk , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: ndx, ndy, nx, ny, nk, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -4337,35 +4337,35 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx+ndy) :: sdata
     real(rk4), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
@@ -4384,8 +4384,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
@@ -4395,8 +4395,8 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
@@ -4406,8 +4406,8 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%bottom /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
@@ -4417,8 +4417,8 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
@@ -4435,9 +4435,9 @@ module mod_mppparam
   subroutine real4_4d_exchange_left_right_bottom_top(ml,nex,j1,j2, &
                                                      i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ndx , ndy , nx , ny , nk , nn , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: ndx, ndy, nx, ny, nk, nn, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -4452,42 +4452,42 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx+ndy) :: sdata
     real(rk4), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
@@ -4507,9 +4507,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
@@ -4520,9 +4520,9 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
@@ -4533,9 +4533,9 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%bottom /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
@@ -4546,9 +4546,9 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
@@ -4565,9 +4565,9 @@ module mod_mppparam
 
   subroutine real8_2d_exchange_left_right(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: ndx , ny , tx , sizex
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: ndx, ny, tx, sizex
 
     ny = i2-i1+1
     tx = ny
@@ -4576,18 +4576,18 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdata
     real(rk8), dimension(ndx), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
@@ -4605,7 +4605,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j1-iex,i1:i2) = rdata(ib1:ib2)
@@ -4614,7 +4614,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j2+iex,i1:i2) = rdata(ib1:ib2)
@@ -4629,9 +4629,9 @@ module mod_mppparam
 
   subroutine real8_3d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: ndx , ny , nk , tx , sizex
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: ndx, ny, nk, tx, sizex
 
     ny = i2-i1+1
     nk = k2-k1+1
@@ -4641,21 +4641,21 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdata
     real(rk8), dimension(ndx), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
@@ -4674,8 +4674,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
@@ -4685,8 +4685,8 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
@@ -4702,9 +4702,9 @@ module mod_mppparam
 
   subroutine real8_4d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ndx , ny , nk , nn , tx , sizex
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: ndx, ny, nk, nn, tx, sizex
 
     ny = i2-i1+1
     nk = k2-k1+1
@@ -4715,24 +4715,24 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdata
     real(rk8), dimension(ndx), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
@@ -4752,9 +4752,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
@@ -4765,9 +4765,9 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
@@ -4784,9 +4784,9 @@ module mod_mppparam
 
   subroutine real4_2d_exchange_left_right(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: ndx , ny , tx , sizex
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: ndx, ny, tx, sizex
 
     ny = i2-i1+1
     tx = ny
@@ -4795,18 +4795,18 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdata
     real(rk4), dimension(ndx), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
@@ -4824,7 +4824,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j1-iex,i1:i2) = rdata(ib1:ib2)
@@ -4833,7 +4833,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j2+iex,i1:i2) = rdata(ib1:ib2)
@@ -4848,9 +4848,9 @@ module mod_mppparam
 
   subroutine real4_3d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: ndx , ny , nk , tx , sizex
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: ndx, ny, nk, tx, sizex
 
     ny = i2-i1+1
     nk = k2-k1+1
@@ -4860,21 +4860,21 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdata
     real(rk4), dimension(ndx), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
@@ -4893,8 +4893,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
@@ -4904,8 +4904,8 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
@@ -4921,9 +4921,9 @@ module mod_mppparam
 
   subroutine real4_4d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ndx , ny , nk , nn , tx , sizex
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: ndx, ny, nk, nn, tx, sizex
 
     ny = i2-i1+1
     nk = k2-k1+1
@@ -4934,24 +4934,24 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdata
     real(rk4), dimension(ndx), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
@@ -4971,9 +4971,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
@@ -4984,9 +4984,9 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
     if ( ma%right /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
@@ -5003,9 +5003,9 @@ module mod_mppparam
 
   subroutine real8_2d_exchange_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: ndy , nx , ty , sizey
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: ndy, nx, ty, sizey
 
     nx = j2-j1+1
     ty = nx
@@ -5014,18 +5014,18 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndy) :: sdata
     real(rk8), dimension(ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
@@ -5043,7 +5043,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1:j2,i1-iex) = rdata(ib1:ib2)
@@ -5052,7 +5052,7 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1:j2,i2+iex) = rdata(ib1:ib2)
@@ -5067,9 +5067,9 @@ module mod_mppparam
 
   subroutine real8_3d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: ndy , nx , nk , ty , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: ndy, nx, nk, ty, sizey
 
     nx = j2-j1+1
     nk = k2-k1+1
@@ -5079,21 +5079,21 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndy) :: sdata
     real(rk8), dimension(ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
@@ -5112,8 +5112,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
@@ -5123,8 +5123,8 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
@@ -5140,9 +5140,9 @@ module mod_mppparam
 
   subroutine real8_4d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ndy , nx , nk , nn , ty , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: ndy, nx, nk, nn, ty, sizey
 
     nx = j2-j1+1
     nk = k2-k1+1
@@ -5153,24 +5153,24 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndy) :: sdata
     real(rk8), dimension(ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
@@ -5190,9 +5190,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
@@ -5203,9 +5203,9 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
@@ -5222,9 +5222,9 @@ module mod_mppparam
 
   subroutine real4_2d_exchange_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: ndy , nx , ty , sizey
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: ndy, nx, ty, sizey
 
     nx = j2-j1+1
     ty = nx
@@ -5233,18 +5233,18 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndy) :: sdata
     real(rk4), dimension(ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
@@ -5262,7 +5262,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1:j2,i1-iex) = rdata(ib1:ib2)
@@ -5271,7 +5271,7 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1:j2,i2+iex) = rdata(ib1:ib2)
@@ -5286,9 +5286,9 @@ module mod_mppparam
 
   subroutine real4_3d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: ndy , nx , nk , ty , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: ndy, nx, nk, ty, sizey
 
     nx = j2-j1+1
     nk = k2-k1+1
@@ -5298,21 +5298,21 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndy) :: sdata
     real(rk4), dimension(ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
@@ -5331,8 +5331,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
@@ -5342,8 +5342,8 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
@@ -5359,9 +5359,9 @@ module mod_mppparam
 
   subroutine real4_4d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ndy , nx , nk , nn , ty , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: ndy, nx, nk, nn, ty, sizey
 
     nx = j2-j1+1
     nk = k2-k1+1
@@ -5372,24 +5372,24 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndy) :: sdata
     real(rk4), dimension(ndy), volatile :: rdata
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
@@ -5409,9 +5409,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
@@ -5422,9 +5422,9 @@ module mod_mppparam
       ib2 = ib2 + sizey
     end if
     if ( ma%top /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
@@ -5441,11 +5441,11 @@ module mod_mppparam
 
   subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: nx , ny
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: nx, ny
     integer(ik4) :: lb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -5460,20 +5460,20 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdatax
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
@@ -5491,7 +5491,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
@@ -5501,12 +5501,12 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1-lb:j2,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
@@ -5524,7 +5524,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1-lb:j2,i1-iex) = rdatay(ib1:ib2)
@@ -5539,11 +5539,11 @@ module mod_mppparam
 
   subroutine real8_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: nx , ny , nk
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: nx, ny, nk
     integer(ik4) :: lb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -5559,23 +5559,23 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdatax
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
@@ -5594,8 +5594,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
@@ -5606,15 +5606,15 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1-lb:j2,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
@@ -5632,8 +5632,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1-lb:j2,i1-iex,k) = rdatay(ib1:ib2)
@@ -5649,11 +5649,11 @@ module mod_mppparam
 
   subroutine real8_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: nx , ny , nk , nn
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: nx, ny, nk, nn
     integer(ik4) :: lb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -5670,26 +5670,26 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdatax
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
@@ -5709,9 +5709,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j1-iex,i1:i2,k,n) = rdatax(ib1:ib2)
@@ -5723,18 +5723,18 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1-lb:j2,i1+(iex-1),k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k,n)
@@ -5754,9 +5754,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1-lb:j2,i1-iex,k,n) = rdatay(ib1:ib2)
@@ -5773,11 +5773,11 @@ module mod_mppparam
 
   subroutine real4_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: nx , ny
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: nx, ny
     integer(ik4) :: lb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -5792,20 +5792,20 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdatax
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
@@ -5823,7 +5823,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
@@ -5833,12 +5833,12 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1-lb:j2,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
@@ -5856,7 +5856,7 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1-lb:j2,i1-iex) = rdatay(ib1:ib2)
@@ -5871,11 +5871,11 @@ module mod_mppparam
 
   subroutine real4_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: nx , ny , nk
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: nx, ny, nk
     integer(ik4) :: lb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -5891,23 +5891,23 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdatax
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
@@ -5926,8 +5926,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
@@ -5938,15 +5938,15 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1-lb:j2,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
@@ -5965,8 +5965,8 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1-lb:j2,i1-iex,k) = rdatay(ib1:ib2)
@@ -5982,11 +5982,11 @@ module mod_mppparam
 
   subroutine real4_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: nx , ny , nk , nn
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: nx, ny, nk, nn
     integer(ik4) :: lb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -6003,26 +6003,26 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdatax
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
@@ -6042,9 +6042,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j1-iex,i1:i2,k,n) = rdatax(ib1:ib2)
@@ -6056,18 +6056,18 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1-lb:j2,i1+(iex-1),k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k,n)
@@ -6087,9 +6087,9 @@ module mod_mppparam
 
     ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1-lb:j2,i1-iex,k,n) = rdatay(ib1:ib2)
@@ -6106,11 +6106,11 @@ module mod_mppparam
 
   subroutine real8_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: nx , ny
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: nx, ny
     integer(ik4) :: rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -6125,20 +6125,20 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdatax
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
@@ -6156,7 +6156,7 @@ module mod_mppparam
 
     ib2 = sizex
     if ( ma%right /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j2+iex,i1:i2) = rdatax(ib1:ib2)
@@ -6166,12 +6166,12 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1:j2+rb,i2-(iex-1))
@@ -6189,7 +6189,7 @@ module mod_mppparam
 
     ib2 = sizey
     if ( ma%top /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1:j2+rb,i2+iex) = rdatay(ib1:ib2)
@@ -6204,11 +6204,11 @@ module mod_mppparam
 
   subroutine real8_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: nx , ny , nk
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: nx, ny, nk
     integer(ik4) :: rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -6224,23 +6224,23 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdatax
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
@@ -6259,8 +6259,8 @@ module mod_mppparam
 
     ib2 = sizex
     if ( ma%right /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j2+iex,i1:i2,k) = rdatax(ib1:ib2)
@@ -6271,15 +6271,15 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1:j2+rb,i2-(iex-1),k)
@@ -6298,8 +6298,8 @@ module mod_mppparam
 
     ib2 = sizey
     if ( ma%top /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
@@ -6315,11 +6315,11 @@ module mod_mppparam
 
   subroutine real8_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: nx , ny , nk , nn
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: nx, ny, nk, nn
     integer(ik4) :: rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -6336,26 +6336,26 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdatax
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
@@ -6375,9 +6375,9 @@ module mod_mppparam
 
     ib2 = sizex
     if ( ma%right /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j2+iex,i1:i2,k,n) = rdatax(ib1:ib2)
@@ -6389,18 +6389,18 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1:j2+rb,i2-(iex-1),k,n)
@@ -6420,9 +6420,9 @@ module mod_mppparam
 
     ib2 = sizey
     if ( ma%top /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
@@ -6439,11 +6439,11 @@ module mod_mppparam
 
   subroutine real4_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: nx , ny
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: nx, ny
     integer(ik4) :: rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -6458,20 +6458,20 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdatax
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex
+    integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
@@ -6489,7 +6489,7 @@ module mod_mppparam
 
     ib2 = sizex
     if ( ma%right /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         ml(j2+iex,i1:i2) = rdatax(ib1:ib2)
@@ -6499,12 +6499,12 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1:j2+rb,i2-(iex-1))
@@ -6522,7 +6522,7 @@ module mod_mppparam
 
     ib2 = sizey
     if ( ma%top /= mpi_proc_null ) then
-      do iex = 1 , nex
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         ml(j1:j2+rb,i2+iex) = rdatay(ib1:ib2)
@@ -6537,11 +6537,11 @@ module mod_mppparam
 
   subroutine real4_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: nx , ny , nk
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: nx, ny, nk
     integer(ik4) :: rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -6557,23 +6557,23 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdatax
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
@@ -6592,8 +6592,8 @@ module mod_mppparam
 
     ib2 = sizex
     if ( ma%right /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           ml(j2+iex,i1:i2,k) = rdatax(ib1:ib2)
@@ -6604,15 +6604,15 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1:j2+rb,i2-(iex-1),k)
@@ -6631,8 +6631,8 @@ module mod_mppparam
 
     ib2 = sizey
     if ( ma%top /= mpi_proc_null ) then
-      do k = k1 , k2
-        do iex = 1 , nex
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           ml(j1:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
@@ -6648,11 +6648,11 @@ module mod_mppparam
 
   subroutine real4_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: nx , ny , nk , nn
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: nx, ny, nk, nn
     integer(ik4) :: rb
-    integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
+    integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -6669,26 +6669,26 @@ module mod_mppparam
 
     exchange : block
 
-    integer(ik4), dimension(4) :: counts , displs
+    integer(ik4), dimension(4) :: counts, displs
     real(rk4), dimension(ndx) :: sdatax
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
@@ -6708,9 +6708,9 @@ module mod_mppparam
 
     ib2 = sizex
     if ( ma%right /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + tx - 1
             ml(j2+iex,i1:i2,k,n) = rdatax(ib1:ib2)
@@ -6722,18 +6722,18 @@ module mod_mppparam
     end if
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k,n)
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           sdatay(ib1:ib2) = ml(j1:j2+rb,i2-(iex-1),k,n)
@@ -6753,9 +6753,9 @@ module mod_mppparam
 
     ib2 = sizey
     if ( ma%top /= mpi_proc_null ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do iex = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do iex = 1, nex
             ib1 = ib2 + 1
             ib2 = ib1 + ty - 1
             ml(j1:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
@@ -6774,10 +6774,10 @@ module mod_mppparam
 
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: isize , jsize , ssize , j , i , ib , irc , ipos
-    integer(ik4) , dimension(16) :: req
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: isize, jsize, ssize, j, i, ib, irc, ipos
+    integer(ik4), dimension(16) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -6807,8 +6807,8 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r8vector1(ib) = ml(j2-j+1,i)
           ib = ib + 1
         end do
@@ -6819,8 +6819,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j1-j,i) = r8vector2(ib)
           ib = ib + 1
         end do
@@ -6832,8 +6832,8 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r8vector1(ib) = ml(j1+j-1,i)
           ib = ib + 1
         end do
@@ -6844,8 +6844,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j2+j,i) = r8vector2(ib)
           ib = ib + 1
         end do
@@ -6859,8 +6859,8 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r8vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -6872,8 +6872,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -6885,8 +6885,8 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r8vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -6898,8 +6898,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -6914,8 +6914,8 @@ module mod_mppparam
         ssize = nex*nex
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j2-j+1,i1+i-1)
             ib = ib + 1
           end do
@@ -6927,8 +6927,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j1-j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -6939,8 +6939,8 @@ module mod_mppparam
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j1+j-1,i2-i+1)
             ib = ib + 1
           end do
@@ -6952,8 +6952,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j2+j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -6965,8 +6965,8 @@ module mod_mppparam
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
@@ -6978,8 +6978,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j2+j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -6991,8 +6991,8 @@ module mod_mppparam
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
@@ -7004,8 +7004,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j1-j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -7019,8 +7019,8 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
         ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r8vector1(ib) = ml(j2-j+1,i)
             ib = ib + 1
           end do
@@ -7035,8 +7035,8 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
         ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r8vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
@@ -7058,8 +7058,8 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
         ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r8vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -7074,8 +7074,8 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
         ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r8vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -7093,8 +7093,8 @@ module mod_mppparam
       if ( ma%topleft /= mpi_proc_null ) then
         ssize = nex*nex
         ib = ipos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j1+j-1,i2-i+1)
             ib = ib + 1
           end do
@@ -7109,8 +7109,8 @@ module mod_mppparam
       if ( ma%bottomright /= mpi_proc_null ) then
         ssize = nex*nex
         ib = ipos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j2-j+1,i1+i-1)
             ib = ib + 1
           end do
@@ -7128,8 +7128,8 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex
         ib = ipos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
@@ -7144,8 +7144,8 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex
         ib = ipos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
@@ -7173,8 +7173,8 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -7184,8 +7184,8 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -7197,8 +7197,8 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -7208,8 +7208,8 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -7219,8 +7219,8 @@ module mod_mppparam
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j1-j,i2+i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -7230,8 +7230,8 @@ module mod_mppparam
         if ( ma%bottomright /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j2+j,i1-i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -7241,8 +7241,8 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
           ssize =nex*nex
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j2+j,i2+i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -7252,8 +7252,8 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j1-j,i1-i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -7266,10 +7266,10 @@ module mod_mppparam
 
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib , irc , ipos
-    integer(ik4) , dimension(16) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: isize, jsize, ksize, ssize, j, i, k, ib, irc, ipos
+    integer(ik4), dimension(16) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -7304,9 +7304,9 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             r8vector1(ib) = ml(j2-j+1,i,k)
           end do
@@ -7317,9 +7317,9 @@ module mod_mppparam
                                  ssize,ma%right,ma%left,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             ml(j1-j,i,k) = r8vector2(ib)
           end do
@@ -7331,9 +7331,9 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             r8vector1(ib) = ml(j1+j-1,i,k)
           end do
@@ -7344,9 +7344,9 @@ module mod_mppparam
                                  ssize,ma%left,ma%right,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             ml(j2+j,i,k) = r8vector2(ib)
           end do
@@ -7363,9 +7363,9 @@ module mod_mppparam
         ssize = nex*jsize*ksize
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex
               r8vector1(ib) = ml(j,i1+i-1,k)
@@ -7378,9 +7378,9 @@ module mod_mppparam
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex
               ml(j,i2+i,k) = r8vector2(ib)
@@ -7393,9 +7393,9 @@ module mod_mppparam
         !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex
               r8vector1(ib) = ml(j,i2-i+1,k)
@@ -7408,9 +7408,9 @@ module mod_mppparam
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex
               ml(j,i1-i,k) = r8vector2(ib)
@@ -7426,9 +7426,9 @@ module mod_mppparam
         ! a square the length/width of the exchange stencil
         ssize = nex*nex*ksize
         ! loop over the exchange block and unravel it into a vector
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex
               r8vector1(ib) = ml(j2-j+1,i1+i-1,k)
             end do
@@ -7440,9 +7440,9 @@ module mod_mppparam
                                    ssize,ma%bottomright,ma%topleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex
               ml(j1-j,i2+i,k) = r8vector2(ib)
             end do
@@ -7453,9 +7453,9 @@ module mod_mppparam
         ! (6) Send top-left boundary to bottom-right side of top-left neighbor
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex
               r8vector1(ib) = ml(j1+j-1,i2-i+1,k)
             end do
@@ -7467,9 +7467,9 @@ module mod_mppparam
                                    ssize,ma%topleft,ma%bottomright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex
               ml(j2+j,i1-i,k) = r8vector2(ib)
             end do
@@ -7481,9 +7481,9 @@ module mod_mppparam
         !     neighbor
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex
               r8vector1(ib) = ml(j1+j-1,i1+i-1,k)
             end do
@@ -7495,9 +7495,9 @@ module mod_mppparam
                                    ssize,ma%bottomleft,ma%topright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex
               ml(j2+j,i2+i,k) = r8vector2(ib)
             end do
@@ -7509,9 +7509,9 @@ module mod_mppparam
         !     neighbor
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex
               r8vector1(ib) = ml(j2-j+1,i2-i+1,k)
             end do
@@ -7523,9 +7523,9 @@ module mod_mppparam
                                    ssize,ma%topright,ma%bottomleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex
               ml(j1-j,i1-i,k) = r8vector2(ib)
             end do
@@ -7539,9 +7539,9 @@ module mod_mppparam
 
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ib = j + (i - i1) * nex + &
                 (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j2-j+1,i,k)
@@ -7557,9 +7557,9 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ib = j + (i - i1) * nex + &
                 (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j1+j-1,i,k)
@@ -7582,9 +7582,9 @@ module mod_mppparam
 
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j,i2-i+1,k)
@@ -7600,9 +7600,9 @@ module mod_mppparam
       end if
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j,i1+i-1,k)
@@ -7621,9 +7621,9 @@ module mod_mppparam
 
       if ( ma%topleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex + ipos - 1
               r8vector1(ib) = ml(j1+j-1,i2-i+1,k)
             end do
@@ -7638,9 +7638,9 @@ module mod_mppparam
       end if
       if ( ma%bottomright /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex + ipos - 1
               r8vector1(ib) = ml(j2-j+1,i1+i-1,k)
             end do
@@ -7658,9 +7658,9 @@ module mod_mppparam
 
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex + ipos - 1
               r8vector1(ib) = ml(j2-j+1,i2-i+1,k)
             end do
@@ -7675,9 +7675,9 @@ module mod_mppparam
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ib = j + (i - 1) * nex + (k - k1) * nex * nex + ipos - 1
               r8vector1(ib) = ml(j1+j-1,i1+i-1,k)
             end do
@@ -7705,9 +7705,9 @@ module mod_mppparam
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ib = j + (i - i1) * nex + &
                   (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
                 ml(j2+j,i,k) = r8vector2(ib)
@@ -7718,9 +7718,9 @@ module mod_mppparam
         end if
         if ( ma%left /= mpi_proc_null ) then
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ib = j + (i - i1) * nex + &
                   (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
                 ml(j1-j,i,k) = r8vector2(ib)
@@ -7733,9 +7733,9 @@ module mod_mppparam
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                   (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
                 ml(j,i2+i,k) = r8vector2(ib)
@@ -7746,9 +7746,9 @@ module mod_mppparam
         end if
         if ( ma%bottom /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                   (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
                 ml(j,i1-i,k) = r8vector2(ib)
@@ -7759,9 +7759,9 @@ module mod_mppparam
         end if
         if ( ma%topleft /= mpi_proc_null ) then
           ssize = nex*nex*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ib = j + (i - 1) * nex + (k - k1) * nex * nex + ipos - 1
                 ml(j1-j,i2+i,k) = r8vector2(ib)
               end do
@@ -7771,9 +7771,9 @@ module mod_mppparam
         end if
         if ( ma%bottomright /= mpi_proc_null ) then
           ssize = nex*nex*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ib = j + (i - 1) * nex + (k - k1) * nex * nex + ipos - 1
                 ml(j2+j,i1-i,k) = r8vector2(ib)
               end do
@@ -7783,9 +7783,9 @@ module mod_mppparam
         end if
         if ( ma%topright /= mpi_proc_null ) then
           ssize =nex*nex*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ib = j + (i - 1) * nex + (k - k1) * nex * nex + ipos - 1
                 ml(j2+j,i2+i,k) = r8vector2(ib)
               end do
@@ -7795,9 +7795,9 @@ module mod_mppparam
         end if
         if ( ma%bottomleft /= mpi_proc_null ) then
           ssize = nex*nex*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ib = j + (i - 1) * nex + (k - k1) * nex * nex + ipos - 1
                 ml(j1-j,i1-i,k) = r8vector2(ib)
               end do
@@ -7811,11 +7811,11 @@ module mod_mppparam
 
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize
-    integer(ik4) :: j , i , k , n , ib , irc , ipos
-    integer(ik4) , dimension(16) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: isize, jsize, ksize, nsize, ssize
+    integer(ik4) :: j, i, k, n, ib, irc, ipos
+    integer(ik4), dimension(16) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -7853,10 +7853,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r8vector1(ib) = ml(j2-j+1,i,k,n)
               ib = ib + 1
             end do
@@ -7869,10 +7869,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -7886,10 +7886,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r8vector1(ib) = ml(j1+j-1,i,k,n)
               ib = ib + 1
             end do
@@ -7902,10 +7902,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -7924,10 +7924,10 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -7941,10 +7941,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -7958,10 +7958,10 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -7975,10 +7975,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -7995,10 +7995,10 @@ module mod_mppparam
         ssize = nex*nex*ksize*nsize
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j2-j+1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -8012,10 +8012,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j1-j,i2+i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -8028,10 +8028,10 @@ module mod_mppparam
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j1+j-1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -8045,10 +8045,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j2+j,i1-i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -8062,10 +8062,10 @@ module mod_mppparam
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -8079,10 +8079,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j2+j,i2+i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -8096,10 +8096,10 @@ module mod_mppparam
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -8113,10 +8113,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j1-j,i1-i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -8132,10 +8132,10 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r8vector1(ib) = ml(j2-j+1,i,k,n)
                 ib = ib + 1
               end do
@@ -8152,10 +8152,10 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r8vector1(ib) = ml(j1+j-1,i,k,n)
                 ib = ib + 1
               end do
@@ -8179,10 +8179,10 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -8199,10 +8199,10 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -8222,10 +8222,10 @@ module mod_mppparam
       if ( ma%topleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j1+j-1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -8242,10 +8242,10 @@ module mod_mppparam
       if ( ma%bottomright /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j2-j+1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -8265,10 +8265,10 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -8285,10 +8285,10 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -8318,10 +8318,10 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j2+j,i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -8333,10 +8333,10 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j1-j,i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -8350,10 +8350,10 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i2+i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -8365,10 +8365,10 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i1-i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -8380,10 +8380,10 @@ module mod_mppparam
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-             do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+             do i = 1, nex
+                do j = 1, nex
                   ml(j1-j,i2+i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -8395,10 +8395,10 @@ module mod_mppparam
         if ( ma%bottomright /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = 1, nex
                   ml(j2+j,i1-i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -8410,10 +8410,10 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
           ssize =nex*nex*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = 1, nex
                   ml(j2+j,i2+i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -8425,10 +8425,10 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = 1, nex
                   ml(j1-j,i1-i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -8443,10 +8443,10 @@ module mod_mppparam
 
   subroutine real4_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: isize , jsize , ssize , j , i , ib , irc , ipos
-    integer(ik4) , dimension(16) :: req
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: isize, jsize, ssize, j, i, ib, irc, ipos
+    integer(ik4), dimension(16) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -8480,8 +8480,8 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r4vector1(ib) = ml(j2-j+1,i)
           ib = ib + 1
         end do
@@ -8492,8 +8492,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j1-j,i) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -8505,8 +8505,8 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r4vector1(ib) = ml(j1+j-1,i)
           ib = ib + 1
         end do
@@ -8517,8 +8517,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j2+j,i) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -8535,8 +8535,8 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -8548,8 +8548,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -8561,8 +8561,8 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -8574,8 +8574,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -8590,8 +8590,8 @@ module mod_mppparam
         ssize = nex*nex
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i1+i-1)
             ib = ib + 1
           end do
@@ -8603,8 +8603,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j1-j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -8615,8 +8615,8 @@ module mod_mppparam
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i2-i+1)
             ib = ib + 1
           end do
@@ -8628,8 +8628,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j2+j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -8641,8 +8641,8 @@ module mod_mppparam
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
@@ -8654,8 +8654,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j2+j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -8667,8 +8667,8 @@ module mod_mppparam
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
@@ -8680,8 +8680,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j1-j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -8695,8 +8695,8 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
         ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i)
             ib = ib + 1
           end do
@@ -8711,8 +8711,8 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
         ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
@@ -8734,8 +8734,8 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
         ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -8750,8 +8750,8 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
         ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -8769,8 +8769,8 @@ module mod_mppparam
       if ( ma%topleft /= mpi_proc_null ) then
         ssize = nex*nex
         ib = ipos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i2-i+1)
             ib = ib + 1
           end do
@@ -8785,8 +8785,8 @@ module mod_mppparam
       if ( ma%bottomright /= mpi_proc_null ) then
         ssize = nex*nex
         ib = ipos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i1+i-1)
             ib = ib + 1
           end do
@@ -8804,8 +8804,8 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex
         ib = ipos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
@@ -8820,8 +8820,8 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex
         ib = ipos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
@@ -8849,8 +8849,8 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -8860,8 +8860,8 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -8873,8 +8873,8 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -8884,8 +8884,8 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -8895,8 +8895,8 @@ module mod_mppparam
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j1-j,i2+i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -8906,8 +8906,8 @@ module mod_mppparam
         if ( ma%bottomright /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j2+j,i1-i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -8917,8 +8917,8 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
           ssize =nex*nex
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j2+j,i2+i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -8928,8 +8928,8 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j1-j,i1-i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -8942,10 +8942,10 @@ module mod_mppparam
 
   subroutine real4_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib , irc , ipos
-    integer(ik4) , dimension(16) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: isize, jsize, ksize, ssize, j, i, k, ib, irc, ipos
+    integer(ik4), dimension(16) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -8981,9 +8981,9 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i,k)
             ib = ib + 1
           end do
@@ -8995,9 +8995,9 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ml(j1-j,i,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -9010,9 +9010,9 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i,k)
             ib = ib + 1
           end do
@@ -9024,9 +9024,9 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ml(j2+j,i,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -9044,9 +9044,9 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i1+i-1,k)
               ib = ib + 1
             end do
@@ -9059,9 +9059,9 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -9074,9 +9074,9 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i2-i+1,k)
               ib = ib + 1
             end do
@@ -9089,9 +9089,9 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -9107,9 +9107,9 @@ module mod_mppparam
         ssize = nex*nex*ksize
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i1+i-1,k)
               ib = ib + 1
             end do
@@ -9122,9 +9122,9 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ml(j1-j,i2+i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -9136,9 +9136,9 @@ module mod_mppparam
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i2-i+1,k)
               ib = ib + 1
             end do
@@ -9151,9 +9151,9 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ml(j2+j,i1-i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -9166,9 +9166,9 @@ module mod_mppparam
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i1+i-1,k)
               ib = ib + 1
             end do
@@ -9181,9 +9181,9 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ml(j2+j,i2+i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -9196,9 +9196,9 @@ module mod_mppparam
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
               ib = ib + 1
             end do
@@ -9211,9 +9211,9 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               ml(j1-j,i1-i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -9228,9 +9228,9 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i,k)
               ib = ib + 1
             end do
@@ -9246,9 +9246,9 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i,k)
               ib = ib + 1
             end do
@@ -9271,9 +9271,9 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i2-i+1,k)
               ib = ib + 1
             end do
@@ -9289,9 +9289,9 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i1+i-1,k)
               ib = ib + 1
             end do
@@ -9310,9 +9310,9 @@ module mod_mppparam
       if ( ma%topleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i2-i+1,k)
               ib = ib + 1
             end do
@@ -9328,9 +9328,9 @@ module mod_mppparam
       if ( ma%bottomright /= mpi_proc_null ) then
         ssize = nex*nex*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i1+i-1,k)
               ib = ib + 1
             end do
@@ -9349,9 +9349,9 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
               ib = ib + 1
             end do
@@ -9367,9 +9367,9 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i1+i-1,k)
               ib = ib + 1
             end do
@@ -9398,9 +9398,9 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ml(j2+j,i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9411,9 +9411,9 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ml(j1-j,i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9426,9 +9426,9 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9439,9 +9439,9 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9452,9 +9452,9 @@ module mod_mppparam
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j1-j,i2+i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9465,9 +9465,9 @@ module mod_mppparam
         if ( ma%bottomright /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j2+j,i1-i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9478,9 +9478,9 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
           ssize =nex*nex*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j2+j,i2+i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9491,9 +9491,9 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j1-j,i1-i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9507,11 +9507,11 @@ module mod_mppparam
 
   subroutine real4_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize
-    integer(ik4) :: j , i , k , n , ib , irc , ipos
-    integer(ik4) , dimension(16) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: isize, jsize, ksize, nsize, ssize
+    integer(ik4) :: j, i, k, n, ib, irc, ipos
+    integer(ik4), dimension(16) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -9549,10 +9549,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i,k,n)
               ib = ib + 1
             end do
@@ -9565,10 +9565,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -9582,10 +9582,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i,k,n)
               ib = ib + 1
             end do
@@ -9598,10 +9598,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -9620,10 +9620,10 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -9637,10 +9637,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9654,10 +9654,10 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -9671,10 +9671,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9691,10 +9691,10 @@ module mod_mppparam
         ssize = nex*nex*ksize*nsize
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j2-j+1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -9708,10 +9708,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j1-j,i2+i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9724,10 +9724,10 @@ module mod_mppparam
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j1+j-1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -9741,10 +9741,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j2+j,i1-i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9758,10 +9758,10 @@ module mod_mppparam
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -9775,10 +9775,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j2+j,i2+i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9792,10 +9792,10 @@ module mod_mppparam
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -9809,10 +9809,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j1-j,i1-i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -9828,10 +9828,10 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r4vector1(ib) = ml(j2-j+1,i,k,n)
                 ib = ib + 1
               end do
@@ -9848,10 +9848,10 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r4vector1(ib) = ml(j1+j-1,i,k,n)
                 ib = ib + 1
               end do
@@ -9875,10 +9875,10 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -9895,10 +9895,10 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -9918,10 +9918,10 @@ module mod_mppparam
       if ( ma%topleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j1+j-1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -9938,10 +9938,10 @@ module mod_mppparam
       if ( ma%bottomright /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j2-j+1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -9961,10 +9961,10 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -9981,10 +9981,10 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -10014,10 +10014,10 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j2+j,i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -10029,10 +10029,10 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j1-j,i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -10046,10 +10046,10 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i2+i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -10061,10 +10061,10 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i1-i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -10076,10 +10076,10 @@ module mod_mppparam
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-             do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+             do i = 1, nex
+                do j = 1, nex
                   ml(j1-j,i2+i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -10091,10 +10091,10 @@ module mod_mppparam
         if ( ma%bottomright /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = 1, nex
                   ml(j2+j,i1-i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -10106,10 +10106,10 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
           ssize =nex*nex*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = 1, nex
                   ml(j2+j,i2+i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -10121,10 +10121,10 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*nex*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = 1, nex
                   ml(j1-j,i1-i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -10139,10 +10139,10 @@ module mod_mppparam
 
   subroutine real8_2d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: isize , jsize , ssize , j , i , ib , irc , ipos
-    integer(ik4) , dimension(8) :: req
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: isize, jsize, ssize, j, i, ib, irc, ipos
+    integer(ik4), dimension(8) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -10171,8 +10171,8 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ib = j + (i - i1) * nex
           r8vector1(ib) = ml(j2-j+1,i)
         end do
@@ -10182,8 +10182,8 @@ module mod_mppparam
                                  ssize,ma%right,ma%left,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ib = j + (i - i1) * nex
           ml(j1-j,i) = r8vector2(ib)
         end do
@@ -10194,8 +10194,8 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ib = j + (i - i1) * nex
           r8vector1(ib) = ml(j1+j-1,i)
         end do
@@ -10205,8 +10205,8 @@ module mod_mppparam
                                  ssize,ma%left,ma%right,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ib = j + (i - i1) * nex
           ml(j2+j,i) = r8vector2(ib)
         end do
@@ -10219,8 +10219,8 @@ module mod_mppparam
         ssize = nex*jsize
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1)
             r8vector1(ib) = ml(j,i1+i-1)
           end do
@@ -10231,8 +10231,8 @@ module mod_mppparam
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1)
             ml(j,i2+i) = r8vector2(ib)
           end do
@@ -10243,8 +10243,8 @@ module mod_mppparam
         !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1)
             r8vector1(ib) = ml(j,i2-i+1)
           end do
@@ -10255,8 +10255,8 @@ module mod_mppparam
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1)
             ml(j,i1-i) = r8vector2(ib)
           end do
@@ -10270,8 +10270,8 @@ module mod_mppparam
 
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + ipos - 1
             r8vector1(ib) = ml(j2-j+1,i)
           end do
@@ -10285,8 +10285,8 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + ipos - 1
             r8vector1(ib) = ml(j1+j-1,i)
           end do
@@ -10307,8 +10307,8 @@ module mod_mppparam
 
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + ipos - 1
             r8vector1(ib) = ml(j,i2-i+1)
           end do
@@ -10322,8 +10322,8 @@ module mod_mppparam
       end if
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + ipos - 1
             r8vector1(ib) = ml(j,i1+i-1)
           end do
@@ -10351,8 +10351,8 @@ module mod_mppparam
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ib = j + (i - i1) * nex + ipos - 1
               ml(j2+j,i) = r8vector2(ib)
             end do
@@ -10361,8 +10361,8 @@ module mod_mppparam
         end if
         if ( ma%left /= mpi_proc_null ) then
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ib = j + (i - i1) * nex + ipos - 1
               ml(j1-j,i) = r8vector2(ib)
             end do
@@ -10373,8 +10373,8 @@ module mod_mppparam
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + ipos - 1
               ml(j,i2+i) = r8vector2(ib)
             end do
@@ -10383,8 +10383,8 @@ module mod_mppparam
         end if
         if ( ma%bottom /= mpi_proc_null) then
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + ipos - 1
               ml(j,i1-i) = r8vector2(ib)
             end do
@@ -10397,10 +10397,10 @@ module mod_mppparam
 
   subroutine real8_3d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib , irc , ipos
-    integer(ik4) , dimension(8) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: isize, jsize, ksize, ssize, j, i, k, ib, irc, ipos
+    integer(ik4), dimension(8) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -10435,9 +10435,9 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             r8vector1(ib) = ml(j2-j+1,i,k)
           end do
@@ -10448,9 +10448,9 @@ module mod_mppparam
                                  ssize,ma%right,ma%left,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             ml(j1-j,i,k) = r8vector2(ib)
           end do
@@ -10462,9 +10462,9 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             r8vector1(ib) = ml(j1+j-1,i,k)
           end do
@@ -10475,9 +10475,9 @@ module mod_mppparam
                                  ssize,ma%left,ma%right,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             ml(j2+j,i,k) = r8vector2(ib)
           end do
@@ -10494,9 +10494,9 @@ module mod_mppparam
         ssize = nex*jsize*ksize
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex
               r8vector1(ib) = ml(j,i1+i-1,k)
@@ -10509,9 +10509,9 @@ module mod_mppparam
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex
               ml(j,i2+i,k) = r8vector2(ib)
@@ -10524,9 +10524,9 @@ module mod_mppparam
         !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex
               r8vector1(ib) = ml(j,i2-i+1,k)
@@ -10539,9 +10539,9 @@ module mod_mppparam
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex
               ml(j,i1-i,k) = r8vector2(ib)
@@ -10556,9 +10556,9 @@ module mod_mppparam
 
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ib = j + (i - i1) * nex + &
                 (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j2-j+1,i,k)
@@ -10574,9 +10574,9 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ib = j + (i - i1) * nex + &
                 (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j1+j-1,i,k)
@@ -10599,9 +10599,9 @@ module mod_mppparam
 
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j,i2-i+1,k)
@@ -10617,9 +10617,9 @@ module mod_mppparam
       end if
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j,i1+i-1,k)
@@ -10649,9 +10649,9 @@ module mod_mppparam
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ib = j + (i - i1) * nex + &
                   (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
                 ml(j2+j,i,k) = r8vector2(ib)
@@ -10662,9 +10662,9 @@ module mod_mppparam
         end if
         if ( ma%left /= mpi_proc_null ) then
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ib = j + (i - i1) * nex + &
                   (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
                 ml(j1-j,i,k) = r8vector2(ib)
@@ -10677,9 +10677,9 @@ module mod_mppparam
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                   (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
                 ml(j,i2+i,k) = r8vector2(ib)
@@ -10690,9 +10690,9 @@ module mod_mppparam
         end if
         if ( ma%bottom /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                   (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
                 ml(j,i1-i,k) = r8vector2(ib)
@@ -10708,11 +10708,11 @@ module mod_mppparam
   subroutine real8_4d_exchange_left_right_bottom_top(ml,nex,j1,j2, &
                                                      i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize
-    integer(ik4) :: j , i , k , n , ib , irc , ipos
-    integer(ik4) , dimension(8) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: isize, jsize, ksize, nsize, ssize
+    integer(ik4) :: j, i, k, n, ib, irc, ipos
+    integer(ik4), dimension(8) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -10750,10 +10750,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r8vector1(ib) = ml(j2-j+1,i,k,n)
               ib = ib + 1
             end do
@@ -10766,10 +10766,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -10783,10 +10783,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r8vector1(ib) = ml(j1+j-1,i,k,n)
               ib = ib + 1
             end do
@@ -10799,10 +10799,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -10821,10 +10821,10 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -10838,10 +10838,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -10855,10 +10855,10 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -10872,10 +10872,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -10891,10 +10891,10 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r8vector1(ib) = ml(j2-j+1,i,k,n)
                 ib = ib + 1
               end do
@@ -10911,10 +10911,10 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r8vector1(ib) = ml(j1+j-1,i,k,n)
                 ib = ib + 1
               end do
@@ -10938,10 +10938,10 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -10958,10 +10958,10 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -10992,10 +10992,10 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j2+j,i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -11007,10 +11007,10 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j1-j,i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -11024,10 +11024,10 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i2+i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -11039,10 +11039,10 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i1-i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -11057,10 +11057,10 @@ module mod_mppparam
 
   subroutine real4_2d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: isize , jsize , ssize , j , i , ib , irc , ipos
-    integer(ik4) , dimension(8) :: req
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: isize, jsize, ssize, j, i, ib, irc, ipos
+    integer(ik4), dimension(8) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -11094,8 +11094,8 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r4vector1(ib) = ml(j2-j+1,i)
           ib = ib + 1
         end do
@@ -11106,8 +11106,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j1-j,i) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -11119,8 +11119,8 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r4vector1(ib) = ml(j1+j-1,i)
           ib = ib + 1
         end do
@@ -11131,8 +11131,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j2+j,i) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -11149,8 +11149,8 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -11162,8 +11162,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -11175,8 +11175,8 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -11188,8 +11188,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -11204,8 +11204,8 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
         ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i)
             ib = ib + 1
           end do
@@ -11220,8 +11220,8 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
         ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
@@ -11243,8 +11243,8 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
         ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -11259,8 +11259,8 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
         ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -11289,8 +11289,8 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -11300,8 +11300,8 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -11313,8 +11313,8 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -11324,8 +11324,8 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -11338,10 +11338,10 @@ module mod_mppparam
 
   subroutine real4_3d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib , irc , ipos
-    integer(ik4) , dimension(8) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: isize, jsize, ksize, ssize, j, i, k, ib, irc, ipos
+    integer(ik4), dimension(8) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -11377,9 +11377,9 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i,k)
             ib = ib + 1
           end do
@@ -11391,9 +11391,9 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ml(j1-j,i,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -11406,9 +11406,9 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i,k)
             ib = ib + 1
           end do
@@ -11420,9 +11420,9 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ml(j2+j,i,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -11440,9 +11440,9 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i1+i-1,k)
               ib = ib + 1
             end do
@@ -11455,9 +11455,9 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -11470,9 +11470,9 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i2-i+1,k)
               ib = ib + 1
             end do
@@ -11485,9 +11485,9 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -11502,9 +11502,9 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i,k)
               ib = ib + 1
             end do
@@ -11520,9 +11520,9 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i,k)
               ib = ib + 1
             end do
@@ -11545,9 +11545,9 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i2-i+1,k)
               ib = ib + 1
             end do
@@ -11563,9 +11563,9 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i1+i-1,k)
               ib = ib + 1
             end do
@@ -11595,9 +11595,9 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ml(j2+j,i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -11608,9 +11608,9 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ml(j1-j,i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -11623,9 +11623,9 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -11636,9 +11636,9 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -11653,11 +11653,11 @@ module mod_mppparam
   subroutine real4_4d_exchange_left_right_bottom_top(ml,nex,j1,j2, &
                                                      i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize
-    integer(ik4) :: j , i , k , n , ib , irc , ipos
-    integer(ik4) , dimension(8) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: isize, jsize, ksize, nsize, ssize
+    integer(ik4) :: j, i, k, n, ib, irc, ipos
+    integer(ik4), dimension(8) :: req
 
     isize = i2-i1+1
     jsize = j2-j1+1
@@ -11695,10 +11695,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i,k,n)
               ib = ib + 1
             end do
@@ -11711,10 +11711,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -11728,10 +11728,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i,k,n)
               ib = ib + 1
             end do
@@ -11744,10 +11744,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -11766,10 +11766,10 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -11783,10 +11783,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -11800,10 +11800,10 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -11817,10 +11817,10 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -11836,10 +11836,10 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r4vector1(ib) = ml(j2-j+1,i,k,n)
                 ib = ib + 1
               end do
@@ -11856,10 +11856,10 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r4vector1(ib) = ml(j1+j-1,i,k,n)
                 ib = ib + 1
               end do
@@ -11883,10 +11883,10 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -11903,10 +11903,10 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -11937,10 +11937,10 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j2+j,i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -11952,10 +11952,10 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j1-j,i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -11969,10 +11969,10 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i2+i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -11984,10 +11984,10 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i1-i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -12002,10 +12002,10 @@ module mod_mppparam
 
   subroutine real8_2d_exchange_left_right(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: isize , ssize , j , i , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: isize, ssize, j, i, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     isize = i2-i1+1
 
@@ -12033,8 +12033,8 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r8vector1(ib) = ml(j2-j+1,i)
           ib = ib + 1
         end do
@@ -12045,8 +12045,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j1-j,i) = r8vector2(ib)
           ib = ib + 1
         end do
@@ -12058,8 +12058,8 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r8vector1(ib) = ml(j1+j-1,i)
           ib = ib + 1
         end do
@@ -12070,8 +12070,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j2+j,i) = r8vector2(ib)
           ib = ib + 1
         end do
@@ -12084,8 +12084,8 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
         ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r8vector1(ib) = ml(j2-j+1,i)
             ib = ib + 1
           end do
@@ -12100,8 +12100,8 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
         ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r8vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
@@ -12130,8 +12130,8 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -12141,8 +12141,8 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -12155,10 +12155,10 @@ module mod_mppparam
 
   subroutine real8_3d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , ksize , ssize , j , i , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: isize, ksize, ssize, j, i, k, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -12191,9 +12191,9 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             r8vector1(ib) = ml(j2-j+1,i,k)
           end do
@@ -12204,9 +12204,9 @@ module mod_mppparam
                                  ssize,ma%right,ma%left,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             ml(j1-j,i,k) = r8vector2(ib)
           end do
@@ -12218,9 +12218,9 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             r8vector1(ib) = ml(j1+j-1,i,k)
           end do
@@ -12231,9 +12231,9 @@ module mod_mppparam
                                  ssize,ma%left,ma%right,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ib = j + (i - i1) * nex + (k - k1) * (i2 - i1 + 1) * nex
             ml(j2+j,i,k) = r8vector2(ib)
           end do
@@ -12246,9 +12246,9 @@ module mod_mppparam
 
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ib = j + (i - i1) * nex + &
                 (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j2-j+1,i,k)
@@ -12264,9 +12264,9 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ib = j + (i - i1) * nex + &
                 (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j1+j-1,i,k)
@@ -12296,9 +12296,9 @@ module mod_mppparam
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ib = j + (i - i1) * nex + &
                   (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
                 ml(j2+j,i,k) = r8vector2(ib)
@@ -12309,9 +12309,9 @@ module mod_mppparam
         end if
         if ( ma%left /= mpi_proc_null ) then
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ib = j + (i - i1) * nex + &
                   (k - k1) * (i2 - i1 + 1) * nex + ipos - 1
                 ml(j1-j,i,k) = r8vector2(ib)
@@ -12326,11 +12326,11 @@ module mod_mppparam
 
   subroutine real8_4d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , ksize , nsize , ssize
-    integer(ik4) :: j , i , k , n , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: isize, ksize, nsize, ssize
+    integer(ik4) :: j, i, k, n, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -12366,10 +12366,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r8vector1(ib) = ml(j2-j+1,i,k,n)
               ib = ib + 1
             end do
@@ -12382,10 +12382,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -12399,10 +12399,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r8vector1(ib) = ml(j1+j-1,i,k,n)
               ib = ib + 1
             end do
@@ -12415,10 +12415,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -12433,10 +12433,10 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r8vector1(ib) = ml(j2-j+1,i,k,n)
                 ib = ib + 1
               end do
@@ -12453,10 +12453,10 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r8vector1(ib) = ml(j1+j-1,i,k,n)
                 ib = ib + 1
               end do
@@ -12487,10 +12487,10 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j2+j,i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -12502,10 +12502,10 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j1-j,i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -12520,10 +12520,10 @@ module mod_mppparam
 
   subroutine real4_2d_exchange_left_right(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: isize , ssize , j , i , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: isize, ssize, j, i, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     isize = i2-i1+1
 
@@ -12551,8 +12551,8 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r4vector1(ib) = ml(j2-j+1,i)
           ib = ib + 1
         end do
@@ -12563,8 +12563,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j1-j,i) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -12576,8 +12576,8 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r4vector1(ib) = ml(j1+j-1,i)
           ib = ib + 1
         end do
@@ -12588,8 +12588,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j2+j,i) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -12602,8 +12602,8 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
         ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i)
             ib = ib + 1
           end do
@@ -12618,8 +12618,8 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
         ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
@@ -12648,8 +12648,8 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -12659,8 +12659,8 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -12673,10 +12673,10 @@ module mod_mppparam
 
   subroutine real4_3d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , ksize , ssize , j , i , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: isize, ksize, ssize, j, i, k, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -12710,9 +12710,9 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i,k)
             ib = ib + 1
           end do
@@ -12724,9 +12724,9 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ml(j1-j,i,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -12739,9 +12739,9 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i,k)
             ib = ib + 1
           end do
@@ -12753,9 +12753,9 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ml(j2+j,i,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -12769,9 +12769,9 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i,k)
               ib = ib + 1
             end do
@@ -12787,9 +12787,9 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i,k)
               ib = ib + 1
             end do
@@ -12819,9 +12819,9 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ml(j2+j,i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -12832,9 +12832,9 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize*ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ml(j1-j,i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -12848,11 +12848,11 @@ module mod_mppparam
 
   subroutine real4_4d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , ksize , nsize , ssize
-    integer(ik4) :: j , i , k , n , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: isize, ksize, nsize, ssize
+    integer(ik4) :: j, i, k, n, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     isize = i2-i1+1
     ksize = k2-k1+1
@@ -12888,10 +12888,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i,k,n)
               ib = ib + 1
             end do
@@ -12904,10 +12904,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -12921,10 +12921,10 @@ module mod_mppparam
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i,k,n)
               ib = ib + 1
             end do
@@ -12937,10 +12937,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -12955,10 +12955,10 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r4vector1(ib) = ml(j2-j+1,i,k,n)
                 ib = ib + 1
               end do
@@ -12975,10 +12975,10 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r4vector1(ib) = ml(j1+j-1,i,k,n)
                 ib = ib + 1
               end do
@@ -13009,10 +13009,10 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j2+j,i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -13024,10 +13024,10 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex*isize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j1-j,i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -13042,10 +13042,10 @@ module mod_mppparam
 
   subroutine real8_2d_exchange_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: jsize , ssize , j , i , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: jsize, ssize, j, i, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     jsize = j2-j1+1
 
@@ -13073,8 +13073,8 @@ module mod_mppparam
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the bottom boundary into a vector
       ib = 1
-      do i = 1 , nex
-        do j = j1 , j2
+      do i = 1, nex
+        do j = j1, j2
           r8vector1(ib) = ml(j,i1+i-1)
           ib = ib + 1
         end do
@@ -13086,8 +13086,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the top boundary of this block
       ib = 1
-      do i = 1 , nex
-        do j = j1 , j2
+      do i = 1, nex
+        do j = j1, j2
           ml(j,i2+i) = r8vector2(ib)
           ib = ib + 1
         end do
@@ -13099,8 +13099,8 @@ module mod_mppparam
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the top boundary into a vector
       ib = 1
-      do i = 1 , nex
-        do j = j1 , j2
+      do i = 1, nex
+        do j = j1, j2
           r8vector1(ib) = ml(j,i2-i+1)
           ib = ib + 1
         end do
@@ -13112,8 +13112,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the bottom boundary of this block
       ib = 1
-      do i = 1 , nex
-        do j = j1 , j2
+      do i = 1, nex
+        do j = j1, j2
           ml(j,i1-i) = r8vector2(ib)
           ib = ib + 1
         end do
@@ -13126,8 +13126,8 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
         ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r8vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -13142,8 +13142,8 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
         ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r8vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -13172,8 +13172,8 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -13183,8 +13183,8 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -13197,10 +13197,10 @@ module mod_mppparam
 
   subroutine real8_3d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: jsize , ksize , ssize , j , i , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: jsize, ksize, ssize, j, i, k, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -13232,9 +13232,9 @@ module mod_mppparam
       ssize = nex*jsize*ksize
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the bottom boundary into a vector
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
+      do k = k1, k2
+        do i = 1, nex
+          do j = j1, j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
               (k - k1) * (j2 - j1 + 1) * nex
             r8vector1(ib) = ml(j,i1+i-1,k)
@@ -13247,9 +13247,9 @@ module mod_mppparam
                                  ssize,ma%bottom,ma%top,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the top boundary of this block
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
+      do k = k1, k2
+        do i = 1, nex
+          do j = j1, j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
               (k - k1) * (j2 - j1 + 1) * nex
             ml(j,i2+i,k) = r8vector2(ib)
@@ -13262,9 +13262,9 @@ module mod_mppparam
       !******************************************************
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the top boundary into a vector
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
+      do k = k1, k2
+        do i = 1, nex
+          do j = j1, j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
               (k - k1) * (j2 - j1 + 1) * nex
             r8vector1(ib) = ml(j,i2-i+1,k)
@@ -13277,9 +13277,9 @@ module mod_mppparam
                                  ssize,ma%top,ma%bottom,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the bottom boundary of this block
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
+      do k = k1, k2
+        do i = 1, nex
+          do j = j1, j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
               (k - k1) * (j2 - j1 + 1) * nex
             ml(j,i1-i,k) = r8vector2(ib)
@@ -13293,9 +13293,9 @@ module mod_mppparam
 
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j,i2-i+1,k)
@@ -13311,9 +13311,9 @@ module mod_mppparam
       end if
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                 (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
               r8vector1(ib) = ml(j,i1+i-1,k)
@@ -13343,9 +13343,9 @@ module mod_mppparam
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                   (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
                 ml(j,i2+i,k) = r8vector2(ib)
@@ -13356,9 +13356,9 @@ module mod_mppparam
         end if
         if ( ma%bottom /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + &
                   (k - k1) * (j2 - j1 + 1) * nex + ipos - 1
                 ml(j,i1-i,k) = r8vector2(ib)
@@ -13373,11 +13373,11 @@ module mod_mppparam
 
   subroutine real8_4d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: jsize , ksize , nsize , ssize
-    integer(ik4) :: j , i , k , n , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: jsize, ksize, nsize, ssize
+    integer(ik4) :: j, i, k, n, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -13412,10 +13412,10 @@ module mod_mppparam
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the bottom boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+      do n = n1, n2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r8vector1(ib) = ml(j,i1+i-1,k,n)
               ib = ib + 1
             end do
@@ -13429,10 +13429,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the top boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+      do n = n1, n2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -13446,10 +13446,10 @@ module mod_mppparam
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the top boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+      do n = n1, n2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r8vector1(ib) = ml(j,i2-i+1,k,n)
               ib = ib + 1
             end do
@@ -13463,10 +13463,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the bottom boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+      do n = n1, n2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -13481,10 +13481,10 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -13501,10 +13501,10 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -13535,10 +13535,10 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i2+i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -13550,10 +13550,10 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i1-i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -13568,10 +13568,10 @@ module mod_mppparam
 
   subroutine real4_2d_exchange_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: jsize , ssize , j , i , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: jsize, ssize, j, i, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     jsize = j2-j1+1
 
@@ -13599,8 +13599,8 @@ module mod_mppparam
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the bottom boundary into a vector
       ib = 1
-      do i = 1 , nex
-        do j = j1 , j2
+      do i = 1, nex
+        do j = j1, j2
           r4vector1(ib) = ml(j,i1+i-1)
           ib = ib + 1
         end do
@@ -13612,8 +13612,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the top boundary of this block
       ib = 1
-      do i = 1 , nex
-        do j = j1 , j2
+      do i = 1, nex
+        do j = j1, j2
           ml(j,i2+i) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -13625,8 +13625,8 @@ module mod_mppparam
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the top boundary into a vector
       ib = 1
-      do i = 1 , nex
-        do j = j1 , j2
+      do i = 1, nex
+        do j = j1, j2
           r4vector1(ib) = ml(j,i2-i+1)
           ib = ib + 1
         end do
@@ -13638,8 +13638,8 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the bottom boundary of this block
       ib = 1
-      do i = 1 , nex
-        do j = j1 , j2
+      do i = 1, nex
+        do j = j1, j2
           ml(j,i1-i) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -13652,8 +13652,8 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
         ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -13668,8 +13668,8 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
         ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -13698,8 +13698,8 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -13709,8 +13709,8 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -13723,10 +13723,10 @@ module mod_mppparam
 
   subroutine real4_3d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: jsize , ksize , ssize , j , i , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: jsize, ksize, ssize, j, i, k, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -13759,9 +13759,9 @@ module mod_mppparam
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the bottom boundary into a vector
       ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
+      do k = k1, k2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i1+i-1,k)
             ib = ib + 1
           end do
@@ -13774,9 +13774,9 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the top boundary of this block
       ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
+      do k = k1, k2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i2+i,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -13789,9 +13789,9 @@ module mod_mppparam
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the top boundary into a vector
       ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
+      do k = k1, k2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i2-i+1,k)
             ib = ib + 1
           end do
@@ -13804,9 +13804,9 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the bottom boundary of this block
       ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
+      do k = k1, k2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i1-i,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -13820,9 +13820,9 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i2-i+1,k)
               ib = ib + 1
             end do
@@ -13838,9 +13838,9 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
         ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i1+i-1,k)
               ib = ib + 1
             end do
@@ -13870,9 +13870,9 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -13883,9 +13883,9 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -13899,11 +13899,11 @@ module mod_mppparam
 
   subroutine real4_4d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: jsize , ksize , nsize , ssize
-    integer(ik4) :: j , i , k , n , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: jsize, ksize, nsize, ssize
+    integer(ik4) :: j, i, k, n, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
 
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -13938,10 +13938,10 @@ module mod_mppparam
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the bottom boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+      do n = n1, n2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i1+i-1,k,n)
               ib = ib + 1
             end do
@@ -13955,10 +13955,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the top boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+      do n = n1, n2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -13972,10 +13972,10 @@ module mod_mppparam
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the top boundary into a vector
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+      do n = n1, n2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i2-i+1,k,n)
               ib = ib + 1
             end do
@@ -13989,10 +13989,10 @@ module mod_mppparam
       ! loop over the receiving dummy vector and ravel it into
       ! the bottom boundary of this block
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+      do n = n1, n2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -14007,10 +14007,10 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -14027,10 +14027,10 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -14061,10 +14061,10 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i2+i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -14076,10 +14076,10 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex*jsize*ksize*nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i1-i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -14094,11 +14094,11 @@ module mod_mppparam
 
   subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: isize , jsize , ssize , j , i , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: isize, jsize, ssize, j, i, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     irc = 0
@@ -14117,8 +14117,8 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r8vector1(ib) = ml(j2-j+1,i)
           ib = ib + 1
         end do
@@ -14126,8 +14126,8 @@ module mod_mppparam
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%right,ma%left,__LINE__)
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j1-j,i) = r8vector2(ib)
           ib = ib + 1
         end do
@@ -14144,8 +14144,8 @@ module mod_mppparam
         ! and unravel the top boundary into a vector
         ib = 1
 
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r8vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -14158,8 +14158,8 @@ module mod_mppparam
         ! the bottom boundary of this block
         ib = 1
 
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -14170,8 +14170,8 @@ module mod_mppparam
         ! a vector
         ssize = nex*nex
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
@@ -14184,8 +14184,8 @@ module mod_mppparam
         ! the bottom-left boundary of this block
         ib = 1
 
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j1-j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -14198,8 +14198,8 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
         ib = spos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r8vector1(ib) = ml(j2-j+1,i)
             ib = ib + 1
           end do
@@ -14223,8 +14223,8 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
         ib = spos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r8vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -14244,8 +14244,8 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex
         ib = spos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
@@ -14275,8 +14275,8 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -14288,8 +14288,8 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex * jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -14299,8 +14299,8 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * nex
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j1-j,i1-i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -14313,11 +14313,11 @@ module mod_mppparam
 
   subroutine real8_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: isize, jsize, ksize, ssize, j, i, k, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -14337,9 +14337,9 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             r8vector1(ib) = ml(j2-j+1,i,k)
             ib = ib + 1
           end do
@@ -14348,9 +14348,9 @@ module mod_mppparam
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%right,ma%left,__LINE__)
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ml(j1-j,i,k) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -14368,8 +14368,8 @@ module mod_mppparam
         ib = 1
 
         do k = k1, k2
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               r8vector1(ib) = ml(j,i2-i+1,k)
               ib = ib + 1
             end do
@@ -14384,8 +14384,8 @@ module mod_mppparam
         ib = 1
 
         do k = k1, k2
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i,k) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -14399,8 +14399,8 @@ module mod_mppparam
         ib = 1
 
         do k = k1, k2
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               r8vector1(ib) = ml(j2-j+1,i2-i+1,k)
               ib = ib + 1
             end do
@@ -14415,8 +14415,8 @@ module mod_mppparam
         ib = 1
 
         do k = k1, k2
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j1-j,i1-i,k) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -14430,9 +14430,9 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*ksize*isize
         ib = spos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r8vector1(ib) = ml(j2-j+1,i,k)
               ib = ib + 1
             end do
@@ -14457,9 +14457,9 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*ksize*jsize
         ib = spos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r8vector1(ib) = ml(j,i2-i+1,k)
               ib = ib + 1
             end do
@@ -14480,9 +14480,9 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*ksize*nex
         ib = spos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r8vector1(ib) = ml(j2-j+1,i2-i+1,k)
               ib = ib + 1
             end do
@@ -14513,9 +14513,9 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * isize * ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ml(j1-j,i,k) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -14528,9 +14528,9 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex * jsize * ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -14541,9 +14541,9 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * nex * ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j1-j,i1-i,k) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -14557,11 +14557,11 @@ module mod_mppparam
 
   subroutine real8_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: isize, jsize, ksize, nsize, ssize, j, i, k, n, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -14582,10 +14582,10 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize*nsize
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r8vector1(ib) = ml(j2-j+1,i,k,n)
               ib = ib + 1
             end do
@@ -14595,10 +14595,10 @@ module mod_mppparam
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%right,ma%left,__LINE__)
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -14617,8 +14617,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = j1 , j2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -14633,8 +14633,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = j1 , j2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -14648,8 +14648,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = 1 , nex
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -14664,8 +14664,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = 1 , nex
+            do i = 1, nex
+              do j = 1, nex
                 ml(j1-j,i1-i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -14680,10 +14680,10 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*ksize*nsize*isize
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r8vector1(ib) = ml(j2-j+1,i,k,n)
                 ib = ib + 1
               end do
@@ -14707,10 +14707,10 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*ksize*nsize*jsize
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -14732,10 +14732,10 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*ksize*nsize*nex
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -14767,10 +14767,10 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * isize * ksize * nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j1-j,i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -14784,10 +14784,10 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex * jsize * ksize * nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i1-i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -14799,10 +14799,10 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * nex * ksize * nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = 1, nex
                   ml(j1-j,i1-i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -14817,11 +14817,11 @@ module mod_mppparam
 
   subroutine real4_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: isize , jsize , ssize , j , i , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: isize, jsize, ssize, j, i, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     irc = 0
@@ -14840,8 +14840,8 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r4vector1(ib) = ml(j2-j+1,i)
           ib = ib + 1
         end do
@@ -14849,8 +14849,8 @@ module mod_mppparam
       call cyclic_exchange_array(r4vector1,r4vector2, &
                                  ssize,ma%right,ma%left,__LINE__)
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j1-j,i) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -14866,8 +14866,8 @@ module mod_mppparam
         ! and unravel the top boundary into a vector
         ib = 1
 
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -14880,8 +14880,8 @@ module mod_mppparam
         ! the bottom boundary of this block
         ib = 1
 
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -14892,8 +14892,8 @@ module mod_mppparam
         ! a vector
         ssize = nex*nex
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
@@ -14906,8 +14906,8 @@ module mod_mppparam
         ! the bottom-left boundary of this block
         ib = 1
 
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j1-j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -14920,8 +14920,8 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
         ib = spos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i)
             ib = ib + 1
           end do
@@ -14945,8 +14945,8 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
         ib = spos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
@@ -14966,8 +14966,8 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex
         ib = spos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
@@ -14997,8 +14997,8 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * isize
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -15010,8 +15010,8 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex * jsize
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -15021,8 +15021,8 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * nex
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j1-j,i1-i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -15035,11 +15035,11 @@ module mod_mppparam
 
   subroutine real4_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: isize, jsize, ksize, ssize, j, i, k, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -15059,9 +15059,9 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j2-j+1,i,k)
             ib = ib + 1
           end do
@@ -15070,9 +15070,9 @@ module mod_mppparam
       call cyclic_exchange_array(r4vector1,r4vector2, &
                                  ssize,ma%right,ma%left,__LINE__)
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ml(j1-j,i,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -15091,8 +15091,8 @@ module mod_mppparam
         ib = 1
 
         do k = k1, k2
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i2-i+1,k)
               ib = ib + 1
             end do
@@ -15107,8 +15107,8 @@ module mod_mppparam
         ib = 1
 
         do k = k1, k2
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i1-i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -15122,8 +15122,8 @@ module mod_mppparam
         ib = 1
 
         do k = k1, k2
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
               ib = ib + 1
             end do
@@ -15138,8 +15138,8 @@ module mod_mppparam
         ib = 1
 
         do k = k1, k2
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j1-j,i1-i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -15153,9 +15153,9 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*ksize*isize
         ib = spos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i,k)
               ib = ib + 1
             end do
@@ -15178,9 +15178,9 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*ksize*jsize
         ib = spos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i2-i+1,k)
               ib = ib + 1
             end do
@@ -15201,9 +15201,9 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*ksize*nex
         ib = spos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
               ib = ib + 1
             end do
@@ -15234,9 +15234,9 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * isize * ksize
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ml(j1-j,i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -15249,9 +15249,9 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex * jsize * ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -15262,9 +15262,9 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * nex * ksize
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j1-j,i1-i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -15278,11 +15278,11 @@ module mod_mppparam
 
   subroutine real4_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: isize, jsize, ksize, nsize, ssize, j, i, k, n, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -15303,10 +15303,10 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize*nsize
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j2-j+1,i,k,n)
               ib = ib + 1
             end do
@@ -15316,10 +15316,10 @@ module mod_mppparam
       call cyclic_exchange_array(r4vector1,r4vector2, &
                                  ssize,ma%right,ma%left,__LINE__)
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j1-j,i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -15339,8 +15339,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = j1 , j2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -15355,8 +15355,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = j1 , j2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i1-i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -15370,8 +15370,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = 1 , nex
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -15386,8 +15386,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = 1 , nex
+            do i = 1, nex
+              do j = 1, nex
                 ml(j1-j,i1-i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -15402,10 +15402,10 @@ module mod_mppparam
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*ksize*nsize*isize
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r4vector1(ib) = ml(j2-j+1,i,k,n)
                 ib = ib + 1
               end do
@@ -15429,10 +15429,10 @@ module mod_mppparam
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*ksize*nsize*jsize
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -15454,10 +15454,10 @@ module mod_mppparam
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*ksize*nsize*nex
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
                 ib = ib + 1
               end do
@@ -15489,10 +15489,10 @@ module mod_mppparam
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * isize * ksize * nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j1-j,i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -15506,10 +15506,10 @@ module mod_mppparam
         if ( ma%bottom /= mpi_proc_null) then
           ib = ipos
           ssize = nex * jsize * ksize * nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i1-i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -15521,10 +15521,10 @@ module mod_mppparam
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
           ssize = nex * nex * ksize * nsize
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = 1, nex
                   ml(j1-j,i1-i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -15539,11 +15539,11 @@ module mod_mppparam
 
   subroutine real8_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: isize , jsize , ssize , j , i , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: isize, jsize, ssize, j, i, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     irc = 0
@@ -15562,8 +15562,8 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r8vector1(ib) = ml(j1+j-1,i)
           ib = ib + 1
         end do
@@ -15571,8 +15571,8 @@ module mod_mppparam
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%left,ma%right,__LINE__)
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j2+j,i) = r8vector2(ib)
           ib = ib + 1
         end do
@@ -15586,8 +15586,8 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r8vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -15600,8 +15600,8 @@ module mod_mppparam
         ! the top boundary of this block
         ib = 1
 
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -15613,8 +15613,8 @@ module mod_mppparam
         ssize = nex*nex
         ib = 1
 
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
@@ -15627,8 +15627,8 @@ module mod_mppparam
         ! the top-right boundary of this block
         ib = 1
 
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j2+j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -15641,8 +15641,8 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
         ib = spos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r8vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
@@ -15665,8 +15665,8 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
         ib = spos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r8vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -15686,8 +15686,8 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex
         ib = spos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r8vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
@@ -15717,8 +15717,8 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize
           ib = ipos
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -15730,8 +15730,8 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize
           ib = ipos
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -15741,8 +15741,8 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ssize = nex*nex
           ib = ipos
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j2+j,i2+i) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -15755,11 +15755,11 @@ module mod_mppparam
 
   subroutine real8_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: isize, jsize, ksize, ssize, j, i, k, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -15779,9 +15779,9 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             r8vector1(ib) = ml(j1+j-1,i,k)
             ib = ib + 1
           end do
@@ -15790,9 +15790,9 @@ module mod_mppparam
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%left,ma%right,__LINE__)
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ml(j2+j,i,k) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -15808,8 +15808,8 @@ module mod_mppparam
         ! and unravel the bottom boundary into a vector
         ib = 1
         do k = k1, k2
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               r8vector1(ib) = ml(j,i1+i-1,k)
               ib = ib + 1
             end do
@@ -15823,8 +15823,8 @@ module mod_mppparam
         ! the top boundary of this block
         ib = 1
         do k = k1, k2
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i,k) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -15837,8 +15837,8 @@ module mod_mppparam
         ssize = nex*nex*ksize
         ib = 1
         do k = k1, k2
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               r8vector1(ib) = ml(j1+j-1,i1+i-1,k)
               ib = ib + 1
             end do
@@ -15852,8 +15852,8 @@ module mod_mppparam
         ! the top-right boundary of this block
         ib = 1
         do k = k1, k2
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j2+j,i2+i,k) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -15867,9 +15867,9 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
         ib = spos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r8vector1(ib) = ml(j1+j-1,i,k)
               ib = ib + 1
             end do
@@ -15893,9 +15893,9 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
         ib = spos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r8vector1(ib) = ml(j,i1+i-1,k)
               ib = ib + 1
             end do
@@ -15916,9 +15916,9 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize
         ib = spos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r8vector1(ib) = ml(j1+j-1,i1+i-1,k)
               ib = ib + 1
             end do
@@ -15949,9 +15949,9 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize
           ib = ipos
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ml(j2+j,i,k) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -15964,9 +15964,9 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize*ksize
           ib = ipos
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -15977,9 +15977,9 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ssize = nex*nex*ksize
           ib = ipos
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j2+j,i2+i,k) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -15993,11 +15993,11 @@ module mod_mppparam
 
   subroutine real8_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: isize, jsize, ksize, nsize, ssize, j, i, k, n, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -16018,10 +16018,10 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize*nsize
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r8vector1(ib) = ml(j1+j-1,i,k,n)
               ib = ib + 1
             end do
@@ -16031,10 +16031,10 @@ module mod_mppparam
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%left,ma%right,__LINE__)
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i,k,n) = r8vector2(ib)
               ib = ib + 1
             end do
@@ -16052,8 +16052,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = j1 , j2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -16068,8 +16068,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = j1 , j2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -16084,8 +16084,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = 1 , nex
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -16100,8 +16100,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = 1 , nex
+            do i = 1, nex
+              do j = 1, nex
                 ml(j2+j,i2+i,k,n) = r8vector2(ib)
                 ib = ib + 1
               end do
@@ -16116,10 +16116,10 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize*nsize
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r8vector1(ib) = ml(j1+j-1,i,k,n)
                 ib = ib + 1
               end do
@@ -16144,10 +16144,10 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r8vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -16169,10 +16169,10 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r8vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -16204,10 +16204,10 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize*nsize
           ib = ipos
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j2+j,i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -16221,10 +16221,10 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize*ksize*nsize
           ib = ipos
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i2+i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -16236,10 +16236,10 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ssize = nex*nex*ksize*nsize
           ib = ipos
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = 1, nex
                   ml(j2+j,i2+i,k,n) = r8vector2(ib)
                   ib = ib + 1
                 end do
@@ -16254,11 +16254,11 @@ module mod_mppparam
 
   subroutine real4_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer(ik4) :: isize , jsize , ssize , j , i , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer(ik4) :: isize, jsize, ssize, j, i, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     irc = 0
@@ -16277,8 +16277,8 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           r4vector1(ib) = ml(j1+j-1,i)
           ib = ib + 1
         end do
@@ -16286,8 +16286,8 @@ module mod_mppparam
       call cyclic_exchange_array(r4vector1,r4vector2, &
                                  ssize,ma%left,ma%right,__LINE__)
       ib = 1
-      do i = i1 , i2
-        do j = 1 , nex
+      do i = i1, i2
+        do j = 1, nex
           ml(j2+j,i) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -16301,8 +16301,8 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -16315,8 +16315,8 @@ module mod_mppparam
         ! the top boundary of this block
         ib = 1
 
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             ml(j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -16328,8 +16328,8 @@ module mod_mppparam
         ssize = nex*nex
         ib = 1
 
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
@@ -16341,8 +16341,8 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             ml(j2+j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -16355,8 +16355,8 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
         ib = spos
-        do i = i1 , i2
-          do j = 1 , nex
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
@@ -16379,8 +16379,8 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
         ib = spos
-        do i = 1 , nex
-          do j = j1 , j2
+        do i = 1, nex
+          do j = j1, j2
             r4vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
@@ -16400,8 +16400,8 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex
         ib = spos
-        do i = 1 , nex
-          do j = 1 , nex
+        do i = 1, nex
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
@@ -16431,8 +16431,8 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize
           ib = ipos
-          do i = i1 , i2
-            do j = 1 , nex
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -16444,8 +16444,8 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize
           ib = ipos
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -16455,8 +16455,8 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ssize = nex*nex
           ib = ipos
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j2+j,i2+i) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -16469,11 +16469,11 @@ module mod_mppparam
 
   subroutine real4_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer(ik4) :: isize, jsize, ksize, ssize, j, i, k, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -16493,9 +16493,9 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             r4vector1(ib) = ml(j1+j-1,i,k)
             ib = ib + 1
           end do
@@ -16504,9 +16504,9 @@ module mod_mppparam
       call cyclic_exchange_array(r4vector1,r4vector2, &
                                  ssize,ma%left,ma%right,__LINE__)
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
+      do k = k1, k2
+        do i = i1, i2
+          do j = 1, nex
             ml(j2+j,i,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -16522,8 +16522,8 @@ module mod_mppparam
         ! and unravel the bottom boundary into a vector
         ib = 1
         do k = k1, k2
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i1+i-1,k)
               ib = ib + 1
             end do
@@ -16537,8 +16537,8 @@ module mod_mppparam
         ! the top boundary of this block
         ib = 1
         do k = k1, k2
-          do i = 1 , nex
-            do j = j1 , j2
+          do i = 1, nex
+            do j = j1, j2
               ml(j,i2+i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -16551,8 +16551,8 @@ module mod_mppparam
         ssize = nex*nex*ksize
         ib = 1
         do k = k1, k2
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i1+i-1,k)
               ib = ib + 1
             end do
@@ -16566,8 +16566,8 @@ module mod_mppparam
         ! the top-right boundary of this block
         ib = 1
         do k = k1, k2
-          do i = 1 , nex
-            do j = 1 , nex
+          do i = 1, nex
+            do j = 1, nex
               ml(j2+j,i2+i,k) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -16581,9 +16581,9 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
         ib = spos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i,k)
               ib = ib + 1
             end do
@@ -16607,9 +16607,9 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
         ib = spos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
+        do k = k1, k2
+          do i = 1, nex
+            do j = j1, j2
               r4vector1(ib) = ml(j,i1+i-1,k)
               ib = ib + 1
             end do
@@ -16630,9 +16630,9 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize
         ib = spos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
+        do k = k1, k2
+          do i = 1, nex
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i1+i-1,k)
               ib = ib + 1
             end do
@@ -16663,9 +16663,9 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize
           ib = ipos
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 ml(j2+j,i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -16678,9 +16678,9 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize*ksize
           ib = ipos
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -16691,9 +16691,9 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ssize = nex*nex*ksize
           ib = ipos
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 ml(j2+j,i2+i,k) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -16707,11 +16707,11 @@ module mod_mppparam
 
   subroutine real4_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
-    integer(ik4) :: spos , rpos , ipos , irc
-    integer(ik4) , dimension(6) :: req
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4) :: isize, jsize, ksize, nsize, ssize, j, i, k, n, ib
+    integer(ik4) :: spos, rpos, ipos, irc
+    integer(ik4), dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -16732,10 +16732,10 @@ module mod_mppparam
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize*nsize
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               r4vector1(ib) = ml(j1+j-1,i,k,n)
               ib = ib + 1
             end do
@@ -16745,10 +16745,10 @@ module mod_mppparam
       call cyclic_exchange_array(r4vector1,r4vector2, &
                                  ssize,ma%left,ma%right,__LINE__)
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
+      do n = n1, n2
+        do k = k1, k2
+          do i = i1, i2
+            do j = 1, nex
               ml(j2+j,i,k,n) = r4vector2(ib)
               ib = ib + 1
             end do
@@ -16766,8 +16766,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = j1 , j2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -16782,8 +16782,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = j1 , j2
+            do i = 1, nex
+              do j = j1, j2
                 ml(j,i2+i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -16798,8 +16798,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = 1 , nex
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -16814,8 +16814,8 @@ module mod_mppparam
         ib = 1
         do n = n1, n2
           do k = k1, k2
-            do i = 1 , nex
-              do j = 1 , nex
+            do i = 1, nex
+              do j = 1, nex
                 ml(j2+j,i2+i,k,n) = r4vector2(ib)
                 ib = ib + 1
               end do
@@ -16830,10 +16830,10 @@ module mod_mppparam
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize*nsize
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = i1, i2
+              do j = 1, nex
                 r4vector1(ib) = ml(j1+j-1,i,k,n)
                 ib = ib + 1
               end do
@@ -16858,10 +16858,10 @@ module mod_mppparam
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = j1, j2
                 r4vector1(ib) = ml(j,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -16883,10 +16883,10 @@ module mod_mppparam
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
         ib = spos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
+        do n = n1, n2
+          do k = k1, k2
+            do i = 1, nex
+              do j = 1, nex
                 r4vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
                 ib = ib + 1
               end do
@@ -16918,10 +16918,10 @@ module mod_mppparam
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize*nsize
           ib = ipos
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = i1 , i2
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = i1, i2
+                do j = 1, nex
                   ml(j2+j,i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -16933,10 +16933,10 @@ module mod_mppparam
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize*ksize*nsize
           ib = ipos
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = j1 , j2
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = j1, j2
                   ml(j,i2+i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -16948,10 +16948,10 @@ module mod_mppparam
         if ( ma%topright /= mpi_proc_null ) then
           ssize = nex*nex*ksize*nsize
           ib = ipos
-          do n = n1 , n2
-            do k = k1 , k2
-              do i = 1 , nex
-                do j = 1 , nex
+          do n = n1, n2
+            do k = k1, k2
+              do i = 1, nex
+                do j = 1, nex
                   ml(j2+j,i2+i,k,n) = r4vector2(ib)
                   ib = ib + 1
                 end do
@@ -16968,10 +16968,10 @@ module mod_mppparam
 
   subroutine real8_bdy_exchange_left_right(ml,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: k1 , k2
-    integer(ik4) :: ssize , ksize , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: k1, k2
+    integer(ik4) :: ssize, ksize, k, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
     req =mpi_request_null
     ksize = k2-k1+1
     irc = 0
@@ -16985,33 +16985,33 @@ module mod_mppparam
     end if
     if ( ma%bandflag ) then
       ib = 1
-      do k = k1 , k2
+      do k = k1, k2
         r8vector1(ib) = ml(jde2,k)
         ib = ib + 1
       end do
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ksize,ma%left,ma%right,__LINE__)
       ib = 1
-      do k = k1 , k2
+      do k = k1, k2
         ml(jde1-1,k) = r8vector2(ib)
         ib = ib + 1
       end do
       ib = 1
-      do k = k1 , k2
+      do k = k1, k2
         r8vector1(ib) = ml(jde1,k)
         ib = ib + 1
       end do
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ksize,ma%right,ma%left,__LINE__)
       ib = 1
-      do k = k1 , k2
+      do k = k1, k2
         ml(jde2+1,k) = r8vector2(ib)
         ib = ib + 1
       end do
     else
       if ( ma%right /= mpi_proc_null) then
         ib = ipos
-        do k = k1 , k2
+        do k = k1, k2
           r8vector1(ib) = ml(jde2,k)
           ib = ib + 1
         end do
@@ -17024,7 +17024,7 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ib = ipos
-        do k = k1 , k2
+        do k = k1, k2
           r8vector1(ib) = ml(jde1,k)
           ib = ib + 1
         end do
@@ -17045,7 +17045,7 @@ module mod_mppparam
         ipos = 1
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
-          do k = k1 , k2
+          do k = k1, k2
             ml(jde2+1,k) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -17053,7 +17053,7 @@ module mod_mppparam
         end if
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
-          do k = k1 , k2
+          do k = k1, k2
             ml(jde1-1,k) = r8vector2(ib)
             ib = ib + 1
           end do
@@ -17065,10 +17065,10 @@ module mod_mppparam
 
   subroutine real4_bdy_exchange_left_right(ml,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: k1 , k2
-    integer(ik4) :: ssize , ksize , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: k1, k2
+    integer(ik4) :: ssize, ksize, k, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
     req = mpi_request_null
     ksize = k2-k1+1
     irc = 0
@@ -17082,33 +17082,33 @@ module mod_mppparam
     end if
     if ( ma%bandflag ) then
       ib = 1
-      do k = k1 , k2
+      do k = k1, k2
         r4vector1(ib) = ml(jde2,k)
         ib = ib + 1
       end do
       call cyclic_exchange_array(r4vector1,r4vector2, &
                                  ksize,ma%left,ma%right,__LINE__)
       ib = 1
-      do k = k1 , k2
+      do k = k1, k2
         ml(jde1-1,k) = r4vector2(ib)
         ib = ib + 1
       end do
       ib = 1
-      do k = k1 , k2
+      do k = k1, k2
         r4vector1(ib) = ml(jde1,k)
         ib = ib + 1
       end do
       call cyclic_exchange_array(r4vector1,r4vector2, &
                                  ksize,ma%right,ma%left,__LINE__)
       ib = 1
-      do k = k1 , k2
+      do k = k1, k2
         ml(jde2+1,k) = r4vector2(ib)
         ib = ib + 1
       end do
     else
       if ( ma%right /= mpi_proc_null) then
         ib = ipos
-        do k = k1 , k2
+        do k = k1, k2
           r4vector1(ib) = ml(jde2,k)
           ib = ib + 1
         end do
@@ -17121,7 +17121,7 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ib = ipos
-        do k = k1 , k2
+        do k = k1, k2
           r4vector1(ib) = ml(jde1,k)
           ib = ib + 1
         end do
@@ -17142,7 +17142,7 @@ module mod_mppparam
         ipos = 1
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
-          do k = k1 , k2
+          do k = k1, k2
             ml(jde2+1,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -17150,7 +17150,7 @@ module mod_mppparam
         end if
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
-          do k = k1 , k2
+          do k = k1, k2
             ml(jde1-1,k) = r4vector2(ib)
             ib = ib + 1
           end do
@@ -17162,10 +17162,10 @@ module mod_mppparam
 
   subroutine real8_bdy_exchange_bottom_top(ml,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: k1 , k2
-    integer(ik4) :: ssize , ksize , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: k1, k2
+    integer(ik4) :: ssize, ksize, k, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
     req = mpi_request_null
     ksize = k2-k1+1
     ssize = 2*ksize
@@ -17179,7 +17179,7 @@ module mod_mppparam
     ipos = 1
     if ( ma%top /= mpi_proc_null) then
       ib = ipos
-      do k = k1 , k2
+      do k = k1, k2
         r8vector1(ib) = ml(ide2,k)
         ib = ib + 1
       end do
@@ -17192,7 +17192,7 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null ) then
       ib = ipos
-      do k = k1 , k2
+      do k = k1, k2
         r8vector1(ib) = ml(ide1,k)
         ib = ib + 1
       end do
@@ -17213,7 +17213,7 @@ module mod_mppparam
       ipos = 1
       if ( ma%top /= mpi_proc_null) then
         ib = ipos
-        do k = k1 , k2
+        do k = k1, k2
           ml(ide2+1,k) = r8vector2(ib)
           ib = ib + 1
         end do
@@ -17221,7 +17221,7 @@ module mod_mppparam
       end if
       if ( ma%bottom /= mpi_proc_null ) then
         ib = ipos
-        do k = k1 , k2
+        do k = k1, k2
           ml(ide1-1,k) = r8vector2(ib)
           ib = ib + 1
         end do
@@ -17232,10 +17232,10 @@ module mod_mppparam
 
   subroutine real4_bdy_exchange_bottom_top(ml,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: k1 , k2
-    integer(ik4) :: ssize , ksize , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: req
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: k1, k2
+    integer(ik4) :: ssize, ksize, k, ib, irc, ipos
+    integer(ik4), dimension(4) :: req
     req = mpi_request_null
     ksize = k2-k1+1
     ssize = 2*ksize
@@ -17249,7 +17249,7 @@ module mod_mppparam
     ipos = 1
     if ( ma%top /= mpi_proc_null) then
       ib = ipos
-      do k = k1 , k2
+      do k = k1, k2
         r4vector1(ib) = ml(ide2,k)
         ib = ib + 1
       end do
@@ -17262,7 +17262,7 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null ) then
       ib = ipos
-      do k = k1 , k2
+      do k = k1, k2
         r4vector1(ib) = ml(ide1,k)
         ib = ib + 1
       end do
@@ -17283,7 +17283,7 @@ module mod_mppparam
       ipos = 1
       if ( ma%top /= mpi_proc_null) then
         ib = ipos
-        do k = k1 , k2
+        do k = k1, k2
           ml(ide2+1,k) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -17291,7 +17291,7 @@ module mod_mppparam
       end if
       if ( ma%bottom /= mpi_proc_null ) then
         ib = ipos
-        do k = k1 , k2
+        do k = k1, k2
           ml(ide1-1,k) = r4vector2(ib)
           ib = ib + 1
         end do
@@ -17302,8 +17302,8 @@ module mod_mppparam
 
   subroutine real8_2d_grid_fill_extend1(a,b)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: b
     call grid_collect(a,b,max(jce1,lbound(a,1)),min(jce2,ubound(a,1)), &
                           max(ice1,lbound(a,2)),min(ice2,ubound(a,2)))
     ! Extend on a 'fake' filled cross grid (+1)
@@ -17330,8 +17330,8 @@ module mod_mppparam
 
   subroutine real4_2d_grid_fill_extend1(a,b)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: b
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: b
     call grid_collect(a,b,max(jce1,lbound(a,1)),min(jce2,ubound(a,1)), &
                           max(ice1,lbound(a,2)),min(ice2,ubound(a,2)))
     ! Extend on a 'fake' filled cross grid (+1)
@@ -17358,9 +17358,9 @@ module mod_mppparam
 
   subroutine real8_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
     implicit none
-    integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
+    integer(ik4), intent(in) :: i1, i2, j1, j2
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: a
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: b
     call grid_collect(a,b,i1,i2,j1,j2)
     call mpi_bcast(b,product(shape(b)),mpi_real8,iocpu,mycomm,mpierr)
 #ifdef DEBUG
@@ -17372,9 +17372,9 @@ module mod_mppparam
 
   subroutine real4_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
     implicit none
-    integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: b
+    integer(ik4), intent(in) :: i1, i2, j1, j2
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: a
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: b
     call grid_collect(a,b,i1,i2,j1,j2)
     call mpi_bcast(b,product(shape(b)),mpi_real4,iocpu,mycomm,mpierr)
 #ifdef DEBUG
@@ -17386,9 +17386,9 @@ module mod_mppparam
 
   subroutine uvtentotenx(u,v,ux,vx)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
-    integer(ik4) :: i , j , k
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
+    integer(ik4) :: i, j, k
 
     call exchange_lr(u,2,jdi1,jdi2,ici1,ici2,1,kz)
     call exchange_bt(v,2,jci1,jci2,idi1,idi2,1,kz)
@@ -17398,15 +17398,15 @@ module mod_mppparam
                   0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
     end do
     if ( ma%has_bdyleft ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
+      do k = 1, kz
+        do i = ici1, ici2
           ux(jci1,i,k) = 0.5_rkx * (u(jdi1,i,k)+u(jdii1,i,k))
         end do
       end do
     end if
     if ( ma%has_bdyright ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
+      do k = 1, kz
+        do i = ici1, ici2
           ux(jci2,i,k) = 0.5_rkx*(u(jdi2,i,k) + u(jdii2,i,k))
         end do
       end do
@@ -17416,15 +17416,15 @@ module mod_mppparam
                   0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
     end do
     if ( ma%has_bdybottom ) then
-      do k = 1 , kz
-        do j = jci1 , jci2
+      do k = 1, kz
+        do j = jci1, jci2
           vx(j,ici1,k) = 0.5_rkx * (v(j,idi1,k)+v(j,idii1,k))
         end do
       end do
     end if
     if ( ma%has_bdytop ) then
-      do k = 1 , kz
-        do j = jci1 , jci2
+      do k = 1, kz
+        do j = jci1, jci2
           vx(j,ici2,k) = 0.5_rkx*(v(j,idi2,k) + v(j,idii2,k))
         end do
       end do
@@ -17433,9 +17433,9 @@ module mod_mppparam
 
   subroutine tenxtouvten(ux,vx,u,v)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
-    integer(ik4) :: i , j , k
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
+    integer(ik4) :: i, j, k
 
     call exchange_lr(ux,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange_bt(vx,2,jce1,jce2,ice1,ice2,1,kz)
@@ -17461,9 +17461,9 @@ module mod_mppparam
   !
   subroutine uvcross2dot(ux,vx,ud,vd)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
-    integer(ik4) :: i , j , k
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ux, vx
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ud, vd
+    integer(ik4) :: i, j, k
 
     call exchange(ux,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(vx,1,jce1,jce2,ice1,ice2,1,kz)
@@ -17500,9 +17500,9 @@ module mod_mppparam
 
   subroutine uvdot2cross(ud,vd,ux,vx)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
-    integer(ik4) :: i , j , k
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ud, vd
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ux, vx
+    integer(ik4) :: i, j, k
 
     call exchange(ud,1,jdi1,jdi2,idi1,idi2,1,kz)
     call exchange(vd,1,jdi1,jdi2,idi1,idi2,1,kz)
@@ -17536,9 +17536,9 @@ module mod_mppparam
 
   subroutine cross2dot2d(x,d)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: x
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: d
-    integer(ik4) :: i , j
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: x
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: d
+    integer(ik4) :: i, j
 
     call exchange(x,1,jci1,jci2,ici1,ici2)
 
@@ -17547,22 +17547,22 @@ module mod_mppparam
                            x(j,i-1) + x(j-1,i-1))
     end do
     if ( ma%has_bdyleft ) then
-      do i = idii1 , idii2
+      do i = idii1, idii2
         d(jdi1,i) = d_half*(x(jci1,i) + x(jci1,i-1))
       end do
     end if
     if ( ma%has_bdyright ) then
-      do i = idii1 , idii2
+      do i = idii1, idii2
         d(jdi2,i) = d_half*(x(jci2,i) + x(jci2,i-1))
       end do
     end if
     if ( ma%has_bdytop ) then
-      do j = jdii1 , jdii2
+      do j = jdii1, jdii2
         d(j,idi2) = d_half*(x(j,ici2) + x(j-1,ici2))
       end do
     end if
     if ( ma%has_bdybottom ) then
-      do j = jdii1 , jdii2
+      do j = jdii1, jdii2
         d(j,idi1) = d_half*(x(j,ici1) + x(j-1,ici1))
       end do
     end if
@@ -17582,9 +17582,9 @@ module mod_mppparam
 
   subroutine cross2dot3d(x,d)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: x
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: d
-    integer(ik4) :: i , j , k
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: x
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: d
+    integer(ik4) :: i, j, k
 
     call exchange(x,1,jci1,jci2,ici1,ici2,1,kz)
 
@@ -17593,50 +17593,50 @@ module mod_mppparam
                            x(j,i-1,k) + x(j-1,i-1,k))
     end do
     if ( ma%has_bdyleft ) then
-      do k = 1 , kz
-        do i = idii1 , idii2
+      do k = 1, kz
+        do i = idii1, idii2
           d(jdi1,i,k) = d_half*(x(jci1,i,k) + x(jci1,i-1,k))
         end do
       end do
     end if
     if ( ma%has_bdyright ) then
-      do k = 1 , kz
-        do i = idii1 , idii2
+      do k = 1, kz
+        do i = idii1, idii2
           d(jdi2,i,k) = d_half*(x(jci2,i,k) + x(jci2,i-1,k))
         end do
       end do
     end if
     if ( ma%has_bdytop ) then
-      do k = 1 , kz
-        do j = jdii1 , jdii2
+      do k = 1, kz
+        do j = jdii1, jdii2
           d(j,idi2,k) = d_half*(x(j,ici2,k) + x(j-1,ici2,k))
         end do
       end do
     end if
     if ( ma%has_bdybottom ) then
-      do k = 1 , kz
-        do j = jdii1 , jdii2
+      do k = 1, kz
+        do j = jdii1, jdii2
           d(j,idi1,k) = d_half*(x(j,ici1,k) + x(j-1,ici1,k))
         end do
       end do
     end if
     if ( ma%has_bdytopleft ) then
-      do k = 1 , kz
+      do k = 1, kz
         d(jdi1,idi2,k) = x(jci1,ici2,k)
       end do
     end if
     if ( ma%has_bdybottomleft ) then
-      do k = 1 , kz
+      do k = 1, kz
         d(jdi1,idi1,k) = x(jci1,ici1,k)
       end do
     end if
     if ( ma%has_bdytopright ) then
-      do k = 1 , kz
+      do k = 1, kz
         d(jdi2,idi2,k) = x(jci2,ici2,k)
       end do
     end if
     if ( ma%has_bdybottomright ) then
-      do k = 1 , kz
+      do k = 1, kz
         d(jdi2,idi1,k) = x(jci2,ici1,k)
       end do
     end if
@@ -17644,9 +17644,9 @@ module mod_mppparam
 
   subroutine psc2psd(pc,pd)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in)  :: pc
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: pd
-    integer(ik4) :: i , j
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in)  :: pc
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: pd
+    integer(ik4) :: i, j
     !
     ! Internal points
     !
@@ -17657,22 +17657,22 @@ module mod_mppparam
     ! Boundaries
     !
     if ( ma%has_bdytop ) then
-      do j = jdi1 , jdi2
+      do j = jdi1, jdi2
         pd(j,ide2) = (pc(j,ice2)+pc(j-1,ice2))*d_half
       end do
     end if
     if ( ma%has_bdybottom ) then
-      do j = jdi1 , jdi2
+      do j = jdi1, jdi2
         pd(j,ide1)  = (pc(j,ice1)+pc(j-1,ice1))*d_half
       end do
     end if
     if ( ma%has_bdyleft ) then
-      do i = idi1 , idi2
+      do i = idi1, idi2
         pd(jde1,i) = (pc(jce1,i)+pc(jce1,i-1))*d_half
       end do
     end if
     if ( ma%has_bdyright ) then
-      do i = idi1 , idi2
+      do i = idi1, idi2
         pd(jde2,i) = (pc(jce2,i)+pc(jce2,i-1))*d_half
       end do
     end if
@@ -17695,12 +17695,12 @@ module mod_mppparam
 
   subroutine grid_nc_create_var2d(varname,ldot,val,xvar)
     implicit none
-    character(len=*) , intent(in) :: varname
-    logical , intent(in) :: ldot
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: val
-    type (grid_nc_var2d) , intent(inout) :: xvar
+    character(len=*), intent(in) :: varname
+    logical, intent(in) :: ldot
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: val
+    type (grid_nc_var2d), intent(inout) :: xvar
     integer(ik4) :: istat
-    integer(ik4) , dimension(3) :: idims
+    integer(ik4), dimension(3) :: idims
 
     xvar%varname = varname
     call assignpnt(val,xvar%val)
@@ -17765,9 +17765,9 @@ module mod_mppparam
 
   subroutine grid_nc_write_var2d(xvar)
     implicit none
-    type (grid_nc_var2d) , intent(inout) :: xvar
+    type (grid_nc_var2d), intent(inout) :: xvar
     integer(ik4) :: istat
-    integer(ik4) , dimension(3) :: istart , icount
+    integer(ik4), dimension(3) :: istart, icount
     if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
     end if
@@ -17796,7 +17796,7 @@ module mod_mppparam
 
   subroutine grid_nc_destroy_var2d(xvar)
     implicit none
-    type (grid_nc_var2d) , intent(inout) :: xvar
+    type (grid_nc_var2d), intent(inout) :: xvar
     integer(ik4) :: istat
     if ( myid == iocpu ) then
       istat = nf90_close(xvar%ncid)
@@ -17813,12 +17813,12 @@ module mod_mppparam
 
   subroutine grid_nc_create_var3d(varname,ldot,val,xvar)
     implicit none
-    character(len=*) , intent(in) :: varname
-    logical , intent(in) :: ldot
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: val
-    type (grid_nc_var3d) , intent(inout) :: xvar
+    character(len=*), intent(in) :: varname
+    logical, intent(in) :: ldot
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: val
+    type (grid_nc_var3d), intent(inout) :: xvar
     integer(ik4) :: istat
-    integer(ik4) , dimension(4) :: idims
+    integer(ik4), dimension(4) :: idims
 
     xvar%varname = varname
     call assignpnt(val,xvar%val)
@@ -17889,9 +17889,9 @@ module mod_mppparam
 
   subroutine grid_nc_write_var3d(xvar)
     implicit none
-    type (grid_nc_var3d) , intent(inout) :: xvar
+    type (grid_nc_var3d), intent(inout) :: xvar
     integer(ik4) :: istat
-    integer(ik4) , dimension(4) :: istart , icount
+    integer(ik4), dimension(4) :: istart, icount
     if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
     end if
@@ -17922,7 +17922,7 @@ module mod_mppparam
 
   subroutine grid_nc_destroy_var3d(xvar)
     implicit none
-    type (grid_nc_var3d) , intent(inout) :: xvar
+    type (grid_nc_var3d), intent(inout) :: xvar
     integer(ik4) :: istat
     if ( myid == iocpu ) then
       istat = nf90_close(xvar%ncid)
@@ -17939,12 +17939,12 @@ module mod_mppparam
 
   subroutine grid_nc_create_var4d(varname,ldot,val,xvar)
     implicit none
-    character(len=*) , intent(in) :: varname
-    logical , intent(in) :: ldot
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: val
-    type (grid_nc_var4d) , intent(inout) :: xvar
+    character(len=*), intent(in) :: varname
+    logical, intent(in) :: ldot
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: val
+    type (grid_nc_var4d), intent(inout) :: xvar
     integer(ik4) :: istat
-    integer(ik4) , dimension(5) :: idims
+    integer(ik4), dimension(5) :: idims
 
     xvar%varname = varname
     call assignpnt(val,xvar%val)
@@ -18022,9 +18022,9 @@ module mod_mppparam
 
   subroutine grid_nc_write_var4d(xvar)
     implicit none
-    type (grid_nc_var4d) , intent(inout) :: xvar
+    type (grid_nc_var4d), intent(inout) :: xvar
     integer(ik4) :: istat
-    integer(ik4) , dimension(5) :: istart , icount
+    integer(ik4), dimension(5) :: istart, icount
     if ( .not. associated(xvar%val) .or. xvar%irec < 1 ) then
       return
     end if
@@ -18058,7 +18058,7 @@ module mod_mppparam
 
   subroutine grid_nc_destroy_var4d(xvar)
     implicit none
-    type (grid_nc_var4d) , intent(inout) :: xvar
+    type (grid_nc_var4d), intent(inout) :: xvar
     integer(ik4) :: istat
     if ( myid == iocpu ) then
       istat = nf90_close(xvar%ncid)
@@ -18075,9 +18075,9 @@ module mod_mppparam
 
   subroutine gather_r(f_collect,f_sub)
     implicit none
-    real(rk8) , dimension(:) , intent(out) :: f_collect
-    real(rk8) , intent(in) :: f_sub
-    real(rk8) , dimension(1) :: tmp
+    real(rk8), dimension(:), intent(out) :: f_collect
+    real(rk8), intent(in) :: f_sub
+    real(rk8), dimension(1) :: tmp
     tmp(1) = f_sub
     call mpi_gather(tmp,      1,mpi_real8, &
                     f_collect,1,mpi_real8,iocpu,mycomm,mpierr)
@@ -18090,9 +18090,9 @@ module mod_mppparam
 
   subroutine gather_i(i_collect,i_sub)
     implicit none
-    integer(ik4) , dimension(:) , intent(out) :: i_collect
-    integer(ik4) , intent(in) :: i_sub
-    integer(ik4) , dimension(1) :: tmp
+    integer(ik4), dimension(:), intent(out) :: i_collect
+    integer(ik4), intent(in) :: i_sub
+    integer(ik4), dimension(1) :: tmp
     tmp(1) = i_sub
     call mpi_gather(tmp,      1,mpi_integer4, &
                     i_collect,1,mpi_integer4,iocpu,mycomm,mpierr)
@@ -18105,9 +18105,9 @@ module mod_mppparam
 
   subroutine allgather_r(f_collect,f_sub)
     implicit none
-    real(rk8) , dimension(:) , intent(out) :: f_collect
-    real(rk8) , intent(in) :: f_sub
-    real(rk8) , dimension(1) :: tmp
+    real(rk8), dimension(:), intent(out) :: f_collect
+    real(rk8), intent(in) :: f_sub
+    real(rk8), dimension(1) :: tmp
     tmp(1) = f_sub
     call mpi_allgather(tmp,      1,mpi_real8, &
                        f_collect,1,mpi_real8,mycomm,mpierr)
@@ -18120,9 +18120,9 @@ module mod_mppparam
 
   subroutine allgather_i(i_collect,i_sub)
     implicit none
-    integer(ik4) , dimension(:) , intent(out) :: i_collect
-    integer(ik4) , intent(in) :: i_sub
-    integer(ik4) , dimension(1) :: tmp
+    integer(ik4), dimension(:), intent(out) :: i_collect
+    integer(ik4), intent(in) :: i_sub
+    integer(ik4), dimension(1) :: tmp
     tmp(1) = i_sub
     call mpi_allgather(tmp,      1,mpi_integer4, &
                        i_collect,1,mpi_integer4,mycomm,mpierr)
@@ -18135,16 +18135,16 @@ module mod_mppparam
 
   subroutine reorder_add_subgrid_2d_real8(var3,var2,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: var3
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: var2
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var2(jj,ii) + var3((n2-1)*nsg+n1,j,i)
@@ -18156,11 +18156,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2(jj,ii) = var2(jj,ii) + var3((n2-1)*nsg+n1,j,i)
             end do
@@ -18172,16 +18172,16 @@ module mod_mppparam
 
   subroutine reorder_add_subgrid_2d_real4(var3,var2,mask)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: var2
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: var3
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: var2
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var2(jj,ii) + var3((n2-1)*nsg+n1,j,i)
@@ -18193,11 +18193,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2(jj,ii) = var2(jj,ii) + var3((n2-1)*nsg+n1,j,i)
             end do
@@ -18209,16 +18209,16 @@ module mod_mppparam
 
   subroutine reorder_subgrid_2d_real8(var3,var2,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: var3
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: var2
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
@@ -18230,11 +18230,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
             end do
@@ -18246,16 +18246,16 @@ module mod_mppparam
 
   subroutine reorder_subgrid_2d_real4(var3,var2,mask)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: var2
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: var3
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: var2
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
@@ -18267,11 +18267,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
             end do
@@ -18283,14 +18283,14 @@ module mod_mppparam
 
   subroutine reorder_logical_global_subgrid_2d(var3,var2)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: var3
-    logical , pointer , dimension(:,:) , intent(inout) :: var2
-    integer(ik4) :: i , j , ii , jj , n1 , n2
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n2 = 1 , nsg
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: var3
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: var2
+    integer(ik4) :: i, j, ii, jj, n1, n2
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n2 = 1, nsg
           ii = (i-1) * nsg + n2
-          do n1 = 1 , nsg
+          do n1 = 1, nsg
             jj = (j-1) * nsg + n1
             var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
           end do
@@ -18301,14 +18301,14 @@ module mod_mppparam
 
   subroutine reorder_subgrid_2d_logical(var3,var2)
     implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: var3
-    logical , pointer , dimension(:,:) , intent(inout) :: var2
-    integer(ik4) :: i , j , ii , jj , n1 , n2
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n2 = 1 , nsg
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: var3
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: var2
+    integer(ik4) :: i, j, ii, jj, n1, n2
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n2 = 1, nsg
           ii = (i-1) * nsg + n2
-          do n1 = 1 , nsg
+          do n1 = 1, nsg
             jj = (j-1) * nsg + n1
             var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
           end do
@@ -18319,19 +18319,19 @@ module mod_mppparam
 
   subroutine reorder_add_subgrid_2d3d_real8(var3,var2_3,l,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: var2_3
-    integer(ik4) , optional , intent(in) :: l
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2 , ll
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: var3
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: var2_3
+    integer(ik4), optional, intent(in) :: l
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2, ll
     ll = 1
     if ( present(l) ) ll = l
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2_3(jj,ii,ll) = var2_3(jj,ii,ll) + var3((n2-1)*nsg+n1,j,i)
@@ -18343,11 +18343,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2_3(jj,ii,ll) = var2_3(jj,ii,ll) + var3((n2-1)*nsg+n1,j,i)
             end do
@@ -18359,19 +18359,19 @@ module mod_mppparam
 
   subroutine reorder_add_subgrid_2d3d_real4(var3,var2_3,l,mask)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: var2_3
-    integer(ik4) , optional , intent(in) :: l
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2 , ll
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: var3
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: var2_3
+    integer(ik4), optional, intent(in) :: l
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2, ll
     ll = 1
     if ( present(l) ) ll = l
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2_3(jj,ii,ll) = var2_3(jj,ii,ll) + var3((n2-1)*nsg+n1,j,i)
@@ -18383,11 +18383,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2_3(jj,ii,ll) = var2_3(jj,ii,ll) + var3((n2-1)*nsg+n1,j,i)
             end do
@@ -18399,19 +18399,19 @@ module mod_mppparam
 
   subroutine reorder_subgrid_2d3d_real8(var3,var2_3,l,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: var2_3
-    integer(ik4) , optional , intent(in) :: l
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2 , ll
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: var3
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: var2_3
+    integer(ik4), optional, intent(in) :: l
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2, ll
     ll = 1
     if ( present(l) ) ll = l
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2_3(jj,ii,ll) = var3((n2-1)*nsg+n1,j,i)
@@ -18423,11 +18423,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2_3(jj,ii,ll) = var3((n2-1)*nsg+n1,j,i)
             end do
@@ -18439,19 +18439,19 @@ module mod_mppparam
 
   subroutine reorder_subgrid_2d3d_real4(var3,var2_3,l,mask)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: var2_3
-    integer(ik4) , optional , intent(in) :: l
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2 , ll
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: var3
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: var2_3
+    integer(ik4), optional, intent(in) :: l
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2, ll
     ll = 1
     if ( present(l) ) ll = l
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2_3(jj,ii,ll) = var3((n2-1)*nsg+n1,j,i)
@@ -18463,11 +18463,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2_3(jj,ii,ll) = var3((n2-1)*nsg+n1,j,i)
             end do
@@ -18479,17 +18479,17 @@ module mod_mppparam
 
   subroutine reorder_add_subgrid_3d_real8(var4,var2,l,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
-    integer(ik4) , intent(in) :: l
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var4
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: var2
+    integer(ik4), intent(in) :: l
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var2(jj,ii) + var4((n2-1)*nsg+n1,j,i,l)
@@ -18501,11 +18501,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2(jj,ii) = var2(jj,ii) + var4((n2-1)*nsg+n1,j,i,l)
             end do
@@ -18517,17 +18517,17 @@ module mod_mppparam
 
   subroutine reorder_add_subgrid_3d_real4(var4,var2,l,mask)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: var4
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: var2
-    integer(ik4) , intent(in) :: l
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var4
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: var2
+    integer(ik4), intent(in) :: l
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var2(jj,ii) + var4((n2-1)*nsg+n1,j,i,l)
@@ -18539,11 +18539,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2(jj,ii) = var2(jj,ii) + var4((n2-1)*nsg+n1,j,i,l)
             end do
@@ -18555,17 +18555,17 @@ module mod_mppparam
 
   subroutine reorder_subgrid_3d_real8(var4,var2,l,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
-    integer(ik4) , intent(in) :: l
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var4
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: var2
+    integer(ik4), intent(in) :: l
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var4((n2-1)*nsg+n1,j,i,l)
@@ -18577,11 +18577,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2(jj,ii) = var4((n2-1)*nsg+n1,j,i,l)
             end do
@@ -18593,17 +18593,17 @@ module mod_mppparam
 
   subroutine reorder_subgrid_3d_real4(var4,var2,l,mask)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: var4
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: var2
-    integer(ik4) , intent(in) :: l
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , ii , jj , n1 , n2
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var4
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: var2
+    integer(ik4), intent(in) :: l
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, ii, jj, n1, n2
     if ( present(mask) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var4((n2-1)*nsg+n1,j,i,l)
@@ -18615,11 +18615,11 @@ module mod_mppparam
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n2 = 1 , nsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n2 = 1, nsg
             ii = (i-1) * nsg + n2
-            do n1 = 1 , nsg
+            do n1 = 1, nsg
               jj = (j-1) * nsg + n1
               var2(jj,ii) = var4((n2-1)*nsg+n1,j,i,l)
             end do
@@ -18631,17 +18631,17 @@ module mod_mppparam
 
   subroutine reorder_subgrid_4d_real8(var4,var3,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: var3
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , l , ii , jj , n1 , n2
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var4
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: var3
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, l, ii, jj, n1, n2
     if ( present(mask) ) then
-      do l = 1 , size(var4,4)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            do n2 = 1 , nsg
+      do l = 1, size(var4,4)
+        do i = ici1, ici2
+          do j = jci1, jci2
+            do n2 = 1, nsg
               ii = (i-1) * nsg + n2
-              do n1 = 1 , nsg
+              do n1 = 1, nsg
                 jj = (j-1) * nsg + n1
                 if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                   var3(jj,ii,l) = var4((n2-1)*nsg+n1,j,i,l)
@@ -18654,12 +18654,12 @@ module mod_mppparam
         end do
       end do
     else
-      do l = 1 , size(var4,4)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            do n2 = 1 , nsg
+      do l = 1, size(var4,4)
+        do i = ici1, ici2
+          do j = jci1, jci2
+            do n2 = 1, nsg
               ii = (i-1) * nsg + n2
-              do n1 = 1 , nsg
+              do n1 = 1, nsg
                 jj = (j-1) * nsg + n1
                 var3(jj,ii,l) = var4((n2-1)*nsg+n1,j,i,l)
               end do
@@ -18672,17 +18672,17 @@ module mod_mppparam
 
   subroutine reorder_subgrid_4d_real4(var4,var3,mask)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: var4
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: var3
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) :: i , j , l , ii , jj , n1 , n2
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var4
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: var3
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
+    integer(ik4) :: i, j, l, ii, jj, n1, n2
     if ( present(mask) ) then
-      do l = 1 , size(var4,4)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            do n2 = 1 , nsg
+      do l = 1, size(var4,4)
+        do i = ici1, ici2
+          do j = jci1, jci2
+            do n2 = 1, nsg
               ii = (i-1) * nsg + n2
-              do n1 = 1 , nsg
+              do n1 = 1, nsg
                 jj = (j-1) * nsg + n1
                 if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                   var3(jj,ii,l) = var4((n2-1)*nsg+n1,j,i,l)
@@ -18695,12 +18695,12 @@ module mod_mppparam
         end do
       end do
     else
-      do l = 1 , size(var4,4)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            do n2 = 1 , nsg
+      do l = 1, size(var4,4)
+        do i = ici1, ici2
+          do j = jci1, jci2
+            do n2 = 1, nsg
               ii = (i-1) * nsg + n2
-              do n1 = 1 , nsg
+              do n1 = 1, nsg
                 jj = (j-1) * nsg + n1
                 var3(jj,ii,l) = var4((n2-1)*nsg+n1,j,i,l)
               end do
@@ -18713,15 +18713,15 @@ module mod_mppparam
 
   subroutine input_reorder_real8(m1,m2,j1,j2,i1,i2)
     implicit none
-    real(rk8) , dimension(:,:) , intent(in) :: m1
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: m2
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: i , j , ii , jj , n1 , n2
-    do i = i1 , i2
-      do j = j1 , j2
-        do n2 = 1 , nsg
+    real(rk8), dimension(:,:), intent(in) :: m1
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: m2
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    integer(ik4) :: i, j, ii, jj, n1, n2
+    do i = i1, i2
+      do j = j1, j2
+        do n2 = 1, nsg
           ii = (i-1) * nsg + n2
-          do n1 = 1 , nsg
+          do n1 = 1, nsg
             jj = (j-1) * nsg + n1
             m2((n2-1)*nsg+n1,j,i) = m1(jj,ii)
           end do
@@ -18732,15 +18732,15 @@ module mod_mppparam
 
   subroutine input_reorder_real4(m1,m2,j1,j2,i1,i2)
     implicit none
-    real(rk4) , dimension(:,:) , intent(in) :: m1
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: m2
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: i , j , ii , jj , n1 , n2
-    do i = i1 , i2
-      do j = j1 , j2
-        do n2 = 1 , nsg
+    real(rk4), dimension(:,:), intent(in) :: m1
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: m2
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    integer(ik4) :: i, j, ii, jj, n1, n2
+    do i = i1, i2
+      do j = j1, j2
+        do n2 = 1, nsg
           ii = (i-1) * nsg + n2
-          do n1 = 1 , nsg
+          do n1 = 1, nsg
             jj = (j-1) * nsg + n1
             m2((n2-1)*nsg+n1,j,i) = m1(jj,ii)
           end do
@@ -18761,10 +18761,10 @@ module mod_mppparam
 
   subroutine clset(ncart_tot_g,ncart_tot_sg,cl)
     implicit none
-    type(masked_comm) , intent(inout) :: cl
-    integer(ik4) , intent(in) :: ncart_tot_g , ncart_tot_sg
-    integer(ik4) :: linp , nrem , np , ntotg
-    integer(ik4) , dimension(1) :: tmp
+    type(masked_comm), intent(inout) :: cl
+    integer(ik4), intent(in) :: ncart_tot_g, ncart_tot_sg
+    integer(ik4) :: linp, nrem, np, ntotg
+    integer(ik4), dimension(1) :: tmp
     tmp(1) = ncart_tot_g
     call mpi_allgather(tmp,1,mpi_integer4,                   &
                        cl%cartesian_npoint_g,1,mpi_integer4, &
@@ -18775,7 +18775,7 @@ module mod_mppparam
     end if
 #endif
     cl%cartesian_displ_g(:) = 0
-    do np = 2 , nproc
+    do np = 2, nproc
       cl%cartesian_displ_g(np) = cl%cartesian_displ_g(np-1) + &
                                  cl%cartesian_npoint_g(np-1)
     end do
@@ -18799,7 +18799,7 @@ module mod_mppparam
       end if
     end if
     cl%linear_displ_g(:) = 0
-    do np = 2 , nproc
+    do np = 2, nproc
       cl%linear_displ_g(np) = cl%linear_displ_g(np-1) + &
                               cl%linear_npoint_g(np-1)
     end do
@@ -18814,7 +18814,7 @@ module mod_mppparam
       end if
 #endif
       cl%cartesian_displ_sg(:) = 0
-      do np = 2 , nproc
+      do np = 2, nproc
         cl%cartesian_displ_sg(np) = cl%cartesian_displ_sg(np-1) + &
                                     cl%cartesian_npoint_sg(np-1)
       end do
@@ -18836,7 +18836,7 @@ module mod_mppparam
         end if
       end if
       cl%linear_displ_sg(:) = 0
-      do np = 2 , nproc
+      do np = 2, nproc
         cl%linear_displ_sg(np) = cl%linear_displ_sg(np-1) + &
                                  cl%linear_npoint_sg(np-1)
       end do
@@ -18866,11 +18866,11 @@ module mod_mppparam
 
   subroutine cl_setup_real8(cl,gmask,sgmask,lrev)
     implicit none
-    type(masked_comm) , intent(inout) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: gmask
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: sgmask
-    logical , optional , intent(in) :: lrev
-    integer(ik4) :: ncart_tot_g , ncart_tot_sg
+    type(masked_comm), intent(inout) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: gmask
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: sgmask
+    logical, optional, intent(in) :: lrev
+    integer(ik4) :: ncart_tot_g, ncart_tot_sg
     if ( .not. associated(cl%linear_npoint_g) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
 #ifdef DEBUG
@@ -18912,11 +18912,11 @@ module mod_mppparam
 
   subroutine cl_setup_real4(cl,gmask,sgmask,lrev)
     implicit none
-    type(masked_comm) , intent(inout) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: gmask
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: sgmask
-    logical , optional , intent(in) :: lrev
-    integer(ik4) :: ncart_tot_g , ncart_tot_sg
+    type(masked_comm), intent(inout) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: gmask
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: sgmask
+    logical, optional, intent(in) :: lrev
+    integer(ik4) :: ncart_tot_g, ncart_tot_sg
     if ( .not. associated(cl%linear_npoint_g) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
 #ifdef DEBUG
@@ -18958,10 +18958,10 @@ module mod_mppparam
 
   subroutine cartesian_to_linear_logical_subgrid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:,:,:) , intent(in) :: matrix
-    logical , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: nval , npt
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    logical, pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: nval, npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
@@ -18991,10 +18991,10 @@ module mod_mppparam
 
   subroutine linear_to_cartesian_logical_subgrid_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(in) :: vector
-    logical , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: nval , npt
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:), intent(in) :: vector
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: nval, npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
@@ -19025,10 +19025,10 @@ module mod_mppparam
 
   subroutine cartesian_to_linear_integer_subgrid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: nval , npt
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: nval, npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
@@ -19058,10 +19058,10 @@ module mod_mppparam
 
   subroutine linear_to_cartesian_integer_subgrid_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: nval , npt
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:), intent(in) :: vector
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: nval, npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
@@ -19092,10 +19092,10 @@ module mod_mppparam
 
   subroutine cartesian_to_linear_real8_subgrid_subgrid_4d(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
-    integer(ik4) :: nval , npt , nlev , k
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    integer(ik4) :: nval, npt, nlev, k
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     nlev = size(matrix,4)
@@ -19103,7 +19103,7 @@ module mod_mppparam
       call mypack(cl,matrix,vector,nlev)
       return
     end if
-    do k = 1 , nlev
+    do k = 1, nlev
       if ( nval > 0 ) then
         call mypack(cl,matrix,r8vector1,k)
       end if
@@ -19128,10 +19128,10 @@ module mod_mppparam
 
   subroutine cartesian_to_linear_real4_subgrid_subgrid_4d(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: vector
-    integer(ik4) :: nval , npt , nlev , k
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    integer(ik4) :: nval, npt, nlev, k
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     nlev = size(matrix,4)
@@ -19139,7 +19139,7 @@ module mod_mppparam
       call mypack(cl,matrix,vector,nlev)
       return
     end if
-    do k = 1 , nlev
+    do k = 1, nlev
       if ( nval > 0 ) then
         call mypack(cl,matrix,r4vector1,k)
       end if
@@ -19164,10 +19164,10 @@ module mod_mppparam
 
   subroutine linear_to_cartesian_real8_subgrid_subgrid_4d(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: nval , npt , nlev , k
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4) :: nval, npt, nlev, k
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     nlev = size(vector,2)
@@ -19175,7 +19175,7 @@ module mod_mppparam
       call myunpack(cl,vector,matrix,nlev)
       return
     end if
-    do k = 1 , nlev
+    do k = 1, nlev
       call mpi_gatherv(vector(:,k),npt,mpi_real8,                        &
                        r8vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real8,iocpu,cl%linear_communicator,mpierr)
@@ -19201,10 +19201,10 @@ module mod_mppparam
 
   subroutine linear_to_cartesian_real4_subgrid_subgrid_4d(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: nval , npt , nlev , k
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4) :: nval, npt, nlev, k
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     nlev = size(vector,2)
@@ -19212,7 +19212,7 @@ module mod_mppparam
       call myunpack(cl,vector,matrix,nlev)
       return
     end if
-    do k = 1 , nlev
+    do k = 1, nlev
       call mpi_gatherv(vector(:,k),npt,mpi_real4,                        &
                        r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real4,iocpu,cl%linear_communicator,mpierr)
@@ -19238,10 +19238,10 @@ module mod_mppparam
 
   subroutine cartesian_to_linear_real8_subgrid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: nval , npt
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: nval, npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
@@ -19271,10 +19271,10 @@ module mod_mppparam
 
   subroutine cartesian_to_linear_real4_subgrid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: nval , npt
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: nval, npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
@@ -19304,10 +19304,10 @@ module mod_mppparam
 
   subroutine linear_to_cartesian_real8_subgrid_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: nval , npt
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: nval, npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
@@ -19338,10 +19338,10 @@ module mod_mppparam
 
   subroutine linear_to_cartesian_real4_subgrid_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: nval , npt
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: nval, npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
@@ -19372,10 +19372,10 @@ module mod_mppparam
 
   subroutine cartesian_to_linear_logical_grid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:,:) , intent(in) :: matrix
-    logical , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , n
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    logical, pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       lsubgrid(n,j,i) = matrix(j,i)
     end do
@@ -19384,10 +19384,10 @@ module mod_mppparam
 
   subroutine cartesian_to_linear_integer_grid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , n
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       i4subgrid(n,j,i) = matrix(j,i)
     end do
@@ -19396,10 +19396,10 @@ module mod_mppparam
 
   subroutine cartesian_to_linear_real8_grid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , n
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       r8subgrid(n,j,i) = matrix(j,i)
     end do
@@ -19408,10 +19408,10 @@ module mod_mppparam
 
   subroutine cartesian_to_linear_real4_grid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , n
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       r4subgrid(n,j,i) = matrix(j,i)
     end do
@@ -19420,9 +19420,9 @@ module mod_mppparam
 
   subroutine global_to_linear_logical_subgrid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:,:,:) , intent(in) :: matrix
-    logical , pointer , dimension(:) , intent(inout) :: vector
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    logical, pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: npt
 
     if ( nproc == 1 ) then
@@ -19444,9 +19444,9 @@ module mod_mppparam
 
   subroutine linear_to_global_logical_subgrid_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(in) :: vector
-    logical , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:), intent(in) :: vector
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
     if ( nproc == 1 ) then
       call myunpack_global(cl,vector,matrix)
       return
@@ -19466,9 +19466,9 @@ module mod_mppparam
 
   subroutine global_to_linear_integer_subgrid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: npt
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector)
@@ -19489,9 +19489,9 @@ module mod_mppparam
 
   subroutine linear_to_global_integer_subgrid_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:), intent(in) :: vector
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
     if ( nproc == 1 ) then
       call myunpack_global(cl,vector,matrix)
       return
@@ -19511,9 +19511,9 @@ module mod_mppparam
 
   subroutine global_to_linear_real8_subgrid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: npt
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector)
@@ -19534,9 +19534,9 @@ module mod_mppparam
 
   subroutine global_to_linear_real4_subgrid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: npt
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector)
@@ -19557,9 +19557,9 @@ module mod_mppparam
 
   subroutine global_to_linear_real4_real8_subgrid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: npt
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector)
@@ -19580,9 +19580,9 @@ module mod_mppparam
 
   subroutine linear_to_global_real8_subgrid_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
     if ( nproc == 1 ) then
       call myunpack_global(cl,vector,matrix)
       return
@@ -19602,9 +19602,9 @@ module mod_mppparam
 
   subroutine linear_to_global_real4_subgrid_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
     if ( nproc == 1 ) then
       call myunpack_global(cl,vector,matrix)
       return
@@ -19624,9 +19624,9 @@ module mod_mppparam
 
   subroutine linear_to_global_real8_real4_subgrid_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
     if ( nproc == 1 ) then
       call myunpack_global(cl,vector,matrix)
       return
@@ -19646,17 +19646,17 @@ module mod_mppparam
 
   subroutine global_to_linear_real8_subgrid_subgrid_4d(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
-    integer(ik4) :: npt , k , nlev
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    integer(ik4) :: npt, k, nlev
     nlev = size(matrix,4)
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector,nlev)
       return
     end if
     npt  = cl%linear_npoint_sg(myid+1)
-    do k = 1 , nlev
+    do k = 1, nlev
       r8subgrid = matrix(:,jci1:jci2,ici1:ici2,k)
       call subgrid_collect(r8subgrid,global_r8subgrid,jci1,jci2,ici1,ici2)
       call mypack_global(cl,global_r8subgrid,r8vector1)
@@ -19673,17 +19673,17 @@ module mod_mppparam
 
   subroutine global_to_linear_real4_subgrid_subgrid_4d(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: vector
-    integer(ik4) :: npt , k , nlev
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    integer(ik4) :: npt, k, nlev
     nlev = size(matrix,4)
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector,nlev)
       return
     end if
     npt  = cl%linear_npoint_sg(myid+1)
-    do k = 1 , nlev
+    do k = 1, nlev
       r4subgrid = matrix(:,jci1:jci2,ici1:ici2,k)
       call subgrid_collect(r4subgrid,global_r4subgrid,jci1,jci2,ici1,ici2)
       call mypack_global(cl,global_r4subgrid,r4vector1)
@@ -19700,17 +19700,17 @@ module mod_mppparam
 
   subroutine global_to_linear_real4_real8_subgrid_subgrid_4d(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
-    integer(ik4) :: npt , k , nlev
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    integer(ik4) :: npt, k, nlev
     nlev = size(matrix,4)
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector,nlev)
       return
     end if
     npt  = cl%linear_npoint_sg(myid+1)
-    do k = 1 , nlev
+    do k = 1, nlev
       r4subgrid = matrix(:,jci1:jci2,ici1:ici2,k)
       call subgrid_collect(r4subgrid,global_r4subgrid,jci1,jci2,ici1,ici2)
       call mypack_global(cl,global_r4subgrid,r8vector1)
@@ -19727,17 +19727,17 @@ module mod_mppparam
 
   subroutine linear_to_global_real8_subgrid_subgrid_4d(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: npt , nlev , k
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4) :: npt, nlev, k
     nlev = size(vector,2)
     if ( nproc == 1 ) then
       call myunpack(cl,vector,matrix,nlev)
       return
     end if
     npt  = cl%linear_npoint_sg(myid+1)
-    do k = 1 , nlev
+    do k = 1, nlev
       call mpi_gatherv(vector(:,k),npt,mpi_real8,                        &
                        r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real8,iocpu,cl%linear_communicator,mpierr)
@@ -19757,17 +19757,17 @@ module mod_mppparam
 
   subroutine linear_to_global_real4_subgrid_subgrid_4d(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: npt , nlev , k
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4) :: npt, nlev, k
     nlev = size(vector,2)
     if ( nproc == 1 ) then
       call myunpack(cl,vector,matrix,nlev)
       return
     end if
     npt  = cl%linear_npoint_sg(myid+1)
-    do k = 1 , nlev
+    do k = 1, nlev
       call mpi_gatherv(vector(:,k),npt,mpi_real4,                        &
                        r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real4,iocpu,cl%linear_communicator,mpierr)
@@ -19787,17 +19787,17 @@ module mod_mppparam
 
   subroutine linear_to_global_real8_real4_subgrid_subgrid_4d(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: npt , nlev , k
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4) :: npt, nlev, k
     nlev = size(vector,2)
     if ( nproc == 1 ) then
       call myunpack(cl,vector,matrix,nlev)
       return
     end if
     npt  = cl%linear_npoint_sg(myid+1)
-    do k = 1 , nlev
+    do k = 1, nlev
       call mpi_gatherv(vector(:,k),npt,mpi_real8,                        &
                        r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real8,iocpu,cl%linear_communicator,mpierr)
@@ -19817,10 +19817,10 @@ module mod_mppparam
 
   subroutine global_to_linear_logical_grid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:,:) , intent(in) :: matrix
-    logical , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , n
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    logical, pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       lsubgrid(n,j,i) = matrix(j,i)
     end do
@@ -19829,10 +19829,10 @@ module mod_mppparam
 
   subroutine global_to_linear_integer_grid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , n
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       i4subgrid(n,j,i) = matrix(j,i)
     end do
@@ -19841,10 +19841,10 @@ module mod_mppparam
 
   subroutine global_to_linear_real8_grid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , n
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       r8subgrid(n,j,i) = matrix(j,i)
     end do
@@ -19853,10 +19853,10 @@ module mod_mppparam
 
   subroutine global_to_linear_real4_grid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , n
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       r4subgrid(n,j,i) = matrix(j,i)
     end do
@@ -19865,10 +19865,10 @@ module mod_mppparam
 
   subroutine global_to_linear_real4_real8_grid_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , n
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       r4subgrid(n,j,i) = matrix(j,i)
     end do
@@ -19877,7 +19877,7 @@ module mod_mppparam
 
   subroutine cl_dispose(cl)
     implicit none
-    type(masked_comm) , intent(inout) :: cl
+    type(masked_comm), intent(inout) :: cl
     if ( associated(cl%linear_npoint_g) ) then
       call relmem1d(cl%linear_npoint_g)
       call relmem1d(cl%linear_displ_g)
@@ -19902,13 +19902,13 @@ module mod_mppparam
 
   subroutine mypack_logical_grid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(inout) :: vector
-    logical , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:), intent(inout) :: vector
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cl%gmask(j,i) ) then
           vector(iv) = matrix(j,i)
           iv = iv + 1
@@ -19919,14 +19919,14 @@ module mod_mppparam
 
   subroutine mypack_logical_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(inout) :: vector
-    logical , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:), intent(inout) :: vector
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i)
             iv = iv + 1
@@ -19938,13 +19938,13 @@ module mod_mppparam
 
   subroutine mypack_integer_grid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cl%gmask(j,i) ) then
           vector(iv) = matrix(j,i)
           iv = iv + 1
@@ -19955,14 +19955,14 @@ module mod_mppparam
 
   subroutine mypack_integer_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i)
             iv = iv + 1
@@ -19974,13 +19974,13 @@ module mod_mppparam
 
   subroutine mypack_real8_grid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cl%gmask(j,i) ) then
           vector(iv) = matrix(j,i)
           iv = iv + 1
@@ -19991,13 +19991,13 @@ module mod_mppparam
 
   subroutine mypack_real4_grid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cl%gmask(j,i) ) then
           vector(iv) = matrix(j,i)
           iv = iv + 1
@@ -20008,14 +20008,14 @@ module mod_mppparam
 
   subroutine mypack_real8_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i)
             iv = iv + 1
@@ -20027,14 +20027,14 @@ module mod_mppparam
 
   subroutine mypack_real4_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i)
             iv = iv + 1
@@ -20046,16 +20046,16 @@ module mod_mppparam
 
   subroutine mypack_real8_subgrid_4d(cl,matrix,vector,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n = 1, nnsg
             if ( cl%sgmask(n,j,i) ) then
               vector(iv,k) = matrix(n,j,i,k)
               iv = iv + 1
@@ -20068,16 +20068,16 @@ module mod_mppparam
 
   subroutine mypack_real4_subgrid_4d(cl,matrix,vector,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n = 1, nnsg
             if ( cl%sgmask(n,j,i) ) then
               vector(iv,k) = matrix(n,j,i,k)
               iv = iv + 1
@@ -20090,15 +20090,15 @@ module mod_mppparam
 
   subroutine mypack_real8_subgrid_slice(cl,matrix,vector,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i,k)
             iv = iv + 1
@@ -20110,15 +20110,15 @@ module mod_mppparam
 
   subroutine mypack_real4_subgrid_slice(cl,matrix,vector,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i,k)
             iv = iv + 1
@@ -20130,13 +20130,13 @@ module mod_mppparam
 
   subroutine myunpack_logical_grid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(in) :: vector
-    logical , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:), intent(in) :: vector
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cl%gmask(j,i) ) then
           matrix(j,i) = vector(iv)
           iv = iv + 1
@@ -20147,14 +20147,14 @@ module mod_mppparam
 
   subroutine myunpack_logical_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(in) :: vector
-    logical , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:), intent(in) :: vector
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             matrix(n,j,i) = vector(iv)
             iv = iv + 1
@@ -20166,13 +20166,13 @@ module mod_mppparam
 
   subroutine myunpack_integer_grid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:), intent(in) :: vector
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cl%gmask(j,i) ) then
           matrix(j,i) = vector(iv)
           iv = iv + 1
@@ -20183,14 +20183,14 @@ module mod_mppparam
 
   subroutine myunpack_integer_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:), intent(in) :: vector
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             matrix(n,j,i) = vector(iv)
             iv = iv + 1
@@ -20202,13 +20202,13 @@ module mod_mppparam
 
   subroutine myunpack_real8_grid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cl%gmask(j,i) ) then
           matrix(j,i) = vector(iv)
           iv = iv + 1
@@ -20219,13 +20219,13 @@ module mod_mppparam
 
   subroutine myunpack_real4_grid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cl%gmask(j,i) ) then
           matrix(j,i) = vector(iv)
           iv = iv + 1
@@ -20236,13 +20236,13 @@ module mod_mppparam
 
   subroutine myunpack_real8_real4_grid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cl%gmask(j,i) ) then
           matrix(j,i) = real(vector(iv),rk4)
           iv = iv + 1
@@ -20253,14 +20253,14 @@ module mod_mppparam
 
   subroutine myunpack_real8_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             matrix(n,j,i) = vector(iv)
             iv = iv + 1
@@ -20272,14 +20272,14 @@ module mod_mppparam
 
   subroutine myunpack_real4_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             matrix(n,j,i) = vector(iv)
             iv = iv + 1
@@ -20291,14 +20291,14 @@ module mod_mppparam
 
   subroutine myunpack_real8_real4_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             matrix(n,j,i) = real(vector(iv),rk4)
             iv = iv + 1
@@ -20310,16 +20310,16 @@ module mod_mppparam
 
   subroutine myunpack_real8_subgrid_4d(cl,vector,matrix,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n = 1, nnsg
             if ( cl%sgmask(n,j,i) ) then
               matrix(n,j,i,k) = vector(iv,k)
               iv = iv + 1
@@ -20332,16 +20332,16 @@ module mod_mppparam
 
   subroutine myunpack_real4_subgrid_4d(cl,vector,matrix,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n = 1, nnsg
             if ( cl%sgmask(n,j,i) ) then
               matrix(n,j,i,k) = vector(iv,k)
               iv = iv + 1
@@ -20354,16 +20354,16 @@ module mod_mppparam
 
   subroutine myunpack_real8_real4_subgrid_4d(cl,vector,matrix,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n = 1, nnsg
             if ( cl%sgmask(n,j,i) ) then
               matrix(n,j,i,k) = real(vector(iv,k),rk4)
               iv = iv + 1
@@ -20376,15 +20376,15 @@ module mod_mppparam
 
   subroutine myunpack_real8_subgrid_slice(cl,vector,matrix,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             matrix(n,j,i,k) = vector(iv)
             iv = iv + 1
@@ -20396,15 +20396,15 @@ module mod_mppparam
 
   subroutine myunpack_real4_subgrid_slice(cl,vector,matrix,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             matrix(n,j,i,k) = vector(iv)
             iv = iv + 1
@@ -20416,15 +20416,15 @@ module mod_mppparam
 
   subroutine myunpack_real8_real4_subgrid_slice(cl,vector,matrix,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( cl%sgmask(n,j,i) ) then
             matrix(n,j,i,k) = real(vector(iv),rk4)
             iv = iv + 1
@@ -20436,13 +20436,13 @@ module mod_mppparam
 
   subroutine mypack_global_logical_grid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(inout) :: vector
-    logical , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:), intent(inout) :: vector
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
+    do i = iout1, iout2
+      do j = jout1, jout2
         if ( cl%global_gmask(j,i) ) then
           vector(iv) = matrix(j,i)
           iv = iv + 1
@@ -20453,14 +20453,14 @@ module mod_mppparam
 
   subroutine mypack_global_logical_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(inout) :: vector
-    logical , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:), intent(inout) :: vector
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i)
             iv = iv + 1
@@ -20472,13 +20472,13 @@ module mod_mppparam
 
   subroutine mypack_global_integer_grid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
+    do i = iout1, iout2
+      do j = jout1, jout2
         if ( cl%global_gmask(j,i) ) then
           vector(iv) = matrix(j,i)
           iv = iv + 1
@@ -20489,14 +20489,14 @@ module mod_mppparam
 
   subroutine mypack_global_integer_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i)
             iv = iv + 1
@@ -20508,13 +20508,13 @@ module mod_mppparam
 
   subroutine mypack_global_real8_grid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
+    do i = iout1, iout2
+      do j = jout1, jout2
         if ( cl%global_gmask(j,i) ) then
           vector(iv) = matrix(j,i)
           iv = iv + 1
@@ -20525,13 +20525,13 @@ module mod_mppparam
 
   subroutine mypack_global_real4_grid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
+    do i = iout1, iout2
+      do j = jout1, jout2
         if ( cl%global_gmask(j,i) ) then
           vector(iv) = matrix(j,i)
           iv = iv + 1
@@ -20542,13 +20542,13 @@ module mod_mppparam
 
   subroutine mypack_global_real4_real8_grid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
+    do i = iout1, iout2
+      do j = jout1, jout2
         if ( cl%global_gmask(j,i) ) then
           vector(iv) = real(matrix(j,i),rk8)
           iv = iv + 1
@@ -20559,14 +20559,14 @@ module mod_mppparam
 
   subroutine mypack_global_real8_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i)
             iv = iv + 1
@@ -20578,14 +20578,14 @@ module mod_mppparam
 
   subroutine mypack_global_real4_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i)
             iv = iv + 1
@@ -20597,14 +20597,14 @@ module mod_mppparam
 
   subroutine mypack_global_real4_real8_subgrid(cl,matrix,vector)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             vector(iv) = real(matrix(n,j,i),rk8)
             iv = iv + 1
@@ -20616,16 +20616,16 @@ module mod_mppparam
 
   subroutine mypack_global_real8_subgrid_4d(cl,matrix,vector,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
-          do n = 1 , nnsg
+      do i = iout1, iout2
+        do j = jout1, jout2
+          do n = 1, nnsg
             if ( cl%global_sgmask(n,j,i) ) then
               vector(iv,k) = matrix(n,j,i,k)
               iv = iv + 1
@@ -20638,16 +20638,16 @@ module mod_mppparam
 
   subroutine mypack_global_real4_subgrid_4d(cl,matrix,vector,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
-          do n = 1 , nnsg
+      do i = iout1, iout2
+        do j = jout1, jout2
+          do n = 1, nnsg
             if ( cl%global_sgmask(n,j,i) ) then
               vector(iv,k) = matrix(n,j,i,k)
               iv = iv + 1
@@ -20660,16 +20660,16 @@ module mod_mppparam
 
   subroutine mypack_global_real4_real8_subgrid_4d(cl,matrix,vector,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
-          do n = 1 , nnsg
+      do i = iout1, iout2
+        do j = jout1, jout2
+          do n = 1, nnsg
             if ( cl%global_sgmask(n,j,i) ) then
               vector(iv,k) = real(matrix(n,j,i,k),rk8)
               iv = iv + 1
@@ -20682,15 +20682,15 @@ module mod_mppparam
 
   subroutine mypack_global_real8_subgrid_slice(cl,matrix,vector,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i,k)
             iv = iv + 1
@@ -20702,15 +20702,15 @@ module mod_mppparam
 
   subroutine mypack_global_real4_subgrid_slice(cl,matrix,vector,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             vector(iv) = matrix(n,j,i,k)
             iv = iv + 1
@@ -20722,15 +20722,15 @@ module mod_mppparam
 
   subroutine mypack_global_real4_real8_subgrid_slice(cl,matrix,vector,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             vector(iv) = real(matrix(n,j,i,k),rk8)
             iv = iv + 1
@@ -20742,13 +20742,13 @@ module mod_mppparam
 
   subroutine myunpack_global_logical_grid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(in) :: vector
-    logical , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:), intent(in) :: vector
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
+    do i = iout1, iout2
+      do j = jout1, jout2
         if ( cl%global_gmask(j,i) ) then
           matrix(j,i) = vector(iv)
           iv = iv + 1
@@ -20759,14 +20759,14 @@ module mod_mppparam
 
   subroutine myunpack_global_logical_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(in) :: vector
-    logical , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    logical, pointer, contiguous, dimension(:), intent(in) :: vector
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             matrix(n,j,i) = vector(iv)
             iv = iv + 1
@@ -20778,13 +20778,13 @@ module mod_mppparam
 
   subroutine myunpack_global_integer_grid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:), intent(in) :: vector
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
+    do i = iout1, iout2
+      do j = jout1, jout2
         if ( cl%global_gmask(j,i) ) then
           matrix(j,i) = vector(iv)
           iv = iv + 1
@@ -20795,14 +20795,14 @@ module mod_mppparam
 
   subroutine myunpack_global_integer_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), pointer, contiguous, dimension(:), intent(in) :: vector
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             matrix(n,j,i) = vector(iv)
             iv = iv + 1
@@ -20814,13 +20814,13 @@ module mod_mppparam
 
   subroutine myunpack_global_real8_grid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
+    do i = iout1, iout2
+      do j = jout1, jout2
         if ( cl%global_gmask(j,i) ) then
           matrix(j,i) = vector(iv)
           iv = iv + 1
@@ -20831,13 +20831,13 @@ module mod_mppparam
 
   subroutine myunpack_global_real4_grid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
+    do i = iout1, iout2
+      do j = jout1, jout2
         if ( cl%global_gmask(j,i) ) then
           matrix(j,i) = vector(iv)
           iv = iv + 1
@@ -20848,13 +20848,13 @@ module mod_mppparam
 
   subroutine myunpack_global_real8_real4_grid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
+    do i = iout1, iout2
+      do j = jout1, jout2
         if ( cl%global_gmask(j,i) ) then
           matrix(j,i) = real(vector(iv),rk4)
           iv = iv + 1
@@ -20865,14 +20865,14 @@ module mod_mppparam
 
   subroutine myunpack_global_real8_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             matrix(n,j,i) = vector(iv)
             iv = iv + 1
@@ -20884,14 +20884,14 @@ module mod_mppparam
 
   subroutine myunpack_global_real4_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             matrix(n,j,i) = vector(iv)
             iv = iv + 1
@@ -20903,14 +20903,14 @@ module mod_mppparam
 
   subroutine myunpack_global_real8_real4_subgrid(cl,vector,matrix)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             matrix(n,j,i) = real(vector(iv),rk4)
             iv = iv + 1
@@ -20922,16 +20922,16 @@ module mod_mppparam
 
   subroutine myunpack_global_real8_subgrid_4d(cl,vector,matrix,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
-          do n = 1 , nnsg
+      do i = iout1, iout2
+        do j = jout1, jout2
+          do n = 1, nnsg
             if ( cl%global_sgmask(n,j,i) ) then
               matrix(n,j,i,k) = vector(iv,k)
               iv = iv + 1
@@ -20944,16 +20944,16 @@ module mod_mppparam
 
   subroutine myunpack_global_real4_subgrid_4d(cl,vector,matrix,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
-          do n = 1 , nnsg
+      do i = iout1, iout2
+        do j = jout1, jout2
+          do n = 1, nnsg
             if ( cl%global_sgmask(n,j,i) ) then
               matrix(n,j,i,k) = vector(iv,k)
               iv = iv + 1
@@ -20966,16 +20966,16 @@ module mod_mppparam
 
   subroutine myunpack_global_real8_real4_subgrid_4d(cl,vector,matrix,klev)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: klev
-    integer(ik4) :: i , j , k , n , iv
-    do k = 1 , klev
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: klev
+    integer(ik4) :: i, j, k, n, iv
+    do k = 1, klev
       iv = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
-          do n = 1 , nnsg
+      do i = iout1, iout2
+        do j = jout1, jout2
+          do n = 1, nnsg
             if ( cl%global_sgmask(n,j,i) ) then
               matrix(n,j,i,k) = real(vector(iv,k),rk4)
               iv = iv + 1
@@ -20988,15 +20988,15 @@ module mod_mppparam
 
   subroutine myunpack_global_real8_subgrid_slice(cl,vector,matrix,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             matrix(n,j,i,k) = vector(iv)
             iv = iv + 1
@@ -21008,15 +21008,15 @@ module mod_mppparam
 
   subroutine myunpack_global_real4_subgrid_slice(cl,vector,matrix,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             matrix(n,j,i,k) = vector(iv)
             iv = iv + 1
@@ -21028,15 +21028,15 @@ module mod_mppparam
 
   subroutine myunpack_global_real8_real4_subgrid_slice(cl,vector,matrix,k)
     implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
-    integer(ik4) , intent(in) :: k
-    integer(ik4) :: i , j , n , iv
+    type(masked_comm), intent(in) :: cl
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4), intent(in) :: k
+    integer(ik4) :: i, j, n, iv
     iv = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
+    do i = iout1, iout2
+      do j = jout1, jout2
+        do n = 1, nnsg
           if ( cl%global_sgmask(n,j,i) ) then
             matrix(n,j,i,k) = real(vector(iv),rk4)
             iv = iv + 1

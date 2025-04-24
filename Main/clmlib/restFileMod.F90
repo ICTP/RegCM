@@ -12,9 +12,9 @@ module restFileMod
 ! Reads from or writes to/ the CLM restart file.
 !
 ! !USES:
-  use mod_dynparam , only : prestr , pthsep
+  use mod_dynparam, only : prestr, pthsep
   use shr_kind_mod, only : r8 => shr_kind_r8
-  use spmdMod     , only : masterproc
+  use spmdMod    , only : masterproc
   use abortutils,   only : endrun
   use ncdio
 !
@@ -66,25 +66,25 @@ contains
 ! Read/write CLM restart file.
 !
 ! !USES:
-    use clm_time_manager , only : timemgr_restart_io, get_nstep
-    use subgridRestMod   , only : SubgridRest
+    use clm_time_manager, only : timemgr_restart_io, get_nstep
+    use subgridRestMod  , only : SubgridRest
     use BiogeophysRestMod, only : BiogeophysRest
 #if (defined CN)
-    use CNRestMod        , only : CNRest
+    use CNRestMod       , only : CNRest
 #endif
 #if (defined DGVM)
-    use DGVMRestMod      , only : DGVMRest
+    use DGVMRestMod     , only : DGVMRest
 #endif
 #if (defined RTM)
-    use RtmMod           , only : RTMRest
+    use RtmMod          , only : RTMRest
 #endif
 #if (defined CASA)
-    use CASAMod          , only : CASARest
+    use CASAMod         , only : CASARest
 #endif
 #if (defined COUP_CSM)
-    use clm_csmMod       , only : csm_restart
+    use clm_csmMod      , only : csm_restart
 #endif
-    use accumulMod       , only : accumulRest
+    use accumulMod      , only : accumulRest
 !
 ! !ARGUMENTS:
     implicit none
@@ -189,21 +189,21 @@ contains
 ! !USES:
     use BiogeophysRestMod, only : BiogeophysRest
 #if (defined CN)
-    use CNRestMod        , only : CNRest
+    use CNRestMod       , only : CNRest
 #endif
 #if (defined DGVM)
-    use DGVMRestMod      , only : DGVMRest
+    use DGVMRestMod     , only : DGVMRest
 #endif
 #if (defined RTM)
-    use RtmMod           , only : RTMRest
+    use RtmMod          , only : RTMRest
 #endif
 #if (defined CASA)
-    use CASAMod          , only : CASARest
+    use CASAMod         , only : CASARest
 #endif
 #if (defined COUP_CSM)
-    use clm_csmMod       , only : csm_restart
+    use clm_csmMod      , only : csm_restart
 #endif
-    use accumulMod       , only : accumulRest
+    use accumulMod      , only : accumulRest
 !
 ! !ARGUMENTS:
     implicit none
@@ -274,7 +274,7 @@ contains
 ! Read a CLM restart file.
 !
 ! !USES:
-    use fileutils  , only : relavu, opnfil, getfil, getavu
+    use fileutils , only : relavu, opnfil, getfil, getavu
     use histFileMod, only : restart_history
 !
 ! !ARGUMENTS:
@@ -316,7 +316,7 @@ contains
 ! Read a CLM restart file.
 !
 ! !USES:
-    use fileutils  , only : relavu, opnfil, getfil, getavu
+    use fileutils , only : relavu, opnfil, getfil, getavu
     use histFileMod, only : restart_history
 !
 ! !ARGUMENTS:
@@ -360,7 +360,7 @@ contains
 !
 ! !USES:
     use clm_varctl, only : caseid, finidat, nrevsn, nsrest, brnch_retain_casename
-    use fileutils , only : getfil
+    use fileutils, only : getfil
 !
 ! !ARGUMENTS:
     implicit none
@@ -444,7 +444,7 @@ contains
 ! Setup restart file and perform necessary consistency checks
 !
 ! !USES:
-    use fileutils , only : opnfil, getavu, relavu
+    use fileutils, only : opnfil, getavu, relavu
     use clm_varctl, only : rpntfil, rpntdir
 !
 ! !ARGUMENTS:
@@ -499,11 +499,11 @@ contains
 !
 ! !USES:
 #if (defined COUP_CSM)
-    use clm_csmMod  , only : csmstop_next
+    use clm_csmMod , only : csmstop_next
 #endif
     use clm_time_manager, only : is_last_step
-    use clm_varctl  , only : mss_irt, mss_wpass, archive_dir
-    use fileutils   , only : putfil, set_filename
+    use clm_varctl , only : mss_irt, mss_wpass, archive_dir
+    use fileutils  , only : putfil, set_filename
 !
 ! !ARGUMENTS:
     implicit none
@@ -560,8 +560,8 @@ contains
 !
 ! !USES:
     use clm_varctl, only : rpntdir, mss_irt, archive_dir, rpntfil
-    use fileutils , only : set_filename, relavu
-    use fileutils , only : getavu, opnfil
+    use fileutils, only : set_filename, relavu
+    use fileutils, only : getavu, opnfil
 !
 ! !ARGUMENTS:
     implicit none
@@ -650,9 +650,9 @@ contains
 ! !DESCRIPTION:
 !
 ! !USES:
-    use clm_varctl  , only : caseid
+    use clm_varctl , only : caseid
     use clm_time_manager, only : get_curr_date, get_step_size
-    use mod_dynparam , only : dirout
+    use mod_dynparam, only : dirout
 !
 ! !ARGUMENTS:
     implicit none
@@ -723,16 +723,16 @@ contains
 ! !USES:
     use shr_kind_mod, only : r8 => shr_kind_r8
     use clm_time_manager, only : get_nstep, get_curr_date
-    use spmdMod     , only : mpicom, MPI_LOGICAL
-    use clm_varctl  , only : caseid, ctitle, version, fsurdat
-    use clm_varpar  , only : numrad, rtmlon, rtmlat, nlevlak, nlevsno, nlevsoi
-    use shr_sys_mod , only : shr_sys_getenv
-    use decompMod   , only : get_proc_bounds, get_proc_global
+    use spmdMod    , only : mpicom, MPI_LOGICAL
+    use clm_varctl , only : caseid, ctitle, version, fsurdat
+    use clm_varpar , only : numrad, rtmlon, rtmlat, nlevlak, nlevsno, nlevsoi
+    use shr_sys_mod, only : shr_sys_getenv
+    use decompMod  , only : get_proc_bounds, get_proc_global
 #ifdef RTM
-    use RunoffMod   , only : get_proc_rof_global
+    use RunoffMod  , only : get_proc_rof_global
 #endif
 #if (defined CASA)
-  use CASAMod       , only : nlive, npools
+  use CASAMod      , only : nlive, npools
 #endif
 !
 ! !ARGUMENTS:
@@ -774,28 +774,28 @@ contains
 
        ! Define dimensions
 
-       call check_ret( nf_def_dim(ncid, 'gridcell', numg           , dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'landunit', numl           , dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'column'  , numc           , dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'pft'     , nump           , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'gridcell', numg          , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'landunit', numl          , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'column' , numc          , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'pft'    , nump          , dimid), subname )
 
-       call check_ret( nf_def_dim(ncid, 'levsoi'  , nlevsoi        , dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'levlak'  , nlevlak        , dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'levsno'  , nlevsno        , dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'levtot'  , nlevsno+nlevsoi, dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'numrad'  , numrad         , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'levsoi' , nlevsoi       , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'levlak' , nlevlak       , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'levsno' , nlevsno       , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'levtot' , nlevsno+nlevsoi, dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'numrad' , numrad        , dimid), subname )
 #if (defined CASA)
-       call check_ret(nf_def_dim (ncid, 'nlive'   , nlive          , dimid), subname)
-       call check_ret(nf_def_dim (ncid, 'npools'  , npools         , dimid), subname)
+       call check_ret(nf_def_dim (ncid, 'nlive'  , nlive         , dimid), subname)
+       call check_ret(nf_def_dim (ncid, 'npools' , npools        , dimid), subname)
 #endif
 #if (defined RTM)
-       call check_ret( nf_def_dim(ncid, 'ocnrof'  , nrof_ocn       , dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'lndrof'  , nrof_lnd       , dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'allrof'  , nrof_rtm       , dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'rtmlon'  , rtmlon         , dimid), subname )
-       call check_ret( nf_def_dim(ncid, 'rtmlat'  , rtmlat         , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'ocnrof' , nrof_ocn      , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'lndrof' , nrof_lnd      , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'allrof' , nrof_rtm      , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'rtmlon' , rtmlon        , dimid), subname )
+       call check_ret( nf_def_dim(ncid, 'rtmlat' , rtmlat        , dimid), subname )
 #endif
-       call check_ret( nf_def_dim(ncid, 'string_length', 64        , dimid), subname)
+       call check_ret( nf_def_dim(ncid, 'string_length', 64       , dimid), subname)
        ! Define global attributes
 
        str = 'CF-1.0'
@@ -879,16 +879,16 @@ contains
 #endif
        call check_dim(ncid, 'gridcell', numg)
        call check_dim(ncid, 'landunit', numl)
-       call check_dim(ncid, 'column'  , numc)
-       call check_dim(ncid, 'pft'     , nump)
-       call check_dim(ncid, 'levsno'  , nlevsno)
-       call check_dim(ncid, 'levsoi'  , nlevsoi)
-       call check_dim(ncid, 'levlak'  , nlevlak)
+       call check_dim(ncid, 'column' , numc)
+       call check_dim(ncid, 'pft'    , nump)
+       call check_dim(ncid, 'levsno' , nlevsno)
+       call check_dim(ncid, 'levsoi' , nlevsoi)
+       call check_dim(ncid, 'levlak' , nlevlak)
 #if (defined CASA)
        ! Dimensions should be checked, but this will only work for initial
        ! datasets created with CASA enabled so do not normally do this.
-       ! call check_dim(ncid, 'nlive'   , nlive)
-       ! call check_dim(ncid, 'npools'  , npools)
+       ! call check_dim(ncid, 'nlive'  , nlive)
+       ! call check_dim(ncid, 'npools' , npools)
 #endif
     end if
 

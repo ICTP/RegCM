@@ -76,14 +76,14 @@ CONTAINS
   !-----------------------------------------------------------------------
   ! computes the dry deposition velocity of tracers
   !-----------------------------------------------------------------------
-  subroutine depvel_compute( lbp , ubp )
-    use shr_const_mod     , only :  tmelt => shr_const_tkfrz
-    use clm_drydep        , only :  seq_drydep_setHCoeff, mapping, drat, foxd, &
+  subroutine depvel_compute( lbp, ubp )
+    use shr_const_mod    , only :  tmelt => shr_const_tkfrz
+    use clm_drydep       , only :  seq_drydep_setHCoeff, mapping, drat, foxd, &
                                     rcls, h2_a, h2_b, h2_c, ri, rac, rclo, rlu, &
                                     rgss, rgso
-    use clm_varcon        , only : istsoil
-!    use clm_varctl        , only : iulog
-    use pftvarcon         , only : noveg
+    use clm_varcon       , only : istsoil
+!    use clm_varctl       , only : iulog
+    use pftvarcon        , only : noveg
 
     implicit none
 
@@ -93,10 +93,10 @@ CONTAINS
 
     ! ------------------------ local variables ------------------------
     ! local pointers to implicit in arguments
-    integer , pointer :: plandunit(:)     !pft's landunit index
-    integer , pointer :: ivt(:)           !landunit type
-    integer , pointer :: itypveg(:)       !vegetation type for current pft
-    integer , pointer :: pgridcell(:)     !pft's gridcell index
+    integer, pointer :: plandunit(:)     !pft's landunit index
+    integer, pointer :: ivt(:)           !landunit type
+    integer, pointer :: itypveg(:)       !vegetation type for current pft
+    integer, pointer :: pgridcell(:)     !pft's gridcell index
     real(r8), pointer :: pwtgcell(:)      !weight of pft relative to corresponding gridcell
     real(r8), pointer :: elai(:)          !one-sided leaf area index with burying by snow
     real(r8), pointer :: forc_t(:)        !atmospheric temperature (Kelvin)
@@ -122,7 +122,7 @@ CONTAINS
 
     integer, pointer :: pcolumn(:)        ! column index associated with each pft
     integer :: c
-    integer , pointer :: itypelun(:) 	   ! landunit type
+    integer, pointer :: itypelun(:) 	   ! landunit type
 
     real(r8), pointer :: h2osoi_vol(:,:)    ! volumetric soil water (0<=h2osoi_vol<=watsat)
     real(r8) :: soilw, var_soilw, fact_h2, dv_soil_h2

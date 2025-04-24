@@ -36,11 +36,11 @@ module mod_cloud_tompkins
   ! ECMWF Technical Memorandum 410
   subroutine tompkins_cldfrac(rh,qc,p,ps,qcrit,fcc)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: rh , qc , p
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps , qcrit
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
-    integer(ik4) :: i , j , k
-    real(rkx) :: rhrng , kappa , rhcrit , sig
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: rh, qc, p
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps, qcrit
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
+    integer(ik4) :: i, j, k
+    real(rkx) :: rhrng, kappa, rhcrit, sig
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction

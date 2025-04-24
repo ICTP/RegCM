@@ -38,40 +38,40 @@ module mod_cams
 
   private
 
-  integer(ik4) :: jlat , ilon , klev , timlen
-  real(rkx) , pointer , dimension(:,:,:) :: b3 , b3a
-  real(rkx) , pointer , dimension(:,:,:) :: b2 , b2a
+  integer(ik4) :: jlat, ilon, klev, timlen
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b3, b3a
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b2, b2a
 
-  real(rkx) , pointer , dimension(:,:,:) :: hz , hza , o3 , co , &
-    dust1 , dust2 , dust3 , eth , xch2o , h2o2 , bchl , ochl , bchb , ochb
-  real(rkx) , pointer , dimension(:,:,:) :: oh , isop , hno3 , no , &
-    pan , c3h8 , sslt1 , sslt2 , sslt3 , so4 , so2 , no2 , ch4 , aso2
-  real(rkx) , pointer , dimension(:,:,:) :: hzvar , hzavar , o3var , &
-    covar , dust1var , dust2var , dust3var , ethvar , xch2ovar, &
-    h2o2var , bchlvar , bchbvar , ochbvar , ochlvar
-  real(rkx) , pointer , dimension(:,:,:) :: ohvar , isopvar , hno3var , &
-    novar , panvar , c3h8var , sslt1var , sslt2var , sslt3var , so4var , &
-    so2var , no2var , ch4var , aso2var
-  real(rkx) , pointer , dimension(:) :: glat
-  real(rkx) , pointer , dimension(:) :: grev
-  real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:) :: plevs
-  real(rkx) , pointer , dimension(:) :: sigmar
-  real(rkx) :: pss , pst
-  integer(2) , pointer , dimension(:,:,:) :: work
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hz, hza, o3, co, &
+    dust1, dust2, dust3, eth, xch2o, h2o2, bchl, ochl, bchb, ochb
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: oh, isop, hno3, no, &
+    pan, c3h8, sslt1, sslt2, sslt3, so4, so2, no2, ch4, aso2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hzvar, hzavar, o3var, &
+    covar, dust1var, dust2var, dust3var, ethvar, xch2ovar, &
+    h2o2var, bchlvar, bchbvar, ochbvar, ochlvar
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ohvar, isopvar, hno3var, &
+    novar, panvar, c3h8var, sslt1var, sslt2var, sslt3var, so4var, &
+    so2var, no2var, ch4var, aso2var
+  real(rkx), pointer, contiguous, dimension(:) :: glat
+  real(rkx), pointer, contiguous, dimension(:) :: grev
+  real(rkx), pointer, contiguous, dimension(:) :: glon
+  real(rkx), pointer, contiguous, dimension(:) :: plevs
+  real(rkx), pointer, contiguous, dimension(:) :: sigmar
+  real(rkx) :: pss, pst
+  integer(2), pointer, contiguous, dimension(:,:,:) :: work
 
-  integer(ik4) , dimension(20) :: inet5 !care the first dimension must be
+  integer(ik4), dimension(20) :: inet5 !care the first dimension must be
                                         !bigger than the number of species
                                         !for gas or aer
-  integer(ik4) , dimension(20) :: ivar5
-  real(rkx) , dimension(20) :: xoff , xscl
-  type(rcm_time_and_date) , pointer , dimension(:) :: itimes
-  integer(ik4) , pointer , dimension(:) :: xtimes
+  integer(ik4), dimension(20) :: ivar5
+  real(rkx), dimension(20) :: xoff, xscl
+  type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
+  integer(ik4), pointer, contiguous, dimension(:) :: xtimes
 
   type(global_domain) :: gdomain
-  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
+  type(h_interpolator) :: cross_hint, udot_hint, vdot_hint
 
-  public :: init_cams , get_cams, conclude_cams
+  public :: init_cams, get_cams, conclude_cams
 
   contains
 
@@ -80,9 +80,9 @@ module mod_cams
     implicit none
     character(len=2) :: typ
     integer(ik4) :: k
-    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
-    integer(ik4) :: istatus , ncid , ivarid , idimid
+    integer(ik4) :: istatus, ncid, ivarid, idimid
     character(len=64) :: inname
 
     if ( idynamic < 3 ) &
@@ -149,7 +149,7 @@ module mod_cams
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    do k = 1 , klev
+    do k = 1, klev
       sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
     end do
     pss = (plevs(klev)-plevs(1))/10.0_rkx ! mb -> cb
@@ -252,14 +252,14 @@ module mod_cams
   subroutine get_cams(idate,typ)
     implicit none
     character(len=2), intent(in) :: typ
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     !
     ! Read data at idate
     !
     if ( typ == 'CH' ) then
 
       call cams6hour(dattyp,idate,globidate1,'CH')
-      write (stdout,*) 'READ IN CAMS fields at DATE:' , tochar(idate)
+      write (stdout,*) 'READ IN CAMS fields at DATE:', tochar(idate)
       !
       ! Horizontal interpolation of both the scalar and vector fields
       !
@@ -300,7 +300,7 @@ module mod_cams
 !$OMP END SECTIONS
     else if ( typ == 'AE' ) then
       call cams6hour(dattyp,idate,globidate1,'AE')
-      write (stdout,*) 'READ IN CAMS AER fields at DATE:' , tochar(idate)
+      write (stdout,*) 'READ IN CAMS AER fields at DATE:', tochar(idate)
       !
       ! Horizontal interpolation of both the scalar and vector fields
       !
@@ -445,24 +445,24 @@ module mod_cams
 
   subroutine cams6hour(dattyp,idate,idate0,typ)
     implicit none
-    character(len=5) , intent(in) :: dattyp
+    character(len=5), intent(in) :: dattyp
     character(len=2), intent(in) ::typ
-    type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: inet , it , kkrec , istatus , ivar
+    type(rcm_time_and_date), intent(in) :: idate, idate0
+    integer(ik4) :: inet, it, kkrec, istatus, ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=7) , dimension(14) :: gasname , gfname
-    character(len=7) , dimension(13) :: aername , afname
+    character(len=7), dimension(14) :: gasname, gfname
+    character(len=7), dimension(13) :: aername, afname
     ! make sure that dim is large enough
-    character(len=7) , dimension(15) ::varname
-    character(len=7) , dimension(15) ::fname
+    character(len=7), dimension(15) ::varname
+    character(len=7), dimension(15) ::fname
 
-    character(len=64) :: cunit , ccal
-    real(rkx) :: xadd , xscale
-    integer(ik4) , dimension(4) :: icount , istart
-    integer(ik4) :: year , month , day , hour , nsp
-    integer(ik4) , save :: lastmonth
+    character(len=64) :: cunit, ccal
+    real(rkx) :: xadd, xscale
+    integer(ik4), dimension(4) :: icount, istart
+    integer(ik4) :: year, month, day, hour, nsp
+    integer(ik4), save :: lastmonth
     type(rcm_time_interval) :: tdif
 
     data gasname /'z','go3','co','c2h6','hcho','c3h8','no', &
@@ -501,13 +501,13 @@ module mod_cams
     if ( idate == idate0 .or. month /= lastmonth ) then
       lastmonth = month
       if ( idate /= idate0 ) then
-        do kkrec = 1 , nsp ! boulce sur nbre variables gaz
+        do kkrec = 1, nsp ! boulce sur nbre variables gaz
           istatus = nf90_close(inet5(kkrec))
           call checkncerr(istatus,__FILE__,__LINE__, &
              'Error close file')
         end do
       end if
-      do kkrec = 1 , nsp ! boulce sur nbre variables gaz
+      do kkrec = 1, nsp ! boulce sur nbre variables gaz
         !verifie le path pour fichier CAMS !!
         write(inname,'(i4,a,a,a,i0.4,a,i0.2,a)') &
         year, pthsep, trim(fname(kkrec)), '_', year, '_', month,'.nc'
@@ -528,8 +528,8 @@ module mod_cams
                    'add_offset',xoff(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att add_offset')
-        write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
-                         xscl(kkrec) , xoff(kkrec)
+        write (stdout,*) inet5(kkrec), trim(pathaddname),   &
+                         xscl(kkrec), xoff(kkrec)
         if ( kkrec == 1 ) then
           istatus = nf90_inq_dimid(inet5(1),'time',timid)
           call checkncerr(istatus,__FILE__,__LINE__, &
@@ -554,7 +554,7 @@ module mod_cams
           istatus = nf90_get_var(inet5(1),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
-          do it = 1 , timlen
+          do it = 1, timlen
             itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
           end do
         end if
@@ -569,7 +569,7 @@ module mod_cams
     icount(4) = 1
 
     if ( typ == 'CH' ) then
-      do kkrec = 1 , nsp ! loop on number variables
+      do kkrec = 1, nsp ! loop on number variables
         inet = inet5(kkrec)
         ivar = ivar5(kkrec)
         xscale = xscl(kkrec)
@@ -606,7 +606,7 @@ module mod_cams
           real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
       end do
     else if ( typ == 'AE' ) then
-      do kkrec = 1 , nsp ! loop on number variables
+      do kkrec = 1, nsp ! loop on number variables
         inet = inet5(kkrec)
         ivar = ivar5(kkrec)
         xscale = xscl(kkrec)
@@ -646,10 +646,10 @@ module mod_cams
 
       subroutine getwork(irec)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        integer(ik4) :: itile , iti , itf
+        integer(ik4), intent(in) :: irec
+        integer(ik4) :: itile, iti, itf
         iti = 1
-        do itile = 1 , gdomain%ntiles
+        do itile = 1, gdomain%ntiles
           istart(1) = gdomain%igstart(itile)
           icount(1) = gdomain%ni(itile)
           ! Latitudes are reversed in original file

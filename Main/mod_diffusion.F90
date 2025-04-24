@@ -31,12 +31,12 @@ module mod_diffusion
 
   private
 
-  real(rkx) , pointer , dimension(:,:,:) :: xkc => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: xkd => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: xkcf => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: hgfact => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xkc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xkd => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xkcf => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: hgfact => null( )
 
-  real(rkx) :: dydc , xkhmax
+  real(rkx) :: dydc, xkhmax
 
   interface diffu_x
     module procedure diffu_x3df
@@ -51,32 +51,32 @@ module mod_diffusion
   public :: diffu_d
   public :: diffu_x
 
-  real(rkx) , pointer , dimension(:,:,:) :: ud => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vd => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: wx => null( )
-  real(rkx) , pointer , dimension(:,:) :: pc => null( )
-  real(rkx) , pointer , dimension(:,:) :: pd => null( )
-  real(rkx) , pointer , dimension(:,:) :: mpd => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ud => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vd => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: wx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: pc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: pd => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: mpd => null( )
   !
   ! Use 9-point laplacian as in LeVeque,
-  !   Finite Difference Methods for Differential Equations , Eq. 3.17
+  !   Finite Difference Methods for Differential Equations, Eq. 3.17
   !
-  real(rkx) , parameter :: o4_c1 =   4.0_rkx/6.0_rkx
-  real(rkx) , parameter :: o4_c2 =   1.0_rkx/6.0_rkx
-  real(rkx) , parameter :: o4_c3 = -20.0_rkx/6.0_rkx
+  real(rkx), parameter :: o4_c1 =   4.0_rkx/6.0_rkx
+  real(rkx), parameter :: o4_c2 =   1.0_rkx/6.0_rkx
+  real(rkx), parameter :: o4_c3 = -20.0_rkx/6.0_rkx
   !
   ! Weights
   !
-  real(rkx) , parameter :: z4_c1 =   1.0_rkx
-  real(rkx) , parameter :: z4_c2 =  -4.0_rkx
-  real(rkx) , parameter :: z4_c3 =  12.0_rkx
+  real(rkx), parameter :: z4_c1 =   1.0_rkx
+  real(rkx), parameter :: z4_c2 =  -4.0_rkx
+  real(rkx), parameter :: z4_c3 =  12.0_rkx
   !
   ! Weights 6th order
   !
-  real(rkx) , parameter :: h4_c1 =  10.0_rkx
-  real(rkx) , parameter :: h4_c2 =  -5.0_rkx
-  real(rkx) , parameter :: h4_c3 =   1.0_rkx
-  real(rkx) , parameter :: diff_6th_factor = 0.12_rkx
+  real(rkx), parameter :: h4_c1 =  10.0_rkx
+  real(rkx), parameter :: h4_c2 =  -5.0_rkx
+  real(rkx), parameter :: h4_c3 =   1.0_rkx
+  real(rkx), parameter :: diff_6th_factor = 0.12_rkx
   real(rkx) :: diff_6th_coef
 
   contains
@@ -92,11 +92,11 @@ module mod_diffusion
   end subroutine allocate_mod_diffusion
 
   subroutine initialize_diffusion
-    use mod_atm_interface , only : mddom , sfs , atms
+    use mod_atm_interface, only : mddom, sfs, atms
     implicit none
-    integer(ik4) :: i , j
-    real(rkx) :: xkhz , minxkh , maxxkh
-    real(rkx) :: hg1 , hg2 , hg3 , hg4 , hgmax
+    integer(ik4) :: i, j
+    real(rkx) :: xkhz, minxkh, maxxkh
+    real(rkx) :: hg1, hg2, hg3, hg4, hgmax
     !
     ! Diffusion coefficients: for non-hydrostatic, follow the MM5
     ! The hydrostatic diffusion is following the RegCM3 formulation
@@ -165,27 +165,27 @@ module mod_diffusion
 
   subroutine calc_coeff
     implicit none
-    integer(ik4) :: i , j , k
-    real(rkx) :: dudx , dvdx , dudy , dvdy , dwdz , duv
+    integer(ik4) :: i, j, k
+    real(rkx) :: dudx, dvdx, dudy, dvdy, dwdz, duv
 
     if ( idiffu == 3 ) then
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         xkc(j,i,k) = diff_6th_coef * pc(j,i)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
         xkcf(j,i,k) = diff_6th_coef * pc(j,i)
       end do
-      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
         xkd(j,i,k) = diff_6th_coef * pd(j,i)
       end do
     else
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         xkc(j,i,k)  = d_zero
       end do
-      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
         xkd(j,i,k)  = d_zero
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
         xkcf(j,i,k) = d_zero
       end do
       !
@@ -224,24 +224,24 @@ module mod_diffusion
           xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
         end do
       end if
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         xkcf(j,i,1) = xkc(j,i,1)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         xkcf(j,i,k+1) = xkc(j,i,k)
       end do
       call exchange(xkc,1,jce1,jce2,ice1,ice2,1,kz)
-      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
         xkd(j,i,k) = d_rfour*(xkc(j,i,k)+xkc(j-1,i-1,k) + &
                               xkc(j-1,i,k)+xkc(j,i-1,k))
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         xkc(j,i,k) = xkc(j,i,k) * rdxsq * pc(j,i)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
         xkcf(j,i,k) = xkcf(j,i,k) * rdxsq * pc(j,i)
       end do
-      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
         xkd(j,i,k) = xkd(j,i,k) * rdxsq * pd(j,i)
       end do
     end if
@@ -262,24 +262,24 @@ module mod_diffusion
   !
   subroutine diffu_d(uten,vten,u,v)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
-    integer(ik4) :: i , j , k
-    integer(ik4) :: im1 , im2 , im3
-    integer(ik4) :: jm1 , jm2 , jm3
-    integer(ik4) :: ip1 , ip2 , ip3
-    integer(ik4) :: jp1 , jp2 , jp3
-    real(rkx) :: dflux_x_p0 , dflux_x_p1 , dflux_y_p0 , dflux_y_p1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten, vten
+    integer(ik4) :: i, j, k
+    integer(ik4) :: im1, im2, im3
+    integer(ik4) :: jm1, jm2, jm3
+    integer(ik4) :: ip1, ip2, ip3
+    integer(ik4) :: jp1, jp2, jp3
+    real(rkx) :: dflux_x_p0, dflux_x_p1, dflux_y_p0, dflux_y_p1
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( idiffu == 1 ) then
       !
       ! fourth-order scheme for interior:
       !
-      do concurrent ( j = jdii1:jdii2 , i = idii1:idii2 , k = 1:kz )
+      do concurrent ( j = jdii1:jdii2, i = idii1:idii2, k = 1:kz )
         uten(j,i,k) = uten(j,i,k) - xkd(j,i,k) * &
                (z4_c1*(u(j+2,i,k)/mpd(j+2,i) +   &
                        u(j-2,i,k)/mpd(j-2,i) +   &
@@ -376,7 +376,7 @@ module mod_diffusion
       !
       ! fourth-order scheme
       !
-      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
         uten(j,i,k) = uten(j,i,k) + xkd(j,i,k) *    &
                (o4_c1*(u(j+1,i,k)/mpd(j+1,i) +      &
                        u(j-1,i,k)/mpd(j-1,i) +      &
@@ -399,15 +399,15 @@ module mod_diffusion
                 o4_c3*(v(j,i,k)/mpd(j,i)))
       end do
     else if ( idiffu == 3 ) then
-      do k = 1 , kz
-        do i = idi1 , idi2
+      do k = 1, kz
+        do i = idi1, idi2
           im1 = max(i-1,1)
           im2 = max(i-2,1)
           im3 = max(i-3,1)
           ip1 = min(i+1,iy)
           ip2 = min(i+2,iy)
           ip3 = min(i+3,iy)
-          do j = jdi2 , jdi2
+          do j = jdi2, jdi2
             jm1 = max(j-1,1)
             jm2 = max(j-2,1)
             jm3 = max(j-3,1)
@@ -511,25 +511,25 @@ module mod_diffusion
 
   subroutine diffu_x3df(ften,f,fac)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ften
-    real(rkx) , intent(in) :: fac
-    integer(ik4) :: i , j , k
-    integer(ik4) :: im1 , im2 , im3
-    integer(ik4) :: jm1 , jm2 , jm3
-    integer(ik4) :: ip1 , ip2 , ip3
-    integer(ik4) :: jp1 , jp2 , jp3
-    real(rkx) :: dflux_x_p0 , dflux_x_p1 , dflux_y_p0 , dflux_y_p1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ften
+    real(rkx), intent(in) :: fac
+    integer(ik4) :: i, j, k
+    integer(ik4) :: im1, im2, im3
+    integer(ik4) :: jm1, jm2, jm3
+    integer(ik4) :: ip1, ip2, ip3
+    integer(ik4) :: jp1, jp2, jp3
+    real(rkx) :: dflux_x_p0, dflux_x_p1, dflux_y_p0, dflux_y_p1
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_x3df'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( idiffu == 1 ) then
       !
       ! fourth-order scheme for interior:
       !
-      do concurrent ( j = jcii1:jcii2 , i = icii1:icii2 , k = 1:kzp1 )
+      do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kzp1 )
         ften(j,i,k) = ften(j,i,k) - fac * xkcf(j,i,k) * &
              (z4_c1*(f(j+2,i,k)+f(j-2,i,k)+f(j,i+2,k)+f(j,i-2,k)) +   &
               z4_c2*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
@@ -556,7 +556,7 @@ module mod_diffusion
       end if
       if ( ma%has_bdybottom ) then
         i = ici1
-        do concurrent ( j = jci1:jci2 , k = 1:kzp1 )
+        do concurrent ( j = jci1:jci2, k = 1:kzp1 )
           ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * &
               (z4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
                z4_c2*(f(j,i,k)))
@@ -564,7 +564,7 @@ module mod_diffusion
       end if
       if ( ma%has_bdytop ) then
         i = ici2
-        do concurrent ( j = jci1:jci2 , k = 1:kzp1 )
+        do concurrent ( j = jci1:jci2, k = 1:kzp1 )
           ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * &
               (z4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
                z4_c2*(f(j,i,k)))
@@ -574,22 +574,22 @@ module mod_diffusion
       !
       ! fourth-order scheme
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
         ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * &
              (o4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) +   &
               o4_c2*(f(j+1,i+1,k)+f(j-1,i-1,k)+f(j-1,i+1,k)+f(j+1,i-1,k)) + &
               o4_c3*(f(j,i,k)))
       end do
     else if ( idiffu == 3 ) then
-      do k = 1 , kzp1
-        do i = ici1 , ici2
+      do k = 1, kzp1
+        do i = ici1, ici2
           im1 = max(i-1,1)
           im2 = max(i-2,1)
           im3 = max(i-3,1)
           ip1 = min(i+1,iym1)
           ip2 = min(i+2,iym1)
           ip3 = min(i+3,iym1)
-          do j = jci2 , jci2
+          do j = jci2, jci2
             jm1 = max(j-1,1)
             jm2 = max(j-2,1)
             jm3 = max(j-3,1)
@@ -638,24 +638,24 @@ module mod_diffusion
 
   subroutine diffu_x3d(ften,f)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ften
-    integer(ik4) :: i , j , k
-    integer(ik4) :: im1 , im2 , im3
-    integer(ik4) :: jm1 , jm2 , jm3
-    integer(ik4) :: ip1 , ip2 , ip3
-    integer(ik4) :: jp1 , jp2 , jp3
-    real(rkx) :: dflux_x_p0 , dflux_x_p1 , dflux_y_p0 , dflux_y_p1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ften
+    integer(ik4) :: i, j, k
+    integer(ik4) :: im1, im2, im3
+    integer(ik4) :: jm1, jm2, jm3
+    integer(ik4) :: ip1, ip2, ip3
+    integer(ik4) :: jp1, jp2, jp3
+    real(rkx) :: dflux_x_p0, dflux_x_p1, dflux_y_p0, dflux_y_p1
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_x3d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( idiffu == 1 ) then
       !
       ! fourth-order scheme for interior:
       !
-      do concurrent ( j = jcii1:jcii2 , i = icii1:icii2 , k = 1:kz )
+      do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
         ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) * &
              (z4_c1*(f(j+2,i,k)+f(j-2,i,k)+f(j,i+2,k)+f(j,i-2,k)) +   &
               z4_c2*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
@@ -700,22 +700,22 @@ module mod_diffusion
       !
       ! fourth-order scheme
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) * &
              (o4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) +   &
               o4_c2*(f(j+1,i+1,k)+f(j-1,i-1,k)+f(j-1,i+1,k)+f(j+1,i-1,k)) + &
               o4_c3*(f(j,i,k)))
       end do
     else if ( idiffu == 3 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
+      do k = 1, kz
+        do i = ici1, ici2
           im1 = max(i-1,1)
           im2 = max(i-2,1)
           im3 = max(i-3,1)
           ip1 = min(i+1,iym1)
           ip2 = min(i+2,iym1)
           ip3 = min(i+3,iym1)
-          do j = jci2 , jci2
+          do j = jci2, jci2
             jm1 = max(j-1,1)
             jm2 = max(j-2,1)
             jm3 = max(j-3,1)
@@ -764,39 +764,39 @@ module mod_diffusion
 
   subroutine diffu_x4d(ften,f,n1,n2,fac)
     implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: f
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
-    real(rkx) , intent(in) :: fac
+    integer(ik4), intent(in) :: n1, n2
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: f
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ften
+    real(rkx), intent(in) :: fac
     integer(ik4) ::  n
     !
-    do n = n1 , n2
+    do n = n1, n2
       call diffu_x4d3d(ften,f,n,fac)
     end do
   end subroutine diffu_x4d
 
   subroutine diffu_x4d3d(ften,f,n,fac)
     implicit none
-    integer(ik4) , intent(in) :: n
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: f
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
-    real(rkx) , intent(in) :: fac
-    integer(ik4) :: i , j , k
-    integer(ik4) :: im1 , im2 , im3
-    integer(ik4) :: jm1 , jm2 , jm3
-    integer(ik4) :: ip1 , ip2 , ip3
-    integer(ik4) :: jp1 , jp2 , jp3
-    real(rkx) :: dflux_x_p0 , dflux_x_p1 , dflux_y_p0 , dflux_y_p1
+    integer(ik4), intent(in) :: n
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: f
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ften
+    real(rkx), intent(in) :: fac
+    integer(ik4) :: i, j, k
+    integer(ik4) :: im1, im2, im3
+    integer(ik4) :: jm1, jm2, jm3
+    integer(ik4) :: ip1, ip2, ip3
+    integer(ik4) :: jp1, jp2, jp3
+    real(rkx) :: dflux_x_p0, dflux_x_p1, dflux_y_p0, dflux_y_p1
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_x4d3d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( idiffu == 1 ) then
       !
       ! fourth-order scheme for interior:
       !
-      do concurrent ( j = jcii1:jcii2 , i = icii1:icii2 , k = 1:kz )
+      do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
         ften(j,i,k,n) = ften(j,i,k,n) - fac * xkc(j,i,k) * &
              (z4_c1*(f(j+2,i,k,n)+f(j-2,i,k,n) +  &
                      f(j,i+2,k,n)+f(j,i-2,k,n)) + &
@@ -847,7 +847,7 @@ module mod_diffusion
       !
       ! fourth-order scheme
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         ften(j,i,k,n) = ften(j,i,k,n) + fac * xkc(j,i,k) * &
              (o4_c1*(f(j+1,i,k,n)+f(j-1,i,k,n) +      &
                      f(j,i+1,k,n)+f(j,i-1,k,n)) +     &
@@ -856,15 +856,15 @@ module mod_diffusion
               o4_c3*f(j,i,k,n))
       end do
     else if ( idiffu == 3 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
+      do k = 1, kz
+        do i = ici1, ici2
           im1 = max(i-1,1)
           im2 = max(i-2,1)
           im3 = max(i-3,1)
           ip1 = min(i+1,iym1)
           ip2 = min(i+2,iym1)
           ip3 = min(i+3,iym1)
-          do j = jci2 , jci2
+          do j = jci2, jci2
             jm1 = max(j-1,1)
             jm2 = max(j-2,1)
             jm3 = max(j-3,1)

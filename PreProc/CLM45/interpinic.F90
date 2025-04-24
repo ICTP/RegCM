@@ -42,70 +42,70 @@ program interpinic
   character (len=256) :: outputfile
 
   integer(ik4) :: istat
-  integer(ik4) :: ncin , ncout
+  integer(ik4) :: ncin, ncout
 
   integer(ik4) :: hostnm
-  integer(ik4) :: ihost , idir
+  integer(ik4) :: ihost, idir
   integer(ik4) :: getcwd
-  integer(ik4) :: ingc , inlu , inco , inpft , ingrd
-  integer(ik4) :: ongc , onlu , onco , onpft , ongrd
+  integer(ik4) :: ingc, inlu, inco, inpft, ingrd
+  integer(ik4) :: ongc, onlu, onco, onpft, ongrd
 
-  integer(ik4) , parameter :: itypeveg = 1
-  real(rkx) , parameter :: missl = -9999.0_rkx
+  integer(ik4), parameter :: itypeveg = 1
+  real(rkx), parameter :: missl = -9999.0_rkx
 
-  real(rkx) , pointer , dimension(:) :: i_grid1d_lon
-  real(rkx) , pointer , dimension(:) :: i_grid1d_lat
-  real(rkx) , pointer , dimension(:) :: i_pft1d_lon
-  real(rkx) , pointer , dimension(:) :: i_pft1d_lat
-  real(rkx) , pointer , dimension(:) :: i_col1d_lon
-  real(rkx) , pointer , dimension(:) :: i_col1d_lat
-  real(rkx) , pointer , dimension(:) :: o_grid1d_lon
-  real(rkx) , pointer , dimension(:) :: o_grid1d_lat
-  real(rkx) , pointer , dimension(:) :: o_pft1d_lon
-  real(rkx) , pointer , dimension(:) :: o_pft1d_lat
-  real(rkx) , pointer , dimension(:) :: o_col1d_lon
-  real(rkx) , pointer , dimension(:) :: o_col1d_lat
-  real(rkx) , pointer , dimension(:) :: o_pfts1d_wtxy
-  real(rkx) , pointer , dimension(:) :: o_cols1d_wtxy
-  real(rkx) , pointer , dimension(:) :: i_gval
-  real(rkx) , pointer , dimension(:) :: o_gval
-  real(rkx) , pointer , dimension(:) :: i_pval
-  real(rkx) , pointer , dimension(:) :: o_pval
-  real(rkx) , pointer , dimension(:) :: i_cval
-  real(rkx) , pointer , dimension(:,:) :: i_cval_ng
-  real(rkx) , pointer , dimension(:,:) :: i_cval_ng_t
-  real(rkx) , pointer , dimension(:) :: o_cval
-  real(rkx) , pointer , dimension(:,:) :: o_cval_ng
-  real(rkx) , pointer , dimension(:,:) :: o_cval_ng_t
-  integer(ik4) , pointer , dimension(:) :: i_ltype
-  integer(ik4) , pointer , dimension(:) :: o_ltype
-  integer(ik4) , pointer , dimension(:) :: i_vtype
-  integer(ik4) , pointer , dimension(:) :: o_vtype
-  integer(ik4) , pointer , dimension(:) :: i_ctype
-  integer(ik4) , pointer , dimension(:) :: o_ctype
-  integer(ik4) , pointer , dimension(:,:) :: i_mapf
-  integer(ik4) , pointer , dimension(:,:) :: o_mapf
-  integer(ik4) , pointer , dimension(:,:) :: i_mapc
-  integer(ik4) , pointer , dimension(:,:) :: o_mapc
-  integer(ik4) , pointer , dimension(:) :: colval
+  real(rkx), pointer, contiguous, dimension(:) :: i_grid1d_lon
+  real(rkx), pointer, contiguous, dimension(:) :: i_grid1d_lat
+  real(rkx), pointer, contiguous, dimension(:) :: i_pft1d_lon
+  real(rkx), pointer, contiguous, dimension(:) :: i_pft1d_lat
+  real(rkx), pointer, contiguous, dimension(:) :: i_col1d_lon
+  real(rkx), pointer, contiguous, dimension(:) :: i_col1d_lat
+  real(rkx), pointer, contiguous, dimension(:) :: o_grid1d_lon
+  real(rkx), pointer, contiguous, dimension(:) :: o_grid1d_lat
+  real(rkx), pointer, contiguous, dimension(:) :: o_pft1d_lon
+  real(rkx), pointer, contiguous, dimension(:) :: o_pft1d_lat
+  real(rkx), pointer, contiguous, dimension(:) :: o_col1d_lon
+  real(rkx), pointer, contiguous, dimension(:) :: o_col1d_lat
+  real(rkx), pointer, contiguous, dimension(:) :: o_pfts1d_wtxy
+  real(rkx), pointer, contiguous, dimension(:) :: o_cols1d_wtxy
+  real(rkx), pointer, contiguous, dimension(:) :: i_gval
+  real(rkx), pointer, contiguous, dimension(:) :: o_gval
+  real(rkx), pointer, contiguous, dimension(:) :: i_pval
+  real(rkx), pointer, contiguous, dimension(:) :: o_pval
+  real(rkx), pointer, contiguous, dimension(:) :: i_cval
+  real(rkx), pointer, contiguous, dimension(:,:) :: i_cval_ng
+  real(rkx), pointer, contiguous, dimension(:,:) :: i_cval_ng_t
+  real(rkx), pointer, contiguous, dimension(:) :: o_cval
+  real(rkx), pointer, contiguous, dimension(:,:) :: o_cval_ng
+  real(rkx), pointer, contiguous, dimension(:,:) :: o_cval_ng_t
+  integer(ik4), pointer, contiguous, dimension(:) :: i_ltype
+  integer(ik4), pointer, contiguous, dimension(:) :: o_ltype
+  integer(ik4), pointer, contiguous, dimension(:) :: i_vtype
+  integer(ik4), pointer, contiguous, dimension(:) :: o_vtype
+  integer(ik4), pointer, contiguous, dimension(:) :: i_ctype
+  integer(ik4), pointer, contiguous, dimension(:) :: o_ctype
+  integer(ik4), pointer, contiguous, dimension(:,:) :: i_mapf
+  integer(ik4), pointer, contiguous, dimension(:,:) :: o_mapf
+  integer(ik4), pointer, contiguous, dimension(:,:) :: i_mapc
+  integer(ik4), pointer, contiguous, dimension(:,:) :: o_mapc
+  integer(ik4), pointer, contiguous, dimension(:) :: colval
 
   type(h_interpolator) :: hint
-  integer(ik4) :: imaxpft , omaxpft
-  integer(ik4) :: imaxlun , omaxlun
-  integer(ik4) :: imaxcol , omaxcol , maxcol
+  integer(ik4) :: imaxpft, omaxpft
+  integer(ik4) :: imaxlun, omaxlun
+  integer(ik4) :: imaxcol, omaxcol, maxcol
 
-  integer(ik4) , dimension(8) :: tval
+  integer(ik4), dimension(8) :: tval
   character (len=32) :: cdata='?'
   character (len=5) :: czone='?'
   character (len=32) :: hostname='?'
   character (len=32) :: user='?'
   character (len=128) :: directory='?'
-  character (len=*) , parameter :: f99001 = &
+  character (len=*), parameter :: f99001 = &
           '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
   write (stdout,  &
      "(/,2x,'This is interpinic part of RegCM package version 4')")
-  write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
+  write (stdout,f99001)  GIT_VER, __DATE__, __TIME__
 
 #ifdef IBM
   hostname='ibm platform '
@@ -128,33 +128,33 @@ program interpinic
   call get_command_argument(0,value=prgname)
   istat = command_argument_count()
   if ( istat < 2 ) then
-    write(stderr, *) 'Usage : ', trim(prgname) , &
+    write(stderr, *) 'Usage : ', trim(prgname), &
               ' inputfile.r.nc outputfile.r.nc'
     call die(__FILE__,'Input file name missing',__LINE__)
   end if
   call get_command_argument(1,value=inputfile,status=istat)
   if ( istat < 0 ) then
-    write(stderr, *) 'Usage : ', trim(prgname) , &
+    write(stderr, *) 'Usage : ', trim(prgname), &
               ' inputfile.r.nc outputfile.r.nc'
     call die(__FILE__,'Input file name missing',__LINE__)
   end if
   call get_command_argument(2,value=outputfile,status=istat)
   if ( istat < 0 ) then
-    write(stderr, *) 'Usage : ', trim(prgname) , &
+    write(stderr, *) 'Usage : ', trim(prgname), &
               ' inputfile.r.nc outputfile.r.nc'
     call die(__FILE__,'Output file name missing',__LINE__)
   end if
 
   istat = nf90_open(inputfile, nf90_nowrite, ncin)
   if ( istat /= nf90_noerr ) then
-    write(stderr, *) 'Usage : ', trim(prgname) , &
+    write(stderr, *) 'Usage : ', trim(prgname), &
               ' inputfile.r.nc outputfile.r.nc'
     write (stderr,*) trim(inputfile)//' : '//nf90_strerror(istat)
     call die(__FILE__,'Input file open error',__LINE__)
   end if
   istat = nf90_open(outputfile, nf90_write, ncout)
   if ( istat /= nf90_noerr ) then
-    write(stderr, *) 'Usage : ', trim(prgname) , &
+    write(stderr, *) 'Usage : ', trim(prgname), &
               ' inputfile.r.nc outputfile.r.nc'
     write (stderr,*) trim(outputfile)//' : '//nf90_strerror(istat)
     call die(__FILE__,'Output file open error',__LINE__)
@@ -622,8 +622,8 @@ program interpinic
 
   integer(ik4) function dlen(ncid,dname)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: dname
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: dname
     integer(ik4) :: idimid
     istat = nf90_inq_dimid(ncid, dname, idimid)
     if ( istat /= nf90_noerr ) then
@@ -640,8 +640,8 @@ program interpinic
 
   logical function hasval(nc1,nc2,vname)
     implicit none
-    integer(ik4) , intent(in) :: nc1 , nc2
-    character(len=*) , intent(in) :: vname
+    integer(ik4), intent(in) :: nc1, nc2
+    character(len=*), intent(in) :: vname
     integer(ik4) :: ivarid
     hasval = .true.
     istat = nf90_inq_varid(nc1, vname, ivarid)
@@ -656,9 +656,9 @@ program interpinic
 
   subroutine rval(ncid,vname,var)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rkx) , dimension(:) , intent(inout) :: var
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rkx), dimension(:), intent(inout) :: var
     integer(ik4) :: ivarid
     istat = nf90_inq_varid(ncid, vname, ivarid)
     if ( istat /= nf90_noerr ) then
@@ -675,9 +675,9 @@ program interpinic
 
   subroutine rval2(ncid,vname,var)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rkx) , dimension(:,:) , intent(inout) :: var
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rkx), dimension(:,:), intent(inout) :: var
     integer(ik4) :: ivarid
     istat = nf90_inq_varid(ncid, vname, ivarid)
     if ( istat /= nf90_noerr ) then
@@ -694,9 +694,9 @@ program interpinic
 
   subroutine ival(ncid,vname,var)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:) , intent(inout) :: var
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:), intent(inout) :: var
     integer(ik4) :: ivarid
     istat = nf90_inq_varid(ncid, vname, ivarid)
     if ( istat /= nf90_noerr ) then
@@ -713,9 +713,9 @@ program interpinic
 
   subroutine wval(ncid,vname,var)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rkx) , dimension(:) , intent(in) :: var
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rkx), dimension(:), intent(in) :: var
     integer(ik4) :: ivarid
     istat = nf90_inq_varid(ncid, vname, ivarid)
     if ( istat /= nf90_noerr ) then
@@ -732,9 +732,9 @@ program interpinic
 
   subroutine wval2(ncid,vname,var)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rkx) , dimension(:,:) , intent(in) :: var
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rkx), dimension(:,:), intent(in) :: var
     integer(ik4) :: ivarid
     istat = nf90_inq_varid(ncid, vname, ivarid)
     if ( istat /= nf90_noerr ) then
@@ -751,15 +751,15 @@ program interpinic
 
   subroutine makemap_pft(np,ng,mp,ltype,ptype,glat,glon,plat,plon,map)
     implicit none
-    integer(ik4) , intent(in) :: np , ng , mp
-    integer(ik4) , intent(in) , dimension(np) :: ltype
-    integer(ik4) , intent(in) , dimension(np) :: ptype
-    real(rkx) , intent(in) , dimension(ng) :: glat
-    real(rkx) , intent(in) , dimension(ng) :: glon
-    real(rkx) , intent(in) , dimension(np) :: plat
-    real(rkx) , intent(in) , dimension(np) :: plon
-    integer(ik4) , intent(out) , dimension(ng,mp) :: map
-    integer(ik4) :: ig , ip
+    integer(ik4), intent(in) :: np, ng, mp
+    integer(ik4), intent(in), dimension(np) :: ltype
+    integer(ik4), intent(in), dimension(np) :: ptype
+    real(rkx), intent(in), dimension(ng) :: glat
+    real(rkx), intent(in), dimension(ng) :: glon
+    real(rkx), intent(in), dimension(np) :: plat
+    real(rkx), intent(in), dimension(np) :: plon
+    integer(ik4), intent(out), dimension(ng,mp) :: map
+    integer(ik4) :: ig, ip
 
     map(:,:) = -1
     ig = 1
@@ -779,14 +779,14 @@ program interpinic
 
   subroutine makemap_col(nc,ng,mc,ctype,glat,glon,clat,clon,map)
     implicit none
-    integer(ik4) , intent(in) :: nc , ng , mc
-    integer(ik4) , intent(in) , dimension(nc) :: ctype
-    real(rkx) , intent(in) , dimension(ng) :: glat
-    real(rkx) , intent(in) , dimension(ng) :: glon
-    real(rkx) , intent(in) , dimension(nc) :: clat
-    real(rkx) , intent(in) , dimension(nc) :: clon
-    integer(ik4) , intent(out) , dimension(ng,mc) :: map
-    integer(ik4) :: ig , ic
+    integer(ik4), intent(in) :: nc, ng, mc
+    integer(ik4), intent(in), dimension(nc) :: ctype
+    real(rkx), intent(in), dimension(ng) :: glat
+    real(rkx), intent(in), dimension(ng) :: glon
+    real(rkx), intent(in), dimension(nc) :: clat
+    real(rkx), intent(in), dimension(nc) :: clon
+    integer(ik4), intent(out), dimension(ng,mc) :: map
+    integer(ik4) :: ig, ic
 
     map(:,:) = -1
     ig = 1
@@ -804,8 +804,8 @@ program interpinic
 
   subroutine pft_interpolate(vname)
     implicit none
-    character(len=*) , intent(in) :: vname
-    integer(ik4) :: ip , ig
+    character(len=*), intent(in) :: vname
+    integer(ik4) :: ip, ig
 
     if ( .not. hasval(ncin,ncout,vname) ) return
 
@@ -814,9 +814,9 @@ program interpinic
     call rval(ncin,vname,i_pval)
     call rval(ncout,vname,o_pval)
 
-    do ip = 1 , imaxpft
+    do ip = 1, imaxpft
       ! Extract values for pft and put on grid values
-      do ig = 1 , ingc
+      do ig = 1, ingc
         if ( i_mapf(ig,ip) > 0 ) then
           if ( i_pval(i_mapf(ig,ip)) >= -1.0e-20 .and. &
                i_pval(i_mapf(ig,ip)) <= 1.0e+20 ) then
@@ -831,7 +831,7 @@ program interpinic
       ! Interpolate on grid.
       call h_interpolate_cont(hint,i_gval,o_gval)
       ! Put grid values back on output pft values
-      do ig = 1 , ongc
+      do ig = 1, ongc
         if ( o_mapf(ig,ip) > 0 .and. &
              abs(o_gval(ig)-missl) > epsilon(1.0) .and. &
              o_pfts1d_wtxy(ip) > 0.0_rkx ) then
@@ -844,8 +844,8 @@ program interpinic
 
   subroutine col_interpolate_grnd(vname)
     implicit none
-    character(len=*) , intent(in) :: vname
-    integer(ik4) :: ic , ig , igr
+    character(len=*), intent(in) :: vname
+    integer(ik4) :: ic, ig, igr
 
     if ( .not. hasval(ncin,ncout,vname) ) return
 
@@ -857,10 +857,10 @@ program interpinic
     i_cval_ng_t = transpose(i_cval_ng)
     o_cval_ng_t = transpose(o_cval_ng)
 
-    do igr = 1 , ingrd
-      do ic = 1 , maxcol
+    do igr = 1, ingrd
+      do ic = 1, maxcol
         ! Extract values for pft and put on grid values
-        do ig = 1 , ingc
+        do ig = 1, ingc
           if ( i_mapc(ig,ic) > 0 ) then
             if ( .not. is_nan(i_cval_ng_t(i_mapc(ig,ic),igr)) ) then
               if ( i_cval_ng_t(i_mapc(ig,ic),igr) >= -1.0e-20 .and. &
@@ -880,7 +880,7 @@ program interpinic
         ! Interpolate on grid.
         call h_interpolate_cont(hint,i_gval,o_gval)
         ! Put grid values back on output pft values
-        do ig = 1 , ongc
+        do ig = 1, ongc
           if ( o_mapc(ig,ic) > 0 .and. &
                abs(o_gval(ig)-missl) > epsilon(1.0) .and. &
                o_cols1d_wtxy(ic) > 0.0_rkx ) then
@@ -895,8 +895,8 @@ program interpinic
 
   subroutine col_interpolate(vname)
     implicit none
-    character(len=*) , intent(in) :: vname
-    integer(ik4) :: ic , ig
+    character(len=*), intent(in) :: vname
+    integer(ik4) :: ic, ig
 
     if ( .not. hasval(ncin,ncout,vname) ) return
 
@@ -905,9 +905,9 @@ program interpinic
     call rval(ncin,vname,i_cval)
     call rval(ncout,vname,o_cval)
 
-    do ic = 1 , maxcol
+    do ic = 1, maxcol
       ! Extract values for pft and put on grid values
-      do ig = 1 , ingc
+      do ig = 1, ingc
         if ( i_mapc(ig,ic) > 0 ) then
           if ( .not. is_nan(i_cval(i_mapc(ig,ic))) ) then
             if ( i_cval(i_mapc(ig,ic)) >= -1.0e-20 .and. &
@@ -927,7 +927,7 @@ program interpinic
       ! Interpolate on grid.
       call h_interpolate_cont(hint,i_gval,o_gval)
       ! Put grid values back on output pft values
-      do ig = 1 , ongc
+      do ig = 1, ongc
         if ( o_mapc(ig,ic) > 0 .and. &
              abs(o_gval(ig)-missl) > epsilon(1.0) .and. &
              o_cols1d_wtxy(ic) > 0.0_rkx ) then
@@ -940,11 +940,11 @@ program interpinic
 
   integer(ik4) function countcols(ctype) result(res)
     implicit none
-    integer(ik4) , dimension(:) , intent(in) :: ctype
-    integer(ik4) :: i , mcol
+    integer(ik4), dimension(:), intent(in) :: ctype
+    integer(ik4) :: i, mcol
     res = 0
     mcol = 0
-    do i = 1 , size(ctype)
+    do i = 1, size(ctype)
       if ( ctype(i) > mcol ) then
         res = res + 1
         mcol = ctype(i)
@@ -954,16 +954,16 @@ program interpinic
 
   subroutine set_colvals(c1,c2,cv)
     implicit none
-    integer(ik4) , dimension(:) , intent(in) :: c1 , c2
-    integer(ik4) , pointer , dimension(:) , intent(inout) :: cv
-    integer(ik4) :: i , mcol , ic , ic1 , ic2 , imax , imin
-    integer(ik4) , dimension(:) , allocatable :: iv1 , iv2 , itemp , ival
+    integer(ik4), dimension(:), intent(in) :: c1, c2
+    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: cv
+    integer(ik4) :: i, mcol, ic, ic1, ic2, imax, imin
+    integer(ik4), dimension(:), allocatable :: iv1, iv2, itemp, ival
 
     ic = 0
     ic1 = countcols(c1)
     allocate(iv1(ic1))
     mcol = 0
-    do i = 1 , size(c1)
+    do i = 1, size(c1)
       if ( c1(i) > mcol ) then
         ic = ic + 1
         iv1(ic) = c1(i)
@@ -974,7 +974,7 @@ program interpinic
     ic2 = countcols(c2)
     allocate(iv2(ic2))
     mcol = 0
-    do i = 1 , size(c2)
+    do i = 1, size(c2)
       if ( c2(i) > mcol ) then
         ic = ic + 1
         iv2(ic) = c2(i)
@@ -1001,11 +1001,11 @@ program interpinic
 
   pure integer(ik4) function myfindloc(ac,c) result(ip)
     implicit none
-    integer(ik4) , dimension(:) , intent(in) :: ac
-    integer(ik4) , intent(in) :: c
+    integer(ik4), dimension(:), intent(in) :: ac
+    integer(ik4), intent(in) :: c
     integer(ik4) :: i
     ip = 0
-    do i = 1 , size(ac)
+    do i = 1, size(ac)
       if ( ac(i) == c ) then
         ip = i
         return

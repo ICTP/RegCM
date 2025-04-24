@@ -34,15 +34,15 @@ module mod_cloud_xuran
   !
   subroutine xuran_cldfrac(p,qc,qs,rh,qcrit,fcc)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p , rh
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qc , qs
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: qcrit
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
-    integer(ik4) :: i , j , k
-    real(rkx) , parameter :: parm_p = 0.25_rkx
-    real(rkx) , parameter :: parm_gamma = 0.49_rkx
-    real(rkx) , parameter :: parm_alpha0 = 100.0_rkx
-    real(rkx) :: botm , rm , qcld , rhrng
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p, rh
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qc, qs
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: qcrit
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
+    integer(ik4) :: i, j, k
+    real(rkx), parameter :: parm_p = 0.25_rkx
+    real(rkx), parameter :: parm_gamma = 0.49_rkx
+    real(rkx), parameter :: parm_alpha0 = 100.0_rkx
+    real(rkx) :: botm, rm, qcld, rhrng
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction

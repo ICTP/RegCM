@@ -29,10 +29,10 @@ module mod_bats_bndry
 
   private
 
-  public :: soilbc , bndry
+  public :: soilbc, bndry
 
-  real(rkx) , parameter :: rainsnowtemp = 2.2_rkx
-  real(rkx) , parameter :: xnu = twopi/secpd
+  real(rkx), parameter :: rainsnowtemp = 2.2_rkx
+  real(rkx), parameter :: xnu = twopi/secpd
 
   contains
 
@@ -46,7 +46,7 @@ module mod_bats_bndry
   !
   subroutine soilbc
     implicit none
-    real(rkx) :: ck , dmax , dmin , dmnor , phi0 , tweak1
+    real(rkx) :: ck, dmax, dmin, dmnor, phi0, tweak1
     integer(ik4) :: i
     !
     ! ================================================================
@@ -59,10 +59,10 @@ module mod_bats_bndry
     !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'soilbc'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       freza(lveg(i)) = 0.15_rkx*deprv(lveg(i))
       frezu(lveg(i)) = 0.15_rkx*depuv(lveg(i))
       texrat(i) = skrat(ltex(i))
@@ -139,11 +139,11 @@ module mod_bats_bndry
   !
   subroutine bndry
     implicit none
-    real(rkx) :: qsatd , rai
+    real(rkx) :: qsatd, rai
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bndry'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -151,7 +151,7 @@ module mod_bats_bndry
     !   1.   initialize
     !=======================================================================
 
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       htvp(i) = wlh(tgrd(i))
       flnet(i) = d_zero
       fevpg(i) = d_zero
@@ -192,7 +192,7 @@ module mod_bats_bndry
     !=======================================================================
     ! 3.1  get derivative of fluxes with repect to tg
     !
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       if ( sigf(i) <= minsigf ) then
         qsatd = pfqsdt(tgrd(i),sfcp(i))
         qsatd = qsatd * gwet(i)
@@ -220,7 +220,7 @@ module mod_bats_bndry
         uaf(i) = vspda(i)
       end if
     end do
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       if ( sigf(i) > minsigf ) then   !  check each point
         !================================================================
         ! 4.   vegetation
@@ -253,7 +253,7 @@ module mod_bats_bndry
     !   6.   linkage to meteorological model
     !=======================================================================
 
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       ! 6.1  rate of momentum transfer per velocity
       drag(i) = cdrx(i)*vspda(i)*rhs(i)
       if ( sigf(i) <= minsigf ) taf(i) = tgrd(i)
@@ -289,11 +289,11 @@ module mod_bats_bndry
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'vcover'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       if ( sigf(i) > minsigf ) then
         xlai(i) = xla(lveg(i))
         xlai(i) = xlai(i) + (xlai0(lveg(i))-xlai(i))*(d_one-aseas(i))
@@ -319,10 +319,10 @@ module mod_bats_bndry
     real(rkx) :: xrun
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'drip'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       etrrun(i) = d_zero
       sdrop(i) = d_zero
       if ( sigf(i) > minsigf ) then
@@ -376,13 +376,13 @@ module mod_bats_bndry
   !
   subroutine water
     implicit none
-    real(rkx) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr , &
-               evmxt , rap , vakb , wtg2c , xxkb , gwatr , rsubsr , &
-               rsubss , xkmx1 , xkmx2 , xkmxr , wata , b1 , b2 , b3
+    real(rkx) :: b, bfac, bfac2, delwat, est0, evmax, evmxr, &
+               evmxt, rap, vakb, wtg2c, xxkb, gwatr, rsubsr, &
+               rsubss, xkmx1, xkmx2, xkmxr, wata, b1, b2, b3
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'water'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -390,7 +390,7 @@ module mod_bats_bndry
     !   1.   define soil water fluxes
     !=======================================================================
     !
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       !
       ! 1.1  reduce infiltration for frozen ground
       !
@@ -447,7 +447,7 @@ module mod_bats_bndry
     !
     ! 1.5  net flux at air interface
     !
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       gwatr = pw(i) + sm(i) + etrrun(i)/dtbat - evapw(i)
       !
       !=================================================================
@@ -511,7 +511,7 @@ module mod_bats_bndry
       tsw(i) = max(tsw(i),gwmx2(i)*minwrat)
     end do
 
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       !
       !=================================================================
       !  4.   check whether soil water exceeds maximum capacity or
@@ -548,7 +548,7 @@ module mod_bats_bndry
     !        wetness factor, allowing for snow being saturated
     !=======================================================================
     !
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       xxkb = min(rough(lveg(i)),d_one)
       vakb = (d_one-sigf(i))*vspda(i) + sigf(i) * &
              (xxkb*uaf(i)+(d_one-xxkb)*vspda(i))
@@ -590,17 +590,17 @@ module mod_bats_bndry
   !
   subroutine snow
     implicit none
-    real(rkx) :: age1 , age2 , arg , arg2 , dela , dela0 , &
-                 dels , tage , sold! , fsnts , tpw
+    real(rkx) :: age1, age2, arg, arg2, dela, dela0, &
+                 dels, tage, sold!, fsnts, tpw
     integer(ik4) :: i
-    real(rkx) , parameter :: age3 = 0.3_rkx
-    !real(rkx) , parameter :: ax = -48.23_rkx
-    !real(rkx) , parameter :: bx = 0.75_rkx
-    !real(rkx) , parameter :: cx = 1.16_rkx
-    !real(rkx) , parameter :: dx = 1.02_rkx
+    real(rkx), parameter :: age3 = 0.3_rkx
+    !real(rkx), parameter :: ax = -48.23_rkx
+    !real(rkx), parameter :: bx = 0.75_rkx
+    !real(rkx), parameter :: cx = 1.16_rkx
+    !real(rkx), parameter :: dx = 1.02_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'snow'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -609,7 +609,7 @@ module mod_bats_bndry
     !        between water and snow
     !=======================================================================
     !
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       evaps(i) = scvk(i) * fevpg(i)
       evapw(i) = fevpg(i) - evaps(i)
       ! tm is temperature of precipitation
@@ -642,7 +642,7 @@ module mod_bats_bndry
     !   2.   update snow cover
     !=======================================================================
     !
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       sold = sncv(i)
       sncv(i) = sncv(i) + dtbat*(ps(i)-evaps(i)-sm(i)) + sdrop(i)
       if ( sncv(i) < dlowval ) then
@@ -711,17 +711,17 @@ module mod_bats_bndry
   !
   subroutine tgrund
     implicit none
-    real(rkx) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr , &
-             depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,   &
-             tbef , tg , tinc , wtas , wtax , wtd , wtds , hs , depann , &
-             depdiu , rscsa , rscsd , ska , skd , sks
-    real(rkx) :: dtbat2 , rdtbat2 , xlexp , xnua , swtrta , swtrtd
+    real(rkx) :: bcoefd, bcoefs, c31, c3t, c41, c4t, cder, depr, &
+             depu, xdt2, xdtime, dtimea, froze2, frozen, rscss,   &
+             tbef, tg, tinc, wtas, wtax, wtd, wtds, hs, depann, &
+             depdiu, rscsa, rscsd, ska, skd, sks
+    real(rkx) :: dtbat2, rdtbat2, xlexp, xnua, swtrta, swtrtd
     integer(ik4) :: i
-    real(rkx) , parameter :: xkperi = 1.4e-6_rkx
-    real(rkx) , parameter :: t3 = 271.0_rkx ! permafrost temperature
+    real(rkx), parameter :: xkperi = 1.4e-6_rkx
+    real(rkx), parameter :: t3 = 271.0_rkx ! permafrost temperature
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tgrund'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     dtbat2  = dtbat*d_two
@@ -737,7 +737,7 @@ module mod_bats_bndry
     dtimea = dtbat*xnua
     xdt2 = d_half*xdtime
 
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       ! 1.1  frozen ground values using 44 m2/yr for frozen ground
       !      thermal diffusion coefficient, based on the values of
       !      50 and 38 quoted by osterkamp; ice contribution to
@@ -830,7 +830,7 @@ module mod_bats_bndry
     !   3.   update soil temperatures
     !=======================================================================
     !   3.1  update surface soil temperature
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       tbef = tgrd(i)
       cder = bcoef(i)*cgrnd(i)
       tg = (bb(i)+(cc(i)-xdt2+cder)*tgrd(i)) / (cc(i)+xdt2+cder)
@@ -868,18 +868,18 @@ module mod_bats_bndry
 
     pure real(rkx) function fsk(x)
       implicit none
-      real(rkx) , intent(in) :: x
+      real(rkx), intent(in) :: x
       fsk = (2.9e-7_rkx*x+4.0e-9_rkx) / &
            (((d_one-0.6_rkx*x)*x+0.09_rkx)*(0.23_rkx+x))
     end function fsk
     pure real(rkx) function fsc(x)
       implicit none
-      real(rkx) , intent(in) :: x
+      real(rkx), intent(in) :: x
       fsc = (0.23_rkx+x)*4.186e6_rkx
     end function fsc
     pure real(rkx) function fct1(x)
       implicit none
-      real(rkx) , intent(in) :: x
+      real(rkx), intent(in) :: x
       fct1 = wlhf*d_rfour*1.414_rkx/x
     end function fct1
 

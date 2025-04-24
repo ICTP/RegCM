@@ -3,11 +3,11 @@ module mod_cbmz_hvread
   use mod_cbmz_precision
   use mod_cbmz_jval1
 
-  integer , public :: c_hvin
-  integer , public , dimension(22) :: c_nhv
-  real(kind=dp) , public , dimension(22) :: c_hvmatb
-  real(kind=dp) , public , dimension(22,40) :: c_hvmat
-  real(kind=dp) , public , dimension(80,510,56) :: c_jarray
+  integer, public :: c_hvin
+  integer, public, dimension(22) :: c_nhv
+  real(kind=dp), public, dimension(22) :: c_hvmatb
+  real(kind=dp), public, dimension(22,40) :: c_hvmat
+  real(kind=dp), public, dimension(80,510,56) :: c_jarray
 
   contains
 
@@ -19,7 +19,7 @@ module mod_cbmz_hvread
   !
   subroutine hvread(ip)
     implicit none
-    integer(ik4) , intent(in) :: ip
+    integer(ik4), intent(in) :: ip
     c_hvin = ip
     call readhv(c_hvin,c_nhv,c_hvmat,c_hvmatb,c_jarray)
   end subroutine hvread

@@ -22,15 +22,15 @@ module mod_pbl_interface
   use mod_memutil
   use mod_mppparam
   use mod_regcm_types
-  use mod_pbl_common , only : ricr , uwstate , kmxpbl
-  use mod_pbl_holtbl , only : holtbl , allocate_mod_pbl_holtbl
-  use mod_pbl_uwtcm , only : allocate_tcm_state
-  use mod_pbl_uwtcm , only : uwtcm , init_mod_pbl_uwtcm , uwtkemin
-  use mod_pbl_gfs , only : init_pbl_gfs , pbl_gfs
-  use mod_pbl_myj , only : init_myjpbl , myjpbl , myjtkemin
-  use mod_pbl_shinhong , only : shinhong_pbl , init_shinhong_pbl
-  use mod_runparams , only : ibltyp , pc_physic
-  use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
+  use mod_pbl_common, only : ricr, uwstate, kmxpbl
+  use mod_pbl_holtbl, only : holtbl, allocate_mod_pbl_holtbl
+  use mod_pbl_uwtcm, only : allocate_tcm_state
+  use mod_pbl_uwtcm, only : uwtcm, init_mod_pbl_uwtcm, uwtkemin
+  use mod_pbl_gfs, only : init_pbl_gfs, pbl_gfs
+  use mod_pbl_myj, only : init_myjpbl, myjpbl, myjtkemin
+  use mod_pbl_shinhong, only : shinhong_pbl, init_shinhong_pbl
+  use mod_runparams, only : ibltyp, pc_physic
+  use mod_runparams, only : iqc, iqv, dt, rdt, ichem, hsigma, dsigma
 
   implicit none
 
@@ -47,11 +47,11 @@ module mod_pbl_interface
   public :: ricr
   public :: kmxpbl
 
-  real(rkx) , public :: tkemin = 0.0_rkx
-  real(rkx) , pointer , dimension(:,:,:) :: utenx => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vtenx => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: utend => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vtend => null( )
+  real(rkx), public :: tkemin = 0.0_rkx
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: utenx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vtenx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: utend => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vtend => null( )
 
   contains
 
@@ -189,7 +189,7 @@ module mod_pbl_interface
   subroutine pblscheme
     use mod_atm_interface
     implicit none
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i, j, k
     select case ( ibltyp )
       case (1)
         call holtbl(m2p,p2m)
@@ -201,15 +201,15 @@ module mod_pbl_interface
         call uwtcm(m2p,p2m)
         if ( idynamic == 3 ) then
           call tenxtouvten(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
             p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
           end do
-          do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
             p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
           end do
         else
           call uvcross2dot(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+          do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
             p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
             p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
           end do
@@ -222,15 +222,15 @@ module mod_pbl_interface
         call pbl_gfs(m2p,p2m)
         if ( idynamic == 3 ) then
           call tenxtouvten(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
             p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
           end do
-          do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
             p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
           end do
         else
           call uvcross2dot(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+          do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
             p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
             p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
           end do
@@ -243,15 +243,15 @@ module mod_pbl_interface
         call myjpbl(m2p,p2m)
         if ( idynamic == 3 ) then
           call tenxtouvten(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
             p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
           end do
-          do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
             p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
           end do
         else
           call uvcross2dot(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+          do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
             p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
             p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
           end do
@@ -264,15 +264,15 @@ module mod_pbl_interface
         call shinhong_pbl(m2p,p2m)
         if ( idynamic == 3 ) then
           call tenxtouvten(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
             p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
           end do
-          do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
             p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
           end do
         else
           call uvcross2dot(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+          do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
             p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
             p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
           end do

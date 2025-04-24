@@ -22,27 +22,27 @@ program readregcm
   use netcdf
   implicit none
 
-  character(256) :: prgname , ncfile
+  character(256) :: prgname, ncfile
   character(32) :: varname
-  character(64) :: vardesc , timeunit , timecal
+  character(64) :: vardesc, timeunit, timecal
   character(16) :: varunit
-  integer :: numarg , istatus , ncid
+  integer :: numarg, istatus, ncid
 
   character(256) :: charatt
   character(6) :: iproj
-  real(4) :: clat , clon , plat , plon , ds
-  real(4) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
-  real(4) , dimension(2) :: trlat
-  real(4) , allocatable , dimension(:,:) :: xlat , xlon , var
-  real(4) , allocatable , dimension(:) :: sigma
-  real(8) , allocatable , dimension(:) :: times
-  integer , allocatable , dimension(:) :: dimids
-  integer :: ndims , nvars , natts , udimid
-  integer :: ivarid , idimid
-  integer :: jxdimid , iydimid , kzdimid , itdimid
-  integer :: jx , iy , kz, nt , nlat , nlon
+  real(4) :: clat, clon, plat, plon, ds
+  real(4) :: minlat, minlon, maxlat, maxlon, rlatinc, rloninc
+  real(4), dimension(2) :: trlat
+  real(4), allocatable, dimension(:,:) :: xlat, xlon, var
+  real(4), allocatable, dimension(:) :: sigma
+  real(8), allocatable, dimension(:) :: times
+  integer, allocatable, dimension(:) :: dimids
+  integer :: ndims, nvars, natts, udimid
+  integer :: ivarid, idimid
+  integer :: jxdimid, iydimid, kzdimid, itdimid
+  integer :: jx, iy, kz, nt, nlat, nlon
   integer :: i
-  integer , dimension(4) :: istart , icount
+  integer, dimension(4) :: istart, icount
 
   call get_command_argument(0,value=prgname)
   numarg = command_argument_count( )
@@ -341,7 +341,7 @@ program readregcm
       stop
     end if
     print *, 'Time units                    : ', trim(timeunit)
-    do i = 1 , nt
+    do i = 1, nt
       print *, '    Time                      : ', &
              tochar(timeval2date(times(i),timeunit,timecal))
     end do
@@ -350,7 +350,7 @@ program readregcm
 
   end if
 
-  do i = 1 , nvars
+  do i = 1, nvars
     istatus = nf90_inquire_variable(ncid,i,name=varname,ndims=idimid, &
                                     dimids=dimids)
     if (istatus /= nf90_noerr) then
@@ -422,7 +422,7 @@ program readregcm
 
   function rounder(value,ltop)
     implicit none
-    real(4) , intent(in) :: value
+    real(4), intent(in) :: value
     logical, intent(in) :: ltop
     real(4) :: rounder
     integer :: tmpval

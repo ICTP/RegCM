@@ -22,8 +22,8 @@ module mod_vectutil
 
   private
 
-  public :: crs2dot , dot2crs , top2btm , btm2top , meandiv , meandivf
-  public :: ucrs2dot , vcrs2dot
+  public :: crs2dot, dot2crs, top2btm, btm2top, meandiv, meandivf
+  public :: ucrs2dot, vcrs2dot
 
   interface ucrs2dot
     module procedure ucrs2dot_2d
@@ -44,12 +44,12 @@ module mod_vectutil
 
   subroutine ucrs2dot_3d(pd,px,ni,nj,nk,iband)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    integer(ik4) , intent(in) :: iband
-    real(rkx) , intent(in) , dimension(ni,nj,nk) :: px
-    real(rkx) , intent(out) , dimension(ni,nj,nk) :: pd
+    integer(ik4), intent(in) :: ni, nj, nk
+    integer(ik4), intent(in) :: iband
+    real(rkx), intent(in), dimension(ni,nj,nk) :: px
+    real(rkx), intent(out), dimension(ni,nj,nk) :: pd
 
-    integer(ik4) :: i , j , k , ni1 , im1 , im2 , ip1
+    integer(ik4) :: i, j, k, ni1, im1, im2, ip1
     !
     ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
     ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
@@ -57,9 +57,9 @@ module mod_vectutil
     ! I'S.
     !
     if ( iband == 1 ) then
-      do k = 1 , nk
-        do j = 1 , nj
-          do i = 1 , ni
+      do k = 1, nk
+        do j = 1, nj
+          do i = 1, ni
             im1 = i-1
             im2 = i-2
             ip1 = i+1
@@ -73,10 +73,10 @@ module mod_vectutil
         end do
       end do
     else
-      do k = 1 , nk
+      do k = 1, nk
         ni1 = ni - 1
-        do j = 1 , nj
-          do i = 3 , ni1
+        do j = 1, nj
+          do i = 3, ni1
             pd(i,j,k) = 0.5625_rkx*(px(i,j,k)+px(i-1,j,k)) - &
                         0.0625_rkx*(px(i+1,j,k)+px(i-2,j,k))
           end do
@@ -90,12 +90,12 @@ module mod_vectutil
 
   subroutine vcrs2dot_3d(pd,px,ni,nj,nk,icrs)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    integer(ik4) , intent(in) :: icrs
-    real(rkx) , intent(in) , dimension(ni,nj,nk) :: px
-    real(rkx) , intent(out) , dimension(ni,nj,nk) :: pd
+    integer(ik4), intent(in) :: ni, nj, nk
+    integer(ik4), intent(in) :: icrs
+    real(rkx), intent(in), dimension(ni,nj,nk) :: px
+    real(rkx), intent(out), dimension(ni,nj,nk) :: pd
 
-    integer(ik4) :: i , j , k , nj1 , jm1 , jm2 , jp1
+    integer(ik4) :: i, j, k, nj1, jm1, jm2, jp1
     !
     ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
     ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
@@ -103,8 +103,8 @@ module mod_vectutil
     ! I'S.
     !
     if ( icrs == 1 ) then
-      do k = 1 , nk
-        do j = 1 , nj
+      do k = 1, nk
+        do j = 1, nj
           jm1 = j-1
           jm2 = j-2
           jp1 = j+1
@@ -112,17 +112,17 @@ module mod_vectutil
           if (jm1 == 0) jm1 = nj
           if (jm2 == 0) jm2 = nj
           if (jm2 == -1) jm2 = nj-1
-          do i = 1 , ni
+          do i = 1, ni
             pd(i,j,k) = 0.5625_rkx*(px(i,j,k)+px(i,jm1,k)) - &
                         0.0625_rkx*(px(i,jp1,k)+px(i,jm2,k))
           end do
         end do
       end do
     else
-      do k = 1 , nk
+      do k = 1, nk
         nj1 = nj - 1
-        do j = 3 , nj1
-          do i = 1 , ni
+        do j = 3, nj1
+          do i = 1, ni
             pd(i,j,k) = 0.5625_rkx*(px(i,j,k)+px(i,j-1,k)) - &
                         0.0625_rkx*(px(i,j+1,k)+px(i,j-2,k))
           end do
@@ -136,12 +136,12 @@ module mod_vectutil
 
   subroutine ucrs2dot_2d(pd,px,ni,nj,iband)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj
-    integer(ik4) , intent(in) :: iband
-    real(rkx) , intent(in) , dimension(ni,nj) :: px
-    real(rkx) , intent(out) , dimension(ni,nj) :: pd
+    integer(ik4), intent(in) :: ni, nj
+    integer(ik4), intent(in) :: iband
+    real(rkx), intent(in), dimension(ni,nj) :: px
+    real(rkx), intent(out), dimension(ni,nj) :: pd
 
-    integer(ik4) :: i , j , ni1 , im1 , im2 , ip1
+    integer(ik4) :: i, j, ni1, im1, im2, ip1
     !
     ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
     ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
@@ -149,8 +149,8 @@ module mod_vectutil
     ! I'S.
     !
     if ( iband == 1 ) then
-      do j = 1 , nj
-        do i = 1 , ni
+      do j = 1, nj
+        do i = 1, ni
           im1 = i-1
           im2 = i-2
           ip1 = i+1
@@ -164,8 +164,8 @@ module mod_vectutil
       end do
     else
       ni1 = ni - 1
-      do j = 1 , nj
-        do i = 3 , ni1
+      do j = 1, nj
+        do i = 3, ni1
           pd(i,j) = 0.5625_rkx*(px(i,j)+px(i-1,j)) - &
                     0.0625_rkx*(px(i+1,j)+px(i-2,j))
         end do
@@ -178,12 +178,12 @@ module mod_vectutil
 
   subroutine vcrs2dot_2d(pd,px,ni,nj,icrs)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj
-    integer(ik4) , intent(in) :: icrs
-    real(rkx) , intent(in) , dimension(ni,nj) :: px
-    real(rkx) , intent(out) , dimension(ni,nj) :: pd
+    integer(ik4), intent(in) :: ni, nj
+    integer(ik4), intent(in) :: icrs
+    real(rkx), intent(in), dimension(ni,nj) :: px
+    real(rkx), intent(out), dimension(ni,nj) :: pd
 
-    integer(ik4) :: i , j , nj1 , jm1 , jm2 , jp1
+    integer(ik4) :: i, j, nj1, jm1, jm2, jp1
     !
     ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
     ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
@@ -191,7 +191,7 @@ module mod_vectutil
     ! I'S.
     !
     if ( icrs == 1 ) then
-      do j = 1 , nj
+      do j = 1, nj
         jm1 = j-1
         jm2 = j-2
         jp1 = j+1
@@ -199,15 +199,15 @@ module mod_vectutil
         if (jm1 == 0) jm1 = nj
         if (jm2 == 0) jm2 = nj
         if (jm2 == -1) jm2 = nj-1
-        do i = 1 , ni
+        do i = 1, ni
           pd(i,j) = 0.5625_rkx*(px(i,j)+px(i,jm1)) - &
                     0.0625_rkx*(px(i,jp1)+px(i,jm2))
         end do
       end do
     else
       nj1 = nj - 1
-      do j = 3 , nj1
-        do i = 1 , ni
+      do j = 3, nj1
+        do i = 1, ni
           pd(i,j) = 0.5625_rkx*(px(i,j)+px(i,j-1)) - &
                     0.0625_rkx*(px(i,j+1)+px(i,j-2))
         end do
@@ -220,12 +220,12 @@ module mod_vectutil
 
   subroutine crs2dot_2d(pd,px,ni,nj,iband,icrm)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj
-    integer(ik4) , intent(in) :: iband , icrm
-    real(rkx) , intent(in) , dimension(ni,nj) :: px
-    real(rkx) , intent(out) , dimension(ni,nj) :: pd
+    integer(ik4), intent(in) :: ni, nj
+    integer(ik4), intent(in) :: iband, icrm
+    real(rkx), intent(in), dimension(ni,nj) :: px
+    real(rkx), intent(out), dimension(ni,nj) :: pd
 
-    integer(ik4) :: i , j , ni1 , nj1 , im1 , jm1
+    integer(ik4) :: i, j, ni1, nj1, im1, jm1
     !
     ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
     ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
@@ -234,8 +234,8 @@ module mod_vectutil
     !
     if ( iband == 1 ) then
       if ( icrm == 1 ) then
-        do j = 1 , nj
-          do i = 1 , ni
+        do j = 1, nj
+          do i = 1, ni
             im1 = i-1
             jm1 = j-1
             if (im1 == 0) im1 = ni
@@ -245,14 +245,14 @@ module mod_vectutil
         end do
       else
         nj1 = nj - 1
-        do j = 2 , nj1
-          do i = 1 , ni
+        do j = 2, nj1
+          do i = 1, ni
             im1 = i-1
             if (im1 == 0) im1 = ni
             pd(i,j) = d_rfour*(px(i,j)+px(im1,j)+px(i,j-1)+px(im1,j-1))
           end do
         end do
-        do i = 1 , ni
+        do i = 1, ni
           im1 = i-1
           if (im1 == 0) im1 = ni
           pd(i,1) = d_half*(px(i,1)+px(im1,1))
@@ -262,16 +262,16 @@ module mod_vectutil
     else
       ni1 = ni - 1
       nj1 = nj - 1
-      do j = 2 , nj1
-        do i = 2 , ni1
+      do j = 2, nj1
+        do i = 2, ni1
           pd(i,j) = d_rfour*(px(i,j)+px(i-1,j)+px(i,j-1)+px(i-1,j-1))
         end do
       end do
-      do i = 2 , ni1
+      do i = 2, ni1
         pd(i,1) = d_half*(px(i,1)+px(i-1,1))
         pd(i,nj) = d_half*(px(i,nj1)+px(i-1,nj1))
       end do
-      do j = 2 , nj1
+      do j = 2, nj1
         pd(1,j) = d_half*(px(1,j)+px(1,j-1))
         pd(ni,j) = d_half*(px(ni1,j)+px(ni1,j-1))
       end do
@@ -284,12 +284,12 @@ module mod_vectutil
 
   subroutine crs2dot_3d(pd,px,ni,nj,nk,iband,icrm)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    integer(ik4) , intent(in) :: iband , icrm
-    real(rkx) , intent(in) , dimension(ni,nj,nk) :: px
-    real(rkx) , intent(out) , dimension(ni,nj,nk) :: pd
+    integer(ik4), intent(in) :: ni, nj, nk
+    integer(ik4), intent(in) :: iband, icrm
+    real(rkx), intent(in), dimension(ni,nj,nk) :: px
+    real(rkx), intent(out), dimension(ni,nj,nk) :: pd
 
-    integer(ik4) :: i , j , k , ni1 , nj1 , im1 , jm1
+    integer(ik4) :: i, j, k, ni1, nj1, im1, jm1
     !
     ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
     ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
@@ -298,9 +298,9 @@ module mod_vectutil
     !
     if ( iband == 1 ) then
       if ( icrm == 1 ) then
-        do k = 1 , nk
-          do j = 1 , nj
-            do i = 1 , ni
+        do k = 1, nk
+          do j = 1, nj
+            do i = 1, ni
               im1 = i-1
               jm1 = j-1
               if (im1 == 0) im1 = ni
@@ -312,16 +312,16 @@ module mod_vectutil
         end do
       else
         nj1 = nj - 1
-        do k = 1 , nk
-          do j = 2 , nj1
-            do i = 1 , ni
+        do k = 1, nk
+          do j = 2, nj1
+            do i = 1, ni
               im1 = i-1
               if (im1 == 0) im1 = ni
               pd(i,j,k) = d_rfour*(px(i,j,k)+px(im1,j,k) + &
                                    px(i,j-1,k)+px(im1,j-1,k))
             end do
           end do
-          do i = 1 , ni
+          do i = 1, ni
             im1 = i-1
             if (im1 == 0) im1 = ni
             pd(i,1,k) = d_half*(px(i,1,k)+px(im1,1,k))
@@ -332,18 +332,18 @@ module mod_vectutil
     else
       ni1 = ni - 1
       nj1 = nj - 1
-      do k = 1 , nk
-        do j = 2 , nj1
-          do i = 2 , ni1
+      do k = 1, nk
+        do j = 2, nj1
+          do i = 2, ni1
             pd(i,j,k) = d_rfour*(px(i,j,k)+px(i-1,j,k) + &
                                  px(i,j-1,k)+px(i-1,j-1,k))
           end do
         end do
-        do i = 2 , ni1
+        do i = 2, ni1
           pd(i,1,k) = d_half*(px(i,1,k)+px(i-1,1,k))
           pd(i,nj,k) = d_half*(px(i,nj1,k)+px(i-1,nj1,k))
         end do
-        do j = 2 , nj1
+        do j = 2, nj1
           pd(1,j,k) = d_half*(px(1,j,k)+px(1,j-1,k))
           pd(ni,j,k) = d_half*(px(ni1,j,k)+px(ni1,j-1,k))
         end do
@@ -357,17 +357,17 @@ module mod_vectutil
 
   subroutine dot2crs(px,pd,ni,nj,iband,icrm)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj
-    real(rkx) , intent(in) , dimension(ni,nj) :: pd
-    real(rkx) , intent(out) , dimension(ni,nj) :: px
-    integer(ik4) , intent(in) :: iband , icrm
-    integer(ik4) :: i , j , ip1 , jp1
+    integer(ik4), intent(in) :: ni, nj
+    real(rkx), intent(in), dimension(ni,nj) :: pd
+    real(rkx), intent(out), dimension(ni,nj) :: px
+    integer(ik4), intent(in) :: iband, icrm
+    integer(ik4) :: i, j, ip1, jp1
     if ( iband == 1 ) then
       if ( icrm == 1 ) then
-        do j = 1 , nj
+        do j = 1, nj
           jp1 = j + 1
           if ( jp1 > nj ) jp1 = 1
-          do i = 1 , ni
+          do i = 1, ni
             ip1 = i + 1
             if ( ip1 > ni ) ip1 = 1
             px(i,j) = ( pd(i  ,j  ) + &
@@ -377,8 +377,8 @@ module mod_vectutil
           end do
         end do
       else
-        do j = 1 , nj - 1
-          do i = 1 , ni
+        do j = 1, nj - 1
+          do i = 1, ni
             ip1 = i + 1
             if ( ip1 > ni ) ip1 = 1
             px(i,j) = ( pd(i  ,j  ) + &
@@ -389,8 +389,8 @@ module mod_vectutil
         end do
       end if
     else
-      do j = 1 , nj - 1
-        do i = 1 , ni - 1
+      do j = 1, nj - 1
+        do i = 1, ni - 1
           px(i,j) = ( pd(i  ,j  ) + &
                       pd(i+1,j  ) + &
                       pd(i  ,j+1) + &
@@ -404,10 +404,10 @@ module mod_vectutil
   !
   subroutine top2btm(x)
     implicit none
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: x
-    integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2
-    integer(ik4) :: i , j , k , kr
-    real(rkx) , dimension(size(x,3)) :: work
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: x
+    integer(ik4) :: i1, i2, j1, j2, k1, k2
+    integer(ik4) :: i, j, k, kr
+    real(rkx), dimension(size(x,3)) :: work
 
     i1 = lbound(x,1)
     i2 = ubound(x,1)
@@ -415,12 +415,12 @@ module mod_vectutil
     j2 = ubound(x,2)
     k1 = lbound(x,3)
     k2 = ubound(x,3)
-    do j = j1 , j2
-      do i = i1 , i2
-        do k = k1 , k2
+    do j = j1, j2
+      do i = i1, i2
+        do k = k1, k2
           work(k) = x(i,j,k)
         end do
-        do k = k1 , k2
+        do k = k1, k2
           kr = k2 - k + 1
           x(i,j,k) = work(kr)
         end do
@@ -432,7 +432,7 @@ module mod_vectutil
   !
   subroutine btm2top(x)
     implicit none
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: x
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: x
     call top2btm(x)
   end subroutine btm2top
   !
@@ -440,39 +440,39 @@ module mod_vectutil
   !
   subroutine relax(chi,ff,imx,jmx,ie,je,ds)
     implicit none
-    integer(ik4) , intent(in) :: imx , jmx , ie , je
-    real(rkx) , intent(out) , dimension(imx,jmx) :: chi
-    real(rkx) , intent(inout) , dimension(imx,jmx) :: ff
-    real(rkx) , intent(in) :: ds
-    real(rkx) , parameter :: smallres = 1.0e-6_rkx
-    integer(ik4) , parameter :: mm = 20000
-    real(rkx) , parameter :: alpha = 1.8_rkx
-    real(rkx) , parameter :: alphaov4 = alpha * d_rfour
-    integer(ik4) :: i , j , iter
-    real(rkx) , dimension(jmx) :: chimx
-    real(rkx) , dimension(jmx) :: rdmax
-    real(rkx) , dimension(imx,jmx) :: rd
-    real(rkx) :: epx , fac
+    integer(ik4), intent(in) :: imx, jmx, ie, je
+    real(rkx), intent(out), dimension(imx,jmx) :: chi
+    real(rkx), intent(inout), dimension(imx,jmx) :: ff
+    real(rkx), intent(in) :: ds
+    real(rkx), parameter :: smallres = 1.0e-6_rkx
+    integer(ik4), parameter :: mm = 20000
+    real(rkx), parameter :: alpha = 1.8_rkx
+    real(rkx), parameter :: alphaov4 = alpha * d_rfour
+    integer(ik4) :: i, j, iter
+    real(rkx), dimension(jmx) :: chimx
+    real(rkx), dimension(jmx) :: rdmax
+    real(rkx), dimension(imx,jmx) :: rd
+    real(rkx) :: epx, fac
     logical :: converged
     converged = .false.
     fac = d_two * ds * ds
     rd(:,:) = d_zero
     chi(:,:) = d_zero
-    do j = 1 , je + 1
-      do i = 1 , ie + 1
+    do j = 1, je + 1
+      do i = 1, ie + 1
         ff(i,j) = fac * ff(i,j)
       end do
     end do
-    iter_loop : do iter = 1 , mm
+    iter_loop : do iter = 1, mm
       chimx(:) = d_zero
-      do j = 2 , je
-        do i = 2 , ie
+      do j = 2, je
+        do i = 2, ie
           chimx(j) = max(abs(chi(i,j)),chimx(j))
         end do
       end do
       epx = maxval(chimx) * smallres * d_four / alpha
-      do j = 2 , je
-        do i = 2 , ie
+      do j = 2, je
+        do i = 2, ie
           rd(i,j) = chi(i+1,j+1) + chi(i-1,j+1) + &
                     chi(i+1,j-1) + chi(i-1,j-1) - &
                     4.0 * chi(i,j) - ff(i,j)
@@ -480,8 +480,8 @@ module mod_vectutil
         end do
       end do
       rdmax(:) = d_zero
-      do j = 2 , je
-        do i = 2 , ie
+      do j = 2, je
+        do i = 2, ie
           rdmax(j) = max(abs(rd(i,j)),rdmax(j))
         end do
       end do
@@ -499,22 +499,22 @@ module mod_vectutil
   !
   subroutine fill(f,ix,jx,imx,jmx,ifirst,ilast,jfirst,jlast)
     implicit none
-    integer(ik4) , intent(in) :: ix , jx , imx , jmx , &
-                                 ifirst , ilast , jfirst , jlast
-    real(rkx) , intent(inout) , dimension(ix,jx) :: f
-    integer(ik4) :: i , j
-    do j = jfirst , jlast
-      do i = 1 , ifirst - 1
+    integer(ik4), intent(in) :: ix, jx, imx, jmx, &
+                                 ifirst, ilast, jfirst, jlast
+    real(rkx), intent(inout), dimension(ix,jx) :: f
+    integer(ik4) :: i, j
+    do j = jfirst, jlast
+      do i = 1, ifirst - 1
         f(i,j) = f(ifirst,j)
       end do
-      do i = ilast + 1 , imx
+      do i = ilast + 1, imx
         f(i,j) = f(ilast,j)
       end do
     end do
-    do j = 1 , jfirst - 1
+    do j = 1, jfirst - 1
       f(:,j) = f(:,jfirst)
     end do
-    do j = jlast + 1 , jmx
+    do j = jlast + 1, jmx
       f(:,j) = f(:,jlast)
     end do
   end subroutine fill
@@ -523,57 +523,57 @@ module mod_vectutil
   !
   subroutine meandivf(u,v,psd,dm,sigf,dsg,imx,jmx,kxs,ds,imxm,jmxm)
     implicit none
-    integer(ik4) , intent(in) :: imx , jmx , kxs , imxm , jmxm
-    real(rkx) , intent(inout) , dimension(imx,jmx,kxs) :: u , v
-    real(rkx) , intent(in) , dimension(imx,jmx) :: psd
-    real(rkx) , intent(in) , dimension(imx,jmx) :: dm
-    real(rkx) , intent(in) , dimension(kxs) :: sigf
-    real(rkx) , intent(in) , dimension(kxs-1) :: dsg
-    real(rkx) , intent(in) :: ds
-    integer(ik4) :: i , j , k
-    real(rkx) , dimension(imx,jmx) :: chi , div
-    real(rkx) , dimension(imx,jmx) :: dudx , dvdy
-    real(rkx) , dimension(imx,jmx) :: udiverg , vdiverg
-    real(rkx) , dimension(imx,jmx) :: uslb , vslb
-    real(rkx) , dimension(kxs) :: weight
+    integer(ik4), intent(in) :: imx, jmx, kxs, imxm, jmxm
+    real(rkx), intent(inout), dimension(imx,jmx,kxs) :: u, v
+    real(rkx), intent(in), dimension(imx,jmx) :: psd
+    real(rkx), intent(in), dimension(imx,jmx) :: dm
+    real(rkx), intent(in), dimension(kxs) :: sigf
+    real(rkx), intent(in), dimension(kxs-1) :: dsg
+    real(rkx), intent(in) :: ds
+    integer(ik4) :: i, j, k
+    real(rkx), dimension(imx,jmx) :: chi, div
+    real(rkx), dimension(imx,jmx) :: dudx, dvdy
+    real(rkx), dimension(imx,jmx) :: udiverg, vdiverg
+    real(rkx), dimension(imx,jmx) :: uslb, vslb
+    real(rkx), dimension(kxs) :: weight
     real(rkx) :: oneov2ds
 
     oneov2ds = d_one / (d_two * ds)
-    do k = 1 , kxs
+    do k = 1, kxs
       weight(k) = d_two * (d_one - sigf(k))
     end do
     !
     ! Integrate p* v/m, compute div, to dot point, to (x,y) format
     !
-    do j = 1 , jmx
-      do i = 1 , imx
+    do j = 1, jmx
+      do i = 1, imx
         uslb(i,j) = d_zero
         vslb(i,j) = d_zero
       end do
     end do
-    do j = 1 , jmx
-      do i = 1 , imx
-        do k = 1 , kxs-1
+    do j = 1, jmx
+      do i = 1, imx
+        do k = 1, kxs-1
           uslb(i,j) = uslb(i,j) + u(i,j,k) * dsg(k)
           vslb(i,j) = vslb(i,j) + v(i,j,k) * dsg(k)
         end do
       end do
     end do
-    do j = 1 , jmx
-      do i = 1 , imx
+    do j = 1, jmx
+      do i = 1, imx
         uslb(i,j) = uslb(i,j) * psd(i,j) / dm(i,j)
         vslb(i,j) = vslb(i,j) * psd(i,j) / dm(i,j)
       end do
     end do
-    do j = 1 , jmxm
-      do i = 1 , imxm
+    do j = 1, jmxm
+      do i = 1, imxm
         dudx(i,j) = uslb(i+1,j+1) - uslb(i,j+1) + uslb(i+1,j) - uslb(i,j)
         dvdy(i,j) = vslb(i+1,j+1) - vslb(i+1,j) + vslb(i,j+1) - vslb(i,j)
       end do
     end do
     div(:,:) = d_zero
-    do j = 1 , jmxm
-      do i = 1 , imxm
+    do j = 1, jmxm
+      do i = 1, imxm
         div(i,j) = oneov2ds * (dudx(i,j) + dvdy(i,j))
       end do
     end do
@@ -584,14 +584,14 @@ module mod_vectutil
     !
     ! Get divergent component of wind, 2d field on dot points.
     !
-    do j = 2 , jmxm
-      do i = 2 , imxm
+    do j = 2, jmxm
+      do i = 2, imxm
          vdiverg(i,j) = (chi(i,j) - chi(i,j-1) + &
                          chi(i-1,j) - chi(i-1,j-1)) * oneov2ds
       end do
     end do
-    do j = 2 , jmxm
-      do i = 2 , imxm
+    do j = 2, jmxm
+      do i = 2, imxm
         udiverg(i,j) = (chi(i,j) - chi(i-1,j) + &
                         chi(i,j-1) - chi(i-1,j-1)) * oneov2ds
       end do
@@ -601,15 +601,15 @@ module mod_vectutil
     !
     ! Remove mean divergent component
     !
-    do j = 1 , jmx
-      do i = 1 , imx
+    do j = 1, jmx
+      do i = 1, imx
         udiverg(i,j) = udiverg(i,j) * dm(i,j) / psd(i,j)
         vdiverg(i,j) = vdiverg(i,j) * dm(i,j) / psd(i,j)
       end do
     end do
-    do j = 1 , jmx
-      do i = 1 , imx
-        do k = 1 , kxs
+    do j = 1, jmx
+      do i = 1, imx
+        do k = 1, kxs
           u(i,j,k) = u(i,j,k) - weight(k) * udiverg(i,j)
           v(i,j,k) = v(i,j,k) - weight(k) * vdiverg(i,j)
         end do
@@ -621,56 +621,56 @@ module mod_vectutil
   !
   subroutine meandiv(u,v,psd,dm,sigh,dsg,imx,jmx,kxs,ds,imxm,jmxm)
     implicit none
-    integer(ik4) , intent(in) :: imx , jmx , kxs , imxm , jmxm
-    real(rkx) , intent(inout) , dimension(imx,jmx,kxs) :: u , v
-    real(rkx) , intent(in) , dimension(imx,jmx) :: psd
-    real(rkx) , intent(in) , dimension(imx,jmx) :: dm
-    real(rkx) , intent(in) , dimension(kxs) :: sigh , dsg
-    real(rkx) , intent(in) :: ds
-    integer(ik4) :: i , j , k
-    real(rkx) , dimension(imx,jmx) :: chi , div
-    real(rkx) , dimension(imx,jmx) :: dudx , dvdy
-    real(rkx) , dimension(imx,jmx) :: udiverg , vdiverg
-    real(rkx) , dimension(imx,jmx) :: uslb , vslb
-    real(rkx) , dimension(kxs) :: weight
+    integer(ik4), intent(in) :: imx, jmx, kxs, imxm, jmxm
+    real(rkx), intent(inout), dimension(imx,jmx,kxs) :: u, v
+    real(rkx), intent(in), dimension(imx,jmx) :: psd
+    real(rkx), intent(in), dimension(imx,jmx) :: dm
+    real(rkx), intent(in), dimension(kxs) :: sigh, dsg
+    real(rkx), intent(in) :: ds
+    integer(ik4) :: i, j, k
+    real(rkx), dimension(imx,jmx) :: chi, div
+    real(rkx), dimension(imx,jmx) :: dudx, dvdy
+    real(rkx), dimension(imx,jmx) :: udiverg, vdiverg
+    real(rkx), dimension(imx,jmx) :: uslb, vslb
+    real(rkx), dimension(kxs) :: weight
     real(rkx) :: oneov2ds
 
     oneov2ds = d_one / (d_two * ds)
-    do k = 1 , kxs
+    do k = 1, kxs
       weight(k) = d_two * (d_one - sigh(k))
     end do
     !
     ! Integrate p* v/m, compute div, to dot point, to (x,y) format
     !
-    do j = 1 , jmx
-      do i = 1 , imx
+    do j = 1, jmx
+      do i = 1, imx
         uslb(i,j) = d_zero
         vslb(i,j) = d_zero
       end do
     end do
-    do j = 1 , jmx
-      do i = 1 , imx
-        do k = 1 , kxs
+    do j = 1, jmx
+      do i = 1, imx
+        do k = 1, kxs
           uslb(i,j) = uslb(i,j) + u(i,j,k) * dsg(k)
           vslb(i,j) = vslb(i,j) + v(i,j,k) * dsg(k)
         end do
       end do
     end do
-    do j = 1 , jmx
-      do i = 1 , imx
+    do j = 1, jmx
+      do i = 1, imx
         uslb(i,j) = uslb(i,j) * psd(i,j) / dm(i,j)
         vslb(i,j) = vslb(i,j) * psd(i,j) / dm(i,j)
       end do
     end do
-    do j = 1 , jmxm
-      do i = 1 , imxm
+    do j = 1, jmxm
+      do i = 1, imxm
         dudx(i,j) = uslb(i+1,j+1) - uslb(i,j+1) + uslb(i+1,j) - uslb(i,j)
         dvdy(i,j) = vslb(i+1,j+1) - vslb(i+1,j) + vslb(i,j+1) - vslb(i,j)
       end do
     end do
     div(:,:) = d_zero
-    do j = 1 , jmxm
-      do i = 1 , imxm
+    do j = 1, jmxm
+      do i = 1, imxm
         div(i,j) = oneov2ds * (dudx(i,j) + dvdy(i,j))
       end do
     end do
@@ -681,14 +681,14 @@ module mod_vectutil
     !
     ! Get divergent component of wind, 2d field on dot points.
     !
-    do j = 2 , jmxm
-      do i = 2 , imxm
+    do j = 2, jmxm
+      do i = 2, imxm
          vdiverg(i,j) = (chi(i,j) - chi(i,j-1) + &
                          chi(i-1,j) - chi(i-1,j-1)) * oneov2ds
       end do
     end do
-    do j = 2 , jmxm
-      do i = 2 , imxm
+    do j = 2, jmxm
+      do i = 2, imxm
         udiverg(i,j) = (chi(i,j) - chi(i-1,j) + &
                         chi(i,j-1) - chi(i-1,j-1)) * oneov2ds
       end do
@@ -698,15 +698,15 @@ module mod_vectutil
     !
     ! Remove mean divergent component
     !
-    do j = 1 , jmx
-      do i = 1 , imx
+    do j = 1, jmx
+      do i = 1, imx
         udiverg(i,j) = udiverg(i,j) * dm(i,j) / psd(i,j)
         vdiverg(i,j) = vdiverg(i,j) * dm(i,j) / psd(i,j)
       end do
     end do
-    do j = 1 , jmx
-      do i = 1 , imx
-        do k = 1 , kxs
+    do j = 1, jmx
+      do i = 1, imx
+        do k = 1, kxs
           u(i,j,k) = u(i,j,k) - weight(k) * udiverg(i,j)
           v(i,j,k) = v(i,j,k) - weight(k) * vdiverg(i,j)
         end do

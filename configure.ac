@@ -714,7 +714,7 @@ else
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     else
-	    FCFLAGS="-ftz -O3 -finline-functions -fp-model source $FCFLAGS"
+      FCFLAGS="-ftz -O3 -finline-functions -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     fi
     AC_SUBST(NOOPTFC)
@@ -725,7 +725,8 @@ else
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     else
-      FCFLAGS="-ftz -ip -O3 -finline-functions -fp-model source $FCFLAGS"
+      FCFLAGS="-ftz -ip -O3 -finline-functions \
+	       -fp-model source $FCFLAGS"
 #      FCFLAGS="-DF2008 -ftz -fpe0 -O2 -g -traceback -fp-stack-check \
 #	      -check all -fimf-arch-consistency=true -fltconsistency \
 #	      -mieee-fp $FCFLAGS"

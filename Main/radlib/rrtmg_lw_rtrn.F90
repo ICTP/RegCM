@@ -245,8 +245,8 @@
 
 ! This secant and weight corresponds to the standard diffusivity
 ! angle.  This initial value is redefined below for some bands.
-      real(kind=rb) , parameter :: wtdiff = 0.5_rb
-      real(kind=rb) , parameter :: rec_6  = 0.166667_rb
+      real(kind=rb), parameter :: wtdiff = 0.5_rb
+      real(kind=rb), parameter :: rec_6  = 0.166667_rb
 
 ! Reset diffusivity angle for Bands 2-3 and 5-9 to vary (between 1.50
 ! and 1.80) as a function of total column water vapor.  The function

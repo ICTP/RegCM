@@ -15,42 +15,42 @@
 
 module mod_pbl_shinhong
 
-  use mod_realkinds , only : rkx
-  use mod_regcm_types , only : mod_2_pbl , pbl_2_mod
-  use mod_dynparam , only : jci1 , jci2 , ici1 , ici2 , ntr
-  use mod_dynparam , only : kz , kzm1 , kzp1 , kzp2 , ntr
-  use mod_dynparam , only : idynamic
-  use mod_runparams , only : ichem , ipptls , iqv , iqc , iqi , dt , dx
-  use mod_constants , only : egrav , regrav , cpd , rcpd , rdry , rwat
-  use mod_constants , only : vonkar , ep1 , wlhv , p00 , rovcp , d_one
-  use mod_memutil , only : getmem1d , getmem2d
+  use mod_realkinds, only : rkx
+  use mod_regcm_types, only : mod_2_pbl, pbl_2_mod
+  use mod_dynparam, only : jci1, jci2, ici1, ici2, ntr
+  use mod_dynparam, only : kz, kzm1, kzp1, kzp2, ntr
+  use mod_dynparam, only : idynamic
+  use mod_runparams, only : ichem, ipptls, iqv, iqc, iqi, dt, dx
+  use mod_constants, only : egrav, regrav, cpd, rcpd, rdry, rwat
+  use mod_constants, only : vonkar, ep1, wlhv, p00, rovcp, d_one
+  use mod_memutil, only : getmem1d, getmem2d
 
   implicit none
 
   private
 
-  public :: init_shinhong_pbl , shinhong_pbl
+  public :: init_shinhong_pbl, shinhong_pbl
 
-  integer :: numbl , nj , ni , ndiff , ichs
+  integer :: numbl, nj, ni, ndiff, ichs
 
-  real(rkx) , parameter :: vconvc = 1.0_rkx
-  real(rkx) , parameter :: czo = 0.0185_rkx
-  real(rkx) , parameter :: ozo = 1.59e-5_rkx
-  real(rkx) , dimension(0:1000) :: psimtb , psihtb
+  real(rkx), parameter :: vconvc = 1.0_rkx
+  real(rkx), parameter :: czo = 0.0185_rkx
+  real(rkx), parameter :: ozo = 1.59e-5_rkx
+  real(rkx), dimension(0:1000) :: psimtb, psihtb
 
-  real(rkx) , dimension(:,:) , pointer :: u2d , v2d , utnp , vtnp
-  real(rkx) , dimension(:,:) , pointer :: t2d , ttnp , th2d , p2d , dz2d , pi2d
-  real(rkx) , dimension(:,:) , pointer :: p2di
-  real(rkx) , dimension(:,:) , pointer :: tke2d
-  real(rkx) , dimension(:,:) , pointer :: qtrac , qtnp
-  real(rkx) , dimension(:) , pointer :: psfc , hfx , qfx , ust , znt
-  real(rkx) , dimension(:) , pointer :: wspd , psim , psih , br
-  real(rkx) , dimension(:) , pointer :: hpbl , dusfc , dvsfc , dtsfc , dqsfc
-  real(rkx) , dimension(:) , pointer :: wstar , delta , wspd10
-  real(rkx) , dimension(:) , pointer :: corf , za
-  real(rkx) , dimension(:) , pointer :: govrth , dtg , rah , rpfac
-  integer , dimension(:) , pointer :: xland
-  integer , dimension(:) , pointer :: kpbl
+  real(rkx), dimension(:,:), pointer, contiguous :: u2d, v2d, utnp, vtnp
+  real(rkx), dimension(:,:), pointer, contiguous :: t2d, ttnp, th2d, p2d, dz2d, pi2d
+  real(rkx), dimension(:,:), pointer, contiguous :: p2di
+  real(rkx), dimension(:,:), pointer, contiguous :: tke2d
+  real(rkx), dimension(:,:), pointer, contiguous :: qtrac, qtnp
+  real(rkx), dimension(:), pointer, contiguous :: psfc, hfx, qfx, ust, znt
+  real(rkx), dimension(:), pointer, contiguous :: wspd, psim, psih, br
+  real(rkx), dimension(:), pointer, contiguous :: hpbl, dusfc, dvsfc, dtsfc, dqsfc
+  real(rkx), dimension(:), pointer, contiguous :: wstar, delta, wspd10
+  real(rkx), dimension(:), pointer, contiguous :: corf, za
+  real(rkx), dimension(:), pointer, contiguous :: govrth, dtg, rah, rpfac
+  integer, dimension(:), pointer, contiguous :: xland
+  integer, dimension(:), pointer, contiguous :: kpbl
 
   contains
 
@@ -113,8 +113,8 @@ module mod_pbl_shinhong
 
   subroutine shinhong_pbl(m2p,p2m)
     implicit none
-    type(mod_2_pbl) , intent(in) :: m2p
-    type(pbl_2_mod) , intent(inout) :: p2m
+    type(mod_2_pbl), intent(in) :: m2p
+    type(pbl_2_mod), intent(inout) :: p2m
     !
     ! u2d         3d u-velocity interpolated to theta points (m/s)
     ! v2d         3d v-velocity interpolated to theta points (m/s)
@@ -143,22 +143,22 @@ module mod_pbl_shinhong
     ! u10         u-wind speed at 10 m (m/s)
     ! v10         v-wind speed at 10 m (m/s)
     !
-    integer :: i , j , k , kk , it , ibin
-    real(rkx) :: corfac , rrho , hfxv , uflxsfx , vflxsfx , thv10 , wind
+    integer :: i, j, k, kk, it, ibin
+    real(rkx) :: corfac, rrho, hfxv, uflxsfx, vflxsfx, thv10, wind
 
     if ( idynamic == 3 ) then
       rpfac = 1.0
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           ibin = (i-ici1)*nj+(j-jci1+1)
           rpfac(ibin) = m2p%psb(j,i)
         end do
       end do
     end if
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         ibin = (i-ici1)*nj+(j-jci1+1)
         corfac = 1.0_rkx + ep1*m2p%qxatm(j,i,kz,iqv)
         psfc(ibin) = m2p%patmf(j,i,kzp1)
@@ -189,10 +189,10 @@ module mod_pbl_shinhong
         br(ibin) = max(-5.0_rkx,min(10.0_rkx,br(ibin)))
       end do
     end do
-    do k = 1 , kz
+    do k = 1, kz
       kk = kzp1 - k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           ibin = (i-ici1)*nj+(j-jci1+1)
           p2d(ibin,kk) = m2p%patm(j,i,k)
           u2d(ibin,kk) = m2p%uxatm(j,i,k)
@@ -207,20 +207,20 @@ module mod_pbl_shinhong
         end do
       end do
     end do
-    do k = 1 , kzp1
+    do k = 1, kzp1
       kk = kzp2 - k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           ibin = (i-ici1)*nj+(j-jci1+1)
           p2di(ibin,kk) = m2p%patmf(j,i,k)
         end do
       end do
     end do
     if ( ipptls > 1 ) then
-      do k = 1 , kz
+      do k = 1, kz
         kk = 2*kz + kzp1 - k
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             ibin = (i-ici1)*nj+(j-jci1+1)
             qtrac(ibin,kk) = m2p%qxatm(j,i,k,iqi)
           end do
@@ -228,11 +228,11 @@ module mod_pbl_shinhong
       end do
     end if
     if ( ichem == 1 ) then
-      do it = 1 , ntr
-        do k = 1 , kz
+      do it = 1, ntr
+        do k = 1, kz
           kk = (ichs+it-1)*kz + kzp1 - k
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               ibin = (i-ici1)*nj+(j-jci1+1)
               qtrac(ibin,kk) = m2p%chib(j,i,k,it)
             end do
@@ -251,17 +251,17 @@ module mod_pbl_shinhong
                     dtsfc=dtsfc,dqsfc=dqsfc,dt=dt,rcl=d_one,kpbl1d=kpbl, &
                     wstar=wstar,delta=delta,wspd10=wspd10,tke=tke2d,     &
                     corf=corf,dx=dx,dy=dx)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         ibin = (i-ici1)*nj+(j-jci1+1)
         p2m%zpbl(j,i) = hpbl(ibin)
         p2m%kpbl(j,i) = kpbl(ibin)
       end do
     end do
-    do k = 1 , kz
+    do k = 1, kz
       kk = kzp1 - k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           ibin = (i-ici1)*nj+(j-jci1+1)
           p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
             (rpfac(ibin)*ttnp(ibin,kk)/pi2d(ibin,kk))
@@ -276,10 +276,10 @@ module mod_pbl_shinhong
       end do
     end do
     if ( ipptls > 1 ) then
-      do k = 1 , kz
+      do k = 1, kz
         kk = 2*kz + kzp1 - k
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             ibin = (i-ici1)*nj+(j-jci1+1)
             p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
               (rpfac(ibin)*qtnp(ibin,kk))
@@ -288,11 +288,11 @@ module mod_pbl_shinhong
       end do
     end if
     if ( ichem == 1 ) then
-      do it = 1 , ntr
-        do k = 1 , kz
+      do it = 1, ntr
+        do k = 1, kz
           kk = (ichs+it-1)*kz + kzp1 - k
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               ibin = (i-ici1)*nj+(j-jci1+1)
               p2m%chiten(j,i,k,it) = p2m%chiten(j,i,k,it) + &
                 (rpfac(ibin)*qtnp(ibin,kk))
@@ -342,126 +342,126 @@ module mod_pbl_shinhong
     !
     !----------------------------------------------------------------------
     !
-    integer , intent(in) :: nbl
-    real(rkx) , intent(in) :: dt , rcl
-    real(rkx) , intent(in) :: dx , dy
-    integer , dimension(nbl) , intent(out) :: kpbl1d
-    real(rkx) , dimension(nbl,kz) , intent(in) :: dz8w2d , pi2d
-    real(rkx) , dimension(nbl,kz) , intent(in) :: ux , vx
-    real(rkx) , dimension(nbl,kz) , intent(in) :: tx
-    real(rkx) , dimension(nbl,kz*ndiff) , intent(in) :: qx
-    real(rkx) , dimension(nbl,kzp1) , intent(in) :: p2di
-    real(rkx) , dimension(nbl,kz) , intent(in) :: p2d
-    real(rkx) , dimension(nbl,kz) , intent(out) :: utnp , vtnp , ttnp
-    real(rkx) , dimension(nbl,kz) , intent(inout) :: tke
-    real(rkx) , dimension(nbl,kz*ndiff) , intent(out) :: qtnp
-    integer , dimension(nbl) , intent(in) :: xland
-    real(rkx) , dimension(nbl) , intent(in) :: hfx , qfx
-    real(rkx) , dimension(nbl) , intent(in) :: br , psim , psih , psfcpa
-    real(rkx) , dimension(nbl) , intent(in) :: corf
-    real(rkx) , dimension(nbl) , intent(in) :: wspd10
-    real(rkx) , dimension(nbl) , intent(in) :: ust , znt
-    real(rkx) , dimension(nbl) , intent(in) :: wspd
-    real(rkx) , dimension(nbl) , intent(out) :: hpbl , wstar , delta
-    integer :: i , k , ic , is , nwmass
-    integer :: klpbl , kqc , kqi
+    integer, intent(in) :: nbl
+    real(rkx), intent(in) :: dt, rcl
+    real(rkx), intent(in) :: dx, dy
+    integer, dimension(nbl), intent(out) :: kpbl1d
+    real(rkx), dimension(nbl,kz), intent(in) :: dz8w2d, pi2d
+    real(rkx), dimension(nbl,kz), intent(in) :: ux, vx
+    real(rkx), dimension(nbl,kz), intent(in) :: tx
+    real(rkx), dimension(nbl,kz*ndiff), intent(in) :: qx
+    real(rkx), dimension(nbl,kzp1), intent(in) :: p2di
+    real(rkx), dimension(nbl,kz), intent(in) :: p2d
+    real(rkx), dimension(nbl,kz), intent(out) :: utnp, vtnp, ttnp
+    real(rkx), dimension(nbl,kz), intent(inout) :: tke
+    real(rkx), dimension(nbl,kz*ndiff), intent(out) :: qtnp
+    integer, dimension(nbl), intent(in) :: xland
+    real(rkx), dimension(nbl), intent(in) :: hfx, qfx
+    real(rkx), dimension(nbl), intent(in) :: br, psim, psih, psfcpa
+    real(rkx), dimension(nbl), intent(in) :: corf
+    real(rkx), dimension(nbl), intent(in) :: wspd10
+    real(rkx), dimension(nbl), intent(in) :: ust, znt
+    real(rkx), dimension(nbl), intent(in) :: wspd
+    real(rkx), dimension(nbl), intent(out) :: hpbl, wstar, delta
+    integer :: i, k, ic, is, nwmass
+    integer :: klpbl, kqc, kqi
     integer :: lmh
-    real(rkx) :: dt2 , rdt , spdk2 , fm , fh , hol1 , gamfac , vpert
-    real(rkx) :: prnum , prnum0 , ss , ri , qmean , tmean , alpha
-    real(rkx) :: chi , zk , rl2 , dk , sri , brint , dtodsd , dtodsu
-    real(rkx) :: rdz , dsdzt , dsdzq , dsdz2 , rlamdz
-    real(rkx) :: utend , vtend , ttend , qtend
-    real(rkx) :: dtstep , govrthv
-    real(rkx) :: cont , conq , conw , conwrc
-    real(rkx) :: delxy , pu1 , pth1 , pq1
-    real(rkx) :: zfacdx , dex , hgame_c
-    real(rkx) :: amf1 , amf2 , bmf2 , amf3 , bmf3
-    real(rkx) :: mlfrac , ezfrac , sfcfracn , sflux0 , snlflux0
-    real(rkx) :: uwst , uwstx , csfac
-    real(rkx) :: prnumfac , bfx0 , hfx0 , qfx0 , delb , dux , dvx ,    &
-      dsdzu , dsdzv , wm3 , dthx , dqx , ross , tem1 , dsig , tvcon ,  &
-      conpr , prfac , prfac2 , phim8z , cenlfrac
-    integer , dimension(nbl) :: kpbl
-    real(rkx) , dimension(nbl) :: rigs , enlfrac2 , cslen , deltaoh
-    real(rkx) , dimension(nbl) :: rhox , govrth , zl1 , thermal
-    real(rkx) , dimension(nbl) :: wscale , hgamt , hgamq , brdn , brup
-    real(rkx) , dimension(nbl) :: phim , phih , dusfc , dvsfc
-    real(rkx) , dimension(nbl) :: dtsfc , dqsfc , prpbl , wspd1
-    real(rkx) , dimension(nbl) :: ust3 , wstar3 , hgamu , hgamv
-    real(rkx) , dimension(nbl) :: wm2 , we , bfxpbl , hfxpbl , qfxpbl
-    real(rkx) , dimension(nbl) :: ufxpbl , vfxpbl , dthvx
-    real(rkx) , dimension(nbl) :: brcr , sflux , zol1 , brcr_sbro
-    real(rkx) , dimension(nbl) :: efxpbl , hpbl_cbl , epshol , ct
-    real(rkx) , dimension(nbl,kz) :: xkzm , xkzh , f1 , f2 , r1 , r2
-    real(rkx) , dimension(nbl,kz) :: ad , au , cu , al , xkzq , zfac
-    real(rkx) , dimension(nbl,kz) :: thx , thvx , del , dza , dzq
-    real(rkx) , dimension(nbl,kz) :: xkzom , xkzoh , za
-    real(rkx) , dimension(nbl,kz) :: wscalek
-    real(rkx) , dimension(nbl,kz) :: xkzml , xkzhl , zfacent , entfac
-    real(rkx) , dimension(nbl,kz) :: mf , zfacmf , entfacmf
-    real(rkx) , dimension(nbl,kz) :: q2x , hgame2d
-    real(rkx) , dimension(nbl,kz) :: tflux_e , qflux_e , tvflux_e
-    real(rkx) , dimension(nbl,kzp1) :: zq
-    real(rkx) , dimension(nbl,kz,ndiff) :: r3 , f3
-    real(rkx) , dimension(kz) :: uxk , vxk , txk , thxk , thvxk
-    real(rkx) , dimension(kz) :: q2xk , hgame
-    real(rkx) , dimension(kz) :: ps1d , pb1d , eps1d , pt1d
-    real(rkx) , dimension(kz) :: xkze1d , eflx_l1d , eflx_nl1d , ptke1
-    real(rkx) , dimension(2:kz) :: s2 , gh , rig , el
-    real(rkx) , dimension(2:kz) :: akmk , akhk , mfk
-    real(rkx) , dimension(2:kz) :: ufxpblk , vfxpblk , qfxpblk
-    real(rkx) , dimension(kzp1) :: zqk
-    real(rkx) , dimension(kz*ndiff) :: qxk
-    logical , dimension(nbl) :: pblflg , sfcflg , stable
-    logical , dimension(ndiff) :: ifvmix
+    real(rkx) :: dt2, rdt, spdk2, fm, fh, hol1, gamfac, vpert
+    real(rkx) :: prnum, prnum0, ss, ri, qmean, tmean, alpha
+    real(rkx) :: chi, zk, rl2, dk, sri, brint, dtodsd, dtodsu
+    real(rkx) :: rdz, dsdzt, dsdzq, dsdz2, rlamdz
+    real(rkx) :: utend, vtend, ttend, qtend
+    real(rkx) :: dtstep, govrthv
+    real(rkx) :: cont, conq, conw, conwrc
+    real(rkx) :: delxy, pu1, pth1, pq1
+    real(rkx) :: zfacdx, dex, hgame_c
+    real(rkx) :: amf1, amf2, bmf2, amf3, bmf3
+    real(rkx) :: mlfrac, ezfrac, sfcfracn, sflux0, snlflux0
+    real(rkx) :: uwst, uwstx, csfac
+    real(rkx) :: prnumfac, bfx0, hfx0, qfx0, delb, dux, dvx,    &
+      dsdzu, dsdzv, wm3, dthx, dqx, ross, tem1, dsig, tvcon,  &
+      conpr, prfac, prfac2, phim8z, cenlfrac
+    integer, dimension(nbl) :: kpbl
+    real(rkx), dimension(nbl) :: rigs, enlfrac2, cslen, deltaoh
+    real(rkx), dimension(nbl) :: rhox, govrth, zl1, thermal
+    real(rkx), dimension(nbl) :: wscale, hgamt, hgamq, brdn, brup
+    real(rkx), dimension(nbl) :: phim, phih, dusfc, dvsfc
+    real(rkx), dimension(nbl) :: dtsfc, dqsfc, prpbl, wspd1
+    real(rkx), dimension(nbl) :: ust3, wstar3, hgamu, hgamv
+    real(rkx), dimension(nbl) :: wm2, we, bfxpbl, hfxpbl, qfxpbl
+    real(rkx), dimension(nbl) :: ufxpbl, vfxpbl, dthvx
+    real(rkx), dimension(nbl) :: brcr, sflux, zol1, brcr_sbro
+    real(rkx), dimension(nbl) :: efxpbl, hpbl_cbl, epshol, ct
+    real(rkx), dimension(nbl,kz) :: xkzm, xkzh, f1, f2, r1, r2
+    real(rkx), dimension(nbl,kz) :: ad, au, cu, al, xkzq, zfac
+    real(rkx), dimension(nbl,kz) :: thx, thvx, del, dza, dzq
+    real(rkx), dimension(nbl,kz) :: xkzom, xkzoh, za
+    real(rkx), dimension(nbl,kz) :: wscalek
+    real(rkx), dimension(nbl,kz) :: xkzml, xkzhl, zfacent, entfac
+    real(rkx), dimension(nbl,kz) :: mf, zfacmf, entfacmf
+    real(rkx), dimension(nbl,kz) :: q2x, hgame2d
+    real(rkx), dimension(nbl,kz) :: tflux_e, qflux_e, tvflux_e
+    real(rkx), dimension(nbl,kzp1) :: zq
+    real(rkx), dimension(nbl,kz,ndiff) :: r3, f3
+    real(rkx), dimension(kz) :: uxk, vxk, txk, thxk, thvxk
+    real(rkx), dimension(kz) :: q2xk, hgame
+    real(rkx), dimension(kz) :: ps1d, pb1d, eps1d, pt1d
+    real(rkx), dimension(kz) :: xkze1d, eflx_l1d, eflx_nl1d, ptke1
+    real(rkx), dimension(2:kz) :: s2, gh, rig, el
+    real(rkx), dimension(2:kz) :: akmk, akhk, mfk
+    real(rkx), dimension(2:kz) :: ufxpblk, vfxpblk, qfxpblk
+    real(rkx), dimension(kzp1) :: zqk
+    real(rkx), dimension(kz*ndiff) :: qxk
+    logical, dimension(nbl) :: pblflg, sfcflg, stable
+    logical, dimension(ndiff) :: ifvmix
 
-    real(rkx) , parameter :: xkzminm = 0.1_rkx
-    real(rkx) , parameter :: xkzminh = 0.01_rkx
-    real(rkx) , parameter :: xkzmax = 1000.0_rkx
-    real(rkx) , parameter :: rimin = -100._rkx
-    real(rkx) , parameter :: rlam = 30.0_rkx
-    real(rkx) , parameter :: prmin = 0.25_rkx
-    real(rkx) , parameter :: prmax = 4.0_rkx
-    real(rkx) , parameter :: brcr_ub = 0.0_rkx
-    real(rkx) , parameter :: brcr_sb = 0.25_rkx
-    real(rkx) , parameter :: afac = 6.8_rkx
-    real(rkx) , parameter :: bfac = 6.8_rkx
-    real(rkx) , parameter :: pfac = 2.0_rkx
-    real(rkx) , parameter :: pfac_q = 2.0_rkx
-    real(rkx) , parameter :: phifac = 8.0_rkx
-    real(rkx) , parameter :: sfcfrac = 0.1_rkx
-    real(rkx) , parameter :: d1 = 0.02_rkx
-    real(rkx) , parameter :: d2 = 0.05_rkx
-    real(rkx) , parameter :: d3 = 0.001_rkx
-    real(rkx) , parameter :: h1 = 0.33333333_rkx
-    real(rkx) , parameter :: h2 = 0.6666667_rkx
-    real(rkx) , parameter :: zfmin = 1.e-8_rkx
-    real(rkx) , parameter :: aphi5 = 5.0_rkx
-    real(rkx) , parameter :: aphi16 = 16.0_rkx
-    real(rkx) , parameter :: tmin = 1.e-2_rkx
-    real(rkx) , parameter :: gamcrt = 3.0_rkx
-    real(rkx) , parameter :: gamcrq = 2.e-3_rkx
-    integer , parameter :: imvdif = 1
+    real(rkx), parameter :: xkzminm = 0.1_rkx
+    real(rkx), parameter :: xkzminh = 0.01_rkx
+    real(rkx), parameter :: xkzmax = 1000.0_rkx
+    real(rkx), parameter :: rimin = -100._rkx
+    real(rkx), parameter :: rlam = 30.0_rkx
+    real(rkx), parameter :: prmin = 0.25_rkx
+    real(rkx), parameter :: prmax = 4.0_rkx
+    real(rkx), parameter :: brcr_ub = 0.0_rkx
+    real(rkx), parameter :: brcr_sb = 0.25_rkx
+    real(rkx), parameter :: afac = 6.8_rkx
+    real(rkx), parameter :: bfac = 6.8_rkx
+    real(rkx), parameter :: pfac = 2.0_rkx
+    real(rkx), parameter :: pfac_q = 2.0_rkx
+    real(rkx), parameter :: phifac = 8.0_rkx
+    real(rkx), parameter :: sfcfrac = 0.1_rkx
+    real(rkx), parameter :: d1 = 0.02_rkx
+    real(rkx), parameter :: d2 = 0.05_rkx
+    real(rkx), parameter :: d3 = 0.001_rkx
+    real(rkx), parameter :: h1 = 0.33333333_rkx
+    real(rkx), parameter :: h2 = 0.6666667_rkx
+    real(rkx), parameter :: zfmin = 1.e-8_rkx
+    real(rkx), parameter :: aphi5 = 5.0_rkx
+    real(rkx), parameter :: aphi16 = 16.0_rkx
+    real(rkx), parameter :: tmin = 1.e-2_rkx
+    real(rkx), parameter :: gamcrt = 3.0_rkx
+    real(rkx), parameter :: gamcrq = 2.e-3_rkx
+    integer, parameter :: imvdif = 1
     !
     ! tunable parameters for tke
     !
-    real(rkx) , parameter :: epsq2l = 0.01_rkx
-    real(rkx) , parameter :: c_1 = 1.0_rkx
-    real(rkx) , parameter :: gamcre = 0.224_rkx
+    real(rkx), parameter :: epsq2l = 0.01_rkx
+    real(rkx), parameter :: c_1 = 1.0_rkx
+    real(rkx), parameter :: gamcre = 0.224_rkx
     !
     ! tunable parameters for prescribed nonlocal transport profile
     !
-    real(rkx) , parameter :: mltop = 1.0_rkx
-    real(rkx) , parameter :: sfcfracn1 = 0.075_rkx
-    real(rkx) , parameter :: nlfrac = 0.7_rkx
-    real(rkx) , parameter :: enlfrac = -0.4_rkx
-    real(rkx) , parameter :: a11 = 1.0_rkx
-    real(rkx) , parameter :: a12 = -1.15_rkx
-    real(rkx) , parameter :: ezfac = 1.5_rkx
-    real(rkx) , parameter :: cpent = -0.4_rkx
-    real(rkx) , parameter :: rigsmax = 100.0_rkx
-    real(rkx) , parameter :: entfmin = 1.0_rkx
-    real(rkx) , parameter :: entfmax = 5.0_rkx
+    real(rkx), parameter :: mltop = 1.0_rkx
+    real(rkx), parameter :: sfcfracn1 = 0.075_rkx
+    real(rkx), parameter :: nlfrac = 0.7_rkx
+    real(rkx), parameter :: enlfrac = -0.4_rkx
+    real(rkx), parameter :: a11 = 1.0_rkx
+    real(rkx), parameter :: a12 = -1.15_rkx
+    real(rkx), parameter :: ezfac = 1.5_rkx
+    real(rkx), parameter :: cpent = -0.4_rkx
+    real(rkx), parameter :: rigsmax = 100.0_rkx
+    real(rkx), parameter :: entfmin = 1.0_rkx
+    real(rkx), parameter :: entfmax = 5.0_rkx
 
     klpbl = kz
     lmh = 1
@@ -479,20 +479,20 @@ module mod_pbl_shinhong
     nwmass = 3
     ifvmix(:) = .true.
 
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         thx(i,k) = tx(i,k)/pi2d(i,k)
       end do
     end do
 
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         tvcon = (1.0_rkx + ep1*qx(i,k))
         thvx(i,k) = thx(i,k)*tvcon
       end do
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       tvcon = (1.0_rkx + ep1*qx(i,1))
       rhox(i) = psfcpa(i)/(rdry*tx(i,1)*tvcon)
       govrth(i) = egrav/thx(i,1)
@@ -501,30 +501,30 @@ module mod_pbl_shinhong
     !-----compute the height of full- and half-sigma levels above ground
     !     level, and the layer thicknesses.
     !
-    do i = 1 , nbl
+    do i = 1, nbl
       zq(i,1) = 0.0_rkx
     end do
 
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         zq(i,k+1) = dz8w2d(i,k)+zq(i,k)
       end do
     end do
 
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         za(i,k) = 0.5_rkx*(zq(i,k)+zq(i,k+1))
         dzq(i,k) = zq(i,k+1)-zq(i,k)
         del(i,k) = p2di(i,k)-p2di(i,k+1)
       end do
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       dza(i,1) = za(i,1)
     end do
 
-    do k = 2 , kz
-      do i = 1 , nbl
+    do k = 2, kz
+      do i = 1, nbl
         dza(i,k) = za(i,k)-za(i,k-1)
       end do
     end do
@@ -532,21 +532,21 @@ module mod_pbl_shinhong
     ! initialize vertical tendencies
     !
 
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         utnp(i,k) = 0.0_rkx
         vtnp(i,k) = 0.0_rkx
         ttnp(i,k) = 0.0_rkx
       end do
     end do
 
-    do k = 1 , kz*ndiff
-      do i = 1 , nbl
+    do k = 1, kz*ndiff
+      do i = 1, nbl
         qtnp(i,k) = 0.0_rkx
       end do
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       wspd1(i) = sqrt(ux(i,1)*ux(i,1)+vx(i,1)*vx(i,1))+1.e-9_rkx
     end do
     !
@@ -559,7 +559,7 @@ module mod_pbl_shinhong
     dt2 = 2.0_rkx*dtstep
     rdt = 1.0_rkx/dt2
 
-    do i = 1 , nbl
+    do i = 1, nbl
       bfxpbl(i) = 0.0_rkx
       hfxpbl(i) = 0.0_rkx
       qfxpbl(i) = 0.0_rkx
@@ -570,40 +570,40 @@ module mod_pbl_shinhong
       delta(i)  = 0.0_rkx
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       efxpbl(i)   = 0.0_rkx
       hpbl_cbl(i) = 0.0_rkx
       epshol(i)   = 0.0_rkx
       ct(i)       = 0.0_rkx
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       deltaoh(i)  = 0.0_rkx
       rigs(i)     = 0.0_rkx
       enlfrac2(i) = 0.0_rkx
       cslen(i)    = 0.0_rkx
     end do
 
-    do k = 1 , klpbl
-      do i = 1 , nbl
+    do k = 1, klpbl
+      do i = 1, nbl
         wscalek(i,k) = 0.0_rkx
       end do
     end do
 
-    do k = 1 , klpbl
-      do i = 1 , nbl
+    do k = 1, klpbl
+      do i = 1, nbl
         zfac(i,k) = 0.0_rkx
       end do
     end do
 
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         q2x(i,k) = 2.0_rkx*tke(i,k)
       end do
     end do
 
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         hgame2d(i,k)  = 0.0_rkx
         tflux_e(i,k)  = 0.0_rkx
         qflux_e(i,k)  = 0.0_rkx
@@ -611,28 +611,28 @@ module mod_pbl_shinhong
       end do
     end do
 
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         mf(i,k)     = 0.0_rkx
         zfacmf(i,k) = 0.0_rkx
       end do
     end do
 
-    do k = 1 , klpbl-1
-      do i = 1 , nbl
+    do k = 1, klpbl-1
+      do i = 1, nbl
         xkzom(i,k) = xkzminm
         xkzoh(i,k) = xkzminh
       end do
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       dusfc(i) = 0.0_rkx
       dvsfc(i) = 0.0_rkx
       dtsfc(i) = 0.0_rkx
       dqsfc(i) = 0.0_rkx
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       hgamt(i)  = 0.0_rkx
       hgamq(i)  = 0.0_rkx
       wscale(i) = 0.0_rkx
@@ -649,14 +649,14 @@ module mod_pbl_shinhong
     !
     ! compute the first guess of pbl height
     !
-    do i = 1 , nbl
+    do i = 1, nbl
       stable(i) = .false.
       brup(i) = br(i)
       brcr(i) = brcr_ub
     end do
 
-    do k = 2 , klpbl
-      do i = 1 , nbl
+    do k = 2, klpbl
+      do i = 1, nbl
         if ( .not.stable(i) ) then
           brdn(i) = brup(i)
           spdk2   = max(ux(i,k)**2+vx(i,k)**2,1.0_rkx)
@@ -667,7 +667,7 @@ module mod_pbl_shinhong
       end do
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       k = kpbl(i)
       if ( brdn(i) >= brcr(i) ) then
         brint = 0.0_rkx
@@ -681,7 +681,7 @@ module mod_pbl_shinhong
       if ( kpbl(i) <= 1 ) pblflg(i) = .false.
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       fm = psim(i)
       fh = psih(i)
       zol1(i) = max(br(i)*fm*fm/fh,rimin)
@@ -715,7 +715,7 @@ module mod_pbl_shinhong
     ! compute the surface variables for pbl height estimation
     ! under unstable conditions
     !
-    do i = 1 , nbl
+    do i = 1, nbl
       if ( sfcflg(i) .and. sflux(i) > 0.0 ) then
         gamfac   = bfac/rhox(i)/wscale(i)
         hgamt(i) = min(gamfac*hfx(i)*rcpd,gamcrt)
@@ -735,14 +735,14 @@ module mod_pbl_shinhong
     !
     ! enhance the pbl height by considering the thermal
     !
-    do i = 1 , nbl
+    do i = 1, nbl
       if ( pblflg(i) ) then
         kpbl(i) = 1
         hpbl(i) = zq(i,1)
       end if
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       if ( pblflg(i) ) then
         stable(i) = .false.
         brup(i) = br(i)
@@ -750,8 +750,8 @@ module mod_pbl_shinhong
       end if
     end do
 
-    do k = 2 , klpbl
-      do i = 1 , nbl
+    do k = 2, klpbl
+      do i = 1, nbl
         if ( .not. stable(i) .and. pblflg(i) ) then
           brdn(i) = brup(i)
           spdk2   = max(ux(i,k)**2+vx(i,k)**2,1.0_rkx)
@@ -762,7 +762,7 @@ module mod_pbl_shinhong
       end do
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       if ( pblflg(i) ) then
         k = kpbl(i)
         if ( brdn(i) >= brcr(i) ) then
@@ -788,7 +788,7 @@ module mod_pbl_shinhong
     !
     ! stable boundary layer
     !
-    do i = 1 , nbl
+    do i = 1, nbl
       hpbl_cbl(i) = hpbl(i)
       if ( (.not. sfcflg(i)) .and. hpbl(i) < zq(i,2) ) then
         brup(i) = br(i)
@@ -798,14 +798,14 @@ module mod_pbl_shinhong
       end if
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       if ( ( .not. stable(i)) .and. xland(i) > 0 ) then
         ross = wspd10(i) / (max(corf(i),2.546e-5_rkx)*znt(i))
         brcr_sbro(i) = min(0.16_rkx*(1.e-7_rkx*ross)**(-0.18_rkx),0.3_rkx)
       end if
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       if ( .not.stable(i) ) then
         if ( xland(i) > 0 ) then
           brcr(i) = brcr_sbro(i)
@@ -815,8 +815,8 @@ module mod_pbl_shinhong
       end if
     end do
 
-    do k = 2 , klpbl
-      do i = 1 , nbl
+    do k = 2, klpbl
+      do i = 1, nbl
         if ( .not. stable(i) ) then
           brdn(i) = brup(i)
           spdk2   = max(ux(i,k)**2+vx(i,k)**2,1.0_rkx)
@@ -827,7 +827,7 @@ module mod_pbl_shinhong
       end do
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       if ( (.not.sfcflg(i)) .and. hpbl(i) < zq(i,2) ) then
         k = kpbl(i)
         if ( brdn(i) >= brcr(i) ) then
@@ -846,7 +846,7 @@ module mod_pbl_shinhong
     ! scale dependency for nonlocal momentum and moisture transport
     !
     delxy=sqrt(dx*dy)
-    do i = 1 , nbl
+    do i = 1, nbl
       pu1 = pu(delxy,cslen(i))
       pq1 = pq(delxy,cslen(i))
       if ( pblflg(i) ) then
@@ -859,7 +859,7 @@ module mod_pbl_shinhong
     ! estimate the entrainment parameters
     !
     delxy = sqrt(dx*dy)
-    do i = 1 , nbl
+    do i = 1, nbl
       if ( pblflg(i) ) then
         k = kpbl(i) - 1
         prpbl(i) = 1.0_rkx
@@ -913,8 +913,8 @@ module mod_pbl_shinhong
       end if
     end do
 
-    do k = 1 , klpbl
-      do i = 1 , nbl
+    do k = 1, klpbl
+      do i = 1, nbl
         if ( pblflg(i) ) then
           entfacmf(i,k) = sqrt(((zq(i,k+1)-hpbl(i))/deltaoh(i))**2)
         end if
@@ -928,8 +928,8 @@ module mod_pbl_shinhong
     !
     ! compute diffusion coefficients below pbl
     !
-    do k = 1 , klpbl
-      do i = 1 , nbl
+    do k = 1, klpbl
+      do i = 1, nbl
         if ( k < kpbl(i) ) then
           zfac(i,k) = min(max((1.0_rkx-(zq(i,k+1)-zl1(i)) / &
             (hpbl(i)-zl1(i))),zfmin),1.0_rkx)
@@ -970,8 +970,8 @@ module mod_pbl_shinhong
     !
     ! compute diffusion coefficients over pbl (free atmosphere)
     !
-    do k = 1 , kzm1
-      do i = 1 , nbl
+    do k = 1, kzm1
+      do i = 1, nbl
         if ( k >= kpbl(i) ) then
           ss = ((ux(i,k+1)-ux(i,k))*(ux(i,k+1)-ux(i,k)) + &
                 (vx(i,k+1)-vx(i,k))*(vx(i,k+1)-vx(i,k))) / &
@@ -1021,12 +1021,12 @@ module mod_pbl_shinhong
     !
     ! prescribe nonlocal heat transport below pbl
     !
-    do i = 1 , nbl
+    do i = 1, nbl
       deltaoh(i) = deltaoh(i)/hpbl(i)
     end do
 
     delxy = sqrt(dx*dy)
-    do i = 1 , nbl
+    do i = 1, nbl
       mlfrac      = mltop-deltaoh(i)
       ezfrac      = mltop+deltaoh(i)
       zfacmf(i,1) = min(max((zq(i,2)/hpbl(i)),zfmin),1.0_rkx)
@@ -1048,7 +1048,7 @@ module mod_pbl_shinhong
       pth1        = pthnl(delxy,cslen(i))
       hfxpbl(i)   = hfxpbl(i)*pth1
 
-      do k = 1 , klpbl
+      do k = 1, klpbl
         zfacmf(i,k) = max((zq(i,k+1)/hpbl(i)),zfmin)
         if ( pblflg(i) .and. k < kpbl(i) ) then
           if ( zfacmf(i,k) <= sfcfracn ) then
@@ -1064,8 +1064,8 @@ module mod_pbl_shinhong
     !
     ! compute tridiagonal matrix elements for heat
     !
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         au(i,k) = 0.0_rkx
         al(i,k) = 0.0_rkx
         ad(i,k) = 0.0_rkx
@@ -1073,14 +1073,14 @@ module mod_pbl_shinhong
       end do
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       ad(i,1) = 1.0_rkx
       f1(i,1) = thx(i,1)-300.0_rkx+hfx(i)/cont/del(i,1)*dt2
     end do
 
     delxy = sqrt(dx*dy)
-    do k = 1 , kzm1
-      do i = 1 , nbl
+    do k = 1, kzm1
+      do i = 1, nbl
         dtodsd = dt2/del(i,k)
         dtodsu = dt2/del(i,k+1)
         dsig   = p2d(i,k)-p2d(i,k+1)
@@ -1121,8 +1121,8 @@ module mod_pbl_shinhong
     !
     ! copies here to avoid duplicate input args for tridin
     !
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         cu(i,k) = au(i,k)
         r1(i,k) = f1(i,k)
       end do
@@ -1132,8 +1132,8 @@ module mod_pbl_shinhong
     !
     ! recover tendencies of heat
     !
-    do k = kz , 1 , -1
-      do i = 1 , nbl
+    do k = kz, 1, -1
+      do i = 1, nbl
         ttend = (f1(i,k)-thx(i,k)+300.0_rkx)*rdt*pi2d(i,k)
         ttnp(i,k) = ttnp(i,k)+ttend
         dtsfc(i) = dtsfc(i)+ttend*cont*del(i,k)/pi2d(i,k)
@@ -1147,46 +1147,46 @@ module mod_pbl_shinhong
     !
     ! compute tridiagonal matrix elements for moisture, clouds, and gases
     !
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         au(i,k) = 0.0_rkx
         al(i,k) = 0.0_rkx
         ad(i,k) = 0.0_rkx
       end do
     end do
 
-    do ic = 1 , ndiff
-      do i = 1 , nbl
-        do k = 1 , kz
+    do ic = 1, ndiff
+      do i = 1, nbl
+        do k = 1, kz
           f3(i,k,ic) = 0.0_rkx
         end do
       end do
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       ad(i,1) = 1.0_rkx
       f3(i,1,1) = qx(i,1)+qfx(i)*egrav/del(i,1)*dt2
     end do
 
     if ( ndiff >= 2 ) then
-      do ic = 2 , ndiff
+      do ic = 2, ndiff
         is = (ic-1) * kz
-        do i = 1 , nbl
+        do i = 1, nbl
           f3(i,1,ic) = qx(i,1+is)
         end do
       end do
     end if
 
     do k = 1  ,kzm1
-      do i = 1 , nbl
+      do i = 1, nbl
         if ( k >= kpbl(i) ) then
           xkzq(i,k) = xkzh(i,k)
         end if
       end do
     end do
 
-    do k = 1 , kzm1
-      do i = 1 , nbl
+    do k = 1, kzm1
+      do i = 1, nbl
         dtodsd = dt2/del(i,k)
         dtodsu = dt2/del(i,k+1)
         dsig   = p2d(i,k)-p2d(i,k+1)
@@ -1226,10 +1226,10 @@ module mod_pbl_shinhong
     end do
 
     if ( ndiff >= 2 ) then
-      do ic = 2 , ndiff
+      do ic = 2, ndiff
         is = (ic-1) * kz
-        do k = 1 , kzm1
-          do i = 1 , nbl
+        do k = 1, kzm1
+          do i = 1, nbl
             f3(i,k+1,ic) = qx(i,k+1+is)
           end do
         end do
@@ -1238,15 +1238,15 @@ module mod_pbl_shinhong
     !
     ! copies here to avoid duplicate input args for tridin
     !
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         cu(i,k) = au(i,k)
       end do
     end do
 
-    do ic = 1 , ndiff
-      do k = 1 , kz
-        do i = 1 , nbl
+    do ic = 1, ndiff
+      do k = 1, kz
+        do i = 1, nbl
           r3(i,k,ic) = f3(i,k,ic)
         end do
       end do
@@ -1258,8 +1258,8 @@ module mod_pbl_shinhong
     !
     ! recover tendencies of heat and moisture
     !
-    do k = kz , 1 , -1
-      do i = 1 , nbl
+    do k = kz, 1, -1
+      do i = 1, nbl
         qtend = (f3(i,k,1)-qx(i,k))*rdt
         qtnp(i,k) = qtnp(i,k)+qtend
         dqsfc(i) = dqsfc(i)+qtend*conq*del(i,k)
@@ -1272,8 +1272,8 @@ module mod_pbl_shinhong
       end do
     end do
 
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         if ( pblflg(i) .and. k < kpbl(i) ) then
           hgame_c = c_1*0.2_rkx*2.5_rkx * &
             (egrav/thvx(i,k))*wstar(i)/(0.25_rkx*(q2x(i,k+1)+q2x(i,k)))
@@ -1291,11 +1291,11 @@ module mod_pbl_shinhong
     end do
 
     if ( ndiff >= 2 ) then
-      do ic = 2 , ndiff
+      do ic = 2, ndiff
         if ( ifvmix(ic) ) then
           is = (ic-1) * kz
-          do k = kz , 1 , -1
-            do i = 1 , nbl
+          do k = kz, 1, -1
+            do i = 1, nbl
               qtend = (f3(i,k,ic)-qx(i,k+is))*rdt
               qtnp(i,k+is) = qtnp(i,k+is)+qtend
             end do
@@ -1306,8 +1306,8 @@ module mod_pbl_shinhong
     !
     ! compute tridiagonal matrix elements for momentum
     !
-    do i = 1 , nbl
-      do k = 1 , kz
+    do i = 1, nbl
+      do k = 1, kz
         au(i,k) = 0.0_rkx
         al(i,k) = 0.0_rkx
         ad(i,k) = 0.0_rkx
@@ -1316,7 +1316,7 @@ module mod_pbl_shinhong
       end do
     end do
 
-    do i = 1 , nbl
+    do i = 1, nbl
       ad(i,1) = 1.0_rkx+ust(i)**2/wspd1(i) * &
                 rhox(i)*egrav/del(i,1)*dt2*(wspd1(i)/wspd(i))**2
       f1(i,1) = ux(i,1)
@@ -1324,8 +1324,8 @@ module mod_pbl_shinhong
     end do
 
     delxy = sqrt(dx*dy)
-    do k = 1 , kzm1
-      do i = 1 , nbl
+    do k = 1, kzm1
+      do i = 1, nbl
         dtodsd = dt2/del(i,k)
         dtodsu = dt2/del(i,k+1)
         dsig   = p2d(i,k)-p2d(i,k+1)
@@ -1373,8 +1373,8 @@ module mod_pbl_shinhong
     !
     ! copies here to avoid duplicate input args for tridin
     !
-    do k = 1 , kz
-      do i = 1 , nbl
+    do k = 1, kz
+      do i = 1, nbl
         cu(i,k) = au(i,k)
         r1(i,k) = f1(i,k)
         r2(i,k) = f2(i,k)
@@ -1387,8 +1387,8 @@ module mod_pbl_shinhong
     !
     ! recover tendencies of momentum
     !
-    do k = kz , 1 , -1
-      do i = 1 , nbl
+    do k = kz, 1, -1
+      do i = 1, nbl
         utend = (f1(i,k)-ux(i,k))*rdt
         vtend = (f2(i,k)-vx(i,k))*rdt
         utnp(i,k) = utnp(i,k)+utend
@@ -1398,15 +1398,15 @@ module mod_pbl_shinhong
       end do
     end do
     !
-    do i = 1 , nbl
+    do i = 1, nbl
       kpbl1d(i) = kpbl(i)
     end do
     !
     !---- calculate sgs tke which is consistent with shinhongpbl algorithm
     !
     tke_calculation: &
-    do i = 1 , nbl
-      do k = 2 , kz
+    do i = 1, nbl
+      do k = 2, kz
         s2(k)   = 0.0_rkx
         gh(k)   = 0.0_rkx
         rig(k)  = 0.0_rkx
@@ -1418,7 +1418,7 @@ module mod_pbl_shinhong
         vfxpblk(k)  = 0.0_rkx
         qfxpblk(k)  = 0.0_rkx
       end do
-      do k = 1 , kz
+      do k = 1, kz
         uxk(k)   = 0.0_rkx
         vxk(k)   = 0.0_rkx
         txk(k)   = 0.0_rkx
@@ -1435,13 +1435,13 @@ module mod_pbl_shinhong
         eflx_nl1d(k) = 0.0_rkx
         ptke1(k)     = 1.0_rkx
       end do
-      do k = 1 , kzp1
+      do k = 1, kzp1
         zqk(k)   = 0.0_rkx
       end do
-      do k = 1 , kz*ndiff
+      do k = 1, kz*ndiff
         qxk(k) = 0.0_rkx
       end do
-      do k = 1 , kz
+      do k = 1, kz
         uxk(k)   = ux(i,k)
         vxk(k)   = vx(i,k)
         txk(k)   = tx(i,k)
@@ -1450,20 +1450,20 @@ module mod_pbl_shinhong
         q2xk(k)  = q2x(i,k)
         hgame(k) = hgame2d(i,k)
       end do
-      do k = 1 , kzm1
+      do k = 1, kzm1
         if ( pblflg(i) .and. k <= kpbl(i) ) then
           zfacdx      = 0.2_rkx*hpbl(i)/za(i,k)
           delxy       = sqrt(dx*dy)*max(zfacdx,1.0_rkx)
           ptke1(k+1)  = ptke(delxy,hpbl(i))
         end if
       end do
-      do k = 1 , kzp1
+      do k = 1, kzp1
         zqk(k) = zq(i,k)
       end do
-      do k = 1 , kz*ndiff
+      do k = 1, kz*ndiff
         qxk(k) = qx(i,k)
       end do
-      do k = 2 , kz
+      do k = 2, kz
         akmk(k) = xkzm(i,k-1)
         akhk(k) = xkzh(i,k-1)
         mfk(k)      = mf(i,k-1)/xkzh(i,k-1)
@@ -1499,7 +1499,7 @@ module mod_pbl_shinhong
       !
       !---- save the new tke and mixing length.
       !
-      do k = 1 , kz
+      do k = 1, kz
         q2x(i,k) = max(q2xk(k),epsq2l)
         tke(i,k) = 0.5_rkx*q2x(i,k)
       end do
@@ -1513,33 +1513,33 @@ module mod_pbl_shinhong
 
   subroutine tridi1(cl,cm,cu,r1,au,f1,nbl)
     implicit none
-    integer , intent(in) :: nbl
-    real(rkx) , dimension(nbl,2:kzp1) , intent(in) :: cl
-    real(rkx) , dimension(nbl,kz) , intent(in) :: cm
-    real(rkx) , dimension(nbl,kz) , intent(in) :: r1
-    real(rkx) , dimension(nbl,kz) , intent(inout) :: au , cu
-    real(rkx) , dimension(nbl,kz) , intent(inout) :: f1
+    integer, intent(in) :: nbl
+    real(rkx), dimension(nbl,2:kzp1), intent(in) :: cl
+    real(rkx), dimension(nbl,kz), intent(in) :: cm
+    real(rkx), dimension(nbl,kz), intent(in) :: r1
+    real(rkx), dimension(nbl,kz), intent(inout) :: au, cu
+    real(rkx), dimension(nbl,kz), intent(inout) :: f1
     real(rkx) :: fk
-    integer :: i , k
+    integer :: i, k
 
-    do i = 1 , nbl
+    do i = 1, nbl
      fk = 1.0_rkx/cm(i,1)
      au(i,1) = fk*cu(i,1)
      f1(i,1) = fk*r1(i,1)
     end do
-    do k = 2 , kzm1
-      do i = 1 , nbl
+    do k = 2, kzm1
+      do i = 1, nbl
         fk = 1.0_rkx/(cm(i,k)-cl(i,k)*au(i,k-1))
         au(i,k) = fk*cu(i,k)
         f1(i,k) = fk*(r1(i,k)-cl(i,k)*f1(i,k-1))
       end do
     end do
-    do i = 1 , nbl
+    do i = 1, nbl
       fk = 1.0_rkx/(cm(i,kz)-cl(i,kz)*au(i,kzm1))
       f1(i,kz) = fk*(r1(i,kz)-cl(i,kz)*f1(i,kzm1))
     end do
-    do k = kzm1 , 1 , -1
-      do i = 1 , nbl
+    do k = kzm1, 1, -1
+      do i = 1, nbl
         f1(i,k) = f1(i,k)-au(i,k)*f1(i,k+1)
       end do
     end do
@@ -1547,34 +1547,34 @@ module mod_pbl_shinhong
 
   subroutine tridi2(cl,cm,cu,r1,r2,au,f1,f2,nbl)
     implicit none
-    integer , intent(in) :: nbl
-    real(rkx) , dimension(nbl,2:kzp1) , intent(in) :: cl
-    real(rkx) , dimension(nbl,kz) , intent(in) :: cm , cu , r1 , r2
-    real(rkx) , dimension(nbl,kz) , intent(inout) :: au , f1 , f2
+    integer, intent(in) :: nbl
+    real(rkx), dimension(nbl,2:kzp1), intent(in) :: cl
+    real(rkx), dimension(nbl,kz), intent(in) :: cm, cu, r1, r2
+    real(rkx), dimension(nbl,kz), intent(inout) :: au, f1, f2
     real(rkx) :: fk
-    integer :: i , k
+    integer :: i, k
 
-    do i = 1 , nbl
+    do i = 1, nbl
       fk = 1.0_rkx/cm(i,1)
       au(i,1) = fk*cu(i,1)
       f1(i,1) = fk*r1(i,1)
       f2(i,1) = fk*r2(i,1)
     end do
-    do k = 2 , kzm1
-      do i = 1 , nbl
+    do k = 2, kzm1
+      do i = 1, nbl
         fk = 1.0_rkx/(cm(i,k)-cl(i,k)*au(i,k-1))
         au(i,k) = fk*cu(i,k)
         f1(i,k) = fk*(r1(i,k)-cl(i,k)*f1(i,k-1))
         f2(i,k) = fk*(r2(i,k)-cl(i,k)*f2(i,k-1))
       end do
     end do
-    do i = 1 , nbl
+    do i = 1, nbl
       fk = 1.0_rkx/(cm(i,kz)-cl(i,kz)*au(i,kzm1))
       f1(i,kz) = fk*(r1(i,kz)-cl(i,kz)*f1(i,kzm1))
       f2(i,kz) = fk*(r2(i,kz)-cl(i,kz)*f2(i,kzm1))
     end do
-    do k = kzm1 , 1 , -1
-      do i = 1 , nbl
+    do k = kzm1, 1, -1
+      do i = 1, nbl
         f1(i,k) = f1(i,k)-au(i,k)*f1(i,k+1)
         f2(i,k) = f2(i,k)-au(i,k)*f2(i,k+1)
       end do
@@ -1583,40 +1583,40 @@ module mod_pbl_shinhong
 
   subroutine tridin_ysu(cl,cm,cu,rn,au,fn,nbl,nt)
     implicit none
-    integer , intent(in) :: nbl , nt
-    real(rkx) , dimension(nbl,2:kzp1) , intent(in) :: cl
-    real(rkx) , dimension(nbl,kz) , intent(in) :: cm
-    real(rkx) , dimension(nbl,kz,nt) , intent(in) :: rn
-    real(rkx) , dimension(nbl,kz) , intent(inout) :: au , cu
-    real(rkx) , dimension(nbl,kz,nt) , intent(inout) :: fn
+    integer, intent(in) :: nbl, nt
+    real(rkx), dimension(nbl,2:kzp1), intent(in) :: cl
+    real(rkx), dimension(nbl,kz), intent(in) :: cm
+    real(rkx), dimension(nbl,kz,nt), intent(in) :: rn
+    real(rkx), dimension(nbl,kz), intent(inout) :: au, cu
+    real(rkx), dimension(nbl,kz,nt), intent(inout) :: fn
     real(rkx) :: fk
-    integer :: i , k , it
+    integer :: i, k, it
 
-    do it = 1 , nt
-      do i = 1 , nbl
+    do it = 1, nt
+      do i = 1, nbl
        fk = 1.0_rkx/cm(i,1)
        au(i,1) = fk*cu(i,1)
        fn(i,1,it) = fk*rn(i,1,it)
       end do
     end do
-    do it = 1 , nt
-      do k = 2 , kzm1
-        do i = 1 , nbl
+    do it = 1, nt
+      do k = 2, kzm1
+        do i = 1, nbl
           fk = 1.0_rkx/(cm(i,k)-cl(i,k)*au(i,k-1))
           au(i,k) = fk*cu(i,k)
           fn(i,k,it) = fk*(rn(i,k,it)-cl(i,k)*fn(i,k-1,it))
         end do
       end do
     end do
-    do it = 1 , nt
-      do i = 1 , nbl
+    do it = 1, nt
+      do i = 1, nbl
         fk = 1.0_rkx/(cm(i,kz)-cl(i,kz)*au(i,kzm1))
         fn(i,kz,it) = fk*(rn(i,kz,it)-cl(i,kz)*fn(i,kzm1,it))
       end do
     end do
-    do it = 1 , nt
-      do k = kzm1 , 1 , -1
-        do i = 1 , nbl
+    do it = 1, nt
+      do k = kzm1, 1, -1
+        do i = 1, nbl
           fn(i,k,it) = fn(i,k,it)-au(i,k)*fn(i,k+1,it)
         end do
       end do
@@ -1627,92 +1627,92 @@ module mod_pbl_shinhong
                     s2,gh,ri,el,hpbl,lpbl,ct,hgamu,hgamv,hgamq, &
                     pblflg,mf,ufxpbl,vfxpbl,qfxpbl)
     implicit none
-    integer , intent(in) :: lmh , lpbl
-    real(rkx) , intent(in) :: hpbl , corf , ustar , hgamu  ,hgamv  ,hgamq
-    real(rkx) , intent(inout) :: ct , epshol
-    real(rkx) , dimension(kz) , intent(in) :: cwm , q , q2 , t
-    real(rkx) , dimension(kz) , intent(in) :: the, u , v
-    real(rkx) , dimension(2:kz) , intent(in) :: mf , ufxpbl , vfxpbl
-    real(rkx) , dimension(2:kz) , intent(in) :: qfxpbl
-    real(rkx) , dimension(kzp1) , intent(in) :: z
-    real(rkx) , dimension(2:kz) , intent(out) :: el , ri , gh , s2
-    logical , intent(in) :: pblflg
-    integer :: k , lpblm
-    real(rkx) :: suk , svk , a , aden , b , bden , aubr , bubr
-    real(rkx) :: el0 , eloq2x , ghl , s2l , qol2st , qol2un
-    real(rkx) :: qdzl , rdz , sq , srel , szq , tem , thm , vkrmz
-    real(rkx) :: rlambda , rlb , rln , f , ckp
-    real(rkx) , dimension(kz) :: q1 , en2
-    real(rkx) , dimension(2:kz) :: dth , elm , rel
+    integer, intent(in) :: lmh, lpbl
+    real(rkx), intent(in) :: hpbl, corf, ustar, hgamu  ,hgamv  ,hgamq
+    real(rkx), intent(inout) :: ct, epshol
+    real(rkx), dimension(kz), intent(in) :: cwm, q, q2, t
+    real(rkx), dimension(kz), intent(in) :: the, u, v
+    real(rkx), dimension(2:kz), intent(in) :: mf, ufxpbl, vfxpbl
+    real(rkx), dimension(2:kz), intent(in) :: qfxpbl
+    real(rkx), dimension(kzp1), intent(in) :: z
+    real(rkx), dimension(2:kz), intent(out) :: el, ri, gh, s2
+    logical, intent(in) :: pblflg
+    integer :: k, lpblm
+    real(rkx) :: suk, svk, a, aden, b, bden, aubr, bubr
+    real(rkx) :: el0, eloq2x, ghl, s2l, qol2st, qol2un
+    real(rkx) :: qdzl, rdz, sq, srel, szq, tem, thm, vkrmz
+    real(rkx) :: rlambda, rlb, rln, f, ckp
+    real(rkx), dimension(kz) :: q1, en2
+    real(rkx), dimension(2:kz) :: dth, elm, rel
     !-----------------------------------------------------------------------
     !  qnse model constants
     !-----------------------------------------------------------------------
-    real(rkx) , parameter :: blckdr = 0.0063_rkx
-    real(rkx) , parameter :: cn = 0.75_rkx
-    real(rkx) , parameter :: eps1 = 1.e-12_rkx
-    real(rkx) , parameter :: epsl = 0.32_rkx
-    real(rkx) , parameter :: epsru = 1.e-7_rkx
-    real(rkx) , parameter :: epsrs = 1.e-7_rkx
-    real(rkx) , parameter :: el0max = 1000.0_rkx
-    real(rkx) , parameter :: el0min = 1.0_rkx
-    real(rkx) , parameter :: elfc = 0.23_rkx * 0.5_rkx
-    real(rkx) , parameter :: alph = 0.30_rkx
-    real(rkx) , parameter :: beta = 1.0_rkx/273.0_rkx
-    real(rkx) , parameter :: btg = beta*egrav
-    real(rkx) , parameter :: a1 = 0.659888514560862645_rkx
-    real(rkx) , parameter :: a2x = 0.6574209922667784586_rkx
-    real(rkx) , parameter :: b1 = 11.87799326209552761_rkx
-    real(rkx) , parameter :: b2 = 7.226971804046074028_rkx
-    real(rkx) , parameter :: c1 = 0.000830955950095854396_rkx
-    real(rkx) , parameter :: adnh = 9.0_rkx*a1*a2x*a2x * &
+    real(rkx), parameter :: blckdr = 0.0063_rkx
+    real(rkx), parameter :: cn = 0.75_rkx
+    real(rkx), parameter :: eps1 = 1.e-12_rkx
+    real(rkx), parameter :: epsl = 0.32_rkx
+    real(rkx), parameter :: epsru = 1.e-7_rkx
+    real(rkx), parameter :: epsrs = 1.e-7_rkx
+    real(rkx), parameter :: el0max = 1000.0_rkx
+    real(rkx), parameter :: el0min = 1.0_rkx
+    real(rkx), parameter :: elfc = 0.23_rkx * 0.5_rkx
+    real(rkx), parameter :: alph = 0.30_rkx
+    real(rkx), parameter :: beta = 1.0_rkx/273.0_rkx
+    real(rkx), parameter :: btg = beta*egrav
+    real(rkx), parameter :: a1 = 0.659888514560862645_rkx
+    real(rkx), parameter :: a2x = 0.6574209922667784586_rkx
+    real(rkx), parameter :: b1 = 11.87799326209552761_rkx
+    real(rkx), parameter :: b2 = 7.226971804046074028_rkx
+    real(rkx), parameter :: c1 = 0.000830955950095854396_rkx
+    real(rkx), parameter :: adnh = 9.0_rkx*a1*a2x*a2x * &
                                  (12.0_rkx*a1+3.0_rkx*b2)*btg*btg
-    real(rkx) , parameter :: adnm = 18.0_rkx*a1*a1*a2x*(b2-3.0_rkx*a2x)*btg
-    real(rkx) , parameter :: bdnh = 3.0_rkx*a2x*(7.0_rkx*a1+b2)*btg
-    real(rkx) , parameter :: bdnm = 6.0_rkx*a1*a1
+    real(rkx), parameter :: adnm = 18.0_rkx*a1*a1*a2x*(b2-3.0_rkx*a2x)*btg
+    real(rkx), parameter :: bdnh = 3.0_rkx*a2x*(7.0_rkx*a1+b2)*btg
+    real(rkx), parameter :: bdnm = 6.0_rkx*a1*a1
     !-----------------------------------------------------------------------
     !  free term in the equilibrium equation for (l/q)**2
     !-----------------------------------------------------------------------
-    real(rkx) , parameter :: aeqh = 9.0_rkx*a1*a2x*a2x*b1*btg*btg + &
+    real(rkx), parameter :: aeqh = 9.0_rkx*a1*a2x*a2x*b1*btg*btg + &
                                   9.0_rkx*a1*a2x*a2x* &
                                   (12.0_rkx*a1+3.0_rkx*b2)*btg*btg
-    real(rkx) , parameter :: aeqm = 3.0_rkx*a1*a2x*b1*(3.0_rkx*a2x + &
+    real(rkx), parameter :: aeqm = 3.0_rkx*a1*a2x*b1*(3.0_rkx*a2x + &
                                   3.0_rkx*b2*c1+18.0_rkx*a1*c1-b2)*btg + &
                                   18._rkx*a1*a1*a2x*(b2-3.0_rkx*a2x)*btg
     !-----------------------------------------------------------------------
     !  forbidden turbulence area
     !-----------------------------------------------------------------------
-    real(rkx) , parameter :: requ = -aeqh/aeqm
-    real(rkx) , parameter :: epsgh = 1.e-9_rkx
-    real(rkx) , parameter :: epsgm = requ*epsgh
+    real(rkx), parameter :: requ = -aeqh/aeqm
+    real(rkx), parameter :: epsgh = 1.e-9_rkx
+    real(rkx), parameter :: epsgm = requ*epsgh
     !-----------------------------------------------------------------------
     !  near isotropy for shear turbulence, ww/q2 lower limit
     !-----------------------------------------------------------------------
-    real(rkx) , parameter :: ubryl = (18.0_rkx*requ*a1*a1*a2x*b2*c1*btg+ &
+    real(rkx), parameter :: ubryl = (18.0_rkx*requ*a1*a1*a2x*b2*c1*btg+ &
                                     9.0_rkx*a1*a2x*a2x*b2*btg*btg) / &
                                    (requ*adnm+adnh)
-    real(rkx) , parameter :: ubry = (1.0_rkx+epsrs)*ubryl
-    real(rkx) , parameter :: ubry3 = 3.0_rkx*ubry
-    real(rkx) , parameter :: aubh = 27.0_rkx*a1*a2x*a2x*b2*btg*btg-adnh*ubry3
-    real(rkx) , parameter :: aubm = 54.0_rkx*a1*a1*a2x*b2*c1*btg  -adnm*ubry3
-    real(rkx) , parameter :: bubh = (9.0_rkx*a1*a2x+3.0_rkx*a2x*b2) * &
+    real(rkx), parameter :: ubry = (1.0_rkx+epsrs)*ubryl
+    real(rkx), parameter :: ubry3 = 3.0_rkx*ubry
+    real(rkx), parameter :: aubh = 27.0_rkx*a1*a2x*a2x*b2*btg*btg-adnh*ubry3
+    real(rkx), parameter :: aubm = 54.0_rkx*a1*a1*a2x*b2*c1*btg  -adnm*ubry3
+    real(rkx), parameter :: bubh = (9.0_rkx*a1*a2x+3.0_rkx*a2x*b2) * &
                                   btg-bdnh*ubry3
-    real(rkx) , parameter :: bubm = 18.0_rkx*a1*a1*c1-bdnm*ubry3
-    real(rkx) , parameter :: cubr = 1.0_rkx-ubry3
-    real(rkx) , parameter :: rcubr = 1.0_rkx/cubr
+    real(rkx), parameter :: bubm = 18.0_rkx*a1*a1*c1-bdnm*ubry3
+    real(rkx), parameter :: cubr = 1.0_rkx-ubry3
+    real(rkx), parameter :: rcubr = 1.0_rkx/cubr
     !-----------------------------------------------------------------------
     !  k profile constants
     !-----------------------------------------------------------------------
-    real(rkx) , parameter :: elcbl = 0.77_rkx
-    real(rkx) , parameter :: elocp = 2.72e6_rkx * cpd
+    real(rkx), parameter :: elcbl = 0.77_rkx
+    real(rkx), parameter :: elocp = 2.72e6_rkx * cpd
 
     ct = 0.0_rkx
-    do k = 1 , kz
+    do k = 1, kz
       q1(k) = 0.0_rkx
     end do
-    do k = 2 , kz
+    do k = 2, kz
       dth(k) = the(k)-the(k-1)
     end do
-    do k = 3 , kz
+    do k = 3, kz
       if ( dth(k) > 0.0_rkx .and. dth(k-1) <= 0.0_rkx ) then
         dth(k) = dth(k)+ct
         exit
@@ -1721,7 +1721,7 @@ module mod_pbl_shinhong
     !
     !  compute local gradient richardson number
     !
-    do k = kz , 2 , -1
+    do k = kz, 2, -1
       rdz = 2.0_rkx/(z(k+1)-z(k-1))
       s2l = ((u(k)-u(k-1))**2+(v(k)-v(k-1))**2)*rdz*rdz ! s**2
       if ( pblflg .and. k <= lpbl ) then
@@ -1749,7 +1749,7 @@ module mod_pbl_shinhong
     !
     !  find maximum mixing lengths and the level of the pbl top
     !
-    do k = kz , 2 , -1
+    do k = kz, 2, -1
       s2l = s2(k)
       ghl = gh(k)
       if ( ghl >= epsgh ) then
@@ -1770,12 +1770,12 @@ module mod_pbl_shinhong
         elm(k) = max(sqrt(eloq2x*q2(k)),epsl)
       end if
     end do
-    do k = lpbl , lmh , -1
+    do k = lpbl, lmh, -1
       q1(k) = sqrt(q2(k))
     end do
     szq = 0.0_rkx
     sq = 0.0_rkx
-    do k = kz , 2 , -1
+    do k = kz, 2, -1
       qdzl = (q1(k)+q1(k-1))*(z(k)-z(k-1))
       szq = (z(k)+z(k-1)-z(lmh)-z(lmh))*qdzl+szq
       sq = qdzl+sq
@@ -1789,7 +1789,7 @@ module mod_pbl_shinhong
     !  above the pbl top
     !
     lpblm = min(lpbl+1,kz)
-    do k = kz , lpblm , -1
+    do k = kz, lpblm, -1
       el(k) = (z(k+1)-z(k-1))*elfc
       rel(k) = el(k)/elm(k)
     end do
@@ -1799,7 +1799,7 @@ module mod_pbl_shinhong
     epshol = min(epshol,0.0_rkx)
     ckp = elcbl*((1.0_rkx-8.0_rkx*epshol)**(1.0_rkx/3.0_rkx))
     if ( lpbl > lmh ) then
-      do k = lpbl , lmh+1  ,-1
+      do k = lpbl, lmh+1  ,-1
         vkrmz = (z(k)-z(lmh))*vonkar
         if ( pblflg ) then
           vkrmz = ckp*(z(k)-z(lmh))*vonkar
@@ -1810,7 +1810,7 @@ module mod_pbl_shinhong
         rel(k) = el(k)/elm(k)
       end do
     end if
-    do k = lpbl-1 , lmh+2 , -1
+    do k = lpbl-1, lmh+2, -1
       srel = min(((rel(k-1)+rel(k+1))*0.5_rkx+rel(k))*0.5_rkx,rel(k))
       el(k) = max(srel*elm(k),epsl)
     end do
@@ -1819,7 +1819,7 @@ module mod_pbl_shinhong
     !
     f = max(corf,eps1)
     rlambda = f / (blckdr*ustar)
-    do k = kz , 2, -1
+    do k = kz, 2, -1
       if ( en2(k) >= 0.0_rkx ) then ! stable case
         vkrmz = (z(k)-z(lmh))*vonkar
         rlb = rlambda+1.0_rkx/vkrmz
@@ -1833,30 +1833,30 @@ module mod_pbl_shinhong
                     uxk,vxk,thxk,thvxk,hgamu,hgamv,hgamq,delxy, &
                     hpbl,pblflg,kpbl,mf,ufxpbl,vfxpbl,qfxpbl)
     implicit none
-    integer , intent(in) :: kpbl
-    real(rkx) , intent(in) :: dtturbl , ustar
-    real(rkx) , intent(in) :: hgamu , hgamv , hgamq , delxy , hpbl
+    integer, intent(in) :: kpbl
+    real(rkx), intent(in) :: dtturbl, ustar
+    real(rkx), intent(in) :: hgamu, hgamv, hgamq, delxy, hpbl
     logical,  intent(in) :: pblflg
-    real(rkx) , dimension(kz) , intent(in) :: uxk , vxk
-    real(rkx) , dimension(kz) , intent(in) :: thxk , thvxk
-    real(rkx) , dimension(2:kz) , intent(in) :: s2 , ri , akm, akh
-    real(rkx) , dimension(2:kz) , intent(in) :: el , mf
-    real(rkx) , dimension(2:kz) , intent(in) :: ufxpbl , vfxpbl , qfxpbl
-    real(rkx) , dimension(kzp1) , intent(in) :: z
-    real(rkx) , dimension(kz) , intent(inout) :: q2
+    real(rkx), dimension(kz), intent(in) :: uxk, vxk
+    real(rkx), dimension(kz), intent(in) :: thxk, thvxk
+    real(rkx), dimension(2:kz), intent(in) :: s2, ri, akm, akh
+    real(rkx), dimension(2:kz), intent(in) :: el, mf
+    real(rkx), dimension(2:kz), intent(in) :: ufxpbl, vfxpbl, qfxpbl
+    real(rkx), dimension(kzp1), intent(in) :: z
+    real(rkx), dimension(kz), intent(inout) :: q2
     integer :: k
-    real(rkx) :: s2l , q2l , deltaz , akml , akhl , en2 , pr , bpr
-    real(rkx) :: dis , suk , svk , gthvk , govrthvk , pru , prv
-    real(rkx) :: thm , disel
-    real(rkx) , parameter :: epsq2l = 0.01_rkx
-    real(rkx) , parameter :: c0 = 0.55_rkx
-    real(rkx) , parameter :: ceps = 16.6_rkx
-    real(rkx) , parameter :: rc02 = 2.0_rkx/(c0*c0)
+    real(rkx) :: s2l, q2l, deltaz, akml, akhl, en2, pr, bpr
+    real(rkx) :: dis, suk, svk, gthvk, govrthvk, pru, prv
+    real(rkx) :: thm, disel
+    real(rkx), parameter :: epsq2l = 0.01_rkx
+    real(rkx), parameter :: c0 = 0.55_rkx
+    real(rkx), parameter :: ceps = 16.6_rkx
+    real(rkx), parameter :: rc02 = 2.0_rkx/(c0*c0)
     !
     !  start of production/dissipation loop
     !
     main_integration: &
-    do k = 2 , kz
+    do k = 2, kz
       deltaz = 0.5_rkx*(z(k+1)-z(k-1))
       s2l = s2(k)
       q2l = q2(k)
@@ -1907,29 +1907,29 @@ module mod_pbl_shinhong
   subroutine vdifq(lmh,dtdif,q2,z,akhk,ptke1,hgame,hpbl, &
                    pblflg,kpbl,efxpbl)
     implicit none
-    integer , intent(in) :: lmh , kpbl
-    real(rkx) , intent(in) :: dtdif , hpbl , efxpbl
-    logical , intent(in) :: pblflg
-    real(rkx) , dimension(kz) , intent(in) :: hgame , ptke1
-    real(rkx) , dimension(2:kz) , intent(in) :: akhk
-    real(rkx) , dimension(kzp1) , intent(in) :: z
-    real(rkx) , dimension(kz) , intent(inout) :: q2
-    real(rkx) , parameter :: c_k = 1.0_rkx
-    real(rkx) , parameter :: esq = 5.0_rkx
-    real(rkx) :: akqs , cf , dtozs
-    real(rkx) :: esqhf , zak
-    real(rkx) , dimension(2:kz) :: zfacentk
-    real(rkx) , dimension(3:kz) :: akq , cm , cr , dtoz , rsq2
+    integer, intent(in) :: lmh, kpbl
+    real(rkx), intent(in) :: dtdif, hpbl, efxpbl
+    logical, intent(in) :: pblflg
+    real(rkx), dimension(kz), intent(in) :: hgame, ptke1
+    real(rkx), dimension(2:kz), intent(in) :: akhk
+    real(rkx), dimension(kzp1), intent(in) :: z
+    real(rkx), dimension(kz), intent(inout) :: q2
+    real(rkx), parameter :: c_k = 1.0_rkx
+    real(rkx), parameter :: esq = 5.0_rkx
+    real(rkx) :: akqs, cf, dtozs
+    real(rkx) :: esqhf, zak
+    real(rkx), dimension(2:kz) :: zfacentk
+    real(rkx), dimension(3:kz) :: akq, cm, cr, dtoz, rsq2
     integer :: k
     !
     !  vertical turbulent diffusion
     !
     esqhf = 0.5_rkx*esq
-    do k = 2 , kz
+    do k = 2, kz
       zak = 0.5_rkx*(z(k)+z(k-1)) !zak of vdifq = za(k-1) of shinhong2d
       zfacentk(k) = (zak/hpbl)**3
     end do
-    do k = kz , 3, -1
+    do k = kz, 3, -1
       dtoz(k) = (dtdif+dtdif)/(z(k+1)-z(k-1))
       akq(k) = c_k*(akhk(k)/(z(k+1)-z(k-1))+akhk(k-1)/(z(k)-z(k-2)))
       akq(k) = akq(k)*ptke1(k)
@@ -1939,7 +1939,7 @@ module mod_pbl_shinhong
     akqs = akqs*ptke1(2)
     cm(kz) = dtoz(kz)*akq(kz)+1.0_rkx
     rsq2(kz) = q2(kz)
-    do k = kzm1 , 3 , -1
+    do k = kzm1, 3, -1
       cf = -dtoz(k)*akq(k+1)/cm(k+1)
       cm(k) = -cr(k+1)*cf+(akq(k+1)+akq(k))*dtoz(k)+1.0_rkx
       rsq2(k) = -rsq2(k+1)*cf+q2(k)
@@ -1963,24 +1963,24 @@ module mod_pbl_shinhong
       q2(lmh+1) = (dtozs*akqs*q2(lmh)-rsq2(lmh+2)*cf+q2(lmh+1)) / &
          ((akq(lmh+2)+akqs)*dtozs-cr(lmh+2)*cf+1.0_rkx)
     end if
-    do k = lmh+2 , kz
+    do k = lmh+2, kz
       q2(k) = (-cr(k)*q2(k-1)+rsq2(k))/cm(k)
     end do
   end subroutine vdifq
 
   real(rkx) function pu(d,h)
     implicit none
-    real(rkx) , intent(in) :: d , h
-    real(rkx) , parameter :: pmin = 0.0_rkx
-    real(rkx) , parameter :: pmax = 1.0_rkx
-    real(rkx) , parameter :: a1 = 1.0_rkx
-    real(rkx) , parameter :: a2 = 0.070_rkx
-    real(rkx) , parameter :: a3 = 1.0_rkx
-    real(rkx) , parameter :: a4 = 0.142_rkx
-    real(rkx) , parameter :: a5 = 0.071_rkx
-    real(rkx) , parameter :: b1 = 2.0_rkx
-    real(rkx) , parameter :: b2 = 0.6666667_rkx
-    real(rkx) :: doh , num , den
+    real(rkx), intent(in) :: d, h
+    real(rkx), parameter :: pmin = 0.0_rkx
+    real(rkx), parameter :: pmax = 1.0_rkx
+    real(rkx), parameter :: a1 = 1.0_rkx
+    real(rkx), parameter :: a2 = 0.070_rkx
+    real(rkx), parameter :: a3 = 1.0_rkx
+    real(rkx), parameter :: a4 = 0.142_rkx
+    real(rkx), parameter :: a5 = 0.071_rkx
+    real(rkx), parameter :: b1 = 2.0_rkx
+    real(rkx), parameter :: b2 = 0.6666667_rkx
+    real(rkx) :: doh, num, den
 
     if ( abs(h) > tiny(h) ) then
       doh = d/h
@@ -1996,16 +1996,16 @@ module mod_pbl_shinhong
 
   real(rkx) function pq(d,h)
     implicit none
-    real(rkx) , intent(in) :: d , h
-    real(rkx) , parameter :: pmin = 0.0_rkx
-    real(rkx) , parameter :: pmax = 1.0_rkx
-    real(rkx) , parameter :: a1 = 1.0_rkx
-    real(rkx) , parameter :: a2 = -0.098_rkx
-    real(rkx) , parameter :: a3 = 1.0_rkx
-    real(rkx) , parameter :: a4 = 0.106_rkx
-    real(rkx) , parameter :: a5 = 0.5_rkx
-    real(rkx) , parameter :: b1 = 2.0_rkx
-    real(rkx) :: doh , num , den
+    real(rkx), intent(in) :: d, h
+    real(rkx), parameter :: pmin = 0.0_rkx
+    real(rkx), parameter :: pmax = 1.0_rkx
+    real(rkx), parameter :: a1 = 1.0_rkx
+    real(rkx), parameter :: a2 = -0.098_rkx
+    real(rkx), parameter :: a3 = 1.0_rkx
+    real(rkx), parameter :: a4 = 0.106_rkx
+    real(rkx), parameter :: a5 = 0.5_rkx
+    real(rkx), parameter :: b1 = 2.0_rkx
+    real(rkx) :: doh, num, den
 
     if ( abs(h) > tiny(h) ) then
       doh = d/h
@@ -2021,19 +2021,19 @@ module mod_pbl_shinhong
 
   real(rkx) function pthnl(d,h)
     implicit none
-    real(rkx) , intent(in) :: d , h
-    real(rkx) , parameter :: pmin = 0.0_rkx
-    real(rkx) , parameter :: pmax = 1.0_rkx
-    real(rkx) , parameter :: a1 = 1.000_rkx
-    real(rkx) , parameter :: a2 = 0.936_rkx
-    real(rkx) , parameter :: a3 = -1.110_rkx
-    real(rkx) , parameter :: a4 = 1.000_rkx
-    real(rkx) , parameter :: a5 = 0.312_rkx
-    real(rkx) , parameter :: a6 = 0.329_rkx
-    real(rkx) , parameter :: a7 = 0.243_rkx
-    real(rkx) , parameter :: b1 = 2.0_rkx
-    real(rkx) , parameter :: b2 = 0.875_rkx
-    real(rkx) :: doh , num , den
+    real(rkx), intent(in) :: d, h
+    real(rkx), parameter :: pmin = 0.0_rkx
+    real(rkx), parameter :: pmax = 1.0_rkx
+    real(rkx), parameter :: a1 = 1.000_rkx
+    real(rkx), parameter :: a2 = 0.936_rkx
+    real(rkx), parameter :: a3 = -1.110_rkx
+    real(rkx), parameter :: a4 = 1.000_rkx
+    real(rkx), parameter :: a5 = 0.312_rkx
+    real(rkx), parameter :: a6 = 0.329_rkx
+    real(rkx), parameter :: a7 = 0.243_rkx
+    real(rkx), parameter :: b1 = 2.0_rkx
+    real(rkx), parameter :: b2 = 0.875_rkx
+    real(rkx) :: doh, num, den
 
     if ( abs(h) > tiny(h) ) then
       doh = d/h
@@ -2049,19 +2049,19 @@ module mod_pbl_shinhong
 
   real(rkx) function pthl(d,h)
     implicit none
-    real(rkx) , intent(in) :: d , h
-    real(rkx) , parameter :: pmin = 0.0_rkx
-    real(rkx) , parameter :: pmax = 1.0_rkx
-    real(rkx) , parameter :: a1 = 1.000_rkx
-    real(rkx) , parameter :: a2 = 0.870_rkx
-    real(rkx) , parameter :: a3 = -0.913_rkx
-    real(rkx) , parameter :: a4 = 1.000_rkx
-    real(rkx) , parameter :: a5 = 0.153_rkx
-    real(rkx) , parameter :: a6 = 0.278_rkx
-    real(rkx) , parameter :: a7 = 0.280_rkx
-    real(rkx) , parameter :: b1 = 2.0_rkx
-    real(rkx) , parameter :: b2 = 0.5_rkx
-    real(rkx) :: doh , num , den
+    real(rkx), intent(in) :: d, h
+    real(rkx), parameter :: pmin = 0.0_rkx
+    real(rkx), parameter :: pmax = 1.0_rkx
+    real(rkx), parameter :: a1 = 1.000_rkx
+    real(rkx), parameter :: a2 = 0.870_rkx
+    real(rkx), parameter :: a3 = -0.913_rkx
+    real(rkx), parameter :: a4 = 1.000_rkx
+    real(rkx), parameter :: a5 = 0.153_rkx
+    real(rkx), parameter :: a6 = 0.278_rkx
+    real(rkx), parameter :: a7 = 0.280_rkx
+    real(rkx), parameter :: b1 = 2.0_rkx
+    real(rkx), parameter :: b2 = 0.5_rkx
+    real(rkx) :: doh, num, den
 
     if ( abs(h) > tiny(h) ) then
       doh = d/h
@@ -2077,17 +2077,17 @@ module mod_pbl_shinhong
 
   real(rkx) function ptke(d,h)
     implicit none
-    real(rkx) , intent(in) :: d , h
-    real(rkx) , parameter :: pmin = 0.0_rkx
-    real(rkx) , parameter :: pmax = 1.0_rkx
-    real(rkx) , parameter :: a1 = 1.000_rkx
-    real(rkx) , parameter :: a2 = 0.070_rkx
-    real(rkx) , parameter :: a3 = 1.000_rkx
-    real(rkx) , parameter :: a4 = 0.142_rkx
-    real(rkx) , parameter :: a5 = 0.071_rkx
-    real(rkx) , parameter :: b1 = 2.0_rkx
-    real(rkx) , parameter :: b2 = 0.6666667_rkx
-    real(rkx) :: doh , num , den
+    real(rkx), intent(in) :: d, h
+    real(rkx), parameter :: pmin = 0.0_rkx
+    real(rkx), parameter :: pmax = 1.0_rkx
+    real(rkx), parameter :: a1 = 1.000_rkx
+    real(rkx), parameter :: a2 = 0.070_rkx
+    real(rkx), parameter :: a3 = 1.000_rkx
+    real(rkx), parameter :: a4 = 0.142_rkx
+    real(rkx), parameter :: a5 = 0.071_rkx
+    real(rkx), parameter :: b1 = 2.0_rkx
+    real(rkx), parameter :: b2 = 0.6666667_rkx
+    real(rkx) :: doh, num, den
 
     if ( abs(h) > tiny(h) ) then
       doh = d/h
@@ -2103,12 +2103,12 @@ module mod_pbl_shinhong
 
   subroutine sfclay(nbl,br,znt,za,ust,govrth,dtg,rah,psim,psih)
     implicit none
-    integer , intent(in) :: nbl
-    real(rkx) , dimension(nbl) , intent(in) :: br , znt , za , ust
-    real(rkx) , dimension(nbl) , intent(in) :: govrth , rah , dtg
-    real(rkx) , dimension(nbl) , intent(out) :: psim , psih
-    real(rkx) :: gz1oz0 , zol , rzol , mol
-    integer :: i , nzol
+    integer, intent(in) :: nbl
+    real(rkx), dimension(nbl), intent(in) :: br, znt, za, ust
+    real(rkx), dimension(nbl), intent(in) :: govrth, rah, dtg
+    real(rkx), dimension(nbl), intent(out) :: psim, psih
+    real(rkx) :: gz1oz0, zol, rzol, mol
+    integer :: i, nzol
     !
     ! Diagnose basic parameters for the appropriated stability class:
     !
@@ -2130,7 +2130,7 @@ module mod_pbl_shinhong
     ! 4. br .lt. 0.0
     !    represents free convection conditions (regime=4).
     !
-    do i = 1 , nbl
+    do i = 1, nbl
       gz1oz0 = log(za(i)/znt(i))
       if ( br(i) >= 0.2_rkx ) then
         !
@@ -2177,8 +2177,8 @@ module mod_pbl_shinhong
   subroutine sfclayinit
     implicit none
     integer :: n
-    real(rkx) :: zoln , x , y
-    do n = 0 , 1000
+    real(rkx) :: zoln, x, y
+    do n = 0, 1000
       zoln = -real(n,rkx)*0.01_rkx
       x = (1.0_rkx - 16.0_rkx*zoln)**0.25_rkx
       psimtb(n) = 2.0_rkx*log(0.5_rkx*(1_rkx+x)) + &

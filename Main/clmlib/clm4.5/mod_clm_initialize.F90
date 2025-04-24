@@ -4,8 +4,8 @@ module mod_clm_initialize
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : rcmtimer , dtsrf , ichecold
-  use mod_runparams , only : eccen , mvelpp , lambm0 , obliqr
+  use mod_runparams, only : rcmtimer, dtsrf, ichecold
+  use mod_runparams, only : eccen, mvelpp, lambm0, obliqr
   use mod_date
   use mod_stdio
   use mod_sunorbit
@@ -14,58 +14,58 @@ module mod_clm_initialize
   use mod_dynparam
   use mod_regcm_types
   use mod_clm_nchelper
-  use mod_clm_varctl , only : nsrest , nsrStartup , nsrContinue , &
-          fsurdat , fatmlndfrc , noland , finidat ,   &
-          version , atm_regcm
-  use mod_clm_varsur , only : wtxy , vegxy
-  use mod_clm_typeinit , only : initClmtype
-  use mod_clm_varpar , only : maxpatch , clm_varpar_init
-  use mod_clm_varcon , only : clm_varcon_init
-  use mod_clm_pftvarcon , only : pftconrd
-  use mod_clm_decompinit , only : decompInit_lnd , decompInit_glcp
-  use mod_clm_decomp , only : get_proc_bounds
-  use mod_clm_domain , only : domain_check , ldomain , domain_init
-  use mod_clm_surfrd , only : surfrd_get_grid , surfrd_get_data
-  use mod_clm_control , only : control_init , control_print
-  use mod_clm_urbaninput , only : UrbanInput
+  use mod_clm_varctl, only : nsrest, nsrStartup, nsrContinue, &
+          fsurdat, fatmlndfrc, noland, finidat,   &
+          version, atm_regcm
+  use mod_clm_varsur, only : wtxy, vegxy
+  use mod_clm_typeinit, only : initClmtype
+  use mod_clm_varpar, only : maxpatch, clm_varpar_init
+  use mod_clm_varcon, only : clm_varcon_init
+  use mod_clm_pftvarcon, only : pftconrd
+  use mod_clm_decompinit, only : decompInit_lnd, decompInit_glcp
+  use mod_clm_decomp, only : get_proc_bounds
+  use mod_clm_domain, only : domain_check, ldomain, domain_init
+  use mod_clm_surfrd, only : surfrd_get_grid, surfrd_get_data
+  use mod_clm_control, only : control_init, control_print
+  use mod_clm_urbaninput, only : UrbanInput
   use mod_clm_atmlnd
-  use mod_clm_initgridcells , only : initGridCells
-  use mod_clm_filter , only : allocFilters
-  use mod_clm_reweight , only : reweightWrapup
+  use mod_clm_initgridcells, only : initGridCells
+  use mod_clm_filter, only : allocFilters
+  use mod_clm_reweight, only : reweightWrapup
 #if (defined LCH4)
-  use mod_clm_ch4varcon , only : ch4conrd
-  use mod_clm_initch4 , only : initch4
+  use mod_clm_ch4varcon, only : ch4conrd
+  use mod_clm_initch4, only : initch4
 #endif
 #ifdef CN
-  use mod_clm_cnecosystemdyn , only : CNEcosystemDynInit
-  use mod_clm_cninitimevar , only : CNiniTimeVar
+  use mod_clm_cnecosystemdyn, only : CNEcosystemDynInit
+  use mod_clm_cninitimevar, only : CNiniTimeVar
 #endif
-  use mod_clm_initslake , only : initSLake
-  use mod_clm_mkarbinit , only : mkregcminit
-  use mod_clm_pftdyn , only : pftdyn_init , pftdyn_interp
+  use mod_clm_initslake, only : initSLake
+  use mod_clm_mkarbinit, only : mkregcminit
+  use mod_clm_pftdyn, only : pftdyn_init, pftdyn_interp
 #if (defined CNDV)
-  use mod_clm_pftdyn , only : pftwt_init
-  use mod_clm_cndvecosystemdynini , only : CNDVEcosystemDynini
+  use mod_clm_pftdyn, only : pftwt_init
+  use mod_clm_cndvecosystemdynini, only : CNDVEcosystemDynini
 #endif
-  use mod_clm_staticecosysdyn , only : EcosystemDynini , readAnnualVegetation
-  use mod_clm_staticecosysdyn , only : interpMonthlyVeg
-  use mod_clm_histflds , only : hist_initFlds
-  use mod_clm_histfile , only : hist_htapes_build , htapes_fieldlist
-  use mod_clm_restfile , only : restFile_getfile, &
+  use mod_clm_staticecosysdyn, only : EcosystemDynini, readAnnualVegetation
+  use mod_clm_staticecosysdyn, only : interpMonthlyVeg
+  use mod_clm_histflds, only : hist_initFlds
+  use mod_clm_histfile, only : hist_htapes_build, htapes_fieldlist
+  use mod_clm_restfile, only : restFile_getfile, &
                                  restFile_open, restFile_close, restFile_read
-  use mod_clm_accflds , only : initAccFlds , initAccClmtype
-  use mod_clm_dust , only : Dustini
-  use mod_clm_time_manager, only : get_curr_calday , get_curr_yearpoint
-  use mod_clm_urban , only : UrbanClumpInit
-  use mod_clm_urbaninit , only : UrbanInitTimeConst , UrbanInitTimeVar , &
+  use mod_clm_accflds, only : initAccFlds, initAccClmtype
+  use mod_clm_dust, only : Dustini
+  use mod_clm_time_manager, only : get_curr_calday, get_curr_yearpoint
+  use mod_clm_urban, only : UrbanClumpInit
+  use mod_clm_urbaninit, only : UrbanInitTimeConst, UrbanInitTimeVar, &
           UrbanInitAero
-  use mod_clm_urbaninput , only : UrbanInput
+  use mod_clm_urbaninput, only : UrbanInput
 #if (defined LCH4)
 #endif
-  use mod_clm_drydep , only : n_drydep, drydep_method, DD_XLND
-  use mod_clm_initsurfalb , only : initSurfAlb, do_initsurfalb
-  use mod_clm_vocemission , only : VOCEmission_init
-  use mod_clm_initimeconst , only : iniTimeConst
+  use mod_clm_drydep, only : n_drydep, drydep_method, DD_XLND
+  use mod_clm_initsurfalb, only : initSurfAlb, do_initsurfalb
+  use mod_clm_vocemission, only : VOCEmission_init
+  use mod_clm_initimeconst, only : iniTimeConst
 
   implicit none
 
@@ -96,7 +96,7 @@ module mod_clm_initialize
   subroutine initialize1
     implicit none
     integer(ik4)  :: ier              ! error status
-    integer(ik4)  :: begg , endg      ! beg and ending gridcell indices
+    integer(ik4)  :: begg, endg      ! beg and ending gridcell indices
 
     ! -------------------------------------------
     ! Initialize run control variables, timestep
@@ -206,11 +206,11 @@ module mod_clm_initialize
   !
   subroutine initialize2(rdate)
     implicit none
-    character(len=*) , intent(in) :: rdate
-    integer(ik4) :: begp , endp   ! beg and ending pft indices
-    integer(ik4) :: begc , endc   ! beg and ending column indices
-    integer(ik4) :: begl , endl   ! beg and ending landunit indices
-    integer(ik4) :: begg , endg   ! beg and ending gridcell indices
+    character(len=*), intent(in) :: rdate
+    integer(ik4) :: begp, endp   ! beg and ending pft indices
+    integer(ik4) :: begc, endc   ! beg and ending column indices
+    integer(ik4) :: begl, endl   ! beg and ending landunit indices
+    integer(ik4) :: begg, endg   ! beg and ending gridcell indices
     character(len=256) :: fnamer  ! name of netcdf restart file
     real(rk8) :: calday           ! calendar day
     real(rk8) :: caldaym1         ! calendar day for nstep-1
@@ -324,7 +324,7 @@ module mod_clm_initialize
 
     if ( nsrest == nsrContinue ) then
       call restFile_getfile(fnamer, rdate)
-      call restFile_read( fnamer , rdate )
+      call restFile_read( fnamer, rdate )
     else if ( nsrest == nsrStartup ) then
       ! Get initial data from regcm !
       call mkregcminit(adomain)

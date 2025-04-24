@@ -40,85 +40,85 @@ module mod_heatindex
 
   private
 
-  integer , parameter :: wp = real64
+  integer, parameter :: wp = real64
 
-  ! w/m^2/k^4 , boltzmann constant
-  real(wp) , parameter :: sigma    = 5.67e-8_wp
-  ! k         , vapor temperature at triple point
-  real(wp) , parameter :: ttrip    = 273.16_wp
-  ! pa        , vapor pressure at triple point
-  real(wp) , parameter :: ptrip    = 611.65_wp
-  real(wp) , parameter :: e0v      = 2.3740e6_wp  ! J/kg
-  real(wp) , parameter :: e0s      = 0.3337e6_wp  ! J/kg
-  real(wp) , parameter :: rgasa    = 287.04_wp    ! J/kg/K
-  real(wp) , parameter :: rgasv    = 461.0_wp     ! J/kg/K
-  real(wp) , parameter :: cva      = 719.0_wp     ! J/kg/K
-  real(wp) , parameter :: cvv      = 1418.0_wp    ! J/kg/K
-  real(wp) , parameter :: cvl      = 4119.0_wp    ! J/kg/K
-  real(wp) , parameter :: cvs      = 1861.0_wp    ! J/kg/K
-  real(wp) , parameter :: cpa      = cva + rgasa
-  real(wp) , parameter :: cpv      = cvv + rgasv
-  !           , emissivity of surface
-  real(wp) , parameter :: reps  = 0.97_wp
-  ! kg        , mass of average us adults, FRYAR2018
-  real(wp) , parameter :: m        = 83.6_wp
-  ! m         , height of average us adults, FRYAR2018
-  real(wp) , parameter :: h        = 1.69_wp
-  ! m^2       , dubois formula, parson2014
-  real(wp) , parameter :: a        = 0.202_wp*(m**0.425_wp)*(h**0.725_wp)
-  ! J/kg/K    , specific heat capacity of core, Gagge1972
-  real(wp) , parameter :: cpc      = 3492.0_wp
-  !           , heat capacity of core
-  real(wp) , parameter :: c        = m*cpc/a
-  ! Pa/K      , zf/rf
-  real(wp) , parameter :: r        = 124.0_wp
-  ! W/m^2     , metabolic rate per skin area
-  real(wp) , parameter :: q        = 180.0_wp
-  !           , vapor saturation pressure level of saline solution
-  real(wp) , parameter :: phi_salt = 0.9_wp
-  ! K         , core temeprature
-  real(wp) , parameter :: tc        = 310.0_wp
-  !           , core vapor pressure, phi_salt*pvstar(tc)
-  real(wp) , parameter :: pc        = 5612.299124343398_wp
-  ! Pa        , atmospheric pressure
-  real(wp) , parameter :: p         = 1.013e5_wp
-  ! kg/J      , "inhaled mass" / "metabolic rate"
-  real(wp) , parameter :: eta       = 1.43e-6_wp
-  ! Pa        , reference air vapor pressure in regions III, IV, V, VI,
+  ! w/m^2/k^4, boltzmann constant
+  real(wp), parameter :: sigma    = 5.67e-8_wp
+  ! k        , vapor temperature at triple point
+  real(wp), parameter :: ttrip    = 273.16_wp
+  ! pa       , vapor pressure at triple point
+  real(wp), parameter :: ptrip    = 611.65_wp
+  real(wp), parameter :: e0v      = 2.3740e6_wp  ! J/kg
+  real(wp), parameter :: e0s      = 0.3337e6_wp  ! J/kg
+  real(wp), parameter :: rgasa    = 287.04_wp    ! J/kg/K
+  real(wp), parameter :: rgasv    = 461.0_wp     ! J/kg/K
+  real(wp), parameter :: cva      = 719.0_wp     ! J/kg/K
+  real(wp), parameter :: cvv      = 1418.0_wp    ! J/kg/K
+  real(wp), parameter :: cvl      = 4119.0_wp    ! J/kg/K
+  real(wp), parameter :: cvs      = 1861.0_wp    ! J/kg/K
+  real(wp), parameter :: cpa      = cva + rgasa
+  real(wp), parameter :: cpv      = cvv + rgasv
+  !          , emissivity of surface
+  real(wp), parameter :: reps  = 0.97_wp
+  ! kg       , mass of average us adults, FRYAR2018
+  real(wp), parameter :: m        = 83.6_wp
+  ! m        , height of average us adults, FRYAR2018
+  real(wp), parameter :: h        = 1.69_wp
+  ! m^2      , dubois formula, parson2014
+  real(wp), parameter :: a        = 0.202_wp*(m**0.425_wp)*(h**0.725_wp)
+  ! J/kg/K   , specific heat capacity of core, Gagge1972
+  real(wp), parameter :: cpc      = 3492.0_wp
+  !          , heat capacity of core
+  real(wp), parameter :: c        = m*cpc/a
+  ! Pa/K     , zf/rf
+  real(wp), parameter :: r        = 124.0_wp
+  ! W/m^2    , metabolic rate per skin area
+  real(wp), parameter :: q        = 180.0_wp
+  !          , vapor saturation pressure level of saline solution
+  real(wp), parameter :: phi_salt = 0.9_wp
+  ! K        , core temeprature
+  real(wp), parameter :: tc        = 310.0_wp
+  !          , core vapor pressure, phi_salt*pvstar(tc)
+  real(wp), parameter :: pc        = 5612.299124343398_wp
+  ! Pa       , atmospheric pressure
+  real(wp), parameter :: p         = 1.013e5_wp
+  ! kg/J     , "inhaled mass" / "metabolic rate"
+  real(wp), parameter :: eta       = 1.43e-6_wp
+  ! Pa       , reference air vapor pressure in regions III, IV, V, VI,
   !             chosen by Steadman
-  real(wp) , parameter :: pa0       = 1.6e3_wp
-  ! Pa m^2/W  , mass transfer resistance through air, exposed part of skin
-  real(wp) , parameter :: za        = 60.6_wp/17.4_wp
-  ! Pa m^2/W  , mass transfer resistance through air, clothed part of skin
-  real(wp) , parameter :: za_bar    = 60.6_wp/11.6_wp
-  ! Pa m^2/W  , mass transfer resistance through air, when being naked
-  real(wp) , parameter :: za_un     = 60.6_wp/12.3_wp
-  !           , tolorence of the root solver for heatindex
-  real(wp) , parameter :: errt      = 1.0e-8_wp
-  !           , tolorence of the root solver
-  real(wp) , parameter :: err       = 1.0e-8_wp
+  real(wp), parameter :: pa0       = 1.6e3_wp
+  ! Pa m^2/W , mass transfer resistance through air, exposed part of skin
+  real(wp), parameter :: za        = 60.6_wp/17.4_wp
+  ! Pa m^2/W , mass transfer resistance through air, clothed part of skin
+  real(wp), parameter :: za_bar    = 60.6_wp/11.6_wp
+  ! Pa m^2/W , mass transfer resistance through air, when being naked
+  real(wp), parameter :: za_un     = 60.6_wp/12.3_wp
+  !          , tolorence of the root solver for heatindex
+  real(wp), parameter :: errt      = 1.0e-8_wp
+  !          , tolorence of the root solver
+  real(wp), parameter :: err       = 1.0e-8_wp
 
   ! maximum number of iteration of the root solver
   integer, parameter :: maxiter = 100
 
-  integer , parameter :: eqvar_indx_1 = 1 ! phi
-  integer , parameter :: eqvar_indx_2 = 2 ! rf
-  integer , parameter :: eqvar_indx_3 = 3 ! rs
-  integer , parameter :: eqvar_indx_4 = 4 ! rs*
-  integer , parameter :: eqvar_indx_5 = 5 ! dtcdt
+  integer, parameter :: eqvar_indx_1 = 1 ! phi
+  integer, parameter :: eqvar_indx_2 = 2 ! rf
+  integer, parameter :: eqvar_indx_3 = 3 ! rs
+  integer, parameter :: eqvar_indx_4 = 4 ! rs*
+  integer, parameter :: eqvar_indx_5 = 5 ! dtcdt
 
   public  :: heatindex
 
   type eqvar
     integer :: indx
-    real(wp) , dimension(4) :: var
+    real(wp), dimension(4) :: var
   end type eqvar
 
   contains
 
   pure real(wp) function pvstar(t)
     implicit none
-    real(wp) , intent(in) :: t
+    real(wp), intent(in) :: t
     if ( t <= 0.0_wp ) then
       pvstar = 1.0e-20_wp
     else if ( t < ttrip ) then
@@ -132,20 +132,20 @@ module mod_heatindex
 
   pure real(wp) function le(t)
     implicit none
-    real(wp) , intent(in):: t
+    real(wp), intent(in):: t
     le = (e0v + (cvv-cvl)*(t-ttrip) + rgasv*t)
   end function le
 
   pure real(wp) function qv(ta,pa) ! respiratory heat loss, w/m^2
     implicit none
-    real(wp) , intent(in) :: ta , pa
+    real(wp), intent(in) :: ta, pa
     qv = eta * q *(cpa*(tc-ta) + le(tc)*rgasa/(p*rgasv) * ( pc-pa ) )
   end function qv
 
   ! mass transfer resistance through skin, pa m^2/w
   pure real(wp) function zs(rs)
     implicit none
-    real(wp) , intent(in) :: rs
+    real(wp), intent(in) :: rs
     if ( rs == 0.0387_wp ) then
       zs = 52.1_wp
     else
@@ -156,8 +156,8 @@ module mod_heatindex
   ! heat transfer resistance through air, exposed part of skin, k m^2/w
   pure real(wp) function ra(ts,ta)
     implicit none
-    real(wp) , intent(in) :: ts , ta
-    real(wp) :: hc , phi_rad , hr
+    real(wp), intent(in) :: ts, ta
+    real(wp) :: hc, phi_rad, hr
     hc      = 17.4_wp
     phi_rad = 0.85_wp
     hr      = reps * phi_rad * sigma* (ts**2 + ta**2)*(ts + ta)
@@ -167,8 +167,8 @@ module mod_heatindex
   ! heat transfer resistance through air, clothed part of skin, k m^2/w
   pure real(wp) function ra_bar(tf,ta)
     implicit none
-    real(wp), intent(in) :: tf , ta
-    real(wp) :: hc , phi_rad, hr
+    real(wp), intent(in) :: tf, ta
+    real(wp) :: hc, phi_rad, hr
     hc      = 11.6_wp
     phi_rad = 0.79_wp
     hr      = reps * phi_rad * sigma* (tf**2 + ta**2)*(tf + ta)
@@ -178,8 +178,8 @@ module mod_heatindex
   ! heat transfer resistance through air, when being naked, k m^2/w
   pure real(wp) function ra_un(ts,ta)
     implicit none
-    real(wp) , intent(in) :: ts , ta
-    real(wp) :: hc , phi_rad , hr
+    real(wp), intent(in) :: ts, ta
+    real(wp) :: hc, phi_rad, hr
     hc      = 12.3_wp
     phi_rad = 0.80_wp
     hr      = reps * phi_rad * sigma* (ts**2 + ta**2)*(ts + ta)
@@ -192,9 +192,9 @@ module mod_heatindex
   pure type(eqvar) function initial_find_eqvar(ta,rh) result(res)
 #endif
     implicit none
-    real(wp) , intent(in) :: ta , rh
-    real(wp) :: pa , phi , rf , rs , dtcdt , ts , ts_bar
-    real(wp) :: tf , ps , flux1 , flux2 , flux3 , m , m_bar
+    real(wp), intent(in) :: ta, rh
+    real(wp) :: pa, phi, rf, rs, dtcdt, ts, ts_bar
+    real(wp) :: tf, ps, flux1, flux2, flux3, m, m_bar
 
     pa    = rh*pvstar(ta)
     phi   = 0.84_wp
@@ -248,10 +248,10 @@ module mod_heatindex
   pure function find_eqvar(ta,rh)
 #endif
     implicit none
-    real(wp) , dimension(4) :: find_eqvar
-    real(wp) , intent(in) :: ta , rh
-    real(wp) :: pa , phi , rf , rs , dtcdt , ts , ts_bar
-    real(wp) :: tf , ps , flux1 , flux2 , flux3 , m , m_bar
+    real(wp), dimension(4) :: find_eqvar
+    real(wp), intent(in) :: ta, rh
+    real(wp) :: pa, phi, rf, rs, dtcdt, ts, ts_bar
+    real(wp) :: tf, ps, flux1, flux2, flux3, m, m_bar
 
     pa    = rh*pvstar(ta)
     phi   = 0.84_wp
@@ -300,8 +300,8 @@ module mod_heatindex
   pure real(wp) function find_t(eqvar_indx, eqvar)
 #endif
     implicit none
-    integer , intent(in) :: eqvar_indx
-    real(wp) , intent(in) :: eqvar
+    integer, intent(in) :: eqvar_indx
+    real(wp), intent(in) :: eqvar
     real(wp) :: t
 
     select case ( eqvar_indx )
@@ -331,7 +331,7 @@ module mod_heatindex
   pure real(wp) function heatindex(ta,rh)
 #endif
     implicit none
-    real(wp), intent(in) :: ta , rh
+    real(wp), intent(in) :: ta, rh
     type(eqvar) :: initial
 
     if ( ta == 0.0_wp ) then
@@ -359,10 +359,10 @@ module mod_heatindex
   pure real(wp) function solve1(ta,pa,rs,x1,x2,err,maxiter)
 #endif
     implicit none
-    real(wp) , intent(in) :: ta , pa , rs , x1 , x2 , err
-    integer , intent(in) :: maxiter
+    real(wp), intent(in) :: ta, pa, rs, x1, x2, err
+    integer, intent(in) :: maxiter
     integer :: iter
-    real(wp) :: a , b , c , fa , fb , fc
+    real(wp) :: a, b, c, fa, fb, fc
 
     a = x1
     b = x2
@@ -374,7 +374,7 @@ module mod_heatindex
       stop 'error interval, solve1'
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_wp
       fc = (c-ta)/ra(c,ta) + (pc-pa)/(zs(rs)+za) - (tc-c)/rs
       if ( abs(b-a) < err ) exit
@@ -397,10 +397,10 @@ module mod_heatindex
   pure real(wp) function solve2(ta,pa,rs,x1,x2,err,maxiter)
 #endif
     implicit none
-    real(wp) , intent(in) :: ta , pa , rs , x1 , x2 , err
-    integer , intent(in) :: maxiter
+    real(wp), intent(in) :: ta, pa, rs, x1, x2, err
+    integer, intent(in) :: maxiter
     integer :: iter
-    real(wp) :: a , b , c , fa , fb , fc
+    real(wp) :: a, b, c, fa, fb, fc
 
     a = x1
     b = x2
@@ -412,7 +412,7 @@ module mod_heatindex
       stop 'error interval, solve2'
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_wp
       fc = (c-ta)/ra_bar(c,ta) + (pc-pa)/(zs(rs)+za_bar) - (tc-c)/rs
       if ( abs(b-a) < err ) exit
@@ -435,10 +435,10 @@ module mod_heatindex
   pure real(wp) function solve3(ta,pa,rs,ts_bar,x1,x2,err,maxiter)
 #endif
     implicit none
-    real(wp) , intent(in) :: ta , pa , rs , ts_bar , x1 , x2 , err
-    integer , intent(in) :: maxiter
+    real(wp), intent(in) :: ta, pa, rs, ts_bar, x1, x2, err
+    integer, intent(in) :: maxiter
     integer :: iter
-    real(wp) :: a , b , c , fa , fb , fc
+    real(wp) :: a, b, c, fa, fb, fc
 
     a = x1
     b = x2
@@ -455,7 +455,7 @@ module mod_heatindex
       stop 'error interval, solve3'
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_wp
       fc = (c-ta)/ra_bar(c,ta) + (pc-pa)*(c-ta)/((c-ta)*(zs(rs)+za_bar) + &
         r*ra_bar(c,ta)*(ts_bar-c)) - (tc-ts_bar)/rs
@@ -479,10 +479,10 @@ module mod_heatindex
   pure real(wp) function solve4(ta,pa,x1,x2,err,maxiter)
 #endif
     implicit none
-    real(wp) , intent(in) :: ta , pa , x1 , x2 , err
-    integer , intent(in) :: maxiter
+    real(wp), intent(in) :: ta, pa, x1, x2, err
+    integer, intent(in) :: maxiter
     integer :: iter
-    real(wp) :: a , b , c , fa , fb , fc
+    real(wp) :: a, b, c, fa, fb, fc
 
     a = x1
     b = x2
@@ -496,7 +496,7 @@ module mod_heatindex
       stop 'error interval, solve4'
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_wp
       fc = (c-ta)/ra_un(c,ta) + &
         (pc-pa)/(zs((tc-c)/(q-qv(ta,pa)))+za_un)-(q-qv(ta,pa))
@@ -520,10 +520,10 @@ module mod_heatindex
   pure real(wp) function solve5(ta,pa,x1,x2,err,maxiter)
 #endif
     implicit none
-    real(wp) , intent(in) :: ta , pa , x1 , x2 , err
-    integer , intent(in) :: maxiter
+    real(wp), intent(in) :: ta, pa, x1, x2, err
+    integer, intent(in) :: maxiter
     integer :: iter
-    real(wp) :: a , b , c , fa , fb , fc
+    real(wp) :: a, b, c, fa, fb, fc
 
     a = x1
     b = x2
@@ -535,7 +535,7 @@ module mod_heatindex
       stop 'error interval, solve5'
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_wp
       fc = (c-ta)/ra_un(c,ta) + (phi_salt*pvstar(c)-pa)/za_un -(q-qv(ta,pa))
       if ( abs(b-a) < err ) exit
@@ -558,10 +558,10 @@ module mod_heatindex
   pure real(wp) function solvei(eqvar)
 #endif
     implicit none
-    real(wp) , intent(in) :: eqvar
+    real(wp), intent(in) :: eqvar
     integer :: iter
-    real(wp) :: a , b , c , fa , fb , fc
-    real(wp) , dimension(4) :: tmp
+    real(wp) :: a, b, c, fa, fb, fc
+    real(wp), dimension(4) :: tmp
 
     a = 0.0_wp
     b = 240.0_wp
@@ -575,7 +575,7 @@ module mod_heatindex
       stop 'error interval, solvei'
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_wp
       tmp = find_eqvar(c,1.0_wp)
       fc = tmp(1) - eqvar
@@ -599,10 +599,10 @@ module mod_heatindex
   pure real(wp) function solveii(eqvar)
 #endif
     implicit none
-    real(wp) , intent(in) :: eqvar
+    real(wp), intent(in) :: eqvar
     integer :: iter
-    real(wp) :: a , b , c , fa , fb , fc
-    real(wp) , dimension(4) :: tmp
+    real(wp) :: a, b, c, fa, fb, fc
+    real(wp), dimension(4) :: tmp
 
     a = 230.0_wp
     b = 300.0_wp
@@ -617,7 +617,7 @@ module mod_heatindex
       stop 'error interval, solveii'
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_wp
       tmp = find_eqvar(c,min(1.0_wp,pa0/pvstar(c)))
       fc = tmp(2) - eqvar
@@ -641,10 +641,10 @@ module mod_heatindex
   pure real(wp) function solveiii(eqvar)
 #endif
     implicit none
-    real(wp) , intent(in) :: eqvar
+    real(wp), intent(in) :: eqvar
     integer :: iter
-    real(wp) :: a , b , c , fa , fb , fc
-    real(wp) , dimension(4) :: tmp
+    real(wp) :: a, b, c, fa, fb, fc
+    real(wp), dimension(4) :: tmp
 
     a = 295.0_wp
     b = 350.0_wp
@@ -658,7 +658,7 @@ module mod_heatindex
       stop 'error interval, solveiii'
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_wp
       tmp = find_eqvar(c,pa0/pvstar(c))
       fc = tmp(3) - eqvar
@@ -682,10 +682,10 @@ module mod_heatindex
   pure real(wp) function solveiv(eqvar)
 #endif
     implicit none
-    real(wp) , intent(in) :: eqvar
+    real(wp), intent(in) :: eqvar
     integer :: iter
-    real(wp) :: a , b , c , fa , fb , fc
-    real(wp) , dimension(4) :: tmp
+    real(wp) :: a, b, c, fa, fb, fc
+    real(wp), dimension(4) :: tmp
 
     a = 340.0_wp
     b = 800.0_wp
@@ -699,7 +699,7 @@ module mod_heatindex
       stop 'error interval, solveiv'
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_wp
       tmp = find_eqvar(c,pa0/pvstar(c))
       fc = tmp(4) - eqvar

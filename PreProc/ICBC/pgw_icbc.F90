@@ -32,7 +32,7 @@ end subroutine myabort
 program pgw_icbc
   use mod_intkinds
   use mod_realkinds
-  use mod_dynparam , only : npgwlev
+  use mod_dynparam, only : npgwlev
   use mod_message
   use mod_header
   use mod_stdio
@@ -49,34 +49,34 @@ program pgw_icbc
 
   implicit none
 
-  integer(ik4) :: ierr , idynamic
-  integer(ik4) :: jx , iy , kz , icheck , jcheck
-  integer(ik4) :: pgwin , icbcin
-  integer(ik4) :: idimid , ivarid
-  integer(ik4) , dimension(7) :: pgw_ivar
-  integer(ik4) , dimension(8) :: icbc_ivar
-  character(len=256) :: prgname , icbcfile , pgwfile
-  real(rkx) , pointer , dimension(:) :: plev , sigma , ak , bk
-  real(rkx) , pointer , dimension(:) :: sigmar
-  real(rkx) , pointer , dimension(:) :: dsigma , sigmaf
-  real(rkx) , pointer , dimension(:,:) :: ps , pd , ts , topo , xmap , ps0
-  real(rkx) , pointer , dimension(:,:,:) :: z0 , p0 , t0 , p
-  real(rkx) , pointer , dimension(:,:,:) :: u , v , t , q , pp , ww
-  real(rkx) , pointer , dimension(:,:) :: bps , ps1 , ps2 , ps3
-  real(rkx) , pointer , dimension(:,:) :: bts , ts1 , ts2 , ts3
-  real(rkx) , pointer , dimension(:,:,:) :: bu , u1 , u2 , u3
-  real(rkx) , pointer , dimension(:,:,:) :: bv , v1 , v2 , v3
-  real(rkx) , pointer , dimension(:,:,:) :: bt , t1 , t2 , t3
-  real(rkx) , pointer , dimension(:,:,:) :: bq , q1 , q2 , q3
-  real(rkx) , pointer , dimension(:,:,:) :: bias
-  integer(ik4) :: n , nsteps
-  integer(ik4) :: i , j , k
+  integer(ik4) :: ierr, idynamic
+  integer(ik4) :: jx, iy, kz, icheck, jcheck
+  integer(ik4) :: pgwin, icbcin
+  integer(ik4) :: idimid, ivarid
+  integer(ik4), dimension(7) :: pgw_ivar
+  integer(ik4), dimension(8) :: icbc_ivar
+  character(len=256) :: prgname, icbcfile, pgwfile
+  real(rkx), pointer, contiguous, dimension(:) :: plev, sigma, ak, bk
+  real(rkx), pointer, contiguous, dimension(:) :: sigmar
+  real(rkx), pointer, contiguous, dimension(:) :: dsigma, sigmaf
+  real(rkx), pointer, contiguous, dimension(:,:) :: ps, pd, ts, topo, xmap, ps0
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: z0, p0, t0, p
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u, v, t, q, pp, ww
+  real(rkx), pointer, contiguous, dimension(:,:) :: bps, ps1, ps2, ps3
+  real(rkx), pointer, contiguous, dimension(:,:) :: bts, ts1, ts2, ts3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: bu, u1, u2, u3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: bv, v1, v2, v3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: bt, t1, t2, t3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: bq, q1, q2, q3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: bias
+  integer(ik4) :: n, nsteps
+  integer(ik4) :: i, j, k
   type(rcm_time_and_date) :: idate
-  character(len=64) :: timeunit , timecal
-  real(rkx) :: ds , pss , pst , ptop
-  real(rkx) , dimension(1) :: nctime
-  real(rkx) :: w1 , w2 , w3 , fm , hm
-  integer(ik4) :: year , im2 , day , hour , im1 , im3
+  character(len=64) :: timeunit, timecal
+  real(rkx) :: ds, pss, pst, ptop
+  real(rkx), dimension(1) :: nctime
+  real(rkx) :: w1, w2, w3, fm, hm
+  integer(ik4) :: year, im2, day, hour, im1, im3
 
 #ifdef PNETCDF
   call mpi_init(ierr)
@@ -258,9 +258,9 @@ program pgw_icbc
     call check_ok(__FILE__,__LINE__,'variable b miss', 'ICBC FILE')
     ierr = nf90_get_var(icbcin,ivarid,bk)
     call check_ok(__FILE__,__LINE__,'variable b read error', 'ICBC FILE')
-    do k = 1 , kz
-      do i = 1 , iy
-        do j = 1 , jx
+    do k = 1, kz
+      do i = 1, iy
+        do j = 1, jx
           z0(j,i,k) = topo(j,i)*(bk(k)-1.0_rkx) + ak(k)
         end do
       end do
@@ -287,10 +287,10 @@ program pgw_icbc
     call check_ok(__FILE__,__LINE__,'variable t0 read error', 'ICBC FILE')
     sigmaf(1) = 0.0_rkx
     sigmaf(kz+1) = 1.0_rkx
-    do k = 2 , kz
+    do k = 2, kz
       sigmaf(k) = (sigma(k-1)+sigma(k))*0.5_rkx
     end do
-    do k = 1 , kz
+    do k = 1, kz
       dsigma(k) = sigmaf(k+1)-sigmaf(k)
     end do
     ierr = nf90_inq_varid(icbcin, 'ptop', ivarid)
@@ -307,7 +307,7 @@ program pgw_icbc
   if ( idynamic == 1 ) then
     pss = (plev(1)-plev(npgwlev))/100.0_rkx
     pst = plev(npgwlev)/100.0_rkx
-    do k = 1 , npgwlev
+    do k = 1, npgwlev
       sigmar(k) = (plev(k)-plev(npgwlev))/(plev(1)-plev(npgwlev))
     end do
   else if ( idynamic == 2 ) then
@@ -338,7 +338,7 @@ program pgw_icbc
 
   write(stdout,* ) 'Initial time is ', tochar(idate)
 
-  do n = 1 , nsteps
+  do n = 1, nsteps
 
     if ( n < int(hm) ) then
       w1 = 0.5_rkx - (n-1)/fm
@@ -432,8 +432,8 @@ program pgw_icbc
 
   subroutine check_ok(f,l,m1,mf)
     implicit none
-    character(*) , intent(in) :: f, m1 , mf
-    integer(ik4) , intent(in) :: l
+    character(*), intent(in) :: f, m1, mf
+    integer(ik4), intent(in) :: l
     if (ierr /= nf90_noerr) then
       write (stderr,*) trim(m1)
       write (stderr,*) nf90_strerror(ierr)
@@ -443,15 +443,15 @@ program pgw_icbc
 
   subroutine read_pgw(irec,ps,ts,u,v,t,q)
     implicit none
-    integer(ik4) , intent(in) :: irec
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ps
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ts
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: v
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: t
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: q
-    !real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: z
-    integer(ik4) , dimension(4) :: istart , icount
+    integer(ik4), intent(in) :: irec
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: t
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: q
+    !real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: z
+    integer(ik4), dimension(4) :: istart, icount
 
     istart(1) = 1
     istart(2) = 1
@@ -485,16 +485,16 @@ program pgw_icbc
 
   subroutine read_icbc(irec,ps,ts,u,v,t,q,pp,ww)
     implicit none
-    integer(ik4) , intent(in) :: irec
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ps
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ts
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: v
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: t
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: q
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pp
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ww
-    integer(ik4) , dimension(4) :: istart , icount
+    integer(ik4), intent(in) :: irec
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: t
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: q
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pp
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ww
+    integer(ik4), dimension(4) :: istart, icount
 
     istart(1) = 1
     istart(2) = 1
@@ -532,16 +532,16 @@ program pgw_icbc
 
   subroutine write_icbc(irec,ps,ts,u,v,t,q,pp,ww)
     implicit none
-    integer(ik4) , intent(in) :: irec
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ps
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ts
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: v
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: t
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: q
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pp
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ww
-    integer(ik4) , dimension(4) :: istart , icount
+    integer(ik4), intent(in) :: irec
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: t
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: q
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pp
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ww
+    integer(ik4), dimension(4) :: istart, icount
 
     istart(1) = 1
     istart(2) = 1
@@ -579,29 +579,29 @@ program pgw_icbc
 
   subroutine compute_w(dx,pd,ps,xm,p,u,v,t,w)
     implicit none
-    real(rkx) , intent(in) :: dx
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: ps , pd , xm
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: p , u , v , t
-    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: w
-    integer(ik4) :: i , j , k , jp , ip , jm , im , km1 , kp1
-    real(rkx) :: ua , ub , va , vb , ubar , vbar , rho , dx2
-    real(rkx) , dimension(jx,iy) :: dummy , dummy1
-    real(rkx) , dimension(kz) :: mdv
-    real(rkx) , dimension(kz+1) :: qdt
-    real(rkx) , dimension(jx,iy,kz+1) :: omega
+    real(rkx), intent(in) :: dx
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ps, pd, xm
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: p, u, v, t
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: w
+    integer(ik4) :: i, j, k, jp, ip, jm, im, km1, kp1
+    real(rkx) :: ua, ub, va, vb, ubar, vbar, rho, dx2
+    real(rkx), dimension(jx,iy) :: dummy, dummy1
+    real(rkx), dimension(kz) :: mdv
+    real(rkx), dimension(kz+1) :: qdt
+    real(rkx), dimension(jx,iy,kz+1) :: omega
 
     dx2 = d_two * dx
     dummy = (xm * xm) / dx2
     dummy1 = xm / dx2
     qdt(kz+1) = 0.0_rkx
 
-    do i = 1 , iy
+    do i = 1, iy
       ip = min(i+1,iy)
       im = max(i-1,1)
-      do j = 1 , jx
+      do j = 1, jx
         jp = min(j+1,jx)
         jm = max(j-1,1)
-        do k = 1 , kz
+        do k = 1, kz
           ua = u(j ,i ,k) * pd(j,i)  + &
                u(j ,ip,k) * pd(j,ip)
           ub = u(jp, i,k) * pd(jp,i) + &
@@ -612,10 +612,10 @@ program pgw_icbc
                v(jp,ip,k) * pd(jp,ip)
           mdv(k) = (ub-ua + vb-va) * dummy(j,i) / ps(j,i)
         end do
-        do k = kz , 1 , -1
+        do k = kz, 1, -1
           qdt(k) = qdt(k+1) + mdv(k) * dsigma(k)
         end do
-        do k = kz+1 , 1 , -1
+        do k = kz+1, 1, -1
           km1 = max(k-1,1)
           kp1 = min(k+1,kz)
           ubar = 0.125_rkx * (u(j ,i ,km1) + u(j ,ip,km1) + &
@@ -633,9 +633,9 @@ program pgw_icbc
       end do
     end do
     call smtdsmt(omega,1,iy,1,jx,1,kz+1)
-    do k = 2 , kz+1
-      do i = 1 , iy
-        do j = 1 , jx
+    do k = 2, kz+1
+      do i = 1, iy
+        do j = 1, jx
           rho = p(j,i,k-1) / rgas / t(j,i,k-1)
           w(j,i,k-1) = - 1000.0_rkx * omega(j,i,k)/rho * regrav
         end do
@@ -645,12 +645,12 @@ program pgw_icbc
 
   subroutine smtdsmt(slab,i1,i2,j1,j2,k1,k2)
     implicit none
-    integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , k1 , k2
-    real(rkx) , intent(inout) , dimension(j1:j2,i1:i2,k1:k2) :: slab
-    real(rkx) :: aplus , asv , cell
-    integer(ik4) :: i , is , ie , j , js , je , k , kp , np
-    real(rkx) , dimension(2) :: xnu
-    integer(ik4) , parameter :: npass = 16
+    integer(ik4), intent(in) :: i1, i2, j1, j2, k1, k2
+    real(rkx), intent(inout), dimension(j1:j2,i1:i2,k1:k2) :: slab
+    real(rkx) :: aplus, asv, cell
+    integer(ik4) :: i, is, ie, j, js, je, k, kp, np
+    real(rkx), dimension(2) :: xnu
+    integer(ik4), parameter :: npass = 16
     !
     ! purpose: spatially smooth data in slab to dampen short
     ! wavelength components
@@ -661,13 +661,13 @@ program pgw_icbc
     js = j1+1
     xnu(1) =  0.50_rkx
     xnu(2) = -0.52_rkx
-    do k = k1 , k2
-      do np = 1 , npass
-        do kp = 1 , 2
+    do k = k1, k2
+      do np = 1, npass
+        do kp = 1, 2
           ! first smooth in the ni direction
-          do i = i1 , i2
+          do i = i1, i2
             asv = slab(j1,i,k)
-            do j = js , je
+            do j = js, je
               cell = slab(j,i,k)
               aplus = slab(j+1,i,k)
               slab(j,i,k) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
@@ -675,9 +675,9 @@ program pgw_icbc
             end do
           end do
           ! smooth in the nj direction
-          do j = j1 , j2
+          do j = j1, j2
             asv = slab(j,i1,k)
-            do i = is , ie
+            do i = is, ie
               cell = slab(j,i,k)
               aplus = slab(j,i+1,k)
               slab(j,i,k) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
@@ -697,23 +697,23 @@ program pgw_icbc
 
   subroutine compute_pp(sigma,t,q,ps,ps0,p0,t0,pp)
     implicit none
-    real(rkx) , pointer , intent(in) , dimension(:) :: sigma
-    real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: p0 , t0
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: t , q
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: pp
-    real(rkx) :: aa , bb , cc , delp0
-    real(rkx) :: psp , tk , tkp1 , tvk , tvkp1 , tvpot , wtl , wtu
-    integer :: i , j , k
-    do i = 1 , iy
-      do j = 1 , jx
+    real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps, ps0
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: p0, t0
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: t, q
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: pp
+    real(rkx) :: aa, bb, cc, delp0
+    real(rkx) :: psp, tk, tkp1, tvk, tvkp1, tvpot, wtl, wtu
+    integer :: i, j, k
+    do i = 1, iy
+      do j = 1, jx
         psp = ps(j,i) - ps0(j,i)
         delp0 = ps0(j,i) - p0(j,i,kz)
         tvk = t(j,i,kz) * (1.0_rkx + ep1*q(j,i,kz))
         tk = t(j,i,kz)
         tvpot = (tvk - t0(j,i,kz)) / tk
         pp(j,i,kz) = (tvpot*delp0 + psp) / (d_one + delp0/p0(j,i,kz))
-        do k = kz-1 , 1 , -1
+        do k = kz-1, 1, -1
           tvkp1 = t(j,i,k+1) * (1.0_rkx + ep1*q(j,i,k+1))
           tvk = t(j,i,k) * (1.0_rkx + ep1*q(j,i,k))
           tkp1 = t(j,i,k+1)

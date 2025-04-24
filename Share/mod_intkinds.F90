@@ -15,7 +15,7 @@
 
 module mod_intkinds
 #ifdef F2008
-  use , intrinsic :: iso_fortran_env
+  use, intrinsic :: iso_fortran_env
 #endif
 
   implicit none
@@ -28,16 +28,16 @@ module mod_intkinds
   ! Kind helpers
 
 #ifdef F2008
-  integer , parameter :: ik8 = int64
-  integer , parameter :: ik4 = int32
-  integer , parameter :: ik2 = int16
-  integer , parameter :: ik1 = int8
+  integer, parameter :: ik8 = int64
+  integer, parameter :: ik4 = int32
+  integer, parameter :: ik2 = int16
+  integer, parameter :: ik1 = int8
   integer(ik4),  parameter :: bigint = __SYSTEM_INTMAX_32__
 #else
-  integer , parameter :: ik8 = selected_int_kind(R=18)
-  integer , parameter :: ik4 = selected_int_kind(R=9)
-  integer , parameter :: ik2 = selected_int_kind(R=4)
-  integer , parameter :: ik1 = selected_int_kind(R=2)
+  integer, parameter :: ik8 = selected_int_kind(R=18)
+  integer, parameter :: ik4 = selected_int_kind(R=9)
+  integer, parameter :: ik2 = selected_int_kind(R=4)
+  integer, parameter :: ik1 = selected_int_kind(R=2)
   integer(ik4),  parameter :: bigint = 2147483647
 #endif
 

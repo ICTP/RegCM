@@ -25,15 +25,15 @@ module mod_clm_slakefluxes
   !
   subroutine SLakeFluxes(lbc, ubc, lbp, ubp, num_lakep, filter_lakep)
     use mod_clm_type
-    use mod_clm_atmlnd , only : clm_a2l
-    use mod_clm_varpar , only : nlevlak
-    use mod_clm_varcon , only : hvap, hsub, hfus, cpair, cpliq, tkwat, &
+    use mod_clm_atmlnd, only : clm_a2l
+    use mod_clm_varpar, only : nlevlak
+    use mod_clm_varcon, only : hvap, hsub, hfus, cpair, cpliq, tkwat, &
        tkice, tkair, sb, vkc, grav, denh2o, tfrz, spval, zsno
-    use mod_clm_slakecon , only : betavis, z0frzlake, tdmax, emg_lake, &
+    use mod_clm_slakecon, only : betavis, z0frzlake, tdmax, emg_lake, &
                                minz0lake, cur0, cus, curm, fcrit
-    use mod_clm_qsat , only : QSat
-    use mod_clm_frictionvelocity , only : FrictionVelocity, MoninObukIni
-    use mod_clm_slakecon , only : lake_use_old_fcrit_minz0
+    use mod_clm_qsat, only : QSat
+    use mod_clm_frictionvelocity, only : FrictionVelocity, MoninObukIni
+    use mod_clm_slakecon, only : lake_use_old_fcrit_minz0
     implicit none
     integer(ik4), intent(in) :: lbc, ubc     ! column-index bounds
     integer(ik4), intent(in) :: lbp, ubp     ! pft-index bounds
@@ -43,123 +43,123 @@ module mod_clm_slakefluxes
     integer(ik4), intent(in) :: filter_lakep(ubp-lbp+1)
 
     ! sum of soil/snow using current fsno, for balance check
-    real(rk8), pointer :: sabg_chk(:)
-    integer(ik4) , pointer :: pcolumn(:)    ! pft's column index
-    integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
-    integer(ik4) , pointer :: cgridcell(:)  ! column's gridcell index
-    real(rk8), pointer :: forc_t(:)    ! atmospheric temperature (Kelvin)
+    real(rk8), pointer, contiguous :: sabg_chk(:)
+    integer(ik4), pointer, contiguous :: pcolumn(:)    ! pft's column index
+    integer(ik4), pointer, contiguous :: pgridcell(:)  ! pft's gridcell index
+    integer(ik4), pointer, contiguous :: cgridcell(:)  ! column's gridcell index
+    real(rk8), pointer, contiguous :: forc_t(:)    ! atmospheric temperature (Kelvin)
     ! atmospheric pressure (Pa)
-    real(rk8), pointer :: forc_pbot(:)
+    real(rk8), pointer, contiguous :: forc_pbot(:)
     ! observational height of wind at pft level [m]
-    real(rk8), pointer :: forc_hgt_u_pft(:)
+    real(rk8), pointer, contiguous :: forc_hgt_u_pft(:)
     ! observational height of temperature at pft level [m]
-    real(rk8), pointer :: forc_hgt_t_pft(:)
+    real(rk8), pointer, contiguous :: forc_hgt_t_pft(:)
     ! observational height of specific humidity at pft level [m]
-    real(rk8), pointer :: forc_hgt_q_pft(:)
+    real(rk8), pointer, contiguous :: forc_hgt_q_pft(:)
     ! atmospheric potential temperature (Kelvin)
-    real(rk8), pointer :: forc_th(:)
+    real(rk8), pointer, contiguous :: forc_th(:)
     ! atmospheric specific humidity (kg/kg)
-    real(rk8), pointer :: forc_q(:)
+    real(rk8), pointer, contiguous :: forc_q(:)
     ! atmospheric wind speed in east direction (m/s)
-    real(rk8), pointer :: forc_u(:)
+    real(rk8), pointer, contiguous :: forc_u(:)
     ! atmospheric wind speed in north direction (m/s)
-    real(rk8), pointer :: forc_v(:)
+    real(rk8), pointer, contiguous :: forc_v(:)
     ! downward infrared (longwave) radiation (W/m**2)
-    real(rk8), pointer :: forc_lwrad(:)
-    real(rk8), pointer :: forc_rho(:)   ! density (kg/m**3)
-    real(rk8), pointer :: forc_snow(:)  ! snow rate [mm/s]
-    real(rk8), pointer :: forc_rain(:)  ! rain rate [mm/s]
-    real(rk8), pointer :: t_grnd(:)     ! ground temperature (Kelvin)
+    real(rk8), pointer, contiguous :: forc_lwrad(:)
+    real(rk8), pointer, contiguous :: forc_rho(:)   ! density (kg/m**3)
+    real(rk8), pointer, contiguous :: forc_snow(:)  ! snow rate [mm/s]
+    real(rk8), pointer, contiguous :: forc_rain(:)  ! rain rate [mm/s]
+    real(rk8), pointer, contiguous :: t_grnd(:)     ! ground temperature (Kelvin)
     ! solar radiation absorbed by ground (W/m**2)
-    real(rk8), pointer :: sabg(:)
-    real(rk8), pointer :: lat(:)        ! latitude (radians)
-    real(rk8), pointer :: dz(:,:)       ! layer thickness for soil or snow (m)
-    real(rk8), pointer :: dz_lake(:,:)  ! layer thickness for lake (m)
-    real(rk8), pointer :: t_soisno(:,:) ! soil (or snow) temperature (Kelvin)
-    real(rk8), pointer :: t_lake(:,:)   ! lake temperature (Kelvin)
-    integer(ik4) , pointer :: snl(:)    ! number of snow layers
-    real(rk8), pointer :: h2osoi_liq(:,:) ! liquid water (kg/m2)
-    real(rk8), pointer :: h2osoi_ice(:,:) ! ice lens (kg/m2)
+    real(rk8), pointer, contiguous :: sabg(:)
+    real(rk8), pointer, contiguous :: lat(:)        ! latitude (radians)
+    real(rk8), pointer, contiguous :: dz(:,:)       ! layer thickness for soil or snow (m)
+    real(rk8), pointer, contiguous :: dz_lake(:,:)  ! layer thickness for lake (m)
+    real(rk8), pointer, contiguous :: t_soisno(:,:) ! soil (or snow) temperature (Kelvin)
+    real(rk8), pointer, contiguous :: t_lake(:,:)   ! lake temperature (Kelvin)
+    integer(ik4), pointer, contiguous :: snl(:)    ! number of snow layers
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:) ! liquid water (kg/m2)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:) ! ice lens (kg/m2)
     ! top level eddy conductivity from previous timestep (W/mK)
-    real(rk8), pointer :: savedtke1(:)
-    real(rk8), pointer :: lakedepth(:) ! variable lake depth (m)
-    real(rk8), pointer :: lakefetch(:) ! lake fetch from surface data (m)
+    real(rk8), pointer, contiguous :: savedtke1(:)
+    real(rk8), pointer, contiguous :: lakedepth(:) ! variable lake depth (m)
+    real(rk8), pointer, contiguous :: lakefetch(:) ! lake fetch from surface data (m)
     ! variables needed for SNICAR
     ! absorbed solar radiation (pft,lyr) [W/m2]
-    real(rk8), pointer :: sabg_lyr(:,:)
+    real(rk8), pointer, contiguous :: sabg_lyr(:,:)
     ! Calculation of beta depending on NIR fraction of sabg
     ! incident direct beam nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsds_nir_d(:)
+    real(rk8), pointer, contiguous :: fsds_nir_d(:)
     ! incident diffuse nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsds_nir_i(:)
+    real(rk8), pointer, contiguous :: fsds_nir_i(:)
     ! reflected direct beam nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsr_nir_d(:)
+    real(rk8), pointer, contiguous :: fsr_nir_d(:)
     ! reflected diffuse nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsr_nir_i(:)
+    real(rk8), pointer, contiguous :: fsr_nir_i(:)
     ! water onto ground including canopy runoff [kg/(m2 s)]
-    real(rk8), pointer :: qflx_prec_grnd(:)
+    real(rk8), pointer, contiguous :: qflx_prec_grnd(:)
     ! soil evaporation (mm H2O/s) (+ = to atm)
-    real(rk8), pointer :: qflx_evap_soi(:)
+    real(rk8), pointer, contiguous :: qflx_evap_soi(:)
     ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-    real(rk8), pointer :: qflx_evap_tot(:)
+    real(rk8), pointer, contiguous :: qflx_evap_tot(:)
     ! sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_grnd(:)
+    real(rk8), pointer, contiguous :: eflx_sh_grnd(:)
     ! emitted infrared (longwave) radiation (W/m**2)
-    real(rk8), pointer :: eflx_lwrad_out(:)
+    real(rk8), pointer, contiguous :: eflx_lwrad_out(:)
     ! net infrared (longwave) rad (W/m**2) [+ = to atm]
-    real(rk8), pointer :: eflx_lwrad_net(:)
+    real(rk8), pointer, contiguous :: eflx_lwrad_net(:)
     ! soil heat flux (W/m**2) [+ = into soil]
-    real(rk8), pointer :: eflx_soil_grnd(:)
+    real(rk8), pointer, contiguous :: eflx_soil_grnd(:)
     ! total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_tot(:)
+    real(rk8), pointer, contiguous :: eflx_sh_tot(:)
     ! total latent heat flux (W/m8*2)  [+ to atm]
-    real(rk8), pointer :: eflx_lh_tot(:)
+    real(rk8), pointer, contiguous :: eflx_lh_tot(:)
     ! ground evaporation heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_lh_grnd(:)
+    real(rk8), pointer, contiguous :: eflx_lh_grnd(:)
     ! vegetation temperature (Kelvin)
-    real(rk8), pointer :: t_veg(:)
+    real(rk8), pointer, contiguous :: t_veg(:)
     ! 2 m height surface air temperature (Kelvin)
-    real(rk8), pointer :: t_ref2m(:)
+    real(rk8), pointer, contiguous :: t_ref2m(:)
     ! 2 m height surface specific humidity (kg/kg)
-    real(rk8), pointer :: q_ref2m(:)
+    real(rk8), pointer, contiguous :: q_ref2m(:)
     ! 2 m height surface relative humidity (%)
-    real(rk8), pointer :: rh_ref2m(:)
+    real(rk8), pointer, contiguous :: rh_ref2m(:)
     ! wind (shear) stress: e-w (kg/m/s**2)
-    real(rk8), pointer :: taux(:)
+    real(rk8), pointer, contiguous :: taux(:)
     ! wind (shear) stress: n-s (kg/m/s**2)
-    real(rk8), pointer :: tauy(:)
+    real(rk8), pointer, contiguous :: tauy(:)
     ! aerodynamical resistance (s/m)
-    real(rk8), pointer :: ram1(:)
+    real(rk8), pointer, contiguous :: ram1(:)
     ! bulk Richardson number
-    real(rk8), pointer :: br1(:)
+    real(rk8), pointer, contiguous :: br1(:)
     ! thermal resistance (s/m)
-    real(rk8), pointer :: rah1(:)
+    real(rk8), pointer, contiguous :: rah1(:)
     ! aerodynamical resistance (s/m)
-    real(rk8), pointer :: ram1_lake(:)
+    real(rk8), pointer, contiguous :: ram1_lake(:)
     ! Ground emissivity
-    real(rk8), pointer :: emg(:)
-    real(rk8), pointer :: ws(:)  ! surface friction velocity (m/s)
+    real(rk8), pointer, contiguous :: emg(:)
+    real(rk8), pointer, contiguous :: ws(:)  ! surface friction velocity (m/s)
     ! coefficient passed to SLakeTemperature
     ! for calculation of decay of eddy diffusivity with depth
-    real(rk8), pointer :: ks(:)
-    real(rk8), pointer :: eflx_gnet(:)  ! net heat flux into ground (W/m**2)
-    real(rk8), pointer :: ust_lake(:)   ! friction velocity (m/s)
+    real(rk8), pointer, contiguous :: ks(:)
+    real(rk8), pointer, contiguous :: eflx_gnet(:)  ! net heat flux into ground (W/m**2)
+    real(rk8), pointer, contiguous :: ust_lake(:)   ! friction velocity (m/s)
     ! roughness length over ground, momentum [m]
-    real(rk8), pointer :: z0mg_col(:)
+    real(rk8), pointer, contiguous :: z0mg_col(:)
     ! roughness length over ground, sensible heat [m]
-    real(rk8), pointer :: z0hg_col(:)
+    real(rk8), pointer, contiguous :: z0hg_col(:)
     ! roughness length over ground, latent heat [m]
-    real(rk8), pointer :: z0qg_col(:)
+    real(rk8), pointer, contiguous :: z0qg_col(:)
     ! excess snowfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_snwcp_ice(:)
+    real(rk8), pointer, contiguous :: qflx_snwcp_ice(:)
     ! excess rainfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_snwcp_liq(:)
+    real(rk8), pointer, contiguous :: qflx_snwcp_liq(:)
 #ifdef LCH4
     ! aerodynamic resistance for moisture (s/m)
-    real(rk8), pointer :: lake_raw(:)
+    real(rk8), pointer, contiguous :: lake_raw(:)
 #endif
     ! maximum number of iterations for surface temperature
-    integer(ik4) , parameter  :: niters = 4
+    integer(ik4), parameter  :: niters = 4
     ! coefficient of convective velocity (in computing W_*) [-]
     real(rk8), parameter :: beta1 = 1._rk8
     ! convective boundary height [m]

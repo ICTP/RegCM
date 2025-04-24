@@ -6,10 +6,10 @@ module mod_clm_cnndynamics
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_dynparam , only : dayspy
-  use mod_runparams , only : dtsrf
-  use mod_clm_varcon , only : dzsoi_decomp, zisoi
-  use mod_clm_varctl , only : ndep_nochem
+  use mod_dynparam, only : dayspy
+  use mod_runparams, only : dtsrf
+  use mod_clm_varcon, only : dzsoi_decomp, zisoi
+  use mod_clm_varctl, only : ndep_nochem
   implicit none
 
   private
@@ -42,16 +42,16 @@ module mod_clm_cnndynamics
   !
   subroutine CNNDeposition( lbc, ubc )
     use mod_clm_type
-    use mod_clm_atmlnd , only : clm_a2l
+    use mod_clm_atmlnd, only : clm_a2l
     implicit none
     integer(ik4), intent(in) :: lbc, ubc        ! column bounds
-    real(rk8) , pointer :: forc_ndep(:)  ! nitrogen deposition rate (gN/m2/s)
-    real(rk8) , pointer :: ndep(:) !nitrogen deposition rate (gN/m2/year)
+    real(rk8), pointer, contiguous :: forc_ndep(:)  ! nitrogen deposition rate (gN/m2/s)
+    real(rk8), pointer, contiguous :: ndep(:) !nitrogen deposition rate (gN/m2/year)
     ! index into gridcell level quantities
-    integer(ik4) , pointer :: gridcell(:)
+    integer(ik4), pointer, contiguous :: gridcell(:)
     !nitrogen deposition rate (gN/m2/second)
-    real(rk8), pointer :: ndep_to_sminn(:)
-    integer(ik4) :: g , c  ! indices
+    real(rk8), pointer, contiguous :: ndep_to_sminn(:)
+    integer(ik4) :: g, c  ! indices
 
     ! Assign local pointers to derived type arrays (in)
     forc_ndep     => clm_a2l%forc_ndep
@@ -63,11 +63,11 @@ module mod_clm_cnndynamics
 
     ! Loop through columns
     if ( ndep_nochem ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         ndep_to_sminn(c) = ndep(c)
       end do
     else
-      do c = lbc , ubc
+      do c = lbc, ubc
         g = gridcell(c)
         ndep_to_sminn(c) = forc_ndep(g)
       end do
@@ -80,15 +80,15 @@ module mod_clm_cnndynamics
   !
   subroutine CNNFixation(num_soilc, filter_soilc)
     use mod_clm_type
-    use mod_clm_varcon      , only: secspday, spval
+    use mod_clm_varcon     , only: secspday, spval
     implicit none
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
-    real(rk8), pointer :: cannsum_npp(:) ! nitrogen deposition rate (gN/m2/s)
+    real(rk8), pointer, contiguous :: cannsum_npp(:) ! nitrogen deposition rate (gN/m2/s)
     ! symbiotic/asymbiotic N fixation to soil mineral N (gN/m2/s)
-    real(rk8), pointer :: nfix_to_sminn(:)
+    real(rk8), pointer, contiguous :: nfix_to_sminn(:)
     ! (gC/m2/s) lagged net primary production
-    real(rk8), pointer :: col_lag_npp(:)
+    real(rk8), pointer, contiguous :: col_lag_npp(:)
     integer(ik4)  :: c,fc     ! indices
     real(rk8) :: t            ! temporary
 
@@ -106,7 +106,7 @@ module mod_clm_cnndynamics
       ! use exponential relaxation with time constant nfix_timeconst
       ! for NPP - NFIX relation
       ! Loop through columns
-      do fc = 1 , num_soilc
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         if (col_lag_npp(c) /= spval) then
           ! need to put npp in units of gC/m^2/year here first
@@ -119,7 +119,7 @@ module mod_clm_cnndynamics
       end do
     else
       ! use annual-mean values for NPP-NFIX relation
-      do fc = 1 , num_soilc
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
 
         ! the value 0.001666 is set to give 100 TgN/yr when global
@@ -142,31 +142,31 @@ module mod_clm_cnndynamics
   !
   subroutine CNNLeaching(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
-    use mod_clm_varpar      , only : nlevdecomp, nlevsoi
+    use mod_clm_varpar     , only : nlevdecomp, nlevsoi
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     ! liquid water (kg/m2) (new) (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: h2osoi_liq(:,:)
-    real(rk8), pointer :: qflx_drain(:) ! sub-surface runoff (mm H2O /s)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)
+    real(rk8), pointer, contiguous :: qflx_drain(:) ! sub-surface runoff (mm H2O /s)
     !!! awaiting_new_frozen_hydrolgy
     !!! sub-surface runoff from perched wt (mm H2O /s)
-    !!! real(rk8), pointer :: qflx_drain_perched(:)
-    real(rk8), pointer :: qflx_surf(:)   ! surface runoff (mm H2O /s)
-    real(rk8), pointer :: sminn_vr(:,:)  ! (gN/m3) soil mineral N
+    !!! real(rk8), pointer, contiguous :: qflx_drain_perched(:)
+    real(rk8), pointer, contiguous :: qflx_surf(:)   ! surface runoff (mm H2O /s)
+    real(rk8), pointer, contiguous :: sminn_vr(:,:)  ! (gN/m3) soil mineral N
 
 #ifndef NITRIF_DENITRIF
     ! rate of mineral N leaching (gN/m3/s)
-    real(rk8), pointer :: sminn_leached_vr(:,:)
+    real(rk8), pointer, contiguous :: sminn_leached_vr(:,:)
 #else
     ! rate of mineral NO3 leaching (gN/m3/s)
-    real(rk8), pointer :: smin_no3_leached_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_leached_vr(:,:)
     ! rate of mineral NO3 loss with runoff (gN/m3/s)
-    real(rk8), pointer :: smin_no3_runoff_vr(:,:)
-    real(rk8), pointer :: smin_no3_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_runoff_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_vr(:,:)
 #endif
-    real(rk8), pointer :: dz(:,:)  !layer thickness (m)
+    real(rk8), pointer, contiguous :: dz(:,:)  !layer thickness (m)
 
     integer(ik4)  :: j,c,fc  ! indices
     real(rk8) :: dt                 ! radiation time step (seconds)
@@ -214,8 +214,8 @@ module mod_clm_cnndynamics
 
     ! calculate the total soil water
     tot_water(lbc:ubc) = 0._rk8
-    do j = 1 , nlevsoi
-      do fc = 1 , num_soilc
+    do j = 1, nlevsoi
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         tot_water(c) = tot_water(c) + h2osoi_liq(c,j)
       end do
@@ -225,12 +225,12 @@ module mod_clm_cnndynamics
     surface_water(lbc:ubc) = 0._rk8
     do j = 1,nlevsoi
       if ( zisoi(j) <= depth_runoff_Nloss)  then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           surface_water(c) = surface_water(c) + h2osoi_liq(c,j)
         end do
       else if ( zisoi(j-1) < depth_runoff_Nloss)  then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           surface_water(c) = surface_water(c) + h2osoi_liq(c,j) * &
                   ( (depth_runoff_Nloss - zisoi(j-1)) / dz(c,j))
@@ -245,15 +245,15 @@ module mod_clm_cnndynamics
     !!!                  qflx_drain(c) + qflx_drain_perched(c)
     !!! awaiting_new_frozen_hydrolgy end do
     ! Loop through columns
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       drain_tot(c) = qflx_drain(c)
     end do
 
 #ifndef NITRIF_DENITRIF
-    do j = 1 , nlevdecomp
+    do j = 1, nlevdecomp
       ! Loop through columns
-      do fc = 1 , num_soilc
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
 #ifndef VERTSOILC
         ! calculate the dissolved mineral N concentration (gN/kg water)
@@ -292,9 +292,9 @@ module mod_clm_cnndynamics
     end do
 #else
     ! NITRIF_NITRIF
-    do j = 1 , nlevdecomp
+    do j = 1, nlevdecomp
       ! Loop through columns
-      do fc = 1 , num_soilc
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
 #ifndef VERTSOILC
         ! calculate the dissolved mineral N concentration (gN/kg water)
@@ -367,14 +367,14 @@ module mod_clm_cnndynamics
   !
   subroutine CNNFert(num_soilc, filter_soilc)
     use mod_clm_type
-    use mod_clm_subgridave , only : p2c
+    use mod_clm_subgridave, only : p2c
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
 
-    real(rk8), pointer :: fert(:)  ! nitrogen fertilizer rate (gN/m2/s)
+    real(rk8), pointer, contiguous :: fert(:)  ! nitrogen fertilizer rate (gN/m2/s)
 
-    real(rk8), pointer :: fert_to_sminn(:)
+    real(rk8), pointer, contiguous :: fert_to_sminn(:)
 
     ! Assign local pointers to derived type arrays (in)
     fert          => clm3%g%l%c%p%pnf%fert
@@ -392,8 +392,8 @@ module mod_clm_cnndynamics
   !
   subroutine CNSoyfix (num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
-    use mod_clm_pftvarcon , only : nsoybean
-    use mod_clm_subgridave , only : p2c
+    use mod_clm_pftvarcon, only : nsoybean
+    use mod_clm_subgridave, only : p2c
 
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
@@ -401,19 +401,19 @@ module mod_clm_cnndynamics
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
-    integer(ik4) , pointer :: ivt(:)         ! pft vegetation type
-    integer(ik4) , pointer :: pcolumn(:)     ! pft's column index
-    real(rk8), pointer :: fpg(:)   ! fraction of potential gpp (no units)
-    real(rk8), pointer :: wf(:)    ! soil water as frac. of whc for top 0.5 m
+    integer(ik4), pointer, contiguous :: ivt(:)         ! pft vegetation type
+    integer(ik4), pointer, contiguous :: pcolumn(:)     ! pft's column index
+    real(rk8), pointer, contiguous :: fpg(:)   ! fraction of potential gpp (no units)
+    real(rk8), pointer, contiguous :: wf(:)    ! soil water as frac. of whc for top 0.5 m
     ! N flux required to support initial GPP (gN/m2/s)
-    real(rk8), pointer :: plant_ndemand(:)
-    real(rk8), pointer :: sminn(:)        ! (kgN/m2) soil mineral N
-    real(rk8), pointer :: hui(:)          ! =gdd since planting (gddplant)
-    real(rk8), pointer :: gddmaturity(:)  ! gdd needed to harvest
-    logical , pointer :: croplive(:)  ! true if planted and not harvested
+    real(rk8), pointer, contiguous :: plant_ndemand(:)
+    real(rk8), pointer, contiguous :: sminn(:)        ! (kgN/m2) soil mineral N
+    real(rk8), pointer, contiguous :: hui(:)          ! =gdd since planting (gddplant)
+    real(rk8), pointer, contiguous :: gddmaturity(:)  ! gdd needed to harvest
+    logical, pointer, contiguous :: croplive(:)  ! true if planted and not harvested
 
-    real(rk8), pointer :: soyfixn(:)  ! nitrogen fixed to each soybean crop
-    real(rk8), pointer :: soyfixn_to_sminn(:)
+    real(rk8), pointer, contiguous :: soyfixn(:)  ! nitrogen fixed to each soybean crop
+    real(rk8), pointer, contiguous :: soyfixn_to_sminn(:)
 
     integer(ik4) :: fp,p,c
     ! soil water factor, nitrogen factor, growth stage factor

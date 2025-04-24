@@ -8,8 +8,8 @@ module mod_clm_initgridcells
   use mod_mpmessage
   use mod_dynparam
   use mod_mppparam
-  use mod_clm_varsur , only : wtxy, vegxy
-  use mod_clm_varcon , only : rpi
+  use mod_clm_varsur, only : wtxy, vegxy
+  use mod_clm_varcon, only : rpi
 
   implicit none
 
@@ -25,34 +25,34 @@ module mod_clm_initgridcells
   ! For each land gridcell determine landunit, column and pft properties.
   !
   subroutine initGridcells ()
-    use mod_clm_type , only : clm3 , gridcell_type , landunit_type , &
-                             column_type , pft_type
-    use mod_clm_domain , only : ldomain
-    use mod_clm_decomp , only : get_proc_global , get_proc_bounds
-    use mod_clm_varcon , only : istsoil , istice , istwet , istdlak , &
-            isturb , udens_tbd , udens_hd , udens_md
-    use mod_clm_varcon , only : istcrop
-    use mod_clm_subgrid , only : subgrid_get_gcellinfo
-    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_type, only : clm3, gridcell_type, landunit_type, &
+                             column_type, pft_type
+    use mod_clm_domain, only : ldomain
+    use mod_clm_decomp, only : get_proc_global, get_proc_bounds
+    use mod_clm_varcon, only : istsoil, istice, istwet, istdlak, &
+            isturb, udens_tbd, udens_hd, udens_md
+    use mod_clm_varcon, only : istcrop
+    use mod_clm_subgrid, only : subgrid_get_gcellinfo
+    use mod_clm_surfrd, only : crop_prog
 
     implicit none
-    integer(ik4) :: li , ci , pi , gdc ! indices
+    integer(ik4) :: li, ci, pi, gdc ! indices
     integer(ik4) :: ltype ! landunit type
     integer(ik4) :: numg    ! total number of gridcells across all processors
     integer(ik4) :: numl    ! total number of landunits across all processors
     integer(ik4) :: numc    ! total number of columns across all processors
     integer(ik4) :: nump    ! total number of pfts across all processors
-    integer(ik4) :: begg , endg  ! local beg/end gridcells gdc
-    integer(ik4) :: begl , endl  ! local beg/end landunits
-    integer(ik4) :: begc , endc  ! local beg/end columns
-    integer(ik4) :: begp , endp  ! local beg/end pfts
+    integer(ik4) :: begg, endg  ! local beg/end gridcells gdc
+    integer(ik4) :: begl, endl  ! local beg/end landunits
+    integer(ik4) :: begc, endc  ! local beg/end columns
+    integer(ik4) :: begp, endp  ! local beg/end pfts
     logical :: my_gcell   ! is gdc gridcell on my pe
     integer(ik4) :: nwtxy ! wtxy cell index
 
-    type(gridcell_type) , pointer :: gptr ! pointer to gridcell derived subtype
-    type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
-    type(column_type) , pointer :: cptr   ! pointer to column derived subtype
-    type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
+    type(gridcell_type), pointer :: gptr ! pointer to gridcell derived subtype
+    type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
+    type(column_type), pointer :: cptr   ! pointer to column derived subtype
+    type(pft_type), pointer :: pptr      ! pointer to pft derived subtype
 
     ! Set pointers into derived types for this module
 
@@ -80,7 +80,7 @@ module mod_clm_initgridcells
     end if
 
     !----- Set clm3 variables -----
-    do gdc = begg , endg
+    do gdc = begg, endg
 
       nwtxy = gdc
 
@@ -194,23 +194,23 @@ module mod_clm_initgridcells
   ! subroutine will set c_pi(1) = 1, c_pf(1) = 4, c_pi(2) = 5, c_pf(2) = 12.
   !
   subroutine clm_ptrs_compdown()
-    use mod_clm_type, only : clm3 , gridcell_type , landunit_type , &
-                        column_type , pft_type
-    use mod_clm_decomp , only : get_proc_bounds
+    use mod_clm_type, only : clm3, gridcell_type, landunit_type, &
+                        column_type, pft_type
+    use mod_clm_decomp, only : get_proc_bounds
     implicit none
     ! beg/end glcp
-    integer(ik4) :: begg , endg , begl , endl , begc , endc , begp , endp
-    integer(ik4) :: l , c , p  ! loop counters
+    integer(ik4) :: begg, endg, begl, endl, begc, endc, begp, endp
+    integer(ik4) :: l, c, p  ! loop counters
     ! tracks g,l,c,p indexes in arrays
-    integer(ik4) :: curg , curl , curc
+    integer(ik4) :: curg, curl, curc
     ! pointer to gridcell derived subtype
-    type(gridcell_type) , pointer :: gptr
+    type(gridcell_type), pointer :: gptr
     ! pointer to landunit derived subtype
-    type(landunit_type) , pointer :: lptr
+    type(landunit_type), pointer :: lptr
     ! pointer to column derived subtype
-    type(column_type) , pointer :: cptr
+    type(column_type), pointer :: cptr
     ! pointer to pft derived subtype
-    type(pft_type) , pointer :: pptr
+    type(pft_type), pointer :: pptr
 
     gptr => clm3%g
     lptr => clm3%g%l
@@ -235,7 +235,7 @@ module mod_clm_initgridcells
     curc = 0
     curl = 0
     curg = 0
-    do p = begp , endp
+    do p = begp, endp
       if (pptr%column(p) /= curc) then
         curc = pptr%column(p)
         if (curc < begc .or. curc > endc) then
@@ -270,7 +270,7 @@ module mod_clm_initgridcells
 
     curg = 0
     curl = 0
-    do c = begc , endc
+    do c = begc, endc
       if (cptr%landunit(c) /= curl) then
         curl = cptr%landunit(c)
         if (curl < begl .or. curl > endl) then
@@ -294,7 +294,7 @@ module mod_clm_initgridcells
     end do
 
     curg = 0
-    do l = begl , endl
+    do l = begl, endl
       if (lptr%gridcell(l) /= curg) then
         curg = lptr%gridcell(l)
         if (curg < begg .or. curg > endg) then
@@ -311,17 +311,17 @@ module mod_clm_initgridcells
   ! Checks and writes out a summary of subgrid data
   !
   subroutine clm_ptrs_check()
-    use mod_clm_type , only : clm3 , gridcell_type , landunit_type , &
-                        column_type , pft_type
-    use mod_clm_decomp , only : get_proc_bounds
+    use mod_clm_type, only : clm3, gridcell_type, landunit_type, &
+                        column_type, pft_type
+    use mod_clm_decomp, only : get_proc_bounds
     implicit none
-    type(gridcell_type) , pointer :: gptr ! pointer to gridcell derived subtype
-    type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
-    type(column_type) , pointer :: cptr   ! pointer to column derived subtype
-    type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
+    type(gridcell_type), pointer :: gptr ! pointer to gridcell derived subtype
+    type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
+    type(column_type), pointer :: cptr   ! pointer to column derived subtype
+    type(pft_type), pointer :: pptr      ! pointer to pft derived subtype
     ! beg/end indices
-    integer(ik4) :: begg , endg , begl , endl , begc , endc , begp , endp
-    integer(ik4) :: g , l , c , p ! loop counters
+    integer(ik4) :: begg, endg, begl, endl, begc, endc, begp, endp
+    integer(ik4) :: g, l, c, p ! loop counters
     logical :: error ! error flag
 
     gptr => clm3%g
@@ -395,7 +395,7 @@ module mod_clm_initgridcells
 
     !--- check that indices in arrays are monotonically increasing ---
     error = .false.
-    do g = begg+1 , endg
+    do g = begg+1, endg
       if (gptr%luni(g) < gptr%luni(g-1)) error = .true.
       if (gptr%lunf(g) < gptr%lunf(g-1)) error = .true.
       if (gptr%coli(g) < gptr%coli(g-1)) error = .true.
@@ -424,7 +424,7 @@ module mod_clm_initgridcells
     if (myid==italk) write(stdout,*) '   clm_ptrs_check: l mono increasing - OK'
 
     error = .false.
-    do c = begc+1 , endc
+    do c = begc+1, endc
       if (cptr%gridcell(c) < cptr%gridcell(c-1)) error = .true.
       if (cptr%landunit(c) < cptr%landunit(c-1)) error = .true.
       if (cptr%pfti(c) < cptr%pfti(c-1)) error = .true.
@@ -437,7 +437,7 @@ module mod_clm_initgridcells
     if (myid==italk) write(stdout,*) '   clm_ptrs_check: c mono increasing - OK'
 
     error = .false.
-    do p = begp+1 , endp
+    do p = begp+1, endp
       if (pptr%gridcell(p) < pptr%gridcell(p-1)) error = .true.
       if (pptr%landunit(p) < pptr%landunit(p-1)) error = .true.
       if (pptr%column  (p) < pptr%column  (p-1)) error = .true.
@@ -450,13 +450,13 @@ module mod_clm_initgridcells
 
     !--- check that the tree is internally consistent ---
     error = .false.
-    do g = begg , endg
-      do l = gptr%luni(g) , gptr%lunf(g)
+    do g = begg, endg
+      do l = gptr%luni(g), gptr%lunf(g)
         if (lptr%gridcell(l) /= g) error = .true.
-        do c = lptr%coli(l) , lptr%colf(l)
+        do c = lptr%coli(l), lptr%colf(l)
           if (cptr%gridcell(c) /= g) error = .true.
           if (cptr%landunit(c) /= l) error = .true.
-          do p = cptr%pfti(c) , cptr%pftf(c)
+          do p = cptr%pfti(c), cptr%pftf(c)
             if (pptr%gridcell(p) /= g) error = .true.
             if (pptr%landunit(p) /= l) error = .true.
             if (pptr%column(p)   /= c) error = .true.
@@ -475,28 +475,28 @@ module mod_clm_initgridcells
   ! Initialize vegetated landunit with competition
   !
   subroutine set_landunit_veg_compete(ltype,nw,gi,li,ci,pi,setdata)
-    use mod_clm_type , only : clm3 , model_type , gridcell_type , &
-            landunit_type , column_type , pft_type
-    use mod_clm_subgrid , only : subgrid_get_gcellinfo
-    use mod_clm_varpar , only : numpft , maxpatch_pft , numcft
-    use mod_clm_varctl , only : allocate_all_vegpfts , create_crop_landunit
+    use mod_clm_type, only : clm3, model_type, gridcell_type, &
+            landunit_type, column_type, pft_type
+    use mod_clm_subgrid, only : subgrid_get_gcellinfo
+    use mod_clm_varpar, only : numpft, maxpatch_pft, numcft
+    use mod_clm_varctl, only : allocate_all_vegpfts, create_crop_landunit
     implicit none
-    integer(ik4) , intent(in) :: ltype        ! landunit type
-    integer(ik4) , intent(in) :: nw           ! cell index
-    integer(ik4) , intent(in) :: gi           ! gridcell index
-    integer(ik4) , intent(inout) :: li        ! landunit index
-    integer(ik4) , intent(inout) :: ci        ! column index
-    integer(ik4) , intent(inout) :: pi        ! pft index
-    logical , intent(in) :: setdata           ! set info or just compute
+    integer(ik4), intent(in) :: ltype        ! landunit type
+    integer(ik4), intent(in) :: nw           ! cell index
+    integer(ik4), intent(in) :: gi           ! gridcell index
+    integer(ik4), intent(inout) :: li        ! landunit index
+    integer(ik4), intent(inout) :: ci        ! column index
+    integer(ik4), intent(inout) :: pi        ! pft index
+    logical, intent(in) :: setdata           ! set info or just compute
     integer(ik4) :: m            ! m index in wtxy(nw,m)
     integer(ik4) :: n            ! loop index
     integer(ik4) :: npfts        ! number of pfts in landunit
     integer(ik4) :: ncols        ! number of columns in landu
     integer(ik4) :: pitype       ! pft itype
     real(rk8) :: wtlunit2gcell   ! landunit weight in gridcell
-    type(landunit_type) , pointer :: lptr  ! pointer to landunit
-    type(column_type) , pointer :: cptr    ! pointer to column
-    type(pft_type) , pointer :: pptr       ! pointer to pft
+    type(landunit_type), pointer :: lptr  ! pointer to landunit
+    type(column_type), pointer :: cptr    ! pointer to column
+    type(pft_type), pointer :: pptr       ! pointer to pft
 
     ! Set decomposition properties
 
@@ -537,7 +537,7 @@ module mod_clm_initgridcells
       ! Set pft properties for this landunit
 
       if (create_crop_landunit) then
-        do n = 1 , numpft+1-numcft
+        do n = 1, numpft+1-numcft
           pi = pi + 1
           pitype = n-1
           if (setdata) then
@@ -551,7 +551,7 @@ module mod_clm_initgridcells
               pptr%wtgcell(pi) = 0.0_rk8
               pptr%wtlunit(pi) = 0.0_rk8
               pptr%wtcol(pi) = 0.0_rk8
-              do m = 1 , maxpatch_pft
+              do m = 1, maxpatch_pft
                 if (vegxy(nw,m) == pitype) then
                   pptr%wtgcell(pi) = pptr%wtgcell(pi) + wtxy(nw,m)
                   pptr%wtlunit(pi) = pptr%wtlunit(pi) + &
@@ -571,7 +571,7 @@ module mod_clm_initgridcells
           end if ! setdata
         end do
       else if (allocate_all_vegpfts) then
-        do n = 1 , numpft+1
+        do n = 1, numpft+1
           pi = pi + 1
           pitype = n-1
           if (setdata) then
@@ -585,7 +585,7 @@ module mod_clm_initgridcells
               pptr%wtgcell(pi) = 0.0_rk8
               pptr%wtlunit(pi) = 0.0_rk8
               pptr%wtcol(pi) = 0.0_rk8
-              do m = 1 , maxpatch_pft
+              do m = 1, maxpatch_pft
                 if (vegxy(nw,m) == pitype) then
                   pptr%wtgcell(pi) = pptr%wtgcell(pi) + wtxy(nw,m)
                   pptr%wtlunit(pi) = pptr%wtlunit(pi) + &
@@ -615,28 +615,28 @@ module mod_clm_initgridcells
   ! (lake, wetland, glacier)
   !
   subroutine set_landunit_wet_ice_lake (ltype,nw,gi,li,ci,pi,setdata)
-    use mod_clm_type , only : clm3 , model_type , gridcell_type , &
-            landunit_type , column_type,pft_type
-    use mod_clm_subgrid , only : subgrid_get_gcellinfo
-    use mod_clm_varcon , only : istice , istwet , istdlak
-    use mod_clm_varpar , only : npatch_lake , npatch_glacier , npatch_wet
+    use mod_clm_type, only : clm3, model_type, gridcell_type, &
+            landunit_type, column_type,pft_type
+    use mod_clm_subgrid, only : subgrid_get_gcellinfo
+    use mod_clm_varcon, only : istice, istwet, istdlak
+    use mod_clm_varpar, only : npatch_lake, npatch_glacier, npatch_wet
     implicit none
-    integer(ik4) , intent(in) :: ltype ! landunit type
-    integer(ik4) , intent(in) :: nw    ! cell index
-    integer(ik4) , intent(in) :: gi    ! gridcell index
-    integer(ik4) , intent(inout) :: li ! landunit index
-    integer(ik4) , intent(inout) :: ci ! column index
-    integer(ik4) , intent(inout) :: pi ! pft index
-    logical , intent(in) :: setdata    ! set info or just compute
+    integer(ik4), intent(in) :: ltype ! landunit type
+    integer(ik4), intent(in) :: nw    ! cell index
+    integer(ik4), intent(in) :: gi    ! gridcell index
+    integer(ik4), intent(inout) :: li ! landunit index
+    integer(ik4), intent(inout) :: ci ! column index
+    integer(ik4), intent(inout) :: pi ! pft index
+    logical, intent(in) :: setdata    ! set info or just compute
     integer(ik4) :: m     ! m index in wtxy(nw,m)
     integer(ik4) :: ctype ! column type
     integer(ik4) :: npfts ! number of pfts in landunit
     integer(ik4) :: ncols ! number of columns in landu
     real(rk8) :: wtlunit2gcell  ! landunit weight in gridcell
     real(rk8) :: wtcol2lunit    ! col weight in landunit
-    type(landunit_type) , pointer :: lptr ! pointer to landunit
-    type(column_type) , pointer :: cptr   ! pointer to column
-    type(pft_type) , pointer :: pptr      ! pointer to pft
+    type(landunit_type), pointer :: lptr ! pointer to landunit
+    type(column_type), pointer :: cptr   ! pointer to column
+    type(pft_type), pointer :: pptr      ! pointer to pft
 
     ! Set decomposition properties
 
@@ -726,26 +726,26 @@ module mod_clm_initgridcells
   ! Initialize crop landunit without competition
   !
   subroutine set_landunit_crop_noncompete (ltype,nw,gi,li,ci,pi,setdata)
-    use mod_clm_type , only : clm3 , model_type , gridcell_type , &
-            landunit_type , column_type,pft_type
-    use mod_clm_subgrid , only : subgrid_get_gcellinfo
-    use mod_clm_varctl , only : create_crop_landunit
-    use mod_clm_varpar , only : maxpatch_pft , numcft
+    use mod_clm_type, only : clm3, model_type, gridcell_type, &
+            landunit_type, column_type,pft_type
+    use mod_clm_subgrid, only : subgrid_get_gcellinfo
+    use mod_clm_varctl, only : create_crop_landunit
+    use mod_clm_varpar, only : maxpatch_pft, numcft
     implicit none
-    integer(ik4) , intent(in) :: ltype       ! landunit type
-    integer(ik4) , intent(in) :: nw          ! cell index
-    integer(ik4) , intent(in) :: gi          ! gridcell index
-    integer(ik4) , intent(inout) :: li       ! landunit index
-    integer(ik4) , intent(inout) :: ci       ! column index
-    integer(ik4) , intent(inout) :: pi       ! pft index
-    logical , intent(in) :: setdata          ! set info or just compute
+    integer(ik4), intent(in) :: ltype       ! landunit type
+    integer(ik4), intent(in) :: nw          ! cell index
+    integer(ik4), intent(in) :: gi          ! gridcell index
+    integer(ik4), intent(inout) :: li       ! landunit index
+    integer(ik4), intent(inout) :: ci       ! column index
+    integer(ik4), intent(inout) :: pi       ! pft index
+    logical, intent(in) :: setdata          ! set info or just compute
     integer(ik4) :: m       ! m index in wtxy(nw,m)
     integer(ik4) :: npfts   ! number of pfts in landunit
     integer(ik4) :: ncols   ! number of columns in landu
     real(rk8) :: wtlunit2gcell ! landunit weight in gridcell
-    type(landunit_type) , pointer :: lptr  ! pointer to landunit
-    type(column_type) , pointer :: cptr    ! pointer to column
-    type(pft_type) , pointer :: pptr       ! pointer to pft
+    type(landunit_type), pointer :: lptr  ! pointer to landunit
+    type(column_type), pointer :: cptr    ! pointer to column
+    type(pft_type), pointer :: pptr       ! pointer to pft
 
     ! Set decomposition properties
 
@@ -778,7 +778,7 @@ module mod_clm_initgridcells
       ! (each column has its own pft)
 
       if (create_crop_landunit) then
-        do m = maxpatch_pft-numcft+1 , maxpatch_pft
+        do m = maxpatch_pft-numcft+1, maxpatch_pft
           ci = ci + 1
           pi = pi + 1
 
@@ -816,24 +816,24 @@ module mod_clm_initgridcells
   ! Initialize urban landunits
   !
   subroutine set_landunit_urban (ltype,udenstype,nw,gi,li,ci,pi,setdata)
-    use mod_clm_varcon , only : isturb , icol_roof , icol_sunwall , &
-            icol_shadewall , icol_road_perv , icol_road_imperv ,    &
-            udens_tbd , udens_hd , udens_md , udens_base
-    use mod_clm_varpar , only : npatch_urban_tbd , npatch_urban_hd , &
-            npatch_urban_md , maxpatch_urb
-    use mod_clm_type , only : clm3 , model_type , gridcell_type , &
-            landunit_type , column_type , pft_type
-    use mod_clm_subgrid , only : subgrid_get_gcellinfo
-    use mod_clm_urbaninput , only : urbinp
+    use mod_clm_varcon, only : isturb, icol_roof, icol_sunwall, &
+            icol_shadewall, icol_road_perv, icol_road_imperv,    &
+            udens_tbd, udens_hd, udens_md, udens_base
+    use mod_clm_varpar, only : npatch_urban_tbd, npatch_urban_hd, &
+            npatch_urban_md, maxpatch_urb
+    use mod_clm_type, only : clm3, model_type, gridcell_type, &
+            landunit_type, column_type, pft_type
+    use mod_clm_subgrid, only : subgrid_get_gcellinfo
+    use mod_clm_urbaninput, only : urbinp
     implicit none
-    integer(ik4) , intent(in) :: ltype        ! landunit type
-    integer(ik4) , intent(in) :: udenstype    ! urban density type
-    integer(ik4) , intent(in) :: nw           ! cell index
-    integer(ik4) , intent(in) :: gi           ! gridcell index
-    integer(ik4) , intent(inout) :: li        ! landunit index
-    integer(ik4) , intent(inout) :: ci        ! column index
-    integer(ik4) , intent(inout) :: pi        ! pft index
-    logical , intent(in) :: setdata           ! set info or just compute
+    integer(ik4), intent(in) :: ltype        ! landunit type
+    integer(ik4), intent(in) :: udenstype    ! urban density type
+    integer(ik4), intent(in) :: nw           ! cell index
+    integer(ik4), intent(in) :: gi           ! gridcell index
+    integer(ik4), intent(inout) :: li        ! landunit index
+    integer(ik4), intent(inout) :: ci        ! column index
+    integer(ik4), intent(inout) :: pi        ! pft index
+    logical, intent(in) :: setdata           ! set info or just compute
     integer(ik4) :: m          ! m index in wtxy(nw,m)
     integer(ik4) :: n          ! urban density type index
     integer(ik4) :: ctype      ! column type
@@ -845,9 +845,9 @@ module mod_clm_initgridcells
     real(rk8) :: wtlunit_roof  ! weight of roof with respect to landunit
     ! weight of pervious road column with respect to total road
     real(rk8) :: wtroad_perv
-    type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
-    type(column_type) , pointer :: cptr   ! pointer to column derived subtype
-    type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
+    type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
+    type(column_type), pointer :: cptr   ! pointer to column derived subtype
+    type(pft_type), pointer :: pptr      ! pointer to pft derived subtype
 
     ! Set decomposition properties, and set variables specific to urban
     ! density type
@@ -900,7 +900,7 @@ module mod_clm_initgridcells
       ! properties For the urban landunits it is assumed that each column
       ! has its own pft
 
-      do m = npatch , npatch + maxpatch_urb - 1
+      do m = npatch, npatch + maxpatch_urb - 1
         if (wtxy(nw,m) > 0._rk8) then
 
           wtlunit_roof = urbinp%wtlunit_roof(nw,n)

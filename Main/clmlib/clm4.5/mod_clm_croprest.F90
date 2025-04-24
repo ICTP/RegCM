@@ -33,10 +33,10 @@ module mod_clm_croprest
   !
   subroutine CropRest ( ncid, flag )
     use mod_clm_type
-    use mod_clm_atmlnd , only : clm_a2l
-    use mod_clm_varpar , only : numrad
-    use mod_clm_decomp , only : get_proc_bounds , gcomm_pft
-    use mod_clm_time_manager , only : is_restart
+    use mod_clm_atmlnd, only : clm_a2l
+    use mod_clm_varpar, only : numrad
+    use mod_clm_decomp, only : get_proc_bounds, gcomm_pft
+    use mod_clm_time_manager, only : is_restart
 
     implicit none
     type(clm_filetype) :: ncid             ! netcdf id
@@ -48,8 +48,8 @@ module mod_clm_croprest
     integer(ik4) :: begg, endg  ! per-proc gridcell ending gridcell indices
     type(gridcell_type), pointer :: gptr  ! pointer to gridcell derived subtype
     type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
-    type(column_type)  , pointer :: cptr  ! pointer to column derived subtype
-    type(pft_type)     , pointer :: pptr  ! pointer to pft derived subtype
+    type(column_type) , pointer :: cptr  ! pointer to column derived subtype
+    type(pft_type)    , pointer :: pptr  ! pointer to pft derived subtype
 
     ! Prognostic crop restart year
     if (flag == 'define') then
@@ -741,7 +741,7 @@ module mod_clm_croprest
   !
   subroutine checkDates( )
     use mod_clm_time_manager, only : get_driver_start_ymd, get_start_date
-    use mod_clm_varctl , only : nsrest, nsrStartup
+    use mod_clm_varctl, only : nsrest, nsrStartup
     integer(ik4) :: stymd       ! Start date YYYYMMDD from driver
     integer(ik4) :: styr        ! Start year from driver
     integer(ik4) :: stmon_day   ! Start date MMDD from driver

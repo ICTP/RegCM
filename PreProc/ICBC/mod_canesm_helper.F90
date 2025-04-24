@@ -24,11 +24,11 @@ module mod_canesm_helper
 
   public :: cavars
   public :: find_canesm_sst
-  public :: find_canesm_dim , find_canesm_topo , find_canesm_file
+  public :: find_canesm_dim, find_canesm_topo, find_canesm_file
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: cavars = &
-            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: cavars = &
+            ['ta ', 'XXX', 'hus', 'ua ', 'va ', 'ps ']
 
   character(len=64) :: cabase1  = '_6hrLev_CanESM2_historical'
   character(len=64) :: cabase2  = '_6hrLev_CanESM2_rcp'
@@ -38,8 +38,8 @@ module mod_canesm_helper
 
   subroutine find_canesm_sst(fname,idate)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       fname = trim(inpglob)//pthsep//'CanESM2'//pthsep//'SST'// &
               pthsep//'ts_Amon_CanESM2_historical'// &
@@ -53,11 +53,11 @@ module mod_canesm_helper
 
   subroutine assemble_path(fname,scen,var,d1,d2)
     implicit none
-    character(len=256) , intent(out) :: fname
-    character(len=*) , intent(in) :: scen
-    character(len=*) , intent(in) :: var
-    character(len=*) , intent(in) :: d1
-    character(len=*) , intent(in) :: d2
+    character(len=256), intent(out) :: fname
+    character(len=*), intent(in) :: scen
+    character(len=*), intent(in) :: var
+    character(len=*), intent(in) :: d1
+    character(len=*), intent(in) :: d2
     if ( scen == 'RF' ) then
       fname = trim(inpglob)//pthsep//'CanESM2'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(cabase1)//  &
@@ -71,7 +71,7 @@ module mod_canesm_helper
 
   subroutine find_canesm_dim(dim_filename)
     implicit none
-    character(len=256) , intent(out) :: dim_filename
+    character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(dim_filename,'RF','ta','1950010100','1950123118')
@@ -79,18 +79,18 @@ module mod_canesm_helper
 
   subroutine find_canesm_topo(topo_filename)
     implicit none
-    character(len=256) , intent(out) :: topo_filename
+    character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'CanESM2'//pthsep//'fixed'// &
               pthsep//'orog_fx_CanESM2_historical_r0i0p0.nc'
   end subroutine find_canesm_topo
 
   subroutine find_canesm_file(canesm_filename,var,idate)
     implicit none
-    character(len=256) , intent(out) :: canesm_filename
-    character(len=*) , intent(in) :: var
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
+    character(len=256), intent(out) :: canesm_filename
+    character(len=*), intent(in) :: var
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
     call split_idate(idate,y,m,d,h)
     write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 1, 1, 0
     write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 31, 18

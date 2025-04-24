@@ -6,8 +6,8 @@ module mod_clm_cnnstateupdate3
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : dtsrf
-  use mod_clm_varpar , only : nlevdecomp, ndecomp_pools
+  use mod_runparams, only : dtsrf
+  use mod_clm_varpar, only : nlevdecomp, ndecomp_pools
 
   implicit none
 
@@ -25,7 +25,7 @@ module mod_clm_cnnstateupdate3
   !
   subroutine NStateUpdate3(num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
-    use mod_clm_varpar , only : i_cwd, i_met_lit, i_cel_lit, i_lig_lit
+    use mod_clm_varpar, only : i_cwd, i_met_lit, i_cel_lit, i_lig_lit
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
@@ -33,85 +33,85 @@ module mod_clm_cnnstateupdate3
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
 #ifndef NITRIF_DENITRIF
-    real(rk8), pointer :: sminn_leached_vr(:,:)
+    real(rk8), pointer, contiguous :: sminn_leached_vr(:,:)
 #else
-    real(rk8), pointer :: smin_no3_leached_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_leached_vr(:,:)
     ! vertically-resolved rate of mineral NO3 loss with runoff (gN/m3/s)
-    real(rk8), pointer :: smin_no3_runoff_vr(:,:)
-    real(rk8), pointer :: smin_no3_vr(:,:)
-    real(rk8), pointer :: smin_nh4_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_runoff_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_nh4_vr(:,:)
 #endif
-    real(rk8), pointer :: m_leafn_to_fire(:)
-    real(rk8), pointer :: m_leafn_storage_to_fire(:)
-    real(rk8), pointer :: m_leafn_xfer_to_fire(:)
-    real(rk8), pointer :: m_livestemn_to_fire(:)
-    real(rk8), pointer :: m_livestemn_storage_to_fire(:)
-    real(rk8), pointer :: m_livestemn_xfer_to_fire(:)
-    real(rk8), pointer :: m_deadstemn_to_fire(:)
-    real(rk8), pointer :: m_deadstemn_storage_to_fire(:)
-    real(rk8), pointer :: m_deadstemn_xfer_to_fire(:)
-    real(rk8), pointer :: m_frootn_to_fire(:)
-    real(rk8), pointer :: m_frootn_storage_to_fire(:)
-    real(rk8), pointer :: m_frootn_xfer_to_fire(:)
-    real(rk8), pointer :: m_livecrootn_to_fire(:)
-    real(rk8), pointer :: m_livecrootn_storage_to_fire(:)
-    real(rk8), pointer :: m_livecrootn_xfer_to_fire(:)
-    real(rk8), pointer :: m_deadcrootn_to_fire(:)
-    real(rk8), pointer :: m_deadcrootn_storage_to_fire(:)
-    real(rk8), pointer :: m_deadcrootn_xfer_to_fire(:)
-    real(rk8), pointer :: m_retransn_to_fire(:)
-    real(rk8), pointer :: m_decomp_npools_to_fire_vr(:,:,:)
+    real(rk8), pointer, contiguous :: m_leafn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_retransn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_decomp_npools_to_fire_vr(:,:,:)
 
-    real(rk8), pointer :: m_leafn_to_litter_fire(:)
-    real(rk8), pointer :: m_leafn_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_leafn_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_livestemn_to_litter_fire(:)
-    real(rk8), pointer :: m_livestemn_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_livestemn_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_livestemn_to_deadstemn_fire(:)
-    real(rk8), pointer :: m_deadstemn_to_litter_fire(:)
-    real(rk8), pointer :: m_deadstemn_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_deadstemn_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_frootn_to_litter_fire(:)
-    real(rk8), pointer :: m_frootn_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_frootn_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_livecrootn_to_litter_fire(:)
-    real(rk8), pointer :: m_livecrootn_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_livecrootn_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_livecrootn_to_deadcrootn_fire(:)
-    real(rk8), pointer :: m_deadcrootn_to_litter_fire(:)
-    real(rk8), pointer :: m_deadcrootn_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_deadcrootn_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_retransn_to_litter_fire(:)
-    real(rk8), pointer :: m_n_to_litr_met_fire(:,:)
-    real(rk8), pointer :: m_n_to_litr_cel_fire(:,:)
-    real(rk8), pointer :: m_n_to_litr_lig_fire(:,:)
+    real(rk8), pointer, contiguous :: m_leafn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_to_deadstemn_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_to_deadcrootn_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_retransn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_n_to_litr_met_fire(:,:)
+    real(rk8), pointer, contiguous :: m_n_to_litr_cel_fire(:,:)
+    real(rk8), pointer, contiguous :: m_n_to_litr_lig_fire(:,:)
     ! N fluxes associated with fire mortality to CWD pool (gN/m3/s)
-    real(rk8), pointer :: fire_mortality_n_to_cwdn(:,:)
+    real(rk8), pointer, contiguous :: fire_mortality_n_to_cwdn(:,:)
 
     ! (gN/m3) soil mineral N
-    real(rk8), pointer :: sminn_vr(:,:)
+    real(rk8), pointer, contiguous :: sminn_vr(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    real(rk8), pointer :: decomp_npools_vr(:,:,:)
-    real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
-    real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
-    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
-    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
-    real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
-    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
-    real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
-    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
-    real(rk8), pointer :: retransn(:)           ! (gN/m2) plant pool of
+    real(rk8), pointer, contiguous :: decomp_npools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: deadcrootn(:)         ! (gN/m2) dead coarse root N
+    real(rk8), pointer, contiguous :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
+    real(rk8), pointer, contiguous :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
+    real(rk8), pointer, contiguous :: deadstemn(:)          ! (gN/m2) dead stem N
+    real(rk8), pointer, contiguous :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rk8), pointer, contiguous :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
+    real(rk8), pointer, contiguous :: frootn(:)             ! (gN/m2) fine root N
+    real(rk8), pointer, contiguous :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rk8), pointer, contiguous :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
+    real(rk8), pointer, contiguous :: leafn(:)              ! (gN/m2) leaf N
+    real(rk8), pointer, contiguous :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rk8), pointer, contiguous :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
+    real(rk8), pointer, contiguous :: livecrootn(:)         ! (gN/m2) live coarse root N
+    real(rk8), pointer, contiguous :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
+    real(rk8), pointer, contiguous :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
+    real(rk8), pointer, contiguous :: livestemn(:)          ! (gN/m2) live stem N
+    real(rk8), pointer, contiguous :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rk8), pointer, contiguous :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
+    real(rk8), pointer, contiguous :: retransn(:)           ! (gN/m2) plant pool of
                                                 ! retranslocated N
 
     integer(ik4) :: c,p,j,l  ! indices
@@ -223,9 +223,9 @@ module mod_clm_cnnstateupdate3
     ! set time steps
     dt = dtsrf
 
-    do j = 1 , nlevdecomp
+    do j = 1, nlevdecomp
       ! column loop
-      do fc = 1 , num_soilc
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
 
 #ifndef NITRIF_DENITRIF
@@ -254,10 +254,10 @@ module mod_clm_cnnstateupdate3
     end do
 
     ! litter and CWD losses to fire
-    do l = 1 , ndecomp_pools
-      do j = 1 , nlevdecomp
+    do l = 1, ndecomp_pools
+      do j = 1, nlevdecomp
         ! column loop
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           decomp_npools_vr(c,j,l) = decomp_npools_vr(c,j,l) - &
                   m_decomp_npools_to_fire_vr(c,j,l) * dt
@@ -266,7 +266,7 @@ module mod_clm_cnnstateupdate3
     end do
 
     ! pft loop
-    do fp = 1 , num_soilp
+    do fp = 1, num_soilp
       p = filter_soilp(fp)
 
       ! pft-level nitrogen fluxes from fire

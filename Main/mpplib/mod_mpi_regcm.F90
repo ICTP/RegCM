@@ -22,7 +22,7 @@ module mod_mpi_regcm
   use mod_realkinds
   use mod_dynparam
   use mod_constants
-  use mod_runparams , only : namelistfile , prgname
+  use mod_runparams, only : namelistfile, prgname
   use mod_mpmessage
   use mod_memutil
   use mod_date
@@ -34,16 +34,16 @@ module mod_mpi_regcm
 
   private
 
-  integer(ik4) , public , parameter :: iocpu = 0 ! The id of the cpu doing I/O
-  integer(ik4) , public , parameter :: italk = 0 ! Who is doing the print ?
+  integer(ik4), public, parameter :: iocpu = 0 ! The id of the cpu doing I/O
+  integer(ik4), public, parameter :: italk = 0 ! Who is doing the print ?
 
   public :: rcmpi
   public :: rcm_mpi_init
   public :: rcm_bcast
   public :: rcm_true
-  public :: rcm_sum , rcm_max , rcm_min , rcm_mean
-  public :: rcm_exch , rcm_exch_lrbt , rcm_exch_lr , rcm_exch_bt
-  public :: rcm_exch_lb , rcm_exch_rt , rcm_exch_bdy_lr , rcm_exch_bdy_bt
+  public :: rcm_sum, rcm_max, rcm_min, rcm_mean
+  public :: rcm_exch, rcm_exch_lrbt, rcm_exch_lr, rcm_exch_bt
+  public :: rcm_exch_lb, rcm_exch_rt, rcm_exch_bdy_lr, rcm_exch_bdy_bt
 
   type regcm_mpi
     type(mpi_comm) :: globalcom
@@ -56,9 +56,9 @@ module mod_mpi_regcm
     integer :: south = mpi_proc_null
     integer :: east  = mpi_proc_null
     integer :: west  = mpi_proc_null
-    integer , dimension(2) :: pdims = [0,0]
-    integer , dimension(2) :: pplace = [0,0]
-    logical , dimension(2) :: period = [.false.,.false.]
+    integer, dimension(2) :: pdims = [0,0]
+    integer, dimension(2) :: pplace = [0,0]
+    logical, dimension(2) :: period = [.false.,.false.]
   end type regcm_mpi
 
   type(regcm_mpi) :: rcmpi
@@ -88,12 +88,12 @@ module mod_mpi_regcm
 
   interface rcm_sum
     module procedure sumall_real4, &
-                     sumall_real8 , &
+                     sumall_real8, &
 #ifdef QUAD_PRECISION
                      sumall_real16, &
 #endif
-                     sumall_int4 ,  &
-                     sumall_int8 ,  &
+                     sumall_int4,  &
+                     sumall_int8,  &
                      sumall_int4_array
   end interface rcm_sum
 
@@ -208,213 +208,213 @@ module mod_mpi_regcm
 
   subroutine bcast_logical(x)
     implicit none
-    logical , intent(inout) :: x
+    logical, intent(inout) :: x
     call mpi_bcast(x,1,mpi_logical,iocpu,rcmpi%globalcom)
   end subroutine bcast_logical
   subroutine bcast_int4(x)
     implicit none
-    integer(ik4) , intent(inout) :: x
+    integer(ik4), intent(inout) :: x
     call mpi_bcast(x,1,mpi_integer4,iocpu,rcmpi%globalcom)
   end subroutine bcast_int4
   subroutine bcast_int8(x)
     implicit none
-    integer(rk8) , intent(inout) :: x
+    integer(rk8), intent(inout) :: x
     call mpi_bcast(x,1,mpi_integer8,iocpu,rcmpi%globalcom)
   end subroutine bcast_int8
   subroutine bcast_real4(x)
     implicit none
-    real(rk4) , intent(inout) :: x
+    real(rk4), intent(inout) :: x
     call mpi_bcast(x,1,mpi_real4,iocpu,rcmpi%globalcom)
   end subroutine bcast_real4
   subroutine bcast_real8(x)
     implicit none
-    real(rk8) , intent(inout) :: x
+    real(rk8), intent(inout) :: x
     call mpi_bcast(x,1,mpi_real8,iocpu,rcmpi%globalcom)
   end subroutine bcast_real8
   subroutine bcast_arr_logical(x)
     implicit none
-    logical , dimension(:) , intent(inout) :: x
+    logical, dimension(:), intent(inout) :: x
     call mpi_bcast(x,size(x),mpi_logical,iocpu,rcmpi%globalcom)
   end subroutine bcast_arr_logical
   subroutine bcast_arr_character(cval,is)
     implicit none
-    character(len=*) , intent(inout) :: cval
-    integer(ik4) , intent(in) :: is
+    character(len=*), intent(inout) :: cval
+    integer(ik4), intent(in) :: is
     call mpi_bcast(cval,is,mpi_character,iocpu,rcmpi%globalcom)
   end subroutine bcast_arr_character
   subroutine bcast_arr_text_list(cval,is)
     implicit none
-    character(len=*) , intent(inout) , dimension(:) :: cval
-    integer(ik4) , intent(in) :: is
+    character(len=*), intent(inout), dimension(:) :: cval
+    integer(ik4), intent(in) :: is
     call mpi_bcast(cval,is*size(cval),mpi_character,iocpu,rcmpi%globalcom)
   end subroutine bcast_arr_text_list
   subroutine bcast_arr_int4(x)
     implicit none
-    integer(ik4) , dimension(:) , intent(inout) :: x
+    integer(ik4), dimension(:), intent(inout) :: x
     call mpi_bcast(x,size(x),mpi_integer4,iocpu,rcmpi%globalcom)
   end subroutine bcast_arr_int4
   subroutine bcast_arr_int8(x)
     implicit none
-    integer(rk8) , dimension(:) , intent(inout) :: x
+    integer(rk8), dimension(:), intent(inout) :: x
     call mpi_bcast(x,size(x),mpi_integer8,iocpu,rcmpi%globalcom)
   end subroutine bcast_arr_int8
   subroutine bcast_arr_real4(x)
     implicit none
-    real(rk4) , dimension(:) , intent(inout) :: x
+    real(rk4), dimension(:), intent(inout) :: x
     call mpi_bcast(x,size(x),mpi_real4,iocpu,rcmpi%globalcom)
   end subroutine bcast_arr_real4
   subroutine bcast_arr_real8(x)
     implicit none
-    real(rk8) , dimension(:) , intent(inout) :: x
+    real(rk8), dimension(:), intent(inout) :: x
     call mpi_bcast(x,size(x),mpi_real8,iocpu,rcmpi%globalcom)
   end subroutine bcast_arr_real8
   subroutine bcast_matr_real8(x)
     implicit none
-    real(rk8) , dimension(:,:) , intent(inout) :: x
+    real(rk8), dimension(:,:), intent(inout) :: x
     call mpi_bcast(x,size(x,1)*size(x,2), &
                    mpi_real8,iocpu,rcmpi%globalcom)
   end subroutine bcast_matr_real8
   subroutine bcast_matr_real4(x)
     implicit none
-    real(rk4) , dimension(:,:) , intent(inout) :: x
+    real(rk4), dimension(:,:), intent(inout) :: x
     call mpi_bcast(x,size(x,1)*size(x,2), &
                    mpi_real4,iocpu,rcmpi%globalcom)
   end subroutine bcast_matr_real4
   subroutine bcast_rcm_time_and_date(x)
     implicit none
-    type (rcm_time_and_date) , intent(inout) :: x
+    type (rcm_time_and_date), intent(inout) :: x
     call rcm_bcast(x%calendar)
     call rcm_bcast(x%days_from_reference)
     call rcm_bcast(x%second_of_day)
   end subroutine bcast_rcm_time_and_date
   subroutine bcast_arr_rcm_time_and_date(x)
     implicit none
-    type (rcm_time_and_date) , dimension(:) , intent(inout) :: x
+    type (rcm_time_and_date), dimension(:), intent(inout) :: x
     integer(ik4) :: n
-    do n = 1 , size(x)
+    do n = 1, size(x)
       call rcm_bcast(x(n))
     end do
   end subroutine bcast_arr_rcm_time_and_date
 
   subroutine rcm_true(l,g)
     implicit none
-    logical , intent(in) :: l
-    logical , intent(out) :: g
+    logical, intent(in) :: l
+    logical, intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_logical,mpi_lor,rcmpi%globalcom)
   end subroutine rcm_true
 
 #ifdef QUAD_PRECISION
   subroutine sumall_real16(l,g)
     implicit none
-    real(rk16) , intent(in) :: l
-    real(rk16) , intent(out) :: g
+    real(rk16), intent(in) :: l
+    real(rk16), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_real16,mpi_sum,rcmpi%globalcom)
   end subroutine sumall_real16
 #endif
   subroutine sumall_int8(l,g)
     implicit none
-    integer(ik8) , intent(in) :: l
-    integer(ik8) , intent(out) :: g
+    integer(ik8), intent(in) :: l
+    integer(ik8), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_integer8,mpi_sum,rcmpi%globalcom)
   end subroutine sumall_int8
   subroutine sumall_int4(l,g)
     implicit none
-    integer(ik4) , intent(in) :: l
-    integer(ik4) , intent(out) :: g
+    integer(ik4), intent(in) :: l
+    integer(ik4), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_integer4,mpi_sum,rcmpi%globalcom)
   end subroutine sumall_int4
   subroutine sumall_real8(l,g)
     implicit none
-    real(rk8) , intent(in) :: l
-    real(rk8) , intent(out) :: g
+    real(rk8), intent(in) :: l
+    real(rk8), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_real8,mpi_sum,rcmpi%globalcom)
   end subroutine sumall_real8
   subroutine sumall_real4(l,g)
     implicit none
-    real(rk4) , intent(in) :: l
-    real(rk4) , intent(out) :: g
+    real(rk4), intent(in) :: l
+    real(rk4), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_real4,mpi_sum,rcmpi%globalcom)
   end subroutine sumall_real4
   subroutine sumall_int4_array(l,g)
     implicit none
-    integer(ik4) , dimension(:) , intent(in) :: l
-    integer(ik4) , dimension(:) , intent(out) :: g
+    integer(ik4), dimension(:), intent(in) :: l
+    integer(ik4), dimension(:), intent(out) :: g
     call mpi_allreduce(l,g,size(g),mpi_integer4, &
                        mpi_sum,rcmpi%globalcom)
   end subroutine sumall_int4_array
 
   subroutine maxall_real8(l,g)
     implicit none
-    real(rk8) , intent(in) :: l
-    real(rk8) , intent(out) :: g
+    real(rk8), intent(in) :: l
+    real(rk8), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_real8,mpi_max,rcmpi%globalcom)
   end subroutine maxall_real8
   subroutine maxall_real4(l,g)
     implicit none
-    real(rk4) , intent(in) :: l
-    real(rk4) , intent(out) :: g
+    real(rk4), intent(in) :: l
+    real(rk4), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_real4,mpi_max,rcmpi%globalcom)
   end subroutine maxall_real4
   subroutine maxall_integer4(l,g)
     implicit none
-    integer(ik4) , intent(in) :: l
-    integer(ik4) , intent(out) :: g
+    integer(ik4), intent(in) :: l
+    integer(ik4), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_integer4,mpi_max,rcmpi%globalcom)
   end subroutine maxall_integer4
   subroutine maxall_integer8(l,g)
     implicit none
-    integer(ik8) , intent(in) :: l
-    integer(ik8) , intent(out) :: g
+    integer(ik8), intent(in) :: l
+    integer(ik8), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_integer8,mpi_max,rcmpi%globalcom)
   end subroutine maxall_integer8
 
   subroutine minall_real8(l,g)
     implicit none
-    real(rk8) , intent(in) :: l
-    real(rk8) , intent(out) :: g
+    real(rk8), intent(in) :: l
+    real(rk8), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_real8,mpi_min,rcmpi%globalcom)
   end subroutine minall_real8
   subroutine minall_real4(l,g)
     implicit none
-    real(rk4) , intent(in) :: l
-    real(rk4) , intent(out) :: g
+    real(rk4), intent(in) :: l
+    real(rk4), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_real4,mpi_min,rcmpi%globalcom)
   end subroutine minall_real4
   subroutine minall_integer4(l,g)
     implicit none
-    integer(ik4) , intent(in) :: l
-    integer(ik4) , intent(out) :: g
+    integer(ik4), intent(in) :: l
+    integer(ik4), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_integer4,mpi_min,rcmpi%globalcom)
   end subroutine minall_integer4
   subroutine minall_integer8(l,g)
     implicit none
-    integer(ik8) , intent(in) :: l
-    integer(ik8) , intent(out) :: g
+    integer(ik8), intent(in) :: l
+    integer(ik8), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_integer8,mpi_min,rcmpi%globalcom)
   end subroutine minall_integer8
 
   subroutine meanall_real8(l,g)
     implicit none
-    real(rk8) , intent(in) :: l
-    real(rk8) , intent(out) :: g
+    real(rk8), intent(in) :: l
+    real(rk8), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_real8,mpi_sum,rcmpi%globalcom)
     g = g/real(nproc,rk8)
   end subroutine meanall_real8
   subroutine meanall_real4(l,g)
     implicit none
-    real(rk4) , intent(in) :: l
-    real(rk4) , intent(out) :: g
+    real(rk4), intent(in) :: l
+    real(rk4), intent(out) :: g
     call mpi_allreduce(l,g,1,mpi_real4,mpi_sum,rcmpi%globalcom)
     g = g/real(nproc,rk4)
   end subroutine meanall_real4
 
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: nx , ny
-    integer :: lb , rb , tb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: nx, ny
+    integer :: lb, rb, tb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -442,16 +442,16 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%west /= mpi_proc_null ) &
           sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -466,13 +466,13 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
        if ( rcmpi%west /= mpi_proc_null ) &
            ml(j1-iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -480,13 +480,13 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           sdatay(ib1:ib2) = ml(:,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -500,13 +500,13 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           ml(:,i1-iex) = rdatay(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -519,11 +519,11 @@ module mod_mpi_regcm
 
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: nx , ny , nk
-    integer :: lb , rb , tb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: nx, ny, nk
+    integer :: lb, rb, tb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -550,21 +550,21 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%west /= mpi_proc_null ) &
             sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -580,16 +580,16 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
          if ( rcmpi%west /= mpi_proc_null ) &
              ml(j1-iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -598,16 +598,16 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             sdatay(ib1:ib2) = ml(:,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -622,16 +622,16 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             ml(:,i1-iex,k) = rdatay(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -645,11 +645,11 @@ module mod_mpi_regcm
 
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: nx , ny , nk , nn
-    integer :: lb , rb , tb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: nx, ny, nk, nn
+    integer :: lb, rb, tb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -677,14 +677,14 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
@@ -692,9 +692,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -711,9 +711,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
            if ( rcmpi%west /= mpi_proc_null ) &
@@ -721,9 +721,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -733,9 +733,9 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -743,9 +743,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -761,9 +761,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -771,9 +771,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -788,11 +788,11 @@ module mod_mpi_regcm
 
   subroutine real4_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: nx , ny
-    integer :: lb , rb , tb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: nx, ny
+    integer :: lb, rb, tb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -820,16 +820,16 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%west /= mpi_proc_null ) &
           sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -844,13 +844,13 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
        if ( rcmpi%west /= mpi_proc_null ) &
            ml(j1-iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -858,13 +858,13 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           sdatay(ib1:ib2) = ml(:,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -878,13 +878,13 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           ml(:,i1-iex) = rdatay(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -897,11 +897,11 @@ module mod_mpi_regcm
 
   subroutine real4_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: nx , ny , nk
-    integer :: lb , rb , tb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: nx, ny, nk
+    integer :: lb, rb, tb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -928,21 +928,21 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%west /= mpi_proc_null ) &
             sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -958,16 +958,16 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
          if ( rcmpi%west /= mpi_proc_null ) &
              ml(j1-iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -976,16 +976,16 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             sdatay(ib1:ib2) = ml(:,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -1000,16 +1000,16 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             ml(:,i1-iex,k) = rdatay(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -1023,11 +1023,11 @@ module mod_mpi_regcm
 
   subroutine real4_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: nx , ny , nk , nn
-    integer :: lb , rb , tb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: nx, ny, nk, nn
+    integer :: lb, rb, tb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -1055,14 +1055,14 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
@@ -1070,9 +1070,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -1089,9 +1089,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
            if ( rcmpi%west /= mpi_proc_null ) &
@@ -1099,9 +1099,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -1111,9 +1111,9 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -1121,9 +1121,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -1139,9 +1139,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -1149,9 +1149,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -1166,9 +1166,9 @@ module mod_mpi_regcm
 
   subroutine real8_2d_exchange_lrbt(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: ndx , ndy , nx , ny , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: ndx, ndy, nx, ny, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -1186,28 +1186,28 @@ module mod_mpi_regcm
     real(rk8), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%west /= mpi_proc_null ) &
           sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
           sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -1222,25 +1222,25 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
        if ( rcmpi%west /= mpi_proc_null ) &
            ml(j1-iex,i1:i2) = rdata(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
           ml(j2+iex,i1:i2) = rdata(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           ml(j1:j2,i1-iex) = rdata(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -1253,9 +1253,9 @@ module mod_mpi_regcm
 
   subroutine real8_3d_exchange_lrbt(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: ndx , ndy , nx , ny , nk , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: ndx, ndy, nx, ny, nk, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -1274,35 +1274,35 @@ module mod_mpi_regcm
     real(rk8), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%west /= mpi_proc_null ) &
             sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
             sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -1318,32 +1318,32 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
          if ( rcmpi%west /= mpi_proc_null ) &
              ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
             ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -1357,9 +1357,9 @@ module mod_mpi_regcm
 
   subroutine real8_4d_exchange_lrbt(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ndx , ndy , nx , ny , nk , nn , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: ndx, ndy, nx, ny, nk, nn, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -1379,12 +1379,12 @@ module mod_mpi_regcm
     real(rk8), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
@@ -1392,9 +1392,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -1402,9 +1402,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -1412,9 +1412,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -1431,9 +1431,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
            if ( rcmpi%west /= mpi_proc_null ) &
@@ -1441,9 +1441,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -1451,9 +1451,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -1461,9 +1461,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -1478,9 +1478,9 @@ module mod_mpi_regcm
 
   subroutine real4_2d_exchange_lrbt(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: ndx , ndy , nx , ny , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: ndx, ndy, nx, ny, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -1498,28 +1498,28 @@ module mod_mpi_regcm
     real(rk4), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%west /= mpi_proc_null ) &
           sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
           sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -1534,25 +1534,25 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
        if ( rcmpi%west /= mpi_proc_null ) &
            ml(j1-iex,i1:i2) = rdata(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
           ml(j2+iex,i1:i2) = rdata(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           ml(j1:j2,i1-iex) = rdata(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -1565,9 +1565,9 @@ module mod_mpi_regcm
 
   subroutine real4_3d_exchange_lrbt(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: ndx , ndy , nx , ny , nk , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: ndx, ndy, nx, ny, nk, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -1586,35 +1586,35 @@ module mod_mpi_regcm
     real(rk4), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%west /= mpi_proc_null ) &
             sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
             sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -1630,32 +1630,32 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
          if ( rcmpi%west /= mpi_proc_null ) &
              ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
             ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -1669,9 +1669,9 @@ module mod_mpi_regcm
 
   subroutine real4_4d_exchange_lrbt(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ndx , ndy , nx , ny , nk , nn , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: ndx, ndy, nx, ny, nk, nn, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -1691,12 +1691,12 @@ module mod_mpi_regcm
     real(rk4), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
@@ -1704,9 +1704,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -1714,9 +1714,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -1724,9 +1724,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -1743,9 +1743,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
            if ( rcmpi%west /= mpi_proc_null ) &
@@ -1753,9 +1753,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -1763,9 +1763,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -1773,9 +1773,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -1790,9 +1790,9 @@ module mod_mpi_regcm
 
   subroutine real8_2d_exchange_lr(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: ndx , ny , tx , sizex
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: ndx, ny, tx, sizex
 
     ny = i2-i1+1
     tx = ny
@@ -1806,16 +1806,16 @@ module mod_mpi_regcm
     real(rk8), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%west /= mpi_proc_null ) &
           sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -1830,13 +1830,13 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
        if ( rcmpi%west /= mpi_proc_null ) &
            ml(j1-iex,i1:i2) = rdata(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -1849,9 +1849,9 @@ module mod_mpi_regcm
 
   subroutine real8_3d_exchange_lr(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: ndx , ny , nk , tx , sizex
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: ndx, ny, nk, tx, sizex
 
     ny = i2-i1+1
     nk = k2-k1+1
@@ -1866,19 +1866,19 @@ module mod_mpi_regcm
     real(rk8), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%west /= mpi_proc_null ) &
             sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -1894,16 +1894,16 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
          if ( rcmpi%west /= mpi_proc_null ) &
              ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -1917,9 +1917,9 @@ module mod_mpi_regcm
 
   subroutine real8_4d_exchange_lr(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ndx , ny , nk , nn , tx , sizex
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: ndx, ny, nk, nn, tx, sizex
 
     ny = i2-i1+1
     nk = k2-k1+1
@@ -1935,12 +1935,12 @@ module mod_mpi_regcm
     real(rk8), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
@@ -1948,9 +1948,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -1967,9 +1967,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
            if ( rcmpi%west /= mpi_proc_null ) &
@@ -1977,9 +1977,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -1994,9 +1994,9 @@ module mod_mpi_regcm
 
   subroutine real4_2d_exchange_lr(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: ndx , ny , tx , sizex
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: ndx, ny, tx, sizex
 
     ny = i2-i1+1
     tx = ny
@@ -2010,16 +2010,16 @@ module mod_mpi_regcm
     real(rk4), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%west /= mpi_proc_null ) &
           sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -2034,13 +2034,13 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
        if ( rcmpi%west /= mpi_proc_null ) &
            ml(j1-iex,i1:i2) = rdata(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -2053,9 +2053,9 @@ module mod_mpi_regcm
 
   subroutine real4_3d_exchange_lr(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: ndx , ny , nk , tx , sizex
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: ndx, ny, nk, tx, sizex
 
     ny = i2-i1+1
     nk = k2-k1+1
@@ -2070,19 +2070,19 @@ module mod_mpi_regcm
     real(rk4), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%west /= mpi_proc_null ) &
             sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -2098,16 +2098,16 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
          if ( rcmpi%west /= mpi_proc_null ) &
              ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -2121,9 +2121,9 @@ module mod_mpi_regcm
 
   subroutine real4_4d_exchange_lr(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ndx , ny , nk , nn , tx , sizex
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: ndx, ny, nk, nn, tx, sizex
 
     ny = i2-i1+1
     nk = k2-k1+1
@@ -2139,12 +2139,12 @@ module mod_mpi_regcm
     real(rk4), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
@@ -2152,9 +2152,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -2171,9 +2171,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
            if ( rcmpi%west /= mpi_proc_null ) &
@@ -2181,9 +2181,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -2198,9 +2198,9 @@ module mod_mpi_regcm
 
   subroutine real8_2d_exchange_bt(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: ndy , nx , ty , sizey
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: ndy, nx, ty, sizey
 
     nx = j2-j1+1
     ty = nx
@@ -2214,16 +2214,16 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -2238,13 +2238,13 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           ml(j1:j2,i1-iex) = rdata(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -2257,9 +2257,9 @@ module mod_mpi_regcm
 
   subroutine real8_3d_exchange_bt(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: ndy , nx , nk , ty , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: ndy, nx, nk, ty, sizey
 
     nx = j2-j1+1
     nk = k2-k1+1
@@ -2274,19 +2274,19 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -2302,16 +2302,16 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -2325,9 +2325,9 @@ module mod_mpi_regcm
 
   subroutine real8_4d_exchange_bt(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ndy , nx , nk , nn , ty , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: ndy, nx, nk, nn, ty, sizey
 
     nx = j2-j1+1
     nk = k2-k1+1
@@ -2343,12 +2343,12 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -2356,9 +2356,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -2375,9 +2375,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -2385,9 +2385,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -2402,9 +2402,9 @@ module mod_mpi_regcm
 
   subroutine real4_2d_exchange_bt(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: ndy , nx , ty , sizey
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: ndy, nx, ty, sizey
 
     nx = j2-j1+1
     ty = nx
@@ -2418,16 +2418,16 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -2442,13 +2442,13 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
           ml(j1:j2,i1-iex) = rdata(ib1:ib2)
     end do
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -2461,9 +2461,9 @@ module mod_mpi_regcm
 
   subroutine real4_3d_exchange_bt(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: ndy , nx , nk , ty , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: ndy, nx, nk, ty, sizey
 
     nx = j2-j1+1
     nk = k2-k1+1
@@ -2475,22 +2475,22 @@ module mod_mpi_regcm
 
     integer, dimension(4) :: counts, displs
     real(rk4), dimension(ndy) :: sdata
-    real(rk4), dimension(ndy) , volatile :: rdata
+    real(rk4), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -2506,16 +2506,16 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
             ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
       end do
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -2529,9 +2529,9 @@ module mod_mpi_regcm
 
   subroutine real4_4d_exchange_bt(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ndy , nx , nk , nn , ty , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: ndy, nx, nk, nn, ty, sizey
 
     nx = j2-j1+1
     nk = k2-k1+1
@@ -2547,12 +2547,12 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -2560,9 +2560,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -2579,9 +2579,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequest,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -2589,9 +2589,9 @@ module mod_mpi_regcm
         end do
       end do
     end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -2606,11 +2606,11 @@ module mod_mpi_regcm
 
   subroutine real8_2d_exchange_lb(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: nx , ny
-    integer :: lb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: nx, ny
+    integer :: lb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -2634,10 +2634,10 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = sizex
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -2652,7 +2652,7 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
        if ( rcmpi%west /= mpi_proc_null ) &
@@ -2660,7 +2660,7 @@ module mod_mpi_regcm
     end do
 
     ib2 = sizey
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -2674,7 +2674,7 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
@@ -2687,11 +2687,11 @@ module mod_mpi_regcm
 
   subroutine real8_3d_exchange_lb(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: nx , ny , nk
-    integer :: lb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: nx, ny, nk
+    integer :: lb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -2716,11 +2716,11 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
 
     ib2 = sizex
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -2736,8 +2736,8 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
          if ( rcmpi%west /= mpi_proc_null ) &
@@ -2746,8 +2746,8 @@ module mod_mpi_regcm
     end do
 
     ib2 = sizey
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -2762,8 +2762,8 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
@@ -2777,11 +2777,11 @@ module mod_mpi_regcm
 
   subroutine real8_4d_exchange_lb(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: nx , ny , nk , nn
-    integer :: lb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: nx, ny, nk, nn
+    integer :: lb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -2807,12 +2807,12 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
 
     ib2 = sizex
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -2829,9 +2829,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
@@ -2841,9 +2841,9 @@ module mod_mpi_regcm
     end do
 
     ib2 = sizey
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -2859,9 +2859,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -2876,11 +2876,11 @@ module mod_mpi_regcm
 
   subroutine real4_2d_exchange_lb(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: nx , ny
-    integer :: lb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: nx, ny
+    integer :: lb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -2904,10 +2904,10 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = sizex
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -2922,7 +2922,7 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
        if ( rcmpi%west /= mpi_proc_null ) &
@@ -2930,7 +2930,7 @@ module mod_mpi_regcm
     end do
 
     ib2 = sizey
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -2944,7 +2944,7 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
@@ -2957,11 +2957,11 @@ module mod_mpi_regcm
 
   subroutine real4_3d_exchange_lb(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: nx , ny , nk
-    integer :: lb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: nx, ny, nk
+    integer :: lb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -2986,11 +2986,11 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
 
     ib2 = sizex
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -3006,8 +3006,8 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
          if ( rcmpi%west /= mpi_proc_null ) &
@@ -3016,8 +3016,8 @@ module mod_mpi_regcm
     end do
 
     ib2 = sizey
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -3032,8 +3032,8 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
@@ -3047,11 +3047,11 @@ module mod_mpi_regcm
 
   subroutine real4_4d_exchange_lb(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: nx , ny , nk , nn
-    integer :: lb , bb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: nx, ny, nk, nn
+    integer :: lb, bb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3077,12 +3077,12 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
 
     ib2 = sizex
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -3099,9 +3099,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
@@ -3111,9 +3111,9 @@ module mod_mpi_regcm
     end do
 
     ib2 = sizey
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -3129,9 +3129,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -3146,11 +3146,11 @@ module mod_mpi_regcm
 
   subroutine real8_2d_exchange_rt(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: nx , ny
-    integer :: rb , tb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: nx, ny
+    integer :: rb, tb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3174,10 +3174,10 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%west /= mpi_proc_null ) &
@@ -3192,7 +3192,7 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = sizex
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -3200,7 +3200,7 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
@@ -3214,7 +3214,7 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = sizey
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -3227,11 +3227,11 @@ module mod_mpi_regcm
 
   subroutine real8_3d_exchange_rt(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: nx , ny , nk
-    integer :: rb , tb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: nx, ny, nk
+    integer :: rb, tb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3256,11 +3256,11 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%west /= mpi_proc_null ) &
@@ -3276,8 +3276,8 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = sizex
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -3286,8 +3286,8 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
@@ -3302,8 +3302,8 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = sizey
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -3317,11 +3317,11 @@ module mod_mpi_regcm
 
   subroutine real8_4d_exchange_rt(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: nx , ny , nk , nn
-    integer :: rb , tb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: nx, ny, nk, nn
+    integer :: rb, tb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3347,12 +3347,12 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
@@ -3369,9 +3369,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = sizex
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -3381,9 +3381,9 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -3399,9 +3399,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = sizey
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -3416,11 +3416,11 @@ module mod_mpi_regcm
 
   subroutine real4_2d_exchange_rt(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: nx , ny
-    integer :: rb , tb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
+    integer :: nx, ny
+    integer :: rb, tb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3444,10 +3444,10 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex
+    integer :: ib1, ib2, iex
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%west /= mpi_proc_null ) &
@@ -3462,7 +3462,7 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = sizex
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
@@ -3470,7 +3470,7 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%south /= mpi_proc_null ) &
@@ -3484,7 +3484,7 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = sizey
-    do iex = 1 , nex
+    do iex = 1, nex
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( rcmpi%north /= mpi_proc_null ) &
@@ -3497,11 +3497,11 @@ module mod_mpi_regcm
 
   subroutine real4_3d_exchange_rt(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: nx , ny , nk
-    integer :: rb , tb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
+    integer :: nx, ny, nk
+    integer :: rb, tb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3526,11 +3526,11 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k
+    integer :: ib1, ib2, iex, k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%west /= mpi_proc_null ) &
@@ -3546,8 +3546,8 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = sizex
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
@@ -3556,8 +3556,8 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%south /= mpi_proc_null ) &
@@ -3572,8 +3572,8 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = sizey
-    do k = k1 , k2
-      do iex = 1 , nex
+    do k = k1, k2
+      do iex = 1, nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( rcmpi%north /= mpi_proc_null ) &
@@ -3587,11 +3587,11 @@ module mod_mpi_regcm
 
   subroutine real4_4d_exchange_rt(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: nx , ny , nk , nn
-    integer :: rb , tb
-    integer :: ndx , ndy , tx , ty , sizex , sizey
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer :: nx, ny, nk, nn
+    integer :: rb, tb
+    integer :: ndx, ndy, tx, ty, sizex, sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
@@ -3617,12 +3617,12 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2 , iex , k , n
+    integer :: ib1, ib2, iex, k, n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
@@ -3639,9 +3639,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequestx,mstatus)
 
     ib2 = sizex
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
@@ -3651,9 +3651,9 @@ module mod_mpi_regcm
     end do
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%south /= mpi_proc_null ) &
@@ -3669,9 +3669,9 @@ module mod_mpi_regcm
     call mpi_wait(mrequesty,mstatus)
 
     ib2 = sizey
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
+    do n = n1, n2
+      do k = k1, k2
+        do iex = 1, nex
           ib1 = ib2 + 1
           ib2 = ib1 + ty - 1
           if ( rcmpi%north /= mpi_proc_null ) &
@@ -3686,9 +3686,9 @@ module mod_mpi_regcm
 
   subroutine real8_exchange_bdy_lr(ml,j1,j2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: j1 , j2 , k1 , k2
-    integer :: ndx , nk , tx , sizex
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: j1, j2, k1, k2
+    integer :: ndx, nk, tx, sizex
 
     nk = k2-k1+1
     tx = nk
@@ -3702,7 +3702,7 @@ module mod_mpi_regcm
     real(rk8), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2
+    integer :: ib1, ib2
 
     ib1 = 1
     ib2 = ib1 + tx - 1
@@ -3731,9 +3731,9 @@ module mod_mpi_regcm
 
   subroutine real4_exchange_bdy_lr(ml,j1,j2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: j1 , j2 , k1 , k2
-    integer :: ndx , nk , tx , sizex
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: j1, j2, k1, k2
+    integer :: ndx, nk, tx, sizex
 
     nk = k2-k1+1
     tx = nk
@@ -3747,7 +3747,7 @@ module mod_mpi_regcm
     real(rk4), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2
+    integer :: ib1, ib2
 
     ib1 = 1
     ib2 = ib1 + tx - 1
@@ -3776,9 +3776,9 @@ module mod_mpi_regcm
 
   subroutine real8_exchange_bdy_bt(ml,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: i1 , i2 , k1 , k2
-    integer :: ndy , nk , ty , sizey
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: i1, i2, k1, k2
+    integer :: ndy, nk, ty, sizey
 
     nk = k2-k1+1
     ty = nk
@@ -3792,7 +3792,7 @@ module mod_mpi_regcm
     real(rk8), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2
+    integer :: ib1, ib2
 
     ib2 = 0
     ib1 = ib2 + 1
@@ -3823,9 +3823,9 @@ module mod_mpi_regcm
 
   subroutine real4_exchange_bdy_bt(ml,i1,i2,k1,k2)
     implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: i1 , i2 , k1 , k2
-    integer :: ndy , nk , ty , sizey
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
+    integer(ik4), intent(in) :: i1, i2, k1, k2
+    integer :: ndy, nk, ty, sizey
 
     nk = k2-k1+1
     ty = nk
@@ -3839,7 +3839,7 @@ module mod_mpi_regcm
     real(rk4), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
-    integer :: ib1 , ib2
+    integer :: ib1, ib2
 
     ib2 = 0
     ib1 = ib2 + 1

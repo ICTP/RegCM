@@ -32,45 +32,45 @@ module mod_ch_icbc
 
   private
 
-  integer(ik4) :: chilon , chjlat , chilev
+  integer(ik4) :: chilon, chjlat, chilev
 
-  real(rkx) , pointer , dimension(:) :: cht42lon
-  real(rkx) , pointer , dimension(:) :: cht42lat
-  real(rkx) , pointer , dimension(:) :: cht42hyam , cht42hybm
+  real(rkx), pointer, contiguous, dimension(:) :: cht42lon
+  real(rkx), pointer, contiguous, dimension(:) :: cht42lat
+  real(rkx), pointer, contiguous, dimension(:) :: cht42hyam, cht42hybm
   !
   ! Oxidant climatology variables
   !
-  real(rkx) , pointer , dimension(:) :: xtimes
-  type(rcm_time_and_date) , pointer , dimension(:) :: itimes
+  real(rkx), pointer, contiguous, dimension(:) :: xtimes
+  type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
   real(rkx) :: p0
-  real(rkx) , pointer , dimension(:,:) :: pchem_3 , xps3
-  real(rkx) , pointer , dimension(:,:,:,:) :: chv3
-  real(rkx) , pointer , dimension(:,:) :: xps
-  real(rkx) , pointer , dimension(:,:,:) :: xinp
-  real(rkx) , pointer , dimension(:,:,:,:) :: chv4_1
-  real(rkx) , pointer , dimension(:,:,:,:) :: chv4_2
+  real(rkx), pointer, contiguous, dimension(:,:) :: pchem_3, xps3
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chv3
+  real(rkx), pointer, contiguous, dimension(:,:) :: xps
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xinp
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chv4_1
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chv4_2
 
-  real(rkx) :: prcm , pmpi , pmpj
+  real(rkx) :: prcm, pmpi, pmpj
   real(rkx) :: r4pt
 
-  integer(ik4) :: ncicbc , ivarps , irec
+  integer(ik4) :: ncicbc, ivarps, irec
   type(rcm_time_and_date) :: iodate
 
   data ncicbc /-1/
 
   type(h_interpolator) :: hint
 
-  public :: init_ch_icbc , get_ch_icbc , close_ch_icbc
+  public :: init_ch_icbc, get_ch_icbc, close_ch_icbc
 
   contains
 
   subroutine init_ch_icbc(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: ivarid , idimid
-    integer(ik4) :: nyear , month , nday , nhour
-    character(len=256) :: chfilename , icbcfilename
-    integer(ik4) :: ncid , istatus
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: ivarid, idimid
+    integer(ik4) :: nyear, month, nday, nhour
+    character(len=256) :: chfilename, icbcfilename
+    integer(ik4) :: ncid, istatus
 
     call split_idate(idate,nyear,month,nday,nhour)
 
@@ -171,13 +171,13 @@ module mod_ch_icbc
 
   subroutine get_ch_icbc(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     character(len=256) :: chfilename
-    integer(ik4) :: year1 , month1 , day1 , hour1
-    integer(ik4) :: nyear , month , nday , nhour
+    integer(ik4) :: year1, month1, day1, hour1
+    integer(ik4) :: nyear, month, nday, nhour
     character(len=256) :: icbcfilename
     integer(ik4) :: istatus
-    integer(ik4) , dimension(3) :: istart , icount
+    integer(ik4), dimension(3) :: istart, icount
 
     call split_idate(globidate1,year1,month1,day1,hour1)
     call split_idate(idate,nyear,month,nday,nhour)
@@ -263,7 +263,7 @@ module mod_ch_icbc
   subroutine readps
     implicit none
     character(len=256) :: chfilename
-    integer :: ncid , istatus , ivarid
+    integer :: ncid, istatus, ivarid
 
     write(chfilename,'(a,i0.2,a)') &
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
@@ -283,24 +283,24 @@ module mod_ch_icbc
   subroutine find_data(idate,idate0,chfilename)
     implicit none
     integer, parameter                   ::nfile=127
-    type(rcm_time_and_date) , intent(in) :: idate
-    type(rcm_time_and_date) , intent(in) :: idate0
-    real(rkx) , dimension(nfile,124),save :: timearray
+    type(rcm_time_and_date), intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate0
+    real(rkx), dimension(nfile,124),save :: timearray
 
     character(len=256),intent(out) :: chfilename
     character(len=44),dimension(nfile),save:: filename
-    integer(ik4) :: i , recc , it
-    integer(ik4) :: timid , timlen
+    integer(ik4) :: i, recc, it
+    integer(ik4) :: timid, timlen
     character(len=32) :: chfilemm,chfilemmm1,chfilemmp1
-    character(len=64) :: cunit , ccal
+    character(len=64) :: cunit, ccal
     character(len=32) :: datename,datenamem1,datenamep1
     character(len=4)  :: yyyy
     character(len=2)  :: mm
     character(len=7)  :: yyyy_mm,yyyy_mmm1,yyyy_mmp1
-    integer(ik4) :: year , month , day , hour
-    integer(ik4) :: year1 , month1 , day1 , hour1
-    integer(ik4) :: nyear , nmonth , nday , nhour
-    integer :: ncid , istatus , ipunit
+    integer(ik4) :: year, month, day, hour
+    integer(ik4) :: year1, month1, day1, hour1
+    integer(ik4) :: nyear, nmonth, nday, nhour
+    integer :: ncid, istatus, ipunit
     type (rcm_time_interval) :: tdif
 
     call split_idate(idate,year,month,day,hour)
@@ -320,11 +320,11 @@ module mod_ch_icbc
     call split_idate(idate0,year1,month1,day1,hour1)
     call split_idate(idate,nyear,nmonth,nday,nhour)
     if ( nyear .eq. year1 .and. nmonth .eq. month1 .and. nhour .eq. hour1 ) then
-      do i = 1 , nfile
+      do i = 1, nfile
         read(ipunit,*) filename(i)
       end do
       recc=0
-      do i = 1 , nfile
+      do i = 1, nfile
         chfilename=trim(trim(inpglob)//pthsep//'OXIGLOB'//pthsep//filename(i))
         istatus = nf90_open(chfilename,nf90_nowrite,ncid)
         call checkncerr(istatus,__FILE__,__LINE__, &
@@ -350,7 +350,7 @@ module mod_ch_icbc
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time')
         cunit="days since 0000-01-01 00:00:00"
-        do it = 1 , timlen
+        do it = 1, timlen
           timearray(i,it) = xtimes(it)
         end do
         istatus = nf90_close(ncid)
@@ -362,8 +362,8 @@ module mod_ch_icbc
     cunit = "days since 1950-01-01 00:00:00"
     timlen = 124
     call getmem1d(itimes,1,timlen,'mod_ein:itimes')
-    do i = 1 , nfile
-      do it = 1 , 124
+    do i = 1, nfile
+      do it = 1, 124
         itimes(it)=timeval2date(dble(timearray(i,it)),cunit,ccal)
         tdif = itimes(it)-idate
         if(tohours(tdif) == 0) then
@@ -376,18 +376,18 @@ module mod_ch_icbc
 
   subroutine readmz4(idate,chfilename)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     character(len=256),intent(in) :: chfilename
-    integer(ik4) :: i , is , j , k , l , k0,recc
-    integer(ik4) :: timid , timlen
-    character(len=64) :: cunit , ccal
-    real(rkx) :: wt1 , wt2
-    integer(ik4) :: ncid , istatus , ivarid
-    integer(ik4) , dimension(4) :: icount , istart
-    integer(ik4) :: year , month , day , hour
-    integer(ik4) :: year1 , month1 , day1 , hour1
+    integer(ik4) :: i, is, j, k, l, k0,recc
+    integer(ik4) :: timid, timlen
+    character(len=64) :: cunit, ccal
+    real(rkx) :: wt1, wt2
+    integer(ik4) :: ncid, istatus, ivarid
+    integer(ik4), dimension(4) :: icount, istart
+    integer(ik4) :: year, month, day, hour
+    integer(ik4) :: year1, month1, day1, hour1
     integer(ik4) :: it
-    real(rkx) , parameter :: rglrog = rgas*lrate*regrav
+    real(rkx), parameter :: rglrog = rgas*lrate*regrav
     type(rcm_time_interval) :: tdif
 
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
@@ -416,7 +416,7 @@ module mod_ch_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read time')
     cunit="days since 1950-01-01 00:00:00"
-    do it = 1 , timlen
+    do it = 1, timlen
       itimes(it) = timeval2date(dble(xtimes(it)),cunit,ccal)
 
       tdif = itimes(it)-idate
@@ -426,7 +426,7 @@ module mod_ch_icbc
     end do
     write(stdout,*) 'Opening ', chfilename,'  ',recc,'  ',tochar(itimes(recc))
 
-    do k = 1 , 4
+    do k = 1, 4
       istart(k) = 1
     end do
 
@@ -437,7 +437,7 @@ module mod_ch_icbc
     call split_idate(idate,year,month,day,hour)
     call split_idate(globidate1,year1,month1,day1,hour1)
 
-    do is = 1 , nchsp
+    do is = 1, nchsp
       istart(4) = recc
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -448,12 +448,12 @@ module mod_ch_icbc
       where ( xinp < d_zero ) xinp = d_zero
       call h_interpolate_cont(hint,xinp,chv3(:,:,:,is))
     end do
-    do i = 1 , iy
-      do j = 1 , jx
-        do l = 1 , kz
+    do i = 1, iy
+      do j = 1, jx
+        do l = 1, kz
           prcm = ((pchem_3(j,i)*0.1_rkx-r4pt)*sigmah(l)+r4pt)*1000.0_rkx
           k0 = -1
-          do k = chilev , 1 , -1
+          do k = chilev, 1, -1
             pmpi = cht42hyam(k)*p0+xps3(j,i)*cht42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
@@ -463,7 +463,7 @@ module mod_ch_icbc
           else if (k0 == chilev) then
             pmpj = cht42hyam(chilev-1)*p0+xps3(j,i)*cht42hybm(chilev-1)
             pmpi = cht42hyam(chilev  )*p0+xps3(j,i)*cht42hybm(chilev  )
-            do is = 1 , nchsp
+            do is = 1, nchsp
               chv4_1(j,i,l,is) = 0.5_rkx * &
                 (chv3(j,i,chilev,is) + chv3(j,i,chilev-1,is)) * &
                   exp(rglrog*log(prcm/pmpi))
@@ -473,7 +473,7 @@ module mod_ch_icbc
             pmpi = cht42hyam(k0+1)*p0+xps3(j,i)*cht42hybm(k0+1)
             wt1 = (prcm-pmpj)/(pmpi-pmpj)
             wt2 = 1.0 - wt1
-            do is = 1 , nchsp
+            do is = 1, nchsp
               chv4_1(j,i,l,is) = chv3(j,i,k0+1,is)*wt1 + chv3(j,i,k0,is)*wt2
             end do
           end if
@@ -499,14 +499,14 @@ module mod_ch_icbc
 
   integer(ik4) function inextmon(im)
     implicit none
-    integer(ik4) , intent(in) :: im
+    integer(ik4), intent(in) :: im
     inextmon = im+1
     if ( inextmon == 13 ) inextmon = 1
   end function inextmon
 
   integer(ik4) function iprevmon(im)
     implicit none
-    integer(ik4) , intent(in) :: im
+    integer(ik4), intent(in) :: im
     iprevmon = im-1
     if ( iprevmon == 0 ) iprevmon = 12
   end function iprevmon

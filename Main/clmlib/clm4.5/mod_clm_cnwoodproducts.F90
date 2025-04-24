@@ -6,9 +6,9 @@ module mod_clm_cnwoodproducts
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : dtsrf
-  use mod_clm_decomp , only : get_proc_bounds
-  use mod_clm_varcon , only : istsoil
+  use mod_runparams, only : dtsrf
+  use mod_clm_decomp, only : get_proc_bounds
+  use mod_clm_varcon, only : istsoil
 
   implicit none
 
@@ -28,7 +28,7 @@ module mod_clm_cnwoodproducts
   !
   subroutine CNWoodProducts(num_soilc, filter_soilc)
     use mod_clm_type
-    use mod_clm_varctl , only : use_c13, use_c14
+    use mod_clm_varctl, only : use_c13, use_c14
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
@@ -49,7 +49,7 @@ module mod_clm_cnwoodproducts
     kprod10 = 7.2e-9_rk8
     kprod100 = 7.2e-10_rk8
 
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
 
       ! calculate fluxes (1/sec)
@@ -75,7 +75,7 @@ module mod_clm_cnwoodproducts
 
     ! update wood product state variables
     ! column loop
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
 
       ! column-level fluxes

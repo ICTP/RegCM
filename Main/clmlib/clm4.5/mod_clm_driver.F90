@@ -73,64 +73,64 @@ module mod_clm_driver
   use mod_dynparam
   use mod_date
   use mod_stdio
-  use mod_mppparam , only : italk
+  use mod_mppparam, only : italk
   use mod_runparams
   use mod_clm_type
-  use mod_clm_varctl , only : wrtdia , nextdate
-  use mod_clm_decomp , only : get_proc_bounds
-  use mod_clm_filter , only : filter
-  use mod_clm_reweight , only : reweightWrapup
+  use mod_clm_varctl, only : wrtdia, nextdate
+  use mod_clm_decomp, only : get_proc_bounds
+  use mod_clm_filter, only : filter
+  use mod_clm_reweight, only : reweightWrapup
 #if (defined CNDV)
-  use mod_clm_cndv , only : dv, histCNDV
-  use mod_clm_pftdyn , only : pftwt_interp
+  use mod_clm_cndv, only : dv, histCNDV
+  use mod_clm_pftdyn, only : pftwt_interp
 #endif
-  use mod_clm_pftdyn , only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal
+  use mod_clm_pftdyn, only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal
 #ifdef CN
-  use mod_clm_pftdyn , only : pftdyn_cnbal
-  use mod_clm_time_manager , only : is_end_curr_year
+  use mod_clm_pftdyn, only : pftdyn_cnbal
+  use mod_clm_time_manager, only : is_end_curr_year
 #endif
-  use mod_clm_dynland , only : dynland_hwcontent
-  use mod_clm_varcon , only : isturb
-  use mod_clm_histfile , only : hist_update_hbuf, hist_htapes_wrapup
-  use mod_clm_restfile , only : restFile_write, restFile_filename
-  use mod_clm_accflds , only : updateAccFlds
-  use mod_clm_driverinit , only : clm_driverInit
-  use mod_clm_balancecheck , only : BeginWaterBalance, BalanceCheck
-  use mod_clm_surfaceradiation , only : SurfaceRadiation
-  use mod_clm_hydrology1 , only : Hydrology1
-  use mod_clm_hydrology2 , only : Hydrology2
-  use mod_clm_slakefluxes , only : SLakeFluxes
-  use mod_clm_slaketemperature , only : SLakeTemperature
-  use mod_clm_slakehydrology , only : SLakeHydrology
-  use mod_clm_biogeophysics1 , only : Biogeophysics1
-  use mod_clm_baregroundfluxes , only : BareGroundFluxes
-  use mod_clm_canopyfluxes , only : CanopyFluxes
-  use mod_clm_biogeophysics2 , only : Biogeophysics2
-  use mod_clm_surfacealbedo , only : SurfaceAlbedo
-  use mod_clm_pft2col , only : pft2col
+  use mod_clm_dynland, only : dynland_hwcontent
+  use mod_clm_varcon, only : isturb
+  use mod_clm_histfile, only : hist_update_hbuf, hist_htapes_wrapup
+  use mod_clm_restfile, only : restFile_write, restFile_filename
+  use mod_clm_accflds, only : updateAccFlds
+  use mod_clm_driverinit, only : clm_driverInit
+  use mod_clm_balancecheck, only : BeginWaterBalance, BalanceCheck
+  use mod_clm_surfaceradiation, only : SurfaceRadiation
+  use mod_clm_hydrology1, only : Hydrology1
+  use mod_clm_hydrology2, only : Hydrology2
+  use mod_clm_slakefluxes, only : SLakeFluxes
+  use mod_clm_slaketemperature, only : SLakeTemperature
+  use mod_clm_slakehydrology, only : SLakeHydrology
+  use mod_clm_biogeophysics1, only : Biogeophysics1
+  use mod_clm_baregroundfluxes, only : BareGroundFluxes
+  use mod_clm_canopyfluxes, only : CanopyFluxes
+  use mod_clm_biogeophysics2, only : Biogeophysics2
+  use mod_clm_surfacealbedo, only : SurfaceAlbedo
+  use mod_clm_pft2col, only : pft2col
 #if (defined CN)
-  use mod_clm_cnsetvalue , only : CNZeroFluxes_dwt
-  use mod_clm_cnecosystemdyn , only : CNEcosystemDyn
-  use mod_clm_cnannualupdate , only : CNAnnualUpdate
-  use mod_clm_cnbalancecheck , only : BeginCBalance, BeginNBalance, &
+  use mod_clm_cnsetvalue, only : CNZeroFluxes_dwt
+  use mod_clm_cnecosystemdyn, only : CNEcosystemDyn
+  use mod_clm_cnannualupdate, only : CNAnnualUpdate
+  use mod_clm_cnbalancecheck, only : BeginCBalance, BeginNBalance, &
                                       CBalanceCheck, NBalanceCheck
-  use mod_clm_cnverticalprofile , only : decomp_vertprofiles
-  use mod_clm_cnfire , only : CNFireInterp
+  use mod_clm_cnverticalprofile, only : decomp_vertprofiles
+  use mod_clm_cnfire, only : CNFireInterp
 #else
-  use mod_clm_staticecosysdyn , only : EcosystemDyn
+  use mod_clm_staticecosysdyn, only : EcosystemDyn
 #endif
-  use mod_clm_activelayer , only : alt_calc
-  use mod_clm_dust , only : DustDryDep, DustEmission
-  use mod_clm_vocemission , only : VOCEmission
-  use mod_clm_drydep , only : n_drydep, drydep_method, DD_XLND
-  use mod_clm_staticecosysdyn , only : interpMonthlyVeg
-  use mod_clm_drydepvelocity , only : depvel_compute
+  use mod_clm_activelayer, only : alt_calc
+  use mod_clm_dust, only : DustDryDep, DustEmission
+  use mod_clm_vocemission, only : VOCEmission
+  use mod_clm_drydep, only : n_drydep, drydep_method, DD_XLND
+  use mod_clm_staticecosysdyn, only : interpMonthlyVeg
+  use mod_clm_drydepvelocity, only : depvel_compute
 #if (defined LCH4)
-  use mod_clm_ch4 , only : ch4
+  use mod_clm_ch4, only : ch4
 #endif
-  use mod_clm_urban , only : UrbanAlbedo, UrbanRadiation, UrbanFluxes
-  use mod_clm_snicar , only : SnowAge_grain
-  use mod_clm_atmlnd , only : clm_map2gcell
+  use mod_clm_urban, only : UrbanAlbedo, UrbanRadiation, UrbanFluxes
+  use mod_clm_snicar, only : SnowAge_grain
+  use mod_clm_atmlnd, only : clm_map2gcell
 
   implicit none
 
@@ -147,24 +147,24 @@ module mod_clm_driver
   !
   subroutine clm_drv(doalb,nextsw_cday,declinp1,declin,rstwr,nlend,nlomon,rdate)
     implicit none
-    logical , intent(in) :: doalb     ! true if time for surface albedo calc
-    real(rk8) , intent(in) :: nextsw_cday ! calendar day
-    real(rk8) , intent(in) :: declinp1 ! declination angle for next time step
-    real(rk8) , intent(in) :: declin   ! declination angle for current time step
-    logical , intent(in) :: rstwr     ! true => write restart file this step
-    logical , intent(in) :: nlend     ! true => end of run on this step
-    logical , intent(in) :: nlomon    ! true => end of month on this step
-    character(len=*) , intent(in) :: rdate ! restart file time stamp for name
+    logical, intent(in) :: doalb     ! true if time for surface albedo calc
+    real(rk8), intent(in) :: nextsw_cday ! calendar day
+    real(rk8), intent(in) :: declinp1 ! declination angle for next time step
+    real(rk8), intent(in) :: declin   ! declination angle for current time step
+    logical, intent(in) :: rstwr     ! true => write restart file this step
+    logical, intent(in) :: nlend     ! true => end of run on this step
+    logical, intent(in) :: nlomon    ! true => end of month on this step
+    character(len=*), intent(in) :: rdate ! restart file time stamp for name
     ! landunit index associated with each column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! landunit type
-    integer(ik4) , pointer , dimension(:) :: itypelun
+    integer(ik4), pointer, contiguous, dimension(:) :: itypelun
     integer(ik4)  :: c, l, g   ! indices
     integer(ik4)  :: begg, endg ! beginning and ending gridcell indices
     integer(ik4)  :: begl, endl ! beginning and ending landunit indices
     integer(ik4)  :: begc, endc ! beginning and ending column indices
     integer(ik4)  :: begp, endp ! beginning and ending pft indices
-    type(column_type) , pointer :: cptr   ! pointer to column derived subtype
+    type(column_type), pointer :: cptr   ! pointer to column derived subtype
     type(rcm_time_interval) :: tdif
 #if (defined CNDV)
     integer(ik4)  :: yr       ! year (0, ...)
@@ -177,7 +177,7 @@ module mod_clm_driver
     character(len=256) :: filer  ! restart file name
     !FAB
 #if (defined CN)
-    logical , save  :: lfirstcall = .false.
+    logical, save  :: lfirstcall = .false.
 #endif
     ! Assign local pointers to derived subtypes components (landunit-level)
 
@@ -231,7 +231,7 @@ module mod_clm_driver
     ! ========================================================================
 
     ! initialize heat and water content and dynamic balance fields to zero
-    do g = begg , endg
+    do g = begg, endg
       clm3%g%gwf%qflx_liq_dynbal(g) = 0._rk8
       clm3%g%gws%gc_liq2(g)         = 0._rk8
       clm3%g%gws%gc_liq1(g)         = 0._rk8
@@ -284,7 +284,7 @@ module mod_clm_driver
                            clm3%g%gws%gc_liq2(begg:endg), &
                            clm3%g%gws%gc_ice2(begg:endg), &
                            clm3%g%ges%gc_heat2(begg:endg))
-    do g = begg , endg
+    do g = begg, endg
       clm3%g%gwf%qflx_liq_dynbal(g) = &
               (clm3%g%gws%gc_liq2 (g) - clm3%g%gws%gc_liq1 (g))/dtsrf
       clm3%g%gwf%qflx_ice_dynbal(g) = &
@@ -365,7 +365,7 @@ module mod_clm_driver
     clm3%g%l%c%p%pcf%cisha_z(begp:endp,:) = -999._rk8
 
     ! initialize declination for current timestep
-    do c = begc , endc
+    do c = begc, endc
       clm3%g%l%c%cps%decl(c) = declin
     end do
 
@@ -523,7 +523,7 @@ module mod_clm_driver
     ! Fraction of soil covered by snow (Z.-L. Yang U. Texas)
     ! =======================================================================
 
-    do c = begc , endc
+    do c = begc, endc
       l = clandunit(c)
       if ( itypelun(l) == isturb ) then
         ! Urban landunit use Bonan 1996 (LSM Technical Note)

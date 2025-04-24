@@ -28,18 +28,18 @@ module mod_ocn_albedo
   !
   ! Solar flux partitioned at wavelength of 0.7micr
   !
-  real(rkx) , parameter :: fsol1 = 0.5_rkx
-  real(rkx) , parameter :: fsol2 = 0.5_rkx
+  real(rkx), parameter :: fsol1 = 0.5_rkx
+  real(rkx), parameter :: fsol2 = 0.5_rkx
   !
   ! Short and long wave albedo for new snow
   !
-  real(rkx) , parameter :: snal0 = 0.95_rkx
-  real(rkx) , parameter :: snal1 = 0.65_rkx
+  real(rkx), parameter :: snal0 = 0.95_rkx
+  real(rkx), parameter :: snal1 = 0.65_rkx
   !
   ! Short and long wave albedo for sea ice
   !
-  real(rkx) , parameter :: sical0 = 0.6_rkx
-  real(rkx) , parameter :: sical1 = 0.4_rkx
+  real(rkx), parameter :: sical0 = 0.6_rkx
+  real(rkx), parameter :: sical1 = 0.4_rkx
 
   public :: ocn_albedo
 
@@ -50,18 +50,18 @@ module mod_ocn_albedo
   !
   subroutine ocn_albedo
     implicit none
-    real(rkx) :: age , albg , albgl , albgld , albgs , albgsd , &
-                 cf1 , cff , conn , cons , czeta , czf , sl2 ,  &
-                 dfalbl , dfalbs , dralbl , dralbs , sl , sli , &
-                 tdiff , tdiffs , scrat , scvk , wfac , onemc , &
-                 w0 , wspd
+    real(rkx) :: age, albg, albgl, albgld, albgs, albgsd, &
+                 cf1, cff, conn, cons, czeta, czf, sl2,  &
+                 dfalbl, dfalbs, dralbl, dralbs, sl, sli, &
+                 tdiff, tdiffs, scrat, scvk, wfac, onemc, &
+                 w0, wspd
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'ocn_albedo'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    do i = iocnbeg , iocnend
+    do i = iocnbeg, iocnend
 #ifdef RCEMIP
       wspd = um10(i)
       wfac = 2.95e-6_rkx * wspd**3.52_rkx
@@ -87,7 +87,7 @@ module mod_ocn_albedo
           albg = 0.026_rkx / (czeta**1.7_rkx + 0.065_rkx) + &
                  0.15_rkx * (czeta-0.1_rkx)*(czeta-0.5_rkx)*(czeta-1.0_rkx)
           if ( czeta > 0.01_rkx .and. czeta < 0.12_rkx ) then
-            ! Katsaros et al [1985] , reduction by wind waves at low angles.
+            ! Katsaros et al [1985], reduction by wind waves at low angles.
             albg = max(0.05_rkx,albg*(d_one - 0.0036_rkx*wspd))
           end if
           ! Koepke [1984] - Increase by whitecapping

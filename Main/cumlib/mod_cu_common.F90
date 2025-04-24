@@ -19,9 +19,9 @@ module mod_cu_common
   use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_runparams , only : clfrcv , dt , nqx
-  use mod_runparams , only : icup , ipptls , icumcloud , ichem
-  use mod_mppparam , only : ma
+  use mod_runparams, only : clfrcv, dt, nqx
+  use mod_runparams, only : icup, ipptls, icumcloud, ichem
+  use mod_mppparam, only : ma
   use mod_memutil
   use mod_regcm_types
 
@@ -29,41 +29,41 @@ module mod_cu_common
 
   private
 
-  real(rkx) , pointer , public , dimension(:,:,:) :: cu_tten
-  real(rkx) , pointer , public , dimension(:,:,:) :: cu_uten
-  real(rkx) , pointer , public , dimension(:,:,:) :: cu_vten
-  real(rkx) , pointer , public , dimension(:,:,:,:) :: cu_qten
-  real(rkx) , pointer , public , dimension(:,:,:,:) :: cu_chiten
-  real(rkx) , pointer , public , dimension(:,:,:) :: avg_ww
-  real(rkx) , pointer , public , dimension(:,:) :: cu_prate
-  real(rkx) , pointer , public , dimension(:,:) :: cu_srate
-  real(rkx) , pointer , public , dimension(:,:,:) :: cu_qdetr
-  real(rkx) , pointer , public , dimension(:,:,:) :: cu_raincc
-  real(rkx) , pointer , public , dimension(:,:,:) :: cu_convpr
-  real(rkx) , pointer , public , dimension(:,:,:) :: cu_cldfrc
-  integer(ik4) , pointer , public , dimension(:,:) :: cu_ktop
-  integer(ik4) , pointer , public , dimension(:,:) :: cu_kbot
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_tten
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_uten
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_vten
+  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: cu_qten
+  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: cu_chiten
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: avg_ww
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: cu_prate
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: cu_srate
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_qdetr
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_raincc
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_convpr
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_cldfrc
+  integer(ik4), pointer, contiguous, public, dimension(:,:) :: cu_ktop
+  integer(ik4), pointer, contiguous, public, dimension(:,:) :: cu_kbot
 
   ! which scheme to use
-  integer(ik4) , public , pointer , dimension(:,:) :: cuscheme
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: cuscheme
 
-  integer(ik4) , public :: total_precip_points
+  integer(ik4), public :: total_precip_points
 
-  real(rkx) , dimension(10) :: cld_profile
-  real(rkx) , dimension(10) :: fixed_cld_profile
-  real(rkx) , dimension(10) :: rnum
+  real(rkx), dimension(10) :: cld_profile
+  real(rkx), dimension(10) :: fixed_cld_profile
+  real(rkx), dimension(10) :: rnum
 
-  real(rkx) , parameter :: maxcloud_dp =  60000.0_rkx ! In Pa
-  logical , parameter :: addnoise = .false.
+  real(rkx), parameter :: maxcloud_dp =  60000.0_rkx ! In Pa
+  logical, parameter :: addnoise = .false.
 
-  public :: init_mod_cumulus , model_cumulus_cloud
+  public :: init_mod_cumulus, model_cumulus_cloud
 
   contains
 
   subroutine init_mod_cumulus
     implicit none
-    integer(ik4) , dimension(:) , allocatable:: iseed
-    integer(ik4) :: k , nseed
+    integer(ik4), dimension(:), allocatable:: iseed
+    integer(ik4) :: k, nseed
     real(rk4) :: cputime
 
     if ( any(icup == 4) .or. any(icup == 5) ) then
@@ -125,20 +125,20 @@ module mod_cu_common
 
   subroutine model_cumulus_cloud(m2c)
     implicit none
-    type(mod_2_cum) , intent(in) :: m2c
-    real(rkx) :: akclth , scalep , scalef
-    integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
+    type(mod_2_cum), intent(in) :: m2c
+    real(rkx) :: akclth, scalep, scalef
+    integer(ik4):: i, j, k, ktop, kbot, kclth, ikh
     scalef = (d_one-clfrcv)
     if ( icumcloud <= 1 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           ! The regcm model is top to bottom
           ktop = cu_ktop(j,i)
           kbot = cu_kbot(j,i)
           kclth = kbot - ktop + 1
           if ( kclth < 2 ) cycle
           akclth = d_one/real(kclth,rkx)
-          do k = ktop , kbot
+          do k = ktop, kbot
             cu_cldfrc(j,i,k) = d_one - scalef**akclth
           end do
         end do
@@ -149,15 +149,15 @@ module mod_cu_common
         call random_number(rnum)
         cld_profile = (0.75_rkx+(rnum/2.0_rkx))*fixed_cld_profile
       end if
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           ktop = cu_ktop(j,i)
           kbot = cu_kbot(j,i)
           kclth = kbot - ktop + 1
           if ( kclth < 2 ) cycle
           scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop)) / &
                   maxcloud_dp,d_one)
-          do k = ktop , kbot
+          do k = ktop, kbot
             ikh = max(1,min(10,int((real(k-ktop+1,rkx)/real(kclth,rkx))*d_10)))
             cu_cldfrc(j,i,k) = cld_profile(ikh)*clfrcv*scalep
           end do

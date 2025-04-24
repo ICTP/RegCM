@@ -25,21 +25,21 @@ module mod_lgm_helper
 
   public :: lgmvars
   public :: find_lgm_sst
-  public :: find_lgm_dim , find_lgm_topo , find_lgm_file
+  public :: find_lgm_dim, find_lgm_topo, find_lgm_file
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: lgmvars = &
-            ['t  ' , 'XXX' , 'sq ' , 'u  ' , 'v  ' , 'aps']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: lgmvars = &
+            ['t  ', 'XXX', 'sq ', 'u  ', 'v  ', 'aps']
 
   contains
 
   subroutine find_lgm_sst(fname,idate,res)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=1) , intent(in) :: res
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=1), intent(in) :: res
     character(len=4) :: cy
-    integer(ik4) :: y , m , d , h
+    integer(ik4) :: y, m, d, h
     call split_idate(idate,y,m,d,h)
     write(cy,'(i0.4)') y
     if ( res == 'P' ) then
@@ -61,9 +61,9 @@ module mod_lgm_helper
 
   subroutine find_lgm_dim(fname,res)
     implicit none
-    character(len=256) , intent(out) :: fname
-    character(len=1) , intent(in) :: res
-    character(len=4) , parameter :: cy = '1930'
+    character(len=256), intent(out) :: fname
+    character(len=1), intent(in) :: res
+    character(len=4), parameter :: cy = '1930'
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     if ( res == 'P' ) then
@@ -79,8 +79,8 @@ module mod_lgm_helper
 
   subroutine find_lgm_topo(topo_filename,res)
     implicit none
-    character(len=256) , intent(out) :: topo_filename
-    character(len=1) , intent(in) :: res
+    character(len=256), intent(out) :: topo_filename
+    character(len=1), intent(in) :: res
     if ( res == 'P' ) then
       topo_filename = trim(inpglob)//pthsep//'LGM'//pthsep//'fixed'// &
               pthsep//'lgm_r1i1p1-P_echam6_echam_fx_geosp.nc'
@@ -92,11 +92,11 @@ module mod_lgm_helper
 
   subroutine find_lgm_file(fname,idate,res)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=1) , intent(in) :: res
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=1), intent(in) :: res
     character(len=4) :: cy
-    integer(ik4) :: y , m , d , h
+    integer(ik4) :: y, m, d, h
     call split_idate(idate,y,m,d,h)
     write(cy,'(i0.4)') y
     if ( res == 'P' ) then

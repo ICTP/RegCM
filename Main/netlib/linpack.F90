@@ -5869,7 +5869,7 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
   integer ks
   integer kstep
   real(rkx) t
-  real(rkx) , parameter :: ten = 10.0_rkx
+  real(rkx), parameter :: ten = 10.0_rkx
   real(rkx) work(n)
 !
   doinv = mod ( job,   10 )       /= 0
@@ -6945,7 +6945,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
   integer kskp1
   integer kstep
   real(rkx) t
-  real(rkx) , parameter :: ten = 10.0_rkx
+  real(rkx), parameter :: ten = 10.0_rkx
   real(rkx) work(n)
 !
   doinv = mod ( job,   10 )       /= 0
@@ -8618,7 +8618,7 @@ subroutine strdi ( t, ldt, n, det, job, info )
   integer k
   real(rkx) t(ldt,n)
   real(rkx) temp
-  real(rkx) , parameter :: ten = 10.0_rkx
+  real(rkx), parameter :: ten = 10.0_rkx
 !
 !  Determinant.
 !

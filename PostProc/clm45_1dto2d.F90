@@ -41,18 +41,18 @@ module mod_remap
 
   subroutine remap_int4(nsg,iv,mask,var)
     implicit none
-    integer(ik4) , intent(in) :: nsg
-    integer(ik4) , intent(inout) , dimension(:) :: iv
-    integer(ik4) , intent(in) , dimension(:,:) :: mask
-    integer(ik4) , intent(out) , dimension(:,:) :: var
-    integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj
+    integer(ik4), intent(in) :: nsg
+    integer(ik4), intent(inout), dimension(:) :: iv
+    integer(ik4), intent(in), dimension(:,:) :: mask
+    integer(ik4), intent(out), dimension(:,:) :: var
+    integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj
     var(:,:) = -9999
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
       ib = 1
-      do i = 1 , n2
-        do j = 1 , n1
+      do i = 1, n2
+        do j = 1, n1
           if ( mask(j,i) > 0 ) then
             var(j,i) = iv(ib)
             ib = ib + 1
@@ -63,11 +63,11 @@ module mod_remap
       n1 = size(mask,1)/nsg
       n2 = size(mask,2)/nsg
       ib = 1
-      do i = 1 , n2
-        do j = 1 , n1
-          do ni = 1 , nsg
+      do i = 1, n2
+        do j = 1, n1
+          do ni = 1, nsg
             ii = (i-1)*nsg + ni
-            do nj = 1 , nsg
+            do nj = 1, nsg
               jj = (j-1)*nsg + nj
               if ( mask(jj,ii) > 0 ) then
                 var(jj,ii) = iv(ib)
@@ -82,19 +82,19 @@ module mod_remap
 
   subroutine remap_pft_int4(nsg,ipft,iv,ipt,igc,mask,var)
     implicit none
-    integer(ik4) , intent(in) :: nsg , ipft
-    integer(ik4) , intent(inout) , dimension(:) :: iv , ipt , igc
-    integer(ik4) , intent(in) , dimension(:,:) :: mask
-    integer(ik4) , intent(out) , dimension(:,:) :: var
-    integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj , ip
+    integer(ik4), intent(in) :: nsg, ipft
+    integer(ik4), intent(inout), dimension(:) :: iv, ipt, igc
+    integer(ik4), intent(in), dimension(:,:) :: mask
+    integer(ik4), intent(out), dimension(:,:) :: var
+    integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj, ip
     var(:,:) = -9999
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
       ib = 1
       ip = 1
-      do i = 1 , n2
-        do j = 1 , n1
+      do i = 1, n2
+        do j = 1, n1
           if ( mask(j,i) > 0 ) then
             do while ( igc(ip) /= ib )
               ip = ip + 1
@@ -117,11 +117,11 @@ module mod_remap
       n2 = size(mask,2)/nsg
       ib = 1
       ip = 1
-      do i = 1 , n2
-        do j = 1 , n1
-          do ni = 1 , nsg
+      do i = 1, n2
+        do j = 1, n1
+          do ni = 1, nsg
             ii = (i-1)*nsg + ni
-            do nj = 1 , nsg
+            do nj = 1, nsg
               jj = (j-1)*nsg + nj
               if ( mask(jj,ii) > 0 ) then
                 do while ( igc(ip) /= ib )
@@ -147,18 +147,18 @@ module mod_remap
 
   subroutine remap_real4(nsg,iv,mask,var)
     implicit none
-    integer(ik4) , intent(in) :: nsg
-    real(rk4) , intent(inout) , dimension(:) :: iv
-    integer(ik4) , intent(in) , dimension(:,:) :: mask
-    real(rk4) , dimension(:,:) , intent(out) :: var
-    integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj
+    integer(ik4), intent(in) :: nsg
+    real(rk4), intent(inout), dimension(:) :: iv
+    integer(ik4), intent(in), dimension(:,:) :: mask
+    real(rk4), dimension(:,:), intent(out) :: var
+    integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj
     var(:,:) = -9999.0
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
       ib = 1
-      do i = 1 , n2
-        do j = 1 , n1
+      do i = 1, n2
+        do j = 1, n1
           if ( mask(j,i) > 0 ) then
             var(j,i) = iv(ib)
             ib = ib + 1
@@ -169,11 +169,11 @@ module mod_remap
       n1 = size(mask,1)/nsg
       n2 = size(mask,2)/nsg
       ib = 1
-      do i = 1 , n2
-        do j = 1 , n1
-          do ni = 1 , nsg
+      do i = 1, n2
+        do j = 1, n1
+          do ni = 1, nsg
             ii = (i-1)*nsg + ni
-            do nj = 1 , nsg
+            do nj = 1, nsg
               jj = (j-1)*nsg + nj
               if ( mask(jj,ii) > 0 ) then
                 var(jj,ii) = iv(ib)
@@ -188,20 +188,20 @@ module mod_remap
 
   subroutine remap_pft_real4(nsg,ipft,iv,ipt,igc,mask,var)
     implicit none
-    integer(ik4) , intent(in) :: nsg , ipft
-    real(rk4) , intent(inout) , dimension(:) :: iv
-    integer(ik4) , intent(inout) , dimension(:) :: ipt , igc
-    integer(ik4) , intent(in) , dimension(:,:) :: mask
-    real(rk4) , dimension(:,:) , intent(out) :: var
-    integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj , ip
+    integer(ik4), intent(in) :: nsg, ipft
+    real(rk4), intent(inout), dimension(:) :: iv
+    integer(ik4), intent(inout), dimension(:) :: ipt, igc
+    integer(ik4), intent(in), dimension(:,:) :: mask
+    real(rk4), dimension(:,:), intent(out) :: var
+    integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj, ip
     var(:,:) = -9999.0
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
       ib = 1
       ip = 1
-      do i = 1 , n2
-        do j = 1 , n1
+      do i = 1, n2
+        do j = 1, n1
           if ( mask(j,i) > 0 ) then
             do while ( igc(ip) /= ib )
               ip = ip + 1
@@ -224,11 +224,11 @@ module mod_remap
       n2 = size(mask,2)/nsg
       ib = 1
       ip = 1
-      do i = 1 , n2
-        do j = 1 , n1
-          do ni = 1 , nsg
+      do i = 1, n2
+        do j = 1, n1
+          do ni = 1, nsg
             ii = (i-1)*nsg + ni
-            do nj = 1 , nsg
+            do nj = 1, nsg
               jj = (j-1)*nsg + nj
               if ( mask(jj,ii) > 0 ) then
                 do while ( igc(ip) /= ib )
@@ -254,18 +254,18 @@ module mod_remap
 
   subroutine remap_real8(nsg,iv,mask,var)
     implicit none
-    integer(ik4) , intent(in) :: nsg
-    real(rk8) , intent(inout) , dimension(:) :: iv
-    integer(ik4) , intent(in) , dimension(:,:) :: mask
-    real(rk8) , dimension(:,:) , intent(out) :: var
-    integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj
+    integer(ik4), intent(in) :: nsg
+    real(rk8), intent(inout), dimension(:) :: iv
+    integer(ik4), intent(in), dimension(:,:) :: mask
+    real(rk8), dimension(:,:), intent(out) :: var
+    integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj
     var(:,:) = -9999.0d0
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
       ib = 1
-      do i = 1 , n2
-        do j = 1 , n1
+      do i = 1, n2
+        do j = 1, n1
           if ( mask(j,i) > 0 ) then
             var(j,i) = iv(ib)
             ib = ib + 1
@@ -276,11 +276,11 @@ module mod_remap
       n1 = size(mask,1)/nsg
       n2 = size(mask,2)/nsg
       ib = 1
-      do i = 1 , n2
-        do j = 1 , n1
-          do ni = 1 , nsg
+      do i = 1, n2
+        do j = 1, n1
+          do ni = 1, nsg
             ii = (i-1)*nsg + ni
-            do nj = 1 , nsg
+            do nj = 1, nsg
               jj = (j-1)*nsg + nj
               if ( mask(jj,ii) > 0 ) then
                 var(jj,ii) = iv(ib)
@@ -295,20 +295,20 @@ module mod_remap
 
   subroutine remap_pft_real8(nsg,ipft,iv,ipt,igc,mask,var)
     implicit none
-    integer(ik4) , intent(in) :: nsg , ipft
-    real(rk8) , intent(inout) , dimension(:) :: iv
-    integer(ik4) , intent(inout) , dimension(:) :: ipt , igc
-    integer(ik4) , intent(in) , dimension(:,:) :: mask
-    real(rk8) , dimension(:,:) , intent(out) :: var
-    integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj , ip
+    integer(ik4), intent(in) :: nsg, ipft
+    real(rk8), intent(inout), dimension(:) :: iv
+    integer(ik4), intent(inout), dimension(:) :: ipt, igc
+    integer(ik4), intent(in), dimension(:,:) :: mask
+    real(rk8), dimension(:,:), intent(out) :: var
+    integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj, ip
     var(:,:) = -9999.0d0
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
       ib = 1
       ip = 1
-      do i = 1 , n2
-        do j = 1 , n1
+      do i = 1, n2
+        do j = 1, n1
           if ( mask(j,i) > 0 ) then
             do while ( igc(ip) /= ib )
               ip = ip + 1
@@ -331,11 +331,11 @@ module mod_remap
       n2 = size(mask,2)/nsg
       ib = 1
       ip = 1
-      do i = 1 , n2
-        do j = 1 , n1
-          do ni = 1 , nsg
+      do i = 1, n2
+        do j = 1, n1
+          do ni = 1, nsg
             ii = (i-1)*nsg + ni
-            do nj = 1 , nsg
+            do nj = 1, nsg
               jj = (j-1)*nsg + nj
               if ( mask(jj,ii) > 0 ) then
                 do while ( igc(ip) /= ib )
@@ -366,45 +366,45 @@ program clm45_1dto2d
   use mod_intkinds
   use mod_stdio
   use mod_nchelper
-  use mod_dynparam , only : iomode
+  use mod_dynparam, only : iomode
   use mod_remap
   use netcdf
 
   implicit none
 
-  character(len=256) :: prgname , ncfile , ncoutfile
-  integer(ik4) :: numarg , istatus
-  integer(ik4) :: ncid , ndims , nvars , natts , udimid
+  character(len=256) :: prgname, ncfile, ncoutfile
+  integer(ik4) :: numarg, istatus
+  integer(ik4) :: ncid, ndims, nvars, natts, udimid
   integer(ik4) :: ncoutid
-  integer(ik4) :: varid , idtime
-  integer(ik4) , allocatable , dimension(:) :: dimids , dsize
-  integer(ik4) , allocatable , dimension(:) :: varids
-  integer(ik4) , allocatable , dimension(:) :: outdimids
-  integer(ik4) , allocatable , dimension(:) :: mapids
-  integer(ik4) , allocatable , dimension(:) :: vtype , vndims
-  integer(ik4) , allocatable , dimension(:,:) :: vshape
-  integer(ik4) :: iy , jx
-  integer(ik4) :: id , iv , iid1 , iid2 , ip
-  integer(ik4) :: n , m , npft , ngridcell , ia , numpft
-  integer(ik4) :: lndgrid , iydim , jxdim , pftgrid
-  integer(ik4) , allocatable , dimension(:,:) :: mask
-  real(rk4) , allocatable , dimension(:, :) :: var2d_single
-  real(rk8) , allocatable , dimension(:, :) :: var2d_double
-  integer(ik4) , allocatable , dimension(:, :) :: var2d_int
+  integer(ik4) :: varid, idtime
+  integer(ik4), allocatable, dimension(:) :: dimids, dsize
+  integer(ik4), allocatable, dimension(:) :: varids
+  integer(ik4), allocatable, dimension(:) :: outdimids
+  integer(ik4), allocatable, dimension(:) :: mapids
+  integer(ik4), allocatable, dimension(:) :: vtype, vndims
+  integer(ik4), allocatable, dimension(:,:) :: vshape
+  integer(ik4) :: iy, jx
+  integer(ik4) :: id, iv, iid1, iid2, ip
+  integer(ik4) :: n, m, npft, ngridcell, ia, numpft
+  integer(ik4) :: lndgrid, iydim, jxdim, pftgrid
+  integer(ik4), allocatable, dimension(:,:) :: mask
+  real(rk4), allocatable, dimension(:, :) :: var2d_single
+  real(rk8), allocatable, dimension(:, :) :: var2d_double
+  integer(ik4), allocatable, dimension(:, :) :: var2d_int
   integer(ik4) :: npftlun
-  integer(ik4) , allocatable , dimension(:) :: itypveg , ipftgcell
-  logical , allocatable , dimension(:) :: lexpand , lpftexpand
-  character(len=32) :: vname , dname
+  integer(ik4), allocatable, dimension(:) :: itypveg, ipftgcell
+  logical, allocatable, dimension(:) :: lexpand, lpftexpand
+  character(len=32) :: vname, dname
   character(len=64) :: aname
-  real(rk8) , allocatable , dimension(:) :: double_var_1d
-  real(rk4) , allocatable , dimension(:) :: single_var_1d
-  integer(ik4) , allocatable , dimension(:) :: int_var_1d
-  real(rk8) , allocatable , dimension(:,:) :: double_var_2d
-  real(rk4) , allocatable , dimension(:,:) :: single_var_2d
-  integer(ik4) , allocatable , dimension(:,:) :: int_var_2d
-  real(rk8) , allocatable , dimension(:,:,:) :: double_var_3d
-  real(rk4) , allocatable , dimension(:,:,:) :: single_var_3d
-  integer(ik4) , allocatable , dimension(:,:,:) :: int_var_3d
+  real(rk8), allocatable, dimension(:) :: double_var_1d
+  real(rk4), allocatable, dimension(:) :: single_var_1d
+  integer(ik4), allocatable, dimension(:) :: int_var_1d
+  real(rk8), allocatable, dimension(:,:) :: double_var_2d
+  real(rk4), allocatable, dimension(:,:) :: single_var_2d
+  integer(ik4), allocatable, dimension(:,:) :: int_var_2d
+  real(rk8), allocatable, dimension(:,:,:) :: double_var_3d
+  real(rk4), allocatable, dimension(:,:,:) :: single_var_3d
+  integer(ik4), allocatable, dimension(:,:,:) :: int_var_3d
   integer(ik4) :: nsg
   logical :: has_fillvalue
 
@@ -455,7 +455,7 @@ program clm45_1dto2d
   allocate(vtype(nvars))
   allocate(vshape(nvars,ndims))
 
-  do ia = 1 , natts
+  do ia = 1, natts
     istatus = nf90_inq_attname(ncid, nf90_global, ia, aname)
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire attribute')
     istatus = nf90_copy_att(ncid, nf90_global, aname, ncoutid, nf90_global)
@@ -484,7 +484,7 @@ program clm45_1dto2d
   pftgrid = -1
   npft = -1
   ngridcell = -1
-  do id = 1 , ndims
+  do id = 1, ndims
     istatus = nf90_inquire_dimension(ncid, id, dname, dsize(id))
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension')
 
@@ -525,7 +525,7 @@ program clm45_1dto2d
 
   vshape(:,:) = -1
   idtime = -1
-  do iv = 1 , nvars
+  do iv = 1, nvars
     lexpand(iv) = .false.
     lpftexpand(iv) = .false.
     istatus = nf90_inquire_variable(ncid,iv,name=vname,xtype=vtype(iv), &
@@ -535,7 +535,7 @@ program clm45_1dto2d
     if ( vname == 'time' ) then
       idtime = iv
     end if
-    do id = 1 , vndims(iv)
+    do id = 1, vndims(iv)
       if ( dimids(id) == lndgrid ) then
         lexpand(iv) = .true.
         mapids(id) = outdimids(jxdim)
@@ -564,7 +564,7 @@ program clm45_1dto2d
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error define variable '//trim(vname))
     has_fillvalue = .false.
-    do ia = 1 , natts
+    do ia = 1, natts
       istatus = nf90_inq_attname(ncid, iv, ia, aname)
       call checkncerr(istatus,__FILE__,__LINE__,'Error inquire attribute')
       istatus = nf90_copy_att(ncid, iv, aname, ncoutid, varids(iv))
@@ -617,7 +617,7 @@ program clm45_1dto2d
   deallocate(double_var_1d)
 
   writeloop: &
-  do iv = 1 , nvars
+  do iv = 1, nvars
     if ( iv == idtime ) cycle writeloop
     if ( lexpand(iv) ) then
       select case (vtype(iv))
@@ -635,7 +635,7 @@ program clm45_1dto2d
               allocate(single_var_2d(vshape(iv,1),vshape(iv,2)))
               istatus = nf90_get_var(ncid,iv,single_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,2)
+              do n = 1, vshape(iv,2)
                 call remap(nsg,single_var_2d(:,n),mask,var2d_single)
                 istatus = nf90_put_var(ncoutid,iv,var2d_single, &
                         start=[1,1,n], count=[jx,iy,1])
@@ -646,8 +646,8 @@ program clm45_1dto2d
               allocate(single_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
               istatus = nf90_get_var(ncid,iv,single_var_3d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,3)
-                do m = 1 , vshape(iv,2)
+              do n = 1, vshape(iv,3)
+                do m = 1, vshape(iv,2)
                   call remap(nsg,single_var_3d(:,m,n),mask,var2d_single)
                   istatus = nf90_put_var(ncoutid,iv,var2d_single, &
                           start=[1,1,m,n], count=[jx,iy,1,1])
@@ -670,7 +670,7 @@ program clm45_1dto2d
               allocate(double_var_2d(vshape(iv,1),vshape(iv,2)))
               istatus = nf90_get_var(ncid,iv,double_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,2)
+              do n = 1, vshape(iv,2)
                 call remap(nsg,double_var_2d(:,n),mask,var2d_double)
                 istatus = nf90_put_var(ncoutid,iv,var2d_double, &
                         start=[1,1,n], count=[jx,iy,1])
@@ -681,8 +681,8 @@ program clm45_1dto2d
               allocate(double_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
               istatus = nf90_get_var(ncid,iv,double_var_3d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,3)
-                do m = 1 , vshape(iv,2)
+              do n = 1, vshape(iv,3)
+                do m = 1, vshape(iv,2)
                   call remap(nsg,double_var_3d(:,m,n),mask,var2d_double)
                   istatus = nf90_put_var(ncoutid,iv,var2d_double, &
                           start=[1,1,m,n], count=[jx,iy,1,1])
@@ -705,7 +705,7 @@ program clm45_1dto2d
               allocate(int_var_2d(vshape(iv,1),vshape(iv,2)))
               istatus = nf90_get_var(ncid,iv,int_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,2)
+              do n = 1, vshape(iv,2)
                 call remap(nsg,int_var_2d(:,n),mask,var2d_int)
                 istatus = nf90_put_var(ncoutid,iv,var2d_int, &
                         start=[1,1,n], count=[jx,iy,1])
@@ -716,8 +716,8 @@ program clm45_1dto2d
               allocate(int_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
               istatus = nf90_get_var(ncid,iv,int_var_3d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,3)
-                do m = 1 , vshape(iv,2)
+              do n = 1, vshape(iv,3)
+                do m = 1, vshape(iv,2)
                   call remap(nsg,int_var_3d(:,m,n),mask,var2d_int)
                   istatus = nf90_put_var(ncoutid,iv,var2d_int, &
                           start=[1,1,m,n], count=[jx,iy,1,1])
@@ -737,7 +737,7 @@ program clm45_1dto2d
               allocate(single_var_1d(vshape(iv,1)))
               istatus = nf90_get_var(ncid,iv,single_var_1d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do ip = 1 , numpft
+              do ip = 1, numpft
                 call remap(nsg,ip,single_var_1d,itypveg,ipftgcell, &
                            mask,var2d_single)
                 istatus = nf90_put_var(ncoutid,iv,var2d_single, &
@@ -749,8 +749,8 @@ program clm45_1dto2d
               allocate(single_var_2d(vshape(iv,1),vshape(iv,2)))
               istatus = nf90_get_var(ncid,iv,single_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,2)
-                do ip = 1 , numpft
+              do n = 1, vshape(iv,2)
+                do ip = 1, numpft
                   call remap(nsg,ip,single_var_2d(:,n),itypveg,ipftgcell, &
                              mask,var2d_single)
                   istatus = nf90_put_var(ncoutid,iv,var2d_single, &
@@ -763,9 +763,9 @@ program clm45_1dto2d
               allocate(single_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
               istatus = nf90_get_var(ncid,iv,single_var_3d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,3)
-                do m = 1 , vshape(iv,2)
-                  do ip = 1 , numpft
+              do n = 1, vshape(iv,3)
+                do m = 1, vshape(iv,2)
+                  do ip = 1, numpft
                     call remap(nsg,ip,single_var_3d(:,m,n),itypveg,ipftgcell, &
                                mask,var2d_single)
                     istatus = nf90_put_var(ncoutid,iv,var2d_single, &
@@ -782,7 +782,7 @@ program clm45_1dto2d
               allocate(double_var_1d(vshape(iv,1)))
               istatus = nf90_get_var(ncid,iv,double_var_1d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do ip = 1 , numpft
+              do ip = 1, numpft
                 call remap(nsg,ip,double_var_1d,itypveg,ipftgcell, &
                            mask,var2d_double)
                 istatus = nf90_put_var(ncoutid,iv,var2d_double, &
@@ -794,8 +794,8 @@ program clm45_1dto2d
               allocate(double_var_2d(vshape(iv,1),vshape(iv,2)))
               istatus = nf90_get_var(ncid,iv,double_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,2)
-                do ip = 1 , numpft
+              do n = 1, vshape(iv,2)
+                do ip = 1, numpft
                   call remap(nsg,ip,double_var_2d(:,n),itypveg,ipftgcell, &
                              mask,var2d_double)
                   istatus = nf90_put_var(ncoutid,iv,var2d_double, &
@@ -808,9 +808,9 @@ program clm45_1dto2d
               allocate(double_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
               istatus = nf90_get_var(ncid,iv,double_var_3d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,3)
-                do m = 1 , vshape(iv,2)
-                  do ip = 1 , numpft
+              do n = 1, vshape(iv,3)
+                do m = 1, vshape(iv,2)
+                  do ip = 1, numpft
                     call remap(nsg,ip,double_var_3d(:,m,n),itypveg,ipftgcell, &
                                mask,var2d_double)
                     istatus = nf90_put_var(ncoutid,iv,var2d_double, &
@@ -827,7 +827,7 @@ program clm45_1dto2d
               allocate(int_var_1d(vshape(iv,1)))
               istatus = nf90_get_var(ncid,iv,int_var_1d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do ip = 1 , numpft
+              do ip = 1, numpft
                 call remap(nsg,ip,int_var_1d,itypveg,ipftgcell, &
                            mask,var2d_int)
                 istatus = nf90_put_var(ncoutid,iv,var2d_int, &
@@ -839,8 +839,8 @@ program clm45_1dto2d
               allocate(int_var_2d(vshape(iv,1),vshape(iv,2)))
               istatus = nf90_get_var(ncid,iv,int_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,2)
-                do ip = 1 , numpft
+              do n = 1, vshape(iv,2)
+                do ip = 1, numpft
                   call remap(nsg,ip,int_var_2d(:,n),itypveg,ipftgcell, &
                              mask,var2d_int)
                   istatus = nf90_put_var(ncoutid,iv,var2d_int, &
@@ -853,9 +853,9 @@ program clm45_1dto2d
               allocate(int_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
               istatus = nf90_get_var(ncid,iv,int_var_3d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              do n = 1 , vshape(iv,3)
-                do m = 1 , vshape(iv,2)
-                  do ip = 1 , numpft
+              do n = 1, vshape(iv,3)
+                do m = 1, vshape(iv,2)
+                  do ip = 1, numpft
                     call remap(nsg,ip,int_var_3d(:,m,n),itypveg,ipftgcell, &
                                mask,var2d_int)
                     istatus = nf90_put_var(ncoutid,iv,var2d_int, &

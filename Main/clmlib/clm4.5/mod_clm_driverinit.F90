@@ -5,12 +5,12 @@ module mod_clm_driverinit
   use mod_intkinds
   use mod_realkinds
   use mod_clm_type
-  use mod_clm_varpar , only : nlevsno
-  use mod_clm_subgridave , only : p2c
-  use mod_clm_varcon , only : h2osno_max , rair , cpair , grav
-  use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_domain , only : ldomain
-  use mod_clm_qsat , only : Qsat
+  use mod_clm_varpar, only : nlevsno
+  use mod_clm_subgridave, only : p2c
+  use mod_clm_varcon, only : h2osno_max, rair, cpair, grav
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_domain, only : ldomain
+  use mod_clm_qsat, only : Qsat
 
   implicit none
 
@@ -27,42 +27,42 @@ module mod_clm_driverinit
   subroutine clm_driverInit(lbc, ubc, lbp, ubp, &
              num_nolakec, filter_nolakec)
     implicit none
-    integer(ik4) , intent(in) :: lbc , ubc  ! column-index bounds
-    integer(ik4) , intent(in) :: lbp , ubp  ! pft-index bounds
+    integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
+    integer(ik4), intent(in) :: lbp, ubp  ! pft-index bounds
     ! number of column non-lake points in column filter
-    integer(ik4) , intent(in) :: num_nolakec
+    integer(ik4), intent(in) :: num_nolakec
     ! column filter for non-lake points
-    integer(ik4) , intent(in) :: filter_nolakec(ubc-lbc+1)
+    integer(ik4), intent(in) :: filter_nolakec(ubc-lbc+1)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
-    integer(ik4) , pointer :: snl(:) ! number of snow layers
-    real(rk8) , pointer :: h2osno(:) ! snow water (mm H2O)
+    logical, pointer, contiguous :: pactive(:)
+    integer(ik4), pointer, contiguous :: snl(:) ! number of snow layers
+    real(rk8), pointer, contiguous :: h2osno(:) ! snow water (mm H2O)
     ! fraction of vegetation not covered by snow (0 OR 1) [-]
-    integer(ik4) , pointer :: frac_veg_nosno_alb(:)
+    integer(ik4), pointer, contiguous :: frac_veg_nosno_alb(:)
     ! fraction of vegetation not covered by snow (0 OR 1 now) [-] (pft-level)
-    integer(ik4) , pointer :: frac_veg_nosno(:)
-    real(rk8) , pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
-    real(rk8) , pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
-    logical , pointer :: do_capsnow(:)     ! true => do snow capping
+    integer(ik4), pointer, contiguous :: frac_veg_nosno(:)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
+    logical, pointer, contiguous :: do_capsnow(:)     ! true => do snow capping
     ! snow water (mm H2O) at previous time step
-    real(rk8) , pointer :: h2osno_old(:)
+    real(rk8), pointer, contiguous :: h2osno_old(:)
     ! fraction of ice relative to the tot water
-    real(rk8) , pointer :: frac_iceold(:,:)
-    integer(ik4) :: g , l , c , p , f , j  ! indices
+    real(rk8), pointer, contiguous :: frac_iceold(:,:)
+    integer(ik4) :: g, l, c, p, f, j  ! indices
     ! heat flux from beneath soil/ice column (W/m**2)
-    real(rk8) , pointer :: eflx_bot(:)
+    real(rk8), pointer, contiguous :: eflx_bot(:)
     ! atmospheric temperature (Kelvin)
-    real(rk8) , pointer :: forc_t(:)
+    real(rk8), pointer, contiguous :: forc_t(:)
     ! atmospheric potential temperature (Kelvin)
-    real(rk8) , pointer :: forc_th(:)
+    real(rk8), pointer, contiguous :: forc_th(:)
     ! atmospheric specific humidity (kg/kg)
-    real(rk8) , pointer :: forc_q(:)
-    real(rk8) , pointer :: forc_pbot(:)  ! atmospheric pressure (Pa)
-    real(rk8) , pointer :: forc_rho(:)   ! atmospheric density (kg/m**3)
-    integer(ik4) , pointer :: cgridcell(:) ! column's gridcell
-    integer(ik4) , pointer :: clandunit(:) ! column's landunit
-    integer(ik4) , pointer :: plandunit(:) ! pft's landunit
-    integer(ik4) , pointer :: ityplun(:)   ! landunit type
+    real(rk8), pointer, contiguous :: forc_q(:)
+    real(rk8), pointer, contiguous :: forc_pbot(:)  ! atmospheric pressure (Pa)
+    real(rk8), pointer, contiguous :: forc_rho(:)   ! atmospheric density (kg/m**3)
+    integer(ik4), pointer, contiguous :: cgridcell(:) ! column's gridcell
+    integer(ik4), pointer, contiguous :: clandunit(:) ! column's landunit
+    integer(ik4), pointer, contiguous :: plandunit(:) ! pft's landunit
+    integer(ik4), pointer, contiguous :: ityplun(:)   ! landunit type
 
     ! Assign local pointers to derived type members (landunit-level)
 
@@ -93,7 +93,7 @@ module mod_clm_driverinit
     pactive            => clm3%g%l%c%p%active
     plandunit          => clm3%g%l%c%p%landunit
 
-    do c = lbc , ubc
+    do c = lbc, ubc
 
       l = clandunit(c)
       g = cgridcell(c)
@@ -120,7 +120,7 @@ module mod_clm_driverinit
 
     ! Initialize fraction of vegetation not covered by snow (pft-level)
 
-    do p = lbp , ubp
+    do p = lbp, ubp
       if (pactive(p)) then
         frac_veg_nosno(p) = frac_veg_nosno_alb(p)
       else
@@ -131,8 +131,8 @@ module mod_clm_driverinit
     ! Initialize set of previous time-step variables
     ! Ice fraction of snow at previous time step
 
-    do j = -nlevsno+1 , 0
-      do f = 1 , num_nolakec
+    do j = -nlevsno+1, 0
+      do f = 1, num_nolakec
         c = filter_nolakec(f)
         if (j >= snl(c) + 1) then
           frac_iceold(c,j) = h2osoi_ice(c,j)/(h2osoi_liq(c,j)+h2osoi_ice(c,j))

@@ -52,13 +52,13 @@
 !   non-zero value if the command retrieval fails.
 !
       CHARACTER(LEN=*), INTENT(OUT), OPTIONAL :: COMMAND
-      INTEGER         , INTENT(OUT), OPTIONAL :: LENGTH
-      INTEGER         , INTENT(OUT), OPTIONAL :: STATUS
+      INTEGER        , INTENT(OUT), OPTIONAL :: LENGTH
+      INTEGER        , INTENT(OUT), OPTIONAL :: STATUS
 !
       INTEGER                   :: IARG,NARG,IPOS
-      INTEGER            , SAVE :: LENARG
+      INTEGER           , SAVE :: LENARG
       CHARACTER(LEN=2000), SAVE :: ARGSTR
-      LOGICAL            , SAVE :: GETCMD = .TRUE.
+      LOGICAL           , SAVE :: GETCMD = .TRUE.
 !
 ! Under Unix we must reconstruct the command line from its constituent
 ! parts. This will not be the original command line. Rather it will be
@@ -149,10 +149,10 @@
 !   One possible reason for failure is that NUMBER is negative or
 !   greater than COMMAND_ARGUMENT_COUNT().
 !
-      INTEGER         , INTENT(IN)            :: NUMBER
+      INTEGER        , INTENT(IN)            :: NUMBER
       CHARACTER(LEN=*), INTENT(OUT), OPTIONAL :: VALUE
-      INTEGER         , INTENT(OUT), OPTIONAL :: LENGTH
-      INTEGER         , INTENT(OUT), OPTIONAL :: STATUS
+      INTEGER        , INTENT(OUT), OPTIONAL :: LENGTH
+      INTEGER        , INTENT(OUT), OPTIONAL :: STATUS
 !
 !  A temporary variable for the rare case case where LENGTH is
 !  specified but VALUE is not. An arbitrary maximum argument length

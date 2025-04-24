@@ -81,14 +81,14 @@ contains
 ! !USES:
     use shr_kind_mod, only: r8 => shr_kind_r8
     use clmtype
-    use clm_atmlnd         , only : clm_a2l
-    use clm_time_manager       , only : get_step_size
-    use clm_varpar         , only : nlevlak
-    use clm_varcon         , only : hvap, hsub, hfus, cpair, cpliq, tkwat, tkice, &
+    use clm_atmlnd        , only : clm_a2l
+    use clm_time_manager      , only : get_step_size
+    use clm_varpar        , only : nlevlak
+    use clm_varcon        , only : hvap, hsub, hfus, cpair, cpliq, tkwat, tkice, &
                                     sb, vkc, grav, denh2o, tfrz, spval
-    use QSatMod            , only : QSat
+    use QSatMod           , only : QSat
     use FrictionVelocityMod, only : FrictionVelocity, MoninObukIni
-    use TridiagonalMod     , only : Tridiagonal
+    use TridiagonalMod    , only : Tridiagonal
 !
 ! !ARGUMENTS:
     implicit none
@@ -112,9 +112,9 @@ contains
 !
 ! local pointers to implicit in arguments
 !
-    integer , pointer :: pcolumn(:)         ! pft's column index
-    integer , pointer :: pgridcell(:)       ! pft's gridcell index
-    integer , pointer :: cgridcell(:)       ! column's gridcell index
+    integer, pointer :: pcolumn(:)         ! pft's column index
+    integer, pointer :: pgridcell(:)       ! pft's gridcell index
+    integer, pointer :: cgridcell(:)       ! column's gridcell index
     real(r8), pointer :: forc_t(:)          ! atmospheric temperature (Kelvin)
     real(r8), pointer :: forc_pbot(:)       ! atmospheric pressure (Pa)
     real(r8), pointer :: forc_hgt(:)        ! atmospheric reference height (m)
@@ -166,8 +166,8 @@ contains
 !
 ! !OTHER LOCAL VARIABLES:
 !
-    integer , parameter  :: idlak = 1     ! index of lake, 1 = deep lake, 2 = shallow lake
-    integer , parameter  :: niters = 3    ! maximum number of iterations for surface temperature
+    integer, parameter  :: idlak = 1     ! index of lake, 1 = deep lake, 2 = shallow lake
+    integer, parameter  :: niters = 3    ! maximum number of iterations for surface temperature
     real(r8), parameter :: beta1 = 1._r8  ! coefficient of connective velocity (in computing W_*) [-]
     real(r8), parameter :: emg = 0.97_r8     ! ground emissivity (0.97 for snow)
     real(r8), parameter :: zii = 1000._r8 ! convective boundary height [m]

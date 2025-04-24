@@ -53,7 +53,7 @@ program sst
   implicit none
 
   integer(ik4) :: ierr
-  character(len=256) :: namelistfile , prgname
+  character(len=256) :: namelistfile, prgname
   character(len=256) :: terfile
 
 #ifdef PNETCDF

@@ -17,25 +17,25 @@ module mod_cu_kf
 
   use mod_realkinds
   use mod_intkinds
-  use mod_constants , only : egrav , regrav , rdry , gdry , tzero
-  use mod_constants , only : aliq , bliq , cliq , dliq , ep1
-  use mod_constants , only : cpd , rcpd , wlhf , p00
-  use mod_constants , only : d_zero , d_one , d_half , d_two
-  use mod_constants , only : d_10 , d_100 , d_1000 , dlowval
-  use mod_constants , only : xlv0 , xlv1
+  use mod_constants, only : egrav, regrav, rdry, gdry, tzero
+  use mod_constants, only : aliq, bliq, cliq, dliq, ep1
+  use mod_constants, only : cpd, rcpd, wlhf, p00
+  use mod_constants, only : d_zero, d_one, d_half, d_two
+  use mod_constants, only : d_10, d_100, d_1000, dlowval
+  use mod_constants, only : xlv0, xlv1
   use mod_memutil
   use mod_dynparam
   use mod_stdio
   use mod_regcm_types
   use mod_mpmessage
   use mod_cu_common
-  use mod_runparams , only : dx , dxsq , ipptls , ibltyp , dt
-  use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
-  use mod_runparams , only : kf_entrate , kf_convrate , kf_min_pef , kf_max_pef
-  use mod_runparams , only : kf_dpp , kf_min_dtcape , kf_max_dtcape
-  use mod_runparams , only : kf_tkemax , kf_wthreshold
-  use mod_runparams , only : k2_const , kfac_shal , kfac_deep
-  use mod_runparams , only : ichem , clfrcv
+  use mod_runparams, only : dx, dxsq, ipptls, ibltyp, dt
+  use mod_runparams, only : iqv, iqr, iqi, iqs, iqc
+  use mod_runparams, only : kf_entrate, kf_convrate, kf_min_pef, kf_max_pef
+  use mod_runparams, only : kf_dpp, kf_min_dtcape, kf_max_dtcape
+  use mod_runparams, only : kf_tkemax, kf_wthreshold
+  use mod_runparams, only : k2_const, kfac_shal, kfac_deep
+  use mod_runparams, only : ichem, clfrcv
   use mod_service
 
   implicit none
@@ -48,13 +48,13 @@ module mod_cu_kf
   ! It is missing the kf_trigger == 2 option, and we use by default the
   ! kf_trigger == 3 option.
   !
-  ! Trieste , August 2014
+  ! Trieste, August 2014
   !
   !             Graziano Giuliani
   !
-  integer(ik4) , parameter :: kf_trigger = 3
+  integer(ik4), parameter :: kf_trigger = 3
   !
-  public :: allocate_mod_cu_kf , kfdrv , kf_lutab
+  public :: allocate_mod_cu_kf, kfdrv, kf_lutab
   !
   !  V3.3: A new trigger function is added based Ma and Tan (2009):
   !   Ma, L.-M. and Z.-M. Tan, 2009: Improving the behavior of
@@ -65,54 +65,54 @@ module mod_cu_kf
   !  CAM3-CAM5 methodology, along with captured liquid and ice condensates.
   !    JAH & KA (U.S. EPA) -- May 2013
   !
-  integer(ik4) , parameter :: kfnt = 250
-  integer(ik4) , parameter :: kfnp = 220
-  integer(ik4) , parameter :: kfna = 200
-  real(rkx) , dimension(kfnt,kfnp) , private , save :: ttab , qstab
-  real(rkx) , dimension(kfnp) , private , save :: the0k
-  real(rkx) , dimension(kfna) , private , save :: alu
-  real(rkx) , private , save :: rdpr , rdthk , plutop
+  integer(ik4), parameter :: kfnt = 250
+  integer(ik4), parameter :: kfnp = 220
+  integer(ik4), parameter :: kfna = 200
+  real(rkx), dimension(kfnt,kfnp), private, save :: ttab, qstab
+  real(rkx), dimension(kfnp), private, save :: the0k
+  real(rkx), dimension(kfna), private, save :: alu
+  real(rkx), private, save :: rdpr, rdthk, plutop
 
   integer(ik4) :: nipoi
 
-  integer(ik4) , dimension(:) , pointer :: imap , jmap
-  real(rkx) , dimension(:,:) , pointer :: u0 , v0 , z0 , t0 , q0 , p0
-  real(rkx) , dimension(:,:) , pointer :: qes , ql0 , qi0 , qr0 , qs0
-  real(rkx) , dimension(:,:) , pointer :: rho , dzq , w0avg , tke
-  real(rkx) , dimension(:) , pointer :: pratec
-  real(rkx) , dimension(:,:) , pointer :: qc_kf , qi_kf
-  integer(ik4) , dimension(:) , pointer :: ktop , kbot
-  real(rkx) , dimension(:,:) , pointer :: cldfra_dp_kf , cldfra_sh_kf
-  real(rkx) , dimension(:,:) , pointer :: pptliq , pptice
+  integer(ik4), dimension(:), pointer, contiguous :: imap, jmap
+  real(rkx), dimension(:,:), pointer, contiguous :: u0, v0, z0, t0, q0, p0
+  real(rkx), dimension(:,:), pointer, contiguous :: qes, ql0, qi0, qr0, qs0
+  real(rkx), dimension(:,:), pointer, contiguous :: rho, dzq, w0avg, tke
+  real(rkx), dimension(:), pointer, contiguous :: pratec
+  real(rkx), dimension(:,:), pointer, contiguous :: qc_kf, qi_kf
+  integer(ik4), dimension(:), pointer, contiguous :: ktop, kbot
+  real(rkx), dimension(:,:), pointer, contiguous :: cldfra_dp_kf, cldfra_sh_kf
+  real(rkx), dimension(:,:), pointer, contiguous :: pptliq, pptice
 
-  real(rkx) , dimension(:,:) , pointer :: dqdt , dtdt , dqcdt
-  real(rkx) , dimension(:,:) , pointer :: tpart_h , tpart_v
+  real(rkx), dimension(:,:), pointer, contiguous :: dqdt, dtdt, dqcdt
+  real(rkx), dimension(:,:), pointer, contiguous :: tpart_h, tpart_v
 
   ! IPPTLS == 2
-  real(rkx) , dimension(:,:) , pointer :: dqidt , dqrdt , dqsdt
+  real(rkx), dimension(:,:), pointer, contiguous :: dqidt, dqrdt, dqsdt
 
-  real(rkx) , parameter :: astrt = 1.0e-3_rkx
-  real(rkx) , parameter :: aincb = 0.0750_rkx
-  real(rkx) , parameter :: atoler = 0.001_rkx
+  real(rkx), parameter :: astrt = 1.0e-3_rkx
+  real(rkx), parameter :: aincb = 0.0750_rkx
+  real(rkx), parameter :: atoler = 0.001_rkx
 
-  real(rkx) , parameter :: c1 = 3374.6525_rkx
-  real(rkx) , parameter :: c2 = 2.5403_rkx
-  real(rkx) , parameter :: c3 = 0.810_rkx
-  real(rkx) , parameter :: dpmin = 3.0e3_rkx
-  real(rkx) , parameter :: ttfrz = tzero - 5.0_rkx
-  real(rkx) , parameter :: tbfrz = tzero - 25.0_rkx
+  real(rkx), parameter :: c1 = 3374.6525_rkx
+  real(rkx), parameter :: c2 = 2.5403_rkx
+  real(rkx), parameter :: c3 = 0.810_rkx
+  real(rkx), parameter :: dpmin = 3.0e3_rkx
+  real(rkx), parameter :: ttfrz = tzero - 5.0_rkx
+  real(rkx), parameter :: tbfrz = tzero - 25.0_rkx
 
-  real(rkx) , parameter :: u00 = 0.80_rkx
-  real(rkx) , parameter :: u01 = 0.98_rkx
+  real(rkx), parameter :: u00 = 0.80_rkx
+  real(rkx), parameter :: u01 = 0.98_rkx
 
   contains
 
   subroutine allocate_mod_cu_kf
     implicit none
-    integer(ik4) :: ii , i , j
+    integer(ik4) :: ii, i, j
     nipoi = 0
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cuscheme(j,i) == 6 ) then
           nipoi = nipoi + 1
         end if
@@ -124,8 +124,8 @@ module mod_cu_kf
     call getmem1d(imap,1,nipoi,'mod_cu_kf:imap')
     call getmem1d(jmap,1,nipoi,'mod_cu_kf:jmap')
     ii = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( cuscheme(j,i) == 6 ) then
           imap(ii) = i
           jmap(ii) = j
@@ -171,12 +171,12 @@ module mod_cu_kf
 
   subroutine kfdrv(m2c)
     implicit none
-    type(mod_2_cum) , intent(in) :: m2c
-    integer(ik4) :: i , j ,  k , kk , np
+    type(mod_2_cum), intent(in) :: m2c
+    integer(ik4) :: i, j,  k, kk, np
     real(rkx) :: es
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'kfdrv'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -187,9 +187,9 @@ module mod_cu_kf
       return
     end if
 
-    do k = 1 , kz
+    do k = 1, kz
       kk = kzp1 - k
-      do np = 1 , nipoi
+      do np = 1, nipoi
         i = imap(np)
         j = jmap(np)
         u0(k,np) = m2c%uas(j,i,kk)
@@ -204,8 +204,8 @@ module mod_cu_kf
       end do
     end do
 
-    do k = 1 , kz
-      do np = 1 , nipoi
+    do k = 1, kz
+      do np = 1, nipoi
         !
         ! Saturation vapor pressure (ES) is calculated following Buck (1981)
         ! If q0 is above saturation value, reduce it to saturation level.
@@ -219,9 +219,9 @@ module mod_cu_kf
 
     ! WRF does not push input hydrometeors
     if ( ipptls > 1 ) then
-      do k = 1 , kz
+      do k = 1, kz
         kk = kzp1 - k
-        do np = 1 , nipoi
+        do np = 1, nipoi
           i = imap(np)
           j = jmap(np)
           ql0(k,np) = m2c%qxas(j,i,kk,iqc)
@@ -231,9 +231,9 @@ module mod_cu_kf
         end do
       end do
     else
-      do k = 1 , kz
+      do k = 1, kz
         kk = kzp1 - k
-        do np = 1 , nipoi
+        do np = 1, nipoi
           i = imap(np)
           j = jmap(np)
           ql0(k,np) = m2c%qxas(j,i,kk,iqc)
@@ -245,9 +245,9 @@ module mod_cu_kf
     end if
 
     if ( ibltyp == 2 ) then
-      do k = 1 , kz
+      do k = 1, kz
         kk = kzp1 - k
-        do np = 1 , nipoi
+        do np = 1, nipoi
           i = imap(np)
           j = jmap(np)
           tke(k,np) = min(d_half*(m2c%tkeas(j,i,kk) + &
@@ -282,9 +282,9 @@ module mod_cu_kf
       call kfpara(1,kz,1,nipoi,.false.,.false.,.true.)
     end if
 
-    do k = 1 , kz
+    do k = 1, kz
       kk = kz - k + 1
-      do np = 1 , nipoi
+      do np = 1, nipoi
         i = imap(np)
         j = jmap(np)
         cu_tten(j,i,kk) = dtdt(k,np)
@@ -294,9 +294,9 @@ module mod_cu_kf
     end do
 
     if ( ipptls > 1 ) then
-      do k = 1 , kz
+      do k = 1, kz
         kk = kz - k + 1
-        do np = 1 , nipoi
+        do np = 1, nipoi
           i = imap(np)
           j = jmap(np)
           cu_qten(j,i,kk,iqc) = dqcdt(k,np)
@@ -306,9 +306,9 @@ module mod_cu_kf
         end do
       end do
     else
-      do k = 1 , kz
+      do k = 1, kz
         kk = kz - k + 1
-        do np = 1 , nipoi
+        do np = 1, nipoi
           i = imap(np)
           j = jmap(np)
           cu_qten(j,i,kk,iqc) = dqcdt(k,np)+dqrdt(k,np)
@@ -319,16 +319,16 @@ module mod_cu_kf
     ! Build for chemistry 3d table of constant precipitation rate
     ! from the surface to the top of the convection
     if ( ichem == 1 ) then
-      do k = 1 , kz
+      do k = 1, kz
         kk = kz - k + 1
-        do np = 1 , nipoi
+        do np = 1, nipoi
           i = imap(np)
           j = jmap(np)
           cu_convpr(j,i,kk) = pptliq(k,np) + pptice(k,np)
         end do
       end do
     end if
-    do np = 1 , nipoi
+    do np = 1, nipoi
       i = imap(np)
       j = jmap(np)
       if ( pratec(np) > dlowval ) then
@@ -349,64 +349,64 @@ module mod_cu_kf
   !
   subroutine kfpara(kts,kte,its,ite,f_qi,f_qs,warm_rain)
     implicit none
-    integer(ik4) , intent(in) :: kts , kte , its , ite
-    logical , intent(in) :: f_qi , f_qs
-    logical , intent(in) :: warm_rain
+    integer(ik4), intent(in) :: kts, kte, its, ite
+    logical, intent(in) :: f_qi, f_qs
+    logical, intent(in) :: warm_rain
 
-    real(rkx) , dimension(kts:kte) :: tv0 , tu , tvu , qu , tz , tvd , &
-            qd , tg , tvg , qg , wu , wd , ems , emsd , umf , uer ,    &
-            udr , dmf , der , ddr , umf2 , uer2 , udr2 , dmf2 , der2 , &
-            ddr2 , dza , thta0 , thetee , thtau , theteu , thtad ,     &
-            theted , qliq , qice , qlqout , qicout , detlq , detic ,   &
-            detlq2 , detic2 , ratio2
-    real(rkx) , dimension(kts:kte) :: domgdp , exn , tvqu , dp , rh , &
-            eqfrc , wspd , qdt , fxm , thtag , thpa , thfxout ,       &
-            thfxin , qpa , qfxout , qfxin , qlpa , qlfxin , qlfxout , &
-            qipa , qifxin , qifxout , qrpa , qrfxin , qrfxout ,       &
-            qspa , qsfxin , qsfxout , qlg , qig , qrg , qsg
+    real(rkx), dimension(kts:kte) :: tv0, tu, tvu, qu, tz, tvd, &
+            qd, tg, tvg, qg, wu, wd, ems, emsd, umf, uer,    &
+            udr, dmf, der, ddr, umf2, uer2, udr2, dmf2, der2, &
+            ddr2, dza, thta0, thetee, thtau, theteu, thtad,     &
+            theted, qliq, qice, qlqout, qicout, detlq, detic,   &
+            detlq2, detic2, ratio2
+    real(rkx), dimension(kts:kte) :: domgdp, exn, tvqu, dp, rh, &
+            eqfrc, wspd, qdt, fxm, thtag, thpa, thfxout,       &
+            thfxin, qpa, qfxout, qfxin, qlpa, qlfxin, qlfxout, &
+            qipa, qifxin, qifxout, qrpa, qrfxin, qrfxout,       &
+            qspa, qsfxin, qsfxout, qlg, qig, qrg, qsg
 
-    real(rkx) , dimension(kts:kte+1) :: omg
-    real(rkx) , dimension(kts:kte) :: rainfb , snowfb
-    real(rkx) , dimension(kts:kte) :: cldhgt , qsd , dilfrc , ddilfrc , &
-            tgu , qgu , thteeg
+    real(rkx), dimension(kts:kte+1) :: omg
+    real(rkx), dimension(kts:kte) :: rainfb, snowfb
+    real(rkx), dimension(kts:kte) :: cldhgt, qsd, dilfrc, ddilfrc, &
+            tgu, qgu, thteeg
 
-    real(rkx) :: fbfrc , p300 , dpthmx , qmix , zmix , pmix , tmix , emix , &
-            tlog , tdpt , tlcl , tvlcl , plcl , es , dlp , tenv , qenv ,    &
-            tven , zlcl , wkl , trppt , dtlcl , gdt , wlcl , wtw ,          &
-            rholcl , au0 , vmflcl , upold , upnew , abe , wklcl , ttemp ,   &
-            frc1 , qnewic , rl , be , boterm , enterm , dzz , rei , ee2 ,   &
-            ud2 , ttmp , f1 , f2 , thttmp , qtmp , tmpliq , tmpice ,        &
-            tu95 , tu10 , ee1 , ud1 , dptt , qnewlq , dumfdp , vconv ,      &
-            timec , shsign , vws , pef , cbh , rcbh , pefcbh , peff ,       &
-            peff2 , tder , dpdd , rdd , a1 , dssdt , dtmp , t1rh ,          &
-            qsrh , pptflx , cpr , cndtnf , updinc , ddinc , aincmx ,        &
-            aincm1 , ainc , tder2 , pptfl2 , fabe , stab , dtt , dtt1 ,     &
-            dtime , tma , tmb , tmm , bcoeff , acoeff , topomg , cpm , dq , &
-            abeg , dabe , dfda , frc2 , dr , udfrc , tuc , qgs , rh0 ,      &
-            rhg , qinit , qfnl , err2 , relerr , fabeold , aincold ,        &
-            uefrc , ddfrc , tdc , defrc , rhbar , dmffrc , dilbe
-    real(rkx) :: tp , avalue , aintrp , qfrz , qss , pptmlt , dtmelt , &
-            rhh , evac , binc
-    integer(ik4) :: indlu , nu , nuchm , nnn , klfs
-    real(rkx) :: chmin , pm15 , chmax , dtrh , rad , dppp
-    real(rkx) :: tvdiff , dttot , absomg , absomgtc , frdp
-    real(rkx) :: xcldfra , umf_new
-    integer(ik4) :: kx , k , kl
+    real(rkx) :: fbfrc, p300, dpthmx, qmix, zmix, pmix, tmix, emix, &
+            tlog, tdpt, tlcl, tvlcl, plcl, es, dlp, tenv, qenv,    &
+            tven, zlcl, wkl, trppt, dtlcl, gdt, wlcl, wtw,          &
+            rholcl, au0, vmflcl, upold, upnew, abe, wklcl, ttemp,   &
+            frc1, qnewic, rl, be, boterm, enterm, dzz, rei, ee2,   &
+            ud2, ttmp, f1, f2, thttmp, qtmp, tmpliq, tmpice,        &
+            tu95, tu10, ee1, ud1, dptt, qnewlq, dumfdp, vconv,      &
+            timec, shsign, vws, pef, cbh, rcbh, pefcbh, peff,       &
+            peff2, tder, dpdd, rdd, a1, dssdt, dtmp, t1rh,          &
+            qsrh, pptflx, cpr, cndtnf, updinc, ddinc, aincmx,        &
+            aincm1, ainc, tder2, pptfl2, fabe, stab, dtt, dtt1,     &
+            dtime, tma, tmb, tmm, bcoeff, acoeff, topomg, cpm, dq, &
+            abeg, dabe, dfda, frc2, dr, udfrc, tuc, qgs, rh0,      &
+            rhg, qinit, qfnl, err2, relerr, fabeold, aincold,        &
+            uefrc, ddfrc, tdc, defrc, rhbar, dmffrc, dilbe
+    real(rkx) :: tp, avalue, aintrp, qfrz, qss, pptmlt, dtmelt, &
+            rhh, evac, binc
+    integer(ik4) :: indlu, nu, nuchm, nnn, klfs
+    real(rkx) :: chmin, pm15, chmax, dtrh, rad, dppp
+    real(rkx) :: tvdiff, dttot, absomg, absomgtc, frdp
+    real(rkx) :: xcldfra, umf_new
+    integer(ik4) :: kx, k, kl
     integer(ik4) :: ncheck
-    integer(ik4) , dimension(kts:kte) :: kcheck
-    integer(ik4) :: istop , ml , l5 , kmix , low , lc , llfc , nlayrs , &
-            nk , kpbl , klcl , lcl , let , iflag , nk1 , ltop , nj ,    &
-            ltop1 , ltopm1 , kstart , lfs , nd , nic , ldb , ldt ,      &
-            nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
+    integer(ik4), dimension(kts:kte) :: kcheck
+    integer(ik4) :: istop, ml, l5, kmix, low, lc, llfc, nlayrs, &
+            nk, kpbl, klcl, lcl, let, iflag, nk1, ltop, nj,    &
+            ltop1, ltopm1, kstart, lfs, nd, nic, ldb, ldt,      &
+            nd1, ndk, lmax, ncount, noitr, nstep, ntc, ishall, np
     logical :: iprnt
-    real(rkx) :: qslcl , rhlcl , dqssdt    !jfb
-    integer(ik4) , parameter :: maxiter = 10
+    real(rkx) :: qslcl, rhlcl, dqssdt    !jfb
+    integer(ik4), parameter :: maxiter = 10
 
     kl = kte
     kx = kte
 
     modelpoints: &
-    do np = its , ite
+    do np = its, ite
       iprnt = .false.
       !                                                    ! PPT FB MODS
       ! OPTION TO FEED CONVECTIVELY GENERATED RAINWATER    ! PPT FB MODS
@@ -430,7 +430,7 @@ module mod_cu_kf
       ! from bottom-up in the kf scheme.
       !
       ml = 0
-      do k = 1 , kx
+      do k = 1, kx
         rh(k) = max(min(d_one,q0(k,np)/qes(k,np)),d_zero)
         dilfrc(k) = d_one
         tv0(k) = t0(k,np) * (d_one + ep1*q0(k,np))
@@ -442,7 +442,7 @@ module mod_cu_kf
         if ( p0(k,np) >= p300) llfc = k
       end do
       ! dzq is dz between sigma surfaces, dza is dz between model half level
-      do k = 2 , kl
+      do k = 2, kl
         dza(k-1) = z0(k,np)-z0(k-1,np)
       end do
       dza(kl) = d_zero
@@ -459,7 +459,7 @@ module mod_cu_kf
       kcheck(1) = 1
       ncheck = 1
       pm15 = p0(1,np) - 15.0e2_rkx
-      do k = 2 , llfc
+      do k = 2, llfc
         if ( p0(k,np) < pm15 ) then
           ncheck = ncheck+1
           kcheck(ncheck) = k
@@ -475,7 +475,7 @@ module mod_cu_kf
         if ( nu > ncheck ) then
           if ( ishall == 1 ) then
             chmax = d_zero
-            do nk = 1 , ncheck
+            do nk = 1, ncheck
               nnn = kcheck(nk)
               if ( cldhgt(nnn) > chmax ) then
                 nuchm = nk
@@ -541,7 +541,7 @@ module mod_cu_kf
         ! mass-weighting the characteristics of the individual model
         ! layers.
         !
-        do nk = lc , kpbl
+        do nk = lc, kpbl
           tmix = tmix + dp(nk)*t0(nk,np)
           qmix = qmix + dp(nk)*q0(nk,np)
           zmix = zmix + dp(nk)*z0(nk,np)
@@ -570,7 +570,7 @@ module mod_cu_kf
         tvlcl = tlcl*(d_one + ep1*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
         findklcl1: &
-        do nk = lc , kl
+        do nk = lc, kl
           klcl = nk
           if ( zlcl <= z0(nk,np) ) exit findklcl1
         end do findklcl1
@@ -732,7 +732,7 @@ module mod_cu_kf
           rei = d_zero
           dilbe = d_zero
           updraft: &
-          do nk = k , kl-1
+          do nk = k, kl-1
             nk1 = nk + 1
             ratio2(nk1) = ratio2(nk)
             frc1 = d_zero
@@ -955,7 +955,7 @@ module mod_cu_kf
           else
             chmin = 2.0e3_rkx
           end if
-          do nk = k , ltop
+          do nk = k, ltop
             qc_kf(nk,np) = qliq(nk)
             qi_kf(nk,np) = qice(nk)
           end do
@@ -978,7 +978,7 @@ module mod_cu_kf
                ltop <= kpbl .or. &
                let+1 <= kpbl ) then  ! No Convection Allowed
             cldhgt(lc) = d_zero
-            do nk = k , ltop
+            do nk = k, ltop
               umf(nk) = d_zero
               udr(nk) = d_zero
               uer(nk) = d_zero
@@ -994,7 +994,7 @@ module mod_cu_kf
           else if ( cldhgt(lc) > chmin .and. abe > d_one ) then
             ! Deep Convection allowed
             ishall = 0
-            do nk = k , ltop
+            do nk = k, ltop
               cldfra_sh_kf(nk,np) = d_zero
             end do
             exit usl
@@ -1003,7 +1003,7 @@ module mod_cu_kf
             ! To disallow shallow convection, comment out next line !!!!!!!!
             !
             ishall = 1
-            do nk = k , ltop
+            do nk = k, ltop
               cldfra_dp_kf(nk,np) = d_zero
             end do
             if ( nu == nuchm ) then
@@ -1011,7 +1011,7 @@ module mod_cu_kf
             else
               ! Remember this layer (by virtue of non-zero cldhgt) as potential
               ! shallow-cloud layer
-              do nk = k , ltop
+              do nk = k, ltop
                 umf(nk) = d_zero
                 udr(nk) = d_zero
                 uer(nk) = d_zero
@@ -1048,7 +1048,7 @@ module mod_cu_kf
         ! Begin total detrainment at the level above the let.
         !
         dptt = d_zero
-        do nj = let+1 , ltop
+        do nj = let+1, ltop
           dptt = dptt + dp(nj)
         end do
         dumfdp = umf(let)/dptt
@@ -1056,7 +1056,7 @@ module mod_cu_kf
         ! Adjust mass flux profiles, detrainment rates, and precipitation fall
         ! rates to reflect the linear decrease in mass flx between the let and
         !
-        do nk = let+1 , ltop
+        do nk = let+1, ltop
           !
           ! Entrainment is allowed at every level except for LTOP, so disallow
           ! entrainment at LTOP and adjust entrainment rates between
@@ -1087,10 +1087,10 @@ module mod_cu_kf
       !
       ! Initialize some arrays below cloud base and above cloud top.
       !
-      do nk = 1 , ltop
+      do nk = 1, ltop
         if ( t0(nk,np) > tzero ) ml = nk
       end do
-      do nk = 1 , k
+      do nk = 1, k
         if ( nk >= lc ) then
           if ( nk == lc ) then
             umf(nk) = vmflcl*dp(nk)/dpthmx
@@ -1135,7 +1135,7 @@ module mod_cu_kf
       !
       ! Define variables above cloud top
       !
-      do nk = ltop1 , kx
+      do nk = ltop1, kx
         umf(nk) = d_zero
         udr(nk) = d_zero
         uer(nk) = d_zero
@@ -1170,7 +1170,7 @@ module mod_cu_kf
         omg(nk) = d_zero
       end do
       omg(kx+1) = d_zero
-      do nk = 1 , ltop
+      do nk = 1, ltop
         ems(nk) = dp(nk)*dxsq*regrav
         emsd(nk) = d_one/ems(nk)
         !
@@ -1250,7 +1250,7 @@ module mod_cu_kf
         kstart = kpbl+1
         klfs = let-1
         findklfs: &
-        do nk = kstart+1 , kl
+        do nk = kstart+1, kl
           dppp = p0(kstart,np) - p0(nk,np)
           if ( dppp > kf_dpp * d_100 ) then
             klfs = nk
@@ -1284,7 +1284,7 @@ module mod_cu_kf
           ddr(lfs) = d_zero
           rhbar = rh(lfs)*dp(lfs)
           dptt = dp(lfs)
-          do nd = lfs-1 , kstart , -1
+          do nd = lfs-1, kstart, -1
             nd1 = nd+1
             der(nd) = der(lfs)*ems(nd)/ems(lfs)
             ddr(nd) = d_zero
@@ -1301,7 +1301,7 @@ module mod_cu_kf
           ! first, compute total frozen precipitation generated.
           !
           pptmlt = d_zero
-          do nk = klcl , ltop
+          do nk = klcl, ltop
             pptmlt = pptmlt + pptice(nk,np)
           end do
           if ( lc < ml ) then
@@ -1323,7 +1323,7 @@ module mod_cu_kf
                 exp((c1/tz(kstart)-c2)*qss*(d_one+c3*qss))
           ldt = min(lfs-1,kstart-1)
           findldb: &
-          do nd = ldt , 1 , -1
+          do nd = ldt, 1, -1
             dpdd = dpdd + dp(nd)
             theted(nd) = theted(kstart)
             qd(nd) = qd(kstart)
@@ -1366,7 +1366,7 @@ module mod_cu_kf
           end do findldb
           if ( (p0(ldb,np)-p0(lfs,np)) > 50.0e2_rkx ) then
             ! minimum Downdraft depth!
-            do nd = ldt , ldb , -1
+            do nd = ldt, ldb, -1
               nd1 = nd+1
               ddr(nd) = -dmf(kstart)*dp(nd)/dpdd
               der(nd) = d_zero
@@ -1391,7 +1391,7 @@ module mod_cu_kf
         cndtnf = d_zero
         updinc = d_one
         ldb = lfs
-        do ndk = 1 , ltop
+        do ndk = 1, ltop
           dmf(ndk) = d_zero
           der(ndk) = d_zero
           ddr(ndk) = d_zero
@@ -1407,7 +1407,7 @@ module mod_cu_kf
           ddinc = trppt/tder
         end if
         tder = tder*ddinc
-        do nk = ldb , lfs
+        do nk = ldb, lfs
           dmf(nk) = dmf(nk)*ddinc
           der(nk) = der(nk)*ddinc
           ddr(nk) = ddr(nk)*ddinc
@@ -1424,7 +1424,7 @@ module mod_cu_kf
         ! downdraft.
         !
         if ( ldb > 1 ) then
-          do nk = 1 , ldb-1
+          do nk = 1, ldb-1
             dmf(nk) = d_zero
             der(nk) = d_zero
             ddr(nk) = d_zero
@@ -1434,7 +1434,7 @@ module mod_cu_kf
             thtad(nk) = d_zero
           end do
         end if
-        do nk = lfs+1 , kx
+        do nk = lfs+1, kx
           dmf(nk) = d_zero
           der(nk) = d_zero
           ddr(nk) = d_zero
@@ -1443,7 +1443,7 @@ module mod_cu_kf
           qd(nk) = d_zero
           thtad(nk) = d_zero
         end do
-        do nk = ldt+1 , lfs-1
+        do nk = ldt+1, lfs-1
           tz(nk) = d_zero
           qd(nk) = d_zero
           thtad(nk) = d_zero
@@ -1457,7 +1457,7 @@ module mod_cu_kf
       lmax = max(klcl,lfs)
       ainc = d_one
       aincmx = d_1000
-      do nk = lc , lmax
+      do nk = lc, lmax
         if ( (uer(nk)-der(nk)) > 1.0e-3_rkx ) then
           aincm1 = ems(nk)/((uer(nk)-der(nk))*timec)
           aincmx = min(aincmx,aincm1)
@@ -1473,7 +1473,7 @@ module mod_cu_kf
       !
       tder2 = tder
       pptfl2 = pptflx
-      do nk = 1 , ltop
+      do nk = 1, ltop
         detlq2(nk) = detlq(nk)
         detic2(nk) = detic(nk)
         udr2(nk) = udr(nk)
@@ -1499,7 +1499,7 @@ module mod_cu_kf
         ainc = evac*dpthmx*dxsq/(vmflcl*egrav*timec)
         tder = tder2*ainc
         pptflx = pptfl2*ainc
-        do nk = 1 , ltop
+        do nk = 1, ltop
           umf(nk) = umf2(nk)*ainc
           dmf(nk) = dmf2(nk)*ainc
           detlq(nk) = detlq2(nk)*ainc
@@ -1513,7 +1513,7 @@ module mod_cu_kf
       ! Otherwise for deep convection
       ! use iterative procedure to find mass fluxes...
       iter: &
-      do ncount = 1 , maxiter
+      do ncount = 1, maxiter
         !
         ! Compute properties for compensational subsidence
         !
@@ -1521,7 +1521,7 @@ module mod_cu_kf
         ! satisfy mass continuity.
         !
         dtt = timec/d_two
-        do nk = 1 , ltop
+        do nk = 1, ltop
           domgdp(nk) = -(uer(nk)-der(nk)-udr(nk)-ddr(nk))*emsd(nk)
           if ( nk > 1 ) then
             omg(nk) = omg(nk-1) - dp(nk-1)*domgdp(nk-1)
@@ -1536,7 +1536,7 @@ module mod_cu_kf
         end do
         nstep = nint(timec/dtt+1)
         dtime = timec/real(nstep,rkx)
-        do nk = 1 , ltop
+        do nk = 1, ltop
           thpa(nk) = thta0(nk)
           qpa(nk) = q0(nk,np)
           fxm(nk) = omg(nk)*dxsq*regrav
@@ -1545,18 +1545,18 @@ module mod_cu_kf
         ! Do an upstream/forward-in-time advection of theta, qv
         !
         advection: &
-        do ntc = 1 , nstep
+        do ntc = 1, nstep
           !
           ! Assign theta and q values at the top and bottom of each layer
           ! based on sign of omega
           !
-          do nk = 1 , ltop
+          do nk = 1, ltop
             thfxin(nk) = d_zero
             thfxout(nk) = d_zero
             qfxin(nk) = d_zero
             qfxout(nk) = d_zero
           end do
-          do nk = 2 , ltop
+          do nk = 2, ltop
             if ( omg(nk) <= d_zero ) then
               thfxin(nk) = -fxm(nk)*thpa(nk-1)
               qfxin(nk) = -fxm(nk)*qpa(nk-1)
@@ -1572,7 +1572,7 @@ module mod_cu_kf
           !
           ! Update the theta and qv values at each level
           !
-          do nk = 1 , ltop
+          do nk = 1, ltop
             thpa(nk) = thpa(nk)+(thfxin(nk)+udr(nk)*thtau(nk)+ddr(nk)*      &
                        thtad(nk)-thfxout(nk)-(uer(nk)-der(nk))*thta0(nk))*  &
                        dtime*emsd(nk)
@@ -1580,7 +1580,7 @@ module mod_cu_kf
                       qfxout(nk)-(uer(nk)-der(nk))*q0(nk,np))*dtime*emsd(nk)
           end do
         end do advection
-        do nk = 1 , ltop
+        do nk = 1, ltop
           thtag(nk) = thpa(nk)
           qg(nk) = qpa(nk)
         end do
@@ -1588,7 +1588,7 @@ module mod_cu_kf
         ! Check to see if mixing ratio dips below zero anywhere; if so, borrow
         ! moisture from adjacent layers to bring it back up above zero
         !
-        do nk = 2 , ltop
+        do nk = 2, ltop
           if ( qg(nk) < d_zero ) then
             write(stderr,*) 'AT I = ',imap(np), ', J = ', jmap(np)
             write(stderr,*) 'KF: QG, QG(NK) < 0'
@@ -1611,7 +1611,7 @@ module mod_cu_kf
         !
         ! Convert theta to t
         !
-        do nk = 1 , ltop
+        do nk = 1, ltop
           exn(nk) = (p00/p0(nk,np))**(0.2854_rkx*(d_one-0.28_rkx*qg(nk)))
           tg(nk) = thtag(nk)/exn(nk)
           tvg(nk) = tg(nk)*(d_one + ep1*qg(nk))
@@ -1631,7 +1631,7 @@ module mod_cu_kf
         ! mass-weighting the characteristics of the individual model
         ! layers.
         !
-        do nk = lc , kpbl
+        do nk = lc, kpbl
           tmix = tmix + dp(nk)*tg(nk)
           qmix = qmix + dp(nk)*qg(nk)
         end do
@@ -1668,7 +1668,7 @@ module mod_cu_kf
         tvlcl = tlcl*(d_one + ep1*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
         findklcl2: &
-        do nk = lc , kl
+        do nk = lc, kl
           klcl = nk
           if ( zlcl <= z0(nk,np) ) then
             exit findklcl2
@@ -1690,7 +1690,7 @@ module mod_cu_kf
         ! Compute adjusted abe(abeg).
         !
         abeg = d_zero
-        do nk = k , ltopm1
+        do nk = k, ltopm1
           nk1 = nk + 1
           theteu(nk1) = theteu(nk)
           call tpmix2dd(p0(nk1,np),theteu(nk1),tgu(nk1),qgu(nk1))
@@ -1781,7 +1781,7 @@ module mod_cu_kf
           end if
           tder = tder2*ainc
           pptflx = pptfl2*ainc
-          do nk = 1 , ltop
+          do nk = 1, ltop
             umf(nk) = umf2(nk)*ainc
             dmf(nk) = dmf2(nk)*ainc
             detlq(nk) = detlq2(nk)*ainc
@@ -1803,14 +1803,14 @@ module mod_cu_kf
       !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
       !
       if ( ishall == 1 )  then
-        do nk = klcl-1 , ltop1
+        do nk = klcl-1, ltop1
           umf_new = umf(nk)/dxsq
           xcldfra = kfac_shal*log(d_one+k2_const*umf_new)
           xcldfra = min(max(0.01_rkx,xcldfra),0.6_rkx)
           cldfra_dp_kf(nk,np) = xcldfra
         end do
       else
-        do nk = klcl-1 , ltop1
+        do nk = klcl-1, ltop1
           umf_new = umf(nk)/dxsq
           xcldfra = kfac_deep*log(d_one+k2_const*umf_new)
           xcldfra = min(max(0.01_rkx,xcldfra),0.2_rkx)
@@ -1830,7 +1830,7 @@ module mod_cu_kf
       else
         frc2 = d_zero
       end if
-      do nk = 1 , ltop
+      do nk = 1, ltop
         qlpa(nk) = ql0(nk,np)
         qipa(nk) = qi0(nk,np)
         qrpa(nk) = qr0(nk,np)
@@ -1838,12 +1838,12 @@ module mod_cu_kf
         rainfb(nk) = pptliq(nk,np)*ainc*fbfrc*frc2   !  ppt fb mods
         snowfb(nk) = pptice(nk,np)*ainc*fbfrc*frc2   !  ppt fb mods
       end do
-      do ntc = 1 , nstep
+      do ntc = 1, nstep
         !
         ! Assign hydrometeors concentrations at the top and bottom of each layer
         ! based on the sign of omega
         !
-        do nk = 1 , ltop
+        do nk = 1, ltop
           qlfxin(nk) = d_zero
           qlfxout(nk) = d_zero
           qifxin(nk) = d_zero
@@ -1853,7 +1853,7 @@ module mod_cu_kf
           qsfxin(nk) = d_zero
           qsfxout(nk) = d_zero
         end do
-        do nk = 2 , ltop
+        do nk = 2, ltop
           if ( omg(nk) <= d_zero ) then
             qlfxin(nk) = -fxm(nk)*qlpa(nk-1)
             qifxin(nk) = -fxm(nk)*qipa(nk-1)
@@ -1877,14 +1877,14 @@ module mod_cu_kf
         !
         ! Update the hydrometeor concentration values at each level
         !
-        do nk = 1 , ltop
+        do nk = 1, ltop
           qlpa(nk) = qlpa(nk)+(qlfxin(nk)+detlq(nk)-qlfxout(nk))*dtime*emsd(nk)
           qipa(nk) = qipa(nk)+(qifxin(nk)+detic(nk)-qifxout(nk))*dtime*emsd(nk)
           qrpa(nk) = qrpa(nk)+(qrfxin(nk)-qrfxout(nk)+rainfb(nk))*dtime*emsd(nk)
           qspa(nk) = qspa(nk)+(qsfxin(nk)-qsfxout(nk)+snowfb(nk))*dtime*emsd(nk)
         end do
       end do
-      do nk = 1 , ltop
+      do nk = 1, ltop
         qlg(nk) = qlpa(nk)
         qig(nk) = qipa(nk)
         qrg(nk) = qrpa(nk)
@@ -1917,13 +1917,13 @@ module mod_cu_kf
 1030  format(' ',' P0(LET) = ',F6.1,' P0(LTOP) = ',F6.1,' VMFLCL =',    &
         E12.3,' PLCL =',F6.1,' WLCL =',F6.3,' CLDHGT =',F8.1)
         write(stdout,1035) pef,pefcbh,lc,let,wkl,vws
-        write(stdout,*) 'PRECIP EFFICIENCY =' , peff
+        write(stdout,*) 'PRECIP EFFICIENCY =', peff
         write(stdout,1080) lfs,ldb,ldt,timec,timec,nstep,ncount,fabe,ainc
         write(stdout,'(16a8)') '  P  ','   DP ',' DT K/D ',' DR K/D ',   &
                 '   OMG  ', ' DOMGDP ','   UMF  ','   UER  ','   UDR  ', &
                 '   DMF  ','   DER  ','   DDR  ','   EMS  ','    W0  ',  &
                 '  DETLQ ',' DETIC '
-        do nk = 1 , ltop
+        do nk = 1, ltop
           k = ltop - nk + 1
           dtt = (tg(k)-t0(k,np))*86400.0_rkx/timec
           rl = xlv0-xlv1*tg(k)
@@ -1940,7 +1940,7 @@ module mod_cu_kf
         end do
         write(stdout,1085) 'K','P','Z','T0','TG','DT','TU','TD','Q0','QG', &
                     'DQ','QU','QD','QLG','QIG','QRG','QSG','RH0','RHG'
-        do nk = 1 , kl
+        do nk = 1, kl
           k = kx - nk + 1
           dtt = tg(k) - t0(k,np)
           tuc = tu(k) - tzero
@@ -1966,7 +1966,7 @@ module mod_cu_kf
         ! If calculations above show an error in the mass budget, print out a
         ! to be used later for diagnostic purposes, THEN abort run.
         !
-        do nk = 1 , kl
+        do nk = 1, kl
           k = kl - nk + 1
           write(stdout,'(8f11.3)') p0(k,np)/d_100,t0(k,np)-tzero, &
                   q0(k,np)*d_1000,u0(k,np),v0(k,np),w0avg(k,np)*d_100, &
@@ -1983,7 +1983,7 @@ module mod_cu_kf
       !
       qinit = d_zero
       qfnl = d_zero
-      do nk = 1 , ltop
+      do nk = 1, ltop
         qinit = qinit + (q0(nk,np)+ql0(nk,np)+qi0(nk,np)+ &
                          qr0(nk,np)+qs0(nk,np))*ems(nk)/dxsq
         qfnl = qfnl + (qg(nk)+qlg(nk)+qig(nk)+qrg(nk)+qsg(nk))*ems(nk)/dxsq
@@ -1993,11 +1993,11 @@ module mod_cu_kf
       if ( abs(err2) > 0.10_rkx .and. istop == 0 ) then
         istop = 1
         iprnt = .true.
-        write(stdout,1110) qinit , qfnl , err2
-        write(stdout,'(a,2f12.3)') 'FBFRC , PPTFLX = ',fbfrc,(pptflx*timec)/dxsq
+        write(stdout,1110) qinit, qfnl, err2
+        write(stdout,'(a,2f12.3)') 'FBFRC, PPTFLX = ',fbfrc,(pptflx*timec)/dxsq
         write(stdout,'(a,i6,a,i2)') 'LEVELS = ', kl,', ISHALLOW = ',ishall
         write(stdout,'(a,i2)') 'NCOUNT : ',ncount
-        do nk = 1 , kl
+        do nk = 1, kl
           k = kl - nk + 1
           write(stdout,'(7f12.3)') p0(k,np)/d_100,t0(k,np)-tzero, &
                   u0(k,np),v0(k,np),w0avg(k,np),dp(k)/d_100,tke(k,np)
@@ -2025,7 +2025,7 @@ module mod_cu_kf
       ! If the advective time period (timec) is less than specified minimum
       ! timec, allow feedback to occur only during timec.
       !
-      do k = 1 , kx
+      do k = 1, kx
         !
         ! If hydrometeors are not allowed, they must be evaporated or sublimated
         ! and fed back as vapor, along with associated changes in temperature.
@@ -2099,20 +2099,20 @@ module mod_cu_kf
 
     pure integer(ik4) function inrange(iv,f,l) result(ind)
       implicit none
-      integer(ik4) , intent(in) :: iv , f , l
+      integer(ik4), intent(in) :: iv, f, l
       ind = max(f, min(l,int(iv)))
     end function inrange
 
     subroutine tpmix2(p,thes,tu,qu,qliq,qice,qnewlq,qnewic)
       implicit none
-      real(rkx) , intent(in) :: p , thes
-      real(rkx) , intent(out) :: qnewlq , qnewic
-      real(rkx) , intent(inout) :: tu , qu , qliq , qice
-      real(rkx) :: tp , qq , bth , tth , pp
-      real(rkx) :: t00 , t10 , t01 , t11
-      real(rkx) :: q00 , q10 , q01 , q11
-      real(rkx) :: temp , qs , qnew , dq , qtot , rll , cpp
-      integer(ik4) :: iptb , ithtb
+      real(rkx), intent(in) :: p, thes
+      real(rkx), intent(out) :: qnewlq, qnewic
+      real(rkx), intent(inout) :: tu, qu, qliq, qice
+      real(rkx) :: tp, qq, bth, tth, pp
+      real(rkx) :: t00, t10, t01, t11
+      real(rkx) :: q00, q10, q01, q11
+      real(rkx) :: temp, qs, qnew, dq, qtot, rll, cpp
+      integer(ik4) :: iptb, ithtb
       !
       !*************************************
       ! scaling pressure and tt table index
@@ -2206,9 +2206,9 @@ module mod_cu_kf
 
     subroutine dtfrznew(tu,p,thteu,qu,qfrz,qice)
       implicit none
-      real(rkx) , intent(in) :: p , qfrz
-      real(rkx) , intent(inout) :: tu , thteu , qu , qice
-      real(rkx) :: rlc , rls , rlf , cpp , a , dtfrz , es , qs , dqevap , pii
+      real(rkx), intent(in) :: p, qfrz
+      real(rkx), intent(inout) :: tu, thteu, qu, qice
+      real(rkx) :: rlc, rls, rlf, cpp, a, dtfrz, es, qs, dqevap, pii
       !
       ! Allow the freezing of liquid water in the updraft to proceed as an
       ! approximately linear function of temperature in the temperature range
@@ -2257,16 +2257,16 @@ module mod_cu_kf
     subroutine condload(qliq,qice,wtw,dz,boterm,enterm,qnewlq, &
                         qnewic,qlqout,qicout)
       implicit none
-      real(rkx) , intent(in) :: dz , boterm , enterm
-      real(rkx) , intent(inout) :: qlqout , qicout , wtw
-      real(rkx) , intent(inout) :: qliq , qice , qnewlq , qnewic
-      real(rkx) :: qtot , qnew , qest , g1 , wavg , conv , ratio3
-      real(rkx) :: oldq , ratio4 , dq , pptdrg
+      real(rkx), intent(in) :: dz, boterm, enterm
+      real(rkx), intent(inout) :: qlqout, qicout, wtw
+      real(rkx), intent(inout) :: qliq, qice, qnewlq, qnewic
+      real(rkx) :: qtot, qnew, qest, g1, wavg, conv, ratio3
+      real(rkx) :: oldq, ratio4, dq, pptdrg
       !
       ! - note that only 60% of the fresh condensate is is allowed to
       !   participate in the conversion process...
       !
-      real(rkx) , parameter :: convfac = 0.4_rkx
+      real(rkx), parameter :: convfac = 0.4_rkx
 
       qtot = qliq + qice
       qnew = qnewlq + qnewic
@@ -2332,17 +2332,17 @@ module mod_cu_kf
     !
     subroutine prof5(eq,ee,ud)
       implicit none
-      real(rkx) , intent(in) :: eq
-      real(rkx) , intent(inout) :: ee , ud
-      real(rkx) :: x , y , ey , e45 , t1 , t2 , c1 , c2
+      real(rkx), intent(in) :: eq
+      real(rkx), intent(inout) :: ee, ud
+      real(rkx) :: x, y, ey, e45, t1, t2, c1, c2
 
-      real(rkx) , parameter :: sqrt2p = 2.506628_rkx
-      real(rkx) , parameter :: a1 = 0.4361836_rkx
-      real(rkx) , parameter :: a2 = -0.1201676_rkx
-      real(rkx) , parameter :: a3 = 0.9372980_rkx
-      real(rkx) , parameter :: p = 0.33267_rkx
-      real(rkx) , parameter :: sigma = 0.166666667_rkx
-      real(rkx) , parameter :: fe = 0.202765151_rkx
+      real(rkx), parameter :: sqrt2p = 2.506628_rkx
+      real(rkx), parameter :: a1 = 0.4361836_rkx
+      real(rkx), parameter :: a2 = -0.1201676_rkx
+      real(rkx), parameter :: a3 = 0.9372980_rkx
+      real(rkx), parameter :: p = 0.33267_rkx
+      real(rkx), parameter :: sigma = 0.166666667_rkx
+      real(rkx), parameter :: fe = 0.202765151_rkx
       x = (eq-d_half)/sigma
       y = 6.0_rkx*eq - 3.0_rkx
       ey = exp(y*y/(-d_two))
@@ -2367,12 +2367,12 @@ module mod_cu_kf
 
     subroutine tpmix2dd(p,thes,ts,qs)
       implicit none
-      real(rkx) , intent(in) :: p , thes
-      real(rkx) , intent(inout) :: ts , qs
-      real(rkx) :: tp , qq , bth , tth , pp
-      real(rkx) :: t00 , t10 , t01 , t11
-      real(rkx) :: q00 , q10 , q01 , q11
-      integer(ik4) :: iptb , ithtb
+      real(rkx), intent(in) :: p, thes
+      real(rkx), intent(inout) :: ts, qs
+      real(rkx) :: tp, qq, bth, tth, pp
+      real(rkx) :: t00, t10, t01, t11
+      real(rkx) :: q00, q10, q01, q11
+      integer(ik4) :: iptb, ithtb
       !***************************************************************
       !
       !*************************************
@@ -2414,9 +2414,9 @@ module mod_cu_kf
 
     pure real(rkx) function envirtht(p1,t1,q1) result(tht1)
       implicit none
-      real(rkx) , intent(in) :: p1 , t1 , q1
-      real(rkx) :: ee , tlog , a1 , tp , avalue , aintrp
-      real(rkx) :: tdpt , tsat , tht
+      real(rkx), intent(in) :: p1, t1, q1
+      real(rkx) :: ee, tlog, a1, tp, avalue, aintrp
+      real(rkx) :: tdpt, tsat, tht
       integer(ik4) :: indlu
       !
       !  Calculate environmental equivalent potential temperature
@@ -2449,17 +2449,17 @@ module mod_cu_kf
   !
   subroutine kf_lutab
     implicit none
-    integer(ik4) :: kp , it , itcnt , i
-    real(rkx) :: dpr , temp , p , es , qs , pi , thes , tgues , &
-            thgues , f0 , t1 , t0 , f1 , dtx , a1 , thtgs
+    integer(ik4) :: kp, it, itcnt, i
+    real(rkx) :: dpr, temp, p, es, qs, pi, thes, tgues, &
+            thgues, f0, t1, t0, f1, dtx, a1, thtgs
 
     ! minimum starting temp
-    real(rkx) , parameter :: tmin = 150.0_rkx
+    real(rkx), parameter :: tmin = 150.0_rkx
     ! maximum bottom pressure (pascals)
-    real(rkx) , parameter :: pbot = 1.1e5_rkx
+    real(rkx), parameter :: pbot = 1.1e5_rkx
     ! equivalent potential temperature increment
-    real(rkx) , parameter :: dth = 1.0_rkx
-    integer(ik4) , parameter :: maxiter = 25
+    real(rkx), parameter :: dth = 1.0_rkx
+    integer(ik4), parameter :: maxiter = 25
 
     ! top pressure (pascals)
     plutop = 5000.0 ! 50 mb
@@ -2477,7 +2477,7 @@ module mod_cu_kf
     !
     temp = tmin
     p = plutop - dpr
-    do kp = 1 , kfnp
+    do kp = 1, kfnp
       p = p + dpr
       es = aliq*exp((bliq*temp-cliq)/(temp-dliq))
       qs = 0.622_rkx*es/(p-es)
@@ -2488,10 +2488,10 @@ module mod_cu_kf
     ! compute temperatures for each sat. equiv. potential temp.
     !
     p = plutop - dpr
-    do kp = 1 , kfnp
+    do kp = 1, kfnp
       thes = the0k(kp) - dth
       p = p + dpr
-      do it = 1 , kfnt
+      do it = 1, kfnt
         ! define sat. equiv. pot. temp.
         thes = thes + dth
         ! iterate to find temperature
@@ -2509,7 +2509,7 @@ module mod_cu_kf
         t1 = tgues - d_half*f0
         t0 = tgues
         iter1: &
-        do itcnt = 1 , maxiter
+        do itcnt = 1, maxiter
           es = aliq * exp((bliq*t1-cliq)/(t1-dliq))
           qs = 0.622_rkx*es/(p-es)
           pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
@@ -2538,7 +2538,7 @@ module mod_cu_kf
     ! set up intial values for lookup tables
     !
     a1 = astrt - aincb
-    do i = 1 , kfna
+    do i = 1, kfna
       a1 = a1 + aincb
       alu(i) = log(a1)
     end do

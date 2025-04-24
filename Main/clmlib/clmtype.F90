@@ -46,7 +46,7 @@ module clmtype
 ! !USES:
   use shr_kind_mod, only: r8 => shr_kind_r8
   use clm_varpar
-  use domainMod   , only: domain_type
+  use domainMod  , only: domain_type
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -108,8 +108,8 @@ end type nitrogen_balance_type
 ! pft physical state variables structure
 !----------------------------------------------------
 type, public :: pft_pstate_type
-   integer , pointer :: frac_veg_nosno(:)       !fraction of vegetation not covered by snow (0 OR 1) [-]
-   integer , pointer :: frac_veg_nosno_alb(:)   !fraction of vegetation not covered by snow (0 OR 1) [-]
+   integer, pointer :: frac_veg_nosno(:)       !fraction of vegetation not covered by snow (0 OR 1) [-]
+   integer, pointer :: frac_veg_nosno_alb(:)   !fraction of vegetation not covered by snow (0 OR 1) [-]
    real(r8), pointer :: emv(:) 		        !vegetation emissivity
    real(r8), pointer :: z0mv(:) 		!roughness length over vegetation, momentum [m]
    real(r8), pointer :: z0hv(:) 		!roughness length over vegetation, sensible heat [m]
@@ -220,10 +220,10 @@ end type pft_pstate_type
 ! pft ecophysiological constants structure
 !----------------------------------------------------
 type, public :: pft_epc_type
-   integer , pointer :: ncorn(:) 		!value for corn
-   integer , pointer :: nwheat(:) 		!value for wheat
-   integer , pointer :: noveg(:) 	        !value for not vegetated
-   integer , pointer :: ntree(:) 		!value for last type of tree
+   integer, pointer :: ncorn(:) 		!value for corn
+   integer, pointer :: nwheat(:) 		!value for wheat
+   integer, pointer :: noveg(:) 	        !value for not vegetated
+   integer, pointer :: ntree(:) 		!value for last type of tree
    real(r8), pointer :: smpso(:)                !soil water potential at full stomatal opening (mm)
    real(r8), pointer :: smpsc(:)                !soil water potential at full stomatal closure (mm)
    real(r8), pointer :: fnitr(:)                !foliage nitrogen limitation factor (-)
@@ -302,9 +302,9 @@ type, public :: pft_dgvepc_type
    real(r8), pointer :: sm_sapl(:)
    real(r8), pointer :: hm_sapl(:)
    real(r8), pointer :: rm_sapl(:)
-   logical , pointer :: tree(:)
-   logical , pointer :: summergreen(:)
-   logical , pointer :: raingreen(:)
+   logical, pointer :: tree(:)
+   logical, pointer :: summergreen(:)
+   logical, pointer :: raingreen(:)
    real(r8), pointer :: reinickerp(:)      !parameter in allometric equation
    real(r8), pointer :: wooddens(:)	   !wood density (gC/m3)
    real(r8), pointer :: latosa(:)	   !ratio of leaf area to sapwood cross-sectional area (Shinozaki et al 1964a,b)
@@ -474,7 +474,7 @@ type, public :: pft_dgvstate_type
    real(r8), pointer :: tsoi25(:)              !soil temperature to 0.25 m (Kelvin)
    real(r8), pointer :: annpsn(:)              !annual photosynthesis (umol CO2 /m**2)
    real(r8), pointer :: annpsnpot(:)           !annual potential photosynthesis (same units)
-   logical , pointer :: present(:)             !whether PFT present in patch
+   logical, pointer :: present(:)             !whether PFT present in patch
    real(r8), pointer :: dphen(:)               !phenology [0 to 1]
    real(r8), pointer :: leafon(:)              !leafon days
    real(r8), pointer :: leafof(:)              !leafoff days
@@ -920,8 +920,8 @@ end type pft_dflux_type
 !----------------------------------------------------
 type, public :: column_pstate_type
    type(pft_pstate_type) :: pps_a            !pft-level pstate variables averaged to the column
-   integer , pointer :: snl(:)  	      !number of snow layers
-   integer , pointer :: isoicol(:) 	      !soil color class
+   integer, pointer :: snl(:)  	      !number of snow layers
+   integer, pointer :: isoicol(:) 	      !soil color class
    real(r8), pointer :: bsw(:,:)              !Clapp and Hornberger "b" (nlevsoi)
    real(r8), pointer :: watsat(:,:)           !volumetric soil water at saturation (porosity) (nlevsoi)
    real(r8), pointer :: watdry(:,:)           !btran parameter for btran=0
@@ -939,7 +939,7 @@ type, public :: column_pstate_type
    real(r8), pointer :: gwc_thr(:) 	      !threshold soil moisture based on clay content
    real(r8), pointer :: mss_frc_cly_vld(:)    ![frc] Mass fraction clay limited to 0.20
    real(r8), pointer :: mbl_bsn_fct(:) 	      !??
-   logical , pointer :: do_capsnow(:)         !true => do snow capping
+   logical, pointer :: do_capsnow(:)         !true => do snow capping
    real(r8), pointer :: snowdp(:) 	      !snow height (m)
    real(r8), pointer :: snowage(:)	      !non dimensional snow age [-] (new)
    real(r8), pointer :: frac_sno(:) 	      !fraction of ground covered by snow (0 to 1)
@@ -947,7 +947,7 @@ type, public :: column_pstate_type
    real(r8), pointer :: dz(:,:)               !layer thickness (m)  (-nlevsno+1:nlevsoi)
    real(r8), pointer :: z(:,:)                !layer depth (m) (-nlevsno+1:nlevsoi)
    real(r8), pointer :: frac_iceold(:,:)      !fraction of ice relative to the tot water (new) (-nlevsno+1:nlevsoi)
-   integer , pointer :: imelt(:,:)            !flag for melting (=1), freezing (=2), Not=0 (new) (-nlevsno+1:nlevsoi)
+   integer, pointer :: imelt(:,:)            !flag for melting (=1), freezing (=2), Not=0 (new) (-nlevsno+1:nlevsoi)
    real(r8), pointer :: eff_porosity(:,:)     !effective porosity = porosity - vol_ice (nlevsoi)
    real(r8), pointer :: emg(:) 		      !ground emissivity
    real(r8), pointer :: z0mg(:) 	      !roughness length over ground, momentum [m]
@@ -1686,16 +1686,16 @@ end type model_dflux_type
 type, public :: pft_type
 
    ! g/l/c/p hierarchy, local g/l/c/p cells only
-   integer , pointer :: column(:)        !index into column level quantities
+   integer, pointer :: column(:)        !index into column level quantities
    real(r8), pointer :: wtcol(:)	!weight (relative to column)
-   integer , pointer :: landunit(:)      !index into landunit level quantities
+   integer, pointer :: landunit(:)      !index into landunit level quantities
    real(r8), pointer :: wtlunit(:)      !weight (relative to landunit)
-   integer , pointer :: gridcell(:)      !index into gridcell level quantities
+   integer, pointer :: gridcell(:)      !index into gridcell level quantities
    real(r8), pointer :: wtgcell(:)	!weight (relative to gridcell)
 
    ! topological mapping functionality
-   integer , pointer :: itype(:)        !pft vegetation
-   integer , pointer :: mxy(:)          !m index for laixy(i,j,m),etc.
+   integer, pointer :: itype(:)        !pft vegetation
+   integer, pointer :: mxy(:)          !m index for laixy(i,j,m),etc.
 
    ! conservation check structures for the pft level
    type(energy_balance_type)   :: pebal !energy balance structure
@@ -1748,16 +1748,16 @@ type, public :: column_type
    type(pft_type)   :: p       !plant functional type (pft) data structure
 
    ! g/l/c/p hierarchy, local g/l/c/p cells only
-   integer , pointer :: landunit(:)     !index into landunit level quantities
+   integer, pointer :: landunit(:)     !index into landunit level quantities
    real(r8), pointer :: wtlunit(:) 	!weight (relative to landunit)
-   integer , pointer :: gridcell(:)     !index into gridcell level quantities
+   integer, pointer :: gridcell(:)     !index into gridcell level quantities
    real(r8), pointer :: wtgcell(:) 	!weight (relative to gridcell)
-   integer , pointer :: pfti(:)         !beginning pft index for each column
-   integer , pointer :: pftf(:)         !ending pft index for each column
-   integer , pointer :: npfts(:)        !number of pfts for each column
+   integer, pointer :: pfti(:)         !beginning pft index for each column
+   integer, pointer :: pftf(:)         !ending pft index for each column
+   integer, pointer :: npfts(:)        !number of pfts for each column
 
    ! topological mapping functionality
-   integer , pointer :: itype(:) 	!column type
+   integer, pointer :: itype(:) 	!column type
 
    ! conservation check structures for the column level
    type(energy_balance_type)   :: cebal !energy balance structure
@@ -1802,19 +1802,19 @@ type, public :: landunit_type
    type(column_type) :: c    !column data structure (soil/snow/canopy columns)
 
    ! g/l/c/p hierarchy, local g/l/c/p cells only
-   integer , pointer :: gridcell(:)     !index into gridcell level quantities
+   integer, pointer :: gridcell(:)     !index into gridcell level quantities
    real(r8), pointer :: wtgcell(:)      !weight (relative to gridcell)
-   integer , pointer :: coli(:)         !beginning column index per landunit
-   integer , pointer :: colf(:)         !ending column index for each landunit
-   integer , pointer :: ncolumns(:)     !number of columns for each landunit
-   integer , pointer :: pfti(:)         !beginning pft index for each landunit
-   integer , pointer :: pftf(:)         !ending pft index for each landunit
-   integer , pointer :: npfts(:)        !number of pfts for each landunit
+   integer, pointer :: coli(:)         !beginning column index per landunit
+   integer, pointer :: colf(:)         !ending column index for each landunit
+   integer, pointer :: ncolumns(:)     !number of columns for each landunit
+   integer, pointer :: pfti(:)         !beginning pft index for each landunit
+   integer, pointer :: pftf(:)         !ending pft index for each landunit
+   integer, pointer :: npfts(:)        !number of pfts for each landunit
 
    ! topological mapping functionality
-   integer , pointer :: itype(:) 	!landunit type
-   logical , pointer :: ifspecial(:)    !BOOL: true=>landunit is not vegetated
-   logical , pointer :: lakpoi(:)	!BOOL: true=>lake point
+   integer, pointer :: itype(:) 	!landunit type
+   logical, pointer :: ifspecial(:)    !BOOL: true=>landunit is not vegetated
+   logical, pointer :: lakpoi(:)	!BOOL: true=>lake point
 
    ! conservation check structures for the landunit level
    type(energy_balance_type)   :: lebal !energy balance structure
@@ -1943,7 +1943,7 @@ end type model_type
 !----------------------------------------------------
 ! Declare single instance of clmtype
 !----------------------------------------------------
-type(model_type)    , public, target     , save :: clm3
+type(model_type)   , public, target    , save :: clm3
 
 !----------------------------------------------------
 ! Declare single instance of array of ecophysiological constant types

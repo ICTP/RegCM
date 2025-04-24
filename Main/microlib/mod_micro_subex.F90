@@ -36,22 +36,22 @@ module mod_micro_subex
   !
   ! Precip sum beginning from top
   !
-  real(rkx) , public , pointer , dimension(:,:) :: qck1 , cgul , &
-    cevap , xcevap , caccr
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: qck1, cgul, &
+    cevap, xcevap, caccr
 
   real(rkx) :: maxlat
-  real(rkx) , pointer , dimension(:,:) :: pptsum
-  real(rkx) , pointer , dimension(:,:,:) :: dqc
+  real(rkx), pointer, contiguous, dimension(:,:) :: pptsum
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: dqc
 
   logical :: l_lat_hack = .false.
-  public :: allocate_subex , init_subex , subex
+  public :: allocate_subex, init_subex, subex
 
-  real(rkx) , parameter :: remfrc = 0.0_rkx
-  real(rkx) , parameter :: rhow = 1000.0_rkx
-  real(rkx) , parameter :: pptmin = 0.0_rkx
-  real(rkx) , parameter :: actcld = 0.01_rkx
-  real(rkx) , parameter :: actliq = 1.0e-8_rkx
-  real(rkx) , parameter :: accrfrc = 0.5_rkx
+  real(rkx), parameter :: remfrc = 0.0_rkx
+  real(rkx), parameter :: rhow = 1000.0_rkx
+  real(rkx), parameter :: pptmin = 0.0_rkx
+  real(rkx), parameter :: actcld = 0.01_rkx
+  real(rkx), parameter :: actliq = 1.0e-8_rkx
+  real(rkx), parameter :: accrfrc = 0.5_rkx
 
   contains
 
@@ -72,9 +72,9 @@ module mod_micro_subex
   end subroutine allocate_subex
 
   subroutine init_subex(xlat)
-    use mod_mppparam , only : maxall
+    use mod_mppparam, only : maxall
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat
     call maxall(maxval(xlat),maxlat)
   end subroutine init_subex
   !
@@ -95,14 +95,14 @@ module mod_micro_subex
   !
   subroutine subex(mo2mc,mc2mo)
     implicit none
-    type(mod_2_micro) , intent(in) :: mo2mc
-    type(micro_2_mod) , intent(inout) :: mc2mo
-    integer(ik4) :: i , j , k , kk
+    type(mod_2_micro), intent(in) :: mo2mc
+    type(micro_2_mod), intent(inout) :: mc2mo
+    integer(ik4) :: i, j, k, kk
     logical :: lsecind
-    real(rkx) :: afc1 , qcw1 , qcincl1 , qcth1 , prainx , tcel1
-    real(rkx) :: pptnew , pptmax , afc , qcw , qcleft
-    real(rkx) :: pptkm1 , pptacc , dpovg
-    real(rkx) :: qs , dqv , rhcs , rdevap , rlv , ocpm
+    real(rkx) :: afc1, qcw1, qcincl1, qcth1, prainx, tcel1
+    real(rkx) :: pptnew, pptmax, afc, qcw, qcleft
+    real(rkx) :: pptkm1, pptacc, dpovg
+    real(rkx) :: qs, dqv, rhcs, rdevap, rlv, ocpm
     !
     ! 0. Compute dqc
     !
@@ -232,7 +232,7 @@ module mod_micro_subex
     ! LAYER TWO TO KZ
     ! 1b. Perform computations for the 2nd layer to the surface
     ! precipation accumulated from above
-    do k = 2 , kz
+    do k = 2, kz
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         ! 1bb. Convert accumlated precipitation to kg/kg/s.
         !      Used for raindrop evaporation and accretion.
@@ -347,15 +347,15 @@ module mod_micro_subex
     !--------------------------------------------------------------------
     !
     if ( ichem == 1 ) then
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         mc2mo%rembc(j,i,1) = d_zero
       end do
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 2, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             mc2mo%rembc(j,i,k) = d_zero
             if ( mc2mo%remrat(j,i,k) > d_zero ) then
-              do kk = 1 , k - 1
+              do kk = 1, k - 1
                 mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
                   mc2mo%remrat(j,i,kk) * mo2mc%qcn(j,i,k) * &
                   (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
@@ -371,8 +371,8 @@ module mod_micro_subex
     !    the surface physics and the output
     !--------------------------------------------------------------------
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         prainx = pptsum(j,i)*dtsec
         if ( prainx > dlowval ) then
           mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + prainx
@@ -392,10 +392,10 @@ module mod_micro_subex
     pure real(rkx) function season_factor(lat,day,dpy) result(sf)
 !$acc routine seq
       implicit none
-      real(rkx) , intent(in) :: lat , day , dpy
-      real(rkx) :: theta , delta
+      real(rkx), intent(in) :: lat, day, dpy
+      real(rkx) :: theta, delta
       ! Maximum abs value for the declination angle
-      real(rkx) , parameter :: dmax = 0.40910517666747085282_rkx
+      real(rkx), parameter :: dmax = 0.40910517666747085282_rkx
       ! Different phase in the two emispheres
       if ( lat > d_zero ) then
         theta = twopi*mod(day+(dpy*d_half),dpy)/dpy
@@ -413,13 +413,13 @@ module mod_micro_subex
 
     subroutine sun_cevap(lat,day)
       implicit none
-      integer(ik4) :: i , j
-      real(rkx) , dimension(:,:) , intent(in) , pointer :: lat
-      real(rkx) , intent(in) :: day
+      integer(ik4) :: i, j
+      real(rkx), dimension(:,:), intent(in), pointer :: lat
+      real(rkx), intent(in) :: day
       ! cevap minimum seasonal paraneter
-      real(rkx) , parameter :: mincevap = 1.0e-5_rkx
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      real(rkx), parameter :: mincevap = 1.0e-5_rkx
+      do i = ici1, ici2
+        do j = jci1, jci2
           xcevap(j,i) = max(cevap(j,i) * (d_one - &
                    (sin(abs(lat(j,i)*90.0_rkx/maxlat)*degrad) * &
                     season_factor(lat(j,i),day,dayspy))), mincevap)

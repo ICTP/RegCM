@@ -24,17 +24,17 @@ module mod_miroc_helper
 
   public :: mirocvars
   public :: find_miroc_sst
-  public :: find_miroc_dim , find_miroc_topo , find_miroc_file
+  public :: find_miroc_dim, find_miroc_topo, find_miroc_file
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: mirocvars = &
-            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: mirocvars = &
+            ['ta ', 'XXX', 'hus', 'ua ', 'va ', 'ps ']
 
   character(len=64) :: mirocbase1  = '_6hrLev_MIROC5_historical'
   character(len=64) :: mirocbase2  = '_6hrLev_MIROC5_rcp'
   character(len=64) :: mirocbase3 = '_r1i1p1_'
 
-  integer(ik4) , dimension(12) :: dm
+  integer(ik4), dimension(12) :: dm
 
   data dm /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
 
@@ -42,8 +42,8 @@ module mod_miroc_helper
 
   subroutine find_miroc_sst(fname,idate)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
     if ( .not. date_in_scenario(idate,5) ) then
       fname = trim(inpglob)//pthsep//'MIROC5'//pthsep//'SST'// &
               pthsep//'tos_Omon_MIROC5_historical'// &
@@ -57,11 +57,11 @@ module mod_miroc_helper
 
   subroutine assemble_path(fname,scen,var,d1,d2)
     implicit none
-    character(len=256) , intent(out) :: fname
-    character(len=*) , intent(in) :: scen
-    character(len=*) , intent(in) :: var
-    character(len=*) , intent(in) :: d1
-    character(len=*) , intent(in) :: d2
+    character(len=256), intent(out) :: fname
+    character(len=*), intent(in) :: scen
+    character(len=*), intent(in) :: var
+    character(len=*), intent(in) :: d1
+    character(len=*), intent(in) :: d2
     if ( scen == 'RF' ) then
       fname = trim(inpglob)//pthsep//'MIROC5'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(mirocbase1)//  &
@@ -75,7 +75,7 @@ module mod_miroc_helper
 
   subroutine find_miroc_dim(dim_filename)
     implicit none
-    character(len=256) , intent(out) :: dim_filename
+    character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(dim_filename,'RF','ta','2000120100','2000123118')
@@ -83,18 +83,18 @@ module mod_miroc_helper
 
   subroutine find_miroc_topo(topo_filename)
     implicit none
-    character(len=256) , intent(out) :: topo_filename
+    character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'MIROC5'//pthsep//'fixed'// &
               pthsep//'orog_fx_MIROC5_historical_r0i0p0.nc'
   end subroutine find_miroc_topo
 
   subroutine find_miroc_file(miroc_filename,var,idate)
     implicit none
-    character(len=256) , intent(out) :: miroc_filename
-    character(len=*) , intent(in) :: var
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
+    character(len=256), intent(out) :: miroc_filename
+    character(len=*), intent(in) :: var
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
     call split_idate(idate,y,m,d,h)
     select case (var)
       case ('ps')

@@ -26,8 +26,8 @@
 
       integer(kind=im), parameter :: no10 = 16
 
-      real(kind=rb) , dimension(no10) :: fracrefao
-      real(kind=rb) , dimension(no10) :: fracrefbo
+      real(kind=rb), dimension(no10) :: fracrefao
+      real(kind=rb), dimension(no10) :: fracrefbo
 
       real(kind=rb) :: kao(5,13,no10)
       real(kind=rb) :: kbo(5,13:59,no10)
@@ -58,10 +58,10 @@
 
       integer(kind=im), parameter :: ng10 = 6
 
-      real(kind=rb) , dimension(ng10) :: fracrefa
-      real(kind=rb) , dimension(ng10) :: fracrefb
+      real(kind=rb), dimension(ng10) :: fracrefa
+      real(kind=rb), dimension(ng10) :: fracrefb
 
-      real(kind=rb) :: ka(5,13,ng10)   , absa(65,ng10)
+      real(kind=rb) :: ka(5,13,ng10)  , absa(65,ng10)
       real(kind=rb) :: kb(5,13:59,ng10), absb(235,ng10)
       real(kind=rb) :: selfref(10,ng10)
       real(kind=rb) :: forref(4,ng10)

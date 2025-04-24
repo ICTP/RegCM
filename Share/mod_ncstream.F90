@@ -25,7 +25,7 @@ module mod_ncstream
   use mod_ncstream_types
   use mod_zita
 #ifdef PNETCDF
-  use mpi , only : mpi_comm_self , mpi_info_null
+  use mpi, only : mpi_comm_self, mpi_info_null
   use pnetcdf
 #else
   use netcdf
@@ -36,12 +36,12 @@ module mod_ncstream
   private
 
   integer(ik4) :: ncstat
-  logical , parameter :: nocopy = .false.
-  type(rcm_time_and_date) , save :: reference_date
-  integer(ik4) , dimension(ncmaxdims) :: id_dim
-  integer(ik4) , dimension(ncmaxdims) :: len_dim
+  logical, parameter :: nocopy = .false.
+  type(rcm_time_and_date), save :: reference_date
+  integer(ik4), dimension(ncmaxdims) :: id_dim
+  integer(ik4), dimension(ncmaxdims) :: len_dim
 
-  integer(ik4) , parameter :: cordexvtype = nf90_float
+  integer(ik4), parameter :: cordexvtype = nf90_float
 
   interface outstream_addrec
     module procedure outstream_addrec_date
@@ -82,8 +82,8 @@ module mod_ncstream
   public :: ncattribute_real8_array
 
   public :: outstream_setup
-  public :: outstream_enable , outstream_dispose
-  public :: outstream_addvar , outstream_addatt
+  public :: outstream_enable, outstream_dispose
+  public :: outstream_addvar, outstream_addatt
   public :: outstream_addvaratt
   public :: outstream_writevar
   public :: outstream_addrec
@@ -91,7 +91,7 @@ module mod_ncstream
 
   public :: nc_input_stream
   public :: ncinstream_params
-  public :: instream_setup , instream_dispose
+  public :: instream_setup, instream_dispose
   public :: instream_findrec
   public :: instream_readvar
 
@@ -99,11 +99,11 @@ module mod_ncstream
 
     subroutine instream_setup(ncin,params)
       implicit none
-      type(nc_input_stream) , intent(inout) :: ncin
-      type(ncinstream_params) , intent(in) :: params
-      type(ncinstream) , pointer :: stream
+      type(nc_input_stream), intent(inout) :: ncin
+      type(ncinstream_params), intent(in) :: params
+      type(ncinstream), pointer :: stream
       integer(ik4) :: imode = nf90_nowrite
-      integer(ik4) :: dimtime , i
+      integer(ik4) :: dimtime, i
       type(rcm_time_and_date) :: tt
 
       if ( associated(ncin%ncp%xs) ) call instream_dispose(ncin)
@@ -256,7 +256,7 @@ module mod_ncstream
         call die('nc_stream','Cannot setup file '//trim(stream%filename),1)
       end if
       allocate(stream%len_dims(stream%ndims))
-      do i = 1 , stream%ndims
+      do i = 1, stream%ndims
 #ifdef PNETCDF
         ncstat = nf90mpi_inquire_dimension(stream%id,i,len=stream%len_dims(i))
 #else
@@ -277,9 +277,9 @@ module mod_ncstream
 
     subroutine outstream_setup(ncout,params)
       implicit none
-      type(nc_output_stream) , intent(inout) :: ncout
-      type(ncoutstream_params) , intent(in) :: params
-      type(ncoutstream) , pointer :: stream
+      type(nc_output_stream), intent(inout) :: ncout
+      type(ncoutstream_params), intent(in) :: params
+      type(ncoutstream), pointer :: stream
       type(rcm_time_and_date) :: tt
       integer(ik4) :: imode
 
@@ -413,8 +413,8 @@ module mod_ncstream
 
     subroutine instream_dispose(ncin)
       implicit none
-      type(nc_input_stream) , intent(inout) :: ncin
-      type(ncinstream) , pointer :: stream
+      type(nc_input_stream), intent(inout) :: ncin
+      type(ncinstream), pointer :: stream
 
       if ( .not. associated(ncin%ncp%xs) ) return
       stream => ncin%ncp%xs
@@ -441,8 +441,8 @@ module mod_ncstream
 
     subroutine outstream_dispose(ncout)
       implicit none
-      type(nc_output_stream) , intent(inout) :: ncout
-      type(ncoutstream) , pointer :: stream
+      type(nc_output_stream), intent(inout) :: ncout
+      type(ncoutstream), pointer :: stream
 
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
@@ -469,7 +469,7 @@ module mod_ncstream
 
     subroutine deallocate_obuffer(xbf)
       implicit none
-      type(internal_obuffer) , pointer :: xbf
+      type(internal_obuffer), pointer :: xbf
       if ( .not. associated(xbf) ) return
       if ( allocated(xbf%intbuff) )  deallocate(xbf%intbuff)
       if ( allocated(xbf%realbuff) ) deallocate(xbf%realbuff)
@@ -478,7 +478,7 @@ module mod_ncstream
 
     subroutine deallocate_ibuffer(xbf)
       implicit none
-      type(internal_ibuffer) , pointer :: xbf
+      type(internal_ibuffer), pointer :: xbf
       if ( .not. associated(xbf) ) return
       if ( allocated(xbf%intbuff) )  deallocate(xbf%intbuff)
       if ( allocated(xbf%realbuff) ) deallocate(xbf%realbuff)
@@ -487,20 +487,20 @@ module mod_ncstream
 
     subroutine outstream_enable(ncout,sigma)
       implicit none
-      type(nc_output_stream) , intent(inout) :: ncout
-      real(rkx) , dimension(:) , pointer , intent(in) :: sigma
-      real(rkx) , dimension(size(sigma)) :: zita
+      type(nc_output_stream), intent(inout) :: ncout
+      real(rkx), dimension(:), pointer, contiguous, intent(in) :: sigma
+      real(rkx), dimension(size(sigma)) :: zita
 
-      type(ncoutstream) , pointer :: stream
-      type(internal_obuffer) , pointer :: buffer
-      type(basic_variables) , pointer :: stvar
-      integer(ik4) :: maxnum_int , maxnum_real , maxnum_double , i
+      type(ncoutstream), pointer :: stream
+      type(internal_obuffer), pointer :: buffer
+      type(basic_variables), pointer :: stvar
+      integer(ik4) :: maxnum_int, maxnum_real, maxnum_double, i
 #ifdef CLM45
       integer(ik4) :: nl
 #endif
-      character(len=16) , dimension(8) :: tempstr
-      real(rkx) :: xds , x0
-      real(rk8) :: rlat0 , rlon0
+      character(len=16), dimension(8) :: tempstr
+      real(rkx) :: xds, x0
+      real(rk8) :: rlat0, rlon0
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
       type(ncattribute_real8_array) :: attra
@@ -1006,7 +1006,7 @@ module mod_ncstream
         buffer%doublebuff(1) = &
           -real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two) * &
                     xds * d_1000,rk8)
-        do i = 2 , stream%len_dims(jx_dim)
+        do i = 2, stream%len_dims(jx_dim)
           buffer%doublebuff(i) = &
             real(real(buffer%doublebuff(i-1),rkx)+xds*d_1000,rk8)
         end do
@@ -1014,7 +1014,7 @@ module mod_ncstream
         buffer%doublebuff(1) = &
           -real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two) * &
                     xds * d_1000,rk8)
-        do i = 2 , stream%len_dims(iy_dim)
+        do i = 2, stream%len_dims(iy_dim)
           buffer%doublebuff(i) = &
             real(real(buffer%doublebuff(i-1),rkx)+xds*d_1000,rk8)
         end do
@@ -1024,7 +1024,7 @@ module mod_ncstream
         call compute_zero_rotated(rlat0,rlon0)
         buffer%doublebuff(1) = rlon0 - &
           real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two)*xds,rk8)
-        do i = 2 , stream%len_dims(jx_dim)
+        do i = 2, stream%len_dims(jx_dim)
           buffer%doublebuff(i) = &
             real(real(buffer%doublebuff(i-1),rkx)+xds,rk8)
         end do
@@ -1039,7 +1039,7 @@ module mod_ncstream
         call outstream_writevar(ncout,stvar%jx_var,nocopy)
         buffer%doublebuff(1) = rlat0 - &
           real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two)*xds,rk8)
-        do i = 2 , stream%len_dims(iy_dim)
+        do i = 2, stream%len_dims(iy_dim)
           buffer%doublebuff(i) = &
             real(real(buffer%doublebuff(i-1),rkx)+xds,rk8)
         end do
@@ -1073,7 +1073,7 @@ module mod_ncstream
       end if
       if ( stream%l_hassoillev ) then
 #ifdef CLM45
-        do nl = 1 , num_soil_layers
+        do nl = 1, num_soil_layers
           buffer%doublebuff(nl) = real(scalez*(exp(0.5_rkx * &
             (real(nl,rkx)-0.5_rkx))-1._rkx),rk8)
         end do
@@ -1087,14 +1087,14 @@ module mod_ncstream
         call outstream_writevar(ncout,stvar%levsoil_var,nocopy)
 #ifdef CLM45
         buffer%doublebuff(1) = 0.0_rk8
-        do nl = 2 , num_soil_layers
+        do nl = 2, num_soil_layers
           buffer%doublebuff(2*nl-1) = 0.5_rk8 * &
             (real(scalez*(exp(0.5_rkx * &
                          (real(nl-1,rkx)-0.5_rkx))-1.0_rkx),rk8) + &
              real(scalez*(exp(0.5_rkx * &
                          (real(nl,rkx)-0.5_rkx))-1.0_rkx),rk8))
         end do
-        do nl = 1 , num_soil_layers
+        do nl = 1, num_soil_layers
           buffer%doublebuff(2*nl) = buffer%doublebuff(2*nl+1)
         end do
         buffer%doublebuff(2*num_soil_layers) = 0.5_rk8 * &
@@ -1127,9 +1127,9 @@ module mod_ncstream
 
       subroutine compute_zero_rotated(rlat0,rlon0)
         implicit none
-        real(rk8) , intent(out) :: rlat0 , rlon0
-        real(rk8) :: pphi , plam
-        real(rk8) :: cphi , clam
+        real(rk8), intent(out) :: rlat0, rlon0
+        real(rk8) :: pphi, plam
+        real(rk8) :: cphi, clam
         pphi = degrad*plat
         plam = degrad*plon
         if ( plam < 0.0_rk8 ) then
@@ -1185,8 +1185,8 @@ module mod_ncstream
 
     subroutine outstream_sync(ncout)
       implicit none
-      type(nc_output_stream) , intent(in) :: ncout
-      type(ncoutstream) , pointer :: stream
+      type(nc_output_stream), intent(in) :: ncout
+      type(ncoutstream), pointer :: stream
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
       if ( .not. stream%l_enabled ) return
@@ -1207,10 +1207,10 @@ module mod_ncstream
 
     subroutine instream_findrec(ncin,dtime,record)
       implicit none
-      type(nc_input_stream) , intent(inout) :: ncin
-      type(rcm_time_and_date) , intent(in) :: dtime
-      real(rk8) , intent(out) :: record
-      type(ncinstream) , pointer :: stream
+      type(nc_input_stream), intent(inout) :: ncin
+      type(rcm_time_and_date), intent(in) :: dtime
+      real(rk8), intent(out) :: record
+      type(ncinstream), pointer :: stream
       real(rk8) :: search
       record = -1.0_rkx
       if ( .not. associated(ncin%ncp%xs) ) return
@@ -1226,8 +1226,8 @@ module mod_ncstream
 
     subroutine outstream_addrec_date(ncout,dtime)
       implicit none
-      type(nc_output_stream) , intent(inout) :: ncout
-      type(rcm_time_and_date) , intent(in) :: dtime
+      type(nc_output_stream), intent(inout) :: ncout
+      type(rcm_time_and_date), intent(in) :: dtime
       real(rk8) :: val
       val = hourdiff(dtime,reference_date)
       call outstream_addrec_value(ncout,val)
@@ -1235,11 +1235,11 @@ module mod_ncstream
 
     subroutine outstream_addrec_value(ncout,val)
       implicit none
-      type(nc_output_stream) , intent(inout) :: ncout
-      real(rk8) , intent(in) :: val
-      type(ncoutstream) , pointer :: stream
-      type(basic_variables) , pointer :: stvar
-      type(internal_obuffer) , pointer :: buffer
+      type(nc_output_stream), intent(inout) :: ncout
+      real(rk8), intent(in) :: val
+      type(ncoutstream), pointer :: stream
+      type(basic_variables), pointer :: stvar
+      type(internal_obuffer), pointer :: buffer
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
       stvar  => ncout%svp%xv
@@ -1258,9 +1258,9 @@ module mod_ncstream
 
     subroutine add_dimension(stream,dname)
       implicit none
-      type(ncoutstream) , pointer , intent(inout) :: stream
-      character(len=*) , intent(in) :: dname
-      character(len=16) :: the_name , in_name
+      type(ncoutstream), pointer, intent(inout) :: stream
+      character(len=*), intent(in) :: dname
+      character(len=16) :: the_name, in_name
 #ifdef PNETCDF
       integer(ik4) :: pdim = -1
       integer(kind=mpi_offset_kind) :: num
@@ -1279,7 +1279,7 @@ module mod_ncstream
             ! this is the number of cross points WITHOUT bondary
             num = jx - 3
           end if
-          ! In subgrid , multiply for the number of points
+          ! In subgrid, multiply for the number of points
           if ( stream%l_subgrid ) num = num*nsg
           the_name = 'jx'
           pdim = jx_dim
@@ -1291,7 +1291,7 @@ module mod_ncstream
             ! this is the number of cross points WITHOUT bondary
             num = iy - 3
           end if
-          ! In subgrid , multiply for the number of points
+          ! In subgrid, multiply for the number of points
           if ( stream%l_subgrid ) num = num*nsg
           the_name = 'iy'
           pdim = iy_dim
@@ -1399,28 +1399,28 @@ module mod_ncstream
 
     subroutine outstream_addatt(ncout,att)
       implicit none
-      type(nc_output_stream) , intent(inout) :: ncout
-      class(ncattribute_standard) , intent(in) :: att
+      type(nc_output_stream), intent(inout) :: ncout
+      class(ncattribute_standard), intent(in) :: att
       if ( .not. associated(ncout%ncp%xs) ) return
       call add_attribute(ncout%ncp%xs,att)
     end subroutine outstream_addatt
 
     subroutine outstream_addvaratt(ncout,var,att)
       implicit none
-      type(nc_output_stream) , intent(in) :: ncout
-      class(ncvariable_standard) , intent(in) :: var
-      class(ncattribute_standard) , intent(in) :: att
+      type(nc_output_stream), intent(in) :: ncout
+      class(ncvariable_standard), intent(in) :: var
+      class(ncattribute_standard), intent(in) :: att
       if ( .not. associated(ncout%ncp%xs) ) return
       call add_attribute(ncout%ncp%xs,att,var%id,var%vname)
     end subroutine outstream_addvaratt
 
     subroutine add_attribute(stream,att,iloc,vname)
       implicit none
-      type(ncoutstream) , pointer , intent(in) :: stream
-      class(ncattribute_standard) , intent(in) :: att
-      integer(ik4) , optional :: iloc
+      type(ncoutstream), pointer, intent(in) :: stream
+      class(ncattribute_standard), intent(in) :: att
+      integer(ik4), optional :: iloc
       character(len=4) :: cdum
-      character(len=*) , optional :: vname
+      character(len=*), optional :: vname
       character(len=32) :: the_name
       integer(ik4) :: iv
       if ( stream%l_enabled ) return
@@ -1557,13 +1557,13 @@ module mod_ncstream
 
     subroutine add_varatts(stream,var)
       implicit none
-      type(ncoutstream) , pointer , intent(inout) :: stream
-      class(ncvariable_standard) , intent(in) :: var
-      character(len=*) , parameter :: coords_cross = 'xlat xlon'
-      character(len=*) , parameter :: coords_depth = 'soil_layer xlat xlon'
-      character(len=*) , parameter :: coords_dot   = 'dlat dlon'
-      character(len=*) , parameter :: coords_udot  = 'ulat ulon'
-      character(len=*) , parameter :: coords_vdot  = 'vlat vlon'
+      type(ncoutstream), pointer, intent(inout) :: stream
+      class(ncvariable_standard), intent(in) :: var
+      character(len=*), parameter :: coords_cross = 'xlat xlon'
+      character(len=*), parameter :: coords_depth = 'soil_layer xlat xlon'
+      character(len=*), parameter :: coords_dot   = 'dlat dlon'
+      character(len=*), parameter :: coords_udot  = 'ulat ulon'
+      character(len=*), parameter :: coords_vdot  = 'vlat vlon'
       if ( len_trim(var%long_name) > 0 ) &
         call add_attribute(stream, &
           ncattribute_string('long_name',var%long_name),var%id,var%vname)
@@ -1645,10 +1645,10 @@ module mod_ncstream
 
     subroutine add_variable(ncout,var,ndims)
       implicit none
-      type(nc_output_stream) , intent(inout) :: ncout
-      class(ncvariable_standard) , intent(inout) :: var
-      integer(ik4) , intent(in) :: ndims
-      type(ncoutstream) , pointer :: stream
+      type(nc_output_stream), intent(inout) :: ncout
+      class(ncvariable_standard), intent(inout) :: var
+      integer(ik4), intent(in) :: ndims
+      type(ncoutstream), pointer :: stream
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
       if ( stream%l_enabled ) return
@@ -1738,10 +1738,10 @@ module mod_ncstream
 
     subroutine outstream_addvar(ncout,var)
       implicit none
-      type(nc_output_stream) , intent(inout) :: ncout
+      type(nc_output_stream), intent(inout) :: ncout
       class(ncvariable_standard) :: var
-      type(ncoutstream) , pointer :: stream
-      type(internal_obuffer) , pointer :: buffer
+      type(ncoutstream), pointer :: stream
+      type(internal_obuffer), pointer :: buffer
       integer(ik4) :: nd
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
@@ -2025,12 +2025,12 @@ module mod_ncstream
 
     subroutine dimlist(stream,code)
       implicit none
-      type(ncoutstream) , intent(inout) , pointer :: stream
-      character(len=*) , intent(in) :: code
+      type(ncoutstream), intent(inout), pointer :: stream
+      character(len=*), intent(in) :: code
       character(len=ncmaxdims) :: safecode
       integer(ik4) :: ic
 
-      do ic = 1 , ncmaxdims
+      do ic = 1, ncmaxdims
         safecode(ic:ic) = ' '
       end do
       safecode = code
@@ -2146,13 +2146,13 @@ module mod_ncstream
 
     subroutine outstream_writevar(ncout,var,lcopy,is)
       implicit none
-      type(nc_output_stream) , intent(inout) :: ncout
-      class(ncvariable_standard) , intent(inout) :: var
-      logical , intent(in) , optional :: lcopy
-      integer(ik4) , intent(in) , optional :: is
-      type(ncoutstream) , pointer :: stream
-      type(internal_obuffer) , pointer :: buffer
-      integer(ik4) :: nd , totsize
+      type(nc_output_stream), intent(inout) :: ncout
+      class(ncvariable_standard), intent(inout) :: var
+      logical, intent(in), optional :: lcopy
+      integer(ik4), intent(in), optional :: is
+      type(ncoutstream), pointer :: stream
+      type(internal_obuffer), pointer :: buffer
+      integer(ik4) :: nd, totsize
       logical :: docopy
       if ( .not. associated(ncout%ncp%xs) ) return
       nd = 0
@@ -3389,8 +3389,8 @@ module mod_ncstream
 
     subroutine cdumlogical(cdum,yesno)
       implicit none
-      character(len=*) , intent(out) :: cdum
-      logical , intent(in) :: yesno
+      character(len=*), intent(out) :: cdum
+      logical, intent(in) :: yesno
       if (yesno) then
         write(cdum,'(a)') 'Yes'
       else
@@ -3400,11 +3400,11 @@ module mod_ncstream
 
     subroutine add_common_global_params(ncout)
       implicit none
-      type(nc_output_stream) , intent(inout) :: ncout
-      type(ncoutstream) , pointer :: stream
-      type(basic_variables) , pointer :: stvar
+      type(nc_output_stream), intent(inout) :: ncout
+      type(ncoutstream), pointer :: stream
+      type(basic_variables), pointer :: stvar
       character(256) :: history
-      integer(ik4) , dimension(8) :: tvals
+      integer(ik4), dimension(8) :: tvals
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
       type(ncattribute_integer) :: atti
@@ -3435,8 +3435,8 @@ module mod_ncstream
       call add_attribute(stream,attc)
       call date_and_time(values=tvals)
       write(history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
-        tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,          &
-        tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,                &
+        tvals(1), '-', tvals(2), '-', tvals(3), ' ',          &
+        tvals(5), ':', tvals(6), ':', tvals(7),                &
         ' : Created by RegCM '//trim(stream%progname)//' program'
       attc%aname = 'history'
       attc%theval = history
@@ -3604,12 +3604,12 @@ module mod_ncstream
 
     subroutine instream_readvar(ncin,var,irec,window)
       implicit none
-      type(nc_input_stream) , intent(inout) :: ncin
-      class(ncvariable_standard) , intent(inout) :: var
-      integer(ik4) , intent(in) , optional :: irec
-      integer(ik4) , dimension(:) , intent(in) , optional :: window
-      type(ncinstream) , pointer :: stream
-      type(internal_ibuffer) , pointer :: buffer
+      type(nc_input_stream), intent(inout) :: ncin
+      class(ncvariable_standard), intent(inout) :: var
+      integer(ik4), intent(in), optional :: irec
+      integer(ik4), dimension(:), intent(in), optional :: window
+      type(ncinstream), pointer :: stream
+      type(internal_ibuffer), pointer :: buffer
       integer(ik4) :: ndims
 
       if ( .not. associated(ncin%ncp%xs) ) return
@@ -5138,18 +5138,18 @@ module mod_ncstream
 
     pure elemental real(rk4) function bitshave_nb(x,nb) result(y)
       implicit none
-      real(rk4) , intent(in) :: x
-      integer(ik4) , intent(in) :: nb
+      real(rk4), intent(in) :: x
+      integer(ik4), intent(in) :: nb
       integer(ik4) :: mask
-      integer(ik4) , parameter :: all_on = not(0_ik4)
+      integer(ik4), parameter :: all_on = not(0_ik4)
       mask = lshift(all_on,23-nb)
       y = transfer(iand(transfer(x,0_ik4),mask),1.0_rk4)
     end function bitshave_nb
 
     pure elemental real(rk4) function bitshave_15(x) result(y)
       implicit none
-      real(rk4) , intent(in) :: x
-      integer(ik4) , parameter :: mask = -256
+      real(rk4), intent(in) :: x
+      integer(ik4), parameter :: mask = -256
       y = transfer(iand(transfer(x,0_ik4),mask),1.0_rk4)
     end function bitshave_15
 
@@ -5182,10 +5182,10 @@ program test
 
   type(ncvariable2d_real) :: var2read
 
-  real(rkx) , target , dimension(18) :: sigma
-  real(rkx) , target , dimension(16,12) :: d2dvar
-  real(rkx) , target , dimension(16,12,18) :: d3dvar
-  integer(ik4) :: i , k
+  real(rkx), target, dimension(18) :: sigma
+  real(rkx), target, dimension(16,12) :: d2dvar
+  real(rkx), target, dimension(16,12,18) :: d3dvar
+  integer(ik4) :: i, k
 
   data sigma /0.025_rkx, 0.075_rkx, 0.130_rkx, &
               0.195_rkx, 0.270_rkx, 0.359_rkx, &
@@ -5269,7 +5269,7 @@ program test
 
   var0dint%ival(1) = 12
   d3dvar(1:jx,1:iy,:) = 1.0_rkx
-  do k = 1 , kz
+  do k = 1, kz
     d3dvar(jx/4,iy/4,k) = real(k,rkx)
   end do
   var3dreal%rval => d3dvar
@@ -5282,7 +5282,7 @@ program test
 
   var0dint%ival(1) = 13
   d3dvar(1:jx,1:iy,:) = 1.0_rkx
-  do k = 1 , kz
+  do k = 1, kz
     d3dvar(jx/4,iy/4,k) = real(k,rkx)*1.5_rkx
   end do
 
@@ -5315,7 +5315,7 @@ program test
 
   call instream_readvar(ncin,var2read,window=[4,12,2,8])
 
-  do i = 1 , iy
+  do i = 1, iy
     print '(16i2)', int(d2dvar(:,i))
   end do
 

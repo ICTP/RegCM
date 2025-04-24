@@ -32,7 +32,7 @@ module mod_clm_params
 #ifdef CLM45
   use mod_clm_regcm
 #endif
-  use mod_ipcc_scenario , only : set_scenario
+  use mod_ipcc_scenario, only : set_scenario
   use mod_ncio
   use mod_timer
 
@@ -40,7 +40,7 @@ module mod_clm_params
 
   private
 
-  real(rkx) , parameter :: mindt = 1.0_rkx
+  real(rkx), parameter :: mindt = 1.0_rkx
 
   public :: param
 
@@ -51,28 +51,28 @@ module mod_clm_params
   subroutine param
     implicit none
     integer(ik4) :: iretval
-    integer(ik4) :: i , j , k
-    integer(ik8) :: mdate0 , mdate1 , mdate2
-    integer(ik4) :: hspan , ipunit
-    integer(ik4) :: n , len_path
+    integer(ik4) :: i, j, k
+    integer(ik8) :: mdate0, mdate1, mdate2
+    integer(ik4) :: hspan, ipunit
+    integer(ik4) :: n, len_path
     character(len=32) :: appdat
     type(rcm_time_interval) :: bdif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'param'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
 #endif
     !
     ! namelist:
     !
-    namelist /restartparam/ ifrest , mdate0 , mdate1 , mdate2
+    namelist /restartparam/ ifrest, mdate0, mdate1, mdate2
 
-    namelist /timeparam/ dtrad , dtsrf , dtcum , dtche , dtabem , dt
+    namelist /timeparam/ dtrad, dtsrf, dtcum, dtche, dtabem, dt
 
-    namelist /tweakparam/ itweak_temperature , itweak_solar_irradiance , &
-            itweak_sst , itweak_greenhouse_gases , temperature_tweak ,   &
-            sst_tweak , solar_tweak , gas_tweak_factors
+    namelist /tweakparam/ itweak_temperature, itweak_solar_irradiance, &
+            itweak_sst, itweak_greenhouse_gases, temperature_tweak,   &
+            sst_tweak, solar_tweak, gas_tweak_factors
 
-    namelist /clmsaparam/ dirout , sfbcread
+    namelist /clmsaparam/ dirout, sfbcread
 
 #ifdef DEBUG
     call time_begin(subroutine_name,idindx)
@@ -190,7 +190,7 @@ module mod_clm_params
 
       if ( itweak == 1 ) then
         rewind(ipunit)
-        read (ipunit , tweakparam, iostat=iretval, err=121)
+        read (ipunit, tweakparam, iostat=iretval, err=121)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Tweak parameters absent.'
           write(stdout,*) 'Disable tweaking.'
@@ -421,8 +421,8 @@ module mod_clm_params
                mdsub%area,mdsub%xlat,mdsub%xlon,mdsub%dhlake)
       mdsub%ht = mdsub%ht*egrav
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           mdsub%ht(1,j,i) = mddom%ht(j,i)*egrav
           mdsub%lndcat(1,j,i) = mddom%lndcat(j,i)
           mdsub%lndtex(1,j,i) = mddom%lndtex(j,i)
@@ -436,13 +436,13 @@ module mod_clm_params
     !
     !------invert mapscale factors and convert hgt to geopotential
     !
-    do i = ide1 , ide2
-      do j = jde1 , jde2
+    do i = ide1, ide2
+      do j = jde1, jde2
         mddom%ht(j,i)   = mddom%ht(j,i)*egrav
       end do
     end do
     if ( idynamic < 3 ) then
-      do k = 1 , kz
+      do k = 1, kz
         dsigma(k) = (sigma(k+1) - sigma(k))
         hsigma(k) = (sigma(k+1) + sigma(k))*d_half
       end do
@@ -452,8 +452,8 @@ module mod_clm_params
     !
     !-----compute land/water mask
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( mddom%mask(j,i) > 0.1_rkx ) then
           mddom%ldmsk(j,i) = 1
         else
@@ -464,9 +464,9 @@ module mod_clm_params
     !
     !-----compute land/water mask on subgrid space
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( mdsub%mask(n,j,i) > 0.1_rkx ) then
             mdsub%ldmsk(n,j,i) = 1
           else
@@ -500,11 +500,11 @@ module mod_clm_params
         write(stdout,*) 'THIS RUN IS TO BE CONSIDERED A NON STANDARD SCENARIO!'
         if ( itweak_temperature == 1 ) then
           write(stdout,'(a,f11.6,a)') ' Value added to temperature      : ', &
-                  temperature_tweak , ' K'
+                  temperature_tweak, ' K'
         end if
         if ( itweak_solar_irradiance == 1 ) then
           write(stdout,'(a,f11.6,a)') ' Value added to solar irradiance : ', &
-                  solar_tweak , ' W m-2'
+                  solar_tweak, ' W m-2'
         end if
         if ( itweak_greenhouse_gases == 1 ) then
           write(stdout,'(a,f11.6)') ' CO2 concentration factor        : ', &
@@ -521,11 +521,11 @@ module mod_clm_params
       end if
     end if
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         mddom%iveg(j,i) = nint(mddom%lndcat(j,i))
         mddom%itex(j,i) = nint(mddom%lndtex(j,i))
-        do n = 1 , nnsg
+        do n = 1, nnsg
           mdsub%iveg(n,j,i) = nint(mdsub%lndcat(n,j,i))
           mdsub%itex(n,j,i) = nint(mdsub%lndtex(n,j,i))
         end do
@@ -554,7 +554,7 @@ module mod_clm_params
 
       recursive integer(ik4) function gcd_rec(u,v) result(gcd)
         implicit none
-        integer(ik4) , intent(in) :: u , v
+        integer(ik4), intent(in) :: u, v
         if ( mod(u,v) /= 0 ) then
           gcd = gcd_rec(v,mod(u,v))
         else
@@ -564,7 +564,7 @@ module mod_clm_params
 
       real(rkx) function check_against_outparams(dt,dec) result(newdt)
         implicit none
-        real(rkx) , intent(in) :: dt , dec
+        real(rkx), intent(in) :: dt, dec
         newdt = int(dt/dec)*dec
         if ( ifshf ) then
           do
@@ -587,8 +587,8 @@ module mod_clm_params
 
       subroutine compute_moloch_static
         implicit none
-        integer(ik4) :: i , j
-        real(rkx) , dimension(kzp1) :: fak , fbk
+        integer(ik4) :: i, j
+        real(rkx), dimension(kzp1) :: fak, fbk
         call model_zitaf(zita,mo_ztop)
         call model_zitah(zitah,mo_ztop)
         mo_dzita = zita(kz)
@@ -598,11 +598,11 @@ module mod_clm_params
         fbk = md_bk(zita,mo_ztop,mo_a0)
         ak = md_ak(zitah,mo_ztop,mo_h)
         bk = md_bk(zitah,mo_ztop,mo_a0)
-        do k = 1 , kz
+        do k = 1, kz
           dsigma(k) = (sigma(k+1)-sigma(k))
         end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ice1, ice2
+          do j = jce1, jce2
             zeta(j,i) = ak(kz) + (bk(kz) - d_one) * mddom%ht(j,i)*regrav
             fmzf(j,i) = md_fmz(zita(kzp1),mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
           end do

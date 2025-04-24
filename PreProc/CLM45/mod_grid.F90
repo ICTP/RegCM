@@ -26,16 +26,16 @@ module mod_grid
 
   private
 
-  real(rkx) , public :: clatx , clonx
+  real(rkx), public :: clatx, clonx
 
-  real(rkx) , public , pointer , dimension(:,:) :: xlat , xlon , xmask , topo
-  real(rkx) , public , pointer , dimension(:) :: sigx , zita
-  real(rk4) , public , pointer , dimension(:,:) :: rxlat , rxlon
-  real(rk4) , public , pointer , dimension(:) :: rsigx , ax , bx
-  logical , public , pointer , dimension(:,:,:) :: sgmask
-  real(rk4) , pointer , dimension(:,:,:) :: xtrans_r4
-  integer(ik4) , pointer , dimension(:,:,:) :: xtrans_i4
-  real(rk8) , pointer , dimension(:,:,:) :: xtrans_r8
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: xlat, xlon, xmask, topo
+  real(rkx), public, pointer, contiguous, dimension(:) :: sigx, zita
+  real(rk4), public, pointer, contiguous, dimension(:,:) :: rxlat, rxlon
+  real(rk4), public, pointer, contiguous, dimension(:) :: rsigx, ax, bx
+  logical, public, pointer, contiguous, dimension(:,:,:) :: sgmask
+  real(rk4), pointer, contiguous, dimension(:,:,:) :: xtrans_r4
+  integer(ik4), pointer, contiguous, dimension(:,:,:) :: xtrans_i4
+  real(rk8), pointer, contiguous, dimension(:,:,:) :: xtrans_r8
 
   interface mypack
     module procedure pack_integer
@@ -49,10 +49,10 @@ module mod_grid
     module procedure g2s_r8
   end interface g2s
 
-  integer(ik4) :: js , je , is , ie
-  public :: init_domain , mypack , setup_pack
+  integer(ik4) :: js, je, is, ie
+  public :: init_domain, mypack, setup_pack
 
-  real(rkx) , public :: h_missing_value = -9999.0_rkx
+  real(rkx), public :: h_missing_value = -9999.0_rkx
 
   contains
 
@@ -77,14 +77,14 @@ module mod_grid
 
   subroutine g2s_i(m2,m3)
     implicit none
-    integer(ik4) , dimension(:,:) :: m2
-    integer(ik4) , dimension(:,:,:) :: m3
-    integer(ik4) :: n1 , n2 , j , i , ii , jj
-    do i = 1 , iy
-      do j = 1 , jx
-        do n2 = 1 , nsg
+    integer(ik4), dimension(:,:) :: m2
+    integer(ik4), dimension(:,:,:) :: m3
+    integer(ik4) :: n1, n2, j, i, ii, jj
+    do i = 1, iy
+      do j = 1, jx
+        do n2 = 1, nsg
           ii = (i-1) * nsg + n2
-          do n1 = 1 , nsg
+          do n1 = 1, nsg
             jj = (j-1) * nsg + n1
             m3((n2-1)*nsg+n1,j,i) = m2(jj,ii)
           end do
@@ -95,14 +95,14 @@ module mod_grid
 
   subroutine g2s_r4(m2,m3)
     implicit none
-    real(rk4) , dimension(:,:) :: m2
-    real(rk4) , dimension(:,:,:) :: m3
-    integer(ik4) :: n1 , n2 , j , i , ii , jj
-    do i = 1 , iy
-      do j = 1 , jx
-        do n2 = 1 , nsg
+    real(rk4), dimension(:,:) :: m2
+    real(rk4), dimension(:,:,:) :: m3
+    integer(ik4) :: n1, n2, j, i, ii, jj
+    do i = 1, iy
+      do j = 1, jx
+        do n2 = 1, nsg
           ii = (i-1) * nsg + n2
-          do n1 = 1 , nsg
+          do n1 = 1, nsg
             jj = (j-1) * nsg + n1
             m3((n2-1)*nsg+n1,j,i) = m2(jj,ii)
           end do
@@ -113,14 +113,14 @@ module mod_grid
 
   subroutine g2s_r8(m2,m3)
     implicit none
-    real(rk8) , dimension(:,:) :: m2
-    real(rk8) , dimension(:,:,:) :: m3
-    integer(ik4) :: n1 , n2 , j , i , ii , jj
-    do i = 1 , iy
-      do j = 1 , jx
-        do n2 = 1 , nsg
+    real(rk8), dimension(:,:) :: m2
+    real(rk8), dimension(:,:,:) :: m3
+    integer(ik4) :: n1, n2, j, i, ii, jj
+    do i = 1, iy
+      do j = 1, jx
+        do n2 = 1, nsg
           ii = (i-1) * nsg + n2
-          do n1 = 1 , nsg
+          do n1 = 1, nsg
             jj = (j-1) * nsg + n1
             m3((n2-1)*nsg+n1,j,i) = m2(jj,ii)
           end do
@@ -131,18 +131,18 @@ module mod_grid
 
   subroutine setup_pack(j1,j2,i1,i2)
     implicit none
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: n1 , n2 , j , i , ii , jj
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    integer(ik4) :: n1, n2, j, i, ii, jj
     js = j1
     je = j2
     is = i1
     ie = i2
     sgmask = .false.
-    do i = is , ie
-      do j = js , je
-        do n2 = 1 , nsg
+    do i = is, ie
+      do j = js, je
+        do n2 = 1, nsg
           ii = (i-1) * nsg + n2
-          do n1 = 1 , nsg
+          do n1 = 1, nsg
             jj = (j-1) * nsg + n1
             sgmask((n2-1)*nsg+n1,j,i) = (xmask(jj,ii) > 0.5_rkx)
           end do
@@ -153,14 +153,14 @@ module mod_grid
 
   subroutine pack_integer(matrix,vector)
     implicit none
-    integer(ik4) , dimension(:,:) :: matrix
-    integer(ik4) , dimension(:) :: vector
-    integer(ik4) :: i , j , n , ip
+    integer(ik4), dimension(:,:) :: matrix
+    integer(ik4), dimension(:) :: vector
+    integer(ik4) :: i, j, n, ip
     call g2s(matrix,xtrans_i4)
     ip = 1
-    do i = is , ie
-      do j = js , je
-        do n = 1 , nnsg
+    do i = is, ie
+      do j = js, je
+        do n = 1, nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_i4(n,j,i)
             ip = ip + 1
@@ -172,14 +172,14 @@ module mod_grid
 
   subroutine pack_real4(matrix,vector)
     implicit none
-    real(rk4) , dimension(:,:) :: matrix
-    real(rk4) , dimension(:) :: vector
-    integer(ik4) :: i , j , n , ip
+    real(rk4), dimension(:,:) :: matrix
+    real(rk4), dimension(:) :: vector
+    integer(ik4) :: i, j, n, ip
     call g2s(matrix,xtrans_r4)
     ip = 1
-    do i = is , ie
-      do j = js , je
-        do n = 1 , nnsg
+    do i = is, ie
+      do j = js, je
+        do n = 1, nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_r4(n,j,i)
             ip = ip + 1
@@ -191,14 +191,14 @@ module mod_grid
 
   subroutine pack_real8(matrix,vector)
     implicit none
-    real(rk8) , dimension(:,:) :: matrix
-    real(rk8) , dimension(:) :: vector
-    integer(ik4) :: i , j , n , ip
+    real(rk8), dimension(:,:) :: matrix
+    real(rk8), dimension(:) :: vector
+    integer(ik4) :: i, j, n, ip
     call g2s(matrix,xtrans_r8)
     ip = 1
-    do i = is , ie
-      do j = js , je
-        do n = 1 , nnsg
+    do i = is, ie
+      do j = js, je
+        do n = 1, nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_r8(n,j,i)
             ip = ip + 1

@@ -23,7 +23,7 @@ module mod_sladvection
   use mod_stdio
   use mod_dynparam
   use mod_runparams
-  use mod_atm_interface , only : atmx , mddom
+  use mod_atm_interface, only : atmx, mddom
   use mod_sldepparam
   use mod_mpmessage
   use mod_mppparam
@@ -34,13 +34,13 @@ module mod_sladvection
   private
 
   public :: init_sladvection
-  public :: trajcalc_x , trajcalc_d
-  public :: slhadv_x, slhadv_d , hdvg_x , hdvg_d
+  public :: trajcalc_x, trajcalc_d
+  public :: slhadv_x, slhadv_d, hdvg_x, hdvg_d
 
-  real(rkx) , pointer , dimension(:,:,:) :: ua => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: va => null( )
-  real(rkx) , pointer , dimension(:,:) :: mapfx => null( )
-  real(rkx) , pointer , dimension(:,:) :: mapfd => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ua => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: va => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: mapfx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: mapfd => null( )
 
   interface slhadv_x
     module procedure slhadv_x3d
@@ -55,7 +55,7 @@ module mod_sladvection
   contains
 
   subroutine init_sladvection
-    use mod_atm_interface , only : atmx , mddom
+    use mod_atm_interface, only : atmx, mddom
     implicit none
     call assignpnt(atmx%umd,ua)
     call assignpnt(atmx%vmd,va)
@@ -65,18 +65,18 @@ module mod_sladvection
 
   subroutine adv_velocity(ldot)
     implicit none
-    logical , intent(in) :: ldot
-    integer(ik4) :: i , j , k
+    logical, intent(in) :: ldot
+    integer(ik4) :: i, j, k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'adv_velocity'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
     if ( ldot ) then
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
+      do k = 1, kz
+        do i = idi1, idi2
+          do j = jdi1, jdi2
             uadvx_d(j,i,k)  = ua(j,i,k)/mapfd(j,i)
             uadxp1_d(j,i,k) = ua(j+1,i,k)/mapfd(j+1,i)
             uadxm1_d(j,i,k) = ua(j-1,i,k)/mapfd(j-1,i)
@@ -87,9 +87,9 @@ module mod_sladvection
         end do
       end do
     else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             uadvx_x(j,i,k) = 0.25_rkx * &
               (ua(j,i,k)     + ua(j,i+1,k) + &
                ua(j+1,i+1,k) + ua(j+1,i,k)) / mapfx(j,i)
@@ -119,12 +119,12 @@ module mod_sladvection
 
   subroutine trajcalc_x
     implicit none
-    real(rkx) :: ux , uxx , xdis , xn , alfax , vy , vyy , ydis , &
-                 yn , betay , ddx , ddy
-    integer(ik4) :: i , j , k , xnp , xsn , ynp , ysn
+    real(rkx) :: ux, uxx, xdis, xn, alfax, vy, vyy, ydis, &
+                 yn, betay, ddx, ddy
+    integer(ik4) :: i, j, k, xnp, xsn, ynp, ysn
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'trajcalc_x'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -135,9 +135,9 @@ module mod_sladvection
     ddx = dx
     ddy = dx
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do k = 1, kz
+      do i = ici1, ici2
+        do j = jci1, jci2
           ux = 0.5_rkx * (uadxp1_x(j,i,k) - uadxm1_x(j,i,k))/ddx
           uxx = (uadxp1_x(j,i,k) - &
                   2.0_rkx*uadvx_x(j,i,k) + uadxm1_x(j,i,k))/(ddx*ddx)
@@ -229,12 +229,12 @@ module mod_sladvection
 
   subroutine trajcalc_d
     implicit none
-    real(rkx) :: ux , uxx , xdis , xn , alfax , vy , vyy , ydis , &
-                 yn , betay , ddx , ddy
-    integer(ik4) :: i , j , k , xnp , xsn , ynp , ysn
+    real(rkx) :: ux, uxx, xdis, xn, alfax, vy, vyy, ydis, &
+                 yn, betay, ddx, ddy
+    integer(ik4) :: i, j, k, xnp, xsn, ynp, ysn
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'trajcalc_d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -245,9 +245,9 @@ module mod_sladvection
     ddx = dx
     ddy = dx
 
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
+    do k = 1, kz
+      do i = idi1, idi2
+        do j = jdi1, jdi2
           ux = 0.5_rkx * (uadxp1_d(j,i,k) - uadxm1_d(j,i,k))/ddx
           uxx = (uadxp1_d(j,i,k) - &
                   2.0_rkx*uadvx_d(j,i,k) + uadxm1_d(j,i,k))/(ddx*ddx)
@@ -333,19 +333,19 @@ module mod_sladvection
 
   subroutine slhadv_x3d(ften,var)
     implicit none
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: var
-    real(rkx) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
-    integer(ik4) :: i , j , k
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: var
+    real(rkx) :: tbadp, tbmax, tbmin, tsla, bl1, bl2, cb1, cb2
+    integer(ik4) :: i, j, k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'slhadv_x3d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do k = 1, kz
+      do i = ici1, ici2
+        do j = jci1, jci2
           ! GTD bilinear for the two outermost zonal grid points
           bl1 = alffbl_x(j,i,k)*var(xnnm1dp_x(j,i,k),ynnp1dp_x(j,i,k),k) + &
              (d_one - alffbl_x(j,i,k))*var(xndp_x(j,i,k),ynnp1dp_x(j,i,k),k)
@@ -371,7 +371,7 @@ module mod_sladvection
                         var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k), &
                         var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k), &
                         var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k))
-            tbmin = min(var(xndp_x(j,i,k),yndp_x(j,i,k),k) ,   &
+            tbmin = min(var(xndp_x(j,i,k),yndp_x(j,i,k),k),   &
                         var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k), &
                         var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k), &
                         var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k))
@@ -399,14 +399,14 @@ module mod_sladvection
 
   subroutine slhadv_x4d(ften,var,m,p)
     implicit none
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: var
-    integer(ik4) , optional , intent(in) :: m , p
-    real(rkx) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
-    integer(ik4) :: i , j , k , n , n1 , n2
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: var
+    integer(ik4), optional, intent(in) :: m, p
+    real(rkx) :: tbadp, tbmax, tbmin, tsla, bl1, bl2, cb1, cb2
+    integer(ik4) :: i, j, k, n, n1, n2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'slhadv_x4d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( present(m) ) then
@@ -421,10 +421,10 @@ module mod_sladvection
       n1 = lbound(var,4)
       n2 = ubound(var,4)
     end if
-    do n = n1 , n2
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+    do n = n1, n2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             ! GTD bilinear for the two outermost zonal grid points
             bl1 = alffbl_x(j,i,k)*var(xnnm1dp_x(j,i,k),ynnp1dp_x(j,i,k),k,n) + &
                (d_one - alffbl_x(j,i,k))*var(xndp_x(j,i,k),ynnp1dp_x(j,i,k),k,n)
@@ -450,7 +450,7 @@ module mod_sladvection
                           var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k,n), &
                           var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k,n), &
                           var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k,n))
-              tbmin = min(var(xndp_x(j,i,k),yndp_x(j,i,k),k,n) ,   &
+              tbmin = min(var(xndp_x(j,i,k),yndp_x(j,i,k),k,n),   &
                           var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k,n), &
                           var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k,n), &
                           var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k,n))
@@ -479,20 +479,20 @@ module mod_sladvection
 
   subroutine slhadv_d(ften,var)
     implicit none
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: var
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: var
 
-    real(rkx) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
-    integer(ik4) :: i , j , k
+    real(rkx) :: tbadp, tbmax, tbmin, tsla, bl1, bl2, cb1, cb2
+    integer(ik4) :: i, j, k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'slhadv_d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
+    do k = 1, kz
+      do i = idi1, idi2
+        do j = jdi1, jdi2
           ! GTD bilinear for the two outermost zonal grid points
           bl1 = alffbl_d(j,i,k)*var(xnnm1dp_d(j,i,k),ynnp1dp_d(j,i,k),k) + &
              (d_one - alffbl_d(j,i,k))*var(xndp_d(j,i,k),ynnp1dp_d(j,i,k),k)
@@ -513,7 +513,7 @@ module mod_sladvection
                   betdp_d(j,i,k)*cb1 + betp1dp_d(j,i,k)*bl1
           if ( iqmsl == 1 ) then
             ! to get the maximum and minimum value
-            tbmax = max(var(xndp_d(j,i,k),yndp_d(j,i,k),k) ,   &
+            tbmax = max(var(xndp_d(j,i,k),yndp_d(j,i,k),k),   &
                         var(xndp_d(j,i,k),ynnm1dp_d(j,i,k),k), &
                         var(xnnm1dp_d(j,i,k),yndp_d(j,i,k),k), &
                         var(xnnm1dp_d(j,i,k),ynnm1dp_d(j,i,k),k))
@@ -543,20 +543,20 @@ module mod_sladvection
 
   subroutine hdvg_x3d(ften,var)
     implicit none
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: var
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: var
 
-    real(rkx) :: ucapf_x, ucapi_x , vcapf_x , vcapi_x
-    real(rkx) :: ducapdx , dvcapdy , hdvg , tatotdvtrm
-    integer(ik4) :: i , j , k
+    real(rkx) :: ucapf_x, ucapi_x, vcapf_x, vcapi_x
+    real(rkx) :: ducapdx, dvcapdy, hdvg, tatotdvtrm
+    integer(ik4) :: i, j, k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'hdvg_x3d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do k = 1, kz
+      do i = ici1, ici2
+        do j = jci1, jci2
           ucapf_x = (ua(j+1,i+1,k) * mapfd(j+1,i+1) + &
                      ua(j+1,i,k)   * mapfd(j+1,i))*d_half
           ucapi_x = (ua(j,i+1,k)   * mapfd(j,i+1) + &
@@ -594,15 +594,15 @@ module mod_sladvection
 
   subroutine hdvg_x4d(ften,var,m,p)
     implicit none
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: var
-    integer(ik4) , optional , intent(in) :: m , p
-    real(rkx) :: ucapf_x, ucapi_x , vcapf_x , vcapi_x
-    real(rkx) :: ducapdx , dvcapdy , hdvg , tatotdvtrm
-    integer(ik4) :: i , j , k , n , n1 , n2
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: var
+    integer(ik4), optional, intent(in) :: m, p
+    real(rkx) :: ucapf_x, ucapi_x, vcapf_x, vcapi_x
+    real(rkx) :: ducapdx, dvcapdy, hdvg, tatotdvtrm
+    integer(ik4) :: i, j, k, n, n1, n2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'hdvg_x4d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( present(m) ) then
@@ -617,10 +617,10 @@ module mod_sladvection
       n1 = lbound(var,4)
       n2 = ubound(var,4)
     end if
-    do n = n1 , n2
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+    do n = n1, n2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             ucapf_x = (ua(j+1,i+1,k) * mapfd(j+1,i+1) + &
                        ua(j+1,i,k)   * mapfd(j+1,i))*d_half
             ucapi_x = (ua(j,i+1,k)   * mapfd(j,i+1) + &
@@ -664,19 +664,19 @@ module mod_sladvection
 
   subroutine hdvg_d(ften,var)
     implicit none
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: var
-    real(rkx) :: ucapf, ucapi , ducapdx , vcapf , vcapi ,   &
-                 dvcapdy , hdvg , tatotdvtrm
-    integer(ik4) :: i , j , k
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: var
+    real(rkx) :: ucapf, ucapi, ducapdx, vcapf, vcapi,   &
+                 dvcapdy, hdvg, tatotdvtrm
+    integer(ik4) :: i, j, k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'hdvg_d'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
+    do k = 1, kz
+      do i = idi1, idi2
+        do j = jdi1, jdi2
           ucapf = ua(j+1,i,k) * mapfd(j+1,i)
           ucapi = ua(j-1,i,k) * mapfd(j-1,i)
           ducapdx = (ucapf - ucapi) / (2.0_rkx*dx)

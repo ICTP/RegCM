@@ -20,14 +20,14 @@ module mod_clm_tridiagonal
   subroutine Tridiagonal (lbc, ubc, lbj, ubj, jtop, numf, filter, &
                           a, b, c, r, u)
     use mod_clm_type
-    use mod_clm_varpar , only : nlevurb
-    use mod_clm_varcon , only : icol_roof, icol_sunwall, icol_shadewall
+    use mod_clm_varpar, only : nlevurb
+    use mod_clm_varcon, only : icol_roof, icol_sunwall, icol_shadewall
     implicit none
-    integer(ik4) , intent(in)    :: lbc, ubc ! lbinning and ubing column indices
-    integer(ik4) , intent(in)    :: lbj, ubj ! lbinning and ubing level indices
-    integer(ik4) , intent(in)    :: jtop(lbc:ubc) ! top level for each column
-    integer(ik4) , intent(in)    :: numf          ! filter dimension
-    integer(ik4) , intent(in)    :: filter(1:numf)  ! filter
+    integer(ik4), intent(in)    :: lbc, ubc ! lbinning and ubing column indices
+    integer(ik4), intent(in)    :: lbj, ubj ! lbinning and ubing level indices
+    integer(ik4), intent(in)    :: jtop(lbc:ubc) ! top level for each column
+    integer(ik4), intent(in)    :: numf          ! filter dimension
+    integer(ik4), intent(in)    :: filter(1:numf)  ! filter
     ! "a" left off diagonal of tridiagonal matrix
     real(rk8), intent(in)    :: a(lbc:ubc, lbj:ubj)
     ! "b" diagonal column for tridiagonal matrix
@@ -38,9 +38,9 @@ module mod_clm_tridiagonal
     real(rk8), intent(in)    :: r(lbc:ubc, lbj:ubj)
     real(rk8), intent(inout) :: u(lbc:ubc, lbj:ubj)    ! solution
 
-    integer(ik4) , pointer :: ctype(:) ! column type
+    integer(ik4), pointer, contiguous :: ctype(:) ! column type
 
-    integer(ik4) :: j , ci , fc        !indices
+    integer(ik4) :: j, ci, fc        !indices
     real(rk8) :: gam(lbc:ubc,lbj:ubj)  !temporary
     real(rk8) :: bet(lbc:ubc)          !temporary
 
@@ -50,13 +50,13 @@ module mod_clm_tridiagonal
 
     ! Solve the matrix
 
-    do fc = 1 , numf
+    do fc = 1, numf
       ci = filter(fc)
       bet(ci) = b(ci,jtop(ci))
     end do
 
-    do j = lbj , ubj
-      do fc = 1 , numf
+    do j = lbj, ubj
+      do fc = 1, numf
         ci = filter(fc)
         if ( (ctype(ci) == icol_sunwall .or. &
               ctype(ci) == icol_shadewall .or. &
@@ -86,8 +86,8 @@ module mod_clm_tridiagonal
       end do
     end do
 
-    do j = ubj-1 , lbj , -1
-      do fc = 1 , numf
+    do j = ubj-1, lbj, -1
+      do fc = 1, numf
         ci = filter(fc)
         if ( (ctype(ci) == icol_sunwall .or. &
               ctype(ci) == icol_shadewall .or. &

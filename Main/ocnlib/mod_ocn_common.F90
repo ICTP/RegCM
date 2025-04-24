@@ -28,7 +28,7 @@ module mod_ocn_common
   use mod_ocn_lake
   use mod_ocn_zeng
   use mod_ocn_albedo
-  use mod_runparams , only : rcmtimer , syncro_srf , iwavcpl
+  use mod_runparams, only : rcmtimer, syncro_srf, iwavcpl
   use mod_mppparam
 
   implicit none
@@ -37,16 +37,16 @@ module mod_ocn_common
 
   logical :: lcoup
 
-  public :: initocn , vecocn , albedoocn
-  public :: llake , ldcsst , lseaice , lcoup
+  public :: initocn, vecocn, albedoocn
+  public :: llake, ldcsst, lseaice, lcoup
   public :: allocate_mod_ocn_internal
 
   contains
 
   subroutine vecocn(lm,lms)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
     call ocn_interf(lm,lms,1)
     select case ( iocnflx )
       case (0)
@@ -69,8 +69,8 @@ module mod_ocn_common
 
   subroutine initocn(lm,lms)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
     integer(ik4) :: n
     ! Set up Masks for lake and sea ice
     if ( lcoup ) then
@@ -84,7 +84,7 @@ module mod_ocn_common
       if ( llake ) then
         call c2l_ss(ocncomm,lm%dhlake1,dhlake)
         ilake(:) = 0
-        do n = iocnbeg , iocnend
+        do n = iocnbeg, iocnend
           if ( omask(n) == 14 ) then
             ilake(n) = 1
             if ( mask(n) == 2 ) then
@@ -102,7 +102,7 @@ module mod_ocn_common
         end do
         call allocate_mod_ocn_lake
       else
-        do n = iocnbeg , iocnend
+        do n = iocnbeg, iocnend
           if ( mask(n) == 2 ) then
             mask(n) = 2
           else
@@ -148,7 +148,7 @@ module mod_ocn_common
       if ( llake .or. lseaice ) then
         call c2l_ss(ocncomm,lm%ldmsk1,mask)
         if ( llake ) then
-          do n = iocnbeg , iocnend
+          do n = iocnbeg, iocnend
             if ( ilake(n) == 1 ) then
               if ( mask(n) == 2 ) then
                 mask(n) = 4
@@ -164,7 +164,7 @@ module mod_ocn_common
             end if
           end do
         else
-          do n = iocnbeg , iocnend
+          do n = iocnbeg, iocnend
             if ( mask(n) == 2 ) then
               mask(n) = 2
             else
@@ -189,16 +189,16 @@ module mod_ocn_common
 
   subroutine ocn_interf(lm,lms,ivers)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
-    integer(ik4) , intent(in) :: ivers
-    integer(ik4) :: i , j , i1 , i2 , n
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
+    integer(ik4), intent(in) :: ivers
+    integer(ik4) :: i, j, i1, i2, n
     if ( ivers == 1 ) then
       ! RegCM -> OCN
       if ( llake .or. lseaice ) then
         call c2l_ss(ocncomm,lm%ldmsk1,mask)
         if ( llake ) then
-          do n = iocnbeg , iocnend
+          do n = iocnbeg, iocnend
             if ( ilake(n) == 1 ) then
               if ( mask(n) == 2 ) then
                 mask(n) = 4
@@ -214,7 +214,7 @@ module mod_ocn_common
             end if
           end do
         else
-          do n = iocnbeg , iocnend
+          do n = iocnbeg, iocnend
             if ( mask(n) == 2 ) then
               mask(n) = 2
             else
@@ -289,7 +289,7 @@ module mod_ocn_common
         call l2c_ss(ocncomm,tskin,lms%tskin)
       end if
       if ( llake .or. lseaice ) then
-        do n = iocnbeg , iocnend
+        do n = iocnbeg, iocnend
           if ( mask(n) == 2 .or. mask(n) == 4 ) then
             mask(n) = 2
           else
@@ -309,8 +309,8 @@ module mod_ocn_common
         call l2c_ss(ocncomm,snag,lms%snag)
         call l2c_ss(ocncomm,sncv,lms%sncv)
         call l2c_ss(ocncomm,sm,lms%snwm)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             if ( lm%ldmsk(j,i) /= 1 ) then
               i1 = count(lm%ldmsk1(:,j,i) == 0)
               i2 = count(lm%ldmsk1(:,j,i) == 2)
@@ -334,17 +334,17 @@ module mod_ocn_common
 
   subroutine albedoocn(lm,lms)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i , j , n
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
+    integer(ik4) :: i, j, n
     call ocn_albedo
     call l2c_ss(ocncomm,swdiral,lms%swdiralb)
     call l2c_ss(ocncomm,lwdiral,lms%lwdiralb)
     call l2c_ss(ocncomm,swdifal,lms%swdifalb)
     call l2c_ss(ocncomm,lwdifal,lms%lwdifalb)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( lm%ldmsk1(n,j,i) /= 1 ) then
             lms%swalb(n,j,i) = max(lms%swdiralb(n,j,i),lms%swdifalb(n,j,i))
             lms%lwalb(n,j,i) = max(lms%lwdiralb(n,j,i),lms%lwdifalb(n,j,i))
@@ -360,17 +360,17 @@ module mod_ocn_common
   !
   pure elemental real(rk8) function ocean_emissivity(speed)
     implicit none
-    real(rk8) , intent(in) :: speed
-    real(rk8) , parameter :: em0 = 0.99176_rk8    ! Seviri Channel 9
-    real(rk8) , parameter :: cpaper = -0.037_rk8
-    real(rk8) , parameter :: dpaper = 2.36_rk8
-    real(rk8) , parameter :: bipaper = 0.0347_rk8 ! Seviri Channel 9
-    real(rk8) :: angle , xspeed
+    real(rk8), intent(in) :: speed
+    real(rk8), parameter :: em0 = 0.99176_rk8    ! Seviri Channel 9
+    real(rk8), parameter :: cpaper = -0.037_rk8
+    real(rk8), parameter :: dpaper = 2.36_rk8
+    real(rk8), parameter :: bipaper = 0.0347_rk8 ! Seviri Channel 9
+    real(rk8) :: angle, xspeed
     integer(ik4) :: i
     xspeed = max(0.1_rk8,min(20.0_rk8,speed))
     ocean_emissivity = 0.01_rk8 !  Baseline
     ! Integrate
-    do i = 1 , 10
+    do i = 1, 10
       angle = 0.44_rk8 + 0.08_rk8 * (i-1)
       ocean_emissivity = ocean_emissivity + &
             0.080_rk8 * em0 * cos(angle**(cpaper*xspeed+dpaper))**bipaper

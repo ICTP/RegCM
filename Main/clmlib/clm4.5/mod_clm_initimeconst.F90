@@ -9,43 +9,43 @@ module mod_clm_initimeconst
   use mod_clm_type
   use mod_clm_decomp
   use mod_clm_nchelper
-  use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varpar , only : nlevsoi , nlevgrnd , nlevlak , numpft
-  use mod_clm_varpar , only : numrad , nlevurb , mach_eps , toplev_equalspace
-  use mod_clm_varpar , only : nlev_equalspace , more_vertlayers , nlevsoifl
-  use mod_clm_varcon , only : albsat , albdry , spval , secspday , rpi
-  use mod_clm_varcon , only : istice , istdlak , istwet , isturb , istsoil
-  use mod_clm_varcon , only : istcrop , icol_roof , icol_sunwall
-  use mod_clm_varcon , only : icol_shadewall , icol_road_perv
-  use mod_clm_varcon , only : icol_road_imperv, zlak , dzlak
-  use mod_clm_varcon , only : zsoi , dzsoi , zisoi , dzsoi_decomp
-  use mod_clm_varcon , only : pc , mu
-  use mod_clm_varctl , only : fsurdat , ialblawr
-  use mod_clm_varctl , only : fsnowoptics, fsnowaging
-  use mod_clm_varsur , only : pctspec
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_varpar, only : nlevsoi, nlevgrnd, nlevlak, numpft
+  use mod_clm_varpar, only : numrad, nlevurb, mach_eps, toplev_equalspace
+  use mod_clm_varpar, only : nlev_equalspace, more_vertlayers, nlevsoifl
+  use mod_clm_varcon, only : albsat, albdry, spval, secspday, rpi
+  use mod_clm_varcon, only : istice, istdlak, istwet, isturb, istsoil
+  use mod_clm_varcon, only : istcrop, icol_roof, icol_sunwall
+  use mod_clm_varcon, only : icol_shadewall, icol_road_perv
+  use mod_clm_varcon, only : icol_road_imperv, zlak, dzlak
+  use mod_clm_varcon, only : zsoi, dzsoi, zisoi, dzsoi_decomp
+  use mod_clm_varcon, only : pc, mu
+  use mod_clm_varctl, only : fsurdat, ialblawr
+  use mod_clm_varctl, only : fsnowoptics, fsnowaging
+  use mod_clm_varsur, only : pctspec
   use mod_clm_pftvarcon
-  use mod_clm_organicfile , only : organicrd
+  use mod_clm_organicfile, only : organicrd
 #ifdef CN
-  use mod_clm_cninispecial , only : CNiniSpecial
+  use mod_clm_cninispecial, only : CNiniSpecial
 #endif
 #if (defined VICHYDRO)
-  use mod_clm_vicmap , only : initCLMVICMap
-  use mod_clm_initsoilparvic , only : initSoilParVIC
-  use mod_clm_varpar , only : nlayer , nlayert
-  use mod_clm_varcon , only : nlvic
+  use mod_clm_vicmap, only : initCLMVICMap
+  use mod_clm_initsoilparvic, only : initSoilParVIC
+  use mod_clm_varpar, only : nlayer, nlayert
+  use mod_clm_varcon, only : nlvic
 #endif
-  use mod_clm_snicar , only : SnowAge_init, SnowOptics_init
+  use mod_clm_snicar, only : SnowAge_init, SnowOptics_init
 #if (defined LCH4)
-  use mod_clm_ch4varcon , only : usephfact, fin_use_fsat
+  use mod_clm_ch4varcon, only : usephfact, fin_use_fsat
 #endif
 #ifdef CN
 #ifndef CENTURY_DECOMP
-  use mod_clm_cndecompcascadebgc , only : init_decompcascade
+  use mod_clm_cndecompcascadebgc, only : init_decompcascade
 #else
-  use mod_clm_cndecompcascadecentury , only : init_decompcascade
+  use mod_clm_cndecompcascadecentury, only : init_decompcascade
 #endif
 #endif
-  use mod_clm_soilhydrology , only : h2osfcflag
+  use mod_clm_soilhydrology, only : h2osfcflag
 
   implicit none
 
@@ -66,145 +66,145 @@ module mod_clm_initimeconst
   subroutine iniTimeConst
     implicit none
     ! gridcell elevation standard deviation
-    real(rk8), pointer :: topo_std(:)
+    real(rk8), pointer, contiguous :: topo_std(:)
     ! gridcell topographic slope
-    real(rk8), pointer :: topo_slope(:)
+    real(rk8), pointer, contiguous :: topo_slope(:)
     ! microtopography pdf sigma (m)
-    real(rk8), pointer :: micro_sigma(:)
+    real(rk8), pointer, contiguous :: micro_sigma(:)
     ! level at which h2osfc "percolates"
-    real(rk8), pointer :: h2osfc_thresh(:)
+    real(rk8), pointer, contiguous :: h2osfc_thresh(:)
     ! mineral hksat
-    real(rk8), pointer :: hksat_min(:,:)
+    real(rk8), pointer, contiguous :: hksat_min(:,:)
     ! SCA shape parameter
-    real(rk8), pointer :: n_melt(:)
-    integer(ik4) , pointer :: ivt(:)       !  vegetation type index
-    integer(ik4) , pointer :: pcolumn(:)   ! column index of corresponding pft
-    integer(ik4) , pointer :: pgridcell(:) ! gridcell index of corresponding pft
-    integer(ik4) , pointer :: clandunit(:) ! landunit index of column
-    integer(ik4) , pointer :: cgridcell(:) ! gridcell index of column
-    integer(ik4) , pointer :: ctype(:)     ! column type index
-    integer(ik4) , pointer :: ltype(:)     ! landunit type index
-    real(rk8), pointer :: thick_wall(:)    ! total thickness of urban wall
-    real(rk8), pointer :: thick_roof(:)    ! total thickness of urban roof
-    real(rk8), pointer :: lat(:)           ! gridcell latitude (radians)
+    real(rk8), pointer, contiguous :: n_melt(:)
+    integer(ik4), pointer, contiguous :: ivt(:)       !  vegetation type index
+    integer(ik4), pointer, contiguous :: pcolumn(:)   ! column index of corresponding pft
+    integer(ik4), pointer, contiguous :: pgridcell(:) ! gridcell index of corresponding pft
+    integer(ik4), pointer, contiguous :: clandunit(:) ! landunit index of column
+    integer(ik4), pointer, contiguous :: cgridcell(:) ! gridcell index of column
+    integer(ik4), pointer, contiguous :: ctype(:)     ! column type index
+    integer(ik4), pointer, contiguous :: ltype(:)     ! landunit type index
+    real(rk8), pointer, contiguous :: thick_wall(:)    ! total thickness of urban wall
+    real(rk8), pointer, contiguous :: thick_roof(:)    ! total thickness of urban roof
+    real(rk8), pointer, contiguous :: lat(:)           ! gridcell latitude (radians)
 
-    real(rk8), pointer :: z(:,:)      ! layer depth (m)
-    real(rk8), pointer :: zi(:,:)     ! interface level below a "z" level (m)
-    real(rk8), pointer :: dz(:,:)     ! layer thickness depth (m)
-    real(rk8), pointer :: rootfr(:,:) ! fraction of roots in each soil layer
+    real(rk8), pointer, contiguous :: z(:,:)      ! layer depth (m)
+    real(rk8), pointer, contiguous :: zi(:,:)     ! interface level below a "z" level (m)
+    real(rk8), pointer, contiguous :: dz(:,:)     ! layer thickness depth (m)
+    real(rk8), pointer, contiguous :: rootfr(:,:) ! fraction of roots in each soil layer
     ! fraction of roots in each soil layer for urban pervious road
-    real(rk8), pointer :: rootfr_road_perv(:,:)
+    real(rk8), pointer, contiguous :: rootfr_road_perv(:,:)
     !root resistance by layer (0-1)  (nlevgrnd)
-    real(rk8), pointer :: rresis(:,:)
-    real(rk8), pointer :: dewmx(:)   ! maximum allowed dew [mm]
-    real(rk8), pointer :: bsw(:,:)   ! Clapp and Hornberger "b" (nlevgrnd)
+    real(rk8), pointer, contiguous :: rresis(:,:)
+    real(rk8), pointer, contiguous :: dewmx(:)   ! maximum allowed dew [mm]
+    real(rk8), pointer, contiguous :: bsw(:,:)   ! Clapp and Hornberger "b" (nlevgrnd)
     ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer, contiguous :: watsat(:,:)
     ! volumetric soil water at field capacity (nlevsoi)
-    real(rk8), pointer :: watfc(:,:)
-    real(rk8), pointer :: watdry(:,:)  ! btran parameter for btran=0
-    real(rk8), pointer :: watopt(:,:)  ! btran parameter for btran = 1
+    real(rk8), pointer, contiguous :: watfc(:,:)
+    real(rk8), pointer, contiguous :: watdry(:,:)  ! btran parameter for btran=0
+    real(rk8), pointer, contiguous :: watopt(:,:)  ! btran parameter for btran = 1
     ! hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
-    real(rk8), pointer :: hksat(:,:)
+    real(rk8), pointer, contiguous :: hksat(:,:)
     ! minimum soil suction (mm) (nlevgrnd)
-    real(rk8), pointer :: sucsat(:,:)
+    real(rk8), pointer, contiguous :: sucsat(:,:)
     ! heat capacity, soil solids (J/m**3/Kelvin) (nlevgrnd)
-    real(rk8), pointer :: csol(:,:)
+    real(rk8), pointer, contiguous :: csol(:,:)
     ! thermal conductivity, soil minerals  [W/m-K] (new) (nlevgrnd)
-    real(rk8), pointer :: tkmg(:,:)
+    real(rk8), pointer, contiguous :: tkmg(:,:)
     ! thermal conductivity, dry soil (W/m/Kelvin) (nlevgrnd)
-    real(rk8), pointer :: tkdry(:,:)
+    real(rk8), pointer, contiguous :: tkdry(:,:)
     ! thermal conductivity, saturated soil [W/m-K] (new) (nlevgrnd)
-    real(rk8), pointer :: tksatu(:,:)
+    real(rk8), pointer, contiguous :: tksatu(:,:)
     ! maximum saturated fraction for a gridcell
-    real(rk8), pointer :: wtfact(:)
+    real(rk8), pointer, contiguous :: wtfact(:)
 #ifdef LCH4
     ! coefficient for determining finundated (m)
-    !real(rk8), pointer :: zwt0(:)
+    !real(rk8), pointer, contiguous :: zwt0(:)
     ! maximum inundated fractional area for gridcell
-    !real(rk8), pointer :: f0(:)
+    !real(rk8), pointer, contiguous :: f0(:)
     ! coefficient for determining finundated (m)
-    !real(rk8), pointer :: p3(:)
-    real(rk8), pointer :: k(:)
-    real(rk8), pointer :: q(:)
-    real(rk8), pointer :: v(:)
-    real(rk8), pointer :: maxf(:)
+    !real(rk8), pointer, contiguous :: p3(:)
+    real(rk8), pointer, contiguous :: k(:)
+    real(rk8), pointer, contiguous :: q(:)
+    real(rk8), pointer, contiguous :: v(:)
+    real(rk8), pointer, contiguous :: maxf(:)
 #endif
     ! bulk density of dry soil material [kg/m^3]
-    real(rk8), pointer :: bd(:,:)
+    real(rk8), pointer, contiguous :: bd(:,:)
     ! added by Lei Meng
 #ifdef LCH4
-    real(rk8), pointer :: pH(:)      ! pH values for methane code
+    real(rk8), pointer, contiguous :: pH(:)      ! pH values for methane code
 #endif
     ! restriction for min of soil potential (mm) (new)
-    real(rk8), pointer :: smpmin(:)
+    real(rk8), pointer, contiguous :: smpmin(:)
     ! decay factor (m)
-    real(rk8), pointer :: hkdepth(:)
-    integer(ik4) , pointer :: isoicol(:)  ! soil color class
+    real(rk8), pointer, contiguous :: hkdepth(:)
+    integer(ik4), pointer, contiguous :: isoicol(:)  ! soil color class
 #ifdef CN
-    real(rk8) , pointer :: q10(:)
-    real(rk8) , pointer :: ndep(:)
+    real(rk8), pointer, contiguous :: q10(:)
+    real(rk8), pointer, contiguous :: ndep(:)
 #endif
 
     ! added by F. Li and S. Levis
-    real(rk8), pointer :: gdp_lf(:)      ! global gdp data
-    real(rk8), pointer :: peatf_lf(:)    ! global peatf data
-    integer(ik4), pointer :: abm_lf(:)   ! global abm data
+    real(rk8), pointer, contiguous :: gdp_lf(:)      ! global gdp data
+    real(rk8), pointer, contiguous :: peatf_lf(:)    ! global peatf data
+    integer(ik4), pointer, contiguous :: abm_lf(:)   ! global abm data
 
     ! threshold soil moisture based on clay content
-    real(rk8), pointer :: gwc_thr(:)
+    real(rk8), pointer, contiguous :: gwc_thr(:)
     ! [frc] Mass fraction clay limited to 0.20
-    real(rk8), pointer :: mss_frc_cly_vld(:)
+    real(rk8), pointer, contiguous :: mss_frc_cly_vld(:)
     ! emission factors for isoprene (ug isoprene m-2 h-1)
-    real(rk8), pointer :: efisop(:,:)
-    real(rk8), pointer :: max_dayl(:) ! maximum daylength (s)
-    real(rk8), pointer :: sandfrac(:)
-    real(rk8), pointer :: clayfrac(:)
+    real(rk8), pointer, contiguous :: efisop(:,:)
+    real(rk8), pointer, contiguous :: max_dayl(:) ! maximum daylength (s)
+    real(rk8), pointer, contiguous :: sandfrac(:)
+    real(rk8), pointer, contiguous :: clayfrac(:)
 #if (defined VICHYDRO)
     !CLM column level sand fraction for calculating VIC parameters
-    real(rk8), pointer :: sandcol(:,:)
+    real(rk8), pointer, contiguous :: sandcol(:,:)
     !CLM column level clay fraction for calculating VIC parameters
-    real(rk8), pointer :: claycol(:,:)
+    real(rk8), pointer, contiguous :: claycol(:,:)
     !CLM column level organic matter fraction for calculating VIC parameters
-    real(rk8), pointer :: om_fraccol(:,:)
+    real(rk8), pointer, contiguous :: om_fraccol(:,:)
     !b infiltration parameter
-    real(rk8), pointer :: b_infil(:)
-    real(rk8), pointer :: dsmax(:)   !maximum baseflow rate
+    real(rk8), pointer, contiguous :: b_infil(:)
+    real(rk8), pointer, contiguous :: dsmax(:)   !maximum baseflow rate
     !fracton of Dsmax where non-linear baseflow begins
-    real(rk8), pointer :: ds(:)
+    real(rk8), pointer, contiguous :: ds(:)
     !fraction of maximum soil moisutre where non-liear base flow occurs
-    real(rk8), pointer :: Wsvic(:)
+    real(rk8), pointer, contiguous :: Wsvic(:)
     !pore-size distribution related paramter(Q12)
-    real(rk8), pointer :: expt(:,:)
+    real(rk8), pointer, contiguous :: expt(:,:)
     !Saturated hydrologic conductivity
-    real(rk8), pointer :: ksat(:,:)
+    real(rk8), pointer, contiguous :: ksat(:,:)
     !soil moisture dissusion parameter
-    real(rk8), pointer :: phi_s(:,:)
+    real(rk8), pointer, contiguous :: phi_s(:,:)
     !layer depth of upper layer(m)
-    real(rk8), pointer :: depth(:,:)
-    real(rk8), pointer :: porosity(:,:)  !soil porosity
-    real(rk8), pointer :: max_moist(:,:) !maximum soil moisture (ice + liq)
+    real(rk8), pointer, contiguous :: depth(:,:)
+    real(rk8), pointer, contiguous :: porosity(:,:)  !soil porosity
+    real(rk8), pointer, contiguous :: max_moist(:,:) !maximum soil moisture (ice + liq)
 #endif
     ! For lakes
-    real(rk8), pointer :: cellsand(:,:)    ! column 3D sand
-    real(rk8), pointer :: cellclay(:,:)    ! column 3D clay
-    real(rk8), pointer :: cellorg(:,:)     ! column 3D org content
-    real(rk8), pointer :: lakedepth(:)     ! variable lake depth
+    real(rk8), pointer, contiguous :: cellsand(:,:)    ! column 3D sand
+    real(rk8), pointer, contiguous :: cellclay(:,:)    ! column 3D clay
+    real(rk8), pointer, contiguous :: cellorg(:,:)     ! column 3D org content
+    real(rk8), pointer, contiguous :: lakedepth(:)     ! variable lake depth
     ! extinction coefficient from surface data (1/m)
-    real(rk8), pointer :: etal(:)
-    real(rk8), pointer :: lakefetch(:)  ! lake fetch from surface data (m)
+    real(rk8), pointer, contiguous :: etal(:)
+    real(rk8), pointer, contiguous :: lakefetch(:)  ! lake fetch from surface data (m)
 
     type(clm_filetype)  :: ncid   ! netcdf id
-    integer(ik4)  :: j , ib , lev ! indices
+    integer(ik4)  :: j, ib, lev ! indices
     ! integer(ik4)  :: bottom
-    integer(ik4)  :: g , l , c , p             ! indices
+    integer(ik4)  :: g, l, c, p             ! indices
     integer(ik4)  :: m                         ! vegetation type index
     real(rk8) :: tkm     ! mineral conductivity
     real(rk8) :: xksat   ! maximum hydraulic conductivity of soil [mm/s]
     real(rk8) :: thick_equal = 0.2_rk8
-    real(rk8), pointer :: zsoifl(:)   ! original soil midpoint
-    real(rk8), pointer :: zisoifl(:)  ! original soil interface depth
-    real(rk8), pointer :: dzsoifl(:)  ! original soil thickness
+    real(rk8), pointer, contiguous :: zsoifl(:)   ! original soil midpoint
+    real(rk8), pointer, contiguous :: zisoifl(:)  ! original soil interface depth
+    real(rk8), pointer, contiguous :: dzsoifl(:)  ! original soil thickness
     real(rk8) :: clay,sand        ! temporaries
     ! real(rk8) :: slope,intercept  ! temporary, for rooting distribution
     real(rk8) :: temp, max_decl   ! temporary, for calculation of max_dayl
@@ -217,46 +217,46 @@ module mod_clm_initimeconst
     integer(ik4)  :: numc    ! total number of columns across all processors
     integer(ik4)  :: nump    ! total number of pfts across all processors
 #if (defined VICHYDRO)
-    integer(ik4)  :: ivic , ivicstrt , ivicend  ! indices
-    real(rk8) , pointer :: b2d(:)         ! read in - VIC b
-    real(rk8) , pointer :: ds2d(:)        ! read in - VIC Ds
-    real(rk8) , pointer :: dsmax2d(:)     ! read in - VIC Dsmax
-    real(rk8) , pointer :: ws2d(:)        ! read in - VIC Ws
+    integer(ik4)  :: ivic, ivicstrt, ivicend  ! indices
+    real(rk8), pointer, contiguous :: b2d(:)         ! read in - VIC b
+    real(rk8), pointer, contiguous :: ds2d(:)        ! read in - VIC Ds
+    real(rk8), pointer, contiguous :: dsmax2d(:)     ! read in - VIC Dsmax
+    real(rk8), pointer, contiguous :: ws2d(:)        ! read in - VIC Ws
 #endif
 
-    real(rk8) , pointer :: temp_ef(:)     ! read in - temporary EFs
-    real(rk8) , pointer :: efisop2d(:,:)  ! read in - isoprene emission factors
+    real(rk8), pointer, contiguous :: temp_ef(:)     ! read in - temporary EFs
+    real(rk8), pointer, contiguous :: efisop2d(:,:)  ! read in - isoprene emission factors
 
-    integer(ik4) ,pointer :: soic2d(:)    ! read in - soil color
+    integer(ik4) ,pointer, contiguous :: soic2d(:)    ! read in - soil color
 
     ! added by F. Li and S. Levis
-    real(rk8) , pointer :: gdp(:)         ! global gdp data
-    real(rk8) , pointer :: peatf(:)       ! global peatf data
-    integer(ik4) , pointer :: abm(:)      ! global abm data
+    real(rk8), pointer, contiguous :: gdp(:)         ! global gdp data
+    real(rk8), pointer, contiguous :: peatf(:)       ! global peatf data
+    integer(ik4), pointer, contiguous :: abm(:)      ! global abm data
 
-    real(rk8) , pointer :: sand3d(:,:)    ! read in - soil texture: percent sand
-    real(rk8) , pointer :: clay3d(:,:)    ! read in - soil texture: percent clay
-    real(rk8) , pointer :: organic3d(:,:) ! read in - organic matter: kg/m3
-    real(rk8) , pointer :: gti(:)         ! read in - fmax
+    real(rk8), pointer, contiguous :: sand3d(:,:)    ! read in - soil texture: percent sand
+    real(rk8), pointer, contiguous :: clay3d(:,:)    ! read in - soil texture: percent clay
+    real(rk8), pointer, contiguous :: organic3d(:,:) ! read in - organic matter: kg/m3
+    real(rk8), pointer, contiguous :: gti(:)         ! read in - fmax
 #ifdef LCH4
-    !real(rk8) , pointer :: zwt0_in(:)     ! read in - zwt0
-    !real(rk8) , pointer :: f0_in(:)       ! read in - f0
-    !real(rk8) , pointer :: p3_in(:)       ! read in - p3
-    real(rk8) , pointer :: k_in(:)
-    real(rk8) , pointer :: q_in(:)
-    real(rk8) , pointer :: v_in(:)
-    real(rk8) , pointer :: maxf_in(:)
-    real(rk8) , pointer :: pH_in(:)       ! read in - pH
+    !real(rk8), pointer, contiguous :: zwt0_in(:)     ! read in - zwt0
+    !real(rk8), pointer, contiguous :: f0_in(:)       ! read in - f0
+    !real(rk8), pointer, contiguous :: p3_in(:)       ! read in - p3
+    real(rk8), pointer, contiguous :: k_in(:)
+    real(rk8), pointer, contiguous :: q_in(:)
+    real(rk8), pointer, contiguous :: v_in(:)
+    real(rk8), pointer, contiguous :: maxf_in(:)
+    real(rk8), pointer, contiguous :: pH_in(:)       ! read in - pH
 #endif
 
 #ifdef CN
-    real(rk8) , pointer :: q10_in(:)
-    real(rk8) , pointer :: ndep_in(:)
+    real(rk8), pointer, contiguous :: q10_in(:)
+    real(rk8), pointer, contiguous :: ndep_in(:)
 #endif
 
-    real(rk8) , pointer :: lakedepth_in(:) ! read in - lakedepth
-    real(rk8) , pointer :: etal_in(:)     ! read in - etal
-    real(rk8) , pointer :: lakefetch_in(:) ! read in - lakefetch
+    real(rk8), pointer, contiguous :: lakedepth_in(:) ! read in - lakedepth
+    real(rk8), pointer, contiguous :: etal_in(:)     ! read in - etal
+    real(rk8), pointer, contiguous :: lakefetch_in(:) ! read in - lakefetch
     real(rk8) :: om_frac                 ! organic matter fraction
     ! thermal conductivity of organic soil (Farouki, 1986) [W/m/K]
     real(rk8) :: om_tkm = 0.25_rk8
@@ -295,13 +295,13 @@ module mod_clm_initimeconst
 
     integer(ik4) :: nzero_slope  ! Number of points to zero out slope
 
-    real(rk8) , pointer :: std(:)     ! read in - topo_std
-    real(rk8) , pointer :: tslope(:)  ! read in - topo_slope
-    real(rk8) :: maxslope , slopemax , minslope , d , fd
-    real(rk8) :: dfdd , slope0 , slopebeta
+    real(rk8), pointer, contiguous :: std(:)     ! read in - topo_std
+    real(rk8), pointer, contiguous :: tslope(:)  ! read in - topo_slope
+    real(rk8) :: maxslope, slopemax, minslope, d, fd
+    real(rk8) :: dfdd, slope0, slopebeta
 
 #ifdef __PGI
-    !real(rk8) , external :: erf
+    !real(rk8), external :: erf
 #endif
     if ( myid == italk ) then
       write(stdout,*) 'Attempting to initialize time invariant variables'
@@ -665,7 +665,7 @@ module mod_clm_initimeconst
       call fatal(__FILE__,__LINE__,'clm_now stopping')
     end if
 
-    do p = begp , endp
+    do p = begp, endp
       g = pgridcell(p)
       if ( sand3d(g,1)+clay3d(g,1) == 0.0_rk8 )then
         if ( any( sand3d(g,:)+clay3d(g,:) /= 0.0_rk8 ) )then
@@ -694,7 +694,7 @@ module mod_clm_initimeconst
     ! arrays of dgvm ecophysiological constants
     ! --------------------------------------------------------------------
 
-    do m = 0 , numpft
+    do m = 0, numpft
       if (m <= ntree) then
         pftcon%tree(m) = 1
       else
@@ -704,7 +704,7 @@ module mod_clm_initimeconst
       pftcon%displar(m) = displar(m)
       pftcon%dleaf(m) = dleaf(m)
       pftcon%xl(m) = xl(m)
-      do ib = 1 , numrad
+      do ib = 1, numrad
         pftcon%rhol(m,ib) = rhol(m,ib)
         pftcon%rhos(m,ib) = rhos(m,ib)
         pftcon%taul(m,ib) = taul(m,ib)
@@ -783,26 +783,26 @@ module mod_clm_initimeconst
       ! for example, permafrost dynamics are not lost due to an inability
       ! to resolve temperature, moisture, and biogeochemical dynamics
       ! at the base of the active layer
-      do j = 1 , toplev_equalspace
+      do j = 1, toplev_equalspace
         zsoi(j) = scalez*(exp(0.5_rk8*(j-0.5_rk8))-1._rk8)    !node depths
       end do
 
-      do j = toplev_equalspace+1 , toplev_equalspace + nlev_equalspace
+      do j = toplev_equalspace+1, toplev_equalspace + nlev_equalspace
         zsoi(j) = zsoi(j-1) + thick_equal
       end do
 
-      do j = toplev_equalspace + nlev_equalspace +1 , nlevgrnd
+      do j = toplev_equalspace + nlev_equalspace +1, nlevgrnd
         zsoi(j) = scalez*(exp(0.5_rk8*((j - nlev_equalspace)-0.5_rk8))-1._rk8) + &
                 nlev_equalspace * thick_equal
       end do
     else
-      do j = 1 , nlevgrnd
+      do j = 1, nlevgrnd
         zsoi(j) = scalez*(exp(0.5_rk8*(j-0.5_rk8))-1._rk8)    !node depths
       end do
     end if
 
     dzsoi(1) = 0.5_rk8*(zsoi(1)+zsoi(2))  !thickness b/n two interfaces
-    do j = 2 , nlevgrnd-1
+    do j = 2, nlevgrnd-1
       dzsoi(j)= 0.5_rk8*(zsoi(j+1)-zsoi(j-1))
     end do
     dzsoi(nlevgrnd) = zsoi(nlevgrnd)-zsoi(nlevgrnd-1)
@@ -829,7 +829,7 @@ module mod_clm_initimeconst
 #ifdef VERTSOILC
     !thickness b/n two interfaces
     dzsoi_decomp(1) = 0.5_rk8*(zsoi(1)+zsoi(2))
-    do j = 2 , nlevgrnd-1
+    do j = 2, nlevgrnd-1
       dzsoi_decomp(j)= 0.5_rk8*(zsoi(j+1)-zsoi(j-1))
     end do
     dzsoi_decomp(nlevgrnd) = zsoi(nlevgrnd)-zsoi(nlevgrnd-1)
@@ -840,24 +840,24 @@ module mod_clm_initimeconst
 
     ! get original soil depths to be used in interpolation of sand and clay
     allocate(zsoifl(1:nlevsoifl),zisoifl(0:nlevsoifl),dzsoifl(1:nlevsoifl))
-    do j = 1 , nlevsoifl
+    do j = 1, nlevsoifl
       zsoifl(j) = 0.025*(exp(0.5_rk8*(j-0.5_rk8))-1._rk8)    !node depths
     end do
 
     dzsoifl(1) = 0.5_rk8*(zsoifl(1)+zsoifl(2)) !thickness b/n two interfaces
-    do j = 2 , nlevsoifl-1
+    do j = 2, nlevsoifl-1
       dzsoifl(j)= 0.5_rk8*(zsoifl(j+1)-zsoifl(j-1))
     end do
     dzsoifl(nlevsoifl) = zsoifl(nlevsoifl)-zsoifl(nlevsoifl-1)
 
     zisoifl(0) = 0._rk8
-    do j = 1 , nlevsoifl-1
+    do j = 1, nlevsoifl-1
       zisoifl(j) = 0.5_rk8*(zsoifl(j)+zsoifl(j+1))         !interface depths
     end do
     zisoifl(nlevsoifl) = zsoifl(nlevsoifl) + 0.5_rk8*dzsoifl(nlevsoifl)
 
     ! Column level initialization for urban wall and roof layers and interfaces
-    do l = begl , endl
+    do l = begl, endl
       ! "0" refers to urban wall/roof surface and "nlevsoi" refers
       ! to urban wall/roof bottom
       if ( ltype(l) == isturb ) then
@@ -892,14 +892,14 @@ module mod_clm_initimeconst
 
         ziurb_wall(l,0) = 0.
         ziurb_wall(l,1) = dzurb_wall(l,1)
-        do j = 2 , nlevurb
+        do j = 2, nlevurb
           ziurb_wall(l,j) = sum(dzurb_wall(l,1:j))
         end do
         write(stdout,*)'Wall layer interface depths: ',ziurb_wall(l,:)
 
         ziurb_roof(l,0) = 0.
         ziurb_roof(l,1) = dzurb_roof(l,1)
-        do j = 2 , nlevurb
+        do j = 2, nlevurb
           ziurb_roof(l,j) = sum(dzurb_roof(l,1:j))
         end do
         write(stdout,*)'Roof layer interface depths: ',ziurb_roof(l,:)
@@ -934,41 +934,41 @@ module mod_clm_initimeconst
 
         ziurb_wall(l,0) = 0.
         ziurb_wall(l,1) = dzurb_wall(l,1)
-        do j = 2 , nlevurb
+        do j = 2, nlevurb
           ziurb_wall(l,j) = sum(dzurb_wall(l,1:j))
         end do
         write(stdout,*)'Wall layer interface depths: ',ziurb_wall(l,:)
 
         ziurb_roof(l,0) = 0.
         ziurb_roof(l,1) = dzurb_roof(l,1)
-        do j = 2 , nlevurb
+        do j = 2, nlevurb
           ziurb_roof(l,j) = sum(dzurb_roof(l,1:j))
         end do
         write(stdout,*)'Roof layer interface depths: ',ziurb_roof(l,:)
 #else
-        do j = 1 , nlevurb
+        do j = 1, nlevurb
           zurb_wall(l,j) = (j-0.5)*(thick_wall(l)/float(nlevurb))  !node depths
         end do
-        do j = 1 , nlevurb
+        do j = 1, nlevurb
           zurb_roof(l,j) = (j-0.5)*(thick_roof(l)/float(nlevurb))  !node depths
         end do
 
         !thickness b/n two interfaces
         dzurb_roof(l,1) = 0.5*(zurb_roof(l,1)+zurb_roof(l,2))
-        do j = 2 , nlevurb-1
+        do j = 2, nlevurb-1
           dzurb_roof(l,j)= 0.5*(zurb_roof(l,j+1)-zurb_roof(l,j-1))
         end do
         dzurb_roof(l,nlevurb) = zurb_roof(l,nlevurb)-zurb_roof(l,nlevurb-1)
 
         !thickness b/n two interfaces
         dzurb_wall(l,1) = 0.5*(zurb_wall(l,1)+zurb_wall(l,2))
-        do j = 2 , nlevurb-1
+        do j = 2, nlevurb-1
           dzurb_wall(l,j)= 0.5*(zurb_wall(l,j+1)-zurb_wall(l,j-1))
         end do
         dzurb_wall(l,nlevurb) = zurb_wall(l,nlevurb)-zurb_wall(l,nlevurb-1)
 
         ziurb_wall(l,0) = 0.
-        do j = 1 , nlevurb-1
+        do j = 1, nlevurb-1
           !interface depths
           ziurb_wall(l,j) = 0.5*(zurb_wall(l,j)+zurb_wall(l,j+1))
         end do
@@ -976,7 +976,7 @@ module mod_clm_initimeconst
                 0.5*dzurb_wall(l,nlevurb)
 
         ziurb_roof(l,0) = 0.
-        do j = 1 , nlevurb-1
+        do j = 1, nlevurb-1
           !interface depths
           ziurb_roof(l,j) = 0.5*(zurb_roof(l,j)+zurb_roof(l,j+1))
         end do
@@ -987,7 +987,7 @@ module mod_clm_initimeconst
     end do
 
     ! Grid level initialization
-    do g = begg , endg
+    do g = begg, endg
       ! VOC emission factors
       ! Set gridcell and landunit indices
       efisop(:,g)=efisop2d(:,g)
@@ -1000,7 +1000,7 @@ module mod_clm_initimeconst
 
     nzero_slope = 0
     ! Column level initialization
-    do c = begc , endc
+    do c = begc, endc
 
       ! Set gridcell and landunit indices
       g = cgridcell(c)
@@ -1129,7 +1129,7 @@ module mod_clm_initimeconst
       ! also be reasons to keep lakes separate (e.g. if lake-specific
       ! soil data became available, if thermokarst lakes were treated, etc.)
       if ( ltype(l)==istwet .or. ltype(l)==istice ) then
-        do lev = 1 , nlevgrnd
+        do lev = 1, nlevgrnd
           bsw(c,lev)    = spval
           watsat(c,lev) = spval
           watfc(c,lev)  = spval
@@ -1153,7 +1153,7 @@ module mod_clm_initimeconst
           end if
         end do
 #if (defined VICHYDRO)
-        do lev = 1 , nlayer
+        do lev = 1, nlayer
           sandcol(c,lev)   = spval
           claycol(c,lev)   = spval
           om_fraccol(c,lev) = spval
@@ -1169,7 +1169,7 @@ module mod_clm_initimeconst
               (ctype(c) /= icol_road_perv) .and. &
               (ctype(c) /= icol_road_imperv) ) then
         ! Urban Roof, sunwall, shadewall properties set to special value
-        do lev = 1 , nlevgrnd
+        do lev = 1, nlevgrnd
           watsat(c,lev) = spval
           watfc(c,lev)  = spval
           bsw(c,lev)    = spval
@@ -1189,7 +1189,7 @@ module mod_clm_initimeconst
           end if
         end do
 #if (defined VICHYDRO)
-        do lev = 1 , nlayer
+        do lev = 1, nlayer
           sandcol(c,lev)   = spval
           claycol(c,lev)   = spval
           om_fraccol(c,lev) = spval
@@ -1204,7 +1204,7 @@ module mod_clm_initimeconst
       !else if (ltype(l) /= istdlak) then
       ! soil columns of both urban and non-urban types
       else
-        do lev = 1 , nlevgrnd
+        do lev = 1, nlevgrnd
           ! duplicate clay and sand values from last soil layer
           if ( more_vertlayers ) then
             if ( lev == 1 ) then
@@ -1212,7 +1212,7 @@ module mod_clm_initimeconst
               sand    = sand3d(g,1)
               om_frac = organic3d(g,1)/organic_max
             else if ( lev <= nlevsoi ) then
-              do j = 1 , nlevsoifl-1
+              do j = 1, nlevsoifl-1
                 if (zisoi(lev) >= zisoifl(j) .AND. &
                     zisoi(lev) < zisoifl(j+1)) then
                   clay    = clay3d(g,j+1)

@@ -116,7 +116,7 @@ module mod_cbmz_main1
     subroutine chemmain
 !
       implicit none
-      integer(ik4) :: kk , ic ! Standard counters
+      integer(ik4) :: kk, ic ! Standard counters
       !
       ! Index for vector arrays, =1 unless vector loop entered
       !
@@ -132,7 +132,7 @@ module mod_cbmz_main1
       !
       !  ZERO ARRAYS
       !
-      do ic = 1 , c_nchem2
+      do ic = 1, c_nchem2
        c_xcin(1,ic) = d_zero
        c_xcemit(1,ic) = d_zero
        c_xcout(1,ic) = d_zero
@@ -141,7 +141,7 @@ module mod_cbmz_main1
       ! ENTER INPUT SPECIES CONCENTRATIONS:
       !    c_xcin(ic)  = initial concentration + emissions, molec/cm3
       !
-      do ic = 1 , 64 ! nchem1
+      do ic = 1, 64 ! nchem1
         c_xcin(1,ic) = xr(1,ic)
       end do
       !
@@ -154,7 +154,7 @@ module mod_cbmz_main1
       !
       ! Emissions component MUST be smaller than the input c_xcin.
       !
-      ! do ic = 1 , nchem1
+      ! do ic = 1, nchem1
       !   c_xcemit( 1 ,ic) = xremit(ic)
       !
       ! TEMPORARY SET =0 FOR TEST
@@ -370,7 +370,7 @@ module mod_cbmz_main1
       !    c_xcout(ic)  = final concentration, molec/cm3
 
       !
-      do ic = 1 , 64 !nchem1
+      do ic = 1, 64 !nchem1
         xr(1,ic) = c_xcout(1,ic)
       end do
       !
@@ -391,7 +391,7 @@ module mod_cbmz_main1
       !
       !  This loop also identifies AQUEOUS SPECIES CONCENTRATIONS
       !
-      ! do icq = 1 , c_nchem2
+      ! do icq = 1, c_nchem2
       !   ! Index for gas spec. linked to aqueous
       !   ic = c_npequil(ic)
       !
@@ -403,8 +403,8 @@ module mod_cbmz_main1
       ! end do
       !
       !! (Alternative loop:
-      !! do ic = 1 , c_nchem1
-      !!   do neq = 1 , nequil(ic)
+      !! do ic = 1, c_nchem1
+      !!   do neq = 1, nequil(ic)
       !      icq = ncequil(ic,neq)
       !      if ( icq > 0 ) then
       !        xrwdep(ic) = xrwdep(ic) + c_xcav(1,icq) * &

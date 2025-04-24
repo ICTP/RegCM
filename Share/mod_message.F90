@@ -26,18 +26,18 @@ module mod_message
   character(len=512) :: aline
   character(len=8) :: cline
 
-  character , parameter :: esc = achar(27)
-  integer(ik4) , parameter :: maxplot = 10
-  character , parameter :: plot(0:maxplot) = [ &
+  character, parameter :: esc = achar(27)
+  integer(ik4), parameter :: maxplot = 10
+  character, parameter :: plot(0:maxplot) = [ &
       ' ', '.', ',', ':', '=', '+', 'o', 'x', 'X', '#', '@' ]
 
   integer(ik4) :: rows = 24
   integer(ik4) :: cols = 48
-  integer(ik4) :: mrows , mcols
+  integer(ik4) :: mrows, mcols
 
-  public :: viz_init , viz_clear , viz_plot , viz_done
+  public :: viz_init, viz_clear, viz_plot, viz_done
 
-  public :: setup_mesg , die , aline , say , note , cry , fatal , checkalloc
+  public :: setup_mesg, die, aline, say, note, cry, fatal, checkalloc
 
   integer(ik4) :: iprank = 0
 
@@ -70,7 +70,7 @@ module mod_message
   subroutine note
     implicit none
     write (aline,*) '------------------ NOTICE -----------------'
-    write (stderr,*) ' Processor ' , iprank , ' : ' , trim(aline)
+    write (stderr,*) ' Processor ', iprank, ' : ', trim(aline)
     write (aline,*) '-------------------------------------------'
   end subroutine note
 
@@ -85,8 +85,8 @@ module mod_message
 
   subroutine fatal(filename,line,str)
     implicit none
-    character(*) , intent(in) :: filename , str
-    integer(ik4) , intent(in) :: line
+    character(*), intent(in) :: filename, str
+    integer(ik4), intent(in) :: line
     write (cline,'(i8)') line
     write (stderr,*) '-------------- FATAL CALLED ---------------'
     if ( line > 0 ) then
@@ -104,8 +104,8 @@ module mod_message
   pure subroutine checkalloc(ival,filename,line,arg)
 #endif
     implicit none
-    integer(ik4) , intent(in) :: ival , line
-    character(*) , intent(in) :: filename , arg
+    integer(ik4), intent(in) :: ival, line
+    character(*), intent(in) :: filename, arg
 #ifdef DEBUG
     if ( ival /= 0 ) then
       write (cline,'(i8)') line
@@ -119,32 +119,32 @@ module mod_message
 
   subroutine die0(msg)
     implicit none
-    character (len=*) , intent(in) :: msg
+    character (len=*), intent(in) :: msg
     if ( iprank == 0 ) write (stderr,*) msg
     call myabort
   end subroutine die0
 
   subroutine die1(msg,msg1)
     implicit none
-    character (len=*) , intent(in) :: msg , msg1
-    if ( iprank == 0 ) write (stderr,*) msg , ' : ', msg1
+    character (len=*), intent(in) :: msg, msg1
+    if ( iprank == 0 ) write (stderr,*) msg, ' : ', msg1
     call myabort
   end subroutine die1
 
   subroutine die2(msg,msg1,ier1)
     implicit none
-    character (len=*) , intent(in) :: msg , msg1
-    integer(ik4) , intent(in) :: ier1
-    if ( iprank == 0 ) write (stderr,*) msg , ' : ', msg1 , ': ', ier1
+    character (len=*), intent(in) :: msg, msg1
+    integer(ik4), intent(in) :: ier1
+    if ( iprank == 0 ) write (stderr,*) msg, ' : ', msg1, ': ', ier1
     call myabort
   end subroutine die2
 
   subroutine die4(msg,msg1,ier1,msg2,ier2)
     implicit none
-    character (len=*) , intent(in) :: msg , msg1 , msg2
-    integer(ik4) , intent(in) :: ier1 , ier2
-    if ( iprank == 0 ) write (stderr,*) msg , ' : ', msg1 , &
-                           ': ', ier1 , ' : ', msg2 , ': ', ier2
+    character (len=*), intent(in) :: msg, msg1, msg2
+    integer(ik4), intent(in) :: ier1, ier2
+    if ( iprank == 0 ) write (stderr,*) msg, ' : ', msg1, &
+                           ': ', ier1, ' : ', msg2, ': ', ier2
     call myabort
   end subroutine die4
 
@@ -153,7 +153,7 @@ module mod_message
 
   ! initialize package and set size of plot area
   subroutine viz_init(x,y)
-    integer(ik4) , intent(in) , optional :: x , y
+    integer(ik4), intent(in), optional :: x, y
     if ( present(x) ) cols = x
     if ( present(y) ) rows = y
     mcols = cols
@@ -180,9 +180,9 @@ module mod_message
   end subroutine viz_clear
 
   subroutine add_code(code,c,n)
-    character(len=1) , intent(inout) , dimension(:) :: code
-    character(len=1) , intent(in) :: c
-    integer(ik4) , intent(inout) :: n
+    character(len=1), intent(inout), dimension(:) :: code
+    character(len=1), intent(in) :: c
+    integer(ik4), intent(inout) :: n
     n = n+1
     code(n) = c
   end subroutine add_code
@@ -190,8 +190,8 @@ module mod_message
   ! position cursor at a given location within screen.
   ! top left corner is (1,1)
   subroutine viz_pos(x,y)
-    integer(ik4) , intent(in) :: x , y
-    integer :: i , n
+    integer(ik4), intent(in) :: x, y
+    integer :: i, n
     character(len=1) :: code(7)
     n = 0
 
@@ -213,10 +213,10 @@ module mod_message
   end subroutine viz_pos
 
   subroutine viz_plot(val,rmax)
-    real(rkx) , intent(in) , dimension(:,:) :: val
-    real(rkx) , intent(in) , optional :: rmax
-    integer(ik4) :: nx , ny , i , j , k , l , m , n , dx , dy
-    real(rkx) :: vmax , scalef , tmp
+    real(rkx), intent(in), dimension(:,:) :: val
+    real(rkx), intent(in), optional :: rmax
+    integer(ik4) :: nx, ny, i, j, k, l, m, n, dx, dy
+    real(rkx) :: vmax, scalef, tmp
 
     nx = size(val,1)
     ny = size(val,2)
@@ -234,13 +234,13 @@ module mod_message
       vmax = abs(rmax)
     else
       ! find absolute maximum value for scaling
-      do j = 1 , mrows
-        do i = 1 , mcols
+      do j = 1, mrows
+        do i = 1, mcols
           ! average over cells
           tmp = 0.0_rkx
           n = 0
-          do k = (j-1)*dy+1 , j*dy
-            do l = (i-1)*dx+1 , i*dx
+          do k = (j-1)*dy+1, j*dy
+            do l = (i-1)*dx+1, i*dx
               tmp = tmp + val(l,k)
               n = n + 1
             end do
@@ -253,14 +253,14 @@ module mod_message
     scalef = real(maxplot,rkx)/vmax
 
     ! now plot
-    do j = mrows , 1 , -1
+    do j = mrows, 1, -1
       call viz_pos(1,mrows-j)
-      do i = 1 , mcols
+      do i = 1, mcols
         ! average over cells
         tmp = 0.0_rkx
         n = 0
-        do k = (j-1)*dy+1 , j*dy
-          do l = (i-1)*dx+1 , i*dx
+        do k = (j-1)*dy+1, j*dy
+          do l = (i-1)*dx+1, i*dx
             tmp = tmp + val(l,k)
             n = n + 1
           end do

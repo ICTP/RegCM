@@ -25,7 +25,7 @@ module mod_cbmz_rates1
 !
   private
 !
-  public :: chemrates , hvrates
+  public :: chemrates, hvrates
 
   contains
 
@@ -145,7 +145,7 @@ module mod_cbmz_rates1
       ! counter for parameterized ro2-ro2 reactions
       !
       nr1 = 0
-      do j = 1 , c_nreac
+      do j = 1, c_nreac
         !
         ! Default
         !
@@ -310,7 +310,7 @@ module mod_cbmz_rates1
       !
       !  FUTURE CHANGE: ADD ALT. SPECIAL FORMULAS FOR HENRYS LAW CONSTANTS
       !   AS NEEDED, CONTROLLED BY   c_nrkh()
-      do j = 1 , c_nreach
+      do j = 1, c_nreach
         rateh(kk,j) = c_rkh(1,j)*exp(d_zero-c_rkh(2,j) * &
                                       (d_one/c_temp(kk)-d_one/298.0_rkx))
         rateh(kk,j) = rateh(kk,j)*rtcon*c_temp(kk)*c_h2oliq(kk)
@@ -326,7 +326,7 @@ module mod_cbmz_rates1
       ! FUTURE CHANGE: ADD ALT. SPECIAL FORMULAS FOR EQUILIBRIUM COEFFICIENTS
       ! AS NEEDED, CONTROLLED BY   c_nrkq()
       !
-      do j = 1 , c_nreacq
+      do j = 1, c_nreacq
         rateq(kk,j) = c_rkq(1,j)*exp(d_zero-c_rkq(2,j) * &
                                       (d_one/c_temp(kk)-d_one/298.0_rkx))
       end do
@@ -337,7 +337,7 @@ module mod_cbmz_rates1
       !  SPECIAL AQUEOUS EQUILIBRIUM COEFFICIENTS (MOLES/LITER)
       !  FUTURE CHANGE: ADD ALT. SPECIAL FORMULAS FOR SPECIAL EQ  COEFFICIENTS
       !   AS NEEDED, CONTROLLED BY   c_nrkqq()
-      do j = 1 , c_nreaqq
+      do j = 1, c_nreaqq
         rateqq(kk,j) = c_rkqq(1,j)*exp(d_zero-c_rkqq(2,j) * &
                                        (d_one/c_temp(kk)-d_one/298.0_rkx))
       end do
@@ -414,7 +414,7 @@ module mod_cbmz_rates1
       ! Vectorization counters
       integer(ik4) :: kk
       ! General counters
-      integer(ik4) :: j , ij
+      integer(ik4) :: j, ij
 !
 !   hvrate(kk, 56)    Interpolated hv rates averaged over time interval.
 !                                      (sec-1)
@@ -456,7 +456,7 @@ module mod_cbmz_rates1
       ihvint = int(abs(c_time)/1800.0_rkx)
       if ( ihvint < 1 ) ihvint = 1
       fhvint = d_one/(d_zero+ihvint)
-      do ij = 1 , 56
+      do ij = 1, 56
         hvrate(kk,ij) = d_zero
       end do
       !
@@ -466,7 +466,7 @@ module mod_cbmz_rates1
       !      But ENDING = dynamically correct calculation for time interval).
       !      Correct - ENDING with hv TIME INTERVAL CALCULATION = 1).
       !
-      do ihour = 1 , ihvint
+      do ihour = 1, ihvint
         c_hour = xhouro+(c_time/3600.0_rkx)*fhvint*(ihour-0.5_rkx-(1.0_rkx*ihvint))
         !
         ! END X-TIME-INTERVAL ADDITION
@@ -493,7 +493,7 @@ module mod_cbmz_rates1
         !
         ! ADD TO ARRAY SUM FOR AVERAGE JVAL OVER TIME PERIOD WITH X INTERVALS.
         !
-        do ij = 1 , 56
+        do ij = 1, 56
           hvrate(kk,ij) = hvrate(kk,ij)+fhvint*jval(ij)
           c_jval(kk,ij) = hvrate(kk,ij)
         end do
@@ -506,7 +506,7 @@ module mod_cbmz_rates1
       !
       ! ENTER HV RATES FROM TUV TABLE INTO RATE CONSTANT ARRAY
       !   INCLUDING MULTIPLICATIVE FACTOR AND SPECIAL HV RATE CONSTANTS
-      do j = 1 , c_nreac
+      do j = 1, c_nreac
         jc = c_nrk(j)
         if ( jc > 0 .and. jc < 56 ) then
           ratek(kk,j) = hvrate(kk,jc)*c_rk(1,j)
@@ -566,19 +566,19 @@ module mod_cbmz_rates1
       implicit none
 !
       ! ko(300) = Low pressure limit at 300 K.
-      real(rkx) , intent(in) :: b
+      real(rkx), intent(in) :: b
       ! exponent for temperature, -n in JPL.
-      real(rkx) , intent(in) :: c
+      real(rkx), intent(in) :: c
       ! kinf(300), High pressure limit at 300 K
-      real(rkx) , intent(in) :: d
+      real(rkx), intent(in) :: d
       ! exponent for temperature, -m in JPL.
-      real(rkx) , intent(in) :: e
+      real(rkx), intent(in) :: e
       ! Fc, base for log-T-P adjustment (0.6)
-      real(rkx) , intent(in) :: u
+      real(rkx), intent(in) :: u
       ! temperature K
-      real(rkx) , intent(in) :: tempx
+      real(rkx), intent(in) :: tempx
       ! density, molec/cm3
-      real(rkx) , intent(in) :: denx
+      real(rkx), intent(in) :: denx
 !
       ! Interim parameter
       real(rkx) :: f1
@@ -623,16 +623,16 @@ module mod_cbmz_rates1
 !
       implicit none
       ! Number of carbon atoms in RO2
-      real(rkx) , intent(in) :: c
+      real(rkx), intent(in) :: c
       ! temperature K
-      real(rkx) , intent(in) :: tempx
+      real(rkx), intent(in) :: tempx
       ! density, molec/cm3
-      real(rkx) , intent(in) :: denx
+      real(rkx), intent(in) :: denx
 !
       real(rkx) :: x
       real(rkx) :: y
       real(rkx) :: z
-      real(rkx) , parameter :: par = 4.3e-25_rkx
+      real(rkx), parameter :: par = 4.3e-25_rkx
 
       x = par*tempx*exp(1.08_rkx*c)*denx*(300.0_rkx/tempx)**5.05_rkx
       y = 0.384_rkx*(300.0_rkx/tempx)**4.16_rkx

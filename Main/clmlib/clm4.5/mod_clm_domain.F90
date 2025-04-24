@@ -21,35 +21,35 @@ module mod_clm_domain
   !--- this typically contains local domain info with arrays dim begg:endg ---
   type domain_type
     integer(ik4) :: ns         ! global size of domain
-    integer(ik4) :: ni , nj    ! global axis if 2d (nj=1 if unstructured)
-    integer(ik4) :: nbeg , nend  ! local beg/end indices
+    integer(ik4) :: ni, nj    ! global axis if 2d (nj=1 if unstructured)
+    integer(ik4) :: nbeg, nend  ! local beg/end indices
     character(len=8) :: clmlevel   ! grid type
     ! land mask: 1 = land, 0 = ocean
-    integer(ik4) , pointer , dimension(:) :: mask
+    integer(ik4), pointer, contiguous, dimension(:) :: mask
     ! fractional land
-    real(rk8) , pointer , dimension(:) :: frac
+    real(rk8), pointer, contiguous, dimension(:) :: frac
     ! topography
-    real(rk8) , pointer , dimension(:) :: topo
+    real(rk8), pointer, contiguous, dimension(:) :: topo
     ! latitude of grid cell (deg)
-    real(rk8) , pointer , dimension(:) :: latc
+    real(rk8), pointer, contiguous, dimension(:) :: latc
     ! longitude of grid cell (deg)
-    real(rk8) , pointer , dimension(:) :: lonc
+    real(rk8), pointer, contiguous, dimension(:) :: lonc
     ! grid cell area (km**2)
-    real(rk8) , pointer , dimension(:) :: area
+    real(rk8), pointer, contiguous, dimension(:) :: area
     ! pft mask: 1=real, 0=fake, -1=notset
-    integer(ik4) , pointer , dimension(:) :: pftm
+    integer(ik4), pointer, contiguous, dimension(:) :: pftm
     character(len=16) :: set ! flag to check if domain is set
     logical :: decomped   ! decomposed locally or global copy
   end type domain_type
 
-  type(domain_type) , public :: ldomain
+  type(domain_type), public :: ldomain
 
   public :: domain_init          ! allocates/nans domain types
   public :: domain_clean         ! deallocates domain types
   public :: domain_check         ! write out domain info
 
-  character(len=16) , parameter :: set   = 'domain_set      '
-  character(len=16) , parameter :: unset = 'NOdomain_unsetNO'
+  character(len=16), parameter :: set   = 'domain_set      '
+  character(len=16), parameter :: unset = 'NOdomain_unsetNO'
 
   contains
   !
@@ -58,11 +58,11 @@ module mod_clm_domain
   subroutine domain_init(domain,ni,nj,nbeg,nend,clmlevel)
     implicit none
     type(domain_type) :: domain           ! domain datatype
-    integer(ik4) , intent(in) :: ni , nj  ! grid size, 2d
-    integer(ik4) , intent(in) , optional :: nbeg , nend  ! beg/end indices
-    character(len=*) , intent(in) , optional  :: clmlevel   ! grid type
+    integer(ik4), intent(in) :: ni, nj  ! grid size, 2d
+    integer(ik4), intent(in), optional :: nbeg, nend  ! beg/end indices
+    character(len=*), intent(in), optional  :: clmlevel   ! grid type
     integer(ik4) :: ier
-    integer(ik4) :: nb , ne
+    integer(ik4) :: nb, ne
 
     nb = 1
     ne = ni*nj
@@ -148,7 +148,7 @@ module mod_clm_domain
   !
   subroutine domain_check(domain)
     implicit none
-    type(domain_type) , intent(in) :: domain        ! domain datatype
+    type(domain_type), intent(in) :: domain        ! domain datatype
     if ( myid == italk ) then
       write(stdout,*) '  domain_check set       = ',trim(domain%set)
       write(stdout,*) '  domain_check decomped  = ',domain%decomped

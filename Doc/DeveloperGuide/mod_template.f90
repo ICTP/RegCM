@@ -21,8 +21,8 @@ module mod_template
 
   real(dp) :: arealvar
   integer :: integervar
-  real(dp) , dimension(4) :: fixed_dims_array
-  real(sp) , allocatable , dimension(:,:) :: allocatable_2d_array
+  real(dp), dimension(4) :: fixed_dims_array
+  real(sp), allocatable, dimension(:,:) :: allocatable_2d_array
 
   public :: allocatable_2d_array    ! Data accessed from outside
   public :: init_mod_basicmodule    ! Allocate space and init data
@@ -36,7 +36,7 @@ module mod_template
 
     ! Dummy arguments are to be specified of theyr intent
 
-    logical , intent(in) :: lflag   ! Flag to control behaviour
+    logical, intent(in) :: lflag   ! Flag to control behaviour
 
     ! Local variables
 
@@ -63,7 +63,7 @@ module mod_template
 
   real(dp) function internal_function(a)
     implicit none
-    real , intent(in) :: a
+    real, intent(in) :: a
 
     !-----------------------------------------------------------
 
@@ -75,12 +75,12 @@ module mod_template
   subroutine meaningful_subroutine
     implicit none
 
-    integer :: i , j
+    integer :: i, j
 
     !-----------------------------------------------------------
 
-    do i = 1 , iy
-      do j = 1 , jx
+    do i = 1, iy
+      do j = 1, jx
         ! Cast of variables need to be specified
         allocatable_2d_array(i,j) = internal_function(dble(i))
       end do

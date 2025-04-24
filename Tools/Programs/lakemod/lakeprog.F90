@@ -17,21 +17,21 @@ program lakeprog
   use mod_lake
   implicit none
 !
-  real (8) , parameter :: dpth = 50.0D0 ! Lake depth in m
-  real (8) , parameter :: dt = 300.0D0   ! Lake internal timestep in sec
-  real (8) , parameter :: xl = 45.0D0    ! Latitude of point in degrees
-  real (8) , parameter :: zl = 10.0D0    ! Elevation at which vl is computed
+  real (8), parameter :: dpth = 50.0D0 ! Lake depth in m
+  real (8), parameter :: dt = 300.0D0   ! Lake internal timestep in sec
+  real (8), parameter :: xl = 45.0D0    ! Latitude of point in degrees
+  real (8), parameter :: zl = 10.0D0    ! Elevation at which vl is computed
 !
 ! First time into, try to reach equilibrium calling lake this number of times
 !
-  integer , parameter :: nconv = 200
+  integer, parameter :: nconv = 200
 !
-  integer , parameter :: inunit = 111
-  integer , parameter :: iounit = 222
-  integer :: iloop , idp , iconv
-  character(256) :: inpfile , outfile , prgname
+  integer, parameter :: inunit = 111
+  integer, parameter :: iounit = 222
+  integer :: iloop, idp, iconv
+  character(256) :: inpfile, outfile, prgname
 
-  real (8) :: tl , vl , ql , fsw , flw , hsen , prec , evl
+  real (8) :: tl, vl, ql, fsw, flw, hsen, prec, evl
 
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=inpfile)
@@ -51,7 +51,7 @@ program lakeprog
   evl = evl*1.0D-3
 
   ! Try to find an equilibrium
-  do iconv = 1 , nconv
+  do iconv = 1, nconv
     call lake(dt,tl,vl,zl,ql,fsw,flw,hsen,xl,prec,evl)
   end do
   call writeout
@@ -106,7 +106,7 @@ program lakeprog
     write(iounit, '(a,f12.4,a)') 'Snow depth  : ', hsnow, 'mm'
     write(iounit, '(a,f12.4,a)') 'Evaporation : ', evl, 'mm/sec'
     write(iounit, '(a,i3,a)')    'Temperature profile from 1 to ',idep,'m'
-    do idp = 1 , idep
+    do idp = 1, idep
       write(iounit, '(i3,f12.4)') idp, tprof(idp)
     end do
     write(iounit, '(a)') '###########################################'

@@ -51,9 +51,9 @@ module mod_sst_cmip6
   abstract interface
     subroutine read_cmip6_sst(id,var,lat,lon)
       import
-      type(rcm_time_and_date) , intent(in) :: id
-      type(cmip6_2d_var) , intent(inout) :: var
-      real(rkx) , dimension(:,:) , pointer , intent(in) :: lat , lon
+      type(rcm_time_and_date), intent(in) :: id
+      type(cmip6_2d_var), intent(inout) :: var
+      real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: lat, lon
     end subroutine read_cmip6_sst
   end interface
 
@@ -61,10 +61,10 @@ module mod_sst_cmip6
 
     subroutine cmip6_sst
       implicit none
-      type(rcm_time_and_date) :: idate , idatef , idateo
-      type(rcm_time_interval) :: tdif , step
-      procedure(read_cmip6_sst) , pointer :: read_func => null( )
-      integer :: nsteps , n
+      type(rcm_time_and_date) :: idate, idatef, idateo
+      type(rcm_time_interval) :: tdif, step
+      procedure(read_cmip6_sst), pointer :: read_func => null( )
+      integer :: nsteps, n
 
       idateo = globidate1
       idatef = globidate2
@@ -222,8 +222,8 @@ module mod_sst_cmip6
         call die('sst','No PMIP4/CMIP6 model', 1)
       end if
 
-      write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
-      write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
+      write (stdout,*) 'GLOBIDATE1 : ', tochar(globidate1)
+      write (stdout,*) 'GLOBIDATE2 : ', tochar(globidate2)
       write (stdout,*) 'NSTEPS = ', nsteps
 
       call open_sstfile(idateo)
@@ -231,11 +231,11 @@ module mod_sst_cmip6
       allocate(sst%hint(1))
 
       idate = idateo
-      do n = 1 , nsteps
+      do n = 1, nsteps
         call read_func(idate,sst,xlat,xlon)
         call h_interpolate_cont(sst%hint(1),sst%var,sstmm)
         call writerec(idate)
-        write (stdout,*) 'WRITEN OUT SST DATA : ' , tochar(idate)
+        write (stdout,*) 'WRITEN OUT SST DATA : ', tochar(idate)
         idate = idate + step
       end do
 

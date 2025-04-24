@@ -12,16 +12,16 @@ module clm_atmlnd
 ! Handle atm2lnd, lnd2atm mapping/downscaling/upscaling/data
 !
 ! !USES:
-  use clm_varpar  , only : numrad, ndst   !ndst = number of dust bins.
+  use clm_varpar , only : numrad, ndst   !ndst = number of dust bins.
                                           !only used # ifdef DUST
-  use clm_varcon  , only : rair, grav, cpair
+  use clm_varcon , only : rair, grav, cpair
   use shr_kind_mod, only : r8 => shr_kind_r8
-  use nanMod      , only : nan
-  use spmdMod     , only : masterproc
+  use nanMod     , only : nan
+  use spmdMod    , only : masterproc
   use abortutils,   only : endrun
 
-  use clm_varpar  , only : nvoc
-  use clm_drydep  , only : n_drydep
+  use clm_varpar , only : nvoc
+  use clm_drydep , only : n_drydep
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -50,7 +50,7 @@ type atm2lnd_type
   real(r8), pointer :: forc_pco2(:)    !CO2 partial pressure (Pa)
   real(r8), pointer :: forc_lwrad(:)   !downwrd IR longwave radiation (W/m**2)
   real(r8), pointer :: forc_solad(:,:) !direct beam radiation (numrad)
-                                       !(vis=forc_sols , nir=forc_soll )
+                                       !(vis=forc_sols, nir=forc_soll )
   real(r8), pointer :: forc_solai(:,:) !diffuse radiation (numrad)
                                        !(vis=forc_solsd, nir=forc_solld)
   real(r8), pointer :: forc_solar(:)   !incident solar radiation
@@ -353,7 +353,7 @@ end subroutine init_lnd2atm_type
 !
 ! !USES:
   use decompMod, only : get_proc_bounds, get_proc_bounds_atm
-  use areaMod  , only : map_maparrayl, map1dl_a2l, map1dl_l2a, map_setptrs
+  use areaMod , only : map_maparrayl, map1dl_a2l, map1dl_l2a, map_setptrs
   use decompMod, only : ldecomp,adecomp
   use domainMod, only : ldomain,adomain
   use QSatMod,   only : QSat
@@ -629,7 +629,7 @@ end subroutine clm_mapr2l
 !
 ! !USES:
   use decompMod, only : get_proc_bounds, get_proc_bounds_atm
-  use areaMod  , only : map_maparrayl, map1dl_a2l, map1dl_l2a, map_setptrs
+  use areaMod , only : map_maparrayl, map1dl_a2l, map1dl_l2a, map_setptrs
   use decompMod, only : ldecomp,adecomp
   use domainMod, only : ldomain,adomain
   use QSatMod,   only : QSat
@@ -903,7 +903,7 @@ end subroutine clm_mapa2l
 !
 ! !USES:
   use decompMod, only : get_proc_bounds, get_proc_bounds_atm
-  use areaMod  , only : map_maparrayl, map1dl_l2a
+  use areaMod , only : map_maparrayl, map1dl_l2a
 !
 ! !ARGUMENTS:
   implicit none
@@ -1033,14 +1033,14 @@ end subroutine clm_mapl2a
   use shr_kind_mod, only : r8 => shr_kind_r8
   use clmtype
   use subgridAveMod
-  use decompMod   , only : get_proc_bounds
-  use clm_varcon  , only : sb
-  use clm_varpar  , only : numrad
+  use decompMod  , only : get_proc_bounds
+  use clm_varcon , only : sb
+  use clm_varpar , only : numrad
 !abt added below
-  use clm_varcon  , only : denh2o
-  use clm_varpar  , only : nlevsoi
+  use clm_varcon , only : denh2o
+  use clm_varpar , only : nlevsoi
   use mod_dynparam
-  use clm_varsur  , only : cgaschem
+  use clm_varsur , only : cgaschem
 !abt added above
 !
 ! !ARGUMENTS:
@@ -1072,13 +1072,13 @@ end subroutine clm_mapl2a
   integer :: g,lev,c                    ! indices
   type(gridcell_type), pointer :: gptr  ! pointer to gridcell derived subtype
   type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
-  type(column_type)  , pointer :: cptr  ! pointer to column derived subtype
-  type(pft_type)     , pointer :: pptr  ! pointer to pft derived subtype
+  type(column_type) , pointer :: cptr  ! pointer to column derived subtype
+  type(pft_type)    , pointer :: pptr  ! pointer to pft derived subtype
 !abt rcm below
   real(r8), pointer :: wtgcell(:)        ! weight of columns relative to gridcells
-  integer , pointer :: cgrid(:)          ! gridcell of corresponding column
+  integer, pointer :: cgrid(:)          ! gridcell of corresponding column
   real(r8), pointer :: rootfr(:,:)       ! fraction of roots in each soil layer
-  integer , pointer :: pcolumn(:)        ! column index of corresponding pft
+  integer, pointer :: pcolumn(:)        ! column index of corresponding pft
   real(r8),allocatable :: temp_sm10cm(:) ! temporary array for 10cm soil moisture
   real(r8),allocatable :: temp_sm1m(:)   ! temporary array for 1m soil moisture
   real(r8),allocatable :: temp_smtot(:)  ! temporary array for total soil moisture
@@ -1350,13 +1350,13 @@ end subroutine clm_map2gcell
 ! !USES:
 !abt rcm below
   use spmdMod
-  use decompMod        , only : ldecomp, get_proc_clumps, get_clump_bounds
-  use decompMod        , only : get_proc_global
-  use areaMod          , only : map_maparrayl, map1dl_l2a
-  use domainMod        , only : adomain,ldomain
+  use decompMod       , only : ldecomp, get_proc_clumps, get_clump_bounds
+  use decompMod       , only : get_proc_global
+  use areaMod         , only : map_maparrayl, map1dl_l2a
+  use domainMod       , only : adomain,ldomain
   use clm_varsur
-  use clm_varpar       , only : lsmlon,lsmlat
-  use clm_drydep       , only : c2r_depout
+  use clm_varpar      , only : lsmlon,lsmlat
+  use clm_drydep      , only : c2r_depout
   use mod_clm
   use mod_dynparam
 !

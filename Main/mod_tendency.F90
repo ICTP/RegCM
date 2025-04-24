@@ -48,61 +48,61 @@ module mod_tendency
 
   private
 
-  public :: allocate_mod_tend , tend
-  real(rkx) , pointer , dimension(:,:,:) :: ttld => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: td => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: phi => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: qcd => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: qvd => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tvfac => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ucc => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vcc => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: th => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tha => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ps4 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ps_4 => null( )
-  real(rkx) , pointer , dimension(:,:) :: pten => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: thten => null( )
-  real(rkx) , pointer , dimension(:,:) :: rpsa => null( )
-  real(rkx) , pointer , dimension(:,:) :: rpsb => null( )
-  real(rkx) , pointer , dimension(:,:) :: rpsc => null( )
-  real(rkx) , pointer , dimension(:,:) :: rpsda => null( )
+  public :: allocate_mod_tend, tend
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ttld => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: td => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: phi => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qcd => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qvd => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tvfac => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ucc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vcc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: th => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tha => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ps4 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ps_4 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: pten => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: thten => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rpsa => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rpsb => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rpsc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rpsda => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: tten => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: uten => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vten => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: wten => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ppten => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tketen => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxten => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: chiten => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tten => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: uten => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vten => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: wten => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ppten => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tketen => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxten => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: tdyn => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: udyn => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vdyn => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: wdyn => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ppdyn => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tkedyn => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxdyn => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: chidyn => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tdyn => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: udyn => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vdyn => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: wdyn => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ppdyn => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tkedyn => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxdyn => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chidyn => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: tphy => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: uphy => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vphy => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: wphy => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ppphy => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tkephy => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxphy => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: chiphy => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tphy => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: uphy => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vphy => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: wphy => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ppphy => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tkephy => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxphy => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiphy => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: ten0 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: qen0 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: chiten0 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tkeps => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ten0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qen0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tkeps => null( )
 
   integer(ik4) :: idgq
   integer(ik4) :: ithadv = 1
-  integer(ik4) :: iqxvadv , itrvadv
+  integer(ik4) :: iqxvadv, itrvadv
 
   real(rkx) :: rptn ! Total number of internal points
 
@@ -112,7 +112,7 @@ module mod_tendency
     module procedure extracttenchi
   end interface ten2diag
 
-  logical , parameter :: do_phys = .true.
+  logical, parameter :: do_phys = .true.
 
   contains
 
@@ -219,13 +219,13 @@ module mod_tendency
   !
   subroutine tend
     implicit none
-    real(rkx) :: pt2bar , pt2tot , ptnbar , maxv , ptntot
-    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
-    logical :: loutrad , labsem
+    real(rkx) :: pt2bar, pt2tot, ptnbar, maxv, ptntot
+    integer(ik4) :: i, itr, j, k, lev, n, ii, jj, kk, iconvec
+    logical :: loutrad, labsem
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tend'
-    integer(ik4) , save :: idindx = 0
-    integer(ik4) :: mijx , miiy
+    integer(ik4), save :: idindx = 0
+    integer(ik4) :: mijx, miiy
     call time_begin(subroutine_name,idindx)
     mijx = (jci2-jci1)/2+1
     miiy = (ici2-ici1)/2+1
@@ -291,14 +291,14 @@ module mod_tendency
     !
     ! Sum up all tendencies for temperature
     !
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       tten(j,i,k) = tten(j,i,k) + tdyn(j,i,k) + tphy(j,i,k)
     end do
     !
     ! Sum up all contribution to water vapor tendencies
     ! This is the last RHS term in Eqs. 2.1.3 and 2.2.5, 2.3.9
     !
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qxdyn(j,i,k,iqv) + qxphy(j,i,k,iqv)
     end do
     if ( idynamic == 2 ) then
@@ -306,10 +306,10 @@ module mod_tendency
       ! Sum up all tendencies for vertical wind and pressure perturbation
       ! This is the last RHS term in Eqs. 2.2.3, 2.2.11, 2.3.7
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
         wten(j,i,k) = wten(j,i,k) + wdyn(j,i,k) + wphy(j,i,k)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         ppten(j,i,k) = ppten(j,i,k) + ppdyn(j,i,k) + ppphy(j,i,k)
       end do
     end if
@@ -330,8 +330,8 @@ module mod_tendency
     end if
 
     if ( ipptls > 0 ) then
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , &
-                      k = 1:kz , n = iqfrst:nqx)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                      k = 1:kz, n = iqfrst:nqx)
         qxten(j,i,k,n) = qxten(j,i,k,n) + qxdyn(j,i,k,n) + qxphy(j,i,k,n)
       end do
       if ( ipptls == 1 ) then
@@ -343,7 +343,7 @@ module mod_tendency
         qxphy(:,:,:,iqc) = d_zero
         tphy(:,:,:) = d_zero
         call condtq
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           tten(j,i,k) = tten(j,i,k) + tphy(j,i,k)
           qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qxphy(j,i,k,iqv)
           qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + qxphy(j,i,k,iqc)
@@ -369,10 +369,10 @@ module mod_tendency
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       atmc%t(j,i,k) = atm2%t(j,i,k) + dt * tten(j,i,k)
     end do
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz , n = 1:nqx )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz, n = 1:nqx )
       atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n)
     end do
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
       atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n) + dt * qxten(j,i,k,n),d_zero)
     end do
     !
@@ -499,10 +499,10 @@ module mod_tendency
                                                 chiphy(j,i,k,itr)
         ! end if
       end do
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz , n = 1:ntr )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz, n = 1:ntr )
         atmc%chi(j,i,k,n) = atm2%chi(j,i,k,n)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:ntr )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
         atmc%chi(j,i,k,n) = max(atmc%chi(j,i,k,n) + dt * chiten(j,i,k,n),d_zero)
       end do
       !call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2, &
@@ -552,9 +552,9 @@ module mod_tendency
         if ( (maxv/dtsec) > 0.01_rkx ) then ! 50 K per hour
           write(stderr,*) 'MAXVAL ATEN T :', maxv
           maxv = maxv - 0.001_rkx
-          do kk = 1 , kz
-            do ii = ici1 , ici2
-              do jj = jci1 , jci2
+          do kk = 1, kz
+            do ii = ici1, ici2
+              do jj = jci1, jci2
                 if ( tten(jj,ii,kk) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
@@ -566,9 +566,9 @@ module mod_tendency
         if ( (maxv/dtsec) > 0.005_rkx ) then  ! 25 m/s per hour
           write(stderr,*) 'MAXVAL ATEN U :', maxv
           maxv = maxv - 0.001_rkx
-          do kk = 1 , kz
-            do ii = ici1 , ici2
-              do jj = jci1 , jci2
+          do kk = 1, kz
+            do ii = ici1, ici2
+              do jj = jci1, jci2
                 if ( uten(jj,ii,kk) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
@@ -580,9 +580,9 @@ module mod_tendency
         if ( (maxv/dtsec) > 0.005_rkx ) then  ! 25 m/s per hour
           write(stderr,*) 'MAXVAL ATEN V :', maxv
           maxv = maxv - 0.001_rkx
-          do kk = 1 , kz
-            do ii = ici1 , ici2
-              do jj = jci1 , jci2
+          do kk = 1, kz
+            do ii = ici1, ici2
+              do jj = jci1, jci2
                 if ( vten(jj,ii,kk) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
@@ -594,9 +594,9 @@ module mod_tendency
         if ( (maxv/dtsec) > 0.001_rkx ) then !
           write(stderr,*) 'MAXVAL ATEN QV :', maxv
           maxv = maxv - 0.001_rkx
-          do kk = 1 , kz
-            do ii = ici1 , ici2
-              do jj = jci1 , jci2
+          do kk = 1, kz
+            do ii = ici1, ici2
+              do jj = jci1, jci2
                 if ( qxten(jj,ii,kk,iqv) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
@@ -608,9 +608,9 @@ module mod_tendency
         if ( (maxv/dtsec) > 0.001_rkx ) then !
           write(stderr,*) 'MAXVAL ATEN QC :', maxv
           maxv = maxv - 0.001_rkx
-          do kk = 1 , kz
-            do ii = ici1 , ici2
-              do jj = jci1 , jci2
+          do kk = 1, kz
+            do ii = ici1, ici2
+              do jj = jci1, jci2
                 if ( qxten(jj,ii,kk,iqc) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
@@ -639,7 +639,7 @@ module mod_tendency
         if ( myid == italk ) then
           write(stdout,*) '$$$ ', rcmtimer%str( )
           write(stdout,'(a,2E12.5)') ' $$$ 1st, 2nd time deriv of ps   = ', &
-                ptntot , pt2tot
+                ptntot, pt2tot
           if ( any(icup > 0) ) then
             write(stdout,'(a,i7)') &
               ' $$$ no. of points with active convection = ', iconvec
@@ -659,15 +659,15 @@ module mod_tendency
 
     subroutine check_temperature_tendency(loc,ipc)
       implicit none
-      character(len=*) , intent(in) :: loc
-      integer(ik4) , intent(in) :: ipc
-      integer(ik4) :: i , j , k , kk , ierr
-      real(rkx) :: check_tt , mean_tt
+      character(len=*), intent(in) :: loc
+      integer(ik4), intent(in) :: ipc
+      integer(ik4) :: i, j, k, kk, ierr
+      real(rkx) :: check_tt, mean_tt
       ierr = 0
       mean_tt = (maxval(aten%t(:,:,:,ipc))+minval(aten%t(:,:,:,ipc)))/d_two
-      do k = 1 , kz
+      do k = 1, kz
         do i = ici1, ici2
-          do j = jci1 , jci2
+          do j = jci1, jci2
             check_tt = (aten%t(j,i,k,ipc)-mean_tt)*rpsb(j,i)
             if ( abs(check_tt) > temp_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at step = ', rcmtimer%lcount
@@ -677,7 +677,7 @@ module mod_tendency
               write(stderr,*) 'At K = ',k
               write(stderr,*) 'Surface Temperature : ', sfs%tg(j,i)
               write(stderr,*) 'Vertical PTU profile: '
-              do kk = 1 , kz
+              do kk = 1, kz
                 write(stderr,'(i2,3f12.7)') kk, &
                         atms%pb3d(j,i,kk)*d_r100, atms%tb3d(j,i,kk), &
                         sqrt(atms%ubx3d(j,i,kk)**2+ &
@@ -697,18 +697,18 @@ module mod_tendency
 
     subroutine check_wind_tendency(loc,ipc)
       implicit none
-      character(len=*) , intent(in) :: loc
-      integer(ik4) , intent(in) :: ipc
-      integer(ik4) :: i , j , k , kk , ierr
-      real(rkx) :: check_ww , mean_ww
-      real(rkx) , dimension(jdi1:jdi2,idi1:idi2,1:kz) :: ww
+      character(len=*), intent(in) :: loc
+      integer(ik4), intent(in) :: ipc
+      integer(ik4) :: i, j, k, kk, ierr
+      real(rkx) :: check_ww, mean_ww
+      real(rkx), dimension(jdi1:jdi2,idi1:idi2,1:kz) :: ww
       ierr = 0
       ww = sqrt(max(aten%u(jdi1:jdi2,idi1:idi2,:,ipc),epsilon(d_one))**2 + &
                 max(aten%v(jdi1:jdi2,idi1:idi2,:,ipc),epsilon(d_one))**2)
       mean_ww = (maxval(ww)+minval(ww))/d_two
-      do k = 1 , kz
+      do k = 1, kz
         do i = ici1, ici2
-          do j = jci1 , jci2
+          do j = jci1, jci2
             check_ww = (ww(j,i,k)-mean_ww)/sfs%psdotb(j,i)
             if ( abs(check_ww) > wind_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at step = ', rcmtimer%lcount
@@ -718,7 +718,7 @@ module mod_tendency
               write(stderr,*) 'At K = ',k
               write(stderr,*) 'Surface Temperature : ', sfs%tg(j,i)
               write(stderr,*) 'Vertical PTU profile: '
-              do kk = 1 , kz
+              do kk = 1, kz
                 write(stderr,'(i2,3f12.7)') kk, &
                         atms%pb3d(j,i,kk)*d_r100, atms%tb3d(j,i,kk), &
                         sqrt(atms%ubx3d(j,i,kk)**2+ &
@@ -737,20 +737,20 @@ module mod_tendency
 
     subroutine surface_pressures( )
       implicit none
-      integer(ik4) :: i , j
-      logical , save :: linit = .false.
+      integer(ik4) :: i, j
+      logical, save :: linit = .false.
       !
       ! Compute surface pressure on dot points
       !
       if ( idynamic == 1 ) then
         call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga )
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
           rpsa(j,i) = d_one/sfs%psa(j,i)
         end do
         call psc2psd(sfs%psa,sfs%psdota)
         call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
         call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           rpsb(j,i) = d_one/sfs%psb(j,i)
         end do
         call psc2psd(sfs%psb,sfs%psdotb)
@@ -758,13 +758,13 @@ module mod_tendency
       else
         ! Non-hydrostatic pstar pressure is constant == ps0
         if ( .not. linit ) then
-          do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga )
+          do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
             rpsa(j,i) = d_one/sfs%psa(j,i)
           end do
-          do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+          do concurrent ( j = jce1:jce2, i = ice1:ice2 )
             rpsb(j,i) = d_one/sfs%psb(j,i)
           end do
-          do concurrent ( j = jde1ga:jde2ga , i = ide1ga:ide2ga )
+          do concurrent ( j = jde1ga:jde2ga, i = ide1ga:ide2ga )
             rpsda(j,i) = d_one/sfs%psdota(j,i)
           end do
           linit = .true.
@@ -774,12 +774,12 @@ module mod_tendency
 
     subroutine decouple( )
       implicit none
-      integer(ik4) :: i , j , k
+      integer(ik4) :: i, j, k
       !
       ! Helper
       !
       if ( idynamic == 1 ) then
-        do concurrent ( j = jde1ga:jde2ga , i = ide1ga:ide2ga )
+        do concurrent ( j = jde1ga:jde2ga, i = ide1ga:ide2ga )
           rpsda(j,i) = d_one/sfs%psdota(j,i)
         end do
       end if
@@ -799,7 +799,7 @@ module mod_tendency
       !
       ! Coupled helper
       !
-      do concurrent ( j = jde1ga:jde2ga , i = ide1ga:ide2ga , k = 1:kz )
+      do concurrent ( j = jde1ga:jde2ga, i = ide1ga:ide2ga, k = 1:kz )
         atmx%uc(j,i,k) = atm1%u(j,i,k)
         atmx%vc(j,i,k) = atm1%v(j,i,k)
         atmx%umc(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
@@ -808,7 +808,7 @@ module mod_tendency
       !
       ! Decoupled part with boundary conditions
       !
-      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
         atmx%ud(j,i,k) = atm1%u(j,i,k)*rpsda(j,i)
         atmx%vd(j,i,k) = atm1%v(j,i,k)*rpsda(j,i)
       end do
@@ -894,46 +894,46 @@ module mod_tendency
       if ( isladvec == 1 ) then
         call exchange(atmx%ud,2,jde1,jde2,ide1,ide2,1,kz)
         call exchange(atmx%vd,2,jde1,jde2,ide1,ide2,1,kz)
-        do concurrent ( j = jde1gb:jde2gb , i = ide1gb:ide2gb , k = 1:kz )
+        do concurrent ( j = jde1gb:jde2gb, i = ide1gb:ide2gb, k = 1:kz )
           atmx%umd(j,i,k) = atmx%ud(j,i,k)*mddom%msfd(j,i)
           atmx%vmd(j,i,k) = atmx%vd(j,i,k)*mddom%msfd(j,i)
         end do
       else
         call exchange(atmx%ud,1,jde1,jde2,ide1,ide2,1,kz)
         call exchange(atmx%vd,1,jde1,jde2,ide1,ide2,1,kz)
-        do concurrent ( j = jde1ga:jde2ga , i = ide1ga:ide2ga , k = 1:kz )
+        do concurrent ( j = jde1ga:jde2ga, i = ide1ga:ide2ga, k = 1:kz )
           atmx%umd(j,i,k) = atmx%ud(j,i,k)*mddom%msfd(j,i)
           atmx%vmd(j,i,k) = atmx%vd(j,i,k)*mddom%msfd(j,i)
         end do
       end if
       !
-      ! T , QV , QC
+      ! T, QV, QC
       !
-      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
         atmx%t(j,i,k) = atm1%t(j,i,k)*rpsa(j,i)
       end do
-      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
         atmx%qx(j,i,k,iqv) = max(atm1%qx(j,i,k,iqv),minqq)*rpsa(j,i)
       end do
-      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , &
-                      k = 1:kz , n = iqfrst:nqx )
+      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, &
+                      k = 1:kz, n = iqfrst:nqx )
         atmx%qx(j,i,k,n) = max(atm1%qx(j,i,k,n),d_zero)*rpsa(j,i)
       end do
-      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
         atmx%tv(j,i,k) = atmx%t(j,i,k) * (d_one + ep1*atmx%qx(j,i,k,iqv))
       end do
       !
       ! call tracer decoupling routine for multiple (ntr) species
       !
       if ( ichem == 1 ) then
-        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , &
-                        k = 1:kz , n = 1:ntr )
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, &
+                        k = 1:kz, n = 1:ntr )
           atmx%chi(j,i,k,n) = atm1%chi(j,i,k,n)*rpsa(j,i)
         end do
       end if
 
       if ( idynamic == 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
           atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%tv(j,i,k))
         end do
@@ -944,17 +944,17 @@ module mod_tendency
         !
         call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kzp1)
-        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
           atmx%pp(j,i,k) = atm1%pp(j,i,k)*rpsa(j,i)
         end do
-        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kzp1 )
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kzp1 )
           atmx%w(j,i,k) = atm1%w(j,i,k)*rpsa(j,i)
         end do
         do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
           atm1%pr(j,i,k) = atm0%pr(j,i,k) + atmx%pp(j,i,k)
           atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%tv(j,i,k))
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           atmx%pr(j,i,k) = (atmx%tv(j,i,k) - atm0%t(j,i,k) - &
                 atmx%pp(j,i,k)/(cpd*atm0%rho(j,i,k))) / atmx%t(j,i,k)
         end do
@@ -986,7 +986,7 @@ module mod_tendency
       end if
 
       if ( idynamic == 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
         end do
       else
@@ -994,7 +994,7 @@ module mod_tendency
         ! Constant reference state and perturbations are defined
         ! for the nonhydrostatic model.
         !
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
         end do
       end if
@@ -1003,8 +1003,8 @@ module mod_tendency
       !
       if ( ipptls > 1 ) then
         qcd(:,:,:) = d_zero
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , &
-                        k = 1:kz , n = iqfrst:iqlst )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, &
+                        k = 1:kz, n = iqfrst:iqlst )
           qcd(j,i,k) = qcd(j,i,k) + atmx%qx(j,i,k,n)
         end do
       end if
@@ -1012,11 +1012,11 @@ module mod_tendency
 
     subroutine compute_omega
       implicit none
-      integer(ik4) :: i , j , k
-      real(rkx) , dimension(jde1:jde2,ide1:ide2) :: dummy
+      integer(ik4) :: i, j, k
+      real(rkx), dimension(jde1:jde2,ide1:ide2) :: dummy
 
       qdot(:,:,:)  = d_zero
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         dummy(j,i) = d_one/(dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
       end do
       if ( idynamic == 1 ) then
@@ -1024,7 +1024,7 @@ module mod_tendency
         ! compute the pressure tendency
         !
         pten(:,:) = d_zero
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           !
           ! The surface pressure tendency in the   hydrostatic model:
           ! Eq. 2.1.5 & Eq. 2.4.2 in the MM5 manual
@@ -1034,12 +1034,12 @@ module mod_tendency
                            (atmx%vmc(j+1,i+1,k)+atmx%vmc(j,i+1,k)- &
                             atmx%vmc(j+1,i,k)  -atmx%vmc(j,i,k)))*dummy(j,i)
         end do
-        do k = 1 , kz
+        do k = 1, kz
           do concurrent ( j = jce1:jce2, i = ice1:ice2 )
             pten(j,i) = pten(j,i) - mdv%cr(j,i,k) * dsigma(k)
           end do
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
           !
           ! The coordinate vertical velocity in the   hydrostatic model:
           ! Eq. 2.1.6 & Eq. 2.4.3 in the MM5 manual
@@ -1048,7 +1048,7 @@ module mod_tendency
                          mdv%cr(j,i,k-1)) * dsigma(k-1) * rpsa(j,i)
         end do
       else if ( idynamic == 2 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           !
           ! Calculate wind components at cross points
           !
@@ -1057,7 +1057,7 @@ module mod_tendency
           vcc(j,i,k) = (atmx%vmd(j,i,k)  + atmx%vmd(j,i+1,k) + &
                         atmx%vmd(j+1,i,k)+ atmx%vmd(j+1,i+1,k))
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
           !
           ! The coordinate vertical velocity in the nonhydrostatic model:
           ! Eq. 2.2.7 & Eq. 2.3.6 in the MM5 manual
@@ -1069,7 +1069,7 @@ module mod_tendency
                             dpsdym(j,i) * (twt(k,1)*vcc(j,i,k) +       &
                                            twt(k,2)*vcc(j,i,k-1)))
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           !
           ! The mass divergence term (in cross points) in the
           ! nonhydrostatic model:
@@ -1090,10 +1090,10 @@ module mod_tendency
       !
       if ( idynamic == 1 ) then
         omega(:,:,:) = d_zero
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           !
           ! omega in the hydrostatic model: Eqs. 2.1.7, 2.1.8 & 2.4.4
           !
@@ -1154,7 +1154,7 @@ module mod_tendency
 
     subroutine advection
       implicit none
-      integer(ik4) :: i , j , k
+      integer(ik4) :: i, j, k
 
       call start_advect
 
@@ -1232,7 +1232,7 @@ module mod_tendency
         end if
       else
         thten(:,:,:) = d_zero
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           th(j,i,k) = atmx%t(j,i,k) * (p00/atm1%pr(j,i,k))**rovcp
           tha(j,i,k) = th(j,i,k) * sfs%psa(j,i)
         end do
@@ -1302,7 +1302,7 @@ module mod_tendency
         !
         !  Couple TKE to ps for use in vertical advection
         !
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kzp1 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
           tkeps(j,i,k) = atm1%tke(j,i,k)*sfs%psa(j,i)
         end do
         ! Calculate the vertical advective tendency for TKE
@@ -1312,7 +1312,7 @@ module mod_tendency
 
     subroutine new_pressure
       implicit none
-      integer(ik4) :: i , j
+      integer(ik4) :: i, j
       !
       ! Surface pressure boundary conditions
       !
@@ -1324,7 +1324,7 @@ module mod_tendency
       !
       ! psc : forecast pressure
       !
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
         rpsc(j,i) = d_one/sfs%psc(j,i)
       end do
@@ -1334,8 +1334,8 @@ module mod_tendency
       ptntot = d_zero
       pt2tot = d_zero
       if ( rcmtimer%integrating( ) ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             ptntot = ptntot + abs(pten(j,i))
             pt2tot = pt2tot + abs((sfs%psc(j,i)+sfs%psb(j,i)- &
                      d_two*sfs%psa(j,i))/(dt*dt*d_rfour))
@@ -1440,7 +1440,7 @@ module mod_tendency
       end if
       if ( ibltyp == 2 ) then
         ! Calculate the horizontal, diffusive tendency for TKE
-        ! Here TKE is decoupled , we can pass atm2.
+        ! Here TKE is decoupled, we can pass atm2.
         call diffu_x(tkedyn,atm2%tke,nuk)
       end if
 #ifdef DEBUG
@@ -1452,8 +1452,8 @@ module mod_tendency
     subroutine adiabatic
       implicit none
       real(rkx) :: rovcpm
-      real(rkx) :: cpm , scr1
-      real(rkx) :: rofac , uaq , vaq
+      real(rkx) :: cpm, scr1
+      real(rkx) :: rofac, uaq, vaq
       if ( idiag > 0 ) then
         ten0 = tdyn
         qen0 = qxdyn(:,:,:,iqv)
@@ -1484,7 +1484,7 @@ module mod_tendency
                    atmx%pp(j,i,k)*mdv%cr(j,i,k))/(atm1%rho(j,i,k)*cpm)
           end do
         else
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             thten(j,i,k) = thten(j,i,k) + th(j,i,k) * mdv%cr(j,i,k)
             tdyn(j,i,k) = tdyn(j,i,k) + &
                               atm1%t(j,i,k)*thten(j,i,k)/tha(j,i,k)
@@ -1501,10 +1501,10 @@ module mod_tendency
         ! Divergence term in the pressure perturbation tendency equation in the
         ! nonhydrostatic model: 4th RHS term in Eq. 2.2.4 and Eq. 2.3.8
         !
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           ppdyn(j,i,k) = ppdyn(j,i,k) + atmx%pp(j,i,k)*mdv%cr(j,i,k)
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
           qxdyn(j,i,k,n) = qxdyn(j,i,k,n) + atmx%qx(j,i,k,n)*mdv%cr(j,i,k)
         end do
         !
@@ -1519,7 +1519,7 @@ module mod_tendency
         ! (4) mass divergence term (3rd RHS term in Eq. 2.2.3, 2.2.11 and
         !     Eq. 2.3.7)
         !
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           !
           ! Calculate wind components at cross points
           !
@@ -1548,7 +1548,7 @@ module mod_tendency
                                   twt(k,2)*mdv%cr(j,i,k-1))
         end do
         if ( ipptls > 0 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
             !
             ! Vertical velocity tendency: water loading term
             ! 5th RHS term in Eq. 2.2.3 & 6th RHS term in Eq. 2.3.7
@@ -1662,7 +1662,7 @@ module mod_tendency
       ! temperature tendency (deg/sec)
       !
       if ( idiag > 0 ) ten0 = tphy
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         tphy(j,i,k) = tphy(j,i,k) + sfs%psb(j,i)*heatrt(j,i,k)
       end do
       if ( idiag > 0 ) call ten2diag(aten%t,tdiag%rad,pc_physic,ten0)
@@ -1710,13 +1710,13 @@ module mod_tendency
 
     subroutine curvature
       implicit none
-      integer(ik4) :: i , j , k
-      real(rkx) :: wadot , wadotp1 , wabar , amfac , duv
+      integer(ik4) :: i, j, k
+      real(rkx) :: wadot, wadotp1, wabar, amfac, duv
       !
       ! compute Coriolis and curvature terms:
       !
       if ( idynamic == 1 ) then
-        do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+        do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
           !
           ! Hydrostatic model:
           ! (1) part of the horizontal component of the Coriolis force due
@@ -1770,8 +1770,8 @@ module mod_tendency
 
     subroutine pressure_gradient_force
       implicit none
-      integer(ik4) :: i , j , k
-      real(rkx) :: tva , tvb , tvc
+      integer(ik4) :: i, j, k
+      real(rkx) :: tva, tvb, tvc
       real(rkx) :: rtbar
       real(rkx) :: tv
       real(rkx) :: tvavg
@@ -1788,28 +1788,28 @@ module mod_tendency
                       t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
         end do
         if ( ma%has_bdyleft ) then
-          do concurrent ( i = ici1:ici2 , k = 1:kz )
+          do concurrent ( i = ici1:ici2, k = 1:kz )
             td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
             ttld(jce1,i,k) = td(jce1,i,k) - sfs%psa(jce1,i) * &
                     t00pg*((hsigma(k)*sfs%psa(jce1,i)+ptop)/p00pg)**pgfaa1
           end do
         end if
         if ( ma%has_bdyright ) then
-          do concurrent ( i = ici1:ici2 , k = 1:kz )
+          do concurrent ( i = ici1:ici2, k = 1:kz )
             td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one + ep1*qvd(jce2,i,k))
             ttld(jce2,i,k) = td(jce2,i,k) - sfs%psa(jce2,i) * &
                     t00pg*((hsigma(k)*sfs%psa(jce2,i)+ptop)/p00pg)**pgfaa1
           end do
         end if
         if ( ma%has_bdybottom ) then
-          do concurrent ( j = jce1:jce2 , k = 1:kz )
+          do concurrent ( j = jce1:jce2, k = 1:kz )
             td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one + ep1*qvd(j,ice1,k))
             ttld(j,ice1,k) = td(j,ice1,k) - sfs%psa(j,ice1) * &
                     t00pg*((hsigma(k)*sfs%psa(j,ice1)+ptop)/p00pg)**pgfaa1
           end do
         end if
         if ( ma%has_bdytop ) then
-          do concurrent ( j = jce1:jce2 , k = 1:kz )
+          do concurrent ( j = jce1:jce2, k = 1:kz )
             td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one + ep1*qvd(j,ice2,k))
             ttld(j,ice2,k) = td(j,ice2,k) - sfs%psa(j,ice2) * &
                    t00pg*((hsigma(k)*sfs%psa(j,ice2)+ptop)/p00pg)**pgfaa1
@@ -1850,22 +1850,22 @@ module mod_tendency
           td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
         end do
         if ( ma%has_bdyleft ) then
-          do concurrent ( i = ici1:ici2 , k = 1:kz )
+          do concurrent ( i = ici1:ici2, k = 1:kz )
             td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
           end do
         end if
         if ( ma%has_bdyright ) then
-          do concurrent ( i = ici1:ici2 , k = 1:kz )
+          do concurrent ( i = ici1:ici2, k = 1:kz )
             td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*qvd(jce2,i,k))
           end do
         end if
         if ( ma%has_bdybottom ) then
-          do concurrent ( j = jce1:jce2 , k = 1:kz )
+          do concurrent ( j = jce1:jce2, k = 1:kz )
             td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*qvd(j,ice1,k))
           end do
         end if
         if ( ma%has_bdytop ) then
-          do concurrent ( j = jce1:jce2 , k = 1:kz )
+          do concurrent ( j = jce1:jce2, k = 1:kz )
             td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*qvd(j,ice2,k))
           end do
         end if
@@ -1902,7 +1902,7 @@ module mod_tendency
       !
       ! compute geopotential height at half-k levels, cross points:
       !
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         !
         ! Hydrostatic model: the 2nd part of the Eq.2.4.5
         !
@@ -1919,7 +1919,7 @@ module mod_tendency
           phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
                   log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
         end do
-        do k = 1 , kzm1
+        do k = 1, kzm1
           lev = kz - k
           do concurrent ( j = jce1:jce2, i = ice1:ice2 )
             !
@@ -1944,7 +1944,7 @@ module mod_tendency
           phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
                log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
         end do
-        do k = 1 , kzm1
+        do k = 1, kzm1
           lev = kz - k
           do concurrent ( j = jce1:jce2, i = ice1:ice2 )
             !
@@ -1964,7 +1964,7 @@ module mod_tendency
       !
       ! compute the geopotential gradient terms:
       !
-      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
         !
         ! Hydrostatic model. The second part of the pressure gradient term:
         ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
@@ -1986,11 +1986,11 @@ module mod_tendency
 
   subroutine extracttent(ten,store,indx,ten0)
     implicit none
-    integer(ik4) , intent(in) :: indx
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: ten
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: store
-    real(rkx) , optional , pointer , dimension(:,:,:) , intent(in) :: ten0
-    integer(ik4) :: i , j , k
+    integer(ik4), intent(in) :: indx
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ten
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: store
+    real(rkx), optional, pointer, contiguous, dimension(:,:,:), intent(in) :: ten0
+    integer(ik4) :: i, j, k
     if ( present(ten0) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         store(j,i,k) = store(j,i,k) + &
@@ -2005,11 +2005,11 @@ module mod_tendency
 
   subroutine extracttenqv(qen,store,indx,qen0)
     implicit none
-    integer(ik4) , intent(in) :: indx
-    real(rkx) , pointer , dimension(:,:,:,:,:) , intent(in) :: qen
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: store
-    real(rkx) , optional , pointer , dimension(:,:,:) , intent(in) :: qen0
-    integer(ik4) :: i , j , k
+    integer(ik4), intent(in) :: indx
+    real(rkx), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: qen
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: store
+    real(rkx), optional, pointer, contiguous, dimension(:,:,:), intent(in) :: qen0
+    integer(ik4) :: i, j, k
     if ( present(qen0) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         store(j,i,k) = store(j,i,k) + &
@@ -2024,11 +2024,11 @@ module mod_tendency
 
   subroutine extracttenchi(chiten,store,indx,chiten0)
     implicit none
-    integer(ik4) , intent(in) :: indx
-    real(rkx) , pointer , dimension(:,:,:,:,:) , intent(in) :: chiten
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: store
-    real(rkx) , optional , pointer , dimension(:,:,:,:) , intent(in) :: chiten0
-    integer(ik4) :: i , j , k , n
+    integer(ik4), intent(in) :: indx
+    real(rkx), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: chiten
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: store
+    real(rkx), optional, pointer, contiguous, dimension(:,:,:,:), intent(in) :: chiten0
+    integer(ik4) :: i, j, k, n
     if ( present(chiten0) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
         store(j,i,k,n) = store(j,i,k,n) + &

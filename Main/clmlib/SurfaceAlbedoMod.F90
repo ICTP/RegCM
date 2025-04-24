@@ -12,8 +12,8 @@ module SurfaceAlbedoMod
 ! Performs surface albedo calculations
 !
 ! !PUBLIC TYPES:
-  use clm_varcon , only : istsoil
-  use spmdMod    , only : masterproc
+  use clm_varcon, only : istsoil
+  use spmdMod   , only : masterproc
   use shr_kind_mod, only : r8 => shr_kind_r8
   implicit none
   save
@@ -58,21 +58,21 @@ contains
 !
 ! !USES:
     use clmtype
-    use clm_varpar      , only : numrad
+    use clm_varpar     , only : numrad
     use shr_orb_mod
     use clm_time_manager, only : get_nstep
-    use decompMod       , only : ldecomp
+    use decompMod      , only : ldecomp
 !abt added below
-!    use clm_varsur      , only : c2rcosz1d
+!    use clm_varsur     , only : c2rcosz1d
 !abt added above
     use mod_clm
     use mod_dynparam
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: lbg, ubg ! gridcell bounds
-    integer , intent(in) :: lbc, ubc ! column bounds
-    integer , intent(in) :: lbp, ubp ! pft bounds
+    integer, intent(in) :: lbg, ubg ! gridcell bounds
+    integer, intent(in) :: lbc, ubc ! column bounds
+    integer, intent(in) :: lbp, ubp ! pft bounds
     real(r8), intent(in) :: caldayp1 ! calendar day at Greenwich (1.00, ..., 365.99)
     real(r8), intent(in) :: declinp1 ! declination angle (radians) for next time step
 !
@@ -91,11 +91,11 @@ contains
 !
 ! local pointers to implicit in arguments
 !
-    integer , pointer :: pgridcell(:) ! gridcell of corresponding pft
-    integer , pointer :: plandunit(:) ! index into landunit level quantities
-    integer , pointer :: itypelun(:)  ! landunit type
-    integer , pointer :: pcolumn(:)   ! column of corresponding pft
-    integer , pointer :: cgridcell(:) ! gridcell of corresponding column
+    integer, pointer :: pgridcell(:) ! gridcell of corresponding pft
+    integer, pointer :: plandunit(:) ! index into landunit level quantities
+    integer, pointer :: itypelun(:)  ! landunit type
+    integer, pointer :: pcolumn(:)   ! column of corresponding pft
+    integer, pointer :: cgridcell(:) ! gridcell of corresponding column
     real(r8), pointer :: pwtgcell(:)  ! weight of pft wrt corresponding gridcell
     real(r8), pointer :: lat(:)       ! gridcell latitude (radians)
     real(r8), pointer :: lon(:)       ! gridcell longitude (radians)
@@ -107,7 +107,7 @@ contains
     real(r8), pointer :: rhos(:,:)    ! stem reflectance: 1=vis, 2=nir
     real(r8), pointer :: taul(:,:)    ! leaf transmittance: 1=vis, 2=nir
     real(r8), pointer :: taus(:,:)    ! stem transmittance: 1=vis, 2=nir
-    integer , pointer :: ivt(:)       ! pft vegetation type
+    integer, pointer :: ivt(:)       ! pft vegetation type
 !
 ! local pointers toimplicit out arguments
 !
@@ -372,9 +372,9 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: lbc, ubc                 ! column bounds
+    integer, intent(in) :: lbc, ubc                 ! column bounds
     real(r8), intent(in) :: coszen(lbc:ubc)          ! cosine solar zenith angle for next time step
-    integer , intent(in) :: ind                      ! 0=direct beam, 1=diffuse radiation
+    integer, intent(in) :: ind                      ! 0=direct beam, 1=diffuse radiation
     real(r8), intent(out):: alb(lbc:ubc,2)           ! snow albedo by waveband (assume 2 wavebands)
 !
 ! !CALLED FROM:
@@ -419,7 +419,7 @@ contains
     h2osno  => clm3%g%l%c%cws%h2osno
     snowage => clm3%g%l%c%cps%snowage
 
-    ! this code assumes that numrad = 2 , with the following
+    ! this code assumes that numrad = 2, with the following
     ! index values: 1 = visible, 2 = NIR
 
     ! Albedo for snow cover.
@@ -471,7 +471,7 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: lbc, ubc                ! column bounds
+    integer, intent(in) :: lbc, ubc                ! column bounds
     real(r8), intent(in) :: coszen(lbc:ubc)         ! cos solar zenith angle next time step (column-level)
     real(r8), intent(in) :: albsnd(lbc:ubc,numrad)  ! snow albedo (direct)
     real(r8), intent(in) :: albsni(lbc:ubc,numrad)  ! snow albedo (diffuse)
@@ -488,9 +488,9 @@ contains
 !
 ! local pointers to original implicit in arguments
 !
-    integer , pointer :: clandunit(:)    ! landunit of corresponding column
-    integer , pointer :: ltype(:)        ! landunit type
-    integer , pointer :: isoicol(:)      ! soil color class
+    integer, pointer :: clandunit(:)    ! landunit of corresponding column
+    integer, pointer :: ltype(:)        ! landunit type
+    integer, pointer :: isoicol(:)      ! soil color class
     real(r8), pointer :: t_grnd(:)       ! ground temperature (Kelvin)
     real(r8), pointer :: frac_sno(:)     ! fraction of ground covered by snow (0 to 1)
     real(r8), pointer :: h2osoi_vol(:,:) ! volumetric soil water [m3/m3]
@@ -585,10 +585,10 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in)  :: lbc, ubc                 ! column bounds
-    integer , intent(in)  :: lbp, ubp                 ! pft bounds
-    integer , intent(in)  :: filter_vegsol(ubp-lbp+1) ! filter for vegetated pfts with coszen>0
-    integer , intent(in)  :: num_vegsol               ! number of vegetated pfts where coszen>0
+    integer, intent(in)  :: lbc, ubc                 ! column bounds
+    integer, intent(in)  :: lbp, ubp                 ! pft bounds
+    integer, intent(in)  :: filter_vegsol(ubp-lbp+1) ! filter for vegetated pfts with coszen>0
+    integer, intent(in)  :: num_vegsol               ! number of vegetated pfts where coszen>0
     real(r8), intent(in)  :: coszen(lbp:ubp)          ! cosine solar zenith angle for next time step
     real(r8), intent(in)  :: vai(lbp:ubp)             ! elai+esai
     real(r8), intent(in)  :: rho(lbp:ubp,numrad)      ! leaf/stem refl weighted by fraction LAI and SAI
@@ -606,12 +606,12 @@ contains
 !
 ! local pointers to implicit in scalars
 !
-    integer , pointer :: pcolumn(:)    ! column of corresponding pft
+    integer, pointer :: pcolumn(:)    ! column of corresponding pft
     real(r8), pointer :: albgrd(:,:)   ! ground albedo (direct) (column-level)
     real(r8), pointer :: albgri(:,:)   ! ground albedo (diffuse)(column-level)
     real(r8), pointer :: t_veg(:)      ! vegetation temperature (Kelvin)
     real(r8), pointer :: fwet(:)       ! fraction of canopy that is wet (0 to 1)
-    integer , pointer :: ivt(:)        ! pft vegetation type
+    integer, pointer :: ivt(:)        ! pft vegetation type
     real(r8), pointer :: xl(:)         ! ecophys const - leaf/stem orientation index
 !
 ! local pointers to implicit out scalars
@@ -859,7 +859,7 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: lbc, ubc ! column bounds
+    integer, intent(in) :: lbc, ubc ! column bounds
 !
 ! !CALLED FROM:
 !

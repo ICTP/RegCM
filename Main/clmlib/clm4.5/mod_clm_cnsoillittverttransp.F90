@@ -6,9 +6,9 @@ module mod_clm_cnsoillittverttransp
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : dtsrf
-  use mod_clm_varctl , only : use_c13, use_c14, spinup_state
-  use mod_clm_varcon , only : secspday
+  use mod_runparams, only : dtsrf
+  use mod_clm_varctl, only : use_c13, use_c14, spinup_state
+  use mod_clm_varcon, only : secspday
   use mod_mpmessage
   use mod_stdio
 
@@ -40,9 +40,9 @@ module mod_clm_cnsoillittverttransp
   !
   subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
-    use mod_clm_varpar , only : nlevdecomp, ndecomp_pools, nlevdecomp_full
-    use mod_clm_varcon , only : zsoi, dzsoi_decomp, zisoi
-    use mod_clm_tridiagonal , only : Tridiagonal
+    use mod_clm_varpar, only : nlevdecomp, ndecomp_pools, nlevdecomp_full
+    use mod_clm_varcon, only : zsoi, dzsoi_decomp, zisoi
+    use mod_clm_tridiagonal, only : Tridiagonal
     implicit none
     integer(ik4), intent(in) :: num_soilc   ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
@@ -53,13 +53,13 @@ module mod_clm_cnsoillittverttransp
     ! advective flux (m/s)
     ! real(rk8) :: som_adv_coef(lbc:ubc,1:nlevdecomp+1)
     ! SOM advective flux (m/s)
-    real(rk8), pointer :: som_adv_coef(:,:)
+    real(rk8), pointer, contiguous :: som_adv_coef(:,:)
     ! SOM diffusivity due to bio/cryo-turbation (m2/s)
-    real(rk8), pointer :: som_diffus_coef(:,:)
+    real(rk8), pointer, contiguous :: som_diffus_coef(:,:)
     ! pointer for concentration state variable being transported
-    real(rk8), pointer :: conc_ptr(:,:,:)
+    real(rk8), pointer, contiguous :: conc_ptr(:,:,:)
     ! pointer for source term
-    real(rk8), pointer :: source(:,:,:)
+    real(rk8), pointer, contiguous :: source(:,:,:)
     logical, pointer  :: is_cwd(:)    ! TRUE => pool is a cwd pool
 #ifdef VERTSOILC
     ! Pe for "A" function in Patankar
@@ -100,17 +100,17 @@ module mod_clm_cnsoillittverttransp
 #endif
     ! pointer to store the vertical tendency
     ! (gain/loss due to vertical transport)
-    real(rk8), pointer :: trcr_tendency_ptr(:,:,:)
+    real(rk8), pointer, contiguous :: trcr_tendency_ptr(:,:,:)
     ! maximum annual depth of thaw
-    real(rk8), pointer :: altmax(:)
+    real(rk8), pointer, contiguous :: altmax(:)
     ! prior year maximum annual depth of thaw
-    real(rk8), pointer :: altmax_lastyear(:)
+    real(rk8), pointer, contiguous :: altmax_lastyear(:)
 
     integer(ik4) :: ntype
     integer(ik4) :: i_type,fc,c,j,l   ! indices
     real(rk8) :: dtime                 ! land model time step (sec)
     ! spinup accelerated decomposition factor, used to accelerate transport
-    real(rk8), pointer :: spinup_factor(:)
+    real(rk8), pointer, contiguous :: spinup_factor(:)
     ! spinup accelerated decomposition factor, used to accelerate transport
     real(rk8) :: spinup_term
     real(rk8) :: epsilon      ! small number
@@ -145,7 +145,7 @@ module mod_clm_cnsoillittverttransp
     !------ first get diffusivity / advection terms -------!
     ! use different mixing rates for bioturbation and cryoturbation, with
     ! fixed bioturbation and cryoturbation set to a maximum depth
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc (fc)
       if ( max(altmax(c),altmax_lastyear(c)) <= &
                             max_altdepth_cryoturbation .and. &
@@ -153,7 +153,7 @@ module mod_clm_cnsoillittverttransp
         ! use mixing profile modified slightly from Koven et al. (2009):
         ! constant through active layer, linear decrease from base of active
         ! layer to zero at a fixed depth
-        do j = 1 , nlevdecomp+1
+        do j = 1, nlevdecomp+1
           if ( zisoi(j) < max(altmax(c), altmax_lastyear(c)) ) then
             som_diffus_coef(c,j) = cryoturb_diffusion_k
             som_adv_coef(c,j) = 0._rk8
@@ -168,13 +168,13 @@ module mod_clm_cnsoillittverttransp
         end do
       else if ( max(altmax(c), altmax_lastyear(c)) > 0._rk8 ) then
         ! constant advection, constant diffusion
-        do j = 1 , nlevdecomp+1
+        do j = 1, nlevdecomp+1
           som_adv_coef(c,j) = som_adv_flux
           som_diffus_coef(c,j) = som_diffus
         end do
       else
         ! completely frozen soils--no mixing
-        do j = 1 , nlevdecomp+1
+        do j = 1, nlevdecomp+1
           som_adv_coef(c,j) = 0._rk8
           som_diffus_coef(c,j) = 0._rk8
         end do
@@ -183,13 +183,13 @@ module mod_clm_cnsoillittverttransp
 
     ! Set the distance between the node and the one ABOVE it
     dz_node(1) = zsoi(1)
-    do j = 2 , nlevdecomp+1
+    do j = 2, nlevdecomp+1
       dz_node(j)= zsoi(j) - zsoi(j-1)
     end do
 #endif
 
     !------ loop over litter/som types
-    do i_type = 1 , ntype
+    do i_type = 1, ntype
       select case (i_type)
         case (1)  ! C
           conc_ptr => clm3%g%l%c%ccs%decomp_cpools_vr
@@ -229,7 +229,7 @@ module mod_clm_cnsoillittverttransp
 
 #ifdef VERTSOILC
 
-      do s = 1 , ndecomp_pools
+      do s = 1, ndecomp_pools
 
         if ( spinup_state == 1 ) then
           ! increase transport (both advection and diffusion) by the same
@@ -241,8 +241,8 @@ module mod_clm_cnsoillittverttransp
 
         if ( .not. is_cwd(s) ) then
 
-          do j = 1 , nlevdecomp+1
-            do fc = 1 , num_soilc
+          do j = 1, nlevdecomp+1
+            do fc = 1, num_soilc
               c = filter_soilc (fc)
               if ( abs(som_adv_coef(c,j)) * spinup_term < epsilon ) then
                 adv_flux(c,j) = epsilon
@@ -259,14 +259,14 @@ module mod_clm_cnsoillittverttransp
 
           ! Set Pe (Peclet #) and D/dz throughout column
 
-          do fc = 1 , num_soilc ! dummy terms here
+          do fc = 1, num_soilc ! dummy terms here
             c = filter_soilc (fc)
             conc_trcr(c,0) = 0._rk8
             conc_trcr(c,nlevdecomp+1) = 0._rk8
           end do
 
-          do j = 1 , nlevdecomp+1
-            do fc = 1 , num_soilc
+          do j = 1, nlevdecomp+1
+            do fc = 1, num_soilc
               c = filter_soilc (fc)
               conc_trcr(c,j) = conc_ptr(c,j,s)
               ! dz_tracer below is the difference between gridcell edges
@@ -379,9 +379,9 @@ module mod_clm_cnsoillittverttransp
 
           ! subtract initial concentration and source terms
           ! for tendency calculation
-          do fc = 1 , num_soilc
+          do fc = 1, num_soilc
             c = filter_soilc(fc)
-            do j = 1 , nlevdecomp
+            do j = 1, nlevdecomp
               trcr_tendency_ptr(c,j,s) = 0.-(conc_trcr(c,j) + source(c,j,s))
             end do
           end do
@@ -391,9 +391,9 @@ module mod_clm_cnsoillittverttransp
                  a_tri,b_tri,c_tri,r_tri,conc_trcr(lbc:ubc,0:nlevdecomp+1))
 
           ! add post-transport concentration to calculate tendency term
-          do fc = 1 , num_soilc
+          do fc = 1, num_soilc
             c = filter_soilc(fc)
-            do j = 1 , nlevdecomp
+            do j = 1, nlevdecomp
               trcr_tendency_ptr(c,j,s) = &
                       trcr_tendency_ptr(c,j,s) + conc_trcr(c,j)
               trcr_tendency_ptr(c,j,s) = trcr_tendency_ptr(c,j,s) / dtime
@@ -401,15 +401,15 @@ module mod_clm_cnsoillittverttransp
           end do
         else
           ! for CWD pools, just add
-          do j = 1 , nlevdecomp
-            do fc = 1 , num_soilc
+          do j = 1, nlevdecomp
+            do fc = 1, num_soilc
               c = filter_soilc(fc)
               conc_trcr(c,j) = conc_ptr(c,j,s) + source(c,j,s)
             end do
           end do
         end if ! not CWD
-        do j = 1 , nlevdecomp
-          do fc = 1 , num_soilc
+        do j = 1, nlevdecomp
+          do fc = 1, num_soilc
             c = filter_soilc(fc)
             conc_ptr(c,j,s) = conc_trcr(c,j)
           end do
@@ -420,9 +420,9 @@ module mod_clm_cnsoillittverttransp
       ! for single level case, no transport; just update the fluxes
       ! calculated in the StateUpdate1 subroutines
 
-      do l = 1 , ndecomp_pools
-        do j = 1 , nlevdecomp
-          do fc = 1 , num_soilc
+      do l = 1, ndecomp_pools
+        do j = 1, nlevdecomp
+          do fc = 1, num_soilc
             c = filter_soilc (fc)
             conc_ptr(c,j,l) = conc_ptr(c,j,l) + source(c,j,l)
             trcr_tendency_ptr(c,j,l) = 0._rk8
@@ -437,7 +437,7 @@ module mod_clm_cnsoillittverttransp
 
       pure real(rk8) function aaa(pe)
         implicit none
-        real(rk8) , intent(in) :: pe
+        real(rk8), intent(in) :: pe
         ! A function from Patankar, Table 5.2, pg 95
         aaa = max (0._rk8, (1._rk8 - 0.1_rk8 * abs(pe))**5)
       end function aaa

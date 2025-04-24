@@ -29,178 +29,178 @@ module mod_bats_internal
   real(rkx) :: dtbat
 
   integer(ik4) :: nlandp
-  integer(ik4) :: ilndbeg , ilndend
+  integer(ik4) :: ilndbeg, ilndend
 
-  real(rkx) , pointer , dimension(:) :: abswveg
-  real(rkx) , pointer , dimension(:) :: aseas
-  real(rkx) , pointer , dimension(:) :: bseas
-  real(rkx) , pointer , dimension(:) :: bb
-  real(rkx) , pointer , dimension(:) :: bcoef
-  real(rkx) , pointer , dimension(:) :: bfc
-  real(rkx) , pointer , dimension(:) :: bsw
-  real(rkx) , pointer , dimension(:) :: cc
-  real(rkx) , pointer , dimension(:) :: cdr
-  real(rkx) , pointer , dimension(:) :: cdrd
-  real(rkx) , pointer , dimension(:) :: cdrn
-  real(rkx) , pointer , dimension(:) :: cdrx
-  real(rkx) , pointer , dimension(:) :: cf
-  real(rkx) , pointer , dimension(:) :: cgrnd
-  real(rkx) , pointer , dimension(:) :: cgrndl
-  real(rkx) , pointer , dimension(:) :: cgrnds
-  real(rkx) , pointer , dimension(:) :: cn1
-  real(rkx) , pointer , dimension(:) :: czenith
-  real(rkx) , pointer , dimension(:) :: dcd
-  real(rkx) , pointer , dimension(:) :: delq
-  real(rkx) , pointer , dimension(:) :: delt
-  real(rkx) , pointer , dimension(:) :: deprat
-  real(rkx) , pointer , dimension(:) :: df
-  real(rkx) , pointer , dimension(:) :: drag
-  real(rkx) , pointer , dimension(:) :: dzh
-  real(rkx) , pointer , dimension(:) :: efe
-  real(rkx) , pointer , dimension(:) :: efpr
-  real(rkx) , pointer , dimension(:) :: eg
-  real(rkx) , pointer , dimension(:) :: emiss
-  real(rkx) , pointer , dimension(:) :: etr
-  real(rkx) , pointer , dimension(:) :: etrc
-  real(rkx) , pointer , dimension(:) :: etrrun
-  real(rkx) , pointer , dimension(:) :: evaps
-  real(rkx) , pointer , dimension(:) :: evapw
-  real(rkx) , pointer , dimension(:) :: evmx0
-  real(rkx) , pointer , dimension(:) :: evpr
-  real(rkx) , pointer , dimension(:) :: fact10
-  real(rkx) , pointer , dimension(:) :: fact2
-  real(rkx) , pointer , dimension(:) :: fct2
-  real(rkx) , pointer , dimension(:) :: fdry
-  real(rkx) , pointer , dimension(:) :: fevpg
-  real(rkx) , pointer , dimension(:) :: flnet
-  real(rkx) , pointer , dimension(:) :: flneto
-  real(rkx) , pointer , dimension(:) :: fracd
-  real(rkx) , pointer , dimension(:) :: fseng
-  real(rkx) , pointer , dimension(:) :: fwet
-  real(rkx) , pointer , dimension(:) :: gwet
-  real(rkx) , pointer , dimension(:) :: gwmx0
-  real(rkx) , pointer , dimension(:) :: gwmx1
-  real(rkx) , pointer , dimension(:) :: gwmx2
-  real(rkx) , pointer , dimension(:) :: ht
-  real(rkx) , pointer , dimension(:) :: hts
-  real(rkx) , pointer , dimension(:) :: htvp
-  real(rkx) , pointer , dimension(:) :: lat
-  real(rkx) , pointer , dimension(:) :: ldew
-  real(rkx) , pointer , dimension(:) :: lftra
-  real(rkx) , pointer , dimension(:) :: lftrs
-  real(rkx) , pointer , dimension(:) :: lncl
-  real(rkx) , pointer , dimension(:) :: lwal
-  real(rkx) , pointer , dimension(:) :: lwdifal
-  real(rkx) , pointer , dimension(:) :: lwdiral
-  real(rkx) , pointer , dimension(:) :: lwflx
-  real(rkx) , pointer , dimension(:) :: porsl
-  real(rkx) , pointer , dimension(:) :: prcp
-  real(rkx) , pointer , dimension(:) :: ps
-  real(rkx) , pointer , dimension(:) :: pw
-  real(rkx) , pointer , dimension(:) :: qgrd
-  real(rkx) , pointer , dimension(:) :: qs
-  real(rkx) , pointer , dimension(:) :: qsatl
-  ! real(rkx) , pointer , dimension(:) :: relaw
-  real(rkx) , pointer , dimension(:) :: relfc
-  real(rkx) , pointer , dimension(:) :: resp
-  real(rkx) , pointer , dimension(:) :: rgr
-  real(rkx) , pointer , dimension(:) :: rhosw
-  real(rkx) , pointer , dimension(:) :: rhs
-  real(rkx) , pointer , dimension(:) :: rib
-  real(rkx) , pointer , dimension(:) :: ribd
-  real(rkx) , pointer , dimension(:) :: rlai
-  real(rkx) , pointer , dimension(:) :: rnet
-  real(rkx) , pointer , dimension(:) :: rpp
-  real(rkx) , pointer , dimension(:) :: rppq
-  real(rkx) , pointer , dimension(:) :: rsubst
-  real(rkx) , pointer , dimension(:) :: rsw
-  real(rkx) , pointer , dimension(:) :: scrat
-  real(rkx) , pointer , dimension(:) :: scvk
-  real(rkx) , pointer , dimension(:) :: sdrop
-  real(rkx) , pointer , dimension(:) :: sent
-  real(rkx) , pointer , dimension(:) :: sfcp
-  real(rkx) , pointer , dimension(:) :: sigf
-  real(rkx) , pointer , dimension(:) :: sm
-  real(rkx) , pointer , dimension(:) :: snag
-  real(rkx) , pointer , dimension(:) :: sncv
-  real(rkx) , pointer , dimension(:) :: srnof
-  real(rkx) , pointer , dimension(:) :: ssw
-  real(rkx) , pointer , dimension(:) :: sts
-  real(rkx) , pointer , dimension(:) :: swal
-  real(rkx) , pointer , dimension(:) :: swdifal
-  real(rkx) , pointer , dimension(:) :: swdiral
-  real(rkx) , pointer , dimension(:) :: swflx
-  real(rkx) , pointer , dimension(:) :: swsi
-  real(rkx) , pointer , dimension(:) :: taf
-  real(rkx) , pointer , dimension(:) :: texrat
-  real(rkx) , pointer , dimension(:) :: tgbb
-  real(rkx) , pointer , dimension(:) :: tgbrd
-  real(rkx) , pointer , dimension(:) :: tgrd
-  real(rkx) , pointer , dimension(:) :: tlef
-  real(rkx) , pointer , dimension(:) :: tm
-  real(rkx) , pointer , dimension(:) :: trnof
-  real(rkx) , pointer , dimension(:) :: tsw
-  real(rkx) , pointer , dimension(:) :: uaf
-  real(rkx) , pointer , dimension(:) :: usw
-  real(rkx) , pointer , dimension(:) :: vegt
-  real(rkx) , pointer , dimension(:) :: vpdc
-  real(rkx) , pointer , dimension(:) :: vspda
-  real(rkx) , pointer , dimension(:) :: vsw
-  real(rkx) , pointer , dimension(:) :: watr
-  real(rkx) , pointer , dimension(:) :: watt
-  real(rkx) , pointer , dimension(:) :: watu
-  real(rkx) , pointer , dimension(:) :: wflux1
-  real(rkx) , pointer , dimension(:) :: wflux2
-  real(rkx) , pointer , dimension(:) :: wfluxc
-  real(rkx) , pointer , dimension(:) :: wiltr
-  real(rkx) , pointer , dimension(:) :: wt
-  real(rkx) , pointer , dimension(:) :: wta
-  real(rkx) , pointer , dimension(:) :: wta0
-  real(rkx) , pointer , dimension(:) :: wtaq0
-  real(rkx) , pointer , dimension(:) :: wtg
-  real(rkx) , pointer , dimension(:) :: wtg0
-  real(rkx) , pointer , dimension(:) :: wtg2
-  real(rkx) , pointer , dimension(:) :: wtga
-  real(rkx) , pointer , dimension(:) :: wtgaq
-  real(rkx) , pointer , dimension(:) :: wtgl
-  real(rkx) , pointer , dimension(:) :: wtglq
-  real(rkx) , pointer , dimension(:) :: wtgq
-  real(rkx) , pointer , dimension(:) :: wtgq0
-  real(rkx) , pointer , dimension(:) :: wtl0
-  real(rkx) , pointer , dimension(:) :: wtlh
-  real(rkx) , pointer , dimension(:) :: wtlq
-  real(rkx) , pointer , dimension(:) :: wtlq0
-  real(rkx) , pointer , dimension(:) :: wtshi
-  real(rkx) , pointer , dimension(:) :: wtsqi
-  real(rkx) , pointer , dimension(:) :: xkmx
-  real(rkx) , pointer , dimension(:) :: xlai
-  real(rkx) , pointer , dimension(:) :: xlsai
-  real(rkx) , pointer , dimension(:) :: z10fra
-  real(rkx) , pointer , dimension(:) :: z1log
-  real(rkx) , pointer , dimension(:) :: z2fra
-  real(rkx) , pointer , dimension(:) :: zh
-  real(rkx) , pointer , dimension(:) :: zo
-  real(rkx) , pointer , dimension(:) :: zlgdis
-  real(rkx) , pointer , dimension(:) :: zlglnd
-  real(rkx) , pointer , dimension(:) :: zlgsno
-  real(rkx) , pointer , dimension(:) :: zlgveg
+  real(rkx), pointer, contiguous, dimension(:) :: abswveg
+  real(rkx), pointer, contiguous, dimension(:) :: aseas
+  real(rkx), pointer, contiguous, dimension(:) :: bseas
+  real(rkx), pointer, contiguous, dimension(:) :: bb
+  real(rkx), pointer, contiguous, dimension(:) :: bcoef
+  real(rkx), pointer, contiguous, dimension(:) :: bfc
+  real(rkx), pointer, contiguous, dimension(:) :: bsw
+  real(rkx), pointer, contiguous, dimension(:) :: cc
+  real(rkx), pointer, contiguous, dimension(:) :: cdr
+  real(rkx), pointer, contiguous, dimension(:) :: cdrd
+  real(rkx), pointer, contiguous, dimension(:) :: cdrn
+  real(rkx), pointer, contiguous, dimension(:) :: cdrx
+  real(rkx), pointer, contiguous, dimension(:) :: cf
+  real(rkx), pointer, contiguous, dimension(:) :: cgrnd
+  real(rkx), pointer, contiguous, dimension(:) :: cgrndl
+  real(rkx), pointer, contiguous, dimension(:) :: cgrnds
+  real(rkx), pointer, contiguous, dimension(:) :: cn1
+  real(rkx), pointer, contiguous, dimension(:) :: czenith
+  real(rkx), pointer, contiguous, dimension(:) :: dcd
+  real(rkx), pointer, contiguous, dimension(:) :: delq
+  real(rkx), pointer, contiguous, dimension(:) :: delt
+  real(rkx), pointer, contiguous, dimension(:) :: deprat
+  real(rkx), pointer, contiguous, dimension(:) :: df
+  real(rkx), pointer, contiguous, dimension(:) :: drag
+  real(rkx), pointer, contiguous, dimension(:) :: dzh
+  real(rkx), pointer, contiguous, dimension(:) :: efe
+  real(rkx), pointer, contiguous, dimension(:) :: efpr
+  real(rkx), pointer, contiguous, dimension(:) :: eg
+  real(rkx), pointer, contiguous, dimension(:) :: emiss
+  real(rkx), pointer, contiguous, dimension(:) :: etr
+  real(rkx), pointer, contiguous, dimension(:) :: etrc
+  real(rkx), pointer, contiguous, dimension(:) :: etrrun
+  real(rkx), pointer, contiguous, dimension(:) :: evaps
+  real(rkx), pointer, contiguous, dimension(:) :: evapw
+  real(rkx), pointer, contiguous, dimension(:) :: evmx0
+  real(rkx), pointer, contiguous, dimension(:) :: evpr
+  real(rkx), pointer, contiguous, dimension(:) :: fact10
+  real(rkx), pointer, contiguous, dimension(:) :: fact2
+  real(rkx), pointer, contiguous, dimension(:) :: fct2
+  real(rkx), pointer, contiguous, dimension(:) :: fdry
+  real(rkx), pointer, contiguous, dimension(:) :: fevpg
+  real(rkx), pointer, contiguous, dimension(:) :: flnet
+  real(rkx), pointer, contiguous, dimension(:) :: flneto
+  real(rkx), pointer, contiguous, dimension(:) :: fracd
+  real(rkx), pointer, contiguous, dimension(:) :: fseng
+  real(rkx), pointer, contiguous, dimension(:) :: fwet
+  real(rkx), pointer, contiguous, dimension(:) :: gwet
+  real(rkx), pointer, contiguous, dimension(:) :: gwmx0
+  real(rkx), pointer, contiguous, dimension(:) :: gwmx1
+  real(rkx), pointer, contiguous, dimension(:) :: gwmx2
+  real(rkx), pointer, contiguous, dimension(:) :: ht
+  real(rkx), pointer, contiguous, dimension(:) :: hts
+  real(rkx), pointer, contiguous, dimension(:) :: htvp
+  real(rkx), pointer, contiguous, dimension(:) :: lat
+  real(rkx), pointer, contiguous, dimension(:) :: ldew
+  real(rkx), pointer, contiguous, dimension(:) :: lftra
+  real(rkx), pointer, contiguous, dimension(:) :: lftrs
+  real(rkx), pointer, contiguous, dimension(:) :: lncl
+  real(rkx), pointer, contiguous, dimension(:) :: lwal
+  real(rkx), pointer, contiguous, dimension(:) :: lwdifal
+  real(rkx), pointer, contiguous, dimension(:) :: lwdiral
+  real(rkx), pointer, contiguous, dimension(:) :: lwflx
+  real(rkx), pointer, contiguous, dimension(:) :: porsl
+  real(rkx), pointer, contiguous, dimension(:) :: prcp
+  real(rkx), pointer, contiguous, dimension(:) :: ps
+  real(rkx), pointer, contiguous, dimension(:) :: pw
+  real(rkx), pointer, contiguous, dimension(:) :: qgrd
+  real(rkx), pointer, contiguous, dimension(:) :: qs
+  real(rkx), pointer, contiguous, dimension(:) :: qsatl
+  ! real(rkx), pointer, contiguous, dimension(:) :: relaw
+  real(rkx), pointer, contiguous, dimension(:) :: relfc
+  real(rkx), pointer, contiguous, dimension(:) :: resp
+  real(rkx), pointer, contiguous, dimension(:) :: rgr
+  real(rkx), pointer, contiguous, dimension(:) :: rhosw
+  real(rkx), pointer, contiguous, dimension(:) :: rhs
+  real(rkx), pointer, contiguous, dimension(:) :: rib
+  real(rkx), pointer, contiguous, dimension(:) :: ribd
+  real(rkx), pointer, contiguous, dimension(:) :: rlai
+  real(rkx), pointer, contiguous, dimension(:) :: rnet
+  real(rkx), pointer, contiguous, dimension(:) :: rpp
+  real(rkx), pointer, contiguous, dimension(:) :: rppq
+  real(rkx), pointer, contiguous, dimension(:) :: rsubst
+  real(rkx), pointer, contiguous, dimension(:) :: rsw
+  real(rkx), pointer, contiguous, dimension(:) :: scrat
+  real(rkx), pointer, contiguous, dimension(:) :: scvk
+  real(rkx), pointer, contiguous, dimension(:) :: sdrop
+  real(rkx), pointer, contiguous, dimension(:) :: sent
+  real(rkx), pointer, contiguous, dimension(:) :: sfcp
+  real(rkx), pointer, contiguous, dimension(:) :: sigf
+  real(rkx), pointer, contiguous, dimension(:) :: sm
+  real(rkx), pointer, contiguous, dimension(:) :: snag
+  real(rkx), pointer, contiguous, dimension(:) :: sncv
+  real(rkx), pointer, contiguous, dimension(:) :: srnof
+  real(rkx), pointer, contiguous, dimension(:) :: ssw
+  real(rkx), pointer, contiguous, dimension(:) :: sts
+  real(rkx), pointer, contiguous, dimension(:) :: swal
+  real(rkx), pointer, contiguous, dimension(:) :: swdifal
+  real(rkx), pointer, contiguous, dimension(:) :: swdiral
+  real(rkx), pointer, contiguous, dimension(:) :: swflx
+  real(rkx), pointer, contiguous, dimension(:) :: swsi
+  real(rkx), pointer, contiguous, dimension(:) :: taf
+  real(rkx), pointer, contiguous, dimension(:) :: texrat
+  real(rkx), pointer, contiguous, dimension(:) :: tgbb
+  real(rkx), pointer, contiguous, dimension(:) :: tgbrd
+  real(rkx), pointer, contiguous, dimension(:) :: tgrd
+  real(rkx), pointer, contiguous, dimension(:) :: tlef
+  real(rkx), pointer, contiguous, dimension(:) :: tm
+  real(rkx), pointer, contiguous, dimension(:) :: trnof
+  real(rkx), pointer, contiguous, dimension(:) :: tsw
+  real(rkx), pointer, contiguous, dimension(:) :: uaf
+  real(rkx), pointer, contiguous, dimension(:) :: usw
+  real(rkx), pointer, contiguous, dimension(:) :: vegt
+  real(rkx), pointer, contiguous, dimension(:) :: vpdc
+  real(rkx), pointer, contiguous, dimension(:) :: vspda
+  real(rkx), pointer, contiguous, dimension(:) :: vsw
+  real(rkx), pointer, contiguous, dimension(:) :: watr
+  real(rkx), pointer, contiguous, dimension(:) :: watt
+  real(rkx), pointer, contiguous, dimension(:) :: watu
+  real(rkx), pointer, contiguous, dimension(:) :: wflux1
+  real(rkx), pointer, contiguous, dimension(:) :: wflux2
+  real(rkx), pointer, contiguous, dimension(:) :: wfluxc
+  real(rkx), pointer, contiguous, dimension(:) :: wiltr
+  real(rkx), pointer, contiguous, dimension(:) :: wt
+  real(rkx), pointer, contiguous, dimension(:) :: wta
+  real(rkx), pointer, contiguous, dimension(:) :: wta0
+  real(rkx), pointer, contiguous, dimension(:) :: wtaq0
+  real(rkx), pointer, contiguous, dimension(:) :: wtg
+  real(rkx), pointer, contiguous, dimension(:) :: wtg0
+  real(rkx), pointer, contiguous, dimension(:) :: wtg2
+  real(rkx), pointer, contiguous, dimension(:) :: wtga
+  real(rkx), pointer, contiguous, dimension(:) :: wtgaq
+  real(rkx), pointer, contiguous, dimension(:) :: wtgl
+  real(rkx), pointer, contiguous, dimension(:) :: wtglq
+  real(rkx), pointer, contiguous, dimension(:) :: wtgq
+  real(rkx), pointer, contiguous, dimension(:) :: wtgq0
+  real(rkx), pointer, contiguous, dimension(:) :: wtl0
+  real(rkx), pointer, contiguous, dimension(:) :: wtlh
+  real(rkx), pointer, contiguous, dimension(:) :: wtlq
+  real(rkx), pointer, contiguous, dimension(:) :: wtlq0
+  real(rkx), pointer, contiguous, dimension(:) :: wtshi
+  real(rkx), pointer, contiguous, dimension(:) :: wtsqi
+  real(rkx), pointer, contiguous, dimension(:) :: xkmx
+  real(rkx), pointer, contiguous, dimension(:) :: xlai
+  real(rkx), pointer, contiguous, dimension(:) :: xlsai
+  real(rkx), pointer, contiguous, dimension(:) :: z10fra
+  real(rkx), pointer, contiguous, dimension(:) :: z1log
+  real(rkx), pointer, contiguous, dimension(:) :: z2fra
+  real(rkx), pointer, contiguous, dimension(:) :: zh
+  real(rkx), pointer, contiguous, dimension(:) :: zo
+  real(rkx), pointer, contiguous, dimension(:) :: zlgdis
+  real(rkx), pointer, contiguous, dimension(:) :: zlglnd
+  real(rkx), pointer, contiguous, dimension(:) :: zlgsno
+  real(rkx), pointer, contiguous, dimension(:) :: zlgveg
 
-  integer(ik4) , pointer , dimension(:) :: lveg
-  integer(ik4) , pointer , dimension(:) :: ltex
+  integer(ik4), pointer, contiguous, dimension(:) :: lveg
+  integer(ik4), pointer, contiguous, dimension(:) :: ltex
 
-  real(rkx) , pointer , dimension(:) :: p0
-  real(rkx) , pointer , dimension(:) :: qs0
-  real(rkx) , pointer , dimension(:) :: ts0
-  real(rkx) , pointer , dimension(:) :: swd0
-  real(rkx) , pointer , dimension(:) :: swf0
-  real(rkx) , pointer , dimension(:) :: ncpr0
-  real(rkx) , pointer , dimension(:) :: cpr0
+  real(rkx), pointer, contiguous, dimension(:) :: p0
+  real(rkx), pointer, contiguous, dimension(:) :: qs0
+  real(rkx), pointer, contiguous, dimension(:) :: ts0
+  real(rkx), pointer, contiguous, dimension(:) :: swd0
+  real(rkx), pointer, contiguous, dimension(:) :: swf0
+  real(rkx), pointer, contiguous, dimension(:) :: ncpr0
+  real(rkx), pointer, contiguous, dimension(:) :: cpr0
 
   contains
 
   subroutine allocate_mod_bats_internal(cl)
     implicit none
-    type (masked_comm) , intent(in) :: cl
+    type (masked_comm), intent(in) :: cl
     nlandp = cl%linear_npoint_sg(myid+1)
     ilndbeg = 1
     ilndend = nlandp
@@ -370,8 +370,8 @@ module mod_bats_internal
 
   subroutine bats_psat(t,e)
     implicit none
-    real(rkx) , intent(in) :: t
-    real(rkx) , intent(out) :: e
+    real(rkx), intent(in) :: t
+    real(rkx), intent(out) :: e
     if ( t < tzero ) then
       e = c1es * exp(c3ies*(t-tzero)/(t-c4ies))
     else
@@ -381,16 +381,16 @@ module mod_bats_internal
 
   subroutine bats_satur(t,p,e,qs)
     implicit none
-    real(rkx) , intent(in) :: t , p
-    real(rkx) , intent(out) :: e , qs
+    real(rkx), intent(in) :: t, p
+    real(rkx), intent(out) :: e, qs
     call bats_psat(t,e)
     qs = ep2 * e/(p-0.378_rkx*e)
   end subroutine bats_satur
 
   subroutine bats_qsdt(t,qs,qsdt)
     implicit none
-    real(rkx) , intent(in) :: t , qs
-    real(rkx) , intent(out) :: qsdt
+    real(rkx), intent(in) :: t, qs
+    real(rkx), intent(out) :: qsdt
     ! Eqn. 83 from BATS manual
     if ( t < tzero ) then
       qsdt = qs * (c3ies * (tzero-c4ies) * (d_one/(t-c4ies))**d_two)

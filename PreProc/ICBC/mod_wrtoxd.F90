@@ -27,50 +27,50 @@ module mod_wrtoxd
 
   private
 
-  public :: chv4 , oxv4 , aev4 , mw
-  public :: nchsp , noxsp , naesp , ncbmz
-  public :: chspec , oxspec , aespec , cbmzspec
+  public :: chv4, oxv4, aev4, mw
+  public :: nchsp, noxsp, naesp, ncbmz
+  public :: chspec, oxspec, aespec, cbmzspec
 
-  public :: init_outoxd , close_outoxd
-  public :: newfile_ch_icbc , newfile_ox_icbc , newfile_ae_icbc, newfile_ae_icbc1
-  public :: write_ch_icbc , write_ox_icbc , write_ae_icbc, write_ae_icbc1
+  public :: init_outoxd, close_outoxd
+  public :: newfile_ch_icbc, newfile_ox_icbc, newfile_ae_icbc, newfile_ae_icbc1
+  public :: write_ch_icbc, write_ox_icbc, write_ae_icbc, write_ae_icbc1
 
   character(len=256) :: ofname
   character(len=8) :: chtype
 
   ! species in Mozart output
-  integer(ik4) , parameter :: nchsp = 40
+  integer(ik4), parameter :: nchsp = 40
   ! cbmz species in chemistry lateral boundaries
-  integer(ik4) , parameter :: ncbmz = 33
-  integer(ik4) , parameter :: noxsp = 5
+  integer(ik4), parameter :: ncbmz = 33
+  integer(ik4), parameter :: noxsp = 5
   !aero species in chemistry lateral boundaries
-  integer(ik4) , parameter :: naero = 12
+  integer(ik4), parameter :: naero = 12
 
   integer(ik4) :: naesp = -1
 
-  character(len=8) , dimension(nchsp) :: chspec   ! Names of Mozart species
-  character(len=8) , dimension(ncbmz) :: cbmzspec ! Name of CBMZ species
-  character(len=8) , dimension(noxsp) :: oxspec
-  character(len=8) , dimension(naero) :: aerospec
+  character(len=8), dimension(nchsp) :: chspec   ! Names of Mozart species
+  character(len=8), dimension(ncbmz) :: cbmzspec ! Name of CBMZ species
+  character(len=8), dimension(noxsp) :: oxspec
+  character(len=8), dimension(naero) :: aerospec
 
-  real(rkx) , dimension(nchsp) :: mw
+  real(rkx), dimension(nchsp) :: mw
 
-  character(len=8) , pointer , dimension(:) :: aespec
-  character(len=8) , target , dimension(4) :: aedust
-  character(len=8) , target , dimension(12) :: aedu12
-  character(len=8) , target , dimension(8) :: aedccb
-  character(len=8) , target , dimension(4) :: aesslt
-  character(len=8) , target , dimension(8) :: aeduss
-  character(len=8) , target , dimension(5) :: aecarb
-  character(len=8) , target , dimension(2) :: aesulf
-  character(len=8) , target , dimension(7) :: aesuca
-  character(len=8) , target , dimension(15) :: aeaero
+  character(len=8), pointer, contiguous, dimension(:) :: aespec
+  character(len=8), target, dimension(4) :: aedust
+  character(len=8), target, dimension(12) :: aedu12
+  character(len=8), target, dimension(8) :: aedccb
+  character(len=8), target, dimension(4) :: aesslt
+  character(len=8), target, dimension(8) :: aeduss
+  character(len=8), target, dimension(5) :: aecarb
+  character(len=8), target, dimension(2) :: aesulf
+  character(len=8), target, dimension(7) :: aesuca
+  character(len=8), target, dimension(15) :: aeaero
 
-  real(rkx) , pointer , dimension(:,:,:,:) :: chv4
-  real(rkx) , pointer , dimension(:,:,:,:) :: oxv4
-  real(rkx) , pointer , dimension(:,:,:,:) :: aev4
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chv4
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: oxv4
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: aev4
 
-  data oxspec / 'OH' , 'HO2' , 'O3' , 'NO3' , 'H2O2' /
+  data oxspec / 'OH', 'HO2', 'O3', 'NO3', 'H2O2' /
 
   data chspec / 'NO      ','NO2     ','N2O5    ','HNO3    ','HO2NO2  ',  &
                 'O3      ','H2O2    ','SO2     ','SO4     ','CH4     ',  &
@@ -95,38 +95,38 @@ module mod_wrtoxd
                 'DUST03','DUST04','SSLT01','SSLT02'/
 
 
-  integer , parameter :: maxaeout = 16
+  integer, parameter :: maxaeout = 16
 
   data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
   data aedu12 / 'D1201', 'D1202', 'D1203', 'D1204', &
                 'D1205', 'D1206', 'D1207', 'D1208', &
                 'D1209', 'D1210', 'D1211', 'D1212' /
-  data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
+  data aesslt / 'SSLT01', 'SSLT02', 'SSLT03', 'SSLT04' /
   data aeduss / 'DST01', 'DST02', 'DST03', 'DST04', &
-                'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
-  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' /
-  data aesulf / 'SO2' , 'SO4' /
-  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' /
-  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' , &
-                'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' , 'DST01',      &
+                'SSLT01', 'SSLT02', 'SSLT03', 'SSLT04' /
+  data aecarb / 'CB1', 'CB2', 'OC1', 'SOA', 'OC2' /
+  data aesulf / 'SO2', 'SO4' /
+  data aesuca / 'CB1', 'CB2', 'OC1', 'SOA', 'OC2', 'SO2', 'SO4' /
+  data aeaero / 'CB1', 'CB2', 'OC1', 'SOA', 'OC2', 'SO2', 'SO4', &
+                'SSLT01', 'SSLT02', 'SSLT03', 'SSLT04', 'DST01',      &
                 'DST02', 'DST03', 'DST04' /
-  data aedccb / 'CB1' , 'CB2' , 'OC1' , 'OC2' ,'DST01', 'DST02',  &
+  data aedccb / 'CB1', 'CB2', 'OC1', 'OC2' ,'DST01', 'DST02',  &
                 'DST03', 'DST04' /
 
-  integer(ik4) :: ioc2 , isoa
-  integer(ik4) :: isslt1 , isslt2 , isslt3 , isslt4
+  integer(ik4) :: ioc2, isoa
+  integer(ik4) :: isslt1, isslt2, isslt3, isslt4
 
   logical :: sum_soa_to_oc2
   logical :: sum_sslt_bins
 
-  type(nc_output_stream) , save :: ncoutch
-  type(nc_output_stream) , save :: ncoutox
-  type(nc_output_stream) , save :: ncoutae
+  type(nc_output_stream), save :: ncoutch
+  type(nc_output_stream), save :: ncoutox
+  type(nc_output_stream), save :: ncoutae
 
-  type(ncvariable2d_mixed) , save , dimension(2) :: v2dvar_base
-  type(ncvariable3d_mixed) , save , dimension(ncbmz) :: v3dvar_ch
-  type(ncvariable3d_mixed) , save , dimension(noxsp) :: v3dvar_ox
-  type(ncvariable3d_mixed) , save , dimension(maxaeout) :: v3dvar_ae
+  type(ncvariable2d_mixed), save, dimension(2) :: v2dvar_base
+  type(ncvariable3d_mixed), save, dimension(ncbmz) :: v3dvar_ch
+  type(ncvariable3d_mixed), save, dimension(noxsp) :: v3dvar_ox
+  type(ncvariable3d_mixed), save, dimension(maxaeout) :: v3dvar_ae
 
   data sum_soa_to_oc2 /.false./
   data sum_sslt_bins  /.false./
@@ -135,8 +135,8 @@ module mod_wrtoxd
 
   subroutine init_outoxd(chemsimtype)
     implicit none
-    character(len=8) , intent(in) :: chemsimtype
-    logical :: doaero , dochem , dooxcl
+    character(len=8), intent(in) :: chemsimtype
+    logical :: doaero, dochem, dooxcl
     integer(ik4) :: i
     data doaero /.false./
     data dochem /.false./
@@ -172,7 +172,7 @@ module mod_wrtoxd
         aespec => aesulf
         doaero = .true.
         dooxcl = .true.
-      case ( 'SUCA' , 'SUCE' )
+      case ( 'SUCA', 'SUCE' )
         naesp = 7
         aespec => aesuca
         doaero = .true.
@@ -209,7 +209,7 @@ module mod_wrtoxd
     if ( sum_soa_to_oc2 ) then
       ioc2 = -1
       isoa = -1
-      do i = 1 , naesp
+      do i = 1, naesp
         if ( aespec(i) == 'SOA' ) isoa = i
         if ( aespec(i) == 'OC2' ) ioc2 = i
       end do
@@ -223,7 +223,7 @@ module mod_wrtoxd
       isslt2 = -1
       isslt3 = -1
       isslt4 = -1
-      do i = 1 , naesp
+      do i = 1, naesp
         if ( aespec(i) == 'SSLT01' ) isslt1 = i
         if ( aespec(i) == 'SSLT02' ) isslt2 = i
         if ( aespec(i) == 'SSLT03' ) isslt3 = i
@@ -255,7 +255,7 @@ module mod_wrtoxd
 
   subroutine newfile_ch_icbc(idate1)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate1
+    type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar
 
@@ -271,7 +271,7 @@ module mod_wrtoxd
       ncattribute_string('simulation_type',chtype))
     call outstream_addvar(ncoutch,v2dvar_base(1))
     call outstream_addvar(ncoutch,v2dvar_base(2))
-    do ivar = 1 , ncbmz
+    do ivar = 1, ncbmz
       v3dvar_ch(ivar)%vname = cbmzspec(ivar)
       v3dvar_ch(ivar)%vunit = 'kg kg-1'
       v3dvar_ch(ivar)%long_name = trim(cbmzspec(ivar))//' Volume Mixing Ratio'
@@ -289,7 +289,7 @@ module mod_wrtoxd
 
   subroutine newfile_ox_icbc(idate1)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate1
+    type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar
 
@@ -305,7 +305,7 @@ module mod_wrtoxd
       ncattribute_string('simulation_type',chtype))
     call outstream_addvar(ncoutox,v2dvar_base(1))
     call outstream_addvar(ncoutox,v2dvar_base(2))
-    do ivar = 1 , noxsp
+    do ivar = 1, noxsp
       v3dvar_ox(ivar)%vname = oxspec(ivar)
       v3dvar_ox(ivar)%vunit = 'kg kg-1'
       v3dvar_ox(ivar)%long_name = trim(oxspec(ivar))//' Volume Mixing Ratio'
@@ -324,7 +324,7 @@ module mod_wrtoxd
 
    subroutine newfile_ae_icbc(idate1)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate1
+    type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar
 
@@ -340,7 +340,7 @@ module mod_wrtoxd
       ncattribute_string('simulation_type',chtype))
     call outstream_addvar(ncoutae,v2dvar_base(1))
     call outstream_addvar(ncoutae,v2dvar_base(2))
-    do ivar = 1 , naero
+    do ivar = 1, naero
       v3dvar_ae(ivar)%vname = aerospec(ivar)
       v3dvar_ae(ivar)%vunit = 'kg kg-1'
       v3dvar_ae(ivar)%long_name = trim(aerospec(ivar))//' Mass Mixing Ratio'
@@ -359,7 +359,7 @@ module mod_wrtoxd
 
   subroutine newfile_ae_icbc1(idate1)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate1
+    type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
     character(len=8) :: specname
     integer(ik4) :: ivar
@@ -376,7 +376,7 @@ module mod_wrtoxd
       ncattribute_string('simulation_type',chtype))
     call outstream_addvar(ncoutae,v2dvar_base(1))
     call outstream_addvar(ncoutae,v2dvar_base(2))
-    do ivar = 1 , naesp
+    do ivar = 1, naesp
       if ( aespec(ivar) == 'SOA' ) cycle
       if ( aespec(ivar) == 'SSLT03' ) cycle
       if ( aespec(ivar) == 'SSLT04' ) cycle
@@ -412,10 +412,10 @@ module mod_wrtoxd
 
   subroutine write_ch_icbc(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     integer(ik4):: ivar
     call outstream_addrec(ncoutch,idate)
-    do ivar = 1 , ncbmz
+    do ivar = 1, ncbmz
       call outstream_writevar(ncoutch,v3dvar_ch(ivar),is=ivar)
     end do
     write (stdout ,*) 'Write ch_icbc : ', tochar(idate)
@@ -423,10 +423,10 @@ module mod_wrtoxd
 
   subroutine write_ae_icbc(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     integer(ik4):: ivar
     call outstream_addrec(ncoutae,idate)
-    do ivar = 1 , naero
+    do ivar = 1, naero
       call outstream_writevar(ncoutae,v3dvar_ae(ivar),is=ivar)
     end do
     write (stdout ,*) 'Write ae_icbc : ', tochar(idate)
@@ -434,10 +434,10 @@ module mod_wrtoxd
 
   subroutine write_ox_icbc(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivar
     call outstream_addrec(ncoutox,idate)
-    do ivar = 1 , noxsp
+    do ivar = 1, noxsp
       call outstream_writevar(ncoutox,v3dvar_ox(ivar),is=ivar)
     end do
     write (stdout ,*) 'Write ox_icbc : ', tochar(idate)
@@ -445,7 +445,7 @@ module mod_wrtoxd
 !
   subroutine write_ae_icbc1(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivar
 
     if ( sum_sslt_bins ) then
@@ -458,7 +458,7 @@ module mod_wrtoxd
     end if
 
     call outstream_addrec(ncoutae,idate)
-    do ivar = 1 , naesp
+    do ivar = 1, naesp
       if ( aespec(ivar) == 'SOA' ) cycle
       if ( aespec(ivar) == 'SSLT03' ) cycle
       if ( aespec(ivar) == 'SSLT04' ) cycle

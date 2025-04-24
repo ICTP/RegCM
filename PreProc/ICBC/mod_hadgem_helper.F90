@@ -24,12 +24,12 @@ module mod_hadgem_helper
 
   public :: havars
   public :: find_hadgem_sst
-  public :: find_hadgem_dim , find_hadgem_file
-  public :: find_hadgem_ufile , find_hadgem_vfile
+  public :: find_hadgem_dim, find_hadgem_file
+  public :: find_hadgem_ufile, find_hadgem_vfile
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: havars = &
-            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: havars = &
+            ['ta ', 'XXX', 'hus', 'ua ', 'va ', 'ps ']
 
   character(len=64) :: habase1  = '_6hrLev_HadGEM2-ES_historical'
   character(len=64) :: habase2  = '_6hrLev_HadGEM2-ES_rcp'
@@ -39,8 +39,8 @@ module mod_hadgem_helper
 
   subroutine find_hadgem_sst(fname,idate)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
     if ( .not. date_in_scenario(idate,5) ) then
       if ( idate > 1959110100 ) then
         fname = trim(inpglob)//pthsep//'HadGEM2'//pthsep//'SST'// &
@@ -66,11 +66,11 @@ module mod_hadgem_helper
 
   subroutine assemble_path(fname,scen,var,d1,d2)
     implicit none
-    character(len=256) , intent(out) :: fname
-    character(len=*) , intent(in) :: scen
-    character(len=*) , intent(in) :: var
-    character(len=*) , intent(in) :: d1
-    character(len=*) , intent(in) :: d2
+    character(len=256), intent(out) :: fname
+    character(len=*), intent(in) :: scen
+    character(len=*), intent(in) :: var
+    character(len=*), intent(in) :: d1
+    character(len=*), intent(in) :: d2
     if ( scen == 'RF' ) then
       fname = trim(inpglob)//pthsep//'HadGEM2'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(habase1)//  &
@@ -84,7 +84,7 @@ module mod_hadgem_helper
 
   subroutine find_hadgem_dim(dim_filename)
     implicit none
-    character(len=256) , intent(out) :: dim_filename
+    character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(dim_filename,'RF','ta','1990120106','1991030100')
@@ -92,7 +92,7 @@ module mod_hadgem_helper
 
   subroutine find_hadgem_ufile(ufile_filename)
     implicit none
-    character(len=256) , intent(out) :: ufile_filename
+    character(len=256), intent(out) :: ufile_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(ufile_filename,'RF','ua','1990120106','1991030100')
@@ -100,7 +100,7 @@ module mod_hadgem_helper
 
   subroutine find_hadgem_vfile(vfile_filename)
     implicit none
-    character(len=256) , intent(out) :: vfile_filename
+    character(len=256), intent(out) :: vfile_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(vfile_filename,'RF','va','1990120106','1991030100')
@@ -108,13 +108,13 @@ module mod_hadgem_helper
 
   subroutine find_hadgem_file(hadgem_filename,var,idate)
     implicit none
-    character(len=256) , intent(out) :: hadgem_filename
-    character(len=*) , intent(in) :: var
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
-    integer(ik4) :: yy , mm
-    integer(ik4) :: icheck , inow
+    character(len=256), intent(out) :: hadgem_filename
+    character(len=*), intent(in) :: var
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
+    integer(ik4) :: yy, mm
+    integer(ik4) :: icheck, inow
     call split_idate(idate,y,m,d,h)
     select case (var)
       case ('ps')

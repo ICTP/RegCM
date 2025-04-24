@@ -32,49 +32,49 @@ module mod_che_ncio
 
   private
 
-  public :: read_texture , read_emission , read_miner , recc , reccbb
+  public :: read_texture, read_emission, read_miner, recc, reccbb
   public :: read_bioburn_emission
   public :: init_mod_che_ncio
-  public :: open_chbc , close_chbc , chbc_search , read_chbc , read_bionem
+  public :: open_chbc, close_chbc, chbc_search, read_chbc, read_bionem
   public :: read_dust_param
-  public :: chbc_ivar , n_chbcvar , n_aebcvar, chbcname, aeaero, aedu12
+  public :: chbc_ivar, n_chbcvar, n_aebcvar, chbcname, aeaero, aedu12
 
   integer(ik4) :: istatus
-  integer(ik4) :: recc , reccbb
+  integer(ik4) :: recc, reccbb
 
-  integer(ik4) , parameter :: n_chevar = 20
-  integer(ik4) , parameter :: n_oxbcvar = 5
-  integer(ik4) , parameter :: n_optvar = 10
-!ashalaby  integer(ik4) , parameter :: n_chbcvar = 25
-  integer(ik4) , parameter :: n_chbcvar = 33
+  integer(ik4), parameter :: n_chevar = 20
+  integer(ik4), parameter :: n_oxbcvar = 5
+  integer(ik4), parameter :: n_optvar = 10
+!ashalaby  integer(ik4), parameter :: n_chbcvar = 25
+  integer(ik4), parameter :: n_chbcvar = 33
   integer(ik4) :: n_aebcvar
-  integer(ik4) :: ichin , iaein , ioxin
+  integer(ik4) :: ichin, iaein, ioxin
 
-  character(len=8) , dimension(n_chbcvar) :: chbcname
-  character(len=8) , dimension(n_oxbcvar) :: oxbcname
-  character(len=8) , target , dimension(4) :: aedust
-  character(len=8) , target , dimension(12) :: aedu12
-  character(len=8) , target , dimension(2) :: aesslt
-  character(len=8) , target , dimension(6) :: aecarb
-  character(len=8) , target , dimension(2) :: aesulf
-  character(len=8) , target , dimension(6) :: aesuca
-  character(len=8) , target , dimension(12) :: aeaero
+  character(len=8), dimension(n_chbcvar) :: chbcname
+  character(len=8), dimension(n_oxbcvar) :: oxbcname
+  character(len=8), target, dimension(4) :: aedust
+  character(len=8), target, dimension(12) :: aedu12
+  character(len=8), target, dimension(2) :: aesslt
+  character(len=8), target, dimension(6) :: aecarb
+  character(len=8), target, dimension(2) :: aesulf
+  character(len=8), target, dimension(6) :: aesuca
+  character(len=8), target, dimension(12) :: aeaero
 
-  character(len=8) , pointer , dimension(:) :: aebcname
-  integer(ik4) , dimension(n_chbcvar) :: chbc_ivar
-  integer(ik4) , dimension(n_oxbcvar) :: oxbc_ivar
-  integer(ik4) , dimension(:) , pointer :: aebc_ivar
+  character(len=8), pointer, contiguous, dimension(:) :: aebcname
+  integer(ik4), dimension(n_chbcvar) :: chbc_ivar
+  integer(ik4), dimension(n_oxbcvar) :: oxbc_ivar
+  integer(ik4), dimension(:), pointer, contiguous :: aebc_ivar
 
-  type(rcm_time_and_date) , dimension(:) , allocatable :: chbc_idate
-  integer(ik4) :: ibcrec , ibcnrec
+  type(rcm_time_and_date), dimension(:), allocatable :: chbc_idate
+  integer(ik4) :: ibcrec, ibcnrec
 
-  integer(ik4) , public , parameter :: ifrqmon = 1
-  integer(ik4) , public , parameter :: ifrqday = 2
-  integer(ik4) , public , parameter :: ifrqhrs = 3
-  real(rkx) , dimension(:,:) , pointer :: rspace2
-  real(rkx) , dimension(:,:) , pointer :: rspace2_loc
-  real(rkx) , dimension(:,:,:) , pointer :: rspace3
-  real(rkx) , dimension(:,:,:) , pointer :: rspace3_loc
+  integer(ik4), public, parameter :: ifrqmon = 1
+  integer(ik4), public, parameter :: ifrqday = 2
+  integer(ik4), public, parameter :: ifrqhrs = 3
+  real(rkx), dimension(:,:), pointer, contiguous :: rspace2
+  real(rkx), dimension(:,:), pointer, contiguous :: rspace2_loc
+  real(rkx), dimension(:,:,:), pointer, contiguous :: rspace3
+  real(rkx), dimension(:,:,:), pointer, contiguous :: rspace3_loc
 
   character(256) :: icbcname
 
@@ -101,22 +101,22 @@ module mod_che_ncio
                   'CH3OOH  ','ETHOOH  ','ALD2    ','HCHO    ', &
                   'CH3OH   '/
   data oxbcname /'OH      ','HO2     ','O3      ', 'NO3    ','H2O2   ' /
-  data aedust / 'DUST01' , 'DUST02' , 'DUST03', 'DUST04' /
+  data aedust / 'DUST01', 'DUST02', 'DUST03', 'DUST04' /
   data aedu12 / 'DUST01', 'DUST02', 'DUST03', 'DUST04',  &
                 'DUST05', 'DUST06', 'DUST07', 'DUST08',  &
                 'DUST09', 'DUST10', 'DUST11', 'DUST12' /
-  data aesslt / 'SSLT01' , 'SSLT02' /
-  data aecarb / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' , 'SM1' , 'SM2' /
-  data aesulf / 'SO2' , 'SO4' /
-  data aesuca / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' , 'SO2' , 'SO4' /
-  data aeaero / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' , 'SO2' , 'SO4' , &
-                'SSLT01' , 'SSLT02', 'DUST01', 'DUST02', 'DUST03' , 'DUST04' /
+  data aesslt / 'SSLT01', 'SSLT02' /
+  data aecarb / 'BC_HB', 'BC_HL', 'OC_HB', 'OC_HL', 'SM1', 'SM2' /
+  data aesulf / 'SO2', 'SO4' /
+  data aesuca / 'BC_HB', 'BC_HL', 'OC_HB', 'OC_HL', 'SO2', 'SO4' /
+  data aeaero / 'BC_HB', 'BC_HL', 'OC_HB', 'OC_HL', 'SO2', 'SO4', &
+                'SSLT01', 'SSLT02', 'DUST01', 'DUST02', 'DUST03', 'DUST04' /
 
   contains
 
     subroutine init_mod_che_ncio(chemsymtype)
       implicit none
-      character(len=8) , intent(in) :: chemsymtype
+      character(len=8), intent(in) :: chemsymtype
 
       n_aebcvar = 0
       select case ( chemsymtype )
@@ -135,7 +135,7 @@ module mod_che_ncio
         case ( 'SULF' )
           n_aebcvar = 2
           aebcname => aesulf
-        case ( 'SUCA' , 'SUCE' )
+        case ( 'SUCA', 'SUCE' )
           n_aebcvar = 6
           aebcname => aesuca
         case ( 'AERO' )
@@ -149,12 +149,12 @@ module mod_che_ncio
 
     subroutine read_texture(nats,rtex)
       implicit none
-      integer(ik4) , intent(in) :: nats
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rtex
+      integer(ik4), intent(in) :: nats
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rtex
       integer(ik4) :: idmin
-      integer(ik4) , dimension(3) :: istart , icount
+      integer(ik4), dimension(3) :: istart, icount
       character(len=256) :: dname
-      real(rkx) , pointer , dimension(:,:,:) ::  rspace
+      real(rkx), pointer, contiguous, dimension(:,:,:) ::  rspace
 
       dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
 
@@ -202,14 +202,14 @@ module mod_che_ncio
 !place holder for other relevant geographical data afecting dust ( e.g. non erodibe zo)
       implicit none
 
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: erodfc
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: aez0
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: erodfc
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: aez0
       integer(ik4) :: idmin
-      integer(ik4) , dimension(2) :: istart , icount
-      integer(ik4) , dimension(3) :: istart3 , icount3
+      integer(ik4), dimension(2) :: istart, icount
+      integer(ik4), dimension(3) :: istart3, icount3
       character(len=256) :: dname
-      real(rkx) , pointer , dimension(:,:) ::  rspace
-      real(rkx), pointer , dimension(:,:,:) :: rspace3
+      real(rkx), pointer, contiguous, dimension(:,:) ::  rspace
+      real(rkx), pointer, contiguous, dimension(:,:,:) :: rspace3
 
       dname = trim(dirter)//pthsep//trim(domname)//'_DUSTPARAM.nc'
 
@@ -278,13 +278,13 @@ module mod_che_ncio
     subroutine read_bionem(nfert,nmanure,soilph)
       implicit none
 
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: nfert
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: nmanure
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: soilph
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: nfert
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: nmanure
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: soilph
       integer(ik4) :: idmin
-      integer(ik4) , dimension(2) :: istart , icount
+      integer(ik4), dimension(2) :: istart, icount
       character(len=256) :: dname
-      real(rkx) , pointer , dimension(:,:) ::  rspace
+      real(rkx), pointer, contiguous, dimension(:,:) ::  rspace
 
       dname = trim(dirter)//pthsep//trim(domname)//'_BIONEM.nc'
 
@@ -347,13 +347,13 @@ module mod_che_ncio
     subroutine read_miner(nmine,cminer,sminer)
       implicit none
       integer(ik4), intent(in) :: nmine
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cminer , sminer
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: cminer, sminer
 
       integer(ik4) :: idmin
-      integer(ik4) , dimension(2) :: istart , icount
+      integer(ik4), dimension(2) :: istart, icount
       character(len=256) :: dname
-      real(rkx) , pointer , dimension(:,:) ::  rspace
-      real(rkx) , pointer , dimension(:,:,:) :: tmp
+      real(rkx), pointer, contiguous, dimension(:,:) ::  rspace
+      real(rkx), pointer, contiguous, dimension(:,:,:) :: tmp
 
       dname = trim(dirter)//pthsep//trim(domname)//'_MINER.nc'
 
@@ -480,15 +480,15 @@ module mod_che_ncio
 
     subroutine read_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)
       implicit none
-      integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
-      integer(ik4) , intent(out) :: ifreq
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
+      integer(ik4), intent(in) :: lyear, lmonth, lday, lhour
+      integer(ik4), intent(out) :: ifreq
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: echemsrc
       character(256) :: aername
-      integer(ik4) :: n,ncid , itvar, idimid, chmnrec,sdim
-      character(64) ::chemi_timeunits , chemi_timecal
-      real(rkx) , dimension(:) , allocatable :: emtimeval
-      integer(ik4) , dimension(4) :: istart , icount
-      integer(ik4) :: year , month , day , hour
+      integer(ik4) :: n,ncid, itvar, idimid, chmnrec,sdim
+      character(64) ::chemi_timeunits, chemi_timecal
+      real(rkx), dimension(:), allocatable :: emtimeval
+      integer(ik4), dimension(4) :: istart, icount
+      integer(ik4) :: year, month, day, hour
       type(rcm_time_and_date) :: tchdate
 
       ! FAB: remember for now, we have 1 emission file containing all monthly
@@ -535,7 +535,7 @@ module mod_che_ncio
                       'variable time read error', 'ICBC FILE')
         recc = 0
         looprec: &
-        do n = 1 , chmnrec
+        do n = 1, chmnrec
           tchdate = timeval2date(emtimeval(n),chemi_timeunits,chemi_timecal)
           call split_idate(tchdate,year,month,day,hour)
           select case (ifreq)
@@ -559,14 +559,14 @@ module mod_che_ncio
         end do looprec
 
         if ( recc == 0 ) then
-          write(stderr,*) 'searching : ' , lyear , lmonth
+          write(stderr,*) 'searching : ', lyear, lmonth
           tchdate = timeval2date(emtimeval(1),chemi_timeunits,chemi_timecal)
           call split_idate(tchdate,year,month,day,hour)
-          write(stderr,*) 'In file first time : ', year , month
+          write(stderr,*) 'In file first time : ', year, month
           tchdate = timeval2date(emtimeval(chmnrec), &
                                  chemi_timeunits,chemi_timecal)
           call split_idate(tchdate,year,month,day,hour)
-          write(stderr,*) 'In file last time : ', year , month
+          write(stderr,*) 'In file last time : ', year, month
           write(stderr,*) 'chem emission : time record not found emission file'
           call fatal(__FILE__,__LINE__, &
                         'IO ERROR in CHEM EMISSION')
@@ -735,15 +735,15 @@ module mod_che_ncio
 
     subroutine read_bioburn_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)
       implicit none
-      integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
-      integer(ik4) , intent(out) :: ifreq
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
+      integer(ik4), intent(in) :: lyear, lmonth, lday, lhour
+      integer(ik4), intent(out) :: ifreq
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: echemsrc
       character(256) :: aername
-      integer(ik4) :: n , ncid , itvar , idimid , chmnrec , sdim
-      character(64) ::chemi_timeunits , chemi_timecal
-      real(rkx) , dimension(:) , allocatable :: emtimeval
-      integer(ik4) , dimension(4) :: istart , icount
-      integer(ik4) :: year , month , day , hour
+      integer(ik4) :: n, ncid, itvar, idimid, chmnrec, sdim
+      character(64) ::chemi_timeunits, chemi_timecal
+      real(rkx), dimension(:), allocatable :: emtimeval
+      integer(ik4), dimension(4) :: istart, icount
+      integer(ik4) :: year, month, day, hour
       type(rcm_time_and_date) :: tchdate
 
 
@@ -788,7 +788,7 @@ module mod_che_ncio
 
         reccbb = 0
         looprec: &
-        do n = 1 , chmnrec
+        do n = 1, chmnrec
           tchdate = timeval2date(emtimeval(n),chemi_timeunits,chemi_timecal)
           call split_idate(tchdate,year,month,day,hour)
           select case (ifreq)
@@ -964,16 +964,16 @@ module mod_che_ncio
     subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,sdim,cnb,cnc,cnd)
       implicit none
 
-      integer(ik4) , intent(in) :: ncid,sdim
-      integer(ik4) , dimension(4) , intent(in) :: istart , icount
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
-      logical , intent(in) :: lh
-      character(len=*) , intent(in) :: cna
-      character(len=*) , intent(in) , optional :: cnb
-      character(len=*) , intent(in) , optional :: cnc
-      character(len=*) , intent(in) , optional :: cnd
+      integer(ik4), intent(in) :: ncid,sdim
+      integer(ik4), dimension(4), intent(in) :: istart, icount
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: echemsrc
+      logical, intent(in) :: lh
+      character(len=*), intent(in) :: cna
+      character(len=*), intent(in), optional :: cnb
+      character(len=*), intent(in), optional :: cnc
+      character(len=*), intent(in), optional :: cnd
       integer(ik4) :: ivarid
-      integer(ik4) :: i , j , ind
+      integer(ik4) :: i, j, ind
 
       if ( do_parallel_netcdf_in ) then
         istatus = nf90_inq_varid(ncid, cna, ivarid)
@@ -984,14 +984,14 @@ module mod_che_ncio
         call check_ok(__FILE__,__LINE__, &
                       'Variable '//cna//' read err','CHEM_EMISS FILE')
         if ( lh ) then  ! half of lumped Aromatics
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               echemsrc(j,i,ind) = d_half*rspace2(j,i)
             end do
           end do
         else
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               echemsrc(j,i,ind) = rspace2(j,i)
             end do
           end do
@@ -1004,8 +1004,8 @@ module mod_che_ncio
             istart(1:sdim),icount(1:sdim))
           call check_ok(__FILE__,__LINE__, &
                         'Variable '//cnb//' read err','CHEM_EMISS FILE')
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
             end do
           end do
@@ -1018,8 +1018,8 @@ module mod_che_ncio
             istart(1:sdim),icount(1:sdim))
           call check_ok(__FILE__,__LINE__, &
                         'Variable '//cnc//' read err','CHEM_EMISS FILE')
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
             end do
           end do
@@ -1032,8 +1032,8 @@ module mod_che_ncio
             istart(1:sdim),icount(1:sdim))
           call check_ok(__FILE__,__LINE__, &
                         'Variable '//cnd//' read err','CHEM_EMISS FILE')
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
             end do
           end do
@@ -1049,14 +1049,14 @@ module mod_che_ncio
                         'Variable '//cna//' read err','CHEM_EMISS FILE')
           call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
           if ( lh ) then  ! half of lumped Aromatics
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 echemsrc(j,i,ind) = d_half*rspace2_loc(j,i)
               end do
             end do
           else
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 echemsrc(j,i,ind) = rspace2_loc(j,i)
               end do
             end do
@@ -1070,8 +1070,8 @@ module mod_che_ncio
             call check_ok(__FILE__,__LINE__, &
                           'Variable '//cnb//' read err','CHEM_EMISS FILE')
             call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
               end do
             end do
@@ -1085,8 +1085,8 @@ module mod_che_ncio
             call check_ok(__FILE__,__LINE__, &
                           'Variable '//cnc//' read err','CHEM_EMISS FILE')
             call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
               end do
             end do
@@ -1100,8 +1100,8 @@ module mod_che_ncio
             call check_ok(__FILE__,__LINE__, &
                           'Variable '//cnd//' read err','CHEM_EMISS FILE')
             call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
               end do
             end do
@@ -1109,38 +1109,38 @@ module mod_che_ncio
         else
           call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
           if ( lh ) then  ! half of lumped Aromatics
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 echemsrc(j,i,ind) = d_half*rspace2_loc(j,i)
               end do
             end do
           else
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 echemsrc(j,i,ind) = rspace2_loc(j,i)
               end do
             end do
           end if
           if ( present(cnb) ) then
             call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
               end do
             end do
           end if
           if ( present(cnc) ) then
             call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
               end do
             end do
           end if
           if ( present(cnd) ) then
             call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
               end do
             end do
@@ -1151,7 +1151,7 @@ module mod_che_ncio
 
     integer(ik4) function chbc_search(idate)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
+      type(rcm_time_and_date), intent(in) :: idate
       type(rcm_time_interval) :: tdif
       character(len=32) :: appdat1, appdat2
       if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
@@ -1178,11 +1178,11 @@ module mod_che_ncio
 
     subroutine open_chbc(idate)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
+      type(rcm_time_and_date), intent(in) :: idate
       character(len=11) :: ctime
-      integer(ik4) :: ibcid , idimid , itvar , i , chkdiff
-      real(rkx) , dimension(:) , allocatable :: icbc_nctime
-      character(len=64) :: icbc_timeunits , icbc_timecal
+      integer(ik4) :: ibcid, idimid, itvar, i, chkdiff
+      real(rkx), dimension(:), allocatable :: icbc_nctime
+      character(len=64) :: icbc_timeunits, icbc_timecal
 
       if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
         allocate(rspace3_loc(jce1:jce2,ice1:ice2,kz))
@@ -1249,7 +1249,7 @@ module mod_che_ncio
       istatus = nf90_get_var(ibcid, itvar, icbc_nctime)
       call check_ok(__FILE__,__LINE__, &
                     'variable time read error', 'ICBC FILE')
-      do i = 1 , ibcnrec
+      do i = 1, ibcnrec
         chbc_idate(i) = timeval2date(icbc_nctime(i), &
                                      icbc_timeunits,icbc_timecal)
       end do
@@ -1265,21 +1265,21 @@ module mod_che_ncio
       end if
       deallocate(icbc_nctime)
       if ( igaschem == 1 ) then
-        do i = 1 , n_chbcvar
+        do i = 1, n_chbcvar
           istatus = nf90_inq_varid(ichin, trim(chbcname(i)), chbc_ivar(i))
           call check_ok(__FILE__,__LINE__, &
                'variable '//trim(chbcname(i))//' missing','CHBC FILE ERROR')
         end do
       end if
       if ( iaerosol == 1 ) then
-        do i = 1 , n_aebcvar
+        do i = 1, n_aebcvar
           istatus = nf90_inq_varid(iaein, trim(aebcname(i)), aebc_ivar(i))
           call check_ok(__FILE__,__LINE__, &
                'variable '//trim(aebcname(i))//' missing','AEBC FILE ERROR')
         end do
       end if
       if ( ioxclim == 1 ) then
-        do i = 1 , n_oxbcvar
+        do i = 1, n_oxbcvar
           istatus = nf90_inq_varid(ioxin, trim(oxbcname(i)), oxbc_ivar(i))
           call check_ok(__FILE__,__LINE__, &
                'variable '//trim(oxbcname(i))//' missing','OXBC FILE ERROR')
@@ -1295,9 +1295,9 @@ module mod_che_ncio
 
     subroutine read_chbc(chebdio)
       implicit none
-      real(rkx) , dimension (:,:,:,:) , pointer , intent(inout) :: chebdio
-      integer(ik4) , dimension(4) :: istart , icount
-      integer(ik4) :: i , j , k, n , iafter
+      real(rkx), dimension (:,:,:,:), pointer, contiguous, intent(inout) :: chebdio
+      integer(ik4), dimension(4) :: istart, icount
+      integer(ik4) :: i, j, k, n, iafter
 
       if ( do_parallel_netcdf_in ) then
         istart(1) = jde1
@@ -1310,13 +1310,13 @@ module mod_che_ncio
         icount(4) = 1
         iafter = 0
         if ( igaschem == 1 ) then
-          do n = 1 , n_chbcvar
+          do n = 1, n_chbcvar
             istatus = nf90_get_var(ichin, chbc_ivar(n), rspace3, istart, icount)
             call check_ok(__FILE__,__LINE__, &
                 'variable '//trim(chbcname(n))//' read error','CHBC FILE ERROR')
-            do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
+            do k = 1, kz
+              do i = ice1, ice2
+                do j = jce1, jce2
                   chebdio(j,i,k,n) = rspace3(j,i,k)
                 end do
               end do
@@ -1325,13 +1325,13 @@ module mod_che_ncio
           end do
         end if
         if ( iaerosol == 1 ) then
-          do n = 1 , n_aebcvar
+          do n = 1, n_aebcvar
             istatus = nf90_get_var(iaein, aebc_ivar(n), rspace3, istart, icount)
             call check_ok(__FILE__,__LINE__, &
                 'variable '//trim(aebcname(n))//' read error','AEBC FILE ERROR')
-            do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
+            do k = 1, kz
+              do i = ice1, ice2
+                do j = jce1, jce2
                   chebdio(j,i,k,iafter+1) = rspace3(j,i,k)
                 end do
               end do
@@ -1340,13 +1340,13 @@ module mod_che_ncio
           end do
         end if
         if ( ioxclim == 1 ) then
-          do n = 1 , n_oxbcvar
+          do n = 1, n_oxbcvar
             istatus = nf90_get_var(ioxin, oxbc_ivar(n), rspace3, istart, icount)
             call check_ok(__FILE__,__LINE__, &
                 'variable '//trim(oxbcname(n))//' read error','OXBC FILE ERROR')
-            do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
+            do k = 1, kz
+              do i = ice1, ice2
+                do j = jce1, jce2
                   chebdio(j,i,k,iafter+n) = rspace3(j,i,k)
                 end do
               end do
@@ -1365,14 +1365,14 @@ module mod_che_ncio
           icount(4) = 1
           iafter = 0
           if ( igaschem == 1 ) then
-            do n = 1 , n_chbcvar
+            do n = 1, n_chbcvar
               istatus = nf90_get_var(ichin,chbc_ivar(n),rspace3,istart,icount)
               call check_ok(__FILE__,__LINE__, &
                 'variable '//trim(chbcname(n))//' read error','CHBC FILE ERROR')
               call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  do j = jce1 , jce2
+              do k = 1, kz
+                do i = ice1, ice2
+                  do j = jce1, jce2
                     chebdio(j,i,k,n) = rspace3_loc(j,i,k)
                   end do
                 end do
@@ -1381,14 +1381,14 @@ module mod_che_ncio
             end do
           end if
           if ( iaerosol == 1 ) then
-            do n = 1 , n_aebcvar
+            do n = 1, n_aebcvar
               istatus = nf90_get_var(iaein,aebc_ivar(n),rspace3,istart,icount)
               call check_ok(__FILE__,__LINE__, &
                 'variable '//trim(aebcname(n))//' read error','AEBC FILE ERROR')
               call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  do j = jce1 , jce2
+              do k = 1, kz
+                do i = ice1, ice2
+                  do j = jce1, jce2
                     chebdio(j,i,k,iafter+1) = rspace3_loc(j,i,k)
                   end do
                 end do
@@ -1397,14 +1397,14 @@ module mod_che_ncio
             end do
           end if
           if ( ioxclim == 1 ) then
-            do n = 1 , n_oxbcvar
+            do n = 1, n_oxbcvar
               istatus = nf90_get_var(ioxin,oxbc_ivar(n),rspace3,istart,icount)
               call check_ok(__FILE__,__LINE__, &
                 'variable '//trim(oxbcname(n))//' read error','OXBC FILE ERROR')
               call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  do j = jce1 , jce2
+              do k = 1, kz
+                do i = ice1, ice2
+                  do j = jce1, jce2
                     chebdio(j,i,k,iafter+n) = rspace3_loc(j,i,k)
                   end do
                 end do
@@ -1414,11 +1414,11 @@ module mod_che_ncio
         else
           iafter = 0
           if ( igaschem == 1 ) then
-            do n = 1 , n_chbcvar
+            do n = 1, n_chbcvar
               call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  do j = jce1 , jce2
+              do k = 1, kz
+                do i = ice1, ice2
+                  do j = jce1, jce2
                     chebdio(j,i,k,n) = rspace3_loc(j,i,k)
                   end do
                 end do
@@ -1427,11 +1427,11 @@ module mod_che_ncio
             end do
           end if
           if ( iaerosol == 1 ) then
-            do n = 1 , n_aebcvar
+            do n = 1, n_aebcvar
               call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  do j = jce1 , jce2
+              do k = 1, kz
+                do i = ice1, ice2
+                  do j = jce1, jce2
                     chebdio(j,i,k,iafter+1) = rspace3_loc(j,i,k)
                   end do
                 end do
@@ -1440,11 +1440,11 @@ module mod_che_ncio
             end do
           end if
           if ( ioxclim == 1 ) then
-            do n = 1 , n_oxbcvar
+            do n = 1, n_oxbcvar
               call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  do j = jce1 , jce2
+              do k = 1, kz
+                do i = ice1, ice2
+                  do j = jce1, jce2
                     chebdio(j,i,k,iafter+n) = rspace3_loc(j,i,k)
                   end do
                 end do
@@ -1477,8 +1477,8 @@ module mod_che_ncio
 
     subroutine check_ok(f,l,m1,mf)
       implicit none
-      character(*) , intent(in) :: f, m1 , mf
-      integer(ik4) , intent(in) :: l
+      character(*), intent(in) :: f, m1, mf
+      integer(ik4), intent(in) :: l
       if (istatus /= nf90_noerr) then
         write (stderr,*) trim(m1)
         write (stderr,*) nf90_strerror(istatus)

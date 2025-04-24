@@ -6,13 +6,13 @@ module mod_clm_baregroundfluxes
   use mod_intkinds
   use mod_realkinds
   use mod_clm_type
-  use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varpar , only : nlevgrnd
-  use mod_clm_varcon , only : cpair , vkc , grav , denice , denh2o , istsoil
-  use mod_clm_varcon , only : istcrop , rgas
-  use mod_clm_frictionvelocity, only : FrictionVelocity , MoninObukIni
-  use mod_clm_qsat , only : QSat
-  use mod_clm_varctl , only : use_c13 , use_c14
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_varpar, only : nlevgrnd
+  use mod_clm_varcon, only : cpair, vkc, grav, denice, denh2o, istsoil
+  use mod_clm_varcon, only : istcrop, rgas
+  use mod_clm_frictionvelocity, only : FrictionVelocity, MoninObukIni
+  use mod_clm_qsat, only : QSat
+  use mod_clm_varctl, only : use_c13, use_c14
 
   implicit none
 
@@ -36,147 +36,147 @@ module mod_clm_baregroundfluxes
     ! pft filter for non-lake points
     integer(ik4), intent(in) :: filter_nolakep(ubp-lbp+1)
 
-    real(rk8), pointer :: t_soisno(:,:)   ! soil temperature (Kelvin)
-    integer(ik4) , pointer :: snl(:)      ! number of snow layers
-    real(rk8), pointer :: t_h2osfc(:)     ! surface water temperature
+    real(rk8), pointer, contiguous :: t_soisno(:,:)   ! soil temperature (Kelvin)
+    integer(ik4), pointer, contiguous :: snl(:)      ! number of snow layers
+    real(rk8), pointer, contiguous :: t_h2osfc(:)     ! surface water temperature
     ! sensible heat flux from snow (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_snow(:)
+    real(rk8), pointer, contiguous :: eflx_sh_snow(:)
     ! sensible heat flux from soil (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_soil(:)
+    real(rk8), pointer, contiguous :: eflx_sh_soil(:)
     ! sensible heat flux from soil (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_h2osfc(:)
+    real(rk8), pointer, contiguous :: eflx_sh_h2osfc(:)
     ! specific humidity at snow surface [kg/kg]
-    real(rk8), pointer :: qg_snow(:)
+    real(rk8), pointer, contiguous :: qg_snow(:)
     ! specific humidity at soil surface [kg/kg]
-    real(rk8), pointer :: qg_soil(:)
+    real(rk8), pointer, contiguous :: qg_soil(:)
     ! specific humidity at h2osfc surface [kg/kg]
-    real(rk8), pointer :: qg_h2osfc(:)
+    real(rk8), pointer, contiguous :: qg_h2osfc(:)
     ! evaporation flux from snow (W/m**2) [+ to atm]
-    real(rk8), pointer :: qflx_ev_snow(:)
+    real(rk8), pointer, contiguous :: qflx_ev_snow(:)
     ! evaporation flux from soil (W/m**2) [+ to atm]
-    real(rk8), pointer :: qflx_ev_soil(:)
+    real(rk8), pointer, contiguous :: qflx_ev_soil(:)
     ! evaporation flux from h2osfc (W/m**2) [+ to atm]
-    real(rk8), pointer :: qflx_ev_h2osfc(:)
-    integer(ik4) , pointer :: pcolumn(:)        ! pft's column index
-    integer(ik4) , pointer :: pgridcell(:)      ! pft's gridcell index
-    integer(ik4) , pointer :: plandunit(:)      ! pft's landunit index
-    integer(ik4) , pointer :: ltype(:)          ! landunit type
+    real(rk8), pointer, contiguous :: qflx_ev_h2osfc(:)
+    integer(ik4), pointer, contiguous :: pcolumn(:)        ! pft's column index
+    integer(ik4), pointer, contiguous :: pgridcell(:)      ! pft's gridcell index
+    integer(ik4), pointer, contiguous :: plandunit(:)      ! pft's landunit index
+    integer(ik4), pointer, contiguous :: ltype(:)          ! landunit type
     ! fraction of vegetation not covered by snow (0 OR 1) [-]
-    integer(ik4) , pointer :: frac_veg_nosno(:)
+    integer(ik4), pointer, contiguous :: frac_veg_nosno(:)
     ! ground surface temperature [K]
-    real(rk8), pointer :: t_grnd(:)
+    real(rk8), pointer, contiguous :: t_grnd(:)
     ! intermediate variable (forc_t+0.0098*forc_hgt_t_pft)
-    real(rk8), pointer :: thm(:)
+    real(rk8), pointer, contiguous :: thm(:)
     ! specific humidity at ground surface [kg/kg]
-    real(rk8), pointer :: qg(:)
+    real(rk8), pointer, contiguous :: qg(:)
     ! virtual potential temperature (kelvin)
-    real(rk8), pointer :: thv(:)
+    real(rk8), pointer, contiguous :: thv(:)
     ! temperature derivative of "qg"
-    real(rk8), pointer :: dqgdT(:)
+    real(rk8), pointer, contiguous :: dqgdT(:)
     ! latent heat of evaporation (/sublimation) [J/kg]
-    real(rk8), pointer :: htvp(:)
+    real(rk8), pointer, contiguous :: htvp(:)
     ! coefficient of conective velocity [-]
-    real(rk8), pointer :: beta(:)
+    real(rk8), pointer, contiguous :: beta(:)
     ! convective boundary height [m]
-    real(rk8), pointer :: zii(:)
+    real(rk8), pointer, contiguous :: zii(:)
     ! atmospheric wind speed in east direction (m/s)
-    real(rk8), pointer :: forc_u(:)
+    real(rk8), pointer, contiguous :: forc_u(:)
     ! atmospheric wind speed in north direction (m/s)
-    real(rk8), pointer :: forc_v(:)
+    real(rk8), pointer, contiguous :: forc_v(:)
     ! atmospheric temperature (Kelvin)
-    real(rk8), pointer :: forc_t(:)
+    real(rk8), pointer, contiguous :: forc_t(:)
     ! atmospheric potential temperature (Kelvin)
-    real(rk8), pointer :: forc_th(:)
+    real(rk8), pointer, contiguous :: forc_th(:)
     ! atmospheric specific humidity (kg/kg)
-    real(rk8), pointer :: forc_q(:)
+    real(rk8), pointer, contiguous :: forc_q(:)
     ! density (kg/m**3)
-    real(rk8), pointer :: forc_rho(:)
+    real(rk8), pointer, contiguous :: forc_rho(:)
     ! atmospheric pressure (Pa)
-    real(rk8), pointer :: forc_pbot(:)
+    real(rk8), pointer, contiguous :: forc_pbot(:)
     ! observational height of wind at pft level [m]
-    real(rk8), pointer :: forc_hgt_u_pft(:)
+    real(rk8), pointer, contiguous :: forc_hgt_u_pft(:)
     ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: psnsun(:)
+    real(rk8), pointer, contiguous :: psnsun(:)
     ! Rubsico-limited sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: psnsun_wc(:)
+    real(rk8), pointer, contiguous :: psnsun_wc(:)
     ! RuBP-limited sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: psnsun_wj(:)
+    real(rk8), pointer, contiguous :: psnsun_wj(:)
     ! product-limited sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: psnsun_wp(:)
+    real(rk8), pointer, contiguous :: psnsun_wp(:)
     ! shaded leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: psnsha(:)
+    real(rk8), pointer, contiguous :: psnsha(:)
     ! Rubsico-limited shaded leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: psnsha_wc(:)
+    real(rk8), pointer, contiguous :: psnsha_wc(:)
     ! RuBP-limited shaded leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: psnsha_wj(:)
+    real(rk8), pointer, contiguous :: psnsha_wj(:)
     ! product-limited shaded leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: psnsha_wp(:)
+    real(rk8), pointer, contiguous :: psnsha_wp(:)
     ! roughness length, momentum [m]
-    real(rk8), pointer :: z0mg_col(:)
-    real(rk8), pointer :: h2osoi_ice(:,:)   ! ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:)   ! liquid water (kg/m2)
-    real(rk8), pointer :: dz(:,:)           ! layer depth (m)
+    real(rk8), pointer, contiguous :: z0mg_col(:)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)   ! ice lens (kg/m2)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)   ! liquid water (kg/m2)
+    real(rk8), pointer, contiguous :: dz(:,:)           ! layer depth (m)
     ! volumetric soil water at saturation (porosity)
-    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer, contiguous :: watsat(:,:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)
+    real(rk8), pointer, contiguous :: frac_sno(:)
     ! soil wetness relative to field capacity
-    real(rk8), pointer :: soilbeta(:)
+    real(rk8), pointer, contiguous :: soilbeta(:)
 
-    real(rk8), pointer :: z0hg_col(:)   ! roughness length, sensible heat [m]
-    real(rk8), pointer :: z0qg_col(:)   ! roughness length, latent heat [m]
+    real(rk8), pointer, contiguous :: z0hg_col(:)   ! roughness length, sensible heat [m]
+    real(rk8), pointer, contiguous :: z0qg_col(:)   ! roughness length, latent heat [m]
 
     ! downward longwave radiation below the canopy [W/m2]
-    real(rk8), pointer :: dlrad(:)
+    real(rk8), pointer, contiguous :: dlrad(:)
     ! upward longwave radiation above the canopy [W/m2]
-    real(rk8), pointer :: ulrad(:)
+    real(rk8), pointer, contiguous :: ulrad(:)
     ! deriv, of soil sensible heat flux wrt soil temp [w/m2/k]
-    real(rk8), pointer :: cgrnds(:)
+    real(rk8), pointer, contiguous :: cgrnds(:)
     ! deriv of soil latent heat flux wrt soil temp [w/m**2/k]
-    real(rk8), pointer :: cgrndl(:)
+    real(rk8), pointer, contiguous :: cgrndl(:)
     ! deriv. of soil energy flux wrt to soil temp [w/m2/k]
-    real(rk8), pointer :: cgrnd(:)
-    real(rk8), pointer :: taux(:)    ! wind (shear) stress: e-w (kg/m/s**2)
-    real(rk8), pointer :: tauy(:)    ! wind (shear) stress: n-s (kg/m/s**2)
+    real(rk8), pointer, contiguous :: cgrnd(:)
+    real(rk8), pointer, contiguous :: taux(:)    ! wind (shear) stress: e-w (kg/m/s**2)
+    real(rk8), pointer, contiguous :: tauy(:)    ! wind (shear) stress: n-s (kg/m/s**2)
     ! sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_grnd(:)
+    real(rk8), pointer, contiguous :: eflx_sh_grnd(:)
     ! total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_tot(:)
+    real(rk8), pointer, contiguous :: eflx_sh_tot(:)
     ! soil evaporation (mm H2O/s) (+ = to atm)
-    real(rk8), pointer :: qflx_evap_soi(:)
+    real(rk8), pointer, contiguous :: qflx_evap_soi(:)
     ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-    real(rk8), pointer :: qflx_evap_tot(:)
+    real(rk8), pointer, contiguous :: qflx_evap_tot(:)
     ! 2 m height surface air temperature (Kelvin)
-    real(rk8), pointer :: t_ref2m(:)
+    real(rk8), pointer, contiguous :: t_ref2m(:)
     ! 2 m height surface specific humidity (kg/kg)
-    real(rk8), pointer :: q_ref2m(:)
+    real(rk8), pointer, contiguous :: q_ref2m(:)
     ! Rural 2 m height surface air temperature (Kelvin)
-    real(rk8), pointer :: t_ref2m_r(:)
+    real(rk8), pointer, contiguous :: t_ref2m_r(:)
     ! Rural 2 m height surface relative humidity (%)
-    real(rk8), pointer :: rh_ref2m_r(:)
+    real(rk8), pointer, contiguous :: rh_ref2m_r(:)
     ! 2 m height surface relative humidity (%)
-    real(rk8), pointer :: rh_ref2m(:)
-    real(rk8), pointer :: t_veg(:)   ! vegetation temperature (Kelvin)
-    real(rk8), pointer :: btran(:)   ! transpiration wetness factor (0 to 1)
-    real(rk8), pointer :: rssun(:)   ! sunlit stomatal resistance (s/m)
-    real(rk8), pointer :: rssha(:)   ! shaded stomatal resistance (s/m)
-    real(rk8), pointer :: ram1(:)    ! aerodynamical resistance (s/m)
-    real(rk8), pointer :: rah1(:)    ! thermal resistance (s/m)
-    real(rk8), pointer :: br1(:)     ! Richardson bulk number
-    real(rk8), pointer :: fpsn(:)    ! photosynthesis (umol CO2 /m**2 /s)
+    real(rk8), pointer, contiguous :: rh_ref2m(:)
+    real(rk8), pointer, contiguous :: t_veg(:)   ! vegetation temperature (Kelvin)
+    real(rk8), pointer, contiguous :: btran(:)   ! transpiration wetness factor (0 to 1)
+    real(rk8), pointer, contiguous :: rssun(:)   ! sunlit stomatal resistance (s/m)
+    real(rk8), pointer, contiguous :: rssha(:)   ! shaded stomatal resistance (s/m)
+    real(rk8), pointer, contiguous :: ram1(:)    ! aerodynamical resistance (s/m)
+    real(rk8), pointer, contiguous :: rah1(:)    ! thermal resistance (s/m)
+    real(rk8), pointer, contiguous :: br1(:)     ! Richardson bulk number
+    real(rk8), pointer, contiguous :: fpsn(:)    ! photosynthesis (umol CO2 /m**2 /s)
     ! Rubisco-limited photosynthesis (umol CO2 /m**2 /s)
-    real(rk8), pointer :: fpsn_wc(:)
+    real(rk8), pointer, contiguous :: fpsn_wc(:)
     ! RuBP-limited photosynthesis (umol CO2 /m**2 /s)
-    real(rk8), pointer :: fpsn_wj(:)
+    real(rk8), pointer, contiguous :: fpsn_wj(:)
     ! product-limited photosynthesis (umol CO2 /m**2 /s)
-    real(rk8), pointer :: fpsn_wp(:)
+    real(rk8), pointer, contiguous :: fpsn_wp(:)
     ! effective fraction of roots in each soil layer
-    real(rk8), pointer :: rootr(:,:)
+    real(rk8), pointer, contiguous :: rootr(:,:)
     ! root resistance by layer (0-1)  (nlevgrnd)
-    real(rk8), pointer :: rresis(:,:)
+    real(rk8), pointer, contiguous :: rresis(:,:)
 #if (defined LCH4)
     ! tracer conductance for boundary layer [m/s]
-    real(rk8), pointer :: grnd_ch4_cond(:)
+    real(rk8), pointer, contiguous :: grnd_ch4_cond(:)
 #endif
 
     ! maximum number of iterations for surface temperature
@@ -329,7 +329,7 @@ module mod_clm_baregroundfluxes
     ! Filter pfts where frac_veg_nosno is zero
 
     fn = 0
-    do fp = 1 , num_nolakep
+    do fp = 1, num_nolakep
       p = filter_nolakep(fp)
       if ( frac_veg_nosno(p) == 0 ) then
         fn = fn + 1
@@ -340,7 +340,7 @@ module mod_clm_baregroundfluxes
     ! Compute sensible and latent fluxes and their derivatives with respect
     ! to ground temperature using ground temperatures from previous time step
 
-    do f = 1 , fn
+    do f = 1, fn
       p = filterp(f)
       c = pcolumn(p)
       g = pgridcell(p)
@@ -374,14 +374,14 @@ module mod_clm_baregroundfluxes
     ! Determine friction velocity, and potential temperature and humidity
     ! profiles of the surface boundary layer
 
-    do iter = 1 , niters
+    do iter = 1, niters
 
       call FrictionVelocity(lbp, ubp, fn, filterp, &
                             displa, z0mg_pft, z0hg_pft, z0qg_pft, &
                             obu, iter, ur, um, ustar, &
                             temp1, temp2, temp12m, temp22m, fm)
 
-      do f = 1 , fn
+      do f = 1, fn
         p = filterp(f)
         c = pcolumn(p)
         g = pgridcell(p)
@@ -406,15 +406,15 @@ module mod_clm_baregroundfluxes
       end do
     end do ! end stability iteration
 
-    do j = 1 , nlevgrnd
-      do f = 1 , fn
+    do j = 1, nlevgrnd
+      do f = 1, fn
         p = filterp(f)
         rootr(p,j) = 0._rk8
         rresis(p,j) = 0._rk8
       end do
     end do
 
-    do f = 1 , fn
+    do f = 1, fn
       p = filterp(f)
       c = pcolumn(p)
       g = pgridcell(p)

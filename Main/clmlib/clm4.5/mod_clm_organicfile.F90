@@ -6,9 +6,9 @@ module mod_clm_organicfile
   use mod_mppparam
   use mod_mpmessage
   use mod_clm_nchelper
-  use mod_clm_domain , only : ldomain
-  use mod_clm_varctl , only : fsurdat
-  use mod_clm_decomp , only : gcomm_gridcell
+  use mod_clm_domain, only : ldomain
+  use mod_clm_varctl, only : fsurdat
+  use mod_clm_decomp, only : gcomm_gridcell
 
   implicit none
 
@@ -24,7 +24,7 @@ module mod_clm_organicfile
   !
   subroutine organicrd(organic)
     implicit none
-    real(rk8), pointer :: organic(:,:)  ! organic matter density (kg/m3)
+    real(rk8), pointer, contiguous :: organic(:,:)  ! organic matter density (kg/m3)
     type(clm_filetype) :: ncid                  ! netcdf id
     character(len=32)  :: subname = 'organicrd' ! subroutine name
 

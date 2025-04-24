@@ -25,11 +25,11 @@ module mod_pbl_thetal
 
   private
 
-  real(rkx) :: myp , mythetal , myqt , myexner
+  real(rkx) :: myp, mythetal, myqt, myexner
 
-  real(rkx) , parameter :: delta = 1.0e-8_rkx
-  real(rkx) , parameter :: mindt = 1.0e-3_rkx
-  real(rkx) , parameter :: mindq = 1.0e-3_rkx
+  real(rkx), parameter :: delta = 1.0e-8_rkx
+  real(rkx), parameter :: mindt = 1.0e-3_rkx
+  real(rkx), parameter :: mindq = 1.0e-3_rkx
 
   public :: solve_for_t
 
@@ -37,9 +37,9 @@ module mod_pbl_thetal
 
   pure real(rkx) function zerofunc(t,bderiv)
     implicit none
-    real(rkx) , intent(in) :: t
-    logical , intent(in) :: bderiv
-    real(rkx) :: qc , qv , es
+    real(rkx), intent(in) :: t
+    logical, intent(in) :: bderiv
+    real(rkx) :: qc, qv, es
 
     es = pfesat(t,myp)
     qv = max(ep2/(myp/es-d_one),d_zero)
@@ -65,22 +65,22 @@ module mod_pbl_thetal
                                  qcprev,thlprev,imax,imethod, &
                                  outqv,outqc)
     implicit none
-    real(rkx) , intent(in) :: thetal , qt , p , tprev , qtprev , &
-                              qcprev , thlprev
-    integer(ik4) , intent(in) :: imethod
-    integer(ik4) , intent(inout) :: imax
-    real(rkx) , intent(out) :: outqc , outqv
-    real(rkx) :: a , b , c , d , s , dum
-    real(rkx) :: fa , fb , fc , fs
-    real(rkx) :: smb , bmc , cmd
-    real(rkx) :: temps , templ , rvls
-    real(rkx) :: dthetal , dqt , qvprev , deltat , es , qcthresh
-    real(rkx) :: tempqv , tempqc , tempt , tempes , ddq
-    real(rkx) :: mylovcp , mycpovl , mywlhv
+    real(rkx), intent(in) :: thetal, qt, p, tprev, qtprev, &
+                              qcprev, thlprev
+    integer(ik4), intent(in) :: imethod
+    integer(ik4), intent(inout) :: imax
+    real(rkx), intent(out) :: outqc, outqv
+    real(rkx) :: a, b, c, d, s, dum
+    real(rkx) :: fa, fb, fc, fs
+    real(rkx) :: smb, bmc, cmd
+    real(rkx) :: temps, templ, rvls
+    real(rkx) :: dthetal, dqt, qvprev, deltat, es, qcthresh
+    real(rkx) :: tempqv, tempqc, tempt, tempes, ddq
+    real(rkx) :: mylovcp, mycpovl, mywlhv
     logical :: mflag
-    integer(ik4) :: iteration , itqt , itqtsupp , maxiter
-    integer(ik4) , parameter :: itmax = 6
-    integer(ik4) , parameter :: itmin = 3
+    integer(ik4) :: iteration, itqt, itqtsupp, maxiter
+    integer(ik4), parameter :: itmax = 6
+    integer(ik4), parameter :: itmin = 3
 
     ! set some interal module variables
     mythetal = thetal
@@ -165,7 +165,7 @@ module mod_pbl_thetal
 
       !*************** the main iteration loop *******************
 
-      do iteration = 1 , maxiter
+      do iteration = 1, maxiter
         if ( fa /= fc .and. fb /= fc ) then
           ! inverse quadratic interpolation
           s =   a*fb*fc/( (fa-fb)*(fa-fc) ) &
@@ -254,7 +254,7 @@ module mod_pbl_thetal
         ! contents (and correspondingly high temperatures) result.
         itqt = max(min(int(d_two*(dble(itmax)+log(myqt))),itmax),itmin) + &
                  itqtsupp
-        do iteration = 1 , itqt ! condenseliquid
+        do iteration = 1, itqt ! condenseliquid
           ! update the dummy temperature
           deltat = ((templ-temps)*mycpovl + myqt-rvls)/   &
                     (mycpovl+ep2*mywlhv*rvls/rgas/temps/temps)
@@ -315,7 +315,7 @@ module mod_pbl_thetal
       ! qcthresh = mindt*myexner*mycpovl
       qcthresh = 1.0e-8_rkx
 
-      do iteration = 1 , maxiter
+      do iteration = 1, maxiter
         ! if the air is undersaturated, then thetal is just the normal
         ! potential temperature, so the delta t is given by dthetal
         ! if(tempqc < qcthresh) then
@@ -359,9 +359,9 @@ module mod_pbl_thetal
   ! modified from buck (1981), j. app. met. v 20
   function esatw(p,t)
     implicit none
-    real(rkx) , intent(in) :: p , t
+    real(rkx), intent(in) :: p, t
     real(rkx) :: esatw
-    real(rkx) :: dum , arg , tdum
+    real(rkx) :: dum, arg, tdum
     ! Limit t to reasonable values.  I believe that this is necessary because
     ! in the iterative calculation of t and qv from the liquid water
     ! temperature, the temperature can take on some crazy values before it
@@ -378,9 +378,9 @@ module mod_pbl_thetal
   ! modified from buck (1981), j. app. met. v 20
   function esati(p,t)
     implicit none
-    real(rkx) , intent(in) :: p , t
+    real(rkx), intent(in) :: p, t
     real(rkx) :: esati
-    real(rkx) :: dum , arg , tdum
+    real(rkx) :: dum, arg, tdum
     ! Limit t to reasonable values.  I believe that this is necessary because
     ! in the iterative calculation of t and qv from the liquid water
     ! temperature, the temperature can take on some crazy values before it
@@ -394,7 +394,7 @@ module mod_pbl_thetal
 
   subroutine swap(a,b)
     implicit none
-    real(rkx) , intent(inout) :: a , b
+    real(rkx), intent(inout) :: a, b
     real(rkx) :: c
     c = a
     a = b
@@ -403,8 +403,8 @@ module mod_pbl_thetal
 
   subroutine getqvqc(t,es,qv,qc)
     implicit none
-    real(rkx) , intent(in) :: t
-    real(rkx) , intent(out) :: es , qv , qc
+    real(rkx), intent(in) :: t
+    real(rkx), intent(out) :: es, qv, qc
     es = pfesat(t,myp)
     qv = max(ep2/(myp/es-d_one),d_zero)
     if ( myqt > qv ) then

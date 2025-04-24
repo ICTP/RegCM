@@ -32,13 +32,13 @@ module mod_che_output
 
   public :: fill_chem_outvars
 
-  real(rkx) , parameter :: cfd = 1.e6_rkx * 86400._rkx
+  real(rkx), parameter :: cfd = 1.e6_rkx * 86400._rkx
 
   contains
 
     subroutine fill_chem_outvars(itr)
       implicit none
-      integer(ik4) , intent(in) :: itr
+      integer(ik4), intent(in) :: itr
       integer(ik4) :: k
 
       if ( associated(che_wdrflx_out) ) then
@@ -63,13 +63,13 @@ module mod_che_output
       ddv_out(:,:,itr) = d_zero
       if ( idynamic == 3 ) then
         if ( associated(che_mixrat_out) ) then
-          do k = 1 , kz
+          do k = 1, kz
             che_mixrat_out(:,:,k) = chemt(jci1:jci2,ici1:ici2,k,itr)
           end do
         end if
       else
         if ( associated(che_mixrat_out) ) then
-          do k = 1 , kz
+          do k = 1, kz
             che_mixrat_out(:,:,k) = chia(jci1:jci2,ici1:ici2,k,itr) / &
                              cpsb(jci1:jci2,ici1:ici2)
           end do
@@ -119,68 +119,68 @@ module mod_che_output
           end if
         else
           if ( associated(che_cheten_out) ) then
-            do k = 1 , kz
+            do k = 1, kz
               che_cheten_out(:,:,k) = chemdiag(jci1:jci2,ici1:ici2,k,itr) / &
                                cpsb(jci1:jci2,ici1:ici2)
             end do
           end if
           chemdiag(:,:,:,itr) = d_zero
           if ( associated(che_advhten_out) ) then
-            do k = 1 , kz
+            do k = 1, kz
               che_advhten_out(:,:,k) = cadvhdiag(jci1:jci2,ici1:ici2,k,itr) / &
                                cpsb(jci1:jci2,ici1:ici2)
             end do
           end if
           cadvhdiag(:,:,:,itr) = d_zero
           if ( associated(che_advvten_out) ) then
-            do k = 1 , kz
+            do k = 1, kz
               che_advvten_out(:,:,k) = cadvvdiag(jci1:jci2,ici1:ici2,k,itr) / &
                                cpsb(jci1:jci2,ici1:ici2)
             end do
           end if
           cadvvdiag(:,:,:,itr) = d_zero
           if ( associated(che_difhten_out) ) then
-            do k = 1 , kz
+            do k = 1, kz
               che_difhten_out(:,:,k) = cdifhdiag(jci1:jci2,ici1:ici2,k,itr) / &
                                cpsb(jci1:jci2,ici1:ici2)
             end do
           end if
           cdifhdiag(:,:,:,itr) = d_zero
           if ( associated(che_cuten_out) ) then
-            do k = 1 , kz
+            do k = 1, kz
               che_cuten_out(:,:,k) = cconvdiag(jci1:jci2,ici1:ici2,k,itr) / &
                                cpsb(jci1:jci2,ici1:ici2)
             end do
           end if
           cconvdiag(:,:,:,itr) = d_zero
           if ( associated(che_tuten_out) ) then
-            do k = 1 , kz
+            do k = 1, kz
               che_tuten_out(:,:,k) = ctbldiag(jci1:jci2,ici1:ici2,k,itr) / &
                                cpsb(jci1:jci2,ici1:ici2)
             end do
           end if
           ctbldiag(:,:,:,itr) = d_zero
           if ( associated(che_wasten_out) ) then
-            do k = 1 , kz
+            do k = 1, kz
               che_wasten_out(:,:,k) = washout(jci1:jci2,ici1:ici2,k,itr) / &
                                cpsb(jci1:jci2,ici1:ici2)
             end do
           end if
           if ( associated(che_raiten_out) ) then
-            do k = 1 , kz
+            do k = 1, kz
               che_raiten_out(:,:,k) = rainout(jci1:jci2,ici1:ici2,k,itr) / &
                                cpsb(jci1:jci2,ici1:ici2)
             end do
           end if
           if ( associated(che_bdyten_out) ) then
-            do k = 1 , kz
+            do k = 1, kz
               che_bdyten_out(:,:,k) = cbdydiag(jci1:jci2,ici1:ici2,k,itr) / &
                                cpsb(jci1:jci2,ici1:ici2)
             end do
           end if
           cbdydiag(:,:,:,itr) = d_zero
           if ( associated(che_sedten_out) ) then
-            do k = 1 , kz
+            do k = 1, kz
               che_sedten_out(:,:,k) = cseddpdiag(jci1:jci2,ici1:ici2,k,itr) / &
                              cpsb(jci1:jci2,ici1:ici2)
             end do
@@ -192,7 +192,7 @@ module mod_che_output
         end if
         if ( associated(che_emten_out) ) then
           ! no need to normalise by ps here !!
-         do k = 1 , kz
+         do k = 1, kz
           che_emten_out(:,:,k) = cemisdiag(jci1:jci2,ici1:ici2,k,itr)
          end do
         end if

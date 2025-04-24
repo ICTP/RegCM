@@ -20,9 +20,9 @@ module mod_bats_common
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : ichem , iemiss , syncro_srf , replacemoist
-  use mod_runparams , only : rhmax , rhmin
-  use mod_runparams , only : rcmtimer
+  use mod_runparams, only : ichem, iemiss, syncro_srf, replacemoist
+  use mod_runparams, only : rhmax, rhmin
+  use mod_runparams, only : rcmtimer
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
@@ -42,11 +42,11 @@ module mod_bats_common
 
   public :: dtbat
   public :: allocate_mod_bats_internal
-  public :: interf , initbats , vecbats , albedobats
+  public :: interf, initbats, vecbats, albedobats
 
-  real(rkx) , public :: rdnnsg
+  real(rkx), public :: rdnnsg
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: xqs
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: xqs
 
   contains
 
@@ -56,13 +56,13 @@ module mod_bats_common
   !
   subroutine initbats(lm,lms)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i , j , n
-    logical , parameter :: snowhack = .false.
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
+    integer(ik4) :: i, j, n
+    logical, parameter :: snowhack = .false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initbats'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -95,7 +95,7 @@ module mod_bats_common
       end if
       if ( lsmoist ) then
         call c2l_gs(lndcomm,lm%smoist,ssw)
-        do i = ilndbeg , ilndend
+        do i = ilndbeg, ilndend
           ! Initialize surface soil moisture
           ssw(i) = depuv(lveg(i))*xmopor(ltex(i))*ssw(i)
           rsw(i) = deprv(lveg(i))*xmopor(ltex(i))*slmo(lveg(i))
@@ -103,7 +103,7 @@ module mod_bats_common
           gwet(i) = d_half
         end do
       else
-        do i = ilndbeg , ilndend
+        do i = ilndbeg, ilndend
           ! Initialize soil moisture in the 3 layers
           ssw(i) = depuv(lveg(i))*xmopor(ltex(i))*slmo(lveg(i))
           rsw(i) = deprv(lveg(i))*xmopor(ltex(i))*slmo(lveg(i))
@@ -117,10 +117,10 @@ module mod_bats_common
         end if
         ! Replace surface and root soil moisture
         call l2c_ss(lndcomm,ssw,lms%ssw)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             if (lm%rmoist(j,i,1) < 1.0e+10_rkx ) then
-              do n = 1 , nsg
+              do n = 1, nsg
                 lms%ssw(n,:,:) = lm%rmoist(:,:,1)
               end do
             end if
@@ -128,10 +128,10 @@ module mod_bats_common
         end do
         call c2l_ss(lndcomm,lms%ssw,ssw)
         call l2c_ss(lndcomm,rsw,lms%rsw)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             if (lm%rmoist(j,i,2) < 1.0e+10_rkx ) then
-              do n = 1 , nsg
+              do n = 1, nsg
                 lms%rsw(n,:,:) = lm%rmoist(:,:,2)
               end do
             end if
@@ -139,10 +139,10 @@ module mod_bats_common
         end do
         call c2l_ss(lndcomm,lms%rsw,rsw)
         call l2c_ss(lndcomm,tsw,lms%tsw)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             if (lm%rmoist(j,i,3) < 1.0e+10_rkx ) then
-              do n = 1 , nsg
+              do n = 1, nsg
                 lms%tsw(n,:,:) = lm%rmoist(:,:,3)
               end do
             end if
@@ -155,11 +155,11 @@ module mod_bats_common
       !
       call fseas(tgbrd,aseas)
       if ( iemiss == 1 ) then
-        do i = ilndbeg , ilndend
+        do i = ilndbeg, ilndend
           emiss(i) = lndemiss(lveg(i)) - seasemi(lveg(i)) * aseas(i)
         end do
       else
-        do i = ilndbeg , ilndend
+        do i = ilndbeg, ilndend
           emiss(i) = lnd_sfcemiss
         end do
       end if
@@ -189,7 +189,7 @@ module mod_bats_common
       call fseas(tgbrd,aseas)
     end if
     ! Prepare for albedo computation
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)
     end do
     call depth
@@ -313,11 +313,11 @@ module mod_bats_common
   !
   subroutine vecbats(lm,lms)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'vecbats'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !----------------------------
@@ -338,20 +338,20 @@ module mod_bats_common
   !
   !  this subroutine interfaces regcm and bats variables
   !
-  !  ivers = 1 ,   regcm --> bats
-  !  ivers = 2 ,   bats --> regcm
+  !  ivers = 1,   regcm --> bats
+  !  ivers = 2,   bats --> regcm
   !
   subroutine interf(lm,lms,ivers)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
-    integer(ik4) , intent (in) :: ivers
-    real(rkx) :: facb , facs , fact , factuv , facv , fracb ,  &
-                 fracs , fracv , rh0 , solvt , xqs0 , xqsdif , wspd
-    integer(ik4) :: i , j , n
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
+    integer(ik4), intent (in) :: ivers
+    real(rkx) :: facb, facs, fact, factuv, facv, fracb,  &
+                 fracs, fracv, rh0, solvt, xqs0, xqsdif, wspd
+    integer(ik4) :: i, j, n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interf'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -382,12 +382,12 @@ module mod_bats_common
       zlgsno = log(zh/zsno)
 
       call fseas(tgbrd,aseas)
-      do i = ilndbeg , ilndend
+      do i = ilndbeg, ilndend
         lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)
       end do
       call depth
 
-      do i = ilndbeg , ilndend
+      do i = ilndbeg, ilndend
         xqs0 = pfwsat(ts0(i),p0(i))
         rh0 = min(max(qs0(i)/xqs0,rhmin),rhmax)
         solvt = swd0(i) + swf0(i)
@@ -415,19 +415,19 @@ module mod_bats_common
       ! Smooth out big qs differences
       if ( nsg > 1 ) then
         call l2c_ss(lndcomm,qs,xqs)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             xqsdif = d_zero
             ! Coarse scale specific humidity
             xqs0 = lm%qvatm(j,i)/(d_one+lm%qvatm(j,i))
-            do n = 1 , nnsg
+            do n = 1, nnsg
               if ( lm%ldmsk1(n,j,i) == 1 ) then
                 xqsdif = xqsdif + (xqs(n,j,i)-xqs0)
               end if
             end do
             ! Mean difference from subgrid values and coarse grid
             xqsdif = xqsdif*rdnnsg
-            do n = 1 , nnsg
+            do n = 1, nnsg
               xqs(n,j,i) = max(xqs(n,j,i)-xqsdif,d_zero)
             end do
           end do
@@ -438,13 +438,13 @@ module mod_bats_common
     else if ( ivers == 2 ) then ! bats --> regcm2d
 
       call fseas(tgbrd,aseas)
-      do i = ilndbeg , ilndend
+      do i = ilndbeg, ilndend
         lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)
       end do
       call depth
 
       if ( iemiss == 1 ) then
-        do i = ilndbeg , ilndend
+        do i = ilndbeg, ilndend
           fracs = lncl(i)*wt(i) + (d_one-lncl(i))*scvk(i)
           emiss(i) = (lndemiss(lveg(i))-seasemi(lveg(i))*aseas(i)) * &
                   (d_one-fracs) + 0.992_rkx*fracs
@@ -474,9 +474,9 @@ module mod_bats_common
       call l2c_ss(lndcomm,cgrnds,lms%rah1)
       call l2c_ss(lndcomm,cdrx,lms%ram1)
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n = 1, nnsg
             if ( lm%ldmsk1(n,j,i) == 1 ) then
               wspd = max(sqrt(lm%uatm(j,i)*lm%uatm(j,i) + &
                               lm%vatm(j,i)*lm%vatm(j,i)),0.1_rkx)
@@ -487,7 +487,7 @@ module mod_bats_common
         end do
       end do
 
-      do i = ilndbeg , ilndend
+      do i = ilndbeg, ilndend
         fracv = sigf(i)
         fracb = (d_one-lncl(i))*(d_one-scvk(i))
         fracs = lncl(i)*wt(i) + (d_one-lncl(i))*scvk(i)
@@ -538,8 +538,8 @@ module mod_bats_common
 
   subroutine albedobats(lm,lms)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
     call albedo
     call l2c_ss(lndcomm,swal,lms%swalb)
     call l2c_ss(lndcomm,lwal,lms%lwalb)

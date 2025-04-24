@@ -24,25 +24,25 @@ module mod_cu_interface
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
-  use mod_mppparam , only : exchange_lrbt , uvcross2dot , uvdot2cross , italk
-  use mod_mppparam , only : tenxtouvten , uvtentotenx
-  use mod_mppparam , only : meanall , minall , maxall
+  use mod_mppparam, only : exchange_lrbt, uvcross2dot, uvdot2cross, italk
+  use mod_mppparam, only : tenxtouvten, uvtentotenx
+  use mod_mppparam, only : meanall, minall, maxall
 
-  use mod_cu_common , only : cuscheme , total_precip_points , &
-      model_cumulus_cloud , init_mod_cumulus
-  use mod_cu_common , only : cu_uten , cu_vten , cu_tten , cu_qten , &
-      cu_prate , cu_ktop , cu_kbot , cu_cldfrc , cu_qdetr , cu_raincc , &
-      cu_convpr , cu_chiten , avg_ww , cu_srate
-  use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv , &
-      pmean , nmctop
-  use mod_cu_tables , only : init_convect_tables
-  use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , cldefi
-  use mod_cu_em , only : allocate_mod_cu_em , cupemandrv , cbmf2d
-  use mod_cu_kuo , only : allocate_mod_cu_kuo , cupara , twght , vqflx , k700
-  use mod_cu_grell , only : allocate_mod_cu_grell , cuparan , mincld2d ,   &
-      shrmax2d , shrmin2d , edtmax2d , edtmin2d ,  edtmaxo2d , edtmaxx2d , &
-      edtmino2d , edtminx2d , htmax2d , htmin2d , pbcmax2d , dtauc2d ,     &
-      pbcmax2d , kbmax2d
+  use mod_cu_common, only : cuscheme, total_precip_points, &
+      model_cumulus_cloud, init_mod_cumulus
+  use mod_cu_common, only : cu_uten, cu_vten, cu_tten, cu_qten, &
+      cu_prate, cu_ktop, cu_kbot, cu_cldfrc, cu_qdetr, cu_raincc, &
+      cu_convpr, cu_chiten, avg_ww, cu_srate
+  use mod_cu_tiedtke, only : allocate_mod_cu_tiedtke, tiedtkedrv, &
+      pmean, nmctop
+  use mod_cu_tables, only : init_convect_tables
+  use mod_cu_bm, only : allocate_mod_cu_bm, bmpara, cldefi
+  use mod_cu_em, only : allocate_mod_cu_em, cupemandrv, cbmf2d
+  use mod_cu_kuo, only : allocate_mod_cu_kuo, cupara, twght, vqflx, k700
+  use mod_cu_grell, only : allocate_mod_cu_grell, cuparan, mincld2d,   &
+      shrmax2d, shrmin2d, edtmax2d, edtmin2d,  edtmaxo2d, edtmaxx2d, &
+      edtmino2d, edtminx2d, htmax2d, htmin2d, pbcmax2d, dtauc2d,     &
+      pbcmax2d, kbmax2d
   use mod_cu_kf
   use mod_cu_shallow
 
@@ -52,7 +52,7 @@ module mod_cu_interface
 
   public :: allocate_cumulus
   public :: init_cumulus
-  public :: cumulus , shallow_convection
+  public :: cumulus, shallow_convection
   public :: cucloud
 
   public :: cuscheme
@@ -82,20 +82,20 @@ module mod_cu_interface
   type(mod_2_cum) :: m2c
   type(cum_2_mod) :: c2m
 
-  real(rkx) , pointer , dimension(:,:,:) :: utenx => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vtenx => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: utend => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vtend => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: utenx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vtenx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: utend => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vtend => null( )
 
   ! Midlevel convection top pressure for Tiedtke iconv = 1
-  real(rkx) , parameter :: cmcptop = 30000.0_rkx
+  real(rkx), parameter :: cmcptop = 30000.0_rkx
 
   contains
 
   subroutine allocate_cumulus
     use mod_atm_interface
     implicit none
-    integer(ik4) :: i , j
+    integer(ik4) :: i, j
     call getmem2d(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       if ( isocean(mddom%lndcat(j,i)) ) then
@@ -216,7 +216,7 @@ module mod_cu_interface
 
   subroutine cucloud
     implicit none
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i, j, k
     if ( all(icup == 0) ) return
     if ( any(icup == 1) .or. any(icup == 3) ) then
       call model_cumulus_cloud(m2c)
@@ -229,9 +229,9 @@ module mod_cu_interface
   subroutine cumulus
     use mod_atm_interface
     implicit none
-    integer(ik4) :: i , j , k , n
-    integer(ik4) :: iplmlc , mintop , maxtop
-    real(rkx) :: mymean , w1
+    integer(ik4) :: i, j, k, n
+    integer(ik4) :: iplmlc, mintop, maxtop
+    real(rkx) :: mymean, w1
 
     if ( any(icup == 6) ) then
       w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
@@ -302,10 +302,10 @@ module mod_cu_interface
           if ( iconv == 1 ) then
             ! Calculate average elevation of cmcptop level
             nmctop = 0
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 iplmlc = 1
-                do k = 1 , kzp1
+                do k = 1, kzp1
                   iplmlc = k
                   if ( m2c%pasf(j,i,k) >= cmcptop ) exit
                 end do
@@ -317,7 +317,7 @@ module mod_cu_interface
             call maxall(iplmlc,maxtop)
             nmctop = (mintop+maxtop)/2
           else if ( iconv == 4 ) then
-            do k = 1 , kz
+            do k = 1, kz
               mymean = sum(m2c%pas(:,:,k))/real(((jci2-jci1)*(ici2-ici1)),rkx)
               call meanall(mymean,pmean(k))
             end do
@@ -473,9 +473,9 @@ module mod_cu_interface
   end subroutine cumulus
 
   subroutine shallow_convection
-    use mod_atm_interface , only : aten , mo_atm
+    use mod_atm_interface, only : aten, mo_atm
     implicit none
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i, j, k
 
     if ( rcmtimer%integrating( ) ) then
 

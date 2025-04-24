@@ -24,11 +24,11 @@ module mod_ccsm4_helper
 
   public :: ccsm4vars
   public :: find_ccsm4_sst
-  public :: find_ccsm4_dim , find_ccsm4_topo , find_ccsm4_file
+  public :: find_ccsm4_dim, find_ccsm4_topo, find_ccsm4_file
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: ccsm4vars = &
-            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: ccsm4vars = &
+            ['ta ', 'XXX', 'hus', 'ua ', 'va ', 'ps ']
 
   character(len=64) :: cabase1  = '_6hrLev_CCSM4_historical'
   character(len=64) :: cabase2  = '_6hrLev_CCSM4_rcp'
@@ -38,8 +38,8 @@ module mod_ccsm4_helper
 
   subroutine find_ccsm4_sst(fname,idate)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       fname = trim(inpglob)//pthsep//'CCSM4'//pthsep//'SST'// &
               pthsep//'tos_Omon_CCSM4_historical'// &
@@ -53,11 +53,11 @@ module mod_ccsm4_helper
 
   subroutine assemble_path(fname,scen,var,d1,d2)
     implicit none
-    character(len=256) , intent(out) :: fname
-    character(len=*) , intent(in) :: scen
-    character(len=*) , intent(in) :: var
-    character(len=*) , intent(in) :: d1
-    character(len=*) , intent(in) :: d2
+    character(len=256), intent(out) :: fname
+    character(len=*), intent(in) :: scen
+    character(len=*), intent(in) :: var
+    character(len=*), intent(in) :: d1
+    character(len=*), intent(in) :: d2
     if ( scen == 'RF' ) then
       fname = trim(inpglob)//pthsep//'CCSM4'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(cabase1)//  &
@@ -71,7 +71,7 @@ module mod_ccsm4_helper
 
   subroutine find_ccsm4_dim(dim_filename)
     implicit none
-    character(len=256) , intent(out) :: dim_filename
+    character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(dim_filename,'RF','ta','1950010106','1950033118')
@@ -79,18 +79,18 @@ module mod_ccsm4_helper
 
   subroutine find_ccsm4_topo(topo_filename)
     implicit none
-    character(len=256) , intent(out) :: topo_filename
+    character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'CCSM4'//pthsep//'fixed'// &
               pthsep//'orog_fx_CCSM4_historical_r0i0p0.nc'
   end subroutine find_ccsm4_topo
 
   subroutine find_ccsm4_file(ccsm4_filename,var,idate)
     implicit none
-    character(len=256) , intent(out) :: ccsm4_filename
-    character(len=*) , intent(in) :: var
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
+    character(len=256), intent(out) :: ccsm4_filename
+    character(len=*), intent(in) :: var
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
     call split_idate(idate,y,m,d,h)
     if ( var == 'ps' ) then
       if ( y == 1950 ) then

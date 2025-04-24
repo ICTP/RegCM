@@ -30,20 +30,20 @@ module mod_mkdynpft
 
   public :: mkdynpft
 
-  character(len=16) , parameter :: varname = 'PCT_PFT'
+  character(len=16), parameter :: varname = 'PCT_PFT'
 
-  real(rkx) , parameter :: vcutoff = 1.0_rkx
+  real(rkx), parameter :: vcutoff = 1.0_rkx
 
   contains
 
   subroutine mkdynpft(mask,pft,year)
     implicit none
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:,:) , intent(out) :: pft
-    integer(ik4) , intent(in) :: year
-    integer(ik4) :: i , j , n , iy , npft
-    integer(ik4) , dimension(1) :: il
-    character(len=32) :: p1 , p2
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:,:), intent(out) :: pft
+    integer(ik4), intent(in) :: year
+    integer(ik4) :: i, j, n, iy, npft
+    integer(ik4), dimension(1) :: il
+    character(len=32) :: p1, p2
     character(len=4) :: cy
     type(globalfile) :: gfile
     character(len=256) :: inpfile
@@ -93,10 +93,10 @@ module mod_mkdynpft
     where ( pft < d_zero )
       pft = h_missing_value
     end where
-    do n = 1 , npft
+    do n = 1, npft
       call bestaround(pft(:,:,n),h_missing_value)
-      do i = 1 , iysg
-        do j = 1 , jxsg
+      do i = 1, iysg
+        do j = 1, jxsg
           if ( mask(j,i) < 0.5_rkx ) then
             pft(j,i,n) = h_missing_value
           else
@@ -108,18 +108,18 @@ module mod_mkdynpft
     !
     ! Keep only classes with percentage greater than cutoff
     !
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) > 0.5_rkx ) then
           il = maxloc(pft(j,i,:))
-          do n = 1 , npft
+          do n = 1, npft
             if ( n == il(1) ) cycle
             if ( pft(j,i,n) < vcutoff ) then
               pft(j,i,il(1)) = pft(j,i,il(1)) + pft(j,i,n)
               pft(j,i,n) = d_zero
             end if
           end do
-          do n = 1 , npft
+          do n = 1, npft
             pft(j,i,n) = min(max(0,nint(pft(j,i,n))),100)
           end do
         end if

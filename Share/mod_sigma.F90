@@ -26,15 +26,15 @@ module mod_sigma
 
   private
 
-  real(rkx) , pointer , dimension(:) :: sigma_coordinate
-  real(rkx) , pointer , dimension(:) :: half_sigma_coordinate
-  real(rkx) , pointer , dimension(:) :: sigma_delta
+  real(rkx), pointer, contiguous, dimension(:) :: sigma_coordinate
+  real(rkx), pointer, contiguous, dimension(:) :: half_sigma_coordinate
+  real(rkx), pointer, contiguous, dimension(:) :: sigma_delta
 
   real(rkx) :: ptop
   logical :: is_pstar = .true.
-  real(rkx) , pointer , dimension(:,:) :: ps => null()
+  real(rkx), pointer, contiguous, dimension(:,:) :: ps => null()
 
-  real(rkx) , pointer , dimension(:,:,:) :: pprime => null()
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pprime => null()
 
   public :: sigma_coordinate
   public :: sigma_delta
@@ -67,16 +67,16 @@ module mod_sigma
     !
     subroutine init_sigma(nk,dmax,dmin,lzeta)
       implicit none
-      integer(ik4) , intent(in) :: nk
-      real(rkx) , intent(in) , optional :: dmax , dmin
-      logical , intent(in) , optional :: lzeta
-      real(rkx) , allocatable , dimension(:) :: alph
-      real(rkx) :: dsmax , dsmin
-      real(rkx) :: jumpsize , apara , bpara , func , funcprev
-      integer(ik4) :: k , icount , ierr
-      integer(ik4) , parameter :: maxiter = 1000000
-      real(rkx) , parameter :: conv_crit = 0.00001_rkx
-      logical :: lpress , lcompute
+      integer(ik4), intent(in) :: nk
+      real(rkx), intent(in), optional :: dmax, dmin
+      logical, intent(in), optional :: lzeta
+      real(rkx), allocatable, dimension(:) :: alph
+      real(rkx) :: dsmax, dsmin
+      real(rkx) :: jumpsize, apara, bpara, func, funcprev
+      integer(ik4) :: k, icount, ierr
+      integer(ik4), parameter :: maxiter = 1000000
+      real(rkx), parameter :: conv_crit = 0.00001_rkx
+      logical :: lpress, lcompute
 
       lpress = .true.
       if ( present(lzeta) ) then
@@ -244,14 +244,14 @@ module mod_sigma
                  (bpara**(-d_half*real(nk-2,rkx)))
         alph(1) = apara/bpara
         sigma_delta(1) = dsmax
-        do k = 2 , nk
+        do k = 2, nk
           alph(k) = bpara*alph(k-1)
           sigma_delta(k) = alph(k)*sigma_delta(k-1)
         end do
         func = sum(sigma_delta)-d_one
         ! Loop through the minimization until the convergence
         ! criterion is satisfied
-        do icount = 1 , maxiter
+        do icount = 1, maxiter
           funcprev = func
           bpara = bpara + jumpsize
           if ( bpara < d_zero ) bpara = 1e-10_rkx
@@ -259,7 +259,7 @@ module mod_sigma
                    (bpara**(-d_half*real(nk-2,rkx)))
           alph(1) = apara/bpara
           sigma_delta(1) = dsmax
-          do k = 2 , nk
+          do k = 2, nk
             alph(k) = bpara*alph(k-1)
             sigma_delta(k) = alph(k)*sigma_delta(k-1)
           end do
@@ -285,13 +285,13 @@ module mod_sigma
           end if
         end do
         sigma_coordinate(1) = 0.0_rkx
-        do k = 1 , nk-1
+        do k = 1, nk-1
           sigma_coordinate(k+1) = sigma_coordinate(k)+sigma_delta(k)
         end do
         sigma_coordinate(nk+1) = 1.0_rkx
         deallocate(alph)
       end if
-      do k = 1 , nk
+      do k = 1, nk
         sigma_delta(k) = sigma_coordinate(k+1) - sigma_coordinate(k)
         half_sigma_coordinate(k) = (sigma_coordinate(k) + &
                                     sigma_coordinate(k+1)) * d_half
@@ -300,9 +300,9 @@ module mod_sigma
 
     subroutine init_hydrostatic(ptin,psin,lpstar)
       implicit none
-      real(rkx) , intent(in) :: ptin
-      real(rkx) , pointer , dimension(:,:) :: psin
-      logical , optional , intent(in) :: lpstar
+      real(rkx), intent(in) :: ptin
+      real(rkx), pointer, contiguous, dimension(:,:) :: psin
+      logical, optional, intent(in) :: lpstar
       if ( present(lpstar) ) is_pstar = lpstar
       ptop = ptin
       ps => psin
@@ -310,13 +310,13 @@ module mod_sigma
 
     real(rkx) elemental function pstar(surface_pressure)
       implicit none
-      real(rkx) , intent(in) :: surface_pressure
+      real(rkx), intent(in) :: surface_pressure
       pstar = surface_pressure - ptop
     end function pstar
 
     pure real(rkx) function hydrostatic_pressure_full_sigma(j,i,k) result(p)
       implicit none
-      integer(ik4) , intent(in) :: j , i , k
+      integer(ik4), intent(in) :: j, i, k
       if ( is_pstar ) then
         p = ps(j,i) * sigma_coordinate(k) + ptop
       else
@@ -326,7 +326,7 @@ module mod_sigma
 
     pure real(rkx) function hydrostatic_pressure_half_sigma(j,i,k) result(p)
       implicit none
-      integer(ik4) , intent(in) :: j , i , k
+      integer(ik4), intent(in) :: j, i, k
       if ( is_pstar ) then
         p = ps(j,i) * half_sigma_coordinate(k) + ptop
       else
@@ -336,7 +336,7 @@ module mod_sigma
 
     pure real(rkx) function hydrostatic_deltap_full_sigma(j,i,k) result(p)
       implicit none
-      integer(ik4) , intent(in) :: j , i , k
+      integer(ik4), intent(in) :: j, i, k
       if ( is_pstar ) then
         p = ps(j,i) * sigma_delta(k)
       else
@@ -346,10 +346,10 @@ module mod_sigma
 
     subroutine init_non_hydrostatic(ptin,psin,ppin,lpstar)
       implicit none
-      real(rkx) , intent(in) :: ptin
-      real(rkx) , pointer , dimension(:,:) :: psin
-      real(rkx) , pointer , dimension(:,:,:) :: ppin
-      logical , optional , intent(in) :: lpstar
+      real(rkx), intent(in) :: ptin
+      real(rkx), pointer, contiguous, dimension(:,:) :: psin
+      real(rkx), pointer, contiguous, dimension(:,:,:) :: ppin
+      logical, optional, intent(in) :: lpstar
       if ( present(lpstar) ) is_pstar = lpstar
       ptop = ptin
       ps => psin
@@ -358,7 +358,7 @@ module mod_sigma
 
     pure real(rkx) function non_hydrostatic_pressure_full_sigma(j,i,k) result(p)
       implicit none
-      integer(ik4) , intent(in) :: j , i , k
+      integer(ik4), intent(in) :: j, i, k
       if ( k == 1 ) then
          p = ptop
       else
@@ -374,7 +374,7 @@ module mod_sigma
 
     pure real(rkx) function non_hydrostatic_pressure_half_sigma(j,i,k) result(p)
       implicit none
-      integer(ik4) , intent(in) :: j , i , k
+      integer(ik4), intent(in) :: j, i, k
       if ( is_pstar ) then
         p = ps(j,i) * half_sigma_coordinate(k) + ptop + pprime(j,i,k)
       else
@@ -384,7 +384,7 @@ module mod_sigma
 
     pure real(rkx) function non_hydrostatic_deltap_full_sigma(j,i,k) result(p)
       implicit none
-      integer(ik4) , intent(in) :: j , i , k
+      integer(ik4), intent(in) :: j, i, k
       if ( is_pstar ) then
         p = ps(j,i) * sigma_delta(k) + pprime(j,i,k)
       else

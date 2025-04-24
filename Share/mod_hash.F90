@@ -19,10 +19,10 @@ module mod_hash
 
   private
 
-  !integer(ik4) , parameter :: magic_numb = z'5d7a9f43'
-  integer(ik4) , parameter :: magic_numb = 1568317251
+  !integer(ik4), parameter :: magic_numb = z'5d7a9f43'
+  integer(ik4), parameter :: magic_numb = 1568317251
 
-  public :: hash , bsearch
+  public :: hash, bsearch
 
   contains
 
@@ -31,10 +31,10 @@ module mod_hash
   !
   recursive integer(ik4) function bsearch(l,v,n) result(k)
     implicit none
-    integer(ik4) , dimension(:) , intent(in) :: l
-    integer(ik4) , intent(in) :: v
-    integer(ik4) , intent(in) :: n
-    integer(ik4) :: i , j , p
+    integer(ik4), dimension(:), intent(in) :: l
+    integer(ik4), intent(in) :: v
+    integer(ik4), intent(in) :: n
+    integer(ik4) :: i, j, p
     i = 1
     j = n
     k = -1
@@ -55,8 +55,8 @@ module mod_hash
 
   integer(ik4) function hash(text) result(hashed)
     implicit none
-    character(len=*) , intent(in) :: text
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: text
+    integer(ik4) :: i, j
     hashed = 0
     do i = 1, len_trim(text)
       j = mod(i-1, 4) * 8

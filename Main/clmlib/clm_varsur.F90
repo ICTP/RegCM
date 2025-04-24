@@ -22,7 +22,7 @@ module clm_varsur
 !
 ! surface boundary data, these are all "gdc" local
 !
-  integer , allocatable :: vegxy(:,:) ! vegetation type
+  integer, allocatable :: vegxy(:,:) ! vegetation type
   real(r8), allocatable,target :: wtxy(:,:)  ! subgrid weights
 
   real(r8) ,allocatable :: pctspec(:)         ! percent of spec lunits wrt gcell
@@ -31,15 +31,15 @@ module clm_varsur
 ! abt below
   integer,  pointer :: landmask(:,:)     ! land mask: 1 = land. 0 = ocean. 3 = land/ocean
   real(r8), allocatable :: landfrac(:,:)     ! fractional land
-  real(r8), pointer :: ht_rcm(:,:)       ! elevation from regcm
-  real(r8), pointer :: init_tgb(:,:)     ! ICBC temperature used for soil temp initialization
-  real(r8), pointer :: init_snow(:,:)     ! Snow amount used for soil initialization
+  real(r8), pointer, contiguous :: ht_rcm(:,:)       ! elevation from regcm
+  real(r8), pointer, contiguous :: init_tgb(:,:)     ! ICBC temperature used for soil temp initialization
+  real(r8), pointer, contiguous :: init_snow(:,:)     ! Snow amount used for soil initialization
   logical  :: init_grid                      ! call clm initialization or not true=do init
   real(r8) :: numdays                        ! number of days per year (used in shr_orb_mod)
   integer,  allocatable :: clm_soitex(:,:)   ! Used only for the RegCM Dust Model
   real(r8), allocatable :: glonc(:)          ! center longitude (used only for output)
   real(r8), allocatable :: glatc(:)          ! center latitude  (used only for output)
-  real(r8), pointer :: satbrt_clm(:,:)   ! Landuse from BATS read in from DOMAIN.INFO
+  real(r8), pointer, contiguous :: satbrt_clm(:,:)   ! Landuse from BATS read in from DOMAIN.INFO
                                              ! for transfer to CLM
   integer :: r2cimask                        ! landmask evaluation method
                                              ! 1 = Using DOMAIN.INFO landuse type
@@ -49,8 +49,8 @@ module clm_varsur
                                              ! variable retrieved from regcm.in (clmfrq)
 !  real(r8), allocatable :: c2rcosz1d(:)      ! used for gathering and sending to regcm
   real(r8), allocatable :: c2r_allout(:)     ! used for gathering and sending to regcm
-  integer , allocatable :: omap_i(:)         ! used for gathering and sending to regcm
-  integer , allocatable :: omap_j(:)         ! used for gathering and sending to regcm
+  integer, allocatable :: omap_i(:)         ! used for gathering and sending to regcm
+  integer, allocatable :: omap_j(:)         ! used for gathering and sending to regcm
   real(r8), allocatable :: clm2bats_veg(:,:) ! Only used for RegCM Dust model
   real(r8), allocatable :: clm_fracveg(:,:)  ! fraction of grid covered by vegetation
 

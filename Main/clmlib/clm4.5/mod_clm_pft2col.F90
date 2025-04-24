@@ -24,22 +24,22 @@ module mod_clm_pft2col
   !
   subroutine pft2col (lbc, ubc, num_nolakec, filter_nolakec)
     implicit none
-    integer(ik4) , intent(in) :: lbc , ubc     ! column bounds
+    integer(ik4), intent(in) :: lbc, ubc     ! column bounds
     ! number of column non-lake points in column filter
-    integer(ik4) , intent(in) :: num_nolakec
+    integer(ik4), intent(in) :: num_nolakec
     ! column filter for non-lake points
-    integer(ik4) , intent(in) :: filter_nolakec(ubc-lbc+1)
-    integer(ik4) :: c , fc          ! indices
+    integer(ik4), intent(in) :: filter_nolakec(ubc-lbc+1)
+    integer(ik4) :: c, fc          ! indices
     integer(ik4) :: num_allc        ! number of total column points
     integer(ik4) :: filter_allc(ubc-lbc+1) ! filter for all column points
-    real(rk8) , pointer :: ptrp(:)         ! pointer to input pft array
-    real(rk8) , pointer :: ptrc(:)         ! pointer to output column array
+    real(rk8), pointer, contiguous :: ptrp(:)         ! pointer to input pft array
+    real(rk8), pointer, contiguous :: ptrc(:)         ! pointer to output column array
 
     ! Set up a filter for all column points
 
     num_allc = ubc-lbc+1
     fc = 0
-    do c = lbc , ubc
+    do c = lbc, ubc
       fc = fc + 1
       filter_allc(fc) = c
     end do

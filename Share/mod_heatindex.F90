@@ -42,83 +42,83 @@ module mod_heatindex
 
   private
 
-  ! w/m^2/k^4 , boltzmann constant
-  real(rkx) , parameter :: sigma    = 5.67e-8_rkx
-  ! k         , vapor temperature at triple point
-  real(rkx) , parameter :: ttrip    = 273.16_rkx
-  ! pa        , vapor pressure at triple point
-  real(rkx) , parameter :: ptrip    = 611.65_rkx
-  real(rkx) , parameter :: e0v      = 2.3740e6_rkx  ! J/kg
-  real(rkx) , parameter :: e0s      = 0.3337e6_rkx  ! J/kg
-  real(rkx) , parameter :: rgasa    = 287.04_rkx    ! J/kg/K
-  real(rkx) , parameter :: rgasv    = 461.0_rkx     ! J/kg/K
-  real(rkx) , parameter :: cva      = 719.0_rkx     ! J/kg/K
-  real(rkx) , parameter :: cvv      = 1418.0_rkx    ! J/kg/K
-  real(rkx) , parameter :: cvl      = 4119.0_rkx    ! J/kg/K
-  real(rkx) , parameter :: cvs      = 1861.0_rkx    ! J/kg/K
-  real(rkx) , parameter :: cpa      = cva + rgasa
-  real(rkx) , parameter :: cpv      = cvv + rgasv
-  !           , emissivity of surface
-  real(rkx) , parameter :: reps  = 0.97_rkx
-  ! kg        , mass of average us adults, FRYAR2018
-  real(rkx) , parameter :: m        = 83.6_rkx
-  ! m         , height of average us adults, FRYAR2018
-  real(rkx) , parameter :: h        = 1.69_rkx
-  ! m^2       , dubois formula, parson2014
-  real(rkx) , parameter :: a        = 0.202_rkx*(m**0.425_rkx)*(h**0.725_rkx)
-  ! J/kg/K    , specific heat capacity of core, Gagge1972
-  real(rkx) , parameter :: cpc      = 3492.0_rkx
-  !           , heat capacity of core
-  real(rkx) , parameter :: c        = m*cpc/a
-  ! Pa/K      , zf/rf
-  real(rkx) , parameter :: r        = 124.0_rkx
-  ! W/m^2     , metabolic rate per skin area
-  real(rkx) , parameter :: q        = 180.0_rkx
-  !           , vapor saturation pressure level of saline solution
-  real(rkx) , parameter :: phi_salt = 0.9_rkx
-  ! K         , core temeprature
-  real(rkx) , parameter :: tc        = 310.0_rkx
-  !           , core vapor pressure, phi_salt*pvstar(tc)
-  real(rkx) , parameter :: pc        = 5612.299124343398_rkx
-  ! Pa        , atmospheric pressure
-  real(rkx) , parameter :: p         = 1.013e5_rkx
-  ! kg/J      , "inhaled mass" / "metabolic rate"
-  real(rkx) , parameter :: eta       = 1.43e-6_rkx
-  ! Pa        , reference air vapor pressure in regions III, IV, V, VI,
+  ! w/m^2/k^4, boltzmann constant
+  real(rkx), parameter :: sigma    = 5.67e-8_rkx
+  ! k        , vapor temperature at triple point
+  real(rkx), parameter :: ttrip    = 273.16_rkx
+  ! pa       , vapor pressure at triple point
+  real(rkx), parameter :: ptrip    = 611.65_rkx
+  real(rkx), parameter :: e0v      = 2.3740e6_rkx  ! J/kg
+  real(rkx), parameter :: e0s      = 0.3337e6_rkx  ! J/kg
+  real(rkx), parameter :: rgasa    = 287.04_rkx    ! J/kg/K
+  real(rkx), parameter :: rgasv    = 461.0_rkx     ! J/kg/K
+  real(rkx), parameter :: cva      = 719.0_rkx     ! J/kg/K
+  real(rkx), parameter :: cvv      = 1418.0_rkx    ! J/kg/K
+  real(rkx), parameter :: cvl      = 4119.0_rkx    ! J/kg/K
+  real(rkx), parameter :: cvs      = 1861.0_rkx    ! J/kg/K
+  real(rkx), parameter :: cpa      = cva + rgasa
+  real(rkx), parameter :: cpv      = cvv + rgasv
+  !          , emissivity of surface
+  real(rkx), parameter :: reps  = 0.97_rkx
+  ! kg       , mass of average us adults, FRYAR2018
+  real(rkx), parameter :: m        = 83.6_rkx
+  ! m        , height of average us adults, FRYAR2018
+  real(rkx), parameter :: h        = 1.69_rkx
+  ! m^2      , dubois formula, parson2014
+  real(rkx), parameter :: a        = 0.202_rkx*(m**0.425_rkx)*(h**0.725_rkx)
+  ! J/kg/K   , specific heat capacity of core, Gagge1972
+  real(rkx), parameter :: cpc      = 3492.0_rkx
+  !          , heat capacity of core
+  real(rkx), parameter :: c        = m*cpc/a
+  ! Pa/K     , zf/rf
+  real(rkx), parameter :: r        = 124.0_rkx
+  ! W/m^2    , metabolic rate per skin area
+  real(rkx), parameter :: q        = 180.0_rkx
+  !          , vapor saturation pressure level of saline solution
+  real(rkx), parameter :: phi_salt = 0.9_rkx
+  ! K        , core temeprature
+  real(rkx), parameter :: tc        = 310.0_rkx
+  !          , core vapor pressure, phi_salt*pvstar(tc)
+  real(rkx), parameter :: pc        = 5612.299124343398_rkx
+  ! Pa       , atmospheric pressure
+  real(rkx), parameter :: p         = 1.013e5_rkx
+  ! kg/J     , "inhaled mass" / "metabolic rate"
+  real(rkx), parameter :: eta       = 1.43e-6_rkx
+  ! Pa       , reference air vapor pressure in regions III, IV, V, VI,
   !             chosen by Steadman
-  real(rkx) , parameter :: pa0       = 1.6e3_rkx
-  ! Pa m^2/W  , mass transfer resistance through air, exposed part of skin
-  real(rkx) , parameter :: za        = 60.6_rkx/17.4_rkx
-  ! Pa m^2/W  , mass transfer resistance through air, clothed part of skin
-  real(rkx) , parameter :: za_bar    = 60.6_rkx/11.6_rkx
-  ! Pa m^2/W  , mass transfer resistance through air, when being naked
-  real(rkx) , parameter :: za_un     = 60.6_rkx/12.3_rkx
-  !           , tolorence of the root solver for heatindex
-  real(rkx) , parameter :: errt      = 1.0e-8_rkx
-  !           , tolorence of the root solver
-  real(rkx) , parameter :: err       = 1.0e-8_rkx
+  real(rkx), parameter :: pa0       = 1.6e3_rkx
+  ! Pa m^2/W , mass transfer resistance through air, exposed part of skin
+  real(rkx), parameter :: za        = 60.6_rkx/17.4_rkx
+  ! Pa m^2/W , mass transfer resistance through air, clothed part of skin
+  real(rkx), parameter :: za_bar    = 60.6_rkx/11.6_rkx
+  ! Pa m^2/W , mass transfer resistance through air, when being naked
+  real(rkx), parameter :: za_un     = 60.6_rkx/12.3_rkx
+  !          , tolorence of the root solver for heatindex
+  real(rkx), parameter :: errt      = 1.0e-8_rkx
+  !          , tolorence of the root solver
+  real(rkx), parameter :: err       = 1.0e-8_rkx
 
   ! maximum number of iteration of the root solver
   integer, parameter :: maxiter = 100
 
-  integer , parameter :: eqvar_indx_1 = 1 ! phi
-  integer , parameter :: eqvar_indx_2 = 2 ! rf
-  integer , parameter :: eqvar_indx_3 = 3 ! rs
-  integer , parameter :: eqvar_indx_4 = 4 ! rs*
-  integer , parameter :: eqvar_indx_5 = 5 ! dtcdt
+  integer, parameter :: eqvar_indx_1 = 1 ! phi
+  integer, parameter :: eqvar_indx_2 = 2 ! rf
+  integer, parameter :: eqvar_indx_3 = 3 ! rs
+  integer, parameter :: eqvar_indx_4 = 4 ! rs*
+  integer, parameter :: eqvar_indx_5 = 5 ! dtcdt
 
   public  :: heatindex
 
   type eqvar
     integer :: indx
-    real(rkx) , dimension(4) :: var
+    real(rkx), dimension(4) :: var
   end type eqvar
 
   contains
 
   pure real(rkx) function pvstar(t)
     implicit none
-    real(rkx) , intent(in) :: t
+    real(rkx), intent(in) :: t
     if ( t <= 0.0_rkx ) then
       pvstar = 0.0_rkx
     else if ( t < ttrip ) then
@@ -132,20 +132,20 @@ module mod_heatindex
 
   pure real(rkx) function le(t)
     implicit none
-    real(rkx) , intent(in):: t
+    real(rkx), intent(in):: t
     le = (e0v + (cvv-cvl)*(t-ttrip) + rgasv*t)
   end function le
 
   pure real(rkx) function qv(ta,pa) ! respiratory heat loss, w/m^2
     implicit none
-    real(rkx) , intent(in) :: ta , pa
+    real(rkx), intent(in) :: ta, pa
     qv = eta * q *(cpa*(tc-ta) + le(tc)*rgasa/(p*rgasv) * ( pc-pa ) )
   end function qv
 
   ! mass transfer resistance through skin, pa m^2/w
   pure real(rkx) function zs(rs)
     implicit none
-    real(rkx) , intent(in) :: rs
+    real(rkx), intent(in) :: rs
     if ( rs == 0.0387_rkx ) then
       zs = 52.1_rkx
     else
@@ -156,8 +156,8 @@ module mod_heatindex
   ! heat transfer resistance through air, exposed part of skin, k m^2/w
   pure real(rkx) function ra(ts,ta)
     implicit none
-    real(rkx) , intent(in) :: ts , ta
-    real(rkx) :: hc , phi_rad , hr
+    real(rkx), intent(in) :: ts, ta
+    real(rkx) :: hc, phi_rad, hr
     hc      = 17.4_rkx
     phi_rad = 0.85_rkx
     hr      = reps * phi_rad * sigma* (ts**2 + ta**2)*(ts + ta)
@@ -167,8 +167,8 @@ module mod_heatindex
   ! heat transfer resistance through air, clothed part of skin, k m^2/w
   pure real(rkx) function ra_bar(tf,ta)
     implicit none
-    real(rkx), intent(in) :: tf , ta
-    real(rkx) :: hc , phi_rad, hr
+    real(rkx), intent(in) :: tf, ta
+    real(rkx) :: hc, phi_rad, hr
     hc      = 11.6_rkx
     phi_rad = 0.79_rkx
     hr      = reps * phi_rad * sigma* (tf**2 + ta**2)*(tf + ta)
@@ -178,8 +178,8 @@ module mod_heatindex
   ! heat transfer resistance through air, when being naked, k m^2/w
   pure real(rkx) function ra_un(ts,ta)
     implicit none
-    real(rkx) , intent(in) :: ts , ta
-    real(rkx) :: hc , phi_rad , hr
+    real(rkx), intent(in) :: ts, ta
+    real(rkx) :: hc, phi_rad, hr
     hc      = 12.3_rkx
     phi_rad = 0.80_rkx
     hr      = reps * phi_rad * sigma* (ts**2 + ta**2)*(ts + ta)
@@ -192,9 +192,9 @@ module mod_heatindex
   pure type(eqvar) function initial_find_eqvar(ta,rh) result(res)
 #endif
     implicit none
-    real(rkx) , intent(in) :: ta , rh
-    real(rkx) :: pa , phi , rf , rs , dtcdt , ts , ts_bar
-    real(rkx) :: tf , ps , flux1 , flux2 , flux3 , m , m_bar
+    real(rkx), intent(in) :: ta, rh
+    real(rkx) :: pa, phi, rf, rs, dtcdt, ts, ts_bar
+    real(rkx) :: tf, ps, flux1, flux2, flux3, m, m_bar
 
     pa    = rh*pvstar(ta)
     phi   = 0.84_rkx
@@ -248,10 +248,10 @@ module mod_heatindex
   pure function find_eqvar(ta,rh)
 #endif
     implicit none
-    real(rkx) , dimension(4) :: find_eqvar
-    real(rkx) , intent(in) :: ta , rh
-    real(rkx) :: pa , phi , rf , rs , dtcdt , ts , ts_bar
-    real(rkx) :: tf , ps , flux1 , flux2 , flux3 , m , m_bar
+    real(rkx), dimension(4) :: find_eqvar
+    real(rkx), intent(in) :: ta, rh
+    real(rkx) :: pa, phi, rf, rs, dtcdt, ts, ts_bar
+    real(rkx) :: tf, ps, flux1, flux2, flux3, m, m_bar
 
     pa    = rh*pvstar(ta)
     phi   = 0.84_rkx
@@ -300,8 +300,8 @@ module mod_heatindex
   pure real(rkx) function find_t(eqvar_indx, eqvar)
 #endif
     implicit none
-    integer , intent(in) :: eqvar_indx
-    real(rkx) , intent(in) :: eqvar
+    integer, intent(in) :: eqvar_indx
+    real(rkx), intent(in) :: eqvar
     real(rkx) :: t
 
     select case ( eqvar_indx )
@@ -331,7 +331,7 @@ module mod_heatindex
   pure real(rkx) function heatindex(ta,rh)
 #endif
     implicit none
-    real(rkx), intent(in) :: ta , rh
+    real(rkx), intent(in) :: ta, rh
     type(eqvar) :: initial
 
     if ( ta == 0.0_rkx ) then
@@ -359,10 +359,10 @@ module mod_heatindex
   pure real(rkx) function solve1(ta,pa,rs,x1,x2,err,maxiter)
 #endif
     implicit none
-    real(rkx) , intent(in) :: ta , pa , rs , x1 , x2 , err
-    integer , intent(in) :: maxiter
+    real(rkx), intent(in) :: ta, pa, rs, x1, x2, err
+    integer, intent(in) :: maxiter
     integer :: iter
-    real(rkx) :: a , b , c , fa , fb , fc
+    real(rkx) :: a, b, c, fa, fb, fc
 
     a = x1
     b = x2
@@ -374,7 +374,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solve1')
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra(c,ta) + (pc-pa)/(zs(rs)+za) - (tc-c)/rs
       if ( abs(b-a) < err ) exit
@@ -397,10 +397,10 @@ module mod_heatindex
   pure real(rkx) function solve2(ta,pa,rs,x1,x2,err,maxiter)
 #endif
     implicit none
-    real(rkx) , intent(in) :: ta , pa , rs , x1 , x2 , err
-    integer , intent(in) :: maxiter
+    real(rkx), intent(in) :: ta, pa, rs, x1, x2, err
+    integer, intent(in) :: maxiter
     integer :: iter
-    real(rkx) :: a , b , c , fa , fb , fc
+    real(rkx) :: a, b, c, fa, fb, fc
 
     a = x1
     b = x2
@@ -412,7 +412,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solve2')
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_bar(c,ta) + (pc-pa)/(zs(rs)+za_bar) - (tc-c)/rs
       if ( abs(b-a) < err ) exit
@@ -435,10 +435,10 @@ module mod_heatindex
   pure real(rkx) function solve3(ta,pa,rs,ts_bar,x1,x2,err,maxiter)
 #endif
     implicit none
-    real(rkx) , intent(in) :: ta , pa , rs , ts_bar , x1 , x2 , err
-    integer , intent(in) :: maxiter
+    real(rkx), intent(in) :: ta, pa, rs, ts_bar, x1, x2, err
+    integer, intent(in) :: maxiter
     integer :: iter
-    real(rkx) :: a , b , c , fa , fb , fc
+    real(rkx) :: a, b, c, fa, fb, fc
 
     a = x1
     b = x2
@@ -455,7 +455,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solve3')
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_bar(c,ta) + (pc-pa)*(c-ta)/((c-ta)*(zs(rs)+za_bar) + &
         r*ra_bar(c,ta)*(ts_bar-c)) - (tc-ts_bar)/rs
@@ -479,10 +479,10 @@ module mod_heatindex
   pure real(rkx) function solve4(ta,pa,x1,x2,err,maxiter)
 #endif
     implicit none
-    real(rkx) , intent(in) :: ta , pa , x1 , x2 , err
-    integer , intent(in) :: maxiter
+    real(rkx), intent(in) :: ta, pa, x1, x2, err
+    integer, intent(in) :: maxiter
     integer :: iter
-    real(rkx) :: a , b , c , fa , fb , fc
+    real(rkx) :: a, b, c, fa, fb, fc
 
     a = x1
     b = x2
@@ -496,7 +496,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solve4')
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_un(c,ta) + &
         (pc-pa)/(zs((tc-c)/(q-qv(ta,pa)))+za_un)-(q-qv(ta,pa))
@@ -520,10 +520,10 @@ module mod_heatindex
   pure real(rkx) function solve5(ta,pa,x1,x2,err,maxiter)
 #endif
     implicit none
-    real(rkx) , intent(in) :: ta , pa , x1 , x2 , err
-    integer , intent(in) :: maxiter
+    real(rkx), intent(in) :: ta, pa, x1, x2, err
+    integer, intent(in) :: maxiter
     integer :: iter
-    real(rkx) :: a , b , c , fa , fb , fc
+    real(rkx) :: a, b, c, fa, fb, fc
 
     a = x1
     b = x2
@@ -535,7 +535,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solve5')
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_un(c,ta) + (phi_salt*pvstar(c)-pa)/za_un -(q-qv(ta,pa))
       if ( abs(b-a) < err ) exit
@@ -558,10 +558,10 @@ module mod_heatindex
   pure real(rkx) function solvei(eqvar)
 #endif
     implicit none
-    real(rkx) , intent(in) :: eqvar
+    real(rkx), intent(in) :: eqvar
     integer :: iter
-    real(rkx) :: a , b , c , fa , fb , fc
-    real(rkx) , dimension(4) :: tmp
+    real(rkx) :: a, b, c, fa, fb, fc
+    real(rkx), dimension(4) :: tmp
 
     a = 0.0_rkx
     b = 240.0_rkx
@@ -575,7 +575,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solvei')
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,1.0_rkx)
       fc = tmp(1) - eqvar
@@ -599,10 +599,10 @@ module mod_heatindex
   pure real(rkx) function solveii(eqvar)
 #endif
     implicit none
-    real(rkx) , intent(in) :: eqvar
+    real(rkx), intent(in) :: eqvar
     integer :: iter
-    real(rkx) :: a , b , c , fa , fb , fc
-    real(rkx) , dimension(4) :: tmp
+    real(rkx) :: a, b, c, fa, fb, fc
+    real(rkx), dimension(4) :: tmp
 
     a = 230.0_rkx
     b = 300.0_rkx
@@ -617,7 +617,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solveii')
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,min(1.0_rkx,pa0/pvstar(c)))
       fc = tmp(2) - eqvar
@@ -641,10 +641,10 @@ module mod_heatindex
   pure real(rkx) function solveiii(eqvar)
 #endif
     implicit none
-    real(rkx) , intent(in) :: eqvar
+    real(rkx), intent(in) :: eqvar
     integer :: iter
-    real(rkx) :: a , b , c , fa , fb , fc
-    real(rkx) , dimension(4) :: tmp
+    real(rkx) :: a, b, c, fa, fb, fc
+    real(rkx), dimension(4) :: tmp
 
     a = 295.0_rkx
     b = 350.0_rkx
@@ -658,7 +658,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solveiii')
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,pa0/pvstar(c))
       fc = tmp(3) - eqvar
@@ -682,10 +682,10 @@ module mod_heatindex
   pure real(rkx) function solveiv(eqvar)
 #endif
     implicit none
-    real(rkx) , intent(in) :: eqvar
+    real(rkx), intent(in) :: eqvar
     integer :: iter
-    real(rkx) :: a , b , c , fa , fb , fc
-    real(rkx) , dimension(4) :: tmp
+    real(rkx) :: a, b, c, fa, fb, fc
+    real(rkx), dimension(4) :: tmp
 
     a = 340.0_rkx
     b = 800.0_rkx
@@ -699,7 +699,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solveiv')
     end if
 #endif
-    do iter = 1 , maxiter
+    do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,pa0/pvstar(c))
       fc = tmp(4) - eqvar

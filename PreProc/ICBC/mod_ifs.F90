@@ -37,53 +37,53 @@ module mod_ifs
 
   private
 
-  integer(ik4) :: jlat , ilon , klev , hynlev
+  integer(ik4) :: jlat, ilon, klev, hynlev
 
-  real(rkx) , pointer , dimension(:,:,:) :: b3
-  real(rkx) , pointer , dimension(:,:,:) :: d3
-  real(rkx) , pointer , dimension(:,:,:) :: d3u , d3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3u, d3v
 
-  real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rkx) , pointer :: u3v(:,:,:) , v3u(:,:,:)
-  real(rkx) , pointer :: p3(:,:,:) , pd3(:,:,:)
-  real(rkx) , pointer :: q3(:,:,:) , t3(:,:,:) , z3(:,:,:)
-  real(rkx) , pointer :: l3(:,:,:) , i3(:,:,:)
-  real(rkx) , pointer :: z3u(:,:,:) , z3v(:,:,:)
-  real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:) , pvar(:,:,:)
-  real(rkx) , pointer :: qvar(:,:,:) , tvar(:,:,:)
-  real(rkx) , pointer :: clvar(:,:,:) , civar(:,:,:)
-  real(rkx) , pointer :: p_out(:,:,:) , pd_out(:,:,:)
-  real(rkx) , pointer :: topou(:,:) , topov(:,:)
-  real(rkx) , pointer :: xps(:,:) , skt(:,:) , yts(:,:)
-  real(rkx) , pointer :: xzs(:,:) , yzs(:,:)
-  real(rkx) , pointer :: ps(:,:) , ts(:,:) , zs(:,:) , z1(:,:) , t1(:,:)
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3, v3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: p3, pd3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: q3, t3, z3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: l3, i3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: z3u, z3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: uvar, vvar, pvar
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qvar, tvar
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: clvar, civar
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: p_out, pd_out
+  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
+  real(rkx), pointer, contiguous, dimension(:,:) :: xps, skt, yts
+  real(rkx), pointer, contiguous, dimension(:,:) :: xzs, yzs
+  real(rkx), pointer, contiguous, dimension(:,:) :: ps, ts, zs, z1, t1
 
-  real(rkx) , pointer , dimension(:,:,:) :: b2
-  real(rkx) , pointer , dimension(:,:,:) :: d2
-  real(rkx) , pointer , dimension(:) :: glat
-  real(rkx) , pointer , dimension(:) :: glon
-  integer(ik4) , pointer , dimension(:) :: slev
-  real(rkx) , pointer , dimension(:) :: hyam , hybm
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d2
+  real(rkx), pointer, contiguous, dimension(:) :: glat
+  real(rkx), pointer, contiguous, dimension(:) :: glon
+  integer(ik4), pointer, contiguous, dimension(:) :: slev
+  real(rkx), pointer, contiguous, dimension(:) :: hyam, hybm
 
   integer(ik4) :: ncin
-  integer(ik4) , parameter :: nrvar = 11
-  character(len=4) , dimension(nrvar) , parameter :: varname = &
-           ['t   ' , 'q   ' , 'u   ' , 'v   ' , 'clwc' , 'ciwc' , &
-            'lnsp' , 'skt ' , 'st  ' , 'z   ' , 'z_2 ']
-  integer(ik4) , dimension(nrvar) :: ivar
+  integer(ik4), parameter :: nrvar = 11
+  character(len=4), dimension(nrvar), parameter :: varname = &
+           ['t   ', 'q   ', 'u   ', 'v   ', 'clwc', 'ciwc', &
+            'lnsp', 'skt ', 'st  ', 'z   ', 'z_2 ']
+  integer(ik4), dimension(nrvar) :: ivar
 
-  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
+  type(h_interpolator) :: cross_hint, udot_hint, vdot_hint
 
-  public :: init_ifs , get_ifs , conclude_ifs
+  public :: init_ifs, get_ifs, conclude_ifs
 
   contains
 
   subroutine init_ifs
     implicit none
-    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
-    integer(ik4) :: istatus , ncid , ivarid , idimid
-    integer(ik4) :: i , j , k
+    integer(ik4) :: istatus, ncid, ivarid, idimid
+    integer(ik4) :: i, j, k
     character(len=64) :: inname
 
     call split_idate(globidate1,year,month,day,hour)
@@ -228,9 +228,9 @@ module mod_ifs
       call ucrs2dot(topou,topogm,jx,iy,i_band)
       call vcrs2dot(topov,topogm,jx,iy,i_crm)
     else if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = 1 , iy
-          do j = 1 , jx
+      do k = 1, kz
+        do i = 1, iy
+          do j = 1, jx
             p_out(j,i,k) = ps0(j,i)*d_r1000*sigmah(k) + ptop
           end do
         end do
@@ -241,13 +241,13 @@ module mod_ifs
 
   subroutine get_ifs(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: i , j , k
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: i, j, k
     !
     ! Read data at idate
     !
     call ifs6hour(idate)
-    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    write (stdout,*) 'READ IN fields at DATE:', tochar(idate)
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
@@ -278,15 +278,15 @@ module mod_ifs
     !
     ps = ps * d_r1000 ! move ps in cb
     if ( idynamic == 3 ) then
-      do i = 1 , iy
-        do j = 1 , jx
+      do i = 1, iy
+        do j = 1, jx
           z3(j,i,klev) = zs(j,i) + log(ps(j,i)/p3(j,i,klev))*rovg* &
                        0.5_rkx * (t3(j,i,klev)+ts(j,i))
         end do
       end do
       do k = klev-1, 1, -1
-        do i = 1 , iy
-          do j = 1 , jx
+        do i = 1, iy
+          do j = 1, jx
             z3(j,i,k) = z3(j,i,k+1) + log(p3(j,i,k+1)/p3(j,i,k))*rovg* &
                 d_half * (t3(j,i,k+1)*(d_one+ep1*q3(j,i,k+1)) + &
                           t3(j,i,k)*(d_one+ep1*q3(j,i,k)))
@@ -299,9 +299,9 @@ module mod_ifs
     else
       call intpsn(ps4,topogm,ps,zs,ts,ptop,jx,iy)
       if ( idynamic == 1 ) then
-        do k = 1 , kz
-          do i = 1 , iy
-            do j = 1 , jx
+        do k = 1, kz
+          do i = 1, iy
+            do j = 1, jx
               p_out(j,i,k) = ps4(j,i) * sigmah(k) + ptop
             end do
           end do
@@ -356,11 +356,11 @@ module mod_ifs
 
   subroutine ifs6hour(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: k , it , iv , istatus
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: k, it, iv, istatus
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: year, month, day, hour
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -374,7 +374,7 @@ module mod_ifs
     istatus = nf90_open(pathaddname,nf90_nowrite,ncin)
     call checkncerr(istatus,__FILE__,__LINE__, &
                      'Error open file '//trim(pathaddname))
-    do iv = 1 , size(varname)
+    do iv = 1, size(varname)
       istatus = nf90_inq_varid(ncin,varname(iv), ivar(iv))
       call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var '//varname(iv))
@@ -382,7 +382,7 @@ module mod_ifs
 
     it = 1
 
-    do iv = 1 , size(varname)
+    do iv = 1, size(varname)
       if ( iv == 1 ) then
         call getwork3(ivar(iv),tvar)
       else if ( iv == 2 ) then
@@ -412,7 +412,7 @@ module mod_ifs
       end if
     end do
 
-    do k = 1 , klev
+    do k = 1, klev
       pvar(:,:,k) = d_r1000*(hyam(slev(k)) + xps(:,:) * hybm(slev(k))) ! cb
     end do
 
@@ -420,9 +420,9 @@ module mod_ifs
 
       subroutine getwork3(vid,var)
         implicit none
-        real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: var
-        integer(ik4) , intent(in) :: vid
-        integer(ik4) , dimension(4) :: icount , istart
+        real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: var
+        integer(ik4), intent(in) :: vid
+        integer(ik4), dimension(4) :: icount, istart
         istart(1) = 1
         istart(2) = 1
         istart(3) = 1
@@ -438,9 +438,9 @@ module mod_ifs
 
       subroutine getwork2(vid,var)
         implicit none
-        real(rkx) , pointer , intent(inout) , dimension(:,:) :: var
-        integer(ik4) , intent(in) :: vid
-        integer(ik4) , dimension(3) :: icount , istart
+        real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: var
+        integer(ik4), intent(in) :: vid
+        integer(ik4), dimension(3) :: icount, istart
         istart(1) = 1
         istart(2) = 1
         istart(3) = it
@@ -454,9 +454,9 @@ module mod_ifs
 
       subroutine getwork23(vid,var)
         implicit none
-        real(rkx) , pointer , intent(inout) , dimension(:,:) :: var
-        integer(ik4) , intent(in) :: vid
-        integer(ik4) , dimension(4) :: icount , istart
+        real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: var
+        integer(ik4), intent(in) :: vid
+        integer(ik4), dimension(4) :: icount, istart
         istart(1) = 1
         istart(2) = 1
         istart(3) = 1

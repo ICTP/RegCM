@@ -30,43 +30,43 @@ module mod_che_pollen
   ! Parameter usefull for wet and dry deposition of carbon aerosol
   ! densities in kg/m3
   !
-  real(rkx) , public , parameter :: rhopollen = 1200.0_rkx
+  real(rkx), public, parameter :: rhopollen = 1200.0_rkx
   !
   ! effctive dimaters ( and not radius!)  in micrometer
   ! ( should they be defined intercatively in the future ? )
   !
-  real(rkx) , public , parameter :: reffpollen = 20._rkx
+  real(rkx), public, parameter :: reffpollen = 20._rkx
   !
   ! solubility of carbon aer for rain out param of giorgi and chameides
   !
-  real(rkx) , parameter :: solpollen = 0.05_rkx
+  real(rkx), parameter :: solpollen = 0.05_rkx
   !
   ! flowering factor, a raffiner en fonction calendrier floraison
   !
-  real(rkx) , parameter :: ce = 1.e-4_rkx
-  real(rkx) , parameter :: htc = d_one ! cover height
-  real(rkx) , parameter :: uconv = d_zero
+  real(rkx), parameter :: ce = 1.e-4_rkx
+  real(rkx), parameter :: htc = d_one ! cover height
+  real(rkx), parameter :: uconv = d_zero
 
-  public :: solpollen , pollen_emission
+  public :: solpollen, pollen_emission
 
   contains
 
     subroutine pollen_emission(ustar, wind10, rh10, prec, convprec)
       implicit none
-      real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) , intent(in) :: ustar
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: wind10 , rh10
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: prec , convprec
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: emispol
-      integer(ik4) :: i , j
-      real (rkx) :: emispot , precip , fh , fw , fr
+      real(rkx), dimension(luc,jci1:jci2,ici1:ici2), intent(in) :: ustar
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: wind10, rh10
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: prec, convprec
+      real(rkx), dimension(jci1:jci2,ici1:ici2) :: emispol
+      integer(ik4) :: i, j
+      real (rkx) :: emispot, precip, fh, fw, fr
       !
       ! calculate the actual pollen flux corrected for meteo
       ! receive emission potential in grain/m2/hr
       !
       emispol(:,:) = d_zero
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
 
           ! in particle/m2 + derniere correction
           emispot = chemsrc(j,i,ipollen) * 24._rkx
@@ -104,8 +104,8 @@ module mod_che_pollen
 
       if ( ichdrdepo /= 2 ) then
         if ( idynamic == 3 ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               chiten(j,i,kz,ipollen) = chiten(j,i,kz,ipollen) + &
                         emispol(j,i)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
               ! diagnostic for source, cumul
@@ -113,8 +113,8 @@ module mod_che_pollen
             end do
           end do
         else
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               chiten(j,i,kz,ipollen) = chiten(j,i,kz,ipollen) + &
                         emispol(j,i)/(cdzq(j,i,kz)*crhob3d(j,i,kz))*cpsb(j,i)
               ! diagnostic for source, cumul
@@ -123,8 +123,8 @@ module mod_che_pollen
           end do
         end if
       else if ( ichdrdepo == 2 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             !then emission is injected in the PBL scheme
             chifxuw(j,i,ipollen) = chifxuw(j,i,ipollen) + emispol(j,i)
             ! diagnostic for source, cumul

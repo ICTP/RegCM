@@ -33,144 +33,144 @@ module mod_rad_aerosol
   use mod_date
   use mod_stdio
   use mod_vertint
-  use parrrsw , only : nbndsw
-  use parrrtm , only : nbndlw
+  use parrrsw, only : nbndsw
+  use parrrtm, only : nbndlw
   use netcdf
   use mo_simple_plumes
   implicit none
 
   private
 
-  public :: tauxar3d , tauasc3d , gtota3d , ftota3d
-  public :: aermmr , aertrlw , tauxar3d_lw
-  public :: allocate_mod_rad_aerosol , aeroppt
-  public :: read_aerclima , close_aerclima
-  public :: init_aeroppdata , read_aeroppdata
+  public :: tauxar3d, tauasc3d, gtota3d, ftota3d
+  public :: aermmr, aertrlw, tauxar3d_lw
+  public :: allocate_mod_rad_aerosol, aeroppt
+  public :: read_aerclima, close_aerclima
+  public :: init_aeroppdata, read_aeroppdata
   public :: cmip6_plume_profile
-  public :: aerclima_ntr , aerclima_nbin
+  public :: aerclima_ntr, aerclima_nbin
   !
-  character(len=256) :: macv2sp_hist , macv2sp_scen
-  real(rk8) , pointer , dimension(:) :: lambdaw => null( )
-  real(rk8) , pointer , dimension(:) :: latr4 => null( )
-  real(rk8) , pointer , dimension(:) :: lonr4 => null( )
-  real(rk8) , pointer , dimension(:) :: altr4 => null( )
-  real(rk8) , pointer , dimension(:,:) :: z => null( )
-  real(rk8) , pointer , dimension(:,:) :: dz => null( )
-  real(rk8) , pointer , dimension(:) :: dnovrnr4 => null( )
-  real(rk8) , pointer , dimension(:,:,:) :: extprofr4 => null( )
-  real(rk8) , pointer , dimension(:,:,:) :: ssaprofr4 => null( )
-  real(rk8) , pointer , dimension(:,:,:) :: asyprofr4 => null( )
-  real(rkx) , pointer , dimension(:) :: lat => null( )
-  real(rkx) , pointer , dimension(:) :: lon => null( )
-  real(rkx) , pointer , dimension(:,:) :: alon => null( )
-  real(rkx) , pointer , dimension(:,:) :: alat => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: extprof => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: ssaprof => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: asyprof => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: zpr3d => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: zdzr3d => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: rdvar => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: hzivar => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: plvar => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: p1 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: p2 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: plext1 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: plext2 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: plssa1 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: plssa2 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: plasy1 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: plasy2 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: pldp1 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: pldp2 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: pl1 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: pl2 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: sgvar => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: sgext1 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: sgext2 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: sgssa1 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: sgssa2 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: sgasy1 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: sgasy2 => null( )
+  character(len=256) :: macv2sp_hist, macv2sp_scen
+  real(rk8), pointer, contiguous, dimension(:) :: lambdaw => null( )
+  real(rk8), pointer, contiguous, dimension(:) :: latr4 => null( )
+  real(rk8), pointer, contiguous, dimension(:) :: lonr4 => null( )
+  real(rk8), pointer, contiguous, dimension(:) :: altr4 => null( )
+  real(rk8), pointer, contiguous, dimension(:,:) :: z => null( )
+  real(rk8), pointer, contiguous, dimension(:,:) :: dz => null( )
+  real(rk8), pointer, contiguous, dimension(:) :: dnovrnr4 => null( )
+  real(rk8), pointer, contiguous, dimension(:,:,:) :: extprofr4 => null( )
+  real(rk8), pointer, contiguous, dimension(:,:,:) :: ssaprofr4 => null( )
+  real(rk8), pointer, contiguous, dimension(:,:,:) :: asyprofr4 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: lat => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: lon => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: alon => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: alat => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: extprof => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: ssaprof => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: asyprof => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zpr3d => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zdzr3d => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: rdvar => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hzivar => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: plvar => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: p1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: p2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: plext1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: plext2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: plssa1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: plssa2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: plasy1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: plasy2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: pldp1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: pldp2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: pl1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: pl2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: sgvar => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: sgext1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: sgext2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: sgssa1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: sgssa2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: sgasy1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: sgasy2 => null( )
   type(h_interpolator) :: hint
   integer(ik4) :: ncid = -1
-  integer(ik4) :: clnlon , clnlat , clnlev
+  integer(ik4) :: clnlon, clnlat, clnlev
   !
-  integer(ik4) , parameter :: ncoefs = 5  ! Number of coefficients
-  integer(ik4) , parameter :: nwav = 19
-  integer(ik4) , parameter :: nih = 8
+  integer(ik4), parameter :: ncoefs = 5  ! Number of coefficients
+  integer(ik4), parameter :: nwav = 19
+  integer(ik4), parameter :: nih = 8
 
   logical :: aerclima_init = .false.
-  integer(ik4) , parameter :: aerclima_ntr = 12
-  integer(ik4) , parameter :: aerclima_nbin = 4
+  integer(ik4), parameter :: aerclima_ntr = 12
+  integer(ik4), parameter :: aerclima_nbin = 4
 
-  integer(ik4) , parameter :: nacwb  = 5 ! number of waveband MERRA aerosol clim
+  integer(ik4), parameter :: nacwb  = 5 ! number of waveband MERRA aerosol clim
                                          ! might be completed in the future
-  integer(ik4) :: ncaec , ncstatus , naetime
-  integer(ik4) , dimension(aerclima_ntr) :: ncaevar
-  type(rcm_time_and_date) , dimension(:) , allocatable :: aetime
-  type(rcm_time_and_date) :: d1 , d2
+  integer(ik4) :: ncaec, ncstatus, naetime
+  integer(ik4), dimension(aerclima_ntr) :: ncaevar
+  type(rcm_time_and_date), dimension(:), allocatable :: aetime
+  type(rcm_time_and_date) :: d1, d2
   type(rcm_time_interval) :: aefreq
   real(rkx) :: aerfreq
-  real(rkx) , pointer , dimension(:,:,:,:) :: aerm1 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: aerm2 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: aerio => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: aerm1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: aerm2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: aerio => null( )
 
-  real(rkx) , parameter :: d10e5  = 1.0e+5_rkx
-  real(rkx) , parameter :: d10e4  = 1.0e+4_rkx
-  real(rkx) , parameter :: minimum_aerosol = 1.0e-14_rkx
-  real(rkx) , parameter :: minimum_utaer   = 1.0e-10_rkx
-  real(rkx) , parameter :: minimum_waer   = 1.0e-30_rkx
-  real(rkx) , parameter :: minimum_gaer   = 1.0e-20_rkx
-  real(rkx) , parameter :: fiveothree  = d_five/d_three
+  real(rkx), parameter :: d10e5  = 1.0e+5_rkx
+  real(rkx), parameter :: d10e4  = 1.0e+4_rkx
+  real(rkx), parameter :: minimum_aerosol = 1.0e-14_rkx
+  real(rkx), parameter :: minimum_utaer   = 1.0e-10_rkx
+  real(rkx), parameter :: minimum_waer   = 1.0e-30_rkx
+  real(rkx), parameter :: minimum_gaer   = 1.0e-20_rkx
+  real(rkx), parameter :: fiveothree  = d_five/d_three
   !
   ! Sulfate param for standard scheme / works only with rad standard
   ! (Brieglieb et al.)
-  real(rkx) , pointer , dimension(:,:,:) :: aermmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: aermmr => null( )
 
   ! optical properties for dust and org / for rrtm and standard scheme
 
-  real(rkx) , dimension(nbndsw) :: gsbc_hb_rrtm , gsbc_hl_rrtm , &
-    gsoc_hb_rrtm , gsoc_hl_rrtm , ksbc_hb_rrtm , ksbc_hl_rrtm ,  &
-    ksoc_hb_rrtm , ksoc_hl_rrtm , wsbc_hb_rrtm , wsbc_hl_rrtm ,  &
-    wsoc_hb_rrtm , wsoc_hl_rrtm
+  real(rkx), dimension(nbndsw) :: gsbc_hb_rrtm, gsbc_hl_rrtm, &
+    gsoc_hb_rrtm, gsoc_hl_rrtm, ksbc_hb_rrtm, ksbc_hl_rrtm,  &
+    ksoc_hb_rrtm, ksoc_hl_rrtm, wsbc_hb_rrtm, wsbc_hl_rrtm,  &
+    wsoc_hb_rrtm, wsoc_hl_rrtm
 
-  real(rkx) , dimension(nspi,2) :: gssslt , kssslt , wssslt
+  real(rkx), dimension(nspi,2) :: gssslt, kssslt, wssslt
   !
   ! Depth
   !
-  real(rkx) , pointer , dimension(:,:) :: path => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: path => null( )
   !
   ! Aerosol optical properties (for the mixing)
   !
-  real(rkx) , pointer , dimension(:) :: gsbc_hb => null( )
-  real(rkx) , pointer , dimension(:) :: gsbc_hl => null( )
-  real(rkx) , pointer , dimension(:) :: gsoc_hb => null( )
-  real(rkx) , pointer , dimension(:) :: gsoc_hl => null( )
-  real(rkx) , pointer , dimension(:) :: ksbc_hb => null( )
-  real(rkx) , pointer , dimension(:) :: ksbc_hl => null( )
-  real(rkx) , pointer , dimension(:) :: ksoc_hb => null( )
-  real(rkx) , pointer , dimension(:) :: ksoc_hl => null( )
-  real(rkx) , pointer , dimension(:) :: wsbc_hb => null( )
-  real(rkx) , pointer , dimension(:) :: wsbc_hl => null( )
-  real(rkx) , pointer , dimension(:) :: wsoc_hb => null( )
-  real(rkx) , pointer , dimension(:) :: wsoc_hl => null( )
-  real(rkx) , pointer , dimension(:) :: gssm1 => null( )
-  real(rkx) , pointer , dimension(:) :: gssm2 => null( )
-  real(rkx) , pointer , dimension(:) :: kssm1 => null( )
-  real(rkx) , pointer , dimension(:) :: kssm2 => null( )
-  real(rkx) , pointer , dimension(:) :: wssm1 => null( )
-  real(rkx) , pointer , dimension(:) :: wssm2 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: gsbc_hb => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: gsbc_hl => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: gsoc_hb => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: gsoc_hl => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: ksbc_hb => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: ksbc_hl => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: ksoc_hb => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: ksoc_hl => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: wsbc_hb => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: wsbc_hl => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: wsoc_hb => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: wsoc_hl => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: gssm1 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: gssm2 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: kssm1 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: kssm2 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: wssm1 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: wssm2 => null( )
 
-  real(rkx) , pointer,  dimension(:,:) :: gsdust => null( )
-  real(rkx) , pointer,  dimension(:,:) :: ksdust => null( )
-  real(rkx) , pointer,  dimension(:,:) :: wsdust => null( )
-  real(rkx) , pointer,  dimension(:,:) :: ksdust_lw => null( )
+  real(rkx), pointer, contiguous,  dimension(:,:) :: gsdust => null( )
+  real(rkx), pointer, contiguous,  dimension(:,:) :: ksdust => null( )
+  real(rkx), pointer, contiguous,  dimension(:,:) :: wsdust => null( )
+  real(rkx), pointer, contiguous,  dimension(:,:) :: ksdust_lw => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: ftota3d => null( )
-  real(rkx) , pointer,  dimension(:,:,:) :: gtota3d => null( )
-  real(rkx) , pointer,  dimension(:,:,:) :: tauasc3d => null( )
-  real(rkx) , pointer,  dimension(:,:,:) :: tauxar3d => null( )
-  real(rkx) , pointer,  dimension(:,:,:) :: tauxar3d_lw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ftota3d => null( )
+  real(rkx), pointer, contiguous,  dimension(:,:,:) :: gtota3d => null( )
+  real(rkx), pointer, contiguous,  dimension(:,:,:) :: tauasc3d => null( )
+  real(rkx), pointer, contiguous,  dimension(:,:,:) :: tauxar3d => null( )
+  real(rkx), pointer, contiguous,  dimension(:,:,:) :: tauxar3d_lw => null( )
   !
   ! Work arrays for aeroppt (aerosol individual optical properties SW)
   !
@@ -184,24 +184,24 @@ module mod_rad_aerosol
   ! faer          - Aerosol forward scattered fraction
   !
   !
-  real(rkx) , pointer , dimension(:,:) :: aermtot => null( )
-  real(rkx) , pointer , dimension(:,:) :: aervtot => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: fa => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ga => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tx => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: uaer => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: wa => null( )
-  real(rkx) , pointer , dimension(:,:) :: faer => null( )
-  real(rkx) , pointer , dimension(:,:) :: gaer => null( )
-  real(rkx) , pointer , dimension(:,:) :: tauaer => null( )
-  real(rkx) , pointer , dimension(:,:) :: utaer => null( )
-  real(rkx) , pointer , dimension(:,:) :: waer => null( )
-  integer(ik4) :: npoints , nj
+  real(rkx), pointer, contiguous, dimension(:,:) :: aermtot => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: aervtot => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: fa => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ga => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: uaer => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: wa => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: faer => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: gaer => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: tauaer => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: utaer => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: waer => null( )
+  integer(ik4) :: npoints, nj
   integer(ik4) :: nband
   !
   ! Aersol LW optical properties
   !
-  real(rkx) , pointer , dimension(:,:,:) ::  aertrlw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) ::  aertrlw => null( )
   !
   !--------------------------------------------------------------------------
   !                  DATA SECTION
@@ -219,236 +219,236 @@ module mod_rad_aerosol
   !
   !
   ! DUST OP data base for external mixing : maximum of 4 bin for the
-  ! momeent , determined from Zender et al.
+  ! momeent, determined from Zender et al.
   !
   ! DATA section for optical properties relative to RRTM
   ! based on of line calculation considering the Kok et al., 2011 distribution
   !
 
-  real(rkx) , dimension(nspi) , parameter :: ksbase = [            &
-       5.206e+0_rkx , 5.206e+0_rkx , 5.206e+0_rkx , 5.206e+0_rkx , &
-       5.206e+0_rkx , 5.206e+0_rkx , 5.206e+0_rkx , 3.203e+0_rkx , &
-       3.203e+0_rkx , 1.302e+0_rkx , 5.992e-1_rkx , 2.948e-1_rkx , &
-       1.475e-1_rkx , 7.387e-2_rkx , 1.683e-1_rkx , 2.655e-1_rkx , &
-       5.770e-2_rkx , 2.290e-1_rkx , 2.270e-1_rkx ]
+  real(rkx), dimension(nspi), parameter :: ksbase = [            &
+       5.206e+0_rkx, 5.206e+0_rkx, 5.206e+0_rkx, 5.206e+0_rkx, &
+       5.206e+0_rkx, 5.206e+0_rkx, 5.206e+0_rkx, 3.203e+0_rkx, &
+       3.203e+0_rkx, 1.302e+0_rkx, 5.992e-1_rkx, 2.948e-1_rkx, &
+       1.475e-1_rkx, 7.387e-2_rkx, 1.683e-1_rkx, 2.655e-1_rkx, &
+       5.770e-2_rkx, 2.290e-1_rkx, 2.270e-1_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: wsbase = [            &
-       7.371e-8_rkx , 7.371e-8_rkx , 7.371e-8_rkx , 7.371e-8_rkx , &
-       7.371e-8_rkx , 7.371e-8_rkx , 7.371e-8_rkx , 6.583e-8_rkx , &
-       6.583e-8_rkx , 3.656e-6_rkx , 4.919e-5_rkx , 3.539e-3_rkx , &
-       2.855e-2_rkx , 2.126e-1_rkx , 8.433e-1_rkx , 9.653e-1_rkx , &
-       6.198e-1_rkx , 9.642e-1_rkx , 9.699e-1_rkx ]
+  real(rkx), dimension(nspi), parameter :: wsbase = [            &
+       7.371e-8_rkx, 7.371e-8_rkx, 7.371e-8_rkx, 7.371e-8_rkx, &
+       7.371e-8_rkx, 7.371e-8_rkx, 7.371e-8_rkx, 6.583e-8_rkx, &
+       6.583e-8_rkx, 3.656e-6_rkx, 4.919e-5_rkx, 3.539e-3_rkx, &
+       2.855e-2_rkx, 2.126e-1_rkx, 8.433e-1_rkx, 9.653e-1_rkx, &
+       6.198e-1_rkx, 9.642e-1_rkx, 9.699e-1_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: gsbase = [            &
-       6.899e-1_rkx , 6.899e-1_rkx , 6.899e-1_rkx , 6.899e-1_rkx , &
-       6.899e-1_rkx , 6.899e-1_rkx , 6.899e-1_rkx , 6.632e-1_rkx , &
-       6.632e-1_rkx , 5.912e-1_rkx , 5.111e-1_rkx , 4.269e-1_rkx , &
-       3.321e-1_rkx , 2.197e-1_rkx , 1.305e-1_rkx , 7.356e-2_rkx , &
-       1.602e-1_rkx , 6.883e-2_rkx , 6.304e-2_rkx ]
+  real(rkx), dimension(nspi), parameter :: gsbase = [            &
+       6.899e-1_rkx, 6.899e-1_rkx, 6.899e-1_rkx, 6.899e-1_rkx, &
+       6.899e-1_rkx, 6.899e-1_rkx, 6.899e-1_rkx, 6.632e-1_rkx, &
+       6.632e-1_rkx, 5.912e-1_rkx, 5.111e-1_rkx, 4.269e-1_rkx, &
+       3.321e-1_rkx, 2.197e-1_rkx, 1.305e-1_rkx, 7.356e-2_rkx, &
+       1.602e-1_rkx, 6.883e-2_rkx, 6.304e-2_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: ksbc_hb_stand = [ &
-       20.7830_rkx , 17.2120_rkx , 15.8640_rkx , 15.0530_rkx , &
-       14.3040_rkx , 13.6130_rkx , 11.9660_rkx ,  6.5782_rkx , &
-        4.3961_rkx ,  4.3800_rkx ,  2.1100_rkx ,  2.1100_rkx , &
-        2.1100_rkx ,  2.1100_rkx ,  1.4000_rkx ,  1.4000_rkx , &
-        1.4000_rkx ,  1.4000_rkx ,  1.4000_rkx ]
+  real(rkx), dimension(nspi), parameter :: ksbc_hb_stand = [ &
+       20.7830_rkx, 17.2120_rkx, 15.8640_rkx, 15.0530_rkx, &
+       14.3040_rkx, 13.6130_rkx, 11.9660_rkx,  6.5782_rkx, &
+        4.3961_rkx,  4.3800_rkx,  2.1100_rkx,  2.1100_rkx, &
+        2.1100_rkx,  2.1100_rkx,  1.4000_rkx,  1.4000_rkx, &
+        1.4000_rkx,  1.4000_rkx,  1.4000_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: wsbc_hb_stand = [     &
-       0.245240_rkx , 0.209620_rkx , 0.195000_rkx , 0.185860_rkx , &
-       0.177190_rkx , 0.168970_rkx , 0.148490_rkx , 0.071748_rkx , &
-       0.037536_rkx , 0.089000_rkx , 0.025000_rkx , 0.025000_rkx , &
-       0.025000_rkx , 0.025000_rkx , 0.009000_rkx , 0.009000_rkx , &
-       0.009000_rkx , 0.009000_rkx , 0.009000_rkx ]
+  real(rkx), dimension(nspi), parameter :: wsbc_hb_stand = [     &
+       0.245240_rkx, 0.209620_rkx, 0.195000_rkx, 0.185860_rkx, &
+       0.177190_rkx, 0.168970_rkx, 0.148490_rkx, 0.071748_rkx, &
+       0.037536_rkx, 0.089000_rkx, 0.025000_rkx, 0.025000_rkx, &
+       0.025000_rkx, 0.025000_rkx, 0.009000_rkx, 0.009000_rkx, &
+       0.009000_rkx, 0.009000_rkx, 0.009000_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: gsbc_hb_stand = [     &
-       0.213870_rkx , 0.171540_rkx , 0.155640_rkx , 0.146100_rkx , &
-       0.137320_rkx , 0.129230_rkx , 0.110060_rkx , 0.049175_rkx , &
-       0.026638_rkx , 0.220000_rkx , 0.123000_rkx , 0.123000_rkx , &
-       0.123000_rkx , 0.123000_rkx , 0.073000_rkx , 0.073000_rkx , &
-       0.073000_rkx , 0.073000_rkx , 0.073000_rkx ]
+  real(rkx), dimension(nspi), parameter :: gsbc_hb_stand = [     &
+       0.213870_rkx, 0.171540_rkx, 0.155640_rkx, 0.146100_rkx, &
+       0.137320_rkx, 0.129230_rkx, 0.110060_rkx, 0.049175_rkx, &
+       0.026638_rkx, 0.220000_rkx, 0.123000_rkx, 0.123000_rkx, &
+       0.123000_rkx, 0.123000_rkx, 0.073000_rkx, 0.073000_rkx, &
+       0.073000_rkx, 0.073000_rkx, 0.073000_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: ksbc_hl_stand = [ &
-       14.8510_rkx , 14.2580_rkx , 13.9430_rkx , 13.7240_rkx , &
-       13.5070_rkx , 13.2950_rkx , 12.7220_rkx ,  9.4434_rkx , &
-        6.9653_rkx ,  4.3800_rkx ,  2.1100_rkx ,  2.1100_rkx , &
-        2.1100_rkx ,  2.1100_rkx ,  1.4000_rkx ,  1.4000_rkx , &
-        1.4000_rkx ,  1.4000_rkx ,  1.4000_rkx ]
+  real(rkx), dimension(nspi), parameter :: ksbc_hl_stand = [ &
+       14.8510_rkx, 14.2580_rkx, 13.9430_rkx, 13.7240_rkx, &
+       13.5070_rkx, 13.2950_rkx, 12.7220_rkx,  9.4434_rkx, &
+        6.9653_rkx,  4.3800_rkx,  2.1100_rkx,  2.1100_rkx, &
+        2.1100_rkx,  2.1100_rkx,  1.4000_rkx,  1.4000_rkx, &
+        1.4000_rkx,  1.4000_rkx,  1.4000_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: wsbc_hl_stand = [ &
-       0.46081_rkx , 0.44933_rkx , 0.44397_rkx , 0.44065_rkx , &
-       0.43737_rkx , 0.43394_rkx , 0.42346_rkx , 0.35913_rkx , &
-       0.29579_rkx , 0.08900_rkx , 0.02500_rkx , 0.02500_rkx , &
-       0.02500_rkx , 0.02500_rkx , 0.00900_rkx , 0.00900_rkx , &
-       0.00900_rkx , 0.00900_rkx , 0.00900_rkx ]
+  real(rkx), dimension(nspi), parameter :: wsbc_hl_stand = [ &
+       0.46081_rkx, 0.44933_rkx, 0.44397_rkx, 0.44065_rkx, &
+       0.43737_rkx, 0.43394_rkx, 0.42346_rkx, 0.35913_rkx, &
+       0.29579_rkx, 0.08900_rkx, 0.02500_rkx, 0.02500_rkx, &
+       0.02500_rkx, 0.02500_rkx, 0.00900_rkx, 0.00900_rkx, &
+       0.00900_rkx, 0.00900_rkx, 0.00900_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: gsbc_hl_stand = [ &
-       0.69038_rkx , 0.65449_rkx , 0.63711_rkx , 0.62542_rkx , &
-       0.61407_rkx , 0.60319_rkx , 0.57467_rkx , 0.42050_rkx , &
-       0.30660_rkx , 0.22000_rkx , 0.12300_rkx , 0.12300_rkx , &
-       0.12300_rkx , 0.12300_rkx , 0.07300_rkx , 0.07300_rkx , &
-       0.07300_rkx , 0.07300_rkx , 0.07300_rkx ]
+  real(rkx), dimension(nspi), parameter :: gsbc_hl_stand = [ &
+       0.69038_rkx, 0.65449_rkx, 0.63711_rkx, 0.62542_rkx, &
+       0.61407_rkx, 0.60319_rkx, 0.57467_rkx, 0.42050_rkx, &
+       0.30660_rkx, 0.22000_rkx, 0.12300_rkx, 0.12300_rkx, &
+       0.12300_rkx, 0.12300_rkx, 0.07300_rkx, 0.07300_rkx, &
+       0.07300_rkx, 0.07300_rkx, 0.07300_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: ksoc_hb_stand = [         &
-       6.0584e+0_rkx , 6.0654e+0_rkx , 6.1179e+0_rkx , 6.0102e+0_rkx , &
-       5.8000e+0_rkx , 5.6957e+0_rkx , 5.6494e+0_rkx , 4.3283e+0_rkx , &
-       3.1485e+0_rkx , 1.3020e+0_rkx , 5.9920e-1_rkx , 2.9480e-1_rkx , &
-       1.4750e-1_rkx , 7.3870e-2_rkx , 1.6830e-1_rkx , 2.6550e-1_rkx , &
-       5.7700e-2_rkx , 2.2900e-1_rkx , 2.2700e-1_rkx ]
+  real(rkx), dimension(nspi), parameter :: ksoc_hb_stand = [         &
+       6.0584e+0_rkx, 6.0654e+0_rkx, 6.1179e+0_rkx, 6.0102e+0_rkx, &
+       5.8000e+0_rkx, 5.6957e+0_rkx, 5.6494e+0_rkx, 4.3283e+0_rkx, &
+       3.1485e+0_rkx, 1.3020e+0_rkx, 5.9920e-1_rkx, 2.9480e-1_rkx, &
+       1.4750e-1_rkx, 7.3870e-2_rkx, 1.6830e-1_rkx, 2.6550e-1_rkx, &
+       5.7700e-2_rkx, 2.2900e-1_rkx, 2.2700e-1_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: wsoc_hb_stand = [ &
-       0.91735_rkx , 0.92365_rkx , 0.92941_rkx , 0.93067_rkx , &
-       0.93311_rkx , 0.93766_rkx , 0.94042_rkx , 0.95343_rkx , &
-       0.95480_rkx , 0.70566_rkx , 0.70566_rkx , 0.70566_rkx , &
-       0.70566_rkx , 0.70566_rkx , 0.70566_rkx , 0.70566_rkx , &
-       0.70566_rkx , 0.70566_rkx , 0.70566_rkx ]
+  real(rkx), dimension(nspi), parameter :: wsoc_hb_stand = [ &
+       0.91735_rkx, 0.92365_rkx, 0.92941_rkx, 0.93067_rkx, &
+       0.93311_rkx, 0.93766_rkx, 0.94042_rkx, 0.95343_rkx, &
+       0.95480_rkx, 0.70566_rkx, 0.70566_rkx, 0.70566_rkx, &
+       0.70566_rkx, 0.70566_rkx, 0.70566_rkx, 0.70566_rkx, &
+       0.70566_rkx, 0.70566_rkx, 0.70566_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: gsoc_hb_stand = [             &
-       0.67489e+0_rkx , 0.67003e+0_rkx , 0.67725e+0_rkx , 0.65487e+0_rkx , &
-       0.65117e+0_rkx , 0.66116e+0_rkx , 0.64547e+0_rkx , 0.60033e+0_rkx , &
-       0.55389e+0_rkx , 5.91200e-1_rkx , 5.11100e-1_rkx , 4.26900e-1_rkx , &
-       3.32100e-1_rkx , 2.19700e-1_rkx , 1.30500e-1_rkx , 7.35600e-2_rkx , &
-       1.60200e-1_rkx , 6.88300e-2_rkx , 6.30400e-2_rkx ]
+  real(rkx), dimension(nspi), parameter :: gsoc_hb_stand = [             &
+       0.67489e+0_rkx, 0.67003e+0_rkx, 0.67725e+0_rkx, 0.65487e+0_rkx, &
+       0.65117e+0_rkx, 0.66116e+0_rkx, 0.64547e+0_rkx, 0.60033e+0_rkx, &
+       0.55389e+0_rkx, 5.91200e-1_rkx, 5.11100e-1_rkx, 4.26900e-1_rkx, &
+       3.32100e-1_rkx, 2.19700e-1_rkx, 1.30500e-1_rkx, 7.35600e-2_rkx, &
+       1.60200e-1_rkx, 6.88300e-2_rkx, 6.30400e-2_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: ksoc_hl_stand = [         &
-       3.5430e+0_rkx , 3.6230e+0_rkx , 3.7155e+0_rkx , 3.7120e+0_rkx , &
-       3.6451e+0_rkx , 3.6376e+0_rkx , 3.6844e+0_rkx , 3.4588e+0_rkx , &
-       2.9846e+0_rkx , 1.3020e+0_rkx , 5.9920e-1_rkx , 2.9480e-1_rkx , &
-       1.4750e-1_rkx , 7.3870e-2_rkx , 1.6830e-1_rkx , 2.6550e-1_rkx , &
-       5.7700e-2_rkx , 2.2900e-1_rkx , 2.2700e-1_rkx ]
+  real(rkx), dimension(nspi), parameter :: ksoc_hl_stand = [         &
+       3.5430e+0_rkx, 3.6230e+0_rkx, 3.7155e+0_rkx, 3.7120e+0_rkx, &
+       3.6451e+0_rkx, 3.6376e+0_rkx, 3.6844e+0_rkx, 3.4588e+0_rkx, &
+       2.9846e+0_rkx, 1.3020e+0_rkx, 5.9920e-1_rkx, 2.9480e-1_rkx, &
+       1.4750e-1_rkx, 7.3870e-2_rkx, 1.6830e-1_rkx, 2.6550e-1_rkx, &
+       5.7700e-2_rkx, 2.2900e-1_rkx, 2.2700e-1_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: wsoc_hl_stand = [ &
-       0.87931_rkx , 0.88292_rkx , 0.89214_rkx , 0.89631_rkx , &
-       0.89996_rkx , 0.90540_rkx , 0.90805_rkx , 0.93423_rkx , &
-       0.95012_rkx , 0.85546_rkx , 0.85546_rkx , 0.85546_rkx , &
-       0.85546_rkx , 0.85546_rkx , 0.85546_rkx , 0.85546_rkx , &
-       0.85546_rkx , 0.85546_rkx , 0.85546_rkx ]
+  real(rkx), dimension(nspi), parameter :: wsoc_hl_stand = [ &
+       0.87931_rkx, 0.88292_rkx, 0.89214_rkx, 0.89631_rkx, &
+       0.89996_rkx, 0.90540_rkx, 0.90805_rkx, 0.93423_rkx, &
+       0.95012_rkx, 0.85546_rkx, 0.85546_rkx, 0.85546_rkx, &
+       0.85546_rkx, 0.85546_rkx, 0.85546_rkx, 0.85546_rkx, &
+       0.85546_rkx, 0.85546_rkx, 0.85546_rkx ]
 
-  real(rkx) , dimension(nspi) , parameter :: gsoc_hl_stand = [             &
-       0.73126e+0_rkx , 0.71089e+0_rkx , 0.72042e+0_rkx , 0.69924e+0_rkx , &
-       0.69908e+0_rkx , 0.70696e+0_rkx , 0.68479e+0_rkx , 0.64879e+0_rkx , &
-       0.63433e+0_rkx , 5.91200e-1_rkx , 5.11100e-1_rkx , 4.26900e-1_rkx , &
-       3.32100e-1_rkx , 2.19700e-1_rkx , 1.30500e-1_rkx , 7.35600e-2_rkx , &
-       1.60200e-1_rkx , 6.88300e-2_rkx , 6.30400e-2_rkx ]
+  real(rkx), dimension(nspi), parameter :: gsoc_hl_stand = [             &
+       0.73126e+0_rkx, 0.71089e+0_rkx, 0.72042e+0_rkx, 0.69924e+0_rkx, &
+       0.69908e+0_rkx, 0.70696e+0_rkx, 0.68479e+0_rkx, 0.64879e+0_rkx, &
+       0.63433e+0_rkx, 5.91200e-1_rkx, 5.11100e-1_rkx, 4.26900e-1_rkx, &
+       3.32100e-1_rkx, 2.19700e-1_rkx, 1.30500e-1_rkx, 7.35600e-2_rkx, &
+       1.60200e-1_rkx, 6.88300e-2_rkx, 6.30400e-2_rkx ]
 
-  real(rkx) , dimension(8) , parameter :: rhp = [   &
-        0.00_rkx , 0.50_rkx , 0.70_rkx , 0.80_rkx , &
-        0.90_rkx , 0.95_rkx , 0.98_rkx , 0.99_rkx ]
+  real(rkx), dimension(8), parameter :: rhp = [   &
+        0.00_rkx, 0.50_rkx, 0.70_rkx, 0.80_rkx, &
+        0.90_rkx, 0.95_rkx, 0.98_rkx, 0.99_rkx ]
 
   ! sea salt oppt  param for standard scheme
 
-  real(rkx) , dimension(nbndsw) , parameter :: kssm1_rrtm = [       &
+  real(rkx), dimension(nbndsw), parameter :: kssm1_rrtm = [       &
       0.0600_rkx,  0.0840_rkx,  0.1110_rkx, 0.1420_rkx, 0.1940_rkx, &
       0.3010_rkx,  0.4110_rkx,  0.9340_rkx, 2.3400_rkx, 4.8800_rkx, &
       8.5250_rkx, 12.8970_rkx, 15.9180_rkx, 0.0281_rkx ]
 
-  real(rkx) , dimension(nbndsw) , parameter :: gssm1_rrtm = [     &
+  real(rkx), dimension(nbndsw), parameter :: gssm1_rrtm = [     &
       0.0180_rkx, 0.0270_rkx, 0.0390_rkx, 0.0510_rkx, 0.0680_rkx, &
       0.0990_rkx, 0.1260_rkx, 0.2160_rkx, 0.3830_rkx, 0.5310_rkx, &
       0.6290_rkx, 0.6930_rkx, 0.7270_rkx, 0.0046_rkx ]
 
-  real(rkx) , dimension(nbndsw) , parameter :: wssm1_rrtm = [     &
+  real(rkx), dimension(nbndsw), parameter :: wssm1_rrtm = [     &
       0.0710_rkx, 0.1230_rkx, 0.1880_rkx, 0.2550_rkx, 0.3400_rkx, &
       0.4610_rkx, 0.5410_rkx, 0.6710_rkx, 0.7970_rkx, 0.8480_rkx, &
       0.8750_rkx, 0.8840_rkx, 0.8750_rkx, 0.0114_rkx ]
 
-  real(rkx) , dimension(nbndsw) , parameter :: kssm2_rrtm = [       &
+  real(rkx), dimension(nbndsw), parameter :: kssm2_rrtm = [       &
       0.0450_rkx,  0.0650_rkx,  0.0930_rkx, 0.1290_rkx, 0.1920_rkx, &
       0.3340_rkx,  0.4810_rkx,  1.1640_rkx, 2.9190_rkx, 5.7520_rkx, &
       9.2420_rkx, 15.5280_rkx, 13.7550_rkx, 0.0181_rkx ]
 
-  real(rkx) , dimension(nbndsw) , parameter :: gssm2_rrtm = [     &
+  real(rkx), dimension(nbndsw), parameter :: gssm2_rrtm = [     &
       0.0258_rkx, 0.0390_rkx, 0.0550_rkx, 0.0720_rkx, 0.0970_rkx, &
       0.1410_rkx, 0.1790_rkx, 0.2950_rkx, 0.4790_rkx, 0.5990_rkx, &
       0.6710_rkx, 0.7130_rkx, 0.7210_rkx, 0.0070_rkx ]
 
-  real(rkx) , dimension(nbndsw) , parameter :: wssm2_rrtm = [     &
+  real(rkx), dimension(nbndsw), parameter :: wssm2_rrtm = [     &
       0.1670_rkx, 0.2680_rkx, 0.3750_rkx, 0.4680_rkx, 0.5650_rkx, &
       0.6760_rkx, 0.7380_rkx, 0.8180_rkx, 0.8870_rkx, 0.9120_rkx, &
       0.9230_rkx, 0.9210_rkx, 0.9040_rkx, 0.0290_rkx ]
 
-  character(len=6) , dimension(aerclima_ntr) , parameter :: aerclima_chtr = &
-     [ 'BC_HB ' , 'BC_HL ' , 'OC_HB ' , 'OC_HL ' , 'SO2   ' , 'SO4   ' ,    &
-       'SSLT01' , 'SSLT02' , 'DUST01' , 'DUST02' , 'DUST03' , 'DUST04' ]
+  character(len=6), dimension(aerclima_ntr), parameter :: aerclima_chtr = &
+     [ 'BC_HB ', 'BC_HL ', 'OC_HB ', 'OC_HL ', 'SO2   ', 'SO4   ',    &
+       'SSLT01', 'SSLT02', 'DUST01', 'DUST02', 'DUST03', 'DUST04' ]
 
-  real(rkx) , dimension(nspi,ncoefs) , parameter :: kscoef = reshape(   &
-  [ 0.1126E+02_rkx , 0.1126E+02_rkx , 0.1126E+02_rkx , 0.1126E+02_rkx , &
-    0.1126E+02_rkx , 0.1126E+02_rkx , 0.1126E+02_rkx , 0.1124E+02_rkx , &
-    0.1124E+02_rkx , 0.1222E+02_rkx , 0.1357E+02_rkx , 0.1557E+02_rkx , &
-    0.1758E+02_rkx , 0.1597E+02_rkx , 0.2107E+02_rkx , -.2424E+00_rkx , &
-    0.2535E+02_rkx , -.1545E+00_rkx , 0.8835E+00_rkx , -.2502E+00_rkx , &
-    -.2502E+00_rkx , -.2502E+00_rkx , -.2502E+00_rkx , -.2502E+00_rkx , &
-    -.2502E+00_rkx , -.2502E+00_rkx , -.3040E+00_rkx , -.3040E+00_rkx , &
-    -.3770E+00_rkx , -.4190E+00_rkx , -.4353E+00_rkx , -.4389E+00_rkx , &
-    -.4337E+00_rkx , -.3041E+00_rkx , -.1770E+00_rkx , -.2270E+00_rkx , &
-    -.1661E+00_rkx , -.1590E+00_rkx , -.1087E+01_rkx , -.1087E+01_rkx , &
-    -.1087E+01_rkx , -.1087E+01_rkx , -.1087E+01_rkx , -.1087E+01_rkx , &
-    -.1087E+01_rkx , -.1088E+01_rkx , -.1088E+01_rkx , -.1089E+01_rkx , &
-    -.1087E+01_rkx , -.1083E+01_rkx , -.1078E+01_rkx , -.1073E+01_rkx , &
-    -.1067E+01_rkx , -.1032E+01_rkx , -.1052E+01_rkx , -.1030E+01_rkx , &
-    -.1029E+01_rkx , -.1794E+03_rkx , -.1794E+03_rkx , -.1794E+03_rkx , &
-    -.1794E+03_rkx , -.1794E+03_rkx , -.1794E+03_rkx , -.1794E+03_rkx , &
-    -.1776E+03_rkx , -.1776E+03_rkx , -.1898E+03_rkx , -.2070E+03_rkx , &
-    -.2382E+03_rkx , -.2716E+03_rkx , -.2510E+03_rkx , -.2494E+03_rkx , &
-    0.1469E+00_rkx , -.2528E+03_rkx , -.4698E-03_rkx , -.2838E+02_rkx , &
-    0.1556E+02_rkx , 0.1556E+02_rkx , 0.1556E+02_rkx , 0.1556E+02_rkx , &
-    0.1556E+02_rkx , 0.1556E+02_rkx , 0.1556E+02_rkx , 0.1537E+02_rkx , &
-    0.1537E+02_rkx , 0.1504E+02_rkx , 0.1478E+02_rkx , 0.1486E+02_rkx , &
-    0.1505E+02_rkx , 0.1527E+02_rkx , 0.1166E+02_rkx , 0.1947E+01_rkx , &
-    0.9888E+01_rkx , 0.7275E-01_rkx , 0.2734E+02_rkx ], [nspi,ncoefs])
+  real(rkx), dimension(nspi,ncoefs), parameter :: kscoef = reshape(   &
+  [ 0.1126E+02_rkx, 0.1126E+02_rkx, 0.1126E+02_rkx, 0.1126E+02_rkx, &
+    0.1126E+02_rkx, 0.1126E+02_rkx, 0.1126E+02_rkx, 0.1124E+02_rkx, &
+    0.1124E+02_rkx, 0.1222E+02_rkx, 0.1357E+02_rkx, 0.1557E+02_rkx, &
+    0.1758E+02_rkx, 0.1597E+02_rkx, 0.2107E+02_rkx, -.2424E+00_rkx, &
+    0.2535E+02_rkx, -.1545E+00_rkx, 0.8835E+00_rkx, -.2502E+00_rkx, &
+    -.2502E+00_rkx, -.2502E+00_rkx, -.2502E+00_rkx, -.2502E+00_rkx, &
+    -.2502E+00_rkx, -.2502E+00_rkx, -.3040E+00_rkx, -.3040E+00_rkx, &
+    -.3770E+00_rkx, -.4190E+00_rkx, -.4353E+00_rkx, -.4389E+00_rkx, &
+    -.4337E+00_rkx, -.3041E+00_rkx, -.1770E+00_rkx, -.2270E+00_rkx, &
+    -.1661E+00_rkx, -.1590E+00_rkx, -.1087E+01_rkx, -.1087E+01_rkx, &
+    -.1087E+01_rkx, -.1087E+01_rkx, -.1087E+01_rkx, -.1087E+01_rkx, &
+    -.1087E+01_rkx, -.1088E+01_rkx, -.1088E+01_rkx, -.1089E+01_rkx, &
+    -.1087E+01_rkx, -.1083E+01_rkx, -.1078E+01_rkx, -.1073E+01_rkx, &
+    -.1067E+01_rkx, -.1032E+01_rkx, -.1052E+01_rkx, -.1030E+01_rkx, &
+    -.1029E+01_rkx, -.1794E+03_rkx, -.1794E+03_rkx, -.1794E+03_rkx, &
+    -.1794E+03_rkx, -.1794E+03_rkx, -.1794E+03_rkx, -.1794E+03_rkx, &
+    -.1776E+03_rkx, -.1776E+03_rkx, -.1898E+03_rkx, -.2070E+03_rkx, &
+    -.2382E+03_rkx, -.2716E+03_rkx, -.2510E+03_rkx, -.2494E+03_rkx, &
+    0.1469E+00_rkx, -.2528E+03_rkx, -.4698E-03_rkx, -.2838E+02_rkx, &
+    0.1556E+02_rkx, 0.1556E+02_rkx, 0.1556E+02_rkx, 0.1556E+02_rkx, &
+    0.1556E+02_rkx, 0.1556E+02_rkx, 0.1556E+02_rkx, 0.1537E+02_rkx, &
+    0.1537E+02_rkx, 0.1504E+02_rkx, 0.1478E+02_rkx, 0.1486E+02_rkx, &
+    0.1505E+02_rkx, 0.1527E+02_rkx, 0.1166E+02_rkx, 0.1947E+01_rkx, &
+    0.9888E+01_rkx, 0.7275E-01_rkx, 0.2734E+02_rkx ], [nspi,ncoefs])
 
-  real(rkx) , dimension(nspi,ncoefs) , parameter :: wscoef = reshape(   &
-  [ 0.2492E+01_rkx , 0.2492E+01_rkx , 0.2492E+01_rkx , 0.2492E+01_rkx , &
-    0.2492E+01_rkx , 0.2492E+01_rkx , 0.2492E+01_rkx , 0.1139E+01_rkx , &
-    0.1139E+01_rkx , 0.1848E+01_rkx , 0.5459E+01_rkx , 0.1187E+01_rkx , &
-    -.3640E+01_rkx , -.5634E+01_rkx , 0.1826E+00_rkx , 0.2164E+01_rkx , &
-    0.2268E+00_rkx , 0.2178E+01_rkx , 0.1713E+01_rkx , -.5210E-01_rkx , &
-    -.5210E-01_rkx , -.5210E-01_rkx , -.5210E-01_rkx , -.5210E-01_rkx , &
-    -.5210E-01_rkx , -.5210E-01_rkx , -.1110E-01_rkx , -.1110E-01_rkx , &
-    -.3920E-03_rkx , 0.9357E+00_rkx , 0.2241E+00_rkx , 0.2552E+00_rkx , &
-    0.2068E+00_rkx , 0.6588E-01_rkx , 0.1194E+00_rkx , 0.3266E-01_rkx , &
-    0.1151E+00_rkx , 0.9166E-01_rkx , -.1036E+01_rkx , -.1036E+01_rkx , &
-    -.1036E+01_rkx , -.1036E+01_rkx , -.1036E+01_rkx , -.1036E+01_rkx , &
-    -.1036E+01_rkx , -.1011E+01_rkx , -.1011E+01_rkx , -.9924E+00_rkx , &
-    -.1626E+01_rkx , -.1226E+01_rkx , -.1168E+01_rkx , -.1122E+01_rkx , &
-    -.1098E+01_rkx , -.1044E+01_rkx , -.1064E+01_rkx , -.1042E+01_rkx , &
-    -.1039E+01_rkx , -.4398E+02_rkx , -.4398E+02_rkx , -.4398E+02_rkx , &
-    -.4398E+02_rkx , -.4398E+02_rkx , -.4398E+02_rkx , -.4398E+02_rkx , &
-    -.7754E+01_rkx , -.7754E+01_rkx , -.1607E+01_rkx , -.5282E+01_rkx , &
-    0.1442E+02_rkx , 0.4458E+02_rkx , 0.7528E+02_rkx , -.1996E-01_rkx , &
-    -.3221E+02_rkx , -.2677E-01_rkx , -.3325E+02_rkx , -.2660E+02_rkx , &
-    0.1724E+02_rkx , 0.1724E+02_rkx , 0.1724E+02_rkx , 0.1724E+02_rkx , &
-    0.1724E+02_rkx , 0.1724E+02_rkx , 0.1724E+02_rkx , 0.6737E+01_rkx , &
-    0.6737E+01_rkx , 0.8587E+00_rkx , 0.1066E+01_rkx , -.1402E+02_rkx , &
-    0.1152E+02_rkx , 0.1290E+02_rkx , 0.1618E+00_rkx , 0.1564E+02_rkx , &
-    0.1309E+00_rkx , 0.1600E+02_rkx , 0.1629E+02_rkx ], [nspi,ncoefs])
+  real(rkx), dimension(nspi,ncoefs), parameter :: wscoef = reshape(   &
+  [ 0.2492E+01_rkx, 0.2492E+01_rkx, 0.2492E+01_rkx, 0.2492E+01_rkx, &
+    0.2492E+01_rkx, 0.2492E+01_rkx, 0.2492E+01_rkx, 0.1139E+01_rkx, &
+    0.1139E+01_rkx, 0.1848E+01_rkx, 0.5459E+01_rkx, 0.1187E+01_rkx, &
+    -.3640E+01_rkx, -.5634E+01_rkx, 0.1826E+00_rkx, 0.2164E+01_rkx, &
+    0.2268E+00_rkx, 0.2178E+01_rkx, 0.1713E+01_rkx, -.5210E-01_rkx, &
+    -.5210E-01_rkx, -.5210E-01_rkx, -.5210E-01_rkx, -.5210E-01_rkx, &
+    -.5210E-01_rkx, -.5210E-01_rkx, -.1110E-01_rkx, -.1110E-01_rkx, &
+    -.3920E-03_rkx, 0.9357E+00_rkx, 0.2241E+00_rkx, 0.2552E+00_rkx, &
+    0.2068E+00_rkx, 0.6588E-01_rkx, 0.1194E+00_rkx, 0.3266E-01_rkx, &
+    0.1151E+00_rkx, 0.9166E-01_rkx, -.1036E+01_rkx, -.1036E+01_rkx, &
+    -.1036E+01_rkx, -.1036E+01_rkx, -.1036E+01_rkx, -.1036E+01_rkx, &
+    -.1036E+01_rkx, -.1011E+01_rkx, -.1011E+01_rkx, -.9924E+00_rkx, &
+    -.1626E+01_rkx, -.1226E+01_rkx, -.1168E+01_rkx, -.1122E+01_rkx, &
+    -.1098E+01_rkx, -.1044E+01_rkx, -.1064E+01_rkx, -.1042E+01_rkx, &
+    -.1039E+01_rkx, -.4398E+02_rkx, -.4398E+02_rkx, -.4398E+02_rkx, &
+    -.4398E+02_rkx, -.4398E+02_rkx, -.4398E+02_rkx, -.4398E+02_rkx, &
+    -.7754E+01_rkx, -.7754E+01_rkx, -.1607E+01_rkx, -.5282E+01_rkx, &
+    0.1442E+02_rkx, 0.4458E+02_rkx, 0.7528E+02_rkx, -.1996E-01_rkx, &
+    -.3221E+02_rkx, -.2677E-01_rkx, -.3325E+02_rkx, -.2660E+02_rkx, &
+    0.1724E+02_rkx, 0.1724E+02_rkx, 0.1724E+02_rkx, 0.1724E+02_rkx, &
+    0.1724E+02_rkx, 0.1724E+02_rkx, 0.1724E+02_rkx, 0.6737E+01_rkx, &
+    0.6737E+01_rkx, 0.8587E+00_rkx, 0.1066E+01_rkx, -.1402E+02_rkx, &
+    0.1152E+02_rkx, 0.1290E+02_rkx, 0.1618E+00_rkx, 0.1564E+02_rkx, &
+    0.1309E+00_rkx, 0.1600E+02_rkx, 0.1629E+02_rkx ], [nspi,ncoefs])
 
-  real(rkx) , dimension(nspi,ncoefs) , parameter :: gscoef = reshape(   &
-  [ -.9874E+00_rkx , -.9874E+00_rkx , -.9874E+00_rkx , -.9874E+00_rkx , &
-    -.9874E+00_rkx , -.9874E+00_rkx , -.9874E+00_rkx , -.3666E+00_rkx , &
-    -.3666E+00_rkx , 0.5824E+00_rkx , 0.1238E+01_rkx , 0.2299E+01_rkx , &
-    0.3037E+01_rkx , 0.4683E+01_rkx , 0.3842E+01_rkx , 0.3237E+01_rkx , &
-    0.4181E+01_rkx , 0.3378E+01_rkx , 0.3943E+01_rkx , -.3033E+02_rkx , &
-    -.3033E+02_rkx , -.3033E+02_rkx , -.3033E+02_rkx , -.3033E+02_rkx , &
-    -.3033E+02_rkx , -.3033E+02_rkx , -.1319E+01_rkx , -.1319E+01_rkx , &
-    -.1875E+00_rkx , -.1550E+00_rkx , -.1686E+00_rkx , -.1447E+00_rkx , &
-    -.2307E+00_rkx , -.6301E+00_rkx , -.4530E+00_rkx , -.4140E+00_rkx , &
-    -.4334E+00_rkx , -.3952E+00_rkx , -.2138E+02_rkx , -.2138E+02_rkx , &
-    -.2138E+02_rkx , -.2138E+02_rkx , -.2138E+02_rkx , -.2138E+02_rkx , &
-    -.2138E+02_rkx , -.3311E+01_rkx , -.3311E+01_rkx , -.1567E+01_rkx , &
-    -.1368E+01_rkx , -.1304E+01_rkx , -.1223E+01_rkx , -.1241E+01_rkx , &
-    -.1367E+01_rkx , -.1204E+01_rkx , -.1284E+01_rkx , -.1188E+01_rkx , &
-    -.1170E+01_rkx , -.2265E+01_rkx , -.2265E+01_rkx , -.2265E+01_rkx , &
-    -.2265E+01_rkx , -.2265E+01_rkx , -.2265E+01_rkx , -.2265E+01_rkx , &
-    -.2821E-01_rkx , -.2821E-01_rkx , -.4402E+01_rkx , -.1127E+02_rkx , &
-    -.2677E+02_rkx , -.2609E+02_rkx , -.4312E+02_rkx , -.4144E+02_rkx , &
-    -.3234E+02_rkx , -.4489E+02_rkx , -.3664E+02_rkx , -.4415E+02_rkx , &
-    0.5238E+01_rkx , 0.5238E+01_rkx , 0.5238E+01_rkx , 0.5238E+01_rkx , &
-    0.5238E+01_rkx , 0.5238E+01_rkx , 0.5238E+01_rkx , 0.8844E+00_rkx , &
-    0.8844E+00_rkx , 0.6268E+01_rkx , 0.8334E+01_rkx , 0.1101E+02_rkx , &
-    0.8267E+01_rkx , 0.8838E+01_rkx , 0.9620E+01_rkx , 0.8946E+01_rkx , &
-    0.9950E+01_rkx , 0.9786E+01_rkx , 0.1031E+02_rkx ], [nspi,ncoefs])
+  real(rkx), dimension(nspi,ncoefs), parameter :: gscoef = reshape(   &
+  [ -.9874E+00_rkx, -.9874E+00_rkx, -.9874E+00_rkx, -.9874E+00_rkx, &
+    -.9874E+00_rkx, -.9874E+00_rkx, -.9874E+00_rkx, -.3666E+00_rkx, &
+    -.3666E+00_rkx, 0.5824E+00_rkx, 0.1238E+01_rkx, 0.2299E+01_rkx, &
+    0.3037E+01_rkx, 0.4683E+01_rkx, 0.3842E+01_rkx, 0.3237E+01_rkx, &
+    0.4181E+01_rkx, 0.3378E+01_rkx, 0.3943E+01_rkx, -.3033E+02_rkx, &
+    -.3033E+02_rkx, -.3033E+02_rkx, -.3033E+02_rkx, -.3033E+02_rkx, &
+    -.3033E+02_rkx, -.3033E+02_rkx, -.1319E+01_rkx, -.1319E+01_rkx, &
+    -.1875E+00_rkx, -.1550E+00_rkx, -.1686E+00_rkx, -.1447E+00_rkx, &
+    -.2307E+00_rkx, -.6301E+00_rkx, -.4530E+00_rkx, -.4140E+00_rkx, &
+    -.4334E+00_rkx, -.3952E+00_rkx, -.2138E+02_rkx, -.2138E+02_rkx, &
+    -.2138E+02_rkx, -.2138E+02_rkx, -.2138E+02_rkx, -.2138E+02_rkx, &
+    -.2138E+02_rkx, -.3311E+01_rkx, -.3311E+01_rkx, -.1567E+01_rkx, &
+    -.1368E+01_rkx, -.1304E+01_rkx, -.1223E+01_rkx, -.1241E+01_rkx, &
+    -.1367E+01_rkx, -.1204E+01_rkx, -.1284E+01_rkx, -.1188E+01_rkx, &
+    -.1170E+01_rkx, -.2265E+01_rkx, -.2265E+01_rkx, -.2265E+01_rkx, &
+    -.2265E+01_rkx, -.2265E+01_rkx, -.2265E+01_rkx, -.2265E+01_rkx, &
+    -.2821E-01_rkx, -.2821E-01_rkx, -.4402E+01_rkx, -.1127E+02_rkx, &
+    -.2677E+02_rkx, -.2609E+02_rkx, -.4312E+02_rkx, -.4144E+02_rkx, &
+    -.3234E+02_rkx, -.4489E+02_rkx, -.3664E+02_rkx, -.4415E+02_rkx, &
+    0.5238E+01_rkx, 0.5238E+01_rkx, 0.5238E+01_rkx, 0.5238E+01_rkx, &
+    0.5238E+01_rkx, 0.5238E+01_rkx, 0.5238E+01_rkx, 0.8844E+00_rkx, &
+    0.8844E+00_rkx, 0.6268E+01_rkx, 0.8334E+01_rkx, 0.1101E+02_rkx, &
+    0.8267E+01_rkx, 0.8838E+01_rkx, 0.9620E+01_rkx, 0.8946E+01_rkx, &
+    0.9950E+01_rkx, 0.9786E+01_rkx, 0.1031E+02_rkx ], [nspi,ncoefs])
 
-  real(rkx) , dimension(nspi,4) , parameter :: ksdust_stand = reshape(  &
+  real(rkx), dimension(nspi,4), parameter :: ksdust_stand = reshape(  &
   [ 0.188010E+01_rkx, 0.202540E+01_rkx, 0.195470E+01_rkx, 0.189960E+01_rkx, &
     0.179460E+01_rkx, 0.171490E+01_rkx, 0.154310E+01_rkx, 0.244820E+01_rkx, &
     0.310670E+01_rkx, 0.503910E+00_rkx, 0.503910E+00_rkx, 0.503910E+00_rkx, &
@@ -470,7 +470,7 @@ module mod_rad_aerosol
     0.205990E+00_rkx, 0.205990E+00_rkx, 0.205990E+00_rkx, 0.205990E+00_rkx ], &
      [nspi,4])
 
-  real(rkx) , dimension(nspi,4) , parameter :: wsdust_stand = reshape(  &
+  real(rkx), dimension(nspi,4), parameter :: wsdust_stand = reshape(  &
   [ 0.643280E+00_rkx, 0.677570E+00_rkx, 0.673160E+00_rkx, 0.662450E+00_rkx, &
     0.681320E+00_rkx, 0.679600E+00_rkx, 0.726790E+00_rkx, 0.947300E+00_rkx, &
     0.975360E+00_rkx, 0.895680E+00_rkx, 0.895680E+00_rkx, 0.895680E+00_rkx, &
@@ -492,7 +492,7 @@ module mod_rad_aerosol
     0.892930E+00_rkx, 0.892930E+00_rkx, 0.892930E+00_rkx, 0.892930E+00_rkx ], &
      [nspi,4])
 
-  real(rkx) , dimension(nspi,4) , parameter :: gsdust_stand = reshape(  &
+  real(rkx), dimension(nspi,4), parameter :: gsdust_stand = reshape(  &
   [ 0.871140E+00_rkx, 0.861270E+00_rkx, 0.838000E+00_rkx, 0.817600E+00_rkx, &
     0.770880E+00_rkx, 0.739250E+00_rkx, 0.606950E+00_rkx, 0.643930E+00_rkx, &
     0.747600E+00_rkx, 0.267610E+00_rkx, 0.267610E+00_rkx, 0.267610E+00_rkx, &
@@ -514,7 +514,7 @@ module mod_rad_aerosol
     0.681740E+00_rkx, 0.681740E+00_rkx, 0.681740E+00_rkx, 0.681740E+00_rkx ], &
      [nspi,4])
 
-  real(rkx) , dimension(nspi,12) , parameter :: ksdust12_stand = reshape(&
+  real(rkx), dimension(nspi,12), parameter :: ksdust12_stand = reshape(&
   [ 0.582605E+01_rkx, 0.392185E+01_rkx, 0.334761E+01_rkx, 0.302282E+01_rkx, &
     0.273157E+01_rkx, 0.246940E+01_rkx, 0.188028E+01_rkx, 0.547130E+00_rkx, &
     0.113816E+00_rkx, 0.143850E-01_rkx, 0.143301E-01_rkx, 0.143301E-01_rkx, &
@@ -574,7 +574,7 @@ module mod_rad_aerosol
     0.290011E-01_rkx, 0.295979E-01_rkx, 0.300372E-01_rkx, 0.300372E-01_rkx ], &
      [nspi,12])
 
-  real(rkx) , dimension(nspi,12) , parameter :: wsdust12_stand = reshape(&
+  real(rkx), dimension(nspi,12), parameter :: wsdust12_stand = reshape(&
   [ 0.803780E+00_rkx, 0.799301E+00_rkx, 0.797433E+00_rkx, 0.795686E+00_rkx, &
     0.793633E+00_rkx, 0.791376E+00_rkx, 0.791539E+00_rkx, 0.816759E+00_rkx, &
     0.833502E+00_rkx, 0.208783E+00_rkx, 0.208637E+00_rkx, 0.208637E+00_rkx, &
@@ -634,7 +634,7 @@ module mod_rad_aerosol
     0.796056E+00_rkx, 0.822320E+00_rkx, 0.888785E+00_rkx, 0.888785E+00_rkx ], &
      [nspi,12])
 
-  real(rkx) , dimension(nspi,12) , parameter :: gsdust12_stand = reshape(&
+  real(rkx), dimension(nspi,12), parameter :: gsdust12_stand = reshape(&
   [ 0.546546E+00_rkx, 0.415561E+00_rkx, 0.361926E+00_rkx, 0.331551E+00_rkx, &
     0.304818E+00_rkx, 0.281297E+00_rkx, 0.231473E+00_rkx, 0.108432E+00_rkx, &
     0.528125E-01_rkx, 0.910449E-02_rkx, 0.908684E-02_rkx, 0.908684E-02_rkx, &
@@ -694,7 +694,7 @@ module mod_rad_aerosol
     0.842159E+00_rkx, 0.840731E+00_rkx, 0.801060E+00_rkx, 0.801060E+00_rkx ], &
      [nspi,12])
 
-  real(rkx) , dimension(nwav,2,nih) , parameter :: ksslt = reshape( &
+  real(rkx), dimension(nwav,2,nih), parameter :: ksslt = reshape( &
   [ 0.110670E+01_rkx, 0.113470E+01_rkx, 0.114490E+01_rkx, 0.115360E+01_rkx, &
     0.116140E+01_rkx, 0.116810E+01_rkx, 0.118630E+01_rkx, 0.126130E+01_rkx, &
     0.128830E+01_rkx, 0.111740E+01_rkx, 0.107340E+01_rkx, 0.101450E+01_rkx, &
@@ -773,7 +773,7 @@ module mod_rad_aerosol
     0.587590E+01_rkx, 0.594260E+01_rkx, 0.616670E+01_rkx, 0.616670E+01_rkx ], &
      [nwav,2,nih])
 
-  real(rkx) , dimension(nwav,2,nih) , parameter :: wsslt = reshape( &
+  real(rkx), dimension(nwav,2,nih), parameter :: wsslt = reshape( &
   [ 0.999700E+00_rkx, 0.999800E+00_rkx, 0.999800E+00_rkx, 0.999900E+00_rkx, &
     0.999900E+00_rkx, 0.999900E+00_rkx, 0.100000E+01_rkx, 0.100000E+01_rkx, &
     0.100000E+01_rkx, 0.997800E+00_rkx, 0.997000E+00_rkx, 0.994800E+00_rkx, &
@@ -852,7 +852,7 @@ module mod_rad_aerosol
     0.904200E+00_rkx, 0.692800E+00_rkx, 0.682700E+00_rkx, 0.682700E+00_rkx ], &
      [nwav,2,nih])
 
-  real(rkx) , dimension(nwav,2,nih) , parameter :: gsslt = reshape( &
+  real(rkx), dimension(nwav,2,nih), parameter :: gsslt = reshape( &
   [ 0.730800E+00_rkx, 0.718200E+00_rkx, 0.714200E+00_rkx, 0.710900E+00_rkx, &
     0.708200E+00_rkx, 0.706000E+00_rkx, 0.701200E+00_rkx, 0.695100E+00_rkx, &
     0.695900E+00_rkx, 0.701400E+00_rkx, 0.699400E+00_rkx, 0.697100E+00_rkx, &
@@ -931,7 +931,7 @@ module mod_rad_aerosol
     0.887300E+00_rkx, 0.930800E+00_rkx, 0.900600E+00_rkx, 0.900600E+00_rkx ], &
      [nwav,2,nih])
 
-  real(rkx) , dimension(nbndsw,4) , parameter :: ksdust_rrtm = reshape(&
+  real(rkx), dimension(nbndsw,4), parameter :: ksdust_rrtm = reshape(&
   [ 0.324733E-01_rkx, 0.733946E-01_rkx, 0.142493E+00_rkx, 0.223231E+00_rkx, &
     0.354726E+00_rkx, 0.643902E+00_rkx, 0.962607E+00_rkx, 0.179510E+01_rkx, &
     0.307554E+01_rkx, 0.352915E+01_rkx, 0.275913E+01_rkx, 0.187476E+01_rkx, &
@@ -948,7 +948,7 @@ module mod_rad_aerosol
     0.141600E+00_rkx, 0.140409E+00_rkx, 0.139311E+00_rkx, 0.221978E+00_rkx ], &
      [nbndsw,4])
 
-  real(rkx) , dimension(nbndsw,4) , parameter :: wsdust_rrtm = reshape(&
+  real(rkx), dimension(nbndsw,4), parameter :: wsdust_rrtm = reshape(&
   [ 0.907714E+00_rkx, 0.941418E+00_rkx, 0.959479E+00_rkx, 0.968132E+00_rkx, &
     0.974402E+00_rkx, 0.979381E+00_rkx, 0.981505E+00_rkx, 0.985477E+00_rkx, &
     0.987068E+00_rkx, 0.966195E+00_rkx, 0.868209E+00_rkx, 0.669915E+00_rkx, &
@@ -965,7 +965,7 @@ module mod_rad_aerosol
     0.551325E+00_rkx, 0.542113E+00_rkx, 0.544148E+00_rkx, 0.987402E+00_rkx ], &
      [nbndsw,4])
 
-  real(rkx) , dimension(nbndsw,4) , parameter :: gsdust_rrtm = reshape(&
+  real(rkx), dimension(nbndsw,4), parameter :: gsdust_rrtm = reshape(&
   [ 0.714045E-01_rkx, 0.109877E+00_rkx, 0.158598E+00_rkx, 0.207594E+00_rkx, &
     0.284977E+00_rkx, 0.453583E+00_rkx, 0.584279E+00_rkx, 0.636315E+00_rkx, &
     0.723353E+00_rkx, 0.737234E+00_rkx, 0.684414E+00_rkx, 0.627575E+00_rkx, &
@@ -982,7 +982,7 @@ module mod_rad_aerosol
     0.941787E+00_rkx, 0.947955E+00_rkx, 0.948354E+00_rkx, 0.680178E+00_rkx ], &
      [nbndsw,4])
 
-  real(rkx) , dimension(nbndsw,12) , parameter :: ksdust12_rrtm = reshape(&
+  real(rkx), dimension(nbndsw,12), parameter :: ksdust12_rrtm = reshape(&
   [ 0.272948E-02_rkx, 0.396960E-02_rkx, 0.558669E-02_rkx, 0.726846E-02_rkx, &
     0.100291E-01_rkx, 0.169911E-01_rkx, 0.249299E-01_rkx, 0.609426E-01_rkx, &
     0.201171E+00_rkx, 0.622058E+00_rkx, 0.177007E+01_rkx, 0.385513E+01_rkx, &
@@ -1027,7 +1027,7 @@ module mod_rad_aerosol
     0.279676E-01_rkx, 0.100000E-19_rkx, 0.100000E-19_rkx, 0.317719E-01_rkx ], &
      [nbndsw,12])
 
-  real(rkx) , dimension(nbndsw,12) , parameter :: wsdust12_rrtm = reshape(&
+  real(rkx), dimension(nbndsw,12), parameter :: wsdust12_rrtm = reshape(&
   [ 0.109340E+00_rkx, 0.178006E+00_rkx, 0.259037E+00_rkx, 0.330266E+00_rkx, &
     0.419588E+00_rkx, 0.556481E+00_rkx, 0.648767E+00_rkx, 0.774388E+00_rkx, &
     0.902079E+00_rkx, 0.901246E+00_rkx, 0.869690E+00_rkx, 0.842400E+00_rkx, &
@@ -1072,7 +1072,7 @@ module mod_rad_aerosol
     0.548324E+00_rkx, 0.500000E+00_rkx, 0.500000E+00_rkx, 0.928404E+00_rkx ], &
      [nbndsw,12])
 
-  real(rkx) , dimension(nbndsw,12) , parameter :: gsdust12_rrtm = reshape(&
+  real(rkx), dimension(nbndsw,12), parameter :: gsdust12_rrtm = reshape(&
   [ 0.346379E-02_rkx, 0.532454E-02_rkx, 0.760988E-02_rkx, 0.978847E-02_rkx, &
     0.129334E-01_rkx, 0.192973E-01_rkx, 0.252011E-01_rkx, 0.419456E-01_rkx, &
     0.828151E-01_rkx, 0.147716E+00_rkx, 0.284132E+00_rkx, 0.504929E+00_rkx, &
@@ -1117,7 +1117,7 @@ module mod_rad_aerosol
     0.948915E+00_rkx, 0.990000E+00_rkx, 0.990000E+00_rkx, 0.761202E+00_rkx ], &
      [nbndsw,12])
 
-  real(rkx) , dimension(nbndlw,4) , parameter :: ksdust_rrtm_lw = reshape(&
+  real(rkx), dimension(nbndlw,4), parameter :: ksdust_rrtm_lw = reshape(&
   [ 0.903338E-07_rkx, 0.529696E-04_rkx, 0.103134E-03_rkx, 0.114509E-03_rkx, &
     0.242895E-03_rkx, 0.578706E-03_rkx, 0.118229E-02_rkx, 0.156680E-02_rkx, &
     0.711396E-03_rkx, 0.142405E-02_rkx, 0.254564E-02_rkx, 0.656414E-02_rkx, &
@@ -1136,7 +1136,7 @@ module mod_rad_aerosol
     0.106664E+00_rkx, 0.976398E-01_rkx, 0.913925E-01_rkx, 0.763635E-01_rkx ],&
     [nbndlw,4])
 
-  real(rkx) , dimension(nbndlw,12) , parameter :: ksdust12_rrtm_lw = reshape(&
+  real(rkx), dimension(nbndlw,12), parameter :: ksdust12_rrtm_lw = reshape(&
   [ 0.943320E-09_rkx, 0.549405E-06_rkx, 0.106979E-05_rkx, 0.119006E-05_rkx, &
     0.252349E-05_rkx, 0.596784E-05_rkx, 0.121514E-04_rkx, 0.161361E-04_rkx, &
     0.748894E-05_rkx, 0.148517E-04_rkx, 0.266658E-04_rkx, 0.692718E-04_rkx, &
@@ -1187,8 +1187,8 @@ module mod_rad_aerosol
     0.160022E-01_rkx, 0.158424E-01_rkx, 0.157455E-01_rkx, 0.157207E-01_rkx ],&
     [nbndlw,12])
 
-  real(rkx) , parameter :: egravgts = egrav*d_100
-  real(rkx) , parameter :: regravgts = d_one/egravgts
+  real(rkx), parameter :: egravgts = egrav*d_100
+  real(rkx), parameter :: regravgts = d_one/egravgts
 
   data ncaec / -1 /
 
@@ -1196,7 +1196,7 @@ module mod_rad_aerosol
 
     subroutine allocate_mod_rad_aerosol
       implicit none
-      integer(ik4) :: n , k , kk , kk1
+      integer(ik4) :: n, k, kk, kk1
 
       if ( irrtm == 1 ) then
         nband = nbndsw
@@ -1405,7 +1405,7 @@ module mod_rad_aerosol
       type (rcm_time_and_date) :: aedate
 
       allocate(chtrname(ntr))
-      do itr = 1 , ntr
+      do itr = 1, ntr
         chtrname(itr) = aerclima_chtr(itr)
       end do
 
@@ -1425,11 +1425,11 @@ module mod_rad_aerosol
 
     subroutine read_aerclima(idatex,m2r)
       implicit none
-      type (rcm_time_and_date) , intent(in) :: idatex
-      type(mod_2_rad) , intent(in) :: m2r
+      type (rcm_time_and_date), intent(in) :: idatex
+      type(mod_2_rad), intent(in) :: m2r
       type(rcm_time_interval) :: tdif
-      real(rkx) :: w1 , w2 , step
-      integer(ik4) :: i , j , k , n , ib
+      real(rkx) :: w1, w2, step
+      integer(ik4) :: i, j, k, n, ib
 
       if ( .not. aerclima_init ) then
         call init_aerclima( )
@@ -1465,10 +1465,10 @@ module mod_rad_aerosol
       tdif = d2 - idatex
       w1 = (real(tohours(tdif),rkx)-step)/aerfreq
       w2 = d_one - w1
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               ib = (j-jci1)+(i-ici1)*nj+1
               aermmr(ib,k,n) = max(w1*aerm1(j,i,k,n) + w2*aerm2(j,i,k,n),d_zero)
             end do
@@ -1479,7 +1479,7 @@ module mod_rad_aerosol
 
     integer(ik4) function findrec(idate) result(irec)
       implicit none
-      type (rcm_time_and_date) , intent(in) :: idate
+      type (rcm_time_and_date), intent(in) :: idate
       type(rcm_time_interval) :: tdif
 
       irec = -1
@@ -1491,13 +1491,13 @@ module mod_rad_aerosol
 
     subroutine doread(idate,m2r,step,aerm)
       implicit none
-      type (rcm_time_and_date) , intent(in) :: idate
-      type(mod_2_rad) , intent(in) :: m2r
-      integer(ik4) , intent(in) :: step
-      real(rkx) , dimension(:,:,:,:) , pointer , intent(inout) :: aerm
-      real(rkx) , dimension(:,:,:) , pointer :: pnt
-      integer(ik4) :: n , irec
-      integer(ik4) , dimension(4) :: istart , icount
+      type (rcm_time_and_date), intent(in) :: idate
+      type(mod_2_rad), intent(in) :: m2r
+      integer(ik4), intent(in) :: step
+      real(rkx), dimension(:,:,:,:), pointer, contiguous, intent(inout) :: aerm
+      real(rkx), dimension(:,:,:), pointer, contiguous :: pnt
+      integer(ik4) :: n, irec
+      integer(ik4), dimension(4) :: istart, icount
 
       pnt => null( )
       irec = findrec(idate)
@@ -1511,7 +1511,7 @@ module mod_rad_aerosol
 
       if ( .not. do_parallel_netcdf_in ) then
         if ( myid /= iocpu ) then
-          do n = 1 , ntr
+          do n = 1, ntr
             call assignpnt(aerm,pnt,n)
             call grid_distribute(aerio,pnt,jce1,jce2,ice1,ice2,1,kz)
           end do
@@ -1525,7 +1525,7 @@ module mod_rad_aerosol
           icount(2) = idot2-idot1 + 1
           icount(3) = kz
           icount(4) = 1
-          do n = 1 , ntr
+          do n = 1, ntr
             call assignpnt(aerm,pnt,n)
             ncstatus = nf90_get_var(ncaec,ncaevar(n),aerio,istart,icount)
             call check_ok(__FILE__,__LINE__, &
@@ -1543,7 +1543,7 @@ module mod_rad_aerosol
         icount(2) = (ice2-ice1)+1
         icount(3) = kz
         icount(4) = 1
-        do n = 1 , ntr
+        do n = 1, ntr
           call assignpnt(aerm,pnt,n)
           ncstatus = nf90_get_var(ncaec,ncaevar(n),pnt,istart,icount)
           call check_ok(__FILE__,__LINE__, &
@@ -1575,11 +1575,11 @@ module mod_rad_aerosol
 
     subroutine open_aerclima(idate)
       implicit none
-      type (rcm_time_and_date) , intent(in) :: idate
-      integer(ik4) :: nae , idtime , n
+      type (rcm_time_and_date), intent(in) :: idate
+      integer(ik4) :: nae, idtime, n
       character(len=256) :: aefile
-      real(rkx) , allocatable , dimension(:) :: xtime
-      character(len=64) :: timeunits , timecal
+      real(rkx), allocatable, dimension(:) :: xtime
+      character(len=64) :: timeunits, timecal
       character(len=11) :: ctime
 
       if ( .not. do_parallel_netcdf_in ) then
@@ -1607,7 +1607,7 @@ module mod_rad_aerosol
       ncstatus = nf90_open(aefile,nf90_nowrite,ncaec)
       call check_ok(__FILE__,__LINE__, &
         'Error Open AE file '//trim(aefile),'AEBC FILE')
-      do nae = 1 , ntr
+      do nae = 1, ntr
         ncstatus = nf90_inq_varid(ncaec,aerclima_chtr(nae),ncaevar(nae))
         call check_ok(__FILE__,__LINE__, &
           'Error searching variable '//trim(aerclima_chtr(nae))// &
@@ -1636,7 +1636,7 @@ module mod_rad_aerosol
       ncstatus = nf90_get_var(ncaec,idtime,xtime)
       call check_ok(__FILE__,__LINE__, &
          'Error reading variable time in AE file '//trim(aefile),'AEBC FILE')
-      do n = 1 , naetime
+      do n = 1, naetime
         aetime(n) = timeval2date(xtime(n),timeunits,timecal)
       end do
       deallocate(xtime)
@@ -1664,8 +1664,8 @@ module mod_rad_aerosol
 
     subroutine check_ok(f,l,m1,mf)
       implicit none
-      character(*) , intent(in) :: f, m1 , mf
-      integer(ik4) , intent(in) :: l
+      character(*), intent(in) :: f, m1, mf
+      integer(ik4), intent(in) :: l
       if ( ncstatus /= nf90_noerr ) then
         write (stderr,*) trim(m1)
         write (stderr,*) nf90_strerror(ncstatus)
@@ -1678,17 +1678,17 @@ module mod_rad_aerosol
 
     subroutine read_aeroppdata(idatex,m2r)
       implicit none
-      type (rcm_time_and_date) , intent(in) :: idatex
-      type(mod_2_rad) , intent(in) :: m2r
-      logical , save :: lfirst = .true.
+      type (rcm_time_and_date), intent(in) :: idatex
+      type(mod_2_rad), intent(in) :: m2r
+      logical, save :: lfirst = .true.
       logical :: dointerp
-      real(rkx) , dimension(kth) :: opprnt
-      real(rkx) :: xfac1 , xfac2 , odist
+      real(rkx), dimension(kth) :: opprnt
+      real(rkx) :: xfac1, xfac2, odist
       type (rcm_time_and_date) :: imonmidd
-      integer(ik4) :: iyear , imon , iday , ihour
-      integer(ik4) :: i , j , k , kk , im1 , iy1 , im2 , iy2 , wn
-      integer(ik4) , save :: ism , isy
-      type (rcm_time_and_date) :: iref1 , iref2
+      integer(ik4) :: iyear, imon, iday, ihour
+      integer(ik4) :: i, j, k, kk, im1, iy1, im2, iy2, wn
+      integer(ik4), save :: ism, isy
+      type (rcm_time_and_date) :: iref1, iref2
       type (rcm_time_interval) :: tdif
       data ism /-1/
       data isy /-1/
@@ -1782,7 +1782,7 @@ module mod_rad_aerosol
             write (stdout,*) 'Reading EXT,SSA,ASY Data...'
           end if
           if ( lfirst ) then
-            do wn = 1 , nacwb
+            do wn = 1, nacwb
               call getfile(iy1,im1,ncid,wn)
               call readvar3d(ncid,'EXTTOT',rdvar)
               call remove_nans(rdvar,d_zero)
@@ -1829,7 +1829,7 @@ module mod_rad_aerosol
             plext1 = plext2
             plssa1 = plssa2
             plasy1 = plasy2
-            do wn = 1 , nacwb
+            do wn = 1, nacwb
               call getfile(iy2,im2,ncid,wn)
               call readvar3d(ncid,'EXTTOT',rdvar)
               call remove_nans(rdvar,d_zero)
@@ -1854,7 +1854,7 @@ module mod_rad_aerosol
           end if
         else
           if ( lfirst ) then
-            do wn = 1 , nacwb
+            do wn = 1, nacwb
               call assignpnt(plext1,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call assignpnt(plssa1,plvar,wn)
@@ -1876,7 +1876,7 @@ module mod_rad_aerosol
             plext1 = plext2
             plssa1 = plssa2
             plasy1 = plasy2
-            do wn = 1 , nacwb
+            do wn = 1, nacwb
               call assignpnt(plext2,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call assignpnt(plssa2,plvar,wn)
@@ -1899,25 +1899,25 @@ module mod_rad_aerosol
         ! Here just use linear av for now, should be improved !!
         ! MERRA grid is top down
         if ( lfirst ) then
-          do wn = 1 , nacwb
+          do wn = 1, nacwb
             pl1(:,:,1,wn)  = d_one + pldp1(:,:,1,wn)*d_half
-            do k = 2 , clnlev
+            do k = 2, clnlev
               pl1(:,:,k,wn) = pl1(:,:,k-1,wn) + &
                 (pldp1(:,:,k-1,wn) + pldp1(:,:,k,wn))*d_half
             end do
           end do
-          do wn = 1 , nacwb
+          do wn = 1, nacwb
             pl2(:,:,1,wn)  = d_one + pldp2(:,:,1,wn)*d_half
-            do k = 2 , clnlev
+            do k = 2, clnlev
               pl2(:,:,k,wn) = pl2(:,:,k-1,wn) + &
                 (pldp2(:,:,k-1,wn) + pldp2(:,:,k,wn))*d_half
             end do
           end do
         else
           pl1 = pl2
-          do wn = 1 , nacwb
+          do wn = 1, nacwb
             pl2(:,:,1,wn)  = d_one + pldp2(:,:,1,wn)*d_half
-            do k = 2 , clnlev
+            do k = 2, clnlev
               pl2(:,:,k,wn) = pl2(:,:,k-1,wn) + &
                 (pldp2(:,:,k-1,wn) + pldp2(:,:,k,wn))*d_half
             end do
@@ -1933,7 +1933,7 @@ module mod_rad_aerosol
         zpr3d(j,i,kth-kz+k) = m2r%phatms(j,i,k)
         zdzr3d(j,i,kth-kz+k) = m2r%deltaz(j,i,k)
       end do
-      do wn = 1 , nacwb
+      do wn = 1, nacwb
         call assignpnt(pl1,p1,wn)
         call assignpnt(pl2,p2,wn)
         call assignpnt(plext1,plvar,wn)
@@ -1972,7 +1972,7 @@ module mod_rad_aerosol
       ! Important :  radiation schemes expect AOD per layer, calculated
       ! from extinction
       !
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kth , wn = 1:nacwb )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kth, wn = 1:nacwb )
         extprof(j,i,k,wn) = (sgext1(j,i,k,wn)*xfac2 + &
                              sgext2(j,i,k,wn)*xfac1) * &
                              zdzr3d(j,i,k)
@@ -1982,15 +1982,15 @@ module mod_rad_aerosol
                              sgasy2(j,i,k,wn)*xfac1)
       end do
       if ( myid == italk .and. dointerp ) then
-        do k = 1 , kth
+        do k = 1, kth
           opprnt(k) = extprof(jci1,ici1,k,3) !!vis band in MERRA clim
         end do
         call vprntv(opprnt,kth,'Updated VIS ext profile')
-        do k = 1 , kth
+        do k = 1, kth
           opprnt(k) = ssaprof(jci1,ici1,k,3)
         end do
         call vprntv(opprnt,kth,'Updated VIS ssa profile')
-        do k = 1 , kth
+        do k = 1, kth
           opprnt(k) = asyprof(jci1,ici1,k,3)
         end do
         call vprntv(opprnt,kth,'Updated VIS asy profile')
@@ -2000,7 +2000,7 @@ module mod_rad_aerosol
 
     subroutine inextmon(iyear,imon)
       implicit none
-      integer(ik4) , intent(inout) :: iyear , imon
+      integer(ik4), intent(inout) :: iyear, imon
       imon = imon + 1
       if ( imon > 12 ) then
         imon = 1
@@ -2010,7 +2010,7 @@ module mod_rad_aerosol
 
     subroutine iprevmon(iyear,imon)
       implicit none
-      integer(ik4) , intent(inout) :: iyear , imon
+      integer(ik4), intent(inout) :: iyear, imon
       imon = imon - 1
       if ( imon < 1 ) then
         imon = 12
@@ -2020,18 +2020,18 @@ module mod_rad_aerosol
 
     subroutine init_aeroppdata(ncid,lat,lon)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , intent(inout) , dimension(:) :: lat , lon
+      integer(ik4), intent(in) :: ncid
+      real(rkx), intent(inout), dimension(:) :: lat, lon
       call readvar1d(ncid,'lat',lat)
       call readvar1d(ncid,'lon',lon)
     end subroutine init_aeroppdata
 
     subroutine readvar1d(ncid,vname,val)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      character(len=*) , intent(in) :: vname
-      real(rkx) , intent(out) , dimension(:) :: val
-      integer(ik4) :: icvar , iret
+      integer(ik4), intent(in) :: ncid
+      character(len=*), intent(in) :: vname
+      real(rkx), intent(out), dimension(:) :: val
+      integer(ik4) :: icvar, iret
       iret = nf90_inq_varid(ncid,vname,icvar)
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
@@ -2046,14 +2046,14 @@ module mod_rad_aerosol
 
     subroutine readvar3d(ncid,vname,val)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      character(len=*) , intent(in) :: vname
-      real(rkx) , intent(out) , dimension(:,:,:) :: val
-      integer(ik4) , save :: icvar
-      integer(ik4) , save , dimension(3) :: istart , icount
+      integer(ik4), intent(in) :: ncid
+      character(len=*), intent(in) :: vname
+      real(rkx), intent(out), dimension(:,:,:) :: val
+      integer(ik4), save :: icvar
+      integer(ik4), save, dimension(3) :: istart, icount
       integer(ik4) :: iret
       data icvar /-1/
-      data istart  /  1 ,  1 ,  1/
+      data istart  /  1,  1,  1/
 
       icount(1) = clnlon
       icount(2) = clnlat
@@ -2077,17 +2077,17 @@ module mod_rad_aerosol
       !
       ! Interface pressure, relative humidity
       !
-      integer(ik4) , intent(in) :: n1 , n2
-      real(rkx) , intent(in) , pointer , dimension(:,:) :: pint
-      real(rkx) , intent(in) , pointer , dimension(:,:) :: rh
+      integer(ik4), intent(in) :: n1, n2
+      real(rkx), intent(in), pointer, contiguous, dimension(:,:) :: pint
+      real(rkx), intent(in), pointer, contiguous, dimension(:,:) :: rh
 
-      integer(ik4) :: n , l , ibin , jbin , itr , k1 , k2 , ns
-      integer(ik4) :: j , i , k , kk , visband
-      real(rkx) :: uaerdust , qabslw , rh0
-      real(rkx) , dimension(13) :: wavn ! central sw wave number for rrtm
-      real(rkx) , dimension(4) :: wavncl ! central sw wave number for clim data
-      real(rkx) , dimension(4) :: src
-      real(rkx) , dimension(13) :: dest
+      integer(ik4) :: n, l, ibin, jbin, itr, k1, k2, ns
+      integer(ik4) :: j, i, k, kk, visband
+      real(rkx) :: uaerdust, qabslw, rh0
+      real(rkx), dimension(13) :: wavn ! central sw wave number for rrtm
+      real(rkx), dimension(4) :: wavncl ! central sw wave number for clim data
+      real(rkx), dimension(4) :: src
+      real(rkx), dimension(13) :: dest
       !-
       ! Aerosol forced by Optical Properties Climatology
       ! distinguish between standard scheme and RRTM scheme
@@ -2097,7 +2097,7 @@ module mod_rad_aerosol
 
       if ( iclimaaer == 2 ) then
         if ( irrtm == 1 ) then
-          do ns = 1 , 13
+          do ns = 1, 13
             wavn(ns) = 0.5_rkx*(wavnm2(ns) + wavnm1(ns))
           end do
           !
@@ -2108,38 +2108,38 @@ module mod_rad_aerosol
           wavncl(2)  = wavn(6)
           wavncl(3)  = wavn(10)
           wavncl(4)  = wavn(13)
-          do k = 1 , kth
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kth
+            do i = ici1, ici2
+              do j = jci1, jci2
                 n = (j-jci1)+(i-ici1)*nj+1
                 ! Spectral interpolation for all RRTM band
                 ! Special band 14 is left aside. Use constant extrapolation
                 ! between clim data wn points ( check interp1d code in Share)
                 ! to avoid negative values at wn = 1
-                do ns = 1 , 4
+                do ns = 1, 4
                   src(ns) = extprof(j,i,k,ns)
                 end do
                 call interp1d(wavncl,src,wavn,dest,1._rkx,1._rkx,0._rkx)
-                do ns = 1 , 13
+                do ns = 1, 13
                   tauxar3d(n,k,ns) = min(max(dest(ns),0._rkx),1.0_rkx)
                 end do
-                do ns = 1 , 4
+                do ns = 1, 4
                   src(ns) = ssaprof(j,i,k,ns)
                 end do
                 call interp1d(wavncl,src,wavn,dest,1._rkx,1._rkx,0._rkx)
-                do ns = 1 , 13
+                do ns = 1, 13
                   tauasc3d(n,k,ns) = min(max(dest(ns),0._rkx),0.999_rkx)
                 end do
-                do ns = 1 , 4
+                do ns = 1, 4
                   src(ns) = asyprof(j,i,k,ns)
                 end do
                 call interp1d(wavncl,src,wavn,dest,1._rkx,1._rkx,0._rkx)
-                do ns = 1 , 13
+                do ns = 1, 13
                   gtota3d(n,k,ns) = min(max(dest(ns),0._rkx),1.0_rkx)
                 end do
                 ! The LW prop assumed to be spectrally constant for now
                 ! MIGHT CHANGE IN FUTURE
-                do ns = 1 , nbndlw
+                do ns = 1, nbndlw
                   tauxar3d_lw(n,k,ns) = extprof(j,i,k,5)
                 end do
               end do
@@ -2153,8 +2153,8 @@ module mod_rad_aerosol
           ! rad grid ( 0 to kz) first Treat the top radiative layer
           ! tauxar3d(0,n,ns)
           if ( kth > kz ) then
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 !
                 ! index 3 correponds to clim vis band
                 ! MIGHT CHANGE IN FUTURE
@@ -2168,9 +2168,9 @@ module mod_rad_aerosol
               end do
             end do
           end if
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-               do k = 1 , kz
+          do i = ici1, ici2
+            do j = jci1, jci2
+               do k = 1, kz
                 ! already scaled for layer height
                 ! grid is top down
                 ! FAB : index 2 is the vis band in MERRA aerclim
@@ -2182,8 +2182,8 @@ module mod_rad_aerosol
               end do
             end do
           end do
-          do n = 1 , npoints
-            do k = 1 , kz
+          do n = 1, npoints
+            do k = 1, kz
               ! here the standard scheme expect layer scaled quantity
               tauasc3d(k,n,ns) = tauasc3d(k,n,ns) * tauxar3d(k,n,ns)
               ftota3d(k,n,ns) = gtota3d(k,n,ns)**2 * tauasc3d(k,n,ns)
@@ -2195,9 +2195,9 @@ module mod_rad_aerosol
       else if ( iclimaaer == 3 ) then
         ! Limit only to SW (?)
         if ( irrtm == 1 ) then
-          do ns = 1 , nband
-            do k = 1 , kth
-              do i = 1 , npoints
+          do ns = 1, nband
+            do k = 1, kth
+              do i = 1, npoints
                 tauxar3d(i,k,ns) = extprofr4(i,k,ns)
                 tauasc3d(i,k,ns) = ssaprofr4(i,k,ns)
                 gtota3d(i,k,ns)  = asyprofr4(i,k,ns)
@@ -2206,9 +2206,9 @@ module mod_rad_aerosol
           end do
         else
           aertrlw(:,:,:) = d_one
-          do ns = 1 , nband
-            do k = 1 , kth
-              do i = 1 , npoints
+          do ns = 1, nband
+            do k = 1, kth
+              do i = 1, npoints
                 ! already scaled for layer height
                 tauxar3d(k,i,ns) = extprofr4(i,k,ns)
                 ! here the standard scheme expect layer scaled quantity
@@ -2269,7 +2269,7 @@ module mod_rad_aerosol
       !
       !   Spectral loop
       !
-      do ns = 1 , nband
+      do ns = 1, nband
       !
       !   Spectral loop
       !
@@ -2294,14 +2294,14 @@ module mod_rad_aerosol
         !
         ibin = 0
         jbin = 0
-        do itr = 1 , ntr
+        do itr = 1, ntr
           if ( chtrname(itr) == 'XXXXX') then
             continue
           end if
           if ( chtrname(itr)(1:4) == 'DUST') then
             ibin = ibin + 1
-            do k = 1 , kz
-              do n = n1 , n2
+            do k = 1, kz
+              do n = n1, n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
                 tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksdust(ns,ibin)
                 wa(n,k,itr) = wsdust(ns,ibin)
@@ -2313,8 +2313,8 @@ module mod_rad_aerosol
                     chtrname(itr)(1:5) == 'H2SO4'.or. &
                     chtrname(itr)(1:4) == 'ANO3' .or. &
                     chtrname(itr)(1:4) == 'ANH4' ) then
-            do k = 1 , kz
-              do n = n1 , n2
+            do k = 1, kz
+              do n = n1, n2
                 rh0 = min(0.97_rkx,max(0.0_rkx,rh(n,k)))
                 ! maximum limit for effect on sulfate extinction
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
@@ -2333,10 +2333,10 @@ module mod_rad_aerosol
             end do
           else if ( chtrname(itr)(1:4) == 'SSLT' ) then
             jbin = jbin+1
-            do k = 1 , kz
-              do n = n1 , n2
+            do k = 1, kz
+              do n = n1, n2
                 rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
-                do l = 1 , 7
+                do l = 1, 7
                   if ( rh0 > rhp(l) .and. rh0 <= rhp(l+1) ) then
                     ! FAB : test according to li et al., ksslt cannot exceed 1.3
                     ! quick fix for now, update parameterisation to LI et al,
@@ -2354,8 +2354,8 @@ module mod_rad_aerosol
               end do
             end do
           else if ( chtrname(itr)(1:5) == 'OC_HL' ) then
-            do k = 1 , kz
-              do n = n1 , n2
+            do k = 1, kz
+              do n = n1, n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
                 rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
                 ! Humidity effect !
@@ -2367,8 +2367,8 @@ module mod_rad_aerosol
               end do
             end do
           else if ( chtrname(itr)(1:5) == 'BC_HL' ) then
-            do k = 1 , kz
-              do n = n1 , n2
+            do k = 1, kz
+              do n = n1, n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
                 rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
                 ! Humidity effect !
@@ -2380,8 +2380,8 @@ module mod_rad_aerosol
               end do
             end do
           else if ( chtrname(itr)(1:5) == 'OC_HB' ) then
-            do k = 1 , kz
-              do n = n1 , n2
+            do k = 1, kz
+              do n = n1, n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
                 tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksoc_hb(ns)
                 wa(n,k,itr) = wsoc_hb(ns)
@@ -2390,8 +2390,8 @@ module mod_rad_aerosol
               end do
             end do
           else if ( chtrname(itr)(1:5) == 'BC_HB' ) then
-            do k = 1 , kz
-              do n = n1 , n2
+            do k = 1, kz
+              do n = n1, n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
                 ! Absorbing aerosols (soot type)
                 tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbc_hb(ns)
@@ -2401,8 +2401,8 @@ module mod_rad_aerosol
               end do
             end do
           else if ( chtrname(itr)(1:3) == 'SM1' ) then
-            do k = 1 , kz
-              do n = n1 , n2
+            do k = 1, kz
+              do n = n1, n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
                 rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
                 tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssm1(ns) * &
@@ -2413,8 +2413,8 @@ module mod_rad_aerosol
               end do
             end do
           else if ( chtrname(itr)(1:3) == 'SM2' ) then
-            do k = 1 , kz
-              do n = n1 , n2
+            do k = 1, kz
+              do n = n1, n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
                 rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
                 tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssm2(ns) * &
@@ -2431,9 +2431,9 @@ module mod_rad_aerosol
         !             passed to radiation scheme
         !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
         ! optical properties for the clear sky diagnostic standard scheme
-        do itr = 1 , ntr
-          do k = 1 , kz
-            do n = n1 , n2
+        do itr = 1, ntr
+          do k = 1, kz
+            do n = n1, n2
               utaer(n,itr) = utaer(n,itr) + uaer(n,k,itr)
               tauaer(n,itr) = tauaer(n,itr) + tx(n,k,itr)
               waer(n,itr) = waer(n,itr) + wa(n,k,itr)*uaer(n,k,itr)
@@ -2442,8 +2442,8 @@ module mod_rad_aerosol
             end do
           end do
         end do
-        do itr = 1 , ntr
-          do n = n1 , n2
+        do itr = 1, ntr
+          do n = n1, n2
             if ( utaer(n,itr) <= minimum_utaer ) utaer(n,itr) = minimum_utaer
             waer(n,itr) = waer(n,itr)/utaer(n,itr)
             gaer(n,itr) = gaer(n,itr)/utaer(n,itr)
@@ -2461,9 +2461,9 @@ module mod_rad_aerosol
           tauasc3d(:,:,ns) = d_zero
           gtota3d(:,:,ns) = d_zero
           ftota3d(:,:,ns) = d_zero
-          do itr = 1 , ntr
-            do n = n1 , n2
-              do k = 0 , kz
+          do itr = 1, ntr
+            do n = n1, n2
+              do k = 0, kz
                 tauxar3d(k,n,ns) = tauxar3d(k,n,ns) + tx(n,k,itr)
                 tauasc3d(k,n,ns) = tauasc3d(k,n,ns) + tx(n,k,itr)*wa(n,k,itr)
                 gtota3d(k,n,ns) = gtota3d(k,n,ns) + ga(n,k,itr) * &
@@ -2473,8 +2473,8 @@ module mod_rad_aerosol
               end do
             end do
           end do
-          do k = 0 , kz
-            do n = n1 , n2
+          do k = 0, kz
+            do n = n1, n2
               !consider a minimal extinction and reflectivity background
               if ( tauxar3d(k,n,ns) < 1.E-10_rkx ) then
                 tauxar3d(k,n,ns) = 1.E-10_rkx
@@ -2493,9 +2493,9 @@ module mod_rad_aerosol
           tauasc3d(:,:,ns) = d_zero
           gtota3d(:,:,ns) = d_zero
           ftota3d(:,:,ns) = d_zero
-          do itr = 1 , ntr
-            do k = 1 , kz
-              do n = n1 , n2
+          do itr = 1, ntr
+            do k = 1, kz
+              do n = n1, n2
                 kk = kth -kz + k
                 tauxar3d(n,kk,ns) = tauxar3d(n,kk,ns) + tx(n,k,itr)
                 tauasc3d(n,kk,ns) = tauasc3d(n,kk,ns) + tx(n,k,itr)*wa(n,k,itr)
@@ -2504,8 +2504,8 @@ module mod_rad_aerosol
               end do
             end do
           end do
-          do k = kth -kz+1 , kth
-            do n = n1 , n2
+          do k = kth -kz+1, kth
+            do n = n1, n2
               !consider a minimal extinction background
               if ( tauxar3d(n,k,ns) > 1.E-10_rkx ) then
                 tauasc3d(n,k,ns) = tauasc3d(n,k,ns) / tauxar3d(n,k,ns)
@@ -2539,11 +2539,11 @@ module mod_rad_aerosol
         ! initialisation à 1 = perfect transmittivity
         aertrlw (:,:,:) = d_one
         !
-        do itr = 1 , ntr
+        do itr = 1, ntr
           if ( chtrname(itr)(1:4) == 'DUST' ) then
-            do n = n1 , n2
-              do k1 = 1 , kzp1
-                do k2 = 1 , kzp1
+            do n = n1, n2
+              do k1 = 1, kzp1
+                do k2 = 1, kzp1
                   if ( k1 == k2 ) aertrlw(k1,k2,n) = d_one
                   ! aerosol path btw k1 and k2 flux level
                   uaerdust = d_zero
@@ -2561,14 +2561,14 @@ module mod_rad_aerosol
         end do
       else
         ! in this case use directly the LW extinction.
-        do ns = 1 , nbndlw
+        do ns = 1, nbndlw
           tauxar3d_lw(:,:,ns) = 1.0E-10_rkx
           ibin = 0
-          do itr = 1 , ntr
+          do itr = 1, ntr
             if ( chtrname(itr)(1:4) == 'DUST') then
               ibin = ibin + 1
-              do k = 1 , kz
-                do n = n1 , n2
+              do k = 1, kz
+                do n = n1, n2
                   kk = kth - kz +k
                   uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
                   tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksdust_lw(ns,ibin)
@@ -2585,32 +2585,32 @@ module mod_rad_aerosol
 
     subroutine cmip6_plume_profile(x,m2r)
       implicit none
-      type (rcm_time_and_date) , intent(in) :: x
-      type(mod_2_rad) , intent(in) :: m2r
-      logical , save :: lfirst = .true.
-      real(rkx) , dimension(kth) :: opprnt
-      integer(ik4) :: ibin , i , j , k , kk , n
-      integer(ik4) :: iy , im , id
-      integer(ik4) , save :: idlast = -1
-      integer(ik4) , save :: visband
+      type (rcm_time_and_date), intent(in) :: x
+      type(mod_2_rad), intent(in) :: m2r
+      logical, save :: lfirst = .true.
+      real(rkx), dimension(kth) :: opprnt
+      integer(ik4) :: ibin, i, j, k, kk, n
+      integer(ik4) :: iy, im, id
+      integer(ik4), save :: idlast = -1
+      integer(ik4), save :: visband
       real(rk8) :: year_fr
 
       if ( lfirst ) then
         if ( irrtm == 0 ) then
           visband = 8
-          do n = 1 , nband
+          do n = 1, nband
             lambdaw(n) = (wavmin(n)+wavmax(n))*d_half*d_1000
           end do
         else if ( irrtm == 1 ) then
           visband = 10
-          do n = 1 , nband
-            ! wavenumber is in cm-1 , convert to wavelenght in nm for mac-v2
+          do n = 1, nband
+            ! wavenumber is in cm-1, convert to wavelenght in nm for mac-v2
             lambdaw(n) = (1.e7_rkx/wavnm1(n)+1.e7_rkx/wavnm2(n))*d_half
           end do
         end if
         ibin = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             altr4(ibin) = m2r%ht(j,i)*regrav
             latr4(ibin) = m2r%xlat(j,i)
             lonr4(ibin) = m2r%xlon(j,i)
@@ -2621,11 +2621,11 @@ module mod_rad_aerosol
       end if
       call split_idate(x,iy,im,id)
       if ( id /= idlast ) then
-        do k = 1 , kz
+        do k = 1, kz
           ibin = 1
           kk = kth-k+1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               z(ibin,kk)  = m2r%za(j,i,kz-k+1)
               dz(ibin,kk) = m2r%deltaz(j,i,kz-k+1)
               ibin = ibin + 1
@@ -2633,7 +2633,7 @@ module mod_rad_aerosol
           end do
         end do
         year_fr = real(iy) + real(yeardayfrac(x))/real(yeardays(iy,x%calendar))
-        do n = 1 , nband
+        do n = 1, nband
           if ( lambdaw(n) < 700.0_rkx ) then
             call sp_aop_profile(macv2sp_hist,macv2sp_scen, &
                                 kth,npoints,lambdaw(n), &
@@ -2648,15 +2648,15 @@ module mod_rad_aerosol
         end do
         if ( myid == italk ) then
           write(stdout,*) 'Updating aerosol optical properties...'
-          do k = 1 , kth
+          do k = 1, kth
             opprnt(k) = extprofr4(1,k,visband)
           end do
           call vprntv(opprnt,kth,'Updated VIS ext profile')
-          do k = 1 , kth
+          do k = 1, kth
             opprnt(k) = ssaprofr4(1,k,visband)
           end do
           call vprntv(opprnt,kth,'Updated VIS ssa profile')
-          do k = 1 , kth
+          do k = 1, kth
             opprnt(k) = asyprofr4(1,k,visband)
           end do
           call vprntv(opprnt,kth,'Updated VIS asy profile')
@@ -2667,10 +2667,10 @@ module mod_rad_aerosol
 
     subroutine getfile(year,month,ncid,wbclim)
       implicit none
-      integer(ik4) , intent(in) :: year,month,wbclim
-      integer(ik4) , intent(inout) ::  ncid
+      integer(ik4), intent(in) :: year,month,wbclim
+      integer(ik4), intent(inout) ::  ncid
       character(len=256) :: infile
-      integer(ik4) :: iret , idimid
+      integer(ik4) :: iret, idimid
       character(len=5) :: filnum
       if (wbclim == 1) filnum = 'wb3.'
       if (wbclim == 2) filnum = 'wb6.'
@@ -2725,8 +2725,8 @@ module mod_rad_aerosol
 
     subroutine remove_nans(val,set)
       implicit none
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: val
-      real(rkx) , intent(in) :: set
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: val
+      real(rkx), intent(in) :: set
       where ( is_nan(val) )
         val = set
       end where

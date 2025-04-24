@@ -31,14 +31,14 @@ module mod_sst_1deg
 
   public :: sst_1deg
 
-  integer(ik4) :: year , month , day , hour
+  integer(ik4) :: year, month, day, hour
 
-  integer(ik4) :: istatus , latid , lonid
-  integer(ik4) :: ilon , jlat
-  real(rkx) , pointer , dimension(:) :: lati
-  real(rkx) , pointer , dimension(:) :: loni
-  real(rkx) , pointer , dimension(:,:) :: sst , ice
-  integer(2) , pointer , dimension(:,:) :: work , work1
+  integer(ik4) :: istatus, latid, lonid
+  integer(ik4) :: ilon, jlat
+  real(rkx), pointer, contiguous, dimension(:) :: lati
+  real(rkx), pointer, contiguous, dimension(:) :: loni
+  real(rkx), pointer, contiguous, dimension(:,:) :: sst, ice
+  integer(2), pointer, contiguous, dimension(:,:) :: work, work1
 
   type(h_interpolator) :: hint
 
@@ -68,10 +68,10 @@ module mod_sst_1deg
   !
   subroutine sst_1deg
     implicit none
-    real(rk4) , dimension(360,180) :: gisst
-    integer(ik4) :: i , j , k , iwk , nrec
-    integer(ik4) :: nsteps , ipunit , gireclen
-    type(rcm_time_and_date) :: idate , idateo , idatef , idatem , irefd
+    real(rk4), dimension(360,180) :: gisst
+    integer(ik4) :: i, j, k, iwk, nrec
+    integer(ik4) :: nsteps, ipunit, gireclen
+    type(rcm_time_and_date) :: idate, idateo, idatef, idatem, irefd
     character(len=256) :: inpfile
     logical :: there
 
@@ -83,14 +83,14 @@ module mod_sst_1deg
       call getmem2d(sst,1,ilon,1,jlat,'mod_sst_1deg:sst')
       if ( globidate1 < 1947121512 .or. globidate2 > 2002091512 ) then
         write (stderr,*) 'GISST data required are not available'
-        write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
+        write (stderr,*) 'IDATE1, IDATE2 = ', globidate1, globidate2
         call die('sst_1deg')
       end if
       ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
-      do i = 1 , ilon
+      do i = 1, ilon
         loni(i) = .5 + float(i-1)
       end do
-      do j = 1 , jlat
+      do j = 1, jlat
         lati(j) = -89.5 + 1.*float(j-1)
       end do
       inpfile = trim(inpglob)//'/SST/GISST_194712_200209'
@@ -110,13 +110,13 @@ module mod_sst_1deg
               ssttyp == 'OI2ST' ) then
       if ( globidate1 < 1981121512 .or. globidate2 < 1981121512 ) then
         write (stderr,*) 'OISST data required are not available'
-        write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
+        write (stderr,*) 'IDATE1, IDATE2 = ', globidate1, globidate2
         call die('sst_1deg')
       end if
     else if ( ssttyp == 'OI_WK' .or. ssttyp == 'OI2WK' ) then
       if ( globidate1 < 1981110100 .or. globidate2 < 1981110106 ) then
         write (stderr,*) 'OI_WK (or OI2WK) data are not available'
-        write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
+        write (stderr,*) 'IDATE1, IDATE2 = ', globidate1, globidate2
         call die('sst_1deg')
       end if
     else
@@ -146,7 +146,7 @@ module mod_sst_1deg
       call open_sstfile(idateo)
     end if
 
-    write (stdout,*) 'NSTEPS     : ' , nsteps
+    write (stdout,*) 'NSTEPS     : ', nsteps
 
     ! ****** OISST SST DATA, 1 Deg data, AVAILABLE FROM 12/1981 TO PRESENT
     ! ****** GISST SST DATA, 1 Deg data, AVAILABLE FROM 12/1947 TO 9/2002
@@ -155,7 +155,7 @@ module mod_sst_1deg
 
     if ( ssttyp /= 'OI_WK' .and. ssttyp /= 'OI2WK' ) then
 
-      do k = 1 , nsteps
+      do k = 1, nsteps
 
         call split_idate(idate,year,month,day,hour)
 
@@ -178,8 +178,8 @@ module mod_sst_1deg
           call h_interpolate_cont(hint,ice,icemm)
         end if
 
-        do j = 1 , jx
-          do i = 1 , iy
+        do j = 1, jx
+          do i = 1, iy
             if ( sstmm(j,i) > -100. ) then
               sstmm(j,i) = sstmm(j,i) + 273.15
             else
@@ -190,7 +190,7 @@ module mod_sst_1deg
 
         call writerec(idate)
 
-        write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
+        write (stdout,*) 'WRITTEN OUT SST DATA : ', tochar(idate)
 
         idate = nextmon(idate)
         idatem = monmiddle(idate)
@@ -200,7 +200,7 @@ module mod_sst_1deg
     else
       ! Weekly data
 
-      do k = 1 , nsteps
+      do k = 1, nsteps
 
         if ( idate < 1989123100 ) then
           irefd = 1981110100
@@ -226,8 +226,8 @@ module mod_sst_1deg
           call h_interpolate_cont(hint,ice,icemm)
         end if
 
-        do i = 1 , iy
-          do j = 1 , jx
+        do i = 1, iy
+          do j = 1, jx
             if ( sstmm(j,i) > -100. ) then
               sstmm(j,i) = sstmm(j,i) + 273.15
             else
@@ -238,7 +238,7 @@ module mod_sst_1deg
 
         call writerec(idate)
 
-        write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
+        write (stdout,*) 'WRITTEN OUT SST DATA : ', tochar(idate)
         idate = nextwk(idate)
       end do
     end if
@@ -251,13 +251,13 @@ module mod_sst_1deg
 
   subroutine sst_mn(idate,idate0,pathaddname)
     implicit none
-    type(rcm_time_and_date) :: idate , idate0
-    character(len=256) , intent(in) :: pathaddname
-    integer(ik4) :: i , it , j
+    type(rcm_time_and_date) :: idate, idate0
+    character(len=256), intent(in) :: pathaddname
+    integer(ik4) :: i, it, j
     character(len=5) :: varname
-    integer(ik4) , dimension(3) , save :: icount , istart
-    integer(ik4) , save :: inet , ivar
-    real(rkx) , save :: xadd , xscale
+    integer(ik4), dimension(3), save :: icount, istart
+    integer(ik4), save :: inet, ivar
+    real(rkx), save :: xadd, xscale
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -342,8 +342,8 @@ module mod_sst_1deg
     call checkncerr(istatus,__FILE__,__LINE__, &
             'Error read variable '//trim(varname))
 
-    do j = 1 , jlat
-      do i = 1 , ilon
+    do j = 1, jlat
+      do i = 1, ilon
         if ( work(i,j) == 32767 ) then
            sst(i,j) = -9999.
         else
@@ -355,13 +355,13 @@ module mod_sst_1deg
 
   subroutine ice_mn(idate,idate0,pathaddname)
     implicit none
-    type(rcm_time_and_date) :: idate , idate0
-    character(len=256) , intent(in) :: pathaddname
-    integer(ik4) :: i , it , j
+    type(rcm_time_and_date) :: idate, idate0
+    character(len=256), intent(in) :: pathaddname
+    integer(ik4) :: i, it, j
     character(len=5) :: varname
-    integer(ik4) , dimension(3) , save :: icount , istart
-    integer(ik4) , save :: inet , ivar
-    real(rkx) , save :: xadd , xscale
+    integer(ik4), dimension(3), save :: icount, istart
+    integer(ik4), save :: inet, ivar
+    real(rkx), save :: xadd, xscale
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -402,8 +402,8 @@ module mod_sst_1deg
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname)
 
-    do j = 1 , jlat
-      do i = 1 , ilon
+    do j = 1, jlat
+      do i = 1, ilon
         if ( work(i,j) == 32767 ) then
            ice(i,j) = -9999.
         else
@@ -415,15 +415,15 @@ module mod_sst_1deg
 
   subroutine sst_wk(idate,kkk,pathaddname)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) , intent(in) :: kkk
-    character(len=256) , intent(in) :: pathaddname
-    integer(ik4) :: i , j
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4), intent(in) :: kkk
+    character(len=256), intent(in) :: pathaddname
+    integer(ik4) :: i, j
     character(len=3) :: varname
-    integer(ik4) , dimension(3) , save :: icount , istart
-    integer(ik4) , save :: inet , ivar
-    real(rkx) , save :: xadd , xscale
-    character(len=256) , save :: usename
+    integer(ik4), dimension(3), save :: icount, istart
+    integer(ik4), save :: inet, ivar
+    real(rkx), save :: xadd, xscale
+    character(len=256), save :: usename
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -518,8 +518,8 @@ module mod_sst_1deg
                       'Error read var '//varname)
     end if
 
-    do j = 1 , jlat
-      do i = 1 , ilon
+    do j = 1, jlat
+      do i = 1, ilon
         if ( work(i,j) == 32767 ) then
            sst(i,j) = -9999.
         else
@@ -529,8 +529,8 @@ module mod_sst_1deg
     end do
 
     if (idate < 1989123100) then
-      do j = 1 , jlat
-        do i = 1 , ilon
+      do j = 1, jlat
+        do i = 1, ilon
           if ( work1(i,j) == 32767 ) then
             sst(i,j) = -9999.
           else
@@ -543,16 +543,16 @@ module mod_sst_1deg
 
   subroutine ice_wk(idate,kkk,pathaddname)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) , intent(in) :: kkk
-    character(len=256) , intent(in) :: pathaddname
-    integer(ik4) :: i , j
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4), intent(in) :: kkk
+    character(len=256), intent(in) :: pathaddname
+    integer(ik4) :: i, j
     character(len=4) :: varname
-    integer(2) , dimension(ilon,jlat) :: work , work1
-    integer(ik4) , dimension(3) , save :: icount , istart
-    integer(ik4) , save :: inet , ivar
-    real(rkx) , save :: xadd , xscale
-    character(len=256) , save :: usename
+    integer(2), dimension(ilon,jlat) :: work, work1
+    integer(ik4), dimension(3), save :: icount, istart
+    integer(ik4), save :: inet, ivar
+    real(rkx), save :: xadd, xscale
+    character(len=256), save :: usename
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -605,8 +605,8 @@ module mod_sst_1deg
                       'Error read var '//varname)
     end if
 
-    do j = 1 , jlat
-      do i = 1 , ilon
+    do j = 1, jlat
+      do i = 1, ilon
         if ( work(i,j) == 32767 ) then
            ice(i,j) = -9999.
         else
@@ -616,8 +616,8 @@ module mod_sst_1deg
     end do
 
     if (idate < 1989123100) then
-      do j = 1 , jlat
-        do i = 1 , ilon
+      do j = 1, jlat
+        do i = 1, ilon
           if ( work1(i,j) == 32767 ) then
              ice(i,j) = -9999.
           else

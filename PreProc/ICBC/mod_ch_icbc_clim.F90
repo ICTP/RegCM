@@ -32,31 +32,31 @@ module mod_ch_icbc_clim
 
   private
 
-  integer(ik4) :: chilon , chjlat , chilev
+  integer(ik4) :: chilon, chjlat, chilev
 
-  real(rkx) , pointer , dimension(:) :: cht42lon
-  real(rkx) , pointer , dimension(:) :: cht42lat
-  real(rkx) , pointer , dimension(:) :: cht42hyam , cht42hybm
+  real(rkx), pointer, contiguous, dimension(:) :: cht42lon
+  real(rkx), pointer, contiguous, dimension(:) :: cht42lat
+  real(rkx), pointer, contiguous, dimension(:) :: cht42hyam, cht42hybm
   !
   ! Oxidant climatology variables
   !
   real(rkx) :: p0
-  real(rkx) , pointer , dimension(:,:) :: pchem_3
-  real(rkx) , pointer , dimension(:,:) :: xps31 , xps32
-  real(rkx) , pointer , dimension(:,:,:,:) :: chv31 , chv32
-  real(rkx) , pointer , dimension(:,:) :: xps
-  real(rkx) , pointer , dimension(:,:,:) :: xinp
-  real(rkx) , pointer , dimension(:,:,:,:) :: chv4_1
-  real(rkx) , pointer , dimension(:,:,:,:) :: chv4_2
-  real(rkx) , pointer , dimension(:,:,:,:) :: chv4_3
+  real(rkx), pointer, contiguous, dimension(:,:) :: pchem_3
+  real(rkx), pointer, contiguous, dimension(:,:) :: xps31, xps32
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chv31, chv32
+  real(rkx), pointer, contiguous, dimension(:,:) :: xps
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xinp
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chv4_1
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chv4_2
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chv4_3
 
-  real(rkx) :: prcm , pmpi , pmpj
+  real(rkx) :: prcm, pmpi, pmpj
   real(rkx) :: xpt
   integer(ik4) :: ism = -1
-  type (rcm_time_and_date) , save :: iref1 , iref2
+  type (rcm_time_and_date), save :: iref1, iref2
 
-  integer(ik4) :: ncicbc , ivarps , irec
-  public :: init_ch_icbc_clim , get_ch_icbc_clim , close_ch_icbc_clim
+  integer(ik4) :: ncicbc, ivarps, irec
+  public :: init_ch_icbc_clim, get_ch_icbc_clim, close_ch_icbc_clim
 
   type(rcm_time_and_date) :: iodate
   type(h_interpolator) :: hint
@@ -67,11 +67,11 @@ module mod_ch_icbc_clim
 
   subroutine init_ch_icbc_clim(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     type(rcm_time_interval) :: tdif
-    integer(ik4) :: ivarid , idimid
-    character(len=256) :: chfilename , icbcfilename
-    integer(ik4) :: ncid , istatus
+    integer(ik4) :: ivarid, idimid
+    character(len=256) :: chfilename, icbcfilename
+    integer(ik4) :: ncid, istatus
 
     iodate = monfirst(idate)
     write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
@@ -175,15 +175,15 @@ module mod_ch_icbc_clim
 
   subroutine get_ch_icbc_clim(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: nyear , month , nday , nhour
-    logical :: doread , lfuture
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: nyear, month, nday, nhour
+    logical :: doread, lfuture
     character(len=256) :: icbcfilename
-    integer(ik4) , dimension(3) :: istart , icount
+    integer(ik4), dimension(3) :: istart, icount
     type(rcm_time_and_date) :: imonmidd
     type(rcm_time_interval) :: tdif
-    real(rk8) :: xfac1 , xfac2 , odist
-    integer(ik4) :: im1 , im2 , istatus
+    real(rk8) :: xfac1, xfac2, odist
+    integer(ik4) :: im1, im2, istatus
 
     call split_idate(idate,nyear,month,nday,nhour)
     imonmidd = monmiddle(idate)
@@ -297,13 +297,13 @@ module mod_ch_icbc_clim
 
   subroutine read2m(im1,im2,doread,lfuture)
     implicit none
-    integer(ik4) , intent(in) :: im1 , im2
-    logical , intent(in) :: doread , lfuture
-    integer(ik4) :: i , is , j , k , l , k0
+    integer(ik4), intent(in) :: im1, im2
+    logical, intent(in) :: doread, lfuture
+    integer(ik4) :: i, is, j, k, l, k0
     character(len=256) :: chfilename
-    real(rkx) :: wt1 , wt2
-    integer(ik4) :: ncid , istatus , ivarid
-    real(rkx) , parameter :: rglrog = rgas*lrate*regrav
+    real(rkx) :: wt1, wt2
+    integer(ik4) :: ncid, istatus, ivarid
+    real(rkx), parameter :: rglrog = rgas*lrate*regrav
 
     if ( doread ) then
       if ( lfuture ) then
@@ -326,7 +326,7 @@ module mod_ch_icbc_clim
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var PS')
       call h_interpolate_cont(hint,xps,xps31)
-      do is = 1 , nchsp
+      do is = 1, nchsp
         istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find var '//trim(chspec(is)))
@@ -340,12 +340,12 @@ module mod_ch_icbc_clim
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file chemical')
     end if
-    do i = 1 , iy
-      do j = 1 , jx
-        do l = 1 , kz
+    do i = 1, iy
+      do j = 1, jx
+        do l = 1, kz
           prcm = ((pchem_3(j,i)*0.1_rkx-xpt)*sigmah(l)+xpt)*1000.0_rkx
           k0 = -1
-          do k = chilev , 1 , -1
+          do k = chilev, 1, -1
             pmpi = cht42hyam(k)*p0+xps31(j,i)*cht42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
@@ -353,7 +353,7 @@ module mod_ch_icbc_clim
           if ( prcm < pmpi ) then
             chv4_1(j,i,l,is) = chv31(j,i,1,is)
           else if (k0 == chilev) then
-            do is = 1 , nchsp
+            do is = 1, nchsp
               chv4_1(j,i,l,is) = 0.5_rkx * &
                 (chv31(j,i,chilev,is) + chv31(j,i,chilev-1,is)) * &
                   exp(rglrog*log(prcm/pmpi))
@@ -363,7 +363,7 @@ module mod_ch_icbc_clim
             pmpi = cht42hyam(k0+1)*p0+xps31(j,i)*cht42hybm(k0+1)
             wt1 = log(prcm/pmpj)/log(pmpi/pmpj)
             wt2 = 1.0 - wt1
-            do is = 1 , nchsp
+            do is = 1, nchsp
               chv4_1(j,i,l,is) = chv31(j,i,k0+1,is)*wt1 + chv31(j,i,k0,is)*wt2
             end do
           end if
@@ -391,7 +391,7 @@ module mod_ch_icbc_clim
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var PS')
       call h_interpolate_cont(hint,xps,xps32)
-      do is = 1 , nchsp
+      do is = 1, nchsp
         istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find var '//trim(chspec(is)))
@@ -405,12 +405,12 @@ module mod_ch_icbc_clim
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file chemical')
     end if
-    do i = 1 , iy
-      do j = 1 , jx
-        do l = 1 , kz
+    do i = 1, iy
+      do j = 1, jx
+        do l = 1, kz
           prcm = ((pchem_3(j,i)*0.1_rkx-xpt)*sigmah(l)+xpt)*1000.0_rkx
           k0 = -1
-          do k = chilev , 1 , -1
+          do k = chilev, 1, -1
             pmpi = cht42hyam(k)*p0+xps32(j,i)*cht42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
@@ -420,7 +420,7 @@ module mod_ch_icbc_clim
           else if (k0 == chilev) then
             pmpj = cht42hyam(chilev-1)*p0+xps32(j,i)*cht42hybm(chilev-1)
             pmpi = cht42hyam(chilev  )*p0+xps32(j,i)*cht42hybm(chilev  )
-            do is = 1 , nchsp
+            do is = 1, nchsp
               chv4_2(j,i,l,is) = 0.5_rkx * &
                 (chv32(j,i,chilev,is) + chv32(j,i,chilev-1,is)) * &
                   exp(rglrog*log(prcm/pmpi))
@@ -430,7 +430,7 @@ module mod_ch_icbc_clim
             pmpi = cht42hyam(k0+1)*p0+xps32(j,i)*cht42hybm(k0+1)
             wt1 = log(prcm/pmpj)/log(pmpi/pmpj)
             wt2 = 1.0 - wt1
-            do is = 1 , nchsp
+            do is = 1, nchsp
               chv4_2(j,i,l,is) = chv32(j,i,k0+1,is)*wt1 + chv32(j,i,k0,is)*wt2
             end do
           end if
@@ -453,14 +453,14 @@ module mod_ch_icbc_clim
 
   integer(ik4) function inextmon(im)
     implicit none
-    integer(ik4) , intent(in) :: im
+    integer(ik4), intent(in) :: im
     inextmon = im+1
     if ( inextmon == 13 ) inextmon = 1
   end function inextmon
 
   integer(ik4) function iprevmon(im)
     implicit none
-    integer(ik4) , intent(in) :: im
+    integer(ik4), intent(in) :: im
     iprevmon = im-1
     if ( iprevmon == 0 ) iprevmon = 12
   end function iprevmon

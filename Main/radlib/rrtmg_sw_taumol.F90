@@ -297,8 +297,8 @@ module rrtmg_sw_taumol
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.
 
-      real(kind=rb) , parameter :: strrat1 = 252.131_rb
-      integer(kind=im) , parameter :: layreffr = 18
+      real(kind=rb), parameter :: strrat1 = 252.131_rb
+      integer(kind=im), parameter :: layreffr = 18
 
 ! Lower atmosphere loop
       do lay = 1, laytrop
@@ -407,8 +407,8 @@ module rrtmg_sw_taumol
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.
 
-      real(kind=rb) , parameter :: strrat = 0.364641_rb
-      integer(kind=im) , parameter :: layreffr = 30
+      real(kind=rb), parameter :: strrat = 0.364641_rb
+      integer(kind=im), parameter :: layreffr = 30
 
 ! Lower atmosphere loop
       do lay = 1, laytrop
@@ -547,8 +547,8 @@ module rrtmg_sw_taumol
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.
 
-      real(kind=rb) , parameter :: strrat = 38.9589_rb
-      integer(kind=im) , parameter :: layreffr = 6
+      real(kind=rb), parameter :: strrat = 38.9589_rb
+      integer(kind=im), parameter :: layreffr = 6
 
       laysolfr = laytrop
 
@@ -665,8 +665,8 @@ module rrtmg_sw_taumol
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.
 
-      real(kind=rb) , parameter :: strrat = 5.49281_rb
-      integer(kind=im) , parameter :: layreffr = 3
+      real(kind=rb), parameter :: strrat = 5.49281_rb
+      integer(kind=im), parameter :: layreffr = 3
 
       laysolfr = laytrop
 
@@ -694,7 +694,7 @@ module rrtmg_sw_taumol
          indf = indfor(lay)
          tauray = colmol(lay) * rayl
 
-         do ig = 1 , ng19
+         do ig = 1, ng19
             taug(lay,ngs18+ig) = speccomb * &
                 (fac000 * absa(ind0,ig) + &
                  fac100 * absa(ind0+1,ig) + &
@@ -741,7 +741,7 @@ module rrtmg_sw_taumol
          ind1 = ((jp(lay)-12)*5+(jt1(lay)-1))*nspb(19) + 1
          tauray = colmol(lay) * rayl
 
-         do ig = 1 , ng19
+         do ig = 1, ng19
             taug(lay,ngs18+ig) = colco2(lay) * &
                 (fac00(lay) * absb(ind0,ig) + &
                  fac10(lay) * absb(ind0+1,ig) + &
@@ -783,7 +783,7 @@ module rrtmg_sw_taumol
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.
 
-      integer(kind=im) , parameter :: layreffr = 3
+      integer(kind=im), parameter :: layreffr = 3
 
       laysolfr = laytrop
 
@@ -879,8 +879,8 @@ module rrtmg_sw_taumol
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.
 
-      real(kind=rb) , parameter :: strrat = 0.0045321_rb
-      integer(kind=im) , parameter :: layreffr = 8
+      real(kind=rb), parameter :: strrat = 0.0045321_rb
+      integer(kind=im), parameter :: layreffr = 8
 
       laysolfr = laytrop
 
@@ -1015,12 +1015,12 @@ module rrtmg_sw_taumol
                        fac110, fac111, fs, speccomb, specmult, specparm, &
                        tauray, o2cont
 
-      real(kind=rb) , parameter :: strrat = 0.022708_rb
+      real(kind=rb), parameter :: strrat = 0.022708_rb
 ! The following factor is the ratio of total O2 band intensity (lines
 ! and Mate continuum) to O2 band intensity (line only).  It is needed
 ! to adjust the optical depths since the k's include only lines.
-      real(kind=rb) , parameter :: o2adj = 1.6_rb
-      integer(kind=im) , parameter :: layreffr = 2
+      real(kind=rb), parameter :: o2adj = 1.6_rb
+      integer(kind=im), parameter :: layreffr = 2
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1140,8 +1140,8 @@ module rrtmg_sw_taumol
       real(kind=rb) :: tauray
 
 ! Average Giver et al. correction factor for this band.
-      real(kind=rb) , parameter :: givfac = 1.029_rb
-      integer(kind=im) , parameter :: layreffr = 6
+      real(kind=rb), parameter :: givfac = 1.029_rb
+      integer(kind=im), parameter :: layreffr = 6
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1227,8 +1227,8 @@ module rrtmg_sw_taumol
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.
 
-      real(kind=rb) , parameter :: strrat = 0.124692_rb
-      integer(kind=im) , parameter :: layreffr = 1
+      real(kind=rb), parameter :: strrat = 0.124692_rb
+      integer(kind=im), parameter :: layreffr = 1
 
       laysolfr = laytrop
 
@@ -1345,7 +1345,7 @@ module rrtmg_sw_taumol
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.
 
-      integer(kind=im) , parameter :: layreffr = 2
+      integer(kind=im), parameter :: layreffr = 2
 
       laysolfr = laytrop
 
@@ -1480,8 +1480,8 @@ module rrtmg_sw_taumol
 ! the total irradiance in this band differs from the corresponding
 ! total in the "high-resolution" version of the Kurucz function.
 ! Therefore, these values are scaled below by the factor SCALEKUR.
-      real(kind=rb) , parameter :: scalekur = 50.15_rb/48.37_rb
-      integer(kind=im) , parameter :: layreffr = 32
+      real(kind=rb), parameter :: scalekur = 50.15_rb/48.37_rb
+      integer(kind=im), parameter :: layreffr = 32
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1566,8 +1566,8 @@ module rrtmg_sw_taumol
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.
 
-      real(kind=rb) , parameter :: strrat = 6.67029e-07_rb
-      integer(kind=im) , parameter :: layreffr = 42
+      real(kind=rb), parameter :: strrat = 6.67029e-07_rb
+      integer(kind=im), parameter :: layreffr = 42
 
 ! Lower atmosphere loop
       do lay = 1, laytrop
@@ -1692,7 +1692,7 @@ module rrtmg_sw_taumol
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.
 
-      integer(kind=im) , parameter :: layreffr = 49
+      integer(kind=im), parameter :: layreffr = 49
 
 ! Lower atmosphere loop
       do lay = 1, laytrop

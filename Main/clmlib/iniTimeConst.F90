@@ -20,16 +20,16 @@ subroutine iniTimeConst
   use shr_kind_mod, only : r8 => shr_kind_r8
   use nanMod
   use clmtype
-  use decompMod   , only : get_proc_bounds, get_proc_global
-  use decompMod   , only : gsMap_lnd_gdc2glo, perm_lnd_gdc2glo
-  use clm_atmlnd  , only : clm_a2l
-  use clm_varpar  , only : nlevsoi, nlevlak, lsmlon, lsmlat, numpft, numrad
-  use clm_varcon  , only : istice, istdlak, istwet, isturb, &
+  use decompMod  , only : get_proc_bounds, get_proc_global
+  use decompMod  , only : gsMap_lnd_gdc2glo, perm_lnd_gdc2glo
+  use clm_atmlnd , only : clm_a2l
+  use clm_varpar , only : nlevsoi, nlevlak, lsmlon, lsmlat, numpft, numrad
+  use clm_varcon , only : istice, istdlak, istwet, isturb, &
                            zlak, dzlak, zsoi, dzsoi, zisoi, spval, &
                            albsat, albdry
-  use clm_varctl  , only : nsrest, fsurdat,scmlon,scmlat,single_column, &
+  use clm_varctl , only : nsrest, fsurdat,scmlon,scmlat,single_column, &
                            mksrf_fsoicol,mksrf_fsoitex,mksrf_fmax      !abt
-  use pftvarcon   , only : ncorn, nwheat, noveg, ntree, roota_par, rootb_par,  &
+  use pftvarcon  , only : ncorn, nwheat, noveg, ntree, roota_par, rootb_par,  &
                            smpso, smpsc, fnitr, &
                            z0mr, displar, dleaf, rhol, rhos, taul, taus, xl, &
                            qe25, vcmx25, mp, c3psn, slatop, dsladlai, leafcn, flnr, woody, &
@@ -37,20 +37,20 @@ subroutine iniTimeConst
                            flivewd, fcur, lf_flab, lf_fcel, lf_flig, fr_flab, fr_fcel, fr_flig, &
                            dw_fcel, dw_flig, leaf_long, evergreen, stress_decid, season_decid, &
                            resist, &
-                           pftpar , tree   , summergreen, raingreen  , sla     , &
-                           lm_sapl, sm_sapl, hm_sapl    , rm_sapl    , latosa  , &
-                           allom1 , allom2 , allom3     , reinickerp , wooddens
+                           pftpar, tree  , summergreen, raingreen , sla    , &
+                           lm_sapl, sm_sapl, hm_sapl   , rm_sapl   , latosa , &
+                           allom1, allom2, allom3    , reinickerp, wooddens
   use clm_time_manager, only : get_step_size
-  use abortutils  , only : endrun
-  use fileutils   , only : getfil
-  use ndepFileMod , only : ndeprd
-  use pftvarcon   , only : pftconrd
+  use abortutils , only : endrun
+  use fileutils  , only : getfil
+  use ndepFileMod, only : ndeprd
+  use pftvarcon  , only : pftconrd
   use ncdio
   use spmdMod
 !abt rcm below
-  use domainMod  , only : ldomain
+  use domainMod , only : ldomain
   use clm_varvoc
-  use decompMod  , only : ldecomp
+  use decompMod , only : ldecomp
   use clm_varsur
   use mod_clm
   use mod_dynparam
@@ -72,12 +72,12 @@ subroutine iniTimeConst
 !
 ! local pointers to implicit in arguments
 !
-  integer , pointer :: ivt(:)             !  vegetation type index
-  integer , pointer :: pcolumn(:)         ! column index of corresponding pft
-  integer , pointer :: pgridcell(:)       ! gridcell index of corresponding pft
-  integer , pointer :: clandunit(:)       ! landunit index of column
-  integer , pointer :: cgridcell(:)       ! gridcell index of column
-  integer , pointer :: ltype(:)           ! landunit type index
+  integer, pointer :: ivt(:)             !  vegetation type index
+  integer, pointer :: pcolumn(:)         ! column index of corresponding pft
+  integer, pointer :: pgridcell(:)       ! gridcell index of corresponding pft
+  integer, pointer :: clandunit(:)       ! landunit index of column
+  integer, pointer :: cgridcell(:)       ! gridcell index of column
+  integer, pointer :: ltype(:)           ! landunit type index
 !
 ! local pointers to implicit out arguments
 !
@@ -103,7 +103,7 @@ subroutine iniTimeConst
   real(r8), pointer :: wtfact(:)          ! maximum saturated fraction for a gridcell
   real(r8), pointer :: smpmin(:)          ! restriction for min of soil potential (mm) (new)
   real(r8), pointer :: hkdepth(:)         ! decay factor (m)
-  integer , pointer :: isoicol(:)         ! soil color class
+  integer, pointer :: isoicol(:)         ! soil color class
   real(r8), pointer :: gwc_thr(:)         ! threshold soil moisture based on clay content
   real(r8), pointer :: mss_frc_cly_vld(:) ! [frc] Mass fraction clay limited to 0.20
   real(r8), pointer :: forc_ndep(:)       ! nitrogen deposition rate (gN/m2/s)
@@ -513,7 +513,7 @@ subroutine iniTimeConst
 #endif
 !abt rcm above
 
-  call mpi_bcast( mxsoil_color,        1  , MPI_INTEGER, 0, mpicom, ier )
+  call mpi_bcast( mxsoil_color,        1 , MPI_INTEGER, 0, mpicom, ier )
 
   if (masterproc) then
      call check_ret(nf_close(ncid), subname)

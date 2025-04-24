@@ -13,12 +13,12 @@ module histFileMod
 !
 ! !USES:
   use shr_kind_mod, only : r8 => shr_kind_r8
-  use shr_sys_mod , only : shr_sys_getenv
-  use abortutils  , only : endrun
-  use clm_varcon  , only : spval,ispval
-  use clm_varsur   , only : r2coutfrq
-  use mod_runparams , only : dtsec
-  use mod_dynparam , only : prestr , pthsep
+  use shr_sys_mod, only : shr_sys_getenv
+  use abortutils , only : endrun
+  use clm_varcon , only : spval,ispval
+  use clm_varsur  , only : r2coutfrq
+  use mod_runparams, only : dtsec
+  use mod_dynparam, only : prestr, pthsep
   implicit none
   save
   private
@@ -28,13 +28,13 @@ module histFileMod
 !
 ! Constants
 !
-  integer , public, parameter :: max_tapes = 6          ! max number of history tapes
-  integer , public, parameter :: max_flds = 1000        ! max number of history fields
-  integer , public, parameter :: max_namlen = 32        ! maximum number of characters for field name
+  integer, public, parameter :: max_tapes = 6          ! max number of history tapes
+  integer, public, parameter :: max_flds = 1000        ! max number of history fields
+  integer, public, parameter :: max_namlen = 32        ! maximum number of characters for field name
 !
 ! Counters
 !
-  integer , public :: ntapes = 0         ! index of max history file requested
+  integer, public :: ntapes = 0         ! index of max history file requested
 !
 ! Namelist
 !
@@ -187,7 +187,7 @@ module histFileMod
      type (field_info) :: field                ! field information
      character(len=1)  :: avgflag              ! time averaging flag
      real(r8), pointer :: hbuf(:,:)            ! history buffer (dimensions: dim1d x num2d)
-     integer , pointer :: nacs(:,:)            ! accumulation counter (dimensions: dim1d x num2d)
+     integer, pointer :: nacs(:,:)            ! accumulation counter (dimensions: dim1d x num2d)
   end type history_entry
 
   type history_tape
@@ -241,8 +241,8 @@ module histFileMod
   character(len= 8) :: logname                   ! user name
   character(len=max_chars) :: locfnh(max_tapes)  ! local history file names
   logical :: htapes_defined = .false.            ! flag indicates history contents have been defined
-  real(r8),pointer,private :: llon(:)            ! land lons, 1d global
-  real(r8),pointer,private :: llat(:)            ! land lats, 1d global
+  real(r8),pointer, contiguous,private :: llon(:)            ! land lons, 1d global
+  real(r8),pointer, contiguous,private :: llat(:)            ! land lats, 1d global
 
 !
 ! NetCDF  Id's
@@ -318,7 +318,7 @@ contains
 ! into a type entry in the global master field list (masterlist).
 !
 ! !USES:
-    use clmtype  , only : nameg, namel, namec, namep, lndrof, ocnrof, allrof
+    use clmtype , only : nameg, namel, namec, namep, lndrof, ocnrof, allrof
     use decompMod, only : get_proc_bounds, get_proc_global
 #if (defined RTM)
     use RunoffMod, only : get_proc_rof_bounds, get_proc_rof_global
@@ -330,13 +330,13 @@ contains
     character(len=*), intent(in) :: type1d       ! 1d output type
     character(len=*), intent(in) :: type2d       ! 2d output type
     character(len=*), intent(in) :: typexy       ! xy grid output type
-    integer         , intent(in) :: nlonxy       ! xy grid longitude dimension
-    integer         , intent(in) :: nlatxy       ! xy grid latitude dimension
-    integer         , intent(in) :: num2d        ! size of second dimension (e.g. number of vertical levels)
+    integer        , intent(in) :: nlonxy       ! xy grid longitude dimension
+    integer        , intent(in) :: nlatxy       ! xy grid latitude dimension
+    integer        , intent(in) :: num2d        ! size of second dimension (e.g. number of vertical levels)
     character(len=*), intent(in) :: units        ! units of field
     character(len=1), intent(in) :: avgflag      ! time averaging flag
     character(len=*), intent(in) :: long_name    ! long name of field
-    integer         , intent(in) :: hpindex      ! clmtype index for history buffer output
+    integer        , intent(in) :: hpindex      ! clmtype index for history buffer output
     character(len=*), intent(in) :: p2c_scale_type ! scale type for subgrid averaging of pfts to column
     character(len=*), intent(in) :: c2l_scale_type ! scale type for subgrid averaging of columns to landunits
     character(len=*), intent(in) :: l2g_scale_type ! scale type for subgrid averaging of landunits to gridcells
@@ -903,11 +903,11 @@ contains
 ! the master field list to the active list for the tape.
 !
 ! !USES:
-    use decompMod , only : get_proc_bounds, get_proc_global
-    use clmtype   , only : nameg, namel, namec, namep, lndrof, ocnrof, allrof
-    use decompMod , only : get_proc_bounds, get_proc_global
+    use decompMod, only : get_proc_bounds, get_proc_global
+    use clmtype  , only : nameg, namel, namec, namep, lndrof, ocnrof, allrof
+    use decompMod, only : get_proc_bounds, get_proc_global
 #if (defined RTM)
-    use RunoffMod , only : get_proc_rof_bounds, get_proc_rof_global
+    use RunoffMod, only : get_proc_rof_bounds, get_proc_rof_global
 #endif
 !
 ! !ARGUMENTS:
@@ -1083,7 +1083,7 @@ contains
 ! into its history buffer for appropriate tapes.
 !
 ! !USES:
-    use decompMod , only : get_proc_bounds, get_proc_global
+    use decompMod, only : get_proc_bounds, get_proc_global
 !
 ! !ARGUMENTS:
     implicit none
@@ -1170,7 +1170,7 @@ contains
     character(len=8)  :: c2l_scale_type ! scale type for subgrid averaging of columns to landunits
     character(len=8)  :: l2g_scale_type ! scale type for subgrid averaging of landunits to gridcells
     real(r8), pointer :: hbuf(:,:)      ! history buffer
-    integer , pointer :: nacs(:,:)      ! accumulation counter
+    integer, pointer :: nacs(:,:)      ! accumulation counter
     real(r8), pointer :: pwtgcell(:)    ! weight of pft relative to corresponding gridcell
     real(r8), pointer :: field(:)       ! clm 1d pointer field
     real(r8) :: field_gcell(begg:endg)  ! gricell level field (used if mapping to gridcell is done)
@@ -1405,7 +1405,7 @@ contains
     character(len=8)  :: c2l_scale_type ! scale type for subgrid averaging of columns to landunits
     character(len=8)  :: l2g_scale_type ! scale type for subgrid averaging of landunits to gridcells
     real(r8), pointer :: hbuf(:,:)      ! history buffer
-    integer , pointer :: nacs(:,:)      ! accumulation counter
+    integer, pointer :: nacs(:,:)      ! accumulation counter
     real(r8), pointer :: pwtgcell(:)    ! weight of pft relative to corresponding gridcell
     real(r8), pointer :: field(:,:)     ! clm 2d pointer field
     real(r8) :: field_gcell(begg:endg,num2d) ! gricell level field (used if mapping to gridcell is done)
@@ -1644,7 +1644,7 @@ contains
     integer :: num2d               ! hbuf size of second dimension (e.g. number of vertical levels)
     character(len=1)  :: avgflag   ! averaging flag
     real(r8), pointer :: hbuf(:,:) ! history buffer
-    integer , pointer :: nacs(:,:) ! accumulation counter
+    integer, pointer :: nacs(:,:) ! accumulation counter
 !-----------------------------------------------------------------------
 !dir$ inlinenever hfields_normalize
 
@@ -1724,16 +1724,16 @@ contains
 ! !USES:
     use clmtype
     use ncdio
-    use decompMod   , only : get_proc_global
-    use clm_varpar  , only : lsmlon, lsmlat, nlevsoi, nlevlak, numrad, rtmlon, rtmlat
-    use clm_varctl  , only : caseid, ctitle, frivinp_rtm, fsurdat, finidat, fpftcon
-    use domainMod   , only : ldomain
+    use decompMod  , only : get_proc_global
+    use clm_varpar , only : lsmlon, lsmlat, nlevsoi, nlevlak, numrad, rtmlon, rtmlat
+    use clm_varctl , only : caseid, ctitle, frivinp_rtm, fsurdat, finidat, fpftcon
+    use domainMod  , only : ldomain
 #if (defined RTM)
-    use RunoffMod   , only : get_proc_rof_global
+    use RunoffMod  , only : get_proc_rof_global
 #endif
-    use clm_varcon  , only : zsoi, zlak
-    use fileutils   , only : get_filename
-    use clm_time_manager, only : get_ref_date , calendar
+    use clm_varcon , only : zsoi, zlak
+    use fileutils  , only : get_filename
+    use clm_time_manager, only : get_ref_date, calendar
 #if (defined CASA)
     use CASAMod,    only : nlive, npools
 #endif
@@ -1864,27 +1864,27 @@ contains
     ! Define dimensions.
     ! Time is an unlimited dimension. Character string is treated as an array of characters.
 
-    call check_ret(nf_def_dim (nfid(t), 'gridcell', numg   , dimid), subname)
-    call check_ret(nf_def_dim (nfid(t), 'landunit', numl   , dimid), subname)
-    call check_ret(nf_def_dim (nfid(t), 'column'  , numc   , dimid), subname)
-    call check_ret(nf_def_dim (nfid(t), 'pft'     , nump   , dimid), subname)
+    call check_ret(nf_def_dim (nfid(t), 'gridcell', numg  , dimid), subname)
+    call check_ret(nf_def_dim (nfid(t), 'landunit', numl  , dimid), subname)
+    call check_ret(nf_def_dim (nfid(t), 'column' , numc  , dimid), subname)
+    call check_ret(nf_def_dim (nfid(t), 'pft'    , nump  , dimid), subname)
 #if (defined RTM)
     call check_ret(nf_def_dim (nfid(t), 'ocnrof', num_ocnrof, dimid), subname)
     call check_ret(nf_def_dim (nfid(t), 'lndrof', num_lndrof, dimid), subname)
-    call check_ret(nf_def_dim (nfid(t), 'allrof', num_rtm   , dimid), subname)
+    call check_ret(nf_def_dim (nfid(t), 'allrof', num_rtm  , dimid), subname)
 #endif
     call check_ret(nf_def_dim (nfid(t), 'levsoi', nlevsoi, dimid), subname)
     call check_ret(nf_def_dim (nfid(t), 'levlak', nlevlak, dimid), subname)
-    call check_ret(nf_def_dim (nfid(t), 'numrad', numrad , dimid), subname)
+    call check_ret(nf_def_dim (nfid(t), 'numrad', numrad, dimid), subname)
 #if (defined CASA)
-    call check_ret(nf_def_dim (nfid(t), 'nlive', nlive , dimid), subname)
-    call check_ret(nf_def_dim (nfid(t), 'npools', npools , dimid), subname)
+    call check_ret(nf_def_dim (nfid(t), 'nlive', nlive, dimid), subname)
+    call check_ret(nf_def_dim (nfid(t), 'npools', npools, dimid), subname)
 #endif
     do n = 1,num_subs
        call check_ret(nf_def_dim (nfid(t), subs_name(n), subs_dim(n), dimid), subname)
     end do
-    call check_ret(nf_def_dim (nfid(t), 'lon'   , lsmlon, dimid), subname)
-    call check_ret(nf_def_dim (nfid(t), 'lat'   , lsmlat, dimid), subname)
+    call check_ret(nf_def_dim (nfid(t), 'lon'  , lsmlon, dimid), subname)
+    call check_ret(nf_def_dim (nfid(t), 'lat'  , lsmlat, dimid), subname)
 #if (defined RTM)
     call check_ret(nf_def_dim (nfid(t), 'lonrof', rtmlon, dimid), subname)
     call check_ret(nf_def_dim (nfid(t), 'latrof', rtmlat, dimid), subname)
@@ -1934,25 +1934,25 @@ contains
     ! Define time information
 
     dim1id(1) = time_dimid
-    call check_ret(nf_def_var(nfid(t) , 'mcdate', nf_int, 1, dim1id  , mcdate_id(t)), subname)
+    call check_ret(nf_def_var(nfid(t), 'mcdate', nf_int, 1, dim1id , mcdate_id(t)), subname)
     str = 'current date (YYYYMMDD)'
     call check_ret(nf_put_att_text (nfid(t), mcdate_id(t), 'long_name', len_trim(str), trim(str)), subname)
 
-    call check_ret(nf_def_var(nfid(t) , 'mcsec' , nf_int, 1, dim1id , mcsec_id(t)), subname)
+    call check_ret(nf_def_var(nfid(t), 'mcsec', nf_int, 1, dim1id, mcsec_id(t)), subname)
     str = 'current seconds of current date'
     call check_ret(nf_put_att_text (nfid(t), mcsec_id(t), 'long_name', len_trim(str), trim(str)), subname)
     str = 's'
     call check_ret(nf_put_att_text (nfid(t), mcsec_id(t), 'units', len_trim(str), trim(str)), subname)
 
-    call check_ret(nf_def_var(nfid(t) , 'mdcur' , nf_int, 1, dim1id , mdcur_id(t)), subname)
+    call check_ret(nf_def_var(nfid(t), 'mdcur', nf_int, 1, dim1id, mdcur_id(t)), subname)
     str = 'current day (from base day)'
     call check_ret(nf_put_att_text (nfid(t), mdcur_id(t), 'long_name', len_trim(str), trim(str)), subname)
 
-    call check_ret(nf_def_var(nfid(t) , 'mscur' , nf_int, 1, dim1id , mscur_id(t)), subname)
+    call check_ret(nf_def_var(nfid(t), 'mscur', nf_int, 1, dim1id, mscur_id(t)), subname)
     str = 'current seconds of current day'
     call check_ret(nf_put_att_text (nfid(t), mscur_id(t), 'long_name', len_trim(str), trim(str)), subname)
 
-    call check_ret(nf_def_var(nfid(t) , 'nstep' , nf_int, 1, dim1id , nstep_id(t)), subname)
+    call check_ret(nf_def_var(nfid(t), 'nstep', nf_int, 1, dim1id, nstep_id(t)), subname)
     str = 'time step'
     call check_ret(nf_put_att_text (nfid(t), nstep_id(t), 'long_name', len_trim(str), trim(str)), subname)
 
@@ -2005,16 +2005,16 @@ contains
 ! !USES:
     use clmtype
     use subgridAveMod, only : c2g
-    use decompMod    , only : get_proc_bounds, get_proc_global, ldecomp
-    use domainMod   , only : ldomain,llatlon,gatm
+    use decompMod   , only : get_proc_bounds, get_proc_global, ldecomp
+    use domainMod  , only : ldomain,llatlon,gatm
 #if (defined RTM)
-    use RunoffMod   , only : runoff,get_proc_rof_global
+    use RunoffMod  , only : runoff,get_proc_rof_global
 #endif
-    use clm_varpar   , only : lsmlon, lsmlat, nlevsoi
+    use clm_varpar  , only : lsmlon, lsmlat, nlevsoi
     use ncdio
     use spmdGathScatMod, only : gather_data_to_master
 !abt added below
-    use clm_varsur     , only : glonc,glatc
+    use clm_varsur    , only : glonc,glatc
 !abt added above
 !
 ! !ARGUMENTS:
@@ -2047,7 +2047,7 @@ contains
     real(r8), pointer :: histi(:,:)       ! temporary
     real(r8), pointer :: histo(:,:)       ! temporary
     type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
-    type(column_type)  , pointer :: cptr  ! pointer to column derived subtype
+    type(column_type) , pointer :: cptr  ! pointer to column derived subtype
 !-----------------------------------------------------------------------
 
     if (mode == 'define') then
@@ -2127,7 +2127,7 @@ contains
          call ncd_defvar(varname='landmask', xtype=nf_int, &
               dim1name='lon', dim2name='lat', &
               long_name='land/ocean mask (0.=ocean and 1.=land)', ncid=nfid(t))
-         call ncd_defvar(varname='pftmask' , xtype=nf_int, &
+         call ncd_defvar(varname='pftmask', xtype=nf_int, &
               dim1name='lon', dim2name='lat', &
               long_name='pft real/fake mask (0.=fake and 1.=real)', ncid=nfid(t), &
               imissing_value=ispval, ifill_value=ispval)
@@ -2199,7 +2199,7 @@ contains
              call ncd_iolocal(varname=varname, dim1name='gridcell', dim2name='levsoi', data=histo, &
                   ncid=nfid(t), nlonxy=lsmlon, nlatxy=lsmlat, flag='write')
           else
-             call ncd_iolocal(varname=varname, dim1name='column'  , dim2name='levsoi', data=histi, &
+             call ncd_iolocal(varname=varname, dim1name='column' , dim2name='levsoi', data=histi, &
                   ncid=nfid(t), flag='write')
           end if
        end do
@@ -2223,10 +2223,10 @@ contains
        endif
 #endif
 !original commented out below by abt
-!       call ncd_iolocal(varname='longxy'  , data=ldomain%lonc, &
+!       call ncd_iolocal(varname='longxy' , data=ldomain%lonc, &
 !            dim1name='gridcell', ncid=nfid(t), &
 !            flag='write', nlonxy=ldomain%ni, nlatxy=ldomain%nj)
-!       call ncd_iolocal(varname='latixy'  , data=ldomain%latc, &
+!       call ncd_iolocal(varname='latixy' , data=ldomain%latc, &
 !            dim1name='gridcell', ncid=nfid(t), &
 !            flag='write', nlonxy=ldomain%ni, nlatxy=ldomain%nj)
 !abt above
@@ -2238,7 +2238,7 @@ contains
           call ncd_ioglobal(varname='latixy', data=glatc, ncid=nfid(t), flag='write')
        endif
 !abt added above
-       call ncd_iolocal(varname='area'    , data=ldomain%area, &
+       call ncd_iolocal(varname='area'   , data=ldomain%area, &
             dim1name='gridcell', ncid=nfid(t), &
             flag='write', nlonxy=ldomain%ni, nlatxy=ldomain%nj)
        call ncd_iolocal(varname='areaupsc', data=ldomain%nara, &
@@ -2257,7 +2257,7 @@ contains
             dim1name='gridcell', ncid=nfid(t), &
             flag='write', nlonxy=ldomain%ni, nlatxy=ldomain%nj, &
             imissing=0)
-       call ncd_iolocal(varname='pftmask' , data=ldomain%pftm, &
+       call ncd_iolocal(varname='pftmask', data=ldomain%pftm, &
             dim1name='gridcell', ncid=nfid(t), &
             flag='write', nlonxy=ldomain%ni, nlatxy=ldomain%nj)
        call ncd_iolocal(varname='indxupsc', data=gatm, &
@@ -2470,7 +2470,7 @@ contains
 ! !USES:
     use ncdio
     use clmtype
-    use decompMod   , only : get_proc_bounds, ldecomp
+    use decompMod  , only : get_proc_bounds, ldecomp
 !
 ! !ARGUMENTS:
     implicit none
@@ -2502,8 +2502,8 @@ contains
     real(r8), pointer :: iparr(:)        ! temporary
     type(gridcell_type), pointer :: gptr ! pointer to gridcell derived subtype
     type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
-    type(column_type)  , pointer :: cptr ! pointer to column derived subtype
-    type(pft_type)     , pointer :: pptr ! pointer to pft derived subtype
+    type(column_type) , pointer :: cptr ! pointer to column derived subtype
+    type(pft_type)    , pointer :: pptr ! pointer to pft derived subtype
 !-----------------------------------------------------------------------
 
     ncid = nfid(t)
@@ -2644,11 +2644,11 @@ contains
        do g=begg,endg
          igarr(g)= ldecomp%gdc2i(g)
        enddo
-       call ncd_iolocal(varname='grid1d_ixy', data=igarr      , dim1name='gridcell', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='grid1d_ixy', data=igarr     , dim1name='gridcell', ncid=ncid, flag='write')
        do g=begg,endg
          igarr(g)= ldecomp%gdc2j(g)
        enddo
-       call ncd_iolocal(varname='grid1d_jxy', data=igarr      , dim1name='gridcell', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='grid1d_jxy', data=igarr     , dim1name='gridcell', ncid=ncid, flag='write')
 
        ! Write landunit info
 
@@ -2668,9 +2668,9 @@ contains
          ilarr(l) = ldecomp%gdc2j(lptr%gridcell(l))
        enddo
        call ncd_iolocal(varname='land1d_jxy', data=ilarr, dim1name='landunit', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='land1d_gi'       , data=lptr%gridcell, dim1name='landunit', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='land1d_wtgcell'  , data=lptr%wtgcell , dim1name='landunit', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='land1d_ityplunit', data=lptr%itype   , dim1name='landunit', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='land1d_gi'      , data=lptr%gridcell, dim1name='landunit', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='land1d_wtgcell' , data=lptr%wtgcell, dim1name='landunit', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='land1d_ityplunit', data=lptr%itype  , dim1name='landunit', ncid=ncid, flag='write')
 
        ! Write column info
 
@@ -2690,14 +2690,14 @@ contains
          icarr(c) = ldecomp%gdc2j(cptr%gridcell(c))
        enddo
        call ncd_iolocal(varname='cols1d_jxy', data=icarr, dim1name='column', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='cols1d_gi'     , data=cptr%gridcell, dim1name='column', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='cols1d_li'     , data=cptr%landunit, dim1name='column', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='cols1d_wtgcell', data=cptr%wtgcell , dim1name='column', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='cols1d_wtlunit', data=cptr%wtlunit , dim1name='column', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='cols1d_gi'    , data=cptr%gridcell, dim1name='column', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='cols1d_li'    , data=cptr%landunit, dim1name='column', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='cols1d_wtgcell', data=cptr%wtgcell, dim1name='column', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='cols1d_wtlunit', data=cptr%wtlunit, dim1name='column', ncid=ncid, flag='write')
        do c=begc,endc
          icarr(c) = lptr%itype(cptr%landunit(c))
        enddo
-       call ncd_iolocal(varname='cols1d_itype_lunit', data=icarr    , dim1name='column', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='cols1d_itype_lunit', data=icarr   , dim1name='column', ncid=ncid, flag='write')
 
        ! Write pft info
 
@@ -2717,18 +2717,18 @@ contains
          iparr(p) = ldecomp%gdc2j(pptr%gridcell(p))
        enddo
        call ncd_iolocal(varname='pfts1d_jxy', data=iparr, dim1name='pft', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='pfts1d_gi'       , data=pptr%gridcell, dim1name='pft', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='pfts1d_li'       , data=pptr%landunit, dim1name='pft', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='pfts1d_ci'       , data=pptr%column  , dim1name='pft', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='pfts1d_wtgcell'  , data=pptr%wtgcell , dim1name='pft', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='pfts1d_wtlunit'  , data=pptr%wtlunit , dim1name='pft', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='pfts1d_wtcol'    , data=pptr%wtcol   , dim1name='pft', ncid=ncid, flag='write')
-       call ncd_iolocal(varname='pfts1d_itype_veg', data=pptr%itype   , dim1name='pft', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='pfts1d_gi'      , data=pptr%gridcell, dim1name='pft', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='pfts1d_li'      , data=pptr%landunit, dim1name='pft', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='pfts1d_ci'      , data=pptr%column , dim1name='pft', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='pfts1d_wtgcell' , data=pptr%wtgcell, dim1name='pft', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='pfts1d_wtlunit' , data=pptr%wtlunit, dim1name='pft', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='pfts1d_wtcol'   , data=pptr%wtcol  , dim1name='pft', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='pfts1d_itype_veg', data=pptr%itype  , dim1name='pft', ncid=ncid, flag='write')
 
        do p=begp,endp
           iparr(p) = lptr%itype(pptr%landunit(p))
        enddo
-       call ncd_iolocal(varname='pfts1d_itype_lunit', data=iparr      , dim1name='pft', ncid=ncid, flag='write')
+       call ncd_iolocal(varname='pfts1d_itype_lunit', data=iparr     , dim1name='pft', ncid=ncid, flag='write')
 
        deallocate(rgarr,rlarr,rcarr,rparr)
        deallocate(igarr,ilarr,icarr,iparr)
@@ -2766,14 +2766,14 @@ contains
 !   date = yyyy/mm+1/01 with mscur = 0.
 !
 ! !USES:
-    use clm_varctl   , only : archive_dir, mss_wpass, mss_irt
-    use fileutils    , only : set_filename, putfil
-    use spmdMod      , only : masterproc
-    use clm_time_manager , only : get_nstep, get_curr_date, get_curr_time, get_prev_date
+    use clm_varctl  , only : archive_dir, mss_wpass, mss_irt
+    use fileutils   , only : set_filename, putfil
+    use spmdMod     , only : masterproc
+    use clm_time_manager, only : get_nstep, get_curr_date, get_curr_time, get_prev_date
     use shr_const_mod, only : SHR_CONST_CDAY
     use ncdio
     use clmtype
-    use shr_sys_mod  , only : shr_sys_flush
+    use shr_sys_mod , only : shr_sys_flush
 !
 ! !ARGUMENTS:
     implicit none
@@ -3009,14 +3009,14 @@ contains
 ! !USES:
     use iobinary
     use ncdio
-    use clmtype   , only : nameg, namel, namec, namep, ocnrof, lndrof, allrof
-    use decompMod , only : get_proc_bounds, get_proc_global
+    use clmtype  , only : nameg, namel, namec, namep, ocnrof, lndrof, allrof
+    use decompMod, only : get_proc_bounds, get_proc_global
 #if (defined RTM)
-    use RunoffMod , only : get_proc_rof_bounds, get_proc_rof_global
+    use RunoffMod, only : get_proc_rof_bounds, get_proc_rof_global
 #endif
     use clm_varctl, only : archive_dir, nsrest, mss_irt
-    use fileutils , only : set_filename, getfil
-    use spmdMod   , only : masterproc, mpicom, MPI_REAL8, MPI_INTEGER, MPI_CHARACTER
+    use fileutils, only : set_filename, getfil
+    use spmdMod  , only : masterproc, mpicom, MPI_REAL8, MPI_INTEGER, MPI_CHARACTER
 !
 ! !ARGUMENTS:
     implicit none
@@ -3043,10 +3043,10 @@ contains
     integer :: num1d_out,beg1d_out,end1d_out     ! 1d size, beginning and ending indices
     integer :: num2d                             ! 2d size (e.g. number of vertical levels)
     real(r8), pointer :: hbuf(:,:)               ! history buffer
-    integer , pointer :: nacs(:,:)               ! accumulation counter
-    integer , pointer :: ibuf1d(:)               ! temporary
+    integer, pointer :: nacs(:,:)               ! accumulation counter
+    integer, pointer :: ibuf1d(:)               ! temporary
     real(r8), pointer :: rbuf1d(:)               ! temporary
-    integer , pointer :: ibuf2d(:,:)             ! temporary
+    integer, pointer :: ibuf2d(:,:)             ! temporary
     real(r8), pointer :: rbuf2d(:,:)             ! temporary
     integer :: begp, endp   ! per-proc beginning and ending pft indices
     integer :: begc, endc   ! per-proc beginning and ending column indices
@@ -3216,29 +3216,29 @@ contains
            tape(t)%nhtfrq = hist_nhtfrq(t)
            tape(t)%mfilt  = hist_mfilt(t)
 !abt added above
-           call mpi_bcast (tape(t)%nflds     , 1, MPI_INTEGER, 0, mpicom, ier)
-           call mpi_bcast (tape(t)%ntimes    , 1, MPI_INTEGER, 0, mpicom, ier)
-           call mpi_bcast (tape(t)%nhtfrq    , 1, MPI_INTEGER, 0 ,mpicom, ier)
-           call mpi_bcast (tape(t)%mfilt     , 1, MPI_INTEGER, 0, mpicom, ier)
-           call mpi_bcast (tape(t)%ncprec    , 1, MPI_INTEGER, 0, mpicom, ier)
+           call mpi_bcast (tape(t)%nflds    , 1, MPI_INTEGER, 0, mpicom, ier)
+           call mpi_bcast (tape(t)%ntimes   , 1, MPI_INTEGER, 0, mpicom, ier)
+           call mpi_bcast (tape(t)%nhtfrq   , 1, MPI_INTEGER, 0 ,mpicom, ier)
+           call mpi_bcast (tape(t)%mfilt    , 1, MPI_INTEGER, 0, mpicom, ier)
+           call mpi_bcast (tape(t)%ncprec   , 1, MPI_INTEGER, 0, mpicom, ier)
            call mpi_bcast (tape(t)%is_endhist, 1, MPI_LOGICAL, 0, mpicom, ier)
-           call mpi_bcast (tape(t)%dov2xy    , 1, MPI_LOGICAL, 0, mpicom, ier)
-           call mpi_bcast (tape(t)%begtime   , 1, MPI_REAL8  , 0, mpicom, ier)
+           call mpi_bcast (tape(t)%dov2xy   , 1, MPI_LOGICAL, 0, mpicom, ier)
+           call mpi_bcast (tape(t)%begtime  , 1, MPI_REAL8 , 0, mpicom, ier)
            do f = 1,tape(t)%nflds
-              call mpi_bcast (tape(t)%hlist(f)%field%name          , max_namlen, MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%units         , max_chars , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%num2d         , 1         , MPI_INTEGER  , 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%hpindex       , 1         , MPI_INTEGER  , 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%type1d        , 8         , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%type1d_out    , 8         , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%type2d        , 8         , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%typexy        , 8         , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%nlonxy        , 1         , MPI_INTEGER  , 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%p2c_scale_type, 8         , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%c2l_scale_type, 8         , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%l2g_scale_type, 8         , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%nlatxy        , 1         , MPI_INTEGER  , 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%avgflag             , 1         , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%name         , max_namlen, MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%units        , max_chars, MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%num2d        , 1        , MPI_INTEGER , 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%hpindex      , 1        , MPI_INTEGER , 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%type1d       , 8        , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%type1d_out   , 8        , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%type2d       , 8        , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%typexy       , 8        , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%nlonxy       , 1        , MPI_INTEGER , 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%p2c_scale_type, 8        , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%c2l_scale_type, 8        , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%l2g_scale_type, 8        , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%nlatxy       , 1        , MPI_INTEGER , 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%avgflag            , 1        , MPI_CHARACTER, 0, mpicom, ier)
            end do
         end do
      endif
@@ -3438,12 +3438,12 @@ contains
                  call getfil (fnameh(t), locfnh(t), 0)
                  call check_ret(nf_open (locfnh(t), nf_write, nfid(t)), subname)
                  call check_ret(nf_inq_varid(nfid(t), 'mcdate', mcdate_id(t)), subname)
-                 call check_ret(nf_inq_varid(nfid(t), 'mcsec' , mcsec_id(t)), subname)
-                 call check_ret(nf_inq_varid(nfid(t), 'mdcur' , mdcur_id(t)), subname)
-                 call check_ret(nf_inq_varid(nfid(t), 'mscur' , mscur_id(t)), subname)
-                 call check_ret(nf_inq_varid(nfid(t), 'nstep' , nstep_id(t)), subname)
-                 call check_ret(nf_inq_varid(nfid(t), 'time'  , time_var_id(t)), subname)
-                 call check_ret(nf_inq_varid(nfid(t), 'time_bounds' , time_bounds_id(t)), subname)
+                 call check_ret(nf_inq_varid(nfid(t), 'mcsec', mcsec_id(t)), subname)
+                 call check_ret(nf_inq_varid(nfid(t), 'mdcur', mdcur_id(t)), subname)
+                 call check_ret(nf_inq_varid(nfid(t), 'mscur', mscur_id(t)), subname)
+                 call check_ret(nf_inq_varid(nfid(t), 'nstep', nstep_id(t)), subname)
+                 call check_ret(nf_inq_varid(nfid(t), 'time' , time_var_id(t)), subname)
+                 call check_ret(nf_inq_varid(nfid(t), 'time_bounds', time_bounds_id(t)), subname)
                  call check_ret(nf_inq_varid(nfid(t), 'date_written', date_written_id(t)), subname)
                  call check_ret(nf_inq_varid(nfid(t), 'time_written', time_written_id(t)), subname)
               end if
@@ -3607,7 +3607,7 @@ contains
 ! Determine history dataset filenames.
 !
 ! !USES:
-    use mod_dynparam , only : dirout
+    use mod_dynparam, only : dirout
     use clm_varctl, only : caseid
     use clm_time_manager, only : get_curr_date, get_prev_date
 !
@@ -3656,7 +3656,7 @@ contains
                         l2g_scale_type, set_lake, default, typexy)
 !
 ! !DESCRIPTION:
-! Initialize a single level history field. The pointer, ptrhist,
+! Initialize a single level history field. The pointer, contiguous, ptrhist,
 ! is a pointer to the clmtype array that the history buffer will use.
 ! The value of type1d passed to masterlist\_add\_fld determines which of the
 ! 1d type of the output and the beginning and ending indices the history
@@ -3667,7 +3667,7 @@ contains
 !
 ! !USES:
     use clmtype
-    use decompMod , only : get_proc_bounds
+    use decompMod, only : get_proc_bounds
     use clm_varpar, only : lsmlon, lsmlat, rtmlon, rtmlat
 !
 ! !ARGUMENTS:
@@ -3676,14 +3676,14 @@ contains
     character(len=*), intent(in)           :: units          ! units of field
     character(len=1), intent(in)           :: avgflag        ! time averaging flag
     character(len=*), intent(in)           :: long_name      ! long name of field
-    real(r8)        , optional, pointer    :: ptr_gcell(:)   ! pointer to gridcell array
-    real(r8)        , optional, pointer    :: ptr_lunit(:)   ! pointer to landunit array
-    real(r8)        , optional, pointer    :: ptr_col(:)     ! pointer to column array
-    real(r8)        , optional, pointer    :: ptr_pft(:)     ! pointer to pft array
-    real(r8)        , optional, pointer    :: ptr_rofall(:)  ! pointer to channel runoff
-    real(r8)        , optional, pointer    :: ptr_roflnd(:)  ! pointer to land channel runoff
-    real(r8)        , optional, pointer    :: ptr_rofocn(:)  ! pointer to ocean runoff
-    real(r8)        , optional, intent(in) :: set_lake       ! value to set lakes to
+    real(r8)       , optional, pointer    :: ptr_gcell(:)   ! pointer to gridcell array
+    real(r8)       , optional, pointer    :: ptr_lunit(:)   ! pointer to landunit array
+    real(r8)       , optional, pointer    :: ptr_col(:)     ! pointer to column array
+    real(r8)       , optional, pointer    :: ptr_pft(:)     ! pointer to pft array
+    real(r8)       , optional, pointer    :: ptr_rofall(:)  ! pointer to channel runoff
+    real(r8)       , optional, pointer    :: ptr_roflnd(:)  ! pointer to land channel runoff
+    real(r8)       , optional, pointer    :: ptr_rofocn(:)  ! pointer to ocean runoff
+    real(r8)       , optional, intent(in) :: set_lake       ! value to set lakes to
     character(len=*), optional, intent(in) :: p2c_scale_type ! scale type for subgrid averaging of pfts to column
     character(len=*), optional, intent(in) :: c2l_scale_type ! scale type for subgrid averaging of columns to landunits
     character(len=*), optional, intent(in) :: l2g_scale_type ! scale type for subgrid averaging of landunits to gridcells
@@ -3835,7 +3835,7 @@ contains
                         set_lake, default, typexy)
 !
 ! !DESCRIPTION:
-! Initialize a single level history field. The pointer, ptrhist,
+! Initialize a single level history field. The pointer, contiguous, ptrhist,
 ! is a pointer to the clmtype array that the history buffer will use.
 ! The value of type1d passed to masterlist\_add\_fld determines which of the
 ! 1d type of the output and the beginning and ending indices the history
@@ -3846,7 +3846,7 @@ contains
 !
 ! !USES:
     use clmtype
-    use decompMod , only : get_proc_bounds
+    use decompMod, only : get_proc_bounds
     use clm_varpar, only : lsmlon, lsmlat, nlevsoi, nlevlak, numrad
 #if (defined CASA)
     use CASAMod,    only : nlive, npools
@@ -3859,11 +3859,11 @@ contains
     character(len=*), intent(in) :: units                    ! units of field
     character(len=1), intent(in) :: avgflag                  ! time averaging flag
     character(len=*), intent(in) :: long_name                ! long name of field
-    real(r8)        , optional, pointer    :: ptr_gcell(:,:) ! pointer to gridcell array
-    real(r8)        , optional, pointer    :: ptr_lunit(:,:) ! pointer to landunit array
-    real(r8)        , optional, pointer    :: ptr_col(:,:)   ! pointer to column array
-    real(r8)        , optional, pointer    :: ptr_pft(:,:)   ! pointer to pft array
-    real(r8)        , optional, intent(in) :: set_lake       ! value to set lakes to
+    real(r8)       , optional, pointer    :: ptr_gcell(:,:) ! pointer to gridcell array
+    real(r8)       , optional, pointer    :: ptr_lunit(:,:) ! pointer to landunit array
+    real(r8)       , optional, pointer    :: ptr_col(:,:)   ! pointer to column array
+    real(r8)       , optional, pointer    :: ptr_pft(:,:)   ! pointer to pft array
+    real(r8)       , optional, intent(in) :: set_lake       ! value to set lakes to
     character(len=*), optional, intent(in) :: p2c_scale_type ! scale type for subgrid averaging of pfts to column
     character(len=*), optional, intent(in) :: c2l_scale_type ! scale type for subgrid averaging of columns to landunits
     character(len=*), optional, intent(in) :: l2g_scale_type ! scale type for subgrid averaging of landunits to gridcells
@@ -4051,7 +4051,7 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in) :: subname ! name of subscript
-    integer         , intent(in) :: subdim  ! dimension of subscript
+    integer        , intent(in) :: subdim  ! dimension of subscript
 !
 ! !REVISION HISTORY:
 ! Created by Mariana Vertenstein

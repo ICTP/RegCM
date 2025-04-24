@@ -30,34 +30,34 @@ module mod_write
 
   private
 
-  real(rkx) , pointer , dimension(:) :: pcoord
-  real(rkx) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4 , psd0 , topod
-  real(rkx) , pointer , dimension(:,:) :: pd4
-  real(rkx) , pointer , dimension(:,:) :: pr , ssr , strd , clt
-  real(rkx) , pointer , dimension(:,:,:) :: q4 , qc4 , qi4
-  real(rkx) , pointer , dimension(:,:,:) :: t4 , u4 , v4 , z4
-  real(rkx) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4
-  real(rkx) , pointer , dimension(:,:,:) :: zud4 , zvd4
+  real(rkx), pointer, contiguous, dimension(:) :: pcoord
+  real(rkx), pointer, contiguous, dimension(:,:) :: ps4, ts4, wtop4, psd0, topod
+  real(rkx), pointer, contiguous, dimension(:,:) :: pd4
+  real(rkx), pointer, contiguous, dimension(:,:) :: pr, ssr, strd, clt
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: q4, qc4, qi4
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: t4, u4, v4, z4
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pp4, ww4, tv4, tvd4
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zud4, zvd4
 
-  public :: ps4 , pd4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4 , zud4 , zvd4
-  public :: qc4 , qi4 , z4 , pr , ssr , strd , clt
-  public :: init_output , close_output , dispose_output , newfile , writef
-  public :: init_houtput , newhfile , writehf
-  public :: init_outpgw , newpgwfile , writepgwf
+  public :: ps4, pd4, ts4, q4, t4, u4, v4, pp4, ww4, zud4, zvd4
+  public :: qc4, qi4, z4, pr, ssr, strd, clt
+  public :: init_output, close_output, dispose_output, newfile, writef
+  public :: init_houtput, newhfile, writehf
+  public :: init_outpgw, newpgwfile, writepgwf
 
-  type(nc_output_stream) , save :: ncout
+  type(nc_output_stream), save :: ncout
   integer(ik4) :: nvar3d
   integer(ik4) :: nvar2d
-  type(ncvariable2d_mixed) , allocatable , save , dimension(:) :: v2dvar_icbc
-  type(ncvariable3d_mixed) , allocatable , save , dimension(:) :: v3dvar_icbc
+  type(ncvariable2d_mixed), allocatable, save, dimension(:) :: v2dvar_icbc
+  type(ncvariable3d_mixed), allocatable, save, dimension(:) :: v3dvar_icbc
   logical :: qli_present = .false.
 
   contains
 
   subroutine init_outpgw(plevs)
     implicit none
-    real(rkx) , pointer , dimension(:) , intent(in) :: plevs
-    integer :: nplevs , ierr
+    real(rkx), pointer, contiguous, dimension(:), intent(in) :: plevs
+    integer :: nplevs, ierr
 
     nplevs = size(plevs)
     call getmem1d(pcoord,1,nplevs,'mod_write:pcoord')
@@ -213,7 +213,7 @@ module mod_write
 
   subroutine init_output
     implicit none
-    integer(ik4) :: ierr , i3i
+    integer(ik4) :: ierr, i3i
     if ( dattyp == 'FNEST' .or. dattyp == 'IFSXX' ) then
       qli_present = .true.
     else
@@ -405,7 +405,7 @@ module mod_write
 
   subroutine newhfile(idate1)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate1
+    type(rcm_time_and_date), intent(in) :: idate1
 
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar
@@ -428,18 +428,18 @@ module mod_write
     v2dvar_icbc(6)%rval => ssr
     v2dvar_icbc(7)%rval => strd
     v2dvar_icbc(8)%rval => clt
-    do ivar = 1 , nvar2d
+    do ivar = 1, nvar2d
       call outstream_addvar(ncout,v2dvar_icbc(ivar))
     end do
     call outstream_enable(ncout,sigmaf)
-    do ivar = 1 , 4
+    do ivar = 1, 4
       call outstream_writevar(ncout,v2dvar_icbc(ivar))
     end do
   end subroutine newhfile
 
   subroutine newpgwfile(idate1)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate1
+    type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar
     character(len=256) :: ofname
@@ -475,14 +475,14 @@ module mod_write
       v2dvar_icbc(7)%rval => dlon
       v2dvar_icbc(8)%rval => dlat
     end if
-    do ivar = 1 , nvar2d
+    do ivar = 1, nvar2d
       call outstream_addvar(ncout,v2dvar_icbc(ivar))
     end do
-    do ivar = 1 , nvar3d
+    do ivar = 1, nvar3d
       call outstream_addvar(ncout,v3dvar_icbc(ivar))
     end do
     call outstream_enable(ncout,pcoord)
-    do ivar = 1 , nvar2d
+    do ivar = 1, nvar2d
       if ( .not. v2dvar_icbc(ivar)%lrecords ) then
         call outstream_writevar(ncout,v2dvar_icbc(ivar))
       end if
@@ -491,10 +491,10 @@ module mod_write
 
   subroutine newfile(idate1)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate1
+    type(rcm_time_and_date), intent(in) :: idate1
 
     type(ncoutstream_params) :: opar
-    integer(ik4) :: ivar , i3i
+    integer(ik4) :: ivar, i3i
     character(len=256) :: ofname
 
     call outstream_dispose(ncout)
@@ -555,20 +555,20 @@ module mod_write
       v2dvar_icbc(7)%rval => dlon
       v2dvar_icbc(8)%rval => dlat
     end if
-    do ivar = 1 , nvar2d
+    do ivar = 1, nvar2d
       call outstream_addvar(ncout,v2dvar_icbc(ivar))
     end do
-    do ivar = 1 , nvar3d
+    do ivar = 1, nvar3d
       call outstream_addvar(ncout,v3dvar_icbc(ivar))
     end do
     call outstream_enable(ncout,sigmah)
-    do ivar = 1 , nvar2d
+    do ivar = 1, nvar2d
       if ( .not. v2dvar_icbc(ivar)%lrecords ) then
         call outstream_writevar(ncout,v2dvar_icbc(ivar))
       end if
     end do
     if ( idynamic == 2 ) then
-      do ivar = 1 , nvar3d
+      do ivar = 1, nvar3d
         if ( .not. v3dvar_icbc(ivar)%lrecords ) then
           call outstream_writevar(ncout,v3dvar_icbc(ivar))
         end if
@@ -578,18 +578,18 @@ module mod_write
 
   subroutine writehf(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivar
 
     call outstream_addrec(ncout,idate)
-    do ivar = 5 , nvar2d
+    do ivar = 5, nvar2d
       call outstream_writevar(ncout,v2dvar_icbc(ivar))
     end do
   end subroutine writehf
 
   subroutine writepgwf(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivar
     call outstream_addrec(ncout,idate)
     do ivar = 1, nvar2d
@@ -597,15 +597,15 @@ module mod_write
         call outstream_writevar(ncout,v2dvar_icbc(ivar))
       end if
     end do
-    do ivar = 1 , nvar3d
+    do ivar = 1, nvar3d
       call outstream_writevar(ncout,v3dvar_icbc(ivar))
     end do
   end subroutine writepgwf
 
   subroutine writef(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: ivar , k
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: ivar, k
     real(rkx) :: dx
 
     if ( idynamic == 1 ) then
@@ -616,7 +616,7 @@ module mod_write
       dx = ds * d_1000
       call meandiv(u4,v4,pd4,msfd,sigmah,dsigma,jx,iy,kz,dx,jx-1,iy-1)
       tv4 = t4 * (d_one + ep1 * q4)
-      do k = 1 , kz
+      do k = 1, kz
         call crs2dot(tvd4(:,:,k),tv4(:,:,k),jx,iy,i_band,i_crm)
       end do
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
@@ -648,7 +648,7 @@ module mod_write
         call outstream_writevar(ncout,v2dvar_icbc(ivar))
       end if
     end do
-    do ivar = 1 , nvar3d
+    do ivar = 1, nvar3d
       call outstream_writevar(ncout,v3dvar_icbc(ivar))
     end do
   end subroutine writef

@@ -61,11 +61,11 @@ module mod_bats_co2
   subroutine co2
     implicit none
     integer(ik4) :: i
-    real(rkx) :: rap , resps , rsp , rt , rcar , cari , apbm
-    real(rkx) , parameter :: rmp = 800.0_rkx
+    real(rkx) :: rap, resps, rsp, rt, rcar, cari, apbm
+    real(rkx), parameter :: rmp = 800.0_rkx
 
     apbm = d_zero
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       if ( sigf(i) > minsigf ) then
         rsp = lftrs(i)*1.7_rkx
         rap = lftra(i)*1.5_rkx
@@ -100,10 +100,10 @@ module mod_bats_co2
 !
   pure real(rkx) function carbon(vf,t,rm,tg,xlai,xlsai)
     implicit none
-    real(rkx) , intent(in) :: rm , t , tg , vf , xlai , xlsai
-    real(rkx) :: ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
-               cco2i , ccold , gt , p , pm , pml , rt , w , &
-               wd , wp , xk , xkb , xl
+    real(rkx), intent(in) :: rm, t, tg, vf, xlai, xlsai
+    real(rkx) :: ab, ac, al, alphtl, b, bc, betatl, cco2,   &
+               cco2i, ccold, gt, p, pm, pml, rt, w, &
+               wd, wp, xk, xkb, xl
     integer(ik4) :: it
     !
     !====================================================================
@@ -142,7 +142,7 @@ module mod_bats_co2
       ! maximum photosynthesis
       pm = e(xl,al,pml*gt)
       ! iterate
-      do it = 1 , 30
+      do it = 1, 30
         ! photorespiration
         wp = pm/(d_one+0.4_rkx*(d_one+cco2i/xk))
         ! total respiration
@@ -167,20 +167,20 @@ module mod_bats_co2
 
       pure real(rkx) function g(t,tmx,sl)
         implicit none
-        real(rkx) , intent(in) :: t , tmx , sl
+        real(rkx), intent(in) :: t, tmx, sl
         g = exp(sl*(d_one/tmx-d_one/t)) / &
             (d_one+(exp(sl*(d_one/tmx-d_one/t)*6.0_rkx)))*5.0e-3_rkx*t
       end function g
       ! temperature dependence of dark respiration
       pure real(rkx) function r(t)
         implicit none
-        real(rkx) , intent(in) :: t
+        real(rkx), intent(in) :: t
         r = exp(30.0_rkx-9.0e3_rkx/t)
       end function r
       ! light dependence of photosynthesis
       pure real(rkx) function e(xl,a,pml)
         implicit none
-        real(rkx) , intent(in) :: xl , a , pml
+        real(rkx), intent(in) :: xl, a, pml
         e = a*xl/sqrt(d_one+(a*xl/pml)**2)
       end function e
 

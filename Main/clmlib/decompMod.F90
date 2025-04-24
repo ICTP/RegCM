@@ -9,10 +9,10 @@ module decompMod
 !
 ! !USES:
   use shr_kind_mod, only : r8 => shr_kind_r8
-  use spmdMod     , only : masterproc, iam, npes, mpicom, comp_id
+  use spmdMod    , only : masterproc, iam, npes, mpicom, comp_id
   use clm_mct_mod
-  use shr_sys_mod , only : shr_sys_flush
-  use abortutils  , only : endrun
+  use shr_sys_mod, only : shr_sys_flush
+  use abortutils , only : endrun
   use mod_clm
   use mod_dynparam
 !
@@ -149,12 +149,12 @@ contains
 ! set by clump_pproc
 !
 ! !USES:
-    use domainMod , only : gatm
+    use domainMod, only : gatm
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: lns,lni,lnj ! land domain global size
-    integer , intent(in) :: ans,ani,anj ! atm domain global size
+    integer, intent(in) :: lns,lni,lnj ! land domain global size
+    integer, intent(in) :: ans,ani,anj ! atm domain global size
 !
 ! !LOCAL VARIABLES:
     integer :: lg,ln,li,lj        ! indices
@@ -383,13 +383,13 @@ contains
 !
 ! !USES:
     use spmdMod
-    use domainMod , only : gatm
+    use domainMod, only : gatm
     use subgridMod, only : subgrid_get_gcellinfo
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: lns,lni,lnj ! land domain global size
-    integer , intent(in) :: ans,ani,anj ! atm domain global size
+    integer, intent(in) :: lns,lni,lnj ! land domain global size
+    integer, intent(in) :: ans,ani,anj ! atm domain global size
 !
 ! !LOCAL VARIABLES:
     integer :: lg,ln,li,lj        ! indices
@@ -773,7 +773,7 @@ contains
 !
 ! !USES:
     use clm_varctl, only : nsegspc
-    use domainMod , only : latlon_type
+    use domainMod, only : latlon_type
     use clm_varsur, only : landmask
 !
 ! !ARGUMENTS:

@@ -21,23 +21,23 @@ module mod_sunorbit
   use mod_intkinds
   use mod_message
   use mod_stdio
-  use mod_constants , only : mathpi , degrad , d_zero , d_one , d_two , d_half
-  use mod_dynparam , only : dayspy , vernal_equinox
+  use mod_constants, only : mathpi, degrad, d_zero, d_one, d_two, d_half
+  use mod_dynparam, only : dayspy, vernal_equinox
 
   implicit none
 
   private
 
-  real(rk8) , parameter :: ORB_ECCEN_MIN  =   0.0_rk8 ! min value for eccen
-  real(rk8) , parameter :: ORB_ECCEN_MAX  =   0.1_rk8 ! max value for eccen
-  real(rk8) , parameter :: ORB_OBLIQ_MIN  = -90.0_rk8 ! min value for obliq
-  real(rk8) , parameter :: ORB_OBLIQ_MAX  = +90.0_rk8 ! max value for obliq
-  real(rk8) , parameter :: ORB_MVELP_MIN  =   0.0_rk8 ! min value for mvelp
-  real(rk8) , parameter :: ORB_MVELP_MAX  = 360.0_rk8 ! max value for mvelp
-  real(rk8) , parameter :: ORB_UNDEF_REAL = 1.e36_rk8
-  integer(ik4) , parameter :: ORB_UNDEF_INT  = 2000000000
+  real(rk8), parameter :: ORB_ECCEN_MIN  =   0.0_rk8 ! min value for eccen
+  real(rk8), parameter :: ORB_ECCEN_MAX  =   0.1_rk8 ! max value for eccen
+  real(rk8), parameter :: ORB_OBLIQ_MIN  = -90.0_rk8 ! min value for obliq
+  real(rk8), parameter :: ORB_OBLIQ_MAX  = +90.0_rk8 ! max value for obliq
+  real(rk8), parameter :: ORB_MVELP_MIN  =   0.0_rk8 ! min value for mvelp
+  real(rk8), parameter :: ORB_MVELP_MAX  = 360.0_rk8 ! max value for mvelp
+  real(rk8), parameter :: ORB_UNDEF_REAL = 1.e36_rk8
+  integer(ik4), parameter :: ORB_UNDEF_INT  = 2000000000
 
-  public :: orb_cosz , orb_decl , orb_params
+  public :: orb_cosz, orb_decl, orb_params
 
   interface orb_cosz
     module procedure orb_cosz_r8
@@ -51,10 +51,10 @@ module mod_sunorbit
   pure real(rk8) function orb_cosz_r8(jday,lat,lon,declin)
 !$acc routine seq
     implicit none
-    real(rk8) , intent(in) :: jday   ! Julian cal day
-    real(rk8) , intent(in) :: lat    ! Centered latitude (radians)
-    real(rk8) , intent(in) :: lon    ! Centered longitude (radians)
-    real(rk8) , intent(in) :: declin ! Solar declination (radians)
+    real(rk8), intent(in) :: jday   ! Julian cal day
+    real(rk8), intent(in) :: lat    ! Centered latitude (radians)
+    real(rk8), intent(in) :: lon    ! Centered longitude (radians)
+    real(rk8), intent(in) :: declin ! Solar declination (radians)
     orb_cosz_r8 = sin(lat)*sin(declin) - &
                   cos(lat)*cos(declin)*cos(jday*2.0_rk8*mathpi + lon)
   end function orb_cosz_r8
@@ -62,11 +62,11 @@ module mod_sunorbit
   pure real(rk4) function orb_cosz_r4(jday,lat,lon,declin)
 !$acc routine seq
     implicit none
-    real(rk4) , intent(in) :: jday   ! Julian cal day
-    real(rk4) , intent(in) :: lat    ! Centered latitude (radians)
-    real(rk4) , intent(in) :: lon    ! Centered longitude (radians)
-    real(rk8) , intent(in) :: declin ! Solar declination (radians)
-    real(rk8) :: dlat , dlon , djday
+    real(rk4), intent(in) :: jday   ! Julian cal day
+    real(rk4), intent(in) :: lat    ! Centered latitude (radians)
+    real(rk4), intent(in) :: lon    ! Centered longitude (radians)
+    real(rk8), intent(in) :: declin ! Solar declination (radians)
+    real(rk8) :: dlat, dlon, djday
     dlat = lat
     dlon = lon
     djday = jday
@@ -82,23 +82,23 @@ module mod_sunorbit
   !
   subroutine orb_params(iyear_AD,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
     implicit none
-    integer(ik4) , intent(in) :: iyear_AD  ! Year to calculate orbit for
-    real(rk8) , intent(inout) :: eccen   ! orbital eccentricity
-    real(rk8) , intent(inout) :: obliq   ! obliquity in degrees
-    real(rk8) , intent(inout) :: mvelp   ! moving vernal equinox long
-    real(rk8) , intent(out) :: obliqr    ! Earths obliquity in rad
-    real(rk8) , intent(out) :: lambm0    ! Mean long of perihelion at
+    integer(ik4), intent(in) :: iyear_AD  ! Year to calculate orbit for
+    real(rk8), intent(inout) :: eccen   ! orbital eccentricity
+    real(rk8), intent(inout) :: obliq   ! obliquity in degrees
+    real(rk8), intent(inout) :: mvelp   ! moving vernal equinox long
+    real(rk8), intent(out) :: obliqr    ! Earths obliquity in rad
+    real(rk8), intent(out) :: lambm0    ! Mean long of perihelion at
                                          ! vernal equinox (radians)
-    real(rk8) , intent(out)   :: mvelpp  ! moving vernal equinox long
+    real(rk8), intent(out)   :: mvelpp  ! moving vernal equinox long
                                          ! of perihelion plus pi (rad)
     ! # of elements in series wrt obliquity
-    integer(ik4) , parameter :: poblen = 47
+    integer(ik4), parameter :: poblen = 47
     ! # of elements in series wrt eccentricity
-    integer(ik4) , parameter :: pecclen = 19
+    integer(ik4), parameter :: pecclen = 19
     ! # of elements in series wrt vernal equinox
-    integer(ik4) , parameter :: pmvelen = 78
+    integer(ik4), parameter :: pmvelen = 78
     ! arc sec to deg conversion
-    real(rk8) , parameter :: psecdeg = 1.0_rk8/3600.0_rk8
+    real(rk8), parameter :: psecdeg = 1.0_rk8/3600.0_rk8
 
     real(rk8) :: yb4_1950AD         ! number of years before 1950 AD
 
@@ -106,7 +106,7 @@ module mod_sunorbit
     ! rate (arc seconds/year), phase (degrees).
 
     ! amplitudes for obliquity cos series
-    real(rk8) , parameter :: obamp(poblen) =  &
+    real(rk8), parameter :: obamp(poblen) =  &
           [   -2462.2214466_rk8, -857.3232075_rk8, -629.3231835_rk8,   &
                 -414.2804924_rk8, -311.7632587_rk8,  308.9408604_rk8,   &
                 -162.5533601_rk8, -116.1077911_rk8,  101.1189923_rk8,   &
@@ -125,7 +125,7 @@ module mod_sunorbit
                   -1.1316126_rk8,    1.0896928_rk8]
 
     ! rates for obliquity cosine series
-    real(rk8) , parameter :: obrate(poblen) = &
+    real(rk8), parameter :: obrate(poblen) = &
             [  31.609974_rk8, 32.620504_rk8, 24.172203_rk8,   &
                 31.983787_rk8, 44.828336_rk8, 30.973257_rk8,   &
                 43.668246_rk8, 32.246691_rk8, 30.599444_rk8,   &
@@ -144,7 +144,7 @@ module mod_sunorbit
                  0.636717_rk8, 12.844549_rk8]
 
     ! phases for obliquity cosine series
-    real(rk8) , parameter :: obphas(poblen) = &
+    real(rk8), parameter :: obphas(poblen) = &
           [    251.9025_rk8, 280.8325_rk8, 128.3057_rk8,   &
                 292.7252_rk8,  15.3747_rk8, 263.7951_rk8,   &
                 308.4258_rk8, 240.0099_rk8, 222.9725_rk8,   &
@@ -167,7 +167,7 @@ module mod_sunorbit
     ! rate (arc seconds/year), phase (degrees).
 
     ! ampl for eccen/fvelp cos/sin series
-    real(rk8) , parameter :: ecamp (pecclen) = &
+    real(rk8), parameter :: ecamp (pecclen) = &
           [   0.01860798_rk8,  0.01627522_rk8, -0.01300660_rk8,   &
                0.00988829_rk8, -0.00336700_rk8,  0.00333077_rk8,   &
               -0.00235400_rk8,  0.00140015_rk8,  0.00100700_rk8,   &
@@ -177,7 +177,7 @@ module mod_sunorbit
                0.00001250_rk8]
 
     ! rates for eccen/fvelp cos/sin series
-    real(rk8) , parameter :: ecrate(pecclen) = &
+    real(rk8), parameter :: ecrate(pecclen) = &
           [    4.2072050_rk8,  7.3460910_rk8, 17.8572630_rk8,  &
                17.2205460_rk8, 16.8467330_rk8,  5.1990790_rk8,  &
                18.2310760_rk8, 26.2167580_rk8,  6.3591690_rk8,  &
@@ -187,7 +187,7 @@ module mod_sunorbit
                 0.6678630_rk8]
 
     ! phases for eccen/fvelp cos/sin series
-    real(rk8) , parameter :: ecphas(pecclen) = &
+    real(rk8), parameter :: ecphas(pecclen) = &
           [    28.620089_rk8, 193.788772_rk8, 308.307024_rk8,  &
                320.199637_rk8, 279.376984_rk8,  87.195000_rk8,  &
                349.129677_rk8, 128.443387_rk8, 154.143880_rk8,  &
@@ -200,7 +200,7 @@ module mod_sunorbit
     ! perihelion: amplitude (arc seconds), rate (arc sec/year), phase (degrees).
 
     ! amplitudes for mvelp sine series
-    real(rk8) , parameter :: mvamp (pmvelen) = &
+    real(rk8), parameter :: mvamp (pmvelen) = &
           [   7391.0225890_rk8, 2555.1526947_rk8, 2022.7629188_rk8,  &
               -1973.6517951_rk8, 1240.2321818_rk8,  953.8679112_rk8,  &
                -931.7537108_rk8,  872.3795383_rk8,  606.3544732_rk8,  &
@@ -229,7 +229,7 @@ module mod_sunorbit
                 -10.1280191_rk8,   10.0289441_rk8,  -10.0034259_rk8]
 
     ! rates for mvelp sine series
-    real(rk8) , parameter :: mvrate(pmvelen) = &
+    real(rk8), parameter :: mvrate(pmvelen) = &
           [    31.609974_rk8, 32.620504_rk8, 24.172203_rk8,   &
                  0.636717_rk8, 31.983787_rk8,  3.138886_rk8,   &
                 30.973257_rk8, 44.828336_rk8,  0.991874_rk8,   &
@@ -258,7 +258,7 @@ module mod_sunorbit
                  1.196895_rk8,  2.133898_rk8,  0.173168_rk8]
 
     ! phases for mvelp sine series
-    real(rk8) , parameter :: mvphas(pmvelen) = &
+    real(rk8), parameter :: mvphas(pmvelen) = &
           [    251.9025_rk8, 280.8325_rk8, 128.3057_rk8,   &
                 348.1074_rk8, 292.7252_rk8, 165.1686_rk8,   &
                 263.7951_rk8,  15.3747_rk8,  58.5749_rk8,   &
@@ -323,7 +323,7 @@ module mod_sunorbit
         call die(__FILE__,'unreasonable eccen')
       end if
       if ( (mvelp < ORB_MVELP_MIN).or.(mvelp > ORB_MVELP_MAX) ) then
-        write(stdout,*) 'Input mvelp unreasonable: ' , mvelp
+        write(stdout,*) 'Input mvelp unreasonable: ', mvelp
         call die(__FILE__,'unreasonable mvelp')
       end if
       eccen2 = eccen*eccen
@@ -375,7 +375,7 @@ module mod_sunorbit
       ! term is series summation in degrees.
 
       obsum = d_zero
-      do i = 1 , poblen
+      do i = 1, poblen
         obsum = obsum + obamp(i)*psecdeg*cos((obrate(i)*psecdeg*years + &
                 obphas(i))*degrad)
       end do
@@ -388,12 +388,12 @@ module mod_sunorbit
       ! which are in arc seconds, into degrees via multiplication by psecdeg.
 
       cossum = d_zero
-      do i = 1 , pecclen
+      do i = 1, pecclen
         cossum = cossum+ecamp(i)*cos((ecrate(i)*psecdeg*years+ecphas(i))*degrad)
       end do
 
       sinsum = d_zero
-      do i = 1 , pecclen
+      do i = 1, pecclen
         sinsum = sinsum+ecamp(i)*sin((ecrate(i)*psecdeg*years+ecphas(i))*degrad)
       end do
 
@@ -433,7 +433,7 @@ module mod_sunorbit
       ! psi, which is the general precession.
 
       mvsum = d_zero
-      do i = 1 , pmvelen
+      do i = 1, pmvelen
         mvsum = mvsum + mvamp(i)*psecdeg*sin((mvrate(i)*psecdeg*years + &
                 mvphas(i))*degrad)
       end do
@@ -487,15 +487,15 @@ module mod_sunorbit
   !
   subroutine orb_decl(calday,eccen,mvelpp,lambm0,obliqr,delta,eccf)
     implicit none
-    real(rk8) , intent(in) :: calday ! Calendar day, including fraction
-    real(rk8) , intent(in) :: eccen  ! Eccentricity
-    real(rk8) , intent(in) :: obliqr ! Earths obliquity in radians
-    real(rk8) , intent(in) :: lambm0 ! Mean long of perihelion at the
+    real(rk8), intent(in) :: calday ! Calendar day, including fraction
+    real(rk8), intent(in) :: eccen  ! Eccentricity
+    real(rk8), intent(in) :: obliqr ! Earths obliquity in radians
+    real(rk8), intent(in) :: lambm0 ! Mean long of perihelion at the
                                      ! vernal equinox (radians)
-    real(rk8) , intent(in) :: mvelpp ! moving vernal equinox longitude
+    real(rk8), intent(in) :: mvelpp ! moving vernal equinox longitude
                                      ! of perihelion plus pi (radians)
-    real(rk8) , intent(out) :: delta ! Solar declination angle in rad
-    real(rk8) , intent(out) :: eccf  ! Earth-sun distance factor (ie. (1/r)**2)
+    real(rk8), intent(out) :: delta ! Solar declination angle in rad
+    real(rk8), intent(out) :: eccf  ! Earth-sun distance factor (ie. (1/r)**2)
 
     real(rk8) :: lambm  ! Lambda m, mean long of perihelion (rad)
     real(rk8) :: lmm    ! Intermediate argument involving lambm

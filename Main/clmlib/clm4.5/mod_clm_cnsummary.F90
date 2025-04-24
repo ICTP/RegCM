@@ -7,10 +7,10 @@ module mod_clm_cnsummary
   use mod_intkinds
   use mod_realkinds
   use mod_mpmessage
-  use mod_runparams , only : dtsrf
+  use mod_runparams, only : dtsrf
   use mod_clm_varcon, only: dzsoi_decomp, zisoi
-  use mod_clm_pftvarcon   , only: npcropmin
-  use mod_clm_surfrd   , only: crop_prog
+  use mod_clm_pftvarcon  , only: npcropmin
+  use mod_clm_surfrd  , only: crop_prog
 
   implicit none
 
@@ -28,11 +28,11 @@ module mod_clm_cnsummary
   !
   subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
     use mod_clm_type
-    use mod_clm_subgridave , only : p2c
-    use mod_clm_varpar , only : nlevdecomp, ndecomp_pools, &
+    use mod_clm_subgridave, only : p2c
+    use mod_clm_varpar, only : nlevdecomp, ndecomp_pools, &
             ndecomp_cascade_transitions
-    use mod_clm_cnndynamics , only : nfix_timeconst
-    use mod_clm_varcon , only : secspday, spval
+    use mod_clm_cnndynamics, only : nfix_timeconst
+    use mod_clm_varcon, only : secspday, spval
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
@@ -40,365 +40,365 @@ module mod_clm_cnsummary
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     character(len=*), intent(in) :: isotope     ! 'bulk', 'c13' or 'c14'
 
-    integer(ik4) , pointer :: ivt(:)            ! pft vegetation type
+    integer(ik4), pointer, contiguous :: ivt(:)            ! pft vegetation type
     ! (gC/m2/s) total column-level fire C loss
-    real(rk8), pointer :: col_fire_closs(:)
+    real(rk8), pointer, contiguous :: col_fire_closs(:)
     ! (gC/m2/s) total ecosystem respiration, autotrophic + heterotrophic
-    real(rk8), pointer :: er(:)
+    real(rk8), pointer, contiguous :: er(:)
     ! (gC/m2/s) total heterotrophic respiration
-    real(rk8), pointer :: hr(:)
-    real(rk8), pointer :: litfire(:)  ! (gC/m2/s) litter fire losses
-    real(rk8), pointer :: lithr(:) ! (gC/m2/s) litter heterotrophic respiration
-    real(rk8), pointer :: cwdc(:)  ! (gC/m2) coarse woody debris C
+    real(rk8), pointer, contiguous :: hr(:)
+    real(rk8), pointer, contiguous :: litfire(:)  ! (gC/m2/s) litter fire losses
+    real(rk8), pointer, contiguous :: lithr(:) ! (gC/m2/s) litter heterotrophic respiration
+    real(rk8), pointer, contiguous :: cwdc(:)  ! (gC/m2) coarse woody debris C
     ! (gC/m2) column-level sink for C truncation
-    real(rk8), pointer :: col_ctrunc(:)
-    real(rk8), pointer :: decomp_cascade_hr_vr(:,:,:)
-    real(rk8), pointer :: decomp_cascade_hr(:,:)
+    real(rk8), pointer, contiguous :: col_ctrunc(:)
+    real(rk8), pointer, contiguous :: decomp_cascade_hr_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_cascade_hr(:,:)
     ! total vertically-resolved het. resp. from decomposing C pools (gC/m3/s)
-    real(rk8), pointer :: hr_vr(:,:)
-    real(rk8), pointer :: m_decomp_cpools_to_fire_vr(:,:,:)
-    real(rk8), pointer :: m_decomp_cpools_to_fire(:,:)
+    real(rk8), pointer, contiguous :: hr_vr(:,:)
+    real(rk8), pointer, contiguous :: m_decomp_cpools_to_fire_vr(:,:,:)
+    real(rk8), pointer, contiguous :: m_decomp_cpools_to_fire(:,:)
 
     ! (gC/m2)  decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_cpools(:,:)
+    real(rk8), pointer, contiguous :: decomp_cpools(:,:)
     ! (gC/m2)  decomposing (litter, cwd, soil) c pools to 1 meter
-    real(rk8), pointer :: decomp_cpools_1m(:,:)
+    real(rk8), pointer, contiguous :: decomp_cpools_1m(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_cpools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_cpools_vr(:,:,:)
     ! maximum annual depth of thaw
-    integer(ik4), pointer :: altmax_indx(:)
+    integer(ik4), pointer, contiguous :: altmax_indx(:)
     ! prior year maximum annual depth of thaw
-    integer(ik4), pointer :: altmax_lastyear_indx(:)
+    integer(ik4), pointer, contiguous :: altmax_lastyear_indx(:)
     ! (gC/m3) column-level sink for C truncation
-    real(rk8), pointer :: col_ctrunc_vr(:,:)
+    real(rk8), pointer, contiguous :: col_ctrunc_vr(:,:)
     ! which pool is C taken from for a given decomposition step
-    integer(ik4),  pointer :: cascade_donor_pool(:)
-    logical, pointer :: is_litter(:) ! TRUE => pool is a litter pool
-    logical, pointer :: is_soil(:)   ! TRUE => pool is a soil pool
-    logical, pointer :: is_cwd(:)    ! TRUE => pool is a cwd pool
+    integer(ik4),  pointer, contiguous :: cascade_donor_pool(:)
+    logical, pointer, contiguous :: is_litter(:) ! TRUE => pool is a litter pool
+    logical, pointer, contiguous :: is_soil(:)   ! TRUE => pool is a soil pool
+    logical, pointer, contiguous :: is_cwd(:)    ! TRUE => pool is a cwd pool
     ! (gC/m2/s) net ecosystem exchange of carbon, includes fire, land-use,
     ! harvest, and hrv_xsmrpool flux, positive for source
-    real(rk8), pointer :: nee(:)
+    real(rk8), pointer, contiguous :: nee(:)
     ! (gC/m2/s) net ecosystem production, excludes fire, land-use,
     ! and harvest flux, positive for sink
-    real(rk8), pointer :: nep(:)
+    real(rk8), pointer, contiguous :: nep(:)
     ! (gC/m2/s) net biome production, includes fire, land-use,
     ! and harvest flux, positive for sink
-    real(rk8), pointer :: nbp(:)
+    real(rk8), pointer, contiguous :: nbp(:)
     ! (gC/m2/s) autotrophic respiration (MR + GR)
-    real(rk8), pointer :: col_ar(:)
+    real(rk8), pointer, contiguous :: col_ar(:)
     ! GPP flux before downregulation (gC/m2/s)
-    real(rk8), pointer :: col_gpp(:)
+    real(rk8), pointer, contiguous :: col_gpp(:)
     ! (gC/m2/s) net primary production
-    real(rk8), pointer :: col_npp(:)
+    real(rk8), pointer, contiguous :: col_npp(:)
     ! (gC/m2/s) lagged net primary production
-    real(rk8), pointer :: col_lag_npp(:)
+    real(rk8), pointer, contiguous :: col_lag_npp(:)
     ! (gC/m2/s) total pft-level fire C loss
-    real(rk8), pointer :: col_pft_fire_closs(:)
+    real(rk8), pointer, contiguous :: col_pft_fire_closs(:)
     ! (gC/m2/s) total pft-level litterfall C loss
-    real(rk8), pointer :: col_litfall(:)
+    real(rk8), pointer, contiguous :: col_litfall(:)
     ! (gC/m2/s) root respiration (fine root MR + total root GR)
-    real(rk8), pointer :: col_rr(:)
+    real(rk8), pointer, contiguous :: col_rr(:)
     ! (gC/m2/s) pft-level fire loss (obsolete, mark for removal)
-    real(rk8), pointer :: col_vegfire(:)
-    real(rk8), pointer :: col_wood_harvestc(:)
+    real(rk8), pointer, contiguous :: col_vegfire(:)
+    real(rk8), pointer, contiguous :: col_wood_harvestc(:)
     ! (gC/m2/s) soil organic matter fire losses
-    real(rk8), pointer :: somfire(:)
+    real(rk8), pointer, contiguous :: somfire(:)
     ! (gC/m2/s) soil organic matter heterotrophic respiration
-    real(rk8), pointer :: somhr(:)
+    real(rk8), pointer, contiguous :: somhr(:)
     ! (gC/m2/s) total soil respiration (HR + root resp)
-    real(rk8), pointer :: sr(:)
+    real(rk8), pointer, contiguous :: sr(:)
     ! (gC/m2/s) total ecosystem fire losses
-    real(rk8), pointer :: totfire(:)
+    real(rk8), pointer, contiguous :: totfire(:)
     ! (gC/m2) total pft-level carbon, including cpool
-    real(rk8), pointer :: col_totpftc(:)
+    real(rk8), pointer, contiguous :: col_totpftc(:)
     ! (gC/m2) total vegetation carbon, excluding cpool
-    real(rk8), pointer :: col_totvegc(:)
+    real(rk8), pointer, contiguous :: col_totvegc(:)
     ! (gC/m2) total column carbon, incl veg and cpool
-    real(rk8), pointer :: totcolc(:)
+    real(rk8), pointer, contiguous :: totcolc(:)
     ! (gC/m2) total ecosystem carbon, incl veg but excl cpool
-    real(rk8), pointer :: totecosysc(:)
-    real(rk8), pointer :: totlitc(:)    ! (gC/m2) total litter carbon
-    real(rk8), pointer :: totlitc_1m(:) ! (gC/m2) total litter carbon to 1 meter
-    real(rk8), pointer :: totsomc(:)  ! (gC/m2) total soil organic matter carbon
+    real(rk8), pointer, contiguous :: totecosysc(:)
+    real(rk8), pointer, contiguous :: totlitc(:)    ! (gC/m2) total litter carbon
+    real(rk8), pointer, contiguous :: totlitc_1m(:) ! (gC/m2) total litter carbon to 1 meter
+    real(rk8), pointer, contiguous :: totsomc(:)  ! (gC/m2) total soil organic matter carbon
     ! (gC/m2) total soil organic matter carbon to 1 meter
-    real(rk8), pointer :: totsomc_1m(:)
-    real(rk8), pointer :: agnpp(:) ! (gC/m2/s) aboveground NPP
-    real(rk8), pointer :: ar(:)    ! (gC/m2/s) autotrophic respiration (MR + GR)
-    real(rk8), pointer :: bgnpp(:) ! (gC/m2/s) belowground NPP
+    real(rk8), pointer, contiguous :: totsomc_1m(:)
+    real(rk8), pointer, contiguous :: agnpp(:) ! (gC/m2/s) aboveground NPP
+    real(rk8), pointer, contiguous :: ar(:)    ! (gC/m2/s) autotrophic respiration (MR + GR)
+    real(rk8), pointer, contiguous :: bgnpp(:) ! (gC/m2/s) belowground NPP
     ! excess MR pool harvest mortality (gC/m2/s)
-    real(rk8), pointer :: xsmrpool_to_atm(:)
+    real(rk8), pointer, contiguous :: xsmrpool_to_atm(:)
     ! grain growth respiration (gC/m2/s)
-    real(rk8), pointer :: cpool_grain_gr(:)
+    real(rk8), pointer, contiguous :: cpool_grain_gr(:)
     ! grain growth respiration to storage (gC/m2/s)
-    real(rk8), pointer :: cpool_grain_storage_gr(:)
+    real(rk8), pointer, contiguous :: cpool_grain_storage_gr(:)
     ! allocation to grain C storage (gC/m2/s)
-    real(rk8), pointer :: cpool_to_grainc(:)
+    real(rk8), pointer, contiguous :: cpool_to_grainc(:)
     ! grain C growth from storage (gC/m2/s)
-    real(rk8), pointer :: grainc_xfer_to_grainc(:)
+    real(rk8), pointer, contiguous :: grainc_xfer_to_grainc(:)
     ! grain growth respiration from storage (gC/m2/s)
-    real(rk8), pointer :: transfer_grain_gr(:)
+    real(rk8), pointer, contiguous :: transfer_grain_gr(:)
     ! grain C to food (gC/m2/s)
-    real(rk8), pointer :: grainc_to_food(:)
+    real(rk8), pointer, contiguous :: grainc_to_food(:)
     ! live stem C litterfall (gC/m2/s)
-    real(rk8), pointer :: livestemc_to_litter(:)
-    real(rk8), pointer :: grainc(:)             ! (gC/m2) grain C
-    real(rk8), pointer :: grainc_storage(:)     ! (gC/m2) grain C storage
-    real(rk8), pointer :: grainc_xfer(:)        ! (gC/m2) grain C transfer
+    real(rk8), pointer, contiguous :: livestemc_to_litter(:)
+    real(rk8), pointer, contiguous :: grainc(:)             ! (gC/m2) grain C
+    real(rk8), pointer, contiguous :: grainc_storage(:)     ! (gC/m2) grain C storage
+    real(rk8), pointer, contiguous :: grainc_xfer(:)        ! (gC/m2) grain C transfer
     ! dead coarse root growth respiration (gC/m2/s)
-    real(rk8), pointer :: cpool_deadcroot_gr(:)
+    real(rk8), pointer, contiguous :: cpool_deadcroot_gr(:)
     ! dead coarse root growth respiration to storage (gC/m2/s)
-    real(rk8), pointer :: cpool_deadcroot_storage_gr(:)
+    real(rk8), pointer, contiguous :: cpool_deadcroot_storage_gr(:)
     ! dead stem growth respiration (gC/m2/s)
-    real(rk8), pointer :: cpool_deadstem_gr(:)
+    real(rk8), pointer, contiguous :: cpool_deadstem_gr(:)
     ! dead stem growth respiration to storage (gC/m2/s)
-    real(rk8), pointer :: cpool_deadstem_storage_gr(:)
+    real(rk8), pointer, contiguous :: cpool_deadstem_storage_gr(:)
     ! fine root growth respiration (gC/m2/s)
-    real(rk8), pointer :: cpool_froot_gr(:)
+    real(rk8), pointer, contiguous :: cpool_froot_gr(:)
     ! fine root  growth respiration to storage (gC/m2/s)
-    real(rk8), pointer :: cpool_froot_storage_gr(:)
+    real(rk8), pointer, contiguous :: cpool_froot_storage_gr(:)
     ! leaf growth respiration (gC/m2/s)
-    real(rk8), pointer :: cpool_leaf_gr(:)
+    real(rk8), pointer, contiguous :: cpool_leaf_gr(:)
     ! leaf growth respiration to storage (gC/m2/s)
-    real(rk8), pointer :: cpool_leaf_storage_gr(:)
+    real(rk8), pointer, contiguous :: cpool_leaf_storage_gr(:)
     ! live coarse root growth respiration (gC/m2/s)
-    real(rk8), pointer :: cpool_livecroot_gr(:)
+    real(rk8), pointer, contiguous :: cpool_livecroot_gr(:)
     ! live coarse root growth respiration to storage (gC/m2/s)
-    real(rk8), pointer :: cpool_livecroot_storage_gr(:)
+    real(rk8), pointer, contiguous :: cpool_livecroot_storage_gr(:)
     ! live stem growth respiration (gC/m2/s)
-    real(rk8), pointer :: cpool_livestem_gr(:)
+    real(rk8), pointer, contiguous :: cpool_livestem_gr(:)
     ! live stem growth respiration to storage (gC/m2/s)
-    real(rk8), pointer :: cpool_livestem_storage_gr(:)
+    real(rk8), pointer, contiguous :: cpool_livestem_storage_gr(:)
     ! allocation to dead coarse root C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_deadcrootc(:)
+    real(rk8), pointer, contiguous :: cpool_to_deadcrootc(:)
     ! allocation to dead stem C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_deadstemc(:)
+    real(rk8), pointer, contiguous :: cpool_to_deadstemc(:)
     ! allocation to fine root C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_frootc(:)
+    real(rk8), pointer, contiguous :: cpool_to_frootc(:)
     ! allocation to leaf C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_leafc(:)
+    real(rk8), pointer, contiguous :: cpool_to_leafc(:)
     ! allocation to live coarse root C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_livecrootc(:)
+    real(rk8), pointer, contiguous :: cpool_to_livecrootc(:)
     ! allocation to live stem C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_livestemc(:)
+    real(rk8), pointer, contiguous :: cpool_to_livestemc(:)
     ! (gC/m2/s) growth resp for new growth displayed in this timestep
-    real(rk8), pointer :: current_gr(:)
-    real(rk8), pointer :: deadcrootc_xfer_to_deadcrootc(:)
-    real(rk8), pointer :: deadstemc_xfer_to_deadstemc(:)
-    real(rk8), pointer :: frootc_to_litter(:)
-    real(rk8), pointer :: frootc_xfer_to_frootc(:)
-    real(rk8), pointer :: froot_mr(:)
-    real(rk8), pointer :: grain_mr(:)
-    real(rk8), pointer :: froot_curmr(:)
-    real(rk8), pointer :: froot_xsmr(:)
-    real(rk8), pointer :: gpp(:)  !GPP flux before downregulation (gC/m2/s)
-    real(rk8), pointer :: gr(:)   ! (gC/m2/s) total growth respiration
-    real(rk8), pointer :: leafc_to_litter(:)
-    real(rk8), pointer :: leafc_xfer_to_leafc(:)
-    real(rk8), pointer :: leaf_mr(:)
-    real(rk8), pointer :: leaf_curmr(:)
-    real(rk8), pointer :: leaf_xsmr(:)
+    real(rk8), pointer, contiguous :: current_gr(:)
+    real(rk8), pointer, contiguous :: deadcrootc_xfer_to_deadcrootc(:)
+    real(rk8), pointer, contiguous :: deadstemc_xfer_to_deadstemc(:)
+    real(rk8), pointer, contiguous :: frootc_to_litter(:)
+    real(rk8), pointer, contiguous :: frootc_xfer_to_frootc(:)
+    real(rk8), pointer, contiguous :: froot_mr(:)
+    real(rk8), pointer, contiguous :: grain_mr(:)
+    real(rk8), pointer, contiguous :: froot_curmr(:)
+    real(rk8), pointer, contiguous :: froot_xsmr(:)
+    real(rk8), pointer, contiguous :: gpp(:)  !GPP flux before downregulation (gC/m2/s)
+    real(rk8), pointer, contiguous :: gr(:)   ! (gC/m2/s) total growth respiration
+    real(rk8), pointer, contiguous :: leafc_to_litter(:)
+    real(rk8), pointer, contiguous :: leafc_xfer_to_leafc(:)
+    real(rk8), pointer, contiguous :: leaf_mr(:)
+    real(rk8), pointer, contiguous :: leaf_curmr(:)
+    real(rk8), pointer, contiguous :: leaf_xsmr(:)
     ! (gC/m2/s) litterfall (leaves and fine roots)
-    real(rk8), pointer :: litfall(:)
-    real(rk8), pointer :: livecrootc_xfer_to_livecrootc(:)
-    real(rk8), pointer :: livecroot_mr(:)
-    real(rk8), pointer :: livecroot_curmr(:)
-    real(rk8), pointer :: livecroot_xsmr(:)
-    real(rk8), pointer :: livestemc_xfer_to_livestemc(:)
-    real(rk8), pointer :: livestem_mr(:)
-    real(rk8), pointer :: livestem_curmr(:)
-    real(rk8), pointer :: livestem_xsmr(:)
+    real(rk8), pointer, contiguous :: litfall(:)
+    real(rk8), pointer, contiguous :: livecrootc_xfer_to_livecrootc(:)
+    real(rk8), pointer, contiguous :: livecroot_mr(:)
+    real(rk8), pointer, contiguous :: livecroot_curmr(:)
+    real(rk8), pointer, contiguous :: livecroot_xsmr(:)
+    real(rk8), pointer, contiguous :: livestemc_xfer_to_livestemc(:)
+    real(rk8), pointer, contiguous :: livestem_mr(:)
+    real(rk8), pointer, contiguous :: livestem_curmr(:)
+    real(rk8), pointer, contiguous :: livestem_xsmr(:)
 
     ! fire variables changed by F. Li and S. Levis
-    real(rk8), pointer :: m_leafc_to_fire(:)
-    real(rk8), pointer :: m_leafc_storage_to_fire(:)
-    real(rk8), pointer :: m_leafc_xfer_to_fire(:)
-    real(rk8), pointer :: m_livestemc_to_fire(:)
-    real(rk8), pointer :: m_livestemc_storage_to_fire(:)
-    real(rk8), pointer :: m_livestemc_xfer_to_fire(:)
-    real(rk8), pointer :: m_deadstemc_to_fire(:)
-    real(rk8), pointer :: m_deadstemc_storage_to_fire(:)
-    real(rk8), pointer :: m_deadstemc_xfer_to_fire(:)
-    real(rk8), pointer :: m_frootc_to_fire(:)
-    real(rk8), pointer :: m_frootc_storage_to_fire(:)
-    real(rk8), pointer :: m_frootc_xfer_to_fire(:)
-    real(rk8), pointer :: m_livecrootc_to_fire(:)
-    real(rk8), pointer :: m_livecrootc_storage_to_fire(:)
-    real(rk8), pointer :: m_livecrootc_xfer_to_fire(:)
-    real(rk8), pointer :: m_deadcrootc_to_fire(:)
-    real(rk8), pointer :: m_deadcrootc_storage_to_fire(:)
-    real(rk8), pointer :: m_deadcrootc_xfer_to_fire(:)
-    real(rk8), pointer :: m_gresp_storage_to_fire(:)
-    real(rk8), pointer :: m_gresp_xfer_to_fire(:)
-    real(rk8), pointer :: m_leafc_to_litter_fire(:)
-    real(rk8), pointer :: m_leafc_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_leafc_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_livestemc_to_litter_fire(:)
-    real(rk8), pointer :: m_livestemc_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_livestemc_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_livestemc_to_deadstemc_fire(:)
-    real(rk8), pointer :: m_deadstemc_to_litter_fire(:)
-    real(rk8), pointer :: m_deadstemc_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_deadstemc_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_frootc_to_litter_fire(:)
-    real(rk8), pointer :: m_frootc_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_frootc_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_livecrootc_to_litter_fire(:)
-    real(rk8), pointer :: m_livecrootc_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_livecrootc_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_livecrootc_to_deadcrootc_fire(:)
-    real(rk8), pointer :: m_deadcrootc_to_litter_fire(:)
-    real(rk8), pointer :: m_deadcrootc_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_deadcrootc_xfer_to_litter_fire(:)
-    real(rk8), pointer :: m_gresp_storage_to_litter_fire(:)
-    real(rk8), pointer :: m_gresp_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_gresp_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_gresp_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_to_deadstemc_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_to_deadcrootc_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_gresp_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_gresp_xfer_to_litter_fire(:)
 
-    real(rk8), pointer :: m_deadcrootc_storage_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_storage_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_xfer_to_litter(:)
-    real(rk8), pointer :: m_frootc_storage_to_litter(:)
-    real(rk8), pointer :: m_frootc_to_litter(:)
-    real(rk8), pointer :: m_frootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_gresp_storage_to_litter(:)
-    real(rk8), pointer :: m_gresp_xfer_to_litter(:)
-    real(rk8), pointer :: m_leafc_storage_to_litter(:)
-    real(rk8), pointer :: m_leafc_to_litter(:)
-    real(rk8), pointer :: m_leafc_xfer_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_storage_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_livestemc_storage_to_litter(:)
-    real(rk8), pointer :: m_livestemc_to_litter(:)
-    real(rk8), pointer :: m_livestemc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_leafc_to_litter(:)
-    real(rk8), pointer :: hrv_leafc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_leafc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_frootc_to_litter(:)
-    real(rk8), pointer :: hrv_frootc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_frootc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_livestemc_to_litter(:)
-    real(rk8), pointer :: hrv_livestemc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_livestemc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_deadstemc_to_prod10c(:)
-    real(rk8), pointer :: hrv_deadstemc_to_prod100c(:)
-    real(rk8), pointer :: hrv_deadstemc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_deadstemc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootc_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_deadcrootc_to_litter(:)
-    real(rk8), pointer :: hrv_deadcrootc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_deadcrootc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_gresp_storage_to_litter(:)
-    real(rk8), pointer :: hrv_gresp_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_xsmrpool_to_atm(:)
-    real(rk8), pointer :: col_hrv_xsmrpool_to_atm(:)
-    real(rk8), pointer :: mr(:)     ! (gC/m2/s) maintenance respiration
-    real(rk8), pointer :: npp(:)    ! (gC/m2/s) net primary production
+    real(rk8), pointer, contiguous :: m_deadcrootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_frootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_frootc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_frootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_gresp_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_gresp_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_leafc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_leafc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_leafc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livestemc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livestemc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livestemc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemc_to_prod10c(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemc_to_prod100c(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_gresp_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_gresp_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_xsmrpool_to_atm(:)
+    real(rk8), pointer, contiguous :: col_hrv_xsmrpool_to_atm(:)
+    real(rk8), pointer, contiguous :: mr(:)     ! (gC/m2/s) maintenance respiration
+    real(rk8), pointer, contiguous :: npp(:)    ! (gC/m2/s) net primary production
     ! (gC/m2/s) total pft-level fire C loss
-    real(rk8), pointer :: pft_fire_closs(:)
-    real(rk8), pointer :: psnshade_to_cpool(:)
-    real(rk8), pointer :: psnsun_to_cpool(:)
+    real(rk8), pointer, contiguous :: pft_fire_closs(:)
+    real(rk8), pointer, contiguous :: psnshade_to_cpool(:)
+    real(rk8), pointer, contiguous :: psnsun_to_cpool(:)
     ! (gC/m2/s) root respiration (fine root MR + total root GR)
-    real(rk8), pointer :: rr(:)
+    real(rk8), pointer, contiguous :: rr(:)
     ! (gC/m2/s) growth resp for growth sent to storage for later display
-    real(rk8), pointer :: storage_gr(:)
-    real(rk8), pointer :: transfer_deadcroot_gr(:)
-    real(rk8), pointer :: transfer_deadstem_gr(:)
-    real(rk8), pointer :: transfer_froot_gr(:)
+    real(rk8), pointer, contiguous :: storage_gr(:)
+    real(rk8), pointer, contiguous :: transfer_deadcroot_gr(:)
+    real(rk8), pointer, contiguous :: transfer_deadstem_gr(:)
+    real(rk8), pointer, contiguous :: transfer_froot_gr(:)
     ! (gC/m2/s) growth resp for transfer growth displayed in this timestep
-    real(rk8), pointer :: transfer_gr(:)
-    real(rk8), pointer :: transfer_leaf_gr(:)
-    real(rk8), pointer :: transfer_livecroot_gr(:)
-    real(rk8), pointer :: transfer_livestem_gr(:)
+    real(rk8), pointer, contiguous :: transfer_gr(:)
+    real(rk8), pointer, contiguous :: transfer_leaf_gr(:)
+    real(rk8), pointer, contiguous :: transfer_livecroot_gr(:)
+    real(rk8), pointer, contiguous :: transfer_livestem_gr(:)
     ! (gC/m2/s) pft-level wood harvest (to product pools)
-    real(rk8), pointer :: wood_harvestc(:)
+    real(rk8), pointer, contiguous :: wood_harvestc(:)
     ! (gC/m2/s) pft-level fire loss (obsolete, mark for removal)
-    real(rk8), pointer :: vegfire(:)
+    real(rk8), pointer, contiguous :: vegfire(:)
     ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: cpool(:)
+    real(rk8), pointer, contiguous :: cpool(:)
     ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: xsmrpool(:)
+    real(rk8), pointer, contiguous :: xsmrpool(:)
     ! (gC/m2) pft-level sink for C truncation
-    real(rk8), pointer :: pft_ctrunc(:)
-    real(rk8), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead cors root C strg
-    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead cors root C trnf
-    real(rk8), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
-    real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
+    real(rk8), pointer, contiguous :: pft_ctrunc(:)
+    real(rk8), pointer, contiguous :: deadcrootc(:)         ! (gC/m2) dead coarse root C
+    real(rk8), pointer, contiguous :: deadcrootc_storage(:) ! (gC/m2) dead cors root C strg
+    real(rk8), pointer, contiguous :: deadcrootc_xfer(:)    ! (gC/m2) dead cors root C trnf
+    real(rk8), pointer, contiguous :: deadstemc(:)          ! (gC/m2) dead stem C
+    real(rk8), pointer, contiguous :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
+    real(rk8), pointer, contiguous :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
     ! (gC/m2) displayed veg carbon, excluding storage and cpool
-    real(rk8), pointer :: dispvegc(:)
-    real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
-    real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
-    real(rk8), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth resp strg
-    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth resp trnf
-    real(rk8), pointer :: leafc(:)              ! (gC/m2) leaf C
-    real(rk8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
-    real(rk8), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
-    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live cors root C strg
-    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live cors root C trnf
-    real(rk8), pointer :: livestemc(:)          ! (gC/m2) live stem C
-    real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
-    real(rk8), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
+    real(rk8), pointer, contiguous :: dispvegc(:)
+    real(rk8), pointer, contiguous :: frootc(:)             ! (gC/m2) fine root C
+    real(rk8), pointer, contiguous :: frootc_storage(:)     ! (gC/m2) fine root C storage
+    real(rk8), pointer, contiguous :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
+    real(rk8), pointer, contiguous :: gresp_storage(:)      ! (gC/m2) growth resp strg
+    real(rk8), pointer, contiguous :: gresp_xfer(:)         ! (gC/m2) growth resp trnf
+    real(rk8), pointer, contiguous :: leafc(:)              ! (gC/m2) leaf C
+    real(rk8), pointer, contiguous :: leafc_storage(:)      ! (gC/m2) leaf C storage
+    real(rk8), pointer, contiguous :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
+    real(rk8), pointer, contiguous :: livecrootc(:)         ! (gC/m2) live coarse root C
+    real(rk8), pointer, contiguous :: livecrootc_storage(:) ! (gC/m2) live cors root C strg
+    real(rk8), pointer, contiguous :: livecrootc_xfer(:)    ! (gC/m2) live cors root C trnf
+    real(rk8), pointer, contiguous :: livestemc(:)          ! (gC/m2) live stem C
+    real(rk8), pointer, contiguous :: livestemc_storage(:)  ! (gC/m2) live stem C storage
+    real(rk8), pointer, contiguous :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
     ! (gC/m2) stored vegetation carbon, excluding cpool
-    real(rk8), pointer :: storvegc(:)
+    real(rk8), pointer, contiguous :: storvegc(:)
     ! (gC/m2) total pft-level carbon, including cpool
-    real(rk8), pointer :: totpftc(:)
+    real(rk8), pointer, contiguous :: totpftc(:)
     ! (gC/m2) total vegetation carbon, excluding cpool
-    real(rk8), pointer :: totvegc(:)
+    real(rk8), pointer, contiguous :: totvegc(:)
     ! temporary annual sum of NPP (gC/m2/yr)
-    real(rk8), pointer :: tempsum_npp(:)
+    real(rk8), pointer, contiguous :: tempsum_npp(:)
 #if (defined CNDV)
     !temporary annual sum of litfall (gC/m2/yr)
-    real(rk8), pointer :: tempsum_litfall(:)
+    real(rk8), pointer, contiguous :: tempsum_litfall(:)
 #endif
     ! for landcover change
-    real(rk8), pointer :: landuseflux(:) ! (gC/m2/s) dwt_closs+product_closs
-    real(rk8), pointer :: landuptake(:)  ! (gC/m2/s) nee-landuseflux
+    real(rk8), pointer, contiguous :: landuseflux(:) ! (gC/m2/s) dwt_closs+product_closs
+    real(rk8), pointer, contiguous :: landuptake(:)  ! (gC/m2/s) nee-landuseflux
     ! (gC/m2/s) total carbon loss from land cover conversion
-    real(rk8), pointer :: dwt_closs(:)
+    real(rk8), pointer, contiguous :: dwt_closs(:)
     ! (gC/m2/s) conversion C flux (immediate loss to atm)
-    real(rk8), pointer :: dwt_conv_cflux(:)
+    real(rk8), pointer, contiguous :: dwt_conv_cflux(:)
     ! (gC/m2/s) loss from 10-yr wood product pool
-    real(rk8), pointer :: prod10c_loss(:)
+    real(rk8), pointer, contiguous :: prod10c_loss(:)
     ! (gC/m2/s) loss from 100-yr wood product pool
-    real(rk8), pointer :: prod100c_loss(:)
+    real(rk8), pointer, contiguous :: prod100c_loss(:)
     ! (gC/m2/s) total wood product carbon loss
-    real(rk8), pointer :: product_closs(:)
+    real(rk8), pointer, contiguous :: product_closs(:)
     ! (gC/m2) column-level pool for seeding new PFTs
-    real(rk8), pointer :: seedc(:)
+    real(rk8), pointer, contiguous :: seedc(:)
     ! (gC/m2) wood product C pool, 10-year lifespan
-    real(rk8), pointer :: prod10c(:)
+    real(rk8), pointer, contiguous :: prod10c(:)
     ! (gC/m2) wood product C pool, 100-year lifespan
-    real(rk8), pointer :: prod100c(:)
-    real(rk8), pointer :: totprodc(:)       ! (gC/m2) total wood product C
+    real(rk8), pointer, contiguous :: prod100c(:)
+    real(rk8), pointer, contiguous :: totprodc(:)       ! (gC/m2) total wood product C
 
-    real(rk8), pointer :: frootc_alloc(:)   ! fine root C allocation (gC/m2/s)
-    real(rk8), pointer :: frootc_loss(:)    ! fine root C loss (gC/m2/s)
-    real(rk8), pointer :: leafc_alloc(:)    ! leaf C allocation (gC/m2/s)
-    real(rk8), pointer :: leafc_loss(:)     ! leaf C loss (gC/m2/s)
-    real(rk8), pointer :: woodc(:)          ! wood C (gC/m2)
-    real(rk8), pointer :: woodc_alloc(:)    ! wood C allocation (gC/m2/s)
-    real(rk8), pointer :: woodc_loss(:)     ! wood C loss (gC/m2/s)
+    real(rk8), pointer, contiguous :: frootc_alloc(:)   ! fine root C allocation (gC/m2/s)
+    real(rk8), pointer, contiguous :: frootc_loss(:)    ! fine root C loss (gC/m2/s)
+    real(rk8), pointer, contiguous :: leafc_alloc(:)    ! leaf C allocation (gC/m2/s)
+    real(rk8), pointer, contiguous :: leafc_loss(:)     ! leaf C loss (gC/m2/s)
+    real(rk8), pointer, contiguous :: woodc(:)          ! wood C (gC/m2)
+    real(rk8), pointer, contiguous :: woodc_alloc(:)    ! wood C allocation (gC/m2/s)
+    real(rk8), pointer, contiguous :: woodc_loss(:)     ! wood C loss (gC/m2/s)
     ! coarse woody debris C heterotrophic respiration (gC/m2/s)
-    real(rk8), pointer :: cwdc_hr(:)
+    real(rk8), pointer, contiguous :: cwdc_hr(:)
     ! coarse woody debris C loss (gC/m2/s)
-    real(rk8), pointer :: cwdc_loss(:)
-    real(rk8), pointer :: litterc_loss(:)   ! litter C loss (gC/m2/s)
-    real(rk8), pointer :: decomp_cascade_ctransfer_vr(:,:,:)
-    real(rk8), pointer :: decomp_cascade_ctransfer(:,:)
+    real(rk8), pointer, contiguous :: cwdc_loss(:)
+    real(rk8), pointer, contiguous :: litterc_loss(:)   ! litter C loss (gC/m2/s)
+    real(rk8), pointer, contiguous :: decomp_cascade_ctransfer_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_cascade_ctransfer(:,:)
     ! total SOM C loss from vertical transport (gC/m^2/s)
-    real(rk8), pointer :: som_c_leached(:)
+    real(rk8), pointer, contiguous :: som_c_leached(:)
     ! C loss from vertical transport from each decomposing C pool (gC/m^2/s)
-    real(rk8), pointer :: decomp_cpools_leached(:,:)
+    real(rk8), pointer, contiguous :: decomp_cpools_leached(:,:)
     ! C tendency due to vertical transport in decomposing C pools (gC/m^3/s)
-    real(rk8), pointer :: decomp_cpools_transport_tendency(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_cpools_transport_tendency(:,:,:)
     ! temp variables for making lagged npp
     real(rk8) :: nfixlags
 
@@ -709,7 +709,7 @@ module mod_clm_cnsummary
     decomp_cpools_transport_tendency => ccisof%decomp_cpools_transport_tendency
 
     ! pft loop
-    do fp = 1 , num_soilp
+    do fp = 1, num_soilp
       p = filter_soilp(fp)
 
       ! calculate pft-level summary carbon fluxes and states
@@ -1064,7 +1064,7 @@ module mod_clm_cnsummary
         col_lag_npp => clm3%g%l%c%cps%col_lag_npp
         nfixlags = nfix_timeconst * secspday
         ! column loop
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           if ( col_lag_npp(c) /= spval ) then
             col_lag_npp(c) = col_lag_npp(c) * exp(-dtsrf/nfixlags) &
@@ -1078,7 +1078,7 @@ module mod_clm_cnsummary
     endif
 
     ! column loop
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
 
       ! some zeroing
@@ -1090,7 +1090,7 @@ module mod_clm_cnsummary
       col_ctrunc(c) = 0._rk8
       cwdc_loss(c) = 0._rk8
       som_c_leached(c) = 0._rk8
-      do l = 1 , ndecomp_pools
+      do l = 1, ndecomp_pools
         decomp_cpools(c,l) = 0._rk8
       end do
       totlitc_1m(c) = 0._rk8
@@ -1098,9 +1098,9 @@ module mod_clm_cnsummary
     end do
 
     ! vertically integrate HR and decomposition cascade fluxes
-    do k = 1 , ndecomp_cascade_transitions
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+    do k = 1, ndecomp_cascade_transitions
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           decomp_cascade_hr(c,k) = decomp_cascade_hr(c,k) + &
                   decomp_cascade_hr_vr(c,j,k)*dzsoi_decomp(j)
@@ -1111,9 +1111,9 @@ module mod_clm_cnsummary
     end do
 
     ! litter heterotrophic respiration (LITHR)
-    do k = 1 , ndecomp_cascade_transitions
+    do k = 1, ndecomp_cascade_transitions
       if ( is_litter(cascade_donor_pool(k)) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           lithr(c) = lithr(c) + decomp_cascade_hr(c,k)
         end do
@@ -1121,9 +1121,9 @@ module mod_clm_cnsummary
     end do
 
     ! soil organic matter heterotrophic respiration (SOMHR)
-    do k = 1 , ndecomp_cascade_transitions
+    do k = 1, ndecomp_cascade_transitions
       if ( is_soil(cascade_donor_pool(k)) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           somhr(c) = somhr(c) + decomp_cascade_hr(c,k)
         end do
@@ -1131,28 +1131,28 @@ module mod_clm_cnsummary
     end do
 
     ! total heterotrophic respiration (HR)
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       hr(c) = lithr(c) + somhr(c)
     end do
 
     ! total heterotrophic respiration, vertically resolved (HR)
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         hr_vr(c,j) = 0._rk8
       end do
     end do
-    do k = 1 , ndecomp_cascade_transitions
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+    do k = 1, ndecomp_cascade_transitions
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           hr_vr(c,j) = hr_vr(c,j) + decomp_cascade_hr_vr(c,j,k)
         end do
       end do
     end do
 
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       ! total soil respiration, heterotrophic + root respiration (SR)
       sr(c) = col_rr(c) + hr(c)
@@ -1179,9 +1179,9 @@ module mod_clm_cnsummary
     end do
 
     ! vertically integrate column-level carbon fire losses
-    do l = 1 , ndecomp_pools
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+    do l = 1, ndecomp_pools
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           m_decomp_cpools_to_fire(c,l) = m_decomp_cpools_to_fire(c,l) + &
                  m_decomp_cpools_to_fire_vr(c,j,l)*dzsoi_decomp(j)
@@ -1190,10 +1190,10 @@ module mod_clm_cnsummary
     end do
 
     ! column-level carbon losses to fire, including pft losses
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       col_fire_closs(c) = col_pft_fire_closs(c)
-      do l = 1 , ndecomp_pools
+      do l = 1, ndecomp_pools
         col_fire_closs(c) = col_fire_closs(c) + m_decomp_cpools_to_fire(c,l)
       end do
 
@@ -1220,9 +1220,9 @@ module mod_clm_cnsummary
     end do
 
     ! vertically integrate each of the decomposing C pools
-    do l = 1 , ndecomp_pools
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+    do l = 1, ndecomp_pools
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           decomp_cpools(c,l) = decomp_cpools(c,l) + &
                  decomp_cpools_vr(c,j,l) * dzsoi_decomp(j)
@@ -1235,8 +1235,8 @@ module mod_clm_cnsummary
     if ( nlevdecomp > 1) then
 
       ! zero some pools
-      do l = 1 , ndecomp_pools
-        do fc = 1 , num_soilc
+      do l = 1, ndecomp_pools
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           decomp_cpools_1m(c,l) = 0._rk8
         end do
@@ -1244,16 +1244,16 @@ module mod_clm_cnsummary
 
       ! vertically integrate each of the decomposing C pools to 1 meter
       maxdepth = 1._rk8
-      do l = 1 , ndecomp_pools
-        do j = 1 , nlevdecomp
+      do l = 1, ndecomp_pools
+        do j = 1, nlevdecomp
           if ( zisoi(j) <= maxdepth ) then
-            do fc = 1 , num_soilc
+            do fc = 1, num_soilc
               c = filter_soilc(fc)
               decomp_cpools_1m(c,l) = decomp_cpools_1m(c,l) + &
                       decomp_cpools_vr(c,j,l) * dzsoi_decomp(j)
             end do
           else if ( zisoi(j-1) < maxdepth ) then
-            do fc = 1 , num_soilc
+            do fc = 1, num_soilc
               c = filter_soilc(fc)
               decomp_cpools_1m(c,l) = decomp_cpools_1m(c,l) + &
                        decomp_cpools_vr(c,j,l) * (maxdepth - zisoi(j-1))
@@ -1263,9 +1263,9 @@ module mod_clm_cnsummary
       end do
 
       ! total litter carbon in the top meter (TOTLITC_1m)
-      do l = 1 , ndecomp_pools
+      do l = 1, ndecomp_pools
         if ( is_litter(l) ) then
-          do fc = 1 , num_soilc
+          do fc = 1, num_soilc
             c = filter_soilc(fc)
             totlitc_1m(c) = totlitc_1m(c) + decomp_cpools_1m(c,l)
           end do
@@ -1273,9 +1273,9 @@ module mod_clm_cnsummary
       end do
 
       ! total soil organic matter carbon in the top meter (TOTSOMC_1m)
-      do l = 1 , ndecomp_pools
+      do l = 1, ndecomp_pools
         if ( is_soil(l) ) then
-          do fc = 1 , num_soilc
+          do fc = 1, num_soilc
             c = filter_soilc(fc)
             totsomc_1m(c) = totsomc_1m(c) + decomp_cpools_1m(c,l)
           end do
@@ -1284,9 +1284,9 @@ module mod_clm_cnsummary
     endif
 
     ! total litter carbon (TOTLITC)
-    do l = 1 , ndecomp_pools
+    do l = 1, ndecomp_pools
       if ( is_litter(l) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           totlitc(c) = totlitc(c) + decomp_cpools(c,l)
         end do
@@ -1294,9 +1294,9 @@ module mod_clm_cnsummary
     end do
 
     ! total soil organic matter carbon (TOTSOMC)
-    do l = 1 , ndecomp_pools
+    do l = 1, ndecomp_pools
       if ( is_soil(l) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           totsomc(c) = totsomc(c) + decomp_cpools(c,l)
         end do
@@ -1304,9 +1304,9 @@ module mod_clm_cnsummary
     end do
 
     ! coarse woody debris carbon
-    do l = 1 , ndecomp_pools
+    do l = 1, ndecomp_pools
       if ( is_cwd(l) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           cwdc(c) = cwdc(c) + decomp_cpools(c,l)
         end do
@@ -1314,14 +1314,14 @@ module mod_clm_cnsummary
     end do
 
     ! truncation carbon
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         col_ctrunc(c) = col_ctrunc(c) + col_ctrunc_vr(c,j) * dzsoi_decomp(j)
       end do
     end do
 
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       ! total wood product carbon
       totprodc(c) = prod10c(c) + prod100c(c)
@@ -1352,18 +1352,18 @@ module mod_clm_cnsummary
     end do
 
     ! (CWDC_LOSS) - coarse woody debris C loss
-    do l = 1 , ndecomp_pools
+    do l = 1, ndecomp_pools
       if ( is_cwd(l) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           cwdc_loss(c) = cwdc_loss(c) + m_decomp_cpools_to_fire(c,l)
         end do
       end if
     end do
 
-    do k = 1 , ndecomp_cascade_transitions
+    do k = 1, ndecomp_cascade_transitions
       if ( is_cwd(cascade_donor_pool(k)) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           cwdc_loss(c) = cwdc_loss(c) + decomp_cascade_ctransfer(c,k)
         end do
@@ -1371,21 +1371,21 @@ module mod_clm_cnsummary
     end do
 
     ! (LITTERC_LOSS) - litter C loss
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       litterc_loss(c) = lithr(c)
     end do
-    do l = 1 , ndecomp_pools
+    do l = 1, ndecomp_pools
       if ( is_litter(l) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           litterc_loss(c) = litterc_loss(c) + m_decomp_cpools_to_fire(c,l)
         end do
       end if
     end do
-    do k = 1 , ndecomp_cascade_transitions
+    do k = 1, ndecomp_cascade_transitions
       if ( is_litter(cascade_donor_pool(k)) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           litterc_loss(c) = litterc_loss(c) + decomp_cascade_ctransfer(c,k)
         end do
@@ -1394,19 +1394,19 @@ module mod_clm_cnsummary
 
     ! add up all vertical transport tendency terms and calculate total
     ! som leaching loss as the sum of these
-    do l = 1 , ndecomp_pools
-      do fc = 1 , num_soilc
+    do l = 1, ndecomp_pools
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         decomp_cpools_leached(c,l) = 0._rk8
       end do
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           decomp_cpools_leached(c,l) = decomp_cpools_leached(c,l) + &
                   decomp_cpools_transport_tendency(c,j,l) * dzsoi_decomp(j)
         end do
       end do
-      do fc = 1 , num_soilc
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         som_c_leached(c) = som_c_leached(c) + decomp_cpools_leached(c,l)
       end do
@@ -1418,8 +1418,8 @@ module mod_clm_cnsummary
   !
   subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
-    use mod_clm_subgridave , only : p2c
-    use mod_clm_varpar , only : nlevdecomp, ndecomp_cascade_transitions, &
+    use mod_clm_subgridave, only : p2c
+    use mod_clm_varpar, only : nlevdecomp, ndecomp_cascade_transitions, &
             ndecomp_pools
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
@@ -1427,180 +1427,180 @@ module mod_clm_cnsummary
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
-    integer(ik4) , pointer :: ivt(:)  ! pft vegetation type
+    integer(ik4), pointer, contiguous :: ivt(:)  ! pft vegetation type
     ! (gN/m2/s) total column-level fire N loss
-    real(rk8), pointer :: col_fire_nloss(:)
-    real(rk8), pointer :: col_wood_harvestn(:)
-    real(rk8), pointer :: denit(:)
+    real(rk8), pointer, contiguous :: col_fire_nloss(:)
+    real(rk8), pointer, contiguous :: col_wood_harvestn(:)
+    real(rk8), pointer, contiguous :: denit(:)
     ! (gN/m2/s) total pft-level fire C loss
-    real(rk8), pointer :: col_pft_fire_nloss(:)
-    real(rk8), pointer :: col_totpftn(:) ! (gN/m2) total pft-level nitrogen
-    real(rk8), pointer :: col_totvegn(:) ! (gN/m2) total vegetation nitrogen
-    real(rk8), pointer :: cwdn(:)        ! (gN/m2) coarse woody debris N
-    real(rk8), pointer :: col_ntrunc(:)  ! (gN/m2) column-level sink for N trunc
-    real(rk8), pointer :: sminn(:)       ! (gN/m2) soil mineral N
-    real(rk8), pointer :: m_decomp_npools_to_fire_vr(:,:,:)
-    real(rk8), pointer :: m_decomp_npools_to_fire(:,:)
-    logical, pointer :: is_litter(:) ! TRUE => pool is a litter pool
-    logical, pointer :: is_soil(:)   ! TRUE => pool is a soil pool
-    logical, pointer :: is_cwd(:)    ! TRUE => pool is a cwd pool
+    real(rk8), pointer, contiguous :: col_pft_fire_nloss(:)
+    real(rk8), pointer, contiguous :: col_totpftn(:) ! (gN/m2) total pft-level nitrogen
+    real(rk8), pointer, contiguous :: col_totvegn(:) ! (gN/m2) total vegetation nitrogen
+    real(rk8), pointer, contiguous :: cwdn(:)        ! (gN/m2) coarse woody debris N
+    real(rk8), pointer, contiguous :: col_ntrunc(:)  ! (gN/m2) column-level sink for N trunc
+    real(rk8), pointer, contiguous :: sminn(:)       ! (gN/m2) soil mineral N
+    real(rk8), pointer, contiguous :: m_decomp_npools_to_fire_vr(:,:,:)
+    real(rk8), pointer, contiguous :: m_decomp_npools_to_fire(:,:)
+    logical, pointer, contiguous :: is_litter(:) ! TRUE => pool is a litter pool
+    logical, pointer, contiguous :: is_soil(:)   ! TRUE => pool is a soil pool
+    logical, pointer, contiguous :: is_cwd(:)    ! TRUE => pool is a cwd pool
 #ifndef NITRIF_DENITRIF
-    real(rk8), pointer :: sminn_to_denit_excess_vr(:,:)
-    real(rk8), pointer :: sminn_to_denit_excess(:)
-    real(rk8), pointer :: sminn_leached_vr(:,:)
-    real(rk8), pointer :: sminn_leached(:)
+    real(rk8), pointer, contiguous :: sminn_to_denit_excess_vr(:,:)
+    real(rk8), pointer, contiguous :: sminn_to_denit_excess(:)
+    real(rk8), pointer, contiguous :: sminn_leached_vr(:,:)
+    real(rk8), pointer, contiguous :: sminn_leached(:)
     ! vertically-resolved denitrification along decomp cascade (gN/m3/s)
-    real(rk8), pointer :: sminn_to_denit_decomp_cascade_vr(:,:,:)
+    real(rk8), pointer, contiguous :: sminn_to_denit_decomp_cascade_vr(:,:,:)
     ! vertically-integrated denitrification along decomp cascade (gN/m2/s)
-    real(rk8), pointer :: sminn_to_denit_decomp_cascade(:,:)
+    real(rk8), pointer, contiguous :: sminn_to_denit_decomp_cascade(:,:)
 #else
-    real(rk8), pointer :: smin_no3(:)
-    real(rk8), pointer :: smin_nh4(:)
-    real(rk8), pointer :: smin_no3_vr(:,:)
-    real(rk8), pointer :: smin_nh4_vr(:,:)
-    real(rk8), pointer :: f_nit_vr(:,:)
-    real(rk8), pointer :: f_nit(:)
-    real(rk8), pointer :: f_denit_vr(:,:)
-    real(rk8), pointer :: f_denit(:)
-    real(rk8), pointer :: pot_f_nit_vr(:,:)
-    real(rk8), pointer :: pot_f_nit(:)
-    real(rk8), pointer :: pot_f_denit_vr(:,:)
-    real(rk8), pointer :: pot_f_denit(:)
+    real(rk8), pointer, contiguous :: smin_no3(:)
+    real(rk8), pointer, contiguous :: smin_nh4(:)
+    real(rk8), pointer, contiguous :: smin_no3_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_nh4_vr(:,:)
+    real(rk8), pointer, contiguous :: f_nit_vr(:,:)
+    real(rk8), pointer, contiguous :: f_nit(:)
+    real(rk8), pointer, contiguous :: f_denit_vr(:,:)
+    real(rk8), pointer, contiguous :: f_denit(:)
+    real(rk8), pointer, contiguous :: pot_f_nit_vr(:,:)
+    real(rk8), pointer, contiguous :: pot_f_nit(:)
+    real(rk8), pointer, contiguous :: pot_f_denit_vr(:,:)
+    real(rk8), pointer, contiguous :: pot_f_denit(:)
     ! flux of N2o from denitrification [gN/m3/s]
-    real(rk8), pointer :: f_n2o_denit_vr(:,:)
+    real(rk8), pointer, contiguous :: f_n2o_denit_vr(:,:)
     ! flux of N2o from denitrification [gN/m2/s]
-    real(rk8), pointer :: f_n2o_denit(:)
+    real(rk8), pointer, contiguous :: f_n2o_denit(:)
     ! flux of N2o from nitrification [gN/m3/s]
-    real(rk8), pointer :: f_n2o_nit_vr(:,:)
+    real(rk8), pointer, contiguous :: f_n2o_nit_vr(:,:)
     ! flux of N2o from nitrification [gN/m2/s]
-    real(rk8), pointer :: f_n2o_nit(:)
+    real(rk8), pointer, contiguous :: f_n2o_nit(:)
     ! samy : Total N2O flux from soil to atmosphere
-    real(rk8), pointer :: f_n2o_tot(:)
-    real(rk8), pointer :: f_n2o_tot_vr(:,:)
-    real(rk8), pointer :: smin_no3_leached_vr(:,:)
-    real(rk8), pointer :: smin_no3_leached(:)
-    real(rk8), pointer :: smin_no3_runoff_vr(:,:)
-    real(rk8), pointer :: smin_no3_runoff(:)
+    real(rk8), pointer, contiguous :: f_n2o_tot(:)
+    real(rk8), pointer, contiguous :: f_n2o_tot_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_leached_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_leached(:)
+    real(rk8), pointer, contiguous :: smin_no3_runoff_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_runoff(:)
 #endif
     ! (gN/m2)  decomposing (litter, cwd, soil) N pools
-    real(rk8), pointer :: decomp_npools(:,:)
+    real(rk8), pointer, contiguous :: decomp_npools(:,:)
     ! (gN/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    real(rk8), pointer :: decomp_npools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_npools_vr(:,:,:)
     ! (gN/m2)  diagnostic: decomposing (litter, cwd, soil) N pools to 1 meter
-    real(rk8), pointer :: decomp_npools_1m(:,:)
+    real(rk8), pointer, contiguous :: decomp_npools_1m(:,:)
     ! maximum annual depth of thaw
-    integer(ik4), pointer :: altmax_indx(:)
+    integer(ik4), pointer, contiguous :: altmax_indx(:)
     ! prior year maximum annual depth of thaw
-    integer(ik4), pointer :: altmax_lastyear_indx(:)
+    integer(ik4), pointer, contiguous :: altmax_lastyear_indx(:)
     ! (gN/m3) soil mineral N
-    real(rk8), pointer :: sminn_vr(:,:)
+    real(rk8), pointer, contiguous :: sminn_vr(:,:)
     ! (gN/m3) column-level sink for N truncation
-    real(rk8), pointer :: col_ntrunc_vr(:,:)
-    real(rk8), pointer :: supplement_to_sminn(:)
-    real(rk8), pointer :: supplement_to_sminn_vr(:,:)
-    real(rk8), pointer :: totcoln(:)    ! (gN/m2) total column N, incl veg
-    real(rk8), pointer :: totecosysn(:) ! (gN/m2) total ecosys N, incl veg
-    real(rk8), pointer :: totlitn(:)    ! (gN/m2) total litter N
-    real(rk8), pointer :: totlitn_1m(:) ! (gN/m2) total litter N to 1 meter
-    real(rk8), pointer :: totsomn(:)    ! (gN/m2) total soil organic matter N
+    real(rk8), pointer, contiguous :: col_ntrunc_vr(:,:)
+    real(rk8), pointer, contiguous :: supplement_to_sminn(:)
+    real(rk8), pointer, contiguous :: supplement_to_sminn_vr(:,:)
+    real(rk8), pointer, contiguous :: totcoln(:)    ! (gN/m2) total column N, incl veg
+    real(rk8), pointer, contiguous :: totecosysn(:) ! (gN/m2) total ecosys N, incl veg
+    real(rk8), pointer, contiguous :: totlitn(:)    ! (gN/m2) total litter N
+    real(rk8), pointer, contiguous :: totlitn_1m(:) ! (gN/m2) total litter N to 1 meter
+    real(rk8), pointer, contiguous :: totsomn(:)    ! (gN/m2) total soil organic matter N
 
     ! fire related variables changed by F. Li and S. Levis
-    real(rk8), pointer :: m_leafn_to_fire(:)
-    real(rk8), pointer :: m_leafn_storage_to_fire(:)
-    real(rk8), pointer :: m_leafn_xfer_to_fire(:)
-    real(rk8), pointer :: m_livestemn_to_fire(:)
-    real(rk8), pointer :: m_livestemn_storage_to_fire(:)
-    real(rk8), pointer :: m_livestemn_xfer_to_fire(:)
-    real(rk8), pointer :: m_deadstemn_to_fire(:)
-    real(rk8), pointer :: m_deadstemn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_storage_to_fire(:)
     ! (gN/m2) total soil organic matter nitrogen to 1 meter
-    real(rk8), pointer :: totsomn_1m(:)
-    real(rk8), pointer :: m_deadcrootn_storage_to_fire(:)
-    real(rk8), pointer :: m_deadcrootn_to_fire(:)
-    real(rk8), pointer :: m_deadcrootn_xfer_to_fire(:)
-    real(rk8), pointer :: m_deadstemn_xfer_to_fire(:)
-    real(rk8), pointer :: m_frootn_to_fire(:)
-    real(rk8), pointer :: m_frootn_storage_to_fire(:)
-    real(rk8), pointer :: m_frootn_xfer_to_fire(:)
-    real(rk8), pointer :: m_livecrootn_to_fire(:)
-    real(rk8), pointer :: m_livecrootn_storage_to_fire(:)
-    real(rk8), pointer :: m_livecrootn_xfer_to_fire(:)
-    real(rk8), pointer :: m_retransn_to_fire(:)
+    real(rk8), pointer, contiguous :: totsomn_1m(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_retransn_to_fire(:)
 
-    real(rk8), pointer :: hrv_deadstemn_to_prod10n(:)
-    real(rk8), pointer :: hrv_deadstemn_to_prod100n(:)
-    real(rk8), pointer :: ndeploy(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemn_to_prod10n(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemn_to_prod100n(:)
+    real(rk8), pointer, contiguous :: ndeploy(:)
     ! (gN/m2/s) total pft-level fire C loss
-    real(rk8), pointer :: pft_fire_nloss(:)
-    real(rk8), pointer :: retransn_to_npool(:)
-    real(rk8), pointer :: sminn_to_npool(:)
-    real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coas root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead cors root N trnf
-    real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
-    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
+    real(rk8), pointer, contiguous :: pft_fire_nloss(:)
+    real(rk8), pointer, contiguous :: retransn_to_npool(:)
+    real(rk8), pointer, contiguous :: sminn_to_npool(:)
+    real(rk8), pointer, contiguous :: deadcrootn(:)         ! (gN/m2) dead coarse root N
+    real(rk8), pointer, contiguous :: deadcrootn_storage(:) ! (gN/m2) dead coas root N strg
+    real(rk8), pointer, contiguous :: deadcrootn_xfer(:)    ! (gN/m2) dead cors root N trnf
+    real(rk8), pointer, contiguous :: deadstemn(:)          ! (gN/m2) dead stem N
+    real(rk8), pointer, contiguous :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rk8), pointer, contiguous :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
     ! (gN/m2) displayed veg nitrogen, excluding storage
-    real(rk8), pointer :: dispvegn(:)
-    real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
-    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
-    real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
-    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live cors root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live cors root N trnf
-    real(rk8), pointer :: grainn(:)             ! (gN/m2) grain N
-    real(rk8), pointer :: grainn_storage(:)     ! (gN/m2) grain N storage
-    real(rk8), pointer :: grainn_xfer(:)        ! (gN/m2) grain N transfer
-    real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
-    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
-    real(rk8), pointer :: retransn(:)           ! (gN/m2) plant pool of
+    real(rk8), pointer, contiguous :: dispvegn(:)
+    real(rk8), pointer, contiguous :: frootn(:)             ! (gN/m2) fine root N
+    real(rk8), pointer, contiguous :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rk8), pointer, contiguous :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
+    real(rk8), pointer, contiguous :: leafn(:)              ! (gN/m2) leaf N
+    real(rk8), pointer, contiguous :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rk8), pointer, contiguous :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
+    real(rk8), pointer, contiguous :: livecrootn(:)         ! (gN/m2) live coarse root N
+    real(rk8), pointer, contiguous :: livecrootn_storage(:) ! (gN/m2) live cors root N strg
+    real(rk8), pointer, contiguous :: livecrootn_xfer(:)    ! (gN/m2) live cors root N trnf
+    real(rk8), pointer, contiguous :: grainn(:)             ! (gN/m2) grain N
+    real(rk8), pointer, contiguous :: grainn_storage(:)     ! (gN/m2) grain N storage
+    real(rk8), pointer, contiguous :: grainn_xfer(:)        ! (gN/m2) grain N transfer
+    real(rk8), pointer, contiguous :: livestemn(:)          ! (gN/m2) live stem N
+    real(rk8), pointer, contiguous :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rk8), pointer, contiguous :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
+    real(rk8), pointer, contiguous :: retransn(:)           ! (gN/m2) plant pool of
                                                 ! retranslocated N
-    real(rk8), pointer :: npool(:)      ! (gN/m2) temporary plant N pool
-    real(rk8), pointer :: pft_ntrunc(:) ! (gN/m2) pft-lev sink for N truncation
-    real(rk8), pointer :: storvegn(:)   ! (gN/m2) stored vegetation nitrogen
-    real(rk8), pointer :: totpftn(:)    ! (gN/m2) total pft-level nitrogen
-    real(rk8), pointer :: totvegn(:)    ! (gN/m2) total vegetation nitrogen
+    real(rk8), pointer, contiguous :: npool(:)      ! (gN/m2) temporary plant N pool
+    real(rk8), pointer, contiguous :: pft_ntrunc(:) ! (gN/m2) pft-lev sink for N truncation
+    real(rk8), pointer, contiguous :: storvegn(:)   ! (gN/m2) stored vegetation nitrogen
+    real(rk8), pointer, contiguous :: totpftn(:)    ! (gN/m2) total pft-level nitrogen
+    real(rk8), pointer, contiguous :: totvegn(:)    ! (gN/m2) total vegetation nitrogen
     ! for landcover change
     ! total N losses to wood product pools (gN/m2/s)
-    real(rk8), pointer :: wood_harvestn(:)
+    real(rk8), pointer, contiguous :: wood_harvestn(:)
     ! (gN/m2/s) total nitrogen loss from product pools and conversion
-    real(rk8), pointer :: dwt_nloss(:)
+    real(rk8), pointer, contiguous :: dwt_nloss(:)
     ! (gN/m2/s) conversion N flux (immediate loss to atm)
-    real(rk8), pointer :: dwt_conv_nflux(:)
+    real(rk8), pointer, contiguous :: dwt_conv_nflux(:)
     ! (gN/m2) column-level pool for seeding new PFTs
-    real(rk8), pointer :: seedn(:)
+    real(rk8), pointer, contiguous :: seedn(:)
     ! (gN/m2/s) loss from 10-yr wood product pool
-    real(rk8), pointer :: prod10n_loss(:)
+    real(rk8), pointer, contiguous :: prod10n_loss(:)
     ! (gN/m2/s) loss from 100-yr wood product pool
-    real(rk8), pointer :: prod100n_loss(:)
+    real(rk8), pointer, contiguous :: prod100n_loss(:)
     ! (gN/m2/s) total wood product nitrogen loss
-    real(rk8), pointer :: product_nloss(:)
+    real(rk8), pointer, contiguous :: product_nloss(:)
     ! (gN/m2) wood product N pool, 10-year lifespan
-    real(rk8), pointer :: prod10n(:)
+    real(rk8), pointer, contiguous :: prod10n(:)
     ! (gN/m2) wood product N pool, 100-year lifespan
-    real(rk8), pointer :: prod100n(:)
+    real(rk8), pointer, contiguous :: prod100n(:)
     ! (gN/m2) total wood product N
-    real(rk8), pointer :: totprodn(:)
+    real(rk8), pointer, contiguous :: totprodn(:)
 
-    real(rk8), pointer :: decomp_cascade_ntransfer_vr(:,:,:)
-    real(rk8), pointer :: decomp_cascade_ntransfer(:,:)
+    real(rk8), pointer, contiguous :: decomp_cascade_ntransfer_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_cascade_ntransfer(:,:)
     ! vert-res mineral N flux for transition along decomposition
     ! cascade (gN/m3/s)
-    real(rk8), pointer :: decomp_cascade_sminn_flux_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_cascade_sminn_flux_vr(:,:,:)
     ! vert-int (diagnostic) mineral N flux for transition along
     ! decomposition cascade (gN/m2/s)
-    real(rk8), pointer :: decomp_cascade_sminn_flux(:,:)
+    real(rk8), pointer, contiguous :: decomp_cascade_sminn_flux(:,:)
 
     ! total SOM N loss from vertical transport (gN/m^2/s)
-    real(rk8), pointer :: som_n_leached(:)
+    real(rk8), pointer, contiguous :: som_n_leached(:)
     ! N loss from vertical transport from each decomposing N pool (gN/m^2/s)
-    real(rk8), pointer :: decomp_npools_leached(:,:)
+    real(rk8), pointer, contiguous :: decomp_npools_leached(:,:)
     ! N tendency due to vertical transport in decomposing N pools (gN/m^3/s)
-    real(rk8), pointer :: decomp_npools_transport_tendency(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_npools_transport_tendency(:,:,:)
 
     integer(ik4) :: c,p,j,k,l ! indices
     integer(ik4) :: fp,fc     ! lake filter indices
@@ -1752,7 +1752,7 @@ module mod_clm_cnsummary
     decomp_cascade_sminn_flux    => clm3%g%l%c%cnf%decomp_cascade_sminn_flux
 
     ! pft loop
-    do fp = 1 , num_soilp
+    do fp = 1, num_soilp
       p = filter_soilp(fp)
 
       ! calculate pft-level summary nitrogen fluxes and states
@@ -1838,7 +1838,7 @@ module mod_clm_cnsummary
     call p2c(num_soilc, filter_soilc, totpftn, col_totpftn)
 
     ! column loops
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
 
       ! some zeroing
@@ -1860,9 +1860,9 @@ module mod_clm_cnsummary
 
     ! vertically integrate decomposing N cascade fluxes and soil mineral
     ! N fluxes associated with decomposition cascade
-    do k = 1 , ndecomp_cascade_transitions
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+    do k = 1, ndecomp_cascade_transitions
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           decomp_cascade_ntransfer(c,k) = decomp_cascade_ntransfer(c,k) + &
                   decomp_cascade_ntransfer_vr(c,j,k) * dzsoi_decomp(j)
@@ -1874,9 +1874,9 @@ module mod_clm_cnsummary
 
 #ifndef NITRIF_DENITRIF
     ! vertically integrate each denitrification flux
-    do l = 1 , ndecomp_cascade_transitions
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+    do l = 1, ndecomp_cascade_transitions
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           sminn_to_denit_decomp_cascade(c,l) = &
                   sminn_to_denit_decomp_cascade(c,l) + &
@@ -1886,8 +1886,8 @@ module mod_clm_cnsummary
     end do
 
     ! vertically integrate bulk denitrification and  leaching flux
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         sminn_to_denit_excess(c) = sminn_to_denit_excess(c) + &
                 sminn_to_denit_excess_vr(c,j) * dzsoi_decomp(j)
@@ -1897,14 +1897,14 @@ module mod_clm_cnsummary
     end do
 
     ! total N denitrification (DENIT)
-    do l = 1 , ndecomp_cascade_transitions
-      do fc = 1 , num_soilc
+    do l = 1, ndecomp_cascade_transitions
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         denit(c) = denit(c) + sminn_to_denit_decomp_cascade(c,l)
       end do
     end do
 
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       denit(c) =  denit(c) + sminn_to_denit_excess(c)
     end do
@@ -1912,8 +1912,8 @@ module mod_clm_cnsummary
 #else
 
     ! vertically integrate NO3 NH4 N2O fluxes and pools
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         ! nitrification and denitrification fluxes
         f_nit(c) = f_nit(c) + f_nit_vr(c,j) * dzsoi_decomp(j)
@@ -1939,7 +1939,7 @@ module mod_clm_cnsummary
       end do
     end do
 
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       denit(c) = f_denit(c)
     end do
@@ -1947,9 +1947,9 @@ module mod_clm_cnsummary
 #endif
 
     ! vertically integrate column-level fire N losses
-    do k = 1 , ndecomp_pools
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+    do k = 1, ndecomp_pools
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           m_decomp_npools_to_fire(c,k) = m_decomp_npools_to_fire(c,k) + &
                  m_decomp_npools_to_fire_vr(c,j,k) * dzsoi_decomp(j)
@@ -1958,12 +1958,12 @@ module mod_clm_cnsummary
     end do
 
     ! total column-level fire N losses
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       col_fire_nloss(c) = col_pft_fire_nloss(c)
     end do
-    do k = 1 , ndecomp_pools
-      do fc = 1 , num_soilc
+    do k = 1, ndecomp_pools
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         col_fire_nloss(c) = col_fire_nloss(c) + &
               m_decomp_npools_to_fire(c,k)
@@ -1971,13 +1971,13 @@ module mod_clm_cnsummary
     end do
 
     ! vertically integrate each of the decomposing N pools
-    do l = 1 , ndecomp_pools
-      do fc = 1 , num_soilc
+    do l = 1, ndecomp_pools
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         decomp_npools(c,l) = 0._rk8
       end do
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           decomp_npools(c,l) = decomp_npools(c,l) + &
                  decomp_npools_vr(c,j,l) * dzsoi_decomp(j)
@@ -1989,8 +1989,8 @@ module mod_clm_cnsummary
     ! diagnostics of carbon pools to a given depth
     if ( nlevdecomp > 1 ) then
 
-      do l = 1 , ndecomp_pools
-        do fc = 1 , num_soilc
+      do l = 1, ndecomp_pools
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           decomp_npools_1m(c,l) = 0._rk8
         end do
@@ -1998,16 +1998,16 @@ module mod_clm_cnsummary
 
       ! vertically integrate each of the decomposing n pools to 1 meter
       maxdepth = 1._rk8
-      do l = 1 , ndecomp_pools
-        do j = 1 , nlevdecomp
+      do l = 1, ndecomp_pools
+        do j = 1, nlevdecomp
           if ( zisoi(j) <= maxdepth ) then
-            do fc = 1 , num_soilc
+            do fc = 1, num_soilc
               c = filter_soilc(fc)
               decomp_npools_1m(c,l) = decomp_npools_1m(c,l) + &
                        decomp_npools_vr(c,j,l) * dzsoi_decomp(j)
             end do
           else if ( zisoi(j-1) < maxdepth ) then
-            do fc = 1 , num_soilc
+            do fc = 1, num_soilc
               c = filter_soilc(fc)
               decomp_npools_1m(c,l) = decomp_npools_1m(c,l) + &
                        decomp_npools_vr(c,j,l) * (maxdepth - zisoi(j-1))
@@ -2017,9 +2017,9 @@ module mod_clm_cnsummary
       end do
 
       ! total litter nitrogen to 1 meter (TOTLITN_1m)
-      do l = 1 , ndecomp_pools
+      do l = 1, ndecomp_pools
         if ( is_litter(l) ) then
-          do fc = 1 , num_soilc
+          do fc = 1, num_soilc
             c = filter_soilc(fc)
             totlitn_1m(c) = totlitn_1m(c) + decomp_npools_1m(c,l)
           end do
@@ -2027,9 +2027,9 @@ module mod_clm_cnsummary
       end do
 
       ! total soil organic matter nitrogen to 1 meter (TOTSOMN_1m)
-      do l = 1 , ndecomp_pools
+      do l = 1, ndecomp_pools
         if ( is_soil(l) ) then
-          do fc = 1 , num_soilc
+          do fc = 1, num_soilc
             c = filter_soilc(fc)
             totsomn_1m(c) = totsomn_1m(c) + decomp_npools_1m(c,l)
           end do
@@ -2038,9 +2038,9 @@ module mod_clm_cnsummary
     endif
 
     ! total litter nitrogen (TOTLITN)
-    do l = 1 , ndecomp_pools
+    do l = 1, ndecomp_pools
       if ( is_litter(l) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           totlitn(c) = totlitn(c) + decomp_npools(c,l)
         end do
@@ -2048,9 +2048,9 @@ module mod_clm_cnsummary
     end do
 
     ! total soil organic matter nitrogen (TOTSOMN)
-    do l = 1 , ndecomp_pools
+    do l = 1, ndecomp_pools
       if ( is_soil(l) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           totsomn(c) = totsomn(c) + decomp_npools(c,l)
         end do
@@ -2058,9 +2058,9 @@ module mod_clm_cnsummary
     end do
 
     ! total cwdn
-    do l = 1 , ndecomp_pools
+    do l = 1, ndecomp_pools
       if ( is_cwd(l) ) then
-        do fc = 1 , num_soilc
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           cwdn(c) = cwdn(c) + decomp_npools(c,l)
         end do
@@ -2068,31 +2068,31 @@ module mod_clm_cnsummary
     end do
 
     ! total sminn
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         sminn(c) = sminn(c) + sminn_vr(c,j) * dzsoi_decomp(j)
       end do
     end do
 
     ! total col_ntrunc
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         col_ntrunc(c) = col_ntrunc(c) + col_ntrunc_vr(c,j) * dzsoi_decomp(j)
       end do
     end do
 
     ! supplementary N supplement_to_sminn
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         supplement_to_sminn(c) = supplement_to_sminn(c) + &
               supplement_to_sminn_vr(c,j) * dzsoi_decomp(j)
       end do
     end do
 
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
 
       ! column-level N losses due to landcover change
@@ -2129,19 +2129,19 @@ module mod_clm_cnsummary
 
     ! add up all vertical transport tendency terms and calculate
     ! total som leaching loss as the sum of these
-    do l = 1 , ndecomp_pools
-      do fc = 1 , num_soilc
+    do l = 1, ndecomp_pools
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         decomp_npools_leached(c,l) = 0._rk8
       end do
-      do j = 1 , nlevdecomp
-        do fc = 1 , num_soilc
+      do j = 1, nlevdecomp
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           decomp_npools_leached(c,l) = decomp_npools_leached(c,l) + &
                   decomp_npools_transport_tendency(c,j,l) * dzsoi_decomp(j)
         end do
       end do
-      do fc = 1 , num_soilc
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         som_n_leached(c) = som_n_leached(c) + decomp_npools_leached(c,l)
       end do

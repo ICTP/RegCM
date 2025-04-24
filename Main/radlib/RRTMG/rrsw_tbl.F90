@@ -32,7 +32,7 @@
       real(kind=rb), parameter :: od_lo = 0.06_rb
 
       real(kind=rb) :: tau_tbl
-      real(kind=rb) , dimension(0:ntbl) :: exp_tbl
+      real(kind=rb), dimension(0:ntbl) :: exp_tbl
 
       real(kind=rb), parameter :: pade = 0.278_rb
       real(kind=rb) :: bpade

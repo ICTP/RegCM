@@ -24,11 +24,11 @@ module mod_noresm_helper
 
   public :: novars
   public :: find_noresm_sst
-  public :: find_noresm_dim , find_noresm_topo , find_noresm_file
+  public :: find_noresm_dim, find_noresm_topo, find_noresm_file
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: novars = &
-            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: novars = &
+            ['ta ', 'XXX', 'hus', 'ua ', 'va ', 'ps ']
 
   character(len=64) :: nobase1  = '_6hrLev_NorESM1-M_historical'
   character(len=64) :: nobase2  = '_6hrLev_NorESM1-M_rcp'
@@ -38,10 +38,10 @@ module mod_noresm_helper
 
   subroutine find_noresm_sst(fname,idate)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=8) :: d1 , d2
-    integer(ik4) :: y , m , d , h
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=8) :: d1, d2
+    integer(ik4) :: y, m, d, h
     call split_idate(idate,y,m,d,h)
     if ( y == 2006 ) then
       fname = trim(inpglob)//pthsep//'NorESM1-M'//pthsep//'SST'// &
@@ -64,11 +64,11 @@ module mod_noresm_helper
 
   subroutine assemble_path(fname,scen,var,d1,d2)
     implicit none
-    character(len=256) , intent(out) :: fname
-    character(len=*) , intent(in) :: scen
-    character(len=*) , intent(in) :: var
-    character(len=*) , intent(in) :: d1
-    character(len=*) , intent(in) :: d2
+    character(len=256), intent(out) :: fname
+    character(len=*), intent(in) :: scen
+    character(len=*), intent(in) :: var
+    character(len=*), intent(in) :: d1
+    character(len=*), intent(in) :: d2
     if ( scen == 'RF' ) then
       fname = trim(inpglob)//pthsep//'NorESM1-M'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(nobase1)//    &
@@ -82,7 +82,7 @@ module mod_noresm_helper
 
   subroutine find_noresm_dim(dim_filename)
     implicit none
-    character(len=256) , intent(out) :: dim_filename
+    character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     call assemble_path(dim_filename,'RF','ta','1950010100','1950063018')
@@ -90,18 +90,18 @@ module mod_noresm_helper
 
   subroutine find_noresm_topo(topo_filename)
     implicit none
-    character(len=256) , intent(out) :: topo_filename
+    character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'NorESM1-M'//pthsep//'fixed'// &
               pthsep//'orog_fx_NorESM1-M_historical_r0i0p0.nc'
   end subroutine find_noresm_topo
 
   subroutine find_noresm_file(noresm_filename,var,idate)
     implicit none
-    character(len=256) , intent(out) :: noresm_filename
-    character(len=*) , intent(in) :: var
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h , y1
+    character(len=256), intent(out) :: noresm_filename
+    character(len=*), intent(in) :: var
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h, y1
     call split_idate(idate,y,m,d,h)
     if ( var == 'ps' ) then
       if ( y < 2000 ) then

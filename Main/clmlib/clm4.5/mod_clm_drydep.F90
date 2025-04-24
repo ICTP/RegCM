@@ -30,14 +30,14 @@ module mod_clm_drydep
 
   ! method specification
   ! dry-dep atmosphere
-  character(16) , public , parameter :: DD_XATM = 'xactive_atm'
+  character(16), public, parameter :: DD_XATM = 'xactive_atm'
   ! dry-dep land
-  character(16) , public , parameter :: DD_XLND = 'xactive_lnd'
+  character(16), public, parameter :: DD_XLND = 'xactive_lnd'
   ! dry-dep table (atm and lnd)
-  character(16) , public , parameter :: DD_TABL = 'table'
+  character(16), public, parameter :: DD_TABL = 'table'
 
   ! Which option choosen
-  character(16) , public :: drydep_method = DD_XLND
+  character(16), public :: drydep_method = DD_XLND
 
   ! measure of the acidity (dimensionless)
   real(rk8), public, parameter :: ph     = 1.e-5_rk8
@@ -251,10 +251,10 @@ module mod_clm_drydep
         0.0006_rk8,0.002_rk8,0.010_rk8,0.030_rk8,0.060_rk8/
 
   !real(rk8), private, dimension(11,5), parameter :: z0xxx = reshape ( &
-  ! [   1.000,0.250,0.050,1.000,1.000,1.000,0.0006,0.002,0.150,0.100,0.100 ,  &
-  !      1.000,0.100,0.050,1.000,1.000,1.000,0.0006,0.002,0.100,0.080,0.080 ,  &
-  !      1.000,0.005,0.050,1.000,1.000,1.000,0.0006,0.002,0.100,0.020,0.060 ,  &
-  !      1.000,0.001,0.001,1.000,1.000,1.000,0.0006,0.002,0.001,0.001,0.040 ,  &
+  ! [   1.000,0.250,0.050,1.000,1.000,1.000,0.0006,0.002,0.150,0.100,0.100,  &
+  !      1.000,0.100,0.050,1.000,1.000,1.000,0.0006,0.002,0.100,0.080,0.080,  &
+  !      1.000,0.005,0.050,1.000,1.000,1.000,0.0006,0.002,0.100,0.020,0.060,  &
+  !      1.000,0.001,0.001,1.000,1.000,1.000,0.0006,0.002,0.001,0.001,0.040,  &
   !      1.000,0.030,0.020,1.000,1.000,1.000,0.0006,0.002,0.010,0.030,0.060  ], [11,5] )
 
   !---------------------------------------------------------------------------
@@ -333,7 +333,7 @@ module mod_clm_drydep
   !---------------------------------------------------------------------------
 
   !--- Names of species that can work with ---
-  character(len=20) , public , &
+  character(len=20), public, &
           parameter :: species_name_table(n_species_table) = &
                          [ 'OX      '                       &
                            ,'H2O2    '                       &
@@ -394,61 +394,61 @@ module mod_clm_drydep
 
   !--- data for effective Henry's Law coefficient ---
   real(rk8), public, parameter :: dheff(n_species_table*6) = &
-            [1.15e-2_rk8, 2560._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,8.33e4_rk8, 7379._rk8,2.2e-12_rk8,-3730._rk8,0._rk8     ,    0._rk8  &
-             ,3.00e1_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,2.00e3_rk8, 6600._rk8,3.5e-5_rk8,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.00e-3_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.70e-3_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,7.47e0_rk8, 5241._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,3.11e2_rk8, 5241._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,6.30e3_rk8, 6425._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,5.53e3_rk8, 5700._rk8,1.8e-4_rk8,-1510._rk8,0._rk8     ,    0._rk8  &
-             ,1.90e-3_rk8, 1480._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,6.40e-3_rk8, 2500._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,0._rk8      ,    0._rk8,2.6e6_rk8, 8700._rk8,0._rk8     ,    0._rk8  &
+            [1.15e-2_rk8, 2560._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,8.33e4_rk8, 7379._rk8,2.2e-12_rk8,-3730._rk8,0._rk8    ,    0._rk8  &
+             ,3.00e1_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,2.00e3_rk8, 6600._rk8,3.5e-5_rk8,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.00e-3_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.70e-3_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,7.47e0_rk8, 5241._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,3.11e2_rk8, 5241._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,6.30e3_rk8, 6425._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,5.53e3_rk8, 5700._rk8,1.8e-4_rk8,-1510._rk8,0._rk8    ,    0._rk8  &
+             ,1.90e-3_rk8, 1480._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,6.40e-3_rk8, 2500._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,0._rk8     ,    0._rk8,2.6e6_rk8, 8700._rk8,0._rk8    ,    0._rk8  &
              ,3.40e-2_rk8, 2420._rk8,4.5e-7_rk8,-1000._rk8,3.6e-11_rk8,-1760._rk8  &
              ,7.40e1_rk8, 3400._rk8,1.7e-5_rk8, -450._rk8,1.0e-14_rk8,-6716._rk8  &
-             ,2.14e0_rk8, 3362._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,0.65e0_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,2.20e2_rk8, 4934._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,0._rk8      ,    0._rk8,3.2e1_rk8,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.00e-16_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.70e-3_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,7.47e0_rk8, 5241._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,7.47e0_rk8, 5241._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,7.47e0_rk8, 5241._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,7.47e0_rk8, 5241._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.70e-3_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.14e1_rk8, 6267._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,3.36e2_rk8, 5995._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.70e-3_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,2.20e2_rk8, 5653._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.70e-3_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,5.00e0_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,8.37e2_rk8, 5308._rk8,1.8e-4_rk8,-1510._rk8,0._rk8     ,    0._rk8  &
-             ,1.70e-3_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,3.00e5_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,3.71e3_rk8, 7541._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,4.14e4_rk8, 4630._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,7.47e0_rk8, 5241._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.45e-3_rk8, 2700._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,3.00e6_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,2.70e1_rk8, 5300._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,3.36e2_rk8, 5995._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,7.47e0_rk8, 5241._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,3.36e2_rk8, 5995._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,0.00e0_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.70e-3_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.70e-3_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.70e-3_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,2.00e2_rk8, 6500._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,7.51e3_rk8, 6485._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.00e3_rk8, 6000._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.00e1_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,7.00e1_rk8, 6000._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,1.20e1_rk8, 5000._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-             ,5.00e1_rk8, 4000._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
+             ,2.14e0_rk8, 3362._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,0.65e0_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,2.20e2_rk8, 4934._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,0._rk8     ,    0._rk8,3.2e1_rk8,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.00e-16_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.70e-3_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,7.47e0_rk8, 5241._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,7.47e0_rk8, 5241._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,7.47e0_rk8, 5241._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,7.47e0_rk8, 5241._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.70e-3_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.14e1_rk8, 6267._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,3.36e2_rk8, 5995._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.70e-3_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,2.20e2_rk8, 5653._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.70e-3_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,5.00e0_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,8.37e2_rk8, 5308._rk8,1.8e-4_rk8,-1510._rk8,0._rk8    ,    0._rk8  &
+             ,1.70e-3_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,3.00e5_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,3.71e3_rk8, 7541._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,4.14e4_rk8, 4630._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,7.47e0_rk8, 5241._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.45e-3_rk8, 2700._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,3.00e6_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,2.70e1_rk8, 5300._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,3.36e2_rk8, 5995._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,7.47e0_rk8, 5241._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,3.36e2_rk8, 5995._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,0.00e0_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.70e-3_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.70e-3_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.70e-3_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,2.00e2_rk8, 6500._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,7.51e3_rk8, 6485._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.00e3_rk8, 6000._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.00e1_rk8,    0._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,7.00e1_rk8, 6000._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,1.20e1_rk8, 5000._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
+             ,5.00e1_rk8, 4000._rk8,0._rk8    ,    0._rk8,0._rk8    ,    0._rk8  &
             ]
 
   real(rk8), private, parameter :: wh2o = amw
@@ -463,7 +463,7 @@ module mod_clm_drydep
         72.0614014_rk8, 60.0503998_rk8, 75.0423965_rk8, 44.0922012_rk8, 75.0836029_rk8, &
         58.0768013_rk8, 76.0910034_rk8, 31.9988003_rk8, 33.0061989_rk8, 222.000000_rk8, &
         68.1141968_rk8, 70.0877991_rk8, 70.0877991_rk8, 46.0657997_rk8, 147.125946_rk8, &
-        119.074341_rk8, 162.117935_rk8, 100.112999_rk8, 27.0256_rk8   , 41.0524_rk8  ]
+        119.074341_rk8, 162.117935_rk8, 100.112999_rk8, 27.0256_rk8  , 41.0524_rk8  ]
 
   contains
   !
@@ -519,7 +519,7 @@ module mod_clm_drydep
 
     !--- Loop over species to fill list of fields to communicate for drydep ---
     !seq_drydep_fields = ' '
-    do i = 1 , maxspc
+    do i = 1, maxspc
       if ( len_trim(drydep_list(i))==0 ) exit
       ! Need to explicitly add Sl_ based on naming convention
       write(token,"('Sl_dd',i3.3)") i
@@ -599,7 +599,7 @@ module mod_clm_drydep
     xpan_ndx = -1
 
     !--- Loop over drydep species that need to be worked with ---
-    do i = 1 , n_drydep
+    do i = 1, n_drydep
       if ( len_trim(drydep_list(i))==0 ) exit
 
       test_name = drydep_list(i)
@@ -609,7 +609,7 @@ module mod_clm_drydep
       end if
 
       !--- Figure out if species maps to a species in the species table ---
-      do l = 1 , n_species_table
+      do l = 1, n_species_table
         if ( trim( test_name ) == trim( species_name_table(l) ) ) then
           mapping(i)  = l
           exit
@@ -688,7 +688,7 @@ module mod_clm_drydep
 
         !--- If found a match check the species table again ---
         if ( trim(test_name) /= 'blank' ) then
-          do l = 1 , n_species_table
+          do l = 1, n_species_table
             if ( trim( test_name ) == trim( species_name_table(l) ) ) then
               mapping(i)  = l
               exit
@@ -768,7 +768,7 @@ module mod_clm_drydep
     character(*),parameter :: F00   = "('(seq_drydep_set_hcoeff) ',8a)"
 
     wrk(:) = (t0 - sfc_temp(:))/(t0*sfc_temp(:))
-    do m = 1 , n_drydep
+    do m = 1, n_drydep
       l    = mapping(m)
       id   = 6*(l - 1)
       e298 = dheff(id+1)

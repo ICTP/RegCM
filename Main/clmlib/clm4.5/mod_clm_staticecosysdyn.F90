@@ -16,12 +16,12 @@ module mod_clm_staticecosysdyn
   use mod_runparams
   use mod_mpmessage
   use mod_clm_nchelper
-  use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell
+  use mod_clm_decomp, only : get_proc_bounds, gcomm_gridcell
   use mod_clm_type
-  use mod_clm_pftvarcon , only : noveg , nc3crop , nbrdlf_dcd_brl_shrub
-  use mod_clm_varctl , only : fsurdat , nextdate
-  use mod_clm_varpar , only : numpft
-  use mod_clm_domain , only : ldomain
+  use mod_clm_pftvarcon, only : noveg, nc3crop, nbrdlf_dcd_brl_shrub
+  use mod_clm_varctl, only : fsurdat, nextdate
+  use mod_clm_varpar, only : numpft
+  use mod_clm_domain, only : ldomain
 
   implicit none
 
@@ -44,15 +44,15 @@ module mod_clm_staticecosysdyn
   private :: readMonthlyVegetation
 
   integer(ik4) :: InterpMonths1 = -9999 ! saved month index
-  real(rk8) , dimension(2) :: timwt  ! time weights for month 1 and month 2
+  real(rk8), dimension(2) :: timwt  ! time weights for month 1 and month 2
   ! lai for interpolation (2 months)
-  real(rk8) , allocatable , dimension(:,:) :: mlai2t
+  real(rk8), allocatable, dimension(:,:) :: mlai2t
   ! sai for interpolation (2 months)
-  real(rk8) , allocatable , dimension(:,:) :: msai2t
+  real(rk8), allocatable, dimension(:,:) :: msai2t
   ! top vegetation height for interpolation (2 months)
-  real(rk8) , allocatable , dimension(:,:) :: mhvt2t
+  real(rk8), allocatable, dimension(:,:) :: mhvt2t
   ! bottom vegetation height for interpolation(2 months)
-  real(rk8) , allocatable , dimension(:,:) :: mhvb2t
+  real(rk8), allocatable, dimension(:,:) :: mhvb2t
 
   contains
   !
@@ -61,7 +61,7 @@ module mod_clm_staticecosysdyn
   subroutine EcosystemDynIni()
     implicit none
     integer(ik4) :: ier          ! error code
-    integer(ik4) :: begp , endp  ! local beg and end p index
+    integer(ik4) :: begp, endp  ! local beg and end p index
 
     call get_proc_bounds(begp=begp,endp=endp)
     ier = 0
@@ -88,36 +88,36 @@ module mod_clm_staticecosysdyn
   subroutine EcosystemDyn(lbp, ubp, num_nolakep, filter_nolakep, doalb)
     implicit none
     ! pft bounds
-    integer(ik4) , intent(in) :: lbp , ubp
+    integer(ik4), intent(in) :: lbp, ubp
     ! number of column non-lake points in pft filter
-    integer(ik4) , intent(in) :: num_nolakep
+    integer(ik4), intent(in) :: num_nolakep
     ! pft filter for non-lake points
-    integer(ik4) , intent(in) , dimension(ubp-lbp+1) :: filter_nolakep
+    integer(ik4), intent(in), dimension(ubp-lbp+1) :: filter_nolakep
     ! true = surface albedo calculation time step
-    logical , intent(in) :: doalb
+    logical, intent(in) :: doalb
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8) , pointer , dimension(:) :: frac_sno
+    real(rk8), pointer, contiguous, dimension(:) :: frac_sno
     ! column index associated with each pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! snow height (m)
-    real(rk8) , pointer , dimension(:) :: snow_depth
+    real(rk8), pointer, contiguous, dimension(:) :: snow_depth
     ! pft vegetation type
-    integer(ik4) , pointer , dimension(:) :: ivt
+    integer(ik4), pointer, contiguous, dimension(:) :: ivt
     ! one-sided leaf area index, no burying by snow
-    real(rk8) , pointer , dimension(:) :: tlai
+    real(rk8), pointer, contiguous, dimension(:) :: tlai
     ! one-sided stem area index, no burying by snow
-    real(rk8) , pointer , dimension(:) :: tsai
+    real(rk8), pointer, contiguous, dimension(:) :: tsai
     ! canopy top (m)
-    real(rk8) , pointer , dimension(:) :: htop
+    real(rk8), pointer, contiguous, dimension(:) :: htop
     ! canopy bottom (m)
-    real(rk8) , pointer , dimension(:) :: hbot
+    real(rk8), pointer, contiguous, dimension(:) :: hbot
     ! one-sided leaf area index with burying by snow
-    real(rk8) , pointer , dimension(:) :: elai
+    real(rk8), pointer, contiguous, dimension(:) :: elai
     ! one-sided stem area index with burying by snow
-    real(rk8) , pointer , dimension(:) :: esai
+    real(rk8), pointer, contiguous, dimension(:) :: esai
     ! frac of vegetation not covered by snow [-]
-    integer(ik4) , pointer , dimension(:) :: frac_veg_nosno_alb
-    integer(ik4) :: fp , p , c   ! indices
+    integer(ik4), pointer, contiguous, dimension(:) :: frac_veg_nosno_alb
+    integer(ik4) :: fp, p, c   ! indices
     real(rk8) :: ol   ! thickness of canopy layer covered by snow (m)
     real(rk8) :: fb   ! fraction of canopy layer covered by snow
 
@@ -140,7 +140,7 @@ module mod_clm_staticecosysdyn
       frac_veg_nosno_alb => clm3%g%l%c%p%pps%frac_veg_nosno_alb
       ivt     => clm3%g%l%c%p%itype
 
-      do fp = 1 , num_nolakep
+      do fp = 1, num_nolakep
         p = filter_nolakep(fp)
         c = pcolumn(p)
 
@@ -213,9 +213,9 @@ module mod_clm_staticecosysdyn
     integer(ik4) :: kmo   ! month (1, ..., 12)
     integer(ik4) :: kda   ! day of month (1, ..., 31)
     integer(ik4) :: ksec  ! seconds into current date for nstep+1
-    integer(ik4) :: yr1 , yr2
-    real(rk8) :: t , rs , f1 , f2
-    integer(ik4) , dimension(2) :: months ! months to be interpolated (1 to 12)
+    integer(ik4) :: yr1, yr2
+    real(rk8) :: t, rs, f1, f2
+    integer(ik4), dimension(2) :: months ! months to be interpolated (1 to 12)
 
     call curr_date(nextdate,kyr,kmo,kda,ksec)
     t = real((kda-1)*86400+ksec,rk8) / &
@@ -270,14 +270,14 @@ module mod_clm_staticecosysdyn
     implicit none
     type(clm_filetype) :: ncid  ! netcdf id
     ! 12 months of monthly lai from input data set
-    real(rk8) , pointer , dimension(:,:) :: annlai
+    real(rk8), pointer, contiguous, dimension(:,:) :: annlai
     ! lai read from input files
-    real(rk8) , pointer , dimension(:,:) :: mlai
+    real(rk8), pointer, contiguous, dimension(:,:) :: mlai
     integer(ik4) :: ier ! error code
-    integer(ik4) :: g , k , l , p , ivt ! indices
-    integer(ik4) :: ni , nj , ns   ! indices
-    integer(ik4) :: begp , endp    ! beg and end local p index
-    integer(ik4) :: begg , endg    ! beg and end local g index
+    integer(ik4) :: g, k, l, p, ivt ! indices
+    integer(ik4) :: ni, nj, ns   ! indices
+    integer(ik4) :: begp, endp    ! beg and end local p index
+    integer(ik4) :: begg, endg    ! beg and end local g index
     character(len=32) :: subname = 'readAnnualVegetation'
 
     annlai    => clm3%g%l%c%p%pps%annlai
@@ -313,17 +313,17 @@ module mod_clm_staticecosysdyn
               trim(subname)//' ERROR: lsmpft not equal to numpft+1')
     end if
 
-    do k = 1 , 12   !! loop over months and read vegetated data
+    do k = 1, 12   !! loop over months and read vegetated data
       call clm_readvar(ncid,'MONTHLY_LAI',mlai,gcomm_gridcell,k)
       !! store data directly in clmtype structure
       !! only vegetated pfts have nonzero values
       !! Assign lai/sai/hgtt/hgtb to the top [maxpatch_pft] pfts
       !! as determined in subroutine surfrd
-      do p = begp , endp
+      do p = begp, endp
         g = clm3%g%l%c%p%gridcell(p)
         ivt = clm3%g%l%c%p%itype(p)
         if ( ivt /= noveg ) then     !! vegetated pft
-          do l = 0 , numpft
+          do l = 0, numpft
             if ( l == ivt ) then
               annlai(k,p) = mlai(g,l)
             end if
@@ -342,24 +342,24 @@ module mod_clm_staticecosysdyn
   subroutine readMonthlyVegetation (fveg, months)
     implicit none
     ! file with monthly vegetation data
-    character(len=*) , intent(in) :: fveg
+    character(len=*), intent(in) :: fveg
     ! months to be interpolated (1 to 12)
-    integer(ik4) , dimension(2) , intent(in) :: months
+    integer(ik4), dimension(2), intent(in) :: months
     type(clm_filetype) :: ncid            ! netcdf id
-    integer(ik4) :: g , k , l , p , ivt ! indices
-    integer(ik4) :: begp , endp    ! beg and end local p index
-    integer(ik4) :: begg , endg    ! beg and end local g index
+    integer(ik4) :: g, k, l, p, ivt ! indices
+    integer(ik4) :: begp, endp    ! beg and end local p index
+    integer(ik4) :: begg, endg    ! beg and end local g index
     integer(ik4) :: ier                        ! error code
     ! lai read from input files
-    real(rk8) , pointer , dimension(:,:) :: mlai
+    real(rk8), pointer, contiguous, dimension(:,:) :: mlai
     ! sai read from input files
-    real(rk8) , pointer , dimension(:,:) :: msai
+    real(rk8), pointer, contiguous, dimension(:,:) :: msai
     ! top vegetation height
-    real(rk8) , pointer , dimension(:,:) :: mhgtt
+    real(rk8), pointer, contiguous, dimension(:,:) :: mhgtt
     ! bottom vegetation height
-    real(rk8) , pointer , dimension(:,:) :: mhgtb
+    real(rk8), pointer, contiguous, dimension(:,:) :: mhgtb
     ! difference between lai month one and month two
-    real(rk8) , pointer , dimension(:) :: mlaidiff
+    real(rk8), pointer, contiguous, dimension(:) :: mlaidiff
     character(len=32) :: subname = 'readMonthlyVegetation'
 
     ! Determine necessary indices
@@ -383,7 +383,7 @@ module mod_clm_staticecosysdyn
 
     call clm_openfile(fveg,ncid)
 
-    do k = 1 , 2   !loop over months and read vegetated data
+    do k = 1, 2   !loop over months and read vegetated data
       call clm_readvar(ncid,'MONTHLY_LAI',mlai,gcomm_gridcell,months(k))
       call clm_readvar(ncid,'MONTHLY_SAI',msai,gcomm_gridcell,months(k))
       call clm_readvar(ncid,'MONTHLY_HEIGHT_TOP',mhgtt,gcomm_gridcell,months(k))
@@ -392,11 +392,11 @@ module mod_clm_staticecosysdyn
       ! only vegetated pfts have nonzero values
       ! Assign lai/sai/hgtt/hgtb to the top [maxpatch_pft] pfts
       ! as determined in subroutine surfrd
-      do p = begp , endp
+      do p = begp, endp
         g = clm3%g%l%c%p%gridcell(p)
         ivt = clm3%g%l%c%p%itype(p)
         if ( ivt /= noveg ) then     ! vegetated pft
-          do l = 0 , numpft
+          do l = 0, numpft
             if ( l == ivt ) then
               mlai2t(p,k) = mlai(g,l)
               msai2t(p,k) = msai(g,l)
@@ -420,7 +420,7 @@ module mod_clm_staticecosysdyn
     end if
     deallocate(mlai, msai, mhgtt, mhgtb)
     mlaidiff => clm3%g%l%c%p%pps%mlaidiff
-    do p = begp , endp
+    do p = begp, endp
       mlaidiff(p) = mlai2t(p,1)-mlai2t(p,2)
     enddo
   end subroutine readMonthlyVegetation

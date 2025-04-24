@@ -31,33 +31,33 @@ module mod_mksst
 
   private
 
-  logical :: lopen , lhasice
-  integer(ik4) :: ncst , ntime
-  integer(ik4) , dimension(3) :: ivar
-  type(rcm_time_and_date) , dimension(:) , pointer :: itime
-  real(rkx) , dimension(:,:) , pointer :: work1 , work2
-  real(rkx) , dimension(:,:) , pointer :: work3 , work4
-  real(rkx) , dimension(:) , pointer :: xtime
+  logical :: lopen, lhasice
+  integer(ik4) :: ncst, ntime
+  integer(ik4), dimension(3) :: ivar
+  type(rcm_time_and_date), dimension(:), contiguous, pointer :: itime
+  real(rkx), dimension(:,:), contiguous, pointer :: work1, work2
+  real(rkx), dimension(:,:), contiguous, pointer :: work3, work4
+  real(rkx), dimension(:), contiguous, pointer :: xtime
   real(rkx) :: icet
 
   data lopen/.false./
   character(len=256) :: sstfile
 
-  public :: readsst , closesst
+  public :: readsst, closesst
 
   contains
 
   subroutine readsst(tsccm, idate)
     implicit none
-    real(rkx) , dimension(jx,iy) , intent(inout) :: tsccm
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: istatus , idimid , itvar
-    integer(ik4) , dimension(3) :: istart , icount
-    character(len=64) :: timeunits , timecal
-    integer(ik4) :: i , j , irec
-    integer(ik4) :: iyy , im , id , ih
-    type(rcm_time_interval) :: ks1 , ks2
-    real(rkx) :: wt , a , b
+    real(rkx), dimension(jx,iy), intent(inout) :: tsccm
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: istatus, idimid, itvar
+    integer(ik4), dimension(3) :: istart, icount
+    character(len=64) :: timeunits, timecal
+    integer(ik4) :: i, j, irec
+    integer(ik4) :: iyy, im, id, ih
+    type(rcm_time_interval) :: ks1, ks2
+    real(rkx) :: wt, a, b
 
     call split_idate(idate,iyy,im,id,ih)
 
@@ -113,7 +113,7 @@ module mod_mksst
       istatus = nf90_get_var(ncst, itvar, xtime)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error time var read '//trim(sstfile))
-      do i = 1 , ntime
+      do i = 1, ntime
         itime(i) = timeval2date(xtime(i), timeunits, timecal)
       end do
       lopen = .true.
@@ -121,13 +121,13 @@ module mod_mksst
 
     if (idate > itime(ntime) .or. idate < itime(1)) then
       write (stderr,*) 'Cannot find ', tochar(idate), ' in SST file'
-      write (stderr,*) 'Range is : ', tochar(itime(1)) , ' to ', &
+      write (stderr,*) 'Range is : ', tochar(itime(1)), ' to ', &
                        tochar(itime(ntime))
       call die('readsst')
     end if
 
     irec = 1
-    do i = 1 , ntime
+    do i = 1, ntime
       if ( idate < itime(i) ) then
         exit
       end if
@@ -150,8 +150,8 @@ module mod_mksst
                       'Error ice var read '//trim(sstfile))
     end if
     if (idate == itime(irec)) then
-      do i = 1 , iy
-        do j = 1 , jx
+      do i = 1, iy
+        do j = 1, jx
           if ( (landuse(j,i) > 14.9 .and. landuse(j,i) < 15.1) ) then
             if ( work1(j,i) > -900.0_rkx ) then
               tsccm(j,i) = work1(j,i)
@@ -188,8 +188,8 @@ module mod_mksst
       ks1 = itime(irec+1)-idate
       ks2 = itime(irec+1)-itime(irec)
       wt = real(tohours(ks1)/tohours(ks2),rkx)
-      do i = 1 , iy
-        do j = 1 , jx
+      do i = 1, iy
+        do j = 1, jx
           if ( (landuse(j,i) > 14.9_rkx .and. landuse(j,i) < 15.1_rkx) ) then
             if ( (work1(j,i) > -900.0_rkx .and. work2(j,i) > -900.0_rkx) ) then
               tsccm(j,i) = wt*work1(j,i) + (1.0_rkx-wt)*work2(j,i)
@@ -217,11 +217,11 @@ module mod_mksst
 
   real(rkx) function nearn(jp,ip,sst)
     implicit none
-    integer(ik4) , intent(in) :: jp , ip
-    real(rkx) , dimension(:,:) , intent(in) :: sst
-    real(rkx) :: wt , wtsum
+    integer(ik4), intent(in) :: jp, ip
+    real(rkx), dimension(:,:), intent(in) :: sst
+    real(rkx) :: wt, wtsum
     ! real(rkx) :: distsig
-    integer(ik4) :: i , j , nr , np , maxn
+    integer(ik4) :: i, j, nr, np, maxn
     if ( all(sst < -900_rkx) ) then
       nearn = -999.0_rkx
       return
@@ -232,8 +232,8 @@ module mod_mksst
     nearn = 0.0_rkx
     wtsum = 0.0_rkx
     do while ( np < 0 .and. nr < maxn )
-      do i = ip - nr , ip + nr
-        do j = jp - nr , jp + nr
+      do i = ip - nr, ip + nr
+        do j = jp - nr, jp + nr
           if ( j == jp .and. i == ip ) cycle
           if ( i < 1 .or. i > iy ) cycle
           if ( j < 1 .or. j > jx ) cycle

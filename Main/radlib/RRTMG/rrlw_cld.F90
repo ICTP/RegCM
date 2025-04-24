@@ -24,12 +24,12 @@
 !------------------------------------------------------------------
 
       real(kind=rb) :: abscld1
-      real(kind=rb) , dimension(2) :: absice0
-      real(kind=rb) , dimension(2,5) :: absice1
-      real(kind=rb) , dimension(43,16) :: absice2
-      real(kind=rb) , dimension(46,16) :: absice3
+      real(kind=rb), dimension(2) :: absice0
+      real(kind=rb), dimension(2,5) :: absice1
+      real(kind=rb), dimension(43,16) :: absice2
+      real(kind=rb), dimension(46,16) :: absice3
       real(kind=rb) :: absliq0
-      real(kind=rb) , dimension(58,16) :: absliq1
+      real(kind=rb), dimension(58,16) :: absliq1
 
       end module rrlw_cld
 

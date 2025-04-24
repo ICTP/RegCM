@@ -123,7 +123,7 @@ program pgwbc
   call init_outpgw(plevs)
   call newpgwfile(idate)
 
-  do nnn = 1 , nsteps
+  do nnn = 1, nsteps
     call get_pgw(nnn)
     call writepgwf(idate)
     idate = nextmon(idate)

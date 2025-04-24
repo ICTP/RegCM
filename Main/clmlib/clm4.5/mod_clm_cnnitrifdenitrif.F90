@@ -7,7 +7,7 @@ module mod_clm_cnnitrifdenitrif
   use mod_intkinds
   use mod_realkinds
   use mod_date
-  use mod_clm_varcon , only: secspday , tfrz
+  use mod_clm_varcon, only: secspday, tfrz
 
   implicit none
 
@@ -17,7 +17,7 @@ module mod_clm_cnnitrifdenitrif
 
   public:: nitrif_denitrif
   ! stop nitrification and denitrification in frozen soils
-  logical , public :: no_frozen_nitrif_denitrif = .false.
+  logical, public :: no_frozen_nitrif_denitrif = .false.
 
   contains
   !
@@ -25,7 +25,7 @@ module mod_clm_cnnitrifdenitrif
   !
   subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
-    use mod_clm_varpar      , only : nlevgrnd,nlevdecomp
+    use mod_clm_varpar     , only : nlevgrnd,nlevdecomp
     use mod_clm_varcon, only: rpi, denh2o, dzsoi, zisoi, grav
 #ifdef LCH4
     use mod_clm_varcon, only: d_con_g, d_con_w
@@ -52,66 +52,66 @@ module mod_clm_cnnitrifdenitrif
 
     ! put on clm structure for diagnostic purposes
     ! (ugN / g soil) soil nitrate concentration
-    real(rk8), pointer :: smin_no3_massdens_vr(:,:)
-    real(rk8), pointer :: k_nitr_t_vr(:,:)
-    real(rk8), pointer :: k_nitr_ph_vr(:,:)
-    real(rk8), pointer :: k_nitr_h2o_vr(:,:)
-    real(rk8), pointer :: k_nitr_vr(:,:)
-    real(rk8), pointer :: wfps_vr(:,:)
-    real(rk8), pointer :: fmax_denit_carbonsubstrate_vr(:,:)
-    real(rk8), pointer :: fmax_denit_nitrate_vr(:,:)
-    real(rk8), pointer :: f_denit_base_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_massdens_vr(:,:)
+    real(rk8), pointer, contiguous :: k_nitr_t_vr(:,:)
+    real(rk8), pointer, contiguous :: k_nitr_ph_vr(:,:)
+    real(rk8), pointer, contiguous :: k_nitr_h2o_vr(:,:)
+    real(rk8), pointer, contiguous :: k_nitr_vr(:,:)
+    real(rk8), pointer, contiguous :: wfps_vr(:,:)
+    real(rk8), pointer, contiguous :: fmax_denit_carbonsubstrate_vr(:,:)
+    real(rk8), pointer, contiguous :: fmax_denit_nitrate_vr(:,:)
+    real(rk8), pointer, contiguous :: f_denit_base_vr(:,:)
 
     real(rk8) :: k_nitr_max ! maximum nitrification rate constant (1/s)
     real(rk8) :: mu, sigma
     real(rk8) :: t
 #ifdef LCH4
-    real(rk8) , pointer :: pH(:)
+    real(rk8), pointer, contiguous :: pH(:)
 #else
     real(rk8) :: pH(lbc:ubc)
 #endif
-    real(rk8), pointer :: phr_vr(:,:)   ! potential hr (not N-limited)
-    real(rk8), pointer :: w_scalar(:,:) ! soil water scalar for decomp
-    real(rk8), pointer :: t_scalar(:,:) ! temperature scalar for decomp
+    real(rk8), pointer, contiguous :: phr_vr(:,:)   ! potential hr (not N-limited)
+    real(rk8), pointer, contiguous :: w_scalar(:,:) ! soil water scalar for decomp
+    real(rk8), pointer, contiguous :: t_scalar(:,:) ! temperature scalar for decomp
     ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]  (nlevgrnd)
-    real(rk8), pointer :: h2osoi_vol(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_vol(:,:)
     ! liquid water (kg/m2) (new) (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: h2osoi_liq(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)
     ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer, contiguous :: watsat(:,:)
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: t_soisno(:,:)
+    real(rk8), pointer, contiguous :: t_soisno(:,:)
     ! (gN/m3) soil mineral NH4 pool
-    real(rk8), pointer :: smin_nh4_vr(:,:)
-    real(rk8), pointer :: smin_no3_vr(:,:)   ! (gN/m3) soil mineral NO3 pool
+    real(rk8), pointer, contiguous :: smin_nh4_vr(:,:)
+    real(rk8), pointer, contiguous :: smin_no3_vr(:,:)   ! (gN/m3) soil mineral NO3 pool
     ! bulk density of dry soil material [kg/m3]
-    real(rk8), pointer :: bd(:,:)
+    real(rk8), pointer, contiguous :: bd(:,:)
     ! layer thickness (m)  (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: dz(:,:)
+    real(rk8), pointer, contiguous :: dz(:,:)
     ! maximumn monthly-mean soil temperature
-    real(rk8), pointer :: tmean_monthly_max_vr(:,:)
+    real(rk8), pointer, contiguous :: tmean_monthly_max_vr(:,:)
     ! monthly-mean soil temperature
-    real(rk8), pointer :: tmean_monthly_vr(:,:)
+    real(rk8), pointer, contiguous :: tmean_monthly_vr(:,:)
     ! (gN/m3/s) potential soil nitrification flux
-    real(rk8), pointer :: pot_f_nit_vr(:,:)
+    real(rk8), pointer, contiguous :: pot_f_nit_vr(:,:)
     ! (gN/m3/s) potential soil denitrification flux
-    real(rk8), pointer :: pot_f_denit_vr(:,:)
+    real(rk8), pointer, contiguous :: pot_f_denit_vr(:,:)
     ! volumetric soil water at field capacity (nlevsoi)
-    real(rk8), pointer :: watfc(:,:)
+    real(rk8), pointer, contiguous :: watfc(:,:)
     ! Clapp and Hornberger "b" (nlevgrnd)
-    real(rk8), pointer :: bsw(:,:)
+    real(rk8), pointer, contiguous :: bsw(:,:)
     ! ratio of N2 to N2O production by denitrification [gN/gN]
-    real(rk8), pointer :: n2_n2o_ratio_denit_vr(:,:)
+    real(rk8), pointer, contiguous :: n2_n2o_ratio_denit_vr(:,:)
 
     !debug-- put these in clmtype for outing to hist files
     !diffusivity (unitless fraction of total diffusivity)
-    real(rk8), pointer :: diffus(:,:)
-    real(rk8), pointer :: ratio_k1(:,:)
-    real(rk8), pointer :: ratio_no3_co2(:,:)
-    real(rk8), pointer :: soil_co2_prod(:,:)  ! (ug C / g soil / day)
-    real(rk8), pointer :: fr_WFPS(:,:)
+    real(rk8), pointer, contiguous :: diffus(:,:)
+    real(rk8), pointer, contiguous :: ratio_k1(:,:)
+    real(rk8), pointer, contiguous :: ratio_no3_co2(:,:)
+    real(rk8), pointer, contiguous :: soil_co2_prod(:,:)  ! (ug C / g soil / day)
+    real(rk8), pointer, contiguous :: fr_WFPS(:,:)
     ! (kg soil / m3) bulk density of soil (including water)
-    real(rk8), pointer :: soil_bulkdensity(:,:)
+    real(rk8), pointer, contiguous :: soil_bulkdensity(:,:)
 
     real(rk8) :: co2diff_con(2)  ! diffusion constants for CO2
     real(rk8) :: eps
@@ -134,28 +134,28 @@ module mod_clm_cnnitrifdenitrif
     ! scalar values in sat portion for averaging
     real(rk8) :: anaerobic_frac_sat, r_psi_sat, r_min_sat
 
-    real(rk8), pointer :: r_psi(:,:)
-    real(rk8), pointer :: anaerobic_frac(:,:)
+    real(rk8), pointer, contiguous :: r_psi(:,:)
+    real(rk8), pointer, contiguous :: anaerobic_frac(:,:)
 
     ! soil water potential in each soil layer (MPa)
-    real(rk8), pointer :: soilpsi(:,:)
+    real(rk8), pointer, contiguous :: soilpsi(:,:)
     ! O2 consumption during decomposition in each soil layer
     ! (nlevsoi) (mol/m3/s)
-    real(rk8), pointer :: o2_decomp_depth_unsat(:,:)
+    real(rk8), pointer, contiguous :: o2_decomp_depth_unsat(:,:)
     ! O2 conc in each soil layer (mol/m3) (nlevsoi)
-    real(rk8), pointer :: conc_o2_unsat(:,:)
+    real(rk8), pointer, contiguous :: conc_o2_unsat(:,:)
     ! O2 consumption during decomposition in each soil layer
     ! (nlevsoi) (mol/m3/s)
-    real(rk8), pointer :: o2_decomp_depth_sat(:,:)
+    real(rk8), pointer, contiguous :: o2_decomp_depth_sat(:,:)
     ! O2 conc in each soil layer (mol/m3) (nlevsoi)
-    real(rk8), pointer :: conc_o2_sat(:,:)
+    real(rk8), pointer, contiguous :: conc_o2_sat(:,:)
     ! fractional inundated area in soil column (excluding dedicated
     ! wetland columns)
-    real(rk8), pointer :: finundated(:)
-    real(rk8), pointer :: sucsat(:,:) ! minimum soil suction (mm)
+    real(rk8), pointer, contiguous :: finundated(:)
+    real(rk8), pointer, contiguous :: sucsat(:,:) ! minimum soil suction (mm)
 
     ! column 3D org (kg/m3 organic matter) (nlevgrnd)
-    real(rk8), pointer :: cellorg(:,:)
+    real(rk8), pointer, contiguous :: cellorg(:,:)
     character(len=32) :: subname='nitrif_denitrif' ! subroutine name
     real(rk8) :: arg
 
@@ -222,8 +222,8 @@ module mod_clm_cnnitrifdenitrif
     co2diff_con(1) =   0.1325_rk8
     co2diff_con(2) =   0.0009_rk8
 
-    do j = 1 , nlevdecomp
-      do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
 
         !---------------- calculate soil anoxia state

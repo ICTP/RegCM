@@ -18,7 +18,7 @@ module mod_cmip6_miresl
   use mod_intkinds
   use mod_realkinds
   use mod_message
-  use mod_dynparam , only : cmip6_experiment
+  use mod_dynparam, only : cmip6_experiment
   use mod_date
   use mod_stdio
   use mod_memutil
@@ -30,21 +30,21 @@ module mod_cmip6_miresl
 
   private
 
-  character(len=*) , parameter :: miresl_version = 'v20190823'
-  character(len=*) , parameter :: miresl_version1 = 'v20220314'
-  character(len=*) , parameter :: miresl_version2 = 'v20191129'
-  character(len=*) , parameter :: miresl_version3 = 'v20220530'
+  character(len=*), parameter :: miresl_version = 'v20190823'
+  character(len=*), parameter :: miresl_version1 = 'v20220314'
+  character(len=*), parameter :: miresl_version2 = 'v20191129'
+  character(len=*), parameter :: miresl_version3 = 'v20220530'
 
-  public :: read_3d_miresl , read_2d_miresl , read_fx_miresl , read_sst_miresl
+  public :: read_3d_miresl, read_2d_miresl, read_fx_miresl, read_sst_miresl
 
   contains
 
     subroutine read_hcoord_miresl(ncid,lon,lat)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
-      integer(ik4) :: istatus , idimid , ivarid
-      integer(ik4) :: nlon , nlat
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:), intent(inout) :: lon, lat
+      integer(ik4) :: istatus, idimid, ivarid
+      integer(ik4) :: nlon, nlat
       istatus = nf90_inq_dimid(ncid,'lon',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -67,10 +67,10 @@ module mod_cmip6_miresl
 
     subroutine read_hcoord_sst_miresl(ncid,lon,lat)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
-      integer(ik4) :: istatus , idimid , ivarid
-      integer(ik4) :: nlon , nlat
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
+      integer(ik4) :: istatus, idimid, ivarid
+      integer(ik4) :: nlon, nlat
       istatus = nf90_inq_dimid(ncid,'x',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon x')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -93,10 +93,10 @@ module mod_cmip6_miresl
 
     subroutine read_vcoord_miresl(ncid,a,b,p0)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: a , b
-      real(rkx) , intent(out) :: p0
-      integer(ik4) :: istatus , idimid , ivarid
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:), intent(inout) :: a, b
+      real(rkx), intent(out) :: p0
+      integer(ik4) :: istatus, idimid, ivarid
       logical :: lquirk = .false.
       integer(ik4) :: nlev
       istatus = nf90_inq_dimid(ncid,'lev',idimid)
@@ -129,14 +129,14 @@ module mod_cmip6_miresl
 
     recursive subroutine read_3d_miresl(idate,v,lonlyc)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_3d_var) , pointer , intent(inout) :: v
-      logical , optional , intent(in) :: lonlyc
-      integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y1 , y2
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(4) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_3d_var), pointer, intent(inout) :: v
+      logical, optional, intent(in) :: lonlyc
+      integer(ik4) :: istatus, idimid, it, irec
+      integer(ik4) :: year, month, day, hour, y1, y2
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(4) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
       character(len=16) :: ver
 
@@ -244,14 +244,14 @@ module mod_cmip6_miresl
 
     recursive subroutine read_2d_miresl(idate,v,lonlyc)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_2d_var) , pointer , intent(inout) :: v
-      logical , optional , intent(in) :: lonlyc
-      integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y1 , y2
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(3) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_2d_var), pointer, intent(inout) :: v
+      logical, optional, intent(in) :: lonlyc
+      integer(ik4) :: istatus, idimid, it, irec
+      integer(ik4) :: year, month, day, hour, y1, y2
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(3) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
       character(len=16) :: ver
 
@@ -351,7 +351,7 @@ module mod_cmip6_miresl
 
     recursive subroutine read_fx_miresl(v)
       implicit none
-      type(cmip6_2d_var) , pointer , intent(inout) :: v
+      type(cmip6_2d_var), pointer, intent(inout) :: v
       integer(ik4) :: istatus
 
       v%filename = trim(cmip6_fxpath(miresl_version,v%vname))
@@ -383,14 +383,14 @@ module mod_cmip6_miresl
 
     recursive subroutine read_sst_miresl(idate,v,lat,lon)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_2d_var) , intent(inout) :: v
-      real(rkx) , pointer , dimension(:,:) , intent(in) :: lat , lon
-      integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(3) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_2d_var), intent(inout) :: v
+      real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat, lon
+      integer(ik4) :: istatus, idimid, it, irec
+      integer(ik4) :: year, month, day, hour
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(3) :: istart, icount
+      real(rk8), dimension(2) :: times
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)

@@ -37,18 +37,18 @@ module mod_clm_hydrology2
                         num_snowc, filter_snowc, &
                         num_nosnowc, filter_nosnowc)
     use mod_clm_type
-    use mod_clm_atmlnd , only : clm_a2l
-    use mod_clm_varcon , only : denh2o, denice, istice, istwet, istsoil, &
+    use mod_clm_atmlnd, only : clm_a2l
+    use mod_clm_varcon, only : denh2o, denice, istice, istwet, istsoil, &
             isturb, spval, icol_roof, icol_road_imperv, icol_road_perv,  &
             icol_sunwall, icol_shadewall, istdlak, tfrz, hfus, grav
-    use mod_clm_varcon , only : istcrop
-    use mod_clm_varpar , only : nlevgrnd, nlevsno, nlevsoi, nlevurb
-    use mod_clm_snowhydrology , only : SnowCompaction, CombineSnowLayers, &
+    use mod_clm_varcon, only : istcrop
+    use mod_clm_varpar, only : nlevgrnd, nlevsno, nlevsoi, nlevurb
+    use mod_clm_snowhydrology, only : SnowCompaction, CombineSnowLayers, &
             DivideSnowLayers, SnowWater, BuildSnowFilter
-    use mod_clm_soilhydrology , only : Infiltration, SoilWater, Drainage, &
+    use mod_clm_soilhydrology, only : Infiltration, SoilWater, Drainage, &
             SurfaceRunoff
 #if (defined VICHYDRO)
-    use mod_clm_vicmap , only : CLMVICMap
+    use mod_clm_vicmap, only : CLMVICMap
 #endif
     implicit none
     integer(ik4), intent(in) :: lbc, ubc    ! column bounds
@@ -73,156 +73,156 @@ module mod_clm_hydrology2
     ! column filter for non-snow points
     integer(ik4)  :: filter_nosnowc(ubc-lbc+1)
 
-    real(rk8), pointer :: snow_depth(:)   ! snow height of snow covered area (m)
-    real(rk8), pointer :: snowdp(:)       ! gridcell averaged snow height (m)
+    real(rk8), pointer, contiguous :: snow_depth(:)   ! snow height of snow covered area (m)
+    real(rk8), pointer, contiguous :: snowdp(:)       ! gridcell averaged snow height (m)
     !eff.  snow cover fraction (col) [frc]
-    real(rk8), pointer :: frac_sno_eff(:)
-    real(rk8), pointer :: qflx_evap_soi(:) ! soil evaporation
-    real(rk8), pointer :: h2osfc(:)        ! surface water (mm)
+    real(rk8), pointer, contiguous :: frac_sno_eff(:)
+    real(rk8), pointer, contiguous :: qflx_evap_soi(:) ! soil evaporation
+    real(rk8), pointer, contiguous :: h2osfc(:)        ! surface water (mm)
     ! fraction of ground covered by surface water (0 to 1)
-    real(rk8), pointer :: frac_h2osfc(:)
-    real(rk8), pointer :: t_h2osfc(:)      ! surface water temperature
+    real(rk8), pointer, contiguous :: frac_h2osfc(:)
+    real(rk8), pointer, contiguous :: t_h2osfc(:)      ! surface water temperature
     ! sub-surface runoff from perched zwt (mm H2O /s)
-    real(rk8), pointer :: qflx_drain_perched(:)
+    real(rk8), pointer, contiguous :: qflx_drain_perched(:)
     ! gridcell flux of flood water from RTM
-    real(rk8), pointer :: qflx_floodg(:)
+    real(rk8), pointer, contiguous :: qflx_floodg(:)
     ! surface water runoff (mm/s)
-    real(rk8), pointer :: qflx_h2osfc_surf(:)
+    real(rk8), pointer, contiguous :: qflx_h2osfc_surf(:)
     ! true=>do computations on this column (see reweightMod for details)
-    logical , pointer :: cactive(:)
-    integer(ik4) , pointer :: cgridcell(:)  ! column's gridcell
-    integer(ik4) , pointer :: clandunit(:)  ! column's landunit
-    integer(ik4) , pointer :: ityplun(:)    ! landunit type
-    integer(ik4) , pointer :: ctype(:)      ! column type
-    integer(ik4) , pointer :: snl(:)        ! number of snow layers
-    real(rk8), pointer :: h2ocan(:)         ! canopy water (mm H2O)
-    real(rk8), pointer :: h2osno(:)         ! snow water (mm H2O)
+    logical, pointer, contiguous :: cactive(:)
+    integer(ik4), pointer, contiguous :: cgridcell(:)  ! column's gridcell
+    integer(ik4), pointer, contiguous :: clandunit(:)  ! column's landunit
+    integer(ik4), pointer, contiguous :: ityplun(:)    ! landunit type
+    integer(ik4), pointer, contiguous :: ctype(:)      ! column type
+    integer(ik4), pointer, contiguous :: snl(:)        ! number of snow layers
+    real(rk8), pointer, contiguous :: h2ocan(:)         ! canopy water (mm H2O)
+    real(rk8), pointer, contiguous :: h2osno(:)         ! snow water (mm H2O)
     ! volumetric soil water at saturation (porosity)
-    real(rk8), pointer :: watsat(:,:)
-    real(rk8), pointer :: sucsat(:,:)    ! minimum soil suction (mm)
-    real(rk8), pointer :: bsw(:,:)       ! Clapp and Hornberger "b"
-    real(rk8), pointer :: z(:,:)         ! layer depth  (m)
-    real(rk8), pointer :: forc_rain(:)   ! rain rate [mm/s]
-    real(rk8), pointer :: forc_snow(:)   ! snow rate [mm/s]
-    real(rk8), pointer :: begwb(:)       ! water mass begining of the time step
+    real(rk8), pointer, contiguous :: watsat(:,:)
+    real(rk8), pointer, contiguous :: sucsat(:,:)    ! minimum soil suction (mm)
+    real(rk8), pointer, contiguous :: bsw(:,:)       ! Clapp and Hornberger "b"
+    real(rk8), pointer, contiguous :: z(:,:)         ! layer depth  (m)
+    real(rk8), pointer, contiguous :: forc_rain(:)   ! rain rate [mm/s]
+    real(rk8), pointer, contiguous :: forc_snow(:)   ! snow rate [mm/s]
+    real(rk8), pointer, contiguous :: begwb(:)       ! water mass begining of the time step
     ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-    real(rk8), pointer :: qflx_evap_tot(:)
+    real(rk8), pointer, contiguous :: qflx_evap_tot(:)
     ! restriction for min of soil potential (mm)
-    real(rk8), pointer :: smpmin(:)
+    real(rk8), pointer, contiguous :: smpmin(:)
 
-    real(rk8), pointer :: dz(:,:)  ! layer thickness depth (m)
-    real(rk8), pointer :: zi(:,:)  ! interface depth (m)
-    real(rk8), pointer :: zwt(:)   ! water table depth (m)
-    real(rk8), pointer :: fcov(:)  ! fractional impermeable area
-    real(rk8), pointer :: fsat(:)  ! fractional area with water table at surface
-    real(rk8), pointer :: wa(:)    ! water in the unconfined aquifer (mm)
-    real(rk8), pointer :: qcharge(:)   ! aquifer recharge rate (mm/s)
-    real(rk8), pointer :: smp_l(:,:)   ! soil matrix potential [mm]
-    real(rk8), pointer :: hk_l(:,:)    ! hydraulic conductivity (mm/s)
-    real(rk8), pointer :: qflx_rsub_sat(:) ! soil saturation excess [mm h2o/s]
+    real(rk8), pointer, contiguous :: dz(:,:)  ! layer thickness depth (m)
+    real(rk8), pointer, contiguous :: zi(:,:)  ! interface depth (m)
+    real(rk8), pointer, contiguous :: zwt(:)   ! water table depth (m)
+    real(rk8), pointer, contiguous :: fcov(:)  ! fractional impermeable area
+    real(rk8), pointer, contiguous :: fsat(:)  ! fractional area with water table at surface
+    real(rk8), pointer, contiguous :: wa(:)    ! water in the unconfined aquifer (mm)
+    real(rk8), pointer, contiguous :: qcharge(:)   ! aquifer recharge rate (mm/s)
+    real(rk8), pointer, contiguous :: smp_l(:,:)   ! soil matrix potential [mm]
+    real(rk8), pointer, contiguous :: hk_l(:,:)    ! hydraulic conductivity (mm/s)
+    real(rk8), pointer, contiguous :: qflx_rsub_sat(:) ! soil saturation excess [mm h2o/s]
 
-    real(rk8), pointer :: endwb(:)  ! water mass end of the time step
+    real(rk8), pointer, contiguous :: endwb(:)  ! water mass end of the time step
     ! soil water as frac. of whc for top 0.05 m  !F. Li and S. Levis
-    real(rk8), pointer :: wf(:)
+    real(rk8), pointer, contiguous :: wf(:)
     ! soil water as frac. of whc for top 0.17 m added by F. Li and S. Levis
-    real(rk8), pointer :: wf2(:)
-    real(rk8), pointer :: snowice(:)       ! average snow ice lens
-    real(rk8), pointer :: snowliq(:)       ! average snow liquid water
-    real(rk8), pointer :: t_grnd(:)        ! ground temperature (Kelvin)
-    real(rk8), pointer :: t_soisno(:,:)    ! soil temperature (Kelvin)
-    real(rk8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
+    real(rk8), pointer, contiguous :: wf2(:)
+    real(rk8), pointer, contiguous :: snowice(:)       ! average snow ice lens
+    real(rk8), pointer, contiguous :: snowliq(:)       ! average snow liquid water
+    real(rk8), pointer, contiguous :: t_grnd(:)        ! ground temperature (Kelvin)
+    real(rk8), pointer, contiguous :: t_soisno(:,:)    ! soil temperature (Kelvin)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
     ! soil temperature in top 10cm of soil (Kelvin)
-    real(rk8), pointer :: t_soi_10cm(:)
+    real(rk8), pointer, contiguous :: t_soi_10cm(:)
     ! soil temperature in top 17cm of soil (Kelvin) added by F. Li and S. Levis
-    real(rk8), pointer :: tsoi17(:)
+    real(rk8), pointer, contiguous :: tsoi17(:)
     ! liquid water + ice lens in top 10cm of soil (kg/m2)
-    real(rk8), pointer :: h2osoi_liqice_10cm(:)
+    real(rk8), pointer, contiguous :: h2osoi_liqice_10cm(:)
     ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
-    real(rk8), pointer :: h2osoi_vol(:,:)
-    real(rk8), pointer :: qflx_drain(:) ! sub-surface runoff (mm H2O /s)
-    real(rk8), pointer :: qflx_surf(:)  ! surface runoff (mm H2O /s)
-    real(rk8), pointer :: qflx_infl(:)  ! infiltration (mm H2O /s)
-    real(rk8), pointer :: qflx_qrgwl(:) ! qflx_surf at glaciers, wetlands, lakes
-    real(rk8), pointer :: qflx_irrig(:) ! irrigation flux (mm H2O /s)
+    real(rk8), pointer, contiguous :: h2osoi_vol(:,:)
+    real(rk8), pointer, contiguous :: qflx_drain(:) ! sub-surface runoff (mm H2O /s)
+    real(rk8), pointer, contiguous :: qflx_surf(:)  ! surface runoff (mm H2O /s)
+    real(rk8), pointer, contiguous :: qflx_infl(:)  ! infiltration (mm H2O /s)
+    real(rk8), pointer, contiguous :: qflx_qrgwl(:) ! qflx_surf at glaciers, wetlands, lakes
+    real(rk8), pointer, contiguous :: qflx_irrig(:) ! irrigation flux (mm H2O /s)
     ! total runoff (qflx_drain+qflx_surf+qflx_qrgwl) (mm H2O /s)
-    real(rk8), pointer :: qflx_runoff(:)
+    real(rk8), pointer, contiguous :: qflx_runoff(:)
     ! Urban total runoff (qflx_drain+qflx_surf) (mm H2O /s)
-    real(rk8), pointer :: qflx_runoff_u(:)
+    real(rk8), pointer, contiguous :: qflx_runoff_u(:)
     ! Rural total runoff (qflx_drain+qflx_surf+qflx_qrgwl) (mm H2O /s)
-    real(rk8), pointer :: qflx_runoff_r(:)
-    real(rk8), pointer :: t_grnd_u(:)   ! Urban ground temperature (Kelvin)
-    real(rk8), pointer :: t_grnd_r(:)   ! Rural ground temperature (Kelvin)
+    real(rk8), pointer, contiguous :: qflx_runoff_r(:)
+    real(rk8), pointer, contiguous :: t_grnd_u(:)   ! Urban ground temperature (Kelvin)
+    real(rk8), pointer, contiguous :: t_grnd_r(:)   ! Rural ground temperature (Kelvin)
     ! excess snowfall due to snow capping (mm H2O /s) [+]`
-    real(rk8), pointer :: qflx_snwcp_ice(:)
+    real(rk8), pointer, contiguous :: qflx_snwcp_ice(:)
     ! soil water potential in each soil layer (MPa)
-    real(rk8), pointer :: soilpsi(:,:)
+    real(rk8), pointer, contiguous :: soilpsi(:,:)
 
-    real(rk8), pointer :: snot_top(:)  ! snow temperature in top layer (col) [K]
+    real(rk8), pointer, contiguous :: snot_top(:)  ! snow temperature in top layer (col) [K]
     ! temperature gradient in top layer (col) [K m-1]
-    real(rk8), pointer :: dTdz_top(:)
+    real(rk8), pointer, contiguous :: dTdz_top(:)
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rk8), pointer :: snw_rds(:,:)
+    real(rk8), pointer, contiguous :: snw_rds(:,:)
     ! effective snow grain size, top layer(col) [microns]
-    real(rk8), pointer :: snw_rds_top(:)
+    real(rk8), pointer, contiguous :: snw_rds_top(:)
     ! liquid water fraction in top snow layer (col) [frc]
-    real(rk8), pointer :: sno_liq_top(:)
-    real(rk8), pointer :: frac_sno(:)    ! snow cover fraction (col) [frc]
-    real(rk8), pointer :: h2osno_top(:)  ! mass of snow in top layer (col) [kg]
+    real(rk8), pointer, contiguous :: sno_liq_top(:)
+    real(rk8), pointer, contiguous :: frac_sno(:)    ! snow cover fraction (col) [frc]
+    real(rk8), pointer, contiguous :: h2osno_top(:)  ! mass of snow in top layer (col) [kg]
 
     ! mass of hydrophobic BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcpho(:,:)
+    real(rk8), pointer, contiguous :: mss_bcpho(:,:)
     ! mass of hydrophillic BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcphi(:,:)
+    real(rk8), pointer, contiguous :: mss_bcphi(:,:)
     ! total mass of BC (pho+phi) (col,lyr) [kg]
-    real(rk8), pointer :: mss_bctot(:,:)
+    real(rk8), pointer, contiguous :: mss_bctot(:,:)
     ! total mass of BC in snow column (col) [kg]
-    real(rk8), pointer :: mss_bc_col(:)
+    real(rk8), pointer, contiguous :: mss_bc_col(:)
     ! total mass of BC in top snow layer (col) [kg]
-    real(rk8), pointer :: mss_bc_top(:)
+    real(rk8), pointer, contiguous :: mss_bc_top(:)
     ! mass concentration of BC species 1 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_bcphi(:,:)
+    real(rk8), pointer, contiguous :: mss_cnc_bcphi(:,:)
     ! mass concentration of BC species 2 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_bcpho(:,:)
+    real(rk8), pointer, contiguous :: mss_cnc_bcpho(:,:)
     ! mass of hydrophobic OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocpho(:,:)
+    real(rk8), pointer, contiguous :: mss_ocpho(:,:)
     ! mass of hydrophillic OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocphi(:,:)
+    real(rk8), pointer, contiguous :: mss_ocphi(:,:)
     ! total mass of OC (pho+phi) (col,lyr) [kg]
-    real(rk8), pointer :: mss_octot(:,:)
+    real(rk8), pointer, contiguous :: mss_octot(:,:)
     ! total mass of OC in snow column (col) [kg]
-    real(rk8), pointer :: mss_oc_col(:)
+    real(rk8), pointer, contiguous :: mss_oc_col(:)
     ! total mass of OC in top snow layer (col) [kg]
-    real(rk8), pointer :: mss_oc_top(:)
+    real(rk8), pointer, contiguous :: mss_oc_top(:)
     ! mass concentration of OC species 1 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_ocphi(:,:)
+    real(rk8), pointer, contiguous :: mss_cnc_ocphi(:,:)
     ! mass concentration of OC species 2 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_ocpho(:,:)
+    real(rk8), pointer, contiguous :: mss_cnc_ocpho(:,:)
 
     ! mass of dust species 1 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst1(:,:)
+    real(rk8), pointer, contiguous :: mss_dst1(:,:)
     ! mass of dust species 2 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst2(:,:)
+    real(rk8), pointer, contiguous :: mss_dst2(:,:)
     ! mass of dust species 3 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst3(:,:)
+    real(rk8), pointer, contiguous :: mss_dst3(:,:)
     ! mass of dust species 4 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst4(:,:)
+    real(rk8), pointer, contiguous :: mss_dst4(:,:)
     ! total mass of dust in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dsttot(:,:)
+    real(rk8), pointer, contiguous :: mss_dsttot(:,:)
     ! total mass of dust in snow column (col) [kg]
-    real(rk8), pointer :: mss_dst_col(:)
+    real(rk8), pointer, contiguous :: mss_dst_col(:)
     ! total mass of dust in top snow layer (col) [kg]
-    real(rk8), pointer :: mss_dst_top(:)
+    real(rk8), pointer, contiguous :: mss_dst_top(:)
     ! mass concentration of dust species 1 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_dst1(:,:)
+    real(rk8), pointer, contiguous :: mss_cnc_dst1(:,:)
     ! mass concentration of dust species 2 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_dst2(:,:)
+    real(rk8), pointer, contiguous :: mss_cnc_dst2(:,:)
     ! mass concentration of dust species 3 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_dst3(:,:)
+    real(rk8), pointer, contiguous :: mss_cnc_dst3(:,:)
     ! mass concentration of dust species 4 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_dst4(:,:)
+    real(rk8), pointer, contiguous :: mss_cnc_dst4(:,:)
     ! true => do snow capping
-    logical , pointer :: do_capsnow(:)
+    logical, pointer, contiguous :: do_capsnow(:)
 
     integer(ik4)  :: g,l,c,j,fc    ! indices
     ! partial volume of liquid water in layer
@@ -547,7 +547,7 @@ module mod_clm_hydrology2
     ! Determine wetland and land ice hydrology (must be placed here
     ! since need snow updated from CombineSnowLayers)
 
-    do fc = 1 , num_nolakec
+    do fc = 1, num_nolakec
       c = filter_nolakec(fc)
       l = clandunit(c)
       g = cgridcell(c)

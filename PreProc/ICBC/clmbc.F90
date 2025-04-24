@@ -61,11 +61,11 @@ program clmbc
   implicit none
 
   integer(ik4) :: nnn
-  type(rcm_time_and_date) :: idate , iodate
-  type(rcm_time_interval) :: tdiff , tbdy
+  type(rcm_time_and_date) :: idate, iodate
+  type(rcm_time_interval) :: tdiff, tbdy
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
-  character(len=256) :: namelistfile , prgname
+  character(len=256) :: namelistfile, prgname
 
 #ifdef PNETCDF
   call mpi_init(ierr)
@@ -96,9 +96,9 @@ program clmbc
   tbdy = rcm_time_interval(1,uhrs)
   nsteps = nint(tohours(tdiff)) + 1
 
-  write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
-  write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
-  write (stdout,*) 'NSTEPS     : ' , nsteps
+  write (stdout,*) 'GLOBIDATE1 : ', tochar(globidate1)
+  write (stdout,*) 'GLOBIDATE2 : ', tochar(globidate2)
+  write (stdout,*) 'NSTEPS     : ', nsteps
 
   idate = globidate1
   iodate = idate
@@ -107,7 +107,7 @@ program clmbc
 
   call newhfile(idate)
 
-  do nnn = 1 , nsteps
+  do nnn = 1, nsteps
 
     if (.not. lsamemonth(idate, iodate) ) then
       call newhfile(monfirst(idate))
