@@ -10,9 +10,9 @@ module mod_clm_cnsetvalue
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_clm_varpar , only : nlevgrnd, nlevdecomp_full, &
+  use mod_clm_varpar, only : nlevgrnd, nlevdecomp_full, &
           ndecomp_pools, ndecomp_cascade_transitions, nlevdecomp
-  use mod_clm_varctl , only : use_c13, use_c14
+  use mod_clm_varctl, only : use_c13, use_c14
   use mod_clm_type
 
   implicit none
@@ -73,13 +73,13 @@ module mod_clm_cnsetvalue
     integer(ik4), intent(IN)  :: begp, endp  ! proc beginning and ending pft
 
     integer(ik4)  :: c, p, j   ! indices
-    type(column_type),   pointer :: cptr ! pointer to column derived subtype
+    type(column_type), pointer :: cptr ! pointer to column derived subtype
 
     cptr => clm3%g%l%c
     ! set column-level conversion and product pool fluxes
     ! to 0 at the beginning of every timestep
 
-    do c = begc , endc
+    do c = begc, endc
       ! C fluxes
       cptr%ccf%dwt_seedc_to_leaf(c) = 0._rk8
       cptr%ccf%dwt_seedc_to_deadstem(c) = 0._rk8
@@ -96,7 +96,7 @@ module mod_clm_cnsetvalue
       cptr%cnf%dwt_prod100n_gain(c) = 0._rk8
     end do
     if ( use_c13 ) then
-      do c = begc , endc
+      do c = begc, endc
         cptr%cc13f%dwt_seedc_to_leaf(c) = 0._rk8
         cptr%cc13f%dwt_seedc_to_deadstem(c) = 0._rk8
         cptr%cc13f%dwt_conv_cflux(c) = 0._rk8
@@ -106,7 +106,7 @@ module mod_clm_cnsetvalue
     end if
 
     if ( use_c14 ) then
-      do c = begc , endc
+      do c = begc, endc
         cptr%cc14f%dwt_seedc_to_leaf(c) = 0._rk8
         cptr%cc14f%dwt_seedc_to_deadstem(c) = 0._rk8
         cptr%cc14f%dwt_conv_cflux(c) = 0._rk8
@@ -115,8 +115,8 @@ module mod_clm_cnsetvalue
       end do
     end if
 
-    do j = 1 , nlevdecomp_full
-      do c = begc , endc
+    do j = 1, nlevdecomp_full
+      do c = begc, endc
         ! C fluxes
         cptr%ccf%dwt_frootc_to_litr_met_c(c,j) = 0._rk8
         cptr%ccf%dwt_frootc_to_litr_cel_c(c,j) = 0._rk8
@@ -133,8 +133,8 @@ module mod_clm_cnsetvalue
       end do
     end do
     if ( use_c13 ) then
-      do j = 1 , nlevdecomp_full
-        do c = begc , endc
+      do j = 1, nlevdecomp_full
+        do c = begc, endc
           cptr%cc13f%dwt_frootc_to_litr_met_c(c,j) = 0._rk8
           cptr%cc13f%dwt_frootc_to_litr_cel_c(c,j) = 0._rk8
           cptr%cc13f%dwt_frootc_to_litr_lig_c(c,j) = 0._rk8
@@ -144,8 +144,8 @@ module mod_clm_cnsetvalue
       end do
     end if
     if ( use_c14 ) then
-      do j = 1 , nlevdecomp_full
-        do c = begc , endc
+      do j = 1, nlevdecomp_full
+        do c = begc, endc
           cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) = 0._rk8
           cptr%cc14f%dwt_frootc_to_litr_cel_c(c,j) = 0._rk8
           cptr%cc14f%dwt_frootc_to_litr_lig_c(c,j) = 0._rk8
@@ -156,7 +156,7 @@ module mod_clm_cnsetvalue
     end if
 
 #if (defined CN)
-    do p = begp , endp
+    do p = begp, endp
       cptr%p%pcs%dispvegc(p)   = 0._rk8
       cptr%p%pcs%storvegc(p)   = 0._rk8
       cptr%p%pcs%totpftc(p)    = 0._rk8
@@ -167,14 +167,14 @@ module mod_clm_cnsetvalue
       cptr%p%pns%totpftn(p)    = 0._rk8
     end do
     if ( use_c14 ) then
-      do p = begp , endp
+      do p = begp, endp
         cptr%p%pc14s%dispvegc(p) = 0._rk8
         cptr%p%pc14s%storvegc(p) = 0._rk8
         cptr%p%pc14s%totpftc(p)  = 0._rk8
       end do
     end if
     if ( use_c13 ) then
-      do p = begp , endp
+      do p = begp, endp
         cptr%p%pc13s%dispvegc(p) = 0._rk8
         cptr%p%pc13s%storvegc(p) = 0._rk8
         cptr%p%pc13s%totpftc(p)  = 0._rk8
@@ -186,10 +186,10 @@ module mod_clm_cnsetvalue
   ! Set pft physical state variables
   !
   subroutine CNSetPps(num, filter, val, pps)
-    use mod_clm_varpar , only : numrad
+    use mod_clm_varpar, only : numrad
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_pstate_type), intent(inout) :: pps
 
@@ -200,13 +200,13 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetPepv (num, filter, val, pepv)
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_epv_type), intent(inout) :: pepv
     integer(ik4) :: fi,i     ! loop index
 
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       pepv%dormant_flag(i) = val
       pepv%days_active(i) = val
@@ -251,14 +251,14 @@ module mod_clm_cnsetvalue
       pepv%annsum_npp(i) = val
     end do
 #if (defined CNDV)
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       pepv%tempsum_litfall(i) = val
       pepv%annsum_litfall(i) = val
     end do
 #endif
     if ( use_c13 ) then
-      do fi = 1 , num
+      do fi = 1, num
         i = filter(fi)
         pepv%xsmrpool_c13ratio(i) = val
       end do
@@ -268,15 +268,15 @@ module mod_clm_cnsetvalue
   ! Set pft carbon state variables
   !
   subroutine CNSetPcs (num, filter, val, pcs)
-    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_surfrd, only : crop_prog
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_cstate_type), intent(inout) :: pcs
     integer(ik4) :: fi,i     ! loop index
 
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       pcs%leafc(i) = val
       pcs%leafc_storage(i) = val
@@ -308,7 +308,7 @@ module mod_clm_cnsetvalue
       pcs%woodc(i) = val
     end do
     if ( crop_prog ) then
-      do fi = 1 , num
+      do fi = 1, num
         i = filter(fi)
         pcs%grainc(i)         = val
         pcs%grainc_storage(i) = val
@@ -320,15 +320,15 @@ module mod_clm_cnsetvalue
   ! Set pft nitrogen state variables
   !
   subroutine CNSetPns(num, filter, val, pns)
-    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_surfrd, only : crop_prog
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_nstate_type), intent(inout) :: pns
     integer(ik4) :: fi,i     ! loop index
 
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       pns%leafn(i) = val
       pns%leafn_storage(i) = val
@@ -357,7 +357,7 @@ module mod_clm_cnsetvalue
       pns%totpftn(i) = val
     end do
     if ( crop_prog )then
-      do fi = 1 , num
+      do fi = 1, num
         i = filter(fi)
         pns%grainn(i)         = val
         pns%grainn_storage(i) = val
@@ -369,15 +369,15 @@ module mod_clm_cnsetvalue
   ! Set pft carbon flux variables
   !
   subroutine CNSetPcf(num, filter, val, pcf)
-    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_surfrd, only : crop_prog
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_cflux_type), intent(inout) :: pcf
     integer(ik4) :: fi,i     ! loop index
 
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       pcf%m_leafc_to_litter(i) = val
       pcf%m_frootc_to_litter(i) = val
@@ -558,7 +558,7 @@ module mod_clm_cnsetvalue
       pcf%woodc_loss(i) = val
     end do
     if ( crop_prog )then
-      do fi = 1 , num
+      do fi = 1, num
         i = filter(fi)
         pcf%xsmrpool_to_atm(i)         = val
         pcf%livestemc_to_litter(i)     = val
@@ -577,15 +577,15 @@ module mod_clm_cnsetvalue
   ! Set pft nitrogen flux variables
   !
   subroutine CNSetPnf(num, filter, val, pnf)
-    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_surfrd, only : crop_prog
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_nflux_type), intent(inout) :: pnf
     integer(ik4) :: fi,i     ! loop index
 
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       pnf%m_leafn_to_litter(i) = val
       pnf%m_frootn_to_litter(i) = val
@@ -710,7 +710,7 @@ module mod_clm_cnsetvalue
       pnf%pft_fire_nloss(i) = val
     end do
     if ( crop_prog )then
-      do fi = 1 , num
+      do fi = 1, num
         i = filter(fi)
         pnf%livestemn_to_litter(i)     = val
         pnf%grainn_to_food(i)          = val
@@ -728,13 +728,13 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetCps(num, filter, val, cps)
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (column_pstate_type), intent(inout) :: cps
     integer(ik4) :: fi,i,j     ! loop index
 
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       cps%decl(i) = val
       cps%coszen(i) = val
@@ -755,15 +755,15 @@ module mod_clm_cnsetvalue
       cps%farea_burned(i) = val
     end do
 
-    do j = 1 , nlevdecomp_full
-      do fi = 1 , num
+    do j = 1, nlevdecomp_full
+      do fi = 1, num
         i = filter(fi)
         cps%fpi_vr(i,j) = val
       end do
     end do
 
-    do j = 1 , nlevgrnd
-      do fi = 1 , num
+    do j = 1, nlevgrnd
+      do fi = 1, num
         i = filter(fi)
         cps%soilpsi(i,j) = val
       end do
@@ -774,14 +774,14 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetCcs(num, filter, val, ccs)
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (column_cstate_type), intent(inout) :: ccs
     integer(ik4) :: fi,i,j,k     ! loop index
 
     ! column only
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       ccs%cwdc(i)  = val
       ccs%col_ctrunc(i) = val
@@ -799,16 +799,16 @@ module mod_clm_cnsetvalue
     end do
 
     ! column and levdecomp
-    do j = 1 , nlevdecomp_full
-      do fi = 1 , num
+    do j = 1, nlevdecomp_full
+      do fi = 1, num
         i = filter(fi)
         ccs%col_ctrunc_vr(i,j) = val
       end do
     end do
 
     ! column and decomp_pools
-    do k = 1 , ndecomp_pools
-      do fi = 1 , num
+    do k = 1, ndecomp_pools
+      do fi = 1, num
         i = filter(fi)
         ccs%decomp_cpools(i,k) = val
         ccs%decomp_cpools_1m(i,k) = val
@@ -816,9 +816,9 @@ module mod_clm_cnsetvalue
     end do
 
     ! column, levdecomp, and decomp_pools
-    do j = 1 , nlevdecomp_full
-      do k = 1 , ndecomp_pools
-        do fi = 1 , num
+    do j = 1, nlevdecomp_full
+      do k = 1, ndecomp_pools
+        do fi = 1, num
           i = filter(fi)
           ccs%decomp_cpools_vr(i,j,k) = val
         end do
@@ -830,14 +830,14 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetCns(num, filter, val, cns)
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (column_nstate_type), intent(inout) :: cns
     integer(ik4) :: fi,i,j,k     ! loop index
 
     ! column only
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       cns%sminn(i) = val
       cns%col_ntrunc(i) = val
@@ -855,8 +855,8 @@ module mod_clm_cnsetvalue
     end do
 
     ! column and levdecomp
-    do j = 1 , nlevdecomp_full
-      do fi = 1 , num
+    do j = 1, nlevdecomp_full
+      do fi = 1, num
         i = filter(fi)
         cns%sminn_vr(i,j) = val
         cns%col_ntrunc_vr(i,j) = val
@@ -868,8 +868,8 @@ module mod_clm_cnsetvalue
     end do
 
     ! column and decomp_pools
-    do k = 1 , ndecomp_pools
-      do fi = 1 , num
+    do k = 1, ndecomp_pools
+      do fi = 1, num
         i = filter(fi)
         cns%decomp_npools(i,k) = val
         cns%decomp_npools_1m(i,k) = val
@@ -877,9 +877,9 @@ module mod_clm_cnsetvalue
     end do
 
     ! column levdecomp, and decomp_pools
-    do j = 1 , nlevdecomp_full
-      do k = 1 , ndecomp_pools
-        do fi = 1 , num
+    do j = 1, nlevdecomp_full
+      do k = 1, ndecomp_pools
+        do fi = 1, num
           i = filter(fi)
           cns%decomp_npools_vr(i,j,k) = val
         end do
@@ -890,16 +890,16 @@ module mod_clm_cnsetvalue
   ! Set column carbon flux variables
   !
   subroutine CNSetCcf(num, filter, val, ccf)
-    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_surfrd, only : crop_prog
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (column_cflux_type), intent(inout) :: ccf
     integer(ik4) :: fi,i,j,k,l     ! loop index
 
-    do j = 1 , nlevdecomp_full
-      do fi = 1 , num
+    do j = 1, nlevdecomp_full
+      do fi = 1, num
         i = filter(fi)
         ! phenology: litterfall and crop fluxes associated wit
         ccf%phenology_c_to_litr_met_c(i,j)                = val
@@ -925,9 +925,9 @@ module mod_clm_cnsetvalue
       end do
     end do
 
-    do k = 1 , ndecomp_pools
-      do j = 1 , nlevdecomp_full
-        do fi = 1 , num
+    do k = 1, ndecomp_pools
+      do j = 1, nlevdecomp_full
+        do fi = 1, num
           i = filter(fi)
           ccf%m_decomp_cpools_to_fire_vr(i,j,k) = val
           ccf%decomp_cpools_sourcesink(i,j,k) = val
@@ -936,17 +936,17 @@ module mod_clm_cnsetvalue
       end do
     end do
 
-    do l = 1 , ndecomp_cascade_transitions
-      do fi = 1 , num
+    do l = 1, ndecomp_cascade_transitions
+      do fi = 1, num
         i = filter(fi)
         ccf%decomp_cascade_hr(i,l) = val
         ccf%decomp_cascade_ctransfer(i,l) = val
       end do
     end do
 
-    do l = 1 , ndecomp_cascade_transitions
-      do j = 1 , nlevdecomp_full
-        do fi = 1 , num
+    do l = 1, ndecomp_cascade_transitions
+      do j = 1, nlevdecomp_full
+        do fi = 1, num
           i = filter(fi)
           ccf%decomp_cascade_hr_vr(i,j,l) = val
           ccf%decomp_cascade_ctransfer_vr(i,j,l) = val
@@ -955,15 +955,15 @@ module mod_clm_cnsetvalue
       end do
     end do
 
-    do k = 1 , ndecomp_pools
-      do fi = 1 , num
+    do k = 1, ndecomp_pools
+      do fi = 1, num
         i = filter(fi)
         ccf%decomp_cpools_leached(i,k) = val
         ccf%m_decomp_cpools_to_fire(i,k) = val
       end do
     end do
 
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       ccf%hrv_deadstemc_to_prod10c(i)         = val
       ccf%hrv_deadstemc_to_prod100c(i)        = val
@@ -995,16 +995,16 @@ module mod_clm_cnsetvalue
   ! Set column nitrogen flux variables
   !
   subroutine CNSetCnf(num, filter, val, cnf)
-    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_surfrd, only : crop_prog
     implicit none
-    integer(ik4) , intent(in) :: num
-    integer(ik4) , intent(in) :: filter(:)
+    integer(ik4), intent(in) :: num
+    integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (column_nflux_type), intent(inout) :: cnf
     integer(ik4) :: fi,i,j,k,l     ! loop index
 
-    do j = 1 , nlevdecomp_full
-      do fi = 1 , num
+    do j = 1, nlevdecomp_full
+      do fi = 1, num
         i = filter(fi)
         ! phenology: litterfall and crop fluxes associated wit
         cnf%phenology_n_to_litr_met_n(i,j)                = val
@@ -1073,7 +1073,7 @@ module mod_clm_cnsetvalue
       end do
     end do
 
-    do fi = 1 , num
+    do fi = 1, num
       i = filter(fi)
       cnf%ndep_to_sminn(i) = val
       cnf%nfix_to_sminn(i) = val
@@ -1112,17 +1112,17 @@ module mod_clm_cnsetvalue
       cnf%som_n_leached(i) = val
     end do
 
-    do k = 1 , ndecomp_pools
-      do fi = 1 , num
+    do k = 1, ndecomp_pools
+      do fi = 1, num
         i = filter(fi)
         cnf%decomp_npools_leached(i,k) = val
         cnf%m_decomp_npools_to_fire(i,k) = val
       end do
     end do
 
-    do k = 1 , ndecomp_pools
-      do j = 1 , nlevdecomp_full
-        do fi = 1 , num
+    do k = 1, ndecomp_pools
+      do j = 1, nlevdecomp_full
+        do fi = 1, num
           i = filter(fi)
           cnf%m_decomp_npools_to_fire_vr(i,j,k) = val
           cnf%decomp_npools_sourcesink(i,j,k) = val
@@ -1131,8 +1131,8 @@ module mod_clm_cnsetvalue
       end do
     end do
 
-    do l = 1 , ndecomp_cascade_transitions
-      do fi = 1 , num
+    do l = 1, ndecomp_cascade_transitions
+      do fi = 1, num
         i = filter(fi)
         cnf%decomp_cascade_ntransfer(i,l) = val
         cnf%decomp_cascade_sminn_flux(i,l) = val
@@ -1142,9 +1142,9 @@ module mod_clm_cnsetvalue
       end do
     end do
 
-    do l = 1 , ndecomp_cascade_transitions
-      do j = 1 , nlevdecomp_full
-        do fi = 1 , num
+    do l = 1, ndecomp_cascade_transitions
+      do j = 1, nlevdecomp_full
+        do fi = 1, num
           i = filter(fi)
           cnf%decomp_cascade_ntransfer_vr(i,j,l) = val
           cnf%decomp_cascade_sminn_flux_vr(i,j,l) = val

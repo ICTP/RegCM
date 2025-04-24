@@ -56,7 +56,7 @@ subroutine sw_kgb16(fname)
     implicit none
     save
 
-    character(len=*) , intent(in) :: fname
+    character(len=*), intent(in) :: fname
     integer(kind=im), parameter :: bandNumber = 1, numGPoints = no16
     integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
@@ -130,7 +130,7 @@ subroutine sw_kgb17(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
        integer(kind=im), parameter :: bandNumber = 2
     integer(kind=im), parameter :: numGPoints = no17
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -208,7 +208,7 @@ subroutine sw_kgb18(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
         integer(kind=im), parameter :: bandNumber = 3
     integer(kind=im), parameter :: numGPoints = no18
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -284,7 +284,7 @@ subroutine sw_kgb19(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
         integer(kind=im), parameter :: bandNumber = 4
     integer(kind=im), parameter :: numGPoints = no19
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -360,7 +360,7 @@ subroutine sw_kgb20(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
         integer(kind=im) :: ab
         integer(kind=im), parameter :: bandNumber = 5
     integer(kind=im), parameter :: numGPoints = no20
@@ -448,7 +448,7 @@ subroutine sw_kgb21(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
         integer(kind=im), parameter :: bandNumber = 6
     integer(kind=im), parameter :: numGPoints = no21
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -528,7 +528,7 @@ subroutine sw_kgb22(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
        integer(kind=im), parameter :: bandNumber = 7
     integer(kind=im), parameter :: numGPoints = no22
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -604,7 +604,7 @@ subroutine sw_kgb23(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
         integer(kind=im), parameter :: bandNumber = 8
     integer(kind=im), parameter :: numGPoints = no23
         integer(kind=im), parameter :: gPointSetNumber = 1
@@ -672,7 +672,7 @@ subroutine sw_kgb24(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
         integer(kind=im) :: ab
         integer(kind=im), parameter :: bandNumber = 9
     integer(kind=im), parameter :: numGPoints = no24
@@ -761,7 +761,7 @@ subroutine sw_kgb25(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
         integer(kind=im) :: ab
        integer(kind=im), parameter :: bandNumber = 10
     integer(kind=im), parameter :: numGPoints = no25
@@ -832,7 +832,7 @@ subroutine sw_kgb26(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
     integer(kind=im), parameter :: bandNumber = 11
     integer(kind=im), parameter :: numGPoints = no26
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -886,7 +886,7 @@ subroutine sw_kgb27(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
     integer(kind=im), parameter :: bandNumber = 12
     integer(kind=im), parameter :: numGPoints = no27
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -950,7 +950,7 @@ subroutine sw_kgb28(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
     integer(kind=im), parameter :: bandNumber = 13
     integer(kind=im), parameter :: numGPoints = no28
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -1019,7 +1019,7 @@ subroutine sw_kgb29(fname)
         implicit none
         save
 
-        character(len=*) , intent(in) :: fname
+        character(len=*), intent(in) :: fname
     integer(kind=im) :: ab
     integer(kind=im), parameter :: bandNumber = 14
     integer(kind=im), parameter :: numGPoints = no29

@@ -5,33 +5,33 @@ module mod_vertint
   private
 
   ! Standard Gravity (m/sec**2) 3rd CGPM
-  real(4) , parameter :: egrav = 9.80665
+  real(4), parameter :: egrav = 9.80665
   ! Gas constant for dry air in Joules/kg/K
-  real(4) , parameter :: rgas = 287.05823
+  real(4), parameter :: rgas = 287.05823
   ! Standard atmosphere ICAO 1993
-  real(4) , parameter :: lrate = 0.00649
+  real(4), parameter :: lrate = 0.00649
 
-  real(4) , parameter :: rglrog = rgas*lrate/egrav
+  real(4), parameter :: rglrog = rgas*lrate/egrav
 
-  real(4) , parameter :: bltop = 0.960
+  real(4), parameter :: bltop = 0.960
 
-  public :: intlin_hy , intlog_hy
-  public :: intlin_nonhy , intlog_nonhy
+  public :: intlin_hy, intlog_hy
+  public :: intlin_nonhy, intlog_nonhy
 
   contains
 
   subroutine intlin_nonhy(km,jm,im,f,mp,p,fp)
     implicit none
-    integer , intent(in) :: im , jm , km
-    real(4) , intent(in) :: p
-    real(4) , intent(in) , dimension(km,jm,im) :: f
-    real(4) , intent(in) , dimension(km,jm,im) :: mp
-    real(4) , intent(out) , dimension(jm,im) :: fp
+    integer, intent(in) :: im, jm, km
+    real(4), intent(in) :: p
+    real(4), intent(in), dimension(km,jm,im) :: f
+    real(4), intent(in), dimension(km,jm,im) :: mp
+    real(4), intent(out), dimension(jm,im) :: fp
 
-    integer :: i , j , k , knx
+    integer :: i, j, k, knx
     integer :: kx = 0
-    real(4) :: w1 , wp , sp , tp , bp
-    real(4) , dimension(km) :: spp
+    real(4) :: w1, wp, sp, tp, bp
+    real(4), dimension(km) :: spp
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
@@ -40,14 +40,14 @@ module mod_vertint
     !
     ! Loop over points
     !
-    do j = 1 , jm
-      do i = 1 , im
+    do j = 1, jm
+      do i = 1, im
         !
         ! Over the top or below bottom level
         !
         tp = mp(1,j,i)
         bp = mp(km,j,i)-tp
-        do k = 1 , km
+        do k = 1, km
           spp(k) = (mp(k,j,i)-tp) / bp
         end do
         sp = (p-tp) / bp
@@ -59,7 +59,7 @@ module mod_vertint
           !
           ! Search p level below
           !
-          do k = 2 , km
+          do k = 2, km
             kx = k
             if ( spp(k) > sp ) exit
           end do
@@ -74,28 +74,28 @@ module mod_vertint
 
   subroutine intlog_nonhy(km,jm,im,f,mp,p,fp)
     implicit none
-    integer , intent(in) :: im , jm , km
-    real(4) , intent(in) , dimension(km,jm,im) :: f
-    real(4) , intent(in) , dimension(km,jm,im) :: mp
-    real(4) , intent(out) , dimension(jm,im) :: fp
-    real(4) , intent(in) :: p
+    integer, intent(in) :: im, jm, km
+    real(4), intent(in), dimension(km,jm,im) :: f
+    real(4), intent(in), dimension(km,jm,im) :: mp
+    real(4), intent(out), dimension(jm,im) :: fp
+    real(4), intent(in) :: p
 
-    real(4) :: w1 , wp , sp , bp , tp
-    real(4) , dimension(km) :: spp
-    integer :: i , j , k , knx
+    real(4) :: w1, wp, sp, bp, tp
+    real(4), dimension(km) :: spp
+    integer :: i, j, k, knx
     integer :: kx = 0
     !
     ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
     ! LINEAR IN LOG P.
     !
-    do j = 1 , jm
-      do i = 1 , im
+    do j = 1, jm
+      do i = 1, im
         !
         ! Over the top or below bottom level
         !
         tp = mp(1,j,i)
         bp = mp(km,j,i)-tp
-        do k = 1 , km
+        do k = 1, km
           spp(k) = (mp(k,j,i) - tp) / bp
         end do
         sp = (p - tp) / bp
@@ -110,7 +110,7 @@ module mod_vertint
           !
           ! Search p level below the requested one
           !
-          do k = 2 , km
+          do k = 2, km
             kx = k
             if ( spp(k) > sp ) exit
           end do
@@ -125,17 +125,17 @@ module mod_vertint
 
   subroutine intlin_hy(km,jm,im,f,pstar,sig,ptop,p,fp)
     implicit none
-    integer , intent(in) :: im , jm , km
-    real(4) , intent(in) :: p
-    real(8) , intent(in) :: ptop
-    real(4) , intent(in) , dimension(km,jm,im) :: f
-    real(4) , intent(in) , dimension(jm,im) :: pstar
-    real(4) , intent(in) , dimension(km) :: sig
-    real(4) , intent(out) , dimension(jm,im) :: fp
+    integer, intent(in) :: im, jm, km
+    real(4), intent(in) :: p
+    real(8), intent(in) :: ptop
+    real(4), intent(in), dimension(km,jm,im) :: f
+    real(4), intent(in), dimension(jm,im) :: pstar
+    real(4), intent(in), dimension(km) :: sig
+    real(4), intent(out), dimension(jm,im) :: fp
 
-    integer :: i , j , k , knx
+    integer :: i, j, k, knx
     integer :: kx = 0
-    real(4) :: sigp , w1 , wp , ptp
+    real(4) :: sigp, w1, wp, ptp
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
@@ -145,8 +145,8 @@ module mod_vertint
     ! Loop over points
     !
     ptp = real(ptop) * 100.0
-    do j = 1 , jm
-      do i = 1 , im
+    do j = 1, jm
+      do i = 1, im
         !
         ! The searched sigma value
         !
@@ -162,7 +162,7 @@ module mod_vertint
           !
           ! Search k level below the requested one
           !
-          do k = 2 , km
+          do k = 2, km
             kx = k
             if ( sig(k) > sigp ) exit
           end do
@@ -177,16 +177,16 @@ module mod_vertint
 
   subroutine intlog_hy(km,jm,im,f,pstar,sig,ptop,p,fp)
     implicit none
-    integer , intent(in) :: im , jm , km
-    real(4) , intent(in) , dimension(km,jm,im) :: f
-    real(4) , intent(out) , dimension(jm,im) :: fp
-    real(8) , intent(in) :: ptop
-    real(4) , intent(in) :: p
-    real(4) , intent(in) , dimension(jm,im) :: pstar
-    real(4) , intent(in) , dimension(km) :: sig
+    integer, intent(in) :: im, jm, km
+    real(4), intent(in), dimension(km,jm,im) :: f
+    real(4), intent(out), dimension(jm,im) :: fp
+    real(8), intent(in) :: ptop
+    real(4), intent(in) :: p
+    real(4), intent(in), dimension(jm,im) :: pstar
+    real(4), intent(in), dimension(km) :: sig
 
-    real(4) :: sigp , w1 , wp , ptp
-    integer :: i , j , k , knx
+    real(4) :: sigp, w1, wp, ptp
+    integer :: i, j, k, knx
     integer :: kx = 0
     !
     ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
@@ -195,8 +195,8 @@ module mod_vertint
     ! Loop over points
     !
     ptp = real(ptop) * 100.0
-    do j = 1 , jm
-      do i = 1 , im
+    do j = 1, jm
+      do i = 1, im
         !
         ! Find boundary layer Top
         !
@@ -214,7 +214,7 @@ module mod_vertint
           !
           ! Search k level above
           !
-          do k = 2 , km
+          do k = 2, km
             kx = k
             if ( sig(k) > sigp ) exit
           end do

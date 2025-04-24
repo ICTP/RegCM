@@ -40,171 +40,171 @@ module mod_rrtmg_driver
   use mod_rad_outrad
   use mod_mpmessage
   use mod_runparams
-  use mod_mppparam , only : italk
+  use mod_mppparam, only : italk
   use mod_regcm_types
 
   implicit none
 
   private
 !
-  public :: allocate_mod_rad_rrtmg , rrtmg_driver
+  public :: allocate_mod_rad_rrtmg, rrtmg_driver
 
-  real(rkx) , pointer , dimension(:) :: frsa => null( )
-  real(rkx) , pointer , dimension(:) :: sabtp => null( )
-  real(rkx) , pointer , dimension(:) :: clrst => null( )
-  real(rkx) , pointer , dimension(:) :: solin => null( )
-  real(rkx) , pointer , dimension(:) :: solout => null( )
-  real(rkx) , pointer , dimension(:) :: clrss => null( )
-  real(rkx) , pointer , dimension(:) :: firtp => null( )
-  real(rkx) , pointer , dimension(:) :: lwout => null( )
-  real(rkx) , pointer , dimension(:) :: lwin => null( )
-  real(rkx) , pointer , dimension(:) :: frla => null( )
-  real(rkx) , pointer , dimension(:) :: clrlt => null( )
-  real(rkx) , pointer , dimension(:) :: clrls => null( )
-  real(rkx) , pointer , dimension(:) :: abv => null( )
-  real(rkx) , pointer , dimension(:) :: sol => null( )
-  real(rkx) , pointer , dimension(:) :: sols => null( )
-  real(rkx) , pointer , dimension(:) :: soll => null( )
-  real(rkx) , pointer , dimension(:) :: solsd => null( )
-  real(rkx) , pointer , dimension(:) :: solld => null( )
-  real(rkx) , pointer , dimension(:) :: slwd => null( )
-  real(rkx) , pointer , dimension(:) :: tsfc => null( )
-  real(rkx) , pointer , dimension(:) :: psfc => null( )
-  real(rkx) , pointer , dimension(:) :: asdir => null( )
-  real(rkx) , pointer , dimension(:) :: asdif => null( )
-  real(rkx) , pointer , dimension(:) :: aldir => null( )
-  real(rkx) , pointer , dimension(:) :: aldif => null( )
-  real(rkx) , pointer , dimension(:) :: czen => null( )
-  real(rkx) , pointer , dimension(:) :: dlat => null( )
-  real(rkx) , pointer , dimension(:) :: xptrop => null( )
-  real(rkx) , pointer , dimension(:) :: totcf => null( )
-  real(rkx) , pointer , dimension(:) :: totwv => null( )
-  real(rkx) , pointer , dimension(:) :: totcl => null( )
-  real(rkx) , pointer , dimension(:) :: totci => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: frsa => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: sabtp => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: clrst => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: solin => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: solout => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: clrss => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: firtp => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: lwout => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: lwin => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: frla => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: clrlt => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: clrls => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: abv => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: sol => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: sols => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: soll => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: solsd => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: solld => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: slwd => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: tsfc => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: psfc => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: asdir => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: asdif => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: aldir => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: aldif => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: czen => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: dlat => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: xptrop => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: totcf => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: totwv => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: totcl => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: totci => null( )
 
-  real(rkx) , pointer , dimension(:,:) :: qrs => null( )
-  real(rkx) , pointer , dimension(:,:) :: qrl => null( )
-  real(rkx) , pointer , dimension(:,:) :: clwp_int => null( )
-  real(rkx) , pointer , dimension(:,:) :: pint => null( )
-  real(rkx) , pointer , dimension(:,:) :: rh => null( )
-  real(rkx) , pointer , dimension(:,:) :: cld_int => null( )
-  real(rkx) , pointer , dimension(:,:) :: tlay => null( )
-  real(rkx) , pointer , dimension(:,:) :: h2ovmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: o3vmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: co2vmrk => null( )
-  real(rkx) , pointer , dimension(:,:) :: play => null( )
-  real(rkx) , pointer , dimension(:,:) :: ch4vmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: n2ovmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: o2vmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: cfc11vmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: cfc12vmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: cfc22vmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: ccl4vmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: o3 => null( )
-  real(rkx) , pointer , dimension(:,:) :: reicmcl => null( )
-  real(rkx) , pointer , dimension(:,:) :: relqmcl => null( )
-  real(rkx) , pointer , dimension(:,:) :: swhr => null( )
-  real(rkx) , pointer , dimension(:,:) :: swhrc => null( )
-  real(rkx) , pointer , dimension(:,:) :: ciwp => null( )
-  real(rkx) , pointer , dimension(:,:) :: clwp => null( )
-  real(rkx) , pointer , dimension(:,:) :: rei => null( )
-  real(rkx) , pointer , dimension(:,:) :: rel => null( )
-  real(rkx) , pointer , dimension(:,:) :: cldf => null( )
-  real(rkx) , pointer , dimension(:,:) :: lwhr => null( )
-  real(rkx) , pointer , dimension(:,:) :: lwhrc => null( )
-  real(rkx) , pointer , dimension(:,:) :: duflx_dt => null( )
-  real(rkx) , pointer , dimension(:,:) :: duflxc_dt => null( )
-  real(rkx) , pointer , dimension(:,:) :: ql1 => null( )
-  real(rkx) , pointer , dimension(:,:) :: qi1 => null( )
-  real(rkx) , pointer , dimension(:,:) :: alpha => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: qrs => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: qrl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: clwp_int => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: pint => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rh => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: cld_int => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: tlay => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: h2ovmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: o3vmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: co2vmrk => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: play => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: ch4vmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: n2ovmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: o2vmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: cfc11vmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: cfc12vmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: cfc22vmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: ccl4vmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: o3 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: reicmcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: relqmcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swhr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swhrc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: ciwp => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: clwp => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rei => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rel => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: cldf => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: lwhr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: lwhrc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: duflx_dt => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: duflxc_dt => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: ql1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: qi1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: alpha => null( )
 
-  real(rkx) , pointer , dimension(:,:) :: plev => null( )
-  real(rkx) , pointer , dimension(:,:) :: tlev => null( )
-  real(rkx) , pointer , dimension(:,:) :: swuflx => null( )
-  real(rkx) , pointer , dimension(:,:) :: swdflx => null( )
-  real(rkx) , pointer , dimension(:,:) :: swuflxc => null( )
-  real(rkx) , pointer , dimension(:,:) :: swdflxc => null( )
-  real(rkx) , pointer , dimension(:,:) :: lwuflx => null( )
-  real(rkx) , pointer , dimension(:,:) :: lwdflx => null( )
-  real(rkx) , pointer , dimension(:,:) :: lwuflxc => null( )
-  real(rkx) , pointer , dimension(:,:) :: lwdflxc => null( )
-  real(rkx) , pointer , dimension(:,:) :: swddiruviflx => null( )
-  real(rkx) , pointer , dimension(:,:) :: swddifuviflx => null( )
-  real(rkx) , pointer , dimension(:,:) :: swddirpirflx => null( )
-  real(rkx) , pointer , dimension(:,:) :: swddifpirflx => null( )
-  real(rkx) , pointer , dimension(:,:) :: swdvisflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: plev => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: tlev => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swuflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swdflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swuflxc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swdflxc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: lwuflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: lwdflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: lwuflxc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: lwdflxc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swddiruviflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swddifuviflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swddirpirflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swddifpirflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: swdvisflx => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: cldfmcl => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: taucmcl => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ssacmcl => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: asmcmcl => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: fsfcmcl => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ciwpmcl => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: clwpmcl => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: cldfmcl_lw => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: taucmcl_lw => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ciwpmcl_lw => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: clwpmcl_lw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cldfmcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: taucmcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ssacmcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: asmcmcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: fsfcmcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ciwpmcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: clwpmcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cldfmcl_lw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: taucmcl_lw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ciwpmcl_lw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: clwpmcl_lw => null( )
 
-  real(rkx) , pointer , dimension(:) :: aeradfo => null( )
-  real(rkx) , pointer , dimension(:) :: aeradfos => null( )
-  real(rkx) , pointer , dimension(:) :: asaeradfo => null( )
-  real(rkx) , pointer , dimension(:) :: asaeradfos => null( )
-  real(rkx) , pointer , dimension(:) :: aerlwfo => null( )
-  real(rkx) , pointer , dimension(:) :: aerlwfos => null( )
-  real(rkx) , pointer , dimension(:) :: asaerlwfo => null( )
-  real(rkx) , pointer , dimension(:) :: asaerlwfos => null( )
-  real(rkx) , pointer , dimension(:,:) :: fice => null( )
-  real(rkx) , pointer , dimension(:,:) :: wcl => null( )
-  real(rkx) , pointer , dimension(:,:) :: wci => null( )
-  real(rkx) , pointer , dimension(:,:) :: gcl => null( )
-  real(rkx) , pointer , dimension(:,:) :: gci => null( )
-  real(rkx) , pointer , dimension(:,:) :: fcl => null( )
-  real(rkx) , pointer , dimension(:,:) :: fci => null( )
-  real(rkx) , pointer , dimension(:,:) :: tauxcl => null( )
-  real(rkx) , pointer , dimension(:,:) :: tauxci => null( )
-  real(rkx) , pointer , dimension(:,:) :: h2ommr => null( )
-  real(rkx) , pointer , dimension(:,:) :: n2ommr => null( )
-  real(rkx) , pointer , dimension(:,:) :: ch4mmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: cfc11mmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: cfc12mmr => null( )
-  real(rkx) , pointer , dimension(:,:) :: deltaz => null( )
-  real(rkx) , pointer , dimension(:,:) :: dzr => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: outtaucl => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: outtauci => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: aeradfo => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: aeradfos => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: asaeradfo => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: asaeradfos => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: aerlwfo => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: aerlwfos => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: asaerlwfo => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: asaerlwfos => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: fice => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: wcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: wci => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: gcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: gci => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: fcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: fci => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: tauxcl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: tauxci => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: h2ommr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: n2ommr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: ch4mmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: cfc11mmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: cfc12mmr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: deltaz => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: dzr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: outtaucl => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: outtauci => null( )
 
-  integer(ik4) , pointer , dimension(:) :: ioro => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: ioro => null( )
 
   ! spectral dependant quantities
 
-  real(rkx) , pointer , dimension(:,:,:) :: tauaer => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ssaaer => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: asmaer => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ecaer => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tauaer => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ssaaer => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: asmaer => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ecaer => null( )
   ! tauc = in-cloud optical depth
   ! ssac = in-cloud single scattering albedo (non-delta scaled)
   ! asmc = in-cloud asymmetry parameter (non-delta scaled)
   ! fsfc = in-cloud forward scattering fraction (non-delta scaled)
-  real(rkx) , pointer , dimension(:,:,:) :: tauc => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ssac => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: asmc => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: fsfc => null( )
-  real(rkx) , pointer , dimension(:,:) :: emis_surf => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tauc_lw => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tauc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ssac => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: asmc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: fsfc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: emis_surf => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tauc_lw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tauaer_lw => null( )
 
-  real(rkx) , pointer , dimension(:) :: cfc110 => null( )
-  real(rkx) , pointer , dimension(:) :: cfc120 => null( )
-  real(rkx) , pointer , dimension(:) :: ch40 => null( )
-  real(rkx) , pointer , dimension(:) :: co2mmr => null( )
-  real(rkx) , pointer , dimension(:) :: co2vmr => null( )
-  real(rkx) , pointer , dimension(:) :: n2o0 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: cfc110 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: cfc120 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: ch40 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: co2mmr => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: co2vmr => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: n2o0 => null( )
 
-  integer(ik4) :: npr , npj
+  integer(ik4) :: npr, npj
 
   integer(ik4) :: permuteseed = 37_ik4
 
-  logical , parameter :: luse_max_rnovl = .true.
+  logical, parameter :: luse_max_rnovl = .true.
 
   contains
 
@@ -359,19 +359,19 @@ module mod_rrtmg_driver
 
   subroutine rrtmg_driver(iyear,imonth,iday,lout,m2r,r2m)
     implicit none
-    type(mod_2_rad) , intent(in) :: m2r
-    type(rad_2_mod) , intent(inout) :: r2m
-    integer(ik4) , intent(in) :: iyear , imonth , iday
-    logical , intent(in) :: lout
-    integer(ik4) :: k , kj , n , i , j , ldirect
+    type(mod_2_rad), intent(in) :: m2r
+    type(rad_2_mod), intent(inout) :: r2m
+    integer(ik4), intent(in) :: iyear, imonth, iday
+    logical, intent(in) :: lout
+    integer(ik4) :: k, kj, n, i, j, ldirect
     integer(ik4) :: idcor           ! Decorrelation length type
     integer(ik4) :: juldat          ! Julian day of year
     real(rk8) :: decorr_con         ! decorrelation length, constant (m)
     logical :: lradfor
     real(rkx) :: adjes
-    integer(ik4) , parameter :: idrv = 0
-    integer(ik4) , parameter :: iaer = 10
-    integer(ik4) , parameter :: isolvar = -1
+    integer(ik4), parameter :: idrv = 0
+    integer(ik4), parameter :: iaer = 10
+    integer(ik4), parameter :: isolvar = -1
 
     ! from water path and cloud radius / tauc_LW is not requested
     tauc_lw(:,:,:) = 1.0e-10_rkx
@@ -416,8 +416,8 @@ module mod_rrtmg_driver
                      dlat,juldat,cldf,alpha)
     end if
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         n = (j-jci1+1)+(i-ici1)*npj
         asdir(n) = m2r%aldirs(j,i)
         asdif(n) = m2r%aldifs(j,i)
@@ -500,7 +500,7 @@ module mod_rrtmg_driver
     ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
     ! fsds     - Flux Shortwave Downwelling Surface
 
-    do n = 1 , npr
+    do n = 1, npr
       sabtp(n)  = swdflx(n,kth) - swuflx(n,kth)
       solin(n)  = swdflx(n,kth)
       solout(n) = swuflx(n,kth)
@@ -520,7 +520,7 @@ module mod_rrtmg_driver
     !  r2m%sabveg set to frsa (as in standard version: potential inconsistency
     !  if soil fraction is large)
     ! solar is normally the visible band only total incident surface flux
-    do n = 1 , npr
+    do n = 1, npr
       abv(n) = frsa(n) + frla(n)
       sol(n) = swdvisflx(n,1)
       ! surface SW incident
@@ -535,17 +535,17 @@ module mod_rrtmg_driver
     ! 3d heating rate back on regcm grid and converted to K.S-1
     ! used to calculate heatinge rate tendency
     !
-    do k = 1 , kz
+    do k = 1, kz
       kj = kzp1 -k
-      do n = 1 , npr
+      do n = 1, npr
         qrs(n,kj) = swhr(n,k) / secpd
         qrl(n,kj) = lwhr(n,k) / secpd
       end do
     end do
 
-    do k = 1 , kz
+    do k = 1, kz
       kj = kzp1-k
-      do n = 1 , npr
+      do n = 1, npr
         o3(n,kj) = o3vmr(n,k)
         dzr(n,kj) = deltaz(n,k)
         clwp_int(n,kj) = clwp(n,k)
@@ -553,9 +553,9 @@ module mod_rrtmg_driver
     end do
 
     cld_int(:,:) = d_zero
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do k = 1, kz
+      do i = ici1, ici2
+        do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
           if ( clwp_int(n,k) > d_zero ) then
             cld_int(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
@@ -567,16 +567,16 @@ module mod_rrtmg_driver
     end do
 
     ! Calculate cloud parameters
-    do n = 1 , npr
+    do n = 1, npr
       totcf(n) = d_one
       if ( luse_max_rnovl ) then
-        do k = 2 , kzp1
+        do k = 2, kzp1
           totcf(n) = totcf(n) * &
             (1.0001_rkx - max(cld_int(n,k-1),cld_int(n,k)))/ &
             (1.0001_rkx - cld_int(n,k-1))
         end do
       else
-        do k = 1 , kz
+        do k = 1, kz
           totcf(n) = totcf(n)*(d_one-cld_int(n,k))
         end do
       end if
@@ -586,9 +586,9 @@ module mod_rrtmg_driver
     totwv(:) = d_zero
     totci(:) = d_zero
     totcl(:) = d_zero
-    do k = 1 , kz
+    do k = 1, kz
       kj = kzp1-k
-      do n = 1 , npr
+      do n = 1, npr
         totci(n) = totci(n) + &
            clwp_int(n,k)*cld_int(n,k)*fice(n,kj)*d_r1000
         totcl(n) = totcl(n) + &
@@ -612,12 +612,12 @@ module mod_rrtmg_driver
 
   subroutine prep_dat_rrtm(m2r,iyear,imonth)
     implicit none
-    type(mod_2_rad) , intent(in) :: m2r
-    integer(ik4) , intent(in) :: iyear , imonth
-    integer(ik4) :: i , j , k , kj , ns , n , itr
-    real(rkx) , parameter :: verynearone = 0.999999_rkx
-    real(rkx) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
-    real(rkx) :: w1 , w2 , p1 , p2
+    type(mod_2_rad), intent(in) :: m2r
+    integer(ik4), intent(in) :: iyear, imonth
+    integer(ik4) :: i, j, k, kj, ns, n, itr
+    real(rkx), parameter :: verynearone = 0.999999_rkx
+    real(rkx) :: tmp1l, tmp2l, tmp3l, tmp1i, tmp2i, tmp3i
+    real(rkx) :: w1, w2, p1, p2
 !
 !   Set index for cloud particle properties based on the wavelength,
 !   according to A. Slingo (1989) equations 1-3:
@@ -654,47 +654,47 @@ module mod_rrtmg_driver
 !   abari    - a coefficient for extinction optical depth
 !   bbari    - b coefficient for extinction o
 !
-    real(rkx) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
-                dbarii , dbarli , ebarii , ebarli , fbarii , fbarli
+    real(rkx) :: abarii, abarli, bbarii, bbarli, cbarii, cbarli, &
+                dbarii, dbarli, ebarii, ebarli, fbarii, fbarli
 
-    real(rkx) , dimension(4) , parameter :: abarl = &
-         [  2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx ]
-    real(rkx) , dimension(4) , parameter :: bbarl = &
-         [  1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx ]
-    real(rkx) , dimension(4) , parameter :: cbarl = &
-         [ -5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx ]
-    real(rkx) , dimension(4) , parameter :: dbarl = &
-         [  1.630e-7_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx ]
-    real(rkx) , dimension(4) , parameter :: ebarl = &
-         [  0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx ]
-    real(rkx) , dimension(4) , parameter :: fbarl = &
-         [  2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx ]
+    real(rkx), dimension(4), parameter :: abarl = &
+         [  2.817e-2_rkx,  2.682e-2_rkx, 2.264e-2_rkx, 1.281e-2_rkx ]
+    real(rkx), dimension(4), parameter :: bbarl = &
+         [  1.305e+0_rkx,  1.346e+0_rkx, 1.454e+0_rkx, 1.641e+0_rkx ]
+    real(rkx), dimension(4), parameter :: cbarl = &
+         [ -5.620e-8_rkx, -6.940e-6_rkx, 4.640e-4_rkx, 0.201e+0_rkx ]
+    real(rkx), dimension(4), parameter :: dbarl = &
+         [  1.630e-7_rkx,  2.350e-5_rkx, 1.240e-3_rkx, 7.560e-3_rkx ]
+    real(rkx), dimension(4), parameter :: ebarl = &
+         [  0.829e+0_rkx,  0.794e+0_rkx, 0.754e+0_rkx, 0.826e+0_rkx ]
+    real(rkx), dimension(4), parameter :: fbarl = &
+         [  2.482e-3_rkx,  4.226e-3_rkx, 6.560e-3_rkx, 4.353e-3_rkx ]
 !
-    real(rkx) , dimension(4) , parameter :: abari = &
-         [  3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx ]
-    real(rkx) , dimension(4) , parameter :: bbari = &
-         [  2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx ]
-    real(rkx) , dimension(4) , parameter :: cbari = &
-         [  1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx ]
-    real(rkx) , dimension(4) , parameter :: dbari = &
-         [  0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx ]
-    real(rkx) , dimension(4) , parameter :: ebari = &
-         [  0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx ]
-    real(rkx) , dimension(4) , parameter :: fbari = &
-         [  5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx ]
+    real(rkx), dimension(4), parameter :: abari = &
+         [  3.4480e-3_rkx, 3.4480e-3_rkx, 3.4480e-3_rkx, 3.44800e-3_rkx ]
+    real(rkx), dimension(4), parameter :: bbari = &
+         [  2.4310e+0_rkx, 2.4310e+0_rkx, 2.4310e+0_rkx, 2.43100e+0_rkx ]
+    real(rkx), dimension(4), parameter :: cbari = &
+         [  1.0000e-5_rkx, 1.1000e-4_rkx, 1.8610e-2_rkx, 0.46658e+0_rkx ]
+    real(rkx), dimension(4), parameter :: dbari = &
+         [  0.0000e+0_rkx, 1.4050e-5_rkx, 8.3280e-4_rkx, 2.05000e-5_rkx ]
+    real(rkx), dimension(4), parameter :: ebari = &
+         [  0.7661e+0_rkx, 0.7730e+0_rkx, 0.7940e+0_rkx, 0.95950e+0_rkx ]
+    real(rkx), dimension(4), parameter :: fbari = &
+         [  5.8510e-4_rkx, 5.6650e-4_rkx, 7.2670e-4_rkx, 1.07600e-4_rkx ]
     !
     ! define index pointing on appropriate parameter in slingo's table
     ! for eachRRTM SW band
     !
-    integer, dimension (nbndsw) , parameter :: indsl = &
+    integer, dimension (nbndsw), parameter :: indsl = &
           [ 4, 4, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 4 ]
     ! CONVENTION : RRTMG driver takes layering from bottom to TOA.
     ! Regcm consider TOA to bottom
 
     ! surface pressure and scaled pressure, from which level are computed
     ! RRTM SW takes pressure in mb,hpa
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         n = (j-jci1+1)+(i-ici1)*npj
         dlat(n) = m2r%xlat(j,i)
         ioro(n) = m2r%ldmsk(j,i)
@@ -703,18 +703,18 @@ module mod_rrtmg_driver
     !
     ! The pressures in the RRTMG are expressed in hPa: must divide by 100.0
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         n = (j-jci1+1)+(i-ici1)*npj
         xptrop(n) = m2r%ptrop(j,i) * d_r100
         psfc(n) = m2r%psatms(j,i) * d_r100
       end do
     end do
 
-    do k = 1 , kz
+    do k = 1, kz
       kj = kzp1-k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
           play(n,k) = m2r%phatms(j,i,kj)*d_r100
         end do
@@ -723,31 +723,31 @@ module mod_rrtmg_driver
     !
     ! convert pressures from Pa to mb and define interface pressures:
     !
-    do k = 1 , kzp1
+    do k = 1, kzp1
       kj = kzp2-k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
           plev(n,k) = m2r%pfatms(j,i,kj)*d_r100
         end do
       end do
     end do
-    do k = kzp2 , ktf
-      do n = 1 , npr
+    do k = kzp2, ktf
+      do n = 1, npr
         plev(n,k) = stdplevf(kclimf+k-kzp2)
       end do
     end do
     ! smooth transition from top to climate at kzp1
-    do k = kzp1 , kth
-      do n = 1 , npr
+    do k = kzp1, kth
+      do n = 1, npr
         play(n,k) = stdplevh(kclimh+k-kzp1)
       end do
     end do
     !
     ! ground temperature
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         n = (j-jci1+1)+(i-ici1)*npj
         tsfc(n) = m2r%tg(j,i)
       end do
@@ -755,18 +755,18 @@ module mod_rrtmg_driver
     !
     ! air temperatures
     !
-    do k = 1 , kz
+    do k = 1, kz
       kj = kzp1-k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
           tlay(n,k) = m2r%tatms(j,i,kj)
         end do
       end do
     end do
-    do k = kzp1 , kth
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do k = kzp1, kth
+      do i = ici1, ici2
+        do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
 #ifdef RCEMIP
           tlay(n,k) = max(stdatm_val(calday,dayspy,d_zero, &
@@ -781,17 +781,17 @@ module mod_rrtmg_driver
     !
     ! deltaz
     !
-    do k = 1 , kz
+    do k = 1, kz
       kj = kzp1 - k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
           deltaz(n,k) = m2r%deltaz(j,i,kj)
         end do
       end do
     end do
-    do k = kzp1 , kth
-      do n = 1 , npr
+    do k = kzp1, kth
+      do n = 1, npr
         deltaz(n,k) = (stdhlevf(kclimf+k-kzp1) - &
                        stdhlevf(kclimf+k-kzp1-1)) * d_1000
       end do
@@ -799,14 +799,14 @@ module mod_rrtmg_driver
     !
     ! air temperature at the interface
     !
-    do n = 1 , npr
+    do n = 1, npr
       tlev(n,1) = tsfc(n)
     end do
     if ( idynamic /= 3 ) then
-      do k = 2 , kz
+      do k = 2, kz
         kj = kzp2-k
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             n = (j-jci1+1)+(i-ici1)*npj
             p1 = (plev(n,k)/play(n,k-1))**c287
             p2 = (plev(n,k)/play(n,k))**c287
@@ -817,14 +817,14 @@ module mod_rrtmg_driver
         end do
       end do
     else
-      do k = 2 , kz
-        do n = 1 , npr
+      do k = 2, kz
+        do n = 1, npr
           tlev(n,k) = 0.5_rkx * (tlay(n,k-1) + tlay(n,k))
         end do
       end do
     end if
-    do k = kzp1 , ktf
-      do n = 1 , npr
+    do k = kzp1, ktf
+      do n = 1, npr
 #ifdef RCEMIP
         tlev(n,k) = max(stdatm_val(calday,dayspy,d_zero, &
           plev(n,k),istdatm_tempk),tlev(n,kz))
@@ -836,18 +836,18 @@ module mod_rrtmg_driver
     end do
 
     if ( ipptls > 1 ) then
-      do k = 1 , kz
+      do k = 1, kz
         kj = kzp1 - k
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             n = (j-jci1+1)+(i-ici1)*npj
             ql1(n,k) = m2r%qxatms(j,i,kj,iqc)
             qi1(n,k) = m2r%qxatms(j,i,kj,iqi)
           end do
         end do
       end do
-      do k = kzp1 , kth
-        do n = 1 , npr
+      do k = kzp1, kth
+        do n = 1, npr
           ql1(n,k) = d_zero
           qi1(n,k) = d_zero
         end do
@@ -856,18 +856,18 @@ module mod_rrtmg_driver
     !
     ! h2o volume mixing ratio
     !
-    do k = 1 , kz
+    do k = 1, kz
       kj = kzp1 - k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
           h2ommr(n,k) = m2r%qxatms(j,i,kj,iqv)
           h2ovmr(n,k) = h2ommr(n,k) * rep2
         end do
       end do
     end do
-    do k = kzp1 , kth
-      do n = 1 , npr
+    do k = kzp1, kth
+      do n = 1, npr
 #ifdef RCEMIP
         h2ommr(n,k) = 1.0e-14_rkx
 #else
@@ -881,17 +881,17 @@ module mod_rrtmg_driver
     !
     ! o3 volume mixing ratio
     !
-    do k = 1 , kz
+    do k = 1, kz
       kj = kzp1 - k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
           o3vmr(n,k) = d_half*(o3prof(j,i,kj)+o3prof(j,i,kj+1)) * amd/amo3
         end do
       end do
     end do
-    do k = kzp1 , kth
-      do n = 1 , npr
+    do k = kzp1, kth
+      do n = 1, npr
 #ifdef RCEMIP
         o3vmr(n,k) = &
           stdatm_val(calday,dayspy,d_zero,play(n,k),istdatm_ozone) / &
@@ -907,7 +907,7 @@ module mod_rrtmg_driver
     ! Transform in mass mixing ratios (g/g)
     !
 #ifdef RCEMIP
-    do n = 1 , npr
+    do n = 1, npr
       co2vmr(n) = ghgval(igh_co2,iyear,imonth,0.0_rkx)
       co2mmr(n) = co2vmr(n)*(amco2/amd)
       ch40(n) = ghgval(igh_ch4,iyear,imonth,0.0_rkx)*(amch4/amd)
@@ -916,7 +916,7 @@ module mod_rrtmg_driver
       cfc120(n) = ghgval(igh_cfc12,iyear,imonth,0.0_rkx)*(amcfc12/amd)
     end do
 #else
-    do n = 1 , npr
+    do n = 1, npr
       co2vmr(n) = ghgval(igh_co2,iyear,imonth,dlat(n))
       co2mmr(n) = co2vmr(n)*(amco2/amd)
       ch40(n) = ghgval(igh_ch4,iyear,imonth,dlat(n))*(amch4/amd)
@@ -926,8 +926,8 @@ module mod_rrtmg_driver
     end do
 #endif
 
-    do k = 1 , kth
-      do n = 1 , npr
+    do k = 1, kth
+      do n = 1, npr
         co2vmrk(n,k) = co2vmr(n)
       end do
     end do
@@ -935,8 +935,8 @@ module mod_rrtmg_driver
     call trcmix(1,npr,dlat,xptrop,play,n2o0,ch40,cfc110,cfc120, &
                 n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
-    do k = 1 , kth
-      do n = 1 , npr
+    do k = 1, kth
+      do n = 1, npr
         !
         ! Form mass mixing ratios to vomlume mixing ratios
         !
@@ -960,10 +960,10 @@ module mod_rrtmg_driver
     !       the tauxar,tauasc,gtota calculated in aeroppt are then
     !       switched on RRTM grid.
     if ( ichem == 1 ) then
-      do itr = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do itr = 1, ntr
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               n = (j-jci1+1)+(i-ici1)*npj
               aermmr(n,k,itr) = max(m2r%chiatms(j,i,k,itr),d_zero)
             end do
@@ -972,17 +972,17 @@ module mod_rrtmg_driver
       end do
     end if
     if ( ichem == 1 .or. iclimaaer > 0 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             n = (j-jci1+1)+(i-ici1)*npj
             rh(n,k) = m2r%rhatms(j,i,k)
           end do
         end do
       end do
-      do k = 1 , kzp1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kzp1
+        do i = ici1, ici2
+          do j = jci1, jci2
             n = (j-jci1+1)+(i-ici1)*npj
             pint(n,k) = m2r%pfatms(j,i,k)
           end do
@@ -990,10 +990,10 @@ module mod_rrtmg_driver
       end do
       call aeroppt(rh,pint,1,npr)
       ! adapt reverse the vertical grid for RRTM
-      do i = 1 , nbndsw
-        do k = 1 , kth
+      do i = 1, nbndsw
+        do k = 1, kth
           kj = kth + 1 - k
-          do n = 1 , npr
+          do n = 1, npr
             ecaer(n,k,i)  = 0.78_rkx ! not used
             tauaer(n,k,i) = tauxar3d(n,kj,i)
             ssaaer(n,k,i) = tauasc3d(n,kj,i)
@@ -1001,10 +1001,10 @@ module mod_rrtmg_driver
           end do
         end do
       end do
-      do i = 1 , nbndlw
-        do k = 1 , kth
+      do i = 1, nbndlw
+        do k = 1, kth
           kj = kth + 1 - k
-          do n = 1 , npr
+          do n = 1, npr
             tauaer_lw(n,k,i) = tauxar3d_lw(n,kj,i)
           end do
         end do
@@ -1026,10 +1026,10 @@ module mod_rrtmg_driver
     !
     cldf = d_zero
     clwp = d_zero
-    do k = 1 , kz
+    do k = 1, kz
       kj = kzp1 - k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           !
           ! convert liquid water content into liquid water path, i.e.
           ! multiply b deltaz
@@ -1050,8 +1050,8 @@ module mod_rrtmg_driver
     !
     ! fabtest:  set cloud fractional cover at top model level = 0
     ! as in std scheme
-    do k = kzp1 , kth
-      do n = 1 , npr
+    do k = kzp1, kth
+      do n = 1, npr
         cldf(n,k) = d_zero
         clwp(n,k) = d_zero
       end do
@@ -1066,8 +1066,8 @@ module mod_rrtmg_driver
     ! partition of total water path betwwen liquide and ice.
     ! now clwp is liquide only !
     !
-    do k = 1 , kth
-      do n = 1 , npr
+    do k = 1, kth
+      do n = 1, npr
         ciwp(n,k) =  clwp(n,k) * fice(n,k)
         clwp(n,k) =  clwp(n,k) * (d_one - fice(n,k))
       end do
@@ -1086,9 +1086,9 @@ module mod_rrtmg_driver
     asmc  =  0.850_rkx
     fsfc  =  0.725_rkx
 
-    do k = 1 , nbndlw
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do k = 1, nbndlw
+      do i = ici1, ici2
+        do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
           emis_surf(n,k) = m2r%emiss(j,i)
         end do
@@ -1099,7 +1099,7 @@ module mod_rrtmg_driver
     outtauci(:,:,:) = d_zero
 
     if ( inflgsw == 0 ) then
-      do ns = 1 , nbndsw
+      do ns = 1, nbndsw
         !
         ! Set cloud extinction optical depth, single scatter albedo,
         ! asymmetry parameter, and forward scattered fraction:
@@ -1117,8 +1117,8 @@ module mod_rrtmg_driver
         ebarii = ebari(indsl(ns))
         fbarii = fbari(indsl(ns))
 
-        do k = 1 , kz
-          do n = 1 , npr
+        do k = 1, kz
+          do n = 1, npr
             if ( clwp(n,k) < dlowval .and. ciwp(n,k) < dlowval) cycle
             ! liquid
             tmp1l = abarli + bbarli/rel(n,k)
@@ -1180,8 +1180,8 @@ module mod_rrtmg_driver
       ! Needs to set cldf to 0 or 1 for the the rrtm_nomcica code to work.
       !
       if ( imcica == 0 ) then
-        do k = 1 , kz
-          do n = 1 , npr
+        do k = 1, kz
+          do n = 1, npr
             if ( cldf(n,k) > dlowval ) then
               cldf(n,k) = d_one
             else
@@ -1197,25 +1197,25 @@ module mod_rrtmg_driver
   !
   subroutine cldefr_rrtm(t,pmid,rel,rei,fice)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: pmid , t
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: fice , rei , rel
-    integer(ik4) :: k , n
-    real(rkx) :: pnrml , weight
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: pmid, t
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: fice, rei, rel
+    integer(ik4) :: k, n
+    real(rkx) :: pnrml, weight
     ! real(rkx) :: tpara
     ! reimax - maximum ice effective radius
-    real(rkx) , parameter :: reimax = 30.0_rkx
+    real(rkx), parameter :: reimax = 30.0_rkx
     ! rirnge - range of ice radii (reimax - 10 microns)
-    real(rkx) , parameter :: rirnge = 20.0_rkx
+    real(rkx), parameter :: rirnge = 20.0_rkx
     ! pirnge - nrmlzd pres range for ice particle changes
-    real(rkx) , parameter :: pirnge = 0.4_rkx
+    real(rkx), parameter :: pirnge = 0.4_rkx
     ! picemn - normalized pressure below which rei=reimax
-    real(rkx) , parameter :: picemn = 0.4_rkx
-    ! Temperatures in K (263.16 , 243.16)
-    real(rkx) , parameter :: minus10 = wattp-10.0_rkx
-    real(rkx) , parameter :: minus30 = wattp-30.0_rkx
+    real(rkx), parameter :: picemn = 0.4_rkx
+    ! Temperatures in K (263.16, 243.16)
+    real(rkx), parameter :: minus10 = wattp-10.0_rkx
+    real(rkx), parameter :: minus30 = wattp-30.0_rkx
 
-    do k = 1 , kth
-      do n = 1 , npr
+    do k = 1, kth
+      do n = 1, npr
         !
         ! Define liquid drop size
         ! rel : liquid effective drop size (microns)
@@ -1253,8 +1253,8 @@ module mod_rrtmg_driver
       end do
     end do
     if ( ipptls > 1 ) then
-      do k = 1 , kth
-        do n = 1 , npr
+      do k = 1, kth
+        do n = 1, npr
           if ( qi1(n,k) > minqq ) then
             fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
           else
@@ -1263,8 +1263,8 @@ module mod_rrtmg_driver
         end do
       end do
     else
-      do k = 1 , kth
-        do n = 1 , npr
+      do k = 1, kth
+        do n = 1, npr
           if ( t(n,k) > minus10 ) then
             ! if warmer than -10 degrees C then water phase
             fice(n,k) = d_zero

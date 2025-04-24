@@ -16,18 +16,18 @@ module mod_clm_cndv
   use mod_mppparam
   use mod_clm_type
   use mod_clm_nchelper
-  use mod_clm_time_manager , only : getdatetime
-  use mod_clm_varctl , only : caseid , inst_suffix , nextdate
-  use mod_clm_varctl , only : ctitle, finidat, fsurdat, fpftcon
-  use mod_clm_cnvegstructupdate , only : CNVegStructUpdate
-  use mod_clm_cndvestablishment , only : Establishment
-  use mod_clm_cndvlight , only : Light
-  use mod_clm_decomp , only : get_proc_bounds , get_proc_global , &
-         gcomm_gridcell , gcomm_landunit , gcomm_column , gcomm_pft , ldecomp
-  use mod_clm_varpar , only : maxpatch_pft
-  use mod_clm_domain , only : ldomain
-  use mod_clm_varcon , only : spval
-  use mod_clm_varcon  , only : secspday
+  use mod_clm_time_manager, only : getdatetime
+  use mod_clm_varctl, only : caseid, inst_suffix, nextdate
+  use mod_clm_varctl, only : ctitle, finidat, fsurdat, fpftcon
+  use mod_clm_cnvegstructupdate, only : CNVegStructUpdate
+  use mod_clm_cndvestablishment, only : Establishment
+  use mod_clm_cndvlight, only : Light
+  use mod_clm_decomp, only : get_proc_bounds, get_proc_global, &
+         gcomm_gridcell, gcomm_landunit, gcomm_column, gcomm_pft, ldecomp
+  use mod_clm_varpar, only : maxpatch_pft
+  use mod_clm_domain, only : ldomain
+  use mod_clm_varcon, only : spval
+  use mod_clm_varcon , only : secspday
 
   implicit none
 
@@ -45,27 +45,27 @@ module mod_clm_cndv
   !
   subroutine dv(lbg, ubg, lbp, ubp, num_natvegp, filter_natvegp, kyr)
     implicit none
-    integer(ik4), intent(in) :: lbg , ubg  ! gridcell bounds
-    integer(ik4), intent(in) :: lbp , ubp  ! pft bounds
+    integer(ik4), intent(in) :: lbg, ubg  ! gridcell bounds
+    integer(ik4), intent(in) :: lbp, ubp  ! pft bounds
     ! number of naturally-vegetated pfts in filter
     integer(ik4), intent(inout) :: num_natvegp
     ! filter for naturally-vegetated pfts
     integer(ik4), intent(inout) :: filter_natvegp(ubp-lbp+1)
     integer(ik4), intent(in) :: kyr   ! used in routine climate20 below
-    integer(ik4) , pointer :: mxy(:)  ! pft m index (for laixy(i,j,m),etc.)
-    integer(ik4) , pointer :: pgridcell(:)   ! gridcell of corresponding pft
+    integer(ik4), pointer, contiguous :: mxy(:)  ! pft m index (for laixy(i,j,m),etc.)
+    integer(ik4), pointer, contiguous :: pgridcell(:)   ! gridcell of corresponding pft
     ! foliar projective cover on gridcell (fraction)
-    real(rk8), pointer :: fpcgrid(:)
+    real(rk8), pointer, contiguous :: fpcgrid(:)
     ! accumulated growing degree days above 5
-    real(rk8), pointer :: agdd(:)
+    real(rk8), pointer, contiguous :: agdd(:)
     ! annual min of t_mo (Kelvin)
-    real(rk8), pointer :: t_mo_min(:)
-    real(rk8), pointer :: temp_tmomin(:)
-    real(rk8), pointer :: temp_agdd(:)
-    real(rk8), pointer :: temp_count(:)
-    real(rk8), pointer :: tmomin20(:) ! 20-yr running mean of tmomin
-    real(rk8), pointer :: agdd20(:)   ! 20-yr running mean of agdd
-    integer(ik4) :: g , p             ! indices
+    real(rk8), pointer, contiguous :: t_mo_min(:)
+    real(rk8), pointer, contiguous :: temp_tmomin(:)
+    real(rk8), pointer, contiguous :: temp_agdd(:)
+    real(rk8), pointer, contiguous :: temp_count(:)
+    real(rk8), pointer, contiguous :: tmomin20(:) ! 20-yr running mean of tmomin
+    real(rk8), pointer, contiguous :: agdd20(:)   ! 20-yr running mean of agdd
+    integer(ik4) :: g, p             ! indices
     integer(ik4) :: ier
 
     ! Assign local pointers to derived type members (gridcell-level)
@@ -96,7 +96,7 @@ module mod_clm_cndv
     temp_tmomin(:) = 0.0_rk8
     temp_agdd(:) = 0.0_rk8
     temp_count(:) = 0.0_rk8
-    do p = lbp , ubp
+    do p = lbp, ubp
        g = pgridcell(p)
        temp_tmomin(g) = temp_tmomin(g) + t_mo_min(p)
        temp_agdd(g)   = temp_agdd(g)   + agdd(p)
@@ -104,14 +104,14 @@ module mod_clm_cndv
     end do
 
     if ( kyr == 1 ) then
-      do g = lbg , ubg
+      do g = lbg, ubg
         if ( temp_count(g) > 0.0_rk8 ) then
           tmomin20(g) = temp_tmomin(g)/temp_count(g)
           agdd20(g)   = temp_agdd(g)/temp_count(g)
         end if
       end do
     else
-      do g = lbg , ubg
+      do g = lbg, ubg
         if ( temp_count(g) > 0.0_rk8 ) then
           tmomin20(g) = (19._rk8 * tmomin20(g) + &
             temp_tmomin(g)/temp_count(g)) / 20._rk8
@@ -149,34 +149,34 @@ module mod_clm_cndv
   subroutine histCNDV()
     implicit none
     ! true=>landunit is not vegetated (landunit-level)
-    logical , pointer :: ifspecial(:)
+    logical, pointer, contiguous :: ifspecial(:)
     ! gridcell index of corresponding pft (pft-level)
-    integer(ik4) , pointer :: pgridcell(:)
+    integer(ik4), pointer, contiguous :: pgridcell(:)
     ! landunit index of corresponding pft (pft-level)
-    integer(ik4) , pointer :: plandunit(:)
+    integer(ik4), pointer, contiguous :: plandunit(:)
     ! pft m index (for laixy(i,j,m),etc.)
-    integer(ik4) , pointer :: mxy(:)
+    integer(ik4), pointer, contiguous :: mxy(:)
     ! foliar projective cover on gridcell (fraction)
-    real(rk8), pointer :: fpcgrid(:)
+    real(rk8), pointer, contiguous :: fpcgrid(:)
     ! number of individuals (#/m**2)
-    real(rk8), pointer :: nind(:)
+    real(rk8), pointer, contiguous :: nind(:)
     character(len=256) :: dgvm_fn   ! dgvm history filename
     type(clm_filetype) :: ncid      ! netcdf file id
     integer(ik4) :: p,l,c         ! indices
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
-    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
-    integer(ik4) :: ihost , iktau
-    integer(ik4) :: numg , numl , numc , nump
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
+    integer(ik4) :: ihost, iktau
+    integer(ik4) :: numg, numl, numc, nump
     integer(ik4) :: ier                     ! error status
     integer(ik4) :: mdcur, mscur, mcdate    ! outputs from curr_time
     integer(ik4) :: yr,mon,day,mcsec        ! outputs from curr_date
     integer(ik4) :: hours,minutes,secs      ! hours,minutes,seconds of hh:mm:ss
     integer(ik4) :: nbsec                   ! seconds components of a date
     real(rk8):: time                   ! current time
-    real(rk8) , pointer , dimension(:) :: rparr     ! temporary
-    integer(ik4) , pointer , dimension(:) :: iparr  ! temporary
+    real(rk8), pointer, contiguous, dimension(:) :: rparr     ! temporary
+    integer(ik4), pointer, contiguous, dimension(:) :: iparr  ! temporary
     character(len=256) :: str          ! temporary string
     character(len=  8) :: curdate      ! current date
     character(len=  8) :: curtime      ! current time
@@ -368,12 +368,12 @@ module mod_clm_cndv
     call clm_writevar(ncid,'pftxgdc',ldecomp%pftxgdc,gcomm_gridcell)
     call clm_writevar(ncid,'regcm_mask',lndcomm%global_out_sgmask)
     call clm_writevar(ncid,'pfts1d_wtxy',clm3%g%l%c%p%wtgcell,gcomm_pft)
-    do p = begp , endp
+    do p = begp, endp
       iparr(p) = clm3%g%l%c%p%gridcell(p)
     end do
     call clm_writevar(ncid,'pfts1d_gridcell',iparr,gcomm_pft)
     call clm_writevar(ncid,'pfts1d_itypveg',clm3%g%l%c%p%itype,gcomm_pft)
-    do p = begp , endp
+    do p = begp, endp
       iparr(p) = clm3%g%l%itype(clm3%g%l%c%p%landunit(p))
     end do
     call clm_writevar(ncid,'pfts1d_ityplun',iparr,gcomm_pft)
@@ -397,14 +397,14 @@ module mod_clm_cndv
     ! always lie between 1 and maxpatch_pft
 
     rparr(:) = 0._rk8
-    do p = begp , endp
+    do p = begp, endp
        l = plandunit(p)
        if (.not. ifspecial(l)) rparr(p) = fpcgrid(p)*100._rk8
     end do
     call clm_writevar(ncid,'FPCGRID',rparr,gcomm_pft,nt=1)
 
     rparr(:) = 0._rk8
-    do p = begp , endp
+    do p = begp, endp
        l = plandunit(p)
        if (.not. ifspecial(l)) rparr(p) = nind(p)
     end do
@@ -448,12 +448,12 @@ module mod_clm_cndv
   subroutine BuildNatVegFilter(lbp, ubp, num_natvegp, filter_natvegp)
     implicit none
     ! pft bounds
-    integer(ik4) , intent(in)  :: lbp , ubp
+    integer(ik4), intent(in)  :: lbp, ubp
     ! number of pfts in naturally-vegetated filter
-    integer(ik4) , intent(out) :: num_natvegp
+    integer(ik4), intent(out) :: num_natvegp
     ! pft filter for naturally-vegetated points
-    integer(ik4) , intent(out) :: filter_natvegp(ubp-lbp+1)
-    logical , pointer :: present(:)     ! whether this pft present in patch
+    integer(ik4), intent(out) :: filter_natvegp(ubp-lbp+1)
+    logical, pointer, contiguous :: present(:)     ! whether this pft present in patch
     integer(ik4) :: p
 
     ! Assign local pointers to derived type members (pft-level)

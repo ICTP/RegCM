@@ -38,53 +38,53 @@ module mod_ein
 
   private
 
-  integer(ik4) :: jlat , ilon , klev , timlen
+  integer(ik4) :: jlat, ilon, klev, timlen
 
-  real(rkx) , pointer , dimension(:,:,:) :: b3
-  real(rkx) , pointer , dimension(:,:,:) :: d3
-  real(rkx) , pointer , dimension(:,:,:) :: d3u , d3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3u, d3v
 
-  real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rkx) , pointer :: u3v(:,:,:) , v3u(:,:,:)
-  real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rkx) , pointer :: h3u(:,:,:) , h3v(:,:,:)
-  real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rkx) , pointer :: hvar(:,:,:) , qvar(:,:,:) , tvar(:,:,:)
-  real(rkx) , pointer :: topou(:,:) , topov(:,:)
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3, v3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: h3, q3, t3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: h3u, h3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: uvar, vvar
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hvar, qvar, tvar
+  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
 
-  real(rkx) , pointer , dimension(:,:,:) :: b2
-  real(rkx) , pointer , dimension(:,:,:) :: d2
-  real(rkx) , pointer , dimension(:) :: glat
-  real(rkx) , pointer , dimension(:) :: grev
-  real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:) :: plevs
-  real(rkx) , pointer , dimension(:) :: sigmar
-  real(rkx) :: pss , pst
-  integer(2) , pointer , dimension(:,:,:) :: work
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d2
+  real(rkx), pointer, contiguous, dimension(:) :: glat
+  real(rkx), pointer, contiguous, dimension(:) :: grev
+  real(rkx), pointer, contiguous, dimension(:) :: glon
+  real(rkx), pointer, contiguous, dimension(:) :: plevs
+  real(rkx), pointer, contiguous, dimension(:) :: sigmar
+  real(rkx) :: pss, pst
+  integer(2), pointer, contiguous, dimension(:,:,:) :: work
 
-  integer , parameter :: numvars = 7
-  integer , parameter :: numruns = 4
+  integer, parameter :: numvars = 7
+  integer, parameter :: numruns = 4
 
-  integer(ik4) , dimension(numvars,numruns) :: ncfile
-  integer(ik4) , dimension(numvars,numruns) :: varid
-  real(rkx) , dimension(numvars,numruns) :: xoff , xscl
-  type(rcm_time_and_date) , pointer , dimension(:) :: itimes
-  integer(ik4) , pointer , dimension(:) :: xtimes
+  integer(ik4), dimension(numvars,numruns) :: ncfile
+  integer(ik4), dimension(numvars,numruns) :: varid
+  real(rkx), dimension(numvars,numruns) :: xoff, xscl
+  type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
+  integer(ik4), pointer, contiguous, dimension(:) :: xtimes
   logical :: lqas = .false.
 
   type(global_domain) :: gdomain
-  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
+  type(h_interpolator) :: cross_hint, udot_hint, vdot_hint
 
-  public :: init_ein , get_ein , conclude_ein
+  public :: init_ein, get_ein, conclude_ein
 
   contains
 
   subroutine init_ein
     implicit none
     integer(ik4) :: k
-    integer(ik4) :: year , month , monthp1 , day , hour
+    integer(ik4) :: year, month, monthp1, day, hour
     character(len=256) :: pathaddname
-    integer(ik4) :: istatus , ncid , ivarid , idimid
+    integer(ik4) :: istatus, ncid, ivarid, idimid
     character(len=64) :: inname
 
     call split_idate(globidate1,year,month,day,hour)
@@ -171,7 +171,7 @@ module mod_ein
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    do k = 1 , klev
+    do k = 1, klev
       sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
     end do
     pss = (plevs(klev)-plevs(1))/10.0_rkx ! mb -> cb
@@ -234,12 +234,12 @@ module mod_ein
 
   subroutine get_ein(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     !
     ! Read data at idate
     !
     call ein6hour(dattyp,idate,globidate1)
-    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    write (stdout,*) 'READ IN fields at DATE:', tochar(idate)
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
@@ -328,20 +328,20 @@ module mod_ein
 
   subroutine ein6hour(dattyp,idate,idate0)
     implicit none
-    character(len=5) , intent(in) :: dattyp
-    type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , ifile , it , j , irun , inet , istatus , ivar
+    character(len=5), intent(in) :: dattyp
+    type(rcm_time_and_date), intent(in) :: idate, idate0
+    integer(ik4) :: i, ifile, it, j, irun, inet, istatus, ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=4) , dimension(7) :: varname
-    character(len=4) , dimension(7) :: fname
-    character(len=4) , dimension(4) :: hname
-    character(len=64) :: cunit , ccal
-    real(rkx) :: xadd , xscale
-    integer(ik4) , dimension(4) :: icount , istart
-    integer(ik4) :: year , month , day , hour , monthp1
-    integer(ik4) , save :: lastmonth , lastyear
+    character(len=4), dimension(7) :: varname
+    character(len=4), dimension(7) :: fname
+    character(len=4), dimension(4) :: hname
+    character(len=64) :: cunit, ccal
+    real(rkx) :: xadd, xscale
+    integer(ik4), dimension(4) :: icount, istart
+    integer(ik4) :: year, month, day, hour, monthp1
+    integer(ik4), save :: lastmonth, lastyear
     type(rcm_time_and_date) :: xdate
     type(rcm_time_interval) :: tdif
     !
@@ -352,7 +352,7 @@ module mod_ein
     ! work will be used to hold the packed integers.  The array 'x'
     ! will contain the unpacked data.
     !
-    data varname /'t' , 'z' , 'r' , 'u' , 'v' , 'q', 'clwc'/
+    data varname /'t', 'z', 'r', 'u', 'v', 'q', 'clwc'/
     data fname   /'air','hgt','rhum','uwnd','vwnd', 'qas', 'qcs'/
     data hname   /'.00.','.06.','.12.','.18.'/
 
@@ -362,14 +362,14 @@ module mod_ein
     if ( dattyp == 'EIXXX' ) then
       if ( idate == idate0 .or. month /= lastmonth ) then
         if ( idate /= idate0 ) then
-          do inet = 1 , 5
+          do inet = 1, 5
             istatus = nf90_close(ncfile(inet,1))
             call checkncerr(istatus,__FILE__,__LINE__, &
                 'Error close file')
           end do
         end if
         lastmonth = month
-        do inet = 1 , 5
+        do inet = 1, 5
           monthp1 = month+1
           if ( monthp1 == 13 ) monthp1 = 1
           write(inname,'(a,i0.2,a,i0.2,a)') &
@@ -391,8 +391,8 @@ module mod_ein
                    'add_offset',xoff(inet,1))
           call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att add_offset')
-          write (stdout,*) ncfile(inet,1) , trim(pathaddname) ,   &
-                           xscl(inet,1) , xoff(inet,1)
+          write (stdout,*) ncfile(inet,1), trim(pathaddname),   &
+                           xscl(inet,1), xoff(inet,1)
           if ( inet == 1 ) then
             istatus = nf90_inq_dimid(ncfile(1,1),'time',timid)
             call checkncerr(istatus,__FILE__,__LINE__, &
@@ -413,7 +413,7 @@ module mod_ein
             istatus = nf90_get_var(ncfile(1,1),timid,xtimes)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error read time')
-            do it = 1 , timlen
+            do it = 1, timlen
               itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
             end do
           end if
@@ -427,16 +427,16 @@ module mod_ein
       if ( idate == idate0 .or. year /= lastyear ) then
         lastyear = year
         if ( idate /= idate0 ) then
-          do irun = 1 , 4
-            do inet = 1 , 5
+          do irun = 1, 4
+            do inet = 1, 5
               istatus = nf90_close(ncfile(inet,irun))
               call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error close file')
             end do
           end do
         end if
-        do irun = 1 , 4
-          do inet = 1 , 5
+        do irun = 1, 4
+          do inet = 1, 5
             if ( inet == 3 ) then
               write(inname,'(i4,a,a,i4,a)') &
                 year, pthsep, trim(fname(inet))//'.', year, hname(irun)//'nc'
@@ -474,8 +474,8 @@ module mod_ein
                      'add_offset',xoff(inet,irun))
             call checkncerr(istatus,__FILE__,__LINE__, &
               'Error find att add_offset')
-            write (stdout,*) ncfile(inet,irun) , trim(pathaddname) ,   &
-                             xscl(inet,irun) , xoff(inet,irun)
+            write (stdout,*) ncfile(inet,irun), trim(pathaddname),   &
+                             xscl(inet,irun), xoff(inet,irun)
             if ( irun == 1 .and. inet == 1 ) then
               istatus = nf90_inq_dimid(ncfile(1,1),'time',timid)
               call checkncerr(istatus,__FILE__,__LINE__, &
@@ -495,7 +495,7 @@ module mod_ein
               istatus = nf90_get_var(ncfile(1,1),timid,xtimes)
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time')
-              do it = 1 , timlen
+              do it = 1, timlen
                 itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
               end do
             end if
@@ -512,28 +512,28 @@ module mod_ein
     istart(4) = it
     icount(4) = 1
 
-    do inet = 1 , 5
+    do inet = 1, 5
       ifile = ncfile(inet,irun)
       ivar = varid(inet,irun)
       xscale = xscl(inet,irun)
       xadd = xoff(inet,irun)
       call getwork(inet)
       if ( inet == 1 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
+        do j = 1, jlat
+          do i = 1, ilon
             tvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
       else if ( inet == 2 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
+        do j = 1, jlat
+          do i = 1, ilon
             hvar(i,j,:) = real(real(work(i,j,:),rkx) * &
                       xscale+xadd,rkx)/9.80616_rk4
           end do
         end do
       else if ( inet == 3 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
+        do j = 1, jlat
+          do i = 1, ilon
             qvar(i,j,:) = &
               max(real(real(work(i,j,:),rkx)*xscale+xadd,rkx),0.0_rkx)
           end do
@@ -545,14 +545,14 @@ module mod_ein
           qvar = qvar * 0.01_rkx
         end if
       else if ( inet == 4 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
+        do j = 1, jlat
+          do i = 1, ilon
             uvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
       else if ( inet == 5 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
+        do j = 1, jlat
+          do i = 1, ilon
             vvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
@@ -563,10 +563,10 @@ module mod_ein
 
       subroutine getwork(irec)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        integer(ik4) :: itile , iti , itf
+        integer(ik4), intent(in) :: irec
+        integer(ik4) :: itile, iti, itf
         iti = 1
-        do itile = 1 , gdomain%ntiles
+        do itile = 1, gdomain%ntiles
           istart(1) = gdomain%igstart(itile)
           icount(1) = gdomain%ni(itile)
           ! Latitudes are reversed in original file

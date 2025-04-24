@@ -6,7 +6,7 @@ module mod_clm_cnvegstructupdate
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : dtsrf
+  use mod_runparams, only : dtsrf
 
   implicit none
 
@@ -25,11 +25,11 @@ module mod_clm_cnvegstructupdate
   !
   subroutine CNVegStructUpdate(num_soilp, filter_soilp)
     use mod_clm_type
-    use mod_clm_pftvarcon , only : noveg, nc3crop, nc3irrig, &
+    use mod_clm_pftvarcon, only : noveg, nc3crop, nc3irrig, &
       nbrdlf_evr_shrub, nbrdlf_dcd_brl_shrub
-    use mod_clm_pftvarcon , only : ncorn, ncornirrig, npcropmin, ztopmx, laimx
-    use mod_clm_varcon , only : rpi
-    !use mod_clm_pftvarcon , only : nbrdlf_evr_trp_tree, &
+    use mod_clm_pftvarcon, only : ncorn, ncornirrig, npcropmin, ztopmx, laimx
+    use mod_clm_varcon, only : rpi
+    !use mod_clm_pftvarcon, only : nbrdlf_evr_trp_tree, &
      ! nc4_grass, nc3_nonarctic_grass
     implicit none
     ! number of column soil points in pft filter
@@ -38,49 +38,49 @@ module mod_clm_cnvegstructupdate
     integer(ik4), intent(in) :: filter_soilp(:)
 
 #if (defined CNDV)
-    real(rk8), pointer :: allom2(:) ! ecophys const
-    real(rk8), pointer :: allom3(:) ! ecophys const
-    real(rk8), pointer :: nind(:)   ! number of individuals (#/m**2)
+    real(rk8), pointer, contiguous :: allom2(:) ! ecophys const
+    real(rk8), pointer, contiguous :: allom3(:) ! ecophys const
+    real(rk8), pointer, contiguous :: nind(:)   ! number of individuals (#/m**2)
     ! fractional area of pft (pft area/nat veg area)
-    real(rk8), pointer :: fpcgrid(:)
+    real(rk8), pointer, contiguous :: fpcgrid(:)
 #endif
-    integer(ik4) , pointer :: ivt(:)     ! pft vegetation type
-    integer(ik4) , pointer :: pcolumn(:) ! column index associated with each pft
-    integer(ik4) , pointer :: pgridcell(:) ! pft's gridcell index
-    real(rk8), pointer :: snow_depth(:)    ! snow height (m)
-    real(rk8), pointer :: leafc(:)      ! (gC/m2) leaf C
-    real(rk8), pointer :: deadstemc(:)  ! (gC/m2) dead stem C
+    integer(ik4), pointer, contiguous :: ivt(:)     ! pft vegetation type
+    integer(ik4), pointer, contiguous :: pcolumn(:) ! column index associated with each pft
+    integer(ik4), pointer, contiguous :: pgridcell(:) ! pft's gridcell index
+    real(rk8), pointer, contiguous :: snow_depth(:)    ! snow height (m)
+    real(rk8), pointer, contiguous :: leafc(:)      ! (gC/m2) leaf C
+    real(rk8), pointer, contiguous :: deadstemc(:)  ! (gC/m2) dead stem C
     !binary flag for woody lifeform (1=woody, 0=not woody)
-    real(rk8), pointer :: woody(:)
+    real(rk8), pointer, contiguous :: woody(:)
     !specific leaf area at top of canopy, projected area basis [m^2/gC]
-    real(rk8), pointer :: slatop(:)
+    real(rk8), pointer, contiguous :: slatop(:)
     !dSLA/dLAI, projected area basis [m^2/gC]
-    real(rk8), pointer :: dsladlai(:)
+    real(rk8), pointer, contiguous :: dsladlai(:)
     !ratio of momentum roughness length to canopy top height (-)
-    real(rk8), pointer :: z0mr(:)
+    real(rk8), pointer, contiguous :: z0mr(:)
     !ratio of displacement height to canopy top height (-)
-    real(rk8), pointer :: displar(:)
+    real(rk8), pointer, contiguous :: displar(:)
     ! observational height of wind at pft-level [m]
-    real(rk8), pointer :: forc_hgt_u_pft(:)
-    real(rk8), pointer :: dwood(:)      ! density of wood (gC/m^3)
-    real(rk8), pointer :: farea_burned(:) !F. Li and S. Levis
+    real(rk8), pointer, contiguous :: forc_hgt_u_pft(:)
+    real(rk8), pointer, contiguous :: dwood(:)      ! density of wood (gC/m^3)
+    real(rk8), pointer, contiguous :: farea_burned(:) !F. Li and S. Levis
 
     ! frac of vegetation not covered by snow [-]
-    integer(ik4) , pointer :: frac_veg_nosno_alb(:)
+    integer(ik4), pointer, contiguous :: frac_veg_nosno_alb(:)
     !one-sided leaf area index, no burying by snow
-    real(rk8), pointer :: tlai(:)
+    real(rk8), pointer, contiguous :: tlai(:)
     !one-sided stem area index, no burying by snow
-    real(rk8), pointer :: tsai(:)
-    real(rk8), pointer :: htop(:) !canopy top (m)
-    real(rk8), pointer :: hbot(:) !canopy bottom (m)
+    real(rk8), pointer, contiguous :: tsai(:)
+    real(rk8), pointer, contiguous :: htop(:) !canopy top (m)
+    real(rk8), pointer, contiguous :: hbot(:) !canopy bottom (m)
     ! one-sided leaf area index with burying by snow
-    real(rk8), pointer :: elai(:)
+    real(rk8), pointer, contiguous :: elai(:)
     ! one-sided stem area index with burying by snow
-    real(rk8), pointer :: esai(:)
+    real(rk8), pointer, contiguous :: esai(:)
     ! max hgt attained by a crop during yr (m)
-    real(rk8), pointer :: htmx(:)
-    integer(ik4) , pointer :: peaklai(:)  ! 1: max allowed lai; 0: not at max
-    integer(ik4) , pointer :: harvdate(:) ! harvest date
+    real(rk8), pointer, contiguous :: htmx(:)
+    integer(ik4), pointer, contiguous :: peaklai(:)  ! 1: max allowed lai; 0: not at max
+    integer(ik4), pointer, contiguous :: harvdate(:) ! harvest date
 
     integer(ik4) :: p,c,g  !indices
     integer(ik4) :: fp     !lake filter indices
@@ -157,7 +157,7 @@ module mod_clm_cnvegstructupdate
     stocking = stocking / 10000._rk8
 
     ! pft loop
-    do fp = 1 , num_soilp
+    do fp = 1, num_soilp
       p = filter_soilp(fp)
       c = pcolumn(p)
       g = pgridcell(p)

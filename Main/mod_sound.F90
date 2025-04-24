@@ -24,7 +24,7 @@ module mod_sound
   use mod_constants
   use mod_stdio
   use mod_mppparam
-  use mod_cu_interface , only : total_precip_points
+  use mod_cu_interface, only : total_precip_points
   use mod_atm_interface
   use mod_timefilter
 
@@ -32,37 +32,37 @@ module mod_sound
 
   private
 
-  public :: allocate_mod_sound , init_sound , sound
+  public :: allocate_mod_sound, init_sound, sound
 
-  real(rkx) , pointer , dimension(:,:,:) :: aa => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: b => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: c => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: rhs => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: sigdot => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: wo => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ca => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: g1 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: g2 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ptend => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: pxup => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: pyvp => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ucrs => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vcrs => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tk => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: cc => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: cdd => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: cj => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: pi => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: e => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: f => null( )
-  real(rkx) , pointer , dimension(:,:) :: astore => null( )
-  real(rkx) , pointer , dimension(:,:) :: estore => null( )
-  real(rkx) , pointer , dimension(:,:) :: estore_g => null( )
-  real(rkx) , pointer , dimension(:,:) :: rpsb => null( )
-  real(rkx) , pointer , dimension(:,:) :: wpval => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: aa => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: c => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: rhs => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: sigdot => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: wo => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ca => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: g1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: g2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ptend => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pxup => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pyvp => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ucrs => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vcrs => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tk => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cdd => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cj => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pi => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: e => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: f => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: astore => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: estore => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: estore_g => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rpsb => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: wpval => null( )
 
-  real(rkx) , dimension(-6:6) :: fi , fj
-  real(rkx) , dimension(0:6) :: fk , fl
+  real(rkx), dimension(-6:6) :: fi, fj
+  real(rkx), dimension(0:6) :: fk, fl
   real(rkx) :: xmsf
 
   !
@@ -76,11 +76,11 @@ module mod_sound
   !
   real(rkx) :: bet = 0.4_rkx
   real(rkx) :: xkd = 0.1_rkx
-  real(rkx) , parameter :: xgamma = d_one/(d_one-rovcp)
-  real(rkx) :: cs , bp , bm , bpxbm , bpxbp
+  real(rkx), parameter :: xgamma = d_one/(d_one-rovcp)
+  real(rkx) :: cs, bp, bm, bpxbm, bpxbp
   real(rkx) :: dtsmax
   real(rkx) :: rnpts
-  logical :: lperi , lperj
+  logical :: lperi, lperj
 
   contains
 
@@ -120,7 +120,7 @@ module mod_sound
   subroutine init_sound
     implicit none
     integer(ik4) :: i
-    real(rkx) :: maxt , loc_maxt , loc_xmsf
+    real(rkx) :: maxt, loc_maxt, loc_xmsf
 
     rnpts = d_one/real((nicross-2)*(njcross-2),rkx)
     if ( ma%bandflag ) then
@@ -137,7 +137,7 @@ module mod_sound
       !
       ! DEFINE VALUES OF FK, FL, FI & FJ FOR UPPER RADIATIVE BC
       !
-      do i = 1 , 5
+      do i = 1, 5
         fk(i) = d_two
         fl(i) = d_two
       end do
@@ -145,7 +145,7 @@ module mod_sound
       fl(0) = d_one
       fk(6) = d_one
       fl(6) = d_one
-      do i = -5 , 5
+      do i = -5, 5
         fi(i) = d_one
         fj(i) = d_one
       end do
@@ -175,21 +175,21 @@ module mod_sound
 
   subroutine sound
     implicit none
-    real(rkx) :: cfl , check , dts , maxcfl , rll , rkk , ri , rj
-    integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
-    logical , save :: cfl_error = .false.
-    character (len=*) , parameter :: f99003 =    &
+    real(rkx) :: cfl, check, dts, maxcfl, rll, rkk, ri, rj
+    integer(ik4) :: i, j, k, km1, kp1, istep, it, iconvec
+    logical, save :: cfl_error = .false.
+    character (len=*), parameter :: f99003 =    &
           '("CFL>1: CFL = ",f12.4," W = ",f12.4, &
            &"  I = ",i5,"  J = ",i5,"  K = ",i5 )'
     !
     ! Variables to implement upper radiative bc
     !
-    real(rkx) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
-                 xkleff , xleff
-    real(rkx) :: loc_abar , loc_rhon , rho , dppdp0 , chh , rofac
-    real(rkx) :: ppold , cddtmp , cjtmp , cpm , dpterm
+    real(rkx) :: abar, atot, dxmsfb, ensq, rhon, rhontot, xkeff, &
+                 xkleff, xleff
+    real(rkx) :: loc_abar, loc_rhon, rho, dppdp0, chh, rofac
+    real(rkx) :: ppold, cddtmp, cjtmp, cpm, dpterm
     real(rkx) :: denom
-    integer(ik4) :: ll , kk , nsi , inn , nsj , jnn
+    integer(ik4) :: ll, kk, nsi, inn, nsj, jnn
     !
     ! HT IS G*(TERR. HT.)
     ! UTENS, VTENS, PPTENS AND WTENS ARE SUPPLIED TO THIS ROUTINE
@@ -221,8 +221,8 @@ module mod_sound
     !
     if ( rcmtimer%lcount == 0 .or. rcmtimer%lcount == 2 ) then
       if ( myid == italk ) write(stdout,'(a,i2,a,f7.2,a,i3,a,f6.3,a,f6.3)') &
-            ' mdl step = ' , rcmtimer%lcount , ' : Short step ' , dts , &
-            ', istep = ', istep , ', beta = ' , bet , ', xkd = ' , xkd
+            ' mdl step = ', rcmtimer%lcount, ' : Short step ', dts, &
+            ', istep = ', istep, ', beta = ', bet, ', xkd = ', xkd
     end if
     !
     !  Premultiply the tendency arrays by dts
@@ -231,46 +231,46 @@ module mod_sound
     !  xxb stores filtered old xxa without xxc term
     !  no asselin filter on boundary
     !
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       rpsb(j,i) = d_one/sfs%psb(j,i)
     end do
-    do concurrent ( j = jde1:jde2 , i = ide1:ide2 , k = 1:kz )
+    do concurrent ( j = jde1:jde2, i = ide1:ide2, k = 1:kz )
       atmc%u(j,i,k) = atm2%u(j,i,k)/sfs%psdotb(j,i)
       atmc%v(j,i,k) = atm2%v(j,i,k)/sfs%psdotb(j,i)
     end do
-    do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+    do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
       aten%u(j,i,k,pc_total) = aten%u(j,i,k,pc_total) * dts
       aten%v(j,i,k,pc_total) = aten%v(j,i,k,pc_total) * dts
     end do
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) * rpsb(j,i)
     end do
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       atmc%pp(j,i,k) = atm2%pp(j,i,k) * rpsb(j,i)
     end do
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       aten%pp(j,i,k,pc_total) = aten%pp(j,i,k,pc_total) * dts
     end do
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kzp1 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
       atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
     end do
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
       aten%w(j,i,k,pc_total) = aten%w(j,i,k,pc_total) * dts
     end do
     !
     ! Time Step loop
     !
     timeloop: &
-    do it = 1 , istep
+    do it = 1, istep
       if ( it > 1 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           atmc%pp(j,i,k) = atmc%pp(j,i,k) + xkd*pi(j,i,k)
         end do
       end if
-      do k = 1 , kz
+      do k = 1, kz
         kp1 = min(kz,k+1)
         km1 = max(1,k-1)
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           atmc%t(j,i,k) = (atmc%pp(j,i,km1)-atmc%pp(j,i,kp1)) / &
                           (atm0%pr(j,i,km1)-atm0%pr(j,i,kp1))
         end do
@@ -280,7 +280,7 @@ module mod_sound
       !
       ! Advance u and v
       !
-      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2, k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
         ! Predict u and v
         rho    = d_rfour * (atm1%rho(j,i,k)   + atm1%rho(j-1,i,k) + &
                             atm1%rho(j,i-1,k) + atm1%rho(j-1,i-1,k))
@@ -302,14 +302,14 @@ module mod_sound
                        atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
                        atm0%dprddy(j,i,k) * dppdp0)
       end do
-      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
         atmc%u(j,i,k) = atmc%u(j,i,k) + aten%u(j,i,k,pc_total)
         atmc%v(j,i,k) = atmc%v(j,i,k) + aten%v(j,i,k,pc_total)
       end do
       call exchange(atmc%u,1,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atmc%v,1,jde1,jde2,ide1,ide2,1,kz)
       if ( it > 1 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           atmc%pp(j,i,k) = atmc%pp(j,i,k) - xkd*pi(j,i,k)
         end do
       end if
@@ -323,13 +323,13 @@ module mod_sound
       !  (see Hint below). This is joined into the 4th RHS term in Eq. 2.3.7.
       !  Hint: R=Cp-Cv, gamma=Cp/Cv -> 1/gamma+R/Cp=1
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
         wo(j,i,k) = atmc%w(j,i,k)
       end do
       !
       ! Vertical boundary conditions, w=v.dh/dy at bottom, lid at top
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         atmc%w(j,i,kzp1) = d_half * d_rfour * regrav *        &
                    ((atmc%v(j,i+1,kz)   + atmc%v(j,i,kz) +    &
                      atmc%v(j+1,i+1,kz) + atmc%v(j+1,i,kz)) * &
@@ -341,7 +341,7 @@ module mod_sound
         e(j,i,kz) = d_zero
         f(j,i,kz) = atmc%w(j,i,kzp1)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         cc(j,i,1)  = xgamma * atm1%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
         cdd(j,i,1) = xgamma * atm1%pr(j,i,1) * atm0%rho(j,i,1) * &
                      egrav * dts / (atm0%ps(j,i)*dsigma(1))
@@ -379,7 +379,7 @@ module mod_sound
         tk(j,i,1) = (d_half * atm0%ps(j,i) * atm0%t(j,i,1)) / &
                     (xgamma * atm0%pr(j,i,1) * atm2%t(j,i,1) * rpsb(j,i))
       end do
-      do k = 2 , kz
+      do k = 2, kz
         kp1 = min(k+1,kz)
         km1 = k-1
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -427,11 +427,11 @@ module mod_sound
       ! IG: at the bottom (k=kz), w(x,y,kz)=0, dw(x,y,kz)/dsigma=0 so
       ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         pyvp(j,i,kz) = pyvp(j,i,kz)*d_half
         pxup(j,i,kz) = pxup(j,i,kz)*d_half
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
         !
         ! Nonhydrostatic model.
         ! Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
@@ -458,7 +458,7 @@ module mod_sound
                  ( g1(j,i,k)*ptend(j,i,k) -                             &
                    g2(j,i,k)*ptend(j,i,k-1) ) * bp )
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         pi(j,i,k) = atmc%pp(j,i,k)
         !
         ! Nonhydrostatic model.
@@ -472,7 +472,7 @@ module mod_sound
       !
       ! Upward calculation of coefficients
       !
-      do k = kz , 2 , -1
+      do k = kz, 2, -1
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           denom = aa(j,i,k)*e(j,i,k) + b(j,i,k)
           e(j,i,k-1) = -c(j,i,k) / denom
@@ -482,14 +482,14 @@ module mod_sound
       !
       ! First, set upper boundary condition, either w=0 or radiation
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         wpval(j,i) = d_zero
       end do
       !
       ! Upper radiative BC, compute the wpval here as in 2.7
       !
       if ( ifupr == 1 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           denom = (cdd(j,i,1) + cj(j,i,1)) * bp
           estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
           astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
@@ -508,8 +508,8 @@ module mod_sound
           end if
           atot = d_zero
           rhontot = d_zero
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               atot = atot + astore(j,i)
               ensq = egrav*egrav/cpd/(atm2%t(j,i,1) * rpsb(j,i))
               rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
@@ -522,16 +522,16 @@ module mod_sound
           if ( myid == iocpu ) then
             dxmsfb = d_two/dxsq/xmsf
             tmask(:,:) = d_zero
-            do kk = 0 , 6
+            do kk = 0, 6
               rkk = real(kk,rkx)
-              do ll = 0 , 6
+              do ll = 0, 6
                 rll = real(ll,rkx)
                 xkeff = dxmsfb*sin(mathpi*rkk/12.0_rkx)*cos(mathpi*rll/12.0_rkx)
                 xleff = dxmsfb*sin(mathpi*rll/12.0_rkx)*cos(mathpi*rkk/12.0_rkx)
                 xkleff = sqrt(xkeff*xkeff + xleff*xleff)
-                do i = -6 , 6
+                do i = -6, 6
                   ri = real(i,rkx)
-                  do j = -6 , 6
+                  do j = -6, 6
                     rj = real(j,rkx)
                     tmask(j,i) = tmask(j,i) +                            &
                                  (fi(i)*fj(j)*fk(kk)*fl(ll))/144.0_rkx * &
@@ -549,11 +549,11 @@ module mod_sound
         !
         ! Apply upper rad cond.
         !
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            do nsi = -6 , 6
+        do i = ici1, ici2
+          do j = jci1, jci2
+            do nsi = -6, 6
               inn = inrange(i+nsi,icross1,icross2,lperi)
-              do nsj = -6 , 6
+              do nsj = -6, 6
                 jnn = inrange(j+nsj,jcross1,jcross2,lperj)
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
@@ -564,20 +564,20 @@ module mod_sound
       !
       ! Finished calc of radiation w, apply whichever
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         atmc%w(j,i,1) = wpval(j,i)
       end do
       !
       ! Downward sweep calculation of w
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)
       end do
       !
       ! Zero-out gradient for W
       !
       if ( ma%has_bdybottom ) then
-        do j = jci1 , jci2
+        do j = jci1, jci2
           atmc%w(j,ice1,:) = atmc%w(j,ici1,:)
         end do
         if ( ma%has_bdyleft ) then
@@ -588,7 +588,7 @@ module mod_sound
         end if
       end if
       if ( ma%has_bdytop ) then
-        do j = jci1 , jci2
+        do j = jci1, jci2
           atmc%w(j,ice2,:) = atmc%w(j,ici2,:)
         end do
         if ( ma%has_bdyleft ) then
@@ -599,28 +599,28 @@ module mod_sound
         end if
       end if
       if ( ma%has_bdyleft ) then
-        do i = ici1 , ici2
+        do i = ici1, ici2
           atmc%w(jce1,i,:) = atmc%w(jci1,i,:)
         end do
       end if
       if ( ma%has_bdyright ) then
-        do i = ici1 , ici2
+        do i = ici1, ici2
           atmc%w(jce2,i,:) = atmc%w(jci2,i,:)
         end do
       end if
       !
       ! Check CFL
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         ucrs(j,i,k) = atmc%u(j,i,k) + atmc%u(j,i+1,k) + &
                       atmc%u(j+1,i,k) + atmc%u(j+1,i+1,k)
         vcrs(j,i,k) = atmc%v(j,i,k) + atmc%v(j,i+1,k) + &
                       atmc%v(j+1,i,k) + atmc%v(j+1,i+1,k)
       end do
       cfl = d_zero
-      do k = kz , 2 , -1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = kz, 2, -1
+        do i = ici1, ici2
+          do j = jci1, jci2
             sigdot(j,i,k) = -atm0%rhof(j,i,k)*egrav * &
                              atmc%w(j,i,k)/atm0%ps(j,i) - &
                sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*ucrs(j,i,k) +     &
@@ -649,12 +649,12 @@ module mod_sound
         cfl_error = .false.
       end if
       if ( cfl > d_one ) then
-        do k = kz , 2 , -1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = kz, 2, -1
+          do i = ici1, ici2
+            do j = jci1, jci2
               cfl = abs(sigdot(j,i,k)) * dt / (dsigma(k)+dsigma(k-1))
               if ( cfl > d_one ) then
-                write(stderr,f99003) cfl , atmc%w(j,i,k) , i , j , k
+                write(stderr,f99003) cfl, atmc%w(j,i,k), i, j, k
               end if
             end do
           end do
@@ -690,18 +690,18 @@ module mod_sound
     !
     ! Apply time filtering technique
     !
-    do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+    do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
       atmc%u(j,i,k) = sfs%psdotb(j,i) * atmc%u(j,i,k)
       atmc%v(j,i,k) = sfs%psdotb(j,i) * atmc%v(j,i,k)
     end do
     call timefilter_apply(atm1%u,atm2%u,atmc%u, &
                           atm1%v,atm2%v,atmc%v,gnu1)
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       atmc%pp(j,i,k) = sfs%psb(j,i) * atmc%pp(j,i,k)
     end do
     call timefilter_apply(atm1%pp,atm2%pp,atmc%pp,gnu1)
     where ( abs(atmc%w) < dlowval ) atmc%w = d_zero
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
       atmc%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
     end do
     call timefilter_apply(atm1%w,atm2%w,atmc%w,gnu2)
@@ -715,8 +715,8 @@ module mod_sound
     pure integer(ik4) function inrange(i,i1,i2,lper)
 !$acc routine seq
       implicit none
-      integer(ik4) , intent(in) :: i , i1 , i2
-      logical , intent(in) :: lper
+      integer(ik4), intent(in) :: i, i1, i2
+      logical, intent(in) :: lper
       inrange = i
       if ( lper ) then
         if ( i > i2 ) inrange = i1 + (i - i2)

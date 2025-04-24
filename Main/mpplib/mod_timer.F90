@@ -26,18 +26,18 @@ module mod_timer
 
   ! Supported precision is 1 second (minimum dt is 1)
 
-  public :: rcm_timer , rcm_alarm , rcm_syncro
+  public :: rcm_timer, rcm_alarm, rcm_syncro
   public :: operator(/)
 
-  integer(ik4) , parameter :: maxalarms = 64
-  integer(ik4) , parameter :: maxsyncro = 8
+  integer(ik4), parameter :: maxalarms = 64
+  integer(ik4), parameter :: maxsyncro = 8
 
   type alarmp
-    type(rcm_alarm) , pointer :: ap
+    type(rcm_alarm), pointer :: ap
   end type alarmp
 
   type syncrop
-    type (rcm_syncro) , pointer :: sp
+    type (rcm_syncro), pointer :: sp
   end type syncrop
 
   type rcm_timer
@@ -52,12 +52,12 @@ module mod_timer
     type(rcm_time_and_date) :: idate
     type(rcm_time_interval) :: intmdl
     integer(ik8) :: nowinday
-    integer(ik4) :: year , month , day , hour , minute , second
+    integer(ik4) :: year, month, day, hour, minute, second
     character(len=32) :: model_timestring
     integer(ik4) :: nalarm = 0
     integer(ik4) :: nsyncro = 0
-    type(alarmp) , dimension(maxalarms) :: ap
-    type(syncrop) , dimension(maxsyncro) :: sp
+    type(alarmp), dimension(maxalarms) :: ap
+    type(syncrop), dimension(maxsyncro) :: sp
   contains
     procedure :: advance => step_timer
     procedure :: str => nowstring
@@ -76,7 +76,7 @@ module mod_timer
     integer(ik8) :: frq
     integer(ik8) :: lcount
     real(rkx) :: rw
-    class(rcm_timer) , pointer :: timer
+    class(rcm_timer), pointer :: timer
   contains
     procedure :: check => syncro_check
     procedure :: act => syncro_act
@@ -101,9 +101,9 @@ module mod_timer
     integer(ik8) :: lastact
     integer(ik8) :: lcount
     real(rkx) :: rw
-    real(rkx) , dimension(2) :: wt
+    real(rkx), dimension(2) :: wt
     logical :: triggered
-    class(rcm_timer) , pointer :: timer
+    class(rcm_timer), pointer :: timer
     type(rcm_time_and_date) :: idate
     type(rcm_time_interval) :: intalm
   contains
@@ -120,11 +120,11 @@ module mod_timer
 
   function init_timer(mdate0,mdate1,mdate2,mdt)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: mdate0 , mdate1 , mdate2
-    type(rcm_timer) , pointer :: init_timer
-    real(rkx) , intent(in) :: mdt
+    type(rcm_time_and_date), intent(in) :: mdate0, mdate1, mdate2
+    type(rcm_timer), pointer :: init_timer
+    real(rkx), intent(in) :: mdt
     type(rcm_time_interval) :: tdif
-    type(rcm_timer) , pointer :: t
+    type(rcm_timer), pointer :: t
     allocate(t)
     t%model_initial_time = 0_ik8
     tdif = mdate1 - mdate0
@@ -147,7 +147,7 @@ module mod_timer
 
   subroutine step_timer(t)
     implicit none
-    class(rcm_timer) , intent(inout) :: t
+    class(rcm_timer), intent(inout) :: t
     integer(ik4) :: i
     t%model_internal_time = t%model_internal_time + t%model_timestep
     t%nowinday = t%nowinday + int(t%model_timestep,ik8)
@@ -164,23 +164,23 @@ module mod_timer
     t%reached_endtime = t%model_internal_time >= t%model_stop_time
     t%next_is_endtime = (t%model_internal_time + &
                          t%model_timestep) >= t%model_stop_time
-    do i = 1 , t%nalarm
+    do i = 1, t%nalarm
       call t%ap(i)%ap%check( )
     end do
-    do i = 1 , t%nsyncro
+    do i = 1, t%nsyncro
       call t%sp(i)%sp%check( )
     end do
   end subroutine step_timer
 
   subroutine cleanup(t)
     implicit none
-    class(rcm_timer) , intent(inout) :: t
+    class(rcm_timer), intent(inout) :: t
     integer(ik4) :: i
-    do i = 1 , t%nalarm
+    do i = 1, t%nalarm
       deallocate(t%ap(i)%ap)
       nullify(t%ap(i)%ap)
     end do
-    do i = 1 , t%nsyncro
+    do i = 1, t%nsyncro
       deallocate(t%sp(i)%sp)
       nullify(t%sp(i)%sp)
     end do
@@ -190,20 +190,20 @@ module mod_timer
 
   pure logical function is_start(t)
     implicit none
-    class(rcm_timer) , intent(in) :: t
+    class(rcm_timer), intent(in) :: t
     is_start = t%lcount == 0
   end function is_start
 
   pure logical function is_integrating(t)
     implicit none
-    class(rcm_timer) , intent(in) :: t
+    class(rcm_timer), intent(in) :: t
     is_integrating = t%lcount > 0
   end function is_integrating
 
   character (len=32) function nowstring(t) result(ns)
     implicit none
-    class(rcm_timer) , intent(inout) :: t
-    integer(ik8) , save :: last
+    class(rcm_timer), intent(inout) :: t
+    integer(ik8), save :: last
     if ( t%model_internal_time /= last ) then
       t%model_timestring = tochar(t%idate)
       last = t%model_internal_time
@@ -213,22 +213,22 @@ module mod_timer
 
   pure integer(ik8) function step_from_start(t)
     implicit none
-    class(rcm_timer) , intent(in) :: t
+    class(rcm_timer), intent(in) :: t
     step_from_start = t%model_internal_time/t%model_timestep
   end function step_from_start
 
   pure integer(ik8) function time_from_start(t)
     implicit none
-    class(rcm_timer) , intent(in) :: t
+    class(rcm_timer), intent(in) :: t
     time_from_start = t%model_internal_time
   end function time_from_start
 
   function init_syncro(t,dt)
     implicit none
-    type(rcm_syncro) , pointer :: init_syncro
-    type(rcm_timer) , pointer , intent(inout) :: t
-    real(rkx) , intent(in) :: dt
-    type(rcm_syncro) , pointer :: syncro
+    type(rcm_syncro), pointer :: init_syncro
+    type(rcm_timer), pointer, intent(inout) :: t
+    real(rkx), intent(in) :: dt
+    type(rcm_syncro), pointer :: syncro
     allocate(syncro)
     syncro%timer => null( )
     if ( associated(t) ) then
@@ -244,7 +244,7 @@ module mod_timer
 
   subroutine syncro_check(s)
     implicit none
-    class(rcm_syncro) , intent(inout) :: s
+    class(rcm_syncro), intent(inout) :: s
     if ( mod(s%timer%model_internal_time,s%frq) == 0 ) then
       s%lcount = s%lcount + 1
     end if
@@ -252,14 +252,14 @@ module mod_timer
 
   pure logical function syncro_act(s) result(res)
     implicit none
-    class(rcm_syncro) , intent(in) :: s
+    class(rcm_syncro), intent(in) :: s
     res = (mod(s%timer%model_internal_time,s%frq) == 0)
   end function syncro_act
 
   pure logical function syncro_willact(s,dt) result(res)
     implicit none
-    class(rcm_syncro) , intent(in) :: s
-    real(rkx) , optional , intent(in) :: dt
+    class(rcm_syncro), intent(in) :: s
+    real(rkx), optional, intent(in) :: dt
     integer(ik8) :: idt
     if ( present(dt) ) then
       idt = int(dt,ik8)
@@ -272,12 +272,12 @@ module mod_timer
 
   function init_alarm(t,dt,act0)
     implicit none
-    type(rcm_alarm) , pointer :: init_alarm
-    type(rcm_timer) , pointer , intent(inout) :: t
-    real(rkx) , intent(in) :: dt
-    logical , intent(in) , optional :: act0
+    type(rcm_alarm), pointer :: init_alarm
+    type(rcm_timer), pointer, intent(inout) :: t
+    real(rkx), intent(in) :: dt
+    logical, intent(in), optional :: act0
     logical :: lact0
-    type(rcm_alarm) , pointer :: alarm
+    type(rcm_alarm), pointer :: alarm
     allocate(alarm)
     alarm%timer => null( )
     if ( associated(t) ) then
@@ -300,8 +300,8 @@ module mod_timer
   end function init_alarm
 
   subroutine alarm_check(alarm)
-    class(rcm_alarm) , intent(inout) :: alarm
-    real(rkx) :: t1 , t2
+    class(rcm_alarm), intent(inout) :: alarm
+    real(rkx) :: t1, t2
     if ( alarm%now == alarm%timer%model_internal_time ) then
       return
     end if
@@ -324,7 +324,7 @@ module mod_timer
 
   logical function alarm_act(alarm) result(res)
     implicit none
-    class(rcm_alarm) , intent(in) :: alarm
+    class(rcm_alarm), intent(in) :: alarm
     res = .false.
     if ( alarm%now == alarm%timer%model_internal_time ) then
       res = .true.
@@ -334,9 +334,9 @@ module mod_timer
 
   logical function alarm_willact(alarm,dt) result(res)
     implicit none
-    class(rcm_alarm) , intent(in) :: alarm
-    real(rkx) , intent(in) :: dt
-    integer(ik8) :: t1 , t2 , idt
+    class(rcm_alarm), intent(in) :: alarm
+    real(rkx), intent(in) :: dt
+    integer(ik8) :: t1, t2, idt
     res = .false.
     idt = int(dt,ik8)
     t1 = alarm%timer%model_internal_time+idt
@@ -348,27 +348,27 @@ module mod_timer
 
   real(rkx) function ratio_freq_syncro(s1,s2) result(res)
     implicit none
-    type(rcm_syncro) , intent(in) :: s1 , s2
+    type(rcm_syncro), intent(in) :: s1, s2
     res = real(s1%frq,rkx)/real(s2%frq,rkx)
   end function ratio_freq_syncro
 
   real(rkx) function ratio_freq_alarm(a1,a2) result(res)
     implicit none
-    type(rcm_alarm) , intent(in) :: a1 , a2
+    type(rcm_alarm), intent(in) :: a1, a2
     res = real(a1%actint,rkx)/real(a2%actint,rkx)
   end function ratio_freq_alarm
 
   real(rkx) function ratio_freq_syncro_alarm(s1,a2) result(res)
     implicit none
-    type(rcm_syncro) , intent(in) :: s1
-    type(rcm_alarm) , intent(in) :: a2
+    type(rcm_syncro), intent(in) :: s1
+    type(rcm_alarm), intent(in) :: a2
     res = real(s1%frq,rkx)/real(a2%actint,rkx)
   end function ratio_freq_syncro_alarm
 
   real(rkx) function ratio_freq_alarm_syncro(a1,s2) result(res)
     implicit none
-    type(rcm_alarm) , intent(in) :: a1
-    type(rcm_syncro) , intent(in) :: s2
+    type(rcm_alarm), intent(in) :: a1
+    type(rcm_syncro), intent(in) :: s2
     res = real(a1%actint,rkx)/real(s2%frq,rkx)
   end function ratio_freq_alarm_syncro
 
@@ -388,15 +388,15 @@ program test_timing
   use mod_timer
   implicit none
 
-  integer(ik8) , dimension(3) :: idates = [ 1950010100_ik8, &
+  integer(ik8), dimension(3) :: idates = [ 1950010100_ik8, &
                                             1950010100_ik8, &
                                             1951010100_ik8 ]
 
-  type(rcm_time_and_date) :: mdate0 , mdate1 , mdate2
+  type(rcm_time_and_date) :: mdate0, mdate1, mdate2
 
-  type(rcm_timer) , pointer :: timer
-  type(rcm_alarm) , pointer :: srf_alarm , rad_alarm , cum_alarm
-  type(rcm_alarm) , pointer :: srf_output
+  type(rcm_timer), pointer :: timer
+  type(rcm_alarm), pointer :: srf_alarm, rad_alarm, cum_alarm
+  type(rcm_alarm), pointer :: srf_output
 
   mdate0 = idates(1)
   mdate1 = idates(2)
@@ -404,7 +404,7 @@ program test_timing
 
   timer => rcm_timer(mdate0,mdate1,mdate2,213.0_rkx)
 
-  print *, timer%str( ) , timer%step( )
+  print *, timer%str( ), timer%step( )
 
   srf_alarm  => rcm_alarm(timer,600.0_rkx,.true.)
   srf_output => rcm_alarm(timer,3600.0_rkx*3.0,.true.)
@@ -416,20 +416,20 @@ program test_timing
     print *, timer%year,timer%month,timer%day, &
              timer%hour,timer%minute,timer%second
     if ( srf_alarm%act( ) ) then
-      print *, 'SRF ', srf_alarm%now , srf_alarm%wt(1)
+      print *, 'SRF ', srf_alarm%now, srf_alarm%wt(1)
     end if
     if ( rad_alarm%act( ) ) then
-      print *, 'RAD ', rad_alarm%now , rad_alarm%wt(1)
+      print *, 'RAD ', rad_alarm%now, rad_alarm%wt(1)
     end if
     if ( cum_alarm%act( ) ) then
-      print *, 'CUM ', cum_alarm%now , cum_alarm%wt(1)
+      print *, 'CUM ', cum_alarm%now, cum_alarm%wt(1)
     end if
     if ( srf_output%act( ) ) then
-      print *, 'OUT_SRF' , srf_output%now , srf_output%wt(1)
+      print *, 'OUT_SRF', srf_output%now, srf_output%wt(1)
     end if
   end do
 
-  print *, timer%str( ) , timer%step( )
+  print *, timer%str( ), timer%step( )
 
   deallocate(timer)
 

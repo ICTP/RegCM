@@ -9,7 +9,7 @@ module mod_clm_urbaninput
   use mod_mppparam
   use mod_stdio
   use mod_clm_nchelper
-  use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell
+  use mod_clm_decomp, only : get_proc_bounds, gcomm_gridcell
 
   implicit none
 
@@ -19,51 +19,51 @@ module mod_clm_urbaninput
   public :: UrbanInput ! Read in urban input data
 
   type urbinp_t
-    real(rk8) , pointer , dimension(:,:) :: canyon_hwr
-    real(rk8) , pointer , dimension(:,:) :: wtlunit_roof
-    real(rk8) , pointer , dimension(:,:) :: wtroad_perv
-    real(rk8) , pointer , dimension(:,:) :: em_roof
-    real(rk8) , pointer , dimension(:,:) :: em_improad
-    real(rk8) , pointer , dimension(:,:) :: em_perroad
-    real(rk8) , pointer , dimension(:,:) :: em_wall
-    real(rk8) , pointer , dimension(:,:,:) :: alb_roof_dir
-    real(rk8) , pointer , dimension(:,:,:) :: alb_roof_dif
-    real(rk8) , pointer , dimension(:,:,:) :: alb_improad_dir
-    real(rk8) , pointer , dimension(:,:,:) :: alb_improad_dif
-    real(rk8) , pointer , dimension(:,:,:) :: alb_perroad_dir
-    real(rk8) , pointer , dimension(:,:,:) :: alb_perroad_dif
-    real(rk8) , pointer , dimension(:,:,:) :: alb_wall_dir
-    real(rk8) , pointer , dimension(:,:,:) :: alb_wall_dif
-    real(rk8) , pointer , dimension(:,:) :: ht_roof
-    real(rk8) , pointer , dimension(:,:) :: wind_hgt_canyon
-    real(rk8) , pointer , dimension(:,:,:) :: tk_wall
-    real(rk8) , pointer , dimension(:,:,:) :: tk_roof
-    real(rk8) , pointer , dimension(:,:,:) :: tk_improad
-    real(rk8) , pointer , dimension(:,:,:) :: cv_wall
-    real(rk8) , pointer , dimension(:,:,:) :: cv_roof
-    real(rk8) , pointer , dimension(:,:,:) :: cv_improad
-    real(rk8) , pointer , dimension(:,:) :: thick_wall
-    real(rk8) , pointer , dimension(:,:) :: thick_roof
-    integer(ik4) , pointer , dimension(:,:) :: nlev_improad
-    real(rk8) , pointer , dimension(:,:) :: t_building_min
-    real(rk8) , pointer , dimension(:,:) :: t_building_max
+    real(rk8), pointer, contiguous, dimension(:,:) :: canyon_hwr
+    real(rk8), pointer, contiguous, dimension(:,:) :: wtlunit_roof
+    real(rk8), pointer, contiguous, dimension(:,:) :: wtroad_perv
+    real(rk8), pointer, contiguous, dimension(:,:) :: em_roof
+    real(rk8), pointer, contiguous, dimension(:,:) :: em_improad
+    real(rk8), pointer, contiguous, dimension(:,:) :: em_perroad
+    real(rk8), pointer, contiguous, dimension(:,:) :: em_wall
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_roof_dir
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_roof_dif
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_improad_dir
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_improad_dif
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_perroad_dir
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_perroad_dif
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_wall_dir
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_wall_dif
+    real(rk8), pointer, contiguous, dimension(:,:) :: ht_roof
+    real(rk8), pointer, contiguous, dimension(:,:) :: wind_hgt_canyon
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: tk_wall
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: tk_roof
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: tk_improad
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: cv_wall
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: cv_roof
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: cv_improad
+    real(rk8), pointer, contiguous, dimension(:,:) :: thick_wall
+    real(rk8), pointer, contiguous, dimension(:,:) :: thick_roof
+    integer(ik4), pointer, contiguous, dimension(:,:) :: nlev_improad
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_building_min
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_building_max
   end type urbinp_t
 
   public urbinp_t
 
-  type(urbinp_t) , public :: urbinp ! urban input derived type
+  type(urbinp_t), public :: urbinp ! urban input derived type
 
   contains
   !
   ! Allocate memory and read in urban input data
   !
   subroutine UrbanInput(mode)
-    use mod_clm_varpar , only : numrad , nlevurb , numurbl
-    use mod_clm_varctl , only : fsurdat
+    use mod_clm_varpar, only : numrad, nlevurb, numurbl
+    use mod_clm_varctl, only : fsurdat
     implicit none
-    character(len=*) , intent(in) :: mode
+    character(len=*), intent(in) :: mode
     type(clm_filetype) :: ncid    ! netcdf id
-    integer(ik4) :: begg , endg   ! start/stop gridcells
+    integer(ik4) :: begg, endg   ! start/stop gridcells
     integer(ik4) :: nlevurb_i ! input grid: number of urban vertical levels
     integer(ik4) :: numrad_i  ! input grid: number of solar bands (VIS/NIR)
     integer(ik4) :: numurbl_i ! input grid: number of urban landunits

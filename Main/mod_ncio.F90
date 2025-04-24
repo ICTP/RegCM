@@ -34,21 +34,21 @@ module mod_ncio
 
   private
 
-  public :: read_domain_info , read_subdomain_info
-  public :: open_icbc , icbc_search , read_icbc , close_icbc
-  public :: open_som , som_search , read_som , close_som
-  public :: open_clmbc , clmbc_search , close_clmbc , read_clmbc
-  public :: fixqcqi , we_have_qc , we_have_qi
+  public :: read_domain_info, read_subdomain_info
+  public :: open_icbc, icbc_search, read_icbc, close_icbc
+  public :: open_som, som_search, read_som, close_som
+  public :: open_clmbc, clmbc_search, close_clmbc, read_clmbc
+  public :: fixqcqi, we_have_qc, we_have_qi
 
-  integer(ik4) :: ibcin , somin , clmbcin
+  integer(ik4) :: ibcin, somin, clmbcin
   integer(ik4) :: istatus
-  integer(ik4) :: ibcrec , ibcnrec , clmbcrec , clmbcnrec
+  integer(ik4) :: ibcrec, ibcnrec, clmbcrec, clmbcnrec
   integer(ik4) :: somrec
-  type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
-  type(rcm_time_and_date) , dimension(:) , allocatable :: clmbc_idate
-  integer(ik4) , dimension(16) :: icbc_ivar
-  integer(ik4) , dimension(4) :: clmbc_ivar
-  integer(ik4) , dimension(1) :: som_ivar
+  type(rcm_time_and_date), dimension(:), allocatable :: icbc_idate
+  type(rcm_time_and_date), dimension(:), allocatable :: clmbc_idate
+  integer(ik4), dimension(16) :: icbc_ivar
+  integer(ik4), dimension(4) :: clmbc_ivar
+  integer(ik4), dimension(1) :: som_ivar
   logical :: has_qc = .false.
   logical :: has_qi = .false.
 
@@ -61,12 +61,12 @@ module mod_ncio
   data somin   /-1/
   data somrec  / 1/
 
-  real(rkx) , dimension(:,:) , pointer :: rspacesom => null()
-  real(rkx) , dimension(:,:) , pointer :: rspace2 => null()
-  real(rkx) , dimension(:,:,:) , pointer :: rspace3 => null()
+  real(rkx), dimension(:,:), pointer, contiguous :: rspacesom => null()
+  real(rkx), dimension(:,:), pointer, contiguous :: rspace2 => null()
+  real(rkx), dimension(:,:,:), pointer, contiguous :: rspace3 => null()
 
-  real(rkx) , dimension(:,:,:) , pointer :: tempw => null()
-  real(rkx) , dimension(:,:) , pointer :: tempwtop => null()
+  real(rkx), dimension(:,:,:), pointer, contiguous :: tempw => null()
+  real(rkx), dimension(:,:), pointer, contiguous :: tempwtop => null()
 
   contains
 
@@ -89,37 +89,37 @@ module mod_ncio
                               ulat,ulon,vlat,vlon,msfx,msfd,msfu,msfv,  &
                               coriol,snowam,smoist,rmoist,rts,hlake,ts0)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ht
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: lnd
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: tex
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: mask
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: area
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xlat
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xlon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: dlat
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: dlon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ulat
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ulon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: vlat
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: vlon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: msfx
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: msfd
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: msfu
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: msfv
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: coriol
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: snowam
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: smoist
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rmoist
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rts
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: hlake
-    real(rkx) , intent(out) :: ts0
-    real(rkx) , dimension(:,:) , pointer :: tempmoist
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ht
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lnd
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: tex
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: mask
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: area
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xlat
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xlon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: dlat
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: dlon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ulat
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ulon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: vlat
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: vlon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: msfx
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: msfd
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: msfu
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: msfv
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: coriol
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: snowam
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: smoist
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rmoist
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rts
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: hlake
+    real(rkx), intent(out) :: ts0
+    real(rkx), dimension(:,:), pointer, contiguous :: tempmoist
     character(len=256) :: dname
-    character(len=8) :: csmoist , cstemp
-    integer(ik4) :: idmin , ilev
-    integer(ik4) , dimension(2) :: istart , icount
-    integer(ik4) , dimension(3) :: istart3 , icount3
-    real(rkx) , dimension(:,:) , pointer :: rspace
+    character(len=8) :: csmoist, cstemp
+    integer(ik4) :: idmin, ilev
+    integer(ik4), dimension(2) :: istart, icount
+    integer(ik4), dimension(3) :: istart3, icount3
+    real(rkx), dimension(:,:), pointer, contiguous :: rspace
     logical :: has_snow = .true.
     logical :: has_dhlake = .true.
     logical :: lerror
@@ -214,7 +214,7 @@ module mod_ncio
         istart3(1:2) = istart
         icount3(1:2) = icount
         icount3(3) = 1
-        do ilev = 1 , num_soil_layers
+        do ilev = 1, num_soil_layers
           istart3(3) = ilev
           call read_var2d_static(idmin,'rmoist',rspace, &
                                  istart=istart3,icount=icount3)
@@ -225,7 +225,7 @@ module mod_ncio
         istart3(1:2) = istart
         icount3(1:2) = icount
         icount3(3) = 1
-        do ilev = 1 , num_soil_layers
+        do ilev = 1, num_soil_layers
           istart3(3) = ilev
           call read_var2d_static(idmin,'rts',rspace, &
                                  istart=istart3,icount=icount3)
@@ -353,7 +353,7 @@ module mod_ncio
           istart3(1:2) = istart
           icount3(1:2) = icount
           icount3(3) = 1
-          do ilev = 1 , num_soil_layers
+          do ilev = 1, num_soil_layers
             istart3(3) = ilev
             call read_var2d_static(idmin,'rmoist',rspace, &
                     istart=istart3,icount=icount3)
@@ -367,7 +367,7 @@ module mod_ncio
           istart3(1:2) = istart
           icount3(1:2) = icount
           icount3(3) = 1
-          do ilev = 1 , num_soil_layers
+          do ilev = 1, num_soil_layers
             istart3(3) = ilev
             call read_var2d_static(idmin,'rts',rspace, &
                     istart=istart3,icount=icount3)
@@ -417,7 +417,7 @@ module mod_ncio
         call grid_distribute(rspace,smoist,jde1,jde2,ide1,ide2)
         if ( replacemoist ) then
           allocate(tempmoist(jde1:jde2,ide1:ide2))
-          do ilev = 1 , num_soil_layers
+          do ilev = 1, num_soil_layers
             call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
             rmoist(jde1:jde2,ide1:ide2,ilev) = tempmoist
           end do
@@ -425,7 +425,7 @@ module mod_ncio
         end if
         if ( replacetemp ) then
           allocate(tempmoist(jde1:jde2,ide1:ide2))
-          do ilev = 1 , num_soil_layers
+          do ilev = 1, num_soil_layers
             call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
             rts(jde1:jde2,ide1:ide2,ilev) = tempmoist
           end do
@@ -447,19 +447,19 @@ module mod_ncio
 
   subroutine read_subdomain_info(ht,lnd,tex,mask,area,xlat,xlon,hlake)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ht
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: lnd
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: tex
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: mask
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: area
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xlat
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xlon
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: hlake
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ht
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: lnd
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: tex
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: mask
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: area
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: xlat
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: xlon
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: hlake
     character(len=256) :: dname
     integer(ik4) :: idmin
-    integer(ik4) , dimension(2) :: istart , icount
-    real(rkx) , dimension(:,:) , pointer :: rspace
-    real(rkx) , dimension(:,:,:) , pointer :: rspace0
+    integer(ik4), dimension(2) :: istart, icount
+    real(rkx), dimension(:,:), pointer, contiguous :: rspace
+    real(rkx), dimension(:,:,:), pointer, contiguous :: rspace0
     logical :: has_dhlake = .true.
     character(len=3) :: sbstring
 
@@ -581,9 +581,9 @@ module mod_ncio
 
   integer(ik4) function clmbc_search(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     type(rcm_time_interval) :: tdif
-    character(len=32) :: appdat1 , appdat2
+    character(len=32) :: appdat1, appdat2
     if ( .not. do_parallel_netcdf_in ) then
       if ( myid /= iocpu ) then
         clmbc_search = 1
@@ -609,9 +609,9 @@ module mod_ncio
 
   integer(ik4) function icbc_search(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     type(rcm_time_interval) :: tdif
-    character(len=32) :: appdat1 , appdat2
+    character(len=32) :: appdat1, appdat2
     if ( .not. do_parallel_netcdf_in ) then
       if ( myid /= iocpu ) then
         icbc_search = 1
@@ -637,7 +637,7 @@ module mod_ncio
 
   integer(ik4) function som_search(imon)
     implicit none
-    integer(ik4) , intent(in) :: imon
+    integer(ik4), intent(in) :: imon
     if ( .not. do_parallel_netcdf_in ) then
       if ( myid /= iocpu ) then
         som_search = 1
@@ -659,11 +659,11 @@ module mod_ncio
   end function som_search
 
   subroutine open_icbc(idate)
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     character(len=11) :: ctime
-    integer(ik4) :: idimid , itvar , i , chkdiff
-    real(rkx) , dimension(:) , allocatable :: icbc_nctime
-    character(len=64) :: icbc_timeunits , icbc_timecal
+    integer(ik4) :: idimid, itvar, i, chkdiff
+    real(rkx), dimension(:), allocatable :: icbc_nctime
+    character(len=64) :: icbc_timeunits, icbc_timecal
     character(len=256) :: icbcname
     if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
       return
@@ -702,7 +702,7 @@ module mod_ncio
     end if
     istatus = nf90_get_var(ibcin, itvar, icbc_nctime)
     call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
-    do i = 1 , ibcnrec
+    do i = 1, ibcnrec
       icbc_idate(i) = timeval2date(icbc_nctime(i),icbc_timeunits,icbc_timecal)
     end do
     if ( ibcnrec > 1 ) then
@@ -761,11 +761,11 @@ module mod_ncio
   end subroutine open_icbc
 
   subroutine open_clmbc(idate)
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     character(len=11) :: ctime
-    integer(ik4) :: idimid , itvar , i
-    real(rkx) , dimension(:) , allocatable :: clmbc_nctime
-    character(len=64) :: clmbc_timeunits , clmbc_timecal
+    integer(ik4) :: idimid, itvar, i
+    real(rkx), dimension(:), allocatable :: clmbc_nctime
+    character(len=64) :: clmbc_timeunits, clmbc_timecal
     character(len=256) :: clmbcname
     if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
       return
@@ -807,7 +807,7 @@ module mod_ncio
     end if
     istatus = nf90_get_var(clmbcin, itvar, clmbc_nctime)
     call check_ok(__FILE__,__LINE__,'variable time read error', 'SFBC FILE')
-    do i = 1 , clmbcnrec
+    do i = 1, clmbcnrec
       clmbc_idate(i) = timeval2date(clmbc_nctime(i), &
                                     clmbc_timeunits,clmbc_timecal)
     end do
@@ -844,12 +844,12 @@ module mod_ncio
 
   subroutine read_clmbc(pr,ssr,strd,clt)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: pr
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ssr
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: strd
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: clt
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: pr
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ssr
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: strd
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: clt
 
-    integer(ik4) , dimension(3) :: istart , icount
+    integer(ik4), dimension(3) :: istart, icount
 
     if ( clmbcrec > clmbcnrec ) then
       call open_clmbc(rcmtimer%idate)
@@ -908,21 +908,21 @@ module mod_ncio
 
   subroutine read_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ps
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ts
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ilnd
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: v
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: t
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: qv
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: qc
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: qi
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pp
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ww
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ilnd
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: t
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qv
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qc
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qi
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pp
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ww
 
-    integer(ik4) , dimension(4) :: istart , icount
-    integer(ik4) :: i , j , k
-    real(rkx) :: told , pold , rhold , satvp , tnew , pnew
+    integer(ik4), dimension(4) :: istart, icount
+    integer(ik4) :: i, j, k
+    real(rkx) :: told, pold, rhold, satvp, tnew, pnew
 
     if ( do_parallel_netcdf_in ) then
       istart(1) = jde1
@@ -1196,9 +1196,9 @@ module mod_ncio
         end do
       end if
       if ( itweak_temperature == 1 ) then
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
+        do k = 1, kz
+          do i = ice1, ice2
+            do j = jce1, jce2
               told = t(j,i,k)
               ! The below is not correct for non-hydro !
               pold = sigma(k)*ps(j,i)*d_100
@@ -1223,9 +1223,9 @@ module mod_ncio
 
   subroutine read_som(qflx)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: qflx
-    integer(ik4) , dimension(4) :: istart , icount
-    character(len=3) , dimension(12) :: cmon = &
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: qflx
+    integer(ik4), dimension(4) :: istart, icount
+    character(len=3), dimension(12) :: cmon = &
       ['jan','feb','mar','apr','may','jun', &
         'jul','aug','sep','oct','nov','dec']
 
@@ -1296,8 +1296,8 @@ module mod_ncio
 
   subroutine check_ok(f,l,m1,mf)
     implicit none
-    character(*) , intent(in) :: f, m1 , mf
-    integer(ik4) , intent(in) :: l
+    character(*), intent(in) :: f, m1, mf
+    integer(ik4), intent(in) :: l
     if (istatus /= nf90_noerr) then
       write (stderr,*) trim(m1)
       write (stderr,*) nf90_strerror(istatus)

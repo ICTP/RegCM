@@ -27,18 +27,18 @@ module mod_mkglacier
 
   public :: mkglacier
 
-  character(len=16) , parameter :: varname = 'PCT_GLACIER'
+  character(len=16), parameter :: varname = 'PCT_GLACIER'
 
-  real(rkx) , parameter :: vcutoff = 1.0_rkx
+  real(rkx), parameter :: vcutoff = 1.0_rkx
 
   contains
 
   subroutine mkglacier(glcfile,mask,glc)
     implicit none
-    character(len=*) , intent(in) :: glcfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: glc
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: glcfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:), intent(out) :: glc
+    integer(ik4) :: i, j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -48,8 +48,8 @@ module mod_mkglacier
     call gfread(gfile,varname,glc,d_zero)
     call gfclose(gfile)
 
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           glc(j,i) = h_missing_value
         else

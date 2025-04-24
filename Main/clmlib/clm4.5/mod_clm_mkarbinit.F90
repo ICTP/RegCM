@@ -19,31 +19,31 @@ module mod_clm_mkarbinit
   use mod_stdio
   use mod_mppparam
   use mod_dynparam
-  use mod_runparams , only : replacemoist , replacetemp
+  use mod_runparams, only : replacemoist, replacetemp
   use mod_clm_atmlnd
   use mod_clm_type
-  use mod_clm_varpar , only : nlevsoi , nlevgrnd , nlevsno , nlevlak , nlevurb
-  use mod_clm_varcon , only : bdsno , istice , istwet , istsoil , isturb , &
-       denice , denh2o , spval , sb , icol_road_perv, icol_road_imperv ,   &
-       icol_roof , icol_sunwall , icol_shadewall , tfrz
-  use mod_clm_varcon , only : istcrop
-  use mod_clm_varcon , only : h2osno_max
-  use mod_clm_varctl , only : pertlim
-  use mod_clm_decomp , only : get_proc_bounds
-  use mod_clm_snicar , only : snw_rds_min
+  use mod_clm_varpar, only : nlevsoi, nlevgrnd, nlevsno, nlevlak, nlevurb
+  use mod_clm_varcon, only : bdsno, istice, istwet, istsoil, isturb, &
+       denice, denh2o, spval, sb, icol_road_perv, icol_road_imperv,   &
+       icol_roof, icol_sunwall, icol_shadewall, tfrz
+  use mod_clm_varcon, only : istcrop
+  use mod_clm_varcon, only : h2osno_max
+  use mod_clm_varctl, only : pertlim
+  use mod_clm_decomp, only : get_proc_bounds
+  use mod_clm_snicar, only : snw_rds_min
 
   implicit none
 
   private
 
-  logical , parameter :: lsnowhack = .false.
+  logical, parameter :: lsnowhack = .false.
 
-  real(rk8) , dimension(22) , parameter :: slmo = &
-    [ 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
-      0.50_rkx , 0.50_rkx , 0.01_rkx , 0.50_rkx , 0.50_rkx , &
-      0.10_rkx , 0.50_rkx , 0.90_rkx , 1.00_rkx , 1.00_rkx , &
-      0.50_rkx , 0.30_rkx , 0.50_rkx , 0.50_rkx , 0.80_rkx , &
-      0.10_rkx , 0.50_rkx ]
+  real(rk8), dimension(22), parameter :: slmo = &
+    [ 0.50_rkx, 0.50_rkx, 0.50_rkx, 0.50_rkx, 0.50_rkx, &
+      0.50_rkx, 0.50_rkx, 0.01_rkx, 0.50_rkx, 0.50_rkx, &
+      0.10_rkx, 0.50_rkx, 0.90_rkx, 1.00_rkx, 1.00_rkx, &
+      0.50_rkx, 0.30_rkx, 0.50_rkx, 0.50_rkx, 0.80_rkx, &
+      0.10_rkx, 0.50_rkx ]
 
   save
 
@@ -61,161 +61,161 @@ module mod_clm_mkarbinit
   subroutine mkarbinit()
     implicit none
     ! column index associated with each pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! column type
-    integer(ik4) , pointer , dimension(:) :: ctype
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype
     ! landunit index associated with each column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! landunit type
-    integer(ik4) , pointer , dimension(:) :: ltype
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype
     ! true => landunit is a lake point
-    logical , pointer , dimension(:) :: lakpoi
+    logical, pointer, contiguous, dimension(:) :: lakpoi
     ! landunit index associated with each pft
-    integer(ik4) , pointer , dimension(:) :: plandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! true => landunit is an urban point
-    logical , pointer , dimension(:) :: urbpoi
+    logical, pointer, contiguous, dimension(:) :: urbpoi
     ! true => landunit is not vegetated
-    logical , pointer , dimension(:) :: ifspecial
+    logical, pointer, contiguous, dimension(:) :: ifspecial
     ! layer thickness depth (m)
-    real(rk8) , pointer , dimension(:,:) :: dz
+    real(rk8), pointer, contiguous, dimension(:,:) :: dz
     ! volumetric soil water at saturation (porosity)
-    real(rk8) , pointer , dimension(:,:) :: watsat
+    real(rk8), pointer, contiguous, dimension(:,:) :: watsat
     ! ice lens (kg/m2)
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_ice
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_ice
     ! liquid water (kg/m2)
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_liq
     ! Clapp and Hornberger "b"
-    real(rk8) , pointer , dimension(:,:) :: bsw
+    real(rk8), pointer, contiguous, dimension(:,:) :: bsw
     ! minimum soil suction (mm)
-    real(rk8) , pointer , dimension(:,:) :: sucsat
+    real(rk8), pointer, contiguous, dimension(:,:) :: sucsat
     ! interface level below a "z" level (m)
-    real(rk8) , pointer , dimension(:,:) :: zi
+    real(rk8), pointer, contiguous, dimension(:,:) :: zi
     ! water in the unconfined aquifer (mm)
-    real(rk8) , pointer , dimension(:) :: wa
+    real(rk8), pointer, contiguous, dimension(:) :: wa
     ! water table depth (m)
-    real(rk8) , pointer , dimension(:) :: zwt
+    real(rk8), pointer, contiguous, dimension(:) :: zwt
     ! surface water (mm)
-    real(rk8) , pointer , dimension(:) :: h2osfc
+    real(rk8), pointer, contiguous, dimension(:) :: h2osfc
     ! surface water temperature
-    real(rk8) , pointer , dimension(:) :: t_h2osfc
+    real(rk8), pointer, contiguous, dimension(:) :: t_h2osfc
     ! fraction of ground covered by surface water (0 to 1)
-    real(rk8) , pointer , dimension(:) :: frac_h2osfc
+    real(rk8), pointer, contiguous, dimension(:) :: frac_h2osfc
     !surface water runoff (mm/s)
-    real(rk8) , pointer , dimension(:) :: qflx_h2osfc_surf
+    real(rk8), pointer, contiguous, dimension(:) :: qflx_h2osfc_surf
     ! frost table depth (m)
-    real(rk8) , pointer , dimension(:) :: frost_table
+    real(rk8), pointer, contiguous, dimension(:) :: frost_table
     ! perched water table depth (m)
-    real(rk8) , pointer , dimension(:) :: zwt_perched
+    real(rk8), pointer, contiguous, dimension(:) :: zwt_perched
     ! integrated snowfall
-    real(rk8) , pointer , dimension(:) :: int_snow
+    real(rk8), pointer, contiguous, dimension(:) :: int_snow
     ! snow melt (net)
-    real(rk8) , pointer , dimension(:) :: qflx_snow_melt
+    real(rk8), pointer, contiguous, dimension(:) :: qflx_snow_melt
     ! number of snow layers
-    integer(ik4) , pointer , dimension(:) :: snl
+    integer(ik4), pointer, contiguous, dimension(:) :: snl
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: t_soisno
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_soisno
     ! lake temperature (Kelvin)  (1:nlevlak)
-    real(rk8) , pointer , dimension(:,:) :: t_lake
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_lake
     ! ground temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_grnd
+    real(rk8), pointer, contiguous, dimension(:) :: t_grnd
     ! vegetation temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_veg
+    real(rk8), pointer, contiguous, dimension(:) :: t_veg
     ! 2 m height surface air temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_ref2m
+    real(rk8), pointer, contiguous, dimension(:) :: t_ref2m
     ! Urban 2 m height surface air temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_ref2m_u
+    real(rk8), pointer, contiguous, dimension(:) :: t_ref2m_u
     ! Rural 2 m height surface air temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_ref2m_r
+    real(rk8), pointer, contiguous, dimension(:) :: t_ref2m_r
     ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_vol
     ! canopy water (mm H2O) (column-level)
-    real(rk8) , pointer , dimension(:) :: h2ocan_col
+    real(rk8), pointer, contiguous, dimension(:) :: h2ocan_col
     ! canopy water (mm H2O) (pft-level)
-    real(rk8) , pointer , dimension(:) :: h2ocan_pft
+    real(rk8), pointer, contiguous, dimension(:) :: h2ocan_pft
     ! snow water (mm H2O)
-    real(rk8) , pointer , dimension(:) :: h2osno
+    real(rk8), pointer, contiguous, dimension(:) :: h2osno
     ! snow height (m)
-    real(rk8) , pointer , dimension(:) :: snow_depth
+    real(rk8), pointer, contiguous, dimension(:) :: snow_depth
     ! irrigation flux (mm H2O/s)
-    real(rk8) , pointer , dimension(:) :: qflx_irrig
+    real(rk8), pointer, contiguous, dimension(:) :: qflx_irrig
     ! emitted infrared (longwave) radiation (W/m**2)
-    real(rk8) , pointer , dimension(:) :: eflx_lwrad_out
+    real(rk8), pointer, contiguous, dimension(:) :: eflx_lwrad_out
     ! soil water potential in each soil layer (MPa)
-    real(rk8) , pointer , dimension(:,:) :: soilpsi
+    real(rk8), pointer, contiguous, dimension(:,:) :: soilpsi
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rk8) , pointer , dimension(:,:) :: snw_rds
+    real(rk8), pointer, contiguous, dimension(:,:) :: snw_rds
     ! snow grain size, top (col) [microns]
-    real(rk8) , pointer , dimension(:) :: snw_rds_top
+    real(rk8), pointer, contiguous, dimension(:) :: snw_rds_top
     ! liquid water fraction (mass) in top snow layer (col) [frc]
-    real(rk8) , pointer , dimension(:) :: sno_liq_top
+    real(rk8), pointer, contiguous, dimension(:) :: sno_liq_top
     ! mass of hydrophobic BC in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_bcpho
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_bcpho
     ! mass of hydrophillic BC in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_bcphi
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_bcphi
     ! total mass of BC (pho+phi) (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_bctot
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_bctot
     ! total mass of BC in snow column (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_bc_col
+    real(rk8), pointer, contiguous, dimension(:) :: mss_bc_col
     ! total mass of BC in top snow layer (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_bc_top
+    real(rk8), pointer, contiguous, dimension(:) :: mss_bc_top
     ! mass concentration of BC species 1 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_bcphi
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_bcphi
     ! mass concentration of BC species 2 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_bcpho
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_bcpho
     ! mass of hydrophobic OC in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_ocpho
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_ocpho
     ! mass of hydrophillic OC in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_ocphi
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_ocphi
     ! total mass of OC (pho+phi) (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_octot
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_octot
     ! total mass of OC in snow column (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_oc_col
+    real(rk8), pointer, contiguous, dimension(:) :: mss_oc_col
     ! total mass of OC in top snow layer (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_oc_top
+    real(rk8), pointer, contiguous, dimension(:) :: mss_oc_top
     ! mass concentration of OC species 1 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_ocphi
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_ocphi
     ! mass concentration of OC species 2 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_ocpho
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_ocpho
     ! mass of dust species 1 in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_dst1
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_dst1
     ! mass of dust species 2 in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_dst2
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_dst2
     ! mass of dust species 3 in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_dst3
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_dst3
     ! mass of dust species 4 in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_dst4
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_dst4
     ! total mass of dust in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_dsttot
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_dsttot
     ! total mass of dust in snow column (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_dst_col
+    real(rk8), pointer, contiguous, dimension(:) :: mss_dst_col
     ! total mass of dust in top snow layer (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_dst_top
+    real(rk8), pointer, contiguous, dimension(:) :: mss_dst_top
     ! mass concentration of dust species 1 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst1
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst1
     ! mass concentration of dust species 2 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst2
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst2
     ! mass concentration of dust species 3 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst3
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst3
     ! mass concentration of dust species 4 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst4
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst4
     ! current irrigation rate [mm/s]
-    real(rk8) , pointer , dimension(:) :: irrig_rate
+    real(rk8), pointer, contiguous, dimension(:) :: irrig_rate
     ! soil T for top 0.17 m
-    real(rk8) , pointer , dimension(:) :: tsoi17
+    real(rk8), pointer, contiguous, dimension(:) :: tsoi17
     !fractional area with water table at surface
-    real(rk8) , pointer , dimension(:) :: fsat
+    real(rk8), pointer, contiguous, dimension(:) :: fsat
     ! number of time steps for which we still need to irrigate today
     ! (if 0, ignore irrig_rate)
-    integer(ik4) ,  pointer , dimension(:) :: n_irrig_steps_left
+    integer(ik4),  pointer, contiguous, dimension(:) :: n_irrig_steps_left
 
-    integer(ik4) :: j , l , c , p  ! indices
+    integer(ik4) :: j, l, c, p  ! indices
     integer(ik4) :: nlevs       ! number of levels
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
-    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
 #if (defined CN)
-    real(rk8) :: vwc , psi      ! for calculating soilpsi
+    real(rk8) :: vwc, psi      ! for calculating soilpsi
 #endif
 
     if ( myid == italk )then
@@ -334,7 +334,7 @@ module mod_clm_mkarbinit
        qflx_snow_melt(c)   = 0._rk8
     enddo
 
-    do c = begc , endc
+    do c = begc, endc
       ! canopy water (column level)
       h2ocan_col(c) = 0._rk8
 
@@ -373,7 +373,7 @@ module mod_clm_mkarbinit
 
     ! NOTE: THESE MEMORY COPIES ARE INEFFICIENT --
     !     SINCE nlev LOOP IS NESTED FIRST!!!!
-    do c = begc , endc
+    do c = begc, endc
 
       t_soisno(c,-nlevsno+1:nlevgrnd) = spval
       t_lake(c,1:nlevlak) = spval
@@ -382,16 +382,16 @@ module mod_clm_mkarbinit
       if ( .not. lakpoi(l) ) then  !not lake
         t_soisno(c,-nlevsno+1:0) = spval
         if ( snl(c) < 0 ) then    !snow layer temperatures
-          do j = snl(c)+1 , 0
+          do j = snl(c)+1, 0
             t_soisno(c,j) = 250._rk8
           end do
         end if
         if ( ltype(l)==istice ) then
-          do j = 1 , nlevgrnd
+          do j = 1, nlevgrnd
             t_soisno(c,j) = 250._rk8
           end do
         else if (ltype(l) == istwet) then
-          do j = 1 , nlevgrnd
+          do j = 1, nlevgrnd
             t_soisno(c,j) = 277._rk8
           end do
         else if (ltype(l) == isturb) then
@@ -400,18 +400,18 @@ module mod_clm_mkarbinit
               ctype(c) == icol_road_imperv) then
             ! Set road top layer to initial air temperature and interpolate
             ! other layers down to 20C in bottom layer
-            do j = 1 , nlevgrnd
+            do j = 1, nlevgrnd
               t_soisno(c,j) = 297.56 - (j-1) * ((297.56-293.16)/(nlevgrnd-1))
             end do
           ! Set wall and roof layers to initial air temperature
           else if (ctype(c) == icol_sunwall .or. &
                    ctype(c) == icol_shadewall .or. &
                    ctype(c) == icol_roof) then
-            do j = 1 , nlevurb
+            do j = 1, nlevurb
               t_soisno(c,j) = 297.56
             end do
           else
-            do j = 1 , nlevgrnd
+            do j = 1, nlevgrnd
               t_soisno(c,j) = 283._rk8
             end do
           end if
@@ -420,25 +420,25 @@ module mod_clm_mkarbinit
               ctype(c) == icol_road_imperv) then
             ! Set road top layer to initial air temperature and interpolate
             ! other layers down to 22C in bottom layer
-            do j = 1 , nlevgrnd
+            do j = 1, nlevgrnd
               t_soisno(c,j) = 289.46 - (j-1) * ((289.46-295.16)/(nlevgrnd-1))
             end do
           ! Set wall and roof layers to initial air temperature
           else if (ctype(c) == icol_sunwall .or. &
                    ctype(c) == icol_shadewall .or. &
                    ctype(c) == icol_roof) then
-            do j = 1 , nlevurb
+            do j = 1, nlevurb
               t_soisno(c,j) = 289.46
             end do
           else
-            do j = 1 , nlevgrnd
+            do j = 1, nlevgrnd
               t_soisno(c,j) = 283._rk8
             end do
           end if
 #else
           if (ctype(c) == icol_road_perv .or. &
               ctype(c) == icol_road_imperv) then
-            do j = 1 , nlevgrnd
+            do j = 1, nlevgrnd
               t_soisno(c,j) = 274._rk8
             end do
           ! Set sunwall, shadewall, roof to fairly high temperature to
@@ -446,13 +446,13 @@ module mod_clm_mkarbinit
           else if (ctype(c) == icol_sunwall .or. &
                    ctype(c) == icol_shadewall .or. &
                    ctype(c) == icol_roof) then
-            do j = 1 , nlevurb
+            do j = 1, nlevurb
               t_soisno(c,j) = 292._rk8
             end do
           end if
 #endif
         else
-          do j = 1 , nlevgrnd
+          do j = 1, nlevgrnd
             t_soisno(c,j) = 274._rk8
           end do
         end if
@@ -466,7 +466,7 @@ module mod_clm_mkarbinit
 
     call perturbIC( clm3%g%l )
 
-    do p = begp , endp
+    do p = begp, endp
       c = pcolumn(p)
       l = plandunit(p)
 
@@ -532,7 +532,7 @@ module mod_clm_mkarbinit
     wa(begc:endc)  = 5000._rk8
     zwt(begc:endc) = 0._rk8
 
-    do c = begc , endc
+    do c = begc, endc
       l = clandunit(c)
       if ( .not. lakpoi(l) ) then  !not lake
         if ( ltype(l) == isturb ) then
@@ -558,13 +558,13 @@ module mod_clm_mkarbinit
       end if
     end do
 
-    do c = begc , endc
+    do c = begc, endc
       l = clandunit(c)
       if ( .not. lakpoi(l) ) then  !not lake
         ! volumetric water
         if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
           nlevs = nlevgrnd
-          do j = 1 , nlevs
+          do j = 1, nlevs
             if ( j > nlevsoi ) then
               h2osoi_vol(c,j) = 0.0_rk8
             else
@@ -574,7 +574,7 @@ module mod_clm_mkarbinit
         else if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_road_perv ) then
             nlevs = nlevgrnd
-            do j = 1 , nlevs
+            do j = 1, nlevs
               if ( j <= nlevsoi ) then
                 h2osoi_vol(c,j) = 0.3_rk8
               else
@@ -583,18 +583,18 @@ module mod_clm_mkarbinit
             end do
           else if ( ctype(c) == icol_road_imperv ) then
             nlevs = nlevgrnd
-            do j = 1 , nlevs
+            do j = 1, nlevs
               h2osoi_vol(c,j) = 0.0_rk8
             end do
           else
             nlevs = nlevurb
-            do j = 1 , nlevs
+            do j = 1, nlevs
               h2osoi_vol(c,j) = 0.0_rk8
             end do
           end if
         else if ( ltype(l) == istwet ) then
           nlevs = nlevgrnd
-          do j = 1 , nlevs
+          do j = 1, nlevs
             if ( j > nlevsoi ) then
               h2osoi_vol(c,j) = 0.0_rk8
             else
@@ -603,11 +603,11 @@ module mod_clm_mkarbinit
           end do
         else if ( ltype(l) == istice ) then
           nlevs = nlevgrnd
-          do j = 1 , nlevs
+          do j = 1, nlevs
             h2osoi_vol(c,j) = 1.0_rk8
           end do
         end if
-        do j = 1 , nlevs
+        do j = 1, nlevs
           h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
           ! soil layers
           if ( t_soisno(c,j) <= tfrz ) then
@@ -624,7 +624,7 @@ module mod_clm_mkarbinit
         ! required for CN code
         if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
           nlevs = nlevgrnd
-          do j = 1 , nlevs
+          do j = 1, nlevs
             if ( h2osoi_liq(c,j) > 0._rk8 ) then
               vwc = h2osoi_liq(c,j)/(dz(c,j)*denh2o)
               psi = sucsat(c,j) * (-9.8e-6_rk8) * &
@@ -640,8 +640,8 @@ module mod_clm_mkarbinit
     end do
 
     ! Set snow
-    do j = -nlevsno+1 , 0
-      do c = begc , endc
+    do j = -nlevsno+1, 0
+      do c = begc, endc
         l = clandunit(c)
         if ( .not. lakpoi(l) ) then  !not lake
           if ( j > snl(c) ) then
@@ -701,168 +701,168 @@ module mod_clm_mkarbinit
   !
   subroutine mkregcminit( adomain )
     implicit none
-    type(atm_domain) , intent(in) :: adomain
+    type(atm_domain), intent(in) :: adomain
     ! column index associated with each pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! column type
-    integer(ik4) , pointer , dimension(:) :: ctype
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype
     ! gridcell index associated with each column
-    integer(ik4) , pointer , dimension(:) :: cgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
     ! landunit index associated with each column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! landunit type
-    integer(ik4) , pointer , dimension(:) :: ltype
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype
     ! true => landunit is a lake point
-    logical , pointer , dimension(:) :: lakpoi
+    logical, pointer, contiguous, dimension(:) :: lakpoi
     ! landunit index associated with each pft
-    integer(ik4) , pointer , dimension(:) :: plandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! true => landunit is an urban point
-    logical , pointer , dimension(:) :: urbpoi
+    logical, pointer, contiguous, dimension(:) :: urbpoi
     ! true => landunit is not vegetated
-    logical , pointer , dimension(:) :: ifspecial
+    logical, pointer, contiguous, dimension(:) :: ifspecial
     ! layer thickness depth (m)
-    real(rk8) , pointer , dimension(:,:) :: dz
+    real(rk8), pointer, contiguous, dimension(:,:) :: dz
     ! volumetric soil water at saturation (porosity)
-    real(rk8) , pointer , dimension(:,:) :: watsat
+    real(rk8), pointer, contiguous, dimension(:,:) :: watsat
     ! ice lens (kg/m2)
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_ice
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_ice
     ! liquid water (kg/m2)
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_liq
     ! Clapp and Hornberger "b"
-    real(rk8) , pointer , dimension(:,:) :: bsw
+    real(rk8), pointer, contiguous, dimension(:,:) :: bsw
     ! minimum soil suction (mm)
-    real(rk8) , pointer , dimension(:,:) :: sucsat
+    real(rk8), pointer, contiguous, dimension(:,:) :: sucsat
     ! interface level below a "z" level (m)
-    real(rk8) , pointer , dimension(:,:) :: zi
+    real(rk8), pointer, contiguous, dimension(:,:) :: zi
     ! water in the unconfined aquifer (mm)
-    real(rk8) , pointer , dimension(:) :: wa
+    real(rk8), pointer, contiguous, dimension(:) :: wa
     ! water table depth (m)
-    real(rk8) , pointer , dimension(:) :: zwt
+    real(rk8), pointer, contiguous, dimension(:) :: zwt
     ! surface water (mm)
-    real(rk8) , pointer , dimension(:) :: h2osfc
+    real(rk8), pointer, contiguous, dimension(:) :: h2osfc
     ! surface water temperature
-    real(rk8) , pointer , dimension(:) :: t_h2osfc
+    real(rk8), pointer, contiguous, dimension(:) :: t_h2osfc
     ! fraction of ground covered by surface water (0 to 1)
-    real(rk8) , pointer , dimension(:) :: frac_h2osfc
+    real(rk8), pointer, contiguous, dimension(:) :: frac_h2osfc
     !surface water runoff (mm/s)
-    real(rk8) , pointer , dimension(:) :: qflx_h2osfc_surf
+    real(rk8), pointer, contiguous, dimension(:) :: qflx_h2osfc_surf
     ! frost table depth (m)
-    real(rk8) , pointer , dimension(:) :: frost_table
+    real(rk8), pointer, contiguous, dimension(:) :: frost_table
     ! perched water table depth (m)
-    real(rk8) , pointer , dimension(:) :: zwt_perched
+    real(rk8), pointer, contiguous, dimension(:) :: zwt_perched
     ! integrated snowfall
-    real(rk8) , pointer , dimension(:) :: int_snow
+    real(rk8), pointer, contiguous, dimension(:) :: int_snow
     ! snow melt (net)
-    real(rk8) , pointer , dimension(:) :: qflx_snow_melt
+    real(rk8), pointer, contiguous, dimension(:) :: qflx_snow_melt
     ! number of snow layers
-    integer(ik4) , pointer , dimension(:) :: snl
+    integer(ik4), pointer, contiguous, dimension(:) :: snl
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: t_soisno
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_soisno
     ! lake temperature (Kelvin)  (1:nlevlak)
-    real(rk8) , pointer , dimension(:,:) :: t_lake
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_lake
     ! ground temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_grnd
+    real(rk8), pointer, contiguous, dimension(:) :: t_grnd
     ! vegetation temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_veg
+    real(rk8), pointer, contiguous, dimension(:) :: t_veg
     ! 2 m height surface air temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_ref2m
+    real(rk8), pointer, contiguous, dimension(:) :: t_ref2m
     ! Urban 2 m height surface air temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_ref2m_u
+    real(rk8), pointer, contiguous, dimension(:) :: t_ref2m_u
     ! Rural 2 m height surface air temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_ref2m_r
+    real(rk8), pointer, contiguous, dimension(:) :: t_ref2m_r
     ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_vol
     ! canopy water (mm H2O) (column-level)
-    real(rk8) , pointer , dimension(:) :: h2ocan_col
+    real(rk8), pointer, contiguous, dimension(:) :: h2ocan_col
     ! canopy water (mm H2O) (pft-level)
-    real(rk8) , pointer , dimension(:) :: h2ocan_pft
+    real(rk8), pointer, contiguous, dimension(:) :: h2ocan_pft
     ! snow water (mm H2O)
-    real(rk8) , pointer , dimension(:) :: h2osno
+    real(rk8), pointer, contiguous, dimension(:) :: h2osno
     ! snow height (m)
-    real(rk8) , pointer , dimension(:) :: snow_depth
+    real(rk8), pointer, contiguous, dimension(:) :: snow_depth
     ! irrigation flux (mm H2O/s)
-    real(rk8) , pointer , dimension(:) :: qflx_irrig
+    real(rk8), pointer, contiguous, dimension(:) :: qflx_irrig
     ! emitted infrared (longwave) radiation (W/m**2)
-    real(rk8) , pointer , dimension(:) :: eflx_lwrad_out
+    real(rk8), pointer, contiguous, dimension(:) :: eflx_lwrad_out
     ! soil water potential in each soil layer (MPa)
-    real(rk8) , pointer , dimension(:,:) :: soilpsi
+    real(rk8), pointer, contiguous, dimension(:,:) :: soilpsi
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rk8) , pointer , dimension(:,:) :: snw_rds
+    real(rk8), pointer, contiguous, dimension(:,:) :: snw_rds
     ! snow grain size, top (col) [microns]
-    real(rk8) , pointer , dimension(:) :: snw_rds_top
+    real(rk8), pointer, contiguous, dimension(:) :: snw_rds_top
     ! liquid water fraction (mass) in top snow layer (col) [frc]
-    real(rk8) , pointer , dimension(:) :: sno_liq_top
+    real(rk8), pointer, contiguous, dimension(:) :: sno_liq_top
     ! mass of hydrophobic BC in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_bcpho
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_bcpho
     ! mass of hydrophillic BC in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_bcphi
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_bcphi
     ! total mass of BC (pho+phi) (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_bctot
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_bctot
     ! total mass of BC in snow column (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_bc_col
+    real(rk8), pointer, contiguous, dimension(:) :: mss_bc_col
     ! total mass of BC in top snow layer (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_bc_top
+    real(rk8), pointer, contiguous, dimension(:) :: mss_bc_top
     ! mass concentration of BC species 1 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_bcphi
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_bcphi
     ! mass concentration of BC species 2 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_bcpho
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_bcpho
     ! mass of hydrophobic OC in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_ocpho
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_ocpho
     ! mass of hydrophillic OC in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_ocphi
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_ocphi
     ! total mass of OC (pho+phi) (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_octot
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_octot
     ! total mass of OC in snow column (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_oc_col
+    real(rk8), pointer, contiguous, dimension(:) :: mss_oc_col
     ! total mass of OC in top snow layer (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_oc_top
+    real(rk8), pointer, contiguous, dimension(:) :: mss_oc_top
     ! mass concentration of OC species 1 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_ocphi
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_ocphi
     ! mass concentration of OC species 2 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_ocpho
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_ocpho
     ! mass of dust species 1 in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_dst1
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_dst1
     ! mass of dust species 2 in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_dst2
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_dst2
     ! mass of dust species 3 in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_dst3
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_dst3
     ! mass of dust species 4 in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_dst4
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_dst4
     ! total mass of dust in snow (col,lyr) [kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_dsttot
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_dsttot
     ! total mass of dust in snow column (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_dst_col
+    real(rk8), pointer, contiguous, dimension(:) :: mss_dst_col
     ! total mass of dust in top snow layer (col) [kg]
-    real(rk8) , pointer , dimension(:) :: mss_dst_top
+    real(rk8), pointer, contiguous, dimension(:) :: mss_dst_top
     ! mass concentration of dust species 1 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst1
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst1
     ! mass concentration of dust species 2 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst2
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst2
     ! mass concentration of dust species 3 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst3
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst3
     ! mass concentration of dust species 4 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst4
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst4
     ! current irrigation rate [mm/s]
-    real(rk8) , pointer , dimension(:) :: irrig_rate
+    real(rk8), pointer, contiguous, dimension(:) :: irrig_rate
     ! soil T for top 0.17 m
-    real(rk8) , pointer , dimension(:) :: tsoi17
+    real(rk8), pointer, contiguous, dimension(:) :: tsoi17
     !fractional area with water table at surface
-    real(rk8) , pointer , dimension(:) :: fsat
+    real(rk8), pointer, contiguous, dimension(:) :: fsat
     ! dz soil
-    real(rk8) , pointer , dimension(:,:) :: dzsoi
+    real(rk8), pointer, contiguous, dimension(:,:) :: dzsoi
     ! number of time steps for which we still need to irrigate today
     ! (if 0, ignore irrig_rate)
-    integer(ik4) ,  pointer , dimension(:) :: n_irrig_steps_left
+    integer(ik4),  pointer, contiguous, dimension(:) :: n_irrig_steps_left
 
-    integer(ik4) :: j , l , c , p  , g ! indices
+    integer(ik4) :: j, l, c, p , g ! indices
     integer(ik4) :: nlevs       ! number of levels
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
-    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
-    real(rk8) :: w1 , sfcsat
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
+    real(rk8) :: w1, sfcsat
 #if (defined CN)
-    real(rk8) :: vwc , psi      ! for calculating soilpsi
+    real(rk8) :: vwc, psi      ! for calculating soilpsi
 #endif
 
     if ( myid == italk )then
@@ -974,7 +974,7 @@ module mod_clm_mkarbinit
     end do
 
     ! initialize h2osfc, frac_h2osfc, t_h2osfc, qflx_snow_melt
-    do c = begc , endc
+    do c = begc, endc
       g = cgridcell(c)
       h2osfc(c)           = 0._rk8
       frac_h2osfc(c)      = 0._rk8
@@ -983,7 +983,7 @@ module mod_clm_mkarbinit
       qflx_snow_melt(c)   = 0._rk8
     enddo
 
-    do c = begc , endc
+    do c = begc, endc
       g = cgridcell(c)
       l = clandunit(c)
 
@@ -1045,7 +1045,7 @@ module mod_clm_mkarbinit
 
     ! NOTE: THESE MEMORY COPIES ARE INEFFICIENT --
     !     SINCE nlev LOOP IS NESTED FIRST!!!!
-    do c = begc , endc
+    do c = begc, endc
 
       t_soisno(c,-nlevsno+1:nlevgrnd) = spval
       t_lake(c,1:nlevlak) = spval
@@ -1056,22 +1056,22 @@ module mod_clm_mkarbinit
       if ( .not. lakpoi(l) ) then  !not lake
         t_soisno(c,-nlevsno+1:0) = spval
         if ( snl(c) < 0 ) then    !snow layer temperatures
-          do j = snl(c)+1 , 0
+          do j = snl(c)+1, 0
             t_soisno(c,j) = adomain%tgrd(g) - 1.0_rk8 * real(snl(c)-j,rk8)
           end do
         end if
         if ( ltype(l) == istice ) then
-          do j = 1 , nlevgrnd
+          do j = 1, nlevgrnd
             t_soisno(c,j) = 250.0_rk8
           end do
         else if (ltype(l) == istwet) then
-          do j = 1 , nlevgrnd
+          do j = 1, nlevgrnd
             t_soisno(c,j) = adomain%tgrd(g)
           end do
         else if (ltype(l) == isturb) then
           if (ctype(c) == icol_road_perv .or. &
               ctype(c) == icol_road_imperv) then
-            do j = 1 , nlevgrnd
+            do j = 1, nlevgrnd
               t_soisno(c,j) = adomain%tgrd(g) + 2.0_rk8
             end do
           ! Set sunwall, shadewall, roof to fairly high temperature to
@@ -1079,12 +1079,12 @@ module mod_clm_mkarbinit
           else if (ctype(c) == icol_sunwall .or. &
                    ctype(c) == icol_shadewall .or. &
                    ctype(c) == icol_roof) then
-            do j = 1 , nlevurb
+            do j = 1, nlevurb
               t_soisno(c,j) = adomain%tgrd(g) + 5.0_rk8
             end do
           end if
         else
-          do j = 1 , nlevgrnd
+          do j = 1, nlevgrnd
             t_soisno(c,j) = adomain%tgrd(g)
           end do
         end if
@@ -1096,7 +1096,7 @@ module mod_clm_mkarbinit
       tsoi17(c) = t_grnd(c)
     end do
 
-    do p = begp , endp
+    do p = begp, endp
       c = pcolumn(p)
       l = plandunit(p)
 
@@ -1134,7 +1134,7 @@ module mod_clm_mkarbinit
     wa(begc:endc)  = 5000._rk8
     zwt(begc:endc) = 0._rk8
 
-    do c = begc , endc
+    do c = begc, endc
       l = clandunit(c)
       if ( .not. lakpoi(l) ) then  !not lake
         if ( ltype(l) == isturb ) then
@@ -1160,14 +1160,14 @@ module mod_clm_mkarbinit
       end if
     end do
 
-    do c = begc , endc
+    do c = begc, endc
       g = cgridcell(c)
       l = clandunit(c)
       if ( .not. lakpoi(l) ) then  !not lake
         ! volumetric water
         if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
           nlevs = nlevgrnd
-          do j = 1 , nlevs
+          do j = 1, nlevs
             if ( j > nlevsoi ) then
               h2osoi_vol(c,j) = 0.0_rk8
             else
@@ -1185,7 +1185,7 @@ module mod_clm_mkarbinit
         else if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_road_perv ) then
             nlevs = nlevgrnd
-            do j = 1 , nlevs
+            do j = 1, nlevs
               if ( j > nlevsoi ) then
                 h2osoi_vol(c,j) = 0.0_rk8
               else
@@ -1195,18 +1195,18 @@ module mod_clm_mkarbinit
             end do
           else if ( ctype(c) == icol_road_imperv ) then
             nlevs = nlevgrnd
-            do j = 1 , nlevs
+            do j = 1, nlevs
               h2osoi_vol(c,j) = 0.0_rk8
             end do
           else
             nlevs = nlevurb
-            do j = 1 , nlevs
+            do j = 1, nlevs
               h2osoi_vol(c,j) = 0.0_rk8
             end do
           end if
         else if ( ltype(l) == istwet ) then
           nlevs = nlevgrnd
-          do j = 1 , nlevs
+          do j = 1, nlevs
             if ( j > nlevsoi ) then
               h2osoi_vol(c,j) = 0.0_rk8
             else
@@ -1215,7 +1215,7 @@ module mod_clm_mkarbinit
           end do
         else if ( ltype(l) == istice ) then
           nlevs = nlevgrnd
-          do j = 1 , nlevs
+          do j = 1, nlevs
             h2osoi_vol(c,j) = 1.0_rk8
           end do
         end if
@@ -1226,7 +1226,7 @@ module mod_clm_mkarbinit
       if ( myid == italk ) then
          write(stdout,*) 'Initializing SOIL moisture from DOMAIN file'
       end if
-      do c = begc , endc
+      do c = begc, endc
         g = cgridcell(c)
         l = clandunit(c)
         if ( .not. lakpoi(l) ) then  !not lake
@@ -1234,7 +1234,7 @@ module mod_clm_mkarbinit
                ltype(l) == istcrop .or. &
                ltype(l) == isturb ) then
             nlevs = nlevgrnd
-            do j = 1 , nlevs
+            do j = 1, nlevs
               if ( j > nlevsoi ) then
                 h2osoi_vol(c,j) = 0.0_rk8
               else
@@ -1253,7 +1253,7 @@ module mod_clm_mkarbinit
       if ( myid == italk ) then
          write(stdout,*) 'Initializing SOIL temperature from DOMAIN file'
       end if
-      do c = begc , endc
+      do c = begc, endc
         g = cgridcell(c)
         l = clandunit(c)
         if ( .not. lakpoi(l) ) then  !not lake
@@ -1261,7 +1261,7 @@ module mod_clm_mkarbinit
                ltype(l) == istcrop .or. &
                ltype(l) == isturb ) then
             nlevs = nlevgrnd
-            do j = 1 , nlevs
+            do j = 1, nlevs
               if ( adomain%rts(g,j) < 1.0e+10_rk8 ) then
                 t_soisno(c,j) = adomain%rts(g,j)
               end if
@@ -1271,13 +1271,13 @@ module mod_clm_mkarbinit
       end do
     end if
 
-    do c = begc , endc
+    do c = begc, endc
       g = cgridcell(c)
       l = clandunit(c)
       if ( .not. lakpoi(l) ) then  !not lake
         h2osoi_ice(c,:) = 0.0_rk8
         h2osoi_liq(c,:) = 0.0_rk8
-        do j = 1 , nlevgrnd
+        do j = 1, nlevgrnd
           if ( dz(c,j) > 1.0e10_rk8 ) cycle
           if ( ltype(l) == istice ) then
             h2osoi_ice(c,j) = dz(c,j)*denice
@@ -1312,7 +1312,7 @@ module mod_clm_mkarbinit
         ! required for CN code
         if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
           nlevs = nlevgrnd
-          do j = 1 , nlevs
+          do j = 1, nlevs
             if ( h2osoi_liq(c,j) > 0._rk8 ) then
               vwc = h2osoi_liq(c,j)/(dz(c,j)*denh2o)
               psi = sucsat(c,j) * (-9.8e-6_rk8) * &
@@ -1328,8 +1328,8 @@ module mod_clm_mkarbinit
     end do
 
     ! Set snow
-    do j = -nlevsno+1 , 0
-      do c = begc , endc
+    do j = -nlevsno+1, 0
+      do c = begc, endc
         l = clandunit(c)
         if ( .not. lakpoi(l) ) then  !not lake
           if ( j > snl(c) ) then
@@ -1386,26 +1386,26 @@ module mod_clm_mkarbinit
   !
   subroutine perturbIC( landunit )
     implicit none
-    type(landunit_type) , intent(inout) :: landunit
-    integer(ik4) :: j , l , c   ! indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
+    type(landunit_type), intent(inout) :: landunit
+    integer(ik4) :: j, l, c   ! indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
     real(rk8) :: pertval  ! for calculating temperature perturbation
     integer(ik4) :: nlevs ! number of levels
     ! landunit index associated with each column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! landunit type
-    integer(ik4) , pointer , dimension(:) :: ltype
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype
     ! true => landunit is a lake point
-    logical , pointer , dimension(:) :: lakpoi
+    logical, pointer, contiguous, dimension(:) :: lakpoi
     ! number of snow layers
-    integer(ik4) , pointer , dimension(:) :: snl
+    integer(ik4), pointer, contiguous, dimension(:) :: snl
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: t_soisno
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_soisno
     ! lake temperature (Kelvin)  (1:nlevlak)
-    real(rk8) , pointer , dimension(:,:) :: t_lake
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_lake
     ! ground temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_grnd
-    integer(ik4) , pointer , dimension(:) :: ctype ! column type
+    real(rk8), pointer, contiguous, dimension(:) :: t_grnd
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
 
     if ( pertlim /= 0.0_rk8 )then
       if ( myid == italk ) then
@@ -1425,7 +1425,7 @@ module mod_clm_mkarbinit
 
       call get_proc_bounds(begc=begc,endc=endc)
 
-      do c = begc , endc
+      do c = begc, endc
         l = clandunit(c)
         if ( .not. lakpoi(l) ) then  !not lake
           if ( ltype(l) == isturb ) then
@@ -1439,14 +1439,14 @@ module mod_clm_mkarbinit
             nlevs = nlevgrnd
           end if
           ! Randomly perturb soil temperature
-          do j = 1 , nlevs
+          do j = 1, nlevs
             call random_number (pertval)
             pertval       = 2._rk8*pertlim*(0.5_rk8 - pertval)
             t_soisno(c,j) = t_soisno(c,j)*(1._rk8 + pertval)
           end do
         else                       !lake
           ! Randomly perturb lake temperature
-          do j = 1 , nlevlak
+          do j = 1, nlevlak
             call random_number (pertval)
             pertval     = 2._rk8*pertlim*(0.5_rk8 - pertval)
             t_lake(c,j) = t_lake(c,j)*(1._rk8 + pertval)
@@ -1465,22 +1465,22 @@ module mod_clm_mkarbinit
   !
   subroutine snow_depth2lev(lbc, ubc)
     implicit none
-    integer(ik4) , intent(in) :: lbc , ubc ! column bounds
+    integer(ik4), intent(in) :: lbc, ubc ! column bounds
     ! landunit index associated with each column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! snow height (m)
-    real(rk8) , pointer , dimension(:) :: snow_depth
+    real(rk8), pointer, contiguous, dimension(:) :: snow_depth
     ! true => landunit is a lake point
-    logical , pointer , dimension(:) :: lakpoi
+    logical, pointer, contiguous, dimension(:) :: lakpoi
     ! number of snow layers
-    integer(ik4) , pointer , dimension(:) :: snl
+    integer(ik4), pointer, contiguous, dimension(:) :: snl
     ! layer depth  (m) over snow only
-    real(rk8) , pointer , dimension(:,:) :: z
+    real(rk8), pointer, contiguous, dimension(:,:) :: z
     ! layer thickness depth (m) over snow only
-    real(rk8) , pointer , dimension(:,:) :: dz
+    real(rk8), pointer, contiguous, dimension(:,:) :: dz
     ! interface depth (m) over snow only
-    real(rk8) , pointer , dimension(:,:) :: zi
-    integer(ik4) :: c , l , j  !indices
+    real(rk8), pointer, contiguous, dimension(:,:) :: zi
+    integer(ik4) :: c, l, j  !indices
 
     ! Assign local pointers to derived subtypes components (landunit-level)
 
@@ -1497,7 +1497,7 @@ module mod_clm_mkarbinit
 
     ! Initialize snow levels and interfaces (lake and non-lake points)
 
-    do c = lbc , ubc
+    do c = lbc, ubc
       dz(c,-nlevsno+1: 0) = 1.e36_rk8
       z (c,-nlevsno+1: 0) = 1.e36_rk8
       zi(c,-nlevsno  :-1) = 1.e36_rk8
@@ -1505,7 +1505,7 @@ module mod_clm_mkarbinit
 
     ! Determine snow levels and interfaces for non-lake points
 
-    do c = lbc , ubc
+    do c = lbc, ubc
       l = clandunit(c)
       if ( .not. lakpoi(l) ) then
         if (snow_depth(c) < 0.01_rk8) then
@@ -1576,10 +1576,10 @@ module mod_clm_mkarbinit
 
     ! The following loop is currently not vectorized
 
-    do c = lbc , ubc
+    do c = lbc, ubc
       l = clandunit(c)
       if ( .not. lakpoi(l) ) then
-        do j = 0 , snl(c)+1 , -1
+        do j = 0, snl(c)+1, -1
           z(c,j)    = zi(c,j) - 0.5_rk8*dz(c,j)
           zi(c,j-1) = zi(c,j) - dz(c,j)
         end do
@@ -1588,7 +1588,7 @@ module mod_clm_mkarbinit
 
     ! Determine snow levels and interfaces for lake points
 
-    do c = lbc , ubc
+    do c = lbc, ubc
       l = clandunit(c)
       if ( lakpoi(l) ) then
         snl(c) = 0

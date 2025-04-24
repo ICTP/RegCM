@@ -33,42 +33,42 @@ program ncprepare
 
   implicit none
 
-  character(256) :: prgname , ncfile , tmpctl , tmpcoord , experiment , &
+  character(256) :: prgname, ncfile, tmpctl, tmpcoord, experiment, &
                     clmfile
   character(512) :: levels
-  character(32) :: lvformat , varname
-  character(64) :: vardesc , timeunit , timecal
+  character(32) :: lvformat, varname
+  character(64) :: vardesc, timeunit, timecal
   character(16) :: varunit
   character(16) :: dimdesc
-  integer(ik4) :: numarg , istatus , ncid , ncid_clm
-  type(rcm_time_and_date) :: idate1 , idate2
+  integer(ik4) :: numarg, istatus, ncid, ncid_clm
+  type(rcm_time_and_date) :: idate1, idate2
   type(rcm_time_interval) :: tdif
   integer(ik4) :: delta
-  character(3) , dimension(12) :: cmon
+  character(3), dimension(12) :: cmon
 
   character(256) :: charatt
   character(6) :: iproj
-  real(rkx) :: clat , clon , plat , plon , ds , centeri , centerj
-  real(rkx) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
-  real(rkx) , dimension(2) :: icntr
-  real(rkx) , dimension(2) :: trlat
-  real(rkx) , allocatable , dimension(:,:) :: xlat , xlon
-  real(rkx) , allocatable , dimension(:) :: level , tmplon
-  real(rkx) , allocatable , dimension(:) :: times
+  real(rkx) :: clat, clon, plat, plon, ds, centeri, centerj
+  real(rkx) :: minlat, minlon, maxlat, maxlon, rlatinc, rloninc
+  real(rkx), dimension(2) :: icntr
+  real(rkx), dimension(2) :: trlat
+  real(rkx), allocatable, dimension(:,:) :: xlat, xlon
+  real(rkx), allocatable, dimension(:) :: level, tmplon
+  real(rkx), allocatable, dimension(:) :: times
   real(rkx) :: time1
-  real(rk4) , allocatable , dimension(:,:) :: r4in , r4jn , r4uv
-  real(rkx) , allocatable , dimension(:,:) :: rin , rjn , ruv
-  logical , allocatable , dimension(:) :: lvarflag
-  integer(ik4) , allocatable , dimension(:) :: dimids
-  integer(ik4) :: ndims , nvars , natts , udimid , totvars
-  integer(ik4) :: ivarid , idimid , xtype , ip1 , ip2
-  integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , dptdimid
-  integer(ik4) :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
-  real(rk8) , dimension(:) , allocatable :: alon , alat
-  real(rkx) :: flat , flon
-  integer(ik4) :: i , j , iid
-  integer(ik4) :: year , month , day , hour
-  logical :: lvarsplit , existing , lsigma , ldepth , lu , lua , luas , lclm
+  real(rk4), allocatable, dimension(:,:) :: r4in, r4jn, r4uv
+  real(rkx), allocatable, dimension(:,:) :: rin, rjn, ruv
+  logical, allocatable, dimension(:) :: lvarflag
+  integer(ik4), allocatable, dimension(:) :: dimids
+  integer(ik4) :: ndims, nvars, natts, udimid, totvars
+  integer(ik4) :: ivarid, idimid, xtype, ip1, ip2
+  integer(ik4) :: jxdimid, iydimid, kzdimid, itdimid, dptdimid
+  integer(ik4) :: jx, iy, kz, nd, nt, nlat, nlon, ilat, ilon, isplit
+  real(rk8), dimension(:), allocatable :: alon, alat
+  real(rkx) :: flat, flon
+  integer(ik4) :: i, j, iid
+  integer(ik4) :: year, month, day, hour
+  logical :: lvarsplit, existing, lsigma, ldepth, lu, lua, luas, lclm
   logical :: is_model_output = .false.
   logical :: uvrotate = .false.
 
@@ -397,7 +397,7 @@ program ncprepare
   allocate(alon(nlon),alat(nlat))
   if ( iproj == 'ROTLLR' ) then
     call pj%rl00(flat,flon)
-    write(ip1, '(a,i8,i8,a,6f8.2)') 'pdef ', jx , iy ,   &
+    write(ip1, '(a,i8,i8,a,6f8.2)') 'pdef ', jx, iy,   &
            ' rotll ',plon, plat, raddeg*ds/earthrad, &
            raddeg*ds/earthrad,flon,flat
   else
@@ -426,14 +426,14 @@ program ncprepare
       allocate(r4uv(nlon,nlat), stat=istatus)
       call checkalloc(istatus,__FILE__,__LINE__, &
                       'r4uv')
-      do ilon = 1 , nlon
+      do ilon = 1, nlon
         alon(ilon) = minlon + (ilon-1) * rloninc
       end do
-      do ilat = 1 , nlat
+      do ilat = 1, nlat
         alat(ilat) = minlat + (ilat-1) * rlatinc
       end do
-      do ilon = 1 , nlon
-        do ilat = 1 , nlat
+      do ilon = 1, nlon
+        do ilat = 1, nlat
           call pj%llij(alat(ilat),alon(ilon),rin(ilon,ilat),rjn(ilon,ilat))
         end do
       end do
@@ -450,18 +450,18 @@ program ncprepare
       close(ip2)
       deallocate(rin,rjn,ruv)
       deallocate(r4in,r4jn,r4uv)
-      write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,       &
+      write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx, iy,       &
              ' bilin sequential binary-big ', trim(tmpcoord)
     else
       write(stdout,*) 'Coordinate file exist, not recreating it'
-      write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,       &
+      write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx, iy,       &
              ' bilin sequential binary-big ', trim(tmpcoord)
     end if
   end if
 
-  write(ip1, '(a,i8,a,f7.2,f8.3)') 'xdef ', nlon , ' linear ',           &
+  write(ip1, '(a,i8,a,f7.2,f8.3)') 'xdef ', nlon, ' linear ',           &
          minlon, rloninc
-  write(ip1, '(a,i8,a,f7.2,f8.3)') 'ydef ', nlat , ' linear ',           &
+  write(ip1, '(a,i8,a,f7.2,f8.3)') 'ydef ', nlat, ' linear ',           &
          minlat, rlatinc
 
   if (.not. ldepth .and. kz /= 0) then
@@ -490,7 +490,7 @@ program ncprepare
 
     if (lsigma) level = level * 1000.0
     write (lvformat, '(a,i4,a)') '(a,i4,a,',kz,'f9.2)'
-    write (levels, lvformat) 'zdef ', kz , ' levels ', level
+    write (levels, lvformat) 'zdef ', kz, ' levels ', level
     write (ip1, '(a)') trim(levels)
     deallocate(level)
   else if (ldepth) then
@@ -538,22 +538,22 @@ program ncprepare
     call split_idate(idate1,year,month,day,hour)
     if (delta == 24) then
       write (ip1, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year , ' 1dy'
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year, ' 1dy'
     else if (delta == 168) then
       write (ip1, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year , ' 7dy'
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year, ' 7dy'
     else if (delta >= 672 .and. delta <= 744) then
       write (ip1, '(a,i8,a,a,a1,a,a3,i0.4,a)') &
              'tdef ', nt, ' linear ', '12', 'Z', '15', &
-              cmon(month), year , ' 1mo'
+              cmon(month), year, ' 1mo'
     else if (delta > 8640) then
       write (ip1, '(a,i8,a,a,a1,a,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', '12' , 'Z', '15' , &
-             '06' , year , ' 1yr'
+             'tdef ', nt, ' linear ', '12', 'Z', '15', &
+             '06', year, ' 1yr'
     else
       write (ip1, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
              'tdef ', nt, ' linear ', hour, 'Z', day,  &
-             cmon(month), year , delta, 'hr'
+             cmon(month), year, delta, 'hr'
     end if
   else if (nt == 1) then
     if ( lclm ) then
@@ -588,13 +588,13 @@ program ncprepare
     call split_idate(idate1,year,month,day,hour)
     write (ip1, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
            'tdef ', nt, ' linear ', hour, 'Z', day,  &
-           cmon(month), year , delta, 'hr'
+           cmon(month), year, delta, 'hr'
   else
     write (ip1, '(a)') 'tdef 1 linear 00Z31dec1999 1yr'
   end if
 
   totvars = 0
-  do i = 1 , nvars
+  do i = 1, nvars
     lvarflag(i) = .false.
     if ( lclm ) then
       istatus = nf90_inquire_variable(ncid_clm,i,name=varname,xtype=xtype, &
@@ -682,7 +682,7 @@ program ncprepare
   end if
   write (ip1, '(a,i4)') 'vars ', totvars
 
-  do i = 1 , nvars
+  do i = 1, nvars
     if (lvarflag(i) .eqv. .false.) cycle
     lvarsplit = .false.
     if ( lclm ) then
@@ -754,7 +754,7 @@ program ncprepare
 
     if (.not. lvarsplit) then
       write (ip1, '(a,a,a,a,a,a,a,a,a)') trim(varname),'=>',trim(varname), &
-                              trim(dimdesc), ' ', trim(vardesc) , ' (',   &
+                              trim(dimdesc), ' ', trim(vardesc), ' (',   &
                               trim(varunit), ')'
     else if (idimid <= 4 .and. lvarsplit) then
       if ( lclm ) then
@@ -765,16 +765,16 @@ program ncprepare
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Inquire split dimension')
       if (idimid == 3) then
-        do j = 1 , isplit
+        do j = 1, isplit
           write (ip1, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
                                 j, trim(varname), ' 0 ', j-1, ',y,x ',   &
-                                trim(vardesc) , ' (', trim(varunit), ')'
+                                trim(vardesc), ' (', trim(varunit), ')'
         end do
       else if (idimid == 4) then
-        do j = 1 , isplit
+        do j = 1, isplit
           write (ip1, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
                                 j, trim(varname), ' 0 t,', j-1, ',y,x ',   &
-                                trim(vardesc) , ' (', trim(varunit), ')'
+                                trim(vardesc), ' (', trim(varunit), ')'
         end do
       end if
     else if (idimid == 5 .and. lvarsplit) then
@@ -785,15 +785,15 @@ program ncprepare
       end if
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Inquire split dimension')
-      do j = 1 , isplit
+      do j = 1, isplit
         if (ldepth) then
           write (ip1, '(a,a,i0.2,a,i2,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
-                    j, trim(varname)//' ', nd , ' t,', j-1, ',z,y,x ',   &
-                    trim(vardesc) , ' (', trim(varunit), ')'
+                    j, trim(varname)//' ', nd, ' t,', j-1, ',z,y,x ',   &
+                    trim(vardesc), ' (', trim(varunit), ')'
         else
           write (ip1, '(a,a,i0.2,a,i2,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
                     j, trim(varname)//' ', kz, ' t,', j-1, ',z,y,x ',   &
-                    trim(vardesc) , ' (', trim(varunit), ')'
+                    trim(vardesc), ' (', trim(varunit), ')'
         end if
       end do
     else

@@ -34,42 +34,42 @@ module mod_nest
   use mod_memutil
   use mod_mksst
   use mod_nchelper
-  use mod_domain , only : read_reference_surface_temp
+  use mod_domain, only : read_reference_surface_temp
 
   private
 
-  public :: get_nest , init_nest , conclude_nest
+  public :: get_nest, init_nest, conclude_nest
 
-  character(len=256) , public :: coarsedir , coarsedom
+  character(len=256), public :: coarsedir, coarsedom
 
   integer(ik4) :: nrec
 
   type(regcm_projection) :: pj
   type(anyprojparams) :: pjparam
 
-  real(rkx) , pointer , dimension(:,:,:) :: q_in , t_in , p_in , pr0_in
-  real(rkx) , pointer , dimension(:,:,:) :: u_in , v_in , z_in
-  real(rkx) , pointer , dimension(:,:,:) :: ppa_in , t0_in , qc_in , qi_in
-  real(rkx) , pointer , dimension(:,:) :: ht_in , ps_in , ts_in , p0_in
-  real(rkx) , pointer , dimension(:,:) :: xlat_in , xlon_in
-  real(rkx) , pointer , dimension(:) :: ak_in , bk_in
-  real(rkx) , pointer , dimension(:,:) :: pstar_in
-  real(rkx) , pointer , dimension(:,:) :: ts , ps , zs
-  real(rkx) , pointer , dimension(:,:) :: topou , topov
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: q_in, t_in, p_in, pr0_in
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u_in, v_in, z_in
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ppa_in, t0_in, qc_in, qi_in
+  real(rkx), pointer, contiguous, dimension(:,:) :: ht_in, ps_in, ts_in, p0_in
+  real(rkx), pointer, contiguous, dimension(:,:) :: xlat_in, xlon_in
+  real(rkx), pointer, contiguous, dimension(:) :: ak_in, bk_in
+  real(rkx), pointer, contiguous, dimension(:,:) :: pstar_in
+  real(rkx), pointer, contiguous, dimension(:,:) :: ts, ps, zs
+  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
 
-  real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , z3 , zud3 , zvd3
-  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , p3 , pd3 , qc3 , qi3
-  real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: t3, q3, z3, zud3, zvd3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3, v3, p3, pd3, qc3, qi3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u
 
-  real(rkx) , pointer , dimension(:,:,:) :: p_out , pd_out
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: p_out, pd_out
 
-  real(rkx) :: ts0_in , bsp_in
-  real(rkx) , pointer , dimension(:) :: sigma_in
+  real(rkx) :: ts0_in, bsp_in
+  real(rkx), pointer, contiguous, dimension(:) :: sigma_in
 
-  integer(ik4) :: iy_in , jx_in , kz_in
+  integer(ik4) :: iy_in, jx_in, kz_in
 
   integer(ik4) :: oidyn
-  real(rkx) :: ptop_in , ptop_out
+  real(rkx) :: ptop_in, ptop_out
 
   logical :: uvrotate = .false.
   logical :: has_qc = .false.
@@ -79,11 +79,11 @@ module mod_nest
   character(len=256) :: inpfile
 
   integer(ik4) :: ncinp
-  type(rcm_time_and_date) , dimension(:) , pointer :: itimes
-  real(rkx) , dimension(:) , pointer :: xtimes
-  character(len=64) :: timeunits , timecal
+  type(rcm_time_and_date), dimension(:), pointer, contiguous :: itimes
+  real(rkx), dimension(:), pointer, contiguous :: xtimes
+  character(len=64) :: timeunits, timecal
 
-  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
+  type(h_interpolator) :: cross_hint, udot_hint, vdot_hint
 
   contains
 
@@ -91,13 +91,13 @@ module mod_nest
     use netcdf
     implicit none
 
-    integer(ik4) :: i , j , k , istatus , idimid , ivarid
+    integer(ik4) :: i, j, k, istatus, idimid, ivarid
     type(rcm_time_and_date) :: imf
-    real(rkx) , dimension(2) :: trlat
+    real(rkx), dimension(2) :: trlat
     character(len=6) :: iproj_in
-    real(rkx) :: clat_in , clon_in , plat_in , plon_in , ds_in
-    real(rkx) , dimension(:) , allocatable :: sigfix
-    real(rkx) :: tlp , alnp
+    real(rkx) :: clat_in, clon_in, plat_in, plon_in, ds_in
+    real(rkx), dimension(:), allocatable :: sigfix
+    real(rkx) :: tlp, alnp
     character(len=16) :: charatt
 
     imf = monfirst(globidate1)
@@ -164,7 +164,7 @@ module mod_nest
     if ( istatus == nf90_noerr ) then
       has_qi = .true.
     end if
-    do i = 1 , nrec
+    do i = 1, nrec
       itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
     end do
 
@@ -217,7 +217,7 @@ module mod_nest
       allocate(sigfix(kz_in+1))
       sigfix(1:kz_in) = sigma_in(:)
       sigfix(kz_in+1) = d_one
-      do k = 1 , kz_in
+      do k = 1, kz_in
         sigma_in(k) = d_half*(sigfix(k)+sigfix(k+1))
       end do
       deallocate(sigfix)
@@ -333,9 +333,9 @@ module mod_nest
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable p0 read error')
       pstar_in = p0_in - ptop_in
-      do k = 1 , kz_in
-        do i = 1 , iy_in
-          do j = 1 , jx_in
+      do k = 1, kz_in
+        do i = 1, iy_in
+          do j = 1, jx_in
             pr0_in(j,i,k) = pstar_in(j,i) * sigma_in(k) + ptop_in
             t0_in(j,i,k) = max(ts0_in +  &
                       tlp * log(pr0_in(j,i,k) / bsp_in),tiso)
@@ -404,9 +404,9 @@ module mod_nest
 
     if ( oidyn == 3 ) then
       ! Compute vertical model level of input MOLOCH grid
-      do k = 1 , kz_in
-        do i = 1 , iy_in
-          do j = 1 , jx_in
+      do k = 1, kz_in
+        do i = 1, iy_in
+          do j = 1, jx_in
             z_in(j,i,k) = ak_in(k) + bk_in(k) * ht_in(j,i)
           end do
         end do
@@ -415,9 +415,9 @@ module mod_nest
       call top2btm(z3)
     end if
     if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = 1 , iy
-          do j = 1 , jx
+      do k = 1, kz
+        do i = 1, iy
+          do j = 1, jx
             p_out(j,i,k) = ps0(j,i)*sigmah(k) + ptop_out
           end do
         end do
@@ -445,12 +445,12 @@ module mod_nest
     use netcdf
     implicit none
 
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
 
-    integer(ik4) :: i , j , k , istatus , ivarid , idimid , irec
-    integer(ik4) , dimension(4) :: istart , icount
+    integer(ik4) :: i, j, k, istatus, ivarid, idimid, irec
+    integer(ik4), dimension(4) :: istart, icount
     type(rcm_time_and_date) :: imf
-    logical :: lspch , ltsl
+    logical :: lspch, ltsl
 
     if ( idate > itimes(nrec) ) then
       istatus = nf90_close(ncinp)
@@ -485,7 +485,7 @@ module mod_nest
       istatus = nf90_get_var(ncinp, ivarid, xtimes)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time read error')
-      do i = 1 , nrec
+      do i = 1, nrec
         itimes(i) = timeval2date(xtimes(i), timeunits,timecal)
       end do
     else if ( idate < itimes(1) ) then
@@ -522,13 +522,13 @@ module mod_nest
       istatus = nf90_get_var(ncinp, ivarid, xtimes)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time read error')
-      do i = 1 , nrec
+      do i = 1, nrec
         itimes(i) = timeval2date(xtimes(i), timeunits,timecal)
       end do
     end if
 
     irec = -1
-    do i = 1 , nrec
+    do i = 1, nrec
       if (idate == itimes(i)) then
         irec = i
         exit
@@ -616,9 +616,9 @@ module mod_nest
       istatus = nf90_get_var(ncinp, ivarid, ppa_in, istart, icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ppa read error')
-      do k = 1 , kz_in
-        do i = 1 , iy_in
-          do j = 1 , jx_in
+      do k = 1, kz_in
+        do i = 1, iy_in
+          do j = 1, jx_in
             p_in(j,i,k) = pr0_in(j,i,k) + ppa_in(j,i,k)
           end do
         end do
@@ -630,9 +630,9 @@ module mod_nest
       istatus = nf90_get_var(ncinp, ivarid, p_in, istart, icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable pai read error')
-      do k = 1 , kz_in
-        do i = 1 , iy_in
-          do j = 1 , jx_in
+      do k = 1, kz_in
+        do i = 1, iy_in
+          do j = 1, jx_in
             p_in(j,i,k) = (p_in(j,i,k)**cpovr) * p00
           end do
         end do
@@ -677,16 +677,16 @@ module mod_nest
     end if
     if ( oidyn == 1 ) then
       pstar_in = ps_in - ptop_in
-      do k = 1 , kz_in
-        do i = 1 , iy_in
-          do j = 1 , jx_in
+      do k = 1, kz_in
+        do i = 1, iy_in
+          do j = 1, jx_in
             p_in(j,i,k) = pstar_in(j,i) * sigma_in(k) + ptop_in
           end do
         end do
       end do
     end if
 
-    write (stdout,*) 'READ IN fields at DATE:' , trim(tochar(idate))
+    write (stdout,*) 'READ IN fields at DATE:', trim(tochar(idate))
     !
     ! Calculate Heights on sigma surfaces.
     !
@@ -770,9 +770,9 @@ module mod_nest
 
     if ( idynamic /= 3 ) then
       if ( idynamic == 1 ) then
-        do k = 1 , kz
-          do i = 1 , iy
-            do j = 1 , jx
+        do k = 1, kz
+          do i = 1, iy
+            do j = 1, jx
               p_out(j,i,k) = ps4(j,i) * sigmah(k) + ptop_out
             end do
           end do

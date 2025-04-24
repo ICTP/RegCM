@@ -43,12 +43,12 @@ module mod_cbmz_boxvars
 
 !FAB : reduce a bi these dimensions to save memory
 
-!  integer(ik4) , parameter :: nna = 99
-!  integer(ik4) , parameter :: nnb = 2010
+!  integer(ik4), parameter :: nna = 99
+!  integer(ik4), parameter :: nnb = 2010
 
 
-integer(ik4) , parameter :: nna = 1
-integer(ik4) , parameter :: nnb = 2010
+integer(ik4), parameter :: nna = 1
+integer(ik4), parameter :: nnb = 2010
 
   real(rkx) :: time         ! time step (sec)
   real(rkx) :: xr(nna,nnb) ! concentration molec/cm3
@@ -73,15 +73,15 @@ integer(ik4) , parameter :: nnb = 2010
 
 ! UNIT INDICES
 
-  integer(ik4) :: iit , itr , itime , nhkem
+  integer(ik4) :: iit, itr, itime, nhkem
 !  integer(ik4) :: isol                 ! input starting hour
-  integer(ik4) :: iplu , jcloud
+  integer(ik4) :: iplu, jcloud
   integer(ik4) :: lin                  ! Basic input (fort.41)
   integer(ik4) :: lcin                 ! Chem concentration input (fort.87)
   integer(ik4) :: lout                 ! Basic output (fort.43)
-  integer(ik4) :: iprt , iprt2 , iprt3 ! I/O indices and flags
-  integer(ik4) :: nwrit , iwrit(nnb) , nhc(10)
-  integer(ik4) :: nchem , nchem1 , nchem2
+  integer(ik4) :: iprt, iprt2, iprt3 ! I/O indices and flags
+  integer(ik4) :: nwrit, iwrit(nnb), nhc(10)
+  integer(ik4) :: nchem, nchem1, nchem2
   logical :: lprt
   integer(ik4) :: kmax                 ! max for vector loop, if used in box
 !    (vector dimension is in chemistry subroutine, always = 1 in box)
@@ -105,36 +105,36 @@ integer(ik4) , parameter :: nnb = 2010
   real(rkx) :: xnacl          ! NaCl concentration M/lit
 
 ! DYNAMICS AND TIMING SETUP
-  real(rkx) :: sol , dilu , alt1 , altm , tem , dtem , tlap
-  real(rkx) :: fhc(5) , xhm , xhrsun
-  real(rkx) :: wind , wx , side , wmax , wmin
+  real(rkx) :: sol, dilu, alt1, altm, tem, dtem, tlap
+  real(rkx) :: fhc(5), xhm, xhrsun
+  real(rkx) :: wind, wx, side, wmax, wmin
   real(rkx) :: alt      ! Layer thickness, cm
   real(rkx) :: zdzdt    ! Entrainment parameter
   real(rkx) :: zmax     ! Maximum layer height, cm
   real(rkx) :: zmin     ! Minimum layer height, cm
   real(rkx) :: altbase
-  real(rkx) :: frz(24) , fgen(24) , frw(24) , fngen(24) , frs(24)
-  real(rkx) :: frgen , frngen
+  real(rkx) :: frz(24), fgen(24), frw(24), fngen(24), frs(24)
+  real(rkx) :: frgen, frngen
 
 ! GENERAL VARIABLES USED IN BOX MODEL PROGRAMS (not in common)
 !FAB AGIN local variable shopuld notbe declared here !!
-!  real(rkx) :: xhm2 , fr1 , fr0 , frx    ! bsetr fraction setters
-!  real(rkx) :: sxh , ct , temps , windd , frwin , fn1 , fn0
+!  real(rkx) :: xhm2, fr1, fr0, frx    ! bsetr fraction setters
+!  real(rkx) :: sxh, ct, temps, windd, frwin, fn1, fn0
 !  real(rkx) :: conc
 !  real(rkx) :: xn          ! brplac time  calc
 !  real(rkx) :: tint        ! bprint time calc
-!  real(rkx) :: xh1 , xh2   ! bprint time calc
+!  real(rkx) :: xh1, xh2   ! bprint time calc
 !  real(rkx) :: gas         ! bprint gas concentration
 !  real(rkx) :: ffgen       ! boxdyn parameter
 !
 
-!!$  integer(ik4) :: ihour , ihour2 , ix1 , ix0 , ix21 , ix20  ! bsetr hour integers
-!!$  integer(ik4) :: ind , j1 , jj2 , ij2 , ixn , n            ! brplac indices
-!!$  integer(ik4) :: ni , ic1 , ic2 , ip                       ! bsplac indices
-!!$  integer(ik4) :: j2 , nx2 , iw , i , j                     ! bprint indices
+!!$  integer(ik4) :: ihour, ihour2, ix1, ix0, ix21, ix20  ! bsetr hour integers
+!!$  integer(ik4) :: ind, j1, jj2, ij2, ixn, n            ! brplac indices
+!!$  integer(ik4) :: ni, ic1, ic2, ip                       ! bsplac indices
+!!$  integer(ik4) :: j2, nx2, iw, i, j                     ! bprint indices
 
 
-!!$  integer(ik4) :: kk , ic                                   ! Standard counters
+!!$  integer(ik4) :: kk, ic                                   ! Standard counters
 !!$
 
 
@@ -143,28 +143,28 @@ integer(ik4) , parameter :: nnb = 2010
   real(rkx) :: zenith                          ! zenith angle from RegCM3
 !
   ! O3 column DU
-  real(rkx) , parameter :: dobson(1) = 347.8_rkx
+  real(rkx), parameter :: dobson(1) = 347.8_rkx
   ! Cloud above/below - no longer used
-  real(rkx) , parameter :: cldindx(1) = 1.00_rkx
+  real(rkx), parameter :: cldindx(1) = 1.00_rkx
   ! Cloud optical depth - no longer used
-  real(rkx) , parameter :: depth(1) = 0.0_rkx
+  real(rkx), parameter :: depth(1) = 0.0_rkx
   ! Aerosol optical depth
-  real(rkx) , parameter :: aaerx(1) = 0.38_rkx
+  real(rkx), parameter :: aaerx(1) = 0.38_rkx
   ! SO2 column, Dobson units
-  real(rkx) , parameter :: so2col = 0.1_rkx
+  real(rkx), parameter :: so2col = 0.1_rkx
   ! NO2 column, Dobson units
-  real(rkx) , parameter :: no2col = 0.1_rkx
+  real(rkx), parameter :: no2col = 0.1_rkx
   ! Aerosol single scattering albedo
-  real(rkx) , parameter :: aerssa = 0.75_rkx
-  real(rkx) , parameter :: albedo = 0.1_rkx   ! Albedo= (0.1)
-  real(rkx) , parameter :: saersa(1)= 0.0_rkx ! sulf aerosol surf area cm2/cm3
+  real(rkx), parameter :: aerssa = 0.75_rkx
+  real(rkx), parameter :: albedo = 0.1_rkx   ! Albedo= (0.1)
+  real(rkx), parameter :: saersa(1)= 0.0_rkx ! sulf aerosol surf area cm2/cm3
   ! Droplet radius, cm. (normally .001)
-  real(rkx) , parameter :: droplet(1) = 1.000e-3_rkx
+  real(rkx), parameter :: droplet(1) = 1.000e-3_rkx
   ! Gas-aerosol transfer rate
-  real(rkx) , parameter :: rgasaq(1) = -100.0_rkx
+  real(rkx), parameter :: rgasaq(1) = -100.0_rkx
 !
-  logical , parameter :: lstsaq = .false.  ! future flag for steady state aq
-  logical , parameter :: lexpo = .false.   ! flag for expo. decay solution
+  logical, parameter :: lstsaq = .false.  ! future flag for steady state aq
+  logical, parameter :: lexpo = .false.   ! flag for expo. decay solution
   real(rkx) :: deptha     ! Cloud above optical depth
   real(rkx) :: depthb     ! Cloud below optical depth
   real(rkx) :: altabove   ! Cloud above weighted altitude

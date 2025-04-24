@@ -36,213 +36,213 @@ module mod_clm_surfaceradiation
   !
   subroutine SurfaceRadiation(lbp, ubp, num_nourbanp, filter_nourbanp)
     use mod_clm_type
-    use mod_clm_atmlnd      , only : clm_a2l
-    use mod_clm_varpar      , only : numrad
-    use mod_clm_varcon      , only : spval, istsoil, degpsec, isecspday
-    use mod_clm_varcon      , only : istcrop
-    use mod_clm_varctl      , only : subgridflag , nextdate
-    use mod_clm_varpar      , only : nlevsno
-    use mod_clm_snicar      , only : DO_SNO_OC
+    use mod_clm_atmlnd     , only : clm_a2l
+    use mod_clm_varpar     , only : numrad
+    use mod_clm_varcon     , only : spval, istsoil, degpsec, isecspday
+    use mod_clm_varcon     , only : istcrop
+    use mod_clm_varctl     , only : subgridflag, nextdate
+    use mod_clm_varpar     , only : nlevsno
+    use mod_clm_snicar     , only : DO_SNO_OC
     implicit none
     integer(ik4), intent(in) :: lbp, ubp   ! pft upper and lower bounds
     ! number of pfts in non-urban points in pft filter
     integer(ik4), intent(in) :: num_nourbanp
     ! pft filter for non-urban points
     integer(ik4), intent(in) :: filter_nourbanp(ubp-lbp+1)
-    real(rk8), pointer :: albsod(:,:) ! direct-beam soil albedo (col,bnd) [frc]
-    real(rk8), pointer :: albsoi(:,:) ! diffuse soil albedo (col,bnd) [frc]
+    real(rk8), pointer, contiguous :: albsod(:,:) ! direct-beam soil albedo (col,bnd) [frc]
+    real(rk8), pointer, contiguous :: albsoi(:,:) ! diffuse soil albedo (col,bnd) [frc]
     ! solar radiation absorbed by soil (W/m**2)
-    real(rk8), pointer :: sabg_soil(:)
+    real(rk8), pointer, contiguous :: sabg_soil(:)
     ! solar radiation absorbed by snow (W/m**2)
-    real(rk8), pointer :: sabg_snow(:)
+    real(rk8), pointer, contiguous :: sabg_snow(:)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
-    integer(ik4) , pointer :: ivt(:)           ! pft vegetation type
-    integer(ik4) , pointer :: pcolumn(:)       ! pft's column index
-    integer(ik4) , pointer :: pgridcell(:)     ! pft's gridcell index
+    logical, pointer, contiguous :: pactive(:)
+    integer(ik4), pointer, contiguous :: ivt(:)           ! pft vegetation type
+    integer(ik4), pointer, contiguous :: pcolumn(:)       ! pft's column index
+    integer(ik4), pointer, contiguous :: pgridcell(:)     ! pft's gridcell index
     ! one-sided leaf area index with burying by snow
-    real(rk8), pointer :: elai(:)
+    real(rk8), pointer, contiguous :: elai(:)
     ! one-sided stem area index with burying by snow
-    real(rk8), pointer :: esai(:)
-    real(rk8), pointer :: londeg(:)        ! longitude (degrees)
-    real(rk8), pointer :: latdeg(:)        ! latitude (degrees)
-    real(rk8), pointer :: coszen(:)        ! cosine of solar zenith angle
-    real(rk8), pointer :: forc_solad(:,:)  ! direct beam radiation (W/m**2)
-    real(rk8), pointer :: forc_solai(:,:)  ! diffuse radiation (W/m**2)
+    real(rk8), pointer, contiguous :: esai(:)
+    real(rk8), pointer, contiguous :: londeg(:)        ! longitude (degrees)
+    real(rk8), pointer, contiguous :: latdeg(:)        ! latitude (degrees)
+    real(rk8), pointer, contiguous :: coszen(:)        ! cosine of solar zenith angle
+    real(rk8), pointer, contiguous :: forc_solad(:,:)  ! direct beam radiation (W/m**2)
+    real(rk8), pointer, contiguous :: forc_solai(:,:)  ! diffuse radiation (W/m**2)
     ! flux absorbed by canopy per unit direct flux
-    real(rk8), pointer :: fabd(:,:)
+    real(rk8), pointer, contiguous :: fabd(:,:)
     ! flux absorbed by sunlit canopy per unit direct flux
-    real(rk8), pointer :: fabd_sun(:,:)
+    real(rk8), pointer, contiguous :: fabd_sun(:,:)
     ! flux absorbed by shaded canopy per unit direct flux
-    real(rk8), pointer :: fabd_sha(:,:)
+    real(rk8), pointer, contiguous :: fabd_sha(:,:)
     ! flux absorbed by canopy per unit diffuse flux
-    real(rk8), pointer :: fabi(:,:)
+    real(rk8), pointer, contiguous :: fabi(:,:)
     ! flux absorbed by sunlit canopy per unit diffuse flux
-    real(rk8), pointer :: fabi_sun(:,:)
+    real(rk8), pointer, contiguous :: fabi_sun(:,:)
     ! flux absorbed by shaded canopy per unit diffuse flux
-    real(rk8), pointer :: fabi_sha(:,:)
+    real(rk8), pointer, contiguous :: fabi_sha(:,:)
     ! down direct flux below canopy per unit direct flux
-    real(rk8), pointer :: ftdd(:,:)
+    real(rk8), pointer, contiguous :: ftdd(:,:)
     ! down diffuse flux below canopy per unit direct flux
-    real(rk8), pointer :: ftid(:,:)
+    real(rk8), pointer, contiguous :: ftid(:,:)
     ! down diffuse flux below canopy per unit diffuse flux
-    real(rk8), pointer :: ftii(:,:)
+    real(rk8), pointer, contiguous :: ftii(:,:)
     ! number of canopy layers, above snow for radiative transfer
-    integer(ik4) , pointer :: nrad(:)
+    integer(ik4), pointer, contiguous :: nrad(:)
     ! absorbed sunlit leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rk8), pointer :: fabd_sun_z(:,:)
+    real(rk8), pointer, contiguous :: fabd_sun_z(:,:)
     ! absorbed shaded leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rk8), pointer :: fabd_sha_z(:,:)
+    real(rk8), pointer, contiguous :: fabd_sha_z(:,:)
     ! absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rk8), pointer :: fabi_sun_z(:,:)
+    real(rk8), pointer, contiguous :: fabi_sun_z(:,:)
     ! absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rk8), pointer :: fabi_sha_z(:,:)
-    real(rk8), pointer :: fsun_z(:,:)  ! sunlit fraction of canopy layer
-    real(rk8), pointer :: tlai_z(:,:)  ! tlai increment for canopy layer
-    real(rk8), pointer :: tsai_z(:,:)  ! tsai increment for canopy layer
-    real(rk8), pointer :: albgrd(:,:)  ! ground albedo (direct)
-    real(rk8), pointer :: albgri(:,:)  ! ground albedo (diffuse)
-    real(rk8), pointer :: albd(:,:)    ! surface albedo (direct)
-    real(rk8), pointer :: albi(:,:)    ! surface albedo (diffuse)
+    real(rk8), pointer, contiguous :: fabi_sha_z(:,:)
+    real(rk8), pointer, contiguous :: fsun_z(:,:)  ! sunlit fraction of canopy layer
+    real(rk8), pointer, contiguous :: tlai_z(:,:)  ! tlai increment for canopy layer
+    real(rk8), pointer, contiguous :: tsai_z(:,:)  ! tsai increment for canopy layer
+    real(rk8), pointer, contiguous :: albgrd(:,:)  ! ground albedo (direct)
+    real(rk8), pointer, contiguous :: albgri(:,:)  ! ground albedo (diffuse)
+    real(rk8), pointer, contiguous :: albd(:,:)    ! surface albedo (direct)
+    real(rk8), pointer, contiguous :: albi(:,:)    ! surface albedo (diffuse)
 
-    real(rk8), pointer :: fsun(:)      ! sunlit fraction of canopy
-    real(rk8), pointer :: laisun(:)    ! sunlit leaf area
-    real(rk8), pointer :: laisha(:)    ! shaded leaf area
+    real(rk8), pointer, contiguous :: fsun(:)      ! sunlit fraction of canopy
+    real(rk8), pointer, contiguous :: laisun(:)    ! sunlit leaf area
+    real(rk8), pointer, contiguous :: laisha(:)    ! shaded leaf area
     ! sunlit leaf area for canopy layer
-    real(rk8), pointer :: laisun_z(:,:)
+    real(rk8), pointer, contiguous :: laisun_z(:,:)
     ! shaded leaf area for canopy layer
-    real(rk8), pointer :: laisha_z(:,:)
+    real(rk8), pointer, contiguous :: laisha_z(:,:)
     ! absorbed PAR for sunlit leaves in canopy layer
-    real(rk8), pointer :: parsun_z(:,:)
+    real(rk8), pointer, contiguous :: parsun_z(:,:)
     ! absorbed PAR for shaded leaves in canopy layer
-    real(rk8), pointer :: parsha_z(:,:)
+    real(rk8), pointer, contiguous :: parsha_z(:,:)
     ! solar radiation absorbed by ground (W/m**2)
-    real(rk8), pointer :: sabg(:)
+    real(rk8), pointer, contiguous :: sabg(:)
     ! solar radiation absorbed by vegetation (W/m**2)
-    real(rk8), pointer :: sabv(:)
+    real(rk8), pointer, contiguous :: sabv(:)
     ! solar radiation absorbed (total) (W/m**2)
-    real(rk8), pointer :: fsa(:)
+    real(rk8), pointer, contiguous :: fsa(:)
     ! rural solar radiation absorbed (total) (W/m**2)
-    real(rk8), pointer :: fsa_r(:)
+    real(rk8), pointer, contiguous :: fsa_r(:)
     ! landunit type
-    integer(ik4) , pointer :: ityplun(:)
+    integer(ik4), pointer, contiguous :: ityplun(:)
     ! index into landunit level quantities
-    integer(ik4) , pointer :: plandunit(:)
+    integer(ik4), pointer, contiguous :: plandunit(:)
     ! solar radiation reflected (W/m**2)
-    real(rk8), pointer :: fsr(:)
+    real(rk8), pointer, contiguous :: fsr(:)
     ! incident direct beam vis solar radiation (W/m**2)
-    real(rk8), pointer :: fsds_vis_d(:)
+    real(rk8), pointer, contiguous :: fsds_vis_d(:)
     ! incident direct beam nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsds_nir_d(:)
+    real(rk8), pointer, contiguous :: fsds_nir_d(:)
     ! incident diffuse vis solar radiation (W/m**2)
-    real(rk8), pointer :: fsds_vis_i(:)
+    real(rk8), pointer, contiguous :: fsds_vis_i(:)
     ! incident diffuse nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsds_nir_i(:)
+    real(rk8), pointer, contiguous :: fsds_nir_i(:)
     ! reflected direct beam vis solar radiation (W/m**2)
-    real(rk8), pointer :: fsr_vis_d(:)
+    real(rk8), pointer, contiguous :: fsr_vis_d(:)
     ! reflected direct beam nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsr_nir_d(:)
+    real(rk8), pointer, contiguous :: fsr_nir_d(:)
     ! reflected diffuse vis solar radiation (W/m**2)
-    real(rk8), pointer :: fsr_vis_i(:)
+    real(rk8), pointer, contiguous :: fsr_vis_i(:)
     ! reflected diffuse nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsr_nir_i(:)
+    real(rk8), pointer, contiguous :: fsr_nir_i(:)
     ! incident direct beam vis solar rad at local noon (W/m**2)
-    real(rk8), pointer :: fsds_vis_d_ln(:)
+    real(rk8), pointer, contiguous :: fsds_vis_d_ln(:)
     ! incident direct beam nir solar rad at local noon (W/m**2)
-    real(rk8), pointer :: fsds_nir_d_ln(:)
+    real(rk8), pointer, contiguous :: fsds_nir_d_ln(:)
     ! reflected direct beam vis solar rad at local noon (W/m**2)
-    real(rk8), pointer :: fsr_vis_d_ln(:)
+    real(rk8), pointer, contiguous :: fsr_vis_d_ln(:)
     ! reflected direct beam nir solar rad at local noon (W/m**2)
-    real(rk8), pointer :: fsr_nir_d_ln(:)
+    real(rk8), pointer, contiguous :: fsr_nir_d_ln(:)
     ! incident diffuse beam vis solar rad at local noon (W/m**2)
-    real(rk8), pointer :: fsds_vis_i_ln(:)
+    real(rk8), pointer, contiguous :: fsds_vis_i_ln(:)
     ! absorbed par by vegetation at local noon (W/m**2)
-    real(rk8), pointer :: parveg_ln(:)
+    real(rk8), pointer, contiguous :: parveg_ln(:)
     ! direct flux absorption factor (col,lyr): VIS [frc]
-    real(rk8), pointer :: flx_absdv(:,:)
+    real(rk8), pointer, contiguous :: flx_absdv(:,:)
     ! direct flux absorption factor (col,lyr): NIR [frc]
-    real(rk8), pointer :: flx_absdn(:,:)
+    real(rk8), pointer, contiguous :: flx_absdn(:,:)
     ! diffuse flux absorption factor (col,lyr): VIS [frc]
-    real(rk8), pointer :: flx_absiv(:,:)
+    real(rk8), pointer, contiguous :: flx_absiv(:,:)
     ! diffuse flux absorption factor (col,lyr): NIR [frc]
-    real(rk8), pointer :: flx_absin(:,:)
+    real(rk8), pointer, contiguous :: flx_absin(:,:)
     ! negative number of snow layers [nbr]
-    integer(ik4) , pointer :: snl(:)
+    integer(ik4), pointer, contiguous :: snl(:)
     ! pure snow ground albedo (direct)
-    real(rk8), pointer :: albgrd_pur(:,:)
+    real(rk8), pointer, contiguous :: albgrd_pur(:,:)
     ! pure snow ground albedo (diffuse)
-    real(rk8), pointer :: albgri_pur(:,:)
+    real(rk8), pointer, contiguous :: albgri_pur(:,:)
     ! ground albedo without BC (direct) (col,bnd)
-    real(rk8), pointer :: albgrd_bc(:,:)
+    real(rk8), pointer, contiguous :: albgrd_bc(:,:)
     ! ground albedo without BC (diffuse) (col,bnd)
-    real(rk8), pointer :: albgri_bc(:,:)
+    real(rk8), pointer, contiguous :: albgri_bc(:,:)
     ! ground albedo without OC (direct) (col,bnd)
-    real(rk8), pointer :: albgrd_oc(:,:)
+    real(rk8), pointer, contiguous :: albgrd_oc(:,:)
     ! ground albedo without OC (diffuse) (col,bnd)
-    real(rk8), pointer :: albgri_oc(:,:)
+    real(rk8), pointer, contiguous :: albgri_oc(:,:)
     ! ground albedo without dust (direct) (col,bnd)
-    real(rk8), pointer :: albgrd_dst(:,:)
+    real(rk8), pointer, contiguous :: albgrd_dst(:,:)
     ! ground albedo without dust (diffuse) (col,bnd)
-    real(rk8), pointer :: albgri_dst(:,:)
+    real(rk8), pointer, contiguous :: albgri_dst(:,:)
     ! snow albedo, direct, for history files (col,bnd) [frc]
-    real(rk8), pointer :: albsnd_hst(:,:)
+    real(rk8), pointer, contiguous :: albsnd_hst(:,:)
     ! snow ground albedo, diffuse, for history files (col,bnd
-    real(rk8), pointer :: albsni_hst(:,:)
+    real(rk8), pointer, contiguous :: albsni_hst(:,:)
     ! absorbed radiative flux (pft,lyr) [W/m2]
-    real(rk8), pointer :: sabg_lyr(:,:)
+    real(rk8), pointer, contiguous :: sabg_lyr(:,:)
     ! (rural) shortwave radiation penetrating top soisno layer [W/m2]
-    real(rk8), pointer :: sabg_pen(:)
+    real(rk8), pointer, contiguous :: sabg_pen(:)
     ! surface forcing of snow with all aerosols (pft) [W/m2]
-    real(rk8), pointer :: sfc_frc_aer(:)
+    real(rk8), pointer, contiguous :: sfc_frc_aer(:)
     ! surface forcing of snow with BC (pft) [W/m2]
-    real(rk8), pointer :: sfc_frc_bc(:)
+    real(rk8), pointer, contiguous :: sfc_frc_bc(:)
     ! surface forcing of snow with OC (pft) [W/m2]
-    real(rk8), pointer :: sfc_frc_oc(:)
+    real(rk8), pointer, contiguous :: sfc_frc_oc(:)
     ! surface forcing of snow with dust (pft) [W/m2]
-    real(rk8), pointer :: sfc_frc_dst(:)
+    real(rk8), pointer, contiguous :: sfc_frc_dst(:)
     ! surface forcing of snow with all aerosols, averaged only
     ! when snow is present (pft) [W/m2]
-    real(rk8), pointer :: sfc_frc_aer_sno(:)
+    real(rk8), pointer, contiguous :: sfc_frc_aer_sno(:)
     ! surface forcing of snow with BC, averaged only when snow
     ! is present (pft) [W/m2]
-    real(rk8), pointer :: sfc_frc_bc_sno(:)
+    real(rk8), pointer, contiguous :: sfc_frc_bc_sno(:)
     ! surface forcing of snow with OC, averaged only when snow
     ! is present (pft) [W/m2]
-    real(rk8), pointer :: sfc_frc_oc_sno(:)
+    real(rk8), pointer, contiguous :: sfc_frc_oc_sno(:)
     ! surface forcing of snow with dust, averaged only when snow
     ! is present (pft) [W/m2]
-    real(rk8), pointer :: sfc_frc_dst_sno(:)
+    real(rk8), pointer, contiguous :: sfc_frc_dst_sno(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)
+    real(rk8), pointer, contiguous :: frac_sno(:)
     ! reflected visible, direct radiation from snow
     ! (for history files) (pft) [W/m2]
-    real(rk8), pointer :: fsr_sno_vd(:)
+    real(rk8), pointer, contiguous :: fsr_sno_vd(:)
     ! reflected near-IR, direct radiation from snow
     ! (for history files) (pft) [W/m2]
-    real(rk8), pointer :: fsr_sno_nd(:)
+    real(rk8), pointer, contiguous :: fsr_sno_nd(:)
     ! reflected visible, diffuse radiation from snow
     ! (for history files) (pft) [W/m2]
-    real(rk8), pointer :: fsr_sno_vi(:)
+    real(rk8), pointer, contiguous :: fsr_sno_vi(:)
     ! reflected near-IR, diffuse radiation from snow
     ! (for history files) (pft) [W/m2]
-    real(rk8), pointer :: fsr_sno_ni(:)
+    real(rk8), pointer, contiguous :: fsr_sno_ni(:)
     ! incident visible, direct radiation on snow
     ! (for history files) (pft) [W/m2]
-    real(rk8), pointer :: fsds_sno_vd(:)
+    real(rk8), pointer, contiguous :: fsds_sno_vd(:)
     ! incident near-IR, direct radiation on snow
     ! (for history files) (pft) [W/m2]
-    real(rk8), pointer :: fsds_sno_nd(:)
+    real(rk8), pointer, contiguous :: fsds_sno_nd(:)
     ! incident visible, diffuse radiation on snow
     ! (for history files) (pft) [W/m2]
-    real(rk8), pointer :: fsds_sno_vi(:)
+    real(rk8), pointer, contiguous :: fsds_sno_vi(:)
     ! incident near-IR, diffuse radiation on snow
     ! (for history files) (pft) [W/m2]
-    real(rk8), pointer :: fsds_sno_ni(:)
+    real(rk8), pointer, contiguous :: fsds_sno_ni(:)
     ! snow height (m)
-    real(rk8), pointer :: snow_depth(:)
+    real(rk8), pointer, contiguous :: snow_depth(:)
 
     ! number of solar radiation waveband classes
-    integer(ik4) , parameter :: nband = numrad
+    integer(ik4), parameter :: nband = numrad
 
     integer(ik4)  :: fp         ! non-urban filter pft index
     integer(ik4)  :: p          ! pft index
@@ -698,7 +698,7 @@ module mod_clm_surfaceradiation
     end do
 
     ! Radiation diagnostics
-    do fp = 1 , num_nourbanp
+    do fp = 1, num_nourbanp
       p = filter_nourbanp(fp)
       if (pactive(p)) then
         g = pgridcell(p)

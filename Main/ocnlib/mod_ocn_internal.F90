@@ -19,94 +19,94 @@ module mod_ocn_internal
   use mod_realkinds
   use mod_memutil
   use mod_dynparam
-  use mod_runparams , only : idcsst , lakemod , iseaice , dtsrf , iocnflx
+  use mod_runparams, only : idcsst, lakemod, iseaice, dtsrf, iocnflx
   use mod_regcm_types
 
   implicit none
 
   public
 
-  real(rkx) :: dtocn , dtlake , dtsst
+  real(rkx) :: dtocn, dtlake, dtsst
 
-  real(rkx) , parameter :: aarea = 0.02_rkx
-  real(rkx) , parameter :: age3 = 0.3_rkx
-  real(rkx) , parameter :: threedays = 86400.0_rkx*3.0_rkx  ! 3 days
+  real(rkx), parameter :: aarea = 0.02_rkx
+  real(rkx), parameter :: age3 = 0.3_rkx
+  real(rkx), parameter :: threedays = 86400.0_rkx*3.0_rkx  ! 3 days
 
   integer(ik4) :: nocnp
-  integer(ik4) :: iocnbeg , iocnend
+  integer(ik4) :: iocnbeg, iocnend
 
   logical :: llake = .false.
   logical :: ldcsst = .false.
   logical :: lseaice = .false.
 
-  real(rkx) , pointer , dimension(:) :: cprate => null( )
-  real(rkx) , pointer , dimension(:) :: czenith => null( )
-  real(rkx) , pointer , dimension(:) :: deltas => null( )
-  real(rkx) , pointer , dimension(:) :: dhlake => null( )
-  real(rkx) , pointer , dimension(:) :: drag => null( )
-  real(rkx) , pointer , dimension(:) :: tskin => null( )
-  real(rkx) , pointer , dimension(:) :: dwrlwf => null( )
-  real(rkx) , pointer , dimension(:) :: emiss => null( )
-  real(rkx) , pointer , dimension(:) :: evpr => null( )
-  real(rkx) , pointer , dimension(:) :: ht => null( )      ! hgt
-  real(rkx) , pointer , dimension(:) :: hpbl => null( )    ! hpbl
-  real(rkx) , pointer , dimension(:) :: lat => null( )     ! xlat
-  real(rkx) , pointer , dimension(:) :: ncprate => null( )
-  real(rkx) , pointer , dimension(:) :: prcp => null( )
-  real(rkx) , pointer , dimension(:) :: q2m => null( )
-  real(rkx) , pointer , dimension(:) :: qv => null( )      ! qvatm
-  real(rkx) , pointer , dimension(:) :: rhox => null( )    ! rhox
-  real(rkx) , pointer , dimension(:) :: rlwf => null( )    ! rlwf
-  real(rkx) , pointer , dimension(:) :: rswf => null( )    ! rswf
-  real(rkx) , pointer , dimension(:) :: sent => null( )
-  real(rkx) , pointer , dimension(:) :: sfice => null( )
-  real(rkx) , pointer , dimension(:) :: tatm => null( )    ! tatm
-  real(rkx) , pointer , dimension(:) :: sfps => null( )    ! sfps
-  real(rkx) , pointer , dimension(:) :: snag => null( )
-  real(rkx) , pointer , dimension(:) :: sncv => null( )
-  real(rkx) , pointer , dimension(:) :: sm => null( )
-  real(rkx) , pointer , dimension(:) :: sst => null( )
-  real(rkx) , pointer , dimension(:) :: t2m => null( )
-  real(rkx) , pointer , dimension(:) :: sfta => null( )
-  real(rkx) , pointer , dimension(:) :: patm => null( )
-  real(rkx) , pointer , dimension(:) :: taux => null( )
-  real(rkx) , pointer , dimension(:) :: tauy => null( )
-  real(rkx) , pointer , dimension(:) :: tdeltas => null( )
-  real(rkx) , pointer , dimension(:) :: tgb => null( )     ! tground2
-  real(rkx) , pointer , dimension(:) :: tgbrd => null( )
-  real(rkx) , pointer , dimension(:) :: tgrd => null( )
-  real(rkx) , pointer , dimension(:) :: u10m => null( )
-  real(rkx) , pointer , dimension(:) :: v10m => null( )
-  real(rkx) , pointer , dimension(:) :: um10 => null( )
-  real(rkx) , pointer , dimension(:) :: usw => null( )     ! uatm
-  real(rkx) , pointer , dimension(:) :: vsw => null( )     ! vatm
-  real(rkx) , pointer , dimension(:) :: ustr => null( )    ! ustar
-  real(rkx) , pointer , dimension(:) :: zoo => null( )     ! zo
-  real(rkx) , pointer , dimension(:) :: rhoa => null( )    ! xdens
-  real(rkx) , pointer , dimension(:) :: ram1 => null( )
-  real(rkx) , pointer , dimension(:) :: rah1 => null( )
-  real(rkx) , pointer , dimension(:) :: br => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: cprate => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: czenith => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: deltas => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: dhlake => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: drag => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: tskin => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: dwrlwf => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: emiss => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: evpr => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: ht => null( )      ! hgt
+  real(rkx), pointer, contiguous, dimension(:) :: hpbl => null( )    ! hpbl
+  real(rkx), pointer, contiguous, dimension(:) :: lat => null( )     ! xlat
+  real(rkx), pointer, contiguous, dimension(:) :: ncprate => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: prcp => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: q2m => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: qv => null( )      ! qvatm
+  real(rkx), pointer, contiguous, dimension(:) :: rhox => null( )    ! rhox
+  real(rkx), pointer, contiguous, dimension(:) :: rlwf => null( )    ! rlwf
+  real(rkx), pointer, contiguous, dimension(:) :: rswf => null( )    ! rswf
+  real(rkx), pointer, contiguous, dimension(:) :: sent => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: sfice => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: tatm => null( )    ! tatm
+  real(rkx), pointer, contiguous, dimension(:) :: sfps => null( )    ! sfps
+  real(rkx), pointer, contiguous, dimension(:) :: snag => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: sncv => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: sm => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: sst => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: t2m => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: sfta => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: patm => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: taux => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: tauy => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: tdeltas => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: tgb => null( )     ! tground2
+  real(rkx), pointer, contiguous, dimension(:) :: tgbrd => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: tgrd => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: u10m => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: v10m => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: um10 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: usw => null( )     ! uatm
+  real(rkx), pointer, contiguous, dimension(:) :: vsw => null( )     ! vatm
+  real(rkx), pointer, contiguous, dimension(:) :: ustr => null( )    ! ustar
+  real(rkx), pointer, contiguous, dimension(:) :: zoo => null( )     ! zo
+  real(rkx), pointer, contiguous, dimension(:) :: rhoa => null( )    ! xdens
+  real(rkx), pointer, contiguous, dimension(:) :: ram1 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: rah1 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: br => null( )
 
-  real(rkx) , pointer , dimension(:) :: laketa => null( )
-  real(rkx) , pointer , dimension(:) :: lakhi => null( )
-  real(rkx) , pointer , dimension(:) :: lakaveice => null( )
-  real(rkx) , pointer , dimension(:,:) :: laktlake => null( )
-  integer(ik4) , pointer , dimension(:) :: ilake => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: laketa => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: lakhi => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: lakaveice => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: laktlake => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: ilake => null( )
 
-  real(rkx) , pointer , dimension(:) :: swdiral => null( )
-  real(rkx) , pointer , dimension(:) :: lwdiral => null( )
-  real(rkx) , pointer , dimension(:) :: swdifal => null( )
-  real(rkx) , pointer , dimension(:) :: lwdifal => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: swdiral => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: lwdiral => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: swdifal => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: lwdifal => null( )
 
-  integer(ik4) , pointer , dimension(:) :: mask => null( )
-  integer(ik4) , pointer , dimension(:) :: icpl => null( )
-  integer(ik4) , pointer , dimension(:) :: omask => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: mask => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: icpl => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: omask => null( )
 
   contains
 
   subroutine allocate_mod_ocn_internal(co)
     implicit none
-    type (masked_comm) , intent(in) :: co
+    type (masked_comm), intent(in) :: co
     nocnp = co%linear_npoint_sg(myid+1)
     iocnbeg = 1
     iocnend = nocnp

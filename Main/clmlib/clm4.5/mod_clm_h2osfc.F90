@@ -20,32 +20,32 @@ module mod_clm_h2osfc
     use mod_intkinds
     use mod_realkinds
     use mod_clm_type
-    use mod_clm_varcon , only : rpi , istsoil, istcrop
+    use mod_clm_varcon, only : rpi, istsoil, istcrop
     implicit none
-    integer(ik4) , intent(in) :: lbc, ubc   ! column bounds
+    integer(ik4), intent(in) :: lbc, ubc   ! column bounds
     ! number of column points in column filter
-    integer(ik4) , intent(in) :: num_h2osfc
-    integer(ik4) , intent(in) :: filter_h2osfc(ubc-lbc+1)  ! column filter
+    integer(ik4), intent(in) :: num_h2osfc
+    integer(ik4), intent(in) :: filter_h2osfc(ubc-lbc+1)  ! column filter
     ! fractional surface water (mm)
     real(rk8), intent(inout) :: frac_h2osfc(lbc:ubc)
     ! flag to make calculation w/o updating variables
-    integer(ik4) , intent(in), optional :: no_update
+    integer(ik4), intent(in), optional :: no_update
 
-    real(rk8), pointer :: h2osfc(:)         ! surface water (mm)
+    real(rk8), pointer, contiguous :: h2osfc(:)         ! surface water (mm)
 
     ! microtopography pdf sigma (m)
-    real(rk8), pointer :: micro_sigma(:)
+    real(rk8), pointer, contiguous :: micro_sigma(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)
+    real(rk8), pointer, contiguous :: frac_sno(:)
     ! eff. fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno_eff(:)
-    integer(ik4) , pointer :: snl(:)      ! minus number of snow layers
-    real(rk8), pointer :: h2osno(:)       ! snow water (mm H2O)
-    real(rk8), pointer :: h2osoi_liq(:,:) ! liquid water (col,lyr) [kg/m2]
-    real(rk8), pointer :: topo_slope(:)   ! topographic slope
-    real(rk8), pointer :: topo_ndx(:)     ! topographic slope
-    integer(ik4) , pointer :: ltype(:)    ! landunit type
-    integer(ik4) , pointer :: clandunit(:)  ! columns's landunit
+    real(rk8), pointer, contiguous :: frac_sno_eff(:)
+    integer(ik4), pointer, contiguous :: snl(:)      ! minus number of snow layers
+    real(rk8), pointer, contiguous :: h2osno(:)       ! snow water (mm H2O)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:) ! liquid water (col,lyr) [kg/m2]
+    real(rk8), pointer, contiguous :: topo_slope(:)   ! topographic slope
+    real(rk8), pointer, contiguous :: topo_ndx(:)     ! topographic slope
+    integer(ik4), pointer, contiguous :: ltype(:)    ! landunit type
+    integer(ik4), pointer, contiguous :: clandunit(:)  ! columns's landunit
 
     integer(ik4)  :: c,f,l     ! indices
     real(rk8):: d,fd,dfdd      ! temporary variable for frac_h2oscs iteration
@@ -53,7 +53,7 @@ module mod_clm_h2osfc
     real(rk8):: min_h2osfc
 
 #ifdef __PGI
-    !real(rk8) , external :: erf
+    !real(rk8), external :: erf
 #endif
     ! Assign local pointers to derived subtypes components (column-level)
 
@@ -73,7 +73,7 @@ module mod_clm_h2osfc
     ! arbitrary lower limit on h2osfc for safer numerics...
     min_h2osfc = 5.e-8_rk8
 
-    do f = 1 , num_h2osfc
+    do f = 1, num_h2osfc
       c = filter_h2osfc(f)
       l = clandunit(c)
       ! h2osfc only calculated for soil vegetated land units
@@ -87,7 +87,7 @@ module mod_clm_h2osfc
           ! (nonconvergence after 5 iterations)
           d = 0.0_rk8
           sigma = 1.0e3_rk8 * micro_sigma(c) ! convert to mm
-          do l = 1 , 10
+          do l = 1, 10
             if ( d**2/(2.0_rk8*sigma**2) < 25.0_rkx ) then
               fd = 0.5_rk8*d*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8)))) + &
                     sigma/sqrt(2.0_rk8*rpi)*exp(-d**2/(2.0_rk8*sigma**2)) - &

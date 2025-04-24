@@ -20,36 +20,36 @@ module mod_ncstream_types
   use mod_constants
   use mod_date
 #ifdef PNETCDF
-  use mpi , only: mpi_offset_kind
+  use mpi, only: mpi_offset_kind
 #endif
 
   implicit none
 
   public
 
-  integer(ik4) , parameter :: ncmaxdims = 16
-  integer(ik4) , private , parameter :: maxname = 64
-  integer(ik4) , private , parameter :: maxunit = 36
-  integer(ik4) , private , parameter :: maxattarr = 8
-  integer(ik4) , private , parameter :: maxstring = 512
-  integer(ik4) , private , parameter :: maxpath = maxstring
+  integer(ik4), parameter :: ncmaxdims = 16
+  integer(ik4), private, parameter :: maxname = 64
+  integer(ik4), private, parameter :: maxunit = 36
+  integer(ik4), private, parameter :: maxattarr = 8
+  integer(ik4), private, parameter :: maxstring = 512
+  integer(ik4), private, parameter :: maxpath = maxstring
 
-  integer(ik4) , parameter :: jx_dim          = 1
-  integer(ik4) , parameter :: iy_dim          = 2
-  integer(ik4) , parameter :: kz_dim          = 3
-  integer(ik4) , parameter :: time_dim        = 4
-  integer(ik4) , parameter :: time_bound_dim  = 5
-  integer(ik4) , parameter :: texture_dim     = 6
-  integer(ik4) , parameter :: h2m_level_dim   = 7
-  integer(ik4) , parameter :: h10m_level_dim  = 8
-  integer(ik4) , parameter :: h50m_level_dim  = 9
-  integer(ik4) , parameter :: h100m_level_dim = 10
-  integer(ik4) , parameter :: h150m_level_dim = 11
-  integer(ik4) , parameter :: soil_layer_dim  = 12
-  integer(ik4) , parameter :: water_depth_dim = 13
-  integer(ik4) , parameter :: months_dim      = 14
-  integer(ik4) , parameter :: spectral_dim    = 15
-  integer(ik4) , parameter :: spectral_b_dim  = 16
+  integer(ik4), parameter :: jx_dim          = 1
+  integer(ik4), parameter :: iy_dim          = 2
+  integer(ik4), parameter :: kz_dim          = 3
+  integer(ik4), parameter :: time_dim        = 4
+  integer(ik4), parameter :: time_bound_dim  = 5
+  integer(ik4), parameter :: texture_dim     = 6
+  integer(ik4), parameter :: h2m_level_dim   = 7
+  integer(ik4), parameter :: h10m_level_dim  = 8
+  integer(ik4), parameter :: h50m_level_dim  = 9
+  integer(ik4), parameter :: h100m_level_dim = 10
+  integer(ik4), parameter :: h150m_level_dim = 11
+  integer(ik4), parameter :: soil_layer_dim  = 12
+  integer(ik4), parameter :: water_depth_dim = 13
+  integer(ik4), parameter :: months_dim      = 14
+  integer(ik4), parameter :: spectral_dim    = 15
+  integer(ik4), parameter :: spectral_b_dim  = 16
 
   type ncinstream_params
     ! The name of the input file
@@ -58,8 +58,8 @@ module mod_ncstream_types
     integer(ik4) :: mpi_comm = -1
     integer(ik4) :: mpi_info = -1
     ! If parallel I/O, the processor patch indexes on the global grid
-    integer(ik4) :: global_jstart , global_jend
-    integer(ik4) :: global_istart , global_iend
+    integer(ik4) :: global_jstart, global_jend
+    integer(ik4) :: global_istart, global_iend
   end type ncinstream_params
 
   type ncoutstream_params
@@ -97,8 +97,8 @@ module mod_ncstream_types
     ! Initial time for this run
     type(rcm_time_and_date) :: zero_date = rcm_time_and_date(1,18231,0)
     ! If parallel I/O, the processor patch indexes on the global grid
-    integer(ik4) :: global_jstart , global_jend
-    integer(ik4) :: global_istart , global_iend
+    integer(ik4) :: global_jstart, global_jend
+    integer(ik4) :: global_istart, global_iend
   end type ncoutstream_params
 
   type internal_obuffer
@@ -114,35 +114,35 @@ module mod_ncstream_types
     logical :: lhas2ddouble = .false.
     logical :: lhas3ddouble = .false.
     logical :: lhas4ddouble = .false.
-    integer(ik4) , dimension(1) :: max1d_int = 0
-    integer(ik4) , dimension(2) :: max2d_int = 0
-    integer(ik4) , dimension(3) :: max3d_int = 0
-    integer(ik4) , dimension(4) :: max4d_int = 0
-    integer(ik4) , dimension(1) :: max1d_real = 0
-    integer(ik4) , dimension(2) :: max2d_real = 0
-    integer(ik4) , dimension(3) :: max3d_real = 0
-    integer(ik4) , dimension(4) :: max4d_real = 0
-    integer(ik4) , dimension(1) :: max1d_double = 0
-    integer(ik4) , dimension(2) :: max2d_double = 0
-    integer(ik4) , dimension(3) :: max3d_double = 0
-    integer(ik4) , dimension(4) :: max4d_double = 0
-    integer(ik4) , dimension(:) , allocatable :: intbuff
-    real(rk4) , dimension(:) , allocatable :: realbuff
-    real(rk8) , dimension(:) , allocatable :: doublebuff
+    integer(ik4), dimension(1) :: max1d_int = 0
+    integer(ik4), dimension(2) :: max2d_int = 0
+    integer(ik4), dimension(3) :: max3d_int = 0
+    integer(ik4), dimension(4) :: max4d_int = 0
+    integer(ik4), dimension(1) :: max1d_real = 0
+    integer(ik4), dimension(2) :: max2d_real = 0
+    integer(ik4), dimension(3) :: max3d_real = 0
+    integer(ik4), dimension(4) :: max4d_real = 0
+    integer(ik4), dimension(1) :: max1d_double = 0
+    integer(ik4), dimension(2) :: max2d_double = 0
+    integer(ik4), dimension(3) :: max3d_double = 0
+    integer(ik4), dimension(4) :: max4d_double = 0
+    integer(ik4), dimension(:), allocatable :: intbuff
+    real(rk4), dimension(:), allocatable :: realbuff
+    real(rk8), dimension(:), allocatable :: doublebuff
   end type internal_obuffer
 
   type internal_ibuffer
-    integer(ik4) , dimension(:) , allocatable :: intbuff
-    real(rk4) , dimension(:) , allocatable :: realbuff
-    real(rk8) , dimension(:) , allocatable :: doublebuff
+    integer(ik4), dimension(:), allocatable :: intbuff
+    real(rk4), dimension(:), allocatable :: realbuff
+    real(rk8), dimension(:), allocatable :: doublebuff
   end type internal_ibuffer
 
   type obuff_p
-    type(internal_obuffer) , pointer :: xb => null()
+    type(internal_obuffer), pointer :: xb => null()
   end type obuff_p
 
   type ibuff_p
-    type(internal_ibuffer) , pointer :: xb => null()
+    type(internal_ibuffer), pointer :: xb => null()
   end type ibuff_p
 
   type ncinstream
@@ -155,23 +155,23 @@ module mod_ncstream_types
 #else
     integer(ik4) :: nrec = -1
 #endif
-    integer(ik4) , dimension(2) :: jparbound
-    integer(ik4) , dimension(2) :: iparbound
-    integer(ik4) :: global_nj , global_ni , parsize
-    real(rk8) , dimension(2) :: xtime = [dmissval,dmissval]
+    integer(ik4), dimension(2) :: jparbound
+    integer(ik4), dimension(2) :: iparbound
+    integer(ik4) :: global_nj, global_ni, parsize
+    real(rk8), dimension(2) :: xtime = [dmissval,dmissval]
     type(rcm_time_and_date) :: refdate
-    character(len=maxunit) :: tunit , tcal
+    character(len=maxunit) :: tunit, tcal
     real(rk8) :: deltat = 1.0_rk8
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(5) :: istart , icount , istride
+    integer(kind=mpi_offset_kind), dimension(5) :: istart, icount, istride
 #else
-    integer(ik4) , dimension(5) :: istart , icount , istride
+    integer(ik4), dimension(5) :: istart, icount, istride
 #endif
     integer(ik4) :: ndims
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , allocatable , dimension(:) :: len_dims
+    integer(kind=mpi_offset_kind), allocatable, dimension(:) :: len_dims
 #else
-    integer(ik4) , allocatable , dimension(:) :: len_dims
+    integer(ik4), allocatable, dimension(:) :: len_dims
 #endif
   end type ncinstream
 
@@ -214,19 +214,19 @@ module mod_ncstream_types
     !
     ! Dimension identifiers for 'coded' dimensions
     !
-    integer(ik4) , dimension(ncmaxdims) :: id_dims
-    integer(ik4) , dimension(ncmaxdims) :: len_dims
+    integer(ik4), dimension(ncmaxdims) :: id_dims
+    integer(ik4), dimension(ncmaxdims) :: len_dims
     integer(ik4) :: irec = 0
     ! Implemented up to 4d var with records
 #ifdef PNETCDF
-    integer(kind=mpi_offset_kind) , dimension(5) :: istart , icount
+    integer(kind=mpi_offset_kind), dimension(5) :: istart, icount
 #else
-    integer(ik4) , dimension(5) :: istart , icount
+    integer(ik4), dimension(5) :: istart, icount
 #endif
     ! If using parallel I/O, those are the patch window
-    integer(ik4) , dimension(2) :: jparbound
-    integer(ik4) , dimension(2) :: iparbound
-    integer(ik4) :: global_nj , global_ni , parsize
+    integer(ik4), dimension(2) :: jparbound
+    integer(ik4), dimension(2) :: iparbound
+    integer(ik4) :: global_nj, global_ni, parsize
   end type ncoutstream
 !
   type ncattribute_standard
@@ -254,12 +254,12 @@ module mod_ncstream_types
   end type ncattribute_real8
 
   type, extends(ncattribute_standard) :: ncattribute_real4_array
-    real(rk4) , dimension(maxattarr) :: theval
+    real(rk4), dimension(maxattarr) :: theval
     integer(ik4) :: numval = 0
   end type ncattribute_real4_array
 
   type, extends(ncattribute_standard) :: ncattribute_real8_array
-    real(rk8) , dimension(maxattarr) :: theval
+    real(rk8), dimension(maxattarr) :: theval
     integer(ik4) :: numval = 0
   end type ncattribute_real8_array
 
@@ -279,7 +279,7 @@ module mod_ncstream_types
     real(rk4) :: rmissval = smissval
     integer(ik4) :: imissval = -9999
     integer(ik4) :: ndims = 0
-    integer(ik4) , dimension(5) :: idims = -1
+    integer(ik4), dimension(5) :: idims = -1
     logical :: lrecords = .false.
   end type ncvariable_standard
 
@@ -287,20 +287,20 @@ module mod_ncstream_types
   end type ncvariable_0d
 
   type, extends(ncvariable_0d) :: ncvariable0d_real
-    real(rk4) , dimension(1) :: rval = 0.0
+    real(rk4), dimension(1) :: rval = 0.0
   end type ncvariable0d_real
 
   type, extends(ncvariable_0d) :: ncvariable0d_double
-    real(rk8) , dimension(1) :: rval = 0.0
+    real(rk8), dimension(1) :: rval = 0.0
   end type ncvariable0d_double
 
   type, extends(ncvariable_0d) :: ncvariable0d_mixed
     logical :: is_mixed = .true.
-    real(rkx) , dimension(1) :: rval = 0.0
+    real(rkx), dimension(1) :: rval = 0.0
   end type ncvariable0d_mixed
 
   type, extends(ncvariable_0d) :: ncvariable0d_integer
-    integer(ik4) , dimension(1) :: ival = 0
+    integer(ik4), dimension(1) :: ival = 0
   end type ncvariable0d_integer
 
   type, extends(ncvariable_0d) :: ncvariable0d_char
@@ -309,127 +309,127 @@ module mod_ncstream_types
 
   type, extends(ncvariable_standard) :: ncvariable_1d
     character(len=1) :: axis = 'x'
-    integer(ik4) , dimension(1) :: nval = 0
+    integer(ik4), dimension(1) :: nval = 0
   end type ncvariable_1d
 
   type, extends(ncvariable_1d) :: ncvariable1d_real
-    real(rk4) , dimension(:) , pointer :: rval => null()
+    real(rk4), dimension(:), pointer, contiguous :: rval => null()
   end type ncvariable1d_real
 
   type, extends(ncvariable_1d) :: ncvariable1d_double
-    real(rk8) , dimension(:) , pointer :: rval => null()
+    real(rk8), dimension(:), pointer, contiguous :: rval => null()
   end type ncvariable1d_double
 
   type, extends(ncvariable_1d) :: ncvariable1d_mixed
     logical :: is_mixed = .true.
-    real(rkx) , dimension(:) , pointer :: rval => null()
+    real(rkx), dimension(:), pointer, contiguous :: rval => null()
   end type ncvariable1d_mixed
 
   type, extends(ncvariable_1d) :: ncvariable1d_integer
-    integer(ik4) , dimension(:) , pointer :: ival => null()
+    integer(ik4), dimension(:), pointer, contiguous :: ival => null()
   end type ncvariable1d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_2d
     character(len=2) :: axis = 'xy'
-    integer(ik4) , dimension(2) :: nval = 0
-    integer(ik4) :: i1 = -1 , i2 = -1
-    integer(ik4) :: j1 = -1 , j2 = -1
+    integer(ik4), dimension(2) :: nval = 0
+    integer(ik4) :: i1 = -1, i2 = -1
+    integer(ik4) :: j1 = -1, j2 = -1
   end type ncvariable_2d
 
   type, extends(ncvariable_2d) :: ncvariable2d_real
     logical :: is_slice = .false.
-    real(rk4) , dimension(:,:) , pointer :: rval => null()
-    real(rk4) , dimension(:,:,:) , pointer :: rval_slice => null()
+    real(rk4), dimension(:,:), pointer, contiguous :: rval => null()
+    real(rk4), dimension(:,:,:), pointer, contiguous :: rval_slice => null()
   end type ncvariable2d_real
 
   type, extends(ncvariable_2d) :: ncvariable2d_double
     logical :: is_slice = .false.
-    real(rk8) , dimension(:,:) , pointer :: rval => null()
-    real(rk8) , dimension(:,:,:) , pointer :: rval_slice => null()
+    real(rk8), dimension(:,:), pointer, contiguous :: rval => null()
+    real(rk8), dimension(:,:,:), pointer, contiguous :: rval_slice => null()
   end type ncvariable2d_double
 
   type, extends(ncvariable_2d) :: ncvariable2d_mixed
     logical :: is_slice = .false.
     logical :: is_mixed = .true.
-    real(rkx) , dimension(:,:) , pointer :: rval => null()
-    real(rkx) , dimension(:,:,:) , pointer :: rval_slice => null()
+    real(rkx), dimension(:,:), pointer, contiguous :: rval => null()
+    real(rkx), dimension(:,:,:), pointer, contiguous :: rval_slice => null()
   end type ncvariable2d_mixed
 
   type, extends(ncvariable_2d) :: ncvariable2d_integer
     logical :: is_slice = .false.
-    integer(ik4) , dimension(:,:) , pointer :: ival => null()
-    integer(ik4) , dimension(:,:,:) , pointer :: ival_slice => null()
+    integer(ik4), dimension(:,:), pointer, contiguous :: ival => null()
+    integer(ik4), dimension(:,:,:), pointer, contiguous :: ival_slice => null()
   end type ncvariable2d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_3d
     character(len=3) :: axis = 'xyz'
-    integer(ik4) , dimension(3) :: nval = 0
-    integer(ik4) :: i1 = -1 , i2 = -1
-    integer(ik4) :: j1 = -1 , j2 = -1
-    integer(ik4) :: k1 = -1 , k2 = -1
+    integer(ik4), dimension(3) :: nval = 0
+    integer(ik4) :: i1 = -1, i2 = -1
+    integer(ik4) :: j1 = -1, j2 = -1
+    integer(ik4) :: k1 = -1, k2 = -1
   end type ncvariable_3d
 
   type, extends(ncvariable_3d) :: ncvariable3d_real
     logical :: is_slice = .false.
-    real(rk4) , dimension(:,:) , pointer :: rval_level => null()
-    real(rk4) , dimension(:,:,:) , pointer :: rval => null()
-    real(rk4) , dimension(:,:,:,:) , pointer :: rval_slice => null()
+    real(rk4), dimension(:,:), pointer, contiguous :: rval_level => null()
+    real(rk4), dimension(:,:,:), pointer, contiguous :: rval => null()
+    real(rk4), dimension(:,:,:,:), pointer, contiguous :: rval_slice => null()
   end type ncvariable3d_real
 
   type, extends(ncvariable_3d) :: ncvariable3d_double
     logical :: is_slice = .false.
-    real(rk8) , dimension(:,:) , pointer :: rval_level => null()
-    real(rk8) , dimension(:,:,:) , pointer :: rval => null()
-    real(rk8) , dimension(:,:,:,:) , pointer :: rval_slice => null()
+    real(rk8), dimension(:,:), pointer, contiguous :: rval_level => null()
+    real(rk8), dimension(:,:,:), pointer, contiguous :: rval => null()
+    real(rk8), dimension(:,:,:,:), pointer, contiguous :: rval_slice => null()
   end type ncvariable3d_double
 
   type, extends(ncvariable_3d) :: ncvariable3d_mixed
     logical :: is_slice = .false.
     logical :: is_mixed = .true.
-    real(rkx) , dimension(:,:) , pointer :: rval_level => null()
-    real(rkx) , dimension(:,:,:) , pointer :: rval => null()
-    real(rkx) , dimension(:,:,:,:) , pointer :: rval_slice => null()
+    real(rkx), dimension(:,:), pointer, contiguous :: rval_level => null()
+    real(rkx), dimension(:,:,:), pointer, contiguous :: rval => null()
+    real(rkx), dimension(:,:,:,:), pointer, contiguous :: rval_slice => null()
   end type ncvariable3d_mixed
 
   type, extends(ncvariable_3d) :: ncvariable3d_integer
     logical :: is_slice = .false.
-    integer(ik4) , dimension(:,:) , pointer :: ival_level => null()
-    integer(ik4) , dimension(:,:,:) , pointer :: ival => null()
-    integer(ik4) , dimension(:,:,:,:) , pointer :: ival_slice => null()
+    integer(ik4), dimension(:,:), pointer, contiguous :: ival_level => null()
+    integer(ik4), dimension(:,:,:), pointer, contiguous :: ival => null()
+    integer(ik4), dimension(:,:,:,:), pointer, contiguous :: ival_slice => null()
   end type ncvariable3d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_4d
     character(len=4) :: axis = 'xyzd'
-    integer(ik4) , dimension(4) :: nval = 0
-    integer(ik4) :: i1 = -1 , i2 = -1
-    integer(ik4) :: j1 = -1 , j2 = -1
-    integer(ik4) :: k1 = -1 , k2 = -1
-    integer(ik4) :: n1 = -1 , n2 = -1
+    integer(ik4), dimension(4) :: nval = 0
+    integer(ik4) :: i1 = -1, i2 = -1
+    integer(ik4) :: j1 = -1, j2 = -1
+    integer(ik4) :: k1 = -1, k2 = -1
+    integer(ik4) :: n1 = -1, n2 = -1
   end type ncvariable_4d
 
   type, extends(ncvariable_4d) :: ncvariable4d_real
-    real(rk4) , dimension(:,:,:,:) , pointer :: rval => null()
+    real(rk4), dimension(:,:,:,:), pointer, contiguous :: rval => null()
   end type ncvariable4d_real
 
   type, extends(ncvariable_4d) :: ncvariable4d_double
-    real(rk8) , dimension(:,:,:,:) , pointer :: rval => null()
+    real(rk8), dimension(:,:,:,:), pointer, contiguous :: rval => null()
   end type ncvariable4d_double
 
   type, extends(ncvariable_4d) :: ncvariable4d_mixed
     logical :: is_mixed = .true.
-    real(rkx) , dimension(:,:,:,:) , pointer :: rval => null()
+    real(rkx), dimension(:,:,:,:), pointer, contiguous :: rval => null()
   end type ncvariable4d_mixed
 
   type, extends(ncvariable_4d) :: ncvariable4d_integer
-    integer(ik4) , dimension(:,:,:,:) , pointer :: ival => null()
+    integer(ik4), dimension(:,:,:,:), pointer, contiguous :: ival => null()
   end type ncvariable4d_integer
 
   type ncoutstream_p
-    type(ncoutstream) , pointer :: xs => null()
+    type(ncoutstream), pointer :: xs => null()
   end type ncoutstream_p
 
   type ncinstream_p
-    type(ncinstream) , pointer :: xs => null()
+    type(ncinstream), pointer :: xs => null()
   end type ncinstream_p
 
   type basic_variables
@@ -453,7 +453,7 @@ module mod_ncstream_types
   end type basic_variables
 
   type basic_variables_p
-    type(basic_variables) , pointer :: xv => null()
+    type(basic_variables), pointer :: xv => null()
   end type basic_variables_p
 
   type nc_output_stream
@@ -468,11 +468,11 @@ module mod_ncstream_types
   end type nc_input_stream
 
   type nc_variable_p
-    class(ncvariable_standard) , pointer :: vp => null()
+    class(ncvariable_standard), pointer :: vp => null()
   end type nc_variable_p
 
   type nc_varlist
-    type(nc_variable_p) , dimension(:) , pointer :: vlist
+    type(nc_variable_p), dimension(:), pointer :: vlist
   end type nc_varlist
 
 end module mod_ncstream_types

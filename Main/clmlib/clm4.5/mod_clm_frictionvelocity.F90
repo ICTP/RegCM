@@ -6,7 +6,7 @@ module mod_clm_frictionvelocity
   use mod_intkinds
   use mod_realkinds
   use mod_clm_type
-  use mod_clm_varcon , only : vkc , rpi , grav
+  use mod_clm_varcon, only : vkc, rpi, grav
 
   implicit none
 
@@ -34,11 +34,11 @@ module mod_clm_frictionvelocity
                   fm, landunit_index)
     implicit none
     ! pft/landunit array bounds
-    integer(ik4) , intent(in) :: lbn, ubn
+    integer(ik4), intent(in) :: lbn, ubn
     ! number of filtered pft/landunit elements
-    integer(ik4) , intent(in) :: fn
+    integer(ik4), intent(in) :: fn
     ! pft/landunit filter
-    integer(ik4) , intent(in) :: filtern(fn)
+    integer(ik4), intent(in) :: filtern(fn)
     ! displacement height (m)
     real(rk8), intent(in) :: displa(lbn:ubn)
     ! roughness length over vegetation, momentum [m]
@@ -69,23 +69,23 @@ module mod_clm_frictionvelocity
     ! diagnose 10m wind (DUST only)
     real(rk8), intent(inout) :: fm(lbn:ubn)
 
-    integer(ik4) , pointer :: ngridcell(:) !pft/landunit gridcell index
+    integer(ik4), pointer, contiguous :: ngridcell(:) !pft/landunit gridcell index
     !observational height of wind at pft level [m]
-    real(rk8), pointer :: forc_hgt_u_pft(:)
+    real(rk8), pointer, contiguous :: forc_hgt_u_pft(:)
     !observational height of temperature at pft level [m]
-    real(rk8), pointer :: forc_hgt_t_pft(:)
+    real(rk8), pointer, contiguous :: forc_hgt_t_pft(:)
     !observational height of specific humidity at pft level [m]
-    real(rk8), pointer :: forc_hgt_q_pft(:)
-    integer(ik4) , pointer :: pfti(:)   !beginning pfti index for landunit
-    integer(ik4) , pointer :: pftf(:)   !final pft index for landunit
+    real(rk8), pointer, contiguous :: forc_hgt_q_pft(:)
+    integer(ik4), pointer, contiguous :: pfti(:)   !beginning pfti index for landunit
+    integer(ik4), pointer, contiguous :: pftf(:)   !final pft index for landunit
 
-    real(rk8), pointer :: u10(:) ! 10-m wind (m/s) (for dust model)
-    real(rk8), pointer :: fv(:)  ! friction velocity (m/s) (for dust model)
+    real(rk8), pointer, contiguous :: u10(:) ! 10-m wind (m/s) (for dust model)
+    real(rk8), pointer, contiguous :: fv(:)  ! friction velocity (m/s) (for dust model)
     ! dry deposition velocity term (m/s) (for SO4 NH4NO3)
-    real(rk8), pointer :: vds(:)
-    real(rk8), pointer :: u10_clm(:) ! 10-m wind (m/s)
+    real(rk8), pointer, contiguous :: vds(:)
+    real(rk8), pointer, contiguous :: u10_clm(:) ! 10-m wind (m/s)
     ! atmospheric wind speed plus convective velocity (m/s)
-    real(rk8), pointer :: va(:)
+    real(rk8), pointer, contiguous :: va(:)
 
     ! transition point of flux-gradient relation (wind profile)
     real(rk8), parameter :: zetam = 1.574_rk8
@@ -656,7 +656,7 @@ module mod_clm_frictionvelocity
     ! wind speed including the stability effect [m/s]
     real(rk8), intent(out) :: um
     ! bulk Richardson number
-    real(rk8) , intent(out) :: rib
+    real(rk8), intent(out) :: rib
     ! monin-obukhov length (m)
     real(rk8), intent(out) :: obu
 

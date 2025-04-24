@@ -15,18 +15,18 @@ module mod_clm_surfrd
   use mod_stdio
   use mod_memutil
   use mod_mpmessage
-  use mod_dynparam , only : myid
+  use mod_dynparam, only : myid
 #if (defined CNDV)
-  use mod_dynparam , only : enable_dv_baresoil
+  use mod_dynparam, only : enable_dv_baresoil
 #endif
   use mod_mppparam
   use mod_clm_nchelper
-  use mod_clm_varpar , only : nlevsoifl , numpft , maxpatch_pft , &
-         maxpatch , npatch_urban_tbd , npatch_urban_hd , npatch_urban_md , &
-         numurbl , npatch_lake , npatch_wet , npatch_glacier , maxpatch_urb
-  use mod_clm_varsur , only : wtxy , vegxy , pctspec
-  use mod_clm_decomp , only : get_proc_bounds , procinfo , numg
-  use mod_clm_decomp , only : gcomm_gridcell
+  use mod_clm_varpar, only : nlevsoifl, numpft, maxpatch_pft, &
+         maxpatch, npatch_urban_tbd, npatch_urban_hd, npatch_urban_md, &
+         numurbl, npatch_lake, npatch_wet, npatch_glacier, maxpatch_urb
+  use mod_clm_varsur, only : wtxy, vegxy, pctspec
+  use mod_clm_decomp, only : get_proc_bounds, procinfo, numg
+  use mod_clm_decomp, only : gcomm_gridcell
   use mod_clm_type
 
   implicit none
@@ -41,14 +41,14 @@ module mod_clm_surfrd
   public :: surfrd_get_data
 
   ! If prognostic crops is turned on
-  logical , public :: crop_prog = .false.
+  logical, public :: crop_prog = .false.
 
   private :: surfrd_wtxy_special
   private :: surfrd_wtxy_veg_all
   private :: surfrd_wtxy_veg_dgvm
 
   ! default multiplication factor for epsilon for error checks
-  real(rk8) , private, parameter :: eps_fact = 2._rk8
+  real(rk8), private, parameter :: eps_fact = 2._rk8
 
   contains
   !
@@ -58,19 +58,19 @@ module mod_clm_surfrd
   ! o real longitude of grid cell (degrees)
   !
   subroutine surfrd_get_grid(ldomain, filename)
-    use mod_clm_varcon , only : spval , re
-    use mod_clm_domain , only : domain_type , domain_init , domain_clean
-    use mod_clm_decomp , only : get_proc_bounds
-    use mod_clm_atmlnd , only : adomain
+    use mod_clm_varcon, only : spval, re
+    use mod_clm_domain, only : domain_type, domain_init, domain_clean
+    use mod_clm_decomp, only : get_proc_bounds
+    use mod_clm_atmlnd, only : adomain
     implicit none
-    type(domain_type) , intent(inout) :: ldomain   ! domain to init
-    character(len=*) , intent(in)    :: filename  ! grid filename
+    type(domain_type), intent(inout) :: ldomain   ! domain to init
+    character(len=*), intent(in)    :: filename  ! grid filename
     type(clm_filetype) :: ncid     ! netcdf id
     integer(ik4) :: ibeg           ! local beg index
     integer(ik4) :: iend           ! local end index
-    integer(ik4) :: ni , nj , ns   ! size of grid on file
-    integer(ik4) :: inni , innj    ! size of grid on file
-    real(rk4) , allocatable , dimension(:,:) :: mask
+    integer(ik4) :: ni, nj, ns   ! size of grid on file
+    integer(ik4) :: inni, innj    ! size of grid on file
+    real(rk4), allocatable, dimension(:,:) :: mask
     character(len=32) :: subname = 'surfrd_get_grid'     ! subroutine name
 
     if (myid == italk) then
@@ -146,21 +146,21 @@ module mod_clm_surfrd
   !    o integer(ik4) PFTs
   !    o real % abundance PFTs (as a percent of vegetated area)
   subroutine surfrd_get_data(ldomain, lfsurdat)
-    use mod_clm_varctl , only : allocate_all_vegpfts
+    use mod_clm_varctl, only : allocate_all_vegpfts
 #if (defined CNDV)
-    use mod_clm_varctl , only : create_crop_landunit
+    use mod_clm_varctl, only : create_crop_landunit
 #endif
-    use mod_clm_pftvarcon , only : noveg
-    use mod_clm_domain , only : domain_type , domain_init , domain_clean
+    use mod_clm_pftvarcon, only : noveg
+    use mod_clm_domain, only : domain_type, domain_init, domain_clean
     implicit none
     ! land domain associated with wtxy
-    type(domain_type) , intent(inout) :: ldomain
-    character(len=*) , intent(inout) :: lfsurdat ! surface dataset filename
+    type(domain_type), intent(inout) :: ldomain
+    character(len=*), intent(inout) :: lfsurdat ! surface dataset filename
     ! local domain associated with surface dataset
-    integer(ik4) :: n , ierr                 ! loop indices
+    integer(ik4) :: n, ierr                 ! loop indices
     type(clm_filetype) :: ncid               ! netcdf id
-    integer(ik4) :: begg , endg              ! beg,end gridcell indices
-    real(rkx) , allocatable , dimension(:) :: xclon , yclat
+    integer(ik4) :: begg, endg              ! beg,end gridcell indices
+    real(rkx), allocatable, dimension(:) :: xclon, yclat
     character(len=32) :: subname = 'surfrd_get_data'    ! subroutine name
 
     if (myid == italk) then
@@ -189,11 +189,11 @@ module mod_clm_surfrd
     call clm_readvar(ncid,'yclat',yclat,gcomm_gridcell)
 
     ierr = 0
-    do n = begg , endg
+    do n = begg, endg
       if ( abs(real(xclon(n),rk4)-real(ldomain%lonc(n),rk4)) > 10.e-7_rk8 .or. &
            abs(real(yclat(n),rk4)-real(ldomain%latc(n),rk4)) > 10.e-7_rk8 ) then
         write(stderr,*) 'ERROR coordinates at n ', &
-            n, real(xclon(n),rk4), real(yclat(n),rk4) , &
+            n, real(xclon(n),rk4), real(yclat(n),rk4), &
                real(ldomain%lonc(n),rk4), real(ldomain%latc(n),rk4)
         ierr = 1
       end if
@@ -240,30 +240,30 @@ module mod_clm_surfrd
   ! as soil color and percent sand and clay
   !
   subroutine surfrd_wtxy_special(ncid,ldomain)
-    use mod_clm_pftvarcon , only : noveg
-    use mod_clm_urbaninput , only : urbinp
-    use mod_clm_varpar , only : nlevurb
-    use mod_clm_varcon , only : udens_base , udens_tbd , udens_hd , udens_md
-    use mod_clm_domain , only : domain_type
+    use mod_clm_pftvarcon, only : noveg
+    use mod_clm_urbaninput, only : urbinp
+    use mod_clm_varpar, only : nlevurb
+    use mod_clm_varcon, only : udens_base, udens_tbd, udens_hd, udens_md
+    use mod_clm_domain, only : domain_type
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid  ! netcdf id
-    type(domain_type) , intent(inout) :: ldomain
-    integer(ik4)  :: n , nl , nurb   ! indices
-    integer(ik4)  :: begg , endg     ! gcell beg/end
+    type(clm_filetype), intent(inout) :: ncid  ! netcdf id
+    type(domain_type), intent(inout) :: ldomain
+    integer(ik4)  :: n, nl, nurb   ! indices
+    integer(ik4)  :: begg, endg     ! gcell beg/end
     logical :: found                 ! temporary for error check
     integer(ik4) :: nindx            ! temporary for error check
     integer(ik4) :: nlev             ! level
     integer(ik4) :: dindx            ! temporary for error check
     ! percent of grid cell is glacier
-    real(rk8) , pointer , dimension(:) :: pctgla
+    real(rk8), pointer, contiguous, dimension(:) :: pctgla
     ! percent of grid cell is lake
-    real(rk8) , pointer , dimension(:) :: pctlak
+    real(rk8), pointer, contiguous, dimension(:) :: pctlak
     ! percent of grid cell is wetland
-    real(rk8) , pointer , dimension(:) :: pctwet
+    real(rk8), pointer, contiguous, dimension(:) :: pctwet
     ! percent of grid cell is urbanized
-    real(rk8) , pointer , dimension(:,:) :: pcturb
+    real(rk8), pointer, contiguous, dimension(:,:) :: pcturb
     ! percent of grid cell is urban (sum over density classes)
-    real(rk8) , pointer , dimension(:) :: pcturb_tot
+    real(rk8), pointer, contiguous, dimension(:) :: pcturb_tot
     character(len=32) :: subname = 'surfrd_wtxy_special'  ! subroutine name
 
     call get_proc_bounds(begg,endg)
@@ -322,8 +322,8 @@ module mod_clm_surfrd
     end if
 
     pcturb_tot(:) = 0._rk8
-    do n = 1 , numurbl
-      do nl = begg , endg
+    do n = 1, numurbl
+      do nl = begg, endg
         pcturb_tot(nl) = pcturb_tot(nl) + pcturb(nl,n)
       end do
     end do
@@ -346,7 +346,7 @@ module mod_clm_surfrd
     ! Error check: glacier, lake, wetland, urban sum must be less than 100
 
     found = .false.
-    do nl = begg , endg
+    do nl = begg, endg
       if (pctspec(nl) > 100.0001_rk8 ) then
         found = .true.
         nindx = nl
@@ -365,7 +365,7 @@ module mod_clm_surfrd
 
     ! Determine veg and wtxy for special landunits
 
-    do nl = begg , endg
+    do nl = begg, endg
       vegxy(nl,npatch_lake)   = noveg
       wtxy(nl,npatch_lake)    = pctlak(nl)/100._rk8
 
@@ -377,7 +377,7 @@ module mod_clm_surfrd
 
       ! Initialize urban tall building district weights
       n = udens_tbd - udens_base
-      do nurb = npatch_urban_tbd , npatch_urban_hd-1
+      do nurb = npatch_urban_tbd, npatch_urban_hd-1
         vegxy(nl,nurb) = noveg
         wtxy(nl,nurb)  = pcturb(nl,n) / 100._rk8
       end do
@@ -398,7 +398,7 @@ module mod_clm_surfrd
 
       ! Initialize urban high density weights
       n = udens_hd - udens_base
-      do nurb = npatch_urban_hd , npatch_urban_md-1
+      do nurb = npatch_urban_hd, npatch_urban_md-1
         vegxy(nl,nurb) = noveg
         wtxy(nl,nurb)  = pcturb(nl,n) / 100._rk8
       end do
@@ -419,7 +419,7 @@ module mod_clm_surfrd
 
       ! Initialize urban medium density weights
       n = udens_md - udens_base
-      do nurb = npatch_urban_md , npatch_lake-1
+      do nurb = npatch_urban_md, npatch_lake-1
         vegxy(nl,nurb) = noveg
         wtxy(nl,nurb)  = pcturb(nl,n) / 100._rk8
       end do
@@ -442,8 +442,8 @@ module mod_clm_surfrd
     ! Check to make sure we have valid urban data for each urban patch
 
     found = .false.
-    do nl = begg , endg
-      do n = 1 , numurbl
+    do nl = begg, endg
+      do n = 1, numurbl
         if ( pcturb(nl,n) > 0.0_rk8 ) then
           if (urbinp%canyon_hwr(nl,n)            <= 0._rk8 .or. &
               urbinp%em_improad(nl,n)            <= 0._rk8 .or. &
@@ -525,7 +525,7 @@ module mod_clm_surfrd
       end if
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
-    do nl = begg , endg
+    do nl = begg, endg
       if ( pctspec(nl)-100._rk8 >  1.0e-4_rk8 ) then
         ldomain%pftm(nl) = 0
       end if
@@ -536,23 +536,23 @@ module mod_clm_surfrd
   ! Determine wtxy and veg arrays for non-dynamic landuse mode
   !
   subroutine surfrd_wtxy_veg_all(ncid,ldomain)
-    use mod_clm_varctl , only : create_crop_landunit , irrigate
-    use mod_clm_pftvarcon , only : nc3crop , nc3irrig , npcropmin ,  &
-          ncorn , ncornirrig , nsoybean , nsoybeanirrig , nscereal , &
-          nscerealirrig , nwcereal , nwcerealirrig
+    use mod_clm_varctl, only : create_crop_landunit, irrigate
+    use mod_clm_pftvarcon, only : nc3crop, nc3irrig, npcropmin,  &
+          ncorn, ncornirrig, nsoybean, nsoybeanirrig, nscereal, &
+          nscerealirrig, nwcereal, nwcerealirrig
 #ifdef CNDV
-    use mod_clm_pftvarcon , only : noveg
+    use mod_clm_pftvarcon, only : noveg
 #endif
-    use mod_clm_domain , only : domain_type
+    use mod_clm_domain, only : domain_type
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid   ! netcdf id
-    type(domain_type) , intent(inout) :: ldomain
-    integer(ik4) :: m , nl         ! indices
-    integer(ik4) :: begg , endg    ! beg/end gcell index
-    integer(ik4) :: ier , tot_ier  ! error status
+    type(clm_filetype), intent(inout) :: ncid   ! netcdf id
+    type(domain_type), intent(inout) :: ldomain
+    integer(ik4) :: m, nl         ! indices
+    integer(ik4) :: begg, endg    ! beg/end gcell index
+    integer(ik4) :: ier, tot_ier  ! error status
     real(rk8) :: sumpct            ! sum of %pft over maxpatch_pft
     ! percent of vegetated gridcell area for PFTs
-    real(rk8) , allocatable , dimension(:,:) :: pctpft
+    real(rk8), allocatable, dimension(:,:) :: pctpft
     logical  :: crop = .false.  ! if crop data on this section of file
     character(len=32) :: subname = 'surfrd_wtxy_veg_all'  ! subroutine name
 
@@ -576,7 +576,7 @@ module mod_clm_surfrd
     end where
 
     ier = 0
-    do nl = begg , endg
+    do nl = begg, endg
       if ( ldomain%pftm(nl) >= 0 ) then
         ! Error check: make sure PFTs sum to 100% cover for vegetated landunit
         ! (convert pctpft from percent with respect to gridcel to percent with
@@ -585,7 +585,7 @@ module mod_clm_surfrd
         if ( pctspec(nl)- 100._rk8 > 1.0e-4_rk8 ) then
           ! pctspec not within eps_fact*epsilon of 100
           sumpct = 0._rk8
-          do m = 0 , numpft
+          do m = 0, numpft
             sumpct = sumpct + pctpft(nl,m) * 100._rk8/(100._rk8-pctspec(nl))
           end do
           if ( abs(sumpct - 100._rk8) > 1.0e-4_rk8 ) then
@@ -604,7 +604,7 @@ module mod_clm_surfrd
             write(stderr,*) 'SUMPCT = ', sumpct, ' at nl : ',nl
             ier = ier + 100000
           end if
-          do m = npcropmin , numpft
+          do m = npcropmin, numpft
 #ifdef CNDV
             if ( pctpft(nl,m) > 0.0_rk8 ) then
               pctpft(nl,noveg) = pctpft(nl,noveg) + pctpft(nl,m)
@@ -617,7 +617,7 @@ module mod_clm_surfrd
         end if
         ! Set weight of each pft wrt gridcell
         ! (note that maxpatch_pft = numpft+1 here)
-        do m = 1 , numpft+1
+        do m = 1, numpft+1
           vegxy(nl,m) = m - 1 ! 0 (bare ground) to numpft
           wtxy(nl,m) = pctpft(nl,m-1) / 100._rk8
         end do
@@ -659,7 +659,7 @@ module mod_clm_surfrd
 
     ! repeat do-loop for error checking and for rainfed crop case
 
-    do nl = begg , endg
+    do nl = begg, endg
       if ( ldomain%pftm(nl) >= 0 ) then
         if ( pctspec(nl) - 100._rk8 >  1.0e-4_rk8 ) then
           ! pctspec not within eps_fact*epsilon of 100
@@ -691,15 +691,15 @@ module mod_clm_surfrd
   ! Determine wtxy and vegxy for CNDV mode.
   !
   subroutine surfrd_wtxy_veg_dgvm()
-    use mod_clm_pftvarcon , only : noveg , crop
-    use mod_clm_varctl , only : create_crop_landunit
+    use mod_clm_pftvarcon, only : noveg, crop
+    use mod_clm_varctl, only : create_crop_landunit
     implicit none
-    integer(ik4) :: m , nl        ! indices
-    integer(ik4) :: begg , endg   ! beg/end gcell index
+    integer(ik4) :: m, nl        ! indices
+    integer(ik4) :: begg, endg   ! beg/end gcell index
 
     call get_proc_bounds(begg,endg)
-    do nl = begg , endg
-      do m = 1 , maxpatch_pft ! CNDV means allocate_all_vegpfts = .true.
+    do nl = begg, endg
+      do m = 1, maxpatch_pft ! CNDV means allocate_all_vegpfts = .true.
         if ( create_crop_landunit ) then ! been through surfrd_wtxy_veg_all
           if ( crop(m-1) == 0 ) then     ! so update natural vegetation only
             wtxy(nl,m) = 0._rk8          ! crops should have values >= 0.

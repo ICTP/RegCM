@@ -14,11 +14,11 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   subroutine myabort
-    use mod_dynparam , only : mycomm
+    use mod_dynparam, only : mycomm
     use mod_intkinds
     use mpi
     implicit none
-    integer(ik4) :: ierr , myid
+    integer(ik4) :: ierr, myid
     character(len=8) :: date
     character(len=10) :: time
     character(len=5) :: zone

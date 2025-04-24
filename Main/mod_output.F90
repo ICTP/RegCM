@@ -46,7 +46,7 @@ module mod_output
 
   public :: output
 
-  type(rcm_time_and_date) , save , public :: lastout
+  type(rcm_time_and_date), save, public :: lastout
 
   logical :: rotinit = .false.
 
@@ -59,20 +59,20 @@ module mod_output
 
   subroutine output
     implicit none
-    logical :: ldoatm , ldosrf , ldorad , ldoche, ldoopt
-    logical :: ldosav , ldolak , ldosub , ldosts , ldoshf , lnewf
+    logical :: ldoatm, ldosrf, ldorad, ldoche, ldoopt
+    logical :: ldosav, ldolak, ldosub, ldosts, ldoshf, lnewf
     logical :: ldoslab
     logical :: lstartup
-    integer(ik4) :: i , j , k , n , kk , itr
-    real(rkx) , dimension(kz) :: p1d , t1d , rh1d
-    real(rkx) :: cell , srffac , radfac , lakfac , subfac , optfac , stsfac
-    real(rkx) :: tsurf , t500
-    real(rkx) , dimension(:,:,:) , pointer :: qv
-    real(rkx) , dimension(:,:) , pointer :: temp500
-    type(regcm_projection) , save :: pj
+    integer(ik4) :: i, j, k, n, kk, itr
+    real(rkx), dimension(kz) :: p1d, t1d, rh1d
+    real(rkx) :: cell, srffac, radfac, lakfac, subfac, optfac, stsfac
+    real(rkx) :: tsurf, t500
+    real(rkx), dimension(:,:,:), pointer, contiguous :: qv
+    real(rkx), dimension(:,:), pointer, contiguous :: temp500
+    type(regcm_projection), save :: pj
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -91,7 +91,7 @@ module mod_output
       ! Set up static variables (first time in)
       !
       if ( associated(xlon_out) ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           xlon_out(j,i) = mddom%xlon(j,i)
           xlat_out(j,i) = mddom%xlat(j,i)
           mask_out(j,i) = mddom%mask(j,i)
@@ -110,7 +110,7 @@ module mod_output
       end if
       if ( idynamic == 2 ) then
         if ( associated(p0_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             p0_out(j,i) = atm0%ps(j,i) + ptop*d_1000
           end do
         end if
@@ -224,16 +224,16 @@ module mod_output
 
     if ( atm_stream > 0 ) then
       if ( ldoatm ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           ps_out(j,i) = sfs%psa(j,i)
         end do
         if ( associated(atm_t_out) ) then
           if ( idynamic == 3 ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_t_out(j,i,k) = mo_atm%t(j,i,k)
             end do
           else
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_t_out(j,i,k) = atm1%t(j,i,k)/ps_out(j,i)
             end do
           end if
@@ -243,14 +243,14 @@ module mod_output
             on_device = .true.
             call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
             on_device = .false.
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_u_out(j,i,k) = mo_atm%ux(j,i,k)
               atm_v_out(j,i,k) = mo_atm%vx(j,i,k)
             end do
           else
             call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
             call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_u_out(j,i,k) = d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
                                 atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k))/ps_out(j,i)
               atm_v_out(j,i,k) = d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
@@ -262,7 +262,7 @@ module mod_output
           end if
         end if
         if ( associated(atm_omega_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             atm_omega_out(j,i,k) = omega(j,i,k)*d_10
           end do
         end if
@@ -270,29 +270,29 @@ module mod_output
           if ( idynamic == 3 ) then
             call wstagtox(mo_atm%w,atm_w_out)
           else
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_w_out(j,i,k) = d_half * (atm1%w(j,i,k+1) + &
                                            atm1%w(j,i,k)) / ps_out(j,i)
             end do
           end if
         end if
         if ( associated(atm_pai_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             atm_pai_out(j,i,k) = mo_atm%pai(j,i,k)
           end do
         end if
         if ( associated(atm_pp_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             atm_pp_out(j,i,k) = atm1%pp(j,i,k)/ps_out(j,i)
           end do
         end if
         if ( associated(atm_qv_out) ) then
           if ( idynamic == 3 ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qv_out(j,i,k) = mo_atm%qx(j,i,k,iqv)
             end do
           else
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qv_out(j,i,k) = atm1%qx(j,i,k,iqv)/ps_out(j,i)
             end do
           end if
@@ -301,112 +301,112 @@ module mod_output
         end if
         if ( associated(atm_qc_out) ) then
           if ( idynamic == 3 ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qc_out(j,i,k) = mo_atm%qx(j,i,k,iqc)
             end do
           else
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qc_out(j,i,k) = atm1%qx(j,i,k,iqc)/ps_out(j,i)
             end do
           end if
         end if
         if ( associated(atm_qr_out) ) then
           if ( idynamic == 3 ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qr_out(j,i,k) = mo_atm%qx(j,i,k,iqr)
             end do
           else
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qr_out(j,i,k) = atm1%qx(j,i,k,iqr)/ps_out(j,i)
             end do
           end if
         end if
         if ( associated(atm_qi_out) ) then
           if ( idynamic == 3 ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qi_out(j,i,k) = mo_atm%qx(j,i,k,iqi)
             end do
           else
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qi_out(j,i,k) = atm1%qx(j,i,k,iqi)/ps_out(j,i)
             end do
           end if
         end if
         if ( associated(atm_qs_out) ) then
           if ( idynamic == 3 ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qs_out(j,i,k) = mo_atm%qx(j,i,k,iqs)
             end do
           else
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qs_out(j,i,k) = atm1%qx(j,i,k,iqs)/ps_out(j,i)
             end do
           end if
         end if
         if ( associated(atm_qg_out) ) then
           if ( idynamic == 3 ) then
-            do k = 1 , kz
+            do k = 1, kz
               atm_qg_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqg)
             end do
           else
-            do k = 1 , kz
+            do k = 1, kz
               atm_qg_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqg)/ps_out
             end do
           end if
         end if
         if ( associated(atm_qh_out) ) then
           if ( idynamic == 3 ) then
-            do k = 1 , kz
+            do k = 1, kz
               atm_qh_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqh)
             end do
           else
-            do k = 1 , kz
+            do k = 1, kz
               atm_qh_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqh)/ps_out
             end do
           end if
         end if
         if ( associated(atm_nn_out) ) then
           if ( idynamic == 3 ) then
-            do k = 1 , kz
+            do k = 1, kz
               atm_nn_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqn)
             end do
           else
-            do k = 1 , kz
+            do k = 1, kz
               atm_nn_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqn)/ps_out
             end do
           end if
         end if
         if ( associated(atm_nc_out) ) then
           if ( idynamic == 3 ) then
-            do k = 1 , kz
+            do k = 1, kz
               atm_nc_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqc)
             end do
           else
-            do k = 1 , kz
+            do k = 1, kz
               atm_nc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqc)/ps_out
             end do
           end if
         end if
         if ( associated(atm_nr_out) ) then
           if ( idynamic == 3 ) then
-            do k = 1 , kz
+            do k = 1, kz
               atm_nr_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqr)
             end do
           else
-            do k = 1 , kz
+            do k = 1, kz
               atm_nr_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqr)/ps_out
             end do
           end if
         end if
         if ( associated(atm_rh_out) ) then
           if ( idynamic == 3 ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_rh_out(j,i,k) = d_100 * &
                     min(rhmax,max(rhmin,(mo_atm%qx(j,i,k,iqv) / &
                            pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
             end do
           else
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_rh_out(j,i,k) = d_100 * min(rhmax,max(rhmin, &
                      (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
                      pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
@@ -414,23 +414,23 @@ module mod_output
           end if
         end if
         if ( associated(atm_pf_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             atm_pf_out(j,i,k) = atms%pf3d(j,i,k)
           end do
         end if
         if ( idynamic == 1 ) then
           if ( associated(atm_ph_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_ph_out(j,i,k) = (sigma(k)*sfs%psa(j,i)+ptop)*d_1000
             end do
           end if
           if ( associated(atm_zh_out) ) then
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 cell = ptop / sfs%psa(j,i)
                 atm_zh_out(j,i,kz) = rovg * atm1%t(j,i,kz)/sfs%psa(j,i) * &
                      log((sigma(kzp1)+cell)/(sigma(kz)+cell))
-                do k = kz-1 , 1 , -1
+                do k = kz-1, 1, -1
                   atm_zh_out(j,i,k) = atms%zq(j,i,k+1) +&
                       rovg * atm1%t(j,i,k)/sfs%psa(j,i) *  &
                         log((sigma(k+1)+cell)/(sigma(k)+cell))
@@ -441,47 +441,47 @@ module mod_output
         else if ( idynamic == 2 ) then
           if ( associated(atm_ph_out) ) then
             atm_ph_out(:,:,1) = ptop*d_1000
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
               atm_ph_out(j,i,k) = atm0%pf(j,i,k) + &
                        d_half*(atm1%pp(j,i,k-1)+atm1%pp(j,i,k))/sfs%psa(j,i)
             end do
           end if
           if ( associated(atm_zh_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_zh_out(j,i,k) = atms%za(j,i,k)
             end do
           end if
         else if ( idynamic == 3 ) then
           if ( associated(atm_ph_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_ph_out(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
             end do
           end if
           if ( associated(atm_zh_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_zh_out(j,i,k) = mo_atm%zeta(j,i,k)
             end do
           end if
         end if
         if ( associated(atm_zf_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             atm_zf_out(j,i,k) = atms%zq(j,i,k)
           end do
         end if
         if ( ipptls == 2 ) then
           if ( associated(atm_rainls_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_rainls_out(j,i,k) = rain_ls(j,i,k)
             end do
           end if
         end if
         if ( associated(atm_raincc_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             atm_raincc_out(j,i,k) = rain_cc(j,i,k)
           end do
         end if
         if ( associated(atm_q_detr_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             atm_q_detr_out(j,i,k) = q_detr(j,i,k)
           end do
         end if
@@ -489,87 +489,87 @@ module mod_output
 #ifdef DEBUG
         if ( ipptls == 2 .and. stats ) then
           if ( associated(atm_stats_supw_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_supw_out(j,i,k) = ngs%statssupw(k,j,i)
             end do
           end if
           if ( associated(atm_stats_supc_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_supc_out(j,i,k) = ngs%statssupc(k,j,i)
             end do
           end if
           if ( associated(atm_stats_detw_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_detw_out(j,i,k) = ngs%statsdetrw(k,j,i)
             end do
           end if
           if ( associated(atm_stats_detc_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_detc_out(j,i,k) = ngs%statsdetrc(k,j,i)
             end do
           end if
           if ( associated(atm_stats_erow_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_erow_out(j,i,k) = ngs%statserosw(k,j,i)
             end do
           end if
           if ( associated(atm_stats_eroc_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_eroc_out(j,i,k) = ngs%statserosc(k,j,i)
             end do
           end if
           if ( associated(atm_stats_evw_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_evw_out(j,i,k) = ngs%statsevapw(k,j,i)
             end do
           end if
           if ( associated(atm_stats_evc_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_evc_out(j,i,k) = ngs%statsevapc(k,j,i)
             end do
           end if
           if ( associated(atm_stats_con1w_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_con1w_out(j,i,k) = ngs%statscond1w(k,j,i)
             end do
           end if
           if ( associated(atm_stats_con1c_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_con1c_out(j,i,k) = ngs%statscond1c(k,j,i)
             end do
           end if
           if ( associated(atm_stats_dep_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_dep_out(j,i,k) = ngs%statsdepos(k,j,i)
             end do
           end if
           if ( associated(atm_stats_melt_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_melt_out(j,i,k) = ngs%statsmelt(k,j,i)
             end do
           end if
           if ( associated(atm_stats_frz_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_frz_out(j,i,k) = ngs%statsfrz(k,j,i)
             end do
           end if
           if ( associated(atm_stats_rainev_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_rainev_out(j,i,k) = ngs%statsrainev(k,j,i)
             end do
           end if
           if ( associated(atm_stats_snowev_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_snowev_out(j,i,k) = ngs%statssnowev(k,j,i)
             end do
           end if
           if ( associated(atm_stats_autocw_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_autocw_out(j,i,k) = ngs%statsautocvw(k,j,i)
             end do
           end if
           if ( associated(atm_stats_autocc_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_stats_autocc_out(j,i,k) = ngs%statsautocvc(k,j,i)
             end do
           end if
@@ -579,28 +579,28 @@ module mod_output
         if ( ibltyp == 2 ) then
           if ( associated(atm_tke_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tke_out(j,i,k) = mo_atm%tke(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tke_out(j,i,k) = atm1%tke(j,i,k)
               end do
             end if
           end if
           if ( associated(atm_kth_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_kth_out(j,i,k) = uwstate%kth(j,i,k)
             end do
           end if
           if ( associated(atm_kzm_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_kzm_out(j,i,k) = uwstate%kzm(j,i,k)
             end do
           end if
         else if ( ibltyp == 4 .or. ibltyp == 5 ) then
           if ( associated(atm_tke_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_tke_out(j,i,k) = atms%tkepbl(j,i,k)
             end do
           end if
@@ -608,24 +608,24 @@ module mod_output
 
         if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
           if ( associated(atm_ccnnum_out) ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               ! convert to 1/cm3
               atm_ccnnum_out(j,i,k) = ccn(j,i,k) * 1.e-6_rkx
             end do
           end if
           if ( idiag > 0 ) then
             if ( associated(atm_qcrit_out) ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qcrit_out(j,i,k) = qdiag%qcr(j,i,k)
               end do
             end if
             if ( associated(atm_qincl_out) ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qincl_out(j,i,k) = qdiag%qcl(j,i,k)
               end do
             end if
             if ( associated(atm_autoconvr_out) ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_autoconvr_out(j,i,k) = qdiag%acr(j,i,k)
               end do
             end if
@@ -633,12 +633,12 @@ module mod_output
         end if
 
         if ( associated(atm_tpr_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             atm_tpr_out(j,i) = (sfs%rainc(j,i)+sfs%rainnc(j,i))/(atmfrq*secph)
           end do
         end if
         if ( associated(atm_tgb_out) .and. rcmtimer%lcount == 0 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             atm_tgb_out(j,i) = sfs%tgbb(j,i)
           end do
         end if
@@ -647,11 +647,11 @@ module mod_output
         if ( idiag > 0 ) then
           if ( associated(atm_tten_adh_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_adh_out(j,i,k) = tdiag%adh(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_adh_out(j,i,k) = tdiag%adh(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -659,11 +659,11 @@ module mod_output
           end if
           if ( associated(atm_tten_adv_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_adv_out(j,i,k) = tdiag%adv(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_adv_out(j,i,k) = tdiag%adv(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -671,11 +671,11 @@ module mod_output
           end if
           if ( associated(atm_tten_tbl_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_tbl_out(j,i,k) = tdiag%tbl(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_tbl_out(j,i,k) = tdiag%tbl(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -683,11 +683,11 @@ module mod_output
           end if
           if ( associated(atm_tten_dif_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_dif_out(j,i,k) = tdiag%dif(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_dif_out(j,i,k) = tdiag%dif(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -695,11 +695,11 @@ module mod_output
           end if
           if ( associated(atm_tten_bdy_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_bdy_out(j,i,k) = tdiag%bdy(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_bdy_out(j,i,k) = tdiag%bdy(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -707,11 +707,11 @@ module mod_output
           end if
           if ( associated(atm_tten_con_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_con_out(j,i,k) = tdiag%con(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_con_out(j,i,k) = tdiag%con(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -719,11 +719,11 @@ module mod_output
           end if
           if ( associated(atm_tten_adi_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_adi_out(j,i,k) = tdiag%adi(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_adi_out(j,i,k) = tdiag%adi(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -731,11 +731,11 @@ module mod_output
           end if
           if ( associated(atm_tten_rad_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_rad_out(j,i,k) = tdiag%rad(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_rad_out(j,i,k) = tdiag%rad(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -743,11 +743,11 @@ module mod_output
           end if
           if ( associated(atm_tten_lsc_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_lsc_out(j,i,k) = tdiag%lsc(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_tten_lsc_out(j,i,k) = tdiag%lsc(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -755,11 +755,11 @@ module mod_output
           end if
           if ( associated(atm_qten_adh_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_adh_out(j,i,k) = qdiag%adh(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_adh_out(j,i,k) = qdiag%adh(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -767,11 +767,11 @@ module mod_output
           end if
           if ( associated(atm_qten_adv_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_adv_out(j,i,k) = qdiag%adv(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_adv_out(j,i,k) = qdiag%adv(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -779,11 +779,11 @@ module mod_output
           end if
           if ( associated(atm_qten_tbl_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_tbl_out(j,i,k) = qdiag%tbl(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_tbl_out(j,i,k) = qdiag%tbl(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -791,11 +791,11 @@ module mod_output
           end if
           if ( associated(atm_qten_dif_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_dif_out(j,i,k) = qdiag%dif(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_dif_out(j,i,k) = qdiag%dif(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -803,11 +803,11 @@ module mod_output
           end if
           if ( associated(atm_qten_bdy_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_bdy_out(j,i,k) = qdiag%bdy(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_bdy_out(j,i,k) = qdiag%bdy(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -815,11 +815,11 @@ module mod_output
           end if
           if ( associated(atm_qten_con_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_con_out(j,i,k) = qdiag%con(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_con_out(j,i,k) = qdiag%con(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -827,11 +827,11 @@ module mod_output
           end if
           if ( associated(atm_qten_adi_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_adi_out(j,i,k) = qdiag%adi(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_adi_out(j,i,k) = qdiag%adi(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -839,11 +839,11 @@ module mod_output
           end if
           if ( associated(atm_qten_rad_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_rad_out(j,i,k) = qdiag%rad(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_rad_out(j,i,k) = qdiag%rad(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -851,11 +851,11 @@ module mod_output
           end if
           if ( associated(atm_qten_lsc_out) ) then
             if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_lsc_out(j,i,k) = qdiag%lsc(j,i,k)
               end do
             else
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 atm_qten_lsc_out(j,i,k) = qdiag%lsc(j,i,k)/ps_out(j,i)
               end do
             end if
@@ -864,11 +864,11 @@ module mod_output
         end if
 
         if ( idynamic == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = d_1000*(ps_out(j,i)+ptop)
           end do
         else if ( idynamic == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
                           atm1%pp(j,i,kz)/sfs%psa(j,i)
           end do
@@ -876,7 +876,7 @@ module mod_output
 
         call write_record_output_stream(atm_stream,alarm_out_atm%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'ATM variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'ATM variables written at ', rcmtimer%str( )
 
         sfs%rainc  = d_zero
         sfs%rainnc = d_zero
@@ -887,16 +887,16 @@ module mod_output
       if ( ldosrf ) then
         srffac = d_one / rnsrf_for_srffrq
         if ( idynamic == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = d_1000*(sfs%psa(j,i)+ptop)
           end do
         else if ( idynamic == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
                           atm1%pp(j,i,kz)/sfs%psa(j,i)
           end do
         else
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = sfs%psa(j,i)
           end do
         end if
@@ -1030,10 +1030,10 @@ module mod_output
             call otlift(srf_li_out,mo_atm%t,qv,mo_atm%p,temp500, &
                         jci1,jci2,ici1,ici2,kz)
           else
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 kk = 1
-                do k = 1 , kz
+                do k = 1, kz
                   if ( atm1%pr(j,i,k) > 50000.0_rkx ) exit
                   kk = k
                 end do
@@ -1046,9 +1046,9 @@ module mod_output
         end if
         if ( associated(srf_cape_out) .and. associated(srf_cin_out) ) then
           if ( idynamic == 3 ) then
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                do k = 1 , kz
+            do i = ici1, ici2
+              do j = jci1, jci2
+                do k = 1, kz
                   kk = kzp1 - k
                   p1d(kk) = mo_atm%p(j,i,k)
                   t1d(kk) = mo_atm%t(j,i,k)
@@ -1060,9 +1060,9 @@ module mod_output
               end do
             end do
           else
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                do k = 1 , kz
+            do i = ici1, ici2
+              do j = jci1, jci2
+                do k = 1, kz
                   kk = kzp1 - k
                   p1d(kk) = atm1%pr(j,i,k)
                   t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
@@ -1079,7 +1079,7 @@ module mod_output
 
         if ( associated(srf_tprw_out) ) then
           srf_tprw_out(:,:) = d_zero
-          do k = 1 , kz
+          do k = 1, kz
             do concurrent ( j = jci1:jci2, i = ici1:ici2 )
               srf_tprw_out(j,i) = srf_tprw_out(j,i) + &
                 atms%qxb3d(j,i,k,iqv)*atms%rhob3d(j,i,k)* &
@@ -1090,7 +1090,7 @@ module mod_output
 
         call write_record_output_stream(srf_stream,alarm_out_srf%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'SRF variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'SRF variables written at ', rcmtimer%str( )
 
         if ( associated(srf_tpr_out) ) srf_tpr_out = d_zero
         if ( associated(srf_prcv_out) ) srf_prcv_out = d_zero
@@ -1156,7 +1156,7 @@ module mod_output
         end if
         call write_record_output_stream(sub_stream,alarm_out_sub%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'SUB variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'SUB variables written at ', rcmtimer%str( )
 
         if ( associated(sub_evp_out) ) sub_evp_out = d_zero
         if ( associated(sub_scv_out) ) sub_scv_out = d_zero
@@ -1172,16 +1172,16 @@ module mod_output
         lakfac = d_one / rnsrf_for_lakfrq
 
         if ( idynamic == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = d_1000*(sfs%psa(j,i)+ptop)
           end do
         else if ( idynamic == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
                           atm1%pp(j,i,kz) / sfs%psa(j,i)
           end do
         else
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = sfs%psa(j,i)
           end do
         end if
@@ -1211,7 +1211,7 @@ module mod_output
 
         call write_record_output_stream(lak_stream,alarm_out_lak%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'LAK variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'LAK variables written at ', rcmtimer%str( )
 
         if ( associated(lak_tpr_out) )    lak_tpr_out = d_zero
         if ( associated(lak_scv_out) )    lak_scv_out = d_zero
@@ -1229,26 +1229,26 @@ module mod_output
       if ( ldoopt ) then
         optfac = d_one / rnrad_for_optfrq
         if ( idynamic == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = d_1000*(sfs%psa(j,i)+ptop)
           end do
         else if ( idynamic == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
                           atm1%pp(j,i,kz)/sfs%psa(j,i)
           end do
         else
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = sfs%psa(j,i)
           end do
         end if
         if ( associated(opt_pp_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             opt_pp_out(j,i,k) = atm1%pp(j,i,k) / sfs%psa(j,i)
           end do
         end if
         if ( associated(opt_pai_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             opt_pai_out(j,i,k) = mo_atm%pai(j,i,k)
           end do
         end if
@@ -1271,7 +1271,7 @@ module mod_output
 
         call write_record_output_stream(opt_stream,alarm_out_opt%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'OPT variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'OPT variables written at ', rcmtimer%str( )
         if ( associated(opt_acstoarf_out) ) opt_acstoarf_out = d_zero
         if ( associated(opt_acstsrrf_out) ) opt_acstsrrf_out = d_zero
         if ( associated(opt_acstalrf_out) ) opt_acstalrf_out = d_zero
@@ -1287,35 +1287,35 @@ module mod_output
     if ( che_stream > 0 ) then
       if ( ldoche ) then
         if ( idynamic == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = d_1000*(sfs%psa(j,i)+ptop)
           end do
         else if ( idynamic == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
                          atm1%pp(j,i,kz)/sfs%psa(j,i)
           end do
         else
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = sfs%psa(j,i)
           end do
         end if
         if ( associated(che_pp_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             che_pp_out(j,i,k) = atm1%pp(j,i,k) / sfs%psa(j,i)
           end do
         end if
         if ( associated(che_pai_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             che_pai_out(j,i,k) = mo_atm%pai(j,i,k)
           end do
         end if
-        do itr = 1 , ntr
+        do itr = 1, ntr
           call fill_chem_outvars(itr)
           call write_record_output_stream(che_stream,alarm_out_che%idate,itr)
         end do
         if ( myid == italk ) then
-          write(stdout,*) 'CHE variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'CHE variables written at ', rcmtimer%str( )
         end if
       end if
     end if
@@ -1323,16 +1323,16 @@ module mod_output
     if ( shf_stream > 0 ) then
       if ( ldoshf ) then
         if ( idynamic == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = d_1000*(sfs%psa(j,i)+ptop)
           end do
         else if ( idynamic == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
                 atm1%pp(j,i,kz)/sfs%psa(j,i)
           end do
         else
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = sfs%psa(j,i)
           end do
         end if
@@ -1343,7 +1343,7 @@ module mod_output
           shf_pcprcv_out = shf_pcprcv_out * dtsrf/3600.0_rkx
         call write_record_output_stream(shf_stream,alarm_out_shf%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'SHF variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'SHF variables written at ', rcmtimer%str( )
 
         if ( associated(shf_pcpavg_out) ) shf_pcpavg_out = d_zero
         if ( associated(shf_pcpmax_out) ) shf_pcpmax_out = d_zero
@@ -1356,16 +1356,16 @@ module mod_output
       if ( ldosts ) then
         stsfac = d_one / rnsrf_for_day
         if ( idynamic == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = d_1000*(sfs%psa(j,i)+ptop)
           end do
         else if ( idynamic == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
                 atm1%pp(j,i,kz)/sfs%psa(j,i)
           end do
         else
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = sfs%psa(j,i)
           end do
         end if
@@ -1392,7 +1392,7 @@ module mod_output
 
         call write_record_output_stream(sts_stream,alarm_out_sts%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'STS variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'STS variables written at ', rcmtimer%str( )
 
         if ( associated(sts_pcpavg_out) )  sts_pcpavg_out  = d_zero
         if ( associated(sts_t2avg_out) )   sts_t2avg_out   = d_zero
@@ -1416,26 +1416,26 @@ module mod_output
       if ( ldorad ) then
         radfac = d_one / rnrad_for_radfrq
         if ( idynamic == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = d_1000*(sfs%psa(j,i)+ptop)
           end do
         else if ( idynamic == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
                  atm1%pp(j,i,kz)/sfs%psa(j,i)
           end do
         else
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = sfs%psa(j,i)
           end do
         end if
         if ( associated(rad_pp_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             rad_pp_out(j,i,k) = atm1%pp(j,i,k)/ sfs%psa(j,i)
           end do
         end if
         if ( associated(rad_pai_out) ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             rad_pai_out(j,i,k) = mo_atm%pai(j,i,k)
           end do
         end if
@@ -1447,7 +1447,7 @@ module mod_output
           rad_lowcl_out = min(rad_lowcl_out * radfac,d_one) * d_100
         call write_record_output_stream(rad_stream,alarm_out_rad%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'RAD variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'RAD variables written at ', rcmtimer%str( )
         if ( associated(rad_higcl_out) ) rad_higcl_out = d_zero
         if ( associated(rad_midcl_out) ) rad_midcl_out = d_zero
         if ( associated(rad_lowcl_out) ) rad_lowcl_out = d_zero
@@ -1458,23 +1458,23 @@ module mod_output
     if ( slaboc_stream > 0 ) then
       if ( ldoslab ) then
         if ( idynamic == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = d_1000*(sfs%psa(j,i)+ptop)
           end do
         else if ( idynamic == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
                 atm1%pp(j,i,kz)/sfs%psa(j,i)
           end do
         else
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = sfs%psa(j,i)
           end do
         end if
         call fill_slaboc_outvars
         call writevar_output_stream(slaboc_stream,v3dvar_slaboc(slab_qflx))
         if ( myid == italk ) then
-          write(stdout,*) 'SOM variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'SOM variables written at ', rcmtimer%str( )
         end if
       end if
     end if
@@ -1610,7 +1610,7 @@ module mod_output
           swdifalb_io = lms%swdifalb
           lwdiralb_io = lms%lwdiralb
           lwdifalb_io = lms%lwdifalb
-          do concurrent ( n = 1:nnsg , j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
             ldmsk1_io(n,j,i) = mdsub%ldmsk(n,j,i)
           end do
           solis_io = solis
@@ -1898,17 +1898,17 @@ module mod_output
 
   subroutine vertint(f3,p3,ps,f2,plev)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f3
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p3
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: f2
-    real(rkx) , intent(in) :: plev
-    integer(ik4) :: i , j , ik
-    real(rkx) , dimension(kz) :: p1
-    real(rkx) :: blw , tlw , tp , s1 , s2 , s3
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f3
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p3
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: f2
+    real(rkx), intent(in) :: plev
+    integer(ik4) :: i, j, ik
+    real(rkx), dimension(kz) :: p1
+    real(rkx) :: blw, tlw, tp, s1, s2, s3
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         p1 = p3(j,i,:)
         ik = findlev(p1,plev)
         if ( ik < 1 ) then
@@ -1934,12 +1934,12 @@ module mod_output
 
     integer(ik4) function findlev(p,plev) result(kk)
       implicit none
-      real(rkx) , dimension(kz) , intent(in) :: p
-      real(rkx) , intent(in) :: plev
+      real(rkx), dimension(kz), intent(in) :: p
+      real(rkx), intent(in) :: plev
       integer(ik4) :: k
       kk = 0
       if ( plev >= p1(1) ) then
-        do k = 1 , kz
+        do k = 1, kz
           if ( p(k) > plev ) exit
           kk = k
         end do
@@ -1952,8 +1952,8 @@ module mod_output
   !
   subroutine uvrot2d(pj,u,v)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     call pj%wind2_antirotate(u,v)
   end subroutine uvrot2d
 
@@ -1962,14 +1962,14 @@ module mod_output
   !
   subroutine uvrot3d(pj,u,v)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     call pj%wind_antirotate(u,v)
   end subroutine uvrot3d
 
   subroutine alpharot_compute(pj)
     implicit none
-    type(regcm_projection) , intent(inout) :: pj
+    type(regcm_projection), intent(inout) :: pj
     type(anyprojparams) :: pjpara
     if ( debug_level > 3 ) then
       if ( myid == italk ) then
@@ -1999,9 +1999,9 @@ module mod_output
 
   subroutine wstagtox(w,wx)
     implicit none
-    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: w
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
-    integer(ik4) :: i , j , k
+    real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: w
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: wx
+    integer(ik4) :: i, j, k
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kzm1 )
       wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
@@ -2015,9 +2015,9 @@ module mod_output
 
   subroutine uvstagtox(u,v,ux,vx)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
-    integer(ik4) :: i , j , k
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
+    integer(ik4) :: i, j, k
 
     call exchange_lr(u,2,jde1,jde2,ice1,ice2,1,kz)
     call exchange_bt(v,2,jce1,jce2,ide1,ide2,1,kz)
@@ -2059,23 +2059,23 @@ module mod_output
 
   subroutine windcompute(pj,u,v,h)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: u , v
-    real(rkx) , intent(in) :: h
-    real(rkx) :: cell , zz , zz1 , ww , tv
-    integer(ik4) :: i , j , k
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: u, v
+    real(rkx), intent(in) :: h
+    real(rkx) :: cell, zz, zz1, ww, tv
+    integer(ik4) :: i, j, k
     if ( associated(u) .and. associated(v) ) then
       if ( idynamic == 3 ) then
         call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             zz = mo_atm%zeta(j,i,kz)
             if ( zz > h ) then
               u(j,i,1) = mo_atm%ux(j,i,kz)
               v(j,i,1) = mo_atm%vx(j,i,kz)
             else
               vloop1: &
-              do k = kz-1 , 1 , -1
+              do k = kz-1, 1, -1
                 zz1 = mo_atm%zeta(j,i,k)
                 if ( zz1 > h ) then
                   ww = (h-zz)/(zz1-zz)
@@ -2089,8 +2089,8 @@ module mod_output
           end do
         end do
       else if ( idynamic == 2 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             zz = atm0%z(j,i,kz)
             if ( zz > h ) then
               u(j,i,1) = (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
@@ -2101,7 +2101,7 @@ module mod_output
                               sfs%psa(j,i))
             else
               vloop2: &
-              do k = kz-1 , 1 , -1
+              do k = kz-1, 1, -1
                 zz1 = atm0%z(j,i,k)
                 if ( zz1 > h ) then
                   ww = (h-zz)/(zz1-zz)
@@ -2129,8 +2129,8 @@ module mod_output
           end do
         end do
       else
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             cell = ptop / sfs%psa(j,i)
             tv = atm1%t(j,i,kz)/sfs%psa(j,i) * &
                             (d_one + ep1*atm1%qx(j,i,kz,iqv)/sfs%psa(j,i))
@@ -2144,7 +2144,7 @@ module mod_output
                               sfs%psa(j,i))
             else
               vloop3: &
-              do k = kz-1 , 1 , -1
+              do k = kz-1, 1, -1
                 tv = atm1%t(j,i,k)/sfs%psa(j,i) * &
                             (d_one + ep1*atm1%qx(j,i,k,iqv)/sfs%psa(j,i))
                 zz1 = zz + rovg*tv*log((sigma(k+1)+cell)/(sigma(k)+cell))
@@ -2182,21 +2182,21 @@ module mod_output
 
   subroutine vinterz(v,vv,h)
     implicit none
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: v
-    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: vv
-    real(rkx) , intent(in) :: h
-    real(rkx) :: cell , zz , zz1 , ww , tv
-    integer(ik4) :: i , j , k
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: v
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: vv
+    real(rkx), intent(in) :: h
+    real(rkx) :: cell, zz, zz1, ww, tv
+    integer(ik4) :: i, j, k
     if ( associated(vv) ) then
       if ( idynamic == 3 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             zz = mo_atm%zeta(j,i,kz)
             if ( zz > h ) then
               vv(j,i,1) = v(j,i,kz)
             else
               vloop1: &
-              do k = kz-1 , 1 , -1
+              do k = kz-1, 1, -1
                 zz1 = mo_atm%zeta(j,i,k)
                 if ( zz1 > h ) then
                   ww = (h-zz)/(zz1-zz)
@@ -2209,14 +2209,14 @@ module mod_output
           end do
         end do
       else if ( idynamic == 2 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             zz = atm0%z(j,i,kz)
             if ( zz > h ) then
               vv(j,i,1) = v(j,i,kz)/sfs%psa(j,i)
             else
               vloop2: &
-              do k = kz-1 , 1 , -1
+              do k = kz-1, 1, -1
                 zz1 = atm0%z(j,i,k)
                 if ( zz1 > h ) then
                   ww = (h-zz)/(zz1-zz)
@@ -2229,8 +2229,8 @@ module mod_output
           end do
         end do
       else
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             cell = ptop / sfs%psa(j,i)
             tv = atm1%t(j,i,kz)/sfs%psa(j,i) * &
                             (d_one + ep1*atm1%qx(j,i,kz,iqv)/sfs%psa(j,i))
@@ -2239,7 +2239,7 @@ module mod_output
               vv(j,i,1) = v(j,i,kz)/sfs%psa(j,i)
             else
               vloop3: &
-              do k = kz-1 , 1 , -1
+              do k = kz-1, 1, -1
                 tv = atm1%t(j,i,k)/sfs%psa(j,i) * &
                             (d_one + ep1*atm1%qx(j,i,k,iqv)/sfs%psa(j,i))
                 zz1 = zz + rovg*tv*log((sigma(k+1)+cell)/(sigma(k)+cell))

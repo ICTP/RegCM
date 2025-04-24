@@ -65,8 +65,8 @@ module mod_regcm_interface
   subroutine RCM_initialize(mpiCommunicator)
     implicit none
     integer, intent(in), optional :: mpiCommunicator
-    real(rkx) , allocatable , dimension(:,:) :: rcemip_noise
-    integer(ik4) :: ierr , k
+    real(rkx), allocatable, dimension(:,:) :: rcemip_noise
+    integer(ik4) :: ierr, k
     real(rkx) :: rnl
     !
     ! MPI Initialization
@@ -186,7 +186,7 @@ module mod_regcm_interface
       if ( lrcemip_perturb ) then
         allocate(rcemip_noise(njcross,nicross))
         if ( idynamic == 3 ) then
-          do k = kz , kz - 5, -1
+          do k = kz, kz - 5, -1
             rnl = mo_atm%t(jci1,ici1,k)
             rcemip_noise(:,:) = rnl
             rnl =  lrcemip_noise_level * (1.0 - (kz-k)/6.0_rkx)
@@ -194,7 +194,7 @@ module mod_regcm_interface
             mo_atm%t(jce1:jce2,ice1:ice2,k) = rcemip_noise(jce1:jce2,ice1:ice2)
           end do
         else
-          do k = kz , kz - 5, -1
+          do k = kz, kz - 5, -1
             rnl = atm1%t(jci1,ici1,k)/sfs%psb(jci1,ici1)
             rcemip_noise(:,:) = rnl
             rnl =  lrcemip_noise_level * (1.0 - (kz-k)/6.0_rkx)
@@ -228,8 +228,8 @@ module mod_regcm_interface
   !
   subroutine RCM_run(timestr, timeend)
     implicit none
-    real(rk8) , intent(in) :: timestr   ! starting time-step
-    real(rk8) , intent(in) :: timeend   ! ending   time-step
+    real(rk8), intent(in) :: timestr   ! starting time-step
+    real(rk8), intent(in) :: timeend   ! ending   time-step
 
     do while ( extime >= timestr .and. extime < timeend )
       !
@@ -324,7 +324,7 @@ module mod_regcm_interface
     implicit none
 
     if ( myid == italk ) then
-      write(stdout,*) 'Final time ', trim(rcmtimer%str( )) , ' reached.'
+      write(stdout,*) 'Final time ', trim(rcmtimer%str( )), ' reached.'
     end if
 
     call close_icbc
@@ -365,9 +365,9 @@ module mod_regcm_interface
 
 #ifdef OPENACC
   subroutine setup_openacc(mpi_rank)
-    use openacc, only: acc_device_default , acc_device_kind , &
-                  acc_get_device_type , acc_get_num_devices , &
-                  acc_set_device_num , acc_init
+    use openacc, only: acc_device_default, acc_device_kind, &
+                  acc_get_device_type, acc_get_num_devices, &
+                  acc_set_device_num, acc_init
     implicit none
     integer, intent(in) :: mpi_rank
     integer(ik4) :: idev, ndev

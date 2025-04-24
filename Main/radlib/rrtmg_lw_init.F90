@@ -62,7 +62,7 @@
       use rrlw_tbl, only: ntbl, tblint, pade, bpade, tau_tbl, exp_tbl, tfn_tbl
       use rrlw_vsn, only: hvrini
 
-      character(len=*) , intent(in) :: fname
+      character(len=*), intent(in) :: fname
       real(kind=rb), intent(in) :: cpdair     ! Specific heat capacity of dry air
                                               ! at constant pressure at 273 K
                                               ! (J kg-1 K-1)
@@ -2065,7 +2065,7 @@
 
 ! For ICEFLAG = 1.
       absice1(1,:) = (/0.0036_rb, 0.0068_rb, 0.0003_rb, 0.0016_rb, 0.0020_rb/)
-      absice1(2,:) = (/1.136_rb , 0.600_rb , 1.338_rb , 1.166_rb , 1.118_rb /)
+      absice1(2,:) = (/1.136_rb, 0.600_rb, 1.338_rb, 1.166_rb, 1.118_rb /)
 
 ! For ICEFLAG = 2.  In each band, the absorption
 ! coefficients are listed for a range of effective radii from 5.0

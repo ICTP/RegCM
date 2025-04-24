@@ -98,9 +98,9 @@ module rrtmg_sw_rad
 
       subroutine rrtmg_sw &
             (ncol    ,nlay    ,icld    ,iaer    ,lradfor ,idirect, &
-             play    ,plev    ,tlay    ,tlev    ,tsfc    ,h2ovmr , &
-             o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr   ,asdir  , &
-             asdif   ,aldir   ,aldif   ,coszen  ,adjes   ,dyofyr , &
+             play    ,plev    ,tlay    ,tlev    ,tsfc    ,h2ovmr, &
+             o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr   ,asdir , &
+             asdif   ,aldir   ,aldif   ,coszen  ,adjes   ,dyofyr, &
              scon    ,isolvar ,inflgsw ,iceflgsw,liqflgsw,cldfmcl, &
              taucmcl ,ssacmcl ,asmcmcl ,fsfcmcl ,ciwpmcl ,clwpmcl ,&
              reicmcl ,relqmcl ,tauaer  ,ssaaer  ,asmaer  ,ecaer   ,&
@@ -417,7 +417,7 @@ module rrtmg_sw_rad
       integer(kind=im) :: ia, ig              ! indices
       !integer(kind=im) :: k                   ! layer loop index
       integer(kind=im) :: ims                 ! value for changing mcica permute seed
-      integer(kind=im) :: n , nsswcall        ! number of sw call for rad for. calculation (RegCM option)
+      integer(kind=im) :: n, nsswcall        ! number of sw call for rad for. calculation (RegCM option)
       real(kind=rb) :: zepsec, zepzen         ! epsilon
       real(kind=rb) :: zdpgcp                 ! flux to heating conversion ratio
 
@@ -785,7 +785,7 @@ module rrtmg_sw_rad
 
 ! Call the 2-stream radiation transfer model
 
-         do n = 1 , nsswcall
+         do n = 1, nsswcall
            if ( idirect == 1 ) then
              if ( n == 1 .and. lradfor ) then
                do i = 1 ,nlayers

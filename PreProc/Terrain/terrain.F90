@@ -92,20 +92,20 @@ program terrain
 #endif
 
   implicit none
-  character(len=256) :: char_lnd , char_tex , char_lak
-  character(len=256) :: namelistfile , prgname , outname
-  integer(ik4) :: i , j , k , ierr , ism , mmx
-  integer(ik4) :: year , month , day , hour
+  character(len=256) :: char_lnd, char_tex, char_lak
+  character(len=256) :: namelistfile, prgname, outname
+  integer(ik4) :: i, j, k, ierr, ism, mmx
+  integer(ik4) :: year, month, day, hour
   logical :: ibndry
-  real(rkx) :: clong , dsnsg
-  integer(ik4) :: ntypec , ntypec_s
-  real(rkx) , allocatable , dimension(:,:) :: tmptex
-  real(rkx) , pointer , dimension(:,:) :: values
-  real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig
-  real(rkx) :: ts0 , ptrop
+  real(rkx) :: clong, dsnsg
+  integer(ik4) :: ntypec, ntypec_s
+  real(rkx), allocatable, dimension(:,:) :: tmptex
+  real(rkx), pointer, contiguous, dimension(:,:) :: values
+  real(rkx) :: psig, psig1, zsig, pstar, tswap, tsig
+  real(rkx) :: ts0, ptrop
   !type(globalfile) :: gfile
-  character(len=*) , parameter :: f99001 = '(a,a,a,a,i0.3)'
-  character(len=*) , parameter :: f99002 = '(a,a,a,a)'
+  character(len=*), parameter :: f99001 = '(a,a,a,a,i0.3)'
+  character(len=*), parameter :: f99002 = '(a,a,a,a)'
   logical :: laround0 = .true.
 
   data ibndry /.false./
@@ -119,9 +119,9 @@ program terrain
   ! 3 : most present for classes
   ! 4 : mean of central 50% after median filtering
 
-  integer(ik4) , parameter :: topo_resamp_method = 4
-  integer(ik4) , parameter :: class_resamp_method = 3
-  integer(ik4) , parameter :: moisture_resamp_method = 1
+  integer(ik4), parameter :: topo_resamp_method = 4
+  integer(ik4), parameter :: class_resamp_method = 3
+  integer(ik4), parameter :: moisture_resamp_method = 1
 
   ! INTERPOLATION METHODS
   ! 1 : bilinear interpolation
@@ -131,12 +131,12 @@ program terrain
   ! 5 : percent of most represented classes
   ! 6 : distance weigth with roidem radius in ds units
 
-  integer(ik4) , parameter :: topo_interp_method = 6
-  integer(ik4) , parameter :: class_interp_method = 4
-  integer(ik4) , parameter :: percent_interp_method = 5
-  integer(ik4) , parameter :: moist_interp_method = 1
+  integer(ik4), parameter :: topo_interp_method = 6
+  integer(ik4), parameter :: class_interp_method = 4
+  integer(ik4), parameter :: percent_interp_method = 5
+  integer(ik4), parameter :: moist_interp_method = 1
 
-  type(regcm_projection) :: pjx , pjd , pju , pjv
+  type(regcm_projection) :: pjx, pjd, pju, pjv
   type(anyprojparams) :: pjpara
 
 #ifdef PNETCDF
@@ -215,13 +215,13 @@ program terrain
   if ( nsg > 1 ) then
     write (stdout,*) ' '
     write (stdout,*) 'Doing Horizontal Subgrid with following parameters'
-    write (stdout,*) 'iy     = ' , iysg
-    write (stdout,*) 'jx     = ' , jxsg
-    write (stdout,*) 'kz     = ' , kz
-    write (stdout,*) 'ds     = ' , ds/nsg
-    write (stdout,*) 'clat   = ' , clat
-    write (stdout,*) 'clon   = ' , clong
-    write (stdout,*) 'iproj  = ' , iproj
+    write (stdout,*) 'iy     = ', iysg
+    write (stdout,*) 'jx     = ', jxsg
+    write (stdout,*) 'kz     = ', kz
+    write (stdout,*) 'ds     = ', ds/nsg
+    write (stdout,*) 'clat   = ', clat
+    write (stdout,*) 'clon   = ', clong
+    write (stdout,*) 'iproj  = ', iproj
     dsnsg = (ds/real(nsg,rkx))
     write(stdout,*) 'Subgrid setup done'
 
@@ -340,8 +340,8 @@ program terrain
       write(stdout,*)'Satellite soil moisture data successfully read in'
       mmx = (2*minval(shape(values))/2+1)**2
       laround0 = .true.
-      do i = 1 , nlatin
-        do j = 1 , nlonin
+      do i = 1, nlatin
+        do j = 1, nlonin
           if ( values(j,i) < d_zero ) then
             call findaround(values,i,j,nlatin,nlonin,mmx)
           end if
@@ -361,7 +361,7 @@ program terrain
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,texout_s,values, &
                 class_interp_method,ibnty=2,h2opct=h2opct,rdem=roidem)
 !$OMP PARALLEL DO
-    do i = 1 , ntex
+    do i = 1, ntex
       call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,frac_tex_s(:,:,i),values, &
                   percent_interp_method,ival=i,rdem=roidem)
     end do
@@ -382,23 +382,23 @@ program terrain
       write(stdout,*)'Interpolated bathymetry on SUBGRID'
     end if
 
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         snowam_s(j,i) = 0.0
         rmoist_s(j,i,:) = -1.0
       end do
     end do
 
     write (char_lnd,f99001) trim(dirter), pthsep, trim(domname), &
-           '_LANDUSE' , nsg
+           '_LANDUSE', nsg
     call lndfudge(fudge_lnd_s,lndout_s,jxsg,iysg,trim(char_lnd))
     write (char_tex,f99001) trim(dirter), pthsep, trim(domname), &
-           '_TEXTURE' , nsg
+           '_TEXTURE', nsg
     allocate(tmptex(jxsg,iysg))
     tmptex(:,:) = texout_s(:,:)
     call texfudge(fudge_tex_s,texout_s,lndout_s,jxsg,iysg,trim(char_tex))
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         ! Swap percentages of the old class and the new requested
         if ( texout_s(j,i) /= tmptex(j,i) ) then
           tswap = frac_tex_s(j,i,int(tmptex(j,i)))
@@ -417,13 +417,13 @@ program terrain
   !
   write (stdout,*) ' '
   write (stdout,*) 'Doing Horizontal Grid with following parameters'
-  write (stdout,*) 'iy     = ' , iy
-  write (stdout,*) 'jx     = ' , jx
-  write (stdout,*) 'kz     = ' , kz
-  write (stdout,*) 'ds     = ' , ds
-  write (stdout,*) 'clat   = ' , clat
-  write (stdout,*) 'clon   = ' , clong
-  write (stdout,*) 'iproj  = ' , iproj
+  write (stdout,*) 'iy     = ', iy
+  write (stdout,*) 'jx     = ', jx
+  write (stdout,*) 'kz     = ', kz
+  write (stdout,*) 'ds     = ', ds
+  write (stdout,*) 'clat   = ', clat
+  write (stdout,*) 'clon   = ', clong
+  write (stdout,*) 'iproj  = ', iproj
   write(stdout,*) 'Grid setup done'
   !
   ! calling the map projection subroutine
@@ -554,8 +554,8 @@ program terrain
     write(stdout,*)'Satellite soil moisture data successfully read in'
     mmx = (2*minval(shape(values))/2+1)**2
     laround0 = .true.
-    do i = 1 , nlatin
-      do j = 1 , nlonin
+    do i = 1, nlatin
+      do j = 1, nlonin
         if ( values(j,i) < d_zero ) then
           call findaround(values,i,j,nlatin,nlonin,mmx)
         end if
@@ -574,7 +574,7 @@ program terrain
   call interp(ds,jx,iy,xlat,xlon,texout,values, &
               class_interp_method,ibnty=2,h2opct=h2opct,rdem=roidem)
 !$OMP PARALLEL DO
-  do i = 1 , ntex
+  do i = 1, ntex
     call interp(ds,jx,iy,xlat,xlon,frac_tex(:,:,i),values, &
                 percent_interp_method,ival=i,rdem=roidem)
   end do
@@ -595,8 +595,8 @@ program terrain
     write(stdout,*)'Interpolated bathymetry on model GRID'
   end if
 
-  do i = 1 , iy
-    do j = 1 , jx
+  do i = 1, iy
+    do j = 1, jx
       snowam(j,i) = 0.0
       rmoist(j,i,:) = -1.0
     end do
@@ -608,8 +608,8 @@ program terrain
   allocate(tmptex(jx,iy))
   tmptex(:,:) = texout(:,:)
   call texfudge(fudge_tex,texout,lndout,jx,iy,trim(char_tex))
-  do i = 1 , iy
-    do j = 1 , jx
+  do i = 1, iy
+    do j = 1, jx
       ! Swap percentages of the old class and the new requested
       if ( texout(j,i) /= tmptex(j,i) ) then
         tswap = frac_tex(j,i,int(tmptex(j,i)))
@@ -658,7 +658,7 @@ program terrain
   call smtdsmt(htgrid,jx,iy)
 
   ! Smoothing using 1-2-1 smoother
-  do ism = 1 , ismthlev
+  do ism = 1, ismthlev
     call smth121(htgrid,jx,iy)
   end do
 
@@ -671,7 +671,7 @@ program terrain
   end if
 
   if ( ibndry ) then
-    do j = 1 , jx
+    do j = 1, jx
       htgrid(j,1) = htgrid(j,2)
       htgrid(j,iy-1) = htgrid(j,iy-2)
       htgrid(j,iy) = htgrid(j,iy-1)
@@ -684,14 +684,14 @@ program terrain
       texout(j,1) = texout(j,2)
       texout(j,iy-1) = texout(j,iy-2)
       texout(j,iy) = texout(j,iy-1)
-      do k = 1 , ntex
+      do k = 1, ntex
         frac_tex(j,1,k) = frac_tex(j,2,k)
         frac_tex(j,iy-1,k) = frac_tex(j,iy-2,k)
         frac_tex(j,iy,k) = frac_tex(j,iy-1,k)
       end do
     end do
     if ( i_band /= 1 ) then
-      do i = 2 , iy-1
+      do i = 2, iy-1
         htgrid(1,i) = htgrid(2,i)
         htgrid(jx-1,i) = htgrid(jx-2,i)
         htgrid(jx,i) = htgrid(jx-1,i)
@@ -704,7 +704,7 @@ program terrain
         texout(1,i) = texout(2,i)
         texout(jx-1,i) = texout(jx-2,i)
         texout(jx,i) = texout(jx-1,i)
-        do k = 1 , ntex
+        do k = 1, ntex
           frac_tex(1,i,k) = frac_tex(2,i,k)
           frac_tex(jx-1,i,k) = frac_tex(jx-2,i,k)
           frac_tex(jx,i,k) = frac_tex(jx-1,i,k)
@@ -751,7 +751,7 @@ program terrain
     call smtdsmt(htgrid_s,jxsg,iysg)
 
     ! Smoothing using 1-2-1 smoother
-    do ism = 1 , ismthlev
+    do ism = 1, ismthlev
       call smth121(htgrid_s,jxsg,iysg)
     end do
 
@@ -777,7 +777,7 @@ program terrain
     end if
 
     if ( ibndry ) then
-      do j = 1 , jxsg
+      do j = 1, jxsg
         htgrid_s(j,1) = htgrid_s(j,2)
         htgrid_s(j,iysg-1) = htgrid_s(j,iysg-2)
         htgrid_s(j,iysg) = htgrid_s(j,iysg-1)
@@ -790,14 +790,14 @@ program terrain
         texout_s(j,1) = texout_s(j,2)
         texout_s(j,iysg-1) = texout_s(j,iysg-2)
         texout_s(j,iysg) = texout_s(j,iysg-1)
-        do k = 1 , ntex
+        do k = 1, ntex
           frac_tex_s(j,1,k) = frac_tex_s(j,2,k)
           frac_tex_s(j,iysg-1,k) = frac_tex_s(j,iysg-2,k)
           frac_tex_s(j,iysg,k) = frac_tex_s(j,iysg-1,k)
         end do
       end do
       if ( i_band /= 1 ) then
-        do i = 2 , iysg-1
+        do i = 2, iysg-1
           htgrid_s(1,i) = htgrid_s(2,i)
           htgrid_s(jxsg-1,i) = htgrid_s(jxsg-2,i)
           htgrid_s(jxsg,i) = htgrid_s(jxsg-1,i)
@@ -810,7 +810,7 @@ program terrain
           texout_s(1,i) = texout_s(2,i)
           texout_s(jxsg-1,i) = texout_s(jxsg-2,i)
           texout_s(jxsg,i) = texout_s(jxsg-1,i)
-          do k = 1 , ntex
+          do k = 1, ntex
             frac_tex_s(1,i,k) = frac_tex_s(2,i,k)
             frac_tex_s(jxsg-1,i,k) = frac_tex_s(jxsg-2,i,k)
             frac_tex_s(jxsg,i,k) = frac_tex_s(jxsg-1,i,k)
@@ -828,9 +828,9 @@ program terrain
 
     if ( idynamic == 3 ) then
       ! Here we compute zeta on full model levels.
-      do k = 1 , kzp1
-        do i = 1 , iysg
-          do j = 1 , jxsg
+      do k = 1, kzp1
+        do i = 1, iysg
+          do j = 1, jxsg
             zeta_s(j,i,k) = md_zeta_h(zita(k),htgrid_s(j,i),mo_ztop,mo_h,mo_a0)
             fmz_s(j,i,k) = md_fmz_h(zita(k),htgrid_s(j,i),mo_ztop,mo_h,mo_a0)
           end do
@@ -889,9 +889,9 @@ program terrain
         sum(z0(:,:,k))/real(jx*iy,rkx), sum(t0(:,:,k))/real(jx*iy,rkx)
     end do
   else if ( idynamic == 3 ) then
-    do k = 1 , kzp1
-      do i = 1 , iy
-        do j = 1 , jx
+    do k = 1, kzp1
+      do i = 1, iy
+        do j = 1, jx
           zeta(j,i,k) = md_zeta_h(zita(k),htgrid(j,i),mo_ztop,mo_h,mo_a0)
           fmz(j,i,k) = md_fmz_h(zita(k),htgrid(j,i),mo_ztop,mo_h,mo_a0)
         end do
@@ -918,7 +918,7 @@ program terrain
       psig = stdp*(d_one - &
           0.0065/stdt*zsig)**((egrav*0.0289644)/(8.31432*0.0065))
       write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') k, sigma(k), &
-        psig * d_r100 , zsig , tsig
+        psig * d_r100, zsig, tsig
     end do
     ptop = psig * d_r100 ! Approximation of top pressure. hPa
   end if
@@ -956,18 +956,18 @@ program terrain
 
   subroutine findaround(xx,i,j,imax,jmax,mmx)
     implicit none
-    integer(ik4) , intent(in) :: i , j , imax , jmax , mmx
-    real(rkx) , dimension(:,:) , intent(inout) :: xx
-    real(rk8) , dimension (mmx) :: vals
-    integer(ik4) :: ii , jj , js , is , ip , il , maxil
+    integer(ik4), intent(in) :: i, j, imax, jmax, mmx
+    real(rkx), dimension(:,:), intent(inout) :: xx
+    real(rk8), dimension (mmx) :: vals
+    integer(ik4) :: ii, jj, js, is, ip, il, maxil
     real(rk8) :: countcc
-    real(rk8) , save :: mincc , maxcc
+    real(rk8), save :: mincc, maxcc
     if ( laround0 ) then
       countcc = 1.0_rk8
       maxcc = 0.0_rk8
       mincc = 0.0_rk8
-      do ii = 1 , imax
-        do jj = 1 , jmax
+      do ii = 1, imax
+        do jj = 1, jmax
           if ( xx(jj,ii) > 0.0_rkx ) then
             countcc = countcc + 1.0_rk8
             if ( maxcc < xx(jj,ii) ) maxcc = xx(jj,ii)
@@ -986,8 +986,8 @@ program terrain
     do
       ip = 0
       vals(:) = d_zero
-      do ii = i - il , i + il
-        do jj = j - il , j + il
+      do ii = i - il, i + il
+        do jj = j - il, j + il
           is = ii
           js = jj
           if ( js < 1 ) js = 1-js

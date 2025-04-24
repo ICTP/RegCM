@@ -6,7 +6,7 @@ module mod_clm_cnbalancecheck
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : dtsrf
+  use mod_runparams, only : dtsrf
   use mod_mpmessage
   use mod_stdio
 
@@ -35,10 +35,10 @@ module mod_clm_cnbalancecheck
     ! filter for soil columns
     integer(ik4), intent(in) :: filter_soilc(ubc-lbc+1)
     ! (gC/m2) total column carbon, incl veg and cpool
-    real(rk8), pointer :: totcolc(:)
+    real(rk8), pointer, contiguous :: totcolc(:)
 
     ! carbon mass, beginning of time step (gC/m**2)
-    real(rk8), pointer :: col_begcb(:)
+    real(rk8), pointer, contiguous :: col_begcb(:)
     integer(ik4) :: c     ! indices
     integer(ik4) :: fc   ! lake filter indices
 
@@ -47,7 +47,7 @@ module mod_clm_cnbalancecheck
     totcolc   => clm3%g%l%c%ccs%totcolc
 
     ! column loop
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       ! calculate beginning column-level carbon balance,
       ! for mass conservation check
@@ -69,10 +69,10 @@ module mod_clm_cnbalancecheck
     integer(ik4), intent(in) :: filter_soilc(ubc-lbc+1)
 
     ! (gN/m2) total column nitrogen, incl veg
-    real(rk8), pointer :: totcoln(:)
+    real(rk8), pointer, contiguous :: totcoln(:)
 
     ! nitrogen mass, beginning of time step (gN/m**2)
-    real(rk8), pointer :: col_begnb(:)
+    real(rk8), pointer, contiguous :: col_begnb(:)
 
     integer(ik4) :: c   ! indices
     integer(ik4) :: fc  ! lake filter indices
@@ -82,7 +82,7 @@ module mod_clm_cnbalancecheck
     totcoln   => clm3%g%l%c%cns%totcoln
 
     ! column loop
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       ! calculate beginning column-level nitrogen balance,
       ! for mass conservation check
@@ -103,34 +103,34 @@ module mod_clm_cnbalancecheck
     integer(ik4), intent(in) :: filter_soilc(ubc-lbc+1)
 
     ! (gC/m2) total column carbon, incl veg and cpool
-    real(rk8), pointer :: totcolc(:)
+    real(rk8), pointer, contiguous :: totcolc(:)
     ! (gC/m2/s) gross primary production
-    real(rk8), pointer :: gpp(:)
+    real(rk8), pointer, contiguous :: gpp(:)
     ! (gC/m2/s) total ecosystem respiration, autotrophic + heterotrophic
-    real(rk8), pointer :: er(:)
+    real(rk8), pointer, contiguous :: er(:)
     ! (gC/m2/s) total column-level fire C loss
-    real(rk8), pointer :: col_fire_closs(:)
+    real(rk8), pointer, contiguous :: col_fire_closs(:)
     ! excess MR pool harvest mortality (gC/m2/s)
-    real(rk8), pointer :: col_hrv_xsmrpool_to_atm(:)
+    real(rk8), pointer, contiguous :: col_hrv_xsmrpool_to_atm(:)
     ! (gC/m2/s) total carbon loss from product pools and conversion
-    real(rk8), pointer :: dwt_closs(:)
+    real(rk8), pointer, contiguous :: dwt_closs(:)
     ! (gC/m2/s) total wood product carbon loss
-    real(rk8), pointer :: product_closs(:)
+    real(rk8), pointer, contiguous :: product_closs(:)
     ! total SOM C loss from vertical transport (gC/m^2/s)
-    real(rk8), pointer :: som_c_leached(:)
+    real(rk8), pointer, contiguous :: som_c_leached(:)
     ! grid pointer
-    integer(ik4), pointer :: gridcell(:)
+    integer(ik4), pointer, contiguous :: gridcell(:)
 
     ! (gC/m2/s) total column-level carbon inputs (for balance check)
-    real(rk8), pointer :: col_cinputs(:)
+    real(rk8), pointer, contiguous :: col_cinputs(:)
     ! (gC/m2/s) total column-level carbon outputs (for balance check)
-    real(rk8), pointer :: col_coutputs(:)
+    real(rk8), pointer, contiguous :: col_coutputs(:)
     ! carbon mass, beginning of time step (gC/m**2)
-    real(rk8), pointer :: col_begcb(:)
+    real(rk8), pointer, contiguous :: col_begcb(:)
     ! carbon mass, end of time step (gC/m**2)
-    real(rk8), pointer :: col_endcb(:)
+    real(rk8), pointer, contiguous :: col_endcb(:)
     ! carbon balance error for the timestep (gC/m**2)
-    real(rk8), pointer :: col_errcb(:)
+    real(rk8), pointer, contiguous :: col_errcb(:)
 
     integer(ik4) :: c,err_index,g  ! indices
     integer(ik4) :: fc   ! lake filter indices
@@ -159,7 +159,7 @@ module mod_clm_cnbalancecheck
 
     err_found = .false.
     ! column loop
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       ! calculate the total column-level carbon storage,
       ! for mass conservation check
@@ -208,7 +208,7 @@ module mod_clm_cnbalancecheck
   !
   subroutine NBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
-    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_surfrd, only : crop_prog
     implicit none
     integer(ik4), intent(in) :: lbc, ubc ! column bounds
     ! number of soil columns in filter
@@ -217,49 +217,49 @@ module mod_clm_cnbalancecheck
     integer(ik4), intent(in) :: filter_soilc(ubc-lbc+1)
 
     ! (gN/m2) total column nitrogen, incl veg
-    real(rk8), pointer :: totcoln(:)
+    real(rk8), pointer, contiguous :: totcoln(:)
     ! atmospheric N deposition to soil mineral N (gN/m2/s)
-    real(rk8), pointer :: ndep_to_sminn(:)
+    real(rk8), pointer, contiguous :: ndep_to_sminn(:)
     ! symbiotic/asymbiotic N fixation to soil mineral N (gN/m2/s)
-    real(rk8), pointer :: nfix_to_sminn(:)
-    real(rk8), pointer :: fert_to_sminn(:)
-    real(rk8), pointer :: soyfixn_to_sminn(:)
+    real(rk8), pointer, contiguous :: nfix_to_sminn(:)
+    real(rk8), pointer, contiguous :: fert_to_sminn(:)
+    real(rk8), pointer, contiguous :: soyfixn_to_sminn(:)
     ! supplemental N supply (gN/m2/s)
-    real(rk8), pointer :: supplement_to_sminn(:)
+    real(rk8), pointer, contiguous :: supplement_to_sminn(:)
     ! total rate of denitrification (gN/m2/s)
-    real(rk8), pointer :: denit(:)
+    real(rk8), pointer, contiguous :: denit(:)
 #ifndef NITRIF_DENITRIF
     ! soil mineral N pool loss to leaching (gN/m2/s)
-    real(rk8), pointer :: sminn_leached(:)
+    real(rk8), pointer, contiguous :: sminn_leached(:)
 #else
     ! soil mineral NO3 pool loss to leaching (gN/m2/s)
-    real(rk8), pointer :: smin_no3_leached(:)
+    real(rk8), pointer, contiguous :: smin_no3_leached(:)
     ! soil mineral NO3 pool loss to runoff (gN/m2/s)
-    real(rk8), pointer :: smin_no3_runoff(:)
+    real(rk8), pointer, contiguous :: smin_no3_runoff(:)
     ! flux of N2o from nitrification [gN/m^2/s]
-    real(rk8), pointer :: f_n2o_nit(:)
+    real(rk8), pointer, contiguous :: f_n2o_nit(:)
 #endif
     ! total column-level fire N loss (gN/m2/s)
-    real(rk8), pointer :: col_fire_nloss(:)
+    real(rk8), pointer, contiguous :: col_fire_nloss(:)
     ! (gN/m2/s) total nitrogen loss from product pools and conversion
-    real(rk8), pointer :: dwt_nloss(:)
+    real(rk8), pointer, contiguous :: dwt_nloss(:)
     ! (gN/m2/s) total wood product nitrogen loss
-    real(rk8), pointer :: product_nloss(:)
+    real(rk8), pointer, contiguous :: product_nloss(:)
     ! total SOM N loss from vertical transport
-    real(rk8), pointer :: som_n_leached(:)
+    real(rk8), pointer, contiguous :: som_n_leached(:)
 
     ! column-level N inputs (gN/m2/s)
-    real(rk8), pointer :: col_ninputs(:)
+    real(rk8), pointer, contiguous :: col_ninputs(:)
     ! column-level N outputs (gN/m2/s)
-    real(rk8), pointer :: col_noutputs(:)
+    real(rk8), pointer, contiguous :: col_noutputs(:)
     ! nitrogen mass, beginning of time step (gN/m**2)
-    real(rk8), pointer :: col_begnb(:)
+    real(rk8), pointer, contiguous :: col_begnb(:)
     ! nitrogen mass, end of time step (gN/m**2)
-    real(rk8), pointer :: col_endnb(:)
+    real(rk8), pointer, contiguous :: col_endnb(:)
     ! nitrogen balance error for the timestep (gN/m**2)
-    real(rk8), pointer :: col_errnb(:)
+    real(rk8), pointer, contiguous :: col_errnb(:)
     ! grid pointer
-    integer(ik4), pointer :: gridcell(:)
+    integer(ik4), pointer, contiguous :: gridcell(:)
 
     integer(ik4) :: c,err_index,g    ! indices
     integer(ik4) :: fc   ! lake filter indices
@@ -299,7 +299,7 @@ module mod_clm_cnbalancecheck
 
     err_found = .false.
     ! column loop
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c=filter_soilc(fc)
 
       ! calculate the total column-level nitrogen storage, for

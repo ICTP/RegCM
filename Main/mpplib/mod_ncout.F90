@@ -36,459 +36,459 @@ module mod_ncout
   public :: writevar_output_stream
 
   type varspan
-    integer(ik4) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: j1, j2, i1, i2, k1, k2, n1, n2
   end type varspan
 
   type regcm_stream
-    type(nc_output_stream) , pointer , dimension(:) :: ncout
-    character(len=8) , pointer , dimension(:) :: cname_base
+    type(nc_output_stream), pointer, contiguous, dimension(:) :: ncout
+    character(len=8), pointer, contiguous, dimension(:) :: cname_base
     type(ncoutstream_params) :: opar
     logical :: l_sub = .false.
     integer(ik4) :: nvar = 0
     integer(ik4) :: nfiles = 0
     type(nc_varlist) :: ncvars
-    integer(ik4) :: jg1 , jg2 , ig1 , ig2
-    integer(ik4) :: jl1 , jl2 , il1 , il2
+    integer(ik4) :: jg1, jg2, ig1, ig2
+    integer(ik4) :: jl1, jl2, il1, il2
   end type regcm_stream
 
-  integer(ik4) , parameter :: nbase = 6
+  integer(ik4), parameter :: nbase = 6
 
-  integer(ik4) , parameter :: natm2dvars = 4 + nbase
-  integer(ik4) , parameter :: natm3dvars = 69
-  integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
+  integer(ik4), parameter :: natm2dvars = 4 + nbase
+  integer(ik4), parameter :: natm3dvars = 69
+  integer(ik4), parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nshfvars = 4 + nbase
+  integer(ik4), parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 45 + nbase
-  integer(ik4) , parameter :: nsrf3dvars = 15
-  integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
+  integer(ik4), parameter :: nsrf2dvars = 45 + nbase
+  integer(ik4), parameter :: nsrf3dvars = 15
+  integer(ik4), parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
-  integer(ik4) , parameter :: nsts2dvars = 10 + nbase
-  integer(ik4) , parameter :: nsts3dvars = 4
-  integer(ik4) , parameter :: nstsvars = nsts2dvars+nsts3dvars
+  integer(ik4), parameter :: nsts2dvars = 10 + nbase
+  integer(ik4), parameter :: nsts3dvars = 4
+  integer(ik4), parameter :: nstsvars = nsts2dvars+nsts3dvars
 
-  integer(ik4) , parameter :: nsub2dvars = 8 + nbase
-  integer(ik4) , parameter :: nsub3dvars = 5
-  integer(ik4) , parameter :: nsubvars = nsub2dvars+nsub3dvars
+  integer(ik4), parameter :: nsub2dvars = 8 + nbase
+  integer(ik4), parameter :: nsub3dvars = 5
+  integer(ik4), parameter :: nsubvars = nsub2dvars+nsub3dvars
 
-  integer(ik4) , parameter :: nlak2dvars = 12 + nbase
-  integer(ik4) , parameter :: nlak3dvars = 1
-  integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
+  integer(ik4), parameter :: nlak2dvars = 12 + nbase
+  integer(ik4), parameter :: nlak3dvars = 1
+  integer(ik4), parameter :: nlakvars = nlak2dvars+nlak3dvars
 
-  integer(ik4) , parameter :: nrad2dvars = 16 + nbase
-  integer(ik4) , parameter :: nrad3dvars = 7
-  integer(ik4) , parameter :: nrad4dvars = 2
-  integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
+  integer(ik4), parameter :: nrad2dvars = 16 + nbase
+  integer(ik4), parameter :: nrad3dvars = 7
+  integer(ik4), parameter :: nrad4dvars = 2
+  integer(ik4), parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
-  integer(ik4) , parameter :: nopt2dvars = 10 + nbase
-  integer(ik4) , parameter :: nopt3dvars = 8
-  integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
+  integer(ik4), parameter :: nopt2dvars = 10 + nbase
+  integer(ik4), parameter :: nopt3dvars = 8
+  integer(ik4), parameter :: noptvars = nopt2dvars+nopt3dvars
 
-  integer(ik4) , parameter :: nche2dvars = 8 + nbase
-  integer(ik4) , parameter :: nche3dvars = 17
-  integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
+  integer(ik4), parameter :: nche2dvars = 8 + nbase
+  integer(ik4), parameter :: nche3dvars = 17
+  integer(ik4), parameter :: nchevars = nche2dvars+nche3dvars
 
-  integer(ik4) , parameter :: nslaboc2dvars = nbase
-  integer(ik4) , parameter :: nslaboc3dvars = 1
-  integer(ik4) , parameter :: nslabocvars = nslaboc2dvars + nslaboc3dvars
+  integer(ik4), parameter :: nslaboc2dvars = nbase
+  integer(ik4), parameter :: nslaboc3dvars = 1
+  integer(ik4), parameter :: nslabocvars = nslaboc2dvars + nslaboc3dvars
 
-  type(ncvariable2d_mixed) , save , pointer , &
+  type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_atm => null()
-  type(ncvariable3d_mixed) , save , pointer , &
+  type(ncvariable3d_mixed), save, pointer, contiguous, &
     dimension(:) :: v3dvar_atm => null()
-  type(ncvariable2d_mixed) , save , pointer , &
+  type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_shf => null()
-  type(ncvariable2d_mixed) , save , pointer , &
+  type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_srf => null()
-  type(ncvariable3d_mixed) , save , pointer , &
+  type(ncvariable3d_mixed), save, pointer, contiguous, &
     dimension(:) :: v3dvar_srf => null()
-  type(ncvariable2d_mixed) , save , pointer , &
+  type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_sts => null()
-  type(ncvariable3d_mixed) , save , pointer , &
+  type(ncvariable3d_mixed), save, pointer, contiguous, &
     dimension(:) :: v3dvar_sts => null()
-  type(ncvariable2d_mixed) , save , pointer , &
+  type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_sub => null()
-  type(ncvariable3d_mixed) , save , pointer , &
+  type(ncvariable3d_mixed), save, pointer, contiguous, &
     dimension(:) :: v3dvar_sub => null()
-  type(ncvariable2d_mixed) , save , pointer , &
+  type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_lak => null()
-  type(ncvariable3d_mixed) , save , pointer , &
+  type(ncvariable3d_mixed), save, pointer, contiguous, &
     dimension(:) :: v3dvar_lak => null()
-  type(ncvariable2d_mixed) , save , pointer , &
+  type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_rad => null()
-  type(ncvariable3d_mixed) , save , pointer , &
+  type(ncvariable3d_mixed), save, pointer, contiguous, &
     dimension(:) :: v3dvar_rad => null()
-  type(ncvariable4d_mixed) , save , pointer , &
+  type(ncvariable4d_mixed), save, pointer, contiguous, &
     dimension(:) :: v4dvar_rad => null()
-  type(ncvariable2d_mixed) , save , pointer , &
+  type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_opt => null()
-  type(ncvariable3d_mixed) , save , pointer , &
+  type(ncvariable3d_mixed), save, pointer, contiguous, &
     dimension(:) :: v3dvar_opt => null()
-  type(ncvariable2d_mixed) , save , pointer , &
+  type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_che => null()
-  type(ncvariable3d_mixed) , save , pointer , &
+  type(ncvariable3d_mixed), save, pointer, contiguous, &
     dimension(:) :: v3dvar_che => null()
-  type(ncvariable2d_mixed) , save , pointer , &
+  type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_slaboc => null()
-  type(ncvariable3d_mixed) , save , pointer , &
+  type(ncvariable3d_mixed), save, pointer, contiguous, &
     dimension(:) :: v3dvar_slaboc => null()
 
   integer(ik4) :: maxstreams
 
   logical :: parallel_out
 
-  integer(ik4) , public :: atm_stream = -1
-  integer(ik4) , public :: shf_stream = -1
-  integer(ik4) , public :: srf_stream = -1
-  integer(ik4) , public :: sub_stream = -1
-  integer(ik4) , public :: rad_stream = -1
-  integer(ik4) , public :: lak_stream = -1
-  integer(ik4) , public :: sts_stream = -1
-  integer(ik4) , public :: opt_stream = -1
-  integer(ik4) , public :: che_stream = -1
-  integer(ik4) , public :: slaboc_stream = -1
+  integer(ik4), public :: atm_stream = -1
+  integer(ik4), public :: shf_stream = -1
+  integer(ik4), public :: srf_stream = -1
+  integer(ik4), public :: sub_stream = -1
+  integer(ik4), public :: rad_stream = -1
+  integer(ik4), public :: lak_stream = -1
+  integer(ik4), public :: sts_stream = -1
+  integer(ik4), public :: opt_stream = -1
+  integer(ik4), public :: che_stream = -1
+  integer(ik4), public :: slaboc_stream = -1
 !
-  type(regcm_stream) , pointer , save , dimension(:) :: outstream
+  type(regcm_stream), pointer, contiguous, save, dimension(:) :: outstream
 
-  logical , public , dimension(natmvars) :: enable_atm_vars
-  logical , public , dimension(nshfvars) :: enable_shf_vars
-  logical , public , dimension(nsrfvars) :: enable_srf_vars
-  logical , public , dimension(nstsvars) :: enable_sts_vars
-  logical , public , dimension(nsubvars) :: enable_sub_vars
-  logical , public , dimension(nlakvars) :: enable_lak_vars
-  logical , public , dimension(nradvars) :: enable_rad_vars
-  logical , public , dimension(noptvars) :: enable_opt_vars
-  logical , public , dimension(nchevars) :: enable_che_vars
+  logical, public, dimension(natmvars) :: enable_atm_vars
+  logical, public, dimension(nshfvars) :: enable_shf_vars
+  logical, public, dimension(nsrfvars) :: enable_srf_vars
+  logical, public, dimension(nstsvars) :: enable_sts_vars
+  logical, public, dimension(nsubvars) :: enable_sub_vars
+  logical, public, dimension(nlakvars) :: enable_lak_vars
+  logical, public, dimension(nradvars) :: enable_rad_vars
+  logical, public, dimension(noptvars) :: enable_opt_vars
+  logical, public, dimension(nchevars) :: enable_che_vars
 
-  integer(ik4) , parameter :: atm_xlon  = 1
-  integer(ik4) , parameter :: atm_xlat  = 2
-  integer(ik4) , parameter :: atm_mask  = 3
-  integer(ik4) , parameter :: atm_topo  = 4
-  integer(ik4) , parameter :: atm_area  = 5
-  integer(ik4) , parameter :: atm_ps    = 6
-  integer(ik4) , parameter :: atm_p0    = 7
-  integer(ik4) , parameter :: atm_tpr   = 8
-  integer(ik4) , parameter :: atm_tgb   = 9
-  integer(ik4) , parameter :: atm_mrso  = 10
+  integer(ik4), parameter :: atm_xlon  = 1
+  integer(ik4), parameter :: atm_xlat  = 2
+  integer(ik4), parameter :: atm_mask  = 3
+  integer(ik4), parameter :: atm_topo  = 4
+  integer(ik4), parameter :: atm_area  = 5
+  integer(ik4), parameter :: atm_ps    = 6
+  integer(ik4), parameter :: atm_p0    = 7
+  integer(ik4), parameter :: atm_tpr   = 8
+  integer(ik4), parameter :: atm_tgb   = 9
+  integer(ik4), parameter :: atm_mrso  = 10
 
-  integer(ik4) , parameter :: atm_u            = 1
-  integer(ik4) , parameter :: atm_v            = 2
-  integer(ik4) , parameter :: atm_w            = 3
-  integer(ik4) , parameter :: atm_t            = 4
-  integer(ik4) , parameter :: atm_pp           = 5
-  integer(ik4) , parameter :: atm_pai          = 6
-  integer(ik4) , parameter :: atm_omega        = 7
-  integer(ik4) , parameter :: atm_qv           = 8
-  integer(ik4) , parameter :: atm_qc           = 9
-  integer(ik4) , parameter :: atm_rh           = 10
-  integer(ik4) , parameter :: atm_qi           = 11
-  integer(ik4) , parameter :: atm_qr           = 12
-  integer(ik4) , parameter :: atm_qs           = 13
-  integer(ik4) , parameter :: atm_qg           = 14
-  integer(ik4) , parameter :: atm_qh           = 15
-  integer(ik4) , parameter :: atm_nn           = 16
-  integer(ik4) , parameter :: atm_nc           = 17
-  integer(ik4) , parameter :: atm_nr           = 18
-  integer(ik4) , parameter :: atm_zf           = 19
-  integer(ik4) , parameter :: atm_zh           = 20
-  integer(ik4) , parameter :: atm_pf           = 21
-  integer(ik4) , parameter :: atm_ph           = 22
-  integer(ik4) , parameter :: atm_q_detr       = 23
-  integer(ik4) , parameter :: atm_rainls       = 24
-  integer(ik4) , parameter :: atm_raincc       = 25
-  integer(ik4) , parameter :: atm_tke          = 26
-  integer(ik4) , parameter :: atm_kth          = 27
-  integer(ik4) , parameter :: atm_kzm          = 28
-  integer(ik4) , parameter :: atm_tten_adh     = 29
-  integer(ik4) , parameter :: atm_tten_adv     = 30
-  integer(ik4) , parameter :: atm_tten_tbl     = 31
-  integer(ik4) , parameter :: atm_tten_dif     = 32
-  integer(ik4) , parameter :: atm_tten_bdy     = 33
-  integer(ik4) , parameter :: atm_tten_con     = 34
-  integer(ik4) , parameter :: atm_tten_adi     = 35
-  integer(ik4) , parameter :: atm_tten_rad     = 36
-  integer(ik4) , parameter :: atm_tten_lsc     = 37
-  integer(ik4) , parameter :: atm_qten_adh     = 38
-  integer(ik4) , parameter :: atm_qten_adv     = 39
-  integer(ik4) , parameter :: atm_qten_tbl     = 40
-  integer(ik4) , parameter :: atm_qten_dif     = 41
-  integer(ik4) , parameter :: atm_qten_bdy     = 42
-  integer(ik4) , parameter :: atm_qten_con     = 43
-  integer(ik4) , parameter :: atm_qten_adi     = 44
-  integer(ik4) , parameter :: atm_qten_rad     = 45
-  integer(ik4) , parameter :: atm_qten_lsc     = 46
-  integer(ik4) , parameter :: atm_stats_supw   = 47
-  integer(ik4) , parameter :: atm_stats_supc   = 48
-  integer(ik4) , parameter :: atm_stats_detw   = 49
-  integer(ik4) , parameter :: atm_stats_detc   = 50
-  integer(ik4) , parameter :: atm_stats_erow   = 51
-  integer(ik4) , parameter :: atm_stats_eroc   = 52
-  integer(ik4) , parameter :: atm_stats_evw    = 53
-  integer(ik4) , parameter :: atm_stats_evc    = 54
-  integer(ik4) , parameter :: atm_stats_con1w  = 55
-  integer(ik4) , parameter :: atm_stats_con1c  = 56
-  integer(ik4) , parameter :: atm_stats_dep    = 57
-  integer(ik4) , parameter :: atm_stats_melt   = 58
-  integer(ik4) , parameter :: atm_stats_frz    = 59
-  integer(ik4) , parameter :: atm_stats_rainev = 60
-  integer(ik4) , parameter :: atm_stats_snowev = 61
-  integer(ik4) , parameter :: atm_stats_autocw = 62
-  integer(ik4) , parameter :: atm_stats_autocc = 63
-  integer(ik4) , parameter :: atm_qcrit        = 64
-  integer(ik4) , parameter :: atm_ccnnum       = 65
-  integer(ik4) , parameter :: atm_qincl        = 66
-  integer(ik4) , parameter :: atm_autoconvr    = 67
-  integer(ik4) , parameter :: atm_smw          = 68
-  integer(ik4) , parameter :: atm_tsoil        = 69
+  integer(ik4), parameter :: atm_u            = 1
+  integer(ik4), parameter :: atm_v            = 2
+  integer(ik4), parameter :: atm_w            = 3
+  integer(ik4), parameter :: atm_t            = 4
+  integer(ik4), parameter :: atm_pp           = 5
+  integer(ik4), parameter :: atm_pai          = 6
+  integer(ik4), parameter :: atm_omega        = 7
+  integer(ik4), parameter :: atm_qv           = 8
+  integer(ik4), parameter :: atm_qc           = 9
+  integer(ik4), parameter :: atm_rh           = 10
+  integer(ik4), parameter :: atm_qi           = 11
+  integer(ik4), parameter :: atm_qr           = 12
+  integer(ik4), parameter :: atm_qs           = 13
+  integer(ik4), parameter :: atm_qg           = 14
+  integer(ik4), parameter :: atm_qh           = 15
+  integer(ik4), parameter :: atm_nn           = 16
+  integer(ik4), parameter :: atm_nc           = 17
+  integer(ik4), parameter :: atm_nr           = 18
+  integer(ik4), parameter :: atm_zf           = 19
+  integer(ik4), parameter :: atm_zh           = 20
+  integer(ik4), parameter :: atm_pf           = 21
+  integer(ik4), parameter :: atm_ph           = 22
+  integer(ik4), parameter :: atm_q_detr       = 23
+  integer(ik4), parameter :: atm_rainls       = 24
+  integer(ik4), parameter :: atm_raincc       = 25
+  integer(ik4), parameter :: atm_tke          = 26
+  integer(ik4), parameter :: atm_kth          = 27
+  integer(ik4), parameter :: atm_kzm          = 28
+  integer(ik4), parameter :: atm_tten_adh     = 29
+  integer(ik4), parameter :: atm_tten_adv     = 30
+  integer(ik4), parameter :: atm_tten_tbl     = 31
+  integer(ik4), parameter :: atm_tten_dif     = 32
+  integer(ik4), parameter :: atm_tten_bdy     = 33
+  integer(ik4), parameter :: atm_tten_con     = 34
+  integer(ik4), parameter :: atm_tten_adi     = 35
+  integer(ik4), parameter :: atm_tten_rad     = 36
+  integer(ik4), parameter :: atm_tten_lsc     = 37
+  integer(ik4), parameter :: atm_qten_adh     = 38
+  integer(ik4), parameter :: atm_qten_adv     = 39
+  integer(ik4), parameter :: atm_qten_tbl     = 40
+  integer(ik4), parameter :: atm_qten_dif     = 41
+  integer(ik4), parameter :: atm_qten_bdy     = 42
+  integer(ik4), parameter :: atm_qten_con     = 43
+  integer(ik4), parameter :: atm_qten_adi     = 44
+  integer(ik4), parameter :: atm_qten_rad     = 45
+  integer(ik4), parameter :: atm_qten_lsc     = 46
+  integer(ik4), parameter :: atm_stats_supw   = 47
+  integer(ik4), parameter :: atm_stats_supc   = 48
+  integer(ik4), parameter :: atm_stats_detw   = 49
+  integer(ik4), parameter :: atm_stats_detc   = 50
+  integer(ik4), parameter :: atm_stats_erow   = 51
+  integer(ik4), parameter :: atm_stats_eroc   = 52
+  integer(ik4), parameter :: atm_stats_evw    = 53
+  integer(ik4), parameter :: atm_stats_evc    = 54
+  integer(ik4), parameter :: atm_stats_con1w  = 55
+  integer(ik4), parameter :: atm_stats_con1c  = 56
+  integer(ik4), parameter :: atm_stats_dep    = 57
+  integer(ik4), parameter :: atm_stats_melt   = 58
+  integer(ik4), parameter :: atm_stats_frz    = 59
+  integer(ik4), parameter :: atm_stats_rainev = 60
+  integer(ik4), parameter :: atm_stats_snowev = 61
+  integer(ik4), parameter :: atm_stats_autocw = 62
+  integer(ik4), parameter :: atm_stats_autocc = 63
+  integer(ik4), parameter :: atm_qcrit        = 64
+  integer(ik4), parameter :: atm_ccnnum       = 65
+  integer(ik4), parameter :: atm_qincl        = 66
+  integer(ik4), parameter :: atm_autoconvr    = 67
+  integer(ik4), parameter :: atm_smw          = 68
+  integer(ik4), parameter :: atm_tsoil        = 69
 
-  integer(ik4) , parameter :: shf_xlon   = 1
-  integer(ik4) , parameter :: shf_xlat   = 2
-  integer(ik4) , parameter :: shf_mask   = 3
-  integer(ik4) , parameter :: shf_topo   = 4
-  integer(ik4) , parameter :: shf_area   = 5
-  integer(ik4) , parameter :: shf_ps     = 6
-  integer(ik4) , parameter :: shf_pcpavg = 7
-  integer(ik4) , parameter :: shf_pcpmax = 8
-  integer(ik4) , parameter :: shf_pcprcv = 9
-  integer(ik4) , parameter :: shf_twetb  = 10
+  integer(ik4), parameter :: shf_xlon   = 1
+  integer(ik4), parameter :: shf_xlat   = 2
+  integer(ik4), parameter :: shf_mask   = 3
+  integer(ik4), parameter :: shf_topo   = 4
+  integer(ik4), parameter :: shf_area   = 5
+  integer(ik4), parameter :: shf_ps     = 6
+  integer(ik4), parameter :: shf_pcpavg = 7
+  integer(ik4), parameter :: shf_pcpmax = 8
+  integer(ik4), parameter :: shf_pcprcv = 9
+  integer(ik4), parameter :: shf_twetb  = 10
 
-  integer(ik4) , parameter :: srf_xlon     = 1
-  integer(ik4) , parameter :: srf_xlat     = 2
-  integer(ik4) , parameter :: srf_mask     = 3
-  integer(ik4) , parameter :: srf_topo     = 4
-  integer(ik4) , parameter :: srf_area     = 5
-  integer(ik4) , parameter :: srf_ps       = 6
-  integer(ik4) , parameter :: srf_uvdrag   = 7
-  integer(ik4) , parameter :: srf_tg       = 8
-  integer(ik4) , parameter :: srf_tlef     = 9
-  integer(ik4) , parameter :: srf_tpr      = 10
-  integer(ik4) , parameter :: srf_evp      = 11
-  integer(ik4) , parameter :: srf_scv      = 12
-  integer(ik4) , parameter :: srf_sena     = 13
-  integer(ik4) , parameter :: srf_lena     = 14
-  integer(ik4) , parameter :: srf_flw      = 15
-  integer(ik4) , parameter :: srf_fsw      = 16
-  integer(ik4) , parameter :: srf_uflw     = 17
-  integer(ik4) , parameter :: srf_ufsw     = 18
-  integer(ik4) , parameter :: srf_fld      = 19
-  integer(ik4) , parameter :: srf_sina     = 20
-  integer(ik4) , parameter :: srf_prcv     = 21
-  integer(ik4) , parameter :: srf_zpbl     = 22
-  integer(ik4) , parameter :: srf_aldirs   = 23
-  integer(ik4) , parameter :: srf_aldifs   = 24
-  integer(ik4) , parameter :: srf_sund     = 25
-  integer(ik4) , parameter :: srf_seaice   = 26
-  integer(ik4) , parameter :: srf_snowmelt = 27
-  integer(ik4) , parameter :: srf_dew      = 28
-  integer(ik4) , parameter :: srf_srunoff  = 29
-  integer(ik4) , parameter :: srf_trunoff  = 30
-  integer(ik4) , parameter :: srf_ustar    = 31
-  integer(ik4) , parameter :: srf_zo       = 32
-  integer(ik4) , parameter :: srf_rhoa     = 33
-  integer(ik4) , parameter :: srf_totcf    = 34
-  integer(ik4) , parameter :: srf_wspd     = 35
-  integer(ik4) , parameter :: srf_taux     = 36
-  integer(ik4) , parameter :: srf_tauy     = 37
-  integer(ik4) , parameter :: srf_psl      = 38
-  integer(ik4) , parameter :: srf_evpot    = 39
-  integer(ik4) , parameter :: srf_pcpmax   = 40
-  integer(ik4) , parameter :: srf_twetb    = 41
-  integer(ik4) , parameter :: srf_snow     = 42
-  integer(ik4) , parameter :: srf_hail     = 43
-  integer(ik4) , parameter :: srf_grau     = 44
-  integer(ik4) , parameter :: srf_tprw     = 45
-  integer(ik4) , parameter :: srf_cape     = 46
-  integer(ik4) , parameter :: srf_cin      = 47
-  integer(ik4) , parameter :: srf_li       = 48
-  integer(ik4) , parameter :: srf_mrsos    = 49
-  integer(ik4) , parameter :: srf_htindx   = 50
-  integer(ik4) , parameter :: srf_hfso     = 51
+  integer(ik4), parameter :: srf_xlon     = 1
+  integer(ik4), parameter :: srf_xlat     = 2
+  integer(ik4), parameter :: srf_mask     = 3
+  integer(ik4), parameter :: srf_topo     = 4
+  integer(ik4), parameter :: srf_area     = 5
+  integer(ik4), parameter :: srf_ps       = 6
+  integer(ik4), parameter :: srf_uvdrag   = 7
+  integer(ik4), parameter :: srf_tg       = 8
+  integer(ik4), parameter :: srf_tlef     = 9
+  integer(ik4), parameter :: srf_tpr      = 10
+  integer(ik4), parameter :: srf_evp      = 11
+  integer(ik4), parameter :: srf_scv      = 12
+  integer(ik4), parameter :: srf_sena     = 13
+  integer(ik4), parameter :: srf_lena     = 14
+  integer(ik4), parameter :: srf_flw      = 15
+  integer(ik4), parameter :: srf_fsw      = 16
+  integer(ik4), parameter :: srf_uflw     = 17
+  integer(ik4), parameter :: srf_ufsw     = 18
+  integer(ik4), parameter :: srf_fld      = 19
+  integer(ik4), parameter :: srf_sina     = 20
+  integer(ik4), parameter :: srf_prcv     = 21
+  integer(ik4), parameter :: srf_zpbl     = 22
+  integer(ik4), parameter :: srf_aldirs   = 23
+  integer(ik4), parameter :: srf_aldifs   = 24
+  integer(ik4), parameter :: srf_sund     = 25
+  integer(ik4), parameter :: srf_seaice   = 26
+  integer(ik4), parameter :: srf_snowmelt = 27
+  integer(ik4), parameter :: srf_dew      = 28
+  integer(ik4), parameter :: srf_srunoff  = 29
+  integer(ik4), parameter :: srf_trunoff  = 30
+  integer(ik4), parameter :: srf_ustar    = 31
+  integer(ik4), parameter :: srf_zo       = 32
+  integer(ik4), parameter :: srf_rhoa     = 33
+  integer(ik4), parameter :: srf_totcf    = 34
+  integer(ik4), parameter :: srf_wspd     = 35
+  integer(ik4), parameter :: srf_taux     = 36
+  integer(ik4), parameter :: srf_tauy     = 37
+  integer(ik4), parameter :: srf_psl      = 38
+  integer(ik4), parameter :: srf_evpot    = 39
+  integer(ik4), parameter :: srf_pcpmax   = 40
+  integer(ik4), parameter :: srf_twetb    = 41
+  integer(ik4), parameter :: srf_snow     = 42
+  integer(ik4), parameter :: srf_hail     = 43
+  integer(ik4), parameter :: srf_grau     = 44
+  integer(ik4), parameter :: srf_tprw     = 45
+  integer(ik4), parameter :: srf_cape     = 46
+  integer(ik4), parameter :: srf_cin      = 47
+  integer(ik4), parameter :: srf_li       = 48
+  integer(ik4), parameter :: srf_mrsos    = 49
+  integer(ik4), parameter :: srf_htindx   = 50
+  integer(ik4), parameter :: srf_hfso     = 51
 
-  integer(ik4) , parameter :: srf_u10m   = 1
-  integer(ik4) , parameter :: srf_v10m   = 2
-  integer(ik4) , parameter :: srf_t2m    = 3
-  integer(ik4) , parameter :: srf_q2m    = 4
-  integer(ik4) , parameter :: srf_rh2m   = 5
-  integer(ik4) , parameter :: srf_smw    = 6
-  integer(ik4) , parameter :: srf_tsoi   = 7
-  integer(ik4) , parameter :: srf_ua50   = 8
-  integer(ik4) , parameter :: srf_va50   = 9
-  integer(ik4) , parameter :: srf_ta50   = 10
-  integer(ik4) , parameter :: srf_hus50  = 11
-  integer(ik4) , parameter :: srf_ua100  = 12
-  integer(ik4) , parameter :: srf_va100  = 13
-  integer(ik4) , parameter :: srf_ua150  = 14
-  integer(ik4) , parameter :: srf_va150  = 15
+  integer(ik4), parameter :: srf_u10m   = 1
+  integer(ik4), parameter :: srf_v10m   = 2
+  integer(ik4), parameter :: srf_t2m    = 3
+  integer(ik4), parameter :: srf_q2m    = 4
+  integer(ik4), parameter :: srf_rh2m   = 5
+  integer(ik4), parameter :: srf_smw    = 6
+  integer(ik4), parameter :: srf_tsoi   = 7
+  integer(ik4), parameter :: srf_ua50   = 8
+  integer(ik4), parameter :: srf_va50   = 9
+  integer(ik4), parameter :: srf_ta50   = 10
+  integer(ik4), parameter :: srf_hus50  = 11
+  integer(ik4), parameter :: srf_ua100  = 12
+  integer(ik4), parameter :: srf_va100  = 13
+  integer(ik4), parameter :: srf_ua150  = 14
+  integer(ik4), parameter :: srf_va150  = 15
 
-  integer(ik4) , parameter :: sts_xlon    = 1
-  integer(ik4) , parameter :: sts_xlat    = 2
-  integer(ik4) , parameter :: sts_mask    = 3
-  integer(ik4) , parameter :: sts_topo    = 4
-  integer(ik4) , parameter :: sts_area    = 5
-  integer(ik4) , parameter :: sts_ps      = 6
-  integer(ik4) , parameter :: sts_tgmax   = 7
-  integer(ik4) , parameter :: sts_tgmin   = 8
-  integer(ik4) , parameter :: sts_pcpmax  = 9
-  integer(ik4) , parameter :: sts_pcpavg  = 10
-  integer(ik4) , parameter :: sts_sund    = 11
-  integer(ik4) , parameter :: sts_psmin   = 12
-  integer(ik4) , parameter :: sts_psavg   = 13
-  integer(ik4) , parameter :: sts_srunoff = 14
-  integer(ik4) , parameter :: sts_trunoff = 15
-  integer(ik4) , parameter :: sts_wsgsmax = 16
+  integer(ik4), parameter :: sts_xlon    = 1
+  integer(ik4), parameter :: sts_xlat    = 2
+  integer(ik4), parameter :: sts_mask    = 3
+  integer(ik4), parameter :: sts_topo    = 4
+  integer(ik4), parameter :: sts_area    = 5
+  integer(ik4), parameter :: sts_ps      = 6
+  integer(ik4), parameter :: sts_tgmax   = 7
+  integer(ik4), parameter :: sts_tgmin   = 8
+  integer(ik4), parameter :: sts_pcpmax  = 9
+  integer(ik4), parameter :: sts_pcpavg  = 10
+  integer(ik4), parameter :: sts_sund    = 11
+  integer(ik4), parameter :: sts_psmin   = 12
+  integer(ik4), parameter :: sts_psavg   = 13
+  integer(ik4), parameter :: sts_srunoff = 14
+  integer(ik4), parameter :: sts_trunoff = 15
+  integer(ik4), parameter :: sts_wsgsmax = 16
 
-  integer(ik4) , parameter :: sts_t2max  = 1
-  integer(ik4) , parameter :: sts_t2min  = 2
-  integer(ik4) , parameter :: sts_t2avg  = 3
-  integer(ik4) , parameter :: sts_w10max = 4
+  integer(ik4), parameter :: sts_t2max  = 1
+  integer(ik4), parameter :: sts_t2min  = 2
+  integer(ik4), parameter :: sts_t2avg  = 3
+  integer(ik4), parameter :: sts_w10max = 4
 
-  integer(ik4) , parameter :: sub_xlon    = 1
-  integer(ik4) , parameter :: sub_xlat    = 2
-  integer(ik4) , parameter :: sub_mask    = 3
-  integer(ik4) , parameter :: sub_topo    = 4
-  integer(ik4) , parameter :: sub_area    = 5
-  integer(ik4) , parameter :: sub_ps      = 6
-  integer(ik4) , parameter :: sub_uvdrag  = 7
-  integer(ik4) , parameter :: sub_tg      = 8
-  integer(ik4) , parameter :: sub_tlef    = 9
-  integer(ik4) , parameter :: sub_evp     = 10
-  integer(ik4) , parameter :: sub_scv     = 11
-  integer(ik4) , parameter :: sub_sena    = 12
-  integer(ik4) , parameter :: sub_srunoff = 13
-  integer(ik4) , parameter :: sub_trunoff = 14
+  integer(ik4), parameter :: sub_xlon    = 1
+  integer(ik4), parameter :: sub_xlat    = 2
+  integer(ik4), parameter :: sub_mask    = 3
+  integer(ik4), parameter :: sub_topo    = 4
+  integer(ik4), parameter :: sub_area    = 5
+  integer(ik4), parameter :: sub_ps      = 6
+  integer(ik4), parameter :: sub_uvdrag  = 7
+  integer(ik4), parameter :: sub_tg      = 8
+  integer(ik4), parameter :: sub_tlef    = 9
+  integer(ik4), parameter :: sub_evp     = 10
+  integer(ik4), parameter :: sub_scv     = 11
+  integer(ik4), parameter :: sub_sena    = 12
+  integer(ik4), parameter :: sub_srunoff = 13
+  integer(ik4), parameter :: sub_trunoff = 14
 
-  integer(ik4) , parameter :: sub_u10m   = 1
-  integer(ik4) , parameter :: sub_v10m   = 2
-  integer(ik4) , parameter :: sub_t2m    = 3
-  integer(ik4) , parameter :: sub_q2m    = 4
-  integer(ik4) , parameter :: sub_smw    = 5
+  integer(ik4), parameter :: sub_u10m   = 1
+  integer(ik4), parameter :: sub_v10m   = 2
+  integer(ik4), parameter :: sub_t2m    = 3
+  integer(ik4), parameter :: sub_q2m    = 4
+  integer(ik4), parameter :: sub_smw    = 5
 
-  integer(ik4) , parameter :: rad_xlon   = 1
-  integer(ik4) , parameter :: rad_xlat   = 2
-  integer(ik4) , parameter :: rad_mask   = 3
-  integer(ik4) , parameter :: rad_topo   = 4
-  integer(ik4) , parameter :: rad_area   = 5
-  integer(ik4) , parameter :: rad_ps     = 6
-  integer(ik4) , parameter :: rad_p0     = 7
-  integer(ik4) , parameter :: rad_frsa   = 8
-  integer(ik4) , parameter :: rad_frla   = 9
-  integer(ik4) , parameter :: rad_clrst  = 10
-  integer(ik4) , parameter :: rad_clrss  = 11
-  integer(ik4) , parameter :: rad_clrlt  = 12
-  integer(ik4) , parameter :: rad_clrls  = 13
-  integer(ik4) , parameter :: rad_solin  = 14
-  integer(ik4) , parameter :: rad_solout = 15
-  integer(ik4) , parameter :: rad_totwv  = 16
-  integer(ik4) , parameter :: rad_totcl  = 17
-  integer(ik4) , parameter :: rad_totci  = 18
-  integer(ik4) , parameter :: rad_lwout  = 19
-  integer(ik4) , parameter :: rad_higcl  = 20
-  integer(ik4) , parameter :: rad_midcl  = 21
-  integer(ik4) , parameter :: rad_lowcl  = 22
+  integer(ik4), parameter :: rad_xlon   = 1
+  integer(ik4), parameter :: rad_xlat   = 2
+  integer(ik4), parameter :: rad_mask   = 3
+  integer(ik4), parameter :: rad_topo   = 4
+  integer(ik4), parameter :: rad_area   = 5
+  integer(ik4), parameter :: rad_ps     = 6
+  integer(ik4), parameter :: rad_p0     = 7
+  integer(ik4), parameter :: rad_frsa   = 8
+  integer(ik4), parameter :: rad_frla   = 9
+  integer(ik4), parameter :: rad_clrst  = 10
+  integer(ik4), parameter :: rad_clrss  = 11
+  integer(ik4), parameter :: rad_clrlt  = 12
+  integer(ik4), parameter :: rad_clrls  = 13
+  integer(ik4), parameter :: rad_solin  = 14
+  integer(ik4), parameter :: rad_solout = 15
+  integer(ik4), parameter :: rad_totwv  = 16
+  integer(ik4), parameter :: rad_totcl  = 17
+  integer(ik4), parameter :: rad_totci  = 18
+  integer(ik4), parameter :: rad_lwout  = 19
+  integer(ik4), parameter :: rad_higcl  = 20
+  integer(ik4), parameter :: rad_midcl  = 21
+  integer(ik4), parameter :: rad_lowcl  = 22
 
-  integer(ik4) , parameter :: rad_pp     = 1
-  integer(ik4) , parameter :: rad_pai    = 2
-  integer(ik4) , parameter :: rad_cld    = 3
-  integer(ik4) , parameter :: rad_clwp   = 4
-  integer(ik4) , parameter :: rad_qrs    = 5
-  integer(ik4) , parameter :: rad_qrl    = 6
-  integer(ik4) , parameter :: rad_o3     = 7
+  integer(ik4), parameter :: rad_pp     = 1
+  integer(ik4), parameter :: rad_pai    = 2
+  integer(ik4), parameter :: rad_cld    = 3
+  integer(ik4), parameter :: rad_clwp   = 4
+  integer(ik4), parameter :: rad_qrs    = 5
+  integer(ik4), parameter :: rad_qrl    = 6
+  integer(ik4), parameter :: rad_o3     = 7
 
-  integer(ik4) , parameter :: rad_taucl  = 1
-  integer(ik4) , parameter :: rad_tauci  = 2
+  integer(ik4), parameter :: rad_taucl  = 1
+  integer(ik4), parameter :: rad_tauci  = 2
 
-  integer(ik4) , parameter :: lak_xlon   = 1
-  integer(ik4) , parameter :: lak_xlat   = 2
-  integer(ik4) , parameter :: lak_mask   = 3
-  integer(ik4) , parameter :: lak_topo   = 4
-  integer(ik4) , parameter :: lak_area   = 5
-  integer(ik4) , parameter :: lak_ps     = 6
-  integer(ik4) , parameter :: lak_tg     = 7
-  integer(ik4) , parameter :: lak_tpr    = 8
-  integer(ik4) , parameter :: lak_scv    = 9
-  integer(ik4) , parameter :: lak_sena   = 10
-  integer(ik4) , parameter :: lak_flw    = 11
-  integer(ik4) , parameter :: lak_fsw    = 12
-  integer(ik4) , parameter :: lak_fld    = 13
-  integer(ik4) , parameter :: lak_sina   = 14
-  integer(ik4) , parameter :: lak_aldirs = 15
-  integer(ik4) , parameter :: lak_aldifs = 16
-  integer(ik4) , parameter :: lak_evp    = 17
-  integer(ik4) , parameter :: lak_ice    = 18
+  integer(ik4), parameter :: lak_xlon   = 1
+  integer(ik4), parameter :: lak_xlat   = 2
+  integer(ik4), parameter :: lak_mask   = 3
+  integer(ik4), parameter :: lak_topo   = 4
+  integer(ik4), parameter :: lak_area   = 5
+  integer(ik4), parameter :: lak_ps     = 6
+  integer(ik4), parameter :: lak_tg     = 7
+  integer(ik4), parameter :: lak_tpr    = 8
+  integer(ik4), parameter :: lak_scv    = 9
+  integer(ik4), parameter :: lak_sena   = 10
+  integer(ik4), parameter :: lak_flw    = 11
+  integer(ik4), parameter :: lak_fsw    = 12
+  integer(ik4), parameter :: lak_fld    = 13
+  integer(ik4), parameter :: lak_sina   = 14
+  integer(ik4), parameter :: lak_aldirs = 15
+  integer(ik4), parameter :: lak_aldifs = 16
+  integer(ik4), parameter :: lak_evp    = 17
+  integer(ik4), parameter :: lak_ice    = 18
 
-  integer(ik4) , parameter :: lak_tlake  = 1
+  integer(ik4), parameter :: lak_tlake  = 1
 
-  integer(ik4) , parameter :: opt_xlon     = 1
-  integer(ik4) , parameter :: opt_xlat     = 2
-  integer(ik4) , parameter :: opt_mask     = 3
-  integer(ik4) , parameter :: opt_topo     = 4
-  integer(ik4) , parameter :: opt_area     = 5
-  integer(ik4) , parameter :: opt_ps       = 6
-  integer(ik4) , parameter :: opt_p0       = 7
-  integer(ik4) , parameter :: opt_acstoarf = 8
-  integer(ik4) , parameter :: opt_acstsrrf = 9
-  integer(ik4) , parameter :: opt_acstalrf = 10
-  integer(ik4) , parameter :: opt_acssrlrf = 11
-  integer(ik4) , parameter :: opt_aod      = 12
-  integer(ik4) , parameter :: opt_aastoarf = 13
-  integer(ik4) , parameter :: opt_aastsrrf = 14
-  integer(ik4) , parameter :: opt_aastalrf = 15
-  integer(ik4) , parameter :: opt_aassrlrf = 16
+  integer(ik4), parameter :: opt_xlon     = 1
+  integer(ik4), parameter :: opt_xlat     = 2
+  integer(ik4), parameter :: opt_mask     = 3
+  integer(ik4), parameter :: opt_topo     = 4
+  integer(ik4), parameter :: opt_area     = 5
+  integer(ik4), parameter :: opt_ps       = 6
+  integer(ik4), parameter :: opt_p0       = 7
+  integer(ik4), parameter :: opt_acstoarf = 8
+  integer(ik4), parameter :: opt_acstsrrf = 9
+  integer(ik4), parameter :: opt_acstalrf = 10
+  integer(ik4), parameter :: opt_acssrlrf = 11
+  integer(ik4), parameter :: opt_aod      = 12
+  integer(ik4), parameter :: opt_aastoarf = 13
+  integer(ik4), parameter :: opt_aastsrrf = 14
+  integer(ik4), parameter :: opt_aastalrf = 15
+  integer(ik4), parameter :: opt_aassrlrf = 16
 
-  integer(ik4) , parameter :: opt_pp       = 1
-  integer(ik4) , parameter :: opt_pai      = 2
-  integer(ik4) , parameter :: opt_aext8    = 3
-  integer(ik4) , parameter :: opt_assa8    = 4
-  integer(ik4) , parameter :: opt_agfu8    = 5
-  integer(ik4) , parameter :: opt_deltaz   = 6
-  integer(ik4) , parameter :: opt_ncon     = 7
-  integer(ik4) , parameter :: opt_surf     = 8
+  integer(ik4), parameter :: opt_pp       = 1
+  integer(ik4), parameter :: opt_pai      = 2
+  integer(ik4), parameter :: opt_aext8    = 3
+  integer(ik4), parameter :: opt_assa8    = 4
+  integer(ik4), parameter :: opt_agfu8    = 5
+  integer(ik4), parameter :: opt_deltaz   = 6
+  integer(ik4), parameter :: opt_ncon     = 7
+  integer(ik4), parameter :: opt_surf     = 8
 
-  integer(ik4) , parameter :: che_xlon     = 1
-  integer(ik4) , parameter :: che_xlat     = 2
-  integer(ik4) , parameter :: che_mask     = 3
-  integer(ik4) , parameter :: che_topo     = 4
-  integer(ik4) , parameter :: che_area     = 5
-  integer(ik4) , parameter :: che_ps       = 6
-  integer(ik4) , parameter :: che_p0       = 7
-  integer(ik4) , parameter :: che_wdrflx   = 8
-  integer(ik4) , parameter :: che_wdcflx   = 9
-  integer(ik4) , parameter :: che_ddflx    = 10
-  integer(ik4) , parameter :: che_emflx    = 11
-  integer(ik4) , parameter :: che_ddvel    = 12
-  integer(ik4) , parameter :: che_burden   = 13
-  integer(ik4) , parameter :: che_pblten   = 14
+  integer(ik4), parameter :: che_xlon     = 1
+  integer(ik4), parameter :: che_xlat     = 2
+  integer(ik4), parameter :: che_mask     = 3
+  integer(ik4), parameter :: che_topo     = 4
+  integer(ik4), parameter :: che_area     = 5
+  integer(ik4), parameter :: che_ps       = 6
+  integer(ik4), parameter :: che_p0       = 7
+  integer(ik4), parameter :: che_wdrflx   = 8
+  integer(ik4), parameter :: che_wdcflx   = 9
+  integer(ik4), parameter :: che_ddflx    = 10
+  integer(ik4), parameter :: che_emflx    = 11
+  integer(ik4), parameter :: che_ddvel    = 12
+  integer(ik4), parameter :: che_burden   = 13
+  integer(ik4), parameter :: che_pblten   = 14
 
-  integer(ik4) , parameter :: che_pp       = 1
-  integer(ik4) , parameter :: che_pai      = 2
-  integer(ik4) , parameter :: che_mixrat   = 3
-  integer(ik4) , parameter :: che_cheten   = 4
-  integer(ik4) , parameter :: che_advhten  = 5
-  integer(ik4) , parameter :: che_advvten  = 6
-  integer(ik4) , parameter :: che_difhten  = 7
-  integer(ik4) , parameter :: che_cuten    = 8
-  integer(ik4) , parameter :: che_tuten    = 9
-  integer(ik4) , parameter :: che_raiten   = 10
-  integer(ik4) , parameter :: che_wasten   = 11
-  integer(ik4) , parameter :: che_bdyten   = 12
-  integer(ik4) , parameter :: che_sedten   = 13
-  integer(ik4) , parameter :: che_emten    = 14
-  integer(ik4) , parameter :: che_chgact   = 15
-  integer(ik4) , parameter :: che_ncon     = 16
-  integer(ik4) , parameter :: che_airden   = 17
+  integer(ik4), parameter :: che_pp       = 1
+  integer(ik4), parameter :: che_pai      = 2
+  integer(ik4), parameter :: che_mixrat   = 3
+  integer(ik4), parameter :: che_cheten   = 4
+  integer(ik4), parameter :: che_advhten  = 5
+  integer(ik4), parameter :: che_advvten  = 6
+  integer(ik4), parameter :: che_difhten  = 7
+  integer(ik4), parameter :: che_cuten    = 8
+  integer(ik4), parameter :: che_tuten    = 9
+  integer(ik4), parameter :: che_raiten   = 10
+  integer(ik4), parameter :: che_wasten   = 11
+  integer(ik4), parameter :: che_bdyten   = 12
+  integer(ik4), parameter :: che_sedten   = 13
+  integer(ik4), parameter :: che_emten    = 14
+  integer(ik4), parameter :: che_chgact   = 15
+  integer(ik4), parameter :: che_ncon     = 16
+  integer(ik4), parameter :: che_airden   = 17
 
-  integer(ik4) , parameter :: slab_xlon    = 1
-  integer(ik4) , parameter :: slab_xlat    = 2
-  integer(ik4) , parameter :: slab_mask    = 3
-  integer(ik4) , parameter :: slab_topo    = 4
-  integer(ik4) , parameter :: slab_area    = 5
-  integer(ik4) , parameter :: slab_ps      = 6
+  integer(ik4), parameter :: slab_xlon    = 1
+  integer(ik4), parameter :: slab_xlat    = 2
+  integer(ik4), parameter :: slab_mask    = 3
+  integer(ik4), parameter :: slab_topo    = 4
+  integer(ik4), parameter :: slab_area    = 5
+  integer(ik4), parameter :: slab_ps      = 6
 
-  integer(ik4) , public , parameter :: slab_qflx    = 1
+  integer(ik4), public, parameter :: slab_qflx    = 1
 
-  real(rkx) , pointer , dimension(:,:) :: io2d , io2dsg
-  real(rkx) , pointer , dimension(:,:,:) :: io3d , io3dsg
-  real(rkx) , pointer , dimension(:,:,:,:) :: io4d
+  real(rkx), pointer, contiguous, dimension(:,:) :: io2d, io2dsg
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: io3d, io3dsg
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: io4d
 
   interface setup_var
     module procedure setup_var_2d
@@ -505,29 +505,29 @@ module mod_ncout
 
   subroutine init_output_streams(lparallel)
     implicit none
-    logical , intent(in) :: lparallel
-    integer(ik4) :: nstream , i , itr , vcount , kkz , n4dd
+    logical, intent(in) :: lparallel
+    integer(ik4) :: nstream, i, itr, vcount, kkz, n4dd
     type(varspan) :: vsize
-    logical , dimension(natm2dvars) :: enable_atm2d_vars
-    logical , dimension(natm3dvars) :: enable_atm3d_vars
-    logical , dimension(nsrf2dvars) :: enable_srf2d_vars
-    logical , dimension(nsrf3dvars) :: enable_srf3d_vars
-    logical , dimension(nsts2dvars) :: enable_sts2d_vars
-    logical , dimension(nsts3dvars) :: enable_sts3d_vars
-    logical , dimension(nsub2dvars) :: enable_sub2d_vars
-    logical , dimension(nsub3dvars) :: enable_sub3d_vars
-    logical , dimension(nlak2dvars) :: enable_lak2d_vars
-    logical , dimension(nlak3dvars) :: enable_lak3d_vars
-    logical , dimension(nrad2dvars) :: enable_rad2d_vars
-    logical , dimension(nrad3dvars) :: enable_rad3d_vars
-    logical , dimension(nrad4dvars) :: enable_rad4d_vars
-    logical , dimension(nopt2dvars) :: enable_opt2d_vars
-    logical , dimension(nopt3dvars) :: enable_opt3d_vars
-    logical , dimension(nche2dvars) :: enable_che2d_vars
-    logical , dimension(nche3dvars) :: enable_che3d_vars
+    logical, dimension(natm2dvars) :: enable_atm2d_vars
+    logical, dimension(natm3dvars) :: enable_atm3d_vars
+    logical, dimension(nsrf2dvars) :: enable_srf2d_vars
+    logical, dimension(nsrf3dvars) :: enable_srf3d_vars
+    logical, dimension(nsts2dvars) :: enable_sts2d_vars
+    logical, dimension(nsts3dvars) :: enable_sts3d_vars
+    logical, dimension(nsub2dvars) :: enable_sub2d_vars
+    logical, dimension(nsub3dvars) :: enable_sub3d_vars
+    logical, dimension(nlak2dvars) :: enable_lak2d_vars
+    logical, dimension(nlak3dvars) :: enable_lak3d_vars
+    logical, dimension(nrad2dvars) :: enable_rad2d_vars
+    logical, dimension(nrad3dvars) :: enable_rad3d_vars
+    logical, dimension(nrad4dvars) :: enable_rad4d_vars
+    logical, dimension(nopt2dvars) :: enable_opt2d_vars
+    logical, dimension(nopt3dvars) :: enable_opt3d_vars
+    logical, dimension(nche2dvars) :: enable_che2d_vars
+    logical, dimension(nche3dvars) :: enable_che3d_vars
 
-    integer(ik4) :: global_out_jstart , global_out_jend
-    integer(ik4) :: global_out_istart , global_out_iend
+    integer(ik4) :: global_out_jstart, global_out_jend
+    integer(ik4) :: global_out_istart, global_out_iend
 
     parallel_out = lparallel
 
@@ -711,7 +711,7 @@ module mod_ncout
 #endif
 
     enabled_stream_loop: &
-    do nstream = 1 , maxstreams
+    do nstream = 1, maxstreams
 
       vsize%j1 = jci1
       vsize%j2 = jci2
@@ -1314,13 +1314,13 @@ module mod_ncout
         outstream(atm_stream)%cname_base(1) = 'ATM'
 
         vcount = 1
-        do i = 1 , natm2dvars
+        do i = 1, natm2dvars
           if ( enable_atm_vars(i) ) then
             outstream(atm_stream)%ncvars%vlist(vcount)%vp => v2dvar_atm(i)
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , natm3dvars
+        do i = 1, natm3dvars
           if ( enable_atm_vars(i+natm2dvars) ) then
             outstream(atm_stream)%ncvars%vlist(vcount)%vp => v3dvar_atm(i)
             vcount = vcount + 1
@@ -1381,7 +1381,7 @@ module mod_ncout
         outstream(shf_stream)%cname_base(1) = 'SHF'
 
         vcount = 1
-        do i = 1 , nshfvars
+        do i = 1, nshfvars
           if ( enable_shf_vars(i) ) then
             outstream(shf_stream)%ncvars%vlist(vcount)%vp => v2dvar_shf(i)
             vcount = vcount + 1
@@ -1911,13 +1911,13 @@ module mod_ncout
         outstream(srf_stream)%cname_base(1) = 'SRF'
 
         vcount = 1
-        do i = 1 , nsrf2dvars
+        do i = 1, nsrf2dvars
           if ( enable_srf_vars(i) ) then
             outstream(srf_stream)%ncvars%vlist(vcount)%vp => v2dvar_srf(i)
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , nsrf3dvars
+        do i = 1, nsrf3dvars
           if ( enable_srf_vars(i+nsrf2dvars) ) then
             outstream(srf_stream)%ncvars%vlist(vcount)%vp => v3dvar_srf(i)
             vcount = vcount + 1
@@ -2050,13 +2050,13 @@ module mod_ncout
         outstream(sts_stream)%cname_base(1) = 'STS'
 
         vcount = 1
-        do i = 1 , nsts2dvars
+        do i = 1, nsts2dvars
           if ( enable_sts_vars(i) ) then
             outstream(sts_stream)%ncvars%vlist(vcount)%vp => v2dvar_sts(i)
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , nsts3dvars
+        do i = 1, nsts3dvars
           if ( enable_sts_vars(i+nsts2dvars) ) then
             outstream(sts_stream)%ncvars%vlist(vcount)%vp => v3dvar_sts(i)
             vcount = vcount + 1
@@ -2223,13 +2223,13 @@ module mod_ncout
         outstream(sub_stream)%cname_base(1) = 'SUB'
 
         vcount = 1
-        do i = 1 , nsub2dvars
+        do i = 1, nsub2dvars
           if ( enable_sub_vars(i) ) then
             outstream(sub_stream)%ncvars%vlist(vcount)%vp => v2dvar_sub(i)
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , nsub3dvars
+        do i = 1, nsub3dvars
           if ( enable_sub_vars(i+nsub2dvars) ) then
             outstream(sub_stream)%ncvars%vlist(vcount)%vp => v3dvar_sub(i)
             vcount = vcount + 1
@@ -2435,19 +2435,19 @@ module mod_ncout
         outstream(rad_stream)%cname_base(1) = 'RAD'
 
         vcount = 1
-        do i = 1 , nrad2dvars
+        do i = 1, nrad2dvars
           if ( enable_rad_vars(i) ) then
             outstream(rad_stream)%ncvars%vlist(vcount)%vp => v2dvar_rad(i)
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , nrad3dvars
+        do i = 1, nrad3dvars
           if ( enable_rad_vars(i+nrad2dvars) ) then
             outstream(rad_stream)%ncvars%vlist(vcount)%vp => v3dvar_rad(i)
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , nrad4dvars
+        do i = 1, nrad4dvars
           if ( enable_rad_vars(i+nrad2dvars+nrad3dvars) ) then
             outstream(rad_stream)%ncvars%vlist(vcount)%vp => v4dvar_rad(i)
             vcount = vcount + 1
@@ -2566,13 +2566,13 @@ module mod_ncout
         outstream(lak_stream)%cname_base(1) = 'LAK'
 
         vcount = 1
-        do i = 1 , nlak2dvars
+        do i = 1, nlak2dvars
           if ( enable_lak_vars(i) ) then
             outstream(lak_stream)%ncvars%vlist(vcount)%vp => v2dvar_lak(i)
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , nlak3dvars
+        do i = 1, nlak3dvars
           if ( enable_lak_vars(i+nlak2dvars) ) then
             outstream(lak_stream)%ncvars%vlist(vcount)%vp => v3dvar_lak(i)
             vcount = vcount + 1
@@ -2617,11 +2617,11 @@ module mod_ncout
         outstream(slaboc_stream)%cname_base(1) = 'SOM'
 
         vcount = 1
-        do i = 1 , nslaboc2dvars
+        do i = 1, nslaboc2dvars
           outstream(slaboc_stream)%ncvars%vlist(vcount)%vp => v2dvar_slaboc(i)
           vcount = vcount + 1
         end do
-        do i = 1 , nslaboc3dvars
+        do i = 1, nslaboc3dvars
           outstream(slaboc_stream)%ncvars%vlist(vcount)%vp => v3dvar_slaboc(i)
           vcount = vcount + 1
         end do
@@ -2671,13 +2671,13 @@ module mod_ncout
             end if
             if ( enable_opt2d_vars(opt_aastalrf) ) then
               call setup_var(v2dvar_opt,opt_aastalrf,vsize,'aastalrf','W m-2', &
-                'Top of Atmosphere All sky longwave radiative forcing' , &
+                'Top of Atmosphere All sky longwave radiative forcing', &
                 'TOS_allsky_longwave_radiative_forcing',.true.,'time: mean')
               opt_aastalrf_out => v2dvar_opt(opt_aastalrf)%rval
             end if
             if ( enable_opt2d_vars(opt_aassrlrf) ) then
               call setup_var(v2dvar_opt,opt_aassrlrf,vsize,'aassrlrf','W m-2', &
-                'Surface  All sky longwave radiative forcing' , &
+                'Surface  All sky longwave radiative forcing', &
                 'Surface_allsky_longwave_radiative_forcing',.true.,'time: mean')
               opt_aassrlrf_out => v2dvar_opt(opt_aassrlrf)%rval
             end if
@@ -2707,7 +2707,7 @@ module mod_ncout
           end if
           if ( enable_opt2d_vars(opt_acssrlrf) ) then
             call setup_var(v2dvar_opt,opt_acssrlrf,vsize,'acssrlrf','W m-2', &
-              'Surface longwave radiative forcing' , &
+              'Surface longwave radiative forcing', &
               'surface_longwave_radiative_forcing',.true.,'time: mean')
             opt_acssrlrf_out => v2dvar_opt(opt_acssrlrf)%rval
           end if
@@ -2717,7 +2717,7 @@ module mod_ncout
         end if
         if ( enable_opt2d_vars(opt_aod) ) then
           call setup_var(v2dvar_opt,opt_aod,vsize,'aod','1', &
-            'Aerosol optical thickness in the visible band' , &
+            'Aerosol optical thickness in the visible band', &
             'atmosphere_optical_thickness_due_to_aerosol',.true.)
           opt_aod_out => v2dvar_opt(opt_aod)%rval
         end if
@@ -2796,13 +2796,13 @@ module mod_ncout
         outstream(opt_stream)%cname_base(1) = 'OPT'
 
         vcount = 1
-        do i = 1 , nopt2dvars
+        do i = 1, nopt2dvars
           if ( enable_opt_vars(i) ) then
             outstream(opt_stream)%ncvars%vlist(vcount)%vp => v2dvar_opt(i)
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , nopt3dvars
+        do i = 1, nopt3dvars
           if ( enable_opt_vars(i+nopt2dvars) ) then
             outstream(opt_stream)%ncvars%vlist(vcount)%vp => v3dvar_opt(i)
             vcount = vcount + 1
@@ -3017,18 +3017,18 @@ module mod_ncout
         outstream(che_stream)%nfiles = ntr
         allocate(outstream(che_stream)%ncout(outstream(che_stream)%nfiles))
         allocate(outstream(che_stream)%cname_base(outstream(che_stream)%nfiles))
-        do itr = 1 , ntr
+        do itr = 1, ntr
           outstream(che_stream)%cname_base(itr) = chtrname(itr)
         end do
 
         vcount = 1
-        do i = 1 , nche2dvars
+        do i = 1, nche2dvars
           if ( enable_che_vars(i) ) then
             outstream(che_stream)%ncvars%vlist(vcount)%vp => v2dvar_che(i)
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , nche3dvars
+        do i = 1, nche3dvars
           if ( enable_che_vars(i+nche2dvars) ) then
             outstream(che_stream)%ncvars%vlist(vcount)%vp => v3dvar_che(i)
             vcount = vcount + 1
@@ -3124,33 +3124,33 @@ module mod_ncout
 
   integer(ik4) function countvars(eflags,ntot)
     implicit none
-    integer(ik4) , intent(in) :: ntot
-    logical , dimension(ntot) , intent(in) :: eflags
+    integer(ik4), intent(in) :: ntot
+    logical, dimension(ntot), intent(in) :: eflags
     integer(ik4) :: i
     countvars = nbase
-    do i = nbase+1 , ntot
+    do i = nbase+1, ntot
       if ( eflags(i) ) countvars = countvars + 1
     end do
   end function countvars
 
   subroutine newoutfiles(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     character(len=36) :: fbname
     character(len=36) :: cdate
-    class(ncvariable_standard) , pointer :: vp
-    real(rkx) , pointer , dimension(:,:) :: tmp2d
-    real(rkx) , pointer , dimension(:,:) :: pnt2d => null()
-    integer(ik4) :: i , j , ivar
+    class(ncvariable_standard), pointer :: vp
+    real(rkx), pointer, contiguous, dimension(:,:) :: tmp2d
+    real(rkx), pointer, contiguous, dimension(:,:) :: pnt2d => null()
+    integer(ik4) :: i, j, ivar
     real(rkx) :: dummy
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
       stream_loop: &
-      do i = 1 , maxstreams
+      do i = 1, maxstreams
         file_loop: &
-        do j = 1 , outstream(i)%nfiles
+        do j = 1, outstream(i)%nfiles
           var_loop: &
-          do ivar = 1 , outstream(i)%nvar
+          do ivar = 1, outstream(i)%nvar
             vp => outstream(i)%ncvars%vlist(ivar)%vp
             select type(vp)
               type is (ncvariable2d_mixed)
@@ -3166,20 +3166,20 @@ module mod_ncout
     end if
 
     stream_loop_par: &
-    do i = 1 , maxstreams
+    do i = 1, maxstreams
 
       file_loop_par: &
-      do j = 1 , outstream(i)%nfiles
+      do j = 1, outstream(i)%nfiles
 
         if ( i == slaboc_stream ) then
-          write (fbname,'(a,a,a)') trim(outstream(i)%cname_base(j)) , &
+          write (fbname,'(a,a,a)') trim(outstream(i)%cname_base(j)), &
             '.YYYYMMDDHH'
           outstream(i)%opar%fname = &
             trim(dirglob)//pthsep//trim(prestr)//trim(domname)// &
             '_'//trim(fbname)//'.nc'
           outstream(i)%opar%zero_date = idate
         else
-          write (fbname,'(a,a,a)') trim(outstream(i)%cname_base(j)) , &
+          write (fbname,'(a,a,a)') trim(outstream(i)%cname_base(j)), &
             '.', trim(tochar10(idate))
           outstream(i)%opar%fname = &
             trim(dirout)//pthsep//trim(prestr)//trim(domname)// &
@@ -3907,7 +3907,7 @@ module mod_ncout
           end if
         end if
 
-        do ivar = 1 , outstream(i)%nvar
+        do ivar = 1, outstream(i)%nvar
           vp => outstream(i)%ncvars%vlist(ivar)%vp
           call outstream_addvar(outstream(i)%ncout(j),vp)
         end do
@@ -3923,7 +3923,7 @@ module mod_ncout
         end if
 
         var_loop_par: &
-        do ivar = 1 , outstream(i)%nvar
+        do ivar = 1, outstream(i)%nvar
           vp => outstream(i)%ncvars%vlist(ivar)%vp
 
           ! Collect on temp storage
@@ -3973,9 +3973,9 @@ module mod_ncout
 
   subroutine setup_common_vars(vsize,var,xlon,xlat,topo,mask,area,ps,ps0)
     implicit none
-    type(varspan) , intent(in) :: vsize
-    type(ncvariable2d_mixed) , dimension(:) , intent(inout) :: var
-    integer(ik4), intent(in) :: xlon , xlat , topo , mask , area , ps , ps0
+    type(varspan), intent(in) :: vsize
+    type(ncvariable2d_mixed), dimension(:), intent(inout) :: var
+    integer(ik4), intent(in) :: xlon, xlat, topo, mask, area, ps, ps0
     if ( associated(xlon_out) ) then
       call setup_var(var,xlon,vsize,'xlon','degrees_east', &
         'Longitude on Cross Points','longitude',lgetspace=.false.)
@@ -4039,14 +4039,14 @@ module mod_ncout
   subroutine setup_var_2d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
                          l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
     implicit none
-    type(ncvariable2d_mixed) , dimension(:) , intent(inout) :: var
-    integer(ik4) , intent(in) :: ivar
-    type(varspan) , intent(in) :: vsize
-    character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
-    character(len=*) , intent(in) , optional :: cell_method
-    logical , intent(in) , optional :: l_rec , l_fill , lgetspace
-    real(rk4) , intent(in) , optional :: rmissval
-    character(len=*) , intent(in) , optional :: notes
+    type(ncvariable2d_mixed), dimension(:), intent(inout) :: var
+    integer(ik4), intent(in) :: ivar
+    type(varspan), intent(in) :: vsize
+    character(len=*), intent(in) :: vname, vunit, long_name, standard_name
+    character(len=*), intent(in), optional :: cell_method
+    logical, intent(in), optional :: l_rec, l_fill, lgetspace
+    real(rk4), intent(in), optional :: rmissval
+    character(len=*), intent(in), optional :: notes
     var(ivar)%vname = vname
     var(ivar)%vunit = vunit
     var(ivar)%long_name = long_name
@@ -4089,14 +4089,14 @@ module mod_ncout
   subroutine setup_var_3d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
                           l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
     implicit none
-    type(ncvariable3d_mixed) , dimension(:) , intent(inout) :: var
-    integer(ik4) , intent(in) :: ivar
-    type(varspan) , intent(in) :: vsize
-    character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
-    character(len=*) , intent(in) , optional :: cell_method
-    logical , intent(in) , optional :: l_rec , l_fill , lgetspace
-    real(rk4) , intent(in) , optional :: rmissval
-    character(len=*) , intent(in) , optional :: notes
+    type(ncvariable3d_mixed), dimension(:), intent(inout) :: var
+    integer(ik4), intent(in) :: ivar
+    type(varspan), intent(in) :: vsize
+    character(len=*), intent(in) :: vname, vunit, long_name, standard_name
+    character(len=*), intent(in), optional :: cell_method
+    logical, intent(in), optional :: l_rec, l_fill, lgetspace
+    real(rk4), intent(in), optional :: rmissval
+    character(len=*), intent(in), optional :: notes
     var(ivar)%vname = vname
     var(ivar)%vunit = vunit
     var(ivar)%long_name = long_name
@@ -4134,14 +4134,14 @@ module mod_ncout
   subroutine setup_var_4d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
                           l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
     implicit none
-    type(ncvariable4d_mixed) , dimension(:) , intent(inout) :: var
-    integer(ik4) , intent(in) :: ivar
-    type(varspan) , intent(in) :: vsize
-    character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
-    character(len=*) , intent(in) , optional :: cell_method
-    logical , intent(in) , optional :: l_rec , l_fill , lgetspace
-    real(rk4) , intent(in) , optional :: rmissval
-    character(len=*) , intent(in) , optional :: notes
+    type(ncvariable4d_mixed), dimension(:), intent(inout) :: var
+    integer(ik4), intent(in) :: ivar
+    type(varspan), intent(in) :: vsize
+    character(len=*), intent(in) :: vname, vunit, long_name, standard_name
+    character(len=*), intent(in), optional :: cell_method
+    logical, intent(in), optional :: l_rec, l_fill, lgetspace
+    real(rk4), intent(in), optional :: rmissval
+    character(len=*), intent(in), optional :: notes
     var(ivar)%vname = vname
     var(ivar)%vunit = vunit
     var(ivar)%long_name = long_name
@@ -4180,7 +4180,7 @@ module mod_ncout
 
  subroutine dispose_output_streams
     implicit none
-    integer(ik4) :: nstream , nfile
+    integer(ik4) :: nstream, nfile
     if ( associated(v2dvar_atm) ) deallocate(v2dvar_atm)
     if ( associated(v3dvar_atm) ) deallocate(v3dvar_atm)
     if ( associated(v2dvar_srf) ) deallocate(v2dvar_srf)
@@ -4199,8 +4199,8 @@ module mod_ncout
     if ( associated(v2dvar_che) ) deallocate(v2dvar_che)
     if ( associated(v3dvar_che) ) deallocate(v3dvar_che)
     if ( associated(v2dvar_slaboc) ) deallocate(v2dvar_slaboc)
-    do nstream = 1 , maxstreams
-      do nfile = 1 , outstream(nstream)%nfiles
+    do nstream = 1, maxstreams
+      do nfile = 1, outstream(nstream)%nfiles
         call outstream_dispose(outstream(nstream)%ncout(nfile))
       end do
       deallocate(outstream(nstream)%ncout)
@@ -4214,20 +4214,20 @@ module mod_ncout
 
   subroutine write_record_output_stream(istream,idate,ifile)
     implicit none
-    integer(ik4) , intent(in) :: istream
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) , intent(in) , optional :: ifile
-    real(rkx) , pointer , dimension(:,:) :: tmp2d
-    real(rkx) , pointer , dimension(:,:,:) :: tmp3d
-    real(rkx) , pointer , dimension(:,:,:,:) :: tmp4d
-    real(rkx) , pointer , dimension(:,:) :: pnt2d => null( )
-    real(rkx) , pointer , dimension(:,:,:) :: pnt3d => null( )
-    real(rkx) , pointer , dimension(:,:,:,:) :: pnt4d => null( )
-    class(ncvariable_standard) , pointer :: vp
-    integer(ik4) :: ivar , jfile
+    integer(ik4), intent(in) :: istream
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4), intent(in), optional :: ifile
+    real(rkx), pointer, contiguous, dimension(:,:) :: tmp2d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: tmp3d
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: tmp4d
+    real(rkx), pointer, contiguous, dimension(:,:) :: pnt2d => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: pnt3d => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: pnt4d => null( )
+    class(ncvariable_standard), pointer :: vp
+    integer(ik4) :: ivar, jfile
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
-      do ivar = 1 , outstream(istream)%nvar
+      do ivar = 1, outstream(istream)%nvar
         vp => outstream(istream)%ncvars%vlist(ivar)%vp
         select type(vp)
           type is (ncvariable2d_mixed)
@@ -4270,7 +4270,7 @@ module mod_ncout
       end if
     end if
 
-    do ivar = 1 , outstream(istream)%nvar
+    do ivar = 1, outstream(istream)%nvar
 
       vp => outstream(istream)%ncvars%vlist(ivar)%vp
 
@@ -4399,11 +4399,11 @@ module mod_ncout
 
   subroutine writevar2d_output_stream(istream,vp,ifile)
     implicit none
-    integer(ik4) , intent(in) :: istream
-    integer(ik4) , intent(in) , optional :: ifile
-    type(ncvariable2d_mixed) , intent(inout) :: vp
-    real(rkx) , pointer , dimension(:,:) :: tmp2d
-    real(rkx) , pointer , dimension(:,:) :: pnt2d => null( )
+    integer(ik4), intent(in) :: istream
+    integer(ik4), intent(in), optional :: ifile
+    type(ncvariable2d_mixed), intent(inout) :: vp
+    real(rkx), pointer, contiguous, dimension(:,:) :: tmp2d
+    real(rkx), pointer, contiguous, dimension(:,:) :: pnt2d => null( )
     integer(ik4) :: jfile
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
@@ -4460,11 +4460,11 @@ module mod_ncout
 
   subroutine writevar3d_output_stream(istream,vp,ifile)
     implicit none
-    integer(ik4) , intent(in) :: istream
-    integer(ik4) , intent(in) , optional :: ifile
-    type(ncvariable3d_mixed) , intent(inout) :: vp
-    real(rkx) , pointer , dimension(:,:,:) :: tmp3d
-    real(rkx) , pointer , dimension(:,:,:) :: pnt3d => null( )
+    integer(ik4), intent(in) :: istream
+    integer(ik4), intent(in), optional :: ifile
+    type(ncvariable3d_mixed), intent(inout) :: vp
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: tmp3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: pnt3d => null( )
     integer(ik4) :: jfile
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
@@ -4520,11 +4520,11 @@ module mod_ncout
 
   subroutine writevar4d_output_stream(istream,vp,ifile)
     implicit none
-    integer(ik4) , intent(in) :: istream
-    integer(ik4) , intent(in) , optional :: ifile
-    type(ncvariable4d_mixed) , intent(inout) :: vp
-    real(rkx) , pointer , dimension(:,:,:,:) :: tmp4d
-    real(rkx) , pointer , dimension(:,:,:,:) :: pnt4d => null( )
+    integer(ik4), intent(in) :: istream
+    integer(ik4), intent(in), optional :: ifile
+    type(ncvariable4d_mixed), intent(inout) :: vp
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: tmp4d
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: pnt4d => null( )
     integer(ik4) :: jfile
 
     if ( .not. parallel_out .and. myid /= iocpu ) then

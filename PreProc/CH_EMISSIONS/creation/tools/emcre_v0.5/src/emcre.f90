@@ -519,9 +519,9 @@ CONTAINS
     INTEGER :: fstat ! file status
 
     NAMELIST /CTRL/ VERBOSE, OUTPUT, SPECIES, MOLARMASS, TIME_FREQUENCY, OUT_UNIT  &
-                  , GLOBALSCALE, INTERPOLATION, L_AIRCRAFT   &
-                  , YEAR_START, YEAR_END, HEIGHT, INPUTPATH &
-                  , SOURCE, FRAC, YEAR, FILE_NAME
+                 , GLOBALSCALE, INTERPOLATION, L_AIRCRAFT   &
+                 , YEAR_START, YEAR_END, HEIGHT, INPUTPATH &
+                 , SOURCE, FRAC, YEAR, FILE_NAME
 
     !DEFAULT
     TIME_FREQUENCY ='monthly'
@@ -991,7 +991,7 @@ CONTAINS
     IF (L_AIRCRAFT) THEN
     CALL NFERR(status, &
         nf90_def_dim(ncid, 'ilev', nlev+1, dimid_ilev) &
-        , 58)
+       , 58)
     ENDIF
     CALL NFERR(status, &
          nf90_def_dim(ncid, 'time', NF90_UNLIMITED, dimid_time) &
@@ -1067,11 +1067,11 @@ CONTAINS
        ! - emission pressure mid layer
        CALL NFERR(status, &
             nf90_def_var(ncid, 'press', NF90_FLOAT  &
-            , (/ dimid_lev /), varid_press) &
+           , (/ dimid_lev /), varid_press) &
             ,71)
        CALL NFERR(status, &
             nf90_put_att(ncid, varid_press, 'long_name' &
-            , 'emission pressure') &
+           , 'emission pressure') &
             ,72)
        CALL NFERR(status, &
             nf90_put_att(ncid, varid_press, 'units', 'Pa') &
@@ -1079,11 +1079,11 @@ CONTAINS
             ! - emission pressure interface layer
        CALL NFERR(status, &
             nf90_def_var(ncid, 'ipress', NF90_FLOAT  &
-            , (/ dimid_ilev /), varid_ipress) &
+           , (/ dimid_ilev /), varid_ipress) &
             ,74)
        CALL NFERR(status, &
             nf90_put_att(ncid, varid_ipress, 'long_name' &
-            , 'emission interface pressure') &
+           , 'emission interface pressure') &
             ,75)
        CALL NFERR(status, &
             nf90_put_att(ncid, varid_ipress, 'units', 'Pa') &
@@ -1092,11 +1092,11 @@ CONTAINS
         ! - emission height
         CALL NFERR(status, &
              nf90_def_var(ncid, 'height', NF90_FLOAT  &
-             , (/ dimid_lev /), varid_height) &
+            , (/ dimid_lev /), varid_height) &
              ,71)
         CALL NFERR(status, &
              nf90_put_att(ncid, varid_height, 'long_name' &
-             , 'emission height') &
+            , 'emission height') &
              ,72)
         CALL NFERR(status, &
              nf90_put_att(ncid, varid_height, 'units', 'm') &
@@ -1106,11 +1106,11 @@ CONTAINS
 !    ! - flux
     CALL NFERR(status, &
          nf90_def_var(ncid, TRIM(SPECIES)//'_flux', NF90_FLOAT  &
-         , (/ dimid_lon, dimid_lat, dimid_lev, dimid_time /), varid_flux) &
+        , (/ dimid_lon, dimid_lat, dimid_lev, dimid_time /), varid_flux) &
          ,78)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_flux, 'long_name' &
-         , 'flux of '//TRIM(SPECIES)) &
+        , 'flux of '//TRIM(SPECIES)) &
          ,79)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_flux, 'units', OUT_UNIT) &

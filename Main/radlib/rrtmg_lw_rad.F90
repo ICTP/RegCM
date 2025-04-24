@@ -564,7 +564,7 @@
           else if (idirect > 0 .and. lradfor ) then
             nlwcall = 2
           end if
-          do n = 1 , nlwcall
+          do n = 1, nlwcall
             if ( idirect == 1 ) then
               if ( n == 1 .and. lradfor)  then
                 do k = 1, nlayers

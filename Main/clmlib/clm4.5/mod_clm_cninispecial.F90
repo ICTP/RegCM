@@ -16,21 +16,21 @@ module mod_clm_cninispecial
   !
   subroutine CNiniSpecial ()
 #ifdef CN
-    use mod_clm_pftvarcon , only : noveg
-    use mod_clm_decomp , only : get_proc_bounds
-    use mod_clm_varcon , only : spval
-    use mod_clm_varpar , only : nlevdecomp_full
-    use mod_clm_varctl , only : use_c13, use_c14
+    use mod_clm_pftvarcon, only : noveg
+    use mod_clm_decomp, only : get_proc_bounds
+    use mod_clm_varcon, only : spval
+    use mod_clm_varpar, only : nlevdecomp_full
+    use mod_clm_varctl, only : use_c13, use_c14
     use mod_clm_type
     use mod_clm_cnsetvalue
-    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_surfrd, only : crop_prog
     implicit none
     ! landunit index of corresponding column
-    integer(ik4) , pointer :: clandunit(:)
+    integer(ik4), pointer, contiguous :: clandunit(:)
     ! landunit index of corresponding pft
-    integer(ik4) , pointer :: plandunit(:)
+    integer(ik4), pointer, contiguous :: plandunit(:)
     ! BOOL: true=>landunit is wetland,ice,lake, or urban
-    logical , pointer :: ifspecial(:)
+    logical, pointer, contiguous :: ifspecial(:)
 
     integer(ik4) :: fc,fp,l,c,p,j ! indices
     integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices

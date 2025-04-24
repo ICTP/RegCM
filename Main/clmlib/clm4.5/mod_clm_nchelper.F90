@@ -23,7 +23,7 @@ module mod_clm_nchelper
   use mod_message
   use mod_mppparam
   use mod_dynparam
-  use mod_runparams , only : lsync
+  use mod_runparams, only : lsync
   use mod_regcm_types
   use mod_clm_decomp
   use mod_clm_varcon
@@ -35,33 +35,33 @@ module mod_clm_nchelper
 
   save
 
-  integer(ik4) , parameter :: clm_maxdims = 64
-  integer(ik4) , parameter :: clm_maxvars = 1024
+  integer(ik4), parameter :: clm_maxdims = 64
+  integer(ik4), parameter :: clm_maxvars = 1024
 
   type clm_filetype
     integer(ik4) :: ncid = -1
     character(len=256) :: fname
     integer(ik4) :: idimlast = 0
     integer(ik4) :: ivarlast = 0
-    integer(ik4) , dimension(clm_maxdims) :: dimids
-    integer(ik4) , dimension(clm_maxdims) :: dimhash
-    character(len=32) , dimension(clm_maxdims) :: dimname
-    integer(ik4) , dimension(clm_maxvars) :: varids
-    integer(ik4) , dimension(clm_maxvars) :: varhash
-    character(len=32) , dimension(clm_maxvars) :: varname
-    integer(ik4) , dimension(:,:) , pointer :: i4buf => null()
-    real(rk4) , dimension(:,:) , pointer :: r4buf => null()
-    real(rk8) , dimension(:,:) , pointer :: r8buf => null()
+    integer(ik4), dimension(clm_maxdims) :: dimids
+    integer(ik4), dimension(clm_maxdims) :: dimhash
+    character(len=32), dimension(clm_maxdims) :: dimname
+    integer(ik4), dimension(clm_maxvars) :: varids
+    integer(ik4), dimension(clm_maxvars) :: varhash
+    character(len=32), dimension(clm_maxvars) :: varname
+    integer(ik4), dimension(:,:), pointer, contiguous :: i4buf => null()
+    real(rk4), dimension(:,:), pointer, contiguous :: r4buf => null()
+    real(rk8), dimension(:,:), pointer, contiguous :: r8buf => null()
   end type clm_filetype
 
-  integer(ik4) , public , parameter :: clmvar_text    = 1
-  integer(ik4) , public , parameter :: clmvar_logical = 2
-  integer(ik4) , public , parameter :: clmvar_integer = 3
-  integer(ik4) , public , parameter :: clmvar_real    = 4
-  integer(ik4) , public , parameter :: clmvar_double  = 5
+  integer(ik4), public, parameter :: clmvar_text    = 1
+  integer(ik4), public, parameter :: clmvar_logical = 2
+  integer(ik4), public, parameter :: clmvar_integer = 3
+  integer(ik4), public, parameter :: clmvar_real    = 4
+  integer(ik4), public, parameter :: clmvar_double  = 5
 
-  integer(ik4) , public , parameter :: clmvar_unlim   = -1
-  integer(ik4) , public , parameter :: clm_readwrite  = 255
+  integer(ik4), public, parameter :: clmvar_unlim   = -1
+  integer(ik4), public, parameter :: clm_readwrite  = 255
 
   interface assignment(=)
     module procedure copy_filetype
@@ -91,9 +91,9 @@ module mod_clm_nchelper
 
   integer(ik4) :: incstat = nf90_noerr
 
-  integer(ik4) , dimension(clm_maxdims) :: usedims
-  integer(ik4) , dimension(4) :: istart
-  integer(ik4) , dimension(4) :: icount
+  integer(ik4), dimension(clm_maxdims) :: usedims
+  integer(ik4), dimension(4) :: istart
+  integer(ik4), dimension(4) :: icount
 
   interface clm_addatt
     module procedure clm_addatt_text
@@ -265,8 +265,8 @@ module mod_clm_nchelper
 !
   subroutine clm_createfile(fname,ncid)
     implicit none
-    character(len=*) , intent(in) :: fname
-    type(clm_filetype) , intent(out) :: ncid
+    character(len=*), intent(in) :: fname
+    type(clm_filetype), intent(out) :: ncid
 
 #ifdef PNETCDF
     iomode = ior(nf90_clobber, nf90_64bit_offset)
@@ -293,12 +293,12 @@ module mod_clm_nchelper
 
   subroutine clm_openfile(fname,ncid,mode)
     implicit none
-    character(len=*) , intent(in) :: fname
-    type(clm_filetype) , intent(out) :: ncid
-    integer(ik4) , intent(in) , optional :: mode
-    integer(ik4) :: nDimensions , nVariable
-    integer(ik4) :: id , iv
-    character(len=64) :: varname , dimname
+    character(len=*), intent(in) :: fname
+    type(clm_filetype), intent(out) :: ncid
+    integer(ik4), intent(in), optional :: mode
+    integer(ik4) :: nDimensions, nVariable
+    integer(ik4) :: id, iv
+    character(len=64) :: varname, dimname
     if ( myid /= iocpu ) return
     if ( present(mode) ) then
       if ( mode == clm_readwrite ) then
@@ -310,7 +310,7 @@ module mod_clm_nchelper
         call clm_checkncerr(__FILE__,__LINE__, &
                     'Error inquire NetCDF '//trim(fname))
         ncid%idimlast = 0
-        do id = 1 , nDimensions
+        do id = 1, nDimensions
           incstat = nf90_inquire_dimension(ncid%ncid, id, dimname)
           call clm_checkncerr(__FILE__,__LINE__, &
                       'Error inquire NetCDF '//trim(fname))
@@ -318,7 +318,7 @@ module mod_clm_nchelper
           call add_dimhash(ncid,dimname)
         end do
         ncid%ivarlast = 0
-        do iv = 1 , nVariable
+        do iv = 1, nVariable
           incstat = nf90_inquire_variable(ncid%ncid, iv, varname)
           call clm_checkncerr(__FILE__,__LINE__, &
                       'Error inquire NetCDF '//trim(fname))
@@ -344,7 +344,7 @@ module mod_clm_nchelper
 
   subroutine clm_enddef(ncid)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
+    type(clm_filetype), intent(inout) :: ncid
     if ( myid /= iocpu ) return
     incstat =  nf90_enddef(ncid%ncid)
     call clm_checkncerr(__FILE__,__LINE__,'Error enddef NetCDF output')
@@ -352,10 +352,10 @@ module mod_clm_nchelper
 
   subroutine clm_inqdim(ncid,dname,dlen)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: dname
-    integer(ik4) , intent(out) :: dlen
-    integer(ik4) :: idimid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: dname
+    integer(ik4), intent(out) :: dlen
+    integer(ik4) :: idimid, mpierr
     dlen = -1
     if ( myid == iocpu ) then
       incstat = nf90_inq_dimid(ncid%ncid, dname, idimid)
@@ -373,11 +373,11 @@ module mod_clm_nchelper
 
   subroutine clm_addatt_text(ncid,aname,aval,ivar,cvar)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: aname
-    character(len=*) , intent(in) :: aval
-    integer(ik4) , intent(in) , optional :: ivar
-    character(len=*) , intent(in) , optional :: cvar
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: aname
+    character(len=*), intent(in) :: aval
+    integer(ik4), intent(in), optional :: ivar
+    character(len=*), intent(in), optional :: cvar
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     if ( present(ivar) ) then
@@ -398,11 +398,11 @@ module mod_clm_nchelper
 
   subroutine clm_addatt_integer(ncid,aname,aval,ivar,cvar)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: aname
-    integer(ik4) , intent(in) :: aval
-    integer(ik4) , intent(in) , optional :: ivar
-    character(len=*) , intent(in) , optional :: cvar
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: aname
+    integer(ik4), intent(in) :: aval
+    integer(ik4), intent(in), optional :: ivar
+    character(len=*), intent(in), optional :: cvar
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     if ( present(ivar) ) then
@@ -423,11 +423,11 @@ module mod_clm_nchelper
 
   subroutine clm_addatt_single(ncid,aname,aval,ivar,cvar)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: aname
-    real(rk4) , intent(in) :: aval
-    integer(rk4) , intent(in) , optional :: ivar
-    character(len=*) , intent(in) , optional :: cvar
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: aname
+    real(rk4), intent(in) :: aval
+    integer(rk4), intent(in), optional :: ivar
+    character(len=*), intent(in), optional :: cvar
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     if ( present(ivar) ) then
@@ -448,11 +448,11 @@ module mod_clm_nchelper
 
   subroutine clm_addatt_double(ncid,aname,aval,ivar,cvar)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: aname
-    integer(rk8) , intent(in) :: aval
-    integer(ik4) , intent(in) , optional :: ivar
-    character(len=*) , intent(in) , optional :: cvar
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: aname
+    integer(rk8), intent(in) :: aval
+    integer(ik4), intent(in), optional :: ivar
+    character(len=*), intent(in), optional :: cvar
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     if ( present(ivar) ) then
@@ -473,10 +473,10 @@ module mod_clm_nchelper
 
   logical function clm_check_dimlen(ncid,dname,ival)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: dname
-    integer(ik4) , intent(in) :: ival
-    integer(ik4) :: idimid , dlen , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: dname
+    integer(ik4), intent(in) :: ival
+    integer(ik4) :: idimid, dlen, mpierr
     clm_check_dimlen = .true.
     if ( myid == iocpu ) then
       incstat = nf90_inq_dimid(ncid%ncid, dname, idimid)
@@ -493,8 +493,8 @@ module mod_clm_nchelper
 
   subroutine clm_check_dims(ncid,ni,nj)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    integer(ik4) , intent(out) :: ni , nj
+    type(clm_filetype), intent(in) :: ncid
+    integer(ik4), intent(out) :: ni, nj
     call clm_inqdim(ncid,'lon',ni)
     if ( ni < 0 ) then
       call clm_inqdim(ncid,'lsmlon',ni)
@@ -520,9 +520,9 @@ module mod_clm_nchelper
 
   subroutine clm_adddim(ncid,dnam,nd)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: dnam
-    integer(ik4) , intent(in) :: nd
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: dnam
+    integer(ik4), intent(in) :: nd
     integer(ik4) :: nval
     if ( myid /= iocpu ) return
     nval = nd
@@ -539,21 +539,21 @@ module mod_clm_nchelper
                         cell_method,comment,flag_meanings,missing_value,  &
                         fill_value,flag_values,valid_range,switchdim)
     implicit none
-    integer(ik4) , intent(in) :: ctype
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: varname
-    character(len=*) , intent(in) , optional , dimension(:) :: cdims
-    character(len=*) , intent(in) , optional :: long_name
-    character(len=*) , intent(in) , optional :: units
-    character(len=*) , intent(in) , optional :: cell_method
-    character(len=*) , intent(in) , optional :: comment
-    character(len=*) , intent(in) , dimension(:) , optional :: flag_meanings
-    integer(ik4) , intent(in) , optional :: missing_value
-    integer(ik4) , intent(in) , optional :: fill_value
-    integer(ik4) , intent(in) , dimension(:) , optional :: flag_values
-    integer(ik4) , intent(in) , dimension(2) , optional :: valid_range
-    logical , optional , intent(in) :: switchdim
-    integer(ik4) :: nd , i , varid
+    integer(ik4), intent(in) :: ctype
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: varname
+    character(len=*), intent(in), optional, dimension(:) :: cdims
+    character(len=*), intent(in), optional :: long_name
+    character(len=*), intent(in), optional :: units
+    character(len=*), intent(in), optional :: cell_method
+    character(len=*), intent(in), optional :: comment
+    character(len=*), intent(in), dimension(:), optional :: flag_meanings
+    integer(ik4), intent(in), optional :: missing_value
+    integer(ik4), intent(in), optional :: fill_value
+    integer(ik4), intent(in), dimension(:), optional :: flag_values
+    integer(ik4), intent(in), dimension(2), optional :: valid_range
+    logical, optional, intent(in) :: switchdim
+    integer(ik4) :: nd, i, varid
     character(len=256) :: str
     logical :: doswitch
     doswitch = .false.
@@ -564,7 +564,7 @@ module mod_clm_nchelper
     nd = 0
     if ( present(cdims) ) then
       nd = size(cdims)
-      do i = 1 , nd
+      do i = 1, nd
         if ( doswitch ) then
           usedims(i) = searchdim(ncid,cdims(nd-i+1))
         else
@@ -678,7 +678,7 @@ module mod_clm_nchelper
     end if
     if ( present(flag_meanings) ) then
       str = ' '
-      do i = 1 , size(flag_meanings)
+      do i = 1, size(flag_meanings)
         str = str//flag_meanings(i)
       end do
       incstat = nf90_put_att(ncid%ncid, varid, 'flag_meanings', trim(str))
@@ -702,9 +702,9 @@ module mod_clm_nchelper
 
   logical function clm_check_dim(ncid,dname)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: dname
-    integer(ik4) :: idimid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: dname
+    integer(ik4) :: idimid, mpierr
     if ( myid == iocpu) then
       incstat = nf90_inq_dimid(ncid%ncid,dname,idimid)
       clm_check_dim = ( incstat == nf90_noerr )
@@ -717,9 +717,9 @@ module mod_clm_nchelper
 
   logical function clm_check_var(ncid,vname)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       clm_check_var = ( incstat == nf90_noerr )
@@ -732,7 +732,7 @@ module mod_clm_nchelper
 
   subroutine clm_closefile(ncid)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
+    type(clm_filetype), intent(inout) :: ncid
     if ( ncid%ncid < 0 ) return
     incstat = nf90_close(ncid%ncid)
     call clm_checkncerr(__FILE__,__LINE__, &
@@ -748,9 +748,9 @@ module mod_clm_nchelper
 
   subroutine clm_checkncerr(filename,line,arg)
     implicit none
-    integer(ik4) , intent(in) :: line
+    integer(ik4), intent(in) :: line
     character(len=8) :: cline
-    character(*) , intent(in) :: filename , arg
+    character(*), intent(in) :: filename, arg
     if ( incstat /= nf90_noerr ) then
       write (cline,'(i8)') line
       write (stderr,*) nf90_strerror(incstat)
@@ -760,9 +760,9 @@ module mod_clm_nchelper
 
   integer(ik4) function hash(text) result(hashed)
     implicit none
-    character(len=*) , intent(in) :: text
-    !integer(ik4) , parameter :: magic_numb = z'5d7a9f43'
-    integer(ik4) , parameter :: magic_numb = 1568317251
+    character(len=*), intent(in) :: text
+    !integer(ik4), parameter :: magic_numb = z'5d7a9f43'
+    integer(ik4), parameter :: magic_numb = 1568317251
     integer(ik4) :: i, j
     hashed = 0
     do i = 1, len_trim(text)
@@ -775,20 +775,20 @@ module mod_clm_nchelper
 
   subroutine add_dimhash(ncid,dname)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: dname
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: dname
     ncid%dimhash(ncid%idimlast) = hash(dname)
     ncid%dimname(ncid%idimlast) = dname
   end subroutine add_dimhash
 
   integer(ik4) function searchdim(ncid,dname)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: dname
-    integer(ik4) :: i , hashed
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: dname
+    integer(ik4) :: i, hashed
     hashed = hash(dname)
     searchdim = -1
-    do i = 1 , ncid%idimlast
+    do i = 1, ncid%idimlast
       if ( ncid%dimhash(i) == hashed ) then
         searchdim = i
         return
@@ -798,20 +798,20 @@ module mod_clm_nchelper
 
   subroutine add_varhash(ncid,vname)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
     ncid%varhash(ncid%ivarlast) = hash(vname)
     ncid%varname(ncid%ivarlast) = vname
   end subroutine add_varhash
 
   integer(ik4) function searchvar(ncid,vname)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) :: i , hashed
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4) :: i, hashed
     hashed = hash(vname)
     searchvar = -1
-    do i = 1 , ncid%ivarlast
+    do i = 1, ncid%ivarlast
       if ( ncid%varhash(i) == hashed ) then
         searchvar = i
         return
@@ -821,10 +821,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_text_0d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    character(len=*) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    character(len=*), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -841,10 +841,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_text_1d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    character(len=*) , dimension(:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    character(len=*), dimension(:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -862,11 +862,11 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_logical_0d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
     integer(ik4) :: rval
-    logical , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    logical, intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -884,11 +884,11 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_logical_1d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:) , intent(out) :: xval
-    integer(ik4) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:), intent(out) :: xval
+    integer(ik4), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -908,11 +908,11 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_logical_2d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:) , intent(out) :: xval
-    integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:), intent(out) :: xval
+    integer(ik4), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -932,11 +932,11 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_logical_3d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:) , intent(out) :: xval
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:), intent(out) :: xval
+    integer(ik4), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -956,11 +956,11 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_logical_4d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:,:) , intent(out) :: xval
-    integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:,:), intent(out) :: xval
+    integer(ik4), dimension(:,:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -980,10 +980,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_integer_0d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1000,10 +1000,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_integer_1d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1020,10 +1020,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_integer_2d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1040,10 +1040,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_integer_3d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1060,10 +1060,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_integer_4d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:,:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:,:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1080,10 +1080,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real4_0d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1100,10 +1100,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real4_1d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1120,10 +1120,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real4_2d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1140,10 +1140,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real4_3d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1160,10 +1160,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real4_4d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:,:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:,:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1180,10 +1180,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real8_0d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1200,10 +1200,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real8_1d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1220,10 +1220,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real8_2d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1240,10 +1240,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real8_3d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1260,10 +1260,10 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real8_4d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:,:) , intent(out) :: xval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:,:), intent(out) :: xval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1280,11 +1280,11 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_text_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    character(len=*) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    character(len=*), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1305,12 +1305,12 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_logical_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(1) :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(1) :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1330,12 +1330,12 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_logical_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , nv1 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, nv1, mpierr
     if ( myid == iocpu ) then
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1360,12 +1360,12 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_logical_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , nv1 , nv2 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, nv1, nv2, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1393,12 +1393,12 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_logical_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , nv1 , nv2 , nv3 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, nv1, nv2, nv3, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1429,12 +1429,12 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_integer_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(1) :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(1) :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1454,11 +1454,11 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_integer_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1480,11 +1480,11 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_integer_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1509,11 +1509,11 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_integer_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2 , nv3 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2, nv3, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1541,12 +1541,12 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real4_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , mpierr
-    real(rk4) , dimension(1) :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, mpierr
+    real(rk4), dimension(1) :: rval
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1566,11 +1566,11 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real4_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1592,11 +1592,11 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real4_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1621,11 +1621,11 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real4_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2 , nv3 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2, nv3, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1653,12 +1653,12 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real8_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , mpierr
-    real(rk8) , dimension(1) :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, mpierr
+    real(rk8), dimension(1) :: rval
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1678,11 +1678,11 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real8_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1704,11 +1704,11 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real8_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1733,11 +1733,11 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real8_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:) , intent(out) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2 , nv3 , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:), intent(out) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2, nv3, mpierr
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -1765,13 +1765,13 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_logical_1d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , dimension(:) , allocatable :: rval
-    integer(ik4) , dimension(:) , allocatable :: lval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), dimension(:), allocatable :: rval
+    integer(ik4), dimension(:), allocatable :: lval
+    integer(ik4) :: ivarid, mpierr
     allocate(lval(sg%ic(myid+1)))
     if ( myid == iocpu ) then
       allocate(rval(sg%ns))
@@ -1793,13 +1793,13 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_logical_2d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) , dimension(:) , allocatable :: lval
-    integer(ik4) :: ivarid , nv2 , k , mpierr , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), dimension(:,:), allocatable :: rval
+    integer(ik4), dimension(:), allocatable :: lval
+    integer(ik4) :: ivarid, nv2, k, mpierr, kk
     nv2 = size(xval,2)
     allocate(lval(sg%ic(myid+1)))
     if ( myid == iocpu ) then
@@ -1810,7 +1810,7 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
                           lval,sg%ic(myid+1),mpi_integer4,    &
@@ -1819,7 +1819,7 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                           lval,sg%ic(myid+1),mpi_integer4, &
@@ -1832,13 +1832,13 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_logical_3d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) , dimension(:) , allocatable :: lval
-    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3 , kk , ll
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), dimension(:,:,:), allocatable :: rval
+    integer(ik4), dimension(:), allocatable :: lval
+    integer(ik4) :: ivarid, mpierr, k, l, nv2, nv3, kk, ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     allocate(lval(sg%ic(myid+1)))
@@ -1850,9 +1850,9 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
                             lval,sg%ic(myid+1),mpi_integer4,      &
@@ -1862,9 +1862,9 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                             lval,sg%ic(myid+1),mpi_integer4, &
@@ -1878,14 +1878,14 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_logical_4d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
-    integer(ik4) , dimension(:) , allocatable :: lval
-    integer(ik4) :: ivarid , mpierr , k , l , n , nv2 , nv3 , nv4
-    integer(ik4) :: kk , ll , nn
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), dimension(:,:,:,:), allocatable :: rval
+    integer(ik4), dimension(:), allocatable :: lval
+    integer(ik4) :: ivarid, mpierr, k, l, n, nv2, nv3, nv4
+    integer(ik4) :: kk, ll, nn
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     nv4 = size(xval,4)
@@ -1899,11 +1899,11 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do n = 1 , nv4
+      do n = 1, nv4
         nn = lbound(xval,4)+(n-1)
-        do l = 1 , nv3
+        do l = 1, nv3
           ll = lbound(xval,3)+(l-1)
-          do k = 1 , nv2
+          do k = 1, nv2
             kk = lbound(xval,2)+(k-1)
             call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_integer4, &
                               lval,sg%ic(myid+1),mpi_integer4,        &
@@ -1914,11 +1914,11 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1,1))
-      do n = 1 , nv4
+      do n = 1, nv4
         nn = lbound(xval,4)+(n-1)
-        do l = 1 , nv3
+        do l = 1, nv3
           ll = lbound(xval,3)+(l-1)
-          do k = 1 , nv2
+          do k = 1, nv2
             kk = lbound(xval,2)+(k-1)
             call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                               lval,sg%ic(myid+1),mpi_integer4, &
@@ -1933,12 +1933,12 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_integer_1d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , dimension(:) , intent(out) :: xval
-    integer(ik4) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), dimension(:), intent(out) :: xval
+    integer(ik4), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
@@ -1958,12 +1958,12 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_integer_2d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , nv2 , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, k, nv2, kk
     nv2 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(rval(sg%ns,nv2))
@@ -1973,7 +1973,7 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4,    &
                           xval(:,kk),sg%ic(myid+1),mpi_integer4, &
@@ -1981,7 +1981,7 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,         &
                           xval(:,kk),sg%ic(myid+1),mpi_integer4, &
@@ -1993,12 +1993,12 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_integer_3d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid ,  mpierr , k , l , nv2 , nv3 , kk , ll
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid,  mpierr, k, l, nv2, nv3, kk, ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2009,9 +2009,9 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4,     &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_integer4, &
@@ -2020,9 +2020,9 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,            &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_integer4, &
@@ -2035,13 +2035,13 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_integer_4d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid ,  mpierr , k , l , n , nv2 , nv3 , nv4
-    integer(ik4) :: kk , ll , nn
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), dimension(:,:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid,  mpierr, k, l, n, nv2, nv3, nv4
+    integer(ik4) :: kk, ll, nn
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     nv4 = size(xval,4)
@@ -2053,11 +2053,11 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do n = 1 , nv4
+      do n = 1, nv4
         nn = lbound(xval,4)+(n-1)
-        do l = 1 , nv3
+        do l = 1, nv3
           ll = lbound(xval,3)+(l-1)
-          do k = 1 , nv2
+          do k = 1, nv2
             kk = lbound(xval,2)+(k-1)
             call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_integer4,      &
                               xval(:,kk,ll,nn),sg%ic(myid+1),mpi_integer4, &
@@ -2067,11 +2067,11 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1,1))
-      do n = 1 , nv4
+      do n = 1, nv4
         nn = lbound(xval,4)+(n-1)
-        do l = 1 , nv3
+        do l = 1, nv3
           ll = lbound(xval,3)+(l-1)
-          do k = 1 , nv2
+          do k = 1, nv2
             kk = lbound(xval,2)+(k-1)
             call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,               &
                               xval(:,kk,ll,nn),sg%ic(myid+1),mpi_integer4, &
@@ -2085,12 +2085,12 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real4_1d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    real(rk4) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    real(rk4), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
@@ -2110,14 +2110,14 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real4_2d_par_sg(ncid,vname,xval,sg,switchdim)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    logical , intent(in) , optional :: switchdim
-    real(rk4) , dimension(:,:) , allocatable :: rval
-    real(rk4) , dimension(:,:) , allocatable :: sval
-    integer(ik4) :: ivarid ,  mpierr , k , nv2 , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    logical, intent(in), optional :: switchdim
+    real(rk4), dimension(:,:), allocatable :: rval
+    real(rk4), dimension(:,:), allocatable :: sval
+    integer(ik4) :: ivarid,  mpierr, k, nv2, kk
     logical :: doswitch
     doswitch = .false.
     nv2 = size(xval,2)
@@ -2149,7 +2149,7 @@ module mod_clm_nchelper
       end if
       call clm_checkncerr(__FILE__,__LINE__, &
          'Error read '//vname//' from file '//trim(ncid%fname))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4,    &
                           xval(:,kk),sg%ic(myid+1),mpi_real4, &
@@ -2157,7 +2157,7 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,         &
                           xval(:,kk),sg%ic(myid+1),mpi_real4, &
@@ -2169,12 +2169,12 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real4_3d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    real(rk4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid ,  mpierr , k , l , nv2 , nv3 , kk , ll
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    real(rk4), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid,  mpierr, k, l, nv2, nv3, kk, ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2185,9 +2185,9 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real4,     &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_real4, &
@@ -2196,9 +2196,9 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,            &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_real4, &
@@ -2211,13 +2211,13 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real4_4d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    real(rk4) , dimension(:,:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid ,  mpierr , k , l , n , nv2 , nv3 , nv4
-    integer(ik4) :: kk , ll , nn
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    real(rk4), dimension(:,:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid,  mpierr, k, l, n, nv2, nv3, nv4
+    integer(ik4) :: kk, ll, nn
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     nv4 = size(xval,4)
@@ -2229,11 +2229,11 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do n = 1 , nv4
+      do n = 1, nv4
         nn = lbound(xval,4)+(n-1)
-        do l = 1 , nv3
+        do l = 1, nv3
           ll = lbound(xval,3)+(l-1)
-          do k = 1 , nv2
+          do k = 1, nv2
             kk = lbound(xval,2)+(k-1)
             call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_real4,      &
                               xval(:,kk,ll,nn),sg%ic(myid+1),mpi_real4, &
@@ -2243,11 +2243,11 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1,1))
-      do n = 1 , nv4
+      do n = 1, nv4
         nn = lbound(xval,4)+(n-1)
-        do l = 1 , nv3
+        do l = 1, nv3
           ll = lbound(xval,3)+(l-1)
-          do k = 1 , nv2
+          do k = 1, nv2
             kk = lbound(xval,2)+(k-1)
             call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,               &
                               xval(:,kk,ll,nn),sg%ic(myid+1),mpi_real4, &
@@ -2261,12 +2261,12 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real8_1d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    real(rk8) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    real(rk8), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
@@ -2286,14 +2286,14 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real8_2d_par_sg(ncid,vname,xval,sg,switchdim)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    logical , intent(in) , optional :: switchdim
-    real(rk8) , dimension(:,:) , allocatable :: rval
-    real(rk8) , dimension(:,:) , allocatable :: sval
-    integer(ik4) :: ivarid ,  mpierr , k , nv2 , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    logical, intent(in), optional :: switchdim
+    real(rk8), dimension(:,:), allocatable :: rval
+    real(rk8), dimension(:,:), allocatable :: sval
+    integer(ik4) :: ivarid,  mpierr, k, nv2, kk
     logical :: doswitch
     doswitch = .false.
     nv2 = size(xval,2)
@@ -2325,7 +2325,7 @@ module mod_clm_nchelper
       end if
       call clm_checkncerr(__FILE__,__LINE__, &
          'Error read '//vname//' from file '//trim(ncid%fname))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8,    &
                           xval(:,kk),sg%ic(myid+1),mpi_real8, &
@@ -2333,7 +2333,7 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,         &
                           xval(:,kk),sg%ic(myid+1),mpi_real8, &
@@ -2345,12 +2345,12 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real8_3d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    real(rk8) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid ,  mpierr , k , l , nv2 , nv3 , kk , ll
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    real(rk8), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid,  mpierr, k, l, nv2, nv3, kk, ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2361,9 +2361,9 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8,     &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_real8, &
@@ -2372,9 +2372,9 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,            &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_real8, &
@@ -2387,13 +2387,13 @@ module mod_clm_nchelper
 
   subroutine clm_readvar_real8_4d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    real(rk8) , dimension(:,:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid ,  mpierr , k , l , n , nv2 , nv3 , nv4
-    integer(ik4) :: kk , ll , nn
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    real(rk8), dimension(:,:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid,  mpierr, k, l, n, nv2, nv3, nv4
+    integer(ik4) :: kk, ll, nn
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     nv4 = size(xval,4)
@@ -2405,11 +2405,11 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do n = 1 , nv4
+      do n = 1, nv4
         nn = lbound(xval,4)+(n-1)
-        do l = 1 , nv3
+        do l = 1, nv3
           ll = lbound(xval,3)+(l-1)
-          do k = 1 , nv2
+          do k = 1, nv2
             kk = lbound(xval,2)+(k-1)
             call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_real8,      &
                               xval(:,kk,ll,nn),sg%ic(myid+1),mpi_real8, &
@@ -2419,11 +2419,11 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1,1))
-      do n = 1 , nv4
+      do n = 1, nv4
         nn = lbound(xval,4)+(n-1)
-        do l = 1 , nv3
+        do l = 1, nv3
           ll = lbound(xval,3)+(l-1)
-          do k = 1 , nv2
+          do k = 1, nv2
             kk = lbound(xval,2)+(k-1)
             call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,               &
                               xval(:,kk,ll,nn),sg%ic(myid+1),mpi_real8, &
@@ -2437,14 +2437,14 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_logical_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:) , allocatable :: rval
-    integer(ik4) , dimension(:) , allocatable :: lval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:), allocatable :: rval
+    integer(ik4), dimension(:), allocatable :: lval
+    integer(ik4) :: ivarid, mpierr
     allocate(lval(sg%ic(myid+1)))
     if ( myid == iocpu ) then
       allocate(rval(sg%ns))
@@ -2470,14 +2470,14 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_logical_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) , dimension(:) , allocatable :: lval
-    integer(ik4) :: ivarid , mpierr , k , nv2
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:,:), allocatable :: rval
+    integer(ik4), dimension(:), allocatable :: lval
+    integer(ik4) :: ivarid, mpierr, k, nv2
     nv2 = size(xval,2)
     allocate(lval(sg%ic(myid+1)))
     if ( myid == iocpu ) then
@@ -2494,7 +2494,7 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do k = 1 , nv2
+      do k = 1, nv2
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
                           lval,sg%ic(myid+1),mpi_integer4,    &
                           iocpu,sg%icomm,mpierr)
@@ -2502,7 +2502,7 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1))
-      do k = 1 , nv2
+      do k = 1, nv2
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                           lval,sg%ic(myid+1),mpi_integer4, &
                           iocpu,sg%icomm,mpierr)
@@ -2514,14 +2514,14 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_logical_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) , dimension(:) , allocatable :: lval
-    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:,:,:), allocatable :: rval
+    integer(ik4), dimension(:), allocatable :: lval
+    integer(ik4) :: ivarid, mpierr, k, l, nv2, nv3
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     allocate(lval(sg%ic(myid+1)))
@@ -2541,8 +2541,8 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
           'Error read '//vname//' from file '//trim(ncid%fname))
-      do l = 1 , nv3
-        do k = 1 , nv2
+      do l = 1, nv3
+        do k = 1, nv2
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
                             lval,sg%ic(myid+1),mpi_integer4,      &
                             iocpu,sg%icomm,mpierr)
@@ -2551,8 +2551,8 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1))
-      do l = 1 , nv3
-        do k = 1 , nv2
+      do l = 1, nv3
+        do k = 1, nv2
           call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                             lval,sg%ic(myid+1),mpi_integer4, &
                             iocpu,sg%icomm,mpierr)
@@ -2565,13 +2565,13 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_integer_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
@@ -2595,13 +2595,13 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_integer_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , nv2 , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, k, nv2, kk
     nv2 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(rval(sg%ns,nv2))
@@ -2617,7 +2617,7 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4,    &
                           xval(:,kk),sg%ic(myid+1),mpi_integer4, &
@@ -2625,7 +2625,7 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,         &
                           xval(:,kk),sg%ic(myid+1),mpi_integer4, &
@@ -2637,13 +2637,13 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_integer_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3 , kk , ll
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, k, l, nv2, nv3, kk, ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2662,9 +2662,9 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4,     &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_integer4, &
@@ -2673,9 +2673,9 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,            &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_integer4, &
@@ -2688,13 +2688,13 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk4) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk4), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
@@ -2718,13 +2718,13 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real4_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , nv2 , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk4), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, k, nv2, kk
     nv2 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(rval(sg%ns,nv2))
@@ -2740,7 +2740,7 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4,    &
                           xval(:,kk),sg%ic(myid+1),mpi_real4, &
@@ -2748,7 +2748,7 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,         &
                           xval(:,kk),sg%ic(myid+1),mpi_real4, &
@@ -2760,13 +2760,13 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real4_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3 , kk , ll
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk4), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, k, l, nv2, nv3, kk, ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2785,9 +2785,9 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real4,     &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_real4, &
@@ -2796,9 +2796,9 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,            &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_real4, &
@@ -2811,13 +2811,13 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk8) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk8), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
@@ -2841,13 +2841,13 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real8_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk8) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , nv2 , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk8), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, k, nv2, kk
     nv2 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(rval(sg%ns,nv2))
@@ -2863,7 +2863,7 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8,    &
                           xval(:,kk),sg%ic(myid+1),mpi_real8, &
@@ -2871,7 +2871,7 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1))
-      do k = 1 , nv2
+      do k = 1, nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,         &
                           xval(:,kk),sg%ic(myid+1),mpi_real8, &
@@ -2883,13 +2883,13 @@ module mod_clm_nchelper
 
   subroutine clm_readrec_real8_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:) , intent(out) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk8) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3 , kk , ll
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:), intent(out) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk8), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, k, l, nv2, nv3, kk, ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2908,9 +2908,9 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8,     &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_real8, &
@@ -2919,9 +2919,9 @@ module mod_clm_nchelper
       end do
     else
       allocate(rval(1,1,1))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,3)+(l-1)
-        do k = 1 , nv2
+        do k = 1, nv2
           kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,            &
                             xval(:,kk,ll),sg%ic(myid+1),mpi_real8, &
@@ -2934,9 +2934,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_text_0d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    character(len=*) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    character(len=*), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -2951,9 +2951,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_text_1d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    character(len=*) , dimension(:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    character(len=*), dimension(:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -2968,10 +2968,10 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_0d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , intent(in) :: xval
-    integer(ik4) , dimension(1) :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, intent(in) :: xval
+    integer(ik4), dimension(1) :: rval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -2988,11 +2988,11 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_1d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:), intent(in) :: xval
     integer(ik4) :: ivarid
-    integer(ik4) , dimension(:) , allocatable :: rval
+    integer(ik4), dimension(:), allocatable :: rval
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
@@ -3012,10 +3012,10 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_2d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:) , intent(in) :: xval
-    integer(ik4) , dimension(:,:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:), intent(in) :: xval
+    integer(ik4), dimension(:,:), allocatable :: rval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3036,10 +3036,10 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_3d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:) , intent(in) :: xval
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:), intent(in) :: xval
+    integer(ik4), dimension(:,:,:), allocatable :: rval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3060,10 +3060,10 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_4d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:,:) , intent(in) :: xval
-    integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:,:), intent(in) :: xval
+    integer(ik4), dimension(:,:,:,:), allocatable :: rval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3084,9 +3084,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_0d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3101,9 +3101,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_1d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3118,9 +3118,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_2d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3135,9 +3135,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_3d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3152,9 +3152,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_4d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:,:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3169,9 +3169,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_0d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3186,9 +3186,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_1d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3203,9 +3203,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_2d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3220,9 +3220,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_3d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3237,9 +3237,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_4d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:,:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3254,9 +3254,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_0d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3271,9 +3271,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_1d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3288,9 +3288,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_2d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3305,9 +3305,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_3d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3322,9 +3322,9 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_4d(ncid,vname,xval)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:,:) , intent(in) :: xval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3339,12 +3339,12 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, intent(in) :: xval
+    integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid
-    integer(ik4) , dimension(1) :: rval
+    integer(ik4), dimension(1) :: rval
     if ( myid /= iocpu ) return
     istart(1) = nt
     icount(1) = 1
@@ -3362,12 +3362,12 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , nv1
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, nv1
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     istart(2) = nt
@@ -3392,12 +3392,12 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , nv1 , nv2
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, nv1, nv2
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3425,12 +3425,12 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , nv1 , nv2 , nv3
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, nv1, nv2, nv3
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3461,12 +3461,12 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid
-    integer(ik4) , dimension(1) :: rval
+    integer(ik4), dimension(1) :: rval
     if ( myid /= iocpu ) return
     istart(1) = nt
     icount(1) = 1
@@ -3483,11 +3483,11 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     istart(2) = nt
@@ -3506,11 +3506,11 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3532,11 +3532,11 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2 , nv3
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2, nv3
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3561,12 +3561,12 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid
-    real(rk4) , dimension(1) :: rval
+    real(rk4), dimension(1) :: rval
     if ( myid /= iocpu ) return
     istart(1) = nt
     icount(1) = 1
@@ -3583,11 +3583,11 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     istart(2) = nt
@@ -3606,11 +3606,11 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3632,11 +3632,11 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2 , nv3
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2, nv3
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3661,12 +3661,12 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid
-    real(rk8) , dimension(1) :: rval
+    real(rk8), dimension(1) :: rval
     if ( myid /= iocpu ) return
     istart(1) = nt
     icount(1) = 1
@@ -3683,11 +3683,11 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     istart(2) = nt
@@ -3706,11 +3706,11 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3732,11 +3732,11 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , nv1 , nv2 , nv3
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:), intent(in) :: xval
+    integer(ik4), intent(in) :: nt
+    integer(ik4) :: ivarid, nv1, nv2, nv3
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3761,8 +3761,8 @@ module mod_clm_nchelper
 
   subroutine copy_filetype(ncid2,ncid1)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid1
-    type(clm_filetype) , intent(out) :: ncid2
+    type(clm_filetype), intent(in) :: ncid1
+    type(clm_filetype), intent(out) :: ncid2
     ncid2%ncid = ncid1%ncid
     ncid2%fname = ncid1%fname
     ncid2%idimlast = ncid1%idimlast
@@ -3777,13 +3777,13 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_1d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr
-    integer(ik4) , dimension(:) , allocatable :: rval
-    logical , dimension(:) , allocatable :: lval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr
+    integer(ik4), dimension(:), allocatable :: rval
+    logical, dimension(:), allocatable :: lval
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(lval(sg%ns))
@@ -3812,13 +3812,13 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_2d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
-    integer(ik4) , dimension(:,:) , allocatable :: rval
-    logical , dimension(:) , allocatable :: lval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr, nv1, k, kk
+    integer(ik4), dimension(:,:), allocatable :: rval
+    logical, dimension(:), allocatable :: lval
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -3827,7 +3827,7 @@ module mod_clm_nchelper
     else
       allocate(lval(1))
     end if
-    do k = 1 , nv1
+    do k = 1, nv1
       kk = lbound(xval,2)+(k-1)
       call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_logical, &
                        lval,sg%ic,sg%id,mpi_logical,iocpu,sg%icomm,mpierr)
@@ -3853,13 +3853,13 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_3d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    logical , dimension(:) , allocatable :: lval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, n, k, nn, kk
+    integer(ik4), dimension(:,:,:), allocatable :: rval
+    logical, dimension(:), allocatable :: lval
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
@@ -3869,9 +3869,9 @@ module mod_clm_nchelper
     else
       allocate(lval(1))
     end if
-    do n = 1 , nv2
+    do n = 1, nv2
       nn = lbound(xval,3)+(n-1)
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_logical,    &
                          lval,sg%ic,sg%id,mpi_logical,iocpu,sg%icomm,mpierr)
@@ -3898,14 +3898,14 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_4d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , nv3 , n , k , l
-    integer(ik4) :: nn , kk , ll
-    integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
-    logical , dimension(:) , allocatable :: lval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, nv3, n, k, l
+    integer(ik4) :: nn, kk, ll
+    integer(ik4), dimension(:,:,:,:), allocatable :: rval
+    logical, dimension(:), allocatable :: lval
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     nv3 = size(xval,4)
@@ -3916,11 +3916,11 @@ module mod_clm_nchelper
     else
       allocate(lval(1))
     end if
-    do l = 1 , nv3
+    do l = 1, nv3
       ll = lbound(xval,4)+(l-1)
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_logical,    &
                            lval,sg%ic,sg%id,mpi_logical,iocpu,sg%icomm,mpierr)
@@ -3948,12 +3948,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_1d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr
-    integer(ik4) , dimension(:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr
+    integer(ik4), dimension(:), allocatable :: rval
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns))
@@ -3976,17 +3976,17 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_2d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
-    integer(ik4) , dimension(:,:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr, nv1, k, kk
+    integer(ik4), dimension(:,:), allocatable :: rval
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1))
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
                          rval(:,k),sg%ic,sg%id,mpi_integer4,    &
@@ -4000,7 +4000,7 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1))
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
                          rval,sg%ic,sg%id,mpi_integer4,         &
@@ -4015,20 +4015,20 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_3d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , kk , nn
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, n, k, kk, nn
+    integer(ik4), dimension(:,:,:), allocatable :: rval
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1,nv2))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_integer4, &
                            rval(:,k,n),sg%ic,sg%id,mpi_integer4,     &
@@ -4043,9 +4043,9 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1,1))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_integer4, &
                            rval,sg%ic,sg%id,mpi_integer4,            &
@@ -4061,24 +4061,24 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_4d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , nv3 , n , k , l
-    integer(ik4) :: kk , nn , ll
-    integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, nv3, n, k, l
+    integer(ik4) :: kk, nn, ll
+    integer(ik4), dimension(:,:,:,:), allocatable :: rval
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     nv3 = size(xval,4)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1,nv2,nv3))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,4)+(l-1)
-        do n = 1 , nv2
+        do n = 1, nv2
           nn = lbound(xval,3)+(n-1)
-          do k = 1 , nv1
+          do k = 1, nv1
             kk = lbound(xval,2)+(k-1)
             call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_integer4, &
                              rval(:,k,n,l),sg%ic,sg%id,mpi_integer4,      &
@@ -4094,11 +4094,11 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1,1,1))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,4)+(l-1)
-        do n = 1 , nv2
+        do n = 1, nv2
           nn = lbound(xval,3)+(n-1)
-          do k = 1 , nv1
+          do k = 1, nv1
             kk = lbound(xval,2)+(k-1)
             call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_integer4, &
                              rval,sg%ic,sg%id,mpi_integer4,               &
@@ -4115,12 +4115,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_1d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr
-    real(rk4) , dimension(:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr
+    real(rk4), dimension(:), allocatable :: rval
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns))
@@ -4143,14 +4143,14 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_2d_par_sg(ncid,vname,xval,sg,switchdim)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    logical , optional , intent(in) :: switchdim
-    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
-    real(rk4) , dimension(:,:) , allocatable :: rval
-    real(rk4) , dimension(:,:) , allocatable :: sval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    logical, optional, intent(in) :: switchdim
+    integer(ik4) :: ivarid, mpierr, nv1, k, kk
+    real(rk4), dimension(:,:), allocatable :: rval
+    real(rk4), dimension(:,:), allocatable :: sval
     logical :: doswitch
     doswitch = .false.
     nv1 = size(xval,2)
@@ -4165,7 +4165,7 @@ module mod_clm_nchelper
       if ( doswitch ) then
         allocate(sval(nv1,sg%ns))
       end if
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
                          rval(:,k),sg%ic,sg%id,mpi_real4,    &
@@ -4185,7 +4185,7 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1))
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
                          rval,sg%ic,sg%id,mpi_real4,         &
@@ -4200,20 +4200,20 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_3d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
-    real(rk4) , dimension(:,:,:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, n, k, nn, kk
+    real(rk4), dimension(:,:,:), allocatable :: rval
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1,nv2))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real4, &
                            rval(:,k,n),sg%ic,sg%id,mpi_real4,     &
@@ -4228,9 +4228,9 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1,1))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real4, &
                            rval,sg%ic,sg%id,mpi_real4,            &
@@ -4246,24 +4246,24 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_4d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , nv3 , n , k , l
-    integer(ik4) :: nn , kk , ll
-    real(rk4) , dimension(:,:,:,:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, nv3, n, k, l
+    integer(ik4) :: nn, kk, ll
+    real(rk4), dimension(:,:,:,:), allocatable :: rval
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     nv3 = size(xval,4)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1,nv2,nv3))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,4)+(l-1)
-        do n = 1 , nv2
+        do n = 1, nv2
           nn = lbound(xval,3)+(n-1)
-          do k = 1 , nv1
+          do k = 1, nv1
             kk = lbound(xval,2)+(k-1)
             call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_real4, &
                              rval(:,k,n,l),sg%ic,sg%id,mpi_real4,      &
@@ -4279,11 +4279,11 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1,1,1))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,4)+(l-1)
-        do n = 1 , nv2
+        do n = 1, nv2
           nn = lbound(xval,3)+(n-1)
-          do k = 1 , nv1
+          do k = 1, nv1
             kk = lbound(xval,2)+(k-1)
             call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_real4, &
                              rval(:,k,n,l),sg%ic,sg%id,mpi_real4,      &
@@ -4300,12 +4300,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_1d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr
-    real(rk8) , dimension(:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr
+    real(rk8), dimension(:), allocatable :: rval
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns))
@@ -4328,14 +4328,14 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_2d_par_sg(ncid,vname,xval,sg,switchdim)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    logical , optional , intent(in) :: switchdim
-    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
-    real(rk8) , dimension(:,:) , allocatable :: rval
-    real(rk8) , dimension(:,:) , allocatable :: sval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    logical, optional, intent(in) :: switchdim
+    integer(ik4) :: ivarid, mpierr, nv1, k, kk
+    real(rk8), dimension(:,:), allocatable :: rval
+    real(rk8), dimension(:,:), allocatable :: sval
     logical :: doswitch
     doswitch = .false.
     nv1 = size(xval,2)
@@ -4350,7 +4350,7 @@ module mod_clm_nchelper
       if ( doswitch ) then
         allocate(sval(nv1,sg%ns))
       end if
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
                          rval(:,k),sg%ic,sg%id,mpi_real8,    &
@@ -4370,7 +4370,7 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1))
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
                          rval,sg%ic,sg%id,mpi_real8,         &
@@ -4385,20 +4385,20 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_3d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
-    real(rk8) , dimension(:,:,:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, n, k, nn, kk
+    real(rk8), dimension(:,:,:), allocatable :: rval
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1,nv2))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real8, &
                            rval(:,k,n),sg%ic,sg%id,mpi_real8,     &
@@ -4413,9 +4413,9 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1,1))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real8, &
                            rval,sg%ic,sg%id,mpi_real8,            &
@@ -4431,24 +4431,24 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_4d_par_sg(ncid,vname,xval,sg)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , nv3 , n , k , l
-    integer(ik4) :: kk , nn , ll
-    real(rk8) , dimension(:,:,:,:) , allocatable :: rval
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, nv3, n, k, l
+    integer(ik4) :: kk, nn, ll
+    real(rk8), dimension(:,:,:,:), allocatable :: rval
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     nv3 = size(xval,4)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1,nv2,nv3))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,4)+(l-1)
-        do n = 1 , nv2
+        do n = 1, nv2
           nn = lbound(xval,3)+(n-1)
-          do k = 1 , nv1
+          do k = 1, nv1
             kk = lbound(xval,2)+(k-1)
             call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_real8, &
                              rval(:,k,n,l),sg%ic,sg%id,mpi_real8,      &
@@ -4464,11 +4464,11 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1,1,1))
-      do l = 1 , nv3
+      do l = 1, nv3
         ll = lbound(xval,4)+(l-1)
-        do n = 1 , nv2
+        do n = 1, nv2
           nn = lbound(xval,3)+(n-1)
-          do k = 1 , nv1
+          do k = 1, nv1
             kk = lbound(xval,2)+(k-1)
             call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_real8, &
                              rval,sg%ic,sg%id,mpi_real8,               &
@@ -4485,14 +4485,14 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    logical , dimension(:) , allocatable :: lval
-    integer(ik4) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    logical, dimension(:), allocatable :: lval
+    integer(ik4), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(lval(sg%ns))
@@ -4526,14 +4526,14 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    logical , dimension(:) , allocatable :: lval
-    integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    logical, dimension(:), allocatable :: lval
+    integer(ik4), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, nv1, k, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -4542,7 +4542,7 @@ module mod_clm_nchelper
     else
       allocate(lval(1))
     end if
-    do k = 1 , nv1
+    do k = 1, nv1
       kk = lbound(xval,2)+(k-1)
       call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_logical, &
                        lval,sg%ic,sg%id,mpi_logical,   &
@@ -4575,14 +4575,14 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    logical , dimension(:) , allocatable :: lval
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    logical, dimension(:), allocatable :: lval
+    integer(ik4), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, n, k, nn, kk
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
@@ -4592,9 +4592,9 @@ module mod_clm_nchelper
     else
       allocate(lval(1))
     end if
-    do n = 1 , nv2
+    do n = 1, nv2
       nn = lbound(xval,3)+(n-1)
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_logical, &
                          lval,sg%ic,sg%id,mpi_logical,            &
@@ -4630,13 +4630,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns))
@@ -4663,18 +4663,18 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, nv1, k, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1))
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
                          rval(:,k),sg%ic,sg%id,mpi_integer4,    &
@@ -4694,7 +4694,7 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1))
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
                          rval,sg%ic,sg%id,mpi_integer4,         &
@@ -4709,21 +4709,21 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, n, k, nn, kk
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1,nv2))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_integer4, &
                            rval(:,k,n),sg%ic,sg%id,mpi_integer4,     &
@@ -4746,9 +4746,9 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1,1))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_integer4, &
                            rval,sg%ic,sg%id,mpi_integer4,            &
@@ -4764,13 +4764,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk4) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk4), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns))
@@ -4802,18 +4802,18 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk4), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, nv1, k, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1))
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
                          rval(:,k),sg%ic,sg%id,mpi_real4,    &
@@ -4838,7 +4838,7 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1))
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
                          rval,sg%ic,sg%id,mpi_real4,         &
@@ -4853,21 +4853,21 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk4), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, n, k, nn, kk
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1,nv2))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real4, &
                            rval(:,k,n),sg%ic,sg%id,mpi_real4,     &
@@ -4895,9 +4895,9 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1,1))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real4, &
                            rval,sg%ic,sg%id,mpi_real4,            &
@@ -4913,13 +4913,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk8) , dimension(:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk8), dimension(:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns))
@@ -4960,18 +4960,18 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk8) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk8), dimension(:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, nv1, k, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1))
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
                          rval(:,k),sg%ic,sg%id,mpi_real8,    &
@@ -4996,7 +4996,7 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1))
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
                          rval,sg%ic,sg%id,mpi_real8,         &
@@ -5011,21 +5011,21 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:) , intent(in) :: xval
-    type(subgrid_type) , intent(in) :: sg
-    integer(ik4) , intent(in) :: nt
-    real(rk8) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
+    type(clm_filetype), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:), intent(in) :: xval
+    type(subgrid_type), intent(in) :: sg
+    integer(ik4), intent(in) :: nt
+    real(rk8), dimension(:,:,:), allocatable :: rval
+    integer(ik4) :: ivarid, mpierr, nv1, nv2, n, k, nn, kk
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(rval(sg%ns,nv1,nv2))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real8, &
                            rval(:,k,n),sg%ic,sg%id,mpi_real8,     &
@@ -5053,9 +5053,9 @@ module mod_clm_nchelper
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
       allocate(rval(1,1,1))
-      do n = 1 , nv2
+      do n = 1, nv2
         nn = lbound(xval,3)+(n-1)
-        do k = 1 , nv1
+        do k = 1, nv1
           kk = lbound(xval,2)+(k-1)
           call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real8, &
                            rval,sg%ic,sg%id,mpi_real8,            &
@@ -5071,12 +5071,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_2d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    logical , dimension(:) , allocatable :: lval
-    integer(ik4) :: i , j , ib , ivarid , mpierr
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    logical, dimension(:), allocatable :: lval
+    integer(ik4) :: i, j, ib, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(lval(numg))
@@ -5091,8 +5091,8 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
       ib = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
+      do i = iout1, iout2
+        do j = jout1, jout2
           if ( gg%gcmask(j,i) ) then
             if ( lval(ib) ) then
               ncid%i4buf(j,i) = 1
@@ -5117,12 +5117,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_3d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    logical , dimension(:) , allocatable :: lval
-    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    logical, dimension(:), allocatable :: lval
+    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5130,7 +5130,7 @@ module mod_clm_nchelper
     else
       allocate(lval(1))
     end if
-    do k = 1 , nv1
+    do k = 1, nv1
       kk = lbound(xval,2)+(k-1)
       call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_logical, &
                        lval,gg%gc,gg%gd,mpi_logical,   &
@@ -5140,8 +5140,8 @@ module mod_clm_nchelper
       end if
       if ( myid == iocpu ) then
         ib = 1
-        do i = iout1 , iout2
-          do j = jout1 , jout2
+        do i = iout1, iout2
+          do j = jout1, jout2
             if ( gg%gcmask(j,i) ) then
               if ( lval(ib) ) then
                 ncid%i4buf(j,i) = 1
@@ -5169,13 +5169,13 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_4d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    logical , dimension(:) , allocatable :: lval
-    integer(ik4) :: i , j , k , l , nv1 , nv3 , ib , ivarid , mpierr
-    integer(ik4) :: kk , ll
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    logical, dimension(:), allocatable :: lval
+    integer(ik4) :: i, j, k, l, nv1, nv3, ib, ivarid, mpierr
+    integer(ik4) :: kk, ll
     nv1 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -5184,9 +5184,9 @@ module mod_clm_nchelper
     else
       allocate(lval(1))
     end if
-    do l = 1 , nv3
+    do l = 1, nv3
       ll = lbound(xval,3)+(l-1)
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk,ll),gg%gc(myid+1),mpi_logical, &
                          lval,gg%gc,gg%gd,mpi_logical,            &
@@ -5196,8 +5196,8 @@ module mod_clm_nchelper
         end if
         if ( myid == iocpu ) then
           ib = 1
-          do i = iout1 , iout2
-            do j = jout1 , jout2
+          do i = iout1, iout2
+            do j = jout1, jout2
               if ( gg%gcmask(j,i) ) then
                 if ( lval(ib) ) then
                   ncid%i4buf(j,i) = 1
@@ -5228,12 +5228,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_2d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , ib , ivarid , mpierr
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, ib, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5248,8 +5248,8 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
       ib = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
+      do i = iout1, iout2
+        do j = jout1, jout2
           if ( gg%gcmask(j,i) ) then
             ncid%i4buf(j,i) = ival(ib)
             ib = ib + 1
@@ -5270,12 +5270,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_3d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5283,7 +5283,7 @@ module mod_clm_nchelper
     else
       allocate(ival(1))
     end if
-    do k = 1 , nv1
+    do k = 1, nv1
       kk = lbound(xval,2)+(k-1)
       call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_integer4, &
                        ival,gg%gc,gg%gd,mpi_integer4,         &
@@ -5293,8 +5293,8 @@ module mod_clm_nchelper
       end if
       if ( myid == iocpu ) then
         ib = 1
-        do i = iout1 , iout2
-          do j = jout1 , jout2
+        do i = iout1, iout2
+          do j = jout1, jout2
             if ( gg%gcmask(j,i) ) then
               ncid%i4buf(j,i) = ival(ib)
               ib = ib + 1
@@ -5318,13 +5318,13 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_4d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , l , nv1 , nv3 , ib , ivarid , mpierr
-    integer(ik4) :: kk , ll
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, k, l, nv1, nv3, ib, ivarid, mpierr
+    integer(ik4) :: kk, ll
     nv1 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -5333,9 +5333,9 @@ module mod_clm_nchelper
     else
       allocate(ival(1))
     end if
-    do l = 1 , nv3
+    do l = 1, nv3
       ll = lbound(xval,3)+(l-1)
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk,ll),gg%gc(myid+1),mpi_integer4, &
                          ival,gg%gc,gg%gd,mpi_integer4,            &
@@ -5345,8 +5345,8 @@ module mod_clm_nchelper
         end if
         if ( myid == iocpu ) then
           ib = 1
-          do i = iout1 , iout2
-            do j = jout1 , jout2
+          do i = iout1, iout2
+            do j = jout1, jout2
               if ( gg%gcmask(j,i) ) then
                 ncid%i4buf(j,i) = ival(ib)
                 ib = ib + 1
@@ -5373,12 +5373,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_2d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    real(rk4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , ib , ivarid , mpierr
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    real(rk4), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, ib, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5393,8 +5393,8 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
       ib = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
+      do i = iout1, iout2
+        do j = jout1, jout2
           if ( gg%gcmask(j,i) ) then
             ncid%r4buf(j,i) = ival(ib)
             ib = ib + 1
@@ -5415,12 +5415,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_3d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    real(rk4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    real(rk4), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5428,7 +5428,7 @@ module mod_clm_nchelper
     else
       allocate(ival(1))
     end if
-    do k = 1 , nv1
+    do k = 1, nv1
       kk = lbound(xval,2)+(k-1)
       call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_real4, &
                        ival,gg%gc,gg%gd,mpi_real4,         &
@@ -5438,8 +5438,8 @@ module mod_clm_nchelper
       end if
       if ( myid == iocpu ) then
         ib = 1
-        do i = iout1 , iout2
-          do j = jout1 , jout2
+        do i = iout1, iout2
+          do j = jout1, jout2
             if ( gg%gcmask(j,i) ) then
               ncid%r4buf(j,i) = ival(ib)
               ib = ib + 1
@@ -5463,13 +5463,13 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_4d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    real(rk4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , l , nv1 , nv3 , ib , ivarid , mpierr
-    integer(ik4) :: kk , ll
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    real(rk4), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, k, l, nv1, nv3, ib, ivarid, mpierr
+    integer(ik4) :: kk, ll
     nv1 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -5478,9 +5478,9 @@ module mod_clm_nchelper
     else
       allocate(ival(1))
     end if
-    do l = 1 , nv3
+    do l = 1, nv3
       ll = lbound(xval,3)+(l-1)
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk,ll),gg%gc(myid+1),mpi_real4, &
                          ival,gg%gc,gg%gd,mpi_real4,            &
@@ -5490,8 +5490,8 @@ module mod_clm_nchelper
         end if
         if ( myid == iocpu ) then
           ib = 1
-          do i = iout1 , iout2
-            do j = jout1 , jout2
+          do i = iout1, iout2
+            do j = jout1, jout2
               if ( gg%gcmask(j,i) ) then
                 ncid%r4buf(j,i) = ival(ib)
                 ib = ib + 1
@@ -5518,12 +5518,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_2d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    real(rk8) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , ib , ivarid , mpierr
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    real(rk8), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, ib, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5538,8 +5538,8 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
       ib = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
+      do i = iout1, iout2
+        do j = jout1, jout2
           if ( gg%gcmask(j,i) ) then
             ncid%r8buf(j,i) = ival(ib)
             ib = ib + 1
@@ -5560,12 +5560,12 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_3d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    real(rk8) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    real(rk8), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5573,7 +5573,7 @@ module mod_clm_nchelper
     else
       allocate(ival(1))
     end if
-    do k = 1 , nv1
+    do k = 1, nv1
       kk = lbound(xval,2)+(k-1)
       call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_real8, &
                        ival,gg%gc,gg%gd,mpi_real8,         &
@@ -5583,8 +5583,8 @@ module mod_clm_nchelper
       end if
       if ( myid == iocpu ) then
         ib = 1
-        do i = iout1 , iout2
-          do j = jout1 , jout2
+        do i = iout1, iout2
+          do j = jout1, jout2
             if ( gg%gcmask(j,i) ) then
               ncid%r8buf(j,i) = ival(ib)
               ib = ib + 1
@@ -5608,13 +5608,13 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_4d_par_gg(ncid,vname,xval,gg)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    real(rk8) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , l , nv1 , nv3 , ib , ivarid , mpierr
-    integer(ik4) :: kk , ll
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    real(rk8), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, k, l, nv1, nv3, ib, ivarid, mpierr
+    integer(ik4) :: kk, ll
     nv1 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -5623,9 +5623,9 @@ module mod_clm_nchelper
     else
       allocate(ival(1))
     end if
-    do l = 1 , nv3
+    do l = 1, nv3
       ll = lbound(xval,3)+(l-1)
-      do k = 1 , nv1
+      do k = 1, nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk,ll),gg%gc(myid+1),mpi_real8, &
                          ival,gg%gc,gg%gd,mpi_real8,            &
@@ -5635,8 +5635,8 @@ module mod_clm_nchelper
         end if
         if ( myid == iocpu ) then
           ib = 1
-          do i = iout1 , iout2
-            do j = jout1 , jout2
+          do i = iout1, iout2
+            do j = jout1, jout2
               if ( gg%gcmask(j,i) ) then
                 ncid%r8buf(j,i) = ival(ib)
                 ib = ib + 1
@@ -5663,13 +5663,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_2d_par_gg(ncid,vname,xval,gg,nt)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , intent(in) :: nt
-    logical , dimension(:) , allocatable :: lval
-    integer(ik4) :: i , j , ib , ivarid , mpierr
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), intent(in) :: nt
+    logical, dimension(:), allocatable :: lval
+    integer(ik4) :: i, j, ib, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(lval(numg))
@@ -5684,8 +5684,8 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
       ib = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
+      do i = iout1, iout2
+        do j = jout1, jout2
           if ( gg%gcmask(j,i) ) then
             if ( lval(ib) ) then
               ncid%i4buf(j,i) = 1
@@ -5712,13 +5712,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_2d_par_gg(ncid,vname,xval,gg,nt)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , ib , ivarid , mpierr
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, ib, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5733,8 +5733,8 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
       ib = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
+      do i = iout1, iout2
+        do j = jout1, jout2
           if ( gg%gcmask(j,i) ) then
             ncid%i4buf(j,i) = ival(ib)
             ib = ib + 1
@@ -5757,13 +5757,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_3d_par_gg(ncid,vname,xval,gg,nt)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , dimension(:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , intent(in) :: nt
-    logical , dimension(:) , allocatable :: lval
-    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    logical, dimension(:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), intent(in) :: nt
+    logical, dimension(:), allocatable :: lval
+    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5771,7 +5771,7 @@ module mod_clm_nchelper
     else
       allocate(lval(1))
     end if
-    do k = 1 , nv1
+    do k = 1, nv1
       kk = lbound(xval,2)+(k-1)
       call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_logical, &
                        lval,gg%gc,gg%gd,mpi_logical,         &
@@ -5781,8 +5781,8 @@ module mod_clm_nchelper
       end if
       if ( myid == iocpu ) then
         ib = 1
-        do i = iout1 , iout2
-          do j = jout1 , jout2
+        do i = iout1, iout2
+          do j = jout1, jout2
             if ( gg%gcmask(j,i) ) then
               if ( lval(ib) ) then
                 ncid%i4buf(j,i) = 1
@@ -5812,13 +5812,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_3d_par_gg(ncid,vname,xval,gg,nt)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , dimension(:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    integer(ik4), dimension(:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), intent(in) :: nt
+    integer(ik4), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5826,7 +5826,7 @@ module mod_clm_nchelper
     else
       allocate(ival(1))
     end if
-    do k = 1 , nv1
+    do k = 1, nv1
       kk = lbound(xval,2)+(k-1)
       call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_integer4, &
                        ival,gg%gc,gg%gd,mpi_integer4,         &
@@ -5836,8 +5836,8 @@ module mod_clm_nchelper
       end if
       if ( myid == iocpu ) then
         ib = 1
-        do i = iout1 , iout2
-          do j = jout1 , jout2
+        do i = iout1, iout2
+          do j = jout1, jout2
             if ( gg%gcmask(j,i) ) then
               ncid%i4buf(j,i) = ival(ib)
               ib = ib + 1
@@ -5863,13 +5863,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_2d_par_gg(ncid,vname,xval,gg,nt)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , intent(in) :: nt
-    real(rk4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , ib , ivarid , mpierr
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), intent(in) :: nt
+    real(rk4), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, ib, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5884,8 +5884,8 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
       ib = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
+      do i = iout1, iout2
+        do j = jout1, jout2
           if ( gg%gcmask(j,i) ) then
             ncid%r4buf(j,i) = ival(ib)
             ib = ib + 1
@@ -5908,13 +5908,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_3d_par_gg(ncid,vname,xval,gg,nt)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , dimension(:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , intent(in) :: nt
-    real(rk4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), dimension(:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), intent(in) :: nt
+    real(rk4), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5922,7 +5922,7 @@ module mod_clm_nchelper
     else
       allocate(ival(1))
     end if
-    do k = 1 , nv1
+    do k = 1, nv1
       kk = lbound(xval,2)+(k-1)
       call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_real4, &
                        ival,gg%gc,gg%gd,mpi_real4,         &
@@ -5932,8 +5932,8 @@ module mod_clm_nchelper
       end if
       if ( myid == iocpu ) then
         ib = 1
-        do i = iout1 , iout2
-          do j = jout1 , jout2
+        do i = iout1, iout2
+          do j = jout1, jout2
             if ( gg%gcmask(j,i) ) then
               ncid%r4buf(j,i) = ival(ib)
               ib = ib + 1
@@ -5959,13 +5959,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_2d_par_gg(ncid,vname,xval,gg,nt)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , intent(in) :: nt
-    real(rk8) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , ib , ivarid , mpierr
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), intent(in) :: nt
+    real(rk8), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, ib, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5980,8 +5980,8 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
       ib = 1
-      do i = iout1 , iout2
-        do j = jout1 , jout2
+      do i = iout1, iout2
+        do j = jout1, jout2
           if ( gg%gcmask(j,i) ) then
             ncid%r8buf(j,i) = ival(ib)
             ib = ib + 1
@@ -6004,13 +6004,13 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_3d_par_gg(ncid,vname,xval,gg,nt)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(in) :: xval
-    type(processor_type) , intent(in) :: gg
-    integer(ik4) , intent(in) :: nt
-    real(rk8) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    type(clm_filetype), intent(inout) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), dimension(:,:), intent(in) :: xval
+    type(processor_type), intent(in) :: gg
+    integer(ik4), intent(in) :: nt
+    real(rk8), dimension(:), allocatable :: ival
+    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -6018,7 +6018,7 @@ module mod_clm_nchelper
     else
       allocate(ival(1))
     end if
-    do k = 1 , nv1
+    do k = 1, nv1
       kk = lbound(xval,2)+(k-1)
       call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_real8, &
                        ival,gg%gc,gg%gd,mpi_real8,         &
@@ -6028,8 +6028,8 @@ module mod_clm_nchelper
       end if
       if ( myid == iocpu ) then
         ib = 1
-        do i = iout1 , iout2
-          do j = jout1 , jout2
+        do i = iout1, iout2
+          do j = jout1, jout2
             if ( gg%gcmask(j,i) ) then
               ncid%r8buf(j,i) = ival(ib)
               ib = ib + 1
@@ -6055,7 +6055,7 @@ module mod_clm_nchelper
 
   subroutine clm_syncfile(ncid)
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
+    type(clm_filetype), intent(inout) :: ncid
     if ( myid == iocpu ) then
       if ( lsync ) then
         incstat = nf90_sync(ncid%ncid)
@@ -6067,8 +6067,8 @@ module mod_clm_nchelper
   subroutine test_clmhelper
     implicit none
     type(clm_filetype) :: ncid
-    logical , pointer , dimension(:) :: xval
-    integer(ik4) , pointer , dimension(:) :: ival
+    logical, pointer, contiguous, dimension(:) :: xval
+    integer(ik4), pointer, contiguous, dimension(:) :: ival
     call clm_createfile('peppe.nc',ncid)
     call clm_adddim(ncid,'pippo',gcomm_pft%ns)
     call clm_adddim(ncid,'jx',njout)

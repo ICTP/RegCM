@@ -31,19 +31,19 @@ module mod_mkwetland
 
   public :: mkwetland
 
-  character(len=16) , parameter :: varname1 = 'PCT_WETLAND'
-  character(len=16) , parameter :: varname2 = 'PCT_LAKE'
+  character(len=16), parameter :: varname1 = 'PCT_WETLAND'
+  character(len=16), parameter :: varname2 = 'PCT_LAKE'
 
-  real(rkx) , parameter :: vcutoff = 1.0_rkx
+  real(rkx), parameter :: vcutoff = 1.0_rkx
 
   contains
 
   subroutine mkwetland(wetfile,mask,wetland,lake)
     implicit none
-    character(len=*) , intent(in) :: wetfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: wetland , lake
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: wetfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:), intent(out) :: wetland, lake
+    integer(ik4) :: i, j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -54,8 +54,8 @@ module mod_mkwetland
     call gfread(gfile,varname2,lake,d_zero)
     call gfclose(gfile)
 
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           wetland(j,i) = h_missing_value
         else
@@ -71,8 +71,8 @@ module mod_mkwetland
         end if
       end do
     end do
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           lake(j,i) = h_missing_value
         else

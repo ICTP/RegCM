@@ -26,14 +26,14 @@ module mod_cu_kuo
   use mod_cu_common
   use mod_constants
   use mod_service
-  use mod_runparams , only : iqv , dt , ichem , dsigma , hsigma , qcon
+  use mod_runparams, only : iqv, dt, ichem, dsigma, hsigma, qcon
   use mod_regcm_types
 
   implicit none
 
   private
 
-  public :: allocate_mod_cu_kuo , cupara
+  public :: allocate_mod_cu_kuo, cupara
   !
   ! qdcrit : the precipitation threshold for moisture convergence.
   ! pert   : perturbation temperature
@@ -41,23 +41,23 @@ module mod_cu_kuo
   ! dlt    : temperature difference used to allow over shooting.
   ! cdscld : critical cloud depth in delta sigma.
   !
-  real(rkx) , parameter :: qdcrit = 3.0e-7_rkx
-  real(rkx) , parameter :: pert   = 1.0_rkx
-  real(rkx) , parameter :: perq   = 1.0e-3_rkx
-  real(rkx) , parameter :: dlt    = 3.0_rkx
-  real(rkx) , parameter :: cdscld = 0.3_rkx
-  real(rkx) , parameter :: bfac   = 0.5_rkx
+  real(rkx), parameter :: qdcrit = 3.0e-7_rkx
+  real(rkx), parameter :: pert   = 1.0_rkx
+  real(rkx), parameter :: perq   = 1.0e-3_rkx
+  real(rkx), parameter :: dlt    = 3.0_rkx
+  real(rkx), parameter :: cdscld = 0.3_rkx
+  real(rkx), parameter :: bfac   = 0.5_rkx
 
-  real(rkx) , public , pointer , dimension(:) :: qwght
-  real(rkx) , public , pointer , dimension(:,:,:) :: twght , vqflx
+  real(rkx), public, pointer, contiguous, dimension(:) :: qwght
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: twght, vqflx
 
-  integer(ik4) , public :: k700
+  integer(ik4), public :: k700
 
-  real(rkx) , parameter :: svpt0 = tzero
-  real(rkx) , parameter :: svp1 = 0.6112_rkx
-  real(rkx) , parameter :: svp3 = 29.65_rkx
-  real(rkx) , parameter :: svp2 = 17.67_rkx
-  real(rkx) , parameter :: tauht = 7200.0_rkx
+  real(rkx), parameter :: svpt0 = tzero
+  real(rkx), parameter :: svp1 = 0.6112_rkx
+  real(rkx), parameter :: svp3 = 29.65_rkx
+  real(rkx), parameter :: svp2 = 17.67_rkx
+  real(rkx), parameter :: tauht = 7200.0_rkx
 
   contains
 
@@ -70,18 +70,18 @@ module mod_cu_kuo
 
   subroutine cupara(m2c)
     implicit none
-    type(mod_2_cum) , intent(in) :: m2c
-    real(rkx) :: apcnt , arh , c301 , dalr , deqt , dlnp , dplr , dsc ,   &
-            ee , eddyf , emax , eqt , eqtm , plcl , pmax , pratec , psg , &
-            psx , q , qmax , qs , rh , sca , siglcl , ff ,  suma , sumb , &
-            t1 , tdmax , tdpt , tlcl , tmax , tmean , ttconv , ttp ,      &
-            ttsum , xsav , zlcl
-    integer(ik4) :: i , j , k , kbase , kk , ktop
+    type(mod_2_cum), intent(in) :: m2c
+    real(rkx) :: apcnt, arh, c301, dalr, deqt, dlnp, dplr, dsc,   &
+            ee, eddyf, emax, eqt, eqtm, plcl, pmax, pratec, psg, &
+            psx, q, qmax, qs, rh, sca, siglcl, ff,  suma, sumb, &
+            t1, tdmax, tdpt, tlcl, tmax, tmean, ttconv, ttp,      &
+            ttsum, xsav, zlcl
+    integer(ik4) :: i, j, k, kbase, kk, ktop
     logical :: lconv
-    real(rkx) , dimension(kz) :: tux , pux , qux , seqt
+    real(rkx), dimension(kz) :: tux, pux, qux, seqt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cupara'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -90,15 +90,15 @@ module mod_cu_kuo
     ! at this stage, qten(j,i,k,iqv) only includes horizontal advection.
     ! sca: is the amount of total moisture convergence
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         lconv = .false.
         psx = m2c%psf(j,i) * d_r1000 ! Put in cb
         pux(:) = m2c%pas(j,i,:) * d_r1000 ! Put in cb
         tux(:) = m2c%tas(j,i,:)
         qux(:) = m2c%qxas(j,i,:,iqv)
         sca = d_zero
-        do k = 1 , kz
+        do k = 1, kz
           sca = sca + m2c%dynqx(j,i,k,iqv) * dsigma(k)
         end do
         !
@@ -117,7 +117,7 @@ module mod_cu_kuo
           pmax = pux(k700)
           qmax = qux(k700)
           tmax = tux(k700)
-          do k = k700 , kz
+          do k = k700, kz
             psg = pux(k)
             ttp = tux(k) + pert
             q = qux(k) + perq
@@ -151,7 +151,7 @@ module mod_cu_kuo
           ! 3) compute seqt (saturation equivalent potential temperature)
           !    of all the levels that are above the lcl
           !
-          do k = kz - 1 , 1 , -1
+          do k = kz - 1, 1, -1
             kbase = k
             if ( hsigma(k) <= siglcl ) exit
           end do
@@ -159,7 +159,7 @@ module mod_cu_kuo
           ! kbase is the layer where lcl is located.
           !
           seqt(:) = d_zero
-          do k = 1 , kbase
+          do k = 1, kbase
             ttp = tux(k)
             psg = pux(k)
             t1 = ttp*(d_100/psg)**rovcp
@@ -173,7 +173,7 @@ module mod_cu_kuo
           !
           ktop = max(kbase-3,1)
           kk = 1
-          do k = 1 , kbase
+          do k = 1, kbase
             kk = kbase + 1 - k
             deqt = seqt(kk) - eqtm
             if ( deqt > dlt ) exit
@@ -195,7 +195,7 @@ module mod_cu_kuo
             !    convection is killed.
             !
             ttsum = d_zero
-            do k = ktop , kbase
+            do k = ktop, kbase
               ttsum = ttsum + (eqtm-seqt(k))*dsigma(k)
             end do
 
@@ -213,7 +213,7 @@ module mod_cu_kuo
               sumb = d_zero
               arh = d_zero
               qwght(:) = d_zero
-              do k = ktop , kz
+              do k = ktop, kz
                 psg = pux(k)
                 ttp = tux(k)
                 ee = svp1*exp(svp2*(tux(k)-svpt0)/(tux(k)-svp3))
@@ -234,10 +234,10 @@ module mod_cu_kuo
                 c301 = d_zero
                 suma = d_one
               end if
-              do k = ktop , kz
+              do k = ktop, kz
                 qwght(k) = qwght(k)/suma
               end do
-              do k = ktop , kbase
+              do k = ktop, kbase
                 ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
                 apcnt = (d_one-c301)*sca/4.3e-3_rkx
                 eddyf = apcnt*vqflx(k,kbase,ktop)
@@ -254,7 +254,7 @@ module mod_cu_kuo
                 if ( ichem == 1 ) then
                   ! build for chemistry 3d table of cons precipitation rate
                   ! from the surface to the top of the convection
-                  do k = 1 , ktop-1
+                  do k = 1, ktop-1
                     cu_convpr(j,i,k) = pratec
                   end do
                 end if
@@ -266,7 +266,7 @@ module mod_cu_kuo
           !
           ! convection do not exist, compute the vertical advection term:
           !
-          do k = 2 , kz
+          do k = 2, kz
             if ( m2c%qq1(j,i,k)   / m2c%psa(j,i) > minqq .and. &
                  m2c%qq1(j,i,k-1) / m2c%psa(j,i) > minqq ) then
               ff = ((m2c%qq1(j,i,k)*(m2c%qq1(j,i,k-1) / &

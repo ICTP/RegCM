@@ -6,7 +6,7 @@ module mod_clm_cncisoflux
   use mod_intkinds
   use mod_realkinds
   use mod_mpmessage
-  use mod_clm_varpar , only: ndecomp_cascade_transitions, &
+  use mod_clm_varpar, only: ndecomp_cascade_transitions, &
           nlevdecomp, ndecomp_pools
   implicit none
 
@@ -45,7 +45,7 @@ module mod_clm_cncisoflux
     integer(ik4) :: fc,cc,j,l
 
     ! which pool is C taken from for a given decomposition step
-    integer(ik4),  pointer :: cascade_donor_pool(:)
+    integer(ik4),  pointer, contiguous :: cascade_donor_pool(:)
 
     ! set local pointers
     p => clm3%g%l%c%p
@@ -336,10 +336,10 @@ module mod_clm_cncisoflux
 
     ! column-level non-mortality fluxes
 
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       cc = filter_soilc(fc)
-      do j = 1 , nlevdecomp
-        do l = 1 , ndecomp_cascade_transitions
+      do j = 1, nlevdecomp
+        do l = 1, ndecomp_cascade_transitions
           if ( c%ccs%decomp_cpools_vr(cc,j,cascade_donor_pool(l)) /= 0._rk8) then
             ccisof%decomp_cascade_hr_vr(cc,j,l) = &
                     c%ccf%decomp_cascade_hr_vr(cc,j,l) * &
@@ -352,10 +352,10 @@ module mod_clm_cncisoflux
       end do
     end do
 
-    do fc =  1 , num_soilc
+    do fc =  1, num_soilc
       cc = filter_soilc(fc)
-      do j = 1 , nlevdecomp
-        do l = 1 , ndecomp_cascade_transitions
+      do j = 1, nlevdecomp
+        do l = 1, ndecomp_cascade_transitions
           if ( c%ccs%decomp_cpools_vr(cc,j,cascade_donor_pool(l)) /= 0._rk8) then
             ccisof%decomp_cascade_ctransfer_vr(cc,j,l)  =  &
                    c%ccf%decomp_cascade_ctransfer_vr(cc,j,l) * &
@@ -655,7 +655,7 @@ module mod_clm_cncisoflux
   !
   subroutine CIsoFlux3(num_soilc,filter_soilc,num_soilp,filter_soilp,isotope)
     use mod_clm_type
-    use mod_clm_varpar , only : max_pft_per_col
+    use mod_clm_varpar, only : max_pft_per_col
     implicit none
     integer(ik4), intent(in) :: num_soilc    ! number of soil columns filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
@@ -672,15 +672,15 @@ module mod_clm_cncisoflux
     integer(ik4) :: pi,l,pp
     integer(ik4) :: fc,cc,j
 
-    real(rk8), pointer :: croot_prof(:,:) ! (1/m) profile of coarse roots
-    real(rk8), pointer :: stem_prof(:,:)  ! (1/m) profile of stems
-    integer(ik4) , pointer :: npfts(:)    ! number of pfts for each column
+    real(rk8), pointer, contiguous :: croot_prof(:,:) ! (1/m) profile of coarse roots
+    real(rk8), pointer, contiguous :: stem_prof(:,:)  ! (1/m) profile of stems
+    integer(ik4), pointer, contiguous :: npfts(:)    ! number of pfts for each column
     ! beginning pft index for each column
-    integer(ik4) , pointer :: pfti(:)
+    integer(ik4), pointer, contiguous :: pfti(:)
     ! weight (relative to column) for this pft (0-1)
-    real(rk8), pointer :: wtcol(:)
+    real(rk8), pointer, contiguous :: wtcol(:)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
+    logical, pointer, contiguous :: pactive(:)
 
     ! set local pointers
     p => clm3%g%l%c%p
@@ -813,8 +813,8 @@ module mod_clm_cncisoflux
 
     ! calculate the column-level flux of deadstem and deadcrootc to cwdc
     ! as the result of fire mortality.
-    do pi = 1 , max_pft_per_col
-      do fc = 1 , num_soilc
+    do pi = 1, max_pft_per_col
+      do fc = 1, num_soilc
         cc = filter_soilc(fc)
         if ( pi <=  npfts(cc) ) then
           pp = pfti(cc) + pi - 1
@@ -834,10 +834,10 @@ module mod_clm_cncisoflux
       end do
     end do
 
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       cc = filter_soilc(fc)
-      do j = 1 , nlevdecomp
-        do l = 1 , ndecomp_pools
+      do j = 1, nlevdecomp
+        do l = 1, ndecomp_pools
           if ( c%ccs%decomp_cpools_vr(cc,j,l) /= 0._rk8) then
             ccisof%m_decomp_cpools_to_fire_vr(cc,j,l) = &
                     c%ccf%m_decomp_cpools_to_fire_vr(cc,j,l) * &
@@ -856,40 +856,40 @@ module mod_clm_cncisoflux
   !
   subroutine CNCIsoLitterToColumn (num_soilc, filter_soilc, isotope)
     use mod_clm_type
-    use mod_clm_varpar , only : max_pft_per_col
+    use mod_clm_varpar, only : max_pft_per_col
     implicit none
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:)  ! filter for soil columns
     character(len=*), intent(in) :: isotope ! 'c13' or 'c14'
 
-    integer(ik4) , pointer :: ivt(:) ! pft vegetation type
+    integer(ik4), pointer, contiguous :: ivt(:) ! pft vegetation type
     ! weight (relative to column) for this pft (0-1)
-    real(rk8), pointer :: wtcol(:)
+    real(rk8), pointer, contiguous :: wtcol(:)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
-    real(rk8), pointer :: leafc_to_litter(:)
-    real(rk8), pointer :: frootc_to_litter(:)
-    real(rk8), pointer :: lf_flab(:)   ! leaf litter labile fraction
-    real(rk8), pointer :: lf_fcel(:)   ! leaf litter cellulose fraction
-    real(rk8), pointer :: lf_flig(:)   ! leaf litter lignin fraction
-    real(rk8), pointer :: fr_flab(:)   ! fine root litter labile fraction
-    real(rk8), pointer :: fr_fcel(:)   ! fine root litter cellulose fraction
-    real(rk8), pointer :: fr_flig(:)   ! fine root litter lignin fraction
-    integer(ik4) , pointer :: npfts(:) ! number of pfts for each column
-    integer(ik4) , pointer :: pfti(:)  ! beginning pft index for each column
+    logical, pointer, contiguous :: pactive(:)
+    real(rk8), pointer, contiguous :: leafc_to_litter(:)
+    real(rk8), pointer, contiguous :: frootc_to_litter(:)
+    real(rk8), pointer, contiguous :: lf_flab(:)   ! leaf litter labile fraction
+    real(rk8), pointer, contiguous :: lf_fcel(:)   ! leaf litter cellulose fraction
+    real(rk8), pointer, contiguous :: lf_flig(:)   ! leaf litter lignin fraction
+    real(rk8), pointer, contiguous :: fr_flab(:)   ! fine root litter labile fraction
+    real(rk8), pointer, contiguous :: fr_fcel(:)   ! fine root litter cellulose fraction
+    real(rk8), pointer, contiguous :: fr_flig(:)   ! fine root litter lignin fraction
+    integer(ik4), pointer, contiguous :: npfts(:) ! number of pfts for each column
+    integer(ik4), pointer, contiguous :: pfti(:)  ! beginning pft index for each column
 
     ! C fluxes associated with phenology (litterfall and crop) to
     ! litter metabolic pool (gC/m3/s)
-    real(rk8), pointer :: phenology_c_to_litr_met_c(:,:)
+    real(rk8), pointer, contiguous :: phenology_c_to_litr_met_c(:,:)
     ! C fluxes associated with phenology (litterfall and crop) to
     ! litter cellulose pool (gC/m3/s)
-    real(rk8), pointer :: phenology_c_to_litr_cel_c(:,:)
+    real(rk8), pointer, contiguous :: phenology_c_to_litr_cel_c(:,:)
     ! C fluxes associated with phenology (litterfall and crop) to
     ! litter lignin pool (gC/m3/s)
-    real(rk8), pointer :: phenology_c_to_litr_lig_c(:,:)
+    real(rk8), pointer, contiguous :: phenology_c_to_litr_lig_c(:,:)
 
-    real(rk8), pointer :: leaf_prof(:,:)   ! (1/m) profile of leaves
-    real(rk8), pointer :: froot_prof(:,:)  ! (1/m) profile of fine roots
+    real(rk8), pointer, contiguous :: leaf_prof(:,:)   ! (1/m) profile of leaves
+    real(rk8), pointer, contiguous :: froot_prof(:,:)  ! (1/m) profile of fine roots
 
     type(pft_cflux_type), pointer :: pcisof
     type(column_cflux_type), pointer :: ccisof
@@ -931,9 +931,9 @@ module mod_clm_cncisoflux
     leaf_prof  => clm3%g%l%c%p%pps%leaf_prof
     froot_prof => clm3%g%l%c%p%pps%froot_prof
 
-    do j = 1 , nlevdecomp
-      do pi = 1 , max_pft_per_col
-        do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do pi = 1, max_pft_per_col
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
 
           if ( pi <=  npfts(c) ) then
@@ -978,57 +978,57 @@ module mod_clm_cncisoflux
   !
   subroutine CNCIsoGapPftToColumn (num_soilc, filter_soilc, isotope)
     use mod_clm_type
-    use mod_clm_varpar , only : max_pft_per_col, maxpatch_pft
+    use mod_clm_varpar, only : max_pft_per_col, maxpatch_pft
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:)   ! soil column filter
     character(len=*), intent(in) :: isotope ! 'c13' or 'c14'
 
-    integer(ik4) , pointer :: ivt(:)      ! pft vegetation type
-    real(rk8), pointer :: wtcol(:)    ! pft weight relative to column (0-1)
+    integer(ik4), pointer, contiguous :: ivt(:)      ! pft vegetation type
+    real(rk8), pointer, contiguous :: wtcol(:)    ! pft weight relative to column (0-1)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
-    real(rk8), pointer :: lf_flab(:)  ! leaf litter labile fraction
-    real(rk8), pointer :: lf_fcel(:)  ! leaf litter cellulose fraction
-    real(rk8), pointer :: lf_flig(:)  ! leaf litter lignin fraction
-    real(rk8), pointer :: fr_flab(:)  ! fine root litter labile fraction
-    real(rk8), pointer :: fr_fcel(:)  ! fine root litter cellulose fraction
-    real(rk8), pointer :: fr_flig(:)  ! fine root litter lignin fraction
-    integer(ik4) , pointer :: npfts(:) ! number of pfts for each column
-    integer(ik4) , pointer :: pfti(:)  ! beginning pft index for each column
-    real(rk8), pointer :: m_leafc_to_litter(:)
-    real(rk8), pointer :: m_frootc_to_litter(:)
-    real(rk8), pointer :: m_livestemc_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_to_litter(:)
-    real(rk8), pointer :: m_leafc_storage_to_litter(:)
-    real(rk8), pointer :: m_frootc_storage_to_litter(:)
-    real(rk8), pointer :: m_livestemc_storage_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_storage_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_storage_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_storage_to_litter(:)
-    real(rk8), pointer :: m_gresp_storage_to_litter(:)
-    real(rk8), pointer :: m_leafc_xfer_to_litter(:)
-    real(rk8), pointer :: m_frootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_livestemc_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_xfer_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_gresp_xfer_to_litter(:)
+    logical, pointer, contiguous :: pactive(:)
+    real(rk8), pointer, contiguous :: lf_flab(:)  ! leaf litter labile fraction
+    real(rk8), pointer, contiguous :: lf_fcel(:)  ! leaf litter cellulose fraction
+    real(rk8), pointer, contiguous :: lf_flig(:)  ! leaf litter lignin fraction
+    real(rk8), pointer, contiguous :: fr_flab(:)  ! fine root litter labile fraction
+    real(rk8), pointer, contiguous :: fr_fcel(:)  ! fine root litter cellulose fraction
+    real(rk8), pointer, contiguous :: fr_flig(:)  ! fine root litter lignin fraction
+    integer(ik4), pointer, contiguous :: npfts(:) ! number of pfts for each column
+    integer(ik4), pointer, contiguous :: pfti(:)  ! beginning pft index for each column
+    real(rk8), pointer, contiguous :: m_leafc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_frootc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livestemc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_to_litter(:)
+    real(rk8), pointer, contiguous :: m_leafc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_frootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livestemc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_gresp_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_leafc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_frootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livestemc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_gresp_xfer_to_litter(:)
 
     ! C fluxes associated with gap mortality to litter metabolic pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_litr_met_c(:,:)
+    real(rk8), pointer, contiguous :: gap_mortality_c_to_litr_met_c(:,:)
     ! C fluxes associated with gap mortality to litter cellulose pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_litr_cel_c(:,:)
+    real(rk8), pointer, contiguous :: gap_mortality_c_to_litr_cel_c(:,:)
     ! C fluxes associated with gap mortality to litter lignin pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_litr_lig_c(:,:)
+    real(rk8), pointer, contiguous :: gap_mortality_c_to_litr_lig_c(:,:)
     ! C fluxes associated with gap mortality to CWD pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_cwdc(:,:)
-    real(rk8), pointer :: leaf_prof(:,:)   ! (1/m) profile of leaves
-    real(rk8), pointer :: froot_prof(:,:)  ! (1/m) profile of fine roots
-    real(rk8), pointer :: croot_prof(:,:)  ! (1/m) profile of coarse roots
-    real(rk8), pointer :: stem_prof(:,:)   ! (1/m) profile of stems
+    real(rk8), pointer, contiguous :: gap_mortality_c_to_cwdc(:,:)
+    real(rk8), pointer, contiguous :: leaf_prof(:,:)   ! (1/m) profile of leaves
+    real(rk8), pointer, contiguous :: froot_prof(:,:)  ! (1/m) profile of fine roots
+    real(rk8), pointer, contiguous :: croot_prof(:,:)  ! (1/m) profile of coarse roots
+    real(rk8), pointer, contiguous :: stem_prof(:,:)   ! (1/m) profile of stems
 
     type(pft_cflux_type), pointer :: pcisof
     type(column_cflux_type), pointer :: ccisof
@@ -1092,9 +1092,9 @@ module mod_clm_cncisoflux
     croot_prof                     => clm3%g%l%c%p%pps%croot_prof
     stem_prof                      => clm3%g%l%c%p%pps%stem_prof
 
-    do j = 1 , nlevdecomp
-      do pi = 1 , maxpatch_pft
-        do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do pi = 1, maxpatch_pft
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
 
           if (pi <=  npfts(c)) then
@@ -1200,60 +1200,60 @@ module mod_clm_cncisoflux
   !
   subroutine CNCIsoHarvestPftToColumn (num_soilc, filter_soilc, isotope)
     use mod_clm_type
-    use mod_clm_varpar , only : max_pft_per_col, maxpatch_pft
+    use mod_clm_varpar, only : max_pft_per_col, maxpatch_pft
     implicit none
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:)   ! soil column filter
     character(len=*), intent(in) :: isotope ! 'c13' or 'c14'
 
-    integer(ik4) , pointer :: ivt(:)  ! pft vegetation type
-    real(rk8), pointer :: wtcol(:)    ! pft weight relative to column (0-1)
+    integer(ik4), pointer, contiguous :: ivt(:)  ! pft vegetation type
+    real(rk8), pointer, contiguous :: wtcol(:)    ! pft weight relative to column (0-1)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
-    real(rk8), pointer :: lf_flab(:)  ! leaf litter labile fraction
-    real(rk8), pointer :: lf_fcel(:)  ! leaf litter cellulose fraction
-    real(rk8), pointer :: lf_flig(:)  ! leaf litter lignin fraction
-    real(rk8), pointer :: fr_flab(:)  ! fine root litter labile fraction
-    real(rk8), pointer :: fr_fcel(:)  ! fine root litter cellulose fraction
-    real(rk8), pointer :: fr_flig(:)  ! fine root litter lignin fraction
-    integer(ik4) , pointer :: npfts(:)    ! number of pfts for each column
-    integer(ik4) , pointer :: pfti(:)     ! beginning pft index for each column
-    real(rk8), pointer :: hrv_leafc_to_litter(:)
-    real(rk8), pointer :: hrv_frootc_to_litter(:)
-    real(rk8), pointer :: hrv_livestemc_to_litter(:)
-    real(rk8), pointer :: phrv_deadstemc_to_prod10c(:)
-    real(rk8), pointer :: phrv_deadstemc_to_prod100c(:)
-    real(rk8), pointer :: hrv_livecrootc_to_litter(:)
-    real(rk8), pointer :: hrv_deadcrootc_to_litter(:)
-    real(rk8), pointer :: hrv_leafc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_frootc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_livestemc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_deadstemc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_deadcrootc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_gresp_storage_to_litter(:)
-    real(rk8), pointer :: hrv_leafc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_frootc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_livestemc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_deadstemc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_deadcrootc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_gresp_xfer_to_litter(:)
+    logical, pointer, contiguous :: pactive(:)
+    real(rk8), pointer, contiguous :: lf_flab(:)  ! leaf litter labile fraction
+    real(rk8), pointer, contiguous :: lf_fcel(:)  ! leaf litter cellulose fraction
+    real(rk8), pointer, contiguous :: lf_flig(:)  ! leaf litter lignin fraction
+    real(rk8), pointer, contiguous :: fr_flab(:)  ! fine root litter labile fraction
+    real(rk8), pointer, contiguous :: fr_fcel(:)  ! fine root litter cellulose fraction
+    real(rk8), pointer, contiguous :: fr_flig(:)  ! fine root litter lignin fraction
+    integer(ik4), pointer, contiguous :: npfts(:)    ! number of pfts for each column
+    integer(ik4), pointer, contiguous :: pfti(:)     ! beginning pft index for each column
+    real(rk8), pointer, contiguous :: hrv_leafc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemc_to_litter(:)
+    real(rk8), pointer, contiguous :: phrv_deadstemc_to_prod10c(:)
+    real(rk8), pointer, contiguous :: phrv_deadstemc_to_prod100c(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_gresp_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_gresp_xfer_to_litter(:)
 
-    real(rk8), pointer :: chrv_deadstemc_to_prod10c(:)
-    real(rk8), pointer :: chrv_deadstemc_to_prod100c(:)
+    real(rk8), pointer, contiguous :: chrv_deadstemc_to_prod10c(:)
+    real(rk8), pointer, contiguous :: chrv_deadstemc_to_prod100c(:)
     ! C fluxes associated with harvest to litter metabolic pool (gC/m3/s)
-    real(rk8), pointer :: harvest_c_to_litr_met_c(:,:)
+    real(rk8), pointer, contiguous :: harvest_c_to_litr_met_c(:,:)
     ! C fluxes associated with harvest to litter cellulose pool (gC/m3/s)
-    real(rk8), pointer :: harvest_c_to_litr_cel_c(:,:)
+    real(rk8), pointer, contiguous :: harvest_c_to_litr_cel_c(:,:)
     ! C fluxes associated with harvest to litter lignin pool (gC/m3/s)
-    real(rk8), pointer :: harvest_c_to_litr_lig_c(:,:)
+    real(rk8), pointer, contiguous :: harvest_c_to_litr_lig_c(:,:)
     ! C fluxes associated with harvest to CWD pool (gC/m3/s)
-    real(rk8), pointer :: harvest_c_to_cwdc(:,:)
-    real(rk8), pointer :: leaf_prof(:,:)    ! (1/m) profile of leaves
-    real(rk8), pointer :: froot_prof(:,:)   ! (1/m) profile of fine roots
-    real(rk8), pointer :: croot_prof(:,:)   ! (1/m) profile of coarse roots
-    real(rk8), pointer :: stem_prof(:,:)    ! (1/m) profile of stems
+    real(rk8), pointer, contiguous :: harvest_c_to_cwdc(:,:)
+    real(rk8), pointer, contiguous :: leaf_prof(:,:)    ! (1/m) profile of leaves
+    real(rk8), pointer, contiguous :: froot_prof(:,:)   ! (1/m) profile of fine roots
+    real(rk8), pointer, contiguous :: croot_prof(:,:)   ! (1/m) profile of coarse roots
+    real(rk8), pointer, contiguous :: stem_prof(:,:)    ! (1/m) profile of stems
 
     type(pft_cflux_type), pointer :: pcisof
     type(column_cflux_type), pointer :: ccisof
@@ -1320,9 +1320,9 @@ module mod_clm_cncisoflux
     croot_prof                     => clm3%g%l%c%p%pps%croot_prof
     stem_prof                      => clm3%g%l%c%p%pps%stem_prof
 
-    do j = 1 , nlevdecomp
-      do pi = 1 , maxpatch_pft
-        do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do pi = 1, maxpatch_pft
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
 
           if (pi <=  npfts(c)) then
@@ -1404,8 +1404,8 @@ module mod_clm_cncisoflux
       end do
     end do
 
-    do pi = 1 , maxpatch_pft
-      do fc = 1 , num_soilc
+    do pi = 1, maxpatch_pft
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         if (pi <=  npfts(c)) then
           p = pfti(c) + pi - 1
@@ -1453,7 +1453,7 @@ module mod_clm_cncisoflux
     end select
 
     ! loop over the supplied filter
-    do f = 1 , num
+    do f = 1, num
       i = filter(f)
       if (ctot_state(i) /= 0._rk8) then
         ciso_flux(i) = ctot_flux(i) * (ciso_state(i)/ctot_state(i)) * frax

@@ -3,11 +3,11 @@ module mod_clm_reweight
   use mod_realkinds
   use mod_mpmessage
   use mod_stdio
-  use mod_clm_type , only : clm3, gridcell_type, landunit_type, &
+  use mod_clm_type, only : clm3, gridcell_type, landunit_type, &
                             column_type, pft_type
-  use mod_clm_filter , only : setFilters
-  use mod_clm_decomp , only : get_proc_bounds
-  use mod_clm_domain , only : ldomain
+  use mod_clm_filter, only : setFilters
+  use mod_clm_decomp, only : get_proc_bounds
+  use mod_clm_domain, only : ldomain
 
   implicit none
 
@@ -152,15 +152,15 @@ module mod_clm_reweight
   !
   subroutine setActive( )
     implicit none
-    type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
-    type(column_type) , pointer :: cptr   ! pointer to column derived subtype
-    type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
+    type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
+    type(column_type), pointer :: cptr   ! pointer to column derived subtype
+    type(pft_type), pointer :: pptr      ! pointer to pft derived subtype
 
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
-    integer(ik4) :: begg , endg ! per-proc beginning and ending gridcell indices
-    integer(ik4) :: l , c , p    ! loop counters
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg, endg ! per-proc beginning and ending gridcell indices
+    integer(ik4) :: l, c, p    ! loop counters
     logical :: error_found  ! true if we find an error
 
     character(len=*), parameter :: subname = 'setActive'
@@ -175,11 +175,11 @@ module mod_clm_reweight
 
     error_found = .false.
 
-    do l = begl , endl
+    do l = begl, endl
       lptr%active(l) = is_active_l(l)
     end do
 
-    do c = begc , endc
+    do c = begc, endc
       l = cptr%landunit(c)
       cptr%active(c) = is_active_c(c)
       if ( cptr%active(c) .and. .not. lptr%active(l) ) then
@@ -190,7 +190,7 @@ module mod_clm_reweight
       end if
     end do
 
-    do p = begp , endp
+    do p = begp, endp
       c = pptr%column(p)
       pptr%active(p) = is_active_p(p)
       if ( pptr%active(p) .and. .not. cptr%active(c) ) then
@@ -211,7 +211,7 @@ module mod_clm_reweight
   !
   logical function is_active_p(p)
     implicit none
-    integer(ik4) , intent(in) :: p   ! pft index
+    integer(ik4), intent(in) :: p   ! pft index
     integer(ik4) :: l  ! landunit index
     integer(ik4) :: g  ! grid cell index
 
@@ -228,7 +228,7 @@ module mod_clm_reweight
   !
   logical function is_active_c(c)
     implicit none
-    integer(ik4) , intent(in) :: c   ! column index
+    integer(ik4), intent(in) :: c   ! column index
     integer(ik4) :: l  ! landunit index
     integer(ik4) :: g  ! grid cell index
 
@@ -245,7 +245,7 @@ module mod_clm_reweight
   !
   logical function is_active_l(l)
     implicit none
-    integer(ik4) , intent(in) :: l   ! landunit index
+    integer(ik4), intent(in) :: l   ! landunit index
     integer(ik4) :: g  ! grid cell index
 
     g = clm3%g%l%gridcell(l)
@@ -270,17 +270,17 @@ module mod_clm_reweight
   subroutine checkWeights (active_only)
     implicit none
     ! true => check sum of weights just of ACTIVE children, grandchildren, etc.
-    logical , intent(in) :: active_only
-    integer(ik4) :: begp , endp  ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc  ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl  ! per-proc beginning and ending ldunit indices
-    integer(ik4) :: begg , endg  ! per-proc beginning and ending gdcell indices
-    integer(ik4) :: g , l , c , p     ! loop counters
-    real(rk8) , allocatable , dimension(:) :: sumwtcol , sumwtlunit , sumwtgcell
-    type(gridcell_type) , pointer  :: gptr ! pointer to gridcell derived subtype
-    type(landunit_type) , pointer  :: lptr ! pointer to landunit derived subtype
-    type(column_type) , pointer  :: cptr   ! pointer to column derived subtype
-    type(pft_type) , pointer  :: pptr      ! pointer to pft derived subtype
+    logical, intent(in) :: active_only
+    integer(ik4) :: begp, endp  ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc  ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl  ! per-proc beginning and ending ldunit indices
+    integer(ik4) :: begg, endg  ! per-proc beginning and ending gdcell indices
+    integer(ik4) :: g, l, c, p     ! loop counters
+    real(rk8), allocatable, dimension(:) :: sumwtcol, sumwtlunit, sumwtgcell
+    type(gridcell_type), pointer  :: gptr ! pointer to gridcell derived subtype
+    type(landunit_type), pointer  :: lptr ! pointer to landunit derived subtype
+    type(column_type), pointer  :: cptr   ! pointer to column derived subtype
+    type(pft_type), pointer  :: pptr      ! pointer to pft derived subtype
     logical :: error_found                 ! true if we find an error
     character(len=*), parameter :: subname = 'checkWeights'
 
@@ -302,7 +302,7 @@ module mod_clm_reweight
     sumwtlunit(:) = 0._rk8
     sumwtgcell(:) = 0._rk8
 
-    do p = begp , endp
+    do p = begp, endp
       c = pptr%column(p)
       l = pptr%landunit(p)
       g = pptr%gridcell(p)
@@ -313,7 +313,7 @@ module mod_clm_reweight
       end if
     end do
 
-    do c = begc , endc
+    do c = begc, endc
       if ( .not. weightsOkay(sumwtcol(c),active_only,cptr%active(c)) ) then
         write(stderr,*) trim(subname), &
                 ' ERROR: at c = ',c,'total PFT weight is ',sumwtcol(c), &
@@ -322,7 +322,7 @@ module mod_clm_reweight
       end if
     end do
 
-    do l = begl , endl
+    do l = begl, endl
       if ( .not. weightsOkay(sumwtlunit(l),active_only,lptr%active(l)) ) then
         write(stderr,*) trim(subname), &
                 ' ERROR: at l = ',l,'total PFT weight is ',sumwtlunit(l), &
@@ -331,7 +331,7 @@ module mod_clm_reweight
       end if
     end do
 
-    do g = begg , endg
+    do g = begg, endg
       if ( .not. &
            weightsOkay(sumwtgcell(g),active_only,i_am_active=.true.) ) then
         write(stderr,*) trim(subname), &
@@ -345,7 +345,7 @@ module mod_clm_reweight
     sumwtlunit(:) = 0._rk8
     sumwtgcell(:) = 0._rk8
 
-    do c = begc , endc
+    do c = begc, endc
       l = cptr%landunit(c)
       g = cptr%gridcell(c)
 
@@ -355,7 +355,7 @@ module mod_clm_reweight
       end if
     end do
 
-    do l = begl , endl
+    do l = begl, endl
       if ( .not. weightsOkay(sumwtlunit(l),active_only,lptr%active(l)) ) then
         write(stderr,*) trim(subname), &
                 ' ERROR: at l = ',l,'total col weight is ',sumwtlunit(l), &
@@ -364,7 +364,7 @@ module mod_clm_reweight
       end if
     end do
 
-    do g = begg , endg
+    do g = begg, endg
       if ( .not. &
             weightsOkay(sumwtgcell(g),active_only,i_am_active=.true.) ) then
         write(stderr,*) trim(subname), &
@@ -377,14 +377,14 @@ module mod_clm_reweight
     ! Check landunit-level weights
     sumwtgcell(:) = 0._rk8
 
-    do l = begl , endl
+    do l = begl, endl
       g = lptr%gridcell(l)
       if ( (active_only .and. lptr%active(l)) .or. .not. active_only ) then
         sumwtgcell(g) = sumwtgcell(g) + lptr%wtgcell(l)
       end if
     end do
 
-    do g = begg , endg
+    do g = begg, endg
       if ( .not. &
             weightsOkay(sumwtgcell(g),active_only,i_am_active=.true.) ) then
         write(stderr,*) trim(subname), &
@@ -418,14 +418,14 @@ module mod_clm_reweight
   logical function weightsOkay(sumwts,active_weights_only,i_am_active)
     implicit none
     ! sum of weights of children, grandchildren or great-grandchildren
-    real(rk8) , intent(in) :: sumwts
+    real(rk8), intent(in) :: sumwts
     ! true if sumwts just includes active children, etc.
-    logical , intent(in) :: active_weights_only
+    logical, intent(in) :: active_weights_only
     ! true if the current point is active
-    logical , intent(in) :: i_am_active
+    logical, intent(in) :: i_am_active
     logical :: weights_equal_1
     ! tolerance for checking whether weights sum to 1
-    real(rk8) , parameter :: tolerance = 1.e-3_rk8
+    real(rk8), parameter :: tolerance = 1.e-3_rk8
 
     weights_equal_1 = (abs(sumwts - 1._rk8) <= tolerance)
 

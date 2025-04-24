@@ -6,7 +6,7 @@ module mod_clm_regcm
   use mod_dynparam
   use mod_kdinterp
   use mod_runparams
-  use mod_ipcc_scenario , only : ghgval , igh_co2 , igh_ch4
+  use mod_ipcc_scenario, only : ghgval, igh_co2, igh_ch4
   use mod_memutil
   use mod_mppparam
   use mod_ensemble
@@ -17,30 +17,30 @@ module mod_clm_regcm
   use mod_service
   use mod_clm_initialize
   use mod_clm_driver
-  use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit , nextdate
-  use mod_clm_varctl , only : ndep_nochem , luse_cru , crufile , lcru_rand
-  use mod_clm_varpar , only : nlevsoi , nlevgrnd
-  use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , sb
-  use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
-  use mod_clm_decomp , only : procinfo , get_proc_bounds
+  use mod_clm_varctl, only : use_c13, co2_ppmv, tcrit, nextdate
+  use mod_clm_varctl, only : ndep_nochem, luse_cru, crufile, lcru_rand
+  use mod_clm_varpar, only : nlevsoi, nlevgrnd
+  use mod_clm_varcon, only : o2_molar_const, c13ratio, tfrz, sb
+  use mod_clm_atmlnd, only : clm_a2l, clm_l2a, adomain
+  use mod_clm_decomp, only : procinfo, get_proc_bounds
   use mod_clm_megan
-  use mod_clm_drydep , only : n_drydep
+  use mod_clm_drydep, only : n_drydep
   use netcdf
 
   private
 
   save
 
-  public :: initclm45 , runclm45 , albedoclm45
-  public :: initsaclm45 , runsaclm45
+  public :: initclm45, runclm45, albedoclm45
+  public :: initsaclm45, runsaclm45
 
-  real(rkx) , dimension(:) , pointer :: glon , glat
-  real(rkx) , dimension(:) , pointer :: ihfac
-  real(rkx) , dimension(:,:) , pointer :: temps
-  real(rkx) , dimension(:,:) , pointer :: alon , alat
-  real(rkx) , dimension(:,:) , pointer :: rcp
-  real(rkx) , dimension(:,:) , pointer :: crupre , acp0 , acp1 , acp2
-  real(rk8) , dimension(:,:,:) , pointer :: emis2d
+  real(rkx), dimension(:), pointer, contiguous :: glon, glat
+  real(rkx), dimension(:), pointer, contiguous :: ihfac
+  real(rkx), dimension(:,:), pointer, contiguous :: temps
+  real(rkx), dimension(:,:), pointer, contiguous :: alon, alat
+  real(rkx), dimension(:,:), pointer, contiguous :: rcp
+  real(rkx), dimension(:,:), pointer, contiguous :: crupre, acp0, acp1, acp2
+  real(rk8), dimension(:,:,:), pointer, contiguous :: emis2d
 
   type(h_interpolator) :: hint
 
@@ -48,11 +48,11 @@ module mod_clm_regcm
 
   subroutine initsaclm45(lm)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    integer(ik4) :: begg , endg , ilev
+    type(lm_exchange), intent(inout) :: lm
+    integer(ik4) :: begg, endg, ilev
     character(len=64) :: rdate
-    real(rkx) , pointer , dimension(:,:) :: p2
-    real(rk8) , pointer , dimension(:) :: p1
+    real(rkx), pointer, contiguous, dimension(:,:) :: p2
+    real(rk8), pointer, contiguous, dimension(:) :: p1
 
     call getmem2d(temps,jci1,jci2,ici1,ici2,'initclm45:temps')
     if ( ichem == 1 ) then
@@ -105,20 +105,20 @@ module mod_clm_regcm
       adomain%itex = 17
     end where
     if ( replacemoist ) then
-      do ilev = 1 , num_soil_layers
+      do ilev = 1, num_soil_layers
         call assignpnt(lm%rmoist,p2,ilev)
         call assignpnt(adomain%rmoist,p1,ilev)
         call glb_c2l_gs(lndcomm,p2,p1)
       end do
     end if
     if ( replacetemp ) then
-      do ilev = 1 , num_soil_layers
+      do ilev = 1, num_soil_layers
         call assignpnt(lm%rts,p2,ilev)
         call assignpnt(adomain%rts,p1,ilev)
         call glb_c2l_gs(lndcomm,p2,p1)
       end do
       if ( num_soil_layers < nlevgrnd ) then
-        do ilev = num_soil_layers+1 , nlevgrnd
+        do ilev = num_soil_layers+1, nlevgrnd
           adomain%rts(:,ilev) = adomain%rts(:,num_soil_layers)
         end do
       end if
@@ -131,12 +131,12 @@ module mod_clm_regcm
 
   subroutine initclm45(lm,lms)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i , j , n , begg , endg , ilev
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
+    integer(ik4) :: i, j, n, begg, endg, ilev
     character(len=64) :: rdate
-    real(rkx) , pointer , dimension(:,:) :: p2
-    real(rk8) , pointer , dimension(:) :: p1
+    real(rkx), pointer, contiguous, dimension(:,:) :: p2
+    real(rk8), pointer, contiguous, dimension(:) :: p1
 
     call getmem2d(temps,jci1,jci2,ici1,ici2,'initclm45:temps')
     if ( ichem == 1 ) then
@@ -189,20 +189,20 @@ module mod_clm_regcm
       adomain%itex = 17
     end where
     if ( replacemoist ) then
-      do ilev = 1 , num_soil_layers
+      do ilev = 1, num_soil_layers
         call assignpnt(lm%rmoist,p2,ilev)
         call assignpnt(adomain%rmoist,p1,ilev)
         call glb_c2l_gs(lndcomm,p2,p1)
       end do
     end if
     if ( replacetemp ) then
-      do ilev = 1 , num_soil_layers
+      do ilev = 1, num_soil_layers
         call assignpnt(lm%rts,p2,ilev)
         call assignpnt(adomain%rts,p1,ilev)
         call glb_c2l_gs(lndcomm,p2,p1)
       end do
       if ( num_soil_layers < nlevgrnd ) then
-        do ilev = num_soil_layers+1 , nlevgrnd
+        do ilev = num_soil_layers+1, nlevgrnd
           adomain%rts(:,ilev) = adomain%rts(:,num_soil_layers)
         end do
       end if
@@ -212,9 +212,9 @@ module mod_clm_regcm
     call initialize2(rdate)
 
     if ( rcmtimer%start( ) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n = 1, nnsg
             if ( lm%ldmsk1(n,j,i) == 1 ) then
               lms%swdiralb(n,j,i) = 0.16_rkx
               lms%swdifalb(n,j,i) = 0.16_rkx
@@ -233,11 +233,11 @@ module mod_clm_regcm
 
   subroutine runsaclm45(lm)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    real(rk8) :: caldayp1 , declinp1 , eccfp1 , declinp
-    logical :: doalb , rstwr , nlend , nlomon
-    type(rcm_time_interval) :: tdiff , triff
-    type(rcm_time_and_date) :: nextt , nextr
+    type(lm_exchange), intent(inout) :: lm
+    real(rk8) :: caldayp1, declinp1, eccfp1, declinp
+    logical :: doalb, rstwr, nlend, nlomon
+    type(rcm_time_interval) :: tdiff, triff
+    type(rcm_time_and_date) :: nextt, nextr
     character(len=64) :: rdate
 
     call atmosphere_to_land(lm)
@@ -309,12 +309,12 @@ module mod_clm_regcm
 
   subroutine runclm45(lm,lms)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
-    real(rk8) :: caldayp1 , declinp1 , eccfp1 , declinp
-    logical :: doalb , rstwr , nlend , nlomon
-    type(rcm_time_interval) :: tdiff , triff
-    type(rcm_time_and_date) :: nextt , nextr
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
+    real(rk8) :: caldayp1, declinp1, eccfp1, declinp
+    logical :: doalb, rstwr, nlend, nlomon
+    type(rcm_time_interval) :: tdiff, triff
+    type(rcm_time_and_date) :: nextt, nextr
     character(len=64) :: rdate
 
     call atmosphere_to_land(lm)
@@ -387,17 +387,17 @@ module mod_clm_regcm
 
   subroutine albedoclm45(lm,lms)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
-    real(rkx) , dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
-    integer(ik4) :: i , j , n
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
+    real(rkx), dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
+    integer(ik4) :: i, j, n
     ! Just get albedoes from clm_l2a
     lastgood = lms%swdiralb
     clm_l2a%notused = clm_l2a%albd(:,1)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             if ( lms%swdiralb(n,j,i) > 0.9999_rkx ) then
               lms%swdiralb(n,j,i) = lastgood(n,j,i)
@@ -409,9 +409,9 @@ module mod_clm_regcm
     lastgood = lms%lwdiralb
     clm_l2a%notused = clm_l2a%albd(:,2)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             if ( lms%lwdiralb(n,j,i) > 0.9999_rkx ) then
               lms%lwdiralb(n,j,i) = lastgood(n,j,i)
@@ -423,9 +423,9 @@ module mod_clm_regcm
     lastgood = lms%swdifalb
     clm_l2a%notused = clm_l2a%albi(:,1)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             if ( lms%swdifalb(n,j,i) > 0.9999_rkx ) then
               lms%swdifalb(n,j,i) = lastgood(n,j,i)
@@ -437,9 +437,9 @@ module mod_clm_regcm
     lastgood = lms%lwdifalb
     clm_l2a%notused = clm_l2a%albi(:,2)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             if ( lms%lwdifalb(n,j,i) > 0.9999_rkx ) then
               lms%lwdifalb(n,j,i) = lastgood(n,j,i)
@@ -449,9 +449,9 @@ module mod_clm_regcm
       end do
     end do
     ! This should be the vegetation albedo!
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             lms%swalb(n,j,i) = max(lms%swdiralb(n,j,i),lms%swdifalb(n,j,i))
             lms%lwalb(n,j,i) = max(lms%lwdiralb(n,j,i),lms%lwdifalb(n,j,i))
@@ -463,9 +463,9 @@ module mod_clm_regcm
 
   subroutine atmosphere_to_land(lm)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    integer(ik4) :: begg , endg , i , n
-    real(rkx) :: satq , satp , lat
+    type(lm_exchange), intent(inout) :: lm
+    integer(ik4) :: begg, endg, i, n
+    real(rkx) :: satq, satp, lat
 
     call get_proc_bounds(begg,endg)
 
@@ -501,7 +501,7 @@ module mod_clm_regcm
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
 
-    do i = begg , endg
+    do i = begg, endg
       clm_a2l%forc_rho(i) = clm_a2l%forc_pbot(i)/(rgas*clm_a2l%forc_t(i))
       satp = pfesat(real(clm_a2l%forc_t(i),rkx), &
                     real(clm_a2l%forc_pbot(i),rkx))
@@ -525,7 +525,7 @@ module mod_clm_regcm
     ! interface chemistry / surface
 
     if ( ichem /= 1 ) then
-      do i = begg , endg
+      do i = begg, endg
         lat = real(adomain%xlat(i),rkx)
         clm_a2l%forc_pco2(i) = &
           ghgval(igh_co2,rcmtimer%year,rcmtimer%month,lat) * &
@@ -547,7 +547,7 @@ module mod_clm_regcm
       !
       ! interface with atmospheric chemistry
       ! CO2 partial pressure (Pa)
-      do i = begg , endg
+      do i = begg, endg
         lat = real(adomain%xlat(i),rkx)
         clm_a2l%forc_pco2(i) = &
           ghgval(igh_co2,rcmtimer%year,rcmtimer%month,lat) * &
@@ -575,7 +575,7 @@ module mod_clm_regcm
         ! dry deposition BC HL
         if ( nbchl > 0 ) then
           temps = d_zero
-          do n = 1 , nbchl
+          do n = 1, nbchl
             temps(:,:) = temps(:,:) + &
               lm%drydepflx(jci1:jci2,ici1:ici2,ibchl(n)) * syncro_srf%rw
           end do
@@ -591,7 +591,7 @@ module mod_clm_regcm
         ! wet dep BC (sum rainout and washout fluxes, sum hb amd hl)
         if ( ibchb > 0 .and. nbchl > 0 ) then
           temps(:,:) = lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb) * syncro_srf%rw
-          do n = 1 , nbchl
+          do n = 1, nbchl
             temps(:,:) = temps(:,:) + &
                  lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl(n)) * syncro_srf%rw
           end do
@@ -601,7 +601,7 @@ module mod_clm_regcm
         ! drydeposition OC HL
         if ( nochl > 0 ) then
           temps = d_zero
-          do n = 1 , nochl
+          do n = 1, nochl
             temps(:,:) = temps(:,:) + &
               lm%drydepflx(jci1:jci2,ici1:ici2,iochl(n)) * syncro_srf%rw
           end do
@@ -617,7 +617,7 @@ module mod_clm_regcm
         ! wet dep OC (sum rainout and washout fluxes, sum hb and hl)
         if ( iochb > 0 .and. nochl > 0 ) then
           temps(:,:) = lm%wetdepflx(jci1:jci2,ici1:ici2,iochb) * syncro_srf%rw
-          do n = 1 , nochl
+          do n = 1, nochl
             temps(:,:) = temps(:,:) + &
                    lm%wetdepflx(jci1:jci2,ici1:ici2,iochl(n)) * syncro_srf%rw
           end do
@@ -701,9 +701,9 @@ module mod_clm_regcm
 
   subroutine land_to_atmosphere(lm,lms)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i , j , n , k , begg , endg
+    type(lm_exchange), intent(inout) :: lm
+    type(lm_state), intent(inout) :: lms
+    integer(ik4) :: i, j, n, k, begg, endg
 
     call get_proc_bounds(begg,endg)
 
@@ -740,15 +740,15 @@ module mod_clm_regcm
     ! soil temperature profile
     ! note tsw is used as a temporary table
     clm_l2a%notused = 0.0_rk8
-    do k = 1 , nlevsoi
+    do k = 1, nlevsoi
       clm_l2a%notused(:) = clm_l2a%tsoi(:,k)
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%tsoi(:,:,:,k) = lms%tsw(:,:,:)
     end do
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
+    do i = ici1, ici2
+      do j = jci1, jci2
+        do n = 1, nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             lms%tgrd(n,j,i) = lms%tsoi(n,j,i,1)
             lms%tgbrd(n,j,i) = lms%tsoi(n,j,i,1)
@@ -760,7 +760,7 @@ module mod_clm_regcm
 
     clm_l2a%notused = 0.0_rk8
 
-    do k = 1 , nlevsoi
+    do k = 1, nlevsoi
       clm_l2a%notused(:) = clm_l2a%h2osoi(:,k)
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%sw(:,:,:,k) = lms%tsw(:,:,:)
@@ -768,7 +768,7 @@ module mod_clm_regcm
 
     ! volumetric soil water profile (m3/m3) is saved for chem
     clm_l2a%notused = 0.0_rk8
-    do k = 1 , nlevsoi
+    do k = 1, nlevsoi
       clm_l2a%notused(:) = clm_l2a%h2osoi_vol(:,k)
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%sw_vol(:,:,:,k) = lms%tsw(:,:,:)
@@ -800,7 +800,7 @@ module mod_clm_regcm
 
     !--------------------------------------------------
     ! From land to chemistry
-    ! only for Isoprene , and in kg/m^2/sec
+    ! only for Isoprene, and in kg/m^2/sec
     ! FAB add compatibility for other biogenic species /
     ! TO BE UPDATED IF THE CHEM MECHANISM CHANGES (e.g add limonene, pinene etc)
     ! passed to the chemistry scheme for the right  mechanism tracer index
@@ -812,7 +812,7 @@ module mod_clm_regcm
 
       if ( enable_megan_emission ) then
         emis2d = 0.0_rk8
-        do k = 1 , shr_megan_mechcomps_n
+        do k = 1, shr_megan_mechcomps_n
           if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0 ) then
             clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
             call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
@@ -829,7 +829,7 @@ module mod_clm_regcm
       ! if use the regcm 12 bin, the total mass is redistributed
       ! (chemlib/mod_che_dust)
       if ( ichdustemd == 3 ) then
-        do k = 1 , 4
+        do k = 1, 4
           emis2d = 0.0_rk8
           clm_l2a%notused(:) = clm_l2a%flxdst(:,k)
           call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
@@ -845,9 +845,9 @@ module mod_clm_regcm
         lms%vocemiss(:,:,:,ich4) = real(emis2d,rkx)
       end if
 #endif
-     !FAB : test  drydep velocities for gas , based on w98 / improve by passing the real indices
+     !FAB : test  drydep velocities for gas, based on w98 / improve by passing the real indices
       if (n_drydep > 0) then
-        do k = 1 , n_drydep
+        do k = 1, n_drydep
           emis2d = 0.0_rk8
           if (4 > 0 ) then
             clm_l2a%notused(:) = clm_l2a%ddvel(:,k)
@@ -871,20 +871,20 @@ module mod_clm_regcm
 
   subroutine read_cru_pre(lm,temps)
     implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    real(rkx) , dimension(:,:) , pointer , intent(inout) :: temps
-    integer(ik4) , save :: ncid = -1
-    integer(ik4) , save :: ivar = -1
-    integer(ik4) , save :: imon = -1
-    integer(ik4) , save :: iday = -1
-    integer(ik4) :: istatus , idimid
-    integer(ik4) :: nlat , nlon
+    type(lm_exchange), intent(inout) :: lm
+    real(rkx), dimension(:,:), pointer, contiguous, intent(inout) :: temps
+    integer(ik4), save :: ncid = -1
+    integer(ik4), save :: ivar = -1
+    integer(ik4), save :: imon = -1
+    integer(ik4), save :: iday = -1
+    integer(ik4) :: istatus, idimid
+    integer(ik4) :: nlat, nlon
     character(len=256) :: fname
-    integer(ik4) :: iy , im , id , ih , imm , iss , ndm
-    integer(ik4) :: iym1 , iyp1 , imm1 , imp1
-    integer(ik4) :: i , j
-    real(rk8) :: pm , f1 , f2 , m1 , m2
-    integer(ik4) , dimension(3) , save :: istart , icount
+    integer(ik4) :: iy, im, id, ih, imm, iss, ndm
+    integer(ik4) :: iym1, iyp1, imm1, imp1
+    integer(ik4) :: i, j
+    real(rk8) :: pm, f1, f2, m1, m2
+    integer(ik4), dimension(3), save :: istart, icount
 
     call split_idate(nextdate,iy,im,id,ih,imm,iss)
 
@@ -1070,8 +1070,8 @@ module mod_clm_regcm
     f1 = max(0.5_rk8 - pm,0.0_rkx)
     f2 = max(pm - 0.5_rk8,0.0_rkx)
     if ( lcru_rand ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           if ( acp0(j,i) > 0.0_rk8 .and. acp0(j,i) < 10000.0_rk8 ) then
             m1 = acp0(j,i) * f1 + acp1(j,i) * (1.0_rk8-f1)
             m2 = acp1(j,i) * (1.0_rk8-f2) + acp2(j,i) * f2
@@ -1080,8 +1080,8 @@ module mod_clm_regcm
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           if ( acp0(j,i) > 0.0_rk8 .and. acp0(j,i) < 10000.0_rk8 ) then
             m1 = acp0(j,i) * f1 + acp1(j,i) * (1.0_rk8-f1)
             m2 = acp1(j,i) * (1.0_rk8-f2) + acp2(j,i) * f2

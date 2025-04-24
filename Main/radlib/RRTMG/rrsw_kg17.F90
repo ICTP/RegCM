@@ -63,7 +63,7 @@
 ! snsptdrk: real
 !-----------------------------------------------------------------
 
-      real(kind=rb) :: ka(9,5,13,ng17) , absa(585,ng17)
+      real(kind=rb) :: ka(9,5,13,ng17), absa(585,ng17)
       real(kind=rb) :: kb(5,5,13:59,ng17), absb(1175,ng17)
       real(kind=rb) :: selfref(10,ng17), forref(4,ng17)
       real(kind=rb) :: sfluxref(ng17,5)

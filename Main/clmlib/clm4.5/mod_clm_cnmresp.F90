@@ -6,8 +6,8 @@ module mod_clm_cnmresp
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_clm_varpar , only : nlevgrnd
-  use mod_clm_varcon , only : tfrz
+  use mod_clm_varpar, only : nlevgrnd
+  use mod_clm_varcon, only : tfrz
 
   implicit none
 
@@ -21,9 +21,9 @@ module mod_clm_cnmresp
 
   subroutine CNMResp(lbc, ubc, num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
-    use mod_clm_pftvarcon , only : npcropmin
-    use mod_clm_subgridave , only : p2c
-    use mod_clm_varctl , only : q10_maintenance
+    use mod_clm_pftvarcon, only : npcropmin
+    use mod_clm_subgridave, only : p2c
+    use mod_clm_varctl, only : q10_maintenance
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
     integer(ik4), intent(in) :: num_soilc ! number of soil points in col filter
@@ -33,43 +33,43 @@ module mod_clm_cnmresp
 
     ! column level
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: t_soisno(:,:)
+    real(rk8), pointer, contiguous :: t_soisno(:,:)
     ! pft level
     ! 2 m height surface air temperature (Kelvin)
-    real(rk8), pointer :: t_ref2m(:)
-    real(rk8), pointer :: q10m(:)
-    real(rk8), pointer :: col_q10m(:)
-    real(rk8), pointer :: leafn(:)      ! (gN/m2) leaf N
-    real(rk8), pointer :: frootn(:)     ! (gN/m2) fine root N
-    real(rk8), pointer :: livestemn(:)  ! (gN/m2) live stem N
-    real(rk8), pointer :: livecrootn(:) ! (gN/m2) live coarse root N
-    real(rk8), pointer :: grainn(:)     ! (kgN/m2) grain N
+    real(rk8), pointer, contiguous :: t_ref2m(:)
+    real(rk8), pointer, contiguous :: q10m(:)
+    real(rk8), pointer, contiguous :: col_q10m(:)
+    real(rk8), pointer, contiguous :: leafn(:)      ! (gN/m2) leaf N
+    real(rk8), pointer, contiguous :: frootn(:)     ! (gN/m2) fine root N
+    real(rk8), pointer, contiguous :: livestemn(:)  ! (gN/m2) live stem N
+    real(rk8), pointer, contiguous :: livecrootn(:) ! (gN/m2) live coarse root N
+    real(rk8), pointer, contiguous :: grainn(:)     ! (kgN/m2) grain N
     ! fraction of roots in each soil layer  (nlevgrnd)
-    real(rk8), pointer :: rootfr(:,:)
-    integer(ik4) , pointer :: ivt(:)       ! pft vegetation type
-    integer(ik4) , pointer :: pcolumn(:)   ! index into column level quantities
-    integer(ik4) , pointer :: plandunit(:) ! index into land level quantities
-    integer(ik4) , pointer :: clandunit(:) ! index into land level quantities
-    integer(ik4) , pointer :: itypelun(:)  ! landunit type
+    real(rk8), pointer, contiguous :: rootfr(:,:)
+    integer(ik4), pointer, contiguous :: ivt(:)       ! pft vegetation type
+    integer(ik4), pointer, contiguous :: pcolumn(:)   ! index into column level quantities
+    integer(ik4), pointer, contiguous :: plandunit(:) ! index into land level quantities
+    integer(ik4), pointer, contiguous :: clandunit(:) ! index into land level quantities
+    integer(ik4), pointer, contiguous :: itypelun(:)  ! landunit type
     ! ecophysiological constants
     ! binary flag for woody lifeform (1=woody, 0=not woody)
-    real(rk8), pointer :: woody(:)
-    logical , pointer :: croplive(:) ! Flag, true if planted, not harvested
+    real(rk8), pointer, contiguous :: woody(:)
+    logical, pointer, contiguous :: croplive(:) ! Flag, true if planted, not harvested
 
     ! pft level
-    real(rk8), pointer :: leaf_mr(:)
-    real(rk8), pointer :: froot_mr(:)
-    real(rk8), pointer :: livestem_mr(:)
-    real(rk8), pointer :: livecroot_mr(:)
-    real(rk8), pointer :: grain_mr(:)
+    real(rk8), pointer, contiguous :: leaf_mr(:)
+    real(rk8), pointer, contiguous :: froot_mr(:)
+    real(rk8), pointer, contiguous :: livestem_mr(:)
+    real(rk8), pointer, contiguous :: livecroot_mr(:)
+    real(rk8), pointer, contiguous :: grain_mr(:)
     ! sunlit leaf maintenance respiration rate (umol CO2/m**2/s)
-    real(rk8), pointer :: lmrsun(:)
+    real(rk8), pointer, contiguous :: lmrsun(:)
     ! shaded leaf maintenance respiration rate (umol CO2/m**2/s)
-    real(rk8), pointer :: lmrsha(:)
-    real(rk8), pointer :: laisun(:)   ! sunlit projected leaf area index
-    real(rk8), pointer :: laisha(:)   ! shaded projected leaf area index
+    real(rk8), pointer, contiguous :: lmrsha(:)
+    real(rk8), pointer, contiguous :: laisun(:)   ! sunlit projected leaf area index
+    real(rk8), pointer, contiguous :: laisha(:)   ! shaded projected leaf area index
     ! fraction of vegetation not covered by snow (0 OR 1) [-]
-    integer(ik4) , pointer :: frac_veg_nosno(:)
+    integer(ik4), pointer, contiguous :: frac_veg_nosno(:)
 
     integer(ik4) :: c,p,j  ! indices
     integer(ik4) :: fp     ! soil filter pft index
@@ -128,7 +128,7 @@ module mod_clm_cnmresp
 
 
     ! pft loop for leaves and live wood
-    do fp = 1 , num_soilp
+    do fp = 1, num_soilp
       p = filter_soilp(fp)
 
       ! calculate maintenance respiration fluxes in
@@ -176,8 +176,8 @@ module mod_clm_cnmresp
    call p2c(num_soilc,filter_soilc,q10m,col_q10m)
 
    ! column loop to calculate temperature factors in each soil layer
-    do j = 1 , nlevgrnd
-      do fc = 1 , num_soilc
+    do j = 1, nlevgrnd
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         ! calculate temperature corrections for each soil layer, for use in
         ! estimating fine root maintenance respiration with depth
@@ -188,8 +188,8 @@ module mod_clm_cnmresp
     end do
 
     ! soil and pft loop for fine root
-    do j = 1 , nlevgrnd
-      do fp = 1 , num_soilp
+    do j = 1, nlevgrnd
+      do fp = 1, num_soilp
         p = filter_soilp(fp)
         c = pcolumn(p)
 

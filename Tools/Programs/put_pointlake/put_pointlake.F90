@@ -4,18 +4,18 @@ program changeland
   integer :: ncid
   integer :: istatus
   character(len=256) :: arg1
-  integer :: jx , iy
-  integer :: jxdimid , iydimid , ivarid
+  integer :: jx, iy
+  integer :: jxdimid, iydimid, ivarid
 
-  real(4) , pointer , dimension(:,:) :: xlat , xlon , var
+  real(4), pointer, contiguous, dimension(:,:) :: xlat, xlon, var
   real(4) :: mean_elevation
 
-  integer :: ip , i , j , ii , jj
-  integer , parameter :: nlakes = 4
-  integer , dimension(nlakes) :: jxlak
-  integer , dimension(nlakes) :: iylak
-  real(4) , dimension(nlakes) :: lak_dpth
-  real(4) , dimension(nlakes) :: elevation
+  integer :: ip, i, j, ii, jj
+  integer, parameter :: nlakes = 4
+  integer, dimension(nlakes) :: jxlak
+  integer, dimension(nlakes) :: iylak
+  real(4), dimension(nlakes) :: lak_dpth
+  real(4), dimension(nlakes) :: elevation
 
   data jxlak /161,156,158,155/
   data iylak /186,180,181,179/
@@ -90,7 +90,7 @@ program changeland
     print *, nf90_strerror(istatus)
     stop
   end if
-  do ip = 1 , nlakes
+  do ip = 1, nlakes
     var(jxlak(ip),iylak(ip)) = 14.0
   end do
   istatus = nf90_put_var(ncid, ivarid, var)
@@ -109,7 +109,7 @@ program changeland
     print *, nf90_strerror(istatus)
     stop
   end if
-  do ip = 1 , nlakes
+  do ip = 1, nlakes
     var(jxlak(ip),iylak(ip)) = 0.0
   end do
   istatus = nf90_put_var(ncid, ivarid, var)
@@ -128,7 +128,7 @@ program changeland
     print *, nf90_strerror(istatus)
     stop
   end if
-  do ip = 1 , nlakes
+  do ip = 1, nlakes
     var(jxlak(ip),iylak(ip)) = lak_dpth(ip)
   end do
   istatus = nf90_put_var(ncid, ivarid, var)
@@ -147,27 +147,27 @@ program changeland
     print *, nf90_strerror(istatus)
     stop
   end if
-  do ip = 1 , nlakes
+  do ip = 1, nlakes
     var(jxlak(ip),iylak(ip)) = elevation(ip)
   end do
-  do ip = 1 , nlakes
+  do ip = 1, nlakes
     ii = iylak(ip) - 3
     jj = jxlak(ip) - 3
     var(jxlak(ip),iylak(ip)) = elevation(ip)
     mean_elevation = elevation(ip) * 5.0
-    do i = 1 , 5
-      do j = 1 , 5
+    do i = 1, 5
+      do j = 1, 5
         mean_elevation = mean_elevation + var(jj+j,ii+i)
       end do
     end do
     mean_elevation = mean_elevation / 30.0
-    do i = 1 , 5
-      do j = 1 , 5
+    do i = 1, 5
+      do j = 1, 5
         var(jj+j,ii+i) = (var(jj+j,ii+i) + mean_elevation*2.0) / 3.0
       end do
     end do
   end do
-  do ip = 1 , nlakes
+  do ip = 1, nlakes
     var(jxlak(ip),iylak(ip)) = elevation(ip)
   end do
   istatus = nf90_put_var(ncid, ivarid, var)

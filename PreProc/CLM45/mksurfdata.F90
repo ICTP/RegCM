@@ -39,7 +39,7 @@ program mksurfdata
 #endif
 
   use mod_intkinds
-  use mod_constants , only : raddeg , dlowval
+  use mod_constants, only : raddeg, dlowval
   use mod_realkinds
   use mod_dynparam
   use mod_message
@@ -90,121 +90,121 @@ program mksurfdata
   implicit none
 
   integer(ik4) :: npft
-  integer(ik4) , parameter :: nlurb = 5
-  integer(ik4) , parameter :: nsoil = 10
+  integer(ik4), parameter :: nlurb = 5
+  integer(ik4), parameter :: nsoil = 10
 
-  integer(ik4) , parameter :: nmon = 12
-  integer(ik4) , parameter :: nrad = 2
-  integer(ik4) , parameter :: nsol = 2
-  integer(ik4) , parameter :: numurbl = 3
+  integer(ik4), parameter :: nmon = 12
+  integer(ik4), parameter :: nrad = 2
+  integer(ik4), parameter :: nsol = 2
+  integer(ik4), parameter :: numurbl = 3
 
 #ifdef CN
 #ifndef DYNPFT
-  integer(ik4) , parameter :: noleap_yday_3h = 365*8
-  integer(ik4) , parameter :: nyears = 2100-1850+1
+  integer(ik4), parameter :: noleap_yday_3h = 365*8
+  integer(ik4), parameter :: nyears = 2100-1850+1
 #endif
 #endif
 #ifdef DYNPFT
-  integer(ik4) , parameter :: noleap_yday_3h = 365*8
-  integer(ik4) , parameter :: nyears = 2100-1850+1
-  integer(ik4) :: y1 , y2 , mon , day , hour
+  integer(ik4), parameter :: noleap_yday_3h = 365*8
+  integer(ik4), parameter :: nyears = 2100-1850+1
+  integer(ik4) :: y1, y2, mon, day, hour
   character(len=4) :: cy
-  character(len=32) :: p1 , p2
+  character(len=32) :: p1, p2
 #endif
 #ifdef LUCASPFT
-  integer(ik4) :: y1 , y2 , mon , day , hour
-  character(len=32) :: p1 , p2
+  integer(ik4) :: y1, y2, mon, day, hour
+  character(len=32) :: p1, p2
 #endif
 
   integer(ik4) :: ngcells
 
-  real(rkx) , parameter :: vmisdat = -9999.0_rkx
+  real(rkx), parameter :: vmisdat = -9999.0_rkx
 
-  integer(ik4) :: istatus , ncid , ndim , nvar
-  integer(ik4) , dimension(12) :: idims , ivdims
-  integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
-  integer(ik4) :: imask2d , islope2d , istddev2d
-  integer(ik4) :: ipft2dvar , iglc2dvar , iwet2dvar , ilake2dvar , iurban2dvar
-  integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
-  integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
-  integer(ik4) :: islopevar , istdvar , igdpvar , ipeatfvar , iabmvar
-  integer(ik4) :: ief_btrvar , ief_crpvar , ief_fdtvar , ief_fetvar
-  integer(ik4) :: ief_grsvar , ief_shrvar , iorganicvar , idepthvar
-  integer(ik4) :: ilndvar , iscvar , ilatvar , ilonvar , itopovar
-  integer(ik4) , dimension(npu2d) :: iurb2d
-  integer(ik4) , dimension(npu3d) :: iurb3d
-  integer(ik4) , dimension(npu4d*2) :: iurb4d
+  integer(ik4) :: istatus, ncid, ndim, nvar
+  integer(ik4), dimension(12) :: idims, ivdims
+  integer(ik4) :: ivartime, iglcvar, iwetvar, ilakevar, iurbanvar
+  integer(ik4) :: imask2d, islope2d, istddev2d
+  integer(ik4) :: ipft2dvar, iglc2dvar, iwet2dvar, ilake2dvar, iurban2dvar
+  integer(ik4) :: ipftvar, ilaivar, isaivar, ivgtopvar, ivgbotvar
+  integer(ik4) :: ifmaxvar, isoilcolvar, isandvar, iclayvar
+  integer(ik4) :: islopevar, istdvar, igdpvar, ipeatfvar, iabmvar
+  integer(ik4) :: ief_btrvar, ief_crpvar, ief_fdtvar, ief_fetvar
+  integer(ik4) :: ief_grsvar, ief_shrvar, iorganicvar, idepthvar
+  integer(ik4) :: ilndvar, iscvar, ilatvar, ilonvar, itopovar
+  integer(ik4), dimension(npu2d) :: iurb2d
+  integer(ik4), dimension(npu3d) :: iurb3d
+  integer(ik4), dimension(npu4d*2) :: iurb4d
 #ifdef CN
-  integer(ik4) :: ilightning , ipopden
-  integer(ik4) :: q10 , ndep
+  integer(ik4) :: ilightning, ipopden
+  integer(ik4) :: q10, ndep
 #ifdef LCH4
-  integer(ik4) :: k , q , v , maxf
+  integer(ik4) :: k, q, v, maxf
   integer(ik4) :: isoilphvar
 #endif
 #endif
 #ifdef DYNPFT
 #ifdef CN
-  integer(ik4) :: iharvvh1 , iharvvh2 , iharvsh1 , iharvsh2 , iharvsh3 , igraz
+  integer(ik4) :: iharvvh1, iharvvh2, iharvsh1, iharvsh2, iharvsh3, igraz
 #endif
   character(len=256) :: dynfile
 #endif
 #ifdef VICHYDRO
-  integer(ik4) :: ibinfl , ids , idsmax ,iws
+  integer(ik4) :: ibinfl, ids, idsmax ,iws
 #endif
-  integer(ik4) :: ijxvar , iiyvar
-  type(rcm_time_and_date) :: irefdate , imondate
+  integer(ik4) :: ijxvar, iiyvar
+  type(rcm_time_and_date) :: irefdate, imondate
   type(rcm_time_interval) :: tdif
-  real(rk4) , pointer , dimension(:) :: yiy => null( )
-  real(rk4) , pointer , dimension(:) :: xjx => null( )
+  real(rk4), pointer, contiguous, dimension(:) :: yiy => null( )
+  real(rk4), pointer, contiguous, dimension(:) :: xjx => null( )
   real(rk4) :: hptop
-  real(rk8) , dimension(1) :: xdate
-  integer(ik4) , dimension(3) :: istart , icount
-  integer(ik4) , dimension(2) :: ihvar
-  integer(ik4) , dimension(2) :: illvar
-  integer(ik4) , dimension(3) :: izvar
-  integer(ik4) , dimension(1) :: istart1 , icount1 , mxsoil_color , iloc
-  real(rkx) :: spft , mean , diff , argf
+  real(rk8), dimension(1) :: xdate
+  integer(ik4), dimension(3) :: istart, icount
+  integer(ik4), dimension(2) :: ihvar
+  integer(ik4), dimension(2) :: illvar
+  integer(ik4), dimension(3) :: izvar
+  integer(ik4), dimension(1) :: istart1, icount1, mxsoil_color, iloc
+  real(rkx) :: spft, mean, diff, argf
   integer(ik4) :: ierr
-  integer(ik4) :: i , j , ip , il , ir , iu , it , ipnt , iurbmax
-  integer(ik4) :: jgstart , jgstop , igstart , igstop
-  integer(ik4) :: ii , jj , jp
+  integer(ik4) :: i, j, ip, il, ir, iu, it, ipnt, iurbmax
+  integer(ik4) :: jgstart, jgstop, igstart, igstop
+  integer(ik4) :: ii, jj, jp
   ! integer(ik4) :: jjs
-  character(len=256) :: namelistfile , prgname
-  character(len=256) :: terfile , outfile
+  character(len=256) :: namelistfile, prgname
+  character(len=256) :: terfile, outfile
 
-  character(len=64) :: csdate , pftfile , laifile
-  real(rkx) , dimension(:,:) , pointer :: pctspec => null( )
-  real(rkx) , dimension(:,:) , pointer :: pctslake => null( )
-  real(rkx) , dimension(:,:) , pointer :: pctbare => null( )
-  real(rkx) , pointer , dimension(:,:) :: var2d => null( )
-  integer(ik4) , pointer , dimension(:,:) :: ivar2d => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: var3d => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: var3dp => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: var4d => null( )
-  real(rkx) , pointer , dimension(:,:,:,:,:) :: var5d => null( )
-  real(rkx) , pointer , dimension(:,:,:,:,:,:) :: var6d => null( )
-  real(rkx) , pointer , dimension(:) :: gcvar => null( )
-  integer(ik4) , pointer , dimension(:) :: igcvar => null( )
-  integer(ik4) , pointer , dimension(:) :: iiy => null( )
-  integer(ik4) , pointer , dimension(:) :: ijx => null( )
-  integer(ik4) , pointer , dimension(:) :: landpoint => null( )
-  logical , pointer , dimension(:) :: pft_gt0 => null( )
+  character(len=64) :: csdate, pftfile, laifile
+  real(rkx), dimension(:,:), pointer, contiguous :: pctspec => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: pctslake => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: pctbare => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: var2d => null( )
+  integer(ik4), pointer, contiguous, dimension(:,:) :: ivar2d => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: var3d => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: var3dp => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: var4d => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:,:) :: var5d => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:,:,:) :: var6d => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: gcvar => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: igcvar => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: iiy => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: ijx => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: landpoint => null( )
+  logical, pointer, contiguous, dimension(:) :: pft_gt0 => null( )
   logical :: subgrid
   integer(ik4) :: hostnm
-  integer(ik4) :: ihost , idir
+  integer(ik4) :: ihost, idir
   integer(ik4) :: getcwd
-  integer(ik4) , dimension(8) :: tval
+  integer(ik4), dimension(8) :: tval
   character (len=32) :: cdata='?'
   character (len=5) :: czone='?'
   character (len=32) :: hostname='?'
   character (len=32) :: user='?'
   character (len=128) :: directory='?'
-  character (len=*) , parameter :: f99001 = &
+  character (len=*), parameter :: f99001 = &
           '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
   write (stdout,  &
      "(/,2x,'This is mksurfdata part of RegCM package version 5')")
-  write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
+  write (stdout,f99001)  GIT_VER, __DATE__, __TIME__
 
 #ifdef IBM
   hostname='ibm platform '
@@ -342,11 +342,11 @@ program mksurfdata
     igstop = iysg-2*nsg
     call setup_pack(2,jx-2,2,iy-2)
   end if
-  do i = 1 , iysg
+  do i = 1, iysg
     if ( i < igstart .or. i > igstop ) then
       xmask(:,i) = 0.0_rkx
     else
-      do j = 1 , jxsg
+      do j = 1, jxsg
         if ( j < jgstart .or. j > jgstop ) then
           xmask(j,i) = 0.0_rkx
         end if
@@ -708,7 +708,7 @@ program mksurfdata
 
   ivdims(1) = idims(7)
   ivdims(2) = idims(8)
-  do i = 1 , npu2d
+  do i = 1, npu2d
     if ( parm2d(i) == 'NLEV_IMPROAD' ) then
       istatus = nf90_def_var(ncid, parm2d(i), nf90_int, &
                              ivdims(1:2), iurb2d(i))
@@ -730,7 +730,7 @@ program mksurfdata
   ivdims(1) = idims(7)
   ivdims(2) = idims(8)
   ivdims(3) = idims(9)
-  do i = 1 , npu3d
+  do i = 1, npu3d
     istatus = nf90_def_var(ncid, parm3d(i), regcm_vartype, &
                            ivdims(1:3), iurb3d(i))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error add var')
@@ -745,7 +745,7 @@ program mksurfdata
   ivdims(1) = idims(7)
   ivdims(2) = idims(8)
   ivdims(3) = idims(10)
-  do i = 1 , npu4d
+  do i = 1, npu4d
     istatus = nf90_def_var(ncid, trim(parm4d(i))//'_DIR', &
       regcm_vartype, ivdims(1:3), iurb4d(2*i-1))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error add var')
@@ -878,7 +878,7 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write mask')
 
   imondate = irefdate
-  do it = 1 , 12
+  do it = 1, 12
     istart1(1) = it
     icount1(1) = 1
     tdif = imondate-irefdate
@@ -905,8 +905,8 @@ program mksurfdata
   pctslake(:,:) = 0.0_rkx
   pctbare(:,:) = 0.0_rkx
   ip = 1
-  do i = igstart , igstop
-    do j = jgstart , jgstop
+  do i = igstart, igstop
+    do j = jgstart, jgstop
       if ( xmask(j,i) > 0.5_rkx ) then
         landpoint(ip) = (i-1)*jxsg+j
         ip = ip + 1
@@ -925,8 +925,8 @@ program mksurfdata
   istatus = nf90_put_var(ncid, itopovar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write topo')
   ip = 1
-  do i = igstart , igstop
-    do j = jgstart , jgstop
+  do i = igstart, igstop
+    do j = jgstart, jgstop
       if ( xmask(j,i) > 0.5_rkx ) then
         iiy(ip) = i
         ijx(ip) = j
@@ -942,12 +942,12 @@ program mksurfdata
   allocate(var3d(jxsg,iysg,2))
   var3d(:,:,1) = 0.0_rkx
   ! Calculate slope and std
-  do i = igstart , igstop
-    do j = jgstart , jgstop
+  do i = igstart, igstop
+    do j = jgstart, jgstop
       argf = 0.0_rkx
       mean = 0.0_rkx
-      do ii = i-1 , i+1
-        do jj = j-1 , j+1
+      do ii = i-1, i+1
+        do jj = j-1, j+1
           jp = jj
           if ( jj < jgstart ) jp = jgstop
           if ( jj > jgstop ) jp = jgstart
@@ -963,8 +963,8 @@ program mksurfdata
       end if
       mean = mean/9.0_rkx
       argf = 0.0_rkx
-      do ii = i-1 , i+1
-        do jj = j-1 , j+1
+      do ii = i-1, i+1
+        do jj = j-1, j+1
           jp = jj
           if ( jj < jgstart ) jp = jgstop
           if ( jj > jgstop ) jp = jgstart
@@ -1007,8 +1007,8 @@ program mksurfdata
   !
   ! Normalize the sum of pctspec to range 0-100
   !
-  do i = igstart , igstop
-    do j = jgstart , jgstop
+  do i = igstart, igstop
+    do j = jgstart, jgstop
       if ( xmask(j,i) > 0.5_rkx ) then
         pctspec(j,i) = sum(var3d(j,i,:))
         ! If 2 or more special classes at 100 % on same point
@@ -1037,8 +1037,8 @@ program mksurfdata
   var3dp = nint(var3dp)
 
   ! Here adjustment !
-  do i = igstart , igstop
-    do j = jgstart , jgstop
+  do i = igstart, igstop
+    do j = jgstart, jgstop
       if ( xmask(j,i) > 0.5_rkx ) then
         if ( pctspec(j,i) > 99.9_rkx ) then
           var3dp(j,i,:) = 0.0_rkx
@@ -1076,9 +1076,9 @@ program mksurfdata
 
 ! ######################################################
 ! QUI MODIFICARE var3d!!!
-!  do i = igstart , igstop
+!  do i = igstart, igstop
 !    jjs = jgstart + mod(i,2)
-!    do j = jjs , jgstop , 2
+!    do j = jjs, jgstop, 2
 !      var3dp(j,i,15) = var3dp(j,i,15) + 0.3 * var3dp(j,i,2)
 !      var3dp(j,i,2) = 0.7 * var3dp(j,i,2)
 !    end do
@@ -1094,7 +1094,7 @@ program mksurfdata
   call mypack(var3d(:,:,3),gcvar)
   istatus = nf90_put_var(ncid, ilakevar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
-  do i = 1 , numurbl
+  do i = 1, numurbl
     istart(1) = 1
     icount(1) = ngcells
     istart(2) = i
@@ -1118,7 +1118,7 @@ program mksurfdata
 
   write(stdout,*) 'Created special categories informations...'
 
-  do ip = 1 , npft
+  do ip = 1, npft
     istart(1) = 1
     icount(1) = ngcells
     istart(2) = ip
@@ -1137,8 +1137,8 @@ program mksurfdata
   call mklaisai(laifile,xmask,var5d(:,:,:,:,1), var5d(:,:,:,:,2), &
                 var5d(:,:,:,:,3), var5d(:,:,:,:,4))
 
-  do it = 1 , nmon
-    do ip = 1 , npft
+  do it = 1, nmon
+    do ip = 1, npft
       istart(1) = 1
       icount(1) = ngcells
       istart(2) = ip
@@ -1179,7 +1179,7 @@ program mksurfdata
 
   allocate(var4d(jxsg,iysg,nsoil,2))
   call mksoitex('mksrf_soitex.nc',xmask,var4d(:,:,:,1),var4d(:,:,:,2))
-  do il = 1 , nsoil
+  do il = 1, nsoil
     istart(1) = 1
     icount(1) = ngcells
     istart(2) = il
@@ -1242,7 +1242,7 @@ program mksurfdata
 
   allocate(var3d(jxsg,iysg,nsoil))
   call mkorganic('mksrf_organic.nc',xmask,var3d)
-  do il = 1 , nsoil
+  do il = 1, nsoil
     istart(1) = 1
     icount(1) = ngcells
     istart(2) = il
@@ -1271,32 +1271,32 @@ program mksurfdata
   call mkurban_param('mksrf_urban.nc',xmask,var4d,var5d,var6d)
   istart(1) = 1
   icount(1) = ngcells
-  do iu = 1 , numurbl
+  do iu = 1, numurbl
     istart(2) = iu
     icount(2) = 1
-    do i = 1 , npu2d
+    do i = 1, npu2d
       call mypack(var4d(:,:,iu,ip2d(parm2d(i))),gcvar)
       istatus = nf90_put_var(ncid, iurb2d(i), gcvar, istart(1:2), icount(1:2))
       call checkncerr(istatus,__FILE__,__LINE__, 'Error write '//parm2d(i))
     end do
   end do
-  do iu = 1 , numurbl
+  do iu = 1, numurbl
     istart(2) = iu
     icount(2) = 1
-    do il = 1 , nlurb
+    do il = 1, nlurb
       istart(3) = il
       icount(3) = 1
-      do i = 1 , npu3d
+      do i = 1, npu3d
         call mypack(var5d(:,:,il,iu,ip3d(parm3d(i))),gcvar)
         istatus = nf90_put_var(ncid, iurb3d(i), gcvar, istart(1:3), icount(1:3))
         call checkncerr(istatus,__FILE__,__LINE__, 'Error write '//parm3d(i))
       end do
     end do
   end do
-  do iu = 1 , numurbl
+  do iu = 1, numurbl
     istart(2) = iu
     icount(2) = 1
-    do ir = 1 , nrad
+    do ir = 1, nrad
       istart(3) = ir
       icount(3) = 1
       ! Here we assume (NO other information in input file), that DIRECT
@@ -1304,7 +1304,7 @@ program mksurfdata
       ! of now they are equal in the input file, so no fear. MAY change,
       ! so this comment is here as a reminder. In case, just switch the
       ! iurb4d indexes in the two nf90_put_var calls.
-      do i = 1 , npu4d
+      do i = 1, npu4d
         call mypack(var6d(:,:,1,ir,iu,ip4d(parm4d(i))),gcvar)
         istatus = nf90_put_var(ncid, iurb4d(2*i-1), &
                 gcvar, istart(1:3), icount(1:3))
@@ -1328,7 +1328,7 @@ program mksurfdata
   icount(1) = ngcells
 
   call mklightning_init('mksrf_lightning.nc')
-  do it = 1 , noleap_yday_3h
+  do it = 1, noleap_yday_3h
     call mklightning(var2d,xmask,it)
     call mypack(var2d,gcvar)
     istart(2) = it
@@ -1339,7 +1339,7 @@ program mksurfdata
   call mklightning_close
 
   call mkpopd_init('mksrf_popd.nc')
-  do it = 1 , nyears
+  do it = 1, nyears
     call mkpopd(var2d,xmask,it)
     call mypack(var2d,gcvar)
     istart(2) = it
@@ -1425,7 +1425,7 @@ program mksurfdata
 #ifdef DYNPFT
   call split_idate(globidate1,y1,mon,day,hour)
   call split_idate(globidate2,y2,mon,day,hour)
-  do it = y1 - 1 , y2 + 1
+  do it = y1 - 1, y2 + 1
     write(stdout,*) 'Creating year ', it, ' informations...'
     write (cy,'(i0.4)') it
     dynfile = trim(dirglob)//pthsep//trim(domname)//'_CLM45_surface_'//cy//'.nc'
@@ -1564,8 +1564,8 @@ program mksurfdata
     allocate(var3d(jxsg,iysg,npft))
     call mkdynpft(xmask,var3d(:,:,:),it)
 
-    do i = igstart , igstop
-      do j = jgstart , jgstop
+    do i = igstart, igstop
+      do j = jgstart, jgstop
         if ( xmask(j,i) > 0.5_rkx ) then
           if ( pctspec(j,i) > 99.9_rkx ) then
             var3d(j,i,:) = 0.0_rkx
@@ -1594,7 +1594,7 @@ program mksurfdata
       end do
     end do
 
-    do ip = 1 , npft
+    do ip = 1, npft
       istart(1) = 1
       icount(1) = ngcells
       istart(2) = ip
@@ -1644,19 +1644,19 @@ program mksurfdata
 
   recursive subroutine sortpatch(vals,svals,ird,lsub)
     implicit none
-    real(rkx) , dimension(:) , intent(in) :: vals
-    real(rkx) , dimension(:) , intent(inout) :: svals
-    integer(ik4) , dimension(:) , intent(inout) :: ird
-    logical , optional :: lsub
-    integer(ik4) :: i , iswap
+    real(rkx), dimension(:), intent(in) :: vals
+    real(rkx), dimension(:), intent(inout) :: svals
+    integer(ik4), dimension(:), intent(inout) :: ird
+    logical, optional :: lsub
+    integer(ik4) :: i, iswap
     real(rkx) :: rswap
     if ( .not. present(lsub) ) then
-      do i = 1 , size(vals)
+      do i = 1, size(vals)
         ird(i) = i
         svals(i) = vals(i)
       end do
     end if
-    do i = 1 , size(vals)-1
+    do i = 1, size(vals)-1
       if ( svals(i) < svals(i+1) ) then
         rswap = svals(i+1)
         iswap = ird(i+1)

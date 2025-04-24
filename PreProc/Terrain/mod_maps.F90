@@ -19,34 +19,34 @@ module mod_maps
   use mod_realkinds
   use mod_memutil
 
-  real(rkx) , pointer , dimension(:,:) :: coriol , dlat , dlon ,   &
-                   dmap , htgrid , lndout , mask , dpth , snowam , &
-                   smoist , texout , xlat , xlon , xmap , ps0 ,    &
-                   ulat , ulon , vlat , vlon , umap , vmap
-  real(rkx) , pointer , dimension(:,:,:) :: frac_tex , rmoist , rts
-  real(rkx) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0 , z0
-  real(rkx) , pointer , dimension(:,:,:) :: zeta , fmz
+  real(rkx), pointer, contiguous, dimension(:,:) :: coriol, dlat, dlon,   &
+                   dmap, htgrid, lndout, mask, dpth, snowam, &
+                   smoist, texout, xlat, xlon, xmap, ps0,    &
+                   ulat, ulon, vlat, vlon, umap, vmap
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: frac_tex, rmoist, rts
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pr0, t0, rho0, z0
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zeta, fmz
 
-  real(rkx) , pointer , dimension(:,:) :: coriol_s , dlat_s , &
-                      dlon_s , dmap_s , htgrid_s , lndout_s , &
-                      mask_s , dpth_s , snowam_s , smoist_s , &
-                      texout_s , xlat_s , xlon_s , xmap_s ,   &
-                      ulat_s , ulon_s , vlat_s , vlon_s ,     &
-                      umap_s , vmap_s , ps0_s
-  real(rkx) , pointer , dimension(:,:,:) :: frac_tex_s , rmoist_s , rts_s
-  real(rkx) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s , z0_s
-  real(rkx) , pointer , dimension(:,:,:) :: zeta_s , fmz_s
+  real(rkx), pointer, contiguous, dimension(:,:) :: coriol_s, dlat_s, &
+                      dlon_s, dmap_s, htgrid_s, lndout_s, &
+                      mask_s, dpth_s, snowam_s, smoist_s, &
+                      texout_s, xlat_s, xlon_s, xmap_s,   &
+                      ulat_s, ulon_s, vlat_s, vlon_s,     &
+                      umap_s, vmap_s, ps0_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: frac_tex_s, rmoist_s, rts_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pr0_s, t0_s, rho0_s, z0_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zeta_s, fmz_s
 
-  real(rkx) , pointer , dimension(:) :: sigma
-  real(rkx) , pointer , dimension(:) :: zita
-  real(rkx) , pointer , dimension(:) :: ak
-  real(rkx) , pointer , dimension(:) :: bk
+  real(rkx), pointer, contiguous, dimension(:) :: sigma
+  real(rkx), pointer, contiguous, dimension(:) :: zita
+  real(rkx), pointer, contiguous, dimension(:) :: ak
+  real(rkx), pointer, contiguous, dimension(:) :: bk
 
   contains
 
   subroutine prepare_grid(jx,iy,kz,ntex,nsoil,idyn)
     implicit none
-    integer(ik4) , intent(in) :: jx , iy , kz , ntex , nsoil , idyn
+    integer(ik4), intent(in) :: jx, iy, kz, ntex, nsoil, idyn
     call getmem1d(sigma,1,kz+1,'maps:sigma')
     call getmem2d(coriol,1,jx,1,iy,'maps:coriol')
     call getmem2d(xlat,1,jx,1,iy,'maps:xlat')
@@ -91,7 +91,7 @@ module mod_maps
 
   subroutine prepare_subgrid(jxsg,iysg,kz,ntex,nsoil,idyn)
     implicit none
-    integer(ik4) , intent(in) :: jxsg , iysg , kz , ntex , nsoil , idyn
+    integer(ik4), intent(in) :: jxsg, iysg, kz, ntex, nsoil, idyn
     call getmem2d(coriol_s,1,jxsg,1,iysg,'maps:coriol_s')
     call getmem2d(xlat_s,1,jxsg,1,iysg,'maps:xlat_s')
     call getmem2d(xlon_s,1,jxsg,1,iysg,'maps:xlon_s')

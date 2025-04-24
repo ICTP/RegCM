@@ -25,7 +25,7 @@ module mod_clm_accumul
   use mod_mppparam
   use mod_clm_nchelper
   use mod_clm_decomp
-  use mod_clm_varcon , only : spval , secspday
+  use mod_clm_varcon, only : spval, secspday
 
   implicit none
 
@@ -74,13 +74,13 @@ module mod_clm_accumul
     integer(ik4) :: num1d  !total subgrid points
     integer(ik4) :: numlev !number of vertical levels in field
     real(rk8):: initval    !initial value of accumulated field
-    real(rk8), pointer :: val(:,:)  !accumulated field
+    real(rk8), pointer, contiguous :: val(:,:)  !accumulated field
     integer(ik8) :: period  !field accumulation period (in model time steps)
-    type(subgrid_type) , pointer :: gcomm
+    type(subgrid_type), pointer :: gcomm
   end type accum_field
 
   !maximum number of accumulated fields
-  integer(ik4) , parameter :: max_accum = 100
+  integer(ik4), parameter :: max_accum = 100
   type (accum_field) :: accum(max_accum)   !array accumulated fields
   integer(ik4) :: naccflds = 0             !accumulator field counter
 
@@ -103,22 +103,22 @@ module mod_clm_accumul
     !field type: tavg, runm, runa, ins
     character(len=*), intent(in) :: accum_type
     !field accumulation period
-    integer(ik4) , intent(in) :: accum_period
+    integer(ik4), intent(in) :: accum_period
     !["gridcell","landunit","column" or "pft"]
     character(len=*), intent(in) :: subgrid_type
     !number of vertical levels
-    integer(ik4) , intent(in) :: numlev
+    integer(ik4), intent(in) :: numlev
     !field initial or reset value
     real(rk8), intent(in) :: init_value
     !level type (optional) - needed if numlev > 1
     character(len=*), intent(in), optional :: type2d
     integer(ik4) :: nf             ! field index
-    integer(ik4) :: beg1d , end1d  ! beggining and end subgrid indices
+    integer(ik4) :: beg1d, end1d  ! beggining and end subgrid indices
     integer(ik4) :: num1d          ! total number subgrid indices
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
-    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
     integer(ik4) :: numg    ! total number of gridcells across all processors
     integer(ik4) :: numl    ! total number of landunits across all processors
     integer(ik4) :: numc    ! total number of columns across all processors
@@ -200,7 +200,7 @@ module mod_clm_accumul
   !
   subroutine print_accum_fields()
     implicit none
-    integer(ik4) :: i , nf   !indices
+    integer(ik4) :: i, nf   !indices
     ! Do not bloat output !
     if ( debug_level > 3 ) then
       if ( myid == italk ) then
@@ -210,7 +210,7 @@ module mod_clm_accumul
         write(stdout,*) 'Accumulated fields'
         write(stdout,1002)
         write(stdout,'(72a1)') ("_",i=1,71)
-        do nf = 1 , naccflds
+        do nf = 1, naccflds
           if (accum(nf)%period /= bigint) then
             write(stdout,1003) nf,accum(nf)%fname,accum(nf)%units,&
                   accum(nf)%acctype, accum(nf)%period, accum(nf)%initval, &
@@ -240,18 +240,18 @@ module mod_clm_accumul
   !
   subroutine extract_accum_field_sl (fname, field, nstep)
     implicit none
-    character(len=*) , intent(in) :: fname     !field name
+    character(len=*), intent(in) :: fname     !field name
     !field values for current time step
-    real(rk8) , pointer , dimension(:) :: field
-    integer(ik8) , intent(in) :: nstep         !timestep index
-    integer(ik4) :: i , k , nf        !indices
-    integer(ik4) :: ibeg , iend         !subgrid beginning,ending indices
+    real(rk8), pointer, contiguous, dimension(:) :: field
+    integer(ik8), intent(in) :: nstep         !timestep index
+    integer(ik4) :: i, k, nf        !indices
+    integer(ik4) :: ibeg, iend         !subgrid beginning,ending indices
 !------------------------------------------------------------------------
 
     ! find field index. return if "name" is not on list
 
     nf = 0
-    do i = 1 , naccflds
+    do i = 1, naccflds
        if (fname == accum(i)%fname) nf = i
     end do
     if ( nf == 0 ) then
@@ -273,11 +273,11 @@ module mod_clm_accumul
     ! extract field
     if (accum(nf)%acctype == 'timeavg' .and. &
         mod(nstep,accum(nf)%period) /= 0) then
-      do k = ibeg , iend
+      do k = ibeg, iend
         field(k) = spval  !assign absurd value when avg not ready
       end do
     else
-      do k = ibeg , iend
+      do k = ibeg, iend
         field(k) = accum(nf)%val(k,1)
       end do
     end if
@@ -291,12 +291,12 @@ module mod_clm_accumul
   !
   subroutine extract_accum_field_ml (fname, field, nstep)
     implicit none
-    character(len=*) , intent(in) :: fname       !field name
+    character(len=*), intent(in) :: fname       !field name
     !field values for current time step
-    real(rk8) , pointer , dimension(:,:) :: field
-    integer(ik8) , intent(in) :: nstep           !timestep index
-    integer(ik4) :: i , j , k , nf     !indices
-    integer(ik4) :: ibeg , iend        !subgrid beginning,ending indices
+    real(rk8), pointer, contiguous, dimension(:,:) :: field
+    integer(ik8), intent(in) :: nstep           !timestep index
+    integer(ik4) :: i, j, k, nf     !indices
+    integer(ik4) :: ibeg, iend        !subgrid beginning,ending indices
     integer(ik4) :: numlev             !number of vertical levels
 
     ! find field index. return if "name" is not on list
@@ -332,14 +332,14 @@ module mod_clm_accumul
 
     if ( accum(nf)%acctype == 'timeavg' .and. &
          mod(nstep,accum(nf)%period) /= 0 ) then
-      do j = 1 , numlev
-        do k = ibeg , iend
+      do j = 1, numlev
+        do k = ibeg, iend
           field(k,j) = spval  !assign absurd value when avg not ready
         end do
       end do
     else
-      do j = 1 , numlev
-        do k = ibeg , iend
+      do j = 1, numlev
+        do k = ibeg, iend
           field(k,j) = accum(nf)%val(k,j)
         end do
       end do
@@ -351,18 +351,18 @@ module mod_clm_accumul
   !
   subroutine update_accum_field_sl (fname, field, nstep)
     implicit none
-    character(len=*) , intent(in) :: fname     !field name
+    character(len=*), intent(in) :: fname     !field name
     !field values for current time step
-    real(rk8) , pointer , dimension(:) :: field
-    integer(ik8) , intent(in) :: nstep   !time step index
-    integer(ik4) :: i , k , nf           !indices
+    real(rk8), pointer, contiguous, dimension(:) :: field
+    integer(ik8), intent(in) :: nstep   !time step index
+    integer(ik4) :: i, k, nf           !indices
     integer(ik4) :: accper               !temporary accumulation period
-    integer(ik4) :: ibeg , iend          !subgrid beginning,ending indices
+    integer(ik4) :: ibeg, iend          !subgrid beginning,ending indices
 
     ! find field index. return if "name" is not on list
 
     nf = 0
-    do i = 1 , naccflds
+    do i = 1, naccflds
       if ( fname == accum(i)%fname ) nf = i
     end do
     if ( nf == 0 ) then
@@ -427,7 +427,7 @@ module mod_clm_accumul
 
       !running accumulation field reset at trigger -99999
 
-      do k = ibeg , iend
+      do k = ibeg, iend
         if ( nint(field(k)) == -99999 ) then
           accum(nf)%val(k,1) = 0._rk8
         end if
@@ -441,19 +441,19 @@ module mod_clm_accumul
   !
   subroutine update_accum_field_ml (fname, field, nstep)
     implicit none
-    character(len=*) , intent(in) :: fname        !field name
+    character(len=*), intent(in) :: fname        !field name
     !field values for current time step
-    real(rk8) , pointer , dimension(:,:) :: field
-    integer(ik8) , intent(in) :: nstep    !time step index
-    integer(ik4) :: i , j , k , nf        !indices
+    real(rk8), pointer, contiguous, dimension(:,:) :: field
+    integer(ik8), intent(in) :: nstep    !time step index
+    integer(ik4) :: i, j, k, nf        !indices
     integer(ik4) :: accper                !temporary accumulation period
-    integer(ik4) :: ibeg , iend           !subgrid beginning,ending indices
+    integer(ik4) :: ibeg, iend           !subgrid beginning,ending indices
     integer(ik4) :: numlev                !number of vertical levels
 
     ! find field index. return if "name" is not on list
 
     nf = 0
-    do i = 1 , naccflds
+    do i = 1, naccflds
       if ( fname == accum(i)%fname ) nf = i
     end do
     if ( nf == 0 ) then
@@ -524,7 +524,7 @@ module mod_clm_accumul
 
       !running mean - reset accumulation period until greater than nstep
 
-      accper = int(min (nstep,accum(nf)%period) , ik4)
+      accper = int(min (nstep,accum(nf)%period), ik4)
       accum(nf)%val(ibeg:iend,1:numlev) = &
             ((accper-1)*accum(nf)%val(ibeg:iend,1:numlev) + &
               field(ibeg:iend,1:numlev)) / accper
@@ -533,8 +533,8 @@ module mod_clm_accumul
 
       !running accumulation field reset at trigger -99999
 
-      do j = 1 , numlev
-        do k = ibeg , iend
+      do j = 1, numlev
+        do k = ibeg, iend
           if (nint(field(k,j)) == -99999) then
             accum(nf)%val(k,j) = 0._rk8
           end if
@@ -551,16 +551,16 @@ module mod_clm_accumul
   subroutine accumulRest( ncid, flag )
     implicit none
     type(clm_filetype), intent(inout) :: ncid   !netcdf unit
-    character(len=*) , intent(in) :: flag   !'define','read', or 'write'
-    integer(ik4) :: nf , iper       ! indices
-    integer(ik4) :: beg1d , end1d       ! buffer bounds
-    real(rk8), pointer :: rbuf1d(:) ! temporary 1d buffer
+    character(len=*), intent(in) :: flag   !'define','read', or 'write'
+    integer(ik4) :: nf, iper       ! indices
+    integer(ik4) :: beg1d, end1d       ! buffer bounds
+    real(rk8), pointer, contiguous :: rbuf1d(:) ! temporary 1d buffer
     character(len=128) :: varname  ! temporary
     logical :: lstart
 
     lstart = rcmtimer%integrating( )
 
-    do nf = 1 , naccflds
+    do nf = 1, naccflds
       ! Note = below need to allocate rbuf for single level variables, since
       ! accum(nf)%val is always 2d
       varname = trim(accum(nf)%fname) // '_VALUE'

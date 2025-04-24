@@ -28,19 +28,19 @@ module mod_mkvic
 
   public :: mkvic
 
-  integer , parameter :: nvic = 4
+  integer, parameter :: nvic = 4
 
-  character(len=16) , parameter , dimension(nvic):: varname = &
-          [ 'binfl' , 'Ds   ' , 'Dsmax' , 'Ws   ']
+  character(len=16), parameter, dimension(nvic):: varname = &
+          [ 'binfl', 'Ds   ', 'Dsmax', 'Ws   ']
 
   contains
 
   subroutine mkvic(vicfile,mask,vic)
     implicit none
-    character(len=*) , intent(in) :: vicfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:,:) , intent(out) :: vic
-    integer(ik4) :: n , j , i
+    character(len=*), intent(in) :: vicfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:,:), intent(out) :: vic
+    integer(ik4) :: n, j, i
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -48,11 +48,11 @@ module mod_mkvic
                              pthsep//'surface'//pthsep//vicfile
 
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
-    do n = 1 , nvic
+    do n = 1, nvic
       call gfread(gfile,varname(n),vic(:,:,n),h_missing_value)
       call bestaround(vic(:,:,n),h_missing_value)
-      do i = 1 , iysg
-        do j = 1 , jxsg
+      do i = 1, iysg
+        do j = 1, jxsg
           if ( mask(j,i) < 0.5_rkx ) then
             vic(j,i,n) = h_missing_value
           else
@@ -62,8 +62,8 @@ module mod_mkvic
       end do
     end do
     call gfclose(gfile)
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) > 0.5_rkx ) then
           vic(j,i,1) = max(0.005_rkx,vic(j,i,1))
           vic(j,i,2) = max(0.1_rkx,vic(j,i,2))

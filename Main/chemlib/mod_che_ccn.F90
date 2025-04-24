@@ -26,8 +26,8 @@ module mod_che_ccn
   ! Parameters for calculating ccn concentrations form aerosol mass
   ! densities in kg/m3
   ! other aerosol densities are passed by module already
-  real(rkx) , parameter :: rhos = 1800.0_rkx
-  real(rkx) , parameter :: rhosslt = 1000.0_rkx
+  real(rkx), parameter :: rhos = 1800.0_rkx
+  real(rkx), parameter :: rhosslt = 1000.0_rkx
   ! coef_ccn, abulk are parameter adjustable from the namelist
   ! now particule to ccn convesrion following Lee et al.,
   ! 2016 update from Jones et al., 1998
@@ -37,19 +37,19 @@ module mod_che_ccn
   ! minimal number concentration of ccn = 30 cm-3
   real(rkx), parameter :: ccnmin = 30.e6_rkx
 
-  public :: ccn , calc_ccn
+  public :: ccn, calc_ccn
 
   contains
 
   subroutine ccn
     implicit none
-    integer(ik4) :: i , j , k , n
+    integer(ik4) :: i, j, k, n
     cccn(:,:,:) = d_zero
     if ( nbchl > 0 ) then
-      do n = 1 , nbchl
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, nbchl
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               cccn(j,i,k) = cccn(j,i,k) + &
                  calc_ccn(rhobchl(n),chib3d(j,i,k,ibchl(n))*crhob3d(j,i,k))
             end do
@@ -58,10 +58,10 @@ module mod_che_ccn
       end do
     end if
     if ( nochl > 0 ) then
-      do n = 1 , nochl
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+      do n = 1, nochl
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               cccn(j,i,k) = cccn(j,i,k) + &
                  calc_ccn(rhoochl(n),chib3d(j,i,k,iochl(n))*crhob3d(j,i,k))
             end do
@@ -70,9 +70,9 @@ module mod_che_ccn
       end do
     end if
     if ( iso4 > 0 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             cccn(j,i,k) = cccn(j,i,k) + &
                  calc_ccn(rhos,chib3d(j,i,k,iso4)*crhob3d(j,i,k))
           end do
@@ -80,18 +80,18 @@ module mod_che_ccn
       end do
     end if
     if ( isslt(1) > 0 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             cccn(j,i,k) = cccn(j,i,k) + &
                  calc_ccn(rhosslt,chib3d(j,i,k,isslt(1))*crhob3d(j,i,k))
           end do
         end do
       end do
     end if
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do k = 1, kz
+      do i = ici1, ici2
+        do j = jci1, jci2
           ! now calculate ccn number from particle number
           ! cccn = cccn * abulk
           cccn(j,i,k) = c1 * (d_one - exp(c2 * cccn(j,i,k)))
@@ -110,7 +110,7 @@ module mod_che_ccn
     ! coef_ccn is a coefficient detremined by assuming a lognormal mass
     ! distributionand calculated as (1/Dm**3)/exp(-9(logsigma)**2/2)
     ! passed in nameliste
-    real(rkx) , intent(in) :: denx , mrat
+    real(rkx), intent(in) :: denx, mrat
     !
     res = 6.0_rkx / (mathpi * denx ) * mrat * coef_ccn
   end function calc_ccn

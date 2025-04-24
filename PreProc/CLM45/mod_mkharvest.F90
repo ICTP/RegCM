@@ -29,21 +29,21 @@ module mod_mkharvest
 
   public :: mkharvest
 
-  integer , parameter :: nvarc = 6
+  integer, parameter :: nvarc = 6
 
-  character(len=16) , parameter , dimension(nvarc):: varname = &
-          [ 'HARVEST_VH1' , 'HARVEST_VH2' , 'HARVEST_SH1' , &
-             'HARVEST_SH2' , 'HARVEST_SH3' , 'GRAZING    ']
+  character(len=16), parameter, dimension(nvarc):: varname = &
+          [ 'HARVEST_VH1', 'HARVEST_VH2', 'HARVEST_SH1', &
+             'HARVEST_SH2', 'HARVEST_SH3', 'GRAZING    ']
 
   contains
 
   subroutine mkharvest(mask,harvest,iyear)
     implicit none
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:,:) , intent(out) :: harvest
-    integer(ik4) , intent(in) :: iyear
-    integer(ik4) :: n , i , j
-    character(len=32) :: p1 , p2
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:,:), intent(out) :: harvest
+    integer(ik4), intent(in) :: iyear
+    integer(ik4) :: n, i, j
+    character(len=32) :: p1, p2
     character(len=4) :: cy
     type(globalfile) :: gfile
 
@@ -80,11 +80,11 @@ module mod_mkharvest
             'mksrf_landuse_'//cy//'.nc'
 
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
-    do n = 1 , nvarc
+    do n = 1, nvarc
       call gfread(gfile,varname(n),harvest(:,:,n),h_missing_value)
       call bestaround(harvest(:,:,n),h_missing_value)
-      do i = 1 , iysg
-        do j = 1 , jxsg
+      do i = 1, iysg
+        do j = 1, jxsg
           if ( mask(j,i) < 0.5_rkx ) then
             harvest(j,i,n) = h_missing_value
           else

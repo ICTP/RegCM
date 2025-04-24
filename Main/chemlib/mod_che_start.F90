@@ -49,7 +49,7 @@ module mod_che_start
 
   subroutine start_chem
     implicit none
-    integer(ik4) :: i , j , k , n , itr , ibin , jbin , kbin , mmin , mbin
+    integer(ik4) :: i, j, k, n, itr, ibin, jbin, kbin, mmin, mbin
     integer(ik4) :: ipunit
     character(len=8) :: minamesav
 
@@ -138,7 +138,7 @@ module mod_che_start
     kbin = 0
     mmin = 0
     mbin = 0
-    do itr = 1 , ntr
+    do itr = 1, ntr
       if ( chtrname(itr) == 'SO2' ) then
         iso2 = itr
         chtrsol(iso2) = solso2
@@ -347,8 +347,8 @@ module mod_che_start
     ichbdy2trac(:) = 0
     itr = 1
     if( igaschem == 1 ) then
-      do n = 1 , n_chbcvar
-        do i = 1 , ntr
+      do n = 1, n_chbcvar
+        do i = 1, ntr
           if (chbcname(n) == chtrname(i)) then
             ichbdy2trac(itr) = i
             itr = itr + 1
@@ -360,8 +360,8 @@ module mod_che_start
     ! look also in aerosol bc and pile them after. (Expect when using DU12)
     !
     if ( iaerosol == 1 .and. chemsimtype(1:4) .ne. 'DU12' ) then
-      do n = 1 , size(aeaero)
-        do i = 1 , ntr
+      do n = 1, size(aeaero)
+        do i = 1, ntr
           if ( aeaero(n) == chtrname(i) ) then
             ichbdy2trac(itr) = i
             itr = itr + 1
@@ -373,8 +373,8 @@ module mod_che_start
     ! Only when using DU12
     !
     if ( iaerosol == 1 .and. chemsimtype(1:4) == 'DU12' ) then
-      do n = 1 , size(aedu12)
-        do i = 1 , ntr
+      do n = 1, size(aedu12)
+        do i = 1, ntr
           if ( aedu12(n) == chtrname(i) ) then
             ichbdy2trac(itr) = i
             itr = itr + 1
@@ -427,20 +427,20 @@ module mod_che_start
         write(stdout,*) '#################################'
       end if
       if ( idynamic == 3 ) then
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+        do n = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
                 chemt(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
               end do
             end do
           end do
         end do
       else
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+        do n = 1, ntr
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
                 chia(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
                 chib(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
               end do

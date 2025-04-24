@@ -27,19 +27,19 @@ module mod_mksoitex
 
   public :: mksoitex
 
-  character(len=16) , parameter :: mapname = 'MAPUNITS'
-  character(len=24) , parameter :: mapdim = 'max_value_mapunit'
-  character(len=16) , parameter :: varname1 = 'PCT_SAND'
-  character(len=16) , parameter :: varname2 = 'PCT_CLAY'
+  character(len=16), parameter :: mapname = 'MAPUNITS'
+  character(len=24), parameter :: mapdim = 'max_value_mapunit'
+  character(len=16), parameter :: varname1 = 'PCT_SAND'
+  character(len=16), parameter :: varname2 = 'PCT_CLAY'
 
   contains
 
   subroutine mksoitex(soitexfile,mask,sand,clay)
     implicit none
-    character(len=*) , intent(in) :: soitexfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:,:) , intent(out) :: sand , clay
-    integer(ik4) :: i , j , nc , n
+    character(len=*), intent(in) :: soitexfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:,:), intent(out) :: sand, clay
+    integer(ik4) :: i, j, nc, n
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -51,9 +51,9 @@ module mod_mksoitex
     call gfread(gfile,varname1,mapdim,mapname,sand,.false.,h_missing_value)
     call gfread(gfile,varname2,mapdim,mapname,clay,.false.,h_missing_value)
 
-    do n = 1 , nc
-      do i = 1 , iysg
-        do j = 1 , jxsg
+    do n = 1, nc
+      do i = 1, iysg
+        do j = 1, jxsg
           if ( mask(j,i) < 0.5_rkx ) then
             sand(j,i,n) = h_missing_value
             clay(j,i,n) = h_missing_value

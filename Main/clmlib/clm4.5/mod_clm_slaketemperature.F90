@@ -102,15 +102,15 @@ module mod_clm_slaketemperature
     use mod_realkinds
     use mod_stdio
     use mod_clm_type
-    use mod_clm_varcon , only : hfus, cpliq, cpice, tkwat, tkice, denice, &
+    use mod_clm_varcon, only : hfus, cpliq, cpice, tkwat, tkice, denice, &
                                 vkc, grav, denh2o, tfrz, spval, cnfac
-    use mod_clm_slakecon , only : betavis, za_lake, n2min, tdmax
-    use mod_clm_slakecon , only : pudz
-    use mod_clm_slakecon , only : depthcrit, mixfact
-    use mod_clm_varpar , only : nlevlak, nlevgrnd, nlevsno
-    use mod_clm_qsat , only : QSat
-    use mod_clm_tridiagonal , only : Tridiagonal
-    use mod_clm_slakecon , only : lakepuddling, lake_no_ed
+    use mod_clm_slakecon, only : betavis, za_lake, n2min, tdmax
+    use mod_clm_slakecon, only : pudz
+    use mod_clm_slakecon, only : depthcrit, mixfact
+    use mod_clm_varpar, only : nlevlak, nlevgrnd, nlevsno
+    use mod_clm_qsat, only : QSat
+    use mod_clm_tridiagonal, only : Tridiagonal
+    use mod_clm_slakecon, only : lakepuddling, lake_no_ed
     implicit none
     integer(ik4), intent(in) :: lbc, ubc ! column-index bounds
     integer(ik4), intent(in) :: lbp, ubp ! pft-index bounds
@@ -123,85 +123,85 @@ module mod_clm_slaketemperature
     ! pft filter for non-lake points
     integer(ik4), intent(in) :: filter_lakep(ubp-lbp+1)
 
-    integer(ik4) , pointer :: pcolumn(:)    ! pft's column index
-    integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
-    integer(ik4) , pointer :: cgridcell(:)  ! column's gridcell index
-    real(rk8), pointer :: t_grnd(:)  ! ground temperature (Kelvin)
-    real(rk8), pointer :: h2osno(:)  ! snow water (mm H2O)
-    real(rk8), pointer :: sabg(:)  ! solar radiation absorbed by ground (W/m**2)
-    real(rk8), pointer :: dz(:,:)  ! layer thickness for snow & soil (m)
-    real(rk8), pointer :: dz_lake(:,:) ! layer thickness for lake (m)
-    real(rk8), pointer :: z(:,:)       ! layer depth for snow & soil (m)
+    integer(ik4), pointer, contiguous :: pcolumn(:)    ! pft's column index
+    integer(ik4), pointer, contiguous :: pgridcell(:)  ! pft's gridcell index
+    integer(ik4), pointer, contiguous :: cgridcell(:)  ! column's gridcell index
+    real(rk8), pointer, contiguous :: t_grnd(:)  ! ground temperature (Kelvin)
+    real(rk8), pointer, contiguous :: h2osno(:)  ! snow water (mm H2O)
+    real(rk8), pointer, contiguous :: sabg(:)  ! solar radiation absorbed by ground (W/m**2)
+    real(rk8), pointer, contiguous :: dz(:,:)  ! layer thickness for snow & soil (m)
+    real(rk8), pointer, contiguous :: dz_lake(:,:) ! layer thickness for lake (m)
+    real(rk8), pointer, contiguous :: z(:,:)       ! layer depth for snow & soil (m)
     ! Note: this is defined for -nlevsno, unlike the other z and dz variables
-    real(rk8), pointer :: z_lake(:,:)  ! layer depth for lake (m)
-    real(rk8), pointer :: ws(:)        ! surface friction velocity (m/s)
+    real(rk8), pointer, contiguous :: z_lake(:,:)  ! layer depth for lake (m)
+    real(rk8), pointer, contiguous :: ws(:)        ! surface friction velocity (m/s)
     ! for calculation of decay of eddy diffusivity with depth
-    real(rk8), pointer :: ks(:)    ! coefficient passed to SLakeTemperature
-    integer(ik4) , pointer :: snl(:)    ! negative of number of snow layers
-    real(rk8), pointer :: lakedepth(:)  ! column lake depth (m)
+    real(rk8), pointer, contiguous :: ks(:)    ! coefficient passed to SLakeTemperature
+    integer(ik4), pointer, contiguous :: snl(:)    ! negative of number of snow layers
+    real(rk8), pointer, contiguous :: lakedepth(:)  ! column lake depth (m)
     ! extinction coefficient from surface data (1/m)
-    real(rk8), pointer :: etal(:)
+    real(rk8), pointer, contiguous :: etal(:)
     ! variables needed for SNICAR
     ! absorbed solar radiation (pft,lyr) [W/m2]
-    real(rk8), pointer :: sabg_lyr(:,:)
+    real(rk8), pointer, contiguous :: sabg_lyr(:,:)
     ! Calculation of beta depending on NIR fraction of sabg
     ! incident direct beam nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsds_nir_d(:)
+    real(rk8), pointer, contiguous :: fsds_nir_d(:)
     ! incident diffuse nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsds_nir_i(:)
+    real(rk8), pointer, contiguous :: fsds_nir_i(:)
     ! reflected direct beam nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsr_nir_d(:)
+    real(rk8), pointer, contiguous :: fsr_nir_d(:)
     ! reflected diffuse nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsr_nir_i(:)
+    real(rk8), pointer, contiguous :: fsr_nir_i(:)
     ! New for CH4 Model
 #ifdef LCH4
     !aerodynamic resistance for moisture (s/m)
-    real(rk8), pointer :: lake_raw(:)
+    real(rk8), pointer, contiguous :: lake_raw(:)
 #endif
     ! sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_grnd(:)
+    real(rk8), pointer, contiguous :: eflx_sh_grnd(:)
     ! total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_tot(:)
+    real(rk8), pointer, contiguous :: eflx_sh_tot(:)
     ! heat flux into snow / lake (W/m**2) [+ = into soil]
     ! Here this includes the whole lake radiation absorbed.
-    real(rk8), pointer :: eflx_soil_grnd(:)
+    real(rk8), pointer, contiguous :: eflx_soil_grnd(:)
     ! net heat flux into lake / snow surface, excluding light
     ! transmission (W/m**2)
-    real(rk8), pointer :: eflx_grnd_lake(:)
+    real(rk8), pointer, contiguous :: eflx_grnd_lake(:)
     ! net heat flux into ground (W/m**2) at the surface interface
-    real(rk8), pointer :: eflx_gnet(:)
+    real(rk8), pointer, contiguous :: eflx_gnet(:)
     ! soil/lake energy conservation error (W/m**2)
-    real(rk8), pointer :: errsoi(:)
+    real(rk8), pointer, contiguous :: errsoi(:)
     ! lake temperature (Kelvin)
-    real(rk8), pointer :: t_lake(:,:)
+    real(rk8), pointer, contiguous :: t_lake(:,:)
     ! soil (or snow) temperature (Kelvin)
-    real(rk8), pointer :: t_soisno(:,:)
+    real(rk8), pointer, contiguous :: t_soisno(:,:)
     ! liquid water (kg/m2) [for snow & soil layers]
-    real(rk8), pointer :: h2osoi_liq(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)
     ! ice lens (kg/m2) [for snow & soil layers]
-    real(rk8), pointer :: h2osoi_ice(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)
     ! mass fraction of lake layer that is frozen
-    real(rk8), pointer :: lake_icefrac(:,:)
+    real(rk8), pointer, contiguous :: lake_icefrac(:,:)
     ! ice thickness (m) integrated if lakepuddling)
-    real(rk8), pointer :: lake_icethick(:)
+    real(rk8), pointer, contiguous :: lake_icethick(:)
     ! top level eddy conductivity (W/mK)
-    real(rk8), pointer :: savedtke1(:)
+    real(rk8), pointer, contiguous :: savedtke1(:)
     ! fraction of ice relative to the tot water
-    real(rk8), pointer :: frac_iceold(:,:)
+    real(rk8), pointer, contiguous :: frac_iceold(:,:)
     !column-integrated snow freezing rate (kg m-2 s-1) [+]
-    real(rk8), pointer :: qflx_snofrz_col(:)
+    real(rk8), pointer, contiguous :: qflx_snofrz_col(:)
     ! New for CLM 4
     ! soil heat content (MJ/m2)
-    real(rk8), pointer :: hc_soi(:)
+    real(rk8), pointer, contiguous :: hc_soi(:)
     ! soil plus snow plus lake heat content (MJ/m2)
-    real(rk8), pointer :: hc_soisno(:)
+    real(rk8), pointer, contiguous :: hc_soisno(:)
     ! For CH4 Model
 #ifdef LCH4
     ! tracer heat conductance for ground [m/s]
     ! This will be calculated with the total lake thermal resistance
     ! and the aerodyn. resist. (calc in SLakeFluxes).
     ! In lakes, the column variable only is used.
-    real(rk8), pointer :: grnd_ch4_cond(:)
+    real(rk8), pointer, contiguous :: grnd_ch4_cond(:)
 #endif
     ! neutral value of turbulent prandtl number
     real(rk8), parameter :: p0 = 1._rk8
@@ -1240,15 +1240,15 @@ module mod_clm_slaketemperature
                   tk, cv, tktopsoillay)
     use mod_realkinds
     use mod_clm_type
-    use mod_clm_varcon  , only : denh2o, denice, tfrz, tkwat, tkice, tkair, &
+    use mod_clm_varcon , only : denh2o, denice, tfrz, tkwat, tkice, tkair, &
                              cpice,  cpliq, thk_bedrock
-    use mod_clm_varpar  , only : nlevsno, nlevsoi, nlevgrnd
+    use mod_clm_varpar , only : nlevsno, nlevsoi, nlevgrnd
     implicit none
-    integer(ik4) , intent(in)  :: lbc, ubc  ! column bounds
+    integer(ik4), intent(in)  :: lbc, ubc  ! column bounds
     ! number of column lake points in column filter
-    integer(ik4) , intent(in)  :: num_lakec
+    integer(ik4), intent(in)  :: num_lakec
     ! column filter for lake points
-    integer(ik4) , intent(in)  :: filter_lakec(ubc-lbc+1)
+    integer(ik4), intent(in)  :: filter_lakec(ubc-lbc+1)
     ! heat capacity [J/(m2 K)]
     real(rk8), intent(out) :: cv(lbc:ubc,-nlevsno+1:nlevgrnd)
     ! thermal conductivity [W/(m K)]
@@ -1257,29 +1257,29 @@ module mod_clm_slaketemperature
     real(rk8), intent(out) :: tktopsoillay(lbc:ubc)
 
     ! number of snow layers
-    integer(ik4) , pointer :: snl(:)
+    integer(ik4), pointer, contiguous :: snl(:)
     ! volumetric soil water at saturation (porosity)
-    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer, contiguous :: watsat(:,:)
     ! thermal conductivity, saturated soil [W/m-K]
-    real(rk8), pointer :: tksatu(:,:)
+    real(rk8), pointer, contiguous :: tksatu(:,:)
     ! thermal conductivity, soil minerals  [W/m-K]
-    real(rk8), pointer :: tkmg(:,:)
+    real(rk8), pointer, contiguous :: tkmg(:,:)
     ! thermal conductivity, dry soil (W/m/Kelvin)
-    real(rk8), pointer :: tkdry(:,:)
+    real(rk8), pointer, contiguous :: tkdry(:,:)
     ! heat capacity, soil solids (J/m**3/Kelvin)
-    real(rk8), pointer :: csol(:,:)
+    real(rk8), pointer, contiguous :: csol(:,:)
     ! layer thickness (m)
-    real(rk8), pointer :: dz(:,:)
+    real(rk8), pointer, contiguous :: dz(:,:)
     ! interface level below a "z" level (m)
-    real(rk8), pointer :: zi(:,:)
+    real(rk8), pointer, contiguous :: zi(:,:)
     ! layer depth (m)
-    real(rk8), pointer :: z(:,:)
+    real(rk8), pointer, contiguous :: z(:,:)
     ! soil temperature (Kelvin)
-    real(rk8), pointer :: t_soisno(:,:)
+    real(rk8), pointer, contiguous :: t_soisno(:,:)
     ! liquid water (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)
     ! ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_ice(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)
 
     integer(ik4)  :: c,j ! indices
     integer(ik4)  :: fc  ! lake filtered column indices
@@ -1443,13 +1443,13 @@ module mod_clm_slaketemperature
                   cv, cv_lake, lhabs)
     use mod_realkinds
     use mod_clm_type
-    use mod_clm_varcon  , only : tfrz, hfus, denh2o, denice, cpliq, cpice
-    use mod_clm_varpar  , only : nlevsno, nlevgrnd, nlevlak
+    use mod_clm_varcon , only : tfrz, hfus, denh2o, denice, cpliq, cpice
+    use mod_clm_varpar , only : nlevsno, nlevgrnd, nlevlak
     implicit none
-    integer(ik4) , intent(in) :: lbc, ubc    ! column bounds
-    integer(ik4) , intent(in) :: num_lakec   ! number of lake columns
+    integer(ik4), intent(in) :: lbc, ubc    ! column bounds
+    integer(ik4), intent(in) :: num_lakec   ! number of lake columns
     ! column filter for lake points
-    integer(ik4) , intent(in) :: filter_lakec(ubc-lbc+1)
+    integer(ik4), intent(in) :: filter_lakec(ubc-lbc+1)
     ! heat capacity [J/(m2 K)]
     real(rk8), intent(inout) :: cv(lbc:ubc,-nlevsno+1:nlevgrnd)
     ! heat capacity [J/(m2 K)]
@@ -1457,32 +1457,32 @@ module mod_clm_slaketemperature
     ! total per-column latent heat abs. (J/m^2)
     real(rk8), intent(out):: lhabs(lbc:ubc)
 
-    integer(ik4) , pointer :: snl(:) ! number of snow layers
-    real(rk8), pointer :: snow_depth(:)    ! snow height (m)
-    real(rk8), pointer :: h2osno(:)        ! snow water (mm H2O)
+    integer(ik4), pointer, contiguous :: snl(:) ! number of snow layers
+    real(rk8), pointer, contiguous :: snow_depth(:)    ! snow height (m)
+    real(rk8), pointer, contiguous :: h2osno(:)        ! snow water (mm H2O)
     ! Needed in case snow height is less than critical value.
 
-    real(rk8), pointer :: qflx_snow_melt(:) ! net snow melt
-    real(rk8), pointer :: qflx_snomelt(:)   ! snow melt (mm H2O /s)
-    real(rk8), pointer :: eflx_snomelt(:)   ! snow melt heat flux (W/m**2)
+    real(rk8), pointer, contiguous :: qflx_snow_melt(:) ! net snow melt
+    real(rk8), pointer, contiguous :: qflx_snomelt(:)   ! snow melt (mm H2O /s)
+    real(rk8), pointer, contiguous :: eflx_snomelt(:)   ! snow melt heat flux (W/m**2)
     !column-integrated snow freezing rate (kg m-2 s-1) [+]
-    real(rk8), pointer :: qflx_snofrz_col(:)
+    real(rk8), pointer, contiguous :: qflx_snofrz_col(:)
 
-    real(rk8), pointer :: dz(:,:)          ! layer thickness (m)
-    real(rk8), pointer :: dz_lake(:,:)     ! lake layer thickness (m)
+    real(rk8), pointer, contiguous :: dz(:,:)          ! layer thickness (m)
+    real(rk8), pointer, contiguous :: dz_lake(:,:)     ! lake layer thickness (m)
 
-    real(rk8), pointer :: t_soisno(:,:)     ! soil temperature (Kelvin)
-    real(rk8), pointer :: h2osoi_liq(:,:)   ! liquid water (kg/m2)
-    real(rk8), pointer :: h2osoi_ice(:,:)   ! ice lens (kg/m2)
+    real(rk8), pointer, contiguous :: t_soisno(:,:)     ! soil temperature (Kelvin)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)   ! liquid water (kg/m2)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)   ! ice lens (kg/m2)
     ! mass fraction of lake layer that is frozen
-    real(rk8), pointer :: lake_icefrac(:,:)
-    real(rk8), pointer :: t_lake(:,:)       ! lake temperature (Kelvin)
+    real(rk8), pointer, contiguous :: lake_icefrac(:,:)
+    real(rk8), pointer, contiguous :: t_lake(:,:)       ! lake temperature (Kelvin)
     !snow freezing rate (positive definite) (col,lyr) [kg m-2 s-1]
-    real(rk8), pointer :: qflx_snofrz_lyr(:,:)
+    real(rk8), pointer, contiguous :: qflx_snofrz_lyr(:,:)
 
     ! flag for melting (=1), freezing (=2), Not=0 (new)
     ! Only needed for snow layers
-    integer(ik4), pointer :: imelt(:,:)
+    integer(ik4), pointer, contiguous :: imelt(:,:)
 
     integer(ik4)  :: j,c   ! do loop index
     integer(ik4)  :: fc    ! lake filtered column indices

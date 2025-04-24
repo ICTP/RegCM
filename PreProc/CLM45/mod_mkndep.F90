@@ -28,7 +28,7 @@ module mod_mkndep
 
   public :: mkndep
 
-  character(len=16) , parameter :: varname = 'NDEP_year'
+  character(len=16), parameter :: varname = 'NDEP_year'
 
   real(rkx) :: vmin = 0.0_rkx
 
@@ -36,10 +36,10 @@ module mod_mkndep
 
   subroutine mkndep(ndepfile,mask,ndep)
     implicit none
-    character(len=*) , intent(in) :: ndepfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: ndep
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: ndepfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:), intent(out) :: ndep
+    integer(ik4) :: i, j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -51,8 +51,8 @@ module mod_mkndep
 
     call bestaround(ndep,h_missing_value)
 
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           ndep(j,i) = h_missing_value
         else

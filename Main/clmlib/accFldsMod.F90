@@ -59,10 +59,10 @@ contains
 ! Initializes accumulator and sets up array of accumulated fields
 !
 ! !USES:
-    use accumulMod   , only : init_accum_field, print_accum_fields
-    use clm_time_manager , only : get_step_size
+    use accumulMod  , only : init_accum_field, print_accum_fields
+    use clm_time_manager, only : get_step_size
     use shr_const_mod, only : SHR_CONST_CDAY, SHR_CONST_TKFRZ
-    use nanMod       , only : bigint
+    use nanMod      , only : bigint
 !
 ! !ARGUMENTS:
     implicit none
@@ -211,13 +211,13 @@ contains
 !
 ! !USES:
     use clmtype
-    use clm_atmlnd   , only : clm_a2l
-    use decompMod    , only : get_proc_bounds
-    use clm_varcon   , only : spval
-    use pftvarcon    , only : pftpar
+    use clm_atmlnd  , only : clm_a2l
+    use decompMod   , only : get_proc_bounds
+    use clm_varcon  , only : spval
+    use pftvarcon   , only : pftpar
     use shr_const_mod, only : SHR_CONST_CDAY, SHR_CONST_TKFRZ
-    use clm_time_manager , only : get_step_size, get_nstep, is_end_curr_day, get_curr_date
-    use accumulMod   , only : update_accum_field, extract_accum_field
+    use clm_time_manager, only : get_step_size, get_nstep, is_end_curr_day, get_curr_date
+    use accumulMod  , only : update_accum_field, extract_accum_field
 !
 ! !ARGUMENTS:
     implicit none
@@ -229,8 +229,8 @@ contains
 !
 ! local pointers to implicit in arguments
 !
-    integer , pointer :: itype(:)            ! pft vegetation
-    integer , pointer :: pgridcell(:)        ! index into gridcell level quantities
+    integer, pointer :: itype(:)            ! pft vegetation
+    integer, pointer :: pgridcell(:)        ! index into gridcell level quantities
     real(r8), pointer :: forc_t(:)           ! atmospheric temperature (Kelvin)
     real(r8), pointer :: forc_rain(:)        ! rain rate [mm/s]
     real(r8), pointer :: forc_snow(:)        ! snow rate [mm/s]
@@ -561,11 +561,11 @@ contains
 ! !USES:
     use shr_kind_mod, only: r8 => shr_kind_r8
     use clmtype
-    use decompMod   , only : get_proc_bounds, get_proc_global
-    use accumulMod  , only : extract_accum_field
+    use decompMod  , only : get_proc_bounds, get_proc_global
+    use accumulMod , only : extract_accum_field
     use clm_time_manager, only : get_nstep
-    use clm_varctl  , only : nsrest
-    use clm_varcon  , only : spval
+    use clm_varctl , only : nsrest
+    use clm_varcon , only : spval
 !
 ! !ARGUMENTS:
     implicit none

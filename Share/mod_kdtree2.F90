@@ -108,9 +108,9 @@ module mod_kdtree2
 
   private
 
-  integer , parameter :: sp = rk4
-  integer , parameter :: dp = rk8
-  integer , parameter :: kdkind = rk8
+  integer, parameter :: sp = rk4
+  integer, parameter :: dp = rk8
+  integer, parameter :: kdkind = rk8
   !
   ! K-D tree routines in Fortran 90 by Matt Kennel.
   ! Original program was written in Sather by Steve Omohundro and
@@ -127,24 +127,24 @@ module mod_kdtree2
   !
   !-------------DATA TYPE, CREATION, DELETION---------------------
   public :: kdkind
-  public :: kdtree2 , kdtree2_result
-  public :: tree_node , kdtree2_create , kdtree2_destroy
+  public :: kdtree2, kdtree2_result
+  public :: tree_node, kdtree2_create, kdtree2_destroy
   !---------------------------------------------------------------
   !-------------------SEARCH ROUTINES-----------------------------
-  public :: kdtree2_n_nearest , kdtree2_n_nearest_around_point
+  public :: kdtree2_n_nearest, kdtree2_n_nearest_around_point
   ! Return fixed number of nearest neighbors around arbitrary vector,
   ! or extant point in dataset, with decorrelation window.
   !
-  public :: kdtree2_r_nearest , kdtree2_r_nearest_around_point
+  public :: kdtree2_r_nearest, kdtree2_r_nearest_around_point
   ! Return points within a fixed ball of arb vector/extant point
   !
   public :: kdtree2_sort_results
   ! Sort, in order of increasing distance, rseults from above.
   !
-  public :: kdtree2_r_count , kdtree2_r_count_around_point
+  public :: kdtree2_r_count, kdtree2_r_count_around_point
   ! Count points within a fixed ball of arb vector/extant point
   !
-  public :: kdtree2_n_nearest_brute_force , kdtree2_r_nearest_brute_force
+  public :: kdtree2_n_nearest_brute_force, kdtree2_r_nearest_brute_force
   ! brute force of kdtree2_[n|r]_nearest
   !----------------------------------------------------------------
 
@@ -169,9 +169,9 @@ module mod_kdtree2
     ! improved cutoffs knowing the spread in child boxes.
     integer :: l
     integer :: u
-    type(tree_node) , pointer :: left
-    type(tree_node) , pointer :: right
-    type(interval) , pointer :: box(:) => null()
+    type(tree_node), pointer :: left
+    type(tree_node), pointer :: right
+    type(interval), pointer :: box(:) => null()
     ! child pointers
     ! Points included in this node are indexes[k] with k \in [l,u]
   end type tree_node
@@ -181,7 +181,7 @@ module mod_kdtree2
     integer :: dimen = 0
     integer :: n = 0
     ! dimensionality and total # of points
-    real(kdkind) , pointer :: the_data(:,:) => null()
+    real(kdkind), pointer :: the_data(:,:) => null()
     ! pointer to the actual data array
     !
     !  IMPORTANT NOTE:  IT IS DIMENSIONED   the_data(1:d,1:N)
@@ -195,19 +195,19 @@ module mod_kdtree2
     !  memory cache locality, and hence search speed, and may enable
     !  vectorization on some processors and compilers.
 
-    integer , pointer :: ind(:) => null()
+    integer, pointer :: ind(:) => null()
     ! permuted index into the data, so that indexes[l..u] of some
     ! bucket represent the indexes of the actual points in that
     ! bucket.
     logical :: sort = .false.
     ! do we always sort output results?
     logical :: rearrange = .false.
-    real(kdkind) , pointer :: rearranged_data(:,:) => null()
+    real(kdkind), pointer :: rearranged_data(:,:) => null()
     ! if (rearrange .eqv. .true.) then rearranged_data has been
     ! created so that rearranged_data(:,i) = the_data(:,ind(i)),
     ! permitting search to use more cache-friendly rearranged_data, at
     ! some initial computation and storage cost.
-    type(tree_node) , pointer :: root => null()
+    type(tree_node), pointer :: root => null()
     ! root pointer of the tree
   end type kdtree2
 
@@ -231,17 +231,17 @@ module mod_kdtree2
     logical :: rearrange  ! are the data rearranged or original?
     ! did the # of points found overflow the storage provided?
     logical :: overflow
-    real(kdkind) , pointer :: qv(:)  ! query vector
-    type(kdtree2_result) , pointer :: results(:) ! results
+    real(kdkind), pointer :: qv(:)  ! query vector
+    type(kdtree2_result), pointer :: results(:) ! results
     type(pq) :: pq
-    real(kdkind) , pointer :: rdata(:,:)  ! temp pointer to data
-    integer , pointer :: ind(:)     ! temp pointer to indexes
+    real(kdkind), pointer :: rdata(:,:)  ! temp pointer to data
+    integer, pointer :: ind(:)     ! temp pointer to indexes
   end type tree_search_record
 
   ! everything else is private.
 
   ! A GLOBAL VARIABLE for search
-  type(tree_search_record) , save , target :: sr
+  type(tree_search_record), save, target :: sr
 
   contains
 
@@ -274,14 +274,14 @@ module mod_kdtree2
     !                      building takes longer, and extra memory is used.
     !
     ! .. Function Return Cut_value ..
-    type(kdtree2) , pointer :: mr
-    integer , intent(in) , optional :: indim
-    logical , intent(in) , optional :: balanced
-    logical , intent(in) , optional :: sort
-    logical , intent(in) , optional :: rearrange
+    type(kdtree2), pointer :: mr
+    integer, intent(in), optional :: indim
+    logical, intent(in), optional :: balanced
+    logical, intent(in), optional :: sort
+    logical, intent(in), optional :: rearrange
     ! ..
     ! .. Array Arguments ..
-    real(kdkind) , target , dimension(:,:) :: input_data
+    real(kdkind), target, dimension(:,:) :: input_data
     !
     integer :: i
     !
@@ -330,7 +330,7 @@ module mod_kdtree2
 
     if ( mr%rearrange ) then
       allocate(mr%rearranged_data(mr%dimen,mr%n))
-      do i = 1 , mr%n
+      do i = 1, mr%n
         mr%rearranged_data(:,i) = mr%the_data(:,mr%ind(i))
       end do
     else
@@ -340,11 +340,11 @@ module mod_kdtree2
 
   subroutine build_tree(tp,lbal)
     implicit none
-    type (kdtree2) , pointer :: tp
+    type (kdtree2), pointer :: tp
     logical :: lbal
     ! ..
     integer :: j
-    type(tree_node) , pointer :: dummy => null()
+    type(tree_node), pointer :: dummy => null()
     ! ..
     allocate(tp%ind(tp%n))
     do concurrent ( j = 1:tp%n )
@@ -356,18 +356,18 @@ module mod_kdtree2
   recursive function build_tree_for_range(tp,l,u,parent,lbal) result (res)
     implicit none
     ! .. Function Return Cut_value ..
-    type (tree_node) , pointer :: res
+    type (tree_node), pointer :: res
     ! ..
     ! .. Structure Arguments ..
-    type (kdtree2) , pointer :: tp
-    type (tree_node) , pointer :: parent
+    type (kdtree2), pointer :: tp
+    type (tree_node), pointer :: parent
     ! ..
     ! .. Scalar Arguments ..
-    integer , intent (in) :: l , u
-    logical , intent (in) :: lbal
+    integer, intent (in) :: l, u
+    logical, intent (in) :: lbal
     ! ..
     ! .. Local Scalars ..
-    integer :: i , c , m , dimen
+    integer :: i, c, m, dimen
     logical :: recompute
     real(kdkind) :: average
 
@@ -390,7 +390,7 @@ module mod_kdtree2
       !
       ! always compute true bounding box for terminal nodes.
       !
-      do i = 1 , dimen
+      do i = 1, dimen
         call spread_in_coordinate(tp,i,l,u,res%box(i))
       end do
       res%cut_dim = 0
@@ -410,7 +410,7 @@ module mod_kdtree2
       ! has only a very small difference.  This box is not used
       ! for searching but only for deciding which coordinate to split on.
       !
-      do i = 1 , dimen
+      do i = 1, dimen
         recompute = .true.
         if ( associated(parent) ) then
           if ( i /= parent%cut_dim ) then
@@ -502,14 +502,14 @@ module mod_kdtree2
       ! The algorithm finishes when the unknown stack is empty.
       !
       ! .. Scalar Arguments ..
-      integer , intent (in) :: c , li , ui
-      real(kdkind) , intent(in) :: alpha
+      integer, intent (in) :: c, li, ui
+      real(kdkind), intent(in) :: alpha
       ! ..
-      real(kdkind) , dimension(1:,1:) :: v
-      integer , dimension(1:) :: ind
+      real(kdkind), dimension(1:,1:) :: v
+      integer, dimension(1:) :: ind
       integer :: tmp
       ! ..
-      integer :: lb , rb
+      integer :: lb, rb
       !
       ! The points known to be <= alpha are in
       ! [l,lb-1]
@@ -553,19 +553,19 @@ module mod_kdtree2
       ! element
       ! is >= those below, <= those above, in the coordinate c.
       ! .. Scalar Arguments ..
-      integer , intent (in) :: c , k , li , ui
+      integer, intent (in) :: c, k, li, ui
       ! ..
-      integer :: i , l , m , s , t , u
+      integer :: i, l, m, s, t, u
       ! ..
-      real(kdkind) , dimension(:,:) :: v
-      integer , dimension(:) :: ind
+      real(kdkind), dimension(:,:) :: v
+      integer, dimension(:) :: ind
       ! ..
       l = li
       u = ui
       do while ( l < u )
         t = ind(l)
         m = l
-        do i = l + 1 , u
+        do i = l + 1, u
           if ( v(c,ind(i)) < v(c,t) ) then
             m = m + 1
             s = ind(m)
@@ -590,19 +590,19 @@ module mod_kdtree2
     ! Return lower bound in 'smin', and upper in 'smax',
     ! ..
     ! .. Structure Arguments ..
-    type (kdtree2) , pointer :: tp
-    type(interval) , intent(out) :: interv
+    type (kdtree2), pointer :: tp
+    type(interval), intent(out) :: interv
     ! ..
     ! .. Scalar Arguments ..
-    integer , intent(in) :: c , l , u
+    integer, intent(in) :: c, l, u
     ! ..
     ! .. Local Scalars ..
-    real(kdkind) :: last , lmax , lmin , t , smin , smax
-    integer :: i , ulocal
+    real(kdkind) :: last, lmax, lmin, t, smin, smax
+    integer :: i, ulocal
     ! ..
     ! .. Local Arrays ..
-    real(kdkind) , pointer , dimension(:,:) :: v
-    integer , pointer , dimension(:) :: ind
+    real(kdkind), pointer, contiguous, dimension(:,:) :: v
+    integer, pointer, contiguous, dimension(:) :: ind
     ! ..
     v => tp%the_data(1:,1:)
     ind => tp%ind(1:)
@@ -611,7 +611,7 @@ module mod_kdtree2
 
     ulocal = u
 
-    do i = l + 2 , ulocal , 2
+    do i = l + 2, ulocal, 2
       lmin = v(c,ind(i-1))
       lmax = v(c,ind(i))
       if ( lmin > lmax ) then
@@ -636,7 +636,7 @@ module mod_kdtree2
     implicit none
     ! Deallocates all memory for the tree, except input data matrix
     ! .. Structure Arguments ..
-    type (kdtree2) , pointer :: tp
+    type (kdtree2), pointer :: tp
     ! ..
     call destroy_node(tp%root)
 
@@ -655,7 +655,7 @@ module mod_kdtree2
     recursive subroutine destroy_node(np)
       implicit none
       ! .. Structure Arguments ..
-      type (tree_node) , pointer :: np
+      type (tree_node), pointer :: np
       ! ..
       ! ..
       if ( associated(np%left) ) then
@@ -677,10 +677,10 @@ module mod_kdtree2
     ! Find the 'nn' vectors in the tree nearest to 'qv' in euclidean norm
     ! returning their indexes and distances in 'indexes' and 'distances'
     ! arrays already allocated passed to this subroutine.
-    type (kdtree2) , pointer :: tp
-    real(kdkind) , target , dimension(:) , intent (in) :: qv
-    integer , intent(inout) :: nn
-    type(kdtree2_result) , dimension(:) , target :: results
+    type (kdtree2), pointer :: tp
+    real(kdkind), target, dimension(:), intent (in) :: qv
+    integer, intent(inout) :: nn
+    type(kdtree2_result), dimension(:), target :: results
 
     sr%ballsize = huge(1.0)
     sr%qv => qv
@@ -719,10 +719,10 @@ module mod_kdtree2
     ! Find the 'nn' vectors in the tree nearest to point 'idxin',
     ! with correlation window 'correltime', returing results in
     ! results(:), which must be pre-allocated upon entry.
-    type (kdtree2) , pointer :: tp
-    integer , intent (in) :: idxin , correltime
-    integer , intent (inout) :: nn
-    type(kdtree2_result) , dimension(:) , target :: results
+    type (kdtree2), pointer :: tp
+    integer, intent (in) :: idxin, correltime
+    integer, intent (inout) :: nn
+    type(kdtree2_result), dimension(:), target :: results
 
     allocate (sr%qv(tp%dimen))
     sr%qv = tp%the_data(:,idxin) ! copy the vector
@@ -771,12 +771,12 @@ module mod_kdtree2
     !  the smallest ball inside norm r^2
     !
     ! Results are NOT sorted unless tree was created with sort option.
-    type(kdtree2) , pointer :: tp
-    real(kdkind) , target , dimension(:) , intent (in) :: qv
-    real(kdkind) , intent(in) :: r2
-    integer , intent(out) :: nfound
-    integer , intent(in) :: nalloc
-    type(kdtree2_result) , dimension(:) , target :: results
+    type(kdtree2), pointer :: tp
+    real(kdkind), target, dimension(:), intent (in) :: qv
+    real(kdkind), intent(in) :: r2
+    integer, intent(out) :: nfound
+    integer, intent(in) :: nalloc
+    type(kdtree2_result), dimension(:), target :: results
 
     !
     sr%qv => qv
@@ -832,11 +832,11 @@ module mod_kdtree2
     !
     ! Results are NOT sorted unless tree was created with sort option.
     !
-    type(kdtree2) , pointer :: tp
-    integer , intent(in) :: idxin , correltime , nalloc
-    real(kdkind) , intent(in) :: r2
-    integer , intent(out) :: nfound
-    type(kdtree2_result) , dimension(:) , target :: results
+    type(kdtree2), pointer :: tp
+    integer, intent(in) :: idxin, correltime, nalloc
+    real(kdkind), intent(in) :: r2
+    integer, intent(out) :: nfound
+    type(kdtree2_result), dimension(:), target :: results
     !
     allocate (sr%qv(tp%dimen))
     sr%qv = tp%the_data(:,idxin) ! copy the vector
@@ -892,9 +892,9 @@ module mod_kdtree2
   integer function kdtree2_r_count(tp,qv,r2) result(nfound)
     implicit none
     ! Count the number of neighbors within square distance 'r2'.
-    type (kdtree2) , pointer :: tp
-    real(kdkind) , dimension(:) , target , intent(in) :: qv
-    real(kdkind) , intent(in) :: r2
+    type (kdtree2), pointer :: tp
+    real(kdkind), dimension(:), target, intent(in) :: qv
+    real(kdkind), intent(in) :: r2
     !
     sr%qv => qv
     sr%ballsize = r2
@@ -933,9 +933,9 @@ module mod_kdtree2
     ! Count the number of neighbors within square distance 'r2' around
     ! point 'idxin' with decorrelation time 'correltime'.
     !
-    type(kdtree2) , pointer :: tp
-    integer , intent(in) :: correltime , idxin
-    real(kdkind) , intent(in) :: r2
+    type(kdtree2), pointer :: tp
+    integer, intent(in) :: correltime, idxin
+    real(kdkind), intent(in) :: r2
     !
     allocate (sr%qv(tp%dimen))
     sr%qv = tp%the_data(:,idxin)
@@ -977,7 +977,7 @@ module mod_kdtree2
     !
     ! make sure we have enough storage for n
     !
-    integer , intent(in) :: n
+    integer, intent(in) :: n
 
     if ( size(sr%results,1) < n ) then
       call die('KD_TREE_TRANS',&
@@ -994,7 +994,7 @@ module mod_kdtree2
     integer :: d
     ! ..
     ! .. Array Arguments ..
-    real(kdkind) , dimension(:) :: iv , qv
+    real(kdkind), dimension(:) :: iv, qv
     ! ..
     ! ..
     res = sum( (iv(1:d)-qv(1:d))**2 )
@@ -1009,16 +1009,16 @@ module mod_kdtree2
     ! This version uses a logically complete secondary search of
     ! "box in bounds", whether the sear
     !
-    type(tree_node) , pointer :: node
+    type(tree_node), pointer :: node
     ! ..
-    type(tree_node) , pointer :: ncloser , nfarther
+    type(tree_node), pointer :: ncloser, nfarther
     !
-    integer :: cut_dim , i
+    integer :: cut_dim, i
     ! ..
-    real(kdkind) :: qval , dis
+    real(kdkind) :: qval, dis
     real(kdkind) :: ballsize
-    real(kdkind) , pointer , dimension(:) :: qv
-    type(interval) , pointer , dimension(:) :: box
+    real(kdkind), pointer, contiguous, dimension(:) :: qv
+    type(interval), pointer, contiguous, dimension(:) :: box
 
     if ( ( associated(node%left) .and. &
            associated(node%right) ) .eqv. .false. ) then
@@ -1060,7 +1060,7 @@ module mod_kdtree2
           ! check will also be false.
           !
           box => node%box(1:)
-          do i = 1 , sr%dimen
+          do i = 1, sr%dimen
             if ( i /= cut_dim ) then
               dis = dis + dis2_from_bnd(qv(i),box(i)%lower,box(i)%upper)
               if ( dis > ballsize ) then
@@ -1080,7 +1080,7 @@ module mod_kdtree2
 
   real(kdkind) function dis2_from_bnd(x,amin,amax) result (res)
     implicit none
-    real(kdkind) , intent(in) :: x , amin , amax
+    real(kdkind), intent(in) :: x, amin, amax
 
     if ( x > amax ) then
       res = (x-amax)**2;
@@ -1104,18 +1104,18 @@ module mod_kdtree2
 !    ! for all coordinates outside the box.   Coordinates inside the box
 !    ! contribute nothing to the distance.
 !    !
-!    type(tree_node) , pointer :: node
-!    type(tree_search_record) , pointer :: sr
+!    type(tree_node), pointer :: node
+!    type(tree_search_record), pointer :: sr
 !
-!    integer :: dimen , i
-!    real(kdkind) :: dis , ballsize
-!    real(kdkind) :: l , u
+!    integer :: dimen, i
+!    real(kdkind) :: dis, ballsize
+!    real(kdkind) :: l, u
 !
 !    dimen = sr%dimen
 !    ballsize = sr%ballsize
 !    dis = 0.0
 !    res = .true.
-!    do i = 1 , dimen
+!    do i = 1, dimen
 !      l = node%box(i)%lower
 !      u = node%box(i)%upper
 !      dis = dis + (dis2_from_bnd(sr%qv(i),l,u))
@@ -1133,16 +1133,16 @@ module mod_kdtree2
     ! Look for actual near neighbors in 'node', and update
     ! the search results on the sr data structure.
     !
-    type(tree_node) , pointer :: node
+    type(tree_node), pointer :: node
     !
-    real(kdkind) , pointer , dimension(:) :: qv
-    integer , pointer , dimension(:) :: ind
-    real(kdkind) , pointer , dimension(:,:) :: rdata
+    real(kdkind), pointer, contiguous, dimension(:) :: qv
+    integer, pointer, contiguous, dimension(:) :: ind
+    real(kdkind), pointer, contiguous, dimension(:,:) :: rdata
     !
-    integer :: dimen , i , indexofi , k , centeridx , correltime
-    real(kdkind) :: ballsize , sd , newpri
+    integer :: dimen, i, indexofi, k, centeridx, correltime
+    real(kdkind) :: ballsize, sd, newpri
     logical :: rearrange
-    type(pq) , pointer :: pqp
+    type(pq), pointer :: pqp
     !
     ! copy values from sr to local variables
     !
@@ -1165,10 +1165,10 @@ module mod_kdtree2
     ! search through terminal bucket.
 
     mainloop: &
-    do i = node%l , node%u
+    do i = node%l, node%u
       if ( rearrange ) then
         sd = 0.0
-        do k = 1 , dimen
+        do k = 1, dimen
           sd = sd + (rdata(k,i) - qv(k))**2
           if ( sd > ballsize ) cycle mainloop
         end do
@@ -1176,7 +1176,7 @@ module mod_kdtree2
       else
         indexofi = ind(i)
         sd = 0.0
-        do k = 1 , dimen
+        do k = 1, dimen
           sd = sd + (rdata(k,indexofi) - qv(k))**2
           if ( sd > ballsize ) cycle mainloop
         end do
@@ -1240,16 +1240,16 @@ module mod_kdtree2
     ! the search results on the sr data structure, i.e.
     ! save all within a fixed ball.
     !
-    type (tree_node) , pointer :: node
+    type (tree_node), pointer :: node
     !
-    real(kdkind) , pointer , dimension(:) :: qv
-    integer , pointer , dimension(:) :: ind
-    real(kdkind) , pointer , dimension(:,:) :: rdata
+    real(kdkind), pointer, contiguous, dimension(:) :: qv
+    integer, pointer, contiguous, dimension(:) :: ind
+    real(kdkind), pointer, contiguous, dimension(:,:) :: rdata
     !
     integer :: nfound
-    integer :: dimen , i , indexofi , k
-    integer :: centeridx , correltime , nn
-    real(kdkind) :: ballsize , sd
+    integer :: dimen, i, indexofi, k
+    integer :: centeridx, correltime, nn
+    real(kdkind) :: ballsize, sd
     logical :: rearrange
     !
     ! copy values from sr to local variables
@@ -1267,7 +1267,7 @@ module mod_kdtree2
 
     ! search through terminal bucket.
     mainloop: &
-    do i = node%l , node%u
+    do i = node%l, node%u
       !
       ! two choices for any point.  The list so far is either undersized,
       ! or it is not.
@@ -1291,7 +1291,7 @@ module mod_kdtree2
 
       if ( rearrange ) then
         sd = 0.0
-        do k = 1 , dimen
+        do k = 1, dimen
           sd = sd + (rdata(k,i) - qv(k))**2
           if ( sd > ballsize ) cycle mainloop
         end do
@@ -1299,7 +1299,7 @@ module mod_kdtree2
       else
         indexofi = ind(i)
         sd = 0.0
-        do k = 1 , dimen
+        do k = 1, dimen
           sd = sd + (rdata(k,indexofi) - qv(k))**2
           if ( sd > ballsize ) cycle mainloop
         end do
@@ -1331,31 +1331,31 @@ module mod_kdtree2
     ! only use this subroutine for testing, as it is SLOW!  The
     ! whole point of a k-d tree is to avoid doing what this subroutine
     ! does.
-    type(kdtree2) , pointer :: tp
-    real(kdkind) , dimension(:) , intent(in) :: qv
-    integer , intent(in) :: nn
-    type(kdtree2_result) , dimension(:) :: results
+    type(kdtree2), pointer :: tp
+    real(kdkind), dimension(:), intent(in) :: qv
+    integer, intent(in) :: nn
+    type(kdtree2_result), dimension(:) :: results
 
     integer :: i, j, k
-    real(kdkind) , allocatable , dimension(:) :: all_distances
+    real(kdkind), allocatable, dimension(:) :: all_distances
     ! ..
     allocate(all_distances(tp%n))
-    do i = 1 , tp%n
+    do i = 1, tp%n
       all_distances(i) = square_distance(tp%dimen,qv,tp%the_data(:,i))
     end do
     ! now find 'n' smallest distances
-    do i = 1 , nn
+    do i = 1, nn
       results(i)%dis = huge(1.0)
       results(i)%idx = -1
     end do
-    do i = 1 , tp%n
+    do i = 1, tp%n
       if ( all_distances(i) < results(nn)%dis ) then
         ! insert it somewhere on the list
-        do j = 1 , nn
+        do j = 1, nn
           if ( all_distances(i) < results(j)%dis ) exit
         end do
         ! now we know 'j'
-        do k = nn - 1 , j , -1
+        do k = nn - 1, j, -1
           results(k+1) = results(k)
         end do
         results(j)%dis = all_distances(i)
@@ -1372,24 +1372,24 @@ module mod_kdtree2
     ! only use this subroutine for testing, as it is SLOW!  The
     ! whole point of a k-d tree is to avoid doing what this subroutine
     ! does.
-    type(kdtree2) , pointer :: tp
-    real(kdkind) , dimension(:) , intent(in) :: qv
-    real(kdkind) , intent(in) :: r2
-    integer , intent(out) :: nfound
-    type(kdtree2_result) , dimension(:) :: results
+    type(kdtree2), pointer :: tp
+    real(kdkind), dimension(:), intent(in) :: qv
+    real(kdkind), intent(in) :: r2
+    integer, intent(out) :: nfound
+    type(kdtree2_result), dimension(:) :: results
 
-    integer :: i , nalloc
-    real(kdkind) , dimension(:) , allocatable :: all_distances
+    integer :: i, nalloc
+    real(kdkind), dimension(:), allocatable :: all_distances
     ! ..
     allocate(all_distances(tp%n))
-    do i = 1 , tp%n
+    do i = 1, tp%n
       all_distances(i) = square_distance(tp%dimen,qv,tp%the_data(:,i))
     end do
 
     nfound = 0
     nalloc = size(results,1)
 
-    do i = 1 , tp%n
+    do i = 1, tp%n
       if ( all_distances(i) < r2 ) then
         ! insert it somewhere on the list
         if ( nfound < nalloc ) then
@@ -1407,8 +1407,8 @@ module mod_kdtree2
     implicit none
     !  Use after search to sort results(1:nfound) in order of increasing
     !  distance.
-    integer , intent(in) :: nfound
-    type(kdtree2_result) , dimension(:) , target :: results
+    integer, intent(in) :: nfound
+    type(kdtree2_result), dimension(:), target :: results
     !
     if ( nfound > 1 ) call heapsort_struct(results,nfound)
   end subroutine kdtree2_sort_results
@@ -1420,15 +1420,15 @@ module mod_kdtree2
 !    !
 !    ! If ind(k) = k upon input, then it will give a sort index upon output.
 !    !
-!    integer , intent(in) :: n
-!    real(kdkind) , dimension(:) , intent(inout) :: a
-!    integer , dimension(:) , intent(inout) :: ind
+!    integer, intent(in) :: n
+!    real(kdkind), dimension(:), intent(inout) :: a
+!    integer, dimension(:), intent(inout) :: ind
 !    !
 !    real(kdkind) :: rval   ! temporary for a value from a()
 !    integer :: ival  ! temporary for a value from ind()
 !
-!    integer :: i , j
-!    integer :: ileft , iright
+!    integer :: i, j
+!    integer :: ileft, iright
 !
 !    ileft = n/2+1
 !    iright = n
@@ -1482,13 +1482,13 @@ module mod_kdtree2
     !
     ! Sort a(1:n) in ascending order
     !
-    integer , intent(in) :: n
-    type(kdtree2_result) , dimension(:) , intent(inout) :: a
+    integer, intent(in) :: n
+    type(kdtree2_result), dimension(:), intent(inout) :: a
     !
     type(kdtree2_result) :: rval ! temporary value
 
-    integer :: i , j
-    integer :: ileft , iright
+    integer :: i, j
+    integer :: ileft, iright
 
     ileft = n/2+1
     iright = n

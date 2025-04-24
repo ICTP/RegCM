@@ -27,22 +27,22 @@ module mod_rdldtr
 
   private
 
-  public :: globalfile , gfopen , gfclose , gfread , bestaround
+  public :: globalfile, gfopen, gfclose, gfread, bestaround
 
   public :: read_ncglob
 
-  real(rk8) , allocatable , dimension(:) :: glat
-  real(rk8) , allocatable , dimension(:) :: glon
+  real(rk8), allocatable, dimension(:) :: glat
+  real(rk8), allocatable, dimension(:) :: glon
 
   type globalfile
     integer(ik4) :: ncid
     type(global_domain) :: gdomain
     type(h_interpolator) :: hint
     logical :: lmask = .false.
-    integer(ik4) , dimension(:,:) , pointer :: mask => null( )
+    integer(ik4), dimension(:,:), pointer, contiguous :: mask => null( )
   end type globalfile
 
-  integer(ik4) :: ncid , istatus
+  integer(ik4) :: ncid, istatus
   type(global_domain) :: gdomain
 
   interface read_ncglob
@@ -77,7 +77,7 @@ module mod_rdldtr
 !
 !  cfile = name of the input file
 !  cvar = name of the var in the file
-!  xlat , xlon = grid latitudes and longitudes of requested grid
+!  xlat, xlon = grid latitudes and longitudes of requested grid
 !  iband = band flag
 !  iores = output wanted resolution in minutes
 !          iores == 0 then no resampling is performed
@@ -99,17 +99,17 @@ module mod_rdldtr
                            nlatin,nlonin,values)
     use netcdf
     implicit none
-    character(len=*) , intent(in) :: cfile , cvar
-    integer(ik4) , intent(in) :: iband , iores , imeth
-    real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rk8) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
-    integer(ik4) , intent(out) :: nlatin , nlonin
-    real(rkx) , dimension(:,:) , intent(inout) , pointer :: values
-    integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
-    integer(ik4) :: i , j , inpsec , iopsec , ifrac
-    integer(ik4) , dimension(2) :: istart , icount
-    real(rk8) :: deltalat , deltalon
-    real(rkx) , allocatable , dimension(:,:) :: readbuf
+    character(len=*), intent(in) :: cfile, cvar
+    integer(ik4), intent(in) :: iband, iores, imeth
+    real(rkx), dimension(:,:), intent(in) :: xlat, xlon
+    real(rk8), intent(out) :: grdlnma, grdlnmn, grdltma, grdltmn
+    integer(ik4), intent(out) :: nlatin, nlonin
+    real(rkx), dimension(:,:), intent(inout), pointer, contiguous :: values
+    integer(ik4) :: nlat, nlon, iti, itf, itile, ivar
+    integer(ik4) :: i, j, inpsec, iopsec, ifrac
+    integer(ik4), dimension(2) :: istart, icount
+    real(rk8) :: deltalat, deltalon
+    real(rkx), allocatable, dimension(:,:) :: readbuf
 
 #ifdef DEBUG
     write(stdout,*) 'Opening '//trim(cfile)
@@ -160,18 +160,18 @@ module mod_rdldtr
     allocate(readbuf(nlon,nlat))
 
 #ifdef DEBUG
-    write(stderr,*) 'BOUNDS IN LAT: ', grdltmn , grdltma
-    write(stderr,*) 'BOUNDS IN LON: ', grdlnmn , grdlnma
+    write(stderr,*) 'BOUNDS IN LAT: ', grdltmn, grdltma
+    write(stderr,*) 'BOUNDS IN LON: ', grdlnmn, grdlnma
 #endif
 
 #ifdef DEBUG
-    write(stderr,*) 'WILL READ ', nlon , 'x', nlat, ' points'
-    write(stderr,*) 'WILL GIVE ', nlonin , 'x', nlatin, ' points'
+    write(stderr,*) 'WILL READ ', nlon, 'x', nlat, ' points'
+    write(stderr,*) 'WILL GIVE ', nlonin, 'x', nlatin, ' points'
 #endif
 
     iti = 1
     readbuf = -1000000000
-    do itile = 1 , gdomain%ntiles
+    do itile = 1, gdomain%ntiles
       istart(1) = gdomain%igstart(itile)
       icount(1) = gdomain%ni(itile)
       istart(2) = gdomain%jgstart
@@ -201,8 +201,8 @@ module mod_rdldtr
     if ( ifrac > 1 ) then
       call resampling(ifrac,imeth,iband,nlat,nlon,nlatin,nlonin,readbuf,values)
     else
-      do i = 1 , nlatin
-        do j = 1 , nlonin
+      do i = 1, nlatin
+        do j = 1, nlonin
           values(j,i) = readbuf(j,i)
         end do
       end do
@@ -218,17 +218,17 @@ module mod_rdldtr
                            nlatin,nlonin,values)
     use netcdf
     implicit none
-    character(len=*) , intent(in) :: cfile , cvar
-    integer(ik4) , intent(in) :: iband , iores , imeth
-    real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rk8) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
-    integer(ik4) , intent(out) :: nlatin , nlonin
-    real(rkx) , dimension(:,:,:) , intent(inout) , pointer :: values
-    integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
-    integer(ik4) :: i , j , n , inpsec , iopsec , ifrac , nd
-    integer(ik4) , dimension(3) :: idims , istart , icount
-    real(rk8) :: deltalat , deltalon
-    real(rkx) , allocatable , dimension(:,:,:) :: readbuf
+    character(len=*), intent(in) :: cfile, cvar
+    integer(ik4), intent(in) :: iband, iores, imeth
+    real(rkx), dimension(:,:), intent(in) :: xlat, xlon
+    real(rk8), intent(out) :: grdlnma, grdlnmn, grdltma, grdltmn
+    integer(ik4), intent(out) :: nlatin, nlonin
+    real(rkx), dimension(:,:,:), intent(inout), pointer, contiguous :: values
+    integer(ik4) :: nlat, nlon, iti, itf, itile, ivar
+    integer(ik4) :: i, j, n, inpsec, iopsec, ifrac, nd
+    integer(ik4), dimension(3) :: idims, istart, icount
+    real(rk8) :: deltalat, deltalon
+    real(rkx), allocatable, dimension(:,:,:) :: readbuf
 
 #ifdef DEBUG
     write(stdout,*) 'Opening '//trim(cfile)
@@ -292,18 +292,18 @@ module mod_rdldtr
     allocate(readbuf(nlon,nlat,nd))
 
 #ifdef DEBUG
-    write(stderr,*) 'BOUNDS IN LAT: ', grdltmn , grdltma
-    write(stderr,*) 'BOUNDS IN LON: ', grdlnmn , grdlnma
+    write(stderr,*) 'BOUNDS IN LAT: ', grdltmn, grdltma
+    write(stderr,*) 'BOUNDS IN LON: ', grdlnmn, grdlnma
 #endif
 
 #ifdef DEBUG
-    write(stderr,*) 'WILL READ ', nlon , 'x', nlat, ' points'
-    write(stderr,*) 'WILL GIVE ', nlonin , 'x', nlatin, ' points'
+    write(stderr,*) 'WILL READ ', nlon, 'x', nlat, ' points'
+    write(stderr,*) 'WILL GIVE ', nlonin, 'x', nlatin, ' points'
 #endif
 
     iti = 1
     readbuf = -1000000000
-    do itile = 1 , gdomain%ntiles
+    do itile = 1, gdomain%ntiles
       istart(1) = gdomain%igstart(itile)
       icount(1) = gdomain%ni(itile)
       istart(2) = gdomain%jgstart
@@ -333,14 +333,14 @@ module mod_rdldtr
     end if
 
     if ( ifrac > 1 ) then
-      do n = 1 , nd
+      do n = 1, nd
         call resampling(ifrac,imeth,iband,nlat,nlon,nlatin,nlonin, &
                         readbuf(:,:,n),values(:,:,n))
       end do
     else
-      do n = 1 , nd
-        do i = 1 , nlatin
-          do j = 1 , nlonin
+      do n = 1, nd
+        do i = 1, nlatin
+          do j = 1, nlonin
             values(j,i,n) = readbuf(j,i,n)
           end do
         end do
@@ -357,18 +357,18 @@ module mod_rdldtr
                              nlatin,nlonin,values,isel)
     use netcdf
     implicit none
-    character(len=*) , intent(in) :: cfile , cvar
-    integer(ik4) , intent(in) :: iband , iores , imeth
-    real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rk8) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
-    integer(ik4) , intent(out) :: nlatin , nlonin
-    real(rkx) , dimension(:,:) , intent(inout) , pointer :: values
-    integer(ik4) , intent(in) :: isel
-    integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
-    integer(ik4) :: i , j , inpsec , iopsec , ifrac , nd
-    integer(ik4) , dimension(3) :: istart , icount
-    real(rk8) :: deltalat , deltalon
-    real(rkx) , allocatable , dimension(:,:) :: readbuf
+    character(len=*), intent(in) :: cfile, cvar
+    integer(ik4), intent(in) :: iband, iores, imeth
+    real(rkx), dimension(:,:), intent(in) :: xlat, xlon
+    real(rk8), intent(out) :: grdlnma, grdlnmn, grdltma, grdltmn
+    integer(ik4), intent(out) :: nlatin, nlonin
+    real(rkx), dimension(:,:), intent(inout), pointer, contiguous :: values
+    integer(ik4), intent(in) :: isel
+    integer(ik4) :: nlat, nlon, iti, itf, itile, ivar
+    integer(ik4) :: i, j, inpsec, iopsec, ifrac, nd
+    integer(ik4), dimension(3) :: istart, icount
+    real(rk8) :: deltalat, deltalon
+    real(rkx), allocatable, dimension(:,:) :: readbuf
 
 #ifdef DEBUG
     write(stdout,*) 'Opening '//trim(cfile)
@@ -426,18 +426,18 @@ module mod_rdldtr
     allocate(readbuf(nlon,nlat))
 
 #ifdef DEBUG
-    write(stderr,*) 'BOUNDS IN LAT: ', grdltmn , grdltma
-    write(stderr,*) 'BOUNDS IN LON: ', grdlnmn , grdlnma
+    write(stderr,*) 'BOUNDS IN LAT: ', grdltmn, grdltma
+    write(stderr,*) 'BOUNDS IN LON: ', grdlnmn, grdlnma
 #endif
 
 #ifdef DEBUG
-    write(stderr,*) 'WILL READ ', nlon , 'x', nlat, ' points'
-    write(stderr,*) 'WILL GIVE ', nlonin , 'x', nlatin, ' points'
+    write(stderr,*) 'WILL READ ', nlon, 'x', nlat, ' points'
+    write(stderr,*) 'WILL GIVE ', nlonin, 'x', nlatin, ' points'
 #endif
 
     iti = 1
     readbuf = -1000000000
-    do itile = 1 , gdomain%ntiles
+    do itile = 1, gdomain%ntiles
       istart(1) = gdomain%igstart(itile)
       icount(1) = gdomain%ni(itile)
       istart(2) = gdomain%jgstart
@@ -469,8 +469,8 @@ module mod_rdldtr
     if ( ifrac > 1 ) then
       call resampling(ifrac,imeth,iband,nlat,nlon,nlatin,nlonin,readbuf,values)
     else
-      do i = 1 , nlatin
-        do j = 1 , nlonin
+      do i = 1, nlatin
+        do j = 1, nlonin
           values(j,i) = readbuf(j,i)
         end do
       end do
@@ -484,9 +484,9 @@ module mod_rdldtr
   subroutine read_geolocation(cfile)
     use netcdf
     implicit none
-    character(len=*) , intent(in) :: cfile
-    integer(ik4) :: idimid , idvar
-    integer(ik4) :: jlat , ilon
+    character(len=*), intent(in) :: cfile
+    integer(ik4) :: idimid, idvar
+    integer(ik4) :: jlat, ilon
 
     istatus = nf90_inq_dimid(ncid,'lat',idimid)
     if ( istatus /= nf90_noerr ) then
@@ -571,13 +571,13 @@ module mod_rdldtr
   subroutine resampling(ifrac,imeth,iband,nlat,nlon,nlatin,nlonin, &
                         readbuf,values)
     implicit none
-    integer(ik4) , intent(in) :: ifrac , imeth , iband
-    integer(ik4) , intent(in) :: nlat , nlon
-    integer(ik4) , intent(in) :: nlatin , nlonin
-    real(rkx) , dimension(nlon,nlat) , intent(in) :: readbuf
-    real(rkx) , dimension(nlonin,nlatin) , intent(out) :: values
-    integer(ik4) :: nfrac , np , i , j , ib , jb , iprint
-    real(rkx) , allocatable , dimension(:) :: copybuf
+    integer(ik4), intent(in) :: ifrac, imeth, iband
+    integer(ik4), intent(in) :: nlat, nlon
+    integer(ik4), intent(in) :: nlatin, nlonin
+    real(rkx), dimension(nlon,nlat), intent(in) :: readbuf
+    real(rkx), dimension(nlonin,nlatin), intent(out) :: values
+    integer(ik4) :: nfrac, np, i, j, ib, jb, iprint
+    real(rkx), allocatable, dimension(:) :: copybuf
 
     write(stdout,'(a)',advance='no') ' Resampling'
     iprint = max(nlatin/20,5)
@@ -585,20 +585,20 @@ module mod_rdldtr
     allocate(copybuf(nfrac))
     select case (imeth)
       case (1)
-        do i = 1 , nlatin
+        do i = 1, nlatin
           if (mod(i,iprint) == 0) write(stdout,'(a)',advance='no') '.'
           ib = (i-1)*ifrac+1
-          do j = 1 , nlonin
+          do j = 1, nlonin
             jb = (j-1)*ifrac+1
             call fillbuf(copybuf,readbuf,nlon,nlat,jb,ib,ifrac+1,iband)
             values(j,i) = sum(copybuf)/real(size(copybuf),rkx)
           end do
         end do
       case (2)
-        do i = 1 , nlatin
+        do i = 1, nlatin
           if (mod(i,iprint) == 0) write(stdout,'(a)',advance='no') '.'
           ib = (i-1)*ifrac+1
-          do j = 1 , nlonin
+          do j = 1, nlonin
             jb = (j-1)*ifrac+1
             call fillbuf(copybuf,readbuf,nlon,nlat,jb,ib,ifrac+1,iband)
             call qsort(copybuf)
@@ -607,20 +607,20 @@ module mod_rdldtr
           end do
         end do
       case (3)
-        do i = 1 , nlatin
+        do i = 1, nlatin
           if (mod(i,iprint) == 0) write(stdout,'(a)',advance='no') '.'
           ib = (i-1)*ifrac+1
-          do j = 1 , nlonin
+          do j = 1, nlonin
             jb = (j-1)*ifrac+1
             call fillbuf(copybuf,readbuf,nlon,nlat,jb,ib,ifrac+1,iband)
             values(j,i) = real(mpindex(copybuf),rkx)
           end do
         end do
       case (4)
-        do i = 1 , nlatin
+        do i = 1, nlatin
           if (mod(i,iprint) == 0) write(stdout,'(a)',advance='no') '.'
           ib = (i-1)*ifrac+1
-          do j = 1 , nlonin
+          do j = 1, nlonin
             jb = (j-1)*ifrac+1
             call fillbuf(copybuf,readbuf,nlon,nlat,jb,ib,ifrac+1,iband)
             call qsort(copybuf)
@@ -630,10 +630,10 @@ module mod_rdldtr
           end do
         end do
       case default
-        do i = 1 , nlatin
+        do i = 1, nlatin
         ib = (i-1)*ifrac+1 + ifrac/2
           if (mod(i,iprint) == 0) write(stdout,'(a)',advance='no') '.'
-          do j = 1 , nlonin
+          do j = 1, nlonin
             jb = (j-1)*ifrac+1 + ifrac/2
             values(j,i) = readbuf(jb,ib)
           end do
@@ -645,12 +645,12 @@ module mod_rdldtr
 
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,iband)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , isize , iband
-    real(rkx) , dimension(isize*isize) , intent(out) :: copybuf
-    real(rkx) , dimension(ni,nj) , intent(in) :: readbuf
-    integer(ik4) , intent(in) :: i , j
-    integer(ik4) :: imin , imax , jmin , jmax , icnt , jcnt , ip
-    integer(ik4) :: ib , jb
+    integer(ik4), intent(in) :: ni, nj, isize, iband
+    real(rkx), dimension(isize*isize), intent(out) :: copybuf
+    real(rkx), dimension(ni,nj), intent(in) :: readbuf
+    integer(ik4), intent(in) :: i, j
+    integer(ik4) :: imin, imax, jmin, jmax, icnt, jcnt, ip
+    integer(ik4) :: ib, jb
 
     imin = i
     imax = i + isize
@@ -658,8 +658,8 @@ module mod_rdldtr
     jmax = j + isize
 
     ip = 1
-    do icnt = 1 , isize
-      do jcnt = 1 , isize
+    do icnt = 1, isize
+      do jcnt = 1, isize
         ib = imin+icnt-1
         jb = jmin+jcnt-1
         if ( iband == 1 ) then
@@ -679,11 +679,11 @@ module mod_rdldtr
 
   pure integer(ik4) function mpindex(x) result(res)
     implicit none
-    real(rkx) , dimension(:) , intent(in) :: x
-    integer(ik4) , dimension(32) :: cnt
+    real(rkx), dimension(:), intent(in) :: x
+    integer(ik4), dimension(32) :: cnt
     integer(ik4) :: i
     cnt = 0
-    do i = 1 , 32
+    do i = 1, 32
       cnt(i) = count(int(x) == i)
     end do
     res = maxloc(cnt,1,cnt>0)
@@ -691,8 +691,8 @@ module mod_rdldtr
 
   recursive subroutine qsort(a)
     implicit none
-    real(rkx) , dimension(:) , intent(in out) :: a
-    integer(ik4) :: np , isplit
+    real(rkx), dimension(:), intent(in out) :: a
+    integer(ik4) :: np, isplit
 
     np = size(a)
     if (np > 1) then
@@ -704,10 +704,10 @@ module mod_rdldtr
 
   subroutine partition(a, marker)
     implicit none
-    real(rkx) , dimension(:) , intent(inout) :: a
-    integer(ik4) , intent(out) :: marker
-    integer(ik4) :: np , left , right
-    real(rkx) :: temp , pivot
+    real(rkx), dimension(:), intent(inout) :: a
+    integer(ik4), intent(out) :: marker
+    integer(ik4) :: np, left, right
+    real(rkx) :: temp, pivot
 
     np = size(a)
     pivot = (a(1) + a(np))/2.0_rkx
@@ -739,17 +739,17 @@ module mod_rdldtr
   subroutine gfopen(gfile,cfile,xlat,xlon,ds,roi,iband)
     use netcdf
     implicit none
-    type(globalfile) , intent(out) :: gfile
-    character(len=*) , intent(in) :: cfile
-    real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , intent(in) :: ds , roi
-    integer(ik4) , intent(in) :: iband
-    integer(ik4) :: nlat , nlon , n , i , j , js , itf , iti , itile
-    real(rk8) , dimension(:) , allocatable :: glat , glon
-    real(rkx) , dimension(:) , allocatable :: rglat , rglon
-    integer(ik4) :: idimid , idvar
-    integer(ik4) :: jlat , ilon
-    integer(ik4) , dimension(2) :: istart , icount
+    type(globalfile), intent(out) :: gfile
+    character(len=*), intent(in) :: cfile
+    real(rkx), dimension(:,:), intent(in) :: xlat, xlon
+    real(rkx), intent(in) :: ds, roi
+    integer(ik4), intent(in) :: iband
+    integer(ik4) :: nlat, nlon, n, i, j, js, itf, iti, itile
+    real(rk8), dimension(:), allocatable :: glat, glon
+    real(rkx), dimension(:), allocatable :: rglat, rglon
+    integer(ik4) :: idimid, idvar
+    integer(ik4) :: jlat, ilon
+    integer(ik4), dimension(2) :: istart, icount
 
 #ifdef DEBUG
     write(stdout,*) 'Opening '//trim(cfile)
@@ -844,12 +844,12 @@ module mod_rdldtr
     allocate(rglon(nlon))
     rglat = 1e-20_rkx
     rglon = 1e-20_rkx
-    do i = 1 , nlat
+    do i = 1, nlat
       rglat(i) = real(glat(gfile%gdomain%jgstart+i-1),rkx)
     end do
     js = 1
-    do n = 1 , gfile%gdomain%ntiles
-      do j = js , js + gfile%gdomain%ni(n) - 1
+    do n = 1, gfile%gdomain%ntiles
+      do j = js, js + gfile%gdomain%ni(n) - 1
         rglon(j) = real(glon(gfile%gdomain%igstart(n) + j - js),rkx)
       end do
       js = js + gfile%gdomain%ni(n)
@@ -875,7 +875,7 @@ module mod_rdldtr
       allocate(gfile%mask(nlon,nlat))
       iti = 1
       gfile%mask = -10000
-      do itile = 1 , gfile%gdomain%ntiles
+      do itile = 1, gfile%gdomain%ntiles
         istart(1) = gfile%gdomain%igstart(itile)
         icount(1) = gfile%gdomain%ni(itile)
         istart(2) = gfile%gdomain%jgstart
@@ -894,13 +894,13 @@ module mod_rdldtr
   subroutine gfread_2di(gfile,vname,var,idef)
     use netcdf
     implicit none
-    type(globalfile) , intent(in) :: gfile
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(in) :: idef
-    integer(ik4) , dimension(:,:) , intent(out) :: var
-    integer(ik4) , dimension(:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , j , i
-    integer(ik4) , dimension(2) :: istart , icount
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    integer(ik4), intent(in) :: idef
+    integer(ik4), dimension(:,:), intent(out) :: var
+    integer(ik4), dimension(:,:), allocatable :: vread
+    integer(ik4) :: nlat, nlon, itile, ivar, iti, itf, j, i
+    integer(ik4), dimension(2) :: istart, icount
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
@@ -911,7 +911,7 @@ module mod_rdldtr
 
     iti = 1
     vread = -1000000000
-    do itile = 1 , gfile%gdomain%ntiles
+    do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
       istart(2) = gfile%gdomain%jgstart
@@ -922,8 +922,8 @@ module mod_rdldtr
       iti = itf + 1
     end do
     if ( gfile%lmask ) then
-      do i = 1 , nlat
-        do j = 1 , nlon
+      do i = 1, nlat
+        do j = 1, nlon
           if ( gfile%mask(j,i) == 0 ) then
             vread(j,i) = idef
           else
@@ -939,14 +939,14 @@ module mod_rdldtr
   subroutine gfread_2d_landuse(gfile,vname,var,iw,h2opct,rdef)
     use netcdf
     implicit none
-    type(globalfile) , intent(in) :: gfile
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(in) :: iw
-    real(rkx) , intent(in) :: h2opct , rdef
-    real(rkx) , dimension(:,:) , intent(out) :: var
-    integer(ik4) , dimension(:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf
-    integer(ik4) , dimension(2) :: istart , icount
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    integer(ik4), intent(in) :: iw
+    real(rkx), intent(in) :: h2opct, rdef
+    real(rkx), dimension(:,:), intent(out) :: var
+    integer(ik4), dimension(:,:), allocatable :: vread
+    integer(ik4) :: nlat, nlon, itile, ivar, iti, itf
+    integer(ik4), dimension(2) :: istart, icount
     real(rkx) :: unused
 
     nlat = gfile%gdomain%nj
@@ -959,7 +959,7 @@ module mod_rdldtr
 
     iti = 1
     vread = -1000000000
-    do itile = 1 , gfile%gdomain%ntiles
+    do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
       istart(2) = gfile%gdomain%jgstart
@@ -976,13 +976,13 @@ module mod_rdldtr
   subroutine gfread_2d(gfile,vname,var,rdef)
     use netcdf
     implicit none
-    type(globalfile) , intent(in) :: gfile
-    character(len=*) , intent(in) :: vname
-    real(rkx) , intent(in) :: rdef
-    real(rkx) , dimension(:,:) , intent(out) :: var
-    real(rkx) , dimension(:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , i , j
-    integer(ik4) , dimension(2) :: istart , icount
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    real(rkx), intent(in) :: rdef
+    real(rkx), dimension(:,:), intent(out) :: var
+    real(rkx), dimension(:,:), allocatable :: vread
+    integer(ik4) :: nlat, nlon, itile, ivar, iti, itf, i, j
+    integer(ik4), dimension(2) :: istart, icount
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
@@ -993,7 +993,7 @@ module mod_rdldtr
 
     iti = 1
     vread = -1000000000
-    do itile = 1 , gfile%gdomain%ntiles
+    do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
       istart(2) = gfile%gdomain%jgstart
@@ -1005,8 +1005,8 @@ module mod_rdldtr
     end do
 
     if ( gfile%lmask ) then
-      do i = 1 , nlat
-        do j = 1 , nlon
+      do i = 1, nlat
+        do j = 1, nlon
           if ( gfile%mask(j,i) == 0 ) then
             vread(j,i) = h_missing_value
           else
@@ -1015,8 +1015,8 @@ module mod_rdldtr
         end do
       end do
     else
-      do i = 1 , nlat
-        do j = 1 , nlon
+      do i = 1, nlat
+        do j = 1, nlon
           if ( vread(j,i) < 0.0_rkx ) vread(j,i) = rdef
         end do
       end do
@@ -1029,14 +1029,14 @@ module mod_rdldtr
   subroutine gfread_2d3d(gfile,vname,var,isel,rdef)
     use netcdf
     implicit none
-    type(globalfile) , intent(in) :: gfile
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(in) :: isel
-    real(rkx) , intent(in) :: rdef
-    real(rkx) , dimension(:,:) , intent(out) :: var
-    real(rkx) , dimension(:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd , i , j
-    integer(ik4) , dimension(3) :: idims , istart , icount
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    integer(ik4), intent(in) :: isel
+    real(rkx), intent(in) :: rdef
+    real(rkx), dimension(:,:), intent(out) :: var
+    real(rkx), dimension(:,:), allocatable :: vread
+    integer(ik4) :: nlat, nlon, itile, ivar, iti, itf, nd, i, j
+    integer(ik4), dimension(3) :: idims, istart, icount
 
     if ( isel < 0 ) then
       call die('rdldtr','Variable '//trim(vname)// &
@@ -1062,7 +1062,7 @@ module mod_rdldtr
 
     iti = 1
     vread = -1000000000
-    do itile = 1 , gfile%gdomain%ntiles
+    do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
       istart(2) = gfile%gdomain%jgstart
@@ -1076,8 +1076,8 @@ module mod_rdldtr
     end do
 
     if ( gfile%lmask ) then
-      do i = 1 , nlat
-        do j = 1 , nlon
+      do i = 1, nlat
+        do j = 1, nlon
           if ( gfile%mask(j,i) == 0 ) then
             vread(j,i) = h_missing_value
           else
@@ -1086,8 +1086,8 @@ module mod_rdldtr
         end do
       end do
     else
-      do i = 1 , nlat
-        do j = 1 , nlon
+      do i = 1, nlat
+        do j = 1, nlon
           if ( vread(j,i) < 0.0_rkx ) vread(j,i) = rdef
         end do
       end do
@@ -1100,13 +1100,13 @@ module mod_rdldtr
   subroutine gfread_3d(gfile,vname,var,rdef)
     use netcdf
     implicit none
-    type(globalfile) , intent(in) :: gfile
-    character(len=*) , intent(in) :: vname
-    real(rkx) , intent(in) :: rdef
-    real(rkx) , dimension(:,:,:) , intent(out) :: var
-    real(rkx) , dimension(:,:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd , i , j , n
-    integer(ik4) , dimension(3) :: idims , istart , icount
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    real(rkx), intent(in) :: rdef
+    real(rkx), dimension(:,:,:), intent(out) :: var
+    real(rkx), dimension(:,:,:), allocatable :: vread
+    integer(ik4) :: nlat, nlon, itile, ivar, iti, itf, nd, i, j, n
+    integer(ik4), dimension(3) :: idims, istart, icount
 
     istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
@@ -1122,7 +1122,7 @@ module mod_rdldtr
 
     iti = 1
     vread = -1000000000
-    do itile = 1 , gfile%gdomain%ntiles
+    do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
       istart(2) = gfile%gdomain%jgstart
@@ -1136,9 +1136,9 @@ module mod_rdldtr
     end do
 
     if ( gfile%lmask ) then
-      do n = 1 , nd
-        do i = 1 , nlat
-          do j = 1 , nlon
+      do n = 1, nd
+        do i = 1, nlat
+          do j = 1, nlon
             if ( gfile%mask(j,i) == 0 ) then
               vread(j,i,n) = h_missing_value
             else
@@ -1148,9 +1148,9 @@ module mod_rdldtr
         end do
       end do
     else
-      do n = 1 , nd
-        do i = 1 , nlat
-          do j = 1 , nlon
+      do n = 1, nd
+        do i = 1, nlat
+          do j = 1, nlon
             if ( vread(j,i,n) < 0.0_rkx ) vread(j,i,n) = rdef
           end do
         end do
@@ -1164,19 +1164,19 @@ module mod_rdldtr
   subroutine gfread_3d_lookup(gfile,vname,lkdim,lkvar,var,lrev,rdef)
     use netcdf
     implicit none
-    type(globalfile) , intent(in) :: gfile
-    character(len=*) , intent(in) :: vname
-    character(len=*) , intent(in) :: lkdim
-    character(len=*) , intent(in) :: lkvar
-    logical , intent(in) :: lrev
-    real(rkx) , intent(in) :: rdef
-    real(rkx) , dimension(:,:,:) , intent(out) :: var
-    real(rkx) , dimension(:,:,:) , allocatable :: vread
-    real(rk4) , dimension(:,:) , allocatable :: temp
-    integer(ik4) , dimension(:,:) , allocatable :: mpu
-    integer(ik4) :: nlat , nlon , nlev , nmpu , i , j , n
-    integer(ik4) :: itile , ivar , ilook , impud , iti , itf
-    integer(ik4) , dimension(2) :: istart , icount
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    character(len=*), intent(in) :: lkdim
+    character(len=*), intent(in) :: lkvar
+    logical, intent(in) :: lrev
+    real(rkx), intent(in) :: rdef
+    real(rkx), dimension(:,:,:), intent(out) :: var
+    real(rkx), dimension(:,:,:), allocatable :: vread
+    real(rk4), dimension(:,:), allocatable :: temp
+    integer(ik4), dimension(:,:), allocatable :: mpu
+    integer(ik4) :: nlat, nlon, nlev, nmpu, i, j, n
+    integer(ik4) :: itile, ivar, ilook, impud, iti, itf
+    integer(ik4), dimension(2) :: istart, icount
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
@@ -1208,7 +1208,7 @@ module mod_rdldtr
 
     iti = 1
     vread = -1000000000
-    do itile = 1 , gfile%gdomain%ntiles
+    do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
       istart(2) = gfile%gdomain%jgstart
@@ -1220,9 +1220,9 @@ module mod_rdldtr
     end do
 
     if ( lrev ) then
-      do n = 1 , nlev
-        do i = 1 , nlat
-          do j = 1 , nlon
+      do n = 1, nlev
+        do i = 1, nlat
+          do j = 1, nlon
             if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
               vread(j,i,n) = temp(n,mpu(j,i))
             else
@@ -1232,9 +1232,9 @@ module mod_rdldtr
         end do
       end do
     else
-      do n = 1 , nlev
-        do i = 1 , nlat
-          do j = 1 , nlon
+      do n = 1, nlev
+        do i = 1, nlat
+          do j = 1, nlon
             if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
               vread(j,i,n) = temp(mpu(j,i),n)
             else
@@ -1246,9 +1246,9 @@ module mod_rdldtr
     end if
 
     if ( gfile%lmask ) then
-      do n = 1 , nlev
-        do i = 1 , nlat
-          do j = 1 , nlon
+      do n = 1, nlev
+        do i = 1, nlat
+          do j = 1, nlon
             if ( gfile%mask(j,i) == 0 ) then
               vread(j,i,n) = h_missing_value
             else
@@ -1258,9 +1258,9 @@ module mod_rdldtr
         end do
       end do
     else
-      do n = 1 , nlev
-        do i = 1 , nlat
-          do j = 1 , nlon
+      do n = 1, nlev
+        do i = 1, nlat
+          do j = 1, nlon
             if ( vread(j,i,n) < 0.0_rkx ) vread(j,i,n) = rdef
           end do
         end do
@@ -1276,14 +1276,14 @@ module mod_rdldtr
   subroutine gfread_4d(gfile,vname,var,rdef)
     use netcdf
     implicit none
-    type(globalfile) , intent(in) :: gfile
-    character(len=*) , intent(in) :: vname
-    real(rkx) , intent(in) :: rdef
-    real(rkx) , dimension(:,:,:,:) , intent(out) :: var
-    real(rkx) , dimension(:,:,:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf
-    integer(ik4) :: nd , ne , i , j , m , n
-    integer(ik4) , dimension(4) :: idims , istart , icount
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    real(rkx), intent(in) :: rdef
+    real(rkx), dimension(:,:,:,:), intent(out) :: var
+    real(rkx), dimension(:,:,:,:), allocatable :: vread
+    integer(ik4) :: nlat, nlon, itile, ivar, iti, itf
+    integer(ik4) :: nd, ne, i, j, m, n
+    integer(ik4), dimension(4) :: idims, istart, icount
 
     istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
@@ -1302,7 +1302,7 @@ module mod_rdldtr
 
     iti = 1
     vread = -1000000000
-    do itile = 1 , gfile%gdomain%ntiles
+    do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
       istart(2) = gfile%gdomain%jgstart
@@ -1318,10 +1318,10 @@ module mod_rdldtr
     end do
 
     if ( gfile%lmask ) then
-      do m = 1 , ne
-        do n = 1 , nd
-          do i = 1 , nlat
-            do j = 1 , nlon
+      do m = 1, ne
+        do n = 1, nd
+          do i = 1, nlat
+            do j = 1, nlon
               if ( gfile%mask(j,i) == 0 ) then
                 vread(j,i,n,m) = h_missing_value
               else
@@ -1332,10 +1332,10 @@ module mod_rdldtr
         end do
       end do
     else
-      do m = 1 , ne
-        do n = 1 , nd
-          do i = 1 , nlat
-            do j = 1 , nlon
+      do m = 1, ne
+        do n = 1, nd
+          do i = 1, nlat
+            do j = 1, nlon
               if ( vread(j,i,n,m) < 0.0_rkx ) vread(j,i,n,m) = rdef
             end do
           end do
@@ -1350,20 +1350,20 @@ module mod_rdldtr
   subroutine gfread_4d_lookup(gfile,vname,lkdim,lkvar,var,lrev,rdef)
     use netcdf
     implicit none
-    type(globalfile) , intent(in) :: gfile
-    character(len=*) , intent(in) :: vname
-    character(len=*) , intent(in) :: lkdim
-    character(len=*) , intent(in) :: lkvar
-    logical , intent(in) :: lrev
-    real(rkx) , intent(in) :: rdef
-    real(rkx) , dimension(:,:,:,:) , intent(out) :: var
-    real(rkx) , dimension(:,:,:,:) , allocatable :: vread
-    real(rk4) , dimension(:,:,:) , allocatable :: temp
-    integer(ik4) , dimension(:,:) , allocatable :: mpu
-    integer(ik4) :: nlat , nlon , nlev1 , nlev2 , nmpu
-    integer(ik4) :: i , j , n1 , n2
-    integer(ik4) :: itile , ivar , ilook , impud , iti , itf
-    integer(ik4) , dimension(2) :: istart , icount
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    character(len=*), intent(in) :: lkdim
+    character(len=*), intent(in) :: lkvar
+    logical, intent(in) :: lrev
+    real(rkx), intent(in) :: rdef
+    real(rkx), dimension(:,:,:,:), intent(out) :: var
+    real(rkx), dimension(:,:,:,:), allocatable :: vread
+    real(rk4), dimension(:,:,:), allocatable :: temp
+    integer(ik4), dimension(:,:), allocatable :: mpu
+    integer(ik4) :: nlat, nlon, nlev1, nlev2, nmpu
+    integer(ik4) :: i, j, n1, n2
+    integer(ik4) :: itile, ivar, ilook, impud, iti, itf
+    integer(ik4), dimension(2) :: istart, icount
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
@@ -1396,7 +1396,7 @@ module mod_rdldtr
 
     iti = 1
     vread = -1000000000
-    do itile = 1 , gfile%gdomain%ntiles
+    do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
       istart(2) = gfile%gdomain%jgstart
@@ -1408,10 +1408,10 @@ module mod_rdldtr
     end do
 
     if ( lrev ) then
-      do n2 = 1 , nlev2
-        do n1 = 1 , nlev1
-          do i = 1 , nlat
-            do j = 1 , nlon
+      do n2 = 1, nlev2
+        do n1 = 1, nlev1
+          do i = 1, nlat
+            do j = 1, nlon
               if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
                 vread(j,i,n1,n2) = temp(n2,mpu(j,i),n1)
               else
@@ -1422,10 +1422,10 @@ module mod_rdldtr
         end do
       end do
     else
-      do n2 = 1 , nlev2
-        do n1 = 1 , nlev1
-          do i = 1 , nlat
-            do j = 1 , nlon
+      do n2 = 1, nlev2
+        do n1 = 1, nlev1
+          do i = 1, nlat
+            do j = 1, nlon
               if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
                 vread(j,i,n1,n2) = temp(n1,mpu(j,i),n2)
               else
@@ -1438,10 +1438,10 @@ module mod_rdldtr
     end if
 
     if ( gfile%lmask ) then
-      do n2 = 1 , nlev2
-        do n1 = 1 , nlev1
-          do i = 1 , nlat
-            do j = 1 , nlon
+      do n2 = 1, nlev2
+        do n1 = 1, nlev1
+          do i = 1, nlat
+            do j = 1, nlon
               if ( gfile%mask(j,i) == 0 ) then
                 vread(j,i,n1,n2) = h_missing_value
               else
@@ -1452,10 +1452,10 @@ module mod_rdldtr
         end do
       end do
     else
-      do n2 = 1 , nlev2
-        do n1 = 1 , nlev1
-          do i = 1 , nlat
-            do j = 1 , nlon
+      do n2 = 1, nlev2
+        do n1 = 1, nlev1
+          do i = 1, nlat
+            do j = 1, nlon
               if ( vread(j,i,n1,n2) < 0.0_rkx ) vread(j,i,n1,n2) = rdef
             end do
           end do
@@ -1472,14 +1472,14 @@ module mod_rdldtr
   subroutine gfread_5d(gfile,vname,var,rdef)
     use netcdf
     implicit none
-    type(globalfile) , intent(in) :: gfile
-    character(len=*) , intent(in) :: vname
-    real(rkx) , intent(in) :: rdef
-    real(rkx) , dimension(:,:,:,:,:) , intent(out) :: var
-    real(rkx) , dimension(:,:,:,:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd , ne , nf
-    integer(ik4) :: i , j , l , m , n
-    integer(ik4) , dimension(5) :: idims , istart , icount
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    real(rkx), intent(in) :: rdef
+    real(rkx), dimension(:,:,:,:,:), intent(out) :: var
+    real(rkx), dimension(:,:,:,:,:), allocatable :: vread
+    integer(ik4) :: nlat, nlon, itile, ivar, iti, itf, nd, ne, nf
+    integer(ik4) :: i, j, l, m, n
+    integer(ik4), dimension(5) :: idims, istart, icount
 
     istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
@@ -1501,7 +1501,7 @@ module mod_rdldtr
 
     iti = 1
     vread = -1000000000
-    do itile = 1 , gfile%gdomain%ntiles
+    do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
       istart(2) = gfile%gdomain%jgstart
@@ -1520,11 +1520,11 @@ module mod_rdldtr
     end do
 
     if ( gfile%lmask ) then
-      do l = 1 , nd
-        do m = 1 , ne
-          do n = 1 , nf
-            do i = 1 , nlat
-              do j = 1 , nlon
+      do l = 1, nd
+        do m = 1, ne
+          do n = 1, nf
+            do i = 1, nlat
+              do j = 1, nlon
                 if ( gfile%mask(j,i) == 0 ) then
                   vread(j,i,n,m,l) = h_missing_value
                 else
@@ -1536,11 +1536,11 @@ module mod_rdldtr
         end do
       end do
     else
-      do l = 1 , nd
-        do m = 1 , ne
-          do n = 1 , nf
-            do i = 1 , nlat
-              do j = 1 , nlon
+      do l = 1, nd
+        do m = 1, ne
+          do n = 1, nf
+            do i = 1, nlat
+              do j = 1, nlon
                 if ( vread(j,i,n,m,l) < 0.0_rkx ) vread(j,i,n,m,l) = rdef
               end do
             end do
@@ -1556,21 +1556,21 @@ module mod_rdldtr
   subroutine gfread_5d_lookup(gfile,vname,lkdim,lkvar,var,lrev,rdef)
     use netcdf
     implicit none
-    type(globalfile) , intent(in) :: gfile
-    character(len=*) , intent(in) :: vname
-    character(len=*) , intent(in) :: lkdim
-    character(len=*) , intent(in) :: lkvar
-    logical , intent(in) :: lrev
-    real(rkx) , intent(in) :: rdef
-    real(rkx) , dimension(:,:,:,:,:) , intent(out) :: var
-    real(rkx) , dimension(:,:,:,:,:) , allocatable :: vread
-    real(rk4) , dimension(:,:,:,:) , allocatable :: temp
-    integer(ik4) , dimension(:,:) , allocatable :: mpu
-    integer(ik4) :: nlat , nlon , nlev1 , nlev2 , nlev3 , nmpu
-    integer(ik4) :: i , j , n1 , n2 , n3
-    integer(ik4) :: itile , ivar , ilook , impud , iti , itf
-    integer(ik4) , dimension(2) :: istart , icount
-    integer(ik4) , dimension(4) :: vdims , dimlen
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    character(len=*), intent(in) :: lkdim
+    character(len=*), intent(in) :: lkvar
+    logical, intent(in) :: lrev
+    real(rkx), intent(in) :: rdef
+    real(rkx), dimension(:,:,:,:,:), intent(out) :: var
+    real(rkx), dimension(:,:,:,:,:), allocatable :: vread
+    real(rk4), dimension(:,:,:,:), allocatable :: temp
+    integer(ik4), dimension(:,:), allocatable :: mpu
+    integer(ik4) :: nlat, nlon, nlev1, nlev2, nlev3, nmpu
+    integer(ik4) :: i, j, n1, n2, n3
+    integer(ik4) :: itile, ivar, ilook, impud, iti, itf
+    integer(ik4), dimension(2) :: istart, icount
+    integer(ik4), dimension(4) :: vdims, dimlen
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
@@ -1585,7 +1585,7 @@ module mod_rdldtr
     istatus = nf90_inquire_variable(gfile%ncid,ivar,dimids=vdims)
     call checkncerr(istatus,__FILE__,__LINE__, &
         'Cannot read variable dimension '//trim(vname)//' in file')
-    do i = 1 , 4
+    do i = 1, 4
       istatus = nf90_inquire_dimension(gfile%ncid,vdims(i),len=dimlen(i))
     end do
 
@@ -1611,7 +1611,7 @@ module mod_rdldtr
 
     iti = 1
     vread = -1000000000
-    do itile = 1 , gfile%gdomain%ntiles
+    do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
       istart(2) = gfile%gdomain%jgstart
@@ -1623,11 +1623,11 @@ module mod_rdldtr
     end do
 
     if ( lrev ) then
-      do n3 = 1 , nlev3
-        do n2 = 1 , nlev2
-          do n1 = 1 , nlev1
-            do i = 1 , nlat
-              do j = 1 , nlon
+      do n3 = 1, nlev3
+        do n2 = 1, nlev2
+          do n1 = 1, nlev1
+            do i = 1, nlat
+              do j = 1, nlon
                 if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
                   vread(j,i,n1,n2,n3) = temp(n3,mpu(j,i),n2,n1)
                 else
@@ -1639,11 +1639,11 @@ module mod_rdldtr
         end do
       end do
     else
-      do n3 = 1 , nlev3
-        do n2 = 1 , nlev2
-          do n1 = 1 , nlev1
-            do i = 1 , nlat
-              do j = 1 , nlon
+      do n3 = 1, nlev3
+        do n2 = 1, nlev2
+          do n1 = 1, nlev1
+            do i = 1, nlat
+              do j = 1, nlon
                 if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
                   vread(j,i,n1,n2,n3) = temp(n1,mpu(j,i),n2,n3)
                 else
@@ -1657,11 +1657,11 @@ module mod_rdldtr
     end if
 
     if ( gfile%lmask ) then
-      do n3 = 1 , nlev3
-        do n2 = 1 , nlev2
-          do n1 = 1 , nlev1
-            do i = 1 , nlat
-              do j = 1 , nlon
+      do n3 = 1, nlev3
+        do n2 = 1, nlev2
+          do n1 = 1, nlev1
+            do i = 1, nlat
+              do j = 1, nlon
                 if ( gfile%mask(j,i) < 0 ) then
                   vread(j,i,n1,n2,n3) = h_missing_value
                 else
@@ -1675,11 +1675,11 @@ module mod_rdldtr
         end do
       end do
     else
-      do n3 = 1 , nlev3
-        do n2 = 1 , nlev2
-          do n1 = 1 , nlev1
-            do i = 1 , nlat
-              do j = 1 , nlon
+      do n3 = 1, nlev3
+        do n2 = 1, nlev2
+          do n1 = 1, nlev1
+            do i = 1, nlat
+              do j = 1, nlon
                 if ( vread(j,i,n1,n2,n3) < 0.0_rkx ) then
                   vread(j,i,n1,n2,n3) = rdef
                 end if
@@ -1699,7 +1699,7 @@ module mod_rdldtr
   subroutine gfclose(gfile)
     use netcdf
     implicit none
-    type(globalfile) , intent(inout) :: gfile
+    type(globalfile), intent(inout) :: gfile
     integer(ik4) :: istatus
     call h_interpolator_destroy(gfile%hint)
     if ( gfile%ncid > 0 ) then
@@ -1713,12 +1713,12 @@ module mod_rdldtr
 
   subroutine bestaround2d(grid,flagval)
     implicit none
-    real(rkx) , dimension(:,:) , intent(inout) :: grid
-    real(rkx) , intent(in) :: flagval
-    integer(ik4) :: i , j , ii , jj , js , is , il
-    integer(ik4) :: iis , jjs , iie , jje
-    integer , parameter :: maxil = 10
-    real(rkx) , dimension(:,:) , allocatable :: destgrid
+    real(rkx), dimension(:,:), intent(inout) :: grid
+    real(rkx), intent(in) :: flagval
+    integer(ik4) :: i, j, ii, jj, js, is, il
+    integer(ik4) :: iis, jjs, iie, jje
+    integer, parameter :: maxil = 10
+    real(rkx), dimension(:,:), allocatable :: destgrid
 
     jjs = lbound(grid,1)
     iis = lbound(grid,2)
@@ -1727,14 +1727,14 @@ module mod_rdldtr
 
     allocate(destgrid(jjs:jje,iis:iie))
     destgrid = grid
-    do i = iis , iie
-      do j = jjs , jje
+    do i = iis, iie
+      do j = jjs, jje
         il = 1
         if ( grid(j,i) >= flagval ) then
           findloop: do
-            do ii = i - il , i + il
+            do ii = i - il, i + il
               is = min(max(ii,iis),iie)
-              do jj = j - il , j + il
+              do jj = j - il, j + il
                 js = min(max(jj,jjs),jje)
                 if ( grid(js,is) > h_missing_value ) then
                   destgrid(j,i) = grid(js,is)
@@ -1757,12 +1757,12 @@ module mod_rdldtr
 
   subroutine bestaround3d(grid,flagval)
     implicit none
-    real(rkx) , dimension(:,:,:) , intent(inout) :: grid
-    real(rkx) , intent(in) :: flagval
-    integer(ik4) :: i , j , k , ii , jj , js , is , il
-    integer(ik4) :: iis , jjs , iie , jje , kks , kke
-    integer , parameter :: maxil = 10
-    integer(ik4) , dimension(:,:) , allocatable :: igrid , jgrid
+    real(rkx), dimension(:,:,:), intent(inout) :: grid
+    real(rkx), intent(in) :: flagval
+    integer(ik4) :: i, j, k, ii, jj, js, is, il
+    integer(ik4) :: iis, jjs, iie, jje, kks, kke
+    integer, parameter :: maxil = 10
+    integer(ik4), dimension(:,:), allocatable :: igrid, jgrid
 
     jjs = lbound(grid,1)
     iis = lbound(grid,2)
@@ -1774,14 +1774,14 @@ module mod_rdldtr
     allocate(igrid(jjs:jje,iis:iie),jgrid(jjs:jje,iis:iie))
     igrid = -1
     jgrid = -1
-    do i = iis , iie
-      do j = jjs , jje
+    do i = iis, iie
+      do j = jjs, jje
         il = 1
         if ( grid(j,i,kks) >= flagval ) then
           findloop: do
-            do ii = i - il , i + il
+            do ii = i - il, i + il
               is = min(max(ii,iis),iie)
-              do jj = j - il , j + il
+              do jj = j - il, j + il
                 js = min(max(jj,jjs),jje)
                 if ( grid(js,is,kks) > h_missing_value ) then
                   jgrid(j,i) = js
@@ -1800,9 +1800,9 @@ module mod_rdldtr
         end if
       end do
     end do
-    do k = kks , kke
-      do i = iis , iie
-        do j = jjs , jje
+    do k = kks, kke
+      do i = iis, iie
+        do j = jjs, jje
           if ( jgrid(j,i) > 0 .and. igrid(j,i) > 0 ) then
             grid(j,i,k) = grid(jgrid(j,i),igrid(j,i),k)
           else
@@ -1818,12 +1818,12 @@ module mod_rdldtr
 
   subroutine bestaround4d(grid,flagval)
     implicit none
-    real(rkx) , dimension(:,:,:,:) , intent(inout) :: grid
-    real(rkx) , intent(in) :: flagval
-    integer(ik4) :: i , j , k , n , ii , jj , js , is , il
-    integer(ik4) :: iis , jjs , iie , jje , kks , kke , nns , nne
-    integer , parameter :: maxil = 10
-    integer(ik4) , dimension(:,:) , allocatable :: igrid , jgrid
+    real(rkx), dimension(:,:,:,:), intent(inout) :: grid
+    real(rkx), intent(in) :: flagval
+    integer(ik4) :: i, j, k, n, ii, jj, js, is, il
+    integer(ik4) :: iis, jjs, iie, jje, kks, kke, nns, nne
+    integer, parameter :: maxil = 10
+    integer(ik4), dimension(:,:), allocatable :: igrid, jgrid
 
     jjs = lbound(grid,1)
     iis = lbound(grid,2)
@@ -1837,14 +1837,14 @@ module mod_rdldtr
     allocate(igrid(jjs:jje,iis:iie),jgrid(jjs:jje,iis:iie))
     igrid = -1
     jgrid = -1
-    do i = iis , iie
-      do j = jjs , jje
+    do i = iis, iie
+      do j = jjs, jje
         il = 1
         if ( grid(j,i,kks,nns) >= flagval ) then
           findloop: do
-            do ii = i - il , i + il
+            do ii = i - il, i + il
               is = min(max(ii,iis),iie)
-              do jj = j - il , j + il
+              do jj = j - il, j + il
                 js = min(max(jj,jjs),jje)
                 if ( grid(js,is,kks,nns) > h_missing_value ) then
                   jgrid(j,i) = js
@@ -1863,10 +1863,10 @@ module mod_rdldtr
         end if
       end do
     end do
-    do n = nns , nne
-      do k = kks , kke
-        do i = iis , iie
-          do j = jjs , jje
+    do n = nns, nne
+      do k = kks, kke
+        do i = iis, iie
+          do j = jjs, jje
             if ( jgrid(j,i) > 0 .and. igrid(j,i) > 0 ) then
               grid(j,i,k,n) = grid(jgrid(j,i),igrid(j,i),k,n)
             else

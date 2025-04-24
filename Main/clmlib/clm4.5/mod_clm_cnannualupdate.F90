@@ -5,8 +5,8 @@ module mod_clm_cnannualupdate
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : dtsrf
-  use mod_clm_time_manager , only : is_end_curr_year
+  use mod_runparams, only : dtsrf
+  use mod_clm_time_manager, only : is_end_curr_year
 
   implicit none
 
@@ -23,8 +23,8 @@ module mod_clm_cnannualupdate
   subroutine CNAnnualUpdate(lbc, ubc, lbp, ubp, num_soilc, filter_soilc, &
                             num_soilp, filter_soilp)
     use mod_clm_type
-    use mod_clm_varcon  , only: secspday
-    use mod_clm_subgridave , only: p2c
+    use mod_clm_varcon , only: secspday
+    use mod_clm_subgridave, only: p2c
     implicit none
     integer(ik4), intent(in) :: lbc, ubc   ! column bounds
     integer(ik4), intent(in) :: lbp, ubp   ! pft bounds
@@ -37,35 +37,35 @@ module mod_clm_cnannualupdate
     ! filter for soil pfts
     integer(ik4), intent(in) :: filter_soilp(ubp-lbp+1)
 
-    integer(ik4) , pointer :: pcolumn(:) ! index into column level quantities
+    integer(ik4), pointer, contiguous :: pcolumn(:) ! index into column level quantities
 
     ! seconds since last annual accumulator turnover
-    real(rk8), pointer :: annsum_counter(:)
+    real(rk8), pointer, contiguous :: annsum_counter(:)
     ! temporary annual sum of potential GPP
-    real(rk8), pointer :: tempsum_potential_gpp(:)
+    real(rk8), pointer, contiguous :: tempsum_potential_gpp(:)
     ! annual sum of potential GPP
-    real(rk8), pointer :: annsum_potential_gpp(:)
+    real(rk8), pointer, contiguous :: annsum_potential_gpp(:)
     ! temporary annual max of retranslocated N pool (gN/m2)
-    real(rk8), pointer :: tempmax_retransn(:)
+    real(rk8), pointer, contiguous :: tempmax_retransn(:)
     ! annual max of retranslocated N pool (gN/m2)
-    real(rk8), pointer :: annmax_retransn(:)
+    real(rk8), pointer, contiguous :: annmax_retransn(:)
     ! temporary average 2m air temperature (K)
-    real(rk8), pointer :: tempavg_t2m(:)
+    real(rk8), pointer, contiguous :: tempavg_t2m(:)
     ! annual average 2m air temperature (K)
-    real(rk8), pointer :: annavg_t2m(:)
+    real(rk8), pointer, contiguous :: annavg_t2m(:)
     ! temporary sum NPP (gC/m2/yr)
-    real(rk8), pointer :: tempsum_npp(:)
+    real(rk8), pointer, contiguous :: tempsum_npp(:)
     ! annual sum NPP (gC/m2/yr)
-    real(rk8), pointer :: annsum_npp(:)
+    real(rk8), pointer, contiguous :: annsum_npp(:)
     ! column annual sum NPP (gC/m2/yr)
-    real(rk8), pointer :: cannsum_npp(:)
+    real(rk8), pointer, contiguous :: cannsum_npp(:)
     !annual average of 2m air temperature, averaged from pft-level (K)
-    real(rk8), pointer :: cannavg_t2m(:)
+    real(rk8), pointer, contiguous :: cannavg_t2m(:)
 #if (defined CNDV)
     ! temporary sum litfall (gC/m2/yr)
-    real(rk8), pointer :: tempsum_litfall(:)
+    real(rk8), pointer, contiguous :: tempsum_litfall(:)
     ! annual sum litfall (gC/m2/yr)
-    real(rk8), pointer :: annsum_litfall(:)
+    real(rk8), pointer, contiguous :: annsum_litfall(:)
 #endif
 
     integer(ik4) :: c,p     ! indices
@@ -93,7 +93,7 @@ module mod_clm_cnannualupdate
     eoy = is_end_curr_year( )
 
     ! column loop
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       annsum_counter(c) = annsum_counter(c) + dtsrf
     end do
@@ -102,7 +102,7 @@ module mod_clm_cnannualupdate
 
       if ( eoy ) then
         ! pft loop
-        do fp = 1 , num_soilp
+        do fp = 1, num_soilp
           p = filter_soilp(fp)
           ! update annual plant ndemand accumulator
           annsum_potential_gpp(p)  = tempsum_potential_gpp(p)
@@ -135,7 +135,7 @@ module mod_clm_cnannualupdate
     end if
 
     ! column loop
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       if ( eoy ) annsum_counter(c) = 0._rk8
     end do

@@ -32,26 +32,26 @@ module mod_vmodes
 
   private
 
-  public :: allocate_mod_vmodes , vmodes
+  public :: allocate_mod_vmodes, vmodes
 
   public :: a0
-  public :: sigmah , tbarh , hbar
-  public :: xps , pd
-  public :: zmatx , zmatxr
-  public :: tau , varpa1
-  public :: hydroc , hydros
+  public :: sigmah, tbarh, hbar
+  public :: xps, pd
+  public :: zmatx, zmatxr
+  public :: tau, varpa1
+  public :: hydroc, hydros
 
-  real(rkx) :: xps , pd
-  real(rkx) , pointer , dimension(:,:) :: a0 => null( )
-  real(rkx) , pointer , dimension(:) :: sigmah => null( )
-  real(rkx) , pointer , dimension(:) :: tbarh => null( )
-  real(rkx) , pointer , dimension(:) :: hbar => null( )
-  real(rkx) , pointer , dimension(:,:) :: zmatx => null( )
-  real(rkx) , pointer , dimension(:,:) :: zmatxr => null( )
-  real(rkx) , pointer , dimension(:,:) :: tau => null( )
-  real(rkx) , pointer , dimension(:,:) :: varpa1 => null( )
-  real(rkx) , pointer , dimension(:,:) :: hydroc => null( )
-  real(rkx) , pointer , dimension(:,:) :: hydros => null( )
+  real(rkx) :: xps, pd
+  real(rkx), pointer, contiguous, dimension(:,:) :: a0 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: sigmah => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: tbarh => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: hbar => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: zmatx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: zmatxr => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: tau => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: varpa1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: hydroc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: hydros => null( )
 
   contains
 
@@ -87,23 +87,23 @@ module mod_vmodes
   !
   subroutine vmodes
     implicit none
-    integer(ik4) :: ier , k , k1 , k2 , l , mm , numerr
-    logical :: lhydro , lprint , lsigma
-    real(rkx) :: ps2 , x
-    real(rkx) , dimension(1) :: pps
-    real(rkx) , dimension(kz,kz) :: a1 , a2 , a3 , a4 , d1 , d2 , &
-                   e1 , e2 , e3 , g1 , g2 , g3 , s1 , s2 , w1 , w2 , x1
-    real(rkx) , dimension(kzp1,kz) :: w3
-    real(rkx) , dimension(kzp1) :: tbarf , thetaf
-    real(rkx) , dimension(kz) :: tweigh
-    real(rkx) :: alpha1 , alpha2
-    real(rkx) , dimension(kz) :: cpfac , sdsigma , hweigh
-    real(rkx) , dimension(kzp1,kzp1) :: varpa2
-    real(rkx) , dimension(kz,kz) :: hydror
+    integer(ik4) :: ier, k, k1, k2, l, mm, numerr
+    logical :: lhydro, lprint, lsigma
+    real(rkx) :: ps2, x
+    real(rkx), dimension(1) :: pps
+    real(rkx), dimension(kz,kz) :: a1, a2, a3, a4, d1, d2, &
+                   e1, e2, e3, g1, g2, g3, s1, s2, w1, w2, x1
+    real(rkx), dimension(kzp1,kz) :: w3
+    real(rkx), dimension(kzp1) :: tbarf, thetaf
+    real(rkx), dimension(kz) :: tweigh
+    real(rkx) :: alpha1, alpha2
+    real(rkx), dimension(kz) :: cpfac, sdsigma, hweigh
+    real(rkx), dimension(kzp1,kzp1) :: varpa2
+    real(rkx), dimension(kz,kz) :: hydror
     data lprint/.false./  ! true if all matrices to be printed
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'vmodes'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -154,7 +154,7 @@ module mod_vmodes
     lsigma = .false.
     if ( abs(sigma(1)) > dlowval ) lsigma = .true.
     if ( abs(sigma(kzp1)-d_one) > dlowval ) lsigma = .true.
-    do k = 1 , kz
+    do k = 1, kz
       if ( sigma(k+1) < sigma(k) ) then
         lsigma = .true.
         write(stdout,'(a,i3,a,f9.6,a,f9.6)') ' for k = ',k, &
@@ -167,7 +167,7 @@ module mod_vmodes
     !
     ! compute sigmah (sigma at half levels) and delta sigma
     !
-    do k = 1 , kz
+    do k = 1, kz
       sigmah(k) = (sigma(k)+sigma(k+1))*d_half
       sdsigma(k) = sigma(k+1) - sigma(k)
     end do
@@ -181,14 +181,14 @@ module mod_vmodes
     ! determine thermodynamic matrix
     ! compute tbarf and thetaf
     !
-    do k = 2 , kz
+    do k = 2, kz
       k1 = k - 1
       tbarf(k) = tbarh(k1)*(sigmah(k)-sigma(k))/(sigmah(k)-sigmah(k1)) + &
                  tbarh(k)*(sigma(k)-sigmah(k1))/(sigmah(k)-sigmah(k1))
     end do
     tbarf(1) = d_zero
     tbarf(kzp1) = d_zero
-    do k = 1 , kzp1
+    do k = 1, kzp1
       if ( sigma(k) < dlowval ) then
         thetaf(k) = tbarf(k)
       else
@@ -199,15 +199,15 @@ module mod_vmodes
     ! Define matrices for determination of thermodynamic matrix
     !
     !
-    do l = 1 , kz
-      do k = 1 , kz
+    do l = 1, kz
+      do k = 1, kz
         if ( l > k ) e2(k,l) = d_zero
         if ( l <= k ) e2(k,l) = d_one
         e1(k,l) = d_one
       end do
     end do
 
-    do k = 1 , kz
+    do k = 1, kz
       d1(k,k) = sigma(k+1) - sigma(k)
       a3(k,k) = -tbarh(k)
       d2(k,k) = rovcp*tbarh(k)/(sigmah(k)+ptop/pd)
@@ -216,8 +216,8 @@ module mod_vmodes
       x1(k,k) = d_one
     end do
 
-    do k = 1 , kz
-      do l = 1 , kz
+    do k = 1, kz
+      do l = 1, kz
         e3(k,l) = d_zero
         g1(k,l) = d_zero
       end do
@@ -238,7 +238,7 @@ module mod_vmodes
     ! compute a1
     !
     w2 = 0.0_rkx
-    do k = 1 , kz
+    do k = 1, kz
       w2(k,k) = d_one/d1(k,k)
     end do
     w1 = matmul(g1,g2)
@@ -269,22 +269,22 @@ module mod_vmodes
     !
     ! compute delta log p
     !
-    do k = 2 , kz
+    do k = 2, kz
       w1(k,1) = log((sigmah(k)+ptop/pd)/(sigmah(k-1)+ptop/pd))
     end do
     !
     ! compute matrix which multiples t vector
     !
     hydros = d_zero
-    do k = 1 , kz - 1
-      do l = k , kz - 1
+    do k = 1, kz - 1
+      do l = k, kz - 1
         hydros(k,l) = hydros(k,l) + &
                     w1(l+1,1)*sdsigma(l)/(sdsigma(l+1)+sdsigma(l))
         hydros(k,l+1) = hydros(k,l+1) + &
                     w1(l+1,1)*sdsigma(l+1)/(sdsigma(l+1)+sdsigma(l))
       end do
     end do
-    do k = 1 , kz
+    do k = 1, kz
       hydros(k,kz) = hydros(k,kz) + log((d_one+ptop/pd)/(sigmah(kz)+ptop/pd))
     end do
     !
@@ -292,35 +292,35 @@ module mod_vmodes
     !
     hydroc = d_zero
     tweigh(1) = d_zero
-    do l = 2 , kz
+    do l = 2, kz
       tweigh(l) = (tbarh(l)*sdsigma(l) + &
                    tbarh(l-1)*sdsigma(l-1))/(sdsigma(l)+sdsigma(l-1))
     end do
-    do l = 2 , kz - 1
-      do k = 1 , l - 1
+    do l = 2, kz - 1
+      do k = 1, l - 1
         hydroc(k,l) = tweigh(l) - tweigh(l+1)
       end do
     end do
-    do l = 1 , kz - 1
+    do l = 1, kz - 1
       hydroc(l,l) = tbarh(l) - tweigh(l+1)
     end do
-    do k = 1 , kz - 1
+    do k = 1, kz - 1
       hydroc(k,kz) = tweigh(kz) - tbarh(kz)
     end do
-    do k = 1 , kz
+    do k = 1, kz
       hydroc(k,kzp1) = tbarh(kz)
     end do
     !
     ! test hydroc and hydros matrices (if correct, w1(k,1)=w1(k,2))
     !
     lhydro = .false.
-    do k = 1 , kz
+    do k = 1, kz
       w1(k,1) = d_zero
-      do l = 1 , kz
+      do l = 1, kz
         w1(k,1) = w1(k,1) + hydros(k,l)*tbarh(l)
       end do
       w1(k,2) = -tbarh(k)*log(sigmah(k)*pd+ptop)
-      do l = 1 , kzp1
+      do l = 1, kzp1
         w1(k,2) = w1(k,2) + hydroc(k,l)*log(sigmah(l)*pd+ptop)
       end do
       x = abs(w1(k,1)-w1(k,2))/(abs(w1(k,1))+abs(w1(k,2)))
@@ -337,15 +337,15 @@ module mod_vmodes
     !
     ! determine tau matrix
     !
-    do l = 1 , kz
-      do k = 1 , kzp1
+    do l = 1, kz
+      do k = 1, kzp1
         w3(k,l) = sdsigma(l)/(d_one+ptop/(pd*sigmah(k)))
       end do
     end do
-    do l = 1 , kz
-      do k = 1 , kz
+    do l = 1, kz
+      do k = 1, kz
         w2(k,l) = d_zero
-        do mm = 1 , kzp1
+        do mm = 1, kzp1
           w2(k,l) = w2(k,l) + hydroc(k,mm)*w3(mm,l)
         end do
       end do
@@ -378,9 +378,9 @@ module mod_vmodes
     !
     call invmtrx(tau,w1,kz,ier)
     call vcheki(ier,numerr,'taur    ')
-    do k = 1 , kz
+    do k = 1, kz
       cpfac(k) = d_zero
-      do l = 1 , kz
+      do l = 1, kz
         cpfac(k) = cpfac(k) + (sigma(l+1)-sigma(l))*w1(l,k)
       end do
     end do
@@ -390,28 +390,28 @@ module mod_vmodes
     !
     hweigh = d_zero
     hweigh(kz) = d_one  ! only lowest sigma level t considered
-    do k1 = 1 , kz
-      do k2 = 1 , kz    ! compute b(-1t) w/tbar**2 b(-1)
+    do k1 = 1, kz
+      do k2 = 1, kz    ! compute b(-1t) w/tbar**2 b(-1)
         w1(k2,k1) = d_zero
-        do k = 1 , kz
+        do k = 1, kz
           w1(k2,k1) = hydror(k,k2)*hydror(k,k1)*hweigh(k) / &
                     (tbarh(k)**2)+w1(k2,k1)
         end do
       end do
     end do
     ps2 = xps*xps
-    do k1 = 1 , kzp1
-      do k2 = 1 , kz
+    do k1 = 1, kzp1
+      do k2 = 1, kz
         varpa1(k2,k1) = d_zero
-        do k = 1 , kz
+        do k = 1, kz
           varpa1(k2,k1) = varpa1(k2,k1) + w1(k2,k)*hydroc(k,k1)*ps2
         end do
       end do
     end do
-    do k1 = 1 , kzp1
-      do k2 = 1 , kzp1
+    do k1 = 1, kzp1
+      do k2 = 1, kzp1
         varpa2(k2,k1) = d_zero
-        do k = 1 , kz
+        do k = 1, kz
           varpa2(k2,k1) = varpa2(k2,k1) + hydroc(k,k2)*varpa1(k,k1)
         end do
       end do
@@ -421,8 +421,8 @@ module mod_vmodes
     !
     ! subract a4 from a for use in computing am.
     !
-    do k1 = 1 , kz
-      do k2 = 1 , kz
+    do k1 = 1, kz
+      do k2 = 1, kz
         a0(k2,k1) = a0(k2,k1) - a4(k2,k1)
       end do
     end do
@@ -472,11 +472,11 @@ module mod_vmodes
     !
     subroutine vchekt
       implicit none
-      real(rkx) :: ds1 , ds2 , g1 , g2 , tb
+      real(rkx) :: ds1, ds2, g1, g2, tb
       integer(ik4) :: k
       logical :: lstab
       lstab = .true.
-      do k = 1 , kz - 1
+      do k = 1, kz - 1
         ds1 = sigma(k+1) - sigma(k)
         ds2 = sigma(k+2) - sigma(k+1)
         tb = (ds1*tbarh(k)+ds2*tbarh(k+1))/(ds1+ds2)
@@ -495,13 +495,13 @@ module mod_vmodes
     !
     subroutine vtlaps
       implicit none
-      real(rkx) , parameter :: tstrat = 218.15_rkx
-      real(rkx) , parameter :: zstrat = 10769.0_rkx
-      real(rkx) :: p0 , fac , p , z
+      real(rkx), parameter :: tstrat = 218.15_rkx
+      real(rkx), parameter :: zstrat = 10769.0_rkx
+      real(rkx) :: p0, fac, p, z
       integer(ik4) :: k
       p0 = stdpcb
       fac = rgas*lrate*regrav
-      do k = 1 , kz
+      do k = 1, kz
         p = sigmah(k)*pd + ptop
         tbarh(k) = stdt*((p/p0)**fac)
         z = (stdt-tbarh(k))/lrate
@@ -516,18 +516,18 @@ module mod_vmodes
     subroutine vorder
       implicit none
       real(rkx) :: hmax
-      integer(ik4) :: k , kmax , l
+      integer(ik4) :: k, kmax, l
       kmax = 1
-      do k = 1 , kz
+      do k = 1, kz
         w2(k,1) = hbar(k)
         w2(k,2) = d_zero
-        do l = 1 , kz
+        do l = 1, kz
           w1(k,l) = zmatx(k,l)
         end do
       end do
-      do l = 1 , kz
+      do l = 1, kz
         hmax = -epsilon(d_one)
-        do k = 1 , kz
+        do k = 1, kz
           if ( (abs(w2(k,2)) < dlowval) .and. (w2(k,1) > hmax) ) then
             hmax = w2(k,1)
             kmax = k
@@ -535,7 +535,7 @@ module mod_vmodes
         end do
         hbar(l) = hmax
         w2(kmax,2) = d_one
-        do k = 1 , kz
+        do k = 1, kz
           zmatx(k,l) = w1(k,kmax)
         end do
       end do
@@ -547,13 +547,13 @@ module mod_vmodes
     !
     subroutine vnorml
       implicit none
-      real(rkx) :: a , v , zmax
-      integer(ik4) :: k , kmax , l
+      real(rkx) :: a, v, zmax
+      integer(ik4) :: k, kmax, l
       kmax = 1
-      do l = 1 , kz
+      do l = 1, kz
         zmax = -d_one
         v = d_zero
-        do k = 1 , kz
+        do k = 1, kz
           a = abs(zmatx(k,l))
           if ( a > zmax ) then
             zmax = a
@@ -562,7 +562,7 @@ module mod_vmodes
           v = (sigma(k+1)-sigma(k))*a*a + v
         end do
         a = (zmatx(kmax,l)/zmax)/sqrt(v)
-        do k = 1 , kz
+        do k = 1, kz
           zmatx(k,l) = a*zmatx(k,l)
         end do
       end do
@@ -572,17 +572,17 @@ module mod_vmodes
     !
     subroutine vcheke
       implicit none
-      real(rkx) , parameter :: tol = epsilon(d_one)
+      real(rkx), parameter :: tol = epsilon(d_one)
       real(rkx) :: emax
-      integer(ik4) :: n , nimag , numneg
+      integer(ik4) :: n, nimag, numneg
       numneg = 0
       emax = d_zero
-      do n = 1 , kz
+      do n = 1, kz
         if ( hbar(n) <= d_zero ) numneg = numneg + 1
         if ( hbar(n) > emax ) emax = hbar(n)
       end do
       nimag = 0
-      do n = 1 , kz
+      do n = 1, kz
         if ( w2(n,1)/emax > tol ) nimag = nimag + 1
       end do
       if ( numneg+nimag == 0 ) then
@@ -600,8 +600,8 @@ module mod_vmodes
   subroutine vcheki(ier,numerr,aname)
     implicit none
     character(8) :: aname
-    integer(ik4) :: ier , numerr
-    intent (in) aname , ier
+    integer(ik4) :: ier, numerr
+    intent (in) aname, ier
     intent (inout) numerr
     if ( ier /= 0 ) then
       numerr = numerr + 1
@@ -614,13 +614,13 @@ module mod_vmodes
   !
   subroutine invmtrx(a,v,n,ier)
     implicit none
-    integer(ik4) , intent(in) :: n , ier
-    real(rkx) , intent(in) , dimension(n,n) :: a
-    real(rkx) , intent(out) , dimension(n,n) :: v
-    integer(ik4) , dimension(n) :: ip
-    real(rkx) , dimension(n) :: work
-    real(rkx) , dimension(2) :: d
-    integer(ik4) :: i , j
+    integer(ik4), intent(in) :: n, ier
+    real(rkx), intent(in), dimension(n,n) :: a
+    real(rkx), intent(out), dimension(n,n) :: v
+    integer(ik4), dimension(n) :: ip
+    real(rkx), dimension(n) :: work
+    real(rkx), dimension(2) :: d
+    integer(ik4) :: i, j
     !
     ! 08/23/91 Version 1.0
     ! 12/10/92 Updated to correct bugs
@@ -629,7 +629,7 @@ module mod_vmodes
     !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'invmtrx'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     do concurrent ( i = 1:n, j = 1:n )
@@ -637,7 +637,7 @@ module mod_vmodes
     end do
     call sgefa(v,n,n,ip,ier)
     if ( ier /= 0 ) then
-      write(stderr,*) 'sgefa error info = ' , ier
+      write(stderr,*) 'sgefa error info = ', ier
       call fatal(__FILE__,__LINE__,'sgefa error')
     end if
     call sgedi(v,n,n,ip,d,work,11)

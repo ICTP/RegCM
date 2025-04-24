@@ -28,19 +28,19 @@ module mod_mkch4topm
 
   public :: mkch4topm
 
-  integer , parameter :: nlch4 = 4
+  integer, parameter :: nlch4 = 4
 
-  character(len=16) , parameter , dimension(nlch4):: varname = &
-          [ 'K_PAR ' , 'XM_PAR' , 'V_PAR ', 'MAXF  ' ]
+  character(len=16), parameter, dimension(nlch4):: varname = &
+          [ 'K_PAR ', 'XM_PAR', 'V_PAR ', 'MAXF  ' ]
 
   contains
 
   subroutine mkch4topm(ch4topmfile,mask,lch4)
     implicit none
-    character(len=*) , intent(in) :: ch4topmfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:,:) , intent(out) :: lch4
-    integer(ik4) :: n , i , j
+    character(len=*), intent(in) :: ch4topmfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:,:), intent(out) :: lch4
+    integer(ik4) :: n, i, j
     type(globalfile) :: gfile
 
     character(len=256) :: inpfile
@@ -49,11 +49,11 @@ module mod_mkch4topm
                              pthsep//'surface'//pthsep//ch4topmfile
 
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
-    do n = 1 , nlch4
+    do n = 1, nlch4
       call gfread(gfile,varname(n),lch4(:,:,n),h_missing_value)
       call bestaround(lch4(:,:,n),h_missing_value)
-      do i = 1 , iysg
-        do j = 1 , jxsg
+      do i = 1, iysg
+        do j = 1, jxsg
           if ( mask(j,i) < 0.5_rkx ) then
             lch4(j,i,n) = h_missing_value
           else

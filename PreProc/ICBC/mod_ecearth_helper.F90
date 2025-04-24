@@ -22,26 +22,26 @@ module mod_ecearth_helper
 
   private
 
-  public :: echvars , echcmorvars
-  public :: find_ecearth_sst , find_ecearth_topo
-  public :: find_ecearth_dim , find_ecearth_file
+  public :: echvars, echcmorvars
+  public :: find_ecearth_sst, find_ecearth_topo
+  public :: find_ecearth_dim, find_ecearth_file
 
-  integer(ik4) , parameter :: nvars = 6
-  character(len=3) , target , dimension(nvars) :: echvars = &
-            ['t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ', 'XXX']
-  character(len=3) , target , dimension(nvars) :: echcmorvars = &
-            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ', 'aps']
+  integer(ik4), parameter :: nvars = 6
+  character(len=3), target, dimension(nvars) :: echvars = &
+            ['t  ', 'z  ', 'q  ', 'u  ', 'v  ', 'XXX']
+  character(len=3), target, dimension(nvars) :: echcmorvars = &
+            ['ta ', 'XXX', 'hus', 'ua ', 'va ', 'aps']
 
   contains
 
   subroutine find_ecearth_sst(fname,idate,cmor)
     implicit none
-    character(len=256) , intent(out) :: fname
-    type(rcm_time_and_date) , intent(in) :: idate
-    logical , intent(in) :: cmor
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
-    integer(ik4) :: y1 , y2 , m1 , m2
+    character(len=256), intent(out) :: fname
+    type(rcm_time_and_date), intent(in) :: idate
+    logical, intent(in) :: cmor
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
+    integer(ik4) :: y1, y2, m1, m2
     if ( cmor ) then
       call split_idate(idate,y,m,d,h)
       y1 = y
@@ -82,8 +82,8 @@ module mod_ecearth_helper
 
   subroutine find_ecearth_topo(fname,cmor)
     implicit none
-    character(len=256) , intent(out) :: fname
-    logical , intent(in) :: cmor
+    character(len=256), intent(out) :: fname
+    logical, intent(in) :: cmor
     if ( cmor ) then
       fname = trim(inpglob)// &
                 '/EC-EARTH/fixed/orog_fx_EC-EARTH_historical_r0i0p0.nc'
@@ -94,8 +94,8 @@ module mod_ecearth_helper
 
   subroutine find_ecearth_dim(dim_filename,cmor)
     implicit none
-    character(len=256) , intent(out) :: dim_filename
-    logical , intent(in) :: cmor
+    character(len=256), intent(out) :: dim_filename
+    logical, intent(in) :: cmor
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
     if ( cmor ) then
@@ -109,14 +109,14 @@ module mod_ecearth_helper
 
   subroutine find_ecearth_file(ecearth_filename,var,idate,cmor)
     implicit none
-    logical , intent(in) :: cmor
-    character(len=256) , intent(out) :: ecearth_filename
-    character(len=*) , intent(in) :: var
-    type(rcm_time_and_date) , intent(in) :: idate
+    logical, intent(in) :: cmor
+    character(len=256), intent(out) :: ecearth_filename
+    character(len=*), intent(in) :: var
+    type(rcm_time_and_date), intent(in) :: idate
     character(len=256) :: inname
-    character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
-    integer(ik4) :: y1 , y2 , m1 , m2
+    character(len=10) :: d1, d2
+    integer(ik4) :: y, m, d, h
+    integer(ik4) :: y1, y2, m1, m2
     call split_idate(idate,y,m,d,h)
     if ( cmor ) then
       y1 = y

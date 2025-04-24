@@ -64,34 +64,34 @@ module mod_cbmz_linslv
       implicit none
 !
       integer(ik4) :: n
-      real(rkx) , dimension(100,100) :: a
-      real(rkx) , dimension(100) :: b , x
+      real(rkx), dimension(100,100) :: a
+      real(rkx), dimension(100) :: b, x
       intent (inout) a
 !
-      real(rkx) :: div , smax
-      integer(ik4) :: i , j , jp , jp1 , k , kr , krm1 , krmax , krp1
-      integer(ik4) , dimension(100) :: ipa
-      real(rkx) , dimension(100) :: s
+      real(rkx) :: div, smax
+      integer(ik4) :: i, j, jp, jp1, k, kr, krm1, krmax, krp1
+      integer(ik4), dimension(100) :: ipa
+      real(rkx), dimension(100) :: s
 !
-      do kr = 1 , n
-        do k = 1 , n
+      do kr = 1, n
+        do k = 1, n
           s(k) = a(k,kr)
         end do
         if ( kr /= 1 ) then
           krm1 = kr - 1
-          do j = 1 , krm1
+          do j = 1, krm1
             jp = ipa(j)
             a(j,kr) = s(jp)
             s(jp) = s(j)
             jp1 = j + 1
-            do i = jp1 , n
+            do i = jp1, n
               s(i) = s(i) - a(i,j)*a(j,kr)
             end do
           end do
         end if
         krmax = kr
         smax = abs(s(kr))
-        do i = kr , n
+        do i = kr, n
           if ( abs(s(i)) > smax ) then
             krmax = i
             smax = abs(s(i))
@@ -103,7 +103,7 @@ module mod_cbmz_linslv
         s(krmax) = s(kr)
         if ( kr /= n ) then
           krp1 = kr + 1
-          do i = krp1 , n
+          do i = krp1, n
             a(i,kr) = s(i)*div
           end do
         end if
@@ -116,37 +116,37 @@ module mod_cbmz_linslv
       implicit none
 !
       integer(ik4) :: n
-      real(rkx) , dimension(100,100) :: a
-      real(rkx) , dimension(100) :: b , x
-      integer(ik4) , dimension(100) :: ipa
-      intent (in) a , b , ipa , n
+      real(rkx), dimension(100,100) :: a
+      real(rkx), dimension(100) :: b, x
+      integer(ik4), dimension(100) :: ipa
+      intent (in) a, b, ipa, n
       intent (inout) x
 !
-      integer(ik4) :: i , ii , iip1 , ip , ip1 , j
-      real(rkx) , dimension(100) :: s
+      integer(ik4) :: i, ii, iip1, ip, ip1, j
+      real(rkx), dimension(100) :: s
       real(rkx) :: summ
 !
-      do i = 1 , n
+      do i = 1, n
         s(i) = b(i)
       end do
-      do i = 1 , n
+      do i = 1, n
         ip = ipa(i)
         x(i) = s(ip)
         s(ip) = s(i)
         if ( i == n ) exit
         ip1 = i + 1
-        do j = ip1 , n
+        do j = ip1, n
           s(j) = s(j) - a(j,i)*x(i)
         end do
       end do
 
-      do i = 1 , n
+      do i = 1, n
         ii = n + 1 - i
         summ = x(ii)
 !       NOTE POSSIBLE ERROR IN THIS NEXT CHANGED LINE.
         if ( ii < n ) then
           iip1 = ii + 1
-          do j = iip1 , n
+          do j = iip1, n
             summ = summ - a(ii,j)*x(j)
           end do
         end if

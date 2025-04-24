@@ -14,41 +14,41 @@ module mod_clm_control
   use mod_dynparam
   use mod_mppparam
   use mod_runparams
-  use mod_clm_varctl , only : clmvarctl_init , set_clmvarctl , &
-          nsrStartup , nsrContinue
-  use mod_clm_varpar , only : maxpatch_pft , more_vertlayers
-  use mod_clm_varctl , only : hostname , model_version=>version , &
-          outnc_large_files , finidat , fsurdat , fatmlndfrc ,    &
-          fpftcon , nrevsn ,  create_crop_landunit ,    &
-          allocate_all_vegpfts , co2_type , wrtdia , co2_ppmv ,   &
-          pertlim , username , fsnowaging , fsnowoptics ,         &
-          subgridflag , use_c13 , use_c14 , irrigate ,            &
-          spinup_state , override_bgc_restart_mismatch_dump ,     &
-          source , ialblawr , tcrit , q10_maintenance , luse_cru
+  use mod_clm_varctl, only : clmvarctl_init, set_clmvarctl, &
+          nsrStartup, nsrContinue
+  use mod_clm_varpar, only : maxpatch_pft, more_vertlayers
+  use mod_clm_varctl, only : hostname, model_version=>version, &
+          outnc_large_files, finidat, fsurdat, fatmlndfrc,    &
+          fpftcon, nrevsn,  create_crop_landunit,    &
+          allocate_all_vegpfts, co2_type, wrtdia, co2_ppmv,   &
+          pertlim, username, fsnowaging, fsnowoptics,         &
+          subgridflag, use_c13, use_c14, irrigate,            &
+          spinup_state, override_bgc_restart_mismatch_dump,     &
+          source, ialblawr, tcrit, q10_maintenance, luse_cru
   use mod_clm_varpar, only : numrad
-  use mod_clm_varctl , only : ctitle , caseid , nsrest
-  use mod_clm_varcon , only : secspday
-  use mod_clm_canopyfluxes , only : perchroot , perchroot_alt
+  use mod_clm_varctl, only : ctitle, caseid, nsrest
+  use mod_clm_varcon, only : secspday
+  use mod_clm_canopyfluxes, only : perchroot, perchroot_alt
 #if (defined LCH4) && (defined CN)
-  use mod_clm_varctl , only : anoxia
+  use mod_clm_varctl, only : anoxia
 #ifndef CENTURY_DECOMP
-  use mod_clm_cndecompcascadebgc , only : anoxia_wtsat
+  use mod_clm_cndecompcascadebgc, only : anoxia_wtsat
 #else
-  use mod_clm_cndecompcascadecentury , only : anoxia_wtsat
+  use mod_clm_cndecompcascadecentury, only : anoxia_wtsat
 #endif
 #endif
   ! Lakes
-  ! lake_use_old_fcrit_minz0 , lakepuddling , lake_puddle_thick
+  ! lake_use_old_fcrit_minz0, lakepuddling, lake_puddle_thick
   ! and lake_no_ed are currently hardwired.
-  use mod_clm_slakecon , only : deepmixing_depthcrit , deepmixing_mixfact , &
+  use mod_clm_slakecon, only : deepmixing_depthcrit, deepmixing_mixfact, &
           lake_melt_icealb
 !
-  use mod_clm_surfacealbedo , only : albice
+  use mod_clm_surfacealbedo, only : albice
 #ifdef CN
-  use mod_clm_cnallocation , only : suplnitro , suplnNon
-  use mod_clm_cnndynamics , only : nfix_timeconst
+  use mod_clm_cnallocation, only : suplnitro, suplnNon
+  use mod_clm_cnndynamics, only : nfix_timeconst
 #endif
-  use mod_clm_histfile , only : max_tapes, max_namlen, &
+  use mod_clm_histfile, only : max_tapes, max_namlen, &
                  hist_empty_htapes, hist_dov2xy, &
                  hist_avgflag_pertape, hist_type1d_pertape, &
                  hist_nhtfrq, hist_ndens, &
@@ -57,38 +57,38 @@ module mod_clm_control
                  hist_fexcl1, hist_fexcl2, hist_fexcl3, &
                  hist_fexcl4, hist_fexcl5, hist_fexcl6
 #ifdef LCH4
-  use mod_clm_histfile , only : hist_wrtch4diag
+  use mod_clm_histfile, only : hist_wrtch4diag
 #endif
-  use mod_clm_urban , only : urban_hac, urban_traffic
+  use mod_clm_urban, only : urban_hac, urban_traffic
 
 #if (defined CN) && (defined VERTSOILC)
-  use mod_clm_cnsoillittverttransp , only: som_diffus , som_adv_flux , &
-       cryoturb_diffusion_k , max_altdepth_cryoturbation , max_depth_cryoturb
+  use mod_clm_cnsoillittverttransp, only: som_diffus, som_adv_flux, &
+       cryoturb_diffusion_k, max_altdepth_cryoturbation, max_depth_cryoturb
 
-  use mod_clm_cnverticalprofile , only: exponential_rooting_profile, &
-       rootprof_exp , surfprof_exp , pftspecific_rootingprofile
+  use mod_clm_cnverticalprofile, only: exponential_rooting_profile, &
+       rootprof_exp, surfprof_exp, pftspecific_rootingprofile
 
 #ifndef CENTURY_DECOMP
-  use mod_clm_cndecompcascadebgc , only: decomp_depth_efolding , froz_q10
+  use mod_clm_cndecompcascadebgc, only: decomp_depth_efolding, froz_q10
 #else
-  use mod_clm_cndecompcascadecentury , only: decomp_depth_efolding , froz_q10
+  use mod_clm_cndecompcascadecentury, only: decomp_depth_efolding, froz_q10
 #endif
 
 #endif
 
 #if (defined CN) && (defined NITRIF_DENITRIF)
-  use mod_clm_cnnitrifdenitrif , only: no_frozen_nitrif_denitrif
+  use mod_clm_cnnitrifdenitrif, only: no_frozen_nitrif_denitrif
 #endif
 
 #if (defined CN)
   !!! C14
-  use mod_clm_cnc14decay , only: use_c14_bombspike , atm_c14_filename
+  use mod_clm_cnc14decay, only: use_c14_bombspike, atm_c14_filename
 #endif
 
-  use mod_clm_surfacealbedo , only : albice
-  use mod_clm_hydrology1 , only : Hydrology1_readnl
-  use mod_clm_soilhydrology , only : SoilHydrology_readnl
-  use mod_clm_megan, only : shr_megan_readnl , shr_megan_mechcomps_n
+  use mod_clm_surfacealbedo, only : albice
+  use mod_clm_hydrology1, only : Hydrology1_readnl
+  use mod_clm_soilhydrology, only : SoilHydrology_readnl
+  use mod_clm_megan, only : shr_megan_readnl, shr_megan_mechcomps_n
   use mod_clm_drydep, only : seq_drydep_read, seq_drydep_init
   implicit none
 
@@ -128,7 +128,7 @@ module mod_clm_control
     ! Input datasets
 
     namelist /clm_inparm/  &
-         fpftcon , fsnowoptics , fsnowaging
+         fpftcon, fsnowoptics, fsnowaging
 
     ! History, restart options
 
@@ -259,7 +259,7 @@ module mod_clm_control
 
       ! History and restart files
 
-      do i = 1 , max_tapes
+      do i = 1, max_tapes
         if (hist_nhtfrq(i) < 0) then
           hist_nhtfrq(i) = nint(-hist_nhtfrq(i)*secspday/(24._rk8*dtsrf))
         end if

@@ -36,7 +36,7 @@ module STATICEcosysdynMOD
   private :: readMonthlyVegetation   ! read monthly vegetation data for two months
 !
 ! PRIVATE TYPES:
-  integer , private :: InterpMonths1         ! saved month index
+  integer, private :: InterpMonths1         ! saved month index
   real(r8), private :: timwt(2)              ! time weights for month 1 and month 2
   real(r8), private, allocatable :: mlai2t(:,:) ! lai for interpolation (2 months)
   real(r8), private, allocatable :: msai2t(:,:) ! sai for interpolation (2 months)
@@ -127,11 +127,11 @@ contains
 !
 ! local pointers to implicit in arguments
 !
-    integer , pointer :: pcolumn(:)  ! column index associated with each pft
+    integer, pointer :: pcolumn(:)  ! column index associated with each pft
     real(r8), pointer :: snowdp(:)   ! snow height (m)
 #if (defined CASA)
     real(r8), pointer :: plai(:)     ! Prognostic lai
-    integer , pointer :: ivt(:)      ! pft vegetation type
+    integer, pointer :: ivt(:)      ! pft vegetation type
 #endif
 !
 ! local pointers to implicit out arguments
@@ -142,7 +142,7 @@ contains
     real(r8), pointer :: hbot(:)     ! canopy bottom (m)
     real(r8), pointer :: elai(:)     ! one-sided leaf area index with burying by snow
     real(r8), pointer :: esai(:)     ! one-sided stem area index with burying by snow
-    integer , pointer :: frac_veg_nosno_alb(:) ! frac of vegetation not covered by snow [-]
+    integer, pointer :: frac_veg_nosno_alb(:) ! frac of vegetation not covered by snow [-]
 !
 !EOP
 !
@@ -260,7 +260,7 @@ contains
 ! Determine if 2 new months of data are to be read.
 !
 ! !USES:
-    use clm_varctl  , only : fsurdat,mksrf_flai
+    use clm_varctl , only : fsurdat,mksrf_flai
     use clm_time_manager, only : get_curr_date, get_step_size, get_perp_date, is_perpetual
 !
 ! !ARGUMENTS:
@@ -323,13 +323,13 @@ contains
 !
 ! !USES:
     use clmtype
-    use decompMod   , only : get_proc_bounds, ldecomp, gsmap_lnd_gdc2glo, perm_lnd_gdc2glo
-    use clm_varpar  , only : lsmlon, lsmlat, maxpatch_pft, maxpatch, npatch_crop, numpft
-    use pftvarcon   , only : noveg
-    use fileutils   , only : getfil
-    use spmdMod     , only : masterproc, mpicom, MPI_REAL8
+    use decompMod  , only : get_proc_bounds, ldecomp, gsmap_lnd_gdc2glo, perm_lnd_gdc2glo
+    use clm_varpar , only : lsmlon, lsmlat, maxpatch_pft, maxpatch, npatch_crop, numpft
+    use pftvarcon  , only : noveg
+    use fileutils  , only : getfil
+    use spmdMod    , only : masterproc, mpicom, MPI_REAL8
     use clm_time_manager, only : get_nstep
-    use ncdio       , only : check_ret
+    use ncdio      , only : check_ret
 !
 ! !ARGUMENTS:
     implicit none

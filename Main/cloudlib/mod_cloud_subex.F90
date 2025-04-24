@@ -42,12 +42,12 @@ module mod_cloud_subex
   !
   subroutine subex_cldfrac(t,p,qv,qc,rh,tc0,rh0,qcrit,fcc)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: t , p , qv , qc , rh
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: rh0 , qcrit
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
-    real(rkx) , intent(in) :: tc0
-    integer(ik4) :: i , j , k
-    real(rkx) :: rh0adj , rhrng
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: t, p, qv, qc, rh
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: rh0, qcrit
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
+    real(rkx), intent(in) :: tc0
+    integer(ik4) :: i, j, k
+    real(rkx) :: rh0adj, rhrng
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction

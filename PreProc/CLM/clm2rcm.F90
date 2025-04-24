@@ -38,48 +38,48 @@ program clm2rcm
 
   implicit none
 
-  real(rk4) , parameter :: vmisdat=-9999.0
-  integer(ik4) , parameter :: ndim = 3
-  logical , parameter :: bvoc = .false.
+  real(rk4), parameter :: vmisdat=-9999.0
+  integer(ik4), parameter :: ndim = 3
+  logical, parameter :: bvoc = .false.
 
-  integer(ik4) :: istatus , ncid , incin , idum
-  integer(ik4) , dimension(4) :: idims
-  integer(ik4) , dimension(4) :: ivdims
-  integer(ik4) :: ldim , ivar
-  type(rcm_time_and_date) :: irefdate , imondate
+  integer(ik4) :: istatus, ncid, incin, idum
+  integer(ik4), dimension(4) :: idims
+  integer(ik4), dimension(4) :: ivdims
+  integer(ik4) :: ldim, ivar
+  type(rcm_time_and_date) :: irefdate, imondate
   type(rcm_time_interval) :: tdif
-  real(rk4) , pointer , dimension(:) :: yiy
-  real(rk4) , pointer , dimension(:) :: xjx
-  real(rk4) :: hptop , xmiss
-  real(rk8) , dimension(1) :: xdate
-  integer(ik4) , dimension(2) :: ihvar
-  integer(ik4) , dimension(2) :: illvar
-  integer(ik4) , dimension(3) :: izvar
-  integer(ik4) , dimension(4) :: icount , istart
-  integer(ik4) , dimension(1) :: istart1 , icount1
-  integer(ik4) , dimension(3) :: iadim
-  character(len=64) , dimension(nfld) :: lnam
+  real(rk4), pointer, contiguous, dimension(:) :: yiy
+  real(rk4), pointer, contiguous, dimension(:) :: xjx
+  real(rk4) :: hptop, xmiss
+  real(rk8), dimension(1) :: xdate
+  integer(ik4), dimension(2) :: ihvar
+  integer(ik4), dimension(2) :: illvar
+  integer(ik4), dimension(3) :: izvar
+  integer(ik4), dimension(4) :: icount, istart
+  integer(ik4), dimension(1) :: istart1, icount1
+  integer(ik4), dimension(3) :: iadim
+  character(len=64), dimension(nfld) :: lnam
   character(len=64) :: cdum
-  character(len=64) , dimension(nfld) :: units
-  real(rk4) , dimension(3) :: varmax , varmin
+  character(len=64), dimension(nfld) :: units
+  real(rk4), dimension(3) :: varmax, varmin
   real(rk8) :: xhr
-  real(rk4) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
-  real(rk4) :: pxerr , pmax
-  real(rk4) , pointer , dimension(:) :: glat , glon , zlat ,      &
-                                       zlev , zlon
-  real(rk4) , pointer , dimension(:,:) :: mpu
-  real(rk4) , pointer , dimension(:,:,:) :: regxyz
-  real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom
-  real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
-  integer(ik4) :: ipathdiv , ierr
-  integer(ik4) :: i , iz , it , j , k , l , kmax , ipnt
-  integer(ik4) :: jotyp , idin , idout , ifield , ifld , imap
-  integer(ik4) :: idimid , ivarid
-  character(len=256) :: namelistfile , prgname
-  character(len=256) :: inpfile , terfile , checkfile
+  real(rk4) :: offset, xscale, xlatmin, xlatmax, xlonmin, xlonmax
+  real(rk4) :: pxerr, pmax
+  real(rk4), pointer, contiguous, dimension(:) :: glat, glon, zlat,      &
+                                       zlev, zlon
+  real(rk4), pointer, contiguous, dimension(:,:) :: mpu
+  real(rk4), pointer, contiguous, dimension(:,:,:) :: regxyz
+  real(rk4), pointer, contiguous, dimension(:,:,:,:) :: regyxzt, zoom
+  real(rk4), pointer, contiguous, dimension(:,:) :: landmask, sandclay
+  integer(ik4) :: ipathdiv, ierr
+  integer(ik4) :: i, iz, it, j, k, l, kmax, ipnt
+  integer(ik4) :: jotyp, idin, idout, ifield, ifld, imap
+  integer(ik4) :: idimid, ivarid
+  character(len=256) :: namelistfile, prgname
+  character(len=256) :: inpfile, terfile, checkfile
   character(len=256) :: outfil_nc
-  character(len=64) :: csdate , cldim
-  integer(ik4) , dimension(8) :: ilevs
+  character(len=64) :: csdate, cldim
+  integer(ik4), dimension(8) :: ilevs
 
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
   data xmiss /-9999.0/
@@ -161,7 +161,7 @@ program clm2rcm
   call write_var2d_static(ncid,'xlon',xlon,ipnt,illvar)
 
   imondate = irefdate
-  do it = 1 , 12
+  do it = 1, 12
     istart1(1) = it
     icount1(1) = 1
     tdif = imondate-irefdate
@@ -176,7 +176,7 @@ program clm2rcm
   call comp(ifield,bvoc)
 
   ! Loop over the fields defined in clm.param
-  do ifld = 1 , ifield
+  do ifld = 1, ifield
     ! Open input and output files
     ! Some files have more than one required variable.
     ! Therefore, the output file should only be opened once.
@@ -184,7 +184,7 @@ program clm2rcm
     if(ifld==iiso) inpfile = "./mksrf_iso.nc"
     if(ifld==iapin) inpfile = "./mksrf_pina.nc"
     if(ifld==ilimo) inpfile = "./mksrf_limo.nc"
-    write(stdout,*) 'OPENING Input NetCDF FILE: ' , trim(inpfile)
+    write(stdout,*) 'OPENING Input NetCDF FILE: ', trim(inpfile)
     istatus = nf90_open(inpfile,nf90_nowrite,idin)
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot open file '//trim(inpfile))
@@ -302,10 +302,10 @@ program clm2rcm
       write(stdout,*) 'Read ', trim(lnam(ifld))
       call readcdfr4(idin,vnam_st,cdum,cdum,istart(1),              &
                      icount(1),istart(2),icount(2),1,1,1,1,mpu)
-      do j = 1 , icount(2)
-        do i = 1 , icount(1)
+      do j = 1, icount(2)
+        do i = 1, icount(1)
           imap = nint(mpu(i,j))
-          do k = 1 , icount(3)
+          do k = 1, icount(3)
             if ( imap>0 .and. landmask(i,j)>0.5 ) then
               zoom(i,j,k,1) = sandclay(imap,k)
             else
@@ -314,7 +314,7 @@ program clm2rcm
           end do
         end do
       end do
-      do k = 1 , icount(3)
+      do k = 1, icount(3)
         zlev(k) = glev_st(k)
       end do
       ntim(ifld) = 1
@@ -342,8 +342,8 @@ program clm2rcm
     if ( ifld==icol .or. ifld==iiso .or. ifld==ibpin .or.           &
          ifld==imbo .or. ifld==iapin .or. ifld==ilimo ) then
       write(stdout,*) 'Adjusting landmask'
-      do j = 1 , icount(2)
-        do i = 1 , icount(1)
+      do j = 1, icount(2)
+        do i = 1, icount(1)
           if ( zoom(i,j,1,1)>vmin(ifld) ) then
             landmask(i,j) = 1.0
           else
@@ -372,18 +372,18 @@ program clm2rcm
     ! Write the interpolated data to NetCDF for CLM and checkfile
 
     imondate = irefdate
-    do l = 1 , ntim(ifld)
+    do l = 1, ntim(ifld)
       if ( ifld == ipft ) then
-        do i = 1 , iy
-          do j = 1 , jx
+        do i = 1, iy
+          do j = 1, jx
             if ( regyxzt(j,i,1,l)>-99. ) then
-              do k = 1 , nlev(ifld)
+              do k = 1, nlev(ifld)
                 regyxzt(j,i,k,l) = aint(regyxzt(j,i,k,l))
               end do
               pxerr = 100.
               kmax = -1
               pmax = -99.
-              do k = 1 , nlev(ifld)
+              do k = 1, nlev(ifld)
                 pxerr = pxerr - regyxzt(j,i,k,l)
                 if ( regyxzt(j,i,k,l)>pmax ) then
                   pmax = regyxzt(j,i,k,l)
@@ -395,9 +395,9 @@ program clm2rcm
           end do
         end do
       end if
-      do k = 1 , nlev(ifld)
-        do j = 1 , jx
-          do i = 1 , iy
+      do k = 1, nlev(ifld)
+        do j = 1, jx
+          do i = 1, iy
             if ( ifld==icol ) then
               regyxzt(j,i,k,l) = anint(regyxzt(j,i,k,l))
             end if
@@ -424,7 +424,7 @@ program clm2rcm
     ldim = 0
     if (nlev(ifld) > 1) then
       ldim = -1
-      do iz = 1 , 8
+      do iz = 1, 8
         if (ilevs(iz) < 0) then
           ldim = -iz
           exit

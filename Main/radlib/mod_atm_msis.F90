@@ -24,1045 +24,1045 @@ module physics_msis
 
   private
 
-  character(4) , public , dimension(2) :: chname , istime
-  character(4) , public , dimension(3) :: isdate
-  real(rkx) , public , dimension(25) :: sav
-  integer(ik4) , public :: imr = 0
-  real(rkx) , public :: tlb , s , db04 , db16 , db28 , db32 , db40 , &
-              db48 , db01 , za , t0 , z0 , xg0 , rl , dd , db14 , tr12
+  character(4), public, dimension(2) :: chname, istime
+  character(4), public, dimension(3) :: isdate
+  real(rkx), public, dimension(25) :: sav
+  integer(ik4), public :: imr = 0
+  real(rkx), public :: tlb, s, db04, db16, db28, db32, db40, &
+              db48, db01, za, t0, z0, xg0, rl, dd, db14, tr12
 
   public :: gtd7d
 
-  public :: gtd7 , gts7 , ghp7
-  public :: tselec , tretrv
+  public :: gtd7, gts7, ghp7
+  public :: tselec, tretrv
 
   integer(ik4) :: isw
-  real(rkx) , dimension(25) :: sw , swc
-  real(rkx) :: dm01 , dm04 , dm14 , dm16 , dm28 , dm32 , dm40
-  real(rkx) , dimension(10,8) :: pdm
-  real(rkx) , dimension(10) :: ptm
-  real(rkx) :: apd , apdf , c2tloc , c3tloc , ctloc , day , df , dfa ,   &
-              s2tloc , s3tloc , stloc
-  real(rkx) , dimension(10) :: pavgm
-  real(rkx) , dimension(4) :: apt
-  real(rkx) , dimension(2) :: tgn1 , tgn2 , tgn3
-  real(rkx) , dimension(5) :: tn1 , tn3
-  real(rkx) , dimension(4) :: tn2
+  real(rkx), dimension(25) :: sw, swc
+  real(rkx) :: dm01, dm04, dm14, dm16, dm28, dm32, dm40
+  real(rkx), dimension(10,8) :: pdm
+  real(rkx), dimension(10) :: ptm
+  real(rkx) :: apd, apdf, c2tloc, c3tloc, ctloc, day, df, dfa,   &
+              s2tloc, s3tloc, stloc
+  real(rkx), dimension(10) :: pavgm
+  real(rkx), dimension(4) :: apt
+  real(rkx), dimension(2) :: tgn1, tgn2, tgn3
+  real(rkx), dimension(5) :: tn1, tn3
+  real(rkx), dimension(4) :: tn2
   integer(ik4) :: iyr
-  real(rkx) , dimension(9,4) :: plg
+  real(rkx), dimension(9,4) :: plg
 
-  real(rkx) , dimension(150) , target :: pt      ! pt1 , pt2 , pt3
-  real(rkx) , dimension(150,9) , target :: pd    ! pa1 , pa2 , pa3
-                                                ! pb1 , pb2 , pb3
-                                                ! pc1 , pc2 , pc3
-                                                ! pd1 , pd2 , pd3
-                                                ! pe1 , pe2 , pe3
-                                                ! pf1 , pf2 , pf3
-                                                ! pg1 , pg2 , pg3
-                                                ! ph1 , ph2 , ph3
-                                                ! pi1 , pi2 , pi3
-  real(rkx) , dimension(150) , target :: ps      ! pj1 , pj2 , pj3
-  real(rkx) , dimension(25,2) , target :: pdl    ! pk1
-  real(rkx) , dimension(100,4) , target :: ptl   ! pl1 , pl2
-                                                ! pm1 , pm2
-                                                ! pn1 , pn2
-                                                ! po1 , po2
-  real(rkx) , dimension(100,10) , target :: pma  ! pp1 , pp2
-                                                ! pq1 , pq2
-                                                ! pr1 , pr2
-                                                ! ps1 , ps2
-                                                ! pu1 , pu2
-                                                ! pv1 , pv2
-                                                ! pw1 , pw2
-                                                ! px1 , px2
-                                                ! py1 , py2
-                                                ! pz1 , pz2
-  real(rkx) , dimension(100) , target :: sam     ! paa1 , paa2
+  real(rkx), dimension(150), target :: pt      ! pt1, pt2, pt3
+  real(rkx), dimension(150,9), target :: pd    ! pa1, pa2, pa3
+                                                ! pb1, pb2, pb3
+                                                ! pc1, pc2, pc3
+                                                ! pd1, pd2, pd3
+                                                ! pe1, pe2, pe3
+                                                ! pf1, pf2, pf3
+                                                ! pg1, pg2, pg3
+                                                ! ph1, ph2, ph3
+                                                ! pi1, pi2, pi3
+  real(rkx), dimension(150), target :: ps      ! pj1, pj2, pj3
+  real(rkx), dimension(25,2), target :: pdl    ! pk1
+  real(rkx), dimension(100,4), target :: ptl   ! pl1, pl2
+                                                ! pm1, pm2
+                                                ! pn1, pn2
+                                                ! po1, po2
+  real(rkx), dimension(100,10), target :: pma  ! pp1, pp2
+                                                ! pq1, pq2
+                                                ! pr1, pr2
+                                                ! ps1, ps2
+                                                ! pu1, pu2
+                                                ! pv1, pv2
+                                                ! pw1, pw2
+                                                ! px1, px2
+                                                ! py1, py2
+                                                ! pz1, pz2
+  real(rkx), dimension(100), target :: sam     ! paa1, paa2
 
-  real(rkx) :: gsurf , re
+  real(rkx) :: gsurf, re
   real(rkx) :: tinf
-  real(rkx) , dimension(15) :: t
+  real(rkx), dimension(15) :: t
   ! Gas constant in J/K/mol
-  real(rkx) , parameter :: r100gas = rgasmol*d_100
-  real(rkx) , parameter :: nearzero = 0.000001_rkx
-  real(rkx) , parameter :: dr = 1.72142e-2_rkx
-  integer(ik4) , parameter :: mn1 = 5
-  integer(ik4) , parameter :: mn2 = 4
-  integer(ik4) , parameter :: mn3 = 5
-  real(rkx) , dimension(mn1) :: zn1
-  real(rkx) , dimension(mn2) :: zn2
-  real(rkx) , dimension(mn3) :: zn3
-  integer(ik4) , dimension(11) :: mt
-  real(rkx) , dimension(9) :: alph
-  real(rkx) , dimension(8) :: altl
+  real(rkx), parameter :: r100gas = rgasmol*d_100
+  real(rkx), parameter :: nearzero = 0.000001_rkx
+  real(rkx), parameter :: dr = 1.72142e-2_rkx
+  integer(ik4), parameter :: mn1 = 5
+  integer(ik4), parameter :: mn2 = 4
+  integer(ik4), parameter :: mn3 = 5
+  real(rkx), dimension(mn1) :: zn1
+  real(rkx), dimension(mn2) :: zn2
+  real(rkx), dimension(mn3) :: zn3
+  integer(ik4), dimension(11) :: mt
+  real(rkx), dimension(9) :: alph
+  real(rkx), dimension(8) :: altl
 
   ! MSISE-00 01-FEB-02
-  data isdate/'01-F' , 'EB-0' , '2   '/
-  data istime/'15:4' , '9:27'/
-  data chname/'MSIS' , 'E-00'/
+  data isdate/'01-F', 'EB-0', '2   '/
+  data istime/'15:4', '9:27'/
+  data chname/'MSIS', 'E-00'/
   !
-  data zn1 /120.0_rkx , 110.0_rkx , 100.0_rkx , 90.0_rkx , 72.50_rkx/
-  data zn2 /72.5_rkx , 55.0_rkx , 45.0_rkx , 32.50_rkx/
-  data zn3 /32.5_rkx , 20.0_rkx , 15.0_rkx , 10.0_rkx , 0.0_rkx/
+  data zn1 /120.0_rkx, 110.0_rkx, 100.0_rkx, 90.0_rkx, 72.50_rkx/
+  data zn2 /72.5_rkx, 55.0_rkx, 45.0_rkx, 32.50_rkx/
+  data zn3 /32.5_rkx, 20.0_rkx, 15.0_rkx, 10.0_rkx, 0.0_rkx/
   !
-  data mt /48 , 0 , 4 , 16 , 28 , 32 , 40 , 1 , 49 , 14 , 17/
-  data altl /200.0_rkx , 300.0_rkx , 160.0_rkx , 250.0_rkx , &
-             240.0_rkx , 450.0_rkx , 320.0_rkx , 450.0_rkx/
-  data alph / -0.380_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
-                0.170_rkx , 0.0_rkx , -0.380_rkx , 0.0_rkx , 0.0_rkx/
+  data mt /48, 0, 4, 16, 28, 32, 40, 1, 49, 14, 17/
+  data altl /200.0_rkx, 300.0_rkx, 160.0_rkx, 250.0_rkx, &
+             240.0_rkx, 450.0_rkx, 320.0_rkx, 450.0_rkx/
+  data alph / -0.380_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+                0.170_rkx, 0.0_rkx, -0.380_rkx, 0.0_rkx, 0.0_rkx/
 
   ! TEMPERATURE
   data pt(1:50) / &
-            9.86573e-1_rkx ,  1.62228e-2_rkx ,  1.55270e-2_rkx , -1.04323e-1_rkx , &
-           -3.75801e-3_rkx , -1.18538e-3_rkx , -1.24043e-1_rkx ,  4.56820e-3_rkx , &
-            8.76018e-3_rkx , -1.36235e-1_rkx , -3.52427e-2_rkx ,  8.84181e-3_rkx , &
-           -5.92127e-3_rkx , -8.61650e+0_rkx ,  0.00000e+0_rkx ,  1.28492e-2_rkx , &
-            0.00000e+0_rkx ,  1.30096e+2_rkx ,  1.04567e-2_rkx ,  1.65686e-3_rkx , &
-           -5.53887e-6_rkx ,  2.97810e-3_rkx ,  0.00000e+0_rkx ,  5.13122e-3_rkx , &
-            8.66784e-2_rkx ,  1.58727e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx , -7.27026e-6_rkx ,  0.00000e+0_rkx ,  6.74494e+0_rkx , &
-            4.93933e-3_rkx ,  2.21656e-3_rkx ,  2.50802e-3_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx , -2.08841e-2_rkx , -1.79873e+0_rkx ,  1.45103e-3_rkx , &
-            2.81769e-4_rkx , -1.44703e-3_rkx , -5.16394e-5_rkx ,  8.47001e-2_rkx , &
-            1.70147e-1_rkx ,  5.72562e-3_rkx ,  5.07493e-5_rkx ,  4.36148e-3_rkx , &
-            1.17863e-4_rkx ,  4.74364e-3_rkx/
+            9.86573e-1_rkx,  1.62228e-2_rkx,  1.55270e-2_rkx, -1.04323e-1_rkx, &
+           -3.75801e-3_rkx, -1.18538e-3_rkx, -1.24043e-1_rkx,  4.56820e-3_rkx, &
+            8.76018e-3_rkx, -1.36235e-1_rkx, -3.52427e-2_rkx,  8.84181e-3_rkx, &
+           -5.92127e-3_rkx, -8.61650e+0_rkx,  0.00000e+0_rkx,  1.28492e-2_rkx, &
+            0.00000e+0_rkx,  1.30096e+2_rkx,  1.04567e-2_rkx,  1.65686e-3_rkx, &
+           -5.53887e-6_rkx,  2.97810e-3_rkx,  0.00000e+0_rkx,  5.13122e-3_rkx, &
+            8.66784e-2_rkx,  1.58727e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx, -7.27026e-6_rkx,  0.00000e+0_rkx,  6.74494e+0_rkx, &
+            4.93933e-3_rkx,  2.21656e-3_rkx,  2.50802e-3_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx, -2.08841e-2_rkx, -1.79873e+0_rkx,  1.45103e-3_rkx, &
+            2.81769e-4_rkx, -1.44703e-3_rkx, -5.16394e-5_rkx,  8.47001e-2_rkx, &
+            1.70147e-1_rkx,  5.72562e-3_rkx,  5.07493e-5_rkx,  4.36148e-3_rkx, &
+            1.17863e-4_rkx,  4.74364e-3_rkx/
   data pt(51:100) / &
-            6.61278e-3_rkx ,  4.34292e-5_rkx ,  1.44373e-3_rkx ,  2.41470e-5_rkx , &
-            2.84426e-3_rkx ,  8.56560e-4_rkx ,  2.04028e-3_rkx ,  0.00000e+0_rkx , &
-           -3.15994e+3_rkx , -2.46423e-3_rkx ,  1.13843e-3_rkx ,  4.20512e-4_rkx , &
-            0.00000e+0_rkx , -9.77214e+1_rkx ,  6.77794e-3_rkx ,  5.27499e-3_rkx , &
-            1.14936e-3_rkx ,  0.00000e+0_rkx , -6.61311e-3_rkx , -1.84255e-2_rkx , &
-           -1.96259e-2_rkx ,  2.98618e+4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  6.44574e+2_rkx ,  8.84668e-4_rkx ,  5.05066e-4_rkx , &
-            0.00000e+0_rkx ,  4.02881e+3_rkx , -1.89503e-3_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  8.21407e-4_rkx ,  2.06780e-3_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           -1.20410e-2_rkx , -3.63963e-3_rkx ,  9.92070e-5_rkx , -1.15284e-4_rkx , &
-           -6.33059e-5_rkx , -6.05545e-1_rkx ,  8.34218e-3_rkx , -9.13036e+1_rkx , &
-            3.71042e-4_rkx ,  0.00000e+0_rkx/
+            6.61278e-3_rkx,  4.34292e-5_rkx,  1.44373e-3_rkx,  2.41470e-5_rkx, &
+            2.84426e-3_rkx,  8.56560e-4_rkx,  2.04028e-3_rkx,  0.00000e+0_rkx, &
+           -3.15994e+3_rkx, -2.46423e-3_rkx,  1.13843e-3_rkx,  4.20512e-4_rkx, &
+            0.00000e+0_rkx, -9.77214e+1_rkx,  6.77794e-3_rkx,  5.27499e-3_rkx, &
+            1.14936e-3_rkx,  0.00000e+0_rkx, -6.61311e-3_rkx, -1.84255e-2_rkx, &
+           -1.96259e-2_rkx,  2.98618e+4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  6.44574e+2_rkx,  8.84668e-4_rkx,  5.05066e-4_rkx, &
+            0.00000e+0_rkx,  4.02881e+3_rkx, -1.89503e-3_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  8.21407e-4_rkx,  2.06780e-3_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           -1.20410e-2_rkx, -3.63963e-3_rkx,  9.92070e-5_rkx, -1.15284e-4_rkx, &
+           -6.33059e-5_rkx, -6.05545e-1_rkx,  8.34218e-3_rkx, -9.13036e+1_rkx, &
+            3.71042e-4_rkx,  0.00000e+0_rkx/
   data pt(101:150) / &
-            4.19000e-4_rkx ,  2.70928e-3_rkx ,  3.31507e-3_rkx , -4.44508e-3_rkx , &
-           -4.96334e-3_rkx , -1.60449e-3_rkx ,  3.95119e-3_rkx ,  2.48924e-3_rkx , &
-            5.09815e-4_rkx ,  4.05302e-3_rkx ,  2.24076e-3_rkx ,  0.00000e+0_rkx , &
-            6.84256e-3_rkx ,  4.66354e-4_rkx ,  0.00000e+0_rkx , -3.68328e-4_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -1.46870e+2_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  1.09501e-3_rkx ,  4.65156e-4_rkx ,  5.62583e-4_rkx , &
-            3.21596e+0_rkx ,  6.43168e-4_rkx ,  3.14860e-3_rkx ,  3.40738e-3_rkx , &
-            1.78481e-3_rkx ,  9.62532e-4_rkx ,  5.58171e-4_rkx ,  3.43731e+0_rkx , &
-           -2.33195e-1_rkx ,  5.10289e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           -9.25347e+4_rkx ,  0.00000e+0_rkx , -1.99639e-3_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx/
+            4.19000e-4_rkx,  2.70928e-3_rkx,  3.31507e-3_rkx, -4.44508e-3_rkx, &
+           -4.96334e-3_rkx, -1.60449e-3_rkx,  3.95119e-3_rkx,  2.48924e-3_rkx, &
+            5.09815e-4_rkx,  4.05302e-3_rkx,  2.24076e-3_rkx,  0.00000e+0_rkx, &
+            6.84256e-3_rkx,  4.66354e-4_rkx,  0.00000e+0_rkx, -3.68328e-4_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -1.46870e+2_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  1.09501e-3_rkx,  4.65156e-4_rkx,  5.62583e-4_rkx, &
+            3.21596e+0_rkx,  6.43168e-4_rkx,  3.14860e-3_rkx,  3.40738e-3_rkx, &
+            1.78481e-3_rkx,  9.62532e-4_rkx,  5.58171e-4_rkx,  3.43731e+0_rkx, &
+           -2.33195e-1_rkx,  5.10289e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           -9.25347e+4_rkx,  0.00000e+0_rkx, -1.99639e-3_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx/
   ! HE DENSITY
   data pd(1:50,1) / &
-            1.09979e+0_rkx , -4.88060e-2_rkx , -1.97501e-1_rkx ,                &
-           -9.10280e-2_rkx , -6.96558e-3_rkx ,  2.42136e-2_rkx ,  3.91333e-1_rkx , &
-           -7.20068e-3_rkx , -3.22718e-2_rkx ,  1.41508e+0_rkx ,  1.68194e-1_rkx , &
-            1.85282e-2_rkx ,  1.09384e-1_rkx , -7.24282e+0_rkx ,  0.00000e+0_rkx , &
-            2.96377e-1_rkx , -4.97210e-2_rkx ,  1.04114e+2_rkx , -8.61108e-2_rkx , &
-           -7.29177e-4_rkx ,  1.48998e-6_rkx ,  1.08629e-3_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  8.31090e-2_rkx ,  1.12818e-1_rkx , -5.75005e-2_rkx , &
-           -1.29919e-2_rkx , -1.78849e-2_rkx , -2.86343e-6_rkx ,  0.00000e+0_rkx , &
-           -1.51187e+2_rkx , -6.65902e-3_rkx ,  0.00000e+0_rkx , -2.02069e-3_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  4.32264e-2_rkx , -2.80444e+1_rkx , &
-           -3.26789e-3_rkx ,  2.47461e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            9.82100e-2_rkx ,  1.22714e-1_rkx , -3.96450e-2_rkx ,  0.00000e+0_rkx , &
-           -2.76489e-3_rkx ,  0.00000e+0_rkx ,  1.87723e-3_rkx/
+            1.09979e+0_rkx, -4.88060e-2_rkx, -1.97501e-1_rkx,                &
+           -9.10280e-2_rkx, -6.96558e-3_rkx,  2.42136e-2_rkx,  3.91333e-1_rkx, &
+           -7.20068e-3_rkx, -3.22718e-2_rkx,  1.41508e+0_rkx,  1.68194e-1_rkx, &
+            1.85282e-2_rkx,  1.09384e-1_rkx, -7.24282e+0_rkx,  0.00000e+0_rkx, &
+            2.96377e-1_rkx, -4.97210e-2_rkx,  1.04114e+2_rkx, -8.61108e-2_rkx, &
+           -7.29177e-4_rkx,  1.48998e-6_rkx,  1.08629e-3_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  8.31090e-2_rkx,  1.12818e-1_rkx, -5.75005e-2_rkx, &
+           -1.29919e-2_rkx, -1.78849e-2_rkx, -2.86343e-6_rkx,  0.00000e+0_rkx, &
+           -1.51187e+2_rkx, -6.65902e-3_rkx,  0.00000e+0_rkx, -2.02069e-3_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  4.32264e-2_rkx, -2.80444e+1_rkx, &
+           -3.26789e-3_rkx,  2.47461e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            9.82100e-2_rkx,  1.22714e-1_rkx, -3.96450e-2_rkx,  0.00000e+0_rkx, &
+           -2.76489e-3_rkx,  0.00000e+0_rkx,  1.87723e-3_rkx/
   data pd(51:100,1) / &
-           -8.09813e-3_rkx ,  4.34428e-5_rkx , -7.70932e-3_rkx ,                &
-            0.00000e+0_rkx , -2.28894e-3_rkx , -5.69070e-3_rkx , -5.22193e-3_rkx , &
-            6.00692e-3_rkx , -7.80434e+3_rkx , -3.48336e-3_rkx , -6.38362e-3_rkx , &
-           -1.82190e-3_rkx ,  0.00000e+0_rkx , -7.58976e+1_rkx , -2.17875e-2_rkx , &
-           -1.72524e-2_rkx , -9.06287e-3_rkx ,  0.00000e+0_rkx ,  2.44725e-2_rkx , &
-            8.66040e-2_rkx ,  1.05712e-1_rkx ,  3.02543e+4_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -6.01364e+3_rkx , -5.64668e-3_rkx , &
-           -2.54157e-3_rkx ,  0.00000e+0_rkx ,  3.15611e+2_rkx , -5.69158e-3_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -4.47216e-3_rkx , -4.49523e-3_rkx , &
-            4.64428e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  4.51236e-2_rkx ,  2.46520e-2_rkx ,  6.17794e-3_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -3.62944e-1_rkx , -4.80022e-2_rkx , &
-           -7.57230e+1_rkx , -1.99656e-3_rkx ,  0.00000e+0_rkx/
+           -8.09813e-3_rkx,  4.34428e-5_rkx, -7.70932e-3_rkx,                &
+            0.00000e+0_rkx, -2.28894e-3_rkx, -5.69070e-3_rkx, -5.22193e-3_rkx, &
+            6.00692e-3_rkx, -7.80434e+3_rkx, -3.48336e-3_rkx, -6.38362e-3_rkx, &
+           -1.82190e-3_rkx,  0.00000e+0_rkx, -7.58976e+1_rkx, -2.17875e-2_rkx, &
+           -1.72524e-2_rkx, -9.06287e-3_rkx,  0.00000e+0_rkx,  2.44725e-2_rkx, &
+            8.66040e-2_rkx,  1.05712e-1_rkx,  3.02543e+4_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -6.01364e+3_rkx, -5.64668e-3_rkx, &
+           -2.54157e-3_rkx,  0.00000e+0_rkx,  3.15611e+2_rkx, -5.69158e-3_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -4.47216e-3_rkx, -4.49523e-3_rkx, &
+            4.64428e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  4.51236e-2_rkx,  2.46520e-2_rkx,  6.17794e-3_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -3.62944e-1_rkx, -4.80022e-2_rkx, &
+           -7.57230e+1_rkx, -1.99656e-3_rkx,  0.00000e+0_rkx/
   data pd(101:150,1) / &
-           -5.18780e-3_rkx , -1.73990e-2_rkx , -9.03485e-3_rkx ,                &
-            7.48465e-3_rkx ,  1.53267e-2_rkx ,  1.06296e-2_rkx ,  1.18655e-2_rkx , &
-            2.55569e-3_rkx ,  1.69020e-3_rkx ,  3.51936e-2_rkx , -1.81242e-2_rkx , &
-            0.00000e+0_rkx , -1.00529e-1_rkx , -5.10574e-3_rkx ,  0.00000e+0_rkx , &
-            2.10228e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -1.73255e+2_rkx , &
-            5.07833e-1_rkx , -2.41408e-1_rkx ,  8.75414e-3_rkx ,  2.77527e-3_rkx , &
-           -8.90353e-5_rkx , -5.25148e+0_rkx , -5.83899e-3_rkx , -2.09122e-2_rkx , &
-           -9.63530e-3_rkx ,  9.77164e-3_rkx ,  4.07051e-3_rkx ,  2.53555e-4_rkx , &
-           -5.52875e+0_rkx , -3.55993e-1_rkx , -2.49231e-3_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  2.86026e+1_rkx ,  0.00000e+0_rkx ,  3.42722e-4_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx/
+           -5.18780e-3_rkx, -1.73990e-2_rkx, -9.03485e-3_rkx,                &
+            7.48465e-3_rkx,  1.53267e-2_rkx,  1.06296e-2_rkx,  1.18655e-2_rkx, &
+            2.55569e-3_rkx,  1.69020e-3_rkx,  3.51936e-2_rkx, -1.81242e-2_rkx, &
+            0.00000e+0_rkx, -1.00529e-1_rkx, -5.10574e-3_rkx,  0.00000e+0_rkx, &
+            2.10228e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -1.73255e+2_rkx, &
+            5.07833e-1_rkx, -2.41408e-1_rkx,  8.75414e-3_rkx,  2.77527e-3_rkx, &
+           -8.90353e-5_rkx, -5.25148e+0_rkx, -5.83899e-3_rkx, -2.09122e-2_rkx, &
+           -9.63530e-3_rkx,  9.77164e-3_rkx,  4.07051e-3_rkx,  2.53555e-4_rkx, &
+           -5.52875e+0_rkx, -3.55993e-1_rkx, -2.49231e-3_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  2.86026e+1_rkx,  0.00000e+0_rkx,  3.42722e-4_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx/
   ! O DENSITY
   data pd(1:50,2) / &
-            1.02315e+0_rkx , -1.59710e-1_rkx , -1.06630e-1_rkx ,                &
-           -1.77074e-2_rkx , -4.42726e-3_rkx ,  3.44803e-2_rkx ,  4.45613e-2_rkx , &
-           -3.33751e-2_rkx , -5.73598e-2_rkx ,  3.50360e-1_rkx ,  6.33053e-2_rkx , &
-            2.16221e-2_rkx ,  5.42577e-2_rkx , -5.74193e+0_rkx ,  0.00000e+0_rkx , &
-            1.90891e-1_rkx , -1.39194e-2_rkx ,  1.01102e+2_rkx ,  8.16363e-2_rkx , &
-            1.33717e-4_rkx ,  6.54403e-6_rkx ,  3.10295e-3_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  5.38205e-2_rkx ,  1.23910e-1_rkx , -1.39831e-2_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -3.95915e-6_rkx ,  0.00000e+0_rkx , &
-           -7.14651e-1_rkx , -5.01027e-3_rkx ,  0.00000e+0_rkx , -3.24756e-3_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  4.42173e-2_rkx , -1.31598e+1_rkx , &
-           -3.15626e-3_rkx ,  1.24574e-3_rkx , -1.47626e-3_rkx , -1.55461e-3_rkx , &
-            6.40682e-2_rkx ,  1.34898e-1_rkx , -2.42415e-2_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  6.13666e-4_rkx/
+            1.02315e+0_rkx, -1.59710e-1_rkx, -1.06630e-1_rkx,                &
+           -1.77074e-2_rkx, -4.42726e-3_rkx,  3.44803e-2_rkx,  4.45613e-2_rkx, &
+           -3.33751e-2_rkx, -5.73598e-2_rkx,  3.50360e-1_rkx,  6.33053e-2_rkx, &
+            2.16221e-2_rkx,  5.42577e-2_rkx, -5.74193e+0_rkx,  0.00000e+0_rkx, &
+            1.90891e-1_rkx, -1.39194e-2_rkx,  1.01102e+2_rkx,  8.16363e-2_rkx, &
+            1.33717e-4_rkx,  6.54403e-6_rkx,  3.10295e-3_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  5.38205e-2_rkx,  1.23910e-1_rkx, -1.39831e-2_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -3.95915e-6_rkx,  0.00000e+0_rkx, &
+           -7.14651e-1_rkx, -5.01027e-3_rkx,  0.00000e+0_rkx, -3.24756e-3_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  4.42173e-2_rkx, -1.31598e+1_rkx, &
+           -3.15626e-3_rkx,  1.24574e-3_rkx, -1.47626e-3_rkx, -1.55461e-3_rkx, &
+            6.40682e-2_rkx,  1.34898e-1_rkx, -2.42415e-2_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  6.13666e-4_rkx/
   data pd(51:100,2) / &
-           -5.40373e-3_rkx ,  2.61635e-5_rkx , -3.33012e-3_rkx ,                &
-            0.00000e+0_rkx , -3.08101e-3_rkx , -2.42679e-3_rkx , -3.36086e-3_rkx , &
-            0.00000e+0_rkx , -1.18979e+3_rkx , -5.04738e-2_rkx , -2.61547e-3_rkx , &
-           -1.03132e-3_rkx ,  1.91583e-4_rkx , -8.38132e+1_rkx , -1.40517e-2_rkx , &
-           -1.14167e-2_rkx , -4.08012e-3_rkx ,  1.73522e-4_rkx , -1.39644e-2_rkx , &
-           -6.64128e-2_rkx , -6.85152e-2_rkx , -1.34414e+4_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  6.07916e+2_rkx , -4.12220e-3_rkx , &
-           -2.20996e-3_rkx ,  0.00000e+0_rkx ,  1.70277e+3_rkx , -4.63015e-3_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -2.25360e-3_rkx , -2.96204e-3_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  3.92786e-2_rkx ,  1.31186e-2_rkx , -1.78086e-3_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -3.90083e-1_rkx , -2.84741e-2_rkx , &
-           -7.78400e+1_rkx , -1.02601e-3_rkx ,  0.00000e+0_rkx/
+           -5.40373e-3_rkx,  2.61635e-5_rkx, -3.33012e-3_rkx,                &
+            0.00000e+0_rkx, -3.08101e-3_rkx, -2.42679e-3_rkx, -3.36086e-3_rkx, &
+            0.00000e+0_rkx, -1.18979e+3_rkx, -5.04738e-2_rkx, -2.61547e-3_rkx, &
+           -1.03132e-3_rkx,  1.91583e-4_rkx, -8.38132e+1_rkx, -1.40517e-2_rkx, &
+           -1.14167e-2_rkx, -4.08012e-3_rkx,  1.73522e-4_rkx, -1.39644e-2_rkx, &
+           -6.64128e-2_rkx, -6.85152e-2_rkx, -1.34414e+4_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  6.07916e+2_rkx, -4.12220e-3_rkx, &
+           -2.20996e-3_rkx,  0.00000e+0_rkx,  1.70277e+3_rkx, -4.63015e-3_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -2.25360e-3_rkx, -2.96204e-3_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  3.92786e-2_rkx,  1.31186e-2_rkx, -1.78086e-3_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -3.90083e-1_rkx, -2.84741e-2_rkx, &
+           -7.78400e+1_rkx, -1.02601e-3_rkx,  0.00000e+0_rkx/
   data pd(101:150,2) / &
-           -7.26485e-4_rkx , -5.42181e-3_rkx , -5.59305e-3_rkx ,                &
-            1.22825e-2_rkx ,  1.23868e-2_rkx ,  6.68835e-3_rkx , -1.03303e-2_rkx , &
-           -9.51903e-3_rkx ,  2.70021e-4_rkx , -2.57084e-2_rkx , -1.32430e-2_rkx , &
-            0.00000e+0_rkx , -3.81000e-2_rkx , -3.16810e-3_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -9.05762e-4_rkx , -2.14590e-3_rkx , &
-           -1.17824e-3_rkx ,  3.66732e+0_rkx , -3.79729e-4_rkx , -6.13966e-3_rkx , &
-           -5.09082e-3_rkx , -1.96332e-3_rkx , -3.08280e-3_rkx , -9.75222e-4_rkx , &
-            4.03315e+0_rkx , -2.52710e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx/
+           -7.26485e-4_rkx, -5.42181e-3_rkx, -5.59305e-3_rkx,                &
+            1.22825e-2_rkx,  1.23868e-2_rkx,  6.68835e-3_rkx, -1.03303e-2_rkx, &
+           -9.51903e-3_rkx,  2.70021e-4_rkx, -2.57084e-2_rkx, -1.32430e-2_rkx, &
+            0.00000e+0_rkx, -3.81000e-2_rkx, -3.16810e-3_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -9.05762e-4_rkx, -2.14590e-3_rkx, &
+           -1.17824e-3_rkx,  3.66732e+0_rkx, -3.79729e-4_rkx, -6.13966e-3_rkx, &
+           -5.09082e-3_rkx, -1.96332e-3_rkx, -3.08280e-3_rkx, -9.75222e-4_rkx, &
+            4.03315e+0_rkx, -2.52710e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx/
   ! N2 DENSITY
   data pd(1:50,3) / &
-            1.16112e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  3.33725e-2_rkx , &
-            0.00000e+0_rkx ,  3.48637e-2_rkx , -5.44368e-3_rkx ,  0.00000e+0_rkx , &
-           -6.73940e-2_rkx ,  1.74754e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  1.74712e+2_rkx ,  0.00000e+0_rkx ,  1.26733e-1_rkx , &
-            0.00000e+0_rkx ,  1.03154e+2_rkx ,  5.52075e-2_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  8.13525e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            8.66784e-2_rkx ,  1.58727e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -2.50482e+1_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -2.48894e-3_rkx , &
-            6.16053e-4_rkx , -5.79716e-4_rkx ,  2.95482e-3_rkx ,  8.47001e-2_rkx , &
-            1.70147e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx/
+            1.16112e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  3.33725e-2_rkx, &
+            0.00000e+0_rkx,  3.48637e-2_rkx, -5.44368e-3_rkx,  0.00000e+0_rkx, &
+           -6.73940e-2_rkx,  1.74754e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  1.74712e+2_rkx,  0.00000e+0_rkx,  1.26733e-1_rkx, &
+            0.00000e+0_rkx,  1.03154e+2_rkx,  5.52075e-2_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  8.13525e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            8.66784e-2_rkx,  1.58727e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -2.50482e+1_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -2.48894e-3_rkx, &
+            6.16053e-4_rkx, -5.79716e-4_rkx,  2.95482e-3_rkx,  8.47001e-2_rkx, &
+            1.70147e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx/
   data pd(51:100,3) / &
-           0.00000e+0_rkx ,  2.47425e-5_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           0.00000e+0_rkx,  2.47425e-5_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pd(101:150,3) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   ! TLB
   data pd(1:50,4) / &
-           9.44846e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -3.08617e-2_rkx , &
-           0.00000e+0_rkx , -2.44019e-2_rkx ,  6.48607e-3_rkx ,  0.00000e+0_rkx , &
-           3.08181e-2_rkx ,  4.59392e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  1.74712e+2_rkx ,  0.00000e+0_rkx ,  2.13260e-2_rkx , &
-           0.00000e+0_rkx , -3.56958e+2_rkx ,  0.00000e+0_rkx ,  1.82278e-4_rkx , &
-           0.00000e+0_rkx ,  3.07472e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           3.83054e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -1.93065e-3_rkx , &
-          -1.45090e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -1.23493e-3_rkx ,  1.36736e-3_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx ,  3.71469e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           9.44846e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -3.08617e-2_rkx, &
+           0.00000e+0_rkx, -2.44019e-2_rkx,  6.48607e-3_rkx,  0.00000e+0_rkx, &
+           3.08181e-2_rkx,  4.59392e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  1.74712e+2_rkx,  0.00000e+0_rkx,  2.13260e-2_rkx, &
+           0.00000e+0_rkx, -3.56958e+2_rkx,  0.00000e+0_rkx,  1.82278e-4_rkx, &
+           0.00000e+0_rkx,  3.07472e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           3.83054e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -1.93065e-3_rkx, &
+          -1.45090e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -1.23493e-3_rkx,  1.36736e-3_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx,  3.71469e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pd(51:100,4) / &
-           5.10250e-3_rkx ,  2.47425e-5_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  3.68756e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           5.10250e-3_rkx,  2.47425e-5_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  3.68756e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pd(101:150,4) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   ! O2 DENSITY
   data pd(1:50,5) / &
-           1.35580e+0_rkx ,  1.44816e-1_rkx ,  0.00000e+0_rkx ,  6.07767e-2_rkx , &
-           0.00000e+0_rkx ,  2.94777e-2_rkx ,  7.46900e-2_rkx ,  0.00000e+0_rkx , &
-          -9.23822e-2_rkx ,  8.57342e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.38636e+1_rkx ,  0.00000e+0_rkx ,  7.71653e-2_rkx , &
-           0.00000e+0_rkx ,  8.18751e+1_rkx ,  1.87736e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  1.49667e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -3.67874e+2_rkx , &
-           5.48158e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx ,  1.22631e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           1.35580e+0_rkx,  1.44816e-1_rkx,  0.00000e+0_rkx,  6.07767e-2_rkx, &
+           0.00000e+0_rkx,  2.94777e-2_rkx,  7.46900e-2_rkx,  0.00000e+0_rkx, &
+          -9.23822e-2_rkx,  8.57342e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.38636e+1_rkx,  0.00000e+0_rkx,  7.71653e-2_rkx, &
+           0.00000e+0_rkx,  8.18751e+1_rkx,  1.87736e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  1.49667e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -3.67874e+2_rkx, &
+           5.48158e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx,  1.22631e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pd(51:100,5) / &
-           8.17187e-3_rkx ,  3.71617e-5_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -2.10826e-3_rkx , -3.13640e-3_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-          -7.35742e-2_rkx , -5.00266e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.94965e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           8.17187e-3_rkx,  3.71617e-5_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -2.10826e-3_rkx, -3.13640e-3_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+          -7.35742e-2_rkx, -5.00266e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  1.94965e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pd(101:150,5) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   ! AR DENSITY
   data pd(1:50,6) / &
-           1.04761e+0_rkx ,  2.00165e-1_rkx ,  2.37697e-1_rkx ,  3.68552e-2_rkx , &
-           0.00000e+0_rkx ,  3.57202e-2_rkx , -2.14075e-1_rkx ,  0.00000e+0_rkx , &
-          -1.08018e-1_rkx , -3.73981e-1_rkx ,  0.00000e+0_rkx ,  3.10022e-2_rkx , &
-          -1.16305e-3_rkx , -2.07596e+1_rkx ,  0.00000e+0_rkx ,  8.64502e-2_rkx , &
-           0.00000e+0_rkx ,  9.74908e+1_rkx ,  5.16707e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  3.46193e+2_rkx , &
-           1.34297e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -3.48509e-3_rkx , &
-          -1.54689e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx ,  1.47753e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           1.04761e+0_rkx,  2.00165e-1_rkx,  2.37697e-1_rkx,  3.68552e-2_rkx, &
+           0.00000e+0_rkx,  3.57202e-2_rkx, -2.14075e-1_rkx,  0.00000e+0_rkx, &
+          -1.08018e-1_rkx, -3.73981e-1_rkx,  0.00000e+0_rkx,  3.10022e-2_rkx, &
+          -1.16305e-3_rkx, -2.07596e+1_rkx,  0.00000e+0_rkx,  8.64502e-2_rkx, &
+           0.00000e+0_rkx,  9.74908e+1_rkx,  5.16707e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  3.46193e+2_rkx, &
+           1.34297e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -3.48509e-3_rkx, &
+          -1.54689e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx,  1.47753e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pd(51:100,6) / &
-           1.89320e-2_rkx ,  3.68181e-5_rkx ,  1.32570e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  3.59719e-3_rkx ,  7.44328e-3_rkx , -1.00023e-3_rkx , &
-          -6.50528e+3_rkx ,  0.00000e+0_rkx ,  1.03485e-2_rkx , -1.00983e-3_rkx , &
-          -4.06916e-3_rkx , -6.60864e+1_rkx , -1.71533e-2_rkx ,  1.10605e-2_rkx , &
-           1.20300e-2_rkx , -5.20034e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -2.62769e+3_rkx ,  7.13755e-3_rkx ,  4.17999e-3_rkx , &
-           0.00000e+0_rkx ,  1.25910e+4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -2.23595e-3_rkx ,  4.60217e-3_rkx ,  5.71794e-3_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-          -3.18353e-2_rkx , -2.35526e-2_rkx , -1.36189e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.03522e-2_rkx , -6.67837e+1_rkx , &
-          -1.09724e-3_rkx ,  0.00000e+0_rkx/
+           1.89320e-2_rkx,  3.68181e-5_rkx,  1.32570e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  3.59719e-3_rkx,  7.44328e-3_rkx, -1.00023e-3_rkx, &
+          -6.50528e+3_rkx,  0.00000e+0_rkx,  1.03485e-2_rkx, -1.00983e-3_rkx, &
+          -4.06916e-3_rkx, -6.60864e+1_rkx, -1.71533e-2_rkx,  1.10605e-2_rkx, &
+           1.20300e-2_rkx, -5.20034e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -2.62769e+3_rkx,  7.13755e-3_rkx,  4.17999e-3_rkx, &
+           0.00000e+0_rkx,  1.25910e+4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -2.23595e-3_rkx,  4.60217e-3_rkx,  5.71794e-3_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+          -3.18353e-2_rkx, -2.35526e-2_rkx, -1.36189e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  2.03522e-2_rkx, -6.67837e+1_rkx, &
+          -1.09724e-3_rkx,  0.00000e+0_rkx/
   data pd(101:150,6) / &
-           -1.38821e-2_rkx ,  1.60468e-2_rkx ,  0.00000e+0_rkx ,                &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.51574e-2_rkx , -5.44470e-4_rkx , &
-            0.00000e+0_rkx ,  7.28224e-2_rkx ,  6.59413e-2_rkx ,  0.00000e+0_rkx , &
-           -5.15692e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -3.70367e+3_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.36131e-2_rkx ,  5.38153e-3_rkx , &
-            0.00000e+0_rkx ,  4.76285e+0_rkx , -1.75677e-2_rkx ,  2.26301e-2_rkx , &
-            0.00000e+0_rkx ,  1.76631e-2_rkx ,  4.77162e-3_rkx ,  0.00000e+0_rkx , &
-            5.39354e+0_rkx ,  0.00000e+0_rkx , -7.51710e-3_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx , -8.82736e+1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx/
+           -1.38821e-2_rkx,  1.60468e-2_rkx,  0.00000e+0_rkx,                &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  1.51574e-2_rkx, -5.44470e-4_rkx, &
+            0.00000e+0_rkx,  7.28224e-2_rkx,  6.59413e-2_rkx,  0.00000e+0_rkx, &
+           -5.15692e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -3.70367e+3_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  1.36131e-2_rkx,  5.38153e-3_rkx, &
+            0.00000e+0_rkx,  4.76285e+0_rkx, -1.75677e-2_rkx,  2.26301e-2_rkx, &
+            0.00000e+0_rkx,  1.76631e-2_rkx,  4.77162e-3_rkx,  0.00000e+0_rkx, &
+            5.39354e+0_rkx,  0.00000e+0_rkx, -7.51710e-3_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx, -8.82736e+1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx/
   ! H DENSITY
   data pd(1:50,7) / &
-           1.26376e+0_rkx , -2.14304e-1_rkx , -1.49984e-1_rkx ,  2.30404e-1_rkx , &
-           2.98237e-2_rkx ,  2.68673e-2_rkx ,  2.96228e-1_rkx ,  2.21900e-2_rkx , &
-          -2.07655e-2_rkx ,  4.52506e-1_rkx ,  1.20105e-1_rkx ,  3.24420e-2_rkx , &
-           4.24816e-2_rkx , -9.14313e+0_rkx ,  0.00000e+0_rkx ,  2.47178e-2_rkx , &
-          -2.88229e-2_rkx ,  8.12805e+1_rkx ,  5.10380e-2_rkx , -5.80611e-3_rkx , &
-           2.51236e-5_rkx , -1.24083e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx , -3.48190e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.89885e-5_rkx ,  0.00000e+0_rkx ,  1.53595e+2_rkx , &
-          -1.68604e-2_rkx ,  0.00000e+0_rkx ,  1.01015e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.84552e-4_rkx , &
-          -1.22181e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx , -1.04927e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -5.91313e-3_rkx/
+           1.26376e+0_rkx, -2.14304e-1_rkx, -1.49984e-1_rkx,  2.30404e-1_rkx, &
+           2.98237e-2_rkx,  2.68673e-2_rkx,  2.96228e-1_rkx,  2.21900e-2_rkx, &
+          -2.07655e-2_rkx,  4.52506e-1_rkx,  1.20105e-1_rkx,  3.24420e-2_rkx, &
+           4.24816e-2_rkx, -9.14313e+0_rkx,  0.00000e+0_rkx,  2.47178e-2_rkx, &
+          -2.88229e-2_rkx,  8.12805e+1_rkx,  5.10380e-2_rkx, -5.80611e-3_rkx, &
+           2.51236e-5_rkx, -1.24083e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx, -3.48190e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.89885e-5_rkx,  0.00000e+0_rkx,  1.53595e+2_rkx, &
+          -1.68604e-2_rkx,  0.00000e+0_rkx,  1.01015e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  2.84552e-4_rkx, &
+          -1.22181e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx, -1.04927e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -5.91313e-3_rkx/
   data pd(51:100,7) / &
-           -2.30501e-2_rkx ,  3.14758e-5_rkx ,  0.00000e+0_rkx ,                &
-            0.00000e+0_rkx ,  1.26956e-2_rkx ,  8.35489e-3_rkx ,  3.10513e-4_rkx , &
-            0.00000e+0_rkx ,  3.42119e+3_rkx , -2.45017e-3_rkx , -4.27154e-4_rkx , &
-            5.45152e-4_rkx ,  1.89896e-3_rkx ,  2.89121e+1_rkx , -6.49973e-3_rkx , &
-           -1.93855e-2_rkx , -1.48492e-2_rkx ,  0.00000e+0_rkx , -5.10576e-2_rkx , &
-            7.87306e-2_rkx ,  9.51981e-2_rkx , -1.49422e+4_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.65503e+2_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  6.37110e-3_rkx ,  3.24789e-4_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  6.14274e-2_rkx ,  1.00376e-2_rkx , -8.41083e-4_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -1.27099e-2_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx/
+           -2.30501e-2_rkx,  3.14758e-5_rkx,  0.00000e+0_rkx,                &
+            0.00000e+0_rkx,  1.26956e-2_rkx,  8.35489e-3_rkx,  3.10513e-4_rkx, &
+            0.00000e+0_rkx,  3.42119e+3_rkx, -2.45017e-3_rkx, -4.27154e-4_rkx, &
+            5.45152e-4_rkx,  1.89896e-3_rkx,  2.89121e+1_rkx, -6.49973e-3_rkx, &
+           -1.93855e-2_rkx, -1.48492e-2_rkx,  0.00000e+0_rkx, -5.10576e-2_rkx, &
+            7.87306e-2_rkx,  9.51981e-2_rkx, -1.49422e+4_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  2.65503e+2_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  6.37110e-3_rkx,  3.24789e-4_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  6.14274e-2_rkx,  1.00376e-2_rkx, -8.41083e-4_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -1.27099e-2_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx/
   data pd(101:150,7) / &
-           -3.94077e-3_rkx , -1.28601e-2_rkx , -7.97616e-3_rkx ,                &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -6.71465e-3_rkx , -1.69799e-3_rkx , &
-            1.93772e-3_rkx ,  3.81140e+0_rkx , -7.79290e-3_rkx , -1.82589e-2_rkx , &
-           -1.25860e-2_rkx , -1.04311e-2_rkx , -3.02465e-3_rkx ,  2.43063e-3_rkx , &
-            3.63237e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx/
+           -3.94077e-3_rkx, -1.28601e-2_rkx, -7.97616e-3_rkx,                &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -6.71465e-3_rkx, -1.69799e-3_rkx, &
+            1.93772e-3_rkx,  3.81140e+0_rkx, -7.79290e-3_rkx, -1.82589e-2_rkx, &
+           -1.25860e-2_rkx, -1.04311e-2_rkx, -3.02465e-3_rkx,  2.43063e-3_rkx, &
+            3.63237e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx/
   ! N DENSITY
   data pd(1:50,8) / &
-           7.09557e+1_rkx , -3.26740e-1_rkx ,  0.00000e+0_rkx , -5.16829e-1_rkx , &
-          -1.71664e-3_rkx ,  9.09310e-2_rkx , -6.71500e-1_rkx , -1.47771e-1_rkx , &
-          -9.27471e-2_rkx , -2.30862e-1_rkx , -1.56410e-1_rkx ,  1.34455e-2_rkx , &
-          -1.19717e-1_rkx ,  2.52151e+0_rkx ,  0.00000e+0_rkx , -2.41582e-1_rkx , &
-           5.92939e-2_rkx ,  4.39756e+0_rkx ,  9.15280e-2_rkx ,  4.41292e-3_rkx , &
-           0.00000e+0_rkx ,  8.66807e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx ,  9.74701e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  6.70217e+1_rkx , &
-          -1.31660e-3_rkx ,  0.00000e+0_rkx , -1.65317e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  8.50247e-2_rkx ,  2.77428e+1_rkx ,  4.98658e-3_rkx , &
-           6.15115e-3_rkx ,  9.50156e-3_rkx , -2.12723e-2_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx , -2.38645e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  1.37380e-3_rkx/
+           7.09557e+1_rkx, -3.26740e-1_rkx,  0.00000e+0_rkx, -5.16829e-1_rkx, &
+          -1.71664e-3_rkx,  9.09310e-2_rkx, -6.71500e-1_rkx, -1.47771e-1_rkx, &
+          -9.27471e-2_rkx, -2.30862e-1_rkx, -1.56410e-1_rkx,  1.34455e-2_rkx, &
+          -1.19717e-1_rkx,  2.52151e+0_rkx,  0.00000e+0_rkx, -2.41582e-1_rkx, &
+           5.92939e-2_rkx,  4.39756e+0_rkx,  9.15280e-2_rkx,  4.41292e-3_rkx, &
+           0.00000e+0_rkx,  8.66807e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx,  9.74701e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  6.70217e+1_rkx, &
+          -1.31660e-3_rkx,  0.00000e+0_rkx, -1.65317e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  8.50247e-2_rkx,  2.77428e+1_rkx,  4.98658e-3_rkx, &
+           6.15115e-3_rkx,  9.50156e-3_rkx, -2.12723e-2_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx, -2.38645e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  1.37380e-3_rkx/
   data pd(51:100,8) / &
-           -8.41918e-3_rkx ,  2.80145e-5_rkx ,  7.12383e-3_rkx ,                &
-            0.00000e+0_rkx , -1.66209e-2_rkx ,  1.03533e-4_rkx , -1.68898e-2_rkx , &
-            0.00000e+0_rkx ,  3.64526e+3_rkx ,  0.00000e+0_rkx ,  6.54077e-3_rkx , &
-            3.69130e-4_rkx ,  9.94419e-4_rkx ,  8.42803e+1_rkx , -1.16124e-2_rkx , &
-           -7.74414e-3_rkx , -1.68844e-3_rkx ,  1.42809e-3_rkx , -1.92955e-3_rkx , &
-            1.17225e-1_rkx , -2.41512e-2_rkx ,  1.50521e+4_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.60261e+3_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -3.54403e-4_rkx , -1.87270e-2_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  2.76439e-2_rkx ,  6.43207e-3_rkx , -3.54300e-2_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -2.80221e-2_rkx , &
-            8.11228e+1_rkx , -6.75255e-4_rkx ,  0.00000e+0_rkx/
+           -8.41918e-3_rkx,  2.80145e-5_rkx,  7.12383e-3_rkx,                &
+            0.00000e+0_rkx, -1.66209e-2_rkx,  1.03533e-4_rkx, -1.68898e-2_rkx, &
+            0.00000e+0_rkx,  3.64526e+3_rkx,  0.00000e+0_rkx,  6.54077e-3_rkx, &
+            3.69130e-4_rkx,  9.94419e-4_rkx,  8.42803e+1_rkx, -1.16124e-2_rkx, &
+           -7.74414e-3_rkx, -1.68844e-3_rkx,  1.42809e-3_rkx, -1.92955e-3_rkx, &
+            1.17225e-1_rkx, -2.41512e-2_rkx,  1.50521e+4_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  1.60261e+3_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -3.54403e-4_rkx, -1.87270e-2_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  2.76439e-2_rkx,  6.43207e-3_rkx, -3.54300e-2_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -2.80221e-2_rkx, &
+            8.11228e+1_rkx, -6.75255e-4_rkx,  0.00000e+0_rkx/
   data pd(101:150,8) / &
-           -1.05162e-2_rkx , -3.48292e-3_rkx , -6.97321e-3_rkx ,                &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -1.45546e-3_rkx , -1.31970e-2_rkx , &
-           -3.57751e-3_rkx , -1.09021e+0_rkx , -1.50181e-2_rkx , -7.12841e-3_rkx , &
-           -6.64590e-3_rkx , -3.52610e-3_rkx , -1.87773e-2_rkx , -2.22432e-3_rkx , &
-           -3.93895e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx/
+           -1.05162e-2_rkx, -3.48292e-3_rkx, -6.97321e-3_rkx,                &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -1.45546e-3_rkx, -1.31970e-2_rkx, &
+           -3.57751e-3_rkx, -1.09021e+0_rkx, -1.50181e-2_rkx, -7.12841e-3_rkx, &
+           -6.64590e-3_rkx, -3.52610e-3_rkx, -1.87773e-2_rkx, -2.22432e-3_rkx, &
+           -3.93895e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx/
   ! HOT O DENSITY
   data pd(1:50,9) / &
-           6.04050e-2_rkx ,  1.57034e+0_rkx ,  2.99387e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -1.51018e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -8.61650e+0_rkx ,  1.26454e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  5.50878e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           6.23881e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx , -9.45934e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           6.04050e-2_rkx,  1.57034e+0_rkx,  2.99387e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -1.51018e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -8.61650e+0_rkx,  1.26454e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  5.50878e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           6.23881e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx, -9.45934e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pd(51:100,9) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pd(101:150,9) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   ! S PARAM
   data ps(1:50) / &
-           9.56827e-1_rkx ,  6.20637e-2_rkx ,  3.18433e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  3.94900e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-          -9.24882e-3_rkx , -7.94023e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  1.74712e+2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.74677e-3_rkx ,  0.00000e+0_rkx ,  1.54951e-2_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -6.99007e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  1.24362e-2_rkx , -5.28756e-3_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           9.56827e-1_rkx,  6.20637e-2_rkx,  3.18433e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  3.94900e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+          -9.24882e-3_rkx, -7.94023e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  1.74712e+2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.74677e-3_rkx,  0.00000e+0_rkx,  1.54951e-2_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -6.99007e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  1.24362e-2_rkx, -5.28756e-3_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data ps(51:100) / &
-           0.00000e+0_rkx ,  2.47425e-5_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           0.00000e+0_rkx,  2.47425e-5_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data ps(101:150) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   ! TURBO
-  data pdl/1.09930e+0_rkx ,  3.90631e+0_rkx ,  3.07165e+0_rkx ,  9.86161e-1_rkx , &
-           1.63536e+1_rkx ,  4.63830e+0_rkx ,  1.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.28840e+0_rkx ,  3.10302e-2_rkx , &
-           1.18339e-1_rkx ,  1.00000e+0_rkx ,  7.00000e-1_rkx ,  1.15020e+0_rkx , &
-           3.44689e+0_rkx ,  1.28840e+0_rkx ,  1.00000e+0_rkx ,  1.08738e+0_rkx , &
-           1.22947e+0_rkx ,  1.10016e+0_rkx ,  7.34129e-1_rkx ,  1.15241e+0_rkx , &
-           2.22784e+0_rkx ,  7.95046e-1_rkx ,  4.01612e+0_rkx ,  4.47749e+0_rkx , &
-           1.23435e+2_rkx , -7.60535e-2_rkx ,  1.68986e-6_rkx ,  7.44294e-1_rkx , &
-           1.03604e+0_rkx ,  1.72783e+2_rkx ,  1.15020e+0_rkx ,  3.44689e+0_rkx , &
-          -7.46230e-1_rkx ,  9.49154e-1_rkx/
+  data pdl/1.09930e+0_rkx,  3.90631e+0_rkx,  3.07165e+0_rkx,  9.86161e-1_rkx, &
+           1.63536e+1_rkx,  4.63830e+0_rkx,  1.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  1.28840e+0_rkx,  3.10302e-2_rkx, &
+           1.18339e-1_rkx,  1.00000e+0_rkx,  7.00000e-1_rkx,  1.15020e+0_rkx, &
+           3.44689e+0_rkx,  1.28840e+0_rkx,  1.00000e+0_rkx,  1.08738e+0_rkx, &
+           1.22947e+0_rkx,  1.10016e+0_rkx,  7.34129e-1_rkx,  1.15241e+0_rkx, &
+           2.22784e+0_rkx,  7.95046e-1_rkx,  4.01612e+0_rkx,  4.47749e+0_rkx, &
+           1.23435e+2_rkx, -7.60535e-2_rkx,  1.68986e-6_rkx,  7.44294e-1_rkx, &
+           1.03604e+0_rkx,  1.72783e+2_rkx,  1.15020e+0_rkx,  3.44689e+0_rkx, &
+          -7.46230e-1_rkx,  9.49154e-1_rkx/
 
   ! LOWER BOUNDARY
-  data ptm/1.04130e+3_rkx ,  3.86000e+2_rkx ,  1.95000e+2_rkx ,  1.66728e+1_rkx , &
-           2.13000e+2_rkx ,  1.20000e+2_rkx ,  2.40000e+2_rkx ,  1.87000e+2_rkx , &
-          -2.00000e+0_rkx ,  0.00000e+0_rkx/
+  data ptm/1.04130e+3_rkx,  3.86000e+2_rkx,  1.95000e+2_rkx,  1.66728e+1_rkx, &
+           2.13000e+2_rkx,  1.20000e+2_rkx,  2.40000e+2_rkx,  1.87000e+2_rkx, &
+          -2.00000e+0_rkx,  0.00000e+0_rkx/
 !
-  data pdm/2.45600e+7_rkx ,  6.71072e-6_rkx ,  1.00000e+2_rkx ,  0.00000e+0_rkx , &
-           1.10000e+2_rkx ,  1.00000e+1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  8.5940e+10_rkx ,  1.00000e+0_rkx , &
-           1.05000e+2_rkx , -8.00000e+0_rkx ,  1.10000e+2_rkx ,  1.00000e+1_rkx , &
-           9.00000e+1_rkx ,  2.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           2.8100e+11_rkx ,  0.00000e+0_rkx ,  1.05000e+2_rkx ,  2.80000e+1_rkx , &
-           2.89500e+1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  3.3000e+10_rkx ,  2.68270e-1_rkx , &
-           1.05000e+2_rkx ,  1.00000e+0_rkx ,  1.10000e+2_rkx ,  1.00000e+1_rkx , &
-           1.10000e+2_rkx , -1.00000e+1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           1.33000e+9_rkx ,  1.19615e-2_rkx ,  1.05000e+2_rkx ,  0.00000e+0_rkx , &
-           1.10000e+2_rkx ,  1.00000e+1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.76100e+5_rkx ,  1.00000e+0_rkx , &
-           9.50000e+1_rkx , -8.00000e+0_rkx ,  1.10000e+2_rkx ,  1.00000e+1_rkx , &
-           9.00000e+1_rkx ,  2.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           1.00000e+7_rkx ,  1.00000e+0_rkx ,  1.05000e+2_rkx , -8.00000e+0_rkx , &
-           1.10000e+2_rkx ,  1.00000e+1_rkx ,  9.00000e+1_rkx ,  2.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.00000e+6_rkx ,  1.00000e+0_rkx , &
-           1.05000e+2_rkx , -8.00000e+0_rkx ,  5.50000e+2_rkx ,  7.60000e+1_rkx , &
-           9.00000e+1_rkx ,  2.00000e+0_rkx ,  0.00000e+0_rkx ,  4.00000e+3_rkx/
+  data pdm/2.45600e+7_rkx,  6.71072e-6_rkx,  1.00000e+2_rkx,  0.00000e+0_rkx, &
+           1.10000e+2_rkx,  1.00000e+1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  8.5940e+10_rkx,  1.00000e+0_rkx, &
+           1.05000e+2_rkx, -8.00000e+0_rkx,  1.10000e+2_rkx,  1.00000e+1_rkx, &
+           9.00000e+1_rkx,  2.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           2.8100e+11_rkx,  0.00000e+0_rkx,  1.05000e+2_rkx,  2.80000e+1_rkx, &
+           2.89500e+1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  3.3000e+10_rkx,  2.68270e-1_rkx, &
+           1.05000e+2_rkx,  1.00000e+0_rkx,  1.10000e+2_rkx,  1.00000e+1_rkx, &
+           1.10000e+2_rkx, -1.00000e+1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           1.33000e+9_rkx,  1.19615e-2_rkx,  1.05000e+2_rkx,  0.00000e+0_rkx, &
+           1.10000e+2_rkx,  1.00000e+1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  1.76100e+5_rkx,  1.00000e+0_rkx, &
+           9.50000e+1_rkx, -8.00000e+0_rkx,  1.10000e+2_rkx,  1.00000e+1_rkx, &
+           9.00000e+1_rkx,  2.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           1.00000e+7_rkx,  1.00000e+0_rkx,  1.05000e+2_rkx, -8.00000e+0_rkx, &
+           1.10000e+2_rkx,  1.00000e+1_rkx,  9.00000e+1_rkx,  2.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  1.00000e+6_rkx,  1.00000e+0_rkx, &
+           1.05000e+2_rkx, -8.00000e+0_rkx,  5.50000e+2_rkx,  7.60000e+1_rkx, &
+           9.00000e+1_rkx,  2.00000e+0_rkx,  0.00000e+0_rkx,  4.00000e+3_rkx/
   ! TN1(2)
   data ptl(1:50,1) / &
-           1.00858e+0_rkx ,  4.56011e-2_rkx , -2.22972e-2_rkx , -5.44388e-2_rkx , &
-           5.23136e-4_rkx , -1.88849e-2_rkx ,  5.23707e-2_rkx , -9.43646e-3_rkx , &
-           6.31707e-3_rkx , -7.80460e-2_rkx , -4.88430e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -7.60250e+0_rkx ,  0.00000e+0_rkx , -1.44635e-2_rkx , &
-          -1.76843e-2_rkx , -1.21517e+2_rkx ,  2.85647e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  6.31792e-4_rkx ,  0.00000e+0_rkx ,  5.77197e-3_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -8.90272e+3_rkx , &
-           3.30611e-3_rkx ,  3.02172e-3_rkx ,  0.00000e+0_rkx , -2.13673e-3_rkx , &
-          -3.20910e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.76034e-3_rkx , &
-           2.82487e-3_rkx , -2.97592e-4_rkx , -4.21534e-3_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx ,  8.96456e-3_rkx ,  0.00000e+0_rkx , -1.08596e-2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           1.00858e+0_rkx,  4.56011e-2_rkx, -2.22972e-2_rkx, -5.44388e-2_rkx, &
+           5.23136e-4_rkx, -1.88849e-2_rkx,  5.23707e-2_rkx, -9.43646e-3_rkx, &
+           6.31707e-3_rkx, -7.80460e-2_rkx, -4.88430e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -7.60250e+0_rkx,  0.00000e+0_rkx, -1.44635e-2_rkx, &
+          -1.76843e-2_rkx, -1.21517e+2_rkx,  2.85647e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  6.31792e-4_rkx,  0.00000e+0_rkx,  5.77197e-3_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -8.90272e+3_rkx, &
+           3.30611e-3_rkx,  3.02172e-3_rkx,  0.00000e+0_rkx, -2.13673e-3_rkx, &
+          -3.20910e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  2.76034e-3_rkx, &
+           2.82487e-3_rkx, -2.97592e-4_rkx, -4.21534e-3_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx,  8.96456e-3_rkx,  0.00000e+0_rkx, -1.08596e-2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data ptl(51:100,1) / &
-           5.57917e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  9.65405e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           5.57917e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  9.65405e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TN1(3)
   data ptl(1:50,2) / &
-           9.39664e-1_rkx ,  8.56514e-2_rkx , -6.79989e-3_rkx ,  2.65929e-2_rkx , &
-          -4.74283e-3_rkx ,  1.21855e-2_rkx , -2.14905e-2_rkx ,  6.49651e-3_rkx , &
-          -2.05477e-2_rkx , -4.24952e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  1.19148e+1_rkx ,  0.00000e+0_rkx ,  1.18777e-2_rkx , &
-          -7.28230e-2_rkx , -8.15965e+1_rkx ,  1.73887e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -1.44691e-2_rkx ,  2.80259e-4_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.16584e+2_rkx , &
-           3.18713e-3_rkx ,  7.37479e-3_rkx ,  0.00000e+0_rkx , -2.55018e-3_rkx , &
-          -3.92806e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -2.89757e-3_rkx , &
-          -1.33549e-3_rkx ,  1.02661e-3_rkx ,  3.53775e-4_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx , -9.17497e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           9.39664e-1_rkx,  8.56514e-2_rkx, -6.79989e-3_rkx,  2.65929e-2_rkx, &
+          -4.74283e-3_rkx,  1.21855e-2_rkx, -2.14905e-2_rkx,  6.49651e-3_rkx, &
+          -2.05477e-2_rkx, -4.24952e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  1.19148e+1_rkx,  0.00000e+0_rkx,  1.18777e-2_rkx, &
+          -7.28230e-2_rkx, -8.15965e+1_rkx,  1.73887e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -1.44691e-2_rkx,  2.80259e-4_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  2.16584e+2_rkx, &
+           3.18713e-3_rkx,  7.37479e-3_rkx,  0.00000e+0_rkx, -2.55018e-3_rkx, &
+          -3.92806e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -2.89757e-3_rkx, &
+          -1.33549e-3_rkx,  1.02661e-3_rkx,  3.53775e-4_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx, -9.17497e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data ptl(51:100,2) / &
-           3.56082e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -1.00902e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           3.56082e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -1.00902e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TN1(4)
   data ptl(1:50,3) / &
-           9.85982e-1_rkx , -4.55435e-2_rkx ,  1.21106e-2_rkx ,  2.04127e-2_rkx , &
-          -2.40836e-3_rkx ,  1.11383e-2_rkx , -4.51926e-2_rkx ,  1.35074e-2_rkx , &
-          -6.54139e-3_rkx ,  1.15275e-1_rkx ,  1.28247e-1_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -5.30705e+0_rkx ,  0.00000e+0_rkx , -3.79332e-2_rkx , &
-          -6.24741e-2_rkx ,  7.71062e-1_rkx ,  2.96315e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  6.81051e-3_rkx , -4.34767e-3_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.07003e+1_rkx , &
-          -2.76907e-3_rkx ,  4.32474e-4_rkx ,  0.00000e+0_rkx ,  1.31497e-3_rkx , &
-          -6.47517e-4_rkx ,  0.00000e+0_rkx , -2.20621e+1_rkx , -1.10804e-3_rkx , &
-          -8.09338e-4_rkx ,  4.18184e-4_rkx ,  4.29650e-3_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           9.85982e-1_rkx, -4.55435e-2_rkx,  1.21106e-2_rkx,  2.04127e-2_rkx, &
+          -2.40836e-3_rkx,  1.11383e-2_rkx, -4.51926e-2_rkx,  1.35074e-2_rkx, &
+          -6.54139e-3_rkx,  1.15275e-1_rkx,  1.28247e-1_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -5.30705e+0_rkx,  0.00000e+0_rkx, -3.79332e-2_rkx, &
+          -6.24741e-2_rkx,  7.71062e-1_rkx,  2.96315e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  6.81051e-3_rkx, -4.34767e-3_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  1.07003e+1_rkx, &
+          -2.76907e-3_rkx,  4.32474e-4_rkx,  0.00000e+0_rkx,  1.31497e-3_rkx, &
+          -6.47517e-4_rkx,  0.00000e+0_rkx, -2.20621e+1_rkx, -1.10804e-3_rkx, &
+          -8.09338e-4_rkx,  4.18184e-4_rkx,  4.29650e-3_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data ptl(51:100,3) / &
-           -4.04337e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,                &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -9.52550e-4_rkx , &
-            8.56253e-4_rkx ,  4.33114e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  1.21223e-3_rkx ,  2.38694e-4_rkx ,  9.15245e-4_rkx , &
-            1.28385e-3_rkx ,  8.67668e-4_rkx , -5.61425e-6_rkx ,  1.04445e+0_rkx , &
-            3.41112e+1_rkx ,  0.00000e+0_rkx , -8.40704e-1_rkx , -2.39639e+2_rkx , &
-            7.06668e-1_rkx , -2.05873e+1_rkx , -3.63696e-1_rkx ,  2.39245e+1_rkx , &
-            0.00000e+0_rkx , -1.06657e-3_rkx , -7.67292e-4_rkx ,  1.54534e-4_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.00000e+0_rkx/
+           -4.04337e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,                &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -9.52550e-4_rkx, &
+            8.56253e-4_rkx,  4.33114e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  1.21223e-3_rkx,  2.38694e-4_rkx,  9.15245e-4_rkx, &
+            1.28385e-3_rkx,  8.67668e-4_rkx, -5.61425e-6_rkx,  1.04445e+0_rkx, &
+            3.41112e+1_rkx,  0.00000e+0_rkx, -8.40704e-1_rkx, -2.39639e+2_rkx, &
+            7.06668e-1_rkx, -2.05873e+1_rkx, -3.63696e-1_rkx,  2.39245e+1_rkx, &
+            0.00000e+0_rkx, -1.06657e-3_rkx, -7.67292e-4_rkx,  1.54534e-4_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TN1(5) TN2(1)
   data ptl(1:50,4) / &
-           1.00320e+0_rkx ,  3.83501e-2_rkx , -2.38983e-3_rkx ,  2.83950e-3_rkx , &
-           4.20956e-3_rkx ,  5.86619e-4_rkx ,  2.19054e-2_rkx , -1.00946e-2_rkx , &
-          -3.50259e-3_rkx ,  4.17392e-2_rkx , -8.44404e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  4.96949e+0_rkx ,  0.00000e+0_rkx , -7.06478e-3_rkx , &
-          -1.46494e-2_rkx ,  3.13258e+1_rkx , -1.86493e-3_rkx ,  0.00000e+0_rkx , &
-          -1.67499e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  5.12686e-4_rkx , &
-           8.66784e-2_rkx ,  1.58727e-1_rkx , -4.64167e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  4.37353e-3_rkx , -1.99069e+2_rkx , &
-           0.00000e+0_rkx , -5.34884e-3_rkx ,  0.00000e+0_rkx ,  1.62458e-3_rkx , &
-           2.93016e-3_rkx ,  2.67926e-3_rkx ,  5.90449e+2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -1.17266e-3_rkx , -3.58890e-4_rkx ,  8.47001e-2_rkx , &
-           1.70147e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.38673e-2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           1.00320e+0_rkx,  3.83501e-2_rkx, -2.38983e-3_rkx,  2.83950e-3_rkx, &
+           4.20956e-3_rkx,  5.86619e-4_rkx,  2.19054e-2_rkx, -1.00946e-2_rkx, &
+          -3.50259e-3_rkx,  4.17392e-2_rkx, -8.44404e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  4.96949e+0_rkx,  0.00000e+0_rkx, -7.06478e-3_rkx, &
+          -1.46494e-2_rkx,  3.13258e+1_rkx, -1.86493e-3_rkx,  0.00000e+0_rkx, &
+          -1.67499e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  5.12686e-4_rkx, &
+           8.66784e-2_rkx,  1.58727e-1_rkx, -4.64167e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  4.37353e-3_rkx, -1.99069e+2_rkx, &
+           0.00000e+0_rkx, -5.34884e-3_rkx,  0.00000e+0_rkx,  1.62458e-3_rkx, &
+           2.93016e-3_rkx,  2.67926e-3_rkx,  5.90449e+2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -1.17266e-3_rkx, -3.58890e-4_rkx,  8.47001e-2_rkx, &
+           1.70147e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  1.38673e-2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data ptl(51:100,4) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.60571e-3_rkx ,  6.28078e-4_rkx , &
-           5.05469e-5_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-          -1.57829e-3_rkx , -4.00855e-4_rkx ,  5.04077e-5_rkx , -1.39001e-3_rkx , &
-          -2.33406e-3_rkx , -4.81197e-4_rkx ,  1.46758e+0_rkx ,  6.20332e+0_rkx , &
-           0.00000e+0_rkx ,  3.66476e-1_rkx , -6.19760e+1_rkx ,  3.09198e-1_rkx , &
-          -1.98999e+1_rkx ,  0.00000e+0_rkx , -3.29933e+2_rkx ,  0.00000e+0_rkx , &
-          -1.10080e-3_rkx , -9.39310e-5_rkx ,  1.39638e-4_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  1.60571e-3_rkx,  6.28078e-4_rkx, &
+           5.05469e-5_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+          -1.57829e-3_rkx, -4.00855e-4_rkx,  5.04077e-5_rkx, -1.39001e-3_rkx, &
+          -2.33406e-3_rkx, -4.81197e-4_rkx,  1.46758e+0_rkx,  6.20332e+0_rkx, &
+           0.00000e+0_rkx,  3.66476e-1_rkx, -6.19760e+1_rkx,  3.09198e-1_rkx, &
+          -1.98999e+1_rkx,  0.00000e+0_rkx, -3.29933e+2_rkx,  0.00000e+0_rkx, &
+          -1.10080e-3_rkx, -9.39310e-5_rkx,  1.39638e-4_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TN2(2)
   data pma(1:50,1) / &
-           9.81637e-1_rkx , -1.41317e-3_rkx ,  3.87323e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -3.58707e-2_rkx , -8.63658e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -2.02226e+0_rkx ,  0.00000e+0_rkx , -8.69424e-3_rkx , &
-          -1.91397e-2_rkx ,  8.76779e+1_rkx ,  4.52188e-3_rkx ,  0.00000e+0_rkx , &
-           2.23760e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -7.07572e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -4.11210e-3_rkx ,  3.50060e+1_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -8.36657e-3_rkx ,  1.61347e+1_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -1.45130e-2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           9.81637e-1_rkx, -1.41317e-3_rkx,  3.87323e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -3.58707e-2_rkx, -8.63658e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -2.02226e+0_rkx,  0.00000e+0_rkx, -8.69424e-3_rkx, &
+          -1.91397e-2_rkx,  8.76779e+1_rkx,  4.52188e-3_rkx,  0.00000e+0_rkx, &
+           2.23760e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -7.07572e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -4.11210e-3_rkx,  3.50060e+1_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -8.36657e-3_rkx,  1.61347e+1_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -1.45130e-2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pma(51:100,1) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.24152e-3_rkx ,  6.43365e-4_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           1.33255e-3_rkx ,  2.42657e-3_rkx ,  1.60666e-3_rkx , -1.85728e-3_rkx , &
-          -1.46874e-3_rkx , -4.79163e-6_rkx ,  1.22464e+0_rkx ,  3.53510e+1_rkx , &
-           0.00000e+0_rkx ,  4.49223e-1_rkx , -4.77466e+1_rkx ,  4.70681e-1_rkx , &
-           8.41861e+0_rkx , -2.88198e-1_rkx ,  1.67854e+2_rkx ,  0.00000e+0_rkx , &
-           7.11493e-4_rkx ,  6.05601e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  1.24152e-3_rkx,  6.43365e-4_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           1.33255e-3_rkx,  2.42657e-3_rkx,  1.60666e-3_rkx, -1.85728e-3_rkx, &
+          -1.46874e-3_rkx, -4.79163e-6_rkx,  1.22464e+0_rkx,  3.53510e+1_rkx, &
+           0.00000e+0_rkx,  4.49223e-1_rkx, -4.77466e+1_rkx,  4.70681e-1_rkx, &
+           8.41861e+0_rkx, -2.88198e-1_rkx,  1.67854e+2_rkx,  0.00000e+0_rkx, &
+           7.11493e-4_rkx,  6.05601e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TN2(3)
   data pma(1:50,2) / &
-           1.00422e+0_rkx , -7.11212e-3_rkx ,  5.24480e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -5.28914e-2_rkx , -2.41301e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -2.12219e+1_rkx , -1.03830e-2_rkx , -3.28077e-3_rkx , &
-           1.65727e-2_rkx ,  1.68564e+0_rkx , -6.68154e-3_rkx ,  0.00000e+0_rkx , &
-           1.45155e-2_rkx ,  0.00000e+0_rkx ,  8.42365e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -4.34645e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.16780e-2_rkx ,  0.00000e+0_rkx , -1.38459e+2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  7.04573e-3_rkx , -4.73204e+1_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.08767e-2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           1.00422e+0_rkx, -7.11212e-3_rkx,  5.24480e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -5.28914e-2_rkx, -2.41301e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -2.12219e+1_rkx, -1.03830e-2_rkx, -3.28077e-3_rkx, &
+           1.65727e-2_rkx,  1.68564e+0_rkx, -6.68154e-3_rkx,  0.00000e+0_rkx, &
+           1.45155e-2_rkx,  0.00000e+0_rkx,  8.42365e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -4.34645e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.16780e-2_rkx,  0.00000e+0_rkx, -1.38459e+2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  7.04573e-3_rkx, -4.73204e+1_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  1.08767e-2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pma(51:100,2) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -8.08279e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  5.21769e-4_rkx , -2.27387e-4_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           3.26769e-3_rkx ,  3.16901e-3_rkx ,  4.60316e-4_rkx , -1.01431e-4_rkx , &
-           1.02131e-3_rkx ,  9.96601e-4_rkx ,  1.25707e+0_rkx ,  2.50114e+1_rkx , &
-           0.00000e+0_rkx ,  4.24472e-1_rkx , -2.77655e+1_rkx ,  3.44625e-1_rkx , &
-           2.75412e+1_rkx ,  0.00000e+0_rkx ,  7.94251e+2_rkx ,  0.00000e+0_rkx , &
-           2.45835e-3_rkx ,  1.38871e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -8.08279e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  5.21769e-4_rkx, -2.27387e-4_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           3.26769e-3_rkx,  3.16901e-3_rkx,  4.60316e-4_rkx, -1.01431e-4_rkx, &
+           1.02131e-3_rkx,  9.96601e-4_rkx,  1.25707e+0_rkx,  2.50114e+1_rkx, &
+           0.00000e+0_rkx,  4.24472e-1_rkx, -2.77655e+1_rkx,  3.44625e-1_rkx, &
+           2.75412e+1_rkx,  0.00000e+0_rkx,  7.94251e+2_rkx,  0.00000e+0_rkx, &
+           2.45835e-3_rkx,  1.38871e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TN2(4) TN3(1)
   data pma(1:50,3) / &
-           1.01890e+0_rkx , -2.46603e-2_rkx ,  1.00078e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -6.70977e-2_rkx , -4.02286e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -2.29466e+1_rkx , -7.47019e-3_rkx ,  2.26580e-3_rkx , &
-           2.63931e-2_rkx ,  3.72625e+1_rkx , -6.39041e-3_rkx ,  0.00000e+0_rkx , &
-           9.58383e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -1.85291e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  1.39717e+2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  9.19771e-3_rkx , -3.69121e+2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -1.57067e-2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           1.01890e+0_rkx, -2.46603e-2_rkx,  1.00078e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -6.70977e-2_rkx, -4.02286e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -2.29466e+1_rkx, -7.47019e-3_rkx,  2.26580e-3_rkx, &
+           2.63931e-2_rkx,  3.72625e+1_rkx, -6.39041e-3_rkx,  0.00000e+0_rkx, &
+           9.58383e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -1.85291e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  1.39717e+2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  9.19771e-3_rkx, -3.69121e+2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -1.57067e-2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pma(51:100,3) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -7.07265e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -2.92953e-3_rkx , -2.77739e-3_rkx , &
-          -4.40092e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           2.47280e-3_rkx ,  2.95035e-4_rkx , -1.81246e-3_rkx ,  2.81945e-3_rkx , &
-           4.27296e-3_rkx ,  9.78863e-4_rkx ,  1.40545e+0_rkx , -6.19173e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -7.93632e+1_rkx ,  4.44643e-1_rkx , &
-          -4.03085e+2_rkx ,  0.00000e+0_rkx ,  1.15603e+1_rkx ,  0.00000e+0_rkx , &
-           2.25068e-3_rkx ,  8.48557e-4_rkx , -2.98493e-4_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -7.07265e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -2.92953e-3_rkx, -2.77739e-3_rkx, &
+          -4.40092e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           2.47280e-3_rkx,  2.95035e-4_rkx, -1.81246e-3_rkx,  2.81945e-3_rkx, &
+           4.27296e-3_rkx,  9.78863e-4_rkx,  1.40545e+0_rkx, -6.19173e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -7.93632e+1_rkx,  4.44643e-1_rkx, &
+          -4.03085e+2_rkx,  0.00000e+0_rkx,  1.15603e+1_rkx,  0.00000e+0_rkx, &
+           2.25068e-3_rkx,  8.48557e-4_rkx, -2.98493e-4_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TN3(2)
   data pma(1:50,4) / &
-           9.75801e-1_rkx ,  3.80680e-2_rkx , -3.05198e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  3.85575e-2_rkx ,  5.04057e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -1.76046e+2_rkx ,  1.44594e-2_rkx , -1.48297e-3_rkx , &
-          -3.68560e-3_rkx ,  3.02185e+1_rkx , -3.23338e-3_rkx ,  0.00000e+0_rkx , &
-           1.53569e-2_rkx ,  0.00000e+0_rkx , -1.15558e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  4.89620e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -1.00616e-2_rkx , -8.21324e-3_rkx , -1.57757e+2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  6.63564e-3_rkx ,  4.58410e+1_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -2.51280e-2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           9.75801e-1_rkx,  3.80680e-2_rkx, -3.05198e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  3.85575e-2_rkx,  5.04057e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -1.76046e+2_rkx,  1.44594e-2_rkx, -1.48297e-3_rkx, &
+          -3.68560e-3_rkx,  3.02185e+1_rkx, -3.23338e-3_rkx,  0.00000e+0_rkx, &
+           1.53569e-2_rkx,  0.00000e+0_rkx, -1.15558e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  4.89620e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -1.00616e-2_rkx, -8.21324e-3_rkx, -1.57757e+2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  6.63564e-3_rkx,  4.58410e+1_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -2.51280e-2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pma(51:100,4) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  9.91215e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -8.73148e-4_rkx , -1.29648e-3_rkx , &
-          -7.32026e-5_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-          -4.68110e-3_rkx , -4.66003e-3_rkx , -1.31567e-3_rkx , -7.39390e-4_rkx , &
-           6.32499e-4_rkx , -4.65588e-4_rkx , -1.29785e+0_rkx , -1.57139e+2_rkx , &
-           0.00000e+0_rkx ,  2.58350e-1_rkx , -3.69453e+1_rkx ,  4.10672e-1_rkx , &
-           9.78196e+0_rkx , -1.52064e-1_rkx , -3.85084e+3_rkx ,  0.00000e+0_rkx , &
-          -8.52706e-4_rkx , -1.40945e-3_rkx , -7.26786e-4_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  9.91215e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -8.73148e-4_rkx, -1.29648e-3_rkx, &
+          -7.32026e-5_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+          -4.68110e-3_rkx, -4.66003e-3_rkx, -1.31567e-3_rkx, -7.39390e-4_rkx, &
+           6.32499e-4_rkx, -4.65588e-4_rkx, -1.29785e+0_rkx, -1.57139e+2_rkx, &
+           0.00000e+0_rkx,  2.58350e-1_rkx, -3.69453e+1_rkx,  4.10672e-1_rkx, &
+           9.78196e+0_rkx, -1.52064e-1_rkx, -3.85084e+3_rkx,  0.00000e+0_rkx, &
+          -8.52706e-4_rkx, -1.40945e-3_rkx, -7.26786e-4_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TN3(3)
   data pma(1:50,5) / &
-           9.60722e-1_rkx ,  7.03757e-2_rkx , -3.00266e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.22671e-2_rkx ,  4.10423e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -1.63070e+2_rkx ,  1.06073e-2_rkx ,  5.40747e-4_rkx , &
-           7.79481e-3_rkx ,  1.44908e+2_rkx ,  1.51484e-4_rkx ,  0.00000e+0_rkx , &
-           1.97547e-2_rkx ,  0.00000e+0_rkx , -1.41844e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  5.77884e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  9.74319e-3_rkx ,  0.00000e+0_rkx , -2.88015e+3_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -4.44902e-3_rkx , -2.92760e+1_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.34419e-2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           9.60722e-1_rkx,  7.03757e-2_rkx, -3.00266e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.22671e-2_rkx,  4.10423e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -1.63070e+2_rkx,  1.06073e-2_rkx,  5.40747e-4_rkx, &
+           7.79481e-3_rkx,  1.44908e+2_rkx,  1.51484e-4_rkx,  0.00000e+0_rkx, &
+           1.97547e-2_rkx,  0.00000e+0_rkx, -1.41844e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  5.77884e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  9.74319e-3_rkx,  0.00000e+0_rkx, -2.88015e+3_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -4.44902e-3_rkx, -2.92760e+1_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  2.34419e-2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pma(51:100,5) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  5.36685e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -4.65325e-4_rkx , -5.50628e-4_rkx , &
-           3.31465e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-          -2.06179e-3_rkx , -3.08575e-3_rkx , -7.93589e-4_rkx , -1.08629e-4_rkx , &
-           5.95511e-4_rkx , -9.05050e-4_rkx ,  1.18997e+0_rkx ,  4.15924e+1_rkx , &
-           0.00000e+0_rkx , -4.72064e-1_rkx , -9.47150e+2_rkx ,  3.98723e-1_rkx , &
-           1.98304e+1_rkx ,  0.00000e+0_rkx ,  3.73219e+3_rkx ,  0.00000e+0_rkx , &
-          -1.50040e-3_rkx , -1.14933e-3_rkx , -1.56769e-4_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  5.36685e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -4.65325e-4_rkx, -5.50628e-4_rkx, &
+           3.31465e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+          -2.06179e-3_rkx, -3.08575e-3_rkx, -7.93589e-4_rkx, -1.08629e-4_rkx, &
+           5.95511e-4_rkx, -9.05050e-4_rkx,  1.18997e+0_rkx,  4.15924e+1_rkx, &
+           0.00000e+0_rkx, -4.72064e-1_rkx, -9.47150e+2_rkx,  3.98723e-1_rkx, &
+           1.98304e+1_rkx,  0.00000e+0_rkx,  3.73219e+3_rkx,  0.00000e+0_rkx, &
+          -1.50040e-3_rkx, -1.14933e-3_rkx, -1.56769e-4_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TN3(4)
   data pma(1:50,6) / &
-           1.03123e+0_rkx , -7.05124e-2_rkx ,  8.71615e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -3.82621e-2_rkx , -9.80975e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.89286e+1_rkx ,  9.57341e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  8.66153e+1_rkx ,  7.91938e-4_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  4.68917e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  7.86638e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  9.90827e-3_rkx ,  0.00000e+0_rkx ,  6.55573e+1_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -4.00200e+1_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  7.07457e-3_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           1.03123e+0_rkx, -7.05124e-2_rkx,  8.71615e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -3.82621e-2_rkx, -9.80975e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.89286e+1_rkx,  9.57341e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  8.66153e+1_rkx,  7.91938e-4_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  4.68917e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  7.86638e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  9.90827e-3_rkx,  0.00000e+0_rkx,  6.55573e+1_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -4.00200e+1_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  7.07457e-3_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pma(51:100,6) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  5.72268e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -2.04970e-4_rkx ,  1.21560e-3_rkx , &
-          -8.05579e-6_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-          -2.49941e-3_rkx , -4.57256e-4_rkx , -1.59311e-4_rkx ,  2.96481e-4_rkx , &
-          -1.77318e-3_rkx , -6.37918e-4_rkx ,  1.02395e+0_rkx ,  1.28172e+1_rkx , &
-           0.00000e+0_rkx ,  1.49903e-1_rkx , -2.63818e+1_rkx ,  0.00000e+0_rkx , &
-           4.70628e+1_rkx , -2.22139e-1_rkx ,  4.82292e-2_rkx ,  0.00000e+0_rkx , &
-          -8.67075e-4_rkx , -5.86479e-4_rkx ,  5.32462e-4_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  5.72268e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -2.04970e-4_rkx,  1.21560e-3_rkx, &
+          -8.05579e-6_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+          -2.49941e-3_rkx, -4.57256e-4_rkx, -1.59311e-4_rkx,  2.96481e-4_rkx, &
+          -1.77318e-3_rkx, -6.37918e-4_rkx,  1.02395e+0_rkx,  1.28172e+1_rkx, &
+           0.00000e+0_rkx,  1.49903e-1_rkx, -2.63818e+1_rkx,  0.00000e+0_rkx, &
+           4.70628e+1_rkx, -2.22139e-1_rkx,  4.82292e-2_rkx,  0.00000e+0_rkx, &
+          -8.67075e-4_rkx, -5.86479e-4_rkx,  5.32462e-4_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TN3(5) SURFACE TEMP TSL
   data pma(1:50,7) / &
-           1.00828e+0_rkx , -9.10404e-2_rkx , -2.26549e-2_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -2.32420e-2_rkx , -9.08925e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  3.36105e+1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -1.24957e+1_rkx , -5.87939e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.79765e+1_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.01237e+3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -1.75553e-2_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           1.00828e+0_rkx, -9.10404e-2_rkx, -2.26549e-2_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -2.32420e-2_rkx, -9.08925e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  3.36105e+1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -1.24957e+1_rkx, -5.87939e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  2.79765e+1_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  2.01237e+3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -1.75553e-2_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pma(51:100,7) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  3.29699e-3_rkx ,  1.26659e-3_rkx , &
-           2.68402e-4_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           1.17894e-3_rkx ,  1.48746e-3_rkx ,  1.06478e-4_rkx ,  1.34743e-4_rkx , &
-          -2.20939e-3_rkx , -6.23523e-4_rkx ,  6.36539e-1_rkx ,  1.13621e+1_rkx , &
-           0.00000e+0_rkx , -3.93777e-1_rkx ,  2.38687e+3_rkx ,  0.00000e+0_rkx , &
-           6.61865e+2_rkx , -1.21434e-1_rkx ,  9.27608e+0_rkx ,  0.00000e+0_rkx , &
-           1.68478e-4_rkx ,  1.24892e-3_rkx ,  1.71345e-3_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  3.29699e-3_rkx,  1.26659e-3_rkx, &
+           2.68402e-4_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           1.17894e-3_rkx,  1.48746e-3_rkx,  1.06478e-4_rkx,  1.34743e-4_rkx, &
+          -2.20939e-3_rkx, -6.23523e-4_rkx,  6.36539e-1_rkx,  1.13621e+1_rkx, &
+           0.00000e+0_rkx, -3.93777e-1_rkx,  2.38687e+3_rkx,  0.00000e+0_rkx, &
+           6.61865e+2_rkx, -1.21434e-1_rkx,  9.27608e+0_rkx,  0.00000e+0_rkx, &
+           1.68478e-4_rkx,  1.24892e-3_rkx,  1.71345e-3_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TGN3(2) SURFACE GRAD TSLG
   data pma(1:50,8) / &
-           1.57293e+0_rkx , -6.78400e-1_rkx ,  6.47500e-1_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx , -7.62974e-2_rkx , -3.60423e-1_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  1.28358e+2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  4.68038e+1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx , -1.67898e-1_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.90994e+4_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  3.15706e+1_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           0.00000e+0_rkx ,  0.00000e+0_rkx/
+           1.57293e+0_rkx, -6.78400e-1_rkx,  6.47500e-1_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx, -7.62974e-2_rkx, -3.60423e-1_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  1.28358e+2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  4.68038e+1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx, -1.67898e-1_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  2.90994e+4_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  3.15706e+1_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           0.00000e+0_rkx,  0.00000e+0_rkx/
   data pma(51:100,8) / &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  &
-           0.00000e+0_rkx ,  2.00000e+0_rkx/
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  &
+           0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TGN2(1) TGN1(2)
   data pma(1:50,9) / &
-            8.60028e-1_rkx ,  3.77052e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx , -1.17570e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  7.77757e-3_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  1.01024e+2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  6.54251e+2_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx/
+            8.60028e-1_rkx,  3.77052e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx, -1.17570e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  7.77757e-3_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  1.01024e+2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  6.54251e+2_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx/
   data pma(51:100,9) / &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-           -1.56959e-2_rkx ,  1.91001e-2_rkx ,  3.15971e-2_rkx ,  1.00982e-2_rkx , &
-           -6.71565e-3_rkx ,  2.57693e-3_rkx ,  1.38692e+0_rkx ,  2.82132e-1_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  3.81511e+2_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  2.00000e+0_rkx/
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+           -1.56959e-2_rkx,  1.91001e-2_rkx,  3.15971e-2_rkx,  1.00982e-2_rkx, &
+           -6.71565e-3_rkx,  2.57693e-3_rkx,  1.38692e+0_rkx,  2.82132e-1_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  3.81511e+2_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  2.00000e+0_rkx/
   ! TGN3(1) TGN2(2)
   data pma(1:50,10) / &
-            1.06029e+0_rkx , -5.25231e-2_rkx ,  3.73034e-1_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  3.31072e-2_rkx , -3.88409e-1_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx , -1.65295e+2_rkx , -2.13801e-1_rkx , -4.38916e-2_rkx , &
-           -3.22716e-1_rkx , -8.82393e+1_rkx ,  1.18458e-1_rkx ,  0.00000e+0_rkx , &
-           -4.35863e-1_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -1.19782e-1_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  2.62229e+1_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -5.37443e+1_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , -4.55788e-1_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx/
+            1.06029e+0_rkx, -5.25231e-2_rkx,  3.73034e-1_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  3.31072e-2_rkx, -3.88409e-1_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx, -1.65295e+2_rkx, -2.13801e-1_rkx, -4.38916e-2_rkx, &
+           -3.22716e-1_rkx, -8.82393e+1_rkx,  1.18458e-1_rkx,  0.00000e+0_rkx, &
+           -4.35863e-1_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -1.19782e-1_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  2.62229e+1_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -5.37443e+1_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, -4.55788e-1_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx/
   data pma(51:100,10) / &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  3.84009e-2_rkx ,  3.96733e-2_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            5.05494e-2_rkx ,  7.39617e-2_rkx ,  1.92200e-2_rkx , -8.46151e-3_rkx , &
-           -1.34244e-2_rkx ,  1.96338e-2_rkx ,  1.50421e+0_rkx ,  1.88368e+1_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx , -5.13114e+1_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            5.11923e-2_rkx ,  3.61225e-2_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx ,  0.00000e+0_rkx , &
-            0.00000e+0_rkx ,  2.00000e+0_rkx/
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  3.84009e-2_rkx,  3.96733e-2_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            5.05494e-2_rkx,  7.39617e-2_rkx,  1.92200e-2_rkx, -8.46151e-3_rkx, &
+           -1.34244e-2_rkx,  1.96338e-2_rkx,  1.50421e+0_rkx,  1.88368e+1_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx, -5.13114e+1_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            5.11923e-2_rkx,  3.61225e-2_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx,  0.00000e+0_rkx, &
+            0.00000e+0_rkx,  2.00000e+0_rkx/
   ! SEMIANNUAL MULT SAM
   data sam(1:50) / &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , 1.00000e+0_rkx , &
-            1.00000e+0_rkx , 1.00000e+0_rkx/
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, 1.00000e+0_rkx, &
+            1.00000e+0_rkx, 1.00000e+0_rkx/
   data sam(51:100) / &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , 0.00000e+0_rkx , &
-            0.00000e+0_rkx , 0.00000e+0_rkx/
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, 0.00000e+0_rkx, &
+            0.00000e+0_rkx, 0.00000e+0_rkx/
   ! MIDDLE ATMOSPHERE AVERAGES
-  data pavgm /2.61000e+2_rkx ,  2.64000e+2_rkx ,  2.29000e+2_rkx ,  2.17000e+2_rkx , &
-              2.17000e+2_rkx ,  2.23000e+2_rkx ,  2.86760e+2_rkx , -2.93940e+0_rkx , &
-              2.50000e+0_rkx ,  0.00000e+0_rkx/
+  data pavgm /2.61000e+2_rkx,  2.64000e+2_rkx,  2.29000e+2_rkx,  2.17000e+2_rkx, &
+              2.17000e+2_rkx,  2.23000e+2_rkx,  2.86760e+2_rkx, -2.93940e+0_rkx, &
+              2.50000e+0_rkx,  0.00000e+0_rkx/
   contains
 !
 !   Chemistry/dissociation correction for msis models
@@ -1073,9 +1073,9 @@ module physics_msis
       ! r   - Target ratio
       ! h1  - Transition scale length
       ! zh  - Altitude of 1/2 r
-      real(rkx) , intent(in) :: alt , h1 , r , zh
-      real(rkx) , parameter :: echeck = 70.0_rkx
-      real(rkx) :: e , ex
+      real(rkx), intent(in) :: alt, h1, r, zh
+      real(rkx), parameter :: echeck = 70.0_rkx
+      real(rkx) :: e, ex
       e = (alt-zh)/h1
       if ( e > echeck ) then
         ccor = d_zero
@@ -1096,9 +1096,9 @@ module physics_msis
       ! r   - Target ratio
       ! h1  - Transition scale length
       ! zh  - Altitude of 1/2 r
-      real(rkx) , intent(in) :: alt , h1 , h2 , r , zh
-      real(rkx) :: e1 , e2 , ex1 , ex2
-      real(rkx) , parameter :: echeck = 70.0_rkx
+      real(rkx), intent(in) :: alt, h1, h2, r, zh
+      real(rkx) :: e1, e2, ex1, ex2
+      real(rkx), parameter :: echeck = 70.0_rkx
 !
       e1 = (alt-zh)/h1
       e2 = (alt-zh)/h2
@@ -1119,13 +1119,13 @@ module physics_msis
     real(rkx) function densm(alt,d0,xm,tz)
       implicit none
 !
-      real(rkx) , intent(in) :: alt , d0 , xm
-      real(rkx) , intent(out) :: tz
+      real(rkx), intent(in) :: alt, d0, xm
+      real(rkx), intent(out) :: tz
 !
-      real(rkx) :: expl , gamm , glb , t1 , t2 , x , y , yd1 , &
-                 yd2 , yi , z , z1 , z2 , zg , zgdif
-      integer(ik4) :: k , mn
-      real(rkx) , dimension(10) :: xs , y2out , ys
+      real(rkx) :: expl, gamm, glb, t1, t2, x, y, yd1, &
+                 yd2, yi, z, z1, z2, zg, zgdif
+      integer(ik4) :: k, mn
+      real(rkx), dimension(10) :: xs, y2out, ys
 
       densm = d0
       if ( alt <= zn2(1) ) then
@@ -1139,7 +1139,7 @@ module physics_msis
         zg = zeta(z,z1)
         zgdif = zeta(z2,z1)
         ! Set up spline nodes
-        do k = 1 , mn
+        do k = 1, mn
           xs(k) = zeta(zn2(k),z1)/zgdif
           ys(k) = d_one/tn2(k)
         end do
@@ -1173,7 +1173,7 @@ module physics_msis
           zg = zeta(z,z1)
           zgdif = zeta(z2,z1)
           ! Set up spline nodes
-          do k = 1 , mn
+          do k = 1, mn
             xs(k) = zeta(zn3(k),z1)/zgdif
             ys(k) = d_one/tn3(k)
           end do
@@ -1202,7 +1202,7 @@ module physics_msis
       contains
         real(rkx) function zeta(zz,zl)
           implicit none
-          real(rkx) , intent(in) :: zz , zl
+          real(rkx), intent(in) :: zz, zl
           zeta = (zz-zl)*(re+zl)/(re+zz)
         end function zeta
     end function densm
@@ -1213,14 +1213,14 @@ module physics_msis
     real(rkx) function densu(alt,dlb,t1,t2,xm,xalph,tz,zlb,s2)
       implicit none
 !
-      real(rkx) , intent(in) :: xalph , alt , t1 , t2 , dlb , s2 , xm , zlb
-      real(rkx) , intent(out) :: tz
+      real(rkx), intent(in) :: xalph, alt, t1, t2, dlb, s2, xm, zlb
+      real(rkx), intent(out) :: tz
 !
-      real(rkx) :: densa , dta , expl , gamm , gammo , glb , &
-                 tt1 , tt2 , ta , tt , x , y , yd1 , yd2 , yi , z ,   &
-                 z1 , z2 , za , zg , zg2 , zgdif
-      integer(ik4) :: k , mn
-      real(rkx) , dimension(5) :: xs , y2out , ys
+      real(rkx) :: densa, dta, expl, gamm, gammo, glb, &
+                 tt1, tt2, ta, tt, x, y, yd1, yd2, yi, z,   &
+                 z1, z2, za, zg, zg2, zgdif
+      integer(ik4) :: k, mn
+      real(rkx), dimension(5) :: xs, y2out, ys
 !
       densu = d_one
 !     Joining altitude of Bates and spline
@@ -1249,7 +1249,7 @@ module physics_msis
         zg = zeta(z,z1)
         zgdif = zeta(z2,z1)
         ! Set up spline nodes
-        do k = 1 , mn
+        do k = 1, mn
           xs(k) = zeta(zn1(k),z1)/zgdif
           ys(k) = d_one/tn1(k)
         end do
@@ -1288,7 +1288,7 @@ module physics_msis
       contains
         real(rkx) function zeta(zz,zl)
           implicit none
-          real(rkx) , intent(in) :: zz , zl
+          real(rkx), intent(in) :: zz, zl
           zeta = (zz-zl)*(re+zl)/(re+zz)
         end function zeta
     end function densu
@@ -1305,10 +1305,10 @@ module physics_msis
 !     XM  - species molecular weight
 !     DNET - combined density
 !
-      real(rkx) , intent(in) :: dm , xm , xmm , zhm
-      real(rkx) , intent(inout) :: dd
+      real(rkx), intent(in) :: dm, xm, xmm, zhm
+      real(rkx), intent(inout) :: dd
 !
-      real(rkx) :: a , ylog
+      real(rkx) :: a, ylog
 !
       a = zhm/(xmm-xm)
       if ( dm <= d_zero .or. dd <= d_zero ) then
@@ -1342,11 +1342,11 @@ module physics_msis
     subroutine tselec(sv)
       implicit none
 !
-      real(rkx) , dimension(25) , intent(in) :: sv
+      real(rkx), dimension(25), intent(in) :: sv
 !
       integer(ik4) :: i
 
-      do i = 1 , 25
+      do i = 1, 25
         sav(i) = sv(i)
         sw(i) = mod(sv(i),d_two)
         if ( abs(sv(i)-d_one) < nearzero .or. &
@@ -1362,9 +1362,9 @@ module physics_msis
 !
     subroutine tretrv(svv)
       implicit none
-      real(rkx) , dimension(25) , intent(out) :: svv
+      real(rkx), dimension(25), intent(out) :: svv
       integer(ik4) :: i
-      do i = 1 , 25
+      do i = 1, 25
         svv(i) = sav(i)
       end do
     end subroutine tretrv
@@ -1373,7 +1373,7 @@ module physics_msis
 !
     subroutine glatf(lat)
       implicit none
-      real(rkx) , intent(in) :: lat
+      real(rkx), intent(in) :: lat
       real(rkx)  :: c2
       c2 = cos(d_two*degrad*lat)
       gsurf = egrav*100.0_rkx*(d_one-0.0026373_rkx*c2)
@@ -1383,19 +1383,19 @@ module physics_msis
     real(rkx) function glob7s(glong,p)
       implicit none
 !
-      real(rkx) , intent(in) :: glong
-      real(rkx) , dimension(:) , intent(out) :: p
+      real(rkx), intent(in) :: glong
+      real(rkx), dimension(:), intent(out) :: p
 !
-      real(rkx) :: t82 , tt , t71 , t72 , t81
+      real(rkx) :: t82, tt, t71, t72, t81
       integer(ik4) :: i
-      real(rkx) , dimension(14) :: t
+      real(rkx), dimension(14) :: t
 !
 !     VERSION OF GLOBE FOR LOWER ATMOSPHERE 10/26/99
 !
-      real(rkx) , parameter :: pset = d_two
-      real(rkx) , save :: dayl
-      real(rkx) , save :: p32 , p18 , p14 , p39
-      real(rkx) , save :: cd14 , cd18 , cd32 , cd39
+      real(rkx), parameter :: pset = d_two
+      real(rkx), save :: dayl
+      real(rkx), save :: p32, p18, p14, p39
+      real(rkx), save :: cd14, cd18, cd32, cd39
       data dayl /-1.0_rkx/
       data p32  /-1000.0_rkx/
       data p18  /-1000.0_rkx/
@@ -1475,7 +1475,7 @@ module physics_msis
                   sin(degrad*glong))
       end if
       tt = d_zero
-      do i = 1 , 14
+      do i = 1, 14
         tt = tt + abs(sw(i))*t(i)
       end do
       glob7s = tt
@@ -1518,20 +1518,20 @@ module physics_msis
     subroutine ghp7(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,d,t,press)
       implicit none
 !
-      real(rkx) , intent(in) :: f107 , f107a , glat , glong , press , sec , stl
-      real(rkx) , intent(out) :: alt
-      integer(ik4) , intent(in) :: iyd
-      real(rkx) , intent(in) , dimension(7) :: ap
-      real(rkx) , intent(inout) , dimension(9) :: d
-      real(rkx) , intent(inout) , dimension(2) :: t
+      real(rkx), intent(in) :: f107, f107a, glat, glong, press, sec, stl
+      real(rkx), intent(out) :: alt
+      integer(ik4), intent(in) :: iyd
+      real(rkx), intent(in), dimension(7) :: ap
+      real(rkx), intent(inout), dimension(9) :: d
+      real(rkx), intent(inout), dimension(2) :: t
 !
-      real(rkx) :: ca , cd , cl , cl2 , diff , g , p , pl , sh , &
-                 xm , xn , z , zi
-      integer(ik4) :: iday , l
+      real(rkx) :: ca, cd, cl, cl2, diff, g, p, pl, sh, &
+                 xm, xn, z, zi
+      integer(ik4) :: iday, l
 
-      real(rkx) , parameter :: bm = 1.3806e-19_rkx
-      real(rkx) , parameter :: test = 0.00043_rkx
-      integer(ik4) , parameter :: ltest = 12
+      real(rkx), parameter :: bm = 1.3806e-19_rkx
+      real(rkx), parameter :: test = 0.00043_rkx
+      integer(ik4), parameter :: ltest = 12
 !
       pl = log10(press)
 !
@@ -1566,7 +1566,7 @@ module physics_msis
         if ( imr == 1 ) p = p*1.e-6_rkx
         diff = pl - log10(p)
         if ( abs(diff) < test .or. l == ltest ) then
-          ! Non converging , should not happen
+          ! Non converging, should not happen
           alt = z
           exit
         else
@@ -1588,30 +1588,30 @@ module physics_msis
     real(rkx) function globe7(yrd,sec,lat,long,tloc,f107a,f107,ap,p)
       implicit none
 !
-      real(rkx) , intent(in) :: f107 , f107a , lat , long , sec , tloc , yrd
-      real(rkx) , dimension(:) , intent(in) :: ap
-      real(rkx) , intent(out) , dimension(:) :: p
+      real(rkx), intent(in) :: f107, f107a, lat, long, sec, tloc, yrd
+      real(rkx), dimension(:), intent(in) :: ap
+      real(rkx), intent(out), dimension(:) :: p
 !
-      real(rkx) :: c , c2 , c4 , exp1 , f1 , f2 , p44 , p45 , s , s2 ,    &
-                  t71 , t72 , t81 , t82 , tix
+      real(rkx) :: c, c2, c4, exp1, f1, f2, p44, p45, s, s2,    &
+                  t71, t72, t81, t82, tix
       integer(ik4) :: i
-      real(rkx) , save , dimension(25) :: sv = d_one
+      real(rkx), save, dimension(25) :: sv = d_one
 !
 !     CALCULATE G(L) FUNCTION
 !
 !     Upper Thermosphere Parameters
-      integer(ik4) , parameter :: nsw = 14
-      real(rkx) , parameter :: hr = 0.2618_rkx
-      real(rkx) , parameter :: sr = 7.2722e-5_rkx
-      real(rkx) , save :: xl  = 1000.0_rkx
-      real(rkx) , save :: tll = 1000.0_rkx
-      real(rkx) , save :: sw9 = 1.0_rkx
-      real(rkx) , save :: dayl = -1.0_rkx
-      real(rkx) , save :: p14 = -1000.0_rkx
-      real(rkx) , save :: p18 = -1000.0_rkx
-      real(rkx) , save :: p32 = -1000.0_rkx
-      real(rkx) , save :: p39 = -1000.0_rkx
-      real(rkx) , save :: cd14 , cd18 , cd32 , cd39
+      integer(ik4), parameter :: nsw = 14
+      real(rkx), parameter :: hr = 0.2618_rkx
+      real(rkx), parameter :: sr = 7.2722e-5_rkx
+      real(rkx), save :: xl  = 1000.0_rkx
+      real(rkx), save :: tll = 1000.0_rkx
+      real(rkx), save :: sw9 = 1.0_rkx
+      real(rkx), save :: dayl = -1.0_rkx
+      real(rkx), save :: p14 = -1000.0_rkx
+      real(rkx), save :: p18 = -1000.0_rkx
+      real(rkx), save :: p32 = -1000.0_rkx
+      real(rkx), save :: p39 = -1000.0_rkx
+      real(rkx), save :: cd14, cd18, cd32, cd39
 
       if ( isw /= 64999 ) call tselec(sv)
 !
@@ -1797,7 +1797,7 @@ module physics_msis
 
       ! PARMS NOT USED: 83, 90,100,140-150
       tix = p(31)
-      do i = 1 , nsw
+      do i = 1, nsw
         tix = tix + abs(sw(i))*t(i)
       end do
       globe7 = tix
@@ -1807,20 +1807,20 @@ module physics_msis
 !     Eq. A24d
       real(rkx) function g0(a)
         implicit none
-        real(rkx) , intent(in) :: a
+        real(rkx), intent(in) :: a
         g0 = (a-d_four+(p(26)-d_one)*(a-d_four + &
              (exp(-abs(p(25))*(a-d_four))-d_one)/abs(p(25))))
       end function g0
 !     Eq. A24c
       real(rkx) function sumex(ex)
         implicit none
-        real(rkx) , intent(in) :: ex
+        real(rkx), intent(in) :: ex
         sumex = d_one + (d_one-ex**19)/(d_one-ex)*sqrt(ex)
       end function sumex
 !     Eq. A24a
       real(rkx) function sg0(ex)
         implicit none
-        real(rkx) , intent(in) :: ex
+        real(rkx), intent(in) :: ex
         sg0 = (g0(ap(2))+(g0(ap(3))*ex+g0(ap(4))*ex*ex + &
                g0(ap(5))*ex**3+(g0(ap(6))*ex**4 +    &
                g0(ap(7))*ex**12)*(d_one-ex**8)/(d_one-ex)))/sumex(ex)
@@ -1830,11 +1830,11 @@ module physics_msis
     subroutine gtd7d(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,mass,d,t)
       implicit none
 !
-      real(rkx) , intent(in) :: alt , f107 , f107a , glat , glong , sec , stl
-      integer(ik4) :: iyd , mass
-      real(rkx) , intent(in) , dimension(7) :: ap
-      real(rkx) , intent(inout) , dimension(2) :: t
-      real(rkx) , intent(inout) , dimension(9) :: d
+      real(rkx), intent(in) :: alt, f107, f107a, glat, glong, sec, stl
+      integer(ik4) :: iyd, mass
+      real(rkx), intent(in), dimension(7) :: ap
+      real(rkx), intent(inout), dimension(2) :: t
+      real(rkx), intent(inout), dimension(9) :: d
 !
 !     NRLMSISE-00
 !     -----------
@@ -1909,21 +1909,21 @@ module physics_msis
     subroutine gtd7(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,mass,d,t)
       implicit none
 !
-      real(rkx) , intent(in) :: alt , f107 , f107a , glat , glong , sec , stl
-      integer(ik4) , intent(in) :: iyd , mass
-      real(rkx) , intent(in) , dimension(7) :: ap
-      real(rkx) , intent(out) , dimension(9) :: d
-      real(rkx) , intent(out) , dimension(2) :: t
+      real(rkx), intent(in) :: alt, f107, f107a, glat, glong, sec, stl
+      integer(ik4), intent(in) :: iyd, mass
+      real(rkx), intent(in), dimension(7) :: ap
+      real(rkx), intent(out), dimension(9) :: d
+      real(rkx), intent(out), dimension(2) :: t
 !
-      real(rkx) :: altt , dmc , dmr , dm28m , dz28 , tz , v1 , xlat , xmm
-      real(rkx) , dimension(9) :: ds
-      integer(ik4) :: j , mss
-      real(rkx) , dimension(2) :: ts
+      real(rkx) :: altt, dmc, dmr, dm28m, dz28, tz, v1, xlat, xmm
+      real(rkx), dimension(9) :: ds
+      integer(ik4) :: j, mss
+      real(rkx), dimension(2) :: ts
 !
-      real(rkx) , dimension(25) , save :: sv
-      integer(ik4) , save :: mssl
-      real(rkx) , save :: alast
-      real(rkx) , parameter :: zmix = 62.5_rkx
+      real(rkx), dimension(25), save :: sv
+      integer(ik4), save :: mssl
+      real(rkx), save :: alast
+      real(rkx), parameter :: zmix = 62.5_rkx
 !
       data alast /99999.0_rkx/
       data mssl /-999/
@@ -2090,7 +2090,7 @@ module physics_msis
       t(1) = ts(1)
       t(2) = ts(2)
       if ( alt >= zn2(1) ) then
-        do j = 1 , 9
+        do j = 1, 9
           d(j) = ds(j)
         end do
         return
@@ -2183,23 +2183,23 @@ module physics_msis
     subroutine gts7(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,mass,d,t)
       implicit none
 !
-      real(rkx) , intent(in) :: alt , f107 , f107a , glat , glong , sec , stl
-      integer(ik4) , intent(in) :: iyd , mass
-      real(rkx) , intent(in) , dimension(:) :: ap
-      real(rkx) , intent(inout) , dimension(9) :: d
-      real(rkx) , intent(inout) , dimension(2) :: t
+      real(rkx), intent(in) :: alt, f107, f107a, glat, glong, sec, stl
+      integer(ik4), intent(in) :: iyd, mass
+      real(rkx), intent(in), dimension(:) :: ap
+      real(rkx), intent(inout), dimension(9) :: d
+      real(rkx), intent(inout), dimension(2) :: t
 !
-      real(rkx) :: b01 , b04 , b14 , b16 , b28 , b32 , b40 ,     &
-              day , db16h , ddum , g1 , g14 , g16 , g16h , g28 ,        &
-              g32 , g4 , g40 , hc01 , hc04 , hc14 , hc16 , hc216 ,      &
-              hc32 , hc40 , hcc01 , hcc14 , hcc16 , hcc232 , hcc32 ,    &
-              rc01 , rc14 , rc16 , rc32 , t2 , tho , tz , v2 ,   &
-              xmd , xmm , yrd , z , zc01 , zc04 , zc14 , zc16 , zc32 ,  &
-              zc40 , zcc01 , zcc14 , zcc16 , zcc32 , zh01 , zh04 ,      &
-              zh14 , zh16 , zh28 , zh32 , zh40 , zhf , zhm01 , zhm04 ,  &
-              zhm14 , zhm16 , zhm28 , zhm32 , zhm40 , zmho , zsho , zsht
-      integer(ik4) :: i , j
-      real(rkx) , save :: alast
+      real(rkx) :: b01, b04, b14, b16, b28, b32, b40,     &
+              day, db16h, ddum, g1, g14, g16, g16h, g28,        &
+              g32, g4, g40, hc01, hc04, hc14, hc16, hc216,      &
+              hc32, hc40, hcc01, hcc14, hcc16, hcc232, hcc32,    &
+              rc01, rc14, rc16, rc32, t2, tho, tz, v2,   &
+              xmd, xmm, yrd, z, zc01, zc04, zc14, zc16, zc32,  &
+              zc40, zcc01, zcc14, zcc16, zcc32, zh01, zh04,      &
+              zh14, zh16, zh28, zh32, zh40, zhf, zhm01, zhm04,  &
+              zhm14, zhm16, zhm28, zhm32, zhm40, zmho, zsho, zsht
+      integer(ik4) :: i, j
+      real(rkx), save :: alast
 !
 !     Thermospheric portion of NRLMSISE-00
 !     See GTD7 for more extensive comments
@@ -2271,7 +2271,7 @@ module physics_msis
       yrd = iyd
       za = pdl(16,2)
       zn1(1) = za
-      do j = 1 , 9
+      do j = 1, 9
         d(j) = d_zero
       end do
       ! TINF VARIATIONS NOT IMPORTANT BELOW ZA OR ZN1(1)
@@ -2333,7 +2333,7 @@ module physics_msis
       xmm = pdm(5,3)
       z = alt
 !
-      do j = 1 , 11
+      do j = 1, 11
         if ( mass == mt(j) ) go to 100
       end do
 !
@@ -2612,7 +2612,7 @@ module physics_msis
       ! ADJUST DENSITIES FROM CGS TO KGM
  800  continue
       if ( imr == 1 ) then
-        do i = 1 , 9
+        do i = 1, 9
           d(i) = d(i)*1.e6_rkx
         end do
         d(6) = d(6)/1000.0_rkx
@@ -2626,7 +2626,7 @@ module physics_msis
       !
       real(rkx) function scalh(alt,xm,temp)
         implicit none
-        real(rkx) , intent(in) :: alt , temp , xm
+        real(rkx), intent(in) :: alt, temp, xm
         real(rkx) :: g
         g = gsurf/(d_one+alt/re)**2
         scalh = r100gas*temp/(g*xm)
@@ -2636,14 +2636,14 @@ module physics_msis
     real(rkx) function vtst7(iyd,sec,glat,glong,stl,f107a,f107,ap,ic)
       implicit none
 !
-      real(rkx) , intent(in) :: f107 , f107a , glat , glong , sec , stl
-      integer(ik4) , intent(in) :: ic , iyd
-      real(rkx) , intent(in) , dimension(7) :: ap
+      real(rkx), intent(in) :: f107, f107a, glat, glong, sec, stl
+      integer(ik4), intent(in) :: ic, iyd
+      real(rkx), intent(in), dimension(7) :: ap
 !
-      real(rkx) , dimension(7,2) , save :: apl
-      real(rkx) , dimension(2) , save :: fal , fl , glatl , gll , secl , stll
-      integer(ik4) , dimension(2) , save :: iydl
-      real(rkx) , dimension(25,2) , save :: swcl , swl
+      real(rkx), dimension(7,2), save :: apl
+      real(rkx), dimension(2), save :: fal, fl, glatl, gll, secl, stll
+      integer(ik4), dimension(2), save :: iydl
+      real(rkx), dimension(25,2), save :: swcl, swl
       integer(ik4) :: i
       logical :: ldc
 !
@@ -2684,13 +2684,13 @@ module physics_msis
                   if ( abs(f107-fl(ic)) > nearzero ) then
                     ldc = .true.
                   else
-                    do i = 1 , 7
+                    do i = 1, 7
                       if ( abs(ap(i)-apl(i,ic)) > nearzero ) then
                         ldc = .true.
                         exit
                       end if
                     end do
-                    do i = 1 , 25
+                    do i = 1, 25
                       if ( abs(sw(i)-swl(i,ic)) > nearzero ) then
                         ldc = .true.
                         exit
@@ -2717,10 +2717,10 @@ module physics_msis
         stll(ic) = stl
         fal(ic) = f107a
         fl(ic) = f107
-        do i = 1 , 7
+        do i = 1, 7
           apl(i,ic) = ap(i)
         end do
-        do i = 1 , 25
+        do i = 1, 25
           swl(i,ic) = sw(i)
           swcl(i,ic) = swc(i)
         end do

@@ -4,20 +4,20 @@
 module clm_time_manager
 
    use shr_kind_mod, only: r8 => shr_kind_r8
-   use spmdMod     , only: masterproc, iam
-   use abortutils  , only: endrun
+   use spmdMod    , only: masterproc, iam
+   use abortutils , only: endrun
    use ESMF_Mod
 
 ! Just use RegCM date library here.
 
    use mod_date
-   use mod_intkinds , only : ik8
+   use mod_intkinds, only : ik8
    use mod_mpmessage
-   use mod_runparams , only : idate0 , idate1 , idate2 , rcmtimer , &
-                  syncro_srf , dtsec , dtsrf , doing_restart
+   use mod_runparams, only : idate0, idate1, idate2, rcmtimer, &
+                  syncro_srf, dtsec, dtsrf, doing_restart
 
-   use mod_constants , only : secpd
-   use clm_varsur   , only : r2coutfrq
+   use mod_constants, only : secpd
+   use clm_varsur  , only : r2coutfrq
 
    implicit none
    private
@@ -94,14 +94,14 @@ subroutine timemgr_init( calendar_in, start_ymd_in, start_tod_in, ref_ymd_in, &
   !
   ! Arguments
   character(len=*), optional, intent(IN) :: calendar_in       ! Calendar type
-  integer         , optional, intent(IN) :: start_ymd_in      ! Start date (YYYYMMDD)
-  integer         , optional, intent(IN) :: start_tod_in      ! Start time of day (sec)
-  integer         , optional, intent(IN) :: ref_ymd_in        ! Reference date (YYYYMMDD)
-  integer         , optional, intent(IN) :: ref_tod_in        ! Reference time of day (sec)
-  integer         , optional, intent(IN) :: stop_ymd_in       ! Stop date (YYYYMMDD)
-  integer         , optional, intent(IN) :: stop_tod_in       ! Stop time of day (sec)
-  logical         , optional, intent(IN) :: perpetual_run_in  ! If in perpetual mode or not
-  integer         , optional, intent(IN) :: perpetual_ymd_in  ! Perpetual date (YYYYMMDD)
+  integer        , optional, intent(IN) :: start_ymd_in      ! Start date (YYYYMMDD)
+  integer        , optional, intent(IN) :: start_tod_in      ! Start time of day (sec)
+  integer        , optional, intent(IN) :: ref_ymd_in        ! Reference date (YYYYMMDD)
+  integer        , optional, intent(IN) :: ref_tod_in        ! Reference time of day (sec)
+  integer        , optional, intent(IN) :: stop_ymd_in       ! Stop date (YYYYMMDD)
+  integer        , optional, intent(IN) :: stop_tod_in       ! Stop time of day (sec)
+  logical        , optional, intent(IN) :: perpetual_run_in  ! If in perpetual mode or not
+  integer        , optional, intent(IN) :: perpetual_ymd_in  ! Perpetual date (YYYYMMDD)
   !
   calendar = calstr(rcmtimer%idate%calendar)
   cordex_refdate = 1949120100
@@ -118,7 +118,7 @@ subroutine timemgr_restart_io( ncid, flag )
   ! Read/Write information needed on restart to a netcdf file.
 
   ! Arguments
-  integer         , intent(in) :: ncid  ! netcdf id
+  integer        , intent(in) :: ncid  ! netcdf id
   character(len=*), intent(in) :: flag  ! 'read' or 'write'
   !
 
@@ -238,7 +238,7 @@ end subroutine get_curr_date
 
 subroutine get_perp_date(yr, mon, day, tod, offset)
 
-  integer , intent(in) :: yr, mon, day, tod, offset
+  integer, intent(in) :: yr, mon, day, tod, offset
 
   call fatal(__FILE__,__LINE__,'NOT IMPLEMENTED get_perp_date')
 
@@ -383,7 +383,7 @@ end function get_curr_calday
 
 real(r8) function get_calday(ymd, tod)
 
-  integer , intent(in) :: ymd , tod
+  integer, intent(in) :: ymd, tod
 
 ! Return calendar day corresponding to specified time instant.
 ! Calendar day 1.0 = 0Z on Jan 1.
@@ -473,7 +473,7 @@ subroutine timemgr_datediff(ymd1, tod1, ymd2, tod2, days)
 
    real(r8) :: days ! (ymd2,tod2)-(ymd1,tod1) in days
 
-   type (rcm_time_and_date) :: id1 , id2
+   type (rcm_time_and_date) :: id1, id2
    type (rcm_time_interval) :: tdif
 
    id1 = ymd1

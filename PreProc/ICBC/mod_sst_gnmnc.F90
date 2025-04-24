@@ -38,28 +38,28 @@ module mod_sst_gnmnc
 
   private
 
-  integer(ik4) :: ilon , jlat
+  integer(ik4) :: ilon, jlat
 
   integer(ik4) :: inet1
-  integer(ik4) , dimension(2) :: ivar2
+  integer(ik4), dimension(2) :: ivar2
   integer(ik4) :: timlen
   integer(ik4) :: timid
   integer(ik4) :: istatus
-  integer(ik4) , dimension(3) :: istart , icount
-  real(rkx) , pointer , dimension(:) ::  work1
-  real(rkx) , pointer , dimension (:,:) :: work2 , work3
-  real(rkx) , pointer , dimension(:,:) :: sst
-  type(rcm_time_and_date) , save :: fidate1
-  character(len=64) :: cunit , ccal
+  integer(ik4), dimension(3) :: istart, icount
+  real(rkx), pointer, contiguous, dimension(:) ::  work1
+  real(rkx), pointer, contiguous, dimension (:,:) :: work2, work3
+  real(rkx), pointer, contiguous, dimension(:,:) :: sst
+  type(rcm_time_and_date), save :: fidate1
+  character(len=64) :: cunit, ccal
   character(len=256) :: inpfile
   character(len=8), dimension(2) :: varname
 
   data varname/'time', 'TOBESET'/
 
-  real(rkx) , pointer , dimension(:) :: glat
-  real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:,:) :: glat2
-  real(rkx) , pointer , dimension(:,:) :: glon2
+  real(rkx), pointer, contiguous, dimension(:) :: glat
+  real(rkx), pointer, contiguous, dimension(:) :: glon
+  real(rkx), pointer, contiguous, dimension(:,:) :: glat2
+  real(rkx), pointer, contiguous, dimension(:,:) :: glon2
 
   type(h_interpolator) :: hint
 
@@ -82,8 +82,8 @@ module mod_sst_gnmnc
   !
   subroutine sst_gnmnc
     implicit none
-    type(rcm_time_and_date) :: idate , idatef , idateo , imm1
-    integer(ik4) :: i , j , k , nsteps
+    type(rcm_time_and_date) :: idate, idatef, idateo, imm1
+    integer(ik4) :: i, j, k, nsteps
     real(rkx) :: ufac
 
     imm1 = prevmon(globidate1)
@@ -149,18 +149,18 @@ module mod_sst_gnmnc
     call open_sstfile(idateo)
 
     idate = idateo
-    do k = 1 , nsteps
+    do k = 1, nsteps
       call gnmnc_sst(idate)
       call h_interpolate_cont(hint,sst,sstmm)
-      do i = 1 , iy
-        do j = 1 , jx
+      do i = 1, iy
+        do j = 1, jx
           if ( sstmm(j,i) > -999.0 ) sstmm(j,i) = sstmm(j,i) + ufac
         end do
       end do
 
       call writerec(idate)
 
-      write (stdout,*) 'WRITEN OUT SST DATA : ' , tochar(idate)
+      write (stdout,*) 'WRITEN OUT SST DATA : ', tochar(idate)
       idate = nextmon(idate)
 
     end do
@@ -173,12 +173,12 @@ module mod_sst_gnmnc
   !
   subroutine gnmnc_sst(idate)
     implicit none
-    type(rcm_time_and_date) , intent (in) :: idate
-    real(rkx) :: wt1 , wt2
-    type(rcm_time_and_date) :: prev , next
+    type(rcm_time_and_date), intent (in) :: idate
+    real(rkx) :: wt1, wt2
+    type(rcm_time_and_date) :: prev, next
 
-    integer(ik4) :: it , i , j
-    type(rcm_time_interval) :: tdiff1 , tdiff2
+    integer(ik4) :: it, i, j
+    type(rcm_time_interval) :: tdiff1, tdiff2
 
     icount(1) = ilon
     icount(2) = jlat
@@ -200,8 +200,8 @@ module mod_sst_gnmnc
     tdiff2 = next-prev
     wt1 = real(tohours(tdiff1)/tohours(tdiff2))
     wt2 = 1.0 - wt1
-    do j = 1 , jlat
-      do i = 1 , ilon
+    do j = 1, jlat
+      do i = 1, ilon
         if (work2(i,j) < 0.9E+20 .and. work3(i,j) < 0.9E+20 ) then
           sst(i,j) = work2(i,j)*wt2+work3(i,j)*wt1
         else
@@ -213,10 +213,10 @@ module mod_sst_gnmnc
 
   subroutine open_input(fname)
     implicit none
-    character(len=*) , intent(in) :: fname
+    character(len=*), intent(in) :: fname
     integer(ik4) :: istatus
-    integer(ik4) :: latid , lonid , ndims
-    logical , save :: firstpass = .true.
+    integer(ik4) :: latid, lonid, ndims
+    logical, save :: firstpass = .true.
 
     istatus = nf90_open(fname,nf90_nowrite,inet1)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -327,9 +327,9 @@ module mod_sst_gnmnc
 
   subroutine read_month(idate,it,vv)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) , intent(inout) :: it
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: vv
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4), intent(inout) :: it
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: vv
     logical :: lswitch
     icount(1) = ilon
     icount(2) = jlat

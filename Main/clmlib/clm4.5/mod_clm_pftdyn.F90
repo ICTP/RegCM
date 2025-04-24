@@ -11,13 +11,13 @@ module mod_clm_pftdyn
   use mod_mpmessage
   use mod_stdio
   use mod_date
-  use mod_constants , only : pdbratio
+  use mod_constants, only : pdbratio
   use mod_clm_nchelper
   use mod_clm_type
-  use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell
-  use mod_clm_varsur , only : pctspec
-  use mod_clm_varpar , only : max_pft_per_col
-  use mod_clm_varctl , only : use_c13, use_c14 , nextdate
+  use mod_clm_decomp, only : get_proc_bounds, gcomm_gridcell
+  use mod_clm_varsur, only : pctspec
+  use mod_clm_varpar, only : max_pft_per_col
+  use mod_clm_varctl, only : use_c13, use_c14, nextdate
 
   implicit none
 
@@ -38,10 +38,10 @@ module mod_clm_pftdyn
   public :: CNHarvest
   public :: CNHarvestPftToColumn
 #endif
-  real(rk8) , pointer , dimension(:,:) :: wtpft1
-  real(rk8) , pointer , dimension(:,:) :: wtpft2
-  real(rk8) , pointer , dimension(:) :: harvest
-  real(rk8) , pointer , dimension(:) :: wtcol_old
+  real(rk8), pointer, contiguous, dimension(:,:) :: wtpft1
+  real(rk8), pointer, contiguous, dimension(:,:) :: wtpft2
+  real(rk8), pointer, contiguous, dimension(:) :: harvest
+  real(rk8), pointer, contiguous, dimension(:) :: wtcol_old
   integer(ik4) :: nt
   real(rkx) :: ndpy
   logical :: do_harvest
@@ -50,7 +50,7 @@ module mod_clm_pftdyn
   character(len=4) :: cy4
 
   ! default multiplication factor for epsilon for error checks
-  real(rk8) , private, parameter :: eps_fact = 2._rk8
+  real(rk8), private, parameter :: eps_fact = 2._rk8
 
   contains
   !
@@ -58,18 +58,18 @@ module mod_clm_pftdyn
   ! that bound the initial model date)
   !
   subroutine pftdyn_init()
-    use mod_clm_varpar , only : numpft , maxpatch_pft , numurbl
+    use mod_clm_varpar, only : numpft, maxpatch_pft, numurbl
     implicit none
-    integer(ik4) :: m , g ! indices
+    integer(ik4) :: m, g ! indices
     integer(ik4) :: year  ! year (0, ...) for nstep+1
     integer(ik4) :: mon   ! month (1, ..., 12) for nstep+1
     integer(ik4) :: day   ! day of month (1, ..., 31) for nstep+1
     integer(ik4) :: sec   ! seconds into current date for nstep+1
     integer(ik4) :: ier   ! error status
-    integer(ik4) :: begg , endg   ! beg/end indices for land gridcells
-    integer(ik4) :: begl , endl   ! beg/end indices for land landunits
-    integer(ik4) :: begc , endc   ! beg/end indices for land columns
-    integer(ik4) :: begp , endp   ! beg/end indices for land pfts
+    integer(ik4) :: begg, endg   ! beg/end indices for land gridcells
+    integer(ik4) :: begl, endl   ! beg/end indices for land landunits
+    integer(ik4) :: begc, endc   ! beg/end indices for land columns
+    integer(ik4) :: begp, endp   ! beg/end indices for land pfts
     character(len= 32) :: subname='pftdyn_init' ! subroutine name
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
@@ -165,8 +165,8 @@ module mod_clm_pftdyn
     call clm_closefile(ncid)
 
     ! convert weights from percent to proportion
-    do m = 0 , numpft
-      do g = begg , endg
+    do m = 0, numpft
+      do g = begg, endg
         wtpft1(g,m) = int(wtpft1(g,m))/100._rk8
         wtpft2(g,m) = int(wtpft2(g,m))/100._rk8
       end do
@@ -186,30 +186,30 @@ module mod_clm_pftdyn
   !
   subroutine pftdyn_interp()
     use mod_clm_time_manager, only : get_curr_calday
-    use mod_clm_varcon , only : istsoil
-    use mod_clm_varcon , only : istcrop
-    use mod_clm_varpar , only : numpft
+    use mod_clm_varcon, only : istsoil
+    use mod_clm_varcon, only : istcrop
+    use mod_clm_varpar, only : numpft
     implicit none
-    integer(ik4)  :: begg , endg  ! beg/end indices for land gridcells
-    integer(ik4)  :: begl , endl  ! beg/end indices for land landunits
-    integer(ik4)  :: begc , endc  ! beg/end indices for land columns
-    integer(ik4)  :: begp , endp  ! beg/end indices for land pfts
-    integer(ik4)  :: m , p , l , g , c    ! indices
+    integer(ik4)  :: begg, endg  ! beg/end indices for land gridcells
+    integer(ik4)  :: begl, endl  ! beg/end indices for land landunits
+    integer(ik4)  :: begc, endc  ! beg/end indices for land columns
+    integer(ik4)  :: begp, endp  ! beg/end indices for land pfts
+    integer(ik4)  :: m, p, l, g, c    ! indices
     integer(ik4)  :: year      ! year (0, ...) for nstep+1
     integer(ik4)  :: mon       ! month (1, ..., 12) for nstep+1
     integer(ik4)  :: day       ! day of month (1, ..., 31) for nstep+1
     integer(ik4)  :: sec       ! seconds into current date for nstep+1
     real(rk8) :: cday          ! current calendar day (1.0 = 0Z on Jan 1)
-    real(rk8) :: wt1 , wt2     ! time interpolation weights
+    real(rk8) :: wt1, wt2     ! time interpolation weights
     ! summation of pft weights for renormalization
-    real(rk8) , pointer , dimension(:) :: wtpfttot1
+    real(rk8), pointer, contiguous, dimension(:) :: wtpfttot1
     ! summation of pft weights for renormalization
-    real(rk8) , pointer , dimension(:) :: wtpfttot2
+    real(rk8), pointer, contiguous, dimension(:) :: wtpfttot2
     ! tolerance for pft weight renormalization
-    real(rk8) , parameter :: wtpfttol = 1.e-10_rk8
-    type(gridcell_type) , pointer :: gptr ! pointer to gridcell derived subtype
-    type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
-    type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
+    real(rk8), parameter :: wtpfttol = 1.e-10_rk8
+    type(gridcell_type), pointer :: gptr ! pointer to gridcell derived subtype
+    type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
+    type(pft_type), pointer :: pptr      ! pointer to pft derived subtype
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
@@ -262,8 +262,8 @@ module mod_clm_pftdyn
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
 
-      do m = 0 , numpft
-        do g = begg , endg
+      do m = 0, numpft
+        do g = begg, endg
           wtpft1(g,m) = wtpft2(g,m)
         end do
       end do
@@ -275,8 +275,8 @@ module mod_clm_pftdyn
 #endif
       call clm_closefile(ncid)
 
-      do m = 0 , numpft
-        do g = begg , endg
+      do m = 0, numpft
+        do g = begg, endg
           wtpft2(g,m) = wtpft2(g,m)/100._rk8
         end do
       end do
@@ -292,7 +292,7 @@ module mod_clm_pftdyn
     end if
     wt2 = 1.0_rk8 - wt1
 
-    do p = begp , endp
+    do p = begp, endp
       c = pptr%column(p)
       g = pptr%gridcell(p)
       l = pptr%landunit(p)
@@ -311,7 +311,7 @@ module mod_clm_pftdyn
     ! Renormalize pft weights so that sum of pft weights relative to grid cell
     ! remain constant even as land cover changes.  Doing this eliminates
     ! soil balance error warnings.  (DML, 4/8/2009)
-    do p = begp , endp
+    do p = begp, endp
       c = pptr%column(p)
       g = pptr%gridcell(p)
       l = pptr%landunit(p)
@@ -333,10 +333,10 @@ module mod_clm_pftdyn
   !
   subroutine pftdyn_getharvest(begg, endg)
     implicit none
-    integer(ik4) , intent(in)  :: begg     ! beg indices for land gridcells
-    integer(ik4) , intent(in)  :: endg     ! end indices for land gridcells
+    integer(ik4), intent(in)  :: begg     ! beg indices for land gridcells
+    integer(ik4), intent(in)  :: endg     ! end indices for land gridcells
 
-    real(rk8) , pointer :: arrayl(:) ! temporary array
+    real(rk8), pointer, contiguous :: arrayl(:) ! temporary array
 
     allocate(arrayl(begg:endg))
 
@@ -377,7 +377,7 @@ module mod_clm_pftdyn
     ! set column-level canopy water mass balance correction flux
     ! term to 0 at the beginning of every timestep
 
-    do c = begc , endc
+    do c = begc, endc
       cptr%cwf%h2ocan_loss(c) = 0._rk8
     end do
   end subroutine pftdyn_wbal_init
@@ -388,8 +388,8 @@ module mod_clm_pftdyn
   ! pft weights are not affected by harvest.
   !
   subroutine pftdyn_wbal( begc, endc, begp, endp )
-    use mod_clm_varcon , only : istsoil
-    use mod_clm_varcon , only : istcrop
+    use mod_clm_varcon, only : istsoil
+    use mod_clm_varcon, only : istcrop
     implicit none
     integer(ik4), intent(in)  :: begc ! beg indices for land columns
     integer(ik4), intent(in)  :: endc ! end indices for land columns
@@ -402,10 +402,10 @@ module mod_clm_pftdyn
     real(rk8) :: init_h2ocan  ! initial canopy water mass
     real(rk8) :: new_h2ocan   ! canopy water mass after weight shift
     ! canopy water mass loss due to weight shift
-    real(rk8) , allocatable :: loss_h2ocan(:)
+    real(rk8), allocatable :: loss_h2ocan(:)
     type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
     type(column_type),   pointer :: cptr  ! pointer to column derived subtype
-    type(pft_type)   ,   pointer :: pptr  ! pointer to pft derived subtype
+    type(pft_type)  ,   pointer :: pptr  ! pointer to pft derived subtype
     character(len=32) :: subname='pftdyn_wbal' ! subroutine name
 
     ! Set pointers into derived type
@@ -424,11 +424,11 @@ module mod_clm_pftdyn
     ! set column-level canopy water mass balance correction flux
     ! term to 0 at the beginning of every weight-shifting timestep
 
-    do c = begc , endc
+    do c = begc, endc
       cptr%cwf%h2ocan_loss(c) = 0._rk8 ! is this OR pftdyn_wbal_init redundant?
     end do
 
-    do p = begp , endp
+    do p = begp, endp
       l = pptr%landunit(p)
       loss_h2ocan(p) = 0._rk8
 
@@ -470,8 +470,8 @@ module mod_clm_pftdyn
       end if
     end do
 
-    do pi = 1 , max_pft_per_col
-      do c = begc , endc
+    do pi = 1, max_pft_per_col
+      do c = begc, endc
         if (pi <= cptr%npfts(c)) then
           p = cptr%pfti(c) + pi - 1
           cptr%cwf%h2ocan_loss(c) = cptr%cwf%h2ocan_loss(c) + &
@@ -491,11 +491,11 @@ module mod_clm_pftdyn
   ! nitrogen balance with dynamic pft-weights.
   !
   subroutine pftdyn_cnbal( begc, endc, begp, endp )
-    use mod_clm_varcon , only : istsoil
-    use mod_clm_varpar , only : numveg, numpft, nlevdecomp
-    use mod_clm_varcon , only : istcrop
-    use mod_clm_pftvarcon , only : pconv, pprod10, pprod100
-    use mod_clm_varcon , only : c13ratio, c14ratio
+    use mod_clm_varcon, only : istsoil
+    use mod_clm_varpar, only : numveg, numpft, nlevdecomp
+    use mod_clm_varcon, only : istcrop
+    use mod_clm_pftvarcon, only : pconv, pprod10, pprod100
+    use mod_clm_varcon, only : c13ratio, c14ratio
     implicit none
     ! proc beginning and ending pft indices
     integer(ik4), intent(in)  :: begp, endp
@@ -505,69 +505,69 @@ module mod_clm_pftdyn
     integer(ik4)  :: ier        ! error code
     real(rk8) :: dwt            ! change in pft weight (relative to column)
     ! pft-level mass gain due to seeding of new area
-    real(rk8) , allocatable :: dwt_leafc_seed(:)
+    real(rk8), allocatable :: dwt_leafc_seed(:)
     ! pft-level mass gain due to seeding of new area
-    real(rk8) , allocatable :: dwt_leafn_seed(:)
+    real(rk8), allocatable :: dwt_leafn_seed(:)
     ! pft-level mass gain due to seeding of new area
-    real(rk8) , allocatable :: dwt_deadstemc_seed(:)
+    real(rk8), allocatable :: dwt_deadstemc_seed(:)
     ! pft-level mass gain due to seeding of new area
-    real(rk8) , allocatable :: dwt_deadstemn_seed(:)
+    real(rk8), allocatable :: dwt_deadstemn_seed(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable :: dwt_frootc_to_litter(:)
+    real(rk8), allocatable :: dwt_frootc_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable :: dwt_livecrootc_to_litter(:)
+    real(rk8), allocatable :: dwt_livecrootc_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable :: dwt_deadcrootc_to_litter(:)
+    real(rk8), allocatable :: dwt_deadcrootc_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: dwt_frootn_to_litter(:)
+    real(rk8), allocatable, target :: dwt_frootn_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: dwt_livecrootn_to_litter(:)
+    real(rk8), allocatable, target :: dwt_livecrootn_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: dwt_deadcrootn_to_litter(:)
+    real(rk8), allocatable, target :: dwt_deadcrootn_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable :: conv_cflux(:)
+    real(rk8), allocatable :: conv_cflux(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable :: prod10_cflux(:)
+    real(rk8), allocatable :: prod10_cflux(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable :: prod100_cflux(:)
+    real(rk8), allocatable :: prod100_cflux(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: conv_nflux(:)
+    real(rk8), allocatable, target :: conv_nflux(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: prod10_nflux(:)
+    real(rk8), allocatable, target :: prod10_nflux(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: prod100_nflux(:)
+    real(rk8), allocatable, target :: prod100_nflux(:)
     real(rk8) :: t1,t2,wt_new,wt_old
     real(rk8) :: init_state, change_state, new_state
     real(rk8) :: tot_leaf, pleaf, pstor, pxfer
     real(rk8) :: leafc_seed, leafn_seed
     real(rk8) :: deadstemc_seed, deadstemn_seed
-    real(rk8) , pointer :: dwt_ptr0, dwt_ptr1, dwt_ptr2, dwt_ptr3, ptr
+    real(rk8), pointer :: dwt_ptr0, dwt_ptr1, dwt_ptr2, dwt_ptr3, ptr
     ! pft vegetation type added by F. Li and S. Levis
-    integer(ik4) , pointer :: ivt(:)
-    real(rk8) ,   pointer :: lfpftd(:) !F. Li and S. Levis
+    integer(ik4), pointer, contiguous :: ivt(:)
+    real(rk8),   pointer, contiguous :: lfpftd(:) !F. Li and S. Levis
     type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
     type(column_type), pointer :: cptr   ! pointer to column derived subtype
-    type(pft_type) , pointer :: pptr     ! pointer to pft derived subtype
-    integer(ik4) , pointer :: pcolumn(:) ! column of corresponding pft
+    type(pft_type), pointer :: pptr     ! pointer to pft derived subtype
+    integer(ik4), pointer, contiguous :: pcolumn(:) ! column of corresponding pft
     character(len=32) :: subname='pftdyn_cbal' ! subroutine name
 
     !!! C13
     ! pft-level mass gain due to seeding of new area
-    real(rk8) , allocatable :: dwt_leafc13_seed(:)
+    real(rk8), allocatable :: dwt_leafc13_seed(:)
     ! pft-level mass gain due to seeding of new area
-    real(rk8) , allocatable :: dwt_deadstemc13_seed(:)
+    real(rk8), allocatable :: dwt_deadstemc13_seed(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: dwt_frootc13_to_litter(:)
+    real(rk8), allocatable, target :: dwt_frootc13_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: dwt_livecrootc13_to_litter(:)
+    real(rk8), allocatable, target :: dwt_livecrootc13_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: dwt_deadcrootc13_to_litter(:)
+    real(rk8), allocatable, target :: dwt_deadcrootc13_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: conv_c13flux(:)
+    real(rk8), allocatable, target :: conv_c13flux(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: prod10_c13flux(:)
+    real(rk8), allocatable, target :: prod10_c13flux(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: prod100_c13flux(:)
+    real(rk8), allocatable, target :: prod100_c13flux(:)
     ! typical del13C for C3 photosynthesis (permil, relative to PDB)
     real(rk8) :: c3_del13c
     ! typical del13C for C4 photosynthesis (permil, relative to PDB)
@@ -579,21 +579,21 @@ module mod_clm_pftdyn
     real(rk8) :: leafc13_seed, deadstemc13_seed
     !!! C14
     ! pft-level mass gain due to seeding of new area
-    real(rk8) , allocatable :: dwt_leafc14_seed(:)
+    real(rk8), allocatable :: dwt_leafc14_seed(:)
     ! pft-level mass gain due to seeding of new area
-    real(rk8) , allocatable :: dwt_deadstemc14_seed(:)
+    real(rk8), allocatable :: dwt_deadstemc14_seed(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: dwt_frootc14_to_litter(:)
+    real(rk8), allocatable, target :: dwt_frootc14_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: dwt_livecrootc14_to_litter(:)
+    real(rk8), allocatable, target :: dwt_livecrootc14_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: dwt_deadcrootc14_to_litter(:)
+    real(rk8), allocatable, target :: dwt_deadcrootc14_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: conv_c14flux(:)
+    real(rk8), allocatable, target :: conv_c14flux(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: prod10_c14flux(:)
+    real(rk8), allocatable, target :: prod10_c14flux(:)
     ! pft-level mass loss due to weight shift
-    real(rk8) , allocatable, target :: prod100_c14flux(:)
+    real(rk8), allocatable, target :: prod100_c14flux(:)
     real(rk8) :: leafc14_seed, deadstemc14_seed
 
     ! Set pointers into derived type
@@ -772,7 +772,7 @@ module mod_clm_pftdyn
       end if
     end if
 
-    do p = begp , endp
+    do p = begp, endp
       c = pcolumn(p)
       ! initialize all the pft-level local flux arrays
       dwt_leafc_seed(p) = 0._rk8
@@ -2562,8 +2562,8 @@ module mod_clm_pftdyn
     end do               ! pft loop
 
     ! calculate column-level seeding fluxes
-    do pi = 1 , max_pft_per_col
-      do c = begc , endc
+    do pi = 1, max_pft_per_col
+      do c = begc, endc
         if ( pi <= cptr%npfts(c) ) then
           p = cptr%pfti(c) + pi - 1
 
@@ -2597,9 +2597,9 @@ module mod_clm_pftdyn
     end do
 
     ! calculate pft-to-column for fluxes into litter and CWD pools
-    do j = 1 , nlevdecomp
-       do pi = 1 , max_pft_per_col
-         do c = begc , endc
+    do j = 1, nlevdecomp
+       do pi = 1, max_pft_per_col
+         do c = begc, endc
            if ( pi <= cptr%npfts(c) ) then
              p = cptr%pfti(c) + pi - 1
 
@@ -2711,8 +2711,8 @@ module mod_clm_pftdyn
       end do
     end do
     ! calculate pft-to-column for fluxes into product pools and conversion flux
-    do pi = 1 , max_pft_per_col
-      do c = begc , endc
+    do pi = 1, max_pft_per_col
+      do c = begc, endc
         if (pi <= cptr%npfts(c)) then
           p = cptr%pfti(c) + pi - 1
 
@@ -2809,18 +2809,18 @@ module mod_clm_pftdyn
   !
   subroutine pftwt_init()
     use mod_clm_varctl, only : nsrest, nsrStartup
-    use mod_clm_pftvarcon , only : noveg
-    use mod_clm_varcon, only : istsoil , istcrop
+    use mod_clm_pftvarcon, only : noveg
+    use mod_clm_varcon, only : istsoil, istcrop
     implicit none
     integer(ik4)  :: ier, p, l    ! error status, do-loop index
     integer(ik4)  :: begp,endp    ! beg/end indices for land pfts
     character(len=32) :: subname='pftwt_init' ! subroutine name
     type(pft_type), pointer :: pptr           ! ponter to pft derived subtype
-    integer(ik4) , pointer :: ivt(:)          ! pft type
-    integer(ik4) , pointer :: plandunit(:)    ! landunit type
-    integer(ik4) , pointer :: ityplun(:)      ! index into landunit
-    real(rk8) , pointer :: woody(:)
-    integer(ik4) , pointer :: tree(:)
+    integer(ik4), pointer, contiguous :: ivt(:)          ! pft type
+    integer(ik4), pointer, contiguous :: plandunit(:)    ! landunit type
+    integer(ik4), pointer, contiguous :: ityplun(:)      ! index into landunit
+    real(rk8), pointer, contiguous :: woody(:)
+    integer(ik4), pointer, contiguous :: tree(:)
     logical :: iswood
     integer(ik4) :: year  ! year (0, ...) for nstep+1
     integer(ik4) :: mon   ! month (1, ..., 12) for nstep+1
@@ -2847,7 +2847,7 @@ module mod_clm_pftdyn
 
     if ( nsrest == nsrStartup ) then
       if ( .not. enable_dv_baresoil ) then
-        do p = begp , endp
+        do p = begp, endp
           pptr%pdgvs%fpcgrid(p) = pptr%wtcol(p)
           pptr%pdgvs%fpcgridold(p) = pptr%wtcol(p)
           wtcol_old(p) = pptr%wtcol(p)
@@ -2895,8 +2895,8 @@ module mod_clm_pftdyn
   !
   subroutine pftwt_interp( begp, endp )
     use mod_clm_time_manager, only : get_curr_calday
-    use mod_clm_varcon      , only : istsoil ! CNDV incompatible with dynLU
-    use mod_clm_varctl      , only : finidat
+    use mod_clm_varcon     , only : istsoil ! CNDV incompatible with dynLU
+    use mod_clm_varctl     , only : finidat
     implicit none
     integer(ik4), intent(in)  :: begp,endp ! beg/end indices for land pfts
     integer(ik4)  :: c,g,l,p       ! indices
@@ -2907,7 +2907,7 @@ module mod_clm_pftdyn
     integer(ik4)  :: day           ! day of month (1, ..., 31) at nstep + 1
     integer(ik4)  :: sec           ! seconds into current date at nstep + 1
     type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
-    type(pft_type)     , pointer :: pptr ! ...     to pft derived subtype
+    type(pft_type)    , pointer :: pptr ! ...     to pft derived subtype
     character(len=32) :: subname='pftwt_interp' ! subroutine name
 
     ! Set pointers into derived type
@@ -2926,7 +2926,7 @@ module mod_clm_pftdyn
 
     wt1 = (ndpy - cday)/ndpy
 
-    do p = begp , endp
+    do p = begp, endp
       g = pptr%gridcell(p)
       l = pptr%landunit(p)
 
@@ -2953,108 +2953,108 @@ module mod_clm_pftdyn
   !
   subroutine CNHarvest (num_soilc, filter_soilc, num_soilp, filter_soilp)
    use mod_clm_type
-   use mod_clm_pftvarcon , only : noveg, nbrdlf_evr_shrub, pprodharv10
-   use mod_clm_varcon , only : secspday
+   use mod_clm_pftvarcon, only : noveg, nbrdlf_evr_shrub, pprodharv10
+   use mod_clm_varcon, only : secspday
    implicit none
-   integer(ik4) , intent(in) :: num_soilc ! number of soil columns in filter
-   integer(ik4) , intent(in) :: filter_soilc(:) ! column filter for soil points
-   integer(ik4) , intent(in) :: num_soilp       ! number of soil pfts in filter
-   integer(ik4) , intent(in) :: filter_soilp(:) ! pft filter for soil points
+   integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
+   integer(ik4), intent(in) :: filter_soilc(:) ! column filter for soil points
+   integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
+   integer(ik4), intent(in) :: filter_soilp(:) ! pft filter for soil points
    ! pft-level index into gridcell-level quantities
-   integer(ik4) , pointer :: pgridcell(:)
-   integer(ik4) , pointer :: ivt(:)  ! pft vegetation type
+   integer(ik4), pointer, contiguous :: pgridcell(:)
+   integer(ik4), pointer, contiguous :: ivt(:)  ! pft vegetation type
 
-   real(rk8) , pointer :: leafc(:)    ! (gC/m2) leaf C
-   real(rk8) , pointer :: frootc(:)   ! (gC/m2) fine root C
-   real(rk8) , pointer :: livestemc(:) ! (gC/m2) live stem C
-   real(rk8) , pointer :: deadstemc(:) ! (gC/m2) dead stem C
-   real(rk8) , pointer :: livecrootc(:)  ! (gC/m2) live coarse root C
-   real(rk8) , pointer :: deadcrootc(:)  ! (gC/m2) dead coarse root C
+   real(rk8), pointer, contiguous :: leafc(:)    ! (gC/m2) leaf C
+   real(rk8), pointer, contiguous :: frootc(:)   ! (gC/m2) fine root C
+   real(rk8), pointer, contiguous :: livestemc(:) ! (gC/m2) live stem C
+   real(rk8), pointer, contiguous :: deadstemc(:) ! (gC/m2) dead stem C
+   real(rk8), pointer, contiguous :: livecrootc(:)  ! (gC/m2) live coarse root C
+   real(rk8), pointer, contiguous :: deadcrootc(:)  ! (gC/m2) dead coarse root C
    ! (gC/m2) abstract C pool to meet excess MR demand
-   real(rk8) , pointer :: xsmrpool(:)
-   real(rk8) , pointer :: leafc_storage(:)  ! (gC/m2) leaf C storage
-   real(rk8) , pointer :: frootc_storage(:) ! (gC/m2) fine root C storage
-   real(rk8) , pointer :: livestemc_storage(:) ! (gC/m2) live stem C storage
-   real(rk8) , pointer :: deadstemc_storage(:) ! (gC/m2) dead stem C storage
+   real(rk8), pointer, contiguous :: xsmrpool(:)
+   real(rk8), pointer, contiguous :: leafc_storage(:)  ! (gC/m2) leaf C storage
+   real(rk8), pointer, contiguous :: frootc_storage(:) ! (gC/m2) fine root C storage
+   real(rk8), pointer, contiguous :: livestemc_storage(:) ! (gC/m2) live stem C storage
+   real(rk8), pointer, contiguous :: deadstemc_storage(:) ! (gC/m2) dead stem C storage
    ! (gC/m2) live coarse root C storage
-   real(rk8) , pointer :: livecrootc_storage(:)
+   real(rk8), pointer, contiguous :: livecrootc_storage(:)
    ! (gC/m2) dead coarse root C storage
-   real(rk8) , pointer :: deadcrootc_storage(:)
-   real(rk8) , pointer :: gresp_storage(:) ! (gC/m2) growth respiration storage
-   real(rk8) , pointer :: leafc_xfer(:)  ! (gC/m2) leaf C transfer
-   real(rk8) , pointer :: frootc_xfer(:) ! (gC/m2) fine root C transfer
-   real(rk8) , pointer :: livestemc_xfer(:) ! (gC/m2) live stem C transfer
-   real(rk8) , pointer :: deadstemc_xfer(:) ! (gC/m2) dead stem C transfer
+   real(rk8), pointer, contiguous :: deadcrootc_storage(:)
+   real(rk8), pointer, contiguous :: gresp_storage(:) ! (gC/m2) growth respiration storage
+   real(rk8), pointer, contiguous :: leafc_xfer(:)  ! (gC/m2) leaf C transfer
+   real(rk8), pointer, contiguous :: frootc_xfer(:) ! (gC/m2) fine root C transfer
+   real(rk8), pointer, contiguous :: livestemc_xfer(:) ! (gC/m2) live stem C transfer
+   real(rk8), pointer, contiguous :: deadstemc_xfer(:) ! (gC/m2) dead stem C transfer
    ! (gC/m2) live coarse root C transfer
-   real(rk8) , pointer :: livecrootc_xfer(:)
+   real(rk8), pointer, contiguous :: livecrootc_xfer(:)
    ! (gC/m2) dead coarse root C transfer
-   real(rk8) , pointer :: deadcrootc_xfer(:)
-   real(rk8) , pointer :: gresp_xfer(:) ! (gC/m2) growth respiration transfer
-   real(rk8) , pointer :: leafn(:)  ! (gN/m2) leaf N
-   real(rk8) , pointer :: frootn(:) ! (gN/m2) fine root N
-   real(rk8) , pointer :: livestemn(:) ! (gN/m2) live stem N
-   real(rk8) , pointer :: deadstemn(:) ! (gN/m2) dead stem N
-   real(rk8) , pointer :: livecrootn(:) ! (gN/m2) live coarse root N
-   real(rk8) , pointer :: deadcrootn(:) ! (gN/m2) dead coarse root N
-   real(rk8) , pointer :: retransn(:) ! (gN/m2) plant pool of retranslocated N
-   real(rk8) , pointer :: leafn_storage(:) ! (gN/m2) leaf N storage
-   real(rk8) , pointer :: frootn_storage(:) ! (gN/m2) fine root N storage
-   real(rk8) , pointer :: livestemn_storage(:) ! (gN/m2) live stem N storage
-   real(rk8) , pointer :: deadstemn_storage(:) ! (gN/m2) dead stem N storage
+   real(rk8), pointer, contiguous :: deadcrootc_xfer(:)
+   real(rk8), pointer, contiguous :: gresp_xfer(:) ! (gC/m2) growth respiration transfer
+   real(rk8), pointer, contiguous :: leafn(:)  ! (gN/m2) leaf N
+   real(rk8), pointer, contiguous :: frootn(:) ! (gN/m2) fine root N
+   real(rk8), pointer, contiguous :: livestemn(:) ! (gN/m2) live stem N
+   real(rk8), pointer, contiguous :: deadstemn(:) ! (gN/m2) dead stem N
+   real(rk8), pointer, contiguous :: livecrootn(:) ! (gN/m2) live coarse root N
+   real(rk8), pointer, contiguous :: deadcrootn(:) ! (gN/m2) dead coarse root N
+   real(rk8), pointer, contiguous :: retransn(:) ! (gN/m2) plant pool of retranslocated N
+   real(rk8), pointer, contiguous :: leafn_storage(:) ! (gN/m2) leaf N storage
+   real(rk8), pointer, contiguous :: frootn_storage(:) ! (gN/m2) fine root N storage
+   real(rk8), pointer, contiguous :: livestemn_storage(:) ! (gN/m2) live stem N storage
+   real(rk8), pointer, contiguous :: deadstemn_storage(:) ! (gN/m2) dead stem N storage
    ! (gN/m2) live coarse root N storage
-   real(rk8) , pointer :: livecrootn_storage(:)
+   real(rk8), pointer, contiguous :: livecrootn_storage(:)
    ! (gN/m2) dead coarse root N storage
-   real(rk8) , pointer :: deadcrootn_storage(:)
-   real(rk8) , pointer :: leafn_xfer(:)   ! (gN/m2) leaf N transfer
-   real(rk8) , pointer :: frootn_xfer(:)  ! (gN/m2) fine root N transfer
-   real(rk8) , pointer :: livestemn_xfer(:) ! (gN/m2) live stem N transfer
-   real(rk8) , pointer :: deadstemn_xfer(:) ! (gN/m2) dead stem N transfer
+   real(rk8), pointer, contiguous :: deadcrootn_storage(:)
+   real(rk8), pointer, contiguous :: leafn_xfer(:)   ! (gN/m2) leaf N transfer
+   real(rk8), pointer, contiguous :: frootn_xfer(:)  ! (gN/m2) fine root N transfer
+   real(rk8), pointer, contiguous :: livestemn_xfer(:) ! (gN/m2) live stem N transfer
+   real(rk8), pointer, contiguous :: deadstemn_xfer(:) ! (gN/m2) dead stem N transfer
    ! (gN/m2) live coarse root N transfer
-   real(rk8) , pointer :: livecrootn_xfer(:)
+   real(rk8), pointer, contiguous :: livecrootn_xfer(:)
    ! (gN/m2) dead coarse root N transfer
-   real(rk8) , pointer :: deadcrootn_xfer(:)
-   real(rk8) , pointer :: hrv_leafc_to_litter(:)
-   real(rk8) , pointer :: hrv_frootc_to_litter(:)
-   real(rk8) , pointer :: hrv_livestemc_to_litter(:)
-   real(rk8) , pointer :: hrv_deadstemc_to_prod10c(:)
-   real(rk8) , pointer :: hrv_deadstemc_to_prod100c(:)
-   real(rk8) , pointer :: hrv_livecrootc_to_litter(:)
-   real(rk8) , pointer :: hrv_deadcrootc_to_litter(:)
-   real(rk8) , pointer :: hrv_xsmrpool_to_atm(:)
-   real(rk8) , pointer :: hrv_leafc_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_frootc_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_livestemc_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_deadstemc_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_livecrootc_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_deadcrootc_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_gresp_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_leafc_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_frootc_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_livestemc_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_deadstemc_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_livecrootc_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_deadcrootc_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_gresp_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_leafn_to_litter(:)
-   real(rk8) , pointer :: hrv_frootn_to_litter(:)
-   real(rk8) , pointer :: hrv_livestemn_to_litter(:)
-   real(rk8) , pointer :: hrv_deadstemn_to_prod10n(:)
-   real(rk8) , pointer :: hrv_deadstemn_to_prod100n(:)
-   real(rk8) , pointer :: hrv_livecrootn_to_litter(:)
-   real(rk8) , pointer :: hrv_deadcrootn_to_litter(:)
-   real(rk8) , pointer :: hrv_retransn_to_litter(:)
-   real(rk8) , pointer :: hrv_leafn_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_frootn_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_livestemn_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_deadstemn_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_livecrootn_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_deadcrootn_storage_to_litter(:)
-   real(rk8) , pointer :: hrv_leafn_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_frootn_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_livestemn_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_deadstemn_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_livecrootn_xfer_to_litter(:)
-   real(rk8) , pointer :: hrv_deadcrootn_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: deadcrootn_xfer(:)
+   real(rk8), pointer, contiguous :: hrv_leafc_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_frootc_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_livestemc_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadstemc_to_prod10c(:)
+   real(rk8), pointer, contiguous :: hrv_deadstemc_to_prod100c(:)
+   real(rk8), pointer, contiguous :: hrv_livecrootc_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadcrootc_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_xsmrpool_to_atm(:)
+   real(rk8), pointer, contiguous :: hrv_leafc_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_frootc_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_livestemc_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadstemc_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_livecrootc_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadcrootc_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_gresp_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_leafc_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_frootc_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_livestemc_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadstemc_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_livecrootc_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadcrootc_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_gresp_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_leafn_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_frootn_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_livestemn_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadstemn_to_prod10n(:)
+   real(rk8), pointer, contiguous :: hrv_deadstemn_to_prod100n(:)
+   real(rk8), pointer, contiguous :: hrv_livecrootn_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadcrootn_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_retransn_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_leafn_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_frootn_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_livestemn_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadstemn_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_livecrootn_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadcrootn_storage_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_leafn_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_frootn_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_livestemn_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadstemn_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_livecrootn_xfer_to_litter(:)
+   real(rk8), pointer, contiguous :: hrv_deadcrootn_xfer_to_litter(:)
    integer(ik4) :: p    ! pft index
    integer(ik4) :: g    ! gridcell index
    integer(ik4) :: fp   ! pft filter index
@@ -3264,83 +3264,83 @@ module mod_clm_pftdyn
     ! soil column filter
     integer(ik4), intent(in) :: filter_soilc(:)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
-    integer(ik4) , pointer :: ivt(:)  ! pft vegetation type
-    real(rk8) , pointer :: wtcol(:)    ! pft weight relative to column (0-1)
-    real(rk8) , pointer :: lf_flab(:)  ! leaf litter labile fraction
-    real(rk8) , pointer :: lf_fcel(:)  ! leaf litter cellulose fraction
-    real(rk8) , pointer :: lf_flig(:)  ! leaf litter lignin fraction
-    real(rk8) , pointer :: fr_flab(:)  ! fine root litter labile fraction
-    real(rk8) , pointer :: fr_fcel(:)  ! fine root litter cellulose fraction
-    real(rk8) , pointer :: fr_flig(:)  ! fine root litter lignin fraction
-    integer(ik4) , pointer :: npfts(:)    ! number of pfts for each column
-    integer(ik4) , pointer :: pfti(:)     ! beginning pft index for each column
-    real(rk8) , pointer :: hrv_leafc_to_litter(:)
-    real(rk8) , pointer :: hrv_frootc_to_litter(:)
-    real(rk8) , pointer :: hrv_livestemc_to_litter(:)
-    real(rk8) , pointer :: phrv_deadstemc_to_prod10c(:)
-    real(rk8) , pointer :: phrv_deadstemc_to_prod100c(:)
-    real(rk8) , pointer :: hrv_livecrootc_to_litter(:)
-    real(rk8) , pointer :: hrv_deadcrootc_to_litter(:)
-    real(rk8) , pointer :: hrv_leafc_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_frootc_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_livestemc_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_deadstemc_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_livecrootc_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_deadcrootc_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_gresp_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_leafc_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_frootc_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_livestemc_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_deadstemc_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_livecrootc_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_deadcrootc_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_gresp_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_leafn_to_litter(:)
-    real(rk8) , pointer :: hrv_frootn_to_litter(:)
-    real(rk8) , pointer :: hrv_livestemn_to_litter(:)
-    real(rk8) , pointer :: phrv_deadstemn_to_prod10n(:)
-    real(rk8) , pointer :: phrv_deadstemn_to_prod100n(:)
-    real(rk8) , pointer :: hrv_livecrootn_to_litter(:)
-    real(rk8) , pointer :: hrv_deadcrootn_to_litter(:)
-    real(rk8) , pointer :: hrv_retransn_to_litter(:)
-    real(rk8) , pointer :: hrv_leafn_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_frootn_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_livestemn_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_deadstemn_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_livecrootn_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_deadcrootn_storage_to_litter(:)
-    real(rk8) , pointer :: hrv_leafn_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_frootn_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_livestemn_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_deadstemn_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_livecrootn_xfer_to_litter(:)
-    real(rk8) , pointer :: hrv_deadcrootn_xfer_to_litter(:)
+    logical, pointer, contiguous :: pactive(:)
+    integer(ik4), pointer, contiguous :: ivt(:)  ! pft vegetation type
+    real(rk8), pointer, contiguous :: wtcol(:)    ! pft weight relative to column (0-1)
+    real(rk8), pointer, contiguous :: lf_flab(:)  ! leaf litter labile fraction
+    real(rk8), pointer, contiguous :: lf_fcel(:)  ! leaf litter cellulose fraction
+    real(rk8), pointer, contiguous :: lf_flig(:)  ! leaf litter lignin fraction
+    real(rk8), pointer, contiguous :: fr_flab(:)  ! fine root litter labile fraction
+    real(rk8), pointer, contiguous :: fr_fcel(:)  ! fine root litter cellulose fraction
+    real(rk8), pointer, contiguous :: fr_flig(:)  ! fine root litter lignin fraction
+    integer(ik4), pointer, contiguous :: npfts(:)    ! number of pfts for each column
+    integer(ik4), pointer, contiguous :: pfti(:)     ! beginning pft index for each column
+    real(rk8), pointer, contiguous :: hrv_leafc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemc_to_litter(:)
+    real(rk8), pointer, contiguous :: phrv_deadstemc_to_prod10c(:)
+    real(rk8), pointer, contiguous :: phrv_deadstemc_to_prod100c(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootc_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootc_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_gresp_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootc_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_gresp_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafn_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootn_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemn_to_litter(:)
+    real(rk8), pointer, contiguous :: phrv_deadstemn_to_prod10n(:)
+    real(rk8), pointer, contiguous :: phrv_deadstemn_to_prod100n(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootn_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootn_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_retransn_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootn_xfer_to_litter(:)
     ! C fluxes associated with harvest to litter metabolic pool (gC/m3/s)
-    real(rk8) , pointer :: harvest_c_to_litr_met_c(:,:)
+    real(rk8), pointer, contiguous :: harvest_c_to_litr_met_c(:,:)
     ! C fluxes associated with harvest to litter cellulose pool (gC/m3/s)
-    real(rk8) , pointer :: harvest_c_to_litr_cel_c(:,:)
+    real(rk8), pointer, contiguous :: harvest_c_to_litr_cel_c(:,:)
     ! C fluxes associated with harvest to litter lignin pool (gC/m3/s)
-    real(rk8) , pointer :: harvest_c_to_litr_lig_c(:,:)
+    real(rk8), pointer, contiguous :: harvest_c_to_litr_lig_c(:,:)
     ! C fluxes associated with harvest to CWD pool (gC/m3/s)
-    real(rk8) , pointer :: harvest_c_to_cwdc(:,:)
+    real(rk8), pointer, contiguous :: harvest_c_to_cwdc(:,:)
     ! N fluxes associated with harvest to litter metabolic pool (gN/m3/s)
-    real(rk8) , pointer :: harvest_n_to_litr_met_n(:,:)
+    real(rk8), pointer, contiguous :: harvest_n_to_litr_met_n(:,:)
     ! N fluxes associated with harvest to litter cellulose pool (gN/m3/s)
-    real(rk8) , pointer :: harvest_n_to_litr_cel_n(:,:)
+    real(rk8), pointer, contiguous :: harvest_n_to_litr_cel_n(:,:)
     ! N fluxes associated with harvest to litter lignin pool (gN/m3/s)
-    real(rk8) , pointer :: harvest_n_to_litr_lig_n(:,:)
+    real(rk8), pointer, contiguous :: harvest_n_to_litr_lig_n(:,:)
     ! N fluxes associated with harvest to CWD pool (gN/m3/s)
-    real(rk8) , pointer :: harvest_n_to_cwdn(:,:)
-    real(rk8) , pointer :: chrv_deadstemc_to_prod10c(:)
-    real(rk8) , pointer :: chrv_deadstemc_to_prod100c(:)
-    real(rk8) , pointer :: chrv_deadstemn_to_prod10n(:)
-    real(rk8) , pointer :: chrv_deadstemn_to_prod100n(:)
-    real(rk8) , pointer :: leaf_prof(:,:)   ! (1/m) profile of leaves
-    real(rk8) , pointer :: froot_prof(:,:)  ! (1/m) profile of fine roots
-    real(rk8) , pointer :: croot_prof(:,:)  ! (1/m) profile of coarse roots
-    real(rk8) , pointer :: stem_prof(:,:)   ! (1/m) profile of stems
-    integer(ik4) :: fc , c , pi , p , j    ! indices
+    real(rk8), pointer, contiguous :: harvest_n_to_cwdn(:,:)
+    real(rk8), pointer, contiguous :: chrv_deadstemc_to_prod10c(:)
+    real(rk8), pointer, contiguous :: chrv_deadstemc_to_prod100c(:)
+    real(rk8), pointer, contiguous :: chrv_deadstemn_to_prod10n(:)
+    real(rk8), pointer, contiguous :: chrv_deadstemn_to_prod100n(:)
+    real(rk8), pointer, contiguous :: leaf_prof(:,:)   ! (1/m) profile of leaves
+    real(rk8), pointer, contiguous :: froot_prof(:,:)  ! (1/m) profile of fine roots
+    real(rk8), pointer, contiguous :: croot_prof(:,:)  ! (1/m) profile of coarse roots
+    real(rk8), pointer, contiguous :: stem_prof(:,:)   ! (1/m) profile of stems
+    integer(ik4) :: fc, c, pi, p, j    ! indices
 
    ! assign local pointers
    lf_flab  => pftcon%lf_flab

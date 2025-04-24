@@ -31,25 +31,25 @@ module mod_sst_gndnc
 
   private
 
-  integer(ik4) :: ilon , jlat
+  integer(ik4) :: ilon, jlat
 
   integer(ik4) :: inet1
-  integer(ik4) , dimension(2) :: ivar2
+  integer(ik4), dimension(2) :: ivar2
   integer(ik4) :: timlen
   integer(ik4) :: timid
   integer(ik4) :: istatus
-  integer(ik4) , dimension(3) :: istart , icount
-  real(rkx) , pointer ::  work(:)
-  real(rkx) , pointer , dimension(:,:) :: workf
-  integer(ik2) , pointer , dimension(:,:) :: worki
-  real(rkx) , pointer , dimension(:,:) :: sst
-  type(rcm_time_and_date) , save :: fidate1
-  character(len=64) :: cunit , ccal
+  integer(ik4), dimension(3) :: istart, icount
+  real(rkx), pointer, contiguous, dimension(:) ::  work
+  real(rkx), pointer, contiguous, dimension(:,:) :: workf
+  integer(ik2), pointer, contiguous, dimension(:,:) :: worki
+  real(rkx), pointer, contiguous, dimension(:,:) :: sst
+  type(rcm_time_and_date), save :: fidate1
+  character(len=64) :: cunit, ccal
   character(len=256) :: inpfile
   character(len=16), dimension(2) :: varname
   type(h_interpolator) :: hint
   integer(ik2) :: fillvalue = 0
-  real(rkx) :: add_offset , scale_factor
+  real(rkx) :: add_offset, scale_factor
   logical :: cds_beta = .false.
 
   data varname/'time', 'TOBESET'/
@@ -67,14 +67,14 @@ module mod_sst_gndnc
   !**************************************************************************
   subroutine sst_gndnc
     implicit none
-    real(rkx) , pointer , dimension(:,:) :: glat
-    real(rkx) , pointer , dimension(:,:) :: glon
-    real(rkx) , pointer , dimension(:) :: glat1
-    real(rkx) , pointer , dimension(:) :: glon1
-    type(rcm_time_and_date) :: idate , idatef , idateo
+    real(rkx), pointer, contiguous, dimension(:,:) :: glat
+    real(rkx), pointer, contiguous, dimension(:,:) :: glon
+    real(rkx), pointer, contiguous, dimension(:) :: glat1
+    real(rkx), pointer, contiguous, dimension(:) :: glon1
+    type(rcm_time_and_date) :: idate, idatef, idateo
     type(rcm_time_interval) :: tdif
-    integer(ik4) :: k , nsteps , latid , lonid
-    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: k, nsteps, latid, lonid
+    integer(ik4) :: year, month, day, hour
 
     call split_idate(globidate1, year, month, day, hour)
 
@@ -266,19 +266,19 @@ module mod_sst_gndnc
     tdif = idatef-idateo
     nsteps = int(tohours(tdif))/24 + 1
 
-    write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
-    write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
+    write (stdout,*) 'GLOBIDATE1 : ', tochar(globidate1)
+    write (stdout,*) 'GLOBIDATE2 : ', tochar(globidate2)
     write (stdout,*) 'NSTEPS = ', nsteps
 
     call open_sstfile(idateo)
 
     idate = idateo
     tdif = 86400
-    do k = 1 , nsteps
+    do k = 1, nsteps
       call gndnc_sst(idate)
       call h_interpolate_cont(hint,sst,sstmm)
       call writerec(idate)
-      write (stdout,*) 'WRITEN OUT SST DATA : ' , tochar(idate)
+      write (stdout,*) 'WRITEN OUT SST DATA : ', tochar(idate)
       idate = idate + tdif
     end do
 
@@ -290,11 +290,11 @@ module mod_sst_gndnc
   !
   subroutine gndnc_sst(idate)
     implicit none
-    type(rcm_time_and_date) , intent (in) :: idate
-    integer(ik4) :: it , i , j
-    integer(ik4) :: year , month , day , hour
+    type(rcm_time_and_date), intent (in) :: idate
+    integer(ik4) :: it, i, j
+    integer(ik4) :: year, month, day, hour
     type(rcm_time_interval) :: tdif
-    integer(ik4) , dimension(12) :: isteps
+    integer(ik4), dimension(12) :: isteps
 
     data isteps /1,32,60,91,121,151,182,213,244,274,305,335/
 
@@ -409,8 +409,8 @@ module mod_sst_gndnc
       call getworkf(2,workf)
     end if
     if ( ssttyp == 'TMIST' ) then
-      do j = 1 , jlat
-        do i = 1 , ilon
+      do j = 1, jlat
+        do i = 1, ilon
           if (workf(i,j) > 0.0_rkx ) then
             sst(i,j) = workf(i,j) + 273.15_rkx
           else
@@ -419,8 +419,8 @@ module mod_sst_gndnc
         end do
       end do
     else if ( ssttyp == 'HRMED' ) then
-      do j = 1 , jlat
-        do i = 1 , ilon
+      do j = 1, jlat
+        do i = 1, ilon
           if ( is_nan(workf(i,j)) ) then
             sst(i,j) = -9999.0_rkx
           else
@@ -429,8 +429,8 @@ module mod_sst_gndnc
         end do
       end do
     else
-      do j = 1 , jlat
-        do i = 1 , ilon
+      do j = 1, jlat
+        do i = 1, ilon
           if (workf(i,j) < 0.9E+20_rkx ) then
             sst(i,j) = workf(i,j)
           else
@@ -444,9 +444,9 @@ module mod_sst_gndnc
 
       subroutine getworki(irec,wk,wi)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        real(rkx) , pointer , dimension(:,:) :: wk
-        integer(ik2) , pointer , dimension(:,:) :: wi
+        integer(ik4), intent(in) :: irec
+        real(rkx), pointer, contiguous, dimension(:,:) :: wk
+        integer(ik2), pointer, contiguous, dimension(:,:) :: wi
         istatus = nf90_get_var(inet1,ivar2(irec),wi(:,:),istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error read var '//varname(irec))
@@ -458,8 +458,8 @@ module mod_sst_gndnc
 
       subroutine getworkf(irec,wk)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        real(rkx) , pointer , dimension(:,:) :: wk
+        integer(ik4), intent(in) :: irec
+        real(rkx), pointer, contiguous, dimension(:,:) :: wk
         istatus = nf90_get_var(inet1,ivar2(irec),wk(:,:),istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error read var '//varname(irec))

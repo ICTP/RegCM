@@ -31,7 +31,7 @@ module mod_clm_meganfactors
   integer(ik4) :: npfts ! number of plant function types
 
   type emis_eff_t
-     real(rk8), pointer :: eff(:) ! emissions efficiency factor
+     real(rk8), pointer, contiguous :: eff(:) ! emissions efficiency factor
      real(rk8) :: wght            ! molecular weight
      integer(ik4) :: class_num    ! MEGAN class number
   endtype emis_eff_t
@@ -39,14 +39,14 @@ module mod_clm_meganfactors
   ! hash table of MEGAN factors (points to an array of pointers)
   type(emis_eff_t), pointer :: comp_factors_table(:)
   ! pointer to hash table indices
-  integer(ik4), pointer :: hash_table_indices(:)
+  integer(ik4), pointer, contiguous :: hash_table_indices(:)
   ! hash table size
   integer(ik4), parameter :: tbl_hash_sz = 2**16
 
   ! MEGAN compound names
   character(len=32), allocatable :: comp_names(:)
   ! MEGAN compound molecular weights
-  real(rk8) , allocatable :: comp_molecwghts(:)
+  real(rk8), allocatable :: comp_molecwghts(:)
 
   contains
   !
@@ -56,11 +56,11 @@ module mod_clm_meganfactors
     implicit none
     character(len=*),intent(in)  :: comp_name      ! MEGAN compound name
     ! vegitation type factors for the compound of intrest
-    real(rk8) , intent(out) :: factors(npfts)
+    real(rk8), intent(out) :: factors(npfts)
     ! MEGAN class number for the compound of intrest
-    integer(ik4) , intent(out) :: class_n
+    integer(ik4), intent(out) :: class_n
     ! molecular weight of the compound of intrest
-    real(rk8) , intent(out) :: molecwght
+    real(rk8), intent(out) :: molecwght
 
     integer(ik4) :: hashkey, ndx
     character(len=120) :: errmes
@@ -91,9 +91,9 @@ module mod_clm_meganfactors
     integer(ik4) :: n_comps, n_classes, n_pfts
     integer(ik4), allocatable :: class_nums(:)
 
-    real(rk8) , allocatable :: factors(:)
-    real(rk8) , allocatable :: comp_factors(:,:)
-    real(rk8) , allocatable :: class_factors(:,:)
+    real(rk8), allocatable :: factors(:)
+    real(rk8), allocatable :: comp_factors(:,:)
+    real(rk8), allocatable :: class_factors(:,:)
 
     allocate(comp_factors_table(150))
     allocate(hash_table_indices(tbl_hash_sz))
@@ -123,8 +123,8 @@ module mod_clm_meganfactors
     call clm_readvar(ncid,'Class_EF',class_factors)
     call clm_readvar(ncid,'Comp_EF',comp_factors)
 
-    do i = 1 , n_comps
-      do j = 1 , n_pfts
+    do i = 1, n_comps
+      do j = 1, n_pfts
         factors(j) = comp_factors(i,j)*class_factors(class_nums(i),j)
       end do
       call enter_hash_data( trim(comp_names(i)), factors, &
@@ -164,7 +164,7 @@ module mod_clm_meganfactors
 
     hash_table_indices(:) = 0
     n = size(names)
-    do i = 1 , n
+    do i = 1, n
       hashkey = gen_hashkey(names(i))
       hash_table_indices(hashkey) = i
     end do
@@ -211,16 +211,16 @@ module mod_clm_meganfactors
     if ( len(string) /= 19 ) then
       ! Process arbitrary string length.
       do i = 1, len(string)
-        hash = ieor(hash , (ichar(string(i:i)) * &
+        hash = ieor(hash, (ichar(string(i:i)) * &
                   tbl_gen_hash_key(iand(i-1,tbl_max_idx))))
       end do
     else
       ! Special case string length = 19
       do i = 1, tbl_max_idx+1
-        hash = ieor(hash , ichar(string(i:i))   * tbl_gen_hash_key(i-1))
+        hash = ieor(hash, ichar(string(i:i))   * tbl_gen_hash_key(i-1))
       end do
       do i = tbl_max_idx+2, len(string)
-        hash = ieor(hash , ichar(string(i:i))   * &
+        hash = ieor(hash, ichar(string(i:i))   * &
                   tbl_gen_hash_key(i-tbl_max_idx-2))
       end do
     end if

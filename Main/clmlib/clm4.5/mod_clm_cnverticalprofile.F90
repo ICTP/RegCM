@@ -19,14 +19,14 @@ module mod_clm_cnverticalprofile
   public:: decomp_vertprofiles
 
 #ifdef VERTSOILC
-  logical , public :: exponential_rooting_profile = .true.
-  logical , public :: pftspecific_rootingprofile = .true.
+  logical, public :: exponential_rooting_profile = .true.
+  logical, public :: pftspecific_rootingprofile = .true.
   ! parameter for how steep the profile is for root C inputs
   ! (1/ e-folding depth) (1/m)
-  real(rk8) , public :: rootprof_exp  = 3.0_rk8
+  real(rk8), public :: rootprof_exp  = 3.0_rk8
   ! parameter for how steep the profile is for surface components
   ! (1/ e_folding depth) (1/m)
-  real(rk8) , public :: surfprof_exp  = 10.0_rk8
+  real(rk8), public :: surfprof_exp  = 10.0_rk8
 #endif
 
   contains
@@ -34,11 +34,11 @@ module mod_clm_cnverticalprofile
   subroutine decomp_vertprofiles(lbp,ubp,lbc,ubc, &
                   num_soilc,filter_soilc,num_soilp,filter_soilp)
     use mod_clm_type
-    use mod_clm_subgridave , only : p2c
-    use mod_clm_varcon , only : zsoi, dzsoi, zisoi
-    use mod_clm_varpar , only : nlevdecomp, nlevgrnd, &
+    use mod_clm_subgridave, only : p2c
+    use mod_clm_varcon, only : zsoi, dzsoi, zisoi
+    use mod_clm_varpar, only : nlevdecomp, nlevgrnd, &
             nlevdecomp_full, maxpatch_pft
-    use mod_clm_pftvarcon , only : rootprof_beta, noveg
+    use mod_clm_pftvarcon, only : rootprof_beta, noveg
     implicit none
     integer(ik4), intent(in) :: lbp, ubp   ! pft-index bounds
     integer(ik4), intent(in) :: lbc, ubc   ! column-index bounds
@@ -48,25 +48,25 @@ module mod_clm_cnverticalprofile
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     ! column level
     ! (1/m) profile for N fixation additions
-    real(rk8), pointer :: nfixation_prof(:,:)
+    real(rk8), pointer, contiguous :: nfixation_prof(:,:)
     ! (1/m) profile for N fixation additions
-    real(rk8), pointer :: ndep_prof(:,:)
-    integer(ik4), pointer :: altmax_lastyear_indx(:)  ! frost table depth (m)
-    integer(ik4) , pointer :: npfts(:)  ! number of pfts for each column
-    integer(ik4) , pointer :: pfti(:)   ! beginning pft index for each column
+    real(rk8), pointer, contiguous :: ndep_prof(:,:)
+    integer(ik4), pointer, contiguous :: altmax_lastyear_indx(:)  ! frost table depth (m)
+    integer(ik4), pointer, contiguous :: npfts(:)  ! number of pfts for each column
+    integer(ik4), pointer, contiguous :: pfti(:)   ! beginning pft index for each column
 
     ! pft level
-    integer(ik4) , pointer :: ivt(:)    ! pft vegetation type
+    integer(ik4), pointer, contiguous :: ivt(:)    ! pft vegetation type
     ! fraction of roots in each soil layer  (nlevgrnd)
-    real(rk8), pointer :: rootfr(:,:)
-    integer(ik4) , pointer :: pcolumn(:)   ! pft's column index
-    real(rk8), pointer :: leaf_prof(:,:)   ! (1/m) profile of leaves
-    real(rk8), pointer :: froot_prof(:,:)  ! (1/m) profile of fine roots
-    real(rk8), pointer :: croot_prof(:,:)  ! (1/m) profile of coarse roots
-    real(rk8), pointer :: stem_prof(:,:)   ! (1/m) profile of stems
-    real(rk8), pointer :: wtcol(:)         ! pft weight relative to column (0-1)
+    real(rk8), pointer, contiguous :: rootfr(:,:)
+    integer(ik4), pointer, contiguous :: pcolumn(:)   ! pft's column index
+    real(rk8), pointer, contiguous :: leaf_prof(:,:)   ! (1/m) profile of leaves
+    real(rk8), pointer, contiguous :: froot_prof(:,:)  ! (1/m) profile of fine roots
+    real(rk8), pointer, contiguous :: croot_prof(:,:)  ! (1/m) profile of coarse roots
+    real(rk8), pointer, contiguous :: stem_prof(:,:)   ! (1/m) profile of stems
+    real(rk8), pointer, contiguous :: wtcol(:)         ! pft weight relative to column (0-1)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
+    logical, pointer, contiguous :: pactive(:)
 
     ! local variables
     real(rk8) :: surface_prof(1:nlevdecomp)
@@ -112,7 +112,7 @@ module mod_clm_cnverticalprofile
     ! define a single shallow surface profile for surface additions
     ! (leaves, stems, and N deposition)
     surface_prof(:) = 0._rk8
-    do j = 1 , nlevdecomp
+    do j = 1, nlevdecomp
       surface_prof(j) = exp(-surfprof_exp * zsoi(j)) / dzsoi_decomp(j)
     end do
 

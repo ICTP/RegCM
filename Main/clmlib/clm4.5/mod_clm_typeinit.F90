@@ -12,11 +12,11 @@ module mod_clm_typeinit
   use mod_clm_varpar
 #endif
   use mod_clm_varctl
-  use mod_clm_decomp , only : get_proc_bounds , get_proc_global
-  use mod_clm_varcon , only : spval , ispval
-  use mod_clm_surfrd , only : crop_prog
-  use mod_clm_megan , only : shr_megan_megcomps_n
-  use mod_clm_drydep , only : n_drydep , drydep_method , DD_XLND
+  use mod_clm_decomp, only : get_proc_bounds, get_proc_global
+  use mod_clm_varcon, only : spval, ispval
+  use mod_clm_surfrd, only : crop_prog
+  use mod_clm_megan, only : shr_megan_megcomps_n
+  use mod_clm_drydep, only : n_drydep, drydep_method, DD_XLND
   use mod_clm_varpar
 
   implicit none
@@ -41,10 +41,10 @@ module mod_clm_typeinit
   !
   subroutine initClmtype()
     implicit none
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
-    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
     integer(ik4) :: numg        ! total number of gridcells across all proc
     integer(ik4) :: numl        ! total number of landunits across all proc
     integer(ik4) :: numc        ! total number of columns across all proc
@@ -316,8 +316,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_type (ibeg,iend,p)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type(pft_type) , intent(inout) :: p
+    integer(ik4), intent(in) :: ibeg, iend
+    type(pft_type), intent(inout) :: p
 
     allocate(p%gridcell(ibeg:iend),p%wtgcell(ibeg:iend))
     allocate(p%landunit(ibeg:iend),p%wtlunit(ibeg:iend))
@@ -333,8 +333,8 @@ module mod_clm_typeinit
   subroutine init_column_type (ibeg,iend,c)
 ! !ARGUMENTS:
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type(column_type) , intent(inout) :: c
+    integer(ik4), intent(in) :: ibeg, iend
+    type(column_type), intent(inout) :: c
 
    allocate(c%gridcell(ibeg:iend),c%wtgcell(ibeg:iend))
    allocate(c%landunit(ibeg:iend),c%wtlunit(ibeg:iend))
@@ -349,8 +349,8 @@ module mod_clm_typeinit
   !
   subroutine init_landunit_type (ibeg,iend,l)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type(landunit_type) , intent(inout) :: l
+    integer(ik4), intent(in) :: ibeg, iend
+    type(landunit_type), intent(inout) :: l
 
     allocate(l%gridcell(ibeg:iend),l%wtgcell(ibeg:iend))
 
@@ -387,8 +387,8 @@ module mod_clm_typeinit
   !
   subroutine init_gridcell_type (ibeg,iend,g)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type(gridcell_type) , intent(inout) :: g
+    integer(ik4), intent(in) :: ibeg, iend
+    type(gridcell_type), intent(inout) :: g
 
     allocate(g%luni(ibeg:iend),g%lunf(ibeg:iend),g%nlandunits(ibeg:iend))
     allocate(g%coli(ibeg:iend),g%colf(ibeg:iend),g%ncolumns  (ibeg:iend))
@@ -422,8 +422,8 @@ module mod_clm_typeinit
   !
   subroutine init_energy_balance_type(ibeg,iend,ebal)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type(energy_balance_type) , intent(inout) :: ebal
+    integer(ik4), intent(in) :: ibeg, iend
+    type(energy_balance_type), intent(inout) :: ebal
 
     allocate(ebal%errsoi(ibeg:iend))
     allocate(ebal%errseb(ibeg:iend))
@@ -440,8 +440,8 @@ module mod_clm_typeinit
   !
   subroutine init_water_balance_type(ibeg,iend,wbal)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type(water_balance_type) , intent(inout) :: wbal
+    integer(ik4), intent(in) :: ibeg, iend
+    type(water_balance_type), intent(inout) :: wbal
 
     allocate(wbal%begwb(ibeg:iend))
     allocate(wbal%endwb(ibeg:iend))
@@ -456,8 +456,8 @@ module mod_clm_typeinit
   !
   subroutine init_carbon_balance_type(ibeg,iend,cbal)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type(carbon_balance_type) , intent(inout) :: cbal
+    integer(ik4), intent(in) :: ibeg, iend
+    type(carbon_balance_type), intent(inout) :: cbal
 
     allocate(cbal%begcb(ibeg:iend))
     allocate(cbal%endcb(ibeg:iend))
@@ -472,8 +472,8 @@ module mod_clm_typeinit
   !
   subroutine init_nitrogen_balance_type(ibeg,iend,nbal)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type(nitrogen_balance_type) , intent(inout) :: nbal
+    integer(ik4), intent(in) :: ibeg, iend
+    type(nitrogen_balance_type), intent(inout) :: nbal
 
     allocate(nbal%begnb(ibeg:iend))
     allocate(nbal%endnb(ibeg:iend))
@@ -592,7 +592,7 @@ module mod_clm_typeinit
   !
   subroutine init_decomp_cascade_constants()
     implicit none
-    integer(ik4) :: nct , np
+    integer(ik4) :: nct, np
     nct = ndecomp_cascade_transitions
     np = ndecomp_pools
     !-- properties of each pathway along decomposition cascade
@@ -669,8 +669,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_pstate_type(ibeg,iend,pps)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_pstate_type) , intent(inout) :: pps
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_pstate_type), intent(inout) :: pps
 
     allocate(pps%prec10(ibeg:iend)) !F. Li and S. Levis
     allocate(pps%prec60(ibeg:iend)) !F. Li and S. Levis
@@ -928,8 +928,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_epv_type(ibeg,iend,pepv)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_epv_type) , intent(inout) :: pepv
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_epv_type), intent(inout) :: pepv
 
     allocate(pepv%dormant_flag(ibeg:iend))
     allocate(pepv%days_active(ibeg:iend))
@@ -1060,8 +1060,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_pdgvstate_type(ibeg,iend,pdgvs)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_dgvstate_type) , intent(inout) :: pdgvs
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_dgvstate_type), intent(inout) :: pdgvs
 
     allocate(pdgvs%agddtw(ibeg:iend))
     allocate(pdgvs%agdd(ibeg:iend))
@@ -1103,8 +1103,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_vstate_type(ibeg,iend,pvs)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_vstate_type) , intent(inout) :: pvs
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_vstate_type), intent(inout) :: pvs
 
     allocate(pvs%t_veg24 (ibeg:iend))
     allocate(pvs%t_veg240(ibeg:iend))
@@ -1131,8 +1131,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_psynstate_type(ibeg,iend,ppsyns)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_psynstate_type) , intent(inout) :: ppsyns
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_psynstate_type), intent(inout) :: ppsyns
 
     allocate(ppsyns%c3flag(ibeg:iend))
     allocate(ppsyns%ac(ibeg:iend,1:nlevcan))
@@ -1177,8 +1177,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_estate_type(ibeg,iend,pes)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_estate_type) , intent(inout) :: pes
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_estate_type), intent(inout) :: pes
 
     allocate(pes%t_ref2m(ibeg:iend))
     allocate(pes%q10m(ibeg:iend))
@@ -1241,8 +1241,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_wstate_type(ibeg,iend,pws)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_wstate_type) , intent(inout) :: pws !pft water state
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_wstate_type), intent(inout) :: pws !pft water state
 
     allocate(pws%h2ocan(ibeg:iend))
     pws%h2ocan(ibeg:iend) = spval
@@ -1252,8 +1252,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_cstate_type(ibeg,iend,pcs)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_cstate_type) , intent(inout) :: pcs !pft carbon state
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_cstate_type), intent(inout) :: pcs !pft carbon state
 
     allocate(pcs%leafc(ibeg:iend))
     allocate(pcs%leafc_storage(ibeg:iend))
@@ -1334,8 +1334,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_nstate_type(ibeg,iend,pns)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_nstate_type) , intent(inout) :: pns !pft nitrogen state
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_nstate_type), intent(inout) :: pns !pft nitrogen state
 
     if ( crop_prog )then
       allocate(pns%grainn(ibeg:iend))
@@ -1404,8 +1404,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_eflux_type(ibeg,iend,pef)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_eflux_type) , intent(inout) :: pef
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_eflux_type), intent(inout) :: pef
 
     allocate(pef%sabg(ibeg:iend))
     allocate(pef%sabv(ibeg:iend))
@@ -1569,8 +1569,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_mflux_type(ibeg,iend,pmf)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_mflux_type) , intent(inout) :: pmf
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_mflux_type), intent(inout) :: pmf
 
     allocate(pmf%taux(ibeg:iend))
     allocate(pmf%tauy(ibeg:iend))
@@ -1583,8 +1583,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_wflux_type(ibeg,iend,pwf)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_wflux_type) , intent(inout) :: pwf
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_wflux_type), intent(inout) :: pwf
 
     allocate(pwf%qflx_prec_intr(ibeg:iend))
     allocate(pwf%qflx_prec_grnd(ibeg:iend))
@@ -1630,8 +1630,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_cflux_type(ibeg,iend,pcf)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_cflux_type) , intent(inout) :: pcf
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_cflux_type), intent(inout) :: pcf
 
     allocate(pcf%psnsun(ibeg:iend))
     allocate(pcf%psnsha(ibeg:iend))
@@ -2077,8 +2077,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_nflux_type(ibeg,iend,pnf)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_nflux_type) , intent(inout) :: pnf
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_nflux_type), intent(inout) :: pnf
 
     allocate(pnf%m_leafn_to_litter(ibeg:iend))
     allocate(pnf%m_frootn_to_litter(ibeg:iend))
@@ -2351,8 +2351,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_vflux_type(ibeg,iend,pvf)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_vflux_type) , intent(inout) :: pvf
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_vflux_type), intent(inout) :: pvf
     integer(ik4) :: i
 
     if ( shr_megan_megcomps_n < 1 ) return
@@ -2399,7 +2399,7 @@ module mod_clm_typeinit
 
     allocate(pvf%meg(shr_megan_megcomps_n))
 
-    do i = 1 , shr_megan_megcomps_n
+    do i = 1, shr_megan_megcomps_n
       allocate(pvf%meg(i)%flux_out(ibeg:iend))
       pvf%meg(i)%flux_out(ibeg:iend) = nan
     enddo
@@ -2409,8 +2409,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_dflux_type(ibeg,iend,pdf)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_dflux_type) , intent(inout) :: pdf
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_dflux_type), intent(inout) :: pdf
 
     allocate(pdf%flx_mss_vrt_dst(ibeg:iend,1:ndst))
     allocate(pdf%flx_mss_vrt_dst_tot(ibeg:iend))
@@ -2435,8 +2435,8 @@ module mod_clm_typeinit
   !
   subroutine init_pft_depvd_type(ibeg,iend,pdd)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (pft_depvd_type) , intent(inout) :: pdd
+    integer(ik4), intent(in) :: ibeg, iend
+    type (pft_depvd_type), intent(inout) :: pdd
 
     if ( n_drydep > 0 .and. drydep_method == DD_XLND ) then
       allocate(pdd%drydepvel(ibeg:iend,n_drydep))
@@ -2448,8 +2448,8 @@ module mod_clm_typeinit
   !
   subroutine init_column_pstate_type(ibeg,iend,cps)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (column_pstate_type) , intent(inout) :: cps
+    integer(ik4), intent(in) :: ibeg, iend
+    type (column_pstate_type), intent(inout) :: cps
 
     allocate(cps%snl(ibeg:iend))      !* cannot be averaged up
     allocate(cps%isoicol(ibeg:iend))  !* cannot be averaged up
@@ -2883,8 +2883,8 @@ module mod_clm_typeinit
   !
   subroutine init_column_estate_type(ibeg,iend,ces)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (column_estate_type) , intent(inout) :: ces
+    integer(ik4), intent(in) :: ibeg, iend
+    type (column_estate_type), intent(inout) :: ces
 
     allocate(ces%t_grnd(ibeg:iend))
     allocate(ces%t_grnd_u(ibeg:iend))
@@ -2927,8 +2927,8 @@ module mod_clm_typeinit
   !
   subroutine init_column_wstate_type(ibeg,iend,cws)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (column_wstate_type) , intent(inout) :: cws !column water state
+    integer(ik4), intent(in) :: ibeg, iend
+    type (column_wstate_type), intent(inout) :: cws !column water state
 
     allocate(cws%h2osno(ibeg:iend))
     allocate(cws%errh2osno(ibeg:iend))
@@ -3035,8 +3035,8 @@ module mod_clm_typeinit
   !
   subroutine init_column_cstate_type(ibeg,iend,ccs)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (column_cstate_type) , intent(inout) :: ccs
+    integer(ik4), intent(in) :: ibeg, iend
+    type (column_cstate_type), intent(inout) :: ccs
 
     allocate(ccs%soilc(ibeg:iend))
     allocate(ccs%cwdc(ibeg:iend))
@@ -3092,8 +3092,8 @@ module mod_clm_typeinit
   !
   subroutine init_column_nstate_type(ibeg,iend,cns)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (column_nstate_type) , intent(inout) :: cns
+    integer(ik4), intent(in) :: ibeg, iend
+    type (column_nstate_type), intent(inout) :: cns
 
     allocate(cns%decomp_npools(ibeg:iend,1:ndecomp_pools))
     allocate(cns%decomp_npools_1m(ibeg:iend,1:ndecomp_pools))
@@ -3150,8 +3150,8 @@ module mod_clm_typeinit
   !
   subroutine init_column_eflux_type(ibeg,iend,cef)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (column_eflux_type) , intent(inout) :: cef
+    integer(ik4), intent(in) :: ibeg, iend
+    type (column_eflux_type), intent(inout) :: cef
 
     allocate(cef%eflx_snomelt(ibeg:iend))
     allocate(cef%eflx_snomelt_u(ibeg:iend))
@@ -3180,8 +3180,8 @@ module mod_clm_typeinit
   !
   subroutine init_column_wflux_type(ibeg,iend,cwf)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (column_wflux_type) , intent(inout) :: cwf
+    integer(ik4), intent(in) :: ibeg, iend
+    type (column_wflux_type), intent(inout) :: cwf
 
     allocate(cwf%qflx_infl(ibeg:iend))
     allocate(cwf%qflx_surf(ibeg:iend))
@@ -3276,8 +3276,8 @@ module mod_clm_typeinit
   !
   subroutine init_column_cflux_type(ibeg,iend,ccf)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (column_cflux_type) , intent(inout) :: ccf
+    integer(ik4), intent(in) :: ibeg, iend
+    type (column_cflux_type), intent(inout) :: ccf
 
     allocate(ccf%hrv_deadstemc_to_prod10c(ibeg:iend))
     allocate(ccf%hrv_deadstemc_to_prod100c(ibeg:iend))
@@ -3460,8 +3460,8 @@ module mod_clm_typeinit
   !
   subroutine init_column_ch4_type(ibeg,iend,cch4)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (column_ch4_type) , intent(inout) :: cch4
+    integer(ik4), intent(in) :: ibeg, iend
+    type (column_ch4_type), intent(inout) :: cch4
 
     allocate(cch4%ch4_prod_depth_sat(ibeg:iend,1:nlevgrnd))
     allocate(cch4%ch4_prod_depth_unsat(ibeg:iend,1:nlevgrnd))
@@ -3596,8 +3596,8 @@ module mod_clm_typeinit
   !
   subroutine init_column_nflux_type(ibeg,iend,cnf)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (column_nflux_type) , intent(inout) :: cnf
+    integer(ik4), intent(in) :: ibeg, iend
+    type (column_nflux_type), intent(inout) :: cnf
 
     allocate(cnf%ndep_to_sminn(ibeg:iend))
     allocate(cnf%nfix_to_sminn(ibeg:iend))
@@ -3853,8 +3853,8 @@ module mod_clm_typeinit
   !
   subroutine init_landunit_pstate_type(ibeg,iend,lps)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (landunit_pstate_type) , intent(inout) :: lps
+    integer(ik4), intent(in) :: ibeg, iend
+    type (landunit_pstate_type), intent(inout) :: lps
 
     allocate(lps%t_building(ibeg:iend))
     allocate(lps%t_building_max(ibeg:iend))
@@ -3925,8 +3925,8 @@ module mod_clm_typeinit
   !
   subroutine init_landunit_eflux_type(ibeg,iend,lef)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (landunit_eflux_type) , intent(inout) :: lef
+    integer(ik4), intent(in) :: ibeg, iend
+    type (landunit_eflux_type), intent(inout) :: lef
 
     allocate(lef%eflx_traffic(ibeg:iend))
     allocate(lef%eflx_traffic_factor(ibeg:iend))
@@ -3945,8 +3945,8 @@ module mod_clm_typeinit
   !
   subroutine init_gridcell_dgvstate_type(ibeg,iend,gps)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (gridcell_dgvstate_type) , intent(inout) :: gps
+    integer(ik4), intent(in) :: ibeg, iend
+    type (gridcell_dgvstate_type), intent(inout) :: gps
 
     allocate(gps%agdd20(ibeg:iend))
     allocate(gps%tmomin20(ibeg:iend))
@@ -3961,8 +3961,8 @@ module mod_clm_typeinit
   !
   subroutine init_gridcell_efstate_type(ibeg,iend,gve)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (gridcell_efstate_type) , intent(inout) :: gve
+    integer(ik4), intent(in) :: ibeg, iend
+    type (gridcell_efstate_type), intent(inout) :: gve
 
     allocate(gve%efisop(6,ibeg:iend))
     gve%efisop(:,ibeg:iend) = nan
@@ -3972,8 +3972,8 @@ module mod_clm_typeinit
   !
   subroutine init_gridcell_wflux_type(ibeg,iend,gwf)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (gridcell_wflux_type) , intent(inout) :: gwf
+    integer(ik4), intent(in) :: ibeg, iend
+    type (gridcell_wflux_type), intent(inout) :: gwf
 
     allocate(gwf%qflx_runoffg(ibeg:iend))
     allocate(gwf%qflx_snwcp_iceg(ibeg:iend))
@@ -3990,8 +3990,8 @@ module mod_clm_typeinit
   !
   subroutine init_gridcell_eflux_type(ibeg,iend,gef)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (gridcell_eflux_type) , intent(inout) :: gef
+    integer(ik4), intent(in) :: ibeg, iend
+    type (gridcell_eflux_type), intent(inout) :: gef
 
     allocate(gef%eflx_sh_totg(ibeg:iend))
     allocate(gef%eflx_dynbal(ibeg:iend))
@@ -4004,8 +4004,8 @@ module mod_clm_typeinit
   !
   subroutine init_gridcell_wstate_type(ibeg,iend,gws)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (gridcell_wstate_type) , intent(inout) :: gws
+    integer(ik4), intent(in) :: ibeg, iend
+    type (gridcell_wstate_type), intent(inout) :: gws
 
     allocate(gws%gc_liq1(ibeg:iend))
     allocate(gws%gc_liq2(ibeg:iend))
@@ -4022,8 +4022,8 @@ module mod_clm_typeinit
   !
   subroutine init_gridcell_estate_type(ibeg,iend,ges)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (gridcell_estate_type) , intent(inout) :: ges
+    integer(ik4), intent(in) :: ibeg, iend
+    type (gridcell_estate_type), intent(inout) :: ges
 
     allocate(ges%gc_heat1(ibeg:iend))
     allocate(ges%gc_heat2(ibeg:iend))
@@ -4037,8 +4037,8 @@ module mod_clm_typeinit
   !
   subroutine init_gridcell_ch4_type(ibeg,iend,gch4)
     implicit none
-    integer(ik4) , intent(in) :: ibeg , iend
-    type (gridcell_ch4_type) , intent(inout) :: gch4
+    integer(ik4), intent(in) :: ibeg, iend
+    type (gridcell_ch4_type), intent(inout) :: gch4
 
     allocate(gch4%c_atm(ibeg:iend,1:ngases))
     allocate(gch4%ch4co2f(ibeg:iend))

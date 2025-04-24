@@ -12,13 +12,13 @@ module ncdio
 ! Generic interfaces to write fields to netcdf files
 !
 ! !USES:
-  use shr_kind_mod   , only : r8 => shr_kind_r8
-  use spmdMod        , only : masterproc, mpicom, MPI_REAL8, MPI_INTEGER, &
+  use shr_kind_mod  , only : r8 => shr_kind_r8
+  use spmdMod       , only : masterproc, mpicom, MPI_REAL8, MPI_INTEGER, &
                               MPI_LOGICAL
-  use clm_varcon     , only : spval,ispval
-  use shr_sys_mod    , only : shr_sys_flush
-  use abortutils     , only : endrun
-  use clm_varctl     , only : scmlon,scmlat, single_column
+  use clm_varcon    , only : spval,ispval
+  use shr_sys_mod   , only : shr_sys_flush
+  use abortutils    , only : endrun
+  use clm_varctl    , only : scmlon,scmlat, single_column
   use clm_mct_mod
   use spmdGathScatMod
 !
@@ -179,9 +179,9 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer         , intent(in)  :: ncid                    ! input unit
+    integer        , intent(in)  :: ncid                    ! input unit
     character(len=*), intent(in)  :: varname                 ! variable name
-    integer         , intent(in)  :: xtype                   ! external type
+    integer        , intent(in)  :: xtype                   ! external type
     character(len=*), intent(in), optional :: dim1name       ! dimension name
     character(len=*), intent(in), optional :: dim2name       ! dimension name
     character(len=*), intent(in), optional :: dim3name       ! dimension name
@@ -190,10 +190,10 @@ contains
     character(len=*), intent(in), optional :: long_name      ! attribute
     character(len=*), intent(in), optional :: units          ! attribute
     character(len=*), intent(in), optional :: cell_method    ! attribute
-    real(r8)        , intent(in), optional :: missing_value  ! attribute for real
-    real(r8)        , intent(in), optional :: fill_value     ! attribute for real
-    integer         , intent(in), optional :: imissing_value ! attribute for int
-    integer         , intent(in), optional :: ifill_value    ! attribute for int
+    real(r8)       , intent(in), optional :: missing_value  ! attribute for real
+    real(r8)       , intent(in), optional :: fill_value     ! attribute for real
+    integer        , intent(in), optional :: imissing_value ! attribute for int
+    integer        , intent(in), optional :: ifill_value    ! attribute for int
 !
 ! !REVISION HISTORY:
 !
@@ -312,15 +312,15 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)  :: flag               ! 'read' or 'write'
-    integer         , intent(in)  :: ncid               ! input unit
+    integer        , intent(in)  :: ncid               ! input unit
     character(len=*), intent(in)  :: varname            ! variable name
-    integer         , pointer     :: data(:)            ! local decomposition data
+    integer        , pointer     :: data(:)            ! local decomposition data
     character(len=*), intent(in)  :: dim1name           ! dimension name
-    integer         , optional, intent(in) :: nlonxy    ! 2d longitude size
-    integer         , optional, intent(in) :: nlatxy    ! 2d latitude size
-    integer         , optional, intent(in) :: nt        ! time sample index
-    logical         , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
-    integer         , optional, intent(in) :: imissing  ! value to set missing data to
+    integer        , optional, intent(in) :: nlonxy    ! 2d longitude size
+    integer        , optional, intent(in) :: nlatxy    ! 2d latitude size
+    integer        , optional, intent(in) :: nt        ! time sample index
+    logical        , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: imissing  ! value to set missing data to
 
 ! !REVISION HISTORY:
 !
@@ -455,21 +455,21 @@ contains
 ! !USES:
   use decompMod, only : map_dc2sn, map_sn2dc, ldecomp
 #ifdef RTM
-  use RunoffMod      , only : runoff
+  use RunoffMod     , only : runoff
 #endif
   use spmdGathScatMod, only : scatter_data_from_master, gather_data_to_master
 !
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)  :: flag               ! 'read' or 'write'
-    integer         , intent(in)  :: ncid               ! input unit
+    integer        , intent(in)  :: ncid               ! input unit
     character(len=*), intent(in)  :: varname            ! variable name
-    real(r8)        , pointer     :: data(:)            ! local decomposition data
+    real(r8)       , pointer     :: data(:)            ! local decomposition data
     character(len=*), intent(in)  :: dim1name           ! dimension name
-    integer         , optional, intent(in) :: nlonxy    ! 2d longitude size
-    integer         , optional, intent(in) :: nlatxy    ! 2d latitude size
-    integer         , optional, intent(in) :: nt        ! time sample index
-    logical         , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nlonxy    ! 2d longitude size
+    integer        , optional, intent(in) :: nlatxy    ! 2d latitude size
+    integer        , optional, intent(in) :: nt        ! time sample index
+    logical        , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
 !
 ! !REVISION HISTORY:
 !
@@ -699,16 +699,16 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)  :: flag               ! 'read' or 'write'
-    integer         , intent(in)  :: ncid               ! input unit
+    integer        , intent(in)  :: ncid               ! input unit
     character(len=*), intent(in)  :: varname            ! variable name
-    integer         , pointer     :: data(:,:)          ! local decomposition input data
+    integer        , pointer     :: data(:,:)          ! local decomposition input data
     character(len=*), intent(in)  :: dim1name           ! dimension 1 name
     character(len=*), intent(in)  :: dim2name           ! dimension 2 name
-    integer         , optional, intent(in) :: nlonxy    ! 2d longitude size
-    integer         , optional, intent(in) :: nlatxy    ! 2d latitude size
-    integer         , optional, intent(in) :: nt        ! time sample index
-    integer         , optional, intent(in) :: lowerb2,upperb2 ! lower and upper bounds of second dimension
-    logical         , optional, intent(out):: readvar  ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nlonxy    ! 2d longitude size
+    integer        , optional, intent(in) :: nlatxy    ! 2d latitude size
+    integer        , optional, intent(in) :: nt        ! time sample index
+    integer        , optional, intent(in) :: lowerb2,upperb2 ! lower and upper bounds of second dimension
+    logical        , optional, intent(out):: readvar  ! true => variable is on initial dataset (read only)
 !
 ! !REVISION HISTORY:
 !
@@ -882,16 +882,16 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)  :: flag               ! 'read' or 'write'
-    integer         , intent(in)  :: ncid               ! input unit
+    integer        , intent(in)  :: ncid               ! input unit
     character(len=*), intent(in)  :: varname            ! variable name
-    real(r8)        , pointer     :: data(:,:)          ! local decomposition input data
+    real(r8)       , pointer     :: data(:,:)          ! local decomposition input data
     character(len=*), intent(in)  :: dim1name           ! dimension 1 name
     character(len=*), intent(in)  :: dim2name           ! dimension 2 name
-    integer         , optional, intent(in) :: nlonxy    ! 2d longitude size
-    integer         , optional, intent(in) :: nlatxy    ! 2d latitude size
-    integer         , optional, intent(in) :: nt        ! time sample index
-    integer         , optional, intent(in) :: lowerb2,upperb2 ! lower and upper bounds of second dimension
-    logical         , optional, intent(out):: readvar  ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nlonxy    ! 2d longitude size
+    integer        , optional, intent(in) :: nlatxy    ! 2d latitude size
+    integer        , optional, intent(in) :: nt        ! time sample index
+    integer        , optional, intent(in) :: lowerb2,upperb2 ! lower and upper bounds of second dimension
+    logical        , optional, intent(out):: readvar  ! true => variable is on initial dataset (read only)
 !
 ! !REVISION HISTORY:
 !
@@ -1186,11 +1186,11 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)    :: flag             ! 'read' or 'write'
-    integer         , intent(in)    :: ncid             ! input unit
+    integer        , intent(in)    :: ncid             ! input unit
     character(len=*), intent(in)    :: varname          ! variable name
-    integer         , intent(inout) :: data             ! local decomposition data
-    logical         , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
-    integer         , optional, intent(in) :: nt        ! time sample index
+    integer        , intent(inout) :: data             ! local decomposition data
+    logical        , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nt        ! time sample index
 !
 ! !REVISION HISTORY:
 !
@@ -1254,11 +1254,11 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)    :: flag             ! 'read' or 'write'
-    integer         , intent(in)    :: ncid             ! input unit
+    integer        , intent(in)    :: ncid             ! input unit
     character(len=*), intent(in)    :: varname          ! variable name
-    real(r8)        , intent(inout) :: data             ! local decomposition data
-    logical         , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
-    integer         , optional, intent(in) :: nt        ! time sample index
+    real(r8)       , intent(inout) :: data             ! local decomposition data
+    logical        , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nt        ! time sample index
 !
 ! !REVISION HISTORY:
 !
@@ -1321,11 +1321,11 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)    :: flag             ! 'read' or 'write'
-    integer         , intent(in)    :: ncid             ! input unit
+    integer        , intent(in)    :: ncid             ! input unit
     character(len=*), intent(in)    :: varname          ! variable name
-    integer         , intent(inout) :: data(:)          ! local decomposition data
-    logical         , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
-    integer         , optional, intent(in) :: nt        ! time sample index
+    integer        , intent(inout) :: data(:)          ! local decomposition data
+    logical        , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nt        ! time sample index
 !
 ! !REVISION HISTORY:
 !
@@ -1389,11 +1389,11 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)    :: flag             ! 'read' or 'write'
-    integer         , intent(in)    :: ncid             ! input unit
+    integer        , intent(in)    :: ncid             ! input unit
     character(len=*), intent(in)    :: varname          ! variable name
-    real(r8)        , intent(inout) :: data(:)          ! local decomposition input data
-    logical         , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
-    integer         , optional, intent(in) :: nt        ! time sample index
+    real(r8)       , intent(inout) :: data(:)          ! local decomposition input data
+    logical        , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nt        ! time sample index
 !
 ! !REVISION HISTORY:
 !
@@ -1457,11 +1457,11 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)    :: flag             ! 'read' or 'write'
-    integer         , intent(in)    :: ncid             ! input unit
+    integer        , intent(in)    :: ncid             ! input unit
     character(len=*), intent(in)    :: varname          ! variable name
-    integer         , intent(inout) :: data(:,:)        ! local decomposition input data
-    logical         , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
-    integer         , optional, intent(in) :: nt        ! time sample index
+    integer        , intent(inout) :: data(:,:)        ! local decomposition input data
+    logical        , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nt        ! time sample index
 !
 ! !REVISION HISTORY:
 !
@@ -1527,13 +1527,13 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)    :: flag             ! 'read' or 'write'
-    integer         , intent(in)    :: ncid             ! input unit
+    integer        , intent(in)    :: ncid             ! input unit
     character(len=*), intent(in)    :: varname          ! variable name
-    real(r8)        , intent(inout) :: data(:,:)        ! local decomposition input data
+    real(r8)       , intent(inout) :: data(:,:)        ! local decomposition input data
     character(len=*), optional, intent(in) :: long_name ! variable long name
     character(len=*), optional, intent(in) :: units     ! variable units
-    logical         , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
-    integer         , optional, intent(in) :: nt        ! time sample index
+    logical        , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nt        ! time sample index
 !
 ! !REVISION HISTORY:
 !
@@ -1599,13 +1599,13 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)    :: flag             ! 'read' or 'write'
-    integer         , intent(in)    :: ncid             ! input unit
+    integer        , intent(in)    :: ncid             ! input unit
     character(len=*), intent(in)    :: varname          ! variable name
-    integer         , intent(inout) :: data(:,:,:)      ! local decomposition input data
+    integer        , intent(inout) :: data(:,:,:)      ! local decomposition input data
     character(len=*), optional, intent(in) :: long_name ! variable long name
     character(len=*), optional, intent(in) :: units     ! variable units
-    logical         , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
-    integer         , optional, intent(in) :: nt        ! time sample index
+    logical        , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nt        ! time sample index
 !
 ! !REVISION HISTORY:
 !
@@ -1672,13 +1672,13 @@ contains
 ! !ARGUMENTS:
     implicit none
     character(len=*), intent(in)    :: flag             ! 'read' or 'write'
-    integer         , intent(in)    :: ncid             ! input unit
+    integer        , intent(in)    :: ncid             ! input unit
     character(len=*), intent(in)    :: varname          ! variable name
-    real(r8)        , intent(inout) :: data(:,:,:)      ! local decomposition input data
+    real(r8)       , intent(inout) :: data(:,:,:)      ! local decomposition input data
     character(len=*), optional, intent(in) :: long_name ! variable long name
     character(len=*), optional, intent(in) :: units     ! variable units
-    logical         , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
-    integer         , optional, intent(in) :: nt        ! time sample index
+    logical        , optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    integer        , optional, intent(in) :: nt        ! time sample index
 !
 ! !REVISION HISTORY:
 !
@@ -1809,9 +1809,9 @@ contains
 !
 ! !USES:
     use shr_kind_mod, only : r8 => shr_kind_r8
-    use decompMod   , only : get_proc_bounds
-    use clm_varpar  , only : maxpatch
-    use nanMod      , only : bigint
+    use decompMod  , only : get_proc_bounds
+    use clm_varpar , only : maxpatch
+    use nanMod     , only : bigint
 !
 ! !ARGUMENTS:
     implicit none
@@ -1830,10 +1830,10 @@ contains
 !EOP
 !
 ! !LOCAL VARIABLES:
-    real(r8) , pointer :: cols1dlon(:)       ! holds cols1d_ixy var
-    real(r8) , pointer :: cols1dlat(:)       ! holds cols1d_jxy var
-    real(r8) , pointer :: pfts1dlon(:)       ! holds pfts1d_ixy var
-    real(r8) , pointer :: pfts1dlat(:)       ! holds pfts1d_jxy var
+    real(r8), pointer :: cols1dlon(:)       ! holds cols1d_ixy var
+    real(r8), pointer :: cols1dlat(:)       ! holds cols1d_jxy var
+    real(r8), pointer :: pfts1dlon(:)       ! holds pfts1d_ixy var
+    real(r8), pointer :: pfts1dlat(:)       ! holds pfts1d_jxy var
     integer cols(maxpatch)                   ! grid cell columns for scam
     integer pfts(maxpatch)                   ! grid cell pfts for scam
     integer :: cc,i                          ! index variable

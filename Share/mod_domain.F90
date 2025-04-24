@@ -30,23 +30,23 @@ module mod_domain
   private
 
   type domain_io
-    real(rkx) , pointer , dimension(:) :: sigma
-    real(rkx) , pointer , dimension(:,:) :: xlat
-    real(rkx) , pointer , dimension(:,:) :: xlon
-    real(rkx) , pointer , dimension(:,:) :: dlat
-    real(rkx) , pointer , dimension(:,:) :: dlon
-    real(rkx) , pointer , dimension(:,:) :: ulat
-    real(rkx) , pointer , dimension(:,:) :: ulon
-    real(rkx) , pointer , dimension(:,:) :: vlat
-    real(rkx) , pointer , dimension(:,:) :: vlon
-    real(rkx) , pointer , dimension(:,:) :: ht
-    real(rkx) , pointer , dimension(:,:) :: mask
-    real(rkx) , pointer , dimension(:,:) :: lndcat
-    real(rkx) , pointer , dimension(:,:) :: msfx
-    real(rkx) , pointer , dimension(:,:) :: msfd
-    real(rkx) , pointer , dimension(:,:) :: coriol
-    real(rkx) , pointer , dimension(:,:) :: snowam
-    real(rkx) , pointer , dimension(:,:) :: hlake
+    real(rkx), pointer, contiguous, dimension(:) :: sigma
+    real(rkx), pointer, contiguous, dimension(:,:) :: xlat
+    real(rkx), pointer, contiguous, dimension(:,:) :: xlon
+    real(rkx), pointer, contiguous, dimension(:,:) :: dlat
+    real(rkx), pointer, contiguous, dimension(:,:) :: dlon
+    real(rkx), pointer, contiguous, dimension(:,:) :: ulat
+    real(rkx), pointer, contiguous, dimension(:,:) :: ulon
+    real(rkx), pointer, contiguous, dimension(:,:) :: vlat
+    real(rkx), pointer, contiguous, dimension(:,:) :: vlon
+    real(rkx), pointer, contiguous, dimension(:,:) :: ht
+    real(rkx), pointer, contiguous, dimension(:,:) :: mask
+    real(rkx), pointer, contiguous, dimension(:,:) :: lndcat
+    real(rkx), pointer, contiguous, dimension(:,:) :: msfx
+    real(rkx), pointer, contiguous, dimension(:,:) :: msfd
+    real(rkx), pointer, contiguous, dimension(:,:) :: coriol
+    real(rkx), pointer, contiguous, dimension(:,:) :: snowam
+    real(rkx), pointer, contiguous, dimension(:,:) :: hlake
   end type domain_io
 
   type (domain_io) :: mddom_io
@@ -57,15 +57,15 @@ module mod_domain
     module procedure read_domain_array_single
   end interface read_domain
 
-  public :: domain_io , mddom_io , read_domain , check_domain
-  public :: read_reference_state , read_reference_surface_temp
+  public :: domain_io, mddom_io, read_domain, check_domain
+  public :: read_reference_state, read_reference_surface_temp
 
   contains
 
   subroutine read_domain_type(ncid)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    logical :: has_snow , has_dhlake , has_kz
+    integer(ik4), intent(in) :: ncid
+    logical :: has_snow, has_dhlake, has_kz
     has_snow = .true.
     has_dhlake = .true.
     has_kz = .true.
@@ -101,26 +101,26 @@ module mod_domain
                                       lndcat,msfx,msfd,coriol,snowam, &
                                       hlake,lsubgrid)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    real(rk8) , pointer , dimension(:) , intent(inout) :: sigma
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: xlat
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: xlon
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: dlat
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: dlon
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: ulat
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: ulon
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: vlat
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: vlon
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: ht
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: mask
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: lndcat
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: msfx
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: msfd
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: coriol
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: snowam
-    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: hlake
-    logical , intent(in) , optional :: lsubgrid
-    logical :: has_snow , has_dhlake , has_kz
+    integer(ik4), intent(in) :: ncid
+    real(rk8), pointer, contiguous, dimension(:), intent(inout) :: sigma
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: xlat
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: xlon
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: dlat
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: dlon
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: ulat
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: ulon
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: vlat
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: vlon
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: ht
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: mask
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: lndcat
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: msfx
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: msfd
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: coriol
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: snowam
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: hlake
+    logical, intent(in), optional :: lsubgrid
+    logical :: has_snow, has_dhlake, has_kz
     has_snow = .true.
     has_dhlake = .true.
     has_kz = .true.
@@ -159,26 +159,26 @@ module mod_domain
                                       lndcat,msfx,msfd,coriol,snowam, &
                                       hlake,lsubgrid)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    real(rk4) , pointer , dimension(:) , intent(inout) :: sigma
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: xlat
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: xlon
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: dlat
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: dlon
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: ulat
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: ulon
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: vlat
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: vlon
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: ht
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: mask
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: lndcat
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: msfx
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: msfd
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: coriol
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: snowam
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: hlake
-    logical , intent(in) , optional :: lsubgrid
-    logical :: has_snow , has_dhlake , has_kz
+    integer(ik4), intent(in) :: ncid
+    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: sigma
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: xlat
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: xlon
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: dlat
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: dlon
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: ulat
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: ulon
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: vlat
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: vlon
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: ht
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: mask
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: lndcat
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: msfx
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: msfd
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: coriol
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: snowam
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: hlake
+    logical, intent(in), optional :: lsubgrid
+    logical :: has_snow, has_dhlake, has_kz
     has_snow = .true.
     has_dhlake = .true.
     has_kz = .true.
@@ -214,12 +214,12 @@ module mod_domain
 
   subroutine read_reference_state(ncid,ps0,pr0,t0,rho0,ts0)
     implicit none
-    integer , intent(in) :: ncid
-    real(rkx) , pointer , dimension(:,:) , intent(inout) , optional :: ps0
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) , optional :: pr0
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) , optional :: t0
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) , optional :: rho0
-    real(rkx) , intent(out) :: ts0
+    integer, intent(in) :: ncid
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout), optional :: ps0
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout), optional :: pr0
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout), optional :: t0
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout), optional :: rho0
+    real(rkx), intent(out) :: ts0
     call read_var2d_static(ncid,'ps0',ps0)
     call read_var3d_static(ncid,'pr0',pr0)
     call read_var3d_static(ncid,'t0',t0)
@@ -229,8 +229,8 @@ module mod_domain
 
   subroutine read_reference_surface_temp(ncid,ts0)
     implicit none
-    integer , intent(in) :: ncid
-    real(rkx) , intent(out) :: ts0
+    integer, intent(in) :: ncid
+    real(rkx), intent(out) :: ts0
     call get_attribute(ncid,'base_state_surface_temperature',ts0)
   end subroutine read_reference_surface_temp
 
@@ -260,16 +260,16 @@ module mod_domain
 
   subroutine check_domain(ncid,lmod,linternal,lsubgrid)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    logical , optional :: lmod , linternal , lsubgrid
+    integer(ik4), intent(in) :: ncid
+    logical, optional :: lmod, linternal, lsubgrid
     integer(ik4) :: istatus
-    integer(ik4) :: idimid , ivarid
-    integer(ik4) :: iyy , jxx , kzz , kcheck , jcheck , icheck
+    integer(ik4) :: idimid, ivarid
+    integer(ik4) :: iyy, jxx, kzz, kcheck, jcheck, icheck
     character(len=6) :: proj
-    logical :: lh , lb , ls
-    real(rkx) :: dsx , iclat , iclon , ptsp
-    real(rkx) :: moloch_ztop , moloch_hscale, moloch_a0
-    real(rkx) , dimension(2) :: icntr
+    logical :: lh, lb, ls
+    real(rkx) :: dsx, iclat, iclon, ptsp
+    real(rkx) :: moloch_ztop, moloch_hscale, moloch_a0
+    real(rkx), dimension(2) :: icntr
 
     lh = .false.
     lb = .false.

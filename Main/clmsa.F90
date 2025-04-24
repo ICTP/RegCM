@@ -42,10 +42,10 @@ program clmsa
   real(rk8) :: extime
   real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif
-  integer(ik4) :: ierr , iprov
+  integer(ik4) :: ierr, iprov
 #ifdef MPI_SERIAL
   include 'mpif.h'
-  integer(ik4) , parameter :: mpi_thread_single = 0
+  integer(ik4), parameter :: mpi_thread_single = 0
 #endif
   data extime /0.0_rk8/
 
@@ -169,8 +169,8 @@ program clmsa
   !
   subroutine CLM_run(timestr, timeend)
     implicit none
-    real(rk8) , intent(in) :: timestr   ! starting time-step
-    real(rk8) , intent(in) :: timeend   ! ending   time-step
+    real(rk8), intent(in) :: timestr   ! starting time-step
+    real(rk8), intent(in) :: timeend   ! ending   time-step
 
     do while ( extime >= timestr .and. extime < timeend )
 
@@ -217,7 +217,7 @@ program clmsa
     implicit none
 
     if ( myid == italk ) then
-      write(stdout,*) 'Final time ', trim(rcmtimer%str( )) , ' reached.'
+      write(stdout,*) 'Final time ', trim(rcmtimer%str( )), ' reached.'
     end if
 
     call close_icbc

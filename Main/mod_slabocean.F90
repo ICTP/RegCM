@@ -20,7 +20,7 @@ module mod_slabocean
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
-  use mod_atm_interface , only : xtsb
+  use mod_atm_interface, only : xtsb
   use mod_mppparam
   use mod_constants
   use mod_stdio
@@ -37,25 +37,25 @@ module mod_slabocean
   real(rkx) :: dtocean
 
   ! the actual prognotic sst pointing on tg2
-  real(rkx) , pointer , dimension(:,:) :: sstemp => null( )
-  real(rkx) , pointer , dimension(:,:) :: ohfx => null( )
-  real(rkx) , pointer , dimension(:,:) :: oqfx => null( )
-  real(rkx) , pointer , dimension(:,:) :: ofsw => null( )
-  real(rkx) , pointer , dimension(:,:) :: oflw => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: slabmld => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: qflux_restore_sst => null( )
-  real(rkx) , pointer , dimension (:,:) :: qflux_sst => null( )
-  real(rkx) , pointer , dimension(:,:) :: qflux_adj => null( )
-  real(rkx) , pointer , dimension(:,:) :: net_hflx => null( )
-  real(rkx) , pointer , dimension(:,:) :: hflx => null( )
-  real(rkx) , pointer , dimension(:,:) :: qflb0 => null( )
-  real(rkx) , pointer , dimension(:,:) :: qflb1 => null( )
-  real(rkx) , pointer , dimension(:,:) :: qflbt => null( )
-  logical , pointer , dimension(:,:) :: ocmask => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: sstemp => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: ohfx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: oqfx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: ofsw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: oflw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: slabmld => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qflux_restore_sst => null( )
+  real(rkx), pointer, contiguous, dimension (:,:) :: qflux_sst => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: qflux_adj => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: net_hflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: hflx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: qflb0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: qflb1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: qflbt => null( )
+  logical, pointer, contiguous, dimension(:,:) :: ocmask => null( )
 
-  public :: allocate_mod_slabocean , init_slabocean , update_slabocean
+  public :: allocate_mod_slabocean, init_slabocean, update_slabocean
   public :: fill_slaboc_outvars
-  public :: qflb0 , qflb1 , qflbt , qflux_restore_sst
+  public :: qflb0, qflb1, qflbt, qflux_restore_sst
 
   contains
 !
@@ -80,21 +80,21 @@ module mod_slabocean
     subroutine init_slabocean(sfs,lndcat,fsw,flw,xlon,xlat)
       implicit none
       ! interface for regcm variable / slab ocean
-      type(surfstate) , intent(in) :: sfs
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: lndcat
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: fsw , flw
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: xlon , xlat
+      type(surfstate), intent(in) :: sfs
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: lndcat
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: fsw, flw
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: xlon, xlat
       character(len=256) :: infile
-      integer(ik4) :: i , j , nlon , nlat
+      integer(ik4) :: i, j, nlon, nlat
       integer(ik4) ::  ncid
       integer(ik4) :: iret
-      integer(ik4)  icvar , idimid
-      real(rkx) , pointer , dimension(:,:,:) :: climld => null( )
-      real(rkx) , pointer , dimension(:) :: lat => null( )
-      real(rkx) , pointer , dimension(:) :: lon => null( )
-      real(rkx) , pointer , dimension(:,:) :: alon => null( )
-      real(rkx) , pointer , dimension(:,:) :: alat => null( )
-      real(rkx) , pointer , dimension(:,:,:) :: ymld => null( )
+      integer(ik4)  icvar, idimid
+      real(rkx), pointer, contiguous, dimension(:,:,:) :: climld => null( )
+      real(rkx), pointer, contiguous, dimension(:) :: lat => null( )
+      real(rkx), pointer, contiguous, dimension(:) :: lon => null( )
+      real(rkx), pointer, contiguous, dimension(:,:) :: alon => null( )
+      real(rkx), pointer, contiguous, dimension(:,:) :: alat => null( )
+      real(rkx), pointer, contiguous, dimension(:,:,:) :: ymld => null( )
       type(h_interpolator) :: hint
 
       ! water heat capacity ~ 4 J/g/K
@@ -111,8 +111,8 @@ module mod_slabocean
       call assignpnt(sfs%qfx,oqfx)
       call assignpnt(fsw,ofsw)
       call assignpnt(flw,oflw)
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           if ( isocean(lndcat(j,i)) ) then
             ocmask(j,i) = .true.
           else
@@ -132,7 +132,7 @@ module mod_slabocean
           infile  = 'mld_DT02_c1m_reg2.0.nc'
           iret = nf90_open(infile,nf90_nowrite,ncid)
           if ( iret /= nf90_noerr ) then
-            write (stderr, *) nf90_strerror(iret) , trim(infile)
+            write (stderr, *) nf90_strerror(iret), trim(infile)
             call fatal(__FILE__,__LINE__, &
               'CANNOT OPEN SLABOC MIX.LAY. CLIM FILE')
           end if
@@ -223,20 +223,20 @@ module mod_slabocean
       ! FAB  : Slab ocean model based on Q flux correction,
       !        similar to FMS global model
       implicit none
-      real(rk8) , intent(in) :: xt
+      real(rk8), intent(in) :: xt
       type(lm_state), intent(inout) :: lms
       ! mlcp is the heat capacity of the mixed layer [J / m3 / deg C] * m
-      integer(ik4) :: i , j
+      integer(ik4) :: i, j
 #ifdef DEBUG
-      real(rkx) , dimension(5) :: pval , pval1
+      real(rkx), dimension(5) :: pval, pval1
 #endif
       ! water heat capacity ~ 4 J/g/K
       ! mlcp = slabmld*4.0e6_rkx
 
       if ( do_restore_sst ) then
         stepcount(rcmtimer%month) = stepcount(rcmtimer%month)+1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             if ( ocmask(j,i) ) then
               qflux_sst(j,i) = (0.5_rkx * (xtsb%b0(j,i) + xtsb%b1(j,i)) - &
                 sstemp(j,i)) * slabmld(j,i,rcmtimer%month)* 4.0e6_rkx  / &
@@ -268,7 +268,7 @@ module mod_slabocean
         pval(3) = maxval(ohfx)
         pval(4) = maxval(2.26e6_rkx*oqfx)
         pval(5) = maxval(qflux_adj)
-        do i = 1 , size(pval)
+        do i = 1, size(pval)
           call maxall(pval(i),pval1(i))
         end do
         if ( myid == italk ) then
@@ -280,8 +280,8 @@ module mod_slabocean
         end if
       end if
 #endif
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           if ( ocmask(j,i) ) then
             ! The following are some key equations for this model:
             ! flux from or to the atmosphere ( convention = positive downward)
@@ -303,12 +303,12 @@ module mod_slabocean
 
     subroutine fill_slaboc_outvars
       implicit none
-      integer(ik4) :: imon , i , j
+      integer(ik4) :: imon, i, j
       if ( associated(slab_qflx_out) ) then
-        do imon = 1 , mpy
+        do imon = 1, mpy
           if ( stepcount(imon) /= 0 ) then
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 if ( ocmask(j,i) ) then
                   slab_qflx_out(j,i,imon) = &
                     qflux_restore_sst(j,i,imon)/real(stepcount(imon),rkx)
@@ -318,8 +318,8 @@ module mod_slabocean
               end do
             end do
           else
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 if ( ocmask(j,i) ) then
                   slab_qflx_out(j,i,imon) = d_zero
                 else

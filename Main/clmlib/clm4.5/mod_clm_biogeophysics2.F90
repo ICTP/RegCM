@@ -5,16 +5,16 @@ module mod_clm_biogeophysics2
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : dtsrf
+  use mod_runparams, only : dtsrf
   use mod_clm_type
-  use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varcon , only : hvap , cpair , grav , vkc , tfrz , sb , &
-                 icol_road_perv , isturb , icol_roof , icol_sunwall , &
-                 icol_shadewall , istsoil
-  use mod_clm_varcon , only : istcrop
-  use mod_clm_varpar , only : nlevsno , nlevgrnd , nlevurb , max_pft_per_col
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_varcon, only : hvap, cpair, grav, vkc, tfrz, sb, &
+                 icol_road_perv, isturb, icol_roof, icol_sunwall, &
+                 icol_shadewall, istsoil
+  use mod_clm_varcon, only : istcrop
+  use mod_clm_varpar, only : nlevsno, nlevgrnd, nlevurb, max_pft_per_col
   use mod_clm_soiltemperature, only : SoilTemperature
-  use mod_clm_subgridave , only : p2c
+  use mod_clm_subgridave, only : p2c
 
   implicit none
 
@@ -78,135 +78,135 @@ module mod_clm_biogeophysics2
     integer(ik4), intent(in) :: filter_nolakep(ubp-lbp+1)
 
     !eff. fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno_eff(:)
+    real(rk8), pointer, contiguous :: frac_sno_eff(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)
-    real(rk8), pointer :: h2osfc(:)       ! surface water (mm)
-    real(rk8), pointer :: t_h2osfc(:)     ! surface water temperature
-    real(rk8), pointer :: t_h2osfc_bef(:) ! saved surface water temperature
+    real(rk8), pointer, contiguous :: frac_sno(:)
+    real(rk8), pointer, contiguous :: h2osfc(:)       ! surface water (mm)
+    real(rk8), pointer, contiguous :: t_h2osfc(:)     ! surface water temperature
+    real(rk8), pointer, contiguous :: t_h2osfc_bef(:) ! saved surface water temperature
     ! fraction of ground covered by surface water (0 to 1)
-    real(rk8), pointer :: frac_h2osfc(:)
+    real(rk8), pointer, contiguous :: frac_h2osfc(:)
     ! evaporation flux from snow (W/m**2) [+ to atm]
-    real(rk8), pointer :: qflx_ev_snow(:)
+    real(rk8), pointer, contiguous :: qflx_ev_snow(:)
     ! evaporation flux from soil (W/m**2) [+ to atm]
-    real(rk8), pointer :: qflx_ev_soil(:)
+    real(rk8), pointer, contiguous :: qflx_ev_soil(:)
     ! evaporation flux from soil (W/m**2) [+ to atm]
-    real(rk8), pointer :: qflx_ev_h2osfc(:)
+    real(rk8), pointer, contiguous :: qflx_ev_h2osfc(:)
     ! solar radiation absorbed by soil (W/m**2)
-    real(rk8), pointer :: sabg_soil(:)
+    real(rk8), pointer, contiguous :: sabg_soil(:)
     ! solar radiation absorbed by snow (W/m**2)
-    real(rk8), pointer :: sabg_snow(:)
-    integer(ik4) , pointer :: ctype(:)  ! column type
-    integer(ik4) , pointer :: ltype(:)  ! landunit type
+    real(rk8), pointer, contiguous :: sabg_snow(:)
+    integer(ik4), pointer, contiguous :: ctype(:)  ! column type
+    integer(ik4), pointer, contiguous :: ltype(:)  ! landunit type
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
-    integer(ik4) , pointer :: pcolumn(:)    ! pft's column index
-    integer(ik4) , pointer :: plandunit(:)  ! pft's landunit index
-    integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
-    integer(ik4) , pointer :: npfts(:)      ! column's number of pfts
-    integer(ik4) , pointer :: pfti(:)       ! column's beginning pft index
-    integer(ik4) , pointer :: snl(:)        ! number of snow layers
-    logical , pointer :: do_capsnow(:)      ! true => do snow capping
+    logical, pointer, contiguous :: pactive(:)
+    integer(ik4), pointer, contiguous :: pcolumn(:)    ! pft's column index
+    integer(ik4), pointer, contiguous :: plandunit(:)  ! pft's landunit index
+    integer(ik4), pointer, contiguous :: pgridcell(:)  ! pft's gridcell index
+    integer(ik4), pointer, contiguous :: npfts(:)      ! column's number of pfts
+    integer(ik4), pointer, contiguous :: pfti(:)       ! column's beginning pft index
+    integer(ik4), pointer, contiguous :: snl(:)        ! number of snow layers
+    logical, pointer, contiguous :: do_capsnow(:)      ! true => do snow capping
     ! downward infrared (longwave) radiation (W/m**2)
-    real(rk8), pointer :: forc_lwrad(:)
-    real(rk8), pointer :: emg(:)            ! ground emissivity
+    real(rk8), pointer, contiguous :: forc_lwrad(:)
+    real(rk8), pointer, contiguous :: emg(:)            ! ground emissivity
     ! latent heat of vapor of water (or sublimation) [j/kg]
-    real(rk8), pointer :: htvp(:)
-    real(rk8), pointer :: t_grnd(:)         ! ground temperature (Kelvin)
+    real(rk8), pointer, contiguous :: htvp(:)
+    real(rk8), pointer, contiguous :: t_grnd(:)         ! ground temperature (Kelvin)
     ! fraction of vegetation not covered by snow (0 OR 1 now) [-]
-    integer(ik4) , pointer :: frac_veg_nosno(:)
+    integer(ik4), pointer, contiguous :: frac_veg_nosno(:)
     ! deriv, of soil sensible heat flux wrt soil temp [w/m2/k]
-    real(rk8), pointer :: cgrnds(:)
+    real(rk8), pointer, contiguous :: cgrnds(:)
     ! deriv of soil latent heat flux wrt soil temp [w/m**2/k]
-    real(rk8), pointer :: cgrndl(:)
+    real(rk8), pointer, contiguous :: cgrndl(:)
     ! solar radiation absorbed by ground (W/m**2)
-    real(rk8), pointer :: sabg(:)
+    real(rk8), pointer, contiguous :: sabg(:)
     ! downward longwave radiation below the canopy [W/m2]
-    real(rk8), pointer :: dlrad(:)
+    real(rk8), pointer, contiguous :: dlrad(:)
     ! upward longwave radiation above the canopy [W/m2]
-    real(rk8), pointer :: ulrad(:)
+    real(rk8), pointer, contiguous :: ulrad(:)
     ! sensible heat flux from leaves (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_veg(:)
+    real(rk8), pointer, contiguous :: eflx_sh_veg(:)
     ! vegetation evaporation (mm H2O/s) (+ = to atm)
-    real(rk8), pointer :: qflx_evap_veg(:)
+    real(rk8), pointer, contiguous :: qflx_evap_veg(:)
     ! vegetation transpiration (mm H2O/s) (+ = to atm)
-    real(rk8), pointer :: qflx_tran_veg(:)
+    real(rk8), pointer, contiguous :: qflx_tran_veg(:)
     ! evaporation from leaves and stems (mm H2O/s) (+ = to atm)
-    real(rk8), pointer :: qflx_evap_can(:)
-    real(rk8), pointer :: wtcol(:)       ! pft weight relative to column
-    real(rk8), pointer :: tssbef(:,:)    ! soil/snow temperature before update
-    real(rk8), pointer :: t_soisno(:,:)  ! soil temperature (Kelvin)
-    real(rk8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2) (new)
-    real(rk8), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2) (new)
+    real(rk8), pointer, contiguous :: qflx_evap_can(:)
+    real(rk8), pointer, contiguous :: wtcol(:)       ! pft weight relative to column
+    real(rk8), pointer, contiguous :: tssbef(:,:)    ! soil/snow temperature before update
+    real(rk8), pointer, contiguous :: t_soisno(:,:)  ! soil temperature (Kelvin)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)  ! ice lens (kg/m2) (new)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)  ! liquid water (kg/m2) (new)
     ! heat flux from urban building interior to walls, roof
-    real(rk8), pointer :: eflx_building_heat(:)
+    real(rk8), pointer, contiguous :: eflx_building_heat(:)
     ! traffic sensible heat flux (W/m**2)
-    real(rk8), pointer :: eflx_traffic_pft(:)
+    real(rk8), pointer, contiguous :: eflx_traffic_pft(:)
     ! sensible heat flux from urban heating/cooling sources
     ! of waste heat (W/m**2)
-    real(rk8), pointer :: eflx_wasteheat_pft(:)
+    real(rk8), pointer, contiguous :: eflx_wasteheat_pft(:)
     ! sensible heat flux put back into canyon due to removal by AC (W/m**2)
-    real(rk8), pointer :: eflx_heat_from_ac_pft(:)
+    real(rk8), pointer, contiguous :: eflx_heat_from_ac_pft(:)
     ! ratio of building height to street width (-)
-    real(rk8), pointer :: canyon_hwr(:)
+    real(rk8), pointer, contiguous :: canyon_hwr(:)
 
     ! sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_grnd(:)
+    real(rk8), pointer, contiguous :: eflx_sh_grnd(:)
     ! soil evaporation (mm H2O/s) (+ = to atm)
-    real(rk8), pointer :: qflx_evap_soi(:)
+    real(rk8), pointer, contiguous :: qflx_evap_soi(:)
     ! excess rainfall due to snow capping (mm H2O /s)
-    real(rk8), pointer :: qflx_snwcp_liq(:)
+    real(rk8), pointer, contiguous :: qflx_snwcp_liq(:)
     ! excess snowfall due to snow capping (mm H2O /s)
-    real(rk8), pointer :: qflx_snwcp_ice(:)
+    real(rk8), pointer, contiguous :: qflx_snwcp_ice(:)
 
     ! change in t_grnd, last iteration (Kelvin)
-    real(rk8), pointer :: dt_grnd(:)
+    real(rk8), pointer, contiguous :: dt_grnd(:)
     ! soil heat flux (W/m**2) [+ = into soil]
-    real(rk8), pointer :: eflx_soil_grnd(:)
+    real(rk8), pointer, contiguous :: eflx_soil_grnd(:)
     ! urban soil heat flux (W/m**2) [+ = into soil]
-    real(rk8), pointer :: eflx_soil_grnd_u(:)
+    real(rk8), pointer, contiguous :: eflx_soil_grnd_u(:)
     ! rural soil heat flux (W/m**2) [+ = into soil]
-    real(rk8), pointer :: eflx_soil_grnd_r(:)
+    real(rk8), pointer, contiguous :: eflx_soil_grnd_r(:)
     ! total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_tot(:)
+    real(rk8), pointer, contiguous :: eflx_sh_tot(:)
     ! urban total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_tot_u(:)
+    real(rk8), pointer, contiguous :: eflx_sh_tot_u(:)
     ! rural total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_tot_r(:)
+    real(rk8), pointer, contiguous :: eflx_sh_tot_r(:)
     ! qflx_evap_soi + qflx_evap_veg + qflx_tran_veg
-    real(rk8), pointer :: qflx_evap_tot(:)
+    real(rk8), pointer, contiguous :: qflx_evap_tot(:)
     ! total latent heat flux (W/m**2)  [+ to atm]
-    real(rk8), pointer :: eflx_lh_tot(:)
+    real(rk8), pointer, contiguous :: eflx_lh_tot(:)
     ! urban total latent heat flux (W/m**2)  [+ to atm]
-    real(rk8), pointer :: eflx_lh_tot_u(:)
+    real(rk8), pointer, contiguous :: eflx_lh_tot_u(:)
     ! rural total latent heat flux (W/m**2)  [+ to atm]
-    real(rk8), pointer :: eflx_lh_tot_r(:)
+    real(rk8), pointer, contiguous :: eflx_lh_tot_r(:)
     ! ground surface evaporation rate (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_evap_grnd(:)
+    real(rk8), pointer, contiguous :: qflx_evap_grnd(:)
     ! sublimation rate from snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_sub_snow(:)
+    real(rk8), pointer, contiguous :: qflx_sub_snow(:)
     ! surface dew added to snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_dew_snow(:)
+    real(rk8), pointer, contiguous :: qflx_dew_snow(:)
     ! ground surface dew formation (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_dew_grnd(:)
+    real(rk8), pointer, contiguous :: qflx_dew_grnd(:)
     ! emitted infrared (longwave) radiation (W/m**2)
-    real(rk8), pointer :: eflx_lwrad_out(:)
+    real(rk8), pointer, contiguous :: eflx_lwrad_out(:)
     ! net infrared (longwave) rad (W/m**2) [+ = to atm]
-    real(rk8), pointer :: eflx_lwrad_net(:)
+    real(rk8), pointer, contiguous :: eflx_lwrad_net(:)
     ! urban net infrared (longwave) rad (W/m**2) [+ = to atm]
-    real(rk8), pointer :: eflx_lwrad_net_u(:)
+    real(rk8), pointer, contiguous :: eflx_lwrad_net_u(:)
     ! rural net infrared (longwave) rad (W/m**2) [+ = to atm]
-    real(rk8), pointer :: eflx_lwrad_net_r(:)
+    real(rk8), pointer, contiguous :: eflx_lwrad_net_r(:)
     ! veg evaporation heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_lh_vege(:)
+    real(rk8), pointer, contiguous :: eflx_lh_vege(:)
     ! veg transpiration heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_lh_vegt(:)
+    real(rk8), pointer, contiguous :: eflx_lh_vegt(:)
     ! ground evaporation heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_lh_grnd(:)
+    real(rk8), pointer, contiguous :: eflx_lh_grnd(:)
     ! pft-level soil/lake energy conservation error (W/m**2)
-    real(rk8), pointer :: errsoi_pft(:)
+    real(rk8), pointer, contiguous :: errsoi_pft(:)
     ! column-level soil/lake energy conservation error (W/m**2)
-    real(rk8), pointer :: errsoi_col(:)
+    real(rk8), pointer, contiguous :: errsoi_col(:)
 
     integer(ik4)  :: p,c,g,j,pi,l  ! indices
     integer(ik4)  :: fc,fp         ! lake filtered column and pft indices
@@ -319,7 +319,7 @@ module mod_clm_biogeophysics2
     ! Determine soil temperatures including surface soil temperature
 
     call SoilTemperature(lbl, ubl, lbc, ubc, num_urbanl, filter_urbanl, &
-                         num_nolakec, filter_nolakec, xmf , fact, &
+                         num_nolakec, filter_nolakec, xmf, fact, &
                          c_h2osfc, xmf_h2osfc)
 
     do fc = 1,num_nolakec
@@ -527,7 +527,7 @@ module mod_clm_biogeophysics2
 
     ! Soil Energy balance check
 
-    do fp = 1 , num_nolakep
+    do fp = 1, num_nolakep
       p = filter_nolakep(fp)
       c = pcolumn(p)
       errsoi_pft(p) = eflx_soil_grnd(p) - xmf(c) - xmf_h2osfc(c) - &
@@ -544,8 +544,8 @@ module mod_clm_biogeophysics2
       end if
     end do
 
-    do j = -nlevsno+1 , nlevgrnd
-      do fp = 1 , num_nolakep
+    do j = -nlevsno+1, nlevgrnd
+      do fp = 1, num_nolakep
         p = filter_nolakep(fp)
         c = pcolumn(p)
 

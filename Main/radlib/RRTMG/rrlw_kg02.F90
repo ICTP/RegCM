@@ -26,10 +26,10 @@
 
       integer(kind=im), parameter :: no2  = 16
 
-      real(kind=rb) :: fracrefao(no2)   , fracrefbo(no2)
+      real(kind=rb) :: fracrefao(no2)  , fracrefbo(no2)
       real(kind=rb) :: kao(5,13,no2)
       real(kind=rb) :: kbo(5,13:59,no2)
-      real(kind=rb) :: selfrefo(10,no2) , forrefo(4,no2)
+      real(kind=rb) :: selfrefo(10,no2), forrefo(4,no2)
 
 !-----------------------------------------------------------------
 ! rrtmg_lw COMBINED abs. coefficients for interval 2
@@ -56,8 +56,8 @@
 
       integer(kind=im), parameter :: ng2  = 12
 
-      real(kind=rb) :: fracrefa(ng2)  , fracrefb(ng2)
-      real(kind=rb) :: ka(5,13,ng2)   , absa(65,ng2)
+      real(kind=rb) :: fracrefa(ng2) , fracrefb(ng2)
+      real(kind=rb) :: ka(5,13,ng2)  , absa(65,ng2)
       real(kind=rb) :: kb(5,13:59,ng2), absb(235,ng2)
       real(kind=rb) :: selfref(10,ng2), forref(4,ng2)
 

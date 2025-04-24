@@ -25,10 +25,10 @@ module mod_oasis_params
 
   ! grid information type
   type infogrd
-    character(len=4) :: naNM , naWM ! grid name (No Mask , With Mask)
+    character(len=4) :: naNM, naWM ! grid name (No Mask, With Mask)
     integer :: id                   ! partition identificator
-    integer :: j1 , j2 , jll , i1 , i2 , ill , & ! local indexes
-               ja , jb , jgl , ia , ib , igl , & ! global indexes
+    integer :: j1, j2, jll, i1, i2, ill, & ! local indexes
+               ja, jb, jgl, ia, ib, igl, & ! global indexes
                nc ! number of corner per cell (1:nc)
   end type infogrd
   public :: infogrd
@@ -41,18 +41,18 @@ module mod_oasis_params
   end type infofld
   public :: infofld
 
-  character(len=6) , parameter , public :: comp_name = 'REGCM5' ! component name
-  integer(ik4) , public :: comp_id ! component identification
-  integer(ik4) , public :: oasis_lag ! model time lag to other components
+  character(len=6), parameter, public :: comp_name = 'REGCM5' ! component name
+  integer(ik4), public :: comp_id ! component identification
+  integer(ik4), public :: oasis_lag ! model time lag to other components
                                      ! (variable)
 
   ! before OASIS-related debug statements
-  character(len=8) , parameter , public :: oasis_prefix = '[OASIS] '
+  character(len=8), parameter, public :: oasis_prefix = '[OASIS] '
 
   ! oasisparam namelist general parameters
-  integer(ik4) , public :: write_restart_option
-  logical , public :: l_write_grids
-  integer(ik4) , public :: oasis_sync_lag ! model time lag to other components
+  integer(ik4), public :: write_restart_option
+  logical, public :: l_write_grids
+  integer(ik4), public :: oasis_sync_lag ! model time lag to other components
                                           ! (parameter)
 
   character(len=11), dimension(-2:14), parameter, public :: getput_status = & ! getput kinf string

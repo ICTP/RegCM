@@ -38,50 +38,50 @@ module mod_era5
 
   private
 
-  integer(ik4) :: jlat , ilon , klev , timlen
+  integer(ik4) :: jlat, ilon, klev, timlen
 
-  real(rkx) , pointer , dimension(:,:,:) :: b3
-  real(rkx) , pointer , dimension(:,:,:) :: d3
-  real(rkx) , pointer , dimension(:,:,:) :: d3u
-  real(rkx) , pointer , dimension(:,:,:) :: d3v
-  real(rkx) , pointer , dimension(:,:,:) :: b2
-  real(rkx) , pointer , dimension(:,:,:) :: d2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3u
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d2
 
-  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , h3 , q3 , t3
-  real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u , h3u , h3v
-  real(rkx) , pointer , dimension(:,:,:) :: uvar , vvar , hvar , qvar , tvar
-  real(rkx) , pointer , dimension(:,:) :: prvar , topou , topov
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3, v3, h3, q3, t3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u, h3u, h3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: uvar, vvar, hvar, qvar, tvar
+  real(rkx), pointer, contiguous, dimension(:,:) :: prvar, topou, topov
 
-  real(rkx) , pointer , dimension(:) :: glat
-  real(rkx) , pointer , dimension(:) :: grev
-  real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:) :: plevs
-  real(rkx) , pointer , dimension(:) :: sigmar
-  real(rkx) :: pss , pst
-  integer(2) , pointer , dimension(:,:,:) :: iwork3
-  real(rkx) , pointer , dimension(:,:,:) :: rwork3
-  integer(2) , pointer , dimension(:,:) :: iwork
-  real(rkx) , pointer , dimension(:,:) :: rwork
+  real(rkx), pointer, contiguous, dimension(:) :: glat
+  real(rkx), pointer, contiguous, dimension(:) :: grev
+  real(rkx), pointer, contiguous, dimension(:) :: glon
+  real(rkx), pointer, contiguous, dimension(:) :: plevs
+  real(rkx), pointer, contiguous, dimension(:) :: sigmar
+  real(rkx) :: pss, pst
+  integer(2), pointer, contiguous, dimension(:,:,:) :: iwork3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: rwork3
+  integer(2), pointer, contiguous, dimension(:,:) :: iwork
+  real(rkx), pointer, contiguous, dimension(:,:) :: rwork
 
-  integer(ik4) , dimension(5) :: inet5
-  integer(ik4) , dimension(5) :: ivar5
-  real(rkx) , dimension(5) :: xoff , xscl
-  type(rcm_time_and_date) , pointer , dimension(:) :: itimes
-  integer(ik4) , pointer , dimension(:) :: xtimes
+  integer(ik4), dimension(5) :: inet5
+  integer(ik4), dimension(5) :: ivar5
+  real(rkx), dimension(5) :: xoff, xscl
+  type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
+  integer(ik4), pointer, contiguous, dimension(:) :: xtimes
 
   type(global_domain) :: gdomain
-  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
+  type(h_interpolator) :: cross_hint, udot_hint, vdot_hint
 
-  public :: init_era5 , get_era5 , conclude_era5
-  public :: init_era5h , get_era5h , conclude_era5h
+  public :: init_era5, get_era5, conclude_era5
+  public :: init_era5h, get_era5h, conclude_era5h
 
   contains
 
   subroutine init_era5h
     implicit none
-    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
-    integer(ik4) :: istatus , ncid , ivarid , idimid
+    integer(ik4) :: istatus, ncid, ivarid, idimid
     character(len=64) :: inname
 
     call split_idate(globidate1,year,month,day,hour)
@@ -159,9 +159,9 @@ module mod_era5
   subroutine init_era5
     implicit none
     integer(ik4) :: k
-    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
-    integer(ik4) :: istatus , ncid , ivarid , idimid
+    integer(ik4) :: istatus, ncid, ivarid, idimid
     character(len=64) :: inname
 
     call split_idate(globidate1,year,month,day,hour)
@@ -249,13 +249,13 @@ module mod_era5
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
     if ( plevs(1) > plevs(klev) ) then
-      do k = 1 , klev
+      do k = 1, klev
         sigmar(k) = (plevs(k)-plevs(klev))/(plevs(1)-plevs(klev))
       end do
       pss = (plevs(1)-plevs(klev))/10.0_rkx ! mb -> cb
       pst = plevs(klev)/10.0_rkx ! mb -> cb
     else
-      do k = 1 , klev
+      do k = 1, klev
         sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
       end do
       pss = (plevs(klev)-plevs(1))/10.0_rkx ! mb -> cb
@@ -320,9 +320,9 @@ module mod_era5
 
   subroutine get_era5h(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     call era5hour(idate,globidate1)
-    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    write (stdout,*) 'READ IN fields at DATE:', tochar(idate)
     call h_interpolate_nn(cross_hint,prvar,pr)
     call h_interpolate_cont(cross_hint,b2,b3)
     pr(:,:) = pr(:,:) / secph * 0.001_rkx
@@ -333,12 +333,12 @@ module mod_era5
 
   subroutine get_era5(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     !
     ! Read data at idate
     !
     call era56hour(dattyp,idate,globidate1)
-    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    write (stdout,*) 'READ IN fields at DATE:', tochar(idate)
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
@@ -425,20 +425,20 @@ module mod_era5
 
   subroutine era5hour(idate,idate0)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , inet , it , j , kkrec , istatus , ivar
+    type(rcm_time_and_date), intent(in) :: idate, idate0
+    integer(ik4) :: i, inet, it, j, kkrec, istatus, ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=4) , dimension(4) :: varname
-    character(len=4) , dimension(4) :: fname
-    character(len=64) :: cunit , ccal
-    real(rkx) :: xadd , xscale
-    integer(ik4) , dimension(3) :: icount , istart
-    integer(ik4) :: year , month , day , hour
-    integer(ik4) , save :: lastmonth
+    character(len=4), dimension(4) :: varname
+    character(len=4), dimension(4) :: fname
+    character(len=64) :: cunit, ccal
+    real(rkx) :: xadd, xscale
+    integer(ik4), dimension(3) :: icount, istart
+    integer(ik4) :: year, month, day, hour
+    integer(ik4), save :: lastmonth
     type(rcm_time_interval) :: tdif
-    logical , save :: has_offset = .false.
+    logical, save :: has_offset = .false.
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -447,21 +447,21 @@ module mod_era5
     ! work will be used to hold the packed integers.  The array 'x'
     ! will contain the unpacked data.
     !
-    data varname /'tp  ' , 'ssr ' , 'strd' , 'tcc '/
-    data fname   /'pr  ' , 'ssr ' , 'strd' , 'clt '/
+    data varname /'tp  ', 'ssr ', 'strd', 'tcc '/
+    data fname   /'pr  ', 'ssr ', 'strd', 'clt '/
 
     call split_idate(idate,year,month,day,hour)
 
     if ( idate == idate0 .or. month /= lastmonth ) then
       lastmonth = month
       if ( idate /= idate0 ) then
-        do kkrec = 1 , 4
+        do kkrec = 1, 4
           istatus = nf90_close(inet5(kkrec))
           call checkncerr(istatus,__FILE__,__LINE__, &
               'Error close file')
         end do
       end if
-      do kkrec = 1 , 4
+      do kkrec = 1, 4
         if ( dattyp == 'ERAXX' ) then
           write(inname,'(a,a,i0.2,a)') &
             trim(fname(kkrec)), '_XXXX_', month,'.nc'
@@ -488,11 +488,11 @@ module mod_era5
           call checkncerr(istatus,__FILE__,__LINE__, &
               'Error find att add_offset')
           has_offset = .true.
-          write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
-                           xscl(kkrec) , xoff(kkrec)
+          write (stdout,*) inet5(kkrec), trim(pathaddname),   &
+                           xscl(kkrec), xoff(kkrec)
         else
           has_offset = .false.
-          write (stdout,*) inet5(kkrec) , trim(pathaddname)
+          write (stdout,*) inet5(kkrec), trim(pathaddname)
         end if
         if ( kkrec == 1 ) then
           if ( dattyp == 'ERAXX' ) then
@@ -529,7 +529,7 @@ module mod_era5
             istatus = nf90_get_var(inet5(1),timid,xtimes)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error read time')
-            do it = 1 , timlen
+            do it = 1, timlen
               itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
             end do
           end if
@@ -543,7 +543,7 @@ module mod_era5
     istart(3) = it
     icount(3) = 1
 
-    do kkrec = 1 , 4
+    do kkrec = 1, 4
       inet = inet5(kkrec)
       ivar = ivar5(kkrec)
       xscale = xscl(kkrec)
@@ -551,14 +551,14 @@ module mod_era5
       if ( has_offset ) then
         call igetwork(kkrec)
         if ( kkrec == 1 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
+          do j = 1, jlat
+            do i = 1, ilon
               prvar(i,j) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
             end do
           end do
         else
-          do j = 1 , jlat
-            do i = 1 , ilon
+          do j = 1, jlat
+            do i = 1, ilon
               b2(i,j,kkrec-1) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
             end do
           end do
@@ -566,14 +566,14 @@ module mod_era5
       else
         call rgetwork(kkrec)
         if ( kkrec == 1 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
+          do j = 1, jlat
+            do i = 1, ilon
               prvar(i,j) = rwork(i,j)
             end do
           end do
         else
-          do j = 1 , jlat
-            do i = 1 , ilon
+          do j = 1, jlat
+            do i = 1, ilon
               b2(i,j,kkrec-1) = rwork(i,j)
             end do
           end do
@@ -585,10 +585,10 @@ module mod_era5
 
       subroutine igetwork(irec)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        integer(ik4) :: itile , iti , itf
+        integer(ik4), intent(in) :: irec
+        integer(ik4) :: itile, iti, itf
         iti = 1
-        do itile = 1 , gdomain%ntiles
+        do itile = 1, gdomain%ntiles
           istart(1) = gdomain%igstart(itile)
           icount(1) = gdomain%ni(itile)
           ! Latitudes are reversed in original file
@@ -604,10 +604,10 @@ module mod_era5
 
       subroutine rgetwork(irec)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        integer(ik4) :: itile , iti , itf
+        integer(ik4), intent(in) :: irec
+        integer(ik4) :: itile, iti, itf
         iti = 1
-        do itile = 1 , gdomain%ntiles
+        do itile = 1, gdomain%ntiles
           istart(1) = gdomain%igstart(itile)
           icount(1) = gdomain%ni(itile)
           ! Latitudes are reversed in original file
@@ -625,21 +625,21 @@ module mod_era5
 
   subroutine era56hour(dattyp,idate,idate0)
     implicit none
-    character(len=5) , intent(in) :: dattyp
-    type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , inet , it , j , kkrec , istatus , ivar
+    character(len=5), intent(in) :: dattyp
+    type(rcm_time_and_date), intent(in) :: idate, idate0
+    integer(ik4) :: i, inet, it, j, kkrec, istatus, ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=1) , dimension(5) :: varname
-    character(len=4) , dimension(5) :: fname
-    character(len=64) :: cunit , ccal
-    real(rkx) :: xadd , xscale
-    integer(ik4) , dimension(4) :: icount , istart
-    integer(ik4) :: year , month , day , hour
-    integer(ik4) , save :: lastmonth
+    character(len=1), dimension(5) :: varname
+    character(len=4), dimension(5) :: fname
+    character(len=64) :: cunit, ccal
+    real(rkx) :: xadd, xscale
+    integer(ik4), dimension(4) :: icount, istart
+    integer(ik4) :: year, month, day, hour
+    integer(ik4), save :: lastmonth
     type(rcm_time_interval) :: tdif
-    logical , save :: has_offset = .false.
+    logical, save :: has_offset = .false.
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -648,7 +648,7 @@ module mod_era5
     ! work will be used to hold the packed integers.  The array 'x'
     ! will contain the unpacked data.
     !
-    data varname /'t' , 'z' , 'q' , 'u' , 'v'/
+    data varname /'t', 'z', 'q', 'u', 'v'/
     data fname   /'tatm','geop','qhum','uwnd','vwnd'/
 
     call split_idate(idate,year,month,day,hour)
@@ -656,13 +656,13 @@ module mod_era5
     if ( idate == idate0 .or. month /= lastmonth ) then
       lastmonth = month
       if ( idate /= idate0 ) then
-        do kkrec = 1 , 5
+        do kkrec = 1, 5
           istatus = nf90_close(inet5(kkrec))
           call checkncerr(istatus,__FILE__,__LINE__, &
               'Error close file')
         end do
       end if
-      do kkrec = 1 , 5
+      do kkrec = 1, 5
         if ( dattyp == 'ERAXX' ) then
           write(inname,'(a,a,a,a,a,a,i0.2,a)') &
           'XXXX', pthsep, fname(kkrec), '_', 'XXXX', '_', month,'.nc'
@@ -687,11 +687,11 @@ module mod_era5
           call checkncerr(istatus,__FILE__,__LINE__, &
               'Error find att add_offset')
           has_offset = .true.
-          write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
-                           xscl(kkrec) , xoff(kkrec)
+          write (stdout,*) inet5(kkrec), trim(pathaddname),   &
+                           xscl(kkrec), xoff(kkrec)
         else
           has_offset = .false.
-          write (stdout,*) inet5(kkrec) , trim(pathaddname)
+          write (stdout,*) inet5(kkrec), trim(pathaddname)
         end if
         if ( kkrec == 1 ) then
           if ( dattyp == 'ERAXX' ) then
@@ -728,7 +728,7 @@ module mod_era5
             istatus = nf90_get_var(inet5(1),timid,xtimes)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error read time')
-            do it = 1 , timlen
+            do it = 1, timlen
               itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
             end do
           end if
@@ -744,28 +744,28 @@ module mod_era5
     icount(4) = 1
 
     if ( has_offset ) then
-      do kkrec = 1 , 5
+      do kkrec = 1, 5
         inet = inet5(kkrec)
         ivar = ivar5(kkrec)
         xscale = xscl(kkrec)
         xadd = xoff(kkrec)
         call igetwork(kkrec)
         if ( kkrec == 1 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
+          do j = 1, jlat
+            do i = 1, ilon
               tvar(i,j,:) = real(real(iwork3(i,j,:),rkx)*xscale+xadd,rkx)
             end do
           end do
         else if ( kkrec == 2 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
+          do j = 1, jlat
+            do i = 1, ilon
               hvar(i,j,:) = real(real(iwork3(i,j,:),rkx) * &
                         xscale+xadd,rkx)/9.80616_rk4
             end do
           end do
         else if ( kkrec == 3 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
+          do j = 1, jlat
+            do i = 1, ilon
               qvar(i,j,:) = &
                 max(real(real(iwork3(i,j,:),rkx)*xscale+xadd,rkx),0.0_rkx)
             end do
@@ -773,21 +773,21 @@ module mod_era5
           call sph2mxr(qvar,ilon,jlat,klev)
           qvar = log10(max(qvar,dlowval))
         else if ( kkrec == 4 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
+          do j = 1, jlat
+            do i = 1, ilon
               uvar(i,j,:) = real(real(iwork3(i,j,:),rkx)*xscale+xadd,rkx)
             end do
           end do
         else if ( kkrec == 5 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
+          do j = 1, jlat
+            do i = 1, ilon
               vvar(i,j,:) = real(real(iwork3(i,j,:),rkx)*xscale+xadd,rkx)
             end do
           end do
         end if
       end do
     else
-      do kkrec = 1 , 5
+      do kkrec = 1, 5
         inet = inet5(kkrec)
         ivar = ivar5(kkrec)
         call rgetwork(kkrec)
@@ -811,10 +811,10 @@ module mod_era5
 
       subroutine igetwork(irec)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        integer(ik4) :: itile , iti , itf
+        integer(ik4), intent(in) :: irec
+        integer(ik4) :: itile, iti, itf
         iti = 1
-        do itile = 1 , gdomain%ntiles
+        do itile = 1, gdomain%ntiles
           istart(1) = gdomain%igstart(itile)
           icount(1) = gdomain%ni(itile)
           ! Latitudes are reversed in original file
@@ -830,10 +830,10 @@ module mod_era5
 
       subroutine rgetwork(irec)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        integer(ik4) :: itile , iti , itf
+        integer(ik4), intent(in) :: irec
+        integer(ik4) :: itile, iti, itf
         iti = 1
-        do itile = 1 , gdomain%ntiles
+        do itile = 1, gdomain%ntiles
           istart(1) = gdomain%igstart(itile)
           icount(1) = gdomain%ni(itile)
           ! Latitudes are reversed in original file

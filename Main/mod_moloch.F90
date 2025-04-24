@@ -45,140 +45,140 @@ module mod_moloch
   private
 
   ! generalized vertical velocity
-  real(rkx) , pointer , dimension(:,:,:) :: s => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: s => null( )
   ! nonhydrostatic term in pressure gradient force
   ! tridiagonal inversion
-  real(rkx) , pointer , dimension(:,:,:) :: wx => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: deltaw => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: tkex => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: wz => null( )
-  real(rkx) , pointer , dimension(:,:) :: mx2 => null( )
-  real(rkx) , pointer , dimension(:,:) :: rmu => null( )
-  real(rkx) , pointer , dimension(:,:) :: rmv => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: p0 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: zdiv2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: wx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: deltaw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tkex => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: wz => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: mx2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rmu => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rmv => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: p0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zdiv2 => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: ten0 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: qen0 => null( )
-  real(rkx) , pointer , dimension(:,:,:,:) :: chiten0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ten0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qen0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten0 => null( )
 
-  real(rkx) , dimension(:) , pointer :: gzitak => null( )
-  real(rkx) , dimension(:) , pointer :: gzitakh => null( )
-  real(rkx) , dimension(:) , pointer :: xknu => null( )
-  real(rkx) , dimension(:,:) , pointer :: p2d => null( )
-  real(rkx) , dimension(:,:) , pointer :: xlat => null( )
-  real(rkx) , dimension(:,:) , pointer :: xlon => null( )
-  real(rkx) , dimension(:,:) , pointer :: coru => null( )
-  real(rkx) , dimension(:,:) , pointer :: corv => null( )
-  real(rkx) , dimension(:,:) , pointer :: mu => null( )
-  real(rkx) , dimension(:,:) , pointer :: hx => null( )
-  real(rkx) , dimension(:,:) , pointer :: mx => null( )
-  real(rkx) , dimension(:,:) , pointer :: mv => null( )
-  real(rkx) , dimension(:,:) , pointer :: hy => null( )
-  real(rkx) , dimension(:,:) , pointer :: ps => null( )
-  real(rkx) , dimension(:,:) , pointer :: ts => null( )
-  real(rkx) , dimension(:,:) , pointer :: ht => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: fmz => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: fmzf => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: pai => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: pf => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: tetav => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: tf => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: tvirt => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: zeta => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: zetau => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: zetav => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: u => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: v => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: w => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: ux => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: vx => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: ud => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: vd => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: p => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: t => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: rho => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: qv => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: qc => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: qi => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: qr => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: qs => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: qsat => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: qwltot => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: qwitot => null( )
-  real(rkx) , dimension(:,:,:) , pointer :: tke => null( )
-  real(rkx) , dimension(:,:,:,:) , pointer :: qx => null( )
-  real(rkx) , dimension(:,:,:,:) , pointer :: trac => null( )
+  real(rkx), dimension(:), pointer, contiguous :: gzitak => null( )
+  real(rkx), dimension(:), pointer, contiguous :: gzitakh => null( )
+  real(rkx), dimension(:), pointer, contiguous :: xknu => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: p2d => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: corv => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: mu => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: hx => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: mx => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: mv => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: hy => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: ps => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: ts => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: ht => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: fmz => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: fmzf => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: pai => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: pf => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: tetav => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: tf => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: tvirt => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: zeta => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: zetau => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: zetav => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: u => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: v => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: w => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: ux => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: vx => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: ud => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: vd => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: p => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: t => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: rho => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qv => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qc => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qi => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qr => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qs => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qsat => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qwltot => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qwitot => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: tke => null( )
+  real(rkx), dimension(:,:,:,:), pointer, contiguous :: qx => null( )
+  real(rkx), dimension(:,:,:,:), pointer, contiguous :: trac => null( )
 
-  public :: allocate_moloch , init_moloch , moloch
+  public :: allocate_moloch, init_moloch, moloch
 
-  real(rkx) , parameter :: minden = 1.0e-30_rkx
-  real(rkx) , parameter :: xdamp = 0.0625_rkx
+  real(rkx), parameter :: minden = 1.0e-30_rkx
+  real(rkx), parameter :: xdamp = 0.0625_rkx
 
-  logical , parameter :: do_fulleq       = .true.
-  logical , parameter :: do_bdy          = .true.
-  logical , parameter :: do_divdamp      = .true.
-  logical , parameter :: do_vadvtwice    = .true.
-  logical , parameter :: do_filterpai    = .false.
-  logical , parameter :: do_filtertheta  = .false.
+  logical, parameter :: do_fulleq       = .true.
+  logical, parameter :: do_bdy          = .true.
+  logical, parameter :: do_divdamp      = .true.
+  logical, parameter :: do_vadvtwice    = .true.
+  logical, parameter :: do_filterpai    = .false.
+  logical, parameter :: do_filtertheta  = .false.
 #ifdef RCEMIP
-  logical , parameter :: do_gkfilter     = .false.
+  logical, parameter :: do_gkfilter     = .false.
 #endif
-  logical , parameter :: do_phys         = .true.
-  logical , parameter :: do_convection   = .true.
-  logical , parameter :: do_microphysics = .true.
-  logical , parameter :: do_radiation    = .true.
-  logical , parameter :: do_surface      = .true.
-  logical , parameter :: do_pbl          = .true.
+  logical, parameter :: do_phys         = .true.
+  logical, parameter :: do_convection   = .true.
+  logical, parameter :: do_microphysics = .true.
+  logical, parameter :: do_radiation    = .true.
+  logical, parameter :: do_surface      = .true.
+  logical, parameter :: do_pbl          = .true.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
   logical :: lrotllr
 
-  real(rkx) , parameter :: nupaitq = 0.05_rkx
+  real(rkx), parameter :: nupaitq = 0.05_rkx
 
   real(rkx) :: dzita
-  integer(ik4) :: jmin , jmax , imin , imax
+  integer(ik4) :: jmin, jmax, imin, imax
 
 #ifdef RCEMIP
-  ! real(rkx) , parameter :: sigma = 0.5_rkx*sqrt(2.0_rkx)
-  ! do i = -2 , 2
-  !   do j = -2 , 2
+  ! real(rkx), parameter :: sigma = 0.5_rkx*sqrt(2.0_rkx)
+  ! do i = -2, 2
+  !   do j = -2, 2
   !     kern(i+3,j+3) = (d_one/twopi)*exp(-(i*i+j*i)/(d_two*sigma**2))
   !   end do
   ! end do
   ! kern = kern/sum(kern)
-  !real(rkx) , parameter , dimension(5,5) :: kern = reshape(&
-  !       [ 1.0678874539336266E-004 , 2.1449092885792707E-003 , &
-  !         5.8304679428380487E-003 , 2.1449092885792707E-003 , &
-  !         1.0678874539336266E-004 , &
-  !         2.1449092885792707E-003 , 4.3081654712647119E-002 , &
-  !         0.1171080791453356E-000 , 4.3081654712647119E-002 , &
-  !         2.1449092885792707E-003 , &
-  !         5.8304679428380487E-003 , 0.1171080791453356E-000 , &
-  !         0.3183327635065094e-000 , 0.1171080791453356E-000 , &
-  !         5.8304679428380487E-003 , &
-  !         2.1449092885792707E-003 , 4.3081654712647119E-002 , &
-  !         0.1171080791453356e-000 , 4.3081654712647119E-002 , &
-  !         2.1449092885792707E-003 , &
-  !         1.0678874539336266E-004 , 2.1449092885792707E-003 , &
-  !         5.8304679428380487E-003 , 2.1449092885792707E-003 , &
+  !real(rkx), parameter, dimension(5,5) :: kern = reshape(&
+  !       [ 1.0678874539336266E-004, 2.1449092885792707E-003, &
+  !         5.8304679428380487E-003, 2.1449092885792707E-003, &
+  !         1.0678874539336266E-004, &
+  !         2.1449092885792707E-003, 4.3081654712647119E-002, &
+  !         0.1171080791453356E-000, 4.3081654712647119E-002, &
+  !         2.1449092885792707E-003, &
+  !         5.8304679428380487E-003, 0.1171080791453356E-000, &
+  !         0.3183327635065094e-000, 0.1171080791453356E-000, &
+  !         5.8304679428380487E-003, &
+  !         2.1449092885792707E-003, 4.3081654712647119E-002, &
+  !         0.1171080791453356e-000, 4.3081654712647119E-002, &
+  !         2.1449092885792707E-003, &
+  !         1.0678874539336266E-004, 2.1449092885792707E-003, &
+  !         5.8304679428380487E-003, 2.1449092885792707E-003, &
   !         1.0678874539336266E-004 ], [5,5])
-  real(rkx) , parameter , dimension(5,5) :: kern = reshape(&
-         [ 1.2477641543232609E-002 , 2.6415167354310421E-002 , &
-           3.3917746268994867E-002 , 2.6415167354310421E-002 , &
-           1.2477641543232609E-002 , &
-           2.6415167354310421E-002 , 5.5920909727901751E-002 , &
-           7.1803869414926613E-002 , 5.5920909727901751E-002 , &
-           2.6415167354310421E-002 , &
-           3.3917746268994867E-002 , 7.1803869414926613E-002 , &
-           9.2197993345293314E-002 , 7.1803869414926613E-002 , &
-           3.3917746268994867E-002 , &
-           2.6415167354310421E-002 , 5.5920909727901751E-002 , &
-           7.1803869414926613E-002 , 5.5920909727901751E-002 , &
-           2.6415167354310421E-002 , &
-           1.2477641543232609E-002 , 2.6415167354310421E-002 , &
-           3.3917746268994867E-002 , 2.6415167354310421E-002 , &
+  real(rkx), parameter, dimension(5,5) :: kern = reshape(&
+         [ 1.2477641543232609E-002, 2.6415167354310421E-002, &
+           3.3917746268994867E-002, 2.6415167354310421E-002, &
+           1.2477641543232609E-002, &
+           2.6415167354310421E-002, 5.5920909727901751E-002, &
+           7.1803869414926613E-002, 5.5920909727901751E-002, &
+           2.6415167354310421E-002, &
+           3.3917746268994867E-002, 7.1803869414926613E-002, &
+           9.2197993345293314E-002, 7.1803869414926613E-002, &
+           3.3917746268994867E-002, &
+           2.6415167354310421E-002, 5.5920909727901751E-002, &
+           7.1803869414926613E-002, 5.5920909727901751E-002, &
+           2.6415167354310421E-002, &
+           1.2477641543232609E-002, 2.6415167354310421E-002, &
+           3.3917746268994867E-002, 2.6415167354310421E-002, &
            1.2477641543232609E-002 ], [5,5])
 #endif
 
@@ -245,7 +245,7 @@ module mod_moloch
 
   subroutine init_moloch
     implicit none
-    integer(ik4) :: i , j
+    integer(ik4) :: i, j
     call assignpnt(mddom%msfu,mu)
     call assignpnt(mddom%msfv,mv)
     call assignpnt(mddom%msfx,mx)
@@ -328,15 +328,15 @@ module mod_moloch
   !
   subroutine moloch
     implicit none
-    real(rkx) :: dtsound , dtstepa
-    real(rkx) :: maxps , minps , pmax , pmin
-    real(rkx) :: fice , zdgz , lrt , tv
+    real(rkx) :: dtsound, dtstepa
+    real(rkx) :: maxps, minps, pmax, pmin
+    real(rkx) :: fice, zdgz, lrt, tv
     !real(rk8) :: jday
-    integer(ik4) :: i , j , k , n , nadv
+    integer(ik4) :: i, j, k, n, nadv
     integer(ik4) :: iconvec
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'moloch'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -425,7 +425,7 @@ module mod_moloch
       end if
     end if
 
-    do nadv = 1 , mo_nadv
+    do nadv = 1, mo_nadv
 
       call sound(dtsound)
 
@@ -574,7 +574,7 @@ module mod_moloch
       if ( myid == 0 ) then
         write(stdout,*) '$$$ ', rcmtimer%str( )
         write(stdout,'(a,2f8.2)') &
-            ' $$$ max, min of ps (mb) = ', pmax*d_r100 , pmin*d_r100
+            ' $$$ max, min of ps (mb) = ', pmax*d_r100, pmin*d_r100
         if ( any(icup > 0) ) then
           write(stdout,'(a,i7)') &
             ' $$$ no. of points with active convection = ', iconvec
@@ -599,7 +599,7 @@ module mod_moloch
   subroutine boundary
     implicit none
     logical :: do_nudge
-    integer(ik4) :: i , j , k , n
+    integer(ik4) :: i, j, k, n
     do_nudge = ( iboudy == 1 .or. iboudy >= 5 .or. iboudy == 4)
     call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
       call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
@@ -681,15 +681,15 @@ module mod_moloch
 #ifdef RCEMIP
     subroutine gkfilter2d(f,irep)
       implicit none
-      integer(ik4) , intent(in) :: irep
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: f
-      real(rkx) , allocatable , dimension(:,:) :: temp
-      integer(ik4) :: i , j , n
+      integer(ik4), intent(in) :: irep
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: f
+      real(rkx), allocatable, dimension(:,:) :: temp
+      integer(ik4) :: i, j, n
 
       call exchange(f,2,jce1,jce2,ice1,ice2)
       allocate(temp, mold=f)
       temp(:,:) = f(:,:)
-      do n = 1 , irep
+      do n = 1, irep
         do concurrent( j = jcii1:jcii2, i = icii1:icii2 )
           temp(j,i) = kern(1,1)*f(j-2,i-2) + &
             kern(2,1)*f(j-1,i-2) + kern(3,1)*f(j,  i-2) + &
@@ -714,15 +714,15 @@ module mod_moloch
 
     subroutine gkfilter3d(f,irep)
       implicit none
-      integer(ik4) , intent(in) :: irep
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: f
-      real(rkx) , allocatable , dimension(:,:,:) :: temp
-      integer(ik4) :: i , j , k , n
+      integer(ik4), intent(in) :: irep
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: f
+      real(rkx), allocatable, dimension(:,:,:) :: temp
+      integer(ik4) :: i, j, k, n
 
       call exchange(f,2,jce1,jce2,ice1,ice2,1,kz)
       allocate(temp, mold=f)
       temp(:,:,:) = f(:,:,:)
-      do n = 1 , irep
+      do n = 1, irep
         do concurrent( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
           temp(j,i,k) = kern(1,1)*f(j-2,i-2,k) + &
             kern(2,1)*f(j-1,i-2,k) + kern(3,1)*f(j,  i-2,k) + &
@@ -747,15 +747,15 @@ module mod_moloch
 
     subroutine gkfilter4d(f,irep)
       implicit none
-      integer(ik4) , intent(in) :: irep
-      real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: f
-      real(rkx) , allocatable , dimension(:,:,:,:) :: temp
-      integer(ik4) :: i , j , k , n , m
+      integer(ik4), intent(in) :: irep
+      real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: f
+      real(rkx), allocatable, dimension(:,:,:,:) :: temp
+      integer(ik4) :: i, j, k, n, m
       call exchange(f,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
       allocate(temp, mold=f)
       temp(:,:,:,:) = f(:,:,:,:)
-      do m = 1 , irep
-        do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz , n=1:nqx)
+      do m = 1, irep
+        do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz, n=1:nqx)
           temp(j,i,k,n) = kern(1,1)*f(j-2,i-2,k,n) + &
             kern(2,1)*f(j-1,i-2,k,n) + kern(3,1)*f(j,  i-2,k,n) + &
             kern(4,1)*f(j+1,i-2,k,n) + kern(5,1)*f(j+2,i-2,k,n) + &
@@ -779,15 +779,15 @@ module mod_moloch
 
     subroutine gkfilteruv(u,v,irep)
       implicit none
-      integer(ik4) , intent(in) :: irep
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-      real(rkx) , allocatable , dimension(:,:,:) :: temp
-      integer(ik4) :: i , j , k , n
+      integer(ik4), intent(in) :: irep
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
+      real(rkx), allocatable, dimension(:,:,:) :: temp
+      integer(ik4) :: i, j, k, n
 
       call exchange(u,2,jce1,jce2,ice1,ice2,1,kz)
       allocate(temp, mold=u)
       temp(:,:,:) = u(:,:,:)
-      do n = 1 , irep
+      do n = 1, irep
         do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           temp(j,i,k) = kern(1,1)*u(j-2,i-2,k) + &
             kern(2,1)*u(j-1,i-2,k) + kern(3,1)*u(j,  i-2,k) + &
@@ -811,7 +811,7 @@ module mod_moloch
       call exchange(v,2,jce1,jce2,ice1,ice2,1,kz)
       allocate(temp, mold=v)
       temp(:,:,:) = v(:,:,:)
-      do n = 1 , irep
+      do n = 1, irep
         do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           temp(j,i,k) = kern(1,1)*v(j-2,i-2,k) + &
             kern(2,1)*v(j-1,i-2,k) + kern(3,1)*v(j,  i-2,k) + &
@@ -836,11 +836,11 @@ module mod_moloch
 
     subroutine filt3d(p,nu)
       implicit none
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
-      real(rkx) , intent(in) :: nu
-      integer(ik4) :: j , i , k
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: p
+      real(rkx), intent(in) :: nu
+      integer(ik4) :: j, i, k
 
-      do k = 1 , kz
+      do k = 1, kz
         do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
           p2d(j,i) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
                                   p(j,i-1,k) + p(j,i+1,k)) - &
@@ -854,11 +854,11 @@ module mod_moloch
 
     subroutine filtuv(u,v,nu)
       implicit none
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-      real(rkx) , intent(in) :: nu
-      integer(ik4) :: j , i , k
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
+      real(rkx), intent(in) :: nu
+      integer(ik4) :: j, i, k
 
-      do k = 1 , kz
+      do k = 1, kz
         do concurrent ( j = jdii1:jdii2, i = icii1:icii2 )
           p2d(j,i) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
                                   u(j,i-1,k) + u(j,i+1,k)) - &
@@ -868,7 +868,7 @@ module mod_moloch
           u(j,i,k) = u(j,i,k) + nu * p2d(j,i)
         end do
       end do
-      do k = 1 , kz
+      do k = 1, kz
         do concurrent ( j = jcii1:jcii2, i = idii1:idii2 )
           p2d(j,i) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
                                   v(j,i-1,k) + v(j,i+1,k)) - &
@@ -882,13 +882,13 @@ module mod_moloch
 
     subroutine filt4d(p,nu,n1,n2)
       implicit none
-      real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: p
-      real(rkx) , intent(in) :: nu
-      integer(ik4) , intent(in) :: n1 , n2
-      integer(ik4) :: j , i , k , n
+      real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: p
+      real(rkx), intent(in) :: nu
+      integer(ik4), intent(in) :: n1, n2
+      integer(ik4) :: j, i, k, n
 
-      do n = n1 , n2
-        do k = 1 , kz
+      do n = n1, n2
+        do k = 1, kz
           do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
             p2d(j,i) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
                                     p(j,i-1,k,n) + p(j,i+1,k,n)) - &
@@ -904,7 +904,7 @@ module mod_moloch
 
     subroutine divergence_filter( )
       implicit none
-      integer(ik4) :: j , i , k
+      integer(ik4) :: j, i, k
       if ( ma%has_bdybottom ) then
         do concurrent ( j = jci1:jci2, k = 1:kz )
           zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
@@ -926,7 +926,7 @@ module mod_moloch
         end do
       end if
       call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-      do k = 1 , kz
+      do k = 1, kz
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                   zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
@@ -940,11 +940,11 @@ module mod_moloch
 
     subroutine filtpai
       implicit none
-      integer(ik4) :: j , i , k
+      integer(ik4) :: j, i, k
 
       call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
 
-      do k = 1 , kz
+      do k = 1, kz
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           p2d(j,i) = 0.125_rkx * (pai(j-1,i,k) + pai(j+1,i,k) + &
                                   pai(j,i-1,k) + pai(j,i+1,k)) - &
@@ -958,11 +958,11 @@ module mod_moloch
 
     subroutine filttheta
       implicit none
-      integer(ik4) :: j , i , k
+      integer(ik4) :: j, i, k
 
       call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
 
-      do k = 1 , kz
+      do k = 1, kz
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           p2d(j,i) = 0.125_rkx * (tetav(j-1,i,k) + tetav(j+1,i,k) + &
                                   tetav(j,i-1,k) + tetav(j,i+1,k)) - &
@@ -976,15 +976,15 @@ module mod_moloch
 
     subroutine sound(dts)
       implicit none
-      real(rkx) , intent(in) :: dts
-      integer(ik4) :: i , j , k , nsound
-      real(rkx) :: dtrdx , dtrdy , dtrdz , zcs2
-      real(rkx) , dimension(jci1:jci2,ici1:ici2,2:kzp1) :: wwkw
-      real(rkx) :: zrfmzum , zrfmzvm , zrfmzup , zrfmzvp
-      real(rkx) :: zum , zup , zvm , zvp , zuh , zvh
-      real(rkx) :: zrom1w , zwexpl , zqs , zdth , zu , zd , zrapp
-      real(rkx) :: zcx , zcy , zfz
-      real(rkx) :: zrom1u , zcor1u , zrom1v , zcor1v
+      real(rkx), intent(in) :: dts
+      integer(ik4) :: i, j, k, nsound
+      real(rkx) :: dtrdx, dtrdy, dtrdz, zcs2
+      real(rkx), dimension(jci1:jci2,ici1:ici2,2:kzp1) :: wwkw
+      real(rkx) :: zrfmzum, zrfmzvm, zrfmzup, zrfmzvp
+      real(rkx) :: zum, zup, zvm, zvp, zuh, zvh
+      real(rkx) :: zrom1w, zwexpl, zqs, zdth, zu, zd, zrapp
+      real(rkx) :: zcx, zcy, zfz
+      real(rkx) :: zrom1u, zcor1u, zrom1v, zcor1v
 
       dtrdx = dts/dx
       dtrdy = dts/dx
@@ -1001,7 +1001,7 @@ module mod_moloch
         call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
       end if
 
-      do nsound = 1 , mo_nsound
+      do nsound = 1, mo_nsound
 
         call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
         call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
@@ -1068,7 +1068,7 @@ module mod_moloch
 
         ! new w (implicit scheme) from Equation 19
 
-        do k = kz , 2 , -1
+        do k = kz, 2, -1
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             deltaw(j,i,k) = -w(j,i,k)
             ! explicit w:
@@ -1106,7 +1106,7 @@ module mod_moloch
         end do
 
         ! 2nd loop for the tridiagonal inversion
-        do k = 2 , kz
+        do k = 2, kz
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
             deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
@@ -1148,10 +1148,10 @@ module mod_moloch
         call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
-        do concurrent ( j = jde1ga:jde2ga , i = ice1ga:ice2ga , k = 1:kz )
+        do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
           ud(j,i,k) = u(j,i,k)
         end do
-        do concurrent ( j = jce1ga:jce2ga , i = ide1ga:ide2ga , k = 1:kz )
+        do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
           vd(j,i,k) = v(j,i,k)
         end do
 
@@ -1229,8 +1229,8 @@ module mod_moloch
 
     subroutine divdamp(dts)
       implicit none
-      real(rkx) , intent(in) :: dts
-      integer(ik4) :: i , j , k
+      real(rkx), intent(in) :: dts
+      integer(ik4) :: i, j, k
       real(rkx) :: ddamp
 
       if ( ma%has_bdybottom ) then
@@ -1277,7 +1277,7 @@ module mod_moloch
       end if
       ! Horizontal diffusion
       ddamp = xdamp * 0.015625_rkx/dts
-      do k = 1 , kz
+      do k = 1, kz
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                   zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
@@ -1291,9 +1291,9 @@ module mod_moloch
 
     subroutine advection(dta)
       implicit none
-      real(rkx) , intent(in) :: dta
+      real(rkx), intent(in) :: dta
       integer(ik4) :: n
-      real(rkx) , pointer , dimension(:,:,:) :: ptr => null( )
+      real(rkx), pointer, contiguous, dimension(:,:,:) :: ptr => null( )
 
       ! Compute U,V on cross points
 
@@ -1314,7 +1314,7 @@ module mod_moloch
       call wafone(wx,dta)
       call wafone(qv,dta)
       if ( ipptls > 0 ) then
-        do n = iqfrst , nqx
+        do n = iqfrst, nqx
           call assignpnt(qx,ptr,n)
           call wafone(ptr,dta)
         end do
@@ -1323,7 +1323,7 @@ module mod_moloch
         call wafone(tkex,dta)
       end if
       if ( ichem == 1 ) then
-        do n = 1 , ntr
+        do n = 1, ntr
           call assignpnt(trac,ptr,n)
           call wafone(ptr,dta)
         end do
@@ -1347,25 +1347,25 @@ module mod_moloch
 
     subroutine wafone(pp,dta,pfac,pmin)
       implicit none
-      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
-      real(rkx) , intent(in) :: dta
-      real(rkx) , optional , intent(in) :: pfac , pmin
-      integer(ik4) :: j , i , k
-      real(rkx) :: dtrdx , dtrdy , dtrdz
-      real(rkx) , parameter :: wlow  = 0.0_rkx
-      real(rkx) , parameter :: whigh = 2.0_rkx
-      real(rkx) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wfw
-      real(rkx) , dimension(jci1:jci2,ici1:ice2ga,1:kz) :: zpby
-      real(rkx) , dimension(jci1:jce2ga,ici1:ici2,1:kz) :: zpbw
-      real(rkx) :: zamu , is , r , b , zphi , zzden , zdv
-      real(rkx) :: zhxvtn , zhxvts , zcostx
-      real(rkx) :: zrfmu , zrfmd
-      real(rkx) :: zrfmn , zrfms
-      real(rkx) :: zrfme , zrfmw
-      real(rkx) :: zfac , zmin
-      integer(ik4) :: k1 , k1p1
-      integer(ik4) :: ih , ihm1
-      integer(ik4) :: jh , jhm1
+      real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: pp
+      real(rkx), intent(in) :: dta
+      real(rkx), optional, intent(in) :: pfac, pmin
+      integer(ik4) :: j, i, k
+      real(rkx) :: dtrdx, dtrdy, dtrdz
+      real(rkx), parameter :: wlow  = 0.0_rkx
+      real(rkx), parameter :: whigh = 2.0_rkx
+      real(rkx), dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wfw
+      real(rkx), dimension(jci1:jci2,ici1:ice2ga,1:kz) :: zpby
+      real(rkx), dimension(jci1:jce2ga,ici1:ici2,1:kz) :: zpbw
+      real(rkx) :: zamu, is, r, b, zphi, zzden, zdv
+      real(rkx) :: zhxvtn, zhxvts, zcostx
+      real(rkx) :: zrfmu, zrfmd
+      real(rkx) :: zrfmn, zrfms
+      real(rkx) :: zrfme, zrfmw
+      real(rkx) :: zfac, zmin
+      integer(ik4) :: k1, k1p1
+      integer(ik4) :: ih, ihm1
+      integer(ik4) :: jh, jhm1
 
       dtrdx = dta/dx
       dtrdy = dta/dx
@@ -1382,7 +1382,7 @@ module mod_moloch
       end if
 
       ! Vertical advection
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         wfw(j,i,1) = d_zero
         wfw(j,i,kzp1) = d_zero
       end do
@@ -1625,7 +1625,7 @@ module mod_moloch
 
     subroutine reset_tendencies
       implicit none
-      integer(ik4) :: i , j , k , n
+      integer(ik4) :: i, j, k, n
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
         s(j,i,k) = d_zero
       end do
@@ -1674,21 +1674,21 @@ module mod_moloch
 
     subroutine physical_parametrizations
       implicit none
-      integer(ik4) :: i , j , k , n
-      logical :: loutrad , labsem
+      integer(ik4) :: i, j, k, n
+      logical :: loutrad, labsem
 
 #ifdef DEBUG
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+      do k = 1, kz
+        do i = ice1, ice2
+          do j = jce1, jce2
             if ( (t(j,i,k) > 350.0_rkx) .or. t(j,i,k) < 170.0_rkx ) then
               write(100+myid,*) 'Before Phys On : ', myid
               write(100+myid,*) 'At : ', i,j,k
               write(100+myid,*) 'k pai u v w qv qc t tetav'
-              do n = 1 , kz
+              do n = 1, kz
                 write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
-                          w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
-                          t(j,i,n) , tetav(j,i,n)
+                          w(j,i,n), qv(j,i,n), qc(j,i,n), &
+                          t(j,i,n), tetav(j,i,n)
               end do
               flush(100+myid)
               call fatal(__FILE__,__LINE__, 'error')
@@ -1947,17 +1947,17 @@ module mod_moloch
         end do
       end if
 #ifdef DEBUG
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+      do k = 1, kz
+        do i = ice1, ice2
+          do j = jce1, jce2
             if ( (t(j,i,k) > 350.0_rkx) .or. t(j,i,k) < 170.0_rkx ) then
               write(100+myid,*) 'On : ', myid
               write(100+myid,*) 'After Phys At : ', i,j,k
               write(100+myid,*) 'k pai u v w qv qc t tetav'
-              do n = 1 , kz
+              do n = 1, kz
                 write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
-                          w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
-                          t(j,i,n) , tetav(j,i,n)
+                          w(j,i,n), qv(j,i,n), qc(j,i,n), &
+                          t(j,i,n), tetav(j,i,n)
               end do
               flush(100+myid)
               call fatal(__FILE__,__LINE__, 'error')
@@ -1970,9 +1970,9 @@ module mod_moloch
 
   subroutine wstagtox(w,wx)
     implicit none
-    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: w
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
-    integer(ik4) :: i , j , k
+    real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: w
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: wx
+    integer(ik4) :: i, j, k
 
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kzm1 )
       wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
@@ -1986,9 +1986,9 @@ module mod_moloch
 
   subroutine xtowstag(wx,w)
     implicit none
-    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: wx
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: w
-    integer(ik4) :: i , j , k
+    real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: wx
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: w
+    integer(ik4) :: i, j, k
 
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 3:kzm1 )
       w(j,i,k) = 0.5625_rkx * (wx(j,i,k)  +wx(j,i,k-1)) - &
@@ -2002,9 +2002,9 @@ module mod_moloch
 
   subroutine xtoustag(ux,u)
     implicit none
-    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: ux
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u
-    integer(ik4) :: i , j , k
+    real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: ux
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u
+    integer(ik4) :: i, j, k
 
     do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
       u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
@@ -2025,9 +2025,9 @@ module mod_moloch
 
   subroutine xtovstag(vx,v)
     implicit none
-    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: vx
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: v
-    integer(ik4) :: i , j , k
+    real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: vx
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: v
+    integer(ik4) :: i, j, k
 
     do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
       v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
@@ -2047,9 +2047,9 @@ module mod_moloch
 
   subroutine xtouvstag(ux,vx,u,v)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
-    integer(ik4) :: i , j , k
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
+    integer(ik4) :: i, j, k
 
     call exchange_lr(ux,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange_bt(vx,2,jce1,jce2,ice1,ice2,1,kz)
@@ -2091,9 +2091,9 @@ module mod_moloch
 
   subroutine uvstagtox(u,v,ux,vx)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
-    integer(ik4) :: i , j , k
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
+    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
+    integer(ik4) :: i, j, k
 
     call exchange_lr(u,2,jde1,jde2,ice1,ice2,1,kz)
     call exchange_bt(v,2,jce1,jce2,ide1,ide2,1,kz)

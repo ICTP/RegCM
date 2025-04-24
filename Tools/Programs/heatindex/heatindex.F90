@@ -3,30 +3,30 @@ program calc_heatindex
   use mod_heatindex
   use netcdf
   implicit none
-  integer , parameter :: max_path = 1024
-  integer :: i , j , ii , jj
-  integer :: ntime , nx , ny
-  integer :: itime , itime_bnds , itasmax , ihurs , ihtindx , icrs
-  integer :: tm_ncid , rh_ncid , hi_ncid
-  integer :: narg , nfstat , nfmode , nftype
-  integer :: ndims , nvars , nglobalatts , numatts , unlimdimid
+  integer, parameter :: max_path = 1024
+  integer :: i, j, ii, jj
+  integer :: ntime, nx, ny
+  integer :: itime, itime_bnds, itasmax, ihurs, ihtindx, icrs
+  integer :: tm_ncid, rh_ncid, hi_ncid
+  integer :: narg, nfstat, nfmode, nftype
+  integer :: ndims, nvars, nglobalatts, numatts, unlimdimid
   character (len=max_path) :: progname
-  character (len=max_path) :: tasmax_filename , hurs_filename
+  character (len=max_path) :: tasmax_filename, hurs_filename
   character (len=max_path) :: hindex_filename
   character (len=nf90_max_name) :: item_name
-  integer , allocatable , dimension(:) :: dimids , numdims , dimlens
-  integer , allocatable , dimension(:,:) :: vdimids
-  integer , allocatable , dimension(:) :: varids
-  integer , dimension(3) :: istart , icount
-  integer , dimension(1) :: its , itc
-  integer , dimension(2) :: itbs , itbc
+  integer, allocatable, dimension(:) :: dimids, numdims, dimlens
+  integer, allocatable, dimension(:,:) :: vdimids
+  integer, allocatable, dimension(:) :: varids
+  integer, dimension(3) :: istart, icount
+  integer, dimension(1) :: its, itc
+  integer, dimension(2) :: itbs, itbc
 
   real, dimension(1) :: var0d
-  real, dimension(:) , allocatable :: var1d
-  real, dimension(:,:) , allocatable :: var2d
-  real(kind=real64), dimension(:,:) , allocatable :: tasmax
-  real(kind=real64), dimension(:,:) , allocatable :: hurs
-  real, dimension(:,:) , allocatable :: heat_index
+  real, dimension(:), allocatable :: var1d
+  real, dimension(:,:), allocatable :: var2d
+  real(kind=real64), dimension(:,:), allocatable :: tasmax
+  real(kind=real64), dimension(:,:), allocatable :: hurs
+  real, dimension(:,:), allocatable :: heat_index
   real, dimension(1) :: time
   real, dimension(2) :: time_bnds
 
@@ -82,7 +82,7 @@ program calc_heatindex
   allocate(numdims(nvars))
   allocate(vdimids(nvars,ndims))
   allocate(dimlens(ndims))
-  do i = 1 , ndims
+  do i = 1, ndims
     nfstat = nf90_inquire_dimension(tm_ncid, i, item_name, len=dimlens(i))
     if ( nfstat /= nf90_noerr ) then
       print *, 'Cannot read specs from ',trim(tasmax_filename)
@@ -106,7 +106,7 @@ program calc_heatindex
     end if
   end do
 
-  do i = 1 , nglobalatts
+  do i = 1, nglobalatts
     nfstat = nf90_inq_attname(tm_ncid, nf90_global, i, item_name)
     if ( nfstat /= nf90_noerr ) then
       print *, 'Cannot inquire attribute from ',trim(tasmax_filename)
@@ -122,7 +122,7 @@ program calc_heatindex
     end if
   end do
 
-  do i = 1 , nvars
+  do i = 1, nvars
     nfstat = nf90_inquire_variable(tm_ncid, i, item_name, nftype, &
                          numdims(i), vdimids(i,:), numatts)
     if ( nfstat /= nf90_noerr ) then
@@ -149,7 +149,7 @@ program calc_heatindex
       stop 'DEFINE ERROR'
     end if
     if ( i /= itasmax ) then
-      do j = 1 , numatts
+      do j = 1, numatts
         nfstat = nf90_inq_attname(tm_ncid, i, j, item_name)
         if ( nfstat /= nf90_noerr ) then
           print *, 'Cannot inquire attribute from ',trim(tasmax_filename)
@@ -207,7 +207,7 @@ program calc_heatindex
     stop 'OUTPUT ERROR'
   end if
 
-  do i = 1 , nvars
+  do i = 1, nvars
     if ( i == itime .or. i == itasmax .or. i == itime_bnds ) cycle
     if ( numdims(i) == 0 ) then
       if ( i == icrs ) cycle
@@ -271,7 +271,7 @@ program calc_heatindex
   itbs(1) = 1
   itbc(1) = 2
   itbc(2) = 1
-  do i = 1 , ntime
+  do i = 1, ntime
     print *, 'Time : ', i
     istart(3) = i
     its(1) = i
@@ -305,8 +305,8 @@ program calc_heatindex
 
 !$OMP PARALLEL PRIVATE(ii)
 !$OMP DO
-    do jj = 1 , ny
-      do ii = 1 , nx
+    do jj = 1, ny
+      do ii = 1, nx
         heat_index(ii,jj) = heatindex(tasmax(ii,jj),hurs(ii,jj)*0.01)
       end do
     end do
@@ -368,7 +368,7 @@ program calc_heatindex
     implicit none
     character(len=*), intent(in) :: string, search, sub
     character(len=:), allocatable :: mstring
-    integer :: i , stringlen , searchlen
+    integer :: i, stringlen, searchlen
     stringlen = len(string)
     searchlen = len(search)
     if ( stringlen == 0 .or. searchlen == 0 ) then
@@ -398,9 +398,9 @@ program calc_heatindex
     implicit none
     character(*), intent(in) :: str
     character(len(str)) :: string
-    integer , intent(in) , optional :: istart , istop
+    integer, intent(in), optional :: istart, istop
     integer :: i
-    integer :: ibegin , iend
+    integer :: ibegin, iend
     string = str
     ibegin = 1
     if ( present(istart) ) then
@@ -410,7 +410,7 @@ program calc_heatindex
     if ( present(istop) ) then
       iend = min(iend,istop)
     end if
-    do i = ibegin , iend
+    do i = ibegin, iend
       select case (str(i:i))
         case ('A':'Z')
           string(i:i) = char(iachar(str(i:i))+32)
@@ -423,9 +423,9 @@ program calc_heatindex
     implicit none
     character(*), intent(in) :: str
     character(len(str)) :: string
-    integer , intent(in) , optional :: istart , istop
+    integer, intent(in), optional :: istart, istop
     integer :: i
-    integer :: ibegin , iend
+    integer :: ibegin, iend
     string = str
     ibegin = 1
     if ( present(istart) ) then
@@ -435,7 +435,7 @@ program calc_heatindex
     if ( present(istop) ) then
       iend = min(iend,istop)
     end if
-    do i = ibegin , iend
+    do i = ibegin, iend
       select case (str(i:i))
         case ('a':'z')
           string(i:i) = char(iachar(str(i:i))-32)
@@ -446,22 +446,22 @@ program calc_heatindex
 
   subroutine split(input_line,array,delimiters,order,nulls)
     implicit none
-    character(len=*) , intent(in) :: input_line
-    character(len=*) , optional, intent(in) :: delimiters
-    character(len=*) , optional , intent(in) :: order
-    character(len=*) , optional , intent(in) :: nulls
-    character(len=:) , allocatable , intent(out) :: array(:)
+    character(len=*), intent(in) :: input_line
+    character(len=*), optional, intent(in) :: delimiters
+    character(len=*), optional, intent(in) :: order
+    character(len=*), optional, intent(in) :: nulls
+    character(len=:), allocatable, intent(out) :: array(:)
 
     integer :: n
-    integer , allocatable , dimension(:) :: ibegin
-    integer , allocatable , dimension(:) :: iterm
-    character(len=:) , allocatable :: dlim
-    character(len=:) , allocatable :: ordr
-    character(len=:) , allocatable  :: nlls
-    integer :: ii , iiii
+    integer, allocatable, dimension(:) :: ibegin
+    integer, allocatable, dimension(:) :: iterm
+    character(len=:), allocatable :: dlim
+    character(len=:), allocatable :: ordr
+    character(len=:), allocatable  :: nlls
+    integer :: ii, iiii
     integer :: icount
     integer :: ilen
-    integer :: i , j , k
+    integer :: i, j, k
     integer :: icol
     integer :: idlim
     integer :: ifound
@@ -506,11 +506,11 @@ program calc_heatindex
       case (0)
       case default
         icol = 1
-        parseloop: do k = 1 , ilen , 1
+        parseloop: do k = 1, ilen, 1
           ibegin(k) = icol
           if ( index(dlim(1:idlim),input_line(icol:icol)) == 0 ) then
             iterm(k) = ilen
-            do i = 1 , idlim
+            do i = 1, idlim
               ifound = index(input_line(ibegin(k):ilen),dlim(i:i))
               if ( ifound > 0 ) then
                 iterm(k) = min(iterm(k),ifound+ibegin(k)-2)
@@ -546,7 +546,7 @@ program calc_heatindex
         iiii = 1
     end select
 
-    do j = 1 , icount
+    do j = 1, icount
       if ( iterm(j) < ibegin(j) ) then
         select case ( trim(adjustl(nlls)) )
           case ('ignore', '', 'ignoreend')

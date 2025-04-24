@@ -7,14 +7,14 @@ module mod_clm_subgridave
   use mod_stdio
   use mod_mpmessage
   use mod_clm_type
-  use mod_clm_varcon , only : spval , isturb
-  use mod_clm_varcon , only : icol_roof , icol_sunwall , icol_shadewall
-  use mod_clm_varcon , only : icol_road_perv , icol_road_imperv
-  use mod_clm_varpar , only : max_pft_per_col
-  use mod_clm_varpar , only : max_pft_per_lu
+  use mod_clm_varcon, only : spval, isturb
+  use mod_clm_varcon, only : icol_roof, icol_sunwall, icol_shadewall
+  use mod_clm_varcon, only : icol_road_perv, icol_road_imperv
+  use mod_clm_varpar, only : max_pft_per_col
+  use mod_clm_varpar, only : max_pft_per_lu
   use mod_clm_varpar,  only : max_pft_per_gcell
-  use mod_clm_varcon , only : max_lunit
-  use mod_clm_varcon , only : istsoil, istice, istdlak, istslak, istwet, &
+  use mod_clm_varcon, only : max_lunit
+  use mod_clm_varcon, only : istsoil, istice, istdlak, istslak, istwet, &
                               isturb, istcrop, max_lunit, spval
 
   implicit none
@@ -78,26 +78,26 @@ module mod_clm_subgridave
   !
   subroutine p2c_1d(lbp,ubp,lbc,ubc,parr,carr,p2c_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbp , ubp  ! beginning and ending pft
-    integer(ik4) , intent(in) :: lbc , ubc  ! beginning and ending column
-    real(rk8) , intent(in) , dimension(lbp:ubp) :: parr  ! pft array
-    real(rk8) , intent(out) , dimension(lbc:ubc) :: carr ! column array
-    character(len=*) , intent(in) :: p2c_scale_type ! scale type
-    integer(ik4) :: p , c , iind   ! indices
+    integer(ik4), intent(in) :: lbp, ubp  ! beginning and ending pft
+    integer(ik4), intent(in) :: lbc, ubc  ! beginning and ending column
+    real(rk8), intent(in), dimension(lbp:ubp) :: parr  ! pft array
+    real(rk8), intent(out), dimension(lbc:ubc) :: carr ! column array
+    character(len=*), intent(in) :: p2c_scale_type ! scale type
+    integer(ik4) :: p, c, iind   ! indices
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbp:ubp) :: scale_p2c
+    real(rk8), dimension(lbp:ubp) :: scale_p2c
     logical  :: found  ! temporary for error check
-    real(rk8) , dimension(lbc:ubc) :: sumwt  ! sum of weights
+    real(rk8), dimension(lbc:ubc) :: sumwt  ! sum of weights
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer , dimension(:) :: pactive
+    logical, pointer, contiguous, dimension(:) :: pactive
     ! weight of pft relative to column
-    real(rk8) , pointer , dimension(:) :: wtcol
+    real(rk8), pointer, contiguous, dimension(:) :: wtcol
     ! column index of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! number of pfts in column
-    integer(ik4) , pointer , dimension(:) :: npfts
+    integer(ik4), pointer, contiguous, dimension(:) :: npfts
     ! initial pft index in column
-    integer(ik4) , pointer , dimension(:) :: pfti
+    integer(ik4), pointer, contiguous, dimension(:) :: pfti
 
     pactive  => clm3%g%l%c%p%active
     wtcol    => clm3%g%l%c%p%wtcol
@@ -116,7 +116,7 @@ module mod_clm_subgridave
 
     carr(lbc:ubc) = spval
     sumwt(lbc:ubc) = 0._rk8
-    do p = lbp , ubp
+    do p = lbp, ubp
       if ( pactive(p) .and. wtcol(p) /= 0._rk8 ) then
         if ( parr(p) /= spval ) then
           c = pcolumn(p)
@@ -127,7 +127,7 @@ module mod_clm_subgridave
       end if
     end do
     found = .false.
-    do c = lbc , ubc
+    do c = lbc, ubc
       if ( sumwt(c) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = c
@@ -146,28 +146,28 @@ module mod_clm_subgridave
   !
   subroutine p2c_2d(lbp,ubp,lbc,ubc,num2d,parr,carr,p2c_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbp , ubp  ! beginning and ending pft
-    integer(ik4) , intent(in) :: lbc , ubc  ! beginning and ending column
-    integer(ik4) , intent(in) :: num2d      ! size of second dimension
-    real(rk8) , intent(in) , dimension(lbp:ubp,num2d) :: parr  ! pft array
-    real(rk8) , intent(out) , dimension(lbc:ubc,num2d) :: carr ! column array
-    character(len=*) , intent(in) :: p2c_scale_type ! scale type
-    integer(ik4) :: j , p , c , iind         ! indices
+    integer(ik4), intent(in) :: lbp, ubp  ! beginning and ending pft
+    integer(ik4), intent(in) :: lbc, ubc  ! beginning and ending column
+    integer(ik4), intent(in) :: num2d      ! size of second dimension
+    real(rk8), intent(in), dimension(lbp:ubp,num2d) :: parr  ! pft array
+    real(rk8), intent(out), dimension(lbc:ubc,num2d) :: carr ! column array
+    character(len=*), intent(in) :: p2c_scale_type ! scale type
+    integer(ik4) :: j, p, c, iind         ! indices
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbp:ubp) :: scale_p2c
+    real(rk8), dimension(lbp:ubp) :: scale_p2c
     logical :: found                  ! temporary for error check
     ! sum of weights
-    real(rk8) , dimension(lbc:ubc) :: sumwt(lbc:ubc)
+    real(rk8), dimension(lbc:ubc) :: sumwt(lbc:ubc)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer , dimension(:) :: pactive
+    logical, pointer, contiguous, dimension(:) :: pactive
     ! weight of pft relative to column
-    real(rk8) , pointer , dimension(:) :: wtcol
+    real(rk8), pointer, contiguous, dimension(:) :: wtcol
     ! column index of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! number of pfts in column
-    integer(ik4) , pointer , dimension(:) :: npfts
+    integer(ik4), pointer, contiguous, dimension(:) :: npfts
     ! initial pft index in column
-    integer(ik4) , pointer , dimension(:) :: pfti
+    integer(ik4), pointer, contiguous, dimension(:) :: pfti
 
     pactive  => clm3%g%l%c%p%active
     wtcol    => clm3%g%l%c%p%wtcol
@@ -185,9 +185,9 @@ module mod_clm_subgridave
     end if
 
     carr(:,:) = spval
-    do j = 1 , num2d
+    do j = 1, num2d
       sumwt(:) = 0._rk8
-      do p = lbp , ubp
+      do p = lbp, ubp
         if (pactive(p) .and. wtcol(p) /= 0._rk8) then
           if (parr(p,j) /= spval) then
             c = pcolumn(p)
@@ -198,7 +198,7 @@ module mod_clm_subgridave
         end if
       end do
       found = .false.
-      do c = lbc , ubc
+      do c = lbc, ubc
         if (sumwt(c) > 1.0_rk8 + 1.e-3_rk8) then
           found = .true.
           iind = c
@@ -218,17 +218,17 @@ module mod_clm_subgridave
   !
   subroutine p2c_1d_filter(numfc,filterc,pftarr,colarr)
     implicit none
-    integer(ik4) , intent(in) :: numfc
-    integer(ik4) , intent(in) , dimension(numfc) :: filterc
-    real(rk8) , pointer , dimension(:) :: pftarr
-    real(rk8) , pointer , dimension(:) :: colarr
-    integer(ik4) :: fc , c , p  ! indices
+    integer(ik4), intent(in) :: numfc
+    integer(ik4), intent(in), dimension(numfc) :: filterc
+    real(rk8), pointer, contiguous, dimension(:) :: pftarr
+    real(rk8), pointer, contiguous, dimension(:) :: colarr
+    integer(ik4) :: fc, c, p  ! indices
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer , dimension(:) :: pactive
-    integer(ik4) , pointer , dimension(:) :: npfts
-    integer(ik4) , pointer , dimension(:) :: pfti
-    integer(ik4) , pointer , dimension(:) :: pftf
-    real(rk8) , pointer , dimension(:) :: wtcol
+    logical, pointer, contiguous, dimension(:) :: pactive
+    integer(ik4), pointer, contiguous, dimension(:) :: npfts
+    integer(ik4), pointer, contiguous, dimension(:) :: pfti
+    integer(ik4), pointer, contiguous, dimension(:) :: pftf
+    real(rk8), pointer, contiguous, dimension(:) :: wtcol
 
     pactive => clm3%g%l%c%p%active
     npfts   => clm3%g%l%c%npfts
@@ -249,18 +249,18 @@ module mod_clm_subgridave
   !
   subroutine p2c_2d_filter(lev,numfc,filterc,pftarr,colarr)
     implicit none
-    integer(ik4) , intent(in) :: lev
-    integer(ik4) , intent(in) :: numfc
-    integer(ik4) , intent(in) , dimension(numfc) :: filterc
-    real(rk8) , pointer , dimension(:,:) :: pftarr
-    real(rk8) , pointer , dimension(:,:) :: colarr
-    integer(ik4) :: fc , c , p , j    ! indices
+    integer(ik4), intent(in) :: lev
+    integer(ik4), intent(in) :: numfc
+    integer(ik4), intent(in), dimension(numfc) :: filterc
+    real(rk8), pointer, contiguous, dimension(:,:) :: pftarr
+    real(rk8), pointer, contiguous, dimension(:,:) :: colarr
+    integer(ik4) :: fc, c, p, j    ! indices
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer , dimension(:) :: pactive
-    integer(ik4) , pointer , dimension(:) :: npfts
-    integer(ik4) , pointer , dimension(:) :: pfti
-    integer(ik4) , pointer , dimension(:) :: pftf
-    real(rk8) , pointer , dimension(:) :: wtcol
+    logical, pointer, contiguous, dimension(:) :: pactive
+    integer(ik4), pointer, contiguous, dimension(:) :: npfts
+    integer(ik4), pointer, contiguous, dimension(:) :: pfti
+    integer(ik4), pointer, contiguous, dimension(:) :: pftf
+    real(rk8), pointer, contiguous, dimension(:) :: wtcol
 
     pactive => clm3%g%l%c%p%active
     npfts   => clm3%g%l%c%npfts
@@ -285,40 +285,40 @@ module mod_clm_subgridave
   subroutine p2l_1d(lbp,ubp,lbc,ubc,lbl,ubl,parr,larr, &
                     p2c_scale_type,c2l_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbp , ubp ! beginning and ending pft indices
-    integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
-    integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
-    real(rk8) , intent(in) , dimension(lbp:ubp) :: parr  ! input column array
-    real(rk8) , intent(out) , dimension(lbl:ubl) :: larr ! output landunit array
+    integer(ik4), intent(in) :: lbp, ubp ! beginning and ending pft indices
+    integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
+    integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
+    real(rk8), intent(in), dimension(lbp:ubp) :: parr  ! input column array
+    real(rk8), intent(out), dimension(lbl:ubl) :: larr ! output landunit array
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: p2c_scale_type
+    character(len=*), intent(in) :: p2c_scale_type
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: c2l_scale_type
-    integer(ik4) :: p , c , l , iind       ! indices
+    character(len=*), intent(in) :: c2l_scale_type
+    integer(ik4) :: p, c, l, iind       ! indices
     logical :: found                            ! temporary for error check
-    real(rk8) , dimension(lbl:ubl) :: sumwt     ! sum of weights
+    real(rk8), dimension(lbl:ubl) :: sumwt     ! sum of weights
     ! scale factor for pft->column mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_p2c
+    real(rk8), dimension(lbc:ubc) :: scale_p2c
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l
+    real(rk8), dimension(lbc:ubc) :: scale_c2l
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer , dimension(:) :: pactive
+    logical, pointer, contiguous, dimension(:) :: pactive
     ! weight of pft relative to landunit
-    real(rk8) , pointer , dimension(:) :: wtlunit
+    real(rk8), pointer, contiguous, dimension(:) :: wtlunit
     ! column of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! landunit of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: plandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! number of pfts in landunit
-    integer(ik4) , pointer , dimension(:) :: npfts
+    integer(ik4), pointer, contiguous, dimension(:) :: npfts
     ! initial pft index in landunit
-    integer(ik4) , pointer , dimension(:) :: pfti
+    integer(ik4), pointer, contiguous, dimension(:) :: pfti
     ! landunit of corresponding column
-    integer(ik4) , pointer , dimension(:) :: clandunit
-    integer(ik4) , pointer , dimension(:) :: ctype      ! column type
-    integer(ik4) , pointer , dimension(:) :: ltype      ! landunit type
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype      ! column type
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype      ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rk8), pointer, contiguous, dimension(:) :: canyon_hwr
 
     pactive    => clm3%g%l%c%p%active
     canyon_hwr => clm3%g%l%canyon_hwr
@@ -332,11 +332,11 @@ module mod_clm_subgridave
     pfti       => clm3%g%l%pfti
 
     if ( c2l_scale_type == 'unity' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -354,7 +354,7 @@ module mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -377,7 +377,7 @@ module mod_clm_subgridave
     end if
 
     if ( p2c_scale_type == 'unity' ) then
-      do p = lbp , ubp
+      do p = lbp, ubp
         scale_p2c(p) = 1.0_rk8
       end do
     else
@@ -399,7 +399,7 @@ module mod_clm_subgridave
       end if
     end do
     found = .false.
-    do l = lbl , ubl
+    do l = lbl, ubl
       if ( sumwt(l) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = l
@@ -419,42 +419,42 @@ module mod_clm_subgridave
   subroutine p2l_2d(lbp,ubp,lbc,ubc,lbl,ubl,num2d,parr,larr, &
                     p2c_scale_type,c2l_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbp , ubp ! beginning and ending pft indices
-    integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
-    integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
-    integer(ik4) , intent(in)  :: num2d ! size of second dimension
-    real(rk8) , intent(in) , dimension(lbp:ubp,num2d) :: parr ! input pft array
+    integer(ik4), intent(in) :: lbp, ubp ! beginning and ending pft indices
+    integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
+    integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
+    integer(ik4), intent(in)  :: num2d ! size of second dimension
+    real(rk8), intent(in), dimension(lbp:ubp,num2d) :: parr ! input pft array
     ! output gridcell array
-    real(rk8) , intent(out) , dimension(lbl:ubl,num2d) :: larr
+    real(rk8), intent(out), dimension(lbl:ubl,num2d) :: larr
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: p2c_scale_type
+    character(len=*), intent(in) :: p2c_scale_type
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: c2l_scale_type
-    integer(ik4) :: j , p , c , l , iind ! indices
+    character(len=*), intent(in) :: c2l_scale_type
+    integer(ik4) :: j, p, c, l, iind ! indices
     logical :: found ! temporary for error check
-    real(rk8) , dimension(lbl:ubl) :: sumwt ! sum of weights
+    real(rk8), dimension(lbl:ubl) :: sumwt ! sum of weights
     ! scale factor for pft->column mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_p2c
+    real(rk8), dimension(lbc:ubc) :: scale_p2c
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l
+    real(rk8), dimension(lbc:ubc) :: scale_c2l
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer , dimension(:) :: pactive
+    logical, pointer, contiguous, dimension(:) :: pactive
     ! weight of pft relative to landunit
-    real(rk8) , pointer , dimension(:) :: wtlunit
+    real(rk8), pointer, contiguous, dimension(:) :: wtlunit
     ! column of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! landunit of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: plandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! number of pfts in landunit
-    integer(ik4) , pointer , dimension(:) :: npfts
+    integer(ik4), pointer, contiguous, dimension(:) :: npfts
     ! initial pft index in landunit
-    integer(ik4) , pointer , dimension(:) :: pfti
+    integer(ik4), pointer, contiguous, dimension(:) :: pfti
     ! landunit of corresponding column
-    integer(ik4) , pointer , dimension(:) :: clandunit
-    integer(ik4) , pointer , dimension(:) :: ctype ! column type
-    integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rk8), pointer, contiguous, dimension(:) :: canyon_hwr
 
     pactive    => clm3%g%l%c%p%active
     canyon_hwr => clm3%g%l%canyon_hwr
@@ -468,11 +468,11 @@ module mod_clm_subgridave
     pfti      => clm3%g%l%pfti
 
     if ( c2l_scale_type == 'unity' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -490,7 +490,7 @@ module mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -513,7 +513,7 @@ module mod_clm_subgridave
     end if
 
     if ( p2c_scale_type == 'unity' ) then
-      do p = lbp , ubp
+      do p = lbp, ubp
         scale_p2c(p) = 1.0_rk8
       end do
     else
@@ -524,7 +524,7 @@ module mod_clm_subgridave
     larr(:,:) = spval
     do j = 1,num2d
       sumwt(:) = 0._rk8
-      do p = lbp , ubp
+      do p = lbp, ubp
         if ( pactive(p) .and. wtlunit(p) /= 0._rk8 ) then
           c = pcolumn(p)
           if ( parr(p,j) /= spval .and. scale_c2l(c) /= spval ) then
@@ -537,7 +537,7 @@ module mod_clm_subgridave
         end if
       end do
       found = .false.
-      do l = lbl , ubl
+      do l = lbl, ubl
         if ( sumwt(l) > 1.0_rk8 + 1.e-3_rk8 ) then
           found = .true.
           iind = l
@@ -559,46 +559,46 @@ module mod_clm_subgridave
   subroutine p2g_1d(lbp,ubp,lbc,ubc,lbl,ubl,lbg,ubg,parr,garr, &
                     p2c_scale_type,c2l_scale_type,l2g_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbp , ubp ! beginning and ending pft indices
-    integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
-    integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
-    integer(ik4) , intent(in) :: lbg , ubg ! beginning and ending gdcell indices
-    real(rk8) , intent(in) , dimension(lbp:ubp) :: parr  ! input pft array
-    real(rk8) , intent(out) , dimension(lbg:ubg) :: garr ! output gridcell array
+    integer(ik4), intent(in) :: lbp, ubp ! beginning and ending pft indices
+    integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
+    integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
+    integer(ik4), intent(in) :: lbg, ubg ! beginning and ending gdcell indices
+    real(rk8), intent(in), dimension(lbp:ubp) :: parr  ! input pft array
+    real(rk8), intent(out), dimension(lbg:ubg) :: garr ! output gridcell array
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: p2c_scale_type
+    character(len=*), intent(in) :: p2c_scale_type
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: c2l_scale_type
+    character(len=*), intent(in) :: c2l_scale_type
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: l2g_scale_type
-    integer(ik4) :: p , c , l , g , iind       ! indices
+    character(len=*), intent(in) :: l2g_scale_type
+    integer(ik4) :: p, c, l, g, iind       ! indices
     logical :: found                  ! temporary for error check
-    real(rk8) , dimension(lbp:ubp) :: scale_p2c    ! scale factor
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l    ! scale factor
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g    ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt        ! sum of weights
+    real(rk8), dimension(lbp:ubp) :: scale_p2c    ! scale factor
+    real(rk8), dimension(lbc:ubc) :: scale_c2l    ! scale factor
+    real(rk8), dimension(lbl:ubl) :: scale_l2g    ! scale factor
+    real(rk8), dimension(lbg:ubg) :: sumwt        ! sum of weights
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer , dimension(:) :: pactive
+    logical, pointer, contiguous, dimension(:) :: pactive
     ! weight of pfts relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rk8), pointer, contiguous, dimension(:) :: wtgcell
     ! column of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! landunit of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: plandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! gridcell of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: pgridcell
     ! number of pfts in gridcell
-    integer(ik4) , pointer , dimension(:) :: npfts
+    integer(ik4), pointer, contiguous, dimension(:) :: npfts
     ! initial pft index in gridcell
-    integer(ik4) , pointer , dimension(:) :: pfti
+    integer(ik4), pointer, contiguous, dimension(:) :: pfti
     ! column type
-    integer(ik4) , pointer , dimension(:) :: ctype
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype
     ! landunit of corresponding column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! landunit type
-    integer(ik4) , pointer , dimension(:) :: ltype
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rk8), pointer, contiguous, dimension(:) :: canyon_hwr
 
     pactive    => clm3%g%l%c%p%active
     canyon_hwr => clm3%g%l%canyon_hwr
@@ -615,11 +615,11 @@ module mod_clm_subgridave
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
     if ( c2l_scale_type == 'unity' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -637,7 +637,7 @@ module mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -660,7 +660,7 @@ module mod_clm_subgridave
     end if
 
     if ( p2c_scale_type == 'unity' ) then
-      do p = lbp , ubp
+      do p = lbp, ubp
         scale_p2c(p) = 1.0_rk8
       end do
     else
@@ -670,7 +670,7 @@ module mod_clm_subgridave
 
     garr(:) = spval
     sumwt(:) = 0._rk8
-    do p = lbp , ubp
+    do p = lbp, ubp
       if ( pactive(p) .and. wtgcell(p) /= 0._rk8 ) then
         c = pcolumn(p)
         l = plandunit(p)
@@ -685,7 +685,7 @@ module mod_clm_subgridave
       end if
     end do
     found = .false.
-    do g = lbg , ubg
+    do g = lbg, ubg
       if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = g
@@ -705,46 +705,46 @@ module mod_clm_subgridave
   subroutine p2g_2d(lbp,ubp,lbc,ubc,lbl,ubl,lbg,ubg,num2d,parr,garr, &
                     p2c_scale_type,c2l_scale_type,l2g_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbp , ubp ! beginning and ending pft indices
-    integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
-    integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
-    integer(ik4) , intent(in) :: lbg , ubg ! beginning and ending gdcell indices
-    integer(ik4) , intent(in) :: num2d ! size of second dimension
-    real(rk8) , intent(in) , dimension(lbp:ubp,num2d) :: parr  ! input pft array
+    integer(ik4), intent(in) :: lbp, ubp ! beginning and ending pft indices
+    integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
+    integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
+    integer(ik4), intent(in) :: lbg, ubg ! beginning and ending gdcell indices
+    integer(ik4), intent(in) :: num2d ! size of second dimension
+    real(rk8), intent(in), dimension(lbp:ubp,num2d) :: parr  ! input pft array
     ! output gridcell array
-    real(rk8) , intent(out) , dimension(lbg:ubg,num2d) :: garr
+    real(rk8), intent(out), dimension(lbg:ubg,num2d) :: garr
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: p2c_scale_type
+    character(len=*), intent(in) :: p2c_scale_type
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: c2l_scale_type
+    character(len=*), intent(in) :: c2l_scale_type
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: l2g_scale_type
-    integer(ik4) :: j , p , c , l , g , iind     ! indices
+    character(len=*), intent(in) :: l2g_scale_type
+    integer(ik4) :: j, p, c, l, g, iind     ! indices
     logical :: found                  ! temporary for error check
-    real(rk8) , dimension(lbp:ubp) :: scale_p2c   ! scale factor
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l   ! scale factor
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g   ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt       ! sum of weights
+    real(rk8), dimension(lbp:ubp) :: scale_p2c   ! scale factor
+    real(rk8), dimension(lbc:ubc) :: scale_c2l   ! scale factor
+    real(rk8), dimension(lbl:ubl) :: scale_l2g   ! scale factor
+    real(rk8), dimension(lbg:ubg) :: sumwt       ! sum of weights
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer , dimension(:) :: pactive
+    logical, pointer, contiguous, dimension(:) :: pactive
     ! weight of pfts relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rk8), pointer, contiguous, dimension(:) :: wtgcell
     ! column of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! landunit of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: plandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! gridcell of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: pgridcell
     ! number of pfts in gridcell
-    integer(ik4) , pointer , dimension(:) :: npfts
+    integer(ik4), pointer, contiguous, dimension(:) :: npfts
     ! initial pft index in gridcell
-    integer(ik4) , pointer , dimension(:) :: pfti
+    integer(ik4), pointer, contiguous, dimension(:) :: pfti
     ! landunit of corresponding column
-    integer(ik4) , pointer , dimension(:) :: clandunit
-    integer(ik4) , pointer , dimension(:) :: ctype ! column type
-    integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rk8), pointer, contiguous, dimension(:) :: canyon_hwr
 
     pactive      => clm3%g%l%c%p%active
     canyon_hwr   => clm3%g%l%canyon_hwr
@@ -761,11 +761,11 @@ module mod_clm_subgridave
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
     if ( c2l_scale_type == 'unity' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -783,7 +783,7 @@ module mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -806,7 +806,7 @@ module mod_clm_subgridave
     end if
 
     if ( p2c_scale_type == 'unity' ) then
-      do p = lbp , ubp
+      do p = lbp, ubp
         scale_p2c(p) = 1.0_rk8
       end do
     else
@@ -815,9 +815,9 @@ module mod_clm_subgridave
     end if
 
     garr(:,:) = spval
-    do j = 1 , num2d
+    do j = 1, num2d
       sumwt(:) = 0._rk8
-      do p = lbp , ubp
+      do p = lbp, ubp
         if ( pactive(p) .and. wtgcell(p) /= 0._rk8 ) then
           c = pcolumn(p)
           l = plandunit(p)
@@ -832,7 +832,7 @@ module mod_clm_subgridave
         end if
       end do
       found = .false.
-      do g = lbg , ubg
+      do g = lbg, ubg
         if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
           found = .true.
           iind = g
@@ -853,31 +853,31 @@ module mod_clm_subgridave
   !
   subroutine c2l_1d(lbc,ubc,lbl,ubl,carr,larr,c2l_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
-    integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
-    real(rk8) , intent(in) , dimension(lbc:ubc) :: carr  ! input column array
-    real(rk8) , intent(out) , dimension(lbl:ubl) :: larr ! output landunit array
+    integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
+    integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
+    real(rk8), intent(in), dimension(lbc:ubc) :: carr  ! input column array
+    real(rk8), intent(out), dimension(lbl:ubl) :: larr ! output landunit array
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: c2l_scale_type
-    integer(ik4) :: c , l , iind ! indices
+    character(len=*), intent(in) :: c2l_scale_type
+    integer(ik4) :: c, l, iind ! indices
     logical  :: found  ! temporary for error check
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l
-    real(rk8) , dimension(lbl:ubl) :: sumwt ! sum of weights
+    real(rk8), dimension(lbc:ubc) :: scale_c2l
+    real(rk8), dimension(lbl:ubl) :: sumwt ! sum of weights
     ! true=>do computations on this column (see reweightMod for details)
-    logical , pointer , dimension(:) :: cactive
+    logical, pointer, contiguous, dimension(:) :: cactive
     ! weight of landunits relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtlunit
+    real(rk8), pointer, contiguous, dimension(:) :: wtlunit
     ! gridcell of corresponding column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! number of columns in landunit
-    integer(ik4) , pointer , dimension(:) :: ncolumns
+    integer(ik4), pointer, contiguous, dimension(:) :: ncolumns
     ! initial column index in landunit
-    integer(ik4) , pointer , dimension(:) :: coli
-    integer(ik4) , pointer , dimension(:) :: ctype ! column type
-    integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
+    integer(ik4), pointer, contiguous, dimension(:) :: coli
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rk8), pointer, contiguous, dimension(:) :: canyon_hwr
 
     cactive    => clm3%g%l%c%active
     ctype      => clm3%g%l%c%itype
@@ -889,11 +889,11 @@ module mod_clm_subgridave
     coli       => clm3%g%l%coli
 
     if ( c2l_scale_type == 'unity' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -911,7 +911,7 @@ module mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -935,7 +935,7 @@ module mod_clm_subgridave
 
     larr(:) = spval
     sumwt(:) = 0._rk8
-    do c = lbc , ubc
+    do c = lbc, ubc
       if ( cactive(c) .and. wtlunit(c) /= 0._rk8 ) then
         if ( carr(c) /= spval .and. scale_c2l(c) /= spval ) then
           l = clandunit(c)
@@ -946,7 +946,7 @@ module mod_clm_subgridave
       end if
     end do
     found = .false.
-    do l = lbl , ubl
+    do l = lbl, ubl
       if ( sumwt(l) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = l
@@ -965,34 +965,34 @@ module mod_clm_subgridave
   !
   subroutine c2l_2d(lbc,ubc,lbl,ubl,num2d,carr,larr,c2l_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
-    integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
-    integer(ik4) , intent(in) :: num2d     ! size of second dimension
+    integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
+    integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
+    integer(ik4), intent(in) :: num2d     ! size of second dimension
     ! input column array
-    real(rk8) , intent(in) , dimension(lbc:ubc,num2d) :: carr
+    real(rk8), intent(in), dimension(lbc:ubc,num2d) :: carr
     ! output landunit array
-    real(rk8) , intent(out) , dimension(lbl:ubl,num2d) :: larr
+    real(rk8), intent(out), dimension(lbl:ubl,num2d) :: larr
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: c2l_scale_type
-    integer(ik4) :: j , l , c , iind         ! indices
+    character(len=*), intent(in) :: c2l_scale_type
+    integer(ik4) :: j, l, c, iind         ! indices
     logical :: found ! temporary for error check
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l
-    real(rk8) , dimension(lbl:ubl) :: sumwt ! sum of weights
+    real(rk8), dimension(lbc:ubc) :: scale_c2l
+    real(rk8), dimension(lbl:ubl) :: sumwt ! sum of weights
     ! true=>do computations on this column (see reweightMod for details)
-    logical , pointer , dimension(:) :: cactive
+    logical, pointer, contiguous, dimension(:) :: cactive
     ! weight of column relative to landunit
-    real(rk8) , pointer , dimension(:) :: wtlunit
+    real(rk8), pointer, contiguous, dimension(:) :: wtlunit
     ! landunit of corresponding column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! number of columns in landunit
-    integer(ik4) , pointer , dimension(:) :: ncolumns
+    integer(ik4), pointer, contiguous, dimension(:) :: ncolumns
     ! initial column index in landunit
-    integer(ik4) , pointer , dimension(:) :: coli
-    integer(ik4) , pointer , dimension(:) :: ctype ! column type
-    integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
+    integer(ik4), pointer, contiguous, dimension(:) :: coli
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rk8), pointer, contiguous, dimension(:) :: canyon_hwr
 
     cactive    => clm3%g%l%c%active
     ctype      => clm3%g%l%c%itype
@@ -1004,11 +1004,11 @@ module mod_clm_subgridave
     coli       => clm3%g%l%coli
 
     if ( c2l_scale_type == 'unity' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -1026,7 +1026,7 @@ module mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -1049,9 +1049,9 @@ module mod_clm_subgridave
     end if
 
     larr(:,:) = spval
-    do j = 1 , num2d
+    do j = 1, num2d
       sumwt(:) = 0._rk8
-      do c = lbc , ubc
+      do c = lbc, ubc
         if ( cactive(c) .and. wtlunit(c) /= 0._rk8 ) then
           if ( carr(c,j) /= spval .and. scale_c2l(c) /= spval ) then
             l = clandunit(c)
@@ -1062,7 +1062,7 @@ module mod_clm_subgridave
         end if
       end do
       found = .false.
-      do l = lbl , ubl
+      do l = lbl, ubl
         if ( sumwt(l) > 1.0_rk8 + 1.e-3_rk8 ) then
           found = .true.
           iind = l
@@ -1084,36 +1084,36 @@ module mod_clm_subgridave
   subroutine c2g_1d(lbc,ubc,lbl,ubl,lbg,ubg,carr,garr, &
                     c2l_scale_type,l2g_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
-    integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
-    integer(ik4) , intent(in) :: lbg , ubg ! beginning and ending ldunit indices
-    real(rk8) , intent(in) , dimension(lbc:ubc) :: carr  ! input column array
-    real(rk8) , intent(out) , dimension(lbg:ubg) :: garr ! output gridcell array
+    integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
+    integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
+    integer(ik4), intent(in) :: lbg, ubg ! beginning and ending ldunit indices
+    real(rk8), intent(in), dimension(lbc:ubc) :: carr  ! input column array
+    real(rk8), intent(out), dimension(lbg:ubg) :: garr ! output gridcell array
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: c2l_scale_type
+    character(len=*), intent(in) :: c2l_scale_type
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: l2g_scale_type
-    integer(ik4) :: c , l , g , iind  ! indices
+    character(len=*), intent(in) :: l2g_scale_type
+    integer(ik4) :: c, l, g, iind  ! indices
     logical :: found ! temporary for error check
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l    ! scale factor
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g    ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt        ! sum of weights
+    real(rk8), dimension(lbc:ubc) :: scale_c2l    ! scale factor
+    real(rk8), dimension(lbl:ubl) :: scale_l2g    ! scale factor
+    real(rk8), dimension(lbg:ubg) :: sumwt        ! sum of weights
     ! true=>do computations on this column (see reweightMod for details)
-    logical , pointer , dimension(:) :: cactive
+    logical, pointer, contiguous, dimension(:) :: cactive
     ! weight of columns relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rk8), pointer, contiguous, dimension(:) :: wtgcell
     ! landunit of corresponding column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! gridcell of corresponding column
-    integer(ik4) , pointer , dimension(:) :: cgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
     ! number of columns in gridcell
-    integer(ik4) , pointer , dimension(:) :: ncolumns
+    integer(ik4), pointer, contiguous, dimension(:) :: ncolumns
     ! initial column index in gridcell
-    integer(ik4) , pointer , dimension(:) :: coli
-    integer(ik4) , pointer , dimension(:) :: ctype ! column type
-    integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
+    integer(ik4), pointer, contiguous, dimension(:) :: coli
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rk8), pointer, contiguous, dimension(:) :: canyon_hwr
 
     cactive    => clm3%g%l%c%active
     ctype      => clm3%g%l%c%itype
@@ -1128,11 +1128,11 @@ module mod_clm_subgridave
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
     if ( c2l_scale_type == 'unity' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -1150,7 +1150,7 @@ module mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -1174,7 +1174,7 @@ module mod_clm_subgridave
 
     garr(:) = spval
     sumwt(:) = 0._rk8
-    do c = lbc , ubc
+    do c = lbc, ubc
       if ( cactive(c) .and. wtgcell(c) /= 0._rk8 ) then
         l = clandunit(c)
         if ( carr(c) /= spval .and. &
@@ -1187,7 +1187,7 @@ module mod_clm_subgridave
       end if
     end do
     found = .false.
-    do g = lbg , ubg
+    do g = lbg, ubg
       if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = g
@@ -1207,39 +1207,39 @@ module mod_clm_subgridave
   subroutine c2g_2d(lbc,ubc,lbl,ubl,lbg,ubg,num2d,carr,garr, &
                     c2l_scale_type,l2g_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
-    integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending launit indices
-    integer(ik4) , intent(in) :: lbg , ubg ! beginning and ending gdcell indices
-    integer(ik4) , intent(in) :: num2d ! size of second dimension
+    integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
+    integer(ik4), intent(in) :: lbl, ubl ! beginning and ending launit indices
+    integer(ik4), intent(in) :: lbg, ubg ! beginning and ending gdcell indices
+    integer(ik4), intent(in) :: num2d ! size of second dimension
     ! input column array
-    real(rk8) , intent(in) , dimension(lbc:ubc,num2d) :: carr
+    real(rk8), intent(in), dimension(lbc:ubc,num2d) :: carr
     ! output gridcell array
-    real(rk8) , intent(out) , dimension(lbg:ubg,num2d) :: garr
+    real(rk8), intent(out), dimension(lbg:ubg,num2d) :: garr
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: c2l_scale_type
+    character(len=*), intent(in) :: c2l_scale_type
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: l2g_scale_type
-    integer(ik4) :: j , c , g , l , iind  ! indices
+    character(len=*), intent(in) :: l2g_scale_type
+    integer(ik4) :: j, c, g, l, iind  ! indices
     logical :: found                  ! temporary for error check
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l  ! scale factor
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g  ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt      ! sum of weights
+    real(rk8), dimension(lbc:ubc) :: scale_c2l  ! scale factor
+    real(rk8), dimension(lbl:ubl) :: scale_l2g  ! scale factor
+    real(rk8), dimension(lbg:ubg) :: sumwt      ! sum of weights
     ! true=>do computations on this column (see reweightMod for details)
-    logical , pointer , dimension(:) :: cactive
+    logical, pointer, contiguous, dimension(:) :: cactive
     ! weight of columns relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rk8), pointer, contiguous, dimension(:) :: wtgcell
     ! landunit of corresponding column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! gridcell of corresponding column
-    integer(ik4) , pointer , dimension(:) :: cgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
     ! number of columns in gridcell
-    integer(ik4) , pointer , dimension(:) :: ncolumns
+    integer(ik4), pointer, contiguous, dimension(:) :: ncolumns
     ! initial column index in gridcell
-    integer(ik4) , pointer , dimension(:) :: coli
-    integer(ik4) , pointer , dimension(:) :: ctype ! column type
-    integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
+    integer(ik4), pointer, contiguous, dimension(:) :: coli
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rk8), pointer, contiguous, dimension(:) :: canyon_hwr
 
     cactive    => clm3%g%l%c%active
     ctype      => clm3%g%l%c%itype
@@ -1254,11 +1254,11 @@ module mod_clm_subgridave
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
     if ( c2l_scale_type == 'unity' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -1276,7 +1276,7 @@ module mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
-      do c = lbc , ubc
+      do c = lbc, ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -1299,9 +1299,9 @@ module mod_clm_subgridave
     end if
 
     garr(:,:) = spval
-    do j = 1 , num2d
+    do j = 1, num2d
       sumwt(:) = 0._rk8
-      do c = lbc , ubc
+      do c = lbc, ubc
         if ( cactive(c) .and. wtgcell(c) /= 0._rk8 ) then
           l = clandunit(c)
           if ( carr(c,j) /= spval .and. &
@@ -1335,26 +1335,26 @@ module mod_clm_subgridave
   !
   subroutine l2g_1d(lbl,ubl,lbg,ubg,larr,garr,l2g_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbl , ubl ! sub landunit indices
-    integer(ik4) , intent(in) :: lbg , ubg ! gridcell indices
-    real(rk8) , intent(in) , dimension(lbl:ubl) :: larr  ! input landunit array
-    real(rk8) , intent(out) , dimension(lbg:ubg) :: garr ! output gridcell array
+    integer(ik4), intent(in) :: lbl, ubl ! sub landunit indices
+    integer(ik4), intent(in) :: lbg, ubg ! gridcell indices
+    real(rk8), intent(in), dimension(lbl:ubl) :: larr  ! input landunit array
+    real(rk8), intent(out), dimension(lbg:ubg) :: garr ! output gridcell array
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: l2g_scale_type
-    integer(ik4) :: l , g , iind ! indices
+    character(len=*), intent(in) :: l2g_scale_type
+    integer(ik4) :: l, g, iind ! indices
     logical :: found ! temporary for error check
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g     ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt         ! sum of weights
+    real(rk8), dimension(lbl:ubl) :: scale_l2g     ! scale factor
+    real(rk8), dimension(lbg:ubg) :: sumwt         ! sum of weights
     ! true=>do computations on this landunit (see reweightMod for details)
-    logical , pointer , dimension(:) :: lactive
+    logical, pointer, contiguous, dimension(:) :: lactive
     ! weight of landunits relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rk8), pointer, contiguous, dimension(:) :: wtgcell
     ! gridcell of corresponding landunit
-    integer(ik4) , pointer , dimension(:) :: lgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: lgridcell
     ! number of landunits in gridcell
-    integer(ik4) , pointer , dimension(:) :: nlandunits
+    integer(ik4), pointer, contiguous, dimension(:) :: nlandunits
     ! initial landunit index in gridcell
-    integer(ik4) , pointer , dimension(:) :: luni
+    integer(ik4), pointer, contiguous, dimension(:) :: luni
 
     lactive    => clm3%g%l%active
     wtgcell    => clm3%g%l%wtgcell
@@ -1366,7 +1366,7 @@ module mod_clm_subgridave
 
     garr(:) = spval
     sumwt(:) = 0._rk8
-    do l = lbl , ubl
+    do l = lbl, ubl
       if ( lactive(l) .and. wtgcell(l) /= 0._rk8 ) then
         if ( larr(l) /= spval .and. scale_l2g(l) /= spval ) then
           g = lgridcell(l)
@@ -1377,7 +1377,7 @@ module mod_clm_subgridave
       end if
     end do
     found = .false.
-    do g = lbg , ubg
+    do g = lbg, ubg
       if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = g
@@ -1396,29 +1396,29 @@ module mod_clm_subgridave
   !
   subroutine l2g_2d(lbl,ubl,lbg,ubg,num2d,larr,garr,l2g_scale_type)
     implicit none
-    integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending column indices
-    integer(ik4) , intent(in) :: lbg , ubg ! beginning and ending gdcell indices
-    integer(ik4) , intent(in) :: num2d     ! size of second dimension
+    integer(ik4), intent(in) :: lbl, ubl ! beginning and ending column indices
+    integer(ik4), intent(in) :: lbg, ubg ! beginning and ending gdcell indices
+    integer(ik4), intent(in) :: num2d     ! size of second dimension
     ! input landunit array
-    real(rk8) , intent(in) , dimension(lbl:ubl,num2d) :: larr
+    real(rk8), intent(in), dimension(lbl:ubl,num2d) :: larr
     ! output gridcell array
-    real(rk8) , intent(out) , dimension(lbg:ubg,num2d) :: garr
+    real(rk8), intent(out), dimension(lbg:ubg,num2d) :: garr
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: l2g_scale_type
-    integer(ik4) :: j , g , l , iind ! indices
+    character(len=*), intent(in) :: l2g_scale_type
+    integer(ik4) :: j, g, l, iind ! indices
     logical :: found ! temporary for error check
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g     ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt         ! sum of weights
+    real(rk8), dimension(lbl:ubl) :: scale_l2g     ! scale factor
+    real(rk8), dimension(lbg:ubg) :: sumwt         ! sum of weights
     ! true=>do computations on this landunit (see reweightMod for details)
-    logical , pointer , dimension(:) :: lactive
+    logical, pointer, contiguous, dimension(:) :: lactive
     ! weight of landunits relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rk8), pointer, contiguous, dimension(:) :: wtgcell
     ! gridcell of corresponding landunit
-    integer(ik4) , pointer , dimension(:) :: lgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: lgridcell
     ! number of landunits in gridcell
-    integer(ik4) , pointer , dimension(:) :: nlandunits
+    integer(ik4), pointer, contiguous, dimension(:) :: nlandunits
     ! initial landunit index in gridcell
-    integer(ik4) , pointer , dimension(:) :: luni
+    integer(ik4), pointer, contiguous, dimension(:) :: luni
 
     lactive   => clm3%g%l%active
     wtgcell   => clm3%g%l%wtgcell
@@ -1429,9 +1429,9 @@ module mod_clm_subgridave
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
     garr(:,:) = spval
-    do j = 1 , num2d
+    do j = 1, num2d
       sumwt(:) = 0._rk8
-      do l = lbl , ubl
+      do l = lbl, ubl
         if ( lactive(l) .and. wtgcell(l) /= 0._rk8 ) then
           if ( larr(l,j) /= spval .and. scale_l2g(l) /= spval ) then
             g = lgridcell(l)
@@ -1442,7 +1442,7 @@ module mod_clm_subgridave
         end if
       end do
       found = .false.
-      do g = lbg , ubg
+      do g = lbg, ubg
         if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
           found = .true.
           iind= g
@@ -1466,19 +1466,19 @@ module mod_clm_subgridave
   subroutine build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
      implicit none
      ! scale factor type for averaging
-     character(len=*) , intent(in) :: l2g_scale_type
-     integer(ik4) , intent(in) :: lbl , ubl ! column indices
-     real(rk8) , intent(out) , dimension(lbl:ubl) :: scale_l2g ! scale factor
+     character(len=*), intent(in) :: l2g_scale_type
+     integer(ik4), intent(in) :: lbl, ubl ! column indices
+     real(rk8), intent(out), dimension(lbl:ubl) :: scale_l2g ! scale factor
      ! scale factor for each landunit type
-     real(rk8) , dimension(max_lunit) :: scale_lookup
+     real(rk8), dimension(max_lunit) :: scale_lookup
      integer(ik4) :: l                       ! index
-     integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
+     integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
 
      ltype      => clm3%g%l%itype
 
      call create_scale_l2g_lookup(l2g_scale_type,scale_lookup)
 
-     do l = lbl , ubl
+     do l = lbl, ubl
        scale_l2g(l) = scale_lookup(ltype(l))
      end do
   end subroutine build_scale_l2g
@@ -1489,9 +1489,9 @@ module mod_clm_subgridave
   subroutine create_scale_l2g_lookup(l2g_scale_type,scale_lookup)
     implicit none
     ! scale factor type for averaging
-    character(len=*) , intent(in) :: l2g_scale_type
+    character(len=*), intent(in) :: l2g_scale_type
     ! scale factor for each landunit type
-    real(rk8) , dimension(max_lunit) , intent(out) :: scale_lookup
+    real(rk8), dimension(max_lunit), intent(out) :: scale_lookup
 
     ! ------------ WJS (10-14-11): IMPORTANT GENERAL NOTES ------------
     !

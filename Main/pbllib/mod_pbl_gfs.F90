@@ -19,36 +19,36 @@ module mod_pbl_gfs
   use mod_realkinds
   use mod_constants
   use mod_memutil
-  use mod_dynparam , only : kz , kzp1 , kzm1 , ntr , idynamic
-  use mod_dynparam , only : ici1 , ici2 , jci1 , jci2
-  use mod_runparams , only : dt , dx , nqx , ichem , iqv
-  use mod_regcm_types , only : mod_2_pbl , pbl_2_mod
+  use mod_dynparam, only : kz, kzp1, kzm1, ntr, idynamic
+  use mod_dynparam, only : ici1, ici2, jci1, jci2
+  use mod_runparams, only : dt, dx, nqx, ichem, iqv
+  use mod_regcm_types, only : mod_2_pbl, pbl_2_mod
 
   implicit none
 
   private
 
-  public :: init_pbl_gfs , pbl_gfs
+  public :: init_pbl_gfs, pbl_gfs
 
-  integer(ik4) :: iblp , ibnt
+  integer(ik4) :: iblp, ibnt
 
   ! Input to moninq
 
-  real(rkx) , dimension(:,:) , pointer :: uo , vo , to , xpfac
-  real(rkx) , dimension(:,:,:) , pointer :: qo
-  real(rkx) , dimension(:) , pointer :: psk , rbsoil
-  real(rkx) , dimension(:) , pointer :: fm , fh , spd1
-  real(rkx) , dimension(:,:) , pointer :: prsi , phii , z , dz
-  real(rkx) , dimension(:,:) , pointer :: del , prsl , prslk , phil , thraten
-  real(rkx) , dimension(:) , pointer :: heat , evap , stress , ustar , rrho
+  real(rkx), dimension(:,:), pointer, contiguous :: uo, vo, to, xpfac
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qo
+  real(rkx), dimension(:), pointer, contiguous :: psk, rbsoil
+  real(rkx), dimension(:), pointer, contiguous :: fm, fh, spd1
+  real(rkx), dimension(:,:), pointer, contiguous :: prsi, phii, z, dz
+  real(rkx), dimension(:,:), pointer, contiguous :: del, prsl, prslk, phil, thraten
+  real(rkx), dimension(:), pointer, contiguous :: heat, evap, stress, ustar, rrho
 
   ! Output from moninq
 
-  real(rkx) , dimension(:) , pointer :: hpbl
-  integer(ik4) , dimension(:) , pointer :: kpbl
-  real(rkx) , dimension(:,:) , pointer:: dv , du
-  real(rkx) , dimension(:,:,:) , pointer :: rtg
-  real(rkx) , dimension(:,:) , pointer :: tau
+  real(rkx), dimension(:), pointer, contiguous :: hpbl
+  integer(ik4), dimension(:), pointer, contiguous :: kpbl
+  real(rkx), dimension(:,:), pointer, contiguous :: dv, du
+  real(rkx), dimension(:,:,:), pointer, contiguous :: rtg
+  real(rkx), dimension(:,:), pointer, contiguous :: tau
 
   contains
 
@@ -94,16 +94,16 @@ module mod_pbl_gfs
 
     subroutine pbl_gfs(m2p,p2m)
       implicit none
-      type(mod_2_pbl) , intent(in) :: m2p
-      type(pbl_2_mod) , intent(inout) :: p2m
+      type(mod_2_pbl), intent(in) :: m2p
+      type(pbl_2_mod), intent(inout) :: p2m
 
-      integer(ik4) :: i , j , k , kk , km , n
-      integer(ik4) :: iq , it , iit
-      real(rkx) :: ps , ta , qa , pa , ua , va
+      integer(ik4) :: i, j, k, kk, km, n
+      integer(ik4) :: iq, it, iit
+      real(rkx) :: ps, ta, qa, pa, ua, va
 
       n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           ua = m2p%u10m(j,i)
           va = m2p%v10m(j,i)
           ta = m2p%tatm(j,i,kz)
@@ -126,11 +126,11 @@ module mod_pbl_gfs
         end do
       end do
 
-      do k = 1 , kz
+      do k = 1, kz
         n = 1
         kk = kzp1 - k
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             to(n,kk) = m2p%tatm(j,i,k)
             uo(n,kk) = m2p%uxatm(j,i,k)
             vo(n,kk) = m2p%vxatm(j,i,k)
@@ -144,11 +144,11 @@ module mod_pbl_gfs
         end do
       end do
 
-      do k = 2 , kz
+      do k = 2, kz
         n = 1
         km = k - 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             del(n,km) = prsl(n,km)/rovg*dz(n,km)/to(n,km)
             prsi(n,k) = prsi(n,km)-del(n,km)
             phii(n,k) = (z(n,k)-z(n,1))*egrav
@@ -159,8 +159,8 @@ module mod_pbl_gfs
       end do
 
       n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           del(n,kz) = del(n,kzm1)
           prsi(n,kzp1) = prsi(n,kz)-del(n,kzm1)
           phii(n,kzp1) = phii(n,kz)+dz(n,kz)*egrav
@@ -169,12 +169,12 @@ module mod_pbl_gfs
         end do
       end do
 
-      do iq = 1 , nqx
-        do k = 1 , kz
+      do iq = 1, nqx
+        do k = 1, kz
           n = 1
           kk = kzp1 - k
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               qo(n,kk,iq) = m2p%qxatm(j,i,k,iq)/(d_one + m2p%qxatm(j,i,k,iq))
               n = n + 1
             end do
@@ -183,13 +183,13 @@ module mod_pbl_gfs
       end do
 
       if ( ichem == 1 ) then
-        do it = 1 , ntr
+        do it = 1, ntr
           iit = it + nqx
-          do k = 1 , kz
+          do k = 1, kz
             n = 1
             kk = kzp1 - k
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 qo(n,kk,iit) = m2p%chib(j,i,k,it)/(d_one + m2p%chib(j,i,k,it))
                 n = n + 1
               end do
@@ -212,11 +212,11 @@ module mod_pbl_gfs
       else
         xpfac = m2p%psb(jci1:jci2,ici1:ici2)
       end if
-      do k = 1 , kz
+      do k = 1, kz
         n = 1
         kk = kzp1 - k
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ici1, ici2
+          do j = jci1, jci2
             p2m%uxten(j,i,k) = du(n,kk)
             p2m%vxten(j,i,k) = dv(n,kk)
             p2m%tten(j,i,k) = p2m%tten(j,i,k) + tau(n,kk)*xpfac(j,i)
@@ -225,12 +225,12 @@ module mod_pbl_gfs
         end do
       end do
 
-      do iq = 1 , nqx
-        do k = 1 , kz
+      do iq = 1, nqx
+        do k = 1, kz
           n = 1
           kk = kzp1 - k
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               p2m%qxten(j,i,k,iq) = p2m%qxten(j,i,k,iq) + &
                      rtg(n,kk,iq)/(d_one-qo(n,kk,iq))**2 * xpfac(j,i)
               n = n + 1
@@ -240,13 +240,13 @@ module mod_pbl_gfs
       end do
 
       if ( ichem == 1 ) then
-        do it = 1 , ntr
+        do it = 1, ntr
           iit = it + nqx
-          do k = 1 , kz
+          do k = 1, kz
             n = 1
             kk = kzp1 - k
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ici1, ici2
+              do j = jci1, jci2
                 p2m%chiten(j,i,k,it) = p2m%chiten(j,i,k,it) + &
                       rtg(n,kk,iit)/(d_one-qo(n,kk,iit)) * xpfac(j,i)
                 n = n + 1
@@ -257,8 +257,8 @@ module mod_pbl_gfs
       end if
 
       n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1, ici2
+        do j = jci1, jci2
           p2m%kpbl(j,i) = kzp1 - kpbl(n)
           p2m%zpbl(j,i) = hpbl(n)
           n = n + 1
@@ -270,98 +270,98 @@ module mod_pbl_gfs
     subroutine moninq(im,km,ntrac)
       implicit none
 
-      integer(ik4) , intent(in) :: im , km , ntrac
-      integer(ik4) :: i , is , k , kk , km1 , kmpbl
-      integer(ik4) , dimension(im) :: lcld , icld , kcld , krad , kx1
-      integer(ik4) , dimension(im) :: kpblx , kinver
+      integer(ik4), intent(in) :: im, km, ntrac
+      integer(ik4) :: i, is, k, kk, km1, kmpbl
+      integer(ik4), dimension(im) :: lcld, icld, kcld, krad, kx1
+      integer(ik4), dimension(im) :: kpblx, kinver
 
-      real(rkx) , dimension(im) :: phih , phim
-      real(rkx) , dimension(im) :: rbdn , rbup , beta
-      real(rkx) , dimension(im) :: wscale , thermal , wstar3
-      real(rkx) , dimension(im) :: hpblx
+      real(rkx), dimension(im) :: phih, phim
+      real(rkx), dimension(im) :: rbdn, rbup, beta
+      real(rkx), dimension(im) :: wscale, thermal, wstar3
+      real(rkx), dimension(im) :: hpblx
 
-      real(rkx) , dimension(im,km) :: thvx , thlvx
-      real(rkx) , dimension(im,km) :: qlx , thetae , qtx
-      real(rkx) , dimension(im,km-1) :: bf , radx
-      real(rkx) , dimension(im) :: govrth , hrad , cteit
-      real(rkx) , dimension(im) :: radmin , vrad , zd , zdd , thlvx1
-      real(rkx) , dimension(im) :: hgamt , hgamq , tx1 , tx2
+      real(rkx), dimension(im,km) :: thvx, thlvx
+      real(rkx), dimension(im,km) :: qlx, thetae, qtx
+      real(rkx), dimension(im,km-1) :: bf, radx
+      real(rkx), dimension(im) :: govrth, hrad, cteit
+      real(rkx), dimension(im) :: radmin, vrad, zd, zdd, thlvx1
+      real(rkx), dimension(im) :: hgamt, hgamq, tx1, tx2
 
-      real(rkx) , dimension(im,km-1) :: rdzt , dktx , dkux , xkzo , xkzmo
-      real(rkx) , dimension(im,km+1) :: zi
-      real(rkx) , dimension(im,km-1) :: dku , dkt , cku , ckt , al , au
-      real(rkx) , dimension(im,km) :: zl , ad , a1 , theta
-      real(rkx) , dimension(im,km*ntrac) :: a2
-      real(rkx) , dimension(im) :: prinv , rent
-      logical , dimension(im) :: pblflg , sfcflg , scuflg , flg
-      real(rkx) :: bvf2 , dk , dsdz2 , dsdzq , dsdzt
-      real(rkx) :: dsig , dtodsd , dtodsu , dw2 , hol , hol1
-      real(rkx) :: prnum , qtend , rbint , rdt , rdz , ri , rl2
-      real(rkx) :: sflux , shr2 , spdk2 , sri , tem , ti
-      real(rkx) :: ttend , utend , vtend , zfac , vpert , zk
-      real(rkx) :: tem1 , tem2 , ptem , ptem1 , ptem2
+      real(rkx), dimension(im,km-1) :: rdzt, dktx, dkux, xkzo, xkzmo
+      real(rkx), dimension(im,km+1) :: zi
+      real(rkx), dimension(im,km-1) :: dku, dkt, cku, ckt, al, au
+      real(rkx), dimension(im,km) :: zl, ad, a1, theta
+      real(rkx), dimension(im,km*ntrac) :: a2
+      real(rkx), dimension(im) :: prinv, rent
+      logical, dimension(im) :: pblflg, sfcflg, scuflg, flg
+      real(rkx) :: bvf2, dk, dsdz2, dsdzq, dsdzt
+      real(rkx) :: dsig, dtodsd, dtodsu, dw2, hol, hol1
+      real(rkx) :: prnum, qtend, rbint, rdt, rdz, ri, rl2
+      real(rkx) :: sflux, shr2, spdk2, sri, tem, ti
+      real(rkx) :: ttend, utend, vtend, zfac, vpert, zk
+      real(rkx) :: tem1, tem2, ptem, ptem1, ptem2
 
-      real(rkx) , parameter :: gocp = egrav*rcpd
-      real(rkx) , parameter :: rlam = 30.0_rkx
-      real(rkx) , parameter :: vk = vonkar
-      real(rkx) , parameter :: prmin = 0.25_rkx
-      real(rkx) , parameter :: prmax = 4.0_rkx
-      real(rkx) , parameter :: dw2min = 0.0001_rkx
-      real(rkx) , parameter :: dkmin = 0.0_rkx
-      real(rkx) , parameter :: dkmax = 1000.0_rkx
-      real(rkx) , parameter :: rimin = -100.0_rkx
-      real(rkx) , parameter :: rbcr = 0.25_rkx
-      real(rkx) , parameter :: wfac = 7.0_rkx
-      real(rkx) , parameter :: cfac = 6.5_rkx
-      real(rkx) , parameter :: pfac = 2.0_rkx
-      real(rkx) , parameter :: sfcfrac = 0.1_rkx
-      real(rkx) , parameter :: qmin = 1.e-8_rkx
-      real(rkx) , parameter :: xkzm = 1.0_rkx
-      real(rkx) , parameter :: zfmin = 1.e-8_rkx
-      real(rkx) , parameter :: aphi5 = 5.0_rkx
-      real(rkx) , parameter :: aphi16 = 16.0_rkx
-      real(rkx) , parameter :: tdzmin = 1.e-3_rkx
-      real(rkx) , parameter :: qlmin = 1.e-12_rkx
-      real(rkx) , parameter :: h1 = 0.33333333_rkx
-      real(rkx) , parameter :: cldtime = 500.0_rkx
-      real(rkx) , parameter :: xkzmu = 3.0_rkx
-      real(rkx) , parameter :: xkzminv = 0.3_rkx
-      real(rkx) , parameter :: gamcrt = 3.0_rkx
-      real(rkx) , parameter :: gamcrq = 0.0_rkx
-      real(rkx) , parameter :: rlamun = 150.0_rkx
-      real(rkx) , parameter :: rentf1 = 0.2_rkx
-      real(rkx) , parameter :: rentf2 = 1.0_rkx
-      real(rkx) , parameter :: radfac = 0.85_rkx
-      real(rkx) , parameter :: zstblmax = 2500.0_rkx
-      real(rkx) , parameter :: qlcr=3.5e-5_rkx
-      real(rkx) , parameter :: actei = 0.7_rkx
+      real(rkx), parameter :: gocp = egrav*rcpd
+      real(rkx), parameter :: rlam = 30.0_rkx
+      real(rkx), parameter :: vk = vonkar
+      real(rkx), parameter :: prmin = 0.25_rkx
+      real(rkx), parameter :: prmax = 4.0_rkx
+      real(rkx), parameter :: dw2min = 0.0001_rkx
+      real(rkx), parameter :: dkmin = 0.0_rkx
+      real(rkx), parameter :: dkmax = 1000.0_rkx
+      real(rkx), parameter :: rimin = -100.0_rkx
+      real(rkx), parameter :: rbcr = 0.25_rkx
+      real(rkx), parameter :: wfac = 7.0_rkx
+      real(rkx), parameter :: cfac = 6.5_rkx
+      real(rkx), parameter :: pfac = 2.0_rkx
+      real(rkx), parameter :: sfcfrac = 0.1_rkx
+      real(rkx), parameter :: qmin = 1.e-8_rkx
+      real(rkx), parameter :: xkzm = 1.0_rkx
+      real(rkx), parameter :: zfmin = 1.e-8_rkx
+      real(rkx), parameter :: aphi5 = 5.0_rkx
+      real(rkx), parameter :: aphi16 = 16.0_rkx
+      real(rkx), parameter :: tdzmin = 1.e-3_rkx
+      real(rkx), parameter :: qlmin = 1.e-12_rkx
+      real(rkx), parameter :: h1 = 0.33333333_rkx
+      real(rkx), parameter :: cldtime = 500.0_rkx
+      real(rkx), parameter :: xkzmu = 3.0_rkx
+      real(rkx), parameter :: xkzminv = 0.3_rkx
+      real(rkx), parameter :: gamcrt = 3.0_rkx
+      real(rkx), parameter :: gamcrq = 0.0_rkx
+      real(rkx), parameter :: rlamun = 150.0_rkx
+      real(rkx), parameter :: rentf1 = 0.2_rkx
+      real(rkx), parameter :: rentf2 = 1.0_rkx
+      real(rkx), parameter :: radfac = 0.85_rkx
+      real(rkx), parameter :: zstblmax = 2500.0_rkx
+      real(rkx), parameter :: qlcr=3.5e-5_rkx
+      real(rkx), parameter :: actei = 0.7_rkx
 
       rdt   = d_one / dt
       km1   = km - 1
       kmpbl = km / 2
-      do k = 1 , km
-        do i = 1 , im
+      do k = 1, km
+        do i = 1, im
           zi(i,k) = phii(i,k) * regrav
           zl(i,k) = phil(i,k) * regrav
         end do
       end do
-      do i = 1 , im
+      do i = 1, im
         zi(i,km+1) = phii(i,km+1) * regrav
       end do
-      do k = 1 , km1
-        do i = 1 , im
+      do k = 1, km1
+        do i = 1, im
           rdzt(i,k) = d_one / (zl(i,k+1) - zl(i,k))
         end do
       end do
-      do i = 1 , im
+      do i = 1, im
         kinver(i) = km
         kx1(i) = 1
         tx1(i) = 1.0 / prsi(i,1)
         tx2(i) = tx1(i)
       end do
       ! Vertical background diffusivity
-      do k = 1 , km1
-        do i = 1 , im
+      do k = 1, km1
+        do i = 1, im
           xkzo(i,k) = d_zero
           xkzmo(i,k) = d_zero
           if ( k < kinver(i) ) then
@@ -383,8 +383,8 @@ module mod_pbl_gfs
         end do
       end do
       ! Diffusivity in the inversion layer is set to be xkzminv (m^2/s)
-      do k = 1 , kmpbl
-        do i = 1 , im
+      do k = 1, kmpbl
+        do i = 1, im
           if ( zi(i,k+1) > 250.0_rkx ) then
             tem1 = (to(i,k+1)-to(i,k)) * rdzt(i,k)
             if ( tem1 > 1.e-5_rkx ) then
@@ -393,7 +393,7 @@ module mod_pbl_gfs
           end if
         end do
       end do
-      do i = 1 , im
+      do i = 1, im
         hgamt(i) = d_zero
         hgamq(i) = d_zero
         wscale(i)= d_zero
@@ -417,8 +417,8 @@ module mod_pbl_gfs
           zd(i)    = d_zero
         end if
       end do
-      do k = 1 , km
-        do i = 1 , im
+      do k = 1, km
+        do i = 1, im
           theta(i,k) = to(i,k) * psk(i) / prslk(i,k)
           qlx(i,k)   = max(qo(i,k,2),qlmin)
           qtx(i,k)   = max(qo(i,k,1),qmin)+qlx(i,k)
@@ -430,8 +430,8 @@ module mod_pbl_gfs
           thlvx(i,k) = ptem2*(d_one+ep1*qtx(i,k))
         end do
       end do
-      do k = 1 , km1
-        do i = 1 , im
+      do k = 1, km1
+        do i = 1, im
           dku(i,k)  = d_zero
           dkt(i,k)  = d_zero
           dktx(i,k) = d_zero
@@ -442,11 +442,11 @@ module mod_pbl_gfs
           radx(i,k) = tem*thraten(i,k)
         end do
       end do
-      do i = 1 , im
+      do i = 1, im
         flg(i) = scuflg(i)
       end do
-      do k = 1 , km1
-        do i = 1 , im
+      do k = 1, km1
+        do i = 1, im
           if ( flg(i) .and. zl(i,k) >= zstblmax ) then
             lcld(i) = k
             flg(i) = .false.
@@ -454,27 +454,27 @@ module mod_pbl_gfs
         end do
       end do
       ! Compute buoyancy flux
-      do k = 1 , km1
-        do i = 1 , im
+      do k = 1, km1
+        do i = 1, im
           bf(i,k) = (thvx(i,k+1)-thvx(i,k))*rdzt(i,k)
         end do
       end do
-      do i = 1 , im
+      do i = 1, im
         govrth(i) = egrav/theta(i,1)
       end do
-      do i = 1 , im
+      do i = 1, im
         beta(i) = dt / (zi(i,2)-zi(i,1))
       end do
-      do i = 1 , im
+      do i = 1, im
         thermal(i) = thvx(i,1)
       end do
       ! Compute the first guess pbl height
-      do i = 1 , im
+      do i = 1, im
         flg(i) = .false.
         rbup(i) = rbsoil(i)
       end do
-      do k = 2 , kmpbl
-        do i = 1 , im
+      do k = 2, kmpbl
+        do i = 1, im
           if ( .not. flg(i) ) then
             rbdn(i) = rbup(i)
             spdk2   = max((uo(i,k)**2+vo(i,k)**2),1.0_rkx)
@@ -485,7 +485,7 @@ module mod_pbl_gfs
           end if
         end do
       end do
-      do i = 1 , im
+      do i = 1, im
         k = kpbl(i)
         if ( rbdn(i) >= rbcr ) then
           rbint = d_zero
@@ -500,7 +500,7 @@ module mod_pbl_gfs
         kpblx(i) = kpbl(i)
       end do
       ! Compute similarity parameters
-      do i = 1 , im
+      do i = 1, im
         sflux = heat(i) + evap(i)*ep1*theta(i,1)*rrho(i)
         if ( sfcflg(i) .and. sflux > d_zero ) then
           hol = max(rbsoil(i)*fm(i)*fm(i)/fh(i),rimin)
@@ -519,7 +519,7 @@ module mod_pbl_gfs
         end if
       end do
       ! Compute counter-gradient mixing term for heat and moisture
-      do i = 1 , im
+      do i = 1, im
         if ( pblflg(i) ) then
           hgamt(i)  = min(cfac*heat(i)/wscale(i),gamcrt)
           hgamq(i)  = min(cfac*evap(i)/wscale(i),gamcrq)
@@ -531,15 +531,15 @@ module mod_pbl_gfs
         end if
       end do
       ! Enhance the pbl height by considering the thermal excess
-      do i = 1 , im
+      do i = 1, im
         flg(i)  = .true.
         if ( pblflg(i) ) then
           flg(i)  = .false.
           rbup(i) = rbsoil(i)
         end if
       end do
-      do k = 2 , kmpbl
-        do i = 1 , im
+      do k = 2, kmpbl
+        do i = 1, im
           if ( .not. flg(i) ) then
             rbdn(i) = rbup(i)
             spdk2   = max((uo(i,k)**2+vo(i,k)**2),1.0_rkx)
@@ -550,7 +550,7 @@ module mod_pbl_gfs
           end if
         end do
       end do
-      do i = 1 , im
+      do i = 1, im
         if ( pblflg(i) ) then
           k = kpbl(i)
           if ( rbdn(i) >= rbcr ) then
@@ -566,11 +566,11 @@ module mod_pbl_gfs
         end if
       end do
       ! Look for stratocumulus
-      do i = 1 , im
+      do i = 1, im
         flg(i) = scuflg(i)
       end do
-      do k = kmpbl , 1 , -1
-        do i = 1 , im
+      do k = kmpbl, 1, -1
+        do i = 1, im
           if ( flg(i) .and. k <= lcld(i) ) then
             if ( qlx(i,k) >= qlcr ) then
               kcld(i) = k
@@ -579,14 +579,14 @@ module mod_pbl_gfs
           end if
         end do
       end do
-      do i = 1 , im
+      do i = 1, im
         if ( scuflg(i) .and. kcld(i) == km1 ) scuflg(i) = .false.
       end do
-      do i = 1 , im
+      do i = 1, im
         flg(i) = scuflg(i)
       end do
-      do k = kmpbl , 1 , -1
-        do i = 1 , im
+      do k = kmpbl, 1, -1
+        do i = 1, im
           if ( flg(i) .and. k <= kcld(i) ) then
             if ( qlx(i,k) >= qlcr ) then
               if ( radx(i,k) < radmin(i) ) then
@@ -599,15 +599,15 @@ module mod_pbl_gfs
           end if
         end do
       end do
-      do i = 1 , im
+      do i = 1, im
         if ( scuflg(i) .and. krad(i) <= 1 ) scuflg(i) = .false.
         if ( scuflg(i) .and. radmin(i) >= d_zero ) scuflg(i) = .false.
       end do
-      do i = 1 , im
+      do i = 1, im
         flg(i) = scuflg(i)
       end do
-      do k = kmpbl , 2 , -1
-        do i = 1 , im
+      do k = kmpbl, 2, -1
+        do i = 1, im
           if ( flg(i) .and. k <= krad(i) ) then
             if ( qlx(i,k) >= qlcr ) then
               icld(i) = icld(i)+1
@@ -617,15 +617,15 @@ module mod_pbl_gfs
           end if
         end do
       end do
-      do i = 1 , im
+      do i = 1, im
         if ( scuflg(i) .and. icld(i) < 1 ) scuflg(i) = .false.
       enddo
-      do i = 1 , im
+      do i = 1, im
         if ( scuflg(i) ) then
           hrad(i) = zi(i,krad(i)+1)
         end if
       end do
-      do i = 1 , im
+      do i = 1, im
         if ( scuflg(i) .and. hrad(i) < zi(i,2) ) scuflg(i) = .false.
       end do
       do i = 1, im
@@ -636,11 +636,11 @@ module mod_pbl_gfs
           thlvx1(i) = thlvx(i,k)+tem1
         end if
       end do
-      do i = 1 , im
+      do i = 1, im
         flg(i) = scuflg(i)
       end do
-      do k = kmpbl , 1 , -1
-        do i = 1 , im
+      do k = kmpbl, 1, -1
+        do i = 1, im
           if ( flg(i) .and. k <= krad(i) ) then
             if (thlvx1(i) <= thlvx(i,k) ) then
               tem = zi(i,k+1)-zi(i,k)
@@ -657,7 +657,7 @@ module mod_pbl_gfs
           zdd(i) = hrad(i)-zi(i,kk)
         end if
       end do
-      do i = 1 , im
+      do i = 1, im
         if ( scuflg(i) ) then
           zd(i) = max(zd(i),zdd(i))
           zd(i) = min(zd(i),hrad(i))
@@ -666,7 +666,7 @@ module mod_pbl_gfs
         end if
       end do
       ! Compute inverse Prandtl number
-      do i = 1 , im
+      do i = 1, im
         if ( pblflg(i) ) then
           tem = phih(i)/phim(i)+cfac*vk*sfcfrac
           prinv(i) = d_one / tem
@@ -675,8 +675,8 @@ module mod_pbl_gfs
         end if
       end do
       ! Compute diffusion coefficients below pbl
-      do k = 1 , kmpbl
-        do i = 1 , im
+      do k = 1, kmpbl
+        do i = 1, im
           if ( pblflg(i) .and. k < kpbl(i) ) then
             zfac = max((d_one-zi(i,k+1)/(hpbl(i))), zfmin)
             tem = wscale(i)*vk*zi(i,k+1)*zfac**pfac
@@ -690,13 +690,13 @@ module mod_pbl_gfs
         end do
       end do
       ! Compute diffusion coefficients based on local scheme
-      do i = 1 , im
+      do i = 1, im
         if ( .not. pblflg(i) ) then
           kpbl(i) = 1
         end if
       end do
-      do k = 1 , km1
-        do i = 1 , im
+      do k = 1, km1
+        do i = 1, im
           if ( k >= kpbl(i) ) then
             rdz  = rdzt(i,k)
             ti   = d_two/(to(i,k)+to(i,k+1))
@@ -734,7 +734,7 @@ module mod_pbl_gfs
       ! Compute diffusion coefficients for cloud-top driven diffusion
       ! If the condition for cloud-top instability is met,
       ! increase entrainment flux at cloud top
-      do i = 1 , im
+      do i = 1, im
         if ( scuflg(i) ) then
           k = krad(i)
           tem = thetae(i,k) - thetae(i,k+1)
@@ -753,8 +753,8 @@ module mod_pbl_gfs
           cku(i,k) = ckt(i,k)
         end if
       end do
-      do k = 1 , kmpbl
-        do i = 1 , im
+      do k = 1, kmpbl
+        do i = 1, im
           if ( scuflg(i) .and. k < krad(i) ) then
             tem1 = hrad(i)-zd(i)
             tem2 = zi(i,k+1)-tem1
@@ -772,8 +772,8 @@ module mod_pbl_gfs
           end if
         end do
       end do
-      do k = 1 , kmpbl
-        do i = 1 , im
+      do k = 1, kmpbl
+        do i = 1, im
           if ( scuflg(i) ) then
             dkt(i,k) = dkt(i,k)+ckt(i,k)
             dku(i,k) = dku(i,k)+cku(i,k)
@@ -783,21 +783,21 @@ module mod_pbl_gfs
         end do
       end do
       ! Compute tridiagonal matrix elements for heat and moisture
-      do i = 1 , im
+      do i = 1, im
          ad(i,1) = d_one
          a1(i,1) = to(i,1)   + beta(i) * heat(i)
          a2(i,1) = qo(i,1,1) + beta(i) * evap(i)
       end do
       if ( ntrac >= 2 ) then
-        do k = 2 , ntrac
+        do k = 2, ntrac
           is = (k-1) * km
-          do i = 1 , im
+          do i = 1, im
             a2(i,1+is) = qo(i,1,k)
           end do
         end do
       end if
-      do k = 1 , km1
-        do i = 1 , im
+      do k = 1, km1
+        do i = 1, im
           dtodsd = dt/del(i,k)
           dtodsu = dt/del(i,k+1)
           dsig   = prsl(i,k)-prsl(i,k+1)
@@ -824,10 +824,10 @@ module mod_pbl_gfs
         end do
       end do
       if ( ntrac >= 2 ) then
-        do kk = 2 , ntrac
+        do kk = 2, ntrac
           is = (kk-1) * km
-          do k = 1 , km1
-            do i = 1 , im
+          do k = 1, km1
+            do i = 1, im
               a2(i,k+1+is) = qo(i,k+1,kk)
             end do
           end do
@@ -837,7 +837,7 @@ module mod_pbl_gfs
       call tridin(im,km,ntrac,al,ad,au,a1,a2,au,a1,a2)
       ! Recover tendencies of heat and moisture
       do k = 1,km
-        do i = 1 , im
+        do i = 1, im
           ttend      = (a1(i,k)-to(i,k))*rdt
           qtend      = (a2(i,k)-qo(i,k,1))*rdt
           tau(i,k)   = tau(i,k)+ttend
@@ -845,10 +845,10 @@ module mod_pbl_gfs
         end do
       end do
       if ( ntrac >= 2 ) then
-        do kk = 2 , ntrac
+        do kk = 2, ntrac
           is = (kk-1) * km
-          do k = 1 , km
-            do i = 1 , im
+          do k = 1, km
+            do i = 1, im
               qtend = (a2(i,k+is)-qo(i,k,kk))*rdt
               rtg(i,k,kk) = rtg(i,k,kk)+qtend
             end do
@@ -856,13 +856,13 @@ module mod_pbl_gfs
         end do
       end if
       ! Compute tridiagonal matrix elements for momentum
-      do i = 1 , im
+      do i = 1, im
         ad(i,1) = d_one + beta(i) * stress(i) / spd1(i)
         a1(i,1) = uo(i,1)
         a2(i,1) = vo(i,1)
       end do
-      do k = 1 , km1
-        do i = 1 , im
+      do k = 1, km1
+        do i = 1, im
           dtodsd = dt/del(i,k)
           dtodsu = dt/del(i,k+1)
           dsig   = prsl(i,k)-prsl(i,k+1)
@@ -880,8 +880,8 @@ module mod_pbl_gfs
       ! Solve tridiagonal problem for momentum
       call tridi2(im,km,al,ad,au,a1,a2,au,a1,a2)
       ! Recover tendencies of momentum
-      do k = 1 , km
-        do i = 1 , im
+      do k = 1, km
+        do i = 1, im
           utend = (a1(i,k)-uo(i,k))*rdt
           vtend = (a2(i,k)-vo(i,k))*rdt
           du(i,k)  = du(i,k)+utend
@@ -889,7 +889,7 @@ module mod_pbl_gfs
         end do
       end do
       ! PBL height for diagnostic purpose
-      do i = 1 , im
+      do i = 1, im
         hpbl(i) = hpblx(i)
         kpbl(i) = kpblx(i)
       end do
@@ -898,39 +898,39 @@ module mod_pbl_gfs
 
     subroutine tridi2(l,n,cl,cm,cu,r1,r2,au,a1,a2)
       implicit none
-      integer(ik4) , intent(in) :: l , n
-      real(kind=rkx) , dimension(l,2:n) , intent(in) :: CL
-      real(kind=rkx) , dimension(l,n) , intent(in) :: CM
-      real(kind=rkx) , dimension(l,n-1) , intent(in) :: CU
-      real(kind=rkx) , dimension(l,n) , intent(in) :: R1
-      real(kind=rkx) , dimension(l,n) , intent(in) :: R2
-      real(kind=rkx) , dimension(l,n-1) , intent(inout) :: au
-      real(kind=rkx) , dimension(l,n) , intent(inout) :: a1
-      real(kind=rkx) , dimension(l,n) , intent(inout) :: a2
+      integer(ik4), intent(in) :: l, n
+      real(kind=rkx), dimension(l,2:n), intent(in) :: CL
+      real(kind=rkx), dimension(l,n), intent(in) :: CM
+      real(kind=rkx), dimension(l,n-1), intent(in) :: CU
+      real(kind=rkx), dimension(l,n), intent(in) :: R1
+      real(kind=rkx), dimension(l,n), intent(in) :: R2
+      real(kind=rkx), dimension(l,n-1), intent(inout) :: au
+      real(kind=rkx), dimension(l,n), intent(inout) :: a1
+      real(kind=rkx), dimension(l,n), intent(inout) :: a2
       real(kind=rkx) :: fk
-      integer(ik4) :: k , i
+      integer(ik4) :: k, i
 
-      do i = 1 , l
+      do i = 1, l
         fk      = d_one/cm(i,1)
         au(i,1) = fk*cu(i,1)
         a1(i,1) = fk*r1(i,1)
         a2(i,1) = fk*r2(i,1)
       end do
-      do k = 2 , n-1
-        do i = 1 , l
+      do k = 2, n-1
+        do i = 1, l
           fk      = d_one/(cm(i,k)-cl(i,k)*au(i,k-1))
           au(i,k) = fk*cu(i,k)
           a1(i,k) = fk*(r1(i,k)-cl(i,k)*a1(i,k-1))
           a2(i,k) = fk*(r2(i,k)-cl(i,k)*a2(i,k-1))
         end do
       end do
-      do i = 1 , l
+      do i = 1, l
         fk      = d_one/(cm(i,n)-cl(i,n)*au(i,n-1))
         a1(i,n) = fk*(r1(i,n)-cl(i,n)*a1(i,n-1))
         a2(i,n) = fk*(r2(i,n)-cl(i,n)*a2(i,n-1))
       end do
-      do k = n-1 , 1 , -1
-        do i = 1 , l
+      do k = n-1, 1, -1
+        do i = 1, l
           a1(i,k) = a1(i,k)-au(i,k)*a1(i,k+1)
           a2(i,k) = a2(i,k)-au(i,k)*a2(i,k+1)
         end do
@@ -939,64 +939,64 @@ module mod_pbl_gfs
 
     subroutine tridin(l,n,nt,cl,cm,cu,r1,r2,au,a1,a2)
       implicit none
-      integer(ik4) , intent(in) :: l , n , nt
-      real(kind=rkx) , dimension(l,2:n) , intent(in):: cl
-      real(kind=rkx) , dimension(l,n) , intent(in) :: cm
-      real(kind=rkx) , dimension(l,n-1) , intent(in) ::  cu
-      real(kind=rkx) , dimension(l,n) , intent(in) :: r1
-      real(kind=rkx) , dimension(l,n*nt) , intent(in) :: r2
-      real(kind=rkx) , dimension(l,n-1) , intent(inout) :: au
-      real(kind=rkx) , dimension(l,n) , intent(inout) :: a1
-      real(kind=rkx) , dimension(l,n*nt) , intent(inout) :: a2
-      real(kind=rkx) , dimension(l,2:n-1) :: fkk
-      real(kind=rkx) , dimension(l) :: fk
-      integer(ik4) :: is , k , kk , i
+      integer(ik4), intent(in) :: l, n, nt
+      real(kind=rkx), dimension(l,2:n), intent(in):: cl
+      real(kind=rkx), dimension(l,n), intent(in) :: cm
+      real(kind=rkx), dimension(l,n-1), intent(in) ::  cu
+      real(kind=rkx), dimension(l,n), intent(in) :: r1
+      real(kind=rkx), dimension(l,n*nt), intent(in) :: r2
+      real(kind=rkx), dimension(l,n-1), intent(inout) :: au
+      real(kind=rkx), dimension(l,n), intent(inout) :: a1
+      real(kind=rkx), dimension(l,n*nt), intent(inout) :: a2
+      real(kind=rkx), dimension(l,2:n-1) :: fkk
+      real(kind=rkx), dimension(l) :: fk
+      integer(ik4) :: is, k, kk, i
 
-      do i = 1 , l
+      do i = 1, l
         fk(i)   = d_one/cm(i,1)
         au(i,1) = fk(i)*cu(i,1)
         a1(i,1) = fk(i)*r1(i,1)
       end do
-      do k = 1 , nt
+      do k = 1, nt
         is = (k-1) * n
-        do i = 1 , l
+        do i = 1, l
           a2(i,1+is) = fk(i) * r2(i,1+is)
         end do
       end do
-      do k = 2 , n-1
-        do i = 1 , l
+      do k = 2, n-1
+        do i = 1, l
           fkk(i,k) = d_one/(cm(i,k)-cl(i,k)*au(i,k-1))
           au(i,k)  = fkk(i,k)*cu(i,k)
           a1(i,k)  = fkk(i,k)*(r1(i,k)-cl(i,k)*a1(i,k-1))
         end do
       end do
-      do kk = 1 , nt
+      do kk = 1, nt
         is = (kk-1) * n
-        do k = 2 , n-1
-          do i = 1 , l
+        do k = 2, n-1
+          do i = 1, l
             a2(i,k+is) = fkk(i,k)*(r2(i,k+is)-cl(i,k)*a2(i,k+is-1))
           end do
         end do
       end do
-      do i = 1 , l
+      do i = 1, l
         fk(i)   = d_one/(cm(i,n)-cl(i,n)*au(i,n-1))
         a1(i,n) = fk(i)*(r1(i,n)-cl(i,n)*a1(i,n-1))
       end do
-      do k = 1 , nt
+      do k = 1, nt
         is = (k-1) * n
-        do i = 1 , l
+        do i = 1, l
           a2(i,n+is) = fk(i)*(r2(i,n+is)-cl(i,n)*a2(i,n+is-1))
         end do
       end do
-      do k = n-1 , 1 , -1
-        do i = 1 , l
+      do k = n-1, 1, -1
+        do i = 1, l
           a1(i,k) = a1(i,k) - au(i,k)*a1(i,k+1)
         end do
       end do
-      do kk = 1 , nt
+      do kk = 1, nt
         is = (kk-1) * n
-        do k = n-1 , 1 , -1
-          do i = 1 , l
+        do k = n-1, 1, -1
+          do i = 1, l
             a2(i,k+is) = a2(i,k+is) - au(i,k)*a2(i,k+is+1)
           end do
         end do
@@ -1005,54 +1005,54 @@ module mod_pbl_gfs
 
     subroutine tridit(l,n,nt,cl,cm,cu,rt,au,at)
       implicit none
-      integer(ik4) , intent(in) :: l , n , nt
-      real(kind=rkx) , dimension(l,2:n) , intent(in) :: cl
-      real(kind=rkx) , dimension(l,n) , intent(in) :: cm
-      real(kind=rkx) , dimension(l,n-1) , intent(in) :: cu
-      real(kind=rkx) , dimension(l,n*nt) , intent(in) :: rt
-      real(kind=rkx) , dimension(l,n-1) , intent(inout) :: au
-      real(kind=rkx) , dimension(l,n*nt) , intent(inout) :: at
-      real(kind=rkx) , dimension(l,2:n-1) :: fkk
-      real(kind=rkx) , dimension(l) :: fk
-      integer(ik4) :: is , k , kk , i
+      integer(ik4), intent(in) :: l, n, nt
+      real(kind=rkx), dimension(l,2:n), intent(in) :: cl
+      real(kind=rkx), dimension(l,n), intent(in) :: cm
+      real(kind=rkx), dimension(l,n-1), intent(in) :: cu
+      real(kind=rkx), dimension(l,n*nt), intent(in) :: rt
+      real(kind=rkx), dimension(l,n-1), intent(inout) :: au
+      real(kind=rkx), dimension(l,n*nt), intent(inout) :: at
+      real(kind=rkx), dimension(l,2:n-1) :: fkk
+      real(kind=rkx), dimension(l) :: fk
+      integer(ik4) :: is, k, kk, i
 
-      do i = 1 , l
+      do i = 1, l
         fk(i)   = d_one/cm(i,1)
         au(i,1) = fk(i)*cu(i,1)
       end do
-      do k = 1 , nt
+      do k = 1, nt
         is = (k-1) * n
-        do i = 1 , l
+        do i = 1, l
           at(i,1+is) = fk(i) * rt(i,1+is)
         end do
       end do
-      do k = 2 , n-1
-        do i = 1 , l
+      do k = 2, n-1
+        do i = 1, l
           fkk(i,k) = d_one/(cm(i,k)-cl(i,k)*au(i,k-1))
           au(i,k)  = fkk(i,k)*cu(i,k)
         end do
       end do
-      do kk = 1 , nt
+      do kk = 1, nt
         is = (kk-1) * n
-        do k = 2 , n-1
-          do i = 1 , l
+        do k = 2, n-1
+          do i = 1, l
             at(i,k+is) = fkk(i,k)*(rt(i,k+is)-cl(i,k)*at(i,k+is-1))
           end do
         end do
       end do
-      do i = 1 , l
+      do i = 1, l
         fk(i)   = d_one/(cm(i,n)-cl(i,n)*au(i,n-1))
       end do
-      do k = 1 , nt
+      do k = 1, nt
         is = (k-1) * n
-        do i = 1 , l
+        do i = 1, l
           at(i,n+is) = fk(i)*(rt(i,n+is)-cl(i,n)*at(i,n+is-1))
         end do
       end do
-      do kk = 1 , nt
+      do kk = 1, nt
         is = (kk-1) * n
-        do k = n-1 , 1 , -1
-          do i = 1 , l
+        do k = n-1, 1, -1
+          do i = 1, l
             at(i,k+is) = at(i,k+is) - au(i,k)*at(i,k+is+1)
           end do
         end do

@@ -41,27 +41,27 @@ module mod_micro_interface
 
   private
 
-  public :: allocate_micro , init_micro , microscheme , cldfrac , condtq
+  public :: allocate_micro, init_micro, microscheme, cldfrac, condtq
 
-  type(nogtom_stats) , public :: ngs
+  type(nogtom_stats), public :: ngs
 
   type(mod_2_micro) :: mo2mc
   type(micro_2_mod) :: mc2mo
 
-  real(rkx) , pointer , dimension(:,:) :: rh0 => null( )
-  real(rkx) , pointer , dimension(:,:) :: qtcrit => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rh0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: qtcrit => null( )
   ! rh0adj - Adjusted relative humidity threshold
-  real(rkx) , pointer , dimension(:,:,:) :: totc => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: rh0adj => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: totc => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: rh0adj => null( )
 
-  integer(ik4) , parameter :: nchi = 256
-  real(rkx) , dimension(0:nchi-1) :: chis
+  integer(ik4), parameter :: nchi = 256
+  real(rkx), dimension(0:nchi-1) :: chis
 
-  logical , parameter :: do_cfscaling = .true.
-  real(rkx) , parameter :: qccrit_lnd = 1.0e-9_rkx
-  real(rkx) , parameter :: qccrit_oce = 5.0e-9_rkx
+  logical, parameter :: do_cfscaling = .true.
+  real(rkx), parameter :: qccrit_lnd = 1.0e-9_rkx
+  real(rkx), parameter :: qccrit_oce = 5.0e-9_rkx
 
-  public :: qck1 , cgul , rh0 , cevap , xcevap , caccr
+  public :: qck1, cgul, rh0, cevap, xcevap, caccr
 
   contains
 
@@ -122,7 +122,7 @@ module mod_micro_interface
     call getmem2d(rh0,jci1,jci2,ici1,ici2,'micro:rh0')
     call getmem2d(qtcrit,jci1,jci2,ici1,ici2,'micro:qtcrit')
     call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'micro:totc')
-    do i = 1 , nchi
+    do i = 1, nchi
       cf = real(i-1,rkx)/real(nchi-1,rkx)
       chis(i-1) = 0.97_rkx*exp(-((cf-0.098_rkx)**2)/0.0365_rkx)+0.255_rkx
     end do
@@ -233,11 +233,11 @@ module mod_micro_interface
   ! radiation.
   !
   subroutine cldfrac(cldlwc,cldfra)
-    use mod_atm_interface , only : atms
+    use mod_atm_interface, only : atms
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cldlwc , cldfra
-    integer(ik4) :: i , j , k
-    real(rkx) :: ls_exlwc , conv_exlwc , exlwc
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: cldlwc, cldfra
+    integer(ik4) :: i, j, k
+    real(rkx) :: ls_exlwc, conv_exlwc, exlwc
     integer(ik4) :: ichi
 
     if ( ipptls > 1 ) then
@@ -260,7 +260,7 @@ module mod_micro_interface
       totc(j,i,k) = totc(j,i,k)/(d_one+totc(j,i,k))
     end do
 
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       qtcrit(j,i) = mo2mc%ldmsk(j,i)*qccrit_lnd - &
                    (mo2mc%ldmsk(j,i)-1)*qccrit_oce
     end do
@@ -338,9 +338,9 @@ module mod_micro_interface
     !-----------------------------------------------------------------
 
     if ( iconvlwp == 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             ! get overlap of clouds
             cldfra(j,i,k) = rov2(cldfra(j,i,k),mc2mo%fcc(j,i,k))
             if ( cldfra(j,i,k) > lowcld ) then
@@ -357,9 +357,9 @@ module mod_micro_interface
       end do
     else
       if ( any(icup > 1) ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               ! Cloud Water Volume
               ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
               ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
@@ -417,29 +417,29 @@ module mod_micro_interface
 
   pure real(rkx) function max_overlap(a)
     implicit none
-    real(rkx), dimension(:) , intent(in) :: a
+    real(rkx), dimension(:), intent(in) :: a
     max_overlap = maxval(a)
   end function max_overlap
 
   pure real(rkx) function min_overlap(a)
     implicit none
-    real(rkx), dimension(:) , intent(in) :: a
+    real(rkx), dimension(:), intent(in) :: a
     min_overlap = minval(a)
   end function min_overlap
 
   pure real(rkx) function mean_overlap(a)
     implicit none
-    real(rkx), dimension(:) , intent(in) :: a
+    real(rkx), dimension(:), intent(in) :: a
     mean_overlap = sum(a)/size(a)
   end function mean_overlap
 
   pure real(rkx) function random_overlap(a)
     implicit none
-    real(rkx), dimension(:) , intent(in) :: a
+    real(rkx), dimension(:), intent(in) :: a
     real(rkx) :: fac
     integer :: i
     fac = d_one
-    do i = 1 , size(a)
+    do i = 1, size(a)
       fac = fac * (d_one-max(min(a(i),d_one),d_zero))
     end do
     random_overlap = d_one - fac
@@ -447,11 +447,11 @@ module mod_micro_interface
 
   pure real(rkx) function max_random_overlap(a)
     implicit none
-    real(rkx), dimension(:) , intent(in) :: a
+    real(rkx), dimension(:), intent(in) :: a
     real(rkx) :: fac
     integer :: i
     fac = d_one - a(1)
-    do i = 2 , size(a)
+    do i = 2, size(a)
       fac = fac * (d_one-max(a(i-1),a(i)))/(d_one-a(i-1))
     end do
     max_random_overlap = d_one - fac
@@ -459,7 +459,7 @@ module mod_micro_interface
 
   elemental real(rkx) function rov2(a,b)
     implicit none
-    real(rkx) , intent(in) :: a , b
+    real(rkx), intent(in) :: a, b
     rov2 = max_random_overlap([a,b])
   end function rov2
   !
@@ -482,12 +482,12 @@ module mod_micro_interface
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine condtq
-    use mod_atm_interface , only : mo_atm , atm0 , atm2 , sfs , aten
+    use mod_atm_interface, only : mo_atm, atm0, atm2, sfs, aten
     implicit none
-    integer(ik4) :: i , j , k
-    real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
-    real(rkx) :: dqv , exces , pres , qvc_cld , qvs , fccc , &
-                 r1 , rhc , rlv , cpm
+    integer(ik4) :: i, j, k
+    real(rkx) :: qccs, qvcs, tmp1, tmp2, tmp3
+    real(rkx) :: dqv, exces, pres, qvc_cld, qvs, fccc, &
+                 r1, rhc, rlv, cpm
 
     !---------------------------------------------------------------------
     !     1.  Compute t, qv, and qc at tau+1 without condensational term

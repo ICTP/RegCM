@@ -106,9 +106,9 @@ module mod_kdtree2_priority
 
   private
 
-  integer , parameter :: sp = rk4
-  integer , parameter :: dp = rk8
-  integer , parameter :: kdkind = rk8
+  integer, parameter :: sp = rk4
+  integer, parameter :: dp = rk8
+  integer, parameter :: kdkind = rk8
 
   !
   ! maintain a priority queue (PQ) of data, pairs of 'priority/payload',
@@ -161,15 +161,15 @@ module mod_kdtree2_priority
     ! Assumes the allocation is always sufficient.  Will NOT increase it
     ! to match.
     integer :: heap_size = 0
-    type(kdtree2_result) , pointer , dimension(:) :: elems
+    type(kdtree2_result), pointer, contiguous, dimension(:) :: elems
   end type pq
 
   public :: kdtree2_result
 
   public :: pq
   public :: pq_create
-  public :: pq_delete , pq_insert
-  public :: pq_extract_max , pq_max , pq_replace_max , pq_maxpri
+  public :: pq_delete, pq_insert
+  public :: pq_extract_max, pq_max, pq_replace_max, pq_maxpri
 
   contains
 
@@ -188,7 +188,7 @@ module mod_kdtree2_priority
     !    allocate(x(1000),k(1000))
     !    pq => pq_create(x,k)
     !
-    type(kdtree2_result) , target , dimension(:) :: results_in
+    type(kdtree2_result), target, dimension(:) :: results_in
     !
     !
     integer :: nalloc
@@ -242,10 +242,10 @@ module mod_kdtree2_priority
     ! heap canonical form.   This is performance critical
     ! and has been tweaked a little to reflect this.
     !
-    type(pq) , pointer :: a
-    integer , intent(in) :: i_in
+    type(pq), pointer :: a
+    integer, intent(in) :: i_in
     integer :: i, l, r, largest
-    real(kdkind) :: pri_i , pri_l , pri_r , pri_largest
+    real(kdkind) :: pri_i, pri_l, pri_r, pri_largest
     type(kdtree2_result) :: temp
 
     i = i_in
@@ -314,8 +314,8 @@ module mod_kdtree2_priority
     ! on the queue, which should be the first one, if it is
     ! in heapified form.
     !
-    type(pq) , pointer :: a
-    type(kdtree2_result) , intent(out) :: e
+    type(pq), pointer :: a
+    type(kdtree2_result), intent(out) :: e
     if ( a%heap_size > 0 ) then
       e = a%elems(1)
     else
@@ -325,7 +325,7 @@ module mod_kdtree2_priority
 
   real(kdkind) function pq_maxpri(a)
     implicit none
-    type(pq) , pointer :: a
+    type(pq), pointer :: a
     pq_maxpri = -1
     if ( a%heap_size > 0 ) then
       pq_maxpri = a%elems(1)%dis
@@ -341,8 +341,8 @@ module mod_kdtree2_priority
     ! element, and remove it from the queue.
     ! (equivalent to 'pop()' on a stack)
     !
-    type(pq) , pointer :: a
-    type(kdtree2_result) , intent(out) :: e
+    type(pq), pointer :: a
+    type(kdtree2_result), intent(out) :: e
 
     if ( a%heap_size >= 1 ) then
       !
@@ -367,12 +367,12 @@ module mod_kdtree2_priority
     ! Insert a new element and return the new maximum priority,
     ! which may or may not be the same as the old maximum priority.
     !
-    type(pq) , pointer :: a
-    real(kdkind) , intent(in) :: dis
-    integer , intent(in) :: idx
-    ! type(kdtree2_result) , intent(in) :: e
+    type(pq), pointer :: a
+    real(kdkind), intent(in) :: dis
+    integer, intent(in) :: idx
+    ! type(kdtree2_result), intent(in) :: e
     !
-    integer :: i , isparent
+    integer :: i, isparent
     real(kdkind) :: parentdis
     !
 
@@ -406,8 +406,8 @@ module mod_kdtree2_priority
 
 !  subroutine pq_adjust_heap(a,i)
 !    implicit none
-!    type(pq) , pointer :: a
-!    integer , intent(in) :: i
+!    type(pq), pointer :: a
+!    integer, intent(in) :: i
 !    !
 !    ! nominally arguments (a,i), but specialize for a=1
 !    !
@@ -415,7 +415,7 @@ module mod_kdtree2_priority
 !    ! already heaps, i.e. the children of '1' are heaps.
 !    !  When the procedure is completed, the tree rooted at 1 is a heap.
 !    real(kdkind) :: prichild
-!    integer :: parent , child , n
+!    integer :: parent, child, n
 !
 !    type(kdtree2_result) :: e
 !
@@ -458,8 +458,8 @@ module mod_kdtree2_priority
     ! type(kdtree2_result), intent(in) :: e
     ! not tested as well!
 
-    integer :: parent , child , n
-    real(kdkind) :: prichild , prichildp1
+    integer :: parent, child, n
+    real(kdkind) :: prichild, prichildp1
 
     type(kdtree2_result) :: etmp
 
@@ -519,7 +519,7 @@ module mod_kdtree2_priority
     !
     ! delete item with index 'i'
     !
-    type(pq) , pointer :: a
+    type(pq), pointer :: a
     integer :: i
 
     if ( (i < 1) .or. (i > a%heap_size) ) then

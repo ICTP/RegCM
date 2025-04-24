@@ -75,7 +75,7 @@ contains
 ! !IROUTINE: program_off
 !
 ! !INTERFACE:
-  subroutine program_off(eccen       , obliqr      , lambm0    , mvelpp)
+  subroutine program_off(eccen      , obliqr     , lambm0   , mvelpp)
 !!
 !
 ! !DESCRIPTION:
@@ -85,15 +85,15 @@ contains
 ! init_clm(sera/para).f
 !
 ! !USES:
-  use shr_kind_mod    , only : r8 => shr_kind_r8, SHR_KIND_CL
+  use shr_kind_mod   , only : r8 => shr_kind_r8, SHR_KIND_CL
   use shr_orb_mod
-!  use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr, obliq, &
+!  use clm_varorb     , only : eccen, mvelpp, lambm0, obliqr, obliq, &
 !                               iyear_AD, nmvelp
-  use clm_comp        , only : clm_init0, clm_init1, clm_init2 !, clm_run1, clm_run2
+  use clm_comp       , only : clm_init0, clm_init1, clm_init2 !, clm_run1, clm_run2
   use clm_time_manager, only : is_last_step, advance_timestep, get_nstep
-  use atmdrvMod       , only : rcmdrv_init
-  use abortutils      , only : endrun
-  use controlMod      , only : control_setNL
+  use atmdrvMod      , only : rcmdrv_init
+  use abortutils     , only : endrun
+  use controlMod     , only : control_setNL
   use clm_mct_mod
   use spmdMod
   use ESMF_Mod

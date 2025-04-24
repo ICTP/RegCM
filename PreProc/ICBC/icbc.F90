@@ -111,8 +111,8 @@ program icbc
   implicit none
 
   integer(ik4) :: nnn
-  type(rcm_time_and_date) :: idate , iodate
-  type(rcm_time_interval) :: tdiff , tbdy
+  type(rcm_time_and_date) :: idate, iodate
+  type(rcm_time_interval) :: tdiff, tbdy
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
   character(len=256) :: namelistfile, prgname
@@ -211,9 +211,9 @@ program icbc
   tbdy = rcm_time_interval(ibdyfrq,uhrs)
   nsteps = nint(tohours(tdiff))/ibdyfrq + 1
 
-  write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
-  write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
-  write (stdout,*) 'NSTEPS     : ' , nsteps
+  write (stdout,*) 'GLOBIDATE1 : ', tochar(globidate1)
+  write (stdout,*) 'GLOBIDATE2 : ', tochar(globidate2)
+  write (stdout,*) 'NSTEPS     : ', nsteps
 
   idate = globidate1
   iodate = idate
@@ -241,7 +241,7 @@ program icbc
 
   call newfile(idate)
 
-  do nnn = 1 , nsteps
+  do nnn = 1, nsteps
 
     if (.not. lsamemonth(idate, iodate) ) then
       call newfile(monfirst(idate))

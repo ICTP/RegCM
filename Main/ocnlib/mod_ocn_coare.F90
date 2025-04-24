@@ -20,7 +20,7 @@ module mod_ocn_coare
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
-  use mod_runparams , only : iocnrough
+  use mod_runparams, only : iocnrough
 
   implicit none
 
@@ -41,28 +41,28 @@ module mod_ocn_coare
     !
     subroutine coare3_drv()
       implicit none
-      real(rkx) :: ts , qs , us , uv995 , t995 , q995 , z995 , ta
-      real(rkx) :: zu , zt , zq , zi , du , dt , dq , ut , dter
-      real(rkx) :: ug , zogs , u10 , cdhg , zo10 , zot10
-      real(rkx) :: usr , qsr , tsr , zetu , l10 , wetc , zet
-      real(rkx) :: cd10 , ch10 , ct10 , cc , cd , ct , ribcu
-      real(rkx) :: rr , rt , rq , zo , zot , zoq , dels , bigc , Al
-      real(rkx) :: l , Bf , tkt , qout , qcol , alq , xlamx , dqer
-      real(rkx) :: le , visa , rhoa , cpv , Rns , Rnl
-      real(rkx) :: hsb , hlb , tau , uv10 , facttq
+      real(rkx) :: ts, qs, us, uv995, t995, q995, z995, ta
+      real(rkx) :: zu, zt, zq, zi, du, dt, dq, ut, dter
+      real(rkx) :: ug, zogs, u10, cdhg, zo10, zot10
+      real(rkx) :: usr, qsr, tsr, zetu, l10, wetc, zet
+      real(rkx) :: cd10, ch10, ct10, cc, cd, ct, ribcu
+      real(rkx) :: rr, rt, rq, zo, zot, zoq, dels, bigc, Al
+      real(rkx) :: l, Bf, tkt, qout, qcol, alq, xlamx, dqer
+      real(rkx) :: le, visa, rhoa, cpv, Rns, Rnl
+      real(rkx) :: hsb, hlb, tau, uv10, facttq
       real(rkx) :: charnock
-      integer(ik4) :: i , k , niter
+      integer(ik4) :: i, k, niter
       logical :: iflag
 
-      real(rkx) , parameter :: beta = 1.25_rkx   ! gustiness coeff.
-      real(rkx) , parameter :: fdg  = 1.0_rkx    ! ratio of thermal to wind VonKarman
-      real(rkx) , parameter :: visw = 1.0e-6_rkx ! water kinematic viscosity
-      real(rkx) , parameter :: tcw  = 0.6_rkx    ! water thermal diffusivity
-      real(rkx) , parameter :: rhow = 1022.0     ! water density
-      real(rkx) , parameter :: be   = 0.026_rkx  ! sal. expans. coef. of water
-      real(rkx) , parameter :: cpw  = 4.0e3_rkx  ! spec. heat of water
+      real(rkx), parameter :: beta = 1.25_rkx   ! gustiness coeff.
+      real(rkx), parameter :: fdg  = 1.0_rkx    ! ratio of thermal to wind VonKarman
+      real(rkx), parameter :: visw = 1.0e-6_rkx ! water kinematic viscosity
+      real(rkx), parameter :: tcw  = 0.6_rkx    ! water thermal diffusivity
+      real(rkx), parameter :: rhow = 1022.0     ! water density
+      real(rkx), parameter :: be   = 0.026_rkx  ! sal. expans. coef. of water
+      real(rkx), parameter :: cpw  = 4.0e3_rkx  ! spec. heat of water
 
-      do i = iocnbeg , iocnend
+      do i = iocnbeg, iocnend
         if ( mask(i) /= 1 ) cycle
 
         tgrd(i) = tgb(i)
@@ -383,7 +383,7 @@ module mod_ocn_coare
 
       pure real(rkx) function psiuo(zet)
         implicit none
-        real(rkx) , intent (in) :: zet
+        real(rkx), intent (in) :: zet
         real(rkx) :: x, psik, f, psic, c
         if (zet < 0.0_rkx) then
           x = (1.0_rkx-15.0_rkx*zet)**0.25_rkx
@@ -404,7 +404,7 @@ module mod_ocn_coare
 
       pure real(rkx) function psit(zet)
         implicit none
-        real(rkx) , intent (in) :: zet
+        real(rkx), intent (in) :: zet
         real(rkx) :: x, psik, f, psic, c
         if (zet < 0.0_rkx) then
           x = (1.0_rkx-15.0_rkx*zet)**0.5_rkx

@@ -1,50 +1,50 @@
 program cumclouds
   use netcdf
   implicit none
-  integer , parameter :: nk = 23     ! Num vert layers
-  integer , parameter :: nds = 8     ! Num testing resolutions
+  integer, parameter :: nk = 23     ! Num vert layers
+  integer, parameter :: nds = 8     ! Num testing resolutions
 
-  integer , parameter :: maxtopcloud = 6 ! Max cloud top found in model
+  integer, parameter :: maxtopcloud = 6 ! Max cloud top found in model
 
-  real(8) , parameter :: dsinc = 25.0D0 ! Increment of ds
-  real(8) , parameter :: clfrcvmax = 1.0D0 ! Maximum convective cloud fraction
+  real(8), parameter :: dsinc = 25.0D0 ! Increment of ds
+  real(8), parameter :: clfrcvmax = 1.0D0 ! Maximum convective cloud fraction
 
-  real(8) , parameter :: maxcloud_dp = 60.0D0 ! In cb, cloud depth to have
+  real(8), parameter :: maxcloud_dp = 60.0D0 ! In cb, cloud depth to have
                                               ! Maximum cloud for this grid
                                               ! resolution
 
-  real(8) , parameter :: deltap = 5.0 ! Testing deltap
+  real(8), parameter :: deltap = 5.0 ! Testing deltap
 
-  integer :: k , ktop , kbot , ids , kclth , ikh , irec
-  integer :: istat , ncid
-  integer , dimension(2) :: idims , istart , icount
-  integer , dimension(5) :: ivars
+  integer :: k, ktop, kbot, ids, kclth, ikh, irec
+  integer :: istat, ncid
+  integer, dimension(2) :: idims, istart, icount
+  integer, dimension(5) :: ivars
 
-  real(8) :: dp , ds , dxtemc , clfrcv , scalep , totcf , akclth
-  real(8) :: scalef , totcf_old
-  real(8) , dimension(1) :: helpme
+  real(8) :: dp, ds, dxtemc, clfrcv, scalep, totcf, akclth
+  real(8) :: scalef, totcf_old
+  real(8), dimension(1) :: helpme
 
   real(8) :: afracl = 0.250D0
   real(8) :: afracs = clfrcvmax
 
-  ! A coarse grid is 200 km size , a high resolution is 10 km
+  ! A coarse grid is 200 km size, a high resolution is 10 km
   real(8) :: dlargc = 200.0D0
   real(8) :: dsmalc = 10.0D0
 
-  real(8) , dimension(10) :: fixed_cld_profile
-  real(8) , dimension(10) :: cld_profile
-  real(8) , dimension(10) :: rnum
-  real(8) , dimension(nk) :: rcldfra
-  real(8) , dimension(nk) :: old_rcldfra
-  real(8) , dimension(nk) :: plevs
-  real(8) , dimension(nk) :: sigma
+  real(8), dimension(10) :: fixed_cld_profile
+  real(8), dimension(10) :: cld_profile
+  real(8), dimension(10) :: rnum
+  real(8), dimension(nk) :: rcldfra
+  real(8), dimension(nk) :: old_rcldfra
+  real(8), dimension(nk) :: plevs
+  real(8), dimension(nk) :: sigma
 
-  integer , parameter :: gun = 100
+  integer, parameter :: gun = 100
   integer :: nseed
-  character(len=256) :: fname , gname
+  character(len=256) :: fname, gname
   logical :: addnoise = .false.
   real :: cputime
-  integer , dimension(:) , allocatable :: iseed
+  integer, dimension(:), allocatable :: iseed
 
   if ( addnoise ) then
     ! Initialize a random number generator
@@ -68,11 +68,11 @@ program cumclouds
 
   plevs(nk) = 963.0D0
   call getsigma(sigma)
-  do k = 1 , nk
+  do k = 1, nk
     plevs(k) = sigma(k)*plevs(nk) + 50.0D0
   end do
 
-  do ids = 0 , nds
+  do ids = 0, nds
 
     write(fname,'(a,i0.4,a)') 'profile_', int(ds), '.nc'
     istat = nf90_create(fname,nf90_clobber,ncid)
@@ -86,7 +86,7 @@ program cumclouds
     istat = nf90_put_att(ncid,nf90_global,'ds',ds)
 
     ! This part is in mod_param :
-    !  For a given grid size , fix a Maximum Convective Cloud Cover
+    !  For a given grid size, fix a Maximum Convective Cloud Cover
     if ( ids == 0 ) then
       ds = 10.0D0
     else
@@ -106,8 +106,8 @@ program cumclouds
     ! Have them assume all possible ranges.
 
     irec = 1
-    do kbot = nk-2 , 4 , -1
-      do ktop = kbot-1 , 3 , -1
+    do kbot = nk-2, 4, -1
+      do ktop = kbot-1, 3, -1
 
         rcldfra(:) = 0.0D0
         old_rcldfra(:) = 0.0D0
@@ -131,7 +131,7 @@ program cumclouds
         ! and this was used:
         scalef = 0.5D0
 
-        do k = ktop , kbot
+        do k = ktop, kbot
           ikh = max(1,min(10,int((dble(k-ktop+1)/dble(kclth))*10.0D0)))
           ! The icumcloud = 2
           rcldfra(k) = cld_profile(ikh)*clfrcv*scalep
@@ -148,12 +148,12 @@ program cumclouds
         ! Compute the cloud fraction as seen by the radiative model
         totcf = 1.0D0
         totcf_old = 1.0D0
-        do k = 1 , nk
+        do k = 1, nk
           totcf = totcf * ( 1.0D0 - rcldfra(k) )
           totcf_old = totcf_old * ( 1.0D0 - old_rcldfra(k) )
         end do
         totcf = 1.0D0 - totcf
-        write(gun,'(i4,3f11.6)') kclth , dp , totcf , totcf_old
+        write(gun,'(i4,3f11.6)') kclth, dp, totcf, totcf_old
         istart(1) = irec
         icount(1) = 1
         helpme(1) = totcf
@@ -171,7 +171,7 @@ program cumclouds
 
     subroutine getsigma(sigma)
       implicit none
-      real(8) , intent(out) , dimension(:) :: sigma
+      real(8), intent(out), dimension(:) :: sigma
       integer :: kz
       kz = size(sigma)
       if ( kz == 14 ) then                      ! RegCM2

@@ -22,21 +22,21 @@ module mod_maputils
 
   private
 
-  public :: getcoord , corpar , mappar , anyprojparams , regcm_projection
+  public :: getcoord, corpar, mappar, anyprojparams, regcm_projection
 
   contains
 
   subroutine getcoord(pjpara,lon,lat,pj,jx,iy)
     implicit none
-    type(anyprojparams) , intent(in) :: pjpara
-    type(regcm_projection) , intent(out) :: pj
-    integer(ik4) , intent(in) :: jx , iy
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: lat , lon
-    integer :: i , j
+    type(anyprojparams), intent(in) :: pjpara
+    type(regcm_projection), intent(out) :: pj
+    integer(ik4), intent(in) :: jx, iy
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lat, lon
+    integer :: i, j
 
     call pj%initialize(pjpara)
-    do i = 1 , iy
-      do j = 1 , jx
+    do i = 1, iy
+      do j = 1, jx
         call pj%ijll(real(j,rkx),real(i,rkx),lat(j,i),lon(j,i))
       end do
     end do
@@ -44,16 +44,16 @@ module mod_maputils
 
   subroutine corpar(lat,coriol)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: lat
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: coriol
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: coriol
     coriol = real(eomeg2*sin(lat*degrad),rkx)
   end subroutine corpar
 
   subroutine mappar(pj,xlat,xlon,mapf)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: mapf
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: mapf
     call pj%mapfac(xlat,xlon,mapf)
   end subroutine mappar
 

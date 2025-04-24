@@ -27,7 +27,7 @@ MODULE MO_SIMPLE_PLUMES
 
   IMPLICIT NONE
 
-  integer , parameter :: wp  = selected_real_kind(2*precision(1.0))
+  integer, parameter :: wp  = selected_real_kind(2*precision(1.0))
 
   INTEGER, PARAMETER ::                        &
        nplumes   = 9                          ,& !< Number of plumes
@@ -69,7 +69,7 @@ CONTAINS
   !
   SUBROUTINE sp_setup(history,scenario)
     IMPLICIT NONE
-    CHARACTER(LEN=*) , INTENT(IN) :: history , scenario
+    CHARACTER(LEN=*), INTENT(IN) :: history, scenario
     !
     ! ----------
     !
@@ -86,7 +86,7 @@ CONTAINS
     !
     ! read dimensions and make sure file conforms to expected size
     !
-    iret = nf90_inq_dimid(ncid, "plume_number"  , DimId)
+    iret = nf90_inq_dimid(ncid, "plume_number" , DimId)
     iret = nf90_inquire_dimension(ncid, DimId, len = xdmy)
     IF (xdmy /= nplumes) STOP 'NetCDF improperly dimensioned -- plume_number'
 
@@ -94,11 +94,11 @@ CONTAINS
     iret = nf90_inquire_dimension(ncid, DimId, len = xdmy)
     IF (xdmy /= nfeatures) STOP 'NetCDF improperly dimensioned -- plume_feature'
 
-    iret = nf90_inq_dimid(ncid, "year_fr"   , DimId)
+    iret = nf90_inq_dimid(ncid, "year_fr"  , DimId)
     iret = nf90_inquire_dimension(ncid, DimID, len = xdmy)
     IF (xdmy /= ntimes) STOP 'NetCDF improperly dimensioned -- year_fr'
 
-    iret = nf90_inq_dimid(ncid, "years"   , DimId)
+    iret = nf90_inq_dimid(ncid, "years"  , DimId)
     iret = nf90_inquire_dimension(ncid, DimID, len = xdmy)
     IF (xdmy /= nyears) STOP 'NetCDF improperly dimensioned -- years'
     !
@@ -110,52 +110,52 @@ CONTAINS
     iret = nf90_inq_varid(ncid, "plume_lon", VarId)
     iret = nf90_get_var(ncid, VarID, plume_lon(:), start=(/1/),count=(/nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lon'
-    iret = nf90_inq_varid(ncid, "beta_a"   , VarId)
-    iret = nf90_get_var(ncid, VarID, beta_a(:)   , start=(/1/),count=(/nplumes/))
+    iret = nf90_inq_varid(ncid, "beta_a"  , VarId)
+    iret = nf90_get_var(ncid, VarID, beta_a(:)  , start=(/1/),count=(/nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading beta_a'
-    iret = nf90_inq_varid(ncid, "beta_b"   , VarId)
-    iret = nf90_get_var(ncid, VarID, beta_b(:)   , start=(/1/),count=(/nplumes/))
+    iret = nf90_inq_varid(ncid, "beta_b"  , VarId)
+    iret = nf90_get_var(ncid, VarID, beta_b(:)  , start=(/1/),count=(/nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading beta_b'
-    iret = nf90_inq_varid(ncid, "aod_spmx" , VarId)
-    iret = nf90_get_var(ncid, VarID, aod_spmx(:)  , start=(/1/),count=(/nplumes/))
+    iret = nf90_inq_varid(ncid, "aod_spmx", VarId)
+    iret = nf90_get_var(ncid, VarID, aod_spmx(:) , start=(/1/),count=(/nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading aod_spmx'
-    iret = nf90_inq_varid(ncid, "aod_fmbg" , VarId)
-    iret = nf90_get_var(ncid, VarID, aod_fmbg(:)  , start=(/1/),count=(/nplumes/))
+    iret = nf90_inq_varid(ncid, "aod_fmbg", VarId)
+    iret = nf90_get_var(ncid, VarID, aod_fmbg(:) , start=(/1/),count=(/nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading aod_fmbg'
-    iret = nf90_inq_varid(ncid, "ssa550"   , VarId)
-    iret = nf90_get_var(ncid, VarID, ssa550(:)  , start=(/1/),count=(/nplumes/))
+    iret = nf90_inq_varid(ncid, "ssa550"  , VarId)
+    iret = nf90_get_var(ncid, VarID, ssa550(:) , start=(/1/),count=(/nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading ssa550'
-    iret = nf90_inq_varid(ncid, "asy550"   , VarId)
-    iret = nf90_get_var(ncid, VarID, asy550(:)  , start=(/1/),count=(/nplumes/))
+    iret = nf90_inq_varid(ncid, "asy550"  , VarId)
+    iret = nf90_get_var(ncid, VarID, asy550(:) , start=(/1/),count=(/nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading asy550'
-    iret = nf90_inq_varid(ncid, "angstrom" , VarId)
+    iret = nf90_inq_varid(ncid, "angstrom", VarId)
     iret = nf90_get_var(ncid, VarID, angstrom(:), start=(/1/),count=(/nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading angstrom'
 
-    iret = nf90_inq_varid(ncid, "sig_lat_W"     , VarId)
-    iret = nf90_get_var(ncid, VarID, sig_lat_W(:,:)    , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_inq_varid(ncid, "sig_lat_W"    , VarId)
+    iret = nf90_get_var(ncid, VarID, sig_lat_W(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lat_W'
-    iret = nf90_inq_varid(ncid, "sig_lat_E"     , VarId)
-    iret = nf90_get_var(ncid, VarID, sig_lat_E(:,:)    , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_inq_varid(ncid, "sig_lat_E"    , VarId)
+    iret = nf90_get_var(ncid, VarID, sig_lat_E(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lat_E'
-    iret = nf90_inq_varid(ncid, "sig_lon_E"     , VarId)
-    iret = nf90_get_var(ncid, VarID, sig_lon_E(:,:)    , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_inq_varid(ncid, "sig_lon_E"    , VarId)
+    iret = nf90_get_var(ncid, VarID, sig_lon_E(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lon_E'
-    iret = nf90_inq_varid(ncid, "sig_lon_W"     , VarId)
-    iret = nf90_get_var(ncid, VarID, sig_lon_W(:,:)    , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_inq_varid(ncid, "sig_lon_W"    , VarId)
+    iret = nf90_get_var(ncid, VarID, sig_lon_W(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lon_W'
-    iret = nf90_inq_varid(ncid, "theta"         , VarId)
-    iret = nf90_get_var(ncid, VarID, theta(:,:)        , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_inq_varid(ncid, "theta"        , VarId)
+    iret = nf90_get_var(ncid, VarID, theta(:,:)       , start=(/1,1/),count=(/nfeatures,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading theta'
-    iret = nf90_inq_varid(ncid, "ftr_weight"    , VarId)
-    iret = nf90_get_var(ncid, VarID, ftr_weight(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_inq_varid(ncid, "ftr_weight"   , VarId)
+    iret = nf90_get_var(ncid, VarID, ftr_weight(:,:)  , start=(/1,1/),count=(/nfeatures,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lat'
-    iret = nf90_inq_varid(ncid, "year_weight"   , VarId)
+    iret = nf90_inq_varid(ncid, "year_weight"  , VarId)
     iret = nf90_get_var(ncid, VarID, temp, start=(/1,1/),count=(/nyears,nplumes/))
     year_weight(1:165,1:nplumes) = temp(1:165,1:nplumes)
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
-    iret = nf90_inq_varid(ncid, "ann_cycle"     , VarId)
-    iret = nf90_get_var(ncid, VarID, ann_cycle(:,:,:)  , start=(/1,1,1/),count=(/nfeatures,ntimes,nplumes/))
+    iret = nf90_inq_varid(ncid, "ann_cycle"    , VarId)
+    iret = nf90_get_var(ncid, VarID, ann_cycle(:,:,:) , start=(/1,1,1/),count=(/nfeatures,ntimes,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading ann_cycle'
 
     iret = nf90_close(ncid)
@@ -165,7 +165,7 @@ CONTAINS
       write (0,*) 'Cannot find file '//trim(scenario)
       STOP 'NetCDF File not opened'
     END IF
-    iret = nf90_inq_varid(ncid, "year_weight"   , VarId)
+    iret = nf90_inq_varid(ncid, "year_weight"  , VarId)
     iret = nf90_get_var(ncid, VarID, temp, start=(/1,1/),count=(/nyears,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
     year_weight(166:nyears,1:nplumes) = temp(166:nyears,1:nplumes)
@@ -218,9 +218,9 @@ CONTAINS
   ! optical properties on a host models vertical grid.
   !
   SUBROUTINE sp_aop_profile                                                                           ( &
-       historic       ,scenario       ,nlevels        ,ncol           , &
-       lambda         ,oro            ,lon            ,lat            , &
-       year_fr        ,z              ,dz             ,dNovrN         , &
+       historic       ,scenario       ,nlevels        ,ncol          , &
+       lambda         ,oro            ,lon            ,lat           , &
+       year_fr        ,z              ,dz             ,dNovrN        , &
        aod_prof       ,ssa_prof       ,asy_prof       )
     IMPLICIT NONE
     !
@@ -241,9 +241,9 @@ CONTAINS
          dz(ncol,nlevels)           !< level thickness (difference between half levels) (m)
 
     REAL(kind=wp), INTENT(OUT) :: &
-         dNovrN(ncol)           , & !< anthropogenic increase in cloud drop number concentration (factor)
-         aod_prof(ncol,nlevels) , & !< profile of aerosol optical depth
-         ssa_prof(ncol,nlevels) , & !< profile of single scattering albedo
+         dNovrN(ncol)          , & !< anthropogenic increase in cloud drop number concentration (factor)
+         aod_prof(ncol,nlevels), & !< profile of aerosol optical depth
+         ssa_prof(ncol,nlevels), & !< profile of single scattering albedo
          asy_prof(ncol,nlevels)     !< profile of asymmetry parameter
 
     INTEGER                    :: iplume, icol, k
@@ -341,7 +341,7 @@ CONTAINS
         delta_lat   = lat(icol) - plume_lat(iplume)
         delta_lon   = lon(icol) - plume_lon(iplume)
         delta_lon_t = MERGE (260.0_wp, 180.0_wp, iplume == 1)
-        delta_lon   = MERGE ( delta_lon-SIGN(360.0_wp,delta_lon) , delta_lon , ABS(delta_lon) > delta_lon_t)
+        delta_lon   = MERGE ( delta_lon-SIGN(360.0_wp,delta_lon), delta_lon, ABS(delta_lon) > delta_lon_t)
 
         a_plume1  = 0.5_wp / (MERGE(sig_lon_E(1,iplume), sig_lon_W(1,iplume), delta_lon > 0)**2)
         b_plume1  = 0.5_wp / (MERGE(sig_lat_E(1,iplume), sig_lat_W(1,iplume), delta_lon > 0)**2)

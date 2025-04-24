@@ -24,12 +24,12 @@ module mod_clm_slakerest
   !
   subroutine SLakeRest( ncid, flag )
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid ! netcdf id
-    character(len=*) , intent(in) :: flag      ! 'read' or 'write'
-    type(gridcell_type) , pointer :: gptr ! pointer to gridcell derived subtype
-    type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
-    type(column_type) , pointer :: cptr   ! pointer to column derived subtype
-    type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
+    type(clm_filetype), intent(inout) :: ncid ! netcdf id
+    character(len=*), intent(in) :: flag      ! 'read' or 'write'
+    type(gridcell_type), pointer :: gptr ! pointer to gridcell derived subtype
+    type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
+    type(column_type), pointer :: cptr   ! pointer to column derived subtype
+    type(pft_type), pointer :: pptr      ! pointer to pft derived subtype
     logical :: lstart
 
     lstart = rcmtimer%integrating( )

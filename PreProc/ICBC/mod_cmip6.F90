@@ -49,11 +49,11 @@ module mod_cmip6
 
   private
 
-  public :: init_cmip6 , get_cmip6 , conclude_cmip6
+  public :: init_cmip6, get_cmip6, conclude_cmip6
 
   ! Pressure levels to interpolate to if dataset is on model sigma levels.
-  integer(ik4) , parameter :: nipl = 41
-  real(rkx) , target , dimension(nipl) :: fplev = &
+  integer(ik4), parameter :: nipl = 41
+  real(rkx), target, dimension(nipl) :: fplev = &
      [ 1030.0_rkx,1020.0_rkx,1010.0_rkx,1000.0_rkx, 975.0_rkx, 950.0_rkx, &
         925.0_rkx, 900.0_rkx, 875.0_rkx, 850.0_rkx, 825.0_rkx, 800.0_rkx, &
         775.0_rkx, 750.0_rkx, 700.0_rkx, 650.0_rkx, 600.0_rkx, 550.0_rkx, &
@@ -62,43 +62,43 @@ module mod_cmip6
         100.0_rkx,  70.0_rkx,  50.0_rkx,  30.0_rkx,  20.0_rkx,  10.0_rkx, &
           7.0_rkx,   5.0_rkx,   3.0_rkx,   2.0_rkx,   1.0_rkx ]
 
-  type(cmip6_2d_var) , pointer :: orog => null( )
-  type(cmip6_2d_var) , pointer :: ps => null( )
-  type(cmip6_3d_var) , pointer :: ta => null( )
-  type(cmip6_3d_var) , pointer :: qa => null( )
-  type(cmip6_3d_var) , pointer :: ua => null( )
-  type(cmip6_3d_var) , pointer :: va => null( )
-  type(cmip6_3d_var) , pointer :: zg => null( )
+  type(cmip6_2d_var), pointer :: orog => null( )
+  type(cmip6_2d_var), pointer :: ps => null( )
+  type(cmip6_3d_var), pointer :: ta => null( )
+  type(cmip6_3d_var), pointer :: qa => null( )
+  type(cmip6_3d_var), pointer :: ua => null( )
+  type(cmip6_3d_var), pointer :: va => null( )
+  type(cmip6_3d_var), pointer :: zg => null( )
 
-  real(rkx) , dimension(:) , pointer :: sigmar
-  real(rkx) :: pss , pst
+  real(rkx), dimension(:), pointer, contiguous :: sigmar
+  real(rkx) :: pss, pst
 
-  real(rkx) , dimension(:,:,:) , pointer :: pa_in , zp_in
-  real(rkx) , dimension(:,:,:) , pointer :: tvar
-  real(rkx) , dimension(:,:,:) , pointer :: uvar
-  real(rkx) , dimension(:,:,:) , pointer :: vvar
-  real(rkx) , dimension(:,:,:) , pointer :: qvar
-  real(rkx) , dimension(:,:,:) , pointer :: zvar
+  real(rkx), dimension(:,:,:), pointer, contiguous :: pa_in, zp_in
+  real(rkx), dimension(:,:,:), pointer, contiguous :: tvar
+  real(rkx), dimension(:,:,:), pointer, contiguous :: uvar
+  real(rkx), dimension(:,:,:), pointer, contiguous :: vvar
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qvar
+  real(rkx), dimension(:,:,:), pointer, contiguous :: zvar
 
-  real(rkx) , dimension(:,:,:) , pointer :: tah
-  real(rkx) , dimension(:,:,:) , pointer :: uah
-  real(rkx) , dimension(:,:,:) , pointer :: vah
-  real(rkx) , dimension(:,:,:) , pointer :: qah
-  real(rkx) , dimension(:,:,:) , pointer :: zgh
+  real(rkx), dimension(:,:,:), pointer, contiguous :: tah
+  real(rkx), dimension(:,:,:), pointer, contiguous :: uah
+  real(rkx), dimension(:,:,:), pointer, contiguous :: vah
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qah
+  real(rkx), dimension(:,:,:), pointer, contiguous :: zgh
 
-  real(rkx) , pointer , dimension(:,:,:) :: dv , du
-  real(rkx) , pointer , dimension(:,:,:) :: hv , hu
-  real(rkx) , pointer , dimension(:,:) :: topou , topov
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: dv, du
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hv, hu
+  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
 
   integer(ik4) :: nkin
 
-  logical , parameter :: only_coord = .true.
+  logical, parameter :: only_coord = .true.
 
   contains
 
     subroutine init_cmip6(idate)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
+      type(rcm_time_and_date), intent(in) :: idate
       integer(ik4) :: k
       if ( dattyp == 'PMIP4' ) then
         select case (pmip4_model)
@@ -146,7 +146,7 @@ module mod_cmip6
             call read_3d_mpilr(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'pmip4:mpilr:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -207,7 +207,7 @@ module mod_cmip6
             call read_3d_ipsllr(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'pmip4:ipsllr:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -273,7 +273,7 @@ module mod_cmip6
             call read_3d_mpilr(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:mpilr:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -334,7 +334,7 @@ module mod_cmip6
             call read_3d_mpihr(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:mpihr:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -395,14 +395,14 @@ module mod_cmip6
             call read_3d_hadmm(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:hadmm:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
             pst = fplev(nkin)/10.0_rkx
             call getmem3d(pa_in,1,ta%ni,1,ta%nj,1,ta%nk,'cmip6:hadmm:pa_in')
             call getmem3d(zp_in,1,ta%ni,1,ta%nj,1,ta%nk,'cmip6:hadmm:zp_in')
-            do k = 1 , ta%nk
+            do k = 1, ta%nk
               zp_in(:,:,k) = ta%vcoord%ak(k) + ta%vcoord%bk(k) * orog%var(:,:)
             end do
             call getmem3d(tvar,1,ta%ni,1,ta%nj,1,nkin,'cmip6:hadmm:tvar')
@@ -459,7 +459,7 @@ module mod_cmip6
             call read_3d_cnrm(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:cnrm:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -520,7 +520,7 @@ module mod_cmip6
             call read_3d_canesm(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:canesm:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -581,7 +581,7 @@ module mod_cmip6
             call read_3d_miroc6(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:miroc6:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -642,7 +642,7 @@ module mod_cmip6
             call read_3d_miresl(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:miresl:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -706,7 +706,7 @@ module mod_cmip6
             call read_3d_ecea(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:cnrm:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -767,7 +767,7 @@ module mod_cmip6
             call read_3d_cesm(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:cesm:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -831,7 +831,7 @@ module mod_cmip6
             call read_3d_cmcc(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:cmcc:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -892,7 +892,7 @@ module mod_cmip6
             call read_3d_normm(idate,qa,only_coord)
             nkin = nipl
             call getmem1d(sigmar,1,nkin,'cmip6:normm:sigmar')
-            do k = 1 , nkin
+            do k = 1, nkin
               sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
             end do
             pss = (fplev(1)-fplev(nkin))/10.0_rkx
@@ -932,8 +932,8 @@ module mod_cmip6
 
     subroutine get_cmip6(idate)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      integer(ik4) :: i , j , k
+      type(rcm_time_and_date), intent(in) :: idate
+      integer(ik4) :: i, j, k
 
       if ( dattyp == 'CMIP6' ) then
         select case (cmip6_model)
@@ -951,9 +951,9 @@ module mod_cmip6
             call read_3d_mpilr(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) + ta%vcoord%bk(k) * ps%var(i,j)
                 end do
               end do
@@ -987,9 +987,9 @@ module mod_cmip6
             call read_3d_mpihr(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) + ta%vcoord%bk(k) * ps%var(i,j)
                 end do
               end do
@@ -1023,9 +1023,9 @@ module mod_cmip6
             call read_3d_ecea(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) + ta%vcoord%bk(k) * ps%var(i,j)
                 end do
               end do
@@ -1088,9 +1088,9 @@ module mod_cmip6
             call read_3d_cnrm(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) + ta%vcoord%bk(k) * ps%var(i,j)
                 end do
               end do
@@ -1124,9 +1124,9 @@ module mod_cmip6
             call read_3d_canesm(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) + &
                      ta%vcoord%bk(k) * ps%var(i,j)
                 end do
@@ -1161,9 +1161,9 @@ module mod_cmip6
             call read_3d_miroc6(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) * ta%vcoord%p0 + &
                          ta%vcoord%bk(k) * ps%var(i,j)
                 end do
@@ -1198,9 +1198,9 @@ module mod_cmip6
             call read_3d_miresl(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) * ta%vcoord%p0 + &
                          ta%vcoord%bk(k) * ps%var(i,j)
                 end do
@@ -1235,9 +1235,9 @@ module mod_cmip6
             call read_3d_cmcc(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) * ta%vcoord%p0 + &
                          ta%vcoord%bk(k) * ps%var(i,j)
                 end do
@@ -1272,9 +1272,9 @@ module mod_cmip6
             call read_3d_cesm(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) * ta%vcoord%p0 + &
                          ta%vcoord%bk(k) * ps%var(i,j)
                 end do
@@ -1309,9 +1309,9 @@ module mod_cmip6
             call read_3d_normm(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) * ta%vcoord%p0 + &
                          ta%vcoord%bk(k) * ps%var(i,j)
                 end do
@@ -1351,9 +1351,9 @@ module mod_cmip6
             call read_3d_mpilr(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k) + ta%vcoord%bk(k) * ps%var(i,j)
                 end do
               end do
@@ -1387,9 +1387,9 @@ module mod_cmip6
             call read_3d_miresl(idate,qa)
 !$OMP END SECTIONS
             call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
-            do k = 1 , ta%nk
-              do j = 1 , ta%nj
-                do i = 1 , ta%ni
+            do k = 1, ta%nk
+              do j = 1, ta%nj
+                do i = 1, ta%ni
                   pa_in(i,j,k) = ta%vcoord%ak(k)+ta%vcoord%bk(k)*ps%var(i,j)
                 end do
               end do

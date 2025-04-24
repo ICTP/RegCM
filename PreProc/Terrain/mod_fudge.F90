@@ -22,40 +22,40 @@ module mod_fudge
 
   private
 
-  public :: lndfudge , texfudge , lakfudge
+  public :: lndfudge, texfudge, lakfudge
 
-  character(len=*) , parameter :: f99001 = '(132A1)'
+  character(len=*), parameter :: f99001 = '(132A1)'
 
   contains
 
   subroutine lndfudge(fudge,lndout,jx,iy,char_lnd)
     implicit none
     character(len=*) :: char_lnd
-    logical :: fudge , there
-    integer(ik4) :: iy , jx
-    real(rkx) , dimension(jx,iy) :: lndout
-    intent (in) char_lnd , fudge , iy , jx
+    logical :: fudge, there
+    integer(ik4) :: iy, jx
+    real(rkx), dimension(jx,iy) :: lndout
+    intent (in) char_lnd, fudge, iy, jx
     intent (inout) lndout
     integer(ik4) :: iunit
-    integer(ik4) :: i , j
-    character(len=1) , dimension(jx,iy) :: ch
+    integer(ik4) :: i, j
+    character(len=1), dimension(jx,iy) :: ch
 
     if ( fudge ) then
       inquire (file=char_lnd,exist=there)
       if ( .not.there ) then
         write(stderr,*) 'Fudging requested for landuse but '// &
                  ' missing input ascii file ',trim(char_lnd)
-        write(stderr,*)  'ERROR OPENING ' , char_lnd ,  &
+        write(stderr,*)  'ERROR OPENING ', char_lnd,  &
             ' FILE:  FILE DOES NOT EXIST'
         call die('lndfudge')
       endif
       open (newunit=iunit,file=char_lnd,form='formatted')
-      do i = iy , 1 , -1
+      do i = iy, 1, -1
         read (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
-      do i = 1 , iy
-        do j = 1 , jx
+      do i = 1, iy
+        do j = 1, jx
           if ( ch(j,i) == ' ' ) then
             lndout(j,i) = 15.
           else if ( ch(j,i) == '1' ) then
@@ -111,8 +111,8 @@ module mod_fudge
         end do
       end do
     else
-      do i = 1 , iy
-        do j = 1 , jx
+      do i = 1, iy
+        do j = 1, jx
           if ( nint(lndout(j,i)) == 15 .or. nint(lndout(j,i)) == 0 ) then
             ch(j,i) = ' '
           else if ( nint(lndout(j,i)) == 1 ) then
@@ -158,14 +158,14 @@ module mod_fudge
           else if ( nint(lndout(j,i)) == 22 ) then
             ch(j,i) = 'M'
           else
-            write (stderr,*) 'LANDUSE MASK' , nint(lndout(j,i)) ,        &
+            write (stderr,*) 'LANDUSE MASK', nint(lndout(j,i)),        &
                         'exceed the limit'
             call die('lndfudge')
           end if
         end do
       end do
       open (newunit=iunit,file=char_lnd,form='formatted',err=100)
-      do i = iy , 1 , -1
+      do i = iy, 1, -1
         write (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
@@ -181,31 +181,31 @@ module mod_fudge
     implicit none
     character(len=*) :: char_tex
     logical :: fudge, there
-    integer(ik4) :: iy , jx
-    real(rkx) , dimension(jx,iy) :: texout , lnduse
-    intent (in) char_tex , fudge , iy , jx
-    intent (inout) texout , lnduse
-    integer(ik4) :: i , j
+    integer(ik4) :: iy, jx
+    real(rkx), dimension(jx,iy) :: texout, lnduse
+    intent (in) char_tex, fudge, iy, jx
+    intent (inout) texout, lnduse
+    integer(ik4) :: i, j
     integer(ik4) :: iunit
     real(rkx) :: oval
-    character(len=1) , dimension(jx,iy) :: ch
+    character(len=1), dimension(jx,iy) :: ch
 
     if ( fudge ) then
       inquire (file=char_tex,exist=there)
       if ( .not.there ) then
         write(stderr,*) 'Fudging requested for texture but '// &
                  'missing input ascii file ',trim(char_tex)
-        write(stderr,*)  'ERROR OPENING ' , char_tex ,   &
+        write(stderr,*)  'ERROR OPENING ', char_tex,   &
                  ' FILE:  FILE DOES NOT EXIST'
         call die('texfudge')
       endif
       open (newunit=iunit,file=char_tex,form='formatted')
-      do i = iy , 1 , -1
+      do i = iy, 1, -1
         read (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
-      do i = 1 , iy
-        do j = 1 , jx
+      do i = 1, iy
+        do j = 1, jx
           oval = texout(j,i)
           if ( ch(j,i)==' ' ) then
             texout(j,i) = 14.
@@ -263,8 +263,8 @@ module mod_fudge
         end do
       end do
     else
-      do i = 1 , iy
-        do j = 1 , jx
+      do i = 1, iy
+        do j = 1, jx
           if ( nint(texout(j,i)) == 14 ) then
             ch(j,i) = ' '
           else if ( nint(texout(j,i)) == 1 ) then
@@ -300,14 +300,14 @@ module mod_fudge
           else if ( nint(texout(j,i)) == 17 ) then
             ch(j,i) = 'H'
           else
-            write (stderr,*) 'TEXTURE TYPE' , nint(texout(j,i)) ,          &
+            write (stderr,*) 'TEXTURE TYPE', nint(texout(j,i)),          &
                         'exceed the limit'
             call die('texfudge')
           end if
         end do
       end do
       open (newunit=iunit,file=char_tex,form='formatted',err=100)
-      do i = iy , 1 , -1
+      do i = iy, 1, -1
         write (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
@@ -321,31 +321,31 @@ module mod_fudge
 
   subroutine lakfudge(fudge,dpth,lnd,jx,iy,char_lak)
     implicit none
-    character(len=*) , intent(in) :: char_lak
-    logical , intent(in) :: fudge
-    integer(ik4) , intent(in) :: iy , jx
-    real(rkx) , dimension(jx,iy) , intent(inout) :: dpth , lnd
+    character(len=*), intent(in) :: char_lak
+    logical, intent(in) :: fudge
+    integer(ik4), intent(in) :: iy, jx
+    real(rkx), dimension(jx,iy), intent(inout) :: dpth, lnd
     logical :: there
-    integer(ik4) :: i , j
+    integer(ik4) :: i, j
     integer(ik4) :: iunit
-    character(len=1) , dimension(jx,iy) :: ch
+    character(len=1), dimension(jx,iy) :: ch
 
     if ( fudge ) then
       inquire (file=char_lak,exist=there)
       if ( .not.there ) then
         write(stderr,*) 'Fudging requested for lake but '// &
                  'missing input ascii file ',trim(char_lak)
-        write(stderr,*)  'ERROR OPENING ' , char_lak ,  &
+        write(stderr,*)  'ERROR OPENING ', char_lak,  &
             ' FILE:  FILE DOES NOT EXIST'
         call die('lakfudge')
       endif
       open (newunit=iunit,file=char_lak,form='formatted')
-      do i = iy , 1 , -1
+      do i = iy, 1, -1
         read (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
-      do i = 1 , iy
-        do j = 1 , jx
+      do i = 1, iy
+        do j = 1, jx
           if (lnd(j,i) > 13.5 .and. lnd(j,i) < 14.5) then
             if ( ch(j,i)/='L' ) then
               dpth(j,i) = 0.0
@@ -355,8 +355,8 @@ module mod_fudge
         end do
       end do
     else
-      do i = 1 , iy
-        do j = 1 , jx
+      do i = 1, iy
+        do j = 1, jx
           if ( dpth(j,i) > 0.0 ) then
             if (lnd(j,i) > 13.5 .and. lnd(j,i) < 14.5) then
               ch(j,i) = 'L'
@@ -369,7 +369,7 @@ module mod_fudge
         end do
       end do
       open (newunit=iunit,file=char_lak,form='formatted',err=100)
-      do i = iy , 1 , -1
+      do i = iy, 1, -1
         write (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)

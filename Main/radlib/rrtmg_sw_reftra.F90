@@ -140,7 +140,7 @@
       real(kind=rb), parameter :: zsr3 = sqrt(3._rb)
       real(kind=rb), parameter :: zwcrit = 0.9999995_rb
 
-      integer(kind=im) , parameter :: kmodts = 2
+      integer(kind=im), parameter :: kmodts = 2
 
 !     ------------------------------------------------------------------
 
@@ -199,7 +199,7 @@
 ! Homogeneous reflectance and transmittance,
 ! collimated beam
 
-               ze1 = min ( zto1 / prmuz , 500._rb)
+               ze1 = min ( zto1 / prmuz, 500._rb)
 !               ze2 = exp( -ze1 )
 
 ! Use exponential lookup table for transmittance, or expansion of
@@ -261,7 +261,7 @@
 ! Homogeneous reflectance and transmittance
 
                ze1 = min ( zrk * zto1, 500._rb)
-               ze2 = min ( zto1 / prmuz , 500._rb)
+               ze2 = min ( zto1 / prmuz, 500._rb)
 !
 ! Original
 !              zep1 = exp( ze1 )

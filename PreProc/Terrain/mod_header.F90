@@ -23,23 +23,23 @@ module mod_header
   subroutine header(myid)
   implicit none
 !
-  integer(ik4) , intent(in) :: myid
+  integer(ik4), intent(in) :: myid
 !
   integer(ik4) :: hostnm
   integer(ik4) :: ihost, idir
   integer(ik4) :: getcwd
-  integer(ik4) , dimension(8) :: tval
+  integer(ik4), dimension(8) :: tval
   character (len=32) :: cdata='?'
   character (len=5) :: czone='?'
   character (len=32) :: hostname='?'
   character (len=32) :: user='?'
   character (len=128) :: directory='?'
-  character (len=*) , parameter :: f99001 = &
+  character (len=*), parameter :: f99001 = &
     '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
   if (myid.eq.1)  then
     write (stdout, "(/,2x,'This is Terrain part of RegCM package version 5 ')")
-    write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
+    write (stdout,f99001)  GIT_VER, __DATE__, __TIME__
 
 #ifdef IBM
     hostname='ibm platform '

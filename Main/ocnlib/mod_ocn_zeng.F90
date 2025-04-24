@@ -23,9 +23,9 @@ module mod_ocn_zeng
     use mod_constants
     use mod_service
     use mod_ocn_internal
-    use mod_runparams , only : iocnrough , iocnzoq , syncro_cpl
-    use mod_runparams , only : iocncpl , iwavcpl
-    use mod_runparams , only : zomax , ustarmax
+    use mod_runparams, only : iocnrough, iocnzoq, syncro_cpl
+    use mod_runparams, only : iocncpl, iwavcpl
+    use mod_runparams, only : zomax, ustarmax
 
     implicit none
 
@@ -35,57 +35,57 @@ module mod_ocn_zeng
 
     ! Module Constants
 
-    real(rkx) , parameter :: minz = 1.0e-6_rkx
-    real(rkx) , parameter :: a1 = 0.28_rkx
-    real(rkx) , parameter :: a2 = 0.27_rkx
-    real(rkx) , parameter :: a3 = 0.45_rkx
-    real(rkx) , parameter :: b1 = 71.5_rkx
-    real(rkx) , parameter :: b2 = 2.8_rkx
-    real(rkx) , parameter :: b3 = 0.07_rkx
-    real(rkx) , parameter :: alphaw = 0.207e-06_rkx
-    real(rkx) , parameter :: nuw = 1.004e-06_rkx
-    real(rkx) , parameter :: kw = 0.60_rkx
-    real(rkx) , parameter :: nu = 0.3_rkx
-    real(rkx) , parameter :: d = 3.0_rkx ! reference depth for bulk SST
+    real(rkx), parameter :: minz = 1.0e-6_rkx
+    real(rkx), parameter :: a1 = 0.28_rkx
+    real(rkx), parameter :: a2 = 0.27_rkx
+    real(rkx), parameter :: a3 = 0.45_rkx
+    real(rkx), parameter :: b1 = 71.5_rkx
+    real(rkx), parameter :: b2 = 2.8_rkx
+    real(rkx), parameter :: b3 = 0.07_rkx
+    real(rkx), parameter :: alphaw = 0.207e-06_rkx
+    real(rkx), parameter :: nuw = 1.004e-06_rkx
+    real(rkx), parameter :: kw = 0.60_rkx
+    real(rkx), parameter :: nu = 0.3_rkx
+    real(rkx), parameter :: d = 3.0_rkx ! reference depth for bulk SST
 
     ! nu / thermal diffusivity
-    real(rkx) , parameter :: pr = 0.71_rkx   ! Prandtl number
+    real(rkx), parameter :: pr = 0.71_rkx   ! Prandtl number
 
-    real(rkx) , parameter :: z10 = 10.0_rkx    ! m  (reference height)
-    real(rkx) , parameter :: zbeta = 1.0_rkx   ! -  (in computing W_*)
+    real(rkx), parameter :: z10 = 10.0_rkx    ! m  (reference height)
+    real(rkx), parameter :: zbeta = 1.0_rkx   ! -  (in computing W_*)
 
-    real(rkx) , parameter :: zetat = 0.465_rkx
-    real(rkx) , parameter :: zetam = 1.574_rkx
-    real(rkx) , parameter :: minw = 0.1_rkx
+    real(rkx), parameter :: zetat = 0.465_rkx
+    real(rkx), parameter :: zetam = 1.574_rkx
+    real(rkx), parameter :: minw = 0.1_rkx
 
-    real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
-    real(rkx) , parameter :: tol = missing_r8/2.0_rkx
-    logical :: flag1 , flag2
-    logical , parameter :: ecmwf_ocnrough = .false.
+    real(rkx), parameter :: missing_r8 = 1.0e20_rkx
+    real(rkx), parameter :: tol = missing_r8/2.0_rkx
+    logical :: flag1, flag2
+    logical, parameter :: ecmwf_ocnrough = .false.
 
     contains
     !
-    ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
+    ! Implement Zeng and Beljaars, GRL, 2005, ZB2005
     ! Account for SST diurnal evoluation warm layer/ skin temperature scheme
     !
     subroutine zengocndrv
       implicit none
       integer(ik4) :: i
-      real(rkx) :: wt1 , wt2
-      real(rkx) :: t995 , q995 , uv995 , z995
-      real(rkx) :: dqh , dth , facttq , lh , qs , sh , zo , es , &
-            tau , tsurf , ustar , uv10 , zi , cd , dthv , zq ,   &
-            zh , zu , obu , qstar , xdens , th , thv , thvstar , &
-            tstar , um , visa , zot , wc , zeta , zoq , tha ,    &
-            cpm , rlv , rs , rd , td , tdelta , delta , q , fd , &
-            ustarw , l , phidl , aa , bb , lamb , dtstend , fs , &
-            dts , tskin_new , fua
-!     real(rkx) :: lwds , lwus
+      real(rkx) :: wt1, wt2
+      real(rkx) :: t995, q995, uv995, z995
+      real(rkx) :: dqh, dth, facttq, lh, qs, sh, zo, es, &
+            tau, tsurf, ustar, uv10, zi, cd, dthv, zq,   &
+            zh, zu, obu, qstar, xdens, th, thv, thvstar, &
+            tstar, um, visa, zot, wc, zeta, zoq, tha,    &
+            cpm, rlv, rs, rd, td, tdelta, delta, q, fd, &
+            ustarw, l, phidl, aa, bb, lamb, dtstend, fs, &
+            dts, tskin_new, fua
+!     real(rkx) :: lwds, lwus
       integer(ik4) :: nconv
 
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'zengocndrv'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
 
@@ -255,7 +255,7 @@ module mod_ocn_zeng
             ! First estimate of ustar
             if ( flag2 ) then  ! We don't have ustar from the wave model
               ustar = um/25.0_rkx
-              do nconv = 1 , 2
+              do nconv = 1, 2
                 zo = ocnrough(ustar,um10(i),wc,visa,iocnrough)
                 ustar = vonkar*um/log(1.0_rkx+zu/zo)
               end do
@@ -279,7 +279,7 @@ module mod_ocn_zeng
           !
           ! main iterations (2-10 iterations would be fine)
           !
-          do nconv = 1 , 5
+          do nconv = 1, 5
             call roughness(zo,ustar,visa,zot,zoq,iocnzoq)
             !
             ! wind
@@ -338,7 +338,7 @@ module mod_ocn_zeng
               zeta = max(-100.0_rkx,min(zeta,-minz))
             end if
             if ( .not. flag2 ) exit
-            ! Recompute ustar , zo
+            ! Recompute ustar, zo
             ustar = vonkar*um/ram1(i)
             zo = ocnrough(ustar,um10(i),wc,visa,iocnrough)
           end do
@@ -372,7 +372,7 @@ module mod_ocn_zeng
         end if
         if ( ldcsst ) then
           ! time step considered for the integration of prognostic skin
-          ! temperature , equal to BATS time step
+          ! temperature, equal to BATS time step
           ! Init local variables
           sst(i) = tgb(i)
           delta = deltas(i)
@@ -492,8 +492,8 @@ module mod_ocn_zeng
     pure real(rkx) function psi(k,zeta)
 !$acc routine seq
       implicit none
-      integer(ik4) , intent(in) :: k
-      real(rkx) , intent(in) :: zeta
+      integer(ik4), intent(in) :: k
+      real(rkx), intent(in) :: zeta
       real(rkx) :: chik
       chik = (d_one-16.0_rkx*zeta)**0.25_rkx
       if ( k == 1 ) then
@@ -510,10 +510,10 @@ module mod_ocn_zeng
     pure subroutine roughness(zo,ustar,visa,zot,zoq,izoq)
 !$acc routine seq
       implicit none
-      real(rkx) , intent (in) :: zo , ustar , visa
-      integer(ik4) , intent(in) :: izoq
-      real(rkx) , intent (out) :: zoq , zot
-      real(rkx) :: re , xtq , rt , rq
+      real(rkx), intent (in) :: zo, ustar, visa
+      integer(ik4), intent(in) :: izoq
+      real(rkx), intent (out) :: zoq, zot
+      real(rkx) :: re, xtq, rt, rq
       re = (ustar*zo)/visa
       if ( izoq == 2 ) then
         zoq = min(4.0e-4_rkx, 2.0e-4_rkx*re**(-3.3_rkx))
@@ -562,9 +562,9 @@ module mod_ocn_zeng
     pure real(rkx) function ocnrough(ustar,u3d,wc,visa,irough) result(zo)
 !$acc routine seq
       implicit none
-      real(rkx) , intent (in) :: u3d , wc , visa , ustar
-      integer(ik4) , intent(in) :: irough
-      real(rkx) :: wage , charnockog , alph
+      real(rkx), intent (in) :: u3d, wc, visa, ustar
+      integer(ik4), intent(in) :: irough
+      real(rkx) :: wage, charnockog, alph
       if ( irough == 0 ) then
         zo = szo(visa,ustar)
       else if ( irough == 1 ) then
@@ -609,9 +609,9 @@ module mod_ocn_zeng
     pure real(rkx) function szo(visa,ustar)
 !$acc routine seq
       implicit none
-      real(rkx) , intent(in) :: visa , ustar
-      real(rkx) , parameter :: alpham = 0.11_rkx
-      real(rkx) , parameter :: alphch = 0.018_rkx
+      real(rkx), intent(in) :: visa, ustar
+      real(rkx), parameter :: alpham = 0.11_rkx
+      real(rkx), parameter :: alphch = 0.018_rkx
       szo = alpham*visa/ustar + alphch * ustar**2 * regrav
     end function szo
 
@@ -625,13 +625,13 @@ module mod_ocn_zeng
     pure subroutine zocd(visa,u,z,zo,cd)
 !$acc routine seq
       implicit none
-      real(rkx) , intent(in) :: visa , u , z
-      real(rkx) , intent(out) :: zo , cd
-      integer(ik4) , parameter :: p = -12
-      real(rkx) , parameter :: alpham = 0.11_rkx
-      real(rkx) , parameter :: alphch = 0.018_rkx
-      real(rkx) :: unv , r , lna
-      real(rkx) :: bnv , baln , bnfit
+      real(rkx), intent(in) :: visa, u, z
+      real(rkx), intent(out) :: zo, cd
+      integer(ik4), parameter :: p = -12
+      real(rkx), parameter :: alpham = 0.11_rkx
+      real(rkx), parameter :: alphch = 0.018_rkx
+      real(rkx) :: unv, r, lna
+      real(rkx) :: bnv, baln, bnfit
       ! No iteration
       unv = vonkar*max(u,minw)
       r = (z/(alpham*visa)) * unv                             ! Eq 15

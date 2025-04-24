@@ -22,22 +22,22 @@ module mod_stdio
 
   private
 
-  integer(ik4) , public , parameter :: stdin = input_unit
-  integer(ik4) , public , parameter :: stdout = output_unit
-  integer(ik4) , public , parameter :: stderr = error_unit
+  integer(ik4), public, parameter :: stdin = input_unit
+  integer(ik4), public, parameter :: stdout = output_unit
+  integer(ik4), public, parameter :: stderr = error_unit
 
-  integer(ik4) , parameter :: file_maxunit = 99
-  integer(ik4) , parameter :: file_minunit = 10
+  integer(ik4), parameter :: file_maxunit = 99
+  integer(ik4), parameter :: file_minunit = 10
 
-  logical , dimension(file_minunit:file_maxunit) :: unit_tag = .false.
+  logical, dimension(file_minunit:file_maxunit) :: unit_tag = .false.
 
-  public :: file_getunit , file_freeunit
+  public :: file_getunit, file_freeunit
 
   contains
 
     integer(ik4) function file_getunit(unitn)
       implicit none
-      integer(ik4) , optional , intent(in) :: unitn
+      integer(ik4), optional, intent(in) :: unitn
       integer(ik4) :: n
       logical :: isopened
       ! The "I want that unit" case
@@ -82,7 +82,7 @@ module mod_stdio
 
     subroutine file_freeunit(unitn)
       implicit none
-      integer(ik4) , intent(in) :: unitn
+      integer(ik4), intent(in) :: unitn
       if ( unit_tag(unitn) ) then
         close(unitn)
         unit_tag(unitn) = .false.

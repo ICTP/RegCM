@@ -25,37 +25,37 @@ module mod_grid
   use mod_domain
   use mod_nhinterp
   use mod_zita
-  use mod_dynparam , only : idynamic , base_state_pressure , logp_lrate
-  use mod_dynparam , only : mo_ztop
+  use mod_dynparam, only : idynamic, base_state_pressure, logp_lrate
+  use mod_dynparam, only : mo_ztop
   use mod_projections
 
   private
 
-  real(rkx) , public , pointer , dimension(:,:) :: xlat , xlon , dlat , dlon
-  real(rkx) , public , pointer , dimension(:,:) :: ulat , ulon , vlat , vlon
-  real(rkx) , public , pointer , dimension(:,:) :: topogm , mask , landuse
-  real(rkx) , public , pointer , dimension(:,:) :: msfx , msfd
-  real(rkx) , public , pointer , dimension(:,:) :: pa , tlayer , za
-  real(rkx) , public , pointer , dimension(:) :: sigmah
-  real(rkx) , public , pointer , dimension(:) :: sigmaf
-  real(rkx) , public , pointer , dimension(:) :: dsigma
-  real(rkx) , public , pointer , dimension(:,:,:) :: pr0, t0, rho0 , z0
-  real(rkx) , public , pointer , dimension(:,:) :: ps0
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: xlat, xlon, dlat, dlon
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: ulat, ulon, vlat, vlon
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: topogm, mask, landuse
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: msfx, msfd
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: pa, tlayer, za
+  real(rkx), public, pointer, contiguous, dimension(:) :: sigmah
+  real(rkx), public, pointer, contiguous, dimension(:) :: sigmaf
+  real(rkx), public, pointer, contiguous, dimension(:) :: dsigma
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: pr0, t0, rho0, z0
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: ps0
 
-  real(rkx) , public :: delx
-  integer(ik4) , public :: i0 , i1 , j0 , j1
-  real(rkx) , public :: lat0 , lat1 , lon0 , lon1 , ts0
+  real(rkx), public :: delx
+  integer(ik4), public :: i0, i1, j0, j1
+  real(rkx), public :: lat0, lat1, lon0, lon1, ts0
 
-  type(regcm_projection) , public :: pju , pjv , pjd
+  type(regcm_projection), public :: pju, pjv, pjd
 
-  public :: init_grid , init_hgrid
+  public :: init_grid, init_hgrid
 
   contains
 
   subroutine init_hgrid(nx,ny,nz)
     use mod_dynparam
     implicit none
-    integer(ik4) , intent(in) :: nx , ny , nz
+    integer(ik4), intent(in) :: nx, ny, nz
     call getmem2d(xlat,1,nx,1,ny,'mod_grid:xlat')
     call getmem2d(xlon,1,nx,1,ny,'mod_grid:xlon')
     call getmem2d(topogm,1,nx,1,ny,'mod_grid:topogm')
@@ -67,7 +67,7 @@ module mod_grid
   subroutine init_grid(nx,ny,nz)
     use mod_dynparam
     implicit none
-    integer(ik4) , intent(in) :: nx , ny , nz
+    integer(ik4), intent(in) :: nx, ny, nz
     call getmem2d(xlat,1,nx,1,ny,'mod_grid:xlat')
     call getmem2d(xlon,1,nx,1,ny,'mod_grid:xlon')
     if ( idynamic == 3 ) then
@@ -118,8 +118,8 @@ module mod_grid
     implicit none
     integer(ik4) :: incin
     character(len=256) :: fname
-    integer(ik4) :: i , j , k
-    real(rkx) , dimension(kz) :: zitah
+    integer(ik4) :: i, j, k
+    real(rkx), dimension(kz) :: zitah
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
     if ( idynamic == 2 ) then
@@ -127,7 +127,7 @@ module mod_grid
                        mask=mask,lndcat=landuse,msfx=msfx,msfd=msfd)
       call read_reference_surface_temp(incin,ts0)
       call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
-      do k = 1 , kz
+      do k = 1, kz
         sigmah(k) = d_half*(sigmaf(k+1)+sigmaf(k))
         dsigma(k) = (sigmaf(k+1)-sigmaf(k))
       end do
@@ -137,9 +137,9 @@ module mod_grid
                        lndcat=landuse)
       call model_zitah(zitah,mo_ztop)
       sigmah = sigmazita(zitah,mo_ztop)
-      do k = 1 , kz
-        do i = 1 , iy
-          do j = 1 , jx
+      do k = 1, kz
+        do i = 1, iy
+          do j = 1, jx
             z0(j,i,k) = md_zeta_h(zitah(k),topogm(j,i),mo_ztop,mo_h,mo_a0)
           end do
         end do
@@ -148,7 +148,7 @@ module mod_grid
     else
       call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,ht=topogm, &
                        mask=mask,lndcat=landuse)
-      do k = 1 , kz
+      do k = 1, kz
         sigmah(k) = d_half*(sigmaf(k+1)+sigmaf(k))
         dsigma(k) = (sigmaf(k+1)-sigmaf(k))
       end do

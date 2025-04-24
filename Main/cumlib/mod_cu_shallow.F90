@@ -20,16 +20,16 @@ module mod_cu_shallow
   use mod_constants
   use mod_cu_common
   use mod_dynparam
-  use mod_runparams , only : iqv , dtcum , dt
+  use mod_runparams, only : iqv, dtcum, dt
   use mod_regcm_types
 
   implicit none
 
   private
 
-  real(rkx) , parameter :: rads = 50.0_rkx
-  real(rkx) , parameter :: pcut = 400.0_rkx
-  real(rkx) , parameter :: c0 = 0.0_rkx
+  real(rkx), parameter :: rads = 50.0_rkx
+  real(rkx), parameter :: pcut = 400.0_rkx
+  real(rkx), parameter :: c0 = 0.0_rkx
 
   public :: shallcu
 
@@ -37,24 +37,24 @@ module mod_cu_shallow
 
   subroutine shallcu(m2c)
     implicit none
-    type(mod_2_cum) , intent(in) :: m2c
+    type(mod_2_cum), intent(in) :: m2c
 
-    real(rkx) , dimension(kz) :: t , q , p , outts , tns , qns , outqs
+    real(rkx), dimension(kz) :: t, q, p, outts, tns, qns, outqs
     real(rkx) :: xmb
-    real(rkx) :: dtime , ter11 , pret , psur
+    real(rkx) :: dtime, ter11, pret, psur
 
-    integer(ik4) :: i , j , kbmax , k , kk , ier
+    integer(ik4) :: i, j, kbmax, k, kk, ier
 
     kbmax = ((kz*3)/4-3)
     dtime = dtcum
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         !
         ! Prepare input, erase output
         !
         psur = m2c%psf(j,i)
-        do k = 1 , kz
+        do k = 1, kz
           kk = kzp1-k
           t(k) = m2c%tas(j,i,kk)
           q(k) = m2c%qxas(j,i,kk,iqv)
@@ -82,7 +82,7 @@ module mod_cu_shallow
           total_precip_points = total_precip_points+1
           cu_prate(j,i) = pret/dt
         end if
-        do k = 1 , kz
+        do k = 1, kz
           kk = kzp1 - k
           cu_tten(j,i,kk) = outts(k)
           cu_qten(j,i,kk,iqv) = outqs(k)
@@ -94,75 +94,75 @@ module mod_cu_shallow
   subroutine shallow(ti,qi,z1,tio,qio,pio,klev,pre,pi,outtem,outq, &
                   dtime,kbmax,pcut,c0,psur,ier,rads,xmb)
     implicit none
-      integer(ik4) , intent(in) :: klev , kbmax
-      real(rkx) , intent(in) :: z1 , dtime , pcut , c0 , psur , rads
-      real(rkx) , intent(out) :: xmb
-      integer(ik4) , intent(out) :: ier
-      real(rkx) , intent(out) :: pre
+      integer(ik4), intent(in) :: klev, kbmax
+      real(rkx), intent(in) :: z1, dtime, pcut, c0, psur, rads
+      real(rkx), intent(out) :: xmb
+      integer(ik4), intent(out) :: ier
+      real(rkx), intent(out) :: pre
       !
       ! Environmental properties before large scale forcing,
       ! only t,qe and p are needed for input!
       !
-      real(rkx) , dimension(kz) , intent(in) :: pi , ti , qi
+      real(rkx), dimension(kz), intent(in) :: pi, ti, qi
       !
       ! Environmental properties after large scale forcing,
       ! to,qo,po are needed as input!
       !
-      real(rkx) , dimension(klev) , intent(in) :: tio , qio , pio
-      real(rkx) , dimension(klev) , intent(out) :: outtem , outq
+      real(rkx), dimension(klev), intent(in) :: tio, qio, pio
+      real(rkx), dimension(klev), intent(out) :: outtem, outq
       !
       ! Environmental properties before large scale forcing
       !
-      real(rkx) , dimension(kz) :: he , hes , qes , z , tv
-      real(rkx) , dimension(kz) :: p , t , qe
+      real(rkx), dimension(kz) :: he, hes, qes, z, tv
+      real(rkx), dimension(kz) :: p, t, qe
       !
-      ! Cloud updraft properties , which are calculated for
+      ! Cloud updraft properties, which are calculated for
       ! every cloud (i) and stored. kz clouds are possible.
       !
-      real(rkx) , dimension(kz) :: hc , zu , qrc , pw , zuo , pwo , qsc
+      real(rkx), dimension(kz) :: hc, zu, qrc, pw, zuo, pwo, qsc
       !
       ! Changed properties after simulated cloud influence,
       ! necessary for kernel calculations!
       !
-      real(rkx) , dimension(kz) :: xt , xhe , xqe , xhes , xqes , xz
-      real(rkx) , dimension(kz) :: xtv , xhh , xqsc
-      real(rkx) , dimension(kz) :: xzu , xpw , xhc , xqrc
+      real(rkx), dimension(kz) :: xt, xhe, xqe, xhes, xqes, xz
+      real(rkx), dimension(kz) :: xtv, xhh, xqsc
+      real(rkx), dimension(kz) :: xzu, xpw, xhc, xqrc
       real(rkx) :: xa
       !
       ! Various work dimensions, cloudworkfunctions (a,aold),
       ! kernels (xk), detrainment of updraft (cd)
       !
-      real(rkx) :: aa , xx , f , aold
+      real(rkx) :: aa, xx, f, aold
       real(rkx) :: xk
-      real(rkx) , dimension(kz) :: hh , della
-      real(rkx) , dimension(kz) :: cdd
+      real(rkx), dimension(kz) :: hh, della
+      real(rkx), dimension(kz) :: cdd
       !
       ! Downdraft dimensions
       !
       real(rkx) :: edt
-      real(rkx) , dimension(kz) :: zd , qrcd , hcd , pwd
-      real(rkx) , dimension(kz) :: zdo , pwdo
-      integer(ik4) :: kmin , itest
-      integer(ik4) :: ktop , ktopx
+      real(rkx), dimension(kz) :: zd, qrcd, hcd, pwd
+      real(rkx), dimension(kz) :: zdo, pwdo
+      integer(ik4) :: kmin, itest
+      integer(ik4) :: ktop, ktopx
       !
       ! DIMENSIONS FOR FEEDBACK ROUTINE, INCLUDING FEEDBACK
       ! OUTPUT TO DRIVER ROUTINE (OUTTEM,OUTQ,XMB,XMFLUX)!
       !
       real(rkx) :: rad
-      real(rkx) , dimension(kz) :: dellt , dellq
-      real(rkx) , dimension(kz) :: xmflux , het
-      real(rkx) :: ax , xax , dh , dq , e , entnet , hkb
-      real(rkx) :: mbdt , xhkb , xqkb
+      real(rkx), dimension(kz) :: dellt, dellq
+      real(rkx), dimension(kz) :: xmflux, het
+      real(rkx) :: ax, xax, dh, dq, e, entnet, hkb
+      real(rkx) :: mbdt, xhkb, xqkb
       real(rkx) :: toshall
-      real(rkx) :: psurf , pbcdif , qkb
-      integer(ik4) :: k , lloop , iph
-      integer(ik4) :: kbhe , k22 , kb , kbcon , kbxx
+      real(rkx) :: psurf, pbcdif, qkb
+      integer(ik4) :: k, lloop, iph
+      integer(ik4) :: kbhe, k22, kb, kbcon, kbxx
 
-      real(rkx) , parameter :: ht1 = wlhv/cpd
-      real(rkx) , parameter :: ht2 = wlhs/cpd
-      real(rkx) , parameter , dimension(2) :: be = [ ep2*ht1/c287 , &
+      real(rkx), parameter :: ht1 = wlhv/cpd
+      real(rkx), parameter :: ht2 = wlhs/cpd
+      real(rkx), parameter, dimension(2) :: be = [ ep2*ht1/c287, &
                                                       ep2*ht2/c287 ]
-      real(rkx) , parameter , dimension(2) :: ae = [ be(1)/tzero+log(c1es) , &
+      real(rkx), parameter, dimension(2) :: ae = [ be(1)/tzero+log(c1es), &
                                                       be(2)/tzero+log(c1es) ]
 
       rad = rads
@@ -174,7 +174,7 @@ module mod_cu_shallow
       mbdt = dtime*5.0e-3_rkx
       pre = d_zero
 
-      do lloop = 1 , 2
+      do lloop = 1, 2
         if ( lloop == 2 ) then
           psurf = psur
           aold = aa
@@ -184,14 +184,14 @@ module mod_cu_shallow
           edt = d_zero
           kmin = -1
           itest = -1
-          do k = 1 , kz
+          do k = 1, kz
             xmflux(k) = d_zero
             z(k) = d_zero
             t(k) = tio(k)
             qe(k) = qio(k)
             p(k) = pio(k)
           end do
-          do k = 1 , kz
+          do k = 1, kz
             zu(k) = d_zero
             zd(k) = d_zero
             hcd(k) = d_zero
@@ -207,7 +207,7 @@ module mod_cu_shallow
           edt = d_zero
           xk = d_zero
 
-          do k = 1 , kz
+          do k = 1, kz
             t(k) = ti(k)
             qe(k) = qi(K)
             p(k) = pi(k)
@@ -218,7 +218,7 @@ module mod_cu_shallow
             cdd(k) = 1.0_rkx*xx
           end do
 
-          do k = 1 , kz
+          do k = 1, kz
             pwd(k) = d_zero
             pw(k) = d_zero
             dellt(k) = d_zero
@@ -238,7 +238,7 @@ module mod_cu_shallow
         !
         ! Calculate environmental conditions
         !
-        do k = 1 , kz
+        do k = 1, kz
           iph = 1
           if ( t(k) <= toshall ) iph = 2
           e = exp(ae(iph)-be(iph)/t(k))
@@ -256,7 +256,7 @@ module mod_cu_shallow
         !
         call moiene(t,qe,z,he)
         call moiene(t,qes,z,hes)
-        do k = 1 , kz
+        do k = 1, kz
           if ( he(k) >= hes(k) ) he(k) = hes(k)
           if ( k < kz ) het(k) = d_half*(he(k)+he(k+1))
         end do
@@ -309,7 +309,7 @@ module mod_cu_shallow
         !
         ! Final moist static energy inside cloud
         !
-        do k = 1 , kz
+        do k = 1, kz
           hc(k) = hh(k)
         end do
         !
@@ -325,14 +325,14 @@ module mod_cu_shallow
         !
         call precip(kb,kbcon,kz,xx,hh,hes,t,qe,qes,pw,qsc,qrc, &
                     z,p,qkb,pcut,c0,zu,ktop)
-        do k = 1 , kz
+        do k = 1, kz
           hh(k) = d_zero
         end do
         !
         ! Store values, if lloop equals one!!!
         !
         if ( lloop == 1 ) then
-          do k = 1 , kz
+          do k = 1, kz
             zuo(k) = zu(k)
             pwo(k) = pw(k)
           end do
@@ -367,7 +367,7 @@ module mod_cu_shallow
           ! Initialize old values first
           !
           xa = d_zero
-          do k = 1 , kz
+          do k = 1, kz
             xt(k) = t(k)
             xqe(k) = qe(k)
             xhe(k) = he(k)
@@ -387,7 +387,7 @@ module mod_cu_shallow
           !
           ! Temperature
           !
-          do k = 1 , kz
+          do k = 1, kz
             dh = hh(k)
             dq = della(k)
             xt(k) = (mbdt/cpd)*(dh-wlhv*dq)+t(k)
@@ -399,7 +399,7 @@ module mod_cu_shallow
           !
           ! Virtual temperature for heights
           !
-          do k = 1 , kz
+          do k = 1, kz
             if ( xqe(k) < minqq ) xqe(k) = minqq
             iph = 1
             if ( xt(k) <= toshall ) iph = 2
@@ -417,7 +417,7 @@ module mod_cu_shallow
           ! Determine saturation moist static energy
           !
           call moiene(xt,xqes,xz,xhes)
-          do k = 1 , kz
+          do k = 1, kz
             if ( xhe(k) >= xhes(k) ) xhe(k) = xhes(k)
           end do
           !
@@ -430,7 +430,7 @@ module mod_cu_shallow
           !
           ! Final moist static energy inside cloud
           !
-          do k = 1 , kz
+          do k = 1, kz
             xhc(k) = xhh(k)
           end do
           !
@@ -442,7 +442,7 @@ module mod_cu_shallow
           !
           call precip(kb,kbcon,kz,xx,xhh,xhes,xt,xqe,xqes,xpw, &
                       xqsc,xqrc,xz,p,xqkb,pcut,c0,xzu,ktopx)
-          do k = 1 , kz
+          do k = 1, kz
             xhh(k) = d_zero
           end do
           !
@@ -490,7 +490,7 @@ module mod_cu_shallow
      !
      call araouts(xmflux,xmb,zuo,dellt,dellq,kz,outtem,outq,ier,pre)
      if ( ier > 0 ) then
-       do k = 1 , kz
+       do k = 1, kz
          outtem(k) = d_zero
          outq(k) = d_zero
        end do
@@ -503,19 +503,19 @@ module mod_cu_shallow
 
     subroutine araouts(xmc,xmb,zu,delt,delq,kz,outtem,outq,ier,pre)
       implicit none
-      integer(ik4) , intent(in) :: kz
-      real(rkx) , intent(inout) :: xmb
-      real(rkx) , dimension(kz) , intent(in) :: delt , delq , zu
-      real(rkx) , dimension(kz) , intent(out) :: xmc , outtem , outq
-      integer(ik4) , intent(out) :: ier
-      real(rkx) , intent(out) :: pre
-      integer(ik4) :: k , ibcout
+      integer(ik4), intent(in) :: kz
+      real(rkx), intent(inout) :: xmb
+      real(rkx), dimension(kz), intent(in) :: delt, delq, zu
+      real(rkx), dimension(kz), intent(out) :: xmc, outtem, outq
+      integer(ik4), intent(out) :: ier
+      real(rkx), intent(out) :: pre
+      integer(ik4) :: k, ibcout
       real(rkx) :: outtes
 
       ier = 0
       ibcout = 0
       pre = d_zero
-      do k = 1 , kz
+      do k = 1, kz
         outtem(k) = d_zero
         outq(k) = d_zero
         xmc(k) = d_zero
@@ -528,7 +528,7 @@ module mod_cu_shallow
       !
       ! First calculate temperature and moisture changes
       !
-      do k = 1 , kz
+      do k = 1, kz
         outtes = delt(k)*xmb*86400.0_rkx
         if ( (outtes > 500.0_rkx) .or. (outtes < -200.0_rkx) ) then
           xmb = d_zero
@@ -541,26 +541,26 @@ module mod_cu_shallow
       !
       ! How about them mass fluxes??
       !
-      do k = 1 , kz
+      do k = 1, kz
         xmc(k) = xmc(k) + zu(k)*xmb
       end do
     end subroutine araouts
 
     subroutine cloudws(hc,qes,hes,zu,z,tempp,kz,ax,kbcon,ktop)
       implicit none
-      integer(ik4) , intent(in) :: kz , kbcon
-      real(rkx) , dimension(kz) , intent(in) :: z , qes , hes , tempp
-      real(rkx) , dimension(kz) , intent(in) :: hc , zu
-      integer(ik4) , intent(in) :: ktop
-      real(rkx) , intent(out) :: ax
+      integer(ik4), intent(in) :: kz, kbcon
+      real(rkx), dimension(kz), intent(in) :: z, qes, hes, tempp
+      real(rkx), dimension(kz), intent(in) :: hc, zu
+      integer(ik4), intent(in) :: ktop
+      real(rkx), intent(out) :: ax
       integer(ik4) :: k
-      real(rkx) :: gamma1 , gamma2 , dhh , zzu , dt , dg , dh , dz , aa
+      real(rkx) :: gamma1, gamma2, dhh, zzu, dt, dg, dh, dz, aa
 
       ax = d_zero
       !
       ! Calculate cloud work function for updraft
       !
-      do  k = kbcon , ktop
+      do  k = kbcon, ktop
         gamma1 = (wlhv/cpd)*(wlhv/(rwat*(tempp(k)**2)))*qes(k)
         gamma2 = (wlhv/cpd)*(wlhv/(rwat*(tempp(k+1)**2)))*qes(k+1)
         dhh = hc(k)
@@ -578,26 +578,26 @@ module mod_cu_shallow
     !
     subroutine entrs(kbc,h,hc,hsat,ent,kz,p,hkb,ktop)
       implicit none
-      integer(ik4) , intent(in) :: kbc , kz
-      real(rkx) , dimension(kz) , intent(in) :: h , hsat , p
-      real(rkx) , dimension(kz) , intent(out) :: hc
-      real(rkx) , intent(in) :: hkb , ent
-      integer(ik4) , intent(inout) :: ktop
-      real(rkx) :: dz , depth , dby
-      integer(ik4) :: k , kend
+      integer(ik4), intent(in) :: kbc, kz
+      real(rkx), dimension(kz), intent(in) :: h, hsat, p
+      real(rkx), dimension(kz), intent(out) :: hc
+      real(rkx), intent(in) :: hkb, ent
+      integer(ik4), intent(inout) :: ktop
+      real(rkx) :: dz, depth, dby
+      integer(ik4) :: k, kend
 
       ktop = 1
-      do k = 1 , kbc
+      do k = 1, kbc
         hc(k) = hkb
       end do
-      do k = kbc+1 , kz-1
+      do k = kbc+1, kz-1
         hc(k) = d_half*(hsat(k)+hsat(k+1))
       end do
       hc(kz) = hsat(kz)
 
       kend = kz-1
       if ( kbc+1 > kend ) return
-      do k = kbc+1 , kend
+      do k = kbc+1, kend
         dz = d_half*(p(k-1)+p(k+1))
         hc(k) = (hc(k-1)*(d_one - d_half*dz*ent) + ent*dz*h(k)) / &
                 (d_one + d_half*ent*dz)
@@ -617,17 +617,17 @@ module mod_cu_shallow
     subroutine kerhels(var,r,zu,hkb,hc,della,p,z,kb,kz, &
                        xvar,kbeg,xhkb,ich,cd,psu,ktop)
       implicit none
-      integer(ik4) , intent(in) :: kz , kbeg , kb , ich
-      real(rkx) , intent(in) :: hkb , r , psu
-      real(rkx) , intent(out) :: xhkb
-      real(rkx) , dimension(kz) , intent(in) :: p , z , var
-      real(rkx) , dimension(kz) , intent(out) :: xvar , della
-      real(rkx) , dimension(kz) , intent(in) :: hc , zu , cd
-      integer(ik4) , intent(in) :: ktop
-      integer(ik4) :: k , lpt
-      real(rkx) :: dp , dz , dv1 , dv2 , dv3 , zu1 , zu2 , detup
+      integer(ik4), intent(in) :: kz, kbeg, kb, ich
+      real(rkx), intent(in) :: hkb, r, psu
+      real(rkx), intent(out) :: xhkb
+      real(rkx), dimension(kz), intent(in) :: p, z, var
+      real(rkx), dimension(kz), intent(out) :: xvar, della
+      real(rkx), dimension(kz), intent(in) :: hc, zu, cd
+      integer(ik4), intent(in) :: ktop
+      integer(ik4) :: k, lpt
+      real(rkx) :: dp, dz, dv1, dv2, dv3, zu1, zu2, detup
 
-      do k = 1 , kz
+      do k = 1, kz
         xvar(k) = var(k)
         della(k) = d_zero
       end do
@@ -649,7 +649,7 @@ module mod_cu_shallow
       della(kbeg) = d_zero
 
       if ( kbeg+1 < ktop ) then
-        do k = kbeg+1 , ktop-1
+        do k = kbeg+1, ktop-1
           zu1 = zu(k)
           zu2 = zu(k-1)
           dv1 = d_half*(var(k)+var(k+1))
@@ -681,7 +681,7 @@ module mod_cu_shallow
       !
       ! Final changed variable per unit mass flux
       !
-      do k = 1 , ktop
+      do k = 1, ktop
         xvar(k) = della(k)*mbdt + var(k)
         if ( xvar(k) <= d_zero ) then
           xvar(k) = minqq
@@ -699,14 +699,14 @@ module mod_cu_shallow
 
     subroutine heipre(p,z,t,z1,psurf)
       implicit none
-      real(rkx) , dimension(kz) , intent(in) :: p , t
-      real(rkx) , dimension(kz) , intent(out) :: z
-      real(rkx) , intent(in) :: psurf , z1
-      real(rkx) :: zstart , tvbar
+      real(rkx), dimension(kz), intent(in) :: p, t
+      real(rkx), dimension(kz), intent(out) :: z
+      real(rkx), intent(in) :: psurf, z1
+      real(rkx) :: zstart, tvbar
       integer(ik4) :: k
       zstart = z1-(log(p(1))-log(psurf))*rgas*t(1)/egrav
       z(1) = zstart
-      do k = 2 , kz
+      do k = 2, kz
         tvbar = d_half * (t(k)+t(k-1))
         z(k) = z(k-1) - (log(p(k))-log(p(k-1)))*rgas*tvbar/egrav
       end do
@@ -714,24 +714,24 @@ module mod_cu_shallow
 
     subroutine moiene(t,q,z,h)
       implicit none
-      real(rkx) , dimension(kz) , intent(in) :: t , q , z
-      real(rkx) , dimension(kz) , intent(out) :: h
+      real(rkx), dimension(kz), intent(in) :: t, q, z
+      real(rkx), dimension(kz), intent(out) :: h
       integer(ik4) :: k
-      do k = 1 , kz
+      do k = 1, kz
         h(k) = egrav*z(k) + cpd*t(k) + wlhv*q(k)
       end do
     end subroutine moiene
 
     subroutine minim(array,ks,kmin)
       implicit none
-      integer(ik4) , intent(in) :: ks
-      integer(ik4) , intent(out) :: kmin
-      real(rkx) , dimension(kz) :: array
+      integer(ik4), intent(in) :: ks
+      integer(ik4), intent(out) :: kmin
+      real(rkx), dimension(kz) :: array
       integer(ik4) :: k
       real(rkx) :: x
       kmin = ks
       x = array(ks)
-      do k = ks+1 , kz
+      do k = ks+1, kz
         if ( array(k) < x ) then
           x = array(k)
           kmin = k
@@ -741,14 +741,14 @@ module mod_cu_shallow
 
     subroutine maxim(array,ke,kmax)
       implicit none
-      integer(ik4) , intent(in) :: ke
-      integer(ik4) , intent(out) :: kmax
-      real(rkx) , dimension(kz) :: array
+      integer(ik4), intent(in) :: ke
+      integer(ik4), intent(out) :: kmax
+      real(rkx), dimension(kz) :: array
       integer(ik4) :: k
       real(rkx) :: x
       kmax = 1
       x = array(1)
-      do k = 2 , ke
+      do k = 2, ke
         if ( array(k) >= x ) then
           x = array(k)
           kmax = k
@@ -760,29 +760,29 @@ module mod_cu_shallow
     !
     subroutine zunc(kbeg,zu,kb,r,z,kz,ktop)
       implicit none
-      integer(ik4) , intent(in) :: kz , kbeg , kb
-      real(rkx) , dimension(kz) , intent(out) :: zu
-      real(rkx) , dimension(kz) , intent(in) :: z
-      real(rkx) , intent(in) :: r
+      integer(ik4), intent(in) :: kz, kbeg, kb
+      real(rkx), dimension(kz), intent(out) :: zu
+      real(rkx), dimension(kz), intent(in) :: z
+      real(rkx), intent(in) :: r
       integer(ik4) :: ktop
-      integer(ik4) :: k , lpt
+      integer(ik4) :: k, lpt
       real(rkx) :: dz
       !
       ! Below updraft air originating level (zu)
       !
-      do k = 1 , kbeg
+      do k = 1, kbeg
         zu(k) = d_zero
       end do
       !
       ! Between zu and level of free convectioN
       !
-      do k = kbeg , kb
+      do k = kbeg, kb
         zu(k) = d_one
       end do
       !
       ! Between level of free convection and cloud top
       !
-      do k = kb+1 , ktop-1
+      do k = kb+1, ktop-1
         dz = d_half * (z(k+1)-z(k-1))
         zu(k) = zu(k-1) * (d_one + r*dz)
       end do
@@ -807,33 +807,33 @@ module mod_cu_shallow
     subroutine precip(kb,kbcon,kz,r,hc,hes,t,qe, &
                       qes,pw,qc,qrc,z,p,qkb,pcut,c0,zu,ktop)
       implicit none
-      integer(ik4) , intent(in) :: kbcon , kz , kb
-      real(rkx) , dimension(kz) , intent(in) :: hc , hes , t , z , p
-      real(rkx) , dimension(kz) , intent(in) :: qe , qes
-      real(rkx) , dimension(kz) , intent(out) :: qc
-      real(rkx) , dimension(kz) , intent(in) :: zu
-      real(rkx) , dimension(kz) , intent(out) :: pw , qrc
-      real(rkx) , intent(in) :: c0 , pcut , qkb , r
+      integer(ik4), intent(in) :: kbcon, kz, kb
+      real(rkx), dimension(kz), intent(in) :: hc, hes, t, z, p
+      real(rkx), dimension(kz), intent(in) :: qe, qes
+      real(rkx), dimension(kz), intent(out) :: qc
+      real(rkx), dimension(kz), intent(in) :: zu
+      real(rkx), dimension(kz), intent(out) :: pw, qrc
+      real(rkx), intent(in) :: c0, pcut, qkb, r
       integer(ik4) :: ktop
-      real(rkx) :: dh , dz , agamma , qrch
+      real(rkx) :: dh, dz, agamma, qrch
       integer(ik4) :: k
       !
       ! Erase
       !
-      do k = 1 , kz
+      do k = 1, kz
         pw(k) = d_zero
         qc(k) = d_zero
       end do
       !
       ! Initialize
       !
-      do k = 1 , kb
+      do k = 1, kb
         qrc(k) = d_half*(qe(k)+qe(k+1))
       end do
-      do k = kb , kbcon
+      do k = kb, kbcon
         qrc(k) = qkb
       end do
-      do k = ktop , kz
+      do k = ktop, kz
         qrc(k) = qes(k)
       end do
       !
@@ -844,7 +844,7 @@ module mod_cu_shallow
       !
       ! Start loop
       !
-      do k = kbcon+1 , ktop
+      do k = kbcon+1, ktop
         if ( k == ktop ) then
           dh = hc(k)-hes(k)
           dz = d_half*(z(k)-z(k-1))

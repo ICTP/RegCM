@@ -39,11 +39,11 @@ module mod_cloud_guli2007
   !
   subroutine gulisa_cldfrac(qt,z,fcc)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qt
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
-    integer(ik4) :: i , j , k
-    real(rkx) :: qgkg , stddev
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qt
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
+    integer(ik4) :: i, j, k
+    real(rkx) :: qgkg, stddev
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction

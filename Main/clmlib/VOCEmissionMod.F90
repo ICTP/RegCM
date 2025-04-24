@@ -61,16 +61,16 @@ contains
 ! Output: vocflx(nvoc) !VOC flux [ug m-2 h-1]
 !
 ! !USES:
-    use shr_kind_mod , only : r8 => shr_kind_r8
+    use shr_kind_mod, only : r8 => shr_kind_r8
     use clmtype
-    use clm_varpar   , only : nvoc,nlevsoi
-    use clm_atmlnd   , only : clm_a2l
+    use clm_varpar  , only : nvoc,nlevsoi
+    use clm_atmlnd  , only : clm_a2l
     use shr_const_mod, only : SHR_CONST_RGAS
 !abt added below
     use clm_varvoc
     use clm_time_manager, only : get_step_size, get_curr_calday, get_curr_date
     use clm_time_manager, only : get_nstep
-    use clm_varctl      , only : nsrest
+    use clm_varctl     , only : nsrest
 !abt added above
 !
 ! !ARGUMENTS:
@@ -89,8 +89,8 @@ contains
 !
 ! local pointers to implicit in arguments
 !
-    integer , pointer :: pgridcell(:)     ! gridcell index of corresponding pft
-    integer , pointer :: ivt(:)           ! pft vegetation type for current
+    integer, pointer :: pgridcell(:)     ! gridcell index of corresponding pft
+    integer, pointer :: ivt(:)           ! pft vegetation type for current
     real(r8), pointer :: t_veg(:)         ! pft vegetation temperature (Kelvin)
     real(r8), pointer :: fsun(:)          ! sunlit fraction of canopy
     real(r8), pointer :: elai(:)          ! one-sided leaf area index with burying by snow
@@ -920,22 +920,22 @@ contains
 !          Topt = 313 + (0.6 · (T240œôø²297))   (Guenther 2006)
 !
 ! !USES:
-    use shr_kind_mod , only : r8 => shr_kind_r8
+    use shr_kind_mod, only : r8 => shr_kind_r8
     use clmtype
-    use clm_varpar   , only : nvoc,nlevsoi
-    use clm_atmlnd   , only : clm_a2l
+    use clm_varpar  , only : nvoc,nlevsoi
+    use clm_atmlnd  , only : clm_a2l
     use shr_const_mod, only : SHR_CONST_RGAS
     use clm_time_manager, only : get_step_size, get_curr_calday, get_curr_date
     use clm_time_manager, only : get_nstep
     use clm_varvoc
-    use clm_varctl   , only : nsrest
-    use spmdMod      , only : iam
+    use clm_varctl  , only : nsrest
+    use spmdMod     , only : iam
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: num_nolakep                    ! indices
-    integer , intent(in) :: lbp,ubp                        ! indices
-    integer , intent(in) :: filter_nolakep(num_nolakep)    ! indices
+    integer, intent(in) :: num_nolakep                    ! indices
+    integer, intent(in) :: lbp,ubp                        ! indices
+    integer, intent(in) :: filter_nolakep(num_nolakep)    ! indices
     real(r8), intent(inout) :: gamma_ce(lbp:ubp,nvoc)      ! activation factor for LAI,temp,humidity,& light in canopy
     real(r8), intent(inout) :: gamma_age(lbp:ubp,nvoc)     ! activation factor for leaf age
     real(r8), intent(inout) :: gamma_sm(lbp:ubp)           ! activation factor for soil moisture
@@ -954,8 +954,8 @@ contains
     real(r8), pointer :: bsw(:,:)         ! Clapp and Hornberger "b" (nlevsoi)
     real(r8), pointer :: rootfr(:,:)      ! fraction of roots in each soil layer
     real(r8), pointer :: watsat(:,:)      ! volumetric soil water at saturation (porosity) (nlevsoi)
-    integer , pointer :: pcolumn(:)       ! column index of corresponding pft
-    integer , pointer :: pgridcell(:)     ! gridcell index of corresponding pft
+    integer, pointer :: pcolumn(:)       ! column index of corresponding pft
+    integer, pointer :: pgridcell(:)     ! gridcell index of corresponding pft
 !!!    real(r8), pointer :: t_veg(:)         ! pft vegetation temperature (Kelvin)
     real(r8), pointer :: t_ref2m(:)       ! 2meter temperature (Kelvin)  *** buggin
     real(r8), pointer :: fsun(:)          ! sunlit fraction of canopy

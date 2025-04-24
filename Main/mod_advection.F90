@@ -29,7 +29,7 @@ module mod_advection
 
   private
 
-  public :: init_advection, hadv , vadv , start_advect
+  public :: init_advection, hadv, vadv, start_advect
 
   real(rkx) :: ul
 
@@ -49,42 +49,42 @@ module mod_advection
     module procedure vadv4d
   end interface vadv
 
-  real(rkx) , pointer , dimension(:,:,:) :: ua => null( )   ! U/m * ps
-  real(rkx) , pointer , dimension(:,:,:) :: va  => null( )  ! V/m * ps
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ua => null( )   ! U/m * ps
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: va  => null( )  ! V/m * ps
   ! Surface pressure
-  real(rkx) , pointer , dimension(:,:) :: ps  => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: ps  => null( )
   ! Surface pressure dot points
-  real(rkx) , pointer , dimension(:,:) :: pd  => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: pd  => null( )
   ! 1/(mapfx**2 * 4 * dx)
-  real(rkx) , pointer , dimension(:,:) :: xmapf  => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: xmapf  => null( )
   ! 1/(mapfd**2 * 16 * dx)
-  real(rkx) , pointer , dimension(:,:) :: dmapf  => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: dmapf  => null( )
   ! Sigma Vertical Velocity
-  real(rkx) , pointer , dimension(:,:,:) :: svv  => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: svv  => null( )
   ! Pressure full sigma levels
-  real(rkx) , pointer , dimension(:,:,:) :: pfs  => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pfs  => null( )
   ! Pressure half sigma levels
-  real(rkx) , pointer , dimension(:,:,:) :: phs  => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: phs  => null( )
   ! Mass divergence
-  real(rkx) , pointer , dimension(:,:,:) :: divx  => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: divx  => null( )
   ! Top of PBL
-  integer(ik4) , pointer , dimension(:,:) :: kpb  => null( )
+  integer(ik4), pointer, contiguous, dimension(:,:) :: kpb  => null( )
 
   ! working space used to store the interlated values in vadv.
 
-  real(rkx) , pointer , dimension(:) :: dds => null( )
-  real(rkx) , pointer , dimension(:) :: xds => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: fg => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: uavg1 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: uavg2 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vavg1 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: vavg2 => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: dds => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: xds => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: fg => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: uavg1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: uavg2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vavg1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vavg2 => null( )
 
   contains
 
     subroutine init_advection
-      use mod_atm_interface , only : mddom , sfs , atms , atmx
-      use mod_atm_interface , only : mdv , qdot , kpbl
+      use mod_atm_interface, only : mddom, sfs, atms, atmx
+      use mod_atm_interface, only : mdv, qdot, kpbl
       implicit none
       integer(ik4) :: k
       call assignpnt(atmx%umc,ua)
@@ -108,7 +108,7 @@ module mod_advection
       xds(:) =  d_one / dsigma(:)
       dds(1) = d_zero
       dds(kzp1) = d_zero
-      do k = 2 , kz
+      do k = 2, kz
         dds(k) = d_one / (dsigma(k) + dsigma(k-1))
       end do
       ul = uoffc * d_half * dt/dx
@@ -118,8 +118,8 @@ module mod_advection
     !
     subroutine start_advect
       implicit none
-      integer(ik4) :: i , j , k
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      integer(ik4) :: i, j, k
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         uavg1(j,i,k) = ua(j,i+1,k)   + ua(j,i,k)
         uavg2(j,i,k) = ua(j+1,i+1,k) + ua(j+1,i,k)
         vavg1(j,i,k) = va(j+1,i,k)   + va(j,i,k)
@@ -131,15 +131,15 @@ module mod_advection
     !
     subroutine hadvuv(uten,vten,u,v)
       implicit none
-      real(rkx) , pointer , intent (in) , dimension(:,:,:) :: u , v
-      real(rkx) , pointer , intent (inout), dimension(:,:,:) :: uten , vten
+      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: u, v
+      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: uten, vten
 
-      real(rkx) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
-      real(rkx) :: divd , diag , ff1 , ff2 , ff3 , ff4
-      integer(ik4) :: i , j , k
+      real(rkx) :: ucmona, ucmonb, ucmonc, vcmona, vcmonb, vcmonc
+      real(rkx) :: divd, diag, ff1, ff2, ff3, ff4
+      integer(ik4) :: i, j, k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvuv'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       !
@@ -148,9 +148,9 @@ module mod_advection
       !
       if ( .not. upstream_mode ) then
         if ( idynamic == 1 ) then
-          do k = 1 , kz
-            do i = idi1 , idi2
-              do j = jdi1 , jdi2
+          do k = 1, kz
+            do i = idi1, idi2
+              do j = jdi1, jdi2
                 ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
                 ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
                 ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
@@ -175,9 +175,9 @@ module mod_advection
             end do
           end do
         else
-          do k = 1 , kz
-            do i = idi1 , idi2
-              do j = jdi1 , jdi2
+          do k = 1, kz
+            do i = idi1, idi2
+              do j = jdi1, jdi2
                 divd = d_rfour * ( divx(j,i,k)   + divx(j,i-1,k)   + &
                                    divx(j-1,i,k) + divx(j-1,i-1,k) )
                 ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
@@ -209,9 +209,9 @@ module mod_advection
       end if
 
       if ( idynamic == 1 ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
+        do k = 1, kz
+          do i = idi1, idi2
+            do j = jdi1, jdi2
               ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
               ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
               ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
@@ -240,9 +240,9 @@ module mod_advection
           end do
         end do
       else
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
+        do k = 1, kz
+          do i = idi1, idi2
+            do j = jdi1, jdi2
               divd = d_rfour * ( divx(j,i,k)   + divx(j,i-1,k)   + &
                                  divx(j-1,i,k) + divx(j-1,i-1,k) )
               ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
@@ -278,22 +278,22 @@ module mod_advection
 
     subroutine vadvuv(uten,vten,ud,vd)
       implicit none
-      real(rkx) , pointer , intent (in) , dimension(:,:,:) :: ud , vd
-      real(rkx) , pointer , intent (inout), dimension(:,:,:) :: uten , vten
+      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: ud, vd
+      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: uten, vten
 
-      real(rkx) :: qq , uu , vv
-      integer(ik4) :: i , j , k
+      real(rkx) :: qq, uu, vv
+      integer(ik4) :: i, j, k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadvuv'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       !
       ! vertical advection terms : interpolate ua or va to full sigma levels
       !
-      do k = 2 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
+      do k = 2, kz
+        do i = idi1, idi2
+          do j = jdi1, jdi2
             qq = d_rfour * (svv(j,i,k)   + svv(j,i-1,k) + &
                             svv(j-1,i,k) + svv(j-1,i-1,k))
             uu = qq * (twt(k,1)*ud(j,i,k) + twt(k,2)*ud(j,i,k-1))
@@ -318,19 +318,19 @@ module mod_advection
     !
     subroutine hadvt(ften,f)
       implicit none
-      real(rkx) , pointer , intent (in) , dimension(:,:,:) :: f
-      real(rkx) , pointer , intent (inout), dimension(:,:,:) :: ften
-      integer(ik4) :: i , j , k
-      real(rkx) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
+      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: f
+      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: ften
+      integer(ik4) :: i, j, k
+      real(rkx) :: f1, f2, fx1, fx2, fy1, fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvt'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       if ( .not. upstream_mode ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               fx1 = f(j-1,i,k) + f(j,i,k)
               fx2 = f(j,i,k)   + f(j+1,i,k)
               fy1 = f(j,i-1,k) + f(j,i,k)
@@ -342,9 +342,9 @@ module mod_advection
           end do
         end do
       else
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               f1 = d_half*ul*(uavg2(j,i,k)+uavg1(j,i,k))/ps(j,i)
               f2 = d_half*ul*(vavg2(j,i,k)+vavg1(j,i,k))/ps(j,i)
               fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
@@ -365,9 +365,9 @@ module mod_advection
       ! must not grow further due to advection
       !
       if ( stability_enhance ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( abs(f(j,i+1,k) + f(j,i-1,k) - &
                        d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
                 if ( (f(j,i,k) > f(j,i+1,k)) .and. &
@@ -392,7 +392,7 @@ module mod_advection
           end do
         end do
       end if
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         ften(j,i,k) = ften(j,i,k) + fg(j,i,k)
       end do
 #ifdef DEBUG
@@ -402,15 +402,15 @@ module mod_advection
 
     subroutine hadv3d(ften,f,ind)
       implicit none
-      integer(ik4) , intent (in) :: ind
-      real(rkx) , pointer , intent (in) , dimension(:,:,:) :: f
-      real(rkx) , pointer , intent (inout), dimension(:,:,:) :: ften
-      integer(ik4) :: i , j , k
-      real(rkx) :: uaz1 , uaz2 , vaz1 , vaz2
-      real(rkx) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
+      integer(ik4), intent (in) :: ind
+      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: f
+      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: ften
+      integer(ik4) :: i, j, k
+      real(rkx) :: uaz1, uaz2, vaz1, vaz2
+      real(rkx) :: f1, f2, fx1, fx2, fy1, fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv3d'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
 
@@ -419,9 +419,9 @@ module mod_advection
           !
           ! for cross point variables on half sigma levels
           !
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 fx1 = f(j-1,i,k) + f(j,i,k)
                 fx2 = f(j,i,k)   + f(j+1,i,k)
                 fy1 = f(j,i-1,k) + f(j,i,k)
@@ -437,9 +437,9 @@ module mod_advection
           ! Interpolate the winds to the full sigma levels
           ! while the advection term is calculated
           !
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 2, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 uaz1 = ( twt(k,1) * uavg1(j,i,k) + &
                          twt(k,2) * uavg1(j,i,k-1) )
                 uaz2 = ( twt(k,1) * uavg2(j,i,k) + &
@@ -471,9 +471,9 @@ module mod_advection
         !
         ! for cross point variables on half sigma levels
         !
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               f1 = d_half*ul*(uavg2(j,i,k)+uavg1(j,i,k))/ps(j,i)
               f2 = d_half*ul*(vavg2(j,i,k)+vavg1(j,i,k))/ps(j,i)
               fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
@@ -491,9 +491,9 @@ module mod_advection
         ! Interpolate the winds to the full sigma levels
         ! while the advection term is calculated
         !
-        do k = 2 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 2, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               uaz1 = ( twt(k,1) * uavg1(j,i,k) + &
                        twt(k,2) * uavg1(j,i,k-1) )
               uaz2 = ( twt(k,1) * uavg2(j,i,k) + &
@@ -524,23 +524,23 @@ module mod_advection
 
     subroutine hadvqv(ften,f,iv)
       implicit none
-      integer(ik4) , intent(in) :: iv
-      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
-      real(rkx) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
-      integer(ik4) :: i , j , k
+      integer(ik4), intent(in) :: iv
+      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
+      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx) :: f1, f2, fx1, fx2, fy1, fy2
+      integer(ik4) :: i, j, k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvqv'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       !
       ! for qv:
       !
       if ( .not. upstream_mode ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               fx1 = f(j-1,i,k,iv) + f(j,i,k,iv)
               fx2 = f(j,i,k,iv)   + f(j+1,i,k,iv)
               fy1 = f(j,i-1,k,iv) + f(j,i,k,iv)
@@ -552,9 +552,9 @@ module mod_advection
           end do
         end do
       else
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               f1 = d_half*ul*(uavg2(j,i,k)+uavg1(j,i,k))/ps(j,i)
               f2 = d_half*ul*(vavg2(j,i,k)+vavg1(j,i,k))/ps(j,i)
               fx1 = (d_one+f1)*f(j-1,i,k,iv) + (d_one-f1)*f(j,i,k,iv)
@@ -575,9 +575,9 @@ module mod_advection
       ! must not grow further due to advection
       !
       if ( stability_enhance ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( abs(f(j,i+1,k,iv) + f(j,i-1,k,iv) - d_two*f(j,i,k,iv)) / &
                       max(f(j,i,k,iv),dlowval) > q_rel_extrema ) then
                 if ( (f(j,i,k,iv) > f(j,i+1,k,iv)) .and. &
@@ -602,7 +602,7 @@ module mod_advection
           end do
         end do
       end if
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         ften(j,i,k,iv) = ften(j,i,k,iv) + fg(j,i,k)
       end do
 #ifdef DEBUG
@@ -614,25 +614,25 @@ module mod_advection
     !
     subroutine hadvqx(ften,f,n1,n2)
       implicit none
-      integer(ik4) , intent(in) :: n1 , n2
-      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      integer(ik4), intent(in) :: n1, n2
+      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
+      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
 
-      integer(ik4) :: i , j , k , n
-      real(rkx) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
+      integer(ik4) :: i, j, k, n
+      real(rkx) :: f1, f2, fx1, fx2, fy1, fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvqx'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       !
       ! for qx different from qv
       !
-      do n = n1 , n2
+      do n = n1, n2
         if ( .not. upstream_mode ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 fx1 = f(j-1,i,k,n) + f(j,i,k,n)
                 fx2 = f(j,i,k,n)   + f(j+1,i,k,n)
                 fy1 = f(j,i-1,k,n) + f(j,i,k,n)
@@ -644,9 +644,9 @@ module mod_advection
             end do
           end do
         else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 f1 = d_half*ul*(uavg2(j,i,k)+uavg1(j,i,k))/ps(j,i)
                 f2 = d_half*ul*(vavg2(j,i,k)+vavg1(j,i,k))/ps(j,i)
                 fx1 = (d_one+f1)*f(j-1,i,k,n) + (d_one-f1)*f(j,i,k,n)
@@ -660,7 +660,7 @@ module mod_advection
             end do
           end do
         end if
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           ften(j,i,k,n) = ften(j,i,k,n) + fg(j,i,k)
         end do
       end do
@@ -673,24 +673,24 @@ module mod_advection
     !
     subroutine hadvtr(ften,f)
       implicit none
-      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
+      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
 
-      integer(ik4) :: i , j , k , n
-      real(rkx) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
+      integer(ik4) :: i, j, k, n
+      real(rkx) :: f1, f2, fx1, fx2, fy1, fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvtr'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       !
       ! for tracers
       !
-      do n = 1 , ntr
+      do n = 1, ntr
         if ( .not. upstream_mode ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 fx1 = f(j-1,i,k,n)+f(j,i,k,n)
                 fx2 = f(j,i,k,n)  +f(j+1,i,k,n)
                 fy1 = f(j,i-1,k,n)+f(j,i,k,n)
@@ -702,9 +702,9 @@ module mod_advection
             end do
           end do
         else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 f1 = d_half*ul*(uavg2(j,i,k)+uavg1(j,i,k))/ps(j,i)
                 f2 = d_half*ul*(vavg2(j,i,k)+vavg1(j,i,k))/ps(j,i)
                 fx1 = (d_one+f1)*f(j-1,i,k,n) + (d_one-f1)*f(j,i,k,n)
@@ -718,7 +718,7 @@ module mod_advection
             end do
           end do
         end if
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           ften(j,i,k,n) = ften(j,i,k,n) + fg(j,i,k)
         end do
       end do
@@ -737,23 +737,23 @@ module mod_advection
     !
     subroutine vadv3d(ften,f,nk,ind)
       implicit none
-      integer(ik4) , intent(in) :: ind , nk
-      real(rkx) , pointer , intent (in) , dimension(:,:,:) :: f
-      real(rkx) , pointer , intent (inout), dimension(:,:,:) :: ften
+      integer(ik4), intent(in) :: ind, nk
+      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: f
+      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: ften
 
-      real(rkx) :: rdphf , rdplf , fx , qq
-      real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: dotqdot
-      integer(ik4) :: i , j , k
+      real(rkx) :: rdphf, rdplf, fx, qq
+      real(rkx), dimension(jci1:jci2,ici1:ici2,kz) :: dotqdot
+      integer(ik4) :: i, j, k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv3d'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       if ( ind == 0 ) then
         if ( nk == kz ) then
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 2, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 fx = svv(j,i,k) * (twt(k,1)*f(j,i,k)+twt(k,2)*f(j,i,k-1))
                 ften(j,i,k-1) = ften(j,i,k-1) - fx*xds(k-1)
                 ften(j,i,k)   = ften(j,i,k)   + fx*xds(k)
@@ -761,9 +761,9 @@ module mod_advection
             end do
           end do
         else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 1, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 qq = d_half * (svv(j,i,k) + svv(j,i,k+1))
                 fx = qq * ((f(j,i,k) + f(j,i,k+1)))
                 ften(j,i,k+1) = ften(j,i,k+1) + fx*dds(k+1)
@@ -777,28 +777,28 @@ module mod_advection
         ! vertical advection terms : interpolate to full sigma levels
         !
         if ( idynamic == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             dotqdot(j,i,1) = d_zero
           end do
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:nk )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:nk )
             dotqdot(j,i,k) = svv(j,i,k) * &
                     (twt(k,1)*f(j,i,k)  *(pfs(j,i,k)/phs(j,i,k))  **c287 + &
                      twt(k,2)*f(j,i,k-1)*(pfs(j,i,k)/phs(j,i,k-1))**c287)
           end do
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:nk )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:nk )
             ften(j,i,k-1) = ften(j,i,k-1) - dotqdot(j,i,k)*xds(k-1)
             ften(j,i,k)   = ften(j,i,k)   + dotqdot(j,i,k)*xds(k)
           end do
         else
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               rdphf = exp(-c287*log(phs(j,i,1)))
               dotqdot(j,i,1) = f(j,i,1)*rdphf
             end do
           end do
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 2, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 rdphf = exp(-c287*log(phs(j,i,k)))
                 rdplf = exp( c287*log(pfs(j,i,k)))
                 dotqdot(j,i,k) = f(j,i,k)*rdphf
@@ -818,25 +818,25 @@ module mod_advection
 
     subroutine vadvqv(ften,f,n)
       implicit none
-      integer(ik4) , intent(in) :: n
-      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
-      integer(ik4) :: i , j , k
+      integer(ik4), intent(in) :: n
+      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
+      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
+      integer(ik4) :: i, j, k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadvqv'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         fg(j,i,k) = d_zero
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
         if ( f(j,i,k,n)   > minqq * ps(j,i) .and. &
              f(j,i,k-1,n) > minqq * ps(j,i) ) then
           fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
         end if
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
         ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
         ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
       end do
@@ -856,24 +856,24 @@ module mod_advection
     !
     subroutine vadv4d(ften,f,n1,n2,ind)
       implicit none
-      integer(ik4) , intent(in) :: ind , n1 , n2
-      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      integer(ik4), intent(in) :: ind, n1, n2
+      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
+      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
       real(rkx) :: slope
-      integer(ik4) :: i , j , k , n
+      integer(ik4) :: i, j, k, n
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv4d'
-      integer(ik4) , save :: idindx = 0
+      integer(ik4), save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      do n = n1 , n2
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do n = n1, n2
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           fg(j,i,k) = d_zero
         end do
         if ( ind == 0 ) then
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 2, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 if ( svv(j,i,k) > d_zero ) then
                   fg(j,i,k) = svv(j,i,k)*f(j,i,k-1,n)
                 else
@@ -883,9 +883,9 @@ module mod_advection
             end do
           end do
         else if ( ind == 1 ) then
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 2, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 if ( svv(j,i,k) > d_zero ) then
                   if ( f(j,i,k-1,n) > minqq * minqq * ps(j,i)  ) then
                     fg(j,i,k) = svv(j,i,k) * &
@@ -905,9 +905,9 @@ module mod_advection
             end do
           end do
         else if ( ind == 2 ) then
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do k = 2, kz
+            do i = ici1, ici2
+              do j = jci1, jci2
                 if ( svv(j,i,k) > d_zero ) then
                   if ( f(j,i,k-1,n) > mintr * ps(j,i)  ) then
                     fg(j,i,k) = svv(j,i,k) * &
@@ -927,11 +927,11 @@ module mod_advection
             end do
           end do
         else if ( ind == 3 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
             fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
           end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ici1, ici2
+            do j = jci1, jci2
               if ( kpb(j,i) > kz ) then
                 call fatal(__FILE__,__LINE__,'kpbl is greater than kz')
               end if
@@ -965,11 +965,11 @@ module mod_advection
               end if
             end do
           end do
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
             fg(j,i,k) = fg(j,i,k) * svv(j,i,k)
           end do
         end if
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
           ften(j,i,k-1,n) = ften(j,i,k-1,n)-fg(j,i,k)*xds(k-1)
           ften(j,i,k,n)   = ften(j,i,k,n)  +fg(j,i,k)*xds(k)
         end do

@@ -20,19 +20,19 @@ contains
 ! temperature: t_soisno, t_veg, t_grnd
 !
 ! !USES:
-    use shr_kind_mod , only : r8 => shr_kind_r8
+    use shr_kind_mod, only : r8 => shr_kind_r8
     use shr_const_mod, only : SHR_CONST_TKFRZ
     use clmtype
-    use clm_varpar   , only : nlevsoi, nlevsno, nlevlak
-    use clm_varcon   , only : bdsno, istice, istwet, istsoil, denice, denh2o, spval, sb
-    use spmdMod      , only : masterproc
-    use decompMod    , only : get_proc_bounds
+    use clm_varpar  , only : nlevsoi, nlevsno, nlevlak
+    use clm_varcon  , only : bdsno, istice, istwet, istsoil, denice, denh2o, spval, sb
+    use spmdMod     , only : masterproc
+    use decompMod   , only : get_proc_bounds
 !!abt added below rcm
-    use clm_varsur   , only : satbrt_clm,init_tgb,init_snow
-    use clm_varpar   , only : lsmlon,lsmlat
-    use mod_bats_param , only : slmo , xmopor
-    use decompMod    , only : ldecomp
-    use pftvarcon    , only : smpsc
+    use clm_varsur  , only : satbrt_clm,init_tgb,init_snow
+    use clm_varpar  , only : lsmlon,lsmlat
+    use mod_bats_param, only : slmo, xmopor
+    use decompMod   , only : ldecomp
+    use pftvarcon   , only : smpsc
 !!abt above
 ! !ARGUMENTS:
     implicit none
@@ -47,10 +47,10 @@ contains
 !
 ! local pointers to implicit in arguments
 !
-    integer , pointer :: pcolumn(:)        ! column index associated with each pft
-    integer , pointer :: clandunit(:)      ! landunit index associated with each column
-    integer , pointer :: ltype(:)          ! landunit type
-    logical , pointer :: lakpoi(:)         ! true => landunit is a lake point
+    integer, pointer :: pcolumn(:)        ! column index associated with each pft
+    integer, pointer :: clandunit(:)      ! landunit index associated with each column
+    integer, pointer :: ltype(:)          ! landunit type
+    logical, pointer :: lakpoi(:)         ! true => landunit is a lake point
     real(r8), pointer :: dz(:,:)           ! layer thickness depth (m)
     real(r8), pointer :: watsat(:,:)       ! volumetric soil water at saturation (porosity) (nlevsoi)
     real(r8), pointer :: h2osoi_ice(:,:)   ! ice lens (kg/m2)
@@ -65,7 +65,7 @@ contains
 !
 ! local pointers to implicit out arguments
 !
-    integer , pointer :: snl(:)            ! number of snow layers
+    integer, pointer :: snl(:)            ! number of snow layers
     real(r8), pointer :: t_soisno(:,:)     ! soil temperature (Kelvin)  (-nlevsno+1:nlevsoi)
     real(r8), pointer :: t_lake(:,:)       ! lake temperature (Kelvin)  (1:nlevlak)
     real(r8), pointer :: t_grnd(:)         ! ground temperature (Kelvin)
@@ -93,11 +93,11 @@ contains
     integer :: ii,jj,g,nveg,tex,is,dtime
     real(r8), allocatable :: temp_veg(:,:)  !temporary array for storing BATS landuse type
     real(r8), allocatable :: temp_veg1(:,:) !temporary array for storing BATS landuse type
-    integer , pointer :: cgridcell(:)       !gridcell index of corresponding column
-    integer , pointer :: ivt(:)             ! vegetation type
-    integer , dimension(22) :: iexsol
-    data iexsol /  6 ,  6 ,  6 ,  6 ,  7 ,  8 ,  6 ,  3 ,  6 ,  6 ,  5 , &
-                  12 ,  6 ,  6 ,  6 ,  6 ,  5 ,  6 ,  6 ,  6 , 12 ,  8 /
+    integer, pointer :: cgridcell(:)       !gridcell index of corresponding column
+    integer, pointer :: ivt(:)             ! vegetation type
+    integer, dimension(22) :: iexsol
+    data iexsol /  6,  6,  6,  6,  7,  8,  6,  3,  6,  6,  5, &
+                  12,  6,  6,  6,  6,  5,  6,  6,  6, 12,  8 /
 !!abt added above
 !-----------------------------------------------------------------------
 

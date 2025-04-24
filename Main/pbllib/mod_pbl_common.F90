@@ -27,15 +27,15 @@ module mod_pbl_common
 
   private
 
-  real(rkx) , public , pointer , dimension(:,:) :: ricr
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: ricr
 
-  integer(ik4) , pointer , public , dimension(:,:) :: kmxpbl
+  integer(ik4), pointer, contiguous, public, dimension(:,:) :: kmxpbl
 
   !
   ! Pointers to the TCM state variables
   !
-  type(tcm_state) , public :: uwstate
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: chiuwten
+  type(tcm_state), public :: uwstate
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: chiuwten
 
 end module mod_pbl_common
 

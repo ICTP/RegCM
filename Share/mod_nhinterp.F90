@@ -25,7 +25,7 @@ module mod_nhinterp
 
   private
 
-  public :: base_state_temperature , nhsetup , nhbase , nhinterp , nhpp , nhw
+  public :: base_state_temperature, nhsetup, nhbase, nhinterp, nhpp, nhw
 
   real(rkx) :: ptop = 5.0_rkx      ! Centibars
   real(rkx) :: ptoppa = 5000.0_rkx ! Pascal
@@ -42,10 +42,10 @@ module mod_nhinterp
 
     real(rkx) function base_state_temperature(i1,i2,j1,j2,xlat)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: xlat    ! Latitude
-      real(rkx) , dimension(j1:j2,i1:i2) :: ts0
-      integer(ik4) :: i , j
+      integer(ik4), intent(in) :: i1, i2, j1, j2
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: xlat    ! Latitude
+      real(rkx), dimension(j1:j2,i1:i2) :: ts0
+      integer(ik4) :: i, j
       do concurrent ( j = j1:j2, i = i1:i2 )
         ts0(j,i) = stdatm_val(xlat(j,i),p0*d_r100,istdatm_tempk)
       end do
@@ -56,7 +56,7 @@ module mod_nhinterp
 
     subroutine nhsetup(ptp,pbase,lp,ts0)
       implicit none
-      real(rkx) , intent(in) :: ptp , pbase , lp , ts0
+      real(rkx), intent(in) :: ptp, pbase, lp, ts0
       ptop = ptp
       p0 = pbase
       tlp = lp
@@ -68,16 +68,16 @@ module mod_nhinterp
     !
     subroutine nhbase(i1,i2,j1,j2,kx,sig,ter,ps0,pr0,t0,rho0,z0)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kx
-      real(rkx) , pointer , intent(in) , dimension(:) :: sig       ! Adim 0-1
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: ter     ! Meters
-      real(rkx) , pointer , intent(inout) , dimension(:,:) :: ps0    ! Pascal
-      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: pr0  ! Pascal
-      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: t0   ! Kelvin
-      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: rho0 ! kg/kg
-      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: z0   ! m
-      integer(ik4) :: i , j , k
-      real(rkx) :: ac , alnp , b
+      integer(ik4), intent(in) :: i1, i2, j1, j2, kx
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sig       ! Adim 0-1
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ter     ! Meters
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: ps0    ! Pascal
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: pr0  ! Pascal
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: t0   ! Kelvin
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: rho0 ! kg/kg
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: z0   ! m
+      integer(ik4) :: i, j, k
+      real(rkx) :: ac, alnp, b
       !
       ! Define ps0 from terrain heights and t0 profile.
       !
@@ -87,7 +87,7 @@ module mod_nhinterp
         alnp = -b + sqrt(b*b - d_four * ac)
         ps0(j,i) = p0 * exp(alnp) - ptoppa
         ! Define reference state temperature at model points.
-        do k = 1 , kx
+        do k = 1, kx
           pr0(j,i,k) = ps0(j,i) * sig(k) + ptoppa
           t0(j,i,k) = max(st0 + tlp * log(pr0(j,i,k) / p0),tiso)
           rho0(j,i,k) = pr0(j,i,k) / rgas / t0(j,i,k)
@@ -101,19 +101,19 @@ module mod_nhinterp
     !
     subroutine nhinterp3d(i1,i2,j1,j2,kxs,sigmah,sigma,f,tv,ps,ps0,intmeth)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , intmeth
-      real(rkx) , pointer , intent(in) , dimension(:) :: sigmah
-      real(rkx) , pointer , intent(in) , dimension(:) :: sigma
-      real(rkx) , pointer , intent(in) , dimension(:,:,:) :: tv
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: ps
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: ps0
-      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: f
-      integer(ik4) :: i , j , k , l , ll
-      real(rkx) :: fl , fu , pr0 , alnqvn , alnp
-      real(rkx) :: zl , zu , wu , wl
-      real(rkx) , dimension(1:kxs) :: fn
-      real(rkx) , dimension(j1:j2,i1:i2,1:kxs) :: z , z0
-      real(rkx) , dimension(1:kxs+1) :: zq
+      integer(ik4), intent(in) :: i1, i2, j1, j2, kxs, intmeth
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigmah
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: tv
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps0
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
+      integer(ik4) :: i, j, k, l, ll
+      real(rkx) :: fl, fu, pr0, alnqvn, alnp
+      real(rkx) :: zl, zu, wu, wl
+      real(rkx), dimension(1:kxs) :: fn
+      real(rkx), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
+      real(rkx), dimension(1:kxs+1) :: zq
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !
@@ -129,11 +129,11 @@ module mod_nhinterp
 #ifdef STDPAR
       do concurrent ( j = j1:j2, i = i1:i2 ) local(zq)
 #else
-      do i = i1 , i2
-        do j = j1 , j2
+      do i = i1, i2
+        do j = j1, j2
 #endif
           zq(kxs+1) = d_zero
-          do k = kxs , 1 , -1
+          do k = kxs, 1, -1
             zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
               log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
             z(j,i,k) = d_half * (zq(k) + zq(k+1))
@@ -149,12 +149,12 @@ module mod_nhinterp
 #ifdef STDPAR
         do concurrent ( j = j1:j2, i = i1:i2 ) local(fn)
 #else
-        do i = i1 , i2
-          do j = j1 , j2
+        do i = i1, i2
+          do j = j1, j2
 #endif
-            do k = 1 , kxs
+            do k = 1, kxs
               l = 1
-              do ll = 1 , kxs - 1
+              do ll = 1, kxs - 1
                 l = ll
                 if (z(j,i,l+1) < z0(j,i,k)) exit
               end do
@@ -165,7 +165,7 @@ module mod_nhinterp
               fn(k) = (fu * (z0(j,i,k) - zl ) + &
                        fl * (zu - z0(j,i,k))) / (zu - zl)
             end do
-            do k = 1 , kxs
+            do k = 1, kxs
               f(j,i,k) = fn(k)
             end do
 #ifndef STDPAR
@@ -176,11 +176,11 @@ module mod_nhinterp
 #ifdef STDPAR
         do concurrent ( j = j1:j2, i = i1:i2 ) local(fn)
 #else
-        do i = i1 , i2
-          do j = j1 , j2
+        do i = i1, i2
+          do j = j1, j2
 #endif
-            do k = 1 , kxs
-              do ll = 1 , kxs - 1
+            do k = 1, kxs
+              do ll = 1, kxs - 1
                 l = ll
                 if (z(j,i,l+1) < z0(j,i,k)) exit
               end do
@@ -200,7 +200,7 @@ module mod_nhinterp
               end if
               if ( fn(k) < minqq ) fn(k) = minqq
             end do
-            do k = 1 , kxs
+            do k = 1, kxs
               f(j,i,k) = fn(k)
             end do
 #ifndef STDPAR
@@ -212,19 +212,19 @@ module mod_nhinterp
 
     subroutine nhinterp4d(i1,i2,j1,j2,kxs,nn,sigmah,sigma,f,tv,ps,ps0)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , nn
-      real(rkx) , pointer , intent(in) , dimension(:) :: sigmah
-      real(rkx) , pointer , intent(in) , dimension(:) :: sigma
-      real(rkx) , pointer , intent(in) , dimension(:,:,:) :: tv
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: ps
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: ps0
-      real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: f
-      integer(ik4) :: i , j , k , n , l , ll
-      real(rkx) :: fl , fu , pr0 , alnqvn , alnp
-      real(rkx) :: zl , zu , wl , wu
-      real(rkx) , dimension(1:kxs) :: fn
-      real(rkx) , dimension(j1:j2,i1:i2,1:kxs) :: z , z0
-      real(rkx) , dimension(1:kxs+1) :: zq
+      integer(ik4), intent(in) :: i1, i2, j1, j2, kxs, nn
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigmah
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: tv
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps0
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
+      integer(ik4) :: i, j, k, n, l, ll
+      real(rkx) :: fl, fu, pr0, alnqvn, alnp
+      real(rkx) :: zl, zu, wl, wu
+      real(rkx), dimension(1:kxs) :: fn
+      real(rkx), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
+      real(rkx), dimension(1:kxs+1) :: zq
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !
@@ -240,11 +240,11 @@ module mod_nhinterp
 #ifdef STDPAR
       do concurrent ( j = j1:j2, i = i1:i2 ) local(zq)
 #else
-      do i = i1 , i2
-        do j = j1 , j2
+      do i = i1, i2
+        do j = j1, j2
 #endif
           zq(kxs+1) = d_zero
-          do k = kxs , 1 , -1
+          do k = kxs, 1, -1
             zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
               log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
             z(j,i,k) = d_half * (zq(k) + zq(k+1))
@@ -256,16 +256,16 @@ module mod_nhinterp
       !
       ! Interpolate from z to z0 levels.
       !
-      do n = 1 , nn
+      do n = 1, nn
 #ifdef STDPAR
         do concurrent( j = j1:j2, i = i1:i2 ) local(fn)
 #else
-        do i = i1 , i2
-          do j = j1 , j2
+        do i = i1, i2
+          do j = j1, j2
 #endif
-            do k = 1 , kxs
+            do k = 1, kxs
               l = 1
-              do ll = 1 , kxs - 1
+              do ll = 1, kxs - 1
                 l = ll
                 if (z(j,i,ll+1) < z0(j,i,k)) exit
               end do
@@ -285,7 +285,7 @@ module mod_nhinterp
               end if
               if ( fn(k) < dlowval ) fn(k) = mintr
             end do
-            do k = 1 , kxs
+            do k = 1, kxs
               f(j,i,k,n) = fn(k)
             end do
 #ifndef STDPAR
@@ -299,15 +299,15 @@ module mod_nhinterp
     !
     subroutine nhpp(i1,i2,j1,j2,kxs,sigma,t,pr0,t0,tv,ps,ps0,pp)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs
-      integer(ik4) :: i , j , k
-      real(rkx) , pointer , intent(in) , dimension(:) :: sigma
-      real(rkx) , pointer , intent(in) , dimension(:,:,:) :: t , t0 , tv
-      real(rkx) , pointer , intent(in) , dimension(:,:,:) :: pr0
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0
-      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: pp
-      real(rkx) :: aa , bb , cc , check , checkl , checkr , delp0 , p0surf
-      real(rkx) :: psp , tk , tkp1 , tvk , tvkp1 , tvpot , wtl , wtu
+      integer(ik4), intent(in) :: i1, i2, j1, j2, kxs
+      integer(ik4) :: i, j, k
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: t, t0, tv
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: pr0
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps, ps0
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: pp
+      real(rkx) :: aa, bb, cc, check, checkl, checkr, delp0, p0surf
+      real(rkx) :: psp, tk, tkp1, tvk, tvkp1, tvpot, wtl, wtu
       !
       !  Calculate p' at bottom and integrate upwards (hydrostatic balance).
       !
@@ -324,7 +324,7 @@ module mod_nhinterp
         tk = t(j,i,kxs)
         tvpot = (tvk - t0(j,i,kxs)) / tk
         pp(j,i,kxs) = (tvpot*delp0 + psp) / (d_one + delp0/pr0(j,i,kxs))
-        do k = kxs - 1 , 1 , -1
+        do k = kxs - 1, 1, -1
           tvkp1 = tv(j,i,k+1)
           tvk = tv(j,i,k)
           tkp1 = t(j,i,k+1)
@@ -342,7 +342,7 @@ module mod_nhinterp
       !
       !  Do vertical gradient check
       !
-      do k = 1 , kxs - 1
+      do k = 1, kxs - 1
         do concurrent ( j = j1:j2, i = i1:i2 )
           wtu = (sigma(k+2) - sigma(k+1)) / (sigma(k+2) - sigma(k  ))
           wtl = d_one - wtu
@@ -369,26 +369,26 @@ module mod_nhinterp
     subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,u,v,tv, &
                    ps,psdot,ps0,xmsfx,w,wtop,ds,iband,icrm)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , iband , icrm
-      real(rkx) , pointer , intent(in) , dimension(:) :: sigma , dsigma
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: xmsfx
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0 , psdot
-      real(rkx) , pointer , intent(in) , dimension(:,:,:) :: tv
-      real(rkx) , pointer , intent(in) , dimension(:,:,:) :: u , v
-      real(rkx) , intent(in) :: ds                    ! Kilometers
-      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: w
-      real(rkx) , pointer , intent(inout) , dimension(:,:) :: wtop
-      integer(ik4) :: i , j , k
-      integer(ik4) :: l , ll , ip , im , jp , jm , lm , lp
-      real(rkx) :: dx2 , omegal , omegau , ubar , vbar , wu , wl
-      real(rkx) :: zl , zu , rho , omegan , alnp
-      real(rkx) :: ua , ub , va , vb
-      real(rkx) , dimension(kxs) :: mdv
-      real(rkx) , dimension(kxs+1) :: qdt
-      real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: z0 , z
-      real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
-      real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: pr0 , t0 , omega
-      real(rkx) , dimension(j1:j2,i1:i2) :: dummy , dummy1
+      integer(ik4), intent(in) :: i1, i2, j1, j2, kxs, iband, icrm
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma, dsigma
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: xmsfx
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps, ps0, psdot
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: tv
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: u, v
+      real(rkx), intent(in) :: ds                    ! Kilometers
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: w
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: wtop
+      integer(ik4) :: i, j, k
+      integer(ik4) :: l, ll, ip, im, jp, jm, lm, lp
+      real(rkx) :: dx2, omegal, omegau, ubar, vbar, wu, wl
+      real(rkx) :: zl, zu, rho, omegan, alnp
+      real(rkx) :: ua, ub, va, vb
+      real(rkx), dimension(kxs) :: mdv
+      real(rkx), dimension(kxs+1) :: qdt
+      real(rkx), dimension(j1:j2,i1:i2,kxs+1) :: z0, z
+      real(rkx), dimension(j1:j2,i1:i2,kxs+1) :: wtmp
+      real(rkx), dimension(j1:j2,i1:i2,kxs+1) :: pr0, t0, omega
+      real(rkx), dimension(j1:j2,i1:i2) :: dummy, dummy1
 
       wtmp(:,:,:) = d_zero
       omega(:,:,:) = d_zero
@@ -411,7 +411,7 @@ module mod_nhinterp
       !
       do concurrent ( j = j1:j2, i = i1:i2 )
         z(j,i,kxs+1) = d_zero
-        do k = kxs , 1 , -1
+        do k = kxs, 1, -1
           z(j,i,k) = z(j,i,k+1) - rovg * tv(j,i,k) * &
             log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
         end do
@@ -419,8 +419,8 @@ module mod_nhinterp
 #ifdef STDPAR
       do concurrent ( j = j1:j2, i = i1:i2 ) local(mdv,qdt)
 #else
-      do i = i1 , i2
-        do j = j1 , j2
+      do i = i1, i2
+        do j = j1, j2
 #endif
           if ( icrm /= 1 ) then
             ip = min(i+1,i2)
@@ -462,7 +462,7 @@ module mod_nhinterp
           end if
 
           mdv(:) = d_zero
-          do l = 1 , kxs
+          do l = 1, kxs
             ua = u(j ,i ,l) * psdot(j,i)  + &
                  u(j ,ip,l) * psdot(j,ip)
             ub = u(jp, i,l) * psdot(jp,i) + &
@@ -474,10 +474,10 @@ module mod_nhinterp
             mdv(l) = (ub - ua + vb - va) * dummy(j,i) / ps(j,i)
           end do
           qdt(kxs+1) = d_zero
-          do l = kxs , 1 , -1
+          do l = kxs, 1, -1
             qdt(l) = qdt(l+1) + mdv(l) * dsigma(l)
           end do
-          do l = kxs+1 , 1 , -1
+          do l = kxs+1, 1, -1
             lp = min(l,kxs)
             lm = max(l-1,1)
             if ( l == kxs+1 ) lm = kxs-1
@@ -505,9 +505,9 @@ module mod_nhinterp
       !
       ! Vertical velocity from interpolated omega
       !
-      do k = 2 , kxs + 1
+      do k = 2, kxs + 1
         do concurrent ( j = j1:j2, i = i1:i2 )
-          do ll = 1 , kxs
+          do ll = 1, kxs
             l = ll
             if (z(j,i,l+1) < z0(j,i,k)) exit
           end do
@@ -535,12 +535,12 @@ module mod_nhinterp
 
     subroutine smtdsmt(slab,i1,i2,j1,j2,k1,k2)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , k1 , k2
-      real(rkx) , intent(inout) , dimension(j1:j2,i1:i2,k1:k2) :: slab
-      real(rkx) :: aplus , asv , cell
-      integer(ik4) :: i , is , ie , j , js , je , k , kp , np
-      real(rkx) , dimension(2) :: xnu
-      integer(ik4) , parameter :: npass = 16
+      integer(ik4), intent(in) :: i1, i2, j1, j2, k1, k2
+      real(rkx), intent(inout), dimension(j1:j2,i1:i2,k1:k2) :: slab
+      real(rkx) :: aplus, asv, cell
+      integer(ik4) :: i, is, ie, j, js, je, k, kp, np
+      real(rkx), dimension(2) :: xnu
+      integer(ik4), parameter :: npass = 16
       !
       ! purpose: spatially smooth data in slab to dampen short
       ! wavelength components
@@ -551,13 +551,13 @@ module mod_nhinterp
       js = j1+1
       xnu(1) =  0.50_rkx
       xnu(2) = -0.52_rkx
-      do k = k1 , k2
-        do np = 1 , npass
-          do kp = 1 , 2
+      do k = k1, k2
+        do np = 1, npass
+          do kp = 1, 2
             ! first smooth in the ni direction
-            do i = i1 , i2
+            do i = i1, i2
               asv = slab(j1,i,k)
-              do j = js , je
+              do j = js, je
                 cell = slab(j,i,k)
                 aplus = slab(j+1,i,k)
                 slab(j,i,k) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
@@ -565,9 +565,9 @@ module mod_nhinterp
               end do
             end do
             ! smooth in the nj direction
-            do j = j1 , j2
+            do j = j1, j2
               asv = slab(j,i1,k)
-              do i = is , ie
+              do i = is, ie
                 cell = slab(j,i,k)
                 aplus = slab(j,i+1,k)
                 slab(j,i,k) = cell + xnu(kp)*((asv+aplus)/d_two - cell)

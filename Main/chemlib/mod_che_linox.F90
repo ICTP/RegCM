@@ -33,19 +33,19 @@ module mod_che_linox
 
   subroutine linox_em(ivegcov)
     implicit none
-    integer(ik4) , dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
-    real(rkx), dimension(kz) :: amass , pic , pcg
+    integer(ik4), dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
+    real(rkx), dimension(kz) :: amass, pic, pcg
     real(rkx), dimension(jci1:jci2,ici1:ici2,kz) :: znox_prod_ic
     real(rkx), dimension(jci1:jci2,ici1:ici2,kz) :: znox_prod_cg
-    real(rkx):: zsum_lmass_ic , zsum_lmass_cg , flashrate , &
-         pic_rate , pcg_rate , cloud_top_height , zthickice , zbeta , fac
-    integer(ik4) :: i , j , k , kcumzero , kcumm10
+    real(rkx):: zsum_lmass_ic, zsum_lmass_cg, flashrate, &
+         pic_rate, pcg_rate, cloud_top_height, zthickice, zbeta, fac
+    integer(ik4) :: i, j, k, kcumzero, kcumm10
 
     znox_prod_ic = d_zero
     znox_prod_cg = d_zero
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         ! cloud top heigh from convection scheme
         if ( kcumtop(j,i) <= 0 ) cycle
 
@@ -146,18 +146,18 @@ module mod_che_linox
     end do ! en loop on i
 
     if ( idynamic == 3 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             chiten(j,i,k,ino) = chiten(j,i,k,ino) + &
                 (znox_prod_ic(j,i,k) + znox_prod_cg(j,i,k))
           end do
         end do
       end do
     else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             chiten(j,i,k,ino) = chiten(j,i,k,ino) + &
                 (znox_prod_ic(j,i,k) + znox_prod_cg(j,i,k)) * cpsb(j,i)
           end do
@@ -166,9 +166,9 @@ module mod_che_linox
     end if
 
     if ( ichdiag > 0 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
             cemisdiag(j,i,k,ino) = cemisdiag(j,i,k,ino ) + &
                 (znox_prod_ic(j,i,k) +  znox_prod_cg(j,i,k)) * cfdout
           end do

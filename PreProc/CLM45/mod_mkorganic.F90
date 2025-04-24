@@ -27,16 +27,16 @@ module mod_mkorganic
 
   public :: mkorganic
 
-  character(len=16) , parameter :: varname = 'ORGANIC'
+  character(len=16), parameter :: varname = 'ORGANIC'
 
   contains
 
   subroutine mkorganic(orgfile,mask,organic)
     implicit none
-    character(len=*) , intent(in) :: orgfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:,:) , intent(out) :: organic
-    integer(ik4) :: n , j , i , norg
+    character(len=*), intent(in) :: orgfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:,:), intent(out) :: organic
+    integer(ik4) :: n, j, i, norg
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -46,10 +46,10 @@ module mod_mkorganic
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     call gfread(gfile,varname,organic,h_missing_value)
     call gfclose(gfile)
-    do n = 1 , norg
+    do n = 1, norg
       call bestaround(organic(:,:,n),h_missing_value)
-      do i = 1 , iysg
-        do j = 1 , jxsg
+      do i = 1, iysg
+        do j = 1, jxsg
           if ( mask(j,i) < 0.5_rkx ) then
             organic(j,i,n) = h_missing_value
           else

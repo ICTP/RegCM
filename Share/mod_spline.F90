@@ -31,8 +31,8 @@ module mod_spline
 
   private
 
-  public :: splini , spline , splint
-  public :: splie2 , splin2
+  public :: splini, spline, splint
+  public :: splie2, splin2
   public :: spline1d
 
   interface spline
@@ -48,12 +48,12 @@ module mod_spline
     subroutine spline1(x,y,yp1,ypn,y2)
       implicit none
       ! Arrays of tabulated function in ascending order by x with y = f(x)
-      real(rkx) , dimension(:) , intent(in)  :: x , y
+      real(rkx), dimension(:), intent(in)  :: x, y
       ! Specified derivatives at x(1) and x(n)
       ! Values > 1E30 signals second derivative zero
-      real(rkx) , intent(in) :: yp1 , ypn
+      real(rkx), intent(in) :: yp1, ypn
       ! Output array of second derivatives
-      real(rkx) , dimension(:) , intent(out) :: y2
+      real(rkx), dimension(:), intent(out) :: y2
 
       ! SPLINE use: given an 1D array of X data and an array of Y data,
       ! both of length N, this routine computes the 2nd derivatives, Y2 at
@@ -69,9 +69,9 @@ module mod_spline
       ! IMPORTANT NOTE: the X data values in array X must be in ascending
       ! order or the interpolation will fail
 
-      integer(ik4) :: n , i , k
-      real(rkx) :: p , qn , sig , un
-      real(rkx) , dimension(:) , allocatable :: u
+      integer(ik4) :: n, i, k
+      real(rkx) :: p, qn, sig, un
+      real(rkx), dimension(:), allocatable :: u
 
       ! if YP1>1.0E+30 use natural spline, otherwise estimate Y2 at the
       ! first point
@@ -89,7 +89,7 @@ module mod_spline
 
       ! store intermediate values of terms in the expansion series
 
-      do i = 2 , n - 1
+      do i = 2, n - 1
         sig = (x(i)-x(i-1))/(x(i+1)-x(i-1))
         p = sig*y2(i-1) + d_two
         y2(i) = (sig-d_one)/p
@@ -112,7 +112,7 @@ module mod_spline
 
       ! compute the Y2 from the 2nd order expansion series
 
-      do k = n - 1 , 1 , -1
+      do k = n - 1, 1, -1
         y2(k) = y2(k)*y2(k+1) + u(k)
       end do
 
@@ -145,13 +145,13 @@ module mod_spline
       ! *                                                                *
       ! ******************************************************************
       implicit none
-      integer(ik4) , intent(in) :: jtb , nold , nnew
-      real(rkx) , dimension(jtb) , intent(in) :: xold , yold , xnew
-      real(rkx) , dimension(jtb) , intent(inout) :: p , q , y2
-      real(rkx) , dimension(jtb) , intent(out) :: ynew
-      integer(ik4) :: noldm1 , k , k1 , k2 , kold
-      real(rkx) :: dxl , dxr , dydxl , dydxr , rtdxc , dxc , den
-      real(rkx) :: xk , y2k , y2kp1 , dx , rdx , ak , bk , ck , x , xsq
+      integer(ik4), intent(in) :: jtb, nold, nnew
+      real(rkx), dimension(jtb), intent(in) :: xold, yold, xnew
+      real(rkx), dimension(jtb), intent(inout) :: p, q, y2
+      real(rkx), dimension(jtb), intent(out) :: ynew
+      integer(ik4) :: noldm1, k, k1, k2, kold
+      real(rkx) :: dxl, dxr, dydxl, dydxr, rtdxc, dxc, den
+      real(rkx) :: xk, y2k, y2kp1, dx, rdx, ak, bk, ck, x, xsq
       !------------------------------------------------------------------
       noldm1 = nold-1
       dxl = xold(2)-xold(1)
@@ -179,7 +179,7 @@ module mod_spline
       if ( k > 1 ) go to 200
       k1 = 1
  300  xk = xnew(k1)
-      do 400 k2 = 2 , nold
+      do 400 k2 = 2, nold
       if ( xold(k2) <= xk ) go to 400
       kold = k2-1
       go to 450
@@ -208,16 +208,16 @@ module mod_spline
     subroutine splini(xa,ya,y2a,x,yi)
       implicit none
       ! Arrays of tabulated function in ascending order by xa with ya = f(xa)
-      real(rkx) , dimension(:) , intent(in) :: xa , ya
+      real(rkx), dimension(:), intent(in) :: xa, ya
       ! Array of second derivatives
-      real(rkx) , dimension(:) , intent(in) :: y2a
+      real(rkx), dimension(:), intent(in) :: y2a
       ! Ascissa endpoint of integration
-      real(rkx) , intent(in) :: x
+      real(rkx), intent(in) :: x
       ! Output value
-      real(rkx) , intent(out) :: yi
+      real(rkx), intent(out) :: yi
 
-      real(rkx) :: a , a2 , b , b2 , h , xx
-      integer(ik4) :: n , khi , klo
+      real(rkx) :: a, a2, b, b2, h, xx
+      integer(ik4) :: n, khi, klo
 
       n = size(xa,1)
       yi = d_zero
@@ -246,16 +246,16 @@ module mod_spline
       implicit none
 
       ! Arrays of tabulated function values in ascending xa order
-      real(rkx) , dimension(:) , intent(in) :: xa , ya
+      real(rkx), dimension(:), intent(in) :: xa, ya
       ! Arrays of second derivatives
-      real(rkx) , dimension(:) , intent(in) :: y2a
+      real(rkx), dimension(:), intent(in) :: y2a
       ! Abscissa of interpolation
-      real(rkx) , intent(in) :: x
+      real(rkx), intent(in) :: x
       ! Output value
-      real(rkx) , intent(out) :: y
+      real(rkx), intent(out) :: y
 
-      real(rkx) :: a , b , h
-      integer(ik4) :: n , k , khi , klo
+      real(rkx) :: a, b, h
+      integer(ik4) :: n, k, khi, klo
 
       ! SPLINT use: given an 1D array of XA data, an array of YA data, and
       ! an array of the 2nd derivatives Y2A, all of length N, this routine
@@ -307,23 +307,23 @@ module mod_spline
       !     Uses routines: SPLINE
       !     IMPORTANT NOTE: the X1A and X2A data values must both be in
       !     ascending order or the interpolation will fail
-      real(rkx) , dimension(:) , intent(in) :: x1a , x2a
-      real(rkx) , dimension(:,:) , intent(in) :: ya
-      real(rkx) , dimension(:,:) , intent(out) :: y2a
-      integer(ik4) :: m , n , j , k
+      real(rkx), dimension(:), intent(in) :: x1a, x2a
+      real(rkx), dimension(:,:), intent(in) :: ya
+      real(rkx), dimension(:,:), intent(out) :: y2a
+      integer(ik4) :: m, n, j, k
 
-      real(rkx) , allocatable , dimension(:) :: ytmp , y2tmp
+      real(rkx), allocatable, dimension(:) :: ytmp, y2tmp
 
       m = size(x1a,1)
       n = size(x2a,1)
 
       allocate(ytmp(n), y2tmp(n))
-      do j = 1 , m
-        do k = 1 , n
+      do j = 1, m
+        do k = 1, n
           ytmp(k) = ya(j,k)
         end do
         call spline(x2a,ytmp,1.e30_rkx,1.e30_rkx,y2tmp)
-        do k = 1 , n
+        do k = 1, n
           y2a(j,k) = y2tmp(k)
         end do
       end do
@@ -340,23 +340,23 @@ module mod_spline
       ! Uses routines: SPLINT, SPLINE
       ! IMPORTANT NOTE: the X1A and X2A data values must both be in
       ! ascending order or the interpolation will fail
-      real(rkx) , dimension(:) , intent(in) :: x1a
-      real(rkx) , dimension(:) , intent(in) :: x2a
-      real(rkx) , dimension(:,:) , intent(in) :: ya
-      real(rkx) , dimension(:,:) , intent(in) :: y2a
-      real(rkx) , intent(in) :: x1
-      real(rkx) , intent(in) :: x2
-      real(rkx) , intent(out) :: y
-      integer(ik4) :: j , k , m , n
+      real(rkx), dimension(:), intent(in) :: x1a
+      real(rkx), dimension(:), intent(in) :: x2a
+      real(rkx), dimension(:,:), intent(in) :: ya
+      real(rkx), dimension(:,:), intent(in) :: y2a
+      real(rkx), intent(in) :: x1
+      real(rkx), intent(in) :: x2
+      real(rkx), intent(out) :: y
+      integer(ik4) :: j, k, m, n
 
-      real(rkx) , allocatable , dimension(:) :: ytmp , y2tmp , yytmp
+      real(rkx), allocatable, dimension(:) :: ytmp, y2tmp, yytmp
 
       m = size(x1a,1)
       n = size(x2a,1)
       allocate(ytmp(n), y2tmp(n))
 
-      do j = 1 , m
-        do k = 1 , n
+      do j = 1, m
+        do k = 1, n
           ytmp(k) = ya(j,k)
           y2tmp(k) = y2a(j,k)
         end do
@@ -386,17 +386,17 @@ module mod_spline
     !
     subroutine spline1d(nold,xold,yold,y2,nnew,xnew,ynew)
       implicit none
-      integer(ik4) , intent(in) :: nnew , nold
-      real(rkx) , intent(in) , dimension(nold) :: xold , yold
-      real(rkx) , intent(in) , dimension(nnew) :: xnew
-      real(rkx) , intent(inout) , dimension(nold) :: y2
-      real(rkx) , intent(out) , dimension(nnew) :: ynew
-      real(rkx) , dimension(nold-2) :: p , q
-      real(rkx) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
-                   dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
-      real(rkx) , parameter :: afac = 6.0_rkx
-      real(rkx) , parameter :: bfac = d_one/afac
-      integer(ik4) :: k , k1 , k2 , kold , noldm1
+      integer(ik4), intent(in) :: nnew, nold
+      real(rkx), intent(in), dimension(nold) :: xold, yold
+      real(rkx), intent(in), dimension(nnew) :: xnew
+      real(rkx), intent(inout), dimension(nold) :: y2
+      real(rkx), intent(out), dimension(nnew) :: ynew
+      real(rkx), dimension(nold-2) :: p, q
+      real(rkx) :: ak, bk, ck, den, dx, dxc, dxl, dxr, dydxl,    &
+                   dydxr, rdx, rtdxc, x, xk, xsq, y2k, y2kp1
+      real(rkx), parameter :: afac = 6.0_rkx
+      real(rkx), parameter :: bfac = d_one/afac
+      integer(ik4) :: k, k1, k2, kold, noldm1
 
       noldm1 = nold - 1
       dxl = xold(2) - xold(1)
@@ -407,7 +407,7 @@ module mod_spline
       p(1) = rtdxc*(bfac*(dydxr-dydxl)-dxl*y2(1))
       q(1) = -rtdxc*dxr
       if ( nold > 3 ) then
-        do k = 3 , nold
+        do k = 3, nold
           dxl = dxr
           dydxl = dydxr
           dxr = xold(k+1) - xold(k)
@@ -418,12 +418,12 @@ module mod_spline
           q(k-1) = -den*dxr
         end do
       end if
-      do k = noldm1 , 2 , -1
+      do k = noldm1, 2, -1
         y2(k) = p(k-1) + q(k-1)*y2(k+1)
       end do
       k = -1
       elmloop: &
-      do k1 = 1 , nnew
+      do k1 = 1, nnew
         xk = xnew(k1)
         if ( xk < xold(1) ) then
           ynew(k1) = yold(1)
@@ -433,7 +433,7 @@ module mod_spline
           ynew(k1) = yold(nold)
           cycle elmloop
         end if
-        do k2 = 2 , nold
+        do k2 = 2, nold
           if ( xold(k2) <= xk ) cycle
           kold = k2 - 1
           exit

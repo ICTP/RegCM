@@ -145,7 +145,7 @@ module rrtmg_sw_setcoef
       real(kind=rb) :: co2reg
       real(kind=rb) :: compfp
 
-      real(kind=rb) , parameter :: stpfac = 296._rb/1013._rb
+      real(kind=rb), parameter :: stpfac = 296._rb/1013._rb
 
 ! Initializations
 

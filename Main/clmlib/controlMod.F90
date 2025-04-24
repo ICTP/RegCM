@@ -135,13 +135,13 @@ module controlMod
 ! are not used.
 !
 ! !USES:
-  use shr_kind_mod , only : r8 => shr_kind_r8, SHR_KIND_CL
-  use shr_sys_mod  , only : shr_sys_getenv
-  use clm_varpar   , only : maxpatch_pft, numpft
+  use shr_kind_mod, only : r8 => shr_kind_r8, SHR_KIND_CL
+  use shr_sys_mod , only : shr_sys_getenv
+  use clm_varpar  , only : maxpatch_pft, numpft
   use clm_varctl
   use spmdMod
-  use decompMod    , only : clump_pproc
-  use histFileMod  , only : max_tapes, max_namlen, &
+  use decompMod   , only : clump_pproc
+  use histFileMod , only : max_tapes, max_namlen, &
                             hist_empty_htapes, hist_dov2xy, &
                             hist_avgflag_pertape, hist_type1d_pertape, &
                             hist_nhtfrq, hist_ndens, hist_mfilt, &
@@ -149,12 +149,12 @@ module controlMod
                             hist_fincl4, hist_fincl5, hist_fincl6, &
                             hist_fexcl1, hist_fexcl2, hist_fexcl3, &
                             hist_fexcl4, hist_fexcl5, hist_fexcl6
-  use restFileMod  , only : rest_flag
+  use restFileMod , only : rest_flag
   use shr_const_mod, only : SHR_CONST_CDAY
-  use abortutils   , only : endrun
-  use clm_varsur   , only : r2coutfrq
+  use abortutils  , only : endrun
+  use clm_varsur  , only : r2coutfrq
   use mod_clm
-  use mod_runparams , only : dirclm
+  use mod_runparams, only : dirclm
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -239,15 +239,15 @@ contains
 ! !USES:
     use clm_time_manager
 #if (defined CASA)
-    use CASAMod          , only : lnpp, lalloc, q10, spunup, fcpool
+    use CASAMod         , only : lnpp, lalloc, q10, spunup, fcpool
 #endif
     use shr_inputinfo_mod, only : shr_inputInfo_initType,       &
                                   shr_inputInfo_initGetData,    &
                                   shr_inputInfo_initIsBranch,   &
                                   shr_inputInfo_initIsContinue, &
                                   shr_inputInfo_initIsStartup
-    use fileutils        , only : getavu, relavu
-    use shr_string_mod   , only : shr_string_getParentDir
+    use fileutils       , only : getavu, relavu
+    use shr_string_mod  , only : shr_string_getParentDir
 
     implicit none
 !
@@ -578,7 +578,7 @@ contains
                                        mss_wpass=mss_wpass,               &
                                        brnch_retain_casename=brnch_retain_casename,  &
                                        archive_dir=drvarchdir,&
-                                       single_column=single_column ,      &
+                                       single_column=single_column,      &
 				       scmlat=scmlat,scmlon=scmlon)
        archive_dir = shr_string_getParentDir( drvarchdir )//'/lnd/'
        if (      shr_inputInfo_initIsStartup(  CCSMInit ) )then
@@ -814,36 +814,36 @@ contains
 
     call mpi_bcast (caseid, len(caseid), MPI_CHARACTER, 0, mpicom, ier)
     call mpi_bcast (ctitle, len(ctitle), MPI_CHARACTER, 0, mpicom, ier)
-    call mpi_bcast (nsrest,           1, MPI_INTEGER  , 0, mpicom, ier)
+    call mpi_bcast (nsrest,           1, MPI_INTEGER , 0, mpicom, ier)
 
-    call mpi_bcast (dtime    , 1, MPI_INTEGER  , 0, mpicom, ier)
+    call mpi_bcast (dtime   , 1, MPI_INTEGER , 0, mpicom, ier)
 
 #if (defined OFFLINE) || (defined COUP_CSM)
-    call mpi_bcast (nelapse  , 1, MPI_INTEGER  , 0, mpicom, ier)
-    call mpi_bcast (start_ymd, 1, MPI_INTEGER  , 0, mpicom, ier)
-    call mpi_bcast (start_tod, 1, MPI_INTEGER  , 0, mpicom, ier)
-    call mpi_bcast (stop_ymd , 1, MPI_INTEGER  , 0, mpicom, ier)
-    call mpi_bcast (stop_tod , 1, MPI_INTEGER  , 0, mpicom, ier)
-    call mpi_bcast (ref_ymd  , 1, MPI_INTEGER  , 0, mpicom, ier)
-    call mpi_bcast (ref_tod  , 1, MPI_INTEGER  , 0, mpicom, ier)
+    call mpi_bcast (nelapse , 1, MPI_INTEGER , 0, mpicom, ier)
+    call mpi_bcast (start_ymd, 1, MPI_INTEGER , 0, mpicom, ier)
+    call mpi_bcast (start_tod, 1, MPI_INTEGER , 0, mpicom, ier)
+    call mpi_bcast (stop_ymd, 1, MPI_INTEGER , 0, mpicom, ier)
+    call mpi_bcast (stop_tod, 1, MPI_INTEGER , 0, mpicom, ier)
+    call mpi_bcast (ref_ymd , 1, MPI_INTEGER , 0, mpicom, ier)
+    call mpi_bcast (ref_tod , 1, MPI_INTEGER , 0, mpicom, ier)
     call mpi_bcast (calendar ,len(calendar), MPI_CHARACTER, 0, mpicom, ier)
 #endif
 
     ! initial file variables
 
-    call mpi_bcast (nrevsn  , len(nrevsn)  , MPI_CHARACTER, 0, mpicom, ier)
-    call mpi_bcast (finidat , len(finidat) , MPI_CHARACTER, 0, mpicom, ier)
-    call mpi_bcast (fsurdat , len(fsurdat) , MPI_CHARACTER, 0, mpicom, ier)
+    call mpi_bcast (nrevsn , len(nrevsn) , MPI_CHARACTER, 0, mpicom, ier)
+    call mpi_bcast (finidat, len(finidat), MPI_CHARACTER, 0, mpicom, ier)
+    call mpi_bcast (fsurdat, len(fsurdat), MPI_CHARACTER, 0, mpicom, ier)
     call mpi_bcast (fatmgrid, len(fatmgrid), MPI_CHARACTER, 0, mpicom, ier)
     call mpi_bcast (fatmlndfrc,len(fatmlndfrc),MPI_CHARACTER, 0, mpicom, ier)
     call mpi_bcast (fatmtopo, len(fatmtopo) ,MPI_CHARACTER, 0, mpicom, ier)
     call mpi_bcast (flndtopo, len(flndtopo) ,MPI_CHARACTER, 0, mpicom, ier)
     call mpi_bcast (fndepdat, len(fndepdat), MPI_CHARACTER, 0, mpicom, ier)
     call mpi_bcast (fndepdyn, len(fndepdyn), MPI_CHARACTER, 0, mpicom, ier)
-    call mpi_bcast (fpftdyn , len(fpftdyn) , MPI_CHARACTER, 0, mpicom, ier)
+    call mpi_bcast (fpftdyn, len(fpftdyn), MPI_CHARACTER, 0, mpicom, ier)
 
 !!!!!!!! abt rcm below
-    call mpi_bcast (mksrf_offline_fnavyoro , len(mksrf_offline_fnavyoro) , &
+    call mpi_bcast (mksrf_offline_fnavyoro, len(mksrf_offline_fnavyoro), &
                     MPI_CHARACTER, 0, mpicom, ier)
     call mpi_bcast (mksrf_fsoitex, len(mksrf_fsoitex), MPI_CHARACTER, &
                     0, mpicom, ier)
@@ -855,53 +855,53 @@ contains
                     0, mpicom, ier)
     call mpi_bcast (mksrf_furban, len(mksrf_furban), MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_flai,   len(mksrf_flai)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_flai,   len(mksrf_flai) , MPI_CHARACTER, 0, &
                     mpicom, ier)
 #if (defined VOC)
-    call mpi_bcast (mksrf_fisop,   len(mksrf_fisop)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fisop,   len(mksrf_fisop) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fbpin,   len(mksrf_fbpin)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fbpin,   len(mksrf_fbpin) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fapin,   len(mksrf_fapin)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fapin,   len(mksrf_fapin) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fmbo ,   len(mksrf_fmbo)   , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fmbo,   len(mksrf_fmbo)  , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fmyrc,   len(mksrf_fmyrc)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fmyrc,   len(mksrf_fmyrc) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fsabi,   len(mksrf_fsabi)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fsabi,   len(mksrf_fsabi) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_flimo,   len(mksrf_flimo)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_flimo,   len(mksrf_flimo) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fco ,   len(mksrf_fco)   , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fco,   len(mksrf_fco)  , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_focim,   len(mksrf_focim)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_focim,   len(mksrf_focim) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_facar,   len(mksrf_facar)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_facar,   len(mksrf_facar) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fomtp,   len(mksrf_fomtp)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fomtp,   len(mksrf_fomtp) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_ffarn ,   len(mksrf_ffarn)   , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_ffarn,   len(mksrf_ffarn)  , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fbcar,   len(mksrf_fbcar)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fbcar,   len(mksrf_fbcar) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fosqt,   len(mksrf_fosqt)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fosqt,   len(mksrf_fosqt) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fmeoh,   len(mksrf_fmeoh)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fmeoh,   len(mksrf_fmeoh) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_facto ,   len(mksrf_facto)   , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_facto,   len(mksrf_facto)  , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fmeth,   len(mksrf_fmeth)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fmeth,   len(mksrf_fmeth) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fno,   len(mksrf_fno)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fno,   len(mksrf_fno) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_facta,   len(mksrf_facta)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_facta,   len(mksrf_facta) , MPI_CHARACTER, 0, &
                     mpicom, ier)
-    call mpi_bcast (mksrf_fform ,   len(mksrf_fform)   , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fform,   len(mksrf_fform)  , MPI_CHARACTER, 0, &
                     mpicom, ier)
 #endif
-    call mpi_bcast (mksrf_fvegtyp, len(mksrf_fvegtyp) , MPI_CHARACTER, &
+    call mpi_bcast (mksrf_fvegtyp, len(mksrf_fvegtyp), MPI_CHARACTER, &
                     0, mpicom, ier)
-    call mpi_bcast (mksrf_fmax,   len(mksrf_fmax)  , MPI_CHARACTER, 0, &
+    call mpi_bcast (mksrf_fmax,   len(mksrf_fmax) , MPI_CHARACTER, 0, &
                     mpicom, ier)
 !!!!!!! abt rcm above
 
@@ -922,11 +922,11 @@ contains
 
     ! physics variables
 
-    call mpi_bcast (irad        , 1, MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (irad       , 1, MPI_INTEGER, 0, mpicom, ier)
     call mpi_bcast (csm_doflxave, 1, MPI_LOGICAL, 0, mpicom, ier)
-    call mpi_bcast (rtm_nsteps  , 1, MPI_INTEGER, 0, mpicom, ier)
-    call mpi_bcast (nsegspc     , 1, MPI_INTEGER, 0, mpicom, ier)
-    call mpi_bcast (wrtdia      , 1, MPI_LOGICAL, 0, mpicom, ier)
+    call mpi_bcast (rtm_nsteps , 1, MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (nsegspc    , 1, MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (wrtdia     , 1, MPI_LOGICAL, 0, mpicom, ier)
     call mpi_bcast (single_column,1, MPI_LOGICAL, 0, mpicom, ier)
     call mpi_bcast (scmlat,       1, MPI_REAL8,   0, mpicom, ier)
     call mpi_bcast (scmlon,       1, MPI_REAL8,   0, mpicom, ier)
@@ -973,10 +973,10 @@ contains
     call mpi_bcast (pertlim, 1, MPI_REAL8, 0, mpicom, ier)
 
 #if (defined CASA)
-    call mpi_bcast (lnpp  , 1, MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (lnpp , 1, MPI_INTEGER, 0, mpicom, ier)
     call mpi_bcast (lalloc, 1, MPI_INTEGER, 0, mpicom, ier)
     call mpi_bcast (spunup, 1, MPI_INTEGER, 0, mpicom, ier)
-    call mpi_bcast (q10   , 1, MPI_REAL8  , 0, mpicom, ier)
+    call mpi_bcast (q10  , 1, MPI_REAL8 , 0, mpicom, ier)
 #endif
 
   end subroutine control_spmd

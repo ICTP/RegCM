@@ -40,37 +40,37 @@ module mod_ncep
   integer(ik4) :: jlat
   integer(ik4) :: ilon
 
-  real(rkx) , pointer , dimension(:) :: glat
-  real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:) :: sigmar , plevs
-  real(rkx) :: pss , pst
+  real(rkx), pointer, contiguous, dimension(:) :: glat
+  real(rkx), pointer, contiguous, dimension(:) :: glon
+  real(rkx), pointer, contiguous, dimension(:) :: sigmar, plevs
+  real(rkx) :: pss, pst
 
-  real(rkx) , pointer , dimension(:,:,:) :: b2
-  real(rkx) , pointer , dimension(:,:,:) :: d2
-  real(rkx) , pointer , dimension(:,:,:) :: b3
-  real(rkx) , pointer , dimension(:,:,:) :: d3
-  real(rkx) , pointer , dimension(:,:,:) :: d3u
-  real(rkx) , pointer , dimension(:,:,:) :: d3v
-  real(rkx) , pointer , dimension(:,:,:) :: h3v , h3u
-  real(rkx) , pointer , dimension(:,:) :: topou , topov
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3u
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: h3v, h3u
+  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
   !
   ! The data are packed into short integers (INTEGER*2).  The array
   ! work will be used to hold the packed integers.
   !
-  integer(2) , pointer , dimension(:,:,:) :: work
+  integer(2), pointer, contiguous, dimension(:,:,:) :: work
 
-  real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rkx) , pointer :: u3v(:,:,:) , v3u(:,:,:)
-  real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rkx) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3, v3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: h3, q3, t3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: uvar, vvar
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hvar, rhvar, tvar
 
-  integer(ik4) :: year , month , day , hour
+  integer(ik4) :: year, month, day, hour
   integer(ik4) :: itcfs = 0
 
-  public :: get_ncep , init_ncep , conclude_ncep
+  public :: get_ncep, init_ncep, conclude_ncep
 
-  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
+  type(h_interpolator) :: cross_hint, udot_hint, vdot_hint
 
 
   contains
@@ -79,8 +79,8 @@ module mod_ncep
     use netcdf
     implicit none
 
-    integer(ik4) :: k , year , month , day , hour
-    integer(ik4) :: istatus , inet , iddim , idv
+    integer(ik4) :: k, year, month, day, hour
+    integer(ik4) :: istatus, inet, iddim, idv
     character(len=256) :: inpfile
 
     call split_idate(globidate1, year, month, day, hour)
@@ -90,7 +90,7 @@ module mod_ncep
         '/'//dattyp(4:5)//'/PLEV/air.',year,month,day,hour,'.nc'
     else
       write (inpfile,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
-           dattyp//'/',year , '/air.' , year,'.nc'
+           dattyp//'/',year, '/air.', year,'.nc'
     end if
     istatus = nf90_open(inpfile,nf90_nowrite,inet)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -131,7 +131,7 @@ module mod_ncep
     istatus = nf90_get_var(inet,idv,plevs)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read level')
-    do k = 1 , klev
+    do k = 1, klev
       sigmar(k) = (plevs(k)-plevs(klev))/(plevs(1)-plevs(klev))
     end do
     pss = (plevs(1)-plevs(klev)) / d_10 ! centibars
@@ -215,7 +215,7 @@ module mod_ncep
 
   subroutine get_ncep(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
 
     call split_idate(idate,year,month,day,hour)
     if ( dattyp(1:3) == 'CFS' ) then
@@ -224,7 +224,7 @@ module mod_ncep
       call cdc6hour(idate)
     end if
 
-    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    write (stdout,*) 'READ IN fields at DATE:', tochar(idate)
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
@@ -295,21 +295,21 @@ module mod_ncep
   subroutine cfs6hour
     use netcdf
     implicit none
-    integer(ik4) :: i , j , k , inet , it , kkrec , istatus
-    character(len=256) , save :: pathaddname
-    character(len=5) , dimension(5) :: varname
-    real(rkx) :: xadd , xscale
-    integer(ik4) , dimension(4) :: icount , istart
-    integer(ik4) , dimension(5) , save :: inet5 , ivar5
-    real(rkx) , dimension(5) , save :: xoff , xscl
-    integer(2) , dimension(5) , save :: xfil
-    logical , dimension(5) , save :: lpacked , lfill
-    data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
+    integer(ik4) :: i, j, k, inet, it, kkrec, istatus
+    character(len=256), save :: pathaddname
+    character(len=5), dimension(5) :: varname
+    real(rkx) :: xadd, xscale
+    integer(ik4), dimension(4) :: icount, istart
+    integer(ik4), dimension(5), save :: inet5, ivar5
+    real(rkx), dimension(5), save :: xoff, xscl
+    integer(2), dimension(5), save :: xfil
+    logical, dimension(5), save :: lpacked, lfill
+    data varname/'air', 'hgt', 'rhum', 'uwnd', 'vwnd'/
     !
     if ( itcfs == 0 ) then
       lpacked(:) = .true.
       lfill(:) = .true.
-      do kkrec = 1 , 5
+      do kkrec = 1, 5
         write(pathaddname,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
           trim(inpglob)//'/CFS/',year,month,day,hour, &
           '/'//dattyp(4:5)//'/PLEV/'//trim(varname(kkrec))// &
@@ -328,19 +328,19 @@ module mod_ncep
           call checkncerr(istatus,__FILE__,__LINE__, &
                 'Variable '//varname(kkrec)// &
                 ':add_offset in file'//trim(pathaddname))
-          write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
-                           xscl(kkrec) , xoff(kkrec)
+          write (stdout,*) inet5(kkrec), trim(pathaddname), &
+                           xscl(kkrec), xoff(kkrec)
         else
           lpacked(kkrec) = .false.
-          write (stdout,*) inet5(kkrec) , trim(pathaddname)
+          write (stdout,*) inet5(kkrec), trim(pathaddname)
         end if
         istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
                                '_FillValue',xfil(kkrec))
         if ( istatus /= nf90_noerr ) then
           lfill(kkrec) = .false.
         end if
-        write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
-                         xscl(kkrec) , xoff(kkrec)
+        write (stdout,*) inet5(kkrec), trim(pathaddname), &
+                         xscl(kkrec), xoff(kkrec)
         itcfs = 1
       end do
     end if
@@ -348,7 +348,7 @@ module mod_ncep
     it = itcfs
     itcfs = itcfs + 1
 
-    do kkrec = 1 , 5
+    do kkrec = 1, 5
       istart(1) = 1
       icount(1) = ilon
       istart(2) = 1
@@ -366,25 +366,25 @@ module mod_ncep
                         'Variable '//varname(kkrec)// &
                         'read error in file '//trim(pathaddname))
         if ( kkrec == 1 ) then
-          do k = 1 , klev
-            do j = 1 , jlat
-              do i = 1 , ilon
+          do k = 1, klev
+            do j = 1, jlat
+              do i = 1, ilon
                 tvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
               end do
             end do
           end do
         else if ( kkrec == 2 ) then
-          do k = 1 , klev
-            do j = 1 , jlat
-              do i = 1 , ilon
+          do k = 1, klev
+            do j = 1, jlat
+              do i = 1, ilon
                 hvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
               end do
             end do
           end do
         else if ( kkrec == 3 ) then
-          do k = 1 , klev
-            do j = 1 , jlat
-              do i = 1 , ilon
+          do k = 1, klev
+            do j = 1, jlat
+              do i = 1, ilon
                 if ( work(i,j,k) /= xfil(kkrec) ) then
                   rhvar(i,j,k) = (real(work(i,j,k),rkx)*xscale+xadd)*0.01_rkx
                 else
@@ -394,17 +394,17 @@ module mod_ncep
             end do
           end do
         else if ( kkrec == 4 ) then
-          do k = 1 , klev
-            do j = 1 , jlat
-              do i = 1 , ilon
+          do k = 1, klev
+            do j = 1, jlat
+              do i = 1, ilon
                 uvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
               end do
             end do
           end do
         else if ( kkrec == 5 ) then
-          do k = 1 , klev
-            do j = 1 , jlat
-              do i = 1 , ilon
+          do k = 1, klev
+            do j = 1, jlat
+              do i = 1, ilon
                 vvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
               end do
             end do
@@ -438,21 +438,21 @@ module mod_ncep
   subroutine cdc6hour(idate)
     use netcdf
     implicit none
-    type(rcm_time_and_date) , intent (in) :: idate
-    integer(ik4) :: i , ilev , inet , it , j , kkrec , k , nlev , istatus
-    character(len=256) , save :: pathaddname
-    character(len=5) , dimension(5) :: varname
-    real(rkx) :: xadd , xscale
-    integer(ik4) , dimension(4) :: icount , istart
-    integer(ik4) , dimension(5) , save :: inet5 , ivar5
-    real(rkx) , dimension(5) , save :: xoff , xscl
-    logical , dimension(5) , save :: lpacked
-    data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
+    type(rcm_time_and_date), intent (in) :: idate
+    integer(ik4) :: i, ilev, inet, it, j, kkrec, k, nlev, istatus
+    character(len=256), save :: pathaddname
+    character(len=5), dimension(5) :: varname
+    real(rkx) :: xadd, xscale
+    integer(ik4), dimension(4) :: icount, istart
+    integer(ik4), dimension(5), save :: inet5, ivar5
+    real(rkx), dimension(5), save :: xoff, xscl
+    logical, dimension(5), save :: lpacked
+    data varname/'air', 'hgt', 'rhum', 'uwnd', 'vwnd'/
     !
     xadd = 0.0_rkx
     xscale = 1.0_rkx
     nlev = 0
-    do kkrec = 1 , 5
+    do kkrec = 1, 5
       nlev = klev
       if ( dattyp == 'NNRP1' ) then
         if ( kkrec == 3 ) nlev = 8 ! Relative humidity has less levels
@@ -461,7 +461,7 @@ module mod_ncep
            (lfdoyear(idate) .and. lmidnight(idate))) then
         lpacked(kkrec) = .true.
         write(pathaddname,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
-            dattyp//'/',year , '/'//trim(varname(kkrec))//'.' , year,'.nc'
+            dattyp//'/',year, '/'//trim(varname(kkrec))//'.', year,'.nc'
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error opening '//trim(pathaddname))
@@ -476,11 +476,11 @@ module mod_ncep
           call checkncerr(istatus,__FILE__,__LINE__, &
                 'Variable '//varname(kkrec)// &
                 ':add_offset in file'//trim(pathaddname))
-          write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
-                           xscl(kkrec) , xoff(kkrec)
+          write (stdout,*) inet5(kkrec), trim(pathaddname), &
+                           xscl(kkrec), xoff(kkrec)
         else
           lpacked(kkrec) = .false.
-          write (stdout,*) inet5(kkrec) , trim(pathaddname)
+          write (stdout,*) inet5(kkrec), trim(pathaddname)
         end if
       end if
 
@@ -516,35 +516,35 @@ module mod_ncep
                         'read error in file '//trim(pathaddname))
         xscale = xscl(kkrec)
         xadd = xoff(kkrec)
-        do ilev = 1 , nlev
+        do ilev = 1, nlev
           if ( kkrec == 1 ) then
-            do j = 1 , jlat
-              do i = 1 , ilon
+            do j = 1, jlat
+              do i = 1, ilon
                 tvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
               end do
             end do
           else if ( kkrec == 2 ) then
-            do j = 1 , jlat
-              do i = 1 , ilon
+            do j = 1, jlat
+              do i = 1, ilon
                 hvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
               end do
             end do
           else if ( kkrec == 3 ) then
-            do j = 1 , jlat
-              do i = 1 , ilon
+            do j = 1, jlat
+              do i = 1, ilon
                 rhvar(i,j,ilev) = min((real(work(i,j,ilev),rkx)* &
                               xscale+xadd)*0.01_rkx,1._rkx)
               end do
             end do
           else if ( kkrec == 4 ) then
-            do j = 1 , jlat
-              do i = 1 , ilon
+            do j = 1, jlat
+              do i = 1, ilon
                 uvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
               end do
             end do
           else if ( kkrec == 5 ) then
-            do j = 1 , jlat
-              do i = 1 , ilon
+            do j = 1, jlat
+              do i = 1, ilon
                 vvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
               end do
             end do
@@ -570,8 +570,8 @@ module mod_ncep
       if ( dattyp == 'NNRP1' ) then
         if ( kkrec == 3 ) then
           do k = nlev+1, klev
-            do j = 1 , jlat
-              do i = 1 , ilon
+            do j = 1, jlat
+              do i = 1, ilon
                 rhvar(i,j,k) = rhvar(i,j,k-1)
               end do
             end do

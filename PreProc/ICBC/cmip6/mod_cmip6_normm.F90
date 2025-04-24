@@ -29,34 +29,34 @@ module mod_cmip6_normm
 
   private
 
-  integer(ik4) , parameter :: nhistory = 7
-  integer(ik4) , parameter :: nscenario = 9
-  integer(ik4) , parameter :: nfiles = nhistory + nscenario
+  integer(ik4), parameter :: nhistory = 7
+  integer(ik4), parameter :: nscenario = 9
+  integer(ik4), parameter :: nfiles = nhistory + nscenario
 
-  integer(ik8) , parameter , dimension(nfiles) :: nrmm_start = [ &
+  integer(ik8), parameter, dimension(nfiles) :: nrmm_start = [ &
    195001010300_ik8, 196001010300_ik8, 197001010300_ik8, 198001010300_ik8,  &
    199001010300_ik8, 200001010300_ik8, 201001010300_ik8, 201501010600_ik8,  &
    202101010600_ik8, 203101010600_ik8, 204101010600_ik8, 205101010600_ik8,  &
    206101010600_ik8, 207101010600_ik8, 208101010600_ik8, 209101010600_ik8 ]
-  integer(ik8) , parameter , dimension(nfiles) :: nrmm_end = [   &
+  integer(ik8), parameter, dimension(nfiles) :: nrmm_end = [   &
    195912312100_ik8, 196912312100_ik8, 197912312100_ik8, 198912312100_ik8,  &
    199912312100_ik8, 200912312100_ik8, 201412312100_ik8, 202101010000_ik8,  &
    203101010000_ik8, 204101010000_ik8, 205101010000_ik8, 206101010000_ik8,  &
    207101010000_ik8, 208101010000_ik8, 209101010000_ik8, 210101010000_ik8 ]
 
-  character(len=*) , parameter :: normm_version = 'v20191108'
-  character(len=*) , parameter :: normm_version1 = 'v20200218'
-  character(len=*) , parameter :: normm_version2 = 'v20210319'
+  character(len=*), parameter :: normm_version = 'v20191108'
+  character(len=*), parameter :: normm_version1 = 'v20200218'
+  character(len=*), parameter :: normm_version2 = 'v20210319'
 
-  public :: read_3d_normm , read_2d_normm , read_fx_normm , read_sst_normm
+  public :: read_3d_normm, read_2d_normm, read_fx_normm, read_sst_normm
 
   contains
 
     integer(ik4) function isequence(icode) result(ic)
       implicit none
-      integer(ik8) , intent(in) :: icode
+      integer(ik8), intent(in) :: icode
       integer(ik4) :: i
-      do i = 1 , nfiles
+      do i = 1, nfiles
         ic = i
         if ( icode >= nrmm_start(ic) .and. icode < nrmm_end(ic) ) exit
       end do
@@ -64,11 +64,11 @@ module mod_cmip6_normm
 
     character(len=1024) function fname(vname,idate,offset)
       implicit none
-      character(len=*) , intent(in) :: vname
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(rcm_time_interval) , intent(in) , optional :: offset
+      character(len=*), intent(in) :: vname
+      type(rcm_time_and_date), intent(in) :: idate
+      type(rcm_time_interval), intent(in), optional :: offset
       type(rcm_time_and_date) :: hdate
-      integer(ik4) :: year , month , day , hour
+      integer(ik4) :: year, month, day, hour
       integer(ik4) :: iseq
       integer(ik8) :: icode
 
@@ -100,10 +100,10 @@ module mod_cmip6_normm
 
     subroutine read_hcoord_normm(ncid,lon,lat)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
-      integer(ik4) :: istatus , idimid , ivarid
-      integer(ik4) :: nlon , nlat
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:), intent(inout) :: lon, lat
+      integer(ik4) :: istatus, idimid, ivarid
+      integer(ik4) :: nlon, nlat
       istatus = nf90_inq_dimid(ncid,'lon',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -126,10 +126,10 @@ module mod_cmip6_normm
 
     subroutine read_hcoord_sst_normm(ncid,lon,lat)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
-      integer(ik4) :: istatus , idimid , ivarid
-      integer(ik4) :: nlon , nlat
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
+      integer(ik4) :: istatus, idimid, ivarid
+      integer(ik4) :: nlon, nlat
       istatus = nf90_inq_dimid(ncid,'i',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon i')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -152,10 +152,10 @@ module mod_cmip6_normm
 
     subroutine read_vcoord_normm(ncid,a,b,p0)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: a , b
-      real(rkx) , intent(out) :: p0
-      integer(ik4) :: istatus , idimid , ivarid
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:), intent(inout) :: a, b
+      real(rkx), intent(out) :: p0
+      integer(ik4) :: istatus, idimid, ivarid
       integer(ik4) :: nlev
       istatus = nf90_inq_dimid(ncid,'lev',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
@@ -179,17 +179,17 @@ module mod_cmip6_normm
 
     recursive subroutine read_3d_normm(idate,v,lonlyc)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_3d_var) , pointer , intent(inout) :: v
-      logical , optional , intent(in) :: lonlyc
-      integer(ik4) :: istatus , idimid , it , irec
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(4) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_3d_var), pointer, intent(inout) :: v
+      logical, optional, intent(in) :: lonlyc
+      integer(ik4) :: istatus, idimid, it, irec
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(4) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
       character(len=1024) :: seqfile
-      integer :: ncid_next , ivar_next , icloseme
-      real(rkx) , dimension(:,:,:) , allocatable :: v1
+      integer :: ncid_next, ivar_next, icloseme
+      real(rkx), dimension(:,:,:), allocatable :: v1
 
       tdif = rcm_time_interval(3,uhrs)
       if ( v%ncid == -1 ) then
@@ -329,17 +329,17 @@ module mod_cmip6_normm
 
     recursive subroutine read_2d_normm(idate,v,lonlyc)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_2d_var) , pointer , intent(inout) :: v
-      logical , optional , intent(in) :: lonlyc
-      integer(ik4) :: istatus , idimid , it , irec
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(3) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_2d_var), pointer, intent(inout) :: v
+      logical, optional, intent(in) :: lonlyc
+      integer(ik4) :: istatus, idimid, it, irec
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(3) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
       character(len=1024) :: seqfile
-      integer :: ncid_next , ivar_next , icloseme
-      real(rkx) , dimension(:,:) , allocatable :: v1
+      integer :: ncid_next, ivar_next, icloseme
+      real(rkx), dimension(:,:), allocatable :: v1
 
       tdif = rcm_time_interval(3,uhrs)
       if ( v%ncid == -1 ) then
@@ -471,7 +471,7 @@ module mod_cmip6_normm
 
     recursive subroutine read_fx_normm(v)
       implicit none
-      type(cmip6_2d_var) , pointer , intent(inout) :: v
+      type(cmip6_2d_var), pointer, intent(inout) :: v
       integer(ik4) :: istatus
 
       v%filename = trim(cmip6_fxpath(normm_version,v%vname))
@@ -503,14 +503,14 @@ module mod_cmip6_normm
 
     recursive subroutine read_sst_normm(idate,v,lat,lon)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_2d_var) , intent(inout) :: v
-      real(rkx) , pointer , dimension(:,:) , intent(in) :: lat , lon
-      integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(3) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_2d_var), intent(inout) :: v
+      real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat, lon
+      integer(ik4) :: istatus, idimid, it, irec
+      integer(ik4) :: year, month, day, hour, y
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(3) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
 
       if ( v%ncid == -1 ) then

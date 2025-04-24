@@ -44,10 +44,10 @@ contains
 !
 ! !USES:
     use clmtype
-    use clm_atmlnd         , only : clm_a2l
-    use clm_varpar         , only : nlevsoi
-    use clm_varcon         , only : cpair, vkc, grav, denice, denh2o
-    use shr_const_mod      , only : SHR_CONST_RGAS
+    use clm_atmlnd        , only : clm_a2l
+    use clm_varpar        , only : nlevsoi
+    use clm_varcon        , only : cpair, vkc, grav, denice, denh2o
+    use shr_const_mod     , only : SHR_CONST_RGAS
     use FrictionVelocityMod, only : FrictionVelocity, MoninObukIni
 !
 ! !ARGUMENTS:
@@ -76,9 +76,9 @@ contains
 !
 ! local pointers to implicit in arguments
 !
-    integer , pointer :: pcolumn(:)        ! pft's column index
-    integer , pointer :: pgridcell(:)      ! pft's gridcell index
-    integer , pointer :: frac_veg_nosno(:) ! fraction of vegetation not covered by snow (0 OR 1) [-]
+    integer, pointer :: pcolumn(:)        ! pft's column index
+    integer, pointer :: pgridcell(:)      ! pft's gridcell index
+    integer, pointer :: frac_veg_nosno(:) ! fraction of vegetation not covered by snow (0 OR 1) [-]
     real(r8), pointer :: t_grnd(:)         ! ground surface temperature [K]
     real(r8), pointer :: thm(:)            ! intermediate variable (forc_t+0.0098*forc_hgt_t)
     real(r8), pointer :: qg(:)             ! specific humidity at ground surface [kg/kg]

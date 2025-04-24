@@ -32,47 +32,47 @@ module mod_clm_subgrid
                              nglacier, wtglacier)
     implicit none
     ! wtxy cell index
-    integer(ik4) , intent(in)  :: nw
+    integer(ik4), intent(in)  :: nw
     ! number of landunits
-    integer(ik4) , optional , intent(out) :: nlunits
+    integer(ik4), optional, intent(out) :: nlunits
     ! number of columns
-    integer(ik4) , optional , intent(out) :: ncols
+    integer(ik4), optional, intent(out) :: ncols
     ! number of pfts
-    integer(ik4) , optional , intent(out) :: npfts
+    integer(ik4), optional, intent(out) :: npfts
     ! number of vegetated pfts in naturally vegetated landunit
-    integer(ik4) , optional , intent(out) :: nveg
+    integer(ik4), optional, intent(out) :: nveg
     ! weight (relative to gridcell) of naturally vegetated landunit
-    real(rk8) , optional , intent(out) :: wtveg
+    real(rk8), optional, intent(out) :: wtveg
     ! number of crop pfts in crop landunit
-    integer(ik4) , optional , intent(out) :: ncrop
+    integer(ik4), optional, intent(out) :: ncrop
     ! weight (relative to gridcell) of crop landunit
-    real(rk8) , optional , intent(out) :: wtcrop
+    real(rk8), optional, intent(out) :: wtcrop
     ! number of urban pfts (columns) in urban TBD landunit
-    integer(ik4) , optional , intent(out) :: nurban_tbd
+    integer(ik4), optional, intent(out) :: nurban_tbd
     ! weight (relative to gridcell) of urban pfts (columns) in
     ! urban TBD landunit
-    real(rk8) , optional , intent(out) :: wturban_tbd
+    real(rk8), optional, intent(out) :: wturban_tbd
     ! number of urban pfts (columns) in urban HD landunit
-    integer(ik4) , optional , intent(out) :: nurban_hd
+    integer(ik4), optional, intent(out) :: nurban_hd
     ! weight (relative to gridcell) of urban pfts (columns) in urban HD landunit
-    real(rk8) , optional , intent(out) :: wturban_hd
+    real(rk8), optional, intent(out) :: wturban_hd
     ! number of urban pfts (columns) in urban MD landunit
-    integer(ik4) , optional , intent(out) :: nurban_md
+    integer(ik4), optional, intent(out) :: nurban_md
     ! weight (relative to gridcell) of urban pfts (columns) in urban MD landunit
-    real(rk8) , optional , intent(out) :: wturban_md
+    real(rk8), optional, intent(out) :: wturban_md
     ! number of lake pfts (columns) in lake landunit
-    integer(ik4) , optional , intent(out) :: nlake
+    integer(ik4), optional, intent(out) :: nlake
     ! weight (relative to gridcell) of lake landunitof lake pfts (columns)
     ! in lake landunit
-    real(rk8) , optional , intent(out) :: wtlake
+    real(rk8), optional, intent(out) :: wtlake
     ! number of wetland pfts (columns) in wetland landunit
-    integer(ik4) , optional , intent(out) :: nwetland
+    integer(ik4), optional, intent(out) :: nwetland
     ! weight (relative to gridcell) of wetland landunitof wetland pfts
     ! (columns) in wetland landunit
-    real(rk8) , optional , intent(out) :: wtwetland
+    real(rk8), optional, intent(out) :: wtwetland
     ! number of glacier pfts (columns) in glacier landunit
-    integer(ik4) , optional , intent(out) :: nglacier
-    real(rk8) , optional , intent(out) :: wtglacier
+    integer(ik4), optional, intent(out) :: nglacier
+    real(rk8), optional, intent(out) :: wtglacier
     integer(ik4) :: m                ! loop index
     integer(ik4) :: ipfts            ! number of pfts in gridcell
     integer(ik4) :: icols            ! number of columns in gridcell
@@ -92,20 +92,20 @@ module mod_clm_subgrid
     wtlunit = 0._rk8
     ! If crop should be on separate land units
     if ( allocate_all_vegpfts .and. create_crop_landunit ) then
-      do m = 1 , maxpatch_pft-numcft
+      do m = 1, maxpatch_pft-numcft
         if ( wtxy(nw,m) > 0.0_rk8 ) then
           npfts_per_lunit = npfts_per_lunit + 1 ! sum natural pfts
           wtlunit = wtlunit + wtxy(nw,m)        ! and their wts
         end if
       end do
-      do m = maxpatch_pft-numcft+1 , maxpatch_pft
+      do m = maxpatch_pft-numcft+1, maxpatch_pft
         if ( wtxy(nw,m) > 0.0_rk8 ) then
           npfts_per_lunit = npfts_per_lunit + 1 ! sum crops, too, but not
         end if                                  ! their wts for now
       end do
     ! Assume that the vegetated landunit has one column
     else
-      do m = 1 , maxpatch_pft
+      do m = 1, maxpatch_pft
         if ( wtxy(nw,m) > 0.0_rk8 ) then
           npfts_per_lunit = npfts_per_lunit + 1
           wtlunit = wtlunit + wtxy(nw,m)
@@ -130,7 +130,7 @@ module mod_clm_subgrid
 
     npfts_per_lunit = 0
     wtlunit = 0._rk8
-    do m = npatch_urban_tbd , npatch_urban_hd-1
+    do m = npatch_urban_tbd, npatch_urban_hd-1
       if ( wtxy(nw,m) > 0.0_rk8 ) then
         npfts_per_lunit = npfts_per_lunit + 1
         wtlunit = wtlunit + wtxy(nw,m)
@@ -148,7 +148,7 @@ module mod_clm_subgrid
 
     npfts_per_lunit = 0
     wtlunit = 0._rk8
-    do m = npatch_urban_hd , npatch_urban_md-1
+    do m = npatch_urban_hd, npatch_urban_md-1
       if ( wtxy(nw,m) > 0.0_rk8 ) then
         npfts_per_lunit = npfts_per_lunit + 1
         wtlunit = wtlunit + wtxy(nw,m)
@@ -166,7 +166,7 @@ module mod_clm_subgrid
 
     npfts_per_lunit = 0
     wtlunit = 0._rk8
-    do m = npatch_urban_md , npatch_lake-1
+    do m = npatch_urban_md, npatch_lake-1
       if ( wtxy(nw,m) > 0.0_rk8 ) then
         npfts_per_lunit = npfts_per_lunit + 1
         wtlunit = wtlunit + wtxy(nw,m)
@@ -233,12 +233,12 @@ module mod_clm_subgrid
     npfts_per_lunit = 0
     wtlunit = 0._rk8
     if ( allocate_all_vegpfts .and. create_crop_landunit ) then
-      do m = 1 , maxpatch_pft-numcft
+      do m = 1, maxpatch_pft-numcft
         if ( wtxy(nw,m) > 0.0_rk8 ) then
           npfts_per_lunit = npfts_per_lunit + 1 ! sum natural pfts again
         end if                                   ! not their wts this time
       end do
-      do m = maxpatch_pft-numcft+1 , maxpatch_pft
+      do m = maxpatch_pft-numcft+1, maxpatch_pft
         if ( wtxy(nw,m) > 0.0_rk8 ) then
           npfts_per_lunit = npfts_per_lunit + 1 ! sum crops
           wtlunit = wtlunit + wtxy(nw,m)        ! and their wts

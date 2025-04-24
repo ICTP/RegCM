@@ -95,7 +95,7 @@ contains
 !    *%luni, *%lunf, *%lunn
 !
 ! !USES:
-    use decompMod , only : get_proc_bounds, get_proc_global
+    use decompMod, only : get_proc_bounds, get_proc_global
 !
 ! !ARGUMENTS:
     implicit none
@@ -1019,7 +1019,7 @@ contains
 !
 ! !USES:
 #if (defined CASA)
-    use CASAMod   , only : npools, nresp_pools, nlive
+    use CASAMod  , only : npools, nresp_pools, nlive
     use clm_varcon, only : spval
 #endif
 ! !ARGUMENTS:

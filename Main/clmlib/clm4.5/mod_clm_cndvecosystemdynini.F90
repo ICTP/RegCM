@@ -17,18 +17,18 @@ module mod_clm_cndvecosystemdynini
   !
   subroutine CNDVEcosystemDynini(adomain)
     use mod_clm_type
-    use mod_clm_decomp , only : get_proc_bounds , get_proc_global
-    use mod_constants , only : tzero
-    use mod_clm_atmlnd , only : atm_domain
+    use mod_clm_decomp, only : get_proc_bounds, get_proc_global
+    use mod_constants, only : tzero
+    use mod_clm_atmlnd, only : atm_domain
     implicit none
-    type(atm_domain) , intent(in) :: adomain
-    integer(ik4) :: g , p
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc !              "                column indices
-    integer(ik4) :: begl , endl !              "                landunit indices
-    integer(ik4) :: begg , endg !              "                gridcell indices
-    type(gridcell_type) , pointer :: gptr ! pointer to gridcell derived subtype
-    type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
+    type(atm_domain), intent(in) :: adomain
+    integer(ik4) :: g, p
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc !              "                column indices
+    integer(ik4) :: begl, endl !              "                landunit indices
+    integer(ik4) :: begg, endg !              "                gridcell indices
+    type(gridcell_type), pointer :: gptr ! pointer to gridcell derived subtype
+    type(pft_type), pointer :: pptr      ! pointer to pft derived subtype
 
     ! Set pointers into derived type
 
@@ -41,7 +41,7 @@ module mod_clm_cndvecosystemdynini
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
-    do p = begp , endp
+    do p = begp, endp
       g = pptr%gridcell(p)
       pptr%pdgvs%present(p)   = .false.
       pptr%pdgvs%crownarea(p) = 0._rk8
@@ -52,7 +52,7 @@ module mod_clm_cndvecosystemdynini
       pptr%pdgvs%agddtw(p)   = 0.0_rk8
     end do
 
-    do g = begg , endg
+    do g = begg, endg
       !initialize this way for Phenology code
       gptr%gdgvs%agdd20(g)   = 0.0_rk8
       gptr%gdgvs%tmomin20(g) = adomain%tgrd(g) - 5._rk8

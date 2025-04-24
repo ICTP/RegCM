@@ -9,9 +9,9 @@ module mod_clm_filter
   use mod_mpmessage
   use mod_stdio
   use mod_clm_type
-  use mod_clm_decomp , only : get_proc_bounds
-  use mod_clm_pftvarcon , only : npcropmin
-  use mod_clm_varcon , only : istsoil , isturb , icol_road_perv , istcrop
+  use mod_clm_decomp, only : get_proc_bounds
+  use mod_clm_pftvarcon, only : npcropmin
+  use mod_clm_varcon, only : istsoil, isturb, icol_road_perv, istcrop
   use mod_dynparam
 
   implicit none
@@ -23,88 +23,88 @@ module mod_clm_filter
   type procfilter
 #if (defined CNDV)
     ! CNDV nat-vegetated (present) filter (pfts)
-    integer(ik4) , pointer , dimension(:) :: natvegp
+    integer(ik4), pointer, contiguous, dimension(:) :: natvegp
     ! number of pfts in nat-vegetated filter
     integer(ik4) :: num_natvegp
 #endif
     ! prognostic crop filter (pfts)
-    integer(ik4) , pointer , dimension(:) :: pcropp
+    integer(ik4), pointer, contiguous, dimension(:) :: pcropp
     ! number of pfts in prognostic crop filter
     integer(ik4) :: num_pcropp
     ! soil w/o prog. crops (pfts)
-    integer(ik4) , pointer , dimension(:) :: soilnopcropp
+    integer(ik4), pointer, contiguous, dimension(:) :: soilnopcropp
     ! number of pfts in soil w/o prog crops
     integer(ik4) :: num_soilnopcropp
 
     ! lake filter (pfts)
-    integer(ik4) , pointer , dimension(:) :: lakep
+    integer(ik4), pointer, contiguous, dimension(:) :: lakep
     ! number of pfts in lake filter
     integer(ik4) :: num_lakep
     ! non-lake filter (pfts)
-    integer(ik4) , pointer , dimension(:) :: nolakep
+    integer(ik4), pointer, contiguous, dimension(:) :: nolakep
     ! number of pfts in non-lake filter
     integer(ik4) :: num_nolakep
     ! lake filter (columns)
-    integer(ik4) , pointer , dimension(:) :: lakec
+    integer(ik4), pointer, contiguous, dimension(:) :: lakec
     ! number of columns in lake filter
     integer(ik4) :: num_lakec
     ! non-lake filter (columns)
-    integer(ik4) , pointer , dimension(:) :: nolakec
+    integer(ik4), pointer, contiguous, dimension(:) :: nolakec
     ! number of columns in non-lake filter
     integer(ik4) :: num_nolakec
 
     ! soil filter (columns)
-    integer(ik4) , pointer , dimension(:) :: soilc
+    integer(ik4), pointer, contiguous, dimension(:) :: soilc
     ! number of columns in soil filter
     integer(ik4) :: num_soilc
     ! soil filter (pfts)
-    integer(ik4) , pointer , dimension(:) :: soilp
+    integer(ik4), pointer, contiguous, dimension(:) :: soilp
     ! number of pfts in soil filter
     integer(ik4) :: num_soilp
 
     ! snow filter (columns)
-    integer(ik4) , pointer , dimension(:) :: snowc
+    integer(ik4), pointer, contiguous, dimension(:) :: snowc
     ! number of columns in snow filter
     integer(ik4) :: num_snowc
     ! non-snow filter (columns)
-    integer(ik4) , pointer , dimension(:) :: nosnowc
+    integer(ik4), pointer, contiguous, dimension(:) :: nosnowc
     ! number of columns in non-snow filter
     integer(ik4) :: num_nosnowc
 
     ! hydrology filter (columns)
-    integer(ik4) , pointer , dimension(:) :: hydrologyc
+    integer(ik4), pointer, contiguous, dimension(:) :: hydrologyc
     ! number of columns in hydrology filter
     integer(ik4) :: num_hydrologyc
 
     ! urban filter (landunits)
-    integer(ik4) , pointer , dimension(:) :: urbanl
+    integer(ik4), pointer, contiguous, dimension(:) :: urbanl
     ! number of landunits in urban filter
     integer(ik4) :: num_urbanl
     ! non-urban filter (landunits)
-    integer(ik4) , pointer , dimension(:) :: nourbanl
+    integer(ik4), pointer, contiguous, dimension(:) :: nourbanl
     ! number of landunits in non-urban filter
     integer(ik4) :: num_nourbanl
 
     ! urban filter (columns)
-    integer(ik4) , pointer , dimension(:) :: urbanc
+    integer(ik4), pointer, contiguous, dimension(:) :: urbanc
     ! number of columns in urban filter
     integer(ik4) :: num_urbanc
     ! non-urban filter (columns)
-    integer(ik4) , pointer , dimension(:) :: nourbanc
+    integer(ik4), pointer, contiguous, dimension(:) :: nourbanc
     ! number of columns in non-urban filter
     integer(ik4) :: num_nourbanc
 
     ! urban filter (pfts)
-    integer(ik4) , pointer , dimension(:) :: urbanp
+    integer(ik4), pointer, contiguous, dimension(:) :: urbanp
     ! number of pfts in urban filter
     integer(ik4) :: num_urbanp
     ! non-urban filter (pfts)
-    integer(ik4) , pointer , dimension(:) :: nourbanp
+    integer(ik4), pointer, contiguous, dimension(:) :: nourbanp
     ! number of pfts in non-urban filter
     integer(ik4) :: num_nourbanp
 
     ! non-lake, non-urban filter (pfts)
-    integer(ik4) , pointer , dimension(:) :: nolakeurbanp
+    integer(ik4), pointer, contiguous, dimension(:) :: nolakeurbanp
     ! number of pfts in non-lake, non-urban filter
     integer(ik4) :: num_nolakeurbanp
   end type procfilter
@@ -122,10 +122,10 @@ module mod_clm_filter
   !
   subroutine allocFilters()
     implicit none
-    integer(ik4) :: begp , endp  ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc  ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl  ! per-proc beginning and ending ldunit indices
-    integer(ik4) :: begg , endg  ! per-proc beginning and ending gdcell indices
+    integer(ik4) :: begp, endp  ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc  ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl  ! per-proc beginning and ending ldunit indices
+    integer(ik4) :: begg, endg  ! per-proc beginning and ending gdcell indices
 
     ! Determine variables for this processor
 
@@ -189,16 +189,16 @@ module mod_clm_filter
   !
   subroutine setFilters( )
     implicit none
-    integer(ik4) , pointer , dimension(:) :: ctype ! column type
-    integer(ik4) :: c , l , p   ! column, landunit, pft indices
+    integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
+    integer(ik4) :: c, l, p   ! column, landunit, pft indices
     integer(ik4) :: fl          ! lake filter index
-    integer(ik4) :: fnl , fnlu  ! non-lake filter index
+    integer(ik4) :: fnl, fnlu  ! non-lake filter index
     integer(ik4) :: fs          ! soil filter index
-    integer(ik4) :: f , fn      ! general indices
-    integer(ik4) :: begp , endp  ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc  ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl  ! per-proc beginning and ending ldunit indices
-    integer(ik4) :: begg , endg  ! per-proc beginning and ending gdcell indices
+    integer(ik4) :: f, fn      ! general indices
+    integer(ik4) :: begp, endp  ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc  ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl  ! per-proc beginning and ending ldunit indices
+    integer(ik4) :: begg, endg  ! per-proc beginning and ending gdcell indices
 
     ctype => clm3%g%l%c%itype
 
@@ -210,7 +210,7 @@ module mod_clm_filter
 
     fl = 0
     fnl = 0
-    do c = begc , endc
+    do c = begc, endc
       l = clm3%g%l%c%landunit(c)
       if ( clm3%g%l%lakpoi(l) ) then
         fl = fl + 1
@@ -229,7 +229,7 @@ module mod_clm_filter
     fl = 0
     fnl = 0
     fnlu = 0
-    do p = begp , endp
+    do p = begp, endp
       if ( clm3%g%l%c%p%active(p) ) then
         l = clm3%g%l%c%p%landunit(p)
         if ( clm3%g%l%lakpoi(l) ) then
@@ -252,7 +252,7 @@ module mod_clm_filter
     ! Create soil filter at column-level
 
     fs = 0
-    do c = begc , endc
+    do c = begc, endc
       l = clm3%g%l%c%landunit(c)
       if ( clm3%g%l%itype(l) == istsoil .or. &
            clm3%g%l%itype(l) == istcrop ) then
@@ -266,7 +266,7 @@ module mod_clm_filter
     ! Filter will only be active if pft is active
 
     fs = 0
-    do p = begp , endp
+    do p = begp, endp
       if ( clm3%g%l%c%p%active(p) ) then
         l = clm3%g%l%c%p%landunit(p)
         if ( clm3%g%l%itype(l) == istsoil .or. &
@@ -281,7 +281,7 @@ module mod_clm_filter
     ! Create column-level hydrology filter (soil and Urban pervious road cols)
 
     f = 0
-    do c = begc , endc
+    do c = begc, endc
       l = clm3%g%l%c%landunit(c)
       if ( clm3%g%l%itype(l) == istsoil .or. &
            ctype(c) == icol_road_perv .or.   &
@@ -297,7 +297,7 @@ module mod_clm_filter
 
     fl  = 0
     fnl = 0
-    do p = begp , endp
+    do p = begp, endp
       if ( clm3%g%l%c%p%active(p) ) then
         if ( clm3%g%l%c%p%itype(p) >= npcropmin ) then
           ! skips 2 generic crop types
@@ -320,7 +320,7 @@ module mod_clm_filter
 
     f = 0
     fn = 0
-    do l = begl , endl
+    do l = begl, endl
       if ( clm3%g%l%itype(l) == isturb ) then
         f = f + 1
         filter%urbanl(f) = l
@@ -336,7 +336,7 @@ module mod_clm_filter
 
     f = 0
     fn = 0
-    do c = begc , endc
+    do c = begc, endc
       l = clm3%g%l%c%landunit(c)
       if ( clm3%g%l%itype(l) == isturb ) then
         f = f + 1
@@ -353,7 +353,7 @@ module mod_clm_filter
 
     f = 0
     fn = 0
-    do p = begp , endp
+    do p = begp, endp
       l = clm3%g%l%c%p%landunit(p)
       if ( clm3%g%l%itype(l) == isturb .and. clm3%g%l%c%p%active(p) ) then
         f = f + 1

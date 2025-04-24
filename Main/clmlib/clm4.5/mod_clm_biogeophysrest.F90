@@ -11,20 +11,20 @@ module mod_clm_biogeophysrest
   use mod_mppparam
   use mod_clm_nchelper
   use mod_clm_type
-  use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell , &
-          gcomm_landunit , gcomm_column , gcomm_pft
-  use mod_clm_varpar , only : nlevgrnd, nlevsno, nlevlak, nlevurb, nlevsoi, &
+  use mod_clm_decomp, only : get_proc_bounds, gcomm_gridcell, &
+          gcomm_landunit, gcomm_column, gcomm_pft
+  use mod_clm_varpar, only : nlevgrnd, nlevsno, nlevlak, nlevurb, nlevsoi, &
           nlevcan
-  use mod_clm_varcon , only : istcrop
-  use mod_clm_varcon , only : denice , denh2o , istdlak , istslak , isturb , &
-          istsoil , pondmx , watmin , spval , icol_roof , icol_sunwall,      &
+  use mod_clm_varcon, only : istcrop
+  use mod_clm_varcon, only : denice, denh2o, istdlak, istslak, isturb, &
+          istsoil, pondmx, watmin, spval, icol_roof, icol_sunwall,      &
           icol_shadewall
-  use mod_clm_varctl , only : allocate_all_vegpfts, nsrest, &
-          pertlim , nsrContinue , nsrStartup
-  use mod_clm_initsurfalb , only : do_initsurfalb
-  use mod_clm_snicar , only : snw_rds_min
-  use mod_clm_mkarbinit , only : perturbIC
-  use mod_clm_atmlnd , only : clm_a2l
+  use mod_clm_varctl, only : allocate_all_vegpfts, nsrest, &
+          pertlim, nsrContinue, nsrStartup
+  use mod_clm_initsurfalb, only : do_initsurfalb
+  use mod_clm_snicar, only : snw_rds_min
+  use mod_clm_mkarbinit, only : perturbIC
+  use mod_clm_atmlnd, only : clm_a2l
 
   implicit none
 
@@ -44,35 +44,35 @@ module mod_clm_biogeophysrest
   !
   subroutine BiogeophysRest( ncid, flag )
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid ! netcdf id
-    character(len=*) , intent(in)    :: flag ! 'read' or 'write'
+    type(clm_filetype), intent(inout) :: ncid ! netcdf id
+    character(len=*), intent(in)    :: flag ! 'read' or 'write'
     real(rk8) :: maxwatsat                 !maximum porosity
     real(rk8) :: excess                    !excess volumetric soil water
     real(rk8) :: totwat                    !total soil water (mm)
     real(rk8) :: maxdiff                   !maximum difference in PFT weights
-    real(rk8) , pointer :: wtgcell(:)      ! Grid cell weights for PFT
-    real(rk8) , pointer :: wtlunit(:)      ! Land-unit weights for PFT
-    real(rk8) , pointer :: wtcol(:)        ! Column weights for PFT
-    integer(ik4) :: p , c , l , j , iv ! indices
-    real(rk8) , pointer :: zi(:,:)    ! interface level below a "z" level (m)
+    real(rk8), pointer, contiguous :: wtgcell(:)      ! Grid cell weights for PFT
+    real(rk8), pointer, contiguous :: wtlunit(:)      ! Land-unit weights for PFT
+    real(rk8), pointer, contiguous :: wtcol(:)        ! Column weights for PFT
+    integer(ik4) :: p, c, l, j, iv ! indices
+    real(rk8), pointer, contiguous :: zi(:,:)    ! interface level below a "z" level (m)
     integer(ik4) :: nlevs       ! number of layers
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
-    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
     logical :: readvar      ! determine if variable is on initial file
-    integer(ik4) , pointer :: clandunit(:) ! landunit of corresponding column
-    integer(ik4) , pointer :: ltype(:)     ! landunit type
-    integer(ik4) , pointer :: ctype(:)     ! column type
+    integer(ik4), pointer, contiguous :: clandunit(:) ! landunit of corresponding column
+    integer(ik4), pointer, contiguous :: ltype(:)     ! landunit type
+    integer(ik4), pointer, contiguous :: ctype(:)     ! column type
     type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
-    type(column_type) , pointer :: cptr  ! pointer to column derived subtype
-    type(pft_type) , pointer :: pptr     ! pointer to pft derived subtype
-    real(rk8) , pointer   :: temp2d(:,:) ! temporary for zisno
+    type(column_type), pointer :: cptr  ! pointer to column derived subtype
+    type(pft_type), pointer :: pptr     ! pointer to pft derived subtype
+    real(rk8), pointer   :: temp2d(:,:) ! temporary for zisno
     ! tolerance of acceptible difference
-    real(rk8) , parameter :: adiff = 5.e-4_rk8
+    real(rk8), parameter :: adiff = 5.e-4_rk8
     character(len=7) :: filetypes(0:3)
     character(len=32) :: fileusing
-    character(len=*) , parameter :: sub = "BiogeophysRest"
+    character(len=*), parameter :: sub = "BiogeophysRest"
     logical :: lstart
 
     filetypes(:)           = "missing"
@@ -363,7 +363,7 @@ module mod_clm_biogeophysrest
         if ( readvar ) then
           call clm_readvar(ncid,'FROST_TABLE',cptr%cws%frost_table,gcomm_column)
         else
-          do c = begc , endc
+          do c = begc, endc
             cptr%cws%frost_table(c) = zi(c,nlevsoi)
           end do
         end if
@@ -385,7 +385,7 @@ module mod_clm_biogeophysrest
         if ( readvar ) then
           call clm_readvar(ncid,'ZWT_PERCH',cptr%cws%zwt_perched,gcomm_column)
         else
-          do c = begc , endc
+          do c = begc, endc
             cptr%cws%zwt_perched(c) = zi(c,nlevsoi)
           end do
         end if
@@ -409,7 +409,7 @@ module mod_clm_biogeophysrest
           call clm_readvar(ncid,'frac_sno_eff', &
                   cptr%cps%frac_sno_eff,gcomm_column)
         else
-          do c = begc , endc
+          do c = begc, endc
             cptr%cps%frac_sno_eff(c) = 0.0_rk8
           end do
         end if
@@ -926,7 +926,7 @@ module mod_clm_biogeophysrest
             "SNICAR: can't find albgrd_bc in restart (or initial) file..."
           write(stderr,*) "Initialize albgrd_bc to albgrd"
         end if
-        do c = begc , endc
+        do c = begc, endc
           cptr%cps%albgrd_bc(c,:) = cptr%cps%albgrd(c,:)
         end do
       else
@@ -948,7 +948,7 @@ module mod_clm_biogeophysrest
             "SNICAR: can't find albgri_bc in restart (or initial) file..."
           write(stderr,*) "Initialize albgri_bc to albgri"
         end if
-        do c = begc , endc
+        do c = begc, endc
           cptr%cps%albgri_bc(c,:) = cptr%cps%albgri(c,:)
         end do
       else
@@ -970,7 +970,7 @@ module mod_clm_biogeophysrest
             "SNICAR: can't find albgrd_pur in restart (or initial) file..."
           write(stderr,*) "Initialize albgrd_pur to albgrd"
         end if
-        do c = begc , endc
+        do c = begc, endc
           cptr%cps%albgrd_pur(c,:) = cptr%cps%albgrd(c,:)
         end do
       else
@@ -992,7 +992,7 @@ module mod_clm_biogeophysrest
             "SNICAR: can't find albgri_pur in restart (or initial) file..."
           write(stderr,*) "Initialize albgri_pur to albgrd"
         end if
-        do c = begc , endc
+        do c = begc, endc
           cptr%cps%albgri_pur(c,:) = cptr%cps%albgri(c,:)
         end do
       else
@@ -1014,7 +1014,7 @@ module mod_clm_biogeophysrest
             "SNICAR: can't find albgrd_oc in restart (or initial) file..."
           write(stderr,*) "Initialize albgrd_oc to albgrd"
         end if
-        do c = begc , endc
+        do c = begc, endc
           cptr%cps%albgrd_oc(c,:) = cptr%cps%albgrd(c,:)
         end do
       else
@@ -1036,7 +1036,7 @@ module mod_clm_biogeophysrest
             "SNICAR: can't find albgri_oc in restart (or initial) file..."
           write(stderr,*) "Initialize albgri_oc to albgri"
         end if
-        do c = begc , endc
+        do c = begc, endc
           cptr%cps%albgri_oc(c,:) = cptr%cps%albgri(c,:)
         end do
       else
@@ -1058,7 +1058,7 @@ module mod_clm_biogeophysrest
             "SNICAR: can't find albgrd_dst in restart (or initial) file..."
           write(stderr,*) "Initialize albgrd_dst to albgrd"
         end if
-        do c = begc , endc
+        do c = begc, endc
           cptr%cps%albgrd_dst(c,:) = cptr%cps%albgrd(c,:)
         end do
       else
@@ -1080,7 +1080,7 @@ module mod_clm_biogeophysrest
             "SNICAR: can't find albgri_dst in restart (or initial) file..."
           write(stderr,*) "Initialize albgri_dst to albgrd"
         end if
-        do c = begc , endc
+        do c = begc, endc
           cptr%cps%albgri_dst(c,:) = cptr%cps%albgri(c,:)
         end do
       else
@@ -1615,8 +1615,8 @@ module mod_clm_biogeophysrest
           write(stderr,*) "can't find tlai_z in restart (or initial) file..."
           write(stderr,*) "Initialize tlai_z to tlai/nlevcan"
         end if
-        do p = begp , endp
-          do iv = 1 , nlevcan
+        do p = begp, endp
+          do iv = 1, nlevcan
             pptr%pps%tlai_z(p,iv) = pptr%pps%tlai(p)/nlevcan
           end do
         end do
@@ -1638,8 +1638,8 @@ module mod_clm_biogeophysrest
           write(stderr,*) "can't find tsai_z in restart (or initial) file..."
           write(stderr,*) "Initialize tsai_z to tsai/nlevcan"
         end if
-        do p = begp , endp
-          do iv = 1 , nlevcan
+        do p = begp, endp
+          do iv = 1, nlevcan
             pptr%pps%tsai_z(p,iv) = pptr%pps%tsai(p)/nlevcan
           end do
         end do
@@ -1661,7 +1661,7 @@ module mod_clm_biogeophysrest
           write(stderr,*) "can't find ncan in restart (or initial) file..."
           write(stderr,*) "Initialize ncan to nlevcan"
         end if
-        do p = begp , endp
+        do p = begp, endp
           pptr%pps%ncan(p) = nlevcan
         end do
       else
@@ -1682,7 +1682,7 @@ module mod_clm_biogeophysrest
           write(stderr,*) "can't find nrad in restart (or initial) file..."
           write(stderr,*) "Initialize nrad to nlevcan"
         end if
-        do p = begp , endp
+        do p = begp, endp
           pptr%pps%nrad(p) = nlevcan
         end do
       else
@@ -1747,7 +1747,7 @@ module mod_clm_biogeophysrest
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'fsun') ) then
         if ( rcmtimer%start( ) ) then
-          do p = begp , endp
+          do p = begp, endp
             if ( is_nan( pptr%pps%fsun(p) ) )then
               pptr%pps%fsun(p) = spval
             end if
@@ -1771,7 +1771,7 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'vcmaxcintsun') ) then
         write(stderr,*) "can't find vcmaxcintsun in restart (or init) file..."
         write(stderr,*) "Initialize vcmaxcintsun to 1"
-        do p = begp , endp
+        do p = begp, endp
           pptr%pps%vcmaxcintsun(p) = 1._rk8
         end do
       else
@@ -1790,7 +1790,7 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'vcmaxcintsha') ) then
         write(stderr,*) "can't find vcmaxcintsha in restart (or init) file..."
         write(stderr,*) "Initialize vcmaxcintsha to 1"
-        do p = begp , endp
+        do p = begp, endp
           pptr%pps%vcmaxcintsha(p) = 1._rk8
         end do
       else
@@ -1870,7 +1870,7 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'fabd_sun') ) then
         write(stderr,*) "can't find fabd_sun in restart (or initial) file..."
         write(stderr,*) "Initialize fabd_sun to fabd/2"
-        do p = begp , endp
+        do p = begp, endp
           pptr%pps%fabd_sun(p,:) = pptr%pps%fabd(p,:)/2._rk8
         end do
       else
@@ -1890,7 +1890,7 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'fabd_sha') ) then
         write(stderr,*) "can't find fabd_sha in restart (or initial) file..."
         write(stderr,*) "Initialize fabd_sha to fabd/2"
-        do p = begp , endp
+        do p = begp, endp
           pptr%pps%fabd_sha(p,:) = pptr%pps%fabd(p,:)/2._rk8
         end do
       else
@@ -1910,7 +1910,7 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'fabi_sun') ) then
         write(stderr,*) "can't find fabi_sun in restart (or initial) file..."
         write(stderr,*) "Initialize fabi_sun to fabi/2"
-        do p = begp , endp
+        do p = begp, endp
           pptr%pps%fabi_sun(p,:) = pptr%pps%fabi(p,:)/2._rk8
         end do
       else
@@ -1930,7 +1930,7 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'fabi_sha') ) then
         write(stderr,*) "can't find fabi_sha in restart (or initial) file..."
         write(stderr,*) "Initialize fabi_sha to fabi/2"
-        do p = begp , endp
+        do p = begp, endp
           pptr%pps%fabi_sha(p,:) = pptr%pps%fabi(p,:)/2._rk8
         end do
       else
@@ -1950,8 +1950,8 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'fabd_sun_z') ) then
         write(stderr,*) "can't find fabd_sun_z in restart (or initial) file..."
         write(stderr,*) "Initialize fabd_sun_z to fabd/2/nlevcan"
-        do p = begp , endp
-          do iv = 1 , nlevcan
+        do p = begp, endp
+          do iv = 1, nlevcan
             pptr%pps%fabd_sun_z(p,iv) = (pptr%pps%fabd(p,1)/2._rk8)/real(nlevcan,rk8)
           end do
         end do
@@ -1972,8 +1972,8 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'fabd_sha_z') ) then
         write(stderr,*) "can't find fabd_sha_z in restart (or initial) file..."
         write(stderr,*) "Initialize fabd_sha_z to fabd/2/nlevcan"
-        do p = begp , endp
-          do iv = 1 , nlevcan
+        do p = begp, endp
+          do iv = 1, nlevcan
             pptr%pps%fabd_sha_z(p,iv) = (pptr%pps%fabd(p,1)/2._rk8)/real(nlevcan,rk8)
           end do
         end do
@@ -1994,8 +1994,8 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'fabi_sun_z') ) then
         write(stderr,*) "can't find fabi_sun_z in restart (or initial) file..."
         write(stderr,*) "Initialize fabi_sun_z to fabi/2/nlevcan"
-        do p = begp , endp
-          do iv = 1 , nlevcan
+        do p = begp, endp
+          do iv = 1, nlevcan
             pptr%pps%fabi_sun_z(p,iv) = (pptr%pps%fabi(p,1)/2._rk8)/real(nlevcan,rk8)
           end do
         end do
@@ -2016,8 +2016,8 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'fabi_sha_z') ) then
         write(stderr,*) "can't find fabi_sha_z in restart (or initial) file..."
         write(stderr,*) "Initialize fabi_sha_z to fabi/2/nlevcan"
-        do p = begp , endp
-          do iv = 1 , nlevcan
+        do p = begp, endp
+          do iv = 1, nlevcan
             pptr%pps%fabi_sha_z(p,iv) = (pptr%pps%fabi(p,1)/2._rk8)/real(nlevcan,rk8)
           end do
         end do
@@ -2038,8 +2038,8 @@ module mod_clm_biogeophysrest
       if ( .not. clm_check_var(ncid,'fsun_z') ) then
         write(stderr,*) "can't find fsun_z in restart (or initial) file..."
         write(stderr,*) "Initialize fsun_z to 0"
-        do p = begp , endp
-          do iv = 1 , nlevcan
+        do p = begp, endp
+          do iv = 1, nlevcan
             pptr%pps%fsun_z(p,iv) = 0._rk8
           end do
         end do
@@ -2194,7 +2194,7 @@ module mod_clm_biogeophysrest
     ! ------------------------------------------------------------
 
     if ( flag == 'read' ) then
-      do c = begc , endc
+      do c = begc, endc
         l = clandunit(c)
         if ( ctype(c) == icol_sunwall .or. &
              ctype(c) == icol_shadewall .or. &
@@ -2206,7 +2206,7 @@ module mod_clm_biogeophysrest
         ! NOTE: THIS IS A MEMORY INEFFICIENT COPY
         if ( ltype(l) /= istdlak ) then
           ! This calculation is now done for lakes in initSLake.
-          do j = 1 , nlevs
+          do j = 1, nlevs
             if ( cptr%cws%h2osoi_liq(c,j) < 1.0e-40_rk8 ) then
               cptr%cws%h2osoi_liq(c,j) = 0.0_rk8
             end if
@@ -2225,7 +2225,7 @@ module mod_clm_biogeophysrest
       ! ------------------------------------------------------------
 
       if ( rcmtimer%start( ) ) then
-        do c = begc , endc
+        do c = begc, endc
           l = clandunit(c)
           if ( ctype(c) == icol_sunwall .or. &
                ctype(c) == icol_shadewall .or. &
@@ -2234,7 +2234,7 @@ module mod_clm_biogeophysrest
           else
             nlevs = nlevgrnd
           end if
-          do j = 1 , nlevs
+          do j = 1, nlevs
             l = clandunit(c)
             if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
               cptr%cws%h2osoi_liq(c,j) = max(0._rk8,cptr%cws%h2osoi_liq(c,j))
@@ -2291,8 +2291,8 @@ module mod_clm_biogeophysrest
           write(stderr,*) 'grain size/aerosol mass data are not defined in &
                          &initial condition file'
           write(stderr,*) 'Initialize snow effective radius to fresh snow &
-                         &value , and snow/aerosol masses to zero.'
-          do c = begc , endc
+                         &value, and snow/aerosol masses to zero.'
+          do c = begc, endc
             if ( cptr%cps%snl(c) < 0 ) then
               cptr%cps%snw_rds(c,cptr%cps%snl(c)+1:0) = snw_rds_min
               cptr%cps%snw_rds(c,-nlevsno+1:cptr%cps%snl(c)) = 0._rk8
@@ -2334,7 +2334,7 @@ module mod_clm_biogeophysrest
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_bcpho to zero
-          do c = begc , endc
+          do c = begc, endc
             cptr%cps%mss_bcpho(c,-nlevsno+1:0) = 0._rk8
           end do
         end if
@@ -2357,7 +2357,7 @@ module mod_clm_biogeophysrest
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_bcphi to zero
-          do c = begc , endc
+          do c = begc, endc
             cptr%cps%mss_bcphi(c,-nlevsno+1:0) = 0._rk8
           end do
         end if
@@ -2380,7 +2380,7 @@ module mod_clm_biogeophysrest
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_ocpho to zero
-          do c = begc , endc
+          do c = begc, endc
             cptr%cps%mss_ocpho(c,-nlevsno+1:0) = 0._rk8
           end do
         end if
@@ -2403,7 +2403,7 @@ module mod_clm_biogeophysrest
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_ocphi to zero
-          do c = begc , endc
+          do c = begc, endc
             cptr%cps%mss_ocphi(c,-nlevsno+1:0) = 0._rk8
           end do
         end if
@@ -2425,7 +2425,7 @@ module mod_clm_biogeophysrest
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_dst1 to zero
-          do c = begc , endc
+          do c = begc, endc
             cptr%cps%mss_dst1(c,-nlevsno+1:0) = 0._rk8
           end do
         end if
@@ -2447,7 +2447,7 @@ module mod_clm_biogeophysrest
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_dst2 to zero
-          do c = begc , endc
+          do c = begc, endc
             cptr%cps%mss_dst2(c,-nlevsno+1:0) = 0._rk8
           end do
         end if
@@ -2469,7 +2469,7 @@ module mod_clm_biogeophysrest
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_dst3 to zero
-          do c = begc , endc
+          do c = begc, endc
             cptr%cps%mss_dst3(c,-nlevsno+1:0) = 0._rk8
           end do
         end if
@@ -2491,7 +2491,7 @@ module mod_clm_biogeophysrest
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_dst4 to zero
-          do c = begc , endc
+          do c = begc, endc
             cptr%cps%mss_dst4(c,-nlevsno+1:0) = 0._rk8
           end do
         end if
@@ -2623,7 +2623,7 @@ module mod_clm_biogeophysrest
         if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
-          do c = begc , endc
+          do c = begc, endc
             cptr%cwf%qflx_snofrz_lyr(c,-nlevsno+1:0) = 0._rk8
           end do
         end if
@@ -2683,8 +2683,8 @@ module mod_clm_biogeophysrest
     ! place to do this, but functionally this works)
 
     if ( flag == 'read' ) then
-      do j = -nlevsno+1 , 0
-        do c = begc , endc
+      do j = -nlevsno+1, 0
+        do c = begc, endc
           ! mass concentrations of aerosols in snow
           if ( cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j) > 0._rk8 ) then
             cptr%cps%mss_cnc_bcpho(c,j) = cptr%cps%mss_bcpho(c,j) / &
@@ -2723,10 +2723,10 @@ module mod_clm_biogeophysrest
   !
   logical function weights_exactly_the_same(pptr,wtgcell,wtlunit,wtcol)
     implicit none
-    type(pft_type) , pointer :: pptr     ! pointer to pft derived subtype
-    real(rk8) , intent(in) :: wtgcell(:) ! grid cell weights for each PFT
-    real(rk8) , intent(in) :: wtlunit(:) ! land-unit weights for each PFT
-    real(rk8) , intent(in) :: wtcol(:)   ! column weights for each PFT
+    type(pft_type), pointer :: pptr     ! pointer to pft derived subtype
+    real(rk8), intent(in) :: wtgcell(:) ! grid cell weights for each PFT
+    real(rk8), intent(in) :: wtlunit(:) ! land-unit weights for each PFT
+    real(rk8), intent(in) :: wtcol(:)   ! column weights for each PFT
     ! Check that weights are identical for all PFT's and all weight types
     if ( all( pptr%wtgcell(:) == wtgcell ) .and. &
          all( pptr%wtlunit(:) == wtlunit ) .and. &
@@ -2741,11 +2741,11 @@ module mod_clm_biogeophysrest
   !
   logical function weights_within_roundoff_different(pptr,wtgcell,wtlunit,wtcol)
     implicit none
-    type(pft_type) , pointer :: pptr ! pointer to pft derived subtype
-    real(rk8) , intent(in) :: wtgcell(:) ! grid cell weights for each PFT
-    real(rk8) , intent(in) :: wtlunit(:) ! land-unit weights for each PFT
-    real(rk8) , intent(in) :: wtcol(:)   ! column weights for each PFT
-    real(rk8) , parameter :: rndVal = 1.e-13_rk8
+    type(pft_type), pointer :: pptr ! pointer to pft derived subtype
+    real(rk8), intent(in) :: wtgcell(:) ! grid cell weights for each PFT
+    real(rk8), intent(in) :: wtlunit(:) ! land-unit weights for each PFT
+    real(rk8), intent(in) :: wtcol(:)   ! column weights for each PFT
+    real(rk8), parameter :: rndVal = 1.e-13_rk8
     ! If differences between all weights for each PFT and each weight type is
     ! less than or equal to double precision roundoff level
     ! weights are close
@@ -2763,19 +2763,19 @@ module mod_clm_biogeophysrest
   logical function weights_tooDifferent(begp,endp,pptr,wtgcell,adiff,maxdiff)
     implicit none
     ! per-proc beginning and ending pft indices
-    integer(ik4) , intent(in) :: begp, endp
-    type(pft_type) , pointer :: pptr ! pointer to pft derived subtype
+    integer(ik4), intent(in) :: begp, endp
+    type(pft_type), pointer :: pptr ! pointer to pft derived subtype
     ! grid cell weights for each PFT
-    real(rk8) , intent(in) :: wtgcell(begp:endp)
-    real(rk8) , intent(in) :: adiff ! tolerance of acceptible difference
-    real(rk8) , intent(out) :: maxdiff ! maximum difference found
+    real(rk8), intent(in) :: wtgcell(begp:endp)
+    real(rk8), intent(in) :: adiff ! tolerance of acceptible difference
+    real(rk8), intent(out) :: maxdiff ! maximum difference found
     integer(ik4) :: p     ! PFT index
     real(rk8) :: diff     ! difference in weights
     ! Assume weights are NOT different and only change if find
     ! weights too different
     weights_tooDifferent = .false.
     maxdiff = 0.0_rk8
-    do p = begp , endp
+    do p = begp, endp
       diff = abs(pptr%wtgcell(p) - wtgcell(p))
       if ( diff > maxdiff ) maxdiff = diff
       if ( diff > adiff ) weights_tooDifferent = .true.

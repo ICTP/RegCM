@@ -5,8 +5,8 @@ module mod_clm_cnnstateupdate2
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : dtsrf
-  use mod_clm_varpar , only : nlevsoi, nlevdecomp
+  use mod_runparams, only : dtsrf
+  use mod_clm_varpar, only : nlevsoi, nlevdecomp
 
   implicit none
   save
@@ -22,7 +22,7 @@ module mod_clm_cnnstateupdate2
   !
   subroutine NStateUpdate2(num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
-    use mod_clm_varpar , only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
+    use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
     implicit none
     integer(ik4), intent(in) :: num_soilc   ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
@@ -30,54 +30,54 @@ module mod_clm_cnnstateupdate2
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
     ! N fluxes associated with gap mortality to litter metabolic pool (gN/m3/s)
-    real(rk8), pointer :: gap_mortality_n_to_litr_met_n(:,:)
+    real(rk8), pointer, contiguous :: gap_mortality_n_to_litr_met_n(:,:)
     ! N fluxes associated with gap mortality to litter cellulose pool (gN/m3/s)
-    real(rk8), pointer :: gap_mortality_n_to_litr_cel_n(:,:)
+    real(rk8), pointer, contiguous :: gap_mortality_n_to_litr_cel_n(:,:)
     ! N fluxes associated with gap mortality to litter lignin pool (gN/m3/s)
-    real(rk8), pointer :: gap_mortality_n_to_litr_lig_n(:,:)
+    real(rk8), pointer, contiguous :: gap_mortality_n_to_litr_lig_n(:,:)
     ! N fluxes associated with gap mortality to CWD pool (gN/m3/s)
-    real(rk8), pointer :: gap_mortality_n_to_cwdn(:,:)
-    real(rk8), pointer :: m_deadcrootn_storage_to_litter(:)
-    real(rk8), pointer :: m_deadcrootn_to_litter(:)
-    real(rk8), pointer :: m_deadcrootn_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadstemn_storage_to_litter(:)
-    real(rk8), pointer :: m_deadstemn_to_litter(:)
-    real(rk8), pointer :: m_deadstemn_xfer_to_litter(:)
-    real(rk8), pointer :: m_frootn_storage_to_litter(:)
-    real(rk8), pointer :: m_frootn_to_litter(:)
-    real(rk8), pointer :: m_frootn_xfer_to_litter(:)
-    real(rk8), pointer :: m_leafn_storage_to_litter(:)
-    real(rk8), pointer :: m_leafn_to_litter(:)
-    real(rk8), pointer :: m_leafn_xfer_to_litter(:)
-    real(rk8), pointer :: m_livecrootn_storage_to_litter(:)
-    real(rk8), pointer :: m_livecrootn_to_litter(:)
-    real(rk8), pointer :: m_livecrootn_xfer_to_litter(:)
-    real(rk8), pointer :: m_livestemn_storage_to_litter(:)
-    real(rk8), pointer :: m_livestemn_to_litter(:)
-    real(rk8), pointer :: m_livestemn_xfer_to_litter(:)
-    real(rk8), pointer :: m_retransn_to_litter(:)
+    real(rk8), pointer, contiguous :: gap_mortality_n_to_cwdn(:,:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_to_litter(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_frootn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_frootn_to_litter(:)
+    real(rk8), pointer, contiguous :: m_frootn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_leafn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_leafn_to_litter(:)
+    real(rk8), pointer, contiguous :: m_leafn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livestemn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livestemn_to_litter(:)
+    real(rk8), pointer, contiguous :: m_livestemn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: m_retransn_to_litter(:)
 
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    real(rk8), pointer :: decomp_npools_vr(:,:,:)
-    real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
-    real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
-    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
-    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
-    real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
-    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
-    real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
-    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
-    real(rk8), pointer :: retransn(:)           ! (gN/m2) plant pool of
+    real(rk8), pointer, contiguous :: decomp_npools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: deadcrootn(:)         ! (gN/m2) dead coarse root N
+    real(rk8), pointer, contiguous :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
+    real(rk8), pointer, contiguous :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
+    real(rk8), pointer, contiguous :: deadstemn(:)          ! (gN/m2) dead stem N
+    real(rk8), pointer, contiguous :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rk8), pointer, contiguous :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
+    real(rk8), pointer, contiguous :: frootn(:)             ! (gN/m2) fine root N
+    real(rk8), pointer, contiguous :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rk8), pointer, contiguous :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
+    real(rk8), pointer, contiguous :: leafn(:)              ! (gN/m2) leaf N
+    real(rk8), pointer, contiguous :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rk8), pointer, contiguous :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
+    real(rk8), pointer, contiguous :: livecrootn(:)         ! (gN/m2) live coarse root N
+    real(rk8), pointer, contiguous :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
+    real(rk8), pointer, contiguous :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
+    real(rk8), pointer, contiguous :: livestemn(:)          ! (gN/m2) live stem N
+    real(rk8), pointer, contiguous :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rk8), pointer, contiguous :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
+    real(rk8), pointer, contiguous :: retransn(:)           ! (gN/m2) plant pool of
                                                 ! retranslocated N
 
     integer(ik4) :: c,p,j ! indices
@@ -145,9 +145,9 @@ module mod_clm_cnnstateupdate2
     ! set time steps
     dt = dtsrf
 
-    do j = 1 , nlevdecomp
+    do j = 1, nlevdecomp
       ! column loop
-      do fc = 1 , num_soilc
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
 
         ! column-level nitrogen fluxes from gap-phase mortality
@@ -164,7 +164,7 @@ module mod_clm_cnnstateupdate2
     end do
 
     ! pft loop
-    do fp = 1 , num_soilp
+    do fp = 1, num_soilp
       p = filter_soilp(fp)
 
       ! pft-level nitrogen fluxes from gap-phase mortality
@@ -213,7 +213,7 @@ module mod_clm_cnnstateupdate2
   !
   subroutine NStateUpdate2h(num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
-    use mod_clm_varpar , only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
+    use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
@@ -221,55 +221,55 @@ module mod_clm_cnnstateupdate2
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
     ! N fluxes associated with harvest to litter metabolic pool (gN/m3/s)
-    real(rk8), pointer :: harvest_n_to_litr_met_n(:,:)
+    real(rk8), pointer, contiguous :: harvest_n_to_litr_met_n(:,:)
     ! N fluxes associated with harvest to litter cellulose pool (gN/m3/s)
-    real(rk8), pointer :: harvest_n_to_litr_cel_n(:,:)
+    real(rk8), pointer, contiguous :: harvest_n_to_litr_cel_n(:,:)
     ! N fluxes associated with harvest to litter lignin pool (gN/m3/s)
-    real(rk8), pointer :: harvest_n_to_litr_lig_n(:,:)
+    real(rk8), pointer, contiguous :: harvest_n_to_litr_lig_n(:,:)
     ! N fluxes associated with harvest to CWD pool (gN/m3/s)
-    real(rk8), pointer :: harvest_n_to_cwdn(:,:)
-    real(rk8), pointer :: hrv_deadcrootn_storage_to_litter(:)
-    real(rk8), pointer :: hrv_deadcrootn_to_litter(:)
-    real(rk8), pointer :: hrv_deadcrootn_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_deadstemn_storage_to_litter(:)
-    real(rk8), pointer :: hrv_deadstemn_to_prod10n(:)
-    real(rk8), pointer :: hrv_deadstemn_to_prod100n(:)
-    real(rk8), pointer :: hrv_deadstemn_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_frootn_storage_to_litter(:)
-    real(rk8), pointer :: hrv_frootn_to_litter(:)
-    real(rk8), pointer :: hrv_frootn_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_leafn_storage_to_litter(:)
-    real(rk8), pointer :: hrv_leafn_to_litter(:)
-    real(rk8), pointer :: hrv_leafn_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootn_storage_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootn_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootn_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_livestemn_storage_to_litter(:)
-    real(rk8), pointer :: hrv_livestemn_to_litter(:)
-    real(rk8), pointer :: hrv_livestemn_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_retransn_to_litter(:)
+    real(rk8), pointer, contiguous :: harvest_n_to_cwdn(:,:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootn_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadcrootn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemn_to_prod10n(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemn_to_prod100n(:)
+    real(rk8), pointer, contiguous :: hrv_deadstemn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootn_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_frootn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafn_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_leafn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootn_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livecrootn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemn_storage_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemn_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_livestemn_xfer_to_litter(:)
+    real(rk8), pointer, contiguous :: hrv_retransn_to_litter(:)
 
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    real(rk8), pointer :: decomp_npools_vr(:,:,:)
-    real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
-    real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
-    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
-    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
-    real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
-    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live corse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
-    real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
-    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
-    real(rk8), pointer :: retransn(:)           ! (gN/m2) plant pool of
+    real(rk8), pointer, contiguous :: decomp_npools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: deadcrootn(:)         ! (gN/m2) dead coarse root N
+    real(rk8), pointer, contiguous :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
+    real(rk8), pointer, contiguous :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
+    real(rk8), pointer, contiguous :: deadstemn(:)          ! (gN/m2) dead stem N
+    real(rk8), pointer, contiguous :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rk8), pointer, contiguous :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
+    real(rk8), pointer, contiguous :: frootn(:)             ! (gN/m2) fine root N
+    real(rk8), pointer, contiguous :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rk8), pointer, contiguous :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
+    real(rk8), pointer, contiguous :: leafn(:)              ! (gN/m2) leaf N
+    real(rk8), pointer, contiguous :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rk8), pointer, contiguous :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
+    real(rk8), pointer, contiguous :: livecrootn(:)         ! (gN/m2) live corse root N
+    real(rk8), pointer, contiguous :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
+    real(rk8), pointer, contiguous :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
+    real(rk8), pointer, contiguous :: livestemn(:)          ! (gN/m2) live stem N
+    real(rk8), pointer, contiguous :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rk8), pointer, contiguous :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
+    real(rk8), pointer, contiguous :: retransn(:)           ! (gN/m2) plant pool of
                                                 ! retranslocated N
 
     integer(ik4) :: c,p,j ! indices
@@ -337,7 +337,7 @@ module mod_clm_cnnstateupdate2
     ! set time steps
     dt = dtsrf
 
-    do j = 1 , nlevdecomp
+    do j = 1, nlevdecomp
       ! column loop
       do fc = 1,num_soilc
         c = filter_soilc(fc)
@@ -356,7 +356,7 @@ module mod_clm_cnnstateupdate2
     end do
 
     ! pft loop
-    do fp = 1 , num_soilp
+    do fp = 1, num_soilp
       p = filter_soilp(fp)
 
       ! pft-level nitrogen fluxes from harvest mortality

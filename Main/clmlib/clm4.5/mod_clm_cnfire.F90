@@ -14,33 +14,33 @@ module mod_clm_cnfire
   use mod_realkinds
   use mod_mppparam
   use mod_mpmessage
-  use mod_runparams , only : dtsrf , idate1 , dtsec , rcmtimer
+  use mod_runparams, only : dtsrf, idate1, dtsec, rcmtimer
   use mod_dynparam
   use mod_stdio
   use mod_date
   use mod_clm_type
   use mod_clm_decomp
   use mod_clm_nchelper
-  use mod_clm_time_manager , only : is_end_curr_year
-  use mod_clm_subgridave , only : p2c
-  use mod_clm_varpar , only : nlevdecomp , ndecomp_pools
-  use mod_clm_varpar , only : maxpatch_pft , max_pft_per_col
-  use mod_clm_varcon , only : dzsoi_decomp , rpi , tfrz , secspday
-  use mod_clm_domain , only : ldomain
-  use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varctl , only : fsurdat , inst_name , nextdate
-  use mod_clm_surfrd , only : crop_prog
-  use mod_clm_pftvarcon , only : fsr_pft , fd_pft , noveg
-  use mod_clm_pftvarcon , only : nc4_grass , nc3crop , ndllf_evr_tmp_tree
-  use mod_clm_pftvarcon , only : nbrdlf_evr_trp_tree, nbrdlf_dcd_trp_tree
-  use mod_clm_pftvarcon , only : nbrdlf_evr_shrub
-  use mod_clm_pftvarcon , only : cc_leaf , cc_lstem , cc_dstem , cc_other
-  use mod_clm_pftvarcon , only : fm_leaf , fm_lstem , fm_dstem , fm_other
-  use mod_clm_pftvarcon , only : fm_root , fm_lroot , fm_droot
-  use mod_clm_pftvarcon , only : nc3crop , lf_flab , lf_fcel , lf_flig
-  use mod_clm_pftvarcon , only : fr_flab , fr_fcel , fr_flig
-  use mod_clm_varctl , only : inst_name
-  use mod_clm_histfile , only : hist_addfld1d
+  use mod_clm_time_manager, only : is_end_curr_year
+  use mod_clm_subgridave, only : p2c
+  use mod_clm_varpar, only : nlevdecomp, ndecomp_pools
+  use mod_clm_varpar, only : maxpatch_pft, max_pft_per_col
+  use mod_clm_varcon, only : dzsoi_decomp, rpi, tfrz, secspday
+  use mod_clm_domain, only : ldomain
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_varctl, only : fsurdat, inst_name, nextdate
+  use mod_clm_surfrd, only : crop_prog
+  use mod_clm_pftvarcon, only : fsr_pft, fd_pft, noveg
+  use mod_clm_pftvarcon, only : nc4_grass, nc3crop, ndllf_evr_tmp_tree
+  use mod_clm_pftvarcon, only : nbrdlf_evr_trp_tree, nbrdlf_dcd_trp_tree
+  use mod_clm_pftvarcon, only : nbrdlf_evr_shrub
+  use mod_clm_pftvarcon, only : cc_leaf, cc_lstem, cc_dstem, cc_other
+  use mod_clm_pftvarcon, only : fm_leaf, fm_lstem, fm_dstem, fm_other
+  use mod_clm_pftvarcon, only : fm_root, fm_lroot, fm_droot
+  use mod_clm_pftvarcon, only : nc3crop, lf_flab, lf_fcel, lf_flig
+  use mod_clm_pftvarcon, only : fr_flab, fr_fcel, fr_flig
+  use mod_clm_varctl, only : inst_name
+  use mod_clm_histfile, only : hist_addfld1d
 
   implicit none
 
@@ -62,12 +62,12 @@ module mod_clm_cnfire
   ! interpolates between two years of Lightning file data
   private :: lnfm_interp
 
-  real(rk8) , pointer , dimension(:) :: forc_lnfm  ! Lightning frequency
-  real(rk8) , pointer , dimension(:) :: forc_hdm   ! Human population density
-  real(rk8) , pointer , dimension(:) :: hdm_p1 , hdm_p2
-  real(rk8) , pointer , dimension(:) :: lnfm_p1 , lnfm_p2
-  real(rk8) , parameter :: secsphr = 3600._rk8  ! Seconds in an hour
-  real(rk8) , parameter :: borealat = 40._rk8   ! Latitude for boreal peat fires
+  real(rk8), pointer, contiguous, dimension(:) :: forc_lnfm  ! Lightning frequency
+  real(rk8), pointer, contiguous, dimension(:) :: forc_hdm   ! Human population density
+  real(rk8), pointer, contiguous, dimension(:) :: hdm_p1, hdm_p2
+  real(rk8), pointer, contiguous, dimension(:) :: lnfm_p1, lnfm_p2
+  real(rk8), parameter :: secsphr = 3600._rk8  ! Seconds in an hour
+  real(rk8), parameter :: borealat = 40._rk8   ! Latitude for boreal peat fires
 
   ! Human population density input data stream
   type(clm_filetype) :: sdat_hdm
@@ -83,7 +83,7 @@ module mod_clm_cnfire
   !
   subroutine CNFireInit( begg, endg )
     implicit none
-    integer(ik4) , intent(in) :: begg , endg   ! gridcell index bounds
+    integer(ik4), intent(in) :: begg, endg   ! gridcell index bounds
     call hdm_init(   begg, endg )
     call lnfm_init(  begg, endg )
     call CNFireInterp( )
@@ -102,184 +102,184 @@ module mod_clm_cnfire
   subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
     implicit none
     ! number of soil columns in filter
-    integer(ik4) , intent(in) :: num_soilc
+    integer(ik4), intent(in) :: num_soilc
     ! filter for soil columns
-    integer(ik4) , dimension(:) , intent(in) :: filter_soilc
+    integer(ik4), dimension(:), intent(in) :: filter_soilc
     ! number of soil pfts in filter
-    integer(ik4) , intent(in) :: num_soilp
+    integer(ik4), intent(in) :: num_soilp
     ! filter for soil pfts
-    integer(ik4) , dimension(:) , intent(in) :: filter_soilp
+    integer(ik4), dimension(:), intent(in) :: filter_soilp
     ! 10-day running mean of tot. precipitation
-    real(rk8) , pointer , dimension(:) :: prec10
+    real(rk8), pointer, contiguous, dimension(:) :: prec10
     ! 60-day running mean of tot. precipitation
-    real(rk8) , pointer , dimension(:) :: prec60
+    real(rk8), pointer, contiguous, dimension(:) :: prec60
     ! decrease of pft weight (0-1) on the col. for timestep
-    real(rk8) , pointer , dimension(:) :: lfpftd
+    real(rk8), pointer, contiguous, dimension(:) :: lfpftd
     ! pft weight on the column
-    real(rk8) , pointer , dimension(:) :: wtcol
+    real(rk8), pointer, contiguous, dimension(:) :: wtcol
     ! vegetation type for this pft
-    integer(ik4) , pointer , dimension(:) :: ivt
+    integer(ik4), pointer, contiguous, dimension(:) :: ivt
     ! (gC/m2) dead coarse root C
-    real(rk8) , pointer , dimension(:) :: deadcrootc
+    real(rk8), pointer, contiguous, dimension(:) :: deadcrootc
     ! (gC/m2) dead coarse root C storage
-    real(rk8) , pointer , dimension(:) :: deadcrootc_storage
+    real(rk8), pointer, contiguous, dimension(:) :: deadcrootc_storage
     ! (gC/m2) dead coarse root C transfer
-    real(rk8) , pointer , dimension(:) :: deadcrootc_xfer
+    real(rk8), pointer, contiguous, dimension(:) :: deadcrootc_xfer
     ! (gC/m2) fine root C
-    real(rk8) , pointer , dimension(:) :: frootc
+    real(rk8), pointer, contiguous, dimension(:) :: frootc
     ! (gC/m2) fine root C storage
-    real(rk8) , pointer , dimension(:) :: frootc_storage
+    real(rk8), pointer, contiguous, dimension(:) :: frootc_storage
     ! (gC/m2) fine root C transfer
-    real(rk8) , pointer , dimension(:) :: frootc_xfer
+    real(rk8), pointer, contiguous, dimension(:) :: frootc_xfer
     ! (gC/m2) live coarse root C
-    real(rk8) , pointer , dimension(:) :: livecrootc
+    real(rk8), pointer, contiguous, dimension(:) :: livecrootc
     ! (gC/m2) live coarse root C storage
-    real(rk8) , pointer , dimension(:) :: livecrootc_storage
+    real(rk8), pointer, contiguous, dimension(:) :: livecrootc_storage
     ! (gC/m2) live coarse root C transfer
-    real(rk8) , pointer , dimension(:) :: livecrootc_xfer
+    real(rk8), pointer, contiguous, dimension(:) :: livecrootc_xfer
     ! (gC/m2) total vegetation carbon, excluding cpool
-    real(rk8) , pointer , dimension(:) :: totvegc
+    real(rk8), pointer, contiguous, dimension(:) :: totvegc
     ! root zone soil wetness
-    real(rk8) , pointer , dimension(:) :: btran2
+    real(rk8), pointer, contiguous, dimension(:) :: btran2
     ! pft's column index
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! (gC/m2) leaf C
-    real(rk8) , pointer , dimension(:) :: leafc
+    real(rk8), pointer, contiguous, dimension(:) :: leafc
     ! (gC/m2) leaf C storage
-    real(rk8) , pointer , dimension(:) :: leafc_storage
+    real(rk8), pointer, contiguous, dimension(:) :: leafc_storage
     ! (gC/m2) leaf C transfer
-    real(rk8) , pointer , dimension(:) :: leafc_xfer
+    real(rk8), pointer, contiguous, dimension(:) :: leafc_xfer
     ! (gC/m2) live stem C
-    real(rk8) , pointer , dimension(:) :: livestemc
+    real(rk8), pointer, contiguous, dimension(:) :: livestemc
     ! (gC/m2) live stem C storage
-    real(rk8) , pointer , dimension(:) :: livestemc_storage
+    real(rk8), pointer, contiguous, dimension(:) :: livestemc_storage
     ! (gC/m2) live stem C transfer
-    real(rk8) , pointer , dimension(:) :: livestemc_xfer
+    real(rk8), pointer, contiguous, dimension(:) :: livestemc_xfer
     ! (gC/m2) dead stem C
-    real(rk8) , pointer , dimension(:) :: deadstemc
+    real(rk8), pointer, contiguous, dimension(:) :: deadstemc
     ! (gC/m2) dead stem C storage
-    real(rk8) , pointer , dimension(:) :: deadstemc_storage
+    real(rk8), pointer, contiguous, dimension(:) :: deadstemc_storage
     ! (gC/m2) dead stem C transfer
-    real(rk8) , pointer , dimension(:) :: deadstemc_xfer
+    real(rk8), pointer, contiguous, dimension(:) :: deadstemc_xfer
     ! burn date for crop
-    integer(ik4) , pointer , dimension(:) :: burndate
+    integer(ik4), pointer, contiguous, dimension(:) :: burndate
 
     ! column-level
     ! fractional area with water table at surface
-    real(rk8) , pointer , dimension(:) :: fsat
+    real(rk8), pointer, contiguous, dimension(:) :: fsat
     ! conversion area frac. of BET+BDT that haven't burned before
-    real(rk8) , pointer , dimension(:) :: lfc
+    real(rk8), pointer, contiguous, dimension(:) :: lfc
     ! column's weight relative to corresponding gridcell
-    real(rk8) , pointer , dimension(:) :: cwtgcell
+    real(rk8), pointer, contiguous, dimension(:) :: cwtgcell
     ! annual decreased fraction coverage of BET+BDT on gridcell
-    real(rk8) , pointer , dimension(:) :: dtrotr_col
+    real(rk8), pointer, contiguous, dimension(:) :: dtrotr_col
     ! pft weight of BET on the gridcell (0-1)
-    real(rk8) , pointer , dimension(:) :: trotr1_col
+    real(rk8), pointer, contiguous, dimension(:) :: trotr1_col
     ! pft weight of BDT on the gridcell (0-1)
-    real(rk8) , pointer , dimension(:) :: trotr2_col
+    real(rk8), pointer, contiguous, dimension(:) :: trotr2_col
     ! 10-day running mean of tot. precipitation
-    real(rk8) , pointer , dimension(:) :: prec10_col
+    real(rk8), pointer, contiguous, dimension(:) :: prec10_col
     ! 60-day running mean of tot. precipitation
-    real(rk8) , pointer , dimension(:) :: prec60_col
+    real(rk8), pointer, contiguous, dimension(:) :: prec60_col
     ! number of pfts on the column
-    integer(ik4) , pointer , dimension(:) :: npfts
+    integer(ik4), pointer, contiguous, dimension(:) :: npfts
     ! pft index array
-    integer(ik4) , pointer , dimension(:) :: pfti
+    integer(ik4), pointer, contiguous, dimension(:) :: pfti
     ! gridcell of corresponding column
-    integer(ik4) , pointer , dimension(:) :: cgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
     ! soil water as frac. of whc for top 0.05 m
-    real(rk8) , pointer , dimension(:) :: wf
+    real(rk8), pointer, contiguous, dimension(:) :: wf
     ! soil water as frac. of whc for top 0.17 m
-    real(rk8) , pointer , dimension(:) :: wf2
+    real(rk8), pointer, contiguous, dimension(:) :: wf2
     ! soil T for top 0.17 m
-    real(rk8) , pointer , dimension(:) :: tsoi17
+    real(rk8), pointer, contiguous, dimension(:) :: tsoi17
     ! gdp data
-    real(rk8) , pointer , dimension(:) :: gdp_lf
+    real(rk8), pointer, contiguous, dimension(:) :: gdp_lf
     ! peatland fraction data
-    real(rk8) , pointer , dimension(:) :: peatf_lf
+    real(rk8), pointer, contiguous, dimension(:) :: peatf_lf
     ! proscribed crop fire time
-    integer(ik4), pointer , dimension(:) :: abm_lf
+    integer(ik4), pointer, contiguous, dimension(:) :: abm_lf
     ! (gC/m2) total lit C (column-level mean)
-    real(rk8) , pointer , dimension(:) :: totlitc
+    real(rk8), pointer, contiguous, dimension(:) :: totlitc
     ! fire spread rate at column level
-    real(rk8) , pointer , dimension(:) :: fsr_col
+    real(rk8), pointer, contiguous, dimension(:) :: fsr_col
     ! fire duration at column level
-    real(rk8) , pointer , dimension(:) :: fd_col
+    real(rk8), pointer, contiguous, dimension(:) :: fd_col
     ! root carbon
-    real(rk8) , pointer , dimension(:) :: rootc_col
+    real(rk8), pointer, contiguous, dimension(:) :: rootc_col
     ! burned area fraction for cropland
-    real(rk8) , pointer , dimension(:) :: baf_crop
+    real(rk8), pointer, contiguous, dimension(:) :: baf_crop
     ! burned area fraction for peatland
-    real(rk8) , pointer , dimension(:) :: baf_peatf
+    real(rk8), pointer, contiguous, dimension(:) :: baf_peatf
     ! total burned area out of conversion
-    real(rk8) , pointer , dimension(:) :: fbac
+    real(rk8), pointer, contiguous, dimension(:) :: fbac
     ! burned area out of conversion region due to land use fire
-    real(rk8) , pointer , dimension(:) :: fbac1
+    real(rk8), pointer, contiguous, dimension(:) :: fbac1
     ! cropland fraction in veg column
-    real(rk8) , pointer , dimension(:) :: cropf_col
+    real(rk8), pointer, contiguous, dimension(:) :: cropf_col
     ! transpiration wetness factor (0 to 1)
-    real(rk8) , pointer , dimension(:) :: btran_col
+    real(rk8), pointer, contiguous, dimension(:) :: btran_col
     ! fractional coverage of non-crop PFTs
-    real(rk8) , pointer , dimension(:) :: wtlf
+    real(rk8), pointer, contiguous, dimension(:) :: wtlf
     ! fractional coverage of non-crop and non-bare-soil PFTs
-    real(rk8) , pointer , dimension(:) :: lfwt
+    real(rk8), pointer, contiguous, dimension(:) :: lfwt
     ! totvegc at column level
-    real(rk8) , pointer , dimension(:) :: totvegc_col
+    real(rk8), pointer, contiguous, dimension(:) :: totvegc_col
     ! leaf carbon at column level
-    real(rk8) , pointer , dimension(:) :: leafc_col
+    real(rk8), pointer, contiguous, dimension(:) :: leafc_col
     ! gdp limitation factor for nfire
-    real(rk8) , pointer , dimension(:) :: lgdp_col
+    real(rk8), pointer, contiguous, dimension(:) :: lgdp_col
     ! gdp limitation factor for baf per fire
-    real(rk8) , pointer , dimension(:) :: lgdp1_col
+    real(rk8), pointer, contiguous, dimension(:) :: lgdp1_col
     ! pop limitation factor for baf per fire
-    real(rk8) , pointer , dimension(:) :: lpop_col
+    real(rk8), pointer, contiguous, dimension(:) :: lpop_col
     ! fuel avalability factor for Reg.C
-    real(rk8) , pointer , dimension(:) :: fuelc
+    real(rk8), pointer, contiguous, dimension(:) :: fuelc
     ! fuel avalability factor for Reg.A
-    real(rk8) , pointer , dimension(:) :: fuelc_crop
+    real(rk8), pointer, contiguous, dimension(:) :: fuelc_crop
     ! (gC/m3)  vert.-resolved decomposing c pools
-    real(rk8) , pointer , dimension(:,:,:) :: decomp_cpools_vr
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: decomp_cpools_vr
 
     ! grid-level
     ! latitude (degrees)
-    real(rk8) , pointer , dimension(:) :: latdeg
+    real(rk8), pointer, contiguous, dimension(:) :: latdeg
     ! rain
-    real(rk8) , pointer , dimension(:) :: forc_rain
+    real(rk8), pointer, contiguous, dimension(:) :: forc_rain
     ! snow
-    real(rk8) , pointer , dimension(:) :: forc_snow
+    real(rk8), pointer, contiguous, dimension(:) :: forc_snow
     ! relative humidity
-    real(rk8) , pointer , dimension(:) :: forc_rh
+    real(rk8), pointer, contiguous, dimension(:) :: forc_rh
     ! atmospheric temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: forc_t
+    real(rk8), pointer, contiguous, dimension(:) :: forc_t
     !atmospheric wind speed (m/s)
-    real(rk8) , pointer , dimension(:) :: forc_wind
+    real(rk8), pointer, contiguous, dimension(:) :: forc_wind
     ! column-level
     ! fire counts (count/km2/timestep), valid only in Reg. C
-    real(rk8) , pointer , dimension(:) :: nfire
+    real(rk8), pointer, contiguous, dimension(:) :: nfire
     ! fractional area burned in this timestep
-    real(rk8) , pointer , dimension(:) :: farea_burned
+    real(rk8), pointer, contiguous, dimension(:) :: farea_burned
     ! TRUE => pool is a cwd pool
-    logical , pointer , dimension(:) :: is_cwd
+    logical, pointer, contiguous, dimension(:) :: is_cwd
     ! lower threshold of fuel mass (gC/m2) for ignition
-    real(rk8) , parameter :: lfuel =  110._rk8
+    real(rk8), parameter :: lfuel =  110._rk8
     ! upper threshold of fuel mass(gC/m2) for ignition
-    real(rk8) , parameter :: ufuel = 1050._rk8
+    real(rk8), parameter :: ufuel = 1050._rk8
     ! g(W) when W=0 m/s
-    real(rk8) , parameter :: g0 = 0.05_rk8
+    real(rk8), parameter :: g0 = 0.05_rk8
     ! a1 parameter for cropland fire in Li et. al. 2013 (was different in paper)
-    real(rk8) , parameter :: cropfire_a1 = 0.153_rk8
+    real(rk8), parameter :: cropfire_a1 = 0.153_rk8
     ! c parameter for peatland fire in Li et. al. 2013
     ! boreal peat fires (was different in paper)
-    real(rk8) , parameter :: boreal_peatfire_c = 2.1d-5
+    real(rk8), parameter :: boreal_peatfire_c = 2.1d-5
     ! non-boreal peat fires (was different in paper)
-    real(rk8) , parameter :: non_boreal_peatfire_c = 0.0005d00
+    real(rk8), parameter :: non_boreal_peatfire_c = 0.0005d00
 
-    integer(ik4) :: g , l , c , p , pi , j , fc , fp
-    integer(ik4) :: kyr , kmo , kda ! index variables
+    integer(ik4) :: g, l, c, p, pi, j, fc, fp
+    integer(ik4) :: kyr, kmo, kda ! index variables
     real(rk8) :: dt        ! time step variable (s)
     real(rk8) :: m         ! top-layer soil moisture (proportion)
     real(rk8) ::cli       !
-    real(rk8) , parameter ::cli_scale = 1370.0_rk8
+    real(rk8), parameter ::cli_scale = 1370.0_rk8
     real(rk8) ::cri       !
     real(rk8) :: fb        ! availability of fuel
     real(rk8) :: fhd       ! impact of hd on agricultural fire
@@ -382,7 +382,7 @@ module mod_clm_cnfire
     ! On first time-step, just set area burned to zero and exit
     !
     if ( rcmtimer%start( ) ) then
-      do fc = 1 , num_soilc
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         farea_burned(c) = 0._rk8
         baf_crop(c)     = 0._rk8
@@ -396,13 +396,13 @@ module mod_clm_cnfire
     ! Calculate fraction of crop (cropf_col) and non-crop and non-bare-soil
     ! vegetation (lfwt) in vegetated column
     !
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       cropf_col(c) = 0._rk8
       lfwt(c)      = 0._rk8
     end do
-    do pi = 1 , max_pft_per_col
-      do fc = 1 , num_soilc
+    do pi = 1, max_pft_per_col
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         if ( pi <=  npfts(c) ) then
           p = pfti(c) + pi - 1
@@ -420,12 +420,12 @@ module mod_clm_cnfire
     !
     ! Calculate crop fuel
     !
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       fuelc_crop(c)=0._rk8
     end do
-    do pi = 1 , max_pft_per_col
-      do fc = 1 , num_soilc
+    do pi = 1, max_pft_per_col
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         if ( pi <=  npfts(c) ) then
           p = pfti(c) + pi - 1
@@ -442,7 +442,7 @@ module mod_clm_cnfire
     !
     ! Calculate noncrop column variables
     !
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       fsr_col(c)   = 0._rk8
       fd_col(c)    = 0._rk8
@@ -458,8 +458,8 @@ module mod_clm_cnfire
       dtrotr_col(c) = 0._rk8
 #endif
     end do
-    do pi = 1 , max_pft_per_col
-      do fc = 1 , num_soilc
+    do pi = 1, max_pft_per_col
+      do fc = 1, num_soilc
         c = filter_soilc(fc)
         g = cgridcell(c)
         if ( pi <= npfts(c) ) then
@@ -549,7 +549,7 @@ module mod_clm_cnfire
     end do
 
 #ifdef DYNPFT
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       if ( dtrotr_col(c) > 0._rk8 ) then
         if ( is_first_timestep_new_year ) then
@@ -568,12 +568,12 @@ module mod_clm_cnfire
     !
     ! calculate burned area fraction in cropland
     !
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       baf_crop(c) = 0._rk8
     end do
 
-    do fp = 1 , num_soilp
+    do fp = 1, num_soilp
       p = filter_soilp(fp)
       if ( is_end_curr_year( ) ) then
         burndate(p) = 10000 ! init. value; actual range [0 365]
@@ -581,7 +581,7 @@ module mod_clm_cnfire
     end do
 
     call split_idate(nextdate,kyr,kmo,kda)
-    do pi = 1 , max_pft_per_col
+    do pi = 1, max_pft_per_col
       do fc = 1,num_soilc
         c = filter_soilc(fc)
         g = cgridcell(c)
@@ -617,7 +617,7 @@ module mod_clm_cnfire
     !
     ! calculate peatland fire
     !
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       g = cgridcell(c)
       ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND
@@ -643,7 +643,7 @@ module mod_clm_cnfire
 
     ! find which pool is the cwd pool
     i_cwd = 0
-    do l = 1 , ndecomp_pools
+    do l = 1, ndecomp_pools
       if ( is_cwd(l) ) then
         i_cwd = l
       end if
@@ -652,14 +652,14 @@ module mod_clm_cnfire
     !
     ! begin column loop to calculate fractional area affected by fire
     !
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       g = cgridcell(c)
       hdmlf = forc_hdm(g)
       if ( cropf_col(c) < 1.0 ) then
         fuelc(c) = totlitc(c)+totvegc_col(c) - &
                    rootc_col(c)-fuelc_crop(c)*cropf_col(c)
-        do j = 1 , nlevdecomp
+        do j = 1, nlevdecomp
           fuelc(c) = fuelc(c)+decomp_cpools_vr(c,j,i_cwd) * dzsoi_decomp(j)
         end do
         fuelc(c) = fuelc(c)/(1._rk8-cropf_col(c))
@@ -749,306 +749,306 @@ module mod_clm_cnfire
   subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
     implicit none
     ! number of soil columns in filter
-    integer(ik4) , intent(in) :: num_soilc
+    integer(ik4), intent(in) :: num_soilc
     ! filter for soil columns
-    integer(ik4) , intent(in) , dimension(:) :: filter_soilc
+    integer(ik4), intent(in), dimension(:) :: filter_soilc
     ! number of soil pfts in filter
-    integer(ik4) , intent(in) :: num_soilp
+    integer(ik4), intent(in) :: num_soilp
     ! filter for soil pfts
-    integer(ik4) , intent(in) , dimension(:) :: filter_soilp
+    integer(ik4), intent(in), dimension(:) :: filter_soilp
 #if (defined CNDV)
     ! number of individuals (#/m2)
-    real(rk8) , pointer , dimension(:) :: nind
+    real(rk8), pointer, contiguous, dimension(:) :: nind
 #endif
     ! woody lifeform (1=woody, 0=not woody)
-    real(rk8) , pointer , dimension(:) :: woody
+    real(rk8), pointer, contiguous, dimension(:) :: woody
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
+    logical, pointer, contiguous :: pactive(:)
     ! pft vegetation type
-    integer(ik4) , pointer :: ivt(:)
+    integer(ik4), pointer, contiguous :: ivt(:)
     ! pft weight relative to column
-    real(rk8) , pointer :: wtcol(:)
+    real(rk8), pointer, contiguous :: wtcol(:)
     ! latitude (degrees)
-    real(rk8) , pointer :: latdeg(:)
+    real(rk8), pointer, contiguous :: latdeg(:)
     ! gridcell of corresponding column
-    integer(ik4) , pointer :: cgridcell(:)
+    integer(ik4), pointer, contiguous :: cgridcell(:)
     ! number of pfts for each column
-    integer(ik4) , pointer :: npfts(:)
+    integer(ik4), pointer, contiguous :: npfts(:)
     ! beginning pft index for each column
-    integer(ik4) , pointer :: pfti(:)
+    integer(ik4), pointer, contiguous :: pfti(:)
     ! pft's column index
-    integer(ik4) , pointer :: pcolumn(:)
+    integer(ik4), pointer, contiguous :: pcolumn(:)
     ! timestep fractional area burned (proportion)
-    real(rk8) , pointer :: farea_burned(:)
+    real(rk8), pointer, contiguous :: farea_burned(:)
     ! C fluxes associated with fire mortality to CWD pool (gC/m3/s)
-    real(rk8) , pointer :: fire_mortality_c_to_cwdc(:,:)
+    real(rk8), pointer, contiguous :: fire_mortality_c_to_cwdc(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8) , pointer :: decomp_cpools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_cpools_vr(:,:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    real(rk8) , pointer :: decomp_npools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_npools_vr(:,:,:)
     ! N fluxes associated with fire mortality to CWD pool (gN/m3/s)
-    real(rk8) , pointer :: fire_mortality_n_to_cwdn(:,:)
+    real(rk8), pointer, contiguous :: fire_mortality_n_to_cwdn(:,:)
     ! conversion area frac. of BET+BDT that haven't burned before
-    real(rk8) , pointer :: lfc(:)
+    real(rk8), pointer, contiguous :: lfc(:)
     ! conversion area frac. of BET+BDT that burned this timestep
-    real(rk8) , pointer :: lfc2(:)
+    real(rk8), pointer, contiguous :: lfc2(:)
     ! burned area out of conversion region due to land use fire
-    real(rk8) , pointer :: fbac1(:)
+    real(rk8), pointer, contiguous :: fbac1(:)
     ! baf for cropland
-    real(rk8) , pointer :: baf_crop(:)
+    real(rk8), pointer, contiguous :: baf_crop(:)
     ! baf for peatlabd
-    real(rk8) , pointer :: baf_peatf(:)
+    real(rk8), pointer, contiguous :: baf_peatf(:)
     ! (gC/m2) ann max leaf C
-    real(rk8) , pointer :: leafcmax(:)
+    real(rk8), pointer, contiguous :: leafcmax(:)
     ! total burned area out of conversion
-    real(rk8) , pointer :: fbac(:)
+    real(rk8), pointer, contiguous :: fbac(:)
 
     ! annual decreased fraction coverage of BET+BDT (0-1) on the gridcell
-    real(rk8) , pointer :: dtrotr_col(:)
+    real(rk8), pointer, contiguous :: dtrotr_col(:)
     ! pft weight of BET on the gridcell (0-1)
-    real(rk8) , pointer :: trotr1_col(:)
+    real(rk8), pointer, contiguous :: trotr1_col(:)
     ! pft weight of BDT on the gridcell (0-1)
-    real(rk8) , pointer :: trotr2_col(:)
+    real(rk8), pointer, contiguous :: trotr2_col(:)
 
     ! (gC/m2) total soil organic matter carbon
-    real(rk8) , pointer :: totsomc(:)
+    real(rk8), pointer, contiguous :: totsomc(:)
     ! (gC/m2/s)fire carbon emissions due to peat burning
-    real(rk8) , pointer :: somc_fire(:)
+    real(rk8), pointer, contiguous :: somc_fire(:)
 
     ! (gC/m2) leaf C
-    real(rk8) , pointer :: leafc(:)
+    real(rk8), pointer, contiguous :: leafc(:)
     ! (gC/m2) leaf C storage
-    real(rk8) , pointer :: leafc_storage(:)
+    real(rk8), pointer, contiguous :: leafc_storage(:)
     ! (gC/m2) leaf C transfer
-    real(rk8) , pointer :: leafc_xfer(:)
+    real(rk8), pointer, contiguous :: leafc_xfer(:)
     ! (gC/m2) live stem C
-    real(rk8) , pointer :: livestemc(:)
+    real(rk8), pointer, contiguous :: livestemc(:)
     ! (gC/m2) live stem C storage
-    real(rk8) , pointer :: livestemc_storage(:)
+    real(rk8), pointer, contiguous :: livestemc_storage(:)
     ! (gC/m2) live stem C transfer
-    real(rk8) , pointer :: livestemc_xfer(:)
+    real(rk8), pointer, contiguous :: livestemc_xfer(:)
 
     ! (gC/m2) dead stem C
-    real(rk8) , pointer :: deadstemc(:)
+    real(rk8), pointer, contiguous :: deadstemc(:)
     ! (gC/m2) dead stem C storage
-    real(rk8) , pointer :: deadstemc_storage(:)
+    real(rk8), pointer, contiguous :: deadstemc_storage(:)
     ! (gC/m2) dead stem C transfer
-    real(rk8) , pointer :: deadstemc_xfer(:)
+    real(rk8), pointer, contiguous :: deadstemc_xfer(:)
     ! (gC/m2) fine root C
-    real(rk8) , pointer :: frootc(:)
+    real(rk8), pointer, contiguous :: frootc(:)
     ! (gC/m2) fine root C storage
-    real(rk8) , pointer :: frootc_storage(:)
+    real(rk8), pointer, contiguous :: frootc_storage(:)
     ! (gC/m2) fine root C transfer
-    real(rk8) , pointer :: frootc_xfer(:)
+    real(rk8), pointer, contiguous :: frootc_xfer(:)
     ! (gC/m2) dead coarse root C
-    real(rk8) , pointer :: deadcrootc(:)
+    real(rk8), pointer, contiguous :: deadcrootc(:)
     ! (gC/m2) dead coarse root C storage
-    real(rk8) , pointer :: deadcrootc_storage(:)
+    real(rk8), pointer, contiguous :: deadcrootc_storage(:)
     ! (gC/m2) dead coarse root C transfer
-    real(rk8) , pointer :: deadcrootc_xfer(:)
+    real(rk8), pointer, contiguous :: deadcrootc_xfer(:)
     ! (gC/m2) live coarse root C
-    real(rk8) , pointer :: livecrootc(:)
+    real(rk8), pointer, contiguous :: livecrootc(:)
     ! (gC/m2) live coarse root C storage
-    real(rk8) , pointer :: livecrootc_storage(:)
+    real(rk8), pointer, contiguous :: livecrootc_storage(:)
     ! (gC/m2) live coarse root C transfer
-    real(rk8) , pointer :: livecrootc_xfer(:)
+    real(rk8), pointer, contiguous :: livecrootc_xfer(:)
     ! (gC/m2) growth respiration storage
-    real(rk8) , pointer :: gresp_storage(:)
+    real(rk8), pointer, contiguous :: gresp_storage(:)
     ! (gC/m2) growth respiration transfer
-    real(rk8) , pointer :: gresp_xfer(:)
+    real(rk8), pointer, contiguous :: gresp_xfer(:)
 
     ! (gN/m2) leaf N
-    real(rk8) , pointer :: leafn(:)
+    real(rk8), pointer, contiguous :: leafn(:)
     ! (gN/m2) leaf N storage
-    real(rk8) , pointer :: leafn_storage(:)
+    real(rk8), pointer, contiguous :: leafn_storage(:)
     ! (gN/m2) leaf N transfer
-    real(rk8) , pointer :: leafn_xfer(:)
+    real(rk8), pointer, contiguous :: leafn_xfer(:)
     ! (gN/m2) live stem N
-    real(rk8) , pointer :: livestemn(:)
+    real(rk8), pointer, contiguous :: livestemn(:)
     ! (gN/m2) live stem N storage
-    real(rk8) , pointer :: livestemn_storage(:)
+    real(rk8), pointer, contiguous :: livestemn_storage(:)
     ! (gN/m2) live stem N transfer
-    real(rk8) , pointer :: livestemn_xfer(:)
+    real(rk8), pointer, contiguous :: livestemn_xfer(:)
     ! (gN/m2) dead stem N
-    real(rk8) , pointer :: deadstemn(:)
+    real(rk8), pointer, contiguous :: deadstemn(:)
     ! (gN/m2) dead stem N storage
-    real(rk8) , pointer :: deadstemn_storage(:)
+    real(rk8), pointer, contiguous :: deadstemn_storage(:)
     ! (gN/m2) dead stem N transfer
-    real(rk8) , pointer :: deadstemn_xfer(:)
+    real(rk8), pointer, contiguous :: deadstemn_xfer(:)
     ! (gN/m2) fine root N
-    real(rk8) , pointer :: frootn(:)
+    real(rk8), pointer, contiguous :: frootn(:)
     ! (gN/m2) fine root N storage
-    real(rk8) , pointer :: frootn_storage(:)
+    real(rk8), pointer, contiguous :: frootn_storage(:)
     ! (gN/m2) fine root N transfer
-    real(rk8) , pointer :: frootn_xfer(:)
+    real(rk8), pointer, contiguous :: frootn_xfer(:)
     ! (gN/m2) live coarse root N
-    real(rk8) , pointer :: livecrootn(:)
+    real(rk8), pointer, contiguous :: livecrootn(:)
     ! (gN/m2) live coarse root N storage
-    real(rk8) , pointer :: livecrootn_storage(:)
+    real(rk8), pointer, contiguous :: livecrootn_storage(:)
     ! (gN/m2) live coarse root N transfer
-    real(rk8) , pointer :: livecrootn_xfer(:)
+    real(rk8), pointer, contiguous :: livecrootn_xfer(:)
     ! (gN/m2) dead coarse root N
-    real(rk8) , pointer :: deadcrootn(:)
+    real(rk8), pointer, contiguous :: deadcrootn(:)
     ! (gN/m2) dead coarse root N storage
-    real(rk8) , pointer :: deadcrootn_storage(:)
+    real(rk8), pointer, contiguous :: deadcrootn_storage(:)
     ! (gN/m2) dead coarse root N transfer
-    real(rk8) , pointer :: deadcrootn_xfer(:)
+    real(rk8), pointer, contiguous :: deadcrootn_xfer(:)
     ! (gN/m2) plant pool of retranslocated N
-    real(rk8) , pointer :: retransn(:)
+    real(rk8), pointer, contiguous :: retransn(:)
 
     ! (gC/m2/s) fire C emissions from leafc
-    real(rk8) , pointer :: m_leafc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_to_fire(:)
     ! (gC/m2/s) fire C emissions from leafc_storage
-    real(rk8) , pointer :: m_leafc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_storage_to_fire(:)
     ! (gC/m2/s) fire C emissions from leafc_xfer
-    real(rk8) , pointer :: m_leafc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_xfer_to_fire(:)
     ! (gC/m2/s) fire C emissions from livestemc
-    real(rk8) , pointer :: m_livestemc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_to_fire(:)
     ! (gC/m2/s) fire C emissions from livestemc_storage
-    real(rk8) , pointer :: m_livestemc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_storage_to_fire(:)
     ! (gC/m2/s) fire C emissions from livestemc_xfer
-    real(rk8) , pointer :: m_livestemc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_xfer_to_fire(:)
     ! (gC/m2/s) fire C emissions from deadstemc_xfer
-    real(rk8) , pointer :: m_deadstemc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_to_fire(:)
     ! (gC/m2/s) fire C emissions from deadstemc_storage
-    real(rk8) , pointer :: m_deadstemc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_storage_to_fire(:)
     ! (gC/m2/s) fire C emissions from deadstemc_xfer
-    real(rk8) , pointer :: m_deadstemc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_xfer_to_fire(:)
     ! (gC/m2/s) fire C emissions from frootc
-    real(rk8) , pointer :: m_frootc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_to_fire(:)
     ! (gC/m2/s) fire C emissions from frootc_storage
-    real(rk8) , pointer :: m_frootc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_storage_to_fire(:)
     ! (gC/m2/s) fire C emissions from frootc_xfer
-    real(rk8) , pointer :: m_frootc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_xfer_to_fire(:)
     ! (gC/m2/s) fire C emissions from livecrootc
-    real(rk8) , pointer :: m_livecrootc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_to_fire(:)
     ! (gC/m2/s) fire C emissions from livecrootc_storage
-    real(rk8) , pointer :: m_livecrootc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_storage_to_fire(:)
     ! (gC/m2/s) fire C emissions from livecrootc_xfer
-    real(rk8) , pointer :: m_livecrootc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_xfer_to_fire(:)
     ! (gC/m2/s) fire C emissions from deadcrootc
-    real(rk8) , pointer :: m_deadcrootc_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_to_fire(:)
     ! (gC/m2/s) fire C emissions from deadcrootc_storage
-    real(rk8) , pointer :: m_deadcrootc_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_storage_to_fire(:)
     ! (gC/m2/s) fire C emissions from deadcrootc_xfer
-    real(rk8) , pointer :: m_deadcrootc_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_xfer_to_fire(:)
     ! (gC/m2/s) fire C emissions from gresp_storage
-    real(rk8) , pointer :: m_gresp_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_gresp_storage_to_fire(:)
     ! (gC/m2/s) fire C emissions from gresp_xfer
-    real(rk8) , pointer :: m_gresp_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_gresp_xfer_to_fire(:)
     ! (gC/m3/s) vertically-resolved decomposing C fire loss
-    real(rk8) , pointer :: m_decomp_cpools_to_fire_vr(:,:,:)
+    real(rk8), pointer, contiguous :: m_decomp_cpools_to_fire_vr(:,:,:)
 
     ! (gN/m2/s) fire N emissions from leafn
-    real(rk8) , pointer :: m_leafn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_to_fire(:)
     ! (gN/m2/s) fire N emissions from leafn_storage
-    real(rk8) , pointer :: m_leafn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_storage_to_fire(:)
     ! (gN/m2/s) fire N emissions from leafn_xfer
-    real(rk8) , pointer :: m_leafn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_xfer_to_fire(:)
     ! (gN/m2/s) fire N emissions from livestemn
-    real(rk8) , pointer :: m_livestemn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_to_fire(:)
     ! (gN/m2/s) fire N emissions from livestemn_storage
-    real(rk8) , pointer :: m_livestemn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_storage_to_fire(:)
     ! (gN/m2/s) fire N emissions from livestemn_xfer
-    real(rk8) , pointer :: m_livestemn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_xfer_to_fire(:)
     ! (gN/m2/s) fire N emissions from deadstemn
-    real(rk8) , pointer :: m_deadstemn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_to_fire(:)
     ! (gN/m2/s) fire N emissions from deadstemn_storage
-    real(rk8) , pointer :: m_deadstemn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_storage_to_fire(:)
     ! (gN/m2/s) fire N emissions from deadstemn_xfer
-    real(rk8) , pointer :: m_deadstemn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_xfer_to_fire(:)
     ! (gN/m2/s) fire N emissions from frootn
-    real(rk8) , pointer :: m_frootn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_to_fire(:)
     ! (gN/m2/s) fire N emissions from frootn_storage
-    real(rk8) , pointer :: m_frootn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_storage_to_fire(:)
     ! (gN/m2/s) fire N emissions from frootn_xfer
-    real(rk8) , pointer :: m_frootn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_xfer_to_fire(:)
     ! (gN/m2/s) fire N emissions from m_livecrootn_to_fire
-    real(rk8) , pointer :: m_livecrootn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_to_fire(:)
     ! (gN/m2/s) fire N emissions from livecrootn_storage
-    real(rk8) , pointer :: m_livecrootn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_storage_to_fire(:)
     ! (gN/m2/s) fire N emissions from livecrootn_xfer
-    real(rk8) , pointer :: m_livecrootn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_xfer_to_fire(:)
     ! (gN/m2/s) fire N emissions from deadcrootn
-    real(rk8) , pointer :: m_deadcrootn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_to_fire(:)
     ! (gN/m2/s) fire N emissions from deadcrootn_storage
-    real(rk8) , pointer :: m_deadcrootn_storage_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_storage_to_fire(:)
     ! (gN/m2/s) fire N emissions from deadcrootn_xfer
-    real(rk8) , pointer :: m_deadcrootn_xfer_to_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_xfer_to_fire(:)
     ! (gN/m2/s) fire N emissions from retransn
-    real(rk8) , pointer :: m_retransn_to_fire(:)
+    real(rk8), pointer, contiguous :: m_retransn_to_fire(:)
     ! vertically-resolved decomposing N fire loss (gN/m3/s)
-    real(rk8) , pointer :: m_decomp_npools_to_fire_vr(:,:,:)
+    real(rk8), pointer, contiguous :: m_decomp_npools_to_fire_vr(:,:,:)
 
     ! (gC/m2/s) C transfers from various C pools to litter and
     ! cwd pools due to fire mortality
-    real(rk8) , pointer :: m_leafc_to_litter_fire(:)
-    real(rk8) , pointer :: m_leafc_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_leafc_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_livestemc_to_litter_fire(:)
-    real(rk8) , pointer :: m_livestemc_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_livestemc_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_livestemc_to_deadstemc_fire(:)
-    real(rk8) , pointer :: m_deadstemc_to_litter_fire(:)
-    real(rk8) , pointer :: m_deadstemc_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_deadstemc_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_frootc_to_litter_fire(:)
-    real(rk8) , pointer :: m_frootc_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_frootc_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_livecrootc_to_litter_fire(:)
-    real(rk8) , pointer :: m_livecrootc_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_livecrootc_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_livecrootc_to_deadcrootc_fire(:)
-    real(rk8) , pointer :: m_deadcrootc_to_litter_fire(:)
-    real(rk8) , pointer :: m_deadcrootc_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_deadcrootc_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_gresp_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_gresp_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_c_to_litr_met_fire(:,:)
-    real(rk8) , pointer :: m_c_to_litr_cel_fire(:,:)
-    real(rk8) , pointer :: m_c_to_litr_lig_fire(:,:)
+    real(rk8), pointer, contiguous :: m_leafc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_leafc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemc_to_deadstemc_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootc_to_deadcrootc_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootc_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_gresp_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_gresp_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_c_to_litr_met_fire(:,:)
+    real(rk8), pointer, contiguous :: m_c_to_litr_cel_fire(:,:)
+    real(rk8), pointer, contiguous :: m_c_to_litr_lig_fire(:,:)
 
     ! (gN/m2/s) N transfers from various C pools to litter and
     ! cwd pools due to fire mortality
-    real(rk8) , pointer :: m_leafn_to_litter_fire(:)
-    real(rk8) , pointer :: m_leafn_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_leafn_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_livestemn_to_litter_fire(:)
-    real(rk8) , pointer :: m_livestemn_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_livestemn_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_livestemn_to_deadstemn_fire(:)
-    real(rk8) , pointer :: m_deadstemn_to_litter_fire(:)
-    real(rk8) , pointer :: m_deadstemn_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_deadstemn_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_frootn_to_litter_fire(:)
-    real(rk8) , pointer :: m_frootn_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_frootn_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_livecrootn_to_litter_fire(:)
-    real(rk8) , pointer :: m_livecrootn_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_livecrootn_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_livecrootn_to_deadcrootn_fire(:)
-    real(rk8) , pointer :: m_deadcrootn_to_litter_fire(:)
-    real(rk8) , pointer :: m_deadcrootn_storage_to_litter_fire(:)
-    real(rk8) , pointer :: m_deadcrootn_xfer_to_litter_fire(:)
-    real(rk8) , pointer :: m_retransn_to_litter_fire(:)
-    real(rk8) , pointer :: m_n_to_litr_met_fire(:,:)
-    real(rk8) , pointer :: m_n_to_litr_cel_fire(:,:)
-    real(rk8) , pointer :: m_n_to_litr_lig_fire(:,:)
+    real(rk8), pointer, contiguous :: m_leafn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_leafn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livestemn_to_deadstemn_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadstemn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_frootn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_livecrootn_to_deadcrootn_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_storage_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_deadcrootn_xfer_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_retransn_to_litter_fire(:)
+    real(rk8), pointer, contiguous :: m_n_to_litr_met_fire(:,:)
+    real(rk8), pointer, contiguous :: m_n_to_litr_cel_fire(:,:)
+    real(rk8), pointer, contiguous :: m_n_to_litr_lig_fire(:,:)
 
     ! TRUE => pool is a cwd pool
-    logical , pointer  :: is_cwd(:)
+    logical, pointer  :: is_cwd(:)
     ! TRUE => pool is a litter pool
-    logical , pointer  :: is_litter(:)
+    logical, pointer  :: is_litter(:)
     ! (1/m) profile of fine roots
-    real(rk8) , pointer :: froot_prof(:,:)
+    real(rk8), pointer, contiguous :: froot_prof(:,:)
     ! (1/m) profile of coarse roots
-    real(rk8) , pointer :: croot_prof(:,:)
+    real(rk8), pointer, contiguous :: croot_prof(:,:)
     ! (1/m) profile of stems
-    real(rk8) , pointer :: stem_prof(:,:)
+    real(rk8), pointer, contiguous :: stem_prof(:,:)
     ! (1/m) profile of leaves
-    real(rk8) , pointer :: leaf_prof(:,:)
-    integer(ik4) :: g , c , p , j , l , pi
-    integer(ik4) :: fp , fc           ! filter indices
+    real(rk8), pointer, contiguous :: leaf_prof(:,:)
+    integer(ik4) :: g, c, p, j, l, pi
+    integer(ik4) :: fp, fc           ! filter indices
     real(rk8) :: f                    ! rate for fire effects (1/s)
     real(rk8) :: dt                   ! time step variable (s)
 
@@ -1267,7 +1267,7 @@ module mod_clm_cnfire
     !
     ! pft loop
     !
-    do fp = 1 , num_soilp
+    do fp = 1, num_soilp
       p = filter_soilp(fp)
       c = pcolumn(p)
 
@@ -1429,9 +1429,9 @@ module mod_clm_cnfire
     !
     ! fire-affected carbon to litter and cwd
     !
-    do j = 1 , nlevdecomp
-      do pi = 1 , max_pft_per_col
-        do fc = 1 , num_soilc
+    do j = 1, nlevdecomp
+      do pi = 1, max_pft_per_col
+        do fc = 1, num_soilc
           c = filter_soilc(fc)
           if ( pi <=  npfts(c) ) then
             p = pfti(c) + pi - 1
@@ -1512,15 +1512,15 @@ module mod_clm_cnfire
     ! vertically-resolved decomposing C/N fire loss
     ! column loop
     !
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       f = farea_burned(c) / dt
 
       ! apply this rate to the column state variables to get flux rates
 
-      do j = 1 , nlevdecomp
+      do j = 1, nlevdecomp
         ! carbon fluxes
-        do l = 1 , ndecomp_pools
+        do l = 1, ndecomp_pools
           if ( is_litter(l) ) then
             m_decomp_cpools_to_fire_vr(c,j,l) = &
                     decomp_cpools_vr(c,j,l) * f * 0.4_rk8
@@ -1532,7 +1532,7 @@ module mod_clm_cnfire
         end do
 
         ! nitrogen fluxes
-        do l = 1 , ndecomp_pools
+        do l = 1, ndecomp_pools
           if ( is_litter(l) ) then
             m_decomp_npools_to_fire_vr(c,j,l) = &
                     decomp_npools_vr(c,j,l) * f * 0.4_rk8
@@ -1548,7 +1548,7 @@ module mod_clm_cnfire
     ! carbon loss due to deforestation fires
     !
 #ifdef DYNPFT
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       lfc2(c)=0._rk8
       if ( is_end_curr_year( ) ) then
@@ -1570,7 +1570,7 @@ module mod_clm_cnfire
     ! soil carbon b/c clm4 soil carbon was very low in peatland areas
     ! Fang Li has not checked clm45 soil carbon in peatland areas
     !
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
       g = cgridcell(c)
       if ( latdeg(g) < borealat) then
@@ -1589,8 +1589,8 @@ module mod_clm_cnfire
   !
   subroutine hdm_init( begg, endg )
     implicit none
-    integer(ik4) , intent(in) :: begg , endg ! gridcell index bounds
-    integer(ik4) :: yr , mon , day , ih
+    integer(ik4), intent(in) :: begg, endg ! gridcell index bounds
+    integer(ik4) :: yr, mon, day, ih
 
     allocate( forc_hdm(begg:endg) )
     allocate( hdm_p1(begg:endg) )
@@ -1613,8 +1613,8 @@ module mod_clm_cnfire
   !
   subroutine hdm_interp( )
     implicit none
-    integer(ik4) :: yr , mon , day , ih , ip
-    real(rk8) :: w1 , w2 , ndpy
+    integer(ik4) :: yr, mon, day, ih, ip
+    real(rk8) :: w1, w2, ndpy
 
     call split_idate(nextdate,yr,mon,day,ih)
     ip = max(yr - 1850 + 1,1)
@@ -1633,8 +1633,8 @@ module mod_clm_cnfire
   !
   subroutine lnfm_init( begg, endg )
     implicit none
-    integer(ik4) , intent(in) :: begg , endg   ! gridcell index bounds
-    integer(ik4) :: yr , mon , day , ih
+    integer(ik4), intent(in) :: begg, endg   ! gridcell index bounds
+    integer(ik4) :: yr, mon, day, ih
     real(rk8) :: ndpy
 
     allocate( forc_lnfm(begg:endg) )
@@ -1665,8 +1665,8 @@ module mod_clm_cnfire
   subroutine lnfm_interp( )
     implicit none
     integer(ik4) :: ip
-    real(rk8) :: w1 , w2 , ndpy
-    integer(ik4) :: yr , mon , day , ih
+    real(rk8) :: w1, w2, ndpy
+    integer(ik4) :: yr, mon, day, ih
 
     ! ASSUMING 3-HOURLY DATASET !
     call split_idate(nextdate,yr,mon,day,ih)

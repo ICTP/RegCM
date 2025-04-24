@@ -26,26 +26,26 @@ module mod_mkurban
 
   private
 
-  public :: mkurban_base , mkurban_param
-  public :: ip2d , ip3d , ip4d
+  public :: mkurban_base, mkurban_param
+  public :: ip2d, ip3d, ip4d
 
-  character(len=16) , parameter :: densdim = 'density_class'
-  character(len=16) , parameter :: regiondim = 'region'
-  character(len=16) , parameter :: varname = 'PCT_URBAN'
-  character(len=16) , parameter :: regionname = 'REGION_ID'
+  character(len=16), parameter :: densdim = 'density_class'
+  character(len=16), parameter :: regiondim = 'region'
+  character(len=16), parameter :: varname = 'PCT_URBAN'
+  character(len=16), parameter :: regionname = 'REGION_ID'
 
-  integer(ik4) , public , parameter :: npu2d = 14
-  integer(ik4) , public , parameter :: npu3d = 6
-  integer(ik4) , public , parameter :: npu4d = 4
-  integer(ik4) , parameter :: nparam = npu2d + npu3d + npu4d
+  integer(ik4), public, parameter :: npu2d = 14
+  integer(ik4), public, parameter :: npu3d = 6
+  integer(ik4), public, parameter :: npu4d = 4
+  integer(ik4), parameter :: nparam = npu2d + npu3d + npu4d
 
-  character(len=16) , dimension(npu2d) , public , parameter :: parm2d = &
+  character(len=16), dimension(npu2d), public, parameter :: parm2d = &
     ['CANYON_HWR      ', 'EM_IMPROAD      ', 'EM_PERROAD      ', &
       'EM_ROOF         ', 'EM_WALL         ', 'HT_ROOF         ', &
       'NLEV_IMPROAD    ', 'THICK_ROOF      ', 'THICK_WALL      ', &
       'T_BUILDING_MAX  ', 'T_BUILDING_MIN  ', 'WIND_HGT_CANYON ', &
       'WTLUNIT_ROOF    ', 'WTROAD_PERV     ']
-  character(len=36) , dimension(npu2d) , public , parameter :: lngn2d = &
+  character(len=36), dimension(npu2d), public, parameter :: lngn2d = &
     ['canyon height to width ratio        ', &
       'emissivity of impervious road       ', &
       'emissivity of pervious road         ', &
@@ -60,51 +60,51 @@ module mod_mkurban
       'height of wind in canyon            ', &
       'fraction of roof                    ', &
       'fraction of pervious road           ']
-  character(len=4) , dimension(npu2d) , public , parameter :: unit2d = &
+  character(len=4), dimension(npu2d), public, parameter :: unit2d = &
     ['1   ', '1   ', '1   ', '1   ', '1   ', 'm   ', &
       '1   ', 'm   ', 'm   ', 'K   ', 'K   ', 'm   ', &
       '1   ', '1   ']
-  character(len=16) , dimension(npu3d) , public , parameter :: parm3d = &
+  character(len=16), dimension(npu3d), public, parameter :: parm3d = &
     ['CV_IMPROAD      ', 'CV_ROOF         ', 'CV_WALL         ', &
       'TK_IMPROAD      ', 'TK_ROOF         ', 'TK_WALL         ']
-  character(len=36) , dimension(npu3d) , public , parameter :: lngn3d = &
+  character(len=36), dimension(npu3d), public, parameter :: lngn3d = &
     ['vol heat capacity of impervious road', &
       'vol heat capacity of roof           ', &
       'vol heat capacity of wall           ', &
       'thermal conductivity of imperv road ', &
       'thermal conductivity of roof        ', &
       'thermal conductivity of wall        ']
-  character(len=8) , dimension(npu3d) , public , parameter :: unit3d = &
-    ['J/m^3*K ' , 'J/m^3*K ', 'J/m^3*K ', &
-      'W/m*K   ' , 'W/m*K   ', 'W/m*K   ']
-  character(len=16) , dimension(npu4d) , public , parameter :: parm4d = &
+  character(len=8), dimension(npu3d), public, parameter :: unit3d = &
+    ['J/m^3*K ', 'J/m^3*K ', 'J/m^3*K ', &
+      'W/m*K   ', 'W/m*K   ', 'W/m*K   ']
+  character(len=16), dimension(npu4d), public, parameter :: parm4d = &
     ['ALB_IMPROAD     ', 'ALB_PERROAD     ', 'ALB_ROOF        ', &
       'ALB_WALL        ']
-  character(len=36) , dimension(npu4d) , public , parameter :: lngn4d = &
+  character(len=36), dimension(npu4d), public, parameter :: lngn4d = &
     ['albedo of impervious road           ', &
       'albedo of pervious road             ', &
       'albedo of roof                      ', &
       'albedo of wall                      ']
-  character(len=2) , dimension(npu4d) , public , parameter :: unit4d = &
+  character(len=2), dimension(npu4d), public, parameter :: unit4d = &
     ['1 ', '1 ', '1 ', '1 ']
-  character(len=16) , dimension(nparam) :: parmname
+  character(len=16), dimension(nparam) :: parmname
 
-  integer(ik4) , dimension(nparam) , parameter :: parmdim = &
+  integer(ik4), dimension(nparam), parameter :: parmdim = &
     [3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,5,5,5,5]
 
-  real(rkx) , parameter :: vcutoff =  1.0_rkx
+  real(rkx), parameter :: vcutoff =  1.0_rkx
 
   contains
 
   subroutine mkurban_base(urbanfile,mask,urban)
     implicit none
-    character(len=*) , intent(in) :: urbanfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:,:) , intent(out) :: urban
-    integer(ik4) :: i , j , n , nurban , nmax(1)
+    character(len=*), intent(in) :: urbanfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:,:), intent(out) :: urban
+    integer(ik4) :: i, j, n, nurban, nmax(1)
     type(globalfile) :: gfile
     character(len=256) :: inpfile
-    real(rkx) , dimension(:,:) , allocatable :: usum
+    real(rkx), dimension(:,:), allocatable :: usum
 
     nurban = size(urban,3)
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
@@ -113,9 +113,9 @@ module mod_mkurban
     call gfread(gfile,varname,urban,h_missing_value)
     call gfclose(gfile)
 
-    do n  = 1 , nurban
-      do i = 1 , iysg
-        do j = 1 , jxsg
+    do n  = 1, nurban
+      do i = 1, iysg
+        do j = 1, jxsg
           if ( mask(j,i) < 0.5_rkx ) then
             urban(j,i,n) = h_missing_value
           else
@@ -131,9 +131,9 @@ module mod_mkurban
 
     allocate(usum(jxsg,iysg))
     usum = sum(urban,3)
-    do n  = 1 , nurban
-      do i = 1 , iysg
-        do j = 1 , jxsg
+    do n  = 1, nurban
+      do i = 1, iysg
+        do j = 1, jxsg
           if ( mask(j,i) > 0.5_rkx ) then
             if ( usum(j,i) < vcutoff ) then
               urban(j,i,n) = d_zero
@@ -150,27 +150,27 @@ module mod_mkurban
 
   subroutine mkurban_param(urbanfile,mask,urban3d,urban4d,urban5d)
     implicit none
-    character(len=*) , intent(in) :: urbanfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:,:,:) , intent(out) :: urban3d
-    real(rkx) , dimension(:,:,:,:,:) , intent(out) :: urban4d
-    real(rkx) , dimension(:,:,:,:,:,:) , intent(out) :: urban5d
-    integer(ik4) :: ipt , ip , n , i , j , n1 , n2 , n3
-    integer(ik4) :: i4 , i5 , i6
+    character(len=*), intent(in) :: urbanfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:,:,:), intent(out) :: urban3d
+    real(rkx), dimension(:,:,:,:,:), intent(out) :: urban4d
+    real(rkx), dimension(:,:,:,:,:,:), intent(out) :: urban5d
+    integer(ik4) :: ipt, ip, n, i, j, n1, n2, n3
+    integer(ik4) :: i4, i5, i6
     type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
     ipt = 1
-    do ip = 1 , npu2d
+    do ip = 1, npu2d
       parmname(ipt) = parm2d(ip)
       ipt = ipt + 1
     end do
-    do ip = 1 , npu3d
+    do ip = 1, npu3d
       parmname(ipt) = parm3d(ip)
       ipt = ipt + 1
     end do
-    do ip = 1 , npu4d
+    do ip = 1, npu4d
       parmname(ipt) = parm4d(ip)
       ipt = ipt + 1
     end do
@@ -179,7 +179,7 @@ module mod_mkurban
                              pthsep//'surface'//pthsep//urbanfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
 
-    do n = 1 , nparam
+    do n = 1, nparam
       select case (parmdim(n))
         case (3)
           i4 = ip2d(parmname(n))
@@ -188,10 +188,10 @@ module mod_mkurban
           where ( urban3d(:,:,:,i4) < d_zero )
             urban3d(:,:,:,i4) = h_missing_value
           end where
-          do n1 = 1 , size(urban3d,3)
+          do n1 = 1, size(urban3d,3)
             call bestaround(urban3d(:,:,n1,i4),h_missing_value)
-            do i = 1 , iysg
-              do j = 1 , jxsg
+            do i = 1, iysg
+              do j = 1, jxsg
                 if ( mask(j,i) < 0.5_rkx ) then
                   urban3d(j,i,n1,i4) = h_missing_value
                 end if
@@ -205,11 +205,11 @@ module mod_mkurban
           where ( urban4d(:,:,:,:,i5) < d_zero )
             urban4d(:,:,:,:,i5) = h_missing_value
           end where
-          do n2 = 1 , size(urban4d,4)
-            do n1 = 1 , size(urban4d,3)
+          do n2 = 1, size(urban4d,4)
+            do n1 = 1, size(urban4d,3)
               call bestaround(urban4d(:,:,n1,n2,i5),h_missing_value)
-              do i = 1 , iysg
-                do j = 1 , jxsg
+              do i = 1, iysg
+                do j = 1, jxsg
                   if ( mask(j,i) < 0.5_rkx ) then
                     urban4d(j,i,n1,n2,i5) = h_missing_value
                   end if
@@ -224,12 +224,12 @@ module mod_mkurban
           where ( urban5d(:,:,:,:,:,i6) < d_zero )
             urban5d(:,:,:,:,:,i6) = h_missing_value
           end where
-          do n3 = 1 , size(urban5d,5)
-            do n2 = 1 , size(urban5d,4)
-              do n1 = 1 , size(urban5d,3)
+          do n3 = 1, size(urban5d,5)
+            do n2 = 1, size(urban5d,4)
+              do n1 = 1, size(urban5d,3)
                 call bestaround(urban5d(:,:,n1,n2,n3,i6),h_missing_value)
-                do i = 1 , iysg
-                  do j = 1 , jxsg
+                do i = 1, iysg
+                  do j = 1, jxsg
                     if ( mask(j,i) < 0.5_rkx ) then
                       urban5d(j,i,n1,n2,n3,i6) = h_missing_value
                     end if
@@ -248,7 +248,7 @@ module mod_mkurban
   integer(ik4) function ip2d(pname) result(ip)
     implicit none
     character(len=*) :: pname
-    do ip = 1 , npu2d
+    do ip = 1, npu2d
       if ( pname == parm2d(ip) ) then
         return
       end if
@@ -259,7 +259,7 @@ module mod_mkurban
   integer(ik4) function ip3d(pname) result(ip)
     implicit none
     character(len=*) :: pname
-    do ip = 1 , npu3d
+    do ip = 1, npu3d
       if ( pname == parm3d(ip) ) then
         return
       end if
@@ -270,7 +270,7 @@ module mod_mkurban
   integer(ik4) function ip4d(pname) result(ip)
     implicit none
     character(len=*) :: pname
-    do ip = 1 , npu4d
+    do ip = 1, npu4d
       if ( pname == parm4d(ip) ) then
         return
       end if

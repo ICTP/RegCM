@@ -44,11 +44,11 @@ contains
 ! !USES:
     use clmtype
     use ncdio
-    use decompMod     , only : get_proc_bounds
-    use clm_varcon    , only : denice, denh2o
-    use clm_varctl    , only : allocate_all_vegpfts, nsrest
+    use decompMod    , only : get_proc_bounds
+    use clm_varcon   , only : denice, denh2o
+    use clm_varctl   , only : allocate_all_vegpfts, nsrest
 !abt added below
-    use clm_varvoc    , only : c24,c240,n24,n240
+    use clm_varvoc   , only : c24,c240,n24,n240
 !abt added above
 !
 ! !ARGUMENTS:
@@ -79,8 +79,8 @@ contains
     character(len=128) :: varname         ! temporary
     type(gridcell_type), pointer :: gptr  ! pointer to gridcell derived subtype
     type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
-    type(column_type)  , pointer :: cptr  ! pointer to column derived subtype
-    type(pft_type)     , pointer :: pptr  ! pointer to pft derived subtype
+    type(column_type) , pointer :: cptr  ! pointer to column derived subtype
+    type(pft_type)    , pointer :: pptr  ! pointer to pft derived subtype
 !-----------------------------------------------------------------------
 
     ! Set pointers into derived type
@@ -100,7 +100,7 @@ contains
                long_name='current timestep count until 240hr')
     else if (flag == 'write' .or. flag == 'read') then
        call ncd_ioglobal(varname='c24', data=c24, ncid=ncid, flag=flag, readvar=readvar)
-       call ncd_ioglobal(varname='c240' , data=c240 , ncid=ncid, flag=flag, readvar=readvar)
+       call ncd_ioglobal(varname='c240', data=c240, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
           if (is_restart()) call endrun()
        end if

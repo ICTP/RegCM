@@ -20,24 +20,24 @@ module mod_rad_interface
   use mod_dynparam
   use mod_constants
   use mod_stdio
-  use mod_mppparam , only : italk
+  use mod_mppparam, only : italk
   use mod_date
   use mod_memutil
   use mod_runparams
   use mod_regcm_types
-  use mod_ipcc_scenario , only : set_scenario
+  use mod_ipcc_scenario, only : set_scenario
   use mod_stdatm
   use mod_rad_common
-  use mod_rad_colmod3 , only : allocate_mod_rad_colmod3 , colmod3
-  use mod_rrtmg_driver , only : allocate_mod_rad_rrtmg , rrtmg_driver
-  use mod_rad_o3blk , only : allocate_mod_rad_o3blk , o3data
-  use mod_rad_o3blk , only : read_o3data , close_o3data
-  use mod_rad_aerosol , only : allocate_mod_rad_aerosol
-  use mod_rad_aerosol , only : init_aeroppdata , read_aeroppdata
-  use mod_rad_aerosol , only : read_aerclima , close_aerclima
-  use mod_rad_aerosol , only : cmip6_plume_profile
-  use mod_rad_aerosol , only : aerclima_ntr , aerclima_nbin
-  use mod_rad_outrad , only : allocate_mod_rad_outrad
+  use mod_rad_colmod3, only : allocate_mod_rad_colmod3, colmod3
+  use mod_rrtmg_driver, only : allocate_mod_rad_rrtmg, rrtmg_driver
+  use mod_rad_o3blk, only : allocate_mod_rad_o3blk, o3data
+  use mod_rad_o3blk, only : read_o3data, close_o3data
+  use mod_rad_aerosol, only : allocate_mod_rad_aerosol
+  use mod_rad_aerosol, only : init_aeroppdata, read_aeroppdata
+  use mod_rad_aerosol, only : read_aerclima, close_aerclima
+  use mod_rad_aerosol, only : cmip6_plume_profile
+  use mod_rad_aerosol, only : aerclima_ntr, aerclima_nbin
+  use mod_rad_outrad, only : allocate_mod_rad_outrad
 
   implicit none
 
@@ -47,7 +47,7 @@ module mod_rad_interface
   public :: allocate_radiation
   public :: init_radiation
   public :: radiation
-  public :: aerclima_ntr , aerclima_nbin
+  public :: aerclima_ntr, aerclima_nbin
   public :: updateaerosol
   public :: updateaeropp
   public :: updateaeropp_cmip6
@@ -85,7 +85,7 @@ module mod_rad_interface
     if ( irrtm == 1 ) then
       if ( rrtm_extend ) then
         if ( idynamic /= 3 ) then
-          do k = 1 , n_prehlev
+          do k = 1, n_prehlev
             kclimh = k
             if ( ptop*d_10 > stdplevh(k) ) exit
           end do
@@ -93,12 +93,12 @@ module mod_rad_interface
           ktf = kth + 1
           kclimf = kclimh + 1
         else
-          do k = 1 , n_hrehlev
+          do k = 1, n_hrehlev
             kclimh = k
             if ( mo_ztop*d_r1000 < stdhlevh(k) ) exit
           end do
           kth  = n_hrehlev - kclimh + 1 + kz
-          do k = 1 , n_hreflev
+          do k = 1, n_hreflev
             kclimf = k
             if ( mo_ztop*d_r1000 < stdhlevf(k) ) exit
           end do
@@ -197,9 +197,9 @@ module mod_rad_interface
 
   subroutine radiation(iyear,imonth,iday,loutrad,labsem)
     implicit none
-    integer(ik4) , intent(in) :: iyear , imonth , iday
-    logical , intent(in) :: loutrad
-    logical , intent(in) :: labsem
+    integer(ik4), intent(in) :: iyear, imonth, iday
+    logical, intent(in) :: loutrad
+    logical, intent(in) :: labsem
     if ( irrtm == 1 ) then
       call rrtmg_driver(iyear,imonth,iday,loutrad,m2r,r2m)
     else
@@ -214,7 +214,7 @@ module mod_rad_interface
 
   subroutine updateaerosol(idatex)
     implicit none
-    type (rcm_time_and_date) , intent(in) :: idatex
+    type (rcm_time_and_date), intent(in) :: idatex
     call read_aerclima(idatex,m2r)
   end subroutine updateaerosol
 
@@ -225,20 +225,20 @@ module mod_rad_interface
 
   subroutine updateo3(idatex,scenario)
     implicit none
-    type (rcm_time_and_date) , intent(in) :: idatex
-    character(len=8) , intent(in) :: scenario
+    type (rcm_time_and_date), intent(in) :: idatex
+    character(len=8), intent(in) :: scenario
     call read_o3data(idatex,m2r)
   end subroutine updateo3
 
   subroutine updateaeropp(idatex)
     implicit none
-    type (rcm_time_and_date) , intent(in) :: idatex
+    type (rcm_time_and_date), intent(in) :: idatex
     call read_aeroppdata(idatex,m2r)
   end subroutine updateaeropp
 
   subroutine updateaeropp_cmip6(idatex)
     implicit none
-    type (rcm_time_and_date) , intent(in) :: idatex
+    type (rcm_time_and_date), intent(in) :: idatex
     call cmip6_plume_profile(idatex,m2r)
   end subroutine updateaeropp_cmip6
 
@@ -249,9 +249,9 @@ module mod_rad_interface
 
   subroutine export_data_from_rad(expfie)
     implicit none
-    type(exp_data3d) , intent(inout) :: expfie
-    integer(ik4) :: k , j , i
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+    type(exp_data3d), intent(inout) :: expfie
+    integer(ik4) :: k, j, i
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       expfie%cldfrc(j,i,k) = m2r%cldfrc(j,i,k)
       expfie%cldlwc(j,i,k) = m2r%cldlwc(j,i,k)
     end do

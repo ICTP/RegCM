@@ -41,16 +41,16 @@ module mod_cloud_thomp
   !
   subroutine thomp_cldfrac(p,t,rho,qv,qc,qs,qi,iland,gridkm,cldfra)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p , t , rho
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qv , qc , qi , qs
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: iland
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cldfra
-    real(rkx) , intent(in) :: gridkm
-    real(rkx) :: rh_00l , rh_00o
-    real(rkx) , dimension(jci1:jci2,ici1:ici2,1:kz):: qvsat
-    integer(ik4) :: i , j , k
-    real(rkx) :: rh_00 , rhi_max
-    real(rkx) :: tk , tc , qvsi , qvsw , rhum
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p, t, rho
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qv, qc, qi, qs
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: iland
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: cldfra
+    real(rkx), intent(in) :: gridkm
+    real(rkx) :: rh_00l, rh_00o
+    real(rkx), dimension(jci1:jci2,ici1:ici2,1:kz):: qvsat
+    integer(ik4) :: i, j, k
+    real(rkx) :: rh_00, rhi_max
+    real(rkx) :: tk, tc, qvsi, qvsw, rhum
 
     ! First cut scale-aware. Higher resolution should require closer to
     ! saturated grid box for higher cloud fraction.  Simple functions
@@ -109,17 +109,17 @@ module mod_cloud_thomp
      pure real(rkx) function rslf(p,t)
 !$acc routine seq
        implicit none
-       real(rkx) , intent(in) :: p , t
-       real(rkx) :: esl , x
-       real(rkx) , parameter :: c0 =  0.611583699e03_rkx
-       real(rkx) , parameter :: c1 =  0.444606896e02_rkx
-       real(rkx) , parameter :: c2 =  0.143177157e01_rkx
-       real(rkx) , parameter :: c3 =  0.264224321e-1_rkx
-       real(rkx) , parameter :: c4 =  0.299291081e-3_rkx
-       real(rkx) , parameter :: c5 =  0.203154182e-5_rkx
-       real(rkx) , parameter :: c6 =  0.702620698e-8_rkx
-       real(rkx) , parameter :: c7 =  0.379534310e-11_rkx
-       real(rkx) , parameter :: c8 = -0.321582393e-13_rkx
+       real(rkx), intent(in) :: p, t
+       real(rkx) :: esl, x
+       real(rkx), parameter :: c0 =  0.611583699e03_rkx
+       real(rkx), parameter :: c1 =  0.444606896e02_rkx
+       real(rkx), parameter :: c2 =  0.143177157e01_rkx
+       real(rkx), parameter :: c3 =  0.264224321e-1_rkx
+       real(rkx), parameter :: c4 =  0.299291081e-3_rkx
+       real(rkx), parameter :: c5 =  0.203154182e-5_rkx
+       real(rkx), parameter :: c6 =  0.702620698e-8_rkx
+       real(rkx), parameter :: c7 =  0.379534310e-11_rkx
+       real(rkx), parameter :: c8 = -0.321582393e-13_rkx
        x = max(-80.0_rkx,t-tzero)
        esl = c0+x*(c1+x*(c2+x*(c3+x*(c4+x*(c5+x*(c6+x*(c7+x*c8)))))))
        esl = min(esl,0.15_rkx*p)
@@ -132,17 +132,17 @@ module mod_cloud_thomp
      pure real(rkx) function rsif(p,t)
 !$acc routine seq
        implicit none
-       real(rkx) , intent(in) :: p , t
-       real(rkx) :: esi , x
-       real(rkx) , parameter :: c0 = 0.609868993e03_rkx
-       real(rkx) , parameter :: c1 = 0.499320233e02_rkx
-       real(rkx) , parameter :: c2 = 0.184672631e01_rkx
-       real(rkx) , parameter :: c3 = 0.402737184e-1_rkx
-       real(rkx) , parameter :: c4 = 0.565392987e-3_rkx
-       real(rkx) , parameter :: c5 = 0.521693933e-5_rkx
-       real(rkx) , parameter :: c6 = 0.307839583e-7_rkx
-       real(rkx) , parameter :: c7 = 0.105785160e-9_rkx
-       real(rkx) , parameter :: c8 = 0.161444444e-12_rkx
+       real(rkx), intent(in) :: p, t
+       real(rkx) :: esi, x
+       real(rkx), parameter :: c0 = 0.609868993e03_rkx
+       real(rkx), parameter :: c1 = 0.499320233e02_rkx
+       real(rkx), parameter :: c2 = 0.184672631e01_rkx
+       real(rkx), parameter :: c3 = 0.402737184e-1_rkx
+       real(rkx), parameter :: c4 = 0.565392987e-3_rkx
+       real(rkx), parameter :: c5 = 0.521693933e-5_rkx
+       real(rkx), parameter :: c6 = 0.307839583e-7_rkx
+       real(rkx), parameter :: c7 = 0.105785160e-9_rkx
+       real(rkx), parameter :: c8 = 0.161444444e-12_rkx
        x = max(-80.0_rkx,t-tzero)
        esi = c0+x*(c1+x*(c2+x*(c3+x*(c4+x*(c5+x*(c6+x*(c7+x*c8)))))))
        esi = min(esi,0.15_rkx*p)

@@ -27,16 +27,16 @@ module mod_mkfmax
 
   public :: mkfmax
 
-  character(len=16) , parameter :: varname = 'FMAX'
+  character(len=16), parameter :: varname = 'FMAX'
 
   contains
 
   subroutine mkfmax(fmaxfile,mask,fmax)
     implicit none
-    character(len=*) , intent(in) :: fmaxfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: fmax
-    integer(ik4) :: j , i
+    character(len=*), intent(in) :: fmaxfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:), intent(out) :: fmax
+    integer(ik4) :: j, i
     type(globalfile) :: gfile
 
     character(len=256) :: inpfile
@@ -49,8 +49,8 @@ module mod_mkfmax
 
     call bestaround(fmax,h_missing_value)
 
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           fmax(j,i) = h_missing_value
         else

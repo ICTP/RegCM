@@ -34,25 +34,25 @@ module mod_sst_gnhnc
 
   private
 
-  integer(ik4) :: ilon , jlat
+  integer(ik4) :: ilon, jlat
 
   integer(ik4) :: inet1
-  integer(ik4) , dimension(2) :: ivar2
+  integer(ik4), dimension(2) :: ivar2
   integer(ik4) :: timlen
   integer(ik4) :: timid
   integer(ik4) :: istatus
   integer(ik4) :: itcfs
   integer(ik4) :: lyear
-  integer(ik4) , dimension(3) :: istart , icount
-  integer(ik2) , pointer , dimension(:,:) :: work
+  integer(ik4), dimension(3) :: istart, icount
+  integer(ik2), pointer, contiguous, dimension(:,:) :: work
   integer(ik2) :: fillvalue
-  real(rkx) , pointer ::  work1(:)
-  real(rkx) , pointer , dimension(:,:) :: work2
-  real(rkx) , pointer , dimension(:,:) :: sst
-  real(rkx) :: add_offset , scale_factor
+  real(rkx), pointer, contiguous, dimension(:) ::  work1
+  real(rkx), pointer, contiguous, dimension(:,:) :: work2
+  real(rkx), pointer, contiguous, dimension(:,:) :: sst
+  real(rkx) :: add_offset, scale_factor
   logical :: cds_beta = .false.
-  type(rcm_time_and_date) , save :: fidate1
-  character(len=64) :: cunit , ccal
+  type(rcm_time_and_date), save :: fidate1
+  character(len=64) :: cunit, ccal
   character(len=256) :: inpfile
   character(len=8), dimension(2) :: varname
   type(global_domain) :: gdomain
@@ -73,13 +73,13 @@ module mod_sst_gnhnc
   !**************************************************************************
   subroutine sst_gnhnc
     implicit none
-    real(rkx) , pointer , dimension(:) :: glat
-    real(rkx) , pointer , dimension(:) :: glon
-    real(rkx) , pointer , dimension(:) :: grev
-    type(rcm_time_and_date) :: idate , idatef , idateo
+    real(rkx), pointer, contiguous, dimension(:) :: glat
+    real(rkx), pointer, contiguous, dimension(:) :: glon
+    real(rkx), pointer, contiguous, dimension(:) :: grev
+    type(rcm_time_and_date) :: idate, idatef, idateo
     type(rcm_time_interval) :: tdif
-    integer(ik4) :: k , nsteps , latid , lonid
-    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: k, nsteps, latid, lonid
+    integer(ik4) :: year, month, day, hour
 
     call split_idate(globidate1, year, month, day, hour)
 
@@ -267,19 +267,19 @@ module mod_sst_gnhnc
     tdif = idatef-idateo
     nsteps = int(tohours(tdif))/6 + 1
 
-    write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
-    write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
+    write (stdout,*) 'GLOBIDATE1 : ', tochar(globidate1)
+    write (stdout,*) 'GLOBIDATE2 : ', tochar(globidate2)
     write (stdout,*) 'NSTEPS = ', nsteps
 
     call open_sstfile(idateo)
 
     idate = idateo
     tdif = 6*3600
-    do k = 1 , nsteps
+    do k = 1, nsteps
       call gnhnc_sst(idate)
       call h_interpolate_cont(hint,sst,sstmm)
       call writerec(idate)
-      write (stdout,*) 'WRITEN OUT SST DATA : ' , tochar(idate)
+      write (stdout,*) 'WRITEN OUT SST DATA : ', tochar(idate)
       idate = idate + tdif
     end do
 
@@ -291,11 +291,11 @@ module mod_sst_gnhnc
   !
   subroutine gnhnc_sst(idate)
     implicit none
-    type(rcm_time_and_date) , intent (in) :: idate
-    integer(ik4) :: it , i , j
-    integer(ik4) :: year , month , day , hour
+    type(rcm_time_and_date), intent (in) :: idate
+    integer(ik4) :: it, i, j
+    integer(ik4) :: year, month, day, hour
     type(rcm_time_interval) :: tdif
-    integer(ik4) , dimension(12) :: isteps
+    integer(ik4), dimension(12) :: isteps
 
     data isteps /1,125,237,361,481,605,725,849,973,1093,1217,1337/
 
@@ -445,8 +445,8 @@ module mod_sst_gnhnc
         end where
       end if
     end if
-    do j = 1 , jlat
-      do i = 1 , ilon
+    do j = 1, jlat
+      do i = 1, ilon
         if (work2(i,j) < 0.9E+20 ) then
           sst(i,j) = work2(i,j)
         else
@@ -459,11 +459,11 @@ module mod_sst_gnhnc
 
       subroutine getworkf(irec,wk)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        real(rkx) , pointer , dimension(:,:) :: wk
-        integer(ik4) :: itile , iti , itf
+        integer(ik4), intent(in) :: irec
+        real(rkx), pointer, contiguous, dimension(:,:) :: wk
+        integer(ik4) :: itile, iti, itf
         iti = 1
-        do itile = 1 , gdomain%ntiles
+        do itile = 1, gdomain%ntiles
           istart(1) = gdomain%igstart(itile)
           icount(1) = gdomain%ni(itile)
           istart(2) = gdomain%jgstart
@@ -478,11 +478,11 @@ module mod_sst_gnhnc
 
       subroutine getworki(irec,wk)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        integer(ik2) , pointer , dimension(:,:) :: wk
-        integer(ik4) :: itile , iti , itf
+        integer(ik4), intent(in) :: irec
+        integer(ik2), pointer, contiguous, dimension(:,:) :: wk
+        integer(ik4) :: itile, iti, itf
         iti = 1
-        do itile = 1 , gdomain%ntiles
+        do itile = 1, gdomain%ntiles
           istart(1) = gdomain%igstart(itile)
           icount(1) = gdomain%ni(itile)
           istart(2) = gdomain%jgstart

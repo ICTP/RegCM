@@ -29,39 +29,39 @@ module mod_che_sox
 
   private
 
-  real(rkx) , parameter :: solso4 = 1.0_rkx
-  real(rkx) , parameter :: solso2 = 0.6_rkx
+  real(rkx), parameter :: solso4 = 1.0_rkx
+  real(rkx), parameter :: solso2 = 0.6_rkx
 
   ! Effective molecular weight of dry air (kg/mol)
-  real(rkx) , parameter :: amdk = amd*d_r1000
+  real(rkx), parameter :: amdk = amd*d_r1000
 
-  ! integer , parameter :: rk_com_max = 17
+  ! integer, parameter :: rk_com_max = 17
 
-  public :: chemsox , solso4 , solso2
+  public :: chemsox, solso4, solso2
 
   contains
 
     subroutine chemsox(i,wl,fracloud,fracum,rho,ttb)
      implicit none
-     integer(ik4) , intent(in) :: i
-     real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: ttb , wl , rho
-     real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: fracloud , fracum
-     real(rkx) :: rxs1 , rxs11 , rxs2 , rxs21 , chimol , cldno , &
-                 oh1int , so2_rate , so2_avail , krembc
-     real(rkx) , dimension(ntr) ::  wetrem , wetrem_cvc
-     real(rkx) , dimension(jci1:jci2,kz) :: caircell , so2_snk , concmin
+     integer(ik4), intent(in) :: i
+     real(rkx), dimension(jci1:jci2,kz), intent(in) :: ttb, wl, rho
+     real(rkx), dimension(jci1:jci2,kz), intent(in) :: fracloud, fracum
+     real(rkx) :: rxs1, rxs11, rxs2, rxs21, chimol, cldno, &
+                 oh1int, so2_rate, so2_avail, krembc
+     real(rkx), dimension(ntr) ::  wetrem, wetrem_cvc
+     real(rkx), dimension(jci1:jci2,kz) :: caircell, so2_snk, concmin
      ! real(rkx) :: rk_com(jci1:jci2,kz,rk_com_max)
      real(rkx) :: h2o2mol
 
      ! remcum = removal rate for cumulus
      ! cloud scavenging (s-1) (in-cloud and not grid level)
-     ! real(rkx) , parameter :: remcum = 1.0e-3_rkx
+     ! real(rkx), parameter :: remcum = 1.0e-3_rkx
 
      ! clmin = non-precipitating cloud
      ! conversion threshold, clmin = 0.01 g/m3
-     real(rkx) , parameter :: clmin = 0.01_rkx
+     real(rkx), parameter :: clmin = 0.01_rkx
 
-     integer(ik4) :: j , k
+     integer(ik4) :: j, k
 
      !FAB
      caircell(:,:) = 1.e-6_rkx * rho(:,:)/amdk * navgdr
@@ -86,8 +86,8 @@ module mod_che_sox
 
      cldno = d_one ! no cloud fraction
 
-     do k = 1 , kz
-       do j = jci1 , jci2
+     do k = 1, kz
+       do j = jci1, jci2
 
          if ( ioxclim == 1 ) then
            ! from the oxidant climatology
@@ -134,8 +134,8 @@ module mod_che_sox
      end do
 
      if ( ichdiag > 0 ) then
-       do k = 1 , kz
-         do j = jci1 , jci2
+       do k = 1, kz
+         do j = jci1, jci2
           !  gazeous conversion diagnostic
            chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
                    - so2_snk(j,k) * cldno * cfdout
@@ -146,8 +146,8 @@ module mod_che_sox
      end if
 
      if ( carb_aging_control ) then
-       do k = 1 , kz
-         do j = jci1 , jci2
+       do k = 1, kz
+         do j = jci1, jci2
            so4chagct(j,i,k) = 1.5_rkx*so2_snk(j,k)
          end do
        end do
@@ -161,8 +161,8 @@ module mod_che_sox
      if ( igaschem == 0 ) then
        isulf = iso4
        if ( idynamic == 3 ) then
-         do k = 1 , kz
-           do j = jci1 , jci2
+         do k = 1, kz
+           do j = jci1, jci2
              chimol = 28.9_rkx/64.0_rkx*chemt(j,i,k,iso2) ! kg/kg to mole
              if ( ioxclim == 1 ) then
                h2o2mol =  oxcl(j,i,k,iox_h2o2)
@@ -174,8 +174,8 @@ module mod_che_sox
            end do
          end do
        else
-         do k = 1 , kz
-           do j = jci1 , jci2
+         do k = 1, kz
+           do j = jci1, jci2
              ! kg/kg to mole
              chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i)
              if ( ioxclim == 1 ) then
@@ -191,16 +191,16 @@ module mod_che_sox
      elseif ( igaschem == 1 .and. ih2o2 > 0 ) then
        isulf = ih2so4
        if ( idynamic == 3 ) then
-         do k = 1 , kz
-           do j = jci1 , jci2
+         do k = 1, kz
+           do j = jci1, jci2
              chimol = 28.9_rkx/64.0_rkx*chemt(j,i,k,iso2) ! kg/kg to mole
              h2o2mol= 28.9_rkx/34.0_rkx*chemt(j,i,k,ih2o2)
              concmin(j,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx
            end do
          end do
        else
-         do k = 1 , kz
-           do j = jci1 , jci2
+         do k = 1, kz
+           do j = jci1, jci2
              ! kg/kg to mole
              chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i)
              h2o2mol= 28.9_rkx/34.0_rkx*chib(j,i,k,ih2o2)/cpsb(j,i)
@@ -212,8 +212,8 @@ module mod_che_sox
 
      ! conversion in   Large scale clouds
 
-     do k = 1 , kz
-       do j = jci1 , jci2
+     do k = 1, kz
+       do j = jci1, jci2
          rxs1 = d_zero
          rxs11 = d_zero      ! fraction of conversion, not removed, as SO4 src
          wetrem(iso2) = d_zero
@@ -270,9 +270,9 @@ module mod_che_sox
      ! cumulus clouds
      ! wet removal by cumulus clouds (over the fraction of grid box
      ! fracum) assume the cloud water content = 2 g/m3  (ref Kasibhatla )
-     do j = jci1 , jci2
+     do j = jci1, jci2
        if ( kcumtop(j,i) > 0 ) then
-         do k = kcumtop(j,i) , kz
+         do k = kcumtop(j,i), kz
            rxs2 = d_zero
            rxs21 = d_zero    ! fraction of conversion, not removed, as SO4 src
            wetrem_cvc(iso2) = d_zero ! scavenging for SO2, below lsc
@@ -313,10 +313,10 @@ module mod_che_sox
      ! diagnostic for SO2 durface fluxes
 
      if ( idynamic == 3 ) then
-       do j = jci1 , jci2
+       do j = jci1, jci2
          wdrout(j,i,iso2) = d_zero
          wdwout(j,i,iso2) = d_zero
-         do k = 1 , kz
+         do k = 1, kz
            ! sum on the vertical to get total surface flux diag fo rain out
            ! and washout (already weighted for time average cfdout !),
            ! also change sign convention normalise by psb to get the right
@@ -326,10 +326,10 @@ module mod_che_sox
          end do
        end do
      else
-       do j = jci1 , jci2
+       do j = jci1, jci2
          wdrout(j,i,iso2) = d_zero
          wdwout(j,i,iso2) = d_zero
-         do k = 1 , kz
+         do k = 1, kz
            ! sum on the vertical to get total surface flux diag fo rain out
            ! and washout (already weighted for time average cfdout !),
            ! also change sign convention normalise by psb to get the right
@@ -353,8 +353,8 @@ module mod_che_sox
 !!$    !  - DMS + NO3 ---> SO2 +  .....
 !!$    !---------------------------------------------
 !!$
-!!$    do  k = 1 , kx
-!!$      do  j = jci1 , jci2
+!!$    do  k = 1, kx
+!!$      do  j = jci1, jci2
 !!$
 !!$        no3int = no3(j,k,i)
 !!$        oh1int = oh(j,k,i)
@@ -385,7 +385,7 @@ module mod_che_sox
 !!$      end do
 !!$    end do
 !!$
-!!$  end if ! dms , so2
+!!$  end if ! dms, so2
 
      contains
      !
@@ -393,12 +393,12 @@ module mod_che_sox
      !
      pure real(rkx) function rrate(cair,temp) result(rk)
        implicit none
-       real(rkx) , intent(in) :: cair , temp
-       real(rk8) , parameter :: rk0 = 3.0e-31_rkx
-       real(rk8) , parameter :: rnn = 3.3_rkx
-       real(rk8) , parameter :: rki0 = 1.5e-12_rkx
-       real(rk8) , parameter :: rmm = 0.0_rkx
-       real(rk8) :: rkk , rki , expo
+       real(rkx), intent(in) :: cair, temp
+       real(rk8), parameter :: rk0 = 3.0e-31_rkx
+       real(rk8), parameter :: rnn = 3.3_rkx
+       real(rk8), parameter :: rki0 = 1.5e-12_rkx
+       real(rk8), parameter :: rmm = 0.0_rkx
+       real(rk8) :: rkk, rki, expo
        rkk = rk0*cair*(temp/300.0_rk8)**(-rnn)
        rki = rki0*(temp/300.0_rk8)**(-rmm)
        expo = d_one/(d_one + (log10(rkk/rki))**2)
@@ -416,14 +416,14 @@ module mod_che_sox
 !
 !   subroutine chemrate(caircell,temp,rk_com)
 !     implicit none
-!     real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: caircell , temp
-!     real(rkx) , dimension(jci1:jci2,kz,rk_com_max) , intent(out) ::  rk_com
-!     real(rkx) :: rk0 , rnn , rki , rmm , te , cair_mlc , alpha
-!     integer(ik4) :: j , k
+!     real(rkx), dimension(jci1:jci2,kz), intent(in) :: caircell, temp
+!     real(rkx), dimension(jci1:jci2,kz,rk_com_max), intent(out) ::  rk_com
+!     real(rkx) :: rk0, rnn, rki, rmm, te, cair_mlc, alpha
+!     integer(ik4) :: j, k
 !
 !     rk_com(:,:,:) = d_zero
-!     do k = 1 , kz
-!       do j = jci1 , jci2
+!     do k = 1, kz
+!       do j = jci1, jci2
 !
 !          alpha = 0.4_rkx
 !          te = temp(j,k)
@@ -461,9 +461,9 @@ module mod_che_sox
 !
 !     pure real(rkx) function troe(cair_mlc,te,rk0,rnn,rki,rmm)
 !       implicit none
-!       real(rkx) , intent(in) ::  cair_mlc, te, rnn, rmm
-!       real(rkx) , intent(in) :: rk0 , rki
-!       real(rkx) :: expo , rkk , rkki
+!       real(rkx), intent(in) ::  cair_mlc, te, rnn, rmm
+!       real(rkx), intent(in) :: rk0, rki
+!       real(rkx) :: expo, rkk, rkki
 !       rkk = rk0*cair_mlc*(te/300.0_rkx)**(-rnn)
 !       rkki = rki*(te/300.0_rkx)**(-rmm)
 !       expo= d_one/(d_one + (log10(rkk/rkki))**2)
@@ -472,13 +472,13 @@ module mod_che_sox
 !
 !     pure real(rkx) function arr(aa,bb,te)
 !       implicit none
-!       real(rkx), intent(in) :: aa , bb , te
+!       real(rkx), intent(in) :: aa, bb, te
 !       arr = aa*exp(bb/te)
 !     end function arr
 !
 !     pure real(rkx) function abr(aa,bb,te)
 !       implicit none
-!       real(rkx), intent(in) ::  aa , bb , te
+!       real(rkx), intent(in) ::  aa, bb, te
 !       abr = aa*exp(bb*(d_one/te - 0.0033557_rkx))
 !     end function abr
 !

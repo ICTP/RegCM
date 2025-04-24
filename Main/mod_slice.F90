@@ -32,18 +32,18 @@ module mod_slice
 
   private
 
-  public :: mkslice , init_slice
+  public :: mkslice, init_slice
 
-  integer(ik4) :: ix1 , ix2 , jx1 , jx2
-  integer(ik4) :: id1 , id2 , jd1 , jd2
-  real(rkx) , dimension(:,:) , pointer :: rpsb => null( )
-  real(rkx) , dimension(:,:) , pointer :: rpsdotb => null( )
+  integer(ik4) :: ix1, ix2, jx1, jx2
+  integer(ik4) :: id1, id2, jd1, jd2
+  real(rkx), dimension(:,:), pointer, contiguous :: rpsb => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: rpsdotb => null( )
 
-  real(rkx) , parameter , dimension(0:5) :: anorth = &
+  real(rkx), parameter, dimension(0:5) :: anorth = &
      [  7.9925_rkx, 8.3329_rkx, 24.1731_rkx, &
        -1.8069_rkx, 0.1082_rkx, -0.1493_rkx ]
 
-  real(rkx) , parameter , dimension(0:5) :: asouth = &
+  real(rkx), parameter, dimension(0:5) :: asouth = &
      [  8.1797_rkx, 8.1455_rkx, -23.4839_rkx, &
         1.1464_rkx, 0.0798_rkx, -0.1491_rkx ]
 
@@ -109,8 +109,8 @@ module mod_slice
 
   subroutine mkslice
     implicit none
-    integer(ik4) :: i , j , k , n
-    real(rkx) :: w1 , w2 , cell , ztrop
+    integer(ik4) :: i, j, k, n
+    real(rkx) :: w1, w2, cell, ztrop
 
     if ( idynamic == 3 ) then
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
@@ -161,7 +161,7 @@ module mod_slice
       if ( icldmstrat == 1 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           atms%th700(j,i) = atms%th3d(j,i,kz)
-          do k = 2 , kz-1
+          do k = 2, kz-1
             if ( atms%pb3d(j,i,k) > 70000.0_rkx ) then
               w1 = (atms%pb3d(j,i,k) - 70000.0_rkx) / &
                    (atms%pb3d(j,i,k) - atms%pb3d(j,i,k-1))
@@ -303,7 +303,7 @@ module mod_slice
         do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
           atms%zq(j,i,kzp1) = d_zero
         end do
-        do k = kz , 1, -1
+        do k = kz, 1, -1
           do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
             cell = ptop * rpsb(j,i)
             atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tv3d(j,i,k) *  &
@@ -331,7 +331,7 @@ module mod_slice
       if ( icldmstrat == 1 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           atms%th700(j,i) = atms%th3d(j,i,kz)
-          do k = 1 , kz-1
+          do k = 1, kz-1
             if ( atms%pb3d(j,i,k) > 70000.0 ) then
               atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
                                 twt(k,2) * atms%th3d(j,i,k)
@@ -346,7 +346,7 @@ module mod_slice
     !
     if ( irceideal /= 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        ! Assume PVU = 2.5 , ztrop in km
+        ! Assume PVU = 2.5, ztrop in km
         if ( mddom%xlat(j,i) > 0.0_rkx ) then
           ztrop = anorth(0) + anorth(1) / (1.0_rkx + &
             exp(-(mddom%xlat(j,i)-anorth(2))/anorth(3)))**anorth(4) + &
@@ -364,7 +364,7 @@ module mod_slice
     !
     ktrop(:,:) = kz
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      do k = kzm1 , 2 , -1
+      do k = kzm1, 2, -1
         ktrop(j,i) = k
         if ( atms%pb3d(j,i,k) < ptrop(j,i) ) exit
       end do
@@ -372,7 +372,7 @@ module mod_slice
     if ( ibltyp == 1 ) then
       kmxpbl(:,:) = kz
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        do k = kzm1 , 2 , -1
+        do k = kzm1, 2, -1
           if ( atms%za(j,i,k) > 4000.0 ) exit
           kmxpbl(j,i) = k
         end do

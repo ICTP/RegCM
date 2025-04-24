@@ -21,7 +21,7 @@ module mod_projections
   use mod_memutil
 
 #ifdef F2008
-  use , intrinsic :: iso_fortran_env
+  use, intrinsic :: iso_fortran_env
 #endif
 
   implicit none
@@ -33,176 +33,176 @@ module mod_projections
   type anyprojparams
     character(len=6) :: pcode
     real(rk8) :: ds
-    real(rk8) :: clat , clon
-    real(rk8) :: plat , plon
-    real(rk8) :: trlat1 , trlat2
-    integer(ik4) :: nlat , nlon
-    logical :: staggerx , staggery
+    real(rk8) :: clat, clon
+    real(rk8) :: plat, plon
+    real(rk8) :: trlat1, trlat2
+    integer(ik4) :: nlat, nlon
+    logical :: staggerx, staggery
     logical :: rotparam
   end type anyprojparams
 
   type regcm_projdata
     character(len=6) :: code
-    real(rk8) :: stdlon , stdlat
-    real(rk8) :: truelat1 , truelat2 , tl2r , ctl1r
-    real(rk8) :: chi1 , chi2 , xct1 , tanchi1h , schi1 , tchi1
-    real(rk8) :: colat1 , colat2 , nfac
-    real(rk8) :: rsw , rebydx , hemi
-    real(rk8) :: reflon , dlon , dlat , scale_top
-    real(rk8) :: polei , polej
-    real(rk8) :: rlon0 , rlat0 , phi0 , lam0
-    real(rk8) :: xoff , yoff
-    real(rk8) :: zsinpol , zcospol , zlampol
-    real(rk8) :: pollam , polcphi , polsphi
-    real(rk8) :: conefac , rconefac
-    integer(ik4) :: nlat , nlon
+    real(rk8) :: stdlon, stdlat
+    real(rk8) :: truelat1, truelat2, tl2r, ctl1r
+    real(rk8) :: chi1, chi2, xct1, tanchi1h, schi1, tchi1
+    real(rk8) :: colat1, colat2, nfac
+    real(rk8) :: rsw, rebydx, hemi
+    real(rk8) :: reflon, dlon, dlat, scale_top
+    real(rk8) :: polei, polej
+    real(rk8) :: rlon0, rlat0, phi0, lam0
+    real(rk8) :: xoff, yoff
+    real(rk8) :: zsinpol, zcospol, zlampol
+    real(rk8) :: pollam, polcphi, polsphi
+    real(rk8) :: conefac, rconefac
+    integer(ik4) :: nlat, nlon
     logical :: lamtan
     logical :: skiprot
   end type regcm_projdata
 
   type regcm_projection
     private
-    type(regcm_projdata) , pointer :: p
-    procedure(transform) , pass(pj) , pointer , public :: llij => NULL()
-    procedure(transform) , pass(pj) , pointer , public :: ijll => NULL()
-    procedure(map_factor) , pass(pj) , pointer , public :: mapfac => NULL()
-    procedure(rotate2) , pass(pj) , pointer , public :: uvrotate2 => NULL()
-    procedure(rotate2) , pass(pj) , pointer , public :: uvbkrotate2 => NULL()
-    procedure(rotate3) , pass(pj) , pointer , public :: uvrotate3 => NULL()
-    procedure(rotate3) , pass(pj) , pointer , public :: uvbkrotate3 => NULL()
+    type(regcm_projdata), pointer :: p
+    procedure(transform), pass(pj), pointer, public :: llij => NULL()
+    procedure(transform), pass(pj), pointer, public :: ijll => NULL()
+    procedure(map_factor), pass(pj), pointer, public :: mapfac => NULL()
+    procedure(rotate2), pass(pj), pointer, public :: uvrotate2 => NULL()
+    procedure(rotate2), pass(pj), pointer, public :: uvbkrotate2 => NULL()
+    procedure(rotate3), pass(pj), pointer, public :: uvrotate3 => NULL()
+    procedure(rotate3), pass(pj), pointer, public :: uvbkrotate3 => NULL()
 
-    real(rk8) , pointer , dimension(:,:) :: f1 , f2 , f3 , f4
+    real(rk8), pointer, contiguous, dimension(:,:) :: f1, f2, f3, f4
 
     contains
 
-      procedure , public :: initialize
-      procedure , public :: rotation_angle
-      procedure , public :: wind_rotate
-      procedure , public :: wind2_rotate
-      procedure , public :: wind_antirotate
-      procedure , public :: wind2_antirotate
-      procedure , public :: rl00
-      procedure , public :: conefac
-      procedure , public :: destruct
+      procedure, public :: initialize
+      procedure, public :: rotation_angle
+      procedure, public :: wind_rotate
+      procedure, public :: wind2_rotate
+      procedure, public :: wind_antirotate
+      procedure, public :: wind2_antirotate
+      procedure, public :: rl00
+      procedure, public :: conefac
+      procedure, public :: destruct
 
   end type regcm_projection
 
   abstract interface
     pure subroutine transform(pj,a,b,c,d)
       import
-      class(regcm_projection) , intent(in) :: pj
+      class(regcm_projection), intent(in) :: pj
 #ifdef SINGLE_PRECISION_REAL
 #ifdef F2008
-      integer , parameter :: rk4  = REAL32
+      integer, parameter :: rk4  = REAL32
 #else
-      integer , parameter :: rk4  = kind(1.0)
+      integer, parameter :: rk4  = kind(1.0)
 #endif
-      integer , parameter :: rkx = rk4
+      integer, parameter :: rkx = rk4
 #else
 #ifdef F2008
-      integer , parameter :: rk8  = REAL64
+      integer, parameter :: rk8  = REAL64
 #else
-      integer , parameter :: rk8  = selected_real_kind(2*precision(1.0))
+      integer, parameter :: rk8  = selected_real_kind(2*precision(1.0))
 #endif
-      integer , parameter :: rkx = rk8
+      integer, parameter :: rkx = rk8
 #endif
-      real(rkx) , intent(in) :: a , b
-      real(rkx) , intent(out) :: c , d
+      real(rkx), intent(in) :: a, b
+      real(rkx), intent(out) :: c, d
     end subroutine transform
   end interface
 
   abstract interface
     subroutine rotate3(pj,u,v)
       import
-      class(regcm_projection) , intent(in) :: pj
+      class(regcm_projection), intent(in) :: pj
 #ifdef SINGLE_PRECISION_REAL
 #ifdef F2008
-      integer , parameter :: rk4  = REAL32
+      integer, parameter :: rk4  = REAL32
 #else
-      integer , parameter :: rk4  = kind(1.0)
+      integer, parameter :: rk4  = kind(1.0)
 #endif
-      integer , parameter :: rkx = rk4
+      integer, parameter :: rkx = rk4
 #else
 #ifdef F2008
-      integer , parameter :: rk8  = REAL64
+      integer, parameter :: rk8  = REAL64
 #else
-      integer , parameter :: rk8  = selected_real_kind(2*precision(1.0))
+      integer, parameter :: rk8  = selected_real_kind(2*precision(1.0))
 #endif
-      integer , parameter :: rkx = rk8
+      integer, parameter :: rkx = rk8
 #endif
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     end subroutine rotate3
   end interface
 
   abstract interface
     subroutine rotate2(pj,u,v)
       import
-      class(regcm_projection) , intent(in) :: pj
+      class(regcm_projection), intent(in) :: pj
 #ifdef SINGLE_PRECISION_REAL
 #ifdef F2008
-      integer , parameter :: rk4  = REAL32
+      integer, parameter :: rk4  = REAL32
 #else
-      integer , parameter :: rk4  = kind(1.0)
+      integer, parameter :: rk4  = kind(1.0)
 #endif
-      integer , parameter :: rkx = rk4
+      integer, parameter :: rkx = rk4
 #else
 #ifdef F2008
-      integer , parameter :: rk8  = REAL64
+      integer, parameter :: rk8  = REAL64
 #else
-      integer , parameter :: rk8  = selected_real_kind(2*precision(1.0))
+      integer, parameter :: rk8  = selected_real_kind(2*precision(1.0))
 #endif
-      integer , parameter :: rkx = rk8
+      integer, parameter :: rkx = rk8
 #endif
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     end subroutine rotate2
   end interface
 
   abstract interface
     pure subroutine map_factor(pj,a,b,c)
       import
-      class(regcm_projection) , intent(in) :: pj
+      class(regcm_projection), intent(in) :: pj
 #ifdef SINGLE_PRECISION_REAL
 #ifdef F2008
-      integer , parameter :: rk4  = REAL32
+      integer, parameter :: rk4  = REAL32
 #else
-      integer , parameter :: rk4  = kind(1.0)
+      integer, parameter :: rk4  = kind(1.0)
 #endif
-      integer , parameter :: rkx = rk4
+      integer, parameter :: rkx = rk4
 #else
 #ifdef F2008
-      integer , parameter :: rk8  = REAL64
+      integer, parameter :: rk8  = REAL64
 #else
-      integer , parameter :: rk8  = selected_real_kind(2*precision(1.0))
+      integer, parameter :: rk8  = selected_real_kind(2*precision(1.0))
 #endif
-      integer , parameter :: rkx = rk8
+      integer, parameter :: rkx = rk8
 #endif
-      real(rkx) , pointer , dimension(:,:) , intent(in) :: a , b
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: c
+      real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: a, b
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: c
     end subroutine map_factor
   end interface
 
-  public :: anyprojparams , regcm_projection
+  public :: anyprojparams, regcm_projection
 
   contains
 
   subroutine rl00(pj,lat0,lon0)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(out) :: lat0 , lon0
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(out) :: lat0, lon0
     lat0 = pj%p%rlat0
     lon0 = pj%p%rlon0
   end subroutine rl00
 
   real(rk8) function conefac(pj)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
+    class(regcm_projection), intent(in) :: pj
     conefac = pj%p%conefac
   end function conefac
 
   subroutine wind_rotate(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: u , v
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: u, v
     select case(pj%p%code)
       case ('LAMCON')
         call rotate3_lc(pj,u,v)
@@ -219,8 +219,8 @@ module mod_projections
 
   subroutine wind_antirotate(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: u , v
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: u, v
     select case(pj%p%code)
       case ('LAMCON')
         call backrotate3_lc(pj,u,v)
@@ -237,8 +237,8 @@ module mod_projections
 
   subroutine wind2_rotate(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , dimension(:,:) , pointer , intent(inout) :: u , v
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), dimension(:,:), pointer, contiguous, intent(inout) :: u, v
     select case(pj%p%code)
       case ('LAMCON')
         call rotate2_lc(pj,u,v)
@@ -255,8 +255,8 @@ module mod_projections
 
   subroutine wind2_antirotate(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , dimension(:,:) , pointer , intent(inout) :: u , v
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), dimension(:,:), pointer, contiguous, intent(inout) :: u, v
     select case(pj%p%code)
       case ('LAMCON')
         call backrotate2_lc(pj,u,v)
@@ -273,12 +273,12 @@ module mod_projections
 
   subroutine rotation_angle(pj,lon,lat,p)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rk8) , dimension(:) , intent(in) :: lon
-    real(rk8) , dimension(:) , intent(in) :: lat
-    real(rk8) , dimension(:,:) , intent(out) :: p
-    integer(ik4) :: i , j , nlon , nlat
-    real(rk8) :: f1 , f2
+    class(regcm_projection), intent(in) :: pj
+    real(rk8), dimension(:), intent(in) :: lon
+    real(rk8), dimension(:), intent(in) :: lat
+    real(rk8), dimension(:,:), intent(out) :: p
+    integer(ik4) :: i, j, nlon, nlat
+    real(rk8) :: f1, f2
     nlon = size(lon)
     nlat = size(lat)
     if ( size(p,1) /= nlon .or. size(p,2) /= nlat ) then
@@ -286,21 +286,21 @@ module mod_projections
     end if
     select case (pj%p%code)
       case ('LAMCON')
-        do i = 1 , nlat
-          do j = 1 , nlon
+        do i = 1, nlat
+          do j = 1, nlon
             p(j,i) = uvrot_lc(pj,lon(j))
           end do
         end do
       case ('ROTMER')
-        do i = 1 , nlat
-          do j = 1 , nlon
+        do i = 1, nlat
+          do j = 1, nlon
             call uvrot_rc(pj,lat(i),lon(j),f1,f2)
             p(j,i) = acos(f1)
           end do
         end do
       case ('POLSTR')
-        do i = 1 , nlat
-          do j = 1 , nlon
+        do i = 1, nlat
+          do j = 1, nlon
             p(j,i) = uvrot_ps(pj,lon(j))
           end do
         end do
@@ -311,15 +311,15 @@ module mod_projections
 
   subroutine destruct(pj)
     implicit none
-    class(regcm_projection) , intent(inout) :: pj
+    class(regcm_projection), intent(inout) :: pj
     if ( associated(pj%p) ) deallocate(pj%p)
   end subroutine destruct
 
   subroutine initialize(pj,pjpara)
     implicit none
-    class(regcm_projection) , intent(out) :: pj
-    type(anyprojparams) , intent(in) :: pjpara
-    real(rk8) :: ci , cj
+    class(regcm_projection), intent(out) :: pj
+    type(anyprojparams), intent(in) :: pjpara
+    real(rk8) :: ci, cj
     if ( .not. associated(pj%p) ) then
       allocate(pj%p)
     end if
@@ -395,8 +395,8 @@ module mod_projections
 
   subroutine setup_ll(pj,clon,clat,ci,cj,ds)
     implicit none
-    type(regcm_projection) , intent(inout) :: pj
-    real(rk8) , intent(in) :: ci , cj , clat , clon , ds
+    type(regcm_projection), intent(inout) :: pj
+    real(rk8), intent(in) :: ci, cj, clat, clon, ds
     pj%p%dlon = raddeg * ds / earthrad
     pj%p%dlat = pj%p%dlon
     pj%p%rlat0 = clat - cj*pj%p%dlat
@@ -409,9 +409,9 @@ module mod_projections
 
   pure subroutine ijll_ll(pj,i,j,lat,lon)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: i , j
-    real(rkx) , intent(out) :: lat , lon
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: i, j
+    real(rkx), intent(out) :: lat, lon
     lat = pj%p%rlat0 + (j-1.0_rk8) * pj%p%dlat
     lon = pj%p%rlon0 + (i-1.0_rk8) * pj%p%dlon
     if ( lat >  90.0_rkx ) lat = 90.0_rkx - lat
@@ -422,22 +422,22 @@ module mod_projections
 
   pure subroutine llij_ll(pj,lat,lon,i,j)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lat , lon
-    real(rkx) , intent(out) :: i , j
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lat, lon
+    real(rkx), intent(out) :: i, j
     i = real(( lon - pj%p%rlon0 ) / pj%p%dlon + 1.0_rk8,rkx)
     j = real(( lat - pj%p%rlat0 ) / pj%p%dlat + 1.0_rk8,rkx)
   end subroutine llij_ll
 
   subroutine setup_rll(pj,clon,clat,ci,cj,ds,plon,plat,luvrot)
     implicit none
-    type(regcm_projection) , intent(inout) :: pj
-    real(rk8) , intent(in) :: ci , cj , clat , clon , plon , plat , ds
-    logical , intent(in) :: luvrot
-    real(rk8) :: phi , lam , plam , pphi , clam , cphi , dlam
-    real(rk8) :: delta , arg1 , arg2
-    real(rkx) :: lon , lat , ri , rj
-    integer(ik4) :: i , j
+    type(regcm_projection), intent(inout) :: pj
+    real(rk8), intent(in) :: ci, cj, clat, clon, plon, plat, ds
+    logical, intent(in) :: luvrot
+    real(rk8) :: phi, lam, plam, pphi, clam, cphi, dlam
+    real(rk8) :: delta, arg1, arg2
+    real(rkx) :: lon, lat, ri, rj
+    integer(ik4) :: i, j
     pj%p%skiprot = .false.
     if ( abs(plat-90.0_rk8) < 0.001 ) pj%p%skiprot = .true.
     pj%p%dlon = raddeg * ds / earthrad
@@ -480,8 +480,8 @@ module mod_projections
       if ( .not. pj%p%skiprot ) then
         call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
         call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
-        do j = 1 , pj%p%nlat
-          do i = 1 , pj%p%nlon
+        do j = 1, pj%p%nlat
+          do i = 1, pj%p%nlon
             ri = i
             rj = j
             call ijll_rl(pj,ri,rj,lat,lon)
@@ -500,10 +500,10 @@ module mod_projections
   end subroutine setup_rll
 
   pure subroutine ijll_rl(pj,i,j,lat,lon)
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: i , j
-    real(rkx) , intent(out) :: lat , lon
-    real(rk8) :: phi , lam
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: i, j
+    real(rkx), intent(out) :: lat, lon
+    real(rk8) :: phi, lam
     phi = pj%p%rlat0 + (j-1.0_rk8) * pj%p%dlat
     lam = pj%p%rlon0 + (i-1.0_rk8) * pj%p%dlon
     if ( phi >  deg90 )  phi = deg90 - phi
@@ -541,10 +541,10 @@ module mod_projections
 
   pure subroutine llij_rl(pj,lat,lon,i,j)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lat , lon
-    real(rkx) , intent(out) :: i , j
-    real(rk8) :: rlat , rlon , phi , lam
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lat, lon
+    real(rkx), intent(out) :: i, j
+    real(rk8) :: rlat, rlon, phi, lam
     phi = lat
     lam = lon
     if ( lam >  deg180 ) lam = lam - deg360
@@ -575,13 +575,13 @@ module mod_projections
 
   subroutine setup_lcc(pj,clon,clat,ci,cj,ds,slon,trlat1,trlat2,luvrot)
     implicit none
-    type(regcm_projection) , intent(inout) :: pj
-    real(rk8) , intent(in) :: ci , cj , slon , clat , clon , ds , &
-                              trlat1 , trlat2
-    logical , intent(in) :: luvrot
-    real(rk8) :: arg , deltalon1 , tl1r , tl2r , pf3
-    real(rkx) :: ri , rj , lat , lon
-    integer(ik4) :: i , j
+    type(regcm_projection), intent(inout) :: pj
+    real(rk8), intent(in) :: ci, cj, slon, clat, clon, ds, &
+                              trlat1, trlat2
+    logical, intent(in) :: luvrot
+    real(rk8) :: arg, deltalon1, tl1r, tl2r, pf3
+    real(rkx) :: ri, rj, lat, lon
+    integer(ik4) :: i, j
 
     pj%p%stdlon = slon
     pj%p%stdlat = clat
@@ -629,8 +629,8 @@ module mod_projections
       call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
       call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
       call getmem2d(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
-      do j = 1 , pj%p%nlat
-        do i = 1 , pj%p%nlon
+      do j = 1, pj%p%nlat
+        do i = 1, pj%p%nlon
           ri = i
           rj = j
           call ijll_lc(pj,ri,rj,lat,lon)
@@ -645,11 +645,11 @@ module mod_projections
 
   pure subroutine ijll_lc(pj,i,j,lat,lon)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: i , j
-    real(rkx) , intent(out) :: lat , lon
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: i, j
+    real(rkx), intent(out) :: lat, lon
     real(rk8) :: chi
-    real(rk8) :: inew , jnew , xx , yy , r2 , r
+    real(rk8) :: inew, jnew, xx, yy, r2, r
 
     inew = pj%p%hemi * i
     jnew = pj%p%hemi * j
@@ -678,10 +678,10 @@ module mod_projections
 
   pure subroutine llij_lc(pj,lat,lon,i,j)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lat , lon
-    real(rkx) , intent(out) :: i , j
-    real(rk8) :: arg , deltalon , rm
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lat, lon
+    real(rkx), intent(out) :: i, j
+    real(rk8) :: arg, deltalon, rm
 
     deltalon = lon - pj%p%stdlon
     if ( deltalon > +deg180 ) deltalon = deltalon - deg360
@@ -695,12 +695,12 @@ module mod_projections
 
   subroutine setup_plr(pj,clon,clat,ci,cj,ds,slon,luvrot)
     implicit none
-    type(regcm_projection) , intent(inout) :: pj
-    real(rk8) , intent(in) :: clat , clon , cj , ci , ds , slon
-    logical , intent(in) :: luvrot
-    real(rk8) :: ala1 , alo1 , pf3
-    real(rkx) :: lat , lon , ri , rj
-    integer(ik4) :: i , j
+    type(regcm_projection), intent(inout) :: pj
+    real(rk8), intent(in) :: clat, clon, cj, ci, ds, slon
+    logical, intent(in) :: luvrot
+    real(rk8) :: ala1, alo1, pf3
+    real(rkx) :: lat, lon, ri, rj
+    integer(ik4) :: i, j
 
     pj%p%stdlon = slon
     pj%p%stdlat = clat
@@ -722,8 +722,8 @@ module mod_projections
       call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
       call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
       call getmem2d(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
-      do j = 1 , pj%p%nlat
-        do i = 1 , pj%p%nlon
+      do j = 1, pj%p%nlat
+        do i = 1, pj%p%nlon
           ri = i
           rj = j
           call ijll_ps(pj,ri,rj,lat,lon)
@@ -738,10 +738,10 @@ module mod_projections
 
   pure subroutine llij_ps(pj,lat,lon,i,j)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lat , lon
-    real(rkx) , intent(out) :: i , j
-    real(rk8) :: ala , alo , rm , deltalon
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lat, lon
+    real(rkx), intent(out) :: i, j
+    real(rk8) :: ala, alo, rm, deltalon
 
     deltalon = lon - pj%p%reflon
     if ( deltalon > +deg180 ) deltalon = deltalon - deg360
@@ -756,10 +756,10 @@ module mod_projections
 
   pure subroutine ijll_ps(pj,i,j,lat,lon)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: i , j
-    real(rkx) , intent(out) :: lat , lon
-    real(rk8) :: xx , yy , r2 , gi2 , arcc
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: i, j
+    real(rkx), intent(out) :: lat, lon
+    real(rk8) :: xx, yy, r2, gi2, arcc
 
     xx = i - pj%p%polei
     yy = (j - pj%p%polej) * pj%p%hemi
@@ -783,8 +783,8 @@ module mod_projections
 
   subroutine setup_mrc(pj,clon,clat,ci,cj,ds)
     implicit none
-    type(regcm_projection) , intent(inout) :: pj
-    real(rk8) , intent(in) :: clat , clon , cj , ci , ds
+    type(regcm_projection), intent(inout) :: pj
+    real(rk8), intent(in) :: clat, clon, cj, ci, ds
     real(rk8) :: clain
 
     pj%p%stdlon = clon
@@ -800,9 +800,9 @@ module mod_projections
 
   pure subroutine llij_mc(pj,lat,lon,i,j)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lat , lon
-    real(rkx) , intent(out) :: i , j
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lat, lon
+    real(rkx), intent(out) :: i, j
     real(rk8) :: deltalon
 
     deltalon = lon - pj%p%stdlon
@@ -815,9 +815,9 @@ module mod_projections
 
   pure subroutine ijll_mc(pj,i,j,lat,lon)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: i , j
-    real(rkx) , intent(out) :: lat , lon
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: i, j
+    real(rkx), intent(out) :: lat, lon
 
     lat = real(2.0_rk8 * &
         atan(exp(pj%p%dlon*(pj%p%rsw + j-pj%p%polej)))*raddeg-deg90,rkx)
@@ -828,12 +828,12 @@ module mod_projections
 
   subroutine setup_rmc(pj,clon,clat,ci,cj,ds,plon,plat,luvrot)
     implicit none
-    type(regcm_projection) , intent(inout) :: pj
-    real(rk8) , intent(in) :: clat , clon , cj , ci , ds , plon , plat
-    logical , intent(in) :: luvrot
-    real(rk8) :: plam , pphi , zphipol , pf3
-    real(rkx) :: lat , lon , ri , rj
-    integer(ik4) :: i , j
+    type(regcm_projection), intent(inout) :: pj
+    real(rk8), intent(in) :: clat, clon, cj, ci, ds, plon, plat
+    logical, intent(in) :: luvrot
+    real(rk8) :: plam, pphi, zphipol, pf3
+    real(rkx) :: lat, lon, ri, rj
+    integer(ik4) :: i, j
     pj%p%dlon = ds*raddeg/earthrad
     pj%p%dlat = ds*raddeg/earthrad
     pj%p%xoff = clon - plon
@@ -866,9 +866,9 @@ module mod_projections
       call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
       call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
       call getmem2d(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
-      do j = 1 , pj%p%nlat
+      do j = 1, pj%p%nlat
         rj = j
-        do i = 1 , pj%p%nlon
+        do i = 1, pj%p%nlon
           ri = i
           call ijll_rc(pj,ri,rj,lat,lon)
           call uvrot_rc(pj,lat,lon,pj%f1(i,j),pj%f2(i,j))
@@ -881,11 +881,11 @@ module mod_projections
 
   pure subroutine llij_rc(pj,lat,lon,i,j)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lat , lon
-    real(rkx) , intent(out) :: i , j
-    real(rk8) :: zarg , zarg1 , zarg2 , zlam , zphi
-    real(rk8) :: lams , phis
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lat, lon
+    real(rkx), intent(out) :: i, j
+    real(rk8) :: zarg, zarg1, zarg2, zlam, zphi
+    real(rk8) :: lams, phis
 
     zphi = degrad*lat
     zlam = lon
@@ -913,10 +913,10 @@ module mod_projections
 
   pure subroutine ijll_rc(pj,i,j,lat,lon)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: i , j
-    real(rkx) , intent(out) :: lat , lon
-    real(rk8) :: xr , yr , arg , zarg1 , zarg2
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: i, j
+    real(rkx), intent(out) :: lat, lon
+    real(rk8) :: xr, yr, arg, zarg1, zarg2
 
     xr = pj%p%xoff + (i-pj%p%polei)*pj%p%dlon
     if ( xr > deg180 ) xr = xr - deg360
@@ -944,8 +944,8 @@ module mod_projections
 
   real(rkx) function rounder(xval,ltop)
     implicit none
-    real(rkx) , intent(in) :: xval
-    logical , intent(in) :: ltop
+    real(rkx), intent(in) :: xval
+    logical, intent(in) :: ltop
     integer(ik4) :: tmpval
     if ( ltop ) then
       tmpval = ceiling(xval*1000.0_rkx)
@@ -959,8 +959,8 @@ module mod_projections
 
   subroutine get_equator(plat,plon,elat,elon)
     implicit none
-    real(rk8) , intent(in) :: plat , plon
-    real(rk8) , intent(out) :: elat , elon
+    real(rk8), intent(in) :: plat, plon
+    real(rk8), intent(out) :: elat, elon
 
     if ( plon < 0.0_rk8 ) then
       elon = plon + mathpi
@@ -980,17 +980,17 @@ module mod_projections
 
   pure elemental real(rkx) function fac_rl(pj,xlat,xlon) result(xmap)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: xlat , xlon
-    real(rkx) :: ri , rj
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: xlat, xlon
+    real(rkx) :: ri, rj
     call llij_rl(pj,xlat,xlon,ri,rj)
     xmap = real(d_one/cos(degrad*(pj%p%rlat0+(rj-1)*pj%p%dlat)),rkx)
   end function fac_rl
 
   pure elemental real(rkx) function fac_lc(pj,lat) result(xmap)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lat
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lat
     real(rk8) :: colat
     colat = degrad*(deg90-lat)
     if ( .not. pj%p%lamtan ) then
@@ -1004,23 +1004,23 @@ module mod_projections
 
   pure elemental real(rkx) function fac_ps(pj,lat) result(xmap)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lat
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lat
     xmap = real(pj%p%scale_top/(1.0_rk8 + pj%p%hemi * sin(lat*degrad)),rkx)
   end function fac_ps
 
   pure elemental real(rkx) function fac_mc(pj,lat) result(xmap)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lat
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lat
     xmap = real(1.0_rk8/cos(lat*degrad),rkx)
   end function fac_mc
 
   pure elemental real(rkx) function fac_rc(pj,xlat,xlon) result(xmap)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: xlat , xlon
-    real(rkx) :: ri , rj
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: xlat, xlon
+    real(rkx) :: ri, rj
     real(rk8) :: yr
     call llij_rc(pj,xlat,xlon,ri,rj)
     yr = pj%p%yoff + (rj-pj%p%polej)*pj%p%dlon
@@ -1029,8 +1029,8 @@ module mod_projections
 
   pure elemental real(rk8) function uvrot_lc(pj,lon) result(alpha)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lon
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lon
     real(rk8) :: deltalon
     deltalon = pj%p%stdlon - lon
     if ( deltalon > +deg180 ) deltalon = deltalon - deg360
@@ -1040,8 +1040,8 @@ module mod_projections
 
   pure elemental real(rk8) function uvrot_ps(pj,lon) result(alpha)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lon
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lon
     real(rk8) :: deltalon
     deltalon = pj%p%stdlon - lon
     if ( deltalon > +deg180 ) deltalon = deltalon - deg360
@@ -1051,10 +1051,10 @@ module mod_projections
 
   pure subroutine uvrot_rc(pj,lat,lon,cosdel,sindel)
     implicit none
-    type(regcm_projection) , intent(in) :: pj
-    real(rkx) , intent(in) :: lon , lat
-    real(rk8) , intent(out) :: cosdel , sindel
-    real(rk8) :: zphi , zrla , zrlap , zarg1 , zarg2 , znorm
+    type(regcm_projection), intent(in) :: pj
+    real(rkx), intent(in) :: lon, lat
+    real(rk8), intent(out) :: cosdel, sindel
+    real(rk8) :: zphi, zrla, zrlap, zarg1, zarg2, znorm
     zrla = lon
     if ( lat > deg90-0.00001_rk8 ) zrla = 0.0_rk8
     zrlap = (pj%p%pollam - zrla)*degrad
@@ -1068,25 +1068,25 @@ module mod_projections
 
   subroutine rotate2_lc(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , i , j
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, i, j
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
     if ( pj%p%stdlat >= d_zero ) then
-      do j = j1 , j2
-        do i = i1 , i2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) + v(i,j)*pj%f2(i,j)
           v(i,j) = real(-u(i,j)*pj%f2(i,j) + v(i,j)*pj%f1(i,j),rkx)
           u(i,j) = real(tmp,rkx)
         end do
       end do
     else
-      do j = j1 , j2
-        do i = i1 , i2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) - v(i,j)*pj%f2(i,j)
           v(i,j) = real(v(i,j)*pj%f1(i,j) + u(i,j)*pj%f2(i,j),rkx)
           u(i,j) = real(tmp,rkx)
@@ -1097,25 +1097,25 @@ module mod_projections
 
   subroutine backrotate2_lc(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , i , j
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, i, j
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
     if ( pj%p%stdlat >= d_zero ) then
-      do j = j1 , j2
-        do i = i1 , i2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) - v(i,j)*pj%f2(i,j)
           v(i,j) = real(u(i,j)*pj%f2(i,j) + v(i,j)*pj%f1(i,j),rkx)
           u(i,j) = real(tmp,rkx)
         end do
       end do
     else
-      do j = j1 , j2
-        do i = i1 , i2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) + v(i,j)*pj%f2(i,j)
           v(i,j) = real(v(i,j)*pj%f1(i,j) - u(i,j)*pj%f2(i,j),rkx)
           u(i,j) = real(tmp,rkx)
@@ -1126,9 +1126,9 @@ module mod_projections
 
   subroutine rotate3_lc(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
@@ -1137,9 +1137,9 @@ module mod_projections
     k1 = lbound(u,3)
     k2 = ubound(u,3)
     if ( pj%p%stdlat >= d_zero ) then
-      do k = k1 , k2
-        do j = j1 , j2
-          do i = i1 , i2
+      do k = k1, k2
+        do j = j1, j2
+          do i = i1, i2
             tmp = u(i,j,k)*pj%f1(i,j) + v(i,j,k)*pj%f2(i,j)
             v(i,j,k) = real(-u(i,j,k)*pj%f2(i,j) + v(i,j,k)*pj%f1(i,j),rkx)
             u(i,j,k) = real(tmp,rkx)
@@ -1147,9 +1147,9 @@ module mod_projections
         end do
       end do
     else
-      do k = k1 , k2
-        do j = j1 , j2
-          do i = i1 , i2
+      do k = k1, k2
+        do j = j1, j2
+          do i = i1, i2
             tmp = u(i,j,k)*pj%f1(i,j) - v(i,j,k)*pj%f2(i,j)
             v(i,j,k) = real(v(i,j,k)*pj%f1(i,j) + u(i,j,k)*pj%f2(i,j),rkx)
             u(i,j,k) = real(tmp,rkx)
@@ -1161,9 +1161,9 @@ module mod_projections
 
   subroutine backrotate3_lc(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
@@ -1172,9 +1172,9 @@ module mod_projections
     k1 = lbound(u,3)
     k2 = ubound(u,3)
     if ( pj%p%stdlat >= d_zero ) then
-      do k = k1 , k2
-        do j = j1 , j2
-          do i = i1 , i2
+      do k = k1, k2
+        do j = j1, j2
+          do i = i1, i2
             tmp = u(i,j,k)*pj%f1(i,j) - v(i,j,k)*pj%f2(i,j)
             v(i,j,k) = real(u(i,j,k)*pj%f2(i,j) + v(i,j,k)*pj%f1(i,j),rkx)
             u(i,j,k) = real(tmp,rkx)
@@ -1182,9 +1182,9 @@ module mod_projections
         end do
       end do
     else
-      do k = k1 , k2
-        do j = j1 , j2
-          do i = i1 , i2
+      do k = k1, k2
+        do j = j1, j2
+          do i = i1, i2
             tmp = u(i,j,k)*pj%f1(i,j) + v(i,j,k)*pj%f2(i,j)
             v(i,j,k) = real(v(i,j,k)*pj%f1(i,j) - u(i,j,k)*pj%f2(i,j),rkx)
             u(i,j,k) = real(tmp,rkx)
@@ -1196,25 +1196,25 @@ module mod_projections
 
   subroutine rotate2_ps(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , i , j
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, i, j
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
     if ( pj%p%stdlat >= d_zero ) then
-      do j = j1 , j2
-        do i = i1 , i2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) + v(i,j)*pj%f2(i,j)
           v(i,j) = real(-u(i,j)*pj%f2(i,j) + v(i,j)*pj%f1(i,j),rkx)
           u(i,j) = real(tmp,rkx)
         end do
       end do
     else
-      do j = j1 , j2
-        do i = i1 , i2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) - v(i,j)*pj%f2(i,j)
           v(i,j) = real(v(i,j)*pj%f1(i,j) + u(i,j)*pj%f2(i,j),rkx)
           u(i,j) = real(tmp,rkx)
@@ -1225,25 +1225,25 @@ module mod_projections
 
   subroutine backrotate2_ps(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , i , j
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, i, j
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
     if ( pj%p%stdlat >= d_zero ) then
-      do j = j1 , j2
-        do i = i1 , i2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) - v(i,j)*pj%f2(i,j)
           v(i,j) = real(u(i,j)*pj%f2(i,j) + v(i,j)*pj%f1(i,j),rkx)
           u(i,j) = real(tmp,rkx)
         end do
       end do
     else
-      do j = j1 , j2
-        do i = i1 , i2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) + v(i,j)*pj%f2(i,j)
           v(i,j) = real(v(i,j)*pj%f1(i,j) - u(i,j)*pj%f2(i,j),rkx)
           u(i,j) = real(tmp,rkx)
@@ -1254,9 +1254,9 @@ module mod_projections
 
   subroutine rotate3_ps(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
@@ -1265,9 +1265,9 @@ module mod_projections
     k1 = lbound(u,3)
     k2 = ubound(u,3)
     if ( pj%p%stdlat >= d_zero ) then
-      do k = k1 , k2
-        do j = j1 , j2
-          do i = i1 , i2
+      do k = k1, k2
+        do j = j1, j2
+          do i = i1, i2
             tmp = u(i,j,k)*pj%f1(i,j) + v(i,j,k)*pj%f2(i,j)
             v(i,j,k) = real(-u(i,j,k)*pj%f2(i,j) + v(i,j,k)*pj%f1(i,j),rkx)
             u(i,j,k) = real(tmp,rkx)
@@ -1275,9 +1275,9 @@ module mod_projections
         end do
       end do
     else
-      do k = k1 , k2
-        do j = j1 , j2
-          do i = i1 , i2
+      do k = k1, k2
+        do j = j1, j2
+          do i = i1, i2
             tmp = u(i,j,k)*pj%f1(i,j) - v(i,j,k)*pj%f2(i,j)
             v(i,j,k) = real(v(i,j,k)*pj%f1(i,j) + u(i,j,k)*pj%f2(i,j),rkx)
             u(i,j,k) = real(tmp,rkx)
@@ -1289,9 +1289,9 @@ module mod_projections
 
   subroutine backrotate3_ps(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
@@ -1300,9 +1300,9 @@ module mod_projections
     k1 = lbound(u,3)
     k2 = ubound(u,3)
     if ( pj%p%stdlat >= d_zero ) then
-      do k = k1 , k2
-        do j = j1 , j2
-          do i = i1 , i2
+      do k = k1, k2
+        do j = j1, j2
+          do i = i1, i2
             tmp = u(i,j,k)*pj%f1(i,j) - v(i,j,k)*pj%f2(i,j)
             v(i,j,k) = real(u(i,j,k)*pj%f2(i,j) + v(i,j,k)*pj%f1(i,j),rkx)
             u(i,j,k) = real(tmp,rkx)
@@ -1310,9 +1310,9 @@ module mod_projections
         end do
       end do
     else
-      do k = k1 , k2
-        do j = j1 , j2
-          do i = i1 , i2
+      do k = k1, k2
+        do j = j1, j2
+          do i = i1, i2
             tmp = u(i,j,k)*pj%f1(i,j) + v(i,j,k)*pj%f2(i,j)
             v(i,j,k) = real(v(i,j,k)*pj%f1(i,j) - u(i,j,k)*pj%f2(i,j),rkx)
             u(i,j,k) = real(tmp,rkx)
@@ -1324,30 +1324,30 @@ module mod_projections
 
   subroutine rotate2_mc(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     return
   end subroutine rotate2_mc
 
   subroutine rotate3_mc(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     return
   end subroutine rotate3_mc
 
   subroutine rotate2_rc(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , i , j
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, i, j
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
-    do j = j1 , j2
-      do i = i1 , i2
+    do j = j1, j2
+      do i = i1, i2
         tmp = u(i,j)*pj%f1(i,j) - v(i,j)*pj%f2(i,j)
         v(i,j) = real(v(i,j)*pj%f1(i,j) + u(i,j)*pj%f2(i,j),rkx)
         u(i,j) = real(tmp,rkx)
@@ -1357,16 +1357,16 @@ module mod_projections
 
   subroutine backrotate2_rc(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , i , j
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, i, j
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
-    do j = j1 , j2
-      do i = i1 , i2
+    do j = j1, j2
+      do i = i1, i2
         tmp = u(i,j)*pj%f1(i,j) + v(i,j)*pj%f2(i,j)
         v(i,j) = real(v(i,j)*pj%f1(i,j) - u(i,j)*pj%f2(i,j),rkx)
         u(i,j) = real(tmp,rkx)
@@ -1376,9 +1376,9 @@ module mod_projections
 
   subroutine rotate3_rc(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
@@ -1386,9 +1386,9 @@ module mod_projections
     j2 = ubound(u,2)
     k1 = lbound(u,3)
     k2 = ubound(u,3)
-    do k = k1 , k2
-      do j = j1 , j2
-        do i = i1 , i2
+    do k = k1, k2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j,k)*pj%f1(i,j) - v(i,j,k)*pj%f2(i,j)
           v(i,j,k) = real(v(i,j,k)*pj%f1(i,j) + u(i,j,k)*pj%f2(i,j),rkx)
           u(i,j,k) = real(tmp,rkx)
@@ -1399,9 +1399,9 @@ module mod_projections
 
   subroutine backrotate3_rc(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
     real(rk8) :: tmp
     i1 = lbound(u,1)
     i2 = ubound(u,1)
@@ -1409,9 +1409,9 @@ module mod_projections
     j2 = ubound(u,2)
     k1 = lbound(u,3)
     k2 = ubound(u,3)
-    do k = k1 , k2
-      do j = j1 , j2
-        do i = i1 , i2
+    do k = k1, k2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j,k)*pj%f1(i,j) + v(i,j,k)*pj%f2(i,j)
           v(i,j,k) = real(v(i,j,k)*pj%f1(i,j) - u(i,j,k)*pj%f2(i,j),rkx)
           u(i,j,k) = real(tmp,rkx)
@@ -1422,17 +1422,17 @@ module mod_projections
 
   subroutine rotate2_rl(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , i , j
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, i, j
     real(rk8) :: tmp
     if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
-    do j = j1 , j2
-      do i = i1 , i2
+    do j = j1, j2
+      do i = i1, i2
         tmp = u(i,j)*pj%f1(i,j) - v(i,j)*pj%f2(i,j)
         v(i,j) = real(u(i,j)*pj%f2(i,j) + v(i,j)*pj%f1(i,j),rkx)
         u(i,j) = real(tmp,rkx)
@@ -1442,17 +1442,17 @@ module mod_projections
 
   subroutine backrotate2_rl(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , i , j
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, i, j
     real(rk8) :: tmp
     if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
-    do j = j1 , j2
-      do i = i1 , i2
+    do j = j1, j2
+      do i = i1, i2
         tmp = u(i,j)*pj%f1(i,j) + v(i,j)*pj%f2(i,j)
         v(i,j) = real(-u(i,j)*pj%f2(i,j) + v(i,j)*pj%f1(i,j),rkx)
         u(i,j) = real(tmp,rkx)
@@ -1462,9 +1462,9 @@ module mod_projections
 
   subroutine rotate3_rl(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
     real(rk8) :: tmp
     if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
@@ -1473,9 +1473,9 @@ module mod_projections
     j2 = ubound(u,2)
     k1 = lbound(u,3)
     k2 = ubound(u,3)
-    do k = k1 , k2
-      do j = j1 , j2
-        do i = i1 , i2
+    do k = k1, k2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j,k)*pj%f1(i,j) - v(i,j,k)*pj%f2(i,j)
           v(i,j,k) = real(u(i,j,k)*pj%f2(i,j) + v(i,j,k)*pj%f1(i,j),rkx)
           u(i,j,k) = real(tmp,rkx)
@@ -1486,9 +1486,9 @@ module mod_projections
 
   subroutine backrotate3_rl(pj,u,v)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
+    integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
     real(rk8) :: tmp
     if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
@@ -1497,9 +1497,9 @@ module mod_projections
     j2 = ubound(u,2)
     k1 = lbound(u,3)
     k2 = ubound(u,3)
-    do k = k1 , k2
-      do j = j1 , j2
-        do i = i1 , i2
+    do k = k1, k2
+      do j = j1, j2
+        do i = i1, i2
           tmp = u(i,j,k)*pj%f1(i,j) + v(i,j,k)*pj%f2(i,j)
           v(i,j,k) = real(-u(i,j,k)*pj%f2(i,j) + v(i,j,k)*pj%f1(i,j),rkx)
           u(i,j,k) = real(tmp,rkx)
@@ -1510,49 +1510,49 @@ module mod_projections
 
   pure subroutine mapfac_rl(pj,xlat,xlon,xmap)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
     xmap = fac_rl(pj,xlat,xlon)
   end subroutine mapfac_rl
 
   pure subroutine mapfac_lc(pj,xlat,xlon,xmap)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
     xmap = fac_lc(pj,xlat)
   end subroutine mapfac_lc
 
   pure subroutine mapfac_ps(pj,xlat,xlon,xmap)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
     xmap = fac_ps(pj,xlat)
   end subroutine mapfac_ps
 
   pure subroutine mapfac_mc(pj,xlat,xlon,xmap)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
     xmap = fac_mc(pj,xlat)
   end subroutine mapfac_mc
 
   pure subroutine mapfac_ll(pj,xlat,xlon,xmap)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
     xmap = d_one
   end subroutine mapfac_ll
 
   pure subroutine mapfac_rc(pj,xlat,xlon,xmap)
     implicit none
-    class(regcm_projection) , intent(in) :: pj
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
+    class(regcm_projection), intent(in) :: pj
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
     xmap = fac_rc(pj,xlat,xlon)
   end subroutine mapfac_rc
 

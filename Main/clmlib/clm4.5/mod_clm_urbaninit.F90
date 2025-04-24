@@ -4,7 +4,7 @@ module mod_clm_urbaninit
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_clm_urban , only : urban_traffic , urban_hac , urban_hac_off
+  use mod_clm_urban, only : urban_traffic, urban_hac, urban_hac_off
 
   implicit none
 
@@ -22,19 +22,19 @@ module mod_clm_urbaninit
   ! as used in Grimmond and Oke (1999)
   !
   subroutine UrbanInitAero( )
-    use mod_clm_type , only : clm3
-    use mod_clm_varcon , only : isturb , vkc
-    use mod_clm_decomp , only : get_proc_bounds
+    use mod_clm_type, only : clm3
+    use mod_clm_varcon, only : isturb, vkc
+    use mod_clm_decomp, only : get_proc_bounds
     implicit none
     ! height of urban roof (m)
-    real(rk8) , pointer :: ht_roof(:)
+    real(rk8), pointer, contiguous :: ht_roof(:)
     ! ratio of building height to street width (-)
-    real(rk8) , pointer :: canyon_hwr(:)
-    integer(ik4) , pointer :: ltype(:)      ! landunit type
+    real(rk8), pointer, contiguous :: canyon_hwr(:)
+    integer(ik4), pointer, contiguous :: ltype(:)      ! landunit type
     ! urban landunit momentum roughness length (m)
-    real(rk8) , pointer :: z_0_town(:)
+    real(rk8), pointer, contiguous :: z_0_town(:)
     ! urban landunit displacement height (m)
-    real(rk8) , pointer :: z_d_town(:)
+    real(rk8), pointer, contiguous :: z_d_town(:)
     ! coefficient used to calculate z_d_town
     real(rk8), parameter :: alpha = 4.43_rk8
     ! coefficient used to calculate z_d_town
@@ -62,7 +62,7 @@ module mod_clm_urbaninit
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
-    do l = begl , endl
+    do l = begl, endl
       if ( ltype(l) == isturb ) then
 
         ! Calculate plan area index
@@ -106,49 +106,49 @@ module mod_clm_urbaninit
   ! Initialize urban time-constant variables
   !
   subroutine UrbanInitTimeConst()
-    use mod_clm_type , only : clm3
-    use mod_clm_varcon , only : isturb, icol_roof, icol_sunwall, &
+    use mod_clm_type, only : clm3
+    use mod_clm_varcon, only : isturb, icol_roof, icol_sunwall, &
             icol_shadewall, icol_road_perv, icol_road_imperv, spval, udens_base
-    use mod_clm_decomp , only : get_proc_bounds
-    use mod_clm_urbaninput , only : urbinp
+    use mod_clm_decomp, only : get_proc_bounds
+    use mod_clm_urbaninput, only : urbinp
     implicit none
-    integer(ik4) , pointer :: coli(:)   ! beginning column index for landunit
-    integer(ik4) , pointer :: colf(:)   ! ending column index for landunit
-    integer(ik4) , pointer :: ctype(:)  ! column type
-    integer(ik4) , pointer :: ltype(:)  ! landunit type index
-    integer(ik4) , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
-    real(rk8), pointer :: canyon_hwr(:) ! urban canyon height to width ratio
-    real(rk8), pointer :: emg(:)        ! ground emissivity
+    integer(ik4), pointer, contiguous :: coli(:)   ! beginning column index for landunit
+    integer(ik4), pointer, contiguous :: colf(:)   ! ending column index for landunit
+    integer(ik4), pointer, contiguous :: ctype(:)  ! column type
+    integer(ik4), pointer, contiguous :: ltype(:)  ! landunit type index
+    integer(ik4), pointer, contiguous :: lgridcell(:)  ! gridcell of corresponding landunit
+    real(rk8), pointer, contiguous :: canyon_hwr(:) ! urban canyon height to width ratio
+    real(rk8), pointer, contiguous :: emg(:)        ! ground emissivity
     ! weight of pervious column to total road
-    real(rk8), pointer :: wtroad_perv(:)
-    real(rk8), pointer :: ht_roof(:)     ! height of urban roof (m)
+    real(rk8), pointer, contiguous :: wtroad_perv(:)
+    real(rk8), pointer, contiguous :: ht_roof(:)     ! height of urban roof (m)
     ! weight of roof with respect to landunit
-    real(rk8), pointer :: wtlunit_roof(:)
+    real(rk8), pointer, contiguous :: wtlunit_roof(:)
     ! height above road at which wind in canyon is to be computed (m)
-    real(rk8), pointer :: wind_hgt_canyon(:)
+    real(rk8), pointer, contiguous :: wind_hgt_canyon(:)
     ! multiplicative factor for sensible heat flux from urban traffic
-    real(rk8), pointer :: eflx_traffic_factor(:)
+    real(rk8), pointer, contiguous :: eflx_traffic_factor(:)
     ! maximum internal building temperature (K)
-    real(rk8), pointer :: t_building_max(:)
+    real(rk8), pointer, contiguous :: t_building_max(:)
     ! minimum internal building temperature (K)
-    real(rk8), pointer :: t_building_min(:)
+    real(rk8), pointer, contiguous :: t_building_min(:)
     ! thermal conductivity of urban wall (W/m/K)
-    real(rk8), pointer :: tk_wall(:,:)
+    real(rk8), pointer, contiguous :: tk_wall(:,:)
     ! thermal conductivity of urban roof (W/m/K)
-    real(rk8), pointer :: tk_roof(:,:)
+    real(rk8), pointer, contiguous :: tk_roof(:,:)
     ! thermal conductivity of urban impervious road (W/m/K)
-    real(rk8), pointer :: tk_improad(:,:)
+    real(rk8), pointer, contiguous :: tk_improad(:,:)
     ! thermal conductivity of urban wall (J/m^3/K)
-    real(rk8), pointer :: cv_wall(:,:)
+    real(rk8), pointer, contiguous :: cv_wall(:,:)
     ! thermal conductivity of urban roof (J/m^3/K)
-    real(rk8), pointer :: cv_roof(:,:)
+    real(rk8), pointer, contiguous :: cv_roof(:,:)
     ! thermal conductivity of urban impervious road (J/m^3/K)
-    real(rk8), pointer :: cv_improad(:,:)
-    real(rk8), pointer :: thick_wall(:)   ! thickness of urban wall (m)
-    real(rk8), pointer :: thick_roof(:)   ! thickness of urban roof (m)
+    real(rk8), pointer, contiguous :: cv_improad(:,:)
+    real(rk8), pointer, contiguous :: thick_wall(:)   ! thickness of urban wall (m)
+    real(rk8), pointer, contiguous :: thick_roof(:)   ! thickness of urban roof (m)
     ! number of impervious road layers (-)
-    integer(ik4),  pointer :: nlev_improad(:)
-    integer(ik4),  pointer :: udenstype(:)     ! urban density type
+    integer(ik4),  pointer, contiguous :: nlev_improad(:)
+    integer(ik4),  pointer, contiguous :: udenstype(:)     ! urban density type
     integer(ik4)  :: l,c,g        ! indices
     integer(ik4)  :: begp, endp   ! beginning and ending pft indices
     integer(ik4)  :: begc, endc   ! beginning and ending column indices
@@ -212,7 +212,7 @@ module mod_clm_urbaninit
         t_building_min(l)     = urbinp%t_building_min(g,dindx)
         t_building_max(l)     = urbinp%t_building_max(g,dindx)
 
-        do c = coli(l) , colf(l)
+        do c = coli(l), colf(l)
           if ( ctype(c) == icol_roof ) emg(c) = urbinp%em_roof(g,dindx)
           if ( ctype(c) == icol_sunwall ) emg(c) = urbinp%em_wall(g,dindx)
           if ( ctype(c) == icol_shadewall ) emg(c) = urbinp%em_wall(g,dindx)
@@ -251,64 +251,64 @@ module mod_clm_urbaninit
   ! Initialize urban time-varying variables
   !
   subroutine UrbanInitTimeVar( )
-    use mod_clm_type , only : clm3
-    use mod_clm_varcon , only : isturb, spval, icol_road_perv
-    use mod_clm_decomp , only : get_proc_bounds
+    use mod_clm_type, only : clm3
+    use mod_clm_varcon, only : isturb, spval, icol_road_perv
+    use mod_clm_decomp, only : get_proc_bounds
     implicit none
-    integer(ik4) , pointer :: ltype(:)      ! landunit type
-    integer(ik4) , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
-    integer(ik4) , pointer :: clandunit(:)  ! landunit index of column
-    integer(ik4) , pointer :: plandunit(:)  ! landunit index of pft
-    integer(ik4) , pointer :: ctype(:)      ! column type
-    real(rk8), pointer :: taf(:)  ! urban canopy air temperature (K)
-    real(rk8), pointer :: qaf(:)  ! urban canopy air specific humidity (kg/kg)
+    integer(ik4), pointer, contiguous :: ltype(:)      ! landunit type
+    integer(ik4), pointer, contiguous :: lgridcell(:)  ! gridcell of corresponding landunit
+    integer(ik4), pointer, contiguous :: clandunit(:)  ! landunit index of column
+    integer(ik4), pointer, contiguous :: plandunit(:)  ! landunit index of pft
+    integer(ik4), pointer, contiguous :: ctype(:)      ! column type
+    real(rk8), pointer, contiguous :: taf(:)  ! urban canopy air temperature (K)
+    real(rk8), pointer, contiguous :: qaf(:)  ! urban canopy air specific humidity (kg/kg)
     ! heat flux from urban building interior to walls, roof (W/m**2)
-    real(rk8), pointer :: eflx_building_heat(:)
+    real(rk8), pointer, contiguous :: eflx_building_heat(:)
     ! urban air conditioning flux (W/m**2)
-    real(rk8), pointer :: eflx_urban_ac(:)
-    real(rk8), pointer :: eflx_urban_heat(:)    ! urban heating flux (W/m**2)
-    real(rk8), pointer :: fcov(:)  ! fractional impermeable area
-    real(rk8), pointer :: fsat(:)  ! fractional area with water table at surface
-    real(rk8), pointer :: qcharge(:)    ! aquifer recharge rate (mm/s)
-    real(rk8), pointer :: t_building(:) ! internal building temperature (K)
+    real(rk8), pointer, contiguous :: eflx_urban_ac(:)
+    real(rk8), pointer, contiguous :: eflx_urban_heat(:)    ! urban heating flux (W/m**2)
+    real(rk8), pointer, contiguous :: fcov(:)  ! fractional impermeable area
+    real(rk8), pointer, contiguous :: fsat(:)  ! fractional area with water table at surface
+    real(rk8), pointer, contiguous :: qcharge(:)    ! aquifer recharge rate (mm/s)
+    real(rk8), pointer, contiguous :: t_building(:) ! internal building temperature (K)
     ! traffic sensible heat flux (W/m**2)
-    real(rk8), pointer :: eflx_traffic(:)
+    real(rk8), pointer, contiguous :: eflx_traffic(:)
     ! sensible heat flux from urban heating/cooling sources of waste heat
     ! (W/m**2)
-    real(rk8), pointer :: eflx_wasteheat(:)
+    real(rk8), pointer, contiguous :: eflx_wasteheat(:)
     ! sensible heat flux from urban heating/cooling sources of waste heat
     ! at pft level (W/m**2)
-    real(rk8), pointer :: eflx_wasteheat_pft(:)
+    real(rk8), pointer, contiguous :: eflx_wasteheat_pft(:)
     ! sensible heat flux put back into canyon due to removal by AC (W/m**2)
-    real(rk8), pointer :: eflx_heat_from_ac_pft(:)
+    real(rk8), pointer, contiguous :: eflx_heat_from_ac_pft(:)
     ! sensible heat flux from traffic (W/m**2)
-    real(rk8), pointer :: eflx_traffic_pft(:)
+    real(rk8), pointer, contiguous :: eflx_traffic_pft(:)
     ! total anthropogenic heat flux (W/m**2)
-    real(rk8), pointer :: eflx_anthro(:)
+    real(rk8), pointer, contiguous :: eflx_anthro(:)
     ! Urban 2 m height surface air temperature (Kelvin)
-    real(rk8), pointer :: t_ref2m_u(:)
+    real(rk8), pointer, contiguous :: t_ref2m_u(:)
     ! Urban daily minimum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_min_u(:)
+    real(rk8), pointer, contiguous :: t_ref2m_min_u(:)
     ! Urban daily maximum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_max_u(:)
+    real(rk8), pointer, contiguous :: t_ref2m_max_u(:)
     ! Urban 2 m height surface relative humidity (%)
-    real(rk8), pointer :: rh_ref2m_u(:)
+    real(rk8), pointer, contiguous :: rh_ref2m_u(:)
     ! Urban ground temperature (Kelvin)
-    real(rk8), pointer :: t_grnd_u(:)
+    real(rk8), pointer, contiguous :: t_grnd_u(:)
     ! Urban total runoff (qflx_drain+qflx_surf) (mm H2O /s)
-    real(rk8), pointer :: qflx_runoff_u(:)
+    real(rk8), pointer, contiguous :: qflx_runoff_u(:)
     ! Urban absorbed solar radiation (W/m**2)
-    real(rk8), pointer :: fsa_u(:)
+    real(rk8), pointer, contiguous :: fsa_u(:)
     ! Urban net longwave radiation (W/m**2)
-    real(rk8), pointer :: eflx_lwrad_net_u(:)
+    real(rk8), pointer, contiguous :: eflx_lwrad_net_u(:)
     ! Urban latent heat flux (W/m**2)
-    real(rk8), pointer :: eflx_lh_tot_u(:)
+    real(rk8), pointer, contiguous :: eflx_lh_tot_u(:)
     ! Urban sensible heat flux (W/m**2)
-    real(rk8), pointer :: eflx_sh_tot_u(:)
+    real(rk8), pointer, contiguous :: eflx_sh_tot_u(:)
     ! Urban ground heat flux (W/m**2)
-    real(rk8), pointer :: eflx_soil_grnd_u(:)
+    real(rk8), pointer, contiguous :: eflx_soil_grnd_u(:)
     ! Urban snow melt heat flux (W/m**2)
-    real(rk8), pointer :: eflx_snomelt_u(:)
+    real(rk8), pointer, contiguous :: eflx_snomelt_u(:)
     integer(ik4) :: l,g,c,p       ! indices
     integer(ik4) :: begp, endp    ! beginning and ending pft indices
     integer(ik4) :: begc, endc    ! beginning and ending column indices

@@ -21,11 +21,11 @@
 !
       private
 !
-      public :: initlake , lake
+      public :: initlake, lake
 !
-      integer , parameter :: ndpmax = 400
+      integer, parameter :: ndpmax = 400
 !
-      real(8) , dimension(ndpmax) :: tprof
+      real(8), dimension(ndpmax) :: tprof
       integer :: idep
       real(8) :: eta
       real(8) :: hi
@@ -33,14 +33,14 @@
       real(8) :: hsnow
       real(8) :: tgl
 !
-      real(8) , dimension(ndpmax) :: de , dnsty , tt
+      real(8), dimension(ndpmax) :: de, dnsty, tt
 !
-      public :: tprof , idep , aveice , hsnow , tgl
+      public :: tprof, idep, aveice, hsnow, tgl
 !
 !     surface thickness
-      real(8) , parameter :: surf = 1.0D0
+      real(8), parameter :: surf = 1.0D0
 !     vertical grid spacing in m
-      real(8) , parameter :: dz = surf
+      real(8), parameter :: dz = surf
 !
       contains
 !
@@ -49,7 +49,7 @@
       subroutine initlake(depth)
       implicit none
 !
-      real(8) , intent(in) :: depth
+      real(8), intent(in) :: depth
       integer :: i, j, n
 
       idep   = int(max(2.D0,min(depth,dble(ndpmax))))
@@ -69,22 +69,22 @@
 !
       implicit none
 !
-      real(8) :: dtlake , evl , hsen , flw , &
-               & prec , ql , fsw , tl , vl , zl , xl
-      intent (in) hsen , ql , tl , vl , zl
+      real(8) :: dtlake, evl, hsen, flw, &
+               & prec, ql, fsw, tl, vl, zl, xl
+      intent (in) hsen, ql, tl, vl, zl
       intent (inout) evl
 !
-      real(8) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
+      real(8) :: ai, ea, ev, hs, ld, lu, qe, qh, tac, tk, u2
 !
 !***  dtlake:  time step in seconds
 !***  zo:      surface roughness length
 !
-      real(8) , parameter :: zo = 0.001D0
-      real(8) , parameter :: z2 = 2.0D0
-      real(8) , parameter :: tcutoff = -0.001D0
-      real(8) , parameter :: twatui = 1.78D0
-      logical , parameter :: lfreeze = .false.
-      integer , parameter :: kmin = 1
+      real(8), parameter :: zo = 0.001D0
+      real(8), parameter :: z2 = 2.0D0
+      real(8), parameter :: tcutoff = -0.001D0
+      real(8), parameter :: twatui = 1.78D0
+      logical, parameter :: lfreeze = .false.
+      integer, parameter :: kmin = 1
 !
 !     interpolate winds at z1 m to 2m via log wind profile
       u2 = vl*log(z2/zo)/log(zl/zo)
@@ -145,12 +145,12 @@
 
       implicit none
 !
-      integer , intent (in) :: ndpt
-      real(8) , intent (in) :: dtlake , u2 , xl
-      real(8) , dimension(ndpmax) , intent (in) :: tprof
+      integer, intent (in) :: ndpt
+      real(8), intent (in) :: dtlake, u2, xl
+      real(8), dimension(ndpmax), intent (in) :: tprof
 !
-      real(8) :: demax , demin , dpdz , ks , n2 , po
-      real(8) :: zmax , rad , ri , ws , z
+      real(8) :: demax, demin, dpdz, ks, n2, po
+      real(8) :: zmax, rad, ri, ws, z
       integer :: k
 !
 !     demin molecular diffusion of heat in water
@@ -160,7 +160,7 @@
       demax = .50D0*dz**2/dtlake
       demax = .99D0*demax
 !
-      do k = 1 , ndpt
+      do k = 1, ndpt
         dnsty(k) = d_1000*(d_one-1.9549D-05 * &
                       (dabs((tprof(k)+tzero)-277.0D0))**1.68D0)
       end do
@@ -186,7 +186,7 @@
 !     Inverse of turbulent Prandtl number
       po = d_one
 
-      do k = 1 , ndpt - 1
+      do k = 1, ndpt - 1
 
 !       Actual depth from surface
         z = surf + dble(k-1)*dz
@@ -236,11 +236,11 @@
 !
       implicit none
 !
-      integer , intent(in) :: ndpt
-      real(8) , intent(in) :: dtlake , eta , flw , qe , qh , fsw
-      real(8) , dimension(ndpmax) , intent(inout) :: tprof
+      integer, intent(in) :: ndpt
+      real(8), intent(in) :: dtlake, eta, flw, qe, qh, fsw
+      real(8), dimension(ndpmax), intent(inout) :: tprof
 !
-      real(8) :: bot , dt1 , dt2 , top
+      real(8) :: bot, dt1, dt2, top
       integer :: k
 
 !******    solve differential equations of heat transfer
@@ -252,7 +252,7 @@
       dt2 = -de(1)*(tprof(1)-tprof(2))/surf
       tt(1) = tt(1) + (dt1+dt2)*dtlake
 
-      do k = 2 , ndpt - 1
+      do k = 2, ndpt - 1
         top = (surf+(k-2)*dz)
         bot = (surf+(k-1)*dz)
         dt1 = fsw*(dexp(-eta*top)-dexp(-eta*bot))/(dz*dnsty(k)*cpw)
@@ -266,7 +266,7 @@
       dt2 = de(ndpt-1)*(tprof(ndpt-1)-tprof(ndpt))/dz
       tt(ndpt) = tt(ndpt) + (dt1+dt2)*dtlake
 
-      do k = 1 , ndpt
+      do k = 1, ndpt
         tprof(k) = tt(k)
         dnsty(k) = d_1000*(d_one-1.9549D-05 * &
                    (dabs((tprof(k)+tzero)-277.0D0))**1.68D0)
@@ -282,21 +282,21 @@
 !
       implicit none
 !
-      integer , intent(in) :: ndpt , kmin
-      real(8) , intent(inout) , dimension(ndpmax) :: tprof
+      integer, intent(in) :: ndpt, kmin
+      real(8), intent(inout), dimension(ndpmax) :: tprof
 !
-      real(8) :: avet , avev , tav , vol
-      integer :: k , k2
+      real(8) :: avet, avev, tav, vol
+      integer :: k, k2
 !
       tt(kmin:ndpt) = tprof(kmin:ndpt)
 
-      do k = kmin , ndpt - 1
+      do k = kmin, ndpt - 1
         avet = d_zero
         avev = d_zero
 
         if ( dnsty(k) > dnsty(k+1) ) then
 
-          do k2 = kmin , k + 1
+          do k2 = kmin, k + 1
             if ( k2 == 1 ) then
               vol = surf
             else
@@ -308,7 +308,7 @@
 
           tav = avet/avev
 
-          do k2 = kmin , k + 1
+          do k2 = kmin, k + 1
             tt(k2) = tav
             dnsty(k2) = d_1000*(d_one-1.9549D-05 * &
                         (dabs((tav+tzero)-277.0D0))**1.68D0)
@@ -326,41 +326,41 @@
       subroutine ice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
 
       implicit none
-      real(8) :: ea , evl , hi , aveice , hs , fsw , &
-                 ld , prec , tac , u2 , dtx
-      real(8) , dimension(ndpmax) :: tprof
-      intent (in) dtx , ea , ld , prec , tac , u2
+      real(8) :: ea, evl, hi, aveice, hs, fsw, &
+                 ld, prec, tac, u2, dtx
+      real(8), dimension(ndpmax) :: tprof
+      intent (in) dtx, ea, ld, prec, tac, u2
       intent (out) evl
-      intent (inout) hi , aveice , hs , fsw , tprof
+      intent (inout) hi, aveice, hs, fsw, tprof
 !
-      real(8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
-               & t2 , tf , theta , rho , xlexpc
-      real(8) :: xea , xeb , xec
+      real(8) :: di, ds, f0, f1, khat, psi, q0, qpen, t0, t1, &
+               & t2, tf, theta, rho, xlexpc
+      real(8) :: xea, xeb, xec
       integer :: nits
 !
-      real(8) , parameter :: isurf = 0.6D0
+      real(8), parameter :: isurf = 0.6D0
       ! attenuation coeff for ice in visible band (m-1)
-      real(8) , parameter :: lami1 = 1.5D0
+      real(8), parameter :: lami1 = 1.5D0
       ! attenuation coeff for ice in infrared band (m-1)
-      real(8) , parameter :: lami2 = 20.0D0
+      real(8), parameter :: lami2 = 20.0D0
       ! attenuation coeff for snow in visible band (m-1)
-      real(8) , parameter :: lams1 = 6.0D0
+      real(8), parameter :: lams1 = 6.0D0
       ! attenuation coeff for snow in infrared band (m-1)
-      real(8) , parameter :: lams2 = 20.0D0
+      real(8), parameter :: lams2 = 20.0D0
       ! thermal conductivity of ice (W/m/C)
-      real(8) , parameter :: ki = 2.3D0
+      real(8), parameter :: ki = 2.3D0
       ! thermal conductivity of snow (W/m/C)
-      real(8) , parameter :: ks = 0.31D0
+      real(8), parameter :: ks = 0.31D0
       ! standard atmospheric pressure (hPa) ????
-      real(8) , parameter :: atm = 950.0D0
+      real(8), parameter :: atm = 950.0D0
       ! heat flux from water to ice (w/m2) ???
-      real(8) , parameter :: qw = 1.389D0
+      real(8), parameter :: qw = 1.389D0
       ! latent heat of fusion (J/kg)
-      real(8) , parameter :: li = 334.0D03
+      real(8), parameter :: li = 334.0D03
       ! drag coefficient for the turbulent momentum flux.
-      real(8) , parameter :: cd = 0.001D0
+      real(8), parameter :: cd = 0.001D0
       ! Maximum exponent
-      real(8) , parameter :: minexp = -25.0D0
+      real(8), parameter :: minexp = -25.0D0
 !
 !
 !****************************SUBROUINE ICE*****************************
@@ -485,27 +485,27 @@
       function t4(x)
         implicit none
         real(8) :: t4
-        real(8) , intent(in) :: x
+        real(8), intent(in) :: x
         t4 = (x+tzero)**4
       end function t4
       ! Computes air vapor pressure as a function of temp (in K)
       function tr1(x)
         implicit none
         real(8) :: tr1
-        real(8) , intent(in) :: x
+        real(8), intent(in) :: x
         tr1 = d_one - (tboil/(x+tzero))
       end function tr1
       function eomb(x)
         implicit none
         real(8) :: eomb
-        real(8) , intent(in) :: x
+        real(8), intent(in) :: x
         eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**2   &
            &   -0.6445D0*tr1(x)**3- 0.1299D0*tr1(x)**4)
        end function eomb
       function f(x)
         implicit none
         real(8) :: f
-        real(8) , intent(in) :: x
+        real(8), intent(in) :: x
         f = (-ld+0.97D0*sigm*t4(x)+psi*(eomb(x)-ea)+theta*(x-tac)-fsw)  &
             - d_one/khat*(qpen+tf-x)
       end function f

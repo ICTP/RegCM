@@ -88,61 +88,61 @@ module driver
 ! when coupled with CCSM components is denoted by an asterisk (*).
 !
 ! !USES:
-  use shr_kind_mod        , only : r8 => shr_kind_r8
+  use shr_kind_mod       , only : r8 => shr_kind_r8
   use clmtype
-  use clm_varctl          , only : wrtdia, fpftdyn, fndepdyn
-  use spmdMod             , only : masterproc
-  use decompMod           , only : get_proc_clumps, get_clump_bounds
-  use filterMod           , only : filter, setFilters
-  use pftdynMod           , only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal
-  use clm_varcon          , only : zlnd
-  use clm_time_manager        , only : get_step_size, get_curr_calday, &
+  use clm_varctl         , only : wrtdia, fpftdyn, fndepdyn
+  use spmdMod            , only : masterproc
+  use decompMod          , only : get_proc_clumps, get_clump_bounds
+  use filterMod          , only : filter, setFilters
+  use pftdynMod          , only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal
+  use clm_varcon         , only : zlnd
+  use clm_time_manager       , only : get_step_size, get_curr_calday, &
                                    get_curr_date, get_ref_date, get_nstep, is_perpetual, &
                                    advance_timestep
-  use histFileMod         , only : update_hbuf, htapes_wrapup
-  use restFileMod         , only : restFile_write, restFile_write_binary, restFile_filename
-  use inicFileMod         , only : inicfile_perp
-  use accFldsMod          , only : updateAccFlds
-  use DriverInitMod       , only : DriverInit
-  use BalanceCheckMod     , only : BeginWaterBalance, BalanceCheck
-  use SurfaceRadiationMod , only : SurfaceRadiation
-  use Hydrology1Mod       , only : Hydrology1
-  use Hydrology2Mod       , only : Hydrology2
-  use HydrologyLakeMod    , only : HydrologyLake
-  use Biogeophysics1Mod   , only : Biogeophysics1
-  use BareGroundFluxesMod , only : BareGroundFluxes
-  use CanopyFluxesMod     , only : CanopyFluxes
-  use Biogeophysics2Mod   , only : Biogeophysics2
+  use histFileMod        , only : update_hbuf, htapes_wrapup
+  use restFileMod        , only : restFile_write, restFile_write_binary, restFile_filename
+  use inicFileMod        , only : inicfile_perp
+  use accFldsMod         , only : updateAccFlds
+  use DriverInitMod      , only : DriverInit
+  use BalanceCheckMod    , only : BeginWaterBalance, BalanceCheck
+  use SurfaceRadiationMod, only : SurfaceRadiation
+  use Hydrology1Mod      , only : Hydrology1
+  use Hydrology2Mod      , only : Hydrology2
+  use HydrologyLakeMod   , only : HydrologyLake
+  use Biogeophysics1Mod  , only : Biogeophysics1
+  use BareGroundFluxesMod, only : BareGroundFluxes
+  use CanopyFluxesMod    , only : CanopyFluxes
+  use Biogeophysics2Mod  , only : Biogeophysics2
   use BiogeophysicsLakeMod, only : BiogeophysicsLake
-  use SurfaceAlbedoMod    , only : SurfaceAlbedo, Snowage
-  use pft2colMod          , only : pft2col
-  use DryDepVelocity      , only : depvel_compute
+  use SurfaceAlbedoMod   , only : SurfaceAlbedo, Snowage
+  use pft2colMod         , only : pft2col
+  use DryDepVelocity     , only : depvel_compute
 #if (defined DGVM)
-  use DGVMEcosystemDynMod , only : DGVMEcosystemDyn, DGVMRespiration
-  use DGVMMod             , only : lpj, lpjreset, histDGVM, &
+  use DGVMEcosystemDynMod, only : DGVMEcosystemDyn, DGVMRespiration
+  use DGVMMod            , only : lpj, lpjreset, histDGVM, &
 	                           resetweightsdgvm, resettimeconstdgvm
 #elif (defined CN)
-  use CNEcosystemDynMod   , only : CNEcosystemDyn
-  use CNBalanceCheckMod   , only : BeginCBalance, BeginNBalance, &
+  use CNEcosystemDynMod  , only : CNEcosystemDyn
+  use CNBalanceCheckMod  , only : BeginCBalance, BeginNBalance, &
                                    CBalanceCheck, NBalanceCheck
-  use ndepFileMod         , only : ndepdyn_interp
+  use ndepFileMod        , only : ndepdyn_interp
 #else
-  use STATICEcosysDynMod  , only : EcosystemDyn, interpMonthlyVeg
+  use STATICEcosysDynMod , only : EcosystemDyn, interpMonthlyVeg
 #endif
 #if (defined DUST)
-  use DUSTMod             , only : DustDryDep, DustEmission
+  use DUSTMod            , only : DustDryDep, DustEmission
 #endif
 #if (defined VOC)
-  use VOCEmissionMod      , only : VOCEmission
+  use VOCEmissionMod     , only : VOCEmission
 #endif
 #if (defined CASA)
-  use CASAPhenologyMod    , only : CASAPhenology
-  use CASAMod             , only : Casa
+  use CASAPhenologyMod   , only : CASAPhenology
+  use CASAMod            , only : Casa
 #endif
 #if (defined RTM)
-  use RtmMod              , only : Rtmriverflux
+  use RtmMod             , only : Rtmriverflux
 #endif
-  use abortutils          , only : endrun
+  use abortutils         , only : endrun
   use perf_mod
 !
 ! !PUBLIC TYPES:
@@ -169,7 +169,7 @@ subroutine driver1 (doalb, caldayp1, declinp1)
 !
 ! !ARGUMENTS:
   implicit none
-  logical , intent(in) :: doalb    ! true if time for surface albedo calc
+  logical, intent(in) :: doalb    ! true if time for surface albedo calc
   real(r8), intent(in) :: caldayp1 ! calendar day for nstep+1
   real(r8), intent(in) :: declinp1 ! declination angle for next time step
 !
@@ -196,7 +196,7 @@ subroutine driver1 (doalb, caldayp1, declinp1)
   integer  :: begc, endc    ! clump beginning and ending column indices
   integer  :: begl, endl    ! clump beginning and ending landunit indices
   integer  :: begg, endg    ! clump beginning and ending gridcell indices
-  type(column_type)  , pointer :: cptr    ! pointer to column derived subtype
+  type(column_type) , pointer :: cptr    ! pointer to column derived subtype
 !-----------------------------------------------------------------------
   ! Set pointers into derived type
 
@@ -775,12 +775,12 @@ subroutine write_diagnostic (wrtdia, nstep)
 ! timestep.
 !
 ! !USES:
-  use clm_atmlnd , only : clm_l2a
-  use decompMod  , only : get_proc_bounds, get_proc_global
-  use spmdMod    , only : masterproc, npes, MPI_REAL8, MPI_ANY_SOURCE, &
+  use clm_atmlnd, only : clm_l2a
+  use decompMod , only : get_proc_bounds, get_proc_global
+  use spmdMod   , only : masterproc, npes, MPI_REAL8, MPI_ANY_SOURCE, &
                           MPI_STATUS_SIZE, mpicom
   use shr_sys_mod, only : shr_sys_flush
-  use abortutils , only : endrun
+  use abortutils, only : endrun
 !
 ! !ARGUMENTS:
   implicit none
@@ -872,12 +872,12 @@ logical function do_restwrite()
 ! Determine if restart dataset is to be written at this time step
 !
 ! !USES:
-  use restFileMod , only : rest_flag
+  use restFileMod, only : rest_flag
 #if (defined COUP_CSM)
-  use clm_csmMod  , only : csmstop_next, csmrstrt
+  use clm_csmMod , only : csmstop_next, csmrstrt
 #else
   use clm_time_manager, only : is_last_step
-  use histFileMod , only : if_writrest
+  use histFileMod, only : if_writrest
 #endif
 !
 ! !ARGUMENTS:
@@ -923,7 +923,7 @@ end function do_restwrite
 !
 ! !USES:
     use clm_time_manager, only : get_curr_date, get_prev_date, get_step_size
-    use clm_varctl  , only : hist_crtinic
+    use clm_varctl , only : hist_crtinic
 
     use mod_dynparam
     use mod_clm
@@ -959,7 +959,7 @@ end function do_restwrite
 
      dtime = get_step_size()
 
-    call get_curr_date (yr  , mon  , day  , mcsec  )
+    call get_curr_date (yr , mon , day , mcsec  )
     call get_prev_date (yrm1, monm1, daym1, mcsecm1)
     call get_curr_date (yrp1, monp1, dayp1, mcsecp1, offset=dtime)
 

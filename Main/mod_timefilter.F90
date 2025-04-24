@@ -26,13 +26,13 @@ module mod_timefilter
   use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_runparams , only : iqv
+  use mod_runparams, only : iqv
 
   implicit none
 
   private
 
-  real(rkx) , public , parameter :: betaraw = 0.53_rkx
+  real(rkx), public, parameter :: betaraw = 0.53_rkx
 
   public :: timefilter_apply
 
@@ -53,11 +53,11 @@ module mod_timefilter
 
   subroutine filter_ra_2d(phin,phinm1,phinp1,alpha)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: phinm1
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: phin
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: phinp1
-    real(rkx) , intent(in) :: alpha
-    integer(ik4) :: i , j
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: phinm1
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: phin
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: phinp1
+    real(rkx), intent(in) :: alpha
+    integer(ik4) :: i, j
     real(rkx) :: d
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       d = alpha * (phinp1(j,i) + phinm1(j,i) - d_two * phin(j,i))
@@ -68,11 +68,11 @@ module mod_timefilter
 
   subroutine filter_raw_2d(phin,phinm1,phinp1,alpha,beta)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: phinm1
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: phin
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: phinp1
-    real(rkx) , intent(in) :: alpha , beta
-    integer(ik4) :: i , j
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: phinm1
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: phin
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: phinp1
+    real(rkx), intent(in) :: alpha, beta
+    integer(ik4) :: i, j
     real(rkx) :: d
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       d = alpha * (phinp1(j,i) + phinm1(j,i) - d_two * phin(j,i))
@@ -83,11 +83,11 @@ module mod_timefilter
 
   subroutine filter_ra_3d(phin,phinm1,phinp1,alpha)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: phinm1
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: phin
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: phinp1
-    real(rkx) , intent(in) :: alpha
-    integer(ik4) :: i , j , k , nk
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: phinm1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: phin
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: phinp1
+    real(rkx), intent(in) :: alpha
+    integer(ik4) :: i, j, k, nk
     real(rkx) :: d
     nk = size(phin,3)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk )
@@ -99,11 +99,11 @@ module mod_timefilter
 
   subroutine filter_raw_3d(phin,phinm1,phinp1,alpha,beta)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: phinm1
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: phin
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: phinp1
-    real(rkx) , intent(in) :: alpha , beta
-    integer(ik4) :: i , j , k , nk
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: phinm1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: phin
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: phinp1
+    real(rkx), intent(in) :: alpha, beta
+    integer(ik4) :: i, j, k, nk
     real(rkx) :: d
     nk = size(phin,3)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk )
@@ -115,14 +115,14 @@ module mod_timefilter
 
   subroutine filter_ra_uv(un,unm1,unp1,vn,vnm1,vnp1,alpha)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: unm1
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: un
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: unp1
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vnm1
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vn
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: vnp1
-    real(rkx) , intent(in) :: alpha
-    integer(ik4) :: i , j , k , nk
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: unm1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: un
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: unp1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vnm1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vn
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: vnp1
+    real(rkx), intent(in) :: alpha
+    integer(ik4) :: i, j, k, nk
     real(rkx) :: d
     nk = size(un,3)
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:nk )
@@ -137,14 +137,14 @@ module mod_timefilter
 
   subroutine filter_raw_uv(un,unm1,unp1,vn,vnm1,vnp1,alpha,beta)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: unm1
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: un
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: unp1
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vnm1
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vn
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: vnp1
-    real(rkx) , intent(in) :: alpha , beta
-    integer(ik4) :: i , j , k , nk
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: unm1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: un
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: unp1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vnm1
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vn
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: vnp1
+    real(rkx), intent(in) :: alpha, beta
+    integer(ik4) :: i, j, k, nk
     real(rkx) :: d
     nk = size(un,3)
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:nk )
@@ -159,12 +159,12 @@ module mod_timefilter
 
   subroutine filter_ra_4d(phin,phinm1,phinp1,alpha,n1,n2,low)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
-    real(rkx) , intent(in) :: alpha , low
-    integer(ik4) , intent(in) :: n1 , n2
-    integer(ik4) :: i , j , k , n , nk
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phinm1
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phin
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: phinp1
+    real(rkx), intent(in) :: alpha, low
+    integer(ik4), intent(in) :: n1, n2
+    integer(ik4) :: i, j, k, n, nk
     real(rkx) :: d
     nk = size(phin,3)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk, n = n1:n2 )
@@ -178,12 +178,12 @@ module mod_timefilter
 
   subroutine filter_ra_qv(phin,phinm1,phinp1,alpha,ps)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
-    real(rkx) , intent(in) :: alpha
-    integer(ik4) :: i , j , k , nk
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phinm1
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phin
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: phinp1
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps
+    real(rkx), intent(in) :: alpha
+    integer(ik4) :: i, j, k, nk
     real(rkx) :: d
     nk = size(phin,3)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk )
@@ -196,12 +196,12 @@ module mod_timefilter
 
   subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2,low)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
-    real(rkx) , intent(in) :: alpha , beta , low
-    integer(ik4) , intent(in) :: n1 , n2
-    integer(ik4) :: i , j , k , n , nk
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phinm1
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phin
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: phinp1
+    real(rkx), intent(in) :: alpha, beta, low
+    integer(ik4), intent(in) :: n1, n2
+    integer(ik4) :: i, j, k, n, nk
     real(rkx) :: d
     nk = size(phin,3)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk, n = n1:n2 )
@@ -216,12 +216,12 @@ module mod_timefilter
 
   subroutine filter_raw_qv(phin,phinm1,phinp1,alpha,beta,psa,psb)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: psa , psb
-    real(rkx) , intent(in) :: alpha , beta
-    integer(ik4) :: i , j , k , nk
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phinm1
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phin
+    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: phinp1
+    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: psa, psb
+    real(rkx), intent(in) :: alpha, beta
+    integer(ik4) :: i, j, k, nk
     real(rkx) :: d
     nk = size(phin,3)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk )

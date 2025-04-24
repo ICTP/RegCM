@@ -26,7 +26,7 @@ module mod_cbmz_init1
 !
   private
 !
-  public :: chemread , namechem , hvread , cheminit
+  public :: chemread, namechem, hvread, cheminit
 !
   contains
 !
@@ -121,21 +121,21 @@ module mod_cbmz_init1
 !
       implicit none
       ! Chem index
-      integer(ik4) :: ic , ic1 , ic2 , ic3 , icc , ics , icc1 , icc2 , icc3
+      integer(ik4) :: ic, ic1, ic2, ic3, icc, ics, icc1, icc2, icc3
       ! Chem index
       integer(ik4) :: icp
       ! chem index - pair and multi
-      integer(ik4) :: icr1 , icr2
+      integer(ik4) :: icr1, icr2
       ! Aqueous counters
       integer(ik4) :: neq
       ! Chem species counters
-      integer(ik4) :: nc , nc1 , nc2 , ncf , nn , nne,nsolv,nsol
+      integer(ik4) :: nc, nc1, nc2, ncf, nn, nne,nsolv,nsol
       ! Reaction counters
-      integer(ik4) :: nr , nrh , nrq , nrqq , np
+      integer(ik4) :: nr, nrh, nrq, nrqq, np
       ! Vectorization counters
       integer(ik4) :: kk
       ! General counters
-      integer(ik4) :: i , j , ii , iii , n
+      integer(ik4) :: i, j, ii, iii, n
 !
       ! dummy input character variable
       character(len=8) :: tdum(5)
@@ -172,9 +172,9 @@ module mod_cbmz_init1
       !
       ! PRELIMINARY ZERO FOR READ
       !
-      do nr = 1 , c_rdim
+      do nr = 1, c_rdim
         c_nnpro(nr) = 0
-        do i = 1 , 20
+        do i = 1, 20
           if ( i <= 2 ) c_reactant(nr,i) = 0
           if ( i <= 6 ) c_treac(i,nr) = '        '
           if ( i <= 2 .and. nr <= 61 ) c_treach(i,nr) = '        '
@@ -184,19 +184,19 @@ module mod_cbmz_init1
           c_product(nr,i) = 0
           c_stoich(nr,i) = d_zero
         end do
-        do ic = 1 , c_cdim
+        do ic = 1, c_cdim
           c_prodarr(nr,ic) = d_zero
         end do
       end do
 
-      do i = 1 , c_cdim
-        do ii = 1 , c_cdim
+      do i = 1, c_cdim
+        do ii = 1, c_cdim
           c_cascade(i,ii) = 0
         end do
-        do ii = 1 , 3
+        do ii = 1, 3
           c_lump(i,ii) = 0
         end do
-        do ii = 1 , 2
+        do ii = 1, 2
           caspair(i,ii) = 0
         end do
         ! PAIR POINTERS to linked species in a pair chain:
@@ -210,7 +210,7 @@ module mod_cbmz_init1
         !
         c_nppair(i,1) = i
         c_nppair(i,2) = i
-        do ii = 3 , 23
+        do ii = 3, 23
           c_nppair(i,ii) = 0
         end do
       end do
@@ -237,14 +237,14 @@ module mod_cbmz_init1
       ! ZERO SPECIAL INDICES FOR PARAMETERIZED RO2-RO2 REACTIONS (CBMZ)
       !
       c_nnrro2 = 0
-      do nr = 1 , c_rdim
+      do nr = 1, c_rdim
         c_nrro2 = 0
       end do
       !
       ! READ LOOP:  Read char*4 until you find 'START'.
       !  Then BREAK and begin first read cycle.
       !
-      do i = 1 , 1111
+      do i = 1, 1111
         read(c_rin,11) titl
         if ( titl == 'STAR' ) exit
       end do
@@ -262,7 +262,7 @@ module mod_cbmz_init1
       ! READ LOOP: NAMES AND CATEGORIES FOR TRANSPORTED (INPUT/OUTPUT) SPECIES
       ! ------------------------
       ic = 0
-      do i = 1 , 1111
+      do i = 1, 1111
         read(c_rin,11) titl
         if ( titl == 'STAR' ) exit
       end do
@@ -273,14 +273,14 @@ module mod_cbmz_init1
       !   (also can change in summary write)
       !
       loopcdim: &
-      do i = 1 , c_cdim
-        read(c_rin,29) (tdum(ii) , ndum(ii) , ii=1,5)
-        if ( c_kkw == 5 ) write(c_out,29) (tdum(ii) , ndum(ii), ii=1,5)
+      do i = 1, c_cdim
+        read(c_rin,29) (tdum(ii), ndum(ii), ii=1,5)
+        if ( c_kkw == 5 ) write(c_out,29) (tdum(ii), ndum(ii), ii=1,5)
         !
         ! WHILE NAME NE 'END', ENTER DUMMY READ INTO TCHEM ARRAY.
         ! AT 'END' BREAK AND LEAVE LOOP
         !
-        do ii = 1 , 5
+        do ii = 1, 5
           if ( tdum(ii) == '     END' .or. &
                tdum(ii) == '    END ' ) exit loopcdim
           ic = ic+1
@@ -302,19 +302,19 @@ module mod_cbmz_init1
       !
       write(c_out,1301)
       ncf = int(0.2_rkx*(real(c_nchem1,rkx)-0.01_rkx))+1
-      do nc = 1 , ncf
+      do nc = 1, ncf
         nc1 = 5*(nc-1) + 1
         nc2 = nc1 + 4
         if ( nc1 > c_nchem1 ) nc1 = c_nchem1
         if ( nc2 > c_nchem1 ) nc2 = c_nchem1
-        write(c_out, 1302) (nn, c_tchem(nn),c_icat(nn) , nn=nc1,nc2 )
+        write(c_out, 1302) (nn, c_tchem(nn),c_icat(nn), nn=nc1,nc2 )
       end do
       !
       ! SET CATEGORY AND STEADY STATE INDEX (after WRITE)
       !    ASSIGN LSTS=T IF ICAT<0, MAKE CATEGORY POSITIVE.
       !    ALSO INITIALIZE LUMP FLAG=false
       !
-      do ic = 1 , c_nchem1
+      do ic = 1, c_nchem1
         ! lump accumulator flag initially F
         c_llump(ic) = .false.
         c_lsts(ic) = .false.
@@ -348,13 +348,13 @@ module mod_cbmz_init1
       !      in the list of 'primary' (i/o) species above.
       !
       nlump = 0
-      do i = 1 , 1111
+      do i = 1, 1111
         read(c_rin,11) titl
         if ( titl == 'STAR' ) exit
       end do
       if ( c_kkw == 5 ) write(c_out,11) titl
       loopindex: &
-      do i = 1 , 20
+      do i = 1, 20
         read(c_rin,209) (tdum(ii),ii=1,1)
         if ( c_kkw == 5 ) write(c_out,209) (tdum(ii),ii=1,1)
         if ( tdum(1) == '     END' .or. &
@@ -386,10 +386,10 @@ module mod_cbmz_init1
         ! READ LIST OF SPECIES TO BE INCLUDED IN LUMP, ADD TO SPECIES LIST.
         !
         looplumpspec: &
-        do jj = 1 , 111
+        do jj = 1, 111
           read(c_rin,39) (tdum(ii),ii=1,5)
           if ( c_kkw == 5 ) write(c_out,39) (tdum(ii),ii=1,5)
-          do ii = 1 , 5
+          do ii = 1, 5
             if ( tdum(ii) == '       x' .or. &
                  tdum(ii) == '        ' .or. &
                  tdum(ii) == '      x ' ) exit looplumpspec
@@ -428,7 +428,7 @@ module mod_cbmz_init1
         ! ENTER CATEGORY AND STEADY STATE FOR LUMPED SPECIES.
         ! SET LUMP FLAG= F (T for accumulator only)
         !
-        do ic = c_lump(nlump,2) , c_lump(nlump,3)
+        do ic = c_lump(nlump,2), c_lump(nlump,3)
           c_icat(ic) = c_icat(c_lump(nlump,1))
           c_lsts(ic) = c_lsts(c_lump(nlump,1))
           c_llump(ic) = .false.
@@ -440,12 +440,12 @@ module mod_cbmz_init1
         write(c_out,1311) c_tchem(c_lump(nlump,1))
         ncf = int(0.2_rkx*(real(c_lump(nlump,3) - &
                                 c_lump(nlump,2)+d_one,rkx)-0.01_rkx))+1
-        do nc = 1 , ncf
+        do nc = 1, ncf
           nc1 = 5*(nc-1) + c_lump(nlump,2)
           nc2 = nc1 + 4
           if ( nc1 > c_lump(nlump,3) ) nc1 = c_lump(nlump,3)
           if ( nc2 > c_lump(nlump,3) ) nc2 = c_lump(nlump,3)
-          write(c_out, 1302) (nn, c_tchem(nn),c_icat(nn) , nn=nc1,nc2 )
+          write(c_out, 1302) (nn, c_tchem(nn),c_icat(nn), nn=nc1,nc2 )
         end do
       end do loopindex
       !
@@ -457,7 +457,7 @@ module mod_cbmz_init1
       ! READ LOOP:  HENRY'S LAW COEFFICIENTS
       ! ------------------------------------
       nrh = 0
-      do i = 1 , 1111
+      do i = 1, 1111
         read(c_rin,11) titl
         if ( titl == 'STAR' ) exit
       end do
@@ -466,7 +466,7 @@ module mod_cbmz_init1
       ! LOOP FOR HENRY'S LAW READS: CONTINUE UNTIL 'END'.
       !
       loophenry: &
-      do i = 1 , c_cdim
+      do i = 1, c_cdim
         !
         ! ADVANCE COUNTER.
         !
@@ -484,7 +484,7 @@ module mod_cbmz_init1
         ! ENTER NAMES INTO HENRY'S LAW MATRIX
         ! 'END' BREAKS THE LOOP TO END THE HENRY'S LAW READ.
         !
-        do iii = 1 , 2
+        do iii = 1, 2
           if ( tdum(iii) == '     END' .or. &
                tdum(iii) == '    END ' ) exit loophenry
           c_treach(iii,nrh) = tdum(iii)
@@ -542,7 +542,7 @@ module mod_cbmz_init1
                         c_accom(nrh), c_molwt(nrh)
         if ( c_kkw == 5 ) write(c_out, 33)  &
            c_nrkh(nrh), c_rkh(1,nrh), c_rkh(2,nrh), &
-           c_accom(nrh) , c_molwt(nrh)
+           c_accom(nrh), c_molwt(nrh)
       end do loophenry
       !
       ! --------------------------------------------------------
@@ -555,7 +555,7 @@ module mod_cbmz_init1
       ! ------------------------------------
       !
       nrq = 0
-      do i = 1 , 1111
+      do i = 1, 1111
         read(c_rin,11) titl
         if ( titl == 'STAR' ) exit
       end do
@@ -564,7 +564,7 @@ module mod_cbmz_init1
       ! LOOP FOR EQUILIBRIUM READS: CONTINUE UNTIL 'END'.
       !
       loopeq: &
-      do i = 1 , c_cdim
+      do i = 1, c_cdim
         !
         ! ADVANCE COUNTER.
         !
@@ -607,7 +607,7 @@ module mod_cbmz_init1
         ! ENTER NAMES INTO AQUEOUS EQUILIBRIUM MATRIX
         ! 'END' BREAKS THE LOOP TO END THE EQUILIBRIUM READ.
         !
-        do iii = 1 , 3
+        do iii = 1, 3
           if ( tdum(iii) == '     END' .or. &
                tdum(iii) == '    END ' ) exit loopeq
           c_treacq(iii,nrq) = tdum(iii)
@@ -666,7 +666,7 @@ module mod_cbmz_init1
       !  or else be zero.)
       !
       nrqq = 0
-      do i = 1 , 1111
+      do i = 1, 1111
         read(c_rin,11) titl
         if ( titl == 'STAR' ) exit
       end do
@@ -675,7 +675,7 @@ module mod_cbmz_init1
       ! LOOP FOR EQUILIBRIUM READS: CONTINUE UNTIL 'END'.
       !
       loopaqeq: &
-      do i = 1 , c_cdim
+      do i = 1, c_cdim
         !
         ! ADVANCE COUNTER.
         !
@@ -694,7 +694,7 @@ module mod_cbmz_init1
         ! ENTER NAMES INTO AQUEOUS SPECIAL EQUILIBRIUM MATRIX
         ! 'END' BREAKS THE LOOP TO END THE EQUILIBRIUM READ.
         !
-        do iii = 1 , 3
+        do iii = 1, 3
           if ( tdum(iii) == '     END' .or. &
                tdum(iii) == '    END ' ) exit loopaqeq
           c_treaqq(iii,nrqq) = tdum(iii)
@@ -733,7 +733,7 @@ module mod_cbmz_init1
       ! --------------------------------------
       !
       nr = 0
-      do i = 1 , 1111
+      do i = 1, 1111
         read(c_rin,11) titl
         if ( titl == 'STAR' ) exit
       end do
@@ -742,7 +742,7 @@ module mod_cbmz_init1
       ! LOOP FOR REACTION READS: CONTINUE UNTIL 'END'.
       !
       loopreaction: &
-      do i = 1 , c_rdim
+      do i = 1, c_rdim
         !
         ! ADVANCE REACTION COUNTER
         !
@@ -756,7 +756,7 @@ module mod_cbmz_init1
         ! --------------------------------------------------------
         !
         loopreactant: &
-        do ii = 1 , 10
+        do ii = 1, 10
           read(c_rin,109) tdum(1), tdum(2), xdum(3), tdum(3), &
                           xdum(4), tdum(4), xdum(5), tdum(5)
           if ( c_kkw == 5 ) write(c_out,109) tdum(1), tdum(2), xdum(3), &
@@ -766,7 +766,7 @@ module mod_cbmz_init1
           ! 'NEXT' BREAKS THE LOOP TO ADVANCE TO NEXT REACTION
           ! 'END' BREAKS THE LOOP TO END THE REACTION READ.
           !
-          do iii = 1 , 5
+          do iii = 1, 5
             if ( ii == 1 .and. &
                  tdum(iii) /= '    NEXT' .and. &
                  tdum(iii) /= '     END' .and. &
@@ -784,7 +784,7 @@ module mod_cbmz_init1
               if ( iii <= 2 ) then
                 c_reactant(nr,iii) = ic
               else
-                do j = 1 , 20
+                do j = 1, 20
                   if ( c_product(nr,j) == 0 ) exit
                 end do
                 c_product(nr,j) = ic
@@ -1002,7 +1002,7 @@ module mod_cbmz_init1
       ncasp = 0
       nc = 0
       loopcascade: &
-      do i = 1 , c_cdim
+      do i = 1, c_cdim
         read(c_rin,309)(tdum(ii),ii=1,3)
         !
         ! LOOP TO READ THREE SPECIES AND CONVERT TO SPECIES NUMBERS
@@ -1010,7 +1010,7 @@ module mod_cbmz_init1
         !          until it reads a break mark (x)
         ! LOOP TO READ GROUP OF THREE SPECIES (320)
         !
-        do ii = 1 , 3
+        do ii = 1, 3
           !
           ! IF NAME IS 'END', BREAK THE CASCADE READ AND EXIT
           !     (ALSO ADJUST COUNTER)
@@ -1032,7 +1032,7 @@ module mod_cbmz_init1
           !
           ic = namechem(tdum(ii))
           !
-          ! IF FIRST NAME IS 'pair' , SET FLAG TO ESTABLISH CASCADE PAIRS
+          ! IF FIRST NAME IS 'pair', SET FLAG TO ESTABLISH CASCADE PAIRS
           !
           if ( ii == 1 .and. &
               (tdum(ii) == '    pair' .or. &
@@ -1108,7 +1108,7 @@ module mod_cbmz_init1
       !  This replaces 'family'.
       ! LOOP TO IDENTIFY SPECIAL SPECIES
       !
-      do ic = 1 , c_nchem2
+      do ic = 1, c_nchem2
         if ( c_tchem(ic) == '     H2O' .or. &
              c_tchem(ic) == '    H2O ' ) then
           c_nh2o =ic
@@ -1231,11 +1231,11 @@ module mod_cbmz_init1
       ! ------------------------------------------------------------
       !
       ! PRELIMINARY ZERO
-      do ic = 1 , c_nchem2
+      do ic = 1, c_nchem2
         c_nequil(ic) = 0
         c_npequil(ic) = ic
         c_ion(ic) = 0
-        do i = 1 , 6
+        do i = 1, 6
           c_ncequil(ic,i) = 0
         end do
       end do
@@ -1255,7 +1255,7 @@ module mod_cbmz_init1
       !
       ! LOOP FOR HENRY'S LAW COEFFICIENTS
       !
-      do nrh = 1 , c_nreach
+      do nrh = 1, c_nreach
         if ( c_henry(nrh,1) == 0 ) exit
         !
         ! FOR EACH HENRY'S LAW COEFFICIENT, ASSOCIATE AQUEOUS WITH GAS SPECIES.
@@ -1272,7 +1272,7 @@ module mod_cbmz_init1
         !
         ! CHANGE PRODUCT ARRAY TO GAS-MASTER
         ! (add to avoid replacing already-set array)
-        do nr = 1 , c_nreac
+        do nr = 1, c_nreac
           c_prodarr(nr,ic) = c_prodarr(nr,ic) + c_prodarr(nr,ic1)
           c_prodarr(nr,ic1) = d_zero
         end do
@@ -1284,7 +1284,7 @@ module mod_cbmz_init1
         ! ALSO SET ION INDEX.
         !
         loopreaq: &
-        do nrq = 1 , c_nreacq
+        do nrq = 1, c_nreacq
           if ( c_aqueous(nrq,1) == 0 .and. &
                c_aqueous(nrq,2) == 0 ) exit loopreaq
           !
@@ -1309,7 +1309,7 @@ module mod_cbmz_init1
             !
             ! CHANGE PRODUCT ARRAY TO GAS-MASTER.
             !                (add to avoid replacing already-set array)
-            do nr = 1 , c_nreac
+            do nr = 1, c_nreac
               c_prodarr(nr,ic) = c_prodarr(nr,ic) + c_prodarr(nr,ic1)
               c_prodarr(nr,ic1) = d_zero
             end do
@@ -1321,7 +1321,7 @@ module mod_cbmz_init1
       !
       write(c_out,1321)
       write(c_out,1322) c_tchem(c_aqueous(1,2)),c_tchem(c_aqueous(1,3))
-      do nrh = 1 , c_nreach
+      do nrh = 1, c_nreach
         ic = c_henry(nrh,1)
         if ( c_nequil(ic) > 0 ) then
           write(c_out, 1322) c_tchem(ic), &
@@ -1344,7 +1344,7 @@ module mod_cbmz_init1
       ! LOOP FOR SPECIAL AQUEOUS EQUILIBRIUM SPECIES
       !
       nr = c_nreac
-      do nrqq = 1 , c_nreaqq
+      do nrqq = 1, c_nreaqq
         if ( c_aqspec(nrqq,1) /= 0 .and. c_aqspec(nrqq,2) /= 0 ) then
           icc1 = c_aqspec(nrqq,1)
           icc2 = c_aqspec(nrqq,2)
@@ -1473,7 +1473,7 @@ module mod_cbmz_init1
       !
       ! LOOP THROUGH CASCADE PAIRS
       !
-      do i = 1 , ncasp
+      do i = 1, ncasp
         icc1 = caspair(i,1)
         icc2 = caspair(i,2)
         ic1 = 0
@@ -1515,7 +1515,7 @@ module mod_cbmz_init1
           !
           c_nppair(ic2,1) = ic1
           ic3 = c_nppair(ic1,2)
-          do ii = 1 , (c_nppair(ic2,3)+1)
+          do ii = 1, (c_nppair(ic2,3)+1)
             ic = ic2
             if ( ii > 1 ) ic = c_nppair(ic2,(ii+2))
             c_nppair(ic ,2) = ic3
@@ -1527,7 +1527,7 @@ module mod_cbmz_init1
             ! also assign to all its subspecies, including aqueous
             ! equil. species.
             !
-!           do neq = 1 , (c_nequil(ic )+1)
+!           do neq = 1, (c_nequil(ic )+1)
 !             icc = ic
 !             if ( neq > 1 ) icc = c_ncequil(ic, (neq-1) )
 !             c_nppair(ic ,1) = ic3
@@ -1562,7 +1562,7 @@ module mod_cbmz_init1
       !   Set LCASTEST = true for H+, OH-, CO2, H2O
       !                   - these should never be in cascade
       !
-      do ic = 1 , c_nchem2
+      do ic = 1, c_nchem2
         lcastest(ic) = .false.
         if ( ic == c_aqueous(1,2) .or. ic == c_aqueous(1,3)) then
           lcastest(ic) = .true.
@@ -1573,7 +1573,7 @@ module mod_cbmz_init1
       !
       !   Set LCASTEST = true for LUMPED SPECIES - these are never included.
       !
-      do i = 1 , nlump
+      do i = 1, nlump
         icc = c_lump(i,1)
         lcastest(icc) = .true.
       end do
@@ -1590,19 +1590,19 @@ module mod_cbmz_init1
       !  RUN  CASCADE.  IDENTIFY INCLUDED SPECIES.
       !   COUNT SPECIES IN CASCADE GROUP.   ALSO ASSIGN NMULTI
       !
-      do i = 1 , c_nchem2
+      do i = 1, c_nchem2
         if ( c_cascade(i,1) == 0 ) exit
         nsolv = 0
         nsol = 0
         loopcount: &
-        do ii = 1 , c_nchem2
+        do ii = 1, c_nchem2
           ics = c_cascade(i,ii)
           if ( ics == 0 ) exit loopcount
           ics = c_nppair(c_npequil(ics ),2)
           if ( ii == 1 ) ic1 = ics
           nsol = nsol + 1
           nsolv = nsolv + 1 + c_nppair(ics,3)
-          do n = 1 , (c_nppair(ics,3)+1)
+          do n = 1, (c_nppair(ics,3)+1)
             icc = ics
             if ( n > 1 ) then
               icc = c_nppair(ics,n+2)
@@ -1613,7 +1613,7 @@ module mod_cbmz_init1
             if ( c_kkw >= 1 .and. icc > 0 ) then
               write(c_out,348) n, c_tchem(icc)
             end if
-            do neq = 1 , (c_nequil(icc)+1)
+            do neq = 1, (c_nequil(icc)+1)
               ic = icc
               if ( neq > 1 ) ic = c_ncequil(icc,(neq-1))
               lcastest(ic) = .true.
@@ -1627,10 +1627,10 @@ module mod_cbmz_init1
       !
       !  INCLUDE FAMILY SPECIES, SAME AS FOR CASCADE.
       !
-      do i = 1 , 7
+      do i = 1, 7
         nsolv = 0
         nsol = 0
-        do ii = 1 , 3
+        do ii = 1, 3
           ! ADDED 2009
           ics = 0
           if ( i == 1 .and. ii == 1 ) ics = c_nhno3
@@ -1643,10 +1643,10 @@ module mod_cbmz_init1
           if ( i == 7 .and. ii == 2 ) ics = c_nho2
           if ( i == 7 .and. ii == 3 ) ics = c_nh2o2
           if ( ics > 0 ) then
-            ics = c_nppair(c_npequil(ics ) , 2)
+            ics = c_nppair(c_npequil(ics ), 2)
             nsol = nsol + 1
             nsolv = nsolv + 1 + c_nppair(ics,3)
-            do n = 1 , (c_nppair(ics,3)+1)
+            do n = 1, (c_nppair(ics,3)+1)
               icc = ics
               if ( n > 1 ) then
                 icc = c_nppair(ics,n+2)
@@ -1657,7 +1657,7 @@ module mod_cbmz_init1
               if ( c_kkw >= 1 ) then
                 write(c_out,*) 'AUTOMATIC CASCADE SPECIES:', n,c_tchem(icc)
               end if
-              do neq = 1 , (c_nequil(icc)+1)
+              do neq = 1, (c_nequil(icc)+1)
                 ic = icc
                 if ( neq > 1 ) ic = c_ncequil(icc,(neq-1))
                 lcastest(ic) = .true.
@@ -1681,7 +1681,7 @@ module mod_cbmz_init1
       ! CATEGORY TEST LOOP AMONG SPECIES.
       !   IDENTIFY SPECIES MISSING FROM CASCADE AND MISSING CATEGORIES.
       !
-      do ic = 1 , c_nchem2
+      do ic = 1, c_nchem2
         !
         !  Control for diagnostic write
         !
@@ -1700,7 +1700,7 @@ module mod_cbmz_init1
           end if
           if ( c_nequil(ic) > 0 ) then
             write(c_out,344) (c_ncequil(ic,i),i=1,c_nequil(ic))
-            do i = 1 , c_nequil(ic)
+            do i = 1, c_nequil(ic)
               if ( c_ncequil(ic,i) > 0 ) then
                 write(c_out,309) c_tchem(c_ncequil(ic,i))
               end if
@@ -1708,7 +1708,7 @@ module mod_cbmz_init1
           end if
           if ( c_nppair(ic,3) > 0 ) then
             write(c_out,345) ( c_nppair(ic,i),i=4,(3+c_nppair(ic,3)) )
-            do i = 4 , (3+c_nppair(ic,3))
+            do i = 4, (3+c_nppair(ic,3))
               if ( c_nppair(ic,i) > 0 ) then
                 write(c_out,309) c_tchem(c_nppair(ic,i))
               end if
@@ -1744,7 +1744,7 @@ module mod_cbmz_init1
       !  EVEN BEFORE THE SPECIES HAS BEEN SOLVED FOR (SLOW SPEC. ONLY.)
       !  BUT THERE MUST BE NO FURTHER PRODUCTION AFTER SOLVE.
       !
-      do i = 1 , c_nchem2
+      do i = 1, c_nchem2
         lcastest(i) = .false.
       end do
       !
@@ -1752,12 +1752,12 @@ module mod_cbmz_init1
       ! ( DO WHILE NCASCADE(1).NE.0)
       ! LOOP:  RUN CASCADE
       !
-      do i = 1 , c_cdim
+      do i = 1, c_cdim
         if ( c_cascade(i,1) == 0 ) exit
         !
         ! LOOP:  TEST REACTIONS CALLED BY THE CASCADE SPECIES
         !
-        do ii = 1 , c_cdim
+        do ii = 1, c_cdim
           icc = c_cascade(i,ii)
           if ( icc > 0 ) then
             icc = c_npequil(icc)
@@ -1773,7 +1773,7 @@ module mod_cbmz_init1
             if ( c_cascade(i,2) /= -2 ) then
               nnr = c_nnrchem(ic)
               if ( nnr > 0 ) then
-                do n = 1 , nnr
+                do n = 1, nnr
                   nr = c_nrchem(ic,n)
                   if ( nr > 0 ) then
                     icr1 = c_reactant(nr,1)
@@ -1785,7 +1785,7 @@ module mod_cbmz_init1
                       icr2 = c_nppair(c_npequil(icr2),2)
                     end if
                     if ( c_nnpro(nr) > 0 ) then
-                      do nn = 1 , c_nnpro(nr)
+                      do nn = 1, c_nnpro(nr)
                         icp = c_product(nr,nn)
                         if ( icp > 0 ) then
                           icp = c_nppair(c_npequil(icp),2)
@@ -1988,11 +1988,11 @@ module mod_cbmz_init1
 !
     integer function namechem(titl)
       implicit none
-      character(len=8) , intent(in) :: titl
+      character(len=8), intent(in) :: titl
       integer(ik4) :: i
       namechem = 0
       if ( titl == '        ' ) return
-      do i = 1 , c_nchem2
+      do i = 1, c_nchem2
         if ( titl == c_tchem(i) ) then
           namechem = i
           exit
@@ -2023,7 +2023,7 @@ module mod_cbmz_init1
 ! -------------------------------------------------------------------
     subroutine hvread(ip)
       implicit none
-      integer(ik4) , intent(in) :: ip
+      integer(ik4), intent(in) :: ip
       c_hvin = ip
       call readhv(c_hvin,c_nhv,c_hvmat,c_hvmatb,c_jarray)
     end subroutine hvread
@@ -2085,19 +2085,19 @@ module mod_cbmz_init1
 !
       implicit none
       ! Chem index
-      integer(ik4) :: ic , ic1 , ic2 , icc
+      integer(ik4) :: ic, ic1, ic2, icc
       ! Chem local index
       integer(ik4) :: is
       ! Chem index
-      integer(ik4) :: icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
+      integer(ik4) :: icx, icx1, icx2, icy1, icy2, icp, icp1, icp2
       ! Reaction counters
-      integer(ik4) :: nr , nrx
+      integer(ik4) :: nr, nrx
       ! indices used for species categories
-      integer(ik4) :: icat1 , icat2 , icatp
+      integer(ik4) :: icat1, icat2, icatp
       ! Vectorization counters
       integer(ik4) :: kk
       ! General counters
-      integer(ik4) :: i , j , ii , n
+      integer(ik4) :: i, j, ii, n
 !
 ! LOCAL VARIABLES
 ! lloss        Local: Flag for identifying exchange loss reaction
@@ -2147,22 +2147,22 @@ module mod_cbmz_init1
       !
       !  ZERO THE IMPORTANT ARRAYS
       !
-      do ic = 1 , c_nchem2
+      do ic = 1, c_nchem2
         c_nnrchem(ic) = 0
         c_nnrchp(ic) = 0
-        do i = 1 , 25
+        do i = 1, 25
           c_nrchem(ic,i) = 0
           c_nrchmp(ic,i) = 0
         end do
       end do
-      do nr = 1 , c_nreac
+      do nr = 1, c_nreac
         c_stoiloss(nr) = d_zero
       end do
       !
       ! LOOP FOR EACH INDIVIDUAL REACTION
       !
       loopmechanal: &
-      do nr = 1 , c_nreac
+      do nr = 1, c_nreac
         !
         ! ZERO INDEX FOR IC ASSOCIATED WITH REACTION.
         !
@@ -2190,7 +2190,7 @@ module mod_cbmz_init1
         !    Assign reaction with RO2 products to RO2, not RCO3.)
         !
         if ( c_nnpro(nr) > 0 ) then
-          do n = 1 , c_nnpro(nr)
+          do n = 1, c_nnpro(nr)
             if ( c_reactant(nr,1) == c_product(nr,n) .and. &
                  c_stoich(nr,n) >= d_one ) then
               icat1 = 0 - icat1
@@ -2225,7 +2225,7 @@ module mod_cbmz_init1
         !
         if ( ic <= 0 ) then
           if ( c_nnpro(nr) > 0 ) then
-            do n = 1 , c_nnpro(nr)
+            do n = 1, c_nnpro(nr)
               icatp = c_icat(c_npequil(c_product(nr,n)))
               if ( icatp < 9 .and. icatp > 0 ) then
                 ic = c_product(nr,n)
@@ -2251,7 +2251,7 @@ module mod_cbmz_init1
         !
         if ( ic <= 0 ) then
           if ( c_nnpro(nr) > 0 ) then
-            do n = 1 , c_nnpro(nr)
+            do n = 1, c_nnpro(nr)
               icatp = c_icat(c_npequil(c_product(nr,n)))
               if ( icatp == 14 .or. icatp == 15 .or. icatp == 16 ) then
                 ic = c_product(nr,n)
@@ -2276,7 +2276,7 @@ module mod_cbmz_init1
               ic = c_reactant(nr,2)
             else
               if ( c_nnpro(nr) > 0 ) then
-                do n = 1 , c_nnpro(nr)
+                do n = 1, c_nnpro(nr)
                   icatp = c_icat(c_npequil(c_product(nr,n)))
                   if ( icatp == 11 .or. icatp == 12 .or. icatp == 13 ) then
                     ic = c_product(nr,n)
@@ -2299,7 +2299,7 @@ module mod_cbmz_init1
               ic = c_reactant(nr,2)
             else
               if ( c_nnpro(nr) > 0 ) then
-                do n = 1 , c_nnpro(nr)
+                do n = 1, c_nnpro(nr)
                   icatp = c_icat(c_npequil(c_product(nr,n)))
                   if ( icatp == 19 ) then
                     ic = c_product(nr,n)
@@ -2322,7 +2322,7 @@ module mod_cbmz_init1
               ic = c_reactant(nr,2)
             else
               if ( c_nnpro(nr) > 0 ) then
-                do n = 1 , c_nnpro(nr)
+                do n = 1, c_nnpro(nr)
                   icatp = c_icat(c_npequil(c_product(nr,n)))
                   if ( icatp == 9 .or. icatp == 10 ) then
                     ic = c_product(nr,n)
@@ -2372,7 +2372,7 @@ module mod_cbmz_init1
             c_stoiloss(nr) = d_one
             if ( c_reactant(nr,1 ) == c_reactant(nr,2) ) c_stoiloss(nr) = d_two
             if ( c_nnpro(nr) > 0 ) then
-              do n = 1 , c_nnpro(nr)
+              do n = 1, c_nnpro(nr)
                 if ( ic == c_product(nr,n) ) then
                   c_stoiloss(nr) = c_stoiloss(nr)-c_stoich(nr,n)
                 end if
@@ -2414,7 +2414,7 @@ module mod_cbmz_init1
         if ( icat1 == 12 .or. icat1 == 13 ) xpronox = xpronox - d_one
         if ( icat2 == 12 .or. icat2 == 13 ) xpronox = xpronox - d_one
         if ( c_nnpro(nr) > 0 ) then
-          do n = 1 , c_nnpro(nr)
+          do n = 1, c_nnpro(nr)
             icatp = c_icat(c_npequil(c_product(nr,n)))
             if ( icatp == 9 .or. icatp == 10 .or. icatp == 8) then
               xoddhx2 = xoddhx2 + c_stoich(nr,n)
@@ -2438,7 +2438,7 @@ module mod_cbmz_init1
           if ( c_npequil(c_reactant(nr,1)) /= c_nho2 ) then
             if ( c_reactant(nr,2) > 0 ) then
               if ( c_reactant(nr,2) == c_nho2 ) then
-                do n = 1 , c_nnpro(nr)
+                do n = 1, c_nnpro(nr)
                   if ( c_npequil(c_product(nr,n)) == c_noh ) then
                     exit
                   end if
@@ -2475,10 +2475,10 @@ module mod_cbmz_init1
       ! ----------------------------------------------------------
       !  ZERO THE IMPORTANT ARRAYS
       !
-      do ic = 1 , c_nchem2
-        do i = 1 , 20
+      do ic = 1, c_nchem2
+        do i = 1, 20
           c_exspec(ic,i) = 0
-          do ii = 1 , 5
+          do ii = 1, 5
             c_expro(ic,i,ii) = 0
             c_exloss(ic,i,ii) = 0
           end do
@@ -2488,7 +2488,7 @@ module mod_cbmz_init1
       ! INITIALIZE PAIRFAC (conservation parameter for pair species)
       !   = 1 unless adjusted by EXCHANGE REACTIONS
       !
-      do ic = 1 , c_nchem2
+      do ic = 1, c_nchem2
         c_pairfac(ic) = d_one
         c_multfac(ic) = d_one
       end do
@@ -2496,7 +2496,7 @@ module mod_cbmz_init1
       ! --------
       ! BEGIN REACTION LOOP FOR EXCHANGE REACTIONS (1200)
       !
-      do nrx = 1 , c_nreac
+      do nrx = 1, c_nreac
         !
         ! EXLOSS REACTION:
         !  ICX (NICREAC) is key species for reaction (1st non-special reactant).
@@ -2546,7 +2546,7 @@ module mod_cbmz_init1
               !
               ! SEARCH THROUGH REACTIONS TO FIND MATCHING EXPRO
               ! REACTION(s) (1300)
-              do nrp = 1 , c_nreac
+              do nrp = 1, c_nreac
                 !
                 !  ICP (NICREAC) is key species for EXPRO reaction
                 !
@@ -2681,8 +2681,8 @@ module mod_cbmz_init1
                     !    for its key species
                     !
                     if ( icp > 0 ) then
-                      do i = 1 , 20
-                        do ii = 1 , 5
+                      do i = 1, 20
+                        do ii = 1, 5
                           !
                           ! IF EXCHANGE RN IS LISTED IN REVERSE, USE LPRO,
                           ! LLOSS to ID reaction as
@@ -2696,8 +2696,8 @@ module mod_cbmz_init1
                     !
                     ! LOOP TO TEST WHETHER EXLOSS, PRO REACTIONS ARE ALREADY
                     ! IN FORWARD LIST
-                    do i = 1 , 20
-                      do ii = 1 , 5
+                    do i = 1, 20
+                      do ii = 1, 5
                         !
                         ! IF EXCHANGE RN IS LISTED IN REVERSE, USE LPRO,
                         ! LLOSS to ID reaction as
@@ -2726,7 +2726,7 @@ module mod_cbmz_init1
                     ! LOOP TO ADD EXCHANGED SPECIES TO EXSPEC LIST
                     !
                     if ( lloss .or. lpro ) then
-                      do i = 1 , 20
+                      do i = 1, 20
                         is = i
                         if ( c_exspec(icx,i) == icp ) exit
                         if ( c_exspec(icx,i) == 0 ) then
@@ -2742,7 +2742,7 @@ module mod_cbmz_init1
                     !
                     if ( lloss ) then
                       loop1210: &
-                      do ii = 1 , 5
+                      do ii = 1, 5
                         !
                         ! ENTER THE EXCHANGE REACTION
                         !
@@ -2786,7 +2786,7 @@ module mod_cbmz_init1
                     !
                     if ( lpro ) then
                       loop1220: &
-                      do ii = 1 , 5
+                      do ii = 1, 5
                         !
                         ! ENTER THE EXCHANGE REACTION
                         !
@@ -2874,8 +2874,8 @@ module mod_cbmz_init1
       ! IDENTIFY REACTION NUMBERS FOR 'SPECIAL' REACTIONS
       !  (used in preliminary chem, oh solver and in NOx-Ox global tracers)
       ! ----------------------
-      do i = 1 , 13
-        do nr = 1 , c_nreac
+      do i = 1, 13
+        do nr = 1, c_nreac
           c_noxchem(i,nr) = d_zero
         end do
       end do
@@ -2893,7 +2893,7 @@ module mod_cbmz_init1
       ! SPECIAL REACTIONS: LOOP FOR EACH INDIVIDUAL REACTION
       !    moved from presolve
       !
-      do nr = 1 , c_nreac
+      do nr = 1, c_nreac
         if ( (c_reactant(nr,1) == c_nno .and. &
               c_reactant(nr,2) == c_no3 .and. &
               c_product(nr,1) == c_nno2) .or. &
@@ -2940,7 +2940,7 @@ module mod_cbmz_init1
       ! TRACER ANALYSIS:
       ! LOOP FOR EACH INDIVIDUAL REACTION
       !
-      do nr = 1 , c_nreac
+      do nr = 1, c_nreac
         !
         !  noxchem(i,nr) = net rp O3 NOx PANs HNO3 RNO3;  NOx-PAN, PAN-NOX; HNO3
         !
@@ -3032,7 +3032,7 @@ module mod_cbmz_init1
         !
         ! PRODUCTS
         !
-        do n = 1 , c_nnpro(nr)
+        do n = 1, c_nnpro(nr)
           if ( c_product (nr,n) > 0 ) then
             if ( c_icat(c_product (nr,n)) == 11 .or. &
                  c_icat(c_product (nr,n)) == 12 ) then
@@ -3147,14 +3147,14 @@ module mod_cbmz_init1
                'EXCHANGED SPECIES INDEX EXCEEDED LIMIT' ,' (i=1,20, 1205)',/)
  1212 format (/,'EXLOSS(ICX,IS,I)=NRX. ','ICX,ICP,IS,I,NRX=',5i5,/, &
                 ' REACTANTS=',2i5, '  PRODUCTS=',2i5   )
- 1213 format(/,' MAJOR ERROR IN QUADINIT: ','EXLOSS INDEX EXCEEDED LIMIT' , &
+ 1213 format(/,' MAJOR ERROR IN QUADINIT: ','EXLOSS INDEX EXCEEDED LIMIT', &
                ' (ii=1,5, 1213)',/)
  1222 format (/,' EXPRO(ICX,IS,I)=NRX.  ','ICX,ICP,IS,I,NRX=', 5i5,/, &
                 ' REACTANTS=',2i5,'  PRODUCTS=',2i5   )
  1224 format(/,'WARNING: POSSIBLE EXCHANGE REACTION '&
                ,'AMONG UNPAIRED SPECIES: nr =',       &
                /, i5, a8,'+',a8,'=>',a8,'+',a8,'+', a8)
- 1223 format(/,' MAJOR ERROR IN QUADINIT: ', 'EXPRO INDEX EXCEEDED LIMIT' , &
+ 1223 format(/,' MAJOR ERROR IN QUADINIT: ', 'EXPRO INDEX EXCEEDED LIMIT', &
                ' (ii=1,5, 1223)',/)
 
     end subroutine cheminit
@@ -3177,20 +3177,20 @@ module mod_cbmz_init1
 
     subroutine chemwrit(kw)
       implicit none
-      integer(ik4) , intent(in) :: kw
+      integer(ik4), intent(in) :: kw
 
       ! Chem index
       integer(ik4) :: ic
       ! Aqueous counters
       integer(ik4) :: neq
       ! Chem species counters
-      integer(ik4) :: nc , nc1 , nc2 , ncf , nn
+      integer(ik4) :: nc, nc1, nc2, ncf, nn
       ! Reaction counters
-      integer(ik4) :: nr , nrh , nrq , nrqq
+      integer(ik4) :: nr, nrh, nrq, nrqq
       ! Vectorization counters
       integer(ik4) :: kk
       ! General counters
-      integer(ik4) :: i , j
+      integer(ik4) :: i, j
 
       real(rkx) :: calpha(c_kvec) ! General vector variable
       real(rkx) :: cbeta(c_kvec)  ! General vector variable
@@ -3209,7 +3209,7 @@ module mod_cbmz_init1
       !
       write(c_out,1141) c_hour
       ncf = int(0.2_rkx*(real(c_nchem2,rkx)-0.01_rkx))+1
-      do nc = 1 , ncf
+      do nc = 1, ncf
         nc1 = 4*(nc-1) + 1
         nc2 = nc1 + 3
         if ( nc1 > c_nchem2 ) nc1 = c_nchem2
@@ -3233,12 +3233,12 @@ module mod_cbmz_init1
           write(c_out,1302) c_xcout(kw ,c_aqueous(1,2))
         end if
         tsum = '     SUM'
-!       do ic = 1 , c_nchem2
-        do nrh = 1 , c_nreach
+!       do ic = 1, c_nchem2
+        do nrh = 1, c_nreach
           ic = c_henry(nrh,1)
           if ( c_nequil(ic) > 0 )  then
             xcgas = c_xcout(kw,ic)
-            do i = 1 , c_nequil(ic)
+            do i = 1, c_nequil(ic)
               xcgas = xcgas - c_xcout(kw,c_ncequil(ic,i))*acquacon
             end do
             write(c_out,1305) c_tchem(ic), xcgas, (c_tchem(c_ncequil(ic,i)), &
@@ -3267,12 +3267,12 @@ module mod_cbmz_init1
       !     (Note, sum aqueous into gas for xc, but not for xcout.
       !      xcout is made gas-aqueous sum in postlump)
       !
-      do j = 1 , c_nchem2
+      do j = 1, c_nchem2
         if ( c_npequil(j) == j ) then
           xrr(kw,1) = d_zero
           rpro(kw,1) = d_zero
           rloss(kw,1) = d_zero
-          do neq = 1 , (c_nequil(j)+1)
+          do neq = 1, (c_nequil(j)+1)
             ic = j
             if ( neq > 1 ) ic = c_ncequil(j,(neq-1))
             calpha(kw) = d_one
@@ -3306,14 +3306,14 @@ module mod_cbmz_init1
       ! GAS-PHASE REACTION RATES
       !
       write(c_out,1143)
-      do nr = 1 , c_nreac
+      do nr = 1, c_nreac
         write(c_out,1144) nr, (c_treac(j,nr),j=1,5), &
                      c_rr(kw ,nr), ratek(kw ,nr)
       end do
 
       write(c_out,1146)
       if ( c_nreach > 0 ) then
-        do i = 1 , c_nreach
+        do i = 1, c_nreach
           write(c_out,1147) (c_treach(j,i),j=1,2), rateh(kw ,i), rhdif(kw ,i)
         end do
       end if
@@ -3321,14 +3321,14 @@ module mod_cbmz_init1
       ! AQUEOUS EQUILIBRIUM CONSTANTS
       !
       write(c_out,1153)
-      do nrq = 1 , c_nreacq
+      do nrq = 1, c_nreacq
         write(c_out,1154) nrq, (c_treacq(j,nrq),j=1,3), rateq(kw ,nrq)
       end do
       !
       ! SPECIAL EQUILIBRIUM CONSTANTS
       !
       write(c_out,1156)
-      do nrqq = 1 , c_nreaqq
+      do nrqq = 1, c_nreaqq
         write(c_out,1154) nrqq, (c_treaqq(j,nrqq),j=1,3), rateqq(kw,nrqq)
       end do
 !
@@ -3389,19 +3389,19 @@ module mod_cbmz_init1
       implicit none
 
       ! Name of specified chem species
-      character(len=8) , intent(in) :: titl
-      integer(ik4) , intent(in) :: kw
+      character(len=8), intent(in) :: titl
+      integer(ik4), intent(in) :: kw
 
       ! Chem index
-      integer(ik4) :: ic , icc , ics
+      integer(ik4) :: ic, icc, ics
       ! Aqueous counters
       integer(ik4) :: neq
       ! Reaction counters
-      integer(ik4) :: nr , nrh , nrq
+      integer(ik4) :: nr, nrh, nrq
       ! Vectorization counters
       integer(ik4) :: kk
       ! General counters
-      integer(ik4) :: i , n
+      integer(ik4) :: i, n
 
       ! Gas phase concentration
       real(rkx) :: xcgas
@@ -3464,7 +3464,7 @@ module mod_cbmz_init1
         ! CONCENTRATION OF GAS-SPECIES ONLY
         !
         xcgas = c_xcout( kw,ic)
-        do n = 1 , c_nequil(ic)
+        do n = 1, c_nequil(ic)
           icc = c_ncequil(ic,n)
           xcgas = xcgas - c_xcout( kw,icc)*acquacon
           write(c_out,10031) icc, c_tchem(icc),c_xcout(kw,icc),  &
@@ -3474,7 +3474,7 @@ module mod_cbmz_init1
         !
         ! AQUEOUS CONCENTRATIONS AND CORRESPONDING HENRY'S LAW COEFFICIENTS
         ! OR EQUILIBRIUM CONSTANTS
-        do n = 1 , c_nequil(ic)
+        do n = 1, c_nequil(ic)
           icc = c_ncequil(ic,n)
           nrq = c_nrequil(ic,n)
           nrh = c_nrequil(ic,1)
@@ -3513,7 +3513,7 @@ module mod_cbmz_init1
       !
       ! DO FOR GAS AND ALL ACQUEOUS EQUIVALENT SPECIES
       !
-      do neq1 = 1 , (c_nequil(ic)+1)
+      do neq1 = 1, (c_nequil(ic)+1)
         if ( neq1 == 1 ) then
           acquacon = d_one
           icc = ic
@@ -3527,18 +3527,18 @@ module mod_cbmz_init1
         ! LOOP THROUGH ALL REACTIONS TO FIND LOSSES FOR SPECIES
         ! NOTE THAT RR, REACTION RATE, IS ALREADY IN GAS UNITS FOR  AQ SPECIES.
         !
-        do nr = 1 , c_nreac
+        do nr = 1, c_nreac
           stopro  = d_zero
           if (c_reactant(nr,1) == icc) stopro = stopro - d_one
           if (c_reactant(nr,2) == icc) stopro = stopro - d_one
-          do i = 1 , 20
+          do i = 1, 20
             if ( c_product(nr,i) == icc ) stopro = stopro + c_stoich(nr,i)
           end do
           if ( stopro  > d_zero ) then
             xpro = c_rr(kw,nr) * stopro
             tpro = tpro + xpro
             write(c_out,102) nr, (c_treac(i,nr),i=1,5), &
-                  xpro, c_rr( kw,nr) , ratek( kw,nr)
+                  xpro, c_rr( kw,nr), ratek( kw,nr)
           end if
         end do
       end do
@@ -3554,7 +3554,7 @@ module mod_cbmz_init1
       !
       ! DO FOR GAS AND ALL ACQUEOUS EQUIVALENT SPECIES
       !
-      do neq1 = 1 , (c_nequil(ic)+1)
+      do neq1 = 1, (c_nequil(ic)+1)
         if ( neq1 == 1 ) then
           acquacon = d_one
           icc = ic
@@ -3567,18 +3567,18 @@ module mod_cbmz_init1
         !
         ! LOOP THROUGH ALL REACTIONS TO FIND LOSSES FOR SPECIES
         !
-        do nr = 1 , c_nreac
+        do nr = 1, c_nreac
           stoloss = d_zero
           if ( c_reactant(nr,1) == icc ) stoloss = stoloss + d_one
           if ( c_reactant(nr,2) == icc ) stoloss = stoloss + d_one
-          do i = 1 , 20
+          do i = 1, 20
             if ( c_product(nr,i) == icc ) stoloss = stoloss - c_stoich(nr,i)
           end do
           if ( stoloss > d_zero ) then
             xloss = c_rr(kw,nr) * stoloss
             tloss = tloss + xloss
             write(c_out,102) nr,(c_treac(i,nr),i=1,5), &
-                      xloss, c_rr( kw,nr) , ratek( kw,nr)
+                      xloss, c_rr( kw,nr), ratek( kw,nr)
           end if
         end do
       end do

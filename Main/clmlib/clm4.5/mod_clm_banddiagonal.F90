@@ -24,18 +24,18 @@ module mod_clm_banddiagonal
                           filter, nband, b, r, u)
     implicit none
     ! lbinning and ubing column indices
-    integer(ik4) , intent(in)    :: lbc, ubc
+    integer(ik4), intent(in)    :: lbc, ubc
     ! lbinning and ubing level indices
-    integer(ik4) , intent(in)    :: lbj, ubj
+    integer(ik4), intent(in)    :: lbj, ubj
     ! top level for each column
-    integer(ik4) , intent(in)    :: jtop(lbc:ubc)
+    integer(ik4), intent(in)    :: jtop(lbc:ubc)
     !scs:  add jbot
     ! bottom level for each column
-    integer(ik4) , intent(in)    :: jbot(lbc:ubc)
+    integer(ik4), intent(in)    :: jbot(lbc:ubc)
     !scs
-    integer(ik4) , intent(in)    :: numf   ! filter dimension
-    integer(ik4) , intent(in)    :: nband  ! band width
-    integer(ik4) , intent(in)    :: filter(ubc-lbc+1)       ! filter
+    integer(ik4), intent(in)    :: numf   ! filter dimension
+    integer(ik4), intent(in)    :: nband  ! band width
+    integer(ik4), intent(in)    :: filter(ubc-lbc+1)       ! filter
     ! compact band matrix
     real(rk8), intent(in)    :: b(lbc:ubc,nband,lbj:ubj)
     ! "r" rhs of linear system
@@ -152,7 +152,7 @@ module mod_clm_banddiagonal
     !kl+ku+1 rows and n columns
     !AB(KL+KU+1+i-j,j) = A(i,j)
 
-    do fc = 1 , numf
+    do fc = 1, numf
       ci = filter(fc)
 
       kl = (nband-1)/2
@@ -191,7 +191,7 @@ module mod_clm_banddiagonal
         write(stdout,*)'dgbsv info: ',ci,info
         write(stdout,*) ' '
         write(stdout,*) 'ab matrix'
-        do j = 1 , n
+        do j = 1, n
           ! write(stdout,'(i2,7f18.7)') j,temp(:,j)
           write(stdout,'(i2,5f18.7)') j,temp(3:7,j)
         end do

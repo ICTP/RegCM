@@ -20,30 +20,30 @@ module mod_ocn_bats
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
-  use mod_runparams , only : icetriggert
+  use mod_runparams, only : icetriggert
   use mod_constants
 
   implicit none
 
   private
 
-  public :: ocnbats , seaice
+  public :: ocnbats, seaice
 
   contains
 
   subroutine ocnbats
     implicit none
-    real(rkx) :: ribd , cdrn , qgrd
-    real(rkx) :: qs , delq , delt , fact , factuv
-    real(rkx) :: cdrmin , cdrx , ribn , vspda
+    real(rkx) :: ribd, cdrn, qgrd
+    real(rkx) :: qs, delq, delt, fact, factuv
+    real(rkx) :: cdrmin, cdrx, ribn, vspda
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'ocnbats'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
-    do i = iocnbeg , iocnend
+    do i = iocnbeg, iocnend
       if ( mask(i) /= 1 ) cycle
 
       ! Update surface temperature from the input SST
@@ -94,23 +94,23 @@ module mod_ocn_bats
 
   subroutine seaice
     implicit none
-    real(rkx) :: age , u1 , ribd
-    real(rkx) :: cdrn , cdr , qgrd
-    real(rkx) :: ps , qs , delq , delt , rhosw , ribl
-    real(rkx) :: bb , fact , fss , hrl , hs , hsl
-    real(rkx) :: rhosw3 , rsd1 , smc4 , smt , tg , tgrnd , qice
-    real(rkx) :: ksnow , rsi , uv995 , sficemm , tau , xdens
-    real(rkx) :: arg , arg2 , age1 , age2
-    real(rkx) :: cdrmin , cdrx , clead , dela , dela0 , dels
-    real(rkx) :: factuv , fevpg , fseng , qgrnd , ribn , sold , vspda
+    real(rkx) :: age, u1, ribd
+    real(rkx) :: cdrn, cdr, qgrd
+    real(rkx) :: ps, qs, delq, delt, rhosw, ribl
+    real(rkx) :: bb, fact, fss, hrl, hs, hsl
+    real(rkx) :: rhosw3, rsd1, smc4, smt, tg, tgrnd, qice
+    real(rkx) :: ksnow, rsi, uv995, sficemm, tau, xdens
+    real(rkx) :: arg, arg2, age1, age2
+    real(rkx) :: cdrmin, cdrx, clead, dela, dela0, dels
+    real(rkx) :: factuv, fevpg, fseng, qgrnd, ribn, sold, vspda
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'seaice'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
-    do i = iocnbeg , iocnend
+    do i = iocnbeg, iocnend
       if ( mask(i) /= 2 ) cycle
 
       ! Update surface temperature from the input SST

@@ -95,14 +95,14 @@
 !------------------------------------------------------------------
 
       subroutine rrtmg_sw_nomcica &
-            (ncol    ,nlay    ,icld    ,iaer    ,lradfor ,idirect , &
-             play    ,plev    ,tlay    ,tlev    ,tsfc    ,h2ovmr  , &
-             o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr   ,asdir   , &
-             asdif   ,aldir   ,aldif   ,coszen  ,adjes   ,dyofyr  , &
-             scon    ,isolvar ,inflgsw ,iceflgsw,liqflgsw,cldfr   , &
-             taucld  ,ssacld  ,asmcld  ,fsfcld  ,cicewp  ,cliqwp  , &
-             reice   ,reliq   ,tauaer  ,ssaaer  ,asmaer  ,ecaer   , &
-             swuflx  ,swdflx  ,swhr    ,swuflxc ,swdflxc ,swhrc   , &
+            (ncol    ,nlay    ,icld    ,iaer    ,lradfor ,idirect, &
+             play    ,plev    ,tlay    ,tlev    ,tsfc    ,h2ovmr , &
+             o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr   ,asdir  , &
+             asdif   ,aldir   ,aldif   ,coszen  ,adjes   ,dyofyr , &
+             scon    ,isolvar ,inflgsw ,iceflgsw,liqflgsw,cldfr  , &
+             taucld  ,ssacld  ,asmcld  ,fsfcld  ,cicewp  ,cliqwp , &
+             reice   ,reliq   ,tauaer  ,ssaaer  ,asmaer  ,ecaer  , &
+             swuflx  ,swdflx  ,swhr    ,swuflxc ,swdflxc ,swhrc  , &
              swddiruviflx, swddifuviflx,swddirpirflx, swddifpirflx, &
              swdvisflx,aerfo,aerfos,asaerfo,asaerfos,               &
 ! optional I/O
@@ -406,7 +406,7 @@
       !integer(kind=im) :: ims                 ! value for changing mcica permute seed
       !integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
       !FAB
-      integer(kind=im) :: n , nsswcall        ! number of sw call for rad for. calculation (RegCM option)
+      integer(kind=im) :: n, nsswcall        ! number of sw call for rad for. calculation (RegCM option)
 
       real(kind=rb) :: zepsec, zepzen         ! epsilon
       real(kind=rb) :: zdpgcp                 ! flux to heating conversion ratio
@@ -767,7 +767,7 @@
 
 ! Call the 2-stream radiation transfer model
 
-         do n = 1 , nsswcall
+         do n = 1, nsswcall
            if ( idirect == 1 ) then
              if ( n == 1 .and. lradfor ) then
                do i = 1 ,nlayers

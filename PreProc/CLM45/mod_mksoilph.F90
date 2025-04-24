@@ -28,7 +28,7 @@ module mod_mksoilph
 
   public :: mksoilph
 
-  character(len=16) , parameter :: varname = 'soilph'
+  character(len=16), parameter :: varname = 'soilph'
 
   real(rkx) :: vmin = 4.4855_rkx
 
@@ -36,10 +36,10 @@ module mod_mksoilph
 
   subroutine mksoilph(soilphfile,mask,soilph)
     implicit none
-    character(len=*) , intent(in) :: soilphfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: soilph
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: soilphfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:), intent(out) :: soilph
+    integer(ik4) :: i, j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -49,8 +49,8 @@ module mod_mksoilph
     call gfread(gfile,varname,soilph,vmin)
     call gfclose(gfile)
     call bestaround(soilph,h_missing_value)
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           soilph(j,i) = h_missing_value
         else

@@ -58,10 +58,10 @@ Module mod_clm_drydepvelocity
   use mod_mpmessage
   use mod_stdio
   use mod_clm_type
-  use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_drydep , only : n_drydep, drydep_list
-  use mod_clm_drydep , only : drydep_method, DD_XLND
-  use mod_clm_drydep , only : index_o3=>o3_ndx, &
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_drydep, only : n_drydep, drydep_list
+  use mod_clm_drydep, only : drydep_method, DD_XLND
+  use mod_clm_drydep, only : index_o3=>o3_ndx, &
           index_o3a=>o3a_ndx, index_so2=>so2_ndx, index_h2=>h2_ndx, &
           index_co=>co_ndx, index_ch4=>ch4_ndx, index_pan=>pan_ndx, &
           index_xpan=>xpan_ndx
@@ -79,13 +79,13 @@ Module mod_clm_drydepvelocity
   !-----------------------------------------------------------------------
   ! computes the dry deposition velocity of tracers
   !-----------------------------------------------------------------------
-  subroutine depvel_compute( lbp , ubp )
-    use mod_clm_varcon , only : tmelt => tfrz
-    use mod_clm_drydep , only : seq_drydep_setHCoeff, mapping, drat, foxd, &
+  subroutine depvel_compute( lbp, ubp )
+    use mod_clm_varcon, only : tmelt => tfrz
+    use mod_clm_drydep, only : seq_drydep_setHCoeff, mapping, drat, foxd, &
            rcls, h2_a, h2_b, h2_c, ri, rac, rclo, rlu, rgss, rgso
-    use mod_clm_varcon , only : istsoil, istice, istslak, istdlak, &
+    use mod_clm_varcon, only : istsoil, istice, istslak, istdlak, &
             istwet, isturb
-    use mod_clm_pftvarcon , only : noveg, ndllf_evr_tmp_tree, &
+    use mod_clm_pftvarcon, only : noveg, ndllf_evr_tmp_tree, &
             ndllf_evr_brl_tree, ndllf_dcd_brl_tree, nbrdlf_evr_trp_tree,  &
             nbrdlf_evr_tmp_tree, nbrdlf_dcd_trp_tree, nbrdlf_dcd_tmp_tree, &
             nbrdlf_dcd_brl_tree, nbrdlf_evr_shrub, nbrdlf_dcd_tmp_shrub, &
@@ -97,39 +97,39 @@ Module mod_clm_drydepvelocity
     integer(ik4), intent(in) :: lbp, ubp                    ! pft bounds
 
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
-    integer(ik4) , pointer :: plandunit(:)  !pft's landunit index
-    integer(ik4) , pointer :: ivt(:)        !landunit type
-    integer(ik4) , pointer :: pgridcell(:)  !pft's gridcell index
+    logical, pointer, contiguous :: pactive(:)
+    integer(ik4), pointer, contiguous :: plandunit(:)  !pft's landunit index
+    integer(ik4), pointer, contiguous :: ivt(:)        !landunit type
+    integer(ik4), pointer, contiguous :: pgridcell(:)  !pft's gridcell index
     !one-sided leaf area index with burying by snow
-    real(rk8), pointer :: elai(:)
-    real(rk8), pointer :: forc_t(:)  !atmospheric temperature (Kelvin)
-    real(rk8), pointer :: forc_q(:)  !atmospheric specific humidity (kg/kg)
-    real(rk8), pointer :: forc_psrf(:)     !surface pressure (Pa)
-    real(rk8), pointer :: latdeg(:)        !latitude (degrees)
-    real(rk8), pointer :: londeg(:)        !longitude (degrees)
-    real(rk8), pointer :: forc_rain(:)     !rain rate [mm/s]
-    real(rk8), pointer :: forc_solad(:,:)  !direct beam radiation (visible only)
-    real(rk8), pointer :: forc_solai(:,:)  !direct beam radiation (visible only)
-    real(rk8), pointer :: ram1(:)          !aerodynamical resistance
-    real(rk8), pointer :: vds(:)           !aerodynamical resistance
-    real(rk8), pointer :: rssun(:)         !stomatal resistance
-    real(rk8), pointer :: rssha(:)         !shaded stomatal resistance (s/m)
-    real(rk8), pointer :: fsun(:)          !sunlit fraction of canopy
-    real(rk8), pointer :: rb1(:)           !leaf boundary layer resistance [s/m]
+    real(rk8), pointer, contiguous :: elai(:)
+    real(rk8), pointer, contiguous :: forc_t(:)  !atmospheric temperature (Kelvin)
+    real(rk8), pointer, contiguous :: forc_q(:)  !atmospheric specific humidity (kg/kg)
+    real(rk8), pointer, contiguous :: forc_psrf(:)     !surface pressure (Pa)
+    real(rk8), pointer, contiguous :: latdeg(:)        !latitude (degrees)
+    real(rk8), pointer, contiguous :: londeg(:)        !longitude (degrees)
+    real(rk8), pointer, contiguous :: forc_rain(:)     !rain rate [mm/s]
+    real(rk8), pointer, contiguous :: forc_solad(:,:)  !direct beam radiation (visible only)
+    real(rk8), pointer, contiguous :: forc_solai(:,:)  !direct beam radiation (visible only)
+    real(rk8), pointer, contiguous :: ram1(:)          !aerodynamical resistance
+    real(rk8), pointer, contiguous :: vds(:)           !aerodynamical resistance
+    real(rk8), pointer, contiguous :: rssun(:)         !stomatal resistance
+    real(rk8), pointer, contiguous :: rssha(:)         !shaded stomatal resistance (s/m)
+    real(rk8), pointer, contiguous :: fsun(:)          !sunlit fraction of canopy
+    real(rk8), pointer, contiguous :: rb1(:)           !leaf boundary layer resistance [s/m]
     !12 months of monthly lai from input data set
-    real(rk8), pointer :: annlai(:,:)
+    real(rk8), pointer, contiguous :: annlai(:,:)
     !difference in lai between month one and month two
-    real(rk8), pointer :: mlaidiff(:)
-    real(rk8), pointer :: velocity(:,:)
-    real(rk8), pointer :: snow_depth(:) ! snow height (m)
+    real(rk8), pointer, contiguous :: mlaidiff(:)
+    real(rk8), pointer, contiguous :: velocity(:,:)
+    real(rk8), pointer, contiguous :: snow_depth(:) ! snow height (m)
 
-    integer(ik4), pointer :: pcolumn(:) ! column index associated with each pft
+    integer(ik4), pointer, contiguous :: pcolumn(:) ! column index associated with each pft
     integer(ik4) :: c
-    integer(ik4) , pointer :: itypelun(:)  ! landunit type
+    integer(ik4), pointer, contiguous :: itypelun(:)  ! landunit type
 
     ! volumetric soil water (0<=h2osoi_vol<=watsat)
-    real(rk8), pointer :: h2osoi_vol(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_vol(:,:)
     real(rk8) :: soilw, var_soilw, fact_h2, dv_soil_h2
 
     integer(ik4) :: pi,g, l
@@ -513,7 +513,7 @@ Module mod_clm_drydepvelocity
               rclx(index_o3a) = cts + rclo(index_season,wesveg)
               rlux(index_o3a) = cts + rlux(index_o3a)
             end if
-            species_loop2: do ispec = 1 , n_drydep
+            species_loop2: do ispec = 1, n_drydep
               if ( mapping(ispec) <= 0 ) cycle
               if ( ispec /= index_o3  .and. &
                    ispec /= index_o3a .and. &

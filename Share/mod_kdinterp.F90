@@ -22,14 +22,14 @@ module mod_kdinterp
   use mod_message
   use mod_earth
   use mod_spbarcoord
-  use mod_dynparam , only : idynamic
+  use mod_dynparam, only : idynamic
   use mod_kdtree2
 
   private
 
   public :: h_interpolator
   public :: h_interpolator_create
-  public :: h_interpolate_cont , h_interpolate_class , h_interpolate_nn
+  public :: h_interpolate_cont, h_interpolate_class, h_interpolate_nn
   public :: h_interpolator_destroy
   public :: h_missing_value
 
@@ -74,33 +74,33 @@ module mod_kdinterp
   end interface maxedis
 
   ! Need at least three point to triangulate, 4 for a quasi-linear
-  integer(ik4) , parameter :: minp = 4
+  integer(ik4), parameter :: minp = 4
 
   ! Try not to chocke memory...
-  integer(ik4) , parameter :: maxp = 32
+  integer(ik4), parameter :: maxp = 32
 
-  real(rkx) , parameter :: missl = -9999.0_rkx
-  real(rkx) , parameter :: h_missing_value = missl
-  real(rkx) , parameter :: missc = -9990.0_rkx
-  real(rk8) , parameter :: mindis = 1.0e-4_rkx
+  real(rkx), parameter :: missl = -9999.0_rkx
+  real(rkx), parameter :: h_missing_value = missl
+  real(rkx), parameter :: missc = -9990.0_rkx
+  real(rk8), parameter :: mindis = 1.0e-4_rkx
 
   type pwgt
-    integer(ik4) :: i , j
+    integer(ik4) :: i, j
     real(rk8) :: wgt
   end type pwgt
 
   type ijwgt
     integer(ik4) :: np
-    type(pwgt) , dimension(:) , pointer :: wgt => null( )
+    type(pwgt), dimension(:), pointer, contiguous :: wgt => null( )
   end type ijwgt
 
   type ftarget
-    integer(ik4) , dimension(2) :: tshape
-    type(ijwgt) , dimension(:,:) , pointer :: ft => null( )
+    integer(ik4), dimension(2) :: tshape
+    type(ijwgt), dimension(:,:), pointer, contiguous :: ft => null( )
   end type ftarget
 
   type h_interpolator
-    integer(ik4) , dimension(2) :: sshape
+    integer(ik4), dimension(2) :: sshape
     type(ftarget) :: tg
   end type h_interpolator
 
@@ -108,13 +108,13 @@ module mod_kdinterp
 
   real(rk8) function maxedis1(lat,lon) result(maxdis)
     implicit none
-    real(rk8) , dimension(:) , intent(in) :: lat
-    real(rk8) , dimension(:) , intent(in) :: lon
-    integer(ik4) :: i , j
-    real(rk8) :: r1 , r2
+    real(rk8), dimension(:), intent(in) :: lat
+    real(rk8), dimension(:), intent(in) :: lon
+    integer(ik4) :: i, j
+    real(rk8) :: r1, r2
     maxdis = 0.1_rk8
-    do i = 2 , size(lat)
-      do j = 2 , size(lon)
+    do i = 2, size(lat)
+      do j = 2, size(lon)
         r1 = gcdist_simple(lat(i-1),lon(j-1),lat(i),lon(j))
         r2 = gcdist_simple(lat(i-1),lon(j),lat(i),lon(j-1))
         if ( r1 > maxdis ) maxdis = r1
@@ -125,15 +125,15 @@ module mod_kdinterp
 
   real(rk8) function maxedis2(lat,lon) result(maxdis)
     implicit none
-    real(rk8) , dimension(:,:) , intent(in) :: lat
-    real(rk8) , dimension(:,:) , intent(in) :: lon
-    integer(ik4) :: i , j
-    integer(ik4) , dimension(2) :: nij
-    real(rk8) :: r1 , r2
+    real(rk8), dimension(:,:), intent(in) :: lat
+    real(rk8), dimension(:,:), intent(in) :: lon
+    integer(ik4) :: i, j
+    integer(ik4), dimension(2) :: nij
+    real(rk8) :: r1, r2
     maxdis = 0.1_rk8
     nij = shape(lat)
-    do i = 2 , nij(2)
-      do j = 2 , nij(1)
+    do i = 2, nij(2)
+      do j = 2, nij(1)
         r1 = gcdist_simple(lat(j-1,i-1),lon(j-1,i-1),lat(j,i),lon(j,i))
         r2 = gcdist_simple(lat(j,i-1),lon(j,i-1),lat(j-1,i),lon(j-1,i))
         if ( r1 > maxdis ) maxdis = r1
@@ -144,19 +144,19 @@ module mod_kdinterp
 
   subroutine interp_create_ll_g(h_i,slat,slon,tlat,tlon,ds,roi)
     implicit none
-    type(h_interpolator) , intent(out) :: h_i
-    real(rkx) , dimension(:) , intent(in) :: slat
-    real(rkx) , dimension(:) , intent(in) :: slon
-    real(rkx) , dimension(:,:) , intent(in) :: tlat
-    real(rkx) , dimension(:,:) , intent(in) :: tlon
-    real(rkx) , intent(in) , optional :: ds
-    real(rkx) , intent(in) , optional :: roi
-    real(rk8) , dimension(:,:) , allocatable :: x
-    real(kdkind) , dimension(3) :: p
-    type(kdtree2) , pointer :: mr
-    type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
-    real(rk8) :: dx , r2 , rin
+    type(h_interpolator), intent(out) :: h_i
+    real(rkx), dimension(:), intent(in) :: slat
+    real(rkx), dimension(:), intent(in) :: slon
+    real(rkx), dimension(:,:), intent(in) :: tlat
+    real(rkx), dimension(:,:), intent(in) :: tlon
+    real(rkx), intent(in), optional :: ds
+    real(rkx), intent(in), optional :: roi
+    real(rk8), dimension(:,:), allocatable :: x
+    real(kdkind), dimension(3) :: p
+    type(kdtree2), pointer :: mr
+    type(kdtree2_result), pointer, contiguous, dimension(:) :: results
+    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10
+    real(rk8) :: dx, r2, rin
     logical :: lbil
 
     if ( any(shape(tlat) /= shape(tlon)) ) then
@@ -191,9 +191,9 @@ module mod_kdinterp
     write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
     i10 = ni/10
-    do i = 1 , ni
+    do i = 1, ni
       if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
-      do j = 1 , nj
+      do j = 1, nj
         call ll2xyz(tlat(j,i),tlon(j,i),p)
         if ( lbil ) then
           np = minp
@@ -229,18 +229,18 @@ module mod_kdinterp
 
   subroutine interp_create_ll_ll(h_i,slat,slon,tlat,tlon,roi)
     implicit none
-    type(h_interpolator) , intent(out) :: h_i
-    real(rkx) , dimension(:) , intent(in) :: slat
-    real(rkx) , dimension(:) , intent(in) :: slon
-    real(rkx) , dimension(:) , intent(in) :: tlat
-    real(rkx) , dimension(:) , intent(in) :: tlon
-    real(rkx) , intent(in) , optional :: roi
-    real(rk8) , dimension(:,:) , allocatable :: x
-    real(kdkind) , dimension(3) :: p
-    type(kdtree2) , pointer :: mr
-    type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
-    real(rk8) :: dx , dx1 , r2 , rin , rin1
+    type(h_interpolator), intent(out) :: h_i
+    real(rkx), dimension(:), intent(in) :: slat
+    real(rkx), dimension(:), intent(in) :: slon
+    real(rkx), dimension(:), intent(in) :: tlat
+    real(rkx), dimension(:), intent(in) :: tlon
+    real(rkx), intent(in), optional :: roi
+    real(rk8), dimension(:,:), allocatable :: x
+    real(kdkind), dimension(3) :: p
+    type(kdtree2), pointer :: mr
+    type(kdtree2_result), pointer, contiguous, dimension(:) :: results
+    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10
+    real(rk8) :: dx, dx1, r2, rin, rin1
     logical :: lbil
 
     n1 = size(slat)
@@ -273,9 +273,9 @@ module mod_kdinterp
     write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
     i10 = ni/10
-    do i = 1 , ni
+    do i = 1, ni
       if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
-      do j = 1 , nj
+      do j = 1, nj
         call ll2xyz(tlat(i),tlon(j),p)
         if ( lbil ) then
           np = minp
@@ -311,17 +311,17 @@ module mod_kdinterp
 
   subroutine interp_create_ll_ll_1d(h_i,ni,slat,slon,no,tlat,tlon)
     implicit none
-    integer , intent(in) :: ni , no
-    type(h_interpolator) , intent(out) :: h_i
-    real(rkx) , dimension(ni) , intent(in) :: slat
-    real(rkx) , dimension(ni) , intent(in) :: slon
-    real(rkx) , dimension(no) , intent(in) :: tlat
-    real(rkx) , dimension(no) , intent(in) :: tlon
-    real(rk8) , dimension(:,:) , allocatable :: x
-    real(kdkind) , dimension(3) :: p
-    type(kdtree2) , pointer :: mr
-    type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: i , i10 , np
+    integer, intent(in) :: ni, no
+    type(h_interpolator), intent(out) :: h_i
+    real(rkx), dimension(ni), intent(in) :: slat
+    real(rkx), dimension(ni), intent(in) :: slon
+    real(rkx), dimension(no), intent(in) :: tlat
+    real(rkx), dimension(no), intent(in) :: tlon
+    real(rk8), dimension(:,:), allocatable :: x
+    real(kdkind), dimension(3) :: p
+    type(kdtree2), pointer :: mr
+    type(kdtree2_result), pointer, contiguous, dimension(:) :: results
+    integer(ik4) :: i, i10, np
 
     h_i%sshape(1) = ni
     h_i%sshape(2) = 1
@@ -333,7 +333,7 @@ module mod_kdinterp
     allocate(h_i%tg%ft(no,1))
     write(stdout,'(a)',advance='no') ' Computing weights'
     i10 = no/10
-    do i = 1 , no
+    do i = 1, no
       if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
       call ll2xyz(tlat(i),tlon(i),p)
       np = minp
@@ -350,19 +350,19 @@ module mod_kdinterp
 
   subroutine interp_create_g_g(h_i,slat,slon,tlat,tlon,ds,roi)
     implicit none
-    type(h_interpolator) , intent(out) :: h_i
-    real(rkx) , dimension(:,:) , intent(in) :: slat
-    real(rkx) , dimension(:,:) , intent(in) :: slon
-    real(rkx) , dimension(:,:) , intent(in) :: tlat
-    real(rkx) , dimension(:,:) , intent(in) :: tlon
-    real(rkx) , intent(in) , optional :: ds
-    real(rkx) , intent(in) , optional :: roi
-    real(rk8) , dimension(:,:) , allocatable :: x
-    real(kdkind) , dimension(3) :: p
-    type(kdtree2) , pointer :: mr
-    type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
-    real(rk8) :: dx , r2 , rin
+    type(h_interpolator), intent(out) :: h_i
+    real(rkx), dimension(:,:), intent(in) :: slat
+    real(rkx), dimension(:,:), intent(in) :: slon
+    real(rkx), dimension(:,:), intent(in) :: tlat
+    real(rkx), dimension(:,:), intent(in) :: tlon
+    real(rkx), intent(in), optional :: ds
+    real(rkx), intent(in), optional :: roi
+    real(rk8), dimension(:,:), allocatable :: x
+    real(kdkind), dimension(3) :: p
+    type(kdtree2), pointer :: mr
+    type(kdtree2_result), pointer, contiguous, dimension(:) :: results
+    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10
+    real(rk8) :: dx, r2, rin
     logical :: lbil
 
     if ( any(shape(slat) /= shape(slon)) ) then
@@ -400,9 +400,9 @@ module mod_kdinterp
     write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
     i10 = ni/10
-    do i = 1 , ni
+    do i = 1, ni
       if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
-      do j = 1 , nj
+      do j = 1, nj
         call ll2xyz(tlat(j,i),tlon(j,i),p)
         if ( lbil ) then
           np = minp
@@ -438,18 +438,18 @@ module mod_kdinterp
 
   subroutine interp_create_g_ll(h_i,slat,slon,tlat,tlon,roi)
     implicit none
-    type(h_interpolator) , intent(out) :: h_i
-    real(rkx) , dimension(:,:) , intent(in) :: slat
-    real(rkx) , dimension(:,:) , intent(in) :: slon
-    real(rkx) , dimension(:) , intent(in) :: tlat
-    real(rkx) , dimension(:) , intent(in) :: tlon
-    real(rkx) , intent(in) , optional :: roi
-    real(rk8) , dimension(:,:) , allocatable :: x
-    real(kdkind) , dimension(3) :: p
-    type(kdtree2) , pointer :: mr
-    type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
-    real(rk8) :: dx , dx1 , r2 , rin , rin1
+    type(h_interpolator), intent(out) :: h_i
+    real(rkx), dimension(:,:), intent(in) :: slat
+    real(rkx), dimension(:,:), intent(in) :: slon
+    real(rkx), dimension(:), intent(in) :: tlat
+    real(rkx), dimension(:), intent(in) :: tlon
+    real(rkx), intent(in), optional :: roi
+    real(rk8), dimension(:,:), allocatable :: x
+    real(kdkind), dimension(3) :: p
+    type(kdtree2), pointer :: mr
+    type(kdtree2_result), pointer, contiguous, dimension(:) :: results
+    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10
+    real(rk8) :: dx, dx1, r2, rin, rin1
     logical :: lbil
 
     if ( any(shape(slat) /= shape(slon)) ) then
@@ -485,9 +485,9 @@ module mod_kdinterp
     write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
     i10 = ni/10
-    do i = 1 , ni
+    do i = 1, ni
       if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
-      do j = 1 , nj
+      do j = 1, nj
         call ll2xyz(tlat(i),tlon(j),p)
         if ( lbil ) then
           np = minp
@@ -523,13 +523,13 @@ module mod_kdinterp
 
   subroutine h_interpolator_destroy(h_i)
     implicit none
-    type(h_interpolator) , intent(inout) :: h_i
-    integer :: ni , nj , j , i
+    type(h_interpolator), intent(inout) :: h_i
+    integer :: ni, nj, j, i
     if ( associated(h_i%tg%ft) ) then
       nj = h_i%tg%tshape(1)
       ni = h_i%tg%tshape(2)
-      do i = 1 , ni
-        do j = 1 , nj
+      do i = 1, ni
+        do j = 1, nj
           if ( h_i%tg%ft(j,i)%np > 0 ) then
             deallocate(h_i%tg%ft(j,i)%wgt)
           end if
@@ -541,10 +541,10 @@ module mod_kdinterp
 
   subroutine interp_1d_nn(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:) , intent(in) :: g
-    real(rkx) , dimension(:) , intent(out) :: f
-    integer(ik4) :: i , ni , n , si , gni
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:), intent(in) :: g
+    real(rkx), dimension(:), intent(out) :: f
+    integer(ik4) :: i, ni, n, si, gni
     real(rk8) :: gmax
     if ( size(g) /= h_i%sshape(1) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
@@ -556,10 +556,10 @@ module mod_kdinterp
     end if
     ni = size(f)
     gni = size(g)
-    do i = 1 , ni
+    do i = 1, ni
       gmax = -1.0_rkx
       f(i) = missl
-      do n = 1 , h_i%tg%ft(i,1)%np
+      do n = 1, h_i%tg%ft(i,1)%np
         si = h_i%tg%ft(i,1)%wgt(n)%i
         if ( g(si) > missc .and. gmax < h_i%tg%ft(i,1)%wgt(n)%wgt ) then
           gmax = h_i%tg%ft(i,1)%wgt(n)%wgt
@@ -571,12 +571,12 @@ module mod_kdinterp
 
   subroutine interp_1d(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:) , intent(in) :: g
-    real(rkx) , dimension(:) , intent(out) :: f
-    integer(ik4) :: i , ni , n , si , gni
-    real(rkx) :: gmax , gmin
-    real(rk8) :: gsum , gwgt
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:), intent(in) :: g
+    real(rkx), dimension(:), intent(out) :: f
+    integer(ik4) :: i, ni, n, si, gni
+    real(rkx) :: gmax, gmin
+    real(rk8) :: gsum, gwgt
     if ( size(g) /= h_i%sshape(1) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
       call die('interp_1d','Non conforming shape for source',1)
@@ -589,16 +589,16 @@ module mod_kdinterp
     gni = size(g)
     gmax = -1e20_rkx
     gmin = 1e20_rkx
-    do i = 1 , gni
+    do i = 1, gni
       if ( g(i) > missc ) then
         if ( gmax < g(i) ) gmax = g(i)
         if ( gmin > g(i) ) gmin = g(i)
       end if
     end do
-    do i = 1 , ni
+    do i = 1, ni
       gsum = d_zero
       gwgt = d_zero
-      do n = 1 , h_i%tg%ft(i,1)%np
+      do n = 1, h_i%tg%ft(i,1)%np
         si = h_i%tg%ft(i,1)%wgt(n)%i
         if ( g(si) > missc ) then
           gsum = gsum + g(si) * h_i%tg%ft(i,1)%wgt(n)%wgt
@@ -616,12 +616,12 @@ module mod_kdinterp
 
   subroutine interp_2d(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:,:) , intent(in) :: g
-    real(rkx) , dimension(:,:) , intent(out) :: f
-    integer(ik4) :: i , j , ni , nj , n , si , sj , gni , gnj
-    real(rk8) :: gsum , gwgt
-    real(rkx) :: gmax , gmin
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:), intent(in) :: g
+    real(rkx), dimension(:,:), intent(out) :: f
+    integer(ik4) :: i, j, ni, nj, n, si, sj, gni, gnj
+    real(rk8) :: gsum, gwgt
+    real(rkx) :: gmax, gmin
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_2d','Non conforming shape for source',1)
@@ -636,19 +636,19 @@ module mod_kdinterp
     gni = size(g,2)
     gmax = -1e20_rkx
     gmin = 1e20_rkx
-    do i = 1 , gni
-      do j = 1 , gnj
+    do i = 1, gni
+      do j = 1, gnj
         if ( g(j,i) > missc ) then
           if ( gmax < g(j,i) ) gmax = g(j,i)
           if ( gmin > g(j,i) ) gmin = g(j,i)
         end if
       end do
     end do
-    do i = 1 , ni
-      do j = 1 , nj
+    do i = 1, ni
+      do j = 1, nj
         gsum = d_zero
         gwgt = d_zero
-        do n = 1 , h_i%tg%ft(j,i)%np
+        do n = 1, h_i%tg%ft(j,i)%np
           si = h_i%tg%ft(j,i)%wgt(n)%i
           sj = h_i%tg%ft(j,i)%wgt(n)%j
           if ( g(sj,si) > missc ) then
@@ -664,8 +664,8 @@ module mod_kdinterp
       end do
     end do
     call smtdsmt(f)
-    do i = 1 , ni
-      do j = 1 , nj
+    do i = 1, ni
+      do j = 1, nj
         if ( f(j,i) > missc ) then
           f(j,i) = max(gmin,min(gmax,f(j,i)))
         end if
@@ -675,10 +675,10 @@ module mod_kdinterp
 
   subroutine interp_2d_nn(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:,:) , intent(in) :: g
-    real(rkx) , dimension(:,:) , intent(out) :: f
-    integer(ik4) :: i , j , ni , nj , n , si , sj , gni , gnj
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:), intent(in) :: g
+    real(rkx), dimension(:,:), intent(out) :: f
+    integer(ik4) :: i, j, ni, nj, n, si, sj, gni, gnj
     real(rk8) :: gmax
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
@@ -692,11 +692,11 @@ module mod_kdinterp
     ni = size(f,2)
     gnj = size(g,1)
     gni = size(g,2)
-    do i = 1 , ni
-      do j = 1 , nj
+    do i = 1, ni
+      do j = 1, nj
         gmax = -1.0_rkx
         f(j,i) = missl
-        do n = 1 , h_i%tg%ft(j,i)%np
+        do n = 1, h_i%tg%ft(j,i)%np
           si = h_i%tg%ft(j,i)%wgt(n)%i
           sj = h_i%tg%ft(j,i)%wgt(n)%j
           if ( g(sj,si) > missc .and. gmax < h_i%tg%ft(j,i)%wgt(n)%wgt ) then
@@ -710,10 +710,10 @@ module mod_kdinterp
 
   subroutine interp_3d(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:,:,:) , intent(in) :: g
-    real(rkx) , dimension(:,:,:) , intent(out) :: f
-    integer(ik4) :: n3 , n
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:,:), intent(in) :: g
+    real(rkx), dimension(:,:,:), intent(out) :: f
+    integer(ik4) :: n3, n
     n3 = size(g,3)
     if ( n3 /= size(f,3) ) then
       write(stderr,*) 'DIMENSION 3 g = ',size(g,3)
@@ -721,7 +721,7 @@ module mod_kdinterp
       call die('interp_3d','Non conforming shapes',1)
     end if
 !$OMP PARALLEL DO
-    do n = 1 , n3
+    do n = 1, n3
       call interp_2d(h_i,g(:,:,n),f(:,:,n))
     end do
 !$OMP END PARALLEL DO
@@ -729,45 +729,45 @@ module mod_kdinterp
 
   subroutine interp_4d(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:,:,:,:) , intent(in) :: g
-    real(rkx) , dimension(:,:,:,:) , intent(out) :: f
-    integer(ik4) :: n4 , n
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:,:,:), intent(in) :: g
+    real(rkx), dimension(:,:,:,:), intent(out) :: f
+    integer(ik4) :: n4, n
     n4 = size(g,4)
     if ( n4 /= size(f,4) ) then
       write(stderr,*) 'DIMENSION 4 g = ',size(g,4)
       write(stderr,*) 'DIMENSION 4 f = ',size(f,4)
       call die('interp_4d','Non conforming shapes',1)
     end if
-    do n = 1 , n4
+    do n = 1, n4
       call interp_3d(h_i,g(:,:,:,n),f(:,:,:,n))
     end do
   end subroutine interp_4d
 
   subroutine interp_5d(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:,:,:,:,:) , intent(in) :: g
-    real(rkx) , dimension(:,:,:,:,:) , intent(out) :: f
-    integer(ik4) :: n5 , n
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:,:,:,:), intent(in) :: g
+    real(rkx), dimension(:,:,:,:,:), intent(out) :: f
+    integer(ik4) :: n5, n
     n5 = size(g,5)
     if ( n5 /= size(f,5) ) then
       write(stderr,*) 'DIMENSION 5 g = ',size(g,5)
       write(stderr,*) 'DIMENSION 5 f = ',size(f,5)
       call die('interp_5d','Non conforming shapes',1)
     end if
-    do n = 1 , n5
+    do n = 1, n5
       call interp_4d(h_i,g(:,:,:,:,n),f(:,:,:,:,n))
     end do
   end subroutine interp_5d
 
   subroutine interp_class_2dr(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:,:) , intent(in) :: g
-    real(rkx) , dimension(:,:) , intent(out) :: f
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:), intent(in) :: g
+    real(rkx), dimension(:,:), intent(out) :: f
     real(rk8) :: wgtm
-    integer(ik4) :: i , j , ni , nj , n , si , sj
+    integer(ik4) :: i, j, ni, nj, n, si, sj
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_class','Non conforming shape for source',1)
@@ -778,14 +778,14 @@ module mod_kdinterp
     end if
     nj = size(f,1)
     ni = size(f,2)
-    do i = 1 , ni
-      do j = 1 , nj
+    do i = 1, ni
+      do j = 1, nj
         if ( h_i%tg%ft(j,i)%np > 0 ) then
           wgtm = h_i%tg%ft(j,i)%wgt(1)%wgt
           si = h_i%tg%ft(j,i)%wgt(1)%i
           sj = h_i%tg%ft(j,i)%wgt(1)%j
           f(j,i) = g(sj,si)
-          do n = 2 , h_i%tg%ft(j,i)%np
+          do n = 2, h_i%tg%ft(j,i)%np
             if ( wgtm < h_i%tg%ft(j,i)%wgt(n)%wgt ) then
               wgtm = h_i%tg%ft(j,i)%wgt(n)%wgt
               si = h_i%tg%ft(j,i)%wgt(n)%i
@@ -802,10 +802,10 @@ module mod_kdinterp
 
   subroutine interp_class_3dr(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:,:,:) , intent(in) :: g
-    real(rkx) , dimension(:,:,:) , intent(out) :: f
-    integer(ik4) :: n3 , n
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:,:), intent(in) :: g
+    real(rkx), dimension(:,:,:), intent(out) :: f
+    integer(ik4) :: n3, n
     n3 = size(g,3)
     if ( n3 /= size(f,3) ) then
       write(stderr,*) 'DIMENSION 3 g = ',size(g,3)
@@ -813,7 +813,7 @@ module mod_kdinterp
       call die('interp_class_3dr','Non conforming shapes',1)
     end if
 !$OMP PARALLEL DO
-    do n = 1 , n3
+    do n = 1, n3
       call interp_class_2dr(h_i,g(:,:,n),f(:,:,n))
     end do
 !$OMP END PARALLEL DO
@@ -821,46 +821,46 @@ module mod_kdinterp
 
   subroutine interp_class_4dr(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:,:,:,:) , intent(in) :: g
-    real(rkx) , dimension(:,:,:,:) , intent(out) :: f
-    integer(ik4) :: n4 , n
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:,:,:), intent(in) :: g
+    real(rkx), dimension(:,:,:,:), intent(out) :: f
+    integer(ik4) :: n4, n
     n4 = size(g,4)
     if ( n4 /= size(f,4) ) then
       write(stderr,*) 'DIMENSION 4 g = ',size(g,4)
       write(stderr,*) 'DIMENSION 4 f = ',size(f,4)
       call die('interp_4d','Non conforming shapes',1)
     end if
-    do n = 1 , n4
+    do n = 1, n4
       call interp_class_3dr(h_i,g(:,:,:,n),f(:,:,:,n))
     end do
   end subroutine interp_class_4dr
 
   subroutine interp_class_5dr(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    real(rkx) , dimension(:,:,:,:,:) , intent(in) :: g
-    real(rkx) , dimension(:,:,:,:,:) , intent(out) :: f
-    integer(ik4) :: n5 , n
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:,:,:,:), intent(in) :: g
+    real(rkx), dimension(:,:,:,:,:), intent(out) :: f
+    integer(ik4) :: n5, n
     n5 = size(g,5)
     if ( n5 /= size(f,5) ) then
       write(stderr,*) 'DIMENSION 5 g = ',size(g,5)
       write(stderr,*) 'DIMENSION 5 f = ',size(f,5)
       call die('interp_5d','Non conforming shapes',1)
     end if
-    do n = 1 , n5
+    do n = 1, n5
       call interp_class_4dr(h_i,g(:,:,:,:,n),f(:,:,:,:,n))
     end do
   end subroutine interp_class_5dr
 
   subroutine interp_class_i(h_i,g,f)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    integer(ik4) , dimension(:,:) , intent(in) :: g
-    integer(ik4) , dimension(:,:) , intent(out) :: f
-    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
-    integer(ik4) , dimension(1) :: v
-    real(rk8) , dimension(:) , allocatable :: gvals
+    type(h_interpolator), intent(in) :: h_i
+    integer(ik4), dimension(:,:), intent(in) :: g
+    integer(ik4), dimension(:,:), intent(out) :: f
+    integer(ik4) :: i, j, ni, nj, n, si, sj, iv, nc, n1, n2
+    integer(ik4), dimension(1) :: v
+    real(rk8), dimension(:), allocatable :: gvals
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_class','Non conforming shape for source',1)
@@ -879,10 +879,10 @@ module mod_kdinterp
     nj = size(f,1)
     ni = size(f,2)
     allocate(gvals(n1:n2))
-    do i = 1 , ni
-      do j = 1 , nj
+    do i = 1, ni
+      do j = 1, nj
         gvals(:) = d_zero
-        do n = 1 , h_i%tg%ft(j,i)%np
+        do n = 1, h_i%tg%ft(j,i)%np
           si = h_i%tg%ft(j,i)%wgt(n)%i
           sj = h_i%tg%ft(j,i)%wgt(n)%j
           iv = g(sj,si)
@@ -897,15 +897,15 @@ module mod_kdinterp
 
   subroutine interp_class_ld(h_i,g,f,iw,pct)
     implicit none
-    type(h_interpolator) , intent(in) :: h_i
-    integer(ik4) , dimension(:,:) , intent(in) :: g
-    integer(ik4) , intent(in) :: iw
-    real(rkx) , dimension(:,:) , intent(out) :: f
-    real(rkx) , intent(in) :: pct
-    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
+    type(h_interpolator), intent(in) :: h_i
+    integer(ik4), dimension(:,:), intent(in) :: g
+    integer(ik4), intent(in) :: iw
+    real(rkx), dimension(:,:), intent(out) :: f
+    real(rkx), intent(in) :: pct
+    integer(ik4) :: i, j, ni, nj, n, si, sj, iv, nc, n1, n2
     real(rk8) :: wgt
-    integer(ik4) , dimension(1) :: v
-    integer(ik4) , dimension(:) , allocatable :: gvals
+    integer(ik4), dimension(1) :: v
+    integer(ik4), dimension(:), allocatable :: gvals
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_class','Non conforming shape for source',1)
@@ -924,10 +924,10 @@ module mod_kdinterp
     nj = size(f,1)
     ni = size(f,2)
     allocate(gvals(n1:n2))
-    do i = 1 , ni
-      do j = 1 , nj
+    do i = 1, ni
+      do j = 1, nj
         gvals(:) = 0
-        do n = 1 , h_i%tg%ft(j,i)%np
+        do n = 1, h_i%tg%ft(j,i)%np
           si = h_i%tg%ft(j,i)%wgt(n)%i
           sj = h_i%tg%ft(j,i)%wgt(n)%j
           iv = g(sj,si)
@@ -949,10 +949,10 @@ module mod_kdinterp
 
   subroutine smther(f)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:) :: f
-    integer(ik4) :: i1 , i2 , j1 , j2
-    integer(ik4) :: i , is , ie , j , js , je
-    real(rkx) , allocatable , dimension(:,:) :: tmp
+    real(rkx), intent(inout), dimension(:,:) :: f
+    integer(ik4) :: i1, i2, j1, j2
+    integer(ik4) :: i, is, ie, j, js, je
+    real(rkx), allocatable, dimension(:,:) :: tmp
     i1 = lbound(f,2)
     i2 = ubound(f,2)
     j1 = lbound(f,1)
@@ -963,8 +963,8 @@ module mod_kdinterp
     is = i1+1
     js = j1+1
     tmp(:,:) = f(:,:)
-    do i = is , ie
-      do j = js , je
+    do i = is, ie
+      do j = js, je
         if ( all(tmp(j-1:j+1,i-1:i+1) > missc) ) then
           f(j,i) = (tmp(j-1,i-1)+tmp(j-1,i)+tmp(j-1,i+1) + &
                     tmp(j+1,i-1)+tmp(j+1,i)+tmp(j+1,i+1) + &
@@ -972,7 +972,7 @@ module mod_kdinterp
         end if
       end do
     end do
-    do i = is , ie
+    do i = is, ie
       if ( all(tmp(je:j2,i-1:i+1) > missc) ) then
         f(j2,i) = (tmp(je,i-1)+tmp(je,i)+tmp(je,i+1) + &
                    tmp(j2,i-1)+ tmp(j2,i+1)+3.0_rkx*tmp(j2,i))/8.0_rkx
@@ -982,7 +982,7 @@ module mod_kdinterp
                    tmp(j1,i-1)+ tmp(j1,i+1)+3.0_rkx*tmp(j1,i))/8.0_rkx
       end if
     end do
-    do j = js , je
+    do j = js, je
       if ( all(tmp(j-1:j+1,ie:i2) > missc) ) then
         f(j,i2) = (tmp(j-1,ie)+tmp(j,ie)+tmp(j+1,ie) + &
                    tmp(j+1,i2)+tmp(j-1,i2)+3.0_rkx* tmp(j,i2))/8.0_rkx
@@ -1009,12 +1009,12 @@ module mod_kdinterp
 
   subroutine smtdsmt(f)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:) :: f
-    real(rkx) :: aplus , asv , cell
-    integer(ik4) :: i1 , i2 , j1 , j2
-    integer(ik4) :: i , is , ie , j , js , je , kp , np
-    real(rkx) , dimension(2) :: xnu
-    integer(ik4) , parameter :: npass = 4
+    real(rkx), intent(inout), dimension(:,:) :: f
+    real(rkx) :: aplus, asv, cell
+    integer(ik4) :: i1, i2, j1, j2
+    integer(ik4) :: i, is, ie, j, js, je, kp, np
+    real(rkx), dimension(2) :: xnu
+    integer(ik4), parameter :: npass = 4
     !
     ! purpose: spatially smooth data in f to dampen short
     ! wavelength components
@@ -1029,12 +1029,12 @@ module mod_kdinterp
     js = j1+1
     xnu(1) =  0.50_rkx
     xnu(2) = -0.52_rkx
-    do np = 1 , npass
-      do kp = 1 , 2
+    do np = 1, npass
+      do kp = 1, 2
         ! first smooth in the ni direction
-        do i = i1 , i2
+        do i = i1, i2
           asv = f(j1,i)
-          do j = js , je
+          do j = js, je
             cell = f(j,i)
             aplus = f(j+1,i)
             if ( asv > missc .and. aplus > missc .and. cell > missc ) then
@@ -1044,9 +1044,9 @@ module mod_kdinterp
           end do
         end do
         ! smooth in the nj direction
-        do j = j1 , j2
+        do j = j1, j2
           asv = f(j,i1)
-          do i = is , ie
+          do i = is, ie
             cell = f(j,i)
             aplus = f(j,i+1)
             if ( asv > missc .and. aplus > missc .and. cell > missc ) then
@@ -1061,19 +1061,19 @@ module mod_kdinterp
 
   subroutine compwgt_distwei(np,n2,r,w)
     implicit none
-    integer(ik4) , intent(inout) :: np
-    integer(ik4) , intent(in) :: n2
-    type(kdtree2_result) , pointer , dimension(:) , intent(in) :: r
-    type(pwgt) , dimension(:) , pointer , intent(inout) :: w
+    integer(ik4), intent(inout) :: np
+    integer(ik4), intent(in) :: n2
+    type(kdtree2_result), pointer, contiguous, dimension(:), intent(in) :: r
+    type(pwgt), dimension(:), pointer, contiguous, intent(inout) :: w
     integer(ik4) :: n
-    real(rk8) :: rx , rmax
+    real(rk8) :: rx, rmax
 
     rmax = r(1)%dis
-    do n = 2 , np
+    do n = 2, np
       if ( rmax < r(n)%dis ) rmax = r(n)%dis
     end do
     allocate(w(np))
-    do n = 1 , np
+    do n = 1, np
       if ( r(n)%dis < epsilon(rx) ) then
         np = 1
         deallocate(w)
@@ -1092,18 +1092,18 @@ module mod_kdinterp
 
   subroutine compwgt_genlin_1d(np,p,xp,r,w)
     implicit none
-    integer(ik4) , intent(inout) :: np
-    real(rk8) , dimension(:,:) , intent(in) :: xp
-    real(rk8) , dimension(3) , intent(in) :: p
-    type(kdtree2_result) , pointer , dimension(:) , intent(in) :: r
-    type(pwgt) , dimension(:) , pointer , intent(inout) :: w
-    real(rk8) , dimension(3,np) :: v
-    real(rk8) , dimension(np) :: lambda
+    integer(ik4), intent(inout) :: np
+    real(rk8), dimension(:,:), intent(in) :: xp
+    real(rk8), dimension(3), intent(in) :: p
+    type(kdtree2_result), pointer, contiguous, dimension(:), intent(in) :: r
+    type(pwgt), dimension(:), pointer, contiguous, intent(inout) :: w
+    real(rk8), dimension(3,np) :: v
+    real(rk8), dimension(np) :: lambda
     real(rk8) :: rx
-    integer(ik4) :: i , n
+    integer(ik4) :: i, n
 
     ! Check perfect match
-    do n = 1 , np
+    do n = 1, np
       if ( abs(r(n)%dis) < epsilon(rx) ) then
         np = 1
         allocate(w(1))
@@ -1113,14 +1113,14 @@ module mod_kdinterp
         return
       end if
     end do
-    do n = 1 , np
-      do i = 1 , 3
+    do n = 1, np
+      do i = 1, 3
         v(i,n) = xp(i,r(n)%idx)
       end do
     end do
     allocate(w(np))
     call spherical_barycentric(np,p,v,lambda)
-    do n = 1 , np
+    do n = 1, np
       w(n)%i = r(n)%idx
       w(n)%j = 1
       w(n)%wgt = lambda(n)
@@ -1129,19 +1129,19 @@ module mod_kdinterp
 
   subroutine compwgt_genlin_2d(np,n2,p,xp,r,w)
     implicit none
-    integer(ik4) , intent(in) :: n2
-    integer(ik4) , intent(inout) :: np
-    real(rk8) , dimension(:,:) , intent(in) :: xp
-    real(rk8) , dimension(3) , intent(in) :: p
-    type(kdtree2_result) , pointer , dimension(:) , intent(in) :: r
-    type(pwgt) , dimension(:) , pointer , intent(inout) :: w
-    real(rk8) , dimension(3,np) :: v
-    real(rk8) , dimension(np) :: lambda
+    integer(ik4), intent(in) :: n2
+    integer(ik4), intent(inout) :: np
+    real(rk8), dimension(:,:), intent(in) :: xp
+    real(rk8), dimension(3), intent(in) :: p
+    type(kdtree2_result), pointer, contiguous, dimension(:), intent(in) :: r
+    type(pwgt), dimension(:), pointer, contiguous, intent(inout) :: w
+    real(rk8), dimension(3,np) :: v
+    real(rk8), dimension(np) :: lambda
     real(rk8) :: rx
-    integer(ik4) :: i , n
+    integer(ik4) :: i, n
 
     ! Check perfect match
-    do n = 1 , np
+    do n = 1, np
       if ( abs(r(n)%dis) < epsilon(rx) ) then
         np = 1
         allocate(w(1))
@@ -1151,14 +1151,14 @@ module mod_kdinterp
         return
       end if
     end do
-    do n = 1 , np
-      do i = 1 , 3
+    do n = 1, np
+      do i = 1, 3
         v(i,n) = xp(i,r(n)%idx)
       end do
     end do
     allocate(w(np))
     call spherical_barycentric(np,p,v,lambda)
-    do n = 1 , np
+    do n = 1, np
       w(n)%i = (r(n)%idx-1)/n2 + 1
       w(n)%j = r(n)%idx - n2*(w(n)%i-1)
       w(n)%wgt = lambda(n)

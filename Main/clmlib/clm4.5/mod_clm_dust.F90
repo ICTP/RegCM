@@ -16,12 +16,12 @@ module mod_clm_dust
   use mod_mpmessage
   use mod_stdio
   use mod_clm_type
-  use mod_clm_varpar  , only : dst_src_nbr, ndst, sz_nbr
-  use mod_clm_varcon  , only : grav, istsoil
-  use mod_clm_varcon  , only : istcrop
+  use mod_clm_varpar , only : dst_src_nbr, ndst, sz_nbr
+  use mod_clm_varcon , only : grav, istsoil
+  use mod_clm_varcon , only : istcrop
   use mod_clm_subgridave, only: p2l
-  use mod_clm_varcon , only: spval , denh2o
-  use mod_clm_atmlnd   , only : clm_a2l
+  use mod_clm_varcon, only: spval, denh2o
+  use mod_clm_atmlnd  , only : clm_a2l
 
   implicit none
 
@@ -55,36 +55,36 @@ module mod_clm_dust
     ! pft filter for non-lake points
     integer(ik4), intent(in) :: filter_nolakep(num_nolakep)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
-    integer(ik4) , pointer :: pcolumn(:)   ! pft's column index
-    integer(ik4) , pointer :: plandunit(:) ! pft's landunit index
-    integer(ik4) , pointer :: pgridcell(:) ! pft's gridcell index
-    integer(ik4) , pointer :: ityplun(:)   ! landunit type
+    logical, pointer, contiguous :: pactive(:)
+    integer(ik4), pointer, contiguous :: pcolumn(:)   ! pft's column index
+    integer(ik4), pointer, contiguous :: plandunit(:) ! pft's landunit index
+    integer(ik4), pointer, contiguous :: pgridcell(:) ! pft's gridcell index
+    integer(ik4), pointer, contiguous :: ityplun(:)   ! landunit type
     ! one-sided leaf area index, no burying by snow
-    real(rk8), pointer :: tlai(:)
+    real(rk8), pointer, contiguous :: tlai(:)
     ! one-sided stem area index, no burying by snow
-    real(rk8), pointer :: tsai(:)
+    real(rk8), pointer, contiguous :: tsai(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)
+    real(rk8), pointer, contiguous :: frac_sno(:)
     ! threshold gravimetric soil moisture based on clay content
-    real(rk8), pointer :: gwc_thr(:)
-    real(rk8), pointer :: forc_rho(:)   ! density (kg/m**3)
-    real(rk8), pointer :: fv(:) ! friction velocity (m/s) (for dust model)
-    real(rk8), pointer :: u10(:) ! 10-m wind (m/s) (created for dust model)
-    real(rk8), pointer :: mbl_bsn_fct(:)     ! basin factor
+    real(rk8), pointer, contiguous :: gwc_thr(:)
+    real(rk8), pointer, contiguous :: forc_rho(:)   ! density (kg/m**3)
+    real(rk8), pointer, contiguous :: fv(:) ! friction velocity (m/s) (for dust model)
+    real(rk8), pointer, contiguous :: u10(:) ! 10-m wind (m/s) (created for dust model)
+    real(rk8), pointer, contiguous :: mbl_bsn_fct(:)     ! basin factor
     ! [frc] Mass fraction clay limited to 0.20
-    real(rk8), pointer :: mss_frc_cly_vld(:)
+    real(rk8), pointer, contiguous :: mss_frc_cly_vld(:)
     ! volumetric soil water (0<=h2osoi_vol<=watsat)
-    real(rk8), pointer :: h2osoi_vol(:,:)
-    real(rk8), pointer :: h2osoi_liq(:,:)  ! liquid soil water (kg/m2)
-    real(rk8), pointer :: h2osoi_ice(:,:)  ! frozen soil water (kg/m2)
-    real(rk8), pointer :: watsat(:,:)      ! saturated volumetric soil water
-    real(rk8), pointer :: lnd_frc_mbl_dst(:) ! Ground fraction emitting dust
+    real(rk8), pointer, contiguous :: h2osoi_vol(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)  ! liquid soil water (kg/m2)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)  ! frozen soil water (kg/m2)
+    real(rk8), pointer, contiguous :: watsat(:,:)      ! saturated volumetric soil water
+    real(rk8), pointer, contiguous :: lnd_frc_mbl_dst(:) ! Ground fraction emitting dust
 
     ! surface dust emission (kg/m**2/s)
-    real(rk8), pointer :: flx_mss_vrt_dst(:,:)
+    real(rk8), pointer, contiguous :: flx_mss_vrt_dst(:,:)
     ! total dust flux into atmosphere
-    real(rk8), pointer :: flx_mss_vrt_dst_tot(:)
+    real(rk8), pointer, contiguous :: flx_mss_vrt_dst_tot(:)
 
     integer(ik4)  :: fp,p,c,l,g,m,n  ! indices
     ! fraction of total water that is liquid
@@ -115,7 +115,7 @@ module mod_clm_dust
     real(rk8), parameter :: flx_mss_fdg_fct = 5.0e-4_rk8
     ! [m2 m-2] VAI threshold quenching dust mobilization
     real(rk8), parameter :: vai_mbl_thr = 0.3_rk8
-    real(rk8), pointer :: wtlunit(:)  ! weight of pft relative to landunit
+    real(rk8), pointer, contiguous :: wtlunit(:)  ! weight of pft relative to landunit
     real(rk8) :: sumwt(lbl:ubl)       ! sum of weights
     logical  :: found                 ! temporary for error check
     integer(ik4)  :: index
@@ -396,24 +396,24 @@ module mod_clm_dust
   ! Source: C. Zender's dry deposition code
   !
   subroutine DustDryDep (lbp, ubp)
-    use mod_constants , only : boltzk
-    use mod_clm_varcon , only : rpi , rair
-    use mod_clm_atmlnd , only : clm_a2l
+    use mod_constants, only : boltzk
+    use mod_clm_varcon, only : rpi, rair
+    use mod_clm_atmlnd, only : clm_a2l
     implicit none
     integer(ik4), intent(in) :: lbp, ubp     ! pft bounds
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:)
-    integer(ik4) , pointer :: pgridcell(:)   ! pft's gridcell index
-    real(rk8), pointer :: forc_t(:)      ! atm temperature (K)
-    real(rk8), pointer :: forc_pbot(:)   ! atm pressure (Pa)
-    real(rk8), pointer :: forc_rho(:)    ! atm density (kg/m**3)
-    real(rk8), pointer :: fv(:)          ! friction velocity (m/s)
-    real(rk8), pointer :: ram1(:)        ! aerodynamical resistance (s/m)
-    real(rk8), pointer :: vlc_trb(:,:)   ! Turbulent deposn velocity (m/s)
-    real(rk8), pointer :: vlc_trb_1(:)   ! Turbulent deposition velocity 1
-    real(rk8), pointer :: vlc_trb_2(:)   ! Turbulent deposition velocity 2
-    real(rk8), pointer :: vlc_trb_3(:)   ! Turbulent deposition velocity 3
-    real(rk8), pointer :: vlc_trb_4(:)   ! Turbulent deposition velocity 4
+    logical, pointer, contiguous :: pactive(:)
+    integer(ik4), pointer, contiguous :: pgridcell(:)   ! pft's gridcell index
+    real(rk8), pointer, contiguous :: forc_t(:)      ! atm temperature (K)
+    real(rk8), pointer, contiguous :: forc_pbot(:)   ! atm pressure (Pa)
+    real(rk8), pointer, contiguous :: forc_rho(:)    ! atm density (kg/m**3)
+    real(rk8), pointer, contiguous :: fv(:)          ! friction velocity (m/s)
+    real(rk8), pointer, contiguous :: ram1(:)        ! aerodynamical resistance (s/m)
+    real(rk8), pointer, contiguous :: vlc_trb(:,:)   ! Turbulent deposn velocity (m/s)
+    real(rk8), pointer, contiguous :: vlc_trb_1(:)   ! Turbulent deposition velocity 1
+    real(rk8), pointer, contiguous :: vlc_trb_2(:)   ! Turbulent deposition velocity 2
+    real(rk8), pointer, contiguous :: vlc_trb_3(:)   ! Turbulent deposition velocity 3
+    real(rk8), pointer, contiguous :: vlc_trb_4(:)   ! Turbulent deposition velocity 4
     integer(ik4)  :: p,g,m                 ! indices
     real(rk8) :: vsc_dyn_atm(lbp:ubp)  ! [kg m-1 s-1] Dynamic viscosity of air
     ! [m2 s-1] Kinematic viscosity of atmosphere
@@ -553,10 +553,10 @@ module mod_clm_dust
   ! Rest of subroutine from C. Zender's dust model
   !
   subroutine Dustini()
-    use mod_clm_varcon , only : rpi , rair
-    use mod_clm_decomp , only : get_proc_bounds
+    use mod_clm_varcon, only : rpi, rair
+    use mod_clm_decomp, only : get_proc_bounds
     implicit none
-    real(rk8), pointer :: mbl_bsn_fct(:) !basin factor
+    real(rk8), pointer, contiguous :: mbl_bsn_fct(:) !basin factor
     integer(ik4)  :: c,l,m,n              ! indices
     real(rk8) :: ovr_src_snk_frc
     real(rk8) :: sqrt2lngsdi             ! [frc] Factor in erf argument
@@ -604,10 +604,10 @@ module mod_clm_dust
     ! constants
     ! [m] Mass median diameter
     real(rk8) :: dmt_vma_src(dst_src_nbr) =    &
-         [ 0.832e-6_rk8 , 4.82e-6_rk8 , 19.38e-6_rk8 ]        ! BSM96 p. 73 Table 2
+         [ 0.832e-6_rk8, 4.82e-6_rk8, 19.38e-6_rk8 ]        ! BSM96 p. 73 Table 2
     ! [frc] Geometric std deviation
     real(rk8) :: gsd_anl_src(dst_src_nbr) =    &
-         [ 2.10_rk8     ,  1.90_rk8   , 1.60_rk8     ]        ! BSM96 p. 73 Table 2
+         [ 2.10_rk8    ,  1.90_rk8  , 1.60_rk8     ]        ! BSM96 p. 73 Table 2
     ! [frc] Mass fraction
     real(rk8) :: mss_frc_src(dst_src_nbr) =    &
          [ 0.036_rk8, 0.957_rk8, 0.007_rk8 ]                  ! BSM96 p. 73 Table 2
@@ -627,7 +627,7 @@ module mod_clm_dust
     integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
 
 #ifdef __PGI
-    !real(rk8) , external :: erf
+    !real(rk8), external :: erf
 #endif
     ! Assign local pointers to derived type scalar members (column-level)
 

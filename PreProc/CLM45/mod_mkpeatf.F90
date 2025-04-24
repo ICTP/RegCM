@@ -27,16 +27,16 @@ module mod_mkpeatf
 
   public :: mkpeatf
 
-  character(len=16) , parameter :: varname = 'peatf'
+  character(len=16), parameter :: varname = 'peatf'
 
   contains
 
   subroutine mkpeatf(peatffile,mask,peatf)
     implicit none
-    character(len=*) , intent(in) :: peatffile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: peatf
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: peatffile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:), intent(out) :: peatf
+    integer(ik4) :: i, j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -46,8 +46,8 @@ module mod_mkpeatf
     call gfread(gfile,varname,peatf,h_missing_value)
     call gfclose(gfile)
     call bestaround(peatf,h_missing_value)
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           peatf(j,i) = h_missing_value
         else

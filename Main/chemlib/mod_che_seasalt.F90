@@ -26,20 +26,20 @@ module mod_che_seasalt
   private
 
   ! sea-salt density
-  real(rkx) , parameter :: rhosslt = 1020.0_rkx
-  real(rkx) , dimension(sbin,2) :: ssltbsiz
+  real(rkx), parameter :: rhosslt = 1020.0_rkx
+  real(rkx), dimension(sbin,2) :: ssltbsiz
 
   data ssltbsiz /0.05_rkx, 1.0_rkx, 1.0_rkx, 10.0_rkx/
 
-  real(rkx) , dimension(sbin) :: ssltbed
+  real(rkx), dimension(sbin) :: ssltbed
 
   ! solubility of od dust aer for param of giorgi and chameides
-  real(rkx) , dimension(sbin) :: solsslt
+  real(rkx), dimension(sbin) :: solsslt
 
   data ssltbed /0.6_rkx, 6.0_rkx/
   data solsslt /0.8_rkx, 0.8_rkx/
 
-  public :: sea_salt , rhosslt , ssltbsiz , solsslt , ssltbed
+  public :: sea_salt, rhosslt, ssltbsiz, solsslt, ssltbed
 
   contains
 !
@@ -63,15 +63,15 @@ module mod_che_seasalt
 
     implicit none
 
-    integer(ik4) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: ivegcov
-    real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: wind10
+    integer(ik4), dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
+    real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: wind10
 
-    real(rkx) , dimension(sbin) :: seasalt_flx
+    real(rkx), dimension(sbin) :: seasalt_flx
     real(rkx) :: dumu10
-    real(rkx) :: dplo_acc , dphi_acc , dplo_cor , dphi_cor
-    real(rkx) :: seasalt_emfac_mascor , seasalt_emfac_numcor
-    real(rkx) :: seasalt_emfac_masacc , seasalt_emfac_numacc
-    integer(ik4) :: i , j
+    real(rkx) :: dplo_acc, dphi_acc, dplo_cor, dphi_cor
+    real(rkx) :: seasalt_emfac_mascor, seasalt_emfac_numcor
+    real(rkx) :: seasalt_emfac_masacc, seasalt_emfac_numacc
+    integer(ik4) :: i, j
 
     real(rkx) :: specmw_seasalt_amode
     real(rkx) :: dum_mw
@@ -116,8 +116,8 @@ module mod_che_seasalt
 
     ! print*, seasalt_emfac_masacc, seasalt_emfac_mascor
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         if ( ivegcov(j,i) > 0 ) cycle
 
         seasalt_flx(1) = seasalt_emfac_masacc
@@ -163,24 +163,24 @@ module mod_che_seasalt
                           dpdryhi_cm,emitfact_numb,emitfact_mass)
     implicit none
 
-    integer(ik4) , intent(in) :: ireduce_smallr_emit
-    real(rkx) , intent(in) :: dpdrylo_cm , dpdryhi_cm
-    real(rkx) , intent(out) :: emitfact_numb , emitfact_mass
+    integer(ik4), intent(in) :: ireduce_smallr_emit
+    real(rkx), intent(in) :: dpdrylo_cm, dpdryhi_cm
+    real(rkx), intent(out) :: emitfact_numb, emitfact_mass
 
-    integer(ik4) :: nsub_bin , isub_bin
-    real(rkx) :: drydens , drydens_f
+    integer(ik4) :: nsub_bin, isub_bin
+    real(rkx) :: drydens, drydens_f
     real(rkx) :: relhum
-    real(rkx) :: rdry_star , sigmag_star
-    real(rkx) :: dumsum_na , dumsum_ma
-    real(rkx) :: rdrylowermost , rdryuppermost
-    real(rkx) :: rdrylo , rdryhi
-    real(rkx) :: alnrdrylo , dlnrdry
-    real(rkx) :: rdrybb , rwetbb
-    real(rkx) :: rdryaa , rwetaa
-    real(rkx) :: rdry_cm , rwet_cm
-    real(rkx) :: rdry , rwet , drwet
-    real(rkx) :: dum,xmdry , dumb,dumexpb
-    real(rkx) :: dumadjust , df0dlnrdry
+    real(rkx) :: rdry_star, sigmag_star
+    real(rkx) :: dumsum_na, dumsum_ma
+    real(rkx) :: rdrylowermost, rdryuppermost
+    real(rkx) :: rdrylo, rdryhi
+    real(rkx) :: alnrdrylo, dlnrdry
+    real(rkx) :: rdrybb, rwetbb
+    real(rkx) :: rdryaa, rwetaa
+    real(rkx) :: rdry_cm, rwet_cm
+    real(rkx) :: rdry, rwet, drwet
+    real(rkx) :: dum,xmdry, dumb,dumexpb
+    real(rkx) :: dumadjust, df0dlnrdry
     real(rkx) :: df0drwet
     real(rkx) :: df0dlnrdry_star
 
@@ -190,10 +190,10 @@ module mod_che_seasalt
     !* (1997)                                                ****
     !************************************************************
 
-    real(rkx) , parameter :: c1 = 0.7674_rkx
-    real(rkx) , parameter :: c2 = 3.079_rkx
-    real(rkx) , parameter :: c3 = 2.573e-11_rkx
-    real(rkx) , parameter :: c4 = -1.424_rkx
+    real(rkx), parameter :: c1 = 0.7674_rkx
+    real(rkx), parameter :: c2 = 3.079_rkx
+    real(rkx), parameter :: c3 = 2.573e-11_rkx
+    real(rkx), parameter :: c4 = -1.424_rkx
 
     !************************************************************
     !*  dry particle density (g/cm3)                          ***
@@ -257,7 +257,7 @@ module mod_che_seasalt
     if ( rdryuppermost > rdry_star ) then
 
       !************************************************************
-      !*  rdrylo  ,  rdryhi  =  lower and upper dry radii     *****
+      !*  rdrylo ,  rdryhi  =  lower and upper dry radii     *****
       !*  (micrometers) for this part of the integration      *****
       !************************************************************
 
@@ -279,7 +279,7 @@ module mod_che_seasalt
                 ( (c3*(rdry_cm**c4)) - log10(relhum) ) )**onet
       rwetbb = rwet_cm*1.0e4_rkx
 
-      do isub_bin = 1 , nsub_bin
+      do isub_bin = 1, nsub_bin
 
         !************************************************************
         !*  rdry, rwet at sub_bin lower boundary are those       ****
@@ -385,7 +385,7 @@ module mod_che_seasalt
       alnrdrylo = log( rdrylo )
       dlnrdry = (log( rdryhi ) - alnrdrylo)/nsub_bin
 
-      do isub_bin = 1 , nsub_bin
+      do isub_bin = 1, nsub_bin
 
         !************************************************************
         !*    geometric mean rdry (micrometers) for sub_bin      ****
@@ -418,7 +418,7 @@ module mod_che_seasalt
 
     emitfact_numb = dumsum_na
     emitfact_mass = dumsum_ma
-    !  print *, emitfact_numb , emitfact_mass
+    !  print *, emitfact_numb, emitfact_mass
 
   end subroutine seasalt_emit
 

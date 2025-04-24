@@ -7,7 +7,7 @@ module mod_clm_cnprecisioncontrol
   use mod_intkinds
   use mod_realkinds
   use mod_stdio
-  use mod_clm_varpar , only : ndecomp_pools
+  use mod_clm_varpar, only : ndecomp_pools
 
   implicit none
 
@@ -24,10 +24,10 @@ module mod_clm_cnprecisioncontrol
   !
   subroutine CNPrecisionControl(num_soilc,filter_soilc,num_soilp,filter_soilp)
     use mod_clm_type
-    use mod_clm_varctl , only : use_c13, use_c14
-    use mod_clm_varpar , only : nlevdecomp
-    use mod_clm_pftvarcon , only : nc3crop
-    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_varctl, only : use_c13, use_c14
+    use mod_clm_varpar, only : nlevdecomp
+    use mod_clm_pftvarcon, only : nc3crop
+    use mod_clm_surfrd, only : crop_prog
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
@@ -35,142 +35,142 @@ module mod_clm_cnprecisioncontrol
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
     ! (gC/m3) column-level sink for C truncation
-    real(rk8), pointer :: col_ctrunc_vr(:,:)
+    real(rk8), pointer, contiguous :: col_ctrunc_vr(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_cpools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_cpools_vr(:,:,:)
     ! (gN/m3) column-level sink for N truncation
-    real(rk8), pointer :: col_ntrunc_vr(:,:)
+    real(rk8), pointer, contiguous :: col_ntrunc_vr(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    real(rk8), pointer :: decomp_npools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_npools_vr(:,:,:)
     ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: cpool(:)
-    real(rk8), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead cors root C strg
-    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead cors root C trnf
-    real(rk8), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
-    real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
-    real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
-    real(rk8), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth resp. strg
-    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth resp. trnfr
-    real(rk8), pointer :: leafc(:)              ! (gC/m2) leaf C
-    real(rk8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
-    real(rk8), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
-    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live cors root C strg
-    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live cors root C trnf
-    real(rk8), pointer :: livestemc(:)          ! (gC/m2) live stem C
-    real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
-    real(rk8), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
-    real(rk8), pointer :: pft_ctrunc(:)         ! (gC/m2) pft-level sink for C
+    real(rk8), pointer, contiguous :: cpool(:)
+    real(rk8), pointer, contiguous :: deadcrootc(:)         ! (gC/m2) dead coarse root C
+    real(rk8), pointer, contiguous :: deadcrootc_storage(:) ! (gC/m2) dead cors root C strg
+    real(rk8), pointer, contiguous :: deadcrootc_xfer(:)    ! (gC/m2) dead cors root C trnf
+    real(rk8), pointer, contiguous :: deadstemc(:)          ! (gC/m2) dead stem C
+    real(rk8), pointer, contiguous :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
+    real(rk8), pointer, contiguous :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
+    real(rk8), pointer, contiguous :: frootc(:)             ! (gC/m2) fine root C
+    real(rk8), pointer, contiguous :: frootc_storage(:)     ! (gC/m2) fine root C storage
+    real(rk8), pointer, contiguous :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
+    real(rk8), pointer, contiguous :: gresp_storage(:)      ! (gC/m2) growth resp. strg
+    real(rk8), pointer, contiguous :: gresp_xfer(:)         ! (gC/m2) growth resp. trnfr
+    real(rk8), pointer, contiguous :: leafc(:)              ! (gC/m2) leaf C
+    real(rk8), pointer, contiguous :: leafc_storage(:)      ! (gC/m2) leaf C storage
+    real(rk8), pointer, contiguous :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
+    real(rk8), pointer, contiguous :: livecrootc(:)         ! (gC/m2) live coarse root C
+    real(rk8), pointer, contiguous :: livecrootc_storage(:) ! (gC/m2) live cors root C strg
+    real(rk8), pointer, contiguous :: livecrootc_xfer(:)    ! (gC/m2) live cors root C trnf
+    real(rk8), pointer, contiguous :: livestemc(:)          ! (gC/m2) live stem C
+    real(rk8), pointer, contiguous :: livestemc_storage(:)  ! (gC/m2) live stem C storage
+    real(rk8), pointer, contiguous :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
+    real(rk8), pointer, contiguous :: pft_ctrunc(:)         ! (gC/m2) pft-level sink for C
                                                 ! truncation
-    real(rk8), pointer :: xsmrpool(:)     ! (gC/m2) execss maint resp C pool
-    real(rk8), pointer :: grainc(:)       ! (gC/m2) grain C
-    real(rk8), pointer :: grainc_storage(:)  ! (gC/m2) grain C storage
-    real(rk8), pointer :: grainc_xfer(:)     ! (gC/m2) grain C transfer
+    real(rk8), pointer, contiguous :: xsmrpool(:)     ! (gC/m2) execss maint resp C pool
+    real(rk8), pointer, contiguous :: grainc(:)       ! (gC/m2) grain C
+    real(rk8), pointer, contiguous :: grainc_storage(:)  ! (gC/m2) grain C storage
+    real(rk8), pointer, contiguous :: grainc_xfer(:)     ! (gC/m2) grain C transfer
 
     !!! C13
     ! (gC/m3) column-level sink for C truncation
-    real(rk8), pointer :: c13_col_ctrunc_vr(:,:)
+    real(rk8), pointer, contiguous :: c13_col_ctrunc_vr(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_c13pools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_c13pools_vr(:,:,:)
     ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: c13_cpool(:)
+    real(rk8), pointer, contiguous :: c13_cpool(:)
     ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: c13_deadcrootc(:)
+    real(rk8), pointer, contiguous :: c13_deadcrootc(:)
     ! (gC/m2) dead coarse root C storage
-    real(rk8), pointer :: c13_deadcrootc_storage(:)
+    real(rk8), pointer, contiguous :: c13_deadcrootc_storage(:)
     ! (gC/m2) dead coarse root C transfer
-    real(rk8), pointer :: c13_deadcrootc_xfer(:)
-    real(rk8), pointer :: c13_deadstemc(:)          ! (gC/m2) dead stem C
-    real(rk8), pointer :: c13_deadstemc_storage(:)  ! (gC/m2) dead stem C stor
-    real(rk8), pointer :: c13_deadstemc_xfer(:)     ! (gC/m2) dead stem C trnsf
-    real(rk8), pointer :: c13_frootc(:)             ! (gC/m2) fine root C
-    real(rk8), pointer :: c13_frootc_storage(:)     ! (gC/m2) fine root C stor
-    real(rk8), pointer :: c13_frootc_xfer(:)        ! (gC/m2) fine root C trnsf
-    real(rk8), pointer :: c13_gresp_storage(:) ! (gC/m2) growth respiration strg
-    real(rk8), pointer :: c13_gresp_xfer(:)    ! (gC/m2) growth respiration trnf
-    real(rk8), pointer :: c13_leafc(:)           ! (gC/m2) leaf C
-    real(rk8), pointer :: c13_leafc_storage(:)   ! (gC/m2) leaf C storage
-    real(rk8), pointer :: c13_leafc_xfer(:)      ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: c13_livecrootc(:)      ! (gC/m2) live coarse root C
+    real(rk8), pointer, contiguous :: c13_deadcrootc_xfer(:)
+    real(rk8), pointer, contiguous :: c13_deadstemc(:)          ! (gC/m2) dead stem C
+    real(rk8), pointer, contiguous :: c13_deadstemc_storage(:)  ! (gC/m2) dead stem C stor
+    real(rk8), pointer, contiguous :: c13_deadstemc_xfer(:)     ! (gC/m2) dead stem C trnsf
+    real(rk8), pointer, contiguous :: c13_frootc(:)             ! (gC/m2) fine root C
+    real(rk8), pointer, contiguous :: c13_frootc_storage(:)     ! (gC/m2) fine root C stor
+    real(rk8), pointer, contiguous :: c13_frootc_xfer(:)        ! (gC/m2) fine root C trnsf
+    real(rk8), pointer, contiguous :: c13_gresp_storage(:) ! (gC/m2) growth respiration strg
+    real(rk8), pointer, contiguous :: c13_gresp_xfer(:)    ! (gC/m2) growth respiration trnf
+    real(rk8), pointer, contiguous :: c13_leafc(:)           ! (gC/m2) leaf C
+    real(rk8), pointer, contiguous :: c13_leafc_storage(:)   ! (gC/m2) leaf C storage
+    real(rk8), pointer, contiguous :: c13_leafc_xfer(:)      ! (gC/m2) leaf C transfer
+    real(rk8), pointer, contiguous :: c13_livecrootc(:)      ! (gC/m2) live coarse root C
     ! (gC/m2) live coarse root C storage
-    real(rk8), pointer :: c13_livecrootc_storage(:)
+    real(rk8), pointer, contiguous :: c13_livecrootc_storage(:)
     ! (gC/m2) live coarse root C transfer
-    real(rk8), pointer :: c13_livecrootc_xfer(:)
-    real(rk8), pointer :: c13_livestemc(:)          ! (gC/m2) live stem C
-    real(rk8), pointer :: c13_livestemc_storage(:)  ! (gC/m2) live stem C stor
-    real(rk8), pointer :: c13_livestemc_xfer(:)     ! (gC/m2) live stem C transf
+    real(rk8), pointer, contiguous :: c13_livecrootc_xfer(:)
+    real(rk8), pointer, contiguous :: c13_livestemc(:)          ! (gC/m2) live stem C
+    real(rk8), pointer, contiguous :: c13_livestemc_storage(:)  ! (gC/m2) live stem C stor
+    real(rk8), pointer, contiguous :: c13_livestemc_xfer(:)     ! (gC/m2) live stem C transf
     ! (gC/m2) pft-level sink for C truncation
-    real(rk8), pointer :: c13_pft_ctrunc(:)
+    real(rk8), pointer, contiguous :: c13_pft_ctrunc(:)
 
     !!! C14
     ! (gC/m3) column-level sink for C truncation
-    real(rk8), pointer :: c14_col_ctrunc_vr(:,:)
+    real(rk8), pointer, contiguous :: c14_col_ctrunc_vr(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_c14pools_vr(:,:,:)
+    real(rk8), pointer, contiguous :: decomp_c14pools_vr(:,:,:)
     ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: c14_cpool(:)
+    real(rk8), pointer, contiguous :: c14_cpool(:)
     ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: c14_deadcrootc(:)
+    real(rk8), pointer, contiguous :: c14_deadcrootc(:)
     ! (gC/m2) dead coarse root C storage
-    real(rk8), pointer :: c14_deadcrootc_storage(:)
+    real(rk8), pointer, contiguous :: c14_deadcrootc_storage(:)
     ! (gC/m2) dead coarse root C transfer
-    real(rk8), pointer :: c14_deadcrootc_xfer(:)
-    real(rk8), pointer :: c14_deadstemc(:)         ! (gC/m2) dead stem C
-    real(rk8), pointer :: c14_deadstemc_storage(:) ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: c14_deadstemc_xfer(:)    ! (gC/m2) dead stem C transf
-    real(rk8), pointer :: c14_frootc(:)            ! (gC/m2) fine root C
-    real(rk8), pointer :: c14_frootc_storage(:)    ! (gC/m2) fine root C storage
-    real(rk8), pointer :: c14_frootc_xfer(:)       ! (gC/m2) fine root C transf
-    real(rk8), pointer :: c14_gresp_storage(:) ! (gC/m2) growth respiration strg
-    real(rk8), pointer :: c14_gresp_xfer(:)    ! (gC/m2) growth respiration trnf
-    real(rk8), pointer :: c14_leafc(:)             ! (gC/m2) leaf C
-    real(rk8), pointer :: c14_leafc_storage(:)     ! (gC/m2) leaf C storage
-    real(rk8), pointer :: c14_leafc_xfer(:)        ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: c14_livecrootc(:)        ! (gC/m2) live coarse root C
+    real(rk8), pointer, contiguous :: c14_deadcrootc_xfer(:)
+    real(rk8), pointer, contiguous :: c14_deadstemc(:)         ! (gC/m2) dead stem C
+    real(rk8), pointer, contiguous :: c14_deadstemc_storage(:) ! (gC/m2) dead stem C storage
+    real(rk8), pointer, contiguous :: c14_deadstemc_xfer(:)    ! (gC/m2) dead stem C transf
+    real(rk8), pointer, contiguous :: c14_frootc(:)            ! (gC/m2) fine root C
+    real(rk8), pointer, contiguous :: c14_frootc_storage(:)    ! (gC/m2) fine root C storage
+    real(rk8), pointer, contiguous :: c14_frootc_xfer(:)       ! (gC/m2) fine root C transf
+    real(rk8), pointer, contiguous :: c14_gresp_storage(:) ! (gC/m2) growth respiration strg
+    real(rk8), pointer, contiguous :: c14_gresp_xfer(:)    ! (gC/m2) growth respiration trnf
+    real(rk8), pointer, contiguous :: c14_leafc(:)             ! (gC/m2) leaf C
+    real(rk8), pointer, contiguous :: c14_leafc_storage(:)     ! (gC/m2) leaf C storage
+    real(rk8), pointer, contiguous :: c14_leafc_xfer(:)        ! (gC/m2) leaf C transfer
+    real(rk8), pointer, contiguous :: c14_livecrootc(:)        ! (gC/m2) live coarse root C
     ! (gC/m2) live coarse root C storage
-    real(rk8), pointer :: c14_livecrootc_storage(:)
+    real(rk8), pointer, contiguous :: c14_livecrootc_storage(:)
     ! (gC/m2) live coarse root C transfer
-    real(rk8), pointer :: c14_livecrootc_xfer(:)
-    real(rk8), pointer :: c14_livestemc(:)         ! (gC/m2) live stem C
-    real(rk8), pointer :: c14_livestemc_storage(:) ! (gC/m2) live stem C storage
-    real(rk8), pointer :: c14_livestemc_xfer(:)    ! (gC/m2) live stem C trans
+    real(rk8), pointer, contiguous :: c14_livecrootc_xfer(:)
+    real(rk8), pointer, contiguous :: c14_livestemc(:)         ! (gC/m2) live stem C
+    real(rk8), pointer, contiguous :: c14_livestemc_storage(:) ! (gC/m2) live stem C storage
+    real(rk8), pointer, contiguous :: c14_livestemc_xfer(:)    ! (gC/m2) live stem C trans
     ! (gC/m2) pft-level sink for C truncation
-    real(rk8), pointer :: c14_pft_ctrunc(:)
+    real(rk8), pointer, contiguous :: c14_pft_ctrunc(:)
 
-    real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead cors root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead cors root N trnf
-    real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
-    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
-    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
-    real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
-    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live cors root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live cors root N trnf
-    real(rk8), pointer :: grainn(:)             ! (gC/m2) grain N
-    real(rk8), pointer :: grainn_storage(:)     ! (gC/m2) grain N storage
-    real(rk8), pointer :: grainn_xfer(:)        ! (gC/m2) grain N transfer
-    real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
-    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
-    real(rk8), pointer :: npool(:)              ! (gN/m2) temporary plant N pool
-    real(rk8), pointer :: pft_ntrunc(:)         ! (gN/m2) pft-level sink for
+    real(rk8), pointer, contiguous :: deadcrootn(:)         ! (gN/m2) dead coarse root N
+    real(rk8), pointer, contiguous :: deadcrootn_storage(:) ! (gN/m2) dead cors root N strg
+    real(rk8), pointer, contiguous :: deadcrootn_xfer(:)    ! (gN/m2) dead cors root N trnf
+    real(rk8), pointer, contiguous :: deadstemn(:)          ! (gN/m2) dead stem N
+    real(rk8), pointer, contiguous :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rk8), pointer, contiguous :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
+    real(rk8), pointer, contiguous :: frootn(:)             ! (gN/m2) fine root N
+    real(rk8), pointer, contiguous :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rk8), pointer, contiguous :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
+    real(rk8), pointer, contiguous :: leafn(:)              ! (gN/m2) leaf N
+    real(rk8), pointer, contiguous :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rk8), pointer, contiguous :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
+    real(rk8), pointer, contiguous :: livecrootn(:)         ! (gN/m2) live coarse root N
+    real(rk8), pointer, contiguous :: livecrootn_storage(:) ! (gN/m2) live cors root N strg
+    real(rk8), pointer, contiguous :: livecrootn_xfer(:)    ! (gN/m2) live cors root N trnf
+    real(rk8), pointer, contiguous :: grainn(:)             ! (gC/m2) grain N
+    real(rk8), pointer, contiguous :: grainn_storage(:)     ! (gC/m2) grain N storage
+    real(rk8), pointer, contiguous :: grainn_xfer(:)        ! (gC/m2) grain N transfer
+    real(rk8), pointer, contiguous :: livestemn(:)          ! (gN/m2) live stem N
+    real(rk8), pointer, contiguous :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rk8), pointer, contiguous :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
+    real(rk8), pointer, contiguous :: npool(:)              ! (gN/m2) temporary plant N pool
+    real(rk8), pointer, contiguous :: pft_ntrunc(:)         ! (gN/m2) pft-level sink for
                                                 ! N truncation
-    real(rk8), pointer :: retransn(:) ! (gN/m2) plant pool of retranslocated N
+    real(rk8), pointer, contiguous :: retransn(:) ! (gN/m2) plant pool of retranslocated N
 #ifdef NITRIF_DENITRIF
-    real(rk8), pointer :: smin_no3_vr(:,:)   ! (gN/m3) soil mineral NO3
-    real(rk8), pointer :: smin_nh4_vr(:,:)   ! (gN/m3) soil mineral NH4
+    real(rk8), pointer, contiguous :: smin_no3_vr(:,:)   ! (gN/m3) soil mineral NO3
+    real(rk8), pointer, contiguous :: smin_nh4_vr(:,:)   ! (gN/m3) soil mineral NH4
 #endif
-    integer(ik4) , pointer :: ivt(:)   ! pft vegetation type
+    integer(ik4), pointer, contiguous :: ivt(:)   ! pft vegetation type
 
     integer(ik4) :: c,p,j,k    ! indices
     integer(ik4) :: fp,fc    ! lake filter indices
@@ -736,9 +736,9 @@ module mod_clm_cnprecisioncontrol
     end do ! end of pft loop
 
     ! column loop
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
-      do j = 1 , nlevdecomp
+      do j = 1, nlevdecomp
         ! initialize the column-level C and N truncation terms
         cc = 0._rk8
         if ( use_c13 ) then
@@ -754,7 +754,7 @@ module mod_clm_cnprecisioncontrol
         ! the C component, but truncate both C and N components
 
         ! all decomposing pools C and N
-        do k = 1 , ndecomp_pools
+        do k = 1, ndecomp_pools
 
           if (abs(decomp_cpools_vr(c,j,k)) < ccrit) then
             cc = cc + decomp_cpools_vr(c,j,k)
@@ -790,9 +790,9 @@ module mod_clm_cnprecisioncontrol
     ! remove small negative perturbations for stability purposes,
     ! if any should arise.
 
-    do fc = 1 , num_soilc
+    do fc = 1, num_soilc
       c = filter_soilc(fc)
-      do j = 1 , nlevdecomp
+      do j = 1, nlevdecomp
         if (abs(smin_no3_vr(c,j)) < ncrit/1e4_rk8) then
           if ( smin_no3_vr(c,j) < 0._rk8 ) then
             write(stderr, *) '-10^-12 < smin_no3 < 0. resetting to zero.'

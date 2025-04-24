@@ -33,10 +33,10 @@
 
       integer(kind=im), parameter :: no8  = 16
 
-      real(kind=rb) , dimension(no8) :: fracrefao
-      real(kind=rb) , dimension(no8) :: fracrefbo
-      real(kind=rb) , dimension(no8) :: cfc12o
-      real(kind=rb) , dimension(no8) :: cfc22adjo
+      real(kind=rb), dimension(no8) :: fracrefao
+      real(kind=rb), dimension(no8) :: fracrefbo
+      real(kind=rb), dimension(no8) :: cfc12o
+      real(kind=rb), dimension(no8) :: cfc22adjo
 
       real(kind=rb) :: kao(5,13,no8)
       real(kind=rb) :: kao_mco2(19,no8)
@@ -79,10 +79,10 @@
 
       integer(kind=im), parameter :: ng8  = 8
 
-      real(kind=rb) , dimension(ng8) :: fracrefa
-      real(kind=rb) , dimension(ng8) :: fracrefb
-      real(kind=rb) , dimension(ng8) :: cfc12
-      real(kind=rb) , dimension(ng8) :: cfc22adj
+      real(kind=rb), dimension(ng8) :: fracrefa
+      real(kind=rb), dimension(ng8) :: fracrefb
+      real(kind=rb), dimension(ng8) :: cfc12
+      real(kind=rb), dimension(ng8) :: cfc22adj
 
       real(kind=rb) :: ka(5,13,ng8)    ,absa(65,ng8)
       real(kind=rb) :: kb(5,13:59,ng8) ,absb(235,ng8)

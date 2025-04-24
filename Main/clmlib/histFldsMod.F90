@@ -46,16 +46,16 @@ contains
 !
 ! !USES:
     use clmtype
-    use clm_varcon , only : spval
-    use clm_varctl , only : nsrest
-    use clm_atmlnd , only : clm_a2l
+    use clm_varcon, only : spval
+    use clm_varctl, only : nsrest
+    use clm_atmlnd, only : clm_a2l
 #if (defined RTM)
-    use RunoffMod  , only : runoff
+    use RunoffMod , only : runoff
 #endif
     use histFileMod, only : add_subscript, add_fld1d, add_fld2d, &
                             masterlist_printflds
 #if (defined CASA)
-    use CASAMod    , only : nlive, npools
+    use CASAMod   , only : nlive, npools
 #endif
 #if (defined VOC)
     use clm_varvoc

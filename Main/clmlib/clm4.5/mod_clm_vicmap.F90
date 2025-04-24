@@ -28,17 +28,17 @@ module mod_clm_vicmap
   !
   subroutine initCLMVICMap(c)
     use mod_clm_type
-    use mod_clm_varcon , only : denh2o, denice, pondmx
-    use mod_clm_varpar , only : nlevsoi, nlayer, nlayert, nlevgrnd
+    use mod_clm_varcon, only : denh2o, denice, pondmx
+    use mod_clm_varpar, only : nlevsoi, nlayer, nlayert, nlevgrnd
     implicit none
-    integer(ik4) , intent(in)  :: c
+    integer(ik4), intent(in)  :: c
 
-    real(rk8), pointer :: dz(:,:)       ! layer depth (m)
-    real(rk8), pointer :: zi(:,:)       ! interface level below a "z" level (m)
-    real(rk8), pointer :: z(:,:)        ! layer thickness (m)
-    real(rk8), pointer :: depth(:,:)    ! layer depth of VIC (m)
+    real(rk8), pointer, contiguous :: dz(:,:)       ! layer depth (m)
+    real(rk8), pointer, contiguous :: zi(:,:)       ! interface level below a "z" level (m)
+    real(rk8), pointer, contiguous :: z(:,:)        ! layer thickness (m)
+    real(rk8), pointer, contiguous :: depth(:,:)    ! layer depth of VIC (m)
     ! fraction of VIC layers in clm layers
-    real(rk8), pointer :: vic_clm_fract(:,:,:)
+    real(rk8), pointer, contiguous :: vic_clm_fract(:,:,:)
     ! sum of fraction for each layer
     real(rk8) :: sum_frac(1:nlayer)
     real(rk8) :: deltal(1:nlayer+1) ! temporary
@@ -101,7 +101,7 @@ module mod_clm_vicmap
     ! This subroutine provides linear interpolation
     pure real(rk8) function linear_interp(x,x0,x1,y0,y1) result (y)
       implicit none
-      real(rk8) , intent(in) :: x , x0 , y0 , x1 , y1
+      real(rk8), intent(in) :: x, x0, y0, x1, y1
       y = y0 + (x - x0) * (y1 - y0) / (x1 - x0)
     end function linear_interp
 
@@ -111,32 +111,32 @@ module mod_clm_vicmap
   !
   subroutine CLMVICMap(lbc, ubc, numf, filter)
     use mod_clm_type
-    use mod_clm_varcon , only : denh2o, denice, pondmx, watmin
-    use mod_clm_varpar , only : nlevsoi, nlayer, nlayert, nlevgrnd
+    use mod_clm_varcon, only : denh2o, denice, pondmx, watmin
+    use mod_clm_varpar, only : nlevsoi, nlayer, nlayert, nlevgrnd
     implicit none
-    integer(ik4) , intent(in)  :: lbc, ubc ! column bounds
+    integer(ik4), intent(in)  :: lbc, ubc ! column bounds
     ! number of column soil points in column filter
-    integer(ik4) , intent(in)  :: numf
+    integer(ik4), intent(in)  :: numf
     ! column filter for soil points
-    integer(ik4) , intent(in)  :: filter(ubc-lbc+1)
+    integer(ik4), intent(in)  :: filter(ubc-lbc+1)
 
-    real(rk8), pointer :: dz(:,:)  !layer depth (m)
-    real(rk8), pointer :: zi(:,:)  !interface level below a "z" level (m)
-    real(rk8), pointer :: z(:,:)   !layer thickness (m)
-    real(rk8), pointer :: h2osoi_liq(:,:)  !liquid water (kg/m2)
-    real(rk8), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2)
-    real(rk8), pointer :: moist(:,:)       !liquid water (mm)
-    real(rk8), pointer :: ice(:,:)         !ice lens (mm)
-    real(rk8), pointer :: depth(:,:)       !layer depth of upper layer (m)
-    real(rk8), pointer :: max_moist(:,:)   !max layer moist + ice (mm)
+    real(rk8), pointer, contiguous :: dz(:,:)  !layer depth (m)
+    real(rk8), pointer, contiguous :: zi(:,:)  !interface level below a "z" level (m)
+    real(rk8), pointer, contiguous :: z(:,:)   !layer thickness (m)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)  !liquid water (kg/m2)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)  !ice lens (kg/m2)
+    real(rk8), pointer, contiguous :: moist(:,:)       !liquid water (mm)
+    real(rk8), pointer, contiguous :: ice(:,:)         !ice lens (mm)
+    real(rk8), pointer, contiguous :: depth(:,:)       !layer depth of upper layer (m)
+    real(rk8), pointer, contiguous :: max_moist(:,:)   !max layer moist + ice (mm)
     !volumetric soil moisture for VIC soil layers
-    real(rk8), pointer :: moist_vol(:,:)
+    real(rk8), pointer, contiguous :: moist_vol(:,:)
     !volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]  (nlevgrnd)
-    real(rk8), pointer :: h2osoi_vol(:,:)
+    real(rk8), pointer, contiguous :: h2osoi_vol(:,:)
     !soil porisity (1-bulk_density/soil_density)
-    real(rk8), pointer :: porosity(:,:)
+    real(rk8), pointer, contiguous :: porosity(:,:)
     !fraction of VIC layers in each CLM layer
-    real(rk8), pointer :: vic_clm_fract(:,:,:)
+    real(rk8), pointer, contiguous :: vic_clm_fract(:,:,:)
 
     real(rk8) :: ice0(1:nlayer)            ! last step ice lens (mm)  (new)
     real(rk8) :: moist0(1:nlayer)          ! last step soil water (mm)  (new)
@@ -160,9 +160,9 @@ module mod_clm_vicmap
     vic_clm_fract => clm3%g%l%c%cps%vic_clm_fract
 
     ! map CLM to VIC
-    do fc = 1 , numf
+    do fc = 1, numf
       c = filter(fc)
-      do i = 1 , nlayer
+      do i = 1, nlayer
         ice0(i) = ice(c,i)
         moist0(i) = moist(c,i)
         ice(c,i) = 0._rk8

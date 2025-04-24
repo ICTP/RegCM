@@ -28,9 +28,9 @@ program nearpoint
 
   implicit none
 !
-  character(len=256) :: namelistfile , prgname , outname , line
-  real(rk8) :: lat , lon , iiy , jjx , jmax , imax , centeri , centerj
-  integer(ik4) :: istat , ierr , imodel , iver
+  character(len=256) :: namelistfile, prgname, outname, line
+  real(rk8) :: lat, lon, iiy, jjx, jmax, imax, centeri, centerj
+  integer(ik4) :: istat, ierr, imodel, iver
 !
 !     Read input global namelist
 !

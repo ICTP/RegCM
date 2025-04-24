@@ -21,8 +21,8 @@ module mod_update
   !
   use mod_intkinds, only : ik4
   use mod_realkinds, only : rk8
-  use mod_runparams , only : icopcpl
-  use mod_regcm_types , only : exp_data , imp_data , exp_data3d
+  use mod_runparams, only : icopcpl
+  use mod_regcm_types, only : exp_data, imp_data, exp_data3d
   use mod_memutil
 
   implicit none
@@ -31,16 +31,16 @@ module mod_update
 
   public :: exp_data
   public :: imp_data
-  type(imp_data) , public :: importFields
-  type(exp_data) , public :: exportFields
-  type(exp_data3d) , public :: exportFields3d
+  type(imp_data), public :: importFields
+  type(exp_data), public :: exportFields
+  type(exp_data3d), public :: exportFields3d
 
-  integer(ik4) , pointer , dimension(:,:) :: ldmskb => null( )
-  integer(ik4) , pointer , dimension(:,:) :: wetdry => null( )
+  integer(ik4), pointer, contiguous, dimension(:,:) :: ldmskb => null( )
+  integer(ik4), pointer, contiguous, dimension(:,:) :: wetdry => null( )
 
-  real(rk8) , parameter :: zeroval = 0.0_rk8
-  real(rk8) , parameter :: missing_r8 = 1.0e20_rk8
-  real(rk8) , parameter :: tol = missing_r8/2.0_rk8
+  real(rk8), parameter :: zeroval = 0.0_rk8
+  real(rk8), parameter :: missing_r8 = 1.0e20_rk8
+  real(rk8), parameter :: tol = missing_r8/2.0_rk8
   !
   !-----------------------------------------------------------------------
   !     Public subroutines
@@ -68,7 +68,7 @@ module mod_update
     !     Used module declarations
     !-----------------------------------------------------------------------
     !
-    use mod_atm_interface , only : mddom
+    use mod_atm_interface, only : mddom
     use mod_dynparam, only : kz
     use mod_dynparam, only : ice1, ice2, jce1, jce2
     use mod_dynparam, only : ici1, ici2, jci1, jci2
@@ -79,7 +79,7 @@ module mod_update
     !     Local variable declarations
     !-----------------------------------------------------------------------
     !
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i, j, k
     real(rk8), parameter :: initval = 1.0e20_rk8
     real(rk8), parameter :: zeroval = 0.0e20_rk8
     !
@@ -210,9 +210,9 @@ module mod_update
     !-----------------------------------------------------------------------
     !
     use mod_runparams, only : dtsec, alarm_day
-    use mod_lm_interface , only : export_data_from_surface
-    use mod_atm_interface , only : export_data_from_atm, sfs
-    use mod_rad_interface , only : export_data_from_rad
+    use mod_lm_interface, only : export_data_from_surface
+    use mod_atm_interface, only : export_data_from_atm, sfs
+    use mod_rad_interface, only : export_data_from_rad
 
     implicit none
     !

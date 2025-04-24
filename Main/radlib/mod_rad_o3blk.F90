@@ -35,69 +35,69 @@ module mod_rad_o3blk
 
   private
 
-  public :: allocate_mod_rad_o3blk , o3data , read_o3data , close_o3data
+  public :: allocate_mod_rad_o3blk, o3data, read_o3data, close_o3data
 
-  real(rkx) , dimension(31) :: o3ann , ppann
-  character(len=16) , parameter :: ozname_rcp = 'ozone'
-  character(len=16) , parameter :: ozname_ssp = 'vmro3'
+  real(rkx), dimension(31) :: o3ann, ppann
+  character(len=16), parameter :: ozname_rcp = 'ozone'
+  character(len=16), parameter :: ozname_ssp = 'vmro3'
   character(len=16) :: ozname
-  integer(ik4) :: ystart , yend , moffset
+  integer(ik4) :: ystart, yend, moffset
   real(rkx) :: mulfac
-  real(rkx) , pointer , dimension(:,:) :: alon => null( )
-  real(rkx) , pointer , dimension(:,:) :: alat => null( )
-  real(rkx) , pointer , dimension(:) :: olat => null( )
-  real(rkx) , pointer , dimension(:) :: olon => null( )
-  real(rkx) , pointer , dimension(:) :: oplev => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: rdoz1 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: rdoz2 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: hzioz1 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: hzioz2 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ploz1 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: ploz2 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: sgoz1 => null( )
-  real(rkx) , pointer , dimension(:,:,:) :: sgoz2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: alon => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: alat => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: olat => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: olon => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: oplev => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: rdoz1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: rdoz2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hzioz1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hzioz2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ploz1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ploz2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: sgoz1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: sgoz2 => null( )
 
   type(h_interpolator) :: hint
   integer(ik4) :: ncid = -1
 
-  real(rkx) , dimension(31) , parameter :: o3sum = &
-   [5.297e-8_rkx , 5.852e-8_rkx , 6.579e-8_rkx , 7.505e-8_rkx , 8.577e-8_rkx , &
-    9.895e-8_rkx , 1.175e-7_rkx , 1.399e-7_rkx , 1.677e-7_rkx , 2.003e-7_rkx , &
-    2.571e-7_rkx , 3.325e-7_rkx , 4.438e-7_rkx , 6.255e-7_rkx , 8.168e-7_rkx , &
-    1.036e-6_rkx , 1.366e-6_rkx , 1.855e-6_rkx , 2.514e-6_rkx , 3.240e-6_rkx , &
-    4.033e-6_rkx , 4.854e-6_rkx , 5.517e-6_rkx , 6.089e-6_rkx , 6.689e-6_rkx , &
-    1.106e-5_rkx , 1.462e-5_rkx , 1.321e-5_rkx , 9.856e-6_rkx , 5.960e-6_rkx , &
+  real(rkx), dimension(31), parameter :: o3sum = &
+   [5.297e-8_rkx, 5.852e-8_rkx, 6.579e-8_rkx, 7.505e-8_rkx, 8.577e-8_rkx, &
+    9.895e-8_rkx, 1.175e-7_rkx, 1.399e-7_rkx, 1.677e-7_rkx, 2.003e-7_rkx, &
+    2.571e-7_rkx, 3.325e-7_rkx, 4.438e-7_rkx, 6.255e-7_rkx, 8.168e-7_rkx, &
+    1.036e-6_rkx, 1.366e-6_rkx, 1.855e-6_rkx, 2.514e-6_rkx, 3.240e-6_rkx, &
+    4.033e-6_rkx, 4.854e-6_rkx, 5.517e-6_rkx, 6.089e-6_rkx, 6.689e-6_rkx, &
+    1.106e-5_rkx, 1.462e-5_rkx, 1.321e-5_rkx, 9.856e-6_rkx, 5.960e-6_rkx, &
     5.960e-6_rkx]
-  real(rkx) , dimension(31) , parameter :: ppsum = &
-   [ 955.890_rkx , 850.532_rkx , 754.599_rkx , 667.742_rkx , 589.841_rkx , &
-     519.421_rkx , 455.480_rkx , 398.085_rkx , 347.171_rkx , 301.735_rkx , &
-     261.310_rkx , 225.360_rkx , 193.419_rkx , 165.490_rkx , 141.032_rkx , &
-     120.125_rkx , 102.689_rkx ,  87.829_rkx ,  75.123_rkx ,  64.306_rkx , &
-      55.086_rkx ,  47.209_rkx ,  40.535_rkx ,  34.795_rkx ,  29.865_rkx , &
-      19.122_rkx ,   9.277_rkx ,   4.660_rkx ,   2.421_rkx ,   1.294_rkx , &
+  real(rkx), dimension(31), parameter :: ppsum = &
+   [ 955.890_rkx, 850.532_rkx, 754.599_rkx, 667.742_rkx, 589.841_rkx, &
+     519.421_rkx, 455.480_rkx, 398.085_rkx, 347.171_rkx, 301.735_rkx, &
+     261.310_rkx, 225.360_rkx, 193.419_rkx, 165.490_rkx, 141.032_rkx, &
+     120.125_rkx, 102.689_rkx,  87.829_rkx,  75.123_rkx,  64.306_rkx, &
+      55.086_rkx,  47.209_rkx,  40.535_rkx,  34.795_rkx,  29.865_rkx, &
+      19.122_rkx,   9.277_rkx,   4.660_rkx,   2.421_rkx,   1.294_rkx, &
        0.647_rkx]
-  real(rkx) , dimension(31) , parameter :: o3win = &
-   [4.629e-8_rkx , 4.686e-8_rkx , 5.017e-8_rkx , 5.613e-8_rkx , 6.871e-8_rkx , &
-    8.751e-8_rkx , 1.138e-7_rkx , 1.516e-7_rkx , 2.161e-7_rkx , 3.264e-7_rkx , &
-    4.968e-7_rkx , 7.338e-7_rkx , 1.017e-6_rkx , 1.308e-6_rkx , 1.625e-6_rkx , &
-    2.011e-6_rkx , 2.516e-6_rkx , 3.130e-6_rkx , 3.840e-6_rkx , 4.703e-6_rkx , &
-    5.486e-6_rkx , 6.289e-6_rkx , 6.993e-6_rkx , 7.494e-6_rkx , 8.197e-6_rkx , &
-    9.632e-6_rkx , 1.113e-5_rkx , 1.146e-5_rkx , 9.389e-6_rkx , 6.135e-6_rkx , &
+  real(rkx), dimension(31), parameter :: o3win = &
+   [4.629e-8_rkx, 4.686e-8_rkx, 5.017e-8_rkx, 5.613e-8_rkx, 6.871e-8_rkx, &
+    8.751e-8_rkx, 1.138e-7_rkx, 1.516e-7_rkx, 2.161e-7_rkx, 3.264e-7_rkx, &
+    4.968e-7_rkx, 7.338e-7_rkx, 1.017e-6_rkx, 1.308e-6_rkx, 1.625e-6_rkx, &
+    2.011e-6_rkx, 2.516e-6_rkx, 3.130e-6_rkx, 3.840e-6_rkx, 4.703e-6_rkx, &
+    5.486e-6_rkx, 6.289e-6_rkx, 6.993e-6_rkx, 7.494e-6_rkx, 8.197e-6_rkx, &
+    9.632e-6_rkx, 1.113e-5_rkx, 1.146e-5_rkx, 9.389e-6_rkx, 6.135e-6_rkx, &
     6.135e-6_rkx]
-  real(rkx) , dimension(31) , parameter :: ppwin = &
-   [ 955.747_rkx , 841.783_rkx , 740.199_rkx , 649.538_rkx , 568.404_rkx , &
-     495.815_rkx , 431.069_rkx , 373.464_rkx , 322.354_rkx , 277.190_rkx , &
-     237.635_rkx , 203.433_rkx , 174.070_rkx , 148.949_rkx , 127.408_rkx , &
-     108.915_rkx ,  93.114_rkx ,  79.551_rkx ,  67.940_rkx ,  58.072_rkx , &
-      49.593_rkx ,  42.318_rkx ,  36.138_rkx ,  30.907_rkx ,  26.362_rkx , &
-      16.423_rkx ,   7.583_rkx ,   3.620_rkx ,   1.807_rkx ,   0.938_rkx , &
+  real(rkx), dimension(31), parameter :: ppwin = &
+   [ 955.747_rkx, 841.783_rkx, 740.199_rkx, 649.538_rkx, 568.404_rkx, &
+     495.815_rkx, 431.069_rkx, 373.464_rkx, 322.354_rkx, 277.190_rkx, &
+     237.635_rkx, 203.433_rkx, 174.070_rkx, 148.949_rkx, 127.408_rkx, &
+     108.915_rkx,  93.114_rkx,  79.551_rkx,  67.940_rkx,  58.072_rkx, &
+      49.593_rkx,  42.318_rkx,  36.138_rkx,  30.907_rkx,  26.362_rkx, &
+      16.423_rkx,   7.583_rkx,   3.620_rkx,   1.807_rkx,   0.938_rkx, &
        0.469_rkx]
 
   contains
 
   character(len=256) function o3filename(year)
     implicit none
-    integer(ik4) , intent(in) :: year
+    integer(ik4), intent(in) :: year
     if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' .or. &
          scenario(1:5) == 'CONST' ) then
       ozname = ozname_rcp
@@ -232,20 +232,20 @@ module mod_rad_o3blk
       o3prof(j,i,k) = max(o3 * (amo3/amd) * 1.0e-6_rkx, 1.0e-12_rkx)
     end do
 #else
-    real(rkx) , pointer , dimension(:) :: o3wrk , ppwrk
+    real(rkx), pointer, contiguous, dimension(:) :: o3wrk, ppwrk
     allocate(o3wrk(31),ppwrk(31))
-    do k = 1 , 31
+    do k = 1, 31
       ppann(k) = ppsum(k)
     end do
     o3ann(1) = 0.5_rkx*(o3sum(1)+o3win(1))
-    do k = 2 , 31
+    do k = 2, 31
       o3ann(k) = o3win(k-1) + (o3win(k)-o3win(k-1)) / &
                  (ppwin(k)-ppwin(k-1))*(ppsum(k)-ppwin(k-1))
     end do
-    do k = 2 , 31
+    do k = 2, 31
       o3ann(k) = 0.5_rkx*(o3ann(k)+o3sum(k))
     end do
-    do k = 1 , 31
+    do k = 1, 31
       o3wrk(k) = o3ann(k)
       ppwrk(k) = ppann(k)
     end do
@@ -262,18 +262,18 @@ module mod_rad_o3blk
 
   subroutine read_o3data(idatex,m2r)
     implicit none
-    type (rcm_time_and_date) , intent(in) :: idatex
-    type(mod_2_rad) , intent(in) :: m2r
+    type (rcm_time_and_date), intent(in) :: idatex
+    type(mod_2_rad), intent(in) :: m2r
     character(len=256) :: infile
-    logical , save :: ifirst
+    logical, save :: ifirst
     logical :: dointerp
-    real(rkx) , dimension(kzp1) :: ozprnt
-    real(rkx) :: xfac1 , xfac2 , odist
+    real(rkx), dimension(kzp1) :: ozprnt
+    real(rkx) :: xfac1, xfac2, odist
     type (rcm_time_and_date) :: imonmidd
-    integer(ik4) :: iyear , imon , iday , ihour
-    integer(ik4) :: im1 , iy1 , im2 , iy2
-    integer(ik4) , save :: ism , isy , np
-    type (rcm_time_and_date) :: iref1 , iref2
+    integer(ik4) :: iyear, imon, iday, ihour
+    integer(ik4) :: im1, iy1, im2, iy2
+    integer(ik4), save :: ism, isy, np
+    type (rcm_time_and_date) :: iref1, iref2
     type (rcm_time_interval) :: tdif
     data ifirst /.true./
     data ism /-1/
@@ -374,7 +374,7 @@ module mod_rad_o3blk
 
   subroutine inextmon(iyear,imon)
     implicit none
-    integer(ik4) , intent(inout) :: iyear , imon
+    integer(ik4), intent(inout) :: iyear, imon
     imon = imon + 1
     if ( imon > 12 ) then
       imon = 1
@@ -384,7 +384,7 @@ module mod_rad_o3blk
 
   subroutine iprevmon(iyear,imon)
     implicit none
-    integer(ik4) , intent(inout) :: iyear , imon
+    integer(ik4), intent(inout) :: iyear, imon
     imon = imon - 1
     if ( imon < 1 ) then
       imon = 12
@@ -394,13 +394,13 @@ module mod_rad_o3blk
 
   subroutine init_o3data(o3file,ncid,lat,lon,lev)
     implicit none
-    character(len=*) , intent(in) :: o3file
-    integer(ik4) , intent(out) :: ncid
-    real(rkx) , intent(inout) , dimension(:) , pointer :: lat , lon , lev
-    integer(ik4) :: iret , idimid , nlon , nlat , nlev
+    character(len=*), intent(in) :: o3file
+    integer(ik4), intent(out) :: ncid
+    real(rkx), intent(inout), dimension(:), pointer, contiguous :: lat, lon, lev
+    integer(ik4) :: iret, idimid, nlon, nlat, nlev
     iret = nf90_open(o3file,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(o3file) , ': ', nf90_strerror(iret)
+      write (stderr, *) trim(o3file), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT OPEN OZONE FILE')
     end if
     if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' .or. &
@@ -436,20 +436,20 @@ module mod_rad_o3blk
 
   subroutine readvar3d_pack(ncid,iyear,imon,vname,val)
     implicit none
-    integer(ik4) , intent(inout) :: ncid
-    integer(ik4) , intent(in) :: iyear , imon
-    character(len=*) , intent(in) :: vname
-    real(rkx) , intent(out) , dimension(:,:,:) :: val
-    real(rkx) , save :: xscale , xfact
-    integer(ik4) , save :: ilastncid , icvar , itvar
-    integer(ik4) , save , dimension(4) :: istart , icount
+    integer(ik4), intent(inout) :: ncid
+    integer(ik4), intent(in) :: iyear, imon
+    character(len=*), intent(in) :: vname
+    real(rkx), intent(out), dimension(:,:,:) :: val
+    real(rkx), save :: xscale, xfact
+    integer(ik4), save :: ilastncid, icvar, itvar
+    integer(ik4), save, dimension(4) :: istart, icount
     integer(ik4) :: iret
     character(len=256) :: infile
     data ilastncid /-1/
     data icvar /-1/
     data xscale /1.0_rkx/
     data xfact /0.0_rkx/
-    data istart  / 1 , 1 , 1 , 1 /
+    data istart  / 1, 1, 1, 1 /
 
     if ( iyear == yend .or. iyear < ystart ) then
       iret = nf90_close(ncid)
@@ -460,7 +460,7 @@ module mod_rad_o3blk
       infile = o3filename(iyear)
       iret = nf90_open(infile,nf90_nowrite,ncid)
       if ( iret /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(iret) , infile
+        write (stderr, *) nf90_strerror(iret), infile
         call fatal(__FILE__,__LINE__,'CANNOT OPEN OZONE FILE')
       end if
     end if
@@ -501,10 +501,10 @@ module mod_rad_o3blk
 
   subroutine readvar1d(ncid,vname,val)
     implicit none
-    integer(ik4) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rkx) , intent(out) , dimension(:) :: val
-    integer(ik4) :: icvar , iret
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rkx), intent(out), dimension(:) :: val
+    integer(ik4) :: icvar, iret
     iret = nf90_inq_varid(ncid,vname,icvar)
     if ( iret /= nf90_noerr ) then
       write (stderr, *) trim(vname), ': ', nf90_strerror(iret)

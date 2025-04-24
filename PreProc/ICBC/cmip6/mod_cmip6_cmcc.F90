@@ -29,19 +29,19 @@ module mod_cmip6_cmcc
 
   private
 
-  character(len=*) , parameter :: cmcc_version = 'v20210114'
-  character(len=*) , parameter :: cmcc_version1 = 'v20210126'
+  character(len=*), parameter :: cmcc_version = 'v20210114'
+  character(len=*), parameter :: cmcc_version1 = 'v20210126'
 
-  public :: read_3d_cmcc , read_2d_cmcc , read_fx_cmcc , read_sst_cmcc
+  public :: read_3d_cmcc, read_2d_cmcc, read_fx_cmcc, read_sst_cmcc
 
   contains
 
     subroutine read_hcoord_cmcc(ncid,lon,lat)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
-      integer(ik4) :: istatus , idimid , ivarid
-      integer(ik4) :: nlon , nlat
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:), intent(inout) :: lon, lat
+      integer(ik4) :: istatus, idimid, ivarid
+      integer(ik4) :: nlon, nlat
       istatus = nf90_inq_dimid(ncid,'lon',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -64,10 +64,10 @@ module mod_cmip6_cmcc
 
     subroutine read_hcoord_sst_cmcc(ncid,lon,lat)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
-      integer(ik4) :: istatus , idimid , ivarid
-      integer(ik4) :: nlon , nlat
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
+      integer(ik4) :: istatus, idimid, ivarid
+      integer(ik4) :: nlon, nlat
       istatus = nf90_inq_dimid(ncid,'j',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find j dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -90,10 +90,10 @@ module mod_cmip6_cmcc
 
     subroutine read_vcoord_cmcc(ncid,a,b,p0)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: a , b
-      real(rkx) , intent(out) :: p0
-      integer(ik4) :: istatus , idimid , ivarid
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:), intent(inout) :: a, b
+      real(rkx), intent(out) :: p0
+      integer(ik4) :: istatus, idimid, ivarid
       integer(ik4) :: nlev
       istatus = nf90_inq_dimid(ncid,'lev',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
@@ -117,14 +117,14 @@ module mod_cmip6_cmcc
 
     recursive subroutine read_3d_cmcc(idate,v,lonlyc)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_3d_var) , pointer , intent(inout) :: v
-      logical , optional , intent(in) :: lonlyc
-      integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(4) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_3d_var), pointer, intent(inout) :: v
+      logical, optional, intent(in) :: lonlyc
+      integer(ik4) :: istatus, idimid, it, irec
+      integer(ik4) :: year, month, day, hour, y
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(4) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
       character(len=16) :: ver
 
@@ -230,15 +230,15 @@ module mod_cmip6_cmcc
 
     recursive subroutine read_2d_cmcc(idate,v,lonlyc)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_2d_var) , pointer , intent(inout) :: v
-      logical , optional , intent(in) :: lonlyc
-      integer(ik4) :: istatus , idimid , it , irec
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_2d_var), pointer, intent(inout) :: v
+      logical, optional, intent(in) :: lonlyc
+      integer(ik4) :: istatus, idimid, it, irec
       integer(ik4) :: y
-      integer(ik4) :: year , month , day , hour
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(3) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      integer(ik4) :: year, month, day, hour
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(3) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
 
       if ( v%ncid == -1 ) then
@@ -336,7 +336,7 @@ module mod_cmip6_cmcc
 
     recursive subroutine read_fx_cmcc(v)
       implicit none
-      type(cmip6_2d_var) , pointer , intent(inout) :: v
+      type(cmip6_2d_var), pointer, intent(inout) :: v
       integer(ik4) :: istatus
 
       v%filename = trim(cmip6_fxpath(cmcc_version,v%vname))
@@ -368,14 +368,14 @@ module mod_cmip6_cmcc
 
     recursive subroutine read_sst_cmcc(idate,v,lat,lon)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_2d_var) , intent(inout) :: v
-      real(rkx) , pointer , dimension(:,:) , intent(in) :: lon , lat
-      integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour, y1, y2
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(3) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_2d_var), intent(inout) :: v
+      real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lon, lat
+      integer(ik4) :: istatus, idimid, it, irec
+      integer(ik4) :: year, month, day, hour, y1, y2
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(3) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
 
       if ( v%ncid == -1 ) then

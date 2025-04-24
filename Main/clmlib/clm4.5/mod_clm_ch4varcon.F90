@@ -11,7 +11,7 @@ module mod_clm_ch4varcon
   use mod_mpmessage
   use mod_dynparam
   use mod_mppparam
-  use mod_runparams , only : namelistfile
+  use mod_runparams, only : namelistfile
 
   implicit none
 
@@ -22,12 +22,12 @@ module mod_clm_ch4varcon
   ! Methane Model Parameters
   !
   ! Rough estimate from comparison between Walter and previous CLM-CH4 data
-  real(rk8) , public :: q10ch4base = 295._rk8
+  real(rk8), public :: q10ch4base = 295._rk8
   ! Uses Michigan bog data from Shannon & White
   ! This is the temperature at which the effective f_ch4 actually equals the
   ! constant f_ch4.
 
-  real(rk8) , public :: q10ch4 = 1.33_rk8 ! Production Q10
+  real(rk8), public :: q10ch4 = 1.33_rk8 ! Production Q10
   ! Note that this is the additional Q10 for methane production ABOVE the
   ! soil decomposition temperature relationship.
   ! Corresponds to a methanogenesis Q10 of 2 when SOM HR has Q10 of 1.5.
@@ -37,24 +37,24 @@ module mod_clm_ch4varcon
   ! methane production.
 
   ! [mol/m3-w/s];
-  real(rk8) , public :: vmax_ch4_oxid = 45.e-6_rk8 * 1000._rk8 / 3600._rk8
+  real(rk8), public :: vmax_ch4_oxid = 45.e-6_rk8 * 1000._rk8 / 3600._rk8
   ! 45 uM/h from Walter and Heimann for the Mich. site (2000)
   ! oxidation rate constant (Walter and Heimann 2000)
 
-  real(rk8) , public :: k_m = 5.e-6_rk8 * 1000._rk8 ! [mol/m3-w]
+  real(rk8), public :: k_m = 5.e-6_rk8 * 1000._rk8 ! [mol/m3-w]
   ! Michaelis-Menten oxidation rate constant for CH4 concentration
   ! (Walter and Heimann 2000)
 
-  real(rk8) , public :: q10_ch4oxid = 1.9_rk8 ! Segers, 1998
+  real(rk8), public :: q10_ch4oxid = 1.9_rk8 ! Segers, 1998
   ! Q10 oxidation constant (Walter and Heimann 2000)
 
-  real(rk8) , public :: smp_crit = -2.4e5_rk8 ! mm. From Schnell & King, 1996.
+  real(rk8), public :: smp_crit = -2.4e5_rk8 ! mm. From Schnell & King, 1996.
   ! Critical soil moisture potential to reduce oxidation (mm) due to
   ! dessication of methanotrophs above the water table.
   ! To turn off limitation, set to very large negative value.
 
   ! fraction of methane flux entering aerenchyma rhizosphere that will be
-  real(rk8) , public :: aereoxid = -1._rk8
+  real(rk8), public :: aereoxid = -1._rk8
   ! oxidized rather than emitted.  From Wania.
   ! Note, this has been replaced by prognostic O2 diffusion into aerenchyma
   ! and is set to -1 by default.
@@ -63,33 +63,33 @@ module mod_clm_ch4varcon
   ! Wania parameter, set to 0. and compare to a normal run.
 
   ! minimum anaerobic decomposition rate as a fraction of potential aerobic rate
-  real(rk8) , public :: mino2lim = 0.2_rk8
+  real(rk8), public :: mino2lim = 0.2_rk8
   ! for soil decomposition (or diagnostic O2-limitation / seasonal inundation
   ! factor)
 
   ! Fraction of soil organic matter associated with roots
-  real(rk8) , public :: rootlitfrac = 0.50_rk8
+  real(rk8), public :: rootlitfrac = 0.50_rk8
   ! Used to partition the production between rootfr and the top 5 layers
   ! (ifndef VERTSOILC)
 
   ! scale factor on the aerenchyma area for sensitivity tests
-  real(rk8) , public :: scale_factor_aere = 1.0_rk8
+  real(rk8), public :: scale_factor_aere = 1.0_rk8
 
   ! ratio of saturation pressure triggering ebullition
-  real(rk8) , public :: vgc_max = 0.15_rk8
+  real(rk8), public :: vgc_max = 0.15_rk8
 
   ! organic matter content (kg/m3) where soil is assumed to act like peat
-  real(rk8) , public :: organic_max  = 130._rk8
+  real(rk8), public :: organic_max  = 130._rk8
   ! for diffusion. Very large values will lead to all soil being treated
   ! as mineral. Negative values will lead   ! to all soil being treated as peat.
 
   ! exponent on watsat for saturated soil solute diffusion
   ! (2 = Buckingham / Moldrup; 4/3 = Millington-Quirk)
-  real(rk8) , public :: satpow = 2._rk8
+  real(rk8), public :: satpow = 2._rk8
 
   ! scale factor on CN decomposition for assigning methane flux
   ! This should equal 1 except for sensitivity studies.
-  real(rk8) , public :: cnscalefactor = 1._rk8
+  real(rk8), public :: cnscalefactor = 1._rk8
 
   ! originally 25% / (100% + 25%) from Wania.
   ! This is the ratio of CH4 production to total C mineralization.
@@ -97,22 +97,22 @@ module mod_clm_ch4varcon
   ! Effective value will depend on temperature, redox, & pH but cannot
   ! exceed 50% based on stoichiometry.
   ! Note this is a crude parameterization: values in the field vary widely.
-  real(rk8) , public :: f_ch4 = 0.2_rk8
+  real(rk8), public :: f_ch4 = 0.2_rk8
 
   ! switch for activating CH4 loss from transpiration
   ! Transpiration loss assumes that the methane concentration in dissolved soil
   ! water remains constant through the plant and is released when the water
   ! evaporates from the stomata.
   ! Currently hard-wired to true; impact is < 1 Tg CH4/yr
-  logical , public :: transpirationloss = .true.
+  logical, public :: transpirationloss = .true.
 
   ! Michaelis-Menten oxidation rate constant for O2 concentration
   ! (Segers 1998, Lidstrom and Somers 1984)
-  real(rk8) , public :: k_m_o2 = 20.e-6_rk8 * 1000._rk8 ! [mol/m3-w]
+  real(rk8), public :: k_m_o2 = 20.e-6_rk8 * 1000._rk8 ! [mol/m3-w]
 
   ! Ratio of root porosity in non-grass to grass, used for aerenchyma transport
   ! Some values in Colmer 2003
-  real(rk8) , public :: nongrassporosratio = 0.33_rk8
+  real(rk8), public :: nongrassporosratio = 0.33_rk8
 
   ! Switch to allow production under lakes based on soil carbon dataset
   ! (Methane can be produced, and CO2 produced from methane oxidation,
@@ -121,44 +121,44 @@ module mod_clm_ch4varcon
   ! Note: switching this off turns off ALL lake methane biogeochem.
   ! However, 0 values will still be averaged into the concentration _sat
   ! history fields.
-  logical , public :: allowlakeprod = .true.
+  logical, public :: allowlakeprod = .true.
 
   ! Base decomposition rate (1/s) at 25C
   ! Equates to about a 200 year lifetime.
-  real(rk8) , public :: lake_decomp_fact = 9.e-11_rk8
+  real(rk8), public :: lake_decomp_fact = 9.e-11_rk8
 
   ! Switch to use pH factor in methane production
-  logical , public :: usephfact = .false.
+  logical, public :: usephfact = .false.
 
   ! Michaelis-Menten oxidation rate constant for CH4 concentration:
   ! literature suggests that methanotrophs in upland areas have higher
   ! affinity for methane in order to access the low ambient concentrations
   ! above the water table. (See Bender & Conrad, 1992, etc.)
-  real(rk8) , public :: k_m_unsat = 5.e-6_rk8 * 1000._rk8 / 10._rk8 ! [mol/m3-w]
+  real(rk8), public :: k_m_unsat = 5.e-6_rk8 * 1000._rk8 / 10._rk8 ! [mol/m3-w]
 
   ! [mol/m3-w/s]
   ! Literature suggests that while k_m is lower, vmax is also lower in upland
   ! areas.
-  real(rk8) , public :: vmax_oxid_unsat = 45.e-6_rk8 * 1000._rk8 / 3600._rk8 / 10._rk8
+  real(rk8), public :: vmax_oxid_unsat = 45.e-6_rk8 * 1000._rk8 / 3600._rk8 / 10._rk8
 
   ! Switch for keeping carbon storage under lakes constant
   ! so that lakes do not affect the carbon balance
   ! Good for long term rather than transient warming experiments
   ! NOTE SWITCHING THIS OFF ASSUMES TRANSIENT CARBON SUPPLY FROM LAKES;
   ! COUPLED MODEL WILL NOT CONSERVE CARBON IN THIS MODE.
-  logical , public :: replenishlakec = .true.
+  logical, public :: replenishlakec = .true.
 
   ! For sensitivity tests; convection would allow this to be > 1
-  real(rk8) , public :: scale_factor_gasdiff = 1.0_rk8
+  real(rk8), public :: scale_factor_gasdiff = 1.0_rk8
 
   ! For sensitivity tests; convection would allow this to be > 1
-  real(rk8) , public :: scale_factor_liqdiff = 1.0_rk8
+  real(rk8), public :: scale_factor_liqdiff = 1.0_rk8
 
   ! Number of days to lag in the calculation of finundated_lag, which will
   ! be used to assess the availability of alternative electron acceptors
   ! in recently inundated area, reducing production.
   ! Set to 0 to turn off this feature.
-  real(rk8) , public :: redoxlag = 30.0_rk8
+  real(rk8), public :: redoxlag = 30.0_rk8
 
   ! New namelists added 6/12/11
 
@@ -167,12 +167,12 @@ module mod_clm_ch4varcon
   ! finundated which is used in methane code and potentially soil code
   !!!! Attn EK: Set this to true when Sean Swenson's prognostic, tested
   ! fsat is integrated. (CLM4 fsat is bad for these purposes.)
-  logical , public :: fin_use_fsat = .false.
+  logical, public :: fin_use_fsat = .false.
 
   ! Ratio to multiply upland vegetation aerenchyma porosity by compared to
   ! inundated systems. Note: porosity will be kept at above a minimum
   ! residual value porosmin set in subroutine ch4_aere.
-  real(rk8) , public :: unsat_aere_ratio = 0.05_rk8 / 0.3_rk8
+  real(rk8), public :: unsat_aere_ratio = 0.05_rk8 / 0.3_rk8
 
   ! Use CLMCN fine root C rather than ann NPP & LAI based parameterization to
   ! calculate tiller C for aerenchyma area calculation.
@@ -180,36 +180,36 @@ module mod_clm_ch4varcon
   ! appropriate for woody PFTs, although nongrassporosratio above partly
   ! adjusts for this.  However, using fine root C reduces the aerenchyma
   ! area by a large factor.
-  logical , public :: usefrootc = .true.
+  logical, public :: usefrootc = .true.
 
   ! true --> Methane is not passed between the land & atmosphere.
   ! NEM is not added to NEE flux to atm. to correct for methane production,
   ! and ambient CH4 is set to constant 2009 value.
-  logical , public :: ch4offline = .true.
+  logical, public :: ch4offline = .true.
 
   ! Remove the N and low moisture limitations on SOM HR when calculating
   ! methanogenesis.
   ! Note: this option has not been extensively tested.
   ! Currently hardwired off.
-  logical , public :: ch4rmcnlim = .false.
+  logical, public :: ch4rmcnlim = .false.
 
   ! Use Arah & Stephen 1998 expression to allow production above the water table
   ! Currently hardwired off; expression is crude.
-  logical , public :: anoxicmicrosites = .false.
+  logical, public :: anoxicmicrosites = .false.
 
   ! Exclude CH4 from frozen fraction of soil pore H2O, to simulate
   ! "freeze-out" pulse as in Mastepanov 2008.
   ! Causes slight increase in emissions in the fall and decrease in the spring.
   ! Currently hardwired off; small impact.
-  logical , public :: ch4frzout = .false.
+  logical, public :: ch4frzout = .false.
 
   ! time lag (days) to inhibit production for newly unsaturated layers
   ! when decreasing WT depth for unsat. zone. See the description for redoxlag.
-  real(rk8) , public :: redoxlag_vertical = 0._rk8
+  real(rk8), public :: redoxlag_vertical = 0._rk8
 
   ! Atmospheric CH4 mixing ratio to prescribe if not provided by the
   ! atmospheric model (mol/mol)
-  !  real(rk8) , public :: atmch4 = 1.7e-6_rk8
+  !  real(rk8), public :: atmch4 = 1.7e-6_rk8
 
   public :: ch4conrd ! Read and initialize CH4 constants
 
@@ -231,7 +231,7 @@ module mod_clm_ch4varcon
     ! Driver
     namelist /ch4par_in/ &
         ch4offline, fin_use_fsat, replenishlakec, allowlakeprod
-    ! , atmch4
+    !, atmch4
 
     ! Production
     namelist /ch4par_in/ &

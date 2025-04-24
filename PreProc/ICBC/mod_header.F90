@@ -22,8 +22,8 @@ module mod_header
 
   subroutine header(myname)
     implicit none
-    character (len=*) , intent(in) :: myname
-    integer(ik4) :: ihost , idir
+    character (len=*), intent(in) :: myname
+    integer(ik4) :: ihost, idir
     integer(ik4) :: hostnm
     integer(ik4) :: getcwd
     character (len=32) :: cdata = '?'
@@ -31,15 +31,15 @@ module mod_header
     character (len=32) :: hostname = '?'
     character (len=32) :: user = '?'
     character (len=256) :: directory = '?'
-    integer(ik4) , parameter :: nrite = stdout
-    integer(ik4) , dimension(8) :: tval
-    character(len=*) , parameter :: f99001 = &
+    integer(ik4), parameter :: nrite = stdout
+    integer(ik4), dimension(8) :: tval
+    character(len=*), parameter :: f99001 = &
            '(/,1x," This is ",A," part of the RegCM version 5")'
-    character(len=*) , parameter :: f99002 = &
+    character(len=*), parameter :: f99002 = &
            '(2x," SVN Revision: ",A," compiled at: data : ",A,"  time: ",A,/)'
 
     write (nrite,f99001)  myname
-    write (nrite,f99002)  GIT_VER, __DATE__ , __TIME__
+    write (nrite,f99002)  GIT_VER, __DATE__, __TIME__
 
 #ifdef IBM
     hostname = 'ibm platform '
@@ -62,7 +62,7 @@ module mod_header
 
   subroutine finaltime(myid)
     implicit none
-    integer(ik4) , intent (in) :: myid
+    integer(ik4), intent (in) :: myid
     character (len=24) :: cdata = '?'
 
     if ( myid ==  0 ) then

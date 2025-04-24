@@ -10,27 +10,27 @@ module mod_clm_restfile
   use mod_mppparam
   use mod_runparams
   use mod_clm_nchelper
-  use mod_clm_surfrd , only : crop_prog
-  use mod_clm_subgridrest , only : SubgridRest
-  use mod_clm_biogeophysrest , only : BiogeophysRest
-  use mod_clm_accumul , only : accumulRest
-  use mod_clm_slakerest , only : SLakeRest
-  use mod_clm_decomp ,  only : get_proc_global
-  use mod_clm_varpar , only : nlevsno , nlevlak , nlevgrnd , nlevurb
-  use mod_clm_varpar , only : numrad , nlevcan
-  use mod_clm_varctl , only : caseid , ctitle , version , username ,    &
-          hostname , finidat , fsurdat , nsrest ,       &
-          nrevsn , nsrStartup , nsrContinue , inst_suffix , &
-          conventions , source
-  use mod_clm_varctl , only : inst_suffix
+  use mod_clm_surfrd, only : crop_prog
+  use mod_clm_subgridrest, only : SubgridRest
+  use mod_clm_biogeophysrest, only : BiogeophysRest
+  use mod_clm_accumul, only : accumulRest
+  use mod_clm_slakerest, only : SLakeRest
+  use mod_clm_decomp,  only : get_proc_global
+  use mod_clm_varpar, only : nlevsno, nlevlak, nlevgrnd, nlevurb
+  use mod_clm_varpar, only : numrad, nlevcan
+  use mod_clm_varctl, only : caseid, ctitle, version, username,    &
+          hostname, finidat, fsurdat, nsrest,       &
+          nrevsn, nsrStartup, nsrContinue, inst_suffix, &
+          conventions, source
+  use mod_clm_varctl, only : inst_suffix
 #if (defined CN)
-  use mod_clm_cnrest , only : CNRest
-  use mod_clm_croprest , only : CropRest
+  use mod_clm_cnrest, only : CNRest
+  use mod_clm_croprest, only : CropRest
 #endif
 #if (defined LCH4)
-  use mod_clm_ch4rest , only : ch4Rest
+  use mod_clm_ch4rest, only : ch4Rest
 #endif
-  use mod_clm_histfile , only : hist_restart_ncd
+  use mod_clm_histfile, only : hist_restart_ncd
   use mod_clm_time_manager
 
   implicit none
@@ -57,10 +57,10 @@ module mod_clm_restfile
   !
   subroutine restFile_write(rfile,noptr,rdate)
     implicit none
-    character(len=*) , intent(in) :: rfile  ! output netcdf restart file
-    character(len=*) , intent(in) :: rdate ! restart file time stamp for name
+    character(len=*), intent(in) :: rfile  ! output netcdf restart file
+    character(len=*), intent(in) :: rdate ! restart file time stamp for name
     ! if should NOT write to the restart pointer file
-    logical , intent(in) , optional :: noptr
+    logical, intent(in), optional :: noptr
     type(clm_filetype) :: ncid ! netcdf id
     logical :: ptrfile ! write out the restart pointer file
 
@@ -138,7 +138,7 @@ module mod_clm_restfile
   !
   ! Read a CLM restart file.
   !
-  subroutine restFile_read( rfile , rdate )
+  subroutine restFile_read( rfile, rdate )
     implicit none
     character(len=*), intent(in) :: rfile  ! output netcdf restart file
     character(len=*), intent(in) :: rdate  ! output netcdf restart date
@@ -167,7 +167,7 @@ module mod_clm_restfile
 
     call accumulRest( ncid, flag='read' )
 
-    call hist_restart_ncd (ncid, flag='read' , rdate=rdate)
+    call hist_restart_ncd (ncid, flag='read', rdate=rdate)
 
     ! Close file
 
@@ -182,10 +182,10 @@ module mod_clm_restfile
   !
   ! Determine and obtain netcdf restart file
   !
-  subroutine restFile_getfile( rfile , rdate )
+  subroutine restFile_getfile( rfile, rdate )
     implicit none
     character(len=*), intent(out) :: rfile  ! name of netcdf restart file
-    character(len=*) , intent(in) :: rdate ! input date for restart file name
+    character(len=*), intent(in) :: rdate ! input date for restart file name
 
     ! Continue run:
     rfile = trim(dirout)//pthsep//trim(caseid)//".clm."//trim(inst_suffix)//&
@@ -218,7 +218,7 @@ module mod_clm_restfile
 
   character(len=256) function restFile_filename( rdate )
     implicit none
-    character(len=*) , intent(in) :: rdate ! input date for restart file name
+    character(len=*), intent(in) :: rdate ! input date for restart file name
     restFile_filename = trim(dirout)//trim(caseid)// &
                         ".clm."//trim(inst_suffix)//&
                         ".r."//trim(rdate)//".nc"
@@ -318,7 +318,7 @@ module mod_clm_restfile
   !
   subroutine restFile_close( ncid )
     implicit none
-    type(clm_filetype) , intent(inout) :: ncid
+    type(clm_filetype), intent(inout) :: ncid
     call clm_closefile(ncid)
   end subroutine restFile_close
 

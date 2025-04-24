@@ -35,17 +35,17 @@ module mod_sun
 
    private
 
-   real(rkx) , dimension(:) , pointer :: heppatsi => null()
-   real(rkx) , dimension(3,1610:2008) :: tsi
-   real(rkx) , parameter :: tsifac = 0.9965_rkx
-   integer(ik4) :: ii , jj
+   real(rkx), dimension(:), pointer, contiguous :: heppatsi => null()
+   real(rkx), dimension(3,1610:2008) :: tsi
+   real(rkx), parameter :: tsifac = 0.9965_rkx
+   integer(ik4) :: ii, jj
 
    public :: zenitm
    !
    ! ANNUAL MEAN TSI
    ! Lean (GRL 2000) with Wang Lean Sheeley (ApJ 2005) background
    ! Mon Apr  6 11:29:27 2009
-   ! PMOD absolute scale , multiply by 0.9965 for TIM scale
+   ! PMOD absolute scale, multiply by 0.9965 for TIM scale
    ! YEAR, TSI 11-yr cycle, TSI cycle+background
    !
    data ((tsi(ii,jj),ii=1,3),jj=1610,2008) / &
@@ -257,12 +257,12 @@ module mod_sun
   !
   subroutine solar1
     implicit none
-    real(rk8) :: decdeg , obliq , mvelp
-    integer(ik4) , save :: lyear = bigint
+    real(rk8) :: decdeg, obliq, mvelp
+    integer(ik4), save :: lyear = bigint
     integer(ik4) :: iyear
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'solar1'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     iyear = rcmtimer%year + int(year_offset,ik4)
@@ -284,9 +284,9 @@ module mod_sun
     decdeg = declin/degrad
     if ( myid == italk .and. alarm_day%act( ) ) then
       write (stdout, *) 'At ',rcmtimer%str( )
-      write (stdout,'(a,f12.5,a,f12.8,a)') ' JDay ', calday , &
-        ' solar declination angle = ', decdeg , ' degrees'
-      write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ' , &
+      write (stdout,'(a,f12.5,a,f12.8,a)') ' JDay ', calday, &
+        ' solar declination angle = ', decdeg, ' degrees'
+      write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ', &
         solcon, ' W/m^2'
     end if
 #ifdef DEBUG
@@ -302,12 +302,12 @@ module mod_sun
   !
   subroutine zenitm(xlat,xlon,coszrs)
     implicit none
-    real(rkx) , pointer , intent(in), dimension(:,:) :: xlat , xlon
-    real(rkx) , pointer , intent(inout), dimension(:,:) :: coszrs
-    integer(ik4) :: i , j
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: xlat, xlon
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: coszrs
+    integer(ik4) :: i, j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'zenitm'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -336,9 +336,9 @@ module mod_sun
       if ( rcmtimer%start( ) .or. alarm_day%act( ) .or. doing_restart ) then
         if ( myid == italk .and. alarm_day%act( ) ) then
           write (stdout, *) 'At ',rcmtimer%str( )
-          write (stdout,'(a,f12.5,a,f12.8,a)') ' JDay ', calday , &
+          write (stdout,'(a,f12.5,a,f12.8,a)') ' JDay ', calday, &
             ' solar zenith angle = 42.05 degrees'
-          write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ' , &
+          write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ', &
             solcon, ' W/m^2'
         end if
       end if
@@ -361,11 +361,11 @@ module mod_sun
 
   real(rkx) function solar_irradiance( )
     implicit none
-    integer(ik4) :: iyear , iidate
-    real(rkx) :: w1 , w2
+    integer(ik4) :: iyear, iidate
+    real(rkx) :: w1, w2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'solar_irradiance'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     if ( isolconst == 1 ) then
@@ -415,7 +415,7 @@ module mod_sun
   subroutine read_solarforcing( )
     implicit none
     character(len=256) :: heppafile
-    integer(ik4) :: iret , ncid , idimid , ntime , ivar
+    integer(ik4) :: iret, ncid, idimid, ntime, ivar
 
     if ( myid == italk ) then
       write(stdout,*) 'Read solar forcing total irradiance data...'
@@ -425,33 +425,33 @@ module mod_sun
       '-3-2_gn_185001-229912.nc'
     iret = nf90_open(heppafile,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT OPEN SOLARFORCING FILE')
     end if
     iret = nf90_inq_dimid(ncid,'time',idimid)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT FIND TIME DIMENSION')
     end if
     iret = nf90_inquire_dimension(ncid,idimid,len=ntime)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT READ TIME DIMENSION LENGHT')
     end if
     iret = nf90_inq_varid(ncid,'tsi',ivar)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'VARIABLE TSI NOT FOUND')
     end if
     call getmem1d(heppatsi,1,ntime,'sun: heppatsi')
     iret = nf90_get_var(ncid,ivar,heppatsi)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT READ VARIABLE TSI')
     end if
     iret = nf90_close(ncid)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT CLOSE SOLARFORCING FILE')
     end if
   end subroutine read_solarforcing

@@ -4,11 +4,11 @@ program changeland
   integer :: ncid
   integer :: istatus
   character(len=256) :: arg1
-  integer :: jx , iy
-  integer :: jxdimid , iydimid , ivarid
+  integer :: jx, iy
+  integer :: jxdimid, iydimid, ivarid
 
-  real(4) , pointer , dimension(:,:) :: xlat , xlon , landuse
-  logical , pointer , dimension(:,:) :: mask
+  real(4), pointer, contiguous, dimension(:,:) :: xlat, xlon, landuse
+  logical, pointer, contiguous, dimension(:,:) :: mask
 
   call get_command_argument(1,value=arg1)
 

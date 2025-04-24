@@ -15,7 +15,7 @@
 
 module lapack_dgbsv
 
-  use mod_realkinds , only : rk8
+  use mod_realkinds, only : rk8
 
   implicit none
 
@@ -1880,7 +1880,7 @@ module lapack_dgbsv
           GOTO 80
         CASE (5)
           GOTO 90
-        CASE (6 , 7)
+        CASE (6, 7)
           GOTO 110
         CASE (8)
           GOTO 120

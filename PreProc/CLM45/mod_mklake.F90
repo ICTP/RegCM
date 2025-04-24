@@ -27,16 +27,16 @@ module mod_mklake
 
   public :: mklake
 
-  character(len=16) , parameter :: varname = 'LAKEDEPTH'
+  character(len=16), parameter :: varname = 'LAKEDEPTH'
 
   contains
 
   subroutine mklake(lakefile,mask,lake)
     implicit none
-    character(len=*) , intent(in) :: lakefile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: lake
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: lakefile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:), intent(out) :: lake
+    integer(ik4) :: i, j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -46,8 +46,8 @@ module mod_mklake
     call gfread(gfile,varname,lake,h_missing_value)
     call gfclose(gfile)
     call bestaround(lake,h_missing_value)
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           lake(j,i) = h_missing_value
         else

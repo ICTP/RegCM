@@ -25,7 +25,7 @@ module mod_clm_hydrology1
   public :: Hydrology1        ! Run
 
   ! use old fsno parameterization (N&Y07)
-  integer(ik4) , public :: oldfflag = 0
+  integer(ik4), public :: oldfflag = 0
 
   contains
   !
@@ -74,16 +74,16 @@ module mod_clm_hydrology1
   subroutine Hydrology1(lbc, ubc, lbp, ubp, num_nolakec, filter_nolakec, &
                         num_nolakep, filter_nolakep)
     use mod_clm_type
-    use mod_clm_atmlnd , only : clm_a2l
-    use mod_clm_varcon , only : tfrz, istice, istwet, istsoil, isturb,    &
+    use mod_clm_atmlnd, only : clm_a2l
+    use mod_clm_varcon, only : tfrz, istice, istwet, istsoil, isturb,    &
            istcrop, icol_roof, icol_sunwall, icol_shadewall, hfus,denice, &
            zlnd,rpi,spval
-    use mod_clm_varctl , only : subgridflag
-    use mod_clm_varpar , only : nlevsno
-    use mod_clm_h2osfc , only : FracH2oSfc
-    use mod_clm_fracwet , only : FracWet
-    use mod_clm_subgridave , only : p2c
-    use mod_clm_snicar , only : snw_rds_min
+    use mod_clm_varctl, only : subgridflag
+    use mod_clm_varpar, only : nlevsno
+    use mod_clm_h2osfc, only : FracH2oSfc
+    use mod_clm_fracwet, only : FracWet
+    use mod_clm_subgridave, only : p2c
+    use mod_clm_snicar, only : snw_rds_min
     implicit none
     integer(ik4), intent(in) :: lbp, ubp    ! pft bounds
     integer(ik4), intent(in) :: lbc, ubc    ! column bounds
@@ -96,120 +96,120 @@ module mod_clm_hydrology1
     ! pft filter for non-lake points
     integer(ik4), intent(in) :: filter_nolakep(ubp-lbp+1)
 
-    real(rk8), pointer :: swe_old(:,:)   ! snow water before update
+    real(rk8), pointer, contiguous :: swe_old(:,:)   ! snow water before update
     ! eff. fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno_eff(:)
+    real(rk8), pointer, contiguous :: frac_sno_eff(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)
-    real(rk8), pointer :: h2osfc(:)         ! surface water (mm)
+    real(rk8), pointer, contiguous :: frac_sno(:)
+    real(rk8), pointer, contiguous :: h2osfc(:)         ! surface water (mm)
     ! fraction of ground covered by surface water (0 to 1)
-    real(rk8), pointer :: frac_h2osfc(:)
+    real(rk8), pointer, contiguous :: frac_h2osfc(:)
     !snow falling on surface water (mm/s)
-    real(rk8), pointer :: qflx_snow_h2osfc(:)
+    real(rk8), pointer, contiguous :: qflx_snow_h2osfc(:)
     ! integrated snowfall [mm]
-    real(rk8), pointer :: int_snow(:)
+    real(rk8), pointer, contiguous :: int_snow(:)
     ! gridcell flux of flood water from RTM
-    real(rk8), pointer :: qflx_floodg(:)
-    real(rk8), pointer :: qflx_floodc(:) ! column flux of flood water from RTM
-    real(rk8), pointer :: qflx_snow_melt(:) ! snow melt from previous time step
-    real(rk8), pointer :: n_melt(:)         ! SCA shape parameter
-    integer(ik4) , pointer :: cgridcell(:)  ! columns's gridcell
-    integer(ik4) , pointer :: clandunit(:)  ! columns's landunit
-    integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell
-    integer(ik4) , pointer :: plandunit(:)  ! pft's landunit
-    integer(ik4) , pointer :: pcolumn(:)    ! pft's column
-    integer(ik4) , pointer :: npfts(:)      ! number of pfts in column
-    integer(ik4) , pointer :: pfti(:)       ! column's beginning pft index
-    integer(ik4) , pointer :: ltype(:)      ! landunit type
-    integer(ik4) , pointer :: ctype(:)      ! column type
-    real(rk8), pointer :: forc_rain(:)      ! rain rate [mm/s]
-    real(rk8), pointer :: forc_snow(:)      ! snow rate [mm/s]
-    real(rk8), pointer :: forc_t(:)         ! atmospheric temperature (Kelvin)
-    logical , pointer :: do_capsnow(:)      ! true => do snow capping
-    real(rk8), pointer :: t_grnd(:)         ! ground temperature (Kelvin)
-    real(rk8), pointer :: dewmx(:)          ! Maximum allowed dew [mm]
+    real(rk8), pointer, contiguous :: qflx_floodg(:)
+    real(rk8), pointer, contiguous :: qflx_floodc(:) ! column flux of flood water from RTM
+    real(rk8), pointer, contiguous :: qflx_snow_melt(:) ! snow melt from previous time step
+    real(rk8), pointer, contiguous :: n_melt(:)         ! SCA shape parameter
+    integer(ik4), pointer, contiguous :: cgridcell(:)  ! columns's gridcell
+    integer(ik4), pointer, contiguous :: clandunit(:)  ! columns's landunit
+    integer(ik4), pointer, contiguous :: pgridcell(:)  ! pft's gridcell
+    integer(ik4), pointer, contiguous :: plandunit(:)  ! pft's landunit
+    integer(ik4), pointer, contiguous :: pcolumn(:)    ! pft's column
+    integer(ik4), pointer, contiguous :: npfts(:)      ! number of pfts in column
+    integer(ik4), pointer, contiguous :: pfti(:)       ! column's beginning pft index
+    integer(ik4), pointer, contiguous :: ltype(:)      ! landunit type
+    integer(ik4), pointer, contiguous :: ctype(:)      ! column type
+    real(rk8), pointer, contiguous :: forc_rain(:)      ! rain rate [mm/s]
+    real(rk8), pointer, contiguous :: forc_snow(:)      ! snow rate [mm/s]
+    real(rk8), pointer, contiguous :: forc_t(:)         ! atmospheric temperature (Kelvin)
+    logical, pointer, contiguous :: do_capsnow(:)      ! true => do snow capping
+    real(rk8), pointer, contiguous :: t_grnd(:)         ! ground temperature (Kelvin)
+    real(rk8), pointer, contiguous :: dewmx(:)          ! Maximum allowed dew [mm]
     ! fraction of veg not covered by snow (0/1 now) [-]
-    integer(ik4) , pointer :: frac_veg_nosno(:)
+    integer(ik4), pointer, contiguous :: frac_veg_nosno(:)
     ! one-sided leaf area index with burying by snow
-    real(rk8), pointer :: elai(:)
+    real(rk8), pointer, contiguous :: elai(:)
     ! one-sided stem area index with burying by snow
-    real(rk8), pointer :: esai(:)
+    real(rk8), pointer, contiguous :: esai(:)
     ! canopy water mass balance term (column)
-    real(rk8), pointer :: h2ocan_loss(:)
+    real(rk8), pointer, contiguous :: h2ocan_loss(:)
     ! current irrigation rate (applied if n_irrig_steps_left > 0) [mm/s]
-    real(rk8), pointer :: irrig_rate(:)
+    real(rk8), pointer, contiguous :: irrig_rate(:)
 
-    integer(ik4) , pointer :: snl(:)        ! number of snow layers
-    real(rk8), pointer :: snow_depth(:)     ! snow height (m)
-    real(rk8), pointer :: h2osno(:)         ! snow water (mm H2O)
-    real(rk8), pointer :: h2ocan(:)         ! total canopy water (mm H2O)
-    real(rk8), pointer :: qflx_irrig(:)     ! irrigation amount (mm/s)
+    integer(ik4), pointer, contiguous :: snl(:)        ! number of snow layers
+    real(rk8), pointer, contiguous :: snow_depth(:)     ! snow height (m)
+    real(rk8), pointer, contiguous :: h2osno(:)         ! snow water (mm H2O)
+    real(rk8), pointer, contiguous :: h2ocan(:)         ! total canopy water (mm H2O)
+    real(rk8), pointer, contiguous :: qflx_irrig(:)     ! irrigation amount (mm/s)
     ! number of time steps for which we still need to irrigate today
     integer(ik4), pointer  :: n_irrig_steps_left(:)
 
     ! interception of precipitation [mm/s]
-    real(rk8), pointer :: qflx_prec_intr(:)
+    real(rk8), pointer, contiguous :: qflx_prec_intr(:)
     ! water onto ground including canopy runoff [kg/(m2 s)]
-    real(rk8), pointer :: qflx_prec_grnd(:)
+    real(rk8), pointer, contiguous :: qflx_prec_grnd(:)
     ! excess rainfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_snwcp_liq(:)
+    real(rk8), pointer, contiguous :: qflx_snwcp_liq(:)
     ! excess snowfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_snwcp_ice(:)
+    real(rk8), pointer, contiguous :: qflx_snwcp_ice(:)
     ! snow on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_snow_grnd_pft(:)
+    real(rk8), pointer, contiguous :: qflx_snow_grnd_pft(:)
     ! snow on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_snow_grnd_col(:)
+    real(rk8), pointer, contiguous :: qflx_snow_grnd_col(:)
     ! rain on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_rain_grnd(:)
+    real(rk8), pointer, contiguous :: qflx_rain_grnd(:)
     ! fraction of canopy that is wet (0 to 1)
-    real(rk8), pointer :: fwet(:)
+    real(rk8), pointer, contiguous :: fwet(:)
     ! fraction of foliage that is green and dry [-] (new)
-    real(rk8), pointer :: fdry(:)
+    real(rk8), pointer, contiguous :: fdry(:)
     ! interface level below a "z" level (m)
-    real(rk8), pointer :: zi(:,:)
-    real(rk8), pointer :: dz(:,:)   ! layer depth (m)
-    real(rk8), pointer :: z(:,:)    ! layer thickness (m)
-    real(rk8), pointer :: t_soisno(:,:)      ! soil temperature (Kelvin)
-    real(rk8), pointer :: h2osoi_ice(:,:)    ! ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:)    ! liquid water (kg/m2)
+    real(rk8), pointer, contiguous :: zi(:,:)
+    real(rk8), pointer, contiguous :: dz(:,:)   ! layer depth (m)
+    real(rk8), pointer, contiguous :: z(:,:)    ! layer thickness (m)
+    real(rk8), pointer, contiguous :: t_soisno(:,:)      ! soil temperature (Kelvin)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:)    ! ice lens (kg/m2)
+    real(rk8), pointer, contiguous :: h2osoi_liq(:,:)    ! liquid water (kg/m2)
     ! fraction of ice relative to the tot water
-    real(rk8), pointer :: frac_iceold(:,:)
+    real(rk8), pointer, contiguous :: frac_iceold(:,:)
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rk8), pointer :: snw_rds(:,:)
+    real(rk8), pointer, contiguous :: snw_rds(:,:)
     ! mass of hydrophobic BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcpho(:,:)
+    real(rk8), pointer, contiguous :: mss_bcpho(:,:)
     ! mass of hydrophilic BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcphi(:,:)
+    real(rk8), pointer, contiguous :: mss_bcphi(:,:)
     ! total mass of BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bctot(:,:)
+    real(rk8), pointer, contiguous :: mss_bctot(:,:)
     ! total column mass of BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bc_col(:)
+    real(rk8), pointer, contiguous :: mss_bc_col(:)
     ! total top-layer mass of BC (col,lyr) [kg]
-    real(rk8), pointer :: mss_bc_top(:)
+    real(rk8), pointer, contiguous :: mss_bc_top(:)
     ! mass of hydrophobic OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocpho(:,:)
+    real(rk8), pointer, contiguous :: mss_ocpho(:,:)
     ! mass of hydrophilic OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocphi(:,:)
+    real(rk8), pointer, contiguous :: mss_ocphi(:,:)
     ! total mass of OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_octot(:,:)
+    real(rk8), pointer, contiguous :: mss_octot(:,:)
     ! total column mass of OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_oc_col(:)
+    real(rk8), pointer, contiguous :: mss_oc_col(:)
     ! total top-layer mass of OC (col,lyr) [kg]
-    real(rk8), pointer :: mss_oc_top(:)
+    real(rk8), pointer, contiguous :: mss_oc_top(:)
     ! mass of dust species 1 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst1(:,:)
+    real(rk8), pointer, contiguous :: mss_dst1(:,:)
     ! mass of dust species 2 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst2(:,:)
+    real(rk8), pointer, contiguous :: mss_dst2(:,:)
     ! mass of dust species 3 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst3(:,:)
+    real(rk8), pointer, contiguous :: mss_dst3(:,:)
     ! mass of dust species 4 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst4(:,:)
+    real(rk8), pointer, contiguous :: mss_dst4(:,:)
     ! total mass of dust in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dsttot(:,:)
+    real(rk8), pointer, contiguous :: mss_dsttot(:,:)
     ! total column mass of dust in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst_col(:)
+    real(rk8), pointer, contiguous :: mss_dst_col(:)
     ! total top-layer mass of dust in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst_top(:)
+    real(rk8), pointer, contiguous :: mss_dst_top(:)
 
     integer(ik4)  :: f     ! filter index
     integer(ik4)  :: p     ! pft index
@@ -483,7 +483,7 @@ module mod_clm_hydrology1
     call p2c(num_nolakec,filter_nolakec,qflx_snow_grnd_pft,qflx_snow_grnd_col)
 
     ! apply gridcell flood water flux to non-lake columns
-    do f = 1 , num_nolakec
+    do f = 1, num_nolakec
       c = filter_nolakec(f)
       g = cgridcell(c)
       if ( ctype(c) /= icol_sunwall .and. &
@@ -496,7 +496,7 @@ module mod_clm_hydrology1
 
     ! Determine snow height and snow water
 
-    do f = 1 , num_nolakec
+    do f = 1, num_nolakec
       c = filter_nolakec(f)
       l = clandunit(c)
       g = cgridcell(c)
@@ -509,10 +509,10 @@ module mod_clm_hydrology1
       ! set temporary variables prior to updating
       temp_snow_depth=snow_depth(c)
       ! save initial snow content
-      do j = -nlevsno+1 , snl(c)
+      do j = -nlevsno+1, snl(c)
         swe_old(c,j) = 0.0_rk8
       end do
-      do j = snl(c)+1 , 0
+      do j = snl(c)+1, 0
         swe_old(c,j) = h2osoi_liq(c,j)+h2osoi_ice(c,j)
       end do
 

@@ -9,7 +9,7 @@ module mod_clm_cndvlight
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_constants , only : mathpi
+  use mod_constants, only : mathpi
 
   implicit none
 
@@ -34,25 +34,25 @@ module mod_clm_cndvlight
     ! pft filter for naturally-vegetated points
     integer(ik4), intent(in) :: filter_natvegp(ubp-lbp+1)
 
-    integer(ik4) , pointer :: ivt(:)       ! pft vegetation type
-    integer(ik4) , pointer :: pgridcell(:) ! gridcell index of corresponding pft
-    integer(ik4) , pointer :: tree(:)      ! ecophys const - tree pft or not
+    integer(ik4), pointer, contiguous :: ivt(:)       ! pft vegetation type
+    integer(ik4), pointer, contiguous :: pgridcell(:) ! gridcell index of corresponding pft
+    integer(ik4), pointer, contiguous :: tree(:)      ! ecophys const - tree pft or not
     !specific leaf area at top of canopy, projected area basis [m^2/gC]
-    real(rk8), pointer :: slatop(:)
-    real(rk8), pointer :: dsladlai(:) !dSLA/dLAI, projected area basis [m^2/gC]
-    real(rk8), pointer :: woody(:)    ! ecophys const - woody pft or not
-    real(rk8), pointer :: leafcmax(:) ! (gC/m2) leaf C storage
-    real(rk8), pointer :: deadstemc(:) ! (gC/m2) dead stem C
-    real(rk8), pointer :: dwood(:)     ! ecophys const - wood density (gC/m3)
-    real(rk8), pointer :: reinickerp(:) ! ecophys const - parameter in allomet
-    real(rk8), pointer :: crownarea_max(:) ! ecophys const - tree max crown a
-    real(rk8), pointer :: allom1(:)        ! ecophys const - param in allomet
+    real(rk8), pointer, contiguous :: slatop(:)
+    real(rk8), pointer, contiguous :: dsladlai(:) !dSLA/dLAI, projected area basis [m^2/gC]
+    real(rk8), pointer, contiguous :: woody(:)    ! ecophys const - woody pft or not
+    real(rk8), pointer, contiguous :: leafcmax(:) ! (gC/m2) leaf C storage
+    real(rk8), pointer, contiguous :: deadstemc(:) ! (gC/m2) dead stem C
+    real(rk8), pointer, contiguous :: dwood(:)     ! ecophys const - wood density (gC/m3)
+    real(rk8), pointer, contiguous :: reinickerp(:) ! ecophys const - parameter in allomet
+    real(rk8), pointer, contiguous :: crownarea_max(:) ! ecophys const - tree max crown a
+    real(rk8), pointer, contiguous :: allom1(:)        ! ecophys const - param in allomet
 
     ! area that each individual tree takes up (m^2)
-    real(rk8), pointer :: crownarea(:)
+    real(rk8), pointer, contiguous :: crownarea(:)
     ! foliar projective cover on gridcell (fraction)
-    real(rk8), pointer :: fpcgrid(:)
-    real(rk8), pointer :: nind(:) ! number of individuals
+    real(rk8), pointer, contiguous :: fpcgrid(:)
+    real(rk8), pointer, contiguous :: nind(:) ! number of individuals
 
     integer(ik4)  :: p,fp, g   ! indices
     real(rk8) :: fpc_tree_total(lbg:ubg)
@@ -106,11 +106,11 @@ module mod_clm_cndvlight
       numtrees(g) = 0
     end do
 
-    do p = lbp , ubp
+    do p = lbp, ubp
       iswood(p) = abs(woody(ivt(p))-1.0_rk8) < epsilon(1.0)
     end do
 
-    do fp = 1 , num_natvegp
+    do fp = 1, num_natvegp
       p = filter_natvegp(fp)
       g = pgridcell(p)
 

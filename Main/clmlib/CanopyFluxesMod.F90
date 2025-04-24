@@ -74,16 +74,16 @@ contains
 !     less than 0.1 W/m2; or the iterative steps over 40.
 !
 ! !USES:
-    use shr_kind_mod       , only : r8 => shr_kind_r8
+    use shr_kind_mod      , only : r8 => shr_kind_r8
     use clmtype
-    use clm_atmlnd         , only : clm_a2l
-    use clm_time_manager   , only : get_step_size
-    use clm_varpar         , only : nlevsoi, nlevsno
-    use clm_varcon         , only : sb, cpair, hvap, vkc, grav, denice, &
+    use clm_atmlnd        , only : clm_a2l
+    use clm_time_manager  , only : get_step_size
+    use clm_varpar        , only : nlevsoi, nlevsno
+    use clm_varcon        , only : sb, cpair, hvap, vkc, grav, denice, &
                                     denh2o, tfrz, csoilc
-    use QSatMod            , only : QSat
+    use QSatMod           , only : QSat
     use FrictionVelocityMod, only : FrictionVelocity, MoninObukIni
-    use spmdMod            , only : masterproc
+    use spmdMod           , only : masterproc
 !
 ! !ARGUMENTS:
     implicit none
@@ -111,11 +111,11 @@ contains
 !
 ! local pointers to implicit in variables
 !
-   integer , pointer :: frac_veg_nosno(:) ! frac of veg not covered by snow (0 OR 1 now) [-]
-   integer , pointer :: ivt(:)         ! pft vegetation type
-   integer , pointer :: pcolumn(:)     ! pft's column index
-   integer , pointer :: plandunit(:)   ! pft's landunit index
-   integer , pointer :: pgridcell(:)   ! pft's gridcell index
+   integer, pointer :: frac_veg_nosno(:) ! frac of veg not covered by snow (0 OR 1 now) [-]
+   integer, pointer :: ivt(:)         ! pft vegetation type
+   integer, pointer :: pcolumn(:)     ! pft's column index
+   integer, pointer :: plandunit(:)   ! pft's landunit index
+   integer, pointer :: pgridcell(:)   ! pft's gridcell index
    real(r8), pointer :: forc_th(:)     ! atmospheric potential temperature (Kelvin)
    real(r8), pointer :: t_grnd(:)      ! ground surface temperature [K]
    real(r8), pointer :: thm(:)         ! intermediate variable (forc_t+0.0098*forc_hgt_t)
@@ -225,8 +225,8 @@ contains
    real(r8), parameter :: delmax = 1.0_r8  ! maxchange in  leaf temperature [K]
    real(r8), parameter :: dlemin = 0.1_r8  ! max limit for energy flux convergence [w/m2]
    real(r8), parameter :: dtmin = 0.01_r8  ! max limit for temperature convergence [K]
-   integer , parameter :: itmax = 40       ! maximum number of iteration [-]
-   integer , parameter :: itmin = 2         ! minimum number of iteration [-]
+   integer, parameter :: itmax = 40       ! maximum number of iteration [-]
+   integer, parameter :: itmin = 2         ! minimum number of iteration [-]
    real(r8) :: dtime                 ! land model time step (sec)
    real(r8) :: zldis(lbp:ubp)        ! reference height "minus" zero displacement height [m]
    real(r8) :: zeta                  ! dimensionless height used in Monin-Obukhov theory
@@ -977,17 +977,17 @@ contains
 !   and eliminating the older Stomata subroutine
 
 ! !USES:
-     use shr_kind_mod , only : r8 => shr_kind_r8
+     use shr_kind_mod, only : r8 => shr_kind_r8
      use shr_const_mod, only : SHR_CONST_TKFRZ, SHR_CONST_RGAS
      use clmtype
-     use clm_atmlnd   , only : clm_a2l
+     use clm_atmlnd  , only : clm_a2l
      use spmdMod, only: masterproc
 !
 ! !ARGUMENTS:
      implicit none
-     integer , intent(in)    :: fn                 ! size of pft filter
-     integer , intent(in)    :: filterp(fn)        ! pft filter
-     integer , intent(in)    :: lbp, ubp           ! pft bounds
+     integer, intent(in)    :: fn                 ! size of pft filter
+     integer, intent(in)    :: filterp(fn)        ! pft filter
+     integer, intent(in)    :: lbp, ubp           ! pft bounds
      real(r8), intent(in)    :: ei(lbp:ubp)        ! vapor pressure inside leaf (sat vapor press at tl) (pa)
      real(r8), intent(in)    :: ea(lbp:ubp)        ! vapor pressure of canopy air (pa)
      real(r8), intent(in)    :: o2(lbp:ubp)        ! atmospheric o2 concentration (pa)
@@ -1003,9 +1003,9 @@ contains
 ! local pointers to implicit in variables
 ! new ecophys variables (leafcn, flnr) added 1/26/04
 !
-     integer , pointer :: pcolumn(:)     ! pft's column index
-     integer , pointer :: pgridcell(:)   ! pft's gridcell index
-     integer , pointer :: ivt(:)         ! pft vegetation type
+     integer, pointer :: pcolumn(:)     ! pft's column index
+     integer, pointer :: pgridcell(:)   ! pft's gridcell index
+     integer, pointer :: ivt(:)         ! pft vegetation type
      real(r8), pointer :: qe25(:)        ! quantum efficiency at 25C (umol CO2 / umol photon)
      real(r8), pointer :: vcmx25(:)      ! max rate of carboxylation at 25C (umol CO2/m**2/s)
      real(r8), pointer :: c3psn(:)       ! photosynthetic pathway: 0. = c4, 1. = c3
@@ -1042,7 +1042,7 @@ contains
 ! !LOCAL VARIABLES:
 !
      real(r8), parameter :: mpe = 1.e-6_r8   ! prevents overflow error if division by zero
-     integer , parameter :: niter = 3     ! number of iterations
+     integer, parameter :: niter = 3     ! number of iterations
      integer  :: f,p,c,g ! indices
      integer  :: iter    ! iteration index
      real(r8) :: ab      ! used in statement functions

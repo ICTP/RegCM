@@ -44,7 +44,7 @@ module mod_cbmz_main1
     use mod_cbmz_hvread
     implicit none
 
-    real(kind=dp) , intent(in) :: jday , dtche
+    real(kind=dp), intent(in) :: jday, dtche
     real(kind=dp) :: t
     real(kind=dp) :: rstate(20)
     integer :: icntrl(20)
@@ -52,35 +52,35 @@ module mod_cbmz_main1
 
     !------------------Declaration part for jval----------
 
-    real(kind=dp) , dimension(22) :: jparam
-    real(kind=dp) , dimension(56) :: jval
+    real(kind=dp), dimension(22) :: jparam
+    real(kind=dp), dimension(56) :: jval
 
-    !integer , parameter :: jO2       = 1
-    integer , parameter :: jO31D     = 2
-    integer , parameter :: jO33P     = 3
-    integer , parameter :: jNO2      = 4
-    integer , parameter :: jNO3a     = 5
-    integer , parameter :: jNO3b     = 6
-    !integer , parameter :: jN2O5a    = 7
-    integer , parameter :: jN2O5b    = 8
-    !integer , parameter :: jN2O      = 9
-    !integer , parameter :: jHO2      = 10
-    integer , parameter :: jH2O2     = 11
-    integer , parameter :: jHNO2     = 12
-    integer , parameter :: jHNO3     = 13
-    integer , parameter :: jHNO4     = 14
-    integer , parameter :: jCH2Oa    = 15
-    integer , parameter :: jCH2Ob    = 16
-    integer , parameter :: jCH3CHOa  = 17
-    !integer , parameter :: jCH3CHOb  = 18
-    !integer , parameter :: jCH3CHOc  = 19
-    integer , parameter :: jC2H5CHO  = 20
-    integer , parameter :: jCHOCHO   = 21
-    !integer , parameter :: jCH3COCHO = 22
-    integer , parameter :: jCH3COCH3 = 23
-    !integer , parameter :: jCH3OOH   = 24
-    !integer , parameter :: jCH3ONO2  = 25
-    integer , parameter :: jPAN      = 26
+    !integer, parameter :: jO2       = 1
+    integer, parameter :: jO31D     = 2
+    integer, parameter :: jO33P     = 3
+    integer, parameter :: jNO2      = 4
+    integer, parameter :: jNO3a     = 5
+    integer, parameter :: jNO3b     = 6
+    !integer, parameter :: jN2O5a    = 7
+    integer, parameter :: jN2O5b    = 8
+    !integer, parameter :: jN2O      = 9
+    !integer, parameter :: jHO2      = 10
+    integer, parameter :: jH2O2     = 11
+    integer, parameter :: jHNO2     = 12
+    integer, parameter :: jHNO3     = 13
+    integer, parameter :: jHNO4     = 14
+    integer, parameter :: jCH2Oa    = 15
+    integer, parameter :: jCH2Ob    = 16
+    integer, parameter :: jCH3CHOa  = 17
+    !integer, parameter :: jCH3CHOb  = 18
+    !integer, parameter :: jCH3CHOc  = 19
+    integer, parameter :: jC2H5CHO  = 20
+    integer, parameter :: jCHOCHO   = 21
+    !integer, parameter :: jCH3COCHO = 22
+    integer, parameter :: jCH3COCH3 = 23
+    !integer, parameter :: jCH3OOH   = 24
+    !integer, parameter :: jCH3ONO2  = 25
+    integer, parameter :: jPAN      = 26
 
     !~~~> Initialization
 
@@ -90,7 +90,7 @@ module mod_cbmz_main1
     stepmin = 0.0_dp
     stepmax = 0.0_dp
 
-    do i = 1 , nvar
+    do i = 1, nvar
       rtol(i) = 0.1_dp
       atol(i) = 0.1_dp
     end do
@@ -135,7 +135,7 @@ module mod_cbmz_main1
     tstart = 0.0_dp*3600.0_dp
     dt = dtche
 
-    do i = 1 , nvar
+    do i = 1, nvar
       var(i)  = xrin(i)
     end do
     t = tstart
@@ -188,7 +188,7 @@ module mod_cbmz_main1
       t = rstate(1)
     end do kron
 
-    do i = 1 , nvar
+    do i = 1, nvar
       xrout(i) = var(i)
     end do
 

@@ -21,14 +21,14 @@ module mod_grid
 
   private
 
-  real(rk4) , public :: clatx , clonx
+  real(rk4), public :: clatx, clonx
 
-  real(rk4) , public , pointer , dimension(:,:) :: xlat, xlon , xmask
-  real(rk4) , public , pointer , dimension(:) :: xlat1d
-  real(rk4) , public , pointer , dimension(:) :: xlon1d
-  real(rk4) , public , pointer , dimension(:) :: sigx
-  real(rkx) , public , pointer , dimension(:) :: zita
-  real(rk4) , public , pointer , dimension(:) :: ax , bx
+  real(rk4), public, pointer, contiguous, dimension(:,:) :: xlat, xlon, xmask
+  real(rk4), public, pointer, contiguous, dimension(:) :: xlat1d
+  real(rk4), public, pointer, contiguous, dimension(:) :: xlon1d
+  real(rk4), public, pointer, contiguous, dimension(:) :: sigx
+  real(rkx), public, pointer, contiguous, dimension(:) :: zita
+  real(rk4), public, pointer, contiguous, dimension(:) :: ax, bx
 
   public :: init_domain
 

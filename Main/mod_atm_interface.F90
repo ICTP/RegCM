@@ -29,151 +29,151 @@ module mod_atm_interface
 
   private
 
-  logical , public , parameter :: cross = .false.
-  logical , public , parameter :: dot = .true.
+  logical, public, parameter :: cross = .false.
+  logical, public, parameter :: dot = .true.
 
-  type(domain) , public :: mddom
-  type(domain_subgrid) , public :: mdsub
-  type(atmstate_a) , public :: atm1
-  type(atmstate_b) , public :: atm2
-  type(atmstate_c) , public :: atmc
-  type(atmstate_tendency) , public :: aten
-  type(atmstate_decoupled) , public :: atmx
-  type(tendiag) , public :: tdiag
-  type(qendiag) , public :: qdiag
-  type(surfstate) , public :: sfs
-  type(slice) , public :: atms
-  type(v3dbound) , public :: xtb , xqb , xub , xvb , xppb , xwwb , xpaib
-  type(v3dbound) , public :: xlb , xib
-  type(v2dbound) , public :: xpsb , xtsb
-  type(bound_area) , public :: ba_cr , ba_dt , ba_ut , ba_vt
-  type(reference_atmosphere) , public :: atm0
-  type(mass_divergence) , public :: mdv
-  type(nhboundhelp) , public :: nhbh0 , nhbh1
+  type(domain), public :: mddom
+  type(domain_subgrid), public :: mdsub
+  type(atmstate_a), public :: atm1
+  type(atmstate_b), public :: atm2
+  type(atmstate_c), public :: atmc
+  type(atmstate_tendency), public :: aten
+  type(atmstate_decoupled), public :: atmx
+  type(tendiag), public :: tdiag
+  type(qendiag), public :: qdiag
+  type(surfstate), public :: sfs
+  type(slice), public :: atms
+  type(v3dbound), public :: xtb, xqb, xub, xvb, xppb, xwwb, xpaib
+  type(v3dbound), public :: xlb, xib
+  type(v2dbound), public :: xpsb, xtsb
+  type(bound_area), public :: ba_cr, ba_dt, ba_ut, ba_vt
+  type(reference_atmosphere), public :: atm0
+  type(mass_divergence), public :: mdv
+  type(nhboundhelp), public :: nhbh0, nhbh1
 
   ! For idynamic 3
 
-  type(atmosphere) , public :: mo_atm
+  type(atmosphere), public :: mo_atm
 
   public :: allocate_mod_atm_interface
-  public :: allocate_v3dbound , allocate_v2dbound
-  public :: setup_boundaries , setup_model_indexes
+  public :: allocate_v3dbound, allocate_v2dbound
+  public :: setup_boundaries, setup_model_indexes
   public :: export_data_from_atm
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: dstor => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: hstor => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: dstor => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: hstor => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: qdot => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: omega => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: qdot => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: omega => null( )
 
   ! Sun
   ! Cosine of zenithal solar angle
-  real(rkx) , public , pointer , dimension(:,:) :: coszrs => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: coszrs => null( )
 
   ! Cumulus
-  integer(ik4) , pointer , public , dimension(:,:) :: icumbot => null( )
-  integer(ik4) , pointer , public , dimension(:,:) :: icumtop => null( )
-  integer(ik4) , pointer , public , dimension(:,:) :: ktrop => null( )
-  real(rkx) , pointer , public , dimension(:,:,:) :: convpr => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: pptc => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: sptc => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: prca => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: icumbot => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: icumtop => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: ktrop => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: convpr => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: pptc => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: sptc => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: prca => null( )
 
   ! Radiation
-  real(rkx) , pointer , public , dimension(:,:) :: ptrop => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: ptrop => null( )
   ! vegetation absorbed radiation (full solar spectrum)
-  real(rkx) , pointer , public , dimension(:,:) :: sabveg => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: sabveg => null( )
   ! Incident solar flux
-  real(rkx) , pointer , public , dimension(:,:) :: dsol => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: solis => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: solvs => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: solvsd => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: solvl => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: solvld => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: totcf => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: flw => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: fsw => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: flwd => null( )
-  real(rkx) , pointer , public , dimension(:,:,:) :: cldfra => null( )
-  real(rkx) , pointer , public , dimension(:,:,:) :: cldlwc => null( )
-  real(rkx) , pointer , public , dimension(:,:,:) :: heatrt => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: dsol => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: solis => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: solvs => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: solvsd => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: solvl => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: solvld => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: totcf => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: flw => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: fsw => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: flwd => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cldfra => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cldlwc => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: heatrt => null( )
 
   ! Dynamic 2
-  real(rkx) , pointer , public , dimension(:,:) :: dpsdxm => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: dpsdym => null( )
-  real(rkx) , public , dimension(-6:6,-6:6) :: tmask
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: dpsdxm => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: dpsdym => null( )
+  real(rkx), public, dimension(-6:6,-6:6) :: tmask
 
   ! Surface
   ! Total Long wave albedo (0.7-5.0 micro-meter)
-  real(rkx) , pointer , public , dimension(:,:) :: albvl => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: albvl => null( )
   ! Total Short wave albedo (0.2-0.7 micro-meter)
-  real(rkx) , pointer , public , dimension(:,:) :: albvs => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: albvs => null( )
   ! 0.2-0.7 micro-meter srfc alb to direct radiation
-  real(rkx) , pointer , public , dimension(:,:) :: aldirs => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: aldirs => null( )
   ! 0.2-0.7 micro-meter srfc alb to diffuse radiation
-  real(rkx) , pointer , public , dimension(:,:) :: aldifs => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: aldifs => null( )
   ! 0.7-5.0 micro-meter srfc alb to direct radiation
-  real(rkx) , pointer , public , dimension(:,:) :: aldirl => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: aldirl => null( )
   ! 0.7-5.0 micro-meter srfc alb to diffuse radiation
-  real(rkx) , pointer , public , dimension(:,:) :: aldifl => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: aldifl => null( )
   ! Emissivity at surface
-  real(rkx) , pointer , public , dimension(:,:) :: emiss => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: emiss => null( )
   ! Total solar incoming radiation
-  real(rkx) , pointer , public , dimension(:,:) :: sinc => null( )
+  real(rkx), pointer, contiguous,  public, dimension(:,:) :: sinc => null( )
 
   ! Precip
-  real(rkx) , pointer , public , dimension(:,:) :: pptnc => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: prnca => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: crrate => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: ncrrate => null( )
-  real(rkx) , pointer , public , dimension(:,:,:) :: fcc => null( )
-  real(rkx) , pointer , public , dimension(:,:,:) :: remrat => null( )
-  real(rkx) , pointer , public , dimension(:,:,:) :: rembc => null( )
-  real(rkx) , pointer , public , dimension(:,:,:) :: ccn => null( )
-  real(rkx) , pointer , public , dimension(:,:,:) :: rain_ls => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: pptnc => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: prnca => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: crrate => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: ncrrate => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: fcc => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: remrat => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: rembc => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: ccn => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: rain_ls => null( )
 
   ! PBL
-  integer(ik4) , public , pointer , dimension(:,:) :: kpbl => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: zpbl => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: kpbl => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: zpbl => null( )
 
   ! Cumulus
-  real(rkx) , public , pointer , dimension(:,:,:) :: q_detr => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: rain_cc => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: q_detr => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: rain_cc => null( )
 
   ! Surface for chemistry
-  real(rkx) , pointer , public , dimension(:,:) :: sdelq => null( )
-  real(rkx) , pointer , public , dimension(:,:) :: sdelt => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: ssw2da => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: sfracv2d => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: sfracb2d => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: sfracs2d => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: svegfrac2d => null( )
-  real(rkx) , public , pointer , dimension(:,:) :: sxlai2d => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: sdelq => null( )
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: sdelt => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: ssw2da => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: sfracv2d => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: sfracb2d => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: sfracs2d => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: svegfrac2d => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: sxlai2d => null( )
 
 #ifdef CLM45
-  ! real(rkx) , public , pointer , dimension(:,:) :: ustar => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: voc_em_clm => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: dustflx_clm => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: ddepv_clm => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: sw_vol => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: tsoi => null( )
+  ! real(rkx), public, pointer, contiguous, dimension(:,:) :: ustar => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: voc_em_clm => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: dustflx_clm => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: ddepv_clm => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: sw_vol => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tsoi => null( )
 #endif
 
   !chemistry for surface
-  real(rkx) , public , pointer , dimension(:,:,:) :: wetdepflx => null( )
-  real(rkx) , public , pointer , dimension(:,:,:) :: drydepflx => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: wetdepflx => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: drydepflx => null( )
 
   ! Coupling
-  integer(ik4) , public , pointer , dimension(:,:) :: cplmsk => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: cplmsk => null( )
 
-  integer(ik4) :: ix1 , ix2 , jx1 , jx2
-  integer(ik4) :: id1 , id2 , jd1 , jd2
+  integer(ik4) :: ix1, ix2, jx1, jx2
+  integer(ik4) :: id1, id2, jd1, jd2
 
 #ifdef DEBUG
-  !type(grid_nc_var4d) , public , save :: nc_4d
-  !type(grid_nc_var3d) , public , save :: nc_3d
-  !type(grid_nc_var2d) , public , save :: nc_2d
-  !type(grid_nc_var4d) , public , save :: qqxp
+  !type(grid_nc_var4d), public, save :: nc_4d
+  !type(grid_nc_var3d), public, save :: nc_3d
+  !type(grid_nc_var2d), public, save :: nc_2d
+  !type(grid_nc_var4d), public, save :: qqxp
 #endif
 
   contains
@@ -366,12 +366,12 @@ module mod_atm_interface
       write(ndebug,*) 'BOTTOM      = ', ma%bottom
       write(ndebug,*) 'BOTTOMLEFT  = ', ma%bottomleft
       write(ndebug,*) 'LEFT        = ', ma%left
-      write(ndebug,*) 'DOTPEXTJI1 : ', jde1 , jde2 , ide1 , ide2
-      write(ndebug,*) 'DOTPINTJI1 : ', jdi1 , jdi2 , idi1 , idi2
-      write(ndebug,*) 'DOTPINTJI2 : ', jdii1 , jdii2 , idii1 , idii2
-      write(ndebug,*) 'CRXPEXTJI1 : ', jce1 , jce2 , ice1 , ice2
-      write(ndebug,*) 'CRXPINTJI1 : ', jci1 , jci2 , ici1 , ici2
-      write(ndebug,*) 'CRXPINTJI2 : ', jcii1 , jcii2 , icii1 , icii2
+      write(ndebug,*) 'DOTPEXTJI1 : ', jde1, jde2, ide1, ide2
+      write(ndebug,*) 'DOTPINTJI1 : ', jdi1, jdi2, idi1, idi2
+      write(ndebug,*) 'DOTPINTJI2 : ', jdii1, jdii2, idii1, idii2
+      write(ndebug,*) 'CRXPEXTJI1 : ', jce1, jce2, ice1, ice2
+      write(ndebug,*) 'CRXPINTJI1 : ', jci1, jci2, ici1, ici2
+      write(ndebug,*) 'CRXPINTJI2 : ', jcii1, jcii2, icii1, icii2
       write(ndebug,*) 'TOPBDY   : ', ma%has_bdytop
       write(ndebug,*) 'BTMBDY   : ', ma%has_bdybottom
       write(ndebug,*) 'RGTBDY   : ', ma%has_bdyright
@@ -382,12 +382,12 @@ module mod_atm_interface
 
     subroutine setup_boundaries(ldotx,ldoty,ba)
       implicit none
-      logical , intent(in) :: ldotx , ldoty
-      type(bound_area) , intent(inout) :: ba
-      integer(ik4) :: icx , icy
-      integer(ik4) :: igbb1 , igbb2 , igbt1 , igbt2
-      integer(ik4) :: jgbl1 , jgbl2 , jgbr1 , jgbr2
-      integer(ik4) :: i , j , i1 , i2 , j1 , j2
+      logical, intent(in) :: ldotx, ldoty
+      type(bound_area), intent(inout) :: ba
+      integer(ik4) :: icx, icy
+      integer(ik4) :: igbb1, igbb2, igbt1, igbt2
+      integer(ik4) :: jgbl1, jgbl2, jgbr1, jgbr2
+      integer(ik4) :: i, j, i1, i2, j1, j2
 
       call getmem2d(ba%ibnd,jde1,jde2,ide1,ide2,'setup_boundaries:ibnd')
       call getmem2d(ba%bsouth,jde1,jde2,ide1,ide2,'setup_boundaries:bsouth')
@@ -434,9 +434,9 @@ module mod_atm_interface
       if (.not. ma%crmflag ) then
         if ( ma%bandflag ) then
           ! Check for South boundary
-          do i = i1 , i2
+          do i = i1, i2
             if ( i >= igbb1 .and. i <= igbb2 ) then
-              do j = j1 , j2
+              do j = j1, j2
                 if ( j < jgbl1 .and. j > jgbr2 ) cycle
                 ba%ibnd(j,i) = i-igbb1+2
                 ba%bsouth(j,i) = .true.
@@ -445,9 +445,9 @@ module mod_atm_interface
             end if
           end do
           ! North Boundary
-          do i = i1 , i2
+          do i = i1, i2
             if ( i >= igbt1 .and. i <= igbt2 ) then
-              do j = j1 , j2
+              do j = j1, j2
                 if ( j < jgbl1 .and. j > jgbr2 ) cycle
                 ba%ibnd(j,i) = igbt2-i+2
                 ba%bnorth(j,i) = .true.
@@ -457,9 +457,9 @@ module mod_atm_interface
           end do
         else
           ! Check for South boundary
-          do i = i1 , i2
+          do i = i1, i2
             if ( i >= igbb1 .and. i <= igbb2 ) then
-              do j = j1 , j2
+              do j = j1, j2
                 if ( j >= jgbl1 .and. j <= jgbr2 ) then
                   if ( j <= jgbl2 .and. i >= j ) cycle
                   if ( j >= jgbr1 .and. i >= (jgbr2-j+2) ) cycle
@@ -471,9 +471,9 @@ module mod_atm_interface
             end if
           end do
           ! North Boundary
-          do i = i1 , i2
+          do i = i1, i2
             if ( i >= igbt1 .and. i <= igbt2 ) then
-              do j = j1 , j2
+              do j = j1, j2
                 if ( j >= jgbl1 .and. j <= jgbr2 ) then
                   if ( j <= jgbl2 .and. (igbt2-i+2) >= j ) cycle
                   if ( j >= jgbr1 .and. (igbt2-i) >= (jgbr2-j) ) cycle
@@ -485,9 +485,9 @@ module mod_atm_interface
             end if
           end do
           ! West boundary
-          do i = i1 , i2
+          do i = i1, i2
             if ( i < igbb1 .or. i > igbt2 ) cycle
-            do j = j1 , j2
+            do j = j1, j2
               if ( j >= jgbl1 .and. j <= jgbl2 ) then
                 if ( i < igbb2 .and. j > i ) cycle
                 if ( i > igbt1 .and. j > (igbt2-i+2) ) cycle
@@ -498,9 +498,9 @@ module mod_atm_interface
             end do
           end do
           ! East boundary
-          do i = i1 , i2
+          do i = i1, i2
             if ( i < igbb1 .or. i > igbt2 ) cycle
-            do j = j1 , j2
+            do j = j1, j2
               if ( j >= jgbr1 .and. j <= jgbr2 ) then
                 if ( i < igbb2 .and. (jgbr2-j+2) > i ) cycle
                 if ( i > igbt1 .and. (jgbr2-j) > (igbt2-i) ) cycle
@@ -522,16 +522,16 @@ module mod_atm_interface
       write(ndebug,*) 'BDYW : ', ba%nw
       write(ndebug,*) 'BDYE : ', ba%ne
 
-      do i = ide2 , ide1 , -1
+      do i = ide2, ide1, -1
         do j = jde1, jde2
           if ( ba%bsouth(j,i) ) then
-            write(ndebug,'(1a,i0.4)',advance='no') 'S' , ba%ibnd(j,i)
+            write(ndebug,'(1a,i0.4)',advance='no') 'S', ba%ibnd(j,i)
           else if ( ba%bnorth(j,i) ) then
-            write(ndebug,'(1a,i0.4)',advance='no') 'N' , ba%ibnd(j,i)
+            write(ndebug,'(1a,i0.4)',advance='no') 'N', ba%ibnd(j,i)
           else if ( ba%bwest(j,i) ) then
-            write(ndebug,'(1a,i0.4)',advance='no') 'W' , ba%ibnd(j,i)
+            write(ndebug,'(1a,i0.4)',advance='no') 'W', ba%ibnd(j,i)
           else if ( ba%beast(j,i) ) then
-            write(ndebug,'(1a,i0.4)',advance='no') 'E' , ba%ibnd(j,i)
+            write(ndebug,'(1a,i0.4)',advance='no') 'E', ba%ibnd(j,i)
           else
             write(ndebug,'(1a,i0.4)',advance='no') 'X', 0
           end if
@@ -543,9 +543,9 @@ module mod_atm_interface
 
     subroutine allocate_v3dbound(xb,ke,ldot)
       implicit none
-      type(v3dbound) , intent(inout) :: xb
-      integer(ik4) , intent(in) :: ke
-      logical , intent(in) :: ldot
+      type(v3dbound), intent(inout) :: xb
+      integer(ik4), intent(in) :: ke
+      logical, intent(in) :: ldot
       if ( ldot ) then
         call getmem3d(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b0')
         call getmem3d(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b1')
@@ -559,8 +559,8 @@ module mod_atm_interface
 
     subroutine allocate_v2dbound(xb,ldot)
       implicit none
-      type(v2dbound) , intent(inout) :: xb
-      logical , intent(in) :: ldot
+      type(v2dbound), intent(inout) :: xb
+      logical, intent(in) :: ldot
       if ( ldot ) then
         call getmem2d(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:b0')
         call getmem2d(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:b1')
@@ -574,7 +574,7 @@ module mod_atm_interface
 
     subroutine allocate_atmosphere(atm)
       implicit none
-      type(atmosphere) , intent(inout) :: atm
+      type(atmosphere), intent(inout) :: atm
       call getmem3d(atm%u,jde1gb,jde2gb,ice1ga,ice2ga,1,kz,'atmstate:u')
       call getmem3d(atm%v,jce1ga,jce2ga,ide1gb,ide2gb,1,kz,'atmstate:v')
 #ifdef RCEMIP
@@ -619,7 +619,7 @@ module mod_atm_interface
 
     subroutine allocate_atmstate_a(atm)
       implicit none
-      type(atmstate_a) , intent(inout) :: atm
+      type(atmstate_a), intent(inout) :: atm
       call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
       call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
@@ -644,7 +644,7 @@ module mod_atm_interface
 
     subroutine allocate_atmstate_b(atm)
       implicit none
-      type(atmstate_b) , intent(inout) :: atm
+      type(atmstate_b), intent(inout) :: atm
 
       call getmem3d(atm%u,jd1,jd2,id1,id2,1,kz,'atmstate:u')
       call getmem3d(atm%v,jd1,jd2,id1,id2,1,kz,'atmstate:v')
@@ -675,7 +675,7 @@ module mod_atm_interface
 
     subroutine allocate_atmstate_c(atm)
       implicit none
-      type(atmstate_c) , intent(inout) :: atm
+      type(atmstate_c), intent(inout) :: atm
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
       end if
@@ -699,7 +699,7 @@ module mod_atm_interface
 
     subroutine allocate_atmstate_decoupled(atm)
       implicit none
-      type(atmstate_decoupled) , intent(inout) :: atm
+      type(atmstate_decoupled), intent(inout) :: atm
       call getmem3d(atm%uc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:uc')
       call getmem3d(atm%vc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vc')
       call getmem3d(atm%umc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:umc')
@@ -731,7 +731,7 @@ module mod_atm_interface
 
     subroutine allocate_atmstate_tendency(atm)
       implicit none
-      type(atmstate_tendency) , intent(inout) :: atm
+      type(atmstate_tendency), intent(inout) :: atm
       call getmem4d(atm%u,jdi1,jdi2,idi1,idi2, &
                     1,kz,1,number_of_prognostic_components,'atmstate:u')
       call getmem4d(atm%v,jdi1,jdi2,idi1,idi2, &
@@ -759,7 +759,7 @@ module mod_atm_interface
 
     subroutine allocate_reference_atmosphere(atm)
       implicit none
-      type(reference_atmosphere) , intent(inout) :: atm
+      type(reference_atmosphere), intent(inout) :: atm
       call getmem2d(atm%ps,jce1ga,jce2ga,ice1ga,ice2ga,'reference:ps')
       call getmem2d(atm%psdot,jde1ga,jde2ga,ide1ga,ide2ga,'reference:psdot')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:t')
@@ -778,13 +778,13 @@ module mod_atm_interface
 
     subroutine allocate_mass_divergence(div)
       implicit none
-      type(mass_divergence) , intent(inout) :: div
+      type(mass_divergence), intent(inout) :: div
       call getmem3d(div%cr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'massdiv:cr')
     end subroutine allocate_mass_divergence
 
     subroutine allocate_tendiag(dia)
       implicit none
-      type(tendiag) , intent(inout) :: dia
+      type(tendiag), intent(inout) :: dia
       call getmem3d(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
       call getmem3d(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
       call getmem3d(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
@@ -798,7 +798,7 @@ module mod_atm_interface
 
     subroutine allocate_qendiag(dia)
       implicit none
-      type(qendiag) , intent(inout) :: dia
+      type(qendiag), intent(inout) :: dia
       call getmem3d(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
       call getmem3d(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
       call getmem3d(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
@@ -817,7 +817,7 @@ module mod_atm_interface
 
     subroutine allocate_domain(dom)
       implicit none
-      type(domain) , intent(inout) :: dom
+      type(domain), intent(inout) :: dom
       call getmem2d(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
       call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
@@ -872,7 +872,7 @@ module mod_atm_interface
 
     subroutine allocate_domain_subgrid(sub)
       implicit none
-      type(domain_subgrid) , intent(inout) :: sub
+      type(domain_subgrid), intent(inout) :: sub
       call getmem3d(sub%ht,1,nnsg,jde1,jde2,ide1,ide2,'storage:ht')
       call getmem3d(sub%lndcat,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem3d(sub%lndtex,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndtex')
@@ -890,7 +890,7 @@ module mod_atm_interface
 
     subroutine allocate_surfstate(sfs)
       implicit none
-      type(surfstate) , intent(inout) :: sfs
+      type(surfstate), intent(inout) :: sfs
       call getmem2d(sfs%psa,jce1ga,jce2ga,ice1ga,ice2ga,'surf:psa')
       if ( idynamic == 3 ) then
         call assignpnt(sfs%psa,sfs%psb)
@@ -937,8 +937,8 @@ module mod_atm_interface
 
     subroutine allocate_slice(ax,a0)
       implicit none
-      type(slice) , intent(inout) :: ax
-      type(reference_atmosphere) , intent(in) :: a0
+      type(slice), intent(inout) :: ax
+      type(reference_atmosphere), intent(in) :: a0
       if ( idynamic == 3 ) then
         call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
         call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
@@ -996,7 +996,7 @@ module mod_atm_interface
 
     subroutine allocate_nhbh(nhbh)
       implicit none
-      type(nhboundhelp) , intent(inout) :: nhbh
+      type(nhboundhelp), intent(inout) :: nhbh
 
       call getmem2d(nhbh%ps,jce1,jce2,ice1,ice2,'nhboundhelp:ps')
       if ( ichem == 1 .or. iclimaaer == 1 ) then
@@ -1165,8 +1165,8 @@ module mod_atm_interface
 
     subroutine export_data_from_atm(expfie)
       implicit none
-      type(exp_data3d) , intent(inout) :: expfie
-      integer(ik4) :: k , j , i
+      type(exp_data3d), intent(inout) :: expfie
+      integer(ik4) :: k, j, i
 
       if ( idynamic == 3 ) then
         call exchange(mo_atm%u,1,jde1,jde2,ice1,ice2,1,kz)

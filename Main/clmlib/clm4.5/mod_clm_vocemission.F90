@@ -7,25 +7,25 @@ module mod_clm_vocemission
   use mod_stdio
   use mod_mpmessage
   use mod_clm_varpar,   only : numpft, nlevcan
-  use mod_clm_pftvarcon ,   only : ndllf_evr_tmp_tree,  ndllf_evr_brl_tree,    &
+  use mod_clm_pftvarcon,   only : ndllf_evr_tmp_tree,  ndllf_evr_brl_tree,    &
                            ndllf_dcd_brl_tree,  nbrdlf_evr_trp_tree,   &
                            nbrdlf_evr_tmp_tree, nbrdlf_dcd_brl_shrub,  &
                            nbrdlf_dcd_trp_tree, nbrdlf_dcd_tmp_tree,   &
                            nbrdlf_dcd_brl_tree, nbrdlf_evr_shrub,      &
                            nc3_arctic_grass,    nc3crop,               &
                            nc4_grass,           noveg
-  use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_type , only : clm3 , megan_out_type
-  use mod_clm_domain , only : ldomain
-  use mod_clm_varcon , only : spval
-  use mod_clm_megan , only : shr_megan_megcomps_n
-  use mod_clm_megan , only : shr_megan_megcomp_t
-  use mod_clm_megan , only : shr_megan_linkedlist
-  use mod_clm_megan , only : shr_megan_mechcomps_n
-  use mod_clm_megan , only : shr_megan_mechcomps
-  use mod_clm_megan , only : shr_megan_mapped_emisfctrs
-  use mod_clm_meganfactors , only : Agro, Amat, Anew, Aold
-  use mod_clm_meganfactors , only : betaT, ct1, ct2, LDF, Ceo
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_type, only : clm3, megan_out_type
+  use mod_clm_domain, only : ldomain
+  use mod_clm_varcon, only : spval
+  use mod_clm_megan, only : shr_megan_megcomps_n
+  use mod_clm_megan, only : shr_megan_megcomp_t
+  use mod_clm_megan, only : shr_megan_linkedlist
+  use mod_clm_megan, only : shr_megan_mechcomps_n
+  use mod_clm_megan, only : shr_megan_mechcomps
+  use mod_clm_megan, only : shr_megan_mapped_emisfctrs
+  use mod_clm_meganfactors, only : Agro, Amat, Anew, Aold
+  use mod_clm_meganfactors, only : betaT, ct1, ct2, LDF, Ceo
 
   implicit none
 
@@ -33,7 +33,7 @@ module mod_clm_vocemission
 
   save
 
-  logical , parameter :: debug = .false.
+  logical, parameter :: debug = .false.
 
   public :: VOCEmission
   public :: VOCEmission_init
@@ -74,73 +74,73 @@ module mod_clm_vocemission
     integer(ik4), intent(in) :: lbp, ubp  ! pft bounds
     integer(ik4), intent(in) :: num_soilp ! number of columns in soil pft filter
     integer(ik4), intent(in) :: filter_soilp(num_soilp) ! pft filter for soil
-    integer(ik4) , pointer :: pgridcell(:) ! gridcell index of corresponding pft
-    integer(ik4) , pointer :: pcolumn(:)   ! column index of corresponding pft
-    integer(ik4) , pointer :: ivt(:)       ! pft vegetation type for current
-    integer(ik4) , pointer :: clandunit(:) ! gridcell of corresponding column
-    integer(ik4) , pointer :: ltype(:)     ! landunit type
-    real(rk8), pointer :: t_veg(:)   ! pft vegetation temperature (Kelvin)
-    real(rk8), pointer :: fsun(:)    ! sunlit fraction of canopy
+    integer(ik4), pointer, contiguous :: pgridcell(:) ! gridcell index of corresponding pft
+    integer(ik4), pointer, contiguous :: pcolumn(:)   ! column index of corresponding pft
+    integer(ik4), pointer, contiguous :: ivt(:)       ! pft vegetation type for current
+    integer(ik4), pointer, contiguous :: clandunit(:) ! gridcell of corresponding column
+    integer(ik4), pointer, contiguous :: ltype(:)     ! landunit type
+    real(rk8), pointer, contiguous :: t_veg(:)   ! pft vegetation temperature (Kelvin)
+    real(rk8), pointer, contiguous :: fsun(:)    ! sunlit fraction of canopy
     ! one-sided leaf area index with burying by snow
-    real(rk8), pointer :: elai(:)
-    real(rk8), pointer :: clayfrac(:)      ! fraction of soil that is clay
-    real(rk8), pointer :: sandfrac(:)      ! fraction of soil that is sand
+    real(rk8), pointer, contiguous :: elai(:)
+    real(rk8), pointer, contiguous :: clayfrac(:)      ! fraction of soil that is clay
+    real(rk8), pointer, contiguous :: sandfrac(:)      ! fraction of soil that is sand
     ! direct beam radiation (visible only)
-    real(rk8), pointer :: forc_solad(:,:)
+    real(rk8), pointer, contiguous :: forc_solad(:,:)
     ! diffuse radiation     (visible only)
-    real(rk8), pointer :: forc_solai(:,:)
+    real(rk8), pointer, contiguous :: forc_solai(:,:)
     ! one-sided leaf area index from previous timestep
-    real(rk8), pointer :: elai_p(:)
+    real(rk8), pointer, contiguous :: elai_p(:)
     ! avg pft vegetation temperature for last 24 hrs
-    real(rk8), pointer :: t_veg24(:)
+    real(rk8), pointer, contiguous :: t_veg24(:)
     ! avg pft vegetation temperature for last 240 hrs
-    real(rk8), pointer :: t_veg240(:)
+    real(rk8), pointer, contiguous :: t_veg240(:)
     ! sunlit fraction of canopy last 24 hrs
-    real(rk8), pointer :: fsun24(:)
+    real(rk8), pointer, contiguous :: fsun24(:)
     ! sunlit fraction of canopy last 240 hrs
-    real(rk8), pointer :: fsun240(:)
+    real(rk8), pointer, contiguous :: fsun240(:)
     ! direct beam radiation last 24hrs  (visible only)
-    real(rk8), pointer :: forc_solad24(:)
+    real(rk8), pointer, contiguous :: forc_solad24(:)
     ! diffuse radiation  last 24hrs     (visible only)
-    real(rk8), pointer :: forc_solai24(:)
+    real(rk8), pointer, contiguous :: forc_solai24(:)
     ! direct beam radiation last 240hrs (visible only)
-    real(rk8), pointer :: forc_solad240(:)
+    real(rk8), pointer, contiguous :: forc_solad240(:)
     ! diffuse radiation  last 240hrs    (visible only)
-    real(rk8), pointer :: forc_solai240(:)
-    real(rk8), pointer :: h2osoi_vol(:,:) ! volumetric soil water (m3/m3)
-    real(rk8), pointer :: h2osoi_ice(:,:) ! ice soil content (kg/m3)
-    real(rk8), pointer :: dz(:,:)         ! depth of layer (m)
-    real(rk8), pointer :: bsw(:,:)        ! Clapp and Hornberger "b" (nlevgrnd)
+    real(rk8), pointer, contiguous :: forc_solai240(:)
+    real(rk8), pointer, contiguous :: h2osoi_vol(:,:) ! volumetric soil water (m3/m3)
+    real(rk8), pointer, contiguous :: h2osoi_ice(:,:) ! ice soil content (kg/m3)
+    real(rk8), pointer, contiguous :: dz(:,:)         ! depth of layer (m)
+    real(rk8), pointer, contiguous :: bsw(:,:)        ! Clapp and Hornberger "b" (nlevgrnd)
     ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(rk8), pointer :: watsat(:,:)
-    real(rk8), pointer :: sucsat(:,:)  ! minimum soil suction (mm) (nlevgrnd)
-    real(rk8), pointer :: cisun_z(:,:) ! sunlit intracellular CO2 (Pa)
-    real(rk8), pointer :: cisha_z(:,:) ! shaded intracellular CO2 (Pa)
-    real(rk8), pointer :: forc_pbot(:) ! atmospheric pressure (Pa)
+    real(rk8), pointer, contiguous :: watsat(:,:)
+    real(rk8), pointer, contiguous :: sucsat(:,:)  ! minimum soil suction (mm) (nlevgrnd)
+    real(rk8), pointer, contiguous :: cisun_z(:,:) ! sunlit intracellular CO2 (Pa)
+    real(rk8), pointer, contiguous :: cisha_z(:,:) ! shaded intracellular CO2 (Pa)
+    real(rk8), pointer, contiguous :: forc_pbot(:) ! atmospheric pressure (Pa)
 
-    real(rk8), pointer :: vocflx(:,:)   ! VOC flux [kg/m2/sec]
-    real(rk8), pointer :: vocflx_tot(:) ! VOC flux [kg/m2/sec]
+    real(rk8), pointer, contiguous :: vocflx(:,:)   ! VOC flux [kg/m2/sec]
+    real(rk8), pointer, contiguous :: vocflx_tot(:) ! VOC flux [kg/m2/sec]
 
     type(megan_out_type), pointer :: meg_out(:) ! fluxes for CLM history
 
-    real(rk8), pointer :: gamma_out(:)
-    real(rk8), pointer :: gammaT_out(:)
-    real(rk8), pointer :: gammaP_out(:)
-    real(rk8), pointer :: gammaL_out(:)
-    real(rk8), pointer :: gammaA_out(:)
-    real(rk8), pointer :: gammaS_out(:)
-    real(rk8), pointer :: gammaC_out(:)
+    real(rk8), pointer, contiguous :: gamma_out(:)
+    real(rk8), pointer, contiguous :: gammaT_out(:)
+    real(rk8), pointer, contiguous :: gammaP_out(:)
+    real(rk8), pointer, contiguous :: gammaL_out(:)
+    real(rk8), pointer, contiguous :: gammaA_out(:)
+    real(rk8), pointer, contiguous :: gammaS_out(:)
+    real(rk8), pointer, contiguous :: gammaC_out(:)
 
-    real(rk8), pointer :: Eopt_out(:)
-    real(rk8), pointer :: topt_out(:)
-    real(rk8), pointer :: alpha_out(:)
-    real(rk8), pointer :: cp_out(:)
-    real(rk8), pointer :: paru_out(:)
-    real(rk8), pointer :: par24u_out(:)
-    real(rk8), pointer :: par240u_out(:)
-    real(rk8), pointer :: para_out(:)
-    real(rk8), pointer :: par24a_out(:)
-    real(rk8), pointer :: par240a_out(:)
+    real(rk8), pointer, contiguous :: Eopt_out(:)
+    real(rk8), pointer, contiguous :: topt_out(:)
+    real(rk8), pointer, contiguous :: alpha_out(:)
+    real(rk8), pointer, contiguous :: cp_out(:)
+    real(rk8), pointer, contiguous :: paru_out(:)
+    real(rk8), pointer, contiguous :: par24u_out(:)
+    real(rk8), pointer, contiguous :: par240u_out(:)
+    real(rk8), pointer, contiguous :: para_out(:)
+    real(rk8), pointer, contiguous :: par24a_out(:)
+    real(rk8), pointer, contiguous :: par240a_out(:)
     integer(ik4)  :: fp,p,g,c    ! indices
     real(rk8) :: xepsilon        ! emission factor [ug m-2 h-1]
     real(rk8) :: par_sun         ! temporary
@@ -437,8 +437,8 @@ module mod_clm_vocemission
   ! (heald, 04/27/11)
   !
   subroutine VOCEmission_init(  )
-    use mod_clm_megan , only : shr_megan_factors_file
-    use mod_clm_meganfactors , only : megan_factors_init , megan_factors_get
+    use mod_clm_megan, only : shr_megan_factors_file
+    use mod_clm_meganfactors, only : megan_factors_init, megan_factors_get
     implicit none
     type(shr_megan_megcomp_t), pointer :: meg_cmp
     integer(ik4)  :: class_num
@@ -467,12 +467,12 @@ module mod_clm_vocemission
   function get_map_EF(ivt_in,g_in)
     use mod_clm_type
     implicit none
-    integer(ik4) , intent(in) :: ivt_in
-    integer(ik4) , intent(in) :: g_in
+    integer(ik4), intent(in) :: ivt_in
+    integer(ik4), intent(in) :: g_in
     real(rk8) :: get_map_EF
 
     ! emission factors for isoprene for each pft [ug m-2 h-1]
-    real(rk8) , pointer :: efisop(:,:)
+    real(rk8), pointer, contiguous :: efisop(:,:)
 
     ! assign local pointer
     efisop     => clm3%g%gve%efisop
@@ -516,18 +516,18 @@ module mod_clm_vocemission
                   par_sha_in,par240_sha_in,fsun_in,fsun240_in, &
                   forc_solad240_in,forc_solai240_in,LDF_in,cp,alpha)
     implicit none
-    real(rk8) , intent(in) :: par_sun_in
-    real(rk8) , intent(in) :: par24_sun_in
-    real(rk8) , intent(in) :: par240_sun_in
-    real(rk8) , intent(in) :: par_sha_in
-    real(rk8) , intent(in) :: par240_sha_in
-    real(rk8) , intent(in) :: fsun_in
-    real(rk8) , intent(in) :: fsun240_in
-    real(rk8) , intent(in) :: forc_solad240_in
-    real(rk8) , intent(in) :: forc_solai240_in
-    real(rk8) , intent(in) :: LDF_in
-    real(rk8) , intent(out) :: cp                      ! temporary
-    real(rk8) , intent(out) :: alpha                   ! temporary
+    real(rk8), intent(in) :: par_sun_in
+    real(rk8), intent(in) :: par24_sun_in
+    real(rk8), intent(in) :: par240_sun_in
+    real(rk8), intent(in) :: par_sha_in
+    real(rk8), intent(in) :: par240_sha_in
+    real(rk8), intent(in) :: fsun_in
+    real(rk8), intent(in) :: fsun240_in
+    real(rk8), intent(in) :: forc_solad240_in
+    real(rk8), intent(in) :: forc_solai240_in
+    real(rk8), intent(in) :: LDF_in
+    real(rk8), intent(out) :: cp                      ! temporary
+    real(rk8), intent(out) :: alpha                   ! temporary
     real(rk8) :: gamma_p_LDF             ! activity factor for PPFD
 
     real(rk8), parameter :: ca1 = 0.004_rk8  ! empirical coefficent for alpha
@@ -574,16 +574,16 @@ module mod_clm_vocemission
   ! Guenther et al., 2006 eq 3
   !
   function get_gamma_L(fsun240_in,elai_in)
-    use mod_clm_varcon , only : denice
+    use mod_clm_varcon, only : denice
     implicit none
-    real(rk8) , intent(in) :: fsun240_in
-    real(rk8) , intent(in) :: elai_in
+    real(rk8), intent(in) :: fsun240_in
+    real(rk8), intent(in) :: elai_in
     real(rk8) :: get_gamma_L             ! return value
     ! parameters
     ! factor to set emissions to unity @ std
-    real(rk8) , parameter :: cce = 0.30_rk8
+    real(rk8), parameter :: cce = 0.30_rk8
     ! same as Cce but for non-accumulated vars
-    real(rk8) , parameter :: cce1 = 0.24_rk8
+    real(rk8), parameter :: cce1 = 0.24_rk8
 
     if ( (fsun240_in > 0.0_rk8) .and. (fsun240_in < 1.e30_rk8) ) then
       get_gamma_L = cce * elai_in
@@ -602,18 +602,18 @@ module mod_clm_vocemission
   !
   function get_gamma_SM(clayfrac_in,sandfrac_in,h2osoi_vol_in,h2osoi_ice_in, &
                   dz_in,bsw_in,watsat_in,sucsat_in,root_depth_in)
-    use mod_clm_varcon , only : denice
-    use mod_clm_varpar , only : nlevsoi
+    use mod_clm_varcon, only : denice
+    use mod_clm_varpar, only : nlevsoi
     implicit none
-    real(rk8) , intent(in) :: clayfrac_in
-    real(rk8) , intent(in) :: sandfrac_in
-    real(rk8) , intent(in) :: h2osoi_vol_in(nlevsoi)
-    real(rk8) , intent(in) :: h2osoi_ice_in(nlevsoi)
-    real(rk8) , intent(in) :: dz_in(nlevsoi)
-    real(rk8) , intent(in) :: bsw_in(nlevsoi)
-    real(rk8) , intent(in) :: watsat_in(nlevsoi)
-    real(rk8) , intent(in) :: sucsat_in(nlevsoi)
-    real(rk8) , intent(in) :: root_depth_in
+    real(rk8), intent(in) :: clayfrac_in
+    real(rk8), intent(in) :: sandfrac_in
+    real(rk8), intent(in) :: h2osoi_vol_in(nlevsoi)
+    real(rk8), intent(in) :: h2osoi_ice_in(nlevsoi)
+    real(rk8), intent(in) :: dz_in(nlevsoi)
+    real(rk8), intent(in) :: bsw_in(nlevsoi)
+    real(rk8), intent(in) :: watsat_in(nlevsoi)
+    real(rk8), intent(in) :: sucsat_in(nlevsoi)
+    real(rk8), intent(in) :: root_depth_in
     real(rk8) :: get_gamma_SM
     ! local variables
     integer(ik4) :: j
@@ -629,7 +629,7 @@ module mod_clm_vocemission
     if ((clayfrac_in > 0) .and. (sandfrac_in > 0)) then
       get_gamma_SM = 0._rk8
       nl=0._rk8
-      do j = 1 , nlevsoi
+      do j = 1, nlevsoi
         if  (sum(dz_in(1:j)) < root_depth_in)  then
           theta_ice = h2osoi_ice_in(j)/(dz_in(j)*denice)
           wilt = ((smpmax/sucsat_in(j))**(-1._rk8/bsw_in(j))) * &
@@ -671,16 +671,16 @@ module mod_clm_vocemission
                        betaT_in,LDF_in,Ceo_in,Eopt,topt)
     implicit none
     ! varibles in
-    real(rk8) , intent(in) :: t_veg240_in
-    real(rk8) , intent(in) :: t_veg24_in
-    real(rk8) , intent(in) :: t_veg_in
-    real(rk8) , intent(in) :: ct1_in
-    real(rk8) , intent(in) :: ct2_in
-    real(rk8) , intent(in) :: betaT_in
-    real(rk8) , intent(in) :: LDF_in
-    real(rk8) , intent(in) :: Ceo_in
-    real(rk8) , intent(out) :: Eopt                    ! temporary
-    real(rk8) , intent(out) :: topt                    ! temporary
+    real(rk8), intent(in) :: t_veg240_in
+    real(rk8), intent(in) :: t_veg24_in
+    real(rk8), intent(in) :: t_veg_in
+    real(rk8), intent(in) :: ct1_in
+    real(rk8), intent(in) :: ct2_in
+    real(rk8), intent(in) :: betaT_in
+    real(rk8), intent(in) :: LDF_in
+    real(rk8), intent(in) :: Ceo_in
+    real(rk8), intent(out) :: Eopt                    ! temporary
+    real(rk8), intent(out) :: topt                    ! temporary
 
     ! local variables
     real(rk8) :: get_gamma_T
@@ -730,15 +730,15 @@ module mod_clm_vocemission
   function get_gamma_A(ivt_in, elai_p_in,elai_in,nclass_in)
     implicit none
     ! varibles in
-    integer(ik4) , intent(in)  :: ivt_in
-    integer(ik4) , intent(in)  :: nclass_in
-    real(rk8) , intent(in) :: elai_p_in
-    real(rk8) , intent(in) :: elai_in
+    integer(ik4), intent(in)  :: ivt_in
+    integer(ik4), intent(in)  :: nclass_in
+    real(rk8), intent(in) :: elai_p_in
+    real(rk8), intent(in) :: elai_in
     real(rk8) :: get_gamma_A
     ! local variables
     real(rk8) :: elai_prev ! lai for previous timestep
     ! fractions of leaves at different phenological stages
-    real(rk8) :: fnew , fgro , fmat , fold
+    real(rk8) :: fnew, fgro, fmat, fold
     if ( (ivt_in == ndllf_dcd_brl_tree) .or. &
          (ivt_in >= nbrdlf_dcd_trp_tree) ) then  ! non-evergreen
       if ( (elai_p_in > 0.0_rk8) .and. (elai_p_in < 1.e30_rk8) )then
@@ -777,12 +777,12 @@ module mod_clm_vocemission
   !
   function get_gamma_C(cisun_in,cisha_in,forc_pbot_in,fsun_in)
     ! corresponds to CCSM_CO2_PPMV set in env_conf.xml
-    use mod_clm_varctl , only : co2_ppmv
+    use mod_clm_varctl, only : co2_ppmv
     implicit none
-    real(rk8) , intent(in) :: cisun_in
-    real(rk8) , intent(in) :: cisha_in
-    real(rk8) , intent(in) :: forc_pbot_in
-    real(rk8) , intent(in) :: fsun_in
+    real(rk8), intent(in) :: cisun_in
+    real(rk8), intent(in) :: cisha_in
+    real(rk8), intent(in) :: forc_pbot_in
+    real(rk8), intent(in) :: fsun_in
     real(rk8) :: get_gamma_C
     real(rk8) :: IEmin   ! empirical coeff for CO2
     real(rk8) :: IEmax   ! empirical coeff for CO2

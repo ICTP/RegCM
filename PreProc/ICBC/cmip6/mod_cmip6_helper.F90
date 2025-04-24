@@ -29,19 +29,19 @@ module mod_cmip6_helper
   private
 
   type cmip6_horizontal_coordinates
-    real(rkx) , pointer , dimension(:) :: lon1d => null( )
-    real(rkx) , pointer , dimension(:) :: lat1d => null( )
-    real(rkx) , pointer , dimension(:,:) :: lon2d => null( )
-    real(rkx) , pointer , dimension(:,:) :: lat2d => null( )
+    real(rkx), pointer, contiguous, dimension(:) :: lon1d => null( )
+    real(rkx), pointer, contiguous, dimension(:) :: lat1d => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: lon2d => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: lat2d => null( )
   end type cmip6_horizontal_coordinates
 
   type cmip6_vertical_coordinate
-    real(rkx) , pointer , dimension(:) :: plev => null( )
-    real(rkx) , pointer , dimension(:) :: sigmar => null( )
-    real(rkx) :: pss , pst , p0
-    real(rkx) , pointer , dimension(:) :: ak => null( )
-    real(rkx) , pointer , dimension(:) :: bk => null( )
-    real(rkx) , pointer , dimension(:,:) :: topo => null( )
+    real(rkx), pointer, contiguous, dimension(:) :: plev => null( )
+    real(rkx), pointer, contiguous, dimension(:) :: sigmar => null( )
+    real(rkx) :: pss, pst, p0
+    real(rkx), pointer, contiguous, dimension(:) :: ak => null( )
+    real(rkx), pointer, contiguous, dimension(:) :: bk => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: topo => null( )
   end type cmip6_vertical_coordinate
 
   type cmip6_file
@@ -50,34 +50,34 @@ module mod_cmip6_helper
     integer(ik4) :: ivar = -1
     integer(ik4) :: nrec = -1
     type(rcm_time_and_date) :: first_date
-    type(h_interpolator) , pointer , dimension(:) :: hint => null( )
+    type(h_interpolator), pointer, contiguous, dimension(:) :: hint => null( )
   end type cmip6_file
 
   type, extends(cmip6_file) :: cmip6_2d_var
     character(len=8) :: vname
-    integer(ik4) :: ni , nj
-    real(rkx) , pointer , dimension(:,:) :: var => null( )
-    type(cmip6_horizontal_coordinates) , pointer :: hcoord => null( )
+    integer(ik4) :: ni, nj
+    real(rkx), pointer, contiguous, dimension(:,:) :: var => null( )
+    type(cmip6_horizontal_coordinates), pointer :: hcoord => null( )
   end type cmip6_2d_var
 
   type, extends(cmip6_file) :: cmip6_3d_var
     character(len=8) :: vname
-    integer(ik4) :: ni , nj , nk
-    real(rkx) , pointer , dimension(:,:,:) :: var => null( )
-    type(cmip6_horizontal_coordinates) , pointer :: hcoord => null( )
-    type(cmip6_vertical_coordinate) , pointer :: vcoord => null( )
+    integer(ik4) :: ni, nj, nk
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: var => null( )
+    type(cmip6_horizontal_coordinates), pointer :: hcoord => null( )
+    type(cmip6_vertical_coordinate), pointer :: vcoord => null( )
   end type cmip6_3d_var
 
-  public :: cmip6_2d_var , cmip6_3d_var
-  public :: cmip6_fxpath , cmip6_path
+  public :: cmip6_2d_var, cmip6_3d_var
+  public :: cmip6_fxpath, cmip6_path
   public :: cmip6_error
 
   contains
 
     character(len=1024) function cmip6_fxpath(ver,var) result(fpath)
       implicit none
-      character(len=*) , intent(in) :: var , ver
-      character(len=24) :: fx_variant , fx_experiment , fx_model
+      character(len=*), intent(in) :: var, ver
+      character(len=24) :: fx_variant, fx_experiment, fx_model
       if ( dattyp == 'CMIP6' ) then
         select case ( cmip6_model )
           case ( 'MPI-ESM1-2-HR' )
@@ -236,8 +236,8 @@ module mod_cmip6_helper
 
     character(len=1024) function cmip6_path(year,freq,ver,var) result(fpath)
       implicit none
-      integer(ik4) , intent(in) :: year
-      character(len=*) , intent(in) :: var , freq , ver
+      integer(ik4), intent(in) :: year
+      character(len=*), intent(in) :: var, freq, ver
       character(len=12) :: experiment
       character(len=12) :: grid
 
@@ -490,9 +490,9 @@ module mod_cmip6_helper
 
     subroutine cmip6_error(ival,filename,line,arg)
       implicit none
-      integer(ik4) , intent(in) :: ival , line
+      integer(ik4), intent(in) :: ival, line
       character(len=8) :: cline
-      character(*) , intent(in) :: filename , arg
+      character(*), intent(in) :: filename, arg
       if ( ival /= nf90_noerr ) then
         write (cline,'(i8)') line
         write (stderr,*) nf90_strerror(ival)

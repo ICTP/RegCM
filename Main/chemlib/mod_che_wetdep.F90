@@ -29,7 +29,7 @@ module mod_che_wetdep
 
   private
 
-  public :: sethet , wetdepa
+  public :: sethet, wetdepa
 
   contains
   !
@@ -60,9 +60,9 @@ module mod_che_wetdep
     ! time step ( s )
     real(rkx), intent(in) :: delt
     ! exported species ( mmr )
-    real(rkx), dimension(jci1:jci2,kz,ntr) , intent(in) :: qin
+    real(rkx), dimension(jci1:jci2,kz,ntr), intent(in) :: qin
     ! Pressure ( cb )
-    real(rkx), dimension(jci1:jci2) , intent(in) :: ps2
+    real(rkx), dimension(jci1:jci2), intent(in) :: ps2
     !
     ! Local variable from MOZART/sethet
     real(rkx) :: tfld(jci1:jci2,kz)     ! air temperature (K)
@@ -74,7 +74,7 @@ module mod_che_wetdep
     real(rkx) :: temp_dep(jci1:jci2)    ! temp var of wet dep rate
                                         ! (centibars_tracer/sec)
     ! temp var of wet dep rate
-    real(rkx) :: temp_rain(jci1:jci2) , temp_wash(jci1:jci2)
+    real(rkx) :: temp_rain(jci1:jci2), temp_wash(jci1:jci2)
                                         ! (centibars_tracer/sec)
     real(rkx) :: vmr_hno3(jci1:jci2,kz) ! volume mixing ratio
     real(rkx) :: vmr_h2o2(jci1:jci2,kz) ! volume mixing ratio
@@ -82,68 +82,68 @@ module mod_che_wetdep
     real(rkx) :: het_rates(jci1:jci2,kz,ntr)
 
     ! mean diameter of rain drop (cm)
-    real(rkx) , parameter :: xrm = 0.189_rkx
+    real(rkx), parameter :: xrm = 0.189_rkx
     ! mean rain drop terminal velocity (cm/s)
-    real(rkx) , parameter :: xum = 748._rkx
+    real(rkx), parameter :: xum = 748._rkx
     ! kinetic viscosity (cm^2/s)
-    real(rkx) , parameter :: xvv = 6.18e-2_rkx
+    real(rkx), parameter :: xvv = 6.18e-2_rkx
     ! mass transport coefficient (cm/s)
-    real(rkx) , parameter :: xdg = 0.112_rkx
+    real(rkx), parameter :: xdg = 0.112_rkx
     ! reference temperature (k)
-    real(rkx) , parameter :: t0 = 298.0_rkx
-    real(rkx) , parameter :: xph0 = 1.e-5_rkx ! cloud [h+]
+    real(rkx), parameter :: t0 = 298.0_rkx
+    real(rkx), parameter :: xph0 = 1.e-5_rkx ! cloud [h+]
     ! saturation factor for hno3 in clouds
-    real(rkx) , parameter :: satf_hno3 = 0.016_rkx
+    real(rkx), parameter :: satf_hno3 = 0.016_rkx
     ! saturation factor for hno3 in clouds
-    real(rkx) , parameter :: satf_h2o2 = 0.016_rkx
+    real(rkx), parameter :: satf_h2o2 = 0.016_rkx
     ! saturation factor for hno3 in clouds
-    real(rkx) , parameter :: satf_ch2o = 0.1_rkx
+    real(rkx), parameter :: satf_ch2o = 0.1_rkx
     ! (atmospheres/deg k/cm^3)
-    real(rkx) , parameter :: const0 = boltzk * 1.e-6_rkx
+    real(rkx), parameter :: const0 = boltzk * 1.e-6_rkx
     ! hno3 dissociation constant
-    real(rkx) , parameter :: hno3_diss = 15.4_rkx
+    real(rkx), parameter :: hno3_diss = 15.4_rkx
     ! geometry factor (surf area/volume = geo_fac/diameter)
-    real(rkx) , parameter :: geo_fac = 6.0_rkx
+    real(rkx), parameter :: geo_fac = 6.0_rkx
     ! mass of background atmosphere (amu)
-    real(rkx) , parameter :: mass_air = 29.0_rkx
+    real(rkx), parameter :: mass_air = 29.0_rkx
     ! mass of water vapor (amu)
-    real(rkx) , parameter :: mass_h2o = 18.0_rkx
-    real(rkx) , parameter :: h2o_mol = 1.e3_rkx/mass_h2o   ! (gm/mol water)
-    real(rkx) , parameter :: km2cm = 1.e5_rkx              ! convert km to cm
-    real(rkx) , parameter :: m2km = 1.e-3_rkx              ! convert m to km
-    real(rkx) , parameter :: cm3_2_m3 = 1.e-6_rkx          ! convert cm^3 to m^3
-    real(rkx) , parameter :: m3_2_cm3 = 1.e6_rkx           ! convert m^3 to cm^3
-    real(rkx) , parameter :: liter_per_gram = 1.e-3_rkx
+    real(rkx), parameter :: mass_h2o = 18.0_rkx
+    real(rkx), parameter :: h2o_mol = 1.e3_rkx/mass_h2o   ! (gm/mol water)
+    real(rkx), parameter :: km2cm = 1.e5_rkx              ! convert km to cm
+    real(rkx), parameter :: m2km = 1.e-3_rkx              ! convert m to km
+    real(rkx), parameter :: cm3_2_m3 = 1.e-6_rkx          ! convert cm^3 to m^3
+    real(rkx), parameter :: m3_2_cm3 = 1.e6_rkx           ! convert m^3 to cm^3
+    real(rkx), parameter :: liter_per_gram = 1.e-3_rkx
     ! (liter/gm/mol*(m/cm)^3)
     real(rkx), parameter :: avo2 = navgdr * liter_per_gram * cm3_2_m3
 
     integer(ik4) :: ktop   ! index of top model layer that can have clouds
-    integer(ik4) :: j , k , n , kk , itr ! indicies
+    integer(ik4) :: j, k, n, kk, itr ! indicies
     real(rkx) :: xkgm         ! mass flux on rain drop
-    real(rkx) :: all1 , all2  ! work variables
+    real(rkx) :: all1, all2  ! work variables
     real(rkx) :: stay         ! fraction of layer traversed by falling drop
                              ! in timestep delt
-    real(rkx) :: xeqca1 , xeqca2 , xca1 , xca2 , xdtm
-    real(rkx) :: xxx1 , xxx2 , yhno3 , yh2o2
-    real(rkx) , dimension(jci1:jci2) :: xk0 , work1 , work2 , work3 , zsurf
-    real(rkx) , dimension(kz) :: xgas1, xgas2
-    real(rkx) , dimension(jci1:jci2) :: tmp0_rates , tmp1_rates
+    real(rkx) :: xeqca1, xeqca2, xca1, xca2, xdtm
+    real(rkx) :: xxx1, xxx2, yhno3, yh2o2
+    real(rkx), dimension(jci1:jci2) :: xk0, work1, work2, work3, zsurf
+    real(rkx), dimension(kz) :: xgas1, xgas2
+    real(rkx), dimension(jci1:jci2) :: tmp0_rates, tmp1_rates
     ! layer depth about interfaces (cm)
-    real(rkx) , dimension(jci1:jci2,kz) :: delz
+    real(rkx), dimension(jci1:jci2,kz) :: delz
     ! hno3 concentration (molecules/cm^3)
-    real(rkx) , dimension(jci1:jci2,kz) :: xhno3
+    real(rkx), dimension(jci1:jci2,kz) :: xhno3
     ! h2o2 concentration (molecules/cm^3)
-    real(rkx) , dimension(jci1:jci2,kz) :: xh2o2
+    real(rkx), dimension(jci1:jci2,kz) :: xh2o2
     ! liquid rain water content in a grid cell (gm/m^3)
-    real(rkx) , dimension(jci1:jci2,kz) :: xliq
+    real(rkx), dimension(jci1:jci2,kz) :: xliq
     ! conversion rate of water vapor into rain water (molecules/cm^3/s)
-    real(rkx) , dimension(jci1:jci2,kz) :: rain
-    real(rkx) , dimension(jci1:jci2,kz) :: xhen_hno3 , xhen_h2o2 , xhen_ch2o , &
-        xhen_ch3ooh , xhen_ch3co3h , xhen_ch3cocho , xhen_xooh , xhen_onitr ,  &
-        xhen_ho2no2 , xhen_glyald , xhen_ch3cho , xhen_mvk , xhen_macr
-    real(rkx) , dimension(jci1:jci2,kz) :: xhen_nh3 , xhen_ch3cooh
-    real(rkx) , dimension(jci1:jci2,kz,2) :: tmp_hetrates
-    real(rkx) , dimension(jci1:jci2,kz) :: precip
+    real(rkx), dimension(jci1:jci2,kz) :: rain
+    real(rkx), dimension(jci1:jci2,kz) :: xhen_hno3, xhen_h2o2, xhen_ch2o, &
+        xhen_ch3ooh, xhen_ch3co3h, xhen_ch3cocho, xhen_xooh, xhen_onitr,  &
+        xhen_ho2no2, xhen_glyald, xhen_ch3cho, xhen_mvk, xhen_macr
+    real(rkx), dimension(jci1:jci2,kz) :: xhen_nh3, xhen_ch3cooh
+    real(rkx), dimension(jci1:jci2,kz,2) :: tmp_hetrates
+    real(rkx), dimension(jci1:jci2,kz) :: precip
 
     !-----------------------------------------------------------------
     !  Initialize rainout array
@@ -187,7 +187,7 @@ module mod_che_wetdep
     xkgm = xdg/xrm * d_two + xdg/xrm * 0.6_rkx * &
            sqrt( xrm*xum/xvv ) * (xvv/xdg)**(d_one/d_three)
 
-    do k = ktop + 1 , kz
+    do k = ktop + 1, kz
 
       precip(:,k) = cmfdqr(:,k) + nrain(:,k) - nevapr(:,k)
       rain(:,k)   = mass_air*precip(:,k)*xhnm(:,k) / mass_h2o
@@ -231,7 +231,7 @@ module mod_che_wetdep
     end if
 
     zsurf(:) = czq(jci1:jci2,i,kz+1)*m2km
-    do k = ktop + 1 , kz - 1
+    do k = ktop + 1, kz - 1
        delz(:,k) = abs( (zmid(:,k) - zmid(:,k+1))*km2cm )
     end do
     delz(:,kz) = abs( (zmid(:,kz) - zsurf(:) )*km2cm )
@@ -250,7 +250,7 @@ module mod_che_wetdep
     ! heff = h for h2o2 (no dissociation)
     ! heff = h * (1 + k/[h+]) (in general)
     !-----------------------------------------------------------------
-    do k = ktop + 1 , kz
+    do k = ktop + 1, kz
       work1(:) = (t0 - tfld(:,k))/(t0*tfld(:,k))
       !-----------------------------------------------------------------
       ! 	... effective henry''s law constants:
@@ -280,8 +280,8 @@ module mod_che_wetdep
       xhen_nh3 (:,k)     = 1.e6_rkx
     end do
 
-    do n = 1 , 2
-      do k = ktop + 1 , kz
+    do n = 1, 2
+      do k = ktop + 1, kz
         tmp_hetrates(:,k,n) = d_zero
       end do
     end do
@@ -289,11 +289,11 @@ module mod_che_wetdep
     !   part 1, solve for high henry constant ( hno3, h2o2)
     !-----------------------------------------------------------------
     long_loop : &
-    do j = jci1 , jci2
+    do j = jci1, jci2
       xgas1(:) = xhno3(j,:)  ! xgas will change during
       xgas2(:) = xh2o2(j,:)  ! different levels wash
       level_loop1 : &
-      do kk = ktop + 1 , kz
+      do kk = ktop + 1, kz
         stay = d_one
         if ( abs(rain(j,kk)) > d_zero ) then  ! finding rain cloud
           all1 = d_zero ! accumulation to justisfy saturation
@@ -303,7 +303,7 @@ module mod_che_wetdep
   !-----------------------------------------------------------
           !  calculate the saturation concentration eqca
           !-----------------------------------------------------------
-          do k = kk , kz ! cal washout below cloud
+          do k = kk, kz ! cal washout below cloud
             xeqca1 =  xgas1(k) / (xliq(j,kk)*avo2 + &
               d_one/(xhen_hno3(j,k)*const0*tfld(j,k))) * xliq(j,kk)*avo2
             xeqca2 =  xgas2(k) / (xliq(j,kk)*avo2 + &
@@ -367,7 +367,7 @@ module mod_che_wetdep
     ! for RegCM4.1  : chiten(:,k,j,ihcho)  = chiten + work3(:) * chib
     !-----------------------------------------------------------------
     level_loop2 : &
-    do k = ktop + 1 , kz
+    do k = ktop + 1, kz
       work1(:) = avo2 * xliq(:,k)
       work2(:) = const0 * tfld(:,k)
       work3(:) = max(rain(:,k)/(h2o_mol*(work1(:) + &
@@ -550,9 +550,9 @@ module mod_che_wetdep
     ! for RegCM4.1  : chiten(:,k,j,ihcho)  = chiten + work3(:) * chib
     ! FAB: add diagnostic
     !-----------------------------------------------------------------
-    do k = 1 , kz
-      do itr = 1 , ntr
-        do j = jci1 , jci2
+    do k = 1, kz
+      do itr = 1, ntr
+        do j = jci1, jci2
           if ( het_rates(j,k,itr) <= dlowval ) cycle
 
           ! tendency due to rainout and washout
@@ -585,11 +585,11 @@ module mod_che_wetdep
 
     ! diagnostic for surface fluxes
     if ( idynamic == 3 ) then
-      do itr = 1 , ntr
-        do j = jci1 , jci2
+      do itr = 1, ntr
+        do j = jci1, jci2
           wdrout(j,i,itr) = d_zero
           wdwout(j,i,itr) = d_zero
-          do k = 1 , kz
+          do k = 1, kz
             ! sum on the vertical to get total surface flux diag fo rain out
             ! and washout (already weighted for time average cfdout !),
             ! also change sign convention
@@ -601,11 +601,11 @@ module mod_che_wetdep
         end do
       end do
     else
-      do itr = 1 , ntr
-        do j = jci1 , jci2
+      do itr = 1, ntr
+        do j = jci1, jci2
           wdrout(j,i,itr) = d_zero
           wdwout(j,i,itr) = d_zero
-          do k = 1 , kz
+          do k = 1, kz
             ! sum on the vertical to get total surface flux diag fo rain out
             ! and washout (already weighted for time average cfdout !),
             ! also change sign convention normalise by psb to get the right
@@ -623,35 +623,35 @@ module mod_che_wetdep
   subroutine wetdepa(i,mbin,indp,beffdiam,rhoaer,t,wl,fracloud,fracum, &
                      pressg,shj,rho,strappt,convppt,pdepv)
     implicit none
-    integer(ik4) , intent(in) :: i , mbin
-    integer(ik4) , dimension(mbin) , intent(in) :: indp
-    real(rkx) , dimension(mbin) , intent(in) :: beffdiam
+    integer(ik4), intent(in) :: i, mbin
+    integer(ik4), dimension(mbin), intent(in) :: indp
+    real(rkx), dimension(mbin), intent(in) :: beffdiam
     ! specific aerosol density
-    real(rkx) , intent(in) , dimension(mbin) :: rhoaer
-    real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: wl , t , rho , &
+    real(rkx), intent(in), dimension(mbin) :: rhoaer
+    real(rkx), dimension(jci1:jci2,kz), intent(in) :: wl, t, rho, &
                                                        strappt
-     real(rkx) , dimension(jci1:jci2,kz) , intent(in)  :: convppt
-    real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: fracloud , fracum
-    real(rkx) , dimension(jci1:jci2) ,intent(in) :: pressg
-    real(rkx) , dimension(kz) ,intent(in) :: shj
-    real(rkx) , dimension(jci1:jci2,kz,ntr) , intent (in) :: pdepv
+     real(rkx), dimension(jci1:jci2,kz), intent(in)  :: convppt
+    real(rkx), dimension(jci1:jci2,kz), intent(in) :: fracloud, fracum
+    real(rkx), dimension(jci1:jci2) ,intent(in) :: pressg
+    real(rkx), dimension(kz) ,intent(in) :: shj
+    real(rkx), dimension(jci1:jci2,kz,ntr), intent (in) :: pdepv
     ! size of the aerosol bin
     ! index of the correponding aerosol in the chi table
-    real(rkx) , dimension(jci1:jci2,kz) :: totppt
-    real(rkx) , dimension(jci1:jci2,kz,mbin) :: colef , wetdep , rhsize , rhop
-    real(rkx) , dimension(ntr) :: wetrem , wetrem_cvc
-    real(rkx) :: wtend , arg
-    integer(ik4) :: n , k , j
+    real(rkx), dimension(jci1:jci2,kz) :: totppt
+    real(rkx), dimension(jci1:jci2,kz,mbin) :: colef, wetdep, rhsize, rhop
+    real(rkx), dimension(ntr) :: wetrem, wetrem_cvc
+    real(rkx) :: wtend, arg
+    integer(ik4) :: n, k, j
 
     ! rain out parametrisation
     ! clmin = non-precipitating cloud
     ! conversion threshold, clmin=0.01g/m3
-    real(rkx) , parameter :: clmin = 0.01_rkx
+    real(rkx), parameter :: clmin = 0.01_rkx
     ! remcum= removal rate for cumulus
     ! cloud scavenging (s-1)
-    real(rkx) , parameter :: remcum = 1.0e-3_rkx
+    real(rkx), parameter :: remcum = 1.0e-3_rkx
 
-    do n = 1 , mbin
+    do n = 1, mbin
       ! wet deposition term
       ! Wet removal at resolvable scale (fcc)
       ! add non-precipitating cloud conversion (threshold clmin=0.01g/m3)
@@ -676,8 +676,8 @@ module mod_che_wetdep
       ! set to 0 when the surface (CLM45) scheme is called. The average between
       ! surface time steps is calculated in the atm to surface interface
       if ( ichremlsc == 1 ) then
-        do k = 1 , kz
-          do j = jci1 , jci2
+        do k = 1, kz
+          do j = jci1, jci2
             if ( wl(j,k) > clmin ) then
               wetrem(indp(n)) = d_zero
               if ( cremrat(j,i,k) > d_zero .and. fracloud(j,k) > d_zero ) then
@@ -730,9 +730,9 @@ module mod_che_wetdep
         ! sub-scale wet removal, cumulus cloud (fracum)
         ! remcum = in cloud removal rate for cumulus cloud scavenging (s-1)
         ! remcum = 1.e-3
-        do j = jci1 , jci2
+        do j = jci1, jci2
           if ( kcumtop(j,i) > 0 ) then
-            do k = kcumtop(j,i) , kz
+            do k = kcumtop(j,i), kz
               if ( idynamic == 3 ) then
                 wetrem_cvc(indp(n)) = fracum(j,k)*chtrsol(indp(n)) * &
                      chemt(j,i,k,indp(n))*(exp(-remcum*dt)-d_one)
@@ -773,8 +773,8 @@ module mod_che_wetdep
     ! kept as dry diameter . multiply by 0.5 since the radius is
     ! used in collection efficiency calculation.
     ! dry density for now
-    do k = 1 , kz
-      do j = jci1 , jci2
+    do k = 1, kz
+      do j = jci1, jci2
         rhsize(j,k,1:mbin) = d_half * 1.e-6_rkx * beffdiam(1:mbin)
         rhop(j,k,1:mbin) = rhoaer(1:mbin)
       end do
@@ -791,9 +791,9 @@ module mod_che_wetdep
 
     ! calculate the tendency due to wahsout dep here.
 
-    do n = 1 , mbin
-      do k = 1 , kz
-        do j = jci1 , jci2
+    do n = 1, mbin
+      do k = 1, kz
+        do j = jci1, jci2
           if ( idynamic == 3 ) then
             wtend = chemt(j,i,k,indp(n))*(d_one-exp(-wetdep(j,k,n)*dt))/dt
             chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend
@@ -819,10 +819,10 @@ module mod_che_wetdep
 
     if ( idynamic == 3 ) then
       do n = 1, mbin
-        do j = jci1 , jci2
+        do j = jci1, jci2
           wdrout(j,i,indp(n)) = d_zero
           wdwout(j,i,indp(n)) = d_zero
-          do k = 1 , kz
+          do k = 1, kz
             ! sum on the vertical to get total surface flux diag for rain out
             ! and washout (already weighted for time average cfdout !),
             ! also change sign convention
@@ -835,10 +835,10 @@ module mod_che_wetdep
       end do
     else
       do n = 1, mbin
-        do j = jci1 , jci2
+        do j = jci1, jci2
           wdrout(j,i,indp(n)) = d_zero
           wdwout(j,i,indp(n)) = d_zero
-          do k = 1 , kz
+          do k = 1, kz
             ! sum on the vertical to get total surface flux diag for rain out
             ! and washout (already weighted for time average cfdout !),
             ! also change sign convention
@@ -858,23 +858,23 @@ module mod_che_wetdep
                    rhop,wetdep,colef)
     implicit none
 
-    integer(ik4) , intent(in) :: mbin
-    real(rkx) , dimension(jci1:jci2,kz,mbin) , intent(in) :: rhsize , rhop
-    real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: t , rho , totppt
+    integer(ik4), intent(in) :: mbin
+    real(rkx), dimension(jci1:jci2,kz,mbin), intent(in) :: rhsize, rhop
+    real(rkx), dimension(jci1:jci2,kz), intent(in) :: t, rho, totppt
     ! care ,ntr dimension
-    real(rkx) , dimension(jci1:jci2,kz,ntr) , intent(in) :: pdepv
-    real(rkx) , dimension(jci1:jci2) , intent(in) :: pressg
-    real(rkx) , dimension(kz) , intent(in) :: shj
-    real(rkx) , dimension(jci1:jci2,kz,mbin) , intent(out) :: colef , wetdep
+    real(rkx), dimension(jci1:jci2,kz,ntr), intent(in) :: pdepv
+    real(rkx), dimension(jci1:jci2), intent(in) :: pressg
+    real(rkx), dimension(kz), intent(in) :: shj
+    real(rkx), dimension(jci1:jci2,kz,mbin), intent(out) :: colef, wetdep
 
     ! index of the correponding aerosol in the chi table
-    integer(ik4) , dimension(mbin) , intent(in) :: indp
+    integer(ik4), dimension(mbin), intent(in) :: indp
 
-    real(rkx) :: dm , tl , rrm
-    integer(ik4) :: j , n , k
+    real(rkx) :: dm, tl, rrm
+    integer(ik4) :: j, n, k
 
-    real(rkx) , parameter :: bcrain = 0.5_rkx
-    real(rkx) , parameter :: bcsnow = 0.8_rkx
+    real(rkx), parameter :: bcrain = 0.5_rkx
+    real(rkx), parameter :: bcsnow = 0.8_rkx
 
     !----------------------------------------------------------------------c
     ! call to compute collection efficiency coefficients                   c
@@ -883,9 +883,9 @@ module mod_che_wetdep
     call cas(t,colef,indp,rhop,rho,rhsize,pressg,mbin,totppt,pdepv,shj)
 
     wetdep(:,:,:) = d_zero
-    do n = 1 , mbin
-      do k = 1 , kz
-        do j = jci1 , jci2
+    do n = 1, mbin
+      do k = 1, kz
+        do j = jci1, jci2
           if ( totppt(j,k) > 1.e-20_rkx ) then
             tl = t(j,k)-tzero
             !----------------------------------------------------------c
@@ -947,18 +947,18 @@ module mod_che_wetdep
     !
     implicit none
 
-    integer(ik4) , intent(in) :: mbin
-    integer(ik4) , dimension(mbin) , intent(in) :: indp
-    real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: t , rho , totppt
-    real(rkx) , dimension(jci1:jci2,kz,mbin) , intent(in) :: rhop , rhsize
-    real(rkx) , dimension(jci1:jci2) , intent(in) :: pressg
-    real(rkx) , dimension(jci1:jci2,kz,ntr) , intent(in) :: pdepv
-    real(rkx) , dimension(kz) , intent(in) :: shj
+    integer(ik4), intent(in) :: mbin
+    integer(ik4), dimension(mbin), intent(in) :: indp
+    real(rkx), dimension(jci1:jci2,kz), intent(in) :: t, rho, totppt
+    real(rkx), dimension(jci1:jci2,kz,mbin), intent(in) :: rhop, rhsize
+    real(rkx), dimension(jci1:jci2), intent(in) :: pressg
+    real(rkx), dimension(jci1:jci2,kz,ntr), intent(in) :: pdepv
+    real(rkx), dimension(kz), intent(in) :: shj
     ! collection efficiency
-    real(rkx) , dimension(jci1:jci2,kz,mbin) , intent(out) :: colef
+    real(rkx), dimension(jci1:jci2,kz,mbin), intent(out) :: colef
 
     real(rkx) :: pdiff
-    real(rkx) :: amu , anu !dynamic viscosity of air
+    real(rkx) :: amu, anu !dynamic viscosity of air
     real(rkx) :: amfp   ! mean molecular free path
     real(rkx) :: schm   ! schmidt number
     real(rkx) :: prii
@@ -971,26 +971,26 @@ module mod_che_wetdep
     real(rkx) :: vr
     real(rkx) :: sstar
     real(rkx) :: amob
-    real(rkx) :: colimp , pre
+    real(rkx) :: colimp, pre
     real(rkx) :: vpr ! average settling velocity
     real(rkx) :: rrm ! mass mean raindrop radius (for rain)
                     ! characteristic capture length (for snow)
     real(rkx) :: alpha
-    integer(ik4) :: n , k , j
+    integer(ik4) :: n, k, j
 
     ! Cunningham slip correction factor parameters for rain
 
-    !real(rkx) , parameter :: aa1r = 1.249_rkx
-    !real(rkx) , parameter :: aa2r = 0.42_rkx
-    !real(rkx) , parameter :: aa3r = 0.87_rkx
-    real(rkx) , parameter :: rhorain = 1000.0_rkx
-    real(rkx) , parameter :: amuw = 1.002e-3_rkx ! at 20*c [kg/m/sec]
+    !real(rkx), parameter :: aa1r = 1.249_rkx
+    !real(rkx), parameter :: aa2r = 0.42_rkx
+    !real(rkx), parameter :: aa3r = 0.87_rkx
+    real(rkx), parameter :: rhorain = 1000.0_rkx
+    real(rkx), parameter :: amuw = 1.002e-3_rkx ! at 20*c [kg/m/sec]
 
     colef(:,:,:) = d_zero
 
-    do n = 1 , mbin
-      do k = 1 , kz
-        do j = jci1 , jci2
+    do n = 1, mbin
+      do k = 1, kz
+        do j = jci1, jci2
           ! . . . for precipitation:
           vpr = d_zero
           if ( totppt(j,k) > 1.e-15_rkx ) then

@@ -27,16 +27,16 @@ module mod_mksoilcol
 
   public :: mksoilcol
 
-  character(len=16) , parameter :: varname = 'SOIL_COLOR'
+  character(len=16), parameter :: varname = 'SOIL_COLOR'
 
   contains
 
   subroutine mksoilcol(soilcolfile,mask,soilcol)
     implicit none
-    character(len=*) , intent(in) :: soilcolfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    integer(ik4) , dimension(:,:) , intent(out) :: soilcol
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: soilcolfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    integer(ik4), dimension(:,:), intent(out) :: soilcol
+    integer(ik4) :: i, j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -46,8 +46,8 @@ module mod_mksoilcol
     call gfread(gfile,varname,soilcol,15)
     call gfclose(gfile)
 
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           soilcol(j,i) = 15
         else

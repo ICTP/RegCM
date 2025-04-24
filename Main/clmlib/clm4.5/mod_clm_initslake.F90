@@ -16,20 +16,20 @@ module mod_clm_initslake
   use mod_mppparam
   use mod_runparams
   use mod_clm_type
-  use mod_clm_varpar , only : nlevsno , nlevlak , nlevgrnd , nlevsoi
-  use mod_clm_varcon , only : bdsno , denice , denh2o , spval , tfrz , tkwat
-  use mod_clm_varcon , only : istdlak , zlak , dzlak , zsoi , dzsoi , zisoi
-  use mod_clm_varcon , only : denh2o , denice , secspday , spval
-  use mod_clm_decomp , only : get_proc_bounds
-  use mod_clm_snicar , only : snw_rds_min
-  use mod_clm_slakecon , only : lsadz , fcrit , minz0lake , depthcrit
-  use mod_clm_slakecon , only : mixfact , pudz , lakepuddling
-  use mod_clm_slakecon , only : lake_puddle_thick , deepmixing_depthcrit
-  use mod_clm_slakecon , only : deepmixing_mixfact , lake_use_old_fcrit_minz0
-  use mod_clm_slakecon , only : lake_melt_icealb , alblakwi
-  use mod_clm_decomp , only : get_proc_bounds , get_proc_global
-  use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varctl , only : nsrest
+  use mod_clm_varpar, only : nlevsno, nlevlak, nlevgrnd, nlevsoi
+  use mod_clm_varcon, only : bdsno, denice, denh2o, spval, tfrz, tkwat
+  use mod_clm_varcon, only : istdlak, zlak, dzlak, zsoi, dzsoi, zisoi
+  use mod_clm_varcon, only : denh2o, denice, secspday, spval
+  use mod_clm_decomp, only : get_proc_bounds
+  use mod_clm_snicar, only : snw_rds_min
+  use mod_clm_slakecon, only : lsadz, fcrit, minz0lake, depthcrit
+  use mod_clm_slakecon, only : mixfact, pudz, lakepuddling
+  use mod_clm_slakecon, only : lake_puddle_thick, deepmixing_depthcrit
+  use mod_clm_slakecon, only : deepmixing_mixfact, lake_use_old_fcrit_minz0
+  use mod_clm_slakecon, only : lake_melt_icealb, alblakwi
+  use mod_clm_decomp, only : get_proc_bounds, get_proc_global
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_varctl, only : nsrest
 
   implicit none
 
@@ -54,7 +54,7 @@ module mod_clm_initslake
   !
   subroutine initSLake( arbinit )
     implicit none
-    logical , intent(in) :: arbinit ! Whether mkarbinit has been called.
+    logical, intent(in) :: arbinit ! Whether mkarbinit has been called.
     call initTimeConst()
     ! Attn EK
     ! For now
@@ -74,53 +74,53 @@ module mod_clm_initslake
   !
   subroutine makearbinit( arbinit )
     implicit none
-    logical , intent(in) :: arbinit ! Whether mkarbinit has been called.
+    logical, intent(in) :: arbinit ! Whether mkarbinit has been called.
     ! landunit index associated with each column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! landunit type
-    integer(ik4) , pointer , dimension(:) :: ltype
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype
     ! true => landunit is a lake point
-    logical , pointer , dimension(:) :: lakpoi
+    logical, pointer, contiguous, dimension(:) :: lakpoi
     ! layer thickness depth (m)
-    real(rk8) , pointer , dimension(:,:) :: dz
+    real(rk8), pointer, contiguous, dimension(:,:) :: dz
     ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: watsat
+    real(rk8), pointer, contiguous, dimension(:,:) :: watsat
     ! ice lens (kg/m2)
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_ice
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_ice
     ! liquid water (kg/m2)
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_liq
     ! lake temperature (Kelvin)  (1:nlevlak)
-    real(rk8) , pointer , dimension(:,:) :: t_lake
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_lake
     ! ground temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_grnd
+    real(rk8), pointer, contiguous, dimension(:) :: t_grnd
     ! snow water (mm H2O)
-    real(rk8) , pointer , dimension(:) :: h2osno
+    real(rk8), pointer, contiguous, dimension(:) :: h2osno
     ! number of snow layers
-    integer(ik4) , pointer , dimension(:) :: snl
+    integer(ik4), pointer, contiguous, dimension(:) :: snl
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: t_soisno
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_soisno
     ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_vol
     ! mass fraction of lake layer that is frozen
-    real(rk8) , pointer , dimension(:,:) :: lake_icefrac
+    real(rk8), pointer, contiguous, dimension(:,:) :: lake_icefrac
     ! top level eddy conductivity (W/mK)
-    real(rk8) , pointer , dimension(:) :: savedtke1
+    real(rk8), pointer, contiguous, dimension(:) :: savedtke1
     ! friction velocity (m/s)
-    real(rk8) , pointer , dimension(:) :: ust_lake
+    real(rk8), pointer, contiguous, dimension(:) :: ust_lake
     !roughness length over ground, momentum [m]
-    real(rk8) , pointer , dimension(:) :: z0mg
+    real(rk8), pointer, contiguous, dimension(:) :: z0mg
     ! New SNICAR variables
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rk8) , pointer , dimension(:,:) :: snw_rds
+    real(rk8), pointer, contiguous, dimension(:,:) :: snw_rds
     ! snow grain size, top (col) [microns]
-    real(rk8) , pointer , dimension(:) :: snw_rds_top
+    real(rk8), pointer, contiguous, dimension(:) :: snw_rds_top
     ! liquid water fraction (mass) in top snow layer (col) [frc]
-    real(rk8) , pointer , dimension(:) :: sno_liq_top
-    integer(ik4) :: j , l , c   ! indices
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending ldunit indices
-    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    real(rk8), pointer, contiguous, dimension(:) :: sno_liq_top
+    integer(ik4) :: j, l, c   ! indices
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl ! per-proc beginning and ending ldunit indices
+    integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
     logical :: localarbinit
 
     localarbinit = arbinit
@@ -182,21 +182,21 @@ module mod_clm_initslake
     ! t_grnd has valid values over all land
     ! t_veg  has valid values over all land
 
-    do c = begc , endc
+    do c = begc, endc
 
       l = clandunit(c)
 
       if ( lakpoi(l) ) then
         if (snl(c) < 0) then
-          do j = snl(c)+1 , 0
+          do j = snl(c)+1, 0
             if ( arbinit .or. t_soisno(c,j) == spval ) t_soisno(c,j) = 250._rk8
           end do
         end if
-        do j = 1 , nlevgrnd
+        do j = 1, nlevgrnd
           if ( arbinit .or. t_soisno(c,j) == spval ) &
             t_soisno(c,j) = t_lake(c,nlevlak)
         end do
-        do j = 1 , nlevlak
+        do j = 1, nlevlak
           if ( arbinit .or. lake_icefrac(c,j) == spval ) then
             ! initialization of SNICAR vars is fragile;
             ! set localarbinit = .true. if any layer is spval
@@ -222,8 +222,8 @@ module mod_clm_initslake
       end if
     end do
 
-    do j = 1 , nlevgrnd
-      do c = begc , endc
+    do j = 1, nlevgrnd
+      do c = begc, endc
         l = clandunit(c)
         if ( lakpoi(l) ) then
           if ( arbinit .or. h2osoi_vol(c,j) == spval ) then
@@ -254,8 +254,8 @@ module mod_clm_initslake
     ! Set snow
     ! If localarbinit only!
 
-    do j = -nlevsno+1 , 0
-      do c = begc , endc
+    do j = -nlevsno+1, 0
+      do c = begc, endc
         l = clandunit(c)
         if ( lakpoi(l) ) then
           if ( j > snl(c) ) then
@@ -270,7 +270,7 @@ module mod_clm_initslake
       end do
     end do
 
-    do c = begc , endc
+    do c = begc, endc
       l = clandunit(c)
       if ( lakpoi(l) .and. snl(c) < 0 .and. localarbinit ) then
         ! SNICAR fields not initialized in regular mkarbinit b/c there
@@ -290,25 +290,25 @@ module mod_clm_initslake
   !
   subroutine snow_depth2levLake(lbc,ubc,arbinit)
     implicit none
-    integer(ik4) , intent(in) :: lbc , ubc ! column bounds
-    logical , intent(in) :: arbinit
+    integer(ik4), intent(in) :: lbc, ubc ! column bounds
+    logical, intent(in) :: arbinit
     ! landunit index associated with each column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! snow height (m)
-    real(rk8) , pointer , dimension(:) :: snow_depth
+    real(rk8), pointer, contiguous, dimension(:) :: snow_depth
     ! true => landunit is a lake point
-    logical , pointer , dimension(:) :: lakpoi
+    logical, pointer, contiguous, dimension(:) :: lakpoi
     ! mass fraction of lake layer that is frozen
-    real(rk8) , pointer , dimension(:,:) :: lake_icefrac
+    real(rk8), pointer, contiguous, dimension(:,:) :: lake_icefrac
     ! number of snow layers
-    integer(ik4) , pointer , dimension(:) :: snl
+    integer(ik4), pointer, contiguous, dimension(:) :: snl
     ! layer depth  (m) over snow only
-    real(rk8) , pointer , dimension(:,:) :: z
+    real(rk8), pointer, contiguous, dimension(:,:) :: z
     ! layer thickness depth (m) over snow only
-    real(rk8) , pointer , dimension(:,:) :: dz
+    real(rk8), pointer, contiguous, dimension(:,:) :: dz
     ! interface depth (m) over snow only
-    real(rk8) , pointer , dimension(:,:) :: zi
-    integer(ik4) :: c , l , j      !indices
+    real(rk8), pointer, contiguous, dimension(:,:) :: zi
+    integer(ik4) :: c, l, j      !indices
 
     ! Assign local pointers to derived subtypes components (landunit-level)
 
@@ -329,7 +329,7 @@ module mod_clm_initslake
     ! lsadz (default 0.03m) is added to min & max thicknesses to not
     ! stress lake numerics at 30 min. timestep.
 
-    do c = lbc , ubc
+    do c = lbc, ubc
       l = clandunit(c)
       if ( lakpoi(l) .and. (arbinit .or. lake_icefrac(c,1) == spval) ) then
         if ( snow_depth(c) < 0.01_rk8 + lsadz ) then
@@ -399,10 +399,10 @@ module mod_clm_initslake
     end do
 
     ! The following loop is currently not vectorized
-    do c = lbc , ubc
+    do c = lbc, ubc
       l = clandunit(c)
       if ( lakpoi(l) .and. (arbinit .or. lake_icefrac(c,1) == spval) ) then
-        do j = 0 , snl(c)+1 , -1
+        do j = 0, snl(c)+1, -1
           z(c,j)    = zi(c,j) - 0.5_rk8*dz(c,j)
           zi(c,j-1) = zi(c,j) - dz(c,j)
         end do
@@ -415,66 +415,66 @@ module mod_clm_initslake
   subroutine initTimeConst
     implicit none
     ! landunit index of column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! gridcell index of column
-    integer(ik4) , pointer , dimension(:) :: cgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
     ! landunit type index
-    integer(ik4) , pointer , dimension(:) :: ltype
-    real(rk8) , pointer , dimension(:,:) :: cellsand  ! column 3D sand
-    real(rk8) , pointer , dimension(:,:) :: cellclay  ! column 3D clay
-    real(rk8) , pointer , dimension(:,:) :: cellorg   ! column 3D org
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype
+    real(rk8), pointer, contiguous, dimension(:,:) :: cellsand  ! column 3D sand
+    real(rk8), pointer, contiguous, dimension(:,:) :: cellclay  ! column 3D clay
+    real(rk8), pointer, contiguous, dimension(:,:) :: cellorg   ! column 3D org
     ! liquid water (kg/m2) (-nlevsno+1:nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_liq
     ! ice lens (kg/m2) (-nlevsno+1:nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_ice
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_ice
     ! variable lake depth (m)
-    real(rk8) , pointer , dimension(:) :: lakedepth
+    real(rk8), pointer, contiguous, dimension(:) :: lakedepth
     ! layer depth (m)
-    real(rk8) , pointer , dimension(:,:) :: z
+    real(rk8), pointer, contiguous, dimension(:,:) :: z
     ! interface level below a "z" level (m)
-    real(rk8) , pointer , dimension(:,:) :: zi
+    real(rk8), pointer, contiguous, dimension(:,:) :: zi
     ! layer thickness depth (m)
-    real(rk8) , pointer , dimension(:,:) :: dz
+    real(rk8), pointer, contiguous, dimension(:,:) :: dz
     ! layer thickness for lake (m)
-    real(rk8) , pointer , dimension(:,:) :: dz_lake
+    real(rk8), pointer, contiguous, dimension(:,:) :: dz_lake
     ! layer depth for lake (m)
-    real(rk8) , pointer , dimension(:,:) :: z_lake
+    real(rk8), pointer, contiguous, dimension(:,:) :: z_lake
     ! Clapp and Hornberger "b" (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: bsw
+    real(rk8), pointer, contiguous, dimension(:,:) :: bsw
     ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: watsat
+    real(rk8), pointer, contiguous, dimension(:,:) :: watsat
     ! btran parameter for btran=0
-    real(rk8) , pointer , dimension(:,:) :: watdry
+    real(rk8), pointer, contiguous, dimension(:,:) :: watdry
     ! btran parameter for btran = 1
-    real(rk8) , pointer , dimension(:,:) :: watopt
+    real(rk8), pointer, contiguous, dimension(:,:) :: watopt
     ! hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: hksat
+    real(rk8), pointer, contiguous, dimension(:,:) :: hksat
     ! minimum soil suction (mm) (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: sucsat
+    real(rk8), pointer, contiguous, dimension(:,:) :: sucsat
     ! heat capacity, soil solids (J/m**3/Kelvin) (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: csol
+    real(rk8), pointer, contiguous, dimension(:,:) :: csol
     ! thermal conductivity, soil minerals  [W/m-K] (new) (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: tkmg
+    real(rk8), pointer, contiguous, dimension(:,:) :: tkmg
     ! thermal conductivity, dry soil (W/m/Kelvin) (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: tkdry
+    real(rk8), pointer, contiguous, dimension(:,:) :: tkdry
     ! thermal conductivity, saturated soil [W/m-K] (new) (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: tksatu
+    real(rk8), pointer, contiguous, dimension(:,:) :: tksatu
     ! volumetric soil water at field capacity (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: watfc
+    real(rk8), pointer, contiguous, dimension(:,:) :: watfc
     !volumetric soil water [m3/m3]  (nlevgrnd)
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_vol
     integer(ik4) :: lev
 #ifdef EXTRALAKELAYERS
     integer(ik4) :: i
 #endif
-    integer(ik4) :: g , l , c  ! indices
+    integer(ik4) :: g, l, c  ! indices
     real(rk8) :: bd    ! bulk density of dry soil material [kg/m^3]
     real(rk8) :: tkm   ! mineral conductivity
     real(rk8) :: xksat ! maximum hydraulic conductivity of soil [mm/s]
-    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
-    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
     integer(ik4) :: numg   ! total number of gridcells across all processors
     integer(ik4) :: numl   ! total number of landunits across all processors
     integer(ik4) :: numc   ! total number of columns across all processors
@@ -512,10 +512,10 @@ module mod_clm_initslake
     real(rk8) :: uncon_frac  ! fraction of "unconnected" soil
 
     ! timestep used for nominal lsadz
-    real(rk8) , parameter :: dtime_lsadz = 1800._rk8
+    real(rk8), parameter :: dtime_lsadz = 1800._rk8
     ! nominal minimum snow layer thickness
     ! used in SnowHydrology, etc. This should be a global constant.
-    real(rk8) , parameter :: snodzmin = 0.01_rk8
+    real(rk8), parameter :: snodzmin = 0.01_rk8
 
     if ( myid == italk ) then
       write (stdout,*) 'Attempting to initialize time invariant '// &
@@ -660,7 +660,7 @@ module mod_clm_initslake
     dzlak(25) =5.225_rk8
 
     zlak(1) = dzlak(1)/2._rk8
-    do i = 2 , nlevlak
+    do i = 2, nlevlak
       zlak(i) = zlak(i-1) + (dzlak(i-1)+dzlak(i))/2._rk8
     end do
 #endif
@@ -670,7 +670,7 @@ module mod_clm_initslake
     ! --------------------------------------------------------------------
 
     ! Column level initialization
-    do c = begc , endc
+    do c = begc, endc
 
       ! Set gridcell and landunit indices
       g = cgridcell(c)
@@ -678,7 +678,7 @@ module mod_clm_initslake
 
       ! Soil hydraulic and thermal properties
       if ( ltype(l)==istdlak ) then
-        do lev = 1 , nlevgrnd
+        do lev = 1, nlevgrnd
           if ( lev <= nlevsoi )then
             clay    = cellclay(c,lev)
             sand    = cellsand(c,lev)
@@ -755,14 +755,14 @@ module mod_clm_initslake
           dz_lake(c,2:nlevlak-1) = dzlak(2:nlevlak-1)*depthratio
           dz_lake(c,nlevlak) = dzlak(nlevlak)*depthratio - &
                               (dz_lake(c,1) - dzlak(1)*depthratio)
-          do lev = 2 , nlevlak
+          do lev = 2, nlevlak
             z_lake(c,lev) = z_lake(c,lev-1) + &
                     (dz_lake(c,lev-1)+dz_lake(c,lev))/2._rk8
           end do
         else if ( lakedepth(c) > 0._rk8 .and. lakedepth(c) <= 1._rk8 ) then
           dz_lake(c,:) = lakedepth(c) / nlevlak;
           z_lake(c,1) = dz_lake(c,1) / 2._rk8;
-          do lev = 2 , nlevlak
+          do lev = 2, nlevlak
             z_lake(c,lev) = z_lake(c,lev-1) + &
                     (dz_lake(c,lev-1)+dz_lake(c,lev))/2._rk8
           end do
@@ -785,7 +785,7 @@ module mod_clm_initslake
         ! If not spval then this was available on the restart file
         ! and it was not an old restart file.
         ! Otherwise it will be set in makearbinit.
-        do lev = 1 , nlevgrnd
+        do lev = 1, nlevgrnd
           h2osoi_vol(c,lev) = h2osoi_liq(c,lev)/(dz(c,lev)*denh2o) + &
                               h2osoi_ice(c,lev)/(dz(c,lev)*denice)
         end do

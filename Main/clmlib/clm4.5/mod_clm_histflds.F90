@@ -10,23 +10,23 @@ module mod_clm_histflds
   use mod_mpmessage
   use mod_stdio
   use mod_clm_type
-  use mod_clm_varcon , only : spval
-  use mod_clm_varcon , only : dzsoi_decomp
-  use mod_clm_varpar , only : ndecomp_cascade_transitions
-  use mod_clm_varpar , only : ndecomp_pools , nlevdecomp , nlevdecomp_full
-  use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varctl , only : use_c13 , use_c14
-  use mod_clm_surfrd , only : crop_prog
+  use mod_clm_varcon, only : spval
+  use mod_clm_varcon, only : dzsoi_decomp
+  use mod_clm_varpar, only : ndecomp_cascade_transitions
+  use mod_clm_varpar, only : ndecomp_pools, nlevdecomp, nlevdecomp_full
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_varctl, only : use_c13, use_c14
+  use mod_clm_surfrd, only : crop_prog
 #if (defined LCH4)
-  use mod_clm_atmlnd , only : clm_l2a
-  use mod_clm_histfile , only : hist_wrtch4diag
-  use mod_clm_ch4varcon , only : allowlakeprod
+  use mod_clm_atmlnd, only : clm_l2a
+  use mod_clm_histfile, only : hist_wrtch4diag
+  use mod_clm_ch4varcon, only : allowlakeprod
 #endif
-  use mod_clm_histfile , only : hist_add_subscript
-  use mod_clm_histfile , only : hist_addfld1d , hist_addfld2d
-  use mod_clm_histfile , only : hist_printflds
-  use mod_clm_megan , only : shr_megan_linkedlist
-  use mod_clm_megan , only : shr_megan_megcomp_t , shr_megan_megcomps_n
+  use mod_clm_histfile, only : hist_add_subscript
+  use mod_clm_histfile, only : hist_addfld1d, hist_addfld2d
+  use mod_clm_histfile, only : hist_printflds
+  use mod_clm_megan, only : shr_megan_linkedlist
+  use mod_clm_megan, only : shr_megan_megcomp_t, shr_megan_megcomps_n
 
   implicit none
 
@@ -49,8 +49,8 @@ module mod_clm_histflds
     integer(ik4) :: imeg
     ! temp. pointers for slicing larger arrays
 #if (defined CN)
-    real(rk8) , pointer :: data2dptr(:,:) , data1dptr(:)
-    integer(ik4) :: k , l , ii , jj
+    real(rk8), pointer, contiguous :: data2dptr(:,:), data1dptr(:)
+    integer(ik4) :: k, l, ii, jj
     character(len=24) :: fieldname
     character(len=100) :: longname
 #endif
@@ -1971,7 +1971,7 @@ module mod_clm_histflds
       ! C13 state variables - native to column
       !-------------------------------
 
-      do l = 1 , ndecomp_pools
+      do l = 1, ndecomp_pools
         if ( nlevdecomp_full > 1 ) then
           data2dptr => clm3%g%l%c%cc13s%decomp_cpools_vr(:,:,l)
           fieldname = 'C13_'// &
@@ -2246,7 +2246,7 @@ module mod_clm_histflds
     ! N state variables - native to column
     !-------------------------------
 
-    do l  = 1 , ndecomp_pools
+    do l  = 1, ndecomp_pools
       if ( nlevdecomp_full > 1 ) then
         data2dptr => clm3%g%l%c%cns%decomp_npools_vr(:,:,l)
         fieldname = trim(decomp_cascade_con%decomp_pool_name_history(l))//'N_vr'
@@ -4245,7 +4245,7 @@ module mod_clm_histflds
          avgflag='A', long_name='C loss due to peat burning', &
          ptr_col=clm3%g%l%c%ccf%somc_fire)
 
-    do k = 1 , ndecomp_pools
+    do k = 1, ndecomp_pools
       if ( decomp_cascade_con%is_litter(k) .or. &
            decomp_cascade_con%is_cwd(k) ) then
         data1dptr => clm3%g%l%c%ccf%m_decomp_cpools_to_fire(:,k)
@@ -4280,7 +4280,7 @@ module mod_clm_histflds
             ptr_col=data2dptr, default='inactive')
     end do
 
-    do l = 1 , ndecomp_cascade_transitions
+    do l = 1, ndecomp_cascade_transitions
       ! output the vertically integrated fluxes only as  default
       !-- HR fluxes (none from CWD)
       if ( .not. decomp_cascade_con%is_cwd( &
@@ -4289,7 +4289,7 @@ module mod_clm_histflds
         ! check to see if there are multiple pathways that include
         ! respiration, and if so, note that in the history file
         ii = 0
-        do jj = 1 , ndecomp_cascade_transitions
+        do jj = 1, ndecomp_cascade_transitions
           if ( decomp_cascade_con%cascade_donor_pool(jj) == &
                   decomp_cascade_con%cascade_donor_pool(l) ) ii = ii+1
         end do
@@ -4396,7 +4396,7 @@ module mod_clm_histflds
          long_name='total flux of C from SOM pools due to leaching', &
          ptr_col=clm3%g%l%c%ccf%som_c_leached)!, default='inactive')
 
-    do k = 1 , ndecomp_pools
+    do k = 1, ndecomp_pools
       if ( .not. decomp_cascade_con%is_cwd(k) ) then
         data1dptr => clm3%g%l%c%ccf%decomp_cpools_leached(:,k)
         fieldname = 'M_'//&
@@ -4563,7 +4563,7 @@ module mod_clm_histflds
       !-------------------------------
 
 
-      do k = 1 , ndecomp_pools
+      do k = 1, ndecomp_pools
         if ( decomp_cascade_con%is_litter(k) .or. &
              decomp_cascade_con%is_cwd(k) ) then
           data1dptr => clm3%g%l%c%cc13f%m_decomp_cpools_to_fire(:,k)
@@ -4590,7 +4590,7 @@ module mod_clm_histflds
         end if
       end do
 
-      do l = 1 , ndecomp_cascade_transitions
+      do l = 1, ndecomp_cascade_transitions
         !-- HR fluxes (none from CWD)
         if ( .not. decomp_cascade_con%is_cwd(&
                 decomp_cascade_con%cascade_donor_pool(l)) ) then
@@ -4598,7 +4598,7 @@ module mod_clm_histflds
           ! check to see if there are multiple pathways that include
           ! respiration, and if so, note that in the history file
           ii = 0
-          do jj = 1 , ndecomp_cascade_transitions
+          do jj = 1, ndecomp_cascade_transitions
             if ( decomp_cascade_con%cascade_donor_pool(jj) == &
                  decomp_cascade_con%cascade_donor_pool(l) ) ii = ii+1
           end do
@@ -4764,7 +4764,7 @@ module mod_clm_histflds
       ! C14 flux variables - native to column
       !-------------------------------
 
-      do k = 1 , ndecomp_pools
+      do k = 1, ndecomp_pools
         if ( decomp_cascade_con%is_litter(k) .or. &
              decomp_cascade_con%is_cwd(k) ) then
           data1dptr => clm3%g%l%c%cc14f%m_decomp_cpools_to_fire(:,k)
@@ -4799,7 +4799,7 @@ module mod_clm_histflds
           ! check to see if there are multiple pathways that include
           ! respiration, and if so, note that in the history file
           ii = 0
-          do jj = 1 , ndecomp_cascade_transitions
+          do jj = 1, ndecomp_cascade_transitions
             if ( decomp_cascade_con%cascade_donor_pool(jj) == &
                     decomp_cascade_con%cascade_donor_pool(l) ) ii = ii+1
           end do
@@ -5451,7 +5451,7 @@ module mod_clm_histflds
          long_name='total flux of N from SOM pools due to leaching', &
          ptr_col=clm3%g%l%c%cnf%som_n_leached, default='inactive')
 
-    do k = 1 , ndecomp_pools
+    do k = 1, ndecomp_pools
       if ( .not. decomp_cascade_con%is_cwd(k) ) then
         data1dptr => clm3%g%l%c%cnf%decomp_npools_leached(:,k)
         fieldname = 'M_'//&
@@ -5474,7 +5474,7 @@ module mod_clm_histflds
     end do
 
 #ifndef NITRIF_DENITRIF
-    do l = 1 , ndecomp_cascade_transitions
+    do l = 1, ndecomp_cascade_transitions
       !-- denitrification fluxes (none from CWD)
       if ( .not. decomp_cascade_con%is_cwd(&
               decomp_cascade_con%cascade_donor_pool(l)) ) then
@@ -6541,16 +6541,16 @@ module mod_clm_histflds
   subroutine hist_addfld_decomp(fname,type2d,units,avgflag,long_name, &
                   ptr_col,ptr_pft,default)
     implicit none
-    character(len=*) , intent(in) :: fname     ! field name
-    character(len=*) , intent(in) :: type2d    ! 2d output type
-    character(len=*) , intent(in) :: units     ! units of field
-    character(len=1) , intent(in) :: avgflag   ! time averaging flag
-    character(len=*) , intent(in) :: long_name ! long name of field
-    real(rk8) , optional , pointer :: ptr_col(:,:) ! pointer to column array
-    real(rk8) , optional , pointer :: ptr_pft(:,:) ! pointer to pft array
+    character(len=*), intent(in) :: fname     ! field name
+    character(len=*), intent(in) :: type2d    ! 2d output type
+    character(len=*), intent(in) :: units     ! units of field
+    character(len=1), intent(in) :: avgflag   ! time averaging flag
+    character(len=*), intent(in) :: long_name ! long name of field
+    real(rk8), optional, pointer, contiguous :: ptr_col(:,:) ! pointer to column array
+    real(rk8), optional, pointer, contiguous :: ptr_pft(:,:) ! pointer to pft array
     ! if set to 'inactive, field will not appear on primary tape
-    character(len=*) , optional , intent(in) :: default
-    real(rk8) , pointer :: ptr_1d(:)
+    character(len=*), optional, intent(in) :: default
+    real(rk8), pointer, contiguous :: ptr_1d(:)
 
     if ( present(ptr_col) ) then
       ! column-level data

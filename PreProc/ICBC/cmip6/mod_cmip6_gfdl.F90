@@ -29,7 +29,7 @@ module mod_cmip6_gfdl
 
   private
 
-  character(len=*) , parameter :: gfdl_version = 'v20180701'
+  character(len=*), parameter :: gfdl_version = 'v20180701'
 
   public :: read_sst_gfdl
 
@@ -37,10 +37,10 @@ module mod_cmip6_gfdl
 
     subroutine read_hcoord_sst_gfdl(ncid,lon,lat)
       implicit none
-      integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
-      integer(ik4) :: istatus , idimid , ivarid
-      integer(ik4) :: nlon , nlat
+      integer(ik4), intent(in) :: ncid
+      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
+      integer(ik4) :: istatus, idimid, ivarid
+      integer(ik4) :: nlon, nlat
       istatus = nf90_inq_dimid(ncid,'x',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -63,14 +63,14 @@ module mod_cmip6_gfdl
 
     recursive subroutine read_sst_gfdl(idate,v,lat,lon)
       implicit none
-      type(rcm_time_and_date) , intent(in) :: idate
-      type(cmip6_2d_var) , intent(inout) :: v
-      real(rkx) , pointer , dimension(:,:) , intent(in) :: lat , lon
-      integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
-      character(len=32) :: timecal , timeunit
-      integer(ik4) , dimension(3) :: istart , icount
-      real(rk8) , dimension(2) :: times
+      type(rcm_time_and_date), intent(in) :: idate
+      type(cmip6_2d_var), intent(inout) :: v
+      real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat, lon
+      integer(ik4) :: istatus, idimid, it, irec
+      integer(ik4) :: year, month, day, hour, y
+      character(len=32) :: timecal, timeunit
+      integer(ik4), dimension(3) :: istart, icount
+      real(rk8), dimension(2) :: times
       type(rcm_time_interval) :: tdif
 
       if ( v%ncid == -1 ) then

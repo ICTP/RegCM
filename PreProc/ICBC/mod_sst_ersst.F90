@@ -31,12 +31,12 @@ module mod_sst_ersst
 
   public :: sst_ersst
 
-  integer(ik4) :: ilon , jlat
-  real(rkx) , pointer , dimension(:,:) :: sst
-  real(rkx) , pointer , dimension(:) :: lati
-  real(rkx) , pointer , dimension(:) :: loni
-  integer(2) , pointer , dimension(:,:,:) :: work
-  real(rkx) , dimension(2) :: xadd , xscale , xmiss
+  integer(ik4) :: ilon, jlat
+  real(rkx), pointer, contiguous, dimension(:,:) :: sst
+  real(rkx), pointer, contiguous, dimension(:) :: lati
+  real(rkx), pointer, contiguous, dimension(:) :: loni
+  integer(2), pointer, contiguous, dimension(:,:,:) :: work
+  real(rkx), dimension(2) :: xadd, xscale, xmiss
 
   integer(ik4) :: inet
 
@@ -55,10 +55,10 @@ module mod_sst_ersst
     implicit none
     integer(ik4) :: it
     integer(ik4) :: istatus
-    integer(ik4) :: year , month , day , hour
-    integer(ik4) :: dimi , vari
+    integer(ik4) :: year, month, day, hour
+    integer(ik4) :: dimi, vari
     integer(ik4) :: nsteps
-    type(rcm_time_and_date) :: idate , idatef , idateo
+    type(rcm_time_and_date) :: idate, idatef, idateo
     logical :: lfirst
 
     data lfirst /.true./
@@ -70,9 +70,9 @@ module mod_sst_ersst
     end if
     nsteps = imondiff(idatef,idateo) + 1
 
-    write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
-    write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
-    write (stdout,*) 'NSTEPS     : ' , nsteps
+    write (stdout,*) 'GLOBIDATE1 : ', tochar(globidate1)
+    write (stdout,*) 'GLOBIDATE2 : ', tochar(globidate2)
+    write (stdout,*) 'NSTEPS     : ', nsteps
 
     ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
 
@@ -122,11 +122,11 @@ module mod_sst_ersst
     call open_sstfile(idateo)
 
     idate = idateo
-    do it = 1 , nsteps
+    do it = 1, nsteps
       call sst_readersst(idate,lfirst)
       call h_interpolate_cont(hint,sst,sstmm)
       call writerec(idate)
-      write(stdout,*) 'WRITING OUT SST DATA:' , tochar(idate)
+      write(stdout,*) 'WRITING OUT SST DATA:', tochar(idate)
       idate = nextmon(idate)
     end do
 
@@ -137,11 +137,11 @@ module mod_sst_ersst
   subroutine sst_readersst(idate,lfirst)
     use netcdf
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    logical , intent(inout) :: lfirst
-    integer(ik4) :: i , j
-    integer(ik4) :: year , month , day , hour
-    integer(ik4) :: istatus , ivar
+    type(rcm_time_and_date), intent(in) :: idate
+    logical, intent(inout) :: lfirst
+    integer(ik4) :: i, j
+    integer(ik4) :: year, month, day, hour
+    integer(ik4) :: istatus, ivar
     !
     ! The data are packed into short integers (INTEGER*2).  The array
     ! work will be used to hold the packed integers. The array 'sst'
@@ -200,8 +200,8 @@ module mod_sst_ersst
     istatus = nf90_close(inet)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Cannot close file')
-    do j = 1 , jlat
-      do i = 1 , ilon
+    do j = 1, jlat
+      do i = 1, ilon
         if ( work(i,j,1) /= xmiss(1) .and. work(i,j,2) /= xmiss(2) ) then
           sst(i,j) = 0.5_rkx * &
                 ( real(work(i,j,1),rkx)*xscale(1) + xadd(1) + 273.15_rkx + &

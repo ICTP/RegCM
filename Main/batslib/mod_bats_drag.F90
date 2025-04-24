@@ -26,7 +26,7 @@ module mod_bats_drag
 !
   private
 !
-  public :: dragc , depth
+  public :: dragc, depth
 !
   contains
 !
@@ -47,11 +47,11 @@ module mod_bats_drag
 !
   subroutine dragc
     implicit none
-    real(rkx) :: dthdz , u1 , ribn , zatild , cdrmin
+    real(rkx) :: dthdz, u1, ribn, zatild, cdrmin
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'dragc'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
@@ -61,7 +61,7 @@ module mod_bats_drag
 
     call dragdn
 
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       !==================================================
       ! 2.  compute stability as bulk rich. no. = rin/rid
       !     ri(numerator)/ri(denominator)
@@ -131,15 +131,15 @@ module mod_bats_drag
 !
   subroutine dragdn
     implicit none
-    real(rkx) :: asigf , cdb , cds , cdv , frab , fras , frav
+    real(rkx) :: asigf, cdb, cds, cdv, frab, fras, frav
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'dragdn'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       ! drag coeff over land
       asigf = lncl(i)
       frav = sigf(i)
@@ -176,15 +176,15 @@ module mod_bats_drag
 !
   subroutine depth
     implicit none
-    real(rkx) :: age , densi
+    real(rkx) :: age, densi
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'depth'
-    integer(ik4) , save :: idindx = 0
+    integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
-    do i = ilndbeg , ilndend
+    do i = ilndbeg, ilndend
       age = (d_one-d_one/(d_one+snag(i)))
       densi = 0.01_rkx/(d_one+d_three*age)
       scrat(i) = sncv(i)*densi

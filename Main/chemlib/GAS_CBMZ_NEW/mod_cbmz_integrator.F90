@@ -26,47 +26,47 @@
 module mod_cbmz_integrator
 
   use mod_cbmz_precision
-  use mod_cbmz_global , only : fix , rconst , time , atol , rtol
-  use mod_cbmz_parameters , only : nvar , nfix , lu_nonzero
-  use mod_cbmz_jacobiansp , only : lu_diag
-  use mod_cbmz_linearalgebra , only : kppdecomp , kppsolve
+  use mod_cbmz_global, only : fix, rconst, time, atol, rtol
+  use mod_cbmz_parameters, only : nvar, nfix, lu_nonzero
+  use mod_cbmz_jacobiansp, only : lu_diag
+  use mod_cbmz_linearalgebra, only : kppdecomp, kppsolve
 
   implicit none
   public
   save
 
-  real(kind=dp) , private :: conit , crate , hold , rmax
-  real(kind=dp) , private , dimension(13) :: el
-  real(kind=dp) , private , dimension(13,12) :: elco
-  real(kind=dp) , private , dimension(3,12) :: tesco
-  real(kind=dp) , private :: ccmax , el0 , h , hmin , hmxi , hu , rc , tn , uround
+  real(kind=dp), private :: conit, crate, hold, rmax
+  real(kind=dp), private, dimension(13) :: el
+  real(kind=dp), private, dimension(13,12) :: elco
+  real(kind=dp), private, dimension(3,12) :: tesco
+  real(kind=dp), private :: ccmax, el0, h, hmin, hmxi, hu, rc, tn, uround
 
-  integer , private :: init , mxstep , mxhnil , nhnil , nslast , nyh
-  integer , private :: ialth , ipup , lmax , meo , nqnyh , nslp
-  integer , private :: icf, ierpj , iersl , jcur , jstart , kflag , l
-  integer , private :: lyh , lewt , lacor , lsavf , lwm , liwm , meth , miter
-  integer , private :: maxord , maxcor , msbp , mxncf , n , nq , nst , nfe , nje , nqu
+  integer, private :: init, mxstep, mxhnil, nhnil, nslast, nyh
+  integer, private :: ialth, ipup, lmax, meo, nqnyh, nslp
+  integer, private :: icf, ierpj, iersl, jcur, jstart, kflag, l
+  integer, private :: lyh, lewt, lacor, lsavf, lwm, liwm, meth, miter
+  integer, private :: maxord, maxcor, msbp, mxncf, n, nq, nst, nfe, nje, nqu
 
   !~~~>  statistics on the work performed by the lsode method
-  integer , private :: nfun , njac , nstp , nacc , nrej , ndec , nsol , nsng
-  integer , parameter :: ifun = 1
-  integer , parameter :: ijac = 2
-  integer , parameter :: istp = 3
-  integer , parameter :: iacc = 4
-  integer , parameter :: irej = 5
-  integer , parameter :: idec = 6
-  integer , parameter :: isol = 7
-  integer , parameter :: isng = 8
+  integer, private :: nfun, njac, nstp, nacc, nrej, ndec, nsol, nsng
+  integer, parameter :: ifun = 1
+  integer, parameter :: ijac = 2
+  integer, parameter :: istp = 3
+  integer, parameter :: iacc = 4
+  integer, parameter :: irej = 5
+  integer, parameter :: idec = 6
+  integer, parameter :: isol = 7
+  integer, parameter :: isng = 8
 
-  integer , parameter :: itexit = 1
-  integer , parameter :: ihexit = 2
+  integer, parameter :: itexit = 1
+  integer, parameter :: ihexit = 2
 
   !  sdirk method coefficients
-  real(kind=dp) , dimension(5,4) :: rkalpha
-  real(kind=dp) , dimension(5,4) :: rkbeta
-  real(kind=dp) , dimension(4,5) :: rkd
-  real(kind=dp) , dimension(5,5) :: rka
-  real(kind=dp) , dimension(5) :: rkb , rkc
+  real(kind=dp), dimension(5,4) :: rkalpha
+  real(kind=dp), dimension(5,4) :: rkbeta
+  real(kind=dp), dimension(4,5) :: rkd
+  real(kind=dp), dimension(5,5) :: rka
+  real(kind=dp), dimension(5) :: rkb, rkc
   real(kind=dp) :: rkgamma
 
   ! mz_rs_20050717: todo: use strings of ierr_names for error messages
@@ -2009,10 +2009,10 @@ module mod_cbmz_integrator
 !***end prologue  dcfode
 !**end
     subroutine dcfode
-      integer :: i, ib , nq , nqm1 , nqp1
-      real(kind=dp) , dimension(12) :: pc
-      real(kind=dp) :: agamq , fnq , fnqm1 , pint , ragq , &
-                      rqfac , rq1fac , tsign , xpin
+      integer :: i, ib, nq, nqm1, nqp1
+      real(kind=dp), dimension(12) :: pc
+      real(kind=dp) :: agamq, fnq, fnqm1, pint, ragq, &
+                      rqfac, rq1fac, tsign, xpin
       select case (meth)
         case (1)
           goto 100
@@ -2196,7 +2196,7 @@ module mod_cbmz_integrator
 !***description
 !
 !  dprepj is called by dstode to compute and process the matrix
-!  p = i - h*el(1)*j , where j is an approximation to the jacobian.
+!  p = i - h*el(1)*j, where j is an approximation to the jacobian.
 !  here j is computed by the user-supplied routine jac if
 !  miter = 1 or 4, or by finite differencing if miter = 2, 3, or 5.
 !  if miter = 3, a diagonal approximation to j is used.
@@ -2212,7 +2212,7 @@ module mod_cbmz_integrator
 !  savf  = array containing f evaluated at predicted y.
 !  wm    = real work space for matrices.  on output it contains the
 !          inverse diagonal matrix if miter = 3 and the lu decomposition
-!          of p if miter is 1, 2 , 4, or 5.
+!          of p if miter is 1, 2, 4, or 5.
 !          storage of matrix elements starts at wm(3).
 !          wm also contains the following matrix-related data:
 !          wm(1) = sqrt(uround), used in numerical jacobian increments.
@@ -2909,7 +2909,7 @@ module mod_cbmz_integrator
 !
 !***first executable statement  dvnorm
       xsum = 0.0_qp
-      do i = 1 , n
+      do i = 1, n
         xsum = xsum + (real(v(i),qp)*real(w(i),qp))**2
       end do
       dvnorm = real(sqrt(xsum/real(n,qp)),dp)

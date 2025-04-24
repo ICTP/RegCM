@@ -6,8 +6,8 @@ module mod_clm_initsoilparvic
   use mod_realkinds
   use mod_intkinds
   use mod_clm_type
-  use mod_clm_varcon , only : denh2o , denice , pondmx
-  use mod_clm_varpar , only : nlevsoi , nlayer , nlayert , nlevgrnd
+  use mod_clm_varcon, only : denh2o, denice, pondmx
+  use mod_clm_varpar, only : nlevsoi, nlayer, nlayert, nlevgrnd
 
   implicit none
 
@@ -25,13 +25,13 @@ module mod_clm_initsoilparvic
   !
   subroutine initSoilParVIC(c, claycol, sandcol, om_fraccol)
     implicit none
-    integer(ik4) , intent(in)  :: c ! column bounds
+    integer(ik4), intent(in)  :: c ! column bounds
     ! read in - soil texture: percent sand
-    real(rk8) , pointer :: sandcol(:,:)
+    real(rk8), pointer, contiguous :: sandcol(:,:)
     ! read in - soil texture: percent clay
-    real(rk8) , pointer :: claycol(:,:)
+    real(rk8), pointer, contiguous :: claycol(:,:)
     ! read in - organic matter: kg/m3
-    real(rk8) , pointer :: om_fraccol(:,:)
+    real(rk8), pointer, contiguous :: om_fraccol(:,:)
     ! porosity of organic soil
     real(rk8) :: om_watsat = 0.9_rk8
     ! saturated hydraulic conductivity of organic soil [mm/s]
@@ -62,11 +62,11 @@ module mod_clm_initsoilparvic
     real(rk8) :: uncon_hksat ! series conductivity of mineral/organic soil
     real(rk8) :: uncon_frac  ! fraction of "unconnected" soil
 
-    real(rk8), pointer :: dz(:,:)  !layer depth (m)
-    real(rk8), pointer :: zi(:,:)  !interface level below a "z" level (m)
-    real(rk8), pointer :: z(:,:)   !layer thickness (m)
+    real(rk8), pointer, contiguous :: dz(:,:)  !layer depth (m)
+    real(rk8), pointer, contiguous :: zi(:,:)  !interface level below a "z" level (m)
+    real(rk8), pointer, contiguous :: z(:,:)   !layer thickness (m)
     !fraction of VIC layers in CLM layers
-    real(rk8), pointer :: vic_clm_fract(:,:,:)
+    real(rk8), pointer, contiguous :: vic_clm_fract(:,:,:)
     ! sum of node fractions in each VIC layer
     real(rk8) :: temp_sum_frac
     !temporary, weighted averaged sand% for VIC layers
@@ -77,31 +77,31 @@ module mod_clm_initsoilparvic
     real(rk8) :: om_fracvic(1:nlayert)
 
     !b infiltration parameter
-    real(rk8), pointer :: b_infil(:)
+    real(rk8), pointer, contiguous :: b_infil(:)
     !fracton of Dsmax where non-linear baseflow begins
-    real(rk8), pointer :: ds(:)
+    real(rk8), pointer, contiguous :: ds(:)
     !max. velocity of baseflow (mm/day)
-    real(rk8), pointer :: dsmax(:)
+    real(rk8), pointer, contiguous :: dsmax(:)
     !fraction of maximum soil moisutre where non-liear base flow occurs
-    real(rk8), pointer :: Wsvic(:)
+    real(rk8), pointer, contiguous :: Wsvic(:)
     !baseflow exponent (Qb)
-    real(rk8), pointer :: c_param(:)
+    real(rk8), pointer, contiguous :: c_param(:)
     !pore-size distribution related paramter(Q12)
-    real(rk8), pointer :: expt(:,:)
+    real(rk8), pointer, contiguous :: expt(:,:)
     !Saturated hydrologic conductivity (mm/s)
-    real(rk8), pointer :: ksat(:,:)
+    real(rk8), pointer, contiguous :: ksat(:,:)
     !soil moisture dissusion parameter
-    real(rk8), pointer :: phi_s(:,:)
+    real(rk8), pointer, contiguous :: phi_s(:,:)
     !layer depth of upper layer(m)
-    real(rk8), pointer :: depth(:,:)
+    real(rk8), pointer, contiguous :: depth(:,:)
     !soil porosity
-    real(rk8), pointer :: porosity(:,:)
+    real(rk8), pointer, contiguous :: porosity(:,:)
     !maximum soil moisture (ice + liq)
-    real(rk8), pointer :: max_moist(:,:)
+    real(rk8), pointer, contiguous :: max_moist(:,:)
 
     ! other local variables
 
-    integer(ik4) :: i , j
+    integer(ik4) :: i, j
 
     ! Assign local pointers to derived subtypes components (column-level)
 
@@ -129,12 +129,12 @@ module mod_clm_initsoilparvic
     ! map the CLM layers to VIC layers
     ! There might have better way to do this process
 
-    do i = 1 , nlayer
+    do i = 1, nlayer
       sandvic(i) = 0._rk8
       clayvic(i) = 0._rk8
       om_fracvic(i) = 0._rk8
       temp_sum_frac = 0._rk8
-      do j = 1 , nlevsoi
+      do j = 1, nlevsoi
         sandvic(i) = sandvic(i) + sandcol(c,j) * vic_clm_fract(c,i,j)
         clayvic(i) = clayvic(i) + claycol(c,j) * vic_clm_fract(c,i,j)
         om_fracvic(i) = om_fracvic(i) + om_fraccol(c,j) * vic_clm_fract(c,i,j)

@@ -28,10 +28,10 @@
 
       integer(kind=im), parameter :: no1  = 16
 
-      real(kind=rb) :: fracrefao(no1)  , fracrefbo(no1)
+      real(kind=rb) :: fracrefao(no1) , fracrefbo(no1)
       real(kind=rb) :: kao(5,13,no1)
       real(kind=rb) :: kbo(5,13:59,no1)
-      real(kind=rb) :: kao_mn2(19,no1) , kbo_mn2(19,no1)
+      real(kind=rb) :: kao_mn2(19,no1), kbo_mn2(19,no1)
       real(kind=rb) :: selfrefo(10,no1), forrefo(4,no1)
 
 !-----------------------------------------------------------------
@@ -59,10 +59,10 @@
 
       integer(kind=im), parameter :: ng1  = 10
 
-      real(kind=rb) :: fracrefa(ng1)  , fracrefb(ng1)
-      real(kind=rb) :: ka(5,13,ng1)   , absa(65,ng1)
+      real(kind=rb) :: fracrefa(ng1) , fracrefb(ng1)
+      real(kind=rb) :: ka(5,13,ng1)  , absa(65,ng1)
       real(kind=rb) :: kb(5,13:59,ng1), absb(235,ng1)
-      real(kind=rb) :: ka_mn2(19,ng1) , kb_mn2(19,ng1)
+      real(kind=rb) :: ka_mn2(19,ng1), kb_mn2(19,ng1)
       real(kind=rb) :: selfref(10,ng1), forref(4,ng1)
 
       equivalence (ka(1,1,1),absa(1,1)), (kb(1,13,1),absb(1,1))

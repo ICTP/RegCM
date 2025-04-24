@@ -28,18 +28,18 @@ module mod_sst_grid
 
   private
 
-  real(rkx) , public , pointer , dimension(:,:) :: sstmm , icemm
-  real(rkx) , public , pointer , dimension(:,:) :: xlat , xlon
-  real(rkx) , pointer , dimension(:,:) :: topo , mask
-  real(rkx) , pointer , dimension(:) :: sigma
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: sstmm, icemm
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: xlat, xlon
+  real(rkx), pointer, contiguous, dimension(:,:) :: topo, mask
+  real(rkx), pointer, contiguous, dimension(:) :: sigma
 
-  type(nc_output_stream) , save :: ncout
-  integer(ik4) , parameter :: nvar2d = 4
-  type(ncvariable2d_mixed) , save , dimension(nvar2d) :: v2dvar_base
-  type(ncvariable2d_mixed) , save :: v2dvar_sst
+  type(nc_output_stream), save :: ncout
+  integer(ik4), parameter :: nvar2d = 4
+  type(ncvariable2d_mixed), save, dimension(nvar2d) :: v2dvar_base
+  type(ncvariable2d_mixed), save :: v2dvar_sst
 
-  public :: init_grid , read_domain_info , setup_outvars , open_sstfile , &
-            close_sstfile , writerec
+  public :: init_grid, read_domain_info, setup_outvars, open_sstfile, &
+            close_sstfile, writerec
 
   contains
 
@@ -56,7 +56,7 @@ module mod_sst_grid
 
   subroutine read_domain_info(terfile)
     implicit none
-    character(len=256) , intent(in) :: terfile
+    character(len=256), intent(in) :: terfile
     integer(ik4) :: incin
     call openfile_withname(terfile,incin)
     call read_domain(incin,sigma,xlat,xlon,ht=topo,mask=mask)
@@ -93,7 +93,7 @@ module mod_sst_grid
 
   subroutine open_sstfile(idate1)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate1
+    type(rcm_time_and_date), intent(in) :: idate1
     character(len=256) :: sstname
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar
@@ -109,13 +109,13 @@ module mod_sst_grid
     v2dvar_base(2)%rval => xlat
     v2dvar_base(3)%rval => mask
     v2dvar_base(4)%rval => topo
-    do ivar = 1 , nvar2d
+    do ivar = 1, nvar2d
       call outstream_addvar(ncout,v2dvar_base(ivar))
     end do
     call outstream_addvar(ncout,v2dvar_sst)
     v2dvar_sst%rval => sstmm
     call outstream_enable(ncout,sigma)
-    do ivar = 1 , nvar2d
+    do ivar = 1, nvar2d
       call outstream_writevar(ncout,v2dvar_base(ivar))
     end do
   end subroutine open_sstfile
@@ -127,7 +127,7 @@ module mod_sst_grid
 
   subroutine writerec(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     call outstream_addrec(ncout,idate)
     call outstream_writevar(ncout,v2dvar_sst)
   end subroutine writerec

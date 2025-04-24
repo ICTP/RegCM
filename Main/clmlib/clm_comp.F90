@@ -4,7 +4,7 @@
 module clm_comp
 
   use shr_kind_mod, only : r8 => shr_kind_r8
-  use shr_sys_mod , only : shr_sys_abort
+  use shr_sys_mod, only : shr_sys_abort
   use perf_mod
 
   implicit none
@@ -110,12 +110,12 @@ contains
 ! back from (i.e. albedos, surface temperature and snow cover over land).
 !
 ! !USES:
-    use shr_orb_mod     , only : shr_orb_decl
-    use clm_varctl      , only : finidat, nsrest
-    use initSurfAlbMod  , only : initSurfAlb, do_initsurfalb
+    use shr_orb_mod    , only : shr_orb_decl
+    use clm_varctl     , only : finidat, nsrest
+    use initSurfAlbMod , only : initSurfAlb, do_initsurfalb
     use clm_time_manager, only : get_nstep, get_step_size, get_curr_calday
-    use clm_atmlnd      , only : clm_map2gcell
-    use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
+    use clm_atmlnd     , only : clm_map2gcell
+    use clm_varorb     , only : eccen, mvelpp, lambm0, obliqr
 !
 ! !ARGUMENTS:
 !
@@ -174,20 +174,20 @@ contains
 ! land model run1 phase
 !
 ! !USES:
-    use shr_orb_mod     , only : shr_orb_decl
-    use clm_varctl      , only : irad
+    use shr_orb_mod    , only : shr_orb_decl
+    use clm_varctl     , only : irad
     use clm_time_manager, only : get_nstep, get_step_size, get_curr_calday
-!    use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
-    use driver          , only : driver1
-    use clm_atmlnd      , only : clm_map2gcell
+!    use clm_varorb     , only : eccen, mvelpp, lambm0, obliqr
+    use driver         , only : driver1
+    use clm_atmlnd     , only : clm_map2gcell
     use mod_clm
     use mod_dynparam
 !
 ! !ARGUMENTS:
-!    real(r8), intent(in) , optional :: nextsw_cday
-!    logical , intent(out), optional :: dosend
+!    real(r8), intent(in), optional :: nextsw_cday
+!    logical, intent(out), optional :: dosend
 !c abt rcm below
-    logical , intent(in) :: doalb  !true if time for surface albedo
+    logical, intent(in) :: doalb  !true if time for surface albedo
                                    !calculation
     real(r8), intent(in) :: eccen  !Earth's orbital eccentricity
     real(r8), intent(in) :: obliqr !Earth's obliquity in radians
@@ -270,10 +270,10 @@ contains
 ! land model run2 phase
 !
 ! !USES:
-    use shr_orb_mod     , only : shr_orb_decl
+    use shr_orb_mod    , only : shr_orb_decl
     use clm_time_manager, only : get_nstep, get_step_size, get_curr_calday
- !   use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
-    use driver          , only : driver2
+ !   use clm_varorb     , only : eccen, mvelpp, lambm0, obliqr
+    use driver         , only : driver2
     use mod_clm
     use mod_dynparam
 !

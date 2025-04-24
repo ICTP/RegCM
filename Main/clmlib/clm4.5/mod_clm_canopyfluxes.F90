@@ -9,20 +9,20 @@ module mod_clm_canopyfluxes
   use mod_mpmessage
   use mod_stdio
   use mod_runparams
-  use mod_clm_varctl , only: use_c13 , use_c14 , nextdate
+  use mod_clm_varctl, only: use_c13, use_c14, nextdate
   use mod_clm_type
-  use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varpar , only : nlevgrnd, nlevsno, nlevcan
-  use mod_clm_varcon , only : sb, cpair, hvap, vkc, grav, denice, &
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_varpar, only : nlevgrnd, nlevsno, nlevcan
+  use mod_clm_varcon, only : sb, cpair, hvap, vkc, grav, denice, &
                     denh2o, tfrz, tlsai_crit, alpha_aero, &
-                    isecspday, degpsec , tfrz, c14ratio
-  use mod_clm_qsat , only : QSat
-  use mod_clm_frictionvelocity , only : FrictionVelocity , MoninObukIni
-  use mod_clm_pftvarcon , only : nbrdlf_dcd_tmp_shrub , irrigated
-  use mod_clm_pftvarcon , only : nsoybean, nsoybeanirrig, npcropmin , &
-    nbrdlf_evr_trp_tree , nbrdlf_dcd_trp_tree
+                    isecspday, degpsec, tfrz, c14ratio
+  use mod_clm_qsat, only : QSat
+  use mod_clm_frictionvelocity, only : FrictionVelocity, MoninObukIni
+  use mod_clm_pftvarcon, only : nbrdlf_dcd_tmp_shrub, irrigated
+  use mod_clm_pftvarcon, only : nsoybean, nsoybeanirrig, npcropmin, &
+    nbrdlf_evr_trp_tree, nbrdlf_dcd_trp_tree
 #if (defined CN)
-  use mod_clm_cnallocation , only : CNAllocation_Carbon_only
+  use mod_clm_cnallocation, only : CNAllocation_Carbon_only
 #endif
 
   implicit none
@@ -75,7 +75,7 @@ module mod_clm_canopyfluxes
   !
   subroutine CanopyFluxes(lbc, ubc, lbp, ubp, &
                           num_nolakep, filter_nolakep)
-    use mod_clm_varcon , only : csoilc
+    use mod_clm_varcon, only : csoilc
     implicit none
     integer(ik4), intent(in) :: lbc, ubc ! column bounds
     integer(ik4), intent(in) :: lbp, ubp ! pft bounds
@@ -85,215 +85,215 @@ module mod_clm_canopyfluxes
     integer(ik4), intent(in) :: filter_nolakep(ubp-lbp+1)
 
    ! sensible heat flux from snow (W/m**2) [+ to atm]
-   real(rk8), pointer :: eflx_sh_snow(:)
+   real(rk8), pointer, contiguous :: eflx_sh_snow(:)
    ! sensible heat flux from soil (W/m**2) [+ to atm]
-   real(rk8), pointer :: eflx_sh_soil(:)
+   real(rk8), pointer, contiguous :: eflx_sh_soil(:)
    ! sensible heat flux from soil (W/m**2) [+ to atm]
-   real(rk8), pointer :: eflx_sh_h2osfc(:)
-   integer(ik4) , pointer :: snl(:)     ! number of snow layers
-   real(rk8), pointer :: t_h2osfc(:)    ! surface water temperature
-   real(rk8), pointer :: frac_h2osfc(:) ! fraction of surface water
-   real(rk8), pointer :: qg_snow(:) ! specific humidity at snow surface [kg/kg]
-   real(rk8), pointer :: qg_soil(:) ! specific humidity at soil surface [kg/kg]
+   real(rk8), pointer, contiguous :: eflx_sh_h2osfc(:)
+   integer(ik4), pointer, contiguous :: snl(:)     ! number of snow layers
+   real(rk8), pointer, contiguous :: t_h2osfc(:)    ! surface water temperature
+   real(rk8), pointer, contiguous :: frac_h2osfc(:) ! fraction of surface water
+   real(rk8), pointer, contiguous :: qg_snow(:) ! specific humidity at snow surface [kg/kg]
+   real(rk8), pointer, contiguous :: qg_soil(:) ! specific humidity at soil surface [kg/kg]
    ! specific humidity at h2osfc surface [kg/kg]
-   real(rk8), pointer :: qg_h2osfc(:)
+   real(rk8), pointer, contiguous :: qg_h2osfc(:)
    ! evaporation flux from snow (W/m**2) [+ to atm]
-   real(rk8), pointer :: qflx_ev_snow(:)
+   real(rk8), pointer, contiguous :: qflx_ev_snow(:)
    ! evaporation flux from soil (W/m**2) [+ to atm]
-   real(rk8), pointer :: qflx_ev_soil(:)
+   real(rk8), pointer, contiguous :: qflx_ev_soil(:)
    ! evaporation flux from h2osfc (W/m**2) [+ to atm]
-   real(rk8), pointer :: qflx_ev_h2osfc(:)
+   real(rk8), pointer, contiguous :: qflx_ev_h2osfc(:)
    ! frac of veg not covered by snow (0 OR 1 now) [-]
-   integer(ik4) , pointer :: frac_veg_nosno(:)
-   integer(ik4) , pointer :: ivt(:)         ! pft vegetation type
-   integer(ik4) , pointer :: pcolumn(:)     ! pft's column index
-   integer(ik4) , pointer :: plandunit(:)   ! pft's landunit index
-   integer(ik4) , pointer :: pgridcell(:)   ! pft's gridcell index
+   integer(ik4), pointer, contiguous :: frac_veg_nosno(:)
+   integer(ik4), pointer, contiguous :: ivt(:)         ! pft vegetation type
+   integer(ik4), pointer, contiguous :: pcolumn(:)     ! pft's column index
+   integer(ik4), pointer, contiguous :: plandunit(:)   ! pft's landunit index
+   integer(ik4), pointer, contiguous :: pgridcell(:)   ! pft's gridcell index
    ! atmospheric potential temperature (Kelvin)
-   real(rk8), pointer :: forc_th(:)
-   real(rk8), pointer :: t_grnd(:)  ! ground surface temperature [K]
+   real(rk8), pointer, contiguous :: forc_th(:)
+   real(rk8), pointer, contiguous :: t_grnd(:)  ! ground surface temperature [K]
    ! intermediate variable (forc_t+0.0098*forc_hgt_t_pft)
-   real(rk8), pointer :: thm(:)
-   real(rk8), pointer :: qg(:)   ! specific humidity at ground surface [kg/kg]
-   real(rk8), pointer :: thv(:)  ! virtual potential temperature (kelvin)
+   real(rk8), pointer, contiguous :: thm(:)
+   real(rk8), pointer, contiguous :: qg(:)   ! specific humidity at ground surface [kg/kg]
+   real(rk8), pointer, contiguous :: thv(:)  ! virtual potential temperature (kelvin)
    ! roughness length over vegetation, momentum [m]
-   real(rk8), pointer :: z0mv(:)
+   real(rk8), pointer, contiguous :: z0mv(:)
    ! roughness length over vegetation, sensible heat [m]
-   real(rk8), pointer :: z0hv(:)
+   real(rk8), pointer, contiguous :: z0hv(:)
    ! roughness length over vegetation, latent heat [m]
-   real(rk8), pointer :: z0qv(:)
+   real(rk8), pointer, contiguous :: z0qv(:)
    ! roughness length of ground, momentum [m]
-   real(rk8), pointer :: z0mg(:)
-   real(rk8), pointer :: dqgdT(:)  ! temperature derivative of "qg"
+   real(rk8), pointer, contiguous :: z0mg(:)
+   real(rk8), pointer, contiguous :: dqgdT(:)  ! temperature derivative of "qg"
    ! latent heat of evaporation (/sublimation) [J/kg]
-   real(rk8), pointer :: htvp(:)
-   real(rk8), pointer :: emv(:)    ! ground emissivity
-   real(rk8), pointer :: emg(:)    ! vegetation emissivity
-   real(rk8), pointer :: forc_pbot(:)   ! atmospheric pressure (Pa)
-   real(rk8), pointer :: forc_pco2(:)   ! partial pressure co2 (Pa)
+   real(rk8), pointer, contiguous :: htvp(:)
+   real(rk8), pointer, contiguous :: emv(:)    ! ground emissivity
+   real(rk8), pointer, contiguous :: emg(:)    ! vegetation emissivity
+   real(rk8), pointer, contiguous :: forc_pbot(:)   ! atmospheric pressure (Pa)
+   real(rk8), pointer, contiguous :: forc_pco2(:)   ! partial pressure co2 (Pa)
    !!! C13
-   real(rk8), pointer :: forc_pc13o2(:) ! partial pressure c13o2 (Pa)
+   real(rk8), pointer, contiguous :: forc_pc13o2(:) ! partial pressure c13o2 (Pa)
 
-   real(rk8), pointer :: forc_po2(:)  ! partial pressure o2 (Pa)
-   real(rk8), pointer :: forc_q(:)    ! atmospheric specific humidity (kg/kg)
+   real(rk8), pointer, contiguous :: forc_po2(:)  ! partial pressure o2 (Pa)
+   real(rk8), pointer, contiguous :: forc_q(:)    ! atmospheric specific humidity (kg/kg)
    ! atmospheric wind speed in east direction (m/s)
-   real(rk8), pointer :: forc_u(:)
+   real(rk8), pointer, contiguous :: forc_u(:)
    ! atmospheric wind speed in north direction (m/s)
-   real(rk8), pointer :: forc_v(:)
+   real(rk8), pointer, contiguous :: forc_v(:)
    !observational height of wind at pft level [m]
-   real(rk8), pointer :: forc_hgt_u_pft(:)
-   real(rk8), pointer :: forc_rho(:)  ! density (kg/m**3)
+   real(rk8), pointer, contiguous :: forc_hgt_u_pft(:)
+   real(rk8), pointer, contiguous :: forc_rho(:)  ! density (kg/m**3)
    ! downward infrared (longwave) radiation (W/m**2)
-   real(rk8), pointer :: forc_lwrad(:)
-   real(rk8), pointer :: displa(:)  ! displacement height (m)
+   real(rk8), pointer, contiguous :: forc_lwrad(:)
+   real(rk8), pointer, contiguous :: displa(:)  ! displacement height (m)
    ! one-sided leaf area index with burying by snow
-   real(rk8), pointer :: elai(:)
+   real(rk8), pointer, contiguous :: elai(:)
    ! one-sided stem area index with burying by snow
-   real(rk8), pointer :: esai(:)
+   real(rk8), pointer, contiguous :: esai(:)
    ! fraction of foliage that is green and dry [-]
-   real(rk8), pointer :: fdry(:)
+   real(rk8), pointer, contiguous :: fdry(:)
    ! fraction of canopy that is wet (0 to 1)
-   real(rk8), pointer :: fwet(:)
-   real(rk8), pointer :: laisun(:)      ! sunlit leaf area
-   real(rk8), pointer :: laisha(:)      ! shaded leaf area
+   real(rk8), pointer, contiguous :: fwet(:)
+   real(rk8), pointer, contiguous :: laisun(:)      ! sunlit leaf area
+   real(rk8), pointer, contiguous :: laisha(:)      ! shaded leaf area
    ! solar radiation absorbed by vegetation (W/m**2)
-   real(rk8), pointer :: sabv(:)
+   real(rk8), pointer, contiguous :: sabv(:)
    ! volumetric soil water at saturation (porosity)
-   real(rk8), pointer :: watsat(:,:)
-   real(rk8), pointer :: watdry(:,:)     ! btran parameter for btran=0
-   real(rk8), pointer :: watopt(:,:)     ! btran parameter for btran = 1
-   real(rk8), pointer :: h2osoi_ice(:,:) ! ice lens (kg/m2)
-   real(rk8), pointer :: h2osoi_liq(:,:) ! liquid water (kg/m2)
+   real(rk8), pointer, contiguous :: watsat(:,:)
+   real(rk8), pointer, contiguous :: watdry(:,:)     ! btran parameter for btran=0
+   real(rk8), pointer, contiguous :: watopt(:,:)     ! btran parameter for btran = 1
+   real(rk8), pointer, contiguous :: h2osoi_ice(:,:) ! ice lens (kg/m2)
+   real(rk8), pointer, contiguous :: h2osoi_liq(:,:) ! liquid water (kg/m2)
    ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3] by F. Li and S. Levis
-   real(rk8), pointer :: h2osoi_vol(:,:)
-   real(rk8), pointer :: dz(:,:)        ! layer depth (m)
-   real(rk8), pointer :: t_soisno(:,:)  ! soil temperature (Kelvin)
-   real(rk8), pointer :: sucsat(:,:)    ! minimum soil suction (mm)
-   real(rk8), pointer :: bsw(:,:)       ! Clapp and Hornberger "b"
-   real(rk8), pointer :: rootfr(:,:)    ! fraction of roots in each soil layer
-   real(rk8), pointer :: dleaf(:)       ! characteristic leaf dimension (m)
+   real(rk8), pointer, contiguous :: h2osoi_vol(:,:)
+   real(rk8), pointer, contiguous :: dz(:,:)        ! layer depth (m)
+   real(rk8), pointer, contiguous :: t_soisno(:,:)  ! soil temperature (Kelvin)
+   real(rk8), pointer, contiguous :: sucsat(:,:)    ! minimum soil suction (mm)
+   real(rk8), pointer, contiguous :: bsw(:,:)       ! Clapp and Hornberger "b"
+   real(rk8), pointer, contiguous :: rootfr(:,:)    ! fraction of roots in each soil layer
+   real(rk8), pointer, contiguous :: dleaf(:)       ! characteristic leaf dimension (m)
    ! soil water potential at full stomatal opening (mm)
-   real(rk8), pointer :: smpso(:)
+   real(rk8), pointer, contiguous :: smpso(:)
    ! soil water potential at full stomatal closure (mm)
-   real(rk8), pointer :: smpsc(:)
+   real(rk8), pointer, contiguous :: smpsc(:)
    ! fraction of ground covered by snow (0 to 1)
-   real(rk8), pointer :: frac_sno(:)
-   real(rk8), pointer :: htop(:)       ! canopy top(m)
-   real(rk8), pointer :: snow_depth(:) ! snow height (m)
+   real(rk8), pointer, contiguous :: frac_sno(:)
+   real(rk8), pointer, contiguous :: htop(:)       ! canopy top(m)
+   real(rk8), pointer, contiguous :: snow_depth(:) ! snow height (m)
    ! soil wetness relative to field capacity
-   real(rk8), pointer :: soilbeta(:)
-   real(rk8), pointer :: lat(:)      ! latitude (radians)
-   real(rk8), pointer :: decl(:)     ! declination angle (radians)
-   real(rk8), pointer :: max_dayl(:) !maximum daylength for this column (s)
+   real(rk8), pointer, contiguous :: soilbeta(:)
+   real(rk8), pointer, contiguous :: lat(:)      ! latitude (radians)
+   real(rk8), pointer, contiguous :: decl(:)     ! declination angle (radians)
+   real(rk8), pointer, contiguous :: max_dayl(:) !maximum daylength for this column (s)
    ! longitude (degrees) (for calculation of local time)
-   real(rk8), pointer :: londeg(:)
+   real(rk8), pointer, contiguous :: londeg(:)
 
    ! deriv. of soil sensible heat flux wrt soil temp [w/m2/k]
-   real(rk8), pointer :: cgrnds(:)
+   real(rk8), pointer, contiguous :: cgrnds(:)
    ! deriv. of soil latent heat flux wrt soil temp [w/m**2/k]
-   real(rk8), pointer :: cgrndl(:)
-   real(rk8), pointer :: t_veg(:)   ! vegetation temperature (Kelvin)
+   real(rk8), pointer, contiguous :: cgrndl(:)
+   real(rk8), pointer, contiguous :: t_veg(:)   ! vegetation temperature (Kelvin)
    ! 2 m height surface air temperature (Kelvin)
-   real(rk8), pointer :: t_ref2m(:)
+   real(rk8), pointer, contiguous :: t_ref2m(:)
    ! 2 m height surface specific humidity (kg/kg)
-   real(rk8), pointer :: q_ref2m(:)
+   real(rk8), pointer, contiguous :: q_ref2m(:)
    ! Rural 2 m height surface air temperature (Kelvin)
-   real(rk8), pointer :: t_ref2m_r(:)
+   real(rk8), pointer, contiguous :: t_ref2m_r(:)
    ! 2 m height surface relative humidity (%)
-   real(rk8), pointer :: rh_ref2m(:)
+   real(rk8), pointer, contiguous :: rh_ref2m(:)
    ! Rural 2 m height surface relative humidity (%)
-   real(rk8), pointer :: rh_ref2m_r(:)
-   real(rk8), pointer :: h2ocan(:)  ! canopy water (mm H2O)
+   real(rk8), pointer, contiguous :: rh_ref2m_r(:)
+   real(rk8), pointer, contiguous :: h2ocan(:)  ! canopy water (mm H2O)
 
-   real(rk8), pointer :: rb1(:)     ! boundary layer resistance (s/m)
+   real(rk8), pointer, contiguous :: rb1(:)     ! boundary layer resistance (s/m)
    ! deriv. of soil energy flux wrt to soil temp [w/m2/k]
-   real(rk8), pointer :: cgrnd(:)
+   real(rk8), pointer, contiguous :: cgrnd(:)
    ! downward longwave radiation below the canopy [W/m2]
-   real(rk8), pointer :: dlrad(:)
+   real(rk8), pointer, contiguous :: dlrad(:)
    ! upward longwave radiation above the canopy [W/m2]
-   real(rk8), pointer :: ulrad(:)
-   real(rk8), pointer :: ram1(:)    ! aerodynamical resistance (s/m)
-   real(rk8), pointer :: rah1(:)    ! thermal resistance (s/m)
-   real(rk8), pointer :: br1(:)     ! Bulk Richardson number
-   real(rk8), pointer :: btran(:)   ! transpiration wetness factor (0 to 1)
-   real(rk8), pointer :: btran2(:)  !F. Li and S. Levis
-   real(rk8), pointer :: rssun(:)   ! sunlit stomatal resistance (s/m)
-   real(rk8), pointer :: rssha(:)   ! shaded stomatal resistance (s/m)
-   real(rk8), pointer :: rhal(:)
-   real(rk8), pointer :: vpdal(:)
+   real(rk8), pointer, contiguous :: ulrad(:)
+   real(rk8), pointer, contiguous :: ram1(:)    ! aerodynamical resistance (s/m)
+   real(rk8), pointer, contiguous :: rah1(:)    ! thermal resistance (s/m)
+   real(rk8), pointer, contiguous :: br1(:)     ! Bulk Richardson number
+   real(rk8), pointer, contiguous :: btran(:)   ! transpiration wetness factor (0 to 1)
+   real(rk8), pointer, contiguous :: btran2(:)  !F. Li and S. Levis
+   real(rk8), pointer, contiguous :: rssun(:)   ! sunlit stomatal resistance (s/m)
+   real(rk8), pointer, contiguous :: rssha(:)   ! shaded stomatal resistance (s/m)
+   real(rk8), pointer, contiguous :: rhal(:)
+   real(rk8), pointer, contiguous :: vpdal(:)
    ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-   real(rk8), pointer :: psnsun(:)
+   real(rk8), pointer, contiguous :: psnsun(:)
    ! Rubsico-limited sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-   real(rk8), pointer :: psnsun_wc(:)
+   real(rk8), pointer, contiguous :: psnsun_wc(:)
    ! RuBP-limited sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-   real(rk8), pointer :: psnsun_wj(:)
+   real(rk8), pointer, contiguous :: psnsun_wj(:)
    ! product-limited sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-   real(rk8), pointer :: psnsun_wp(:)
+   real(rk8), pointer, contiguous :: psnsun_wp(:)
    ! shaded leaf photosynthesis (umol CO2 /m**2/ s)
-   real(rk8), pointer :: psnsha(:)
+   real(rk8), pointer, contiguous :: psnsha(:)
    ! Rubsico-limited shaded leaf photosynthesis (umol CO2 /m**2/ s)
-   real(rk8), pointer :: psnsha_wc(:)
+   real(rk8), pointer, contiguous :: psnsha_wc(:)
    ! RuBP-limited shaded leaf photosynthesis (umol CO2 /m**2/ s)
-   real(rk8), pointer :: psnsha_wj(:)
+   real(rk8), pointer, contiguous :: psnsha_wj(:)
    ! product-limited shaded leaf photosynthesis (umol CO2 /m**2/ s)
-   real(rk8), pointer :: psnsha_wp(:)
+   real(rk8), pointer, contiguous :: psnsha_wp(:)
    !!! C13
    ! sunlit leaf photosynthesis (umol 13CO2 /m**2/ s)
-   real(rk8), pointer :: c13_psnsun(:)
+   real(rk8), pointer, contiguous :: c13_psnsun(:)
    ! shaded leaf photosynthesis (umol 13CO2 /m**2/ s)
-   real(rk8), pointer :: c13_psnsha(:)
-   real(rk8), pointer :: rc13_canair(:) !C13O2/C12O2 in canopy air
-   real(rk8), pointer :: rc13_psnsun(:) !C13O2/C12O2 in sunlit canopy psn flux
-   real(rk8), pointer :: rc13_psnsha(:) !C13O2/C12O2 in shaded canopy psn flux
+   real(rk8), pointer, contiguous :: c13_psnsha(:)
+   real(rk8), pointer, contiguous :: rc13_canair(:) !C13O2/C12O2 in canopy air
+   real(rk8), pointer, contiguous :: rc13_psnsun(:) !C13O2/C12O2 in sunlit canopy psn flux
+   real(rk8), pointer, contiguous :: rc13_psnsha(:) !C13O2/C12O2 in shaded canopy psn flux
    !fractionation factor in sunlit canopy psn flux
-   real(rk8), pointer :: alphapsnsun(:)
+   real(rk8), pointer, contiguous :: alphapsnsun(:)
    !fractionation factor in shaded canopy psn flux
-   real(rk8), pointer :: alphapsnsha(:)
+   real(rk8), pointer, contiguous :: alphapsnsha(:)
    !!! C14
    ! sunlit leaf photosynthesis (umol 14CO2 /m**2/ s)
-   real(rk8), pointer :: c14_psnsun(:)
+   real(rk8), pointer, contiguous :: c14_psnsun(:)
    ! shaded leaf photosynthesis (umol 14CO2 /m**2/ s)
-   real(rk8), pointer :: c14_psnsha(:)
-   real(rk8), pointer :: rc14_atm(:)  ! C14O2/C12O2 in atmosphere
+   real(rk8), pointer, contiguous :: c14_psnsha(:)
+   real(rk8), pointer, contiguous :: rc14_atm(:)  ! C14O2/C12O2 in atmosphere
 
    ! vegetation transpiration (mm H2O/s) (+ = to atm)
-   real(rk8), pointer :: qflx_tran_veg(:)
+   real(rk8), pointer, contiguous :: qflx_tran_veg(:)
    ! change in t_veg, last iteration (Kelvin)
-   real(rk8), pointer :: dt_veg(:)
+   real(rk8), pointer, contiguous :: dt_veg(:)
    ! vegetation evaporation (mm H2O/s) (+ = to atm)
-   real(rk8), pointer :: qflx_evap_veg(:)
+   real(rk8), pointer, contiguous :: qflx_evap_veg(:)
    ! sensible heat flux from leaves (W/m**2) [+ to atm]
-   real(rk8), pointer :: eflx_sh_veg(:)
-   real(rk8), pointer :: taux(:)      ! wind (shear) stress: e-w (kg/m/s**2)
-   real(rk8), pointer :: tauy(:)      ! wind (shear) stress: n-s (kg/m/s**2)
+   real(rk8), pointer, contiguous :: eflx_sh_veg(:)
+   real(rk8), pointer, contiguous :: taux(:)      ! wind (shear) stress: e-w (kg/m/s**2)
+   real(rk8), pointer, contiguous :: tauy(:)      ! wind (shear) stress: n-s (kg/m/s**2)
    ! sensible heat flux from ground (W/m**2) [+ to atm]
-   real(rk8), pointer :: eflx_sh_grnd(:)
+   real(rk8), pointer, contiguous :: eflx_sh_grnd(:)
    ! soil evaporation (mm H2O/s) (+ = to atm)
-   real(rk8), pointer :: qflx_evap_soi(:)
-   real(rk8), pointer :: fpsn(:)    ! photosynthesis (umol CO2 /m**2 /s)
+   real(rk8), pointer, contiguous :: qflx_evap_soi(:)
+   real(rk8), pointer, contiguous :: fpsn(:)    ! photosynthesis (umol CO2 /m**2 /s)
    ! Rubisco-limited photosynthesis (umol CO2 /m**2 /s)
-   real(rk8), pointer :: fpsn_wc(:)
+   real(rk8), pointer, contiguous :: fpsn_wc(:)
    ! RuBP-limited photosynthesis (umol CO2 /m**2 /s)
-   real(rk8), pointer :: fpsn_wj(:)
+   real(rk8), pointer, contiguous :: fpsn_wj(:)
    ! product-limited photosynthesis (umol CO2 /m**2 /s)
-   real(rk8), pointer :: fpsn_wp(:)
+   real(rk8), pointer, contiguous :: fpsn_wp(:)
    ! effective fraction of roots in each soil layer
-   real(rk8), pointer :: rootr(:,:)
+   real(rk8), pointer, contiguous :: rootr(:,:)
    ! root resistance by layer (0-1)  (nlevgrnd)
-   real(rk8), pointer :: rresis(:,:)
+   real(rk8), pointer, contiguous :: rresis(:,:)
    !KO
    ! fractional humidity of canopy air [dimensionless]
-   real(rk8), pointer :: rhaf(:)
+   real(rk8), pointer, contiguous :: rhaf(:)
    !KO
 
 #if (defined LCH4)
    ! tracer conductance for boundary layer [m/s]
-   real(rk8), pointer :: grnd_ch4_cond(:)
+   real(rk8), pointer, contiguous :: grnd_ch4_cond(:)
    !tracer conductance for canopy [m/s]
-   real(rk8), pointer :: canopy_cond(:)
+   real(rk8), pointer, contiguous :: canopy_cond(:)
 #endif
    ! current irrigation rate [mm/s]
-   real(rk8), pointer :: irrig_rate(:)
+   real(rk8), pointer, contiguous :: irrig_rate(:)
    ! # of time steps for which we still need to irrigate today
    integer(ik4), pointer  :: n_irrig_steps_left(:)
    ! maximum annual depth of thaw
@@ -313,9 +313,9 @@ module mod_clm_canopyfluxes
    ! max limit for temperature convergence [K]
    real(rk8), parameter :: dtmin = 0.01_rk8
    ! maximum number of iteration [-]
-   integer(ik4) , parameter :: itmax = 40
+   integer(ik4), parameter :: itmax = 40
    ! minimum number of iteration [-]
-   integer(ik4) , parameter :: itmin = 2
+   integer(ik4), parameter :: itmin = 2
    ! Minimum LAI for irrigation
    real(rk8), parameter :: irrig_min_lai = 0.0_rk8
    ! Irrigate when btran falls below 0.999999 rather than 1 to
@@ -324,11 +324,11 @@ module mod_clm_canopyfluxes
    ! Time of day to check whether we need irrigation, seconds (0 = midnight).
    ! We start applying the irrigation in the time step FOLLOWING this time,
    ! since we won't begin irrigating until the next call to Hydrology1
-   integer(ik4) , parameter :: irrig_start_time = isecspday/4
+   integer(ik4), parameter :: irrig_start_time = isecspday/4
    ! Desired amount of time to irrigate per day (sec). Actual time may
    ! differ if this is not a multiple of dtsrf. Irrigation won't work properly
    ! if dtsrf > secsperday
-   integer(ik4) , parameter :: irrig_length = isecspday/6
+   integer(ik4), parameter :: irrig_length = isecspday/6
    ! Determines target soil moisture level for irrigation. If h2osoi_liq_so
    ! is the soil moisture level at which stomata are fully open and
    ! h2osoi_liq_sat is the soil moisture level at saturation (eff_porosity),
@@ -698,7 +698,7 @@ module mod_clm_canopyfluxes
    ! Filter pfts where frac_veg_nosno is non-zero
 
    fn = 0
-   do fp = 1 , num_nolakep
+   do fp = 1, num_nolakep
      p = filter_nolakep(fp)
      if (frac_veg_nosno(p) /= 0) then
        fn = fn + 1
@@ -794,8 +794,8 @@ module mod_clm_canopyfluxes
    ! Effective porosity of soil, partial volume of ice and liquid
    ! (needed for btran) and root resistance factors
 
-   do j = 1 , nlevgrnd
-     do f = 1 , fn
+   do j = 1, nlevgrnd
+     do f = 1, fn
        p = filterp(f)
        c = pcolumn(p)
        l = plandunit(p)
@@ -831,7 +831,7 @@ module mod_clm_canopyfluxes
 
    ! Normalize root resistances to get layer contribution to ET
 
-   do j = 1 , nlevgrnd
+   do j = 1, nlevgrnd
      do f = 1, fn
        p = filterp(f)
        if ( btran(p) > btran0 ) then
@@ -1466,26 +1466,26 @@ module mod_clm_canopyfluxes
       integer(ik4), intent(in) :: filterp(fn) ! pft filter
       character(len=*), intent(in) :: phase   ! 'sun' or 'sha'
 
-      integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
-      integer(ik4) , pointer :: ivt(:)        ! pft vegetation type
+      integer(ik4), pointer, contiguous :: pgridcell(:)  ! pft's gridcell index
+      integer(ik4), pointer, contiguous :: ivt(:)        ! pft vegetation type
       ! photosynthetic pathway: 0. = c4, 1. = c3
-      real(rk8), pointer :: c3psn(:)
+      real(rk8), pointer, contiguous :: c3psn(:)
       ! number of canopy layers, above snow for radiative transfer
-      integer(ik4) , pointer :: nrad(:)
+      integer(ik4), pointer, contiguous :: nrad(:)
       ! par absorbed per unit lai for canopy layer (w/m**2)
-      real(rk8), pointer :: par_z(:,:)
+      real(rk8), pointer, contiguous :: par_z(:,:)
       ! partial pressure co2 (Pa)
-      real(rk8), pointer :: forc_pco2(:)
+      real(rk8), pointer, contiguous :: forc_pco2(:)
       ! fractional reduction in GPP due to N limitation (DIM)
-      real(rk8), pointer :: downreg(:)
-      real(rk8), pointer :: alphapsn(:)
-      real(rk8), pointer :: forc_pbot(:) ! atmospheric pressure (Pa)
+      real(rk8), pointer, contiguous :: downreg(:)
+      real(rk8), pointer, contiguous :: alphapsn(:)
+      real(rk8), pointer, contiguous :: forc_pbot(:) ! atmospheric pressure (Pa)
       ! net leaf photosynthesis (umol CO2/m**2/s)
-      real(rk8), pointer :: an(:,:)
+      real(rk8), pointer, contiguous :: an(:,:)
       ! leaf stomatal conductance (umol H2O/m**2/s)
-      real(rk8), pointer :: gs_mol(:,:)
+      real(rk8), pointer, contiguous :: gs_mol(:,:)
       ! leaf boundary layer conductance (umol H2O/m**2/s)
-      real(rk8), pointer :: gb_mol(:)
+      real(rk8), pointer, contiguous :: gb_mol(:)
 
       integer(ik4) :: f,p,g,iv  ! indices
       real(rk8) :: co2(lbp:ubp) ! atmospheric co2 partial pressure (pa)
@@ -1540,11 +1540,11 @@ module mod_clm_canopyfluxes
   !
   subroutine Photosynthesis(fn, filterp, lbp, ubp, esat_tv, eair, oair, cair, &
                             rb, dayl_factor, phase)
-    use mod_clm_varcon , only : rgas , tfrz
+    use mod_clm_varcon, only : rgas, tfrz
     implicit none
-    integer(ik4) , intent(in)    :: fn            ! size of pft filter
-    integer(ik4) , intent(in)    :: filterp(fn)   ! pft filter
-    integer(ik4) , intent(in)    :: lbp, ubp      ! pft bounds
+    integer(ik4), intent(in)    :: fn            ! size of pft filter
+    integer(ik4), intent(in)    :: filterp(fn)   ! pft filter
+    integer(ik4), intent(in)    :: lbp, ubp      ! pft bounds
     ! saturation vapor pressure at t_veg (Pa)
     real(rk8), intent(in)    :: esat_tv(lbp:ubp)
     ! vapor pressure of canopy air (Pa)
@@ -1559,85 +1559,85 @@ module mod_clm_canopyfluxes
     real(rk8), intent(in)    :: dayl_factor(lbp:ubp)
     character(len=*), intent(in) :: phase  ! 'sun' or 'sha'
 
-    integer(ik4) , pointer :: pgridcell(:)! pft's gridcell index
-    integer(ik4) , pointer :: ivt(:)      ! pft vegetation type
-    real(rk8), pointer :: forc_pbot(:)! atmospheric pressure (Pa)
-    real(rk8), pointer :: t_veg(:)    ! vegetation temperature (Kelvin)
-    real(rk8), pointer :: btran(:)    ! transpiration wetness factor (0 to 1)
+    integer(ik4), pointer, contiguous :: pgridcell(:)! pft's gridcell index
+    integer(ik4), pointer, contiguous :: ivt(:)      ! pft vegetation type
+    real(rk8), pointer, contiguous :: forc_pbot(:)! atmospheric pressure (Pa)
+    real(rk8), pointer, contiguous :: t_veg(:)    ! vegetation temperature (Kelvin)
+    real(rk8), pointer, contiguous :: btran(:)    ! transpiration wetness factor (0 to 1)
     ! air temperature at agcm reference height (kelvin)
-    real(rk8), pointer :: tgcm(:)
+    real(rk8), pointer, contiguous :: tgcm(:)
     ! photosynthetic pathway: 0. = c4, 1. = c3
-    real(rk8), pointer :: c3psn(:)
+    real(rk8), pointer, contiguous :: c3psn(:)
     ! specific leaf area at top of canopy, projected area basis [m^2/gC]
-    real(rk8), pointer :: slatop(:)
+    real(rk8), pointer, contiguous :: slatop(:)
     ! fraction of leaf N in the Rubisco enzyme (gN Rubisco / gN leaf)
-    real(rk8), pointer :: flnr(:)
-    real(rk8), pointer :: fnitr(:)  ! foliage nitrogen limitation factor (-)
-    real(rk8), pointer :: leafcn(:) ! leaf C:N (gC/gN)
+    real(rk8), pointer, contiguous :: flnr(:)
+    real(rk8), pointer, contiguous :: fnitr(:)  ! foliage nitrogen limitation factor (-)
+    real(rk8), pointer, contiguous :: leafcn(:) ! leaf C:N (gC/gN)
     ! number of canopy layers, above snow for radiative transfer
-    integer(ik4) , pointer :: nrad(:)
-    real(rk8), pointer :: tlai_z(:,:) ! total leaf area index for canopy layer
+    integer(ik4), pointer, contiguous :: nrad(:)
+    real(rk8), pointer, contiguous :: tlai_z(:,:) ! total leaf area index for canopy layer
     ! leaf area index for canopy layer, sunlit or shaded
-    real(rk8), pointer :: lai_z(:,:)
+    real(rk8), pointer, contiguous :: lai_z(:,:)
     ! par absorbed per unit lai for canopy layer (w/m**2)
-    real(rk8), pointer :: par_z(:,:)
-    real(rk8), pointer :: vcmaxcint(:) ! leaf to canopy scaling coefficient
+    real(rk8), pointer, contiguous :: par_z(:,:)
+    real(rk8), pointer, contiguous :: vcmaxcint(:) ! leaf to canopy scaling coefficient
     !KO
     ! 10-day running mean of the 2 m temperature (K)
-    real(rk8), pointer :: t10(:)
+    real(rk8), pointer, contiguous :: t10(:)
     !KO
 
     !!! C13
-    real(rk8), pointer :: alphapsn(:) ! 13C fractionation factor for PSN ()
+    real(rk8), pointer, contiguous :: alphapsn(:) ! 13C fractionation factor for PSN ()
 
     ! canopy layer: foliage photosynthesis (umol co2 /m**2/ s) [always +]
-    real(rk8), pointer :: psn_z(:,:)
+    real(rk8), pointer, contiguous :: psn_z(:,:)
     ! canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
-    real(rk8), pointer :: lmr_z(:,:)
+    real(rk8), pointer, contiguous :: lmr_z(:,:)
     ! canopy layer: leaf stomatal resistance (s/m)
-    real(rk8), pointer :: rs_z(:,:)
-    real(rk8), pointer :: ci_z(:,:)   ! intracellular leaf CO2 (Pa)
+    real(rk8), pointer, contiguous :: rs_z(:,:)
+    real(rk8), pointer, contiguous :: ci_z(:,:)   ! intracellular leaf CO2 (Pa)
     ! foliage photosynthesis (umol co2 /m**2/ s) [always +]
-    real(rk8), pointer :: psn(:)
+    real(rk8), pointer, contiguous :: psn(:)
     ! Rubisco-limited foliage photosynthesis (umol co2 /m**2/ s) [always +]
-    real(rk8), pointer :: psn_wc(:)
+    real(rk8), pointer, contiguous :: psn_wc(:)
     ! RuBP-limited foliage photosynthesis (umol co2 /m**2/ s) [always +]
-    real(rk8), pointer :: psn_wj(:)
+    real(rk8), pointer, contiguous :: psn_wj(:)
     ! product-limited foliage photosynthesis (umol co2 /m**2/ s) [always +]
-    real(rk8), pointer :: psn_wp(:)
+    real(rk8), pointer, contiguous :: psn_wp(:)
     ! leaf maintenance respiration rate (umol CO2/m**2/s)
-    real(rk8), pointer :: lmr(:)
+    real(rk8), pointer, contiguous :: lmr(:)
     ! leaf stomatal resistance (s/m)
-    real(rk8), pointer :: rs(:)
+    real(rk8), pointer, contiguous :: rs(:)
     !KO
     ! fractional humidity at leaf surface (dimensionless)
-    real(rk8), pointer :: rh_leaf(:)
+    real(rk8), pointer, contiguous :: rh_leaf(:)
     !KO
 
     ! Leaf photosynthesis parameters
 
     ! maximum rate of carboxylation (umol co2/m**2/s)
-    real(rk8),pointer :: vcmax_z(:,:)
+    real(rk8),pointer, contiguous :: vcmax_z(:,:)
     ! maximum electron transport rate (umol electrons/m**2/s)
     real(rk8) :: jmax_z(lbp:ubp,nlevcan)
     ! triose phosphate utilization rate (umol CO2/m**2/s)
-    real(rk8),pointer :: tpu_z(:,:)
+    real(rk8),pointer, contiguous :: tpu_z(:,:)
     ! initial slope of CO2 response curve (C4 plants)
-    real(rk8),pointer :: kp_z(:,:)
+    real(rk8),pointer, contiguous :: kp_z(:,:)
 
     logical,pointer  :: c3flag(:) ! true if C3 and false if C4
     real(rk8) :: lnc(lbp:ubp)     ! leaf N concentration (gN leaf/m^2)
-    real(rk8),pointer :: kc(:)    ! Michaelis-Menten constant for CO2 (Pa)
-    real(rk8),pointer :: ko(:)    ! Michaelis-Menten constant for O2 (Pa)
-    real(rk8),pointer :: cp(:)    ! CO2 compensation point (Pa)
+    real(rk8),pointer, contiguous :: kc(:)    ! Michaelis-Menten constant for CO2 (Pa)
+    real(rk8),pointer, contiguous :: ko(:)    ! Michaelis-Menten constant for O2 (Pa)
+    real(rk8),pointer, contiguous :: cp(:)    ! CO2 compensation point (Pa)
     ! Ball-Berry minimum leaf conductance, unstressed (umol H2O/m**2/s)
     real(rk8) :: bbbopt(lbp:ubp)
     ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
-    real(rk8),pointer :: bbb(:)
+    real(rk8),pointer, contiguous :: bbb(:)
     ! Ball-Berry slope of conductance-photosynthesis relationship, unstressed
     real(rk8) :: mbbopt(lbp:ubp)
     ! Ball-Berry slope of conductance-photosynthesis relationship
-    real(rk8),pointer :: mbb(:)
+    real(rk8),pointer, contiguous :: mbb(:)
     ! leaf nitrogen decay coefficient
     real(rk8) :: kn(lbp:ubp)
     ! canopy top: maximum rate of carboxylation at 25C (umol CO2/m**2/s)
@@ -1693,14 +1693,14 @@ module mod_clm_canopyfluxes
     real(rk8) :: lmrc
 
     ! quantum efficiency, used only for C4 (mol CO2 / mol photons)
-    real(rk8),pointer :: qe(:)
+    real(rk8),pointer, contiguous :: qe(:)
     ! fraction of light absorbed by non-photosynthetic pigments
     real(rk8) :: fnps
     ! empirical curvature parameter for electron transport rate
     real(rk8) :: theta_psii
 
     ! empirical curvature parameter for ac, aj photosynthesis co-limitation
-    real(rk8),pointer :: theta_cj(:)
+    real(rk8),pointer, contiguous :: theta_cj(:)
     ! empirical curvature parameter for ap photosynthesis co-limitation
     real(rk8) :: theta_ip
 
@@ -1724,20 +1724,20 @@ module mod_clm_canopyfluxes
     real(rk8) :: nscaler       ! leaf nitrogen scaling coefficient
 
     ! Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer :: ac(:,:)
+    real(rk8),pointer, contiguous :: ac(:,:)
     ! RuBP-limited gross photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer :: aj(:,:)
+    real(rk8),pointer, contiguous :: aj(:,:)
     ! product-limited (C3) or CO2-limited (C4) gross
     ! photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer :: ap(:,:)
+    real(rk8),pointer, contiguous :: ap(:,:)
     ! co-limited gross leaf photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer :: ag(:,:)
+    real(rk8),pointer, contiguous :: ag(:,:)
     ! net leaf photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer :: an(:,:)
+    real(rk8),pointer, contiguous :: an(:,:)
     ! leaf stomatal conductance (umol H2O/m**2/s)
-    real(rk8),pointer :: gs_mol(:,:)
+    real(rk8),pointer, contiguous :: gs_mol(:,:)
     ! leaf boundary layer conductance (umol H2O/m**2/s)
-    real(rk8),pointer :: gb_mol(:)
+    real(rk8),pointer, contiguous :: gb_mol(:)
 
     ! Rubisco-limited contribution to psn_z (umol CO2/m**2/s)
     real(rk8) :: psn_wc_z(lbp:ubp,nlevcan)
@@ -1894,7 +1894,7 @@ module mod_clm_canopyfluxes
     theta_psii = 0.7_rk8
     theta_ip = 0.95_rk8
 
-    do f = 1 , fn
+    do f = 1, fn
       p = filterp(f)
       g = pgridcell(p)
 
@@ -2319,7 +2319,7 @@ module mod_clm_canopyfluxes
     ! photosynthesis temperature response
     !
     pure real(rk8) function ft(tl,ha)
-      use mod_clm_varcon , only : rgas , tfrz
+      use mod_clm_varcon, only : rgas, tfrz
       implicit none
       ! leaf temperature in photosynthesis temperature function (K)
       real(rk8), intent(in) :: tl
@@ -2331,7 +2331,7 @@ module mod_clm_canopyfluxes
     ! photosynthesis temperature inhibition
     !
     pure real(rk8) function fth(tl,hd,se,cc)
-      use mod_clm_varcon , only : rgas
+      use mod_clm_varcon, only : rgas
       implicit none
       ! leaf temperature in photosynthesis temperature function (K)
       real(rk8), intent(in) :: tl
@@ -2347,7 +2347,7 @@ module mod_clm_canopyfluxes
     ! scaling factor for photosynthesis temperature inhibition
     !
     pure real(rk8) function fth25(hd,se)
-      use mod_clm_varcon , only : rgas , tfrz
+      use mod_clm_varcon, only : rgas, tfrz
       implicit none
       ! deactivation energy in photosynthesis temperature function (J/mol)
       real(rk8), intent(in) :: hd
@@ -2389,36 +2389,36 @@ module mod_clm_canopyfluxes
     real(rk8), intent(out) :: fval   !return function of the value f(ci)
     ! leaf stomatal conductance (umol H2O/m**2/s)
     real(rk8), intent(out) :: gs_mol
-    logical, pointer :: c3flag(:)    ! true if C3 and false if C4
+    logical, pointer, contiguous :: c3flag(:)    ! true if C3 and false if C4
     ! Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer :: ac(:,:)
+    real(rk8),pointer, contiguous :: ac(:,:)
     ! RuBP-limited gross photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer :: aj(:,:)
+    real(rk8),pointer, contiguous :: aj(:,:)
     ! product-limited (C3) or CO2-limited (C4) gross
     ! photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer :: ap(:,:)
+    real(rk8),pointer, contiguous :: ap(:,:)
     ! co-limited gross leaf photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer :: ag(:,:)
+    real(rk8),pointer, contiguous :: ag(:,:)
     ! net leaf photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer :: an(:,:)
+    real(rk8),pointer, contiguous :: an(:,:)
     ! maximum rate of carboxylation (umol co2/m**2/s)
-    real(rk8),pointer :: vcmax_z(:,:)
-    real(rk8),pointer :: cp(:)  ! CO2 compensation point (Pa)
-    real(rk8),pointer :: kc(:)  ! Michaelis-Menten constant for CO2 (Pa)
-    real(rk8),pointer :: ko(:)  ! Michaelis-Menten constant for O2 (Pa)
+    real(rk8),pointer, contiguous :: vcmax_z(:,:)
+    real(rk8),pointer, contiguous :: cp(:)  ! CO2 compensation point (Pa)
+    real(rk8),pointer, contiguous :: kc(:)  ! Michaelis-Menten constant for CO2 (Pa)
+    real(rk8),pointer, contiguous :: ko(:)  ! Michaelis-Menten constant for O2 (Pa)
     ! quantum efficiency, used only for C4 (mol CO2 / mol photons)
-    real(rk8),pointer :: qe(:)
+    real(rk8),pointer, contiguous :: qe(:)
     ! triose phosphate utilization rate (umol CO2/m**2/s)
-    real(rk8),pointer :: tpu_z(:,:)
+    real(rk8),pointer, contiguous :: tpu_z(:,:)
     ! initial slope of CO2 response curve (C4 plants)
-    real(rk8),pointer :: kp_z(:,:)
+    real(rk8),pointer, contiguous :: kp_z(:,:)
     ! empirical curvature parameter for ac, aj photosynthesis co-limitation
-    real(rk8),pointer :: theta_cj(:)
-    real(rk8),pointer :: forc_pbot(:) ! atmospheric pressure (Pa)
+    real(rk8),pointer, contiguous :: theta_cj(:)
+    real(rk8),pointer, contiguous :: forc_pbot(:) ! atmospheric pressure (Pa)
     ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
-    real(rk8),pointer :: bbb(:)
+    real(rk8),pointer, contiguous :: bbb(:)
     ! Ball-Berry slope of conductance-photosynthesis relationship
-    real(rk8),pointer :: mbb(:)
+    real(rk8),pointer, contiguous :: mbb(:)
 
     real(rk8) :: ai ! intermediate co-limited photosynthesis (umol CO2/m**2/s)
     real(rk8) :: cs ! CO2 partial pressure at leaf surface (Pa)
@@ -2589,8 +2589,8 @@ module mod_clm_canopyfluxes
 
     real(rk8) :: x1, f0, f1
     real(rk8) :: x, dx
-    real(rk8) , parameter :: eps = 1.e-2_rk8 !relative accuracy
-    real(rk8) , parameter :: eps1= 1.e-4_rk8
+    real(rk8), parameter :: eps = 1.e-2_rk8 !relative accuracy
+    real(rk8), parameter :: eps1= 1.e-4_rk8
     integer(ik4),  parameter :: itmax = 40 !maximum number of iterations
     real(rk8) :: tol,minx,minf
 

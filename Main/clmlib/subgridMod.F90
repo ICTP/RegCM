@@ -10,9 +10,9 @@ module subgridMod
 !
 ! !USES:
   use shr_kind_mod, only : r8 => shr_kind_r8
-  use spmdMod     , only : masterproc
-  use nanMod      , only : bigint,nan
-  use abortutils  , only : endrun
+  use spmdMod    , only : masterproc
+  use nanMod     , only : bigint,nan
+  use abortutils , only : endrun
 
   implicit none
   private
@@ -25,35 +25,35 @@ module subgridMod
 
   type subgrid_type
      character(len=32) :: name
-     integer , pointer :: g_li(:)
-     integer , pointer :: g_ln(:)
-     integer , pointer :: g_ci(:)
-     integer , pointer :: g_cn(:)
-     integer , pointer :: g_pi(:)
-     integer , pointer :: g_pn(:)
-!     integer , pointer :: g_lf(:)
-!     integer , pointer :: g_cf(:)
-!     integer , pointer :: g_pf(:)
-!     integer , pointer :: l_g(:)
+     integer, pointer :: g_li(:)
+     integer, pointer :: g_ln(:)
+     integer, pointer :: g_ci(:)
+     integer, pointer :: g_cn(:)
+     integer, pointer :: g_pi(:)
+     integer, pointer :: g_pn(:)
+!     integer, pointer :: g_lf(:)
+!     integer, pointer :: g_cf(:)
+!     integer, pointer :: g_pf(:)
+!     integer, pointer :: l_g(:)
 !     real(r8), pointer :: l_gw(:)
-!     integer , pointer :: l_ci(:)
-!     integer , pointer :: l_cf(:)
-!     integer , pointer :: l_cn(:)
-!     integer , pointer :: l_pi(:)
-!     integer , pointer :: l_pf(:)
-!     integer , pointer :: l_pn(:)
-!     integer , pointer :: c_g(:)
+!     integer, pointer :: l_ci(:)
+!     integer, pointer :: l_cf(:)
+!     integer, pointer :: l_cn(:)
+!     integer, pointer :: l_pi(:)
+!     integer, pointer :: l_pf(:)
+!     integer, pointer :: l_pn(:)
+!     integer, pointer :: c_g(:)
 !     real(r8), pointer :: c_gw(:)
-!     integer , pointer :: c_l(:)
+!     integer, pointer :: c_l(:)
 !     real(r8), pointer :: c_lw(:)
-!     integer , pointer :: c_pi(:)
-!     integer , pointer :: c_pf(:)
-!     integer , pointer :: c_pn(:)
-!     integer , pointer :: p_g(:)
+!     integer, pointer :: c_pi(:)
+!     integer, pointer :: c_pf(:)
+!     integer, pointer :: c_pn(:)
+!     integer, pointer :: p_g(:)
 !     real(r8), pointer :: p_gw(:)
-!     integer , pointer :: p_l(:)
+!     integer, pointer :: p_l(:)
 !     real(r8), pointer :: p_lw(:)
-!     integer , pointer :: p_c(:)
+!     integer, pointer :: p_c(:)
 !     real(r8), pointer :: p_cw(:)
   end type subgrid_type
   public subgrid_type
@@ -89,7 +89,7 @@ contains
 ! !ARGUMENTS
     implicit none
     type(subgrid_type) :: subgrid               ! subgrid to init
-    integer , intent(in)  :: ng,nl,nc,np           ! size to init
+    integer, intent(in)  :: ng,nl,nc,np           ! size to init
     character(len=*),intent(in),optional :: name   ! optional name
 !
 ! !CALLED FROM:
@@ -146,7 +146,7 @@ contains
 !  Gets indices for dc2sn mapping routines
 !
 ! !USES:
-   use clmtype   , only : nameg, namel, namec, namep
+   use clmtype  , only : nameg, namel, namec, namep
 !
 ! !ARGUMENTS:
     implicit none
@@ -204,26 +204,26 @@ end subroutine subgrid_get_indexes
 ! Obtain gridcell properties
 !
 ! !USES
-  use clm_varpar  , only : numpft, maxpatch_pft, &
+  use clm_varpar , only : numpft, maxpatch_pft, &
                            npatch_lake, npatch_glacier, npatch_wet, npatch_crop
-  use clm_varctl  , only : allocate_all_vegpfts
-  use clm_varsur  , only : wtxy
+  use clm_varctl , only : allocate_all_vegpfts
+  use clm_varsur , only : wtxy
 
 ! !ARGUMENTS
     implicit none
-    integer , intent(in)  :: nw                   ! wtxy cell index
-    integer , optional, intent(out) :: nlunits    ! number of landunits
-    integer , optional, intent(out) :: ncols      ! number of columns
-    integer , optional, intent(out) :: npfts      ! number of pfts
-    integer , optional, intent(out) :: nveg       ! number of vegetated pfts in naturally vegetated landunit
+    integer, intent(in)  :: nw                   ! wtxy cell index
+    integer, optional, intent(out) :: nlunits    ! number of landunits
+    integer, optional, intent(out) :: ncols      ! number of columns
+    integer, optional, intent(out) :: npfts      ! number of pfts
+    integer, optional, intent(out) :: nveg       ! number of vegetated pfts in naturally vegetated landunit
     real(r8), optional, intent(out) :: wtveg      ! weight (relative to gridcell) of naturally vegetated landunit
-    integer , optional, intent(out) :: ncrop      ! number of crop pfts in crop landunit
+    integer, optional, intent(out) :: ncrop      ! number of crop pfts in crop landunit
     real(r8), optional, intent(out) :: wtcrop     ! weight (relative to gridcell) of crop landunit
-    integer , optional, intent(out) :: nlake      ! number of lake pfts (columns) in lake landunit
+    integer, optional, intent(out) :: nlake      ! number of lake pfts (columns) in lake landunit
     real(r8), optional, intent(out) :: wtlake     ! weight (relative to gridcell) of lake landunitof lake pfts (columns) in lake landunit
-    integer , optional, intent(out) :: nwetland   ! number of wetland pfts (columns) in wetland landunit
+    integer, optional, intent(out) :: nwetland   ! number of wetland pfts (columns) in wetland landunit
     real(r8), optional, intent(out) :: wtwetland  ! weight (relative to gridcell) of wetland landunitof wetland pfts (columns) in wetland landunit
-    integer , optional, intent(out) :: nglacier   ! number of glacier pfts (columns) in glacier landunit
+    integer, optional, intent(out) :: nglacier   ! number of glacier pfts (columns) in glacier landunit
     real(r8), optional, intent(out) :: wtglacier  ! weight (relative to gridcell) of glacier landunitof glacier pfts (columns) in glacier landunit
 !
 ! !CALLED FROM:

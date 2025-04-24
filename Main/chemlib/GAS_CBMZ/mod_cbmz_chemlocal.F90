@@ -322,29 +322,29 @@ module mod_cbmz_chemlocal
 !!$!FAB : VERY DANGEROUS HERE, LOCAL COUNTER SHOULD NOT BE DEFINED in GLOBAL MODULE
 !!$
 !!$  ! Chem index
-!!$  integer(ik4) :: ic , ic1 , ic2 , ic3 , iic , icc , ics , ics2 , icc1 , icc2 , icc3
+!!$  integer(ik4) :: ic, ic1, ic2, ic3, iic, icc, ics, ics2, icc1, icc2, icc3
 !!$  ! Chem local index
-!!$  integer(ik4) :: is , iss , iscs , isc2
+!!$  integer(ik4) :: is, iss, iscs, isc2
 !!$  ! Chem index
-!!$  integer(ik4) :: ich , icq , icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
+!!$  integer(ik4) :: ich, icq, icx, icx1, icx2, icy1, icy2, icp, icp1, icp2
 !!$  ! chem index - pair and multi
-!!$  integer(ik4) :: icr1 , icr2 , icr , isr1 , isr2 , icpair
+!!$  integer(ik4) :: icr1, icr2, icr, isr1, isr2, icpair
 !!$  ! aquasolve ion counter
 !!$  integer(ik4) :: ionsum
 !!$  ! Aquasolve chem index
-!!$  integer(ik4) :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
+!!$  integer(ik4) :: ica1, ica2, icb1, icb2, nra1, nra2, nrb1, nrb2
 !!$  ! Aqueous counters
 !!$  integer(ik4) :: neq
 !!$  ! Chem species counters
-!!$  integer(ik4) :: nc , nc1 , nc2 , ncc , ncf , nn , nne
+!!$  integer(ik4) :: nc, nc1, nc2, ncc, ncf, nn, nne
 !!$  ! Reaction counters
-!!$  integer(ik4) :: nr , nr1 , nr2 , nrh , nrq , nrqq , nrx , np
+!!$  integer(ik4) :: nr, nr1, nr2, nrh, nrq, nrqq, nrx, np
 !!$  ! indices used for species categories
-!!$  integer(ik4) :: icat1 , icat2 , icatp , icatp2
+!!$  integer(ik4) :: icat1, icat2, icatp, icatp2
 !!$  ! Vectorization counters
-!!$  integer(ik4) :: kk , kw
+!!$  integer(ik4) :: kk, kw
 !!$  ! General counters
-!!$  integer(ik4) :: i , j , k , ii , ij , iii , n
+!!$  integer(ik4) :: i, j, k, ii, ij, iii, n
 !!$!
 ! CUT LOCAL VARIABLES  - Local in individual subroutines
 !

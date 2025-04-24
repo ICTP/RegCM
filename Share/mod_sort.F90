@@ -52,13 +52,13 @@ module mod_sort
     module procedure mostfrequent_r8
   end interface mostfrequent
 
-  public :: sort , argsort , msi_index , mostfrequent
+  public :: sort, argsort, msi_index, mostfrequent
 
   contains
 
   subroutine sort_int32(x)
     implicit none
-    integer(kind=ik4) , dimension(:) , intent(inout) :: x
+    integer(kind=ik4), dimension(:), intent(inout) :: x
     integer :: istart, istop
     istart = 1
     istop = size(x)
@@ -67,7 +67,7 @@ module mod_sort
 
   subroutine sort_int64(x)
     implicit none
-    integer(kind=ik8) , dimension(:) , intent(inout) :: x
+    integer(kind=ik8), dimension(:), intent(inout) :: x
     integer :: istart, istop
     istart = 1
     istop = size(x)
@@ -76,7 +76,7 @@ module mod_sort
 
   subroutine sort_real32(x)
     implicit none
-    real(kind=rk4) , dimension(:) , intent(inout) :: x
+    real(kind=rk4), dimension(:), intent(inout) :: x
     integer :: istart, istop
     istart = 1
     istop = size(x)
@@ -85,7 +85,7 @@ module mod_sort
 
   subroutine sort_real64(x)
     implicit none
-    real(kind=rk8) , dimension(:) , intent(inout) :: x
+    real(kind=rk8), dimension(:), intent(inout) :: x
     integer :: istart, istop
     istart = 1
     istop = size(x)
@@ -94,8 +94,8 @@ module mod_sort
 
    recursive subroutine quicksort_int32(x,first,last)
     implicit none
-    integer(kind=ik4) , dimension(:) , intent(inout) :: x
-    integer , intent(in) :: first, last
+    integer(kind=ik4), dimension(:), intent(inout) :: x
+    integer, intent(in) :: first, last
     integer(kind=ik4) :: pivot, temp
     integer :: left, right
 
@@ -125,8 +125,8 @@ module mod_sort
 
   recursive subroutine quicksort_int64(x,first,last)
     implicit none
-    integer(kind=ik8) , dimension(:) , intent(inout) :: x
-    integer , intent(in) :: first, last
+    integer(kind=ik8), dimension(:), intent(inout) :: x
+    integer, intent(in) :: first, last
     integer(kind=ik8) :: pivot, temp
     integer :: left, right
 
@@ -156,8 +156,8 @@ module mod_sort
 
   recursive subroutine quicksort_real32(x,first,last)
     implicit none
-    real(kind=rk4) , dimension(:) , intent(inout) :: x
-    integer , intent(in) :: first, last
+    real(kind=rk4), dimension(:), intent(inout) :: x
+    integer, intent(in) :: first, last
     real(kind=rk4) :: pivot, temp
     integer :: left, right
 
@@ -187,8 +187,8 @@ module mod_sort
 
   recursive subroutine quicksort_real64(x,first,last)
     implicit none
-    real(kind=rk8) , dimension(:) , intent(inout) :: x
-    integer , intent(in) :: first, last
+    real(kind=rk8), dimension(:), intent(inout) :: x
+    integer, intent(in) :: first, last
     real(kind=rk8) :: pivot, temp
     integer :: left, right
 
@@ -218,12 +218,12 @@ module mod_sort
 
   subroutine msi_r8(a,idx,jdx)
     implicit none
-    real(rk8) , dimension(:,:) , intent(in) :: a
-    integer(ik4) , dimension(:,:) , intent(out) :: idx , jdx
-    real(rk8) , dimension(:) , allocatable :: b
+    real(rk8), dimension(:,:), intent(in) :: a
+    integer(ik4), dimension(:,:), intent(out) :: idx, jdx
+    real(rk8), dimension(:), allocatable :: b
     integer(ik4), dimension(product(shape(a))) :: iord
-    integer(ik4) :: nn , n , i , j , ii , jj , nx , ny
-    integer(ik4) :: is , js
+    integer(ik4) :: nn, n, i, j, ii, jj, nx, ny
+    integer(ik4) :: is, js
     nn = product(shape(a))
     b = reshape(a,(/nn/))
     iord = argsort(b)
@@ -231,7 +231,7 @@ module mod_sort
     ny = size(a,2)
     is = lbound(a,1)
     js = lbound(a,2)
-    do n = 1 , nn
+    do n = 1, nn
       j = js + (iord(n)-1)/nx
       i = is + (iord(n)-1)-(j-js)*nx
       jj = 1 + (n-1)/nx
@@ -243,12 +243,12 @@ module mod_sort
 
   subroutine msi_r4(a,idx,jdx)
     implicit none
-    real(rk4) , dimension(:,:) , intent(in) :: a
-    integer(ik4) , dimension(:,:) , intent(out) :: idx , jdx
-    real(rk4) , dimension(:) , allocatable :: b
+    real(rk4), dimension(:,:), intent(in) :: a
+    integer(ik4), dimension(:,:), intent(out) :: idx, jdx
+    real(rk4), dimension(:), allocatable :: b
     integer(ik4), dimension(product(shape(a))) :: iord
-    integer(ik4) :: nn , n , i , j , ii , jj , nx , ny
-    integer(ik4) :: is , js
+    integer(ik4) :: nn, n, i, j, ii, jj, nx, ny
+    integer(ik4) :: is, js
     nn = product(shape(a))
     b = reshape(a,(/nn/))
     iord = argsort(b)
@@ -256,7 +256,7 @@ module mod_sort
     ny = size(a,2)
     is = lbound(a,1)
     js = lbound(a,2)
-    do n = 1 , nn
+    do n = 1, nn
       j = js + (iord(n)-1)/nx
       i = is + (iord(n)-1)-(j-js)*nx
       jj = 1 + (n-1)/nx
@@ -268,12 +268,12 @@ module mod_sort
 
   subroutine msi_i4(a,idx,jdx)
     implicit none
-    integer(ik4) , dimension(:,:) , intent(in) :: a
-    integer(ik4) , dimension(:,:) , intent(out) :: idx , jdx
-    integer(ik4) , dimension(:) , allocatable :: b
+    integer(ik4), dimension(:,:), intent(in) :: a
+    integer(ik4), dimension(:,:), intent(out) :: idx, jdx
+    integer(ik4), dimension(:), allocatable :: b
     integer(ik4), dimension(product(shape(a))) :: iord
-    integer(ik4) :: nn , n , i , j , ii , jj , nx , ny
-    integer(ik4) :: is , js
+    integer(ik4) :: nn, n, i, j, ii, jj, nx, ny
+    integer(ik4) :: is, js
     nn = product(shape(a))
     b = reshape(a,(/nn/))
     iord = argsort(b)
@@ -281,7 +281,7 @@ module mod_sort
     ny = size(a,2)
     is = lbound(a,1)
     js = lbound(a,2)
-    do n = 1 , nn
+    do n = 1, nn
       j = js + (iord(n)-1)/nx
       i = is + (iord(n)-1)-(j-js)*nx
       jj = 1 + (n-1)/nx
@@ -293,18 +293,18 @@ module mod_sort
 
   function argsort_r8(a) result(b)
     implicit none
-    real(rk8) , intent(in) :: a(:)
-    integer(ik4) , dimension(size(a)) :: b
-    integer :: n , i , imin , temp1
+    real(rk8), intent(in) :: a(:)
+    integer(ik4), dimension(size(a)) :: b
+    integer :: n, i, imin, temp1
     real(rk8) :: temp2
-    real(rk8) , dimension(size(a)) :: a2
+    real(rk8), dimension(size(a)) :: a2
     a2 = a
     n = size(a)
-    do i = 1 , n
+    do i = 1, n
       b(i) = i
     end do
     if ( n == 1 ) return
-    do i = 1 , n-1
+    do i = 1, n-1
       imin = minloc(a2(i:),1) + i - 1
       if ( imin /= i ) then
         temp2 = a2(i)
@@ -319,18 +319,18 @@ module mod_sort
 
   function argsort_r4(a) result(b)
     implicit none
-    real(rk4) , intent(in) :: a(:)
-    integer(ik4) , dimension(size(a)) :: b
-    integer :: n , i , imin , temp1
+    real(rk4), intent(in) :: a(:)
+    integer(ik4), dimension(size(a)) :: b
+    integer :: n, i, imin, temp1
     real(rk4) :: temp2
-    real(rk4) , dimension(size(a)) :: a2
+    real(rk4), dimension(size(a)) :: a2
     a2 = a
     n = size(a)
-    do i = 1 , n
+    do i = 1, n
       b(i) = i
     end do
     if ( n == 1 ) return
-    do i = 1 , n-1
+    do i = 1, n-1
       imin = minloc(a2(i:),1) + i - 1
       if ( imin /= i ) then
         temp2 = a2(i)
@@ -345,18 +345,18 @@ module mod_sort
 
   function argsort_i4(a) result(b)
     implicit none
-    integer(ik4) , intent(in) :: a(:)
-    integer(ik4) , dimension(size(a)) :: b
-    integer :: n , i , imin , temp1
+    integer(ik4), intent(in) :: a(:)
+    integer(ik4), dimension(size(a)) :: b
+    integer :: n, i, imin, temp1
     integer(ik4) :: temp2
-    integer(ik4) , dimension(size(a)) :: a2
+    integer(ik4), dimension(size(a)) :: a2
     a2 = a
     n = size(a)
-    do i = 1 , n
+    do i = 1, n
       b(i) = i
     end do
     if ( n == 1 ) return
-    do i = 1 , n-1
+    do i = 1, n-1
       imin = minloc(a2(i:),1) + i - 1
       if ( imin /= i ) then
         temp2 = a2(i)
@@ -371,11 +371,11 @@ module mod_sort
 
   real(rk4) function mostfrequent_r4(a,n)
     implicit none
-    integer(ik4) , intent(in) :: n
-    real(rk4) , dimension(n) , intent(in) :: a
-    integer :: i , j , n1 , n2
-    integer :: imax , nmax
-    real(rk4) , dimension(n) :: b
+    integer(ik4), intent(in) :: n
+    real(rk4), dimension(n), intent(in) :: a
+    integer :: i, j, n1, n2
+    integer :: imax, nmax
+    real(rk4), dimension(n) :: b
     real(rk4) :: check
 
     b(:) = a(:)
@@ -405,11 +405,11 @@ module mod_sort
 
   real(rk8) function mostfrequent_r8(a,n)
     implicit none
-    integer(ik4) , intent(in) :: n
-    real(rk8) , dimension(n) , intent(in) :: a
-    integer :: i , j , n1 , n2
-    integer :: imax , nmax
-    real(rk8) , dimension(n) :: b
+    integer(ik4), intent(in) :: n
+    real(rk8), dimension(n), intent(in) :: a
+    integer :: i, j, n1, n2
+    integer :: imax, nmax
+    real(rk8), dimension(n) :: b
     real(rk8) :: check
 
     b(:) = a(:)

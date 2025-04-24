@@ -19,8 +19,8 @@ module mod_che_chemistry
   use mod_realkinds
   use mod_dynparam
   use mod_constants
-  use mod_runparams , only : iqv , calday
-  !use mod_runparams , only : rcmtimer
+  use mod_runparams, only : iqv, calday
+  !use mod_runparams, only : rcmtimer
   use mod_che_common
   use mod_che_indices
   use mod_che_species
@@ -35,27 +35,27 @@ module mod_che_chemistry
 
   real(rkx) :: dtchsolv
 
-  integer(ik4) , parameter :: kmin = 2
-  real(rkx) , parameter :: kb = 1.380658e-19_rkx
-  real(rkx) , parameter :: mwa = 28.97_rkx
+  integer(ik4), parameter :: kmin = 2
+  real(rkx), parameter :: kb = 1.380658e-19_rkx
+  real(rkx), parameter :: mwa = 28.97_rkx
 
-  public :: chemistry , dtchsolv
+  public :: chemistry, dtchsolv
 
   contains
 
   subroutine chemistry
     implicit none
-    real(rkx) :: cfactor , pfact
+    real(rkx) :: cfactor, pfact
     real(rk8) :: change
-    integer(ik4) :: i , j , k , ic , n
+    integer(ik4) :: i, j, k, ic, n
 
     time = dtchsolv
 
-    ! Begining of i , k loop
+    ! Begining of i, k loop
     ! do not solve chemistry anyway for topmost layer
-    do k = kmin , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do k = kmin, kz
+      do i = ici1, ici2
+        do j = jci1, jci2
           altmid   = cpb3d(j,i,k)
           ! Skip stratosphere :  treated as a BC in topbchi
           if ( altmid < cptrop(j,i) ) cycle
@@ -84,15 +84,15 @@ module mod_che_chemistry
           xrout(:) = d_zero
           ! 1 : initialise xrin with the concentrations from
           !     previous chemsolv step
-!  FAB: this fix a stability bug , but the solver might slower
+!  FAB: this fix a stability bug, but the solver might slower
 !  other option is to transport all the species.
           !if ( rcmtimer%integrating( ) ) then
-          !  do ic = 1 , totsp
+          !  do ic = 1, totsp
           !    xrin(ic) = real(chemall(j,i,k,ic),rk8)
           !  end do
           !end if
           ! 2 : update input concentrations for transported species only
-          do n = 1 , ntr
+          do n = 1, ntr
             if ( trac%indcbmz(n) > 0 ) then
                xrin(trac%indcbmz(n)) = chib3d(j,i,k,n) * cfactor / trac%mw(n)
             end if
@@ -103,7 +103,7 @@ module mod_che_chemistry
           call chemmain(real(calday,rk8),real(dtchsolv,rk8))
 
           ! save the concentrations of all species for next chemistry step
-          do ic = 1 , totsp
+          do ic = 1, totsp
             if ( abs(xrout(ic)) > 1.e-20_rkx ) then
               chemall(j,i,k,ic) = real(xrout(ic),rkx)
             else
@@ -111,7 +111,7 @@ module mod_che_chemistry
             end if
           end do
           ! Store photolysis rates for diagnostic
-          do ic = 1 , nphoto
+          do ic = 1, nphoto
             if ( c_jval(1,ic) > 1.e-20_rkx ) then
               jphoto(j,i,k,ic) = real(c_jval(1,ic),rkx)
             else
@@ -127,7 +127,7 @@ module mod_che_chemistry
             pfact = cpsb(j,i) / cfactor / dtchsolv
           end if
 
-          do n = 1 , ntr
+          do n = 1, ntr
             if ( trac%indcbmz(n) > 0 ) then
               change = xrout(trac%indcbmz(n)) - xrin(trac%indcbmz(n))
               if ( abs(change) > 1.e-20_rkx ) then

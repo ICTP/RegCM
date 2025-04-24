@@ -28,7 +28,7 @@ module mod_mkq10soil
 
   public :: mkq10soil
 
-  character(len=16) , parameter :: varname = 'q10'
+  character(len=16), parameter :: varname = 'q10'
 
   real(rkx) :: vmin = 0.0_rkx
 
@@ -36,10 +36,10 @@ module mod_mkq10soil
 
   subroutine mkq10soil(q10soilfile,mask,q10soil)
     implicit none
-    character(len=*) , intent(in) :: q10soilfile
-    real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: q10soil
-    integer(ik4) :: i , j
+    character(len=*), intent(in) :: q10soilfile
+    real(rkx), dimension(:,:), intent(in) :: mask
+    real(rkx), dimension(:,:), intent(out) :: q10soil
+    integer(ik4) :: i, j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -50,8 +50,8 @@ module mod_mkq10soil
     call gfclose(gfile)
 
     call bestaround(q10soil,h_missing_value)
-    do i = 1 , iysg
-      do j = 1 , jxsg
+    do i = 1, iysg
+      do j = 1, jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           q10soil(j,i) = h_missing_value
         else

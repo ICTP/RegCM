@@ -23,25 +23,25 @@ program checksun
   use netcdf
   implicit none
 
-  character(256) :: chararg , ncfile
-  integer :: numarg , istatus , ncid
-  real(4) , allocatable , dimension(:,:) :: xlat , xlon , solin
-  integer , dimension(3) :: idims , istart , icount
-  integer , dimension(1) :: ixtime
-  integer :: ivarid , itimid , ilonid , ilatid
-  integer(8) :: idate0 , idate1 , idate2
+  character(256) :: chararg, ncfile
+  integer :: numarg, istatus, ncid
+  real(4), allocatable, dimension(:,:) :: xlat, xlon, solin
+  integer, dimension(3) :: idims, istart, icount
+  integer, dimension(1) :: ixtime
+  integer :: ivarid, itimid, ilonid, ilatid
+  integer(8) :: idate0, idate1, idate2
   integer :: ifrq
-  integer :: year , month , day , hour
-  type(rcm_time_and_date) :: xidate0 , xidate1 , xidate2 , xidate
+  integer :: year, month, day, hour
+  type(rcm_time_and_date) :: xidate0, xidate1, xidate2, xidate
   type(rcm_time_interval) :: tdif
-  integer :: jxdimid , iydimid
-  integer :: jx , iy
-  integer :: it , nt , ibase
-  real(8) :: xtime , gmt
-  character(32) :: csdate , calendar
+  integer :: jxdimid, iydimid
+  integer :: jx, iy
+  integer :: it, nt, ibase
+  real(8) :: xtime, gmt
+  character(32) :: csdate, calendar
   character(256) :: ofname
-  real(8) , parameter :: dayspy = 365.2422D0
-  real(8) , parameter :: solcon = 1367.0D0
+  real(8), parameter :: dayspy = 365.2422D0
+  real(8), parameter :: solcon = 1367.0D0
 
   call get_command_argument(0,value=chararg)
   numarg = command_argument_count( )
@@ -291,7 +291,7 @@ program checksun
   icount(1) = jx
   icount(2) = iy
   icount(3) = 1
-  do it = 1 , nt
+  do it = 1, nt
     call calcsolin
     istart(3) = it
     print *, 'Doing ', tochar(xidate)
@@ -323,9 +323,9 @@ program checksun
 
   subroutine calcsolin
     implicit none
-    integer :: i , j , idiff
-    real(8) :: eccf , theta , calday , xt24 , tlocap , omga , xxlat , coszrs
-    real(8) :: delta , decdeg, xday , lhour
+    integer :: i, j, idiff
+    real(8) :: eccf, theta, calday, xt24, tlocap, omga, xxlat, coszrs
+    real(8) :: delta, decdeg, xday, lhour
     call split_idate(xidate,year,month,day,hour)
     lhour = dble(hour)
     tdif = xidate-xidate0
@@ -345,8 +345,8 @@ program checksun
            0.000719D0 * dcos(d_two*theta) +       &
            0.000077D0 * dsin(d_two*theta)
     xt24 = dmod(lhour*minph+xtime,minpd)
-    do i = 1 , iy
-      do j = 1 , jx
+    do i = 1, iy
+      do j = 1, jx
         tlocap = xt24/minph + xlon(j,i)/15.0D0
         tlocap = dmod(tlocap+houpd,houpd)
         omga = 15.0D0*(tlocap-12.0D0)*degrad

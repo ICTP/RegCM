@@ -21,18 +21,18 @@ module surfrdMod
 !
 ! !USES:
   use shr_kind_mod, only : r8 => shr_kind_r8
-  use abortutils  , only : endrun
-  use clm_varpar  , only : lsmlon, lsmlat
-  use clm_varpar  , only : nlevsoi, numpft, &
+  use abortutils , only : endrun
+  use clm_varpar , only : lsmlon, lsmlat
+  use clm_varpar , only : nlevsoi, numpft, &
                            maxpatch_pft, maxpatch_cft, maxpatch, &
                            npatch_urban, npatch_lake, npatch_wet, npatch_glacier
-  use clm_varsur  , only : wtxy, vegxy
-  use clm_varsur  , only : pctspec
+  use clm_varsur , only : wtxy, vegxy
+  use clm_varsur , only : pctspec
   use ncdio
   use clmtype
   use spmdMod
   use clm_varctl,   only : scmlat, scmlon, single_column
-  use decompMod   , only : get_proc_bounds,gsMap_lnd_gdc2glo,perm_lnd_gdc2glo
+  use decompMod  , only : get_proc_bounds,gsMap_lnd_gdc2glo,perm_lnd_gdc2glo
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -105,10 +105,10 @@ contains
 !    o real % abundance PFTs (as a percent of vegetated area)
 !
 ! !USES:
-    use clm_varctl  , only : allocate_all_vegpfts
-    use pftvarcon   , only : noveg
-    use fileutils   , only : getfil
-    use domainMod , only : domain_type
+    use clm_varctl , only : allocate_all_vegpfts
+    use pftvarcon  , only : noveg
+    use fileutils  , only : getfil
+    use domainMod, only : domain_type
 !
 ! !ARGUMENTS:
     implicit none
@@ -227,9 +227,9 @@ contains
 !
 ! !USES:
     use clm_varcon, only : spval
-    use domainMod , only : domain_type,domain_init
-    use areaMod   , only : celledge, cellarea
-    use fileutils , only : getfil
+    use domainMod, only : domain_type,domain_init
+    use areaMod  , only : celledge, cellarea
+    use fileutils, only : getfil
 !
 ! !ARGUMENTS:
     implicit none
@@ -350,7 +350,7 @@ contains
           call check_ret(nf_get_vara_double(ncid, varid,strt3,cnt3, domain%area), subname)
        endif
 
-       call check_ret(nf_inq_varid(ncid, 'LONGXY' , varid), subname)
+       call check_ret(nf_inq_varid(ncid, 'LONGXY', varid), subname)
        call check_ret(nf_get_vara_double(ncid, varid, strt3, cnt3, domain%lonc), subname)
 
        call check_ret(nf_inq_varid(ncid, 'LATIXY', varid), subname)
@@ -416,15 +416,15 @@ contains
 
     end if   ! end of if-masterproc block
 
-    call mpi_bcast (domain%latn , size(domain%latn) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%lats , size(domain%lats) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%lonw , size(domain%lonw) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%lone , size(domain%lone) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%area , size(domain%area) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%latc , size(domain%latc) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%lonc , size(domain%lonc) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%pftm , size(domain%pftm) , MPI_INTEGER, 0, mpicom, ier)
-    call mpi_bcast (domain%edges, size(domain%edges), MPI_REAL8  , 0, mpicom, ier)
+    call mpi_bcast (domain%latn, size(domain%latn), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%lats, size(domain%lats), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%lonw, size(domain%lonw), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%lone, size(domain%lone), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%area, size(domain%area), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%latc, size(domain%latc), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%lonc, size(domain%lonc), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%pftm, size(domain%pftm), MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (domain%edges, size(domain%edges), MPI_REAL8 , 0, mpicom, ier)
 
   end subroutine surfrd_get_grid
 
@@ -441,9 +441,9 @@ contains
 !
 ! !USES:
     use clm_varcon, only : spval
-    use domainMod , only : latlon_type, latlon_init
-    use areaMod   , only : celledge
-    use fileutils , only : getfil
+    use domainMod, only : latlon_type, latlon_init
+    use areaMod  , only : celledge
+    use fileutils, only : getfil
 !
 ! !ARGUMENTS:
     implicit none
@@ -555,7 +555,7 @@ contains
           start2(2) = closelatidx
        endif
 
-       call check_ret(nf_inq_varid(ncid, 'LONGXY' , varid), subname)
+       call check_ret(nf_inq_varid(ncid, 'LONGXY', varid), subname)
        call check_ret(nf_get_vara_double(ncid, varid, start2, count2, rdata), subname)
        !call check_ret(nf_get_var_double(ncid, varid, rdata), subname)
        latlon%lonc(:) = rdata(:,1)
@@ -675,15 +675,15 @@ contains
 
     end if   ! end of if-masterproc block
 
-    call mpi_bcast (latlon%latc , size(latlon%latc) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%lonc , size(latlon%lonc) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%lats , size(latlon%lats) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%latn , size(latlon%latn) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%lonw , size(latlon%lonw) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%lone , size(latlon%lone) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%edges, size(latlon%edges), MPI_REAL8  , 0, mpicom, ier)
+    call mpi_bcast (latlon%latc, size(latlon%latc), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%lonc, size(latlon%lonc), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%lats, size(latlon%lats), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%latn, size(latlon%latn), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%lonw, size(latlon%lonw), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%lone, size(latlon%lone), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%edges, size(latlon%edges), MPI_REAL8 , 0, mpicom, ier)
     if (present(mask)) then
-       call mpi_bcast(mask       , size(mask)         , MPI_INTEGER, 0, mpicom, ier)
+       call mpi_bcast(mask      , size(mask)        , MPI_INTEGER, 0, mpicom, ier)
     endif
 
   end subroutine surfrd_get_latlon
@@ -724,17 +724,17 @@ contains
 !    o real % abundance PFTs (as a percent of vegetated area)
 !
 ! !USES:
-    use clm_varctl  , only : allocate_all_vegpfts
-    use pftvarcon   , only : noveg
-    use fileutils , only : getfil
-    use domainMod , only : domain_type
+    use clm_varctl , only : allocate_all_vegpfts
+    use pftvarcon  , only : noveg
+    use fileutils, only : getfil
+    use domainMod, only : domain_type
     use mod_clm
     use mod_dynparam
 !
 ! !ARGUMENTS:
     implicit none
     include 'netcdf.inc'
-!    integer , intent(out) :: vegxy(:,:)   ! PFT
+!    integer, intent(out) :: vegxy(:,:)   ! PFT
 !    real(r8), intent(out) :: wtxy(:,:)  ! subgrid weights
 !    character(len=*), intent(in) :: lfsurdat               ! surf filename
     type(domain_type), optional, intent(in) :: domain ! domain associated with wtxy
@@ -900,9 +900,9 @@ contains
 !
 ! !USES:
     use clm_varcon, only : spval
-    use domainMod , only : domain_type,domain_init
-    use areaMod   , only : celledge, cellarea
-    use fileutils , only : getfil
+    use domainMod, only : domain_type,domain_init
+    use areaMod  , only : celledge, cellarea
+    use fileutils, only : getfil
     use clm_varsur, only : landmask,landfrac,satbrt_clm,r2cimask,init_tgb
     use clm_varsur, only : glatc,glonc
     use mod_clm
@@ -1034,7 +1034,7 @@ contains
        endif
 
 !rcm abt below
-!       call check_ret(nf_inq_varid(ncid, 'LONGXY' , varid), subname)
+!       call check_ret(nf_inq_varid(ncid, 'LONGXY', varid), subname)
 !       call check_ret(nf_get_vara_double(ncid, varid, strt3, cnt3, domain%lonc), subname)
 
 !       call check_ret(nf_inq_varid(ncid, 'LATIXY', varid), subname)
@@ -1164,20 +1164,20 @@ contains
     end if   ! end of if-masterproc block
 
 !abt below
-    call mpi_bcast (landmask    , size(landmask)    , MPI_INTEGER, 0, mpicom, ier)
-    call mpi_bcast (landfrac    , size(landfrac)    , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (satbrt_clm  , size(satbrt_clm)  , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (init_tgb    , size(init_tgb)    , MPI_REAL8  , 0, mpicom, ier)
+    call mpi_bcast (landmask   , size(landmask)   , MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (landfrac   , size(landfrac)   , MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (satbrt_clm , size(satbrt_clm) , MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (init_tgb   , size(init_tgb)   , MPI_REAL8 , 0, mpicom, ier)
 !abt above
-    call mpi_bcast (domain%latn , size(domain%latn) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%lats , size(domain%lats) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%lonw , size(domain%lonw) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%lone , size(domain%lone) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%area , size(domain%area) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%latc , size(domain%latc) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%lonc , size(domain%lonc) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (domain%pftm , size(domain%pftm) , MPI_INTEGER, 0, mpicom, ier)
-    call mpi_bcast (domain%edges, size(domain%edges), MPI_REAL8  , 0, mpicom, ier)
+    call mpi_bcast (domain%latn, size(domain%latn), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%lats, size(domain%lats), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%lonw, size(domain%lonw), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%lone, size(domain%lone), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%area, size(domain%area), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%latc, size(domain%latc), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%lonc, size(domain%lonc), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (domain%pftm, size(domain%pftm), MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (domain%edges, size(domain%edges), MPI_REAL8 , 0, mpicom, ier)
 
 
   end subroutine rcmsurfrd_get_grid
@@ -1199,9 +1199,9 @@ contains
 !
 ! !USES:
     use clm_varcon, only : spval
-    use domainMod , only : latlon_type, latlon_init
-    use areaMod   , only : celledge
-    use fileutils , only : getfil
+    use domainMod, only : latlon_type, latlon_init
+    use areaMod  , only : celledge
+    use fileutils, only : getfil
 !abt below
     use clm_varsur, only : satbrt_clm,r2cimask
 !abt above
@@ -1507,15 +1507,15 @@ contains
     end if   ! end of if-masterproc block
 
 
-    call mpi_bcast (latlon%latc , size(latlon%latc) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%lonc , size(latlon%lonc) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%lats , size(latlon%lats) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%latn , size(latlon%latn) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%lonw , size(latlon%lonw) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%lone , size(latlon%lone) , MPI_REAL8  , 0, mpicom, ier)
-    call mpi_bcast (latlon%edges, size(latlon%edges), MPI_REAL8  , 0, mpicom, ier)
+    call mpi_bcast (latlon%latc, size(latlon%latc), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%lonc, size(latlon%lonc), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%lats, size(latlon%lats), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%latn, size(latlon%latn), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%lonw, size(latlon%lonw), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%lone, size(latlon%lone), MPI_REAL8 , 0, mpicom, ier)
+    call mpi_bcast (latlon%edges, size(latlon%edges), MPI_REAL8 , 0, mpicom, ier)
     if (present(mask)) then
-       call mpi_bcast(mask       , size(mask)         , MPI_INTEGER, 0, mpicom, ier)
+       call mpi_bcast(mask      , size(mask)        , MPI_INTEGER, 0, mpicom, ier)
     endif
 
   end subroutine rcmsurfrd_get_latlon
@@ -1534,8 +1534,8 @@ contains
 ! Assume domain has already been initialized and read
 !
 ! !USES:
-    use domainMod , only : domain_type
-    use fileutils , only : getfil
+    use domainMod, only : domain_type
+    use fileutils, only : getfil
 !abt below
     use clm_varsur, only : satbrt_clm,r2cimask
 !abt above
@@ -1624,7 +1624,7 @@ contains
           cnt1=1
        endif
 
-!abt       call check_ret(nf_inq_varid(ncid, 'LONGXY' , varid), subname)
+!abt       call check_ret(nf_inq_varid(ncid, 'LONGXY', varid), subname)
 !abt       call check_ret(nf_get_vara_double(ncid, varid, strt3, cnt3, lonc), subname)
 
 !abt     call check_ret(nf_inq_varid(ncid, 'LATIXY', varid), subname)
@@ -1688,8 +1688,8 @@ contains
 
     end if   ! end of if-masterproc block
 
-    call mpi_bcast (domain%mask , size(domain%mask) , MPI_INTEGER, 0, mpicom, ier)
-    call mpi_bcast (domain%frac , size(domain%frac) , MPI_REAL8  , 0, mpicom, ier)
+    call mpi_bcast (domain%mask, size(domain%mask), MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (domain%frac, size(domain%frac), MPI_REAL8 , 0, mpicom, ier)
 
   end subroutine rcmsurfrd_get_frac
 
@@ -1707,8 +1707,8 @@ contains
 ! Assume domain has already been initialized and read
 !
 ! !USES:
-    use domainMod , only : domain_type
-    use fileutils , only : getfil
+    use domainMod, only : domain_type
+    use fileutils, only : getfil
     use clm_varcon, only : grav
     use clm_varsur, only : ht_rcm
     use mod_clm
@@ -1794,7 +1794,7 @@ contains
           cnt1=1
        endif
 
-!abt       call check_ret(nf_inq_varid(ncid, 'LONGXY' , varid), subname)
+!abt       call check_ret(nf_inq_varid(ncid, 'LONGXY', varid), subname)
 !abt       call check_ret(nf_get_vara_double(ncid, varid, strt3, cnt3, lonc), subname)
 
 !abt       call check_ret(nf_inq_varid(ncid, 'LATIXY', varid), subname)
@@ -1835,7 +1835,7 @@ contains
 
     end if   ! end of if-masterproc block
 
-    call mpi_bcast (domain%topo , size(domain%topo) , MPI_REAL8  , 0, mpicom, ier)
+    call mpi_bcast (domain%topo, size(domain%topo), MPI_REAL8 , 0, mpicom, ier)
 
   end subroutine rcmsurfrd_get_topo
 
@@ -1855,23 +1855,23 @@ contains
 ! as soil color and percent sand and clay
 !
 ! !USES:
-    use pftvarcon   , only : noveg
-    use domainMod   , only : domain_type,ldomain
+    use pftvarcon  , only : noveg
+    use domainMod  , only : domain_type,ldomain
 !abt below
-    use clm_varsur  , only : landfrac
-    use decompMod   , only : adecomp
+    use clm_varsur , only : landfrac
+    use decompMod  , only : adecomp
 !abt above
 !
 ! !ARGUMENTS:
     implicit none
     include 'netcdf.inc'
-!    integer , intent(in)    :: ncid      ! netcdf file id
-    integer , intent(in)    :: ncidlak      ! netcdf file id for lake/wetland
-    integer , intent(in)    :: ncidglac     ! netcdf file id for glacier
-    integer , intent(in)    :: ncidurb      ! netcdf file id for urban
-    integer , intent(in)    :: ncidsoi      ! netcdf file id for soil levels
+!    integer, intent(in)    :: ncid      ! netcdf file id
+    integer, intent(in)    :: ncidlak      ! netcdf file id for lake/wetland
+    integer, intent(in)    :: ncidglac     ! netcdf file id for glacier
+    integer, intent(in)    :: ncidurb      ! netcdf file id for urban
+    integer, intent(in)    :: ncidsoi      ! netcdf file id for soil levels
 !    real(r8), intent(inout) :: pctspec(:)! percent wrt gcell special lunits
-!    integer , intent(inout) :: vegxy(:,:)  ! PFT
+!    integer, intent(inout) :: vegxy(:,:)  ! PFT
 !    real(r8), intent(inout) :: wtxy(:,:) ! subgrid weights
     type(domain_type),intent(in) :: domain ! domain associated with wtxy
 !
@@ -1935,9 +1935,9 @@ contains
 !abt    endif
 ! abt rcm below
     call ncd_iolocal(ncidlak, 'PCT_WETLAND', 'read', pctwet, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
-    call ncd_iolocal(ncidlak, 'PCT_LAKE'   , 'read', pctlak, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+    call ncd_iolocal(ncidlak, 'PCT_LAKE'  , 'read', pctlak, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     call ncd_iolocal(ncidglac, 'PCT_GLACIER', 'read', pctgla, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
-    call ncd_iolocal(ncidurb, 'PCT_URBAN'  , 'read', pcturb, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+    call ncd_iolocal(ncidurb, 'PCT_URBAN' , 'read', pcturb, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
 
 
 !abt set all special unit values to zero if less than 5% cover
@@ -2056,8 +2056,8 @@ contains
 ! Assume domain has already been initialized and read
 !
 ! !USES:
-    use domainMod , only : domain_type
-    use fileutils , only : getfil
+    use domainMod, only : domain_type
+    use fileutils, only : getfil
 !
 ! !ARGUMENTS:
     implicit none
@@ -2138,7 +2138,7 @@ contains
           cnt1=1
        endif
 
-       call check_ret(nf_inq_varid(ncid, 'LONGXY' , varid), subname)
+       call check_ret(nf_inq_varid(ncid, 'LONGXY', varid), subname)
        call check_ret(nf_get_vara_double(ncid, varid, strt3, cnt3, lonc), subname)
 
        call check_ret(nf_inq_varid(ncid, 'LATIXY', varid), subname)
@@ -2165,8 +2165,8 @@ contains
 
     end if   ! end of if-masterproc block
 
-    call mpi_bcast (domain%mask , size(domain%mask) , MPI_INTEGER, 0, mpicom, ier)
-    call mpi_bcast (domain%frac , size(domain%frac) , MPI_REAL8  , 0, mpicom, ier)
+    call mpi_bcast (domain%mask, size(domain%mask), MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (domain%frac, size(domain%frac), MPI_REAL8 , 0, mpicom, ier)
 
   end subroutine surfrd_get_frac
 
@@ -2183,8 +2183,8 @@ contains
 ! Assume domain has already been initialized and read
 !
 ! !USES:
-    use domainMod , only : domain_type
-    use fileutils , only : getfil
+    use domainMod, only : domain_type
+    use fileutils, only : getfil
 !
 ! !ARGUMENTS:
     implicit none
@@ -2265,7 +2265,7 @@ contains
           cnt1=1
        endif
 
-       call check_ret(nf_inq_varid(ncid, 'LONGXY' , varid), subname)
+       call check_ret(nf_inq_varid(ncid, 'LONGXY', varid), subname)
        call check_ret(nf_get_vara_double(ncid, varid, strt3, cnt3, lonc), subname)
 
        call check_ret(nf_inq_varid(ncid, 'LATIXY', varid), subname)
@@ -2288,7 +2288,7 @@ contains
 
     end if   ! end of if-masterproc block
 
-    call mpi_bcast (domain%topo , size(domain%topo) , MPI_REAL8  , 0, mpicom, ier)
+    call mpi_bcast (domain%topo, size(domain%topo), MPI_REAL8 , 0, mpicom, ier)
 
   end subroutine surfrd_get_topo
 
@@ -2306,15 +2306,15 @@ contains
 ! as soil color and percent sand and clay
 !
 ! !USES:
-    use pftvarcon   , only : noveg
-    use domainMod   , only : domain_type
+    use pftvarcon  , only : noveg
+    use domainMod  , only : domain_type
 !
 ! !ARGUMENTS:
     implicit none
     include 'netcdf.inc'
-    integer , intent(in)    :: ncid      ! netcdf file id
+    integer, intent(in)    :: ncid      ! netcdf file id
 !    real(r8), intent(inout) :: pctspec(:)! percent wrt gcell special lunits
-!    integer , intent(inout) :: vegxy(:,:)  ! PFT
+!    integer, intent(inout) :: vegxy(:,:)  ! PFT
 !    real(r8), intent(inout) :: wtxy(:,:) ! subgrid weights
     type(domain_type),intent(in) :: domain ! domain associated with wtxy
 !
@@ -2374,9 +2374,9 @@ contains
     endif
 
     call ncd_iolocal(ncid, 'PCT_WETLAND', 'read', pctwet, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
-    call ncd_iolocal(ncid, 'PCT_LAKE'   , 'read', pctlak, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+    call ncd_iolocal(ncid, 'PCT_LAKE'  , 'read', pctlak, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     call ncd_iolocal(ncid, 'PCT_GLACIER', 'read', pctgla, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
-    call ncd_iolocal(ncid, 'PCT_URBAN'  , 'read', pcturb, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+    call ncd_iolocal(ncid, 'PCT_URBAN' , 'read', pcturb, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
 
     pctspec = pctwet + pctlak + pctgla + pcturb
 
@@ -2445,15 +2445,15 @@ contains
 !
 ! !USES:
     use clm_varvoc
-    use clm_varpar  , only : nvoc
-    use domainMod   , only : domain_type
-    use clm_varctl  , only : mksrf_fisop,mksrf_fmbo,mksrf_fapin,mksrf_fbpin
-    use clm_varctl  , only : mksrf_fco,mksrf_flimo,mksrf_fsabi,mksrf_fmyrc
-    use clm_varctl  , only : mksrf_focim,mksrf_facar,mksrf_fomtp,mksrf_ffarn
-    use clm_varctl  , only : mksrf_facto,mksrf_fmeoh,mksrf_fosqt,mksrf_fbcar
-    use clm_varctl  , only : mksrf_fmeth,mksrf_fno,mksrf_facta,mksrf_fform
-    use clm_varctl  , only : nsrest
-    use fileutils   , only : getfil
+    use clm_varpar , only : nvoc
+    use domainMod  , only : domain_type
+    use clm_varctl , only : mksrf_fisop,mksrf_fmbo,mksrf_fapin,mksrf_fbpin
+    use clm_varctl , only : mksrf_fco,mksrf_flimo,mksrf_fsabi,mksrf_fmyrc
+    use clm_varctl , only : mksrf_focim,mksrf_facar,mksrf_fomtp,mksrf_ffarn
+    use clm_varctl , only : mksrf_facto,mksrf_fmeoh,mksrf_fosqt,mksrf_fbcar
+    use clm_varctl , only : mksrf_fmeth,mksrf_fno,mksrf_facta,mksrf_fform
+    use clm_varctl , only : nsrest
+    use fileutils  , only : getfil
     use clm_time_manager, only : get_step_size
     use mod_clm
     use mod_dynparam
@@ -2547,8 +2547,8 @@ contains
          endif
       enddo
     end if ! masterproc
-    call mpi_bcast (r2cefmap    , size(r2cefmap)    , MPI_INTEGER, 0, mpicom, ier)
-    call mpi_bcast (ncidv       , size(ncidv)       , MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (r2cefmap   , size(r2cefmap)   , MPI_INTEGER, 0, mpicom, ier)
+    call mpi_bcast (ncidv      , size(ncidv)      , MPI_INTEGER, 0, mpicom, ier)
 
 
     ! Obtain non-grid emission factor maps
@@ -2561,10 +2561,10 @@ contains
     cnt3(3)=1
 
     if(r2cefmap(1) == 1) then
-      call ncd_iolocal(ncidv(1), 'ISOP' , 'read', ef_iso , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(1), 'ISOP', 'read', ef_iso, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(6) == 1) then
-      call ncd_iolocal(ncidv(6), 'MBO'  , 'read', ef_mbo , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(6), 'MBO' , 'read', ef_mbo, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(8) == 1) then
       call ncd_iolocal(ncidv(8),'BPINE', 'read', ef_bpin, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
@@ -2573,52 +2573,52 @@ contains
       call ncd_iolocal(ncidv(7),'APIN', 'read', ef_apin, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(2) == 1) then
-      call ncd_iolocal(ncidv(2), 'MYRCENE'   , 'read', ef_myrc , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(2), 'MYRCENE'  , 'read', ef_myrc, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(4) == 1) then
-      call ncd_iolocal(ncidv(4), 'LIMO'  , 'read', ef_limo , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(4), 'LIMO' , 'read', ef_limo, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(3) == 1) then
-      call ncd_iolocal(ncidv(3),'SABINENE'  , 'read', ef_sabi , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(3),'SABINENE' , 'read', ef_sabi, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(9) == 1) then
-      call ncd_iolocal(ncidv(9),'OCIMENE'   , 'read', ef_ocim , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(9),'OCIMENE'  , 'read', ef_ocim, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(10) == 1) then
-      call ncd_iolocal(ncidv(10), 'A3CARENE'  , 'read', ef_acar , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(10), 'A3CARENE' , 'read', ef_acar, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(11) == 1) then
-      call ncd_iolocal(ncidv(11), 'O_MONO'    , 'read', ef_omtp , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(11), 'O_MONO'   , 'read', ef_omtp, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(12) == 1) then
-      call ncd_iolocal(ncidv(12),'FARNI'     , 'read', ef_farn , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(12),'FARNI'    , 'read', ef_farn, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(13) == 1) then
-      call ncd_iolocal(ncidv(13),'B_CARY'    , 'read', ef_bcar , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(13),'B_CARY'   , 'read', ef_bcar, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(14) == 1) then
-      call ncd_iolocal(ncidv(14), 'O_SESQ'    , 'read', ef_osqt , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(14), 'O_SESQ'   , 'read', ef_osqt, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(15) == 1) then
-      call ncd_iolocal(ncidv(15), 'MEOH'      , 'read', ef_meoh , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(15), 'MEOH'     , 'read', ef_meoh, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(16) == 1) then
-      call ncd_iolocal(ncidv(16),'ACETONE'   , 'read', ef_acto , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(16),'ACETONE'  , 'read', ef_acto, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(17) == 1) then
-      call ncd_iolocal(ncidv(17),'METHANE'   , 'read', ef_meth , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(17),'METHANE'  , 'read', ef_meth, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(18) == 1) then
-      call ncd_iolocal(ncidv(18), 'NO'        , 'read', ef_no   , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(18), 'NO'       , 'read', ef_no  , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(19) == 1) then
-      call ncd_iolocal(ncidv(19), 'ACET_ETH'  , 'read', ef_acta , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(19), 'ACET_ETH' , 'read', ef_acta, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(20) == 1) then
-      call ncd_iolocal(ncidv(20),'FORM'      , 'read', ef_form , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(20),'FORM'     , 'read', ef_form, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(5) == 1) then
-      call ncd_iolocal(ncidv(5),'CO'        , 'read', ef_co   , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(5),'CO'       , 'read', ef_co  , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
 
     ! Initialize time accumulation variables
@@ -2654,15 +2654,15 @@ contains
 !
 ! !USES:
     use clm_varctl, only : create_crop_landunit
-    use pftvarcon   , only : crop, noveg
-    use domainMod   , only : domain_type
+    use pftvarcon  , only : crop, noveg
+    use domainMod  , only : domain_type
     use mod_clm
     use mod_dynparam
 !
 ! !ARGUMENTS:
     implicit none
     include 'netcdf.inc'
-    integer , intent(in)    :: ncid        ! netcdf file id
+    integer, intent(in)    :: ncid        ! netcdf file id
     type(domain_type),intent(in) :: domain ! domain associated with wtxy
 !
 ! !CALLED FROM:
@@ -2698,7 +2698,7 @@ contains
     real(r8),allocatable :: adj_wst(:)          ! % of vegetated lunit area PFTs
     real(r8) :: adj_wst_sum
     integer  :: ipft
-    integer , dimension(1) :: iloc
+    integer, dimension(1) :: iloc
 !abt above
     integer  :: ier                             ! error status
     real(r8),allocatable :: pctpft(:,:)         ! percent of vegetated gridcell area for PFTs
@@ -3070,14 +3070,14 @@ contains
 ! Determine wtxy and veg arrays for non-dynamic landuse mode
 !
 ! !USES:
-    use domainMod   , only : domain_type
+    use domainMod  , only : domain_type
 !
 ! !ARGUMENTS:
     implicit none
     include 'netcdf.inc'
-    integer , intent(in)    :: ncid       ! netcdf file id
+    integer, intent(in)    :: ncid       ! netcdf file id
 !    real(r8), intent(in)    :: pctspec(:) ! percent wrt gcell of spec lunits
-!    integer , intent(inout) :: vegxy(:,:)   ! PFT
+!    integer, intent(inout) :: vegxy(:,:)   ! PFT
 !    real(r8), intent(inout) :: wtxy(:,:)  ! subgrid weights
     type(domain_type),intent(in) :: domain ! domain associated with wtxy
 !
@@ -3232,13 +3232,13 @@ contains
 ! Determine wtxy and vegxy for DGVM mode.
 !
 ! !USES:
-    use pftvarcon   , only : crop, noveg
-    use domainMod   , only : domain_type
+    use pftvarcon  , only : crop, noveg
+    use domainMod  , only : domain_type
 !
 ! !ARGUMENTS:
     implicit none
 !    real(r8), intent(in)    :: pctspec(:) ! percent gridcell of special landunits
-!    integer , intent(inout) :: vegxy(:,:)   ! PFT
+!    integer, intent(inout) :: vegxy(:,:)   ! PFT
 !    real(r8), intent(inout) :: wtxy(:,:)  ! subgrid weights
     type(domain_type),intent(in) :: domain ! domain associated with wtxy
 !
@@ -3283,11 +3283,11 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: n        ! array length
+    integer, intent(in) :: n        ! array length
     real(r8), intent(in) :: a(0:n)   ! array to be ranked
-    integer , intent(in) :: miss     ! missing data value
-    integer , intent(in) :: num      ! number of largest values requested
-    integer , intent(out):: iv(num)  ! index to [num] largest values in array [a]
+    integer, intent(in) :: miss     ! missing data value
+    integer, intent(in) :: num      ! number of largest values requested
+    integer, intent(out):: iv(num)  ! index to [num] largest values in array [a]
 !
 ! !CALLED FROM:
 ! ! subroutine surfrd_wtxy_veg_rank in this module
@@ -3373,9 +3373,9 @@ contains
 ! equivalent CLM pft type (using the technique in Bonan et al 2002)
 !
 ! !USES:
-    use domainMod   , only : domain_type
-    use decompMod   , only : adecomp
-    use clm_varsur  , only : wtxy,satbrt_clm
+    use domainMod  , only : domain_type
+    use decompMod  , only : adecomp
+    use clm_varsur , only : wtxy,satbrt_clm
     use mod_clm
     use mod_dynparam
 !
@@ -3383,13 +3383,13 @@ contains
     include 'netcdf.inc'
 !
 ! !ARGUMENTS:
-    integer  , intent(in)     :: nns                   !
-    integer  , intent(in)     :: endg                  !
-    integer  , intent(in)     :: begg                  !
-    integer  , intent(out)    :: ipft                  !
-    real(r8) , intent(out)    :: pft_wst_sum           !
-    real(r8) , intent(out)    :: pft_wst(0:numpft)            ! total number of pfts
-    real(r8) , intent(out)    :: pft_pctpft(begg:endg,0:numpft)       ! percent pft cover
+    integer , intent(in)     :: nns                   !
+    integer , intent(in)     :: endg                  !
+    integer , intent(in)     :: begg                  !
+    integer , intent(out)    :: ipft                  !
+    real(r8), intent(out)    :: pft_wst_sum           !
+    real(r8), intent(out)    :: pft_wst(0:numpft)            ! total number of pfts
+    real(r8), intent(out)    :: pft_pctpft(begg:endg,0:numpft)       ! percent pft cover
     type(domain_type),intent(in) :: domain               ! domain type structure
 !
 ! !CALLED FROM:
@@ -3632,8 +3632,8 @@ contains
 ! 16, 1021
 !
 ! !USES:
-    use clm_varsur  , only : clm2bats_veg,clm_fracveg,satbrt_clm
-    use clm_varsur  , only : landmask
+    use clm_varsur , only : clm2bats_veg,clm_fracveg,satbrt_clm
+    use clm_varsur , only : landmask
     use mod_clm
     use mod_dynparam
 !
@@ -3641,10 +3641,10 @@ contains
     include 'netcdf.inc'
 !
 ! !ARGUMENTS:
-    integer , intent(in)    :: ncidlak      ! netcdf file id for lake/wetland
-    integer , intent(in)    :: ncidglac     ! netcdf file id for glacier
-    integer , intent(in)    :: ncidurb      ! netcdf file id for urban
-    integer , intent(in)    :: ncidpft      ! netcdf file id for soil
+    integer, intent(in)    :: ncidlak      ! netcdf file id for lake/wetland
+    integer, intent(in)    :: ncidglac     ! netcdf file id for glacier
+    integer, intent(in)    :: ncidurb      ! netcdf file id for urban
+    integer, intent(in)    :: ncidpft      ! netcdf file id for soil
 !
 ! !CALLED FROM:
 ! subroutine rcmsurf in this module
@@ -3936,10 +3936,10 @@ contains
 ! defined in inidust.F.
 !
 ! !USES:
-    use domainMod   , only : domain_type
-    use clm_varsur  , only : clm_soitex
-    use clm_varctl  , only : mksrf_fsoitex
-    use fileutils   , only : getfil
+    use domainMod  , only : domain_type
+    use clm_varsur , only : clm_soitex
+    use clm_varctl , only : mksrf_fsoitex
+    use fileutils  , only : getfil
     use mod_clm
     use mod_dynparam
 !

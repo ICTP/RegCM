@@ -8,19 +8,19 @@ module mod_clm_surfacealbedo
   use mod_stdio
   use mod_sunorbit
   use mod_dynparam
-  use mod_constants , only : mathpi
-  use mod_clm_varcon , only : istsoil
-  use mod_clm_varpar , only : numrad, nlevcan
-  use mod_clm_varcon , only : istcrop
-  use mod_clm_varpar , only : nlevsno
-  use mod_clm_snicar , only : sno_nbr_aer, SNICAR_RT, DO_SNO_AER, DO_SNO_OC
+  use mod_constants, only : mathpi
+  use mod_clm_varcon, only : istsoil
+  use mod_clm_varpar, only : numrad, nlevcan
+  use mod_clm_varcon, only : istcrop
+  use mod_clm_varpar, only : nlevsno
+  use mod_clm_snicar, only : sno_nbr_aer, SNICAR_RT, DO_SNO_AER, DO_SNO_OC
 
   implicit none
 
   ! undefined real
-  real(rk8) , public , parameter :: SHR_ORB_UNDEF_REAL = 1.e36_rk8
+  real(rk8), public, parameter :: SHR_ORB_UNDEF_REAL = 1.e36_rk8
   ! undefined int
-  integer(ik4) , public , parameter :: SHR_ORB_UNDEF_INT  = 2000000000
+  integer(ik4), public, parameter :: SHR_ORB_UNDEF_INT  = 2000000000
 
   !----------------------------------------------------------------------------
   ! PRIVATE: by default everything else is private to this module
@@ -29,13 +29,13 @@ module mod_clm_surfacealbedo
 
   save
 
-  real(rk8) , parameter :: pi                 = mathpi
-  real(rk8) , parameter :: SHR_ORB_ECCEN_MIN  =   0.0_rk8 ! min value for eccen
-  real(rk8) , parameter :: SHR_ORB_ECCEN_MAX  =   0.1_rk8 ! max value for eccen
-  real(rk8) , parameter :: SHR_ORB_OBLIQ_MIN  = -90.0_rk8 ! min value for obliq
-  real(rk8) , parameter :: SHR_ORB_OBLIQ_MAX  = +90.0_rk8 ! max value for obliq
-  real(rk8) , parameter :: SHR_ORB_MVELP_MIN  =   0.0_rk8 ! min value for mvelp
-  real(rk8) , parameter :: SHR_ORB_MVELP_MAX  = 360.0_rk8 ! max value for mvelp
+  real(rk8), parameter :: pi                 = mathpi
+  real(rk8), parameter :: SHR_ORB_ECCEN_MIN  =   0.0_rk8 ! min value for eccen
+  real(rk8), parameter :: SHR_ORB_ECCEN_MAX  =   0.1_rk8 ! max value for eccen
+  real(rk8), parameter :: SHR_ORB_OBLIQ_MIN  = -90.0_rk8 ! min value for obliq
+  real(rk8), parameter :: SHR_ORB_OBLIQ_MAX  = +90.0_rk8 ! max value for obliq
+  real(rk8), parameter :: SHR_ORB_MVELP_MIN  =   0.0_rk8 ! min value for mvelp
+  real(rk8), parameter :: SHR_ORB_MVELP_MAX  = 360.0_rk8 ! max value for mvelp
 
   public :: SurfaceAlbedo  ! Surface albedo and two-stream fluxes
   !
@@ -45,7 +45,7 @@ module mod_clm_surfacealbedo
   ! This is the value used in CAM3 by Pritchard et al., GRL, 35, 2008.
 
   ! albedo land ice by waveband (1=vis, 2=nir)
-  real(rk8) , public :: albice(numrad) = [ 0.80_rk8, 0.55_rk8 ]
+  real(rk8), public :: albice(numrad) = [ 0.80_rk8, 0.55_rk8 ]
 
   private :: SoilAlbedo    ! Determine ground surface albedo
   private :: TwoStream     ! Two-stream fluxes for canopy radiative transfer
@@ -71,178 +71,178 @@ module mod_clm_surfacealbedo
                            num_nourbanp, filter_nourbanp, &
                            nextsw_cday, declinp1)
     use mod_clm_type
-    use mod_clm_varctl , only : subgridflag
+    use mod_clm_varctl, only : subgridflag
     implicit none
-    integer(ik4) , intent(in) :: lbg , ubg  ! gridcell bounds
-    integer(ik4) , intent(in) :: lbc , ubc  ! column bounds
-    integer(ik4) , intent(in) :: lbp , ubp  ! pft bounds
+    integer(ik4), intent(in) :: lbg, ubg  ! gridcell bounds
+    integer(ik4), intent(in) :: lbc, ubc  ! column bounds
+    integer(ik4), intent(in) :: lbp, ubp  ! pft bounds
     ! number of columns in non-urban filter
-    integer(ik4) , intent(in) :: num_nourbanc
+    integer(ik4), intent(in) :: num_nourbanc
     ! column filter for non-urban points
-    integer(ik4) , intent(in) , dimension(ubc-lbc+1) :: filter_nourbanc
+    integer(ik4), intent(in), dimension(ubc-lbc+1) :: filter_nourbanc
     ! number of pfts in non-urban filter
-    integer(ik4) , intent(in) :: num_nourbanp
+    integer(ik4), intent(in) :: num_nourbanp
     ! pft filter for non-urban points
-    integer(ik4) , intent(in) , dimension(ubp-lbp+1) :: filter_nourbanp
+    integer(ik4), intent(in), dimension(ubp-lbp+1) :: filter_nourbanp
     ! calendar day at Greenwich (1.00, ..., days/year)
-    real(rk8) , intent(in) :: nextsw_cday
+    real(rk8), intent(in) :: nextsw_cday
     ! declination angle (radians) for next time step
-    real(rk8) , intent(in) :: declinp1
+    real(rk8), intent(in) :: declinp1
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer , dimension(:) :: pactive
+    logical, pointer, contiguous, dimension(:) :: pactive
     ! gridcell of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: pgridcell
     ! index into landunit level quantities
-    integer(ik4) , pointer , dimension(:) :: plandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! landunit type
-    integer(ik4) , pointer , dimension(:) :: itypelun
+    integer(ik4), pointer, contiguous, dimension(:) :: itypelun
     ! column of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! gridcell of corresponding column
-    integer(ik4) , pointer , dimension(:) :: cgridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
     ! gridcell latitude (radians)
-    real(rk8) , pointer , dimension(:) :: lat
+    real(rk8), pointer, contiguous, dimension(:) :: lat
     ! gridcell longitude (radians)
-    real(rk8) , pointer , dimension(:) :: lon
+    real(rk8), pointer, contiguous, dimension(:) :: lon
     ! one-sided leaf area index, no burying by snow
-    real(rk8) , pointer , dimension(:) :: tlai
+    real(rk8), pointer, contiguous, dimension(:) :: tlai
     ! one-sided stem area index, no burying by snow
-    real(rk8) , pointer , dimension(:) :: tsai
+    real(rk8), pointer, contiguous, dimension(:) :: tsai
     ! one-sided leaf area index with burying by snow
-    real(rk8) , pointer , dimension(:) :: elai
+    real(rk8), pointer, contiguous, dimension(:) :: elai
     ! one-sided stem area index with burying by snow
-    real(rk8) , pointer , dimension(:) :: esai
+    real(rk8), pointer, contiguous, dimension(:) :: esai
     ! snow water (mm H2O)
-    real(rk8) , pointer , dimension(:) :: h2osno
+    real(rk8), pointer, contiguous, dimension(:) :: h2osno
     ! leaf reflectance: 1=vis, 2=nir
-    real(rk8) , pointer , dimension(:,:) :: rhol
+    real(rk8), pointer, contiguous, dimension(:,:) :: rhol
     ! stem reflectance: 1=vis, 2=nir
-    real(rk8) , pointer , dimension(:,:) :: rhos
+    real(rk8), pointer, contiguous, dimension(:,:) :: rhos
     ! leaf transmittance: 1=vis, 2=nir
-    real(rk8) , pointer , dimension(:,:) :: taul
+    real(rk8), pointer, contiguous, dimension(:,:) :: taul
     ! stem transmittance: 1=vis, 2=nir
-    real(rk8) , pointer , dimension(:,:) :: taus
+    real(rk8), pointer, contiguous, dimension(:,:) :: taus
     ! pft vegetation type
-    integer(ik4) , pointer , dimension(:) :: ivt
+    integer(ik4), pointer, contiguous, dimension(:) :: ivt
     !
     ! local pointers toimplicit out arguments
     !
     ! cosine of solar zenith angle
-    real(rk8) , pointer , dimension(:) :: coszen
+    real(rk8), pointer, contiguous, dimension(:) :: coszen
     ! ground albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgrd
     ! ground albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgri
     ! surface albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albd
+    real(rk8), pointer, contiguous, dimension(:,:) :: albd
     ! surface albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albi
+    real(rk8), pointer, contiguous, dimension(:,:) :: albi
     ! flux absorbed by canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabd
     ! flux absorbed by sunlit canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd_sun
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabd_sun
     ! flux absorbed by shaded canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd_sha
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabd_sha
     ! flux absorbed by canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabi
     ! flux absorbed by sunlit canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi_sun
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabi_sun
     ! flux absorbed by shaded canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi_sha
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabi_sha
     ! down direct flux below canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: ftdd
+    real(rk8), pointer, contiguous, dimension(:,:) :: ftdd
     ! down diffuse flux below canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: ftid
+    real(rk8), pointer, contiguous, dimension(:,:) :: ftid
     ! down diffuse flux below canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: ftii
+    real(rk8), pointer, contiguous, dimension(:,:) :: ftii
     ! leaf to canopy scaling coefficient, sunlit leaf vcmax
-    real(rk8) , pointer , dimension(:) :: vcmaxcintsun
+    real(rk8), pointer, contiguous, dimension(:) :: vcmaxcintsun
     ! leaf to canopy scaling coefficient, shaded leaf vcmax
-    real(rk8) , pointer , dimension(:) :: vcmaxcintsha
+    real(rk8), pointer, contiguous, dimension(:) :: vcmaxcintsha
     ! number of canopy layers
-    integer(ik4) , pointer , dimension(:) :: ncan
+    integer(ik4), pointer, contiguous, dimension(:) :: ncan
     ! number of canopy layers, above snow for radiative transfer
-    integer(ik4) , pointer , dimension(:) :: nrad
+    integer(ik4), pointer, contiguous, dimension(:) :: nrad
     ! absorbed sunlit leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabd_sun_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabd_sun_z
     ! absorbed shaded leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabd_sha_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabd_sha_z
     ! absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabi_sun_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabi_sun_z
     ! absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabi_sha_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabi_sha_z
     ! sunlit fraction of canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fsun_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: fsun_z
     ! tlai increment for canopy layer
-    real(rk8) , pointer , dimension(:,:) :: tlai_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: tlai_z
     ! tsai increment for canopy layer
-    real(rk8) , pointer , dimension(:,:) :: tsai_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: tsai_z
     ! solar declination angle (radians)
-    real(rk8) , pointer , dimension(:) :: decl
+    real(rk8), pointer, contiguous, dimension(:) :: decl
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8) , pointer , dimension(:) :: frac_sno
+    real(rk8), pointer, contiguous, dimension(:) :: frac_sno
     ! liquid water content (col,lyr) [kg/m2]
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_liq
     ! ice lens content (col,lyr) [kg/m2]
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_ice
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_ice
     ! mass concentration of hydrophilic BC (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_bcphi
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_bcphi
     ! mass concentration of hydrophobic BC (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_bcpho
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_bcpho
     ! mass concentration of hydrophilic OC (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_ocphi
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_ocphi
     ! mass concentration of hydrophobic OC (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_ocpho
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_ocpho
     ! mass concentration of dust aerosol species 1 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst1
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst1
     ! mass concentration of dust aerosol species 2 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst2
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst2
     ! mass concentration of dust aerosol species 3 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst3
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst3
     ! mass concentration of dust aerosol species 4 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst4
+    real(rk8), pointer, contiguous, dimension(:,:) :: mss_cnc_dst4
     ! direct-beam soil albedo (col,bnd) [frc]
-    real(rk8) , pointer , dimension(:,:) :: albsod
+    real(rk8), pointer, contiguous, dimension(:,:) :: albsod
     ! diffuse soil albedo (col,bnd) [frc]
-    real(rk8) , pointer , dimension(:,:) :: albsoi
+    real(rk8), pointer, contiguous, dimension(:,:) :: albsoi
     ! direct flux absorption factor (col,lyr): VIS [frc]
-    real(rk8) , pointer , dimension(:,:) :: flx_absdv
+    real(rk8), pointer, contiguous, dimension(:,:) :: flx_absdv
     ! direct flux absorption factor (col,lyr): NIR [frc]
-    real(rk8) , pointer , dimension(:,:) :: flx_absdn
+    real(rk8), pointer, contiguous, dimension(:,:) :: flx_absdn
     ! diffuse flux absorption factor (col,lyr): VIS [frc]
-    real(rk8) , pointer , dimension(:,:) :: flx_absiv
+    real(rk8), pointer, contiguous, dimension(:,:) :: flx_absiv
     ! diffuse flux absorption factor (col,lyr): NIR [frc]
-    real(rk8) , pointer , dimension(:,:) :: flx_absin
+    real(rk8), pointer, contiguous, dimension(:,:) :: flx_absin
     ! snow grain radius (col,lyr) [microns]
-    real(rk8) , pointer , dimension(:,:) :: snw_rds
+    real(rk8), pointer, contiguous, dimension(:,:) :: snw_rds
     ! pure snow ground albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd_pur
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgrd_pur
     ! pure snow ground albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri_pur
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgri_pur
     ! ground albedo without BC (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd_bc
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgrd_bc
     ! ground albedo without BC (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri_bc
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgri_bc
     ! ground albedo without OC (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd_oc
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgrd_oc
     ! ground albedo without OC (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri_oc
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgri_oc
     ! ground albedo without dust (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd_dst
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgrd_dst
     ! ground albedo without dust (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri_dst
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgri_dst
     ! snow albedo, direct, for history files (col,bnd) [frc]
-    real(rk8) , pointer , dimension(:,:) :: albsnd_hst
+    real(rk8), pointer, contiguous, dimension(:,:) :: albsnd_hst
     ! snow ground albedo, diffuse, for history files (col,bnd) [frc]
-    real(rk8) , pointer , dimension(:,:) :: albsni_hst
+    real(rk8), pointer, contiguous, dimension(:,:) :: albsni_hst
 
     ! prevents overflow for division by zero
-    real(rk8) , parameter :: mpe = 1.e-6_rk8
+    real(rk8), parameter :: mpe = 1.e-6_rk8
     real(rk8) :: extkn   ! nitrogen allocation coefficient
-    integer(ik4) :: fp , fc , g , c , p , iv  ! indices
+    integer(ik4) :: fp, fc, g, c, p, iv  ! indices
     integer(ik4) :: ib   ! band index
-    real(rk8) , dimension(lbp:ubp) :: wl ! fraction of LAI+SAI that is LAI
-    real(rk8) , dimension(lbp:ubp) :: ws ! fraction of LAI+SAI that is SAI
+    real(rk8), dimension(lbp:ubp) :: wl ! fraction of LAI+SAI that is LAI
+    real(rk8), dimension(lbp:ubp) :: ws ! fraction of LAI+SAI that is SAI
     real(rk8) :: dinc       ! lai+sai increment for canopy layer
     real(rk8) :: dincmax    ! maximum lai+sai increment for canopy layer
     ! cumulative sum of maximum lai+sai increment for canopy layer
@@ -251,68 +251,68 @@ module mod_clm_surfacealbedo
     real(rk8) :: laisum
     real(rk8) :: saisum ! sum of canopy layer sai for error check
     ! lai buried by snow: tlai - elai
-    real(rk8) , dimension(lbp:ubp) :: blai
+    real(rk8), dimension(lbp:ubp) :: blai
     ! sai buried by snow: tsai - esai
-    real(rk8) , dimension(lbp:ubp) :: bsai
+    real(rk8), dimension(lbp:ubp) :: bsai
     ! leaf/stem refl weighted by fraction LAI and SAI
-    real(rk8) , dimension(lbp:ubp,numrad) :: rho
+    real(rk8), dimension(lbp:ubp,numrad) :: rho
     ! leaf/stem tran weighted by fraction LAI and SAI
-    real(rk8) , dimension(lbp:ubp,numrad) :: tau
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsnd    ! snow albedo (direct)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni    ! snow albedo (diffuse)
+    real(rk8), dimension(lbp:ubp,numrad) :: tau
+    real(rk8), dimension(lbc:ubc,numrad) :: albsnd    ! snow albedo (direct)
+    real(rk8), dimension(lbc:ubc,numrad) :: albsni    ! snow albedo (diffuse)
     ! cosine solar zenith angle for next time step (gridcell level)
-    real(rk8) , dimension(lbg:ubg) :: coszen_gcell
+    real(rk8), dimension(lbg:ubg) :: coszen_gcell
     ! cosine solar zenith angle for next time step (pft level)
-    real(rk8) , dimension(lbc:ubc) :: coszen_col
+    real(rk8), dimension(lbc:ubc) :: coszen_col
     ! cosine solar zenith angle for next time step (pft level)
-    real(rk8) , dimension(lbp:ubp) :: coszen_pft
+    real(rk8), dimension(lbp:ubp) :: coszen_pft
     ! number of vegetated pfts where coszen>0
     integer(ik4) :: num_vegsol
     ! pft filter where vegetated and coszen>0
-    integer(ik4) , dimension(ubp-lbp+1) :: filter_vegsol
+    integer(ik4), dimension(ubp-lbp+1) :: filter_vegsol
     ! number of vegetated pfts where coszen>0
     integer(ik4) :: num_novegsol
     ! pft filter where vegetated and coszen>0
-    integer(ik4) , dimension(ubp-lbp+1) :: filter_novegsol
+    integer(ik4), dimension(ubp-lbp+1) :: filter_novegsol
     ! number of solar radiation waveband classes
-    integer(ik4) , parameter :: nband = numrad
+    integer(ik4), parameter :: nband = numrad
     ! flag for SNICAR (=1 if direct, =2 if diffuse)
     integer(ik4) :: flg_slr
     ! flag for SNICAR (=1 when called from CLM, =2 when called from sea-ice)
     integer(ik4) :: flg_snw_ice
     integer(ik4) :: i ! index for layers [idx]
     ! flux absorption factor for just snow (direct) [frc]
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absd_snw
+    real(rk8), dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absd_snw
     ! flux absorption factor for just snow (diffuse) [frc]
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absi_snw
+    real(rk8), dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absi_snw
 #ifdef SNICAR_FRC
     ! direct pure snow albedo (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_pur
+    real(rk8), dimension(lbc:ubc,numrad) :: albsnd_pur
     ! direct snow albedo without BC (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_bc
+    real(rk8), dimension(lbc:ubc,numrad) :: albsnd_bc
     ! diffuse snow albedo without BC (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni_bc
+    real(rk8), dimension(lbc:ubc,numrad) :: albsni_bc
     ! direct snow albedo without OC (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_oc
+    real(rk8), dimension(lbc:ubc,numrad) :: albsnd_oc
     ! diffuse pure snow albedo (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni_pur
+    real(rk8), dimension(lbc:ubc,numrad) :: albsni_pur
     ! diffuse snow albedo without OC (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni_oc
+    real(rk8), dimension(lbc:ubc,numrad) :: albsni_oc
     ! direct snow albedo without dust (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_dst
+    real(rk8), dimension(lbc:ubc,numrad) :: albsnd_dst
     ! diffuse snow albedo without dust (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni_dst
+    real(rk8), dimension(lbc:ubc,numrad) :: albsni_dst
     ! dummy array for forcing calls
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: foo_snw
+    real(rk8), dimension(lbc:ubc,-nlevsno+1:1,numrad) :: foo_snw
 #endif
     ! albedo of surface underneath snow (col,bnd)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsfc
+    real(rk8), dimension(lbc:ubc,numrad) :: albsfc
     ! liquid snow content (col,lyr) [kg m-2]
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:0) :: h2osno_liq
+    real(rk8), dimension(lbc:ubc,-nlevsno+1:0) :: h2osno_liq
     ! ice content in snow (col,lyr) [kg m-2]
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:0) :: h2osno_ice
+    real(rk8), dimension(lbc:ubc,-nlevsno+1:0) :: h2osno_ice
     ! snow grain size sent to SNICAR (col,lyr) [microns]
-    integer(ik4) , dimension(lbc:ubc,-nlevsno+1:0) :: snw_rds_in
+    integer(ik4), dimension(lbc:ubc,-nlevsno+1:0) :: snw_rds_in
 
     ! mass concentration of aerosol species for forcing calculation
     ! (zero) (col,lyr,aer) [kg kg-1]
@@ -416,7 +416,7 @@ module mod_clm_surfacealbedo
 
     ! Cosine solar zenith angle for next time step
 
-    do g = lbg , ubg
+    do g = lbg, ubg
       coszen_gcell(g) = orb_cosz(nextsw_cday,lat(g),lon(g),declinp1)
       coszen_gcell(g) = min(max(0.0_rk8,coszen_gcell(g)),1.0_rk8)
     end do
@@ -424,14 +424,14 @@ module mod_clm_surfacealbedo
     ! Save coszen and declination values to  clm3 data structures for
     ! use in other places in the CN and urban code
 
-    do c = lbc , ubc
+    do c = lbc, ubc
       g = cgridcell(c)
       coszen_col(c) = coszen_gcell(g)
       coszen(c) = coszen_col(c)
       decl(c) = declinp1
     end do
 
-    do fp = 1 , num_nourbanp
+    do fp = 1, num_nourbanp
       p = filter_nourbanp(fp)
       ! if (pwtgcell(p)>0._rk8) then ! "if" added due to chg in filter definition
       g = pgridcell(p)
@@ -441,8 +441,8 @@ module mod_clm_surfacealbedo
 
     ! Initialize output because solar radiation only done if coszen > 0
 
-    do ib = 1 , numrad
-      do fc = 1 , num_nourbanc
+    do ib = 1, numrad
+      do fc = 1, num_nourbanc
         c = filter_nourbanc(fc)
         albsod(c,ib)     = 0._rk8
         albsoi(c,ib)     = 0._rk8
@@ -458,7 +458,7 @@ module mod_clm_surfacealbedo
         albgri_dst(c,ib) = 0._rk8
         albsni(c,ib) = 0.0_rk8
         albsnd(c,ib) = 0.0_rk8
-        do i = -nlevsno+1 , 1 , 1
+        do i = -nlevsno+1, 1, 1
           flx_absdv(c,i) = 0._rk8
           flx_absdn(c,i) = 0._rk8
           flx_absiv(c,i) = 0._rk8
@@ -467,7 +467,7 @@ module mod_clm_surfacealbedo
           flx_absi_snw(c,i,ib) = 0._rk8
         end do
       end do
-      do fp = 1 , num_nourbanp
+      do fp = 1, num_nourbanp
         p = filter_nourbanp(fp)
 !       if (pwtgcell(p)>0._rk8) then ! "if" added due to chg in filter definition
         albd(p,ib) = 1._rk8
@@ -515,7 +515,7 @@ module mod_clm_surfacealbedo
     ! set variables to pass to SNICAR.
 
     flg_snw_ice = 1   ! calling from CLM, not CSIM
-    do c = lbc , ubc
+    do c = lbc, ubc
       albsfc(c,:)     = albsoi(c,:)
       h2osno_liq(c,:) = h2osoi_liq(c,-nlevsno+1:0)
       h2osno_ice(c,:) = h2osoi_ice(c,-nlevsno+1:0)
@@ -646,8 +646,8 @@ module mod_clm_surfacealbedo
                    mss_cnc_aer_in_fdb, albsfc, albsni, flx_absi_snw)
 
     ! ground albedos and snow-fraction weighting of snow absorption factors
-    do ib = 1 , nband
-      do fc = 1 , num_nourbanc
+    do ib = 1, nband
+      do fc = 1, num_nourbanc
         c = filter_nourbanc(fc)
         if (coszen(c) > 0._rk8) then
           ! ground albedo was originally computed in SoilAlbedo, but is now
@@ -690,7 +690,7 @@ module mod_clm_surfacealbedo
           ! vectorized code) weight snow layer radiative absorption factors
           ! based on snow fraction and soil albedo
           !  (NEEDED FOR ENERGY CONSERVATION)
-          do i = -nlevsno+1 , 1 , 1
+          do i = -nlevsno+1, 1, 1
             if ( subgridflag == 0 ) then
               if ( ib == 1 ) then
                 flx_absdv(c,i) = flx_absd_snw(c,i,ib)*frac_sno(c) + &
@@ -724,8 +724,8 @@ module mod_clm_surfacealbedo
     ! for diagnostics, set snow albedo to spval over non-snow points
     ! so that it is not averaged in history buffer
     ! (OPTIONAL)
-    do ib = 1 , nband
-      do fc = 1 , num_nourbanc
+    do ib = 1, nband
+      do fc = 1, num_nourbanc
         c = filter_nourbanc(fc)
         if ( (coszen(c) > 0._rk8) .and. (h2osno(c) > 0._rk8) ) then
           albsnd_hst(c,ib) = albsnd(c,ib)
@@ -741,7 +741,7 @@ module mod_clm_surfacealbedo
 
     num_vegsol = 0
     num_novegsol = 0
-    do fp = 1 , num_nourbanp
+    do fp = 1, num_nourbanp
       p = filter_nourbanp(fp)
       if ( coszen_pft(p) > 0._rk8 ) then
         if ( (itypelun(plandunit(p)) == istsoil .or.        &
@@ -759,14 +759,14 @@ module mod_clm_surfacealbedo
     ! Weight reflectance/transmittance by lai and sai
     ! Only perform on vegetated pfts where coszen > 0
 
-    do fp = 1 , num_vegsol
+    do fp = 1, num_vegsol
       p = filter_vegsol(fp)
       wl(p) = elai(p) / max( elai(p)+esai(p), mpe )
       ws(p) = esai(p) / max( elai(p)+esai(p), mpe )
     end do
 
-    do ib = 1 , numrad
-      do fp = 1 , num_vegsol
+    do ib = 1, numrad
+      do fp = 1, num_vegsol
         p = filter_vegsol(fp)
         rho(p,ib) = max( rhol(ivt(p),ib)*wl(p) + rhos(ivt(p),ib)*ws(p), mpe )
         tau(p,ib) = max( taul(ivt(p),ib)*wl(p) + taus(ivt(p),ib)*ws(p), mpe )
@@ -800,7 +800,7 @@ module mod_clm_surfacealbedo
     ! by nlevcan = 1
 
     dincmax = 0.25_rk8
-    do fp = 1 , num_nourbanp
+    do fp = 1, num_nourbanp
       p = filter_nourbanp(fp)
 
       if ( nlevcan == 1 ) then
@@ -813,7 +813,7 @@ module mod_clm_surfacealbedo
           nrad(p) = 0
         else
           dincmax_sum = 0._rk8
-          do iv = 1 , nlevcan
+          do iv = 1, nlevcan
             dincmax_sum = dincmax_sum + dincmax
             if ( ((elai(p)+esai(p))-dincmax_sum) > 1.e-6_rk8 ) then
               nrad(p) = iv
@@ -833,7 +833,7 @@ module mod_clm_surfacealbedo
 
           if ( nrad(p) < 4 ) then
             nrad(p) = 4
-            do iv = 1 , nrad(p)
+            do iv = 1, nrad(p)
               tlai_z(p,iv) = elai(p) / nrad(p)
               tsai_z(p,iv) = esai(p) / nrad(p)
             end do
@@ -845,7 +845,7 @@ module mod_clm_surfacealbedo
 
       laisum = 0._rk8
       saisum = 0._rk8
-      do iv = 1 , nrad(p)
+      do iv = 1, nrad(p)
         laisum = laisum + tlai_z(p,iv)
         saisum = saisum + tsai_z(p,iv)
       end do
@@ -866,7 +866,7 @@ module mod_clm_surfacealbedo
           ncan(p) = nrad(p)
         else
           dincmax_sum = 0._rk8
-          do iv = nrad(p)+1 , nlevcan
+          do iv = nrad(p)+1, nlevcan
             dincmax_sum = dincmax_sum + dincmax
             if ( ((blai(p)+bsai(p))-dincmax_sum) > 1.e-6_rk8 ) then
               ncan(p) = iv
@@ -887,7 +887,7 @@ module mod_clm_surfacealbedo
 
         laisum = 0._rk8
         saisum = 0._rk8
-        do iv = 1 , ncan(p)
+        do iv = 1, ncan(p)
           laisum = laisum + tlai_z(p,iv)
           saisum = saisum + tsai_z(p,iv)
         end do
@@ -904,9 +904,9 @@ module mod_clm_surfacealbedo
 
     ! Zero fluxes for active canopy layers
 
-    do fp = 1 , num_nourbanp
+    do fp = 1, num_nourbanp
       p = filter_nourbanp(fp)
-      do iv = 1 , nrad(p)
+      do iv = 1, nrad(p)
         fabd_sun_z(p,iv) = 0._rk8
         fabd_sha_z(p,iv) = 0._rk8
         fabi_sun_z(p,iv) = 0._rk8
@@ -922,7 +922,7 @@ module mod_clm_surfacealbedo
     ! TwoStream for coszen > 0. So kn must be set here and in TwoStream.
 
     extkn = 0.30_rk8
-    do fp = 1 , num_nourbanp
+    do fp = 1, num_nourbanp
       p = filter_nourbanp(fp)
       if ( nlevcan == 1 ) then
         vcmaxcintsun(p) = 0._rk8
@@ -949,8 +949,8 @@ module mod_clm_surfacealbedo
 
     ! Determine values for non-vegetated pfts where coszen > 0
 
-    do ib = 1 , numrad
-      do fp = 1 , num_novegsol
+    do ib = 1, numrad
+      do fp = 1, num_novegsol
         p = filter_novegsol(fp)
         c = pcolumn(p)
         fabd(p,ib) = 0._rk8
@@ -981,49 +981,49 @@ module mod_clm_surfacealbedo
   !
   subroutine SoilAlbedo (lbc, ubc, num_nourbanc, filter_nourbanc, coszen)
     use mod_clm_type
-    use mod_clm_varpar , only : numrad
-    use mod_clm_varcon , only : albsat , albdry , tfrz , istice
-    use mod_clm_varcon , only : istdlak
-    use mod_clm_slakecon , only : alblak
-    use mod_clm_slakecon , only : alblakwi , calb , lakepuddling
+    use mod_clm_varpar, only : numrad
+    use mod_clm_varcon, only : albsat, albdry, tfrz, istice
+    use mod_clm_varcon, only : istdlak
+    use mod_clm_slakecon, only : alblak
+    use mod_clm_slakecon, only : alblakwi, calb, lakepuddling
     implicit none
-    integer(ik4) , intent(in) :: lbc , ubc ! column bounds
+    integer(ik4), intent(in) :: lbc, ubc ! column bounds
     ! number of columns in non-urban points in column filter
-    integer(ik4) , intent(in) :: num_nourbanc
+    integer(ik4), intent(in) :: num_nourbanc
     ! column filter for non-urban points
-    integer(ik4) , dimension(ubc-lbc+1) , intent(in) :: filter_nourbanc
+    integer(ik4), dimension(ubc-lbc+1), intent(in) :: filter_nourbanc
     ! cos solar zenith angle next time step (column-level)
-    real(rk8) , dimension(lbc:ubc) , intent(in) :: coszen
+    real(rk8), dimension(lbc:ubc), intent(in) :: coszen
 
     ! landunit of corresponding column
-    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! landunit type
-    integer(ik4) , pointer , dimension(:) :: ltype
+    integer(ik4), pointer, contiguous, dimension(:) :: ltype
     ! soil color class
-    integer(ik4) , pointer , dimension(:) :: isoicol
+    integer(ik4), pointer, contiguous, dimension(:) :: isoicol
     ! ground temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_grnd
+    real(rk8), pointer, contiguous, dimension(:) :: t_grnd
     ! volumetric soil water [m3/m3]
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_vol
     ! mass fraction of lake layer that is frozen
-    real(rk8) , pointer , dimension(:,:) :: lake_icefrac
+    real(rk8), pointer, contiguous, dimension(:,:) :: lake_icefrac
     ! number of snow layers
-    integer(ik4) , pointer , dimension(:) :: snl
+    integer(ik4), pointer, contiguous, dimension(:) :: snl
 
     ! ground albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgrd
     ! ground albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgri
     ! albsod and albsoi are now clm_type variables so they can
     ! be used by SNICAR.
     ! soil albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albsod
+    real(rk8), pointer, contiguous, dimension(:,:) :: albsod
     ! soil albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albsoi
+    real(rk8), pointer, contiguous, dimension(:,:) :: albsoi
     ! number of solar radiation waveband classes
-    integer(ik4) , parameter :: nband = numrad
+    integer(ik4), parameter :: nband = numrad
     integer(ik4) :: fc         ! non-urban filter column index
-    integer(ik4) :: c , l      ! indices
+    integer(ik4) :: c, l      ! indices
     integer(ik4) :: ib         ! waveband number (1=vis, 2=nir)
     real(rk8) :: inc           ! soil water correction factor for soil albedo
     ! albsod and albsoi are now clm_type variables so they can be
@@ -1053,8 +1053,8 @@ module mod_clm_surfacealbedo
 
     ! Compute soil albedos
 
-    do ib = 1 , nband
-      do fc = 1 , num_nourbanc
+    do ib = 1, nband
+      do fc = 1, num_nourbanc
         c = filter_nourbanc(fc)
         if ( coszen(c) > 0._rk8 ) then
           l = clandunit(c)
@@ -1144,122 +1144,122 @@ module mod_clm_surfacealbedo
   subroutine TwoStream (lbp, ubp, filter_vegsol, &
                   num_vegsol, coszen, rho, tau)
     use mod_clm_type
-    use mod_clm_varpar , only : numrad , nlevcan
-    use mod_clm_varcon , only : omegas , tfrz , betads , betais
+    use mod_clm_varpar, only : numrad, nlevcan
+    use mod_clm_varcon, only : omegas, tfrz, betads, betais
     implicit none
-    integer(ik4) , intent(in)  :: lbp , ubp ! pft bounds
+    integer(ik4), intent(in)  :: lbp, ubp ! pft bounds
     ! filter for vegetated pfts with coszen>0
-    integer(ik4) , dimension(ubp-lbp+1) , intent(in)  :: filter_vegsol
+    integer(ik4), dimension(ubp-lbp+1), intent(in)  :: filter_vegsol
     ! number of vegetated pfts where coszen>0
-    integer(ik4) , intent(in) :: num_vegsol
+    integer(ik4), intent(in) :: num_vegsol
     ! cosine solar zenith angle for next time step
-    real(rk8) , dimension(lbp:ubp) , intent(in) :: coszen
+    real(rk8), dimension(lbp:ubp), intent(in) :: coszen
     ! leaf/stem refl weighted by fraction LAI and SAI
-    real(rk8) , dimension(lbp:ubp,numrad) , intent(in) :: rho
+    real(rk8), dimension(lbp:ubp,numrad), intent(in) :: rho
     ! leaf/stem tran weighted by fraction LAI and SAI
-    real(rk8) , dimension(lbp:ubp,numrad) , intent(in) :: tau
+    real(rk8), dimension(lbp:ubp,numrad), intent(in) :: tau
     ! column of corresponding pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
+    integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! ground albedo (direct) (column-level)
-    real(rk8) , pointer , dimension(:,:) :: albgrd
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgrd
     ! ground albedo (diffuse)(column-level)
-    real(rk8) , pointer , dimension(:,:) :: albgri
+    real(rk8), pointer, contiguous, dimension(:,:) :: albgri
     ! vegetation temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_veg
+    real(rk8), pointer, contiguous, dimension(:) :: t_veg
     ! fraction of canopy that is wet (0 to 1)
-    real(rk8) , pointer , dimension(:) :: fwet
+    real(rk8), pointer, contiguous, dimension(:) :: fwet
     ! pft vegetation type
-    integer(ik4) , pointer , dimension(:) :: ivt
+    integer(ik4), pointer, contiguous, dimension(:) :: ivt
     ! ecophys const - leaf/stem orientation index
-    real(rk8) , pointer , dimension(:) :: xl
+    real(rk8), pointer, contiguous, dimension(:) :: xl
     ! one-sided leaf area index with burying by snow
-    real(rk8) , pointer , dimension(:) :: elai
+    real(rk8), pointer, contiguous, dimension(:) :: elai
     ! one-sided stem area index with burying by snow
-    real(rk8) , pointer , dimension(:) :: esai
+    real(rk8), pointer, contiguous, dimension(:) :: esai
     ! number of canopy layers, above snow for radiative transfer
-    integer(ik4) , pointer , dimension(:) :: nrad
+    integer(ik4), pointer, contiguous, dimension(:) :: nrad
     ! tlai increment for canopy layer
-    real(rk8) , pointer , dimension(:,:) :: tlai_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: tlai_z
     ! tsai increment for canopy layer
-    real(rk8) , pointer , dimension(:,:) :: tsai_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: tsai_z
     ! surface albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albd
+    real(rk8), pointer, contiguous, dimension(:,:) :: albd
     ! surface albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albi
+    real(rk8), pointer, contiguous, dimension(:,:) :: albi
     ! flux absorbed by canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabd
     ! flux absorbed by sunlit canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd_sun
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabd_sun
     ! flux absorbed by shaded canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd_sha
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabd_sha
     ! flux absorbed by canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabi
     ! flux absorbed by sunlit canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi_sun
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabi_sun
     ! flux absorbed by shaded canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi_sha
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabi_sha
     ! down direct flux below canopy per unit direct flx
-    real(rk8) , pointer , dimension(:,:) :: ftdd
+    real(rk8), pointer, contiguous, dimension(:,:) :: ftdd
     ! down diffuse flux below canopy per unit direct flx
-    real(rk8) , pointer , dimension(:,:) :: ftid
+    real(rk8), pointer, contiguous, dimension(:,:) :: ftid
     ! down diffuse flux below canopy per unit diffuse flx
-    real(rk8) , pointer , dimension(:,:) :: ftii
+    real(rk8), pointer, contiguous, dimension(:,:) :: ftii
     ! absorbed sunlit leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabd_sun_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabd_sun_z
     ! absorbed shaded leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabd_sha_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabd_sha_z
     ! absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabi_sun_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabi_sun_z
     ! absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabi_sha_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: fabi_sha_z
     ! sunlit fraction of canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fsun_z
+    real(rk8), pointer, contiguous, dimension(:,:) :: fsun_z
     ! leaf to canopy scaling coefficient, sunlit leaf vcmax
-    real(rk8) , pointer , dimension(:) :: vcmaxcintsun
+    real(rk8), pointer, contiguous, dimension(:) :: vcmaxcintsun
     ! leaf to canopy scaling coefficient, shaded leaf vcmax
-    real(rk8) , pointer , dimension(:) :: vcmaxcintsha
-    integer(ik4) :: fp , p , c , iv  ! array indices
+    real(rk8), pointer, contiguous, dimension(:) :: vcmaxcintsha
+    integer(ik4) :: fp, p, c, iv  ! array indices
     integer(ik4) :: ib               ! waveband number
     real(rk8) :: cosz ! 0.001 <= coszen <= 1.000
     real(rk8) :: asu  ! single scattering albedo
-    real(rk8) , dimension(lbp:ubp) :: chil    ! -0.4 <= xl <= 0.6
+    real(rk8), dimension(lbp:ubp) :: chil    ! -0.4 <= xl <= 0.6
     ! leaf projection in solar direction (0 to 1)
-    real(rk8) , dimension(lbp:ubp) :: gdir
+    real(rk8), dimension(lbp:ubp) :: gdir
     ! optical depth of direct beam per unit leaf area
-    real(rk8) , dimension(lbp:ubp) :: twostext
+    real(rk8), dimension(lbp:ubp) :: twostext
     ! average diffuse optical depth
-    real(rk8) , dimension(lbp:ubp) :: avmu
+    real(rk8), dimension(lbp:ubp) :: avmu
     ! fraction of intercepted radiation that is scattered (0 to 1)
-    real(rk8) , dimension(lbp:ubp,numrad) :: omega
+    real(rk8), dimension(lbp:ubp,numrad) :: omega
     real(rk8) :: omegal ! omega for leaves
     real(rk8) :: betai  ! upscatter parameter for diffuse radiation
     real(rk8) :: betail ! betai for leaves
     real(rk8) :: betad  ! upscatter parameter for direct beam radiation
     real(rk8) :: betadl ! betad for leaves
-    real(rk8) :: tmp0 , tmp1 , tmp2 , tmp3 , tmp4 , tmp5 , tmp6
-    real(rk8) :: tmp7 , tmp8 , tmp9 ! temporary
-    real(rk8) :: p1 , p2 , p3 , p4 , s1 , s2 , u1 , u2 , u3 ! temporary
-    real(rk8) :: b , c1 , d , d1 , d2 , f , h
-    real(rk8) :: h1 , h2 , h3 , h4 , h5 , h6 , h7 , h8 , h9 , h10   ! temporary
-    real(rk8) :: phi1 , phi2 , sigma , temp1   ! temporary
-    real(rk8) , dimension(lbp:ubp) :: temp0 , temp2       ! temporary
+    real(rk8) :: tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6
+    real(rk8) :: tmp7, tmp8, tmp9 ! temporary
+    real(rk8) :: p1, p2, p3, p4, s1, s2, u1, u2, u3 ! temporary
+    real(rk8) :: b, c1, d, d1, d2, f, h
+    real(rk8) :: h1, h2, h3, h4, h5, h6, h7, h8, h9, h10   ! temporary
+    real(rk8) :: phi1, phi2, sigma, temp1   ! temporary
+    real(rk8), dimension(lbp:ubp) :: temp0, temp2       ! temporary
     real(rk8) :: t1  ! temporary
     ! parameter for sunlit/shaded leaf radiation absorption
-    real(rk8) :: a1 , a2
+    real(rk8) :: a1, a2
     ! temporary for flux derivatives
-    real(rk8) :: v , dv , u , du
+    real(rk8) :: v, dv, u, du
     ! temporary for flux derivatives
-    real(rk8) :: dh2 , dh3 , dh5 , dh6 , dh7 , dh8 , dh9 , dh10
+    real(rk8) :: dh2, dh3, dh5, dh6, dh7, dh8, dh9, dh10
     ! temporary for flux derivatives
-    real(rk8) :: da1 , da2
+    real(rk8) :: da1, da2
     ! ftid, ftii derivative with respect to lai+sai
-    real(rk8) :: d_ftid , d_ftii
+    real(rk8) :: d_ftid, d_ftii
     ! fabd, fabi derivative with respect to lai+sai
-    real(rk8) :: d_fabd , d_fabi
+    real(rk8) :: d_fabd, d_fabi
     ! fabd_sun, fabd_sha derivative with respect to lai+sai
-    real(rk8) :: d_fabd_sun , d_fabd_sha
+    real(rk8) :: d_fabd_sun, d_fabd_sha
     ! fabi_sun, fabi_sha derivative with respect to lai+sai
-    real(rk8) :: d_fabi_sun , d_fabi_sha
+    real(rk8) :: d_fabi_sun, d_fabi_sha
     ! cumulative lai+sai for canopy layer (at middle of layer)
     real(rk8) :: laisum
     ! direct beam extinction coefficient
@@ -1306,7 +1306,7 @@ module mod_clm_surfacealbedo
     ! Calculate two-stream parameters that are independent of waveband:
     ! chil, gdir, twostext, avmu, and temp0 and temp2 (used for asu)
 
-    do fp = 1 , num_vegsol
+    do fp = 1, num_vegsol
       p = filter_vegsol(fp)
 
       ! note that the following limit only acts on cosz values > 0 and
@@ -1362,8 +1362,8 @@ module mod_clm_surfacealbedo
     ! fabi_sha_z - absorbed shaded leaf diffuse PAR
     !               (per unit shaded lai+sai) for each canopy layer
     !
-    do ib = 1 , numrad
-      do fp = 1 , num_vegsol
+    do ib = 1, numrad
+      do fp = 1, num_vegsol
         p = filter_vegsol(fp)
         c = pcolumn(p)
         ! Calculate two-stream parameters omega, betad, and betai.
@@ -1534,7 +1534,7 @@ module mod_clm_surfacealbedo
             end if
 
           else if ( nlevcan > 1 ) then
-            do iv = 1 , nrad(p)
+            do iv = 1, nrad(p)
 
               ! Cumulative lai+sai at center of layer
 
