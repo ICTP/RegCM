@@ -20,7 +20,7 @@ module mod_clm_biogeophysrest
           istsoil, pondmx, watmin, spval, icol_roof, icol_sunwall,      &
           icol_shadewall
   use mod_clm_varctl, only : allocate_all_vegpfts, nsrest, &
-          pertlim, nsrContinue, nsrStartup
+          pertlim, nsrContinue, nsrStartup, DoForceRestart
   use mod_clm_initsurfalb, only : do_initsurfalb
   use mod_clm_snicar, only : snw_rds_min
   use mod_clm_mkarbinit, only : perturbIC
@@ -175,7 +175,8 @@ module mod_clm_biogeophysrest
         !
         ! Note: Do not compare weights if restart
         !
-        if ( nsrest == nsrContinue .or. fileusing == "fsurdat/fpftdyn" ) then
+        if ( DoForceRestart .or. nsrest == nsrContinue .or. &
+             fileusing == "fsurdat/fpftdyn" ) then
           ! Do NOT do any testing for restart or a pftdyn case
           !
           ! Otherwise test and make sure weights agree to reasonable tolerence

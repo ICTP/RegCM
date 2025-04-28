@@ -16,7 +16,7 @@ module mod_clm_initialize
   use mod_clm_nchelper
   use mod_clm_varctl, only : nsrest, nsrStartup, nsrContinue, &
           fsurdat, fatmlndfrc, noland, finidat,   &
-          version, atm_regcm
+          version, atm_regcm, DoForceRestart
   use mod_clm_varsur, only : wtxy, vegxy
   use mod_clm_typeinit, only : initClmtype
   use mod_clm_varpar, only : maxpatch, clm_varpar_init
@@ -295,7 +295,7 @@ module mod_clm_initialize
 
 #if (defined CN)
     if ( nsrest == nsrStartup ) then
-      call CNiniTimeVar()
+      if ( .not. DoForceRestart ) call CNiniTimeVar()
     end if
 #endif
 
@@ -326,9 +326,14 @@ module mod_clm_initialize
       call restFile_getfile(fnamer, rdate)
       call restFile_read( fnamer, rdate )
     else if ( nsrest == nsrStartup ) then
-      ! Get initial data from regcm !
-      call mkregcminit(adomain)
-      call UrbanInitTimeVar( )
+      if ( DoForceRestart ) then
+        call restFile_getfile(fnamer, rdate)
+        call restFile_read( fnamer, rdate )
+      else
+        ! Get initial data from regcm with arbitrary initialization !
+        call mkregcminit(adomain)
+        call UrbanInitTimeVar( )
+      endif
     else
       call fatal(__FILE__,__LINE__,'CLM modified to run with RegCM !')
     end if
@@ -366,7 +371,7 @@ module mod_clm_initialize
     ! this call must be made after the restart information has been read.
 
     if ( nsrest == nsrStartup .or. ichecold == 1 ) then
-      call hist_htapes_build()
+      if ( .not. DoForceRestart ) call hist_htapes_build()
     end if
 
     ! Initialize clmtype variables that are obtained from accumulated fields.

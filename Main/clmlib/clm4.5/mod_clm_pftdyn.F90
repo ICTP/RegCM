@@ -2808,7 +2808,7 @@ module mod_clm_pftdyn
   ! Initialize time interpolation of cndv pft weights from annual to time step
   !
   subroutine pftwt_init()
-    use mod_clm_varctl, only : nsrest, nsrStartup
+    use mod_clm_varctl, only : nsrest, nsrStartup, DoForceRestart
     use mod_clm_pftvarcon, only : noveg
     use mod_clm_varcon, only : istsoil, istcrop
     implicit none
@@ -2845,7 +2845,7 @@ module mod_clm_pftdyn
              subname//'::ERROR: pftwt_init allocation error for wtcol_old')
     end if
 
-    if ( nsrest == nsrStartup ) then
+    if ( nsrest == nsrStartup .and. .not. DoForceRestart ) then
       if ( .not. enable_dv_baresoil ) then
         do p = begp, endp
           pptr%pdgvs%fpcgrid(p) = pptr%wtcol(p)
