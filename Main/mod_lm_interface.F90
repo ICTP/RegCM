@@ -1205,7 +1205,7 @@ module mod_lm_interface
     integer(ik4), parameter :: niter = 20
     real(rkx), dimension(jci1:jci2,ici1:ici2) :: mask
     real(rkx), parameter :: alpha = lrate*rgas/egrav
-    real(rkx) :: mval, mall
+    real(rkx) :: mval, mall, themin, themax
     real(rkx) :: tstar, hstar, raval
 
     ! Follow Kallen 1996
@@ -1222,7 +1222,9 @@ module mod_lm_interface
            exp(hstar*(1.0_rkx - raval + (raval*raval)/3.0_rkx))
     end do
     ! Gauss Siedel Filtering
-    mval = (d_half*(maxval(lm%sfps)-minval(lm%sfps)))/real(nproc,rkx)
+    themin = minval(lm%sfps(jce1:jce2,ice1:ice2))
+    themax = maxval(lm%sfps(jce1:jce2,ice1:ice2))
+    mval = (d_half*(themax-themin))/real(nproc,rkx)
     call sumall(mval,mall)
     sfp(jce1:jce2,ice1:ice2) = lm%sfps(jce1:jce2,ice1:ice2)
     call exchange(slp,1,jce1,jce2,ice1,ice2)

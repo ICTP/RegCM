@@ -601,7 +601,7 @@ module mod_moloch
     logical :: do_nudge
     integer(ik4) :: i, j, k, n
     do_nudge = ( iboudy == 1 .or. iboudy >= 5 .or. iboudy == 4)
-    call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
+      call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
       call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
       call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
       call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
