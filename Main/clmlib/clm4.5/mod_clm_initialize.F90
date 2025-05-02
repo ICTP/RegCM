@@ -371,7 +371,11 @@ module mod_clm_initialize
     ! this call must be made after the restart information has been read.
 
     if ( nsrest == nsrStartup .or. ichecold == 1 ) then
-      if ( .not. DoForceRestart ) call hist_htapes_build()
+      if ( DoForceRestart ) then
+        call htapes_fieldlist()
+      else
+        call hist_htapes_build()
+      end if
     end if
 
     ! Initialize clmtype variables that are obtained from accumulated fields.
