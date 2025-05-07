@@ -1340,7 +1340,7 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
     # This is the directory where the NetCDf file will be saved
     cordex_last_dir = os.path.join(
         cordex_dir,
-        'CMIP6',
+        'CORDEX-CMIP6',
         'DD',
         simul.domain,
         'ICTP',
