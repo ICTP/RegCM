@@ -589,7 +589,7 @@ module mod_lm_interface
         'RUNNING COUPLED WITHOUT COUPLER INITIALIZATION')
     end if
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      expfie%psfc(j,i) = lm%sfps(j,i)*d_r100
+      expfie%psfc(j,i) = lm%sfps(j,i)
       expfie%tsfc(j,i) = sum(lms%t2m(:,j,i))*rdnnsg
       expfie%qsfc(j,i) = lm%q2m(j,i)
       expfie%swrd(j,i) = lm%rswf(j,i)

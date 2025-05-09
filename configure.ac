@@ -19,12 +19,11 @@ AC_SUBST([PACKAGE_URL], ["https://github.com/ICTP/RegCM"])
 
 #AC_PREREQ([2.64])
 
+AM_INIT_AUTOMAKE([foreign])
+AM_PROG_AR
+
 LT_INIT
 
-AM_INIT_AUTOMAKE([foreign])
-
-AM_PROG_AR
-AC_PROG_RANLIB
 AC_PROG_CC
 AC_PROG_FC
 
@@ -540,6 +539,22 @@ if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
   AC_SUBST(OMPFLAGS)
   LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
   AC_SUBST(LIBS)
+  if eval "test x"$USE_ZEN3" = x1"; then
+    FCFLAGS="$FCFLAGS -axCORE-AVX2"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_SKL" = x1"; then
+    FCFLAGS="$FCFLAGS -xCORE-AVX512"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_BDW" = x1"; then
+    FCFLAGS="$FCFLAGS -xCORE-AVX2"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_NHL" = x1"; then
+    FCFLAGS="$FCFLAGS -xSSE4.2"
+    AC_SUBST(FCFLAGS)
+  fi
 fi
 if test -z "$COMPILER_INTEL_TRUE"; then
   FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
@@ -714,7 +729,7 @@ else
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     else
-      FCFLAGS="-ftz -O3 -finline-functions -fp-model source $FCFLAGS"
+      FCFLAGS="-ftz -O3 -flto -finline-functions -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     fi
     AC_SUBST(NOOPTFC)
