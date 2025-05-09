@@ -2,18 +2,14 @@
 #
 #    This file is part of ICTP RegCM.
 #
-#    ICTP RegCM is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+#    Use of this source code is governed by an MIT-style license that can
+#    be found in the LICENSE file or at
+#
+#         https://opensource.org/licenses/MIT.
 #
 #    ICTP RegCM is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -23,11 +19,11 @@ AC_SUBST([PACKAGE_URL], ["https://github.com/ICTP/RegCM"])
 
 #AC_PREREQ([2.64])
 
+AM_INIT_AUTOMAKE([foreign])
+AM_PROG_AR
+
 LT_INIT
 
-AM_INIT_AUTOMAKE([foreign])
-
-AC_PROG_RANLIB
 AC_PROG_CC
 AC_PROG_FC
 
@@ -139,7 +135,7 @@ fi
 
 USE_OPENACC="0"
 # TODO: make this configurable
-PGI_GPU_ARCH="cc80"
+PGI_GPU_ARCH="ccall-major"
 
 AC_ARG_ENABLE(openacc,
   AC_HELP_STRING([--enable-openacc],
@@ -168,6 +164,16 @@ AC_ARG_ENABLE(openacc-managed,
 )
 if eval "test x"$USE_OPENACC" = x3"; then
   AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
+AC_ARG_ENABLE(openacc-stdpar,
+  AC_HELP_STRING([--enable-openacc-stdpar],
+                 [Compile OpenACC directives with stdpar (only for PGI fortran compilation)]),
+                 [USE_OPENACC="4"]
+)
+if eval "test x"$USE_OPENACC" = x4"; then
+  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS -DSTDPAR"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -471,7 +477,8 @@ AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
 AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
                                       -z "${FCPROG##impif*}" -o \
                                       -z "${FCPROG##mpiifort*}" ] )
-AM_CONDITIONAL(COMPILER_INTEL_LLVM, [ test -z "${FCPROG##ifx*}" ] )
+AM_CONDITIONAL(COMPILER_INTEL_LLVM, [ test -z "${FCPROG##ifx*}" -o \
+                                           -z "${FCPROG##mpiifx*}" ] )
 AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
 
 DEFINE="-D"
@@ -520,14 +527,34 @@ if test -z "$COMPILER_GNU_TRUE"; then
   fi
 fi
 if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
+  if eval "test x$DEBUG = x1"; then
+    OMPFLAGS=""
+  else
+    OMPFLAGS="-qopenmp -qopt-report -DSTDPAR"
+  fi
   FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
-           -heap-arrays -fPIC"
-  OMPFLAGS="-qopenmp"
+           -heap-arrays -fPIC $OMPFLAGS"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
   LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
   AC_SUBST(LIBS)
+  if eval "test x"$USE_ZEN3" = x1"; then
+    FCFLAGS="$FCFLAGS -axCORE-AVX2"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_SKL" = x1"; then
+    FCFLAGS="$FCFLAGS -xCORE-AVX512"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_BDW" = x1"; then
+    FCFLAGS="$FCFLAGS -xCORE-AVX2"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_NHL" = x1"; then
+    FCFLAGS="$FCFLAGS -xSSE4.2"
+    AC_SUBST(FCFLAGS)
+  fi
 fi
 if test -z "$COMPILER_INTEL_TRUE"; then
   FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
@@ -609,20 +636,33 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
-    FCFLAGS="-O0 -g -pg -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
+    if test -z "${osname##Linux}"; then
+      FCFLAGS="-O0 -g -pg -fbacktrace \
+            -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
+            -Wampersand -Warray-bounds -Wcharacter-truncation -Wuninitialized \
+            -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
+            -Wunused-parameter -Wno-align-commons $FCFLAGS \
+            -fno-range-check -fcheck=bounds -Wimplicit-interface \
+            -Wimplicit-procedure -Wintrinsic-shadow \
+            -fcheck=array-temps,bounds,do,mem,recursion,pointer"
+            # -ffpe-trap=zero,invalid,overflow,underflow
+    else
+      # Newver Macos versions have a missing library problem for -pg
+      FCFLAGS="-O0 -g -fbacktrace \
             -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
             -Wampersand -Warray-bounds -Wcharacter-truncation -Wuninitialized \
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
             -Wunused-parameter -Wno-align-commons $FCFLAGS \
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
             -Wintrinsic-shadow -fcheck=array-temps,bounds,do,mem,recursion"
+            # -ffpe-trap=zero,invalid,overflow,underflow
+    fi
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
-    FCFLAGS="-O0 -fpe0 -g -check all -traceback -warn all -ftz \
-             -fimf-arch-consistency=true -fltconsistency -mieee-fp $FCFLAGS"
+    FCFLAGS="-O0 -g -traceback -warn all -mieee-fp $FCFLAGS"
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
@@ -645,9 +685,6 @@ if eval "test x$DEBUG = x1"; then
     FCFLAGS="-Mbounds -Mcache_align -Mchkstk -Mdalign \
              -Miomutex -Mrecursive -Ktrap=divz -O0 -g \
              -gopt -traceback $FCFLAGS"
-    if test "test x$USE_OPENACC = x1"; then
-      FCFLAGS="$FCFLAGS -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
-    fi
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
@@ -670,7 +707,7 @@ else
     # The GNU compiler works with -O2
     NOOPTFC="-O2 -finline-functions $FCFLAGS" # -fno-var-tracking-assignments
     if test -z "${osname##Linux}"; then
-      FCFLAGS="-O3 -finline-functions -mtune=native \
+      FCFLAGS="-O3 -finline-functions -mtune=native -ftree-vectorize \
                -march=native $FCFLAGS" # -ftree-parallelize-loops=2"
       if eval "test x"$USE_PROF" = x1"; then
         FCFLAGS="-g -pg $FCFLAGS"
@@ -678,35 +715,33 @@ else
     else
       # MacOSX may choke on using AVX extensions...
       FCFLAGS="-O3 -finline-functions $FCFLAGS"
+      # Newer versions of MacOS have problems with pg options
       if eval "test x"$USE_PROF" = x1"; then
-        FCFLAGS="-g -pg $FCFLAGS"
+        FCFLAGS="-g $FCFLAGS"
       fi
     fi
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
-    AR=xiar
-    AC_SUBST(AR)
     NOOPTFC="-ftz -O0 -fp-model source $FCFLAGS"
     if eval "test x"$USE_PROF" = x1"; then
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     else
-      FCFLAGS="-ftz -O3 -finline-functions -fp-model source $FCFLAGS"
+      FCFLAGS="-ftz -O3 -flto -finline-functions -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     fi
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
-    AR=xiar
-    AC_SUBST(AR)
     NOOPTFC="-ftz -O0 -fp-model source $FCFLAGS"
     if eval "test x"$USE_PROF" = x1"; then
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     else
-      FCFLAGS="-ftz -ip -O3 -finline-functions -fp-model source $FCFLAGS"
+      FCFLAGS="-ftz -ip -O3 -finline-functions \
+	       -fp-model source $FCFLAGS"
 #      FCFLAGS="-DF2008 -ftz -fpe0 -O2 -g -traceback -fp-stack-check \
 #	      -check all -fimf-arch-consistency=true -fltconsistency \
 #	      -mieee-fp $FCFLAGS"
@@ -747,6 +782,12 @@ else
           -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
       NOOPTFC="$NOOPTFC -acc=gpu \
           -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+    fi
+    if eval "test x"$USE_OPENACC" = x4"; then
+      FCFLAGS="$FCFLAGS -stdpar=gpu \
+          -gpu=$PGI_GPU_ARCH,lineinfo,unified -Minfo=accel"
+      NOOPTFC="$NOOPTFC -stdpar=gpu \
+          -gpu=$PGI_GPU_ARCH,lineinfo,unified -Minfo=accel"
     fi
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
@@ -799,7 +840,7 @@ AM_LDFLAGS="-L$MCTPATH $AM_LDFLAGS"
 AC_SUBST(AM_LDFLAGS)
 if eval "test x"$PARALLEL" = x1"; then
   ACX_MPI
-  #RCM_MPI_CHECK_MPI3
+  RCM_MPI_CHECK_MPI3
 else
   FORT_SIZE="real4double8"
   AC_SUBST(FORT_SIZE)

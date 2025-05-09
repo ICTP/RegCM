@@ -136,9 +136,10 @@ module mod_clm_time_manager
   end function is_middle_curr_year
 
   logical function is_restart( )
-    use mod_clm_varctl, only : nsrest, nsrContinue
+    use mod_clm_varctl, only : nsrest, nsrContinue, nsrStartup, DoForceRestart
     implicit none
-    if (nsrest == nsrContinue) then
+    if ( nsrest == nsrContinue .or. &
+         (nsrest == nsrStartup .and. DoForceRestart) ) then
       is_restart = .true.
     else
       is_restart = .false.

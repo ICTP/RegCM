@@ -35,7 +35,7 @@ module mod_clm_accflds
   use mod_clm_pftvarcon , only : nwcereal , nwcerealirrig , mxtmp , baset
   use mod_clm_time_manager , only : get_start_date
   use mod_clm_pftvarcon , only : ndllf_dcd_brl_tree
-  use mod_clm_varctl , only : nsrest , nsrStartup , nextdate
+  use mod_clm_varctl , only : nsrest , DoForceRestart , nsrStartup , nextdate
 
   implicit none
 
@@ -927,7 +927,7 @@ module mod_clm_accflds
 
     ! Initialize 2m ref temperature max and min values
 
-    if ( nsrest == nsrStartup ) then
+    if ( nsrest == nsrStartup .and. .not. DoForceRestart ) then
       ! Why not restart? These vars are not in clmr.
       do p = begp , endp
         t_ref2m_max(p) = spval

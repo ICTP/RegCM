@@ -242,12 +242,6 @@ module mod_micro_nogtom
   real(rkx) , parameter :: activcf = zerocf
   real(rkx) , parameter :: maxsat  = 0.5_rkx
 
-  abstract interface
-    subroutine voidsub
-      implicit none
-    end subroutine voidsub
-  end interface
-
   contains
 
   subroutine allocate_mod_nogtom
@@ -424,11 +418,6 @@ module mod_micro_nogtom
     real(rkx) :: tk , tc , dens , pbot , ccn
     real(rkx) :: snowp , rainp
 
-#ifndef __PGI
-    procedure (voidsub) , pointer :: selautoconv => null()
-    procedure (voidsub) , pointer :: selnss => null()
-#endif
-
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
     integer(ik4) , save :: idindx = 0
@@ -436,35 +425,6 @@ module mod_micro_nogtom
 #endif
 
     lccn = ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 )
-
-#ifndef __PGI
-    !---------------------------------------------------------------
-    !                         AUTOCONVERSION
-    !---------------------------------------------------------------
-    ! Warm clouds
-    select case (iautoconv)
-      case (1) ! Klein & Pincus (2000)
-        selautoconv => klein_and_pincus
-      case (2) ! Khairoutdinov and Kogan (2000)
-        selautoconv => khairoutdinov_and_kogan
-      case (3) ! Kessler(1969)
-        selautoconv => kessler
-      case (4) ! Sundqvist
-        selautoconv => sundqvist
-      case default
-        call fatal(__FILE__,__LINE__,'UNKNOWN AUTOCONVERSION SCHEME')
-    end select
-    select case(nssopt)
-      case(0,1)
-        selnss => nss_tompkins
-      case(2)
-        selnss => nss_lohmann_and_karcher
-      case(3)
-        selnss => nss_gierens
-      case default
-        call fatal(__FILE__,__LINE__, 'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
-    end select
-#endif
 
     if ( idynamic == 3 ) then
       do k = 1 , kz
@@ -1223,7 +1183,6 @@ module mod_micro_nogtom
                 end if
               else
                 ! (2) generation of new clouds (dc/dt>0)
-#ifdef __PGI
                 select case (nssopt)
                   case (0,1)
                     call nss_tompkins
@@ -1232,9 +1191,6 @@ module mod_micro_nogtom
                   case (3) ! Kessler(1969)
                     call nss_gierens
                 end select
-#else
-                call selnss
-#endif
                 rhc = rhcrit(j,i)
                 zsig = mo2mc%phs(j,i,k)/pbot
                 if ( zsig > siglow ) then
@@ -1429,7 +1385,6 @@ module mod_micro_nogtom
             !   WARM PHASE AUTOCONVERSION
             !---------------------------------------------------------------
             if ( ql_incld > d_zero ) then
-#ifdef __PGI
               select case (iautoconv)
                 case (1) ! Klein & Pincus (2000)
                   call klein_and_pincus
@@ -1440,9 +1395,6 @@ module mod_micro_nogtom
                 case (4) ! Sundqvist
                   call sundqvist
               end select
-#else
-              call selautoconv
-#endif
 #ifdef DEBUG
               if ( stats ) then
                 if ( ltkgt0 ) then

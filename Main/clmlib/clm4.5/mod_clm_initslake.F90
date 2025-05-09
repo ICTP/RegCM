@@ -29,7 +29,6 @@ module mod_clm_initslake
   use mod_clm_slakecon , only : lake_melt_icealb , alblakwi
   use mod_clm_decomp , only : get_proc_bounds , get_proc_global
   use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varctl , only : nsrest
 
   implicit none
 

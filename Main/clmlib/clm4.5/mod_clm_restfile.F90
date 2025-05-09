@@ -19,7 +19,7 @@ module mod_clm_restfile
   use mod_clm_varpar , only : nlevsno , nlevlak , nlevgrnd , nlevurb
   use mod_clm_varpar , only : numrad , nlevcan
   use mod_clm_varctl , only : caseid , ctitle , version , username ,    &
-          hostname , finidat , fsurdat , nsrest ,       &
+          hostname , finidat , fsurdat , nsrest , DoForceRestart , &
           nrevsn , nsrStartup , nsrContinue , inst_suffix , &
           conventions , source
   use mod_clm_varctl , only : inst_suffix
@@ -285,7 +285,7 @@ module mod_clm_restfile
 
     ! Get relevant sizes
 
-    if ( nsrest /= nsrStartup ) then
+    if ( nsrest /= nsrStartup .or. DoForceRestart ) then
       call get_proc_global(numg, numl, numc, nump)
       if ( .not. clm_check_dimlen(ncid, 'gridcell', numg) ) &
         call fatal(__FILE__,__LINE__,'NUM GRIDCELL DIFFER !')

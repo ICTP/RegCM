@@ -741,7 +741,7 @@ module mod_clm_croprest
   !
   subroutine checkDates( )
     use mod_clm_time_manager, only : get_driver_start_ymd, get_start_date
-    use mod_clm_varctl , only : nsrest, nsrStartup
+    use mod_clm_varctl , only : nsrest, nsrStartup, DoForceRestart
     integer(ik4) :: stymd       ! Start date YYYYMMDD from driver
     integer(ik4) :: styr        ! Start year from driver
     integer(ik4) :: stmon_day   ! Start date MMDD from driver
@@ -757,7 +757,7 @@ module mod_clm_croprest
     ! If startup make sure the startdate is compatible with the date
     ! on the restart file.
     !
-    if ( nsrest == nsrStartup ) then
+    if ( nsrest == nsrStartup .not. DoForceRestart ) then
       stymd       = get_driver_start_ymd()
       styr        = stymd / 10000
       stmon_day   = stymd - styr*10000
