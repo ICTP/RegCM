@@ -851,7 +851,6 @@ module mod_micro_nogtom
             if ( vfqr_rd ) then
               precip = max(rainp*3600.0_rkx*tmpa,1.0_rkx)
               vqx(iqqr) = rain_fallspeed(dens,dens0,precip)
-              if ( precip > 1.0 ) print *, dens, precip, vqx(iqqr)
             end if
             do n = 1, nqx
               if ( lfall(n) ) then
