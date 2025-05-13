@@ -77,6 +77,7 @@ module mod_micro_nogtom
   use mod_runparams, only : auto_rate_khair, auto_rate_kessl, &
                              auto_rate_klepi, rcldiff
   use mod_runparams, only : rkconv, skconv, rcovpmin, rpecons
+  use mod_runparams, only : vfqr, vfqi, vfqs
 
 #ifdef DEBUG
   use mod_runparams, only : stats
@@ -224,7 +225,10 @@ module mod_micro_nogtom
   real(rkx), parameter :: activcf = 2.0_rkx*zerocf
   real(rkx), parameter :: maxsat  = 0.5_rkx
 
-  logical, parameter :: vfqi_tlat = .false.
+  logical, parameter :: vfqi_tlat = .true.
+  logical, parameter :: vfqr_rd = .true.
+  real(rkx) , parameter :: dens0 = 1.225_rkx ! kg m-3
+
   contains
 
 #include <esatliq.inc>
@@ -280,7 +284,6 @@ module mod_micro_nogtom
   end subroutine allocate_mod_nogtom
 
   subroutine init_nogtom(ldmsk)
-    use mod_runparams, only : vfqr, vfqi, vfqs
     implicit none
     integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ldmsk
     integer(ik4) :: i, j, n
@@ -841,20 +844,17 @@ module mod_micro_nogtom
             !     supercooled water enhancement at cloud top
             !
             !------------------------------------------------------------------
+            if ( vfqi_tlat ) then
+              lat = mo2mc%xlat(j,i)
+              vqx(iqqi) = ice_fallspeed(tk,lat)
+            end if
+            if ( vfqr_rd ) then
+              precip = max(rainp*3600.0_rkx*tmpa,1.0_rkx)
+              vqx(iqqr) = rain_fallspeed(dens,dens0,precip)
+            end if
             do n = 1, nqx
               if ( lfall(n) ) then
-                ! Sink to next layer, constant fall speed
-                ! *AMT* now included in first guess.
-                if ( vfqi_tlat ) then
-                  if ( n == iqqi ) then
-                    lat = mo2mc%xlat(j,i)
-                    sink = ice_fallspeed(tk,lat) * dens * dtgdp
-                  else
-                    sink = vqx(n) * dens * dtgdp
-                  end if
-                else
-                  sink = vqx(n) * dens * dtgdp
-                end if
+                sink = vqx(n) * dens * dtgdp
                 fallsink(n) = sink
                 qxfg(n) = qxfg(n)/(d_one+sink)
               end if  !lfall
@@ -1411,7 +1411,7 @@ module mod_micro_nogtom
                 end if
               end if
 #endif
-! save the precip production for chem. wet. dep.
+              ! save the precip production for chem. wet. dep.
               if ( ichem == 1 )  then
                 remrat(k,j,i) = rainaut/dt
               end if
@@ -2143,6 +2143,19 @@ module mod_micro_nogtom
     fsp2 = 0.0013 * dsize**0.98
     ice_fallspeed = w1*fsp2 + (1.0_rkx-w1)*fsp1
   end function ice_fallspeed
+  !
+  ! Rain fall speed function of air density
+  !
+  pure real(rkx) function rain_fallspeed(d,d0,r)
+!$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: d, d0, r
+    real(rkx) :: diam, v0, dens_min
+    diam = max(1.238_rkx * r**0.128_rkx,0.6_rkx)
+    v0 = 9.65_rkx-10.3_rkx*exp(-0.6_rkx*diam)
+    dens_min = max(0.35_rkx,d)
+    rain_fallspeed = v0 * (dens_min/d0)**(-0.5_rkx)
+  end function rain_fallspeed
 
  ! subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
  !   implicit none
