@@ -101,8 +101,9 @@ compressed in disk.
         if ('x' in ncf.variables[var].dimensions and
             'y' in ncf.variables[var].dimensions):
             nco.createVariable(var,nctype,ncf.variables[var].dimensions,
-                               shuffle=True,fletcher32=True,
-                               zlib=True,complevel=9,fill_value=1.0e+20)
+                               shuffle=True,significant_digits=4,
+                               fletcher32=True,zlib=True,complevel=9,
+                               fill_value=1.0e+20)
         else:
             if var == 'time_bnds':
                 pass

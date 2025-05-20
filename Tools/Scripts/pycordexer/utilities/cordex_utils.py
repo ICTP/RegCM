@@ -904,16 +904,29 @@ class CordexDataset(Dataset):
             datatype,
             tuple(dim_name_list)
         )
-        ncdf_variable = self.createVariable(
-            var_name,
-            datatype,
-            tuple(dim_name_list),
-            fill_value=fill_value,
-            zlib=COMPRESSION,
-            complevel=COMPRESSION_LEVEL,
-            shuffle=SHUFFLE,
-            fletcher32=FLETCHER32
-        )
+        if datatype == 'f4':
+            ncdf_variable = self.createVariable(
+                var_name,
+                datatype,
+                tuple(dim_name_list),
+                fill_value=fill_value,
+                compression=COMPRESSION,
+                complevel=COMPRESSION_LEVEL,
+                significant_digits=SIGNIFICANT_DIGITS,
+                shuffle=SHUFFLE,
+                fletcher32=FLETCHER32
+            )
+        else:
+            ncdf_variable = self.createVariable(
+                var_name,
+                datatype,
+                tuple(dim_name_list),
+                fill_value=fill_value,
+                compression=COMPRESSION,
+                complevel=COMPRESSION_LEVEL,
+                shuffle=SHUFFLE,
+                fletcher32=FLETCHER32
+            )
 
         # Copy attributes
         for attr, attr_val in attributes.items():
