@@ -90,6 +90,29 @@
             "source_id": "CCAMoc-v2112",
             "source_type": "AOGCM"
         },
+        "CCLM6-0-1": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://www.clm-community.eu/COSMO-CLM/Overview",
+            "institution_id": [
+                "CLMcom-CMCC",
+                "CLMcom-FZJ",
+                "CLMcom-Hereon",
+                "CLMcom-IMWM",
+                "CLMcom-KIT",
+                "CLMcom-LIST"
+            ],
+            "label": "CCLM6-0-1",
+            "label_extended": "COSMO model in climate mode (COSMO-CLM), Version 6.0 clm 1",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2021",
+            "source_id": "CCLM6-0-1",
+            "source_type": "ARCM"
+        },
         "CCLM6-0-1-URB": {
             "activity_participation": [
                 "DD"
@@ -124,6 +147,24 @@
             "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
             "release_year": "2021",
             "source_id": "CCLM6-0-1-URB-ESG",
+            "source_type": "ARCM"
+        },
+        "CNRM-ALADIN64C1": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://www.umr-cnrm.fr/spip.php?article125&lang=en",
+            "institution_id": [
+                "CNRM"
+            ],
+            "label": "CNRM-ALADIN64C1",
+            "label_extended": "CNRM-ALADIN regional climate model, version 6.4, physics tuning specific for the CAM domain (C1)",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2025",
+            "source_id": "CNRM-ALADIN64C1",
             "source_type": "ARCM"
         },
         "CNRM-ALADIN64E1": {
@@ -162,6 +203,42 @@
             "source_id": "CNRM-ALADIN64P1",
             "source_type": "ARCM"
         },
+        "CNRM-RCSM6": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://www.umr-cnrm.fr/spip.php?article1098",
+            "institution_id": [
+                "CNRM"
+            ],
+            "label": "CNRM-RCSM version 6",
+            "label_extended": "Version 6 of the fully-coupled Regional Climate System Model (RCSM) of the Centre National de Recherches Meteorologiques (CNRM)",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2019",
+            "source_id": "CNRM-RCSM6",
+            "source_type": "AORCM"
+        },
+        "CNRM-RCSM6B": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://www.umr-cnrm.fr/spip.php?article1098",
+            "institution_id": [
+                "CNRM"
+            ],
+            "label": "CNRM-RCSM6 version 6B",
+            "label_extended": "Version 6B of the fully-coupled Regional Climate System Model (RCSM) of the Centre National de Recherches Meteorologiques (CNRM)",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2024",
+            "source_id": "CNRM-RCSM6B",
+            "source_type": "AORCM"
+        },
         "CRCM5-SN": {
             "activity_participation": [
                 "DD"
@@ -180,6 +257,24 @@
             "source_id": "CRCM5-SN",
             "source_type": "ARCM"
         },
+        "CanRCM5": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://gitlab.com/cccma/canesm",
+            "institution_id": [
+                "CCCma"
+            ],
+            "label": "CanRCM5",
+            "label_extended": "Canadian Regional Climate Model version 5",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2025",
+            "source_id": "CanRCM5",
+            "source_type": "ARCM"
+        },
         "CanRCM5-SN": {
             "activity_participation": [
                 "DD"
@@ -192,11 +287,29 @@
                 "CCCma"
             ],
             "label": "CanRCM5-SN",
-            "label_extended": "Canadian Regional Climate Model version 5",
+            "label_extended": "Canadian Regional Climate Model version 5, with spectral nudging",
             "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
             "release_year": "2024",
             "source_id": "CanRCM5-SN",
             "source_type": "ARCM"
+        },
+        "ENEA-REG3": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://link.springer.com/article/10.1007/s00382-023-07064-3",
+            "institution_id": [
+                "ENEA"
+            ],
+            "label": "ENEA-REG v3.0",
+            "label_extended": "The ENEA-REG regional Earth System Model version 3.0 based on WRF v4.2.2, MITgcm z67, and CaMa-Flood v4.10",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2021",
+            "source_id": "ENEA-REG3",
+            "source_type": "AORCM"
         },
         "GCOAST-AHOI1-1": {
             "activity_participation": [
@@ -259,7 +372,7 @@
             "cohort": [
                 "Registered"
             ],
-            "further_info_url": "https://www.smhi.se/en/research/research-departments/climate-research-at-the-rossby-centre/harmonie-1.135580",
+            "further_info_url": "https://zenodo.org/records/11424181",
             "institution_id": [
                 "HCLIMcom-DMI",
                 "HCLIMcom-METNo",
@@ -299,10 +412,14 @@
             ],
             "further_info_url": "https://www.clm-community.eu/ICON-CLM/",
             "institution_id": [
-                "CLMcom-DWD",
-                "CLMcom-KIT",
+                "CLMcom-BTU",
                 "CLMcom-CMCC",
-                "CLMcom-GERICS"
+                "CLMcom-DWD",
+                "CLMcom-FZJ",
+                "CLMcom-GERICS",
+                "CLMcom-Hereon",
+                "CLMcom-IMWM",
+                "CLMcom-KIT"
             ],
             "label": "ICON-CLM-202407-1-1",
             "label_extended": "ICON model in Climate Limited-area Mode (ICON-CLM), Version 202407-1-1",
@@ -310,6 +427,24 @@
             "release_year": "2024",
             "source_id": "ICON-CLM-202407-1-1",
             "source_type": "ARCM"
+        },
+        "MedX-CM": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://doi.org/10.1029/2024JC021985",
+            "institution_id": [
+                "NKUA"
+            ],
+            "label": "MedX-CM",
+            "label_extended": "The NKUA regional Coupled Model for the eXtended Mediterranean region",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2025",
+            "source_id": "MedX-CM",
+            "source_type": "AORCM"
         },
         "MetUM": {
             "activity_participation": [
@@ -365,7 +500,7 @@
             "source_id": "RACMO24P",
             "source_type": "ARCM"
         },
-        "REMO2020": {
+        "REMO2020-2-2": {
             "activity_participation": [
                 "DD"
             ],
@@ -376,11 +511,65 @@
             "institution_id": [
                 "GERICS"
             ],
-            "label": "REMO2020",
-            "label_extended": "REMO regional model",
+            "label": "REMO2020 v2.2",
+            "label_extended": "Regional Climate Model REMO, version 2.2, hydrostatic configuration with MACv2 aerosol forcing and Fresh-water Lake model (FLake)",
             "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0/).",
-            "release_year": "2022",
-            "source_id": "REMO2020",
+            "release_year": "2023",
+            "source_id": "REMO2020-2-2",
+            "source_type": "ARCM"
+        },
+        "REMO2020-2-2-MR2": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://www.remo-rcm.de",
+            "institution_id": [
+                "GERICS"
+            ],
+            "label": "REMO2020 v2.2 MERRA-2",
+            "label_extended": "Regional Climate Model REMO, version 2.2, hydrostatic configuration with MERRA-2 aerosol climatology and Fresh-water Lake model (FLake)",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2023",
+            "source_id": "REMO2020-2-2-MR2",
+            "source_type": "ARCM"
+        },
+        "REMO2020-2-2-iMOVE": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://www.remo-rcm.de",
+            "institution_id": [
+                "GERICS"
+            ],
+            "label": "REMO2020 v2.2 iMOVE",
+            "label_extended": "Regional Climate Model REMO, version 2.2, hydrostatic configuration with MACv2 aerosol forcing, Fresh-water Lake model (FLake) and interactive Vegetation (iMOVE, static)",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2023",
+            "source_id": "REMO2020-2-2-iMOVE",
+            "source_type": "ARCM"
+        },
+        "REMO2020-2-2-iMOVE-LUC": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://www.remo-rcm.de",
+            "institution_id": [
+                "GERICS"
+            ],
+            "label": "REMO2020 v2.2 iMOVE-LUC",
+            "label_extended": "Regional Climate Model REMO, version 2.2, hydrostatic configuration with MACv2 aerosol forcing, Fresh-water Lake model (FLake) and interactive Vegetation (iMOVE) with land use change (LUC) from the LUCAS LUC dataset",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2023",
+            "source_id": "REMO2020-2-2-iMOVE-LUC",
             "source_type": "ARCM"
         },
         "ROAM-NBS": {
@@ -399,6 +588,24 @@
             "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
             "release_year": "2024",
             "source_id": "ROAM-NBS",
+            "source_type": "AORCM"
+        },
+        "RegCM-ES1-1": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://doi.org/10.1029/2019MS001812",
+            "institution_id": [
+                "ICTP"
+            ],
+            "label": "RegCM-ES v1.1",
+            "label_extended": "The Regional Earth System Model RegCM-ES version 1.1 based on RegCM v5.0, MITgcm v6.9d and CHyM",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2025",
+            "source_id": "RegCM-ES1-1",
             "source_type": "AORCM"
         },
         "RegCM5-0": {

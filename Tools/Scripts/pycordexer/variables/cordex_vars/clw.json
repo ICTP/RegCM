@@ -1,0 +1,38 @@
+{
+  "clw": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "clw",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "InterpolateOnMultipleHeights",
+        {
+          "pressure_levels": [1000, 925, 850, 700, 600, 500, 400, 300, 250, 200],
+          "method": "linear"
+        }
+      ],
+      [
+        "SaveMultipleVariablesToDisk",
+        {
+          "fill_value": "1e+20"
+        }
+      ],
+      [
+        "ComputeAverageOfEachVariable",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveMultipleVariablesToDisk",
+        {
+          "fill_value": "1e+20"
+        }
+      ]
+    ]
+  ]
+}

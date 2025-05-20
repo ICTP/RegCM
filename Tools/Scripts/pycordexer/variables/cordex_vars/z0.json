@@ -1,0 +1,47 @@
+{
+  "z0": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "z0",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": 0.0
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Surface Roughness Length",
+            "standard_name": "surface_roughness_length",
+            "units": "m"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Surface Roughness Length",
+            "standard_name": "surface_roughness_length",
+            "units": "m"
+          }
+        }
+      ]
+    ]
+  ]
+}
