@@ -27,6 +27,7 @@ module mod_clm_control
           source , ialblawr , tcrit , q10_maintenance , luse_cru
   use mod_clm_varpar, only : numrad
   use mod_clm_varctl , only : ctitle , caseid , nsrest , DoForceRestart
+  use mod_clm_varctl, only : DoSurfaceSaturate
   use mod_clm_varcon , only : secspday
   use mod_clm_canopyfluxes , only : perchroot , perchroot_alt
 #if (defined LCH4) && (defined CN)
@@ -212,7 +213,7 @@ module mod_clm_control
          use_c14_bombspike, atm_c14_filename
 #endif
 
-    namelist /clm_inparm/ DoForceRestart
+    namelist /clm_inparm/ DoForceRestart, DoSurfaceSaturate
 
     ! ----------------------------------------------------------------------
     ! Default values
@@ -351,6 +352,7 @@ module mod_clm_control
     call bcast(username,len(username))
     call bcast(nsrest)
     call bcast(DoForceRestart)
+    call bcast(DoSurfaceSaturate)
 
     ! initial file variables
 

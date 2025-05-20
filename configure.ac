@@ -20,7 +20,6 @@ AC_SUBST([PACKAGE_URL], ["https://github.com/ICTP/RegCM"])
 #AC_PREREQ([2.64])
 
 AM_INIT_AUTOMAKE([foreign])
-AM_PROG_AR
 
 LT_INIT
 

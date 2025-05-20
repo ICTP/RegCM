@@ -13,7 +13,7 @@ module mod_clm_mkarbinit
        icol_roof , icol_sunwall , icol_shadewall , tfrz
   use mod_clm_varcon , only : istcrop
   use mod_clm_varcon , only : h2osno_max
-  use mod_clm_varctl , only : pertlim
+  use mod_clm_varctl , only : pertlim , DoSurfaceSaturate
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_snicar , only : snw_rds_min
 
@@ -1163,7 +1163,11 @@ module mod_clm_mkarbinit
                 sfcsat = adomain%smoist(g)
                 h2osoi_vol(c,j) = sfcsat + w1*(0.9_rk8*watsat(c,j)-sfcsat)
               else
-                h2osoi_vol(c,j) = slmo(adomain%iveg(g))*watsat(c,j)
+                if ( DoSurfaceSaturate ) then
+                  h2osoi_vol(c,j) = watsat(c,j)
+                else
+                  h2osoi_vol(c,j) = slmo(adomain%iveg(g))*watsat(c,j)
+                end if
               end if
             end if
           end do

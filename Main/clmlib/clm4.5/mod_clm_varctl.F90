@@ -32,6 +32,7 @@ module mod_clm_varctl
   character(len=256) , public :: ctitle  = ' ' ! case title
   integer(ik4) , public :: nsrest = iundef   ! Type of run
   logical, public :: DoForceRestart = .false.
+  logical, public :: DoSurfaceSaturate = .false.
   ! Startup from initial conditions
   integer(ik4) , public , parameter :: nsrStartup  = 0
   ! Continue from restart files

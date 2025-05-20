@@ -18,10 +18,11 @@ OUTPUTDIR = 'CORDEX-CMIP6'
 # NetCDF output options
 DATATYPE_AUXILIARIES = 'f8'
 DATATYPE_MAIN = 'f'
-COMPRESSION = True
+COMPRESSION = 'zlib'
 SHUFFLE = True
 FLETCHER32 = True
-COMPRESSION_LEVEL = 1
+COMPRESSION_LEVEL = 4
+SIGNIFICANT_DIGITS = 4
 
 # Some dimensions in the RegCM files must have a different name in the CORDEX
 # files. The following dictionary stores the needed replacements
