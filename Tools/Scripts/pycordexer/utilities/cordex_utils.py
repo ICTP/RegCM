@@ -168,8 +168,9 @@ class RegcmOutputFile(object):
     :param datafile (optional): the path of the NetCDF file (used just for logs)
     """
 
-    def __init__(self, ncf, datafile=None, regcm_version=None,
-                 regcm_version_id=None, regcm_nest_tag=None):
+    def __init__(self, ncf, datafile=None, regcm_model_name='RegCM',
+                 regcm_version=None, regcm_version_id=None,
+                 regcm_nest_tag=None):
 
         # in_file and _of_file are variables used just inside the log lines to
         # report the name of the file where the operations have been performed
@@ -336,6 +337,7 @@ class RegcmOutputFile(object):
                     of_file
                 )
 
+        self._regcm_model_name = regcm_model_name
         if regcm_version_id is not None:
             self._rev_version = str(regcm_version_id)
         else:
@@ -545,6 +547,10 @@ class RegcmOutputFile(object):
         return self._revision
 
     @property
+    def regcm_model_name(self):
+        return self._regcm_model_name
+
+    @property
     def revision_version(self):
         return self._rev_version
 
@@ -637,7 +643,7 @@ class CordexDataset(Dataset):
         )
 
         if regcm_file.revision is not None:
-            ICTP_Model = 'RegCM' + str(regcm_file.revision)
+            ICTP_Model = regcm_file.regcm_model_name + str(regcm_file.revision)
             ICTP_Model_Version = regcm_file.revision_version
         else:
             LOGGER.warning('Using fallback values for RegCM version...')
@@ -670,7 +676,7 @@ class CordexDataset(Dataset):
         mgrid = mgrid + gsize +' km grid spacing'
         newattr = {
             'activity_id': 'DD',      #only option allowed
-            'comment': 'RegCM CORDEX {} run'.format(xdomain),
+            'comment': regcm_file.regcm_model_name+' CORDEX {} run'.format(xdomain),
             'note': 'Regular production', #This will be different for every simulation
             'contact': simulation.mail,
             'Conventions': 'CF-1.11',  #only option allowed in CMIP6
@@ -690,7 +696,7 @@ class CordexDataset(Dataset):
             'license': 'https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use', #only option allowed
             'mip_era': 'CMIP6',      #only option allowed
             'product': 'model-output',    #only option allowed
-            'project_id': 'CORDEX-CMIP6',  #only option allowed
+            'project_id': 'CORDEX-CMIP6', #only option allowed
             'source': CORDEX_CMIP6_DEFINITIONS['source_id'][ICTP_Model]['label_extended'],
             'source_id': ICTP_Model,
             'source_type': 'ARCM',
@@ -1330,7 +1336,7 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
     """
 
     if regcm_file.revision is not None:
-        ICTP_Model = 'RegCM{}'.format(regcm_file.revision)
+        ICTP_Model = '{}{}'.format(regcm_file.regcm_model_name,regcm_file.revision)
         ICTP_Model_Version = regcm_file.revision_version
     else:
         LOGGER.warning('Using fallback values for RegCM version...')
