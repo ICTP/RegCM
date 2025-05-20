@@ -688,7 +688,7 @@ module mod_clm_nchelper
 #if defined(NETCDF4_HDF5)
 #if defined (NETCDF4_COMPRESS)
     if ( nd > 0 ) then
-      incstat = nf90_def_var_filter(ncidi%ncid,varid, &
+      incstat = nf90_def_var_filter(ncid%ncid,varid, &
                                     ncfilter,ncfilter_nparams,ncfilter_params)
       call clm_checkncerr(__FILE__,__LINE__, &
           'Error compress variable '//varname//' in file '//trim(ncid%fname))
