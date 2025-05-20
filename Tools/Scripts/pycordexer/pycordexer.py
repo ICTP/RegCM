@@ -177,6 +177,13 @@ def parse_input():
         help='Disable the time correction on the variables'
     )
     parser.add_argument(
+        '--regcm-model-name',
+        type=str,
+        default='RegCM',
+        help='The name of the current model. If this is not '
+             'specified, this script will use the name RegCM'
+    )
+    parser.add_argument(
         '-r',
         '--regcm-version',
         type=str,
@@ -217,7 +224,8 @@ def parse_input():
 def save_vars(datafile, requested_vars, worker_pool,
               mail='esp@ictp.it', domain='NONE', global_model='NONE',
               experiment='none', ensemble='NN', notes='none', corrflag=True,
-              regcm_version=None, regcm_version_id=None, regcm_nest_tag=None,
+              regcm_model_name='RegCM', regcm_version=None,
+              regcm_version_id=None, regcm_nest_tag=None,
               cordex_root_dir=OUTPUTDIR, sigterm_handler=None,
               sigint_handler=None):
 
@@ -252,6 +260,7 @@ def save_vars(datafile, requested_vars, worker_pool,
         REGCM_FILE = RegcmOutputFile(
             ncf,
             datafile,
+            regcm_model_name,
             regcm_version,
             regcm_version_id,
             regcm_nest_tag
@@ -418,6 +427,7 @@ def main():
     ensemble = args.ensemble
     notes = args.notes
 
+    regcm_model_name = args.regcm_model_name
     regcm_version = args.regcm_version
     regcm_version_id = args.regcm_version_id
     regcm_nest_tag = args.regcm_nest_tag
@@ -447,6 +457,7 @@ def main():
         ensemble,
         notes,
         corrflag,
+        regcm_model_name,
         regcm_version,
         regcm_version_id,
         regcm_nest_tag,
