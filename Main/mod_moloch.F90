@@ -65,7 +65,7 @@ module mod_moloch
   real(rkx), dimension(:), pointer, contiguous :: gzitak => null( )
   real(rkx), dimension(:), pointer, contiguous :: gzitakh => null( )
   real(rkx), dimension(:), pointer, contiguous :: xknu => null( )
-  real(rkx), dimension(:,:), pointer, contiguous :: p2d => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: p3d => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
@@ -192,7 +192,7 @@ module mod_moloch
     integer(ik4) :: k
     call getmem1d(gzitak,1,kzp1,'moloch:gzitak')
     call getmem1d(gzitakh,1,kz,'moloch:gzitakh')
-    call getmem2d(p2d,jdi1,jdi2,idi1,idi2,'moloch:p2d')
+    call getmem3d(p3d,jdi1,jdi2,idi1,idi2,1,kz,'moloch:p3d')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:dw')
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
 #ifdef RCEMIP
@@ -233,7 +233,7 @@ module mod_moloch
     call getmem1d(xknu,1,kz,'moloch:xknu')
     do concurrent ( k = 1:kz )
       xknu(k) = xdamp + &
-        (1.0_rkx-xdamp) * sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
+        (1.0_rkx-xdamp) * sin(0.5_rkx*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
@@ -327,6 +327,7 @@ module mod_moloch
   ! Moloch dynamical integration engine
   !
   subroutine moloch
+    !@acc use nvtx
     implicit none
     real(rkx) :: dtsound, dtstepa
     real(rkx) :: maxps, minps, pmax, pmin
@@ -339,16 +340,27 @@ module mod_moloch
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-
+    !@acc call nvtxStartRange("moloch")
     dtstepa = dtsec / real(mo_nadv,rkx)
     dtsound = dtstepa / real(mo_nsound,rkx)
     iconvec = 0
-
+    !@acc call nvtxStartRange("reset_tendencies")
     call reset_tendencies
-
+    !@acc call nvtxEndRange
+#ifdef STDPAR_FIXED
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+#else
+    !$acc parallel loop collapse(3)
+    do k = 1, kz
+    do i = ice1, ice2
+    do j = jce1, jce2
+#endif
       p(j,i,k) = (pai(j,i,k)**cpovr) * p00
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
+#ifndef STDPAR_FIXED
+    end do
+    end do
+#endif
     end do
 
     if ( ipptls > 0 ) then
@@ -437,7 +449,9 @@ module mod_moloch
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         pai(j,i,k) = pai(j,i,k) - pf(j,i,k)
       end do
+      !@acc call nvtxStartRange("filtpai")
       call filtpai
+      !@acc call nvtxEndRange
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         pai(j,i,k) = pai(j,i,k) + pf(j,i,k)
       end do
@@ -448,7 +462,9 @@ module mod_moloch
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           tetav(j,i,k) = tetav(j,i,k) - tf(j,i,k)
         end do
+        !@acc call nvtxStartRange("filttheta")
         call filttheta
+        !@acc call nvtxEndRange
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           tetav(j,i,k) = tetav(j,i,k) + tf(j,i,k)
         end do
@@ -508,14 +524,27 @@ module mod_moloch
     !
     ! Recompute saturation
     !
+#ifdef STDPAR_FIXED
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+#else
+    !$acc parallel loop collapse(3)
+    do k = 1, kz
+    do i = ice1, ice2
+    do j = jce1, jce2
+#endif
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
+#ifndef STDPAR_FIXED
+    end do
+    end do
+#endif
     end do
     !
     ! Lateral/damping boundary condition
     !
     if ( do_bdy .and. moloch_realcase .and. irceideal == 0 ) then
+      !@acc call nvtxStartRange("boundary")
       call boundary
+      !@acc call nvtxEndRange
       if ( i_crm /= 1 ) then
         if ( ifrayd == 1 ) then
           call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
@@ -534,8 +563,12 @@ module mod_moloch
     !
     ! Prepare fields to be used in physical parametrizations.
     !
+    !@acc call nvtxStartRange("uvstagtox")
     call uvstagtox(u,v,ux,vx)
+    !@acc call nvtxEndRange
+    !@acc call nvtxStartRange("mkslice")
     call mkslice
+    !@acc call nvtxEndRange
     !
     ! PHYSICS
     !
@@ -590,7 +623,7 @@ module mod_moloch
     ! calculate new solar zenith angle
     !
     call zenitm(xlat,xlon,coszrs)
-
+    !@acc call nvtxEndRange
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -840,15 +873,13 @@ module mod_moloch
       real(rkx), intent(in) :: nu
       integer(ik4) :: j, i, k
 
-      do k = 1, kz
-        do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-          p2d(j,i) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
+      do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+        p3d(j,i,k) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
                                   p(j,i-1,k) + p(j,i+1,k)) - &
-                       d_half   * p(j,i,k)
-        end do
-        do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-          p(j,i,k) = p(j,i,k) + nu * p2d(j,i)
-        end do
+                     0.5_rkx * p(j,i,k)
+      end do
+      do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+        p(j,i,k) = p(j,i,k) + nu * p3d(j,i,k)
       end do
     end subroutine filt3d
 
@@ -858,25 +889,21 @@ module mod_moloch
       real(rkx), intent(in) :: nu
       integer(ik4) :: j, i, k
 
-      do k = 1, kz
-        do concurrent ( j = jdii1:jdii2, i = icii1:icii2 )
-          p2d(j,i) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
+      do concurrent ( j = jdii1:jdii2, i = icii1:icii2, k = 1:kz )
+        p3d(j,i,k) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
                                   u(j,i-1,k) + u(j,i+1,k)) - &
-                       d_half   * u(j,i,k)
-        end do
-        do concurrent ( j = jdii1:jdii2, i = icii1:icii2 )
-          u(j,i,k) = u(j,i,k) + nu * p2d(j,i)
-        end do
+                     0.5_rkx * u(j,i,k)
       end do
-      do k = 1, kz
-        do concurrent ( j = jcii1:jcii2, i = idii1:idii2 )
-          p2d(j,i) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
+      do concurrent ( j = jdii1:jdii2, i = icii1:icii2, k = 1:kz )
+        u(j,i,k) = u(j,i,k) + nu * p3d(j,i,k)
+      end do
+      do concurrent ( j = jcii1:jcii2, i = idii1:idii2, k = 1:kz )
+        p3d(j,i,k) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
                                   v(j,i-1,k) + v(j,i+1,k)) - &
-                       d_half   * v(j,i,k)
-        end do
-        do concurrent ( j = jcii1:jcii2, i = idii1:idii2 )
-          v(j,i,k) = v(j,i,k) + nu * p2d(j,i)
-        end do
+                     0.5_rkx * v(j,i,k)
+      end do
+      do concurrent ( j = jcii1:jcii2, i = idii1:idii2, k = 1:kz )
+        v(j,i,k) = v(j,i,k) + nu * p3d(j,i,k)
       end do
     end subroutine filtuv
 
@@ -888,15 +915,13 @@ module mod_moloch
       integer(ik4) :: j, i, k, n
 
       do n = n1, n2
-        do k = 1, kz
-          do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-            p2d(j,i) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
+        do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+          p3d(j,i,k) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
                                     p(j,i-1,k,n) + p(j,i+1,k,n)) - &
-                           d_half * p(j,i,k,n)
-          end do
-          do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-            p(j,i,k,n) = p(j,i,k,n) + nu * p2d(j,i)
-          end do
+                       0.5_rkx * p(j,i,k,n)
+        end do
+        do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+          p(j,i,k,n) = p(j,i,k,n) + nu * p3d(j,i,k)
         end do
       end do
     end subroutine filt4d
@@ -926,15 +951,13 @@ module mod_moloch
         end do
       end if
       call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-      do k = 1, kz
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        p3d(j,i,k) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                   zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                       d_half   * zdiv2(j,i,k)
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * xknu(k) * p2d(j,i)
-        end do
+                     0.5_rkx * zdiv2(j,i,k)
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * xknu(k) * p3d(j,i,k)
       end do
     end subroutine divergence_filter
 
@@ -944,15 +967,13 @@ module mod_moloch
 
       call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
 
-      do k = 1, kz
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          p2d(j,i) = 0.125_rkx * (pai(j-1,i,k) + pai(j+1,i,k) + &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        p3d(j,i,k) = 0.125_rkx * (pai(j-1,i,k) + pai(j+1,i,k) + &
                                   pai(j,i-1,k) + pai(j,i+1,k)) - &
-                       d_half   * pai(j,i,k)
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          pai(j,i,k) = pai(j,i,k) + nupaitq * p2d(j,i)
-        end do
+                     0.5_rkx * pai(j,i,k)
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        pai(j,i,k) = pai(j,i,k) + nupaitq * p3d(j,i,k)
       end do
     end subroutine filtpai
 
@@ -962,19 +983,18 @@ module mod_moloch
 
       call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
 
-      do k = 1, kz
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          p2d(j,i) = 0.125_rkx * (tetav(j-1,i,k) + tetav(j+1,i,k) + &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        p3d(j,i,k) = 0.125_rkx * (tetav(j-1,i,k) + tetav(j+1,i,k) + &
                                   tetav(j,i-1,k) + tetav(j,i+1,k)) - &
-                       d_half   * tetav(j,i,k)
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          tetav(j,i,k) = tetav(j,i,k) + nupaitq * p2d(j,i)
-        end do
+                     0.5_rkx * tetav(j,i,k)
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        tetav(j,i,k) = tetav(j,i,k) + nupaitq * p3d(j,i,k)
       end do
     end subroutine filttheta
 
     subroutine sound(dts)
+      !@acc use nvtx
       implicit none
       real(rkx), intent(in) :: dts
       integer(ik4) :: i, j, k, nsound
@@ -985,7 +1005,7 @@ module mod_moloch
       real(rkx) :: zrom1w, zwexpl, zqs, zdth, zu, zd, zrapp
       real(rkx) :: zcx, zcy, zfz
       real(rkx) :: zrom1u, zcor1u, zrom1v, zcor1v
-
+      !@acc call nvtxStartRange("sound")
       dtrdx = dts/dx
       dtrdy = dts/dx
       dtrdz = dts/dzita
@@ -1011,7 +1031,7 @@ module mod_moloch
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
           zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
-          w(j,i,kzp1) = d_half * (zuh+zvh)
+          w(j,i,kzp1) = 0.5_rkx * (zuh+zvh)
         end do
 
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -1068,12 +1088,12 @@ module mod_moloch
 
         ! new w (implicit scheme) from Equation 19
 
-        do k = kz, 2, -1
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          do k = kz, 2, -1
             deltaw(j,i,k) = -w(j,i,k)
             ! explicit w:
             !    it must be consistent with the initialization of pai
-            zrom1w = d_half * cpd * fmzf(j,i,k) * &
+            zrom1w = 0.5_rkx * cpd * fmzf(j,i,k) * &
                      (tetav(j,i,k-1)+tetav(j,i,k))
             zrom1w = zrom1w - cpd * w(j,i,k) * &
                      fmzf(j,i,k)*fmzf(j,i,k) * &
@@ -1081,7 +1101,7 @@ module mod_moloch
                      (tetav(j,i,k-1)-tetav(j,i,k)) !! GW
             if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
                   w(j,i,k) > 0.1_rkx ) then
-              zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
+              zqs = 0.5_rkx*(qsat(j,i,k)+qsat(j,i,k-1))
               zdth = egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv* &
                 zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
               zrom1w = zrom1w + zdth*fmzf(j,i,k)
@@ -1106,8 +1126,8 @@ module mod_moloch
         end do
 
         ! 2nd loop for the tridiagonal inversion
-        do k = 2, kz
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          do k = 2, kz
             w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
             deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
           end do
@@ -1162,7 +1182,7 @@ module mod_moloch
             zfz = egrav * dts + 0.25_rkx * &
                 (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                  deltaw(j,i,k)   + deltaw(j,i,k+1))
-            zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+            zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
             zcor1u = coru(j,i) * dts * 0.25_rkx * &
                  (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
             ! Equation 17
@@ -1176,7 +1196,7 @@ module mod_moloch
             zfz = egrav * dts + 0.25_rkx * &
                 (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                  deltaw(j,i,k)   + deltaw(j,i,k+1))
-            zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+            zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
             zcor1v = corv(j,i) * dts * 0.25_rkx * &
                    (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
             ! Equation 18
@@ -1190,7 +1210,7 @@ module mod_moloch
             zfz = egrav * dts + 0.25_rkx * &
                 (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                  deltaw(j,i,k)   + deltaw(j,i,k+1))
-            zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+            zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
             zcor1u = coru(j,i) * dts * 0.25_rkx * &
                  (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
             ! Equation 17
@@ -1203,7 +1223,7 @@ module mod_moloch
             zfz = egrav * dts + 0.25_rkx * &
                 (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                  deltaw(j,i,k)   + deltaw(j,i,k+1))
-            zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+            zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
             zcor1v = corv(j,i) * dts * 0.25_rkx * &
                    (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
             ! Equation 18
@@ -1224,7 +1244,7 @@ module mod_moloch
         s(j,i,1) = d_zero
         s(j,i,kzp1) = d_zero
       end do
-
+      !@acc call nvtxEndRange
     end subroutine sound
 
     subroutine divdamp(dts)
@@ -1277,24 +1297,23 @@ module mod_moloch
       end if
       ! Horizontal diffusion
       ddamp = xdamp * 0.015625_rkx/dts
-      do k = 1, kz
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        p3d(j,i,k) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                   zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                       d_half   * zdiv2(j,i,k)
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          zdiv2(j,i,k) = zdiv2(j,i,k) + ddamp * p2d(j,i)
-        end do
+                     0.5_rkx * zdiv2(j,i,k)
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        zdiv2(j,i,k) = zdiv2(j,i,k) + ddamp * p3d(j,i,k)
       end do
     end subroutine divdamp
 
     subroutine advection(dta)
+      !@acc use nvtx
       implicit none
       real(rkx), intent(in) :: dta
       integer(ik4) :: n
       real(rkx), pointer, contiguous, dimension(:,:,:) :: ptr => null( )
-
+      !@acc call nvtxStartRange("advection")
       ! Compute U,V on cross points
 
       call uvstagtox(u,v,ux,vx)
@@ -1343,6 +1362,7 @@ module mod_moloch
       if ( ibltyp == 2 ) then
         call xtowstag(tkex,tke)
       end if
+      !@acc call nvtxEndRange
     end subroutine advection
 
     subroutine wafone(pp,dta,pfac,pmin)
@@ -1405,8 +1425,8 @@ module mod_moloch
         r = (pp(j,i,k1)-pp(j,i,k1p1))/zzden
         b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
         zphi = is + zamu * b - is * b
-        wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
-                                              (d_one-zphi)*pp(j,i,k))
+        wfw(j,i,k+1) = 0.5_rkx * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
+                                               (d_one-zphi)*pp(j,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
@@ -1435,7 +1455,7 @@ module mod_moloch
           r = (wz(j,i,k1)-wz(j,i,k1p1))/zzden
           b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
           zphi = is + zamu * b - is * b
-          wfw(j,i,k+1) = d_half * s(j,i,k+1) * &
+          wfw(j,i,k+1) = 0.5_rkx * s(j,i,k+1) * &
             ((d_one+zphi)*wz(j,i,k+1) + (d_one-zphi)*wz(j,i,k))
         end do
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -1478,7 +1498,7 @@ module mod_moloch
           r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
           b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
           zphi = is + zamu*b - is*b
-          zpby(j,i,k) = d_half * v(j,i,k) * &
+          zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
               ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
         end do
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -1522,7 +1542,7 @@ module mod_moloch
           r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
           b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
           zphi = is + zamu*b - is*b
-          zpbw(j,i,k) = d_half * u(j,i,k) * &
+          zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
                  ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
         end do
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -1553,7 +1573,7 @@ module mod_moloch
           r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
           b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
           zphi = is + zamu*b - is*b
-          zpby(j,i,k) = d_half * v(j,i,k) * rmv(j,i) * &
+          zpby(j,i,k) = 0.5_rkx * v(j,i,k) * rmv(j,i) * &
               ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
         end do
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -1596,7 +1616,7 @@ module mod_moloch
           r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
           b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
           zphi = is + zamu*b - is*b
-          zpbw(j,i,k) = d_half * u(j,i,k) * rmu(j,i) * &
+          zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * rmu(j,i) * &
                  ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
         end do
 
@@ -1673,10 +1693,11 @@ module mod_moloch
     end subroutine reset_tendencies
 
     subroutine physical_parametrizations
+      !@acc use nvtx
       implicit none
       integer(ik4) :: i, j, k, n
       logical :: loutrad, labsem
-
+      !@acc call nvtxStartRange("physical_parametrizations")
 #ifdef DEBUG
       do k = 1, kz
         do i = ice1, ice2
@@ -1711,14 +1732,18 @@ module mod_moloch
               chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
             end do
           end if
+          !@acc call nvtxStartRange("cumulus")
           call cumulus
+          !@acc call nvtxEndRange
           if ( ichem == 1 ) then
             if ( ichcumtra == 1 ) then
               if ( debug_level > 3 .and. myid == italk ) then
                 write(stdout,*) 'Calling cumulus transport at ', &
                            trim(rcmtimer%str())
               end if
+              !@acc call nvtxStartRange("cumtran")
               call cumtran(trac)
+              !@acc call nvtxEndRange
             end if
           end if
           if ( idiag > 0 ) then
@@ -1735,7 +1760,9 @@ module mod_moloch
           end if
         else
           if ( any(icup < 0) ) then
+            !@acc call nvtxStartRange("shallow_convection")
             call shallow_convection
+            !@acc call nvtxEndRange
             if ( idiag > 0 ) then
               do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
@@ -1760,7 +1787,9 @@ module mod_moloch
           end if
           ! Cumulus clouds
           if ( icldfrac /= 2 ) then
+            !@acc call nvtxStartRange("cucloud")
             call cucloud
+            !@acc call nvtxEndRange
           end if
           ! Save cumulus cloud fraction for chemistry before it is
           ! overwritten in cldfrac
@@ -1770,8 +1799,12 @@ module mod_moloch
             end do
           end if
           ! Clouds and large scale precipitation
+          !@acc call nvtxStartRange("cldfrac")
           call cldfrac(cldlwc,cldfra)
+          !@acc call nvtxEndRange
+          !@acc call nvtxStartRange("microscheme")
           call microscheme
+          !@acc call nvtxEndRange
           if ( idiag > 0 ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               tdiag%lsc(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
@@ -1792,16 +1825,26 @@ module mod_moloch
               'Calling radiative transfer at ',trim(rcmtimer%str())
           end if
           ! calculate albedo
+          !@acc call nvtxStartRange("surface_albedo")
           call surface_albedo
+          !@acc call nvtxEndRange
           if ( iclimao3 == 1 ) then
+            !@acc call nvtxStartRange("updateo3")
             call updateo3(rcmtimer%idate,scenario)
+            !@acc call nvtxEndRange
           end if
           if ( iclimaaer == 1 ) then
+            !@acc call nvtxStartRange("updateaero_1")
             call updateaerosol(rcmtimer%idate)
+            !@acc call nvtxEndRange
           else if ( iclimaaer == 2 ) then
+            !@acc call nvtxStartRange("updateaero_2")
             call updateaeropp(rcmtimer%idate)
+            !@acc call nvtxEndRange
           else if ( iclimaaer == 3 ) then
+            !@acc call nvtxStartRange("updateaero_3")
             call updateaeropp_cmip6(rcmtimer%idate)
+            !@acc call nvtxEndRange
           end if
           loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
           labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
@@ -1813,8 +1856,10 @@ module mod_moloch
               write(stdout,*) 'Collecting radiation at ',trim(rcmtimer%str())
             end if
           end if
+          !@acc call nvtxStartRange("radiation")
           call radiation(rcmtimer%year,rcmtimer%month, &
                          rcmtimer%day,loutrad,labsem)
+          !@acc call nvtxEndRange
         end if
         !
         ! Add radiative transfer package-calculated heating rates to
@@ -1835,7 +1880,9 @@ module mod_moloch
           if ( debug_level > 3 .and. myid == italk ) then
             write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
           end if
+          !@acc call nvtxStartRange("surface_model")
           call surface_model
+          !@acc call nvtxEndRange
         end if
       end if
       !
@@ -1857,7 +1904,9 @@ module mod_moloch
               chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
             end do
           end if
+          !@acc call nvtxStartRange("pblscheme")
           call pblscheme
+          !@acc call nvtxEndRange
           if ( idiag > 0 ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               tdiag%tbl(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
@@ -1966,6 +2015,7 @@ module mod_moloch
         end do
       end do
 #endif
+      !@acc call nvtxEndRange
     end subroutine physical_parametrizations
 
   subroutine wstagtox(w,wx)
@@ -1979,8 +2029,8 @@ module mod_moloch
                   0.0625_rkx * (w(j,i,k+2)+w(j,i,k-1))
     end do
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-      wx(j,i,1)  = d_half * (w(j,i,2)+w(j,i,1))
-      wx(j,i,kz) = d_half * (w(j,i,kzp1)+w(j,i,kz))
+      wx(j,i,1)  = 0.5_rkx * (w(j,i,2)+w(j,i,1))
+      wx(j,i,kz) = 0.5_rkx * (w(j,i,kzp1)+w(j,i,kz))
     end do
   end subroutine wstagtox
 
@@ -1995,8 +2045,8 @@ module mod_moloch
                  0.0625_rkx * (wx(j,i,k+1)+wx(j,i,k-2))
     end do
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-      w(j,i,2) = d_half * (wx(j,i,2)  +wx(j,i,1))
-      w(j,i,kz) = d_half * (wx(j,i,kz)+wx(j,i,kzm1))
+      w(j,i,2) = 0.5_rkx * (wx(j,i,2)  +wx(j,i,1))
+      w(j,i,kz) = 0.5_rkx * (wx(j,i,kz)+wx(j,i,kzm1))
     end do
   end subroutine xtowstag
 
@@ -2012,13 +2062,13 @@ module mod_moloch
     end do
     if ( ma%has_bdyright ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        u(jdi2,i,k) = d_half * (ux(jci2,i,k)+ux(jce2,i,k))
+        u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
       end do
     end if
 
     if ( ma%has_bdyleft ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        u(jdi1,i,k) = d_half * (ux(jci1,i,k)+ux(jce1,i,k))
+        u(jdi1,i,k) = 0.5_rkx * (ux(jci1,i,k)+ux(jce1,i,k))
       end do
     end if
   end subroutine xtoustag
@@ -2035,12 +2085,12 @@ module mod_moloch
     end do
     if ( ma%has_bdytop ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        v(j,idi2,k) = d_half * (vx(j,ici2,k)+vx(j,ice2,k))
+        v(j,idi2,k) = 0.5_rkx * (vx(j,ici2,k)+vx(j,ice2,k))
       end do
     end if
     if ( ma%has_bdybottom ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        v(j,idi1,k) = d_half * (vx(j,ici1,k)+vx(j,ice1,k))
+        v(j,idi1,k) = 0.5_rkx * (vx(j,ici1,k)+vx(j,ice1,k))
       end do
     end if
   end subroutine xtovstag
@@ -2062,12 +2112,12 @@ module mod_moloch
     end do
     if ( ma%has_bdyright ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        u(jdi2,i,k) = d_half * (ux(jci2,i,k)+ux(jce2,i,k))
+        u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
       end do
     end if
     if ( ma%has_bdyleft ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        u(jdi1,i,k) = d_half * (ux(jci1,i,k)+ux(jce1,i,k))
+        u(jdi1,i,k) = 0.5_rkx * (ux(jci1,i,k)+ux(jce1,i,k))
       end do
     end if
 
@@ -2079,12 +2129,12 @@ module mod_moloch
     end do
     if ( ma%has_bdytop ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        v(j,idi2,k) = d_half * (vx(j,ici2,k)+vx(j,ice2,k))
+        v(j,idi2,k) = 0.5_rkx * (vx(j,ici2,k)+vx(j,ice2,k))
       end do
     end if
     if ( ma%has_bdybottom ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        v(j,idi1,k) = d_half * (vx(j,ici1,k)+vx(j,ice1,k))
+        v(j,idi1,k) = 0.5_rkx * (vx(j,ici1,k)+vx(j,ice1,k))
       end do
     end if
   end subroutine xtouvstag
@@ -2106,12 +2156,12 @@ module mod_moloch
     end do
     if ( ma%has_bdyleft ) then
       do concurrent ( i = ice1:ice2, k = 1:kz )
-        ux(jce1,i,k) = d_half * (u(jde1,i,k)+u(jdi1,i,k))
+        ux(jce1,i,k) = 0.5_rkx * (u(jde1,i,k)+u(jdi1,i,k))
       end do
     end if
     if ( ma%has_bdyright ) then
       do concurrent ( i = ice1:ice2, k = 1:kz )
-        ux(jce2,i,k) = d_half*(u(jde2,i,k) + u(jdi2,i,k))
+        ux(jce2,i,k) = 0.5_rkx*(u(jde2,i,k) + u(jdi2,i,k))
       end do
     end if
 
@@ -2123,12 +2173,12 @@ module mod_moloch
     end do
     if ( ma%has_bdybottom ) then
       do concurrent ( j = jce1:jce2, k = 1:kz )
-        vx(j,ice1,k) = d_half * (v(j,ide1,k)+v(j,idi1,k))
+        vx(j,ice1,k) = 0.5_rkx * (v(j,ide1,k)+v(j,idi1,k))
       end do
     end if
     if ( ma%has_bdytop ) then
       do concurrent ( j = jce1:jce2, k = 1:kz )
-        vx(j,ice2,k) = d_half*(v(j,ide2,k) + v(j,idi2,k))
+        vx(j,ice2,k) = 0.5_rkx*(v(j,ide2,k) + v(j,idi2,k))
       end do
     end if
   end subroutine uvstagtox

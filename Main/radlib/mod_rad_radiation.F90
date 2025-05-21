@@ -531,7 +531,7 @@ module mod_rad_radiation
  ! in a device subroutine, it's required.
  !
 
-!$acc declare create(g1,g2,g3,g4,ab,bb,abp,bbp)
+!!!$acc declare create(g1,g2,g3,g4,ab,bb,abp,bbp)
 
   contains
   !
@@ -2370,11 +2370,16 @@ module mod_rad_radiation
     !
     ! Initialize
     !
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( n = n1:n2 ) local(abso,emm,o3emm,term1,term2,term3, &
       term4,term5,term6,term7,term8,term9,zinpl,temh2o,trline,dbvtit,   &
       pnmsq,dbvtly,tbar,pinpl,uinpl,winpl,bplnk,xplnk)
 #else
+    !$acc parallel loop collapse(1) gang vector &
+    !$acc      private(abso,emm,o3emm,term1,term2,term3,term4,term5,  &
+    !$acc              term6,term7,term8,term9,zinpl,temh2o,trline,   &
+    !$acc              dbvtit,pnmsq,dbvtly,tbar,pinpl,uinpl,winpl,    &
+    !$acc              bplnk,xplnk)
     do n = n1, n2
 #endif
       dbvtit(kzp1) = dbvt(tint(kzp1,n))
@@ -3125,10 +3130,12 @@ module mod_rad_radiation
     real(rkx) :: term6, term9
     real(rkx), dimension(2) :: term7, term8, trline
     integer(ik4) :: k, kk, iband, l
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( n = n1:n2 ) local(term1,term2,term3,term4,term5, &
       term7,term8,emis,trline)
 #else
+    !$acc parallel loop collapse(1) gang vector &
+    !$acc    private(term1,term2,term3,term4,term5,term7,term8,emis,trline)
     do n = n1, n2
 #endif
 
@@ -3837,9 +3844,10 @@ module mod_rad_radiation
     !
     ! Define solar incident radiation and interface pressures:
     !
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( n = n1:n2 ) local(ww)
 #else
+    !$acc parallel loop collapse(1) gang vector private(ww)
     do n = n1, n2
 #endif
       !
