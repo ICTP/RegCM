@@ -338,52 +338,66 @@ module mod_micro_interface
     !-----------------------------------------------------------------
 
     if ( iconvlwp == 1 ) then
+#ifdef STDPAR_FIXED
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+#else
+      !$acc parallel loop collapse(3)
       do k = 1, kz
-        do i = ici1, ici2
-          do j = jci1, jci2
-            ! get overlap of clouds
-            cldfra(j,i,k) = rov2(cldfra(j,i,k),mc2mo%fcc(j,i,k))
-            if ( cldfra(j,i,k) > lowcld ) then
-              ! Cloud Water Volume
-              ! Apply the parameterisation based on temperature to the
-              ! the large scale clouds. This is an in-cloud here.
-              cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
-            else
-              cldfra(j,i,k) = d_zero
-              cldlwc(j,i,k) = d_zero
-            end if
-          end do
-        end do
+      do i = ici1, ici2
+      do j = jci1, jci2
+#endif
+        ! get overlap of clouds
+        cldfra(j,i,k) = rov2(cldfra(j,i,k),mc2mo%fcc(j,i,k))
+        if ( cldfra(j,i,k) > lowcld ) then
+          ! Cloud Water Volume
+          ! Apply the parameterisation based on temperature to the
+          ! the large scale clouds. This is an in-cloud here.
+          cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
+        else
+          cldfra(j,i,k) = d_zero
+          cldlwc(j,i,k) = d_zero
+        end if
+#ifndef STDPAR_FIXED
+      end do
+      end do
+#endif
       end do
     else
       if ( any(icup > 1) ) then
+#ifdef STDPAR_FIXED
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+#else
+        !$acc parallel loop collapse(3)
         do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              ! Cloud Water Volume
-              ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-              ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
-              conv_exlwc = clwfromt(mo2mc%t(j,i,k))
-              exlwc = conv_exlwc*cldfra(j,i,k) + ls_exlwc
-              ! get overlap of clouds
-              cldfra(j,i,k) = rov2(cldfra(j,i,k),mc2mo%fcc(j,i,k))
-              if ( cldfra(j,i,k) > lowcld ) then
-                ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
-                exlwc = exlwc/cldfra(j,i,k)
-                ! Scaling for CF
-                ! Implements CF scaling as in Liang GRL 32, 2005
-                ! doi: 10.1029/2004GL022301
-                if ( do_cfscaling ) then
-                  ichi = int(cldfra(j,i,k)*real(nchi-1,rkx))
-                  exlwc = exlwc * chis(ichi)
-                end if
-                cldlwc(j,i,k) = exlwc
-              else
-                cldfra(j,i,k) = d_zero
-                cldlwc(j,i,k) = d_zero
-              end if
-            end do
-          end do
+        do i = ici1, ici2
+        do j = jci1, jci2
+#endif
+          ! Cloud Water Volume
+          ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+          ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
+          conv_exlwc = clwfromt(mo2mc%t(j,i,k))
+          exlwc = conv_exlwc*cldfra(j,i,k) + ls_exlwc
+          ! get overlap of clouds
+          cldfra(j,i,k) = rov2(cldfra(j,i,k),mc2mo%fcc(j,i,k))
+          if ( cldfra(j,i,k) > lowcld ) then
+            ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
+            exlwc = exlwc/cldfra(j,i,k)
+            ! Scaling for CF
+            ! Implements CF scaling as in Liang GRL 32, 2005
+            ! doi: 10.1029/2004GL022301
+            if ( do_cfscaling ) then
+              ichi = int(cldfra(j,i,k)*real(nchi-1,rkx))
+              exlwc = exlwc * chis(ichi)
+            end if
+            cldlwc(j,i,k) = exlwc
+          else
+            cldfra(j,i,k) = d_zero
+            cldlwc(j,i,k) = d_zero
+          end if
+#ifndef STDPAR_FIXED
+        end do
+        end do
+#endif
         end do
       else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -446,6 +460,7 @@ module mod_micro_interface
   end function random_overlap
 
   pure real(rkx) function max_random_overlap(a)
+    !$acc routine seq
     implicit none
     real(rkx), dimension(:), intent(in) :: a
     real(rkx) :: fac
@@ -458,6 +473,7 @@ module mod_micro_interface
   end function max_random_overlap
 
   elemental real(rkx) function rov2(a,b)
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: a, b
     rov2 = max_random_overlap([a,b])

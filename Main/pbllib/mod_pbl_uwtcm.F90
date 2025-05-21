@@ -161,7 +161,7 @@ module mod_pbl_uwtcm
 #endif
 
     ! Main do loop
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(zqx,kth,kzm,rhoxfl,rcldb,tke,tkes,bbls,nsquar,presfl,exnerfl, &
             rexnerfl,shear,buoyan,rdza,rrhoxfl,ux,vx,qx,thx,uthvx,zax,    &
@@ -170,8 +170,16 @@ module mod_pbl_uwtcm
             bimp,cimp,uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,   &
             chix,chixs,chifxx,ktop,kbot)
 #else
+    !$acc parallel loop collapse(2) gang vector &
+    !$acc     private(zqx,kth,kzm,rhoxfl,rcldb,tke,tkes,bbls,nsquar,     &
+    !$acc             presfl,exnerfl,rexnerfl,shear,buoyan,rdza,rrhoxfl, &
+    !$acc             ux,vx,qx,thx,uthvx,zax,kethl,thlx,thlxs,thxs,tx,   &
+    !$acc             tvx,rttenx,preshl,qcx,qwx,qwxs,rrhoxhl,uxs,qxs,    &
+    !$acc             rhoxhl,exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,bimp,   &
+    !$acc             cimp,uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,  &
+    !$acc             qixs,chix,chixs,chifxx,ktop,kbot)
     do i = ici1, ici2
-      do j = jci1, jci2
+    do j = jci1, jci2
 #endif
 
 !*******************************************************************************
@@ -180,141 +188,141 @@ module mod_pbl_uwtcm
 !*******************************************************************************
 !*******************************************************************************
 
-        ! Copy in local versions of necessary variables
-        if ( idynamic == 3 ) then
-          pfac = dt
-          rpfac = rdt
-        else
-          pfac = dt / m2p%psb(j,i)
-          rpfac = rdt * m2p%psb(j,i)
-        end if
-        tskx = m2p%tg(j,i)
-        qfxx = m2p%qfx(j,i)
-        hfxx = m2p%hfx(j,i)
-        uvdragx = m2p%uvdrag(j,i)
-        pfcor = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
+      ! Copy in local versions of necessary variables
+      if ( idynamic == 3 ) then
+        pfac = dt
+        rpfac = rdt
+      else
+        pfac = dt / m2p%psb(j,i)
+        rpfac = rdt * m2p%psb(j,i)
+      end if
+      tskx = m2p%tg(j,i)
+      qfxx = m2p%qfx(j,i)
+      hfxx = m2p%hfx(j,i)
+      uvdragx = m2p%uvdrag(j,i)
+      pfcor = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
 
-        ! Integrate the hydrostatic equation to calculate the level height
-        ! Set variables that are on full levels
-        do k = 1, kzp1
-          presfl(k) = m2p%patmf(j,i,k)
-          !epop(k) = ep2/m2p%patmf(j,i,k)
-          zqx(k) = m2p%zq(j,i,k)
-          tke(k) = max(m2p%tkests(j,i,k),uwtkemin)
-        end do
-        zqx(kzp2) = d_zero
+      ! Integrate the hydrostatic equation to calculate the level height
+      ! Set variables that are on full levels
+      do k = 1, kzp1
+        presfl(k) = m2p%patmf(j,i,k)
+        !epop(k) = ep2/m2p%patmf(j,i,k)
+        zqx(k) = m2p%zq(j,i,k)
+        tke(k) = max(m2p%tkests(j,i,k),uwtkemin)
+      end do
+      zqx(kzp2) = d_zero
 
+      do k = 1, kz
+        tx(k)  = m2p%tatm(j,i,k)
+        qx(k)  = m2p%qxatm(j,i,k,iqv)
+        qcx(k) = m2p%qxatm(j,i,k,iqc)
+      end do
+
+      do k = 1, kz
+        ux(k)  = m2p%uxatm(j,i,k)
+        vx(k)  = m2p%vxatm(j,i,k)
+        zax(k) = m2p%za(j,i,k)
+        rttenx(k) = m2p%heatrt(j,i,k)
+        preshl(k) = m2p%patm(j,i,k)
+        rlv(k) = wlh(tx(k))
+        cp(k) = cpd*(d_one-qx(k)) + cpv*qx(k)
+        orlv(k) = d_one/rlv(k)
+        ocp(k) = d_one/cp(k)
+      end do
+
+      if ( implicit_ice .and. ipptls > 1 ) then
         do k = 1, kz
-          tx(k)  = m2p%tatm(j,i,k)
-          qx(k)  = m2p%qxatm(j,i,k,iqv)
-          qcx(k) = m2p%qxatm(j,i,k,iqc)
+          qix(k) = m2p%qxatm(j,i,k,iqi)
         end do
+      end if
 
-        do k = 1, kz
-          ux(k)  = m2p%uxatm(j,i,k)
-          vx(k)  = m2p%vxatm(j,i,k)
-          zax(k) = m2p%za(j,i,k)
-          rttenx(k) = m2p%heatrt(j,i,k)
-          preshl(k) = m2p%patm(j,i,k)
-          rlv(k) = wlh(tx(k))
-          cp(k) = cpd*(d_one-qx(k)) + cpv*qx(k)
-          orlv(k) = d_one/rlv(k)
-          ocp(k) = d_one/cp(k)
-        end do
-
-        if ( implicit_ice .and. ipptls > 1 ) then
+      if ( ichem == 1 ) then
+        do itr = 1, ntr
+          chifxx(itr) = m2p%chifxuw(j,i,itr)
           do k = 1, kz
-            qix(k) = m2p%qxatm(j,i,k,iqi)
+            chix(k,itr) = m2p%chib(j,i,k,itr)
           end do
-        end if
-
-        if ( ichem == 1 ) then
-          do itr = 1, ntr
-            chifxx(itr) = m2p%chifxuw(j,i,itr)
-            do k = 1, kz
-              chix(k,itr) = m2p%chib(j,i,k,itr)
-            end do
-          end do
-        end if
-
-        ! Set all the save variables (used for determining the tendencies)
-        do k = 1, kz
-          ! Level spacing
-          rdzq(k) = d_one/m2p%dzq(j,i,k)
-          ! Exner function
-          exnerhl(k) = (preshl(k)/p00)**rovcp
-          rexnerhl(k) = d_one/exnerhl(k)
-          ! Potential temperature
-          thx(k) = tx(k)*rexnerhl(k)
-          ! Total water mixing ratio
-          qwx(k) = qx(k) + qcx(k)
-          ! Virtual temperature and potential temperature
-          tvcon = d_one + ep1*qx(k)-qcx(k)
-          tvx(k) = tx(k)*tvcon ! virtual temperature
-          uthvx(k) = thx(k)*tvcon ! vitual potential temperature
-          ! Liquid water potential temperature (accounting for ice)
-          thlx(k) = thx(k) - rlv(k)*qcx(k)*ocp(k)*rexnerhl(k)
         end do
+      end if
 
-        ! save initial values
-        do k = 1, kz
-          uxs(k)  = ux(k)
-          vxs(k)  = vx(k)
-          thxs(k) = thx(k)
-          qxs(k) = qx(k)
-          qwxs(k) = qwx(k)
-          qcxs(k) = qcx(k)
-          thlxs(k) = thlx(k)
-        end do
-        do k = 1, kzp1
-          tkes(k) = tke(k)
-        end do
-
-        ! density at half levels
-        do k = 1, kz
-          rhoxhl(k) = preshl(k)/(rgas*tvx(k))
-          rrhoxhl(k) = d_one/rhoxhl(k)
-        end do
-
-        if ( implicit_ice .and. ipptls > 1 ) then
-          do k = 1, kz
-            qixs(k) = qix(k)
-          end do
-        end if
-
-        if ( ichem == 1 ) then
-          do itr = 1, ntr
-            do k = 1, kz
-              chixs(k,itr) = chix(k,itr)
-            end do
-          end do
-        end if
-
-        rdza(1) = d_zero
-        rhoxfl(1) = rhoxhl(1)
-        do k = 2, kz
-          ! Level spacing
-          rdza(k) = d_one/(zax(k-1)-zax(k))
-          ! Density
-          fracz = (zqx(k)-zax(k))*rdza(k)
-          rhoxfl(k) = rhoxhl(k) + (rhoxhl(k-1)-rhoxhl(k))*fracz
-        end do
-        rhoxfl(kzp1) = presfl(kzp1)/(rgas*tvx(kz))
-        do k = 1, kz
-          rrhoxfl(k) = d_one/rhoxfl(k)
-        end do
-
+      ! Set all the save variables (used for determining the tendencies)
+      do k = 1, kz
+        ! Level spacing
+        rdzq(k) = d_one/m2p%dzq(j,i,k)
         ! Exner function
-        do k = 1, kzp1
-          exnerfl(k) = (presfl(k)/p00)**rovcp
-          rexnerfl(k) = d_one/exnerfl(k)
+        exnerhl(k) = (preshl(k)/p00)**rovcp
+        rexnerhl(k) = d_one/exnerhl(k)
+        ! Potential temperature
+        thx(k) = tx(k)*rexnerhl(k)
+        ! Total water mixing ratio
+        qwx(k) = qx(k) + qcx(k)
+        ! Virtual temperature and potential temperature
+        tvcon = d_one + ep1*qx(k)-qcx(k)
+        tvx(k) = tx(k)*tvcon ! virtual temperature
+        uthvx(k) = thx(k)*tvcon ! vitual potential temperature
+        ! Liquid water potential temperature (accounting for ice)
+        thlx(k) = thx(k) - rlv(k)*qcx(k)*ocp(k)*rexnerhl(k)
+      end do
+
+      ! save initial values
+      do k = 1, kz
+        uxs(k)  = ux(k)
+        vxs(k)  = vx(k)
+        thxs(k) = thx(k)
+        qxs(k) = qx(k)
+        qwxs(k) = qwx(k)
+        qcxs(k) = qcx(k)
+        thlxs(k) = thlx(k)
+      end do
+      do k = 1, kzp1
+        tkes(k) = tke(k)
+      end do
+
+      ! density at half levels
+      do k = 1, kz
+        rhoxhl(k) = preshl(k)/(rgas*tvx(k))
+        rrhoxhl(k) = d_one/rhoxhl(k)
+      end do
+
+      if ( implicit_ice .and. ipptls > 1 ) then
+        do k = 1, kz
+          qixs(k) = qix(k)
         end do
-        ! Wind gradient and shear
-        !do k = 1, kz
-        !  dudz = (ux(k-1) - ux(k)) * rdza(k)
-        !  dvdz = (vx(k-1) - vx(k)) * rdza(k)
-        !  svs(k) = dudz*dudz + dvdz*dvdz
-        !end do
+      end if
+
+      if ( ichem == 1 ) then
+        do itr = 1, ntr
+          do k = 1, kz
+            chixs(k,itr) = chix(k,itr)
+          end do
+        end do
+      end if
+
+      rdza(1) = d_zero
+      rhoxfl(1) = rhoxhl(1)
+      do k = 2, kz
+        ! Level spacing
+        rdza(k) = d_one/(zax(k-1)-zax(k))
+        ! Density
+        fracz = (zqx(k)-zax(k))*rdza(k)
+        rhoxfl(k) = rhoxhl(k) + (rhoxhl(k-1)-rhoxhl(k))*fracz
+      end do
+      rhoxfl(kzp1) = presfl(kzp1)/(rgas*tvx(kz))
+      do k = 1, kz
+        rrhoxfl(k) = d_one/rhoxfl(k)
+      end do
+
+      ! Exner function
+      do k = 1, kzp1
+        exnerfl(k) = (presfl(k)/p00)**rovcp
+        rexnerfl(k) = d_one/exnerfl(k)
+      end do
+      ! Wind gradient and shear
+      !do k = 1, kz
+      !  dudz = (ux(k-1) - ux(k)) * rdza(k)
+      !  dvdz = (vx(k-1) - vx(k)) * rdza(k)
+      !  svs(k) = dudz*dudz + dvdz*dvdz
+      !end do
 
 !*******************************************************************************
 !*******************************************************************************
@@ -322,36 +330,36 @@ module mod_pbl_uwtcm
 !*******************************************************************************
 !*******************************************************************************
 
-        ! more surface variables
-        thgb = tskx * rexnerfl(kzp1)
-        ! Calculate the saturation mixing ratio just above the surface
-        if ( m2p%ldmsk(j,i) > 0 ) then
-          q0s = m2p%q2m(j,i)/(d_one-m2p%q2m(j,i))
-        else
-          q0s = pfwsat(tskx,presfl(kzp1))
-        end if
-        tvfac = d_one + ep1*q0s
-        ! density at the surface
-        rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
-        ! Calculate the virtual temperature right above the surface
-        thv0 = thgb * tvfac
-        ! Calculate the change in virtual potential temperature from
-        ! the surface to the first interface
-        dthv = uthvx(kz) - thv0
-        ! Calculate the change in potential temperature from the surface
-        ! to the first interface
-        ! dth = thx(kz) - thgb
+      ! more surface variables
+      thgb = tskx * rexnerfl(kzp1)
+      ! Calculate the saturation mixing ratio just above the surface
+      if ( m2p%ldmsk(j,i) > 0 ) then
+        q0s = m2p%q2m(j,i)/(d_one-m2p%q2m(j,i))
+      else
+        q0s = pfwsat(tskx,presfl(kzp1))
+      end if
+      tvfac = d_one + ep1*q0s
+      ! density at the surface
+      rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
+      ! Calculate the virtual temperature right above the surface
+      thv0 = thgb * tvfac
+      ! Calculate the change in virtual potential temperature from
+      ! the surface to the first interface
+      dthv = uthvx(kz) - thv0
+      ! Calculate the change in potential temperature from the surface
+      ! to the first interface
+      ! dth = thx(kz) - thgb
 
-        ! Calculate surface momentum fluxes
-        uflxp = -uvdragx*ux(kz)/rhoxsf
-        vflxp = -uvdragx*vx(kz)/rhoxsf
-        ! Estimate of the surface virtual heat flux
-        thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
-        ! Estimate of surface eddy diffusivity, for estimating the
-        ! surface N^2 from the surface virtual heat flux
-        ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
-        ustx = sqrt(ustxsq)
-        ! kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*ustxsq))
+      ! Calculate surface momentum fluxes
+      uflxp = -uvdragx*ux(kz)/rhoxsf
+      vflxp = -uvdragx*vx(kz)/rhoxsf
+      ! Estimate of the surface virtual heat flux
+      thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
+      ! Estimate of surface eddy diffusivity, for estimating the
+      ! surface N^2 from the surface virtual heat flux
+      ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
+      ustx = sqrt(ustxsq)
+      ! kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*ustxsq))
 
 !*******************************************************************************
 !*******************************************************************************
@@ -359,23 +367,23 @@ module mod_pbl_uwtcm
 !*******************************************************************************
 !*******************************************************************************
 
-        ! Calculate nsquared Set N^2 based on the current potential
-        ! temperature profile
-        call n2(kz,thlx,qwx,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv,rdza, &
-                rcldb,nsquar)
-        ! Estimate the surface N^2 from the surface virtual heat flux
-        ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
-        nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
+      ! Calculate nsquared Set N^2 based on the current potential
+      ! temperature profile
+      call n2(kz,thlx,qwx,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv,rdza, &
+              rcldb,nsquar)
+      ! Estimate the surface N^2 from the surface virtual heat flux
+      ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
+      nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
 
-        ! Calculate the bulk richardson number
-        !richnum = nsquar/max(svs,1.0e-8_rkx)
+      ! Calculate the bulk richardson number
+      !richnum = nsquar/max(svs,1.0e-8_rkx)
 
-        ! Calculate the boundary layer height
-        call pblhgt(kz,thlx,qwx,qcx,nsquar,tke,zqx,ocp,rlv,rexnerhl,thx, &
-                    rttenx,uthvx,presfl,rhoxfl,exnerfl,rcldb,ustx,pfcor, &
-                    kpbconv,ktop,kbot,kpbl2dx,bbls,pblx,rstbl,atwo)
-        ! call pblhgt_tao(kz,zqx,richnum,rcldb,presfl,tke, &
-        !                 kpbconv,kpbl2dx,kmix2dx,pblx,ktop,kbot,bbls,nsquar)
+      ! Calculate the boundary layer height
+      call pblhgt(kz,thlx,qwx,qcx,nsquar,tke,zqx,ocp,rlv,rexnerhl,thx, &
+                  rttenx,uthvx,presfl,rhoxfl,exnerfl,rcldb,ustx,pfcor, &
+                  kpbconv,ktop,kbot,kpbl2dx,bbls,pblx,rstbl,atwo)
+      ! call pblhgt_tao(kz,zqx,richnum,rcldb,presfl,tke, &
+      !                 kpbconv,kpbl2dx,kmix2dx,pblx,ktop,kbot,bbls,nsquar)
 
 !*******************************************************************************
 !*******************************************************************************
@@ -383,308 +391,308 @@ module mod_pbl_uwtcm
 !*******************************************************************************
 !*******************************************************************************
 
-        ! Calculate the diffusivity profiles, update total water and
-        ! liquid water potential temperature, then re-calculate the
-        ! diffusivity profiles using the updated values, and re-integrate.
-        ! Also update N^2 along the way.
-        melloryamadaiteration: &
-        do iteration = 1, 2
-          !*************************************************************
-          !***** Semi-implicit calculation of diffusivity profiles *****
-          !*************************************************************
-          call melloryamada(kz,thlx,qwx,ocp,rlv,tke,rcldb,nsquar,bbls, &
-                            thx,rexnerhl,ktop,kpbconv,kethl,kzm,kth, &
-                            nuk,atwo,b1)
-          !*************************************************************
-          !****** Implicit Diffusion of Thetal and Qtot ****************
-          !*************************************************************
-          ! first find the coefficients that apply to
-          ! all scalars at half-levels
-          aimp(1) = d_zero
-          do k = 2, kz
-            aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
-          end do
-          do k = 1, kzm1
-            cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*kth(k+1)*dt*rdzq(k)*rdza(k+1)
-          end do
-          cimp(kz) = d_zero
-          do k = 1, kz
-            bimp(k) = d_one - aimp(k) - cimp(k)
-          end do
-          do k = 1, kz
-            rimp1(k) = thlx(k)
-            rimp2(k) = qwx(k)
-          end do
-          ! include surface sensible heat flux
-          rimp1(kz) = rimp1(kz) + &
-                   dt*hfxx*rrhoxhl(kz)*ocp(kz)*rdzq(kz)*rexnerhl(kz)
-          ! include surface latent heat flux
-          rimp2(kz) = rimp2(kz) + dt*qfxx*rrhoxhl(kz)*rdzq(kz)
-          ! Solve total water
-          call solve_tridiag(aimp,bimp,cimp,rimp2,uimp2,kz)
-          ! Solve liquid water potential temperature
-          call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
-          ! Calculate nsquared Set N^2 based on the updated potential
-          ! temperature profile (this is for the semi-implicit integration)
-          uimp2 = max(uimp2,minqq)
-          call n2(kz,uimp1,uimp2,exnerfl,rexnerfl,presfl,cp,rlv,ocp, &
-                  orlv,rdza,rcldb,nsquar)
-          thx_t = uimp1(kz) + ocp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz)
-          tvcon = d_one + ep1*qx(kz)-qcx(kz)
-          thvx_t = thx_t*tvcon
-          dthv_t = (thvx_t-thv0)
-          nsquar(kzp1) = egrav/thvx_t * dthv_t/zax(kz)
-        end do melloryamadaiteration
-
+      ! Calculate the diffusivity profiles, update total water and
+      ! liquid water potential temperature, then re-calculate the
+      ! diffusivity profiles using the updated values, and re-integrate.
+      ! Also update N^2 along the way.
+      melloryamadaiteration: &
+      do iteration = 1, 2
         !*************************************************************
-        !************ Re-calculate thx, qx, and qcx ******************
+        !***** Semi-implicit calculation of diffusivity profiles *****
         !*************************************************************
-        !if ( travis_code ) then
-        !  do k = 1, kz
-        !    thlx(k) = uimp1(k)
-        !    qwx(k) = uimp2(k)
-        !    ! Determine the temperature and qc and qv
-        !    ibnd = itbound
-        !    temps = solve_for_t(thlx(k),qwx(k),preshl(k),thxs(k)*exnerhl(k), &
-        !                        qwxs(k),qcxs(k),thlxs(k),ibnd,imethod,       &
-        !                        qx(k),qcx(k))
-        !    if ( ibnd == -999 ) then
-        !      call fatal(__FILE__,__LINE__, &
-        !                   'UW PBL SCHEME ALGO ERROR')
-        !    end if
-        !    thx(k) = temps*rexnerhl(k)
-        !    uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
-        !  end do
-        !else
-          do k = 1, kz
-            ! Set thlx and qwx to their updated values
-            thlx(k) = uimp1(k)
-            qwx(k) = uimp2(k)
-            templ = thlx(k)*exnerhl(k)
-            temps = templ
-            !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
-            !         exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
-            rvls = pfwsat(temps,preshl(k))
-            cpoxlv = cp(k)*orlv(k)
-            do iteration = 1, 3
-              deltat = ((templ-temps)*cpoxlv + qwx(k)-rvls) / &
-                (cpoxlv + ep2*rlv(k)*rvls/rgas/templ/templ)
-              if ( abs(deltat) < 0.01_rkx ) exit
-              temps = temps + deltat
-              !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
-              !       exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
-              rvls = pfwsat(temps,preshl(k))
-            end do
-            qcx(k) = max(qwx(k)-rvls, d_zero)
-            qx(k) = qwx(k)-qcx(k)
-            thx(k) = (templ + ocp(k)*rlv(k)*qcx(k))*rexnerhl(k)
-            uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
-          end do
-        !end if
-
+        call melloryamada(kz,thlx,qwx,ocp,rlv,tke,rcldb,nsquar,bbls, &
+                          thx,rexnerhl,ktop,kpbconv,kethl,kzm,kth, &
+                          nuk,atwo,b1)
         !*************************************************************
-        !****** Implicit Diffusion of U and V ************************
+        !****** Implicit Diffusion of Thetal and Qtot ****************
         !*************************************************************
+        ! first find the coefficients that apply to
+        ! all scalars at half-levels
         aimp(1) = d_zero
         do k = 2, kz
-          aimp(k) = -(rhoxfl(k)*rrhoxhl(k)) * kzm(k)*dt*rdzq(k)*rdza(k)
+          aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
         end do
         do k = 1, kzm1
-          cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k)) * kzm(k+1)*dt*rdzq(k)*rdza(k+1)
+          cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*kth(k+1)*dt*rdzq(k)*rdza(k+1)
         end do
         cimp(kz) = d_zero
         do k = 1, kz
           bimp(k) = d_one - aimp(k) - cimp(k)
         end do
         do k = 1, kz
-          rimp1(k) = ux(k)
-          rimp2(k) = vx(k)
+          rimp1(k) = thlx(k)
+          rimp2(k) = qwx(k)
         end do
-        ! at surface include surface momentum fluxes
-        rimp1(kz) = rimp1(kz) + dt * uflxp * (rhoxsf*rrhoxhl(kz))*rdzq(kz)
-        rimp2(kz) = rimp2(kz) + dt * vflxp * (rhoxsf*rrhoxhl(kz))*rdzq(kz)
-        call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
+        ! include surface sensible heat flux
+        rimp1(kz) = rimp1(kz) + &
+                 dt*hfxx*rrhoxhl(kz)*ocp(kz)*rdzq(kz)*rexnerhl(kz)
+        ! include surface latent heat flux
+        rimp2(kz) = rimp2(kz) + dt*qfxx*rrhoxhl(kz)*rdzq(kz)
+        ! Solve total water
         call solve_tridiag(aimp,bimp,cimp,rimp2,uimp2,kz)
+        ! Solve liquid water potential temperature
+        call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
+        ! Calculate nsquared Set N^2 based on the updated potential
+        ! temperature profile (this is for the semi-implicit integration)
+        uimp2 = max(uimp2,minqq)
+        call n2(kz,uimp1,uimp2,exnerfl,rexnerfl,presfl,cp,rlv,ocp, &
+                orlv,rdza,rcldb,nsquar)
+        thx_t = uimp1(kz) + ocp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz)
+        tvcon = d_one + ep1*qx(kz)-qcx(kz)
+        thvx_t = thx_t*tvcon
+        dthv_t = (thvx_t-thv0)
+        nsquar(kzp1) = egrav/thvx_t * dthv_t/zax(kz)
+      end do melloryamadaiteration
 
-        ! update the winds
-        updatewind: &
+      !*************************************************************
+      !************ Re-calculate thx, qx, and qcx ******************
+      !*************************************************************
+      !if ( travis_code ) then
+      !  do k = 1, kz
+      !    thlx(k) = uimp1(k)
+      !    qwx(k) = uimp2(k)
+      !    ! Determine the temperature and qc and qv
+      !    ibnd = itbound
+      !    temps = solve_for_t(thlx(k),qwx(k),preshl(k),thxs(k)*exnerhl(k), &
+      !                        qwxs(k),qcxs(k),thlxs(k),ibnd,imethod,       &
+      !                        qx(k),qcx(k))
+      !    if ( ibnd == -999 ) then
+      !      call fatal(__FILE__,__LINE__, &
+      !                   'UW PBL SCHEME ALGO ERROR')
+      !    end if
+      !    thx(k) = temps*rexnerhl(k)
+      !    uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
+      !  end do
+      !else
+        do k = 1, kz
+          ! Set thlx and qwx to their updated values
+          thlx(k) = uimp1(k)
+          qwx(k) = uimp2(k)
+          templ = thlx(k)*exnerhl(k)
+          temps = templ
+          !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
+          !         exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
+          rvls = pfwsat(temps,preshl(k))
+          cpoxlv = cp(k)*orlv(k)
+          do iteration = 1, 3
+            deltat = ((templ-temps)*cpoxlv + qwx(k)-rvls) / &
+              (cpoxlv + ep2*rlv(k)*rvls/rgas/templ/templ)
+            if ( abs(deltat) < 0.01_rkx ) exit
+            temps = temps + deltat
+            !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
+            !       exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
+            rvls = pfwsat(temps,preshl(k))
+          end do
+          qcx(k) = max(qwx(k)-rvls, d_zero)
+          qx(k) = qwx(k)-qcx(k)
+          thx(k) = (templ + ocp(k)*rlv(k)*qcx(k))*rexnerhl(k)
+          uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
+        end do
+      !end if
+
+      !*************************************************************
+      !****** Implicit Diffusion of U and V ************************
+      !*************************************************************
+      aimp(1) = d_zero
+      do k = 2, kz
+        aimp(k) = -(rhoxfl(k)*rrhoxhl(k)) * kzm(k)*dt*rdzq(k)*rdza(k)
+      end do
+      do k = 1, kzm1
+        cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k)) * kzm(k+1)*dt*rdzq(k)*rdza(k+1)
+      end do
+      cimp(kz) = d_zero
+      do k = 1, kz
+        bimp(k) = d_one - aimp(k) - cimp(k)
+      end do
+      do k = 1, kz
+        rimp1(k) = ux(k)
+        rimp2(k) = vx(k)
+      end do
+      ! at surface include surface momentum fluxes
+      rimp1(kz) = rimp1(kz) + dt * uflxp * (rhoxsf*rrhoxhl(kz))*rdzq(kz)
+      rimp2(kz) = rimp2(kz) + dt * vflxp * (rhoxsf*rrhoxhl(kz))*rdzq(kz)
+      call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
+      call solve_tridiag(aimp,bimp,cimp,rimp2,uimp2,kz)
+
+      ! update the winds
+      updatewind: &
+      do  k = 1, kz
+        ux(k) = uimp1(k)
+        vx(k) = uimp2(k)
+      end do updatewind
+
+      if ( implicit_ice .and. ipptls > 1 ) then
+        !
+        ! Implicit diffusion of cloud ice
+        !
+        aimp(1) = d_zero
+        do  k = 2, kz
+          aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
+        end do
+        do  k = 1, kzm1
+          cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*kth(k+1)*dt*rdzq(k)*rdza(k+1)
+        end do
+        cimp(kz) = d_zero
         do  k = 1, kz
-          ux(k) = uimp1(k)
-          vx(k) = uimp2(k)
-        end do updatewind
+          bimp(k) = d_one - aimp(k) - cimp(k)
+        end do
+        do  k = 1, kz
+          rimp1(k) = qix(k)
+        end do
+        call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
+        do  k = 1, kz
+          qix(k) = max(uimp1(k),d_zero)
+        end do
+      end if
 
-        if ( implicit_ice .and. ipptls > 1 ) then
-          !
-          ! Implicit diffusion of cloud ice
-          !
-          aimp(1) = d_zero
-          do  k = 2, kz
-            aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
-          end do
-          do  k = 1, kzm1
-            cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*kth(k+1)*dt*rdzq(k)*rdza(k+1)
-          end do
-          cimp(kz) = d_zero
-          do  k = 1, kz
-            bimp(k) = d_one - aimp(k) - cimp(k)
-          end do
-          do  k = 1, kz
-            rimp1(k) = qix(k)
-          end do
-          call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
-          do  k = 1, kz
-            qix(k) = max(uimp1(k),d_zero)
-          end do
-        end if
+      !*************************************************************
+      !****** Implicit Diffusion of tracers ************************
+      !*************************************************************
 
-        !*************************************************************
-        !****** Implicit Diffusion of tracers ************************
-        !*************************************************************
-
-        if ( ichem == 1 ) then
-          ! Set the tridiagonal coefficients that apply to all of the tracers
-          aimp(1) = d_zero
-          do k = 2, kz
-            aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
-          end do
-          do k = 1, kzm1
-            cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*   &
-                       kth(k+1) * dt*rdzq(k)*rdza(k+1)
-          end do
-          cimp(kz) = d_zero
+      if ( ichem == 1 ) then
+        ! Set the tridiagonal coefficients that apply to all of the tracers
+        aimp(1) = d_zero
+        do k = 2, kz
+          aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
+        end do
+        do k = 1, kzm1
+          cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*   &
+                     kth(k+1) * dt*rdzq(k)*rdza(k+1)
+        end do
+        cimp(kz) = d_zero
+        do k = 1, kz
+          bimp(k) = d_one - aimp(k) - cimp(k)
+        end do
+        !Loop through all of the tracers
+        ! set the tridiagonal coefficients that are tracer-specific
+        ! and solve the tridiagonal matrix for each tracer to get
+        ! the tracer value implied for the next timestep
+        do itr = 1, ntr
+          ! set the right side
           do k = 1, kz
-            bimp(k) = d_one - aimp(k) - cimp(k)
+            rimp1(k) = chix(k,itr)
           end do
-          !Loop through all of the tracers
-          ! set the tridiagonal coefficients that are tracer-specific
-          ! and solve the tridiagonal matrix for each tracer to get
-          ! the tracer value implied for the next timestep
-          do itr = 1, ntr
-            ! set the right side
-            do k = 1, kz
-              rimp1(k) = chix(k,itr)
-            end do
-            ! at surface include surface momentum fluxes
-            rimp1(kz) = rimp1(kz) + dt*chifxx(itr)*rrhoxhl(kz)*rdzq(kz)
-            !Run the tridiagonal solver
-            call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
+          ! at surface include surface momentum fluxes
+          rimp1(kz) = rimp1(kz) + dt*chifxx(itr)*rrhoxhl(kz)*rdzq(kz)
+          !Run the tridiagonal solver
+          call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
 
-            !Get the chi value implied for the next timestep
-            do k = 1, kz
-              chix(k,itr) = max(uimp1(k),d_zero)
-            end do
+          !Get the chi value implied for the next timestep
+          do k = 1, kz
+            chix(k,itr) = max(uimp1(k),d_zero)
           end do
-        end if !End tracer diffusion
+        end do
+      end if !End tracer diffusion
 
-        !
-        ! Re-update N^2 at the surface; this requires recalculation
-        ! of the surface momentum fluxes
-        !
-        ! Calculate surface momentum fluxes
-        uflxp = -uvdragx*ux(kz)/rhoxsf
-        vflxp = -uvdragx*vx(kz)/rhoxsf
-        ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
-        ustx = sqrt(ustxsq)
+      !
+      ! Re-update N^2 at the surface; this requires recalculation
+      ! of the surface momentum fluxes
+      !
+      ! Calculate surface momentum fluxes
+      uflxp = -uvdragx*ux(kz)/rhoxsf
+      vflxp = -uvdragx*vx(kz)/rhoxsf
+      ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
+      ustx = sqrt(ustxsq)
 
-        ! Estimate of surface eddy diffusivity, for estimating the
-        ! surface N^2 from the surface virtual heat flux
-        ! kh0 = vonkar*2*sqrt(max(uwtkemin,tkefac*ustxsq))
+      ! Estimate of surface eddy diffusivity, for estimating the
+      ! surface N^2 from the surface virtual heat flux
+      ! kh0 = vonkar*2*sqrt(max(uwtkemin,tkefac*ustxsq))
 
-        ! Estimate the surface N^2 from the surface virtual heat flux
-        dthv = uthvx(kz) - thv0
-        nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
-        ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
+      ! Estimate the surface N^2 from the surface virtual heat flux
+      dthv = uthvx(kz) - thv0
+      nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
+      ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
 !*******************************************************************************
 !*******************************************************************************
 !************************* Integration of TKE Budget Equation ******************
 !*******************************************************************************
 !*******************************************************************************
 
-        ! features:
-        !   a. explicit calculation of buoyancy and shear terms using
-        !      time = t+1 values of thetal, qw, and winds
-        !   b. surface tke is diagnosed
-        !   c. semi-implicit calculation of dissipation term and
-        !      implicit calculation of turbulent transfer term
-        ! first, buoyancy and shear terms
-        buoyan(:) = d_zero
-        shear(:) = d_zero
-        sandb: &
-        do k = 2, kz
-          ! Recalculate the shear and the squared
-          ! magnitude of the shear
-          dudz = (ux(k-1) - ux(k)) * rdza(k)
-          dvdz = (vx(k-1) - vx(k)) * rdza(k)
-          svs = dudz*dudz + dvdz*dvdz
-          ! compute buoyancy term with new values of thetal
-          buoyan(k) = -kth(k) * nsquar(k)
-          ! compute shear term with new values of svs
-          shear(k)  = kzm(k) * svs
-        end do sandb
-        ! Add radiative divergence contribution to the buoyancy term
-        ! (only if there is cloud water at the current level)
-        radib:&
-        do ilay = 1, kpbconv
-          k = ktop(ilay)
-          if ( k > 1 .and. k <= kz ) then
-            if ( qcx(k) > 1.0e-4_rkx ) then
-              buoyan(k) = buoyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
-                          rrhoxfl(k) * rexnerfl(k) / uthvx(k)
-            end if
+      ! features:
+      !   a. explicit calculation of buoyancy and shear terms using
+      !      time = t+1 values of thetal, qw, and winds
+      !   b. surface tke is diagnosed
+      !   c. semi-implicit calculation of dissipation term and
+      !      implicit calculation of turbulent transfer term
+      ! first, buoyancy and shear terms
+      buoyan(:) = d_zero
+      shear(:) = d_zero
+      sandb: &
+      do k = 2, kz
+        ! Recalculate the shear and the squared
+        ! magnitude of the shear
+        dudz = (ux(k-1) - ux(k)) * rdza(k)
+        dvdz = (vx(k-1) - vx(k)) * rdza(k)
+        svs = dudz*dudz + dvdz*dvdz
+        ! compute buoyancy term with new values of thetal
+        buoyan(k) = -kth(k) * nsquar(k)
+        ! compute shear term with new values of svs
+        shear(k)  = kzm(k) * svs
+      end do sandb
+      ! Add radiative divergence contribution to the buoyancy term
+      ! (only if there is cloud water at the current level)
+      radib:&
+      do ilay = 1, kpbconv
+        k = ktop(ilay)
+        if ( k > 1 .and. k <= kz ) then
+          if ( qcx(k) > 1.0e-4_rkx ) then
+            buoyan(k) = buoyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
+                        rrhoxfl(k) * rexnerfl(k) / uthvx(k)
           end if
-        end do radib
-        ! tke at top is fixed
-        tke(1) = d_zero
-        bbls(1)= d_zero
-        ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
-        tke(kzp1) = max(tkefac*ustxsq,uwtkemin) ! normal
+        end if
+      end do radib
+      ! tke at top is fixed
+      tke(1) = d_zero
+      bbls(1)= d_zero
+      ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
+      tke(kzp1) = max(tkefac*ustxsq,uwtkemin) ! normal
 
-        ! now the implicit calculations
-        ! first find the coefficients that apply for full levels
-        imptkeflux: &
-        do k = 2, kz
-          if ( k == 2 ) then
-            aimp(k-1) = d_zero
+      ! now the implicit calculations
+      ! first find the coefficients that apply for full levels
+      imptkeflux: &
+      do k = 2, kz
+        if ( k == 2 ) then
+          aimp(k-1) = d_zero
+        else
+          aimp(k-1) = -(rhoxhl(k-1)*rrhoxfl(k))*    &
+                        kethl(k-1)*dt*rdzq(k-1)*rdza(k)
+        end if
+        if ( k == kz ) then
+          cimp(k-1) = d_zero
+          ! account for implicit part of flux between level kz and surface
+          if ( abs(bbls(k)) > d_zero ) then
+            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *    &
+                        ( sqrt(tke(k))*rczero/bbls(k) +         &
+                        (rhoxhl(k)*rrhoxfl(k))*kethl(k)*rdzq(k)*rdza(k) )
           else
-            aimp(k-1) = -(rhoxhl(k-1)*rrhoxfl(k))*    &
-                          kethl(k-1)*dt*rdzq(k-1)*rdza(k)
+            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *    &
+                        (rhoxhl(k)*rrhoxfl(k))*kethl(k)*rdzq(k)*rdza(k)
           end if
-          if ( k == kz ) then
-            cimp(k-1) = d_zero
-            ! account for implicit part of flux between level kz and surface
-            if ( abs(bbls(k)) > d_zero ) then
-              bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *    &
-                          ( sqrt(tke(k))*rczero/bbls(k) +         &
-                          (rhoxhl(k)*rrhoxfl(k))*kethl(k)*rdzq(k)*rdza(k) )
-            else
-              bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *    &
-                          (rhoxhl(k)*rrhoxfl(k))*kethl(k)*rdzq(k)*rdza(k)
-            end if
+        else
+          cimp(k-1) = -(rhoxhl(k)*rrhoxfl(k))*kethl(k)*dt*rdzq(k)*rdza(k)
+          tbbls = max(bbls(k),bbls(k+1))
+          if ( abs(tbbls) > d_zero ) then
+            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + &
+                         dt * sqrt(tke(k))*rczero/tbbls
           else
-            cimp(k-1) = -(rhoxhl(k)*rrhoxfl(k))*kethl(k)*dt*rdzq(k)*rdza(k)
-            tbbls = max(bbls(k),bbls(k+1))
-            if ( abs(tbbls) > d_zero ) then
-              bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + &
-                           dt * sqrt(tke(k))*rczero/tbbls
-            else
-              bimp(k-1) = d_one - aimp(k-1) - cimp(k-1)
-            end if
+            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1)
           end if
-          ! now find right side
-          if ( k == kz ) then
-            ! account for fixed part of flux between level kz and surface
-            rimp1(k-1) = tke(k) + dt * ( shear(k)+buoyan(k) +   &
-                           tke(kzp1)*(rhoxhl(k)*rrhoxfl(k))*    &
-                           kethl(k)*rdzq(k)*rdza(k) )
-          else
-            rimp1(k-1) = tke(k) + dt * (shear(k)+buoyan(k))
-          end if
-        end do imptkeflux
-        call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kzm1)
-        ! update the tke
-        do  k = 2, kz
-          tke(k) = max(uimp1(k-1),uwtkemin) ! background tke .001
-        end do
+        end if
+        ! now find right side
+        if ( k == kz ) then
+          ! account for fixed part of flux between level kz and surface
+          rimp1(k-1) = tke(k) + dt * ( shear(k)+buoyan(k) +   &
+                         tke(kzp1)*(rhoxhl(k)*rrhoxfl(k))*    &
+                         kethl(k)*rdzq(k)*rdza(k) )
+        else
+          rimp1(k-1) = tke(k) + dt * (shear(k)+buoyan(k))
+        end if
+      end do imptkeflux
+      call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kzm1)
+      ! update the tke
+      do  k = 2, kz
+        tke(k) = max(uimp1(k-1),uwtkemin) ! background tke .001
+      end do
 
 !*******************************************************************************
 !*******************************************************************************
@@ -692,43 +700,43 @@ module mod_pbl_uwtcm
 !*******************************************************************************
 !*******************************************************************************
 
-        ! Calculate the TCM tendencies for the model's prognostic variables
-        ! For everything but TKE, couple the tendency (multiply by pstar)
-        do k = 1, kz
-          p2m%tten(j,i,k) = p2m%tten(j,i,k)+rpfac*((thx(k)-thxs(k))*exnerhl(k))
-          p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv)+rpfac*(qx(k)-qxs(k))
-          p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc)+rpfac*(qcx(k)-qcxs(k))
-          p2m%uxten(j,i,k) = (ux(k)-uxs(k))*rdt
-          p2m%vxten(j,i,k) = (vx(k)-vxs(k))*rdt
-          ! Momentum diffusivity
-          uwstate%kzm(j,i,k) = kzm(k)
-          ! Scalar diffusivity
-          uwstate%kth(j,i,k) = kth(k)
-        end do
-
-        do k = 1, kzp1
-          p2m%tketen(j,i,k) = p2m%tketen(j,i,k) + (tke(k)-tkes(k))*rdt
-        end do
-
-        if ( implicit_ice .and. ipptls > 1 ) then
-          do k = 1, kz
-            p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi)+rpfac*(qix(k)-qixs(k))
-          end do
-        end if
-
-        if ( ichem == 1 ) then
-          do itr = 1, ntr
-            do k = 1, kz
-              p2m%chiten(j,i,k,itr) = p2m%chiten(j,i,k,itr) + &
-                         rpfac*(chix(k,itr)-chixs(k,itr))
-            end do
-          end do
-        end if
-
-        p2m%kpbl(j,i) = kpbl2dx
-        p2m%zpbl(j,i) = pblx
-#ifndef STDPAR
+      ! Calculate the TCM tendencies for the model's prognostic variables
+      ! For everything but TKE, couple the tendency (multiply by pstar)
+      do k = 1, kz
+        p2m%tten(j,i,k) = p2m%tten(j,i,k)+rpfac*((thx(k)-thxs(k))*exnerhl(k))
+        p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv)+rpfac*(qx(k)-qxs(k))
+        p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc)+rpfac*(qcx(k)-qcxs(k))
+        p2m%uxten(j,i,k) = (ux(k)-uxs(k))*rdt
+        p2m%vxten(j,i,k) = (vx(k)-vxs(k))*rdt
+        ! Momentum diffusivity
+        uwstate%kzm(j,i,k) = kzm(k)
+        ! Scalar diffusivity
+        uwstate%kth(j,i,k) = kth(k)
       end do
+
+      do k = 1, kzp1
+        p2m%tketen(j,i,k) = p2m%tketen(j,i,k) + (tke(k)-tkes(k))*rdt
+      end do
+
+      if ( implicit_ice .and. ipptls > 1 ) then
+        do k = 1, kz
+          p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi)+rpfac*(qix(k)-qixs(k))
+        end do
+      end if
+
+      if ( ichem == 1 ) then
+        do itr = 1, ntr
+          do k = 1, kz
+            p2m%chiten(j,i,k,itr) = p2m%chiten(j,i,k,itr) + &
+                       rpfac*(chix(k,itr)-chixs(k,itr))
+          end do
+        end do
+      end if
+
+      p2m%kpbl(j,i) = kpbl2dx
+      p2m%zpbl(j,i) = pblx
+#ifndef STDPAR_FIXED
+    end do
 #endif
     end do
 

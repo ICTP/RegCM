@@ -572,17 +572,21 @@ module mod_pbl_holtbl
       ! first compute coefficients of the tridiagonal matrix
       !
       ! Atmosphere top
+#ifdef STDPAR_FIXED
       do concurrent ( j = jdii1:jdii2, i = ici1:ici2 )
+#else
+      !$acc parallel loop collapse(2) gang vector
+      do i = ici1, ici2
+      do j = jdii1, jdii2
+#endif
         coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
         coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
         coef3(j,i,1) = d_zero
         coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
         coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
-      end do
-
-      ! top to bottom
-      do k = 2, kzm1
-        do concurrent ( j = jdii1:jdii2, i = ici1:ici2 )
+        ! top to bottom
+        !$acc loop seq
+        do k = 2, kzm1
           coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
           coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
           coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
@@ -592,10 +596,7 @@ module mod_pbl_holtbl
                     coef3(j,i,k)*coeff1(j,i,k-1)) / &
                     (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         end do
-      end do
-
-      ! Nearest to surface
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2 )
+        ! Nearest to surface
         coef1(j,i,kz) = d_zero
         coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
         coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
@@ -605,19 +606,29 @@ module mod_pbl_holtbl
         coeff1(j,i,kz) = (m2p%udatm(j,i,kz)-dt*alphak(j,i,kz)*uflxsf+     &
                           coef3(j,i,kz)*coeff1(j,i,kz-1))/                &
                          (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+#ifndef STDPAR_FIXED
+      end do
+#endif
       end do
       !
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
+#ifdef STDPAR_FIXED
       do concurrent ( j = jdii1:jdii2, i = ici1:ici2 )
+#else
+      !$acc parallel loop collapse(2) gang vector
+      do i = ici1, ici2
+      do j = jdii1, jdii2
+#endif
         tpred1(j,i,kz) = coeff1(j,i,kz)
-      end do
-
-      do k = kzm1, 1, -1
-        do concurrent ( j = jdii1:jdii2, i = ici1:ici2 )
+        !$acc loop seq
+        do k = kzm1, 1, -1
           tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
         end do
+#ifndef STDPAR_FIXED
+      end do
+#endif
       end do
       !
       !   calculate tendency due to vertical diffusion using temporary
@@ -650,17 +661,21 @@ module mod_pbl_holtbl
       ! first compute coefficients of the tridiagonal matrix
       !
       ! Atmosphere top
+#ifdef STDPAR_FIXED
       do concurrent ( j = jci1:jci2, i = idii1:idii2 )
+#else
+      !$acc parallel loop collapse(2) gang vector
+      do i = idii1, idii2
+      do j = jci1, jci2
+#endif
         coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
         coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
         coef3(j,i,1) = d_zero
         coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
         coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
-      end do
-
-      ! top to bottom
-      do k = 2, kzm1
-        do concurrent ( j = jci1:jci2, i = idii1:idii2 )
+        ! top to bottom
+        !$acc loop seq
+        do k = 2, kzm1
           coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
           coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
           coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
@@ -670,10 +685,7 @@ module mod_pbl_holtbl
                     coef3(j,i,k)*coeff2(j,i,k-1)) / &
                     (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         end do
-      end do
-
-      ! Nearest to surface
-      do concurrent ( j = jci1:jci2, i = idii1:idii2 )
+        ! Nearest to surface
         coef1(j,i,kz) = d_zero
         coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
         coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
@@ -683,19 +695,29 @@ module mod_pbl_holtbl
         coeff2(j,i,kz) = (m2p%vdatm(j,i,kz)-dt*alphak(j,i,kz)*vflxsf+     &
                           coef3(j,i,kz)*coeff2(j,i,kz-1))/                &
                          (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+#ifndef STDPAR_FIXED
+      end do
+#endif
       end do
       !
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
+#ifdef STDPAR_FIXED
       do concurrent ( j = jci1:jci2, i = idii1:idii2 )
+#else
+      !$acc parallel loop collapse(2) gang vector
+      do i = idii1, idii2
+      do j = jci1, jci2
+#endif
         tpred2(j,i,kz) = coeff2(j,i,kz)
-      end do
-
-      do k = kzm1, 1, -1
-        do concurrent ( j = jci1:jci2, i = idii1:idii2 )
+        !$acc loop seq
+        do k = kzm1, 1, -1
           tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
         end do
+#ifndef STDPAR_FIXED
+      end do
+#endif
       end do
       !
       !   calculate tendency due to vertical diffusion using temporary
@@ -732,18 +754,22 @@ module mod_pbl_holtbl
       ! first compute coefficients of the tridiagonal matrix
       !
       ! Atmosphere top
+#ifdef STDPAR_FIXED
       do concurrent ( j = jdii1:jdii2, i = idii1:idii2 )
+#else
+      !$acc parallel loop collapse(2) gang vector
+      do i = idii1, idii2
+      do j = jdii1, jdii2
+#endif
         coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
         coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
         coef3(j,i,1) = d_zero
         coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
         coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
         coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
-      end do
-
-      ! top to bottom
-      do k = 2, kzm1
-        do concurrent ( j = jdii1:jdii2, i = idii1:idii2 )
+        ! top to bottom
+        !$acc loop seq
+        do k = 2, kzm1
           coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
           coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
           coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
@@ -753,13 +779,10 @@ module mod_pbl_holtbl
                     coef3(j,i,k)*coeff1(j,i,k-1)) / &
                     (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
           coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
-                    coef3(j,i,k)*coeff2(j,i,k-1)) / &
-                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+                  coef3(j,i,k)*coeff2(j,i,k-1)) / &
+                  (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         end do
-      end do
-
-      ! Nearest to surface
-      do concurrent ( j = jdii1:jdii2, i = idii1:idii2 )
+        ! Nearest to surface
         coef1(j,i,kz) = d_zero
         coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
         coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
@@ -774,21 +797,31 @@ module mod_pbl_holtbl
         coeff2(j,i,kz) = (m2p%vdatm(j,i,kz)-dt*alphak(j,i,kz)*vflxsf+     &
                         coef3(j,i,kz)*coeff2(j,i,kz-1))/                  &
                        (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+#ifndef STDPAR_FIXED
+      end do
+#endif
       end do
       !
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
+#ifdef STDPAR_FIXED
       do concurrent ( j = jdii1:jdii2, i = idii1:idii2 )
+#else
+      !$acc parallel loop collapse(2) gang vector
+      do i = idii1, idii2
+      do j = jdii1, jdii2
+#endif
         tpred1(j,i,kz) = coeff1(j,i,kz)
         tpred2(j,i,kz) = coeff2(j,i,kz)
-      end do
-
-      do k = kzm1, 1, -1
-        do concurrent ( j = jdii1:jdii2, i = idii1:idii2 )
+        !$acc loop seq
+        do k = kzm1, 1, -1
           tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
           tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
         end do
+#ifndef STDPAR_FIXED
+      end do
+#endif
       end do
       !
       !   calculate tendency due to vertical diffusion using temporary
@@ -815,16 +848,20 @@ module mod_pbl_holtbl
       betak(j,i,k) = rhohf(j,i,k-1)*kvh(j,i,k)/dza(j,i,k-1)
     end do
 
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+    !$acc parallel loop collapse(2) gang vector
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
       coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
       coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
       coeff1(j,i,1) = m2p%thatm(j,i,1)/coef2(j,i,1)
-    end do
-
-    do k = 2, kzm1
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      !$acc loop seq
+      do k = 2, kzm1
         coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
@@ -832,9 +869,6 @@ module mod_pbl_holtbl
         coeff1(j,i,k) = (m2p%thatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                         (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
-    end do
-
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
@@ -843,19 +877,29 @@ module mod_pbl_holtbl
                 dt*alphak(j,i,kz)*rcpd*m2p%hfx(j,i) + &
                 coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                 (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+#ifndef STDPAR_FIXED
+    end do
+#endif
     end do
     !
     !   all coefficients have been computed, predict field and put it in
     !   temporary work space tpred
     !
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+    !$acc parallel loop collapse(2) gang vector
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
       tpred1(j,i,kz) = coeff1(j,i,kz)
-    end do
-
-    do k = kzm1, 1, -1
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      !$acc loop seq
+      do k = kzm1, 1, -1
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
+#ifndef STDPAR_FIXED
+    end do
+#endif
     end do
     !
     !   calculate tendency due to vertical diffusion using temporary
@@ -879,16 +923,20 @@ module mod_pbl_holtbl
       betak(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)/dza(j,i,k-1)
     end do
 
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+    !$acc parallel loop collapse(2) gang vector
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
       coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
       coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
       coeff1(j,i,1) = m2p%qxatm(j,i,1,iqv)/coef2(j,i,1)
-    end do
-
-    do k = 2, kzm1
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      !$acc loop seq
+      do k = 2, kzm1
         coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
@@ -897,9 +945,6 @@ module mod_pbl_holtbl
                           coef3(j,i,k)*coeff1(j,i,k-1)) / &
                           (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
-    end do
-
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
@@ -908,19 +953,29 @@ module mod_pbl_holtbl
                  dt*alphak(j,i,kz)*m2p%qfx(j,i) +  &
                  coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                  (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+#ifndef STDPAR_FIXED
+    end do
+#endif
     end do
     !
     !   all coefficients have been computed, predict field and put it in
     !   temporary work space tpred
     !
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+    !$acc parallel loop collapse(2) gang vector
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
       tpred1(j,i,kz) = coeff1(j,i,kz)
-    end do
-
-    do k = kzm1, 1, -1
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      !$acc loop seq
+      do k = kzm1, 1, -1
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
+#ifndef STDPAR_FIXED
+    end do
+#endif
     end do
     !
     !   calculate tendency due to vertical diffusion using temporary
@@ -945,15 +1000,20 @@ module mod_pbl_holtbl
       betak(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)/dza(j,i,k-1)
     end do
 
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+    !$acc parallel loop collapse(2) gang vector
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
       coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
       coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
       coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2(j,i,1)
-    end do
-    do k = 2, kzm1
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      !$acc loop seq
+      do k = 2, kzm1
         coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
@@ -963,8 +1023,6 @@ module mod_pbl_holtbl
                          coef3(j,i,k)*coeff1(j,i,k-1)) / &
                          (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       coef1(j,i,kz) = d_zero
       coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
@@ -972,18 +1030,29 @@ module mod_pbl_holtbl
       coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqc) + &
                 coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                 (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+#ifndef STDPAR_FIXED
+    end do
+#endif
     end do
     !
     !   all coefficients have been computed, predict field and put it in
     !   temporary work space tpred
     !
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+    !$acc parallel loop collapse(2) gang vector
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
       tpred1(j,i,kz) = coeff1(j,i,kz)
-    end do
-    do k = kzm1, 1, -1
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      !$acc loop seq
+      do k = kzm1, 1, -1
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
+#ifndef STDPAR_FIXED
+    end do
+#endif
     end do
     !
     !   calculate tendency due to vertical diffusion using temporary
@@ -1003,15 +1072,20 @@ module mod_pbl_holtbl
     end if
 
     if ( ipptls > 1 ) then
+#ifdef STDPAR_FIXED
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+      !$acc parallel loop collapse(2) gang vector
+      do i = ici1, ici2
+      do j = jci1, jci2
+#endif
         coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
         coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
         coef3(j,i,1) = d_zero
         coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
         coeff1(j,i,1) = m2p%qxatm(j,i,1,iqi)/coef2(j,i,1)
-      end do
-      do k = 2, kzm1
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        !$acc loop seq
+        do k = 2, kzm1
           coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
           coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
           coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
@@ -1021,8 +1095,6 @@ module mod_pbl_holtbl
                            coef3(j,i,k)*coeff1(j,i,k-1)) / &
                            (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         end do
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         coef1(j,i,kz) = d_zero
         coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
         coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
@@ -1030,18 +1102,29 @@ module mod_pbl_holtbl
         coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqi) + &
                   coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                   (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+#ifndef STDPAR_FIXED
+      end do
+#endif
       end do
       !
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
+#ifdef STDPAR_FIXED
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+      !$acc parallel loop collapse(2) gang vector
+      do i = ici1, ici2
+      do j = jci1, jci2
+#endif
         tpred1(j,i,kz) = coeff1(j,i,kz)
-      end do
-      do k = kzm1, 1, -1
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        !$acc loop seq
+        do k = kzm1, 1, -1
           tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
         end do
+#ifndef STDPAR_FIXED
+      end do
+#endif
       end do
       !
       !   calculate tendency due to vertical diffusion using temporary
@@ -1141,14 +1224,19 @@ module mod_pbl_holtbl
         coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
       end do
       do n = 1, ntr
+#ifdef STDPAR_FIXED
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+        !$acc parallel loop collapse(2) gang vector
+        do i = ici1, ici2
+        do j = jci1, jci2
+#endif
           coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
           coeff1(j,i,1) = m2p%chib(j,i,1,n)/coef2(j,i,1)
           if ( abs(coeff1(j,i,1)) < dlowval ) coeff1(j,i,1) = d_zero
           if ( abs(coefe(j,i,1)) < dlowval ) coefe(j,i,1) = d_zero
-        end do
-        do k = 2, kzm1
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          !$acc loop seq
+          do k = 2, kzm1
             coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k) - &
                              coef3(j,i,k)*coefe(j,i,k-1))
             coeff1(j,i,k) = (m2p%chib(j,i,k,n) + &
@@ -1157,8 +1245,6 @@ module mod_pbl_holtbl
             if ( abs(coeff1(j,i,k)) < dlowval ) coeff1(j,i,k) = d_zero
             if ( abs(coefe(j,i,k)) < dlowval ) coefe(j,i,k) = d_zero
           end do
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           coefe(j,i,kz) = d_zero
           ! add dry deposition option1
           coeff1(j,i,kz) = (m2p%chib(j,i,kz,n)-dt*alphak(j,i,kz) * &
@@ -1166,18 +1252,29 @@ module mod_pbl_holtbl
                   coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                   (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
           if ( abs(coeff1(j,i,kz)) < dlowval ) coeff1(j,i,kz) = d_zero
+#ifndef STDPAR_FIXED
+        end do
+#endif
         end do
         !
         !       all coefficients have been computed, predict field and put
         !       it in temporary work space tpred1
         !
+#ifdef STDPAR_FIXED
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+        !$acc parallel loop collapse(2) gang vector
+        do i = ici1, ici2
+        do j = jci1, jci2
+#endif
           tpred1(j,i,kz) = coeff1(j,i,kz)
-        end do
-        do k = kzm1, 1, -1
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          !$acc loop seq
+          do k = kzm1, 1, -1
             tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
           end do
+#ifndef STDPAR_FIXED
+        end do
+#endif
         end do
         !
         !       calculate tendency due to vertical diffusion using temporary
@@ -1234,78 +1331,81 @@ module mod_pbl_holtbl
     real(rkx), dimension(kz) :: qi, qf
     real(rkx) :: sqtoti, sqtotf
 
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(qi,qf)
 #else
+    !$acc parallel loop collapse(2) gang vector private(qi,qf)
     do i = ici1, ici2
-      do j = jci1, jci2
+    do j = jci1, jci2
 #endif
-        qi(1:kz) = start(j,i,1:kz,iqv)
-        qf(1:kz) = qi(1:kz) + tendv(j,i,1:kz) * dt
-        if ( idynamic /= 3 ) then
-          do k = 1, kz
-            qi(k) = qi(k) / ps(j,i)
-            qf(k) = qf(k) / ps(j,i)
-          end do
-        end if
-        sqtoti = sum(qi)
-        sqtotf = sum(qf)
-        sqtoti = sqtoti + sflux(j,i)
-        if ( abs(sqtotf-sqtoti) > minqq ) then
-          k = maxloc(qi,1)
-          tendv(j,i,k) = tendv(j,i,k) + (sqtoti-sqtotf) * rdt
-        end if
-#ifndef STDPAR
-      end do
+      qi(1:kz) = start(j,i,1:kz,iqv)
+      qf(1:kz) = qi(1:kz) + tendv(j,i,1:kz) * dt
+      if ( idynamic /= 3 ) then
+        do k = 1, kz
+          qi(k) = qi(k) / ps(j,i)
+          qf(k) = qf(k) / ps(j,i)
+        end do
+      end if
+      sqtoti = sum(qi)
+      sqtotf = sum(qf)
+      sqtoti = sqtoti + sflux(j,i)
+      if ( abs(sqtotf-sqtoti) > minqq ) then
+        k = maxloc(qi,1)
+        tendv(j,i,k) = tendv(j,i,k) + (sqtoti-sqtotf) * rdt
+      end if
+#ifndef STDPAR_FIXED
+    end do
 #endif
     end do
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(qi,qf)
 #else
+    !$acc parallel loop collapse(2) gang vector private(qi,qf)
     do i = ici1, ici2
-      do j = jci1, jci2
+    do j = jci1, jci2
 #endif
-        qi(1:kz) = start(j,i,1:kz,iqc)
-        qf(1:kz) = qi(1:kz) + tendc(j,i,1:kz) * dt
-        if ( idynamic /= 3 ) then
-          do k = 1, kz
-            qi(k) = qi(k) / ps(j,i)
-            qf(k) = qf(k) / ps(j,i)
-          end do
-        end if
-        sqtoti = sum(qi)
-        sqtotf = sum(qf)
-        if ( abs(sqtotf-sqtoti) > minqq ) then
-          k = maxloc(qi,1)
-          tendc(j,i,k) = tendc(j,i,k) + (sqtoti-sqtotf) * rdt
-        end if
-#ifndef STDPAR
-      end do
+      qi(1:kz) = start(j,i,1:kz,iqc)
+      qf(1:kz) = qi(1:kz) + tendc(j,i,1:kz) * dt
+      if ( idynamic /= 3 ) then
+        do k = 1, kz
+          qi(k) = qi(k) / ps(j,i)
+          qf(k) = qf(k) / ps(j,i)
+        end do
+      end if
+      sqtoti = sum(qi)
+      sqtotf = sum(qf)
+      if ( abs(sqtotf-sqtoti) > minqq ) then
+        k = maxloc(qi,1)
+        tendc(j,i,k) = tendc(j,i,k) + (sqtoti-sqtotf) * rdt
+      end if
+#ifndef STDPAR_FIXED
+    end do
 #endif
     end do
     if ( ipptls > 1 ) then
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(qi,qf)
 #else
+      !$acc parallel loop collapse(2) gang vector private(qi,qf)
       do i = ici1, ici2
-        do j = jci1, jci2
+      do j = jci1, jci2
 #endif
-          qi(1:kz) = start(j,i,1:kz,iqi)
-          qf(1:kz) = qi(1:kz) + tendi(j,i,1:kz) * dt
-          if ( idynamic /= 3 ) then
-            do k = 1, kz
-              qi(k) = qi(k) / ps(j,i)
-              qf(k) = qf(k) / ps(j,i)
-            end do
-          end if
-          sqtoti = sum(qi)
-          sqtotf = sum(qf)
-          if ( abs(sqtotf-sqtoti) > minqq ) then
-            k = maxloc(qi,1)
-            tendi(j,i,k) = tendi(j,i,k) + (sqtoti-sqtotf) * rdt
-          end if
-#ifndef STDPAR
-        end do
+        qi(1:kz) = start(j,i,1:kz,iqi)
+        qf(1:kz) = qi(1:kz) + tendi(j,i,1:kz) * dt
+        if ( idynamic /= 3 ) then
+          do k = 1, kz
+            qi(k) = qi(k) / ps(j,i)
+            qf(k) = qf(k) / ps(j,i)
+          end do
+        end if
+        sqtoti = sum(qi)
+        sqtotf = sum(qf)
+        if ( abs(sqtotf-sqtoti) > minqq ) then
+          k = maxloc(qi,1)
+          tendi(j,i,k) = tendi(j,i,k) + (sqtoti-sqtotf) * rdt
+        end if
+#ifndef STDPAR_FIXED
+      end do
 #endif
       end do
     end if

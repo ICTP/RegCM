@@ -237,7 +237,7 @@ module mod_stdatm
  ! in a device subroutine, it's required.
  !
 
-!$acc declare create(stdhlevh,stdhlevf,stdplevh,stdplevf,stdatm)
+!!!$acc declare create(stdhlevh,stdhlevf,stdplevh,stdplevf,stdatm)
 
   interface stdatm_val
     module procedure stdatm_val_seasonal
