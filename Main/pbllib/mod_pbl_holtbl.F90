@@ -45,8 +45,7 @@ module mod_pbl_holtbl
   logical, pointer, contiguous, dimension(:,:) :: lunstb
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: alphak, betak, &
-                        coef1, coef2, coef3, coefe, coeff1, &
-                        coeff2, tpred1, tpred2, cfac, vv
+                        coefe, coeff1, coeff2, tpred1, tpred2, cfac, vv
   real(rkx), pointer, contiguous, dimension(:,:,:) :: kzm, ttnp
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qtenv
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qtenc
@@ -114,9 +113,6 @@ module mod_pbl_holtbl
     call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:rhohf')
     call getmem3d(alphak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:alphak')
     call getmem3d(betak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:betak')
-    call getmem3d(coef1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef1')
-    call getmem3d(coef2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef2')
-    call getmem3d(coef3,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef3')
     call getmem3d(coefe,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coefe')
     call getmem3d(coeff1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff1')
     call getmem3d(coeff2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff2')
@@ -131,6 +127,7 @@ module mod_pbl_holtbl
   end subroutine allocate_mod_pbl_holtbl
 
   subroutine holtbl(m2p,p2m)
+    !@acc use nvtx
     implicit none
     type(mod_2_pbl), intent(in) :: m2p
     type(pbl_2_mod), intent(inout) :: p2m
@@ -145,12 +142,14 @@ module mod_pbl_holtbl
     real(rkx) :: pblk, pblk1, pblk2, pr
     real(rkx) :: fak1, fak2, fak3, term
     real(rkx) :: drgdot, uflxsf, vflxsf
+    real(rkx) :: coef1, coef2, coef3
     integer(ik4) :: iter
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'holtbl'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    !@acc call nvtxStartRange("holtbl")
     !
     ! density at surface is stored in rhox2d
     ! the full level density is stored in rhohf.
@@ -161,18 +160,12 @@ module mod_pbl_holtbl
                      (egrav*dza(j,i,k))
     end do
     !
-    ! Compute the g/dp term
+    ! Compute the g/dp term, virtual temperature and the
+    !    theta->temperature function
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       hydf(j,i,k) = egrav/(m2p%patmf(j,i,k+1)-m2p%patmf(j,i,k))
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       thvx(j,i,k) = m2p%thatm(j,i,k) * (d_one+ep1*m2p%qxatm(j,i,k,iqv))
-    end do
-    !
-    ! Compute the theta->temperature function
-    !
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       cfac(j,i,k) = m2p%tatm(j,i,k)/m2p%thatm(j,i,k)
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -579,33 +572,30 @@ module mod_pbl_holtbl
       do i = ici1, ici2
       do j = jdii1, jdii2
 #endif
-        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3(j,i,1) = d_zero
-        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-        coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
+        coef1 = dt*alphak(j,i,1)*betak(j,i,2)
+        coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+        coef3 = d_zero
+        coefe(j,i,1) = coef1/coef2
+        coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2
         ! top to bottom
         !$acc loop seq
         do k = 2, kzm1
-          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1(j,i,k)/ &
-                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+          coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
+          coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+          coef3 = dt*alphak(j,i,k)*betak(j,i,k)
+          coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
           coeff1(j,i,k) = (m2p%udatm(j,i,k) + &
-                    coef3(j,i,k)*coeff1(j,i,k-1)) / &
-                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+               coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
         end do
         ! Nearest to surface
-        coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef1 = d_zero
+        coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
         drgdot = 0.5_rkx * (uvdrage(j-1,i)+uvdrage(j,i))
         uflxsf = drgdot*m2p%udatm(j,i,kz)
         coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (m2p%udatm(j,i,kz)-dt*alphak(j,i,kz)*uflxsf+     &
-                          coef3(j,i,kz)*coeff1(j,i,kz-1))/                &
-                         (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+        coeff1(j,i,kz) = (m2p%udatm(j,i,kz) - dt*alphak(j,i,kz)*uflxsf + &
+             coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
 #ifndef STDPAR_FIXED
       end do
 #endif
@@ -668,33 +658,30 @@ module mod_pbl_holtbl
       do i = idii1, idii2
       do j = jci1, jci2
 #endif
-        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3(j,i,1) = d_zero
-        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-        coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
+        coef1 = dt*alphak(j,i,1)*betak(j,i,2)
+        coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+        coef3 = d_zero
+        coefe(j,i,1) = coef1/coef2
+        coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2
         ! top to bottom
         !$acc loop seq
         do k = 2, kzm1
-          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1(j,i,k)/ &
-                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+          coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
+          coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+          coef3 = dt*alphak(j,i,k)*betak(j,i,k)
+          coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
           coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
-                    coef3(j,i,k)*coeff2(j,i,k-1)) / &
-                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+               coef3*coeff2(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
         end do
         ! Nearest to surface
-        coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef1 = d_zero
+        coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
         drgdot = 0.5_rkx * (uvdrage(j,i-1)+uvdrage(j,i))
         vflxsf = drgdot*m2p%vdatm(j,i,kz)
         coefe(j,i,kz) = d_zero
-        coeff2(j,i,kz) = (m2p%vdatm(j,i,kz)-dt*alphak(j,i,kz)*vflxsf+     &
-                          coef3(j,i,kz)*coeff2(j,i,kz-1))/                &
-                         (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+        coeff2(j,i,kz) = (m2p%vdatm(j,i,kz) - dt*alphak(j,i,kz)*vflxsf + &
+             coef3*coeff2(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
 #ifndef STDPAR_FIXED
       end do
 #endif
@@ -761,42 +748,37 @@ module mod_pbl_holtbl
       do i = idii1, idii2
       do j = jdii1, jdii2
 #endif
-        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3(j,i,1) = d_zero
-        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-        coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
-        coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
+        coef1 = dt*alphak(j,i,1)*betak(j,i,2)
+        coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+        coef3 = d_zero
+        coefe(j,i,1) = coef1/coef2
+        coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2
+        coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2
         ! top to bottom
         !$acc loop seq
         do k = 2, kzm1
-          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1(j,i,k)/ &
-                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+          coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
+          coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+          coef3 = dt*alphak(j,i,k)*betak(j,i,k)
+          coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
           coeff1(j,i,k) = (m2p%udatm(j,i,k) + &
-                    coef3(j,i,k)*coeff1(j,i,k-1)) / &
-                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+               coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
           coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
-                  coef3(j,i,k)*coeff2(j,i,k-1)) / &
-                  (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+               coef3*coeff2(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
         end do
         ! Nearest to surface
-        coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef1 = d_zero
+        coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
         drgdot = (uvdrage(j-1,i-1)+uvdrage(j,i-1) + &
                   uvdrage(j-1,i)  +uvdrage(j,i))*d_rfour
         uflxsf = drgdot*m2p%udatm(j,i,kz)
         vflxsf = drgdot*m2p%vdatm(j,i,kz)
         coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (m2p%udatm(j,i,kz)-dt*alphak(j,i,kz)*uflxsf+     &
-                        coef3(j,i,kz)*coeff1(j,i,kz-1))/                  &
-                       (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-        coeff2(j,i,kz) = (m2p%vdatm(j,i,kz)-dt*alphak(j,i,kz)*vflxsf+     &
-                        coef3(j,i,kz)*coeff2(j,i,kz-1))/                  &
-                       (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+        coeff1(j,i,kz) = (m2p%udatm(j,i,kz) - dt*alphak(j,i,kz)*uflxsf + &
+             coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
+        coeff2(j,i,kz) = (m2p%vdatm(j,i,kz) - dt*alphak(j,i,kz)*vflxsf + &
+             coef3*coeff2(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
 #ifndef STDPAR_FIXED
       end do
 #endif
@@ -855,28 +837,27 @@ module mod_pbl_holtbl
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
-      coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-      coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-      coef3(j,i,1) = d_zero
-      coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-      coeff1(j,i,1) = m2p%thatm(j,i,1)/coef2(j,i,1)
+      coef1 = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+      coef3 = d_zero
+      coefe(j,i,1) = coef1/coef2
+      coeff1(j,i,1) = m2p%thatm(j,i,1)/coef2
       !$acc loop seq
       do k = 2, kzm1
-        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-        coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        coeff1(j,i,k) = (m2p%thatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
-                        (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+        coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3 = dt*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
+        coeff1(j,i,k) = (m2p%thatm(j,i,k) + &
+             coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
       end do
-      coef1(j,i,kz) = d_zero
-      coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-      coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef1 = d_zero
+      coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
       coeff1(j,i,kz) = (m2p%thatm(j,i,kz) + &
-                dt*alphak(j,i,kz)*rcpd*m2p%hfx(j,i) + &
-                coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
-                (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+           dt*alphak(j,i,kz)*rcpd*m2p%hfx(j,i) + &
+           coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
 #ifndef STDPAR_FIXED
     end do
 #endif
@@ -930,29 +911,27 @@ module mod_pbl_holtbl
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
-      coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-      coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-      coef3(j,i,1) = d_zero
-      coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-      coeff1(j,i,1) = m2p%qxatm(j,i,1,iqv)/coef2(j,i,1)
+      coef1 = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+      coef3 = d_zero
+      coefe(j,i,1) = coef1/coef2
+      coeff1(j,i,1) = m2p%qxatm(j,i,1,iqv)/coef2
       !$acc loop seq
       do k = 2, kzm1
-        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-        coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+        coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3 = dt*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
         coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqv) +         &
-                          coef3(j,i,k)*coeff1(j,i,k-1)) / &
-                          (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+             coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
       end do
-      coef1(j,i,kz) = d_zero
-      coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-      coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef1 = d_zero
+      coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
       coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqv) +  &
-                 dt*alphak(j,i,kz)*m2p%qfx(j,i) +  &
-                 coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
-                 (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+           dt*alphak(j,i,kz)*m2p%qfx(j,i) +  &
+           coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
 #ifndef STDPAR_FIXED
     end do
 #endif
@@ -1007,29 +986,26 @@ module mod_pbl_holtbl
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
-      coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-      coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-      coef3(j,i,1) = d_zero
-      coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-      coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2(j,i,1)
+      coef1 = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+      coef3 = d_zero
+      coefe(j,i,1) = coef1/coef2
+      coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2
       !$acc loop seq
       do k = 2, kzm1
-        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-        coefe(j,i,k) = coef1(j,i,k) / &
-                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+        coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3 = dt*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
         coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqc) + &
-                         coef3(j,i,k)*coeff1(j,i,k-1)) / &
-                         (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+             coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
       end do
-      coef1(j,i,kz) = d_zero
-      coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-      coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef1 = d_zero
+      coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
       coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqc) + &
-                coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
-                (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+           coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
 #ifndef STDPAR_FIXED
     end do
 #endif
@@ -1079,29 +1055,26 @@ module mod_pbl_holtbl
       do i = ici1, ici2
       do j = jci1, jci2
 #endif
-        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3(j,i,1) = d_zero
-        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-        coeff1(j,i,1) = m2p%qxatm(j,i,1,iqi)/coef2(j,i,1)
+        coef1 = dt*alphak(j,i,1)*betak(j,i,2)
+        coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+        coef3 = d_zero
+        coefe(j,i,1) = coef1/coef2
+        coeff1(j,i,1) = m2p%qxatm(j,i,1,iqi)/coef2
         !$acc loop seq
         do k = 2, kzm1
-          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1(j,i,k) / &
-                         (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+          coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
+          coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+          coef3 = dt*alphak(j,i,k)*betak(j,i,k)
+          coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
           coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqi) + &
-                           coef3(j,i,k)*coeff1(j,i,k-1)) / &
-                           (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+               coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
         end do
-        coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef1 = d_zero
+        coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
         coefe(j,i,kz) = d_zero
         coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqi) + &
-                  coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
-                  (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+             coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
 #ifndef STDPAR_FIXED
       end do
 #endif
@@ -1208,21 +1181,7 @@ module mod_pbl_holtbl
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
         betak(j,i,k) = rhohf(j,i,k-1)*kvc(j,i,k)/dza(j,i,k-1)
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kzm1 )
-        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3(j,i,1) = d_zero
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
-      end do
+
       do n = 1, ntr
 #ifdef STDPAR_FIXED
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -1231,42 +1190,37 @@ module mod_pbl_holtbl
         do i = ici1, ici2
         do j = jci1, jci2
 #endif
-          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-          coeff1(j,i,1) = m2p%chib(j,i,1,n)/coef2(j,i,1)
+          coef1 = dt*alphak(j,i,1)*betak(j,i,2)
+          coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+          coef3 = d_zero
+          coefe(j,i,1) = coef1/coef2
+          coeff1(j,i,1) = m2p%chib(j,i,1,n)/coef2
           if ( abs(coeff1(j,i,1)) < dlowval ) coeff1(j,i,1) = d_zero
           if ( abs(coefe(j,i,1)) < dlowval ) coefe(j,i,1) = d_zero
           !$acc loop seq
           do k = 2, kzm1
-            coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k) - &
-                             coef3(j,i,k)*coefe(j,i,k-1))
+            coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
+            coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+            coef3 = dt*alphak(j,i,k)*betak(j,i,k)
+            coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
             coeff1(j,i,k) = (m2p%chib(j,i,k,n) + &
-                      coef3(j,i,k)*coeff1(j,i,k-1)) / &
-                      (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+                 coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
             if ( abs(coeff1(j,i,k)) < dlowval ) coeff1(j,i,k) = d_zero
             if ( abs(coefe(j,i,k)) < dlowval ) coefe(j,i,k) = d_zero
           end do
+          coef1 = d_zero
+          coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+          coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
           coefe(j,i,kz) = d_zero
           ! add dry deposition option1
           coeff1(j,i,kz) = (m2p%chib(j,i,kz,n)-dt*alphak(j,i,kz) * &
-                  m2p%chib(j,i,kz,n)*m2p%drydepv(j,i,n)*m2p%rhox2d(j,i) + &
-                  coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
-                  (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+               m2p%chib(j,i,kz,n)*m2p%drydepv(j,i,n)*m2p%rhox2d(j,i) + &
+               coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
           if ( abs(coeff1(j,i,kz)) < dlowval ) coeff1(j,i,kz) = d_zero
-#ifndef STDPAR_FIXED
-        end do
-#endif
-        end do
-        !
-        !       all coefficients have been computed, predict field and put
-        !       it in temporary work space tpred1
-        !
-#ifdef STDPAR_FIXED
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-#else
-        !$acc parallel loop collapse(2) gang vector
-        do i = ici1, ici2
-        do j = jci1, jci2
-#endif
+          !
+          !     all coefficients have been computed, predict field and put
+          !     it in temporary work space tpred1
+          !
           tpred1(j,i,kz) = coeff1(j,i,kz)
           !$acc loop seq
           do k = kzm1, 1, -1
@@ -1307,7 +1261,7 @@ module mod_pbl_holtbl
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-
+    !@acc call nvtxEndRange
   end subroutine holtbl
 
 #include <pfesat.inc>
