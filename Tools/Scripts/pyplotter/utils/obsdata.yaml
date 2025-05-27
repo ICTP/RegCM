@@ -1,6 +1,6 @@
 obsdata:
         EOBS:
-                path: /leonardo_work/ICT24_ESP/OBS/EOBS/010
+                path: /leonardo_work/ICT25_ESP/OBS/EOBS/010
                 pr:
                         varfile: rr
                         var_ds: rr
@@ -12,7 +12,7 @@ obsdata:
                         factor: 1.0
                         offset: 0.0
         ERA5:
-                path: /leonardo_work/ICT24_ESP/OBS/ERA5
+                path: /leonardo_work/ICT25_ESP/OBS/ERA5
                 pr:
                         varfile: pr
                         var_ds: tp
@@ -34,21 +34,21 @@ obsdata:
                         factor: -0.0000115741
                         offset: 0.0
         MSWEP:
-                path: /leonardo_work/ICT24_ESP/OBS/MSWEP
+                path: /leonardo_work/ICT25_ESP/OBS/MSWEP
                 pr:
                         varfile:
                         var_ds: precipitation
                         factor: 0.0328
                         offset: 0.0
         CPC:
-                path: /leonardo_work/ICT24_ESP/OBS/CPC
+                path: /leonardo_work/ICT25_ESP/OBS/CPC
                 pr:
                         varfile: precip
                         var_ds: precip
                         factor: 1.0
                         offset: 0.0
         CRU:
-                path: /leonardo_work/ICT24_ESP/OBS/CRU
+                path: /leonardo_work/ICT25_ESP/OBS/CRU
                 pr:
                         varfile: pre
                         var_ds: pre

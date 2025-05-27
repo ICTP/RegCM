@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
+import sys
 import os
 import glob
 import yaml
 import xarray as xr
+from pathlib import Path
 
 def season_string_to_monthlist(str):
     months = "DJFMAMJJASONDJ"
@@ -178,7 +180,7 @@ class cordex_format:
     cordex_dir = None
 
     def __init__(self,cordex_dir):
-        self.cordex_dir = cordex_dir
+        self.model_dir = cordex_dir
 
 class model_reader:
 
@@ -204,6 +206,26 @@ class model_reader:
             for x in search:
                 self.files = (self.files +
                         sorted(glob.glob(os.path.join(self.model_dir,x))))
+        elif isinstance(file_format,cordex_format):
+            # <activity>/<product>/<Domain>/<Institution>/<GCMModelName>/
+            #    <CMIP5ExperimentName>/<CMIP5EnsembleMember>/<RCMModelName>/
+            #    <BiasAdjustment>/<Frequency>/<VariableName>
+            pp = Path(file_format.model_dir)
+            base = os.path.join('day',var,'**',var+'_*day_')
+            search = list(f"{base}{y}*.nc" for y in years)
+            for x in search:
+                self.files = (self.files +
+                        sorted(str(p) for p in pp.rglob(x)))
+            self.model_dir = file_format.model_dir
+            if len(self.files) > 0:
+                from netCDF4 import Dataset
+                ds = Dataset(self.files[0])
+                self.sid = ds.domain_id
+                ds.close( )
+            else:
+                print(var,years)
+                print('NO SID!!!')
+                sys.exit(-1)
         else:
             raise NotImplementedError("Not yet implemented")
 
