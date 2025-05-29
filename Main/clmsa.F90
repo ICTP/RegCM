@@ -145,6 +145,7 @@ program clmsa
     call atmval
     if ( sfbcread == 1 ) then
       call read_clmbc(pptc,solar,flwd,totc)
+      pptc = pptc * 1000.0_rkx * dtsrf/3600.0_rkx ! m/h -> mm in dtsrf
       swdif = solar * 0.75_rkx * totc
       swdir = solar - swdif
       lwdif = flwd * 0.75_rkx * totc
@@ -188,6 +189,7 @@ program clmsa
         if ( sfbcread == 1 ) then
           if ( alarm_hour%act( ) ) then
             call read_clmbc(pptc,solar,flwd,totc)
+            pptc = pptc * 1000.0_rkx * dtsrf/3600.0_rkx ! m/h -> mm in dtsrf
             swdif = solar * 0.75_rkx * totc
             swdir = solar - swdif
             lwdif = flwd * 0.75_rkx * totc
