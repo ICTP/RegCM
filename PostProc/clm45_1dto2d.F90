@@ -578,25 +578,18 @@ program clm45_1dto2d
       call checkncerr(istatus,__FILE__,__LINE__,'Error copy attribute')
       if ( aname == "_FillValue" ) has_fillvalue = .true.
     end do
-    if ( vname == 'topo' .or. vname == 'lon' .or. vname == 'longxy' .or. &
-         vname == 'lat' .or.  vname == 'latixy' .or. vname == 'landfrac' .or. &
-         vname == 'pftmask' .or. vname == 'area' ) then
-      istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', 1.D+20)
+    if ( .not. has_fillvalue ) then
+      select case (vtype(iv))
+        case (nf90_int)
+          istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', -9999)
+        case (nf90_real)
+          istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', -9999.0)
+        case (nf90_double)
+          istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', -9999.0d0)
+        case default
+          istatus = nf90_noerr
+      end select
       call checkncerr(istatus,__FILE__,__LINE__,'Error set attribute')
-    else
-      if ( .not. has_fillvalue ) then
-        select case (vtype(iv))
-          case (nf90_int)
-            istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', -9999)
-          case (nf90_real)
-            istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', -9999.0)
-          case (nf90_double)
-            istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', -9999.0d0)
-          case default
-            istatus = nf90_noerr
-        end select
-        call checkncerr(istatus,__FILE__,__LINE__,'Error set attribute')
-      end if
     end if
   end do
 
