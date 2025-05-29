@@ -39,14 +39,14 @@ module mod_remap
 
   contains
 
-  subroutine remap_int4(nsg,iv,mask,var)
+  subroutine remap_int4(nsg,iv,mask,var,ifill)
     implicit none
-    integer(ik4), intent(in) :: nsg
+    integer(ik4), intent(in) :: nsg, ifill
     integer(ik4), intent(inout), dimension(:) :: iv
     integer(ik4), intent(in), dimension(:,:) :: mask
     integer(ik4), intent(out), dimension(:,:) :: var
     integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj
-    var(:,:) = -9999
+    var(:,:) = ifill
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -80,14 +80,14 @@ module mod_remap
     end if
   end subroutine remap_int4
 
-  subroutine remap_pft_int4(nsg,ipft,iv,ipt,igc,mask,var)
+  subroutine remap_pft_int4(nsg,ipft,iv,ipt,igc,mask,var,ifill)
     implicit none
-    integer(ik4), intent(in) :: nsg, ipft
+    integer(ik4), intent(in) :: nsg, ipft, ifill
     integer(ik4), intent(inout), dimension(:) :: iv, ipt, igc
     integer(ik4), intent(in), dimension(:,:) :: mask
     integer(ik4), intent(out), dimension(:,:) :: var
     integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj, ip
-    var(:,:) = -9999
+    var(:,:) = ifill
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -145,14 +145,15 @@ module mod_remap
     end if
   end subroutine remap_pft_int4
 
-  subroutine remap_real4(nsg,iv,mask,var)
+  subroutine remap_real4(nsg,iv,mask,var,rfill)
     implicit none
     integer(ik4), intent(in) :: nsg
+    real(rk4), intent(in) :: rfill
     real(rk4), intent(inout), dimension(:) :: iv
     integer(ik4), intent(in), dimension(:,:) :: mask
     real(rk4), dimension(:,:), intent(out) :: var
     integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj
-    var(:,:) = -9999.0
+    var(:,:) = rfill
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -186,15 +187,16 @@ module mod_remap
     end if
   end subroutine remap_real4
 
-  subroutine remap_pft_real4(nsg,ipft,iv,ipt,igc,mask,var)
+  subroutine remap_pft_real4(nsg,ipft,iv,ipt,igc,mask,var,rfill)
     implicit none
     integer(ik4), intent(in) :: nsg, ipft
+    real(rk4), intent(in) :: rfill
     real(rk4), intent(inout), dimension(:) :: iv
     integer(ik4), intent(inout), dimension(:) :: ipt, igc
     integer(ik4), intent(in), dimension(:,:) :: mask
     real(rk4), dimension(:,:), intent(out) :: var
     integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj, ip
-    var(:,:) = -9999.0
+    var(:,:) = rfill
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -252,14 +254,15 @@ module mod_remap
     end if
   end subroutine remap_pft_real4
 
-  subroutine remap_real8(nsg,iv,mask,var)
+  subroutine remap_real8(nsg,iv,mask,var,dfill)
     implicit none
     integer(ik4), intent(in) :: nsg
+    real(rk8), intent(in) :: dfill
     real(rk8), intent(inout), dimension(:) :: iv
     integer(ik4), intent(in), dimension(:,:) :: mask
     real(rk8), dimension(:,:), intent(out) :: var
     integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj
-    var(:,:) = -9999.0d0
+    var(:,:) = dfill
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -293,15 +296,16 @@ module mod_remap
     end if
   end subroutine remap_real8
 
-  subroutine remap_pft_real8(nsg,ipft,iv,ipt,igc,mask,var)
+  subroutine remap_pft_real8(nsg,ipft,iv,ipt,igc,mask,var,dfill)
     implicit none
     integer(ik4), intent(in) :: nsg, ipft
+    real(rk8), intent(in) :: dfill
     real(rk8), intent(inout), dimension(:) :: iv
     integer(ik4), intent(inout), dimension(:) :: ipt, igc
     integer(ik4), intent(in), dimension(:,:) :: mask
     real(rk8), dimension(:,:), intent(out) :: var
     integer(ik4) :: ib, n1, n2, i, j, ni, nj, ii, jj, ip
-    var(:,:) = -9999.0d0
+    var(:,:) = dfill
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -396,6 +400,9 @@ program clm45_1dto2d
   logical, allocatable, dimension(:) :: lexpand, lpftexpand
   character(len=32) :: vname, dname
   character(len=64) :: aname
+  real(rk4) :: fillr4
+  real(rk8) :: fillr8
+  integer(ik4) :: filli4
   real(rk8), allocatable, dimension(:) :: double_var_1d
   real(rk4), allocatable, dimension(:) :: single_var_1d
   integer(ik4), allocatable, dimension(:) :: int_var_1d
@@ -622,12 +629,19 @@ program clm45_1dto2d
     if ( lexpand(iv) ) then
       select case (vtype(iv))
         case (nf90_real)
+          istatus = nf90_get_att(ncid,iv,'_FillValue',fillr4)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_get_att(ncid,iv,'missing_value',fillr4)
+            if ( istatus /= nf90_noerr ) then
+              fillr4 = -9999.0
+            end if
+          end if
           select case (vndims(iv))
             case(1)
               allocate(single_var_1d(vshape(iv,1)))
               istatus = nf90_get_var(ncid,iv,single_var_1d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              call remap(nsg,single_var_1d,mask,var2d_single)
+              call remap(nsg,single_var_1d,mask,var2d_single,fillr4)
               istatus = nf90_put_var(ncoutid,iv,var2d_single)
               call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               deallocate(single_var_1d)
@@ -636,7 +650,7 @@ program clm45_1dto2d
               istatus = nf90_get_var(ncid,iv,single_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1, vshape(iv,2)
-                call remap(nsg,single_var_2d(:,n),mask,var2d_single)
+                call remap(nsg,single_var_2d(:,n),mask,var2d_single,fillr4)
                 istatus = nf90_put_var(ncoutid,iv,var2d_single, &
                         start=[1,1,n], count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -648,7 +662,7 @@ program clm45_1dto2d
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1, vshape(iv,3)
                 do m = 1, vshape(iv,2)
-                  call remap(nsg,single_var_3d(:,m,n),mask,var2d_single)
+                  call remap(nsg,single_var_3d(:,m,n),mask,var2d_single,fillr4)
                   istatus = nf90_put_var(ncoutid,iv,var2d_single, &
                           start=[1,1,m,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -657,12 +671,19 @@ program clm45_1dto2d
               deallocate(single_var_3d)
           end select
         case (nf90_double)
+          istatus = nf90_get_att(ncid,iv,'_FillValue',fillr8)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_get_att(ncid,iv,'missing_value',fillr8)
+            if ( istatus /= nf90_noerr ) then
+              fillr8 = -9999.0d0
+            end if
+          end if
           select case (vndims(iv))
             case(1)
               allocate(double_var_1d(vshape(iv,1)))
               istatus = nf90_get_var(ncid,iv,double_var_1d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              call remap(nsg,double_var_1d,mask,var2d_double)
+              call remap(nsg,double_var_1d,mask,var2d_double,fillr8)
               istatus = nf90_put_var(ncoutid,iv,var2d_double)
               call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               deallocate(double_var_1d)
@@ -671,7 +692,7 @@ program clm45_1dto2d
               istatus = nf90_get_var(ncid,iv,double_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1, vshape(iv,2)
-                call remap(nsg,double_var_2d(:,n),mask,var2d_double)
+                call remap(nsg,double_var_2d(:,n),mask,var2d_double,fillr8)
                 istatus = nf90_put_var(ncoutid,iv,var2d_double, &
                         start=[1,1,n], count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -683,7 +704,7 @@ program clm45_1dto2d
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1, vshape(iv,3)
                 do m = 1, vshape(iv,2)
-                  call remap(nsg,double_var_3d(:,m,n),mask,var2d_double)
+                  call remap(nsg,double_var_3d(:,m,n),mask,var2d_double,fillr8)
                   istatus = nf90_put_var(ncoutid,iv,var2d_double, &
                           start=[1,1,m,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -692,12 +713,19 @@ program clm45_1dto2d
               deallocate(double_var_3d)
           end select
         case (nf90_int)
+          istatus = nf90_get_att(ncid,iv,'_FillValue',filli4)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_get_att(ncid,iv,'missing_value',filli4)
+            if ( istatus /= nf90_noerr ) then
+              filli4 = -9999
+            end if
+          end if
           select case (vndims(iv))
             case(1)
               allocate(int_var_1d(vshape(iv,1)))
               istatus = nf90_get_var(ncid,iv,int_var_1d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              call remap(nsg,int_var_1d,mask,var2d_int)
+              call remap(nsg,int_var_1d,mask,var2d_int,filli4)
               istatus = nf90_put_var(ncoutid,iv,var2d_int)
               call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               deallocate(int_var_1d)
@@ -706,7 +734,7 @@ program clm45_1dto2d
               istatus = nf90_get_var(ncid,iv,int_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1, vshape(iv,2)
-                call remap(nsg,int_var_2d(:,n),mask,var2d_int)
+                call remap(nsg,int_var_2d(:,n),mask,var2d_int,filli4)
                 istatus = nf90_put_var(ncoutid,iv,var2d_int, &
                         start=[1,1,n], count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -718,7 +746,7 @@ program clm45_1dto2d
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1, vshape(iv,3)
                 do m = 1, vshape(iv,2)
-                  call remap(nsg,int_var_3d(:,m,n),mask,var2d_int)
+                  call remap(nsg,int_var_3d(:,m,n),mask,var2d_int,filli4)
                   istatus = nf90_put_var(ncoutid,iv,var2d_int, &
                           start=[1,1,m,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -732,6 +760,13 @@ program clm45_1dto2d
     else if ( lpftexpand(iv) ) then
       select case (vtype(iv))
         case (nf90_real)
+          istatus = nf90_get_att(ncid,iv,'_FillValue',fillr4)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_get_att(ncid,iv,'missing_value',fillr4)
+            if ( istatus /= nf90_noerr ) then
+              fillr4 = -9999.0
+            end if
+          end if
           select case (vndims(iv))
             case(1)
               allocate(single_var_1d(vshape(iv,1)))
@@ -739,7 +774,7 @@ program clm45_1dto2d
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do ip = 1, numpft
                 call remap(nsg,ip,single_var_1d,itypveg,ipftgcell, &
-                           mask,var2d_single)
+                           mask,var2d_single,fillr4)
                 istatus = nf90_put_var(ncoutid,iv,var2d_single, &
                                        start=[1,1,ip],count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -752,7 +787,7 @@ program clm45_1dto2d
               do n = 1, vshape(iv,2)
                 do ip = 1, numpft
                   call remap(nsg,ip,single_var_2d(:,n),itypveg,ipftgcell, &
-                             mask,var2d_single)
+                             mask,var2d_single,fillr4)
                   istatus = nf90_put_var(ncoutid,iv,var2d_single, &
                           start=[1,1,ip,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -767,7 +802,7 @@ program clm45_1dto2d
                 do m = 1, vshape(iv,2)
                   do ip = 1, numpft
                     call remap(nsg,ip,single_var_3d(:,m,n),itypveg,ipftgcell, &
-                               mask,var2d_single)
+                               mask,var2d_single,fillr4)
                     istatus = nf90_put_var(ncoutid,iv,var2d_single, &
                             start=[1,1,ip,m,n], count=[jx,iy,1,1,1])
                     call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -777,6 +812,13 @@ program clm45_1dto2d
               deallocate(single_var_3d)
           end select
         case (nf90_double)
+          istatus = nf90_get_att(ncid,iv,'_FillValue',fillr8)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_get_att(ncid,iv,'missing_value',fillr8)
+            if ( istatus /= nf90_noerr ) then
+              fillr8 = -9999.0d0
+            end if
+          end if
           select case (vndims(iv))
             case(1)
               allocate(double_var_1d(vshape(iv,1)))
@@ -784,7 +826,7 @@ program clm45_1dto2d
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do ip = 1, numpft
                 call remap(nsg,ip,double_var_1d,itypveg,ipftgcell, &
-                           mask,var2d_double)
+                           mask,var2d_double,fillr8)
                 istatus = nf90_put_var(ncoutid,iv,var2d_double, &
                                        start=[1,1,ip],count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -797,7 +839,7 @@ program clm45_1dto2d
               do n = 1, vshape(iv,2)
                 do ip = 1, numpft
                   call remap(nsg,ip,double_var_2d(:,n),itypveg,ipftgcell, &
-                             mask,var2d_double)
+                             mask,var2d_double,fillr8)
                   istatus = nf90_put_var(ncoutid,iv,var2d_double, &
                           start=[1,1,ip,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -812,7 +854,7 @@ program clm45_1dto2d
                 do m = 1, vshape(iv,2)
                   do ip = 1, numpft
                     call remap(nsg,ip,double_var_3d(:,m,n),itypveg,ipftgcell, &
-                               mask,var2d_double)
+                               mask,var2d_double,fillr8)
                     istatus = nf90_put_var(ncoutid,iv,var2d_double, &
                             start=[1,1,ip,m,n], count=[jx,iy,1,1,1])
                     call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -822,6 +864,13 @@ program clm45_1dto2d
               deallocate(double_var_3d)
           end select
         case (nf90_int)
+          istatus = nf90_get_att(ncid,iv,'_FillValue',filli4)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_get_att(ncid,iv,'missing_value',filli4)
+            if ( istatus /= nf90_noerr ) then
+              filli4 = -9999
+            end if
+          end if
           select case (vndims(iv))
             case(1)
               allocate(int_var_1d(vshape(iv,1)))
@@ -829,7 +878,7 @@ program clm45_1dto2d
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do ip = 1, numpft
                 call remap(nsg,ip,int_var_1d,itypveg,ipftgcell, &
-                           mask,var2d_int)
+                           mask,var2d_int,filli4)
                 istatus = nf90_put_var(ncoutid,iv,var2d_int, &
                                        start=[1,1,ip],count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -842,7 +891,7 @@ program clm45_1dto2d
               do n = 1, vshape(iv,2)
                 do ip = 1, numpft
                   call remap(nsg,ip,int_var_2d(:,n),itypveg,ipftgcell, &
-                             mask,var2d_int)
+                             mask,var2d_int,filli4)
                   istatus = nf90_put_var(ncoutid,iv,var2d_int, &
                           start=[1,1,ip,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -857,7 +906,7 @@ program clm45_1dto2d
                 do m = 1, vshape(iv,2)
                   do ip = 1, numpft
                     call remap(nsg,ip,int_var_3d(:,m,n),itypveg,ipftgcell, &
-                               mask,var2d_int)
+                               mask,var2d_int,filli4)
                     istatus = nf90_put_var(ncoutid,iv,var2d_int, &
                             start=[1,1,ip,m,n], count=[jx,iy,1,1,1])
                     call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -872,6 +921,13 @@ program clm45_1dto2d
     else
       select case (vtype(iv))
         case (nf90_real)
+          istatus = nf90_get_att(ncid,iv,'_FillValue',fillr4)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_get_att(ncid,iv,'missing_value',fillr4)
+            if ( istatus /= nf90_noerr ) then
+              fillr4 = -9999.0
+            end if
+          end if
           select case (vndims(iv))
             case(1)
               allocate(single_var_1d(vshape(iv,1)))
@@ -896,6 +952,13 @@ program clm45_1dto2d
               deallocate(single_var_3d)
           end select
         case (nf90_double)
+          istatus = nf90_get_att(ncid,iv,'_FillValue',fillr8)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_get_att(ncid,iv,'missing_value',fillr8)
+            if ( istatus /= nf90_noerr ) then
+              fillr8 = -9999.0d0
+            end if
+          end if
           select case (vndims(iv))
             case(1)
               allocate(double_var_1d(vshape(iv,1)))
@@ -920,6 +983,13 @@ program clm45_1dto2d
               deallocate(double_var_3d)
           end select
         case (nf90_int)
+          istatus = nf90_get_att(ncid,iv,'_FillValue',filli4)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_get_att(ncid,iv,'missing_value',filli4)
+            if ( istatus /= nf90_noerr ) then
+              fillr8 = -9999
+            end if
+          end if
           select case (vndims(iv))
             case(1)
               allocate(int_var_1d(vshape(iv,1)))
