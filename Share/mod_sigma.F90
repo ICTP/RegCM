@@ -83,7 +83,8 @@ module mod_sigma
         lpress = .not. lzeta
       end if
       lcompute = .not. lpress .or. ( lpress .and. &
-              .not. (nk == 14 .or. nk == 18 .or. nk == 23 .or. nk == 41) )
+              .not. (nk == 2 .or. nk == 14 .or. nk == 18 .or. &
+                     nk == 23 .or. nk == 41) )
       call getmem1d(sigma_coordinate,1,nk+1, &
         'init_sigma:sigma_coordinate')
       call getmem1d(sigma_delta,1,nk, &
@@ -95,7 +96,11 @@ module mod_sigma
       !
       if ( .not. lcompute ) then
         write (stdout,*) 'Using pre-defined set of sigma levels.'
-        if ( nk == 14 ) then      ! RegCM2
+        if ( nk == 2 ) then            ! For lower only for clmsa
+          sigma_coordinate(1) = 0.0_rkx
+          sigma_coordinate(2) = 0.99_rkx
+          sigma_coordinate(3) = 1.0_rkx
+        else if ( nk == 14 ) then      ! RegCM2
           sigma_coordinate(1) = 0.0_rkx
           sigma_coordinate(2) = 0.04_rkx
           sigma_coordinate(3) = 0.10_rkx
