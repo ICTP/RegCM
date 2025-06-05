@@ -2108,117 +2108,133 @@ module mod_rad_aerosol
           wavncl(2)  = wavn(6)
           wavncl(3)  = wavn(10)
           wavncl(4)  = wavn(13)
+#ifdef STDPAR_FIXED
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kth ) local(src,dest)
+#else
+          !$acc parallel loop collapse(3) gang vector private(src,dest)
           do k = 1, kth
-            do i = ici1, ici2
-              do j = jci1, jci2
-                n = (j-jci1)+(i-ici1)*nj+1
-                ! Spectral interpolation for all RRTM band
-                ! Special band 14 is left aside. Use constant extrapolation
-                ! between clim data wn points ( check interp1d code in Share)
-                ! to avoid negative values at wn = 1
-                do ns = 1, 4
-                  src(ns) = extprof(j,i,k,ns)
-                end do
-                call interp1d(wavncl,src,wavn,dest,1._rkx,1._rkx,0._rkx)
-                do ns = 1, 13
-                  tauxar3d(n,k,ns) = min(max(dest(ns),0._rkx),1.0_rkx)
-                end do
-                do ns = 1, 4
-                  src(ns) = ssaprof(j,i,k,ns)
-                end do
-                call interp1d(wavncl,src,wavn,dest,1._rkx,1._rkx,0._rkx)
-                do ns = 1, 13
-                  tauasc3d(n,k,ns) = min(max(dest(ns),0._rkx),0.999_rkx)
-                end do
-                do ns = 1, 4
-                  src(ns) = asyprof(j,i,k,ns)
-                end do
-                call interp1d(wavncl,src,wavn,dest,1._rkx,1._rkx,0._rkx)
-                do ns = 1, 13
-                  gtota3d(n,k,ns) = min(max(dest(ns),0._rkx),1.0_rkx)
-                end do
-                ! The LW prop assumed to be spectrally constant for now
-                ! MIGHT CHANGE IN FUTURE
-                do ns = 1, nbndlw
-                  tauxar3d_lw(n,k,ns) = extprof(j,i,k,5)
-                end do
-              end do
+          do i = ici1, ici2
+          do j = jci1, jci2
+#endif
+            n = (j-jci1)+(i-ici1)*nj+1
+            ! Spectral interpolation for all RRTM band
+            ! Special band 14 is left aside. Use constant extrapolation
+            ! between clim data wn points ( check interp1d code in Share)
+            ! to avoid negative values at wn = 1
+            do ns = 1, 4
+              src(ns) = extprof(j,i,k,ns)
             end do
+            call interp1d(wavncl,src,wavn,dest,1._rkx,1._rkx,0._rkx)
+            do ns = 1, 13
+              tauxar3d(n,k,ns) = min(max(dest(ns),0._rkx),1.0_rkx)
+            end do
+            do ns = 1, 4
+              src(ns) = ssaprof(j,i,k,ns)
+            end do
+            call interp1d(wavncl,src,wavn,dest,1._rkx,1._rkx,0._rkx)
+            do ns = 1, 13
+              tauasc3d(n,k,ns) = min(max(dest(ns),0._rkx),0.999_rkx)
+            end do
+            do ns = 1, 4
+              src(ns) = asyprof(j,i,k,ns)
+            end do
+            call interp1d(wavncl,src,wavn,dest,1._rkx,1._rkx,0._rkx)
+            do ns = 1, 13
+              gtota3d(n,k,ns) = min(max(dest(ns),0._rkx),1.0_rkx)
+            end do
+            ! The LW prop assumed to be spectrally constant for now
+            ! MIGHT CHANGE IN FUTURE
+            do ns = 1, nbndlw
+              tauxar3d_lw(n,k,ns) = extprof(j,i,k,5)
+            end do
+#ifndef STDPAR_FIXED
+          end do
+          end do
+#endif
           end do
         else
+          !$acc kernels
           aertrlw(:,:,:) = d_one
+          !$acc end kernels
           visband = 8
           ns = visband
           ! adapt the clim vert grid (1 to kth) to the standard
           ! rad grid ( 0 to kz) first Treat the top radiative layer
           ! tauxar3d(0,n,ns)
           if ( kth > kz ) then
+#ifdef STDPAR_FIXED
+            !$acc parallel loop collapse(2) gang vector
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+            !$acc parallel loop collapse(2) gang vector
             do i = ici1, ici2
-              do j = jci1, jci2
-                !
-                ! index 3 correponds to clim vis band
-                ! MIGHT CHANGE IN FUTURE
-                !
-                n = (j-jci1)+(i-ici1)*nj+1
-                tauxar3d(0,n,ns) = max(sum(extprof(j,i,1:kth-kz,3)),0.0_rkx)
-                tauasc3d(0,n,ns) = tauxar3d(0,n,ns) * &
-                  max(sum(ssaprof(j,i,1:kth-kz,3))/real(kth-kz,rkx),0.0_rkx)
-                gtota3d(0,n,ns) = max(sum(asyprof(j,i,1:kth-kz,3)) / &
-                         real(kth-kz,rkx),0.0_rkx)
-              end do
+            do j = jci1, jci2
+#endif
+              !
+              ! index 3 correponds to clim vis band
+              ! MIGHT CHANGE IN FUTURE
+              !
+              n = (j-jci1)+(i-ici1)*nj+1
+              tauxar3d(0,n,ns) = max(sum(extprof(j,i,1:kth-kz,3)),0.0_rkx)
+              tauasc3d(0,n,ns) = tauxar3d(0,n,ns) * &
+                max(sum(ssaprof(j,i,1:kth-kz,3))/real(kth-kz,rkx),0.0_rkx)
+              gtota3d(0,n,ns) = max(sum(asyprof(j,i,1:kth-kz,3)) / &
+                       real(kth-kz,rkx),0.0_rkx)
+#ifndef STDPAR_FIXED
+            end do
+#endif
             end do
           end if
+#ifdef STDPAR_FIXED
+          do concurrent( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
+#else
+          !$acc parallel loop collapse(3)
           do i = ici1, ici2
-            do j = jci1, jci2
-               do k = 1, kz
-                ! already scaled for layer height
-                ! grid is top down
-                ! FAB : index 2 is the vis band in MERRA aerclim
-                ! MIGHT CHANGE
-                n = (j-jci1)+(i-ici1)*nj+1
-                tauxar3d(k,n,ns) = max(extprof(j,i,kth-kz+k,3),0.0_rkx)
-                tauasc3d(k,n,ns) = max(ssaprof(j,i,kth-kz+k,3),0.0_rkx)
-                gtota3d(k,n,ns) = max(asyprof(j,i,kth-kz+k,3),0.0_rkx)
-              end do
-            end do
+          do j = jci1, jci2
+          do k = 1, kz
+#endif
+            ! already scaled for layer height
+            ! grid is top down
+            ! FAB : index 2 is the vis band in MERRA aerclim
+            ! MIGHT CHANGE
+            n = (j-jci1)+(i-ici1)*nj+1
+            tauxar3d(k,n,ns) = max(extprof(j,i,kth-kz+k,3),0.0_rkx)
+            tauasc3d(k,n,ns) = max(ssaprof(j,i,kth-kz+k,3),0.0_rkx)
+            gtota3d(k,n,ns) = max(asyprof(j,i,kth-kz+k,3),0.0_rkx)
+#ifndef STDPAR_FIXED
           end do
-          do n = 1, npoints
-            do k = 1, kz
-              ! here the standard scheme expect layer scaled quantity
-              tauasc3d(k,n,ns) = tauasc3d(k,n,ns) * tauxar3d(k,n,ns)
-              ftota3d(k,n,ns) = gtota3d(k,n,ns)**2 * tauasc3d(k,n,ns)
-              gtota3d(k,n,ns) = gtota3d(k,n,ns) * tauasc3d(k,n,ns)
-            end do
+          end do
+#endif
+          end do
+          do concurrent ( k = 1:kz, n = 1:npoints )
+            ! here the standard scheme expect layer scaled quantity
+            tauasc3d(k,n,ns) = tauasc3d(k,n,ns) * tauxar3d(k,n,ns)
+            ftota3d(k,n,ns) = gtota3d(k,n,ns)**2 * tauasc3d(k,n,ns)
+            gtota3d(k,n,ns) = gtota3d(k,n,ns) * tauasc3d(k,n,ns)
           end do
         end if
         return  ! important
       else if ( iclimaaer == 3 ) then
         ! Limit only to SW (?)
         if ( irrtm == 1 ) then
-          do ns = 1, nband
-            do k = 1, kth
-              do i = 1, npoints
-                tauxar3d(i,k,ns) = extprofr4(i,k,ns)
-                tauasc3d(i,k,ns) = ssaprofr4(i,k,ns)
-                gtota3d(i,k,ns)  = asyprofr4(i,k,ns)
-              end do
-            end do
+          do concurrent ( i = 1:npoints, k = 1:kth, ns = 1:nband )
+            tauxar3d(i,k,ns) = extprofr4(i,k,ns)
+            tauasc3d(i,k,ns) = ssaprofr4(i,k,ns)
+            gtota3d(i,k,ns)  = asyprofr4(i,k,ns)
           end do
         else
+          !$acc kernels
           aertrlw(:,:,:) = d_one
-          do ns = 1, nband
-            do k = 1, kth
-              do i = 1, npoints
-                ! already scaled for layer height
-                tauxar3d(k,i,ns) = extprofr4(i,k,ns)
-                ! here the standard scheme expect layer scaled quantity
-                tauasc3d(k,i,ns) = ssaprofr4(i,k,ns) * extprofr4(i,k,ns)
-                gtota3d(k,i,ns)  = asyprofr4(i,k,ns) * &
-                       ssaprofr4(i,k,ns) * extprofr4(i,k,ns)
-                ftota3d(k,i,ns)  = asyprofr4(i,k,ns)**2 * &
-                       ssaprofr4(i,k,ns) * extprofr4(i,k,ns)
-              end do
-            end do
+          !$acc end kernels
+          do concurrent ( i = 1:npoints, k = 1:kth, ns = 1:nband )
+            ! already scaled for layer height
+            tauxar3d(k,i,ns) = extprofr4(i,k,ns)
+            ! here the standard scheme expect layer scaled quantity
+            tauasc3d(k,i,ns) = ssaprofr4(i,k,ns) * extprofr4(i,k,ns)
+            gtota3d(k,i,ns)  = asyprofr4(i,k,ns) * &
+                   ssaprofr4(i,k,ns) * extprofr4(i,k,ns)
+            ftota3d(k,i,ns)  = asyprofr4(i,k,ns)**2 * &
+                   ssaprofr4(i,k,ns) * extprofr4(i,k,ns)
           end do
         end if
         return  ! important
@@ -2229,17 +2245,21 @@ module mod_rad_aerosol
 
       if ( ichem /= 1 .and. iclimaaer /= 1 ) then
         if ( irrtm == 1 ) then
+          !$acc kernels
           tauxar3d(:,:,:) = d_zero
           tauasc3d(:,:,:) = d_zero
           gtota3d(:,:,:)  = d_zero
           ftota3d(:,:,:)  = d_zero
           tauxar3d_lw(:,:,:) = d_zero
+          !$acc end kernels
         else
+          !$acc kernels
           tauxar3d(:,:,:) = d_zero
           tauasc3d(:,:,:) = d_zero
           gtota3d(:,:,:)  = d_zero
           ftota3d(:,:,:)  = d_zero
           aertrlw (:,:,:) = d_one
+          !$acc end kernels
         end if
         return
       end if
@@ -2247,10 +2267,12 @@ module mod_rad_aerosol
       !Calculate aerosol properties passed to radiation from concentrations
       !(interactive or prescribed from climatology)
       !
+      !$acc kernels
       tx = d_zero
       wa = d_zero
       ga = d_zero
       fa = d_zero
+      !$acc end kernels
       !
       !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       !
@@ -2273,7 +2295,7 @@ module mod_rad_aerosol
       !
       !   Spectral loop
       !
-
+        !$acc kernels
         uaer(:,:,:) = d_zero
         tx(:,:,:) = d_zero
         wa(:,:,:) = d_zero
@@ -2284,6 +2306,7 @@ module mod_rad_aerosol
         waer(:,:) = d_zero
         gaer(:,:) = d_zero
         faer(:,:) = d_zero
+        !$acc end kernels
         !
         !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         !
@@ -2300,129 +2323,111 @@ module mod_rad_aerosol
           end if
           if ( chtrname(itr)(1:4) == 'DUST') then
             ibin = ibin + 1
-            do k = 1, kz
-              do n = n1, n2
-                uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
-                tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksdust(ns,ibin)
-                wa(n,k,itr) = wsdust(ns,ibin)
-                ga(n,k,itr) = gsdust(ns,ibin)
-                fa(n,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
-              end do
+            do concurrent ( n = n1:n2, k = 1:kz )
+              uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksdust(ns,ibin)
+              wa(n,k,itr) = wsdust(ns,ibin)
+              ga(n,k,itr) = gsdust(ns,ibin)
+              fa(n,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
             end do
           else if ( chtrname(itr)(1:3) == 'SO4' .or.  &
                     chtrname(itr)(1:5) == 'H2SO4'.or. &
                     chtrname(itr)(1:4) == 'ANO3' .or. &
                     chtrname(itr)(1:4) == 'ANH4' ) then
-            do k = 1, kz
-              do n = n1, n2
-                rh0 = min(0.97_rkx,max(0.0_rkx,rh(n,k)))
-                ! maximum limit for effect on sulfate extinction
-                uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
-                tx(n,k,itr) = d10e5*uaer(n,k,itr) *    &
-                  ksbase(ns)*exp(kscoef(ns,1) +        &
-                     kscoef(ns,2)/(rh0+kscoef(ns,3)) + &
-                     kscoef(ns,4)/(rh0+kscoef(ns,5)))
-                wa(n,k,itr) = d_one - wsbase(ns) * exp(wscoef(ns,1) + &
-                  wscoef(ns,2) / (rh0+wscoef(ns,3)) +             &
-                  wscoef(ns,4) / (rh0+wscoef(ns,5)))
-                ga(n,k,itr) = gsbase(ns) * exp(gscoef(ns,1) + &
-                  gscoef(ns,2) / (rh0+gscoef(ns,3)) +     &
-                  gscoef(ns,4) / (rh0+gscoef(ns,5)))
-                fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
-              end do
+            do concurrent ( n = n1:n2, k = 1:kz )
+              rh0 = min(0.97_rkx,max(0.0_rkx,rh(n,k)))
+              ! maximum limit for effect on sulfate extinction
+              uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+              tx(n,k,itr) = d10e5*uaer(n,k,itr) *    &
+                ksbase(ns)*exp(kscoef(ns,1) +        &
+                   kscoef(ns,2)/(rh0+kscoef(ns,3)) + &
+                   kscoef(ns,4)/(rh0+kscoef(ns,5)))
+              wa(n,k,itr) = d_one - wsbase(ns) * exp(wscoef(ns,1) + &
+                wscoef(ns,2) / (rh0+wscoef(ns,3)) +             &
+                wscoef(ns,4) / (rh0+wscoef(ns,5)))
+              ga(n,k,itr) = gsbase(ns) * exp(gscoef(ns,1) + &
+                gscoef(ns,2) / (rh0+gscoef(ns,3)) +     &
+                gscoef(ns,4) / (rh0+gscoef(ns,5)))
+              fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
             end do
           else if ( chtrname(itr)(1:4) == 'SSLT' ) then
             jbin = jbin+1
-            do k = 1, kz
-              do n = n1, n2
-                rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
-                do l = 1, 7
-                  if ( rh0 > rhp(l) .and. rh0 <= rhp(l+1) ) then
-                    ! FAB : test according to li et al., ksslt cannot exceed 1.3
-                    ! quick fix for now, update parameterisation to LI et al,
-                    ! ACP 2008 in a near future
-                    kssslt(ns,jbin) = min(ksslt(ns,jbin,l),1.2_rkx)
-                    gssslt(ns,jbin) = gsslt(ns,jbin,l)
-                    wssslt(ns,jbin) = wsslt(ns,jbin,l)
-                  end if
-                end do
-                uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
-                tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssslt(ns,jbin)
-                wa(n,k,itr) = wssslt(ns,jbin)
-                ga(n,k,itr) = gssslt(ns,jbin)
-                fa(n,k,itr) = gssslt(ns,jbin)*gssslt(ns,jbin)
+            do concurrent ( n = n1:n2, k = 1:kz )
+              rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
+              do l = 1, 7
+                if ( rh0 > rhp(l) .and. rh0 <= rhp(l+1) ) then
+                  ! FAB : test according to li et al., ksslt cannot exceed 1.3
+                  ! quick fix for now, update parameterisation to LI et al,
+                  ! ACP 2008 in a near future
+                  kssslt(ns,jbin) = min(ksslt(ns,jbin,l),1.2_rkx)
+                  gssslt(ns,jbin) = gsslt(ns,jbin,l)
+                  wssslt(ns,jbin) = wsslt(ns,jbin,l)
+                end if
               end do
+              uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssslt(ns,jbin)
+              wa(n,k,itr) = wssslt(ns,jbin)
+              ga(n,k,itr) = gssslt(ns,jbin)
+              fa(n,k,itr) = gssslt(ns,jbin)*gssslt(ns,jbin)
             end do
           else if ( chtrname(itr)(1:5) == 'OC_HL' ) then
-            do k = 1, kz
-              do n = n1, n2
-                uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
-                rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
-                ! Humidity effect !
-                tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksoc_hl(ns) * &
-                              (d_one-rh0)**(-0.25_rkx)
-                wa(n,k,itr) = wsoc_hl(ns)
-                ga(n,k,itr) = gsoc_hl(ns)
-                fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
-              end do
+            do concurrent ( n = n1:n2, k = 1:kz )
+              uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+              rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
+              ! Humidity effect !
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksoc_hl(ns) * &
+                            (d_one-rh0)**(-0.25_rkx)
+              wa(n,k,itr) = wsoc_hl(ns)
+              ga(n,k,itr) = gsoc_hl(ns)
+              fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
             end do
           else if ( chtrname(itr)(1:5) == 'BC_HL' ) then
-            do k = 1, kz
-              do n = n1, n2
-                uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
-                rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
-                ! Humidity effect !
-                tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbc_hl(ns) * &
-                              (d_one-rh0)**(-0.20_rkx)
-                wa(n,k,itr) = wsbc_hl(ns)
-                ga(n,k,itr) = gsbc_hl(ns)
-                fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
-              end do
+            do concurrent ( n = n1:n2, k = 1:kz )
+              uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+              rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
+              ! Humidity effect !
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbc_hl(ns) * &
+                            (d_one-rh0)**(-0.20_rkx)
+              wa(n,k,itr) = wsbc_hl(ns)
+              ga(n,k,itr) = gsbc_hl(ns)
+              fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
             end do
           else if ( chtrname(itr)(1:5) == 'OC_HB' ) then
-            do k = 1, kz
-              do n = n1, n2
-                uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
-                tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksoc_hb(ns)
-                wa(n,k,itr) = wsoc_hb(ns)
-                ga(n,k,itr) = gsoc_hb(ns)
-                fa(n,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
-              end do
+            do concurrent ( n = n1:n2, k = 1:kz )
+              uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksoc_hb(ns)
+              wa(n,k,itr) = wsoc_hb(ns)
+              ga(n,k,itr) = gsoc_hb(ns)
+              fa(n,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
             end do
           else if ( chtrname(itr)(1:5) == 'BC_HB' ) then
-            do k = 1, kz
-              do n = n1, n2
-                uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
-                ! Absorbing aerosols (soot type)
-                tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbc_hb(ns)
-                wa(n,k,itr) = wsbc_hb(ns)
-                ga(n,k,itr) = gsbc_hb(ns)
-                fa(n,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
-              end do
+            do concurrent ( n = n1:n2, k = 1:kz )
+              uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+              ! Absorbing aerosols (soot type)
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbc_hb(ns)
+              wa(n,k,itr) = wsbc_hb(ns)
+              ga(n,k,itr) = gsbc_hb(ns)
+              fa(n,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
             end do
           else if ( chtrname(itr)(1:3) == 'SM1' ) then
-            do k = 1, kz
-              do n = n1, n2
-                uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
-                rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
-                tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssm1(ns) * &
-                              (d_one-rh0)**(-0.15_rkx)
-                wa(n,k,itr) = wssm1(ns)
-                ga(n,k,itr) = gssm1(ns)
-                fa(n,k,itr) = gssm1(ns)*gssm1(ns)
-              end do
+            do concurrent ( n = n1:n2, k = 1:kz )
+              uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+              rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssm1(ns) * &
+                            (d_one-rh0)**(-0.15_rkx)
+              wa(n,k,itr) = wssm1(ns)
+              ga(n,k,itr) = gssm1(ns)
+              fa(n,k,itr) = gssm1(ns)*gssm1(ns)
             end do
           else if ( chtrname(itr)(1:3) == 'SM2' ) then
-            do k = 1, kz
-              do n = n1, n2
-                uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
-                rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
-                tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssm2(ns) * &
-                              (d_one-rh0)**(-0.25_rkx)
-                wa(n,k,itr) = wssm2(ns)
-                ga(n,k,itr) = gssm2(ns)
-                fa(n,k,itr) = gssm2(ns)*gssm2(ns)
-              end do
+            do concurrent ( n = n1:n2, k = 1:kz )
+              uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+              rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssm2(ns) * &
+                            (d_one-rh0)**(-0.25_rkx)
+              wa(n,k,itr) = wssm2(ns)
+              ga(n,k,itr) = gssm2(ns)
+              fa(n,k,itr) = gssm2(ns)*gssm2(ns)
             end do
           end if
         end do ! end tracer loop
@@ -2431,24 +2436,31 @@ module mod_rad_aerosol
         !             passed to radiation scheme
         !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
         ! optical properties for the clear sky diagnostic standard scheme
+#ifdef STDPAR_FIXED
+        !$acc parallel loop collapse(2) gang vector
+        do concurrent ( n = n1:n2, itr = 1:ntr )
+#else
+        !$acc parallel loop collapse(2) gang vector
         do itr = 1, ntr
+        do n = n1, n2
+#endif
+          !$acc loop seq
           do k = 1, kz
-            do n = n1, n2
-              utaer(n,itr) = utaer(n,itr) + uaer(n,k,itr)
-              tauaer(n,itr) = tauaer(n,itr) + tx(n,k,itr)
-              waer(n,itr) = waer(n,itr) + wa(n,k,itr)*uaer(n,k,itr)
-              gaer(n,itr) = gaer(n,itr) + ga(n,k,itr)*uaer(n,k,itr)
-              faer(n,itr) = faer(n,itr) + fa(n,k,itr)*uaer(n,k,itr)
-            end do
+            utaer(n,itr) = utaer(n,itr) + uaer(n,k,itr)
+            tauaer(n,itr) = tauaer(n,itr) + tx(n,k,itr)
+            waer(n,itr) = waer(n,itr) + wa(n,k,itr)*uaer(n,k,itr)
+            gaer(n,itr) = gaer(n,itr) + ga(n,k,itr)*uaer(n,k,itr)
+            faer(n,itr) = faer(n,itr) + fa(n,k,itr)*uaer(n,k,itr)
           end do
+#ifndef STDPAR_FIXED
         end do
-        do itr = 1, ntr
-          do n = n1, n2
-            if ( utaer(n,itr) <= minimum_utaer ) utaer(n,itr) = minimum_utaer
-            waer(n,itr) = waer(n,itr)/utaer(n,itr)
-            gaer(n,itr) = gaer(n,itr)/utaer(n,itr)
-            faer(n,itr) = faer(n,itr)/utaer(n,itr)
-          end do
+#endif
+        end do
+        do concurrent ( n = n1:n2, itr = 1:ntr )
+          if ( utaer(n,itr) <= minimum_utaer ) utaer(n,itr) = minimum_utaer
+          waer(n,itr) = waer(n,itr)/utaer(n,itr)
+          gaer(n,itr) = gaer(n,itr)/utaer(n,itr)
+          faer(n,itr) = faer(n,itr)/utaer(n,itr)
         end do
         !
         ! Calculate the EXTERNAL Mixing of aerosols
@@ -2457,71 +2469,91 @@ module mod_rad_aerosol
         ! only for climatic feedback allowed
         !
         if ( irrtm == 0 ) then
+          !$acc kernels
           tauxar3d(:,:,ns) = d_zero
           tauasc3d(:,:,ns) = d_zero
           gtota3d(:,:,ns) = d_zero
           ftota3d(:,:,ns) = d_zero
-          do itr = 1, ntr
-            do n = n1, n2
-              do k = 0, kz
-                tauxar3d(k,n,ns) = tauxar3d(k,n,ns) + tx(n,k,itr)
-                tauasc3d(k,n,ns) = tauasc3d(k,n,ns) + tx(n,k,itr)*wa(n,k,itr)
-                gtota3d(k,n,ns) = gtota3d(k,n,ns) + ga(n,k,itr) * &
-                                  tx(n,k,itr)*wa(n,k,itr)
-                ftota3d(k,n,ns) = ftota3d(k,n,ns) + fa(n,k,itr) * &
-                                  tx(n,k,itr)*wa(n,k,itr)
-              end do
-            end do
-          end do
+          !$acc end kernels
+#ifdef STDPAR_FIXED
+         !$acc parallel loop collapse(2) gang vector
+         do concurrent ( k = 0:kz, n = n1:n2 )
+#else
+          !$acc parallel loop collapse(2) gang vector
+          do n = n1, n2
           do k = 0, kz
-            do n = n1, n2
-              !consider a minimal extinction and reflectivity background
-              if ( tauxar3d(k,n,ns) < 1.E-10_rkx ) then
-                tauxar3d(k,n,ns) = 1.E-10_rkx
-                tauasc3d(k,n,ns) = 0.999999_rkx * tauxar3d(k,n,ns)
-                gtota3d(k,n,ns) = 0.5_rkx * tauasc3d(k,n,ns)
-                ftota3d(k,n,ns) = 0.5_rkx * gtota3d(k,n,ns)
-              end if
+#endif
+            !$acc loop seq
+            do itr = 1, ntr
+              tauxar3d(k,n,ns) = tauxar3d(k,n,ns) + tx(n,k,itr)
+              tauasc3d(k,n,ns) = tauasc3d(k,n,ns) + tx(n,k,itr)*wa(n,k,itr)
+              gtota3d(k,n,ns) = gtota3d(k,n,ns) + ga(n,k,itr) * &
+                                tx(n,k,itr)*wa(n,k,itr)
+              ftota3d(k,n,ns) = ftota3d(k,n,ns) + fa(n,k,itr) * &
+                                tx(n,k,itr)*wa(n,k,itr)
             end do
+#ifndef STDPAR_FIXED
+          end do
+#endif
+          end do
+          do concurrent ( k = 0:kz, n = n1:n2 )
+            !consider a minimal extinction and reflectivity background
+            if ( tauxar3d(k,n,ns) < 1.E-10_rkx ) then
+              tauxar3d(k,n,ns) = 1.E-10_rkx
+              tauasc3d(k,n,ns) = 0.999999_rkx * tauxar3d(k,n,ns)
+              gtota3d(k,n,ns) = 0.5_rkx * tauasc3d(k,n,ns)
+              ftota3d(k,n,ns) = 0.5_rkx * gtota3d(k,n,ns)
+            end if
           end do
         else
           !
           ! in the case RRTM expect the layer extinction, and effective
           ! SSA and asym relative to the mixture
           !
+          !$acc kernels
           tauxar3d(:,:,ns) = d_zero
           tauasc3d(:,:,ns) = d_zero
           gtota3d(:,:,ns) = d_zero
           ftota3d(:,:,ns) = d_zero
-          do itr = 1, ntr
-            do k = 1, kz
-              do n = n1, n2
-                kk = kth -kz + k
-                tauxar3d(n,kk,ns) = tauxar3d(n,kk,ns) + tx(n,k,itr)
-                tauasc3d(n,kk,ns) = tauasc3d(n,kk,ns) + tx(n,k,itr)*wa(n,k,itr)
-                gtota3d(n,kk,ns) = gtota3d(n,kk,ns) + ga(n,k,itr) * &
-                                  tx(n,k,itr)*wa(n,k,itr)
-              end do
+          !$acc end kernels
+#ifdef STDPAR_FIXED
+          !$acc parallel loop collapse(2) gang vector
+          do concurrent ( n = n1:n2, k = 1:kz )
+#else
+          !$acc parallel loop collapse(2) gang vector
+          do k = 1, kz
+          do n = n1, n2
+#endif
+            !$acc loop seq
+            do itr = 1, ntr
+              kk = kth -kz + k
+              tauxar3d(n,kk,ns) = tauxar3d(n,kk,ns) + tx(n,k,itr)
+              tauasc3d(n,kk,ns) = tauasc3d(n,kk,ns) + tx(n,k,itr)*wa(n,k,itr)
+              gtota3d(n,kk,ns) = gtota3d(n,kk,ns) + ga(n,k,itr) * &
+                                tx(n,k,itr)*wa(n,k,itr)
             end do
+#ifndef STDPAR_FIXED
           end do
-          do k = kth -kz+1, kth
-            do n = n1, n2
-              !consider a minimal extinction background
-              if ( tauxar3d(n,k,ns) > 1.E-10_rkx ) then
-                tauasc3d(n,k,ns) = tauasc3d(n,k,ns) / tauxar3d(n,k,ns)
-                gtota3d(n,k,ns) = gtota3d(n,k,ns) / &
-                  (tauasc3d(n,k,ns)*tauxar3d(n,k,ns))
-              else
-                tauxar3d(n,k,ns) = 1.E-10_rkx
-                tauasc3d(n,k,ns) = 0.999999_rkx
-                gtota3d(n,k,ns) = 0.5_rkx
-              end if
-            end do
+#endif
+          end do
+          do concurrent ( n = n1:n2, k = kth-kz+1:kth )
+            !consider a minimal extinction background
+            if ( tauxar3d(n,k,ns) > 1.E-10_rkx ) then
+              tauasc3d(n,k,ns) = tauasc3d(n,k,ns) / tauxar3d(n,k,ns)
+              gtota3d(n,k,ns) = gtota3d(n,k,ns) / &
+                (tauasc3d(n,k,ns)*tauxar3d(n,k,ns))
+            else
+              tauxar3d(n,k,ns) = 1.E-10_rkx
+              tauasc3d(n,k,ns) = 0.999999_rkx
+              gtota3d(n,k,ns) = 0.5_rkx
+            end if
           end do
           ! radiative hat
+          !$acc kernels
           tauxar3d(n1:n2,0:kth -kz,ns) = 1.E-10_rkx
           tauasc3d(n1:n2,0:kth -kz,ns) = 0.999999_rkx
           gtota3d(n1:n2 ,0:kth -kz,ns) = 0.5_rkx
+          !$acc end kernels
         end if
       !
       !   End spectral loop
@@ -2537,44 +2569,54 @@ module mod_rad_aerosol
         ! qabslw = absorption coeff between k1 and  k2 (m2.g-1) in the LW :
         qabslw = d_r10
         ! initialisation à 1 = perfect transmittivity
+        !$acc kernels
         aertrlw (:,:,:) = d_one
+        !$acc end kernels
         !
         do itr = 1, ntr
           if ( chtrname(itr)(1:4) == 'DUST' ) then
+#ifdef STDPAR_FIXED
+            !$acc parallel loop collapse(3) gang vector
+            do concurrent ( k2 = 1:kzp1, k1 = 1:kzp1, n = n1:n2 )
+#else
+            !$acc parallel loop collapse(3) gang vector
             do n = n1, n2
-              do k1 = 1, kzp1
-                do k2 = 1, kzp1
-                  if ( k1 == k2 ) aertrlw(k1,k2,n) = d_one
-                  ! aerosol path btw k1 and k2 flux level
-                  uaerdust = d_zero
-                  if ( k1<k2 ) then
-                    uaerdust =  uaerdust + d10e5 * sum(uaer(n,k1:k2-1,itr))
-                    aertrlw(k1,k2,n) = exp(-fiveothree * qabslw * uaerdust)
-                  else if ( k1>k2 ) then
-                    uaerdust =  uaerdust + d10e5 * sum(uaer(n,k2:k1-1,itr))
-                    aertrlw(k1,k2,n) = exp(-fiveothree * qabslw * uaerdust)
-                  end if
-                end do
-              end do
+            do k1 = 1, kzp1
+            do k2 = 1, kzp1
+#endif
+              if ( k1 == k2 ) aertrlw(k1,k2,n) = d_one
+              ! aerosol path btw k1 and k2 flux level
+              uaerdust = d_zero
+              if ( k1<k2 ) then
+                uaerdust =  uaerdust + d10e5 * sum(uaer(n,k1:k2-1,itr))
+                aertrlw(k1,k2,n) = exp(-fiveothree * qabslw * uaerdust)
+              else if ( k1>k2 ) then
+                uaerdust =  uaerdust + d10e5 * sum(uaer(n,k2:k1-1,itr))
+                aertrlw(k1,k2,n) = exp(-fiveothree * qabslw * uaerdust)
+              end if
+#ifndef STDPAR_FIXED
+            end do
+            end do
+#endif
             end do
           end if
         end do
       else
         ! in this case use directly the LW extinction.
         do ns = 1, nbndlw
+          !$acc kernels
           tauxar3d_lw(:,:,ns) = 1.0E-10_rkx
+          !$acc end kernels
           ibin = 0
           do itr = 1, ntr
             if ( chtrname(itr)(1:4) == 'DUST') then
               ibin = ibin + 1
-              do k = 1, kz
-                do n = n1, n2
-                  kk = kth - kz +k
-                  uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
-                  tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksdust_lw(ns,ibin)
-                  ! add the extinction for every bins
-                  tauxar3d_lw(n,kk,ns) = tauxar3d_lw(n,kk,ns) + tx(n,k,itr)
-                end do
+              do concurrent ( n = n1:n2, k = 1:kz )
+                kk = kth - kz +k
+                uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+                tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksdust_lw(ns,ibin)
+                ! add the extinction for every bins
+                tauxar3d_lw(n,kk,ns) = tauxar3d_lw(n,kk,ns) + tx(n,k,itr)
               end do
             end if
           end do

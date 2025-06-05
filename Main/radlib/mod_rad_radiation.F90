@@ -1245,6 +1245,7 @@ module mod_rad_radiation
     !
     ! Cannot be done in parallel because it requires I/O from file
     !
+    !$acc update host(co2vmr,co2mmr,ch4mmr,n2ommr,cfc11mmr,cfc12mmr,lat)
     do n = n1, n2
       co2vmr(n) = ghgval(igh_co2,iyear,imonth,lat(n))
       co2mmr(n) = co2vmr(n)*(amco2/amd)
@@ -1253,6 +1254,7 @@ module mod_rad_radiation
       cfc11mmr(n) = ghgval(igh_cfc11,iyear,imonth,lat(n))*(amcfc11/amd)
       cfc12mmr(n) = ghgval(igh_cfc12,iyear,imonth,lat(n))*(amcfc12/amd)
     end do
+    !$acc update device(co2vmr,co2mmr,ch4mmr,n2ommr,cfc11mmr,cfc12mmr)
     !
     ! Set execution flag for aerosol and their interaction with radiation
     !
@@ -1348,16 +1350,14 @@ module mod_rad_radiation
     ! in the column, converting units where appropriate
     ! for the moment no more used
     !
-    do n = n1, n2
-      do k = 1, kz
-        if ( k >= kz + 1 - mxaerl ) then
-          aermmb(k,n) = egravgts * tauvis / &
-                  (1.0e4_rkx*kaervs*rhfac*(d_one-omgvis*gvis*gvis) * &
-                  (pnm(kzp1,n)-pnm(kzp1-mxaerl,n)))
-        else
-          aermmb(k,n) = d_zero
-        end if
-      end do
+    do concurrent ( k = 1:kz, n = n1:n2 )
+      if ( k >= kz + 1 - mxaerl ) then
+        aermmb(k,n) = egravgts * tauvis / &
+                (1.0e4_rkx*kaervs*rhfac*(d_one-omgvis*gvis*gvis) * &
+                (pnm(kzp1,n)-pnm(kzp1-mxaerl,n)))
+      else
+        aermmb(k,n) = d_zero
+      end if
     end do
   end subroutine aermix
   !
@@ -3815,6 +3815,7 @@ module mod_rad_radiation
     !
     ! Initialize output fields:
     !
+    !$acc kernels
     fsds(:) = d_zero
     fsnirt(:) = d_zero
     fsnrtc(:) = d_zero
@@ -3840,14 +3841,15 @@ module mod_rad_radiation
     tauxcl(:,:,:) = d_zero
     tauxci(:,:,:) = d_zero
     qrs(:,:) = d_zero
+    !$acc end kernels
     ww(:) = d_zero
     !
     ! Define solar incident radiation and interface pressures:
     !
 #ifdef STDPAR_FIXED
-    do concurrent ( n = n1:n2 ) local(ww)
+    do concurrent ( n = n1:n2 )
 #else
-    !$acc parallel loop collapse(1) gang vector private(ww)
+    !$acc parallel loop collapse(1) gang vector
     do n = n1, n2
 #endif
       !
@@ -4303,13 +4305,9 @@ module mod_rad_radiation
       !
     end do ! End of spectral interval loop
 
-    do is = 1, 4
-      do k = 1, kzp1
-        do n = n1, n2
-          outtaucl(k,is,n) = outtaucl(k,is,n) / ww(is)
-          outtauci(k,is,n) = outtauci(k,is,n) / ww(is)
-        end do
-      end do
+    do concurrent ( k = 1:kzp1, is = 1:4, n = n1:n2 )
+      outtaucl(k,is,n) = outtaucl(k,is,n) / ww(is)
+      outtauci(k,is,n) = outtauci(k,is,n) / ww(is)
     end do
 
     ! FAB calculation of TOA aerosol radiative forcing
@@ -4788,7 +4786,7 @@ module mod_rad_radiation
     !
     ! Compute downflux at level 1 for cloudy sky
     !
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       if ( skip(n) ) cycle
       !
       ! First clear sky flux plus flux from cloud at level 1
@@ -4800,7 +4798,12 @@ module mod_rad_radiation
     ! Flux emitted by other layers
     ! Note: Vertical indexing here proceeds from bottom to top
     !
-    khighest = khiv(intmax(khiv,n1,n2))
+    khighest = 0
+    !$acc parallel loop reduction(max:khighest)
+    do n = n1, n2
+      khighest = max(khighest,khiv(n))
+    end do
+
     do concurrent ( n = n1:n2 )
       if ( skip(n) ) cycle
       do km = 3, khighest

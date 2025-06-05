@@ -83,6 +83,7 @@ module mod_interp
   ! This subroutine also extrapolates out of the interval where the
   ! input funtion g is defined
   subroutine interp1d_r4(xi,g,xo,f,alfa,ex1,ex2)
+    !$acc routine seq
     implicit none
     !  Input:  function g defined at irregular but strictly monotonic xi
     !  Output: f interpolated values at arbitrary coordinates xo
@@ -110,7 +111,7 @@ module mod_interp
 
     npi = size(xi)
     npo = size(xo)
-
+#ifndef OPENACC
     if ( npi < 2 ) then
       write(stderr,*) 'Refusing to work: too few input points.'
       call die('interp1d')
@@ -120,7 +121,7 @@ module mod_interp
       write(stderr,*) 'Refusing to work: different size coordinate/values'
       call die('interp1d')
     end if
-
+#endif
     if ( xi(1) >= xi(npi) ) then
       do k = 1, npi
         zi(k) = xi(npi-k+1)
@@ -212,6 +213,7 @@ module mod_interp
   end subroutine interp1d_r4
 
   subroutine interp1d_r8(xi,g,xo,f,alfa,ex1,ex2)
+    !$acc routine seq
     implicit none
     real(rk8), dimension(:), intent(in) :: xi, xo, g
     real(rk8), dimension(:), intent(out) :: f
@@ -230,7 +232,7 @@ module mod_interp
 
     npi = size(xi)
     npo = size(xo)
-
+#ifndef OPENACC
     if ( npi < 2 ) then
       write(stderr,*) 'Refusing to work: too few input points.'
       call die('interp1d')
@@ -240,7 +242,7 @@ module mod_interp
       write(stderr,*) 'Refusing to work: different size coordinate/values'
       call die('interp1d')
     end if
-
+#endif
     if ( xi(1) >= xi(npi) ) then
       do k = 1, npi
         zi(k) = xi(npi-k+1)

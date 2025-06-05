@@ -100,56 +100,42 @@ module mod_rad_outrad
     ! total heating rate in deg/s
     !
     if ( irrtm == 1 ) then
-      do k = 1, kz
-        do i = ici1, ici2
-          do j = jci1, jci2
-            n = (j-jci1)+(i-ici1)*nj+1
-            r2m%heatrt(j,i,k) = qrs(n,k) + qrl(n,k)
-          end do
-        end do
+      do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz )
+        n = (j-jci1)+(i-ici1)*nj+1
+        r2m%heatrt(j,i,k) = qrs(n,k) + qrl(n,k)
       end do
     else
-      do k = 1, kz
-        do i = ici1, ici2
-          do j = jci1, jci2
-            n = (j-jci1)+(i-ici1)*nj+1
-            r2m%heatrt(j,i,k) = qrs(k,n) + qrl(k,n)
-          end do
-        end do
+      do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz )
+        n = (j-jci1)+(i-ici1)*nj+1
+        r2m%heatrt(j,i,k) = qrs(k,n) + qrl(k,n)
       end do
     end if
-    !
-    ! surface absorbed solar flux in watts/m2
-    ! net up longwave flux at the surface
-    !
-    do i = ici1, ici2
-      do j = jci1, jci2
-        n = (j-jci1)+(i-ici1)*nj+1
-        r2m%totcf(j,i) = totcf(n)
-        r2m%solis(j,i) = sol(n)
-        r2m%fsw(j,i)   = frsa(n)
-        r2m%flw(j,i)   = frla(n)
-        r2m%flwd(j,i)  = slwd(n)
-      end do
-    end do
-    !
-    ! for coupling with bats
-    !
-    ! for now assume sabveg (solar absorbed by vegetation) is equal
-    ! to frsa (solar absorbed by surface). possible problems are
-    ! over sparsely vegetated areas in which vegetation and ground
-    ! albedo are significantly different
-    !
-    do i = ici1, ici2
-      do j = jci1, jci2
-        n = (j-jci1)+(i-ici1)*nj+1
-        r2m%sabveg(j,i) = abv(n)
-        r2m%solvs(j,i)  = sols(n)
-        r2m%solvsd(j,i) = solsd(n)
-        r2m%solvl(j,i)  = soll(n)
-        r2m%solvld(j,i) = solld(n)
-        r2m%sinc(j,i)   = soll(n) + sols(n) + solsd(n) + solld(n)
-      end do
+
+    do concurrent ( j=jci1:jci2, i=ici1:ici2)
+      n = (j-jci1)+(i-ici1)*nj+1
+      !
+      ! surface absorbed solar flux in watts/m2
+      ! net up longwave flux at the surface
+      !
+      r2m%totcf(j,i) = totcf(n)
+      r2m%solis(j,i) = sol(n)
+      r2m%fsw(j,i)   = frsa(n)
+      r2m%flw(j,i)   = frla(n)
+      r2m%flwd(j,i)  = slwd(n)
+      !
+      ! for coupling with bats
+      !
+      ! for now assume sabveg (solar absorbed by vegetation) is equal
+      ! to frsa (solar absorbed by surface). possible problems are
+      ! over sparsely vegetated areas in which vegetation and ground
+      ! albedo are significantly different
+      !
+      r2m%sabveg(j,i) = abv(n)
+      r2m%solvs(j,i)  = sols(n)
+      r2m%solvsd(j,i) = solsd(n)
+      r2m%solvl(j,i)  = soll(n)
+      r2m%solvld(j,i) = solld(n)
+      r2m%sinc(j,i)   = soll(n) + sols(n) + solsd(n) + solld(n)
     end do
 
     if ( ifrad ) then
@@ -164,42 +150,40 @@ module mod_rad_outrad
                      associated(rad_lowcl_out) ) then
       kh1 = 2
       kl2 = kz
-      do i = ici1, ici2
-        do j = jci1, jci2
-          hif = d_one
-          mif = d_one
-          lof = d_one
-          kh2 = 2
-          km1 = 2
-          km2 = 2
-          kl1 = 2
-          do k = 2, kzm1
-            if ( m2r%phatms(j,i,k) <= 44000.0_rkx ) then
-              kh2 = k
-              km1 = k+1
-            else if ( m2r%phatms(j,i,k) > 44000.0_rkx .and. &
-                      m2r%phatms(j,i,k) <= 68000.0_rkx ) then
-              km2 = k
-              kl1 = k+1
-            end if
-          end do
-          do k = kh1, kh2
-            hif = hif*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                            (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
-
-          end do
-          do k = km1, km2
-            mif = mif*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                            (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
-          end do
-          do k = kl1, kl2
-            lof = lof*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                            (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
-          end do
-          rad_higcl_out(j,i) = rad_higcl_out(j,i) + d_one - hif
-          rad_midcl_out(j,i) = rad_midcl_out(j,i) + d_one - mif
-          rad_lowcl_out(j,i) = rad_lowcl_out(j,i) + d_one - lof
+      do concurrent ( j=jci1:jci2, i=ici1:ici2)
+        hif = d_one
+        mif = d_one
+        lof = d_one
+        kh2 = 2
+        km1 = 2
+        km2 = 2
+        kl1 = 2
+        do k = 2, kzm1
+          if ( m2r%phatms(j,i,k) <= 44000.0_rkx ) then
+            kh2 = k
+            km1 = k+1
+          else if ( m2r%phatms(j,i,k) > 44000.0_rkx .and. &
+                    m2r%phatms(j,i,k) <= 68000.0_rkx ) then
+            km2 = k
+            kl1 = k+1
+          end if
         end do
+        do k = kh1, kh2
+          hif = hif*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
+                          (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
+
+        end do
+        do k = km1, km2
+          mif = mif*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
+                          (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
+        end do
+        do k = kl1, kl2
+          lof = lof*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
+                          (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
+        end do
+        rad_higcl_out(j,i) = rad_higcl_out(j,i) + d_one - hif
+        rad_midcl_out(j,i) = rad_midcl_out(j,i) + d_one - mif
+        rad_lowcl_out(j,i) = rad_lowcl_out(j,i) + d_one - lof
       end do
     end if
 
@@ -281,11 +265,9 @@ module mod_rad_outrad
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     integer(ik4) :: i, j, n
     if ( associated(b) ) then
-      do i = ici1, ici2
-        do j = jci1, jci2
-          n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i) = a(n)
-        end do
+      do concurrent ( j=jci1:jci2, i=ici1:ici2)
+        n = (j-jci1)+(i-ici1)*nj+1
+        b(j,i) = a(n)
       end do
     end if
   end subroutine copy2d
@@ -299,22 +281,14 @@ module mod_rad_outrad
     if ( associated(b) ) then
       b(:,:) = d_zero
       if ( irrtm == 1 ) then
-        do k = ki, kl
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i) = b(j,i) + a(n,k,l)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i) = b(j,i) + a(n,k,l)
         end do
       else
-        do k = ki, kl
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i) = b(j,i) + a(k,n,l)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i) = b(j,i) + a(k,n,l)
         end do
       end if
     end if
@@ -335,22 +309,14 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do k = k1, k2
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,k) = a(n,k)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=k1:k2)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = a(n,k)
         end do
       else
-        do k = k1, k2
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,k) = a(k,n)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=k1:k2)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = a(k,n)
         end do
       end if
     end if
@@ -364,26 +330,16 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n, kk
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        kk = 1
-        do k = ki, kl
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,kk) = a(n,k,l)
-            end do
-          end do
-          kk = kk + 1
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+          kk = (k-ki)+1
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,kk) = a(n,k,l)
         end do
       else
-        kk = 1
-        do k = ki, kl
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,kk) = a(n,k,l)
-            end do
-          end do
-          kk = kk + 1
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+          kk = (k-ki)+1
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,kk) = a(n,k,l)
         end do
       end if
     end if
@@ -397,26 +353,14 @@ module mod_rad_outrad
     integer(ik4) :: i, j, l, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do l = 1, nl
-          do k = 1, kz
-            do i = ici1, ici2
-              do j = jci1, jci2
-                n = (j-jci1)+(i-ici1)*nj+1
-                b(j,i,k,l) = a(n,k,l)
-              end do
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz, l = 1:nl)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k,l) = a(n,k,l)
         end do
       else
-        do l = 1, nl
-          do k = 1, kz
-            do i = ici1, ici2
-              do j = jci1, jci2
-                n = (j-jci1)+(i-ici1)*nj+1
-                b(j,i,k,l) = a(k,l,n)
-              end do
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz, l = 1:nl)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k,l) = a(k,l,n)
         end do
       end if
     end if
@@ -429,22 +373,14 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,k) = a(n,k)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = a(n,k)
         end do
       else
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,k) = a(k,n)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = a(k,n)
         end do
       end if
     end if
@@ -459,22 +395,14 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,k) = a(n,k,l) * c(n,k)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = a(n,k,l) * c(n,k)
         end do
       else
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,k) = a(k,l,n) * c(k,n)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = a(k,l,n) * c(k,n)
         end do
       end if
     end if
@@ -489,26 +417,16 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n, kk
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        kk = 1
-        do k = ki, kl
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,kk) = a(n,k,l) / c(n,kk)
-            end do
-          end do
-          kk = kk + 1
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+          kk = (k-ki)+1
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,kk) = a(n,k,l) / c(n,kk)
         end do
       else
-        kk = 1
-        do k = ki, kl
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,kk) = a(k,n,l) / c(kk,n)
-            end do
-          end do
-          kk = kk + 1
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+          kk = (k-ki)+1
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,kk) = a(k,n,l) / c(kk,n)
         end do
       end if
     end if
@@ -523,34 +441,24 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n, kk
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        kk = 1
-        do k = ki, kl
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              if ( abs(c(n,k,l)) > dlowval ) then
-                b(j,i,kk) = a(n,k,l) / c(n,k,l)
-              else
-                b(j,i,kk) = smissval
-              end if
-            end do
-          end do
-          kk = kk + 1
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+          kk = (k-ki)+1
+          n = (j-jci1)+(i-ici1)*nj+1
+          if ( abs(c(n,k,l)) > dlowval ) then
+            b(j,i,kk) = a(n,k,l) / c(n,k,l)
+          else
+            b(j,i,kk) = smissval
+          end if
         end do
       else
-        kk = 1
-        do k = ki, kl
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              if ( abs(c(k,n,l)) > dlowval ) then
-                b(j,i,kk) = a(k,n,l) / c(k,n,l)
-              else
-                b(j,i,kk) = smissval
-              end if
-            end do
-          end do
-          kk = kk + 1
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+          kk = (k-ki)+1
+          n = (j-jci1)+(i-ici1)*nj+1
+          if ( abs(c(k,n,l)) > dlowval ) then
+            b(j,i,kk) = a(k,n,l) / c(k,n,l)
+          else
+            b(j,i,kk) = smissval
+          end if
         end do
       end if
     end if
@@ -562,11 +470,9 @@ module mod_rad_outrad
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     integer(ik4) :: i, j, n
     if ( associated(b) ) then
-      do i = ici1, ici2
-        do j = jci1, jci2
-          n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i) = b(j,i) + a(n)
-        end do
+      do concurrent ( j=jci1:jci2, i=ici1:ici2)
+        n = (j-jci1)+(i-ici1)*nj+1
+        b(j,i) = b(j,i) + a(n)
       end do
     end if
   end subroutine copy2d_add
@@ -578,22 +484,14 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,k) = b(j,i,k) + a(n,k)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = b(j,i,k) + a(n,k)
         end do
       else
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,k) = b(j,i,k) + a(k,n)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = b(j,i,k) + a(k,n)
         end do
       end if
     end if
@@ -607,22 +505,14 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,k) = b(j,i,k) + a(n,k,l)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = b(j,i,k) + a(n,k,l)
         end do
       else
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,k) = b(j,i,k) + a(k,l,n)
-            end do
-          end do
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = b(j,i,k) + a(k,l,n)
         end do
       end if
     end if
