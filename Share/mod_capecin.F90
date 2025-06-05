@@ -26,20 +26,20 @@ module mod_capecin
 
   implicit none
 
-  real(rkx) , parameter :: pinc = 100.0_rkx ! Pressure increment (Pa)
+  real(rkx), parameter :: pinc = 100.0_rkx ! Pressure increment (Pa)
                                             ! smaller number yields more
                                             ! accurate results, larger
                                             ! number makes code go faster
 
-  integer(ik4) , parameter :: source = 2 ! Source parcel:
+  integer(ik4), parameter :: source = 2 ! Source parcel:
                                          ! 1 = surface
                                          ! 2 = most unstable (max theta-e)
                                          ! 3 = mixed-layer (specify ml_depth)
 
-  real(rkx) , parameter :: ml_depth =  200.0_rkx ! depth (m) of mixed layer
+  real(rkx), parameter :: ml_depth =  200.0_rkx ! depth (m) of mixed layer
                                                  ! for source=3
 
-  integer(ik4) , parameter :: adiabat = 3 ! Formulation of moist adiabat:
+  integer(ik4), parameter :: adiabat = 3 ! Formulation of moist adiabat:
                                           ! 1 = pseudoadiabatic, liquid only
                                           ! 2 = reversible, liquid only
                                           ! 3 = pseudoadiabatic, with ice
@@ -49,14 +49,14 @@ module mod_capecin
 
   logical :: table_empty = .true.
 
-  integer(ik4) , parameter :: itb = 076
-  integer(ik4) , parameter :: jtb = 134
+  integer(ik4), parameter :: itb = 076
+  integer(ik4), parameter :: jtb = 134
 
-  real(rkx) :: pl , thl , rdq , rdth , rdp , rdthe , plq , rdpq , rdtheq
-  real(rkx) , dimension(jtb) :: qs0 , sqs
-  real(rkx) , dimension(itb) :: the0 , sthe
-  real(rkx) , dimension(itb,jtb) :: ptbl
-  real(rkx) , dimension(jtb,itb) :: ttbl
+  real(rkx) :: pl, thl, rdq, rdth, rdp, rdthe, plq, rdpq, rdtheq
+  real(rkx), dimension(jtb) :: qs0, sqs
+  real(rkx), dimension(itb) :: the0, sthe
+  real(rkx), dimension(itb,jtb) :: ptbl
+  real(rkx), dimension(jtb,itb) :: ttbl
 
   contains
   !
@@ -92,21 +92,21 @@ module mod_capecin
   subroutine getcape(nk,p,t,rh,cape,cin)
     implicit none
 
-    integer(ik4) , intent(in) :: nk
-    real(rkx) , dimension(nk) , intent(in) :: p , t , rh
-    real(rkx) , intent(out) :: cape , cin
+    integer(ik4), intent(in) :: nk
+    real(rkx), dimension(nk), intent(in) :: p, t, rh
+    real(rkx), intent(out) :: cape, cin
 
-    logical :: doit , ice , cloud , not_converged
-    integer(ik4) :: k , kmax , n , nloop , i
-    real(rkx) , dimension(nk) :: td , pi , q , th , thv , z
+    logical :: doit, ice, cloud, not_converged
+    integer(ik4) :: k, kmax, n, nloop, i
+    real(rkx), dimension(nk) :: td, pi, q, th, thv, z
 
-    real(rkx) :: the , maxthe , parea , narea , lfc
-    real(rkx) :: th1 , p1 , t1 , qv1 , ql1 , qi1 , b1 , pi1
-    real(rkx) :: thv1 , qt , dp , dz , ps , frac
-    real(rkx) :: th2 , p2 , t2 , qv2 , ql2 , qi2 , b2 , pi2 , thv2
-    real(rkx) :: thlast , fliq , fice , tbar , qvbar , qlbar , qibar
-    real(rkx) :: lhv , lhs , lhf , rm , cpm
-    real(rkx) :: avgth , avgqv
+    real(rkx) :: the, maxthe, parea, narea, lfc
+    real(rkx) :: th1, p1, t1, qv1, ql1, qi1, b1, pi1
+    real(rkx) :: thv1, qt, dp, dz, ps, frac
+    real(rkx) :: th2, p2, t2, qv2, ql2, qi2, b2, pi2, thv2
+    real(rkx) :: thlast, fliq, fice, tbar, qvbar, qlbar, qibar
+    real(rkx) :: lhv, lhs, lhf, rm, cpm
+    real(rkx) :: avgth, avgqv
 
     real(rkx), parameter :: lv1   = wlhv+(cpw-cpv)*tzero
     real(rkx), parameter :: lv2   = cpw-cpv
@@ -121,7 +121,7 @@ module mod_capecin
 
     ! Get td,pi,q,th,thv
 
-    do k = 1 , nk
+    do k = 1, nk
       pi(k) = (p(k)*rp00)**rddcp
       td(k) = getdewp(t(k)-tzero,rh(k))
       q(k) = getqvs(p(k),td(k))
@@ -132,7 +132,7 @@ module mod_capecin
     ! get height using the hydrostatic equation
 
     z(1) = d_zero
-    do k = 2 , nk
+    do k = 2, nk
       dz = -cpdg*0.5_rkx*(thv(k)+thv(k-1))*(pi(k)-pi(k-1))
       z(k) = z(k-1) + dz
     end do
@@ -160,7 +160,7 @@ module mod_capecin
         else
           ! find max thetae below 500 mb
           maxthe = d_zero
-          do k = 1 , nk
+          do k = 1, nk
             if ( p(k) >= 50000.0_rkx ) then
               the = getthe(p(k),t(k),td(k),q(k))
               if ( the > maxthe ) then
@@ -251,7 +251,7 @@ module mod_capecin
         nloop = 1 + int( dp/pinc )
         dp = dp/real(nloop,rkx)
       end if
-      do n = 1 , nloop
+      do n = 1, nloop
         p1 =  p2
         t1 =  t2
         pi1 = pi2
@@ -357,10 +357,10 @@ module mod_capecin
 
     pure real(rkx) function getdewp(tc,rh)
       implicit none
-      real(rkx) , intent(in) :: tc , rh
-      real(rkx) , parameter :: b = 18.678_rkx
-      real(rkx) , parameter :: c = 257.14_rkx ! [C]
-      real(rkx) , parameter :: d = 234.50_rkx ! [C]
+      real(rkx), intent(in) :: tc, rh
+      real(rkx), parameter :: b = 18.678_rkx
+      real(rkx), parameter :: c = 257.14_rkx ! [C]
+      real(rkx), parameter :: d = 234.50_rkx ! [C]
       real(rkx) :: gm
       gm = log(rh * exp((b - tc/d)*(tc/(c+tc))))
       getdewp = tzero + c * gm/(b-gm)
@@ -368,7 +368,7 @@ module mod_capecin
 
     pure real(rkx) function getqvs(p,t)
       implicit none
-      real(rkx) , intent(in) :: p , t
+      real(rkx), intent(in) :: p, t
       real(rkx) :: es
       es = 611.2_rkx*exp(17.67_rkx*(t-273.15_rkx)/(t-29.65_rkx))
       getqvs = ep2*es/(p-es)
@@ -376,7 +376,7 @@ module mod_capecin
 
     pure real(rkx) function getqvi(p,t)
       implicit none
-      real(rkx) , intent(in) :: p , t
+      real(rkx), intent(in) :: p, t
       real(rkx) :: es
       es = 611.2_rkx*exp(21.8745584_rkx*(t-273.15_rkx)/(t-7.66_rkx))
       getqvi = ep2*es/(p-es)
@@ -384,7 +384,7 @@ module mod_capecin
 
     pure real(rkx) function getthe(p,t,td,q)
       implicit none
-      real(rkx) , intent(in) :: p , t , td , q
+      real(rkx), intent(in) :: p, t, td, q
       real(rkx) :: tlcl
       if ( (td-t) >= -0.1_rkx ) then
         tlcl = t
@@ -407,29 +407,29 @@ module mod_capecin
 
     subroutine otlift(slindx,t,q,p,t500,ista,iend,jsta,jend,kk)
       implicit none
-      integer(ik4) , intent(in) :: ista , iend , jsta , jend , kk
-      real(rkx) , dimension(:,:) , pointer , intent(inout) :: slindx
-      real(rkx) , dimension(:,:) , pointer , intent(in) :: t500
-      real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t , q , p
+      integer(ik4), intent(in) :: ista, iend, jsta, jend, kk
+      real(rkx), dimension(:,:), pointer, intent(inout) :: slindx
+      real(rkx), dimension(:,:), pointer, intent(in) :: t500
+      real(rkx), dimension(:,:,:), pointer, intent(in) :: t, q, p
 
-      real(rkx) , parameter :: d8202 = 0.820231e+00_rkx
-      real(rkx) , parameter :: h5e4 = 5.e4_rkx
-      real(rkx) , parameter :: p500 = 50000.0_rkx
-      real(rkx) , parameter :: elivw = 2.72e6_rkx
-      real(rkx) , parameter :: elocp = elivw/cpd
-      real(rkx) , parameter :: oneps = 1.0_rkx-ep2
-      real(rkx) , parameter :: pt = 1.0_rkx
-      real(rkx) , parameter :: thl = 210.0_rkx
+      real(rkx), parameter :: d8202 = 0.820231e+00_rkx
+      real(rkx), parameter :: h5e4 = 5.e4_rkx
+      real(rkx), parameter :: p500 = 50000.0_rkx
+      real(rkx), parameter :: elivw = 2.72e6_rkx
+      real(rkx), parameter :: elocp = elivw/cpd
+      real(rkx), parameter :: oneps = 1.0_rkx-ep2
+      real(rkx), parameter :: pt = 1.0_rkx
+      real(rkx), parameter :: thl = 210.0_rkx
 
-      real(rkx) :: tvp , esatp , qsatp
-      real(rkx) :: tth , tp , apesp , partmp , thesp , tpsp
-      real(rkx) :: bqs00 , sqs00 , bqs10 , sqs10 , bq , sq , tq
-      real(rkx) :: pp00 , pp10 , pp01 , pp11 , t00 , t10 , t01 , t11
-      real(rkx) :: bthe00 , sthe00 , bthe10 , sthe10 , bth , sth
-      real(rkx) :: tqq , qq , qbt , tthbt , tbt , apebt , ppq , pp
-      integer(ik4) :: i , j , ittbk , iq , it , iptbk
-      integer(ik4) :: ith , ip , iqtb
-      integer(ik4) :: ittb , iptb , ithtb
+      real(rkx) :: tvp, esatp, qsatp
+      real(rkx) :: tth, tp, apesp, partmp, thesp, tpsp
+      real(rkx) :: bqs00, sqs00, bqs10, sqs10, bq, sq, tq
+      real(rkx) :: pp00, pp10, pp01, pp11, t00, t10, t01, t11
+      real(rkx) :: bthe00, sthe00, bthe10, sthe10, bth, sth
+      real(rkx) :: tqq, qq, qbt, tthbt, tbt, apebt, ppq, pp
+      integer(ik4) :: i, j, ittbk, iq, it, iptbk
+      integer(ik4) :: ith, ip, iqtb
+      integer(ik4) :: ittb, iptb, ithtb
       !
       if ( table_empty ) then
         call table_fill( )
@@ -444,134 +444,121 @@ module mod_capecin
         slindx(i,j) = d_zero
       end do
       ! Find Exner at lowest level-------------------------------
-#ifdef STDPAR
-      do concurrent ( i = ista:iend, j = jsta:jend ) &
-        local(tbt,qbt,apebt,tthbt,tth,tqq,ittb,ittbk,bqs00,sqs00,&
-        bqs10,sqs10,bq,sq,tq,ppq,iqtb,iq,it,pp00,pp10,pp01,pp11, &
-        tpsp,apesp,thesp,tp,qq,iptb,iptbk,bthe00,sthe00,bthe10,  &
-        sthe10,bth,sth,pp,ithtb,ith,ip,t00,t10,t01,t11,partmp,   &
-        esatp,qsatp,tvp)
-#else
-      do j = jsta , jend
-        do i = ista , iend
-#endif
-          tbt = t(i,j,kk)
-          ! Specific Humidity expected.
-          qbt = q(i,j,kk)/(1.0_rkx+q(i,j,kk))
-          apebt = (p00/p(i,j,kk))**rovcp
-          ! Scaling potential temperature & table index----------
-          tthbt = tbt*apebt
-          tth = (tthbt-thl)*rdth
-          tqq = tth-aint(tth)
-          ittb = int(tth) + 1
-          ! Keeping indices within the table---------------------
-          if ( ittb < 1 ) then
-            ittb = 1
-            tqq = d_zero
-          end if
-          if ( ittb >= jtb ) then
-            ittb = jtb - 1
-            tqq = d_zero
-          end if
-          ! Base and scaling factor for spec. humidity-----------
-          ittbk = ittb
-          bqs00 = qs0(ittbk)
-          sqs00 = sqs(ittbk)
-          bqs10 = qs0(ittbk+1)
-          sqs10 = sqs(ittbk+1)
-          ! Scaling spec. humidity & table index-----------------
-          bq = (bqs10-bqs00)*tqq + bqs00
-          sq = (sqs10-sqs00)*tqq + sqs00
-          tq = (qbt-bq)/sq*rdq
-          ppq = tq - aint(tq)
-          iqtb = int(tq) + 1
-          ! Keeping indices within the table---------------------
-          if ( iqtb < 1 ) then
-            iqtb = 1
-            ppq = d_zero
-          end if
-          if ( iqtb >= itb ) then
-            iqtb = itb-1
-            ppq = d_zero
-          end if
-          ! Saturation pressure at four surrounding table pts.---
-          iq = iqtb
-          it = ittb
-          pp00 = ptbl(iq,it)
-          pp10 = ptbl(iq+1,it)
-          pp01 = ptbl(iq,it+1)
-          pp11 = ptbl(iq+1,it+1)
-          ! Saturation point variables at the bottom------------
-          tpsp = pp00+(pp10-pp00)*ppq+(pp01-pp00)*tqq + &
-                (pp00-pp10-pp01+pp11)*ppq*tqq
-          if ( tpsp <= d_zero ) tpsp = p00
-          apesp = (p00/tpsp)**rovcp
-          thesp = tthbt*exp(elocp*qbt*apesp/tthbt)
-          ! Scaling pressure & tt table index------------------
-          tp = (h5e4-pl)*rdp
-          qq = tp - aint(tp)
-          iptb = int(tp)+1
-          ! Keeping indices within the table-------------------
-          if ( iptb < 1 ) then
-            iptb = 1
-            qq = d_zero
-          end if
-          if ( iptb >= itb ) then
-            iptb = itb-1
-            qq = d_zero
-          end if
-          ! Base and scaling factor for the-------------------
-          iptbk = iptb
-          bthe00 = the0(iptbk)
-          sthe00 = sthe(iptbk)
-          bthe10 = the0(iptbk+1)
-          sthe10 = sthe(iptbk+1)
-          ! Scaling the & tt table index----------------------
-          bth = (bthe10-bthe00)*qq + bthe00
-          sth = (sthe10-sthe00)*qq + sthe00
-          tth = (thesp-bth)/sth*rdthe
-          pp = tth-aint(tth)
-          ithtb = int(tth) + 1
-          ! Keeping indices within the table------------------
-          if ( ithtb < 1 ) then
-            ithtb = 1
-            pp = d_zero
-          end if
-          if ( ithtb >= jtb ) then
-            ithtb = jtb-1
-            pp = d_zero
-          end if
-          ! Temperature at four surrounding tt table pts.----
-          ith = ithtb
-          ip = iptb
-          t00 = ttbl(ith,ip)
-          t10 = ttbl(ith+1,ip)
-          t01 = ttbl(ith,ip+1)
-          t11 = ttbl(ith+1,ip+1)
-          ! Parcel temperature at 500mb----------------------
-          if ( tpsp >= h5e4 ) then
-            partmp=(t00+(t10-t00)*pp + (t01-t00)*qq + &
-                   (t00-t10-t01+t11)*pp*qq)
-          else
-            partmp = tbt*apebt*d8202
-          end if
-          ! Lifted Index-------------------------------------
-          !
-          ! The parcel temperature at 500 mb has been
-          ! computed, and we find the mixing ratio at that
-          ! level which will be the saturation value since
-          ! we're following a moist adiabat. Note that the
-          ! ambient 500 mb should probably be virtualized,
-          ! but the impact of moisture at that level is
-          ! quite small
-          !
-          esatp = pfesat(partmp,p500)
-          qsatp = ep2*esatp/(p500-esatp*oneps)
-          tvp = partmp*(1.0_rkx+ep1*qsatp)
-          slindx(i,j) = t500(i,j)-tvp
-#ifndef STDPAR
-        end do
-#endif
+      do concurrent ( i = ista:iend, j = jsta:jend )
+        tbt = t(i,j,kk)
+        ! Specific Humidity expected.
+        qbt = q(i,j,kk)/(1.0_rkx+q(i,j,kk))
+        apebt = (p00/p(i,j,kk))**rovcp
+        ! Scaling potential temperature & table index----------
+        tthbt = tbt*apebt
+        tth = (tthbt-thl)*rdth
+        tqq = tth-aint(tth)
+        ittb = int(tth) + 1
+        ! Keeping indices within the table---------------------
+        if ( ittb < 1 ) then
+          ittb = 1
+          tqq = d_zero
+        end if
+        if ( ittb >= jtb ) then
+          ittb = jtb - 1
+          tqq = d_zero
+        end if
+        ! Base and scaling factor for spec. humidity-----------
+        ittbk = ittb
+        bqs00 = qs0(ittbk)
+        sqs00 = sqs(ittbk)
+        bqs10 = qs0(ittbk+1)
+        sqs10 = sqs(ittbk+1)
+        ! Scaling spec. humidity & table index-----------------
+        bq = (bqs10-bqs00)*tqq + bqs00
+        sq = (sqs10-sqs00)*tqq + sqs00
+        tq = (qbt-bq)/sq*rdq
+        ppq = tq - aint(tq)
+        iqtb = int(tq) + 1
+        ! Keeping indices within the table---------------------
+        if ( iqtb < 1 ) then
+          iqtb = 1
+          ppq = d_zero
+        end if
+        if ( iqtb >= itb ) then
+          iqtb = itb-1
+          ppq = d_zero
+        end if
+        ! Saturation pressure at four surrounding table pts.---
+        iq = iqtb
+        it = ittb
+        pp00 = ptbl(iq,it)
+        pp10 = ptbl(iq+1,it)
+        pp01 = ptbl(iq,it+1)
+        pp11 = ptbl(iq+1,it+1)
+        ! Saturation point variables at the bottom------------
+        tpsp = pp00+(pp10-pp00)*ppq+(pp01-pp00)*tqq + &
+              (pp00-pp10-pp01+pp11)*ppq*tqq
+        if ( tpsp <= d_zero ) tpsp = p00
+        apesp = (p00/tpsp)**rovcp
+        thesp = tthbt*exp(elocp*qbt*apesp/tthbt)
+        ! Scaling pressure & tt table index------------------
+        tp = (h5e4-pl)*rdp
+        qq = tp - aint(tp)
+        iptb = int(tp)+1
+        ! Keeping indices within the table-------------------
+        if ( iptb < 1 ) then
+          iptb = 1
+          qq = d_zero
+        end if
+        if ( iptb >= itb ) then
+          iptb = itb-1
+          qq = d_zero
+        end if
+        ! Base and scaling factor for the-------------------
+        iptbk = iptb
+        bthe00 = the0(iptbk)
+        sthe00 = sthe(iptbk)
+        bthe10 = the0(iptbk+1)
+        sthe10 = sthe(iptbk+1)
+        ! Scaling the & tt table index----------------------
+        bth = (bthe10-bthe00)*qq + bthe00
+        sth = (sthe10-sthe00)*qq + sthe00
+        tth = (thesp-bth)/sth*rdthe
+        pp = tth-aint(tth)
+        ithtb = int(tth) + 1
+        ! Keeping indices within the table------------------
+        if ( ithtb < 1 ) then
+          ithtb = 1
+          pp = d_zero
+        end if
+        if ( ithtb >= jtb ) then
+          ithtb = jtb-1
+          pp = d_zero
+        end if
+        ! Temperature at four surrounding tt table pts.----
+        ith = ithtb
+        ip = iptb
+        t00 = ttbl(ith,ip)
+        t10 = ttbl(ith+1,ip)
+        t01 = ttbl(ith,ip+1)
+        t11 = ttbl(ith+1,ip+1)
+        ! Parcel temperature at 500mb----------------------
+        if ( tpsp >= h5e4 ) then
+          partmp=(t00+(t10-t00)*pp + (t01-t00)*qq + &
+                 (t00-t10-t01+t11)*pp*qq)
+        else
+          partmp = tbt*apebt*d8202
+        end if
+        ! Lifted Index-------------------------------------
+        !
+        ! The parcel temperature at 500 mb has been
+        ! computed, and we find the mixing ratio at that
+        ! level which will be the saturation value since
+        ! we're following a moist adiabat. Note that the
+        ! ambient 500 mb should probably be virtualized,
+        ! but the impact of moisture at that level is
+        ! quite small
+        !
+        esatp = pfesat(partmp,p500)
+        qsatp = ep2*esatp/(p500-esatp*oneps)
+        tvp = partmp*(1.0_rkx+ep1*qsatp)
+        slindx(i,j) = t500(i,j)-tvp
       end do
 
       contains
@@ -585,20 +572,20 @@ module mod_capecin
         ! *             GENERATE VALUES FOR LOOK-UP TABLES               *
         ! *                                                              *
         ! ****************************************************************
-        real(rkx) , parameter :: thh = 365.0_rkx
-        real(rkx) , parameter :: ph = 105000.0_rkx
-        real(rkx) , parameter :: pq0 = 379.90516_rkx
-        real(rkx) , parameter :: a2 = 17.2693882_rkx
-        real(rkx) , parameter :: a3 = 273.16_rkx
-        real(rkx) , parameter :: a4 = 35.86_rkx
-        real(rkx) , parameter :: eliwv = 2.683e+6_rkx
-        real(rkx) , parameter :: eps = 1.E-9_rkx
-        real(rkx) , dimension(jtb) :: qsold , pold, qsnew , pnew , tnew
-        real(rkx) , dimension(jtb) :: told , theold , thenew
-        real(rkx) , dimension(jtb) :: app , apt , aqp , aqt , y2p , y2t
-        real(rkx) :: dth , dp , th , p , ape , denom , qs0k , sqsk , dqs
-        real(rkx) :: qs , sthek , the0k , dthe
-        integer(ik4) :: kpm , kthm1 , kpm1 , kp , kthm , kth
+        real(rkx), parameter :: thh = 365.0_rkx
+        real(rkx), parameter :: ph = 105000.0_rkx
+        real(rkx), parameter :: pq0 = 379.90516_rkx
+        real(rkx), parameter :: a2 = 17.2693882_rkx
+        real(rkx), parameter :: a3 = 273.16_rkx
+        real(rkx), parameter :: a4 = 35.86_rkx
+        real(rkx), parameter :: eliwv = 2.683e+6_rkx
+        real(rkx), parameter :: eps = 1.E-9_rkx
+        real(rkx), dimension(jtb) :: qsold, pold, qsnew, pnew, tnew
+        real(rkx), dimension(jtb) :: told, theold, thenew
+        real(rkx), dimension(jtb) :: app, apt, aqp, aqt, y2p, y2t
+        real(rkx) :: dth, dp, th, p, ape, denom, qs0k, sqsk, dqs
+        real(rkx) :: qs, sthek, the0k, dthe
+        integer(ik4) :: kpm, kthm1, kpm1, kp, kthm, kth
 
         ! Coarse look-up table for saturation point----------------
         kthm  = jtb
@@ -613,10 +600,10 @@ module mod_capecin
         rdq  = kpm-1
         th = thl - dth
         !-----------------------------------------------------------
-        do kth = 1 , kthm
+        do kth = 1, kthm
           th = th + dth
           p  = pl - dp
-          do kp = 1 , kpm
+          do kp = 1, kpm
             p = p + dp
             if ( p <= 0.0_rkx ) then
               pold(1)  = 0.0_rkx
@@ -637,7 +624,7 @@ module mod_capecin
           sqsk       = qsold(kpm) - qsold(1)
           qsold(1  ) = 0.0_rkx
           qsold(kpm) = 1.0_rkx
-          do kp = 2 , kpm1
+          do kp = 2, kpm1
             qsold(kp) = (qsold(kp)-qs0k)/sqsk
             if ( (qsold(kp)-qsold(kp-1)) < eps ) then
               qsold(kp) = qsold(kp-1)+eps
@@ -649,23 +636,23 @@ module mod_capecin
           qsnew(1  ) = 0.0_rkx
           qsnew(kpm) = 1.0_rkx
           dqs = 1.0_rkx/real(kpm-1,rkx)
-          do kp = 2 , kpm1
+          do kp = 2, kpm1
             qsnew(kp) = qsnew(kp-1) + dqs
           end do
           y2p(1   ) = 0.0_rkx
           y2p(kpm ) = 0.0_rkx
           call spline(jtb,kpm,qsold,pold,y2p,kpm,qsnew,pnew,app,aqp)
-          do kp = 1 , kpm
+          do kp = 1, kpm
             ptbl(kp,kth) = pnew(kp)
           end do
           !-----------------------------------------------------------
         end do
         ! Coarse look-up table for t(p) from constant the----------
         p = pl - dp
-        do kp = 1 , kpm
+        do kp = 1, kpm
           p  = p + dp
           th = thl - dth
-          do kth = 1 , kthm
+          do kth = 1, kthm
             th    = th + dth
             if ( p <= 0.0_rkx ) then
               told(kth)   = th
@@ -687,7 +674,7 @@ module mod_capecin
           sthek = theold(kthm) - theold(1)
           theold(1   ) = 0.0_rkx
           theold(kthm) = 1.0_rkx
-          do kth = 2 , kthm1
+          do kth = 2, kthm1
             theold(kth) = (theold(kth)-the0k)/sthek
             if ( (theold(kth)-theold(kth-1)) < eps ) then
               theold(kth) = theold(kth-1) +  eps
@@ -700,13 +687,13 @@ module mod_capecin
           thenew(kthm) = 1.0_rkx
           dthe         = 1.0_rkx/real(kthm-1,rkx)
           rdthe        = 1.0_rkx/dthe
-          do kth = 2 , kthm1
+          do kth = 2, kthm1
             thenew(kth) = thenew(kth-1) + dthe
           end do
           y2t(1   ) = 0.0_rkx
           y2t(kthm) = 0.0_rkx
           call spline(jtb,kthm,theold,told,y2t,kthm,thenew,tnew,apt,aqt)
-          do kth = 1 , kthm
+          do kth = 1, kthm
             ttbl(kth,kp) = tnew(kth)
           end do
           !------------------------------------------------------

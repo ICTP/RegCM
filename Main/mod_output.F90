@@ -1029,7 +1029,7 @@ module mod_output
             if ( .not. associated(temp500) ) then
               call getmem2d(temp500,jci1,jci2,ici1,ici2,'output:temp500')
             end if
-            call vertint(mo_atm%t,mo_atm%p,sfs%psa,temp500,50000.0_rkx)
+            call vertint(mo_atm%tvirt,mo_atm%p,sfs%psa,temp500,50000.0_rkx)
             call otlift(srf_li_out,mo_atm%t,qv,mo_atm%p,temp500, &
                         jci1,jci2,ici1,ici2,kz)
           else
@@ -1860,17 +1860,17 @@ module mod_output
 
   subroutine vertint(f3,p3,ps,f2,plev)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f3
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p3
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: f2
-    real(rkx) , intent(in) :: plev
-    integer(ik4) :: i , j , ik
-    real(rkx) , dimension(kz) :: p1
-    real(rkx) :: blw , tlw , tp , s1 , s2 , s3
+    real(rkx), pointer, dimension(:,:,:), intent(in) :: f3
+    real(rkx), pointer, dimension(:,:,:), intent(in) :: p3
+    real(rkx), pointer, dimension(:,:), intent(in) :: ps
+    real(rkx), pointer, dimension(:,:), intent(inout) :: f2
+    real(rkx), intent(in) :: plev
+    integer(ik4) :: i, j, ik
+    real(rkx), dimension(kz) :: p1
+    real(rkx) :: blw, tlw, tp, s1, s2, s3
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1, jci2
         p1 = p3(j,i,:)
         ik = findlev(p1,plev)
         if ( ik < 1 ) then
@@ -1886,7 +1886,8 @@ module mod_output
           s2 = (p3(j,i,ik)-tp)/ps(j,i)
           s3 = (p3(j,i,ik+1)-tp)/ps(j,i)
           blw = log(s1/s2)/log(s3/s2)
-          f2(j,i) = (f3(j,i,ik+1)*blw+f3(j,i,ik)*tlw)
+          tlw = d_one - blw
+          f2(j,i) = f3(j,i,ik+1)*blw + f3(j,i,ik)*tlw
         end if
       end do
     end do
@@ -1895,12 +1896,12 @@ module mod_output
 
     integer(ik4) function findlev(p,plev) result(kk)
       implicit none
-      real(rkx) , dimension(kz) , intent(in) :: p
-      real(rkx) , intent(in) :: plev
+      real(rkx), dimension(kz), intent(in) :: p
+      real(rkx), intent(in) :: plev
       integer(ik4) :: k
       kk = 0
       if ( plev >= p1(1) ) then
-        do k = 1 , kz
+        do k = 1, kz
           if ( p(k) > plev ) exit
           kk = k
         end do
