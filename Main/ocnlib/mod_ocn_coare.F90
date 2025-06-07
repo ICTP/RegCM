@@ -85,7 +85,7 @@ module mod_ocn_coare
         us = 0.0_rkx ! current speed
         uv995 = sqrt(usw(i)**2+vsw(i)**2)
         t995 = tatm(i)-tzero
-        q995 = qv(i)
+        q995 = qv(i)/(1.0_rkx+qv(i))
         z995 = ht(i)
         ta = sfta(i)
         ! height of the atmospheric data
@@ -135,9 +135,6 @@ module mod_ocn_coare
         !
         qs = pfqsat(tgrd(i),sfps(i))*0.98_rkx
         wetc = pfqsdt(tgrd(i),sfps(i))
-
-        ! Move to specific humidities
-        q995 = q995/(d_one+q995)
 
         ! Deltas
         dt = ta - t995 - tzero

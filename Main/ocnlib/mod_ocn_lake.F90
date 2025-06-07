@@ -237,7 +237,7 @@ module mod_ocn_lake
       sold = sncv(i)
       vl = sqrt(usw(i)**2+vsw(i)**2)
       zl = ht(i)
-      qs = qv(i)
+      qs = qv(i)/(1.0_rkx+qv(i))
       fswx = rswf(i)
       flwx = -d_one*rlwf(i)
       prec = prcp(i)*dtlake
@@ -258,8 +258,6 @@ module mod_ocn_lake
       tgbrd(i) = tgl
       qgrd = pfqsat(tgrd(i),sfps(i))
       delt = tatm(i) - tgrd(i)
-      ! Move to specific humidities
-      qs = qs/(d_one+qs)
       qgrd = qgrd/(d_one+qgrd)
       delq = (qs - qgrd)
 

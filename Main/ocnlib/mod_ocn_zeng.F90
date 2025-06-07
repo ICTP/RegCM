@@ -107,7 +107,7 @@ module mod_ocn_zeng
 
       uv995 = max(sqrt(usw(i)**2+vsw(i)**2),minw)
       t995 = tatm(i) - tzero
-      q995 = qv(i)
+      q995 = qv(i)/(1.0_rkx+qv(i))
       z995 = ht(i)
       tsurf = (tgrd(i) + 1.0_rkx/z995 * (tatm(i)-tgrd(i)))
       rlv = wlh(tsurf)
@@ -120,7 +120,7 @@ module mod_ocn_zeng
       th = tsurf*(p00/sfps(i))**rovcp
       tha = tatm(i)*(p00/patm(i))**rovcp
       dth = tha - th
-      qs = pfwsat(tsurf,sfps(i))*0.995_rkx
+      qs = pfqsat(tsurf,sfps(i))*0.995_rkx
       ! in kg/kg
       dqh = q995 - qs
       ! virtual potential T
@@ -383,8 +383,6 @@ module mod_ocn_zeng
       t2m(i)  = tatm(i) - (dth * (sfps(i)/p00)**rovcp) * facttq
       q2m(i)  = q995 - dqh*facttq
       rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
-      ! We need specific humidity in output
-      q2m(i) = q2m(i)/(d_one+q2m(i))
       um10(i) = um10(i) * wt1 + sqrt(u10m(i)**2+v10m(i)**2) * wt2
     end do
 
@@ -394,7 +392,7 @@ module mod_ocn_zeng
     contains
 
 #include <pfesat.inc>
-#include <pfwsat.inc>
+#include <pfqsat.inc>
 #include <wlh.inc>
     !
     ! stability function for rb < 0
