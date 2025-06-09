@@ -105,7 +105,7 @@ module mod_ocn_zeng
 
         uv995 = max(sqrt(usw(i)**2+vsw(i)**2),minw)
         t995 = tatm(i) - tzero
-        q995 = qv(i)
+        q995 = qv(i)/(1.0_rkx+qv(i))
         z995 = ht(i)
         tsurf = (tgrd(i) + 1.0_rkx/z995 * (tatm(i)-tgrd(i)))
         rlv = wlh(tsurf)
@@ -120,7 +120,7 @@ module mod_ocn_zeng
         tha = tatm(i)*(p00/patm(i))**rovcp
         ! the saturation vapor pressure for salty water is on average 2% lower
         es = pfesat(tsurf,sfps(i))*0.98_rkx
-        qs = pfwsat(tsurf,sfps(i),es)
+        qs = pfqsat(tsurf,sfps(i),es)
         ! virtual potential T
         thv = th*(d_one+ep1*qs)
         ! The deltas between surface and atmosphere
@@ -472,8 +472,6 @@ module mod_ocn_zeng
         t2m(i)  = tatm(i) - (dth * (sfps(i)/p00)**rovcp) * facttq
         q2m(i)  = q995 - dqh*facttq
         rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
-        ! We need specific humidity in output
-        q2m(i) = q2m(i)/(d_one+q2m(i))
         ram1(i) = ram1(i)/(vonkar * ustar)
         rah1(i) = rah1(i)/(vonkar * ustar)
       end do
@@ -484,7 +482,7 @@ module mod_ocn_zeng
     contains
 
 #include <pfesat.inc>
-#include <pfwsat.inc>
+#include <pfqsat.inc>
 #include <wlh.inc>
     !
     ! stability function for rb < 0
