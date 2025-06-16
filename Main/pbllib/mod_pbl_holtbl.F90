@@ -77,7 +77,7 @@ module mod_pbl_holtbl
   real(rkx), parameter :: binh = betah*sffrac
   real(rkx), parameter :: kzfrac = 0.8_rkx
   ! power in formula for k in critical ri for judging stability
-  real(rkx), parameter :: pink = d_two
+  real(rkx), parameter :: pink = 2.0_rkx
 
   contains
 
@@ -246,12 +246,17 @@ module mod_pbl_holtbl
     ! value from the surface to the lowest model level.
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      ! Compute specific humidity
+      sh10 = m2p%qxatm(j,i,kz,iqv)/(m2p%qxatm(j,i,kz,iqv)+d_one)
       ! "virtual" potential temperature
       if ( lunstb(j,i) ) then
-        thv10(j,i) = thvx(j,i,kz)
+        if ( m2p%ldmsk(j,i) == 1 ) then
+          thv10(j,i) = m2p%tg(j,i) * (d_one + ep1*sh10)
+        else
+          thv10(j,i) = m2p%tg(j,i) * &
+            (d_one + ep1*pfqsat(m2p%tg(j,i),m2p%patmf(j,i,kzp1)))
+        end if
       else
-        ! Compute specific humidity
-        sh10 = m2p%qxatm(j,i,kz,iqv)/(m2p%qxatm(j,i,kz,iqv)+d_one)
         ! first approximation for obhukov length
         if ( ifaholtth10 == 1 ) then
           thv10(j,i) = (0.25_rkx*m2p%thatm(j,i,kz) + &
@@ -263,24 +268,28 @@ module mod_pbl_holtbl
           thv10(j,i) = (d_half*(m2p%thatm(j,i,kz)+m2p%tg(j,i))) * &
                        (d_one + ep1*sh10)
         end if
-        do iter = 1, holtth10iter
-          oblen = -(thv10(j,i)*ustr(j,i)**3) / &
-            (gvk*(hfxv(j,i)+sign(1.e-10_rkx,hfxv(j,i))))
-          if ( oblen >= m2p%za(j,i,kz) ) then
-            thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
-               (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
-          else
-            if ( oblen < m2p%za(j,i,kz) .and. oblen > d_10 ) then
-              thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
-                  (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
-                  6.0_rkx*log(m2p%za(j,i,kz)/oblen))
-            else
-              thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
-                          6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
-            end if
-          end if
-        end do
       end if
+    end do
+    do iter = 1, holtth10iter
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        oblen = -(thv10(j,i)*ustr(j,i)**3) / &
+          (gvk*(hfxv(j,i)+sign(1.e-10_rkx,hfxv(j,i))))
+        if ( oblen >= m2p%za(j,i,kz) ) then
+          thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
+             (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
+        else
+          if ( oblen < m2p%za(j,i,kz) .and. oblen > d_10 ) then
+            thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
+                (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
+                6.0_rkx*log(m2p%za(j,i,kz)/oblen))
+          else
+            thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
+                        6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
+          end if
+        end if
+      end do
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       if ( ifaholt == 1 ) then
         thv10(j,i) = max(thv10(j,i),m2p%tg(j,i))  ! gtb add to maximize
       else  if ( ifaholt  == 2 ) then
@@ -289,7 +298,6 @@ module mod_pbl_holtbl
       ! obklen compute obukhov length
       obklen(j,i) = comp_obklen(thv10(j,i),ustr(j,i),hfxv(j,i))
     end do
-
     !
     ! compute diffusivities and counter gradient terms
     ! for momentum, heat and moisture and the counter-gradient
@@ -480,14 +488,11 @@ module mod_pbl_holtbl
           z = (zm+zp)*d_half
           zh = z/zpbl
           zl = z/obklen(j,i)
-          term = max(d_one-zh,d_zero)
+          term = min(d_one,max(d_one-zh,d_zero))
           zzh = zh*term**pink
-          zzhnew = zh*zhnew_fac*term
-          zzhnew2 = zh*(zhnew_fac*term)**pink
+          zzhnew = zzh*zhnew_fac
+          zzhnew2 = zzhnew
           if ( lunstb(j,i) ) then
-            ! Convective velocity scale
-            wstr = (hfxv(j,i)*egrav*zpbl/thv10(j,i))**onet
-            fak3 = fakn*wstr/wsc
             if ( zh < sffrac ) then
               term = (d_one-betam*zl)**onet
               pblk = fak1*zzh*term
@@ -495,6 +500,9 @@ module mod_pbl_holtbl
               pblk2 = fak1*zzhnew2*term
               pr = term/sqrt(d_one-betah*zl)
             else
+              ! Convective velocity scale
+              wstr = (hfxv(j,i)*egrav*zpbl/thv10(j,i))**onet
+              fak3 = fakn*wstr/wsc
               pblk = fak2*zzh
               pblk1 = fak2*zzhnew
               pblk2 = fak2*zzhnew2
@@ -596,21 +604,10 @@ module mod_pbl_holtbl
         coefe(j,i,kz) = d_zero
         coeff1(j,i,kz) = (m2p%udatm(j,i,kz) - dt*alphak(j,i,kz)*uflxsf + &
              coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-#ifndef STDPAR_FIXED
-      end do
-#endif
-      end do
       !
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
-#ifdef STDPAR_FIXED
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2 )
-#else
-      !$acc parallel loop collapse(2) gang vector
-      do i = ici1, ici2
-      do j = jdii1, jdii2
-#endif
         tpred1(j,i,kz) = coeff1(j,i,kz)
         !$acc loop seq
         do k = kzm1, 1, -1
@@ -682,21 +679,10 @@ module mod_pbl_holtbl
         coefe(j,i,kz) = d_zero
         coeff2(j,i,kz) = (m2p%vdatm(j,i,kz) - dt*alphak(j,i,kz)*vflxsf + &
              coef3*coeff2(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-#ifndef STDPAR_FIXED
-      end do
-#endif
-      end do
       !
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
-#ifdef STDPAR_FIXED
-      do concurrent ( j = jci1:jci2, i = idii1:idii2 )
-#else
-      !$acc parallel loop collapse(2) gang vector
-      do i = idii1, idii2
-      do j = jci1, jci2
-#endif
         tpred2(j,i,kz) = coeff2(j,i,kz)
         !$acc loop seq
         do k = kzm1, 1, -1
@@ -779,21 +765,10 @@ module mod_pbl_holtbl
              coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
         coeff2(j,i,kz) = (m2p%vdatm(j,i,kz) - dt*alphak(j,i,kz)*vflxsf + &
              coef3*coeff2(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-#ifndef STDPAR_FIXED
-      end do
-#endif
-      end do
       !
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
-#ifdef STDPAR_FIXED
-      do concurrent ( j = jdii1:jdii2, i = idii1:idii2 )
-#else
-      !$acc parallel loop collapse(2) gang vector
-      do i = idii1, idii2
-      do j = jdii1, jdii2
-#endif
         tpred1(j,i,kz) = coeff1(j,i,kz)
         tpred2(j,i,kz) = coeff2(j,i,kz)
         !$acc loop seq
@@ -858,21 +833,10 @@ module mod_pbl_holtbl
       coeff1(j,i,kz) = (m2p%thatm(j,i,kz) + &
            dt*alphak(j,i,kz)*rcpd*m2p%hfx(j,i) + &
            coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-#ifndef STDPAR_FIXED
-    end do
-#endif
-    end do
     !
     !   all coefficients have been computed, predict field and put it in
     !   temporary work space tpred
     !
-#ifdef STDPAR_FIXED
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-#else
-    !$acc parallel loop collapse(2) gang vector
-    do i = ici1, ici2
-    do j = jci1, jci2
-#endif
       tpred1(j,i,kz) = coeff1(j,i,kz)
       !$acc loop seq
       do k = kzm1, 1, -1
@@ -932,21 +896,10 @@ module mod_pbl_holtbl
       coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqv) +  &
            dt*alphak(j,i,kz)*m2p%qfx(j,i) +  &
            coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-#ifndef STDPAR_FIXED
-    end do
-#endif
-    end do
     !
     !   all coefficients have been computed, predict field and put it in
     !   temporary work space tpred
     !
-#ifdef STDPAR_FIXED
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-#else
-    !$acc parallel loop collapse(2) gang vector
-    do i = ici1, ici2
-    do j = jci1, jci2
-#endif
       tpred1(j,i,kz) = coeff1(j,i,kz)
       !$acc loop seq
       do k = kzm1, 1, -1
@@ -1006,21 +959,10 @@ module mod_pbl_holtbl
       coefe(j,i,kz) = d_zero
       coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqc) + &
            coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-#ifndef STDPAR_FIXED
-    end do
-#endif
-    end do
     !
     !   all coefficients have been computed, predict field and put it in
     !   temporary work space tpred
     !
-#ifdef STDPAR_FIXED
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-#else
-    !$acc parallel loop collapse(2) gang vector
-    do i = ici1, ici2
-    do j = jci1, jci2
-#endif
       tpred1(j,i,kz) = coeff1(j,i,kz)
       !$acc loop seq
       do k = kzm1, 1, -1
@@ -1075,21 +1017,10 @@ module mod_pbl_holtbl
         coefe(j,i,kz) = d_zero
         coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqi) + &
              coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-#ifndef STDPAR_FIXED
-      end do
-#endif
-      end do
       !
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
-#ifdef STDPAR_FIXED
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-#else
-      !$acc parallel loop collapse(2) gang vector
-      do i = ici1, ici2
-      do j = jci1, jci2
-#endif
         tpred1(j,i,kz) = coeff1(j,i,kz)
         !$acc loop seq
         do k = kzm1, 1, -1
