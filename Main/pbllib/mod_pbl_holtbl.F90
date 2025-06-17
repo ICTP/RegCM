@@ -488,10 +488,10 @@ module mod_pbl_holtbl
           z = (zm+zp)*d_half
           zh = z/zpbl
           zl = z/obklen(j,i)
-          term = min(d_one,max(d_one-zh,d_zero))
+          term = max(d_one-zh,0.0_rkx)
           zzh = zh*term**pink
           zzhnew = zzh*zhnew_fac
-          zzhnew2 = zzhnew
+          zzhnew2 = zzh*zhnew_fac
           if ( lunstb(j,i) ) then
             if ( zh < sffrac ) then
               term = (d_one-betam*zl)**onet

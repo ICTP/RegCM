@@ -916,7 +916,7 @@ module mod_mppparam
     integer(ik4) :: i
     !$acc data copyin(rlval(1:elem)) copyout(rtval(1:elem))
     !$acc host_data use_device(rlval,rtval)
-    call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_sum,mycomm,mpierr)
+    call mpi_allreduce(rlval,rtval,elem,mpi_real8,mpi_sum,mycomm,mpierr)
     !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then

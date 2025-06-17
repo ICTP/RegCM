@@ -207,56 +207,48 @@ module mod_cu_tiedtke
     end if
 
     dtc = dtcum
+    !$acc kernels
     ilab(:,:) = 2
+    !$acc end kernels
 
     if ( ichem == 1 ) then
       do n = 1, ntr
         ! prevent excessive convectivedownward transport for o3
         if ( n == io3 ) cycle
-        do k = 1, kz
-          do ii = 1, nipoi
-            i = imap(ii)
-            j = jmap(ii)
-            ! tracers input profile : implicit loop on tracer
-            pxtm1(ii,k,n) = m2c%chias(j,i,k,n)
-          end do
+        do concurrent ( ii = 1:nipoi, k = 1:kz )
+          i = imap(ii)
+          j = jmap(ii)
+          ! tracers input profile : implicit loop on tracer
+          pxtm1(ii,k,n) = m2c%chias(j,i,k,n)
         end do
       end do
       if ( idynamic == 3 ) then
-        do n = 1, ntr
-          do k = 1, kz
-            do ii = 1, nipoi
-              i = imap(ii)
-              j = jmap(ii)
-              pxtte(ii,k,n) = m2c%chiten(j,i,k,n)
-            end do
-          end do
+        do concurrent ( ii = 1:nipoi, k = 1:kz, n = 1:ntr )
+          i = imap(ii)
+          j = jmap(ii)
+          pxtte(ii,k,n) = m2c%chiten(j,i,k,n)
         end do
       else
-        do n = 1, ntr
-          do k = 1, kz
-            do ii = 1, nipoi
-              i = imap(ii)
-              j = jmap(ii)
-              pxtte(ii,k,n) = m2c%chiten(j,i,k,n)/m2c%psb(j,i)
-            end do
-          end do
+        do concurrent ( ii = 1:nipoi, k = 1:kz, n = 1:ntr )
+          i = imap(ii)
+          j = jmap(ii)
+          pxtte(ii,k,n) = m2c%chiten(j,i,k,n)/m2c%psb(j,i)
         end do
       end if
       if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
-        do k = 1, kz
-          do ii = 1, nipoi
-            i = imap(ii)
-            j = jmap(ii)
-            pccn(ii,k) = m2c%ccn(j,i,k)
-          end do
+        do concurrent ( ii = 1:nipoi, k = 1:kz )
+          i = imap(ii)
+          j = jmap(ii)
+          pccn(ii,k) = m2c%ccn(j,i,k)
         end do
       end if
     else
+      !$acc kernels
       pxtm1(:,:,:) = d_zero ! tracers input profiles
       pxtte(:,:,:) = d_zero ! tracer tendencies
+      !$acc end kernels
     end if
-    do ii = 1, nipoi
+    do concurrent ( ii = 1:nipoi )
       ! AMT NOTE: This is used in the switch between deep and shallow
       ! convection. The simpler switch on pressure difference still
       ! used in ECMWF is commented out - possibly tests should be made
@@ -269,98 +261,79 @@ module mod_cu_tiedtke
       ldland(ii) = (m2c%ldmsk(j,i) == 1)
     end do
 
-    do k = 1, kz
-      do ii = 1, nipoi
-        i = imap(ii)
-        j = jmap(ii)
-        papp1(ii,k) = m2c%pas(j,i,k)       ! Pressure in Pa
-        xpg(ii,k)   = m2c%zas(j,i,k)*egrav ! geopotential
-        ptm1(ii,k)  = m2c%tas(j,i,k)  ! temperature
-        pum1(ii,k)  = m2c%uas(j,i,k)  ! u (guessing!)
-        pvm1(ii,k)  = m2c%vas(j,i,k)  ! v     "
-        pverv(ii,k) = avg_ww(j,i,k)
-        pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
-        pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
-        pvom(ii,k)  = uxten(j,i,k)
-        pvol(ii,k)  = vxten(j,i,k)
-        ! scheme diagnostic output - tendencies due to convection
-        pxtec(ii,k) = d_zero ! detrained cloud water tendency
-        pqtec(ii,k) = d_zero ! detrained humidity tendency
-        ! pressure top limit for convection: the level above tropopause
-      end do
+    do concurrent ( ii = 1:nipoi, k = 1:kz )
+      i = imap(ii)
+      j = jmap(ii)
+      papp1(ii,k) = m2c%pas(j,i,k)       ! Pressure in Pa
+      xpg(ii,k)   = m2c%zas(j,i,k)*egrav ! geopotential
+      ptm1(ii,k)  = m2c%tas(j,i,k)  ! temperature
+      pum1(ii,k)  = m2c%uas(j,i,k)  ! u (guessing!)
+      pvm1(ii,k)  = m2c%vas(j,i,k)  ! v     "
+      pverv(ii,k) = avg_ww(j,i,k)
+      pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
+      pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
+      pvom(ii,k)  = uxten(j,i,k)
+      pvol(ii,k)  = vxten(j,i,k)
+      ! scheme diagnostic output - tendencies due to convection
+      pxtec(ii,k) = d_zero ! detrained cloud water tendency
+      pqtec(ii,k) = d_zero ! detrained humidity tendency
+      ! pressure top limit for convection: the level above tropopause
     end do
-    if ( idynamic == 3 ) then
-      do k = 1, kz
-        do ii = 1, nipoi
-          i = imap(ii)
-          j = jmap(ii)
-          ptte(ii,k)  = m2c%tten(j,i,k)
-          pqte(ii,k)  = m2c%qxten(j,i,k,iqv)
-          pxlte(ii,k) = m2c%qxten(j,i,k,iqc)
-        end do
-      end do
-    else
-      do k = 1, kz
-        do ii = 1, nipoi
-          i = imap(ii)
-          j = jmap(ii)
-          ptte(ii,k)  = m2c%tten(j,i,k)/m2c%psb(j,i)
-          pqte(ii,k)  = m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
-          pxlte(ii,k) = m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
-        end do
-      end do
-    end if
-    if ( ipptls > 1 ) then
+    do concurrent ( ii = 1:nipoi, k = 1:kz )
+      i = imap(ii)
+      j = jmap(ii)
       if ( idynamic == 3 ) then
-        do k = 1, kz
-          do ii = 1, nipoi
-            i = imap(ii)
-            j = jmap(ii)
-            pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
-            pxite(ii,k) = m2c%qxten(j,i,k,iqi)
-          end do
-        end do
+        ptte(ii,k)  = m2c%tten(j,i,k)
+        pqte(ii,k)  = m2c%qxten(j,i,k,iqv)
+        pxlte(ii,k) = m2c%qxten(j,i,k,iqc)
+        if ( ipptls > 1 ) then
+          pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
+          pxite(ii,k) = m2c%qxten(j,i,k,iqi)
+        else
+          pxim1(ii,k) = d_zero
+          pxite(ii,k) = d_zero
+        end if
       else
-        do k = 1, kz
-          do ii = 1, nipoi
-            i = imap(ii)
-            j = jmap(ii)
-            pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
-            pxite(ii,k) = m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
-          end do
-        end do
+        ptte(ii,k)  = m2c%tten(j,i,k)/m2c%psb(j,i)
+        pqte(ii,k)  = m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
+        pxlte(ii,k) = m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
+        if ( ipptls > 1 ) then
+          pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
+          pxite(ii,k) = m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
+        else
+          pxim1(ii,k) = d_zero
+          pxite(ii,k) = d_zero
+        end if
       end if
-    else
-      pxim1(:,:) = d_zero
-      pxite(:,:) = d_zero
-    end if
+    end do
 
     ! Transform to specific humidity
-    pqm1(:,:) = pqm1(:,:)/(d_one + pqm1(:,:))
-    pqte(:,:) = pqte(:,:)/(d_one + pqm1(:,:))**2
+    do concurrent ( ii = 1:nipoi, k = 1:kz )
+      pqm1(ii,k) = pqm1(ii,k)/(d_one + pqm1(ii,k))
+      pqte(ii,k) = pqte(ii,k)/(d_one + pqm1(ii,k))**2
+    end do
 
     nskmax = nint(17747.5/(dx*d_r1000))
     if ( iconv == 4 ) then
       call setup(nskmax,pmean)
     else
-      do ii = 1, nipoi
+      do concurrent ( ii = 1:nipoi )
         i = imap(ii)
         j = jmap(ii)
         ptopmax(ii) = papp1(ii,max(1,m2c%ktrop(j,i)-1))
       end do
     end if
 
-    do k = 1, kzp1
-      do ii = 1, nipoi
-        i = imap(ii)
-        j = jmap(ii)
-        ! 1st guess pressure at full levels
-        paphp1(ii,k) = m2c%pasf(j,i,k)
-        xpgh(ii,k) = m2c%zfs(j,i,k)*egrav ! geopotential
-      end do
+    do concurrent ( ii = 1:nipoi, k = 1:kzp1 )
+      i = imap(ii)
+      j = jmap(ii)
+      ! 1st guess pressure at full levels
+      paphp1(ii,k) = m2c%pasf(j,i,k)
+      xpgh(ii,k) = m2c%zfs(j,i,k)*egrav ! geopotential
     end do
 
     ! Output variables (1d)
+    !$acc kernels
     prsfc(:) = d_zero ! CHECK - surface rain flux
     pssfc(:) = d_zero ! CHECK - surface snow flux
 
@@ -368,6 +341,7 @@ module mod_cu_tiedtke
     kctop(:) = 0
     kcbot(:) = 0
     pmfu(:,:) = d_zero
+    !$acc end kernels
 
     call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
@@ -382,7 +356,7 @@ module mod_cu_tiedtke
     !   KTYPE = 3 => MIDLEVEL CONVECTION
     !
     if ( ipptls > 1 ) then
-      do ii = 1, nipoi
+      do concurrent ( ii = 1:nipoi )
         if (ktype(ii) > 0) then
           i = imap(ii)
           j = jmap(ii)
@@ -393,7 +367,7 @@ module mod_cu_tiedtke
         end if
       end do
     else
-      do ii = 1, nipoi
+      do concurrent ( ii = 1:nipoi )
         if (ktype(ii) > 0) then
           i = imap(ii)
           j = jmap(ii)
@@ -407,94 +381,80 @@ module mod_cu_tiedtke
     ! update tendencies - note that rate were ADDED in cudtdq
     !                     thus here we must reset the rates.
     if ( idynamic == 3 ) then
-      do k = 1, kz
-        do ii = 1, nipoi
-          if ( ktype(ii) > 0 ) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)
-            ! Tendency in specific humidity to mixing ratio tendency.
-            cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
-                                 m2c%qxten(j,i,k,iqv)
-          end if
-        end do
-      end do
-    else
-      do k = 1, kz
-        do ii = 1, nipoi
-          if ( ktype(ii) > 0 ) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
-            ! Tendency in specific humidity to mixing ratio tendency.
-            cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
-                                 m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
-          end if
-        end do
-      end do
-    end if
-    do k = 1, kz
-      do ii = 1, nipoi
+      do concurrent ( ii = 1:nipoi, k = 1:kz )
         if ( ktype(ii) > 0 ) then
           i = imap(ii)
           j = jmap(ii)
-          cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
-          cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
-          cu_qdetr(j,i,k) = zlude(ii,k)*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
-          cu_raincc(j,i,k) = pmflxr(ii,k)
+          cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)
+          ! Tendency in specific humidity to mixing ratio tendency.
+          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
+                               m2c%qxten(j,i,k,iqv)
         end if
       end do
+    else
+      do concurrent ( ii = 1:nipoi, k = 1:kz )
+        if ( ktype(ii) > 0 ) then
+          i = imap(ii)
+          j = jmap(ii)
+          cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
+          ! Tendency in specific humidity to mixing ratio tendency.
+          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
+                               m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
+        end if
+      end do
+    end if
+    do concurrent ( ii = 1:nipoi, k = 1:kz )
+      if ( ktype(ii) > 0 ) then
+        i = imap(ii)
+        j = jmap(ii)
+        cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
+        cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
+        cu_qdetr(j,i,k) = zlude(ii,k)*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
+        cu_raincc(j,i,k) = pmflxr(ii,k)
+      end if
     end do
     if ( ipptls > 1 ) then
       if ( idynamic == 3 ) then
-        do k = 1, kz
-          do ii = 1, nipoi
-            if ( ktype(ii) > 0 ) then
-              i = imap(ii)
-              j = jmap(ii)
-              cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
-              cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
-            end if
-          end do
+        do concurrent ( ii = 1:nipoi, k = 1:kz )
+          if ( ktype(ii) > 0 ) then
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
+            cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
+          end if
         end do
       else
-        do k = 1, kz
-          do ii = 1, nipoi
-            if ( ktype(ii) > 0 ) then
-              i = imap(ii)
-              j = jmap(ii)
-              cu_qten(j,i,k,iqc) = pxlte(ii,k) - &
-                  m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
-              cu_qten(j,i,k,iqi) = pxite(ii,k) - &
-                  m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
-            end if
-          end do
+        do concurrent ( ii = 1:nipoi, k = 1:kz )
+          if ( ktype(ii) > 0 ) then
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqc) = pxlte(ii,k) - &
+                m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
+            cu_qten(j,i,k,iqi) = pxite(ii,k) - &
+                m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
+          end if
         end do
       end if
     else
       if ( idynamic == 3 ) then
-        do k = 1, kz
-          do ii = 1, nipoi
-            if ( ktype(ii) > 0 ) then
-              i = imap(ii)
-              j = jmap(ii)
-              cu_qten(j,i,k,iqc) = (pxlte(ii,k)+pxite(ii,k)) - &
-                  m2c%qxten(j,i,k,iqc)
-              cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
-            end if
-          end do
+        do concurrent ( ii = 1:nipoi, k = 1:kz )
+          if ( ktype(ii) > 0 ) then
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqc) = (pxlte(ii,k)+pxite(ii,k)) - &
+                m2c%qxten(j,i,k,iqc)
+            cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
+          end if
         end do
       else
-        do k = 1, kz
-          do ii = 1, nipoi
-            if ( ktype(ii) > 0 ) then
-              i = imap(ii)
-              j = jmap(ii)
-              cu_qten(j,i,k,iqc) = (pxlte(ii,k) + pxite(ii,k)) - &
-                  m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
-              cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
-            end if
-          end do
+        do concurrent ( ii = 1:nipoi, k = 1:kz )
+          if ( ktype(ii) > 0 ) then
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqc) = (pxlte(ii,k) + pxite(ii,k)) - &
+                m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
+            cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
+          end if
         end do
       end if
     end if
@@ -502,41 +462,31 @@ module mod_cu_tiedtke
     if ( ichem == 1 .and. ichcumtra == 1 .and. &
          .not. any(icup == 2 .or. icup == 6) ) then
       if ( idynamic == 3 ) then
-        do n = 1, ntr
-          do k = 1, kz
-            do ii = 1, nipoi
-              if ( ktype(ii) > 0 ) then
-                i = imap(ii)
-                j = jmap(ii)
-                cu_chiten(j,i,k,n) = pxtte(ii,k,n) - m2c%chiten(j,i,k,n)
-              end if
-            end do
-          end do
+        do concurrent ( ii = 1:nipoi, k = 1:kz, n = 1:ntr )
+          if ( ktype(ii) > 0 ) then
+            i = imap(ii)
+            j = jmap(ii)
+            cu_chiten(j,i,k,n) = pxtte(ii,k,n) - m2c%chiten(j,i,k,n)
+          end if
         end do
       else
-        do n = 1, ntr
-          do k = 1, kz
-            do ii = 1, nipoi
-              if ( ktype(ii) > 0 ) then
-                i = imap(ii)
-                j = jmap(ii)
-                cu_chiten(j,i,k,n) = pxtte(ii,k,n) - &
-                            m2c%chiten(j,i,k,n)/m2c%psb(j,i)
-              end if
-            end do
-          end do
+        do concurrent ( ii = 1:nipoi, k = 1:kz, n = 1:ntr )
+          if ( ktype(ii) > 0 ) then
+            i = imap(ii)
+            j = jmap(ii)
+            cu_chiten(j,i,k,n) = pxtte(ii,k,n) - &
+                        m2c%chiten(j,i,k,n)/m2c%psb(j,i)
+          end if
         end do
       end if
       ! build for chemistry 3d table of conv. precipitation
       ! tend. Kg/kg/s
-      do k = 1, kz
-        do ii = 1, nipoi
-          if (ktype(ii) > 0) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_convpr(j,i,k) = zcvrout(ii,k)/dtc
-          end if
-        end do
+      do concurrent ( ii = 1:nipoi, k = 1:kz )
+        if (ktype(ii) > 0) then
+          i = imap(ii)
+          j = jmap(ii)
+          cu_convpr(j,i,k) = zcvrout(ii,k)/dtc
+        end if
       end do
     end if
 
@@ -545,12 +495,13 @@ module mod_cu_tiedtke
     !   Evaluation of cloudiness parameterizations using a cumulus
     !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
     !
-    do ii = 1, nipoi
+    do concurrent ( ii = 1:nipoi )
       if (ktype(ii) > 0) then
         i = imap(ii)
         j = jmap(ii)
         cu_ktop(j,i) = kctop(ii)
         cu_kbot(j,i) = kcbot(ii)
+        !$acc loop seq
         do k = kctop(ii), kcbot(ii)
           if ( ktype(ii) == 1 ) then
             cu_cldfrc(j,i,k) = kfac_deep*log(d_one+k2_const*pmfu(ii,k))
@@ -591,11 +542,13 @@ module mod_cu_tiedtke
       nk350 = kz
       nk060 = 1
       nk950 = kz
+      !$acc update host(pmean)
       do k = kz, 2, -1
         if ( pmean(k)/pmean(kz)*stdp >= 350.e2_rkx ) nk350 = k
         if ( pmean(k)/pmean(kz)*stdp >=  60.e2_rkx ) nk060 = k
         if ( pmean(k)/pmean(kz)*stdp >= 950.e2_rkx ) nk950 = k
       end do
+      !$acc update device(pmean)
     end subroutine setup
 
   end subroutine tiedtkedrv
@@ -653,33 +606,25 @@ module mod_cu_tiedtke
     ! --------------------------------------
     !
     if ( iconv /= 4 ) then
-#ifdef STDPAR
-      do concurrent ( jl = 1:kproma, jk = 1:klev ) local(it,zxlp,zxip)
-#else
-      do jk = 1, klev
-        do jl = 1, kproma
-#endif
-          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtc
-          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtc)
-          zxlp = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
-          zxip = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
-          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
-          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
-          zxp1(jl,jk) = max(d_zero,zxlp+zxip)
-          it = int(ztp1(jl,jk)*d_1000)
+      do concurrent ( jl = 1:kproma, jk = 1:klev )
+        ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtc
+        zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtc)
+        zxlp = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
+        zxip = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
+        zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
+        zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
+        zxp1(jl,jk) = max(d_zero,zxlp+zxip)
+        it = int(ztp1(jl,jk)*d_1000)
 #ifdef DEBUG
-          if ( it < jptlucu1 .or. it > jptlucu2 ) then
-            lookupoverflow = .true.
-          end if
+        if ( it < jptlucu1 .or. it > jptlucu2 ) then
+          lookupoverflow = .true.
+        end if
 #endif
-          it = max(min(it,jptlucu2),jptlucu1)
-          zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
-          zqsat(jl,jk) = min(qsmax,zqsat(jl,jk))
-          zqsat(jl,jk) = zqsat(jl,jk)/(d_one-ep1*zqsat(jl,jk))
-          ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
-#ifndef STDPAR
-        end do
-#endif
+        it = max(min(it,jptlucu2),jptlucu1)
+        zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
+        zqsat(jl,jk) = min(qsmax,zqsat(jl,jk))
+        zqsat(jl,jk) = zqsat(jl,jk)/(d_one-ep1*zqsat(jl,jk))
+        ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
       end do
       if ( lookupoverflow ) then
         do jk = 1, klev
@@ -696,22 +641,14 @@ module mod_cu_tiedtke
                    'Cumulus Tables lookup error: OVERFLOW')
       end if
     else
-#ifdef STDPAR
-      do concurrent ( jl = 1:kproma, jk = 1:klev ) local(zxlp,zxip)
-#else
-      do jk = 1, klev
-        do jl = 1, kproma
-#endif
-          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtc
-          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtc)
-          zxlp = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
-          zxip = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
-          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
-          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
-          zxp1(jl,jk) = max(d_zero,zxlp+zxip)
-#ifndef STDPAR
-        end do
-#endif
+      do concurrent ( jl = 1:kproma, jk = 1:klev )
+        ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtc
+        zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtc)
+        zxlp = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
+        zxip = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
+        zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
+        zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
+        zxp1(jl,jk) = max(d_zero,zxlp+zxip)
       end do
     end if
 
@@ -719,7 +656,7 @@ module mod_cu_tiedtke
       zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtc)
     end do
 
-    do jl = 1, kproma
+    do concurrent ( jl = 1:kproma )
       zrain(jl) = d_zero
       locum(jl) = .false.
     end do
@@ -798,13 +735,17 @@ module mod_cu_tiedtke
       !
       ! Set to zero BL fluxes: we call BL after CU
       !
+      !$acc kernels
       pqhfl = d_zero
       pahfs = d_zero
+      !$acc end kernels
       !
       ! Reset to zero output precipitation fluxes
       !
+      !$acc kernels
       pmflxr = d_zero
       pmflxs = d_zero
+      !$acc end kernels
       !
       ! Call scheme
       !
@@ -815,8 +756,10 @@ module mod_cu_tiedtke
                     zlu,pmflxr,pmflxs,zrain,pmfu,zmfd,zlude,       &
                     pmfude_rate,pmfdde_rate,pcape,ktrac,pxtm1,     &
                     pxtte,pccn,zcvrout)
+      !$acc kernels
       prsfc = pmflxr(:,klev+1)*1.e3_rkx
       pssfc = pmflxs(:,klev+1)*1.e3_rkx
+      !$acc end kernels
     case default
       call fatal(__FILE__,__LINE__, &
                  'ICONV must be in the range 1-4')
@@ -828,16 +771,19 @@ module mod_cu_tiedtke
     !
     if ( iconv /= 4 ) then
       ilevmin = klev - 4
-      do jl = 1, kproma
+      do concurrent ( jl = 1:kproma )
         itopec2(jl) = klevp1
       end do
-      do jk = 1, ilevmin
-        do jl = 1, kproma
+      do concurrent ( jl = 1:kproma )
+        !$acc loop seq
+        do jk = 1, ilevmin
           if ( ilab(jl,jk) == 2 .and. itopec2(jl) == klevp1 ) itopec2(jl) = jk
         end do
       end do
+      !$acc kernels
       ztopmax(1:kproma) = ptopmax(1:kproma)
-      do jl = 1, kproma
+      !$acc end kernels
+      do concurrent ( jl = 1:kproma )
         if ( itopec2(jl) == 1 ) then
           ptopmax(jl) = papp1(jl,1)
         else if ( itopec2(jl) /= klevp1 ) then
@@ -4798,8 +4744,10 @@ module mod_cu_tiedtke
     ! ---------------------------------------
     ! 0. Compute Saturation specific humidity
     ! ---------------------------------------
+    !$acc kernels
     ldcum(:) = .false.
     qs(:,:) = q(:,:)
+    !$acc end kernels
     call satur(nk060,ph,t,qs)
     !------------------------------------
     ! 1. Specify constants and parameters
@@ -4832,13 +4780,14 @@ module mod_cu_tiedtke
     ! ----------------------------------------------------------
     ! Calculate column and sub cloud layer moisture convergence
     ! and sub cloud layer moist static energy convergence
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       dqcv(n) = d_zero
       dhpbl(n) = d_zero
       idtop(n) = 0
     end do
-    do k = nk060, nk
-      do n = n1, n2
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = nk060, nk
         dqcv(n) = dqcv(n) + max(d_zero,tenq(n,k)) * (pf(n,k+1)-pf(n,k))
         if ( ldcum(n) .and. k >= kcbot(n) ) then
           dhpbl(n) = dhpbl(n) + &
@@ -4852,7 +4801,7 @@ module mod_cu_tiedtke
     ! ----------------------------------------------------
     ! Specify initial cloud type
     !
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       if ( ldcum(n) ) then
         ikb = kcbot(n)
         itopm2 = ictop0(n)
@@ -4875,7 +4824,7 @@ module mod_cu_tiedtke
     !     downdraughts)
     ! ----------------------------------------------------------------------
     if ( lmfwstar ) then
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         if ( ldcum(n) ) then
           ikb = kcbot(n)
           dz = max(d_zero,min(1.5e3_rkx,(geof(n,ikb)-geof(n,nk+1))*regrav))
@@ -4887,7 +4836,7 @@ module mod_cu_tiedtke
         end if
       end do
     end if
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       if ( ldcum(n) ) then
         ikb = kcbot(n)
         mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
@@ -4924,7 +4873,7 @@ module mod_cu_tiedtke
     !  (C) Check cloud depth and change entrainment rate accordingly
     !      Calculate precipitation rate (for downdraft calculation)
     ! -----------------------------------------------------------------------
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       if ( ldcum(n) ) then
         ikb = kcbot(n)
         itopm2 = kctop(n)
@@ -4935,8 +4884,9 @@ module mod_cu_tiedtke
       end if
       rfl(n) = dmfup(n,1)
     end do
-    do k = 2, nk
-      do n = n1, n2
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 2, nk
         rfl(n) = rfl(n) + dmfup(n,k)
       end do
     end do
@@ -4968,13 +4918,14 @@ module mod_cu_tiedtke
     !   into account for shallow convection (ktype=2)
     ! --------------------------------------------------------------
     ! Deep convection
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       rheat(n) = d_zero
       xcape(n) = d_zero
       mfub1(n) = mfub(n)
     end do
-    do k = 1, nk
-      do n = n1, n2
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 1, nk
         llo1 = ldcum(n) .and. ktype(n) == 1
         if ( llo1 .and. k <= kcbot(n) .and. k > kctop(n) ) then
           ikb = kcbot(n)
@@ -4988,7 +4939,7 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       if ( ldcum(n) .and. ktype(n) == 1 ) then
         ikb = kcbot(n)
         ik = kctop(n)
@@ -5005,7 +4956,7 @@ module mod_cu_tiedtke
       end if
     end do
     ! Shallow convection and mid_level
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       if ( ldcum(n) .and. (ktype(n) == 2 .or. ktype(n) == 3) ) then
         ikb = kcbot(n)
         if ( mfd(n,ikb) < d_zero ) then
@@ -5038,27 +4989,26 @@ module mod_cu_tiedtke
       end if
     end do
     ! Rescale DD fluxes if deep and shallow convection
-    do k = 1, nk
-      do n = n1, n2
-        if ( lddraf(n) .and. (ktype(n) == 1 .or. ktype(n) == 2) ) then
-          fac = mfub1(n)/max(mfub(n),1.0e-10_rkx)
-          mfd(n,k) = mfd(n,k)*fac
-          mfds(n,k) = mfds(n,k)*fac
-          mfdq(n,k) = mfdq(n,k)*fac
-          dmfdp(n,k) = dmfdp(n,k)*fac
-          ! also rescale detrainment flux for ERA pp
-          mfdde_rate(n,k) = mfdde_rate(n,k)*fac
-        end if
-      end do
+    do concurrent ( n = n1:n2, k = 1:nk )
+      if ( lddraf(n) .and. (ktype(n) == 1 .or. ktype(n) == 2) ) then
+        fac = mfub1(n)/max(mfub(n),1.0e-10_rkx)
+        mfd(n,k) = mfd(n,k)*fac
+        mfds(n,k) = mfds(n,k)*fac
+        mfdq(n,k) = mfdq(n,k)*fac
+        dmfdp(n,k) = dmfdp(n,k)*fac
+        ! also rescale detrainment flux for ERA pp
+        mfdde_rate(n,k) = mfdde_rate(n,k)*fac
+      end if
     end do
     !--------------------------
     ! 6.1 Final closure=scaling
     ! -------------------------
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       if ( ldcum(n) ) mfs(n) = mfub1(n)/max(cmfcmin,mfub(n))
     end do
-    do k = 2, nk
-      do n = n1, n2
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 2, nk
         if ( ldcum(n) .and. k >= kctop(n)-1 ) then
           ikb = kcbot(n)
           if ( k>ikb ) then
@@ -5072,26 +5022,24 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    do k = 2, nk
-      do n = n1, n2
-        if ( ldcum(n) .and. k <= kcbot(n) .and. k >= kctop(n)-1 ) then
-          mfu(n,k) = mfu(n,k)*mfs(n)
-          mfus(n,k) = mfus(n,k)*mfs(n)
-          mfuq(n,k) = mfuq(n,k)*mfs(n)
-          mful(n,k) = mful(n,k)*mfs(n)
-          dmfup(n,k) = dmfup(n,k)*mfs(n)
-          dmfen(n,k) = dmfen(n,k)*mfs(n)
-          lude(n,k) = lude(n,k)*mfs(n)
-          mfude_rate(n,k) = mfude_rate(n,k)*mfs(n)
-        end if
-      end do
+    do concurrent ( n = n1:n2, k = 2:nk )
+      if ( ldcum(n) .and. k <= kcbot(n) .and. k >= kctop(n)-1 ) then
+        mfu(n,k) = mfu(n,k)*mfs(n)
+        mfus(n,k) = mfus(n,k)*mfs(n)
+        mfuq(n,k) = mfuq(n,k)*mfs(n)
+        mful(n,k) = mful(n,k)*mfs(n)
+        dmfup(n,k) = dmfup(n,k)*mfs(n)
+        dmfen(n,k) = dmfen(n,k)*mfs(n)
+        lude(n,k) = lude(n,k)*mfs(n)
+        mfude_rate(n,k) = mfude_rate(n,k)*mfs(n)
+      end if
     end do
     !--------------------------------------------------------
     ! 6.2 In case that either deep or shallow is switched off
     !      reset ldcum to false-> fluxes set to zero
     ! -------------------------------------------------------
     ! exclude pathological ktype=2 kcbot=kctop=nk-1
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       if ( ktype(n) == 2 .and.        &
            kcbot(n) == kctop(n) .and. &
            kcbot(n) >= nk-1 ) then
@@ -5100,7 +5048,7 @@ module mod_cu_tiedtke
       end if
     end do
     if ( .not. lmfscv .or. .not. lmfpen ) then
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         llo2(n) = .false.
         if ( (.not. lmfscv .and. ktype(n) == 2) .or. &
              (.not. lmfpen .and. ktype(n) == 1) ) then
@@ -5114,35 +5062,36 @@ module mod_cu_tiedtke
     ! ------------------------------------
     !- set DD mass fluxes to zero above cloud top
     ! (because of inconsistency with second updraught)
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       if ( lddraf(n) .and. idtop(n) <= kctop(n) ) then
         idtop(n) = kctop(n) + 1
       end if
     end do
-    do k = 2, nk
-      do n = n1, n2
-        if ( lddraf(n) ) then
-          if ( k < idtop(n) ) then
-            mfd(n,k) = d_zero
-            mfds(n,k) = d_zero
-            mfdq(n,k) = d_zero
-            mfdde_rate(n,k) = d_zero
-            dmfdp(n,k) = d_zero
-          else if ( k == idtop(n) ) then
-            mfdde_rate(n,k) = d_zero
-          end if
+    do concurrent ( n = n1:n2, k = 2:nk )
+      if ( lddraf(n) ) then
+        if ( k < idtop(n) ) then
+          mfd(n,k) = d_zero
+          mfds(n,k) = d_zero
+          mfdq(n,k) = d_zero
+          mfdde_rate(n,k) = d_zero
+          dmfdp(n,k) = d_zero
+        else if ( k == idtop(n) ) then
+          mfdde_rate(n,k) = d_zero
         end if
-      end do
+      end if
     end do
     call cfluxes
     !- rescale DD fluxes if total mass flux becomes negative
     !- correct DD detrainment rates if entrainment becomes negative
     !- correct UD detrainment rates if entrainment becomes negative
     !- conservation correction for precip
+    !$acc kernels
     mfs(:) = d_one
-    do k = 2, nk
-      ! change for stability
-      do n = n1, n2
+    !$acc end kernels
+    ! change for stability
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 2, nk
         if ( lddraf(n) .and. k >= idtop(n)-1 ) then
           mfmax = mfu(n,k)*0.98_rkx
           if ( mfd(n,k)+mfmax+1.e-15_rkx < d_zero ) then
@@ -5151,9 +5100,12 @@ module mod_cu_tiedtke
         end if
       end do
     end do
+    !$acc kernels
     mfuub(:) = d_zero
-    do k = 2, nk
-      do n = n1, n2
+    !$acc end kernels
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 2, nk
         if ( mfs(n) < d_one .and. k >= idtop(n)-1 ) then
           mfd(n,k) = mfd(n,k)*mfs(n)
           mfds(n,k) = mfds(n,k)*mfs(n)
@@ -5165,26 +5117,24 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    do k = 2, nk - 1
-      do n = n1, n2
-        if ( lddraf(n) .and. k >= idtop(n)-1 ) then
-          erate = -mfd(n,k) + mfd(n,k-1) + mfdde_rate(n,k)
-          if ( erate < d_zero ) then
-            mfdde_rate(n,k) = mfdde_rate(n,k) - erate
-          end if
+    do concurrent ( n = n1:n2, k = 2:nk-1 )
+      if ( lddraf(n) .and. k >= idtop(n)-1 ) then
+        erate = -mfd(n,k) + mfd(n,k-1) + mfdde_rate(n,k)
+        if ( erate < d_zero ) then
+          mfdde_rate(n,k) = mfdde_rate(n,k) - erate
         end if
-        if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-          erate = mfu(n,k) - mfu(n,k+1) + mfude_rate(n,k)
-          if ( erate < d_zero ) then
-            mfude_rate(n,k) = mfude_rate(n,k) - erate
-          end if
-          dmfup(n,k) = mflxr(n,k+1) + mflxs(n,k+1) - mflxr(n,k) - mflxs(n,k)
-          dmfdp(n,k) = d_zero
+      end if
+      if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+        erate = mfu(n,k) - mfu(n,k+1) + mfude_rate(n,k)
+        if ( erate < d_zero ) then
+          mfude_rate(n,k) = mfude_rate(n,k) - erate
         end if
-      end do
+        dmfup(n,k) = mflxr(n,k+1) + mflxs(n,k+1) - mflxr(n,k) - mflxs(n,k)
+        dmfdp(n,k) = d_zero
+      end if
     end do
     ! Avoid negative humidities at ddraught top
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       if ( lddraf(n) ) then
         k = idtop(n)
         ik = min(k+1,nk)
@@ -5199,32 +5149,26 @@ module mod_cu_tiedtke
     end do
     ! Avoid negative humidities near cloud top because gradient of precip flux
     ! and detrainment / liquid water flux too large
-    do k = 2, nk
-      do n = n1, n2
-        if ( ldcum(n) .and. k >= kctop(n)-1 .and. k < kcbot(n) ) then
-          dz = dtc*egrav/(pf(n,k+1)-pf(n,k))
-          mfa = mfuq(n,k+1) + mfdq(n,k+1) - mfuq(n,k) - mfdq(n,k) + &
-                mful(n,k+1) - mful(n,k) + dmfup(n,k)
-          mfa = (mfa-lude(n,k))*dz
-          if ( q(n,k)+mfa < d_zero ) then
-            lude(n,k) = lude(n,k) + d_two*(q(n,k)+mfa)/dz
-          end if
-          if ( lude(n,k) < d_zero ) lude(n,k) = d_zero
+    do concurrent ( n = n1:n2, k = 2:nk )
+      if ( ldcum(n) .and. k >= kctop(n)-1 .and. k < kcbot(n) ) then
+        dz = dtc*egrav/(pf(n,k+1)-pf(n,k))
+        mfa = mfuq(n,k+1) + mfdq(n,k+1) - mfuq(n,k) - mfdq(n,k) + &
+              mful(n,k+1) - mful(n,k) + dmfup(n,k)
+        mfa = (mfa-lude(n,k))*dz
+        if ( q(n,k)+mfa < d_zero ) then
+          lude(n,k) = lude(n,k) + d_two*(q(n,k)+mfa)/dz
         end if
-        if ( .not. ldcum(n) ) mfude_rate(n,k) = d_zero
-        if ( abs(mfd(n,k-1)) < almostzero ) mfdde_rate(n,k) = d_zero
-      end do
+        if ( lude(n,k) < d_zero ) lude(n,k) = d_zero
+      end if
+      if ( .not. ldcum(n) ) mfude_rate(n,k) = d_zero
+      if ( abs(mfd(n,k-1)) < almostzero ) mfdde_rate(n,k) = d_zero
     end do
     if ( llconscheck ) then
       if ( lmftrac .and. ntrac > 0 ) then
         allocate (xtenc(np,nk,ntrac))
         allocate (xsumc(np,4+ntrac))
-        do nt = 1, ntrac
-          do k = 2, nk
-            do n = n1, n2
-              if ( ldcum(n) ) xtenc(n,k,nt) = tenc(n,k,nt)
-            end do
-          end do
+        do concurrent ( n = n1:n2, k = 2:nk, nt = 1:ntrac )
+          if ( ldcum(n) ) xtenc(n,k,nt) = tenc(n,k,nt)
         end do
       else
         allocate (xsumc(np,4))
@@ -5235,30 +5179,28 @@ module mod_cu_tiedtke
     ! --------------------------------
     if ( rmfsoltq > d_zero ) then
       !   derive draught properties for implicit
-      do k = nk, 2, -1
-        do n = n1, n2
-          if ( ldcum(n) ) then
-            if ( k > kcbot(n) ) then
-              mfa = d_one/max(1.e-15_rkx,mfu(n,k))
-              qu(n,k) = qf(n,k) + mfuq(n,k)*mfa
-              tu(n,k) = tf(n,k) + mfus(n,k)*mfa*rcpd
-              mfus(n,k) = mfu(n,k)*(cpd*tu(n,k)+geof(n,k))
-              mfuq(n,k) = mfu(n,k)*qu(n,k)
-              if ( lddraf(n) ) then
-                mfa = d_one/min(-1.e-15_rkx,mfd(n,k))
-                qd(n,k) = qf(n,k) + mfdq(n,k)*mfa
-                td(n,k) = tf(n,k) + mfds(n,k)*mfa*rcpd
-                mfdq(n,k) = mfd(n,k)*qd(n,k)
-                mfds(n,k) = mfd(n,k)*(cpd*td(n,k)+geof(n,k))
-              end if
-            else if ( k <= kcbot(n) .and. k >= kctop(n) ) then
-              mfus(n,k) = mfu(n,k)*(cpd*tu(n,k)+geof(n,k))
-              mfuq(n,k) = mfu(n,k)*qu(n,k)
-              mfds(n,k) = mfd(n,k)*(cpd*td(n,k)+geof(n,k))
+      do concurrent ( n = n1:n2, k = nk:2:-1 )
+        if ( ldcum(n) ) then
+          if ( k > kcbot(n) ) then
+            mfa = d_one/max(1.e-15_rkx,mfu(n,k))
+            qu(n,k) = qf(n,k) + mfuq(n,k)*mfa
+            tu(n,k) = tf(n,k) + mfus(n,k)*mfa*rcpd
+            mfus(n,k) = mfu(n,k)*(cpd*tu(n,k)+geof(n,k))
+            mfuq(n,k) = mfu(n,k)*qu(n,k)
+            if ( lddraf(n) ) then
+              mfa = d_one/min(-1.e-15_rkx,mfd(n,k))
+              qd(n,k) = qf(n,k) + mfdq(n,k)*mfa
+              td(n,k) = tf(n,k) + mfds(n,k)*mfa*rcpd
               mfdq(n,k) = mfd(n,k)*qd(n,k)
+              mfds(n,k) = mfd(n,k)*(cpd*td(n,k)+geof(n,k))
             end if
+          else if ( k <= kcbot(n) .and. k >= kctop(n) ) then
+            mfus(n,k) = mfu(n,k)*(cpd*tu(n,k)+geof(n,k))
+            mfuq(n,k) = mfu(n,k)*qu(n,k)
+            mfds(n,k) = mfd(n,k)*(cpd*td(n,k)+geof(n,k))
+            mfdq(n,k) = mfd(n,k)*qd(n,k)
           end if
-        end do
+        end if
       end do
     end if
     call dtdqc
@@ -5266,9 +5208,10 @@ module mod_cu_tiedtke
     ! 9. Compute momentum in updraught and downdraught
     ! ------------------------------------------------
     if ( lmfdudv ) then
-      do k = nk - 1, 2, -1
-        ik = k + 1
-        do n = n1, n2
+      do concurrent ( n = n1:n2 )
+        !$acc loop seq
+        do k = nk - 1, 2, -1
+          ik = k + 1
           if ( ldcum(n) ) then
             if ( k == kcbot(n) .and. ktype(n) < 3 ) then
               ikb = idpl(n)
@@ -5291,9 +5234,10 @@ module mod_cu_tiedtke
           end if
         end do
       end do
-      do k = 3, nk
-        ik = k - 1
-        do n = n1, n2
+      do concurrent ( n = n1:n2 )
+        !$acc loop seq
+        do k = 3, nk
+          ik = k - 1
           if ( ldcum(n) ) then
             if ( k == idtop(n) ) then
               ud(n,k) = d_half*(uu(n,k)+u(n,ik))
@@ -5316,10 +5260,13 @@ module mod_cu_tiedtke
       ! For explicit/semi-implicit rescale massfluxes for stability in
       ! momentum
       !---------------------------------------------------------------
+      !$acc kernels
       mfs(:) = d_one
+      !$acc end kernels
       if ( rmfsoluv <= d_one ) then
-        do k = 2, nk
-          do n = n1, n2
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 2, nk
             if ( ldcum(n) .and. k >= kctop(n)-1 ) then
               mfmax = (pf(n,k)-pf(n,k-1))*cons
               if ( mfu(n,k) > mfmax .and. k >= kctop(n) ) then
@@ -5329,20 +5276,18 @@ module mod_cu_tiedtke
           end do
         end do
       end if
-      do k = 1, nk
-        do n = n1, n2
-          mfuus(n,k) = mfu(n,k)
-          mfdus(n,k) = mfd(n,k)
-          if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-            mfuus(n,k) = mfu(n,k)*mfs(n)
-            mfdus(n,k) = mfd(n,k)*mfs(n)
-          end if
-        end do
+      do concurrent ( n = n1:n2, k = 1:nk )
+        mfuus(n,k) = mfu(n,k)
+        mfdus(n,k) = mfd(n,k)
+        if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+          mfuus(n,k) = mfu(n,k)*mfs(n)
+          mfdus(n,k) = mfd(n,k)*mfs(n)
+        end if
       end do
       ! Recompute Draught properties below for Implicit
       ! based on linear flux profiles
       if ( rmfsoluv > d_zero ) then
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( ldcum(n) ) then
             k = kcbot(n)
             ik = k - 1
@@ -5350,9 +5295,10 @@ module mod_cu_tiedtke
             mfuvb(n) = mfuus(n,k)*(vu(n,k)-v(n,ik))
           end if
         end do
-        do k = 2, nk
-          ik = k - 1
-          do n = n1, n2
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 2, nk
+            ik = k - 1
             if ( ldcum(n) .and. k > kcbot(n) ) then
               ikb = kcbot(n)
               dz = ((pf(n,nk+1)-pf(n,k)) / (pf(n,nk+1)-pf(n,ikb)))
@@ -5379,12 +5325,13 @@ module mod_cu_tiedtke
       call dudvx(mfuus,mfdus)
       if ( lmfuvdis ) then
         ! add KE dissipation
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           xsum12(n) = d_zero
           xsum22(n) = d_zero
         end do
-        do k = 1, nk
-          do n = n1, n2
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 1, nk
             uv2(n,k) = d_zero
             if ( ldcum(n) .and. k >= kctop(n)-1 ) then
               dz = (pf(n,k+1)-pf(n,k))
@@ -5396,14 +5343,12 @@ module mod_cu_tiedtke
             end if
           end do
         end do
-        do k = 1, nk
-          do n = n1, n2
-            if ( ldcum(n) .and. k>=kctop(n)-1 ) then
-              dz = (pf(n,k+1)-pf(n,k))
-              tdis = rcpd*xsum12(n)*uv2(n,k)/max(1.e-15_rkx,xsum22(n))
-              tent(n,k) = tent(n,k) + tdis
-            end if
-          end do
+        do concurrent ( n = n1:n2, k = 1:nk )
+          if ( ldcum(n) .and. k>=kctop(n)-1 ) then
+            dz = (pf(n,k+1)-pf(n,k))
+            tdis = rcpd*xsum12(n)*uv2(n,k)/max(1.e-15_rkx,xsum22(n))
+            tent(n,k) = tent(n,k) + tdis
+          end if
         end do
       end if
     end if
@@ -5412,19 +5357,17 @@ module mod_cu_tiedtke
     !     need to set some variables a posteriori to zero
     !--------------------------------------------------------
     if ( .not. lmfscv .or. .not. lmfpen ) then
-      do k = 2, nk
-        do n = n1, n2
-          if ( llo2(n) .and. k >= kctop(n)-1 ) then
-            tu(n,k) = t(n,k)
-            qu(n,k) = q(n,k)
-            lu(n,k) = d_zero
-            penth(n,k) = d_zero
-            mfude_rate(n,k) = d_zero
-            mfdde_rate(n,k) = d_zero
-          end if
-        end do
+      do concurrent ( n = n1:n2, k = 2:nk )
+        if ( llo2(n) .and. k >= kctop(n)-1 ) then
+          tu(n,k) = t(n,k)
+          qu(n,k) = q(n,k)
+          lu(n,k) = d_zero
+          penth(n,k) = d_zero
+          mfude_rate(n,k) = d_zero
+          mfdde_rate(n,k) = d_zero
+        end if
       end do
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         if ( llo2(n) ) then
           kctop(n) = nk - 1
           kcbot(n) = nk - 1
@@ -5436,7 +5379,7 @@ module mod_cu_tiedtke
     ! -----------------------------
     if ( lmftrac .and. ntrac > 0 ) then
       ! transport switched off for mid-level convection
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         if ( ldcum(n) .and. ktype(n) /= 3 .and. kcbot(n)-kctop(n) >= 1 ) then
           lldcum(n) = .true.
           llddraf3(n) = lddraf(n)
@@ -5446,10 +5389,13 @@ module mod_cu_tiedtke
         end if
       end do
       ! check and correct mass fluxes for CFL criterium
+      !$acc kernels
       mfs(:) = d_one
+      !$acc end kernels
       if ( rmfsolct <= d_three ) then
-        do k = 2, nk
-          do n = n1, n2
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 2, nk
             if ( lldcum(n) .and. k >= kctop(n) ) then
               mfmax = (pf(n,k)-pf(n,k-1))*0.8_rkx*cons
               if ( mfu(n,k) > mfmax ) then
@@ -5459,28 +5405,27 @@ module mod_cu_tiedtke
           end do
         end do
       end if
-      do k = 1, nk
-        do n = n1, n2
-          if ( lldcum(n) .and. k >= kctop(n)-1 ) then
-            mfuus(n,k) = mfu(n,k)*mfs(n)
-            mfudr(n,k) = mfude_rate(n,k)*mfs(n)
-          else
-            mfuus(n,k) = d_zero
-            mfudr(n,k) = d_zero
-          end if
-          if ( llddraf3(n) .and. k >= idtop(n)-1 ) then
-            mfdus(n,k) = mfd(n,k)*mfs(n)
-            mfddr(n,k) = mfdde_rate(n,k)*mfs(n)
-          else
-            mfdus(n,k) = d_zero
-            mfddr(n,k) = d_zero
-          end if
-        end do
+      do concurrent ( n = n1:n2, k = 1:nk )
+        if ( lldcum(n) .and. k >= kctop(n)-1 ) then
+          mfuus(n,k) = mfu(n,k)*mfs(n)
+          mfudr(n,k) = mfude_rate(n,k)*mfs(n)
+        else
+          mfuus(n,k) = d_zero
+          mfudr(n,k) = d_zero
+        end if
+        if ( llddraf3(n) .and. k >= idtop(n)-1 ) then
+          mfdus(n,k) = mfd(n,k)*mfs(n)
+          mfddr(n,k) = mfdde_rate(n,k)*mfs(n)
+        else
+          mfdus(n,k) = d_zero
+          mfddr(n,k) = d_zero
+        end if
       end do
       if ( lmfsmooth ) then
         ! smoothing of mass fluxes (gradients) at top and bottom of draughts
-        do k = 2, nk - 1
-          do n = n1, n2
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 2, nk - 1
             if ( llddraf3(n) .and. mfdus(n,k) < d_zero .and. &
                  abs(mfdus(n,k+1)) < almostzero ) then
               erate = min(d_zero,mfdus(n,k)-d_half*mfdus(n,k-1))
@@ -5496,8 +5441,9 @@ module mod_cu_tiedtke
             end if
           end do
         end do
-        do k = nk - 1, 2, -1
-          do n = n1, n2
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = nk - 1, 2, -1
             if ( lldcum(n) ) then
               if ( abs(mfudr(n,k)) < almostzero .and. &
                        mfudr(n,k-1) > d_zero ) then
@@ -5512,30 +5458,29 @@ module mod_cu_tiedtke
     !----------------------------------------------------------
     ! 12. Put detrainment rates from mflx units in units mflx/m
     ! ---------------------------------------------------------
-    do k = 2, nk
-      do n = n1, n2
-        if ( ldcum(n) ) then
-          xro = egrav/(geof(n,k)-geof(n,k+1)) ! 1/dz
-          mfude_rate(n,k) = mfude_rate(n,k)*xro
-          mfdde_rate(n,k) = mfdde_rate(n,k)*xro
-          if ( k < kctop(n) ) then
-            lu(n,k) = d_zero
-            tu(n,k) = t(n,k)
-            qu(n,k) = q(n,k)
-          end if
+    do concurrent ( n = n1:n2, k = 2:nk )
+      if ( ldcum(n) ) then
+        xro = egrav/(geof(n,k)-geof(n,k+1)) ! 1/dz
+        mfude_rate(n,k) = mfude_rate(n,k)*xro
+        mfdde_rate(n,k) = mfdde_rate(n,k)*xro
+        if ( k < kctop(n) ) then
+          lu(n,k) = d_zero
+          tu(n,k) = t(n,k)
+          qu(n,k) = q(n,k)
         end if
-      end do
+      end if
     end do
 
     if ( llconscheck ) then
       !--------------------------------------
       ! 13. Conservation check AND correction
       ! -------------------------------------
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         xsumc(n,:) = d_zero
       end do
-      do k = nk, 2, -1
-        do n = n1, n2
+      do concurrent ( n = n1:n2 )
+        !$acc loop seq
+        do k = nk, 2, -1
           if ( ldcum(n) .and. k >= kctop(n)-1 ) then
             dz = (pf(n,k+1)-pf(n,k))*regrav
             xsumc(n,1) = xsumc(n,1) + &
@@ -5549,17 +5494,17 @@ module mod_cu_tiedtke
         end do
       end do
       if ( lmftrac .and. ntrac > 0 ) then
-        do nt = 1, ntrac
+        do concurrent ( n = n1:n2, nt = 1:ntrac )
+          !$acc loop seq
           do k = nk, 2, -1
-            do n = n1, n2
-              if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-                dz = (pf(n,k+1)-pf(n,k))*regrav
-                xsumc(n,4+nt) = xsumc(n,4+nt) + (tenc(n,k,nt)-xtenc(n,k,nt))*dz
-              end if
-            end do
+            if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+              dz = (pf(n,k+1)-pf(n,k))*regrav
+              xsumc(n,4+nt) = xsumc(n,4+nt) + (tenc(n,k,nt)-xtenc(n,k,nt))*dz
+            end if
           end do
         end do
       end if
+      !$acc update host(ldcum,t,mflxr,mflxs,sfl,xsumc,kctop,pf)
       do n = n1, n2
         if ( ldcum(n) ) then
           xalv = mlw(t(n,nk))
@@ -5586,21 +5531,20 @@ module mod_cu_tiedtke
       end do
       deallocate (xsumc)
       if ( lmftrac .and. ntrac > 0 ) deallocate (xtenc)
+      !$acc update device(ldcum,t,mflxr,mflxs,sfl,kctop,pf)
     end if
     !-------------------------------------------------------
     ! 14. Compute convective tendencies for liquid and solid
     !     cloud condensate
     ! ------------------------------------------------------
-    do k = 1, nk
-      do n = n1, n2
-        tenl(n,k) = lude(n,k)*egrav/(pf(n,k+1)-pf(n,k))
-        teni(n,k) = (d_one-xalpha(t(n,k)))*tenl(n,k)
-        tenl(n,k) = tenl(n,k) - teni(n,k)
-        mflxr(n,k) = mflxr(n,k)*1.e-3_rkx
-        mflxs(n,k) = mflxs(n,k)*1.e-3_rkx
-      end do
+    do concurrent ( n = n1:n2, k = 1:nk )
+      tenl(n,k) = lude(n,k)*egrav/(pf(n,k+1)-pf(n,k))
+      teni(n,k) = (d_one-xalpha(t(n,k)))*tenl(n,k)
+      tenl(n,k) = tenl(n,k) - teni(n,k)
+      mflxr(n,k) = mflxr(n,k)*1.e-3_rkx
+      mflxs(n,k) = mflxs(n,k)*1.e-3_rkx
     end do
-    do n = n1, n2
+    do concurrent ( n = n1:n2 )
       mflxr(n,nk+1) = mflxr(n,nk+1)*1.e-3_rkx
       mflxs(n,nk+1) = mflxs(n,nk+1)*1.e-3_rkx
     end do
@@ -5625,7 +5569,7 @@ module mod_cu_tiedtke
       !    find level of maximum vertical velocity
       ! -------------------------------------------------
       do k = 2, nk
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           tf(n,k) = (max(cpd*t(n,k-1) + &
             geo(n,k-1),cpd*t(n,k)+geo(n,k))-geof(n,k))*rcpd
           qf(n,k) = q(n,k-1)
@@ -5637,12 +5581,12 @@ module mod_cu_tiedtke
         ik = k
         icall = 3
         call moistadj(ik,xph,tf,qsf,llflag,icall)
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           qf(n,k) = min(q(n,k-1),qs(n,k-1))+(qsf(n,k)-qs(n,k-1))
           qf(n,k) = max(qf(n,k),d_zero)
         end do
       end do
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         tf(n,nk) = (cpd*t(n,nk)+geo(n,nk)-geof(n,nk))*rcpd
         qf(n,nk) = q(n,nk)
         tf(n,1) = t(n,1)
@@ -5650,14 +5594,12 @@ module mod_cu_tiedtke
         ilwmin(n) = nk
         wmax(n) = d_zero
       end do
-      do k = nk - 1, 2, -1
-        do n = n1, n2
-          zs = max(cpd*tf(n,k)+geof(n,k),cpd*tf(n,k+1)+geof(n,k+1))
-          tf(n,k) = (zs-geof(n,k))*rcpd
-        end do
+      do concurrent ( n = n1:n2, k = nk-1:2:-1 )
+        zs = max(cpd*tf(n,k)+geof(n,k),cpd*tf(n,k+1)+geof(n,k+1))
+        tf(n,k) = (zs-geof(n,k))*rcpd
       end do
       do k = nk, 3, -1
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( omega(n,k) < wmax(n) ) then
             wmax(n) = omega(n,k)
             ilwmin(n) = k
@@ -5667,21 +5609,19 @@ module mod_cu_tiedtke
       !-------------------------------------------------
       ! 2. Initialize values for updrafts and downdrafts
       ! ------------------------------------------------
-      do k = 1, nk
-        do n = n1, n2
-          km1 = max(k-1,1)
-          tu(n,k) = tf(n,k)
-          td(n,k) = tf(n,k)
-          qu(n,k) = qf(n,k)
-          qd(n,k) = qf(n,k)
-          lu(n,k) = d_zero
-          uu(n,k) = u(n,km1)
-          ud(n,k) = u(n,km1)
-          vu(n,k) = v(n,km1)
-          vd(n,k) = v(n,km1)
-          ilab(n,k) = 0
-          cvrainout(n,k) = d_zero
-        end do
+      do concurrent ( n = n1:n2, k = 1:nk )
+        km1 = max(k-1,1)
+        tu(n,k) = tf(n,k)
+        td(n,k) = tf(n,k)
+        qu(n,k) = qf(n,k)
+        qd(n,k) = qf(n,k)
+        lu(n,k) = d_zero
+        uu(n,k) = u(n,km1)
+        ud(n,k) = u(n,km1)
+        vu(n,k) = v(n,km1)
+        vd(n,k) = v(n,km1)
+        ilab(n,k) = 0
+        cvrainout(n,k) = d_zero
       end do
     end subroutine initcum
     !
@@ -5708,9 +5648,12 @@ module mod_cu_tiedtke
       real(rkx), dimension(np,nk), intent(in) :: r    ! right hand side
       real(rkx), dimension(np,nk), intent(out) :: u   ! solution
       integer(ik4) :: k, n
+      !$acc kernels
       u(:,:) = d_zero
-      do k = 2, nk
-        do n = n1, n2
+      !$acc end kernels
+      do concurrent ( n = n1:n2 )
+        !$acc loop seq
+        do k = 2, nk
           if ( wmask(n,k) ) then
             if ( abs(b(n,k)) > almostzero ) then
               if ( k == ktop(n)-1 ) then
@@ -5735,11 +5678,9 @@ module mod_cu_tiedtke
       real(rkx), dimension(np,nk), intent(out) :: qsat ! Satur. MXR kg/kg
       integer(ik4) :: k, n
       real(rkx) :: qs
-      do k = kt, nk
-        do n = n1, n2
-          qs = min(qsmax,fesat(t(n,k))/pr(n,k))
-          qsat(n,k) = qs/(d_one-ep1*qs)
-        end do
+      do concurrent ( n = n1:n2, k = kt:nk )
+        qs = min(qsmax,fesat(t(n,k))/pr(n,k))
+        qsat(n,k) = qs/(d_one-ep1*qs)
       end do
     end subroutine satur
     !
@@ -5760,7 +5701,7 @@ module mod_cu_tiedtke
       ! 1. Calculate condensation and adjust t and q accordingly
       ! --------------------------------------------------------
       if ( jcall == 1 ) then
-        do jl = n1, n2
+        do concurrent ( jl = n1:n2 )
           if ( ldflag(jl) ) then
             rp = d_one/sp(jl)
             zl = d_one/(t(jl,kk)-c4les)
@@ -5793,7 +5734,7 @@ module mod_cu_tiedtke
           end if
         end do
       else if ( jcall == 2 ) then
-        do jl = n1, n2
+        do concurrent ( jl = n1:n2 )
           if ( ldflag(jl) ) then
             rp = d_one/sp(jl)
             qs = fesat(t(jl,kk))*rp
@@ -5815,7 +5756,7 @@ module mod_cu_tiedtke
           end if
         end do
       else if ( jcall == 0 ) then
-        do jl = n1, n2
+        do concurrent ( jl = n1:n2 )
           rp = d_one/sp(jl)
           qs = fesat(t(jl,kk))*rp
           qs = min(qsmax,qs)
@@ -5833,7 +5774,7 @@ module mod_cu_tiedtke
           q(jl,kk) = q(jl,kk) - cond1
         end do
       else if ( jcall == 4 ) then
-        do jl = n1, n2
+        do concurrent ( jl = n1:n2 )
           if ( ldflag(jl) ) then
             rp = d_one/sp(jl)
             qs = fesat(t(jl,kk))*rp
@@ -5853,7 +5794,7 @@ module mod_cu_tiedtke
           end if
         end do
       else if ( jcall == 5 ) then ! Same as 4 but with LDFLAG all true
-        do jl = n1, n2
+        do concurrent ( jl = n1:n2 )
           rp = d_one/sp(jl)
           qs = fesat(t(jl,kk))*rp
           qs = min(qsmax,qs)
@@ -5871,7 +5812,7 @@ module mod_cu_tiedtke
           q(jl,kk) = q(jl,kk) - cond1
         end do
       else if ( jcall == 3 ) then
-        do jl = n1, n2
+        do concurrent ( jl = n1:n2 )
           rp = d_one/sp(jl)
           qs = fesat(t(jl,kk))*rp
           qs = min(qsmax,qs)
@@ -5914,7 +5855,7 @@ module mod_cu_tiedtke
       logical, dimension(np) :: llflag, llflaguv, llo1
       logical :: llo3
       integer(ik4) :: icall, ik, is, k, n, ikb
-      integer(ik4) :: nll, nlm
+      integer(ik4) :: nll, nlm, mynlm
       integer(ik4), dimension(np) :: nlx
       real(rkx) :: cldmax, cprc2, cwifrac, alfaw, bc,   &
                    be, buoc, zc, cbf, cons2, zd, zdfi, dkbuo, &
@@ -5937,7 +5878,7 @@ module mod_cu_tiedtke
       ! 2. Set default values
       ! ---------------------
       llo3 = .false.
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         luold(n) = d_zero
         if ( .not. ldcum(n) ) then
           kcbot(n) = -1
@@ -5951,42 +5892,39 @@ module mod_cu_tiedtke
       end do
       ! Initalize various quantities
       ! Note that liquid water and kinetic energy at cloud base is preserved
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         llklab(n) = .false.
         if ( .not. ldcum(n) .or. ktype(n) == 3 ) llklab(n) = .true.
       end do
-      do k = 1, nk
-        do n = n1, n2
-          if ( k /= kcbot(n) ) lu(n,k) = d_zero
-          kineu(n,k) = d_zero
-        end do
-        do n = n1, n2
-          mfu(n,k) = d_zero
-          mfus(n,k) = d_zero
-          mfuq(n,k) = d_zero
-          mful(n,k) = d_zero
-        end do
-        do n = n1, n2
-          lude(n,k) = d_zero
-          lglac(n,k) = d_zero
-          dmfup(n,k) = d_zero
-          xrain(n,k) = d_zero
-        end do
-        do n = n1, n2
-          buo(n,k) = d_zero
-          if ( llklab(n) ) ilab(n,k) = 0
+      do concurrent ( n = n1:n2, k = 1:nk )
+        if ( k /= kcbot(n) ) lu(n,k) = d_zero
+        kineu(n,k) = d_zero
+        mfu(n,k) = d_zero
+        mfus(n,k) = d_zero
+        mfuq(n,k) = d_zero
+        mful(n,k) = d_zero
+        lude(n,k) = d_zero
+        lglac(n,k) = d_zero
+        dmfup(n,k) = d_zero
+        xrain(n,k) = d_zero
+        buo(n,k) = d_zero
+        if ( llklab(n) ) ilab(n,k) = 0
+        dmfen(n,k) = d_zero
+        mfude_rate(n,k) = d_zero
+      end do
+      do concurrent ( n = n1:n2 )
+        !$acc loop seq
+        do k = 1, nk
           if ( .not. ldcum(n) .and. ph(n,k) < 4.0e4_rkx ) ictop0(n) = k
-          dmfen(n,k) = d_zero
-          mfude_rate(n,k) = d_zero
         end do
       end do
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         if ( ktype(n) == 3 ) ldcum(n) = .false.
       end do
       !-----------------------------------------
       ! 3. Initialize values at cloud base level
       ! ----------------------------------------
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         kctop(n) = kcbot(n)
         if ( ldcum(n) ) then
           ikb = kcbot(n)
@@ -6011,7 +5949,7 @@ module mod_cu_tiedtke
         call mcbase(ik)
         is = 0
         nlm = 0
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           llflag(n) = .false.
           precip(n) = d_zero
           llo1(n) = .false.
@@ -6020,8 +5958,11 @@ module mod_cu_tiedtke
           if ( (ldcum(n) .and. ilab(n,k+1) == 2) .or.   &
                (ktype(n) == 3 .and. ilab(n,k+1) == 1) ) then
             llflag(n) = .true.
+            !$acc atomic capture
             nlm = nlm + 1
-            nlx(nlm) = n
+            mynlm = nlm
+            !$acc end atomic
+            nlx(mynlm) = n
           end if
           if ( ilab(n,k+1) > 0 ) then
             llflaguv(n) = .true.
@@ -6050,10 +5991,10 @@ module mod_cu_tiedtke
         ! Do adiabatic ascent for entraining/detraining plume
         ! ---------------------------------------------------
         if ( llo3 ) then
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             qold(n) = d_zero
           end do
-          do nll = 1, nlm
+          do concurrent ( nll = 1:nlm )
             n = nlx(nll)
             ndmfde(n) = min(ndmfde(n),0.75_rkx*mfu(n,k+1))
             if ( k == kcbot(n) ) then
@@ -6107,7 +6048,7 @@ module mod_cu_tiedtke
             luold(n) = lu(n,k)
           end do
           ! reset to environmental values if below departure level
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( k > idpl(n) ) then
               tu(n,k) = tf(n,k)
               qu(n,k) = qf(n,k)
@@ -6122,7 +6063,7 @@ module mod_cu_tiedtke
           if ( nlm > 0 ) then
             call moistadj(ik,xph,tu,qu,llflag,icall)
           end if
-          do nll = 1, nlm
+          do concurrent ( nll = 1:nlm )
             n = nlx(nll)
             if ( qu(n,k) /= qold(n) ) then
               lglac(n,k) = lu(n,k) * ((d_one-xalpha(tu(n,k)))- &
@@ -6130,7 +6071,7 @@ module mod_cu_tiedtke
               tu(n,k) = tu(n,k) + wlhfocp*lglac(n,k)
             end if
           end do
-          do nll = 1, nlm
+          do concurrent ( nll = 1:nlm )
             n = nlx(nll)
             if ( qu(n,k) /= qold(n) ) then
               ilab(n,k) = 2
@@ -6217,7 +6158,7 @@ module mod_cu_tiedtke
           end do
           ! Calculate precipitation rate by analytic integration
           ! of equation for l
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( llo1(n) ) then
               if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
                 dnoprc = ccn(n,k)*(4.0_rkx/3.0_rkx)*mathpi * &
@@ -6265,7 +6206,7 @@ module mod_cu_tiedtke
               end if
             end if
           end do
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( llo1(n) ) then
               if ( xrain(n,k) > d_zero ) then
                 zvw = 21.18_rkx*xrain(n,k)**0.2_rkx
@@ -6283,7 +6224,7 @@ module mod_cu_tiedtke
               end if
             end if
           end do
-          do nll = 1, nlm
+          do concurrent ( nll = 1:nlm )
             n = nlx(nll)
             mful(n,k) = lu(n,k)*mfu(n,k)
             mfus(n,k) = (cpd*tu(n,k)+geof(n,k))*mfu(n,k)
@@ -6294,7 +6235,7 @@ module mod_cu_tiedtke
       !----------------------
       ! 5. Final calculations
       ! ---------------------
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         if ( kctop(n) == -1 ) ldcum(n) = .false.
         kcbot(n) = max(kcbot(n),kctop(n))
         if ( ldcum(n) ) then
@@ -6322,11 +6263,11 @@ module mod_cu_tiedtke
       ! 1. Calculate entrainment and detrainment rates
       ! ----------------------------------------------
       if ( ldwork ) then
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           dmfen(n) = d_zero
           dmfde(n) = d_zero
         end do
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( ldcum(n) ) then
             if ( kk < kcbot(n) ) then
               mf = mfu(n,kk+1)*(geof(n,kk)-geof(n,kk+1))*regrav
@@ -6351,7 +6292,7 @@ module mod_cu_tiedtke
       !-----------------------------------------------
       ! 1. Calculate entrainment and detrainment rates
       ! ----------------------------------------------
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         if ( .not.ldcum(n) .and. ilab(n,kk+1) == 0 ) then
           if ( lmfmid .and. geo(n,kk) >  5000.0_rkx .and. &
                             geo(n,kk) < 10000.0_rkx .and. &
@@ -6391,7 +6332,7 @@ module mod_cu_tiedtke
       !-------------------------------------
       ! 1. Set default values for downdrafts
       ! ------------------------------------
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         lddraf(n) = .false.
         idtop(n) = nk + 1
         ikhsmin(n) = nk + 1
@@ -6413,8 +6354,9 @@ module mod_cu_tiedtke
         ! air + 50% environmental air at wet bulb temperature (i.e. which
         ! became saturated due to evaporation of rain and cloud water)
         ! ----------------------------------------------------------------
-        do k = 3, nk - 2
-          do n = n1, n2
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 3, nk - 2
             hsk = cpd*t(n,k) + geo(n,k) + mlw(t(n,k))*qs(n,k)
             if ( hsk < hsmin(n) ) then
               hsmin(n) = hsk
@@ -6429,7 +6371,11 @@ module mod_cu_tiedtke
           !     for environmental air
           ! -----------------------------------------------
           is = 0
+#ifdef STDPAR
+          do concurrent ( n = n1:n2 ) reduce(+:is)
+#else
           do n = n1, n2
+#endif
             tenwb(n,k) = tf(n,k)
             qenwb(n,k) = qf(n,k)
             xph(n) = pf(n,k)
@@ -6448,7 +6394,7 @@ module mod_cu_tiedtke
           !     and check for negative buoyancy.
           !     Then set values for downdraft at lfs.
           ! ----------------------------------------------
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( llo2(n) ) then
               ttest = d_half*(tu(n,k)+tenwb(n,k))
               qtest = d_half*(qu(n,k)+qenwb(n,k))
@@ -6500,7 +6446,7 @@ module mod_cu_tiedtke
       !      (C) Checking for negative buoyancy and
       !          specifying final t,q,u,v and downward fluxes
       ! -----------------------------------------------------
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         oentr(n) = d_zero
         buoy(n) = d_zero
         dmfen(n) = d_zero
@@ -6511,13 +6457,17 @@ module mod_cu_tiedtke
       end do
       do k = 3, nk
         is = 0
+#ifdef STDPAR
+        do concurrent ( n = n1:n2 ) reduce(+:is)
+#else
         do n = n1, n2
+#endif
           xph(n) = pf(n,k)
           llo2(n) = lddraf(n) .and. mfd(n,k-1) < d_zero
           if ( llo2(n) ) is = is + 1
         end do
         if ( is == 0 ) cycle
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( llo2(n) ) then
             entr = entrdd*mfd(n,k-1)*(geof(n,k-1)-geof(n,k))*regrav
             dmfen(n) = entr
@@ -6525,7 +6475,7 @@ module mod_cu_tiedtke
           end if
         end do
         if ( k > itopde ) then
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( llo2(n) ) then
               dmfen(n) = d_zero
               xdmfde(n) = mfd(n,itopde)*(pf(n,k)-pf(n,k-1)) / &
@@ -6534,7 +6484,7 @@ module mod_cu_tiedtke
           end do
         end if
         if ( k <= itopde ) then
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( llo2(n) ) then
               dz = -(geof(n,k-1)-geof(n,k))*regrav
               zentr = oentr(n)*dz*mfd(n,k-1)
@@ -6547,7 +6497,7 @@ module mod_cu_tiedtke
             dmfde(n,k) = dmfen(n) - xdmfde(n)
           end do
         end if
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( llo2(n) ) then
             mfd(n,k) = mfd(n,k-1) + dmfen(n) - xdmfde(n)
             seen = (cpd*tf(n,k-1)+geof(n,k-1))*dmfen(n)
@@ -6566,7 +6516,7 @@ module mod_cu_tiedtke
         ik = k
         icall = 2
         call moistadj(ik,xph,td,qd,llo2,icall)
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( llo2(n) ) then
             cond(n) = cond(n) - qd(n,k)
             buo = td(n,k)*(d_one+ep1*qd(n,k)) - tf(n,k)*(d_one+ep1*qf(n,k))
@@ -6626,10 +6576,8 @@ module mod_cu_tiedtke
       allocate (dtdt(np,nk))
       allocate (dqdt(np,nk))
       allocate (dp(np,nk))
-      do k = 1, nk
-        do n = n1, n2
-          penth(n,k) = d_zero
-        end do
+      do concurrent ( n = n1:n2, k = 1:nk )
+        penth(n,k) = d_zero
       end do
       ! Zero detrained liquid water if diagnostic cloud scheme to be used
       ! This means that detrained liquid water will be evaporated in the
@@ -6637,47 +6585,41 @@ module mod_cu_tiedtke
       ! variable
       lltest = .not. lepcld
       if ( lltest ) then
-        do k = 1, nk
-          do n = n1, n2
-            lude(n,k) = d_zero
-          end do
+        do concurrent ( n = n1:n2, k = 1:nk )
+          lude(n,k) = d_zero
         end do
       end if
-      do k = 1, nk
-        do n = n1, n2
-          if ( ldcum(n) ) then
-            dp(n,k) = egrav/(pf(n,k+1)-pf(n,k))
-            xmfus(n,k) = mfus(n,k)
-            xmfds(n,k) = mfds(n,k)
-            xmfuq(n,k) = mfuq(n,k)
-            xmfdq(n,k) = mfdq(n,k)
-          end if
-        end do
+      do concurrent ( n = n1:n2, k = 1:nk )
+        if ( ldcum(n) ) then
+          dp(n,k) = egrav/(pf(n,k+1)-pf(n,k))
+          xmfus(n,k) = mfus(n,k)
+          xmfds(n,k) = mfds(n,k)
+          xmfuq(n,k) = mfuq(n,k)
+          xmfdq(n,k) = mfdq(n,k)
+        end if
       end do
       if ( rmfsoltq > d_zero ) then
         !-------------------------------------------
         ! 2. Recompute convective fluxes if implicit
         ! ------------------------------------------
-        do k = itopm2, nk
+        do concurrent ( n = n1:n2, k = itopm2:nk )
           ik = k - 1
-          do n = n1, n2
-            if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-              ! Compute interpolating coefficients GS and GQ
-              ! for half-level values
-              gq = (qf(n,k)-q(n,ik))/qs(n,k)
-              gh = cpd*t(n,k) + geo(n,k)
-              gs = (cpd*(tf(n,k)-t(n,ik)) + geof(n,k)-geo(n,ik))/gh
-              ! Half-level environmental values for ZS and ZQ
-              zs = cpd*(ximp*t(n,ik)+gs*t(n,k)) + geo(n,ik) + gs*geo(n,k)
-              zq = ximp*q(n,ik) + gq*qs(n,k)
-              xmfus(n,k) = mfus(n,k) - mfu(n,k)*zs
-              xmfuq(n,k) = mfuq(n,k) - mfu(n,k)*zq
-              if ( lddraf(n) .and. k >= idtop(n) ) then
-                xmfds(n,k) = mfds(n,k) - mfd(n,k)*zs
-                xmfdq(n,k) = mfdq(n,k) - mfd(n,k)*zq
-              end if
+          if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+            ! Compute interpolating coefficients GS and GQ
+            ! for half-level values
+            gq = (qf(n,k)-q(n,ik))/qs(n,k)
+            gh = cpd*t(n,k) + geo(n,k)
+            gs = (cpd*(tf(n,k)-t(n,ik)) + geof(n,k)-geo(n,ik))/gh
+            ! Half-level environmental values for ZS and ZQ
+            zs = cpd*(ximp*t(n,ik)+gs*t(n,k)) + geo(n,ik) + gs*geo(n,k)
+            zq = ximp*q(n,ik) + gq*qs(n,k)
+            xmfus(n,k) = mfus(n,k) - mfu(n,k)*zs
+            xmfuq(n,k) = mfuq(n,k) - mfu(n,k)*zq
+            if ( lddraf(n) .and. k >= idtop(n) ) then
+              xmfds(n,k) = mfds(n,k) - mfd(n,k)*zs
+              xmfdq(n,k) = mfdq(n,k) - mfd(n,k)*zq
             end if
-          end do
+          end if
         end do
       end if
       !----------------------
@@ -6685,7 +6627,7 @@ module mod_cu_tiedtke
       ! ---------------------
       do k = itopm2, nk
         if ( k < nk ) then
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( ldcum(n) ) then
               xalv = mlw(t(n,k))
               dtdt(n,k) = dp(n,k)*rcpd *                      &
@@ -6698,7 +6640,7 @@ module mod_cu_tiedtke
             end if
           end do
         else
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( ldcum(n) ) then
               xalv = mlw(t(n,k))
               dtdt(n,k) = -dp(n,k)*rcpd *                &
@@ -6714,14 +6656,12 @@ module mod_cu_tiedtke
         !----------------------
         ! 3.1 Update tendencies
         ! ---------------------
-        do k = itopm2, nk
-          do n = n1, n2
-            if ( ldcum(n) ) then
-              tent(n,k) = tent(n,k) + dtdt(n,k)
-              tenq(n,k) = tenq(n,k) + dqdt(n,k)
-              penth(n,k) = dtdt(n,k)*cpd
-            end if
-          end do
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          if ( ldcum(n) ) then
+            tent(n,k) = tent(n,k) + dtdt(n,k)
+            tenq(n,k) = tenq(n,k) + dqdt(n,k)
+            penth(n,k) = dtdt(n,k)*cpd
+          end if
         end do
       else
         !----------------------
@@ -6734,38 +6674,36 @@ module mod_cu_tiedtke
         allocate (r1(np,nk))
         allocate (r2(np,nk))
         allocate (llcumbas(np,nk))
+        !$acc kernels
         llcumbas(:,:) = .false.
         bb(:,:) = d_one
         xmfus(:,:) = d_zero
+        !$acc end kernels
         ! Fill vectors A, B and RHS
-        do k = itopm2, nk
+        do concurrent ( n = n1:n2, k = itopm2:nk )
           ik = k + 1
-          do n = n1, n2
-            llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
-            if ( llcumbas(n,k) ) then
-              zp = rmfsoltq*dp(n,k)*dtc
-              xmfus(n,k) = -zp*(mfu(n,k)+mfd(n,k))
-              dtdt(n,k) = dtdt(n,k)*dtc + t(n,k)
-              dqdt(n,k) = dqdt(n,k)*dtc + q(n,k)
-              if ( k < nk ) then
-                bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
-              else
-                bb(n,k) = d_one
-              end if
+          llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
+          if ( llcumbas(n,k) ) then
+            zp = rmfsoltq*dp(n,k)*dtc
+            xmfus(n,k) = -zp*(mfu(n,k)+mfd(n,k))
+            dtdt(n,k) = dtdt(n,k)*dtc + t(n,k)
+            dqdt(n,k) = dqdt(n,k)*dtc + q(n,k)
+            if ( k < nk ) then
+              bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
+            else
+              bb(n,k) = d_one
             end if
-          end do
+          end if
         end do
         call solver(kctop,llcumbas,xmfus,bb,dtdt,r1)
         call solver(kctop,llcumbas,xmfus,bb,dqdt,r2)
         ! Compute tendencies
-        do k = itopm2, nk
-          do n = n1, n2
-            if ( llcumbas(n,k) ) then
-              tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))/dtc
-              tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))/dtc
-              penth(n,k) = (r1(n,k)-t(n,k))/dtc
-            end if
-          end do
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          if ( llcumbas(n,k) ) then
+            tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))/dtc
+            tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))/dtc
+            penth(n,k) = (r1(n,k)-t(n,k))/dtc
+          end if
         end do
         deallocate (llcumbas)
         deallocate (r2)
@@ -6802,77 +6740,65 @@ module mod_cu_tiedtke
       allocate (dudt(np,nk))
       allocate (dvdt(np,nk))
       allocate (dp(np,nk))
-      do k = 1, nk
-        do n = n1, n2
-          if ( ldcum(n) ) then
-            uen(n,k) = u(n,k)
-            ven(n,k) = v(n,k)
-            dp(n,k) = egrav/(pf(n,k+1)-pf(n,k))
-          end if
-        end do
+      do concurrent ( n = n1:n2, k = 1:nk )
+        if ( ldcum(n) ) then
+          uen(n,k) = u(n,k)
+          ven(n,k) = v(n,k)
+          dp(n,k) = egrav/(pf(n,k+1)-pf(n,k))
+        end if
       end do
       !--------------------------------------------------
       ! 1. Calculate fluxes and update u and v tendencies
       ! -------------------------------------------------
-      do k = itopm2, nk
+      do concurrent ( n = n1:n2, k = itopm2:nk )
         ik = k - 1
-        do n = n1, n2
-          if ( ldcum(n) ) then
-            mfuu(n,k) = mfu(n,k) * (uu(n,k) - ximp*uen(n,ik))
-            mfuv(n,k) = mfu(n,k) * (vu(n,k) - ximp*ven(n,ik))
-            mfdu(n,k) = mfd(n,k) * (ud(n,k) - ximp*uen(n,ik))
-            mfdv(n,k) = mfd(n,k) * (vd(n,k) - ximp*ven(n,ik))
-          end if
-        end do
+        if ( ldcum(n) ) then
+          mfuu(n,k) = mfu(n,k) * (uu(n,k) - ximp*uen(n,ik))
+          mfuv(n,k) = mfu(n,k) * (vu(n,k) - ximp*ven(n,ik))
+          mfdu(n,k) = mfd(n,k) * (ud(n,k) - ximp*uen(n,ik))
+          mfdv(n,k) = mfd(n,k) * (vd(n,k) - ximp*ven(n,ik))
+        end if
       end do
       ! linear fluxes below cloud
       if ( abs(rmfsoluv) < almostzero ) then
-        do k = itopm2, nk
-          do n = n1, n2
-            if ( ldcum(n) .and. k > kcbot(n) ) then
-              ikb = kcbot(n)
-              zp = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ikb)))
-              if ( ktype(n) == 3 ) zp = zp*zp
-              mfuu(n,k) = mfuu(n,ikb)*zp
-              mfuv(n,k) = mfuv(n,ikb)*zp
-              mfdu(n,k) = mfdu(n,ikb)*zp
-              mfdv(n,k) = mfdv(n,ikb)*zp
-            end if
-          end do
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          if ( ldcum(n) .and. k > kcbot(n) ) then
+            ikb = kcbot(n)
+            zp = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ikb)))
+            if ( ktype(n) == 3 ) zp = zp*zp
+            mfuu(n,k) = mfuu(n,ikb)*zp
+            mfuv(n,k) = mfuv(n,ikb)*zp
+            mfdu(n,k) = mfdu(n,ikb)*zp
+            mfdv(n,k) = mfdv(n,ikb)*zp
+          end if
         end do
       end if
       ! ----------------------
       ! 1.2 Compute tendencies
       ! ----------------------
-      do k = itopm2, nk
+      do concurrent ( n = n1:n2, k = itopm2:nk )
         if ( k < nk ) then
           ik = k + 1
-          do n = n1, n2
-            if ( ldcum(n) ) then
-              dudt(n,k) = dp(n,k)*(mfuu(n,ik)-mfuu(n,k)+mfdu(n,ik)-mfdu(n,k))
-              dvdt(n,k) = dp(n,k)*(mfuv(n,ik)-mfuv(n,k)+mfdv(n,ik)-mfdv(n,k))
-            end if
-          end do
+          if ( ldcum(n) ) then
+            dudt(n,k) = dp(n,k)*(mfuu(n,ik)-mfuu(n,k)+mfdu(n,ik)-mfdu(n,k))
+            dvdt(n,k) = dp(n,k)*(mfuv(n,ik)-mfuv(n,k)+mfdv(n,ik)-mfdv(n,k))
+          end if
         else
-          do n = n1, n2
-            if ( ldcum(n) ) then
-              dudt(n,k) = -dp(n,k)*(mfuu(n,k)+mfdu(n,k))
-              dvdt(n,k) = -dp(n,k)*(mfuv(n,k)+mfdv(n,k))
-            end if
-          end do
+          if ( ldcum(n) ) then
+            dudt(n,k) = -dp(n,k)*(mfuu(n,k)+mfdu(n,k))
+            dvdt(n,k) = -dp(n,k)*(mfuv(n,k)+mfdv(n,k))
+          end if
         end if
       end do
       if ( abs(rmfsoluv) < almostzero ) then
         !----------------------
         ! 1.3 Update tendencies
         ! ---------------------
-        do k = itopm2, nk
-          do n = n1, n2
-            if ( ldcum(n) ) then
-              tenu(n,k) = tenu(n,k) + dudt(n,k)
-              tenv(n,k) = tenv(n,k) + dvdt(n,k)
-            end if
-          end do
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          if ( ldcum(n) ) then
+            tenu(n,k) = tenu(n,k) + dudt(n,k)
+            tenv(n,k) = tenv(n,k) + dvdt(n,k)
+          end if
         end do
       else
         !------------------------------------------------------------------
@@ -6885,36 +6811,34 @@ module mod_cu_tiedtke
         allocate (r1(np,nk))
         allocate (r2(np,nk))
         allocate (llcumbas(np,nk))
+        !$acc kernels
         llcumbas(:,:) = .false.
         bb(:,:) = d_one
         mfuu(:,:) = d_zero
+        !$acc end kernels
         ! Fill vectors A, B and RHS
-        do k = itopm2, nk
+        do concurrent ( n = n1:n2, k = itopm2:nk )
           ik = k + 1
-          do n = n1, n2
-            llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
-            if ( llcumbas(n,k) ) then
-              zp = rmfsoluv*dp(n,k)*dtc
-              mfuu(n,k) = -zp*(mfu(n,k)+mfd(n,k))
-              dudt(n,k) = dudt(n,k)*dtc + uen(n,k)
-              dvdt(n,k) = dvdt(n,k)*dtc + ven(n,k)
-              if ( k < nk ) then
-                bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
-              else
-                bb(n,k) = d_one
-              end if
+          llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
+          if ( llcumbas(n,k) ) then
+            zp = rmfsoluv*dp(n,k)*dtc
+            mfuu(n,k) = -zp*(mfu(n,k)+mfd(n,k))
+            dudt(n,k) = dudt(n,k)*dtc + uen(n,k)
+            dvdt(n,k) = dvdt(n,k)*dtc + ven(n,k)
+            if ( k < nk ) then
+              bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
+            else
+              bb(n,k) = d_one
             end if
-          end do
+          end if
         end do
         call solver(kctop,llcumbas,mfuu,bb,dudt,r1)
         call solver(kctop,llcumbas,mfuu,bb,dvdt,r2)
-        do k = itopm2, nk
-          do n = n1, n2
-            if ( llcumbas(n,k) ) then
-              tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))/dtc
-              tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))/dtc
-            end if
-          end do
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          if ( llcumbas(n,k) ) then
+            tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))/dtc
+            tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))/dtc
+          end if
         end do
         deallocate (llcumbas)
         deallocate (r2)
@@ -6946,7 +6870,7 @@ module mod_cu_tiedtke
       !-------------------------------------
       ! 1. Determine final convective fluxes
       ! ------------------------------------
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         rain(n) = d_zero
         if ( .not.ldcum(n) .or. idtop(n) < kctop(n) ) lddraf(n) = .false.
         if ( .not.ldcum(n) ) ktype(n) = 0
@@ -6961,7 +6885,7 @@ module mod_cu_tiedtke
       itopm2 = 2
       do k = itopm2, nk
         ikb = min(k+1,nk)
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           mflxr(n,k) = d_zero
           mflxs(n,k) = d_zero
           dpmel(n,k) = d_zero
@@ -6999,13 +6923,15 @@ module mod_cu_tiedtke
           end if
         end do
       end do
+      !$acc kernels
       mflxr(:,nk+1) = d_zero
       mflxs(:,nk+1) = d_zero
+      !$acc end kernels
       !----------------------------------
       ! 1.1 Scale fluxes below cloud base
       !      linear dcrease
       ! ---------------------------------
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         if ( ldcum(n) ) then
           ikb = kcbot(n)
           ik = ikb + 1
@@ -7018,7 +6944,7 @@ module mod_cu_tiedtke
         end if
       end do
       do k = itopm2, nk
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( ldcum(n) .and. k > kcbot(n)+1 ) then
             ikb = kcbot(n) + 1
             zp = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ikb)))
@@ -7048,7 +6974,7 @@ module mod_cu_tiedtke
       !    Calculate evaporation of precip
       ! ----------------------------------
       do k = itopm2, nk
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( ldcum(n) .and. k >= kctop(n)-1 ) then
             rain(n) = rain(n) + dmfup(n,k)
             if ( mflxs(n,k) > d_zero .and. t(n,k) > tzero ) then
@@ -7083,7 +7009,7 @@ module mod_cu_tiedtke
         end do
       end do
       do k = itopm2, nk
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( ldcum(n) .and. k >= kcbot(n) ) then
             xrfl = mflxr(n,k) + mflxs(n,k)
             if ( xrfl > almostzero ) then
@@ -7175,7 +7101,7 @@ module mod_cu_tiedtke
       real(rkx) :: tven2, tvu2 ! pseudoadiabatic T_v
       real(rkx), dimension(np) :: dtvtrig ! virtual temperatures
       real(rkx) :: work1, work2 ! work for T and w perturbations
-      real(rkx) :: xtmp, entrpen
+      real(rkx) :: xtmp, entrpen, mymax
       !-----------------------------------
       ! 0. Initialize constants and fields
       ! ----------------------------------
@@ -7183,7 +7109,7 @@ module mod_cu_tiedtke
       xaw = d_one
       xbw = d_one
       epsadd = 1.e-4_rkx
-      do n = n1, n2
+      do concurrent ( n = n1:n2 )
         wubase(n) = d_zero
         llgo_on(n) = .true.
         llfirst(n) = .true.
@@ -7220,7 +7146,11 @@ module mod_cu_tiedtke
         ! ----------------------------------------------
         !
         is = 0
+#ifdef STDPAR
+        do concurrent ( n = n1:n2 ) reduce(+:is)
+#else
         do n = n1, n2
+#endif
           if ( llgo_on(n) ) then
             is = is + 1
             iidpl(n) = kk   ! departure level
@@ -7244,7 +7174,7 @@ module mod_cu_tiedtke
         end do
         if ( is /= 0 ) then
           if ( kk == nk ) then
-            do n = n1, n2
+            do concurrent ( n = n1:n2 )
               if ( llgo_on(n) ) then
                 rho = pf(n,kk+1)/(rgas*(t(n,kk) * (d_one+ep1*q(n,kk))))
                 khvfl = (ahfs(n,kk+1)*rcpd + ep1*t(n,kk)*qhfl(n,kk+1))/rho
@@ -7273,7 +7203,7 @@ module mod_cu_tiedtke
               end if
             end do
           else
-            do n = n1, n2
+            do concurrent ( n = n1:n2 )
               if ( llgo_on(n) ) then
                 rho = pf(n,kk+1) / (rgas*(t(n,kk)*(d_one+ep1*q(n,kk))))
                 iilab(n,kk) = 1
@@ -7325,7 +7255,11 @@ module mod_cu_tiedtke
           is = 0
           if ( kk == nk ) then
             ! 1/z mixing for shallow
+#ifdef STDPAR
+            do concurrent ( n = n1:n2 ) reduce(+:is)
+#else
             do n = n1, n2
+#endif
               if ( llgo_on(n) ) then
                 is = is + 1
                 dz(n) = (geof(n,k)-geof(n,k+1))*regrav
@@ -7344,7 +7278,11 @@ module mod_cu_tiedtke
               end if
             end do
           else
+#ifdef STDPAR
+            do concurrent ( n = n1:n2 ) reduce(+:is)
+#else
             do n = n1, n2
+#endif
               if ( llgo_on(n) ) then
                 is = is + 1
                 dz(n) = (geof(n,k)-geof(n,k+1))*regrav
@@ -7365,7 +7303,7 @@ module mod_cu_tiedtke
           ik = k
           icall = 1
           call moistadj(ik,xph,xtu,xqu,llgo_on,icall)
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( llgo_on(n) ) then
               ! Add condensation to water
               dq = max(qold(n)-xqu(n,k),d_zero)
@@ -7465,7 +7403,7 @@ module mod_cu_tiedtke
             end if
           end do
           if ( lmfdudv .and. kk == nk ) then
-            do n = n1, n2
+            do concurrent ( n = n1:n2 )
               if ( .not. ll_ldbase(n) .and. llgo_on(n) ) then
                 xuu(n,kk) = xuu(n,kk) + &
                   u(n,k)*(pf(n,k+1)-pf(n,k))
@@ -7477,7 +7415,7 @@ module mod_cu_tiedtke
         end do
         if ( kk == nk ) then
           ! Set values for departure level for PBL clouds = first model level
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             ldsc(n) = lldsc(n)
             if ( ldsc(n) ) then
               kbotsc(n) = ibotsc(n)
@@ -7510,7 +7448,7 @@ module mod_cu_tiedtke
             end if
           end do
           do k = nk, 1, -1
-            do n = n1, n2
+            do concurrent ( n = n1:n2 )
               kt = ictop(n)
               if ( k >= kt ) then
                 ilab(n,k) = iilab(n,k)
@@ -7523,7 +7461,7 @@ module mod_cu_tiedtke
         end if
         if ( kk < nk ) then
           llreset = .false.
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( .not.lldeep(n) ) then
               kt = ictop(n)
               kb = icbot(n)
@@ -7534,29 +7472,27 @@ module mod_cu_tiedtke
             llreset = llreset .or. llresetn(n)
           end do
           if ( llreset ) then
-            do k = nk, 1, -1
-              do n = n1, n2
-                ! Keep first departure level that produces deep cloud
-                if ( llresetn(n) ) then
-                  kt = ictop(n)
-                  kb = iidpl(n)
-                  if ( k <= kb .and. k >= kt ) then
-                    ilab(n,k) = iilab(n,k)
-                    tu(n,k) = xtu(n,k)
-                    qu(n,k) = xqu(n,k)
-                    lu(n,k) = xlu(n,k)
-                  else
-                    ilab(n,k) = 1
-                    tu(n,k) = tf(n,k)
-                    qu(n,k) = qf(n,k)
-                    lu(n,k) = d_zero
-                  end if
-                  if ( k < kt ) ilab(n,k) = 0
+            do concurrent ( n = n1:n2, k = nk:1:-1 )
+              ! Keep first departure level that produces deep cloud
+              if ( llresetn(n) ) then
+                kt = ictop(n)
+                kb = iidpl(n)
+                if ( k <= kb .and. k >= kt ) then
+                  ilab(n,k) = iilab(n,k)
+                  tu(n,k) = xtu(n,k)
+                  qu(n,k) = xqu(n,k)
+                  lu(n,k) = xlu(n,k)
+                else
+                  ilab(n,k) = 1
+                  tu(n,k) = tf(n,k)
+                  qu(n,k) = qf(n,k)
+                  lu(n,k) = d_zero
                 end if
-              end do
+                if ( k < kt ) ilab(n,k) = 0
+              end if
             end do
           end if
-          do n = n1, n2
+          do concurrent ( n = n1:n2 )
             if ( lldeep(n) .and. llfirst(n) ) then
               idpl(n) = iidpl(n)
               ictop0(n) = ictop(n)
@@ -7574,8 +7510,13 @@ module mod_cu_tiedtke
         end if
       end do ! End of big loop for search of departure level
       ! Chose maximum CAPE value
-      do n = n1, n2
-        cape(n) = maxval(xcape(n,:))
+      do concurrent ( n = n1:n2 )
+        mymax = xcape(n,1)
+        !$acc loop seq
+        do k = 2, nk
+          mymax = max(mymax,xcape(n,k))
+        end do
+        cape(n) = mymax
       end do
     end subroutine cloudbase
     !
@@ -7615,73 +7556,65 @@ module mod_cu_tiedtke
       !-----------------------------------------
       ! 0. Initialize Cumulus mask + some setups
       ! ----------------------------------------
-      do k = 2, nk
-        do n = n1, n2
-          llcumask(n,k) = .false.
-          if ( ldcum(n) ) then
-            dp(n,k) = egrav/(pf(n,k+1)-pf(n,k))
-            if ( k >= kctop(n)-1 ) llcumask(n,k) = .true.
-          end if
-        end do
+      do concurrent ( n = n1:n2, k = 2:nk )
+        llcumask(n,k) = .false.
+        if ( ldcum(n) ) then
+          dp(n,k) = egrav/(pf(n,k+1)-pf(n,k))
+          if ( k >= kctop(n)-1 ) llcumask(n,k) = .true.
+        end if
       end do
       do nt = 1, ntrac
         !---------------------------------------
         ! 1. Define tracers at full sigma levels
         ! --------------------------------------
-        do k = 2, nk
+        do concurrent ( n = n1:n2, k = 2:nk )
           ik = k - 1
-          do n = n1, n2
-            cen(n,k,nt) = qtrac(n,k,nt)
-            cd(n,k,nt) = qtrac(n,ik,nt)
-            cu(n,k,nt) = qtrac(n,ik,nt)
-            mfc(n,k,nt) = d_zero
-            xtenc(n,k,nt) = d_zero
-          end do
+          cen(n,k,nt) = qtrac(n,k,nt)
+          cd(n,k,nt) = qtrac(n,ik,nt)
+          cu(n,k,nt) = qtrac(n,ik,nt)
+          mfc(n,k,nt) = d_zero
+          xtenc(n,k,nt) = d_zero
         end do
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           cu(n,nk,nt) = qtrac(n,nk,nt)
         end do
         !--------------------------
         ! 2. Compute updraft values
         ! -------------------------
-        do k = nk - 1, 3, -1
+        do concurrent ( n = n1:n2, k = nk-1:3:-1 )
           ik = k + 1
-          do n = n1, n2
-            if ( llcumask(n,k) ) then
-              erate = mfu(n,k) - mfu(n,ik) + pudrate(n,k)
-              mfa = d_one/max(cmfcmin,mfu(n,k))
-              if ( k >= kctop(n) ) then
-                cu(n,k,nt) = (mfu(n,ik)*cu(n,ik,nt) + &
-                             erate*qtrac(n,k,nt) - &
-                             pudrate(n,k)*cu(n,ik,nt))*mfa
-              end if
+          if ( llcumask(n,k) ) then
+            erate = mfu(n,k) - mfu(n,ik) + pudrate(n,k)
+            mfa = d_one/max(cmfcmin,mfu(n,k))
+            if ( k >= kctop(n) ) then
+              cu(n,k,nt) = (mfu(n,ik)*cu(n,ik,nt) + &
+                           erate*qtrac(n,k,nt) - &
+                           pudrate(n,k)*cu(n,ik,nt))*mfa
             end if
-          end do
+          end if
         end do
         !----------------------------
         ! 3. Compute downdraft values
         ! ---------------------------
-        do k = 3, nk
+        do concurrent ( n = n1:n2, k = 3:nk )
           ik = k - 1
-          do n = n1, n2
-            if ( lddraf(n) .and. k == idtop(n) ) then
-              ! Note: in order to avoid final negative tracer values
-              ! the allowed value of cd depends on the jump in mass flux
-              ! at the LFS
-              cd(n,k,nt) = 0.1_rkx*cu(n,k,nt) + 0.9_rkx*qtrac(n,ik,nt)
-            else if ( lddraf(n) .and. k > idtop(n) ) then
-              erate = -mfd(n,k) + mfd(n,ik) + pddrate(n,k)
-              mfa = d_one/min(-cmfcmin,mfd(n,k))
-              cd(n,k,nt) = (mfd(n,ik)*cd(n,ik,nt) - &
-                           erate*qtrac(n,ik,nt) + &
-                           pddrate(n,k)*cd(n,ik,nt))*mfa
-            end if
-          end do
+          if ( lddraf(n) .and. k == idtop(n) ) then
+            ! Note: in order to avoid final negative tracer values
+            ! the allowed value of cd depends on the jump in mass flux
+            ! at the LFS
+            cd(n,k,nt) = 0.1_rkx*cu(n,k,nt) + 0.9_rkx*qtrac(n,ik,nt)
+          else if ( lddraf(n) .and. k > idtop(n) ) then
+            erate = -mfd(n,k) + mfd(n,ik) + pddrate(n,k)
+            mfa = d_one/min(-cmfcmin,mfd(n,k))
+            cd(n,k,nt) = (mfd(n,ik)*cd(n,ik,nt) - &
+                         erate*qtrac(n,ik,nt) + &
+                         pddrate(n,k)*cd(n,ik,nt))*mfa
+          end if
         end do
         ! In order to avoid negative Tracer at nk adjust cd
         k = nk
         ik = k - 1
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( lddraf(n) ) then
             posi = -dp(n,k) *(mfu(n,k)*cu(n,k,nt) + &
               mfd(n,k)*cd(n,k,nt)-(mfu(n,k)+mfd(n,k))*qtrac(n,ik,nt))
@@ -7699,29 +7632,25 @@ module mod_cu_tiedtke
         !------------------
         ! 4. Compute fluxes
         ! -----------------
-        do k = 2, nk
+        do concurrent ( n = n1:n2, k = 2:nk )
           ik = k - 1
-          do n = n1, n2
-            if ( llcumask(n,k) ) then
-              mfa = mfu(n,k) + mfd(n,k)
-              mfc(n,k,nt) = mfu(n,k)*cu(n,k,nt) + &
-                mfd(n,k)*cd(n,k,nt) - ximp*mfa*cen(n,ik,nt)
-            end if
-          end do
+          if ( llcumask(n,k) ) then
+            mfa = mfu(n,k) + mfd(n,k)
+            mfc(n,k,nt) = mfu(n,k)*cu(n,k,nt) + &
+              mfd(n,k)*cd(n,k,nt) - ximp*mfa*cen(n,ik,nt)
+          end if
         end do
         !----------------------------
         ! 5. Compute tendencies = rhs
         ! ---------------------------
-        do k = 2, nk - 1
+        do concurrent ( n = n1:n2, k = 2:nk-1 )
           ik = k + 1
-          do n = n1, n2
-            if ( llcumask(n,k) ) then
-              xtenc(n,k,nt) = dp(n,k)*(mfc(n,ik,nt)-mfc(n,k,nt))
-            end if
-          end do
+          if ( llcumask(n,k) ) then
+            xtenc(n,k,nt) = dp(n,k)*(mfc(n,ik,nt)-mfc(n,k,nt))
+          end if
         end do
         k = nk
-        do n = n1, n2
+        do concurrent ( n = n1:n2 )
           if ( ldcum(n) ) xtenc(n,k,nt) = -dp(n,k)*mfc(n,k,nt)
         end do
       end do
@@ -7729,14 +7658,10 @@ module mod_cu_tiedtke
         !---------------------
         ! 6. Update tendencies
         ! --------------------
-        do nt = 1, ntrac
-          do k = 2, nk
-            do n = n1, n2
-              if ( llcumask(n,k) ) then
-                tenc(n,k,nt) = tenc(n,k,nt)+xtenc(n,k,nt)
-              end if
-            end do
-          end do
+        do concurrent ( n = n1:n2, k = 2:nk, nt = 1:ntrac )
+          if ( llcumask(n,k) ) then
+            tenc(n,k,nt) = tenc(n,k,nt)+xtenc(n,k,nt)
+          end if
         end do
       else
         !---------------------
@@ -7748,37 +7673,35 @@ module mod_cu_tiedtke
         allocate (bb(np,nk))
         allocate (r1(np,nk))
         allocate (llcumbas(np,nk))
+        !$acc kernels
         llcumbas(:,:) = .false.
         bb(:,:) = d_one
+        !$acc end kernels
         do nt = 1, ntrac
           ! Fill vectors A, B and RHS
-          do k = 2, nk
+          do concurrent ( n = n1:n2, k = 2:nk )
             ik = k + 1
-            do n = n1, n2
-              llcumbas(n,k) = llcumask(n,k)
-              if ( llcumbas(n,k) ) then
-                zp = rmfsolct*dp(n,k)*dtc
-                mfc(n,k,nt) = -zp*(mfu(n,k)+mfd(n,k))
-                xtenc(n,k,nt) = xtenc(n,k,nt)*dtc + qtrac(n,k,nt)
-                ! for implicit solution including tendency source term
-                if ( k < nk ) then
-                  bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
-                else
-                  bb(n,k) = d_one
-                end if
+            llcumbas(n,k) = llcumask(n,k)
+            if ( llcumbas(n,k) ) then
+              zp = rmfsolct*dp(n,k)*dtc
+              mfc(n,k,nt) = -zp*(mfu(n,k)+mfd(n,k))
+              xtenc(n,k,nt) = xtenc(n,k,nt)*dtc + qtrac(n,k,nt)
+              ! for implicit solution including tendency source term
+              if ( k < nk ) then
+                bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
+              else
+                bb(n,k) = d_one
               end if
-            end do
+            end if
           end do
           call solver(kctop,llcumbas,mfc(:,:,nt),bb,xtenc(:,:,nt),r1)
           ! Compute tendencies
-          do k = 2, nk
-            do n = n1, n2
-              !  for implicit solution including tendency source term
-              !  tenc(n,k,nt) = (r1(n,k)-qtrac(n,k,nt))/dtc
-              if ( llcumbas(n,k) ) then
-                tenc(n,k,nt) = tenc(n,k,nt) + (r1(n,k)-qtrac(n,k,nt))/dtc
-              end if
-            end do
+          do concurrent ( n = n1:n2, k = 2:nk )
+            !  for implicit solution including tendency source term
+            !  tenc(n,k,nt) = (r1(n,k)-qtrac(n,k,nt))/dtc
+            if ( llcumbas(n,k) ) then
+              tenc(n,k,nt) = tenc(n,k,nt) + (r1(n,k)-qtrac(n,k,nt))/dtc
+            end if
           end do
         end do
         deallocate (llcumbas)
@@ -7816,6 +7739,7 @@ module mod_cu_tiedtke
     ! Magnus Tetens formula
     !
     pure real(rkx) function fesat(t)
+      !$acc routine seq
       implicit none
       real(rkx), intent(in) :: t
       real(rkx) :: xa

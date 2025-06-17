@@ -231,7 +231,7 @@ module mod_cu_interface
     implicit none
     integer(ik4) :: i, j, k, n
     integer(ik4) :: iplmlc, mintop, maxtop
-    real(rkx) :: mymean, w1
+    real(rkx) :: ijs, w1, mymean(kz), mymean_tmp
 
     if ( any(icup == 6) ) then
       w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
@@ -262,16 +262,24 @@ module mod_cu_interface
           write(stdout,*) 'Calling cumulus scheme at ',trim(rcmtimer%str())
         end if
 
+        !$acc kernels
         cu_prate(:,:) = d_zero
+        !$acc end kernels
         if ( ipptls > 1 .and. any(icup == 5) ) then
+          !$acc kernels
           cu_srate(:,:) = d_zero
+          !$acc end kernels
         end if
+        !$acc kernels
         cu_ktop(:,:) = 0
         cu_kbot(:,:) = 0
         cu_tten(:,:,:) = d_zero
+        !$acc end kernels
         if ( any(icup == 4) .or. any(icup == 5) ) then
+          !$acc kernels
           cu_uten(:,:,:) = d_zero
           cu_vten(:,:,:) = d_zero
+          !$acc end kernels
           if ( any(icup == 5) ) then
             if ( idynamic == 3 ) then
               do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
@@ -289,41 +297,69 @@ module mod_cu_interface
               call uvdot2cross(utend,vtend,utenx,vtenx)
             end if
           end if
+          !$acc kernels
           utend(:,:,:) = d_zero
           vtend(:,:,:) = d_zero
+          !$acc end kernels
         end if
+        !$acc kernels
         cu_qten(:,:,:,:) = d_zero
         cu_cldfrc(:,:,:) = d_zero
+        !$acc end kernels
         if ( ichem == 1 ) then
+          !$acc kernels
           cu_chiten(:,:,:,:) = d_zero
           cu_convpr(:,:,:) = d_zero
+          !$acc end kernels
         end if
         if ( any(icup == 5) ) then
           if ( iconv == 1 ) then
             ! Calculate average elevation of cmcptop level
             nmctop = 0
+#ifdef STDPAR
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 ) reduce(+:nmctop)
+#else
             do i = ici1, ici2
-              do j = jci1, jci2
-                iplmlc = 1
-                do k = 1, kzp1
-                  iplmlc = k
-                  if ( m2c%pasf(j,i,k) >= cmcptop ) exit
-                end do
-                nmctop = nmctop + iplmlc
+            do j = jci1, jci2
+#endif
+              iplmlc = 1
+              !$acc loop seq
+              do k = 1, kzp1
+                iplmlc = k
+                if ( m2c%pasf(j,i,k) >= cmcptop ) exit
               end do
+              nmctop = nmctop + iplmlc
             end do
+#ifndef STDPAR
+            end do
+#endif
             iplmlc = nmctop / ((jci2-jci1)*(ici2-ici1))
             call minall(iplmlc,mintop)
             call maxall(iplmlc,maxtop)
             nmctop = (mintop+maxtop)/2
           else if ( iconv == 4 ) then
-            do k = 1, kz
-              mymean = sum(m2c%pas(:,:,k))/real(((jci2-jci1)*(ici2-ici1)),rkx)
-              call meanall(mymean,pmean(k))
+            ijs = real(((jci2-jci1)*(ici2-ici1)),rkx)
+            do concurrent ( k = 1:kz )
+              mymean_tmp = d_zero
+#ifdef STDPAR
+              do concurrent ( j = jci1:jci2, i = ici1:ici2 ) reduce(+:mymean_tmp)
+#else
+            do i = ici1, ici2
+            do j = jci1, jci2
+#endif
+                mymean_tmp = mymean_tmp + m2c%pas(j,i,k)
+              end do
+              mymean(k) = mymean_tmp/ijs
             end do
+#ifndef STDPAR
+            end do
+#endif
+            call meanall(mymean,pmean,kz)
           end if
+          !$acc kernels
           cu_qdetr(:,:,:) = d_zero
           cu_raincc(:,:,:) = d_zero
+          !$acc end kernels
         end if
 
         total_precip_points = 0
