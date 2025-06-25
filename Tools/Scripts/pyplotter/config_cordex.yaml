@@ -1,20 +1,12 @@
-format: original
+format: cordex
 cache: /leonardo_scratch/large/userexternal/ggiulian/cache
-datapath: /leonardo_scratch/large/userexternal/ggiulian/run/output
+datapath: /leonardo/home/userexternal/ggiulian/project/COUPLED/coupled/CORDEX-CMIP6
 plotpath: /leonardo_scratch/large/userexternal/ggiulian/plots
-original:
-        simulation: MED-12
-        variables:
-                pr: STS
-                tas: STS
-                clt: SRF
-                rsnl: RAD
 plot:
         biasplot:
-                years: [1980]
-                name: MED-12 non coupled
+                years: [1983]
+                name: MED-12 coupled
                 dpi: 100
-                bounds: None
                 seasons: [ "DJF", "MAM", "JJA", "SON" ]
                 variables:
                         tas:
@@ -23,13 +15,10 @@ plot:
                                 obs: [ "EOBS", "CRU", "ERA5", "MSWEP", "CPC" ]
                         clt:
                                 obs: [ "CRU", "ERA5" ]
-                        rsnl:
-                                obs: [ "ERA5" ]
         p99plot:
-                years: [1980]
-                name: MED-12 non coupled
+                years: [1983]
+                name: MED-12 coupled
                 dpi: 100
-                bounds: None
                 variables:
                         pr:
                                 obs: [ "EOBS", "CPC" ]
