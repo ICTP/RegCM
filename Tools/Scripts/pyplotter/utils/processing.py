@@ -90,6 +90,8 @@ class observation_reader:
         elif obs == "ERA5":
             names = (os.path.join(path,"monthly",
                 y,fvname+"_"+y+"_[0-1][0-9].nc") for y in cyears)
+        elif obs == "EURO4M":
+            names = (os.path.join(path,'EURO4M-APGD-1971-2008.nc'),)
         else:
             names = [ ]
         self.files = sorted(glob.glob(n) for n in names)[0]

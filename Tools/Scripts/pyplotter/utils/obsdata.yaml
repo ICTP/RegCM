@@ -64,3 +64,10 @@ obsdata:
                         var_ds: cld
                         factor: 1.0
                         offset: 0.0
+        EURO4M:
+                path: leonardo_work/ICT25_ESP/OBS/EURO4M-APG
+                pr:
+                        varfile:
+                        var_ds: pr
+                        factor: 1.0
+                        offset: 0.0
