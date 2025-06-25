@@ -65,7 +65,7 @@ obsdata:
                         factor: 1.0
                         offset: 0.0
         EURO4M:
-                path: leonardo_work/ICT25_ESP/OBS/EURO4M-APG
+                path: /leonardo_work/ICT25_ESP/OBS/EURO4M-APGD
                 pr:
                         varfile:
                         var_ds: pr
