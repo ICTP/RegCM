@@ -133,7 +133,7 @@ class observation_reader:
 
     def seasonal_data(self,seasons,newgrid=None):
         fname = (self.dom+"_"+self.obs + "_" + self.var +
-                '.' + "-".join((str(x) for x in self.years)))
+            '.' + "-".join((str(x) for x in (self.years[0],self.years[-1]))))
         fseas = [ ]
         for seas in seasons:
             fseas.append(fname+"_"+seas+".nc")
@@ -152,7 +152,7 @@ class observation_reader:
 
     def quantile_data(self,q=99,newgrid=None):
         fname = (self.dom+'_'+self.obs + "_q" + repr(q) + "_" + self.var +
-                '.' + "-".join((str(x) for x in self.years))+".nc")
+         '.' + "-".join((str(x) for x in (self.years[0],self.years[-1])))+".nc")
         ds = self.cache.retrieve(fname)
         if ds is None:
             proc = data_processor(self.load_data(newgrid))
@@ -245,7 +245,7 @@ class model_reader:
 
     def seasonal_data(self,seasons):
         fname = (self.sid + "_" + self.var +
-                '.' + "-".join((str(x) for x in self.years)))
+           '.' + "-".join((str(x) for x in (self.years[0],self.years[-1]))))
         fseas = [ ]
         for seas in seasons:
             fseas.append(fname+"_"+seas+".nc")
@@ -263,7 +263,7 @@ class model_reader:
 
     def quantile_data(self,q=99):
         fname = (self.sid + "_q" + repr(q) + "_" + self.var +
-                '.' + "-".join((str(x) for x in self.years))+".nc")
+         '.' + "-".join((str(x) for x in (self.years[0],self.years[-1])))+".nc")
         ds = self.cache.retrieve(fname)
         if ds is None:
             proc = data_processor(self.load_data())

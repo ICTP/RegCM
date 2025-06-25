@@ -17,6 +17,7 @@ class p99plot:
 
     def __init__(self,config='plotspec.yaml',
                       dpi=100,
+                      bounds=None,
                       dest='./plots',
                       cartopy_cache='~/.cartopy-data'):
         cartopy.config['data_dir'] = os.path.expanduser(cartopy_cache)
@@ -26,6 +27,7 @@ class p99plot:
             self.config = yaml.safe_load(f)
         self.dpi = dpi
         self.dest = dest
+        self.bounds = bounds
         os.makedirs(dest,exist_ok=True)
 
     def p99plot(self,var,years,obs,msd,osd,pname):
@@ -48,16 +50,26 @@ class p99plot:
             custom_cmap = plt.get_cmap(colors)
 
         # Plotting biases
-        bounds = [msd.lon.min(), msd.lon.max(), msd.lat.min(), msd.lat.max()]
-        if bounds[0] > 90.0 and bounds[1] < 0.0:
-            bounds[1] = 360.0 + bounds[1]
-        lonrange = (bounds[1]-bounds[0])
-        latrange = (bounds[3]-bounds[2])
+        if self.bounds:
+            bounds = self.bounds
+            if bounds[0] > 90.0 and bounds[1] < 0.0:
+                bounds[1] = 360.0 + bounds[1]
+            lonrange = (bounds[1]-bounds[0])
+            latrange = (bounds[3]-bounds[2])
+            xratio = abs(lonrange/latrange)
+            yratio = 1.0/xratio
+        else:
+            bounds = [msd.lon.min(), msd.lon.max(),
+                      msd.lat.min(), msd.lat.max()]
+            if bounds[0] > 90.0 and bounds[1] < 0.0:
+                bounds[1] = 360.0 + bounds[1]
+            lonrange = (bounds[1]-bounds[0])
+            latrange = (bounds[3]-bounds[2])
+            xratio = lonrange/28
+            yratio = latrange/28
+
         xpos = bounds[0] + 0.20*lonrange
         ypos = bounds[2] + 0.20*latrange
-
-        xratio = lonrange/28
-        yratio = latrange/28
         ydim = yratio*nrows*3
         xdim = xratio*ncols*3
         fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(xdim,ydim),
@@ -74,6 +86,8 @@ class p99plot:
                     levels=levels, cmap=custom_cmap, extend="both")
             ax.add_feature(cfeature.BORDERS, linewidth=0.5, edgecolor="grey")
             ax.add_feature(cfeature.COASTLINE, linewidth=0.5)
+            ax.gridlines(draw_labels={"bottom": "x", "left": "y"},
+                    dms=True, x_inline=False, y_inline=False)
             ax.set_title(f"P99 Bias {pname} - {obs_name}", fontsize=8*xratio)
 
         plt.subplots_adjust(wspace=0.02, hspace=0.02)
@@ -82,7 +96,7 @@ class p99plot:
                fraction = 0.02*yratio, pad = 0.03)
         cbar.set_label(label,size=10*yratio)
 
-        cyears = "-".join(str(y) for y in years)
+        cyears = "-".join(str(y) for y in (years[0],years[-1]))
         pfile = pname.replace(" ","_")
         out_file = os.path.join(self.dest, f"{pfile}_p99_{var}_{cyears}.png")
         plt.savefig(out_file, bbox_inches="tight", dpi=int(self.dpi))
@@ -96,6 +110,7 @@ class biasplot:
 
     def __init__(self,config='plotspec.yaml',
                       dpi=100,
+                      bounds = None,
                       dest='./plots',
                       cartopy_cache='~/.cartopy-data'):
         cartopy.config['data_dir'] = os.path.expanduser(cartopy_cache)
@@ -105,6 +120,7 @@ class biasplot:
             self.config = yaml.safe_load(f)
         self.dpi = dpi
         self.dest = dest
+        self.bounds = bounds
         os.makedirs(dest,exist_ok=True)
 
     def biasplot(self,var,years,seas,obs,msd,osd,pname):
@@ -126,16 +142,26 @@ class biasplot:
             custom_cmap = plt.get_cmap(colors)
 
         # Plotting biases
-        bounds = [msd.lon.min(), msd.lon.max(), msd.lat.min(), msd.lat.max()]
-        if (bounds[0] > 90.0 and bounds[1] < 0.0):
-            bounds[1] = 360.0 + bounds[1]
-        lonrange = (bounds[1]-bounds[0])
-        latrange = (bounds[3]-bounds[2])
+        if self.bounds:
+            bounds = self.bounds
+            if bounds[0] > 90.0 and bounds[1] < 0.0:
+                bounds[1] = 360.0 + bounds[1]
+            lonrange = (bounds[1]-bounds[0])
+            latrange = (bounds[3]-bounds[2])
+            xratio = abs(lonrange/latrange)
+            yratio = 1.0/xratio
+        else:
+            bounds = [msd.lon.min(), msd.lon.max(),
+                      msd.lat.min(), msd.lat.max()]
+            if (bounds[0] > 90.0 and bounds[1] < 0.0):
+                bounds[1] = 360.0 + bounds[1]
+            lonrange = (bounds[1]-bounds[0])
+            latrange = (bounds[3]-bounds[2])
+            xratio = lonrange/28
+            yratio = latrange/28
+
         xpos = bounds[0] + 0.20*lonrange
         ypos = bounds[2] + 0.20*latrange
-
-        xratio = lonrange/28
-        yratio = latrange/28
         ydim = yratio*nrows*3
         xdim = xratio*ncols*3
         fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(xdim,ydim),
@@ -167,6 +193,8 @@ class biasplot:
                         fontsize=10, va="center", ha="center", color='grey',
                         bbox=dict(facecolor="white", alpha=0.5,
                         edgecolor="grey", boxstyle="round,pad=0.3"))
+                ax.gridlines(draw_labels={"bottom": "x", "left": "y"},
+                        dms=True, x_inline=False, y_inline=False)
 
         plt.subplots_adjust(wspace=0.02, hspace=0.02)
         if nrows == 1 and ncols == 1:
@@ -185,7 +213,7 @@ class biasplot:
                     fraction = 0.02*yratio, pad = 0.03)
             cbar.set_label(label,size=10*yratio)
 
-        cyears = "-".join(str(y) for y in years)
+        cyears = "-".join(str(y) for y in (years[0],years[-1]))
         pfile = pname.replace(" ","_")
         out_file = os.path.join(self.dest,
                 f"{pfile}_bias_{var}_{cyears}_4s.png")

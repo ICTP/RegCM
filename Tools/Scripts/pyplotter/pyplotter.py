@@ -67,6 +67,10 @@ for plot in what.keys( ):
         dpi = what[plot]["dpi"]
         pname = what[plot]["name"]
         seasons = what[plot]["seasons"]
+        if "bounds" in what[plot]:
+            bounds = what[plot]["bounds"]
+        else:
+            bounds = None
         years = parse_years(what[plot]["years"])
         for var in what[plot]["variables"].keys( ):
             observations = what[plot]["variables"][var]["obs"]
@@ -77,13 +81,17 @@ for plot in what.keys( ):
                 obs_accessor = observation_reader(cache,years,obs,var,
                                                   mdl_accessor.sid)
                 ods.append(obs_accessor.seasonal_data(seasons, mds))
-            bias_plot = biasplot(dpi=dpi,dest=plotdir)
+            bias_plot = biasplot(dpi=dpi,dest=plotdir,bounds=bounds)
             bias_plot.biasplot(var, years, seasons, observations,
                                mds, ods, pname)
     elif plot == "p99plot":
         dpi = what[plot]["dpi"]
         pname = what[plot]["name"]
         years = parse_years(what[plot]["years"])
+        if "bounds" in what[plot]:
+            bounds = what[plot]["bounds"]
+        else:
+            bounds = None
         for var in what[plot]["variables"].keys( ):
             observations = what[plot]["variables"][var]["obs"]
             mdl_accessor = model_reader(cache,years,var,file_format)
@@ -93,7 +101,7 @@ for plot in what.keys( ):
                 obs_accessor = observation_reader(cache,years,obs,var,
                                                   mdl_accessor.sid)
                 ods.append(obs_accessor.quantile_data(99, mds))
-            p99_plot = p99plot(dpi=dpi,dest=plotdir)
+            p99_plot = p99plot(dpi=dpi,dest=plotdir,bounds=bounds)
             p99_plot = p99_plot.p99plot(var,years,observations,mds,ods,pname)
     else:
         print("Plot ", plot, 'not available!')
