@@ -241,9 +241,15 @@ module mod_cmip6_mpihr
         if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
           y = y - 5
         end if
-        write(v%filename,'(a,i4,a,i4,a)') &
-          trim(cmip6_path(y,'6hrLev',mpihr_version,v%vname)), &
-          y, '01010600-', y+5, '01010000.nc'
+        if ( y == 2100 ) then
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'6hrLev',mpihr_version,v%vname)), &
+            y, '01010600-', y+1, '01010000.nc'
+        else
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'6hrLev',mpihr_version,v%vname)), &
+            y, '01010600-', y+5, '01010000.nc'
+        end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
