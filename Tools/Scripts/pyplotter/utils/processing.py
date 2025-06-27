@@ -119,13 +119,13 @@ class observation_reader:
         factor = self.config[self.obs][self.var]["factor"]
         offset = self.config[self.obs][self.var]["offset"]
         oname = self.config[self.obs][self.var]["var_ds"]
+        method = "bilinear"
+        if self.var == "pr":
+            method = "nearest_s2d"
         ds = load_obs_data(self.files).rename({oname: self.var})
         if self.obs == "EURO4M":
              if newgrid is not None:
                   import xesmf as xe
-                  method = "bilinear"
-                  if self.var == "pr":
-                      method = "nearest_s2d"
                   regridder = xe.Regridder(ds, newgrid, method)
                   dr = ds[self.var].sel(time=ds.time.dt.year.isin(self.years))
                   nds = regridder(dr, keep_attrs=True)
