@@ -86,7 +86,11 @@ class p99plot:
                     levels=levels, cmap=custom_cmap, extend="both")
             ax.add_feature(cfeature.BORDERS, linewidth=0.5, edgecolor="grey")
             ax.add_feature(cfeature.COASTLINE, linewidth=0.5)
-            ax.gridlines(draw_labels={"bottom": "x", "left": "y"},
+            if col == 0:
+                ax.gridlines(draw_labels={"left":"y","bottom":"x"},
+                    dms=True, x_inline=False, y_inline=False)
+            else:
+                ax.gridlines(draw_labels={"bottom":"x"},
                     dms=True, x_inline=False, y_inline=False)
             ax.set_title(f"P99 Bias {pname} - {obs_name}", fontsize=8*xratio)
 
@@ -193,8 +197,19 @@ class biasplot:
                         fontsize=10, va="center", ha="center", color='grey',
                         bbox=dict(facecolor="white", alpha=0.5,
                         edgecolor="grey", boxstyle="round,pad=0.3"))
-                ax.gridlines(draw_labels={"bottom": "x", "left": "y"},
-                        dms=True, x_inline=False, y_inline=False)
+                    if row == (len(seas)-1):
+                        ax.gridlines(draw_labels={"left":"y","bottom":"x"},
+                            dms=True, x_inline=False, y_inline=False)
+                    else:
+                        ax.gridlines(draw_labels={"left":"y"},
+                            dms=True, x_inline=False, y_inline=False)
+                else:
+                    if row == (len(seas)-1):
+                        ax.gridlines(draw_labels={"bottom":"x"},
+                            dms=True, x_inline=False, y_inline=False)
+                    else:
+                        ax.gridlines(draw_labels=False,
+                            dms=True, x_inline=False, y_inline=False)
 
         plt.subplots_adjust(wspace=0.02, hspace=0.02)
         if nrows == 1 and ncols == 1:
