@@ -5,6 +5,7 @@ import os
 import glob
 import yaml
 import xarray as xr
+import xesmf as xe
 from pathlib import Path
 
 def season_string_to_monthlist(str):
@@ -119,35 +120,25 @@ class observation_reader:
         factor = self.config[self.obs][self.var]["factor"]
         offset = self.config[self.obs][self.var]["offset"]
         oname = self.config[self.obs][self.var]["var_ds"]
-        method = "bilinear"
-        if self.var == "pr":
-            method = "nearest_s2d"
         ds = load_obs_data(self.files).rename({oname: self.var})
-        if self.obs == "EURO4M":
-             if newgrid is not None:
-                  import xesmf as xe
-                  regridder = xe.Regridder(ds, newgrid, method)
-                  dr = ds[self.var].sel(time=ds.time.dt.year.isin(self.years))
-                  nds = regridder(dr, keep_attrs=True)
-             else:
-                  nds = ds[self.var].sel(time=ds.time.dt.year.isin(self.years))
+        if self.obs == 'CPC' or self.obs == 'ERA5' or self.obs == 'EOBS':
+            try:
+                ds = ds.rename({"latitude": "lat", "longitude": "lon"})
+            except:
+                pass
+            ds = ds.assign_coords(
+                        lon=((ds.lon + 180) % 360) - 180).sortby("lon")
+        if newgrid is not None:
+            method = "bilinear"
+            method = "nearest_s2d"
+            regridder = xe.Regridder(ds, newgrid, method)
+            dr = ds[self.var].sel(time=ds.time.dt.year.isin(self.years))
+            nds = regridder(dr, keep_attrs=True)
         else:
             nds = ds[self.var].sel(time=ds.time.dt.year.isin(self.years))
         nds *= factor
         nds += offset
-        if self.obs == 'CPC' or self.obs == 'ERA5' or self.obs == "EOBS":
-            try:
-                nds = nds.rename({"latitude": "lat", "longitude": "lon"})
-            except:
-                pass
-            nds = nds.assign_coords(
-                        lon=((nds.lon + 180) % 360) - 180).sortby("lon")
-        if newgrid is not None:
-            if self.obs == 'EURO4M':
-                return nds
-            nds = nds.interp(lat = newgrid["lat"],
-                             lon = newgrid["lon"], method=method)
-            return nds
+        return nds
 
     def seasonal_data(self,seasons,newgrid=None):
         fname = (self.dom+"_"+self.obs + "_" + self.var +
