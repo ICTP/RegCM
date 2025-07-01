@@ -566,6 +566,8 @@ module mod_ncout
       enable_atm_vars(natm2dvars+atm_w) = .true.
       enable_atm_vars(natm2dvars+atm_t) = .true.
       enable_atm_vars(natm2dvars+atm_qv) = .true.
+      enable_atm_vars(natm2dvars+atm_qc) = .true.
+      if ( ipptls > 1 ) enable_atm_vars(natm2dvars+atm_qi) = .true.
       if ( idynamic == 2 ) then
         enable_atm_vars(atm_p0) = .true.
         enable_atm_vars(natm2dvars+atm_p0) = .true.
@@ -657,6 +659,7 @@ module mod_ncout
       enable_rad_vars(rad_higcl) = .true.
       enable_rad_vars(rad_midcl) = .true.
       enable_rad_vars(rad_lowcl) = .true.
+      enable_rad_vars(nrad2dvars+rad_cld) = .true.
     end if
 
     if ( ifatm ) then
