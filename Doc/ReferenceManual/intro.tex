@@ -63,30 +63,21 @@ boundary layer scheme of \citep{Holtslag_90} replaced the older local scheme,
 the mass flux cumulus cloud scheme of \citep{Grell_93} was added as an option,
 and the latest version of BATS1E \citep{Dickinson_93} was included in the model.
 
-In the last few years, some new physics schemes have become available for use in
+Other physics schemes have been later on made available for use in
 the \ac{RegCM}, mostly based on physics schemes of the latest version of the
 \ac{CCM}, \ac{CCM3} \citep{Kiehl_96}. First, the \ac{CCM2} radiative transfer
-package has been replaced by that of the \ac{CCM3}. In the \ac{CCM2} package,
-the effects of ${\rm H_2O}$, ${\rm O_3}$, ${\rm O_2}$, ${\rm CO_2}$ and clouds
-were accounted for by the model. Solar radiative transfer was treated with a
-$\delta$-Eddington approach and cloud radiation depended on three cloud
-parameters, the cloud fractional cover, the cloud liquid water content, and the
-cloud effective droplet radius. The \ac{CCM3} scheme retains the same structure
+package has been replaced by that of the \ac{CCM3}.
+The \ac{CCM3} scheme retains the same structure
 as that of the \ac{CCM2}, but it includes new features such as the effect of
 additional greenhouse gases (${\rm NO_2, CH_4, CFCs}$), atmospheric aerosols,
 and cloud ice. Scattering and absorption of solar radiation by aerosols are
 also included based on the aerosol optical properties (Absorption Coefficient
 and Single Scattering Albedo).
  
-A simplified explicit moisture scheme \citet{Hsie_84} is included, where only a
+A simplified explicit moisture scheme \citet{Hsie_84} was included, where only a
 prognostic equation for cloud water is used, which accounts for cloud water
 formation, advection and mixing by turbulence, re-evaporation in sub-saturated
 conditions, and conversion into rain via a bulk autoconversion term.
-Prognosed cloud water variable is directly used in the cloud
-radiation calculations, and not diagnosed in terms of the local
-relative humidity, adding a very important and far reaching element of
-interaction between the simulated hydrologic cycle and energy budget
-calculations. 
 
 The solar spectrum optical properties are based on the cloud liquid water path,
 which is in turn based on the cloud liquid water amount prognostically
@@ -127,22 +118,21 @@ A large-scale cloud and precipitation scheme which accounts for the
 subgrid-scale variability of clouds \citep{Pal_00}, parameterizations for
 ocean surface fluxes \citep{Zeng_98}, and multiple cumulus convection scheme
 \citep{Anthes_77,Grell_93,Emanuel_91,Emanuel_99} are the same as in \ac{RegCM}3,
-but a new "mixed scheme" Grell+Emanuel is introduced: it allows the user to
+but a new "mixed scheme" Grell+Emanuel is introduced: it allowed the user to
 select one of the two schemes in function of the ocean-land mask.
 
-The other main development compared to \ac{RegCM}3 concerns the aerosol
-radiative transfer calculations. In \ac{RegCM}3 the aerosol radiative forcing
-was based on three dimensional fields produced by the aerosol model, and
-included only scattering and absorption in the shortwave spectrum (see
-\cite{Giorgi_02}). In \ac{RegCM}4 we added the contribution of the infrared
-spectrum following \cite{Solmon_08}.
+The aerosol radiative transfer calculations was later added,
+based on three dimensional fields produced by an aerosol model, and
+included initially scattering and absorption in the shortwave spectrum (see
+\cite{Giorgi_02}), and later the contribution of the infrared
+spectrum (\cite{Solmon_08}).
 
 This is especially important for relatively large dust and sea salt particles
 and it is calculated by introducing an aerosol infrared emissivity calculated
 as a function of aerosol path and absorption cross section estimated from
 aerosol size distribution and long wave refractive indices. Long wave diffusion,
 which could be relevant for larger dust particles, is not treated as part of
-this scheme.
+this scheme. Gas phase chemistry and transport was added.
 
 The mosaic-type parameterization of subgrid-scale heterogeneity in
 topography and land use \citep{Giorgi_03} allows finer surface resolution
@@ -152,7 +142,7 @@ The Hydrostatic dynamical core was flanked in 2013-2015 by the \ac{MM5}
 non-hydrostatic equations dynamical core, together with ice phase permitting
 microphysical options, numerous bouquet state-of-the-art convective and
 boundary layer schemes, an interface to the \ac{CLM} version 4.5 surface model
-and gas phase chemistry.
+with the same subgrid-scale heterogeneity allowed for \ac{BATS1e}/
 
 The 2020 release sees the addition of the \ac{MOLOCH} non hydrostatic
 dynamical core on terrain following $H$ vertical coordinate model on an
@@ -163,6 +153,8 @@ equations with a second order forward-backward scheme, total variation
 diminishing advection contribution subtraction with a longer time step and
 physical parametrizations contribution computation with the user selected
 time step.
+
+New physical scheme are routinely added and made available.
 
 \section{Model components}
 
@@ -345,7 +337,7 @@ G(\zeta) = 1 - a_0 \frac{\zeta}{Z_{top}} -
 
 and $H$ is a scale height of the atmosphere.
 
-with $Z_{top}$, $H$ and $a_0 in [0,1]$ as configurable constant parameter.
+with $Z_{top}$, $H$ and $a_0$ as configurable constant parameter.
 
 \section{Map Projections and Map-Scale Factors}
 The modeling system has a
