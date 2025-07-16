@@ -1924,21 +1924,13 @@ module mod_moloch
       end do
     end if
     if ( ma%has_bdyleft ) then
-      do concurrent ( i = ice1:ici2, k = 1:kz )
+      do concurrent ( i = ici1:ici2, k = 1:kz )
         zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
-      end do
-      do k = 1, kz
-        if ( ma%has_bdytop ) zdiv2(jce1,ice2,k) = zdiv2(jci1,ici2,k)
-        if ( ma%has_bdybottom ) zdiv2(jce1,ice1,k) = zdiv2(jci1,ici1,k)
       end do
     end if
     if ( ma%has_bdyright ) then
-      do concurrent ( i = ice1:ici2, k = 1:kz )
+      do concurrent ( i = ici1:ici2, k = 1:kz )
         zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
-      end do
-      do k = 1, kz
-        if ( ma%has_bdytop ) zdiv2(jce2,ice2,k) = zdiv2(jci2,ici2,k)
-        if ( ma%has_bdybottom ) zdiv2(jce2,ice1,k) = zdiv2(jci2,ici1,k)
       end do
     end if
 
