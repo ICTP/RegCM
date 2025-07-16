@@ -743,7 +743,7 @@ module mod_moloch
 
           ! Equation 10, generalized vertical velocity
 
-          do k = kz , 2 , -1
+          do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) + &
@@ -791,7 +791,6 @@ module mod_moloch
               end do
             end do
           end if
-          call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
           call divdamp(dtsound)
           if ( do_filterdiv ) call filt3d(zdiv2,mo_anu2)
           do k = 1 , kz
@@ -1914,6 +1913,28 @@ module mod_moloch
     integer(ik4) :: i , j , k
     real(rkx) :: ddamp1
 
+    if ( ma%has_bdybottom ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
+      end do
+    end if
+    if ( ma%has_bdyleft ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+      end do
+    end if
+
+    call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
     ddamp1 = ddamp*0.125_rkx*(dx**2)/dts
     if ( lrotllr ) then
       do k = 1 , kz
