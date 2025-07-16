@@ -278,6 +278,9 @@ CONTAINS
          aod_550,                  & !< aerosol optical depth at 550nm
          aod_lmd,                  & !< aerosol optical depth at input wavelength
          lfactor                     !< factor to compute wavelength dependence of optical properties
+
+   
+    REAL(kind=wp)              ::  beta_suml
     !
     ! ----------
 
@@ -292,24 +295,28 @@ CONTAINS
     !
     ! initialize variables, including output
     !
-    DO k=1,nlevels
-      DO icol=1,ncol
+
+    !$acc data create(z_beta,eta,dNovrN,caod_sp,caod_bg,prof) &
+    !$acc  copyin(eta,beta_a,beta_b,dz,lat,plume_lat,lon,plume_lon,sig_lon_E, sig_lat_E,aod_spmx,aod_fmbg, &
+    !$acc  sig_lon_W, sig_lat_W, theta,time_weight,ftr_weight,time_weight_bg, ssa550,asy550,z) &
+    !$acc  copyout(dNovrN,aod_prof,ssa_prof,asy_prof)
+
+    do concurrent (k=1:nlevels, icol=1:ncol)
         aod_prof(icol,k) = 0.0_wp
         ssa_prof(icol,k) = 0.0_wp
         asy_prof(icol,k) = 0.0_wp
 !        z_beta(icol,k)   = MERGE(1.0_wp, 0.0_wp, z(icol,k) >= oro(icol))
 !FAB in sigma-coordinates the first atm level altitude should always be above
 !topography !
-        z_beta(icol,k) = 1.!
+        z_beta(icol,k) = 1._wp!
         eta(icol,k)      = MAX(0.0_wp,MIN(1.0_wp,z(icol,k)/15000.0_wp))
-      END DO
-    END DO
+    end do
 
-    DO icol=1,ncol
+    do concurrent (icol=1:ncol)
       dNovrN(icol)   = 1.0_wp
       caod_sp(icol)  = 0.0_wp
       caod_bg(icol)  = 0.02_wp
-    END DO
+    end do
     !
     ! sum contribution from plumes to construct composite profiles of aerosol optical properties
     !
@@ -317,24 +324,24 @@ CONTAINS
       !
       ! calculate vertical distribution function from parameters of beta distribution
       !
-      DO icol=1,ncol
-        beta_sum(icol) = 0.
-      END DO
-      DO k=1,nlevels
-        DO icol=1,ncol
-          prof(icol,k)   = (eta(icol,k)**(beta_a(iplume)-1.) * (1.-eta(icol,k))**(beta_b(iplume)-1.)) * dz(icol,k)
-          beta_sum(icol) = beta_sum(icol) + prof(icol,k)
-        END DO
-      END DO
-      DO k=1,nlevels
-        DO icol=1,ncol
+      do concurrent ( icol=1:ncol)
+        beta_suml=0._wp
+        !$acc loop seq
+        do k=1,nlevels
+          prof(icol,k)   = (eta(icol,k)**(beta_a(iplume)-1._wp) * (1._wp-eta(icol,k))**(beta_b(iplume)-1._wp)) * dz(icol,k)
+          beta_suml = beta_suml + prof(icol,k)
+        end do
+        beta_sum(icol)=beta_suml
+        !$acc loop seq
+        do k=1,nlevels
           prof(icol,k)   = ( prof(icol,k) / beta_sum(icol) ) * z_beta(icol,k)
-        END DO
-      END DO
+        end do
+      end do
+
       !
       ! calculate plume weights
       !
-      DO icol=1,ncol
+      do concurrent (icol=1:ncol)
         !
         ! get plume-center relative spatial parameters for specifying amplitude of plume at given lat and lon
         !
@@ -389,33 +396,36 @@ CONTAINS
       !
       lfactor = EXP(-angstrom(iplume) * LOG(lambda/550.0_wp))
       !FAB TEST
-      DO k=1,nlevels
-        DO icol = 1,ncol
-          aod_550          = prof(icol,k)     * cw_an(icol)
-          aod_lmd          = aod_550          * lfactor
-          caod_sp(icol)    = caod_sp(icol)    + aod_550
-          caod_bg(icol)    = caod_bg(icol)    + prof(icol,k) * cw_bg(icol)
-          asy_prof(icol,k) = asy_prof(icol,k) + aod_lmd * ssa(icol) * asy(icol)
-          ssa_prof(icol,k) = ssa_prof(icol,k) + aod_lmd * ssa(icol)
-          aod_prof(icol,k) = aod_prof(icol,k) + aod_lmd
-        END DO
-      END DO
+
+      do concurrent (icol = 1:ncol)
+       !$acc loop seq
+       do k = 1, nlevels
+         aod_550          = prof(icol,k)     * cw_an(icol)
+         aod_lmd          = aod_550          * lfactor
+         caod_sp(icol)    = caod_sp(icol)    + aod_550
+         caod_bg(icol)    = caod_bg(icol)    + prof(icol,k) * cw_bg(icol)
+         asy_prof(icol,k) = asy_prof(icol,k) + aod_lmd * ssa(icol) * asy(icol)
+         ssa_prof(icol,k) = ssa_prof(icol,k) + aod_lmd * ssa(icol)
+         aod_prof(icol,k) = aod_prof(icol,k) + aod_lmd
+       end do
+      end do
+      
     END DO
     !
     ! complete optical depth weighting
     !
-    DO k=1,nlevels
-      DO icol = 1,ncol
+    DO concurrent  (k=1:nlevels, icol = 1:ncol)
         asy_prof(icol,k) = MERGE(asy_prof(icol,k)/ssa_prof(icol,k), 0.0_wp, ssa_prof(icol,k) > TINY(1.))
         ssa_prof(icol,k) = MERGE(ssa_prof(icol,k)/aod_prof(icol,k), 1.0_wp, aod_prof(icol,k) > TINY(1.))
-      END DO
     END DO
     !
     ! calculate effective radius normalization (divisor) factor
     !
-    DO icol=1,ncol
+    DO concurrent (icol=1:ncol)
       dNovrN(icol) = LOG((1000.0_wp * (caod_sp(icol) + caod_bg(icol))) + 1.0_wp)/LOG((1000.0_wp * caod_bg(icol)) + 1.0_wp)
     END DO
+
+    !$acc end data
 
     RETURN
   END SUBROUTINE sp_aop_profile

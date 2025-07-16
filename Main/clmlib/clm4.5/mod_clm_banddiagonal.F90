@@ -16,11 +16,19 @@ module mod_clm_banddiagonal
 
   public :: BandDiagonal
 
+  interface BandDiagonal
+#if defined(STDPAR) || defined(OPENACC) || defined(_OPENACC)
+    module procedure BandDiagonal_gpu
+#else
+    module procedure BandDiagonal_cpu
+#endif
+  end interface
+
   contains
   !
   ! Tridiagonal matrix solution
   !
-  subroutine BandDiagonal(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
+  subroutine BandDiagonal_cpu(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
                           filter, nband, b, r, u)
     implicit none
     ! lbinning and ubing column indices
@@ -145,6 +153,25 @@ module mod_clm_banddiagonal
 !!$*  + need not be set on entry, but are required by the routine to store
 !!$*  elements of U because of fill-in resulting from the row interchanges.
 
+    !OPEN(unit=10, file='filter.dat', form='unformatted')        
+    !write (10) numf,lbc, ubc,lbj, ubj,filter 
+    !close(10)
+!
+!    OPEN(unit=10, file='jtop.dat', form='unformatted')        
+!    write (10) numf,jtop 
+!    close(10)
+!
+!    OPEN(unit=10, file='jbot.dat', form='unformatted')        
+!    write (10) numf,jbot 
+!    close(10)
+!
+!    OPEN(unit=10, file='b.dat', form='unformatted')        
+!    write (10) b 
+!    close(10)
+!
+!    OPEN(unit=10, file='r.dat', form='unformatted')        
+!    write (10) r 
+!    close(10)
 
     !Set up input matrix AB
     !An m-by-n band matrix with kl subdiagonals and ku superdiagonals
@@ -152,6 +179,7 @@ module mod_clm_banddiagonal
     !kl+ku+1 rows and n columns
     !AB(KL+KU+1+i-j,j) = A(i,j)
 
+    !print *," In banddiagonal numf",numf
     do fc = 1, numf
       ci = filter(fc)
 
@@ -162,6 +190,7 @@ module mod_clm_banddiagonal
       ! n is the number of levels (snow/soil)
       !scs: replace ubj with jbot
       n = jbot(ci)-jtop(ci)+1
+      !print *," In banddiagonal fc:  m,n,ci",fc,m,n,ci
 
       allocate(ab(m,n))
       ab = 0.0_rk8
@@ -203,7 +232,209 @@ module mod_clm_banddiagonal
       deallocate(ipiv)
       deallocate(result)
     end do
-  end subroutine BandDiagonal
+!    OPEN(unit=10, file='u.dat', form='unformatted')        
+!    write (10) u 
+!    close(10)
+!    stop
+  end subroutine BandDiagonal_cpu
+
+
+#if defined(STDPAR) || defined(OPENACC) || defined(_OPENACC)
+
+subroutine BandDiagonal_gpu(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
+                           filter, nband, b, r, u)
+    use cusparse
+    use cudafor
+    use nvtx
+    implicit none
+    ! lbinning and ubing column indices
+    integer(ik4), intent(in)    :: lbc, ubc
+    ! lbinning and ubing level indices
+    integer(ik4), intent(in)    :: lbj, ubj
+    ! top level for each column
+    integer(ik4), intent(in)    :: jtop(lbc:ubc)
+    !scs:  add jbot
+    ! bottom level for each column
+    integer(ik4), intent(in)    :: jbot(lbc:ubc)
+    !scs
+    integer(ik4), intent(in)    :: numf   ! filter dimension
+    integer(ik4), intent(in)    :: nband  ! band width
+    integer(ik4), intent(in)    :: filter(ubc-lbc+1)       ! filter
+    ! compact band matrix
+    real(rk8), intent(in)    :: b(lbc:ubc,nband,lbj:ubj)
+    ! "r" rhs of linear system
+    real(rk8), intent(in)    :: r(lbc:ubc, lbj:ubj)
+    ! solution
+    real(rk8), intent(inout) :: u(lbc:ubc, lbj:ubj)
+
+    integer(ik4)  :: j,ci,fc,info,m,n,i       !indices
+    integer(ik4)  :: kl,ku                     !number of sub/super diagonals
+    integer(ik4), allocatable :: cnt(:)        !array for histogram
+    integer(ik4), allocatable :: ind(:)        !array for indices
+    integer(ik4) :: nSets                      !How many 
+    integer :: maxbuffer,maxdim           ! Values to dimension device arrays
+    logical, allocatable :: mask(:)            !mask used to compact array
+    integer(ik4), dimension(:), allocatable :: indices, sizes,locind
+
+    ! cuSPARSE handles and buffers
+    type(cusparseHandle) :: cusparse_h
+    integer :: algo = 0  ! QR factorization (only one supported at this time)
+    integer :: k,stat, batchSize
+    integer(ik8) :: bufferSize
+    real(rk8),  allocatable :: d_buffer(:)
+    logical, save :: first_call=.true.
+
+    ! Matrix diagonals and rhs on GPU
+    real(rk8),allocatable :: d_S(:) ! 2nd subdiagonal
+    real(rk8),allocatable :: d_L(:) ! 1st subdiagonal
+    real(rk8),allocatable :: d_M(:) ! diagonal
+    real(rk8),allocatable :: d_U(:) ! 1st superdiagonal
+    real(rk8),allocatable :: d_W(:) ! 2nd superdiagonal
+    real(rk8),allocatable :: d_X(:) ! RHS in input, solution in output
+
+    call nvtxStartRange("BandDiagonal_gpu")
+
+    ! Initialize cuSparse ( this can be done outside or just at the first call)
+    if (first_call) then
+      stat = cusparseCreate(cusparse_h)
+      if (stat /= CUSPARSE_STATUS_SUCCESS) then
+        write(*,*) 'ERROR: cuSPARSE initialization failed'
+        stop
+      end if
+      first_call=.false.
+    end if
+
+    ! Find the set of possible values for N in the pentadiagonal solver
+    ! building an histagram of the lenghts.
+    ! They will be the positions in the cnt array with non-zero value.
+    ! The non-zero value at each position will indicate how many pentadiagonal
+    ! system of that size we can batch together
+    allocate (cnt(numf))
+    allocate (ind(numf))
+    !allocate (sizes(numf))
+    !allocate (locind(numf))
+
+    !$acc kernels
+    cnt=0
+    !$acc end kernels
+
+    !$acc parallel loop copyout(cnt)
+    do fc = 1, numf
+      ci = filter(fc)
+      n = jbot(ci)-jtop(ci)+1
+      ! store n for each position
+      ind(fc)=n
+      ! count histogram of values in input array
+      !$acc atomic update
+      cnt(n)=cnt(n)+1
+    end do
+
+    ! Find all the non-zero elements of the histogram.
+    ! The positions m  will be the size of a batch cnt(m)  of pentadiagonal system
+    ! Standard F90:
+     indices = Merge( 0, [ ( i, i = 1, Size( cnt ) ) ], cnt == 0 )
+     sizes = Pack( indices, indices /= 0 )   ! will contain the indices of the non zero cnt element
+     nSets=size(sizes)
+
+    ! HPC SDK has a special intrinsic, packloc, to find the locations in an array corresponding to particular
+    ! value. It will also return the count
+
+    !!$acc host_data use_device(sizes,cnt)
+    !sizes = packloc( cnt .gt. 0, count=nSets )   ! will contain the indices of the non zero cnt element
+    !!$acc end host_data
+
+    ! Allocate device buffers large enough to hold all the required quantities
+    ! for cusparseDgpsvInterleavedBatch ( both batches of diagonals, rhs and auxiliary buffer)
+
+    maxbuffer=0
+    maxdim=0
+    do i=1,nSets
+       n=sizes(i)
+       batchSize=cnt(n)
+       maxdim=max(maxdim,n*batchSize)
+       stat = cusparseDgpsvInterleavedBatch_bufferSizeExt(cusparse_h, algo, n, &
+                                                          d_S, d_L, d_M, &
+                                                          d_U, d_W, d_X, &
+                                                          batchSize, bufferSize)
+       maxbuffer=max(maxbuffer,bufferSize)
+    end do
+     allocate(d_buffer(maxbuffer))
+     ! We are allocating these buffers as 1D array
+     allocate(d_W(maxdim),d_U(maxdim),d_M(maxdim))
+     allocate(d_L(maxdim),d_S(maxdim),d_X(maxdim))
+
+    !$acc data create(d_buffer,d_W,d_U,d_M,d_L,d_S,d_X)
+
+    ! Loop over the sets of pentadiagonal systems batching all the ones with same dimension
+    ! starting from the larger one 
+    do i=1,nSets
+       ! find out current n and batchsize
+       n=sizes(i)
+       ! Standard F90 on filter
+       ! In the gather/scatter: ci=locind(k)
+        batchSize=cnt(n)
+        mask = ( ind ==n ) 
+        locind=pack(filter,mask)
+
+       ! Using packloc ( but we are processin ind instead of filter, so we will need an extra
+       ! indirection for ci later on: ci=filter(locind(k))
+
+       !!$acc host_data use_device(locind,ind)
+       !locind = packloc( ind .eq. n, count=batchSize )   ! will contain the indices of the 
+       !!$acc end host_data
+
+       ! Pack the coefficients for cuSparse, expecting arrays(batchsize,n)
+       ! Since they are defined as 1D, we will do the indexing as
+       ! arr(k,j)=arr(k+(j-1)*batchSize)
+
+       !$acc parallel loop collapse(2)
+       do j=1,n
+       do k=1,batchSize
+        ci = locind(k)
+        !ci = filter(locind(k))
+        d_W (k+(j-1)*batchSize) = b(ci,1,jtop(ci)+j-1)   ! 2nd superdiagonal
+        d_U (k+(j-1)*batchSize) = b(ci,2,jtop(ci)+j-1)   ! 1st superdiagonal
+        d_M (k+(j-1)*batchSize) = b(ci,3,jtop(ci)+j-1)     ! diagonal
+        d_L (k+(j-1)*batchSize) = b(ci,4,jtop(ci)+j-1) ! 1st subdiagonal
+        d_S (k+(j-1)*batchSize) = b(ci,5,jtop(ci)+j-1) ! 2nd subdiagonal
+        d_X (k+(j-1)*batchSize) = r(ci,  jtop(ci)+j-1)
+       end do
+       end do
+
+       ! Solve the batch
+       stat = cusparseDgpsvInterleavedBatch(cusparse_h, algo, n, &
+              d_S, d_L, d_M, d_U, d_W, d_X, batchSize, d_buffer)
+
+       ! Copy the solution back to the proper index
+
+       !$acc parallel loop collapse(2)
+       do j=1,n
+       do k=1,batchSize
+        ci = locind(k)
+        u(ci,jtop(ci)+j-1) = d_X(k+(j-1)*batchSize)
+        end do
+       end do
+
+    end do
+
+       !Deallocate buffers
+        deallocate(d_W,d_U,d_M)
+        deallocate(d_L,d_S,d_X)
+        deallocate(d_buffer)
+        deallocate (cnt)
+        deallocate (ind)
+
+     !$acc end data
+
+     ! We are creating the handle the first time the routine is called
+     ! No need to destroy it
+     ! stat = cusparseDestroy(cusparse_h)
+
+     call nvtxEndRange()
+
+    end subroutine bandDiagonal_gpu
+
+#endif
 
 end module mod_clm_banddiagonal
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

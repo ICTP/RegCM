@@ -4740,6 +4740,7 @@ module mod_cu_tiedtke
     integer(ik4) :: nt
     real(rkx), dimension(:,:), allocatable :: xsumc
     real(rkx), dimension(:,:,:), allocatable :: xtenc
+    real(rkx) :: tfl
 
     ! ---------------------------------------
     ! 0. Compute Saturation specific humidity
@@ -6938,7 +6939,10 @@ module mod_cu_tiedtke
           zp = ((pf(n,nk+1)-pf(n,ik))/(pf(n,nk+1)-pf(n,ikb)))
           if ( ktype(n) == 3 ) zp = zp*zp
           mfu(n,ik) = mfu(n,ikb)*zp
-          mfus(n,ik) = (mfus(n,ikb) - mlw(tf(n,ikb)) * mful(n,ikb))*zp
+          ! passing a scalar to avoid a compiler bug with OpenACC/Stdpar
+          tfl=tf(n,ikb)
+          mfus(n,ik) = (mfus(n,ikb) - mlw(tfl) * mful(n,ikb))*zp
+          !mfus(n,ik) = (mfus(n,ikb) - mlw(tf(n,ikb)) * mful(n,ikb))*zp 
           mfuq(n,ik) = (mfuq(n,ikb)+mful(n,ikb))*zp
           mful(n,ik) = d_zero
         end if
@@ -7763,6 +7767,7 @@ module mod_cu_tiedtke
       mlwocp = xa*wlhvocp+(d_one-xa)*wlhsocp
     end function mlwocp
     pure real(rkx) function mlw(t)
+      !$acc routine seq
       implicit none
       real(rkx), intent(in) :: t
       real(rkx) :: xa
