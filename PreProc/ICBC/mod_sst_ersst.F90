@@ -80,7 +80,11 @@ module mod_sst_ersst
     call split_idate(idate,year,month,day,hour)
     write (inpfile,'(a,i0.4,i0.2,a)') &
       trim(inpglob)//pthsep//'SST'//pthsep//ssttyp// &
+#ifdef USE_ERSST_V6
+      pthsep//'V6'//pthsep//'ersst.v6.',year, month, '.nc'
+#else
       pthsep//'ersst.v5.',year, month, '.nc'
+#endif
     istatus = nf90_open(inpfile,nf90_nowrite,inet)
     call checkncerr(istatus,__FILE__,__LINE__, &
             'Cannot open file '//trim(inpfile))
@@ -177,7 +181,11 @@ module mod_sst_ersst
     call split_idate(idate,year,month,day,hour)
     write (inpfile,'(a,i0.4,i0.2,a)') &
       trim(inpglob)//pthsep//'SST'//pthsep//ssttyp// &
+#ifdef USE_ERSST_V6
+      pthsep//'V6'//pthsep//'ersst.v6.',year, month, '.nc'
+#else
       pthsep//'ersst.v5.',year, month, '.nc'
+#endif
     istatus = nf90_open(inpfile,nf90_nowrite,inet)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Cannot open file '//trim(inpfile))
