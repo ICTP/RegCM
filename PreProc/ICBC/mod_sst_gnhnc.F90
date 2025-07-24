@@ -265,7 +265,7 @@ module mod_sst_gnhnc
     end if
     idatef = globidate2
     tdif = idatef-idateo
-    nsteps = int(tohours(tdif))/6 + 1
+    nsteps = int(tohours(tdif))/ibdyfrq + 1
 
     write (stdout,*) 'GLOBIDATE1 : ', tochar(globidate1)
     write (stdout,*) 'GLOBIDATE2 : ', tochar(globidate2)
@@ -274,7 +274,7 @@ module mod_sst_gnhnc
     call open_sstfile(idateo)
 
     idate = idateo
-    tdif = 6*3600
+    tdif = ibdyfrq*3600
     do k = 1, nsteps
       call gnhnc_sst(idate)
       call h_interpolate_cont(hint,sst,sstmm)
