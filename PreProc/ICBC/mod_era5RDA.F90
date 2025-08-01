@@ -42,48 +42,49 @@ module mod_era5rda
 
   private
 
-  integer(ik4) :: jlat , ilon , klev , timlen
+  integer(ik4) :: jlat, ilon, klev, timlen
 
-  real(rkx) , pointer , dimension(:,:,:) :: b3
-  real(rkx) , pointer , dimension(:,:,:) :: d3
-  real(rkx) , pointer , dimension(:,:,:) :: d3u
-  real(rkx) , pointer , dimension(:,:,:) :: d3v
-  real(rkx) , pointer , dimension(:,:,:) :: b2
-  real(rkx) , pointer , dimension(:,:,:) :: d2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3u
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b2
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: d2
 
-  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , h3 , q3 , t3
-  real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u , h3u , h3v
-  real(rkx) , pointer , dimension(:,:,:) :: uvar , vvar , hvar , qvar , tvar
-  real(rkx) , pointer , dimension(:,:) :: prvar , topou , topov
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3, v3, h3, q3, t3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u, h3u, h3v
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: uvar, vvar
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: hvar, qvar, tvar
+  real(rkx), pointer, contiguous, dimension(:,:) :: prvar, topou, topov
 
-  real(rkx) , pointer , dimension(:) :: glat
-  real(rkx) , pointer , dimension(:) :: grev
-  real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:) :: plevs
-  real(rkx) , pointer , dimension(:) :: sigmar
-  real(rkx) :: pss , pst
-  real(rkx) , pointer , dimension(:,:,:) :: work
-  real(rkx) , pointer , dimension(:,:) :: iwork
+  real(rkx), pointer, contiguous, dimension(:) :: glat
+  real(rkx), pointer, contiguous, dimension(:) :: grev
+  real(rkx), pointer, contiguous, dimension(:) :: glon
+  real(rkx), pointer, contiguous, dimension(:) :: plevs
+  real(rkx), pointer, contiguous, dimension(:) :: sigmar
+  real(rkx) :: pss, pst
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: work
+  real(rkx), pointer, contiguous, dimension(:,:) :: iwork
 
-  integer(ik4) , dimension(5) :: inet5
-  integer(ik4) , dimension(5) :: ivar5
-  real(rkx) , dimension(5) :: xoff , xscl
-  type(rcm_time_and_date) , pointer , dimension(:) :: itimes
-  integer(ik4) , pointer , dimension(:) :: xtimes
+  integer(ik4), dimension(5) :: inet5
+  integer(ik4), dimension(5) :: ivar5
+  real(rkx), dimension(5) :: xoff, xscl
+  type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
+  integer(ik4), pointer, contiguous, dimension(:) :: xtimes
 
   type(global_domain) :: gdomain
-  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
+  type(h_interpolator) :: cross_hint, udot_hint, vdot_hint
 
-  public :: init_era5rda , get_era5rda , conclude_era5rda
+  public :: init_era5rda, get_era5rda, conclude_era5rda
 
   contains
 
   subroutine init_era5rda
     implicit none
     integer(ik4) :: k
-    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
-    integer(ik4) :: istatus , ncid , ivarid , idimid
+    integer(ik4) :: istatus, ncid, ivarid, idimid
     character(len=64) :: inname
 
     ! set the subdirectory path to 3D data: ds633.0/e5.oper.an.pl
@@ -172,7 +173,7 @@ module mod_era5rda
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    do k = 1 , klev
+    do k = 1, klev
       sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
     end do
     pss = (plevs(klev)-plevs(1))/10.0_rkx ! mb -> cb
@@ -206,7 +207,7 @@ module mod_era5rda
     call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_era5:d2')
     call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_era5:work')
     !
-    ! Set up pointers
+    ! Set up pointer
     !
     if ( idynamic == 3 ) then
       u3 => d3u(:,:,1:klev)
@@ -235,12 +236,12 @@ module mod_era5rda
 
   subroutine get_era5rda(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date), intent(in) :: idate
     !
     ! Read data at idate
     !
     call read_era5rda(dattyp,idate,globidate1)
-    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    write (stdout,*) 'READ IN fields at DATE:', tochar(idate)
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
@@ -325,19 +326,19 @@ module mod_era5rda
 
   subroutine read_era5rda(dattyp,idate,idate0)
     implicit none
-    character(len=5) , intent(in) :: dattyp
-    type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , inet , it , j , kkrec , istatus , ivar
+    character(len=5), intent(in) :: dattyp
+    type(rcm_time_and_date), intent(in) :: idate, idate0
+    integer(ik4) :: i, inet, it, j, kkrec, istatus, ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=1) , dimension(5) :: varname
-    character(len=33) , dimension(5) :: fname
-    character(len=64) :: cunit , ccal
-    real(rkx) :: xadd , xscale
-    integer(ik4) , dimension(4) :: icount , istart
-    integer(ik4) :: year , month , day , hour
-    integer(ik4) , save :: lastday
+    character(len=1), dimension(5) :: varname
+    character(len=33), dimension(5) :: fname
+    character(len=64) :: cunit, ccal
+    real(rkx) :: xadd, xscale
+    integer(ik4), dimension(4) :: icount, istart
+    integer(ik4) :: year, month, day, hour
+    integer(ik4), save :: lastday
     type(rcm_time_interval) :: tdif
     character(len=21) :: subdir_plev = 'ds633.0' // pthsep // 'e5.oper.an.pl'
     character(len=6) :: yyyymm
@@ -373,13 +374,13 @@ module mod_era5rda
     if ( idate == idate0 .or. day /= lastday ) then
       lastday = day
       if ( idate /= idate0 ) then
-        do kkrec = 1 , 5
+        do kkrec = 1, 5
           istatus = nf90_close(inet5(kkrec))
           call checkncerr(istatus,__FILE__,__LINE__, &
               'Error close file')
         end do
       end if
-      do kkrec = 1 , 5
+      do kkrec = 1, 5
         ! set the file name to be read
         ! (format is e5.oper.an.pl.128_129_z.ll025sc.1979010100_1979010123.nc)
         write(inname,'(a,i0.4,i0.2,i0.2,a,i0.4,i0.2,i0.2,a)') &
@@ -416,8 +417,8 @@ module mod_era5rda
             xoff(kkrec) = 0.0
         end if
         
-        write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
-                         xscl(kkrec) , xoff(kkrec)
+        write (stdout,*) inet5(kkrec), trim(pathaddname),   &
+                         xscl(kkrec), xoff(kkrec)
         ! if this is the first variable, get the time and metadata
         if ( kkrec == 1 ) then
           ! get the time dimension/variable
@@ -444,7 +445,7 @@ module mod_era5rda
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
           ! convert the time to a date
-          do it = 1 , timlen
+          do it = 1, timlen
             itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
           end do
         end if
@@ -459,7 +460,7 @@ module mod_era5rda
     istart(4) = it
     icount(4) = 1
 
-    do kkrec = 1 , 5
+    do kkrec = 1, 5
       inet = inet5(kkrec)
       ivar = ivar5(kkrec)
       xscale = xscl(kkrec)
@@ -467,23 +468,23 @@ module mod_era5rda
       call getwork(kkrec)
       ! read temperature
       if ( kkrec == 1 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
+        do j = 1, jlat
+          do i = 1, ilon
             tvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
       ! read geopotential
       else if ( kkrec == 2 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
+        do j = 1, jlat
+          do i = 1, ilon
             hvar(i,j,:) = real(real(work(i,j,:),rkx) * &
                       xscale+xadd,rkx)/9.80616_rk4
           end do
         end do
       ! read specific humidity
       else if ( kkrec == 3 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
+        do j = 1, jlat
+          do i = 1, ilon
             qvar(i,j,:) = &
               max(real(real(work(i,j,:),rkx)*xscale+xadd,rkx),0.0_rkx)
           end do
@@ -492,15 +493,15 @@ module mod_era5rda
         qvar = log10(max(qvar,dlowval))
       ! read u-wind
       else if ( kkrec == 4 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
+        do j = 1, jlat
+          do i = 1, ilon
             uvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
       ! read v-wind
       else if ( kkrec == 5 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
+        do j = 1, jlat
+          do i = 1, ilon
             vvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
@@ -511,10 +512,10 @@ module mod_era5rda
 
       subroutine getwork(irec)
         implicit none
-        integer(ik4) , intent(in) :: irec
-        integer(ik4) :: itile , iti , itf
+        integer(ik4), intent(in) :: irec
+        integer(ik4) :: itile, iti, itf
         iti = 1
-        do itile = 1 , gdomain%ntiles
+        do itile = 1, gdomain%ntiles
           istart(1) = gdomain%igstart(itile)
           icount(1) = gdomain%ni(itile)
           ! Latitudes are reversed in original file
