@@ -265,7 +265,7 @@ module mod_sst_gnhnc
     end if
     idatef = globidate2
     tdif = idatef-idateo
-    nsteps = int(tohours(tdif))/6 + 1
+    nsteps = int(tohours(tdif))/ibdyfrq + 1
 
     write (stdout,*) 'GLOBIDATE1 : ', tochar(globidate1)
     write (stdout,*) 'GLOBIDATE2 : ', tochar(globidate2)
@@ -274,7 +274,7 @@ module mod_sst_gnhnc
     call open_sstfile(idateo)
 
     idate = idateo
-    tdif = 6*3600
+    tdif = ibdyfrq*3600
     do k = 1, nsteps
       call gnhnc_sst(idate)
       call h_interpolate_cont(hint,sst,sstmm)
@@ -303,21 +303,21 @@ module mod_sst_gnhnc
 
     if ( ssttyp == 'EIXXX' ) then
       call split_idate(idate, year, month, day, hour)
-      it = isteps(month) + (day-1)*4 + hour/6
+      it = isteps(month) + (day-1)*4 + hour/ibdyfrq
     else if ( ssttyp(1:3) == 'LGM' ) then
       call split_idate(idate, year, month, day, hour)
       if ( lyear /= year ) then
         lyear = year
         it = timlen + 1
       else
-        it = (dayofyear(idate)-1)*4 + hour/6 + 1
+        it = (dayofyear(idate)-1)*4 + hour/ibdyfrq + 1
       end if
     else if ( ssttyp(1:3) == 'CFS' ) then
       it = itcfs
       itcfs = itcfs + 1
     else
       tdif = idate-fidate1
-      it = int(tohours(tdif))/6 + 1
+      it = int(tohours(tdif))/ibdyfrq + 1
     end if
 
     if ( it > timlen ) then
@@ -390,7 +390,7 @@ module mod_sst_gnhnc
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error inquire dim time')
         call split_idate(idate, year, month, day, hour)
-        it = (dayofyear(idate)-1)*4 + hour/6 + 1
+        it = (dayofyear(idate)-1)*4 + hour/ibdyfrq + 1
       else
         istatus = nf90_inq_dimid(inet1,'time',timid)
         if ( istatus /= nf90_noerr ) then
@@ -414,7 +414,7 @@ module mod_sst_gnhnc
         if ( istatus /= nf90_noerr ) ccal = 'gregorian'
         fidate1 = timeval2date(work1(1),cunit,ccal)
         tdif = idate-fidate1
-        it = int(tohours(tdif))/6 + 1
+        it = int(tohours(tdif))/ibdyfrq + 1
       end if
     end if
     icount(3) = 1

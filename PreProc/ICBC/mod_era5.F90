@@ -736,7 +736,7 @@ module mod_era5
       end do
     end if
     tdif = idate - itimes(1)
-    it = nint(tohours(tdif))/6 + 1
+    it = nint(tohours(tdif))/ibdyfrq + 1
 
     istart(3) = 1
     icount(3) = klev
