@@ -1,11 +1,11 @@
 format: cordex
 cache: /leonardo_scratch/large/userexternal/ggiulian/cache
-datapath: /leonardo/home/userexternal/ggiulian/project/COUPLED/coupled/CORDEX-CMIP6
+datapath: /leonardo/home/userexternal/ggiulian/project/COUPLED/atmonly/CORDEX-CMIP6
 plotpath: /leonardo_scratch/large/userexternal/ggiulian/plots
 plot:
         biasplot:
-                years: [1983]
-                name: MED-12 coupled
+                years: [1979:1987]
+                name: MED-12 standalone
                 dpi: 100
                 seasons: [ "DJF", "MAM", "JJA", "SON" ]
                 variables:
@@ -15,10 +15,3 @@ plot:
                                 obs: [ "EOBS", "CRU", "ERA5", "MSWEP", "CPC" ]
                         clt:
                                 obs: [ "CRU", "ERA5" ]
-        p99plot:
-                years: [1983]
-                name: MED-12 coupled
-                dpi: 100
-                variables:
-                        pr:
-                                obs: [ "EOBS", "CPC" ]

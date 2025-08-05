@@ -26,9 +26,11 @@ AC_DEFUN([RR_PATH_NETCDF],[
 
   AC_CHECKING([for NetCDF])
 
+  save_CC="$CC"
   save_CPPFLAGS="$CPPFLAGS"
   save_LDFLAGS="$LDFLAGS"
 
+  CC="$NC_CC"
   CPPFLAGS="$CPPFLAGS $NC_INCLUDES"
   AMDEPFLAGS="$AMDEPFLAGS $NC_INCLUDES"
   LIBS="$LIBS $NC_LIBS"
@@ -115,6 +117,7 @@ AC_DEFUN([RR_PATH_NETCDF],[
                [netcdf=yes], [netcdf=no])
   fi
   AC_LANG_POP([C])
+  CC="$save_CC"
   LDFLAGS="$save_LDFLAGS"
   AC_SUBST([netcdf])
 

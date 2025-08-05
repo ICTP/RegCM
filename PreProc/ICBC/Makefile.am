@@ -124,6 +124,7 @@ mod_ein.o : mod_ein.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.
 mod_ifs.o : mod_ifs.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_vertint.o mod_hgt.o mod_humid.o mod_projections.o mod_vectutil.o mod_message.o mod_nchelper.o mod_kdinterp.o mod_earth.o mod_constants.o mod_date.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_era5.o : mod_era5.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_projections.o mod_vectutil.o mod_message.o mod_nchelper.o mod_kdinterp.o mod_earth.o mod_date.o mod_constants.o
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_era5RDA.o : mod_era5RDA.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_projections.o mod_vectutil.o mod_message.o mod_nchelper.o mod_kdinterp.o mod_earth.o mod_date.o mod_constants.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_pgw.o : mod_pgw.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_vertint.o mod_hgt.o mod_humid.o mod_projections.o mod_vectutil.o mod_message.o mod_nchelper.o mod_kdinterp.o mod_earth.o mod_constants.o
