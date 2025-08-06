@@ -137,7 +137,7 @@ def parse_input():
     parser.add_argument(
         '-g',
         '--global-model',
-        default='NONE',
+        default='ERA5',
         type=str,
     )
     parser.add_argument(

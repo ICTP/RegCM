@@ -175,7 +175,7 @@ class Variable(object):
     @property
     def frequency(self):
         if not self.depends_on_time:
-            return 'fixed'
+            return 'fx'
 
         if self.time_step_size == 24:
             return 'day'
