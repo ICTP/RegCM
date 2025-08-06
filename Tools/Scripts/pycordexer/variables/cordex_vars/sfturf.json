@@ -1,0 +1,23 @@
+{
+  "sfturf": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "urb_2d"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "sfturf",
+          "new_attributes": {
+            "long_name": "Percentage of the Grid Cell Occupied by Urban Area",
+            "standard_name": "area_fraction",
+            "units": "%"
+          }
+        }
+      ]
+    ]
+  ]
+}
