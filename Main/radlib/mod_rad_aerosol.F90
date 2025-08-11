@@ -2352,12 +2352,17 @@ module mod_rad_aerosol
             end do
           else if ( chtrname(itr)(1:4) == 'SSLT' ) then
             jbin = jbin+1
-            do concurrent ( n = n1:n2, k = 1:kz )
+#ifdef STDPAR_FIXED
+            do concurrent ( n = n1:n2, k = 1:kz ) local(kssslt,gssslt,wssslt)
+#else
+            do k = 1, kz
+            do n = n1, n2
+#endif
               rh0 = min(0.99_rkx,max(0.0_rkx,rh(n,k)))
               do l = 1, 7
                 if ( rh0 > rhp(l) .and. rh0 <= rhp(l+1) ) then
-                  ! FAB : test according to li et al., ksslt cannot exceed 1.3
-                  ! quick fix for now, update parameterisation to LI et al,
+                  ! FAB : test according to Li et al., ksslt cannot exceed 1.3
+                  ! quick fix for now, update parameterisation to Li et al,
                   ! ACP 2008 in a near future
                   kssslt(ns,jbin) = min(ksslt(ns,jbin,l),1.2_rkx)
                   gssslt(ns,jbin) = gsslt(ns,jbin,l)
@@ -2370,6 +2375,9 @@ module mod_rad_aerosol
               ga(n,k,itr) = gssslt(ns,jbin)
               fa(n,k,itr) = gssslt(ns,jbin)*gssslt(ns,jbin)
             end do
+#ifndef STDPAR_FIXED
+            end do
+#endif
           else if ( chtrname(itr)(1:5) == 'OC_HL' ) then
             do concurrent ( n = n1:n2, k = 1:kz )
               uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
