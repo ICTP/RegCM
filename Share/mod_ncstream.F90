@@ -342,7 +342,7 @@ module mod_ncstream
 #else
         if ( params%mpi_comm /= -1 ) then
 #ifdef PNETCDF
-          imode = ior(nf90_clobber, nf90_64bit_offset)
+          imode = ior(nf90_clobber, nf90_64bit_data)
           if ( params%l_sync ) imode = ior(imode,nf90_share)
           ncstat = nf90mpi_create(params%mpi_comm,stream%filename, &
                                   imode,params%mpi_info,stream%id)
@@ -361,7 +361,7 @@ module mod_ncstream
 #endif
         else
 #ifdef PNETCDF
-          imode = ior(nf90_clobber, nf90_64bit_offset)
+          imode = ior(nf90_clobber, nf90_64bit_data)
           if ( params%l_sync ) imode = ior(imode,nf90_share)
           ncstat = nf90mpi_create(mpi_comm_self,stream%filename, &
                                   imode,mpi_info_null,stream%id)

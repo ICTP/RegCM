@@ -269,7 +269,7 @@ module mod_clm_nchelper
     type(clm_filetype), intent(out) :: ncid
 
 #ifdef PNETCDF
-    iomode = ior(nf90_clobber, nf90_64bit_offset)
+    iomode = ior(nf90_clobber, nf90_64bit_data)
 #endif
 
     if ( myid /= iocpu ) return

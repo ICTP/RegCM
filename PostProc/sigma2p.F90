@@ -90,7 +90,7 @@ program sigma2p
 !$OMP THREADPRIVATE(xvar,pvar)
 
 #ifdef PNETCDF
-  iomode = ior(nf90_clobber, nf90_64bit_offset)
+  iomode = ior(nf90_clobber, nf90_64bit_data)
 #endif
 
   call get_command_argument(0,value=prgname)
