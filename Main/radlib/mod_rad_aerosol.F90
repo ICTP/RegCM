@@ -2355,6 +2355,7 @@ module mod_rad_aerosol
 #ifdef STDPAR_FIXED
             do concurrent ( n = n1:n2, k = 1:kz ) local(kssslt,gssslt,wssslt)
 #else
+            !$acc parallel loop collapse(2) gang vector
             do k = 1, kz
             do n = n1, n2
 #endif
