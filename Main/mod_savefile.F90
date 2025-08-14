@@ -1903,11 +1903,7 @@ module mod_savefile
 #endif
 #endif
 #else
-#ifdef NETCDF_CDF5
-    imode = ior(nf90_clobber, nf90_cdf5)
-#else
-    imode = nf90_clobber
-#endif
+    imode = ior(nf90_clobber, nf90_64bit_data)
 #endif
     if ( do_parallel_save ) then
 #ifdef PNETCDF
