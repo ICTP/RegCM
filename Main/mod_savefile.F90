@@ -50,6 +50,11 @@ module mod_savefile
   integer(ik4), parameter :: maxvars = 128
   integer(ik4) :: ncstatus
 
+#ifdef PNETCDF
+  integer(ik4) :: npvars
+  integer(ik4), dimension(maxvars) :: ireq , istat
+#endif
+
   integer(ik4), parameter :: idjcross = 1
   integer(ik4), parameter :: idicross = 2
   integer(ik4), parameter :: idjdot = 3
@@ -1101,6 +1106,11 @@ module mod_savefile
       call savedefvar(ncid,'tmask',regcm_vartype,wrkdim,1,2,varids,ivcc)
     end if
 
+#ifdef PNETCDF
+    npvars = ivcc
+    ireq(:) = 0
+    istat(:) = 0
+#endif
     call saveready(ffout,idate,ncid)
 
     ivcc = 0
@@ -1393,7 +1403,7 @@ module mod_savefile
     icount(1) = ubound(var,1)-istart(1)+1
     icount(2) = ubound(var,2)-istart(2)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var,istart,icount)
+    ncstatus = nf90mpi_iput_var(ncid,ivar(iivar),var,ireq(iivar),istart,icount)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
@@ -1454,7 +1464,7 @@ module mod_savefile
     integer(ik4), intent(inout) :: iivar
     iivar = iivar + 1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var)
+    ncstatus = nf90mpi_iput_var(ncid,ivar(iivar),var,ireq(iivar))
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var)
 #endif
@@ -1506,7 +1516,8 @@ module mod_savefile
     icount(2) = ubound(var,2)-istart(2)+1
     icount(3) = ubound(var,3)-istart(3)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var,istart,icount)
+    ncstatus = nf90mpi_iput_var(ncid,ivar(iivar),var, &
+              ireq(iivar),istart,icount)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
@@ -1571,7 +1582,7 @@ module mod_savefile
     icount(3) = ubound(var,3)-istart(3)+1
     icount(4) = ubound(var,4)-istart(4)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var,istart,icount)
+    ncstatus = nf90mpi_iput_var(ncid,ivar(iivar),var,ireq(iivar),istart,icount)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
@@ -1624,7 +1635,7 @@ module mod_savefile
     integer(ik4), intent(inout) :: iivar
     iivar = iivar + 1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var)
+    ncstatus = nf90mpi_iput_var(ncid,ivar(iivar),var,ireq(iivar))
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var)
 #endif
@@ -1674,7 +1685,7 @@ module mod_savefile
     icount(1) = ubound(var,1)-istart(1)+1
     icount(2) = ubound(var,2)-istart(2)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var,istart,icount)
+    ncstatus = nf90mpi_iput_var(ncid,ivar(iivar),var,ireq(iivar),istart,icount)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
@@ -1735,7 +1746,7 @@ module mod_savefile
     icount(2) = ubound(var,2)-istart(2)+1
     icount(3) = ubound(var,3)-istart(3)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var,istart,icount)
+    ncstatus = nf90mpi_iput_var(ncid,ivar(iivar),var,ireq(iivar),istart,icount)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
@@ -2034,6 +2045,9 @@ module mod_savefile
     character(len=*), intent(in) :: sname
     integer(ik4), intent(inout) :: ncid
 #ifdef PNETCDF
+    ncstatus = nf90mpi_wait_all(ncid, npvars, ireq, istat)
+    call check_ok(__FILE__,__LINE__, &
+      'Error wait nonblock for savefile '//trim(sname))
     ncstatus = nf90mpi_close(ncid)
 #else
     ncstatus = nf90_close(ncid)
