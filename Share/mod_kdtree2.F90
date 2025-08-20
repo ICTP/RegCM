@@ -181,7 +181,7 @@ module mod_kdtree2
     integer :: dimen = 0
     integer :: n = 0
     ! dimensionality and total # of points
-    real(kdkind), pointer :: the_data(:,:) => null()
+    real(kdkind), pointer, contiguous :: the_data(:,:) => null()
     ! pointer to the actual data array
     !
     !  IMPORTANT NOTE:  IT IS DIMENSIONED   the_data(1:d,1:N)
@@ -202,7 +202,7 @@ module mod_kdtree2
     logical :: sort = .false.
     ! do we always sort output results?
     logical :: rearrange = .false.
-    real(kdkind), pointer :: rearranged_data(:,:) => null()
+    real(kdkind), pointer, contiguous :: rearranged_data(:,:) => null()
     ! if (rearrange .eqv. .true.) then rearranged_data has been
     ! created so that rearranged_data(:,i) = the_data(:,ind(i)),
     ! permitting search to use more cache-friendly rearranged_data, at
@@ -234,7 +234,7 @@ module mod_kdtree2
     real(kdkind), pointer :: qv(:)  ! query vector
     type(kdtree2_result), pointer :: results(:) ! results
     type(pq) :: pq
-    real(kdkind), pointer :: rdata(:,:)  ! temp pointer to data
+    real(kdkind), pointer, contiguous :: rdata(:,:)  ! temp pointer to data
     integer, pointer :: ind(:)     ! temp pointer to indexes
   end type tree_search_record
 
@@ -602,10 +602,10 @@ module mod_kdtree2
     ! ..
     ! .. Local Arrays ..
     real(kdkind), pointer, contiguous, dimension(:,:) :: v
-    integer, pointer, contiguous, dimension(:) :: ind
+    integer, pointer, dimension(:) :: ind
     ! ..
-    v => tp%the_data(1:,1:)
-    ind => tp%ind(1:)
+    v => tp%the_data
+    ind => tp%ind
     smin = v(c,ind(l))
     smax = smin
 
@@ -1017,8 +1017,8 @@ module mod_kdtree2
     ! ..
     real(kdkind) :: qval, dis
     real(kdkind) :: ballsize
-    real(kdkind), pointer, contiguous, dimension(:) :: qv
-    type(interval), pointer, contiguous, dimension(:) :: box
+    real(kdkind), pointer, dimension(:) :: qv
+    type(interval), pointer, dimension(:) :: box
 
     if ( ( associated(node%left) .and. &
            associated(node%right) ) .eqv. .false. ) then
@@ -1135,8 +1135,8 @@ module mod_kdtree2
     !
     type(tree_node), pointer :: node
     !
-    real(kdkind), pointer, contiguous, dimension(:) :: qv
-    integer, pointer, contiguous, dimension(:) :: ind
+    real(kdkind), pointer, dimension(:) :: qv
+    integer, pointer, dimension(:) :: ind
     real(kdkind), pointer, contiguous, dimension(:,:) :: rdata
     !
     integer :: dimen, i, indexofi, k, centeridx, correltime
@@ -1156,7 +1156,7 @@ module mod_kdtree2
     ballsize = sr%ballsize
     rearrange = sr%rearrange
     ind => sr%ind(1:)
-    rdata => sr%rdata(1:,1:)
+    rdata => sr%rdata
     centeridx = sr%centeridx
     correltime = sr%correltime
 
@@ -1242,8 +1242,8 @@ module mod_kdtree2
     !
     type (tree_node), pointer :: node
     !
-    real(kdkind), pointer, contiguous, dimension(:) :: qv
-    integer, pointer, contiguous, dimension(:) :: ind
+    real(kdkind), pointer, dimension(:) :: qv
+    integer, pointer, dimension(:) :: ind
     real(kdkind), pointer, contiguous, dimension(:,:) :: rdata
     !
     integer :: nfound
@@ -1258,8 +1258,8 @@ module mod_kdtree2
     dimen = sr%dimen
     ballsize = sr%ballsize
     rearrange = sr%rearrange
-    ind => sr%ind(1:)
-    rdata => sr%rdata(1:,1:)
+    ind => sr%ind
+    rdata => sr%rdata
     centeridx = sr%centeridx
     correltime = sr%correltime
     nn = sr%nn ! number to search for
