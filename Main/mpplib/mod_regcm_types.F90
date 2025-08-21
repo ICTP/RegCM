@@ -374,6 +374,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: lhfx
     real(rk8) , pointer , dimension(:,:) :: shfx
     real(rk8) , pointer , dimension(:,:) :: prec
+    real(rk8) , pointer , dimension(:,:) :: evap
     real(rk8) , pointer , dimension(:,:) :: wndu
     real(rk8) , pointer , dimension(:,:) :: wndv
     real(rk8) , pointer , dimension(:,:) :: rnof
