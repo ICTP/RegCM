@@ -96,6 +96,7 @@ module mod_update
     call getmem2d(exportFields%lhfx,jce1,jce2,ice1,ice2,'cpl:lhfx')
     call getmem2d(exportFields%shfx,jce1,jce2,ice1,ice2,'cpl:shfx')
     call getmem2d(exportFields%prec,jce1,jce2,ice1,ice2,'cpl:prec')
+    call getmem2d(exportFields%evap,jce1,jce2,ice1,ice2,'cpl:evap')
     call getmem2d(exportFields%wndu,jce1,jce2,ice1,ice2,'cpl:wndu')
     call getmem2d(exportFields%wndv,jce1,jce2,ice1,ice2,'cpl:wndv')
     call getmem2d(exportFields%rnof,jci1,jci2,ici1,ici2,'cpl:rnof')

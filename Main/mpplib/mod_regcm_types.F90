@@ -371,6 +371,7 @@ module mod_regcm_types
     real(rk8), pointer, contiguous, dimension(:,:) :: lhfx => null( )
     real(rk8), pointer, contiguous, dimension(:,:) :: shfx => null( )
     real(rk8), pointer, contiguous, dimension(:,:) :: prec => null( )
+    real(rk8), pointer, contiguous, dimension(:,:) :: evap => null( )
     real(rk8), pointer, contiguous, dimension(:,:) :: wndu => null( )
     real(rk8), pointer, contiguous, dimension(:,:) :: wndv => null( )
     real(rk8), pointer, contiguous, dimension(:,:) :: rnof => null( )

@@ -599,6 +599,7 @@ module mod_lm_interface
       expfie%lhfx(j,i) = sum(lms%evpr(:,j,i)*wlh(lms%tgrd(:,j,i)))*rdnnsg
       expfie%shfx(j,i) = sum(lms%sent(:,j,i))*rdnnsg
       expfie%prec(j,i) = sum(lms%prcp(:,j,i))*rdnnsg
+      expfie%evap(j,i) = sum(lms%evpr(:,j,i))*rdnnsg
       expfie%wndu(j,i) = lm%u10m(j,i)
       expfie%wndv(j,i) = lm%v10m(j,i)
       expfie%taux(j,i) = sum(lms%taux(:,j,i))*rdnnsg
