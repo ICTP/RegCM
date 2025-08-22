@@ -1942,7 +1942,11 @@ module mod_savefile
     end if
     call check_ok(__FILE__,__LINE__,'Cannot create savefile '//trim(sname))
 
+#ifdef PNETCDF
+    ncstatus = nf90mpi_set_fill(ncid, nf90_nofill, iofmod)
+#else
     ncstatus = nf90_set_fill(ncid, nf90_nofill, iofmod)
+#endif
     call check_ok(__FILE__,__LINE__,'Cannot set fill mode on '//trim(sname))
   end subroutine savecreate
 
