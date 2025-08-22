@@ -1171,10 +1171,13 @@ module mod_nchelper
     implicit none
     character(len=*), intent(in) :: fname
     integer(ik4), intent(out) :: ncid
-    integer(ik4)  :: incstat
+    integer(ik4)  :: incstat, iofmod
     incstat = nf90_create(fname, iomode, ncid)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error creating NetCDF output '//trim(fname))
+    incstat = nf90_set_fill(ncid, nf90_nofill, iofmod)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting fill mode on NetCDF output '//trim(fname))
   end subroutine createfile_withname
 
   subroutine openfile_withname(fname,ncid)

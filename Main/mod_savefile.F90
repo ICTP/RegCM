@@ -1902,7 +1902,7 @@ module mod_savefile
     implicit none
     character(len=*), intent(in) :: sname
     integer(ik4), intent(out) :: ncid
-    integer(ik4) :: imode
+    integer(ik4) :: imode, iofmod
 #ifndef PNETCDF
 #ifdef NETCDF4_HDF5
     imode = ior(nf90_clobber, nf90_netcdf4)
@@ -1941,6 +1941,9 @@ module mod_savefile
 #endif
     end if
     call check_ok(__FILE__,__LINE__,'Cannot create savefile '//trim(sname))
+
+    ncstatus = nf90_set_fill(ncid, nf90_nofill, iofmod)
+    call check_ok(__FILE__,__LINE__,'Cannot set fill mode on '//trim(sname))
   end subroutine savecreate
 
   subroutine saveready(sname,idate,ncid)

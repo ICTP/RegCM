@@ -281,7 +281,7 @@ module mod_ncstream
       type(ncoutstream_params), intent(in) :: params
       type(ncoutstream), pointer :: stream
       type(rcm_time_and_date) :: tt
-      integer(ik4) :: imode
+      integer(ik4) :: imode, ofmod
 
       if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
       ! Allocate all space
@@ -377,6 +377,17 @@ module mod_ncstream
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         call die('nc_stream', &
                  'Cannot create or open file '//trim(stream%filename),1)
+      end if
+#ifdef PNETCDF
+      ncstat = nf90mpi_set_fill(stream%id,nf90_nofill,ofmod)
+#else
+      ncstat = nf90_set_fill(stream%id,nf90_nofill,ofmod)
+#endif
+      if ( ncstat /= nf90_noerr ) then
+        call printerror
+        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+        call die('nc_stream', &
+                 'Cannot set fill mode for '//trim(stream%filename),1)
       end if
       if ( stream%l_parallel ) then
         stream%jparbound(1) = params%global_jstart

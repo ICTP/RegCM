@@ -267,6 +267,7 @@ module mod_clm_nchelper
     implicit none
     character(len=*), intent(in) :: fname
     type(clm_filetype), intent(out) :: ncid
+    integer(ik4) :: iofmod
 
 #ifdef PNETCDF
     iomode = ior(nf90_clobber, nf90_64bit_data)
@@ -280,6 +281,10 @@ module mod_clm_nchelper
     call getmem2d(ncid%i4buf,jout1,jout2,iout1,iout2,'clm_createfile')
     call getmem2d(ncid%r4buf,jout1,jout2,iout1,iout2,'clm_createfile')
     call getmem2d(ncid%r8buf,jout1,jout2,iout1,iout2,'clm_createfile')
+
+    incstat = nf90_set_fill(ncid%ncid, nf90_nofill, iofmod)
+    call clm_checkncerr(__FILE__,__LINE__, &
+                    'Error setting fill mode on NetCDF output '//trim(fname))
 
     incstat = nf90_put_att(ncid%ncid,nf90_global,'regcm_subgrid',nsg)
     call clm_checkncerr(__FILE__,__LINE__, &
