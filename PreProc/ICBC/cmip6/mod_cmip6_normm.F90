@@ -62,7 +62,7 @@ module mod_cmip6_normm
       integer(ik4) :: i
       do i = 1 , nfiles
         ic = i
-        if ( icode >= nrmm_start(ic) .and. icode < nrmm_end(ic) ) exit
+        if ( icode >= nrmm_start(ic) .and. icode <= nrmm_end(ic) ) exit
       end do
     end function isequence
 
