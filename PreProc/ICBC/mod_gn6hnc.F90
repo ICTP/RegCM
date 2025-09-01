@@ -73,7 +73,7 @@ module mod_gn6hnc
      975.0_rkx, 1000.0_rkx ]
 
   integer(ik4) :: npl, nrhlev
-  real(rkx), pointer, contiguous, dimension(:) :: pplev
+  real(rkx), pointer, contiguous, dimension(:) :: pplev, paplev
   real(rkx), pointer, contiguous, dimension(:) :: sigmar
   real(rkx) :: pss, pst
 
@@ -782,12 +782,14 @@ module mod_gn6hnc
     else if ( dattyp == 'GFS11' ) then
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
+      call getmem1d(paplev,1,klev,'mod_gn6hnc:paplev')
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find lev var')
       istatus = nf90_get_var(inet1,ivar1,pplev)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read lev var')
+      paplev = pplev * 100.0
       istatus = nf90_inq_varid(inet1,'orog',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find orog var')
@@ -1227,7 +1229,7 @@ module mod_gn6hnc
       do j = 1, nlat
         vvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
-      call rh2mxr(tvar,qvar,pplev,nlon,nlat,klev)
+      call rh2mxr(tvar,qvar,paplev,nlon,nlat,klev)
     else if ( dattyp(1:3) == 'LGM' ) then
       varname => lgmvars
       call split_idate(idate, year, month, day, hour)
