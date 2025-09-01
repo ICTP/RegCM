@@ -114,11 +114,17 @@ class CacheDirectory:
             if self.verbose:
                 print('Caching dataset :')
                 print(cachepath,ds.info)
-            ds.to_netcdf(path = cachepath,
-                         format = 'NETCDF4',
-                         engine = 'netcdf4',
-                         encoding = encoding,
-                         unlimited_dims = ['time',])
+            if 'time' in ds.dims:
+                ds.to_netcdf(path = cachepath,
+                             format = 'NETCDF4',
+                             engine = 'netcdf4',
+                             encoding = encoding,
+                             unlimited_dims = ['time',])
+            else:
+                ds.to_netcdf(path = cachepath,
+                             format = 'NETCDF4',
+                             engine = 'netcdf4',
+                             encoding = encoding)
 
     def retrieve(self,path):
         try:

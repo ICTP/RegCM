@@ -22,8 +22,9 @@ def season_string_to_monthlist(str):
     return res
 
 def load_model_data(files):
-    nds = xr.open_mfdataset(files, combine='nested',
-                concat_dim="time", chunks={"time": 100}).unify_chunks()
+    nds = xr.open_mfdataset(files, combine='nested', data_vars='minimal',
+                compat='no_conflicts', concat_dim="time",
+                chunks={"time": 100}).unify_chunks()
     try:
         nds = nds.rename({"xlat": "lat", "xlon": "lon"})
     except:
@@ -33,10 +34,11 @@ def load_model_data(files):
 def load_obs_data(files):
     if ( len(files) > 1 ):
         return xr.open_mfdataset(files, combine='by_coords',
-                                 chunks={"time": 100})
+                     data_vars='minimal', compat='no_conflicts',
+                     chunks={"time": 100})
     else:
         return xr.open_dataset(files[0], engine='netcdf4',
-                                 chunks={"time": 100})
+                     chunks={"time": 100})
 
 class data_processor:
 
