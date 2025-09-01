@@ -2121,11 +2121,11 @@ module mod_params
       write(stdout,*) 'Create SRF files : ', ifsrf
       write(stdout,*) 'Create STS files : ', ifsts
       write(stdout,*) 'Create SHF files : ', ifshf
+      write(stdout,*) 'Create OPT files : ', ifopt
       if ( nsg > 1 ) write(stdout,*) 'Create SUB files : ', ifsub
       if ( lakemod == 1 ) write(stdout,*) 'Create LAK files : ', iflak
       if ( ichem == 1 ) then
         write(stdout,*) 'Create CHE files : ', ifchem
-        write(stdout,*) 'Create OPT files : ', ifopt
       end if
       if ( .not. associated(alarm_out_nwf) ) then
         write(stdout,'(a,f6.1)') ' Monthly new files are created'
