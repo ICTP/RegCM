@@ -1,4 +1,4 @@
-module mod_clm_subgridave
+module  mod_clm_subgridave
   !
   ! Utilities to perfrom subgrid averaging
   !
@@ -236,9 +236,10 @@ module mod_clm_subgridave
     pftf    => clm3%g%l%c%pftf
     wtcol   => clm3%g%l%c%p%wtcol
 
-    do fc = 1,numfc
+    do concurrent ( fc = 1:numfc )
       c = filterc(fc)
       colarr(c) = 0._rk8
+      !$acc loop seq
       do p = pfti(c), pftf(c)
         if (pactive(p)) colarr(c) = colarr(c) + pftarr(p) * wtcol(p)
       end do
@@ -268,13 +269,12 @@ module mod_clm_subgridave
     pftf    => clm3%g%l%c%pftf
     wtcol   => clm3%g%l%c%p%wtcol
 
-    do j = 1,lev
-      do fc = 1,numfc
-        c = filterc(fc)
-        colarr(c,j) = 0._rk8
-        do p = pfti(c), pftf(c)
-          if (pactive(p)) colarr(c,j) = colarr(c,j) + pftarr(p,j) * wtcol(p)
-        end do
+    do concurrent ( fc = 1:numfc, j = 1:lev )
+      c = filterc(fc)
+      colarr(c,j) = 0._rk8
+      !$acc loop seq
+      do p = pfti(c), pftf(c)
+        if (pactive(p)) colarr(c,j) = colarr(c,j) + pftarr(p,j) * wtcol(p)
       end do
     end do
   end subroutine p2c_2d_filter

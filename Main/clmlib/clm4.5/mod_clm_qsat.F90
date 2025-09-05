@@ -19,6 +19,7 @@ module mod_clm_qsat
   !             vapor pressure.  Journal of Applied Meteorology, 31, 1507-1513.
   !
   subroutine qsat(t,p,es,esdt,qs,qsdt)
+    !$acc routine seq
     use mod_realkinds
     use mod_constants
     implicit none

@@ -244,7 +244,7 @@ module mod_clm_snowhydrology
     ! surface snow layer resulting from sublimation
     ! (frost) / evaporation (condense)
 
-    do fc = 1,num_snowc
+    do concurrent ( fc = 1:num_snowc )
       c = filter_snowc(fc)
       l = clandunit(c)
 
@@ -285,18 +285,16 @@ module mod_clm_snowhydrology
 
     ! Porosity and partial volume
 
-    do j = -nlevsno+1, 0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
-        if (j >= snl(c)+1) then
-          ! need to scale dz by frac_sno to convert to grid cell average depth
-          vol_ice(c,j) = min(1._rk8, h2osoi_ice(c,j) / &
-                  (dz(c,j)*frac_sno_eff(c)*denice))
-          eff_porosity(c,j) = 1._rk8 - vol_ice(c,j)
-          vol_liq(c,j) = min(eff_porosity(c,j),h2osoi_liq(c,j) / &
-                  (dz(c,j)*frac_sno_eff(c)*denh2o))
-        end if
-      end do
+    do concurrent ( fc = 1:num_snowc, j = -nlevsno+1:0 )
+      c = filter_snowc(fc)
+      if (j >= snl(c)+1) then
+        ! need to scale dz by frac_sno to convert to grid cell average depth
+        vol_ice(c,j) = min(1._rk8, h2osoi_ice(c,j) / &
+                (dz(c,j)*frac_sno_eff(c)*denice))
+        eff_porosity(c,j) = 1._rk8 - vol_ice(c,j)
+        vol_liq(c,j) = min(eff_porosity(c,j),h2osoi_liq(c,j) / &
+                (dz(c,j)*frac_sno_eff(c)*denh2o))
+      end if
     end do
 
     ! Capillary forces within snow are usually two or more orders of magnitude
@@ -316,6 +314,7 @@ module mod_clm_snowhydrology
     ! 4) update mass of aerosol in top layer, accordingly
     ! 5) update mass concentration of aerosol accordingly
 
+    !$acc kernels
     qin(:) = 0._rk8
     qin_bc_phi(:) = 0._rk8
     qin_bc_pho(:) = 0._rk8
@@ -325,10 +324,12 @@ module mod_clm_snowhydrology
     qin_dst2(:)   = 0._rk8
     qin_dst3(:)   = 0._rk8
     qin_dst4(:)   = 0._rk8
+    !$acc end kernels
 
-    do j = -nlevsno+1, 0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
+    do concurrent ( fc = 1:num_snowc )
+      c = filter_snowc(fc)
+      !$acc loop seq
+      do j = -nlevsno+1, 0
         if (j >= snl(c)+1) then
           h2osoi_liq(c,j) = h2osoi_liq(c,j) + qin(c)
 
@@ -457,17 +458,15 @@ module mod_clm_snowhydrology
     ! here because they are adjusted in CombineSnowLayers and are not used
     ! up to that point.
 
-    do j = -nlevsno+1, 0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
-        if (j >= snl(c)+1) then
-          dz(c,j) = max(dz(c,j),h2osoi_liq(c,j)/denh2o + &
-                                h2osoi_ice(c,j)/denice)
-        end if
-      end do
+    do concurrent ( fc = 1:num_snowc, j = -nlevsno+1:0 )
+      c = filter_snowc(fc)
+      if (j >= snl(c)+1) then
+        dz(c,j) = max(dz(c,j),h2osoi_liq(c,j)/denh2o + &
+                              h2osoi_ice(c,j)/denice)
+      end if
     end do
 
-    do fc = 1, num_snowc
+    do concurrent ( fc = 1:num_snowc )
       c = filter_snowc(fc)
       ! Qout from snow bottom
       qflx_snow_melt(c) = qflx_snow_melt(c) + (qout(c) / dtsrf)
@@ -478,7 +477,7 @@ module mod_clm_snowhydrology
             + frac_sno_eff(c) * qflx_rain_grnd(c) * dtsrf
     end do
 
-    do fc = 1, num_nosnowc
+    do concurrent ( fc = 1:num_nosnowc )
       c = filter_nosnowc(fc)
       qflx_snow_melt(c) = qflx_snomelt(c)
 
@@ -491,7 +490,7 @@ module mod_clm_snowhydrology
     !  set aerosol deposition fluxes from forcing array
     !  The forcing array is either set from an external file
     !  or from fluxes received from the atmosphere model
-    do c = lbc,ubc
+    do concurrent ( c = lbc:ubc )
       g = cgridcell(c)
 
       flx_bc_dep_dry(c)   = forc_aer(g,1) + forc_aer(g,2)
@@ -524,7 +523,7 @@ module mod_clm_snowhydrology
     ! This is done after the inter-layer fluxes so that some aerosol
     ! is in the top layer after deposition, and is not immediately
     ! washed out before radiative calculations are done
-    do fc = 1, num_snowc
+    do concurrent ( fc = 1:num_snowc )
       c = filter_snowc(fc)
       mss_bcphi(c,snl(c)+1) = mss_bcphi(c,snl(c)+1) + &
                (flx_bc_dep_phi(c)*dtsrf)
@@ -635,11 +634,14 @@ module mod_clm_snowhydrology
     ! Begin calculation - note that the following column loops
     ! are only invoked if snl(c) < 0
 
+    !$acc kernels
     burden(:) = 0._rk8
+    !$acc end kernels
 
-    do j = -nlevsno+1, 0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
+    do concurrent ( fc = 1:num_snowc )
+      c = filter_snowc(fc)
+      !$acc loop seq
+      do j = -nlevsno+1, 0
         if (j >= snl(c)+1) then
 
           wx = h2osoi_ice(c,j) + h2osoi_liq(c,j)
@@ -827,7 +829,9 @@ module mod_clm_snowhydrology
     ! Check the mass of ice lens of snow, when the total is less than
     ! a small value, combine it with the underlying neighbor.
 
+    !$acc kernels
     dzminloc(:) = dzmin(:) ! dzmin will stay constant between timesteps
+    !$acc end kernels
 
     ! Add lsadz to dzmin for lakes
     ! Determine whether called from SLakeHydrology
@@ -837,11 +841,13 @@ module mod_clm_snowhydrology
       c = filter_snowc(1)
       l = clandunit(c)
       if (ltype(l) == istdlak) then ! Called from SLakeHydrology
+        !$acc kernels
         dzminloc(:) = dzmin(:) + lsadz
+        !$acc end kernels
       end if
     end if
 
-    do fc = 1, num_snowc
+    do concurrent ( fc = 1:num_snowc )
       c = filter_snowc(fc)
       msn_old(c) = snl(c)
       qflx_sl_top_soil(c) = 0._rk8
@@ -849,9 +855,10 @@ module mod_clm_snowhydrology
 
     ! The following loop is NOT VECTORIZED
 
-    do fc = 1, num_snowc
+    do concurrent ( fc = 1:num_snowc )
       c = filter_snowc(fc)
       l = clandunit(c)
+      !$acc loop seq
       do j = msn_old(c)+1,0
         ! use 0.01 to avoid runaway ice buildup
         if (h2osoi_ice(c,j) <= .01_rk8) then
@@ -940,7 +947,7 @@ module mod_clm_snowhydrology
       end do
     end do
 
-    do fc = 1, num_snowc
+    do concurrent ( fc = 1:num_snowc )
       c = filter_snowc(fc)
       h2osno(c) = 0._rk8
       snow_depth(c) = 0._rk8
@@ -948,9 +955,10 @@ module mod_clm_snowhydrology
       zwliq(c)  = 0._rk8
     end do
 
-    do j = -nlevsno+1,0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
+    do concurrent ( fc = 1:num_snowc )
+      c = filter_snowc(fc)
+      !$acc loop seq
+      do j = -nlevsno+1,0
         if (j >= snl(c)+1) then
           h2osno(c) = h2osno(c) + h2osoi_ice(c,j) + h2osoi_liq(c,j)
           snow_depth(c) = snow_depth(c) + dz(c,j)
@@ -963,7 +971,7 @@ module mod_clm_snowhydrology
     ! Check the snow depth - all snow gone
     ! The liquid water assumes ponding on soil surface.
 
-    do fc = 1, num_snowc
+    do concurrent ( fc = 1:num_snowc )
       c = filter_snowc(fc)
       l = clandunit(c)
       if (snow_depth(c) > 0._rk8) then
@@ -1012,7 +1020,12 @@ module mod_clm_snowhydrology
     ! Check the snow depth - snow layers combined
     ! The following loop IS NOT VECTORIZED
 
+#ifdef STDPAR_FIXED
+    do concurrent ( fc = 1:num_snowc )
+#else
+    !$acc parallel loop gang vector
     do fc = 1, num_snowc
+#endif
       c = filter_snowc(fc)
 
       ! Two or more layers
@@ -1021,7 +1034,7 @@ module mod_clm_snowhydrology
 
         msn_old(c) = snl(c)
         mssi(c) = 1
-
+        !$acc loop seq
         do i = msn_old(c)+1,0
           if ((frac_sno_eff(c)*dz(c,i) < dzminloc(mssi(c))) .or. &
               ((h2osoi_ice(c,i) + h2osoi_liq(c,i))/ &
@@ -1071,7 +1084,7 @@ module mod_clm_snowhydrology
 
             ! Now shift all elements above this down one.
             if (j-1 > snl(c)+1) then
-
+              !$acc loop seq
               do k = j-1, snl(c)+2, -1
                 t_soisno(c,k) = t_soisno(c,k-1)
                 h2osoi_ice(c,k) = h2osoi_ice(c,k-1)
@@ -1107,9 +1120,10 @@ module mod_clm_snowhydrology
 
     ! Reset the node depth and the depth of layer interface
 
-    do j = 0, -nlevsno+1, -1
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
+    do concurrent ( fc = 1:num_snowc )
+      c = filter_snowc(fc)
+      !$acc loop seq
+      do j = 0, -nlevsno+1, -1
         if (j >= snl(c) + 1) then
           z(c,j) = zi(c,j) - 0.5_rk8*dz(c,j)
           zi(c,j-1) = zi(c,j) - dz(c,j)
@@ -1215,30 +1229,32 @@ module mod_clm_snowhydrology
     ! Begin calculation - note that the following column loops are only invoked
     ! for snow-covered columns
 
-    do j = 1,nlevsno
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
-        if (j <= abs(snl(c))) then
-          dzsno(c,j) = frac_sno(c)*dz(c,j+snl(c))
-          swice(c,j) = h2osoi_ice(c,j+snl(c))
-          swliq(c,j) = h2osoi_liq(c,j+snl(c))
-          tsno(c,j)  = t_soisno(c,j+snl(c))
+    do concurrent( fc = 1:num_snowc, j = 1:nlevsno )
+      c = filter_snowc(fc)
+      if (j <= abs(snl(c))) then
+        dzsno(c,j) = frac_sno(c)*dz(c,j+snl(c))
+        swice(c,j) = h2osoi_ice(c,j+snl(c))
+        swliq(c,j) = h2osoi_liq(c,j+snl(c))
+        tsno(c,j)  = t_soisno(c,j+snl(c))
 
-          mbc_phi(c,j) = mss_bcphi(c,j+snl(c))
-          mbc_pho(c,j) = mss_bcpho(c,j+snl(c))
-          moc_phi(c,j) = mss_ocphi(c,j+snl(c))
-          moc_pho(c,j) = mss_ocpho(c,j+snl(c))
-          mdst1(c,j)   = mss_dst1(c,j+snl(c))
-          mdst2(c,j)   = mss_dst2(c,j+snl(c))
-          mdst3(c,j)   = mss_dst3(c,j+snl(c))
-          mdst4(c,j)   = mss_dst4(c,j+snl(c))
-          rds(c,j)     = snw_rds(c,j+snl(c))
+        mbc_phi(c,j) = mss_bcphi(c,j+snl(c))
+        mbc_pho(c,j) = mss_bcpho(c,j+snl(c))
+        moc_phi(c,j) = mss_ocphi(c,j+snl(c))
+        moc_pho(c,j) = mss_ocpho(c,j+snl(c))
+        mdst1(c,j)   = mss_dst1(c,j+snl(c))
+        mdst2(c,j)   = mss_dst2(c,j+snl(c))
+        mdst3(c,j)   = mss_dst3(c,j+snl(c))
+        mdst4(c,j)   = mss_dst4(c,j+snl(c))
+        rds(c,j)     = snw_rds(c,j+snl(c))
 
-        end if
-      end do
+      end if
     end do
-
+#ifdef STDPAR_FIXED
+    do concurrent ( fc = 1:num_snowc )
+#else
+    !$acc parallel loop gang vector
     do fc = 1, num_snowc
+#endif
       c = filter_snowc(fc)
 
       msno = abs(snl(c))
@@ -1573,32 +1589,31 @@ module mod_clm_snowhydrology
       snl(c) = -msno
     end do
 
-    do j = -nlevsno+1,0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
-        if (j >= snl(c)+1) then
-          dz(c,j)         = dzsno(c,j-snl(c))/frac_sno(c)
-          h2osoi_ice(c,j) = swice(c,j-snl(c))
-          h2osoi_liq(c,j) = swliq(c,j-snl(c))
-          t_soisno(c,j)   = tsno(c,j-snl(c))
+    do concurrent( fc = 1:num_snowc, j = -nlevsno+1:0 )
+      c = filter_snowc(fc)
+      if (j >= snl(c)+1) then
+        dz(c,j)         = dzsno(c,j-snl(c))/frac_sno(c)
+        h2osoi_ice(c,j) = swice(c,j-snl(c))
+        h2osoi_liq(c,j) = swliq(c,j-snl(c))
+        t_soisno(c,j)   = tsno(c,j-snl(c))
 
-          mss_bcphi(c,j)   = mbc_phi(c,j-snl(c))
-          mss_bcpho(c,j)   = mbc_pho(c,j-snl(c))
-          mss_ocphi(c,j)   = moc_phi(c,j-snl(c))
-          mss_ocpho(c,j)   = moc_pho(c,j-snl(c))
-          mss_dst1(c,j)    = mdst1(c,j-snl(c))
-          mss_dst2(c,j)    = mdst2(c,j-snl(c))
-          mss_dst3(c,j)    = mdst3(c,j-snl(c))
-          mss_dst4(c,j)    = mdst4(c,j-snl(c))
-          snw_rds(c,j)     = rds(c,j-snl(c))
+        mss_bcphi(c,j)   = mbc_phi(c,j-snl(c))
+        mss_bcpho(c,j)   = mbc_pho(c,j-snl(c))
+        mss_ocphi(c,j)   = moc_phi(c,j-snl(c))
+        mss_ocpho(c,j)   = moc_pho(c,j-snl(c))
+        mss_dst1(c,j)    = mdst1(c,j-snl(c))
+        mss_dst2(c,j)    = mdst2(c,j-snl(c))
+        mss_dst3(c,j)    = mdst3(c,j-snl(c))
+        mss_dst4(c,j)    = mdst4(c,j-snl(c))
+        snw_rds(c,j)     = rds(c,j-snl(c))
 
-        end if
-      end do
+      end if
     end do
 
-    do j = 0, -nlevsno+1, -1
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
+    do concurrent ( fc = 1:num_snowc )
+      c = filter_snowc(fc)
+      !$acc loop seq
+      do j = 0, -nlevsno+1, -1
         if (j >= snl(c)+1) then
           z(c,j)    = zi(c,j) - 0.5_rk8*dz(c,j)
           zi(c,j-1) = zi(c,j) - dz(c,j)
@@ -1615,6 +1630,7 @@ module mod_clm_snowhydrology
   ! that of the combined element.
   !
   subroutine Combo(dz,  wliq,  wice, t, dz2, wliq2, wice2, t2)
+    !$acc routine seq
     use mod_clm_varcon,  only : cpice, cpliq, tfrz, hfus
     implicit none
     ! nodal thickness of 2 elements being combined [m]
@@ -1673,7 +1689,7 @@ module mod_clm_snowhydrology
     ! column filter for non-snow points
     integer(ik4), intent(out) :: filter_nosnowc(ubc-lbc+1)
     integer(ik4), pointer, contiguous :: snl(:)      ! number of snow layers
-    integer(ik4)  :: fc, c
+    integer(ik4)  :: fc, c, mynum_snowc, mynum_nosnowc
 
     ! Assign local pointers to derived subtype components (column-level)
 
@@ -1683,14 +1699,21 @@ module mod_clm_snowhydrology
 
     num_snowc = 0
     num_nosnowc = 0
+    !!!$acc parallel loop
     do fc = 1, num_nolakec
       c = filter_nolakec(fc)
       if (snl(c) < 0) then
+        !$acc atomic capture
         num_snowc = num_snowc + 1
-        filter_snowc(num_snowc) = c
+        mynum_snowc = num_snowc
+        !$acc end atomic
+        filter_snowc(mynum_snowc) = c
       else
+        !$acc atomic capture
         num_nosnowc = num_nosnowc + 1
-        filter_nosnowc(num_nosnowc) = c
+        mynum_nosnowc = num_nosnowc
+        !$acc end atomic
+        filter_nosnowc(mynum_nosnowc) = c
       end if
     end do
 

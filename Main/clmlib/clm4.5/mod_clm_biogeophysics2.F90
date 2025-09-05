@@ -322,7 +322,7 @@ module mod_clm_biogeophysics2
                          num_nolakec, filter_nolakec, xmf, fact, &
                          c_h2osfc, xmf_h2osfc)
 
-    do fc = 1,num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       j = snl(c)+1
 
@@ -361,7 +361,7 @@ module mod_clm_biogeophysics2
     ! greater than availability, or 1.0 otherwise.
     ! Correct fluxes to present soil temperature
 
-    do fp = 1,num_nolakep
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
       c = pcolumn(p)
       eflx_sh_grnd(p) = eflx_sh_grnd(p) + tinc(c)*cgrnds(p)
@@ -383,15 +383,16 @@ module mod_clm_biogeophysics2
     ! Set the column-average qflx_evap_soi as the weighted average over all pfts
     ! but only count the pfts that are evaporating
 
-    do fc = 1,num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       topsoil_evap_tot(c) = 0._rk8
       sumwt(c) = 0._rk8
     end do
 
-    do pi = 1,max_pft_per_col
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
+    do concurrent ( fc = 1:num_nolakec )
+      c = filter_nolakec(fc)
+      !$acc loop seq
+      do pi = 1,max_pft_per_col
         if ( pi <= npfts(c) ) then
           p = pfti(c) + pi - 1
           if (pactive(p)) then
@@ -404,7 +405,7 @@ module mod_clm_biogeophysics2
 
     ! Calculate ratio for rescaling pft-level fluxes to meet availability
 
-    do fc = 1,num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       if (topsoil_evap_tot(c) > egsmax(c)) then
         egirat(c) = (egsmax(c)/topsoil_evap_tot(c))
@@ -413,7 +414,7 @@ module mod_clm_biogeophysics2
       end if
     end do
 
-    do fp = 1,num_nolakep
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
       c = pcolumn(p)
       l = plandunit(p)
@@ -527,7 +528,7 @@ module mod_clm_biogeophysics2
 
     ! Soil Energy balance check
 
-    do fp = 1, num_nolakep
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
       c = pcolumn(p)
       errsoi_pft(p) = eflx_soil_grnd(p) - xmf(c) - xmf_h2osfc(c) - &
@@ -544,10 +545,11 @@ module mod_clm_biogeophysics2
       end if
     end do
 
-    do j = -nlevsno+1, nlevgrnd
-      do fp = 1, num_nolakep
-        p = filter_nolakep(fp)
-        c = pcolumn(p)
+    do concurrent ( fp = 1:num_nolakep )
+      p = filter_nolakep(fp)
+      c = pcolumn(p)
+      !$acc loop seq
+      do j = -nlevsno+1, nlevgrnd
 
         if ( (ctype(c) /= icol_sunwall .and. &
               ctype(c) /= icol_shadewall .and. &
@@ -572,7 +574,7 @@ module mod_clm_biogeophysics2
     ! The increase of ground longwave is added directly
     ! to the outgoing longwave and the net longwave.
 
-    do fp = 1,num_nolakep
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
       c = pcolumn(p)
       l = plandunit(p)

@@ -308,6 +308,7 @@ module mod_clm_regcm
   end subroutine runsaclm45
 
   subroutine runclm45(lm,lms)
+    !@acc use nvtx
     implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
@@ -316,9 +317,10 @@ module mod_clm_regcm
     type(rcm_time_interval) :: tdiff, triff
     type(rcm_time_and_date) :: nextt, nextr
     character(len=64) :: rdate
-
+    !@acc call nvtxStartRange("runclm45")
+    !@acc call nvtxStartRange("atmosphere_to_land")
     call atmosphere_to_land(lm)
-
+    !@acc call nvtxEndRange
     ! Compute NEXT calday
     tdiff = dtsrf
     triff = dtsec
@@ -381,8 +383,10 @@ module mod_clm_regcm
 
     ! Run CLM
     call clm_drv(doalb,caldayp1,declinp1,declinp,rstwr,nlend,nlomon,rdate)
+    !@acc call nvtxStartRange("land_to_atmosphere")
     call land_to_atmosphere(lm,lms)
-
+    !@acc call nvtxEndRange
+    !@acc call nvtxEndRange
   end subroutine runclm45
 
   subroutine albedoclm45(lm,lms)

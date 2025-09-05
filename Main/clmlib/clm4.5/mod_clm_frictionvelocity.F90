@@ -134,8 +134,12 @@ module mod_clm_frictionvelocity
     ! Adjustment factors for unstable (moz < 0) or stable (moz > 0) conditions.
 
 #if (!defined PERGRO)
-
+#ifdef STDPAR_FIXED
+    do concurrent ( f = 1:fn )
+#else
+    !$acc parallel loop gang vector
     do f = 1, fn
+#endif
       n = filtern(f)
       g = ngridcell(n)
 
@@ -429,8 +433,12 @@ module mod_clm_frictionvelocity
     !
     ! The following only applies when PERGRO is defined
     !
-
+#ifdef STDPAR_FIXED
+    do concurrent ( f = 1:fn )
+#else
+    !$acc parallel loop gang vector
     do f = 1, fn
+#endif
       n = filtern(f)
       g = ngridcell(n)
 
@@ -642,6 +650,7 @@ module mod_clm_frictionvelocity
   ! Vol. 11, 2628-2644.
   !
   subroutine MoninObukIni (ur, thv, dthv, zldis, z0m, um, rib, obu)
+    !$acc routine seq
     implicit none
     ! wind speed at reference height [m/s]
     real(rk8), intent(in)  :: ur

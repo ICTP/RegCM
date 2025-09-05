@@ -56,6 +56,7 @@ module mod_clm_soiltemperature
   subroutine SoilTemperature(lbl, ubl, lbc, ubc, num_urbanl, filter_urbanl, &
                              num_nolakec, filter_nolakec, xmf, fact,        &
                              c_h2osfc, xmf_h2osfc)
+    !@acc use nvtx
     implicit none
     ! column bounds
     integer(ik4), intent(in) :: lbc, ubc
@@ -267,6 +268,8 @@ module mod_clm_soiltemperature
     real(rk8) :: eflx_gnet_h2osfc
     integer(ik4)  :: jbot(lbc:ubc) ! bottom level at each column
 
+    !@acc call nvtxStartRange("SoilTemperature")
+
     ! Assign local pointers to derived subtypes components (gridcell-level)
 
     forc_lwrad     => clm_a2l%forc_lwrad
@@ -354,8 +357,11 @@ module mod_clm_soiltemperature
     ! Thermal conductivity and Heat capacity
 
     allocate( tk_h2osfc(lbc:ubc) )
-    tk_h2osfc(:) = nan
     allocate( dhsdT(lbc:ubc) )
+
+    !$acc kernels
+    tk_h2osfc(:) = nan
+    !$acc end kernels
 
     call SoilThermProp(lbc, ubc, num_nolakec, filter_nolakec, tk, cv, tk_h2osfc)
 
@@ -363,7 +369,7 @@ module mod_clm_soiltemperature
     ! Added a pfts loop here to get the average of hs and dhsdT over
     ! all PFTs on the column. Precalculate the terms that do not depend on PFT.
 
-    do fc = 1,num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       lwrad_emit(c)  = emg(c) * sb * t_grnd(c)**4
       dlwrad_emit(c) = 4._rk8*emg(c) * sb * t_grnd(c)**3
@@ -373,14 +379,17 @@ module mod_clm_soiltemperature
       lwrad_emit_h2osfc(c)  = emg(c) * sb * t_h2osfc(c)**4
     end do
 
+    !$acc kernels
     hs_snow(lbc:ubc)   = 0._rk8
     hs_soil(lbc:ubc)   = 0._rk8
     hs_h2osfc(lbc:ubc) = 0._rk8
     hs(lbc:ubc)        = 0._rk8
     dhsdT(lbc:ubc)     = 0._rk8
-    do pi = 1,max_pft_per_col
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
+    !$acc end kernels
+    do concurrent ( fc = 1:num_nolakec )
+      c = filter_nolakec(fc)
+      !$acc loop seq
+      do pi = 1,max_pft_per_col
         if ( pi <= npfts(c) ) then
           p = pfti(c) + pi - 1
           l = plandunit(p)
@@ -461,15 +470,18 @@ module mod_clm_soiltemperature
     ! to each layer
 
     ! Initialize:
+    !$acc kernels
     sabg_lyr_col(lbc:ubc,-nlevsno+1:1) = 0._rk8
     hs_top(lbc:ubc)      = 0._rk8
     hs_top_snow(lbc:ubc) = 0._rk8
     hs_top_soil(lbc:ubc) = 0._rk8
+    !$acc end kernels
 
-    do pi = 1, max_pft_per_col
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
-        lyr_top = snl(c) + 1
+    do concurrent ( fc = 1:num_nolakec )
+      c = filter_nolakec(fc)
+      lyr_top = snl(c) + 1
+      !$acc loop seq
+      do pi = 1, max_pft_per_col
         if ( pi <= npfts(c) ) then
           p = pfti(c) + pi - 1
           if (pactive(p)) then
@@ -493,6 +505,7 @@ module mod_clm_soiltemperature
               hs_top_snow(c) = hs_top_snow(c) + eflx_gnet_snow*pwtcol(p)
               hs_top_soil(c) = hs_top_soil(c) + eflx_gnet_soil*pwtcol(p)
 
+              !$acc loop seq
               do j = lyr_top,1,1
                 sabg_lyr_col(c,j) = sabg_lyr_col(c,j) + &
                   sabg_lyr(p,j) * pwtcol(p)
@@ -512,7 +525,7 @@ module mod_clm_soiltemperature
     ! Restrict internal building temperature to between min and max
     ! and determine if heating or air conditioning is on
 
-    do fl = 1,num_urbanl
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
       if (ltype(l) == isturb) then
         cool_on(l) = .false.
@@ -533,166 +546,160 @@ module mod_clm_soiltemperature
     ! used in computing tridiagonal matrix and set up vector r and
     ! vectors a, b, c that define tridiagonal matrix and solve system
 
-    do j = -nlevsno+1, nlevgrnd
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
-        l = clandunit(c)
-        if ((ctype(c) == icol_sunwall .or. &
-             ctype(c) == icol_shadewall .or. &
-             ctype(c) == icol_roof) .and. j <= nlevurb) then
-          if (j >= snl(c)+1) then
-            if (j == snl(c)+1) then
-              fact(c,j) = dtsrf/cv(c,j)
-              fn(c,j) = tk(c,j)*(t_soisno(c,j+1)-t_soisno(c,j)) / &
-                (z(c,j+1)-z(c,j))
-            else if (j <= nlevurb-1) then
-              fact(c,j) = dtsrf/cv(c,j)
-              fn(c,j) = tk(c,j)*(t_soisno(c,j+1)-t_soisno(c,j)) / &
-                (z(c,j+1)-z(c,j))
-              dzm     = (z(c,j)-z(c,j-1))
-            else if (j == nlevurb) then
-              fact(c,j) = dtsrf/cv(c,j)
-              ! For urban sunwall, shadewall, and roof columns,
-              ! there is a non-zero heat flux across the bottom
-              ! "soil" layer and the equations are derived assuming
-              ! a prescribed internal building temperature.
-              ! (See Oleson urban notes of 6/18/03).
-              fn(c,j) = tk(c,j) * &
-                (t_building(l) - cnfac*t_soisno(c,j))/(zi(c,j) - z(c,j))
-            end if
-          end if
-        else if (ctype(c) /= icol_sunwall .and. &
-                 ctype(c) /= icol_shadewall .and. &
-                 ctype(c) /= icol_roof) then
-          if (j >= snl(c)+1) then
-            if (j == snl(c)+1) then
-              fact(c,j) = dtsrf/cv(c,j) * dz(c,j) / &
-                (0.5_rk8*(z(c,j)-zi(c,j-1)+capr*(z(c,j+1)-zi(c,j-1))))
-              fn(c,j) = tk(c,j) * &
-                (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
-            else if (j <= nlevgrnd-1) then
-              fact(c,j) = dtsrf/cv(c,j)
-              fn(c,j) = tk(c,j) * &
-                (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
-              dzm = (z(c,j)-z(c,j-1))
-            else if (j == nlevgrnd) then
-              fact(c,j) = dtsrf/cv(c,j)
-              fn(c,j) = eflx_bot(c)
-            end if
+    do concurrent ( fc = 1:num_nolakec, j = -nlevsno+1:nlevgrnd )
+      c = filter_nolakec(fc)
+      l = clandunit(c)
+      if ((ctype(c) == icol_sunwall .or. &
+           ctype(c) == icol_shadewall .or. &
+           ctype(c) == icol_roof) .and. j <= nlevurb) then
+        if (j >= snl(c)+1) then
+          if (j == snl(c)+1) then
+            fact(c,j) = dtsrf/cv(c,j)
+            fn(c,j) = tk(c,j)*(t_soisno(c,j+1)-t_soisno(c,j)) / &
+              (z(c,j+1)-z(c,j))
+          else if (j <= nlevurb-1) then
+            fact(c,j) = dtsrf/cv(c,j)
+            fn(c,j) = tk(c,j)*(t_soisno(c,j+1)-t_soisno(c,j)) / &
+              (z(c,j+1)-z(c,j))
+            dzm     = (z(c,j)-z(c,j-1))
+          else if (j == nlevurb) then
+            fact(c,j) = dtsrf/cv(c,j)
+            ! For urban sunwall, shadewall, and roof columns,
+            ! there is a non-zero heat flux across the bottom
+            ! "soil" layer and the equations are derived assuming
+            ! a prescribed internal building temperature.
+            ! (See Oleson urban notes of 6/18/03).
+            fn(c,j) = tk(c,j) * &
+              (t_building(l) - cnfac*t_soisno(c,j))/(zi(c,j) - z(c,j))
           end if
         end if
-      end do
+      else if (ctype(c) /= icol_sunwall .and. &
+               ctype(c) /= icol_shadewall .and. &
+               ctype(c) /= icol_roof) then
+        if (j >= snl(c)+1) then
+          if (j == snl(c)+1) then
+            fact(c,j) = dtsrf/cv(c,j) * dz(c,j) / &
+              (0.5_rk8*(z(c,j)-zi(c,j-1)+capr*(z(c,j+1)-zi(c,j-1))))
+            fn(c,j) = tk(c,j) * &
+              (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
+          else if (j <= nlevgrnd-1) then
+            fact(c,j) = dtsrf/cv(c,j)
+            fn(c,j) = tk(c,j) * &
+            (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
+            dzm = (z(c,j)-z(c,j-1))
+          else if (j == nlevgrnd) then
+            fact(c,j) = dtsrf/cv(c,j)
+            fn(c,j) = eflx_bot(c)
+          end if
+        end if
+      end if
     end do
     !
     ! urban aboveground columns
     !
-    do j = -nlevsno+1, nlevurb
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
-        if ((ctype(c) == icol_sunwall .or. &
-             ctype(c) == icol_shadewall .or. &
-             ctype(c) == icol_roof)) then
-          if (j >= snl(c)+1) then
-            if (j == snl(c)+1) then
-              dzp = z(c,j+1)-z(c,j)
-              at(c,j) = 0._rk8
-              bt(c,j) = 1.0_rk8+(1._rk8-cnfac)*fact(c,j)*tk(c,j) / &
-                         dzp-fact(c,j)*dhsdT(c)
-              ct(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j)/dzp
-              ! changed hs to hs_top
-              rt(c,j) = t_soisno(c,j) + &
-                fact(c,j)*(hs_top(c) - dhsdT(c)*t_soisno(c,j) + cnfac*fn(c,j) )
-            else if (j <= nlevurb-1) then
-              dzm = (z(c,j)-z(c,j-1))
-              dzp = (z(c,j+1)-z(c,j))
-              at(c,j) = -(1._rk8-cnfac)*fact(c,j)* tk(c,j-1)/dzm
-              bt(c,j) = 1._rk8+(1._rk8-cnfac)*fact(c,j)*(tk(c,j)/dzp+tk(c,j-1)/dzm)
-              ct(c,j) = -(1._rk8-cnfac)*fact(c,j)* tk(c,j)/dzp
+    do concurrent ( fc = 1:num_nolakec, j = -nlevsno+1:nlevurb )
+      c = filter_nolakec(fc)
+      if ((ctype(c) == icol_sunwall .or. &
+           ctype(c) == icol_shadewall .or. &
+           ctype(c) == icol_roof)) then
+        if (j >= snl(c)+1) then
+          if (j == snl(c)+1) then
+            dzp = z(c,j+1)-z(c,j)
+            at(c,j) = 0._rk8
+            bt(c,j) = 1.0_rk8+(1._rk8-cnfac)*fact(c,j)*tk(c,j) / &
+                       dzp-fact(c,j)*dhsdT(c)
+            ct(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j)/dzp
+            ! changed hs to hs_top
+            rt(c,j) = t_soisno(c,j) + &
+              fact(c,j)*(hs_top(c) - dhsdT(c)*t_soisno(c,j) + cnfac*fn(c,j) )
+          else if (j <= nlevurb-1) then
+            dzm = (z(c,j)-z(c,j-1))
+            dzp = (z(c,j+1)-z(c,j))
+            at(c,j) = -(1._rk8-cnfac)*fact(c,j)* tk(c,j-1)/dzm
+            bt(c,j) = 1._rk8+(1._rk8-cnfac)*fact(c,j)*(tk(c,j)/dzp+tk(c,j-1)/dzm)
+            ct(c,j) = -(1._rk8-cnfac)*fact(c,j)* tk(c,j)/dzp
 
-              ! if this is a snow layer or the top soil layer,
-              ! add absorbed solar flux to factor 'rt'
-              if (j <= 1) then
-                rt(c,j) = t_soisno(c,j) + &
-                  cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) ) + &
-                       (fact(c,j)*sabg_lyr_col(c,j))
-              else
-                rt(c,j) = t_soisno(c,j) + &
-                  cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
-              end if
-            else if (j == nlevurb) then
-              ! For urban sunwall, shadewall, and roof columns,
-              ! there is a non-zero heat flux across the bottom
-              ! "soil" layer and the equations are derived assuming
-              ! a prescribed internal building temperature.
-              ! (See Oleson urban notes of 6/18/03).
-              dzm = ( z(c,j)-z(c,j-1))
-              dzp = (zi(c,j)-z(c,j))
-              at(c,j) = - (1._rk8-cnfac)*fact(c,j)*(tk(c,j-1)/dzm)
-              bt(c,j) = 1._rk8+(1._rk8-cnfac)*fact(c,j)*(tk(c,j-1)/dzm+tk(c,j)/dzp)
-              ct(c,j) = 0._rk8
-              rt(c,j) = t_soisno(c,j) + fact(c,j)*( fn(c,j) - cnfac*fn(c,j-1) )
+            ! if this is a snow layer or the top soil layer,
+            ! add absorbed solar flux to factor 'rt'
+            if (j <= 1) then
+              rt(c,j) = t_soisno(c,j) + &
+                cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) ) + &
+                     (fact(c,j)*sabg_lyr_col(c,j))
+            else
+              rt(c,j) = t_soisno(c,j) + &
+                cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
             end if
+          else if (j == nlevurb) then
+            ! For urban sunwall, shadewall, and roof columns,
+            ! there is a non-zero heat flux across the bottom
+            ! "soil" layer and the equations are derived assuming
+            ! a prescribed internal building temperature.
+            ! (See Oleson urban notes of 6/18/03).
+            dzm = ( z(c,j)-z(c,j-1))
+            dzp = (zi(c,j)-z(c,j))
+            at(c,j) = - (1._rk8-cnfac)*fact(c,j)*(tk(c,j-1)/dzm)
+            bt(c,j) = 1._rk8+(1._rk8-cnfac)*fact(c,j)*(tk(c,j-1)/dzm+tk(c,j)/dzp)
+            ct(c,j) = 0._rk8
+            rt(c,j) = t_soisno(c,j) + fact(c,j)*( fn(c,j) - cnfac*fn(c,j-1) )
           end if
         end if
-      end do
+      end if
     end do
     !
     ! non-urban landunits + urban road columns
     !
-    do j = -nlevsno+1, nlevgrnd
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
-        if (ctype(c) /= icol_sunwall .and. &
-            ctype(c) /= icol_shadewall .and. &
-            ctype(c) /= icol_roof) then
-          if (j >= snl(c)+1) then
-            if (j == snl(c)+1) then
-              dzp = z(c,j+1)-z(c,j)
-              at(c,j) = 0._rk8
-              bt(c,j) = 1.0_rk8+(1._rk8-cnfac)*fact(c,j)*tk(c,j) / &
-                dzp-fact(c,j)*dhsdT(c)
-              ct(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j)/dzp
-              rt(c,j) = t_soisno(c,j) + fact(c,j)*( hs_top_snow(c) - &
-                        dhsdT(c)*t_soisno(c,j) + cnfac*fn(c,j) )
-            else if (j == 1) then
-              ! this is the snow/soil interface layer
-              dzm = (z(c,j)-z(c,j-1))
-              dzp = (z(c,j+1)-z(c,j))
-              at(c,j) =  -frac_sno_eff(c) * (1._rk8-cnfac) * fact(c,j) * &
-                         tk(c,j-1)/dzm
-              bt(c,j) = 1._rk8 + (1._rk8-cnfac)*fact(c,j)*(tk(c,j)/dzp + &
-                        frac_sno_eff(c) * tk(c,j-1)/dzm) - &
-                        (1._rk8 - frac_sno_eff(c))*fact(c,j)*dhsdT(c)
-              ct(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j)/dzp
-              rt(c,j) = t_soisno(c,j) + fact(c,j) * &
-                    ((1._rk8-frac_sno_eff(c)) * &
-                    (hs_soil(c) - dhsdT(c)*t_soisno(c,j)) + &
-                     cnfac*(fn(c,j) - frac_sno_eff(c) * fn(c,j-1)))
-              rt(c,j) = rt(c,j) + frac_sno_eff(c)*fact(c,j)*sabg_lyr_col(c,j)
-            else if (j <= nlevgrnd-1) then
-              dzm = (z(c,j)-z(c,j-1))
-              dzp = (z(c,j+1)-z(c,j))
-              at(c,j) = -(1._rk8-cnfac)*fact(c,j)* tk(c,j-1)/dzm
-              bt(c,j) = 1._rk8+(1._rk8-cnfac) * &
-                fact(c,j)*(tk(c,j)/dzp + tk(c,j-1)/dzm)
-              ct(c,j) =  -(1._rk8-cnfac)*fact(c,j)* tk(c,j)/dzp
-              rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
-              if (j < 1) rt(c,j) = rt(c,j) + fact(c,j)*sabg_lyr_col(c,j)
-            else if (j == nlevgrnd) then
-              dzm = (z(c,j)-z(c,j-1))
-              at(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j-1)/dzm
-              bt(c,j) = 1._rk8+(1._rk8-cnfac)*fact(c,j)*tk(c,j-1)/dzm
-              ct(c,j) = 0._rk8
-              rt(c,j) = t_soisno(c,j) - cnfac*fact(c,j) * &
-                fn(c,j-1) + fact(c,j)*fn(c,j)
-            end if
+    do concurrent ( fc = 1:num_nolakec, j = -nlevsno+1:nlevgrnd )
+      c = filter_nolakec(fc)
+      if (ctype(c) /= icol_sunwall .and. &
+          ctype(c) /= icol_shadewall .and. &
+          ctype(c) /= icol_roof) then
+        if (j >= snl(c)+1) then
+          if (j == snl(c)+1) then
+            dzp = z(c,j+1)-z(c,j)
+            at(c,j) = 0._rk8
+            bt(c,j) = 1.0_rk8+(1._rk8-cnfac)*fact(c,j)*tk(c,j) / &
+              dzp-fact(c,j)*dhsdT(c)
+            ct(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j)/dzp
+            rt(c,j) = t_soisno(c,j) + fact(c,j)*( hs_top_snow(c) - &
+                      dhsdT(c)*t_soisno(c,j) + cnfac*fn(c,j) )
+          else if (j == 1) then
+            ! this is the snow/soil interface layer
+            dzm = (z(c,j)-z(c,j-1))
+            dzp = (z(c,j+1)-z(c,j))
+            at(c,j) =  -frac_sno_eff(c) * (1._rk8-cnfac) * fact(c,j) * &
+                       tk(c,j-1)/dzm
+            bt(c,j) = 1._rk8 + (1._rk8-cnfac)*fact(c,j)*(tk(c,j)/dzp + &
+                      frac_sno_eff(c) * tk(c,j-1)/dzm) - &
+                      (1._rk8 - frac_sno_eff(c))*fact(c,j)*dhsdT(c)
+            ct(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j)/dzp
+            rt(c,j) = t_soisno(c,j) + fact(c,j) * &
+                  ((1._rk8-frac_sno_eff(c)) * &
+                  (hs_soil(c) - dhsdT(c)*t_soisno(c,j)) + &
+                   cnfac*(fn(c,j) - frac_sno_eff(c) * fn(c,j-1)))
+            rt(c,j) = rt(c,j) + frac_sno_eff(c)*fact(c,j)*sabg_lyr_col(c,j)
+          else if (j <= nlevgrnd-1) then
+            dzm = (z(c,j)-z(c,j-1))
+            dzp = (z(c,j+1)-z(c,j))
+            at(c,j) = -(1._rk8-cnfac)*fact(c,j)* tk(c,j-1)/dzm
+            bt(c,j) = 1._rk8+(1._rk8-cnfac) * &
+              fact(c,j)*(tk(c,j)/dzp + tk(c,j-1)/dzm)
+            ct(c,j) =  -(1._rk8-cnfac)*fact(c,j)* tk(c,j)/dzp
+            rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
+            if (j < 1) rt(c,j) = rt(c,j) + fact(c,j)*sabg_lyr_col(c,j)
+          else if (j == nlevgrnd) then
+            dzm = (z(c,j)-z(c,j-1))
+            at(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j-1)/dzm
+            bt(c,j) = 1._rk8+(1._rk8-cnfac)*fact(c,j)*tk(c,j-1)/dzm
+            ct(c,j) = 0._rk8
+            rt(c,j) = t_soisno(c,j) - cnfac*fact(c,j) * &
+              fn(c,j-1) + fact(c,j)*fn(c,j)
           end if
         end if
-      end do
+      end if
     end do
 
     ! compute thermal properties of h2osfc
-    do fc = 1, num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       dz_h2osfc(c) = max(1.0e-6_rk8,1.0e-3_rk8*h2osfc(c))
       !"areametric" heat capacity [J/K/m^2]
@@ -701,8 +708,10 @@ module mod_clm_soiltemperature
 
     ! set up compact matrix for band diagonal solver, requires additional
     !     sub/super diagonals (1 each), and one additional row for t_h2osfc
+    !$acc kernels
     jtop = -9999
-    do fc = 1,num_nolakec
+    !$acc end kernels
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       jtop(c) = snl(c)
       ! compute jbot
@@ -717,16 +726,19 @@ module mod_clm_soiltemperature
 
     ! allocate matrices for BandDiagonal
     allocate(bmatrix(lbc:ubc,nband,-nlevsno:nlevgrnd))
-    bmatrix(:,:,:) = 0.0
     allocate(tvector(lbc:ubc,-nlevsno:nlevgrnd))
-    tvector(:,:) = nan
     allocate(rvector(lbc:ubc,-nlevsno:nlevgrnd))
+    !$acc kernels
+    bmatrix(:,:,:) = 0.0
+    tvector(:,:) = nan
     rvector(:,:) = nan
+    !$acc end kernels
 
     ! the solution will be organized as (snow:h2osfc:soil) to minimize
     !     bandwidth; this requires a 5-element band instead of 3
-    do fc = 1, num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
+      !$acc loop seq
       do j = snl(c)+1, 0
         ! snow layers; bottom layer will have one offset coefficient
         bmatrix(c,2,j-1) = ct(c,j)
@@ -781,8 +793,9 @@ module mod_clm_soiltemperature
          filter_nolakec, nband, bmatrix, rvector, tvector)
 
     ! return temperatures to original array
-    do fc = 1,num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
+      !$acc loop seq
       do j = snl(c)+1, 0
         t_soisno(c,j) = tvector(c,j-1) !snow layers
       end do
@@ -799,47 +812,45 @@ module mod_clm_soiltemperature
 
     ! Melting or Freezing
 
-    do j = -nlevsno+1,nlevgrnd
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
-        l = clandunit(c)
-        if ((ctype(c) == icol_sunwall .or. &
-             ctype(c) == icol_shadewall .or. &
-             ctype(c) == icol_roof) .and. j <= nlevurb) then
-          if (j >= snl(c)+1) then
-            if (j <= nlevurb-1) then
-              fn1(c,j) = tk(c,j) * &
-                (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
-            else if (j == nlevurb) then
-              ! For urban sunwall, shadewall, and roof columns,
-              ! there is a non-zero heat flux across the bottom
-              ! "soil" layer and the equations are derived assuming
-              ! a prescribed internal building temperature.
-              ! (See Oleson urban notes of 6/18/03).
-              ! Note new formulation for fn, this will be used below
-              ! in net energey flux computations
-              fn1(c,j) = tk(c,j) * (t_building(l)-t_soisno(c,j)) / &
-                                   (zi(c,j) - z(c,j))
-              fn(c,j) = tk(c,j) * (t_building(l) - tssbef(c,j)) / &
-                                   (zi(c,j) - z(c,j))
-            end if
-          end if
-        else if (ctype(c) /= icol_sunwall .and. &
-                 ctype(c) /= icol_shadewall .and. &
-                 ctype(c) /= icol_roof) then
-          if (j >= snl(c)+1) then
-            if (j <= nlevgrnd-1) then
-              fn1(c,j) = tk(c,j) * &
-                (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
-            else if (j == nlevgrnd) then
-              fn1(c,j) = 0._rk8
-            end if
+    do concurrent ( fc = 1:num_nolakec, j = -nlevsno+1:nlevgrnd )
+      c = filter_nolakec(fc)
+      l = clandunit(c)
+      if ((ctype(c) == icol_sunwall .or. &
+           ctype(c) == icol_shadewall .or. &
+           ctype(c) == icol_roof) .and. j <= nlevurb) then
+        if (j >= snl(c)+1) then
+          if (j <= nlevurb-1) then
+            fn1(c,j) = tk(c,j) * &
+              (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
+          else if (j == nlevurb) then
+            ! For urban sunwall, shadewall, and roof columns,
+            ! there is a non-zero heat flux across the bottom
+            ! "soil" layer and the equations are derived assuming
+            ! a prescribed internal building temperature.
+            ! (See Oleson urban notes of 6/18/03).
+            ! Note new formulation for fn, this will be used below
+            ! in net energey flux computations
+            fn1(c,j) = tk(c,j) * (t_building(l)-t_soisno(c,j)) / &
+                                 (zi(c,j) - z(c,j))
+            fn(c,j) = tk(c,j) * (t_building(l) - tssbef(c,j)) / &
+                                 (zi(c,j) - z(c,j))
           end if
         end if
-      end do
+      else if (ctype(c) /= icol_sunwall .and. &
+               ctype(c) /= icol_shadewall .and. &
+               ctype(c) /= icol_roof) then
+        if (j >= snl(c)+1) then
+          if (j <= nlevgrnd-1) then
+            fn1(c,j) = tk(c,j) * &
+              (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
+          else if (j == nlevgrnd) then
+            fn1(c,j) = 0._rk8
+          end if
+        end if
+      end if
     end do
 
-    do fc = 1,num_nolakec
+    do concurrent( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       l = clandunit(c)
       if (ltype(l) == isturb) then
@@ -859,7 +870,7 @@ module mod_clm_soiltemperature
     end do
 
     ! compute terms needed for phase change of h2osfc
-    do fc = 1,num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       dzp = (0.5_rk8*dz_h2osfc(c)+z(c,1))
       fn1_h2osfc(c)=tk_h2osfc(c)*(t_soisno(c,1)-t_h2osfc(c))/dzp
@@ -873,7 +884,7 @@ module mod_clm_soiltemperature
     call Phasechange_beta (lbc, ubc, num_nolakec, &
       filter_nolakec, fact, dhsdT, xmf)
 
-    do fc = 1,num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       ! this expression will (should) work whether there is snow or not
       if (snl(c) < 0) then
@@ -896,7 +907,7 @@ module mod_clm_soiltemperature
     end do
 
     ! Initialize soil heat content
-    do fc = 1,num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       l = clandunit(c)
       if (ltype(l) /= isturb) then
@@ -907,10 +918,11 @@ module mod_clm_soiltemperature
     end do
 
     ! Calculate soil heat content and soil plus snow heat content
-    do j = -nlevsno+1,nlevgrnd
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
-        l = clandunit(c)
+    do concurrent ( fc = 1:num_nolakec )
+      c = filter_nolakec(fc)
+      l = clandunit(c)
+      !$acc loop seq
+      do j = -nlevsno+1,nlevgrnd
         if (j == 1) then ! this only needs to be done once
           eflx_fgr12(c) = -cnfac*fn(c,1) - (1._rk8-cnfac)*fn1(c,1)
         end if
@@ -933,6 +945,9 @@ module mod_clm_soiltemperature
     end do
     deallocate( tk_h2osfc )
     deallocate( dhsdT )
+
+    !@acc call nvtxEndRange
+
   end subroutine SoilTemperature
   !
   ! Calculation of thermal conductivities and heat capacities of
@@ -1047,101 +1062,97 @@ module mod_clm_soiltemperature
     ! dry districts in two cities, J. Appl. Meteorol.,
     ! 41, 1011-1026.
 
-    do j = -nlevsno+1, nlevgrnd
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
+    do concurrent ( fc = 1:num_nolakec, j = -nlevsno+1:nlevgrnd )
+      c = filter_nolakec(fc)
 
-        ! Only examine levels from 1->nlevgrnd
-        if (j >= 1) then
-          l = clandunit(c)
-          if ((ctype(c) == icol_sunwall .or. &
-               ctype(c) == icol_shadewall) .and. j <= nlevurb) then
-            thk(c,j) = tk_wall(l,j)
-          else if (ctype(c) == icol_roof .and. j <= nlevurb) then
-            thk(c,j) = tk_roof(l,j)
-          else if (ctype(c) == icol_road_imperv .and. &
-                   j >= 1 .and. j <= nlev_improad(l)) then
-            thk(c,j) = tk_improad(l,j)
-          else if (ltype(l) /= istwet .AND.  &
-                   ltype(l) /= istice  .AND. &
-                   ctype(c) /= icol_sunwall .AND. &
-                   ctype(c) /= icol_shadewall .AND. &
-                   ctype(c) /= icol_roof) then
-            satw = (h2osoi_liq(c,j)/denh2o + &
-              h2osoi_ice(c,j)/denice)/(dz(c,j)*watsat(c,j))
-            satw = min(1._rk8, satw)
-            if (satw > .1e-6_rk8) then
-              if (t_soisno(c,j) >= tfrz) then       ! Unfrozen soil
-                dke = max(0._rk8, log10(satw) + 1.0_rk8)
-              else                               ! Frozen soil
-                dke = satw
-              end if
-              fl = (h2osoi_liq(c,j)/(denh2o*dz(c,j))) / &
-                    (h2osoi_liq(c,j)/(denh2o*dz(c,j)) + &
-                     h2osoi_ice(c,j)/(denice*dz(c,j)))
-              dksat = tkmg(c,j)*tkwat**(fl*watsat(c,j))* &
-                      tkice**((1._rk8-fl)*watsat(c,j))
-              thk(c,j) = dke*dksat + (1._rk8-dke)*tkdry(c,j)
-            else
-              thk(c,j) = tkdry(c,j)
+      ! Only examine levels from 1->nlevgrnd
+      if (j >= 1) then
+        l = clandunit(c)
+        if ((ctype(c) == icol_sunwall .or. &
+             ctype(c) == icol_shadewall) .and. j <= nlevurb) then
+          thk(c,j) = tk_wall(l,j)
+        else if (ctype(c) == icol_roof .and. j <= nlevurb) then
+          thk(c,j) = tk_roof(l,j)
+        else if (ctype(c) == icol_road_imperv .and. &
+                 j >= 1 .and. j <= nlev_improad(l)) then
+          thk(c,j) = tk_improad(l,j)
+        else if (ltype(l) /= istwet .AND.  &
+                 ltype(l) /= istice  .AND. &
+                 ctype(c) /= icol_sunwall .AND. &
+                 ctype(c) /= icol_shadewall .AND. &
+                 ctype(c) /= icol_roof) then
+          satw = (h2osoi_liq(c,j)/denh2o + &
+            h2osoi_ice(c,j)/denice)/(dz(c,j)*watsat(c,j))
+          satw = min(1._rk8, satw)
+          if (satw > .1e-6_rk8) then
+            if (t_soisno(c,j) >= tfrz) then       ! Unfrozen soil
+              dke = max(0._rk8, log10(satw) + 1.0_rk8)
+            else                               ! Frozen soil
+              dke = satw
             end if
-            if (j > nlevsoi) thk(c,j) = thk_bedrock
-          else if ( ltype(l) == istice ) then
+            fl = (h2osoi_liq(c,j)/(denh2o*dz(c,j))) / &
+                  (h2osoi_liq(c,j)/(denh2o*dz(c,j)) + &
+                   h2osoi_ice(c,j)/(denice*dz(c,j)))
+            dksat = tkmg(c,j)*tkwat**(fl*watsat(c,j))* &
+                    tkice**((1._rk8-fl)*watsat(c,j))
+            thk(c,j) = dke*dksat + (1._rk8-dke)*tkdry(c,j)
+          else
+            thk(c,j) = tkdry(c,j)
+          end if
+          if (j > nlevsoi) thk(c,j) = thk_bedrock
+        else if ( ltype(l) == istice ) then
+          thk(c,j) = tkwat
+          if (t_soisno(c,j) < tfrz) thk(c,j) = tkice
+        else if (ltype(l) == istwet) then
+          if (j > nlevsoi) then
+            thk(c,j) = thk_bedrock
+          else
             thk(c,j) = tkwat
             if (t_soisno(c,j) < tfrz) thk(c,j) = tkice
-          else if (ltype(l) == istwet) then
-            if (j > nlevsoi) then
-              thk(c,j) = thk_bedrock
-            else
-              thk(c,j) = tkwat
-              if (t_soisno(c,j) < tfrz) thk(c,j) = tkice
-            end if
           end if
         end if
+      end if
 
-        ! Thermal conductivity of snow, which from Jordan (1991) pp. 18
-        ! Only examine levels from snl(c)+1 -> 0 where snl(c) < 1
-        if (snl(c)+1 < 1 .AND. (j >= snl(c)+1) .AND. (j <= 0)) then
-          bw = (h2osoi_ice(c,j)+h2osoi_liq(c,j))/(frac_sno(c)*dz(c,j))
-          thk(c,j) = tkair + (7.75e-5_rk8 *bw + 1.105e-6_rk8*bw*bw)*(tkice-tkair)
-        end if
-      end do
+      ! Thermal conductivity of snow, which from Jordan (1991) pp. 18
+      ! Only examine levels from snl(c)+1 -> 0 where snl(c) < 1
+      if (snl(c)+1 < 1 .AND. (j >= snl(c)+1) .AND. (j <= 0)) then
+        bw = (h2osoi_ice(c,j)+h2osoi_liq(c,j))/(frac_sno(c)*dz(c,j))
+        thk(c,j) = tkair + (7.75e-5_rk8 *bw + 1.105e-6_rk8*bw*bw)*(tkice-tkair)
+      end if
     end do
 
     ! Thermal conductivity at the layer interface
 
-    do j = -nlevsno+1,nlevgrnd
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
-        if ((ctype(c) == icol_sunwall .or. &
-             ctype(c) == icol_shadewall .or. &
-             ctype(c) == icol_roof) .and. j <= nlevurb) then
-          if (j >= snl(c)+1 .AND. j <= nlevurb-1) then
-            tk(c,j) = thk(c,j)*thk(c,j+1)*(z(c,j+1)-z(c,j)) / &
-                   (thk(c,j)*(z(c,j+1)-zi(c,j))+thk(c,j+1)*(zi(c,j)-z(c,j)))
-          else if (j == nlevurb) then
-            ! For urban sunwall, shadewall, and roof columns,
-            ! there is a non-zero heat flux across the bottom
-            ! "soil" layer and the equations are derived assuming
-            ! a prescribed internal building temperature.
-            ! (See Oleson urban notes of 6/18/03).
-            tk(c,j) = thk(c,j)
-          end if
-        else if (ctype(c) /= icol_sunwall .and. &
-                 ctype(c) /= icol_shadewall .and. &
-                 ctype(c) /= icol_roof) then
-          if (j >= snl(c)+1 .AND. j <= nlevgrnd-1) then
-            tk(c,j) = thk(c,j)*thk(c,j+1)*(z(c,j+1)-z(c,j)) / &
-                    (thk(c,j)*(z(c,j+1)-zi(c,j))+thk(c,j+1)*(zi(c,j)-z(c,j)))
-          else if (j == nlevgrnd) then
-            tk(c,j) = 0._rk8
-          end if
+    do concurrent ( fc = 1:num_nolakec, j = -nlevsno+1:nlevgrnd )
+      c = filter_nolakec(fc)
+      if ((ctype(c) == icol_sunwall .or. &
+           ctype(c) == icol_shadewall .or. &
+           ctype(c) == icol_roof) .and. j <= nlevurb) then
+        if (j >= snl(c)+1 .AND. j <= nlevurb-1) then
+          tk(c,j) = thk(c,j)*thk(c,j+1)*(z(c,j+1)-z(c,j)) / &
+                 (thk(c,j)*(z(c,j+1)-zi(c,j))+thk(c,j+1)*(zi(c,j)-z(c,j)))
+        else if (j == nlevurb) then
+          ! For urban sunwall, shadewall, and roof columns,
+          ! there is a non-zero heat flux across the bottom
+          ! "soil" layer and the equations are derived assuming
+          ! a prescribed internal building temperature.
+          ! (See Oleson urban notes of 6/18/03).
+          tk(c,j) = thk(c,j)
         end if
-      end do
+      else if (ctype(c) /= icol_sunwall .and. &
+               ctype(c) /= icol_shadewall .and. &
+               ctype(c) /= icol_roof) then
+        if (j >= snl(c)+1 .AND. j <= nlevgrnd-1) then
+          tk(c,j) = thk(c,j)*thk(c,j+1)*(z(c,j+1)-z(c,j)) / &
+                  (thk(c,j)*(z(c,j+1)-zi(c,j))+thk(c,j+1)*(zi(c,j)-z(c,j)))
+        else if (j == nlevgrnd) then
+          tk(c,j) = 0._rk8
+        end if
+      end if
     end do
 
     ! calculate thermal conductivity of h2osfc
-    do fc = 1, num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       zh2osfc = 1.0e-3_rk8*(0.5_rk8*h2osfc(c)) !convert to [m] from [mm]
       tk_h2osfc(c)= tkwat*thk(c,1)*(z(c,1)+zh2osfc) / &
@@ -1153,48 +1164,44 @@ module mod_clm_soiltemperature
     ! the Town Energy Balance (TEB) scheme with direct measurements
     ! from dry districts in two cities, J. Appl. Meteorol., 41, 1011-1026.
 
-    do j = 1, nlevgrnd
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
-        l = clandunit(c)
-        if ((ctype(c) == icol_sunwall .OR. &
-             ctype(c) == icol_shadewall) .and. j <= nlevurb) then
-          cv(c,j) = cv_wall(l,j) * dz(c,j)
-        else if (ctype(c) == icol_roof .and. j <= nlevurb) then
-          cv(c,j) = cv_roof(l,j) * dz(c,j)
-        else if (ctype(c) == icol_road_imperv .and. &
-                 j >= 1 .and. j <= nlev_improad(l)) then
-          cv(c,j) = cv_improad(l,j) * dz(c,j)
-        else if (ltype(l) /= istwet .AND. &
-                 ltype(l) /= istice .AND. &
-                 ctype(c) /= icol_sunwall .AND. &
-                 ctype(c) /= icol_shadewall .AND. &
-                 ctype(c) /= icol_roof) then
-          cv(c,j) = csol(c,j)*(1-watsat(c,j))*dz(c,j) + &
-            (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
-        else if (ltype(l) == istwet) then
-          cv(c,j) = (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
-          if (j > nlevsoi) cv(c,j) = csol(c,j)*dz(c,j)
-        else if ( ltype(l) == istice ) then
-          cv(c,j) = (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
+    do concurrent ( fc = 1:num_nolakec, j = 1:nlevgrnd )
+      c = filter_nolakec(fc)
+      l = clandunit(c)
+      if ((ctype(c) == icol_sunwall .OR. &
+           ctype(c) == icol_shadewall) .and. j <= nlevurb) then
+        cv(c,j) = cv_wall(l,j) * dz(c,j)
+      else if (ctype(c) == icol_roof .and. j <= nlevurb) then
+        cv(c,j) = cv_roof(l,j) * dz(c,j)
+      else if (ctype(c) == icol_road_imperv .and. &
+               j >= 1 .and. j <= nlev_improad(l)) then
+        cv(c,j) = cv_improad(l,j) * dz(c,j)
+      else if (ltype(l) /= istwet .AND. &
+               ltype(l) /= istice .AND. &
+               ctype(c) /= icol_sunwall .AND. &
+               ctype(c) /= icol_shadewall .AND. &
+               ctype(c) /= icol_roof) then
+        cv(c,j) = csol(c,j)*(1-watsat(c,j))*dz(c,j) + &
+          (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
+      else if (ltype(l) == istwet) then
+        cv(c,j) = (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
+        if (j > nlevsoi) cv(c,j) = csol(c,j)*dz(c,j)
+      else if ( ltype(l) == istice ) then
+        cv(c,j) = (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
+      end if
+      if (j == 1) then
+        if (snl(c)+1 == 1 .AND. h2osno(c) > 0._rk8) then
+          cv(c,j) = cv(c,j) + cpice*h2osno(c)
         end if
-        if (j == 1) then
-          if (snl(c)+1 == 1 .AND. h2osno(c) > 0._rk8) then
-            cv(c,j) = cv(c,j) + cpice*h2osno(c)
-          end if
-        end if
-      end do
+      end if
     end do
 
     ! Snow heat capacity
 
-    do j = -nlevsno+1,0
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
-        if (snl(c)+1 < 1 .and. j >= snl(c)+1) then
-          cv(c,j) = cpliq*h2osoi_liq(c,j) + cpice*h2osoi_ice(c,j)
-        end if
-      end do
+    do concurrent ( fc = 1:num_nolakec, j = -nlevsno+1:0 )
+      c = filter_nolakec(fc)
+      if (snl(c)+1 < 1 .and. j >= snl(c)+1) then
+        cv(c,j) = cpliq*h2osoi_liq(c,j) + cpice*h2osoi_ice(c,j)
+      end if
     end do
   end subroutine SoilThermProp
   !
@@ -1270,7 +1277,7 @@ module mod_clm_soiltemperature
 
     ! Initialization
 
-    do fc = 1,num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       xmf_h2osfc(c) = 0._rk8
       hm(c) = 0._rk8
@@ -1279,7 +1286,7 @@ module mod_clm_soiltemperature
     end do
 
     ! Freezing identification
-    do fc = 1,num_nolakec
+    do concurrent( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       ! If liquid exists below melt point, freeze some to ice.
       if ( frac_h2osfc(c) > 0._rk8 .AND. t_h2osfc(c) <= tfrz) then
@@ -1494,113 +1501,111 @@ module mod_clm_soiltemperature
 
     ! Initialization
 
-    do fc = 1, num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       l = clandunit(c)
 
       qflx_snomelt(c) = 0._rk8
       xmf(c) = 0._rk8
-      qflx_snofrz_lyr(c,-nlevsno+1:0) = 0._rk8
+      !$acc loop seq
+      do j = -nlevsno+1, 0
+        qflx_snofrz_lyr(c,j) = 0._rk8
+      end do
       qflx_snofrz_col(c) = 0._rk8
       qflx_snow_melt(c) = 0._rk8
     end do
 
-    do j = -nlevsno+1, nlevgrnd       ! all layers
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
-        if ( j >= snl(c)+1 ) then
-          ! Initialization
-          imelt(c,j) = 0
-          hm(c,j) = 0._rk8
-          xm(c,j) = 0._rk8
-          wice0(c,j) = h2osoi_ice(c,j)
-          wliq0(c,j) = h2osoi_liq(c,j)
-          wmass0(c,j) = h2osoi_ice(c,j) + h2osoi_liq(c,j)
-        end if   ! end of snow layer if-block
-      end do   ! end of column-loop
-    end do   ! end of level-loop
+    do concurrent ( fc = 1:num_nolakec, j = -nlevsno+1:nlevgrnd )
+      c = filter_nolakec(fc)
+      if ( j >= snl(c)+1 ) then
+        ! Initialization
+        imelt(c,j) = 0
+        hm(c,j) = 0._rk8
+        xm(c,j) = 0._rk8
+        wice0(c,j) = h2osoi_ice(c,j)
+        wliq0(c,j) = h2osoi_liq(c,j)
+        wmass0(c,j) = h2osoi_ice(c,j) + h2osoi_liq(c,j)
+      end if   ! end of snow layer if-block
+    end do   ! end of loop
 
     ! snow layers
-    do j = -nlevsno+1, 0
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
-        if ( j >= snl(c)+1 ) then
-          ! Melting identification
-          ! If ice exists above melt point, melt some to liquid.
-          if (h2osoi_ice(c,j) > 0._rk8 .AND. t_soisno(c,j) > tfrz) then
-            imelt(c,j) = 1
-            ! tinc(c,j) = t_soisno(c,j) - tfrz
-            tinc(c,j) = tfrz - t_soisno(c,j)
-            t_soisno(c,j) = tfrz
-          end if
+    do concurrent ( fc = 1:num_nolakec, j = -nlevsno+1:0 )
+      c = filter_nolakec(fc)
+      if ( j >= snl(c)+1 ) then
+        ! Melting identification
+        ! If ice exists above melt point, melt some to liquid.
+        if (h2osoi_ice(c,j) > 0._rk8 .AND. t_soisno(c,j) > tfrz) then
+          imelt(c,j) = 1
+          ! tinc(c,j) = t_soisno(c,j) - tfrz
+          tinc(c,j) = tfrz - t_soisno(c,j)
+          t_soisno(c,j) = tfrz
+        end if
 
-          ! Freezing identification
-          ! If liquid exists below melt point, freeze some to ice.
-          if ( h2osoi_liq(c,j) > 0._rk8 .AND. t_soisno(c,j) < tfrz ) then
-            imelt(c,j) = 2
-            ! tinc(c,j) = t_soisno(c,j) - tfrz
-            tinc(c,j) = tfrz - t_soisno(c,j)
-            t_soisno(c,j) = tfrz
-          end if
-        end if   ! end of snow layer if-block
-      end do   ! end of column-loop
-    end do   ! end of level-loop
+        ! Freezing identification
+        ! If liquid exists below melt point, freeze some to ice.
+        if ( h2osoi_liq(c,j) > 0._rk8 .AND. t_soisno(c,j) < tfrz ) then
+          imelt(c,j) = 2
+          ! tinc(c,j) = t_soisno(c,j) - tfrz
+          tinc(c,j) = tfrz - t_soisno(c,j)
+          t_soisno(c,j) = tfrz
+        end if
+      end if   ! end of snow layer if-block
+    end do   ! end of loop
 
     ! soil layers
-    do j = 1, nlevgrnd
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
-        l = clandunit(c)
+    do concurrent ( fc = 1:num_nolakec, j = 1:nlevgrnd )
+      c = filter_nolakec(fc)
+      l = clandunit(c)
+      supercool(c,j) = 0.0_rk8
+      ! add in urban condition if-block
+      if ((ctype(c) /= icol_sunwall .and. &
+           ctype(c) /= icol_shadewall .and. &
+           ctype(c) /= icol_roof) .or. ( j <= nlevurb)) then
+        if ( h2osoi_ice(c,j) > 0. .AND. t_soisno(c,j) > tfrz ) then
+          imelt(c,j) = 1
+          ! tinc(c,j) = t_soisno(c,j) - tfrz
+          tinc(c,j) = tfrz - t_soisno(c,j)
+          t_soisno(c,j) = tfrz
+        end if
+
+        ! from Zhao (1997) and Koren (1999)
         supercool(c,j) = 0.0_rk8
-        ! add in urban condition if-block
-        if ((ctype(c) /= icol_sunwall .and. &
-             ctype(c) /= icol_shadewall .and. &
-             ctype(c) /= icol_roof) .or. ( j <= nlevurb)) then
-          if ( h2osoi_ice(c,j) > 0. .AND. t_soisno(c,j) > tfrz ) then
-            imelt(c,j) = 1
-            ! tinc(c,j) = t_soisno(c,j) - tfrz
-            tinc(c,j) = tfrz - t_soisno(c,j)
-            t_soisno(c,j) = tfrz
-          end if
-
-          ! from Zhao (1997) and Koren (1999)
-          supercool(c,j) = 0.0_rk8
-          if (ltype(l) == istsoil .or. &
-              ltype(l) == istcrop .or. &
-              ctype(c) == icol_road_perv) then
-            if ( t_soisno(c,j) < tfrz ) then
-              smp = hfus*(tfrz-t_soisno(c,j)) / &
-                   (grav*t_soisno(c,j)) * 1000._rk8  !(mm)
-              supercool(c,j) = watsat(c,j)*(smp/sucsat(c,j))**(-1._rk8/bsw(c,j))
-              supercool(c,j) = supercool(c,j)*dz(c,j)*1000._rk8       ! (mm)
-            end if
-          end if
-
-          if ( h2osoi_liq(c,j) > supercool(c,j) .AND. &
-               t_soisno(c,j) < tfrz) then
-            imelt(c,j) = 2
-            ! tinc(c,j) = t_soisno(c,j) - tfrz
-            tinc(c,j) = tfrz - t_soisno(c,j)
-            t_soisno(c,j) = tfrz
-          end if
-
-          ! If snow exists, but its thickness is less than
-          ! the critical value (0.01 m)
-          if ( snl(c)+1 == 1 .AND. h2osno(c) > 0._rk8 .AND. j == 1 ) then
-            if ( t_soisno(c,j) > tfrz ) then
-              imelt(c,j) = 1
-              ! tincc,j) = t_soisno(c,j) - tfrz
-              tinc(c,j) = tfrz - t_soisno(c,j)
-              t_soisno(c,j) = tfrz
-            end if
+        if (ltype(l) == istsoil .or. &
+            ltype(l) == istcrop .or. &
+            ctype(c) == icol_road_perv) then
+          if ( t_soisno(c,j) < tfrz ) then
+            smp = hfus*(tfrz-t_soisno(c,j)) / &
+                 (grav*t_soisno(c,j)) * 1000._rk8  !(mm)
+            supercool(c,j) = watsat(c,j)*(smp/sucsat(c,j))**(-1._rk8/bsw(c,j))
+            supercool(c,j) = supercool(c,j)*dz(c,j)*1000._rk8       ! (mm)
           end if
         end if
-      end do
+
+        if ( h2osoi_liq(c,j) > supercool(c,j) .AND. &
+             t_soisno(c,j) < tfrz) then
+          imelt(c,j) = 2
+          ! tinc(c,j) = t_soisno(c,j) - tfrz
+          tinc(c,j) = tfrz - t_soisno(c,j)
+          t_soisno(c,j) = tfrz
+        end if
+
+        ! If snow exists, but its thickness is less than
+        ! the critical value (0.01 m)
+        if ( snl(c)+1 == 1 .AND. h2osno(c) > 0._rk8 .AND. j == 1 ) then
+          if ( t_soisno(c,j) > tfrz ) then
+            imelt(c,j) = 1
+            ! tincc,j) = t_soisno(c,j) - tfrz
+            tinc(c,j) = tfrz - t_soisno(c,j)
+            t_soisno(c,j) = tfrz
+          end if
+        end if
+      end if
     end do
 
-    do j = -nlevsno+1, nlevgrnd       ! all layers
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
+    do concurrent ( fc = 1:num_nolakec )
+      c = filter_nolakec(fc)
+      !$acc loop seq
+      do j = -nlevsno+1, nlevgrnd       ! all layers
 
         if ((ctype(c) /= icol_sunwall .and. &
              ctype(c) /= icol_shadewall .and. &
@@ -1737,7 +1742,7 @@ module mod_clm_soiltemperature
 
     ! Needed for history file output
 
-    do fc = 1,num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       eflx_snomelt(c) = qflx_snomelt(c) * hfus
       l = clandunit(c)
@@ -1747,9 +1752,10 @@ module mod_clm_soiltemperature
         eflx_snomelt_r(c) = eflx_snomelt(c)
       end if
     end do
-    do j = -nlevsno+1,0
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
+    do concurrent ( fc = 1:num_nolakec )
+      c = filter_nolakec(fc)
+      !$acc loop seq
+      do j = -nlevsno+1,0
         qflx_snofrz_col(c) = qflx_snofrz_col(c) + qflx_snofrz_lyr(c,j)
       end do
     end do

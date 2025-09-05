@@ -146,6 +146,7 @@ module mod_clm_driver
   ! the calling tree is given in the description of this module.
   !
   subroutine clm_drv(doalb,nextsw_cday,declinp1,declin,rstwr,nlend,nlomon,rdate)
+    !@acc use nvtx
     implicit none
     logical, intent(in) :: doalb     ! true if time for surface albedo calc
     real(rk8), intent(in) :: nextsw_cday ! calendar day
@@ -179,6 +180,7 @@ module mod_clm_driver
 #if (defined CN)
     logical, save  :: lfirstcall = .false.
 #endif
+    !@acc call nvtxStartRange("clm_drv")
     ! Assign local pointers to derived subtypes components (landunit-level)
 
     itypelun => clm3%g%l%itype
@@ -368,33 +370,34 @@ module mod_clm_driver
     do c = begc, endc
       clm3%g%l%c%cps%decl(c) = declin
     end do
-
+    !@acc call nvtxStartRange("clm_driverInit")
     call clm_driverInit(begc,endc,begp,endp, &
                         filter%num_nolakec,  &
                         filter%nolakec)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Hydrology1
     ! =======================================================================
-
+    !@acc call nvtxStartRange("Hydrology1")
     call Hydrology1(begc,endc,begp,endp, &
                     filter%num_nolakec,  &
                     filter%nolakec,      &
                     filter%num_nolakep,  &
                     filter%nolakep)
+    !@acc call nvtxEndRange
 
     ! =======================================================================
     ! Surface Radiation
     ! =======================================================================
 
     ! Surface Radiation for non-urban columns
-
+    !@acc call nvtxStartRange("SurfaceRadiation")
     call SurfaceRadiation(begp,endp,           &
                           filter%num_nourbanp, &
                           filter%nourbanp)
-
+    !@acc call nvtxEndRange
     ! Surface Radiation for urban columns
-
+    !@acc call nvtxStartRange("UrbanRadiation")
     call UrbanRadiation(begl,endl,begp,endp, &
                         filter%num_nourbanl, &
                         filter%nourbanl,     &
@@ -402,31 +405,31 @@ module mod_clm_driver
                         filter%urbanl,       &
                         filter%num_urbanp,   &
                         filter%urbanp)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Determine leaf temperature and surface fluxes based on ground
     ! temperature from previous time step.
     ! =======================================================================
-
+    !@acc call nvtxStartRange("Biogeophysics1")
     call Biogeophysics1(begg,endg,begc,endc,begp,endp, &
                         filter%num_nolakec,            &
                         filter%nolakec,                &
                         filter%num_nolakep,            &
                         filter%nolakep)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Determine bare soil or snow-covered vegetation surface temperature and
     ! fluxes. Calculate Ground fluxes (frac_veg_nosno is either 1 or 0)
     ! =======================================================================
 
     ! BareGroundFluxes for all pfts except lakes and urban landunits
-
+    !@acc call nvtxStartRange("BareGroundFluxes")
     call BareGroundFluxes(begp,endp,               &
                           filter%num_nolakeurbanp, &
                           filter%nolakeurbanp)
-
+    !@acc call nvtxEndRange
     ! Fluxes for all Urban landunits
-
+    !@acc call nvtxStartRange("UrbanFluxes")
     call UrbanFluxes(begp,endp,begl,endl,begc,endc, &
                      filter%num_nourbanl,           &
                      filter%nourbanl,               &
@@ -434,51 +437,56 @@ module mod_clm_driver
                      filter%urbanl,                 &
                      filter%num_urbanp,             &
                      filter%urbanp)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Determine non snow-covered vegetation surface temperature and fluxes
     ! Calculate canopy temperature, latent and sensible fluxes from the
     ! canopy, and leaf water change by evapotranspiration
     ! =======================================================================
-
+    !@acc call nvtxStartRange("CanopyFluxes")
     call CanopyFluxes(begc,endc,begp,endp,filter%num_nolakep,  &
                       filter%nolakep)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Determine lake temperature and surface fluxes
     ! =======================================================================
-
+    !@acc call nvtxStartRange("SLakeFluxes")
     call SLakeFluxes(begc,endc,begp,endp, &
                      filter%num_lakep,    &
                      filter%lakep)
+    !@acc call nvtxEndRange
+    !@acc call nvtxStartRange("SLakeTemperature")
     call SLakeTemperature(begc,endc,begp,endp, &
                           filter%num_lakec,    &
                           filter%lakec,        &
                           filter%num_lakep,    &
                           filter%lakep)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! DUST and VOC emissions
     ! =======================================================================
 
     ! Dust mobilization (C. Zender's modified codes)
+    !@acc call nvtxStartRange("DustEmission")
     call DustEmission(begp,endp,begl,endl, &
                       filter%num_nolakep,  &
                       filter%nolakep)
-
+    !@acc call nvtxEndRange
     ! Dust dry deposition (C. Zender's modified codes)
+    !@acc call nvtxStartRange("DustDryDep")
     call DustDryDep(begp,endp)
-
+    !@acc call nvtxEndRange
     ! VOC emission (A. Guenther's MEGAN (2006) model)
+    !@acc call nvtxStartRange("VOCEmission")
     call VOCEmission(begp,endp,        &
                      filter%num_soilp, &
                      filter%soilp)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Determine soil/snow temperatures including ground temperature and
     ! update surface fluxes for new ground temperature.
     ! =======================================================================
-
+    !@acc call nvtxStartRange("Biogeophysics2")
     call Biogeophysics2(begl,endl,begc,endc,begp,endp, &
                         filter%num_urbanl,             &
                         filter%urbanl,                 &
@@ -486,17 +494,17 @@ module mod_clm_driver
                         filter%nolakec,                &
                         filter%num_nolakep,            &
                         filter%nolakep)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Perform averaging from PFT level to column level
     ! =======================================================================
-
+    !@acc call nvtxStartRange("pft2col")
     call pft2col(begc,endc,filter%num_nolakec,filter%nolakec)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Vertical (column) soil and surface hydrology
     ! =======================================================================
-
+    !@acc call nvtxStartRange("Hydrology2")
     call Hydrology2(begc,endc,             &
                     filter%num_nolakec,    &
                     filter%nolakec,        &
@@ -508,17 +516,17 @@ module mod_clm_driver
                     filter%snowc,          &
                     filter%num_nosnowc,    &
                     filter%nosnowc)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Lake hydrology
     ! =======================================================================
-
+    !@acc call nvtxStartRange("SLakeHydrology")
     call SLakeHydrology(begc,endc,begp,endp, &
                         filter%num_lakec,    &
                         filter%lakec,        &
                         filter%num_lakep,    &
                         filter%lakep)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Fraction of soil covered by snow (Z.-L. Yang U. Texas)
     ! =======================================================================
@@ -539,13 +547,13 @@ module mod_clm_driver
     ! =======================================================================
     ! Note the snow filters here do not include lakes; SnowAge_grain is called
     ! for lakes from SLakeHydrology.
-
+    !@acc call nvtxStartRange("SnowAge_grain")
     call SnowAge_grain(begc,endc,          &
                        filter%num_snowc,   &
                        filter%snowc,       &
                        filter%num_nosnowc, &
                        filter%nosnowc)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Ecosystem dynamics: Uses CN, CNDV, or static parameterizations
     ! =======================================================================
@@ -554,6 +562,7 @@ module mod_clm_driver
     ! fully prognostic canopy structure and C-N biogeochemistry
     ! - CNDV defined: prognostic biogeography; else prescribed
     ! - crop model:   crop algorithms called from within CNEcosystemDyn
+    !@acc call nvtxStartRange("CNEcosystemDyn_AU")
     call CNEcosystemDyn(begc,endc,begp,endp, &
                         filter%num_soilc,    &
                         filter%soilc,        &
@@ -566,23 +575,27 @@ module mod_clm_driver
                         filter%soilc,        &
                         filter%num_soilp,    &
                         filter%soilp)
+    !@acc call nvtxEndRange
 #else
     ! Prescribed biogeography,
     ! prescribed canopy structure, some prognostic carbon fluxes
+    !@acc call nvtxStartRange("EcosystemDyn")
     call EcosystemDyn(begp,endp,          &
                       filter%num_nolakep, &
                       filter%nolakep, doalb)
+    !@acc call nvtxEndRange
 #endif
 
     ! Dry Deposition of chemical tracers (Wesely (1998) parameterizaion)
+    !@acc call nvtxStartRange("depvel_compute")
     call depvel_compute(begp,endp)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Check the energy and water balance, also carbon and nitrogen balance
     ! =======================================================================
-
+    !@acc call nvtxStartRange("BalanceCheck")
     call BalanceCheck(begp,endp,begc,endc,begl,endl,begg,endg)
-
+    !@acc call nvtxEndRange
 #if (defined CN)
     if ( syncro_srf%lcount < 2 .or. .not. lfirstcall ) then
       if ( myid == italk ) then
@@ -611,17 +624,17 @@ module mod_clm_driver
     if ( doalb ) then
 
       ! Albedos for non-urban columns
-
+      !@acc call nvtxStartRange("SurfaceAlbedo")
       call SurfaceAlbedo(begg,endg,begc,endc,begp,endp, &
                          filter%num_nourbanc,           &
                          filter%nourbanc,               &
                          filter%num_nourbanp,           &
                          filter%nourbanp,               &
                          nextsw_cday, declinp1)
-
+      !@acc call nvtxEndRange
       ! Albedos for urban columns
-
       if ( filter%num_urbanl > 0 ) then
+         !@acc call nvtxStartRange("UrbanAlbedo")
          call UrbanAlbedo(begl,endl,begc,endc,begp,endp, &
                           filter%num_urbanl,             &
                           filter%urbanl,                 &
@@ -629,6 +642,7 @@ module mod_clm_driver
                           filter%urbanc,                 &
                           filter%num_urbanp,             &
                           filter%urbanp)
+         !@acc call nvtxEndRange
       end if
     end if
 
@@ -636,21 +650,21 @@ module mod_clm_driver
     ! Determine gridcell averaged properties to send to atm
     !  (l2as and l2af derived types)
     ! =======================================================================
-
+    !@acc call nvtxStartRange("clm_map2gcell")
     call clm_map2gcell( )
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Update accumulators
     ! =======================================================================
-
+    !@acc call nvtxStartRange("updateAccFlds")
     call updateAccFlds()
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Update history buffer
     ! =======================================================================
-
+    !@acc call nvtxStartRange("hist_update_hbuf")
     call hist_update_hbuf()
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Call dv (dynamic vegetation) at last time step of year
     ! NOTE: monp1, dayp1, and secp1 correspond to next step
@@ -706,7 +720,7 @@ module mod_clm_driver
       call restFile_write( filer, rdate=rdate )
     end if
 #endif
-
+  !@acc call nvtxEndRange
   end subroutine clm_drv
 
 end module mod_clm_driver

@@ -405,18 +405,16 @@ module mod_clm_hydrology2
 
     ! Set empty snow layers to zero
 
-    do j = -nlevsno+1,0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
-        if (j <= snl(c) .and. snl(c) > -nlevsno) then
-          h2osoi_ice(c,j) = 0._rk8
-          h2osoi_liq(c,j) = 0._rk8
-          t_soisno(c,j) = 0._rk8
-          dz(c,j) = 0._rk8
-          z(c,j) = 0._rk8
-          zi(c,j-1) = 0._rk8
-        end if
-      end do
+    do concurrent ( fc = 1:num_snowc, j = -nlevsno+1:0 )
+      c = filter_snowc(fc)
+      if (j <= snl(c) .and. snl(c) > -nlevsno) then
+        h2osoi_ice(c,j) = 0._rk8
+        h2osoi_liq(c,j) = 0._rk8
+        t_soisno(c,j) = 0._rk8
+        dz(c,j) = 0._rk8
+        z(c,j) = 0._rk8
+        zi(c,j-1) = 0._rk8
+      end if
     end do
 
     ! Build new snow filter
@@ -427,15 +425,16 @@ module mod_clm_hydrology2
     ! Vertically average t_soisno and sum of h2osoi_liq and h2osoi_ice
     ! over all snow layers for history output
 
-    do fc = 1, num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       snowice(c) = 0._rk8
       snowliq(c) = 0._rk8
     end do
 
-    do j = -nlevsno+1, 0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
+    do concurrent ( fc = 1:num_snowc )
+      c = filter_snowc(fc)
+      !$acc loop seq
+      do j = -nlevsno+1, 0
         if (j >= snl(c)+1) then
           snowice(c) = snowice(c) + h2osoi_ice(c,j)
           snowliq(c) = snowliq(c) + h2osoi_liq(c,j)
@@ -444,7 +443,7 @@ module mod_clm_hydrology2
     end do
 
     ! Calculate column average snow depth
-    do c = lbc,ubc
+    do concurrent ( c = lbc:ubc )
       snowdp(c) = snow_depth(c) * frac_sno_eff(c)
     end do
 
@@ -452,7 +451,7 @@ module mod_clm_hydrology2
     ! soil water
     ! Calculate soil temperature and total water (liq+ice) in top 10cm of soil
     ! Calculate soil temperature and total water (liq+ice) in top 17cm of soil
-    do fc = 1, num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       l = clandunit(c)
       if (ityplun(l) /= isturb) then
@@ -461,10 +460,11 @@ module mod_clm_hydrology2
         h2osoi_liqice_10cm(c) = 0._rk8
       end if
     end do
-    do j = 1, nlevsoi
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
-        l = clandunit(c)
+    do concurrent ( fc = 1:num_nolakec )
+      c = filter_nolakec(fc)
+      l = clandunit(c)
+      !$acc loop seq
+      do j = 1, nlevsoi
         if (ityplun(l) /= isturb) then
           ! soil T at top 17 cm added by F. Li and S. Levis
           if (zi(c,j) <= 0.17_rk8) then
@@ -495,7 +495,7 @@ module mod_clm_hydrology2
       end do
     end do
 
-    do fc = 1, num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       l = clandunit(c)
 
@@ -529,9 +529,10 @@ module mod_clm_hydrology2
       end if
     end do
 
-    do j = 1, nlevgrnd
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
+    do concurrent ( fc = 1:num_nolakec )
+      c = filter_nolakec(fc)
+      !$acc loop seq
+      do j = 1, nlevgrnd
         if ( ( ctype(c) == icol_sunwall .or.   &
                ctype(c) == icol_shadewall .or. &
                ctype(c) == icol_roof) .and. j > nlevurb) then
@@ -547,7 +548,7 @@ module mod_clm_hydrology2
     ! Determine wetland and land ice hydrology (must be placed here
     ! since need snow updated from CombineSnowLayers)
 
-    do fc = 1, num_nolakec
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       l = clandunit(c)
       g = cgridcell(c)
@@ -593,27 +594,25 @@ module mod_clm_hydrology2
     ! Update soilpsi.
     ! ZMS: Note this could be merged with the following loop updating
     ! smp_l in the future.
-    do j = 1, nlevgrnd
-      do fc = 1, num_hydrologyc
-        c = filter_hydrologyc(fc)
+    do concurrent ( fc = 1:num_hydrologyc, j = 1:nlevgrnd )
+      c = filter_hydrologyc(fc)
 
-        if (h2osoi_liq(c,j) > 0._rk8) then
+      if (h2osoi_liq(c,j) > 0._rk8) then
 
-          vwc = h2osoi_liq(c,j)/(dz(c,j)*denh2o)
+        vwc = h2osoi_liq(c,j)/(dz(c,j)*denh2o)
 
-          ! the following limit set to catch very small values of
-          ! fractional saturation that can crash the calculation of psi
+        ! the following limit set to catch very small values of
+        ! fractional saturation that can crash the calculation of psi
 
-          ! use the same contants used in the supercool so that psi for
-          ! frozen soils is consistent
-          fsattmp = max(vwc/watsat(c,j), 0.001_rk8)
-          psi = sucsat(c,j) * (-9.8e-6_rk8) * (fsattmp)**(-bsw(c,j))  ! Mpa
-          soilpsi(c,j) = min(max(psi,-15.0_rk8),0._rk8)
+        ! use the same contants used in the supercool so that psi for
+        ! frozen soils is consistent
+        fsattmp = max(vwc/watsat(c,j), 0.001_rk8)
+        psi = sucsat(c,j) * (-9.8e-6_rk8) * (fsattmp)**(-bsw(c,j))  ! Mpa
+        soilpsi(c,j) = min(max(psi,-15.0_rk8),0._rk8)
 
-        else
-          soilpsi(c,j) = -15.0_rk8
-        end if
-      end do
+      else
+        soilpsi(c,j) = -15.0_rk8
+      end if
     end do
 #endif
 
@@ -622,16 +621,14 @@ module mod_clm_hydrology2
     ! SoilWater, DOES NOT distinguish between ice and water volume,
     ! in contrast to the soilpsi calculation above.
     ! It won't be used in ch4Mod if t_soisno <= tfrz, though.
-    do j = 1, nlevgrnd
-      do fc = 1, num_hydrologyc
-        c = filter_hydrologyc(fc)
+    do concurrent ( fc = 1:num_hydrologyc, j = 1:nlevgrnd )
+      c = filter_hydrologyc(fc)
 
-        s_node = max(h2osoi_vol(c,j)/watsat(c,j), 0.01_rk8)
-        s_node = min(1.0_rk8, s_node)
+      s_node = max(h2osoi_vol(c,j)/watsat(c,j), 0.01_rk8)
+      s_node = min(1.0_rk8, s_node)
 
-        smp_l(c,j) = -sucsat(c,j)*s_node**(-bsw(c,j))
-        smp_l(c,j) = max(smpmin(c), smp_l(c,j))
-      end do
+      smp_l(c,j) = -sucsat(c,j)*s_node**(-bsw(c,j))
+      smp_l(c,j) = max(smpmin(c), smp_l(c,j))
     end do
 
 #if (defined CN)
@@ -639,16 +636,17 @@ module mod_clm_hydrology2
     ! Potentially available soil water (=whc) up to a depth of 0.05 m.
     ! Water content as fraction of whc up to a depth of 0.05 m.
 
-    do fc = 1, num_hydrologyc
+    do concurrent ( fc = 1:num_hydrologyc )
       c = filter_hydrologyc(fc)
       rwat(c) = 0._rk8
       swat(c) = 0._rk8
       rz(c)   = 0._rk8
     end do
 
-    do j = 1, nlevgrnd
-      do fc = 1, num_hydrologyc
-        c = filter_hydrologyc(fc)
+    do concurrent ( fc = 1:num_hydrologyc )
+      c = filter_hydrologyc(fc)
+      !$acc loop seq
+      do j = 1, nlevgrnd
         !if (z(c,j)+0.5_rk8*dz(c,j) <= 0.5_rk8) then
         if (z(c,j)+0.5_rk8*dz(c,j) <= 0.05_rk8) then
           watdry = watsat(c,j) * (316230._rk8/sucsat(c,j)) ** (-1._rk8/bsw(c,j))
@@ -659,7 +657,7 @@ module mod_clm_hydrology2
       end do
     end do
 
-    do fc = 1, num_hydrologyc
+    do concurrent ( fc = 1:num_hydrologyc )
       c = filter_hydrologyc(fc)
       if (rz(c) /= 0._rk8) then
         tsw  = rwat(c)/rz(c)
@@ -672,9 +670,10 @@ module mod_clm_hydrology2
       wf(c) = tsw/stsw
     end do
 
-    do j = 1, nlevgrnd
-      do fc = 1, num_hydrologyc
-        c = filter_hydrologyc(fc)
+    do concurrent ( fc = 1:num_hydrologyc )
+      c = filter_hydrologyc(fc)
+      !$acc loop seq
+      do j = 1, nlevgrnd
         if (z(c,j)+0.5_rk8*dz(c,j) <= 0.17_rk8) then
           watdry = watsat(c,j) * (316230._rk8/sucsat(c,j)) ** (-1._rk8/bsw(c,j))
           rwat(c) = rwat(c) + (h2osoi_vol(c,j)-watdry) * dz(c,j)
@@ -684,7 +683,7 @@ module mod_clm_hydrology2
       end do
     end do
 
-    do fc = 1, num_hydrologyc
+    do concurrent ( fc = 1:num_hydrologyc )
       c = filter_hydrologyc(fc)
       if (rz(c) /= 0._rk8) then
         tsw  = rwat(c)/rz(c)
@@ -704,14 +703,14 @@ module mod_clm_hydrology2
     !  NEEDS TO BE AFTER SnowFiler is rebuilt, otherwise there
     !  can be zero snow layers but an active column in filter)
 
-    do fc = 1, num_snowc
+    do concurrent ( fc = 1:num_snowc )
       c = filter_snowc(fc)
 
       ! Zero column-integrated aerosol mass before summation
       mss_bc_col(c)  = 0._rk8
       mss_oc_col(c)  = 0._rk8
       mss_dst_col(c) = 0._rk8
-
+      !$acc loop seq
       do j = -nlevsno+1, 0
 
         ! layer mass of snow:
@@ -792,7 +791,7 @@ module mod_clm_hydrology2
     end do
 
     ! Zero mass variables in columns without snow
-    do fc = 1, num_nosnowc
+    do concurrent ( fc = 1:num_nosnowc )
       c = filter_nosnowc(fc)
 
       h2osno_top(c)      = 0._rk8

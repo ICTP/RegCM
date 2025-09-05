@@ -476,6 +476,7 @@ module mod_clm_canopyfluxes
    integer(ik4)  :: g          ! gridcell index
    integer(ik4)  :: fp         ! lake filter pft index
    integer(ik4)  :: fn         ! number of values in pft filter
+   integer(ik4)  :: myfn       ! local copy of fn
    integer(ik4)  :: fnorig     ! number of values in pft filter copy
    integer(ik4)  :: fnold      ! temporary copy of pft count
    integer(ik4)  :: f          ! filter index
@@ -536,6 +537,38 @@ module mod_clm_canopyfluxes
    ! current soil moisture level [kg/m2]
    real(rk8) :: deficit
 
+   !variables for photosynthesis/hybrid/ci_func
+   logical, pointer, contiguous :: c3flag(:)    ! true if C3 and false if C4
+   ! Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
+   real(rk8),pointer, contiguous :: ac(:,:)
+   ! RuBP-limited gross photosynthesis (umol CO2/m**2/s)
+   real(rk8),pointer, contiguous :: aj(:,:)
+   ! product-limited (C3) or CO2-limited (C4) gross
+   ! photosynthesis (umol CO2/m**2/s)
+   real(rk8),pointer, contiguous :: ap(:,:)
+   ! co-limited gross leaf photosynthesis (umol CO2/m**2/s)
+   real(rk8),pointer, contiguous :: ag(:,:)
+   ! net leaf photosynthesis (umol CO2/m**2/s)
+   real(rk8),pointer, contiguous :: an(:,:)
+   ! maximum rate of carboxylation (umol co2/m**2/s)
+   real(rk8),pointer, contiguous :: vcmax_z(:,:)
+   real(rk8),pointer, contiguous :: cp(:)  ! CO2 compensation point (Pa)
+   real(rk8),pointer, contiguous :: kc(:)  ! Michaelis-Menten constant for CO2 (Pa)
+   real(rk8),pointer, contiguous :: ko(:)  ! Michaelis-Menten constant for O2 (Pa)
+   ! quantum efficiency, used only for C4 (mol CO2 / mol photons)
+   real(rk8),pointer, contiguous :: qe(:)
+   ! triose phosphate utilization rate (umol CO2/m**2/s)
+   real(rk8),pointer, contiguous :: tpu_z(:,:)
+   ! initial slope of CO2 response curve (C4 plants)
+   real(rk8),pointer, contiguous :: kp_z(:,:)
+   ! empirical curvature parameter for ac, aj photosynthesis co-limitation
+   real(rk8),pointer, contiguous :: theta_cj(:)
+   !real(rk8),pointer, contiguous :: forc_pbot(:) ! atmospheric pressure (Pa)
+   ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
+   real(rk8),pointer, contiguous :: bbb(:)
+   ! Ball-Berry slope of conductance-photosynthesis relationship
+   real(rk8),pointer, contiguous :: mbb(:)
+
    ! Assign local pointers to derived type members (gridcell-level)
 
    eflx_sh_snow   => clm3%g%l%c%p%pef%eflx_sh_snow
@@ -586,7 +619,7 @@ module mod_clm_canopyfluxes
    htvp           => clm3%g%l%c%cps%htvp
    z0mg           => clm3%g%l%c%cps%z0mg
    frac_sno       => clm3%g%l%c%cps%frac_sno_eff
-   snow_depth         => clm3%g%l%c%cps%snow_depth
+   snow_depth     => clm3%g%l%c%cps%snow_depth
    soilbeta       => clm3%g%l%c%cws%soilbeta
    decl           => clm3%g%l%c%cps%decl
    max_dayl       => clm3%g%l%c%cps%max_dayl
@@ -690,6 +723,25 @@ module mod_clm_canopyfluxes
    smpso          => pftcon%smpso
    smpsc          => pftcon%smpsc
 
+   !variables for photosynthesis/hybrid/ci_func
+   !forc_pbot => clm_a2l%forc_pbot
+   c3flag => clm3%g%l%c%p%ppsyns%c3flag
+   ac     => clm3%g%l%c%p%ppsyns%ac
+   aj     => clm3%g%l%c%p%ppsyns%aj
+   ap     => clm3%g%l%c%p%ppsyns%ap
+   ag     => clm3%g%l%c%p%ppsyns%ag
+   an     => clm3%g%l%c%p%ppsyns%an
+   vcmax_z=> clm3%g%l%c%p%ppsyns%vcmax_z
+   cp     => clm3%g%l%c%p%ppsyns%cp
+   kc     => clm3%g%l%c%p%ppsyns%kc
+   ko     => clm3%g%l%c%p%ppsyns%ko
+   qe     => clm3%g%l%c%p%ppsyns%qe
+   tpu_z  => clm3%g%l%c%p%ppsyns%tpu_z
+   kp_z   => clm3%g%l%c%p%ppsyns%kp_z
+   theta_cj=>clm3%g%l%c%p%ppsyns%theta_cj
+   bbb    => clm3%g%l%c%p%ppsyns%bbb
+   mbb    => clm3%g%l%c%p%ppsyns%mbb
+
    ! Determine step size
 
    irrig_nsteps_per_day = int((dble(irrig_length) + &
@@ -698,17 +750,21 @@ module mod_clm_canopyfluxes
    ! Filter pfts where frac_veg_nosno is non-zero
 
    fn = 0
+   !$acc parallel loop
    do fp = 1, num_nolakep
      p = filter_nolakep(fp)
      if (frac_veg_nosno(p) /= 0) then
+       !$acc atomic capture
        fn = fn + 1
-       filterp(fn) = p
+       myfn = fn
+       !$acc end atomic
+       filterp(myfn) = p
      end if
    end do
 
    ! Initialize
 
-   do f = 1, fn
+   do concurrent ( f = 1:fn )
      p = filterp(f)
      del(p)    = 0._rk8  ! change in leaf temperature from previous iteration
      efeb(p)   = 0._rk8  ! latent head flux from leaf for previous iteration
@@ -722,7 +778,7 @@ module mod_clm_canopyfluxes
    end do
 
    ! calculate daylength control for Vcmax
-   do f = 1, fn
+   do concurrent ( f = 1:fn )
      p = filterp(f)
      c = pcolumn(p)
      g = pgridcell(p)
@@ -736,69 +792,67 @@ module mod_clm_canopyfluxes
              (dayl*dayl)/(max_dayl(c)*max_dayl(c))))
    end do
 
+   !$acc kernels
    rb1(lbp:ubp) = 0._rk8
+   !$acc end kernels
 
    ! Define rootfraction for unfrozen soil only
    if (perchroot .or. perchroot_alt) then
      if (perchroot_alt) then
        ! use total active layer
        ! (defined ass max thaw depth for current and prior year)
-       do j = 1,nlevgrnd
-         do f = 1, fn
-           p = filterp(f)
-           c = pcolumn(p)
-           if ( j <= max(altmax_lastyear_indx(c), altmax_indx(c), 1) ) then
-             rootfr_unf(p,j) = rootfr(p,j)
-           else
-             rootfr_unf(p,j) = 0._rk8
-           end if
-         end do
+       do concurrent ( f = 1:fn, j = 1:nlevgrnd )
+         p = filterp(f)
+         c = pcolumn(p)
+         if ( j <= max(altmax_lastyear_indx(c), altmax_indx(c), 1) ) then
+           rootfr_unf(p,j) = rootfr(p,j)
+         else
+           rootfr_unf(p,j) = 0._rk8
+         end if
        end do
      else
        ! use instantaneous temperature
-       do j = 1,nlevgrnd
-         do f = 1, fn
-           p = filterp(f)
-           c = pcolumn(p)
-           if (t_soisno(c,j) >= tfrz) then
-             rootfr_unf(p,j) = rootfr(p,j)
-           else
-             rootfr_unf(p,j) = 0._rk8
-           end if
-         end do
+       do concurrent ( f = 1:fn, j = 1:nlevgrnd )
+         p = filterp(f)
+         c = pcolumn(p)
+         if (t_soisno(c,j) >= tfrz) then
+           rootfr_unf(p,j) = rootfr(p,j)
+         else
+           rootfr_unf(p,j) = 0._rk8
+         end if
        end do
      end if ! perchroot_alt
 
      ! sum unfrozen roots
-     do j = 1,nlevgrnd
-       do f = 1, fn
-         p = filterp(f)
-         c = pcolumn(p)
+     do concurrent ( f = 1:fn )
+       p = filterp(f)
+       c = pcolumn(p)
+       !$acc loop seq
+       do j = 1,nlevgrnd
          if (j == 1) rootsum(p) = 0._rk8
          rootsum(p) = rootsum(p) + rootfr_unf(p,j)
        end do
      end do
 
      ! normalize rootfr to total unfrozen depth
-     do j = 1,nlevgrnd
-       do f = 1, fn
-         p = filterp(f)
-         c = pcolumn(p)
-         if (rootsum(p) > 0._rk8) then
-           rootfr_unf(p,j) = rootfr_unf(p,j) / rootsum(p)
-         end if
-       end do
+     do concurrent ( f = 1:fn, j = 1:nlevgrnd )
+       p = filterp(f)
+       c = pcolumn(p)
+       if (rootsum(p) > 0._rk8) then
+         rootfr_unf(p,j) = rootfr_unf(p,j) / rootsum(p)
+       end if
      end do
    end if ! perchroot
 
    ! Effective porosity of soil, partial volume of ice and liquid
    ! (needed for btran) and root resistance factors
 
-   do j = 1, nlevgrnd
-     do f = 1, fn
-       p = filterp(f)
-       c = pcolumn(p)
-       l = plandunit(p)
+   do concurrent ( f = 1:fn )
+     p = filterp(f)
+     c = pcolumn(p)
+     l = plandunit(p)
+     !$acc loop seq
+     do j = 1, nlevgrnd
 
        ! Root resistance factors
 
@@ -831,15 +885,13 @@ module mod_clm_canopyfluxes
 
    ! Normalize root resistances to get layer contribution to ET
 
-   do j = 1, nlevgrnd
-     do f = 1, fn
-       p = filterp(f)
-       if ( btran(p) > btran0 ) then
-         rootr(p,j) = rootr(p,j)/btran(p)
-       else
-         rootr(p,j) = 0._rk8
-       end if
-     end do
+   do concurrent ( f = 1:fn, j = 1:nlevgrnd )
+     p = filterp(f)
+     if ( btran(p) > btran0 ) then
+       rootr(p,j) = rootr(p,j)/btran(p)
+     else
+       rootr(p,j) = 0._rk8
+     end if
    end do
 
    ! Determine if irrigation is needed (over irrigated soil columns)
@@ -851,7 +903,7 @@ module mod_clm_canopyfluxes
    ! in this case, we'll irrigate by 0 for the given number of time steps
    ! get time as of beginning of time step
    time = nextdate%second_of_day
-   do f = 1, fn
+   do concurrent ( f = 1:fn )
      p = filterp(f)
      c = pcolumn(p)
      g = pgridcell(p)
@@ -875,11 +927,14 @@ module mod_clm_canopyfluxes
 
    ! Now 'measure' soil water for the grid cells identified above and see
    ! if the soil is dry enough to warrant irrigation
+   !$acc kernels
    frozen_soil(:) = .false.
-   do j = 1,nlevgrnd
-     do f = 1, fn
-       p = filterp(f)
-       c = pcolumn(p)
+   !$acc end kernels
+   do concurrent ( f = 1:fn )
+     p = filterp(f)
+     c = pcolumn(p)
+     !$acc loop seq
+     do j = 1,nlevgrnd
        if ( check_for_irrig(p) .and. .not. frozen_soil(c) ) then
          ! if level L was frozen, then we don't look at any levels below L
          if ( t_soisno(c,j) <= tfrz ) then
@@ -910,7 +965,7 @@ module mod_clm_canopyfluxes
    end do        ! do j
 
    ! Modify aerodynamic parameters for sparse/dense canopy (X. Zeng)
-   do f = 1, fn
+   do concurrent ( f = 1:fn )
      p = filterp(f)
      c = pcolumn(p)
 
@@ -924,7 +979,12 @@ module mod_clm_canopyfluxes
    end do
 
    found = .false.
+#ifdef STDPAR_FIXED
+   do concurrent ( f = 1:fn )
+#else
+   !$acc parallel loop gang vector
    do f = 1, fn
+#endif
      p = filterp(f)
      c = pcolumn(p)
      g = pgridcell(p)
@@ -968,9 +1028,11 @@ module mod_clm_canopyfluxes
      if (zldis(p) < 0.0_rk8) then
        found = .true.
        index = p
+#ifndef OPENACC
        write(stderr,*) 'At pft index ', p
        write(stderr,*) 'Canopy height : ', displa(p)
        write(stderr,*) 'Forcing model : ', forc_hgt_u_pft(p)
+#endif
      end if
    end do
 
@@ -979,8 +1041,12 @@ module mod_clm_canopyfluxes
            'Error: Forcing height is below canopy height for pft index ',index
      call fatal(__FILE__,__LINE__,'clm now stopping')
    end if
-
+#ifdef STDPAR_FIXED
+   do concurrent ( f = 1:fn )
+#else
+   !$acc parallel loop gang vector
    do f = 1, fn
+#endif
      p = filterp(f)
      c = pcolumn(p)
      ! Initialize Monin-Obukhov length and wind speed
@@ -992,12 +1058,14 @@ module mod_clm_canopyfluxes
 
    itlef = 0
    fnorig = fn
+   !$acc kernels
    fporig(1:fn) = filterp(1:fn)
+   !$acc end kernels
 
    ! Make copies so that array sections are not passed in function
    ! calls to friction velocity
 
-   do f = 1, fn
+   do concurrent ( f = 1:fn )
      p = filterp(f)
      displa_loc(p) = displa(p)
      z0mv_loc(p) = z0mv(p)
@@ -1017,7 +1085,7 @@ module mod_clm_canopyfluxes
                             obu, itlef+1, ur, um, ustar, &
                             temp1, temp2, temp12m, temp22m, fm)
 
-     do f = 1, fn
+     do concurrent ( f = 1:fn )
        p = filterp(f)
        c = pcolumn(p)
        g = pgridcell(p)
@@ -1091,16 +1159,23 @@ module mod_clm_canopyfluxes
      end do
 
      call Photosynthesis (fn, filterp, lbp, ubp, svpts, eah, &
-             o2, co2, rb, dayl_factor, phase='sun')
+             o2, co2, rb, dayl_factor,  c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+             ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb,  phase='sun')
      if ( use_c13 ) then
        call Fractionation (lbp, ubp, fn, filterp, phase='sun')
      endif
      call Photosynthesis (fn, filterp, lbp, ubp, svpts, eah, &
-             o2, co2, rb, dayl_factor, phase='sha')
+             o2, co2, rb, dayl_factor,  c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+             ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb,  phase='sha')
      if ( use_c13 ) then
        call Fractionation (lbp, ubp, fn, filterp, phase='sha')
      end if
+#ifdef STDPAR_FIXED
+     do concurrent ( f = 1:fn )
+#else
+     !$acc parallel loop gang vector
      do f = 1, fn
+#endif
        p = filterp(f)
        c = pcolumn(p)
        g = pgridcell(p)
@@ -1307,7 +1382,7 @@ module mod_clm_canopyfluxes
 
      itlef = itlef+1
      if (itlef > itmin) then
-       do f = 1, fn
+       do concurrent ( f = 1:fn )
          p = filterp(f)
          dele(p) = abs(efe(p)-efeb(p))
          efeb(p) = efe(p)
@@ -1315,20 +1390,30 @@ module mod_clm_canopyfluxes
        end do
        fnold = fn
        fn = 0
+       !$acc parallel loop
        do f = 1, fnold
          p = filterp(f)
          if (.not. (det(p) < dtmin .and. dele(p) < dlemin)) then
+           !$acc atomic capture
            fn = fn + 1
-           filterp(fn) = p
+           myfn = fn
+           !$acc end atomic
+           filterp(myfn) = p
          end if
        end do
      end if
    end do ITERATION     ! End stability iteration
 
    fn = fnorig
+   !$acc kernels
    filterp(1:fn) = fporig(1:fn)
-
+   !$acc end kernels
+#ifdef STDPAR_FIXED
+   do concurrent ( f = 1:fn )
+#else
+   !$acc parallel loop gang vector
    do f = 1, fn
+#endif
      p = filterp(f)
      c = pcolumn(p)
      g = pgridcell(p)
@@ -1440,11 +1525,15 @@ module mod_clm_canopyfluxes
 
    fnold = fn
    fn = 0
+   !$acc parallel loop
    do f = 1, fnold
      p = filterp(f)
      if (abs(err(p)) > 0.1_rk8) then
+       !$acc atomic capture
        fn = fn + 1
-       filterp(fn) = p
+       myfn = fn
+       !$acc end atomic
+       filterp(myfn) = p
      end if
    end do
 
@@ -1513,10 +1602,11 @@ module mod_clm_canopyfluxes
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
 
-      do f = 1, fn
+      do concurrent ( f = 1:fn )
         p = filterp(f)
         g= pgridcell(p)
         co2(p) = forc_pco2(g)
+        !$acc loop seq
         do iv = 1,nrad(p)
           if ( par_z(p,iv) <= 0._rk8 ) then           ! night time
             alphapsn(p) = 1._rk8
@@ -1539,7 +1629,8 @@ module mod_clm_canopyfluxes
   ! a multi-layer canopy
   !
   subroutine Photosynthesis(fn, filterp, lbp, ubp, esat_tv, eair, oair, cair, &
-                            rb, dayl_factor, phase)
+                            rb, dayl_factor,  c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                            ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb,  phase)
     use mod_clm_varcon, only : rgas, tfrz
     implicit none
     integer(ik4), intent(in)    :: fn            ! size of pft filter
@@ -1561,7 +1652,7 @@ module mod_clm_canopyfluxes
 
     integer(ik4), pointer, contiguous :: pgridcell(:)! pft's gridcell index
     integer(ik4), pointer, contiguous :: ivt(:)      ! pft vegetation type
-    real(rk8), pointer, contiguous :: forc_pbot(:)! atmospheric pressure (Pa)
+    real(rk8) :: forc_pbot(:)! atmospheric pressure (Pa)
     real(rk8), pointer, contiguous :: t_veg(:)    ! vegetation temperature (Kelvin)
     real(rk8), pointer, contiguous :: btran(:)    ! transpiration wetness factor (0 to 1)
     ! air temperature at agcm reference height (kelvin)
@@ -1617,27 +1708,27 @@ module mod_clm_canopyfluxes
     ! Leaf photosynthesis parameters
 
     ! maximum rate of carboxylation (umol co2/m**2/s)
-    real(rk8),pointer, contiguous :: vcmax_z(:,:)
+    real(rk8) :: vcmax_z(:,:)
     ! maximum electron transport rate (umol electrons/m**2/s)
     real(rk8) :: jmax_z(lbp:ubp,nlevcan)
     ! triose phosphate utilization rate (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: tpu_z(:,:)
+    real(rk8) :: tpu_z(:,:)
     ! initial slope of CO2 response curve (C4 plants)
-    real(rk8),pointer, contiguous :: kp_z(:,:)
+    real(rk8) :: kp_z(:,:)
 
-    logical,pointer  :: c3flag(:) ! true if C3 and false if C4
+    logical :: c3flag(:) ! true if C3 and false if C4
     real(rk8) :: lnc(lbp:ubp)     ! leaf N concentration (gN leaf/m^2)
-    real(rk8),pointer, contiguous :: kc(:)    ! Michaelis-Menten constant for CO2 (Pa)
-    real(rk8),pointer, contiguous :: ko(:)    ! Michaelis-Menten constant for O2 (Pa)
-    real(rk8),pointer, contiguous :: cp(:)    ! CO2 compensation point (Pa)
+    real(rk8) :: kc(:)    ! Michaelis-Menten constant for CO2 (Pa)
+    real(rk8) :: ko(:)    ! Michaelis-Menten constant for O2 (Pa)
+    real(rk8) :: cp(:)    ! CO2 compensation point (Pa)
     ! Ball-Berry minimum leaf conductance, unstressed (umol H2O/m**2/s)
     real(rk8) :: bbbopt(lbp:ubp)
     ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
-    real(rk8),pointer, contiguous :: bbb(:)
+    real(rk8) :: bbb(:)
     ! Ball-Berry slope of conductance-photosynthesis relationship, unstressed
     real(rk8) :: mbbopt(lbp:ubp)
     ! Ball-Berry slope of conductance-photosynthesis relationship
-    real(rk8),pointer, contiguous :: mbb(:)
+    real(rk8) :: mbb(:)
     ! leaf nitrogen decay coefficient
     real(rk8) :: kn(lbp:ubp)
     ! canopy top: maximum rate of carboxylation at 25C (umol CO2/m**2/s)
@@ -1693,14 +1784,14 @@ module mod_clm_canopyfluxes
     real(rk8) :: lmrc
 
     ! quantum efficiency, used only for C4 (mol CO2 / mol photons)
-    real(rk8),pointer, contiguous :: qe(:)
+    real(rk8) :: qe(:)
     ! fraction of light absorbed by non-photosynthetic pigments
     real(rk8) :: fnps
     ! empirical curvature parameter for electron transport rate
     real(rk8) :: theta_psii
 
     ! empirical curvature parameter for ac, aj photosynthesis co-limitation
-    real(rk8),pointer, contiguous :: theta_cj(:)
+    real(rk8) :: theta_cj(:)
     ! empirical curvature parameter for ap photosynthesis co-limitation
     real(rk8) :: theta_ip
 
@@ -1724,23 +1815,23 @@ module mod_clm_canopyfluxes
     real(rk8) :: nscaler       ! leaf nitrogen scaling coefficient
 
     ! Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: ac(:,:)
+    real(rk8) :: ac(:,:)
     ! RuBP-limited gross photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: aj(:,:)
+    real(rk8) :: aj(:,:)
     ! product-limited (C3) or CO2-limited (C4) gross
     ! photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: ap(:,:)
+    real(rk8) :: ap(:,:)
     ! co-limited gross leaf photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: ag(:,:)
+    real(rk8) :: ag(:,:)
     ! net leaf photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: an(:,:)
+    real(rk8) :: an(:,:)
     ! leaf stomatal conductance (umol H2O/m**2/s)
     real(rk8),pointer, contiguous :: gs_mol(:,:)
     ! leaf boundary layer conductance (umol H2O/m**2/s)
     real(rk8),pointer, contiguous :: gb_mol(:)
 
     ! Rubisco-limited contribution to psn_z (umol CO2/m**2/s)
-    real(rk8) :: psn_wc_z(lbp:ubp,nlevcan)
+     real(rk8) :: psn_wc_z(lbp:ubp,nlevcan)
     ! RuBP-limited contribution to psn_z (umol CO2/m**2/s)
     real(rk8) :: psn_wj_z(lbp:ubp,nlevcan)
     ! product-limited contribution to psn_z (umol CO2/m**2/s)
@@ -1756,7 +1847,7 @@ module mod_clm_canopyfluxes
     real(rk8) :: rh_can
 
     ! Assign local pointers to derived type members (gridcell-level)
-    forc_pbot => clm_a2l%forc_pbot
+    !forc_pbot => clm_a2l%forc_pbot
 
     ! Assign local pointers to derived type members (pft-level)
     pgridcell => clm3%g%l%c%p%gridcell
@@ -1813,24 +1904,24 @@ module mod_clm_canopyfluxes
     fnitr     => pftcon%fnitr
     slatop    => pftcon%slatop
 
-    c3flag => clm3%g%l%c%p%ppsyns%c3flag
-    ac     => clm3%g%l%c%p%ppsyns%ac
-    aj     => clm3%g%l%c%p%ppsyns%aj
-    ap     => clm3%g%l%c%p%ppsyns%ap
-    ag     => clm3%g%l%c%p%ppsyns%ag
-    an     => clm3%g%l%c%p%ppsyns%an
+    !c3flag => clm3%g%l%c%p%ppsyns%c3flag
+    !ac     => clm3%g%l%c%p%ppsyns%ac
+    !aj     => clm3%g%l%c%p%ppsyns%aj
+    !ap     => clm3%g%l%c%p%ppsyns%ap
+    !ag     => clm3%g%l%c%p%ppsyns%ag
+    !an     => clm3%g%l%c%p%ppsyns%an
     gb_mol => clm3%g%l%c%p%ppsyns%gb_mol
     gs_mol => clm3%g%l%c%p%ppsyns%gs_mol
-    vcmax_z=> clm3%g%l%c%p%ppsyns%vcmax_z
-    cp     => clm3%g%l%c%p%ppsyns%cp
-    kc     => clm3%g%l%c%p%ppsyns%kc
-    ko     => clm3%g%l%c%p%ppsyns%ko
-    qe     => clm3%g%l%c%p%ppsyns%qe
-    tpu_z  => clm3%g%l%c%p%ppsyns%tpu_z
-    kp_z   => clm3%g%l%c%p%ppsyns%kp_z
-    theta_cj=>clm3%g%l%c%p%ppsyns%theta_cj
-    bbb     =>clm3%g%l%c%p%ppsyns%bbb
-    mbb    => clm3%g%l%c%p%ppsyns%mbb
+    !vcmax_z=> clm3%g%l%c%p%ppsyns%vcmax_z
+    !cp     => clm3%g%l%c%p%ppsyns%cp
+    !kc     => clm3%g%l%c%p%ppsyns%kc
+    !ko     => clm3%g%l%c%p%ppsyns%ko
+    !qe     => clm3%g%l%c%p%ppsyns%qe
+    !tpu_z  => clm3%g%l%c%p%ppsyns%tpu_z
+    !kp_z   => clm3%g%l%c%p%ppsyns%kp_z
+    !theta_cj=>clm3%g%l%c%p%ppsyns%theta_cj
+    !bbb     =>clm3%g%l%c%p%ppsyns%bbb
+    !mbb    => clm3%g%l%c%p%ppsyns%mbb
 
     !==========================================================
     ! Photosynthesis and stomatal conductance parameters, from:
@@ -1894,7 +1985,7 @@ module mod_clm_canopyfluxes
     theta_psii = 0.7_rk8
     theta_ip = 0.95_rk8
 
-    do f = 1, fn
+    do concurrent ( f = 1:fn )
       p = filterp(f)
       g = pgridcell(p)
 
@@ -1980,7 +2071,7 @@ module mod_clm_canopyfluxes
     ! Loop through each canopy layer to calculate nitrogen profile using
     ! cumulative lai at the midpoint of the layer
 
-    do f = 1, fn
+    do concurrent ( f = 1:fn )
       p = filterp(f)
 
       ! Leaf nitrogen concentration at the top of the canopy
@@ -2060,6 +2151,7 @@ module mod_clm_canopyfluxes
       ! calculated every timestep. Others are calculated only if daytime
 
       laican = 0._rk8
+      !$acc loop seq
       do iv = 1, nrad(p)
 
         ! Cumulative lai at middle of layer
@@ -2150,8 +2242,12 @@ module mod_clm_canopyfluxes
     !====================================================
 
     rsmax0 = 2.e4_rk8
-
+#ifdef STDPAR_FIXED
+    do concurrent ( f = 1:fn )
+#else
+    !$acc parallel loop gang vector
     do f = 1, fn
+#endif
       p = filterp(f)
       g = pgridcell(p)
 
@@ -2163,7 +2259,7 @@ module mod_clm_canopyfluxes
 
       ! Loop through canopy layers (above snow).
       ! Only do calculations if daytime
-
+      !$acc loop seq
       do iv = 1, nrad(p)
 
         if (par_z(p,iv) <= 0._rk8) then           ! night time
@@ -2209,7 +2305,8 @@ module mod_clm_canopyfluxes
 
           !find ci and stomatal conductance
           call hybrid(ci_z(p,iv), p, iv, g, gb_mol(p), je, cair(p), oair(p), &
-                lmr_z(p,iv), par_z(p,iv), rh_can, gs_mol(p,iv))
+                lmr_z(p,iv), par_z(p,iv), rh_can, gs_mol(p,iv), c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
 
           ! End of ci iteration.  Check for an < 0, in which case gs_mol = bbb
 
@@ -2244,13 +2341,13 @@ module mod_clm_canopyfluxes
           end if
 
           ! Make sure iterative solution is correct
-
+#ifndef OPENACC
           if (gs_mol(p,iv) < 0._rk8) then
             write (stderr,*) 'Negative stomatal conductance:'
             write (stderr,*) gs_mol(p,iv)
             call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
-
+#endif
           ! Compare with Ball-Berry model: gs_mol = m * an * hs/cs p + b
 
           hs = (gb_mol(p)*ceair + gs_mol(p,iv)*esat_tv(p)) / &
@@ -2259,12 +2356,12 @@ module mod_clm_canopyfluxes
           rh_leaf(p) = hs
           !KO
           gs_mol_err = mbb(p)*max(an(p,iv), 0._rk8)*hs/cs*forc_pbot(g) + bbb(p)
-
+#ifndef OPENACC
           if (abs(gs_mol(p,iv)-gs_mol_err) > 1.e-1_rk8) then
             write (stderr,*) 'Ball-Berry error check - stomatal conductance :'
             write (stderr,*) gs_mol(p,iv), gs_mol_err
           end if
-
+#endif
         end if    ! night or day if
       end do       ! canopy layer loop
     end do          ! pft loop
@@ -2277,7 +2374,7 @@ module mod_clm_canopyfluxes
     ! unit leaf area), which are used in other parts of the model. Here, laican
     ! sums to either laisun or laisha.
 
-    do f = 1, fn
+    do concurrent ( f = 1:fn )
       p = filterp(f)
       psncan = 0._rk8
       psncan_wc = 0._rk8
@@ -2286,6 +2383,7 @@ module mod_clm_canopyfluxes
       lmrcan = 0._rk8
       gscan = 0._rk8
       laican = 0._rk8
+      !$acc loop seq
       do iv = 1, nrad(p)
         psncan = psncan + psn_z(p,iv) * lai_z(p,iv)
         psncan_wc = psncan_wc + psn_wc_z(p,iv) * lai_z(p,iv)
@@ -2319,6 +2417,7 @@ module mod_clm_canopyfluxes
     ! photosynthesis temperature response
     !
     pure real(rk8) function ft(tl,ha)
+      !$acc routine seq
       use mod_clm_varcon, only : rgas, tfrz
       implicit none
       ! leaf temperature in photosynthesis temperature function (K)
@@ -2331,6 +2430,7 @@ module mod_clm_canopyfluxes
     ! photosynthesis temperature inhibition
     !
     pure real(rk8) function fth(tl,hd,se,cc)
+      !$acc routine seq
       use mod_clm_varcon, only : rgas
       implicit none
       ! leaf temperature in photosynthesis temperature function (K)
@@ -2347,6 +2447,7 @@ module mod_clm_canopyfluxes
     ! scaling factor for photosynthesis temperature inhibition
     !
     pure real(rk8) function fth25(hd,se)
+      !$acc routine seq
       use mod_clm_varcon, only : rgas, tfrz
       implicit none
       ! deactivation energy in photosynthesis temperature function (J/mol)
@@ -2367,7 +2468,9 @@ module mod_clm_canopyfluxes
   ! the clmtype structure.
   !
   subroutine ci_func(ci,fval,p,iv,g,gb_mol,je,cair,oair,lmr_z,par_z, &
-                     rh_can,gs_mol)
+                     rh_can,gs_mol, c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                     ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
+    !$acc routine seq
     implicit none
     real(rk8), intent(in) :: ci     ! intracellular leaf CO2 (Pa)
     ! canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
@@ -2389,36 +2492,36 @@ module mod_clm_canopyfluxes
     real(rk8), intent(out) :: fval   !return function of the value f(ci)
     ! leaf stomatal conductance (umol H2O/m**2/s)
     real(rk8), intent(out) :: gs_mol
-    logical, pointer, contiguous :: c3flag(:)    ! true if C3 and false if C4
+    logical :: c3flag(:)    ! true if C3 and false if C4
     ! Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: ac(:,:)
+    real(rk8) :: ac(:,:)
     ! RuBP-limited gross photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: aj(:,:)
+    real(rk8) :: aj(:,:)
     ! product-limited (C3) or CO2-limited (C4) gross
     ! photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: ap(:,:)
+    real(rk8) :: ap(:,:)
     ! co-limited gross leaf photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: ag(:,:)
+    real(rk8) :: ag(:,:)
     ! net leaf photosynthesis (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: an(:,:)
+    real(rk8) :: an(:,:)
     ! maximum rate of carboxylation (umol co2/m**2/s)
-    real(rk8),pointer, contiguous :: vcmax_z(:,:)
-    real(rk8),pointer, contiguous :: cp(:)  ! CO2 compensation point (Pa)
-    real(rk8),pointer, contiguous :: kc(:)  ! Michaelis-Menten constant for CO2 (Pa)
-    real(rk8),pointer, contiguous :: ko(:)  ! Michaelis-Menten constant for O2 (Pa)
+    real(rk8) :: vcmax_z(:,:)
+    real(rk8) :: cp(:)  ! CO2 compensation point (Pa)
+    real(rk8) :: kc(:)  ! Michaelis-Menten constant for CO2 (Pa)
+    real(rk8) :: ko(:)  ! Michaelis-Menten constant for O2 (Pa)
     ! quantum efficiency, used only for C4 (mol CO2 / mol photons)
-    real(rk8),pointer, contiguous :: qe(:)
+    real(rk8) :: qe(:)
     ! triose phosphate utilization rate (umol CO2/m**2/s)
-    real(rk8),pointer, contiguous :: tpu_z(:,:)
+    real(rk8) :: tpu_z(:,:)
     ! initial slope of CO2 response curve (C4 plants)
-    real(rk8),pointer, contiguous :: kp_z(:,:)
+    real(rk8) :: kp_z(:,:)
     ! empirical curvature parameter for ac, aj photosynthesis co-limitation
-    real(rk8),pointer, contiguous :: theta_cj(:)
-    real(rk8),pointer, contiguous :: forc_pbot(:) ! atmospheric pressure (Pa)
+    real(rk8) :: theta_cj(:)
+    real(rk8) :: forc_pbot(:) ! atmospheric pressure (Pa)
     ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
-    real(rk8),pointer, contiguous :: bbb(:)
+    real(rk8) :: bbb(:)
     ! Ball-Berry slope of conductance-photosynthesis relationship
-    real(rk8),pointer, contiguous :: mbb(:)
+    real(rk8) :: mbb(:)
 
     real(rk8) :: ai ! intermediate co-limited photosynthesis (umol CO2/m**2/s)
     real(rk8) :: cs ! CO2 partial pressure at leaf surface (Pa)
@@ -2431,27 +2534,6 @@ module mod_clm_canopyfluxes
     real(rk8) :: theta_psii
     ! empirical curvature parameter for ap photosynthesis co-limitation
     real(rk8) :: theta_ip
-
-    !grid level
-    forc_pbot => clm_a2l%forc_pbot
-
-    !pft level
-    c3flag => clm3%g%l%c%p%ppsyns%c3flag
-    ac     => clm3%g%l%c%p%ppsyns%ac
-    aj     => clm3%g%l%c%p%ppsyns%aj
-    ap     => clm3%g%l%c%p%ppsyns%ap
-    ag     => clm3%g%l%c%p%ppsyns%ag
-    an     => clm3%g%l%c%p%ppsyns%an
-    vcmax_z=> clm3%g%l%c%p%ppsyns%vcmax_z
-    cp     => clm3%g%l%c%p%ppsyns%cp
-    kc     => clm3%g%l%c%p%ppsyns%kc
-    ko     => clm3%g%l%c%p%ppsyns%ko
-    qe     => clm3%g%l%c%p%ppsyns%qe
-    tpu_z  => clm3%g%l%c%p%ppsyns%tpu_z
-    kp_z   => clm3%g%l%c%p%ppsyns%kp_z
-    theta_cj=>clm3%g%l%c%p%ppsyns%theta_cj
-    bbb     =>clm3%g%l%c%p%ppsyns%bbb
-    mbb    => clm3%g%l%c%p%ppsyns%mbb
 
     ! Miscellaneous parameters, from
     ! Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
@@ -2530,16 +2612,17 @@ module mod_clm_canopyfluxes
   ! Computing (Cambridge University Press, Cambridge), pp. 145.
   !
   subroutine quadratic (a, b, c, r1, r2)
+    !$acc routine seq
     implicit none
     real(rk8), intent(in)  :: a,b,c  ! Terms for quadratic equation
     real(rk8), intent(out) :: r1,r2  ! Roots of quadratic equation
     real(rk8) :: q                   ! Temporary term for quadratic solution
-
+#ifndef OPENACC
     if ( abs(a) < 1.e-20_rk8 ) then
       write (stderr,*) 'Quadratic solution error: a = ',a
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
-
+#endif
     if ( b >= 0._rk8 ) then
       q = -0.5_rk8 * (b + sqrt(b*b - 4._rk8*a*c))
     else
@@ -2562,7 +2645,9 @@ module mod_clm_canopyfluxes
   ! implemented with the Brent's method to guarrantee convergence.
   !
   subroutine hybrid(x0, p, iv, g, gb_mol, je, cair, oair, lmr_z, par_z,&
-                    rh_can, gs_mol)
+                    rh_can, gs_mol, c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                     ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
+    !$acc routine seq
     implicit none
     !initial guess and final value of the solution
     real(rk8), intent(inout) :: x0
@@ -2584,6 +2669,38 @@ module mod_clm_canopyfluxes
     integer(ik4),  intent(in) :: p, iv, g
     ! leaf stomatal conductance (umol H2O/m**2/s)
     real(rk8), intent(out) :: gs_mol
+
+    logical :: c3flag(:)    ! true if C3 and false if C4
+    ! Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
+    real(rk8) :: ac(:,:)
+    ! RuBP-limited gross photosynthesis (umol CO2/m**2/s)
+    real(rk8) :: aj(:,:)
+    ! product-limited (C3) or CO2-limited (C4) gross
+    ! photosynthesis (umol CO2/m**2/s)
+    real(rk8) :: ap(:,:)
+    ! co-limited gross leaf photosynthesis (umol CO2/m**2/s)
+    real(rk8) :: ag(:,:)
+    ! net leaf photosynthesis (umol CO2/m**2/s)
+    real(rk8) :: an(:,:)
+    ! maximum rate of carboxylation (umol co2/m**2/s)
+    real(rk8) :: vcmax_z(:,:)
+    real(rk8) :: cp(:)  ! CO2 compensation point (Pa)
+    real(rk8) :: kc(:)  ! Michaelis-Menten constant for CO2 (Pa)
+    real(rk8) :: ko(:)  ! Michaelis-Menten constant for O2 (Pa)
+    ! quantum efficiency, used only for C4 (mol CO2 / mol photons)
+    real(rk8) :: qe(:)
+    ! triose phosphate utilization rate (umol CO2/m**2/s)
+    real(rk8) :: tpu_z(:,:)
+    ! initial slope of CO2 response curve (C4 plants)
+    real(rk8) :: kp_z(:,:)
+    ! empirical curvature parameter for ac, aj photosynthesis co-limitation
+    real(rk8) :: theta_cj(:)
+    real(rk8) :: forc_pbot(:) ! atmospheric pressure (Pa)
+    ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
+    real(rk8) :: bbb(:)
+    ! Ball-Berry slope of conductance-photosynthesis relationship
+    real(rk8) :: mbb(:)
+
     !number of iterations used, for record only
     integer(ik4) :: iter
 
@@ -2595,14 +2712,16 @@ module mod_clm_canopyfluxes
     real(rk8) :: tol,minx,minf
 
     call ci_func(x0, f0, p, iv, g, gb_mol, je, cair, &
-                 oair, lmr_z, par_z, rh_can, gs_mol)
+                 oair, lmr_z, par_z, rh_can, gs_mol, c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                 ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
     if ( abs(f0) < 1.e-20_rk8 ) return
 
     minx = x0
     minf = f0
     x1 = x0 * 0.99_rk8
     call ci_func(x1, f1, p, iv, g, gb_mol, je, cair, &
-                 oair, lmr_z, par_z, rh_can, gs_mol)
+                 oair, lmr_z, par_z, rh_can, gs_mol, c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                 ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
 
     if ( abs(f1) < 1.e-20_rk8 ) then
       x0 = x1
@@ -2628,7 +2747,8 @@ module mod_clm_canopyfluxes
       f0 = f1
       x1 = x
       call ci_func(x1, f1, p, iv, g, gb_mol, je, cair, oair, &
-                   lmr_z, par_z, rh_can, gs_mol)
+                   lmr_z, par_z, rh_can, gs_mol, c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                   ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
       if ( f1 < minf ) then
         minx = x1
         minf = f1
@@ -2643,7 +2763,8 @@ module mod_clm_canopyfluxes
       !
       if ( f1 * f0 < 0._rk8 ) then
         call brent(x, x0, x1, f0, f1, tol, p, iv, g, gb_mol, je, cair, oair, &
-                   lmr_z, par_z, rh_can, gs_mol)
+                   lmr_z, par_z, rh_can, gs_mol, c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
         x0 = x
         exit
       end if
@@ -2654,7 +2775,8 @@ module mod_clm_canopyfluxes
         ! stomatal conductance calculation and it happens usually
         ! in very dry places and more likely with c4 plants.
         call ci_func(minx, f1, p, iv, g, gb_mol, je, cair, oair, &
-                     lmr_z, par_z, rh_can, gs_mol)
+                     lmr_z, par_z, rh_can, gs_mol, c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
         exit
       end if
     end do
@@ -2666,7 +2788,9 @@ module mod_clm_canopyfluxes
     ! The found root will be updated until its accuracy is tol.
     !
     subroutine brent(x,x1,x2,f1,f2,tol,ip,iv,ig,gb_mol,je,cair,oair, &
-                     lmr_z,par_z,rh_can,gs_mol)
+                     lmr_z,par_z,rh_can,gs_mol, c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
+      !$acc routine seq
       implicit none
       ! indepedent variable of the single value function ci_func(x)
       real(rk8), intent(out) :: x
@@ -2694,6 +2818,37 @@ module mod_clm_canopyfluxes
       integer(ik4), parameter :: itmax = 20  !maximum number of iterations
       real(rk8), parameter :: eps = 1.e-2_rk8    !relative error tolerance
 
+    logical :: c3flag(:)    ! true if C3 and false if C4
+    ! Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
+    real(rk8) :: ac(:,:)
+    ! RuBP-limited gross photosynthesis (umol CO2/m**2/s)
+    real(rk8) :: aj(:,:)
+    ! product-limited (C3) or CO2-limited (C4) gross
+    ! photosynthesis (umol CO2/m**2/s)
+    real(rk8) :: ap(:,:)
+    ! co-limited gross leaf photosynthesis (umol CO2/m**2/s)
+    real(rk8) :: ag(:,:)
+    ! net leaf photosynthesis (umol CO2/m**2/s)
+    real(rk8) :: an(:,:)
+    ! maximum rate of carboxylation (umol co2/m**2/s)
+    real(rk8) :: vcmax_z(:,:)
+    real(rk8) :: cp(:)  ! CO2 compensation point (Pa)
+    real(rk8) :: kc(:)  ! Michaelis-Menten constant for CO2 (Pa)
+    real(rk8) :: ko(:)  ! Michaelis-Menten constant for O2 (Pa)
+    ! quantum efficiency, used only for C4 (mol CO2 / mol photons)
+    real(rk8) :: qe(:)
+    ! triose phosphate utilization rate (umol CO2/m**2/s)
+    real(rk8) :: tpu_z(:,:)
+    ! initial slope of CO2 response curve (C4 plants)
+    real(rk8) :: kp_z(:,:)
+    ! empirical curvature parameter for ac, aj photosynthesis co-limitation
+    real(rk8) :: theta_cj(:)
+    real(rk8) :: forc_pbot(:) ! atmospheric pressure (Pa)
+    ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
+    real(rk8) :: bbb(:)
+    ! Ball-Berry slope of conductance-photosynthesis relationship
+    real(rk8) :: mbb(:)
+      
       integer(ik4) :: iter
       real(rk8) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
 
@@ -2701,11 +2856,13 @@ module mod_clm_canopyfluxes
       b = x2
       fa = f1
       fb = f2
+#ifndef OPENACC
       if ( (fa > 0._rk8 .and. fb > 0._rk8) .or. &
            (fa < 0._rk8 .and. fb < 0._rk8) ) then
         write(stderr,*) 'root must be bracketed for brent'
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
+#endif
       c = b
       fc = fb
       iter = 0
@@ -2765,12 +2922,15 @@ module mod_clm_canopyfluxes
           b = b+sign(tol1,xm)
         end if
         call ci_func(b, fb, ip, iv, ig, gb_mol, je, cair, &
-                     oair, lmr_z, par_z, rh_can, gs_mol)
+                     oair, lmr_z, par_z, rh_can, gs_mol, c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
+                     ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
         if ( fb == 0._rk8 ) exit
       end do
+#ifndef OPENACC
       if ( iter == itmax ) then
         write(stderr,*) 'brent exceeding maximum iterations', b, fb
       end if
+#endif
       x = b
     end subroutine brent
 
