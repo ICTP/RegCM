@@ -444,7 +444,7 @@ module mod_clm_driver
     ! canopy, and leaf water change by evapotranspiration
     ! =======================================================================
     !@acc call nvtxStartRange("CanopyFluxes")
-    call CanopyFluxes(begc,endc,begp,endp,filter%num_nolakep,  &
+    call CanopyFluxes(begg,endg,begc,endc,begp,endp,filter%num_nolakep,  &
                       filter%nolakep)
     !@acc call nvtxEndRange
     ! =======================================================================
