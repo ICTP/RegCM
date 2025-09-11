@@ -165,7 +165,7 @@ module mod_clm_slakefluxes
     ! convective boundary height [m]
     real(rk8), parameter :: zii = 1000._rk8
     integer(ik4)  :: fp,g,c,p           ! do loop or array index
-    integer(ik4)  :: fncopy             ! number of values in pft filter copy
+    integer(ik4)  :: fncopy, myfncopy   ! number of values in pft filter copy
     integer(ik4)  :: fnold              ! previous number of pft filter values
     integer(ik4)  :: fpcopy(num_lakep)  ! pft filter copy for iteration loop
     integer(ik4)  :: iter               ! iteration index
@@ -348,7 +348,12 @@ module mod_clm_slakefluxes
 
     kva0temp = 20._rk8 + tfrz
 
+#ifdef STDPAR_FIXED
+    do concurrent ( fp = 1:num_lakep )
+#else
+    !$acc parallel loop
     do fp = 1, num_lakep
+#endif
       p = filter_lakep(fp)
       c = pcolumn(p)
       g = cgridcell(c)
@@ -441,7 +446,12 @@ module mod_clm_slakefluxes
       thv(c) = forc_th(g)*(1._rk8+0.61_rk8*forc_q(g))     ! virtual potential T
     end do
 
+#ifdef STDPAR_FIXED
+    do concurrent ( fp = 1:num_lakep )
+#else
+    !$acc parallel loop
     do fp = 1, num_lakep
+#endif    
       p = filter_lakep(fp)
       c = pcolumn(p)
       g = pgridcell(p)
@@ -485,7 +495,9 @@ module mod_clm_slakefluxes
 
     iter = 1
     fncopy = num_lakep
+    !$acc kernels
     fpcopy(1:num_lakep) = filter_lakep(1:num_lakep)
+    !$acc end kernels
 
     ! Begin stability iteration
 
@@ -499,7 +511,12 @@ module mod_clm_slakefluxes
                             obu, iter, ur, um, ustar, &
                             temp1, temp2, temp12m, temp22m, fm)
 
+#ifdef STDPAR_FIXED
+      do concurrent ( fp = 1:fncopy )
+#else
+      !$acc parallel loop
       do fp = 1, fncopy
+#endif
         p = fpcopy(fp)
         c = pcolumn(p)
         g = pgridcell(p)
@@ -664,17 +681,26 @@ module mod_clm_slakefluxes
         ! Rebuild copy of pft filter for next pass through the ITERATION loop
         fnold = fncopy
         fncopy = 0
+        !$acc parallel loop
         do fp = 1, fnold
           p = fpcopy(fp)
           if (nmozsgn(p) < 3) then
+            !$acc atomic capture
             fncopy = fncopy + 1
-            fpcopy(fncopy) = p
+            myfncopy = fncopy
+            !$acc end atomic
+            fpcopy(myfncopy) = p
           end if
         end do   ! end of filtered pft loop
       end if
     end do ITERATION   ! end of stability iteration
 
+#ifdef STDPAR_FIXED
+    do concurrent ( fp = 1:num_lakep )
+#else
+    !$acc parallel loop
     do fp = 1, num_lakep
+#endif
       p = filter_lakep(fp)
       c = pcolumn(p)
       g = pgridcell(p)
@@ -791,7 +817,7 @@ module mod_clm_slakefluxes
 
     ! The following are needed for global average on history tape.
 
-    do fp = 1, num_lakep
+    do concurrent ( fp = 1:num_lakep )
       p = filter_lakep(fp)
       c = pcolumn(p)
       g = pgridcell(p)

@@ -1814,9 +1814,10 @@ module mod_clm_snowhydrology
     snw_rds    => clm3%g%l%c%cps%snw_rds
 
     ! Initialize for consistency check
-    do j = -nlevsno+1,0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
+    do concurrent ( fc = 1:num_snowc )
+      c = filter_snowc(fc)
+      !$acc loop seq
+      do j = -nlevsno+1,0
 
         if (j == -nlevsno+1) then
           dztot(c) = 0._rk8
@@ -1835,30 +1836,33 @@ module mod_clm_snowhydrology
     ! Begin calculation - note that the following column loops are only invoked
     ! for snow-covered columns
 
-    do j = 1,nlevsno
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
-        if (j <= abs(snl(c))) then
-          dzsno(c,j) = dz(c,j+snl(c))
-          swice(c,j) = h2osoi_ice(c,j+snl(c))
-          swliq(c,j) = h2osoi_liq(c,j+snl(c))
-          tsno(c,j)  = t_soisno(c,j+snl(c))
+    do concurrent ( fc = 1:num_snowc, j = 1:nlevsno )
+      c = filter_snowc(fc)
+      if (j <= abs(snl(c))) then
+        dzsno(c,j) = dz(c,j+snl(c))
+        swice(c,j) = h2osoi_ice(c,j+snl(c))
+        swliq(c,j) = h2osoi_liq(c,j+snl(c))
+        tsno(c,j)  = t_soisno(c,j+snl(c))
 
-          mbc_phi(c,j) = mss_bcphi(c,j+snl(c))
-          mbc_pho(c,j) = mss_bcpho(c,j+snl(c))
-          moc_phi(c,j) = mss_ocphi(c,j+snl(c))
-          moc_pho(c,j) = mss_ocpho(c,j+snl(c))
-          mdst1(c,j)   = mss_dst1(c,j+snl(c))
-          mdst2(c,j)   = mss_dst2(c,j+snl(c))
-          mdst3(c,j)   = mss_dst3(c,j+snl(c))
-          mdst4(c,j)   = mss_dst4(c,j+snl(c))
-          rds(c,j)     = snw_rds(c,j+snl(c))
+        mbc_phi(c,j) = mss_bcphi(c,j+snl(c))
+        mbc_pho(c,j) = mss_bcpho(c,j+snl(c))
+        moc_phi(c,j) = mss_ocphi(c,j+snl(c))
+        moc_pho(c,j) = mss_ocpho(c,j+snl(c))
+        mdst1(c,j)   = mss_dst1(c,j+snl(c))
+        mdst2(c,j)   = mss_dst2(c,j+snl(c))
+        mdst3(c,j)   = mss_dst3(c,j+snl(c))
+        mdst4(c,j)   = mss_dst4(c,j+snl(c))
+        rds(c,j)     = snw_rds(c,j+snl(c))
 
-        end if
-      end do
+      end if
     end do
 
+#ifdef STDPAR_FIXED
+    do concurrent ( fc = 1:num_snowc )
+#else
+    !$acc parallel loop
     do fc = 1, num_snowc
+#endif
       c = filter_snowc(fc)
 
       msno = abs(snl(c))
@@ -2193,33 +2197,32 @@ module mod_clm_snowhydrology
       snl(c) = -msno
     end do
 
-    do j = -nlevsno+1,0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
-        if (j >= snl(c)+1) then
-          dz(c,j)         = dzsno(c,j-snl(c))
-          h2osoi_ice(c,j) = swice(c,j-snl(c))
-          h2osoi_liq(c,j) = swliq(c,j-snl(c))
-          t_soisno(c,j)   = tsno(c,j-snl(c))
+    do concurrent ( fc = 1:num_snowc, j = -nlevsno+1:0 )
+      c = filter_snowc(fc)
+      if (j >= snl(c)+1) then
+        dz(c,j)         = dzsno(c,j-snl(c))
+        h2osoi_ice(c,j) = swice(c,j-snl(c))
+        h2osoi_liq(c,j) = swliq(c,j-snl(c))
+        t_soisno(c,j)   = tsno(c,j-snl(c))
 
-          mss_bcphi(c,j)   = mbc_phi(c,j-snl(c))
-          mss_bcpho(c,j)   = mbc_pho(c,j-snl(c))
-          mss_ocphi(c,j)   = moc_phi(c,j-snl(c))
-          mss_ocpho(c,j)   = moc_pho(c,j-snl(c))
-          mss_dst1(c,j)    = mdst1(c,j-snl(c))
-          mss_dst2(c,j)    = mdst2(c,j-snl(c))
-          mss_dst3(c,j)    = mdst3(c,j-snl(c))
-          mss_dst4(c,j)    = mdst4(c,j-snl(c))
-          snw_rds(c,j)     = rds(c,j-snl(c))
+        mss_bcphi(c,j)   = mbc_phi(c,j-snl(c))
+        mss_bcpho(c,j)   = mbc_pho(c,j-snl(c))
+        mss_ocphi(c,j)   = moc_phi(c,j-snl(c))
+        mss_ocpho(c,j)   = moc_pho(c,j-snl(c))
+        mss_dst1(c,j)    = mdst1(c,j-snl(c))
+        mss_dst2(c,j)    = mdst2(c,j-snl(c))
+        mss_dst3(c,j)    = mdst3(c,j-snl(c))
+        mss_dst4(c,j)    = mdst4(c,j-snl(c))
+        snw_rds(c,j)     = rds(c,j-snl(c))
 
-        end if
-      end do
+      end if
     end do
 
     ! Consistency check
-    do j = -nlevsno + 1, 0
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
+    do concurrent ( fc = 1:num_snowc )
+      c = filter_snowc(fc)
+      !$acc loop seq
+      do j = -nlevsno + 1, 0
 
         if (j >= snl(c)+1) then
           dztot(c) = dztot(c) - dz(c,j)
@@ -2235,20 +2238,20 @@ module mod_clm_snowhydrology
                     'Inconsistency in SnowDivision_Lake! c, remainders', &
                     'dztot, snwicetot, snwliqtot = ', &
                    c,dztot(c),snwicetot(c),snwliqtot(c)
+#ifndef OPENACC
             call fatal(__FILE__,__LINE__,'clm now stopping')
+#endif
           end if
         end if
       end do
     end do
 
-    do j = 0, -nlevsno+1, -1
-      do fc = 1, num_snowc
-        c = filter_snowc(fc)
-        if (j >= snl(c)+1) then
-          z(c,j)    = zi(c,j) - 0.5_rk8*dz(c,j)
-          zi(c,j-1) = zi(c,j) - dz(c,j)
-        end if
-      end do
+    do concurrent ( fc = 1:num_snowc, j = 0:-nlevsno+1:-1 )
+      c = filter_snowc(fc)
+      if (j >= snl(c)+1) then
+        z(c,j)    = zi(c,j) - 0.5_rk8*dz(c,j)
+        zi(c,j-1) = zi(c,j) - dz(c,j)
+      end if
     end do
 
   end subroutine DivideSnowLayers_Lake

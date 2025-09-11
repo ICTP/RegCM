@@ -1306,15 +1306,18 @@ module mod_clm_snicar
     frac_sno           => clm3%g%l%c%cps%frac_sno_eff
 
     ! loop over columns that have at least one snow layer
-    do fc = 1, num_snowc
+    do concurrent ( fc = 1:num_snowc ) local(cdz)
       c_idx = filter_snowc(fc)
 
       snl_btm = 0
       snl_top = snl(c_idx) + 1
-
-      cdz(snl_top:snl_btm) = frac_sno(c_idx)*dz(c_idx,snl_top:snl_btm)
+      !$acc loop seq
+      do i = snl_top, snl_btm
+        cdz(i) = frac_sno(c_idx)*dz(c_idx,i)
+      end do
 
       ! loop over snow layers
+      !$acc loop seq
       do i = snl_top, snl_btm, 1
         !
         !**********  1. DRY SNOW AGING  ***********
@@ -1470,7 +1473,7 @@ module mod_clm_snicar
 
     ! Special case: snow on ground, but not enough to have defined a snow layer:
     !   set snw_rds to fresh snow grain size:
-    do fc = 1, num_nosnowc
+    do concurrent ( fc = 1:num_nosnowc )
       c_idx = filter_nosnowc(fc)
       if ( h2osno(c_idx) > 0._rk8 ) then
         snw_rds(c_idx,0) = snw_rds_min

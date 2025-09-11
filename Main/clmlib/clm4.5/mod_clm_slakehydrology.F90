@@ -435,16 +435,17 @@ module mod_clm_slakehydrology
 
 
     ! Add soil water to water balance.
-    do j = 1, nlevgrnd
-      do fc = 1, num_lakec
-         c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = 1, nlevgrnd
          begwb(c) = begwb(c) + h2osoi_ice(c,j) + h2osoi_liq(c,j)
       end do
     end do
 
     ! Do precipitation onto ground, etc., from Hydrology1.
 
-    do fp = 1, num_lakep
+    do concurrent ( fp = 1:num_lakep )
        p = filter_lakep(fp)
        g = pgridcell(p)
        c = pcolumn(p)
@@ -474,7 +475,7 @@ module mod_clm_slakehydrology
 
     ! Determine snow height and snow water
 
-    do fc = 1, num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
       g = cgridcell(c)
 
@@ -555,7 +556,7 @@ module mod_clm_slakehydrology
     ! Calculate sublimation and dew, adapted from HydrologyLake
     ! and Biogeophysics2.
 
-    do fp = 1,num_lakep
+    do concurrent ( fp = 1:num_lakep )
       p = filter_lakep(fp)
       c = pcolumn(p)
       jtop = snl(c)+1
@@ -660,7 +661,7 @@ module mod_clm_slakehydrology
     ! for output to history tape and other uses
     ! (note that pft2col is called before SLakeHydrology, so we can't
     ! use that routine to do these column -> pft averages)
-    do fp = 1,num_lakep
+    do concurrent ( fp = 1:num_lakep )
       p = filter_lakep(fp)
       c = pcolumn(p)
       qflx_evap_tot_col(c) = qflx_evap_tot(p)
@@ -679,7 +680,7 @@ module mod_clm_slakehydrology
          filter_shlakenosnowc)
 
     ! specify snow fraction
-    do fc = 1, num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
       if (h2osno(c) > 0.0_rk8) then
         frac_sno_eff(c)     = 1._rk8
@@ -699,47 +700,46 @@ module mod_clm_slakehydrology
     ! melting and the liquid water exceeds the saturation value, then
     ! remove water.
 
-    do j = 1,nlevsoi  !nlevgrnd
+    do concurrent ( fc = 1:num_lakec, j = 1:nlevsoi )
+      !nlevgrnd
       ! changed to nlevsoi on 8/11/10 to make consistent with non-lake bedrock
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+      c = filter_lakec(fc)
 
-        h2osoi_vol(c,j) = h2osoi_liq(c,j)/(dz(c,j)*denh2o) + &
-                          h2osoi_ice(c,j)/(dz(c,j)*denice)
-        ! Could have changed during phase change! (Added 8/11/10)
+      h2osoi_vol(c,j) = h2osoi_liq(c,j)/(dz(c,j)*denh2o) + &
+                        h2osoi_ice(c,j)/(dz(c,j)*denice)
+      ! Could have changed during phase change! (Added 8/11/10)
 
-        if (h2osoi_vol(c,j) < watsat(c,j)) then
-          h2osoi_liq(c,j) = (watsat(c,j)*dz(c,j) - &
-                  h2osoi_ice(c,j)/denice)*denh2o
-          ! h2osoi_vol will be updated below, and this water addition
-          ! will come from qflx_qrgwl
-        else if (h2osoi_liq(c,j) > watsat(c,j)*denh2o*dz(c,j)) then
-          h2osoi_liq(c,j) = watsat(c,j)*denh2o*dz(c,j)
-          ! Another way to do this would be: if h2osoi_vol > watsat
-          ! then remove min(h2osoi_liq, (h2osoi_vol-watsat)*dz*denh2o)
-          ! from h2osoi_liq.  The question is whether the excess ice
-          ! melts first or last (or simultaneously) to the pore ice.
-          ! Because excess ice is often in chunks, requiring greater
-          ! convergence of heat to melt, assume it melts last.
-          ! This will also improve the initialization behavior or in
-          ! an occasionally warm year, the excess ice
-          ! won't start going away if a layer is briefly at freezing.
+      if (h2osoi_vol(c,j) < watsat(c,j)) then
+        h2osoi_liq(c,j) = (watsat(c,j)*dz(c,j) - &
+                h2osoi_ice(c,j)/denice)*denh2o
+        ! h2osoi_vol will be updated below, and this water addition
+        ! will come from qflx_qrgwl
+      else if (h2osoi_liq(c,j) > watsat(c,j)*denh2o*dz(c,j)) then
+        h2osoi_liq(c,j) = watsat(c,j)*denh2o*dz(c,j)
+        ! Another way to do this would be: if h2osoi_vol > watsat
+        ! then remove min(h2osoi_liq, (h2osoi_vol-watsat)*dz*denh2o)
+        ! from h2osoi_liq.  The question is whether the excess ice
+        ! melts first or last (or simultaneously) to the pore ice.
+        ! Because excess ice is often in chunks, requiring greater
+        ! convergence of heat to melt, assume it melts last.
+        ! This will also improve the initialization behavior or in
+        ! an occasionally warm year, the excess ice
+        ! won't start going away if a layer is briefly at freezing.
 
-          ! Allow up to 10% excess ice over watsat in refreezing soil,
-          ! e.g. heaving soil.  (As with > 10% excess ice modeling,
-          ! and for the lake water, the thermal conductivity will be
-          ! adjusted down to compensate for the fact that the nominal
-          ! dz is smaller than the real soil volume.)
-          !  The current solution is consistent but perhaps unrealistic
-          ! in real soils, where slow drainage may occur during freezing;
-          ! drainage is only assumed to occur here when >10% excess
-          ! ice melts. The latter is more likely to be permanent rather
-          ! than seasonal anyway. Attempting to remove the
-          ! ice volume after some has already frozen during the timestep
-          ! would not conserve energy unless this were
-          ! incorporated into the ice stream.
-        end if
-      end do
+        ! Allow up to 10% excess ice over watsat in refreezing soil,
+        ! e.g. heaving soil.  (As with > 10% excess ice modeling,
+        ! and for the lake water, the thermal conductivity will be
+        ! adjusted down to compensate for the fact that the nominal
+        ! dz is smaller than the real soil volume.)
+        !  The current solution is consistent but perhaps unrealistic
+        ! in real soils, where slow drainage may occur during freezing;
+        ! drainage is only assumed to occur here when >10% excess
+        ! ice melts. The latter is more likely to be permanent rather
+        ! than seasonal anyway. Attempting to remove the
+        ! ice volume after some has already frozen during the timestep
+        ! would not conserve energy unless this were
+        ! incorporated into the ice stream.
+      end if
     end do
 
     ! Natural compaction and metamorphosis.
@@ -760,7 +760,7 @@ module mod_clm_slakehydrology
     ! after melt can be excessive because the fluxes were calculated
     ! with a fixed ground temperature of freezing, but the
     ! phase change was unable to restore the temperature to freezing.
-    do fp = 1, num_lakep
+    do concurrent ( fp = 1:num_lakep )
       p = filter_lakep(fp)
       c = pcolumn(p)
 
@@ -792,7 +792,7 @@ module mod_clm_slakehydrology
     ! Otherwise, the top layer will undergo freezing, but only if the
     ! top layer will not freeze completely.  Otherwise, let the snow
     ! layers persist and melt by diffusion.
-    do fc = 1, num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
 
       if ( t_lake(c,1) > tfrz .and. &
@@ -803,9 +803,10 @@ module mod_clm_slakehydrology
       end if
     end do
 
-    do j = -nlevsno+1, 0
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = -nlevsno+1, 0
 
         if (unfrozen(c)) then
           if (j == -nlevsno+1) then
@@ -822,7 +823,7 @@ module mod_clm_slakehydrology
       end do
     end do
 
-    do fc = 1, num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
 
       if (unfrozen(c)) then
@@ -854,18 +855,16 @@ module mod_clm_slakehydrology
 
     ! Set empty snow layers to zero
 
-    do j = -nlevsno+1, 0
-      do fc = 1, num_shlakesnowc
-        c = filter_shlakesnowc(fc)
-        if (j <= snl(c) .and. snl(c) > -nlevsno) then
-          h2osoi_ice(c,j) = 0._rk8
-          h2osoi_liq(c,j) = 0._rk8
-          t_soisno(c,j) = 0._rk8
-          dz(c,j) = 0._rk8
-          z(c,j) = 0._rk8
-          zi(c,j-1) = 0._rk8
-        end if
-      end do
+    do concurrent ( fc = 1:num_shlakesnowc, j = -nlevsno+1:0 )
+      c = filter_shlakesnowc(fc)
+      if (j <= snl(c) .and. snl(c) > -nlevsno) then
+        h2osoi_ice(c,j) = 0._rk8
+        h2osoi_liq(c,j) = 0._rk8
+        t_soisno(c,j) = 0._rk8
+        dz(c,j) = 0._rk8
+        z(c,j) = 0._rk8
+        zi(c,j-1) = 0._rk8
+      end if
     end do
 
     ! Build new snow filter
@@ -877,15 +876,16 @@ module mod_clm_slakehydrology
     ! Vertically average t_soisno and sum of h2osoi_liq and h2osoi_ice
     ! over all snow layers for history output
 
-    do fc = 1, num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
       snowice(c) = 0._rk8
       snowliq(c) = 0._rk8
     end do
 
-    do j = -nlevsno+1, 0
-      do fc = 1, num_shlakesnowc
-        c = filter_shlakesnowc(fc)
+    do concurrent ( fc = 1:num_shlakesnowc )
+      c = filter_shlakesnowc(fc)
+      !$acc loop seq
+      do j = -nlevsno+1, 0
         if (j >= snl(c)+1) then
           snowice(c) = snowice(c) + h2osoi_ice(c,j)
           snowliq(c) = snowliq(c) + h2osoi_liq(c,j)
@@ -895,14 +895,15 @@ module mod_clm_slakehydrology
 
     ! Determine ending water balance and volumetric soil water
 
-    do fc = 1, num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
       endwb(c) = h2osno(c)
     end do
 
-    do j = 1, nlevgrnd
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = 1, nlevgrnd
         endwb(c) = endwb(c) + h2osoi_ice(c,j) + h2osoi_liq(c,j)
         h2osoi_vol(c,j) = h2osoi_liq(c,j)/(dz(c,j)*denh2o) + &
                           h2osoi_ice(c,j)/(dz(c,j)*denice)
@@ -911,7 +912,7 @@ module mod_clm_slakehydrology
 
     ! Do history variables and set special landunit runoff (adapted
     ! from end of HydrologyLake)
-    do fp = 1,num_lakep
+    do concurrent ( fp = 1:num_lakep )
       p = filter_lakep(fp)
       c = pcolumn(p)
       g = pgridcell(p)
@@ -949,14 +950,14 @@ module mod_clm_slakehydrology
     !  NEEDS TO BE AFTER SnowFiler is rebuilt, otherwise there
     !  can be zero snow layers but an active column in filter)
 
-    do fc = 1, num_shlakesnowc
+    do concurrent ( fc = 1:num_shlakesnowc )
       c = filter_shlakesnowc(fc)
 
       ! Zero column-integrated aerosol mass before summation
       mss_bc_col(c)  = 0._rk8
       mss_oc_col(c)  = 0._rk8
       mss_dst_col(c) = 0._rk8
-
+      !$acc loop seq
       do j = -nlevsno+1, 0
 
         ! layer mass of snow:
@@ -1038,7 +1039,7 @@ module mod_clm_slakehydrology
     end do
 
     ! Zero mass variables in columns without snow
-    do fc = 1, num_shlakenosnowc
+    do concurrent ( fc = 1:num_shlakenosnowc )
       c = filter_shlakenosnowc(fc)
 
       h2osno_top(c)      = 0._rk8

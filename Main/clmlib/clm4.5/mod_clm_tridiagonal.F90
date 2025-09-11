@@ -46,7 +46,7 @@ module mod_clm_tridiagonal
     real(rk8), intent(in)    :: r(lbc:ubc, lbj:ubj)
     real(rk8), intent(inout) :: u(lbc:ubc, lbj:ubj)    ! solution
 
-    if (numf < 128) then
+    if (numf < 0) then
        ! Dispatch on CPU     
        call Tridiagonal_cpu (lbc, ubc, lbj, ubj, jtop, numf, filter, &
                              a, b, c, r, u)

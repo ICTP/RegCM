@@ -407,17 +407,22 @@ module mod_clm_slaketemperature
 
     ! Needed for Lahey compiler which doesn't seem to allow shortcircuit
     ! logic for undefined variables.
+    !$acc kernels
     puddle(lbc:ubc) = .false.
     frzn(lbc:ubc) = .false.
+    bottomconvect(lbc:ubc) = .false.
+    !$acc end kernels
 
     ! Begin calculations
 
+    !$acc kernels
     a = 0.0_rk8
     b = 0.0_rk8
     c1 = 0.0_rk8
     r = 0.0_rk8
+    !$acc end kernels
 
-    do fc = 1, num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
 
       ! Initialize quantities needed below
@@ -433,7 +438,6 @@ module mod_clm_slaketemperature
       jconvectbot(c) = nlevlak+1
       lakeresist(c) = 0._rk8
 #endif
-      bottomconvect(lbc:ubc) = .false.
       qflx_snofrz_col(c) = 0._rk8
     end do
 
@@ -442,16 +446,14 @@ module mod_clm_slaketemperature
     ! here because phase change will occur in this routine.
     ! Ice fraction of snow at previous time step
 
-    do j = -nlevsno+1,0
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
-        if (j >= snl(c) + 1) then
-          frac_iceold(c,j) = h2osoi_ice(c,j)/(h2osoi_liq(c,j)+h2osoi_ice(c,j))
-        end if
-      end do
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:0 )
+      c = filter_lakec(fc)
+      if (j >= snl(c) + 1) then
+        frac_iceold(c,j) = h2osoi_ice(c,j)/(h2osoi_liq(c,j)+h2osoi_ice(c,j))
+      end if
     end do
 
-    do fp = 1, num_lakep
+    do concurrent ( fp = 1:num_lakep )
       p = filter_lakep(fp)
       c = pcolumn(p)
 
@@ -473,90 +475,86 @@ module mod_clm_slaketemperature
 
     ! 2!) Lake density
 
-    do j = 1, nlevlak
-      do fc = 1, num_lakec
-         c = filter_lakec(fc)
-         rhow(c,j) = (1._rk8 - lake_icefrac(c,j)) * &
-                      1000._rk8*( 1.0_rk8 - 1.9549e-5_rk8* &
-                      (abs(t_lake(c,j)-tdmax))**1.68_rk8 ) &
-                    + lake_icefrac(c,j)*denice
-         ! Allow for ice fraction; assume constant ice density.
-         ! This is not the correct average-weighting but that's OK because
-         ! the density will only be used for convection for lakes with ice,
-         ! and the ice fraction will dominate the density differences between
-         ! layers.
-         ! Using this average will make sure that surface ice is treated
-         ! properly during convective mixing.
-      end do
+    do concurrent ( fc = 1:num_lakec, j = 1:nlevlak )
+      c = filter_lakec(fc)
+      rhow(c,j) = (1._rk8 - lake_icefrac(c,j)) * &
+                   1000._rk8*( 1.0_rk8 - 1.9549e-5_rk8* &
+                   (abs(t_lake(c,j)-tdmax))**1.68_rk8 ) &
+                 + lake_icefrac(c,j)*denice
+      ! Allow for ice fraction; assume constant ice density.
+      ! This is not the correct average-weighting but that's OK because
+      ! the density will only be used for convection for lakes with ice,
+      ! and the ice fraction will dominate the density differences between
+      ! layers.
+      ! Using this average will make sure that surface ice is treated
+      ! properly during convective mixing.
     end do
 
     ! 3!) Diffusivity and implied thermal "conductivity" = diffusivity * cwat
-    do j = 1, nlevlak-1
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
-        drhodz = (rhow(c,j+1)-rhow(c,j)) / (z_lake(c,j+1)-z_lake(c,j))
-        n2 = grav / rhow(c,j) * drhodz
-        ! Fixed sign error here: our z goes up going down into the lake,
-        ! so no negative sign is needed to make this positive unlike
-        ! in Hostetler. --ZS
-        num = 40._rk8 * n2 * (vkc*z_lake(c,j))**2._rk8
-        if ( ks(c) * z_lake(c,j) < 15.0_rk8 ) then
-          den = max( (ws(c)**2._rk8) * exp(-2._rk8*ks(c)*z_lake(c,j)), 1.e-10_rk8)
+    do concurrent ( fc = 1:num_lakec, j = 1:nlevlak-1 )
+      c = filter_lakec(fc)
+      drhodz = (rhow(c,j+1)-rhow(c,j)) / (z_lake(c,j+1)-z_lake(c,j))
+      n2 = grav / rhow(c,j) * drhodz
+      ! Fixed sign error here: our z goes up going down into the lake,
+      ! so no negative sign is needed to make this positive unlike
+      ! in Hostetler. --ZS
+      num = 40._rk8 * n2 * (vkc*z_lake(c,j))**2._rk8
+      if ( ks(c) * z_lake(c,j) < 15.0_rk8 ) then
+        den = max( (ws(c)**2._rk8) * exp(-2._rk8*ks(c)*z_lake(c,j)), 1.e-10_rk8)
+      else
+        den = 1.e-10_rk8
+      end if
+      ri = ( -1._rk8 + sqrt( max(1._rk8+num/den, 0._rk8) ) ) / 20._rk8
+
+      if (lakepuddling .and. j == 1) frzn(c) = .false.
+
+      if ( t_grnd(c) > tfrz .and. &
+            t_lake(c,1) > tfrz .and. snl(c) == 0 .and. &
+            (.not. lakepuddling .or. (lake_icefrac(c,j) == 0._rk8 .and. &
+            .not. frzn(c))) ) then
+        if ( ks(c) * z_lake(c,j) < 30.0_rk8 ) then
+          ke = vkc*ws(c)*z_lake(c,j)/p0 * &
+                   exp(-ks(c)*z_lake(c,j)) / (1._rk8+37._rk8*ri*ri)
         else
-          den = 1.e-10_rk8
+          ke = 0.0_rk8
         end if
-        ri = ( -1._rk8 + sqrt( max(1._rk8+num/den, 0._rk8) ) ) / 20._rk8
+        kme(c,j) = km + ke
 
-        if (lakepuddling .and. j == 1) frzn(c) = .false.
+        if (.not. lake_no_ed) then
+          ! Fang & Stefan 1996, citing Ellis et al 1991
+          fangkm = 1.039e-8_rk8 * max(n2,n2min)**(-0.43_rk8)
+          kme(c,j) = kme(c,j) + fangkm
+        end if
+        if (lakedepth(c) >= depthcrit) then
+          kme(c,j) = kme(c,j) * mixfact
+        end if
 
-        if ( t_grnd(c) > tfrz .and. &
-              t_lake(c,1) > tfrz .and. snl(c) == 0 .and. &
-              (.not. lakepuddling .or. (lake_icefrac(c,j) == 0._rk8 .and. &
-              .not. frzn(c))) ) then
-          if ( ks(c) * z_lake(c,j) < 30.0_rk8 ) then
-            ke = vkc*ws(c)*z_lake(c,j)/p0 * &
-                     exp(-ks(c)*z_lake(c,j)) / (1._rk8+37._rk8*ri*ri)
-          else
-            ke = 0.0_rk8
-          end if
-          kme(c,j) = km + ke
-
-          if (.not. lake_no_ed) then
-            ! Fang & Stefan 1996, citing Ellis et al 1991
-            fangkm = 1.039e-8_rk8 * max(n2,n2min)**(-0.43_rk8)
-            kme(c,j) = kme(c,j) + fangkm
-          end if
+        tk_lake(c,j) = kme(c,j)*cwat
+      else
+        kme(c,j) = km
+        if (.not. lake_no_ed) then
+          fangkm = 1.039e-8_rk8 * max(n2,n2min)**(-0.43_rk8)
+          kme(c,j) = kme(c,j) + fangkm
           if (lakedepth(c) >= depthcrit) then
             kme(c,j) = kme(c,j) * mixfact
           end if
-
-          tk_lake(c,j) = kme(c,j)*cwat
+          tk_lake(c,j) = kme(c,j)*cwat*tkice_eff / &
+                   ( (1._rk8-lake_icefrac(c,j))*tkice_eff &
+                   + kme(c,j)*cwat*lake_icefrac(c,j) )
         else
-          kme(c,j) = km
-          if (.not. lake_no_ed) then
-            fangkm = 1.039e-8_rk8 * max(n2,n2min)**(-0.43_rk8)
-            kme(c,j) = kme(c,j) + fangkm
-            if (lakedepth(c) >= depthcrit) then
-              kme(c,j) = kme(c,j) * mixfact
-            end if
-            tk_lake(c,j) = kme(c,j)*cwat*tkice_eff / &
-                     ( (1._rk8-lake_icefrac(c,j))*tkice_eff &
-                     + kme(c,j)*cwat*lake_icefrac(c,j) )
-          else
-            tk_lake(c,j) = tkwat*tkice_eff / &
-                     ( (1._rk8-lake_icefrac(c,j))*tkice_eff &
-                     + tkwat*lake_icefrac(c,j) )
-            ! Assume the resistances add as for the calculation of
-            ! conductivities at layer interfaces.
-          end if
-          if (lakepuddling) frzn(c) = .true.
-          ! Prevent eddy mixing beneath frozen layers even when surface
-          ! is unfrozen.
+          tk_lake(c,j) = tkwat*tkice_eff / &
+                   ( (1._rk8-lake_icefrac(c,j))*tkice_eff &
+                   + tkwat*lake_icefrac(c,j) )
+          ! Assume the resistances add as for the calculation of
+          ! conductivities at layer interfaces.
         end if
-      end do
+        if (lakepuddling) frzn(c) = .true.
+        ! Prevent eddy mixing beneath frozen layers even when surface
+        ! is unfrozen.
+      end if
     end do
 
-    do fc = 1, num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
 
       j = nlevlak
@@ -586,64 +584,60 @@ module mod_clm_slaketemperature
     end do
 
     ! 4!) Heat source term
-    do j = 1, nlevlak
-      do fp = 1, num_lakep
-        p = filter_lakep(fp)
-        c = pcolumn(p)
+    do concurrent ( fp = 1:num_lakep, j = 1:nlevlak )
+      p = filter_lakep(fp)
+      c = pcolumn(p)
 
-        ! If no eta from surface data,
-        ! Set eta, the extinction coefficient, according to L Hakanson,
-        ! Aquatic Sciences, 1995
-        ! (regression of Secchi Depth with lake depth for small glacial
-        ! basin lakes), and the Poole & Atkins expression for extinction
-        ! coeffient of 1.7 / Secchi Depth (m).
-        if (etal(c) > 0._rk8) then ! use eta from surface data
-          eta = etal(c)
-        else
-          eta = 1.1925_rk8*max(lakedepth(c),1._rk8)**(-0.424_rk8)
+      ! If no eta from surface data,
+      ! Set eta, the extinction coefficient, according to L Hakanson,
+      ! Aquatic Sciences, 1995
+      ! (regression of Secchi Depth with lake depth for small glacial
+      ! basin lakes), and the Poole & Atkins expression for extinction
+      ! coeffient of 1.7 / Secchi Depth (m).
+      if (etal(c) > 0._rk8) then ! use eta from surface data
+        eta = etal(c)
+      else
+        eta = 1.1925_rk8*max(lakedepth(c),1._rk8)**(-0.424_rk8)
+      end if
+
+      zin  = z_lake(c,j) - 0.5_rk8*dz_lake(c,j)
+      zout = z_lake(c,j) + 0.5_rk8*dz_lake(c,j)
+      rsfin  = exp( -eta*max(  zin-za_lake,0._rk8 ) )
+      rsfout = exp( -eta*max( zout-za_lake,0._rk8 ) )
+
+      ! Let rsfout for bottom layer go into soil.
+      ! This looks like it should be robust even for pathological cases,
+      ! like lakes thinner than za_lake.
+
+      if (t_grnd(c) > tfrz .and. t_lake(c,1) > tfrz .and. snl(c) == 0) then
+        phidum = (rsfin-rsfout) * sabg(p) * (1._rk8-beta(c))
+        if (j == nlevlak) then
+          phi_soil(c) = rsfout * sabg(p) * (1._rk8-beta(c))
         end if
-
-        zin  = z_lake(c,j) - 0.5_rk8*dz_lake(c,j)
-        zout = z_lake(c,j) + 0.5_rk8*dz_lake(c,j)
-        rsfin  = exp( -eta*max(  zin-za_lake,0._rk8 ) )
-        rsfout = exp( -eta*max( zout-za_lake,0._rk8 ) )
-
-        ! Let rsfout for bottom layer go into soil.
-        ! This looks like it should be robust even for pathological cases,
-        ! like lakes thinner than za_lake.
-
-        if (t_grnd(c) > tfrz .and. t_lake(c,1) > tfrz .and. snl(c) == 0) then
-          phidum = (rsfin-rsfout) * sabg(p) * (1._rk8-beta(c))
-          if (j == nlevlak) then
-            phi_soil(c) = rsfout * sabg(p) * (1._rk8-beta(c))
-          end if
-        else if (j == 1 .and. snl(c) == 0) then !if frozen but no snow layers
-          phidum = sabg(p) * (1._rk8-beta(c))
-          ! This should be improved upon; Mironov 2002 suggests that SW
-          ! can penetrate thin ice and may cause spring convection.
-        else if (j == 1) then
-          phidum = sabg_lyr(p,j)
-          ! some radiation absorbed in snow layers, the rest in the top
-          ! layer of lake
-          ! radiation absorbed in snow layers will be applied below
-        else
-          phidum = 0._rk8
-          if (j == nlevlak) phi_soil(c) = 0._rk8
-        end if
-        phi(c,j) = phidum
-      end do
+      else if (j == 1 .and. snl(c) == 0) then !if frozen but no snow layers
+        phidum = sabg(p) * (1._rk8-beta(c))
+        ! This should be improved upon; Mironov 2002 suggests that SW
+        ! can penetrate thin ice and may cause spring convection.
+      else if (j == 1) then
+        phidum = sabg_lyr(p,j)
+        ! some radiation absorbed in snow layers, the rest in the top
+        ! layer of lake
+        ! radiation absorbed in snow layers will be applied below
+      else
+        phidum = 0._rk8
+        if (j == nlevlak) phi_soil(c) = 0._rk8
+      end if
+      phi(c,j) = phidum
     end do
 
     ! 5!) Set thermal properties and check initial energy content.
 
     ! For lake
-    do j = 1, nlevlak
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec, j = 1:nlevlak )
+      c = filter_lakec(fc)
 
-        cv_lake(c,j) = dz_lake(c,j) * &
-                (cwat*(1._rk8-lake_icefrac(c,j)) + cice_eff*lake_icefrac(c,j))
-      end do
+      cv_lake(c,j) = dz_lake(c,j) * &
+              (cwat*(1._rk8-lake_icefrac(c,j)) + cice_eff*lake_icefrac(c,j))
     end do
 
     ! For snow / soil
@@ -656,9 +650,10 @@ module mod_clm_slaketemperature
     ! capacity with phase change.
 
     ! This will need to be over all soil / lake / snow layers. Lake is below.
-    do j = 1, nlevlak
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = 1, nlevlak
         ocvts(c) = ocvts(c) + cv_lake(c,j)*(t_lake(c,j)-tfrz) &
                    + cfus*dz_lake(c,j)*(1._rk8-lake_icefrac(c,j))
         t_lake_bef(c,j) = t_lake(c,j)
@@ -666,9 +661,10 @@ module mod_clm_slaketemperature
     end do
 
     ! Now do for soil / snow layers
-    do j = -nlevsno + 1, nlevgrnd
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = -nlevsno + 1, nlevgrnd
 
         if (j >= jtop(c)) then
           ocvts(c) = ocvts(c) + cv(c,j)*(t_soisno(c,j)-tfrz) &
@@ -687,10 +683,11 @@ module mod_clm_slaketemperature
     ! be used during phase change.
 
     ! Transfer sabg and sabg_lyr to column level
-    do j = -nlevsno+1,1
-      do fp = 1, num_lakep
-        p = filter_lakep(fp)
-        c = pcolumn(p)
+    do concurrent ( fp = 1:num_lakep )
+      p = filter_lakep(fp)
+      c = pcolumn(p)
+      !$acc loop seq
+      do j = -nlevsno+1,1
         if (j >= jtop(c)) then
           if (j == jtop(c)) sabg_col(c) = sabg(p)
           sabg_lyr_col(c,j) = sabg_lyr(p,j)
@@ -700,126 +697,118 @@ module mod_clm_slaketemperature
 
     ! Set up interface depths, zx, heat capacities, cvx, solar source
     ! terms, phix, and temperatures, tx.
-    do j = -nlevsno+1, nlevlak+nlevgrnd
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:nlevlak+nlevgrnd )
+      c = filter_lakec(fc)
 
-        jprime = j - nlevlak
+      jprime = j - nlevlak
 
-        if (j >= jtop(c)) then
-          if (j < 1) then !snow layer
-            zx(c,j) = z(c,j)
-            cvx(c,j) = cv(c,j)
-            ! no absorption because it has already been assigned to the surface
-            ! interface
-            if (j == jtop(c)) then
-              phix(c,j) = 0._rk8
-            else
-              phix(c,j) = sabg_lyr_col(c,j) !New for SNICAR
-            end if
-            tx(c,j) = t_soisno(c,j)
-          else if (j <= nlevlak) then !lake layer
-            zx(c,j) = z_lake(c,j)
-            cvx(c,j) = cv_lake(c,j)
-            phix(c,j) = phi(c,j)
-            tx(c,j) = t_lake(c,j)
-          else !soil layer
-            zx(c,j) = zx(c,nlevlak) + dz_lake(c,nlevlak)/2._rk8 + z(c,jprime)
-            cvx(c,j) = cv(c,jprime)
-            if (j == nlevlak + 1) then !top soil layer
-              phix(c,j) = phi_soil(c)
-            else !middle or bottom soil layer
-              phix(c,j) = 0._rk8
-            end if
-            tx(c,j) = t_soisno(c,jprime)
+      if (j >= jtop(c)) then
+        if (j < 1) then !snow layer
+          zx(c,j) = z(c,j)
+          cvx(c,j) = cv(c,j)
+          ! no absorption because it has already been assigned to the surface
+          ! interface
+          if (j == jtop(c)) then
+            phix(c,j) = 0._rk8
+          else
+            phix(c,j) = sabg_lyr_col(c,j) !New for SNICAR
           end if
+          tx(c,j) = t_soisno(c,j)
+        else if (j <= nlevlak) then !lake layer
+          zx(c,j) = z_lake(c,j)
+          cvx(c,j) = cv_lake(c,j)
+          phix(c,j) = phi(c,j)
+          tx(c,j) = t_lake(c,j)
+        else !soil layer
+          zx(c,j) = zx(c,nlevlak) + dz_lake(c,nlevlak)/2._rk8 + z(c,jprime)
+          cvx(c,j) = cv(c,jprime)
+          if (j == nlevlak + 1) then !top soil layer
+            phix(c,j) = phi_soil(c)
+          else !middle or bottom soil layer
+            phix(c,j) = 0._rk8
+          end if
+          tx(c,j) = t_soisno(c,jprime)
         end if
-      end do
+      end if
     end do
 
     ! Determine interface thermal conductivities, tkix
 
-    do j = -nlevsno+1, nlevlak+nlevgrnd
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:nlevlak+nlevgrnd )
+      c = filter_lakec(fc)
 
-        jprime = j - nlevlak
+      jprime = j - nlevlak
 
-        if (j >= jtop(c)) then
-          if (j < 0) then !non-bottom snow layer
-            tkix(c,j) = tk(c,j)
-          else if (j == 0) then !bottom snow layer
-            dzp = zx(c,j+1) - zx(c,j)
-            tkix(c,j) = tk_lake(c,1)*tk(c,j)*dzp / &
-               (tk(c,j)*z_lake(c,1) + tk_lake(c,1)*(-z(c,j)) )
-            ! tk(c,0) is the conductivity at the middle of that layer,
-            ! as defined in SoilThermProp_Lake
-          else if (j < nlevlak) then !non-bottom lake layer
-            tkix(c,j) = ( tk_lake(c,j)*tk_lake(c,j+1) * &
-                     (dz_lake(c,j+1)+dz_lake(c,j)) ) &
-                    / ( tk_lake(c,j)*dz_lake(c,j+1) + &
-                    tk_lake(c,j+1)*dz_lake(c,j) )
-          else if (j == nlevlak) then !bottom lake layer
-            dzp = zx(c,j+1) - zx(c,j)
-            tkix(c,j) = (tktopsoillay(c)*tk_lake(c,j)*dzp / &
-                  (tktopsoillay(c)*dz_lake(c,j)/2._rk8 + tk_lake(c,j)*z(c,1) ) )
-            ! tktopsoillay is the conductivity at the middle of that layer,
-            ! as defined in SoilThermProp_Lake
-          else !soil layer
-            tkix(c,j) = tk(c,jprime)
-          end if
+      if (j >= jtop(c)) then
+        if (j < 0) then !non-bottom snow layer
+          tkix(c,j) = tk(c,j)
+        else if (j == 0) then !bottom snow layer
+          dzp = zx(c,j+1) - zx(c,j)
+          tkix(c,j) = tk_lake(c,1)*tk(c,j)*dzp / &
+             (tk(c,j)*z_lake(c,1) + tk_lake(c,1)*(-z(c,j)) )
+          ! tk(c,0) is the conductivity at the middle of that layer,
+          ! as defined in SoilThermProp_Lake
+        else if (j < nlevlak) then !non-bottom lake layer
+          tkix(c,j) = ( tk_lake(c,j)*tk_lake(c,j+1) * &
+                   (dz_lake(c,j+1)+dz_lake(c,j)) ) &
+                  / ( tk_lake(c,j)*dz_lake(c,j+1) + &
+                  tk_lake(c,j+1)*dz_lake(c,j) )
+        else if (j == nlevlak) then !bottom lake layer
+          dzp = zx(c,j+1) - zx(c,j)
+          tkix(c,j) = (tktopsoillay(c)*tk_lake(c,j)*dzp / &
+                (tktopsoillay(c)*dz_lake(c,j)/2._rk8 + tk_lake(c,j)*z(c,1) ) )
+          ! tktopsoillay is the conductivity at the middle of that layer,
+          ! as defined in SoilThermProp_Lake
+        else !soil layer
+          tkix(c,j) = tk(c,jprime)
         end if
-      end do
+      end if
     end do
 
     ! Determine heat diffusion through the layer interface and factor used
     ! in computing tridiagonal matrix and set up vector r and vectors a, b,
     ! c1 that define tridiagonal matrix and solve system
 
-    do j = -nlevsno+1, nlevlak+nlevgrnd
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
-        if (j >= jtop(c)) then
-          if (j < nlevlak+nlevgrnd) then !top or interior layer
-            factx(c,j) = dtsrf/cvx(c,j)
-            fnx(c,j) = tkix(c,j)*(tx(c,j+1)-tx(c,j))/(zx(c,j+1)-zx(c,j))
-          else !bottom soil layer
-            factx(c,j) = dtsrf/cvx(c,j)
-            fnx(c,j) = 0._rk8 !not used
-          end if
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:nlevlak+nlevgrnd )
+      c = filter_lakec(fc)
+      if (j >= jtop(c)) then
+        if (j < nlevlak+nlevgrnd) then !top or interior layer
+          factx(c,j) = dtsrf/cvx(c,j)
+          fnx(c,j) = tkix(c,j)*(tx(c,j+1)-tx(c,j))/(zx(c,j+1)-zx(c,j))
+        else !bottom soil layer
+          factx(c,j) = dtsrf/cvx(c,j)
+          fnx(c,j) = 0._rk8 !not used
         end if
-      end do
+      end if
     end do
 
-    do j = -nlevsno+1,nlevlak+nlevgrnd
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
-        if (j >= jtop(c)) then
-          if (j == jtop(c)) then !top layer
-            dzp    = zx(c,j+1)-zx(c,j)
-            a(c,j) = 0._rk8
-            b(c,j) = 1+(1._rk8-cnfac)*factx(c,j)*tkix(c,j)/dzp
-            c1(c,j) =  -(1._rk8-cnfac)*factx(c,j)*tkix(c,j)/dzp
-            r(c,j) = tx(c,j) + factx(c,j)* &
-                    ( fin(c) + phix(c,j) + cnfac*fnx(c,j) )
-          else if (j < nlevlak+nlevgrnd) then !middle layer
-            dzm    = (zx(c,j)-zx(c,j-1))
-            dzp    = (zx(c,j+1)-zx(c,j))
-            a(c,j) =   - (1._rk8-cnfac)*factx(c,j)* tkix(c,j-1)/dzm
-            b(c,j) = 1._rk8+ (1._rk8-cnfac)*factx(c,j)* &
-                    (tkix(c,j)/dzp + tkix(c,j-1)/dzm)
-            c1(c,j) =   - (1._rk8-cnfac)*factx(c,j)* tkix(c,j)/dzp
-            r(c,j) = tx(c,j) + cnfac*factx(c,j)* &
-                    ( fnx(c,j) - fnx(c,j-1) ) + factx(c,j)*phix(c,j)
-          else  !bottom soil layer
-            dzm     = (zx(c,j)-zx(c,j-1))
-            a(c,j) =   - (1._rk8-cnfac)*factx(c,j)*tkix(c,j-1)/dzm
-            b(c,j) = 1._rk8+ (1._rk8-cnfac)*factx(c,j)*tkix(c,j-1)/dzm
-            c1(c,j) = 0._rk8
-            r(c,j) = tx(c,j) - cnfac*factx(c,j)*fnx(c,j-1)
-          end if
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:nlevlak+nlevgrnd )
+      c = filter_lakec(fc)
+      if (j >= jtop(c)) then
+        if (j == jtop(c)) then !top layer
+          dzp    = zx(c,j+1)-zx(c,j)
+          a(c,j) = 0._rk8
+          b(c,j) = 1+(1._rk8-cnfac)*factx(c,j)*tkix(c,j)/dzp
+          c1(c,j) =  -(1._rk8-cnfac)*factx(c,j)*tkix(c,j)/dzp
+          r(c,j) = tx(c,j) + factx(c,j)* &
+                  ( fin(c) + phix(c,j) + cnfac*fnx(c,j) )
+        else if (j < nlevlak+nlevgrnd) then !middle layer
+          dzm    = (zx(c,j)-zx(c,j-1))
+          dzp    = (zx(c,j+1)-zx(c,j))
+          a(c,j) =   - (1._rk8-cnfac)*factx(c,j)* tkix(c,j-1)/dzm
+          b(c,j) = 1._rk8+ (1._rk8-cnfac)*factx(c,j)* &
+                  (tkix(c,j)/dzp + tkix(c,j-1)/dzm)
+          c1(c,j) =   - (1._rk8-cnfac)*factx(c,j)* tkix(c,j)/dzp
+          r(c,j) = tx(c,j) + cnfac*factx(c,j)* &
+                  ( fnx(c,j) - fnx(c,j-1) ) + factx(c,j)*phix(c,j)
+        else  !bottom soil layer
+          dzm     = (zx(c,j)-zx(c,j-1))
+          a(c,j) =   - (1._rk8-cnfac)*factx(c,j)*tkix(c,j-1)/dzm
+          b(c,j) = 1._rk8+ (1._rk8-cnfac)*factx(c,j)*tkix(c,j-1)/dzm
+          c1(c,j) = 0._rk8
+          r(c,j) = tx(c,j) - cnfac*factx(c,j)*fnx(c,j-1)
         end if
-      end do
+      end if
     end do
 
     ! 7!) Solve for tdsolution
@@ -828,23 +817,21 @@ module mod_clm_slaketemperature
             jtop, num_lakec, filter_lakec, a, b, c1, r, tx)
 
     ! Set t_soisno and t_lake
-    do j = -nlevsno+1, nlevlak + nlevgrnd
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:nlevlak+nlevgrnd )
+      c = filter_lakec(fc)
 
-        jprime = j - nlevlak
+      jprime = j - nlevlak
 
-        ! Don't do anything with invalid snow layers.
-        if (j >= jtop(c)) then
-          if (j < 1) then !snow layer
-            t_soisno(c,j) = tx(c,j)
-          else if (j <= nlevlak) then !lake layer
-            t_lake(c,j)   = tx(c,j)
-          else !soil layer
-            t_soisno(c,jprime) = tx(c,j)
-          end if
+      ! Don't do anything with invalid snow layers.
+      if (j >= jtop(c)) then
+        if (j < 1) then !snow layer
+          t_soisno(c,j) = tx(c,j)
+        else if (j <= nlevlak) then !lake layer
+          t_lake(c,j)   = tx(c,j)
+        else !soil layer
+          t_soisno(c,jprime) = tx(c,j)
         end if
-      end do
+      end if
     end do
 
     ! 8!) Sum energy content and total energy into lake for energy check.
@@ -873,21 +860,20 @@ module mod_clm_slaketemperature
     ! incompletely frozen layer will trigger.
 
     ! Recalculate density
-    do j = 1, nlevlak
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
-        rhow(c,j) = (1._rk8 - lake_icefrac(c,j)) * &
-                    1000._rk8*( 1.0_rk8 - 1.9549e-5_rk8* &
-                    (abs(t_lake(c,j)-tdmax))**1.68_rk8 ) &
-                    + lake_icefrac(c,j)*denice
-      end do
+    do concurrent ( fc = 1:num_lakec, j = 1:nlevlak )
+      c = filter_lakec(fc)
+      rhow(c,j) = (1._rk8 - lake_icefrac(c,j)) * &
+                  1000._rk8*( 1.0_rk8 - 1.9549e-5_rk8* &
+                  (abs(t_lake(c,j)-tdmax))**1.68_rk8 ) &
+                  + lake_icefrac(c,j)*denice
     end do
 
     if (lakepuddling) then
       ! For sensitivity tests
-      do j = 1, nlevlak
-        do fc = 1, num_lakec
-          c = filter_lakec(fc)
+      do concurrent ( fc = 1:num_lakec )
+        c = filter_lakec(fc)
+        !$acc loop seq
+        do j = 1, nlevlak
           if (j == 1) then
             icesum(c) = 0._rk8
             puddle(c) = .false.
@@ -912,17 +898,16 @@ module mod_clm_slaketemperature
     ! density profile is attained, rather than mixing all the way to the
     ! top immediately.
     ! First examine top nlevlak-1 layers.
-    do j = 1, nlevlak-2
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = 1, nlevlak-2
         qav(c) = 0._rk8
         nav(c) = 0._rk8
         iceav(c) = 0._rk8
-      end do
 
-      do i = 1, j+1
-        do fc = 1, num_lakec
-          c = filter_lakec(fc)
+        !$acc loop seq
+        do i = 1, j+1
           if ( (.not. lakepuddling .or. .not. puddle(c) ) .and. &
                   (rhow(c,j) > rhow(c,j+1) .or. &
                (lake_icefrac(c,j) < 1._rk8 .and. &
@@ -937,10 +922,6 @@ module mod_clm_slaketemperature
 #endif
           end if
         end do
-      end do
-
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
 
         if ( (.not. lakepuddling .or. .not. puddle(c) ) .and. &
                 (rhow(c,j) > rhow(c,j+1) .or. &
@@ -962,11 +943,9 @@ module mod_clm_slaketemperature
             tav_unfr(c) = 0._rk8
           end if
         end if
-      end do
 
-      do i = 1, j+1
-        do fc = 1, num_lakec
-          c = filter_lakec(fc)
+        !$acc loop seq
+        do i = 1, j+1
           if (nav(c) > 0._rk8) then
             ! Put all the ice at the top.!
             ! If the average temperature is above freezing, put the extra
@@ -1004,7 +983,7 @@ module mod_clm_slaketemperature
 
     ! Now check bottom layer
     j = nlevlak-1
-    do fc = 1, num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
 
       if ( (.not. lakepuddling .or. .not. puddle(c) ) .and. &
@@ -1020,17 +999,16 @@ module mod_clm_slaketemperature
 
     ! Start mixing from bottom up. Only mix as high as the unstable
     ! density profile persists.
-    do j = nlevlak-1, 1, -1
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = nlevlak-1, 1, -1
         qav(c) = 0._rk8
         nav(c) = 0._rk8
         iceav(c) = 0._rk8
-      end do
 
-      do i = j, nlevlak
-        do fc = 1, num_lakec
-          c = filter_lakec(fc)
+        !$acc loop seq
+        do i = j, nlevlak
           if ( bottomconvect(c) .and. &
               (.not. lakepuddling .or. .not. puddle(c) ) .and. &
               (rhow(c,j) > rhow(c,j+1) .or. &
@@ -1047,10 +1025,6 @@ module mod_clm_slaketemperature
 #endif
           end if
         end do
-      end do
-
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
 
         if ( bottomconvect(c) .and. &
              (.not. lakepuddling .or. .not. puddle(c) ) .and. &
@@ -1073,11 +1047,9 @@ module mod_clm_slaketemperature
             tav_unfr(c) = 0._rk8
           end if
         end if
-      end do
 
-      do i = j, nlevlak
-        do fc = 1, num_lakec
-          c = filter_lakec(fc)
+        !$acc loop seq
+        do i = j, nlevlak
           if (bottomconvect(c) .and. nav(c) > 0._rk8) then
 
             ! Put all the ice at the top.!
@@ -1118,9 +1090,10 @@ module mod_clm_slaketemperature
     ! Calculate grnd_ch4_cond for CH4 Module
     ! The CH4 will diffuse directly from the top soil layer to the atm.,
     ! so the whole lake resistance is included.
-    do j = 1, nlevlak
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = 1, nlevlak
 
         ! Assume resistance is zero for levels that convect
         if (j > jconvect(c) .and. j < jconvectbot(c)) then
@@ -1141,22 +1114,21 @@ module mod_clm_slaketemperature
 
     ! 11!) Re-evaluate thermal properties and sum energy content.
     ! For lake
-    do j = 1, nlevlak
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec, j = 1:nlevlak )
+      c = filter_lakec(fc)
 
-        cv_lake(c,j) = dz_lake(c,j) * (cwat*(1._rk8-lake_icefrac(c,j)) + &
-                cice_eff*lake_icefrac(c,j))
-      end do
+      cv_lake(c,j) = dz_lake(c,j) * (cwat*(1._rk8-lake_icefrac(c,j)) + &
+              cice_eff*lake_icefrac(c,j))
     end do
     ! For snow / soil
     call SoilThermProp_Lake(lbc, ubc, num_lakec, filter_lakec, &
             tk, cv, tktopsoillay)
 
     ! Do as above to sum energy content
-    do j = 1, nlevlak
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = 1, nlevlak
 
         ncvts(c) = ncvts(c) + cv_lake(c,j)*(t_lake(c,j)-tfrz) &
                  + cfus*dz_lake(c,j)*(1._rk8-lake_icefrac(c,j))
@@ -1166,9 +1138,10 @@ module mod_clm_slaketemperature
       end do
     end do
 
-    do j = -nlevsno + 1, nlevgrnd
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = -nlevsno + 1, nlevgrnd
 
         if (j >= jtop(c)) then
           ncvts(c) = ncvts(c) + cv(c,j)*(t_soisno(c,j)-tfrz) &
@@ -1186,7 +1159,7 @@ module mod_clm_slaketemperature
 
     ! Check energy conservation.
 
-    do fp = 1, num_lakep
+    do concurrent ( fp = 1:num_lakep )
       p = filter_lakep(fp)
       c = pcolumn(p)
       errsoi(c) = (ncvts(c)-ocvts(c)) / dtsrf - fin(c)
@@ -1208,9 +1181,10 @@ module mod_clm_slaketemperature
     ! This loop assumes only one point per column.
 
     ! lake_icethick diagnostic.
-    do j = 1, nlevlak
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      !$acc loop seq
+      do j = 1, nlevlak
 
         if (j == 1) lake_icethick(c) = 0._rk8
 
@@ -1310,61 +1284,59 @@ module mod_clm_slaketemperature
 
     ! Thermal conductivity of soil from Farouki (1981)
 
-    do j = -nlevsno+1,nlevgrnd
-      do fc = 1, num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:nlevgrnd )
+      c = filter_lakec(fc)
 
-        ! Only examine levels from 1->nlevsoi
-        if (j >= 1 .and. j <= nlevsoi) then
-!         l = clandunit(c)
-!         if (ityplun(l) /= istwet .AND. ityplun(l) /= istice) then
-          ! This could be altered later for allowing this to be over glaciers.
-          ! Soil should be saturated in SLakeHydrology
-          satw = 1._rk8
-          ! ZMS: Note the following needs to be updated for the corrections
-          ! to be merged into SoilTemperature.
-          ! They are especially important here because of no supercooled water.
-          fl = h2osoi_liq(c,j)/(h2osoi_ice(c,j)+h2osoi_liq(c,j))
-          if (t_soisno(c,j) >= tfrz) then       ! Unfrozen soil
-            dke = max(0._rk8, log10(satw) + 1.0_rk8)
-            dksat = tksatu(c,j)
-          else                               ! Frozen soil
-            dke = satw
-            dksat = tkmg(c,j)*0.249_rk8**(fl*watsat(c,j))*2.29_rk8**watsat(c,j)
-          endif
-          thk(c,j) = dke*dksat + (1._rk8-dke)*tkdry(c,j)
-          satw = (h2osoi_liq(c,j)/denh2o + &
-                  h2osoi_ice(c,j)/denice)/(dz(c,j)*watsat(c,j))
-          ! Hydrology routine won't let the excess be liquid.
-          if (satw > 1._rk8) then
-            xicevol = (satw-1._rk8)*watsat(c,j)
-            thk(c,j) = (thk(c,j) + &
-                    xicevol*tkice)/(1._rk8 + xicevol)/(1._rk8 + xicevol)
-            ! Use simple mean because excess ice is likely to be in chunks,
-            ! thus conductivities add rather than the usual addition of
-            ! resistances.
-            ! Conductivity is reduced by the extra virtual volume fraction,
-            ! as dz is not changing.
-          end if
-          ! See discussion in SLakeHydrology.  This is the simplest way to
-          ! treat thermal cycling near freezing even if not modeling excess
-          ! ice, to assume up to 10% excess ice over watsat after refreezing.
-          ! Assume some ground heaving rather than drainage of the water while
-          ! it's freezing.
-          ! This allows for energy conservation and for the final allowed ice
-          ! volume to be independent of the timestep or precise freezing
-          ! trajectory.
-          ! Does real sediment under lakes heave or drain? Could revisit later.
-        elseif (j > nlevsoi) then
-          thk(c,j) = thk_bedrock
+      ! Only examine levels from 1->nlevsoi
+      if (j >= 1 .and. j <= nlevsoi) then
+!       l = clandunit(c)
+!       if (ityplun(l) /= istwet .AND. ityplun(l) /= istice) then
+        ! This could be altered later for allowing this to be over glaciers.
+        ! Soil should be saturated in SLakeHydrology
+        satw = 1._rk8
+        ! ZMS: Note the following needs to be updated for the corrections
+        ! to be merged into SoilTemperature.
+        ! They are especially important here because of no supercooled water.
+        fl = h2osoi_liq(c,j)/(h2osoi_ice(c,j)+h2osoi_liq(c,j))
+        if (t_soisno(c,j) >= tfrz) then       ! Unfrozen soil
+          dke = max(0._rk8, log10(satw) + 1.0_rk8)
+          dksat = tksatu(c,j)
+        else                               ! Frozen soil
+          dke = satw
+          dksat = tkmg(c,j)*0.249_rk8**(fl*watsat(c,j))*2.29_rk8**watsat(c,j)
         endif
-        ! Thermal conductivity of snow, which from Jordan (1991) pp. 18
-        ! Only examine levels from snl(c)+1 -> 0 where snl(c) < 1
-        if (snl(c)+1 < 1 .AND. (j >= snl(c)+1) .AND. (j <= 0)) then
-          bw = (h2osoi_ice(c,j)+h2osoi_liq(c,j))/dz(c,j)
-          thk(c,j) = tkair + (7.75e-5_rk8 *bw + 1.105e-6_rk8*bw*bw)*(tkice-tkair)
+        thk(c,j) = dke*dksat + (1._rk8-dke)*tkdry(c,j)
+        satw = (h2osoi_liq(c,j)/denh2o + &
+                h2osoi_ice(c,j)/denice)/(dz(c,j)*watsat(c,j))
+        ! Hydrology routine won't let the excess be liquid.
+        if (satw > 1._rk8) then
+          xicevol = (satw-1._rk8)*watsat(c,j)
+          thk(c,j) = (thk(c,j) + &
+                  xicevol*tkice)/(1._rk8 + xicevol)/(1._rk8 + xicevol)
+          ! Use simple mean because excess ice is likely to be in chunks,
+          ! thus conductivities add rather than the usual addition of
+          ! resistances.
+          ! Conductivity is reduced by the extra virtual volume fraction,
+          ! as dz is not changing.
         end if
-      end do
+        ! See discussion in SLakeHydrology.  This is the simplest way to
+        ! treat thermal cycling near freezing even if not modeling excess
+        ! ice, to assume up to 10% excess ice over watsat after refreezing.
+        ! Assume some ground heaving rather than drainage of the water while
+        ! it's freezing.
+        ! This allows for energy conservation and for the final allowed ice
+        ! volume to be independent of the timestep or precise freezing
+        ! trajectory.
+        ! Does real sediment under lakes heave or drain? Could revisit later.
+      elseif (j > nlevsoi) then
+        thk(c,j) = thk_bedrock
+      endif
+      ! Thermal conductivity of snow, which from Jordan (1991) pp. 18
+      ! Only examine levels from snl(c)+1 -> 0 where snl(c) < 1
+      if (snl(c)+1 < 1 .AND. (j >= snl(c)+1) .AND. (j <= 0)) then
+        bw = (h2osoi_ice(c,j)+h2osoi_liq(c,j))/dz(c,j)
+        thk(c,j) = tkair + (7.75e-5_rk8 *bw + 1.105e-6_rk8*bw*bw)*(tkice-tkair)
+      end if
     end do
 
     ! Thermal conductivity at the layer interface
@@ -1375,50 +1347,44 @@ module mod_clm_slaketemperature
     ! layer will be returned.
     ! Because the interfaces are below the soil layers, the conductivity
     ! for the top soil layer will have to be returned separately.
-    do j = -nlevsno+1,nlevgrnd
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
-        if (j >= snl(c)+1 .AND. j <= nlevgrnd-1 .AND. j /= 0) then
-          tk(c,j) = thk(c,j)*thk(c,j+1)*(z(c,j+1)-z(c,j)) &
-                  /(thk(c,j)*(z(c,j+1)-zi(c,j))+thk(c,j+1)*(zi(c,j)-z(c,j)))
-        else if (j == 0 .and. j >= snl(c)+1) then
-          tk(c,j) = thk(c,j)
-        else if (j == nlevgrnd) then
-          tk(c,j) = 0._rk8
-        end if
-        ! For top soil layer.
-        if (j == 1) tktopsoillay(c) = thk(c,j)
-      end do
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:nlevgrnd )
+      c = filter_lakec(fc)
+      if (j >= snl(c)+1 .AND. j <= nlevgrnd-1 .AND. j /= 0) then
+        tk(c,j) = thk(c,j)*thk(c,j+1)*(z(c,j+1)-z(c,j)) &
+                /(thk(c,j)*(z(c,j+1)-zi(c,j))+thk(c,j+1)*(zi(c,j)-z(c,j)))
+      else if (j == 0 .and. j >= snl(c)+1) then
+        tk(c,j) = thk(c,j)
+      else if (j == nlevgrnd) then
+        tk(c,j) = 0._rk8
+      end if
+      ! For top soil layer.
+      if (j == 1) tktopsoillay(c) = thk(c,j)
     end do
 
     ! Soil heat capacity, from de Vires (1963)
 
-    do j = 1, nlevgrnd
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
-        cv(c,j) = csol(c,j)*(1-watsat(c,j))*dz(c,j) +   &
-            (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
-!       if (j == 1) then
-!         if (snl(c)+1 == 1 .AND. h2osno(c) > 0._rk8) then
-!           cv(c,j) = cv(c,j) + cpice*h2osno(c)
-!         end if
+    do concurrent ( fc = 1:num_lakec, j = 1:nlevgrnd )
+      c = filter_lakec(fc)
+      cv(c,j) = csol(c,j)*(1-watsat(c,j))*dz(c,j) +   &
+          (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
+!     if (j == 1) then
+!       if (snl(c)+1 == 1 .AND. h2osno(c) > 0._rk8) then
+!         cv(c,j) = cv(c,j) + cpice*h2osno(c)
 !       end if
-        ! Won't worry about heat capacity for thin snow on lake with no
-        ! snow layers.
-        ! Its temperature will be assigned based on air temperature anyway
-        ! if a new node is formed.
-      end do
+!     end if
+      ! Won't worry about heat capacity for thin snow on lake with no
+      ! snow layers.
+      ! Its temperature will be assigned based on air temperature anyway
+      ! if a new node is formed.
     end do
 
     ! Snow heat capacity
 
-    do j = -nlevsno+1,0
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
-        if (snl(c)+1 < 1 .and. j >= snl(c)+1) then
-          cv(c,j) = cpliq*h2osoi_liq(c,j) + cpice*h2osoi_ice(c,j)
-        end if
-      end do
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:0 )
+      c = filter_lakec(fc)
+      if (snl(c)+1 < 1 .and. j >= snl(c)+1) then
+        cv(c,j) = cpliq*h2osoi_liq(c,j) + cpice*h2osoi_ice(c,j)
+      end if
     end do
   end subroutine SoilThermProp_Lake
   !
@@ -1517,7 +1483,7 @@ module mod_clm_slaketemperature
 
     ! Initialization
 
-    do fc = 1,num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
 
       qflx_snomelt(c)   = 0._rk8
@@ -1526,21 +1492,19 @@ module mod_clm_slaketemperature
       qflx_snow_melt(c) = 0._rk8
     end do
 
-    do j = -nlevsno+1,0
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:0 )
+      c = filter_lakec(fc)
 
-        qflx_snofrz_lyr(c,j) = 0._rk8
-        ! Do for all possible snow layers in case snl changes over timestep.
-        ! Bug corrected ZMS 10/14/11
-        imelt(c,j) = 0
-      end do
+      qflx_snofrz_lyr(c,j) = 0._rk8
+      ! Do for all possible snow layers in case snl changes over timestep.
+      ! Bug corrected ZMS 10/14/11
+      imelt(c,j) = 0
     end do
 
     ! Check for case of snow without snow layers and top lake layer
     ! temp above freezing.
 
-    do fc = 1,num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
 
       if (snl(c) == 0 .and. h2osno(c) > 0._rk8 .and. t_lake(c,1) > tfrz) then
@@ -1562,103 +1526,97 @@ module mod_clm_slaketemperature
 
     ! Lake phase change
 
-    do j = 1,nlevlak
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
+    do concurrent ( fc = 1:num_lakec, j = 1:nlevlak )
+      c = filter_lakec(fc)
 
-        dophasechangeflag = .false.
-        if (t_lake(c,j) > tfrz .and. lake_icefrac(c,j) > 0._rk8) then ! melting
-          dophasechangeflag = .true.
-          heatavail = (t_lake(c,j) - tfrz) * cv_lake(c,j)
-          melt = min(lake_icefrac(c,j)*denh2o*dz_lake(c,j), heatavail/hfus)
-          !denh2o is used because layer thickness is not adjusted for freezing
-          heatrem = max(heatavail - melt*hfus, 0._rk8)
-          !catch small negative value to keep t at tfrz
-        else if (t_lake(c,j) < tfrz .and. lake_icefrac(c,j) < 1._rk8) then
-          !freezing
-          dophasechangeflag = .true.
-          heatavail = (t_lake(c,j) - tfrz) * cv_lake(c,j)
-          melt = max(-(1._rk8-lake_icefrac(c,j))* &
-                  denh2o*dz_lake(c,j), heatavail/hfus)
-          !denh2o is used because layer thickness is not adjusted for freezing
-          heatrem = min(heatavail - melt*hfus, 0._rk8)
-          !catch small positive value to keep t at tfrz
-        end if
-        ! Update temperature and ice fraction.
-        if (dophasechangeflag) then
-          lake_icefrac(c,j) = lake_icefrac(c,j) - melt/(denh2o*dz_lake(c,j))
-          lhabs(c) = lhabs(c) + melt*hfus
-          ! Update heat capacity
-          cv_lake(c,j) = cv_lake(c,j) + melt*(cpliq-cpice)
-          t_lake(c,j) = tfrz + heatrem/cv_lake(c,j)
-          ! Prevent tiny residuals
-          if (lake_icefrac(c,j) > 1._rk8 - smallnumber) lake_icefrac(c,j) = 1._rk8
-          if (lake_icefrac(c,j) < smallnumber)         lake_icefrac(c,j) = 0._rk8
-        end if
-      end do
+      dophasechangeflag = .false.
+      if (t_lake(c,j) > tfrz .and. lake_icefrac(c,j) > 0._rk8) then ! melting
+        dophasechangeflag = .true.
+        heatavail = (t_lake(c,j) - tfrz) * cv_lake(c,j)
+        melt = min(lake_icefrac(c,j)*denh2o*dz_lake(c,j), heatavail/hfus)
+        !denh2o is used because layer thickness is not adjusted for freezing
+        heatrem = max(heatavail - melt*hfus, 0._rk8)
+        !catch small negative value to keep t at tfrz
+      else if (t_lake(c,j) < tfrz .and. lake_icefrac(c,j) < 1._rk8) then
+        !freezing
+        dophasechangeflag = .true.
+        heatavail = (t_lake(c,j) - tfrz) * cv_lake(c,j)
+        melt = max(-(1._rk8-lake_icefrac(c,j))* &
+                denh2o*dz_lake(c,j), heatavail/hfus)
+        !denh2o is used because layer thickness is not adjusted for freezing
+        heatrem = min(heatavail - melt*hfus, 0._rk8)
+        !catch small positive value to keep t at tfrz
+      end if
+      ! Update temperature and ice fraction.
+      if (dophasechangeflag) then
+        lake_icefrac(c,j) = lake_icefrac(c,j) - melt/(denh2o*dz_lake(c,j))
+        lhabs(c) = lhabs(c) + melt*hfus
+        ! Update heat capacity
+        cv_lake(c,j) = cv_lake(c,j) + melt*(cpliq-cpice)
+        t_lake(c,j) = tfrz + heatrem/cv_lake(c,j)
+        ! Prevent tiny residuals
+        if (lake_icefrac(c,j) > 1._rk8 - smallnumber) lake_icefrac(c,j) = 1._rk8
+        if (lake_icefrac(c,j) < smallnumber)         lake_icefrac(c,j) = 0._rk8
+      end if
     end do
 
     ! Snow & soil phase change
     ! Currently, does not do freezing point depression.
 
-    do j = -nlevsno+1,nlevgrnd
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
-        dophasechangeflag = .false.
+    do concurrent ( fc = 1:num_lakec, j = -nlevsno+1:nlevgrnd )
+      c = filter_lakec(fc)
+      dophasechangeflag = .false.
 
-        if (j >= snl(c) + 1) then
-          if (t_soisno(c,j) > tfrz .and. h2osoi_ice(c,j) > 0._rk8) then ! melting
-            dophasechangeflag = .true.
-            heatavail = (t_soisno(c,j) - tfrz) * cv(c,j)
-            melt = min(h2osoi_ice(c,j), heatavail/hfus)
-            heatrem = max(heatavail - melt*hfus, 0._rk8)
-            !catch small negative value to keep t at tfrz
-            if (j <= 0) then !snow
-              imelt(c,j) = 1
-              qflx_snomelt(c) = qflx_snomelt(c) + melt/dtsrf
-            end if
-          else if (t_soisno(c,j) < tfrz .and. h2osoi_liq(c,j) > 0._rk8) then
-            !freezing
-            dophasechangeflag = .true.
-            heatavail = (t_soisno(c,j) - tfrz) * cv(c,j)
-            melt = max(-h2osoi_liq(c,j), heatavail/hfus)
-            heatrem = min(heatavail - melt*hfus, 0._rk8)
-            !catch small positive value to keep t at tfrz
-            if (j <= 0) then !snow
-              imelt(c,j) = 2
-              !qflx_snomelt(c) = qflx_snomelt(c) + melt
-              ! Does this works for both signs of melt in SnowHydrology? I think
-              ! qflx_snomelt(c) is just output.
-              ! It looks like qflx_snomelt is just supposed to be positive.
-              ! New variable for CLM 4
-              qflx_snofrz_lyr(c,j) = -melt/dtsrf
-            end if
+      if (j >= snl(c) + 1) then
+        if (t_soisno(c,j) > tfrz .and. h2osoi_ice(c,j) > 0._rk8) then ! melting
+          dophasechangeflag = .true.
+          heatavail = (t_soisno(c,j) - tfrz) * cv(c,j)
+          melt = min(h2osoi_ice(c,j), heatavail/hfus)
+          heatrem = max(heatavail - melt*hfus, 0._rk8)
+          !catch small negative value to keep t at tfrz
+          if (j <= 0) then !snow
+            imelt(c,j) = 1
+            qflx_snomelt(c) = qflx_snomelt(c) + melt/dtsrf
           end if
-
-          ! Update temperature and soil components.
-          if (dophasechangeflag) then
-            h2osoi_ice(c,j) = h2osoi_ice(c,j) - melt
-            h2osoi_liq(c,j) = h2osoi_liq(c,j) + melt
-            lhabs(c) = lhabs(c) + melt*hfus
-            ! Update heat capacity
-            cv(c,j) = cv(c,j) + melt*(cpliq-cpice)
-            t_soisno(c,j) = tfrz + heatrem/cv(c,j)
-            ! Prevent tiny residuals
-            if (h2osoi_ice(c,j) < smallnumber) h2osoi_ice(c,j) = 0._rk8
-            if (h2osoi_liq(c,j) < smallnumber) h2osoi_liq(c,j) = 0._rk8
+        else if (t_soisno(c,j) < tfrz .and. h2osoi_liq(c,j) > 0._rk8) then
+          !freezing
+          dophasechangeflag = .true.
+          heatavail = (t_soisno(c,j) - tfrz) * cv(c,j)
+          melt = max(-h2osoi_liq(c,j), heatavail/hfus)
+          heatrem = min(heatavail - melt*hfus, 0._rk8)
+          !catch small positive value to keep t at tfrz
+          if (j <= 0) then !snow
+            imelt(c,j) = 2
+            !qflx_snomelt(c) = qflx_snomelt(c) + melt
+            ! Does this works for both signs of melt in SnowHydrology? I think
+            ! qflx_snomelt(c) is just output.
+            ! It looks like qflx_snomelt is just supposed to be positive.
+            ! New variable for CLM 4
+            qflx_snofrz_lyr(c,j) = -melt/dtsrf
           end if
         end if
-      end do
+
+        ! Update temperature and soil components.
+        if (dophasechangeflag) then
+          h2osoi_ice(c,j) = h2osoi_ice(c,j) - melt
+          h2osoi_liq(c,j) = h2osoi_liq(c,j) + melt
+          lhabs(c) = lhabs(c) + melt*hfus
+          ! Update heat capacity
+          cv(c,j) = cv(c,j) + melt*(cpliq-cpice)
+          t_soisno(c,j) = tfrz + heatrem/cv(c,j)
+          ! Prevent tiny residuals
+          if (h2osoi_ice(c,j) < smallnumber) h2osoi_ice(c,j) = 0._rk8
+          if (h2osoi_liq(c,j) < smallnumber) h2osoi_liq(c,j) = 0._rk8
+        end if
+      end if
     end do
 
     ! Update eflx_snomelt(c)
-    do fc = 1,num_lakec
+    do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
       eflx_snomelt(c) = qflx_snomelt(c)*hfus
-    end do
-    do j = -nlevsno+1,0
-      do fc = 1,num_lakec
-        c = filter_lakec(fc)
+      !$acc loop seq
+      do j = -nlevsno+1,0
         qflx_snofrz_col(c) = qflx_snofrz_col(c) + qflx_snofrz_lyr(c,j)
       end do
     end do
