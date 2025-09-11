@@ -2219,7 +2219,11 @@ module mod_clm_snowhydrology
     end do
 
     ! Consistency check
+#ifndef OPENACC
+    do fc  = 1, num_snowc
+#else
     do concurrent ( fc = 1:num_snowc )
+#endif
       c = filter_snowc(fc)
       !$acc loop seq
       do j = -nlevsno + 1, 0
