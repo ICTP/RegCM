@@ -385,7 +385,6 @@ module mod_micro_subex
   contains
 
 #include <wlh.inc>
-#include <pfesat.inc>
 #include <pfwsat.inc>
 #include <clwfromt.inc>
 

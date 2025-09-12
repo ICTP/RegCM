@@ -48,7 +48,6 @@ module mod_humid
   contains
 
 #include <sig2p.inc>
-#include <pfesat.inc>
 #include <pfwsat.inc>
 
   subroutine sph2mxr_double(q,ni,nj,nk)

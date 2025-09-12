@@ -373,7 +373,7 @@ module mod_sort
     implicit none
     integer(ik4), intent(in) :: n
     real(rk4), dimension(n), intent(in) :: a
-    integer :: i, j, n1, n2
+    integer :: i, j, n1
     integer :: imax, nmax
     real(rk4), dimension(n) :: b
     real(rk4) :: check
@@ -407,7 +407,7 @@ module mod_sort
     implicit none
     integer(ik4), intent(in) :: n
     real(rk8), dimension(n), intent(in) :: a
-    integer :: i, j, n1, n2
+    integer :: i, j, n1
     integer :: imax, nmax
     real(rk8), dimension(n) :: b
     real(rk8) :: check

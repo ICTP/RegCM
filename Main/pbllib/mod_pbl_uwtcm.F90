@@ -747,7 +747,6 @@ module mod_pbl_uwtcm
   end subroutine uwtcm
 
 #include <wlh.inc>
-#include <pfesat.inc>
 #include <pfwsat.inc>
 
   pure subroutine solve_tridiag(a,b,c,v,x,n)

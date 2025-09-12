@@ -381,7 +381,6 @@ module mod_slice
 
     contains
 
-#include <pfesat.inc>
 #include <pfwsat.inc>
 
   end subroutine mkslice

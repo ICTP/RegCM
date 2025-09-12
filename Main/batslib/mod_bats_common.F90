@@ -531,7 +531,6 @@ module mod_bats_common
 
     contains
 
-#include <pfesat.inc>
 #include <pfwsat.inc>
 
   end subroutine interf

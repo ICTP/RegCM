@@ -61,7 +61,6 @@ module mod_init
 
   contains
 
-#include <pfesat.inc>
 #include <pfwsat.inc>
 
   !

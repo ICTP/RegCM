@@ -501,11 +501,6 @@ module mod_che_tend
         call ccn
       end if
 
-      contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
     end subroutine tractend2
 
 end module mod_che_tend

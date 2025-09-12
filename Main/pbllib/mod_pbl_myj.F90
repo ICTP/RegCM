@@ -484,7 +484,6 @@ module mod_pbl_myj
 
     contains
 
-#include <pfesat.inc>
 #include <pfqsat.inc>
 
   end subroutine myjpbl

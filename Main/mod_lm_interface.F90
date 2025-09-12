@@ -881,7 +881,7 @@ module mod_lm_interface
               tas = sum(lms%t2m(:,j,i))*rdnnsg
               ps = sum(lms%sfcp(:,j,i))*rdnnsg
               es = pfesat(tas,ps)
-              qs = pfwsat(tas,ps,es)
+              qs = pfwsat(tas,ps)
               qas = lm%q2m(j,i)
               uas = lm%w10m(j,i)
               rh = min(max((qas/qs),d_zero),d_one)
@@ -1288,8 +1288,7 @@ module mod_lm_interface
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
-#include <pfdesatdt.inc>
-#include <pqderiv.inc>
+#include <pfesdt.inc>
 #include <evpt.inc>
 #include <wlh.inc>
 

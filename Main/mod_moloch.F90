@@ -184,7 +184,6 @@ module mod_moloch
 
   contains
 
-#include <pfesat.inc>
 #include <pfwsat.inc>
 
   subroutine allocate_moloch

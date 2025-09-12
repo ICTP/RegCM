@@ -1141,7 +1141,6 @@ module mod_cu_grell
     end do
     contains
 
-#include <pfesat.inc>
 #include <pfwsat.inc>
 
      subroutine minimi1(array,ks,ke,kt)

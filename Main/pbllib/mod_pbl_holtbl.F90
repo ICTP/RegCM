@@ -1195,7 +1195,6 @@ module mod_pbl_holtbl
     !@acc call nvtxEndRange
   end subroutine holtbl
 
-#include <pfesat.inc>
 #include <pfqsat.inc>
 
   pure real(rkx) function comp_obklen(thvs,ustar,bfs) result(obk)

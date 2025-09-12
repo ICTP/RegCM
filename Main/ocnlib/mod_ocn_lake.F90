@@ -370,7 +370,6 @@ module mod_ocn_lake
 
     contains
 
-#include <pfesat.inc>
 #include <pfqsat.inc>
     !
     ! our formulation for zo

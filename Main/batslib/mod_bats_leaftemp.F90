@@ -524,7 +524,7 @@ module mod_bats_leaftemp
 #endif
     do i = ilndbeg, ilndend
       eg(i) = pfesat(t(i),p(i))
-      qsat(i) = pfqsat(t(i),p(i),eg(i))
+      qsat(i) = pfqsat(t(i),p(i))
       ! call bats_satur(t(i),p(i),eg(i),qsat(i))
     end do
 #ifdef DEBUG
@@ -765,8 +765,7 @@ module mod_bats_leaftemp
 
 #include <pfesat.inc>
 #include <pfqsat.inc>
-#include <pfdesatdt.inc>
-#include <pqderiv.inc>
+#include <pfqsdt.inc>
 
 end module mod_bats_leaftemp
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

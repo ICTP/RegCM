@@ -469,7 +469,7 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange), intent(inout) :: lm
     integer(ik4) :: begg, endg, i, n
-    real(rkx) :: satq, satp, lat
+    real(rkx) :: satq, lat
 
     call get_proc_bounds(begg,endg)
 
@@ -507,10 +507,8 @@ module mod_clm_regcm
 
     do i = begg, endg
       clm_a2l%forc_rho(i) = clm_a2l%forc_pbot(i)/(rgas*clm_a2l%forc_t(i))
-      satp = pfesat(real(clm_a2l%forc_t(i),rkx), &
-                    real(clm_a2l%forc_pbot(i),rkx))
       satq = pfwsat(real(clm_a2l%forc_t(i),rkx), &
-                    real(clm_a2l%forc_pbot(i),rkx),satp)
+                    real(clm_a2l%forc_pbot(i),rkx))
       clm_a2l%forc_rh(i) = clm_a2l%forc_q(i)/satq
       clm_a2l%forc_rh(i) = min(real(rhmax,rk8), clm_a2l%forc_rh(i))
       clm_a2l%forc_rh(i) = max(real(rhmin,rk8), clm_a2l%forc_rh(i))
@@ -698,7 +696,6 @@ module mod_clm_regcm
 
     contains
 
-#include <pfesat.inc>
 #include <pfwsat.inc>
 
   end subroutine atmosphere_to_land

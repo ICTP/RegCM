@@ -301,7 +301,6 @@ module mod_ocn_bats
 
   end subroutine seaice
 
-#include <pfesat.inc>
 #include <pfqsat.inc>
 
 end module mod_ocn_bats

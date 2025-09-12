@@ -371,10 +371,8 @@ module mod_ocn_coare
 
       contains
 
-#include <pfesat.inc>
 #include <pfqsat.inc>
-#include <pfdesatdt.inc>
-#include <pqderiv.inc>
+#include <pfqsdt.inc>
 #include <wlh.inc>
 #include <cpmf.inc>
 

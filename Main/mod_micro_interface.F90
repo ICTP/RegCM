@@ -598,7 +598,6 @@ module mod_micro_interface
 
     contains
 
-#include <pfesat.inc>
 #include <pfwsat.inc>
 #include <wlh.inc>
 

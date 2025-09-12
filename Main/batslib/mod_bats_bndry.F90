@@ -272,9 +272,7 @@ module mod_bats_bndry
     contains
 
 #include <wlh.inc>
-#include <pfesat.inc>
-#include <pfdesatdt.inc>
-#include <pqderiv.inc>
+#include <pfqsdt.inc>
 
   end subroutine bndry
   !

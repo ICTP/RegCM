@@ -51,7 +51,7 @@ mod_domain.o: mod_domain.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_m
 mod_dynparam.o: mod_dynparam.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o
 mod_ensemble.o: mod_ensemble.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_constants.o
 mod_hgt.o: mod_hgt.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_message.o
-mod_humid.o : mod_humid.F90 mod_intkinds.o mod_realkinds.o mod_constants.o pfesat.inc pfwsat.inc sig2p.inc
+mod_humid.o : mod_humid.F90 mod_intkinds.o mod_realkinds.o mod_constants.o pfwsat.inc sig2p.inc
 mod_interp.o: mod_interp.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o mod_memutil.o mod_constants.o mod_dynparam.o mod_earth.o
 mod_intldtr.o : mod_intldtr.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o mod_earth.o
 mod_memutil.o: mod_memutil.F90 mod_intkinds.o mod_realkinds.o mod_space.o mod_message.o mod_constants.o mod_date.o

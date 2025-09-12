@@ -1283,7 +1283,6 @@ module mod_cu_em
 
   end subroutine cupeman
 
-#include <pfesat.inc>
 #include <pfqsat.inc>
 
 end module mod_cu_em

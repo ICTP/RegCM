@@ -48,7 +48,7 @@ module mod_sst_gndnc
   character(len=256) :: inpfile
   character(len=16), dimension(2) :: varname
   type(h_interpolator) :: hint
-  integer(ik2) :: fillvalue = 0
+  integer(ik2) :: fillvalue = 0_ik2
   real(rkx) :: add_offset, scale_factor
   logical :: cds_beta = .false.
 
