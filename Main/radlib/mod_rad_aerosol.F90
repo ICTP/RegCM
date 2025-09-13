@@ -2109,7 +2109,8 @@ module mod_rad_aerosol
           wavncl(3)  = wavn(10)
           wavncl(4)  = wavn(13)
 #ifdef STDPAR_FIXED
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kth ) local(src,dest)
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kth ) &
+               local(src,dest)
 #else
           !$acc parallel loop collapse(3) gang vector private(src,dest)
           do k = 1, kth
@@ -2355,7 +2356,8 @@ module mod_rad_aerosol
 #ifdef STDPAR_FIXED
             do concurrent ( n = n1:n2, k = 1:kz ) local(kssslt,gssslt,wssslt)
 #else
-            !$acc parallel loop collapse(2) gang vector
+            !$acc parallel loop collapse(2) gang vector &
+            !$acc     private(kssslt,gssslt,wssslt)
             do k = 1, kz
             do n = n1, n2
 #endif

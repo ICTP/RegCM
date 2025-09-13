@@ -1023,7 +1023,6 @@ module mod_clm_snowhydrology
 #ifdef STDPAR_FIXED
     do concurrent ( fc = 1:num_snowc )
 #else
-    !$acc parallel loop gang vector
     do fc = 1, num_snowc
 #endif
       c = filter_snowc(fc)
@@ -1252,7 +1251,7 @@ module mod_clm_snowhydrology
 #ifdef STDPAR_FIXED
     do concurrent ( fc = 1:num_snowc )
 #else
-    !$acc parallel loop gang vector
+    !$acc parallel loop collapse(1)
     do fc = 1, num_snowc
 #endif
       c = filter_snowc(fc)
@@ -2219,7 +2218,8 @@ module mod_clm_snowhydrology
     end do
 
     ! Consistency check
-#ifndef OPENACC
+#ifndef STDPAR
+    !$acc parallel loop gang vector
     do fc  = 1, num_snowc
 #else
     do concurrent ( fc = 1:num_snowc )

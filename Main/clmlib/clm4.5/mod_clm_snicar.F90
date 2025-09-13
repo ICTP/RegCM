@@ -1306,7 +1306,12 @@ module mod_clm_snicar
     frac_sno           => clm3%g%l%c%cps%frac_sno_eff
 
     ! loop over columns that have at least one snow layer
+#ifdef STDPAR
     do concurrent ( fc = 1:num_snowc ) local(cdz)
+#else
+    !$acc parallel loop collapse(1) gang vector private(cdz)
+    do fc = 1, num_snowc
+#endif
       c_idx = filter_snowc(fc)
 
       snl_btm = 0

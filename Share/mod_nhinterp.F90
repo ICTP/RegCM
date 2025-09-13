@@ -129,17 +129,18 @@ module mod_nhinterp
 #ifdef STDPAR
       do concurrent ( j = j1:j2, i = i1:i2 ) local(zq)
 #else
+      !$acc parallel loop collapse(2) gang vector private(zq)
       do i = i1, i2
-        do j = j1, j2
+      do j = j1, j2
 #endif
-          zq(kxs+1) = d_zero
-          do k = kxs, 1, -1
-            zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
-              log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
-            z(j,i,k) = d_half * (zq(k) + zq(k+1))
-          end do
-#ifndef STDPAR
+        zq(kxs+1) = d_zero
+        do k = kxs, 1, -1
+          zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
+            log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
+          z(j,i,k) = d_half * (zq(k) + zq(k+1))
         end do
+#ifndef STDPAR
+      end do
 #endif
       end do
       !
@@ -149,62 +150,64 @@ module mod_nhinterp
 #ifdef STDPAR
         do concurrent ( j = j1:j2, i = i1:i2 ) local(fn)
 #else
+        !$acc parallel loop collapse(2) gang vector private(fn)
         do i = i1, i2
-          do j = j1, j2
+        do j = j1, j2
 #endif
-            do k = 1, kxs
-              l = 1
-              do ll = 1, kxs - 1
-                l = ll
-                if (z(j,i,l+1) < z0(j,i,k)) exit
-              end do
-              zu = z(j,i,l)
-              zl = z(j,i,l+1)
-              fu = f(j,i,l)
-              fl = f(j,i,l+1)
-              fn(k) = (fu * (z0(j,i,k) - zl ) + &
-                       fl * (zu - z0(j,i,k))) / (zu - zl)
+          do k = 1, kxs
+            l = 1
+            do ll = 1, kxs - 1
+              l = ll
+              if (z(j,i,l+1) < z0(j,i,k)) exit
             end do
-            do k = 1, kxs
-              f(j,i,k) = fn(k)
-            end do
-#ifndef STDPAR
+            zu = z(j,i,l)
+            zl = z(j,i,l+1)
+            fu = f(j,i,l)
+            fl = f(j,i,l+1)
+            fn(k) = (fu * (z0(j,i,k) - zl ) + &
+                     fl * (zu - z0(j,i,k))) / (zu - zl)
           end do
+          do k = 1, kxs
+            f(j,i,k) = fn(k)
+          end do
+#ifndef STDPAR
+        end do
 #endif
         end do
       else
 #ifdef STDPAR
         do concurrent ( j = j1:j2, i = i1:i2 ) local(fn)
 #else
+        !$acc parallel loop collapse(2) gang vector private(fn)
         do i = i1, i2
-          do j = j1, j2
+        do j = j1, j2
 #endif
-            do k = 1, kxs
-              do ll = 1, kxs - 1
-                l = ll
-                if (z(j,i,l+1) < z0(j,i,k)) exit
-              end do
-              zu = z(j,i,l)
-              zl = z(j,i,l+1)
-              f(j,i,l) = max(f(j,i,l), minqq)
-              f(j,i,l+1) = max(f(j,i,l+1), minqq)
-              if ( z0(j,i,k) > zu ) then
-                fn(k) = f(j,i,l)
-              else
-                fu = log(f(j,i,l  ))
-                fl = log(f(j,i,l+1))
-                wu = (z0(j,i,k) - zl) / (zu - zl)
-                wl = d_one - wu
-                alnqvn = fu * wu + fl * wl
-                fn(k) = exp(alnqvn)
-              end if
-              if ( fn(k) < minqq ) fn(k) = minqq
+          do k = 1, kxs
+            do ll = 1, kxs - 1
+              l = ll
+              if (z(j,i,l+1) < z0(j,i,k)) exit
             end do
-            do k = 1, kxs
-              f(j,i,k) = fn(k)
-            end do
-#ifndef STDPAR
+            zu = z(j,i,l)
+            zl = z(j,i,l+1)
+            f(j,i,l) = max(f(j,i,l), minqq)
+            f(j,i,l+1) = max(f(j,i,l+1), minqq)
+            if ( z0(j,i,k) > zu ) then
+              fn(k) = f(j,i,l)
+            else
+              fu = log(f(j,i,l  ))
+              fl = log(f(j,i,l+1))
+              wu = (z0(j,i,k) - zl) / (zu - zl)
+              wl = d_one - wu
+              alnqvn = fu * wu + fl * wl
+              fn(k) = exp(alnqvn)
+            end if
+            if ( fn(k) < minqq ) fn(k) = minqq
           end do
+          do k = 1, kxs
+            f(j,i,k) = fn(k)
+          end do
+#ifndef STDPAR
+        end do
 #endif
         end do
       end if
@@ -240,17 +243,18 @@ module mod_nhinterp
 #ifdef STDPAR
       do concurrent ( j = j1:j2, i = i1:i2 ) local(zq)
 #else
+      !$acc parallel loop collapse(2) gang vector private(zq)
       do i = i1, i2
-        do j = j1, j2
+      do j = j1, j2
 #endif
-          zq(kxs+1) = d_zero
-          do k = kxs, 1, -1
-            zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
-              log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
-            z(j,i,k) = d_half * (zq(k) + zq(k+1))
-          end do
-#ifndef STDPAR
+        zq(kxs+1) = d_zero
+        do k = kxs, 1, -1
+          zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
+            log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
+          z(j,i,k) = d_half * (zq(k) + zq(k+1))
         end do
+#ifndef STDPAR
+      end do
 #endif
       end do
       !
@@ -260,36 +264,37 @@ module mod_nhinterp
 #ifdef STDPAR
         do concurrent( j = j1:j2, i = i1:i2 ) local(fn)
 #else
+        !$acc parallel loop collapse(2) gang vector private(fn)
         do i = i1, i2
-          do j = j1, j2
+        do j = j1, j2
 #endif
-            do k = 1, kxs
-              l = 1
-              do ll = 1, kxs - 1
-                l = ll
-                if (z(j,i,ll+1) < z0(j,i,k)) exit
-              end do
-              zu = z(j,i,l)
-              zl = z(j,i,l+1)
-              f(j,i,l,  n) = max(f(j,i,l,  n),mintr)
-              f(j,i,l+1,n) = max(f(j,i,l+1,n),mintr)
-              if ( z0(j,i,k) > zu ) then
-                fn(k) = f(j,i,l,n)
-              else
-                fu = log(f(j,i,l  ,n))
-                fl = log(f(j,i,l+1,n))
-                wu = (z0(j,i,k) - zl) / (zu - zl)
-                wl = d_one - wu
-                alnqvn = fu * wu + fl * wl
-                fn(k) = exp(alnqvn)
-              end if
-              if ( fn(k) < dlowval ) fn(k) = mintr
+          do k = 1, kxs
+            l = 1
+            do ll = 1, kxs - 1
+              l = ll
+              if (z(j,i,ll+1) < z0(j,i,k)) exit
             end do
-            do k = 1, kxs
-              f(j,i,k,n) = fn(k)
-            end do
-#ifndef STDPAR
+            zu = z(j,i,l)
+            zl = z(j,i,l+1)
+            f(j,i,l,  n) = max(f(j,i,l,  n),mintr)
+            f(j,i,l+1,n) = max(f(j,i,l+1,n),mintr)
+            if ( z0(j,i,k) > zu ) then
+              fn(k) = f(j,i,l,n)
+            else
+              fu = log(f(j,i,l  ,n))
+              fl = log(f(j,i,l+1,n))
+              wu = (z0(j,i,k) - zl) / (zu - zl)
+              wl = d_one - wu
+              alnqvn = fu * wu + fl * wl
+              fn(k) = exp(alnqvn)
+            end if
+            if ( fn(k) < dlowval ) fn(k) = mintr
           end do
+          do k = 1, kxs
+            f(j,i,k,n) = fn(k)
+          end do
+#ifndef STDPAR
+        end do
 #endif
         end do
       end do
@@ -419,83 +424,84 @@ module mod_nhinterp
 #ifdef STDPAR
       do concurrent ( j = j1:j2, i = i1:i2 ) local(mdv,qdt)
 #else
+      !$acc parallel loop collapse(2) gang vector private(mdv,qdt)
       do i = i1, i2
-        do j = j1, j2
+      do j = j1, j2
 #endif
-          if ( icrm /= 1 ) then
-            ip = min(i+1,i2)
-            im = max(i-1,i1)
+        if ( icrm /= 1 ) then
+          ip = min(i+1,i2)
+          im = max(i-1,i1)
+        else
+          if ( i == i2-1 ) then
+            ip = i2
+          else if ( i == i2 ) then
+            ip = i1
           else
-            if ( i == i2-1 ) then
-              ip = i2
-            else if ( i == i2 ) then
-              ip = i1
-            else
-              ip = i + 1
-            end if
-            if ( i == i1+1 ) then
-              im = i1
-            else if ( i == i1 ) then
-              im = i2
-            else
-              im = i - 1
-            end if
+            ip = i + 1
           end if
-          if ( iband /= 1 ) then
-            jp = min(j+1,j2)
-            jm = max(j-1,j1)
+          if ( i == i1+1 ) then
+            im = i1
+          else if ( i == i1 ) then
+            im = i2
           else
-            if ( j == j2-1 ) then
-              jp = j2
-            else if ( j == j2 ) then
-              jp = j1
-            else
-              jp = j + 1
-            end if
-            if ( j == j1+1 ) then
-              jm = j1
-            else if ( j == j1 ) then
-              jm = j2
-            else
-              jm = j - 1
-            end if
+            im = i - 1
           end if
+        end if
+        if ( iband /= 1 ) then
+          jp = min(j+1,j2)
+          jm = max(j-1,j1)
+        else
+          if ( j == j2-1 ) then
+            jp = j2
+          else if ( j == j2 ) then
+            jp = j1
+          else
+            jp = j + 1
+          end if
+          if ( j == j1+1 ) then
+            jm = j1
+          else if ( j == j1 ) then
+            jm = j2
+          else
+            jm = j - 1
+          end if
+        end if
 
-          mdv(:) = d_zero
-          do l = 1, kxs
-            ua = u(j ,i ,l) * psdot(j,i)  + &
-                 u(j ,ip,l) * psdot(j,ip)
-            ub = u(jp, i,l) * psdot(jp,i) + &
-                 u(jp,ip,l) * psdot(jp,ip)
-            va = v(j ,i ,l) * psdot(j,i)  + &
-                 v(jp,i ,l) * psdot(jp,i)
-            vb = v(j ,ip,l) * psdot(j,ip) + &
-                 v(jp,ip,l) * psdot(jp,ip)
-            mdv(l) = (ub - ua + vb - va) * dummy(j,i) / ps(j,i)
-          end do
-          qdt(kxs+1) = d_zero
-          do l = kxs, 1, -1
-            qdt(l) = qdt(l+1) + mdv(l) * dsigma(l)
-          end do
-          do l = kxs+1, 1, -1
-            lp = min(l,kxs)
-            lm = max(l-1,1)
-            if ( l == kxs+1 ) lm = kxs-1
-            ubar = 0.125_rkx * (u(j ,i ,lm) + u(j ,ip,lm) + &
-                                u(jp,i ,lm) + u(jp,ip,lm) + &
-                                u(j ,i ,lp) + u(j ,ip,lp) + &
-                                u(jp,i ,lp) + u(jp,ip,lp))
-            vbar = 0.125_rkx * (v(j ,i ,lm) + v(j ,ip,lm) + &
-                                v(jp,i ,lm) + v(jp,ip,lm) + &
-                                v(j ,i ,lp) + v(j ,ip,lp) + &
-                                v(jp,i ,lp) + v(jp,ip,lp))
-            ! Calculate omega
-            omega(j,i,l) = ps(j,i) * qdt(l) + sigma(l) *  &
-                    ((ps(jp,i) - ps(jm,i)) * ubar + &
-                     (ps(j,ip) - ps(j,im)) * vbar) * dummy1(j,i)
-          end do
-#ifndef STDPAR
+        mdv(:) = d_zero
+        do l = 1, kxs
+          ua = u(j ,i ,l) * psdot(j,i)  + &
+               u(j ,ip,l) * psdot(j,ip)
+          ub = u(jp, i,l) * psdot(jp,i) + &
+               u(jp,ip,l) * psdot(jp,ip)
+          va = v(j ,i ,l) * psdot(j,i)  + &
+               v(jp,i ,l) * psdot(jp,i)
+          vb = v(j ,ip,l) * psdot(j,ip) + &
+               v(jp,ip,l) * psdot(jp,ip)
+          mdv(l) = (ub - ua + vb - va) * dummy(j,i) / ps(j,i)
         end do
+        qdt(kxs+1) = d_zero
+        do l = kxs, 1, -1
+          qdt(l) = qdt(l+1) + mdv(l) * dsigma(l)
+        end do
+        do l = kxs+1, 1, -1
+          lp = min(l,kxs)
+          lm = max(l-1,1)
+          if ( l == kxs+1 ) lm = kxs-1
+          ubar = 0.125_rkx * (u(j ,i ,lm) + u(j ,ip,lm) + &
+                              u(jp,i ,lm) + u(jp,ip,lm) + &
+                              u(j ,i ,lp) + u(j ,ip,lp) + &
+                              u(jp,i ,lp) + u(jp,ip,lp))
+          vbar = 0.125_rkx * (v(j ,i ,lm) + v(j ,ip,lm) + &
+                              v(jp,i ,lm) + v(jp,ip,lm) + &
+                              v(j ,i ,lp) + v(j ,ip,lp) + &
+                              v(jp,i ,lp) + v(jp,ip,lp))
+          ! Calculate omega
+          omega(j,i,l) = ps(j,i) * qdt(l) + sigma(l) *  &
+                  ((ps(jp,i) - ps(jm,i)) * ubar + &
+                   (ps(j,ip) - ps(j,im)) * vbar) * dummy1(j,i)
+        end do
+#ifndef STDPAR
+      end do
 #endif
       end do
       !

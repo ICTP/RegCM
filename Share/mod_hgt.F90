@@ -220,48 +220,49 @@ module mod_hgt
 #ifdef STDPAR
     do concurrent ( i = 1:im, j = 1:jm ) local(psig)
 #else
+    !$acc parallel loop collapse(2) gang vector private(psig)
     do j = 1, jm
-      do i = 1, im
+    do i = 1, im
 #endif
-        psfc = ps(i,j)
-        if ( psfc > -9995.0_rkx ) then
-          do k = 1, km
-            psig(k) = p3d(i,j,k)
-          end do
-          pt = psig(ipt)
-          pb = psig(ipb)
-          do n = 1, kp
-            if ( p(n) < pt ) then
-              temp = t(i,j,ipt)
-              hp(i,j,n) = h(i,j,ipt) + rovg*temp*log(psig(ipt)/p(n))
-            else if ( p(n) > psfc ) then
-              temp = 0.5 * ( t(i,j,ipb) + t(i,j,ipb-ipi))
-              hp(i,j,n) = ht(i,j) + &
-                    (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
-            else if ( p(n) >= pb ) then
-              temp = t(i,j,ipb)
-              hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
-            else
-              kt = ipt
-              do k = ipt, ipb, ipi
-                if ( psig(k) > p(n) ) exit
+      psfc = ps(i,j)
+      if ( psfc > -9995.0_rkx ) then
+        do k = 1, km
+          psig(k) = p3d(i,j,k)
+        end do
+        pt = psig(ipt)
+        pb = psig(ipb)
+        do n = 1, kp
+          if ( p(n) < pt ) then
+            temp = t(i,j,ipt)
+            hp(i,j,n) = h(i,j,ipt) + rovg*temp*log(psig(ipt)/p(n))
+          else if ( p(n) > psfc ) then
+            temp = 0.5 * ( t(i,j,ipb) + t(i,j,ipb-ipi))
+            hp(i,j,n) = ht(i,j) + &
+                  (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
+          else if ( p(n) >= pb ) then
+            temp = t(i,j,ipb)
+            hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
+          else
+            kt = ipt
+            do k = ipt, ipb, ipi
+              if ( psig(k) > p(n) ) exit
                 kt = k
-              end do
-              kb = kt + ipi
-              wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
-              wb = 1.0_rkx - wt
-              temp = wt*t(i,j,kt) + wb*t(i,j,kb)
-              temp = (temp+t(i,j,kb))/d_two
-              hp(i,j,n) = h(i,j,kb) + rovg*temp*log(psig(kb)/p(n))
-            end if
-          end do
-        else
-          do n = 1, kp
-            hp(i,j,n) = -9999.0_rkx
-          end do
-        end if
+            end do
+            kb = kt + ipi
+            wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
+            wb = 1.0_rkx - wt
+            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
+            temp = (temp+t(i,j,kb))/d_two
+            hp(i,j,n) = h(i,j,kb) + rovg*temp*log(psig(kb)/p(n))
+          end if
+        end do
+      else
+        do n = 1, kp
+          hp(i,j,n) = -9999.0_rkx
+        end do
+      end if
 #ifndef STDPAR
-      end do
+    end do
 #endif
     end do
   end subroutine height
@@ -303,40 +304,41 @@ module mod_hgt
 #ifdef STDPAR
     do concurrent ( i = 1:im, j = 1:jm ) local(psig)
 #else
+    !$acc parallel loop collapse(2) gang vector private(psig)
     do j = 1, jm
-      do i = 1, im
+    do i = 1, im
 #endif
-        do k = 1, km
-          psig(k) = sig(k)*(ps(i,j)-ptop) + ptop
-        end do
-        psfc = ps(i,j)
-        do n = 1, kp
-          if ( p(n) <= psig(1) ) then
-            temp = t(i,j,1)
-            hp(i,j,n) = h(i,j,1) + rovg*temp*log(psig(1)/p(n))
-          else if ( p(n) > psfc ) then
-            temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
-            hp(i,j,n) = ht(i,j) + &
-                  (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
-          else if ( p(n) >= psig(km) ) then
-            temp = t(i,j,km)
-            hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
-          else
-            kt = 1
-            do k = 1, km
-              if ( psig(k) > p(n) ) exit
-              kt = k
-            end do
-            kb = kt + 1
-            wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
-            wb = 1.0_rk8 - wt
-            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
-            temp = (temp+t(i,j,kb))/d_two
-            hp(i,j,n) = h(i,j,kb) + rovg*temp*log(psig(kb)/p(n))
-          end if
-        end do
-#ifndef STDPAR
+      do k = 1, km
+        psig(k) = sig(k)*(ps(i,j)-ptop) + ptop
       end do
+      psfc = ps(i,j)
+      do n = 1, kp
+        if ( p(n) <= psig(1) ) then
+          temp = t(i,j,1)
+          hp(i,j,n) = h(i,j,1) + rovg*temp*log(psig(1)/p(n))
+        else if ( p(n) > psfc ) then
+          temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
+          hp(i,j,n) = ht(i,j) + &
+                (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
+        else if ( p(n) >= psig(km) ) then
+          temp = t(i,j,km)
+          hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
+        else
+          kt = 1
+          do k = 1, km
+            if ( psig(k) > p(n) ) exit
+            kt = k
+          end do
+          kb = kt + 1
+          wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
+          wb = 1.0_rk8 - wt
+          temp = wt*t(i,j,kt) + wb*t(i,j,kb)
+          temp = (temp+t(i,j,kb))/d_two
+          hp(i,j,n) = h(i,j,kb) + rovg*temp*log(psig(kb)/p(n))
+        end if
+      end do
+#ifndef STDPAR
+    end do
 #endif
     end do
   end subroutine height_o_double
@@ -436,40 +438,41 @@ module mod_hgt
 #ifdef STDPAR
     do concurrent ( i = 1:im, j = 1:jm ) local(psig)
 #else
+    !$acc parallel loop collapse(2) gang vector private(psig)
     do j = 1, jm
-      do i = 1, im
+    do i = 1, im
 #endif
-        do k = 1, km
-          psig(k) = sig(k)*(ps(i,j)-ptp) + ptp
-        end do
-        psfc = ps(i,j)
-        do n = 1, kp
-          if ( p(n) <= psig(1) ) then
-            temp = t(i,j,1)
-            hp(i,j,n) = h(i,j,1) + srovg*temp*log(psig(1)/p(n))
-          else if ( p(n) > psfc ) then
-            temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
-            hp(i,j,n) = ht(i,j) + &
-                  (temp/slrate)*(1.0-exp(+srovg*slrate*log(p(n)/psfc)))
-          else if ( p(n) >= psig(km) ) then
-            temp = t(i,j,km)
-            hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
-          else
-            kt = 1
-            do k = 1, km
-              if ( psig(k) > p(n) ) exit
-              kt = k
-            end do
-            kb = kt + 1
-            wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
-            wb = 1.0 - wt
-            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
-            temp = (temp+t(i,j,kb))/2.0
-            hp(i,j,n) = h(i,j,kb) + srovg*temp*log(psig(kb)/p(n))
-          end if
-        end do
-#ifndef STDPAR
+      do k = 1, km
+        psig(k) = sig(k)*(ps(i,j)-ptp) + ptp
       end do
+      psfc = ps(i,j)
+      do n = 1, kp
+        if ( p(n) <= psig(1) ) then
+          temp = t(i,j,1)
+          hp(i,j,n) = h(i,j,1) + srovg*temp*log(psig(1)/p(n))
+        else if ( p(n) > psfc ) then
+          temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
+          hp(i,j,n) = ht(i,j) + &
+                (temp/slrate)*(1.0-exp(+srovg*slrate*log(p(n)/psfc)))
+        else if ( p(n) >= psig(km) ) then
+          temp = t(i,j,km)
+          hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
+        else
+          kt = 1
+          do k = 1, km
+            if ( psig(k) > p(n) ) exit
+            kt = k
+          end do
+          kb = kt + 1
+          wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
+          wb = 1.0 - wt
+          temp = wt*t(i,j,kt) + wb*t(i,j,kb)
+          temp = (temp+t(i,j,kb))/2.0
+          hp(i,j,n) = h(i,j,kb) + srovg*temp*log(psig(kb)/p(n))
+        end if
+      end do
+#ifndef STDPAR
+    end do
 #endif
     end do
   end subroutine height_o_single
