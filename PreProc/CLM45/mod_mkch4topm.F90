@@ -48,7 +48,7 @@ module mod_mkch4topm
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//ch4topmfile
 
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds/nsg,roidem,i_band)
     do n = 1, nlch4
       call gfread(gfile,varname(n),lch4(:,:,n),h_missing_value)
       call bestaround(lch4(:,:,n),h_missing_value)

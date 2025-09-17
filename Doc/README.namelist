@@ -70,7 +70,7 @@
  lresamp = .false.,           ! Do a first resampling before interpolation
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
  ismthlev = 1,                ! Smoothing level (additional 1-2-1 smoother)
- roidem = 1.5,                ! Interpolation radius in ds unit for topography
+ roidem = 0.70710678          ! Interpolation radius in ds unit for topography
  h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
  h2opct = 50.0,               ! Surface min H2O percent to be considered water
  lakedpth    = .false.,       ! If using lakemod (see below), produce from

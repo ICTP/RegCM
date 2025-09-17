@@ -45,7 +45,7 @@ module mod_mksoilph
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//soilphfile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds/nsg,roidem,i_band)
     call gfread(gfile,varname,soilph,vmin)
     call gfclose(gfile)
     call bestaround(soilph,h_missing_value)

@@ -723,7 +723,7 @@ module mod_dynparam
     smthbdy = .false.
     h2ohgt = .true.
     h2opct = 50.0_rkx
-    roidem = 1.5_rkx
+    roidem = 0.5_rkx*sqrt(2.0_rkx)
     ismthlev = 1
     rewind(ipunit)
     read(ipunit, nml=terrainparam, iostat=iresult)

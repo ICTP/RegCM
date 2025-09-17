@@ -45,7 +45,7 @@ module mod_mkq10soil
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//q10soilfile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds/nsg,roidem,i_band)
     call gfread(gfile,varname,q10soil,h_missing_value)
     call gfclose(gfile)
 

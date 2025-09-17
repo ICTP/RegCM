@@ -42,7 +42,7 @@ module mod_mklake
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//lakefile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds/nsg,roidem,i_band)
     call gfread(gfile,varname,lake,h_missing_value)
     call gfclose(gfile)
     call bestaround(lake,h_missing_value)

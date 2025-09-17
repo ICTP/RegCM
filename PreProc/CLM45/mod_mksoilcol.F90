@@ -42,7 +42,7 @@ module mod_mksoilcol
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//soilcolfile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds/nsg,roidem,i_band)
     call gfread(gfile,varname,soilcol,15)
     call gfclose(gfile)
 

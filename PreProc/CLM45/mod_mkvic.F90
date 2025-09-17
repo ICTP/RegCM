@@ -47,7 +47,7 @@ module mod_mkvic
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//vicfile
 
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds/nsg,roidem,i_band)
     do n = 1, nvic
       call gfread(gfile,varname(n),vic(:,:,n),h_missing_value)
       call bestaround(vic(:,:,n),h_missing_value)

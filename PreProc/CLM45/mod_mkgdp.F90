@@ -42,7 +42,7 @@ module mod_mkgdp
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//gdpfile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds/nsg,roidem,i_band)
     call gfread(gfile,varname,gdp,h_missing_value)
     call gfclose(gfile)
 

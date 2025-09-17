@@ -84,7 +84,7 @@ module mod_mkdynpft
               pthsep//trim(p1)//pthsep//trim(p2)//pthsep//&
               'mksrf_landuse_'//cy//'.nc'
 
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds/nsg,roidem,i_band)
     call gfread(gfile,varname,pft,h_missing_value)
     call gfclose(gfile)
     !

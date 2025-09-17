@@ -1899,27 +1899,35 @@ module mod_rad_aerosol
         ! Here just use linear av for now, should be improved !!
         ! MERRA grid is top down
         if ( lfirst ) then
-          do wn = 1, nacwb
-            pl1(:,:,1,wn)  = d_one + pldp1(:,:,1,wn)*d_half
-            do k = 2, clnlev
-              pl1(:,:,k,wn) = pl1(:,:,k-1,wn) + &
-                (pldp1(:,:,k-1,wn) + pldp1(:,:,k,wn))*d_half
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            do wn = 1, nacwb
+              pl1(j,i,1,wn)  = d_one + pldp1(j,i,1,wn)*d_half
+              do k = 2, clnlev
+                pl1(j,i,k,wn) = pl1(j,i,k-1,wn) + &
+                  (pldp1(j,i,k-1,wn) + pldp1(j,i,k,wn))*d_half
+              end do
             end do
           end do
-          do wn = 1, nacwb
-            pl2(:,:,1,wn)  = d_one + pldp2(:,:,1,wn)*d_half
-            do k = 2, clnlev
-              pl2(:,:,k,wn) = pl2(:,:,k-1,wn) + &
-                (pldp2(:,:,k-1,wn) + pldp2(:,:,k,wn))*d_half
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            do wn = 1, nacwb
+              pl2(j,i,1,wn)  = d_one + pldp2(j,i,1,wn)*d_half
+              do k = 2, clnlev
+                pl2(j,i,k,wn) = pl2(j,i,k-1,wn) + &
+                  (pldp2(j,i,k-1,wn) + pldp2(j,i,k,wn))*d_half
+              end do
             end do
           end do
         else
-          pl1 = pl2
-          do wn = 1, nacwb
-            pl2(:,:,1,wn)  = d_one + pldp2(:,:,1,wn)*d_half
-            do k = 2, clnlev
-              pl2(:,:,k,wn) = pl2(:,:,k-1,wn) + &
-                (pldp2(:,:,k-1,wn) + pldp2(:,:,k,wn))*d_half
+          !$acc kernels
+          pl1(:,:,:,:) = pl2(:,:,:,:)
+          !$acc end kernels
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            do wn = 1, nacwb
+              pl2(j,i,1,wn)  = d_one + pldp2(j,i,1,wn)*d_half
+              do k = 2, clnlev
+                pl2(j,i,k,wn) = pl2(j,i,k-1,wn) + &
+                  (pldp2(j,i,k-1,wn) + pldp2(j,i,k,wn))*d_half
+              end do
             end do
           end do
         end if

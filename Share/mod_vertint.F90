@@ -100,60 +100,74 @@ module mod_vertint
 
     fp(:,:,:) = missl
     if ( p(1) > p(kp) ) then
+#ifdef STDPAR
+      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = jm1, jm2
-        do i = im1, im2
-          if ( ps(i,j) < 1.0_rkx ) cycle
-          do k = 1, kp
-            sig(k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
-          end do
-          do n = 1, km
-            sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
-            if ( sigp <= sig(kp) ) then
-              fp(i,j,n) = f(i,j,kp)
-              cycle
-            else if ( sigp >= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-              cycle
-            end if
-            kx = 2
-            do k = 2, kp
-              kx = k
-              if ( sig(k) < sigp ) exit
-            end do
-            knx = kx - 1
-            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-            w1 = d_one - wp
-            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-          end do
+      do i = im1, im2
+#endif
+        if ( ps(i,j) < 1.0_rkx ) cycle
+        do k = 1, kp
+          sig(k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
         end do
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
+          if ( sigp <= sig(kp) ) then
+            fp(i,j,n) = f(i,j,kp)
+            cycle
+          else if ( sigp >= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+            cycle
+          end if
+          kx = 2
+          do k = 2, kp
+            kx = k
+            if ( sig(k) < sigp ) exit
+          end do
+          knx = kx - 1
+          wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+          w1 = d_one - wp
+          fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
+#ifdef STDPAR
+      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = jm1, jm2
-        do i = im1, im2
-          if ( ps(i,j) < 1.0_rkx ) cycle
-          do k = 1, kp
-            sig(k) = (p(k)-p(1))/(ps(i,j)-p(1))
-          end do
-          do n = 1, km
-            sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-              cycle
-            else if ( sigp >= sig(kp) ) then
-              fp(i,j,n) = f(i,j,kp)
-              cycle
-            end if
-            kx = 2
-            do k = 2, kp
-              kx = k
-              if ( sig(k) > sigp ) exit
-            end do
-            knx = kx - 1
-            wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-            w1 = d_one - wp
-            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-          end do
+      do i = im1, im2
+#endif
+        if ( ps(i,j) < 1.0_rkx ) cycle
+        do k = 1, kp
+          sig(k) = (p(k)-p(1))/(ps(i,j)-p(1))
         end do
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
+          if ( sigp <= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+            cycle
+          else if ( sigp >= sig(kp) ) then
+            fp(i,j,n) = f(i,j,kp)
+            cycle
+          end if
+          kx = 2
+          do k = 2, kp
+            kx = k
+            if ( sig(k) > sigp ) exit
+          end do
+          knx = kx - 1
+          wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+          w1 = d_one - wp
+          fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlinreg_p
@@ -177,48 +191,40 @@ module mod_vertint
     integer(ik4) :: i, j, k, kx, knx, n
     real(rkx) :: w1, w2
     if ( z(1) < z(km) ) then
-      do j = j1, j2
-        do i = i1, i2
-          do n = 1, kz
-            if ( z(km) >= hz(i,j,n) ) then
-              fz(i,j,n) = f(i,j,km)
-              cycle
-            else if ( z(1) <= hz(i,j,n) ) then
-              fz(i,j,n) = f(i,j,1)
-              cycle
-            end if
-            do k = 1, km
-              kx = k
-              if ( hz(i,j,n) > z(k) ) exit
-            end do
-            knx = kx - 1
-            w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
-            w2 = 1.0 - w1
-            fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
-          end do
+      do concurrent ( n = 1:kz, i = i1:i2, j = j1:j2 )
+        if ( z(km) >= hz(i,j,n) ) then
+          fz(i,j,n) = f(i,j,km)
+          cycle
+        else if ( z(1) <= hz(i,j,n) ) then
+          fz(i,j,n) = f(i,j,1)
+          cycle
+        end if
+        do k = 1, km
+          kx = k
+          if ( hz(i,j,n) > z(k) ) exit
         end do
+        knx = kx - 1
+        w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
+        w2 = 1.0 - w1
+        fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
       end do
     else
-      do j = j1, j2
-        do i = i1, i2
-          do n = 1, kz
-            if ( z(1) >= hz(i,j,n) ) then
-              fz(i,j,n) = f(i,j,1)
-              cycle
-            else if ( z(km) <= hz(i,j,km) ) then
-              fz(i,j,n) = f(i,j,km)
-              cycle
-            end if
-            do k = km, 1, -1
-              kx = k
-              if ( hz(i,j,n) > z(k) ) exit
-            end do
-            knx = kx + 1
-            w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
-            w2 = 1.0 - w1
-            fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
-          end do
+      do concurrent ( n = 1:kz, i = i1:i2, j = j1:j2 )
+        if ( z(1) >= hz(i,j,n) ) then
+          fz(i,j,n) = f(i,j,1)
+          cycle
+        else if ( z(km) <= hz(i,j,km) ) then
+          fz(i,j,n) = f(i,j,km)
+          cycle
+        end if
+        do k = km, 1, -1
+          kx = k
+          if ( hz(i,j,n) > z(k) ) exit
         end do
+        knx = kx + 1
+        w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
+        w2 = 1.0 - w1
+        fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
       end do
     end if
   end subroutine intlinreg_z
@@ -249,60 +255,74 @@ module mod_vertint
     fp = missl
 
     if ( p(1) > p(kp) ) then
+#ifdef STDPAR
+      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = jm1, jm2
-        do i = im1, im2
-          if ( ps(i,j) < 1.0_rkx ) cycle
-          do k = 1, kp
-            sig(k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
-          end do
-          do n = 1, km
-            sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
-            if ( sigp <= sig(kp) ) then
-              fp(i,j,n) = f(kp)
-              cycle
-            else if ( sigp >= sig(1) ) then
-              fp(i,j,n) = f(1)
-              cycle
-            end if
-            kx = 2
-            do k = 2, kp
-              kx = k
-              if ( sig(k) < sigp ) exit
-            end do
-            knx = kx - 1
-            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-            w1 = d_one - wp
-            fp(i,j,n) = w1*f(kx) + wp*f(knx)
-          end do
+      do i = im1, im2
+#endif
+        if ( ps(i,j) < 1.0_rkx ) cycle
+        do k = 1, kp
+          sig(k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
         end do
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
+          if ( sigp <= sig(kp) ) then
+            fp(i,j,n) = f(kp)
+            cycle
+          else if ( sigp >= sig(1) ) then
+            fp(i,j,n) = f(1)
+            cycle
+          end if
+          kx = 2
+          do k = 2, kp
+            kx = k
+            if ( sig(k) < sigp ) exit
+          end do
+          knx = kx - 1
+          wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+          w1 = d_one - wp
+          fp(i,j,n) = w1*f(kx) + wp*f(knx)
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
+#ifdef STDPAR
+      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = jm1, jm2
-        do i = im1, im2
-          if ( ps(i,j) < 1.0_rkx ) cycle
-          do k = 1, kp
-            sig(k) = (p(k)-p(1))/(ps(i,j)-p(1))
-          end do
-          do n = 1, km
-            sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(1)
-              cycle
-            else if ( sigp >= sig(kp) ) then
-              fp(i,j,n) = f(kp)
-              cycle
-            end if
-            kx = 2
-            do k = 2, kp
-              kx = k
-              if ( sig(k) > sigp ) exit
-            end do
-            knx = kx - 1
-            wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-            w1 = d_one - wp
-            fp(i,j,n) = w1*f(kx) + wp*f(knx)
-          end do
+      do i = im1, im2
+#endif
+        if ( ps(i,j) < 1.0_rkx ) cycle
+        do k = 1, kp
+          sig(k) = (p(k)-p(1))/(ps(i,j)-p(1))
         end do
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
+          if ( sigp <= sig(1) ) then
+            fp(i,j,n) = f(1)
+            cycle
+          else if ( sigp >= sig(kp) ) then
+            fp(i,j,n) = f(kp)
+            cycle
+          end if
+          kx = 2
+          do k = 2, kp
+            kx = k
+            if ( sig(k) > sigp ) exit
+          end do
+          knx = kx - 1
+          wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+          w1 = d_one - wp
+          fp(i,j,n) = w1*f(kx) + wp*f(knx)
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlinprof
@@ -327,60 +347,74 @@ module mod_vertint
     real(rk8), dimension(km) :: sig
     real(rk8) :: sigp, w1, wp, tp, bp
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = 1, jm
-        do i = 1, im
-          tp = p3d(i,j,km)
-          bp = p3d(i,j,1)-tp
-          do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
-          end do
-          do n = 1, kp
-            sigp = (p(n)-tp)/bp
-            if ( sigp <= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-            else if ( sigp >= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-            else
-              kx = 2
-              do k = 2, km
-                kx = k
-                if ( sig(k) < sigp ) exit
-              end do
-              knx = kx - 1
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
-          end do
+      do i = 1, im
+#endif
+        tp = p3d(i,j,km)
+        bp = p3d(i,j,1)-tp
+        do k = 1, km
+          sig(k) = (p3d(i,j,k)-tp)/bp
         end do
+        do n = 1, kp
+          sigp = (p(n)-tp)/bp
+          if ( sigp <= sig(km) ) then
+            fp(i,j,n) = f(i,j,km)
+          else if ( sigp >= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else
+            kx = 2
+            do k = 2, km
+              kx = k
+              if ( sig(k) < sigp ) exit
+            end do
+            knx = kx - 1
+            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+          end if
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = 1, jm
-        do i = 1, im
-          tp = p3d(i,j,1)
-          bp = p3d(i,j,km)-tp
-          do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
-          end do
-          do n = 1, kp
-            sigp = (p(n)-tp)/bp
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-            else if ( sigp >= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-            else
-              kx = 2
-              do k = 2, km
-                kx = k
-                if ( sig(k) > sigp ) exit
-              end do
-              knx = kx - 1
-              wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
-          end do
+      do i = 1, im
+#endif
+        tp = p3d(i,j,1)
+        bp = p3d(i,j,km)-tp
+        do k = 1, km
+          sig(k) = (p3d(i,j,k)-tp)/bp
         end do
+        do n = 1, kp
+          sigp = (p(n)-tp)/bp
+          if ( sigp <= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( sigp >= sig(km) ) then
+            fp(i,j,n) = f(i,j,km)
+          else
+            kx = 2
+            do k = 2, km
+              kx = k
+              if ( sig(k) > sigp ) exit
+            end do
+            knx = kx - 1
+            wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+          end if
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlin_double
@@ -395,60 +429,74 @@ module mod_vertint
     real(rk4), dimension(km) :: sig
     real(rk4) :: sigp, w1, wp, tp, bp
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
+#ifdef STDPAR
+      do concurrent( i = 1:im, j = 1:jm ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = 1, jm
-        do i = 1, im
-          tp = p3d(i,j,km)
-          bp = p3d(i,j,1) - tp
-          do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
-          end do
-          do n = 1, kp
-            sigp = (p(n)-tp)/bp
-            if ( sigp <= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-            else if ( sigp >= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-            else
-              kx = 2
-              do k = 2, km
-                kx = k
-                if ( sig(k) < sigp ) exit
-              end do
-              knx = kx - 1
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
-          end do
+      do i = 1, im
+#endif
+        tp = p3d(i,j,km)
+        bp = p3d(i,j,1) - tp
+        do k = 1, km
+          sig(k) = (p3d(i,j,k)-tp)/bp
         end do
+        do n = 1, kp
+          sigp = (p(n)-tp)/bp
+          if ( sigp <= sig(km) ) then
+            fp(i,j,n) = f(i,j,km)
+          else if ( sigp >= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else
+            kx = 2
+            do k = 2, km
+              kx = k
+              if ( sig(k) < sigp ) exit
+            end do
+            knx = kx - 1
+            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = 1.0 - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+          end if
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
+#ifdef STDPAR
+      do concurrent( i = 1:im, j = 1:jm ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = 1, jm
-        do i = 1, im
-          tp = p3d(i,j,1)
-          bp = p3d(i,j,km) - tp
-          do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
-          end do
-          do n = 1, kp
-            sigp = (p(n)-tp)/bp
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-            else if ( sigp >= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-            else
-              kx = 2
-              do k = 2, km
-                kx = k
-                if ( sig(k) > sigp ) exit
-              end do
-              knx = kx - 1
-              wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
-          end do
+      do i = 1, im
+#endif
+        tp = p3d(i,j,1)
+        bp = p3d(i,j,km) - tp
+        do k = 1, km
+          sig(k) = (p3d(i,j,k)-tp)/bp
         end do
+        do n = 1, kp
+          sigp = (p(n)-tp)/bp
+          if ( sigp <= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( sigp >= sig(km) ) then
+            fp(i,j,n) = f(i,j,km)
+          else
+            kx = 2
+            do k = 2, km
+              kx = k
+              if ( sig(k) > sigp ) exit
+            end do
+            knx = kx - 1
+            wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+            w1 = 1.0 - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+          end if
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlin_single
@@ -478,50 +526,42 @@ module mod_vertint
     real(rk8) :: sigp, w1, wp
 
     if ( sig(1) > sig(2) ) then
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kp
-            sigp = (p(n)-ptop)/(ps(i,j)-ptop)
-            if ( sigp <= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-              cycle
-            else if ( sigp >= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-              cycle
-            end if
-            do k = 2, km
-              kx = k
-              if ( sig(k) < sigp ) exit
-            end do
-            knx = kx - 1
-            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-            w1 = d_one - wp
-            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-          end do
+      do concurrent ( n = 1:kp, i = 1:im, j = 1:jm )
+        sigp = (p(n)-ptop)/(ps(i,j)-ptop)
+        if ( sigp <= sig(km) ) then
+          fp(i,j,n) = f(i,j,km)
+          cycle
+        else if ( sigp >= sig(1) ) then
+          fp(i,j,n) = f(i,j,1)
+          cycle
+        end if
+        do k = 2, km
+          kx = k
+          if ( sig(k) < sigp ) exit
         end do
+        knx = kx - 1
+        wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+        w1 = d_one - wp
+        fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
       end do
     else
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kp
-            sigp = (p(n)-ptop)/(ps(i,j)-ptop)
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-              cycle
-            else if ( sigp >= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-              cycle
-            end if
-            do k = 2, km
-              kx = k
-              if ( sig(k) > sigp ) exit
-            end do
-            knx = kx - 1
-            wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-            w1 = d_one - wp
-            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-          end do
+      do concurrent ( n = 1:kp, i = 1:im, j = 1:jm )
+        sigp = (p(n)-ptop)/(ps(i,j)-ptop)
+        if ( sigp <= sig(1) ) then
+          fp(i,j,n) = f(i,j,1)
+          cycle
+        else if ( sigp >= sig(km) ) then
+          fp(i,j,n) = f(i,j,km)
+          cycle
+        end if
+        do k = 2, km
+          kx = k
+          if ( sig(k) > sigp ) exit
         end do
+        knx = kx - 1
+        wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+        w1 = d_one - wp
+        fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
       end do
     end if
   end subroutine intlin_o_double
@@ -539,50 +579,42 @@ module mod_vertint
     real(rk4) :: sigp, w1, wp, pt
     pt = real(ptop)
     if ( sig(1) > sig(2) ) then
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kp
-            sigp = (p(n)-pt)/(ps(i,j)-pt)
-            if ( sigp <= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-              cycle
-            else if ( sigp >= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-              cycle
-            end if
-            do k = 2, km
-              kx = k
-              if ( sig(k) < sigp ) exit
-            end do
-            knx = kx - 1
-            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-            w1 = 1.0 - wp
-            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-          end do
+      do concurrent ( n = 1:kp, i = 1:im, j = 1:jm )
+        sigp = (p(n)-pt)/(ps(i,j)-pt)
+        if ( sigp <= sig(km) ) then
+          fp(i,j,n) = f(i,j,km)
+          cycle
+        else if ( sigp >= sig(1) ) then
+          fp(i,j,n) = f(i,j,1)
+          cycle
+        end if
+        do k = 2, km
+          kx = k
+          if ( sig(k) < sigp ) exit
         end do
+        knx = kx - 1
+        wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+        w1 = 1.0 - wp
+        fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
       end do
     else
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kp
-            sigp = (p(n)-pt)/(ps(i,j)-pt)
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-              cycle
-            else if ( sigp >= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-              cycle
-            end if
-            do k = 2, km
-              kx = k
-              if ( sig(k) > sigp ) exit
-            end do
-            knx = kx - 1
-            wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-            w1 = 1.0 - wp
-            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-          end do
+      do concurrent ( n = 1:kp, i = 1:im, j = 1:jm )
+        sigp = (p(n)-pt)/(ps(i,j)-pt)
+        if ( sigp <= sig(1) ) then
+          fp(i,j,n) = f(i,j,1)
+          cycle
+        else if ( sigp >= sig(km) ) then
+          fp(i,j,n) = f(i,j,km)
+          cycle
+        end if
+        do k = 2, km
+          kx = k
+          if ( sig(k) > sigp ) exit
         end do
+        knx = kx - 1
+        wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+        w1 = 1.0 - wp
+        fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
       end do
     end if
   end subroutine intlin_o_single
@@ -605,50 +637,42 @@ module mod_vertint
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk4) :: w1, wz
     if ( hz(1,1,1) < hz(1,1,km) ) then
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kz
-            if ( z(n) >= hz(i,j,km) ) then
-              fz(i,j,n) = f(i,j,km)
-              cycle
-            else if ( z(n) <= hz(i,j,1) ) then
-              fz(i,j,n) = f(i,j,1)
-              cycle
-            end if
-            kx = 2
-            do k = 2, km
-              kx = k
-              if ( z(n) < hz(i,j,k) ) exit
-            end do
-            knx = kx - 1
-            wz = (hz(i,j,kx)-z(n))/(hz(i,j,kx)-hz(i,j,knx))
-            w1 = 1.0 - wz
-            fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
-          end do
+      do concurrent ( n = 1:kz, i = 1:im, j = 1:jm )
+        if ( z(n) >= hz(i,j,km) ) then
+          fz(i,j,n) = f(i,j,km)
+          cycle
+        else if ( z(n) <= hz(i,j,1) ) then
+          fz(i,j,n) = f(i,j,1)
+          cycle
+        end if
+        kx = 2
+        do k = 2, km
+          kx = k
+          if ( z(n) < hz(i,j,k) ) exit
         end do
+        knx = kx - 1
+        wz = (hz(i,j,kx)-z(n))/(hz(i,j,kx)-hz(i,j,knx))
+        w1 = 1.0 - wz
+        fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
       end do
     else
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kz
-            if ( z(n) >= hz(i,j,1) ) then
-              fz(i,j,n) = f(i,j,1)
-              cycle
-            else if ( z(n) <= hz(i,j,km) ) then
-              fz(i,j,n) = f(i,j,km)
-              cycle
-            end if
-            kx = 2
-            do k = 2, km
-              kx = k
-              if ( hz(i,j,k) < z(n) ) exit
-            end do
-            knx = kx - 1
-            wz = (z(n)-hz(i,j,kx))/(hz(i,j,knx)-hz(i,j,kx))
-            w1 = 1.0 - wz
-            fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
-          end do
+      do concurrent ( n = 1:kz, i = 1:im, j = 1:jm )
+        if ( z(n) >= hz(i,j,1) ) then
+          fz(i,j,n) = f(i,j,1)
+          cycle
+        else if ( z(n) <= hz(i,j,km) ) then
+          fz(i,j,n) = f(i,j,km)
+          cycle
+        end if
+        kx = 2
+        do k = 2, km
+          kx = k
+          if ( hz(i,j,k) < z(n) ) exit
         end do
+        knx = kx - 1
+        wz = (z(n)-hz(i,j,kx))/(hz(i,j,knx)-hz(i,j,kx))
+        w1 = 1.0 - wz
+        fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
       end do
     end if
   end subroutine intlin_z_o_single
@@ -662,50 +686,42 @@ module mod_vertint
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk8) :: w1, wz
     if ( hz(1,1,1) < hz(1,1,km) ) then
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kz
-            if ( z(n) >= hz(i,j,km) ) then
-              fz(i,j,n) = f(i,j,km)
-              cycle
-            else if ( z(n) <= hz(i,j,1) ) then
-              fz(i,j,n) = f(i,j,1)
-              cycle
-            end if
-            kx = 2
-            do k = 2, km
-              kx = k
-              if ( z(n) < hz(i,j,k) ) exit
-            end do
-            knx = kx - 1
-            wz = (hz(i,j,kx)-z(n))/(hz(i,j,kx)-hz(i,j,knx))
-            w1 = 1.0 - wz
-            fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
-          end do
+      do concurrent ( n = 1:kz, i = 1:im, j = 1:jm )
+        if ( z(n) >= hz(i,j,km) ) then
+          fz(i,j,n) = f(i,j,km)
+          cycle
+        else if ( z(n) <= hz(i,j,1) ) then
+          fz(i,j,n) = f(i,j,1)
+          cycle
+        end if
+        kx = 2
+        do k = 2, km
+          kx = k
+          if ( z(n) < hz(i,j,k) ) exit
         end do
+        knx = kx - 1
+        wz = (hz(i,j,kx)-z(n))/(hz(i,j,kx)-hz(i,j,knx))
+        w1 = 1.0 - wz
+        fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
       end do
     else
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kz
-            if ( z(n) >= hz(i,j,1) ) then
-              fz(i,j,n) = f(i,j,1)
-              cycle
-            else if ( z(n) <= hz(i,j,km) ) then
-              fz(i,j,n) = f(i,j,km)
-              cycle
-            end if
-            kx = 2
-            do k = 2, km
-              kx = k
-              if ( hz(i,j,k) < z(n) ) exit
-            end do
-            knx = kx - 1
-            wz = (z(n)-hz(i,j,kx))/(hz(i,j,knx)-hz(i,j,kx))
-            w1 = 1.0 - wz
-            fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
-          end do
+      do concurrent ( n = 1:kz, i = 1:im, j = 1:jm )
+        if ( z(n) >= hz(i,j,1) ) then
+          fz(i,j,n) = f(i,j,1)
+          cycle
+        else if ( z(n) <= hz(i,j,km) ) then
+          fz(i,j,n) = f(i,j,km)
+          cycle
+        end if
+        kx = 2
+        do k = 2, km
+          kx = k
+          if ( hz(i,j,k) < z(n) ) exit
         end do
+            knx = kx - 1
+        wz = (z(n)-hz(i,j,kx))/(hz(i,j,knx)-hz(i,j,kx))
+        w1 = 1.0 - wz
+        fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
       end do
     end if
   end subroutine intlin_z_o_double
@@ -742,35 +758,38 @@ module mod_vertint
     integer(ik4) :: i, j, k, kb, kt
     real(rkx) :: wu, wl
 
-    do j = 1, nj
-      do i = 1, ni
-        if ( zrcm(i,j) < zp(i,j,1) ) then
-          tlayer(i,j) = tp(i,j,1)
-          za(i,j) = zp(i,j,1)
-          pa(i,j) = pss + pst
-        else if ( zrcm(i,j) > zp(i,j,nz) ) then
-          write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
-          tlayer(i,j) = missl
-          za(i,j) = missl
-          pa(i,j) = missl
-        else
-          kb = 0
-          do k = 1, nz - 1
-            if ( zrcm(i,j) >   zp(i,j,k)    .and. &
-                 zrcm(i,j) <=  zp(i,j,k+1) ) then
-              kb = k
-              exit
-            end if
-          end do
-          kt = kb + 1
-          wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
-          wl = d_one - wu
-          tlayer(i,j) = tp(i,j,kt) * wl + tp(i,j,kb) * wu
-          tlayer(i,j) = (tp(i,j,kt) + tlayer(i,j))/d_two
-          za(i,j) = zp(i,j,kt)
-          pa(i,j) = pss*sccm(kt) + pst
-        end if
-      end do
+    if ( any(zrcm > zp(:,:,nz)) ) then
+      write(stderr,*) '################ WARNING!!! ################'
+      write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
+      write(stderr,*) '################ WARNING!!! ################'
+    end if
+
+    do concurrent ( i = 1:ni, j = 1:nj )
+      if ( zrcm(i,j) < zp(i,j,1) ) then
+        tlayer(i,j) = tp(i,j,1)
+        za(i,j) = zp(i,j,1)
+        pa(i,j) = pss + pst
+      else if ( zrcm(i,j) > zp(i,j,nz) ) then
+        tlayer(i,j) = missl
+        za(i,j) = missl
+        pa(i,j) = missl
+      else
+        kb = 0
+        do k = 1, nz - 1
+          if ( zrcm(i,j) >   zp(i,j,k)    .and. &
+               zrcm(i,j) <=  zp(i,j,k+1) ) then
+            kb = k
+            exit
+          end if
+        end do
+        kt = kb + 1
+        wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
+        wl = d_one - wu
+        tlayer(i,j) = tp(i,j,kt) * wl + tp(i,j,kb) * wu
+        tlayer(i,j) = (tp(i,j,kt) + tlayer(i,j))/d_two
+        za(i,j) = zp(i,j,kt)
+        pa(i,j) = pss*sccm(kt) + pst
+      end if
     end do
   end subroutine intgtb
 
@@ -798,62 +817,76 @@ module mod_vertint
     real(rk8), dimension(km) :: sig
 
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = 1, jm
-        do i = 1, im
-          tp = p3d(i,j,km)-1.0e-10_rk8
-          bp = p3d(i,j,1)-tp
-          do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
-          end do
-          do n = 1, kp
-            sigp = (p(n)-tp)/bp
-            if ( sigp <= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-            else if ( sigp > sig(1) ) then
-              fp(i,j,n) = d_half*(f(i,j,1)+f(i,j,2)) * &
-                        dexp(rglrog*dlog(sigp/sig(1)))
-            else
-              kx = 2
-              do k = 2, km
-                kx = k
-                if ( sig(k) < sigp ) exit
-              end do
-              knx = kx - 1
-              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
-          end do
+      do i = 1, im
+#endif
+        tp = p3d(i,j,km)-1.0e-10_rk8
+        bp = p3d(i,j,1)-tp
+        do k = 1, km
+          sig(k) = (p3d(i,j,k)-tp)/bp
         end do
+        do n = 1, kp
+          sigp = (p(n)-tp)/bp
+          if ( sigp <= sig(km) ) then
+            fp(i,j,n) = f(i,j,km)
+          else if ( sigp > sig(1) ) then
+            fp(i,j,n) = d_half*(f(i,j,1)+f(i,j,2)) * &
+                      dexp(rglrog*dlog(sigp/sig(1)))
+          else
+            kx = 2
+            do k = 2, km
+              kx = k
+              if ( sig(k) < sigp ) exit
+            end do
+            knx = kx - 1
+            wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+          end if
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = 1, jm
-        do i = 1, im
-          tp = p3d(i,j,1)-1.0e-10_rk8
-          bp = p3d(i,j,km)-tp
-          do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
-          end do
-          do n = 1, kp
-            sigp = (p(n)-tp)/bp
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-            else if ( sigp > sig(km) ) then
-              fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
-                        dexp(rglrog*dlog(sigp/sig(km)))
-            else
-              kx = 2
-              do k = 2, km
-                kx = k
-                if ( sig(k) > sigp ) exit
-              end do
-              knx = kx - 1
-              wp = dlog(sig(kx)/sigp)/dlog(sig(kx)/sig(knx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
-          end do
+      do i = 1, im
+#endif
+        tp = p3d(i,j,1)-1.0e-10_rk8
+        bp = p3d(i,j,km)-tp
+        do k = 1, km
+          sig(k) = (p3d(i,j,k)-tp)/bp
         end do
+        do n = 1, kp
+          sigp = (p(n)-tp)/bp
+          if ( sigp <= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( sigp > sig(km) ) then
+            fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
+                      dexp(rglrog*dlog(sigp/sig(km)))
+          else
+            kx = 2
+            do k = 2, km
+              kx = k
+              if ( sig(k) > sigp ) exit
+            end do
+            knx = kx - 1
+            wp = dlog(sig(kx)/sigp)/dlog(sig(kx)/sig(knx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+          end if
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlog_double
@@ -869,62 +902,76 @@ module mod_vertint
     real(rk4), dimension(km) :: sig
 
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = 1, jm
-        do i = 1, im
-          tp = p3d(i,j,km)-1.0e-10_rk4
-          bp = p3d(i,j,1)-tp
-          do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
-          end do
-          do n = 1, kp
-            sigp = (p(n)-tp)/bp
-            if ( sigp <= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-            else if ( sigp > sig(1) ) then
-              fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
-                        exp(real(rglrog,rk4)*log(sigp/sig(1)))
-            else
-              kx = 2
-              do k = 2, km
-                kx = k
-                if ( sig(k) < sigp ) exit
-              end do
-              knx = kx - 1
-              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
-          end do
+      do i = 1, im
+#endif
+        tp = p3d(i,j,km)-1.0e-10_rk4
+        bp = p3d(i,j,1)-tp
+        do k = 1, km
+          sig(k) = (p3d(i,j,k)-tp)/bp
         end do
+        do n = 1, kp
+          sigp = (p(n)-tp)/bp
+          if ( sigp <= sig(km) ) then
+            fp(i,j,n) = f(i,j,km)
+          else if ( sigp > sig(1) ) then
+            fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
+                      exp(real(rglrog,rk4)*log(sigp/sig(1)))
+          else
+            kx = 2
+            do k = 2, km
+              kx = k
+              if ( sig(k) < sigp ) exit
+            end do
+            knx = kx - 1
+            wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+            w1 = 1.0 - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+          end if
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#else
+      !$acc parallel loop collapse(2) gang vector private(sig)
       do j = 1, jm
-        do i = 1, im
-          tp = p3d(i,j,1)-1.0e-10_rk4
-          bp = p3d(i,j,km)-tp
-          do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
-          end do
-          do n = 1, kp
-            sigp = (p(n)-tp)/bp
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-            else if ( sigp > sig(km) ) then
-              fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
-                        exp(real(rglrog,rk4)*log(sigp/sig(km)))
-            else
-              kx = 2
-              do k = 2, km
-                kx = k
-                if ( sig(k) > sigp ) exit
-              end do
-              knx = kx - 1
-              wp = (log(sigp)-log(sig(kx)))/(log(sig(knx))-log(sig(kx)))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
-          end do
+      do i = 1, im
+#endif
+        tp = p3d(i,j,1)-1.0e-10_rk4
+        bp = p3d(i,j,km)-tp
+        do k = 1, km
+          sig(k) = (p3d(i,j,k)-tp)/bp
         end do
+        do n = 1, kp
+          sigp = (p(n)-tp)/bp
+          if ( sigp <= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( sigp > sig(km) ) then
+            fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
+                      exp(real(rglrog,rk4)*log(sigp/sig(km)))
+          else
+            kx = 2
+            do k = 2, km
+              kx = k
+              if ( sig(k) > sigp ) exit
+            end do
+            knx = kx - 1
+            wp = (log(sigp)-log(sig(kx)))/(log(sig(knx))-log(sig(kx)))
+            w1 = 1.0 - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+          end if
+        end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlog_single
@@ -956,50 +1003,42 @@ module mod_vertint
     real(rk8) :: sigp, w1, wp
     integer(ik4) :: i, j, k, kx, knx, n
     if ( sig(1) > sig(2) ) then
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kp
-            sigp = (p(n)-ptop)/(ps(i,j)-ptop)
-            if ( sigp <= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-            else if ( sigp > sig(1) ) then
-              fp(i,j,n) = d_half*(f(i,j,1)+f(i,j,2)) * &
-                             dexp(rglrog*dlog(sigp/sig(1)))
-            else
-              do k = 2, km
-                kx = k
-                if ( sig(k) < sigp ) exit
-              end do
-              knx = kx - 1
-              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+      do concurrent ( n = 1:kp, i = 1:im, j = 1:jm )
+        sigp = (p(n)-ptop)/(ps(i,j)-ptop)
+        if ( sigp <= sig(km) ) then
+          fp(i,j,n) = f(i,j,km)
+        else if ( sigp > sig(1) ) then
+          fp(i,j,n) = d_half*(f(i,j,1)+f(i,j,2)) * &
+                         dexp(rglrog*dlog(sigp/sig(1)))
+        else
+          do k = 2, km
+            kx = k
+            if ( sig(k) < sigp ) exit
           end do
-        end do
+          knx = kx - 1
+          wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
+          w1 = d_one - wp
+          fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+        end if
       end do
     else
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kp
-            sigp = (p(n)-ptop)/(ps(i,j)-ptop)
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-            else if ( sigp > sig(km) ) then
-              fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
-                        dexp(rglrog*dlog(sigp/sig(km)))
-            else
-              do k = 2, km
-                kx = k
-                if ( sig(k) > sigp ) exit
-              end do
-              knx = kx - 1
-              wp = dlog(sig(kx)/sigp)/dlog(sig(kx)/sig(knx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+      do concurrent ( n = 1:kp, i = 1:im, j = 1:jm )
+        sigp = (p(n)-ptop)/(ps(i,j)-ptop)
+        if ( sigp <= sig(1) ) then
+          fp(i,j,n) = f(i,j,1)
+        else if ( sigp > sig(km) ) then
+          fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
+                    dexp(rglrog*dlog(sigp/sig(km)))
+        else
+          do k = 2, km
+            kx = k
+            if ( sig(k) > sigp ) exit
           end do
-        end do
+          knx = kx - 1
+          wp = dlog(sig(kx)/sigp)/dlog(sig(kx)/sig(knx))
+          w1 = d_one - wp
+          fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+        end if
       end do
     end if
   end subroutine intlog_o_double
@@ -1018,50 +1057,42 @@ module mod_vertint
 
     pt = real(ptop)
     if ( sig(1) > sig(2) ) then
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kp
-            sigp = (p(n)-pt)/(ps(i,j)-pt)
-            if ( sigp <= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-            else if ( sigp > sig(1) ) then
-              fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
-                        exp(real(rglrog,rk4)*log(sigp/sig(1)))
-            else
-              do k = 2, km
-                kx = k
-                if ( sig(k) < sigp ) exit
-              end do
-              knx = kx - 1
-              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+      do concurrent ( n = 1:kp, i = 1:im, j = 1:jm )
+        sigp = (p(n)-pt)/(ps(i,j)-pt)
+        if ( sigp <= sig(km) ) then
+          fp(i,j,n) = f(i,j,km)
+        else if ( sigp > sig(1) ) then
+          fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
+                    exp(real(rglrog,rk4)*log(sigp/sig(1)))
+        else
+          do k = 2, km
+            kx = k
+            if ( sig(k) < sigp ) exit
           end do
-        end do
+          knx = kx - 1
+          wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+          w1 = 1.0 - wp
+          fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+        end if
       end do
     else
-      do j = 1, jm
-        do i = 1, im
-          do n = 1, kp
-            sigp = (p(n)-pt)/(ps(i,j)-pt)
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-            else if ( sigp > sig(km) ) then
-              fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
-                        exp(real(rglrog,rk4)*log(sigp/sig(km)))
-            else
-              do k = 2, km
-                kx = k
-                if ( sig(k) > sigp ) exit
-              end do
-              knx = kx - 1
-              wp = log(sig(kx)/sigp)/log(sig(kx)/sig(knx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+      do concurrent ( n = 1:kp, i = 1:im, j = 1:jm )
+        sigp = (p(n)-pt)/(ps(i,j)-pt)
+        if ( sigp <= sig(1) ) then
+          fp(i,j,n) = f(i,j,1)
+        else if ( sigp > sig(km) ) then
+          fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
+                    exp(real(rglrog,rk4)*log(sigp/sig(km)))
+        else
+          do k = 2, km
+            kx = k
+            if ( sig(k) > sigp ) exit
           end do
-        end do
+          knx = kx - 1
+          wp = log(sig(kx)/sigp)/log(sig(kx)/sig(knx))
+          w1 = 1.0 - wp
+          fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+        end if
       end do
     end if
   end subroutine intlog_o_single
@@ -1077,10 +1108,8 @@ module mod_vertint
     real(rkx), dimension(ni,nj), intent(out) :: psrcm
     integer(ik4) :: i, j
 
-    do i = 1, ni
-      do j = 1, nj
-        psrcm(i,j) = pa(i,j)*exp(-govr*(zrcm(i,j)-za(i,j))/tlayer(i,j)) - pt
-      end do
+    do concurrent ( j = 1:nj,  i = 1:ni )
+      psrcm(i,j) = pa(i,j)*exp(-govr*(zrcm(i,j)-za(i,j))/tlayer(i,j)) - pt
     end do
   end subroutine intpsn
 
@@ -1100,26 +1129,22 @@ module mod_vertint
     real(rkx), dimension(ni,nj,krcm), intent(out) :: frcm
     real(rkx) :: rc, rc1, sc
     integer(ik4) :: i, j, k, k1, kp1, n
-    do i = 1, ni
-      do j = 1, nj
-        do n = 1, krcm
-          sc = (srcm(n)*psrcm(i,j) + pt - pst)/pss
-          k1 = 0
-          do k = 1, kccm
-            if ( sc > sccm(k) ) k1 = k
-          end do
-          if ( k1 == 0 ) then
-            frcm(i,j,n) = fccm(i,j,1)
-          else if ( k1 /= kccm ) then
-            kp1 = k1+1
-            rc = (sc-sccm(k1))/(sccm(kp1)-sccm(k1))
-            rc1 = d_one-rc
-            frcm(i,j,n) = rc1*fccm(i,j,k1)+rc*fccm(i,j,kp1)
-          else
-            frcm(i,j,n) = fccm(i,j,kccm)
-          end if
-        end do
+    do concurrent ( n = 1:krcm, j = 1:nj, i = 1:ni )
+      sc = (srcm(n)*psrcm(i,j) + pt - pst)/pss
+      k1 = 0
+      do k = 1, kccm
+        if ( sc > sccm(k) ) k1 = k
       end do
+      if ( k1 == 0 ) then
+        frcm(i,j,n) = fccm(i,j,1)
+      else if ( k1 /= kccm ) then
+        kp1 = k1+1
+        rc = (sc-sccm(k1))/(sccm(kp1)-sccm(k1))
+        rc1 = d_one-rc
+        frcm(i,j,n) = rc1*fccm(i,j,k1)+rc*fccm(i,j,kp1)
+      else
+        frcm(i,j,n) = fccm(i,j,kccm)
+      end if
     end do
   end subroutine intv0
 
@@ -1141,24 +1166,22 @@ module mod_vertint
     real(rkx) :: rc, rc1, sc
     integer(ik4) :: i, j, k, k1, kp1
 
-    do i = 1, ni
-      do j = 1, nj
-        sc = (srcm * psrcm(i,j) + pt - pst)/pss
-        k1 = 0
-        do k = 1, kccm
-          if ( sc > sccm(k) ) k1 = k
-        end do
-        if ( k1 == 0 ) then
-          frcm(i,j) = fccm(i,j,kccm)
-        else if ( k1 /= kccm ) then
-          kp1 = k1 + 1
-          rc = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
-          rc1 = d_one - rc
-          frcm(i,j) = rc1*fccm(i,j,kccm-k1+1)+rc*fccm(i,j,kccm-kp1+1)
-        else
-          frcm(i,j) = fccm(i,j,1)
-        end if
+    do concurrent ( j = 1:nj, i = 1:ni )
+      sc = (srcm * psrcm(i,j) + pt - pst)/pss
+      k1 = 0
+      do k = 1, kccm
+        if ( sc > sccm(k) ) k1 = k
       end do
+      if ( k1 == 0 ) then
+        frcm(i,j) = fccm(i,j,kccm)
+      else if ( k1 /= kccm ) then
+        kp1 = k1 + 1
+        rc = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
+        rc1 = d_one - rc
+        frcm(i,j) = rc1*fccm(i,j,kccm-k1+1)+rc*fccm(i,j,kccm-kp1+1)
+      else
+        frcm(i,j) = fccm(i,j,1)
+      end if
     end do
   end subroutine intvp
 
@@ -1175,14 +1198,21 @@ module mod_vertint
     real(rkx), dimension(kccm) :: xc, fc
     real(rkx), dimension(krcm) :: xr, fr
     integer(ik4) :: i, j
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj ) local(xc,fc,xr,fr)
+#else
+      !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr)
     do j = 1, nj
-      do i = 1, ni
-        xc(:) = zccm(i,j,:)
-        fc(:) = fccm(i,j,:)
-        xr(:) = zrcm(i,j,:) + trcm(i,j)
-        call interp1d(xc,fc,xr,fr,a,e1,e2)
-        frcm(i,j,:) = fr(:)
-      end do
+    do i = 1, ni
+#endif
+      xc(:) = zccm(i,j,:)
+      fc(:) = fccm(i,j,:)
+      xr(:) = zrcm(i,j,:) + trcm(i,j)
+      call interp1d(xc,fc,xr,fr,a,e1,e2)
+      frcm(i,j,:) = fr(:)
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intz1
 
@@ -1205,14 +1235,21 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj ) local(xc,fc,xr,fr)
+#else
+    !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr)
     do j = 1, nj
-      do i = 1, ni
-        xc(:) = (pccm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-        fc(:) = fccm(i,j,:)
-        xr(:) = (prcm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-        call interp1d(xc,fc,xr,fr,a,e1,e2)
-        frcm(i,j,:) = fr(:)
-      end do
+    do i = 1, ni
+#endif
+      xc(:) = (pccm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      fc(:) = fccm(i,j,:)
+      xr(:) = (prcm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      call interp1d(xc,fc,xr,fr,a,e1,e2)
+      frcm(i,j,:) = fr(:)
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intp1_fixed
 
@@ -1233,14 +1270,21 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
+#ifdef STDPAR
+    do concurrent ( i = i1:i2, j = j1:j2 ) local(xc,fc,xr,fr)
+#else
+    !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr)
     do j = j1, j2
-      do i = i1, i2
-        xc(:) = (pccm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-        fc(:) = fccm(i,j,:)
-        xr(:) = (prcm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-        call interp1d(xc,fc,xr,fr,a,e1,e2)
-        frcm(i,j,:) = fr(:)
-      end do
+    do i = i1, i2
+#endif
+      xc(:) = (pccm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      fc(:) = fccm(i,j,:)
+      xr(:) = (prcm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      call interp1d(xc,fc,xr,fr,a,e1,e2)
+      frcm(i,j,:) = fr(:)
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intp1_pointer
 
@@ -1270,55 +1314,47 @@ module mod_vertint
     integer(ik4) :: i, j, k, k1, km1, n
 
     if ( imeth == 1 ) then
-      do j = 1, nj
-        do i = 1, ni
-          do n = 1, krcm
-            sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
-            if ( sc > sccm(1) ) then
-              frcm(i,j,n) = fccm(i,j,1)
-            else if ( sc < sccm(kccm) ) then
-              frcm(i,j,n) = fccm(i,j,kccm)
-            else
-              k1 = 0
-              do k = 1, kccm
-                if ( sc > sccm(k) ) then
-                  k1 = k
-                  exit
-                end if
-              end do
-              km1 = k1 - 1
-              rc1 = (sc-sccm(km1))/(sccm(k1)-sccm(km1))
-              rc2 = d_one - rc1
-              frcm(i,j,n) = rc1*fccm(i,j,k1)+rc2*fccm(i,j,km1)
+      do concurrent ( n = 1:krcm, i = 1:ni, j = 1:nj )
+        sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
+        if ( sc > sccm(1) ) then
+          frcm(i,j,n) = fccm(i,j,1)
+        else if ( sc < sccm(kccm) ) then
+          frcm(i,j,n) = fccm(i,j,kccm)
+        else
+          k1 = 0
+          do k = 1, kccm
+            if ( sc > sccm(k) ) then
+              k1 = k
+              exit
             end if
           end do
-        end do
+          km1 = k1 - 1
+          rc1 = (sc-sccm(km1))/(sccm(k1)-sccm(km1))
+          rc2 = d_one - rc1
+          frcm(i,j,n) = rc1*fccm(i,j,k1)+rc2*fccm(i,j,km1)
+        end if
       end do
     else
-      do j = 1, nj
-        do i = 1, ni
-          do n = 1, krcm
-            sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
-            if ( sc > sccm(1) ) then
-              frcm(i,j,n) = max(fccm(i,j,1),1.0e-8_rkx)
-            else if ( sc < sccm(kccm) ) then
-              frcm(i,j,n) = max(fccm(i,j,kccm),1.0e-8_rkx)
-            else
-              k1 = 0
-              do k = 1, kccm
-                if ( sc > sccm(k) ) then
-                  k1 = k
-                  exit
-                end if
-              end do
-              km1 = k1 - 1
-              rc1 = (sc-sccm(km1))/(sccm(k1)-sccm(km1))
-              rc2 = d_one - rc1
-              frcm(i,j,n) = rc1 * max(fccm(i,j,k1),1.0e-8_rkx) + &
-                            rc2 * max(fccm(i,j,km1),1.0e-8_rkx)
+      do concurrent ( n = 1:krcm, i = 1:ni, j = 1:nj )
+        sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
+        if ( sc > sccm(1) ) then
+          frcm(i,j,n) = max(fccm(i,j,1),1.0e-8_rkx)
+        else if ( sc < sccm(kccm) ) then
+          frcm(i,j,n) = max(fccm(i,j,kccm),1.0e-8_rkx)
+        else
+          k1 = 0
+          do k = 1, kccm
+            if ( sc > sccm(k) ) then
+              k1 = k
+              exit
             end if
           end do
-        end do
+          km1 = k1 - 1
+          rc1 = (sc-sccm(km1))/(sccm(k1)-sccm(km1))
+          rc2 = d_one - rc1
+          frcm(i,j,n) = rc1 * max(fccm(i,j,k1),1.0e-8_rkx) + &
+                        rc2 * max(fccm(i,j,km1),1.0e-8_rkx)
+        end if
       end do
     end if
   end subroutine intv1
@@ -1335,30 +1371,26 @@ module mod_vertint
     real(rkx) :: a1, rc1, rc2, sc
     integer(ik4) :: i, j, k, k1, km1, n
 
-    do j = 1, nj
-      do i = 1, ni
-        do n = 1, krcm
-          sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
-          if ( sc > sccm(1) ) then
-            a1 = rgas2*log(sc/sccm(1))
-            frcm(i,j,n) = fccm(i,j,1)*(b1-a1)/(b1+a1)
-          else if ( sc < sccm(kccm) ) then
-            frcm(i,j,n) = fccm(i,j,kccm)
-          else
-            k1 = 0
-            do k = 1, kccm
-              if ( sc > sccm(k) ) then
-                k1 = k
-                exit
-              end if
-            end do
-            km1 = k1 - 1
-            rc1 = log(sc/sccm(km1))/log(sccm(k1)/sccm(km1))
-            rc2 = d_one - rc1
-            frcm(i,j,n) = rc1*fccm(i,j,k1)+rc2*fccm(i,j,km1)
+    do concurrent ( n = 1:krcm, i = 1:ni, j = 1:nj )
+      sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
+      if ( sc > sccm(1) ) then
+        a1 = rgas2*log(sc/sccm(1))
+        frcm(i,j,n) = fccm(i,j,1)*(b1-a1)/(b1+a1)
+      else if ( sc < sccm(kccm) ) then
+        frcm(i,j,n) = fccm(i,j,kccm)
+      else
+        k1 = 0
+        do k = 1, kccm
+          if ( sc > sccm(k) ) then
+            k1 = k
+            exit
           end if
         end do
-      end do
+        km1 = k1 - 1
+        rc1 = log(sc/sccm(km1))/log(sccm(k1)/sccm(km1))
+        rc2 = d_one - rc1
+        frcm(i,j,n) = rc1*fccm(i,j,k1)+rc2*fccm(i,j,km1)
+      end if
     end do
   end subroutine intv2
 
@@ -1372,14 +1404,21 @@ module mod_vertint
     real(rkx), dimension(kccm) :: zc, fc
     real(rkx), dimension(1) :: rx, rc
     integer(ik4) :: i, j
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj ) local(zc,fc,rx,rc)
+#else
+    !$acc parallel loop collapse(2) gang vector private(zc,fc,rx,rc)
     do j = 1, nj
-      do i = 1, ni
-        zc = zccm(i,j,:)
-        fc = fccm(i,j,:)
-        rx(1) = zrcm(i,j)
-        call interp1d(zc,fc,rx,rc,a,e1,e2)
-        fsrcm(i,j) = rc(1)
-      end do
+    do i = 1, ni
+#endif
+      zc = zccm(i,j,:)
+      fc = fccm(i,j,:)
+      rx(1) = zrcm(i,j)
+      call interp1d(zc,fc,rx,rc,a,e1,e2)
+      fsrcm(i,j) = rc(1)
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intz3
 
@@ -1400,14 +1439,21 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj ) local(zc,fc,rx,rc)
+#else
+    !$acc parallel loop collapse(2) gang vector private(zc,fc,rx,rc)
     do j = 1, nj
-      do i = 1, ni
-        zc(:) = (pccm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-        fc(:) = fccm(i,j,:)
-        rx(1) = (psrcm(i,j)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-        call interp1d(zc,fc,rx,rc,a,e1,e2)
-        fsrcm(i,j) = rc(1)
-      end do
+    do i = 1, ni
+#endif
+      zc(:) = (pccm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      fc(:) = fccm(i,j,:)
+      rx(1) = (psrcm(i,j)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      call interp1d(zc,fc,rx,rc,a,e1,e2)
+      fsrcm(i,j) = rc(1)
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intp3
 
@@ -1437,30 +1483,28 @@ module mod_vertint
     real(rkx) :: a1, rc, rc1, sc
     integer(ik4) :: i, j, k, k1, km1
 
-    do j = 1, nj
-      do i = 1, ni
-        sc = ((psrccm(i,j)+ptop) - pst)/pss
-        if ( sc < sccm(kccm) ) then
-          fsccm(i,j) = fccm(i,j,kccm)
-        else if ( sc > sccm(1) ) then
-          ! If the surface is below the GCM's lowest level, extrapolate
-          a1 = rgas2*log(sc/sccm(1))
-          fsccm(i,j) = fccm(i,j,1)*(b1-a1)/(b1+a1)
-        else
-          k1 = 0
-          do k = 1, kccm
-            if ( sc > sccm(k) ) then
-              k1 = k
-              exit
-            end if
-          end do
-          ! Interpolate the temperature between the two adjacent GCM levels
-          km1 = k1 - 1
-          rc = log(sc/sccm(km1))/log(sccm(k1)/sccm(km1))
-          rc1 = d_one - rc
-          fsccm(i,j) = rc*fccm(i,j,k1)+rc1*fccm(i,j,km1)
-        end if
-      end do
+    do concurrent ( i = 1:ni, j = 1:nj )
+      sc = ((psrccm(i,j)+ptop) - pst)/pss
+      if ( sc < sccm(kccm) ) then
+        fsccm(i,j) = fccm(i,j,kccm)
+      else if ( sc > sccm(1) ) then
+        ! If the surface is below the GCM's lowest level, extrapolate
+        a1 = rgas2*log(sc/sccm(1))
+        fsccm(i,j) = fccm(i,j,1)*(b1-a1)/(b1+a1)
+      else
+        k1 = 0
+        do k = 1, kccm
+          if ( sc > sccm(k) ) then
+            k1 = k
+            exit
+          end if
+        end do
+        ! Interpolate the temperature between the two adjacent GCM levels
+        km1 = k1 - 1
+        rc = log(sc/sccm(km1))/log(sccm(k1)/sccm(km1))
+        rc1 = d_one - rc
+        fsccm(i,j) = rc*fccm(i,j,k1)+rc1*fccm(i,j,km1)
+      end if
     end do
   end subroutine intv3
 
@@ -1476,90 +1520,94 @@ module mod_vertint
     real(rkx) :: wu, wl, tlayer, tva, tvb, pa, pb, za, zb, dz, lrt
 
     if ( zp(1,1,1) < zp(1,1,nz) ) then
-      do j = 1, nj
-        do i = 1, ni
-          if ( zp(i,j,1) > zrcm(i,j) ) then
-            pb = pss + pst
-            za = zp(i,j,2)
-            zb = zp(i,j,1)
-            tva = tp(i,j,2)
-            tvb = tp(i,j,1)
-            dz = zb - zrcm(i,j)
-            lrt = (tva-tvb)/(za-zb)
-            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
-            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-            tlayer = tvb - dz*lrt
-            tlayer = (tvb + tlayer) * 0.5_rkx
-            psrcm(i,j) = pb * exp(govr*dz/tlayer)
-          else if ( zp(1,1,nz) < zrcm(i,j) ) then
-            write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
-            psrcm(i,j) = missl
-          else
-            kb = 1
-            do k = 1, nz - 1
-              if ( zrcm(i,j) <= zp(i,j,k+1) .and. &
-                   zrcm(i,j) > zp(i,j,k) ) then
-                kb = k
-                exit
-              end if
-            end do
-            kt = kb + 1
-            pa = pss*sccm(kt) + pst
-            tva = tp(i,j,kt)
-            tvb = tp(i,j,kb)
-            za = zp(i,j,kt)
-            zb = zp(i,j,kb)
-            dz = za - zrcm(i,j)
-            wu = (zrcm(i,j)-zb)/(za-zb)
-            wl = 1.0_rkx - wu
-            tlayer = tva * wu + tvb * wl
-            tlayer = (tva + tlayer) * 0.5_rkx
-            psrcm(i,j) = pa * exp(govr*dz/tlayer)
-          end if
-        end do
+      if ( any(zrcm > zp(:,:,nz)) ) then
+        write(stderr,*) '################ WARNING!!! ################'
+        write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
+        write(stderr,*) '################ WARNING!!! ################'
+      end if
+      do concurrent ( i = 1:ni, j = 1:nj )
+        if ( zp(i,j,1) > zrcm(i,j) ) then
+          pb = pss + pst
+          za = zp(i,j,2)
+          zb = zp(i,j,1)
+          tva = tp(i,j,2)
+          tvb = tp(i,j,1)
+          dz = zb - zrcm(i,j)
+          lrt = (tva-tvb)/(za-zb)
+          !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+          lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+          tlayer = tvb - dz*lrt
+          tlayer = (tvb + tlayer) * 0.5_rkx
+          psrcm(i,j) = pb * exp(govr*dz/tlayer)
+        else if ( zp(i,j,nz) < zrcm(i,j) ) then
+          psrcm(i,j) = missl
+        else
+          kb = 1
+          do k = 1, nz - 1
+            if ( zrcm(i,j) <= zp(i,j,k+1) .and. &
+                 zrcm(i,j) > zp(i,j,k) ) then
+              kb = k
+              exit
+            end if
+          end do
+          kt = kb + 1
+          pa = pss*sccm(kt) + pst
+          tva = tp(i,j,kt)
+          tvb = tp(i,j,kb)
+          za = zp(i,j,kt)
+          zb = zp(i,j,kb)
+          dz = za - zrcm(i,j)
+          wu = (zrcm(i,j)-zb)/(za-zb)
+          wl = 1.0_rkx - wu
+          tlayer = tva * wu + tvb * wl
+          tlayer = (tva + tlayer) * 0.5_rkx
+          psrcm(i,j) = pa * exp(govr*dz/tlayer)
+        end if
       end do
     else
-      do j = 1, nj
-        do i = 1, ni
-          if ( zp(i,j,nz) > zrcm(i,j) ) then
-            pb = pss + pst
-            za = zp(i,j,nz-1)
-            zb = zp(i,j,nz)
-            tva = tp(i,j,nz-1)
-            tvb = tp(i,j,nz)
-            dz = za - zrcm(i,j)
-            lrt = (tva-tvb)/(za-zb)
-            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
-            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-            tlayer = tvb - dz*lrt
-            tlayer = (tvb + tlayer) * 0.5_rkx
-            psrcm(i,j) = pb * exp(govr*dz/tlayer)
-          else if ( zp(1,1,1) < zrcm(i,j) ) then
-            write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
-            psrcm(i,j) = missl
-          else
-            kb = nz
-            do k = nz, 2, -1
-              if ( zrcm(i,j) <= zp(i,j,k-1) .and. &
-                   zrcm(i,j) > zp(i,j,k) ) then
-                kb = k
-                exit
-              end if
-            end do
-            kt = kb - 1
-            pa = pss*sccm(kt) + pst
-            za = zp(i,j,kt)
-            zb = zp(i,j,kb)
-            tva = tp(i,j,kt)
-            tvb = tp(i,j,kb)
-            dz = za - zrcm(i,j)
-            wu = (zrcm(i,j)-zb)/(za-zb)
-            wl = 1.0_rkx - wu
-            tlayer = tva * wu + tvb * wl
-            tlayer = (tva + tlayer) * 0.5_rkx
-            psrcm(i,j) = pa * exp(govr*dz/tlayer)
-          end if
-        end do
+      if ( any(zrcm > zp(:,:,1)) ) then
+        write(stderr,*) '################ WARNING!!! ################'
+        write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
+        write(stderr,*) '################ WARNING!!! ################'
+      end if
+      do concurrent ( i = 1:ni, j = 1:nj )
+        if ( zp(i,j,nz) > zrcm(i,j) ) then
+          pb = pss + pst
+          za = zp(i,j,nz-1)
+          zb = zp(i,j,nz)
+          tva = tp(i,j,nz-1)
+          tvb = tp(i,j,nz)
+          dz = za - zrcm(i,j)
+          lrt = (tva-tvb)/(za-zb)
+          !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+          lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+          tlayer = tvb - dz*lrt
+          tlayer = (tvb + tlayer) * 0.5_rkx
+          psrcm(i,j) = pb * exp(govr*dz/tlayer)
+        else if ( zp(i,j,1) < zrcm(i,j) ) then
+          psrcm(i,j) = missl
+        else
+          kb = nz
+          do k = nz, 2, -1
+            if ( zrcm(i,j) <= zp(i,j,k-1) .and. &
+                 zrcm(i,j) > zp(i,j,k) ) then
+              kb = k
+              exit
+            end if
+          end do
+          kt = kb - 1
+          pa = pss*sccm(kt) + pst
+          za = zp(i,j,kt)
+          zb = zp(i,j,kb)
+          tva = tp(i,j,kt)
+          tvb = tp(i,j,kb)
+          dz = za - zrcm(i,j)
+          wu = (zrcm(i,j)-zb)/(za-zb)
+          wl = 1.0_rkx - wu
+          tlayer = tva * wu + tvb * wl
+          tlayer = (tva + tlayer) * 0.5_rkx
+          psrcm(i,j) = pa * exp(govr*dz/tlayer)
+        end if
       end do
     end if
   end subroutine intzps1
@@ -1575,68 +1623,64 @@ module mod_vertint
     real(rkx) :: wu, wl, tlayer, pa, za, dz, lrt
 
     if ( zp(1,1,1) < zp(1,1,nz) ) then
-      do j = 1, nj
-        do i = 1, ni
-          kb = 0
-          do k = 1, nz - 1
-            if ( zrcm(i,j) <= zp(i,j,k+1) .and. &
-                 zrcm(i,j) > zp(i,j,k) ) then
-              kb = k
-              exit
-            end if
-          end do
-          if ( kb /= 0 ) then
-            kt = kb + 1
-            pa = pp(i,j,kt)
-            za = zp(i,j,kt)
-            dz = zrcm(i,j)-za
-            wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
-            wl = d_one - wu
-            tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
-            tlayer = (tp(i,j,kt) + tlayer)/d_two
-          else
-            pa = pp(i,j,1)
-            za = zp(i,j,1)
-            dz = zrcm(i,j)-za
-            lrt = (tp(i,j,2)-tp(i,j,1))/(zp(i,j,2)-zp(i,j,1))
-            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
-            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-            tlayer = tp(i,j,1) - 0.5_rkx*dz*lrt
+      do concurrent ( i = 1:ni, j = 1:nj )
+        kb = 0
+        do k = 1, nz - 1
+          if ( zrcm(i,j) <= zp(i,j,k+1) .and. &
+               zrcm(i,j) > zp(i,j,k) ) then
+            kb = k
+            exit
           end if
-          psrcm(i,j) = pa * exp(-govr*dz/tlayer)
         end do
+        if ( kb /= 0 ) then
+          kt = kb + 1
+          pa = pp(i,j,kt)
+          za = zp(i,j,kt)
+          dz = zrcm(i,j)-za
+          wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
+          wl = d_one - wu
+          tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
+          tlayer = (tp(i,j,kt) + tlayer)/d_two
+        else
+          pa = pp(i,j,1)
+          za = zp(i,j,1)
+          dz = zrcm(i,j)-za
+          lrt = (tp(i,j,2)-tp(i,j,1))/(zp(i,j,2)-zp(i,j,1))
+          !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+          lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+          tlayer = tp(i,j,1) - 0.5_rkx*dz*lrt
+        end if
+        psrcm(i,j) = pa * exp(-govr*dz/tlayer)
       end do
     else
-      do j = 1, nj
-        do i = 1, ni
-          kb = 0
-          do k = 2, nz - 1
-            if ( zrcm(i,j) <= zp(i,j,k-1) .and. &
-                 zrcm(i,j) > zp(i,j,k) ) then
-              kb = k
-              exit
-            end if
-          end do
-          if ( kb /= 0 ) then
-            kt = kb - 1
-            pa = pp(i,j,kt)
-            za = zp(i,j,kt)
-            dz = zrcm(i,j)-za
-            wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
-            wl = d_one - wu
-            tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
-            tlayer = (tp(i,j,kt) + tlayer)/d_two
-          else
-            pa = pp(i,j,nz)
-            za = zp(i,j,nz)
-            dz = zrcm(i,j)-za
-            lrt = (tp(i,j,nz-1)-tp(i,j,nz))/(zp(i,j,nz-1)-zp(i,j,nz))
-            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
-            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-            tlayer = tp(i,j,nz) - 0.5_rkx*dz*lrt
+      do concurrent ( i = 1:ni, j = 1:nj )
+        kb = 0
+        do k = 2, nz - 1
+          if ( zrcm(i,j) <= zp(i,j,k-1) .and. &
+               zrcm(i,j) > zp(i,j,k) ) then
+            kb = k
+            exit
           end if
-          psrcm(i,j) = pa * exp(-govr*dz/tlayer)
         end do
+        if ( kb /= 0 ) then
+          kt = kb - 1
+          pa = pp(i,j,kt)
+          za = zp(i,j,kt)
+          dz = zrcm(i,j)-za
+          wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
+          wl = d_one - wu
+          tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
+          tlayer = (tp(i,j,kt) + tlayer)/d_two
+        else
+          pa = pp(i,j,nz)
+          za = zp(i,j,nz)
+          dz = zrcm(i,j)-za
+          lrt = (tp(i,j,nz-1)-tp(i,j,nz))/(zp(i,j,nz-1)-zp(i,j,nz))
+          !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+          lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+          tlayer = tp(i,j,nz) - 0.5_rkx*dz*lrt
+        end if
+        psrcm(i,j) = pa * exp(-govr*dz/tlayer)
       end do
     end if
   end subroutine intzps2

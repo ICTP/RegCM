@@ -40,7 +40,7 @@ module mod_mklightning
     character(len=256) :: inpfile
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//lnfmfile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds/nsg,roidem,i_band)
   end subroutine mklightning_init
 
   subroutine mklightning(lightning,mask,it)
