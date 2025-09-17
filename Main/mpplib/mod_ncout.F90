@@ -3118,7 +3118,7 @@ module mod_ncout
         if ( sub_stream > 0 ) then
           call getmem2d(io2dsg,joutsg1,joutsg2,ioutsg1,ioutsg2,'ncout:io2dsg')
           call getmem3d(io3dsg,joutsg1,joutsg2,ioutsg1,ioutsg2, &
-                        1,2,'ncout:io3dsg')
+                        1,kkz,'ncout:io3dsg')
         end if
       end if
     end if
