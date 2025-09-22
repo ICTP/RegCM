@@ -111,17 +111,6 @@ module mod_interp
 
     npi = size(xi)
     npo = size(xo)
-#ifndef OPENACC
-    if ( npi < 2 ) then
-      write(stderr,*) 'Refusing to work: too few input points.'
-      call die('interp1d')
-    end if
-
-    if ( size(g) /= npi .or. size(f) /= npo ) then
-      write(stderr,*) 'Refusing to work: different size coordinate/values'
-      call die('interp1d')
-    end if
-#endif
     if ( xi(1) >= xi(npi) ) then
       do k = 1, npi
         zi(k) = xi(npi-k+1)
@@ -232,17 +221,6 @@ module mod_interp
 
     npi = size(xi)
     npo = size(xo)
-#ifndef OPENACC
-    if ( npi < 2 ) then
-      write(stderr,*) 'Refusing to work: too few input points.'
-      call die('interp1d')
-    end if
-
-    if ( size(g) /= npi .or. size(f) /= npo ) then
-      write(stderr,*) 'Refusing to work: different size coordinate/values'
-      call die('interp1d')
-    end if
-#endif
     if ( xi(1) >= xi(npi) ) then
       do k = 1, npi
         zi(k) = xi(npi-k+1)
