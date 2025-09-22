@@ -82,7 +82,7 @@ module mod_interp
   ! At interval extremes the second derivative is assumed null.
   ! This subroutine also extrapolates out of the interval where the
   ! input funtion g is defined
-  subroutine interp1d_r4(xi,g,xo,f,alfa,ex1,ex2)
+  pure subroutine interp1d_r4(xi,g,xo,f,alfa,ex1,ex2)
     !$acc routine seq
     implicit none
     !  Input:  function g defined at irregular but strictly monotonic xi
@@ -212,7 +212,7 @@ module mod_interp
     end do
   end subroutine interp1d_r4
 
-  subroutine interp1d_r8(xi,g,xo,f,alfa,ex1,ex2)
+  pure subroutine interp1d_r8(xi,g,xo,f,alfa,ex1,ex2)
     !$acc routine seq
     implicit none
     real(rk8), dimension(:), intent(in) :: xi, xo, g

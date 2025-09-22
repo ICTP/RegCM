@@ -69,7 +69,7 @@ AC_DEFUN([RR_PATH_NETCDF],[
       if test "x$netcdf" = "xno"; then
         AC_CHECKING([if we need to link libraries for HDF4])
         LDFLAGS="$LDFLAGS $NC_LDFLAGS"
-        LIBS="$LIBS -lmfhdf -ldf -ljpeg"
+        LIBS="$LIBS -lmfhdf -lhdf -ljpeg"
         AC_CHECK_LIB([netcdf], [nc_enddef],
         [netcdf=yes], [netcdf=no])
       fi

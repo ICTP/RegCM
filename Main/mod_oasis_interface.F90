@@ -410,8 +410,9 @@ module mod_oasis_interface
     if ( associated(xlat) ) nullify(xlat)
     if ( associated(lndcat) ) nullify(lndcat)
 #ifdef DEBUG
-    write(ndebug,"(' ',A,A,I3,A)") oasis_prefix, 'please refer to cpu ', iocpu, ' for grid writing'&
-                           //' debug statements'
+    write(ndebug,"(' ',A,A,I3,A)") oasis_prefix, &
+         ': please refer to cpu ', iocpu, &
+         ' for grid writing debug statements'
 #endif
   end subroutine oasisxregcm_def_grid
 
