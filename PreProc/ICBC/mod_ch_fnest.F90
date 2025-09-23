@@ -46,7 +46,7 @@ module mod_ch_fnest
 
   real(rkx), dimension(:,:,:), pointer, contiguous :: mxc, mxcp, mxcp4
   real(rkx), dimension(:,:,:,:), pointer, contiguous :: mxc4_1
-  real(rkx), dimension(:,:,:), pointer, contiguous :: pp3d, p3d
+  real(rkx), dimension(:,:,:), pointer, contiguous :: pp3d, pai, p3d
   real(rkx), dimension(:,:), pointer, contiguous :: xlat_in, xlon_in, ht_in
   real(rkx), dimension(:,:), pointer, contiguous :: p0_in, pstar0, ps, xps, xps3
   real(rkx), dimension(:), pointer, contiguous :: sigma_in, plev, sigmar
@@ -301,6 +301,9 @@ module mod_ch_fnest
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable p0 read error')
       pstar0 = p0_in - ptop_in
+    else if ( oidyn == 3 ) then
+      call getmem3d(pai,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pai')
+      call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
     else
       istatus = nf90_inq_varid(ncid(1), 'ps', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -494,6 +497,20 @@ module mod_ch_fnest
           do j = 1, jx_in
             p3d(j,i,k) = pstar0(j,i) * sigma_in(k) + &
                          ptop_in + pp3d(j,i,k)
+          end do
+        end do
+      end do
+    else if ( oidyn == 3 ) then
+      istatus = nf90_inq_varid(ncid(1), 'pai', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable pai missing')
+      istatus = nf90_get_var(ncid(1), ivarid, pai, istart, icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ppa read error')
+      do k = 1, kz_in
+        do i = 1, iy_in
+          do j = 1, jx_in
+            p3d(j,i,k) = p00 * (pai(j,i,k)**cpovr)
           end do
         end do
       end do
