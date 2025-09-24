@@ -1,0 +1,51 @@
+{
+    "#note_experiment_id":         "CMIP6 valid experiment_ids are found in CORDEX-CMIP6_CV.json",
+    "experiment_id":               "evaluation",
+    "activity_id":                 "DD",
+    "project_id":                  "CORDEX-CMIP6",
+
+    "#note_run_variant":           "Text stored in attribute variant_info (recommended, not required description of run variant)",
+    "run_variant":                 "1st realization",
+
+    "driving_experiment_id":       "evaluation",
+    "driving_institution_id":      "ECMWF",
+    "driving_source_id":           "ERA5",
+    "driving_variant_label" :      "r1i1p1f1",
+
+    "#note_institution_id":        "institution_id should be registered at https://github.com/WCRP-CORDEX/cordex-cv/issues/new ",
+    "institution_id":              "GERICS",
+
+    "#note_source_id":             "source_id (model name) must be registered at https://github.com/WCRP-CORDEX/cordex-cv/issues/new ",
+    "source_id":                   "REMO2020-2-2",
+    "version_realization":         "v1-r1",
+
+    "calendar":                    "proleptic_gregorian",
+
+    "grid":                        "Rotated-pole latitude-longitude with 0.11 degree grid spacing",
+
+    "#output":                     "Root directory for output (can be either a relative or full path)",
+    "outpath":                     "CORDEX",
+
+    "#note_optional":              " **** The following descriptors are optional and may be set to an empty string ",
+
+    "contact ":                    "gerics-cordex@hereon.de",
+
+    "comment":                     "",
+    "references":                  "https://www.remo-rcm.de",
+
+    "#note_CMIP6":                 " **** The following are set correctly for CMIP6 and should not normally need editing",
+
+    "_controlled_vocabulary_file": "CORDEX-CMIP6_CV.json",
+    "_AXIS_ENTRY_FILE":            "CORDEX-CMIP6_coordinate.json",
+    "_FORMULA_VAR_FILE":           "CORDEX-CMIP6_formula_terms.json",
+
+
+    "domain_id" :                  "EUR-12",
+
+    "tracking_prefix":             "hdl:21.14103",
+    "_history_template":           "%s ;rewrote data to be consistent with <project_id> for variable <variable_id> found in table <table_id>.",
+
+    "#output_path_template":   "Template for output path directory using tables keys or global attributes, these should follow the relevant data reference syntax",
+    "output_path_template":    "<project_id><activity_id><domain_id><institution_id><driving_source_id><driving_experiment_id><driving_variant_label><source_id><version_realization><frequency><variable_id><version>",
+    "output_file_template":    "<variable_id><domain_id><driving_source_id><driving_experiment_id><driving_variant_label><institution_id><source_id><version_realization><frequency>"
+ }
