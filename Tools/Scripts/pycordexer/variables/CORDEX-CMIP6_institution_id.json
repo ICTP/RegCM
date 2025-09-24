@@ -1,10 +1,12 @@
 {
     "institution_id": {
+        "AUTH": "Department of Meteorology and Climatology, Aristotle University of Thessaloniki, Thessaloniki, Greece",
         "BAS": "British Antarctic Survey, Cambridge, United Kingdom",
         "BCCR-UCAN": "BCCR [Bjerknes Center for Climate Research (BCCR), NORCE Norwegian Research Center, Bergen, Norway]; UCAN [Instituto de Fisica de Cantabria (IFCA), CSIC-Universidad de Cantabria, Santander, Spain]",
         "BOM": "Bureau of Meteorology, Melbourne, Australia",
         "CCCma": "Canadian Centre for Climate Modelling and Analysis, Environment and Climate Change Canada, Victoria (British Columbia), Canada",
         "CESAM-UA": "Center for Environmental and Marine Studies (CESAM), Aveiro University (UA), Aveiro, Portugal",
+        "CLMcom-AWI": "Climate Limited-area Modelling Community (CLMcom) partner: Alfred Wegener Institute, Helmholtz Centre for Polar and Marine Research, Potsdam, Germany",
         "CLMcom-BTU": "Climate Limited-area Modelling Community (CLMcom) partner: Brandenburgische Technische Universitaet Cottbus-Senftenberg, Cottbus, Germany",
         "CLMcom-CMCC": "Climate Limited-area Modelling Community (CLMcom) partner: Euro-Mediterranean Center on Climate Change (CMCC Foundation), Caserta, Italy",
         "CLMcom-DWD": "Climate Limited-area Modelling Community (CLMcom) partner: Deutscher Wetterdienst, Offenbach am Main, Germany",
@@ -19,6 +21,7 @@
         "CLMcom-LIST": "Climate Limited-area Modelling Community (CLMcom) partner: Luxembourg Institute of Science and Technology, Esch-sur-Alzette, Luxembourg",
         "CNRM": "Centre National de Recherches Meteorologiques, Toulouse, France",
         "CNRM-MF": "CNRM [Centre National de Recherches Meteorologiques, Toulouse, France]; MF [Meteo France, Toulouse, France]",
+        "CORNELL": "Cornell University, Ithaca (New York), USA",
         "DWD-BSH": "DWD [Deutscher Wetterdienst, Offenbach am Main, Germany]; BSH [Bundesamt fuer Seeschifffahrt und Hydrographie, Hamburg, Germany]",
         "ENEA": "Italian National Agency for New Technologies, Energy and the Environment, Rome, Italy",
         "GERICS": "Climate Service Center Germany, Helmholtz Centre hereon GmbH, Hamburg, Germany",
@@ -26,6 +29,7 @@
         "HCLIMcom-METNo": "HARMONIE Climate Modelling Community (HCLIMcom) partner: Norwegian Meteorological Institute (METNo), Oslo, Norway",
         "HCLIMcom-SMHI": "HARMONIE Climate Modelling Community (HCLIMcom) partner: Swedish Meteorological and Hydrological Institute (SMHI), Norrkoping, Sweden",
         "ICTP": "The Abdus Salam International Centre for Theoretical Physics, Trieste, Italy",
+        "IDL-FCUL": "Instituto Dom Luiz, Faculdade de Ciencias, Universidade de Lisboa, Lisboa, Portugal",
         "IMWM": "Institute of Meteorology and Water Management, Warsaw, Poland",
         "IRD-MF": "IRD [Institut de Recherche pour le Developpement, Noumea (New Caledonia), France]; MF [Meteo France, Toulouse, France]",
         "KNMI": "Royal Netherlands Meteorological Institute, De Bilt, The Netherlands",
