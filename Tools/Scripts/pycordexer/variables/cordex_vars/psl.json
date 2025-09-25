@@ -22,6 +22,8 @@
           "var_name": "psl",
           "fill_value": "1e+20",
           "new_attributes": {
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "units": "Pa",
             "long_name": "Sea Level Pressure",
             "standard_name": "air_pressure_at_sea_level"
@@ -41,6 +43,8 @@
           "fill_value": "1e+20",
          "new_attributes": {
             "units": "Pa",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Sea Level Pressure",
             "standard_name": "air_pressure_at_sea_level"
           }

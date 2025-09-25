@@ -21,6 +21,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "m s-1",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "standard_name": "upward_air_velocity",
             "long_name": "Upward Air Velocity"
           }
@@ -44,6 +46,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "m s-1",
+            "cell_methods": "area: mean time: mean",
+            "cell_measures": "area: areacella",
             "standard_name": "upward_air_velocity",
             "long_name": "Upward Air Velocity"
           }

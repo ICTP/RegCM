@@ -22,6 +22,9 @@
           "new_attributes": {
             "long_name": "Low Level Cloud Fraction",
             "standard_name": "cloud_area_fraction_in_atmosphere_layer",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "comment": "between 680 and 440 hPa",
             "units": "%"
           }
         }
@@ -33,6 +36,9 @@
           "new_attributes": {
             "long_name": "Low Level Cloud Fraction",
             "standard_name": "cloud_area_fraction_in_atmosphere_layer",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "comment": "between 680 and 440 hPa",
             "units": "%"
           }
         }
@@ -49,6 +55,9 @@
           "new_attributes": {
             "long_name": "Low Level Cloud Fraction",
             "standard_name": "cloud_area_fraction_in_atmosphere_layer",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "comment": "between 680 and 440 hPa",
             "units": "%"
           }
         }

@@ -22,6 +22,8 @@
           "new_attributes": {
             "long_name": "Ground Heat Flux",
             "standard_name": "downward_heat_flux_in_soil",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "units": "W m-2"
           }
         }
@@ -33,6 +35,8 @@
           "var_name": "hfso",
           "fill_value": "1e+20",
           "new_attributes": {
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "long_name": "Ground Heat flux",
             "standard_name": "downward_heat_flux_in_soil",
             "units": "W m-2"
@@ -51,6 +55,8 @@
           "new_attributes": {
             "long_name": "Ground Heat Flux",
             "standard_name": "downward_heat_flux_in_soil",
+            "cell_methods": "area: mean time: mean",
+            "cell_measures": "area: areacella",
             "units": "W m-2"
           }
         }

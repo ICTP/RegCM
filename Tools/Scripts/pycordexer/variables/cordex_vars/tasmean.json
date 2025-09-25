@@ -27,6 +27,8 @@
           "new_attributes": {
             "units": "K",
             "long_name": "Near-Surface Air Temperature",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "standard_name": "air_temperature"
           }
         }

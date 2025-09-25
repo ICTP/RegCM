@@ -21,6 +21,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "K",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "long_name": "Air Temperature"
           }
         }
@@ -37,6 +39,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "K",
+            "cell_methods": "area: mean time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Air Temperature"
           }
         }

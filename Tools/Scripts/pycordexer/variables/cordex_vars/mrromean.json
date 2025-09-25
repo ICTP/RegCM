@@ -21,6 +21,8 @@
           "var_name": "mrro",
           "fill_value": "1e+20",
           "new_attributes": {
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
             "units": "kg m-2 s-1",
             "long_name": "Total Runoff",
             "standard_name": "runoff_flux"

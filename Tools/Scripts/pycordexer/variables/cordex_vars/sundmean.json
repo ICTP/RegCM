@@ -21,6 +21,9 @@
           "new_attributes": {
             "long_name": "Daily Duration of Sunshine",
             "standard_name": "duration_of_sunshine",
+            "cell_methods": "time: sum",
+            "cell_measures": "area: areacella",
+            "comment": "The WMO definition of sunshine is that the surface incident radiative flux from the solar beam (i.e. excluding diffuse skylight) exceeds 120 W m-2. \"Duration\" is the length of time for which a condition holds.",
             "units": "s"
           }
         }

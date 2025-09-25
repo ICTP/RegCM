@@ -22,6 +22,9 @@
           "new_attributes": {
             "long_name": "Surface Downwelling Longwave Radiation",
             "standard_name": "surface_downwelling_longwave_flux_in_air",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "positive": "down",
             "units": "W m-2"
           }
         }
@@ -38,6 +41,9 @@
           "new_attributes": {
             "long_name": "Surface Downwelling Longwave Radiation",
             "standard_name": "surface_downwelling_longwave_flux_in_air",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "positive": "down",
             "units": "W m-2"
           }
         }

@@ -1,5 +1,5 @@
 {
-  "sic": [
+  "siconca": [
     [
       [
         "ReadVariableFromFile",
@@ -11,8 +11,11 @@
         "SaveVariableToDisk",
         {
           "new_attributes": {
-            "long_name": "Sea Ice Area Fraction",
+            "long_name": "Sea-Ice Area Percentage (Atmospheric Grid)",
             "standard_name": "sea_ice_area_fraction",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "comment": "Percentage of grid cell covered by sea ice",
             "units": "%"
           }
         }

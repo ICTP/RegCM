@@ -29,6 +29,9 @@
           "new_attributes": {
             "long_name": "Total water content of soil layer",
             "standard_name": "mass_content_of_water_in_soil_layer",
+            "cell_methods": "area: mean where land time: point",
+            "cell_measures": "area: areacella",
+            "comment": "The mass of water in all phases in each soil layer (3D variable). Reported as missing for grid cells with no land.",
             "units": "kg m-2"
           }
         }
@@ -47,6 +50,9 @@
           "new_attributes": {
             "long_name": "Total water content of soil layer",
             "standard_name": "mass_content_of_water_in_soil_layer",
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
+            "comment": "The mass of water in all phases in each soil layer (3D variable). Reported as missing for grid cells with no land.",
             "units": "kg m-2"
           }
         }

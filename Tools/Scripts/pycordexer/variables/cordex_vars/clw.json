@@ -18,7 +18,11 @@
       [
         "SaveMultipleVariablesToDisk",
         {
-          "fill_value": "1e+20"
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "cell_methods": "area: mean time: mean",
+            "cell_measures": "area: areacella"
+          }
         }
       ],
       [
@@ -30,7 +34,11 @@
       [
         "SaveMultipleVariablesToDisk",
         {
-          "fill_value": "1e+20"
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "cell_methods": "area: mean time: mean",
+            "cell_measures": "area: areacella"
+          }
         }
       ]
     ]

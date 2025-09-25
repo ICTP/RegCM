@@ -168,9 +168,9 @@ class RegcmOutputFile(object):
     :param datafile (optional): the path of the NetCDF file (used just for logs)
     """
 
-    def __init__(self, ncf, datafile=None, regcm_model_name='RegCM',
-                 regcm_version=None, regcm_version_id=None,
-                 regcm_nest_tag=None):
+    def __init__(self, ncf, datafile=None, institute_id='ICTP',
+                 regcm_model_name='RegCM', regcm_version=None,
+                 regcm_version_id=None, regcm_nest_tag=None):
 
         # in_file and _of_file are variables used just inside the log lines to
         # report the name of the file where the operations have been performed
@@ -210,6 +210,8 @@ class RegcmOutputFile(object):
         LOGGER.debug('Cleaning attribute of variable times')
         if 'calendar' in self.times_attributes:
             current_val = self.times_attributes['calendar']
+            if current_val == 'proleptic_gregorian':
+                self.times_attributes['leap_seconds'] = 'none'
             if 'gregorian' in current_val.lower():
                 if current_val != 'proleptic_gregorian':
                     LOGGER.debug(
@@ -218,6 +220,7 @@ class RegcmOutputFile(object):
                         current_val
                     )
                 self.times_attributes['calendar'] = 'proleptic_gregorian'
+                self.times_attributes['leap_seconds'] = 'none'
         if 'bounds' in self.times_attributes:
             LOGGER.debug('Removing "bounds" attribute from times')
             del self.times_attributes['bounds']
@@ -296,6 +299,7 @@ class RegcmOutputFile(object):
         LOGGER.debug('The domain is %s', self._domain)
         LOGGER.debug('The product is %s', self._product)
 
+        self._institute_id = institute_id
         self._revision = None
         self._rev_version = None
         self._nest_tag = None
@@ -350,6 +354,8 @@ class RegcmOutputFile(object):
             self._revision, self._rev_version, self._nest_tag
         )
 
+        self.replace_vars = { }
+        self.replace_dims = { }
         self.__ncf = None
 
     def _get_file_type(self):
@@ -547,6 +553,10 @@ class RegcmOutputFile(object):
         return self._revision
 
     @property
+    def institute_id(self):
+        return self._institute_id
+
+    @property
     def regcm_model_name(self):
         return self._regcm_model_name
 
@@ -663,6 +673,8 @@ class CordexDataset(Dataset):
         except:
             driving_expid = 'evaluation'
         gsize = "{:.1f}".format(regcm_file.grid_size.item()/1000.0)
+        regcm_file.replace_dims = REPLACE_DIMS
+        regcm_file.replace_vars = REPLACE_VARS
         if regcm_file.map_projection == 'LAMCON':
             mgrid = 'Lambert Conformal with '
         elif regcm_file.map_projection == 'POLSTR':
@@ -673,15 +685,20 @@ class CordexDataset(Dataset):
             mgrid = 'Rotated Mercator with '
         else:
             mgrid = 'Rotated-pole latitude-longitude with approx '
+            regcm_file.replace_dims = REPLACE_DIMS_ROT
+            regcm_file.replace_vars = REPLACE_VARS_ROT
         mgrid = mgrid + gsize +' km grid spacing'
-        newattr = {
-            'activity_id': 'DD',      #only option allowed
+
+        newattr = CORDEX_CMIP6_DEFINITIONS['source_id'][ICTP_Model]
+        newattr.update({
+            'Conventions': CORDEX_CMIP6_DEFINITIONS['CV']['Conventions'],
             'comment': regcm_file.regcm_model_name+' CORDEX {} run'.format(xdomain),
             'note': 'Regular production', #This will be different for every simulation
             'contact': simulation.mail,
-            'Conventions': 'CF-1.11',  #only option allowed in CMIP6
             'creation_date': time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                            time.localtime(time.time())),
+            'mip_era': CORDEX_CMIP6_DEFINITIONS['CV']['mip_era'],
+            'product': CORDEX_CMIP6_DEFINITIONS['CV']['product'],
             'experiment': xdomain,
             'domain': xdomain,
             'domain_id': simulation.domain,
@@ -691,21 +708,18 @@ class CordexDataset(Dataset):
             'driving_source_id': global_model,
             'driving_variant_label': simulation.ensemble,
             'grid': mgrid,
-            'institution': 'International Centre for Theoretical Physics',
-            'institution_id': 'ICTP',
-            'license': 'https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use', #only option allowed
-            'mip_era': 'CMIP6',      #only option allowed
-            'product': 'model-output',    #only option allowed
-            'project_id': 'CORDEX-CMIP6', #only option allowed
-            'source': CORDEX_CMIP6_DEFINITIONS['source_id'][ICTP_Model]['label_extended'],
+            'institution': CORDEX_CMIP6_DEFINITIONS['institution_id'][regcm_file.institute_id],
+            'institution_id': regcm_file.institute_id,
+            'source': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['source'],
+            'license': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['license'],
+            'project_id': list(CORDEX_CMIP6_DEFINITIONS['project_id'])[0],
             'source_id': ICTP_Model,
-            'source_type': 'ARCM',
-            'tracking_id': str(uuid.uuid1()),
+            'source_type': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['source_type'],
+            'tracking_id': CORDEX_CMIP6_DEFINITIONS['CV']['tracking_id'][0][:-2]+str(uuid.uuid1()),
             'version_realization': ICTP_Model_Version,
-            'version_realization_info': 'none',
-        }
+            'version_realization_info': 'none', }
+        )
 
-        newattr = {**newattr, **CORDEX_CMIP6_DEFINITIONS['source_id'][ICTP_Model]}
         if regcm_file.nesting_tag is not None:
             newattr['nesting_tag'] = regcm_file.nesting_tag
 
@@ -739,47 +753,40 @@ class CordexDataset(Dataset):
                 )
 
         xlat = self.create_var_from_data(
-            REPLACE_VARS['xlat'],
+            regcm_file.replace_vars['xlat'],
             regcm_file.xlat,
             regcm_file.xlat_dimensions,
-            attributes=regcm_file.xlat_attributes
+            attributes=regcm_file.xlat_attributes,
+            replace_dims=regcm_file.replace_dims
         )
-        #LOGGER.debug(
-        #    'Adding attribute named "grid_mapping" with value "crs" to %s',
-        #    REPLACE_VARS['xlat']
-        #)
-        #xlat.setncattr('grid_mapping', 'crs')
-
         xlon = self.create_var_from_data(
-            REPLACE_VARS['xlon'],
+            regcm_file.replace_vars['xlon'],
             regcm_file.xlon,
             regcm_file.xlon_dimensions,
-            attributes=regcm_file.xlon_attributes
+            attributes=regcm_file.xlon_attributes,
+            replace_dims=regcm_file.replace_dims
         )
-        #LOGGER.debug(
-        #    'Adding attribute named "grid_mapping" with value "crs" to %s',
-        #    REPLACE_VARS['xlon']
-        #)
-        #xlon.setncattr('grid_mapping', 'crs')
-
         x = self.create_var_from_data(
-            REPLACE_VARS['jx'],
+            regcm_file.replace_vars['jx'],
             regcm_file.jx,
             regcm_file.jx_dimensions,
-            attributes=regcm_file.jx_attributes
+            attributes=regcm_file.jx_attributes,
+            replace_dims=regcm_file.replace_dims
         )
+        y = self.create_var_from_data(
+            regcm_file.replace_vars['iy'],
+            regcm_file.iy,
+            regcm_file.iy_dimensions,
+            attributes=regcm_file.iy_attributes,
+            replace_dims=regcm_file.replace_dims
+        )
+
         LOGGER.debug(
-            'To identify variable x as an axis, an attribute named "axis" will '
-            'be added with value "X"'
+           'To identify variable x as an axis, an attribute named "axis" will '
+           'be added with value "X"'
         )
         x.setncattr('axis', 'X')
 
-        y = self.create_var_from_data(
-            REPLACE_VARS['iy'],
-            regcm_file.iy,
-            regcm_file.iy_dimensions,
-            attributes=regcm_file.iy_attributes
-        )
         LOGGER.debug(
             'To identify variable y as an axis, an attribute named "axis" will '
             'be added with value "Y"'
@@ -796,7 +803,7 @@ class CordexDataset(Dataset):
 
     def create_var_from_data(self, var_name, data, dims,
                              datatype=DATATYPE_AUXILIARIES, attributes=None,
-                             replace_dims=REPLACE_DIMS):
+                             replace_dims={ }):
         """
         Create a new variable in the netcdf file starting from a numpy array
         and some metadata (like the name of the dimensions and the attributes).
@@ -825,8 +832,6 @@ class CordexDataset(Dataset):
         LOGGER.debug('Saving variable %s', var_name)
         LOGGER.debug('dimensions %s', dims)
 
-        if replace_dims is None:
-            replace_dims = {}
         if attributes is None:
             attributes = {}
 
@@ -977,7 +982,8 @@ class CordexDataset(Dataset):
             regcm_file.map,
             regcm_file.map_dimensions,
             datatype=regcm_file.map.dtype,
-            attributes=regcm_file.map_attributes
+            attributes=regcm_file.map_attributes,
+            replace_dims=regcm_file.replace_dims
         )
 
         if 'grid_mapping_name' not in regcm_file.map_attributes:
@@ -1112,11 +1118,12 @@ class CordexDataset(Dataset):
                 'the projection'
             )
 
-    def save_cordex_variable(self, cordex_var):
+    def save_cordex_variable(self, cordex_var, regcm_file):
         attributes = copy(cordex_var.attributes)
 
         LOGGER.debug('Setting parameter "frequency" for the netCDF file')
         self.setncattr('frequency', cordex_var.frequency)
+        self.setncattr('table_id', 'Table '+cordex_var.frequency)
         self.setncattr('variable_id', cordex_var.name)
 
         if 'coordinates' in attributes:
@@ -1163,6 +1170,7 @@ class CordexDataset(Dataset):
                 times,
                 (('time', cordex_var.times.size),),
                 attributes=time_attributes,
+                replace_dims=regcm_file.replace_dims
             )
         else:
             LOGGER.debug(
@@ -1176,16 +1184,14 @@ class CordexDataset(Dataset):
             bounds = np.empty([d[1] for d in dims], dtype=times.dtype)
             bounds[:, 0] = times - (time_step / 2)
             bounds[:, 1] = times + (time_step / 2)
+            bounds_attributes = { }
 
-            bounds_attributes = {
-                'units': time_attributes['units'],
-                'calendar': time_attributes['calendar']
-            }
             self.create_var_from_data(
                 'time_bnds',
                 bounds,
                 dims,
-                attributes=bounds_attributes
+                attributes=bounds_attributes,
+                replace_dims=regcm_file.replace_dims
             )
         else:
             LOGGER.debug('time_bnds creation skipped because it was not needed')
@@ -1201,6 +1207,7 @@ class CordexDataset(Dataset):
                 auxiliary_var.dimensions,
                 attributes=auxiliary_var.attributes,
                 datatype=auxiliary_data.dtype,
+                replace_dims=regcm_file.replace_dims
             )
 
         with cordex_var.data:
@@ -1212,6 +1219,7 @@ class CordexDataset(Dataset):
             cordex_var.dimensions,
             attributes=attributes,
             datatype=data.dtype,
+            replace_dims=regcm_file.replace_dims
         )
 
 

@@ -21,7 +21,9 @@
         {
           "new_attributes": {
             "long_name": "Evaporation Including Sublimation and Transpiration",
-            "standard_name": "water_evaporation_flux",
+            "standard_name": "water_evapotranspiration_flux",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "units": "kg m-2 s-1"
           }
         }
@@ -37,8 +39,10 @@
         {
           "var_name": "evspsbl",
           "new_attributes": {
-            "long_name": "Evaporation",
-            "standard_name": "water_evaporation_flux",
+            "long_name": "Evaporation Including Sublimation and Transpiration",
+            "standard_name": "water_evapotranspiration_flux",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "units": "kg m-2 s-1"
           }
         }

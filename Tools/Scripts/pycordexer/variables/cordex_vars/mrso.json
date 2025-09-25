@@ -24,6 +24,9 @@
           "new_attributes": {
             "long_name": "Total Soil Moisture Content",
             "standard_name": "mass_content_of_water_in_soil",
+            "cell_methods": "area: mean where land time: point",
+            "cell_measures": "area: areacella",
+            "comment": "The mass of water in all phases per unit area, summed over all soil layers.",
             "units": "kg m-2"
           }
         }
@@ -42,6 +45,9 @@
           "new_attributes": {
             "long_name": "Total Soil Moisture Content",
             "standard_name": "mass_content_of_water_in_soil",
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
+            "comment": "The mass of water in all phases per unit area, summed over all soil layers.",
             "units": "kg m-2"
           }
         }

@@ -28,6 +28,8 @@
         {
           "new_attributes": {
             "long_name": "Eastward Near-Surface Wind",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "standard_name": "eastward_wind",
             "units": "m s-1"
           }
@@ -45,6 +47,8 @@
           "new_attributes": {
             "long_name": "Eastward Near-Surface Wind",
             "standard_name": "eastward_wind",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "units": "m s-1"
           }
         }

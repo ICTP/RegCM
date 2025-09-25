@@ -27,6 +27,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "1",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "long_name": "Near-Surface Specific Humidity",
             "standard_name": "specific_humidity"
           }
@@ -45,6 +47,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "1",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Near-Surface Specific Humidity",
             "standard_name": "specific_humidity"
           }

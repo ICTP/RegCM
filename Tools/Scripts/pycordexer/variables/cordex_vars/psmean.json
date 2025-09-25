@@ -21,6 +21,8 @@
           "var_name": "ps",
           "fill_value": "1e+20",
           "new_attributes": {
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Surface Air Pressure",
             "standard_name": "surface_air_pressure",
             "units": "Pa"

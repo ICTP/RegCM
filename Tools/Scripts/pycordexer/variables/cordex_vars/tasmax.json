@@ -26,6 +26,9 @@
           "new_attributes": {
             "long_name": "Daily Maximum Near-Surface Air Temperature",
             "standard_name": "air_temperature",
+            "cell_methods": "area: mean time: maximum",
+            "cell_measures": "area: areacella",
+            "comment": "maximum from all integrated time steps per day",
             "units": "K"
           }
         }

@@ -184,6 +184,14 @@ def parse_input():
              'specified, this script will use the name RegCM'
     )
     parser.add_argument(
+        '-i',
+        '--institute_id',
+        type=str,
+        default='ICTP',
+        help='The name of the institute running the RegCM model. '
+             'Default is ICTP.'
+    )
+    parser.add_argument(
         '-r',
         '--regcm-version',
         type=str,
@@ -224,7 +232,7 @@ def parse_input():
 def save_vars(datafile, requested_vars, worker_pool,
               mail='esp@ictp.it', domain='NONE', global_model='NONE',
               experiment='none', ensemble='NN', notes='none', corrflag=True,
-              regcm_model_name='RegCM', regcm_version=None,
+              institute_id='ICTP', regcm_model_name='RegCM', regcm_version=None,
               regcm_version_id=None, regcm_nest_tag=None,
               cordex_root_dir=OUTPUTDIR, sigterm_handler=None,
               sigint_handler=None):
@@ -260,6 +268,7 @@ def save_vars(datafile, requested_vars, worker_pool,
         REGCM_FILE = RegcmOutputFile(
             ncf,
             datafile,
+            institute_id,
             regcm_model_name,
             regcm_version,
             regcm_version_id,
@@ -426,6 +435,7 @@ def main():
     experiment = args.experiment
     ensemble = args.ensemble
     notes = args.notes
+    institute_id = args.institute_id
 
     regcm_model_name = args.regcm_model_name
     regcm_version = args.regcm_version
@@ -457,6 +467,7 @@ def main():
         ensemble,
         notes,
         corrflag,
+        institute_id,
         regcm_model_name,
         regcm_version,
         regcm_version_id,

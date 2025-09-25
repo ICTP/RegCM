@@ -6,6 +6,7 @@ import numpy as np
 
 # The current version of RegCM. This information will be used only if there is
 # no way to get it from the RegCM files
+ICTP_Institution_fallback = 'ICTP'
 ICTP_Model_fallback = 'RegCM5-0'
 ICTP_Model_Version_fallback = 'v1-r1'
 
@@ -31,11 +32,22 @@ REPLACE_DIMS = {
     'iy': 'y',
     'ntimes': 'time_bnds',
 }
+REPLACE_DIMS_ROT = {
+    'jx': 'rlon',
+    'iy': 'rlat',
+    'ntimes': 'time_bnds',
+}
 
 # The same for the variables
 REPLACE_VARS = {
     'jx': 'x',
     'iy': 'y',
+    'xlat': 'lat',
+    'xlon': 'lon',
+}
+REPLACE_VARS_ROT = {
+    'jx': 'rlon',
+    'iy': 'rlat',
     'xlat': 'lat',
     'xlon': 'lon',
 }

@@ -258,7 +258,17 @@ class SaveVariableToDisk(Filter):
                 attr_value,
                 var_name
             )
-            attributes[attr_name] = attr_value
+            if attr_name == 'cell_methods':
+                if attr_name in attributes:
+                    if attr_value in attributes[attr_name]:
+                        continue
+                    else:
+                        attributes[attr_name] = ' '.join(
+                           (attr_value, attributes[attr_name]))
+                else:
+                    attributes[attr_name] = attr_value
+            else:
+                attributes[attr_name] = attr_value
 
         if self.fill_value is not None:
             attributes['_FillValue'] = self.fill_value
@@ -277,7 +287,7 @@ class SaveVariableToDisk(Filter):
 
         LOGGER.info('Writing on file %s', cordex_path)
         with CordexDataset(cordex_path, regcm_file, simulation) as cdf:
-            cdf.save_cordex_variable(cordex_var)
+            cdf.save_cordex_variable(cordex_var, regcm_file)
         LOGGER.info('Finished writing on file %s', cordex_path)
 
         return prev_result

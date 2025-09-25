@@ -13,6 +13,9 @@
           "new_attributes": {
             "long_name": "Soil Frozen Water Content",
             "standard_name": "soil_frozen_water_content",
+            "cell_methods": "area: mean where land time: point",
+            "cell_measures": "area: areacella",
+            "comment": "The mass of frozen water per unit area, summed over all soil layers. Reported as missing for grid cells with no land.",
             "units": "kg m-2"
           }
         }

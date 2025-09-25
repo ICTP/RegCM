@@ -22,6 +22,8 @@
           "new_attributes": {
             "long_name": "Surface Temperature",
             "standard_name": "surface_temperature",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "units": "K"
           }
         }
@@ -38,6 +40,8 @@
           "new_attributes": {
             "long_name": "Surface Temperature",
             "standard_name": "surface_temperature",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "units": "K"
           }
         }
