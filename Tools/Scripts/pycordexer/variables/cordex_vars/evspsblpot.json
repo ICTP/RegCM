@@ -22,6 +22,8 @@
           "new_attributes": {
             "long_name": "Potential Evapotranspiration",
             "standard_name": "water_potential_evaporation_flux",
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
             "units": "kg m-2 s-1"
           }
         }
@@ -35,6 +37,8 @@
           "new_attributes": {
             "long_name": "Potential Evapotranspiration",
             "standard_name": "water_potential_evaporation_flux",
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
             "units": "kg m-2 s-1"
           }
         }

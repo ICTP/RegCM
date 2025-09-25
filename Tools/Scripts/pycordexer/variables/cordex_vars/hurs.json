@@ -28,6 +28,8 @@
           "new_attributes": {
             "units": "%",
             "long_name": "Near-Surface Relative Humidity",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "standard_name": "relative_humidity"
           }
         }
@@ -45,6 +47,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "%",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Near-Surface Relative Humidity",
             "standard_name": "relative_humidity"
           }

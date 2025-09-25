@@ -13,6 +13,8 @@
           "new_attributes": {
             "long_name": "Snow Area Fraction",
             "standard_name": "surface_snow_area_fraction",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "units": "%"
           }
         }

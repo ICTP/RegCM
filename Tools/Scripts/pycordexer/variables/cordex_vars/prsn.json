@@ -11,8 +11,11 @@
         "SaveVariableToDisk",
         {
           "new_attributes": {
-            "long_name": "Snowfall Flux",
             "standard_name": "snowfall_flux",
+            "long_name": "Snowfall Flux",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "comment": "At surface; includes precipitation of all forms of water in the solid phase",
             "units": "kg m-2 s-1"
           }
         }
@@ -28,8 +31,11 @@
         {
           "var_name": "prsn",
           "new_attributes": {
-            "long_name": "Snowfall Flux",
             "standard_name": "snowfall_flux",
+            "long_name": "Snowfall Flux",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "comment": "At surface; includes precipitation of all forms of water in the solid phase",
             "units": "kg m-2 s-1"
           }
         }

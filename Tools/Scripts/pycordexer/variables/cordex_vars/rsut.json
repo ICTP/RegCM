@@ -22,7 +22,9 @@
           "new_attributes": {
             "long_name": "TOA Outgoing Shortwave Radiation",
             "standard_name": "toa_outgoing_shortwave_flux",
-            "cell_methods" : "time: mean",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "positive": "up",
             "units": "W m-2"
           }
         }
@@ -39,6 +41,9 @@
           "new_attributes": {
             "long_name": "TOA Outgoing Shortwave Radiation",
             "standard_name": "toa_outgoing_shortwave_flux",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "positive": "up",
             "units": "W m-2"
           }
         }

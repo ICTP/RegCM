@@ -24,6 +24,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "kg m-2 s-1",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Convective Precipitation",
             "standard_name": "convective_precipitation_flux"
           }
@@ -42,6 +44,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "kg m-2 s-1",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Convective Precipitation",
             "standard_name": "convective_precipitation_flux"
           }

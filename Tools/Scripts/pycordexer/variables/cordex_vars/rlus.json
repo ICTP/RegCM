@@ -25,7 +25,9 @@
           "new_attributes": {
             "long_name": "Surface Upwelling Longwave Radiation",
             "standard_name": "surface_upwelling_longwave_flux_in_air",
-            "cell_methods" : "time: mean",
+            "cell_methods" : "area: time: mean",
+            "cell_measures": "area: areacella",
+            "positive": "up",
             "grid_mapping" : "crs",
             "coordinates" : "lat lon",
             "units": "W m-2"
@@ -46,7 +48,9 @@
           "new_attributes": {
             "long_name": "Surface Upwelling Longwave Radiation",
             "standard_name": "surface_upwelling_longwave_flux_in_air",
-            "cell_methods" : "time: mean",
+            "cell_methods" : "area: time: mean",
+            "cell_measures": "area: areacella",
+            "positive": "up",
             "grid_mapping" : "crs",
             "coordinates" : "lat lon",
             "units": "W m-2"

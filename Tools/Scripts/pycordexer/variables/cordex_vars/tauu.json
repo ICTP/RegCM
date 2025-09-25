@@ -25,6 +25,9 @@
           "new_attributes": {
             "long_name": "Surface Downward Eastward Wind Stress",
             "standard_name": "surface_downward_eastward_stress",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "positive": "down",
             "units": "Pa"
           }
         }
@@ -41,6 +44,9 @@
           "new_attributes": {
             "long_name": "Surface Downward Eastward Wind Stress",
             "standard_name": "surface_downward_eastward_stress",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "positive": "down",
             "units": "Pa"
           }
         }

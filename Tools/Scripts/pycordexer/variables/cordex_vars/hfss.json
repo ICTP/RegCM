@@ -24,6 +24,9 @@
           "new_attributes": {
             "long_name": "Surface Upward Sensible Heat Flux",
             "standard_name": "surface_upward_sensible_heat_flux",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "positive": "up",
             "units": "W m-2"
           }
         }
@@ -42,6 +45,9 @@
           "new_attributes": {
             "long_name": "Surface Upward Sensible Heat Flux",
             "standard_name": "surface_upward_sensible_heat_flux",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
+            "positive": "up",
             "units": "W m-2"
           }
         }

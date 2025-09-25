@@ -13,6 +13,9 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "K",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
+            "comment": "requested for urban modeling",
             "long_name": "Air Temperature at 50m",
             "standard_name": "air_temperature"
           }
@@ -30,6 +33,9 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "K",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
+            "comment": "requested for urban modeling",
             "long_name": "Air Temperature at 50m",
             "standard_name": "air_temperature"
           }

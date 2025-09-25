@@ -22,6 +22,8 @@
           "new_attributes": {
             "long_name": "Surface Roughness Length",
             "standard_name": "surface_roughness_length",
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
             "units": "m"
           }
         }
@@ -38,6 +40,8 @@
           "new_attributes": {
             "long_name": "Surface Roughness Length",
             "standard_name": "surface_roughness_length",
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
             "units": "m"
           }
         }

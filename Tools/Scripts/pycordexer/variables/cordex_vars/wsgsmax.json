@@ -20,6 +20,8 @@
         "SaveVariableToDisk",
         {
           "new_attributes": {
+            "cell_methods": "area: mean time: maximum",
+            "cell_measures": "area: areacella",
             "long_name": "Daily Maximum Near-Surface Wind Speed of Gust",
             "standard_name": "wind_speed_of_gust",
             "units": "m s-1"

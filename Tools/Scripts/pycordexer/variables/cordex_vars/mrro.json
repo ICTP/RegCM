@@ -24,6 +24,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "kg m-2 s-1",
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Total Runoff",
             "standard_name": "runoff_flux"
           }
@@ -37,6 +39,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "kg m-2 s-1",
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Total Runoff",
             "standard_name": "runoff_flux"
           }
@@ -55,6 +59,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "kg m-2 s-1",
+            "cell_methods": "area: mean where land time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Total Runoff",
             "standard_name": "runoff_flux"
           }

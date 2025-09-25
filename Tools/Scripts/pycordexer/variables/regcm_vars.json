@@ -39,5 +39,6 @@
   "cin" : ["CIN", "cin"],
   "li" : ["LI", "li"],
   "wsgsmax" : ["wsgsmax"],
-  "hfso" : ["hfso"]
+  "hfso" : ["hfso"],
+  "siconca" : ["sic", "seaice"]
 }

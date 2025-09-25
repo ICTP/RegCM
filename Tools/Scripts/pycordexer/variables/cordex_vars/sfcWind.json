@@ -23,6 +23,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "m s-1",
+            "cell_methods": "area: mean time: point",
+            "cell_measures": "area: areacella",
             "long_name": "Near-Surface Wind Speed",
             "standard_name": "wind_speed"
           }
@@ -41,6 +43,8 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "m s-1",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella",
             "long_name": "Near-Surface Wind Speed",
             "standard_name": "wind_speed"
           }

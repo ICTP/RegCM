@@ -26,6 +26,9 @@
           "new_attributes": {
             "long_name": "Daily Minimum Near-Surface Air Temperature",
             "standard_name": "air_temperature",
+            "cell_methods": "area: mean time: minimum",
+            "cell_measures": "area: areacella",
+            "comment": "minimum from all integrated time steps per day",
             "units": "K"
           }
         }

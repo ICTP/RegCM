@@ -25,6 +25,8 @@
           "new_attributes": {
             "units": "kg m-2 s-1",
             "long_name": "Precipitation",
+            "cell_methods": "area:",
+            "cell_measures": "area: areacella",
             "standard_name": "precipitation_flux"
           }
         }

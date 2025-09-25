@@ -25,6 +25,9 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "kg m-2 s-1",
+            "cell_methods": "area: mean time: mean within hours time: maximum over hours",
+            "cell_measures": "area: areacella",
+            "comment": "Defined as maximum of the precipitation rate averaged over the whole hour.",
             "long_name": "Daily Maximum Hourly Precipitation Rate",
             "standard_name": "precipitation_flux"
           }

@@ -23,8 +23,10 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "%",
-            "long_name": "Total Cloud Fraction",
-            "standard_name": "cloud_area_fraction"
+            "standard_name": "cloud_area_fraction",
+            "long_name": "Total Cloud Cover Percentage",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella"
           }
         }
       ],
@@ -41,8 +43,10 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "%",
-            "long_name": "Total Cloud Fraction",
-            "standard_name": "cloud_area_fraction"
+            "standard_name": "cloud_area_fraction",
+            "long_name": "Total Cloud Cover Percentage",
+            "cell_methods": "area: time: mean",
+            "cell_measures": "area: areacella"
           }
         }
       ]
