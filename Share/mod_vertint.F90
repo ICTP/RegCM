@@ -100,7 +100,7 @@ module mod_vertint
 
     fp(:,:,:) = missl
     if ( p(1) > p(kp) ) then
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -130,12 +130,12 @@ module mod_vertint
           w1 = d_one - wp
           fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
     else
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -165,7 +165,7 @@ module mod_vertint
           w1 = d_one - wp
           fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
@@ -255,7 +255,7 @@ module mod_vertint
     fp = missl
 
     if ( p(1) > p(kp) ) then
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -285,12 +285,12 @@ module mod_vertint
           w1 = d_one - wp
           fp(i,j,n) = w1*f(kx) + wp*f(knx)
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
     else
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -320,7 +320,7 @@ module mod_vertint
           w1 = d_one - wp
           fp(i,j,n) = w1*f(kx) + wp*f(knx)
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
@@ -347,7 +347,7 @@ module mod_vertint
     real(rk8), dimension(km) :: sig
     real(rk8) :: sigp, w1, wp, tp, bp
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( i = 1:im, j = 1:jm ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -377,12 +377,12 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
     else
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( i = 1:im, j = 1:jm ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -412,7 +412,7 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
@@ -429,7 +429,7 @@ module mod_vertint
     real(rk4), dimension(km) :: sig
     real(rk4) :: sigp, w1, wp, tp, bp
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent( i = 1:im, j = 1:jm ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -459,12 +459,12 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
     else
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent( i = 1:im, j = 1:jm ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -494,7 +494,7 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
@@ -817,7 +817,7 @@ module mod_vertint
     real(rk8), dimension(km) :: sig
 
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( i = 1:im, j = 1:jm ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -848,12 +848,12 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
     else
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( i = 1:im, j = 1:jm ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -884,7 +884,7 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
@@ -902,7 +902,7 @@ module mod_vertint
     real(rk4), dimension(km) :: sig
 
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( i = 1:im, j = 1:jm ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -933,12 +933,12 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
     else
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( i = 1:im, j = 1:jm ) local(sig)
 #else
       !$acc parallel loop collapse(2) gang vector private(sig)
@@ -969,7 +969,7 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
       end do
@@ -1198,7 +1198,7 @@ module mod_vertint
     real(rkx), dimension(kccm) :: xc, fc
     real(rkx), dimension(krcm) :: xr, fr
     integer(ik4) :: i, j
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( i = 1:ni, j = 1:nj ) local(xc,fc,xr,fr)
 #else
       !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr)
@@ -1210,7 +1210,7 @@ module mod_vertint
       xr(:) = zrcm(i,j,:) + trcm(i,j)
       call interp1d(xc,fc,xr,fr,a,e1,e2)
       frcm(i,j,:) = fr(:)
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
     end do
 #endif
     end do
@@ -1235,7 +1235,7 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( i = 1:ni, j = 1:nj ) local(xc,fc,xr,fr)
 #else
     !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr)
@@ -1247,7 +1247,7 @@ module mod_vertint
       xr(:) = (prcm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
       call interp1d(xc,fc,xr,fr,a,e1,e2)
       frcm(i,j,:) = fr(:)
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
     end do
 #endif
     end do
@@ -1270,7 +1270,7 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( i = i1:i2, j = j1:j2 ) local(xc,fc,xr,fr)
 #else
     !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr)
@@ -1282,7 +1282,7 @@ module mod_vertint
       xr(:) = (prcm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
       call interp1d(xc,fc,xr,fr,a,e1,e2)
       frcm(i,j,:) = fr(:)
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
     end do
 #endif
     end do
@@ -1404,7 +1404,7 @@ module mod_vertint
     real(rkx), dimension(kccm) :: zc, fc
     real(rkx), dimension(1) :: rx, rc
     integer(ik4) :: i, j
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( i = 1:ni, j = 1:nj ) local(zc,fc,rx,rc)
 #else
     !$acc parallel loop collapse(2) gang vector private(zc,fc,rx,rc)
@@ -1416,7 +1416,7 @@ module mod_vertint
       rx(1) = zrcm(i,j)
       call interp1d(zc,fc,rx,rc,a,e1,e2)
       fsrcm(i,j) = rc(1)
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
     end do
 #endif
     end do
@@ -1439,7 +1439,7 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( i = 1:ni, j = 1:nj ) local(zc,fc,rx,rc)
 #else
     !$acc parallel loop collapse(2) gang vector private(zc,fc,rx,rc)
@@ -1451,7 +1451,7 @@ module mod_vertint
       rx(1) = (psrcm(i,j)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
       call interp1d(zc,fc,rx,rc,a,e1,e2)
       fsrcm(i,j) = rc(1)
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
     end do
 #endif
     end do
