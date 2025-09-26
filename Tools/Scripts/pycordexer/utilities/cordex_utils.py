@@ -29,11 +29,13 @@ class RegcmSimulation(object):
     """
 
     def __init__(self, mail='esp@ictp.it', domain='NONE', global_model='NONE',
-                 experiment='none', ensemble='NN', notes='none'):
+                 global_institute='NONE', experiment='none', ensemble='NN',
+                 notes='none'):
         self.mail = mail
         self.domain = domain
         self.product = 'output'
         self.global_model = global_model
+        self.global_institute = global_institute
         self.experiment = experiment
         self.ensemble = ensemble
         self.notes = notes
@@ -667,7 +669,10 @@ class CordexDataset(Dataset):
         except:
             pass
         global_model = CORDEX_CMIP6_DEFINITIONS['driving_source_id'][simulation.global_model]['driving_source_id']
-        global_institute = CORDEX_CMIP6_DEFINITIONS['driving_source_id'][simulation.global_model]['driving_institution_id']
+        if len(CORDEX_CMIP6_DEFINITIONS['driving_source_id'][simulation.global_model]['driving_institution_id']) == 1:
+            global_institute = CORDEX_CMIP6_DEFINITIONS['driving_source_id'][simulation.global_model]['driving_institution_id']
+        else:
+            global_institute = simulation.global_institute
         try:
             driving_expid = CORDEX_CMIP6_DEFINITIONS['driving_experiment_id'][simulation.experiment]
         except:

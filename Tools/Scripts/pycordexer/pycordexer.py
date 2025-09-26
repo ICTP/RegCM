@@ -141,6 +141,12 @@ def parse_input():
         type=str,
     )
     parser.add_argument(
+        '-G',
+        '--global-institute',
+        default='ECMWF',
+        type=str,
+    )
+    parser.add_argument(
         '-e',
         '--experiment',
         default='none',
@@ -231,8 +237,9 @@ def parse_input():
 
 def save_vars(datafile, requested_vars, worker_pool,
               mail='esp@ictp.it', domain='NONE', global_model='NONE',
-              experiment='none', ensemble='NN', notes='none', corrflag=True,
-              institute_id='ICTP', regcm_model_name='RegCM', regcm_version=None,
+              global_institute='NONE', experiment='none', ensemble='NN',
+              notes='none', corrflag=True, institute_id='ICTP',
+              regcm_model_name='RegCM', regcm_version=None,
               regcm_version_id=None, regcm_nest_tag=None,
               cordex_root_dir=OUTPUTDIR, sigterm_handler=None,
               sigint_handler=None):
@@ -258,6 +265,7 @@ def save_vars(datafile, requested_vars, worker_pool,
         mail,
         domain,
         global_model,
+        global_institute,
         experiment,
         ensemble,
         notes
@@ -432,6 +440,7 @@ def main():
     mail = args.mail
     domain = args.domain
     global_model = args.global_model
+    global_institute = args.global_institute
     experiment = args.experiment
     ensemble = args.ensemble
     notes = args.notes
@@ -463,6 +472,7 @@ def main():
         mail,
         domain,
         global_model,
+        global_institute,
         experiment,
         ensemble,
         notes,
