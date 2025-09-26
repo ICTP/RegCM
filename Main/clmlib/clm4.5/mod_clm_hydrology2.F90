@@ -641,10 +641,6 @@ module mod_clm_hydrology2
       rwat(c) = 0._rk8
       swat(c) = 0._rk8
       rz(c)   = 0._rk8
-    end do
-
-    do concurrent ( fc = 1:num_hydrologyc )
-      c = filter_hydrologyc(fc)
       !$acc loop seq
       do j = 1, nlevgrnd
         !if (z(c,j)+0.5_rk8*dz(c,j) <= 0.5_rk8) then
@@ -655,10 +651,6 @@ module mod_clm_hydrology2
           rz(c) = rz(c) + dz(c,j)
         end if
       end do
-    end do
-
-    do concurrent ( fc = 1:num_hydrologyc )
-      c = filter_hydrologyc(fc)
       if (rz(c) /= 0._rk8) then
         tsw  = rwat(c)/rz(c)
         stsw = swat(c)/rz(c)
@@ -681,10 +673,6 @@ module mod_clm_hydrology2
           rz(c) = rz(c) + dz(c,j)
         end if
       end do
-    end do
-
-    do concurrent ( fc = 1:num_hydrologyc )
-      c = filter_hydrologyc(fc)
       if (rz(c) /= 0._rk8) then
         tsw  = rwat(c)/rz(c)
         stsw = swat(c)/rz(c)

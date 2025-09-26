@@ -898,10 +898,6 @@ module mod_clm_slakehydrology
     do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
       endwb(c) = h2osno(c)
-    end do
-
-    do concurrent ( fc = 1:num_lakec )
-      c = filter_lakec(fc)
       !$acc loop seq
       do j = 1, nlevgrnd
         endwb(c) = endwb(c) + h2osoi_ice(c,j) + h2osoi_liq(c,j)

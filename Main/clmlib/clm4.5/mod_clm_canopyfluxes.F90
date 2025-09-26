@@ -767,6 +767,8 @@ module mod_clm_canopyfluxes
 
    do concurrent ( f = 1:fn )
      p = filterp(f)
+     c = pcolumn(p)
+     g = pgridcell(p)
      del(p)    = 0._rk8  ! change in leaf temperature from previous iteration
      efeb(p)   = 0._rk8  ! latent head flux from leaf for previous iteration
      wtlq0(p)  = 0._rk8
@@ -776,21 +778,15 @@ module mod_clm_canopyfluxes
      obuold(p) = 0._rk8
      btran(p)  = btran0
      btran2(p)  = btran0
-   end do
 
-   ! calculate daylength control for Vcmax
-   do concurrent ( f = 1:fn )
-     p = filterp(f)
-     c = pcolumn(p)
-     g = pgridcell(p)
-     ! calculate daylength
-     temp = -(sin(lat(g))*sin(decl(c)))/(cos(lat(g)) * cos(decl(c)))
-     temp = min(1._rk8,max(-1._rk8,temp))
+     ! calculate daylength control for Vcmax
+     temp = -(sin(lat(g))*sin(decl(c))) / (cos(lat(g)) * cos(decl(c)))
+     temp = min(1.0_rk8, max(-1.0_rk8, temp))
      dayl = 2.0_rk8 * 13750.9871_rk8 * acos(temp)
      ! calculate dayl_factor as the ratio of (current:max dayl)^2
      ! set a minimum of 0.01 (1%) for the dayl_factor
-     dayl_factor(p) = min(1._rk8,max(0.01_rk8, &
-             (dayl*dayl)/(max_dayl(c)*max_dayl(c))))
+     dayl_factor(p) = min(1.0_rk8, max(0.01_rk8, &
+                   (dayl*dayl) / (max_dayl(c)*max_dayl(c))))
    end do
 
    !$acc kernels
@@ -798,8 +794,8 @@ module mod_clm_canopyfluxes
    !$acc end kernels
 
    ! Define rootfraction for unfrozen soil only
-   if (perchroot .or. perchroot_alt) then
-     if (perchroot_alt) then
+   if ( perchroot .or. perchroot_alt ) then
+     if ( perchroot_alt ) then
        ! use total active layer
        ! (defined ass max thaw depth for current and prior year)
        do concurrent ( f = 1:fn, j = 1:nlevgrnd )
@@ -931,6 +927,7 @@ module mod_clm_canopyfluxes
    !$acc kernels
    frozen_soil(:) = .false.
    !$acc end kernels
+
    do concurrent ( f = 1:fn )
      p = filterp(f)
      c = pcolumn(p)
@@ -983,7 +980,7 @@ module mod_clm_canopyfluxes
 #ifdef STDPAR_FIXED
    do concurrent ( f = 1:fn )
 #else
-   !$acc parallel loop gang vector
+   !$acc parallel loop
    do f = 1, fn
 #endif
      p = filterp(f)
@@ -993,7 +990,8 @@ module mod_clm_canopyfluxes
      ! Net absorbed longwave radiation by canopy and ground
      ! =air+bir*t_veg**4+cir*t_grnd(c)**4
 
-     air(p) =   emv(p) * (1._rk8+(1._rk8-emv(p))*(1._rk8-emg(c))) * forc_lwrad(g)
+     air(p) =   emv(p) * (1._rk8+(1._rk8-emv(p)) * &
+                         (1._rk8-emg(c))) * forc_lwrad(g)
      bir(p) = - (2._rk8-emv(p)*(1._rk8-emg(c))) * emv(p) * sb
      cir(p) =   emv(p)*emg(c)*sb
 
@@ -1045,7 +1043,7 @@ module mod_clm_canopyfluxes
 #ifdef STDPAR_FIXED
    do concurrent ( f = 1:fn )
 #else
-   !$acc parallel loop gang vector
+   !$acc parallel loop
    do f = 1, fn
 #endif
      p = filterp(f)
@@ -1159,17 +1157,19 @@ module mod_clm_canopyfluxes
        vpdal(p) = svpts(p) - eah(p)
      end do
 
-     call Photosynthesis (fn, filterp, lbg, ubg, lbp, ubp, svpts, eah, &
-             o2, co2, rb, dayl_factor,  c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
-             ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb,  phase='sun')
+     call Photosynthesis(fn, filterp, lbg, ubg, lbp, ubp, svpts, eah,   &
+             o2, co2, rb, dayl_factor, c3flag, ac, aj, ap, ag, an,      &
+             vcmax_z, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, forc_pbot, &
+             bbb, mbb, phase='sun')
      if ( use_c13 ) then
        call Fractionation (lbp, ubp, fn, filterp, phase='sun')
      endif
-     call Photosynthesis (fn, filterp, lbg, ubg, lbp, ubp, svpts, eah, &
-             o2, co2, rb, dayl_factor,  c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
-             ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb,  phase='sha')
+     call Photosynthesis(fn, filterp, lbg, ubg, lbp, ubp, svpts, eah,   &
+             o2, co2, rb, dayl_factor, c3flag, ac, aj, ap, ag, an,      &
+             vcmax_z, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, forc_pbot, &
+             bbb, mbb, phase='sha')
      if ( use_c13 ) then
-       call Fractionation (lbp, ubp, fn, filterp, phase='sha')
+       call Fractionation(lbp, ubp, fn, filterp, phase='sha')
      end if
 #ifdef STDPAR_FIXED
      do concurrent ( f = 1:fn )
@@ -2201,7 +2201,7 @@ module mod_clm_canopyfluxes
           tpu_z(p,iv) = tpu25 * ft(t_veg(p), tpuha) * &
             fth(t_veg(p), tpuhd, tpuse, tpuc)
 
-          if (.not. c3flag(p)) then
+          if ( .not. c3flag(p) ) then
             vcmax_z(p,iv) = vcmax25 * 2._rk8**((t_veg(p)-(tfrz+25._rk8))/10._rk8)
             vcmax_z(p,iv) = vcmax_z(p,iv) / &
               (1._rk8 + exp( 0.2_rk8*((tfrz+15._rk8)-t_veg(p)) ))
@@ -2281,7 +2281,7 @@ module mod_clm_canopyfluxes
 
           ! Iterative loop for ci beginning with initial guess
 
-          if (c3flag(p)) then
+          if ( c3flag(p) ) then
             ci_z(p,iv) = 0.7_rk8 * cair(p)
           else
             ci_z(p,iv) = 0.4_rk8 * cair(p)

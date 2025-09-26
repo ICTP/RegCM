@@ -643,9 +643,10 @@ module mod_clm_soilhydrology
             ! when frac_sno is large
             if ( h2osfc(c) >= h2osfc_thresh(c) ) then
 #ifdef OPENACC
-              call FracH2oSfc_new(lbc,ubc,num_hydrologyc,filter_hydrologyc,frac_h2osfc_temp,1, &
-                  h2osoi_liq,h2osfc,micro_sigma,topo_slope,topo_ndx,ltype,clandunit, &
-                  frac_sno,frac_sno_eff,snl,h2osno)
+              call FracH2oSfc_new(lbc,ubc,num_hydrologyc,filter_hydrologyc, &
+                      frac_h2osfc_temp(c),h2osoi_liq(c,1),h2osfc(c),        &
+                      micro_sigma(c),ltype(l),clandunit(c),frac_sno(c),     &
+                      frac_sno_eff(c),snl,h2osno(c),1)
 #else
               call FracH2oSfc(lbc, ubc, num_hydrologyc, &
                       filter_hydrologyc,frac_h2osfc_temp,1)
@@ -974,10 +975,6 @@ module mod_clm_soilhydrology
     do concurrent ( fc = 1:num_hydrologyc, j = 1:nlevsoi )
       c = filter_hydrologyc(fc)
       rootr_col(c,j) = 0.0_rk8
-    end do
-
-    do concurrent( fc = 1:num_hydrologyc, j = 1:nlevsoi )
-      c = filter_hydrologyc(fc)
       !$acc loop seq
       do pi = 1, max_pft_per_col
         if (pi <= npfts(c)) then
@@ -991,10 +988,6 @@ module mod_clm_soilhydrology
           end if
         end if
       end do
-    end do
-
-    do concurrent ( fc = 1:num_hydrologyc, j = 1:nlevsoi )
-      c = filter_hydrologyc(fc)
       if ( temp(c) /= 0.0_rk8 ) then
         rootr_col(c,j) = rootr_col(c,j)/temp(c)
       end if
