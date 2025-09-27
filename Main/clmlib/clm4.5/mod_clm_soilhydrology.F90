@@ -23,11 +23,7 @@ module mod_clm_soilhydrology
   use mod_clm_vicmap, only : CLMVICMap
 #endif
   use mod_clm_varpar, only : nlevsoi, max_pft_per_col, nlevgrnd
-#ifdef OPENACC
   use mod_clm_h2osfc, only : FracH2oSfc_new
-#else
-  use mod_clm_h2osfc, only : FracH2oSfc
-#endif
   use mod_clm_tridiagonal, only : Tridiagonal
 
   implicit none
@@ -436,8 +432,8 @@ module mod_clm_soilhydrology
 #endif
     real(rk8), pointer, contiguous :: qflx_infl(:)  !infiltration (mm H2O /s)
 
-    integer(ik4) :: c,j,fc  ! indices
-    real(rk8) :: qinmax     ! maximum infiltration capacity (mm/s)
+    integer(ik4) :: c,j,l,fc  ! indices
+    real(rk8) :: qinmax       ! maximum infiltration capacity (mm/s)
     ! partial volume of ice lens in layer
     real(rk8) :: vol_ice(lbc:ubc,1:nlevsoi)
     real(rk8) :: qflx_evap(lbc:ubc)         ! local evaporation array
@@ -468,23 +464,11 @@ module mod_clm_soilhydrology
     real(rk8) :: top_fracice
 #endif
 
-#ifdef OPENACC
-    !real(rk8), pointer, contiguous :: h2osfc(:)         ! surface water (mm)
-
     ! microtopography pdf sigma (m)
     real(rk8), pointer, contiguous :: micro_sigma(:)
-    ! fraction of ground covered by snow (0 to 1)
-    !real(rk8), pointer, contiguous :: frac_sno(:)
     ! eff. fraction of ground covered by snow (0 to 1)
     real(rk8), pointer, contiguous :: frac_sno_eff(:)
-    !integer(ik4), pointer, contiguous :: snl(:)      ! minus number of snow layers
-    !real(rk8), pointer, contiguous :: h2osno(:)       ! snow water (mm H2O)
-    !real(rk8), pointer, contiguous :: h2osoi_liq(:,:) ! liquid water (col,lyr) [kg/m2]
-    !real(rk8), pointer, contiguous :: topo_slope(:)   ! topographic slope
     real(rk8), pointer, contiguous :: topo_ndx(:)     ! topographic slope
-    !integer(ik4), pointer, contiguous :: ltype(:)    ! landunit type
-    !integer(ik4), pointer, contiguous :: clandunit(:)  ! columns's landunit
-#endif
 
     ! Assign local pointers to derived type members (column-level)
 
@@ -535,7 +519,6 @@ module mod_clm_soilhydrology
     i_0            => clm3%g%l%c%cws%i_0
 #endif
 
-#ifdef OPENACC
     ! Assign local pointers to derived subtypes components (column-level)
 
     h2osoi_liq          => clm3%g%l%c%cws%h2osoi_liq
@@ -548,9 +531,7 @@ module mod_clm_soilhydrology
 
     frac_sno            => clm3%g%l%c%cps%frac_sno
     frac_sno_eff        => clm3%g%l%c%cps%frac_sno_eff
-    snl                 => clm3%g%l%c%cps%snl
     h2osno              => clm3%g%l%c%cws%h2osno
-#endif
 
     ! Infiltration into surface soil layer (minus the evaporation)
     do concurrent ( fc = 1:num_hydrologyc, j = 1:nlevsoi )
@@ -565,9 +546,9 @@ module mod_clm_soilhydrology
     !$acc parallel loop gang vector
     do fc = 1, num_hydrologyc
       c = filter_hydrologyc(fc)
+      l = clandunit(c)
       ! partition moisture fluxes between soil and h2osfc
-      if ( ltype(clandunit(c)) == istsoil .or. &
-           ltype(clandunit(c)) == istcrop ) then
+      if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
 
         ! explicitly use frac_sno=0 if snl=0
         if (snl(c) >= 0) then
@@ -642,15 +623,10 @@ module mod_clm_soilhydrology
             ! calculate temporary surface water fraction to enable runoff
             ! when frac_sno is large
             if ( h2osfc(c) >= h2osfc_thresh(c) ) then
-#ifdef OPENACC
               call FracH2oSfc_new(lbc,ubc,num_hydrologyc,filter_hydrologyc, &
                       frac_h2osfc_temp(c),h2osoi_liq(c,1),h2osfc(c),        &
-                      micro_sigma(c),ltype(l),clandunit(c),frac_sno(c),     &
-                      frac_sno_eff(c),snl,h2osno(c),1)
-#else
-              call FracH2oSfc(lbc, ubc, num_hydrologyc, &
-                      filter_hydrologyc,frac_h2osfc_temp,1)
-#endif
+                      micro_sigma(c),ltype(l),l,frac_sno(c),frac_sno_eff(c),&
+                      h2osno(c),1)
               frac_infclust = max((frac_h2osfc_temp(c)-pc),0.0_rk8)**mu
             end if
           else
