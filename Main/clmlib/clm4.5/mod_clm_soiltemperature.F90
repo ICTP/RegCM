@@ -1754,10 +1754,8 @@ module mod_clm_soiltemperature
       else if (ltype(l) == istsoil .or. ltype(l) == istcrop) then
         eflx_snomelt_r(c) = eflx_snomelt(c)
       end if
-    end do
-    do j = -nlevsno+1,0
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
+      !$acc loop seq
+      do j = -nlevsno+1,0
         qflx_snofrz_col(c) = qflx_snofrz_col(c) + qflx_snofrz_lyr(c,j)
       end do
     end do
