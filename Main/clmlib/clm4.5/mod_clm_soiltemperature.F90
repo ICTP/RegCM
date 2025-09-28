@@ -356,12 +356,8 @@ module mod_clm_soiltemperature
 
     ! Thermal conductivity and Heat capacity
 
-    allocate( tk_h2osfc(lbc:ubc) )
-    allocate( dhsdT(lbc:ubc) )
-
-    !$acc kernels
-    tk_h2osfc(:) = nan
-    !$acc end kernels
+    allocate( tk_h2osfc(lbc:ubc), source=nan )
+    allocate( dhsdT(lbc:ubc), source=0._rk8 )
 
     call SoilThermProp(lbc, ubc, num_nolakec, filter_nolakec, tk, cv, tk_h2osfc)
 
@@ -384,8 +380,8 @@ module mod_clm_soiltemperature
     hs_soil(lbc:ubc)   = 0._rk8
     hs_h2osfc(lbc:ubc) = 0._rk8
     hs(lbc:ubc)        = 0._rk8
-    dhsdT(lbc:ubc)     = 0._rk8
     !$acc end kernels
+
     do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       !$acc loop seq
@@ -480,7 +476,6 @@ module mod_clm_soiltemperature
     do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       lyr_top = snl(c) + 1
-      !$acc loop seq
       do pi = 1, max_pft_per_col
         if ( pi <= npfts(c) ) then
           p = pfti(c) + pi - 1
@@ -585,7 +580,7 @@ module mod_clm_soiltemperature
           else if (j <= nlevgrnd-1) then
             fact(c,j) = dtsrf/cv(c,j)
             fn(c,j) = tk(c,j) * &
-            (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
+              (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
             dzm = (z(c,j)-z(c,j-1))
           else if (j == nlevgrnd) then
             fact(c,j) = dtsrf/cv(c,j)
@@ -725,14 +720,9 @@ module mod_clm_soiltemperature
     end do
 
     ! allocate matrices for BandDiagonal
-    allocate(bmatrix(lbc:ubc,nband,-nlevsno:nlevgrnd))
-    allocate(tvector(lbc:ubc,-nlevsno:nlevgrnd))
-    allocate(rvector(lbc:ubc,-nlevsno:nlevgrnd))
-    !$acc kernels
-    bmatrix(:,:,:) = 0.0
-    tvector(:,:) = nan
-    rvector(:,:) = nan
-    !$acc end kernels
+    allocate(bmatrix(lbc:ubc,nband,-nlevsno:nlevgrnd), source=0.0_rk8)
+    allocate(tvector(lbc:ubc,-nlevsno:nlevgrnd), source=nan)
+    allocate(rvector(lbc:ubc,-nlevsno:nlevgrnd), source=nan)
 
     ! the solution will be organized as (snow:h2osfc:soil) to minimize
     !     bandwidth; this requires a 5-element band instead of 3
@@ -763,9 +753,12 @@ module mod_clm_soiltemperature
             ( hs_h2osfc(c) - dhsdT(c)*t_h2osfc(c) + cnfac*fn_h2osfc(c) )
       tvector(c,0) = t_h2osfc(c)
       ! soil layers; top layer will have one offset and one extra coefficient
-      bmatrix(c,2,1:nlevgrnd) = ct(c,1:nlevgrnd)
-      bmatrix(c,3,1:nlevgrnd) = bt(c,1:nlevgrnd)
-      bmatrix(c,4,1:nlevgrnd) = at(c,1:nlevgrnd)
+      !$acc loop seq
+      do j = 1, nlevgrnd
+        bmatrix(c,2,j) = ct(c,j)
+        bmatrix(c,3,j) = bt(c,j)
+        bmatrix(c,4,j) = at(c,j)
+      end do
       ! top soil layer has sub coef shifted to 2nd super diagonal
       if ( frac_h2osfc(c) /= 0.0_rk8 )then
         !flux from h2osfc
@@ -780,13 +773,19 @@ module mod_clm_soiltemperature
         bmatrix(c,3,1) = bmatrix(c,3,1)+ frac_h2osfc(c) * &
               ((1._rk8-cnfac)*fact(c,1)*tk_h2osfc(c)/dzm + fact(c,1)*dhsdT(c))
       end if
-      rvector(c,1:nlevgrnd) = rt(c,1:nlevgrnd)
+      !$acc loop seq
+      do j = 1, nlevgrnd
+        rvector(c,j) = rt(c,j)
+      end do
       ! rhs correction for h2osfc
       if ( frac_h2osfc(c) /= 0.0_rk8 )then
         rvector(c,1) = rvector(c,1) - frac_h2osfc(c)*fact(c,1) * &
           ((hs_soil(c) - dhsdT(c)*t_soisno(c,1))+cnfac*fn_h2osfc(c))
       end if
-      tvector(c,1:nlevgrnd) = t_soisno(c,1:nlevgrnd)
+      !$acc loop seq
+      do j = 1, nlevgrnd
+        tvector(c,j) = t_soisno(c,j)
+      end do
     end do
 
     call BandDiagonal(lbc, ubc, -nlevsno, nlevgrnd, jtop, jbot, num_nolakec, &
@@ -799,7 +798,10 @@ module mod_clm_soiltemperature
       do j = snl(c)+1, 0
         t_soisno(c,j) = tvector(c,j-1) !snow layers
       end do
-      t_soisno(c,1:nlevgrnd) = tvector(c,1:nlevgrnd)  !soil layers
+      !$acc loop seq
+      do j = 1, nlevgrnd
+        t_soisno(c,j) = tvector(c,j)   !soil layers
+      end do
       if ( frac_h2osfc(c) == 0._rk8 ) then
         t_h2osfc(c) = t_soisno(c,1)
       else
@@ -1504,16 +1506,17 @@ module mod_clm_soiltemperature
     do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       l = clandunit(c)
-
-      qflx_snomelt(c) = 0._rk8
-      xmf(c) = 0._rk8
       !$acc loop seq
       do j = -nlevsno+1, 0
         qflx_snofrz_lyr(c,j) = 0._rk8
       end do
+      qflx_snomelt(c) = 0._rk8
+      xmf(c) = 0._rk8
       qflx_snofrz_col(c) = 0._rk8
       qflx_snow_melt(c) = 0._rk8
     end do
+
+    ! all layers
 
     do concurrent ( fc = 1:num_nolakec, j = -nlevsno+1:nlevgrnd )
       c = filter_nolakec(fc)
@@ -1752,10 +1755,9 @@ module mod_clm_soiltemperature
         eflx_snomelt_r(c) = eflx_snomelt(c)
       end if
     end do
-    do concurrent ( fc = 1:num_nolakec )
-      c = filter_nolakec(fc)
-      !$acc loop seq
-      do j = -nlevsno+1,0
+    do j = -nlevsno+1,0
+      do fc = 1,num_nolakec
+        c = filter_nolakec(fc)
         qflx_snofrz_col(c) = qflx_snofrz_col(c) + qflx_snofrz_lyr(c,j)
       end do
     end do
