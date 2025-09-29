@@ -538,7 +538,7 @@ if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
     OMPFLAGS="-qopenmp -qopt-report"
   fi
   FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
-           -heap-arrays -fPIC $OMPFLAGS"
+           -heap-arrays -fPIC"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
