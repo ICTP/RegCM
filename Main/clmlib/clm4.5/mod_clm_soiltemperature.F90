@@ -476,6 +476,7 @@ module mod_clm_soiltemperature
     do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       lyr_top = snl(c) + 1
+      !$acc loop seq
       do pi = 1, max_pft_per_col
         if ( pi <= npfts(c) ) then
           p = pfti(c) + pi - 1

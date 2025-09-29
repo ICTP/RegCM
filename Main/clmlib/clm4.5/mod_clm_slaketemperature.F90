@@ -672,13 +672,16 @@ module mod_clm_slaketemperature
     ! be used during phase change.
 
     ! Transfer sabg and sabg_lyr to column level
-    do concurrent ( fp = 1:num_lakep, j = -nlevsno+1:1 )
+    do concurrent ( fp = 1:num_lakep )
       p = filter_lakep(fp)
       c = pcolumn(p)
-      if (j >= jtop(c)) then
-        if (j == jtop(c)) sabg_col(c) = sabg(p)
-        sabg_lyr_col(c,j) = sabg_lyr(p,j)
-      end if
+      !$acc loop seq
+      do j = -nlevsno+1, 1
+        if (j >= jtop(c)) then
+          if (j == jtop(c)) sabg_col(c) = sabg(p)
+          sabg_lyr_col(c,j) = sabg_lyr(p,j)
+        end if
+      end do
     end do
 
     ! Set up interface depths, zx, heat capacities, cvx, solar source
