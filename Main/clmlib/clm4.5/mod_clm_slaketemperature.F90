@@ -644,7 +644,6 @@ module mod_clm_slaketemperature
       c = filter_lakec(fc)
       !$acc loop seq
       do j = 1, nlevlak
-        c = filter_lakec(fc)
         ocvts(c) = ocvts(c) + cv_lake(c,j)*(t_lake(c,j)-tfrz) &
                    + cfus*dz_lake(c,j)*(1._rk8-lake_icefrac(c,j))
         t_lake_bef(c,j) = t_lake(c,j)

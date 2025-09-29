@@ -398,7 +398,6 @@ module mod_clm_biogeophysics2
         end if
       end do
     end do
-    
 
     ! Calculate ratio for rescaling pft-level fluxes to meet availability
 
