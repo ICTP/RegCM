@@ -511,7 +511,12 @@ module mod_clm_slakefluxes
                             obu, iter, ur, um, ustar, &
                             temp1, temp2, temp12m, temp22m, fm)
 
+#ifdef STDPAR_FIXED
+      do concurrent ( fp = 1:fncopy )
+#else
+      !$acc parallel loop
       do fp = 1, fncopy
+#endif
         p = fpcopy(fp)
         c = pcolumn(p)
         g = pgridcell(p)
@@ -676,11 +681,15 @@ module mod_clm_slakefluxes
         ! Rebuild copy of pft filter for next pass through the ITERATION loop
         fnold = fncopy
         fncopy = 0
+        !$acc parallel loop
         do fp = 1, fnold
           p = fpcopy(fp)
           if (nmozsgn(p) < 3) then
+            !$acc atomic capture
             fncopy = fncopy + 1
-            fpcopy(fncopy) = p
+            myfncopy = fncopy
+            !$acc end atomic
+            fpcopy(myfncopy) = p
           end if
         end do   ! end of filtered pft loop
       end if
