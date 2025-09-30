@@ -198,8 +198,16 @@ program chem_icbc
   case ('FNEST')
     idate = globidate1
     iodate = idate
+    if (dochem ) call newfile_ch_icbc(idate)
+    if (dooxcl ) call newfile_ox_icbc(idate)
+    if (doaero)  call newfile_ae_icbc(idate)
     call init_fnest(idate,cdir,cname,dochem,dooxcl,doaero)
     do nnn = 1, nsteps
+      if (.not. lsamemonth(idate, iodate) ) then
+        if ( dochem ) call newfile_ch_icbc(monfirst(idate))
+        if ( doaero ) call newfile_ae_icbc(monfirst(idate))
+        if ( dooxcl ) call newfile_ox_icbc(monfirst(idate))
+      end if
       call get_fnest(idate)
       iodate = idate
       idate = idate + tbdy
