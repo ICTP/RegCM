@@ -28,6 +28,7 @@ module mod_ch_fnest
   use mod_posix
   use mod_message
   use mod_vertint
+  use mod_vectutil
   use netcdf
 
   implicit none
@@ -46,10 +47,11 @@ module mod_ch_fnest
 
   real(rkx), dimension(:,:,:), pointer, contiguous :: mxc, mxcp, mxcp4
   real(rkx), dimension(:,:,:,:), pointer, contiguous :: mxc4_1
-  real(rkx), dimension(:,:,:), pointer, contiguous :: pp3d, pai, p3d
+  real(rkx), dimension(:,:,:), pointer, contiguous :: pp3d, p3d, z3, z_in
   real(rkx), dimension(:,:), pointer, contiguous :: xlat_in, xlon_in, ht_in
   real(rkx), dimension(:,:), pointer, contiguous :: p0_in, pstar0, ps, xps, xps3
   real(rkx), dimension(:), pointer, contiguous :: sigma_in, plev, sigmar
+  real(rkx), dimension(:), pointer, contiguous :: ak_in, bk_in
   real(rkx) :: pss
   integer(ik4) :: oidyn
   character(len=6) :: iproj_in
@@ -302,8 +304,31 @@ module mod_ch_fnest
                       'variable p0 read error')
       pstar0 = p0_in - ptop_in
     else if ( oidyn == 3 ) then
-      call getmem3d(pai,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pai')
-      call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
+      call getmem3d(z_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z_in')
+      call getmem3d(z3,1,jx,1,iy,1,kz_in,'mod_nest:z3')
+      call getmem1d(ak_in,1,kz_in,'mod_nest:ak_in')
+      call getmem1d(bk_in,1,kz_in,'mod_nest:bk_in')
+      istatus = nf90_inq_varid(ncid(1), 'a', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable a error')
+      istatus = nf90_get_var(ncid(1), ivarid, ak_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable a read error')
+      istatus = nf90_inq_varid(ncid(1), 'b', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable b error')
+      istatus = nf90_get_var(ncid(1), ivarid, bk_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable b read error')
+      do k = 1, kz_in
+        do i = 1, iy_in
+          do j = 1, jx_in
+            z_in(j,i,k) = ak_in(k) + bk_in(k) * ht_in(j,i)
+          end do
+        end do
+      end do
+      call h_interpolate_cont(hint,z_in,z3)
+      call top2btm(z3)
     else
       istatus = nf90_inq_varid(ncid(1), 'ps', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -500,20 +525,6 @@ module mod_ch_fnest
           end do
         end do
       end do
-    else if ( oidyn == 3 ) then
-      istatus = nf90_inq_varid(ncid(1), 'pai', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable pai missing')
-      istatus = nf90_get_var(ncid(1), ivarid, pai, istart, icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable ppa read error')
-      do k = 1, kz_in
-        do i = 1, iy_in
-          do j = 1, jx_in
-            p3d(j,i,k) = p00 * (pai(j,i,k)**cpovr)
-          end do
-        end do
-      end do
     end if
     do nf = 1, fchem
       istatus = nf90_inq_varid(ncid(nf), 'mixrat', ivarid)
@@ -522,36 +533,45 @@ module mod_ch_fnest
              'variable mixrat for '//trim(chnames(nf))//' read error')
       if ( oidyn == 1 ) then
         call intlin(mxcp,mxc,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
-      else
-        call intlin(mxcp,mxc,p3d,jx_in,iy_in,kz_in,plev,np)
       end if
       call h_interpolate_cont(hint,mxcp,mxcp4)
-      do i = 1, iy
-        do j = 1, jx
-          do l = 1, kz
-            prcm = ((xps3(j,i)*0.1_rkx-ptop)*sigmah(l)+ptop)*1000.0_rkx
-            k0 = -1
-            do k = np, 1, -1
-              pmpi = plev(k)
-              k0 = k
-              if (prcm > pmpi) exit
+      if ( oidyn == 1 ) then
+        do i = 1, iy
+          do j = 1, jx
+            do l = 1, kz
+              prcm = ((xps3(j,i)*0.1_rkx-ptop)*sigmah(l)+ptop)*1000.0_rkx
+              k0 = -1
+              do k = np, 1, -1
+                pmpi = plev(k)
+                k0 = k
+                if (prcm > pmpi) exit
+              end do
+              if ( k0 == np ) then
+                pmpj = plev(np-1)
+                pmpi = plev(np)
+                mxc4_1(j,i,l,nf) = max(d_zero,mxcp4(j,i,np) + &
+                   (mxcp4(j,i,np-1) - mxcp4(j,i,np)) * (prcm-pmpi)/(pmpi-pmpj))
+              else if (k0 >= 1) then
+                pmpj = plev(k0)
+                pmpi = plev(k0+1)
+                wt1 = (prcm-pmpj)/(pmpi-pmpj)
+                wt2 = 1.0_rkx - wt1
+                mxc4_1(j,i,l,nf) = mxcp4(j,i,k0+1)*wt1 + mxcp4(j,i,k0)*wt2
+              end if
             end do
-            if ( k0 == np ) then
-              pmpj = plev(np-1)
-              pmpi = plev(np)
-              mxc4_1(j,i,l,nf) = max(d_zero,mxcp4(j,i,np) + &
-                 (mxcp4(j,i,np-1) - mxcp4(j,i,np)) * (prcm-pmpi)/(pmpi-pmpj))
-            else if (k0 >= 1) then
-              pmpj = plev(k0)
-              pmpi = plev(k0+1)
-              wt1 = (prcm-pmpj)/(pmpi-pmpj)
-              wt2 = 1.0_rkx - wt1
-              mxc4_1(j,i,l,nf) = mxcp4(j,i,k0+1)*wt1 + mxcp4(j,i,k0)*wt2
-            end if
           end do
         end do
-      end do
+      else if ( oidyn == 3 ) then
+        call top2btm(mxcp4)
+        call intz1(mxc4_1(:,:,:,nf),mxcp4,z0,z3, &
+                 ht_in,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+      else
+        write(stderr,*) 'WARNING : NOT implemented...'
+      end if
     end do
+    if ( oidyn == 3 ) then
+      call top2btm(mxc4_1)
+    end if
     !
     ! Now we have to map....
     !
