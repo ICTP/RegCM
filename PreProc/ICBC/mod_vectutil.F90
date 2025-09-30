@@ -25,6 +25,16 @@ module mod_vectutil
   public :: crs2dot, dot2crs, top2btm, btm2top, meandiv, meandivf
   public :: ucrs2dot, vcrs2dot
 
+  interface top2btm
+    module procedure top2btm_3d
+    module procedure top2btm_4d
+  end interface top2btm
+
+  interface btm2top
+    module procedure btm2top_3d
+    module procedure btm2top_4d
+  end interface btm2top
+
   interface ucrs2dot
     module procedure ucrs2dot_2d
     module procedure ucrs2dot_3d
@@ -402,7 +412,7 @@ module mod_vectutil
   !
   !-----------------------------------------------------------------------
   !
-  subroutine top2btm(x)
+  subroutine top2btm_3d(x)
     implicit none
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: x
     integer(ik4) :: i1, i2, j1, j2, k1, k2
@@ -426,15 +436,55 @@ module mod_vectutil
         end do
       end do
     end do
-  end subroutine top2btm
+  end subroutine top2btm_3d
   !
   !-----------------------------------------------------------------------
   !
-  subroutine btm2top(x)
+  subroutine top2btm_4d(x)
+    implicit none
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: x
+    integer(ik4) :: i1, i2, j1, j2, k1, k2, n1, n2
+    integer(ik4) :: i, j, k, n, nr, kr
+    real(rkx), dimension(size(x,3)) :: work
+
+    i1 = lbound(x,1)
+    i2 = ubound(x,1)
+    j1 = lbound(x,2)
+    j2 = ubound(x,2)
+    k1 = lbound(x,3)
+    k2 = ubound(x,3)
+    n1 = lbound(x,4)
+    n2 = ubound(x,4)
+    do n = n1, n2
+      do j = j1, j2
+        do i = i1, i2
+          do k = k1, k2
+            work(k) = x(i,j,k,n)
+          end do
+          do k = k1, k2
+            kr = k2 - k + 1
+            x(i,j,k,n) = work(kr)
+          end do
+        end do
+      end do
+    end do
+  end subroutine top2btm_4d
+  !
+  !-----------------------------------------------------------------------
+  !
+  subroutine btm2top_3d(x)
     implicit none
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: x
-    call top2btm(x)
-  end subroutine btm2top
+    call top2btm_3d(x)
+  end subroutine btm2top_3d
+  !
+  !-----------------------------------------------------------------------
+  !
+  subroutine btm2top_4d(x)
+    implicit none
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: x
+    call top2btm_4d(x)
+  end subroutine btm2top_4d
   !
   !-----------------------------------------------------------------------
   !
