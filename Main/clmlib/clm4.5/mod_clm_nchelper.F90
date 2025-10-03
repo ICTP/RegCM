@@ -24,6 +24,7 @@ module mod_clm_nchelper
   use mod_mppparam
   use mod_dynparam
   use mod_runparams, only : lsync
+  use mod_runparams, only : do_parallel_netcdf_in, do_parallel_netcdf_out
   use mod_regcm_types
   use mod_clm_decomp
   use mod_clm_varcon
@@ -304,7 +305,7 @@ module mod_clm_nchelper
     integer(ik4) :: nDimensions, nVariable
     integer(ik4) :: id, iv
     character(len=64) :: varname, dimname
-    if ( myid /= iocpu ) return
+    if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) return
     if ( present(mode) ) then
       if ( mode == clm_readwrite ) then
         incstat = nf90_open(fname, nf90_write, ncid%ncid)
@@ -362,7 +363,7 @@ module mod_clm_nchelper
     integer(ik4), intent(out) :: dlen
     integer(ik4) :: idimid, mpierr
     dlen = -1
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_dimid(ncid%ncid, dname, idimid)
       if ( incstat == nf90_noerr ) then
         incstat = nf90_inquire_dimension(ncid%ncid, idimid, len=dlen)
@@ -370,9 +371,11 @@ module mod_clm_nchelper
           'Error read dimension '//dname//' in file '//trim(ncid%fname))
       end if
     end if
-    call mpi_bcast(dlen,1,mpi_integer4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(dlen,1,mpi_integer4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_inqdim
 
@@ -483,16 +486,18 @@ module mod_clm_nchelper
     integer(ik4), intent(in) :: ival
     integer(ik4) :: idimid, dlen, mpierr
     clm_check_dimlen = .true.
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_dimid(ncid%ncid, dname, idimid)
       if ( incstat /= nf90_noerr ) clm_check_dimlen = .false.
       incstat = nf90_inquire_dimension(ncid%ncid, idimid, len=dlen)
       if ( incstat /= nf90_noerr ) clm_check_dimlen = .false.
       if ( dlen /= ival ) clm_check_dimlen = .false.
     end if
-    call mpi_bcast(clm_check_dimlen,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(clm_check_dimlen,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end function clm_check_dimlen
 
@@ -710,13 +715,15 @@ module mod_clm_nchelper
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: dname
     integer(ik4) :: idimid, mpierr
-    if ( myid == iocpu) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_dimid(ncid%ncid,dname,idimid)
       clm_check_dim = ( incstat == nf90_noerr )
     end if
-    call mpi_bcast(clm_check_dim,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(clm_check_dim,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end function clm_check_dim
 
@@ -725,13 +732,15 @@ module mod_clm_nchelper
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       clm_check_var = ( incstat == nf90_noerr )
     end if
-    call mpi_bcast(clm_check_var,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(clm_check_var,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end function clm_check_var
 
@@ -830,7 +839,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     character(len=*), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -838,9 +847,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,len(xval),mpi_character,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,len(xval),mpi_character,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_text_0d
 
@@ -850,7 +861,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     character(len=*), dimension(:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -858,10 +869,12 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval)*len(xval), &
-                   mpi_character,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval)*len(xval), &
+                     mpi_character,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_text_1d
 
@@ -872,7 +885,7 @@ module mod_clm_nchelper
     integer(ik4) :: rval
     logical, intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -881,9 +894,11 @@ module mod_clm_nchelper
         'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval > 0)
     end if
-    call mpi_bcast(xval,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_logical_0d
 
@@ -894,7 +909,7 @@ module mod_clm_nchelper
     logical, dimension(:), intent(out) :: xval
     integer(ik4), dimension(:), allocatable :: rval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -905,9 +920,11 @@ module mod_clm_nchelper
       xval = (rval > 0)
       deallocate(rval)
     end if
-    call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_logical_1d
 
@@ -918,7 +935,7 @@ module mod_clm_nchelper
     logical, dimension(:,:), intent(out) :: xval
     integer(ik4), dimension(:,:), allocatable :: rval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -929,9 +946,11 @@ module mod_clm_nchelper
       xval = (rval > 0)
       deallocate(rval)
     end if
-    call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_logical_2d
 
@@ -942,7 +961,7 @@ module mod_clm_nchelper
     logical, dimension(:,:,:), intent(out) :: xval
     integer(ik4), dimension(:,:,:), allocatable :: rval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -953,9 +972,11 @@ module mod_clm_nchelper
       xval = (rval > 0)
       deallocate(rval)
     end if
-    call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_logical_3d
 
@@ -966,7 +987,7 @@ module mod_clm_nchelper
     logical, dimension(:,:,:,:), intent(out) :: xval
     integer(ik4), dimension(:,:,:,:), allocatable :: rval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -977,9 +998,11 @@ module mod_clm_nchelper
       xval = (rval > 0)
       deallocate(rval)
     end if
-    call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_logical_4d
 
@@ -989,7 +1012,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     integer(ik4), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -997,9 +1020,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,1,mpi_integer4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,1,mpi_integer4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_integer_0d
 
@@ -1009,7 +1034,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1017,9 +1042,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_integer_1d
 
@@ -1029,7 +1056,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1037,9 +1064,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_integer_2d
 
@@ -1049,7 +1078,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1057,9 +1086,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_integer_3d
 
@@ -1069,7 +1100,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:,:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1077,9 +1108,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_integer_4d
 
@@ -1089,7 +1122,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk4), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1097,9 +1130,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,1,mpi_real4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,1,mpi_real4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_real4_0d
 
@@ -1109,7 +1144,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1117,9 +1152,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_real4_1d
 
@@ -1129,7 +1166,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1137,9 +1174,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_real4_2d
 
@@ -1149,7 +1188,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1157,9 +1196,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_real4_3d
 
@@ -1169,7 +1210,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:,:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1177,9 +1218,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_real4_4d
 
@@ -1189,7 +1232,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk8), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1197,9 +1240,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,1,mpi_real8,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,1,mpi_real8,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_real8_0d
 
@@ -1209,7 +1254,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1217,9 +1262,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_real8_1d
 
@@ -1229,7 +1276,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1237,9 +1284,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_real8_2d
 
@@ -1249,7 +1298,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1257,9 +1306,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_real8_3d
 
@@ -1269,7 +1320,7 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:,:), intent(out) :: xval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1277,9 +1328,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readvar_real8_4d
 
@@ -1290,7 +1343,7 @@ module mod_clm_nchelper
     character(len=*), intent(out) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1302,9 +1355,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,len(xval),mpi_character,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,len(xval),mpi_character,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_text_0d
 
@@ -1316,7 +1371,7 @@ module mod_clm_nchelper
     integer(ik4), intent(in) :: nt
     integer(ik4), dimension(1) :: rval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1327,9 +1382,11 @@ module mod_clm_nchelper
         'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval(1) > 0)
     end if
-    call mpi_bcast(xval,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_logical_0d
 
@@ -1341,8 +1398,8 @@ module mod_clm_nchelper
     integer(ik4), intent(in) :: nt
     integer(ik4), dimension(:), allocatable :: rval
     integer(ik4) :: ivarid, nv1, mpierr
-    if ( myid == iocpu ) then
-    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    if ( ncid%ncid > 0 ) then
+      incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
@@ -1357,9 +1414,11 @@ module mod_clm_nchelper
       xval = (rval > 0)
       deallocate(rval)
     end if
-    call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_logical_1d
 
@@ -1371,7 +1430,7 @@ module mod_clm_nchelper
     integer(ik4), intent(in) :: nt
     integer(ik4), dimension(:,:), allocatable :: rval
     integer(ik4) :: ivarid, nv1, nv2, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1390,9 +1449,11 @@ module mod_clm_nchelper
       xval = (rval > 0)
       deallocate(rval)
     end if
-    call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_logical_2d
 
@@ -1404,7 +1465,7 @@ module mod_clm_nchelper
     integer(ik4), intent(in) :: nt
     integer(ik4), dimension(:,:,:), allocatable :: rval
     integer(ik4) :: ivarid, nv1, nv2, nv3, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1426,9 +1487,11 @@ module mod_clm_nchelper
       xval = (rval > 0)
       deallocate(rval)
     end if
-    call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_logical,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_logical_3d
 
@@ -1440,7 +1503,7 @@ module mod_clm_nchelper
     integer(ik4), intent(in) :: nt
     integer(ik4), dimension(1) :: rval
     integer(ik4) :: ivarid, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1451,9 +1514,11 @@ module mod_clm_nchelper
         'Error read '//vname//' from file '//trim(ncid%fname))
       xval = rval(1)
     end if
-    call mpi_bcast(xval,1,mpi_integer4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,1,mpi_integer4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_integer_0d
 
@@ -1464,7 +1529,7 @@ module mod_clm_nchelper
     integer(ik4), dimension(:), intent(out) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1477,9 +1542,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_integer_1d
 
@@ -1490,7 +1557,7 @@ module mod_clm_nchelper
     integer(ik4), dimension(:,:), intent(out) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1506,9 +1573,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_integer_2d
 
@@ -1519,7 +1588,7 @@ module mod_clm_nchelper
     integer(ik4), dimension(:,:,:), intent(out) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2, nv3, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1538,9 +1607,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_integer_3d
 
@@ -1552,7 +1623,7 @@ module mod_clm_nchelper
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, mpierr
     real(rk4), dimension(1) :: rval
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1563,9 +1634,11 @@ module mod_clm_nchelper
         'Error read '//vname//' from file '//trim(ncid%fname))
       xval = rval(1)
     end if
-    call mpi_bcast(xval,1,mpi_real4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,1,mpi_real4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_real4_0d
 
@@ -1576,7 +1649,7 @@ module mod_clm_nchelper
     real(rk4), dimension(:), intent(out) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1589,9 +1662,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_real4_1d
 
@@ -1602,7 +1677,7 @@ module mod_clm_nchelper
     real(rk4), dimension(:,:), intent(out) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1618,9 +1693,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_real4_2d
 
@@ -1631,7 +1708,7 @@ module mod_clm_nchelper
     real(rk4), dimension(:,:,:), intent(out) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2, nv3, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1650,9 +1727,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_real4_3d
 
@@ -1664,7 +1743,7 @@ module mod_clm_nchelper
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, mpierr
     real(rk8), dimension(1) :: rval
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1675,9 +1754,11 @@ module mod_clm_nchelper
         'Error read '//vname//' from file '//trim(ncid%fname))
       xval = rval(1)
     end if
-    call mpi_bcast(xval,1,mpi_real8,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,1,mpi_real8,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_real8_0d
 
@@ -1688,7 +1769,7 @@ module mod_clm_nchelper
     real(rk8), dimension(:), intent(out) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1701,9 +1782,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_real8_1d
 
@@ -1714,7 +1797,7 @@ module mod_clm_nchelper
     real(rk8), dimension(:,:), intent(out) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1730,9 +1813,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_real8_2d
 
@@ -1743,7 +1828,7 @@ module mod_clm_nchelper
     real(rk8), dimension(:,:,:), intent(out) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2, nv3, mpierr
-    if ( myid == iocpu ) then
+    if ( ncid%ncid > 0 ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
@@ -1762,9 +1847,11 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
     end if
-    call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
-    if ( mpierr /= 0 ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    if ( .not. do_parallel_netcdf_in ) then
+      call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
+      if ( mpierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      end if
     end if
   end subroutine clm_readrec_real8_3d
 
