@@ -134,6 +134,7 @@ module mod_nhinterp
       do j = j1, j2
 #endif
         zq(kxs+1) = d_zero
+        !$acc loop seq
         do k = kxs, 1, -1
           zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
             log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
@@ -156,6 +157,7 @@ module mod_nhinterp
 #endif
           do k = 1, kxs
             l = 1
+            !$acc loop seq
             do ll = 1, kxs - 1
               l = ll
               if (z(j,i,l+1) < z0(j,i,k)) exit
@@ -167,6 +169,7 @@ module mod_nhinterp
             fn(k) = (fu * (z0(j,i,k) - zl ) + &
                      fl * (zu - z0(j,i,k))) / (zu - zl)
           end do
+          !$acc loop seq
           do k = 1, kxs
             f(j,i,k) = fn(k)
           end do
@@ -182,6 +185,7 @@ module mod_nhinterp
         do i = i1, i2
         do j = j1, j2
 #endif
+          !$acc loop seq
           do k = 1, kxs
             do ll = 1, kxs - 1
               l = ll
@@ -203,6 +207,7 @@ module mod_nhinterp
             end if
             if ( fn(k) < minqq ) fn(k) = minqq
           end do
+          !$acc loop seq
           do k = 1, kxs
             f(j,i,k) = fn(k)
           end do
@@ -248,6 +253,7 @@ module mod_nhinterp
       do j = j1, j2
 #endif
         zq(kxs+1) = d_zero
+        !$acc loop seq
         do k = kxs, 1, -1
           zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
             log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
@@ -268,6 +274,7 @@ module mod_nhinterp
         do i = i1, i2
         do j = j1, j2
 #endif
+          !$acc loop seq
           do k = 1, kxs
             l = 1
             do ll = 1, kxs - 1
@@ -290,6 +297,7 @@ module mod_nhinterp
             end if
             if ( fn(k) < dlowval ) fn(k) = mintr
           end do
+          !$acc loop seq
           do k = 1, kxs
             f(j,i,k,n) = fn(k)
           end do
@@ -329,6 +337,7 @@ module mod_nhinterp
         tk = t(j,i,kxs)
         tvpot = (tvk - t0(j,i,kxs)) / tk
         pp(j,i,kxs) = (tvpot*delp0 + psp) / (d_one + delp0/pr0(j,i,kxs))
+        !$acc loop seq
         do k = kxs - 1, 1, -1
           tvkp1 = tv(j,i,k+1)
           tvk = tv(j,i,k)
@@ -395,12 +404,13 @@ module mod_nhinterp
       real(rkx), dimension(j1:j2,i1:i2,kxs+1) :: pr0, t0, omega
       real(rkx), dimension(j1:j2,i1:i2) :: dummy, dummy1
 
+      !$acc kernels
       wtmp(:,:,:) = d_zero
       omega(:,:,:) = d_zero
+      !$acc end kernels
       dx2 = d_two * ds
       dummy = (xmsfx * xmsfx) / dx2
       dummy1 = xmsfx / dx2
-
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !
@@ -416,6 +426,7 @@ module mod_nhinterp
       !
       do concurrent ( j = j1:j2, i = i1:i2 )
         z(j,i,kxs+1) = d_zero
+        !$acc loop seq
         do k = kxs, 1, -1
           z(j,i,k) = z(j,i,k+1) - rovg * tv(j,i,k) * &
             log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
@@ -467,7 +478,7 @@ module mod_nhinterp
           end if
         end if
 
-        mdv(:) = d_zero
+        !$acc loop seq
         do l = 1, kxs
           ua = u(j ,i ,l) * psdot(j,i)  + &
                u(j ,ip,l) * psdot(j,ip)
@@ -480,9 +491,11 @@ module mod_nhinterp
           mdv(l) = (ub - ua + vb - va) * dummy(j,i) / ps(j,i)
         end do
         qdt(kxs+1) = d_zero
+        !$acc loop seq
         do l = kxs, 1, -1
           qdt(l) = qdt(l+1) + mdv(l) * dsigma(l)
         end do
+        !$acc loop seq
         do l = kxs+1, 1, -1
           lp = min(l,kxs)
           lm = max(l-1,1)
@@ -513,6 +526,7 @@ module mod_nhinterp
       !
       do k = 2, kxs + 1
         do concurrent ( j = j1:j2, i = i1:i2 )
+          !$acc seq
           do ll = 1, kxs
             l = ll
             if (z(j,i,l+1) < z0(j,i,k)) exit
@@ -529,6 +543,7 @@ module mod_nhinterp
           wtmp(j,i,k) = -d_1000 * omegan/rho * regrav
         end do
       end do
+      !$acc kernels
       wtmp(j1,:,:) = wtmp(j1+1,:,:)
       wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
       wtmp(:,i1,:) = wtmp(:,i1+1,:)
@@ -537,6 +552,7 @@ module mod_nhinterp
       wtmp(:,i2,:) = wtmp(:,i2-1,:)
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)
       w(j1:j2,i1:i2,1:kxs) = wtmp(j1:j2,i1:i2,2:kxs+1)
+      !$acc end kernels
     end subroutine nhw
 
     subroutine smtdsmt(slab,i1,i2,j1,j2,k1,k2)
