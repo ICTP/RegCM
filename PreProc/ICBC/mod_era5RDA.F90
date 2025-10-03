@@ -339,7 +339,6 @@ module mod_era5rda
     integer(ik4), dimension(4) :: icount, istart
     integer(ik4) :: year, month, day, hour
     integer(ik4), save :: lastday
-    type(rcm_time_interval) :: tdif
     character(len=21) :: subdir_plev = 'ds633.0' // pthsep // 'e5.oper.an.pl'
     character(len=6) :: yyyymm
     !
