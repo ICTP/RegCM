@@ -474,10 +474,10 @@ module mod_vectutil
     logical :: converged
     converged = .false.
     fac = d_two * ds * ds
-    !$acc vectors
+    !$acc kernels
     rd(:,:) = d_zero
     chi(:,:) = d_zero
-    !$acc end vectors
+    !$acc end kernels
     do concurrent ( i = 1:ie+1, j = 1:je+1 )
       ff(i,j) = fac * ff(i,j)
     end do
