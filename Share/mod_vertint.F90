@@ -98,7 +98,9 @@ module mod_vertint
     real(rkx), dimension(kp) :: sig
     real(rkx) :: sigp, w1, wp
 
-    fp(:,:,:) = missl
+    do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
+      fp(i,j,k) = missl
+    end do
     if ( p(1) > p(kp) ) then
 #ifdef STDPAR_FIXED
       do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
@@ -252,8 +254,9 @@ module mod_vertint
     real(rkx), dimension(kp) :: sig
     real(rkx) :: sigp, w1, wp
 
-    fp = missl
-
+    do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
+      fp(i,j,k) = missl
+    end do
     if ( p(1) > p(kp) ) then
 #ifdef STDPAR_FIXED
       do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
@@ -1197,7 +1200,7 @@ module mod_vertint
     real(rkx), dimension(ni,nj,krcm), intent(out) :: frcm
     real(rkx), dimension(kccm) :: xc, fc
     real(rkx), dimension(krcm) :: xr, fr
-    integer(ik4) :: i, j
+    integer(ik4) :: i, j, k
 #ifdef STDPAR_FIXED
     do concurrent ( i = 1:ni, j = 1:nj ) local(xc,fc,xr,fr)
 #else
@@ -1205,11 +1208,20 @@ module mod_vertint
     do j = 1, nj
     do i = 1, ni
 #endif
-      xc(:) = zccm(i,j,:)
-      fc(:) = fccm(i,j,:)
-      xr(:) = zrcm(i,j,:) + trcm(i,j)
+      !$acc loop seq
+      do k = 1, kccm
+        xc(k) = zccm(i,j,k)
+        fc(k) = fccm(i,j,k)
+      end do
+      !$acc loop seq
+      do k = 1, krcm
+        xr(k) = zrcm(i,j,k) + trcm(i,j)
+      end do
       call interp1d(xc,fc,xr,fr,a,e1,e2)
-      frcm(i,j,:) = fr(:)
+      !$acc loop seq
+      do k = 1, krcm
+        frcm(i,j,k) = fr(k)
+      end do
 #ifndef STDPAR_FIXED
     end do
 #endif
@@ -1227,7 +1239,7 @@ module mod_vertint
     real(rkx), dimension(ni,nj,krcm), intent(out) :: frcm
     real(rkx), dimension(kccm) :: xc, fc
     real(rkx), dimension(krcm) :: xr, fr
-    integer(ik4) :: i, j, kt, kb
+    integer(ik4) :: i, j, k, kt, kb
     if ( pccm(1,1,1) > pccm(1,1,kccm) ) then
       kt = kccm
       kb = 1
@@ -1242,11 +1254,20 @@ module mod_vertint
     do j = 1, nj
     do i = 1, ni
 #endif
-      xc(:) = (pccm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-      fc(:) = fccm(i,j,:)
-      xr(:) = (prcm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      !acc loop seq
+      do k = 1 , kccm
+        xc(k) = (pccm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+        fc(k) = fccm(i,j,k)
+      end do
+      !acc loop seq
+      do k = 1 , krcm
+        xr(k) = (prcm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      end do
       call interp1d(xc,fc,xr,fr,a,e1,e2)
-      frcm(i,j,:) = fr(:)
+      !acc loop seq
+      do k = 1 , krcm
+        frcm(i,j,k) = fr(k)
+      end do
 #ifndef STDPAR_FIXED
     end do
 #endif
@@ -1262,7 +1283,7 @@ module mod_vertint
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: frcm
     real(rkx), dimension(kccm) :: xc, fc
     real(rkx), dimension(krcm) :: xr, fr
-    integer(ik4) :: i, j, kt, kb
+    integer(ik4) :: i, j, k, kt, kb
     if ( pccm(i1,j1,1) > pccm(i1,j1,kccm) ) then
       kt = kccm
       kb = 1
@@ -1277,11 +1298,20 @@ module mod_vertint
     do j = j1, j2
     do i = i1, i2
 #endif
-      xc(:) = (pccm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-      fc(:) = fccm(i,j,:)
-      xr(:) = (prcm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      !acc loop seq
+      do k = 1 , kccm
+        xc(k) = (pccm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+        fc(k) = fccm(i,j,k)
+      end do
+      !acc loop seq
+      do k = 1 , krcm
+        xr(k) = (prcm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      end do
       call interp1d(xc,fc,xr,fr,a,e1,e2)
-      frcm(i,j,:) = fr(:)
+      !acc loop seq
+      do k = 1 , krcm
+        frcm(i,j,k) = fr(k)
+      end do
 #ifndef STDPAR_FIXED
     end do
 #endif
@@ -1403,7 +1433,7 @@ module mod_vertint
     real(rkx), dimension(ni,nj), intent(out) :: fsrcm
     real(rkx), dimension(kccm) :: zc, fc
     real(rkx), dimension(1) :: rx, rc
-    integer(ik4) :: i, j
+    integer(ik4) :: i, j, k
 #ifdef STDPAR_FIXED
     do concurrent ( i = 1:ni, j = 1:nj ) local(zc,fc,rx,rc)
 #else
@@ -1411,8 +1441,11 @@ module mod_vertint
     do j = 1, nj
     do i = 1, ni
 #endif
-      zc = zccm(i,j,:)
-      fc = fccm(i,j,:)
+      !$acc loop seq
+      do k = 1, kccm
+        zc(k) = zccm(i,j,k)
+        fc(k) = fccm(i,j,k)
+      end do
       rx(1) = zrcm(i,j)
       call interp1d(zc,fc,rx,rc,a,e1,e2)
       fsrcm(i,j) = rc(1)
@@ -1431,7 +1464,7 @@ module mod_vertint
     real(rkx), dimension(ni,nj), intent(out) :: fsrcm
     real(rkx), dimension(kccm) :: zc, fc
     real(rkx), dimension(1) :: rx, rc
-    integer(ik4) :: i, j, kt, kb
+    integer(ik4) :: i, j, k, kt, kb
     if ( pccm(1,1,1) > pccm(1,1,kccm) ) then
       kt = kccm
       kb = 1
@@ -1446,8 +1479,11 @@ module mod_vertint
     do j = 1, nj
     do i = 1, ni
 #endif
-      zc(:) = (pccm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-      fc(:) = fccm(i,j,:)
+      !$acc loop seq
+      do k = 1, kccm
+        zc(k) = (pccm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+        fc(k) = fccm(i,j,k)
+      end do
       rx(1) = (psrcm(i,j)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
       call interp1d(zc,fc,rx,rc,a,e1,e2)
       fsrcm(i,j) = rc(1)
