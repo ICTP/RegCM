@@ -56,7 +56,7 @@ program regcm
 !**********************************************************************
 !
 #ifndef OASIS
-  call mpi_init_thread(mpi_thread_single,iprov,ierr)
+  call mpi_init_thread(mpi_thread_funneled,iprov,ierr)
   if ( ierr /= mpi_success ) then
     write(stderr,*) 'Cannot initilize MPI'
     stop
