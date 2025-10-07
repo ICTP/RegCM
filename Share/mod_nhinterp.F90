@@ -526,7 +526,7 @@ module mod_nhinterp
       !
       do k = 2, kxs + 1
         do concurrent ( j = j1:j2, i = i1:i2 )
-          !$acc seq
+          !$acc loop seq
           do ll = 1, kxs
             l = ll
             if (z(j,i,l+1) < z0(j,i,k)) exit
