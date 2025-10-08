@@ -2238,11 +2238,11 @@ module mod_clm_snowhydrology
           if ( abs(dztot(c)) > 1.e-10_rk8 .or. &
                abs(snwicetot(c)) > 1.e-7_rk8 .or. &
                abs(snwliqtot(c)) > 1.e-7_rk8 ) then
+#ifndef OPENACC
             write(stderr,*) &
                     'Inconsistency in SnowDivision_Lake! c, remainders', &
                     'dztot, snwicetot, snwliqtot = ', &
                    c,dztot(c),snwicetot(c),snwliqtot(c)
-#ifndef OPENACC
             call fatal(__FILE__,__LINE__,'clm now stopping')
 #endif
           end if

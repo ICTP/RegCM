@@ -537,6 +537,7 @@ module mod_micro_interface
         qvcs = qvcs /sfs%psc(j,i)
         qccs = qccs /sfs%psc(j,i)
       end if
+#ifndef OPENACC
 #ifdef DEBUG
       if ( tmp3 < d_zero ) then
         write(stderr,*) 'Time step = ', rcmtimer%lcount
@@ -545,6 +546,7 @@ module mod_micro_interface
         write(stderr,*) 'At global I : ',i
         write(stderr,*) 'At global K : ',k
       end if
+#endif
 #endif
       !
       ! 2.  Compute the cloud condensation/evaporation term.

@@ -367,11 +367,13 @@ module mod_nhinterp
                wtl * t0(j,i,k+1)/t(j,i,k+1) * pp(j,i,k+1)/pr0(j,i,k+1) - &
                wtu * t0(j,i,k)  /t(j,i,k)   * pp(j,i,k)  /pr0(j,i,k)
           check = checkl + checkr
+#ifndef OPENACC
 #ifdef DEBUG
           if ( abs(check) > 1.e-2_rkx ) then
             write(stderr,'(A,3I4,3g14.6)') &
               'NHPP vert gradient check error at ',i,j,k,check,checkl,checkr
           end if
+#endif
 #endif
         end do
       end do
@@ -526,10 +528,11 @@ module mod_nhinterp
       !
       do k = 2, kxs + 1
         do concurrent ( j = j1:j2, i = i1:i2 )
+          l = 1
           !$acc loop seq
           do ll = 1, kxs
-            l = ll
             if (z(j,i,l+1) < z0(j,i,k)) exit
+            l = l + 1
           end do
           zu = z(j,i,l)
           zl = z(j,i,l+1)
@@ -544,12 +547,12 @@ module mod_nhinterp
         end do
       end do
       !$acc kernels
-      wtmp(j1,:,:) = wtmp(j1+1,:,:)
-      wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
-      wtmp(:,i1,:) = wtmp(:,i1+1,:)
-      wtmp(:,i2-1,:) = wtmp(:,i2-2,:)
-      wtmp(j2,:,:) = wtmp(j2-1,:,:)
-      wtmp(:,i2,:) = wtmp(:,i2-1,:)
+      wtmp(j1,i1:i2,1:kxs) = wtmp(j1+1,i1:i2,1:kxs)
+      wtmp(j2-1,i1:i2,1:kxs) = wtmp(j2-2,i1:i2,1:kxs)
+      wtmp(j1:j2,i1,1:kxs) = wtmp(j1:j2,i1+1,1:kxs)
+      wtmp(j1:j2,i2-1,1:kxs) = wtmp(j1:j2,i2-2,1:kxs)
+      wtmp(j2,i1:i2,1:kxs) = wtmp(j2-1,i1:i2,1:kxs)
+      wtmp(j1:j2,i2,1:kxs) = wtmp(j1:j2,i2-1,1:kxs)
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)
       w(j1:j2,i1:i2,1:kxs) = wtmp(j1:j2,i1:i2,2:kxs+1)
       !$acc end kernels

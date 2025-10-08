@@ -1801,6 +1801,7 @@ module mod_micro_nogtom
           do jn = 1, nqx
             if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
           end do
+#ifndef OPENACC
 #ifdef DEBUG
           if ( aamax == d_zero ) then
             do nn = 1, nqx
@@ -1811,6 +1812,7 @@ module mod_micro_nogtom
               end do
             end do
           end if
+#endif
 #endif
           vv(n) = d_one/aamax ! Save the scaling.
         end do

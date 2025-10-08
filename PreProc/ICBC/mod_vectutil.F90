@@ -377,7 +377,7 @@ module mod_vectutil
     j2 = ubound(x,2)
     k1 = lbound(x,3)
     k2 = ubound(x,3)
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( i = i1:i2, j = j1:j2 ) local(work)
 #else
     !$acc parallel loop collapse(2) gang vector private(work)
@@ -393,7 +393,7 @@ module mod_vectutil
       kr = k2 - k + 1
       x(i,j,k) = work(kr)
     end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
     end do
 #endif
     end do
@@ -416,7 +416,7 @@ module mod_vectutil
     k2 = ubound(x,3)
     n1 = lbound(x,4)
     n2 = ubound(x,4)
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( i = i1:i2, j = j1:j2, n = n1:n2 ) local(work)
 #else
     !$acc parallel loop collapse(3) gang vector private(work)
@@ -433,7 +433,7 @@ module mod_vectutil
         kr = k2 - k + 1
         x(i,j,k,n) = work(kr)
       end do
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
     end do
     end do
 #endif

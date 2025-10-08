@@ -782,11 +782,11 @@ module mod_nest
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call crs2dot(pd3,p3,jx,iy,kz_in,i_band,i_crm)
       ps = ps4 + ptop
-      call intp3(ts4,t3,p3,ps,jx,iy,kz_in,0.0_rkx,0.05_rkx,0.05_rkx)
+      call intp3(ts4,t3,p3,ps,0.0_rkx,0.05_rkx,0.05_rkx,jx,iy,kz_in)
     else
       call ucrs2dot(zud3,z3,jx,iy,kz_in,i_band)
       call vcrs2dot(zvd3,z3,jx,iy,kz_in,i_crm)
-      call intz3(ts4,t3,z3,topogm,jx,iy,kz_in,0.0_rkx,0.05_rkx,0.05_rkx)
+      call intz3(ts4,t3,z3,topogm,0.0_rkx,0.05_rkx,0.05_rkx,jx,iy,kz_in)
     end if
 
     !

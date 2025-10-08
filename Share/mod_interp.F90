@@ -57,6 +57,8 @@ module mod_interp
   interface interp1d
     module procedure interp1d_r4
     module procedure interp1d_r8
+    module procedure single_interp1d_r4
+    module procedure single_interp1d_r8
   end interface interp1d
 
   interface cressmcr
@@ -82,6 +84,107 @@ module mod_interp
   ! At interval extremes the second derivative is assumed null.
   ! This subroutine also extrapolates out of the interval where the
   ! input funtion g is defined
+  pure subroutine single_interp1d_r4(xi,g,xo,f,alfa,ex1,ex2)
+    !$acc routine seq
+    implicit none
+    real(rk4), dimension(:), intent(in) :: xi, g
+    real(rk4), intent(in) :: xo
+    real(rk4), intent(out) :: f
+    real(rk4), intent(in) :: alfa
+    real(rk4), intent(in) :: ex1
+    real(rk4), intent(in) :: ex2
+
+    real(rk4) :: zeps, ximed, gmed, fmm, fpp, xmm, xpp
+    real(rk4) :: fm, xm, fp, xp, delx, delxp, delxm
+    real(rk4) :: delx1, delx2, delxs, delx1s, delx2s
+    real(rk4) :: spl, clin
+
+    real(rk4), dimension(size(xi)) :: zi, zg
+    integer(ik4) :: npi, npo
+    integer(ik4) :: k, j, jj, ir
+
+    npi = size(xi)
+    if ( xi(1) >= xi(npi) ) then
+      do k = 1, npi
+        zi(k) = xi(npi-k+1)
+        zg(k) = g(npi-k+1)
+      end do
+    else
+      zi(:) = xi(:)
+      zg(:) = g(:)
+    end if
+
+    zeps = (zi(npi) - zi(1)) * 1.e-6_rk4
+    deinterlace: &
+    do
+      do k = 2, npi
+        if ( zi(k) <= zi(k-1) ) then
+          ximed = 0.5_rk4 * (zi(k) + zi(k-1))
+          zi(k-1) = ximed - zeps
+          zi(k) = ximed + zeps
+          gmed = 0.5_rk4 * (zg(k) + zg(k-1))
+          zg(k-1) = gmed
+          zg(k) = gmed
+        end if
+      end do
+
+      do k = 2, npi
+        if ( zi(k) <= zi(k-1) ) then
+          cycle deinterlace
+        end if
+      end do
+      exit deinterlace
+    end do deinterlace
+
+    if ( xo < zi(1) ) then
+      f = zg(1) + ex1*(zg(1)-zg(2))/(zi(1)-zi(2)) * (xo-zi(1))
+      return
+    else if ( xo >= zi(npi) ) then
+      f = zg(npi) + ex2*(zg(npi)-zg(npi-1))/(zi(npi)-zi(npi-1)) * &
+           (xo-zi(npi))
+      return
+    end if
+    ir = 0
+    do jj = 1, npi
+      if ( xo >= zi(jj) ) ir = ir + 1
+    end do
+    if ( ir == 1 ) then
+      fmm = 2.0_rk4 * zg(1) - zg(2)
+      xmm = 2.0_rk4 * zi(1) - zi(2)
+      fpp = zg(ir+2)
+      xpp = zi(ir+2)
+    else if ( ir == (npi-1) ) then
+      fpp = 2.0_rk4 * zg(npi) - zg(npi-1)
+      xpp = 2.0_rk4 * zi(npi) - zi(npi-1)
+      fmm = zg(ir-1)
+      xmm = zi(ir-1)
+    else
+      fmm = zg(ir-1)
+      xmm = zi(ir-1)
+      fpp = zg(ir+2)
+      xpp = zi(ir+2)
+    end if
+    fm     = zg(ir)
+    xm     = zi(ir)
+    fp     = zg(ir+1)
+    xp     = zi(ir+1)
+    delx   = xp - xm
+    delxp  = xpp - xp
+    delxm  = xm - xmm
+    delx1  = xo - xm
+    delx2  = xp - xo
+    delxs  = delx**2
+    delx1s = delx1**2
+    delx2s = delx2**2
+    spl = fm*(delx2/delx + delx1*delx2s/(delxs*delxm) - delx1s*     &
+          delx2/((delx+delxp)*delxs)) + fp*(delx1/delx +            &
+          delx1s*delx2/(delxs*delxp) - delx1*delx2s/((delx+delxm)*  &
+          delxs)) - fmm * delx1*delx2s/((delx+delxm)*delx*delxm) -  &
+          fpp * delx1s*delx2/((delx+delxp)*delx*delxp)
+    clin = (fm*delx2 + fp*delx1)/delx
+    f = alfa*clin + (1.0_rk4-alfa)*spl
+  end subroutine single_interp1d_r4
+
   pure subroutine interp1d_r4(xi,g,xo,f,alfa,ex1,ex2)
     !$acc routine seq
     implicit none
@@ -200,6 +303,107 @@ module mod_interp
       f(j) = alfa*clin + (1.0_rk4-alfa)*spl
     end do
   end subroutine interp1d_r4
+
+  pure subroutine single_interp1d_r8(xi,g,xo,f,alfa,ex1,ex2)
+    !$acc routine seq
+    implicit none
+    real(rk8), dimension(:), intent(in) :: xi, g
+    real(rk8), intent(in) :: xo
+    real(rk8), intent(out) :: f
+    real(rk8), intent(in) :: alfa
+    real(rk8), intent(in) :: ex1
+    real(rk8), intent(in) :: ex2
+
+    real(rk8) :: zeps, ximed, gmed, fmm, fpp, xmm, xpp
+    real(rk8) :: fm, xm, fp, xp, delx, delxp, delxm
+    real(rk8) :: delx1, delx2, delxs, delx1s, delx2s
+    real(rk8) :: spl, clin
+
+    real(rk8), dimension(size(xi)) :: zi, zg
+    integer(ik4) :: npi, npo
+    integer(ik4) :: k, j, jj, ir
+
+    npi = size(xi)
+    if ( xi(1) >= xi(npi) ) then
+      do k = 1, npi
+        zi(k) = xi(npi-k+1)
+        zg(k) = g(npi-k+1)
+      end do
+    else
+      zi(:) = xi(:)
+      zg(:) = g(:)
+    end if
+
+    zeps = (zi(npi) - zi(1)) * 1.e-6_rk8
+    deinterlace: &
+    do
+      do k = 2, npi
+        if ( zi(k) <= zi(k-1) ) then
+          ximed = 0.5_rk8 * (zi(k) + zi(k-1))
+          zi(k-1) = ximed - zeps
+          zi(k) = ximed + zeps
+          gmed = 0.5_rk8 * (zg(k) + zg(k-1))
+          zg(k-1) = gmed
+          zg(k) = gmed
+        end if
+      end do
+
+      do k = 2, npi
+        if ( zi(k) <= zi(k-1) ) then
+          cycle deinterlace
+        end if
+      end do
+      exit deinterlace
+    end do deinterlace
+
+    if ( xo < zi(1) ) then
+      f = zg(1) + ex1*(zg(1)-zg(2))/(zi(1)-zi(2)) * (xo-zi(1))
+      return
+    else if ( xo >= zi(npi) ) then
+      f = zg(npi) + ex2*(zg(npi)-zg(npi-1))/(zi(npi)-zi(npi-1)) * &
+           (xo-zi(npi))
+      return
+    end if
+    ir = 0
+    do jj = 1, npi
+      if ( xo >= zi(jj) ) ir = ir + 1
+    end do
+    if ( ir == 1 ) then
+      fmm = 2.0_rk8 * zg(1) - zg(2)
+      xmm = 2.0_rk8 * zi(1) - zi(2)
+      fpp = zg(ir+2)
+      xpp = zi(ir+2)
+    else if ( ir == (npi-1) ) then
+      fpp = 2.0_rk8 * zg(npi) - zg(npi-1)
+      xpp = 2.0_rk8 * zi(npi) - zi(npi-1)
+      fmm = zg(ir-1)
+      xmm = zi(ir-1)
+    else
+      fmm = zg(ir-1)
+      xmm = zi(ir-1)
+      fpp = zg(ir+2)
+      xpp = zi(ir+2)
+    end if
+    fm     = zg(ir)
+    xm     = zi(ir)
+    fp     = zg(ir+1)
+    xp     = zi(ir+1)
+    delx   = xp - xm
+    delxp  = xpp - xp
+    delxm  = xm - xmm
+    delx1  = xo - xm
+    delx2  = xp - xo
+    delxs  = delx**2
+    delx1s = delx1**2
+    delx2s = delx2**2
+    spl = fm*(delx2/delx + delx1*delx2s/(delxs*delxm) - delx1s*     &
+          delx2/((delx+delxp)*delxs)) + fp*(delx1/delx +            &
+          delx1s*delx2/(delxs*delxp) - delx1*delx2s/((delx+delxm)*  &
+          delxs)) - fmm * delx1*delx2s/((delx+delxm)*delx*delxm) -  &
+          fpp * delx1s*delx2/((delx+delxp)*delx*delxp)
+    clin = (fm*delx2 + fp*delx1)/delx
+    f = alfa*clin + (1.0_rk8-alfa)*spl
+  end subroutine single_interp1d_r8
 
   pure subroutine interp1d_r8(xi,g,xo,f,alfa,ex1,ex2)
     !$acc routine seq

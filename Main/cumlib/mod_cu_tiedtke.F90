@@ -5482,11 +5482,11 @@ module mod_cu_tiedtke
       do concurrent ( n = n1:n2 )
         !$acc loop seq
         do k = nk, 2, -1
+          xalv = mlwt(t(n,k))
           if ( ldcum(n) .and. k >= kctop(n)-1 ) then
             dz = (pf(n,k+1)-pf(n,k))*regrav
             xsumc(n,1) = xsumc(n,1) + &
                          (tenq(n,k)-xtenq(n,k))*dz + lude(n,k)
-            xalv = mlw(t(n,k))
             xsumc(n,2) = xsumc(n,2) + &
                          cpd*(tent(n,k)-xtent(n,k))*dz - xalv*lude(n,k)
             xsumc(n,3) = xsumc(n,3) + (tenu(n,k)-xtenu(n,k))*dz
@@ -5507,8 +5507,8 @@ module mod_cu_tiedtke
       end if
       !$acc update host(ldcum,t,mflxr,mflxs,sfl,xsumc,kctop,pf)
       do n = n1, n2
+        xalv = mlwt(t(n,nk))
         if ( ldcum(n) ) then
-          xalv = mlw(t(n,nk))
           sfl(n) = mflxr(n,nk+1) + mflxs(n,nk+1)
           write (61,'(i4,a9,2f15.8,i4,a9,f15.8,a10,2f15.8)')     &
             n, ' CONS q: ', -xsumc(n,1)*xalv, sfl(n)*xalv,   &
@@ -6358,7 +6358,7 @@ module mod_cu_tiedtke
         do concurrent ( n = n1:n2 )
           !$acc loop seq
           do k = 3, nk - 2
-            hsk = cpd*t(n,k) + geo(n,k) + mlw(t(n,k))*qs(n,k)
+            hsk = cpd*t(n,k) + geo(n,k) + mlwt(t(n,k))*qs(n,k)
             if ( hsk < hsmin(n) ) then
               hsmin(n) = hsk
               ikhsmin(n) = k
@@ -6629,8 +6629,8 @@ module mod_cu_tiedtke
       do k = itopm2, nk
         if ( k < nk ) then
           do concurrent ( n = n1:n2 )
+            xalv = mlwt(t(n,k))
             if ( ldcum(n) ) then
-              xalv = mlw(t(n,k))
               dtdt(n,k) = dp(n,k)*rcpd *                      &
                 (xmfus(n,k+1)-xmfus(n,k)+xmfds(n,k+1) -       &
                  xmfds(n,k)+wlhf*lglac(n,k)-wlhf*dpmel(n,k) - &
@@ -6642,8 +6642,8 @@ module mod_cu_tiedtke
           end do
         else
           do concurrent ( n = n1:n2 )
+            xalv = mlwt(t(n,k))
             if ( ldcum(n) ) then
-              xalv = mlw(t(n,k))
               dtdt(n,k) = -dp(n,k)*rcpd *                &
                 (xmfus(n,k)+xmfds(n,k)+wlhf*dpmel(n,k) - &
                  xalv*(mful(n,k)+dmfup(n,k)))
@@ -6932,7 +6932,7 @@ module mod_cu_tiedtke
       ! 1.1 Scale fluxes below cloud base
       !      linear dcrease
       ! ---------------------------------
-      do concurrent ( n = n1:n2 )
+      do n = n1, n2
         if ( ldcum(n) ) then
           ikb = kcbot(n)
           ik = ikb + 1
@@ -6941,8 +6941,8 @@ module mod_cu_tiedtke
           mfu(n,ik) = mfu(n,ikb)*zp
           ! passing a scalar to avoid a compiler bug with OpenACC/Stdpar
           tfl=tf(n,ikb)
-          mfus(n,ik) = (mfus(n,ikb) - mlw(tfl) * mful(n,ikb))*zp
-          !mfus(n,ik) = (mfus(n,ikb) - mlw(tf(n,ikb)) * mful(n,ikb))*zp 
+          mfus(n,ik) = (mfus(n,ikb) - mlwt(tfl) * mful(n,ikb))*zp
+          !mfus(n,ik) = (mfus(n,ikb) - mlwt(tf(n,ikb)) * mful(n,ikb))*zp 
           mfuq(n,ik) = (mfuq(n,ikb)+mful(n,ikb))*zp
           mful(n,ik) = d_zero
         end if
@@ -7723,18 +7723,23 @@ module mod_cu_tiedtke
     end subroutine ctracer
 
     pure real(rkx) function xmin(x,y)
+      !$acc routine seq
       implicit none
       real(rkx), intent(in) :: x, y
       xmin = y - d_half*(abs(x-y)-(x-y))
     end function xmin
+
     pure real(rkx) function lwocp(t)
+      !$acc routine seq
       implicit none
       real(rkx), intent(in) :: t
       real(rkx) :: gtzero
       gtzero = max(d_zero,sign(d_one,t-tzero))
       lwocp = gtzero*wlhvocp + (d_one-gtzero)*wlhsocp
     end function lwocp
+
     pure real(rkx) function xalpha(t)
+      !$acc routine seq
       implicit none
       real(rkx), intent(in) :: t
       xalpha = min(d_one,((max(rtice,min(rtwat,t))-rtice)*rtwat_rtice_r)**2)
@@ -7751,39 +7756,49 @@ module mod_cu_tiedtke
       fesat = c2es*(xa*exp((c3les*((t-tzero)/(t-c4les)))) + &
             (d_one-xa)*exp((c3ies*((t-tzero)/(t-c4ies)))))
     end function fesat
+
     pure real(rkx) function fdqsat(t)
+      !$acc routine seq
       implicit none
       real(rkx), intent(in) :: t
       real(rkx) :: xa
       xa = xalpha(t)
       fdqsat = xa*c5alvcp*(d_one/(t-c4les)**2) + &
-              (d_one-xa)*c5alscp*(d_one/(t-c4ies)**2)
+            (d_one-xa)*c5alscp*(d_one/(t-c4ies)**2)
     end function fdqsat
+
     pure real(rkx) function mlwocp(t)
+      !$acc routine seq
       implicit none
       real(rkx), intent(in) :: t
       real(rkx) :: xa
       xa = xalpha(t)
       mlwocp = xa*wlhvocp+(d_one-xa)*wlhsocp
     end function mlwocp
-    pure real(rkx) function mlw(t)
+
+    pure real(rkx) function esw(t)
+      !$acc routine seq
+      implicit none
+      real(rkx), intent(in) :: t
+      esw = c3les*(t-tzero)/(t-c4les)
+    end function esw
+
+    pure real(rkx) function esi(t)
+      !$acc routine seq
+      implicit none
+      real(rkx), intent(in) :: t
+      esi = c3ies*(t-tzero)/(t-c4ies)
+    end function esi
+
+    pure real(rkx) function mlwt(t)
       !$acc routine seq
       implicit none
       real(rkx), intent(in) :: t
       real(rkx) :: xa
       xa = xalpha(t)
-      mlw = xa*wlhv+(d_one-xa)*wlhs
-    end function mlw
-    pure real(rkx) function esw(t)
-      implicit none
-      real(rkx), intent(in) :: t
-      esw = c3les*(t-tzero)/(t-c4les)
-    end function esw
-    pure real(rkx) function esi(t)
-      implicit none
-      real(rkx), intent(in) :: t
-      esi = c3ies*(t-tzero)/(t-c4ies)
-    end function esi
+      mlwt = xa*wlhv+(d_one-xa)*wlhs
+    end function mlwt
+
   end subroutine ntiedtke
 
 end module mod_cu_tiedtke
