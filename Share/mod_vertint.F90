@@ -102,10 +102,10 @@ module mod_vertint
       fp(i,j,k) = missl
     end do
     if ( p(1) > p(kp) ) then
-#ifdef STDPAR_FIXED
-      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
+#ifdef STDPAR
+      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = jm1, jm2
       do i = im1, im2
 #endif
@@ -134,15 +134,15 @@ module mod_vertint
           w1 = d_one - wp
           fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
     else
-#ifdef STDPAR_FIXED
-      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
+#ifdef STDPAR
+      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = jm1, jm2
       do i = im1, im2
 #endif
@@ -171,7 +171,7 @@ module mod_vertint
           w1 = d_one - wp
           fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
@@ -197,7 +197,13 @@ module mod_vertint
     integer(ik4) :: i, j, k, kx, knx, n
     real(rkx) :: w1, w2
     if ( z(1) < z(km) ) then
-      do concurrent ( i = i1:i2, j = j1:j2 )
+#ifdef STDPAR
+      do concurrent ( i = i1:i2, j = j1:j2 ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = j1, j2
+      do i = i1, i2
+#endif
         !$acc loop seq
         do n = 1, kz
           if ( z(km) >= hz(i,j,n) ) then
@@ -217,9 +223,18 @@ module mod_vertint
           w2 = 1.0 - w1
           fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
-      do concurrent ( i = i1:i2, j = j1:j2 )
+#ifdef STDPAR
+      do concurrent ( i = i1:i2, j = j1:j2 ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = j1, j2
+      do i = i1, i2
+#endif
         !$acc loop seq
         do n = 1, kz
           if ( z(1) >= hz(i,j,n) ) then
@@ -239,6 +254,9 @@ module mod_vertint
           w2 = 1.0 - w1
           fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlinreg_z
@@ -270,10 +288,10 @@ module mod_vertint
       fp(i,j,k) = missl
     end do
     if ( p(1) > p(kp) ) then
-#ifdef STDPAR_FIXED
-      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
+#ifdef STDPAR
+      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = jm1, jm2
       do i = im1, im2
 #endif
@@ -302,15 +320,15 @@ module mod_vertint
           w1 = d_one - wp
           fp(i,j,n) = w1*f(kx) + wp*f(knx)
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
     else
-#ifdef STDPAR_FIXED
-      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig)
+#ifdef STDPAR
+      do concurrent ( i = im1:im2, j = jm1:jm2 ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = jm1, jm2
       do i = im1, im2
 #endif
@@ -339,7 +357,7 @@ module mod_vertint
           w1 = d_one - wp
           fp(i,j,n) = w1*f(kx) + wp*f(knx)
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
@@ -366,10 +384,10 @@ module mod_vertint
     real(rk8), dimension(km) :: sig
     real(rk8) :: sigp, w1, wp, tp, bp
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
-#ifdef STDPAR_FIXED
-      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = 1, jm
       do i = 1, im
 #endif
@@ -398,15 +416,15 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
     else
-#ifdef STDPAR_FIXED
-      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = 1, jm
       do i = 1, im
 #endif
@@ -435,7 +453,7 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
@@ -452,10 +470,10 @@ module mod_vertint
     real(rk4), dimension(km) :: sig
     real(rk4) :: sigp, w1, wp, tp, bp
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
-#ifdef STDPAR_FIXED
-      do concurrent( i = 1:im, j = 1:jm ) local(sig)
+#ifdef STDPAR
+      do concurrent( i = 1:im, j = 1:jm ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = 1, jm
       do i = 1, im
 #endif
@@ -484,15 +502,15 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
     else
-#ifdef STDPAR_FIXED
-      do concurrent( i = 1:im, j = 1:jm ) local(sig)
+#ifdef STDPAR
+      do concurrent( i = 1:im, j = 1:jm ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = 1, jm
       do i = 1, im
 #endif
@@ -521,7 +539,7 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
@@ -553,7 +571,13 @@ module mod_vertint
     real(rk8) :: sigp, w1, wp
 
     if ( sig(1) > sig(2) ) then
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kp
           sigp = (p(n)-ptop)/(ps(i,j)-ptop)
@@ -574,9 +598,18 @@ module mod_vertint
           w1 = d_one - wp
           fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kp
           sigp = (p(n)-ptop)/(ps(i,j)-ptop)
@@ -597,6 +630,9 @@ module mod_vertint
           w1 = d_one - wp
           fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlin_o_double
@@ -614,7 +650,13 @@ module mod_vertint
     real(rk4) :: sigp, w1, wp, pt
     pt = real(ptop)
     if ( sig(1) > sig(2) ) then
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kp
           sigp = (p(n)-pt)/(ps(i,j)-pt)
@@ -635,9 +677,18 @@ module mod_vertint
           w1 = 1.0 - wp
           fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kp
           sigp = (p(n)-pt)/(ps(i,j)-pt)
@@ -658,6 +709,9 @@ module mod_vertint
           w1 = 1.0 - wp
           fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlin_o_single
@@ -680,7 +734,13 @@ module mod_vertint
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk4) :: w1, wz
     if ( hz(1,1,1) < hz(1,1,km) ) then
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kz
           if ( z(n) >= hz(i,j,km) ) then
@@ -700,9 +760,18 @@ module mod_vertint
           w1 = 1.0 - wz
           fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kz
           if ( z(n) >= hz(i,j,1) ) then
@@ -722,6 +791,9 @@ module mod_vertint
           w1 = 1.0 - wz
           fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlin_z_o_single
@@ -735,7 +807,13 @@ module mod_vertint
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk8) :: w1, wz
     if ( hz(1,1,1) < hz(1,1,km) ) then
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kz
           if ( z(n) >= hz(i,j,km) ) then
@@ -755,9 +833,18 @@ module mod_vertint
           w1 = 1.0 - wz
           fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kz
           if ( z(n) >= hz(i,j,1) ) then
@@ -777,6 +864,9 @@ module mod_vertint
           w1 = 1.0 - wz
           fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlin_z_o_double
@@ -819,7 +909,13 @@ module mod_vertint
       write(stderr,*) '################ WARNING!!! ################'
     end if
 
-    do concurrent ( i = 1:ni, j = 1:nj )
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj ) local(kb)
+#else
+      !$acc parallel loop collapse(2) private(kb)
+      do j = 1, nj
+      do i = 1, ni
+#endif
       if ( zrcm(i,j) < zp(i,j,1) ) then
         tlayer(i,j) = tp(i,j,1)
         za(i,j) = zp(i,j,1)
@@ -844,6 +940,9 @@ module mod_vertint
         za(i,j) = zp(i,j,kt)
         pa(i,j) = pss*sccm(kt) + pst
       end if
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intgtb
 
@@ -871,10 +970,10 @@ module mod_vertint
     real(rk8), dimension(km) :: sig
 
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
-#ifdef STDPAR_FIXED
-      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = 1, jm
       do i = 1, im
 #endif
@@ -904,15 +1003,15 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
     else
-#ifdef STDPAR_FIXED
-      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = 1, jm
       do i = 1, im
 #endif
@@ -942,7 +1041,7 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
@@ -960,10 +1059,10 @@ module mod_vertint
     real(rk4), dimension(km) :: sig
 
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
-#ifdef STDPAR_FIXED
-      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = 1, jm
       do i = 1, im
 #endif
@@ -993,15 +1092,15 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
     else
-#ifdef STDPAR_FIXED
-      do concurrent ( i = 1:im, j = 1:jm ) local(sig)
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(sig,kx)
 #else
-      !$acc parallel loop collapse(2) gang vector private(sig)
+      !$acc parallel loop collapse(2) private(sig,kx)
       do j = 1, jm
       do i = 1, im
 #endif
@@ -1031,7 +1130,7 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
       end do
 #endif
       end do
@@ -1065,7 +1164,13 @@ module mod_vertint
     real(rk8) :: sigp, w1, wp
     integer(ik4) :: i, j, k, kx, knx, n
     if ( sig(1) > sig(2) ) then
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kp
           sigp = (p(n)-ptop)/(ps(i,j)-ptop)
@@ -1086,9 +1191,18 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kp
           sigp = (p(n)-ptop)/(ps(i,j)-ptop)
@@ -1109,6 +1223,9 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlog_o_double
@@ -1127,7 +1244,13 @@ module mod_vertint
 
     pt = real(ptop)
     if ( sig(1) > sig(2) ) then
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kp
           sigp = (p(n)-pt)/(ps(i,j)-pt)
@@ -1148,9 +1271,18 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
-      do concurrent ( i = 1:im, j = 1:jm )
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(kx)
+#else
+      !$acc parallel loop collapse(2) private(kx)
+      do j = 1, jm
+      do i = 1, im
+#endif
         !$acc loop seq
         do n = 1, kp
           sigp = (p(n)-pt)/(ps(i,j)-pt)
@@ -1171,6 +1303,9 @@ module mod_vertint
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end if
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intlog_o_single
@@ -1207,7 +1342,13 @@ module mod_vertint
     real(rkx), dimension(ni,nj,krcm), intent(out) :: frcm
     real(rkx) :: rc, rc1, sc
     integer(ik4) :: i, j, k, k1, kp1, n
-    do concurrent ( j = 1:nj, i = 1:ni )
+#ifdef STDPAR
+    do concurrent ( j = 1:nj, i = 1:ni ) local(k1)
+#else
+    !$acc parallel loop collapse(2) private(k1)
+    do j = 1, nj
+    do i = 1, ni
+#endif
       !$acc loop seq
       do n = 1, krcm
         sc = (srcm(n)*psrcm(i,j) + pt - pst)/pss
@@ -1226,6 +1367,9 @@ module mod_vertint
           frcm(i,j,n) = fccm(i,j,kccm)
         end if
       end do
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intv0
 
@@ -1247,7 +1391,13 @@ module mod_vertint
     real(rkx) :: rc, rc1, sc
     integer(ik4) :: i, j, k, k1, kp1
 
-    do concurrent ( j = 1:nj, i = 1:ni )
+#ifdef STDPAR
+    do concurrent ( j = 1:nj, i = 1:ni ) local(k1)
+#else
+    !$acc parallel loop collapse(2) private(k1)
+    do j = 1, nj
+    do i = 1, ni
+#endif
       sc = (srcm * psrcm(i,j) + pt - pst)/pss
       k1 = 0
       !$acc loop seq
@@ -1264,6 +1414,9 @@ module mod_vertint
       else
         frcm(i,j) = fccm(i,j,1)
       end if
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intvp
 
@@ -1280,22 +1433,29 @@ module mod_vertint
     real(rkx), dimension(kccm) :: xc, fc
     real(rkx), dimension(krcm) :: xr, fr
     integer(ik4) :: i, j, k
+#ifdef STDPAR
+    do concurrent ( j = 1:nj, i = 1:ni ) local(xc,fc,xr,fr)
+#else
+    !$acc parallel loop collapse(2) private(xc,fc,xr,fr)
     do j = 1, nj
-      do i = 1, ni
-        do k = 1, kccm
-          xc(k) = zccm(i,j,k)
-          fc(k) = fccm(i,j,k)
-        end do
-        do k = 1, krcm
-          xr(k) = zrcm(i,j,k) + trcm(i,j)
+    do i = 1, ni
+#endif
+      !$acc loop seq
+      do k = 1, kccm
+        xc(k) = zccm(i,j,k)
+        fc(k) = fccm(i,j,k)
+      end do
+      !$acc loop seq
+      do k = 1, krcm
+        xr(k) = zrcm(i,j,k) + trcm(i,j)
       end do
       call interp1d(xc,fc,xr,fr,a,e1,e2)
       !$acc loop seq
       do k = 1, krcm
         frcm(i,j,k) = fr(k)
       end do
-#ifndef STDPAR_FIXED
-    end do
+#ifndef STDPAR
+      end do
 #endif
     end do
   end subroutine intz1
@@ -1319,10 +1479,10 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
-#ifdef STDPAR_FIXED
+#ifdef STDPAR
     do concurrent ( i = 1:ni, j = 1:nj ) local(xc,fc,xr,fr)
 #else
-    !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr)
+    !$acc parallel loop collapse(2) private(xc,fc,xr,fr)
     do j = 1, nj
     do i = 1, ni
 #endif
@@ -1340,7 +1500,7 @@ module mod_vertint
       do k = 1 , krcm
         frcm(i,j,k) = fr(k)
       end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
     end do
 #endif
     end do
@@ -1363,10 +1523,10 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
-#ifdef STDPAR_FIXED
+#ifdef STDPAR
     do concurrent ( i = i1:i2, j = j1:j2 ) local(xc,fc,xr,fr)
 #else
-    !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr)
+    !$acc parallel loop collapse(2) private(xc,fc,xr,fr)
     do j = j1, j2
     do i = i1, i2
 #endif
@@ -1384,7 +1544,7 @@ module mod_vertint
       do k = 1 , krcm
         frcm(i,j,k) = fr(k)
       end do
-#ifndef STDPAR_FIXED
+#ifndef STDPAR
     end do
 #endif
     end do
@@ -1416,7 +1576,13 @@ module mod_vertint
     integer(ik4) :: i, j, k, k1, km1, n
 
     if ( imeth == 1 ) then
-      do concurrent ( i = 1:ni, j = 1:nj )
+#ifdef STDPAR
+      do concurrent ( i = 1:ni, j = 1:nj ) local(k1)
+#else
+      !$acc parallel loop collapse(2) private(k1)
+      do j = 1, nj
+      do i = 1, ni
+#endif
         !$acc loop seq
         do n = 1, krcm
           sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
@@ -1436,9 +1602,18 @@ module mod_vertint
             frcm(i,j,n) = rc1*fccm(i,j,k1)+rc2*fccm(i,j,km1)
           end if
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
-      do concurrent ( i = 1:ni, j = 1:nj )
+#ifdef STDPAR
+      do concurrent ( i = 1:ni, j = 1:nj ) local(k1)
+#else
+      !$acc parallel loop collapse(2) private(k1)
+      do j = 1, nj
+      do i = 1, ni
+#endif
         !$acc loop seq
         do n = 1, krcm
           sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
@@ -1459,6 +1634,9 @@ module mod_vertint
                           rc2 * max(fccm(i,j,km1),1.0e-8_rkx)
           end if
         end do
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intv1
@@ -1475,7 +1653,13 @@ module mod_vertint
     real(rkx) :: a1, rc1, rc2, sc
     integer(ik4) :: i, j, k, k1, km1, n
 
-    do concurrent ( i = 1:ni, j = 1:nj )
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj ) local(k1)
+#else
+    !$acc parallel loop collapse(2) private(k1)
+    do j = 1, nj
+    do i = 1, ni
+#endif
       !$acc loop seq
       do n = 1, krcm
         sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
@@ -1496,6 +1680,9 @@ module mod_vertint
           frcm(i,j,n) = rc1*fccm(i,j,k1)+rc2*fccm(i,j,km1)
         end if
       end do
+#ifndef STDPAR
+      end do
+#endif
     end do
   end subroutine intv2
 
@@ -1503,22 +1690,30 @@ module mod_vertint
     implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in) :: a, e1, e2
-    real(rkx), contiguous, pointer, dimension(:,:,:), intent(in) :: fccm, zccm
-    real(rkx), contiguous, pointer, dimension(:,:), intent(in) :: zrcm
-    real(rkx), contiguous, pointer, dimension(:,:), intent(inout) :: fsrcm
+    real(rkx), intent(in), dimension(ni,nj,nk) :: fccm, zccm
+    real(rkx), intent(in), dimension(ni,nj) :: zrcm
+    real(rkx), intent(out), dimension(ni,nj) :: fsrcm
     real(rkx), dimension(nk) :: zc, fc
     real(rkx) :: rx, rc
     integer(ik4) :: i, j, k
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj ) local(zc,fc,rx,rc)
+#else
+    !$acc parallel loop collapse(2) private(zc,fc,rx,rc)
     do j = 1, nj
-      do i = 1, ni
-        do k = 1, nk
-          zc(k) = zccm(i,j,k)
-          fc(k) = fccm(i,j,k)
-        end do
-        rx = zrcm(i,j)
-        call interp1d(zc,fc,rx,rc,a,e1,e2)
-        fsrcm(i,j) = rc
+    do i = 1, ni
+#endif
+      !$acc loop seq
+      do k = 1, nk
+        zc(k) = zccm(i,j,k)
+        fc(k) = fccm(i,j,k)
       end do
+      rx = zrcm(i,j)
+      call interp1d(zc,fc,rx,rc,a,e1,e2)
+      fsrcm(i,j) = rc
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intz3
 
@@ -1539,16 +1734,24 @@ module mod_vertint
       kt = 1
       kb = nk
     end if
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj ) local(zc,fc,rx,rc)
+#else
+    !$acc parallel loop collapse(2) private(zc,fc,rx,rc)
     do j = 1, nj
-      do i = 1, ni
-        do k = 1, nk
-          zc(k) = (pccm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-          fc(k) = fccm(i,j,k)
-        end do
-        rx = (psrcm(i,j)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
-        call interp1d(zc,fc,rx,rc,a,e1,e2)
-        fsrcm(i,j) = rc
+    do i = 1, ni
+#endif
+      !$acc loop seq
+      do k = 1, nk
+        zc(k) = (pccm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+        fc(k) = fccm(i,j,k)
       end do
+      rx = (psrcm(i,j)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+      call interp1d(zc,fc,rx,rc,a,e1,e2)
+      fsrcm(i,j) = rc
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intp3
 
@@ -1578,7 +1781,13 @@ module mod_vertint
     real(rkx) :: a1, rc, rc1, sc
     integer(ik4) :: i, j, k, k1, km1
 
-    do concurrent ( i = 1:ni, j = 1:nj )
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj ) local(k1)
+#else
+    !$acc parallel loop collapse(2) private(k1)
+    do j = 1, nj
+    do i = 1, ni
+#endif
       sc = ((psrccm(i,j)+ptop) - pst)/pss
       if ( sc < sccm(kccm) ) then
         fsccm(i,j) = fccm(i,j,kccm)
@@ -1599,6 +1808,9 @@ module mod_vertint
         rc1 = d_one - rc
         fsccm(i,j) = rc*fccm(i,j,k1)+rc1*fccm(i,j,km1)
       end if
+#ifndef STDPAR
+    end do
+#endif
     end do
   end subroutine intv3
 
@@ -1619,7 +1831,13 @@ module mod_vertint
         write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
         write(stderr,*) '################ WARNING!!! ################'
       end if
-      do concurrent ( i = 1:ni, j = 1:nj )
+#ifdef STDPAR
+      do concurrent ( i = 1:ni, j = 1:nj ) local(kb)
+#else
+      !$acc parallel loop collapse(2) private(kb)
+      do j = 1, nj
+      do i = 1, ni
+#endif
         if ( zp(i,j,1) > zrcm(i,j) ) then
           pb = pss + pst
           za = zp(i,j,2)
@@ -1656,6 +1874,9 @@ module mod_vertint
           tlayer = (tva + tlayer) * 0.5_rkx
           psrcm(i,j) = pa * exp(govr*dz/tlayer)
         end if
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
       if ( any(zrcm > zp(:,:,1)) ) then
@@ -1663,7 +1884,13 @@ module mod_vertint
         write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
         write(stderr,*) '################ WARNING!!! ################'
       end if
-      do concurrent ( i = 1:ni, j = 1:nj )
+#ifdef STDPAR
+      do concurrent ( i = 1:ni, j = 1:nj ) local(kb)
+#else
+      !$acc parallel loop collapse(2) private(kb)
+      do j = 1, nj
+      do i = 1, ni
+#endif
         if ( zp(i,j,nk) > zrcm(i,j) ) then
           pb = pss + pst
           za = zp(i,j,nk-1)
@@ -1700,6 +1927,9 @@ module mod_vertint
           tlayer = (tva + tlayer) * 0.5_rkx
           psrcm(i,j) = pa * exp(govr*dz/tlayer)
         end if
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intzps1
@@ -1715,7 +1945,13 @@ module mod_vertint
     real(rkx) :: wu, wl, tlayer, pa, za, dz, lrt
 
     if ( zp(1,1,1) < zp(1,1,nk) ) then
-      do concurrent ( i = 1:ni, j = 1:nj )
+#ifdef STDPAR
+      do concurrent ( i = 1:ni, j = 1:nj ) local(kb)
+#else
+      !$acc parallel loop collapse(2) private(kb)
+      do j = 1, nj
+      do i = 1, ni
+#endif
         kb = 1
         !$acc loop seq
         do k = 1, nk - 1
@@ -1742,9 +1978,18 @@ module mod_vertint
           tlayer = tp(i,j,1) - 0.5_rkx*dz*lrt
         end if
         psrcm(i,j) = pa * exp(-govr*dz/tlayer)
+#ifndef STDPAR
+      end do
+#endif
       end do
     else
-      do concurrent ( i = 1:ni, j = 1:nj )
+#ifdef STDPAR
+      do concurrent ( i = 1:ni, j = 1:nj ) local(kb)
+#else
+      !$acc parallel loop collapse(2) private(kb)
+      do j = 1, nj
+      do i = 1, ni
+#endif
         kb = 2
         !$acc loop seq
         do k = 2, nk - 1
@@ -1771,6 +2016,9 @@ module mod_vertint
           tlayer = tp(i,j,nk) - 0.5_rkx*dz*lrt
         end if
         psrcm(i,j) = pa * exp(-govr*dz/tlayer)
+#ifndef STDPAR
+      end do
+#endif
       end do
     end if
   end subroutine intzps2
