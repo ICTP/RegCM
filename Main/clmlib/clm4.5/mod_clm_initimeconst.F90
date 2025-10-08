@@ -1271,7 +1271,7 @@ module mod_clm_initimeconst
             om_sucsat = min(10.3_rk8 - 0.2_rk8*(zsoi(lev)/zsapric), 10.1_rk8)
             om_hksat = max(0.28_rk8 - 0.2799_rk8*(zsoi(lev)/zsapric), 0.0001_rk8)
 
-            bd = (1._rk8-watsat(c,lev))*2.7e3_rk8
+            bd(c,lev) = (1._rk8-watsat(c,lev))*2.7e3_rk8
             watsat(c,lev) = (1._rk8 - om_frac)*watsat(c,lev) + om_watsat*om_frac
             tkm = (1._rk8-om_frac)*(8.80_rk8*sand+2.92_rk8*clay) / &
                     (sand+clay)+om_tkm*om_frac ! W/(m K)
