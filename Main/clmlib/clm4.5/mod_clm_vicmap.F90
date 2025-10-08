@@ -26,7 +26,8 @@ module mod_clm_vicmap
   ! added by AWang
   ! modified by M.Huang for CLM4
   !
-  subroutine initCLMVICMap(c)
+  pure subroutine initCLMVICMap(c)
+    !$acc routine seq
     use mod_clm_type
     use mod_clm_varcon, only : denh2o, denice, pondmx
     use mod_clm_varpar, only : nlevsoi, nlayer, nlayert, nlevgrnd
@@ -61,9 +62,11 @@ module mod_clm_vicmap
     !  set fraction of VIC layer in each CLM layer
 
     lsum = 0._rk8
+    !$acc loop seq
     do i = 1, nlayer
       deltal(i) = depth(c,i)
     end do
+    !$acc loop seq
     do i = 1, nlayer
       zsum = 0._rk8
       sum_frac(i) = 0._rk8
@@ -96,10 +99,12 @@ module mod_clm_vicmap
       end do                           ! end CLM layer calculation
       lsum = lsum + deltal(i)
     end do                             ! end VIC layer calcultion
+
     contains
 
     ! This subroutine provides linear interpolation
     pure real(rk8) function linear_interp(x,x0,x1,y0,y1) result (y)
+      !$acc routine seq
       implicit none
       real(rk8), intent(in) :: x, x0, y0, x1, y1
       y = y0 + (x - x0) * (y1 - y0) / (x1 - x0)

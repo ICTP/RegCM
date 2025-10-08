@@ -23,7 +23,8 @@ module mod_clm_initsoilparvic
   ! parameters to be used for runoff simulations
   ! added by M. Huang
   !
-  subroutine initSoilParVIC(c, claycol, sandcol, om_fraccol)
+  pure subroutine initSoilParVIC(c, claycol, sandcol, om_fraccol)
+    !$acc routine seq
     implicit none
     integer(ik4), intent(in)  :: c ! column bounds
     ! read in - soil texture: percent sand
@@ -129,6 +130,7 @@ module mod_clm_initsoilparvic
     ! map the CLM layers to VIC layers
     ! There might have better way to do this process
 
+    !$acc loop seq
     do i = 1, nlayer
       sandvic(i) = 0._rk8
       clayvic(i) = 0._rk8

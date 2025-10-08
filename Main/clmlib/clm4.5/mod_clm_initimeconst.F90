@@ -987,10 +987,15 @@ module mod_clm_initimeconst
     end do
 
     ! Grid level initialization
-    do g = begg, endg
+    do concurrent ( g = begg:endg )
       ! VOC emission factors
       ! Set gridcell and landunit indices
-      efisop(:,g)=efisop2d(:,g)
+      efisop(1,g)=efisop2d(1,g)
+      efisop(2,g)=efisop2d(2,g)
+      efisop(3,g)=efisop2d(3,g)
+      efisop(4,g)=efisop2d(4,g)
+      efisop(5,g)=efisop2d(5,g)
+      efisop(6,g)=efisop2d(6,g)
     end do
 
     ! --------------------------------------------------------------------
@@ -1000,7 +1005,7 @@ module mod_clm_initimeconst
 
     nzero_slope = 0
     ! Column level initialization
-    do c = begc, endc
+    do concurrent ( c = begc:endc )
 
       ! Set gridcell and landunit indices
       g = cgridcell(c)
@@ -1092,7 +1097,8 @@ module mod_clm_initimeconst
       ! determine h2osfc threshold ("fill & spill" concept)
       if ( micro_sigma(c) > 1.e-6_rk8 ) then
         d = 0.0_rk8
-        do p=1,4
+        !$acc loop seq
+        do p = 1, 4
           fd = 0.5_rk8*(1.0_rk8+erf(d/(micro_sigma(c)*sqrt(2.0_rk8)))) - pc
           dfdd = exp(-d**2/(2.0_rk8*micro_sigma(c)**2)) / &
                   (micro_sigma(c)*sqrt(2.0_rk8*rpi))
@@ -1129,6 +1135,7 @@ module mod_clm_initimeconst
       ! also be reasons to keep lakes separate (e.g. if lake-specific
       ! soil data became available, if thermokarst lakes were treated, etc.)
       if ( ltype(l)==istwet .or. ltype(l)==istice ) then
+        !$acc loop seq
         do lev = 1, nlevgrnd
           bsw(c,lev)    = spval
           watsat(c,lev) = spval
@@ -1153,6 +1160,7 @@ module mod_clm_initimeconst
           end if
         end do
 #if (defined VICHYDRO)
+        !$acc loop seq
         do lev = 1, nlayer
           sandcol(c,lev)   = spval
           claycol(c,lev)   = spval
@@ -1169,6 +1177,7 @@ module mod_clm_initimeconst
               (ctype(c) /= icol_road_perv) .and. &
               (ctype(c) /= icol_road_imperv) ) then
         ! Urban Roof, sunwall, shadewall properties set to special value
+        !$acc loop seq
         do lev = 1, nlevgrnd
           watsat(c,lev) = spval
           watfc(c,lev)  = spval
@@ -1189,6 +1198,7 @@ module mod_clm_initimeconst
           end if
         end do
 #if (defined VICHYDRO)
+        !$acc loop seq
         do lev = 1, nlayer
           sandcol(c,lev)   = spval
           claycol(c,lev)   = spval
@@ -1204,6 +1214,7 @@ module mod_clm_initimeconst
       !else if (ltype(l) /= istdlak) then
       ! soil columns of both urban and non-urban types
       else
+        !$acc loop seq
         do lev = 1, nlevgrnd
           ! duplicate clay and sand values from last soil layer
           if ( more_vertlayers ) then
@@ -1212,6 +1223,7 @@ module mod_clm_initimeconst
               sand    = sand3d(g,1)
               om_frac = organic3d(g,1)/organic_max
             else if ( lev <= nlevsoi ) then
+              !$acc loop seq
               do j = 1, nlevsoifl-1
                 if (zisoi(lev) >= zisoifl(j) .AND. &
                     zisoi(lev) < zisoifl(j+1)) then
@@ -1271,7 +1283,7 @@ module mod_clm_initimeconst
             om_sucsat = min(10.3_rk8 - 0.2_rk8*(zsoi(lev)/zsapric), 10.1_rk8)
             om_hksat = max(0.28_rk8 - 0.2799_rk8*(zsoi(lev)/zsapric), 0.0001_rk8)
 
-            bd = (1._rk8-watsat(c,lev))*2.7e3_rk8
+            bd(c,lev) = (1._rk8-watsat(c,lev))*2.7e3_rk8
             watsat(c,lev) = (1._rk8 - om_frac)*watsat(c,lev) + om_watsat*om_frac
             tkm = (1._rk8-om_frac)*(8.80_rk8*sand+2.92_rk8*clay) / &
                     (sand+clay)+om_tkm*om_frac ! W/(m K)
@@ -1328,6 +1340,7 @@ module mod_clm_initimeconst
         ! Impervious road layers -- same as above except set watdry
         ! and watopt as missing
         if (ctype(c) == icol_road_imperv) then
+          !$acc loop seq
           do lev = 1,nlevgrnd
             watdry(c,lev) = spval
             watopt(c,lev) = spval
@@ -1336,9 +1349,11 @@ module mod_clm_initimeconst
           ! rootfr_road_perv
           ! Currently, pervious road has same properties as soil
         else if (ctype(c) == icol_road_perv) then
+          !$acc loop seq
           do lev = 1, nlevgrnd
             rootfr_road_perv(c,lev) = 0._rk8
           end do
+          !$acc loop seq
           do lev = 1,nlevsoi
             rootfr_road_perv(c,lev) = 0.1_rk8  ! uniform profile
           end do
@@ -1349,38 +1364,70 @@ module mod_clm_initimeconst
       ! Lakes will be set in initSLake
       if (ltype(l) == isturb) then
         if (ctype(c)==icol_sunwall .or. ctype(c)==icol_shadewall) then
-          z(c,1:nlevurb)  = zurb_wall(l,1:nlevurb)
-          zi(c,0:nlevurb) = ziurb_wall(l,0:nlevurb)
-          dz(c,1:nlevurb) = dzurb_wall(l,1:nlevurb)
+          !$acc loop seq
+          do j = 1, nlevurb
+            z(c,j)  = zurb_wall(l,j)
+            dz(c,j) = dzurb_wall(l,j)
+          end do
+          !$acc loop seq
+          do j = 0, nlevurb
+            zi(c,j) = ziurb_wall(l,j)
+          end do
           if (nlevurb < nlevgrnd) then
-            z(c,nlevurb+1:nlevgrnd)  = spval
-            zi(c,nlevurb+1:nlevgrnd) = spval
-            dz(c,nlevurb+1:nlevgrnd) = spval
+            !$acc loop seq
+            do j = nlevurb+1, nlevgrnd
+              z(c,j)  = spval
+              zi(c,j) = spval
+              dz(c,j) = spval
+            end do
           end if
         else if (ctype(c)==icol_roof) then
-          z(c,1:nlevurb)  = zurb_roof(l,1:nlevurb)
-          zi(c,0:nlevurb) = ziurb_roof(l,0:nlevurb)
-          dz(c,1:nlevurb) = dzurb_roof(l,1:nlevurb)
+          !$acc loop seq
+          do j = 1, nlevurb
+            z(c,j)  = zurb_roof(l,j)
+            dz(c,j) = dzurb_roof(l,j)
+          end do
+          !$acc loop seq
+          do j = 0, nlevurb
+            zi(c,j) = ziurb_roof(l,j)
+          end do
           if (nlevurb < nlevgrnd) then
-            z(c,nlevurb+1:nlevgrnd)  = spval
-            zi(c,nlevurb+1:nlevgrnd) = spval
-            dz(c,nlevurb+1:nlevgrnd) = spval
+            !$acc loop seq
+            do j = nlevurb+1, nlevgrnd
+              z(c,j)  = spval
+              zi(c,j) = spval
+              dz(c,j) = spval
+            end do
           end if
         else
-          z(c,1:nlevgrnd)  = zsoi(1:nlevgrnd)
-          zi(c,0:nlevgrnd) = zisoi(0:nlevgrnd)
-          dz(c,1:nlevgrnd) = dzsoi(1:nlevgrnd)
+          !$acc loop seq
+          do j = 1, nlevgrnd
+            z(c,j)  = zsoi(j)
+            dz(c,j) = dzsoi(j)
+          end do
+          !$acc loop seq
+          do j = 0, nlevgrnd
+            zi(c,j) = zisoi(j)
+          end do
 #if (defined VICHYDRO)
-          depth(c,:) = 0._rk8
+          !$acc loop seq
+          do j = 1, nlayert
+            depth(c,j) = 0._rk8
+          end do
           ivicstrt = 1
+          !$acc loop seq
           do ivic = 1,nlayer
             ivicend = ivicstrt+nlvic(ivic)-1
+            !$acc loop seq
             do j = ivicstrt,ivicend
               depth(c,ivic) = depth(c,ivic)+dz(c,j)
             end do
             ivicstrt = ivicend+1
           end do
-          depth(c, nlayer+1:nlayert) = dz(c, nlevsoi+1:nlevgrnd)
+          !$acc loop seq
+          do j = 1, nlayert-nlayer
+            depth(c,nlayer+j) = dz(c, nlevsoi+j)
+          end do
           ! Column level initialization
           ! create weights to map soil moisture profiles (10 layer) to
           ! 3 layers for VIC hydrology, M.Huang
@@ -1389,20 +1436,34 @@ module mod_clm_initimeconst
 #endif
         end if
       else if (ltype(l) /= istdlak) then
-        z(c,1:nlevgrnd)  = zsoi(1:nlevgrnd)
-        zi(c,0:nlevgrnd) = zisoi(0:nlevgrnd)
-        dz(c,1:nlevgrnd) = dzsoi(1:nlevgrnd)
+        !$acc loop seq
+        do j = 1, nlevgrnd
+          z(c,j)  = zsoi(j)
+          dz(c,j) = dzsoi(j)
+        end do
+        !$acc loop seq
+        do j = 0, nlevgrnd
+          zi(c,j) = zisoi(j)
+        end do
 #if (defined VICHYDRO)
-        depth(c,:) = 0._rk8
+        !$acc loop seq
+        do j = 1, nlayert
+          depth(c,j) = 0._rk8
+        end do
         ivicstrt = 1
+        !$acc loop seq
         do ivic = 1,nlayer
           ivicend = ivicstrt+nlvic(ivic)-1
+          !$acc loop seq
           do j = ivicstrt,ivicend
             depth(c,ivic) = depth(c,ivic)+dz(c,j)
           end do
           ivicstrt = ivicend+1
         end do
-        depth(c, nlayer+1:nlayert) = dz(c, nlevsoi+1:nlevgrnd)
+        !$acc loop seq
+        do j = 1, nlayert-nlayer
+          depth(c,nlayer+j) = dz(c, nlevsoi+j)
+        end do
         ! Column level initialization
         ! create weights to map soil moisture profiles (10 layer) to
         ! 3 layers for VIC hydrology, M.Huang
