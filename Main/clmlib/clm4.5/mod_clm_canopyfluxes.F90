@@ -487,8 +487,7 @@ module mod_clm_canopyfluxes
    real(rk8) :: z0mv_loc(lbp:ubp)     ! temporary copy
    real(rk8) :: z0hv_loc(lbp:ubp)     ! temporary copy
    real(rk8) :: z0qv_loc(lbp:ubp)     ! temporary copy
-   logical  :: found           ! error flag for canopy above forcing hgt
-   integer(ik4)  :: index      ! pft index for error
+   integer(ik4)  :: perr      ! pft index for error
    real(rk8) :: egvf           ! effective green vegetation fraction
    real(rk8) :: lt     ! elai+esai
    real(rk8) :: ri     ! stability parameter for under canopy air (unitless)
@@ -569,6 +568,8 @@ module mod_clm_canopyfluxes
    real(rk8),pointer, contiguous :: bbb(:)
    ! Ball-Berry slope of conductance-photosynthesis relationship
    real(rk8),pointer, contiguous :: mbb(:)
+
+   logical :: found
 
    ! Assign local pointers to derived type members (gridcell-level)
 
@@ -823,20 +824,21 @@ module mod_clm_canopyfluxes
      ! sum unfrozen roots
      do concurrent ( f = 1:fn )
        p = filterp(f)
-       c = pcolumn(p)
        !$acc loop seq
-       do j = 1,nlevgrnd
+       do j = 1, nlevgrnd
          if (j == 1) rootsum(p) = 0._rk8
          rootsum(p) = rootsum(p) + rootfr_unf(p,j)
        end do
      end do
 
      ! normalize rootfr to total unfrozen depth
-     do concurrent ( f = 1:fn, j = 1:nlevgrnd )
+     do concurrent ( f = 1:fn )
        p = filterp(f)
-       c = pcolumn(p)
-       if (rootsum(p) > 0._rk8) then
-         rootfr_unf(p,j) = rootfr_unf(p,j) / rootsum(p)
+       if ( rootsum(p) > 0._rk8 ) then
+         !$acc loop seq
+         do j = 1, nlevgrnd
+           rootfr_unf(p,j) = rootfr_unf(p,j) / rootsum(p)
+         end do
        end if
      end do
    end if ! perchroot
@@ -870,9 +872,9 @@ module mod_clm_canopyfluxes
          else
            rootr(p,j) = rootfr_unf(p,j)*rresis(p,j)
          end if
-         btran(p)    = btran(p) + rootr(p,j)
          smp_node_lf = max(smpsc(ivt(p)), &
                  -sucsat(c,j)*(h2osoi_vol(c,j)/watsat(c,j))**(-bsw(c,j)))
+         btran(p)    = btran(p) + rootr(p,j)
          btran2(p)   = btran2(p) + &
                  rootfr(p,j)*min((smp_node_lf - smpsc(ivt(p))) / &
                  (smpso(ivt(p)) - smpsc(ivt(p))), 1._rk8)
@@ -956,7 +958,6 @@ module mod_clm_canopyfluxes
                    h2osoi_liq(c,j), 0._rk8)
            ! Add deficit to irrig_rate, converting units from mm to mm/sec
            irrig_rate(c) = irrig_rate(c)+deficit/(dtsrf*irrig_nsteps_per_day)
-
          end if  ! else if (rootfr(p,j) > 0)
        end if    ! if (check_for_irrig(p) .and. .not. frozen_soil(c))
      end do      ! do f
@@ -977,12 +978,7 @@ module mod_clm_canopyfluxes
    end do
 
    found = .false.
-#ifdef STDPAR_FIXED
    do concurrent ( f = 1:fn )
-#else
-   !$acc parallel loop
-   do f = 1, fn
-#endif
      p = filterp(f)
      c = pcolumn(p)
      g = pgridcell(p)
@@ -1026,26 +1022,20 @@ module mod_clm_canopyfluxes
      ! Check to see if the forcing height is below the canopy height
      if (zldis(p) < 0.0_rk8) then
        found = .true.
-       index = p
-#ifndef OPENACC
-       write(stderr,*) 'At pft index ', p
-       write(stderr,*) 'Canopy height : ', displa(p)
-       write(stderr,*) 'Forcing model : ', forc_hgt_u_pft(p)
-#endif
+       perr = p
      end if
    end do
 
-   if (found) then
+   if ( found ) then
+     write(stderr,*) 'At pft index ', perr
+     write(stderr,*) 'Canopy height : ', displa(perr)
+     write(stderr,*) 'Forcing model : ', forc_hgt_u_pft(perr)
      write(stderr,*) &
-           'Error: Forcing height is below canopy height for pft index ',index
+        'Error: Forcing height is below canopy height for pft index ',perr
      call fatal(__FILE__,__LINE__,'clm now stopping')
    end if
-#ifdef STDPAR_FIXED
+
    do concurrent ( f = 1:fn )
-#else
-   !$acc parallel loop
-   do f = 1, fn
-#endif
      p = filterp(f)
      c = pcolumn(p)
      ! Initialize Monin-Obukhov length and wind speed
@@ -1171,12 +1161,8 @@ module mod_clm_canopyfluxes
      if ( use_c13 ) then
        call Fractionation(lbp, ubp, fn, filterp, phase='sha')
      end if
-#ifdef STDPAR_FIXED
+
      do concurrent ( f = 1:fn )
-#else
-     !$acc parallel loop gang vector
-     do f = 1, fn
-#endif
        p = filterp(f)
        c = pcolumn(p)
        g = pgridcell(p)
@@ -1409,12 +1395,8 @@ module mod_clm_canopyfluxes
    !$acc kernels
    filterp(1:fn) = fporig(1:fn)
    !$acc end kernels
-#ifdef STDPAR_FIXED
+
    do concurrent ( f = 1:fn )
-#else
-   !$acc parallel loop gang vector
-   do f = 1, fn
-#endif
      p = filterp(f)
      c = pcolumn(p)
      g = pgridcell(p)
@@ -2454,7 +2436,7 @@ module mod_clm_canopyfluxes
   ! photosynthesis model, I have decided to add these relevant variables to
   ! the clmtype structure.
   !
-  subroutine ci_func(ci,fval,gb_mol,je,cair,oair,lmr_z,par_z, &
+  pure subroutine ci_func(ci,fval,gb_mol,je,cair,oair,lmr_z,par_z, &
                      rh_can,gs_mol,c3flag,ac,aj,ap,ag,an,vcmax_z,cp,kc, &
                      ko,qe,tpu_z,kp_z,theta_cj,forc_pbot,bbb,mbb)
     !$acc routine seq
@@ -2596,18 +2578,12 @@ module mod_clm_canopyfluxes
   ! Solution from Press et al (1986) Numerical Recipes: The Art of Scientific
   ! Computing (Cambridge University Press, Cambridge), pp. 145.
   !
-  subroutine quadratic (a, b, c, r1, r2)
+  pure subroutine quadratic (a, b, c, r1, r2)
     !$acc routine seq
     implicit none
     real(rk8), intent(in)  :: a,b,c  ! Terms for quadratic equation
     real(rk8), intent(out) :: r1,r2  ! Roots of quadratic equation
     real(rk8) :: q                   ! Temporary term for quadratic solution
-#ifndef OPENACC
-    if ( abs(a) < 1.e-20_rk8 ) then
-      write (stderr,*) 'Quadratic solution error: a = ',a
-      call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-#endif
     if ( b >= 0._rk8 ) then
       q = -0.5_rk8 * (b + sqrt(b*b - 4._rk8*a*c))
     else
@@ -2629,7 +2605,7 @@ module mod_clm_canopyfluxes
   ! approach (find the solution domain) and the bisection approach
   ! implemented with the Brent's method to guarrantee convergence.
   !
-  subroutine hybrid(x0, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, &
+  pure subroutine hybrid(x0, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, &
                     gs_mol, c3flag, ac, aj, ap, ag, an, vcmax_z, cp,  &
                     kc, ko, qe, tpu_z, kp_z, theta_cj, forc_pbot,     &
                     bbb, mbb)
@@ -2769,161 +2745,147 @@ module mod_clm_canopyfluxes
         exit
       end if
     end do
-
-    contains
-    !
-    ! Use Brent's method to find the root of a single variable function
-    ! ci_func, which is known to exist between x1 and x2.
-    ! The found root will be updated until its accuracy is tol.
-    !
-    subroutine brent(x,x1,x2,f1,f2,tol,gb_mol,je,cair,oair,  &
-                     lmr_z,par_z,rh_can,gs_mol,c3flag,ac,aj, &
-                     ap,ag,an,vcmax_z,cp,kc,ko,qe,tpu_z,kp_z,&
-                     theta_cj,forc_pbot,bbb,mbb)
-      !$acc routine seq
-      implicit none
-      ! indepedent variable of the single value function ci_func(x)
-      real(rk8), intent(out) :: x
-      ! minimum and maximum of the variable domain to search for the
-      ! solution ci_func(x1) = f1, ci_func(x2)=f2
-      real(rk8), intent(in) :: x1, x2, f1, f2
-      real(rk8), intent(in) :: tol    !the error tolerance
-
-      ! canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
-      real(rk8), intent(in) :: lmr_z
-      ! par absorbed per unit lai for canopy layer (w/m**2)
-      real(rk8), intent(in) :: par_z
-      ! leaf boundary layer conductance (umol H2O/m**2/s)
-      real(rk8), intent(in) :: gb_mol
-      ! electron transport rate (umol electrons/m**2/s)
-      real(rk8), intent(in) :: je
-      real(rk8), intent(in) :: cair   ! Atmospheric CO2 partial pressure (Pa)
-      real(rk8), intent(in) :: oair   ! Atmospheric O2 partial pressure (Pa)
-      real(rk8), intent(in) :: rh_can ! inside canopy relative humidity
-      ! leaf stomatal conductance (umol H2O/m**2/s)
-      real(rk8), intent(out) :: gs_mol
-
-      integer(ik4), parameter :: itmax = 20  !maximum number of iterations
-      real(rk8), parameter :: eps = 1.e-2_rk8    !relative error tolerance
-
-      logical, intent(in) :: c3flag    ! true if C3 and false if C4
-      ! Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
-      real(rk8), intent(out) :: ac
-      ! RuBP-limited gross photosynthesis (umol CO2/m**2/s)
-      real(rk8), intent(out) :: aj
-      ! product-limited (C3) or CO2-limited (C4) gross
-      ! photosynthesis (umol CO2/m**2/s)
-      real(rk8), intent(out) :: ap
-      ! co-limited gross leaf photosynthesis (umol CO2/m**2/s)
-      real(rk8), intent(out) :: ag
-      ! net leaf photosynthesis (umol CO2/m**2/s)
-      real(rk8), intent(out) :: an
-      ! maximum rate of carboxylation (umol co2/m**2/s)
-      real(rk8), intent(in) :: vcmax_z
-      real(rk8), intent(in) :: cp  ! CO2 compensation point (Pa)
-      real(rk8), intent(in) :: kc  ! Michaelis-Menten constant for CO2 (Pa)
-      real(rk8), intent(in) :: ko  ! Michaelis-Menten constant for O2 (Pa)
-      ! quantum efficiency, used only for C4 (mol CO2 / mol photons)
-      real(rk8), intent(in) :: qe
-      ! triose phosphate utilization rate (umol CO2/m**2/s)
-      real(rk8), intent(in) :: tpu_z
-      ! initial slope of CO2 response curve (C4 plants)
-      real(rk8), intent(in) :: kp_z
-      ! empirical curvature parameter for ac, aj photosynthesis co-limitation
-      real(rk8), intent(in) :: theta_cj
-      real(rk8), intent(in) :: forc_pbot ! atmospheric pressure (Pa)
-      ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
-      real(rk8), intent(in) :: bbb
-      ! Ball-Berry slope of conductance-photosynthesis relationship
-      real(rk8), intent(in) :: mbb
-      
-      integer(ik4) :: iter
-      real(rk8) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
-
-      a = x1
-      b = x2
-      fa = f1
-      fb = f2
-#ifndef OPENACC
-      if ( (fa > 0._rk8 .and. fb > 0._rk8) .or. &
-           (fa < 0._rk8 .and. fb < 0._rk8) ) then
-        write(stderr,*) 'root must be bracketed for brent'
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      end if
-#endif
-      c = b
-      fc = fb
-      iter = 0
-      do
-        if ( iter == itmax ) exit
-        iter = iter + 1
-        if ( (fb > 0._rk8 .and. fc > 0._rk8) .or. &
-             (fb < 0._rk8 .and. fc < 0._rk8) ) then
-          c = a   !Rename a, b, c and adjust bounding interval d.
-          fc = fa
-          d = b-a
-          e = d
-        end if
-        if ( abs(fc) < abs(fb) ) then
-          a = b
-          b = c
-          c = a
-          fa = fb
-          fb = fc
-          fc = fa
-        end if
-        tol1 = 2._rk8*eps*abs(b)+0.5_rk8*tol  !Convergence check.
-        xm = 0.5_rk8*(c-b)
-        if ( abs(xm) <= tol1 .or. fb == 0.0_rk8 ) then
-          x = b
-          return
-        end if
-        if ( abs(e) >= tol1 .and. abs(fa) > abs(fb) ) then
-          s = fb/fa !Attempt inverse quadratic interpolation.
-          if ( a == c ) then
-            p = 2._rk8*xm*s
-            q = 1._rk8-s
-          else
-            q = fa/fc
-            r = fb/fc
-            p = s*(2._rk8*xm*q*(q-r)-(b-a)*(r-1._rk8))
-            q = (q-1._rk8)*(r-1._rk8)*(s-1._rk8)
-          end if
-          if ( p > 0._rk8 ) q = -q !Check whether in bounds.
-          p = abs(p)
-          if ( 2._rk8*p < min(3._rk8*xm*q-abs(tol1*q),abs(e*q)) ) then
-            e = d !Accept interpolation.
-            d = p/q
-          else
-            d = xm  !Interpolation failed, use bisection.
-            e = d
-          end if
-        else !Bounds decreasing too slowly, use bisection.
-          d = xm
-          e = d
-        end if
-        a = b !Move last best guess to a.
-        fa = fb
-        if ( abs(d) > tol1 ) then !Evaluate new trial root.
-          b = b+d
-        else
-          b = b+sign(tol1,xm)
-        end if
-        call ci_func(b, fb, gb_mol, je, cair, oair, lmr_z, par_z,    &
-                     rh_can, gs_mol, c3flag, ac, aj,  ap, ag, an,    &
-                     vcmax_z, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, &
-                     forc_pbot, bbb, mbb)
-        if ( fb == 0._rk8 ) exit
-      end do
-#ifndef OPENACC
-      if ( iter == itmax ) then
-        write(stderr,*) 'brent exceeding maximum iterations', b, fb
-      end if
-#endif
-      x = b
-    end subroutine brent
-
   end subroutine hybrid
+
+  !
+  ! Use Brent's method to find the root of a single variable function
+  ! ci_func, which is known to exist between x1 and x2.
+  ! The found root will be updated until its accuracy is tol.
+  !
+  pure subroutine brent(x,x1,x2,f1,f2,tol,gb_mol,je,cair,oair,  &
+                   lmr_z,par_z,rh_can,gs_mol,c3flag,ac,aj, &
+                   ap,ag,an,vcmax_z,cp,kc,ko,qe,tpu_z,kp_z,&
+                   theta_cj,forc_pbot,bbb,mbb)
+    !$acc routine seq
+    implicit none
+    ! indepedent variable of the single value function ci_func(x)
+    real(rk8), intent(out) :: x
+    ! minimum and maximum of the variable domain to search for the
+    ! solution ci_func(x1) = f1, ci_func(x2)=f2
+    real(rk8), intent(in) :: x1, x2, f1, f2
+    real(rk8), intent(in) :: tol    !the error tolerance
+
+    ! canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
+    real(rk8), intent(in) :: lmr_z
+    ! par absorbed per unit lai for canopy layer (w/m**2)
+    real(rk8), intent(in) :: par_z
+    ! leaf boundary layer conductance (umol H2O/m**2/s)
+    real(rk8), intent(in) :: gb_mol
+    ! electron transport rate (umol electrons/m**2/s)
+    real(rk8), intent(in) :: je
+    real(rk8), intent(in) :: cair   ! Atmospheric CO2 partial pressure (Pa)
+    real(rk8), intent(in) :: oair   ! Atmospheric O2 partial pressure (Pa)
+    real(rk8), intent(in) :: rh_can ! inside canopy relative humidity
+    ! leaf stomatal conductance (umol H2O/m**2/s)
+    real(rk8), intent(out) :: gs_mol
+
+    integer(ik4), parameter :: itmax = 20  !maximum number of iterations
+    real(rk8), parameter :: eps = 1.e-2_rk8    !relative error tolerance
+
+    logical, intent(in) :: c3flag    ! true if C3 and false if C4
+    ! Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
+    real(rk8), intent(out) :: ac
+    ! RuBP-limited gross photosynthesis (umol CO2/m**2/s)
+    real(rk8), intent(out) :: aj
+    ! product-limited (C3) or CO2-limited (C4) gross
+    ! photosynthesis (umol CO2/m**2/s)
+    real(rk8), intent(out) :: ap
+    ! co-limited gross leaf photosynthesis (umol CO2/m**2/s)
+    real(rk8), intent(out) :: ag
+    ! net leaf photosynthesis (umol CO2/m**2/s)
+    real(rk8), intent(out) :: an
+    ! maximum rate of carboxylation (umol co2/m**2/s)
+    real(rk8), intent(in) :: vcmax_z
+    real(rk8), intent(in) :: cp  ! CO2 compensation point (Pa)
+    real(rk8), intent(in) :: kc  ! Michaelis-Menten constant for CO2 (Pa)
+    real(rk8), intent(in) :: ko  ! Michaelis-Menten constant for O2 (Pa)
+    ! quantum efficiency, used only for C4 (mol CO2 / mol photons)
+    real(rk8), intent(in) :: qe
+    ! triose phosphate utilization rate (umol CO2/m**2/s)
+    real(rk8), intent(in) :: tpu_z
+    ! initial slope of CO2 response curve (C4 plants)
+    real(rk8), intent(in) :: kp_z
+    ! empirical curvature parameter for ac, aj photosynthesis co-limitation
+    real(rk8), intent(in) :: theta_cj
+    real(rk8), intent(in) :: forc_pbot ! atmospheric pressure (Pa)
+    ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
+    real(rk8), intent(in) :: bbb
+    ! Ball-Berry slope of conductance-photosynthesis relationship
+    real(rk8), intent(in) :: mbb
+
+    integer(ik4) :: iter
+    real(rk8) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
+
+    a = x1
+    b = x2
+    fa = f1
+    fb = f2
+    c = b
+    fc = fb
+    iter = 0
+    do
+      if ( iter == itmax ) exit
+      iter = iter + 1
+      if ( (fb > 0._rk8 .and. fc > 0._rk8) .or. &
+           (fb < 0._rk8 .and. fc < 0._rk8) ) then
+        c = a   !Rename a, b, c and adjust bounding interval d.
+        fc = fa
+        d = b-a
+        e = d
+      end if
+      if ( abs(fc) < abs(fb) ) then
+        a = b
+        b = c
+        c = a
+        fa = fb
+        fb = fc
+        fc = fa
+      end if
+      tol1 = 2._rk8*eps*abs(b)+0.5_rk8*tol  !Convergence check.
+      xm = 0.5_rk8*(c-b)
+      if ( abs(xm) <= tol1 .or. fb == 0.0_rk8 ) then
+        x = b
+        return
+      end if
+      if ( abs(e) >= tol1 .and. abs(fa) > abs(fb) ) then
+        s = fb/fa !Attempt inverse quadratic interpolation.
+        if ( a == c ) then
+          p = 2._rk8*xm*s
+          q = 1._rk8-s
+        else
+          q = fa/fc
+          r = fb/fc
+          p = s*(2._rk8*xm*q*(q-r)-(b-a)*(r-1._rk8))
+          q = (q-1._rk8)*(r-1._rk8)*(s-1._rk8)
+        end if
+        if ( p > 0._rk8 ) q = -q !Check whether in bounds.
+        p = abs(p)
+        if ( 2._rk8*p < min(3._rk8*xm*q-abs(tol1*q),abs(e*q)) ) then
+          e = d !Accept interpolation.
+          d = p/q
+        else
+          d = xm  !Interpolation failed, use bisection.
+          e = d
+        end if
+      else !Bounds decreasing too slowly, use bisection.
+        d = xm
+        e = d
+      end if
+      a = b !Move last best guess to a.
+      fa = fb
+      if ( abs(d) > tol1 ) then !Evaluate new trial root.
+        b = b+d
+      else
+        b = b+sign(tol1,xm)
+      end if
+      call ci_func(b, fb, gb_mol, je, cair, oair, lmr_z, par_z,    &
+                   rh_can, gs_mol, c3flag, ac, aj,  ap, ag, an,    &
+                   vcmax_z, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, &
+                   forc_pbot, bbb, mbb)
+      if ( fb == 0._rk8 ) exit
+    end do
+    x = b
+  end subroutine brent
 
 end module mod_clm_canopyfluxes
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

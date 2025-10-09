@@ -98,14 +98,14 @@ module mod_clm_balancecheck
 
     call p2c(num_nolakec,filter_nolakec,h2ocan_pft,h2ocan_col)
 
-    do f = 1, num_hydrologyc
+    do concurrent ( f = 1:num_hydrologyc )
       c = filter_hydrologyc(f)
       if ( zwt(c) <= zi(c,nlevsoi) ) then
         wa(c) = 5000._rk8
       end if
     end do
 
-    do f = 1, num_nolakec
+    do concurrent ( f = 1:num_nolakec )
       c = filter_nolakec(f)
       if ( ctype(c) == icol_roof .or.      &
            ctype(c) == icol_sunwall .or.   &
@@ -116,9 +116,10 @@ module mod_clm_balancecheck
         begwb(c) = h2ocan_col(c) + h2osno(c) + h2osfc(c) + wa(c)
       end if
     end do
-    do j = 1, nlevgrnd
-      do f = 1, num_nolakec
-        c = filter_nolakec(f)
+    do concurrent ( f = 1:num_nolakec )
+      c = filter_nolakec(f)
+      !$acc loop seq
+      do j = 1, nlevgrnd
         if ( (ctype(c) == icol_sunwall .or.   &
               ctype(c) == icol_shadewall .or. &
               ctype(c) == icol_roof) .and. j > nlevurb ) then
@@ -129,7 +130,7 @@ module mod_clm_balancecheck
       end do
     end do
 
-    do f = 1, num_lakec
+    do concurrent ( f = 1:num_lakec )
       c = filter_lakec(f)
       begwb(c) = h2osno(c)
     end do
@@ -422,7 +423,7 @@ module mod_clm_balancecheck
     ! Assume no incident precipitation on urban wall columns
     ! (as in Hydrology1Mod.F90).
 
-    do c = lbc, ubc
+    do concurrent ( c = lbc:ubc )
       g = cgridcell(c)
       if ( ctype(c) == icol_sunwall .or. &
            ctype(c) == icol_shadewall ) then
@@ -436,10 +437,9 @@ module mod_clm_balancecheck
 
     ! Water balance check
 
-    do c = lbc, ubc
+    do concurrent ( c = lbc:ubc )
       g = cgridcell(c)
       l = clandunit(c)
-
       ! add qflx_drain_perched and qflx_flood
       if ( cactive(c) ) then
         errh2o(c) = endwb(c) - begwb(c) - &
@@ -509,7 +509,7 @@ module mod_clm_balancecheck
 
     ! Snow balance check
 
-    do c = lbc, ubc
+    do concurrent ( c = lbc:ubc )
       g = cgridcell(c)
       l = clandunit(c)
       ! As defined here, snow_sources - snow_sinks will equal the change
@@ -605,7 +605,7 @@ module mod_clm_balancecheck
 
     ! Energy balance checks
 
-    do p = lbp, ubp
+    do concurrent ( p = lbp:ubp )
       if ( pactive(p) ) then
         l = plandunit(p)
         g = pgridcell(p)
@@ -759,14 +759,14 @@ module mod_clm_balancecheck
     call c2g( lbc,ubc,lbl,ubl,lbg,ubg,                    &
               qflx_runoff(lbc:ubc),qflx_runoffg(lbg:ubg), &
               c2l_scale_type= 'urbanf',l2g_scale_type='unity' )
-    do g = lbg, ubg
+    do concurrent ( g = lbg:ubg )
       qflx_runoffg(g) = qflx_runoffg(g) - qflx_liq_dynbal(g)
     enddo
 
     call c2g( lbc,ubc,lbl,ubl,lbg,ubg,                          &
               qflx_snwcp_ice(lbc:ubc),qflx_snwcp_iceg(lbg:ubg), &
               c2l_scale_type= 'urbanf',l2g_scale_type='unity' )
-    do g = lbg, ubg
+    do concurrent ( g = lbg:ubg )
       qflx_snwcp_iceg(g) = qflx_snwcp_iceg(g) - qflx_ice_dynbal(g)
     enddo
 
@@ -775,7 +775,7 @@ module mod_clm_balancecheck
               p2c_scale_type='unity',                     &
               c2l_scale_type='urbanf',                    &
               l2g_scale_type='unity' )
-    do g = lbg, ubg
+    do concurrent ( g = lbg:ubg )
       eflx_sh_totg(g) =  eflx_sh_totg(g) - eflx_dynbal(g)
     enddo
 
@@ -788,7 +788,7 @@ module mod_clm_balancecheck
 
     ! second add river storage as gridcell average depth
     ! 1.e-3 converts [m3/km2] to [mm]
-    do g = lbg, ubg
+    do concurrent ( g = lbg:ubg )
       tws(g) = tws(g) + volr(g) / area(g) * 1.e-3_rk8
     enddo
 

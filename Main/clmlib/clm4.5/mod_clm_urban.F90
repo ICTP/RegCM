@@ -1133,7 +1133,7 @@ module mod_clm_urban
     real(rk8), pointer, contiguous :: vf_ww(:)  ! view factor of opposing wall for one wall
 
     integer(ik4) :: l, fl   ! indices
-    real(rk8) :: sum    ! sum of view factors for wall or road
+    real(rk8) :: vsum    ! sum of view factors for wall or road
 
     ! Assign landunit level pointer
 
@@ -1143,7 +1143,7 @@ module mod_clm_urban
     vf_rw  => clm3%g%l%lps%vf_rw
     vf_ww  => clm3%g%l%lps%vf_ww
 
-    do fl = 1,num_urbanl
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
 
       ! road -- sky view factor -> 1 as building height -> 0
@@ -1165,16 +1165,15 @@ module mod_clm_urban
 
     do fl = 1, num_urbanl
       l = filter_urbanl(fl)
-
-      sum = vf_sr(l) + 2._rk8*vf_wr(l)
-      if ( abs(sum-1._rk8) > 1.e-6_rk8 ) then
-        write (stderr,*) 'urban road view factor error',sum
+      vsum = vf_sr(l) + 2._rk8*vf_wr(l)
+      if ( abs(vsum-1._rk8) > 1.e-6_rk8 ) then
+        write (stderr,*) 'urban road view factor error',vsum
         write (stderr,*) 'clm model is stopping'
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
-      sum = vf_sw(l) + vf_rw(l) + vf_ww(l)
-      if ( abs(sum-1._rk8) > 1.e-6_rk8 ) then
-        write (stderr,*) 'urban wall view factor error',sum
+      vsum = vf_sw(l) + vf_rw(l) + vf_ww(l)
+      if ( abs(vsum-1._rk8) > 1.e-6_rk8 ) then
+        write (stderr,*) 'urban wall view factor error',vsum
         write (stderr,*) 'clm model is stopping'
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
@@ -3090,6 +3089,11 @@ module mod_clm_urban
     real(rk8) :: qsat_ref2m
     ! derivative of 2 m height surface saturated specific humidity on t_ref2m
     real(rk8) :: dqsat2mdT
+    ! logicals to avoid trim
+    logical :: urb_wh_on, urb_hc_on
+    ! Error found flags and indexes (last valid ones)
+    logical :: found_h, found_r, loutofrange
+    integer :: lerr_h, lerr_r, flerr_r, cerr
 
     ! Assign pointers into module urban
 
@@ -3191,7 +3195,7 @@ module mod_clm_urban
 
     ! Define fields that appear on the restart file for non-urban landunits
 
-    do fl = 1, num_nourbanl
+    do concurrent ( fl = 1:num_nourbanl )
       l = filter_nourbanl(fl)
       taf(l) = spval
       qaf(l) = spval
@@ -3199,9 +3203,11 @@ module mod_clm_urban
 
     ! Set constants (same as in Biogeophysics1Mod)
     ! Should be set to the same values as in Biogeophysics1Mod
+    !$acc kernels
     beta(:) = 1._rk8
     ! Should be set to the same values as in Biogeophysics1Mod
     zii(:)  = 1000._rk8
+    !$acc end kernels
 
     ! Get current date
     dtime = int(dtsrf)
@@ -3209,7 +3215,9 @@ module mod_clm_urban
 
     ! Compute canyontop wind using Masson (2000)
 
-    do fl = 1, num_urbanl
+    found_h = .false.
+    found_r = .false.
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
       g = lgridcell(l)
 
@@ -3219,18 +3227,13 @@ module mod_clm_urban
       ! Error checks
 
       if (ht_roof(fl) - z_d_town(l) <= z_0_town(l)) then
-        write (stderr,*) 'aerodynamic parameter error in UrbanFluxes'
-        write (stderr,*) 'h_r - z_d <= z_0'
-        write (stderr,*) 'ht_roof, z_d_town, z_0_town: ', &
-                ht_roof(fl), z_d_town(l), z_0_town(l)
-        call fatal(__FILE__,__LINE__,'clm now stopping')
+        found_r = .true.
+        flerr_r = fl
+        lerr_r = l
       end if
       if (forc_hgt_u_pft(pfti(l)) - z_d_town(l) <= z_0_town(l)) then
-        write (stderr,*) 'aerodynamic parameter error in UrbanFluxes'
-        write (stderr,*) 'h_u - z_d <= z_0'
-        write (stderr,*) 'forc_hgt_u_pft, z_d_town, z_0_town: ', &
-                forc_hgt_u_pft(pfti(l)), z_d_town(l), z_0_town(l)
-        call fatal(__FILE__,__LINE__,'clm now stopping')
+        found_h = .true.
+        lerr_h = l
       end if
 
       ! Magnitude of atmospheric wind
@@ -3258,9 +3261,29 @@ module mod_clm_urban
       end if
     end do
 
-    ! Compute fluxes - Follows CLM approach for bare soils (Oleson et al 2004)
+    if ( found_r ) then
+      write (stderr,*) 'aerodynamic parameter error in UrbanFluxes'
+      write (stderr,*) 'h_r - z_d <= z_0'
+      write (stderr,*) 'ht_roof, z_d_town, z_0_town: ', &
+              ht_roof(flerr_r), z_d_town(lerr_r), z_0_town(lerr_r)
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if 
 
-    do fl = 1, num_urbanl
+    if ( found_h ) then
+      write (stderr,*) 'aerodynamic parameter error in UrbanFluxes'
+      write (stderr,*) 'h_u - z_d <= z_0'
+      write (stderr,*) 'forc_hgt_u_pft, z_d_town, z_0_town: ', &
+              forc_hgt_u_pft(pfti(lerr_h)), z_d_town(lerr_h), z_0_town(lerr_h)
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
+
+    ! Compute fluxes - Follows CLM approach for bare soils (Oleson et al 2004)
+    !TODO: This loop fails to run on CC100 "Blackwell" system (compiled for CC100 with SDK 25.7)
+#if 1
+    do concurrent ( fl = 1:num_urbanl )
+#else
+    do fl = 1,num_urbanl
+#endif
       l = filter_urbanl(fl)
       g = lgridcell(l)
 
@@ -3280,6 +3303,7 @@ module mod_clm_urban
     end do
 
     ! Initialize conductances
+    !$acc kernels
     wtus_roof(:)        = 0._rk8
     wtus_road_perv(:)   = 0._rk8
     wtus_road_imperv(:) = 0._rk8
@@ -3290,11 +3314,12 @@ module mod_clm_urban
     wtuq_road_imperv(:) = 0._rk8
     wtuq_sunwall(:)     = 0._rk8
     wtuq_shadewall(:)   = 0._rk8
+    !$acc end kernels
 
     ! Make copies so that array sections are not passed in function calls
     ! to friction velocity
 
-    do fl = 1, num_urbanl
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
       z_d_town_loc(l) = z_d_town(l)
       z_0_town_loc(l) = z_0_town(l)
@@ -3314,7 +3339,7 @@ module mod_clm_urban
                   temp1, temp2, temp12m, temp22m, fm, landunit_index=.true.)
       end if
 
-      do fl = 1, num_urbanl
+      do concurrent ( fl = 1:num_urbanl )
         l = filter_urbanl(fl)
         g = lgridcell(l)
 
@@ -3344,7 +3369,7 @@ module mod_clm_urban
       ! This is the first term in the equation solutions for urban canopy
       ! air temperature and specific humidity (numerator) and is a landunit
       ! quantity
-      do fl = 1, num_urbanl
+      do concurrent ( fl = 1:num_urbanl )
         l = filter_urbanl(fl)
         g = lgridcell(l)
 
@@ -3363,9 +3388,16 @@ module mod_clm_urban
       ! denominator of equations for urban canopy air temperature and
       ! specific humidity
 
-      do pi = 1, maxpatch_urb
-        do fl = 1, num_urbanl
-          l = filter_urbanl(fl)
+      urb_wh_on = .false.
+      urb_hc_on = .false.
+      if (trim(urban_hac) == urban_wasteheat_on) urb_wh_on = .true.
+      if (trim(urban_hac) == urban_hac_on ) urb_hc_on = .true.
+
+      loutofrange = .false.
+      do concurrent ( fl = 1:num_urbanl )
+        l = filter_urbanl(fl)
+        !$acc loop seq
+        do pi = 1, maxpatch_urb
           if ( pi <= npfts(l) ) then
             c = coli(l) + pi - 1
 
@@ -3392,7 +3424,7 @@ module mod_clm_urban
               wtuq_roof(l) = fwet_roof*(1._rk8/canyon_resistance(fl))
 
               ! wasteheat from heating/cooling
-              if (trim(urban_hac) == urban_wasteheat_on) then
+              if ( urb_wh_on ) then
                 eflx_wasteheat_roof(l) = ac_wasteheat_factor * &
                         eflx_urban_ac(c) + &
                         ht_wasteheat_factor * eflx_urban_heat(c)
@@ -3402,8 +3434,7 @@ module mod_clm_urban
 
               ! If air conditioning on, always replace heat removed with
               ! heat into canyon
-              if (trim(urban_hac) == urban_hac_on .or. &
-                  trim(urban_hac) == urban_wasteheat_on) then
+              if ( urb_hc_on .or. urb_wh_on ) then
                 eflx_heat_from_ac_roof(l) = abs(eflx_urban_ac(c))
               else
                 eflx_heat_from_ac_roof(l) = 0._rk8
@@ -3479,7 +3510,7 @@ module mod_clm_urban
               wtuq_sunwall(l) = 0._rk8
 
               ! wasteheat from heating/cooling
-              if (trim(urban_hac) == urban_wasteheat_on) then
+              if ( urb_wh_on ) then
                 eflx_wasteheat_sunwall(l) = ac_wasteheat_factor * &
                         eflx_urban_ac(c) + &
                         ht_wasteheat_factor * eflx_urban_heat(c)
@@ -3489,8 +3520,7 @@ module mod_clm_urban
 
               ! If air conditioning on, always replace heat removed
               ! with heat into canyon
-              if (trim(urban_hac) == urban_hac_on .or. &
-                  trim(urban_hac) == urban_wasteheat_on) then
+              if ( urb_hc_on .or. urb_wh_on ) then
                 eflx_heat_from_ac_sunwall(l) = abs(eflx_urban_ac(c))
               else
                 eflx_heat_from_ac_sunwall(l) = 0._rk8
@@ -3510,7 +3540,7 @@ module mod_clm_urban
               wtuq_shadewall(l) = 0._rk8
 
               ! wasteheat from heating/cooling
-              if (trim(urban_hac) == urban_wasteheat_on) then
+              if ( urb_wh_on ) then
                 eflx_wasteheat_shadewall(l) = ac_wasteheat_factor * &
                         eflx_urban_ac(c) + &
                         ht_wasteheat_factor * eflx_urban_heat(c)
@@ -3520,33 +3550,35 @@ module mod_clm_urban
 
               ! If air conditioning on, always replace heat removed
               ! with heat into canyon
-              if (trim(urban_hac) == urban_hac_on .or. &
-                  trim(urban_hac) == urban_wasteheat_on) then
+              if ( urb_hc_on .or. urb_wh_on ) then
                 eflx_heat_from_ac_shadewall(l) = abs(eflx_urban_ac(c))
               else
                 eflx_heat_from_ac_shadewall(l) = 0._rk8
               end if
             else
-              write(stderr,*) 'c, ctype, pi = ', c, ctype(c), pi
-              write(stderr,*) 'Column indices for: '
-              write(stderr,*) 'shadewall,sunwall,road_imperv,road_perv,roof: '
-              write(stderr,*) icol_shadewall,icol_sunwall,icol_road_imperv, &
-                      icol_road_perv, icol_roof
-              call fatal(__FILE__,__LINE__,sub//':: ERROR, ctype out of range' )
+              loutofrange = .true.
+              cerr = c
             end if
-
             taf_numer(l) = taf_numer(l) + t_grnd(c)*wtus(c)
             taf_denom(l) = taf_denom(l) + wtus(c)
             qaf_numer(l) = qaf_numer(l) + qg(c)*wtuq(c)
             qaf_denom(l) = qaf_denom(l) + wtuq(c)
-
           end if
         end do
       end do
 
+      if ( loutofrange ) then
+        write(stderr,*) 'c, ctype = ', cerr, ctype(cerr)
+        write(stderr,*) 'Column indices for: '
+        write(stderr,*) 'shadewall,sunwall,road_imperv,road_perv,roof: '
+        write(stderr,*) icol_shadewall,icol_sunwall,icol_road_imperv, &
+                        icol_road_perv, icol_roof
+        call fatal(__FILE__,__LINE__,sub//':: ERROR, ctype out of range' )
+      end if
+
       ! Calculate new urban canopy air temperature and specific humidity
 
-      do fl = 1, num_urbanl
+      do concurrent ( fl = 1:num_urbanl )
         l = filter_urbanl(fl)
         g = lgridcell(l)
 
@@ -3584,7 +3616,7 @@ module mod_clm_urban
       ! Determine stability using new taf and qaf
       ! TODO: Some of these constants replicate what is in FrictionVelocity
       ! and BareGround fluxes should consildate. EBK
-      do fl = 1, num_urbanl
+      do concurrent ( fl = 1:num_urbanl )
         l = filter_urbanl(fl)
         g = lgridcell(l)
 
@@ -3610,7 +3642,7 @@ module mod_clm_urban
 
     ! Determine fluxes from canyon surfaces
 
-    do f = 1, num_urbanp
+    do concurrent ( f = 1:num_urbanp )
       p = filter_urbanp(f)
       c = pcolumn(p)
       g = pgridcell(p)
@@ -3664,8 +3696,8 @@ module mod_clm_urban
 
       ! Surface fluxes of momentum, sensible and latent heat
 
-      taux(p)          = -forc_rho(g)*forc_u(g)/ramu(l)
-      tauy(p)          = -forc_rho(g)*forc_v(g)/ramu(l)
+      taux(p) = -forc_rho(g)*forc_u(g)/ramu(l)
+      tauy(p) = -forc_rho(g)*forc_v(g)/ramu(l)
 
       ! Use new canopy air temperature
       dth(l) = taf(l) - t_grnd(c)
@@ -3733,13 +3765,18 @@ module mod_clm_urban
 
     ! Check to see that total sensible and latent heat equal the sum of
     ! the scaled heat fluxes above
-    do fl = 1, num_urbanl
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
       g = lgridcell(l)
       eflx(l)       = -(forc_rho(g)*cpair/rahu(l))*(thm_g(l) - taf(l))
       qflx(l)       = -(forc_rho(g)/rawu(l))*(forc_q(g) - qaf(l))
-      eflx_scale(l) = sum(eflx_sh_grnd_scale(pfti(l):pftf(l)))
-      qflx_scale(l) = sum(qflx_evap_soi_scale(pfti(l):pftf(l)))
+      eflx_scale(l) = 0.0_rkx
+      qflx_scale(l) = 0.0_rkx
+      !$acc loop seq
+      do p = pfti(l), pftf(l)
+        eflx_scale(l) = eflx_scale(l) + eflx_sh_grnd_scale(p)
+        qflx_scale(l) = qflx_scale(l) + qflx_evap_soi_scale(p)
+      end do
       eflx_err(l)   = eflx_scale(l) - eflx(l)
       qflx_err(l)   = qflx_scale(l) - qflx(l)
     end do
@@ -3753,6 +3790,7 @@ module mod_clm_urban
         exit
       end if
     end do
+
     if ( found ) then
       write(stderr,*)'WARNING:  Total sensible heat does not equal &
               &sum of scaled heat fluxes for urban columns ',&
@@ -3793,9 +3831,10 @@ module mod_clm_urban
 
     ! Gather terms required to determine internal building temperature
 
-    do pi = 1, maxpatch_urb
-      do fl = 1, num_urbanl
-        l = filter_urbanl(fl)
+    do concurrent ( fl = 1:num_urbanl )
+      l = filter_urbanl(fl)
+      !$acc loop seq
+      do pi = 1, maxpatch_urb
         if ( pi <= npfts(l) ) then
           c = coli(l) + pi - 1
           if (ctype(c) == icol_roof) then
@@ -3810,7 +3849,7 @@ module mod_clm_urban
     end do
 
     ! Calculate internal building temperature
-    do fl = 1, num_urbanl
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
 
       lngth_roof = (ht_roof(fl)/canyon_hwr(fl)) * &
@@ -3822,19 +3861,17 @@ module mod_clm_urban
 
     ! No roots for urban except for pervious road
 
-    do j = 1, nlevgrnd
-      do f = 1, num_urbanp
-        p = filter_urbanp(f)
-        c = pcolumn(p)
-        if (ctype(c) == icol_road_perv) then
-          rootr(p,j) = rootr_road_perv(c,j)
-        else
-          rootr(p,j) = 0._rk8
-        end if
-      end do
+    do concurrent ( f = 1:num_urbanp, j = 1:nlevgrnd )
+      p = filter_urbanp(f)
+      c = pcolumn(p)
+      if (ctype(c) == icol_road_perv) then
+        rootr(p,j) = rootr_road_perv(c,j)
+      else
+        rootr(p,j) = 0._rk8
+      end if
     end do
 
-    do f = 1, num_urbanp
+    do concurrent ( f = 1:num_urbanp )
       p = filter_urbanp(f)
       c = pcolumn(p)
       g = pgridcell(p)

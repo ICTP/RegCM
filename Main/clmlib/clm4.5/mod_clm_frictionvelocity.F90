@@ -134,12 +134,7 @@ module mod_clm_frictionvelocity
     ! Adjustment factors for unstable (moz < 0) or stable (moz > 0) conditions.
 
 #if (!defined PERGRO)
-#ifdef STDPAR_FIXED
     do concurrent ( f = 1:fn )
-#else
-    !$acc parallel loop gang vector
-    do f = 1, fn
-#endif
       n = filtern(f)
       g = ngridcell(n)
 
@@ -433,12 +428,7 @@ module mod_clm_frictionvelocity
     !
     ! The following only applies when PERGRO is defined
     !
-#ifdef STDPAR_FIXED
     do concurrent ( f = 1:fn )
-#else
-    !$acc parallel loop gang vector
-    do f = 1, fn
-#endif
       n = filtern(f)
       g = ngridcell(n)
 
@@ -621,7 +611,7 @@ module mod_clm_frictionvelocity
   !
   ! Stability function for rib < 0.
   !
-  real(rk8) function StabilityFunc1(zeta)
+  real(rk8) pure function StabilityFunc1(zeta)
     implicit none
     ! dimensionless height used in Monin-Obukhov theory
     real(rk8), intent(in) :: zeta
@@ -634,7 +624,7 @@ module mod_clm_frictionvelocity
   !
   ! Stability function for rib < 0.
   !
-  real(rk8) function StabilityFunc2(zeta)
+  real(rk8) pure function StabilityFunc2(zeta)
     implicit none
     ! dimensionless height used in Monin-Obukhov theory
     real(rk8), intent(in) :: zeta
@@ -649,7 +639,7 @@ module mod_clm_frictionvelocity
   ! of sea surface fluxes using TOGA CORE and TAO data. J. Climate,
   ! Vol. 11, 2628-2644.
   !
-  subroutine MoninObukIni (ur, thv, dthv, zldis, z0m, um, rib, obu)
+  pure subroutine MoninObukIni (ur, thv, dthv, zldis, z0m, um, rib, obu)
     !$acc routine seq
     implicit none
     ! wind speed at reference height [m/s]

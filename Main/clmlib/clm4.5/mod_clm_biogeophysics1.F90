@@ -344,21 +344,23 @@ module mod_clm_biogeophysics1
     z0mr          => pftcon%z0mr
     displar       => pftcon%displar
 
-    do j = -nlevsno+1, nlevgrnd
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
-        if ((ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall .or. &
-             ctype(c) == icol_roof) .and. j > nlevurb) then
-          tssbef(c,j) = spval
-        else
-          tssbef(c,j) = t_soisno(c,j)
-        end if
-        ! record t_h2osfc prior to updating
-        t_h2osfc_bef(c) = t_h2osfc(c)
-      end do
+    do concurrent ( fc = 1:num_nolakec , j = -nlevsno+1:nlevgrnd )
+      c = filter_nolakec(fc)
+      if ((ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall .or. &
+           ctype(c) == icol_roof) .and. j > nlevurb) then
+        tssbef(c,j) = spval
+      else
+        tssbef(c,j) = t_soisno(c,j)
+      end if
     end do
 
-    do fc = 1,num_nolakec
+    ! record t_h2osfc prior to updating
+    do concurrent ( fc = 1:num_nolakec )
+      c = filter_nolakec(fc)
+      t_h2osfc_bef(c) = t_h2osfc(c)
+    end do
+
+    do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)
       l = clandunit(c)
 
@@ -412,6 +414,7 @@ module mod_clm_biogeophysics1
           soilalpha(c) = qred
           ! Pervious road depends on water in total soil column
         else if (ctype(c) == icol_road_perv) then
+          !$acc loop seq
           do j = 1, nlevsoi
             if (t_soisno(c,j) >= tfrz) then
               vol_ice = min(watsat(c,j), h2osoi_ice(c,j)/(dz(c,j)*denice))
@@ -555,7 +558,7 @@ module mod_clm_biogeophysics1
 
     ! Initialization
 
-    do fp = 1, num_nolakep
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
 
       ! Initial set (needed for history tape fields)
@@ -609,44 +612,42 @@ module mod_clm_biogeophysics1
 
     ! Make forcing height a pft-level quantity that is the atmospheric forcing
     ! height plus each pft's z0m+displa
-    do pi = 1, max_pft_per_gcell
-      do g = lbg, ubg
-        if ( pi <= npfts(g) ) then
-          p = pfti(g) + pi - 1
-          if ( pactive(p) ) then
-            l = plandunit(p)
-            c = pcolumn(p)
-            if ( ityplun(l) == istsoil .or. ityplun(l) == istcrop ) then
-              if ( frac_veg_nosno(p) == 0 ) then
-                forc_hgt_u_pft(p) = forc_hgt_u(g) + z0mg(c) + displa(p)
-                forc_hgt_t_pft(p) = forc_hgt_t(g) + z0mg(c) + displa(p)
-                forc_hgt_q_pft(p) = forc_hgt_q(g) + z0mg(c) + displa(p)
-              else
-                forc_hgt_u_pft(p) = forc_hgt_u(g) + z0m(p) + displa(p)
-                forc_hgt_t_pft(p) = forc_hgt_t(g) + z0m(p) + displa(p)
-                forc_hgt_q_pft(p) = forc_hgt_q(g) + z0m(p) + displa(p)
-              end if
-            else if ( ityplun(l) == istwet .or. ityplun(l) == istice ) then
-              forc_hgt_u_pft(p) = forc_hgt_u(g) + z0mg(c)
-              forc_hgt_t_pft(p) = forc_hgt_t(g) + z0mg(c)
-              forc_hgt_q_pft(p) = forc_hgt_q(g) + z0mg(c)
-              ! Appropriate momentum roughness length will be
-              ! added in SLakeFLuxesMod.
-            else if ( ityplun(l) == istdlak ) then
-              forc_hgt_u_pft(p) = forc_hgt_u(g)
-              forc_hgt_t_pft(p) = forc_hgt_t(g)
-              forc_hgt_q_pft(p) = forc_hgt_q(g)
-            else if ( ityplun(l) == isturb ) then
-              forc_hgt_u_pft(p) = forc_hgt_u(g) + z_0_town(l) + z_d_town(l)
-              forc_hgt_t_pft(p) = forc_hgt_t(g) + z_0_town(l) + z_d_town(l)
-              forc_hgt_q_pft(p) = forc_hgt_q(g) + z_0_town(l) + z_d_town(l)
+    do concurrent ( g = lbg:ubg, pi = 1:max_pft_per_gcell )
+      if ( pi <= npfts(g) ) then
+        p = pfti(g) + pi - 1
+        if ( pactive(p) ) then
+          l = plandunit(p)
+          c = pcolumn(p)
+          if ( ityplun(l) == istsoil .or. ityplun(l) == istcrop ) then
+            if ( frac_veg_nosno(p) == 0 ) then
+              forc_hgt_u_pft(p) = forc_hgt_u(g) + z0mg(c) + displa(p)
+              forc_hgt_t_pft(p) = forc_hgt_t(g) + z0mg(c) + displa(p)
+              forc_hgt_q_pft(p) = forc_hgt_q(g) + z0mg(c) + displa(p)
+            else
+              forc_hgt_u_pft(p) = forc_hgt_u(g) + z0m(p) + displa(p)
+              forc_hgt_t_pft(p) = forc_hgt_t(g) + z0m(p) + displa(p)
+              forc_hgt_q_pft(p) = forc_hgt_q(g) + z0m(p) + displa(p)
             end if
+          else if ( ityplun(l) == istwet .or. ityplun(l) == istice ) then
+            forc_hgt_u_pft(p) = forc_hgt_u(g) + z0mg(c)
+            forc_hgt_t_pft(p) = forc_hgt_t(g) + z0mg(c)
+            forc_hgt_q_pft(p) = forc_hgt_q(g) + z0mg(c)
+            ! Appropriate momentum roughness length will be
+            ! added in SLakeFLuxesMod.
+          else if ( ityplun(l) == istdlak ) then
+            forc_hgt_u_pft(p) = forc_hgt_u(g)
+            forc_hgt_t_pft(p) = forc_hgt_t(g)
+            forc_hgt_q_pft(p) = forc_hgt_q(g)
+          else if ( ityplun(l) == isturb ) then
+            forc_hgt_u_pft(p) = forc_hgt_u(g) + z_0_town(l) + z_d_town(l)
+            forc_hgt_t_pft(p) = forc_hgt_t(g) + z_0_town(l) + z_d_town(l)
+            forc_hgt_q_pft(p) = forc_hgt_q(g) + z_0_town(l) + z_d_town(l)
           end if
         end if
-      end do
+      end if
     end do
 
-    do fp = 1, num_nolakep
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
       c = pcolumn(p)
       thm(p) = forc_t(c) + 0.0098_rk8*forc_hgt_t_pft(p)

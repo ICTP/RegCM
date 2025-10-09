@@ -183,7 +183,7 @@ module mod_clm_baregroundfluxes
     integer(ik4), parameter  :: niters = 3
     integer(ik4)  :: p,c,g,f,j,l        ! indices
     integer(ik4)  :: filterp(ubp-lbp+1) ! pft filter for vegetated pfts
-    integer(ik4)  :: fn                 ! number of values in local pft filter
+    integer(ik4)  :: fn, myfn           ! number of values in local pft filter
     integer(ik4)  :: fp                 ! lake filter pft index
     integer(ik4)  :: iter               ! iteration index
     ! reference height "minus" zero displacement height [m]
@@ -329,18 +329,22 @@ module mod_clm_baregroundfluxes
     ! Filter pfts where frac_veg_nosno is zero
 
     fn = 0
+    !$acc parallel loop
     do fp = 1, num_nolakep
       p = filter_nolakep(fp)
       if ( frac_veg_nosno(p) == 0 ) then
+        !$acc atomic capture
         fn = fn + 1
-        filterp(fn) = p
+        myfn = fn
+        !$acc end atomic
+        filterp(myfn) = p
       end if
     end do
 
     ! Compute sensible and latent fluxes and their derivatives with respect
     ! to ground temperature using ground temperatures from previous time step
 
-    do f = 1, fn
+    do concurrent ( f = 1:fn )
       p = filterp(f)
       c = pcolumn(p)
       g = pgridcell(p)
@@ -381,7 +385,7 @@ module mod_clm_baregroundfluxes
                             obu, iter, ur, um, ustar, &
                             temp1, temp2, temp12m, temp22m, fm)
 
-      do f = 1, fn
+      do concurrent ( f = 1:fn )
         p = filterp(f)
         c = pcolumn(p)
         g = pgridcell(p)
@@ -406,15 +410,13 @@ module mod_clm_baregroundfluxes
       end do
     end do ! end stability iteration
 
-    do j = 1, nlevgrnd
-      do f = 1, fn
-        p = filterp(f)
-        rootr(p,j) = 0._rk8
-        rresis(p,j) = 0._rk8
-      end do
+    do concurrent ( f = 1:fn, j = 1:nlevgrnd )
+      p = filterp(f)
+      rootr(p,j) = 0._rk8
+      rresis(p,j) = 0._rk8
     end do
 
-    do f = 1, fn
+    do concurrent ( f = 1:fn )
       p = filterp(f)
       c = pcolumn(p)
       g = pgridcell(p)

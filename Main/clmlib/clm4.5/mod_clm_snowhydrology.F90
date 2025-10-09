@@ -1020,11 +1020,7 @@ module mod_clm_snowhydrology
     ! Check the snow depth - snow layers combined
     ! The following loop IS NOT VECTORIZED
 
-#ifdef STDPAR_FIXED
     do concurrent ( fc = 1:num_snowc )
-#else
-    do fc = 1, num_snowc
-#endif
       c = filter_snowc(fc)
 
       ! Two or more layers
@@ -1248,12 +1244,8 @@ module mod_clm_snowhydrology
 
       end if
     end do
-#ifdef STDPAR_FIXED
+
     do concurrent ( fc = 1:num_snowc )
-#else
-    !$acc parallel loop collapse(1)
-    do fc = 1, num_snowc
-#endif
       c = filter_snowc(fc)
 
       msno = abs(snl(c))
@@ -1628,7 +1620,7 @@ module mod_clm_snowhydrology
   ! the sum of the enthalpies of the two elements =
   ! that of the combined element.
   !
-  subroutine Combo(dz,  wliq,  wice, t, dz2, wliq2, wice2, t2)
+  pure subroutine Combo(dz,  wliq,  wice, t, dz2, wliq2, wice2, t2)
     !$acc routine seq
     use mod_clm_varcon,  only : cpice, cpliq, tfrz, hfus
     implicit none
@@ -1793,6 +1785,9 @@ module mod_clm_snowhydrology
     ! Variables for consistency check
     real(rk8) :: dztot(lbc:ubc), snwicetot(lbc:ubc), snwliqtot(lbc:ubc)
 
+    logical :: linconsistency
+    integer :: cerr
+
     ! Assign local pointers to derived subtype components (column-level)
 
     snl        => clm3%g%l%c%cps%snl
@@ -1856,12 +1851,7 @@ module mod_clm_snowhydrology
       end if
     end do
 
-#ifdef STDPAR_FIXED
     do concurrent ( fc = 1:num_snowc )
-#else
-    !$acc parallel loop
-    do fc = 1, num_snowc
-#endif
       c = filter_snowc(fc)
 
       msno = abs(snl(c))
@@ -2218,6 +2208,7 @@ module mod_clm_snowhydrology
     end do
 
     ! Consistency check
+    linconsistency = .false.
 #ifndef STDPAR
     !$acc parallel loop gang vector
     do fc  = 1, num_snowc
@@ -2238,17 +2229,20 @@ module mod_clm_snowhydrology
           if ( abs(dztot(c)) > 1.e-10_rk8 .or. &
                abs(snwicetot(c)) > 1.e-7_rk8 .or. &
                abs(snwliqtot(c)) > 1.e-7_rk8 ) then
-#ifndef OPENACC
-            write(stderr,*) &
-                    'Inconsistency in SnowDivision_Lake! c, remainders', &
-                    'dztot, snwicetot, snwliqtot = ', &
-                   c,dztot(c),snwicetot(c),snwliqtot(c)
-            call fatal(__FILE__,__LINE__,'clm now stopping')
-#endif
+            linconsistency = .true.
+            cerr = c
           end if
         end if
       end do
     end do
+
+    if ( linconsistency ) then
+      write(stderr,*) &
+          'Inconsistency in SnowDivision_Lake! c, remainders', &
+          'dztot, snwicetot, snwliqtot = ', &
+          cerr,dztot(cerr),snwicetot(cerr),snwliqtot(cerr)
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
 
     do concurrent ( fc = 1:num_snowc, j = 0:-nlevsno+1:-1 )
       c = filter_snowc(fc)

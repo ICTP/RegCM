@@ -118,7 +118,7 @@ module mod_clm_dust
     real(rk8), pointer, contiguous :: wtlunit(:)  ! weight of pft relative to landunit
     real(rk8) :: sumwt(lbl:ubl)       ! sum of weights
     logical  :: found                 ! temporary for error check
-    integer(ik4)  :: index
+    integer(ik4)  :: lerr, perr
 
     ! Assign local pointers to derived type scalar members (gridcell-level)
 
@@ -155,46 +155,62 @@ module mod_clm_dust
    !local pointers from subgridAveMod/p2l_1d
     wtlunit         => clm3%g%l%c%p%wtlunit
 
+    !$acc kernels
     ttlai(:) = 0._rk8
+    !$acc end kernels
     ! make lai average at landunit level
-    do fp = 1,num_nolakep
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
       ttlai(p) = tlai(p)+tsai(p)
     enddo
 
+    !$acc kernels
     tlai_lu(:) = spval
     sumwt(:) = 0._rk8
-    do p = lbp,ubp
+    !$acc end kernels
+    do concurrent ( p = lbp:ubp )
       if (ttlai(p) /= spval .and. pactive(p) .and. wtlunit(p) /= 0._rk8) then
         c = pcolumn(p)
         l = plandunit(p)
         if (sumwt(l) == 0._rk8) tlai_lu(l) = 0._rk8
+      end if
+    end do
+
+    do concurrent ( p = lbp:ubp )
+      if (ttlai(p) /= spval .and. pactive(p) .and. wtlunit(p) /= 0._rk8) then
+        c = pcolumn(p)
+        l = plandunit(p)
+        !$acc atomic update
         tlai_lu(l) = tlai_lu(l) + ttlai(p) * wtlunit(p)
+        !$acc atomic update
         sumwt(l) = sumwt(l) + wtlunit(p)
       end if
     end do
+
     found = .false.
-    do l = lbl,ubl
+    do concurrent ( l = lbl:ubl )
       if (sumwt(l) > 1.0_rk8 + 1.e-3_rk8) then
         found = .true.
-        index = l
-        exit
+        lerr = l
       else if (sumwt(l) /= 0._rk8) then
         tlai_lu(l) = tlai_lu(l)/sumwt(l)
       end if
     end do
+
     if (found) then
-      write(stderr,*) 'p2l_1d error: sumwt is greater than 1.0 at l= ',index
+      write(stderr,*) 'p2l_1d error: sumwt is greater than 1.0 at l= ',lerr
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
 
     ! Loop through pfts
 
     ! initialize variables which get passed to the atmosphere
+    !$acc kernels
     flx_mss_vrt_dst(lbp:ubp,:) = 0._rk8
     lnd_frc_mbl_dst(lbp:ubp)   = 0._rk8
+    !$acc end kernels
 
-    do fp = 1,num_nolakep
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
       c = pcolumn(p)
       l = plandunit(p)
@@ -217,36 +233,40 @@ module mod_clm_dust
       end if
     end do
 
-    do fp = 1,num_nolakep
+    found = .false.
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
       if (lnd_frc_mbl(p)>1.0_rk8 .or. lnd_frc_mbl(p)<0.0_rk8) then
-        c = pcolumn(p)
-        l = plandunit(p)
-        write(stderr,*) &
-                'Error dstmbl: pft= ',p,' lnd_frc_mbl(p)= ',lnd_frc_mbl(p)
-        write(stderr,*) 'frac_sno(c) = ',frac_sno(c)
-        write(stderr,*) 'tlai_lu(l) = ',tlai_lu(l)
-        write(stderr,*) 'wtlunit(p) = ',wtlunit(p)
-        write(stderr,*) 'sumwt(l) = ',sumwt(l)
-        call fatal(__FILE__,__LINE__,'clm now stopping')
+        found = .true.
+        perr = p
       end if
     end do
+
+    if ( found) then
+      c = pcolumn(perr)
+      l = plandunit(perr)
+      write(stderr,*) 'Error dstmbl: pft= ',perr, &
+             ' lnd_frc_mbl(p)= ',lnd_frc_mbl(perr)
+      write(stderr,*) 'frac_sno(c) = ',frac_sno(c)
+      write(stderr,*) 'tlai_lu(l) = ',tlai_lu(l)
+      write(stderr,*) 'wtlunit(p) = ',wtlunit(perr)
+      write(stderr,*) 'sumwt(l) = ',sumwt(l)
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
 
     ! reset history output variables before next if-statement
     ! to avoid output = inf
 
-    do fp = 1,num_nolakep
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
       flx_mss_vrt_dst_tot(p) = 0.0_rk8
     end do
-    do n = 1, ndst
-      do fp = 1,num_nolakep
-        p = filter_nolakep(fp)
-        flx_mss_vrt_dst(p,n) = 0.0_rk8
-      end do
+    do concurrent ( fp = 1:num_nolakep, n = 1:ndst )
+      p = filter_nolakep(fp)
+      flx_mss_vrt_dst(p,n) = 0.0_rk8
     end do
 
-    do fp = 1,num_nolakep
+    do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
       c = pcolumn(p)
       l = plandunit(p)
@@ -358,27 +378,27 @@ module mod_clm_dust
     ! the following comes from subr. flx_mss_vrt_dst_prt in C. Zender's code
     ! purpose: partition total vertical mass flux of dust into transport bins
 
-    do n = 1, ndst
-      do m = 1, dst_src_nbr
-        do fp = 1,num_nolakep
-          p = filter_nolakep(fp)
-          if (lnd_frc_mbl(p) > 0.0_rk8) then
-            flx_mss_vrt_dst(p,n) = flx_mss_vrt_dst(p,n) + &
-                    ovr_src_snk_mss(m,n) * flx_mss_vrt_dst_ttl(p)
-          else
-            flx_mss_vrt_dst(p,n) = 0.0_rk8
-          end if
+    do concurrent ( fp = 1:num_nolakep, n = 1:ndst )
+      p = filter_nolakep(fp)
+      if (lnd_frc_mbl(p) > 0.0_rk8) then
+        !$acc loop seq
+        do m = 1, dst_src_nbr
+          flx_mss_vrt_dst(p,n) = flx_mss_vrt_dst(p,n) + &
+                  ovr_src_snk_mss(m,n) * flx_mss_vrt_dst_ttl(p)
         end do
-      end do
+      else
+        flx_mss_vrt_dst(p,n) = 0.0_rk8
+      end if
     end do
 
-    do n = 1, ndst
-      do fp = 1,num_nolakep
-        p = filter_nolakep(fp)
-        if (lnd_frc_mbl(p) > 0.0_rk8) then
+    do concurrent ( fp = 1:num_nolakep )
+      p = filter_nolakep(fp)
+      if (lnd_frc_mbl(p) > 0.0_rk8) then
+        !$acc loop seq
+        do n = 1, ndst
           flx_mss_vrt_dst_tot(p) = flx_mss_vrt_dst_tot(p) + flx_mss_vrt_dst(p,n)
-        end if
-      end do
+        end do
+      end if
     end do
   end subroutine DustEmission
   !
@@ -450,7 +470,7 @@ module mod_clm_dust
     vlc_trb_3 => clm3%g%l%c%p%pdf%vlc_trb_3
     vlc_trb_4 => clm3%g%l%c%p%pdf%vlc_trb_4
 
-    do p = lbp,ubp
+    do concurrent ( p = lbp:ubp )
       if (pactive(p)) then
         g = pgridcell(p)
 
@@ -469,7 +489,7 @@ module mod_clm_dust
                (forc_pbot(g)*sqrt(8.0_rk8/(rpi*rair*forc_t(g))))
         ![m2 s-1] Kinematic viscosity of air
         vsc_knm_atm(p) = vsc_dyn_atm(p) / forc_rho(g)
-
+        !$acc loop seq
         do m = 1, ndst
           ![frc] Slip correction factor SeP97 p. 464
           if ( (1.1_rk8*dmt_vwr(m)/(2.0_rk8*mfp_atm)) > 25.0 ) then
@@ -489,50 +509,46 @@ module mod_clm_dust
       end if
     end do
 
-    do m = 1, ndst
-      do p = lbp,ubp
-        if (pactive(p)) then
-          g = pgridcell(p)
+    do concurrent ( p = lbp:ubp, m = 1:ndst )
+      if (pactive(p)) then
+        g = pgridcell(p)
 
-          ![frc] SeP97 p.965
-          stk_nbr = vlc_grv(p,m) * fv(p) * fv(p) / (grav * vsc_knm_atm(p))
-          dff_aer = boltzk * forc_t(g) * slp_crc(p,m) / &    ![m2 s-1]
-              (3.0_rk8*rpi * vsc_dyn_atm(p) * dmt_vwr(m))      !SeP97 p.474
-          shm_nbr = vsc_knm_atm(p) / dff_aer                 ![frc] SeP97 p.972
-             shm_nbr_xpn = shm_nbr_xpn_lnd                   ![frc]
+        ![frc] SeP97 p.965
+        stk_nbr = vlc_grv(p,m) * fv(p) * fv(p) / (grav * vsc_knm_atm(p))
+        dff_aer = boltzk * forc_t(g) * slp_crc(p,m) / &    ![m2 s-1]
+            (3.0_rk8*rpi * vsc_dyn_atm(p) * dmt_vwr(m))      !SeP97 p.474
+        shm_nbr = vsc_knm_atm(p) / dff_aer                 ![frc] SeP97 p.972
+           shm_nbr_xpn = shm_nbr_xpn_lnd                   ![frc]
 
-          ! fxm: Turning this on dramatically reduces
-          ! deposition velocity in low wind regimes
-          ! Schmidt number exponent is -2/3 over solid surfaces and
-          ! -1/2 over liquid surfaces SlS80 p. 1014
-          ! if (oro(i)==0.0) shm_nbr_xpn=shm_nbr_xpn_ocn else
-          ! shm_nbr_xpn=shm_nbr_xpn_lnd
-          ! [frc] Surface-dependent exponent for aerosol-diffusion
-          ! dependence on Schmidt #
+        ! fxm: Turning this on dramatically reduces
+        ! deposition velocity in low wind regimes
+        ! Schmidt number exponent is -2/3 over solid surfaces and
+        ! -1/2 over liquid surfaces SlS80 p. 1014
+        ! if (oro(i)==0.0) shm_nbr_xpn=shm_nbr_xpn_ocn else
+        ! shm_nbr_xpn=shm_nbr_xpn_lnd
+        ! [frc] Surface-dependent exponent for aerosol-diffusion
+        ! dependence on Schmidt #
 
-          if ( 3.0_rk8/stk_nbr < 25 ) then
-            tmp = shm_nbr**shm_nbr_xpn + 10.0_rk8**(-3.0_rk8/stk_nbr)
-          else
-            tmp = shm_nbr**shm_nbr_xpn
-          end if
-          rss_lmn(p,m) = 1.0_rk8 / (tmp * fv(p)) ![s m-1] SeP97 p.972,965
+        if ( 3.0_rk8/stk_nbr < 25 ) then
+          tmp = shm_nbr**shm_nbr_xpn + 10.0_rk8**(-3.0_rk8/stk_nbr)
+        else
+          tmp = shm_nbr**shm_nbr_xpn
         end if
-      end do
+        rss_lmn(p,m) = 1.0_rk8 / (tmp * fv(p)) ![s m-1] SeP97 p.972,965
+      end if
     end do
 
     ! Lowest layer: Turbulent deposition (CAM will calc. gravitational dep)
 
-    do m = 1, ndst
-      do p = lbp,ubp
-        if (pactive(p)) then
-          rss_trb = ram1(p) + rss_lmn(p,m) + &
-                  ram1(p) * rss_lmn(p,m) * vlc_grv(p,m) ![s m-1]
-          vlc_trb(p,m) = 1.0_rk8 / rss_trb  ![m s-1]
-        end if
-      end do
+    do concurrent ( p = lbp:ubp, m = 1:ndst )
+      if (pactive(p)) then
+        rss_trb = ram1(p) + rss_lmn(p,m) + &
+                ram1(p) * rss_lmn(p,m) * vlc_grv(p,m) ![s m-1]
+        vlc_trb(p,m) = 1.0_rk8 / rss_trb  ![m s-1]
+      end if
     end do
 
-    do p = lbp,ubp
+    do concurrent ( p = lbp:ubp )
       if (pactive(p)) then
         vlc_trb_1(p) = vlc_trb(p,1)
         vlc_trb_2(p) = vlc_trb(p,2)

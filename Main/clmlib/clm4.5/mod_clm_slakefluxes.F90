@@ -348,12 +348,7 @@ module mod_clm_slakefluxes
 
     kva0temp = 20._rk8 + tfrz
 
-#ifdef STDPAR_FIXED
     do concurrent ( fp = 1:num_lakep )
-#else
-    !$acc parallel loop
-    do fp = 1, num_lakep
-#endif
       p = filter_lakep(fp)
       c = pcolumn(p)
       g = cgridcell(c)
@@ -446,12 +441,7 @@ module mod_clm_slakefluxes
       thv(c) = forc_th(g)*(1._rk8+0.61_rk8*forc_q(g))     ! virtual potential T
     end do
 
-#ifdef STDPAR_FIXED
     do concurrent ( fp = 1:num_lakep )
-#else
-    !$acc parallel loop
-    do fp = 1, num_lakep
-#endif
       p = filter_lakep(fp)
       c = pcolumn(p)
       g = pgridcell(p)
@@ -511,12 +501,7 @@ module mod_clm_slakefluxes
                             obu, iter, ur, um, ustar, &
                             temp1, temp2, temp12m, temp22m, fm)
 
-#ifdef STDPAR_FIXED
       do concurrent ( fp = 1:fncopy )
-#else
-      !$acc parallel loop
-      do fp = 1, fncopy
-#endif
         p = fpcopy(fp)
         c = pcolumn(p)
         g = pgridcell(p)
@@ -695,12 +680,7 @@ module mod_clm_slakefluxes
       end if
     end do ITERATION   ! end of stability iteration
 
-#ifdef STDPAR_FIXED
     do concurrent ( fp = 1:num_lakep )
-#else
-    !$acc parallel loop
-    do fp = 1, num_lakep
-#endif
       p = filter_lakep(fp)
       c = pcolumn(p)
       g = pgridcell(p)

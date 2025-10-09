@@ -285,12 +285,7 @@ module mod_clm_soilhydrology
         end if
       end if
       if ( origflag == 1 ) then
-#if (defined VICHYDRO)
-        call fatal(__FILE__,__LINE__,&
-             subname // ':: VICHYDRO is not available for origflag = 1')
-#else
         fcov(c) = (1.0_rk8 - fracice(c,1)) * fsat(c) + fracice(c,1)
-#endif
       else
         fcov(c) = fsat(c)
       end if
@@ -432,7 +427,7 @@ module mod_clm_soilhydrology
 #endif
     real(rk8), pointer, contiguous :: qflx_infl(:)  !infiltration (mm H2O /s)
 
-    integer(ik4) :: c,j,l,fc  ! indices
+    integer(ik4) :: c,j,l,f,fc  ! indices
     real(rk8) :: qinmax       ! maximum infiltration capacity (mm/s)
     ! partial volume of ice lens in layer
     real(rk8) :: vol_ice(lbc:ubc,1:nlevsoi)
@@ -543,7 +538,6 @@ module mod_clm_soilhydrology
       icefrac(c,j) = min(1.0_rk8,vol_ice(c,j)/watsat(c,j))
     end do
 
-    !$acc parallel loop gang vector
     do fc = 1, num_hydrologyc
       c = filter_hydrologyc(fc)
       l = clandunit(c)
@@ -578,7 +572,6 @@ module mod_clm_soilhydrology
         top_moist(c) = 0.0_rk8
         top_ice(c) = 0.0_rk8
         top_max_moist(c) = 0.0_rk8
-        !$acc loop seq
         do j = 1, nlayer - 1
           top_ice(c) = top_ice(c) + ice(c,j)
           top_moist(c) =  top_moist(c) + moist(c,j) + ice(c,j)
@@ -623,10 +616,9 @@ module mod_clm_soilhydrology
             ! calculate temporary surface water fraction to enable runoff
             ! when frac_sno is large
             if ( h2osfc(c) >= h2osfc_thresh(c) ) then
-              call FracH2oSfc_new(lbc,ubc,num_hydrologyc,filter_hydrologyc, &
-                      frac_h2osfc_temp(c),h2osoi_liq(c,1),h2osfc(c),        &
-                      micro_sigma(c),ltype(l),l,frac_sno(c),frac_sno_eff(c),&
-                      h2osno(c),1)
+              call FracH2oSfc_new(frac_h2osfc_temp(c), &
+                    h2osoi_liq(c,1),h2osfc(c),micro_sigma(c),ltype(l), &
+                    frac_sno(c),frac_sno_eff(c),h2osno(c))
               frac_infclust = max((frac_h2osfc_temp(c)-pc),0.0_rk8)**mu
             end if
           else
@@ -1127,20 +1119,19 @@ module mod_clm_soilhydrology
 
     ! Node j=1 (top)
 
-    j = 1
     do concurrent ( fc = 1:num_hydrologyc )
       c = filter_hydrologyc(fc)
-      qin(c,j)    = qflx_infl(c)
-      den    = (zmm(c,j+1)-zmm(c,j))
-      dzq    = (zq(c,j+1)-zq(c,j))
-      num    = (smp(c,j+1)-smp(c,j)) - dzq
-      qout(c,j)   = -hk(c,j)*num/den 
-      dqodw1(c,j) = -(-hk(c,j)*dsmpdw(c,j)   + num*dhkdw(c,j))/den
-      dqodw2(c,j) = -( hk(c,j)*dsmpdw(c,j+1) + num*dhkdw(c,j))/den
-      rmx(c,j) =  qin(c,j) - qout(c,j) - qflx_tran_veg_col(c) * rootr_col(c,j)
-      amx(c,j) =  0.0_rk8
-      bmx(c,j) =  dzmm(c,j)*(sdamp+1.0_rk8/dtsrf) + dqodw1(c,j)
-      cmx(c,j) =  dqodw2(c,j)
+      qin(c,1)    = qflx_infl(c)
+      den    = (zmm(c,2)-zmm(c,1))
+      dzq    = (zq(c,2)-zq(c,1))
+      num    = (smp(c,2)-smp(c,1)) - dzq
+      qout(c,1)   = -hk(c,1)*num/den
+      dqodw1(c,1) = -(-hk(c,1)*dsmpdw(c,1)   + num*dhkdw(c,1))/den
+      dqodw2(c,1) = -( hk(c,1)*dsmpdw(c,2) + num*dhkdw(c,1))/den
+      rmx(c,1) =  qin(c,1) - qout(c,1) - qflx_tran_veg_col(c) * rootr_col(c,1)
+      amx(c,1) =  0.0_rk8
+      bmx(c,1) =  dzmm(c,1)*(sdamp+1.0_rk8/dtsrf) + dqodw1(c,1)
+      cmx(c,1) =  dqodw2(c,1)
     end do
 
     ! Nodes j=2 to j=nlevsoi-1
@@ -1240,7 +1231,6 @@ module mod_clm_soilhydrology
 
     ! Solve for dwat
 
-    !$acc kernels
     jtop(:) = 1
     where ( abs(amx) < 1.e-20_rk8 )
       amx = sign(1.0e-20_rk8,amx)
@@ -1254,7 +1244,7 @@ module mod_clm_soilhydrology
     where ( abs(rmx) < 1.e-20_rk8 )
       rmx = sign(1.0e-20_rk8,rmx)
     end where
-    !$acc end kernels
+
     call Tridiagonal(lbc, ubc, 1, nlevsoi+1, jtop,      &
                      num_hydrologyc, filter_hydrologyc, &
                      amx, bmx, cmx, rmx, dwat2 )
@@ -1448,6 +1438,7 @@ module mod_clm_soilhydrology
     ! summation of hk*dzmm for layers in the third VIC layer
     real(rk8) :: wtsub_vic
 #endif
+    logical :: lrsub_error
 !-----------------------------------------------------------------------
 
     ! Assign local pointers to derived subtypes components (column-level)
@@ -1498,6 +1489,14 @@ module mod_clm_soilhydrology
     moist          => clm3%g%l%c%cws%moist
     ice            => clm3%g%l%c%cws%ice
     hk_l          => clm3%g%l%c%cws%hk_l
+#endif
+
+    ! Check we are not using VICHYDRO with origflag set to 1
+#if (defined VICHYDRO)
+    if ( origflag == 1 ) then
+      call fatal(__FILE__,__LINE__, &
+                subname // ':: VICHYDRO is not available for origflag = 1')
+    endif
 #endif
 
     ! Convert layer thicknesses from m to mm
@@ -1555,6 +1554,7 @@ module mod_clm_soilhydrology
         ! try to raise water table to account for qcharge
         qcharge_tot = qcharge(c) * dtsrf
         if ( qcharge_tot > 0.0_rk8 ) then !rising water table
+          !$acc loop seq
           do j = jwt(c)+1, 1, -1
             ! use analytical expression for specific yield
             s_y = watsat(c,j) * ( 1.0_rk8 - &
@@ -1569,6 +1569,7 @@ module mod_clm_soilhydrology
             if ( qcharge_tot <= 0.0_rk8 ) exit
           end do
         else ! deepening water table (negative qcharge)
+          !$acc loop seq
           do j = jwt(c)+1, nlevsoi
             ! use analytical expression for specific yield
             s_y = watsat(c,j) * ( 1.0_rk8 - &
@@ -1603,11 +1604,8 @@ module mod_clm_soilhydrology
 
     !==  BASEFLOW ==================================================
     ! perched water table code
-#ifndef OPENACC
-    do fc = 1 , num_hydrologyc
-#else
+    lrsub_error = .false.
     do concurrent ( fc = 1:num_hydrologyc )
-#endif
       c = filter_hydrologyc(fc)
 
       !  specify maximum drainage rate
@@ -1783,15 +1781,10 @@ module mod_clm_soilhydrology
         end do
         ! add ice impedance factor to baseflow
         if ( origflag == 1 ) then
-#if (defined VICHYDRO)
-          call fatal(__FILE__,__LINE__, &
-                  subname // ':: VICHYDRO is not available for origflag = 1')
-#else
           fracice_rsub(c) = max(0.0_rk8,exp(-3.0_rk8*(1.0_rk8-(icefracsum/dzsum))) &
                - exp(-3.0_rk8))/(1.0_rk8-exp(-3.0_rk8))
           imped = (1.0_rk8 - fracice_rsub(c))
           rsub_top_max = 5.5e-3_rk8
-#endif
         else
 #if (defined VICHYDRO)
           imped = 10.0_rk8**(-e_ice*min(1.0_rk8,ice(c,nlayer)/max_moist(c,nlayer)))
@@ -1839,12 +1832,7 @@ module mod_clm_soilhydrology
           rsub_top_tot = - rsub_top(c) * dtsrf
           ! should never be positive... but include for completeness
           if ( rsub_top_tot > 0.0_rk8 ) then !rising water table
-#ifndef OPENACC
-            write(stderr,*) 'RSUB_TOP IS POSITIVE in Drainage!'
-            write(stderr,*)'clm model is stopping'
-            call fatal(__FILE__,__LINE__,'clm now stopping')
-#endif
-
+            lrsub_error = .true.
           else ! deepening water table
 #if (defined VICHYDRO)
             wtsub_vic = 0.0_rk8
@@ -1904,6 +1892,11 @@ module mod_clm_soilhydrology
       end if
     end do
 
+    if ( lrsub_error ) then
+      write(stderr,*) 'RSUB_TOP IS POSITIVE in Drainage!'
+      write(stderr,*)'clm model is stopping'
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
 
     ! excessive water above saturation added to the above unsaturated
     ! layer like a bucket if column fully saturated, excess water goes

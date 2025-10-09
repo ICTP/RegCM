@@ -410,8 +410,6 @@ module mod_clm_slakehydrology
     qflx_top_soil     => clm3%g%l%c%cwf%qflx_top_soil
     qflx_sl_top_soil  => clm3%g%l%c%cwf%qflx_sl_top_soil
 
-
-
     ! Assign local pointers to derived type members (pft-level)
 
     pcolumn       => clm3%g%l%c%p%column
@@ -432,7 +430,6 @@ module mod_clm_slakehydrology
     eflx_soil_grnd => clm3%g%l%c%p%pef%eflx_soil_grnd
     eflx_gnet      => clm3%g%l%c%p%pef%eflx_gnet
     eflx_grnd_lake => clm3%g%l%c%p%pef%eflx_grnd_lake
-
 
     ! Add soil water to water balance.
     do concurrent ( fc = 1:num_lakec )
@@ -486,11 +483,11 @@ module mod_clm_slakehydrology
         dz_snowf = 0._rk8
       else
         if (forc_t(g) > tfrz + 2._rk8) then
-          bifall=50._rk8 + 1.7_rk8*(17.0_rk8)**1.5_rk8
+          bifall = 50._rk8 + 1.7_rk8*(17.0_rk8)**1.5_rk8
         else if (forc_t(g) > tfrz - 15._rk8) then
-          bifall=50._rk8 + 1.7_rk8*(forc_t(g) - tfrz + 15._rk8)**1.5_rk8
+          bifall = 50._rk8 + 1.7_rk8*(forc_t(g) - tfrz + 15._rk8)**1.5_rk8
         else
-          bifall=50._rk8
+          bifall = 50._rk8
         end if
         dz_snowf = qflx_snow_grnd_col(c)/bifall
         snow_depth(c) = snow_depth(c) + dz_snowf*dtsrf
@@ -556,13 +553,14 @@ module mod_clm_slakehydrology
     ! Calculate sublimation and dew, adapted from HydrologyLake
     ! and Biogeophysics2.
     do concurrent ( fp = 1:num_lakep )
+      p = filter_lakep(fp)
       qflx_evap_grnd(p) = 0._rk8
       qflx_sub_snow(p) = 0._rk8
       qflx_dew_snow(p) = 0._rk8
       qflx_dew_grnd(p) = 0._rk8
     end do
 
-    do fp = 1,num_lakep
+    do concurrent ( fp = 1:num_lakep )
       p = filter_lakep(fp)
       c = pcolumn(p)
       jtop = snl(c)+1
