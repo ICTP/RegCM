@@ -768,8 +768,6 @@ module mod_clm_canopyfluxes
 
    do concurrent ( f = 1:fn )
      p = filterp(f)
-     c = pcolumn(p)
-     g = pgridcell(p)
      del(p)    = 0._rk8  ! change in leaf temperature from previous iteration
      efeb(p)   = 0._rk8  ! latent head flux from leaf for previous iteration
      wtlq0(p)  = 0._rk8
@@ -779,7 +777,12 @@ module mod_clm_canopyfluxes
      obuold(p) = 0._rk8
      btran(p)  = btran0
      btran2(p)  = btran0
+   end do
 
+   do concurrent ( f = 1:fn )
+     p = filterp(f)
+     c = pcolumn(p)
+     g = pgridcell(p)
      ! calculate daylength control for Vcmax
      temp = -(sin(lat(g))*sin(decl(c))) / (cos(lat(g)) * cos(decl(c)))
      temp = min(1.0_rk8, max(-1.0_rk8, temp))

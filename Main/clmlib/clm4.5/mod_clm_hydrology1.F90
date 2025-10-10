@@ -216,13 +216,10 @@ module mod_clm_hydrology1
     integer(ik4)  :: c     ! column index
     integer(ik4)  :: l     ! landunit index
     integer(ik4)  :: g     ! gridcell index
-    integer(ik4)  :: newnode ! flag when new snow node is set, (1=yes, 0=no)
     real(rk8) :: h2ocanmx  ! maximum allowed water on canopy [mm]
     real(rk8) :: fpiliq    ! coefficient of interception
     real(rk8) :: fpisnow   ! coefficient of interception
     real(rk8) :: xrun      ! excess water that exceeds the leaf capacity [mm/s]
-    ! layer thickness rate change due to precipitation [mm/s]
-    real(rk8) :: dz_snowf
     ! bulk density of newly fallen dry snow [kg/m3]
     real(rk8) :: bifall
     real(rk8) :: fracsnow(lbp:ubp)     ! frac of precipitation that is snow
@@ -243,6 +240,10 @@ module mod_clm_hydrology1
     real(rk8) :: accum_factor
     real(rk8) :: newsnow(lbc:ubc)
     real(rk8) :: snowmelt(lbc:ubc)
+    ! layer thickness rate change due to precipitation [mm/s]
+    real(rk8) :: dz_snowf(lbc:ubc)
+    ! flag when new snow node is set, (1=yes, 0=no)
+    integer(ik4)  :: newnode(lbc:ubc)
     integer(ik4)  :: j
 
     ! Assign local pointers to derived type members (gridcell-level)
@@ -504,20 +505,23 @@ module mod_clm_hydrology1
       ! Use Alta relationship, Anderson(1976); LaChapelle(1961),
       ! U.S.Department of Agriculture Forest Service, Project F,
       ! Progress Rep. 1, Alta Avalanche Study Center:Snow Layer Densification.
+      newnode(c) = 0    ! flag for when snow node will be initialized
 
       qflx_snow_h2osfc(c) = 0._rk8
       ! set temporary variables prior to updating
       temp_snow_depth=snow_depth(c)
       ! save initial snow content
+      !$acc loop seq
       do j = -nlevsno+1, snl(c)
         swe_old(c,j) = 0.0_rk8
       end do
+      !$acc loop seq
       do j = snl(c)+1, 0
         swe_old(c,j) = h2osoi_liq(c,j)+h2osoi_ice(c,j)
       end do
 
       if ( do_capsnow(c) ) then
-        dz_snowf = 0._rk8
+        dz_snowf(c) = 0._rk8
         newsnow(c) = (1._rk8 - frac_h2osfc(c)) * qflx_snow_grnd_col(c) * dtsrf
         frac_sno(c) = 1._rk8
         int_snow(c) = 5.e2_rk8
@@ -557,8 +561,8 @@ module mod_clm_hydrology1
 
           ! update fsca by new snow event, add to previous fsca
           if ( newsnow(c) > 0._rk8 ) then
-            fsno_new = 1._rk8 - &
-                    (1._rk8 - tanh(accum_factor*newsnow(c)))*(1._rk8 - frac_sno(c))
+            fsno_new = 1._rk8 - (1._rk8 - &
+                tanh(accum_factor*newsnow(c)))*(1._rk8 - frac_sno(c))
             frac_sno(c) = fsno_new
             frac_sno(c) = max(0.0_rk8,min(1.0_rk8,frac_sno(c)))
 
@@ -641,7 +645,7 @@ module mod_clm_hydrology1
         int_snow(c) = int_snow(c) + newsnow(c)
 
         ! update change in snow depth
-        dz_snowf = (snow_depth(c) - temp_snow_depth) / dtsrf
+        dz_snowf(c) = (snow_depth(c) - temp_snow_depth) / dtsrf
 
       end if !end of do_capsnow construct
 
@@ -665,11 +669,10 @@ module mod_clm_hydrology1
       ! Currently, the water temperature for the precipitation is simply set
       ! as the surface air temperature
 
-      newnode = 0    ! flag for when snow node will be initialized
       if ( snl(c) == 0 .and. &
            qflx_snow_grnd_col(c) > 0.0_rk8 .and. &
            frac_sno(c)*snow_depth(c) >= 0.01_rk8 ) then
-        newnode = 1
+        newnode(c) = 1
         snl(c) = -1
         dz(c,0) = snow_depth(c)                       ! meter
         z(c,0) = -0.5_rk8*dz(c,0)
@@ -682,34 +685,37 @@ module mod_clm_hydrology1
         ! intitialize SNICAR variables for fresh snow:
         snw_rds(c,0)    = snw_rds_min
 
-        mss_bcpho(c,:)  = 0._rk8
-        mss_bcphi(c,:)  = 0._rk8
-        mss_bctot(c,:)  = 0._rk8
         mss_bc_col(c)   = 0._rk8
         mss_bc_top(c)   = 0._rk8
-
-        mss_ocpho(c,:)  = 0._rk8
-        mss_ocphi(c,:)  = 0._rk8
-        mss_octot(c,:)  = 0._rk8
         mss_oc_col(c)   = 0._rk8
         mss_oc_top(c)   = 0._rk8
-
-        mss_dst1(c,:)   = 0._rk8
-        mss_dst2(c,:)   = 0._rk8
-        mss_dst3(c,:)   = 0._rk8
-        mss_dst4(c,:)   = 0._rk8
-        mss_dsttot(c,:) = 0._rk8
         mss_dst_col(c)  = 0._rk8
         mss_dst_top(c)  = 0._rk8
+        !$acc loop seq
+        do j = -nlevsno+1, 0
+          mss_bcpho(c,j)  = 0._rk8
+          mss_bcphi(c,j)  = 0._rk8
+          mss_bctot(c,j)  = 0._rk8
+          mss_ocpho(c,j)  = 0._rk8
+          mss_ocphi(c,j)  = 0._rk8
+          mss_octot(c,j)  = 0._rk8
+          mss_dst1(c,j)   = 0._rk8
+          mss_dst2(c,j)   = 0._rk8
+          mss_dst3(c,j)   = 0._rk8
+          mss_dst4(c,j)   = 0._rk8
+          mss_dsttot(c,j) = 0._rk8
+        end do
       end if
+    end do
 
-      ! The change of ice partial density of surface node due to precipitation.
-      ! Only ice part of snowfall is added here, the liquid part will be added
-      ! later.
-
-      if ( snl(c) < 0 .and. newnode == 0 ) then
+    ! The change of ice partial density of surface node due to precipitation.
+    ! Only ice part of snowfall is added here, the liquid part will be added
+    ! later.
+    do f = 1, num_nolakec
+      c = filter_nolakec(f)
+      if ( snl(c) < 0 .and. newnode(c) == 0 ) then
         h2osoi_ice(c,snl(c)+1) = h2osoi_ice(c,snl(c)+1)+newsnow(c)
-        dz(c,snl(c)+1) = dz(c,snl(c)+1) + dz_snowf*dtsrf
+        dz(c,snl(c)+1) = dz(c,snl(c)+1) + dz_snowf(c)*dtsrf
       end if
     end do
 

@@ -561,8 +561,8 @@ module mod_clm_hydrology2
         qflx_infl(c)          = 0._rk8
         ! add flood water flux to runoff for wetlands/glaciers
         qflx_qrgwl(c) = forc_rain(g) + forc_snow(g) + &
-                qflx_floodg(g) - qflx_evap_tot(c) - qflx_snwcp_ice(c) - &
-                (endwb(c)-begwb(c))/dtsrf
+                  qflx_floodg(g) - qflx_evap_tot(c) - &
+                  qflx_snwcp_ice(c) - (endwb(c)-begwb(c))/dtsrf
         fcov(c)       = spval
         fsat(c)       = spval
         qcharge(c)    = spval
@@ -577,15 +577,16 @@ module mod_clm_hydrology2
       end if
 
       qflx_runoff(c) = qflx_drain(c) + qflx_surf(c) + &
-              qflx_h2osfc_surf(c) + qflx_qrgwl(c) + qflx_drain_perched(c)
+           qflx_h2osfc_surf(c) + qflx_qrgwl(c) + qflx_drain_perched(c)
 
-      if ((ityplun(l)==istsoil .or. ityplun(l)==istcrop) &
-           .and. cactive(c)) then
+      if ( (ityplun(l) == istsoil .or. &
+            ityplun(l) == istcrop) .and. cactive(c)) then
         qflx_runoff(c) = qflx_runoff(c) - qflx_irrig(c)
       end if
-      if (ityplun(l)==isturb) then
+      if ( ityplun(l) == isturb ) then
         qflx_runoff_u(c) = qflx_runoff(c)
-      else if (ityplun(l)==istsoil .or. ityplun(l)==istcrop) then
+      else if ( ityplun(l) == istsoil .or. &
+                ityplun(l) == istcrop ) then
         qflx_runoff_r(c) = qflx_runoff(c)
       end if
     end do
@@ -641,6 +642,10 @@ module mod_clm_hydrology2
       rwat(c) = 0._rk8
       swat(c) = 0._rk8
       rz(c)   = 0._rk8
+    end do
+
+    do concurrent ( fc = 1:num_hydrologyc )
+      c = filter_hydrologyc(fc)
       !$acc loop seq
       do j = 1, nlevgrnd
         !if (z(c,j)+0.5_rk8*dz(c,j) <= 0.5_rk8) then
@@ -651,6 +656,10 @@ module mod_clm_hydrology2
           rz(c) = rz(c) + dz(c,j)
         end if
       end do
+    end do
+
+    do concurrent ( fc = 1:num_hydrologyc )
+      c = filter_hydrologyc(fc)
       if (rz(c) /= 0._rk8) then
         tsw  = rwat(c)/rz(c)
         stsw = swat(c)/rz(c)
@@ -770,7 +779,10 @@ module mod_clm_hydrology2
           mss_cnc_dst4(c,j)  = 0._rk8
         end if
       end do
+    end do
 
+    do concurrent ( fc = 1:num_snowc )
+      c = filter_snowc(fc)
       ! top-layer diagnostics
       h2osno_top(c)  = h2osoi_ice(c,snl(c)+1) + h2osoi_liq(c,snl(c)+1)
       mss_bc_top(c)  = mss_bctot(c,snl(c)+1)
@@ -783,35 +795,12 @@ module mod_clm_hydrology2
       c = filter_nosnowc(fc)
 
       h2osno_top(c)      = 0._rk8
-      snw_rds(c,:)       = 0._rk8
-
       mss_bc_top(c)      = 0._rk8
       mss_bc_col(c)      = 0._rk8
-      mss_bcpho(c,:)     = 0._rk8
-      mss_bcphi(c,:)     = 0._rk8
-      mss_bctot(c,:)     = 0._rk8
-      mss_cnc_bcphi(c,:) = 0._rk8
-      mss_cnc_bcpho(c,:) = 0._rk8
-
       mss_oc_top(c)      = 0._rk8
       mss_oc_col(c)      = 0._rk8
-      mss_ocpho(c,:)     = 0._rk8
-      mss_ocphi(c,:)     = 0._rk8
-      mss_octot(c,:)     = 0._rk8
-      mss_cnc_ocphi(c,:) = 0._rk8
-      mss_cnc_ocpho(c,:) = 0._rk8
-
       mss_dst_top(c)     = 0._rk8
       mss_dst_col(c)     = 0._rk8
-      mss_dst1(c,:)      = 0._rk8
-      mss_dst2(c,:)      = 0._rk8
-      mss_dst3(c,:)      = 0._rk8
-      mss_dst4(c,:)      = 0._rk8
-      mss_dsttot(c,:)    = 0._rk8
-      mss_cnc_dst1(c,:)  = 0._rk8
-      mss_cnc_dst2(c,:)  = 0._rk8
-      mss_cnc_dst3(c,:)  = 0._rk8
-      mss_cnc_dst4(c,:)  = 0._rk8
 
       ! top-layer diagnostics
       ! (spval is not averaged when computing history fields)
@@ -819,6 +808,30 @@ module mod_clm_hydrology2
       dTdz_top(c)        = spval
       snw_rds_top(c)     = spval
       sno_liq_top(c)     = spval
+
+      !$acc loop seq
+      do j = -nlevsno+1, 0
+        snw_rds(c,j)       = 0._rk8
+        mss_bcpho(c,j)     = 0._rk8
+        mss_bcphi(c,j)     = 0._rk8
+        mss_bctot(c,:)     = 0._rk8
+        mss_cnc_bcphi(c,j) = 0._rk8
+        mss_cnc_bcpho(c,j) = 0._rk8
+        mss_ocpho(c,j)     = 0._rk8
+        mss_ocphi(c,j)     = 0._rk8
+        mss_octot(c,j)     = 0._rk8
+        mss_cnc_ocphi(c,j) = 0._rk8
+        mss_cnc_ocpho(c,j) = 0._rk8
+        mss_dst1(c,j)      = 0._rk8
+        mss_dst2(c,j)      = 0._rk8
+        mss_dst3(c,j)      = 0._rk8
+        mss_dst4(c,j)      = 0._rk8
+        mss_dsttot(c,j)    = 0._rk8
+        mss_cnc_dst1(c,j)  = 0._rk8
+        mss_cnc_dst2(c,j)  = 0._rk8
+        mss_cnc_dst3(c,j)  = 0._rk8
+        mss_cnc_dst4(c,j)  = 0._rk8
+      end do
     end do
   end subroutine Hydrology2
 

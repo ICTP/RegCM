@@ -387,6 +387,10 @@ module mod_clm_biogeophysics2
       c = filter_nolakec(fc)
       topsoil_evap_tot(c) = 0._rk8
       sumwt(c) = 0._rk8
+    end do
+
+    do concurrent ( fc = 1:num_nolakec )
+      c = filter_nolakec(fc)
       !$acc loop seq
       do pi = 1, max_pft_per_col
         if ( pi <= npfts(c) ) then
@@ -449,7 +453,7 @@ module mod_clm_biogeophysics2
         end if
       else
         ! For all urban columns we use the net longwave radiation
-        ! (eflx_lwrad_net) since the term (emg*sb*tssbef(j+1)**4)
+        ! (eflx_lwrad_net) since the term (emg*sb*tssbef(snl(c)+1)**4)
         ! is not the upward longwave flux because of interactions
         ! between urban columns.
 

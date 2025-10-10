@@ -943,6 +943,10 @@ module mod_clm_soilhydrology
     do concurrent ( fc = 1:num_hydrologyc, j = 1:nlevsoi )
       c = filter_hydrologyc(fc)
       rootr_col(c,j) = 0.0_rk8
+    end do
+
+    do concurrent( fc = 1:num_hydrologyc, j = 1:nlevsoi )
+      c = filter_hydrologyc(fc)
       !$acc loop seq
       do pi = 1, max_pft_per_col
         if (pi <= npfts(c)) then
@@ -956,6 +960,10 @@ module mod_clm_soilhydrology
           end if
         end if
       end do
+    end do
+
+    do concurrent ( fc = 1:num_hydrologyc, j = 1:nlevsoi )
+      c = filter_hydrologyc(fc)
       if ( temp(c) /= 0.0_rk8 ) then
         rootr_col(c,j) = rootr_col(c,j)/temp(c)
       end if

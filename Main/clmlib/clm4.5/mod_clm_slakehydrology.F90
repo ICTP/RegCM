@@ -277,10 +277,6 @@ module mod_clm_slakehydrology
     integer(ik4)  :: num_shlakenosnowc
     ! column filter for non-snow points
     integer(ik4)  :: filter_shlakenosnowc(ubc-lbc+1)
-    ! flag when new snow node is set, (1=yes, 0=no)
-    integer(ik4)  :: newnode
-    ! layer thickness rate change due to precipitation [mm/s]
-    real(rk8) :: dz_snowf
     ! bulk density of newly fallen dry snow [kg/m3]
     real(rk8) :: bifall
     ! snow precipitation incident on ground [mm/s]
@@ -293,6 +289,10 @@ module mod_clm_slakehydrology
     real(rk8) :: h2osno_temp
     ! sum of snow ice if snow layers found above unfrozen lake [kg/m&2]
     real(rk8) :: sumsnowice(lbc:ubc)
+    ! flag when new snow node is set, (1=yes, 0=no)
+    integer(ik4)  :: newnode(lbc:ubc)
+    ! layer thickness rate change due to precipitation [mm/s]
+    real(rk8) :: dz_snowf(lbc:ubc)
     ! true if top lake layer is unfrozen with snow layers above
     logical  :: unfrozen(lbc:ubc)
     real(rk8) :: heatrem           ! used in case above [J/m^2]
@@ -479,8 +479,9 @@ module mod_clm_slakehydrology
       ! U.S.Department of Agriculture Forest Service, Project F,
       ! Progress Rep. 1, Alta Avalanche Study Center:Snow Layer Densification.
 
+      newnode(c) = 0    ! flag for when snow node will be initialized
       if (do_capsnow(c)) then
-        dz_snowf = 0._rk8
+        dz_snowf(c) = 0._rk8
       else
         if (forc_t(g) > tfrz + 2._rk8) then
           bifall = 50._rk8 + 1.7_rk8*(17.0_rk8)**1.5_rk8
@@ -489,8 +490,8 @@ module mod_clm_slakehydrology
         else
           bifall = 50._rk8
         end if
-        dz_snowf = qflx_snow_grnd_col(c)/bifall
-        snow_depth(c) = snow_depth(c) + dz_snowf*dtsrf
+        dz_snowf(c) = qflx_snow_grnd_col(c)/bifall
+        snow_depth(c) = snow_depth(c) + dz_snowf(c)*dtsrf
         ! snow water equivalent (mm)
         h2osno(c) = h2osno(c) + qflx_snow_grnd_col(c)*dtsrf
       end if
@@ -499,11 +500,10 @@ module mod_clm_slakehydrology
       ! Currently, the water temperature for the precipitation is simply set
       ! as the surface air temperature
 
-      newnode = 0    ! flag for when snow node will be initialized
       if ( snl(c) == 0 .and. &
            qflx_snow_grnd_col(c) > 0.0_rk8 .and. &
            snow_depth(c) >= 0.01_rk8 + lsadz) then
-        newnode = 1
+        newnode(c) = 1
         snl(c) = -1
         dz(c,0) = snow_depth(c)                       ! meter
         z(c,0) = -0.5_rk8*dz(c,0)
@@ -537,17 +537,18 @@ module mod_clm_slakehydrology
         mss_dst_col(c)  = 0._rk8
         mss_dst_top(c)  = 0._rk8
       end if
+    end do
 
-      ! The change of ice partial density of surface node due to precipitation.
-      ! Only ice part of snowfall is added here, the liquid part will be added
-      ! later.
-
-      if (snl(c) < 0 .and. newnode == 0) then
+    ! The change of ice partial density of surface node due to precipitation.
+    ! Only ice part of snowfall is added here, the liquid part will be added
+    ! later.
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
+      if (snl(c) < 0 .and. newnode(c) == 0) then
         h2osoi_ice(c,snl(c)+1) = h2osoi_ice(c,snl(c)+1) + &
                 dtsrf*qflx_snow_grnd_col(c)
-        dz(c,snl(c)+1) = dz(c,snl(c)+1)+dz_snowf*dtsrf
+        dz(c,snl(c)+1) = dz(c,snl(c)+1)+dz_snowf(c)*dtsrf
       end if
-
     end do
 
     ! Calculate sublimation and dew, adapted from HydrologyLake
@@ -892,6 +893,10 @@ module mod_clm_slakehydrology
     do concurrent ( fc = 1:num_lakec )
       c = filter_lakec(fc)
       endwb(c) = h2osno(c)
+    end do
+
+    do concurrent ( fc = 1:num_lakec )
+      c = filter_lakec(fc)
       !$acc loop seq
       do j = 1, nlevgrnd
         endwb(c) = endwb(c) + h2osoi_ice(c,j) + h2osoi_liq(c,j)
@@ -1025,7 +1030,10 @@ module mod_clm_slakehydrology
           mss_cnc_dst4(c,j)  = 0._rk8
         end if
       end do
+    end do
 
+    do concurrent ( fc = 1:num_shlakesnowc )
+      c = filter_shlakesnowc(fc)
       ! top-layer diagnostics
       h2osno_top(c)  = h2osoi_ice(c,snl(c)+1) + h2osoi_liq(c,snl(c)+1)
       mss_bc_top(c)  = mss_bctot(c,snl(c)+1)
