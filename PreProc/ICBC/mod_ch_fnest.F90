@@ -194,6 +194,10 @@ module mod_ch_fnest
     call getmem1d(sigma_in,1,kz_in,'init_fnest:sigma_in')
     call getmem3d(mxc,1,jx_in,1,iy_in,1,kz_in,'init_fnest:mxc')
 
+    istatus = nf90_get_att(ncid(1), nf90_global, 'dynamical_core', oidyn)
+    if ( istatus /= nf90_noerr ) then
+      oidyn = 1 ! Assume non-hydrostatic
+    end if
     istatus = nf90_inq_varid(ncid(1), 'kz', ivarid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(ncid(1), 'sigma', ivarid)
@@ -221,12 +225,14 @@ module mod_ch_fnest
     istatus = nf90_get_var(ncid(1), ivarid, ht_in)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable topo read error')
-    istatus = nf90_inq_varid(ncid(1), 'ptop', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable ptop error')
-    istatus = nf90_get_var(ncid(1), ivarid, ptop_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable ptop read error')
+    if ( oidyn /= 3 ) then
+      istatus = nf90_inq_varid(ncid(1), 'ptop', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ptop error')
+      istatus = nf90_get_var(ncid(1), ivarid, ptop_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ptop read error')
+    end if
     istatus = nf90_get_att(ncid(1), nf90_global, &
                       'grid_size_in_meters', ds_in)
     ds_in = ds_in * sqrt(d_two) * d_r1000
@@ -241,10 +247,6 @@ module mod_ch_fnest
                       'longitude_of_projection_origin', clon_in)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'attribure clat read error')
-    istatus = nf90_get_att(ncid(1), nf90_global, 'dynamical_core', oidyn)
-    if ( istatus /= nf90_noerr ) then
-      oidyn = 1 ! Assume non-hydrostatic
-    end if
     if ( iproj_in == 'LAMCON' ) then
       istatus = nf90_get_att(ncid(1), nf90_global, 'standard_parallel', trlat)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -293,6 +295,8 @@ module mod_ch_fnest
     call getmem2d(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
     call getmem2d(ps,1,jx_in,1,iy_in,'mod_nest:ps')
 
+    call h_interpolator_create(hint,xlat_in,xlon_in,xlat,xlon,ds_in)
+
     if ( oidyn == 2 ) then
       call getmem3d(pp3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pp3d')
       call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
@@ -328,7 +332,6 @@ module mod_ch_fnest
         end do
       end do
       call h_interpolate_cont(hint,z_in,z3)
-      call top2btm(z3)
     else
       istatus = nf90_inq_varid(ncid(1), 'ps', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -350,11 +353,12 @@ module mod_ch_fnest
     do ip = np/2+1, np
       plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in
     end do
-
-    call h_interpolator_create(hint,xlat_in,xlon_in,xlat,xlon,ds_in)
-
-    call getmem3d(mxcp,1,jx_in,1,iy_in,1,np,'init_fnest:mxcp')
-    call getmem3d(mxcp4,1,jx,1,iy,1,np,'init_fnest:mxcp4')
+    if ( oidyn == 3 ) then
+      call getmem3d(mxcp4,1,jx,1,iy,1,kz_in,'init_fnest:mxcp4')
+    else
+      call getmem3d(mxcp,1,jx_in,1,iy_in,1,np,'init_fnest:mxcp')
+      call getmem3d(mxcp4,1,jx,1,iy,1,np,'init_fnest:mxcp4')
+    end if
     call getmem4d(mxc4_1,1,jx,1,iy,1,kz,1,fchem,'init_fnest:mxc4_1')
     call getmem2d(xps,1,jx,1,iy,'mod_nest:xps')
     call getmem2d(xps3,1,jx,1,iy,'mod_nest:xps3')
@@ -363,7 +367,6 @@ module mod_ch_fnest
       sigmar(k) = plev(k)/plev(np)
     end do
     pss = plev(np)
-
   end subroutine init_fnest
 
   subroutine get_fnest(idate)
@@ -476,30 +479,58 @@ module mod_ch_fnest
       call die('chem_icbc','Cannot find timestep '//tochar(idate),1)
     end if
 
-    istart(3) = crec
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = iy_in
-    icount(1) = jx_in
-    istatus = nf90_inq_varid(ncid(1), 'ps', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable ps missing')
-    istatus = nf90_get_var(ncid(1), ivarid, ps, istart(1:3), icount(1:3))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable ps read error')
-    call h_interpolate_cont(hint,ps,xps)
+    if ( oidyn /= 3 ) then
+      istart(3) = crec
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = iy_in
+      icount(1) = jx_in
+      istatus = nf90_inq_varid(ncid(1), 'ps', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ps missing')
+      istatus = nf90_get_var(ncid(1), ivarid, ps, istart(1:3), icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ps read error')
+      call h_interpolate_cont(hint,ps,xps)
 
-    istart(1) = 1
-    istart(2) = 1
-    istart(3) = irec
-    icount(1) = jx
-    icount(2) = iy
-    icount(3) = 1
-    istatus = nf90_get_var(ncicbc,ivarps,xps3,istart(1:3),icount(1:3))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error read icbc var ps')
-    irec = irec + 1
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = irec
+      icount(1) = jx
+      icount(2) = iy
+      icount(3) = 1
+      istatus = nf90_get_var(ncicbc,ivarps,xps3,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read icbc var ps')
+      irec = irec + 1
+
+      istart(4) = crec
+      istart(3) = 1
+      istart(2) = 1
+      istart(1) = 1
+      icount(4) = 1
+      icount(3) = kz_in
+      icount(2) = iy_in
+      icount(1) = jx_in
+
+      if ( oidyn == 2 ) then
+        istatus = nf90_inq_varid(ncid(1), 'ppa', ivarid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ppa missing')
+        istatus = nf90_get_var(ncid(1), ivarid, pp3d, istart, icount)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'variable ppa read error')
+        do k = 1, kz_in
+          do i = 1, iy_in
+            do j = 1, jx_in
+              p3d(j,i,k) = pstar0(j,i) * sigma_in(k) + &
+                           ptop_in + pp3d(j,i,k)
+            end do
+          end do
+        end do
+      end if
+    end if
 
     istart(4) = crec
     istart(3) = 1
@@ -509,33 +540,14 @@ module mod_ch_fnest
     icount(3) = kz_in
     icount(2) = iy_in
     icount(1) = jx_in
-
-    if ( oidyn == 2 ) then
-      istatus = nf90_inq_varid(ncid(1), 'ppa', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable ppa missing')
-      istatus = nf90_get_var(ncid(1), ivarid, pp3d, istart, icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable ppa read error')
-      do k = 1, kz_in
-        do i = 1, iy_in
-          do j = 1, jx_in
-            p3d(j,i,k) = pstar0(j,i) * sigma_in(k) + &
-                         ptop_in + pp3d(j,i,k)
-          end do
-        end do
-      end do
-    end if
     do nf = 1, fchem
       istatus = nf90_inq_varid(ncid(nf), 'mixrat', ivarid)
       istatus = nf90_get_var(ncid(nf), ivarid, mxc, istart, icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
              'variable mixrat for '//trim(chnames(nf))//' read error')
-      if ( oidyn == 1 ) then
+      if ( oidyn /= 3 ) then
         call intlin(mxcp,mxc,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
-      end if
-      call h_interpolate_cont(hint,mxcp,mxcp4)
-      if ( oidyn == 1 ) then
+        call h_interpolate_cont(hint,mxcp,mxcp4)
         do i = 1, iy
           do j = 1, jx
             do l = 1, kz
@@ -561,17 +573,12 @@ module mod_ch_fnest
             end do
           end do
         end do
-      else if ( oidyn == 3 ) then
-        call top2btm(mxcp4)
-        call intz1(mxc4_1(:,:,:,nf),mxcp4,z0,z3, &
-                 ht_in,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
       else
-        write(stderr,*) 'WARNING : NOT implemented...'
+        call h_interpolate_cont(hint,mxc,mxcp4)
+        call intz1(mxc4_1(:,:,:,nf),mxcp4,z0,z3, &
+                   ht_in,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
       end if
     end do
-    if ( oidyn == 3 ) then
-      call top2btm(mxc4_1)
-    end if
     !
     ! Now we have to map....
     !

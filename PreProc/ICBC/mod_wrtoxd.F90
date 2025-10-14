@@ -81,19 +81,18 @@ module mod_wrtoxd
                 'MEK     ','MVK     ','MACR    ','HYDRALD ','BIGALD  ',  &
                 'ISOPNO3 ','ONITR   ','CRESOL  ','CO      ','DMS     ' /
 
+  data cbmzspec / 'O3      ','NO      ','NO2     ','HNO3    ','HNO4    ', &
+                  'N2O5    ','H2O2    ','CH4     ','CO      ','SO2     ', &
+                  'H2SO4   ','DMS     ','PAR     ','C2H6    ','ETH     ', &
+                  'OLET    ','OLEI    ','TOL     ','XYL     ','ISOP    ', &
+                  'CRES    ','OPEN    ','ISOPN   ','ISOPRD  ','ONIT    ', &
+                  'MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ', &
+                  'ALD2    ','HCHO    ','CH3OH   '/
 
- data cbmzspec / 'O3      ','NO      ','NO2     ','HNO3    ','HNO4    ', &
-                 'N2O5    ','H2O2    ','CH4     ','CO      ','SO2     ', &
-                 'H2SO4   ','DMS     ','PAR     ','C2H6    ','ETH     ', &
-                 'OLET    ','OLEI    ','TOL     ','XYL     ','ISOP    ', &
-                 'CRES    ','OPEN    ','ISOPN   ','ISOPRD  ','ONIT    ', &
-                 'MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ', &
-                 'ALD2    ','HCHO    ','CH3OH   '/
-! This is usedi only for CAMS preproc, in the future try to harmonize..
- data aerospec /'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
-                'SO2   ','SO4   ','DUST01','DUST02', &
-                'DUST03','DUST04','SSLT01','SSLT02'/
-
+  ! This is usedi only for CAMS preproc, in the future try to harmonize..
+  data aerospec /'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
+                 'SO2   ','SO4   ','DUST01','DUST02', &
+                 'DUST03','DUST04','SSLT01','SSLT02'/
 
   integer, parameter :: maxaeout = 16
 
@@ -107,9 +106,9 @@ module mod_wrtoxd
   data aecarb / 'CB1', 'CB2', 'OC1', 'SOA', 'OC2' /
   data aesulf / 'SO2', 'SO4' /
   data aesuca / 'CB1', 'CB2', 'OC1', 'SOA', 'OC2', 'SO2', 'SO4' /
-  data aeaero / 'CB1', 'CB2', 'OC1', 'SOA', 'OC2', 'SO2', 'SO4', &
-                'SSLT01', 'SSLT02', 'SSLT03', 'SSLT04', 'DST01',      &
-                'DST02', 'DST03', 'DST04' /
+  data aeaero / 'CB1', 'CB2', 'OC1', 'OC2', 'SO2', 'SO4',     &
+                'DST01', 'DST02', 'DST03', 'DST04',           &
+                'SSLT01', 'SSLT02', 'SSLT03', 'SSLT04', 'SOA' /
   data aedccb / 'CB1', 'CB2', 'OC1', 'OC2' ,'DST01', 'DST02',  &
                 'DST03', 'DST04' /
 
@@ -192,10 +191,10 @@ module mod_wrtoxd
         aespec => aeaero
         doaero = .true.
         dooxcl = .true.
-        dochem=.true.
+        dochem = .true.
         sum_sslt_bins = .true.
       case default
-    call die('init_outoxd','Unknown chemsimtype')
+        call die('init_outoxd','Unknown chemsimtype')
     end select
     if ( doaero ) then
       if ( naesp > maxaeout ) then
@@ -373,7 +372,7 @@ module mod_wrtoxd
     opar%l_bound = .true.
     call outstream_setup(ncoutae,opar)
     call outstream_addatt(ncoutae, &
-      ncattribute_string('simulation_type',chtype))
+          ncattribute_string('simulation_type',chtype))
     call outstream_addvar(ncoutae,v2dvar_base(1))
     call outstream_addvar(ncoutae,v2dvar_base(2))
     do ivar = 1, naesp
