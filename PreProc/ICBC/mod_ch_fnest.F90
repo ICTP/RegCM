@@ -49,6 +49,7 @@ module mod_ch_fnest
   real(rkx), dimension(:,:,:,:), pointer, contiguous :: mxc4_1
   real(rkx), dimension(:,:,:), pointer, contiguous :: pp3d, p3d, z3, z_in
   real(rkx), dimension(:,:), pointer, contiguous :: xlat_in, xlon_in, ht_in
+  real(rkx), dimension(:,:), pointer, contiguous :: h_zero
   real(rkx), dimension(:,:), pointer, contiguous :: p0_in, pstar0, ps, xps, xps3
   real(rkx), dimension(:), pointer, contiguous :: sigma_in, plev, sigmar
   real(rkx), dimension(:), pointer, contiguous :: ak_in, bk_in
@@ -180,33 +181,28 @@ module mod_ch_fnest
       itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
     end do
 
-    istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error open ICBC file '//trim(icbcfilename))
-    istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find var ps in icbc file '//trim(icbcfilename))
-    irec = 1
+    if ( oidyn /= 3 ) then
+      call getmem1d(sigma_in,1,kz_in,'init_fnest:sigma_in')
+      istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open ICBC file '//trim(icbcfilename))
+      istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var ps in icbc file '//trim(icbcfilename))
+    end if
 
+    irec = 1
     call getmem2d(xlat_in,1,jx_in,1,iy_in,'init_fnest:xlat_in')
     call getmem2d(xlon_in,1,jx_in,1,iy_in,'init_fnest:xlon_in')
     call getmem2d(ht_in,1,jx_in,1,iy_in,'init_fnest:xlon_in')
-    call getmem1d(sigma_in,1,kz_in,'init_fnest:sigma_in')
     call getmem3d(mxc,1,jx_in,1,iy_in,1,kz_in,'init_fnest:mxc')
 
     istatus = nf90_get_att(ncid(1), nf90_global, 'dynamical_core', oidyn)
     if ( istatus /= nf90_noerr ) then
       oidyn = 1 ! Assume non-hydrostatic
     end if
-    istatus = nf90_inq_varid(ncid(1), 'kz', ivarid)
-    if ( istatus /= nf90_noerr ) then
-      istatus = nf90_inq_varid(ncid(1), 'sigma', ivarid)
-    end if
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable sigma or kz error')
-    istatus = nf90_get_var(ncid(1), ivarid, sigma_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable sigma or kz read error')
     istatus = nf90_inq_varid(ncid(1), 'xlat', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable xlat error')
@@ -226,13 +222,25 @@ module mod_ch_fnest
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable topo read error')
     if ( oidyn /= 3 ) then
+      istatus = nf90_inq_varid(ncid(1), 'kz', ivarid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(ncid(1), 'sigma', ivarid)
+      end if
+      istatus = nf90_get_var(ncid(1), ivarid, sigma_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable sigma or kz read error')
       istatus = nf90_inq_varid(ncid(1), 'ptop', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ptop error')
       istatus = nf90_get_var(ncid(1), ivarid, ptop_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ptop read error')
+      if ( ptop_in > ptop*10.0_rkx ) then
+        write(stderr,*) 'WARNING : top pressure higher than PTOP detected.'
+        write(stderr,*) 'WARNING : Extrapolation will be performed.'
+      end if
     end if
+
     istatus = nf90_get_att(ncid(1), nf90_global, &
                       'grid_size_in_meters', ds_in)
     ds_in = ds_in * sqrt(d_two) * d_r1000
@@ -280,34 +288,10 @@ module mod_ch_fnest
       xcone_in = 0.0_rkx
     end if
 
-    if ( ptop_in > ptop*10.0_rkx ) then
-      write(stderr,*) 'WARNING : top pressure higher than PTOP detected.'
-      write(stderr,*) 'WARNING : Extrapolation will be performed.'
-    end if
-
-    ptop_in = ptop_in * d_100
-
-    np = kz_in - 1
-    call getmem1d(plev,1,np,'mod_nest:plev')
-    call getmem1d(sigmar,1,np,'mod_nest:sigmar')
-
-    call getmem2d(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
-    call getmem2d(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
-    call getmem2d(ps,1,jx_in,1,iy_in,'mod_nest:ps')
-
     call h_interpolator_create(hint,xlat_in,xlon_in,xlat,xlon,ds_in)
 
-    if ( oidyn == 2 ) then
-      call getmem3d(pp3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pp3d')
-      call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
-      istatus = nf90_inq_varid(ncid(1), 'p0', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable p0 error')
-      istatus = nf90_get_var(ncid(1), ivarid, p0_in)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable p0 read error')
-      pstar0 = p0_in - ptop_in
-    else if ( oidyn == 3 ) then
+    if ( oidyn == 3 ) then
+      call getmem2d(h_zero,1,jx_in,1,iy_in,'init_fnest:h_zero')
       call getmem3d(z_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z_in')
       call getmem3d(z3,1,jx,1,iy,1,kz_in,'mod_nest:z3')
       call getmem1d(ak_in,1,kz_in,'mod_nest:ak_in')
@@ -324,6 +308,7 @@ module mod_ch_fnest
       istatus = nf90_get_var(ncid(1), ivarid, bk_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable b read error')
+      h_zero(:,:) = 0.0_rkx
       do k = 1, kz_in
         do i = 1, iy_in
           do j = 1, jx_in
@@ -332,41 +317,57 @@ module mod_ch_fnest
         end do
       end do
       call h_interpolate_cont(hint,z_in,z3)
-    else
-      istatus = nf90_inq_varid(ncid(1), 'ps', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable ps error')
-      istart(:) = 1
-      icount(1) = jx_in
-      icount(2) = iy_in
-      icount(3) = 1
-      istatus = nf90_get_var(ncid(1), ivarid, p0_in, istart, icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable ps read error')
-      pstar0 = p0_in - ptop_in
-    end if
-
-    do ip = 1, np/2
-      plev(ip) = d_half * (minval(pstar0*sigma_in(ip+1)) + &
-                           maxval(pstar0*sigma_in(ip))) + ptop_in
-    end do
-    do ip = np/2+1, np
-      plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in
-    end do
-    if ( oidyn == 3 ) then
       call getmem3d(mxcp4,1,jx,1,iy,1,kz_in,'init_fnest:mxcp4')
     else
+      ptop_in = ptop_in * d_100
+      np = kz_in - 1
+      call getmem1d(plev,1,np,'mod_nest:plev')
+      call getmem1d(sigmar,1,np,'mod_nest:sigmar')
+
+      call getmem2d(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
+      call getmem2d(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
+      call getmem2d(ps,1,jx_in,1,iy_in,'mod_nest:ps')
+
+      if ( oidyn == 2 ) then
+        call getmem3d(pp3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pp3d')
+        call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
+        istatus = nf90_inq_varid(ncid(1), 'p0', ivarid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'variable p0 error')
+        istatus = nf90_get_var(ncid(1), ivarid, p0_in)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'variable p0 read error')
+        pstar0 = p0_in - ptop_in
+      else
+        istatus = nf90_inq_varid(ncid(1), 'ps', ivarid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'variable ps error')
+        istart(:) = 1
+        icount(1) = jx_in
+        icount(2) = iy_in
+        icount(3) = 1
+        istatus = nf90_get_var(ncid(1), ivarid, p0_in, istart, icount)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'variable ps read error')
+        pstar0 = p0_in - ptop_in
+      end if
+      do ip = 1, np/2
+        plev(ip) = d_half * (minval(pstar0*sigma_in(ip+1)) + &
+                             maxval(pstar0*sigma_in(ip))) + ptop_in
+      end do
+      do ip = np/2+1, np
+        plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in
+      end do
+      do k = 1, np
+        sigmar(k) = plev(k)/plev(np)
+      end do
+      pss = plev(np)
+      call getmem2d(xps,1,jx,1,iy,'mod_nest:xps')
+      call getmem2d(xps3,1,jx,1,iy,'mod_nest:xps3')
       call getmem3d(mxcp,1,jx_in,1,iy_in,1,np,'init_fnest:mxcp')
       call getmem3d(mxcp4,1,jx,1,iy,1,np,'init_fnest:mxcp4')
     end if
     call getmem4d(mxc4_1,1,jx,1,iy,1,kz,1,fchem,'init_fnest:mxc4_1')
-    call getmem2d(xps,1,jx,1,iy,'mod_nest:xps')
-    call getmem2d(xps3,1,jx,1,iy,'mod_nest:xps3')
-
-    do k = 1, np
-      sigmar(k) = plev(k)/plev(np)
-    end do
-    pss = plev(np)
   end subroutine init_fnest
 
   subroutine get_fnest(idate)
@@ -451,22 +452,6 @@ module mod_ch_fnest
       end do
     end if
 
-    if (.not. lsamemonth(idate, iodate) ) then
-      istatus = nf90_close(ncicbc)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error close ICBC file')
-      write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
-             trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
-      istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error open ICBC file '//trim(icbcfilename))
-      istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find var ps in icbc file '//trim(icbcfilename))
-      iodate = idate
-      irec = 1
-    end if
-
     crec = -1
     do i = 1, nrec
       if (idate == itimes(i)) then
@@ -480,6 +465,22 @@ module mod_ch_fnest
     end if
 
     if ( oidyn /= 3 ) then
+      if ( .not. lsamemonth(idate, iodate) ) then
+        istatus = nf90_close(ncicbc)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error close ICBC file')
+        write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+               trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
+        istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error open ICBC file '//trim(icbcfilename))
+        istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var ps in icbc file '//trim(icbcfilename))
+        iodate = idate
+        irec = 1
+      end if
+
       istart(3) = crec
       istart(2) = 1
       istart(1) = 1
@@ -576,12 +577,13 @@ module mod_ch_fnest
       else
         call h_interpolate_cont(hint,mxc,mxcp4)
         call intz1(mxc4_1(:,:,:,nf),mxcp4,z0,z3, &
-                   ht_in,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+                   h_zero,jx,iy,kz,kz_in,0.7_rkx,0.4_rkx,0.7_rkx)
       end if
     end do
     !
     ! Now we have to map....
     !
+    mxc4_1 = max(mxc4_1, 0.0_rkx)
     if ( mapping(1) ) then
       do i = 1, ncbmz
         chv4(:,:,:,i) = mxc4_1(:,:,:,findex(cbmzspec(i)))

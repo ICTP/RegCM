@@ -320,8 +320,7 @@ module mod_wrtoxd
     call outstream_writevar(ncoutox,v2dvar_base(2))
   end subroutine newfile_ox_icbc
 
-
-   subroutine newfile_ae_icbc(idate1)
+  subroutine newfile_ae_icbc(idate1)
     implicit none
     type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
@@ -354,7 +353,6 @@ module mod_wrtoxd
     call outstream_writevar(ncoutae,v2dvar_base(1))
     call outstream_writevar(ncoutae,v2dvar_base(2))
   end subroutine newfile_ae_icbc
-
 
   subroutine newfile_ae_icbc1(idate1)
     implicit none
@@ -441,7 +439,7 @@ module mod_wrtoxd
     end do
     write (stdout ,*) 'Write ox_icbc : ', tochar(idate)
   end subroutine write_ox_icbc
-!
+
   subroutine write_ae_icbc1(idate)
     implicit none
     type(rcm_time_and_date), intent(in) :: idate
