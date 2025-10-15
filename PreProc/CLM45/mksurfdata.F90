@@ -96,7 +96,11 @@ program mksurfdata
   integer(ik4), parameter :: nmon = 12
   integer(ik4), parameter :: nrad = 2
   integer(ik4), parameter :: nsol = 2
+#ifdef LCZ_URB
+  integer(ik4), parameter :: numurbl = 11
+#else
   integer(ik4), parameter :: numurbl = 3
+#endif
 
 #ifdef CN
 #ifndef DYNPFT

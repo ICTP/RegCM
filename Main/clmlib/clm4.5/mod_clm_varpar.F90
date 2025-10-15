@@ -94,7 +94,11 @@ module mod_clm_varpar
   ! Max number of plant functional types in naturally vegetated landunit
   integer(ik4), public, parameter :: maxpatch_pft = numpft+1
   ! Number of urban landunits
+#ifdef LCZ_URB
+  integer(ik4), public, parameter :: numurbl = 11
+#else
   integer(ik4), public, parameter :: numurbl = 3
+#endif
 
   ! Number of biogeochemically active soil layers
   integer(ik4), public :: nlevdecomp

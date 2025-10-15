@@ -68,20 +68,20 @@ module mod_mkurban
     ['CV_IMPROAD      ', 'CV_ROOF         ', 'CV_WALL         ', &
       'TK_IMPROAD      ', 'TK_ROOF         ', 'TK_WALL         ']
   character(len=36), dimension(npu3d), public, parameter :: lngn3d = &
-    ['vol heat capacity of impervious road', &
+    [ 'vol heat capacity of impervious road', &
       'vol heat capacity of roof           ', &
       'vol heat capacity of wall           ', &
       'thermal conductivity of imperv road ', &
       'thermal conductivity of roof        ', &
       'thermal conductivity of wall        ']
   character(len=8), dimension(npu3d), public, parameter :: unit3d = &
-    ['J/m^3*K ', 'J/m^3*K ', 'J/m^3*K ', &
+    [ 'J/m^3*K ', 'J/m^3*K ', 'J/m^3*K ', &
       'W/m*K   ', 'W/m*K   ', 'W/m*K   ']
   character(len=16), dimension(npu4d), public, parameter :: parm4d = &
-    ['ALB_IMPROAD     ', 'ALB_PERROAD     ', 'ALB_ROOF        ', &
+    [ 'ALB_IMPROAD     ', 'ALB_PERROAD     ', 'ALB_ROOF        ', &
       'ALB_WALL        ']
   character(len=36), dimension(npu4d), public, parameter :: lngn4d = &
-    ['albedo of impervious road           ', &
+    [ 'albedo of impervious road           ', &
       'albedo of pervious road             ', &
       'albedo of roof                      ', &
       'albedo of wall                      ']
