@@ -217,6 +217,7 @@ module mod_sst_gndnc
         scale_factor = 1.0_rkx
         cds_beta = .true.
       else
+        cds_beta = .false.
         istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var '//varname(2)//' _FillValue')
@@ -227,9 +228,7 @@ module mod_sst_gndnc
         write(stdout,*) 'Add offset   = ',add_offset
         write(stdout,*) 'Scale factor = ',scale_factor
       end if
-      if ( .not. cds_beta ) then
-        call getmem2d(worki,1,ilon,1,jlat,'mod_gndnc_sst:worki')
-      end if
+      call getmem2d(worki,1,ilon,1,jlat,'mod_gndnc_sst:worki')
       call getmem1d(glat1,1,jlat,'mod_gndnc_sst:glat')
       call getmem1d(glon1,1,ilon,'mod_gndnc_sst:glon')
       istatus = nf90_get_var(inet1,latid,glat1)
@@ -368,6 +367,7 @@ module mod_sst_gndnc
             scale_factor = 1.0_rkx
             cds_beta = .true.
           else
+            cds_beta = .false.
             istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error read var '//varname(2)//' _FillValue')
