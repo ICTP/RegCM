@@ -110,7 +110,7 @@ module mod_mkurban
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//urbanfile
     call gfopen(gfile,inpfile,xlat,xlon,ds/nsg,roidem,i_band)
-    call gfread(gfile,varname,urban,h_missing_value)
+    call gfread(gfile,varname,urban,h_missing_value,0.0_rkx,100.0_rkx)
     call gfclose(gfile)
 
     do n  = 1, nurban

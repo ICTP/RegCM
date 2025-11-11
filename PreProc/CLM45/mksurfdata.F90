@@ -1001,7 +1001,11 @@ program mksurfdata
   allocate(var3d(jxsg,iysg,iurbmax))
   call mkglacier('mksrf_glacier.nc',xmask,var3d(:,:,1))
   call mkwetland('mksrf_lanwat.nc',xmask,var3d(:,:,2),var3d(:,:,3))
+#ifdef LCZ_URB
+  call mkurban_base('lcz_mksrf_urban.nc',xmask,var3d(:,:,4:iurbmax))
+#else
   call mkurban_base('mksrf_urban.nc',xmask,var3d(:,:,4:iurbmax))
+#endif
   var3d = nint(var3d)
   if ( .not. enable_urban_landunit ) then
     write (stderr,*) 'Disable URBAN Areas in CLM4.5 Model !'
@@ -1017,8 +1021,13 @@ program mksurfdata
         pctspec(j,i) = sum(var3d(j,i,:))
         ! If 2 or more special classes at 100 % on same point
         if ( pctspec(j,i) >= 200.0_rkx ) then
-          var3d(j,i,:) = var3d(j,i,:) / (pctspec(j,i)/100.0_rkx)
+          var3d(j,i,:) = int(var3d(j,i,:)/(pctspec(j,i)/100.0_rkx))
           pctspec(j,i) = sum(var3d(j,i,:))
+          if ( pctspec(j,i) > 100.0_rkx ) then
+            iloc = maxloc(var3d(j,i,:))
+            var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) - 1.0
+            pctspec(j,i) = sum(var3d(j,i,:))
+          end if
         end if
         ! Reduce to biggest if the sum is not less equal 100
         if ( pctspec(j,i) > 100.0_rkx ) then
@@ -1272,7 +1281,11 @@ program mksurfdata
   var4d = vmisdat
   var5d = vmisdat
   var6d = vmisdat
+#ifdef LCZ_URB
+  call mkurban_param('lcz_mksrf_urban.nc',xmask,var4d,var5d,var6d)
+#else
   call mkurban_param('mksrf_urban.nc',xmask,var4d,var5d,var6d)
+#endif
   istart(1) = 1
   icount(1) = ngcells
   do iu = 1, numurbl

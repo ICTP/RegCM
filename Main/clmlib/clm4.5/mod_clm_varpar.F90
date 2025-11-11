@@ -149,9 +149,7 @@ module mod_clm_varpar
   integer(ik4), public :: max_pft_per_gcell
   integer(ik4), public :: max_pft_per_lu
   integer(ik4), public :: max_pft_per_col
-  integer(ik4), public :: npatch_urban_tbd
-  integer(ik4), public :: npatch_urban_hd
-  integer(ik4), public :: npatch_urban_md
+  integer(ik4), dimension(numurbl), public :: npatch_urban_class
 
   ! Machine epsilon
   real(rk8), public :: mach_eps
@@ -164,13 +162,15 @@ module mod_clm_varpar
   !
   subroutine clm_varpar_init()
     implicit none
+    integer(ik4) :: i
     maxpatch_urb   = 5
-    npatch_urban_tbd = maxpatch_pft + 1
-    npatch_urban_hd  = npatch_urban_tbd + maxpatch_urb
-    npatch_urban_md  = npatch_urban_hd + maxpatch_urb
-    npatch_lake      = npatch_urban_md + maxpatch_urb
-    npatch_wet     = npatch_lake  + 1
-    npatch_glacier = npatch_wet   + 1
+    npatch_urban_class(1) = maxpatch_pft + 1
+    do i = 2, numurbl
+      npatch_urban_class(i)  = npatch_urban_class(i-1) + maxpatch_urb
+    end do
+    npatch_lake    = npatch_urban_class(numurbl) + 1
+    npatch_wet     = npatch_lake + 1
+    npatch_glacier = npatch_wet + 1
     maxpatch       = npatch_glacier
     mach_eps       = epsilon(1.0_rk8)
 

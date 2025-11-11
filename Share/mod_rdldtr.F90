@@ -57,6 +57,7 @@ module mod_rdldtr
     module procedure gfread_2d_landuse
     module procedure gfread_2d3d
     module procedure gfread_3d
+    module procedure gfread_3d_class
     module procedure gfread_3d_lookup
     module procedure gfread_4d
     module procedure gfread_4d_lookup
@@ -1096,6 +1097,72 @@ module mod_rdldtr
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
   end subroutine gfread_2d3d
+
+  subroutine gfread_3d_class(gfile,vname,var,rdef,lv,uv)
+    use netcdf
+    implicit none
+    type(globalfile), intent(in) :: gfile
+    character(len=*), intent(in) :: vname
+    real(rkx), intent(in) :: rdef, lv, uv
+    real(rkx), dimension(:,:,:), intent(out) :: var
+    real(rkx), dimension(:,:,:), allocatable :: vread
+    integer(ik4) :: nlat, nlon, itile, ivar, iti, itf, nd, i, j, n
+    integer(ik4), dimension(3) :: idims, istart, icount
+
+    istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    istatus = nf90_inquire_variable(gfile%ncid,ivar,dimids=idims)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    istatus = nf90_inquire_dimension(gfile%ncid,idims(3),len=nd)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+         'Error reading dimelens for variable '//trim(vname))
+
+    nlat = gfile%gdomain%nj
+    nlon = sum(gfile%gdomain%ni)
+    allocate(vread(nlon,nlat,nd))
+
+    iti = 1
+    vread = -1000000000
+    do itile = 1, gfile%gdomain%ntiles
+      istart(1) = gfile%gdomain%igstart(itile)
+      icount(1) = gfile%gdomain%ni(itile)
+      istart(2) = gfile%gdomain%jgstart
+      icount(2) = gfile%gdomain%nj
+      istart(3) = 1
+      icount(3) = nd
+      itf = iti + gfile%gdomain%ni(itile) - 1
+      istatus = nf90_get_var(gfile%ncid,ivar,vread(iti:itf,:,:),istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+      iti = itf + 1
+    end do
+
+    if ( gfile%lmask ) then
+      do n = 1, nd
+        do i = 1, nlat
+          do j = 1, nlon
+            if ( gfile%mask(j,i) == 0 ) then
+              vread(j,i,n) = h_missing_value
+            else
+              if ( vread(j,i,n) < lv .or. &
+                   vread(j,i,n) > uv ) vread(j,i,n) = rdef
+            end if
+          end do
+        end do
+      end do
+    else
+      do n = 1, nd
+        do i = 1, nlat
+          do j = 1, nlon
+            if ( vread(j,i,n) < lv .or. &
+                 vread(j,i,n) > uv ) vread(j,i,n) = rdef
+          end do
+        end do
+      end do
+    end if
+
+    call h_interpolate_sum(gfile%hint,vread,var)
+    deallocate(vread)
+  end subroutine gfread_3d_class
 
   subroutine gfread_3d(gfile,vname,var,rdef)
     use netcdf

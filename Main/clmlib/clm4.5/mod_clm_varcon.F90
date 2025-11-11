@@ -210,9 +210,13 @@ module mod_clm_varcon
   ! urban density types
 
   integer(ik4), public, parameter :: udens_base     = 600
-  integer(ik4), public, parameter :: udens_tbd      = 601
-  integer(ik4), public, parameter :: udens_hd       = 602
-  integer(ik4), public, parameter :: udens_md       = 603
+#ifdef LCZ_URB
+  integer(ik4), public, parameter, dimension(11) :: udens_class = &
+    [ 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611 ]
+#else
+  integer(ik4), public, parameter, dimension(3) :: udens_class = &
+    [ 601, 602, 603 ]
+#endif
 
   !------------------------------------------------------------------
   ! Initialize miscellaneous radiation constants

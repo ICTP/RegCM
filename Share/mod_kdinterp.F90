@@ -29,7 +29,8 @@ module mod_kdinterp
 
   public :: h_interpolator
   public :: h_interpolator_create
-  public :: h_interpolate_cont, h_interpolate_class, h_interpolate_nn
+  public :: h_interpolate_cont, h_interpolate_class
+  public :: h_interpolate_sum, h_interpolate_nn
   public :: h_interpolator_destroy
   public :: h_missing_value
 
@@ -54,6 +55,11 @@ module mod_kdinterp
     module procedure interp_2d_nn
   end interface h_interpolate_nn
 
+  interface h_interpolate_sum
+    module procedure interp_sum_2dr
+    module procedure interp_sum_3dr
+  end interface h_interpolate_sum
+
   interface h_interpolate_class
     module procedure interp_class_2dr
     module procedure interp_class_3dr
@@ -77,7 +83,7 @@ module mod_kdinterp
   integer(ik4), parameter :: minp = 4
 
   ! Try not to chocke memory...
-  integer(ik4), parameter :: maxp = 32
+  integer(ik4), parameter :: maxp = 64
 
   real(rkx), parameter :: missl = -9999.0_rkx
   real(rkx), parameter :: h_missing_value = missl
@@ -799,6 +805,62 @@ module mod_kdinterp
       end do
     end do
   end subroutine interp_class_2dr
+
+  subroutine interp_sum_2dr(h_i,g,f)
+    implicit none
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:), intent(in) :: g
+    real(rkx), dimension(:,:), intent(out) :: f
+    real(rk8) :: wgtm
+    integer(ik4) :: i, j, ni, nj, n, si, sj
+    if ( any(shape(g) /= h_i%sshape) ) then
+      write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
+      call die('interp_class','Non conforming shape for source',1)
+    end if
+    if ( any(shape(f) /= h_i%tg%tshape) ) then
+      write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape,' /= ',shape(f)
+      call die('interp_class','Non conforming shape for target',1)
+    end if
+    nj = size(f,1)
+    ni = size(f,2)
+    do i = 1, ni
+      do j = 1, nj
+        if ( h_i%tg%ft(j,i)%np > 0 ) then
+          wgtm = h_i%tg%ft(j,i)%wgt(1)%wgt
+          si = h_i%tg%ft(j,i)%wgt(1)%i
+          sj = h_i%tg%ft(j,i)%wgt(1)%j
+          f(j,i) = g(sj,si)
+          do n = 2, h_i%tg%ft(j,i)%np
+            si = h_i%tg%ft(j,i)%wgt(n)%i
+            sj = h_i%tg%ft(j,i)%wgt(n)%j
+            f(j,i) = f(j,i) + g(sj,si)
+          end do
+          f(j,i) = f(j,i)/h_i%tg%ft(j,i)%np
+        else
+          f(j,i) = missl
+        end if
+      end do
+    end do
+  end subroutine interp_sum_2dr
+
+  subroutine interp_sum_3dr(h_i,g,f)
+    implicit none
+    type(h_interpolator), intent(in) :: h_i
+    real(rkx), dimension(:,:,:), intent(in) :: g
+    real(rkx), dimension(:,:,:), intent(out) :: f
+    integer(ik4) :: n3, n
+    n3 = size(g,3)
+    if ( n3 /= size(f,3) ) then
+      write(stderr,*) 'DIMENSION 3 g = ',size(g,3)
+      write(stderr,*) 'DIMENSION 3 f = ',size(f,3)
+      call die('interp_class_3dr','Non conforming shapes',1)
+    end if
+!$OMP PARALLEL DO
+    do n = 1, n3
+      call interp_sum_2dr(h_i,g(:,:,n),f(:,:,n))
+    end do
+!$OMP END PARALLEL DO
+  end subroutine interp_sum_3dr
 
   subroutine interp_class_3dr(h_i,g,f)
     implicit none

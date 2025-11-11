@@ -22,8 +22,8 @@ module mod_clm_surfrd
   use mod_mppparam
   use mod_clm_nchelper
   use mod_clm_varpar, only : nlevsoifl, numpft, maxpatch_pft, &
-         maxpatch, npatch_urban_tbd, npatch_urban_hd, npatch_urban_md, &
-         numurbl, npatch_lake, npatch_wet, npatch_glacier, maxpatch_urb
+         maxpatch, npatch_urban_class, numurbl, npatch_lake,  &
+         npatch_wet, npatch_glacier, maxpatch_urb
   use mod_clm_varsur, only : wtxy, vegxy, pctspec
   use mod_clm_decomp, only : get_proc_bounds, procinfo, numg
   use mod_clm_decomp, only : gcomm_gridcell
@@ -243,13 +243,13 @@ module mod_clm_surfrd
     use mod_clm_pftvarcon, only : noveg
     use mod_clm_urbaninput, only : urbinp
     use mod_clm_varpar, only : nlevurb
-    use mod_clm_varcon, only : udens_base, udens_tbd, udens_hd, udens_md
+    use mod_clm_varcon, only : udens_base, udens_class
     use mod_clm_domain, only : domain_type
     implicit none
     type(clm_filetype), intent(inout) :: ncid  ! netcdf id
     type(domain_type), intent(inout) :: ldomain
-    integer(ik4)  :: n, nl, nurb   ! indices
-    integer(ik4)  :: begg, endg     ! gcell beg/end
+    integer(ik4)  :: i, n, nl, nurb, nn  ! indices
+    integer(ik4)  :: begg, endg      ! gcell beg/end
     logical :: found                 ! temporary for error check
     integer(ik4) :: nindx            ! temporary for error check
     integer(ik4) :: nlev             ! level
@@ -375,65 +375,45 @@ module mod_clm_surfrd
       vegxy(nl,npatch_glacier)= noveg
       wtxy(nl,npatch_glacier) = pctgla(nl)/100._rk8
 
-      ! Initialize urban tall building district weights
-      n = udens_tbd - udens_base
-      do nurb = npatch_urban_tbd, npatch_urban_hd-1
+      ! Initialize urban classes weights
+
+      do i = 1 , numurbl-1
+        n = udens_class(i) - udens_base
+        nn = npatch_urban_class(i)
+        do nurb = npatch_urban_class(i), npatch_urban_class(i+1)-1
+          vegxy(nl,nurb) = noveg
+          wtxy(nl,nurb)  = pcturb(nl,n) / 100._rk8
+        end do
+        if ( pcturb(nl,n) > 0.0_rk8 )then
+          wtxy(nl,nn) = wtxy(nl,nn) * urbinp%wtlunit_roof(nl,n)
+          wtxy(nl,nn+1) = wtxy(nl,nn+1) * &
+                  (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8
+          wtxy(nl,nn+2) = wtxy(nl,nn+2) * &
+                  (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8
+          wtxy(nl,nn+3) = wtxy(nl,nn+3) * &
+                  (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8 * &
+                  (1.0_rk8 - urbinp%wtroad_perv(nl,n))
+          wtxy(nl,nn+4) = wtxy(nl,nn+4) * &
+                  (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8 * &
+                   urbinp%wtroad_perv(nl,n)
+        end if
+      end do
+      n = udens_class(numurbl) - udens_base
+      nn = npatch_urban_class(numurbl)
+      do nurb = npatch_urban_class(numurbl), npatch_lake-1
         vegxy(nl,nurb) = noveg
         wtxy(nl,nurb)  = pcturb(nl,n) / 100._rk8
       end do
       if ( pcturb(nl,n) > 0.0_rk8 )then
-        wtxy(nl,npatch_urban_tbd) = wtxy(nl,npatch_urban_tbd) * &
-                urbinp%wtlunit_roof(nl,n)
-        wtxy(nl,npatch_urban_tbd+1) = wtxy(nl,npatch_urban_tbd+1) * &
+        wtxy(nl,nn) = wtxy(nl,nn) * urbinp%wtlunit_roof(nl,n)
+        wtxy(nl,nn+1) = wtxy(nl,nn+1) * &
                 (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8
-        wtxy(nl,npatch_urban_tbd+2) = wtxy(nl,npatch_urban_tbd+2) * &
+        wtxy(nl,nn+2) = wtxy(nl,nn+2) * &
                 (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8
-        wtxy(nl,npatch_urban_tbd+3) = wtxy(nl,npatch_urban_tbd+3) * &
+        wtxy(nl,nn+3) = wtxy(nl,nn+3) * &
                 (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8 * &
                 (1.0_rk8 - urbinp%wtroad_perv(nl,n))
-        wtxy(nl,npatch_urban_tbd+4) = wtxy(nl,npatch_urban_tbd+4) * &
-                (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8 * &
-                 urbinp%wtroad_perv(nl,n)
-      end if
-
-      ! Initialize urban high density weights
-      n = udens_hd - udens_base
-      do nurb = npatch_urban_hd, npatch_urban_md-1
-        vegxy(nl,nurb) = noveg
-        wtxy(nl,nurb)  = pcturb(nl,n) / 100._rk8
-      end do
-      if ( pcturb(nl,n) > 0.0_rk8 ) then
-        wtxy(nl,npatch_urban_hd) = wtxy(nl,npatch_urban_hd) * &
-                urbinp%wtlunit_roof(nl,n)
-        wtxy(nl,npatch_urban_hd+1) = wtxy(nl,npatch_urban_hd+1) * &
-                (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8
-        wtxy(nl,npatch_urban_hd+2) = wtxy(nl,npatch_urban_hd+2) * &
-                (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8
-        wtxy(nl,npatch_urban_hd+3) = wtxy(nl,npatch_urban_hd+3) * &
-                (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8 * &
-                (1.0_rk8 - urbinp%wtroad_perv(nl,n))
-        wtxy(nl,npatch_urban_hd+4) = wtxy(nl,npatch_urban_hd+4) * &
-                (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8 * &
-                 urbinp%wtroad_perv(nl,n)
-      end if
-
-      ! Initialize urban medium density weights
-      n = udens_md - udens_base
-      do nurb = npatch_urban_md, npatch_lake-1
-        vegxy(nl,nurb) = noveg
-        wtxy(nl,nurb)  = pcturb(nl,n) / 100._rk8
-      end do
-      if ( pcturb(nl,n) > 0.0_rk8 )then
-        wtxy(nl,npatch_urban_md) = wtxy(nl,npatch_urban_md) * &
-                urbinp%wtlunit_roof(nl,n)
-        wtxy(nl,npatch_urban_md+1) = wtxy(nl,npatch_urban_md+1) * &
-                (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8
-        wtxy(nl,npatch_urban_md+2) = wtxy(nl,npatch_urban_md+2) * &
-                (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8
-        wtxy(nl,npatch_urban_md+3) = wtxy(nl,npatch_urban_md+3) * &
-                (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8 * &
-                (1.0_rk8 - urbinp%wtroad_perv(nl,n))
-        wtxy(nl,npatch_urban_md+4) = wtxy(nl,npatch_urban_md+4) * &
+        wtxy(nl,nn+4) = wtxy(nl,nn+4) * &
                 (1.0_rk8 - urbinp%wtlunit_roof(nl,n))/3.0_rk8 * &
                  urbinp%wtroad_perv(nl,n)
       end if

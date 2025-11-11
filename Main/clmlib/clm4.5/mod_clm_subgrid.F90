@@ -24,9 +24,7 @@ module mod_clm_subgrid
                              nlunits, ncols, npfts,       &
                              nveg, wtveg,                 &
                              ncrop, wtcrop,               &
-                             nurban_tbd, wturban_tbd,     &
-                             nurban_hd, wturban_hd,       &
-                             nurban_md, wturban_md,       &
+                             iurb, nurban_class, wturban_class, &
                              nlake, wtlake,               &
                              nwetland, wtwetland,         &
                              nglacier, wtglacier)
@@ -47,19 +45,12 @@ module mod_clm_subgrid
     integer(ik4), optional, intent(out) :: ncrop
     ! weight (relative to gridcell) of crop landunit
     real(rk8), optional, intent(out) :: wtcrop
-    ! number of urban pfts (columns) in urban TBD landunit
-    integer(ik4), optional, intent(out) :: nurban_tbd
-    ! weight (relative to gridcell) of urban pfts (columns) in
-    ! urban TBD landunit
-    real(rk8), optional, intent(out) :: wturban_tbd
-    ! number of urban pfts (columns) in urban HD landunit
-    integer(ik4), optional, intent(out) :: nurban_hd
-    ! weight (relative to gridcell) of urban pfts (columns) in urban HD landunit
-    real(rk8), optional, intent(out) :: wturban_hd
-    ! number of urban pfts (columns) in urban MD landunit
-    integer(ik4), optional, intent(out) :: nurban_md
-    ! weight (relative to gridcell) of urban pfts (columns) in urban MD landunit
-    real(rk8), optional, intent(out) :: wturban_md
+    ! Urban class index
+    integer(ik4), optional, intent(in) :: iurb
+    ! number of urban pfts (columns) in urban landunit
+    integer(ik4), optional, intent(out) :: nurban_class
+    ! weight (relative to gridcell) of urban pfts (columns) in urban landunit
+    real(rk8), optional, intent(out) :: wturban_class
     ! number of lake pfts (columns) in lake landunit
     integer(ik4), optional, intent(out) :: nlake
     ! weight (relative to gridcell) of lake landunitof lake pfts (columns)
@@ -73,7 +64,7 @@ module mod_clm_subgrid
     ! number of glacier pfts (columns) in glacier landunit
     integer(ik4), optional, intent(out) :: nglacier
     real(rk8), optional, intent(out) :: wtglacier
-    integer(ik4) :: m                ! loop index
+    integer(ik4) :: m, i             ! loop index
     integer(ik4) :: ipfts            ! number of pfts in gridcell
     integer(ik4) :: icols            ! number of columns in gridcell
     integer(ik4) :: ilunits          ! number of landunits in gridcell
@@ -126,11 +117,37 @@ module mod_clm_subgrid
     if ( present(nveg ) ) nveg  = npfts_per_lunit
     if ( present(wtveg) ) wtveg = wtlunit
 
-    ! Set urban tall building district landunit
+    ! Set urban landunit
+
+    do i = 1, numurbl-1
+      npfts_per_lunit = 0
+      wtlunit = 0._rk8
+      do m = npatch_urban_class(i), npatch_urban_class(i+1)-1
+        if ( wtxy(nw,m) > 0.0_rk8 ) then
+          npfts_per_lunit = npfts_per_lunit + 1
+          wtlunit = wtlunit + wtxy(nw,m)
+        end if
+      end do
+      if ( npfts_per_lunit > 0 ) then
+        ilunits = ilunits + 1
+        icols   = icols + npfts_per_lunit
+      end if
+      ipfts = ipfts + npfts_per_lunit
+      if ( present(iurb) ) then
+        if ( i == iurb ) then
+          if ( present(nurban_class ) ) then
+            nurban_class  = npfts_per_lunit
+          end if
+          if ( present(wturban_class) ) then
+            wturban_class = wtlunit
+          end if
+        end if
+      end if
+    end do
 
     npfts_per_lunit = 0
     wtlunit = 0._rk8
-    do m = npatch_urban_tbd, npatch_urban_hd-1
+    do m = npatch_urban_class(numurbl), npatch_lake-1
       if ( wtxy(nw,m) > 0.0_rk8 ) then
         npfts_per_lunit = npfts_per_lunit + 1
         wtlunit = wtlunit + wtxy(nw,m)
@@ -141,44 +158,16 @@ module mod_clm_subgrid
       icols   = icols + npfts_per_lunit
     end if
     ipfts = ipfts + npfts_per_lunit
-    if ( present(nurban_tbd ) ) nurban_tbd  = npfts_per_lunit
-    if ( present(wturban_tbd) ) wturban_tbd = wtlunit
-
-    ! Set urban high density landunit
-
-    npfts_per_lunit = 0
-    wtlunit = 0._rk8
-    do m = npatch_urban_hd, npatch_urban_md-1
-      if ( wtxy(nw,m) > 0.0_rk8 ) then
-        npfts_per_lunit = npfts_per_lunit + 1
-        wtlunit = wtlunit + wtxy(nw,m)
+    if ( present(iurb) ) then
+      if ( iurb == numurbl ) then
+        if ( present(nurban_class) ) then
+          nurban_class = npfts_per_lunit
+        end if
+        if ( present(wturban_class) ) then
+          wturban_class = wtlunit
+        end if
       end if
-    end do
-    if ( npfts_per_lunit > 0 ) then
-      ilunits = ilunits + 1
-      icols   = icols + npfts_per_lunit
     end if
-    ipfts = ipfts + npfts_per_lunit
-    if ( present(nurban_hd ) ) nurban_hd  = npfts_per_lunit
-    if ( present(wturban_hd) ) wturban_hd = wtlunit
-
-    ! Set urban medium density landunit
-
-    npfts_per_lunit = 0
-    wtlunit = 0._rk8
-    do m = npatch_urban_md, npatch_lake-1
-      if ( wtxy(nw,m) > 0.0_rk8 ) then
-        npfts_per_lunit = npfts_per_lunit + 1
-        wtlunit = wtlunit + wtxy(nw,m)
-      end if
-    end do
-    if ( npfts_per_lunit > 0 ) then
-      ilunits = ilunits + 1
-      icols   = icols + npfts_per_lunit
-    end if
-    ipfts = ipfts + npfts_per_lunit
-    if ( present(nurban_md ) ) nurban_md  = npfts_per_lunit
-    if ( present(wturban_md) ) wturban_md = wtlunit
 
     ! Set lake landunit
 

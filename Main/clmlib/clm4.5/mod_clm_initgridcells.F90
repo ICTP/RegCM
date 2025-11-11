@@ -30,13 +30,14 @@ module mod_clm_initgridcells
     use mod_clm_domain, only : ldomain
     use mod_clm_decomp, only : get_proc_global, get_proc_bounds
     use mod_clm_varcon, only : istsoil, istice, istwet, istdlak, &
-            isturb, udens_tbd, udens_hd, udens_md
+            isturb, udens_base
+    use mod_clm_varpar, only : numurbl
     use mod_clm_varcon, only : istcrop
     use mod_clm_subgrid, only : subgrid_get_gcellinfo
     use mod_clm_surfrd, only : crop_prog
 
     implicit none
-    integer(ik4) :: li, ci, pi, gdc ! indices
+    integer(ik4) :: i, li, ci, pi, gdc ! indices
     integer(ik4) :: ltype ! landunit type
     integer(ik4) :: numg    ! total number of gridcells across all processors
     integer(ik4) :: numl    ! total number of landunits across all processors
@@ -101,26 +102,13 @@ module mod_clm_initgridcells
             ltype=ltype, &
             nw=nwtxy, gi=gdc, li=li, ci=ci, pi=pi, setdata=my_gcell)
 
-      ! Determine urban tall building district landunit
+      ! Determine urban classes landunit
 
-      call set_landunit_urban( &
-!           ltype=isturb, wtxy=wtxy, vegxy=vegxy,   &
-            ltype=isturb, udenstype=udens_tbd, &
-            nw=nwtxy, gi=gdc, li=li, ci=ci, pi=pi, setdata=my_gcell)
-
-      ! Determine urban high density landunit
-
-      call set_landunit_urban( &
-!           ltype=isturb, wtxy=wtxy, vegxy=vegxy,   &
-            ltype=isturb, udenstype=udens_hd, &
-            nw=nwtxy, gi=gdc, li=li, ci=ci, pi=pi, setdata=my_gcell)
-
-      ! Determine urban medium density landunit
-
-      call set_landunit_urban( &
-!           ltype=isturb, wtxy=wtxy, vegxy=vegxy,   &
-            ltype=isturb, udenstype=udens_md, &
-            nw=nwtxy, gi=gdc, li=li, ci=ci, pi=pi, setdata=my_gcell)
+      do i = 1, numurbl
+        call set_landunit_urban(ltype=isturb, &
+              udenstype=udens_base+i, nw=nwtxy, &
+              gi=gdc, li=li, ci=ci, pi=pi, setdata=my_gcell)
+      end do
 
       ! Determine lake, wetland and glacier landunits
 
@@ -818,9 +806,8 @@ module mod_clm_initgridcells
   subroutine set_landunit_urban (ltype,udenstype,nw,gi,li,ci,pi,setdata)
     use mod_clm_varcon, only : isturb, icol_roof, icol_sunwall, &
             icol_shadewall, icol_road_perv, icol_road_imperv,    &
-            udens_tbd, udens_hd, udens_md, udens_base
-    use mod_clm_varpar, only : npatch_urban_tbd, npatch_urban_hd, &
-            npatch_urban_md, maxpatch_urb
+            udens_base
+    use mod_clm_varpar, only : numurbl, npatch_urban_class, maxpatch_urb
     use mod_clm_type, only : clm3, model_type, gridcell_type, &
             landunit_type, column_type, pft_type
     use mod_clm_subgrid, only : subgrid_get_gcellinfo
@@ -852,25 +839,14 @@ module mod_clm_initgridcells
     ! Set decomposition properties, and set variables specific to urban
     ! density type
 
-    select case (udenstype)
-      case (udens_tbd)
-        call subgrid_get_gcellinfo(nw, nurban_tbd=npfts, &
-                wturban_tbd=wtlunit2gcell)
-        npatch = npatch_urban_tbd
-      case (udens_hd)
-        call subgrid_get_gcellinfo(nw, nurban_hd=npfts, &
-                 wturban_hd=wtlunit2gcell)
-        npatch = npatch_urban_hd
-      case (udens_md)
-        call subgrid_get_gcellinfo(nw, nurban_md=npfts, &
-                wturban_md=wtlunit2gcell)
-        npatch = npatch_urban_md
-      case default
-        write(stderr,*)' set_landunit_urban: unknown udenstype: ', udenstype
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-    end select
-
     n = udenstype - udens_base
+    if ( n > numurbl .or. n < 0 ) then
+      write(stderr,*)' set_landunit_urban: unknown udenstype: ', udenstype
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
+    call subgrid_get_gcellinfo(nw, iurb=n, nurban_class=npfts, &
+                               wturban_class=wtlunit2gcell)
+    npatch = npatch_urban_class(n)
 
     if (npfts > 0) then
 
