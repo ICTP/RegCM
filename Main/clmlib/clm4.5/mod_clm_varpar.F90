@@ -168,7 +168,7 @@ module mod_clm_varpar
     do i = 2, numurbl
       npatch_urban_class(i)  = npatch_urban_class(i-1) + maxpatch_urb
     end do
-    npatch_lake    = npatch_urban_class(numurbl) + 1
+    npatch_lake    = npatch_urban_class(numurbl) + maxpatch_urb
     npatch_wet     = npatch_lake + 1
     npatch_glacier = npatch_wet + 1
     maxpatch       = npatch_glacier
