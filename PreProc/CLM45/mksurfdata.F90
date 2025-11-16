@@ -90,7 +90,6 @@ program mksurfdata
   implicit none
 
   integer(ik4) :: npft
-  integer(ik4), parameter :: nlurb = 5
   integer(ik4), parameter :: nsoil = 10
 
   integer(ik4), parameter :: nmon = 12
@@ -98,8 +97,10 @@ program mksurfdata
   integer(ik4), parameter :: nsol = 2
 #ifdef LCZ_URB
   integer(ik4), parameter :: numurbl = 11
+  integer(ik4), parameter :: nlurb = 10
 #else
   integer(ik4), parameter :: numurbl = 3
+  integer(ik4), parameter :: nlurb = 5
 #endif
 
 #ifdef CN

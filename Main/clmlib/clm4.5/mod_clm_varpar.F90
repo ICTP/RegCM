@@ -182,7 +182,11 @@ module mod_clm_varpar
     max_pft_per_col   = max(numpft+1, numcft, maxpatch_urb)
 
     nlevsoifl   =  num_soil_layers
+#ifdef LCZ_URB
+    nlevurb     =  10
+#else
     nlevurb     =  5
+#endif
     if ( .not. more_vertlayers ) then
       nlevsoi     =  nlevsoifl
       nlevgrnd    =  15

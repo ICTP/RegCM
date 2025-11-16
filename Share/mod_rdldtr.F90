@@ -737,7 +737,7 @@ module mod_rdldtr
     end if
   end subroutine partition
 
-  subroutine gfopen(gfile,cfile,xlat,xlon,ds,roi,iband)
+  subroutine gfopen(gfile,cfile,xlat,xlon,ds,roi,iband,mx)
     use netcdf
     implicit none
     type(globalfile), intent(out) :: gfile
@@ -745,6 +745,7 @@ module mod_rdldtr
     real(rkx), dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), intent(in) :: ds, roi
     integer(ik4), intent(in) :: iband
+    integer(ik4), intent(in), optional :: mx
     integer(ik4) :: nlat, nlon, n, i, j, js, itf, iti, itile
     real(rk8), dimension(:), allocatable :: glat, glon
     real(rkx), dimension(:), allocatable :: rglat, rglon
@@ -857,7 +858,11 @@ module mod_rdldtr
     end do
     deallocate(glat)
     deallocate(glon)
-    call h_interpolator_create(gfile%hint,rglat,rglon,xlat,xlon,ds,roi)
+    if ( present(mx) ) then
+      call h_interpolator_create(gfile%hint,rglat,rglon,xlat,xlon,ds,roi,mx)
+    else
+      call h_interpolator_create(gfile%hint,rglat,rglon,xlat,xlon,ds,roi)
+    end if
     deallocate(rglat)
     deallocate(rglon)
 

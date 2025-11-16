@@ -83,7 +83,7 @@ module mod_kdinterp
   integer(ik4), parameter :: minp = 4
 
   ! Try not to chocke memory...
-  integer(ik4), parameter :: maxp = 64
+  integer(ik4), parameter :: maxp = 32
 
   real(rkx), parameter :: missl = -9999.0_rkx
   real(rkx), parameter :: h_missing_value = missl
@@ -148,7 +148,7 @@ module mod_kdinterp
     end do
   end function maxedis2
 
-  subroutine interp_create_ll_g(h_i,slat,slon,tlat,tlon,ds,roi)
+  subroutine interp_create_ll_g(h_i,slat,slon,tlat,tlon,ds,roi,mxp)
     implicit none
     type(h_interpolator), intent(out) :: h_i
     real(rkx), dimension(:), intent(in) :: slat
@@ -157,11 +157,12 @@ module mod_kdinterp
     real(rkx), dimension(:,:), intent(in) :: tlon
     real(rkx), intent(in), optional :: ds
     real(rkx), intent(in), optional :: roi
+    integer(ik4), intent(in), optional :: mxp
     real(rk8), dimension(:,:), allocatable :: x
     real(kdkind), dimension(3) :: p
     type(kdtree2), pointer :: mr
     type(kdtree2_result), pointer, contiguous, dimension(:) :: results
-    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10
+    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10, mx
     real(rk8) :: dx, r2, rin
     logical :: lbil
 
@@ -190,6 +191,10 @@ module mod_kdinterp
     else
       r2 = (dx*dx)
     end if
+    mx = maxp
+    if ( present(mxp) ) then
+      mx = mxp
+    end if
     nj = size(tlat,1)
     ni = size(tlat,2)
     h_i%tg%tshape = shape(tlat)
@@ -211,14 +216,14 @@ module mod_kdinterp
             h_i%tg%ft(j,i)%np = 0
             cycle
           else
-            if ( np > maxp ) then
-              np = maxp
-              allocate(results(maxp))
-              call kdtree2_n_nearest(mr,p,np,results)
-            else
+            if ( mx == 0 .or. np < mx ) then
               allocate(results(np))
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
+            else
+              np = mx
+              allocate(results(mx))
+              call kdtree2_n_nearest(mr,p,np,results)
             end if
           end if
         end if
@@ -233,7 +238,7 @@ module mod_kdinterp
     write(stdout,'(a)') ' Done.'
   end subroutine interp_create_ll_g
 
-  subroutine interp_create_ll_ll(h_i,slat,slon,tlat,tlon,roi)
+  subroutine interp_create_ll_ll(h_i,slat,slon,tlat,tlon,roi,mxp)
     implicit none
     type(h_interpolator), intent(out) :: h_i
     real(rkx), dimension(:), intent(in) :: slat
@@ -241,11 +246,12 @@ module mod_kdinterp
     real(rkx), dimension(:), intent(in) :: tlat
     real(rkx), dimension(:), intent(in) :: tlon
     real(rkx), intent(in), optional :: roi
+    integer(ik4), intent(in), optional :: mxp
     real(rk8), dimension(:,:), allocatable :: x
     real(kdkind), dimension(3) :: p
     type(kdtree2), pointer :: mr
     type(kdtree2_result), pointer, contiguous, dimension(:) :: results
-    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10
+    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10, mx
     real(rk8) :: dx, dx1, r2, rin, rin1
     logical :: lbil
 
@@ -271,6 +277,10 @@ module mod_kdinterp
     else
       r2 = (dx*dx)
     end if
+    mx = maxp
+    if ( present(mxp) ) then
+      mx = mxp
+    end if
     ni = size(tlat)
     nj = size(tlon)
     h_i%tg%tshape(1) = nj
@@ -293,14 +303,14 @@ module mod_kdinterp
             h_i%tg%ft(j,i)%np = 0
             cycle
           else
-            if ( np > maxp ) then
-              np = maxp
-              allocate(results(maxp))
-              call kdtree2_n_nearest(mr,p,np,results)
-            else
+            if ( mx == 0 .or. np < mx ) then
               allocate(results(np))
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
+            else
+              np = mx
+              allocate(results(mx))
+              call kdtree2_n_nearest(mr,p,np,results)
             end if
           end if
         end if
@@ -354,7 +364,7 @@ module mod_kdinterp
     write(stdout,'(a)') ' Done.'
   end subroutine interp_create_ll_ll_1d
 
-  subroutine interp_create_g_g(h_i,slat,slon,tlat,tlon,ds,roi)
+  subroutine interp_create_g_g(h_i,slat,slon,tlat,tlon,ds,roi,mxp)
     implicit none
     type(h_interpolator), intent(out) :: h_i
     real(rkx), dimension(:,:), intent(in) :: slat
@@ -363,11 +373,12 @@ module mod_kdinterp
     real(rkx), dimension(:,:), intent(in) :: tlon
     real(rkx), intent(in), optional :: ds
     real(rkx), intent(in), optional :: roi
+    integer(ik4), intent(in), optional :: mxp
     real(rk8), dimension(:,:), allocatable :: x
     real(kdkind), dimension(3) :: p
     type(kdtree2), pointer :: mr
     type(kdtree2_result), pointer, contiguous, dimension(:) :: results
-    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10
+    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10, mx
     real(rk8) :: dx, r2, rin
     logical :: lbil
 
@@ -399,6 +410,10 @@ module mod_kdinterp
     else
       r2 = (dx*dx)
     end if
+    mx = maxp
+    if ( present(mxp) ) then
+      mx = mxp
+    end if
     ni = size(tlat,2)
     nj = size(tlat,1)
     h_i%tg%tshape = shape(tlat)
@@ -420,14 +435,14 @@ module mod_kdinterp
             h_i%tg%ft(j,i)%np = 0
             cycle
           else
-            if ( np > maxp ) then
-              np = maxp
-              allocate(results(maxp))
-              call kdtree2_n_nearest(mr,p,np,results)
-            else
+            if ( mx == 0 .or. np < mx ) then
               allocate(results(np))
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
+            else
+              np = mx
+              allocate(results(mx))
+              call kdtree2_n_nearest(mr,p,np,results)
             end if
           end if
         end if
@@ -442,7 +457,7 @@ module mod_kdinterp
     write(stdout,'(a)') ' Done.'
   end subroutine interp_create_g_g
 
-  subroutine interp_create_g_ll(h_i,slat,slon,tlat,tlon,roi)
+  subroutine interp_create_g_ll(h_i,slat,slon,tlat,tlon,roi,mxp)
     implicit none
     type(h_interpolator), intent(out) :: h_i
     real(rkx), dimension(:,:), intent(in) :: slat
@@ -450,11 +465,12 @@ module mod_kdinterp
     real(rkx), dimension(:), intent(in) :: tlat
     real(rkx), dimension(:), intent(in) :: tlon
     real(rkx), intent(in), optional :: roi
+    integer(ik4), intent(in), optional :: mxp
     real(rk8), dimension(:,:), allocatable :: x
     real(kdkind), dimension(3) :: p
     type(kdtree2), pointer :: mr
     type(kdtree2_result), pointer, contiguous, dimension(:) :: results
-    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10
+    integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10, mx
     real(rk8) :: dx, dx1, r2, rin, rin1
     logical :: lbil
 
@@ -483,6 +499,10 @@ module mod_kdinterp
     else
       r2 = (dx*dx)
     end if
+    mx = maxp
+    if ( present(mxp) ) then
+      mx = mxp
+    end if
     ni = size(tlat)
     nj = size(tlon)
     h_i%tg%tshape(1) = nj
@@ -505,14 +525,14 @@ module mod_kdinterp
             h_i%tg%ft(j,i)%np = 0
             cycle
           else
-            if ( np > maxp ) then
-              np = maxp
-              allocate(results(maxp))
-              call kdtree2_n_nearest(mr,p,np,results)
-            else
+            if ( mx == 0 .or. np < mx ) then
               allocate(results(np))
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
+            else
+              np = mx
+              allocate(results(mx))
+              call kdtree2_n_nearest(mr,p,np,results)
             end if
           end if
         end if
@@ -811,7 +831,6 @@ module mod_kdinterp
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
-    real(rk8) :: wgtm
     integer(ik4) :: i, j, ni, nj, n, si, sj
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
@@ -826,11 +845,8 @@ module mod_kdinterp
     do i = 1, ni
       do j = 1, nj
         if ( h_i%tg%ft(j,i)%np > 0 ) then
-          wgtm = h_i%tg%ft(j,i)%wgt(1)%wgt
-          si = h_i%tg%ft(j,i)%wgt(1)%i
-          sj = h_i%tg%ft(j,i)%wgt(1)%j
-          f(j,i) = g(sj,si)
-          do n = 2, h_i%tg%ft(j,i)%np
+          f(j,i) = 0.0_rkx
+          do n = 1, h_i%tg%ft(j,i)%np
             si = h_i%tg%ft(j,i)%wgt(n)%i
             sj = h_i%tg%ft(j,i)%wgt(n)%j
             f(j,i) = f(j,i) + g(sj,si)
