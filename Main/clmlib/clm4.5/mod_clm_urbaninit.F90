@@ -96,8 +96,8 @@ module mod_clm_urbaninit
         z_0_town(l) = 2.2_rk8
 #else
         z_0_town(l) = ht_roof(l) * (1._rk8 - z_d_town(l) / ht_roof(l)) * &
-                      exp(-1.0_rk8 * (0.5_rk8 * beta * C_d / vkc**2 * &
-                      (1 - z_d_town(l) / ht_roof(l)) * frontal_ai)**(-0.5_rk8))
+              exp(-1.0_rk8 * (0.5_rk8 * beta * C_d / vkc**2 *            &
+              (1.0_rk8 - z_d_town(l) / ht_roof(l)) * frontal_ai)**(-0.5_rk8))
 #endif
       end if
     end do

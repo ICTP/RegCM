@@ -141,6 +141,9 @@ module mod_clm_initimeconst
     ! decay factor (m)
     real(rk8), pointer, contiguous :: hkdepth(:)
     integer(ik4), pointer, contiguous :: isoicol(:)  ! soil color class
+#ifdef HAMSTER_ALBEDO
+    real(rk8), pointer, contiguous :: hamster_alb(:,:)
+#endif
 #ifdef CN
     real(rk8), pointer, contiguous :: q10(:)
     real(rk8), pointer, contiguous :: ndep(:)
@@ -198,7 +201,7 @@ module mod_clm_initimeconst
     integer(ik4)  :: j, ib, lev ! indices
     ! integer(ik4)  :: bottom
     integer(ik4)  :: g, l, c, p             ! indices
-    integer(ik4)  :: m                         ! vegetation type index
+    integer(ik4)  :: m                      ! vegetation type index
     real(rk8) :: tkm     ! mineral conductivity
     real(rk8) :: xksat   ! maximum hydraulic conductivity of soil [mm/s]
     real(rk8) :: thick_equal = 0.2_rk8
@@ -228,6 +231,9 @@ module mod_clm_initimeconst
     real(rk8), pointer, contiguous :: efisop2d(:,:)  ! read in - isoprene emission factors
 
     integer(ik4) ,pointer, contiguous :: soic2d(:)    ! read in - soil color
+#ifdef HAMSTER_ALBEDO
+    real(rk8), pointer, contiguous :: alb3d(:,:)      ! Albedo
+#endif
 
     ! added by F. Li and S. Levis
     real(rk8), pointer, contiguous :: gdp(:)         ! global gdp data
@@ -316,6 +322,9 @@ module mod_clm_initimeconst
     allocate(abm(begg:endg))
 
     allocate(soic2d(begg:endg), gti(begg:endg))
+#ifdef HAMSTER_ALBEDO
+    allocate(alb3d(begg:endg,numrad))
+#endif
 #ifdef LCH4
     !allocate(zwt0_in(begg:endg))
     !allocate(f0_in(begg:endg))
@@ -396,6 +405,9 @@ module mod_clm_initimeconst
     pH              => clm3%g%l%c%cps%pH
 #endif
     isoicol         => clm3%g%l%c%cps%isoicol
+#ifdef HAMSTER_ALBEDO
+    hamster_alb     => clm3%g%l%c%cps%hamster_alb
+#endif
 
 #ifdef CN
     q10            => clm3%g%l%c%cps%q10
@@ -564,6 +576,10 @@ module mod_clm_initimeconst
 
     ! Read in soil color, sand and clay fraction
     call clm_readvar(ncid,'SOIL_COLOR',soic2d,gcomm_gridcell)
+
+#ifdef HAMSTER_ALBEDO
+    call clm_readvar(ncid,'albedo',alb3d,gcomm_gridcell)
+#endif
 
     ! Read in GDP data added by F. Li and S. Levis
     call clm_readvar(ncid,'gdp',gdp,gcomm_gridcell)
@@ -1124,6 +1140,12 @@ module mod_clm_initimeconst
       ! Soil color
       isoicol(c) = soic2d(g)
 
+#ifdef HAMSTER_ALBEDO
+      do j = 1 , numrad
+        hamster_alb(c,j) = alb3d(g,j)
+      end do
+#endif
+
       ! Soil hydraulic and thermal properties
       ! Note that urban roof, sunwall and shadewall thermal properties used to
       ! derive thermal conductivity and heat capacity are set to special
@@ -1567,6 +1589,9 @@ module mod_clm_initimeconst
 #endif
     deallocate(gdp,peatf,abm) ! F. Li and S. Levis
     deallocate(soic2d,sand3d,clay3d,gti,organic3d)
+#ifdef HAMSTER_ALBEDO
+    deallocate(alb3d)
+#endif
     deallocate(zisoifl,zsoifl,dzsoifl)
     deallocate(temp_ef,efisop2d)
 #ifdef LCH4

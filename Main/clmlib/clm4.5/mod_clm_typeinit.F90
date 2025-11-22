@@ -1554,7 +1554,9 @@ module mod_clm_typeinit
 
     allocate(cps%snl(ibeg:iend))      !* cannot be averaged up
     allocate(cps%isoicol(ibeg:iend), source=bigint)  !* cannot be averaged up
-
+#ifdef HAMSTER_ALBEDO
+    allocate(cps%hamster_alb(ibeg:iend,numrad), source=nan)
+#endif
     ! F. Li and S. Levis
     allocate(cps%gdp_lf(ibeg:iend), source=nan)
     allocate(cps%peatf_lf(ibeg:iend), source=nan)

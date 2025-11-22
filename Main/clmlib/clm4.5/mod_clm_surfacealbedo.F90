@@ -1001,6 +1001,9 @@ module mod_clm_surfacealbedo
     integer(ik4), pointer, contiguous, dimension(:) :: ltype
     ! soil color class
     integer(ik4), pointer, contiguous, dimension(:) :: isoicol
+#ifdef HAMSTER_ALBEDO
+    real(rk8), pointer, contiguous, dimension(:,:) :: hamster_alb
+#endif
     ! ground temperature (Kelvin)
     real(rk8), pointer, contiguous, dimension(:) :: t_grnd
     ! volumetric soil water [m3/m3]
@@ -1038,6 +1041,9 @@ module mod_clm_surfacealbedo
 
     clandunit  => clm3%g%l%c%landunit
     isoicol    => clm3%g%l%c%cps%isoicol
+#ifdef HAMSTER_ALBEDO
+    hamster_alb => clm3%g%l%c%cps%hamster_alb
+#endif
     t_grnd     => clm3%g%l%c%ces%t_grnd
     h2osoi_vol => clm3%g%l%c%cws%h2osoi_vol
     albgrd     => clm3%g%l%c%cps%albgrd
@@ -1060,11 +1066,15 @@ module mod_clm_surfacealbedo
           l = clandunit(c)
           if ( ltype(l) == istsoil .or. ltype(l) == istcrop )  then ! soil
             inc    = max(0.11_rk8-0.40_rk8*h2osoi_vol(c,1), 0._rk8)
+#ifdef HAMSTER_ALBEDO
+            albsod(c,ib) = hamster_alb(c,ib)+inc
+#else
             soilcol = isoicol(c)
             ! changed from local variable to clm_type:
             !albsod = min(albsat(soilcol,ib)+inc, albdry(soilcol,ib))
             !albsoi = albsod
             albsod(c,ib) = min(albsat(soilcol,ib)+inc, albdry(soilcol,ib))
+#endif
             albsoi(c,ib) = albsod(c,ib)
           else if ( ltype(l) == istice ) then ! land ice
             ! changed from local variable to clm_type:

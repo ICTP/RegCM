@@ -63,6 +63,7 @@ program mksurfdata
   use mod_mkvocef
   use mod_mkorganic
   use mod_mklake
+  use mod_mkalbedo
   use mod_zita
   use netcdf
 #ifdef CN
@@ -132,6 +133,9 @@ program mksurfdata
   integer(ik4) :: ipft2dvar, iglc2dvar, iwet2dvar, ilake2dvar, iurban2dvar
   integer(ik4) :: ipftvar, ilaivar, isaivar, ivgtopvar, ivgbotvar
   integer(ik4) :: ifmaxvar, isoilcolvar, isandvar, iclayvar
+#ifdef HAMSTER_ALBEDO
+  integer(ik4) :: ialbedovar
+#endif
   integer(ik4) :: islopevar, istdvar, igdpvar, ipeatfvar, iabmvar
   integer(ik4) :: ief_btrvar, ief_crpvar, ief_fdtvar, ief_fetvar
   integer(ik4) :: ief_grsvar, ief_shrvar, iorganicvar, idepthvar
@@ -610,6 +614,17 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add soilcol long_name')
   istatus = nf90_put_att(ncid, isoilcolvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add soilcol units')
+#ifdef HAMSTER_ALBEDO
+  ivdims(1) = idims(7)
+  ivdims(2) = idims(10)
+  istatus = nf90_def_var(ncid, 'albedo', nf90_float, &
+                         ivdims(1:2),ialbedovar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var albedo')
+  istatus = nf90_put_att(ncid, ialbedovar, 'long_name', 'ALBEDO')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add albedo long_name')
+  istatus = nf90_put_att(ncid, ialbedovar, 'units','1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add albedo units')
+#endif
 
   istatus = nf90_def_var(ncid, 'gdp', regcm_vartype, idims(7),igdpvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var gdp')
@@ -1191,6 +1206,26 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write soil color')
   deallocate(ivar2d)
 
+#ifdef HAMSTER_ALBEDO
+  allocate(var3d(jxsg,iysg,2))
+  call mkalbedo('mksrf_albedo.nc',xmask,var3d)
+  call mypack(var3d(:,:,1),gcvar)
+  istart(1) = 1
+  icount(1) = ngcells
+  istart(2) = 1
+  icount(2) = 1
+  istatus = nf90_put_var(ncid, ialbedovar, gcvar, istart(1:2), icount(1:2))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write albedo')
+  call mypack(var3d(:,:,2),gcvar)
+  istart(1) = 1
+  icount(1) = ngcells
+  istart(2) = 2
+  icount(2) = 1
+  istatus = nf90_put_var(ncid, ialbedovar, gcvar, istart(1:2), icount(1:2))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write albedo')
+  deallocate(var3d)
+#endif
+
   allocate(var4d(jxsg,iysg,nsoil,2))
   call mksoitex('mksrf_soitex.nc',xmask,var4d(:,:,:,1),var4d(:,:,:,2))
   do il = 1, nsoil
@@ -1208,6 +1243,28 @@ program mksurfdata
   deallocate(var4d)
 
   write(stdout,*) 'Created soil texture/color informations...'
+
+#ifdef HAMSTER_ALBEDO
+  allocate(var3d(jxsg,iysg,2))
+  call mkalbedo('mksrf_albedo.nc',xmask,var3d)
+  call mypack(var3d(:,:,1),gcvar)
+  istart(1) = 1
+  icount(1) = ngcells
+  istart(2) = 1
+  icount(2) = 1
+  istatus = nf90_put_var(ncid, ialbedovar, gcvar, istart(1:2), icount(1:2))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write albedo')
+  call mypack(var3d(:,:,2),gcvar)
+  istart(1) = 1
+  icount(1) = ngcells
+  istart(2) = 2
+  icount(2) = 1
+  istatus = nf90_put_var(ncid, ialbedovar, gcvar, istart(1:2), icount(1:2))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write albedo')
+  deallocate(var3d)
+
+  write(stdout,*) 'Created albedo informations...'
+#endif
 
   allocate(var2d(jxsg,iysg))
   call mkgdp('mksrf_gdp.nc',xmask,var2d)

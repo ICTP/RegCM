@@ -1999,6 +1999,9 @@ module mod_clm_type
     integer(ik4), pointer, contiguous, dimension(:) :: snl
     !soil color class
     integer(ik4), pointer, contiguous, dimension(:) :: isoicol
+#ifdef HAMSTER_ALBEDO
+    real(rk8), pointer, contiguous, dimension(:,:) :: hamster_alb
+#endif
     !F. Li and S. Levis
     ! global real gdp data (k US$/capita)
     real(rk8), pointer, contiguous, dimension(:) :: gdp_lf
