@@ -705,7 +705,7 @@ module mod_clm_soiltemperature
     ! set up compact matrix for band diagonal solver, requires additional
     !     sub/super diagonals (1 each), and one additional row for t_h2osfc
     !$acc kernels
-    jtop = -9999
+    jtop(lbc:ubc) = -9999
     !$acc end kernels
     do concurrent ( fc = 1:num_nolakec )
       c = filter_nolakec(fc)

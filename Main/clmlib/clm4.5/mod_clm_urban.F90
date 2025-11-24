@@ -3204,9 +3204,9 @@ module mod_clm_urban
     ! Set constants (same as in Biogeophysics1Mod)
     ! Should be set to the same values as in Biogeophysics1Mod
     !$acc kernels
-    beta(:) = 1._rk8
+    beta(lbl:ubl) = 1._rk8
     ! Should be set to the same values as in Biogeophysics1Mod
-    zii(:)  = 1000._rk8
+    zii(lbl:ubl)  = 1000._rk8
     !$acc end kernels
 
     ! Get current date
@@ -3267,7 +3267,7 @@ module mod_clm_urban
       write (stderr,*) 'ht_roof, z_d_town, z_0_town: ', &
               ht_roof(flerr_r), z_d_town(lerr_r), z_0_town(lerr_r)
       call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if 
+    end if
 
     if ( found_h ) then
       write (stderr,*) 'aerodynamic parameter error in UrbanFluxes'
@@ -3304,16 +3304,16 @@ module mod_clm_urban
 
     ! Initialize conductances
     !$acc kernels
-    wtus_roof(:)        = 0._rk8
-    wtus_road_perv(:)   = 0._rk8
-    wtus_road_imperv(:) = 0._rk8
-    wtus_sunwall(:)     = 0._rk8
-    wtus_shadewall(:)   = 0._rk8
-    wtuq_roof(:)        = 0._rk8
-    wtuq_road_perv(:)   = 0._rk8
-    wtuq_road_imperv(:) = 0._rk8
-    wtuq_sunwall(:)     = 0._rk8
-    wtuq_shadewall(:)   = 0._rk8
+    wtus_roof(lbl:ubl)        = 0._rk8
+    wtus_road_perv(lbl:ubl)   = 0._rk8
+    wtus_road_imperv(lbl:ubl) = 0._rk8
+    wtus_sunwall(lbl:ubl)     = 0._rk8
+    wtus_shadewall(lbl:ubl)   = 0._rk8
+    wtuq_roof(lbl:ubl)        = 0._rk8
+    wtuq_road_perv(lbl:ubl)   = 0._rk8
+    wtuq_road_imperv(lbl:ubl) = 0._rk8
+    wtuq_sunwall(lbl:ubl)     = 0._rk8
+    wtuq_shadewall(lbl:ubl)   = 0._rk8
     !$acc end kernels
 
     ! Make copies so that array sections are not passed in function calls

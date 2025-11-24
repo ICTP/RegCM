@@ -156,7 +156,7 @@ module mod_clm_dust
     wtlunit         => clm3%g%l%c%p%wtlunit
 
     !$acc kernels
-    ttlai(:) = 0._rk8
+    ttlai(lbp:ubp) = 0._rk8
     !$acc end kernels
     ! make lai average at landunit level
     do concurrent ( fp = 1:num_nolakep )
@@ -165,8 +165,8 @@ module mod_clm_dust
     enddo
 
     !$acc kernels
-    tlai_lu(:) = spval
-    sumwt(:) = 0._rk8
+    tlai_lu(lbl:ubl) = spval
+    sumwt(lbl:ubl) = 0._rk8
     !$acc end kernels
     do concurrent ( p = lbp:ubp )
       if (ttlai(p) /= spval .and. pactive(p) .and. wtlunit(p) /= 0._rk8) then
@@ -206,7 +206,7 @@ module mod_clm_dust
 
     ! initialize variables which get passed to the atmosphere
     !$acc kernels
-    flx_mss_vrt_dst(lbp:ubp,:) = 0._rk8
+    flx_mss_vrt_dst(lbp:ubp,1:ndst) = 0._rk8
     lnd_frc_mbl_dst(lbp:ubp)   = 0._rk8
     !$acc end kernels
 

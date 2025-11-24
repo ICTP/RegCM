@@ -315,15 +315,15 @@ module mod_clm_snowhydrology
     ! 5) update mass concentration of aerosol accordingly
 
     !$acc kernels
-    qin(:) = 0._rk8
-    qin_bc_phi(:) = 0._rk8
-    qin_bc_pho(:) = 0._rk8
-    qin_oc_phi(:) = 0._rk8
-    qin_oc_pho(:) = 0._rk8
-    qin_dst1(:)   = 0._rk8
-    qin_dst2(:)   = 0._rk8
-    qin_dst3(:)   = 0._rk8
-    qin_dst4(:)   = 0._rk8
+    qin(lbc:ubc)        = 0._rk8
+    qin_bc_phi(lbc:ubc) = 0._rk8
+    qin_bc_pho(lbc:ubc) = 0._rk8
+    qin_oc_phi(lbc:ubc) = 0._rk8
+    qin_oc_pho(lbc:ubc) = 0._rk8
+    qin_dst1(lbc:ubc)   = 0._rk8
+    qin_dst2(lbc:ubc)   = 0._rk8
+    qin_dst3(lbc:ubc)   = 0._rk8
+    qin_dst4(lbc:ubc)   = 0._rk8
     !$acc end kernels
 
     do concurrent ( fc = 1:num_snowc )
@@ -635,7 +635,7 @@ module mod_clm_snowhydrology
     ! are only invoked if snl(c) < 0
 
     !$acc kernels
-    burden(:) = 0._rk8
+    burden(lbc:ubc) = 0._rk8
     !$acc end kernels
 
     do concurrent ( fc = 1:num_snowc )
@@ -791,10 +791,10 @@ module mod_clm_snowhydrology
     integer(ik4) :: neibor            ! adjacent node selected for combination
     real(rk8):: zwice(lbc:ubc)        ! total ice mass in snow
     real(rk8):: zwliq (lbc:ubc)       ! total liquid water in snow
-    real(rk8):: dzmin(5)              ! minimum of top snow layer
     real(rk8):: dzminloc(5)           ! minimum of top snow layer (local)
 
-    data dzmin /0.010_rk8, 0.015_rk8, 0.025_rk8, 0.055_rk8, 0.115_rk8/
+    real(rk8), parameter, dimension(5) :: dzmin = &
+      [ 0.010_rk8, 0.015_rk8, 0.025_rk8, 0.055_rk8, 0.115_rk8 ]
 
     ! Assign local pointers to derived subtypes (landunit-level)
 
@@ -829,9 +829,7 @@ module mod_clm_snowhydrology
     ! Check the mass of ice lens of snow, when the total is less than
     ! a small value, combine it with the underlying neighbor.
 
-    !$acc kernels
-    dzminloc(:) = dzmin(:) ! dzmin will stay constant between timesteps
-    !$acc end kernels
+    dzminloc(1:5) = dzmin(1:5) ! dzmin will stay constant between timesteps
 
     ! Add lsadz to dzmin for lakes
     ! Determine whether called from SLakeHydrology
@@ -841,9 +839,7 @@ module mod_clm_snowhydrology
       c = filter_snowc(1)
       l = clandunit(c)
       if (ltype(l) == istdlak) then ! Called from SLakeHydrology
-        !$acc kernels
-        dzminloc(:) = dzmin(:) + lsadz
-        !$acc end kernels
+        dzminloc(1:5) = dzmin(1:5) + lsadz
       end if
     end if
 

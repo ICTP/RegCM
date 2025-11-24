@@ -402,13 +402,13 @@ module mod_clm_slaketemperature
     ! Needed for Lahey compiler which doesn't seem to allow shortcircuit
     ! logic for undefined variables.
     !$acc kernels
-    puddle = .false.
-    frzn = .false.
-    bottomconvect = .false.
-    a = 0.0_rk8
-    b = 0.0_rk8
-    c1 = 0.0_rk8
-    r = 0.0_rk8
+    puddle(lbc:ubc) = .false.
+    frzn(lbc:ubc) = .false.
+    bottomconvect(lbc:ubc) = .false.
+    a(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)  = 0.0_rk8
+    b(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)  = 0.0_rk8
+    c1(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd) = 0.0_rk8
+    r(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)  = 0.0_rk8
     !$acc end kernels
 
     ! Begin calculations

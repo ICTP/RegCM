@@ -906,10 +906,10 @@ module mod_clm_soilhydrology
     ! variable arrays instead of pointers
 
     !$acc kernels
-    amx = 0.0_rk8
-    bmx = 0.0_rk8
-    cmx = 0.0_rk8
-    rmx = 0.0_rk8
+    amx(lbc:ubc,1:nlevsoi+1) = 0.0_rk8
+    bmx(lbc:ubc,1:nlevsoi+1) = 0.0_rk8
+    cmx(lbc:ubc,1:nlevsoi+1) = 0.0_rk8
+    rmx(lbc:ubc,1:nlevsoi+1) = 0.0_rk8
     !$acc end kernels
 
     do concurrent ( fc = 1:num_hydrologyc, j = 1:nlevsoi )
@@ -937,7 +937,7 @@ module mod_clm_soilhydrology
     ! of the PFT and the PFTs area relative to all PFTs.
 
     !$acc kernels
-    temp(:) = 0.0_rk8
+    temp(lbc:ubc) = 0.0_rk8
     !$acc end kernels
 
     do concurrent ( fc = 1:num_hydrologyc, j = 1:nlevsoi )
@@ -1551,7 +1551,7 @@ module mod_clm_soilhydrology
       ! use analytical expression for aquifer specific yield
       rous = watsat(c,nlevsoi) * ( 1.0_rk8 - &
               (1.0_rk8+1.e3_rk8*zwt(c)/sucsat(c,nlevsoi))**(-1.0_rk8/bsw(c,nlevsoi)))
-      rous = max(rous,0.02_rk8) 
+      rous = max(rous,0.02_rk8)
 
        ! water table is below the soil column
       if ( jwt(c) == nlevsoi ) then

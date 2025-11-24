@@ -153,24 +153,24 @@ module mod_clm_banddiagonal
 !!$*  + need not be set on entry, but are required by the routine to store
 !!$*  elements of U because of fill-in resulting from the row interchanges.
 
-    !OPEN(unit=10, file='filter.dat', form='unformatted')        
-    !write (10) numf,lbc, ubc,lbj, ubj,filter 
+    !OPEN(unit=10, file='filter.dat', form='unformatted')
+    !write (10) numf,lbc, ubc,lbj, ubj,filter
     !close(10)
 !
-!    OPEN(unit=10, file='jtop.dat', form='unformatted')        
-!    write (10) numf,jtop 
+!    OPEN(unit=10, file='jtop.dat', form='unformatted')
+!    write (10) numf,jtop
 !    close(10)
 !
-!    OPEN(unit=10, file='jbot.dat', form='unformatted')        
-!    write (10) numf,jbot 
+!    OPEN(unit=10, file='jbot.dat', form='unformatted')
+!    write (10) numf,jbot
 !    close(10)
 !
-!    OPEN(unit=10, file='b.dat', form='unformatted')        
-!    write (10) b 
+!    OPEN(unit=10, file='b.dat', form='unformatted')
+!    write (10) b
 !    close(10)
 !
-!    OPEN(unit=10, file='r.dat', form='unformatted')        
-!    write (10) r 
+!    OPEN(unit=10, file='r.dat', form='unformatted')
+!    write (10) r
 !    close(10)
 
     !Set up input matrix AB
@@ -232,8 +232,8 @@ module mod_clm_banddiagonal
       deallocate(ipiv)
       deallocate(result)
     end do
-!    OPEN(unit=10, file='u.dat', form='unformatted')        
-!    write (10) u 
+!    OPEN(unit=10, file='u.dat', form='unformatted')
+!    write (10) u
 !    close(10)
 !    stop
   end subroutine BandDiagonal_cpu
@@ -271,7 +271,7 @@ subroutine BandDiagonal_gpu(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
     integer(ik4)  :: kl,ku                     !number of sub/super diagonals
     integer(ik4), allocatable :: cnt(:)        !array for histogram
     integer(ik4), allocatable :: ind(:)        !array for indices
-    integer(ik4) :: nSets                      !How many 
+    integer(ik4) :: nSets                      !How many
     integer :: maxbuffer,maxdim           ! Values to dimension device arrays
     logical, allocatable :: mask(:)            !mask used to compact array
     integer(ik4), dimension(:), allocatable :: indices, sizes,locind
@@ -309,14 +309,10 @@ subroutine BandDiagonal_gpu(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
     ! They will be the positions in the cnt array with non-zero value.
     ! The non-zero value at each position will indicate how many pentadiagonal
     ! system of that size we can batch together
-    allocate (cnt(numf))
+    allocate (cnt(numf), source=0)
     allocate (ind(numf))
     !allocate (sizes(numf))
     !allocate (locind(numf))
-
-    !$acc kernels
-    cnt=0
-    !$acc end kernels
 
     !$acc parallel loop copyout(cnt)
     do fc = 1, numf
@@ -366,21 +362,21 @@ subroutine BandDiagonal_gpu(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
     !$acc data create(d_buffer,d_W,d_U,d_M,d_L,d_S,d_X)
 
     ! Loop over the sets of pentadiagonal systems batching all the ones with same dimension
-    ! starting from the larger one 
+    ! starting from the larger one
     do i=1,nSets
        ! find out current n and batchsize
        n=sizes(i)
        ! Standard F90 on filter
        ! In the gather/scatter: ci=locind(k)
         batchSize=cnt(n)
-        mask = ( ind ==n ) 
+        mask = ( ind ==n )
         locind=pack(filter,mask)
 
        ! Using packloc ( but we are processin ind instead of filter, so we will need an extra
        ! indirection for ci later on: ci=filter(locind(k))
 
        !!$acc host_data use_device(locind,ind)
-       !locind = packloc( ind .eq. n, count=batchSize )   ! will contain the indices of the 
+       !locind = packloc( ind .eq. n, count=batchSize )   ! will contain the indices of the
        !!$acc end host_data
 
        ! Pack the coefficients for cuSparse, expecting arrays(batchsize,n)
