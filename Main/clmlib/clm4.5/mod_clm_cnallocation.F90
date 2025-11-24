@@ -46,7 +46,8 @@ module mod_clm_cnallocation
 
   contains
 
-  logical function CNAllocation_Carbon_only()
+  pure logical function CNAllocation_Carbon_only()
+    !$acc routine seq
     CNAllocation_Carbon_only = carbon_only
   end function CNAllocation_Carbon_only
 

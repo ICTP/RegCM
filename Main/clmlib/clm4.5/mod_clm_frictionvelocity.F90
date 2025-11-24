@@ -164,13 +164,15 @@ module mod_clm_frictionvelocity
       end if
 
       if (zeta(n) < 0._rk8) then
-        vds_tmp = 2.e-3_rk8*ustar(n) * ( 1._rk8 + (300._rk8/(-obu(n)))**0.666_rk8)
+        vds_tmp = 2.e-3_rk8*ustar(n) * &
+          ( 1._rk8 + (300._rk8/(-obu(n)))**0.666_rk8)
       else
         vds_tmp = 2.e-3_rk8*ustar(n)
       end if
 
       if (present(landunit_index)) then
-        do pp = pfti(n),pftf(n)
+        !$acc loop seq
+        do pp = pfti(n), pftf(n)
           vds(pp) = vds_tmp
         end do
       else
@@ -191,6 +193,7 @@ module mod_clm_frictionvelocity
       ! If forcing height is less than or equal to 10m,
       ! then set 10-m wind to um
       if (present(landunit_index)) then
+        !$acc loop seq
         do pp = pfti(n),pftf(n)
           if (zldis(n)-z0m(n) <= 10._rk8) then
             u10_clm(pp) = um(n)
@@ -411,6 +414,7 @@ module mod_clm_frictionvelocity
         tmp4 = log( max( 1.0_rk8, forc_hgt_u_pft(n) / 10._rk8) )
       end if
       if (present(landunit_index)) then
+        !$acc loop seq
         do pp = pfti(n),pftf(n)
           u10(pp) = ur(n) - ustar(n)/vkc * (tmp4 - fm(n) + fm10)
           fv(pp)  = ustar(n)
@@ -462,6 +466,7 @@ module mod_clm_frictionvelocity
       ! If forcing height is less than or equal to 10m, then
       ! set 10-m wind to um
       if (present(landunit_index)) then
+        !$acc loop seq
         do pp = pfti(n),pftf(n)
           if (zldis(n)-z0m(n) <= 10._rk8) then
             u10_clm(pp) = um(n)
@@ -596,6 +601,7 @@ module mod_clm_frictionvelocity
         tmp4 = log( max( 1.0_rk8, forc_hgt_u_pft(n) / 10._rk8 ) )
       end if
       if (present(landunit_index)) then
+        !$acc loop seq
         do pp = pfti(n),pftf(n)
           u10(pp) = ur(n) - ustar(n)/vkc * (tmp4 - fm(n) + fm10)
           fv(pp)  = ustar(n)

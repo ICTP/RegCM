@@ -930,7 +930,7 @@ module mod_clm_canopyfluxes
    ! Now 'measure' soil water for the grid cells identified above and see
    ! if the soil is dry enough to warrant irrigation
    !$acc kernels
-   frozen_soil(:) = .false.
+   frozen_soil(lbc:ubc) = .false.
    !$acc end kernels
 
    do concurrent ( f = 1:fn )
