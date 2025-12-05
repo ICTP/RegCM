@@ -72,12 +72,14 @@ module mod_regcm_interface
     ! MPI Initialization
     !
     if (present(mpiCommunicator)) then
-      call mpi_comm_dup(mpiCommunicator,mycomm,ierr)
+      call mpi_comm_split_type(mpiCommunicator, mpi_comm_type_shared, 0, &
+                               mpi_info_null, mycomm, ierr)
       if ( ierr /= 0 ) then
         call fatal(__FILE__,__LINE__,'Cannot get communicator!')
       end if
     else
-      call mpi_comm_dup(MPI_COMM_WORLD,mycomm,ierr)
+      call mpi_comm_split_type(MPI_COMM_WORLD, mpi_comm_type_shared, 0, &
+                               mpi_info_null, mycomm, ierr)
       if ( ierr /= 0 ) then
         call fatal(__FILE__,__LINE__,'Cannot get communicator!')
       end if
@@ -90,6 +92,9 @@ module mod_regcm_interface
     if ( ierr /= 0 ) then
       call fatal(__FILE__,__LINE__,'mpi_comm_size Failure!')
     end if
+#ifdef OPENACC
+    call setup_openacc(myid)
+#endif
 #ifndef MPI_SERIAL
 #ifdef DEBUG
     call mpi_comm_set_errhandler(mycomm, mpi_errors_return, ierr)
@@ -101,9 +106,6 @@ module mod_regcm_interface
 
     call whoami(myid)
     call setup_mesg(myid)
-#ifdef OPENACC
-    call setup_openacc(myid)
-#endif
 
 #ifdef DEBUG
     call activate_debug()
@@ -367,7 +369,7 @@ module mod_regcm_interface
   subroutine setup_openacc(mpi_rank)
     use openacc, only: acc_device_default, acc_device_kind, &
                   acc_get_device_type, acc_get_num_devices, &
-                  acc_set_device_num, acc_init
+                  acc_set_device_num
     implicit none
     integer, intent(in) :: mpi_rank
     integer(ik4) :: idev, ndev
@@ -377,7 +379,6 @@ module mod_regcm_interface
     ndev = acc_get_num_devices(acc_device_default)
     idev = mod(mpi_rank, ndev)
     call acc_set_device_num(idev, dev_type)
-    call acc_init(dev_type)
   end subroutine setup_openacc
 #endif
 
