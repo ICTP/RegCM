@@ -88,7 +88,7 @@ module mod_micro_nogtom
   private
 
   logical, parameter :: lmicro = .true.
-  integer, parameter :: mxqx = 5
+  integer(ik4), parameter :: mxqx = 5
 
   ! critical autoconversion
   real(rkx), parameter :: rlcritsnow = 4.e-5_rkx
@@ -227,7 +227,11 @@ module mod_micro_nogtom
 
   logical, parameter :: vfqi_tlat = .true.
   logical, parameter :: vfqr_rd = .true.
-  real(rkx) , parameter :: dens0 = 1.225_rkx ! kg m-3
+  real(rkx), parameter :: dens0 = 1.225_rkx ! kg m-3
+
+  logical, parameter :: newsolver = .true.
+  real(rkx), pointer, contiguous, dimension(:,:) :: rspace
+  integer(ik4), pointer, contiguous, dimension(:) :: ispace
 
   contains
 
@@ -281,6 +285,8 @@ module mod_micro_nogtom
       call getmem4d(tenqkp,1,nqx,1,kz,jci1,jci2,ici1,ici2,'cmicro:tenqkp')
       call getmem3d(tentkp,1,kz,jci1,jci2,ici1,ici2,'cmicro:tentkp')
     end if
+    call getmem1d(ispace,1,nqx,'cmicro:ispace')
+    call getmem2d(rspace,1,nqx,1,3,'cmicro:rspace')
   end subroutine allocate_mod_nogtom
 
   subroutine init_nogtom(ldmsk)
@@ -633,7 +639,7 @@ module mod_micro_nogtom
 #ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
-      ratio,sinksum,lind2,vv,indx)
+      ratio,sinksum,lind2,vv,indx,rspace,ispace)
 #else
     !$acc parallel loop collapse(2) gang vector &
     !$acc     private(fallsrce,fallsink,convsrce,qlhs,qsexp, &
@@ -1387,7 +1393,7 @@ module mod_micro_nogtom
                 ! parametrization to be replaced by
                 ! Khairoutdinov and Kogan [2000]:
                 !-------------------------------------------------------
-                if ( covptot > d_zero ) then
+                if ( covptot > rcovpmin ) then
                   precip = (rainp+snowp)/covptot
                   cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
                   alpha1 = alpha1*cfpr
@@ -1578,7 +1584,7 @@ module mod_micro_nogtom
           !---------------------------------------------
           qe = max(min(qe,qsliq(k,j,i)),d_zero)
           lactiv = covpclr > d_zero .and. &
-                   covptot > d_zero .and. &
+                   covptot > rcovpmin .and. &
                    qpretot > d_zero .and.      &
                    qx0(iqqr) > activqx .and.   &
                    qe < zrh*qsliq(k,j,i)
@@ -1796,109 +1802,113 @@ module mod_micro_nogtom
           qxn(n) = qx0(n) + rexplicit
         end do
 
-        do n = 1, nqx
-          aamax = d_zero
-          do jn = 1, nqx
-            if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
-          end do
+        if ( newsolver ) then
+          call solver(qlhs,qxn,rspace,ispace)
+        else
+          ! Original solver
+          do n = 1, nqx
+            aamax = d_zero
+            do jn = 1, nqx
+              if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
+            end do
 #ifndef OPENACC
 #ifdef DEBUG
-          if ( aamax == d_zero ) then
-            do nn = 1, nqx
-              write(stderr,'(a,i2,f20.9)') 'QX0 ', nn, qx0(nn)
-              do ll = 1, nqx
-                write(stderr,'(a,i2,i2,f20.9)') 'QLHS ', &
-                    ll, nn, qlhs(ll,nn)
+            if ( aamax == d_zero ) then
+              do nn = 1, nqx
+                write(stderr,'(a,i2,f20.9)') 'QX0 ', nn, qx0(nn)
+                do ll = 1, nqx
+                  write(stderr,'(a,i2,i2,f20.9)') 'QLHS ', &
+                      ll, nn, qlhs(ll,nn)
+                end do
               end do
-            end do
-          end if
-#endif
-#endif
-          vv(n) = d_one/aamax ! Save the scaling.
-        end do
-        !                                                Ux=y
-        ! solve A x = b-------------> LU x = b---------> Ly=b
-        !
-        do n = 1, nqx
-          ! This is the loop over columns
-          if ( n > 1 ) then
-            do m = 1, n - 1
-              xsum = qlhs(m,n)
-              do kk = 1, m - 1
-                xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
-              end do
-              qlhs(m,n) = xsum
-            end do
-          end if
-          ! Initialize the search for largest pivot element.
-          aamax = d_zero
-          imax = n
-          do m = n, nqx
-            xsum = qlhs(m,n)
-            if ( n > 1 ) then
-              do kk = 1, n - 1
-                xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
-              end do
-              qlhs(m,n) = xsum
             end if
-            dum = vv(m)*abs(xsum)   ! Figure of merit for the pivot.
-            if ( dum >= aamax ) then
-              ! better than the best so far
-              imax = m
-              aamax = dum
+#endif
+#endif
+            vv(n) = d_one/aamax ! Save the scaling.
+          end do
+          !                                                Ux=y
+          ! solve A x = b-------------> LU x = b---------> Ly=b
+          !
+          do n = 1, nqx
+            ! This is the loop over columns
+            if ( n > 1 ) then
+              do m = 1, n - 1
+                xsum = qlhs(m,n)
+                do kk = 1, m - 1
+                  xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
+                end do
+                qlhs(m,n) = xsum
+              end do
+            end if
+            ! Initialize the search for largest pivot element.
+            aamax = d_zero
+            imax = n
+            do m = n, nqx
+              xsum = qlhs(m,n)
+              if ( n > 1 ) then
+                do kk = 1, n - 1
+                  xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
+                end do
+                qlhs(m,n) = xsum
+              end if
+              dum = vv(m)*abs(xsum)   ! Figure of merit for the pivot.
+              if ( dum >= aamax ) then
+                ! better than the best so far
+                imax = m
+                aamax = dum
+              end if
+            end do
+            if ( n /= imax ) then
+              ! Do we need to interchange rows? yes, do so...
+              ! D = -D !...and change the parity of D.
+              do ii = 1, nqx
+                swap = qlhs(imax,ii)
+                qlhs(imax,ii) = qlhs(n,ii)
+                qlhs(n,ii) = swap
+              end do
+              vv(imax) = vv(n) ! Also interchange the scale factor.
+            end if
+            indx(n) = imax
+            if ( n /= nqx ) then
+              dum = d_one/max(qlhs(n,n),verylowqx)
+              do m = n + 1, nqx
+                qlhs(m,n) = qlhs(m,n)*dum
+              end do
             end if
           end do
-          if ( n /= imax ) then
-            ! Do we need to interchange rows? yes, do so...
-            ! D = -D !...and change the parity of D.
-            do ii = 1, nqx
-              swap = qlhs(imax,ii)
-              qlhs(imax,ii) = qlhs(n,ii)
-              qlhs(n,ii) = swap
-            end do
-            vv(imax) = vv(n) ! Also interchange the scale factor.
-          end if
-          indx(n) = imax
-          if ( n /= nqx ) then
-            dum = d_one/max(qlhs(n,n),verylowqx)
-            do m = n + 1, nqx
-              qlhs(m,n) = qlhs(m,n)*dum
-            end do
-          end if
-        end do
-        !
-        ! Now solve the set of n linear equations A * X = B.
-        ! B(1:N) is input as the right-hand side vector B,
-        ! and is used to store solution after back-substitution.
-        !
-        ii = 0
-        ! When ii is set to a positive value, it will become
-        ! the index of the  first nonvanishing element of B.
-        ! We now do the forward substitution, and the only new
-        ! wrinkle is to unscramble the permutation as we go.
-        do m = 1, nqx
-          ll = indx(m)
-          xsum = qxn(ll)
-          qxn(ll) = qxn(m)
-          if ( ii == 0 ) then
-            if ( abs(xsum) > verylowqx ) ii = m
-          else
-            do jj = ii, m - 1
+          !
+          ! Now solve the set of n linear equations A * X = B.
+          ! B(1:N) is input as the right-hand side vector B,
+          ! and is used to store solution after back-substitution.
+          !
+          ii = 0
+          ! When ii is set to a positive value, it will become
+          ! the index of the  first nonvanishing element of B.
+          ! We now do the forward substitution, and the only new
+          ! wrinkle is to unscramble the permutation as we go.
+          do m = 1, nqx
+            ll = indx(m)
+            xsum = qxn(ll)
+            qxn(ll) = qxn(m)
+            if ( ii == 0 ) then
+              if ( abs(xsum) > verylowqx ) ii = m
+            else
+              do jj = ii, m - 1
+                xsum = xsum - qlhs(m,jj)*qxn(jj)
+              end do
+            end if
+            qxn(m) = xsum
+          end do
+          ! Now we do the backsubstitution
+          do m = nqx, 1, -1
+            xsum = qxn(m)
+            do jj = m + 1, nqx
               xsum = xsum - qlhs(m,jj)*qxn(jj)
             end do
-          end if
-          qxn(m) = xsum
-        end do
-
-        ! Now we do the backsubstitution
-        do m = nqx, 1, -1
-          xsum = qxn(m)
-          do jj = m + 1, nqx
-            xsum = xsum - qlhs(m,jj)*qxn(jj)
+            ! Store a component of the solution vector qxn.
+            qxn(m) = xsum/qlhs(m,m)
           end do
-          ! Store a component of the solution vector qxn.
-          qxn(m) = xsum/qlhs(m,m)
-        end do
+        end if
 
         !-------------------------------------------------------------------
         !  Precipitation/sedimentation fluxes to next level
@@ -2102,7 +2112,7 @@ module mod_micro_nogtom
   end subroutine nogtom
 
   pure real(rkx) function edem(t,phase)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in):: t, phase
     edem = phase * c5alvcp * (d_one/(t-c4les)**2) + &
@@ -2110,7 +2120,7 @@ module mod_micro_nogtom
   end function edem
 
   pure real(rkx) function eldcpm(t)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in):: t
     real(rkx) :: phase
@@ -2120,12 +2130,11 @@ module mod_micro_nogtom
   end function eldcpm
 
   pure real(rkx) function eewm(t,phase)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: t, phase
     eewm = ep2*(phase * esatliq(t) + (d_one-phase) * esatice(t))
   end function eewm
-
   !
   ! For the temperature dependency of particle diameters:
   !   David L. Mitchell, Anne Garnier, Jacques Pelon, and Ehsan Erfani
@@ -2139,7 +2148,7 @@ module mod_micro_nogtom
   !   https://doi.org/10.5194/amt-13-1273-2020
   !
   pure real(rkx) function ice_fallspeed(t,lat)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: t, lat
     real(rkx) :: xlat, dsize, w1, fsp1, fsp2
@@ -2159,7 +2168,7 @@ module mod_micro_nogtom
   ! Rain fall speed function of air density
   !
   pure real(rkx) function rain_fallspeed(d,d0,r)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: d, d0, r
     real(rkx) :: diam, v0, dens_min
@@ -2208,6 +2217,422 @@ module mod_micro_nogtom
  !     end if
  !   end do
  ! end function argsort
+
+  subroutine solver(lhs,rhs,rspace,ispace)
+    !$acc routine seq
+    implicit none
+    real(rkx), dimension(nqx,nqx), intent(inout) :: lhs
+    real(rkx), dimension(nqx), intent(inout) :: rhs
+    real(rkx), dimension(nqx,3), intent(inout) :: rspace
+    integer(ik4), dimension(nqx), intent(out) :: ispace
+    rspace(1:nqx,1) = rhs
+    call nnls(nqx, lhs, rspace(:,1), rhs, rspace(:,2), rspace(:,3), ispace)
+  end subroutine solver
+  !
+  !  The original version of this code was developed by
+  !  Charles L. Lawson and Richard J. Hanson at Jet Propulsion Laboratory
+  !  1973 JUN 15, and published in the book
+  !  "SOLVING LEAST SQUARES PROBLEMS", Prentice-Hall, 1974.
+  !  Revised FEB 1995 to accompany reprinting of the book by SIAM.
+  !
+  !  This translation into Fortran 90 by Alan Miller, February 1997
+  !  Latest revision - 10 June 1997
+  !
+  !  Reduced for squared problems in this subroutine.
+  !
+  !  GIVEN AN N BY N MATRIX, A, AND AN N-VECTOR, B,  COMPUTE AN
+  !  N-VECTOR, X, THAT SOLVES THE LEAST SQUARES PROBLEM
+  !
+  !                   A * X = B  SUBJECT TO X  >=  0
+  !  ------------------------------------------------------------------
+  !                  Subroutine Arguments
+  !
+  !  A(), N, N  ON ENTRY, A() CONTAINS THE M BY N MATRIX, A.
+  !             ON EXIT, A() CONTAINS THE PRODUCT MATRIX, Q*A , WHERE Q IS AN
+  !             N x N ORTHOGONAL MATRIX GENERATED IMPLICITLY BY THIS SUBROUTINE.
+  !  B()     ON ENTRY B() CONTAINS THE N-VECTOR, B.   ON EXIT B() CONTAINS Q*B.
+  !  X()     ON ENTRY X() NEED NOT BE INITIALIZED.
+  !          ON EXIT X() WILL CONTAIN THE SOLUTION VECTOR.
+  !  W()     AN N-ARRAY OF WORKING SPACE.  ON EXIT W() WILL CONTAIN THE DUAL
+  !          SOLUTION VECTOR.   W WILL SATISFY W(I) = 0. FOR ALL I IN SET P
+  !          AND W(I) <= 0. FOR ALL I IN SET Z
+  !  ZZ( )   AN N-ARRAY OF WORKING SPACE.
+  !  INDX()  AN INTEGER WORKING ARRAY OF LENGTH N.
+  !          ON EXIT THE CONTENTS OF THIS ARRAY DEFINE THE SETS P AND Z
+  !          AS FOLLOWS..
+  !              INDX(1)   THRU INDX(NSETP) = SET P.
+  !              INDX(IZ1) THRU INDX(IZ2)   = SET Z.
+  !              IZ1 = NSETP + 1 = NPP1
+  !              IZ2 = N
+  !  ------------------------------------------------------------------
+  subroutine nnls (n, a, b, x, w, zz, indx)
+    !$acc routine seq
+    implicit none
+    integer(ik4), intent(in) :: n
+    real(rkx), intent(inout), dimension(n,n) :: a
+    real(rkx), intent(inout), dimension(n) :: b
+    real(rkx), intent(out), dimension(n) :: x, w, zz
+    integer(ik4), intent(out), dimension(n) :: indx
+
+    integer(ik4) :: i, ii, ip, iter, itmax, iz, iz1, iz2, izmax,   &
+                    j, jj, jz, l, mda, npp1, nsetp
+    real(rkx), dimension(1) :: dummy
+    real(rkx), parameter :: factor = 0.01_rkx
+    real(rkx) :: alpha, asave, cc, sm, ss, t, temp, unorm, up, wmax, ztest
+
+    ! The below would have been in output
+    integer(ik4) :: mode
+    real(rkx) :: rnorm
+
+    mode = 1
+    iter = 0
+    itmax = 3*n
+    ! Initialize the arrays indx() and x().
+    do i = 1, n
+      x(i) = d_zero
+      indx(i) = i
+    end do
+
+    iz2 = n
+    iz1 = 1
+    nsetp = 0
+    npp1 = 1
+    !                       ******  MAIN LOOP BEGINS HERE  ******
+    !              QUIT IF ALL COEFFICIENTS ARE ALREADY IN THE SOLUTION.
+    !                    OR IF M COLS OF A HAVE BEEN TRIANGULARIZED.
+
+30  if ( iz1 > iz2 .or. nsetp >= n ) goto 350
+
+    !     COMPUTE COMPONENTS OF THE DUAL (NEGATIVE GRADIENT) VECTOR W().
+
+    do iz = iz1, iz2
+      j = indx(iz)
+      w(j) = dot_product(a(npp1:n,j), b(npp1:n))
+    end do
+    !                               FIND LARGEST POSITIVE W(J).
+60  wmax = d_zero
+    do iz = iz1, iz2
+      j = indx(iz)
+      if (w(j) > wmax) then
+        wmax = w(j)
+        izmax = iz
+      end if
+    end do
+
+    !        IF WMAX  <=  0. GO TO TERMINATION.
+    !         THIS INDICATES SATISFACTION OF THE KUHN-TUCKER CONDITIONS.
+
+    if ( wmax <= d_zero ) goto 350
+    iz = izmax
+    j = indx(iz)
+
+    ! THE SIGN OF W(J) IS OK FOR J TO BE MOVED TO SET P.
+    ! BEGIN THE TRANSFORMATION AND CHECK NEW DIAGONAL ELEMENT TO AVOID
+    ! NEAR LINEAR DEPENDENCE.
+
+    asave = a(npp1,j)
+    call h12(1, npp1, npp1+1, n, a(:,j), up, dummy, 1, 1, 0)
+    unorm = d_zero
+    if ( nsetp /= 0 ) then
+      unorm = sum( a(1:nsetp,j)**2 )
+    end if
+    unorm = sqrt(unorm)
+    if ( unorm + ABS(a(npp1,j))*factor - unorm > d_zero ) then
+
+      ! COL J IS SUFFICIENTLY INDEPENDENT.  COPY B INTO ZZ, UPDATE ZZ
+      ! AND SOLVE FOR ZTEST ( = PROPOSED NEW VALUE FOR X(J) ).
+
+      zz(1:n) = b(1:n)
+      call h12(2, npp1, npp1+1, n, a(:,j), up, zz, 1, 1, 1)
+      ztest = zz(npp1)/a(npp1,j)
+      !                                 SEE IF ZTEST IS POSITIVE
+      if ( ztest > d_zero ) goto 140
+    end if
+
+    ! REJECT J AS A CANDIDATE TO BE MOVED FROM SET Z TO SET P.
+    ! RESTORE A(NPP1,J), SET W(J) = 0., AND LOOP BACK TO TEST DUAL
+    ! COEFFS AGAIN.
+
+    a(npp1,j) = asave
+    w(j) = d_zero
+    goto 60
+
+    ! THE INDEX  J = indx(IZ)  HAS BEEN SELECTED TO BE MOVED FROM
+    ! SET Z TO SET P.    UPDATE B,  UPDATE INDICES,  APPLY HOUSEHOLDER
+    ! TRANSFORMATIONS TO COLS IN NEW SET Z,  ZERO SUBDIAGONAL ELTS IN
+    ! COL J,  SET W(J) = 0.
+
+140 b(1:n) = zz(1:n)
+
+    indx(iz) = indx(iz1)
+    indx(iz1) = j
+    iz1 = iz1+1
+    nsetp = npp1
+    npp1 = npp1+1
+
+    mda = SIZE(a,1)
+    if ( iz1 <= iz2 ) then
+      do jz = iz1, iz2
+        jj = indx(jz)
+        call h12(2, nsetp, npp1, n, a(:,j), up, a(:,jj), 1, mda, 1)
+      end do
+    end if
+
+    if ( nsetp /= n ) then
+      a(npp1:n,j) = d_zero
+    end if
+
+    w(j) = d_zero
+    !                            SOLVE THE TRIANGULAR SYSTEM.
+    !                            STORE THE SOLUTION TEMPORARILY IN ZZ().
+    call solve_triangular(zz, a, nsetp, indx)
+
+    !                   ******  SECONDARY LOOP BEGINS HERE ******
+    !                      ITERATION COUNTER.
+
+210 iter = iter+1
+    if ( iter > itmax ) then
+      mode = 3
+      goto 350
+    end if
+    !                SEE IF ALL NEW CONSTRAINED COEFFS ARE FEASIBLE.
+    !                              IF NOT COMPUTE ALPHA.
+    alpha = d_two
+    do ip = 1, nsetp
+      l = indx(ip)
+      if ( zz(ip) <= d_zero ) then
+        t = -x(l)/(zz(ip)-x(l))
+        if ( alpha > t ) then
+          alpha = t
+          jj = ip
+        end if
+      end if
+    end do
+
+    ! IF ALL NEW CONSTRAINED COEFFS ARE FEASIBLE THEN ALPHA WILL
+    ! STILL = 2.    IF SO EXIT FROM SECONDARY LOOP TO MAIN LOOP.
+
+    if ( alpha == d_two ) goto 330
+
+    ! OTHERWISE USE ALPHA WHICH WILL BE BETWEEN 0. AND 1. TO
+    ! INTERPOLATE BETWEEN THE OLD X AND THE NEW ZZ.
+
+    do ip = 1, nsetp
+      l = indx(ip)
+      x(l) = x(l) + alpha*(zz(ip)-x(l))
+    end do
+
+    ! MODIFY A AND B AND THE INDEX ARRAYS TO MOVE COEFFICIENT I
+    ! FROM SET P TO SET Z.
+
+    i = indx(jj)
+260 x(i) = d_zero
+
+    if ( jj /= nsetp ) then
+      jj = jj+1
+      do j = jj, nsetp
+        ii = indx(j)
+        indx(j-1) = ii
+        call g1(a(j-1,ii), a(j,ii), cc, ss, a(j-1,ii))
+        a(j,ii) = d_zero
+        do l = 1, n
+          if ( l /= ii ) then
+            ! Apply procedure G2 (CC,SS,A(J-1,L),A(J,L))
+
+            temp = a(j-1,l)
+            a(j-1,l) = cc*temp + ss*a(j,l)
+            a(j,l)   = -ss*temp + cc*a(j,l)
+          end if
+        end do
+        ! Apply procedure G2 (CC,SS,B(J-1),B(J))
+        temp = b(j-1)
+        b(j-1) = cc*temp + ss*b(j)
+        b(j)   = -ss*temp + cc*b(j)
+      end do
+    end if
+
+    npp1 = nsetp
+    nsetp = nsetp-1
+    iz1 = iz1-1
+    indx(iz1) = i
+
+    ! SEE IF THE REMAINING COEFFS IN SET P ARE FEASIBLE.  THEY SHOULD
+    ! BE BECAUSE OF THE WAY ALPHA WAS DETERMINED.
+    ! IF ANY ARE INFEASIBLE IT IS DUE TO ROUND-OFF ERROR.  ANY
+    ! THAT ARE NONPOSITIVE WILL BE SET TO ZERO
+    ! AND MOVED FROM SET P TO SET Z.
+
+    do jj = 1, nsetp
+      i = indx(jj)
+      if ( x(i) <= d_zero ) goto 260
+    end do
+
+    ! COPY B( ) INTO ZZ( ).  THEN SOLVE AGAIN AND LOOP BACK.
+
+    zz(1:n) = b(1:n)
+    calL solve_triangular(zz, a, nsetp, indx)
+    goto 210
+    !             ******  END OF SECONDARY LOOP  ******
+
+330 do ip = 1, nsetp
+      i = indx(ip)
+      x(i) = zz(ip)
+    end do
+    !    ALL NEW COEFFS ARE POSITIVE.  LOOP BACK TO BEGINNING.
+    goto 30
+
+    !            ******  END OF MAIN LOOP  ******
+
+    !               COME TO HERE FOR TERMINATION.
+    !               COMPUTE THE NORM OF THE FINAL RESIDUAL VECTOR.
+
+350 sm = d_zero
+    if ( npp1 <= n ) then
+      sm = sum( b(npp1:n)**2 )
+    else
+      w(1:n) = d_zero
+    end if
+    rnorm = sqrt(sm)
+  end subroutine nnls
+  !
+  ! THE FOLLOWING BLOCK OF CODE WAS USED AS AN INTERNAL SUBROUTINE
+  ! TO SOLVE THE TRIANGULAR SYSTEM, PUTTING THE SOLUTION IN ZZ().
+  !
+  subroutine solve_triangular(zz, a, nsetp, indx)
+    !$acc routine seq
+    implicit none
+    real(rkx), dimension(:), intent(inout) :: zz
+    real(rkx), dimension(:,:), intent(in) :: a
+    integer(ik4), dimension(:), intent(in) :: indx
+    integer(ik4), intent(in) :: nsetp
+    integer(ik4) :: l, ip, jj
+    do l = 1, nsetp
+      ip = nsetp+1-l
+      if ( l /= 1 ) zz(1:ip) = zz(1:ip) - a(1:ip,jj)*zz(ip+1)
+      jj = indx(ip)
+      zz(ip) = zz(ip) / a(ip,jj)
+    end do
+  end subroutine solve_triangular
+  !
+  ! COMPUTE ORTHOGONAL ROTATION MATRIX..
+  !
+  !  COMPUTE.. MATRIX   (C, S) SO THAT (C, S)(A) = (SQRT(A**2+B**2))
+  !                     (-S,C)         (-S,C)(B)   (   0          )
+  !  COMPUTE SIG = SQRT(A**2+B**2)
+  !     SIG IS COMPUTED LAST TO ALLOW FOR THE POSSIBILITY THAT
+  !     SIG MAY BE IN THE SAME LOCATION AS A OR B .
+  !
+  subroutine g1(a, b, cterm, sterm, sig)
+    !$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: a, b
+    real(rkx), intent(out) :: cterm, sterm, sig
+    real(rkx) :: xr, yr
+    if ( abs(a) > abs(b) ) then
+      xr = b / a
+      yr = sqrt(d_one + xr**2)
+      cterm = sign(d_one/yr, a)
+      sterm = cterm * xr
+      sig = abs(a) * yr
+    else if ( b /= d_zero ) then
+      xr = a / b
+      yr = sqrt(d_one + xr**2)
+      sterm = sign(d_one/yr, b)
+      cterm = sterm * xr
+      sig = abs(b) * yr
+    else
+      ! SIG = ZERO
+      cterm = d_zero
+      sterm = d_one
+    end if
+  end subroutine g1
+  !
+  ! SUBROUTINE h12 (mode, lpivot, l1, m, u, up, c, ice, icv, ncv)
+  !
+  !  CONSTRUCTION AND/OR APPLICATION OF A SINGLE
+  !  HOUSEHOLDER TRANSFORMATION..     Q = I + U*(U**T)/B
+  !
+  !     MODE   = 1 OR 2   Selects Algorithm H1 to construct and apply a
+  !            Householder transformation, or Algorithm H2 to apply a
+  !            previously constructed transformation.
+  !     LPIVOT IS THE INDEX OF THE PIVOT ELEMENT.
+  !     L1,M   IF L1  <=  M   THE TRANSFORMATION WILL BE CONSTRUCTED TO
+  !            ZERO ELEMENTS INDEXED FROM L1 THROUGH M.   IF L1 GT. M
+  !            THE SUBROUTINE DOES AN IDENTITY TRANSFORMATION.
+  !     U(),IUE,UP    On entry with MODE = 1, U() contains the pivot
+  !            vector.  IUE is the storage increment between elements.
+  !            On exit when MODE = 1, U() and UP contain quantities
+  !            defining the vector U of the Householder transformation.
+  !            on entry with MODE = 2, U() and UP should contain
+  !            quantities previously computed with MODE = 1.  These will
+  !            not be modified during the entry with MODE = 2.
+  !     C()    ON ENTRY with MODE = 1 or 2, C() CONTAINS A MATRIX WHICH
+  !            WILL BE REGARDED AS A SET OF VECTORS TO WHICH THE
+  !            HOUSEHOLDER TRANSFORMATION IS TO BE APPLIED.
+  !            ON EXIT C() CONTAINS THE SET OF TRANSFORMED VECTORS.
+  !     ICE    STORAGE INCREMENT BETWEEN ELEMENTS OF VECTORS IN C().
+  !     ICV    STORAGE INCREMENT BETWEEN VECTORS IN C().
+  !     NCV    NUMBER OF VECTORS IN C() TO BE TRANSFORMED. IF NCV  <=  0
+  !            NO OPERATIONS WILL BE DONE ON C().
+  !     ------------------------------------------------------------------
+  subroutine h12(mode, lpivot, l1, m, u, up, c, ice, icv, ncv)
+    !$acc routine seq
+    implicit none
+    integer(ik4), intent(in) :: mode, lpivot, l1, m, ice, icv, ncv
+    real(rkx), dimension(:), intent(inout) :: u, c
+    real(rkx), intent(inout) :: up
+    integer(ik4) :: i, i2, i3, i4, incr, j
+    real(rkx) :: b, cl, clinv, sm
+
+    if ( 0 >= lpivot .or. lpivot >= l1 .or. l1 > m ) return
+    cl = abs(u(lpivot))
+    if ( mode /= 2 ) then
+      ! ****** CONSTRUCT THE TRANSFORMATION. ******
+      do j = l1, m
+        cl = max(abs(u(j)),cl)
+      end do
+      if ( cl <= 0 ) return
+      clinv = d_one / cl
+      sm = (u(lpivot)*clinv) ** 2 + sum( (u(l1:m)*clinv)**2 )
+      cl = cl * sqrt(sm)
+      if ( u(lpivot) > 0 ) then
+        cl = -cl
+      end if
+      up = u(lpivot) - cl
+      u(lpivot) = cl
+    else
+      ! ****** APPLY THE TRANSFORMATION  I+U*(U**T)/B  TO C. ******
+      if ( cl <= 0 ) return
+    end if
+    if ( ncv <= 0 ) return
+
+    b = up * u(lpivot)
+    !                  B  MUST BE NONPOSITIVE HERE.  IF B = 0., RETURN.
+
+    if ( b < 0 ) then
+      b = d_one / b
+      i2 = 1 - icv + ice * (lpivot-1)
+      incr = ice * (l1-lpivot)
+      do j = 1, ncv
+        i2 = i2 + icv
+        i3 = i2 + incr
+        i4 = i3
+        sm = c(i2) * up
+        do i = l1, m
+          sm = sm + c(i3) * u(i)
+          i3 = i3 + ice
+        end do
+        if ( sm /= 0 ) then
+          sm = sm * b
+          c(i2) = c(i2) + sm * up
+          do i = l1, m
+            c(i4) = c(i4) + sm * u(i)
+            i4 = i4 + ice
+          end do
+        end if
+      end do ! j = 1, ncv
+    end if
+  end subroutine h12
 
 end module mod_micro_nogtom
 
