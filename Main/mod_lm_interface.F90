@@ -426,6 +426,7 @@ module mod_lm_interface
 #ifdef CLM45
     use mod_atm_interface, only : voc_em_clm, dustflx_clm, ddepv_clm
 #endif
+    !@acc use nvtx
     implicit none
     integer(ik4) :: i, j, n, nn, ierr
 #ifdef CLM
@@ -461,9 +462,16 @@ module mod_lm_interface
 #endif
 #endif
 !FAB
-    if ( islab_ocean == 1 ) call update_slabocean(xslabtime,lms)
+    if ( islab_ocean == 1 ) then
+      !@acc call nvtxStartRange("update_slabocean")
+      call update_slabocean(xslabtime,lms)
+      !@acc call nvtxEndRange
+    end if
 
+    !@acc call nvtxStartRange("vecocn")
     call vecocn(lm,lms)
+    !@acc call nvtxEndRange
+
     ! Fill land part of this output vars
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
@@ -483,6 +491,7 @@ module mod_lm_interface
       end if
     end do
 #endif
+    !$acc kernels
     lm%hfx = sum(lms%sent,1)*rdnnsg
     lm%qfx = sum(lms%evpr,1)*rdnnsg
     lm%uvdrag = sum(lms%drag,1)*rdnnsg
@@ -498,6 +507,7 @@ module mod_lm_interface
     lm%tgbb = sum(lms%tgbb,1)*rdnnsg
     lm%tg = sum(lms%tgrd,1)*rdnnsg
     lm%emissivity = sum(lms%emisv,1) * rdnnsg
+    !$acc end kernels
     if ( ichem == 1 ) then
       lm%deltat = sum(lms%deltat,1)*rdnnsg
       lm%deltaq = sum(lms%deltaq,1)*rdnnsg
@@ -525,7 +535,9 @@ module mod_lm_interface
         end if
       end do
     end if
+    !@acc call nvtxStartRange("collect_output")
     call collect_output
+    !@acc call nvtxEndRange
 #ifdef DEBUG
     ! Sanity check of surface temperatures
     ierr = 0
@@ -1102,15 +1114,22 @@ module mod_lm_interface
           end do
         end if
         if ( associated(srf_htindx_out) ) then
+#ifdef STDPAR_FIXED
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+          !$acc parallel loop collapse(2) gang vector
           do i = ici1, ici2
-            do j = jci1, jci2
-              tas = sum(lms%t2m(:,j,i))*rdnnsg
-              ps = sum(lms%sfcp(:,j,i))*rdnnsg
-              qs = pfwsat(tas,ps)
-              qas = lm%q2m(j,i)
-              rh = min(max((qas/qs),d_zero),d_one)
-              srf_htindx_out(j,i) = heatindex(tas,rh)
-            end do
+          do j = jci1, jci2
+#endif
+            tas = sum(lms%t2m(:,j,i))*rdnnsg
+            ps = sum(lms%sfcp(:,j,i))*rdnnsg
+            qs = pfwsat(tas,ps)
+            qas = lm%q2m(j,i)
+            rh = min(max((qas/qs),d_zero),d_one)
+            srf_htindx_out(j,i) = heatindex(tas,rh)
+#ifndef STDPAR_FIXED
+          end do
+#endif
           end do
         end if
 #ifdef CLM45

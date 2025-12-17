@@ -330,6 +330,7 @@ module mod_heatindex
 #else
   pure real(rkx) function heatindex(ta,rh)
 #endif
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: ta, rh
     type(eqvar) :: initial
