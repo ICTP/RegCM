@@ -268,14 +268,16 @@ module mod_clm_nchelper
     implicit none
     character(len=*), intent(in) :: fname
     type(clm_filetype), intent(out) :: ncid
-    integer(ik4) :: iofmod
+    integer(ik4) :: clm_iomode, iofmod
 
 #ifdef PNETCDF
-    iomode = ior(nf90_clobber, nf90_64bit_data)
+    clm_iomode = ior(nf90_clobber, nf90_64bit_data)
+#else
+    clm_iomode = iomode
 #endif
 
     if ( myid /= iocpu ) return
-    incstat = nf90_create(fname, iomode, ncid%ncid)
+    incstat = nf90_create(fname, clm_iomode, ncid%ncid)
     call clm_checkncerr(__FILE__,__LINE__, &
                     'Error creating NetCDF output '//trim(fname))
     ncid%fname = fname
@@ -305,21 +307,27 @@ module mod_clm_nchelper
     integer(ik4) :: nDimensions, nVariable
     integer(ik4) :: id, iv
     character(len=64) :: varname, dimname
-    if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) return
     if ( present(mode) ) then
       if ( mode == clm_readwrite ) then
+        if ( myid /= iocpu ) return
+        if ( ncid%ncid /= -1 ) then
+          call clm_closefile(ncid)
+        end if
         incstat = nf90_open(fname, nf90_write, ncid%ncid)
         call clm_checkncerr(__FILE__,__LINE__, &
                     'Error open NetCDF '//trim(fname)//' in read/write')
+        call getmem2d(ncid%i4buf,jout1,jout2,iout1,iout2,'clm_openfile')
+        call getmem2d(ncid%r4buf,jout1,jout2,iout1,iout2,'clm_openfile')
+        call getmem2d(ncid%r8buf,jout1,jout2,iout1,iout2,'clm_openfile')
         ! Fill variable list...
         incstat = nf90_inquire(ncid%ncid, nDimensions, nVariable)
         call clm_checkncerr(__FILE__,__LINE__, &
-                    'Error inquire NetCDF '//trim(fname))
+                        'Error inquire NetCDF '//trim(fname))
         ncid%idimlast = 0
         do id = 1, nDimensions
           incstat = nf90_inquire_dimension(ncid%ncid, id, dimname)
           call clm_checkncerr(__FILE__,__LINE__, &
-                      'Error inquire NetCDF '//trim(fname))
+                          'Error inquire NetCDF '//trim(fname))
           ncid%idimlast = ncid%idimlast + 1
           call add_dimhash(ncid,dimname)
         end do
@@ -327,23 +335,32 @@ module mod_clm_nchelper
         do iv = 1, nVariable
           incstat = nf90_inquire_variable(ncid%ncid, iv, varname)
           call clm_checkncerr(__FILE__,__LINE__, &
-                      'Error inquire NetCDF '//trim(fname))
+                        'Error inquire NetCDF '//trim(fname))
           ncid%ivarlast = ncid%ivarlast + 1
           ncid%varids(ncid%ivarlast) = iv
           call add_varhash(ncid,varname)
         end do
-        call getmem2d(ncid%i4buf,jout1,jout2,iout1,iout2,'clm_openfile')
-        call getmem2d(ncid%r4buf,jout1,jout2,iout1,iout2,'clm_openfile')
-        call getmem2d(ncid%r8buf,jout1,jout2,iout1,iout2,'clm_openfile')
       else
+        if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) return
+        if ( ncid%ncid /= -1 ) then
+          incstat = nf90_close(ncid%ncid)
+          call clm_checkncerr(__FILE__,__LINE__, &
+                      'Error close NetCDF '//trim(fname)//' in read')
+        end if
         incstat = nf90_open(fname, nf90_nowrite, ncid%ncid)
         call clm_checkncerr(__FILE__,__LINE__, &
-                    'Error open NetCDF '//trim(fname)//' in read')
+                    'Error open NetCDF '//trim(fname)//' in readwrite')
       end if
     else
+      if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) return
+      if ( ncid%ncid /= -1 ) then
+        incstat = nf90_close(ncid%ncid)
+        call clm_checkncerr(__FILE__,__LINE__, &
+                    'Error close NetCDF '//trim(fname)//' in read')
+      end if
       incstat = nf90_open(fname, nf90_nowrite, ncid%ncid)
       call clm_checkncerr(__FILE__,__LINE__, &
-                  'Error open NetCDF '//trim(fname)//' in read')
+                  'Error open NetCDF '//trim(fname)//' in readwrite')
     end if
     ncid%fname = fname
   end subroutine clm_openfile
@@ -755,9 +772,11 @@ module mod_clm_nchelper
     ncid%fname = ' '
     ncid%idimlast = -1
     ncid%ivarlast = -1
-    call relmem2d(ncid%i4buf)
-    call relmem2d(ncid%r4buf)
-    call relmem2d(ncid%r8buf)
+    if ( associated(ncid%i4buf) ) then
+      call relmem2d(ncid%i4buf)
+      call relmem2d(ncid%r4buf)
+      call relmem2d(ncid%r8buf)
+    end if
   end subroutine clm_closefile
 
   subroutine clm_checkncerr(filename,line,arg)
@@ -767,7 +786,8 @@ module mod_clm_nchelper
     character(*), intent(in) :: filename, arg
     if ( incstat /= nf90_noerr ) then
       write (cline,'(i8)') line
-      write (stderr,*) nf90_strerror(incstat)
+      write (stderr,*) arg, ': ', nf90_strerror(incstat)
+      write (stderr,*) 'File ',filename, ' line ',trim(cline)
       call die(filename,trim(cline)//':'//arg,incstat)
     end if
   end subroutine clm_checkncerr

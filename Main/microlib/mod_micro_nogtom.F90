@@ -2370,7 +2370,7 @@ module mod_micro_nogtom
     nsetp = npp1
     npp1 = npp1+1
 
-    mda = SIZE(a,1)
+    mda = size(a,1)
     if ( iz1 <= iz2 ) then
       do jz = iz1, iz2
         jj = indx(jz)
