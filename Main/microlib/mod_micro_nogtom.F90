@@ -1803,7 +1803,7 @@ module mod_micro_nogtom
         end do
 
         if ( newsolver ) then
-          call solver(qlhs,qxn,rspace,ispace)
+          call solver(nqx,qlhs,qxn,rspace,ispace)
         else
           ! Original solver
           do n = 1, nqx
@@ -2218,15 +2218,16 @@ module mod_micro_nogtom
  !   end do
  ! end function argsort
 
-  subroutine solver(lhs,rhs,rspace,ispace)
+  pure subroutine solver(n,lhs,rhs,rspace,ispace)
     !$acc routine seq
     implicit none
-    real(rkx), dimension(nqx,nqx), intent(inout) :: lhs
-    real(rkx), dimension(nqx), intent(inout) :: rhs
-    real(rkx), dimension(nqx,3), intent(inout) :: rspace
-    integer(ik4), dimension(nqx), intent(out) :: ispace
-    rspace(1:nqx,1) = rhs
-    call nnls(nqx, lhs, rspace(:,1), rhs, rspace(:,2), rspace(:,3), ispace)
+    integer, intent(in) :: n
+    real(rkx), dimension(n,n), intent(inout) :: lhs
+    real(rkx), dimension(n), intent(inout) :: rhs
+    real(rkx), dimension(n,3), intent(inout) :: rspace
+    integer(ik4), dimension(n), intent(out) :: ispace
+    rspace(1:n,1) = rhs
+    call nnls(n, lhs, rspace(:,1), rhs, rspace(:,2), rspace(:,3), ispace)
   end subroutine solver
   !
   !  The original version of this code was developed by
@@ -2265,7 +2266,7 @@ module mod_micro_nogtom
   !              IZ1 = NSETP + 1 = NPP1
   !              IZ2 = N
   !  ------------------------------------------------------------------
-  subroutine nnls (n, a, b, x, w, zz, indx)
+  pure subroutine nnls (n, a, b, x, w, zz, indx)
     !$acc routine seq
     implicit none
     integer(ik4), intent(in) :: n
@@ -2498,7 +2499,7 @@ module mod_micro_nogtom
   ! THE FOLLOWING BLOCK OF CODE WAS USED AS AN INTERNAL SUBROUTINE
   ! TO SOLVE THE TRIANGULAR SYSTEM, PUTTING THE SOLUTION IN ZZ().
   !
-  subroutine solve_triangular(zz, a, nsetp, indx)
+  pure subroutine solve_triangular(zz, a, nsetp, indx)
     !$acc routine seq
     implicit none
     real(rkx), dimension(:), intent(inout) :: zz
@@ -2522,7 +2523,7 @@ module mod_micro_nogtom
   !     SIG IS COMPUTED LAST TO ALLOW FOR THE POSSIBILITY THAT
   !     SIG MAY BE IN THE SAME LOCATION AS A OR B .
   !
-  subroutine g1(a, b, cterm, sterm, sig)
+  pure subroutine g1(a, b, cterm, sterm, sig)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: a, b
@@ -2575,7 +2576,7 @@ module mod_micro_nogtom
   !     NCV    NUMBER OF VECTORS IN C() TO BE TRANSFORMED. IF NCV  <=  0
   !            NO OPERATIONS WILL BE DONE ON C().
   !     ------------------------------------------------------------------
-  subroutine h12(mode, lpivot, l1, m, u, up, c, ice, icv, ncv)
+  pure subroutine h12(mode, lpivot, l1, m, u, up, c, ice, icv, ncv)
     !$acc routine seq
     implicit none
     integer(ik4), intent(in) :: mode, lpivot, l1, m, ice, icv, ncv
