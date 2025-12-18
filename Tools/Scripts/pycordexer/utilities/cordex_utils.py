@@ -404,12 +404,25 @@ class RegcmOutputFile(object):
         if check_variable('rsut'):
             LOGGER.debug('Variable "rts" found: the type is "RAD"')
             return 'RAD'
-        if check_variable('twetbmax'):
-            LOGGER.debug('Variable "twetbmax" found: the type is "SHF"')
+
+        if check_variable('uas'):
+            LOGGER.debug('Variable "uas" found: the type is "SRF"')
+            return 'SRF'
+        if check_variable('vas'):
+            LOGGER.debug('Variable "vas" found: the type is "SRF"')
+            return 'SRF'
+        if check_variable('tauu'):
+            LOGGER.debug('Variable "tauu" found: the type is "SRF"')
+            return 'SRF'
+        if check_variable('tauv'):
+            LOGGER.debug('Variable "tauv" found: the type is "SRF"')
+            return 'SRF'
+        if check_variable('mrro'):
+            LOGGER.debug('Variable "mrro" found: the type is "SRF"')
             return 'SRF'
 
-        LOGGER.debug('No known variable found: assuming SRF')
-        return 'SRF'
+        LOGGER.debug('No particular variables found: maybe SHF?')
+        return 'SHF'
 
     def _save_in_memory(self, ncf_var, var_name, dtype=None):
         """
