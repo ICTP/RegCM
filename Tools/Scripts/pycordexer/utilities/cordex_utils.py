@@ -404,10 +404,9 @@ class RegcmOutputFile(object):
         if check_variable('rsut'):
             LOGGER.debug('Variable "rts" found: the type is "RAD"')
             return 'RAD'
-
         if check_variable('twetbmax'):
             LOGGER.debug('Variable "twetbmax" found: the type is "SHF"')
-            return 'SHF'
+            return 'SRF'
 
         LOGGER.debug('No known variable found: assuming SRF')
         return 'SRF'
