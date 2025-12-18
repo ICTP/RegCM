@@ -269,6 +269,7 @@ function cleanup
     if [ ${VERBOSE} -ge 1 ] ; then
 	echo 'Cleanup...'
     fi
+    rm -f $REGCM_dir/${DOMNAME}_DUST_TMP2.nc $REGCM_dir/${DOMNAME}_DUST_TMP1.nc
     if [ ${VERBOSE} -ge 1 ] ; then
 	echo 'Done'
     fi
