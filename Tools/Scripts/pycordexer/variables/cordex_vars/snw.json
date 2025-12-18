@@ -12,8 +12,7 @@
         "CorrectTime",
         {
           "offset": {
-            "SRF": 0.0,
-            "SHF": 0.0
+            "SRF": 0.0
           }
         }
       ],

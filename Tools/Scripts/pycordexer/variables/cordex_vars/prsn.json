@@ -8,6 +8,15 @@
         }
       ],
       [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": "-HALFFREQUENCY",
+            "SHF": "-HALFFREQUENCY"
+          }
+        }
+      ],
+      [
         "SaveVariableToDisk",
         {
           "new_attributes": {
