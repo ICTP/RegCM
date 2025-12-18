@@ -151,9 +151,9 @@ else
   out_dir=${out_dir:="${REGCM_dir}"}
 
   # set emission inventories path (default directory is global RCP directory)
-  EMISSDIR=`cat $NAMELIST | grep inpglob | cut -d "=" -f 2 | tr "'" " " | \
+  DUSTSDIR=`cat $NAMELIST | grep inpglob | cut -d "=" -f 2 | tr "'" " " | \
            cut -d "," -f 1 | sed -e 's/ //g' `
-  data_dir=${data_dir:="${EMISSDIR}/RCP_EMGLOB_PROCESSED/iiasa/"}
+  data_dir=${data_dir:="${DUSTSDIR}/AERGLOB/DUSTPARM"}
 
   # set model chemistry type
   CHEMTYPE=`cat $NAMELIST | grep chemsimtype | cut -d "=" -f 2 | tr "'" " " | \
@@ -198,7 +198,7 @@ if [ ! -d "${out_dir}" ] ; then
 fi
 
 if [ ${VERBOSE} -ge 1 ] ; then
-    echo "EMISSION INTERPOLATION SCRIPT READY."
+    echo "DUST PARAMETER INTERPOLATION SCRIPT READY."
 fi
 
 
@@ -239,19 +239,23 @@ function emissions_interpolate
     set_filelist
 
     # create weights from first specie file
-    $CDO gencon,$REGCM_dir/${DOMNAME}_grid.nc -setgrid,soil_erodibility_factor.nc \
-	soil_erodibility_factor.nc remapweights.nc
-    #$CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc ${file_list[0]} $REGCM_dir/${DOMNAME}_DUST.nc
-    $CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc soil_erodibility_factor.nc $REGCM_dir/${DOMNAME}_DUST_TMP1.nc
+    $CDO gencon,$REGCM_dir/${DOMNAME}_grid.nc \
+     -setgrid,${data_dir}/soil_erodibility_factor.nc \
+     ${data_dir}/soil_erodibility_factor.nc remapweights.nc
+    $CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc \
+     ${data_dir}/soil_erodibility_factor.nc $REGCM_dir/${DOMNAME}_DUST_TMP1.nc
 
 
-    $CDO gencon,$REGCM_dir/${DOMNAME}_grid.nc -setgrid,aeolian_roughness_lenght.nc \
-        aeolian_roughness_lenght.nc remapweights.nc
+    $CDO gencon,$REGCM_dir/${DOMNAME}_grid.nc \
+      -setgrid,${data_dir}/aeolian_roughness_lenght.nc \
+      ${data_dir}/aeolian_roughness_lenght.nc remapweights.nc
 
-    $CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc aeolian_roughness_lenght.nc $REGCM_dir/${DOMNAME}_DUST_TMP2.nc
+    $CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc \
+      ${data_dir}/aeolian_roughness_lenght.nc $REGCM_dir/${DOMNAME}_DUST_TMP2.nc
 
     # merge averything
-    $CDO $CDOOPTIONS  merge $REGCM_dir/${DOMNAME}_DUST_TMP1.nc $REGCM_dir/${DOMNAME}_DUST_TMP2.nc $REGCM_dir/${DOMNAME}_DUSTPARAM.nc
+    $CDO $CDOOPTIONS  merge $REGCM_dir/${DOMNAME}_DUST_TMP1.nc \
+      $REGCM_dir/${DOMNAME}_DUST_TMP2.nc $REGCM_dir/${DOMNAME}_DUSTPARAM.nc
 
 }
 ######################################################################
@@ -265,6 +269,7 @@ function cleanup
     if [ ${VERBOSE} -ge 1 ] ; then
 	echo 'Cleanup...'
     fi
+    rm -f $REGCM_dir/${DOMNAME}_DUST_TMP2.nc $REGCM_dir/${DOMNAME}_DUST_TMP1.nc
     if [ ${VERBOSE} -ge 1 ] ; then
 	echo 'Done'
     fi
