@@ -643,7 +643,8 @@ module mod_micro_nogtom
 #else
     !$acc parallel loop collapse(2) gang vector &
     !$acc     private(fallsrce,fallsink,convsrce,qlhs,qsexp, &
-    !$acc             qsimp,qx0,qxfg,qxn,ratio,sinksum,lind2,vv,indx)
+    !$acc             qsimp,qx0,qxfg,qxn,ratio,sinksum,lind2,&
+    !$acc             vv,indx,rspace,ispace)
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
