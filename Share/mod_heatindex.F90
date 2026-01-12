@@ -375,6 +375,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solve1')
     end if
 #endif
+    !$acc loop seq
     do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra(c,ta) + (pc-pa)/(zs(rs)+za) - (tc-c)/rs
@@ -413,6 +414,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solve2')
     end if
 #endif
+    !$acc loop seq
     do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_bar(c,ta) + (pc-pa)/(zs(rs)+za_bar) - (tc-c)/rs
@@ -456,6 +458,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solve3')
     end if
 #endif
+    !$acc loop seq
     do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_bar(c,ta) + (pc-pa)*(c-ta)/((c-ta)*(zs(rs)+za_bar) + &
@@ -497,6 +500,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solve4')
     end if
 #endif
+    !$acc loop seq
     do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_un(c,ta) + &
@@ -536,6 +540,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solve5')
     end if
 #endif
+    !$acc loop seq
     do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_un(c,ta) + (phi_salt*pvstar(c)-pa)/za_un -(q-qv(ta,pa))
@@ -576,6 +581,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solvei')
     end if
 #endif
+    !$acc loop seq
     do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,1.0_rkx)
@@ -618,6 +624,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solveii')
     end if
 #endif
+    !$acc loop seq
     do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,min(1.0_rkx,pa0/pvstar(c)))
@@ -659,6 +666,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solveiii')
     end if
 #endif
+    !$acc loop seq
     do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,pa0/pvstar(c))
@@ -700,6 +708,7 @@ module mod_heatindex
       call fatal(__FILE__,__LINE__,'error interval, solveiv')
     end if
 #endif
+    !$acc loop seq
     do iter = 1, maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,pa0/pvstar(c))
