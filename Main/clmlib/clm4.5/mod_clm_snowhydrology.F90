@@ -1686,7 +1686,7 @@ module mod_clm_snowhydrology
 
     num_snowc = 0
     num_nosnowc = 0
-    !!!$acc parallel loop
+    !$acc parallel loop copy(num_snowc,num_nosnowc)
     do fc = 1, num_nolakec
       c = filter_nolakec(fc)
       if (snl(c) < 0) then

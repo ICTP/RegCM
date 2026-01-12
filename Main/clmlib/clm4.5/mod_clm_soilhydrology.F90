@@ -1613,7 +1613,12 @@ module mod_clm_soilhydrology
     !==  BASEFLOW ==================================================
     ! perched water table code
     lrsub_error = .false.
-    do concurrent ( fc = 1:num_hydrologyc )
+#ifdef STDPAR_FIXED
+    do concurrent ( fc = 1:num_hydrologyc ) shared(lrsub_error)
+#else
+    !$acc parallel loop gang vector copy(lrsub_error)
+    do fc = 1, num_hydrologyc
+#endif
       c = filter_hydrologyc(fc)
 
       !  specify maximum drainage rate

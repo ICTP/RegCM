@@ -329,7 +329,7 @@ module mod_clm_baregroundfluxes
     ! Filter pfts where frac_veg_nosno is zero
 
     fn = 0
-    !$acc parallel loop
+    !$acc parallel loop copy(fn)
     do fp = 1, num_nolakep
       p = filter_nolakep(fp)
       if ( frac_veg_nosno(p) == 0 ) then

@@ -752,7 +752,7 @@ module mod_clm_canopyfluxes
    ! Filter pfts where frac_veg_nosno is non-zero
 
    fn = 0
-   !$acc parallel loop
+   !$acc parallel loop copy(fn)
    do fp = 1, num_nolakep
      p = filter_nolakep(fp)
      if (frac_veg_nosno(p) /= 0) then
@@ -981,7 +981,12 @@ module mod_clm_canopyfluxes
    end do
 
    found = .false.
-   do concurrent ( f = 1:fn )
+#ifdef STDPAR_FIXED
+   do concurrent ( f = 1:fn ) shared(found,perr)
+#else
+   !$acc parallel loop gang vector copy(found,perr)
+   do f = 1, fn
+#endif
      p = filterp(f)
      c = pcolumn(p)
      g = pgridcell(p)
@@ -1380,7 +1385,7 @@ module mod_clm_canopyfluxes
        end do
        fnold = fn
        fn = 0
-       !$acc parallel loop
+       !$acc parallel loop copy(fn)
        do f = 1, fnold
          p = filterp(f)
          if (.not. (det(p) < dtmin .and. dele(p) < dlemin)) then
@@ -1511,7 +1516,7 @@ module mod_clm_canopyfluxes
 
    fnold = fn
    fn = 0
-   !$acc parallel loop
+   !$acc parallel loop copy(fn)
    do f = 1, fnold
      p = filterp(f)
      if (abs(err(p)) > 0.1_rk8) then
