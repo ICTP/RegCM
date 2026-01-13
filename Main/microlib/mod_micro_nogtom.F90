@@ -230,8 +230,6 @@ module mod_micro_nogtom
   real(rkx), parameter :: dens0 = 1.225_rkx ! kg m-3
 
   logical, parameter :: newsolver = .true.
-  real(rkx), pointer, contiguous, dimension(:,:) :: rspace
-  integer(ik4), pointer, contiguous, dimension(:) :: ispace
 
   contains
 
@@ -285,8 +283,6 @@ module mod_micro_nogtom
       call getmem4d(tenqkp,1,nqx,1,kz,jci1,jci2,ici1,ici2,'cmicro:tenqkp')
       call getmem3d(tentkp,1,kz,jci1,jci2,ici1,ici2,'cmicro:tentkp')
     end if
-    call getmem1d(ispace,1,nqx,'cmicro:ispace')
-    call getmem2d(rspace,1,nqx,1,3,'cmicro:rspace')
   end subroutine allocate_mod_nogtom
 
   subroutine init_nogtom(ldmsk)
@@ -400,6 +396,10 @@ module mod_micro_nogtom
     real(rkx) :: aamax, dum, xsum, swap
     real(rkx), dimension(mxqx) :: vv
     integer(ik4), dimension(mxqx) :: indx
+    real(rkx), dimension(mxqx) :: rsp1
+    real(rkx), dimension(mxqx) :: rsp2
+    real(rkx), dimension(mxqx) :: rsp3
+    integer(ik4), dimension(mxqx) :: isp1
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
@@ -639,12 +639,12 @@ module mod_micro_nogtom
 #ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
-      ratio,sinksum,lind2,vv,indx,rspace,ispace)
+      ratio,sinksum,lind2,vv,indx,rsp1,rsp2,rsp3,isp1)
 #else
     !$acc parallel loop collapse(2) gang vector &
-    !$acc     private(fallsrce,fallsink,convsrce,qlhs,qsexp, &
-    !$acc             qsimp,qx0,qxfg,qxn,ratio,sinksum,lind2,&
-    !$acc             vv,indx,rspace,ispace)
+    !$acc     private(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp, &
+    !$acc             qx0,qxfg,qxn,ratio,sinksum,lind2,vv,indx,    &
+    !$acc             rsp1,rsp2,rsp3,isp1)
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
@@ -1804,7 +1804,7 @@ module mod_micro_nogtom
         end do
 
         if ( newsolver ) then
-          call solver(nqx,qlhs,qxn,rspace,ispace)
+          call solver(nqx,qlhs,qxn,rsp1,rsp2,rsp3,isp1)
         else
           ! Original solver
           do n = 1, nqx
@@ -2219,16 +2219,18 @@ module mod_micro_nogtom
  !   end do
  ! end function argsort
 
-  pure subroutine solver(n,lhs,rhs,rspace,ispace)
+  pure subroutine solver(n,lhs,rhs,rsp1,rsp2,rsp3,isp1)
     !$acc routine seq
     implicit none
     integer, intent(in) :: n
     real(rkx), dimension(n,n), intent(inout) :: lhs
     real(rkx), dimension(n), intent(inout) :: rhs
-    real(rkx), dimension(n,3), intent(inout) :: rspace
-    integer(ik4), dimension(n), intent(out) :: ispace
-    rspace(1:n,1) = rhs
-    call nnls(n, lhs, rspace(:,1), rhs, rspace(:,2), rspace(:,3), ispace)
+    real(rkx), dimension(n), intent(inout) :: rsp1
+    real(rkx), dimension(n), intent(inout) :: rsp2
+    real(rkx), dimension(n), intent(inout) :: rsp3
+    integer(ik4), dimension(n), intent(out) :: isp1
+    rsp1(1:n) = rhs
+    call nnls(n, lhs, rsp1, rhs, rsp2, rsp3, isp1)
   end subroutine solver
   !
   !  The original version of this code was developed by

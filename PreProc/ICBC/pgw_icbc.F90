@@ -69,6 +69,7 @@ program pgw_icbc
   real(rkx), pointer, contiguous, dimension(:,:,:) :: bt, t1, t2, t3
   real(rkx), pointer, contiguous, dimension(:,:,:) :: bq, q1, q2, q3
   real(rkx), pointer, contiguous, dimension(:,:,:) :: bias
+  real(rkx), pointer, contiguous, dimension(:) :: zsig
   integer(ik4) :: n, nsteps
   integer(ik4) :: i, j, k
   type(rcm_time_and_date) :: idate
@@ -220,6 +221,7 @@ program pgw_icbc
     call getmem2d(pd,1,jx,1,iy,'pgw_icbc:pd')
   end if
   if ( idynamic == 2 ) then
+    call getmem1d(zsig,1,npgwlev,'pgw_icbc:zsig')
     call getmem1d(sigmaf,1,kz+1,'pgw_icbc:sigmaf')
     call getmem1d(dsigma,1,kz,'pgw_icbc:dsigma')
     call getmem2d(xmap,1,jx,1,iy,'pgw_icbc:xmap')
@@ -384,13 +386,13 @@ program pgw_icbc
       ps = ps + ptop
     else if ( idynamic == 2 ) then
       p = (p0 + pp)/100.0_rkx
-      call intlinreg(bias,bu,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      call intlinreg(bias,bu,ps,plev,1,jx,1,iy,npgwlev,p,zsig,kz)
       u = u + bias
-      call intlinreg(bias,bv,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      call intlinreg(bias,bv,ps,plev,1,jx,1,iy,npgwlev,p,zsig,kz)
       v = v + bias
-      call intlinreg(bias,bt,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      call intlinreg(bias,bt,ps,plev,1,jx,1,iy,npgwlev,p,zsig,kz)
       t = t + bias
-      call intlinreg(bias,bq,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      call intlinreg(bias,bq,ps,plev,1,jx,1,iy,npgwlev,p,zsig,kz)
       q = q + bias
       ps = (ps - ptop)/10.0_rkx
       call crs2dot(pd,ps,jx,iy,0,0)

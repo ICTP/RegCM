@@ -86,7 +86,7 @@ module mod_vertint
   ! Output:
   !   fp(im,jm,km)  - the field interpolate on target pressure grid p3d
   !
-  subroutine intlinreg_p(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,km)
+  subroutine intlinreg_p(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,sig,km)
     implicit none
     integer(ik4), intent(in) :: im1, im2, jm1, jm2, km, kp
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f
@@ -94,12 +94,16 @@ module mod_vertint
     real(rkx), pointer, contiguous, dimension(:), intent(in) :: p
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p3d
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fp
+    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: sig
     integer(ik4) :: i, j, k, kx, knx, n
-    real(rkx), dimension(kp) :: sig
-    real(rkx) :: sigp, w1, wp
+    real(rkx) :: sigp, w1, w2
 
-    do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
-      fp(i,j,k) = missl
+    do k = 1, km
+      do j = jm1, jm2
+        do i = im1, im2
+          fp(i,j,k) = missl
+        end do
+      end do
     end do
     if ( p(1) > p(kp) ) then
       do j = jm1, jm2
@@ -115,15 +119,11 @@ module mod_vertint
             else if ( sigp >= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
             else
-              kx = 2
-              do k = 2, kp
-                if ( sig(k) < sigp ) exit
-                kx = kx+1
-              end do
+              kx = find_from_top(sigp,sig)
               knx = kx - 1
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -142,15 +142,11 @@ module mod_vertint
             else if ( sigp >= sig(kp) ) then
               fp(i,j,n) = f(i,j,kp)
             else
-              kx = 2
-              do k = 2, kp
-                if ( sig(k) > sigp ) exit
-                kx = kx+1
-              end do
+              kx = find_from_bottom(sigp,sig)
               knx = kx - 1
-              wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -244,10 +240,14 @@ module mod_vertint
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fp
     integer(ik4) :: i, j, k, kx, knx, n
     real(rkx), dimension(kp) :: sig
-    real(rkx) :: sigp, w1, wp
+    real(rkx) :: sigp, w1, w2
 
-    do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
-      fp(i,j,k) = missl
+    do k = 1, km
+      do j = jm1, jm2
+        do i = im1, im2
+          fp(i,j,k) = missl
+        end do
+      end do
     end do
     if ( p(1) > p(kp) ) then
       do j = jm1, jm2
@@ -269,9 +269,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(kx) + wp*f(knx)
+              w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(kx) + w2*f(knx)
             end if
           end do
         end do
@@ -296,9 +296,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(kx) + wp*f(knx)
+              w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(kx) + w2*f(knx)
             end if
           end do
         end do
@@ -324,7 +324,7 @@ module mod_vertint
     real(rk8), dimension(kp), intent(in) :: p
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk8), dimension(km) :: sig
-    real(rk8) :: sigp, w1, wp, tp, bp
+    real(rk8) :: sigp, w1, w2, tp, bp
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
       do j = 1, jm
         do i = 1, im
@@ -346,9 +346,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -374,9 +374,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -392,7 +392,7 @@ module mod_vertint
     real(rk4), dimension(kp), intent(in) :: p
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk4), dimension(km) :: sig
-    real(rk4) :: sigp, w1, wp, tp, bp
+    real(rk4) :: sigp, w1, w2, tp, bp
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
       do j = 1, jm
         do i = 1, im
@@ -414,9 +414,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
+              w1 = 1.0 - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -442,9 +442,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+              w1 = 1.0 - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -474,7 +474,7 @@ module mod_vertint
     real(rk8), dimension(km), intent(in) :: sig
     real(rk8), dimension(im,jm,kp), intent(out) :: fp
     integer(ik4) :: i, j, k, kx, knx, n
-    real(rk8) :: sigp, w1, wp
+    real(rk8) :: sigp, w1, w2
 
     if ( sig(1) > sig(2) ) then
       do j = 1, jm
@@ -492,9 +492,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -515,9 +515,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -535,10 +535,9 @@ module mod_vertint
     real(rk4), dimension(km), intent(in) :: sig
     real(rk4), dimension(im,jm,kp), intent(out) :: fp
     integer(ik4) :: i, j, k, kx, knx, n
-    real(rk4) :: sigp, w1, wp, pt
+    real(rk4) :: sigp, w1, w2, pt
     pt = real(ptop)
     if ( sig(1) > sig(2) ) then
-      !$acc parallel loop collapse(2) private(kx)
       do j = 1, jm
         do i = 1, im
           do n = 1, kp
@@ -554,9 +553,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
+              w1 = 1.0 - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -577,9 +576,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+              w1 = 1.0 - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -791,7 +790,7 @@ module mod_vertint
     real(rk8), dimension(im,jm,km), intent(in) :: f, p3d
     real(rk8), dimension(kp), intent(in) :: p
     real(rk8), dimension(im,jm,kp), intent(out) :: fp
-    real(rk8) :: sigp, w1, wp, tp, bp
+    real(rk8) :: sigp, w1, w2, tp, bp
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk8), dimension(km) :: sig
 
@@ -817,9 +816,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -846,9 +845,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = dlog(sig(kx)/sigp)/dlog(sig(kx)/sig(knx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = dlog(sig(kx)/sigp)/dlog(sig(kx)/sig(knx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -862,7 +861,7 @@ module mod_vertint
     real(rk4), dimension(im,jm,km), intent(in) :: f, p3d
     real(rk4), dimension(kp), intent(in) :: p
     real(rk4), dimension(im,jm,kp), intent(out) :: fp
-    real(rk4) :: sigp, w1, wp, tp, bp
+    real(rk4) :: sigp, w1, w2, tp, bp
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk4), dimension(km) :: sig
 
@@ -888,9 +887,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+              w1 = 1.0 - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -917,9 +916,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = (log(sigp)-log(sig(kx)))/(log(sig(knx))-log(sig(kx)))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = (log(sigp)-log(sig(kx)))/(log(sig(knx))-log(sig(kx)))
+              w1 = 1.0 - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -951,7 +950,7 @@ module mod_vertint
     real(rk8), dimension(im,jm), intent(in) :: ps
     real(rk8), dimension(km), intent(in) :: sig
     real(rk8), dimension(im,jm,kp), intent(out) :: fp
-    real(rk8) :: sigp, w1, wp
+    real(rk8) :: sigp, w1, w2
     integer(ik4) :: i, j, k, kx, knx, n
     if ( sig(1) > sig(2) ) then
       do j = 1, jm
@@ -970,9 +969,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -994,9 +993,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = dlog(sig(kx)/sigp)/dlog(sig(kx)/sig(knx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = dlog(sig(kx)/sigp)/dlog(sig(kx)/sig(knx))
+              w1 = d_one - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -1013,7 +1012,7 @@ module mod_vertint
     real(rk4), dimension(im,jm), intent(in) :: ps
     real(rk4), dimension(km), intent(in) :: sig
     real(rk4), dimension(im,jm,kp), intent(out) :: fp
-    real(rk4) :: sigp, w1, wp, pt
+    real(rk4) :: sigp, w1, w2, pt
     integer(ik4) :: i, j, k, kx, knx, n
 
     pt = real(ptop)
@@ -1034,9 +1033,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+              w1 = 1.0 - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -1058,9 +1057,9 @@ module mod_vertint
                 kx = kx+1
               end do
               knx = kx - 1
-              wp = log(sig(kx)/sigp)/log(sig(kx)/sig(knx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+              w2 = log(sig(kx)/sigp)/log(sig(kx)/sig(knx))
+              w1 = 1.0 - w2
+              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
@@ -1079,8 +1078,10 @@ module mod_vertint
     real(rkx), dimension(ni,nj), intent(out) :: psrcm
     integer(ik4) :: i, j
 
-    do concurrent ( j = 1:nj,  i = 1:ni )
-      psrcm(i,j) = pa(i,j)*exp(-govr*(zrcm(i,j)-za(i,j))/tlayer(i,j)) - pt
+    do i = 1, ni
+      do j = 1, nj
+        psrcm(i,j) = pa(i,j)*exp(-govr*(zrcm(i,j)-za(i,j))/tlayer(i,j)) - pt
+      end do
     end do
   end subroutine intpsn
 
@@ -1654,6 +1655,34 @@ module mod_vertint
       end do
     end if
   end subroutine intzps2
+
+  pure integer function find_from_top(v,vv) result(n)
+    implicit none
+    real(rkx), intent(in) :: v
+    real(rkx), intent(in), dimension(:) :: vv
+    integer(ik4) :: nx
+    nx = size(vv)
+    do n = 2, nx-1
+      if ( vv(n) < v ) then
+        return
+      end if
+    end do
+    return
+  end function find_from_top
+
+  pure integer function find_from_bottom(v,vv) result(n)
+    implicit none
+    real(rkx), intent(in) :: v
+    real(rkx), intent(in), dimension(:) :: vv
+    integer(ik4) :: nx
+    nx = size(vv)
+    do n = 2, nx-1
+      if ( vv(n) > v ) then
+        return
+      end if
+    end do
+    return
+  end function find_from_bottom
 
 end module mod_vertint
 
