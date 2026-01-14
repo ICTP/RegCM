@@ -1899,35 +1899,33 @@ module mod_rad_aerosol
         ! Here just use linear av for now, should be improved !!
         ! MERRA grid is top down
         if ( lfirst ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            do wn = 1, nacwb
-              pl1(j,i,1,wn)  = d_one + pldp1(j,i,1,wn)*d_half
-              do k = 2, clnlev
-                pl1(j,i,k,wn) = pl1(j,i,k-1,wn) + &
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, wn = 1:nacwb )
+            pl1(j,i,1,wn)  = d_one + pldp1(j,i,1,wn)*d_half
+            !$acc loop seq
+            do k = 2, clnlev
+              pl1(j,i,k,wn) = pl1(j,i,k-1,wn) + &
                   (pldp1(j,i,k-1,wn) + pldp1(j,i,k,wn))*d_half
-              end do
             end do
           end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            do wn = 1, nacwb
-              pl2(j,i,1,wn)  = d_one + pldp2(j,i,1,wn)*d_half
-              do k = 2, clnlev
-                pl2(j,i,k,wn) = pl2(j,i,k-1,wn) + &
-                  (pldp2(j,i,k-1,wn) + pldp2(j,i,k,wn))*d_half
-              end do
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, wn = 1:nacwb )
+            pl2(j,i,1,wn)  = d_one + pldp2(j,i,1,wn)*d_half
+            !$acc loop seq
+            do k = 2, clnlev
+              pl2(j,i,k,wn) = pl2(j,i,k-1,wn) + &
+                (pldp2(j,i,k-1,wn) + pldp2(j,i,k,wn))*d_half
             end do
           end do
         else
-          !$acc kernels
-          pl1(:,:,:,:) = pl2(:,:,:,:)
-          !$acc end kernels
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            do wn = 1, nacwb
-              pl2(j,i,1,wn)  = d_one + pldp2(j,i,1,wn)*d_half
-              do k = 2, clnlev
-                pl2(j,i,k,wn) = pl2(j,i,k-1,wn) + &
-                  (pldp2(j,i,k-1,wn) + pldp2(j,i,k,wn))*d_half
-              end do
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                          k = 1:clnlev, wn = 1:nacwb )
+            pl1(j,i,k,wn) = pl2(j,i,k,wn)
+          end do
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, wn = 1:nacwb )
+            pl2(j,i,1,wn)  = d_one + pldp2(j,i,1,wn)*d_half
+            !$acc loop seq
+            do k = 2, clnlev
+              pl2(j,i,k,wn) = pl2(j,i,k-1,wn) + &
+                (pldp2(j,i,k-1,wn) + pldp2(j,i,k,wn))*d_half
             end do
           end do
         end if

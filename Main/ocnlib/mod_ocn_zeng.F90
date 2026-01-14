@@ -79,7 +79,7 @@ module mod_ocn_zeng
             tstar, um, visa, zot, wc, zeta, zoq, tha,    &
             cpm, rlv, rs, rd, td, tdelta, delta, q, fd, &
             ustarw, l, phidl, aa, bb, lamb, dtstend, fs, &
-            dts, tskin_new, fua
+            dts, tskin_new, fua, es, ws
 !     real(rkx) :: lwds, lwus
       integer(ik4) :: nconv
 
@@ -119,7 +119,9 @@ module mod_ocn_zeng
         th = tsurf*(p00/sfps(i))**rovcp
         tha = tatm(i)*(p00/patm(i))**rovcp
         ! the saturation vapor pressure for salty water is on average 2% lower
-        qs = pfqsat(tsurf,sfps(i)*0.98_rkx)
+        es = pfesat(tsurf,sfps(i))*0.98_rkx
+        ws = ep2*(es/(sfps(i)-es))
+        qs = ws/(d_one+ws)
         ! virtual potential T
         thv = th*(d_one+ep1*qs)
         ! The deltas between surface and atmosphere
@@ -480,7 +482,7 @@ module mod_ocn_zeng
 #endif
     contains
 
-#include <pfqsat.inc>
+#include <pfesat.inc>
 #include <wlh.inc>
     !
     ! stability function for rb < 0

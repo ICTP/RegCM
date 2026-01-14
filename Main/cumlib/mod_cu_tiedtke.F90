@@ -207,9 +207,9 @@ module mod_cu_tiedtke
     end if
 
     dtc = dtcum
-    !$acc kernels
-    ilab(:,:) = 2
-    !$acc end kernels
+    do concurrent( ii = 1:nipoi, k = 1:kz )
+      ilab(n,k) = 2
+    end do
 
     if ( ichem == 1 ) then
       do n = 1, ntr
@@ -243,10 +243,10 @@ module mod_cu_tiedtke
         end do
       end if
     else
-      !$acc kernels
-      pxtm1(:,:,:) = d_zero ! tracers input profiles
-      pxtte(:,:,:) = d_zero ! tracer tendencies
-      !$acc end kernels
+      do concurrent ( ii = 1:nipoi, k = 1:kz, n = 1:ntr )
+        pxtm1(ii,k,n) = d_zero ! tracers input profiles
+        pxtte(ii,k,n) = d_zero ! tracer tendencies
+      end do
     end if
     do concurrent ( ii = 1:nipoi )
       ! AMT NOTE: This is used in the switch between deep and shallow
@@ -333,15 +333,16 @@ module mod_cu_tiedtke
     end do
 
     ! Output variables (1d)
-    !$acc kernels
-    prsfc(:) = d_zero ! CHECK - surface rain flux
-    pssfc(:) = d_zero ! CHECK - surface snow flux
-
-    ktype(:) = 0
-    kctop(:) = 0
-    kcbot(:) = 0
-    pmfu(:,:) = d_zero
-    !$acc end kernels
+    do concurrent ( ii = 1:nipoi )
+      prsfc(ii) = d_zero ! CHECK - surface rain flux
+      pssfc(ii) = d_zero ! CHECK - surface snow flux
+      ktype(ii) = 0
+      kctop(ii) = 0
+      kcbot(ii) = 0
+    end do
+    do concurrent ( ii = 1:nipoi, k = 1:kz )
+      pmfu(ii,k) = d_zero
+    end do
 
     call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
@@ -5476,11 +5477,12 @@ module mod_cu_tiedtke
       !--------------------------------------
       ! 13. Conservation check AND correction
       ! -------------------------------------
-      do concurrent ( n = n1:n2 )
-        xsumc(n,:) = d_zero
+      do n = n1, n2
+        do k = 1, 4
+          xsumc(n,k) = d_zero
+        end do
       end do
-      do concurrent ( n = n1:n2 )
-        !$acc loop seq
+      do n = n1, n2
         do k = nk, 2, -1
           xalv = mlwt(t(n,k))
           if ( ldcum(n) .and. k >= kctop(n)-1 ) then
@@ -5495,17 +5497,17 @@ module mod_cu_tiedtke
         end do
       end do
       if ( lmftrac .and. ntrac > 0 ) then
-        do concurrent ( n = n1:n2, nt = 1:ntrac )
-          !$acc loop seq
-          do k = nk, 2, -1
-            if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-              dz = (pf(n,k+1)-pf(n,k))*regrav
-              xsumc(n,4+nt) = xsumc(n,4+nt) + (tenc(n,k,nt)-xtenc(n,k,nt))*dz
-            end if
+        do nt = 1, ntrac
+          do n = n1, n2
+            do k = nk, 2, -1
+              if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+                dz = (pf(n,k+1)-pf(n,k))*regrav
+                xsumc(n,4+nt) = xsumc(n,4+nt) + (tenc(n,k,nt)-xtenc(n,k,nt))*dz
+              end if
+            end do
           end do
         end do
       end if
-      !$acc update host(ldcum,t,mflxr,mflxs,sfl,xsumc,kctop,pf)
       do n = n1, n2
         xalv = mlwt(t(n,nk))
         if ( ldcum(n) ) then
@@ -5532,7 +5534,6 @@ module mod_cu_tiedtke
       end do
       deallocate (xsumc)
       if ( lmftrac .and. ntrac > 0 ) deallocate (xtenc)
-      !$acc update device(ldcum,t,mflxr,mflxs,sfl,kctop,pf)
     end if
     !-------------------------------------------------------
     ! 14. Compute convective tendencies for liquid and solid
@@ -6452,9 +6453,11 @@ module mod_cu_tiedtke
         buoy(n) = d_zero
         dmfen(n) = d_zero
         xdmfde(n) = d_zero
-        dmfde(n,:) = d_zero
-        mfdde_rate(n,:) = d_zero
-        kined(n,:) = d_zero
+      end do
+      do concurrent ( n = n1:n2, k = 1:nk )
+        dmfde(n,k) = d_zero
+        mfdde_rate(n,k) = d_zero
+        kined(n,k) = d_zero
       end do
       do k = 3, nk
         is = 0
@@ -6671,15 +6674,13 @@ module mod_cu_tiedtke
         ! Fill bi-diagonal Matrix vectors A=k-1, B=k, C=k+1;
         ! DTDT and DQDT correspond to the RHS ("constants") of the equation
         ! The solution is in R1 and R2
-        allocate (bb(np,nk))
-        allocate (r1(np,nk))
-        allocate (r2(np,nk))
-        allocate (llcumbas(np,nk))
-        !$acc kernels
-        llcumbas(:,:) = .false.
-        bb(:,:) = d_one
-        xmfus(:,:) = d_zero
-        !$acc end kernels
+        allocate (bb(np,nk), source=1.0_rkx)
+        allocate (r1(np,nk), source=0.0_rkx)
+        allocate (r2(np,nk), source=0.0_rkx)
+        allocate (llcumbas(np,nk), source=.false.)
+        do concurrent ( n = n1:n2, k = 1:nk )
+          xmfus(n,k) = d_zero
+        end do
         ! Fill vectors A, B and RHS
         do concurrent ( n = n1:n2, k = itopm2:nk )
           ik = k + 1
@@ -6808,15 +6809,13 @@ module mod_cu_tiedtke
         ! DUDT and DVDT correspond to the RHS ("constants") of the equation
         ! The solution is in R1 and R2
         ! -----------------------------------------------------------------
-        allocate (bb(np,nk))
-        allocate (r1(np,nk))
-        allocate (r2(np,nk))
-        allocate (llcumbas(np,nk))
-        !$acc kernels
-        llcumbas(:,:) = .false.
-        bb(:,:) = d_one
-        mfuu(:,:) = d_zero
-        !$acc end kernels
+        allocate (bb(np,nk), source=1.0_rkx)
+        allocate (r1(np,nk), source=0.0_rkx)
+        allocate (r2(np,nk), source=0.0_rkx)
+        allocate (llcumbas(np,nk), source=.false.)
+        do concurrent ( n = n1:n2, k = 1:nk )
+          mfuu(n,k) = d_zero
+        end do
         ! Fill vectors A, B and RHS
         do concurrent ( n = n1:n2, k = itopm2:nk )
           ik = k + 1
@@ -6924,10 +6923,10 @@ module mod_cu_tiedtke
           end if
         end do
       end do
-      !$acc kernels
-      mflxr(:,nk+1) = d_zero
-      mflxs(:,nk+1) = d_zero
-      !$acc end kernels
+      do concurrent( n = n1:n2 )
+        mflxr(n,nk+1) = d_zero
+        mflxs(n,nk+1) = d_zero
+      end do
       !----------------------------------
       ! 1.1 Scale fluxes below cloud base
       !      linear dcrease
@@ -7674,13 +7673,9 @@ module mod_cu_tiedtke
         ! Fill bi-diagonal Matrix vectors A=k-1, B=k;
         ! tenc corresponds to the RHS ("constants") of the equation
         ! The solution is in R1
-        allocate (bb(np,nk))
-        allocate (r1(np,nk))
-        allocate (llcumbas(np,nk))
-        !$acc kernels
-        llcumbas(:,:) = .false.
-        bb(:,:) = d_one
-        !$acc end kernels
+        allocate (bb(np,nk), source=1.0_rkx)
+        allocate (r1(np,nk), source=0.0_rkx)
+        allocate (llcumbas(np,nk), source=.false.)
         do nt = 1, ntrac
           ! Fill vectors A, B and RHS
           do concurrent ( n = n1:n2, k = 2:nk )
