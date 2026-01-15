@@ -403,15 +403,15 @@ module mod_rad_colmod3
     !
     ! Gas concentrations
     !
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, m = 1:4 )
+    do concurrent ( k = 1:kz, m = 1:4, j = jci1:jci2, i = ici1:ici2 )
       n = (j-jci1)+(i-ici1)*nj+1
       rt%absgasnxt(k,m,n) = gasabsnxt(j,i,k,m)
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k2 = 1:kzp1, k = 1:kzp1 )
+    do concurrent ( k2 = 1:kzp1, k = 1:kzp1, j = jci1:jci2, i = ici1:ici2 )
       n = (j-jci1)+(i-ici1)*nj+1
       rt%absgastot(k2,k,n) = gasabstot(j,i,k2,k)
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+    do concurrent ( k = 1:kzp1, j = jci1:jci2, i = ici1:ici2 )
       n = (j-jci1)+(i-ici1)*nj+1
       rt%emsgastot(k,n) = gasemstot(j,i,k)
     end do
@@ -426,7 +426,7 @@ module mod_rad_colmod3
     !
     ! rearrange input
     !
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       n = (j-jci1)+(i-ici1)*nj+1
       rt%pmid(k,n) = m2r%phatms(j,i,k)
       rt%pmln(k,n) = log(m2r%phatms(j,i,k))
@@ -436,7 +436,7 @@ module mod_rad_colmod3
       rt%ql(k,n)   = m2r%qxatms(j,i,k,iqc)
       rt%dz(k,n)   = m2r%deltaz(j,i,k)
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+    do concurrent ( k = 1:kzp1, j = jci1:jci2, i = ici1:ici2 )
       n = (j-jci1)+(i-ici1)*nj+1
       rt%pint(k,n) = m2r%pfatms(j,i,k)
       rt%piln(k,n) = log(m2r%pfatms(j,i,k))
@@ -448,7 +448,7 @@ module mod_rad_colmod3
       rt%rho(k,n) = (rt%pmid(k,n))/(rt%t(k,n)*rgas)
     end do
     if ( ipptls > 1 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         n = (j-jci1)+(i-ici1)*nj+1
         rt%qi(k,n) = m2r%qxatms(j,i,k,iqi)
       end do
@@ -487,7 +487,7 @@ module mod_rad_colmod3
     !   - NOT on the topmost two layers
     !   - Starting from ncld levels from the surface
     !
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       n = (j-jci1)+(i-ici1)*nj+1
       ! Convert liquid water content into liquid water path
       rt%clwp(k,n) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
@@ -541,7 +541,7 @@ module mod_rad_colmod3
     !
     ! Compute cloud drop size and emissivity
     !
-    do concurrent( n = rt%n1:rt%n2, k = 1:kz )
+    do concurrent( k = 1:kz, n = rt%n1:rt%n2 )
       ! Define liquid drop size
       ! rel : liquid effective drop size (microns)
       !
@@ -671,7 +671,7 @@ module mod_rad_colmod3
         end do
       end do
     end if
-    do concurrent ( n = rt%n1:rt%n2, k = 1:kz )
+    do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
       ! ice absorption coefficient
       kabsi = 0.005_rkx + (1.0_rkx/rt%rei(k,n))
       ! liquid water absorption coefficient for broadband long wave

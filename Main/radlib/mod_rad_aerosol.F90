@@ -219,7 +219,7 @@ module mod_rad_aerosol
   !
   !
   ! DUST OP data base for external mixing : maximum of 4 bin for the
-  ! momeent, determined from Zender et al.
+  ! moment, determined from Zender et al.
   !
   ! DATA section for optical properties relative to RRTM
   ! based on of line calculation considering the Kok et al., 2011 distribution
@@ -1664,7 +1664,7 @@ module mod_rad_aerosol
 
     subroutine check_ok(f,l,m1,mf)
       implicit none
-      character(*), intent(in) :: f, m1, mf
+      character(len=*), intent(in) :: f, m1, mf
       integer(ik4), intent(in) :: l
       if ( ncstatus /= nf90_noerr ) then
         write (stderr,*) trim(m1)
