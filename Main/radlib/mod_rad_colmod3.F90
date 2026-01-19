@@ -464,7 +464,6 @@ module mod_rad_colmod3
         else
           rt%fice(k,n) = 0.0_rkx
         end if
-        rt%ql(k,n) = rt%ql(k,n) + rt%qi(k,n)
       end do
     else
       do concurrent ( k = 1:kz,  n = rt%n1:rt%n2 )
@@ -481,6 +480,7 @@ module mod_rad_colmod3
           rt%fice(k,n) = (tzero-rt%t(k,n))/20.0_rkx
         end if
         rt%qi(k,n) = rt%ql(k,n) * rt%fice(k,n)
+        rt%ql(k,n) = rt%ql(k,n) - rt%qi(k,n)
       end do
     end if
     !
@@ -603,6 +603,10 @@ module mod_rad_colmod3
         rt%rel(k,n) = 8.5_rkx
         rt%rei(k,n) = 20.0_rkx
       end if
+    end do
+    ! Reset now or add all water
+    do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
+      rt%ql(k,n) = rt%ql(k,n) + rt%qi(k,n)
     end do
 #if 0
     !$acc kernels
