@@ -101,14 +101,14 @@ module mod_che_carbonaer
     subroutine carb_init( )
       implicit none
       if ( carb_aging_control ) then
-        call getmem3d(ncon,jci1,jci2,ici1,ici2,1,kz,'carbonaer:ncon')
-        call getmem3d(surf,jci1,jci2,ici1,ici2,1,kz,'carbonaer:surf')
-        call getmem3d(so4chagct,jci1,jci2, &
+        call getmem(ncon,jci1,jci2,ici1,ici2,1,kz,'carbonaer:ncon')
+        call getmem(surf,jci1,jci2,ici1,ici2,1,kz,'carbonaer:surf')
+        call getmem(so4chagct,jci1,jci2, &
                       ici1,ici2,1,kz,'che_common:so4chagct')
         if ( chechgact ) then
-          call getmem4d(save_chagct,jci1,jci2, &
+          call getmem(save_chagct,jci1,jci2, &
                         ici1,ici2,1,kz,1,ntr,'che_common:save_chagct')
-          call getmem4d(save_ncon,jci1,jci2, &
+          call getmem(save_ncon,jci1,jci2, &
                         ici1,ici2,1,kz,1,ntr,'che_common:save_ncon')
         end if
       end if

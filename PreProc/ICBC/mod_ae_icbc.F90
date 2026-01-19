@@ -134,10 +134,10 @@ module mod_ae_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire time')
 
-    call getmem1d(aet42lon,1,aeilon,'mod_ae_icbc:aeilon')
-    call getmem1d(aet42lat,1,aejlat,'mod_ae_icbc:aejlat')
-    call getmem1d(aet42hyam,1,aeilev,'mod_ae_icbc:aet42hyam')
-    call getmem1d(aet42hybm,1,aeilev,'mod_ae_icbc:aet42hybm')
+    call getmem(aet42lon,1,aeilon,'mod_ae_icbc:aeilon')
+    call getmem(aet42lat,1,aejlat,'mod_ae_icbc:aejlat')
+    call getmem(aet42hyam,1,aeilev,'mod_ae_icbc:aet42hyam')
+    call getmem(aet42hybm,1,aeilev,'mod_ae_icbc:aet42hybm')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -172,13 +172,13 @@ module mod_ae_icbc
 
     call h_interpolator_create(hint,aet42lat,aet42lon,xlat,xlon)
 
-    call getmem2d(paeid_3,1,jx,1,iy,'mod_ae_icbc:paeid_3')
-    call getmem2d(xps3,1,jx,1,iy,'mod_ae_icbc:xps3')
-    call getmem2d(xps,1,aeilon,1,aejlat,'mod_ae_icbc:xps')
-    call getmem3d(xps2,1,aeilon,1,aejlat,1,aeitime,'mod_ae_icbc:xps2')
-    call getmem3d(xinp,1,aeilon,1,aejlat,1,aeilev,'mod_ae_icbc:xinp')
-    call getmem4d(aev3,1,jx,1,iy,1,aeilev,1,naesp,'mod_ae_icbc:aev3')
-    call getmem5d(aev2,1,aeilon,1,aejlat,1,aeilev,1,aeitime, &
+    call getmem(paeid_3,1,jx,1,iy,'mod_ae_icbc:paeid_3')
+    call getmem(xps3,1,jx,1,iy,'mod_ae_icbc:xps3')
+    call getmem(xps,1,aeilon,1,aejlat,'mod_ae_icbc:xps')
+    call getmem(xps2,1,aeilon,1,aejlat,1,aeitime,'mod_ae_icbc:xps2')
+    call getmem(xinp,1,aeilon,1,aejlat,1,aeilev,'mod_ae_icbc:xinp')
+    call getmem(aev3,1,jx,1,iy,1,aeilev,1,naesp,'mod_ae_icbc:aev3')
+    call getmem(aev2,1,aeilon,1,aejlat,1,aeilev,1,aeitime, &
                   1,naesp,'mod_ae_icbc:aev2')
 
     istatus = nf90_inq_varid(ncid,'PS',ivarid)

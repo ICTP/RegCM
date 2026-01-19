@@ -189,56 +189,56 @@ module mod_moloch
   subroutine allocate_moloch
     implicit none
     integer(ik4) :: k
-    call getmem1d(gzitak,1,kzp1,'moloch:gzitak')
-    call getmem1d(gzitakh,1,kz,'moloch:gzitakh')
-    call getmem3d(p3d,jdi1,jdi2,idi1,idi2,1,kz,'moloch:p3d')
-    call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:dw')
-    call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
+    call getmem(gzitak,1,kzp1,'moloch:gzitak')
+    call getmem(gzitakh,1,kz,'moloch:gzitakh')
+    call getmem(p3d,jdi1,jdi2,idi1,idi2,1,kz,'moloch:p3d')
+    call getmem(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:dw')
+    call getmem(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
 #ifdef RCEMIP
-    call getmem3d(wx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:wx')
+    call getmem(wx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:wx')
 #else
-    call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
+    call getmem(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
 #endif
-    call getmem3d(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
-    call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
-    call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
-    call getmem2d(mx2,jde1,jde2,ide1,ide2,'moloch:mx2')
-    call getmem2d(rmu,jde1ga,jde2ga,ide1,ide2,'moloch:rmu')
-    call getmem2d(rmv,jde1,jde2,ide1ga,ide2ga,'moloch:rmv')
-    call getmem2d(coru,jde1,jde2,ice1,ice2,'moloch:coru')
-    call getmem2d(corv,jce1,jce2,ide1,ide2,'moloch:corv')
+    call getmem(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
+    call getmem(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
+    call getmem(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
+    call getmem(mx2,jde1,jde2,ide1,ide2,'moloch:mx2')
+    call getmem(rmu,jde1ga,jde2ga,ide1,ide2,'moloch:rmu')
+    call getmem(rmv,jde1,jde2,ide1ga,ide2ga,'moloch:rmv')
+    call getmem(coru,jde1,jde2,ice1,ice2,'moloch:coru')
+    call getmem(corv,jce1,jce2,ide1,ide2,'moloch:corv')
     if ( ibltyp == 2 ) then
-      call getmem3d(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
+      call getmem(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
     end if
     if ( idiag > 0 ) then
-      call getmem3d(ten0,jci1,jci2,ici1,ici2,1,kz,'moloch:ten0')
-      call getmem3d(qen0,jci1,jci2,ici1,ici2,1,kz,'moloch:qen0')
+      call getmem(ten0,jci1,jci2,ici1,ici2,1,kz,'moloch:ten0')
+      call getmem(qen0,jci1,jci2,ici1,ici2,1,kz,'moloch:qen0')
     end if
     if ( ichem == 1 ) then
       if ( ichdiag > 0 ) then
-        call getmem4d(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'moloch:chiten0')
+        call getmem(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'moloch:chiten0')
       end if
     end if
-    call getmem3d(ud,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'moloch:ud')
-    call getmem3d(vd,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'moloch:vd')
+    call getmem(ud,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'moloch:ud')
+    call getmem(vd,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'moloch:vd')
     if ( ifrayd == 1 ) then
-      call getmem3d(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
-      call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
+      call getmem(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
+      call getmem(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
     end if
     if ( do_fulleq ) then
-      call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
-      call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
+      call getmem(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
+      call getmem(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
     end if
-    call getmem1d(xknu,1,kz,'moloch:xknu')
+    call getmem(xknu,1,kz,'moloch:xknu')
     do concurrent ( k = 1:kz )
       xknu(k) = xdamp + &
         (1.0_rkx-xdamp) * sin(0.5_rkx*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
     if ( do_filterpai ) then
-      call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
+      call getmem(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
     end if
     if ( do_filtertheta ) then
-      call getmem3d(tf,jce1,jce2,ice1,ice2,1,kz,'moloch:tf')
+      call getmem(tf,jce1,jce2,ice1,ice2,1,kz,'moloch:tf')
     end if
   end subroutine allocate_moloch
 

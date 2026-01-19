@@ -551,22 +551,22 @@ module mod_runparams
     implicit none
     if ( idynamic < 3 ) then
       if ( idynamic == 1 ) then
-        call getmem1d(dtau,1,nsplit,'mod_runparams:dtau')
-        call getmem1d(dtsplit,1,nsplit,'mod_runparams:dtsplit')
+        call getmem(dtau,1,nsplit,'mod_runparams:dtau')
+        call getmem(dtsplit,1,nsplit,'mod_runparams:dtsplit')
       end if
     else
-      call getmem1d(zita,1,kzp1,'mod_runparams:zita')
-      call getmem1d(zitah,1,kz,'mod_runparams:zitah')
-      call getmem1d(ffilt,1,kz,'mod_runparams:ffilt')
+      call getmem(zita,1,kzp1,'mod_runparams:zita')
+      call getmem(zitah,1,kz,'mod_runparams:zitah')
+      call getmem(ffilt,1,kz,'mod_runparams:ffilt')
 !$acc enter data create(ffilt)
-      call getmem1d(ak,1,kz,'mod_runparams:ak')
-      call getmem1d(bk,1,kz,'mod_runparams:bk')
+      call getmem(ak,1,kz,'mod_runparams:ak')
+      call getmem(bk,1,kz,'mod_runparams:bk')
     end if
-    call getmem1d(dsigma,1,kz,'mod_runparams:dsigma')
-    call getmem1d(hsigma,1,kz,'mod_runparams:hsigma')
-    call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
-    call getmem1d(qcon,1,kz,'mod_runparams:qcon')
-    call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
+    call getmem(dsigma,1,kz,'mod_runparams:dsigma')
+    call getmem(hsigma,1,kz,'mod_runparams:hsigma')
+    call getmem(sigma,1,kzp1,'mod_runparams:sigma')
+    call getmem(qcon,1,kz,'mod_runparams:qcon')
+    call getmem(twt,1,kz,1,2,'mod_runparams:twt')
   end subroutine allocate_mod_runparams
 
   pure logical function iswater(a)

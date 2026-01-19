@@ -443,7 +443,7 @@ module mod_sun
       write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'VARIABLE TSI NOT FOUND')
     end if
-    call getmem1d(heppatsi,1,ntime,'sun: heppatsi')
+    call getmem(heppatsi,1,ntime,'sun: heppatsi')
     iret = nf90_get_var(ncid,ivar,heppatsi)
     if ( iret /= nf90_noerr ) then
       write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)

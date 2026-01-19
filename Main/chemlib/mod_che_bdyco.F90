@@ -84,24 +84,24 @@ module mod_che_bdyco
 
   subroutine allocate_mod_che_bdyco
     implicit none
-    call getmem1d(ichbdy2trac,1,max_input_tracers,'che_bdyco:ichbdytrac')
-    call getmem4d(chib0,jde1ga,jde2ga,ide1ga,ide2ga, &
+    call getmem(ichbdy2trac,1,max_input_tracers,'che_bdyco:ichbdytrac')
+    call getmem(chib0,jde1ga,jde2ga,ide1ga,ide2ga, &
                         1,kz,1,ntr,'mod_che_bdyco:chib0')
     if ( ioxclim == 1 ) then
-      call getmem4d(oxcl,jde1ga,jde2ga,ide1ga,ide2ga, &
+      call getmem(oxcl,jde1ga,jde2ga,ide1ga,ide2ga, &
                          1,kz,1,noxcl,'che_bdyco:oxcl')
     end if
     if ( ichebdy == 1 ) then
-      call getmem4d(chebdy,jce1,jce2,ice1,ice2,1,kz, &
+      call getmem(chebdy,jce1,jce2,ice1,ice2,1,kz, &
                     1,max_input_tracers,'che_bdyco:chebdy')
-      call getmem4d(chib1,jde1ga,jde2ga,ide1ga,ide2ga, &
+      call getmem(chib1,jde1ga,jde2ga,ide1ga,ide2ga, &
                           1,kz,1,ntr,'mod_che_bdyco:chib1')
-      call getmem4d(chibt,jde1ga,jde2ga,ide1ga,ide2ga, &
+      call getmem(chibt,jde1ga,jde2ga,ide1ga,ide2ga, &
                           1,kz,1,ntr,'mod_che_bdyco:chibt')
     end if
-    call getmem2d(cefc,1,nspgx,1,kz,'che_bdyco:fcx')
-    call getmem2d(cegc,1,nspgx,1,kz,'che_bdyco:fcx')
-    call getmem3d(fg,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'che_bdyco:fg')
+    call getmem(cefc,1,nspgx,1,kz,'che_bdyco:fcx')
+    call getmem(cegc,1,nspgx,1,kz,'che_bdyco:fcx')
+    call getmem(fg,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'che_bdyco:fg')
   end subroutine allocate_mod_che_bdyco
 
   subroutine che_init_bdy

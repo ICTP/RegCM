@@ -157,7 +157,7 @@ module mod_rdldtr
     deallocate(glat)
     deallocate(glon)
 
-    call getmem2d(values,1,nlonin,1,nlatin,'rdldtr:values')
+    call getmem(values,1,nlonin,1,nlatin,'rdldtr:values')
     allocate(readbuf(nlon,nlat))
 
 #ifdef DEBUG
@@ -289,7 +289,7 @@ module mod_rdldtr
     deallocate(glat)
     deallocate(glon)
 
-    call getmem3d(values,1,nlonin,1,nlatin,1,nd,'rdldtr:values')
+    call getmem(values,1,nlonin,1,nlatin,1,nd,'rdldtr:values')
     allocate(readbuf(nlon,nlat,nd))
 
 #ifdef DEBUG
@@ -423,7 +423,7 @@ module mod_rdldtr
     deallocate(glat)
     deallocate(glon)
 
-    call getmem2d(values,1,nlonin,1,nlatin,'rdldtr:values')
+    call getmem(values,1,nlonin,1,nlatin,'rdldtr:values')
     allocate(readbuf(nlon,nlat))
 
 #ifdef DEBUG

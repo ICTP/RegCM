@@ -116,8 +116,8 @@ module mod_pbl_uwtcm
   subroutine allocate_tcm_state(tcmstate)
     implicit none
     type(tcm_state), intent(inout) :: tcmstate
-    call getmem3d(tcmstate%kzm,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kzm')
-    call getmem3d(tcmstate%kth,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kth')
+    call getmem(tcmstate%kzm,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kzm')
+    call getmem(tcmstate%kth,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kth')
   end subroutine allocate_tcm_state
 
   subroutine init_mod_pbl_uwtcm

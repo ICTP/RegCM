@@ -439,8 +439,8 @@ module mod_ncio
     end if
     if ( idynamic == 2 ) then
       if ( .not. do_parallel_netcdf_in ) then
-        call getmem3d(tempw,jce1,jce2,ice1,ice2,1,kz,'read_domain:tempw')
-        call getmem2d(tempwtop,jce1,jce2,ice1,ice2,'read_domain:tempwtop')
+        call getmem(tempw,jce1,jce2,ice1,ice2,1,kz,'read_domain:tempw')
+        call getmem(tempwtop,jce1,jce2,ice1,ice2,'read_domain:tempwtop')
       end if
     end if
   end subroutine read_domain_info

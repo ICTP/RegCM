@@ -113,10 +113,10 @@ module mod_ox_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire time')
 
-    call getmem1d(oxt42lon,1,oxilon,'mod_ox_icbc:oxilon')
-    call getmem1d(oxt42lat,1,oxjlat,'mod_ox_icbc:oxjlat')
-    call getmem1d(oxt42hyam,1,oxilev,'mod_ox_icbc:oxt42hyam')
-    call getmem1d(oxt42hybm,1,oxilev,'mod_ox_icbc:oxt42hybm')
+    call getmem(oxt42lon,1,oxilon,'mod_ox_icbc:oxilon')
+    call getmem(oxt42lat,1,oxjlat,'mod_ox_icbc:oxjlat')
+    call getmem(oxt42hyam,1,oxilev,'mod_ox_icbc:oxt42hyam')
+    call getmem(oxt42hybm,1,oxilev,'mod_ox_icbc:oxt42hybm')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -151,13 +151,13 @@ module mod_ox_icbc
 
     call h_interpolator_create(hint,oxt42lat,oxt42lon,xlat,xlon)
 
-    call getmem2d(poxid_3,1,jx,1,iy,'mod_ox_icbc:poxid_3')
-    call getmem2d(xps3,1,jx,1,iy,'mod_ch_icbc:xps3')
-    call getmem2d(xps,1,oxilon,1,oxjlat,'mod_ox_icbc:xps')
-    call getmem3d(xps2,1,oxilon,1,oxjlat,1,oxitime,'mod_ox_icbc:xps2')
-    call getmem3d(xinp,1,oxilon,1,oxjlat,1,oxilev,'mod_ox_icbc:xinp')
-    call getmem4d(oxv3,1,jx,1,iy,1,oxilev,1,noxsp,'mod_ox_icbc:oxv3')
-    call getmem5d(oxv2,1,oxilon,1,oxilev,1,oxjlat,1,oxitime, &
+    call getmem(poxid_3,1,jx,1,iy,'mod_ox_icbc:poxid_3')
+    call getmem(xps3,1,jx,1,iy,'mod_ch_icbc:xps3')
+    call getmem(xps,1,oxilon,1,oxjlat,'mod_ox_icbc:xps')
+    call getmem(xps2,1,oxilon,1,oxjlat,1,oxitime,'mod_ox_icbc:xps2')
+    call getmem(xinp,1,oxilon,1,oxjlat,1,oxilev,'mod_ox_icbc:xinp')
+    call getmem(oxv3,1,jx,1,iy,1,oxilev,1,noxsp,'mod_ox_icbc:oxv3')
+    call getmem(oxv2,1,oxilon,1,oxilev,1,oxjlat,1,oxitime, &
                   1,noxsp,'mod_ox_icbc:oxv2')
 
     istatus = nf90_inq_varid(ncid,'PS',ivarid)

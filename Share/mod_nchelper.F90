@@ -219,8 +219,8 @@ module mod_nchelper
     integer(ik4) :: i, j
     integer(ik4)  :: incstat
 
-    call getmem1d(yiy,1,ny,'mod_write:yiy')
-    call getmem1d(xjx,1,nx,'mod_write:xjx')
+    call getmem(yiy,1,ny,'mod_write:yiy')
+    call getmem(xjx,1,nx,'mod_write:xjx')
     yiy(1) = -real((real(iy-1,rkx)/d_two) * ds,rk4)
     xjx(1) = -real((real(jx-1,rkx)/d_two) * ds,rk4)
     do i = 2, ny

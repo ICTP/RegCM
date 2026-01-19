@@ -27,11 +27,7 @@ module mod_memutil
   private
 
   public :: memory_init, memory_destroy
-  public :: getmem1d, relmem1d
-  public :: getmem2d, relmem2d
-  public :: getmem3d, relmem3d
-  public :: getmem4d, relmem4d
-  public :: getmem5d, relmem5d
+  public :: getmem, relmem
   public :: assignpnt, remappnt4
   !public :: memshare
 
@@ -109,87 +105,63 @@ module mod_memutil
   !  module procedure spaceshare_3d_r4l4
   !end interface memshare
 
-  interface getmem1d
+  interface getmem
     module procedure getmem1d_l
     module procedure getmem1d_s
     module procedure getmem1d_i
     module procedure getmem1d_r
     module procedure getmem1d_d
     module procedure getmem1d_t
-  end interface getmem1d
+    module procedure getmem2d_l
+    module procedure getmem2d_s
+    module procedure getmem2d_i
+    module procedure getmem2d_r
+    module procedure getmem2d_d
+    module procedure getmem3d_l
+    module procedure getmem3d_s
+    module procedure getmem3d_i
+    module procedure getmem3d_r
+    module procedure getmem3d_d
+    module procedure getmem4d_l
+    module procedure getmem4d_s
+    module procedure getmem4d_i
+    module procedure getmem4d_r
+    module procedure getmem4d_d
+    module procedure getmem5d_l
+    module procedure getmem5d_s
+    module procedure getmem5d_i
+    module procedure getmem5d_r
+    module procedure getmem5d_d
+  end interface getmem
 
-  interface relmem1d
+  interface relmem
     module procedure relmem1d_l
     module procedure relmem1d_s
     module procedure relmem1d_i
     module procedure relmem1d_r
     module procedure relmem1d_d
     module procedure relmem1d_t
-  end interface relmem1d
-
-  interface getmem2d
-    module procedure getmem2d_l
-    module procedure getmem2d_s
-    module procedure getmem2d_i
-    module procedure getmem2d_r
-    module procedure getmem2d_d
-  end interface getmem2d
-
-  interface relmem2d
     module procedure relmem2d_l
     module procedure relmem2d_s
     module procedure relmem2d_i
     module procedure relmem2d_r
     module procedure relmem2d_d
-  end interface relmem2d
-
-  interface getmem3d
-    module procedure getmem3d_l
-    module procedure getmem3d_s
-    module procedure getmem3d_i
-    module procedure getmem3d_r
-    module procedure getmem3d_d
-  end interface getmem3d
-
-  interface relmem3d
     module procedure relmem3d_l
     module procedure relmem3d_s
     module procedure relmem3d_i
     module procedure relmem3d_r
     module procedure relmem3d_d
-  end interface relmem3d
-
-  interface getmem4d
-    module procedure getmem4d_l
-    module procedure getmem4d_s
-    module procedure getmem4d_i
-    module procedure getmem4d_r
-    module procedure getmem4d_d
-  end interface getmem4d
-
-  interface relmem4d
     module procedure relmem4d_l
     module procedure relmem4d_s
     module procedure relmem4d_i
     module procedure relmem4d_r
     module procedure relmem4d_d
-  end interface relmem4d
-
-  interface getmem5d
-    module procedure getmem5d_l
-    module procedure getmem5d_s
-    module procedure getmem5d_i
-    module procedure getmem5d_r
-    module procedure getmem5d_d
-  end interface getmem5d
-
-  interface relmem5d
     module procedure relmem5d_l
     module procedure relmem5d_s
     module procedure relmem5d_i
     module procedure relmem5d_r
     module procedure relmem5d_d
-  end interface relmem5d
+  end interface relmem
 
   type pool1d_i
     type(pool1d_i), pointer :: next => null()
@@ -444,13 +416,12 @@ module mod_memutil
     integer(ik4), intent(in) :: l, h
     character (len=*), intent(in) :: vn
     type (bounds) :: b
-    if ( associated(a) ) call relmem1d(a)
+    if ( associated(a) ) call relmem(a)
     b = bounds(l,h)
     c1dl => l1dl
-    call getspc1d(c1dl%a,b,ista)
+    call getspc(c1dl%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c1dl%a%space
-    a(:) = .false.
     allocate(c1dl%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c1dl%next')
     l1dl => c1dl%next
@@ -487,14 +458,15 @@ module mod_memutil
 
   subroutine getmem1d_t(a,l,h,vn)
     implicit none
-    type(rcm_time_and_date), pointer, contiguous, dimension(:), intent(inout) :: a
+    type(rcm_time_and_date), pointer, contiguous, &
+         dimension(:), intent(inout) :: a
     integer(ik4), intent(in) :: l, h
     character (len=*), intent(in) :: vn
     type (bounds) :: b
-    if ( associated(a) ) call relmem1d(a)
+    if ( associated(a) ) call relmem(a)
     b = bounds(l,h)
     c1dt => l1dt
-    call getspc1d(c1dt%a,b,ista)
+    call getspc(c1dt%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c1dt%a%space
     allocate(c1dt%next, stat=ista)
@@ -504,7 +476,8 @@ module mod_memutil
 
   subroutine relmem1d_t(a)
     implicit none
-    type(rcm_time_and_date), pointer, contiguous, dimension(:), intent(inout) :: a
+    type(rcm_time_and_date), pointer, contiguous, &
+         dimension(:), intent(inout) :: a
     if ( .not. associated(a) ) return
     p1dt => null()
     c1dt => r1dt
@@ -537,13 +510,12 @@ module mod_memutil
     integer(ik4), intent(in) :: l, h
     character (len=*), intent(in) :: vn
     type (bounds) :: b
-    if ( associated(a) ) call relmem1d(a)
+    if ( associated(a) ) call relmem(a)
     b = bounds(l,h)
     c1ds => l1ds
-    call getspc1d(c1ds%a,b,ista)
+    call getspc(c1ds%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c1ds%a%space
-    a(:) = -1_2
     allocate(c1ds%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c1ds%next')
     l1ds => c1ds%next
@@ -584,13 +556,12 @@ module mod_memutil
     integer(ik4), intent(in) :: l, h
     character (len=*), intent(in) :: vn
     type (bounds) :: b
-    if ( associated(a) ) call relmem1d(a)
+    if ( associated(a) ) call relmem(a)
     b = bounds(l,h)
     c1di => l1di
-    call getspc1d(c1di%a,b,ista)
+    call getspc(c1di%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c1di%a%space
-    a(:) = -1
     allocate(c1di%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c1di%next')
     l1di => c1di%next
@@ -631,13 +602,12 @@ module mod_memutil
     integer(ik4), intent(in) :: l, h
     character (len=*), intent(in) :: vn
     type (bounds) :: b
-    if ( associated(a) ) call relmem1d(a)
+    if ( associated(a) ) call relmem(a)
     b = bounds(l,h)
     c1dr => l1dr
-    call getspc1d(c1dr%a,b,ista)
+    call getspc(c1dr%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c1dr%a%space
-    a(:) = 0.0
     allocate(c1dr%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c1dr%next')
     l1dr => c1dr%next
@@ -678,13 +648,12 @@ module mod_memutil
     integer(ik4), intent(in) :: l, h
     character (len=*), intent(in) :: vn
     type (bounds) :: b
-    if ( associated(a) ) call relmem1d(a)
+    if ( associated(a) ) call relmem(a)
     b = bounds(l,h)
     c1dd => l1dd
-    call getspc1d(c1dd%a,b,ista)
+    call getspc(c1dd%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c1dd%a%space
-    a(:) = d_zero
     allocate(c1dd%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c1dd%next')
     l1dd => c1dd%next
@@ -815,14 +784,13 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2
     character (len=*), intent(in) :: vn
     type (bounds), dimension(2) :: b
-    if ( associated(a) ) call relmem2d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     c2dl => l2dl
-    call getspc2d(c2dl%a,b,ista)
+    call getspc(c2dl%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c2dl%a%space
-    a(:,:) = .false.
     allocate(c2dl%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c2dl%next')
     l2dl => c2dl%next
@@ -863,11 +831,11 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2
     character (len=*), intent(in) :: vn
     type (bounds), dimension(2) :: b
-    if ( associated(a) ) call relmem2d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     c2ds => l2ds
-    call getspc2d(c2ds%a,b,ista)
+    call getspc(c2ds%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c2ds%a%space
     a(:,:) = -1_2
@@ -911,14 +879,13 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2
     character (len=*), intent(in) :: vn
     type (bounds), dimension(2) :: b
-    if ( associated(a) ) call relmem2d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     c2di => l2di
-    call getspc2d(c2di%a,b,ista)
+    call getspc(c2di%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c2di%a%space
-    a(:,:) = -1
     allocate(c2di%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c2di%next')
     l2di => c2di%next
@@ -959,14 +926,13 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2
     character (len=*), intent(in) :: vn
     type (bounds), dimension(2) :: b
-    if ( associated(a) ) call relmem2d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     c2dr => l2dr
-    call getspc2d(c2dr%a,b,ista)
+    call getspc(c2dr%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c2dr%a%space
-    a(:,:) = 0.0
     allocate(c2dr%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c2dr%next')
     l2dr => c2dr%next
@@ -1007,14 +973,13 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2
     character (len=*), intent(in) :: vn
     type (bounds), dimension(2) :: b
-    if ( associated(a) ) call relmem2d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     c2dd => l2dd
-    call getspc2d(c2dd%a,b,ista)
+    call getspc(c2dd%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c2dd%a%space
-    a(:,:) = d_zero
     allocate(c2dd%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c2dd%next')
     l2dd => c2dd%next
@@ -1130,15 +1095,14 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3
     character (len=*), intent(in) :: vn
     type (bounds), dimension(3) :: b
-    if ( associated(a) ) call relmem3d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     c3dl => l3dl
-    call getspc3d(c3dl%a,b,ista)
+    call getspc(c3dl%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c3dl%a%space
-    a(:,:,:) = .false.
     allocate(c3dl%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c3dl%next')
     l3dl => c3dl%next
@@ -1179,15 +1143,14 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3
     character (len=*), intent(in) :: vn
     type (bounds), dimension(3) :: b
-    if ( associated(a) ) call relmem3d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     c3ds => l3ds
-    call getspc3d(c3ds%a,b,ista)
+    call getspc(c3ds%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c3ds%a%space
-    a(:,:,:) = -1_2
     allocate(c3ds%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c3ds%next')
     l3ds => c3ds%next
@@ -1228,15 +1191,14 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3
     character (len=*), intent(in) :: vn
     type (bounds), dimension(3) :: b
-    if ( associated(a) ) call relmem3d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     c3di => l3di
-    call getspc3d(c3di%a,b,ista)
+    call getspc(c3di%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c3di%a%space
-    a(:,:,:) = -1
     allocate(c3di%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c3di%next')
     l3di => c3di%next
@@ -1277,15 +1239,14 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3
     character (len=*), intent(in) :: vn
     type (bounds), dimension(3) :: b
-    if ( associated(a) ) call relmem3d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     c3dr => l3dr
-    call getspc3d(c3dr%a,b,ista)
+    call getspc(c3dr%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c3dr%a%space
-    a(:,:,:) = 0.0
     allocate(c3dr%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c3dr%next')
     l3dr => c3dr%next
@@ -1326,15 +1287,14 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3
     character (len=*), intent(in) :: vn
     type (bounds), dimension(3) :: b
-    if ( associated(a) ) call relmem3d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     c3dd => l3dd
-    call getspc3d(c3dd%a,b,ista)
+    call getspc(c3dd%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c3dd%a%space
-    a(:,:,:) = d_zero
     allocate(c3dd%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c3dd%next')
     l3dd => c3dd%next
@@ -1450,16 +1410,15 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4
     character (len=*), intent(in) :: vn
     type (bounds), dimension(4) :: b
-    if ( associated(a) ) call relmem4d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     b(4) = bounds(l4,h4)
     c4dl => l4dl
-    call getspc4d(c4dl%a,b,ista)
+    call getspc(c4dl%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c4dl%a%space
-    a(:,:,:,:) = .false.
     allocate(c4dl%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c4dl%next')
     l4dl => c4dl%next
@@ -1500,16 +1459,15 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4
     character (len=*), intent(in) :: vn
     type (bounds), dimension(4) :: b
-    if ( associated(a) ) call relmem4d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     b(4) = bounds(l4,h4)
     c4ds => l4ds
-    call getspc4d(c4ds%a,b,ista)
+    call getspc(c4ds%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c4ds%a%space
-    a(:,:,:,:) = -1_2
     allocate(c4ds%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c4ds%next')
     l4ds => c4ds%next
@@ -1550,16 +1508,15 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4
     character (len=*), intent(in) :: vn
     type (bounds), dimension(4) :: b
-    if ( associated(a) ) call relmem4d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     b(4) = bounds(l4,h4)
     c4di => l4di
-    call getspc4d(c4di%a,b,ista)
+    call getspc(c4di%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c4di%a%space
-    a(:,:,:,:) = -1
     allocate(c4di%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c4di%next')
     l4di => c4di%next
@@ -1600,16 +1557,15 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4
     character (len=*), intent(in) :: vn
     type (bounds), dimension(4) :: b
-    if ( associated(a) ) call relmem4d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     b(4) = bounds(l4,h4)
     c4dr => l4dr
-    call getspc4d(c4dr%a,b,ista)
+    call getspc(c4dr%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c4dr%a%space
-    a(:,:,:,:) = 0.0
     allocate(c4dr%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c4dr%next')
     l4dr => c4dr%next
@@ -1650,16 +1606,15 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4
     character (len=*), intent(in) :: vn
     type (bounds), dimension(4) :: b
-    if ( associated(a) ) call relmem4d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     b(4) = bounds(l4,h4)
     c4dd => l4dd
-    call getspc4d(c4dd%a,b,ista)
+    call getspc(c4dd%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c4dd%a%space
-    a(:,:,:,:) = d_zero
     allocate(c4dd%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c4dd%next')
     l4dd => c4dd%next
@@ -1775,17 +1730,16 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4, l5, h5
     character (len=*), intent(in) :: vn
     type (bounds), dimension(5) :: b
-    if ( associated(a) ) call relmem5d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     b(4) = bounds(l4,h4)
     b(5) = bounds(l5,h5)
     c5dl => l5dl
-    call getspc5d(c5dl%a,b,ista)
+    call getspc(c5dl%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c5dl%a%space
-    a(:,:,:,:,:) = .false.
     allocate(c5dl%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c5dl%next')
     l5dl => c5dl%next
@@ -1826,17 +1780,16 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4, l5, h5
     character (len=*), intent(in) :: vn
     type (bounds), dimension(5) :: b
-    if ( associated(a) ) call relmem5d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     b(4) = bounds(l4,h4)
     b(5) = bounds(l5,h5)
     c5ds => l5ds
-    call getspc5d(c5ds%a,b,ista)
+    call getspc(c5ds%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c5ds%a%space
-    a(:,:,:,:,:) = -1_2
     allocate(c5ds%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c5ds%next')
     l5ds => c5ds%next
@@ -1877,17 +1830,16 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4, l5, h5
     character (len=*), intent(in) :: vn
     type (bounds), dimension(5) :: b
-    if ( associated(a) ) call relmem5d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     b(4) = bounds(l4,h4)
     b(5) = bounds(l5,h5)
     c5di => l5di
-    call getspc5d(c5di%a,b,ista)
+    call getspc(c5di%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c5di%a%space
-    a(:,:,:,:,:) = -1
     allocate(c5di%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c5di%next')
     l5di => c5di%next
@@ -1928,17 +1880,16 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4, l5, h5
     character (len=*), intent(in) :: vn
     type (bounds), dimension(5) :: b
-    if ( associated(a) ) call relmem5d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     b(4) = bounds(l4,h4)
     b(5) = bounds(l5,h5)
     c5dr => l5dr
-    call getspc5d(c5dr%a,b,ista)
+    call getspc(c5dr%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c5dr%a%space
-    a(:,:,:,:,:) = 0.0
     allocate(c5dr%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c5dr%next')
     l5dr => c5dr%next
@@ -1979,17 +1930,16 @@ module mod_memutil
     integer(ik4), intent(in) :: l1, h1, l2, h2, l3, h3, l4, h4, l5, h5
     character (len=*), intent(in) :: vn
     type (bounds), dimension(5) :: b
-    if ( associated(a) ) call relmem5d(a)
+    if ( associated(a) ) call relmem(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
     b(4) = bounds(l4,h4)
     b(5) = bounds(l5,h5)
     c5dd => l5dd
-    call getspc5d(c5dd%a,b,ista)
+    call getspc(c5dd%a,b,ista)
     call checkalloc(ista,__FILE__,__LINE__,vn)
     a => c5dd%a%space
-    a(:,:,:,:,:) = d_zero
     allocate(c5dd%next, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'c5dd%next')
     l5dd => c5dd%next

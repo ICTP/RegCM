@@ -103,10 +103,10 @@ module mod_sst_ersst
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire lat dim')
 
-    call getmem1d(loni,1,ilon,'sst_ersst:loni')
-    call getmem1d(lati,1,jlat,'sst_ersst:lati')
-    call getmem2d(sst,1,ilon,1,jlat,'sst_ersst:sst')
-    call getmem3d(work,1,ilon,1,jlat,1,2,'sst_ersst:work')
+    call getmem(loni,1,ilon,'sst_ersst:loni')
+    call getmem(lati,1,jlat,'sst_ersst:lati')
+    call getmem(sst,1,ilon,1,jlat,'sst_ersst:sst')
+    call getmem(work,1,ilon,1,jlat,1,2,'sst_ersst:work')
 
     istatus = nf90_inq_varid(inet,'lon',vari)
     call checkncerr(istatus,__FILE__,__LINE__, &

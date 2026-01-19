@@ -130,21 +130,21 @@ module mod_ein
     !
     ! Allocate working space
     !
-    call getmem1d(plevs,1,klev,'mod_ein:plevs')
-    call getmem1d(glat,1,jlat,'mod_ein:glat')
-    call getmem1d(glon,1,ilon,'mod_ein:glon')
-    call getmem1d(grev,1,max(jlat,ilon),'mod_ein:grev')
-    call getmem1d(sigmar,1,klev,'mod_ein:sigmar')
-    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ein:b3')
+    call getmem(plevs,1,klev,'mod_ein:plevs')
+    call getmem(glat,1,jlat,'mod_ein:glat')
+    call getmem(glon,1,ilon,'mod_ein:glon')
+    call getmem(grev,1,max(jlat,ilon),'mod_ein:grev')
+    call getmem(sigmar,1,klev,'mod_ein:sigmar')
+    call getmem(b3,1,jx,1,iy,1,klev*3,'mod_ein:b3')
     if ( idynamic == 3 ) then
-      call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ein:d3u')
-      call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_ein:d3v')
-      call getmem3d(h3u,1,jx,1,iy,1,klev,'mod_ein:h3u')
-      call getmem3d(h3v,1,jx,1,iy,1,klev,'mod_ein:h3v')
-      call getmem2d(topou,1,jx,1,iy,'mod_ein:topou')
-      call getmem2d(topov,1,jx,1,iy,'mod_ein:topov')
+      call getmem(d3u,1,jx,1,iy,1,klev*2,'mod_ein:d3u')
+      call getmem(d3v,1,jx,1,iy,1,klev*2,'mod_ein:d3v')
+      call getmem(h3u,1,jx,1,iy,1,klev,'mod_ein:h3u')
+      call getmem(h3v,1,jx,1,iy,1,klev,'mod_ein:h3v')
+      call getmem(topou,1,jx,1,iy,'mod_ein:topou')
+      call getmem(topov,1,jx,1,iy,'mod_ein:topov')
     else
-      call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ein:d3')
+      call getmem(d3,1,jx,1,iy,1,klev*2,'mod_ein:d3')
     end if
 
     istatus = nf90_inq_varid(ncid,'latitude',ivarid)
@@ -183,11 +183,11 @@ module mod_ein
 
     grev(1:jlat) = glat
     jlat = gdomain%nj
-    call getmem1d(glat,1,jlat,'mod_ein:glat')
+    call getmem(glat,1,jlat,'mod_ein:glat')
     glat = grev(gdomain%jgstart:gdomain%jgstop)
     grev(1:ilon) = glon
     ilon = sum(gdomain%ni)
-    call getmem1d(glon,1,ilon,'mod_ein:glon')
+    call getmem(glon,1,ilon,'mod_ein:glon')
     glon(1:gdomain%ni(1)) = grev(gdomain%igstart(1):gdomain%igstop(1))
     if ( gdomain%ntiles == 2 ) then
       glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
@@ -201,9 +201,9 @@ module mod_ein
       call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
     end if
 
-    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
-    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
-    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ein:work')
+    call getmem(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
+    call getmem(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
+    call getmem(work,1,ilon,1,jlat,1,klev,'mod_ein:work')
     !
     ! Set up pointers
     !
@@ -408,8 +408,8 @@ module mod_ein
             end if
             cunit = 'hours since 1900-01-01 00:00:00'
             ccal = 'noleap'
-            call getmem1d(itimes,1,timlen,'mod_ein:itimes')
-            call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
+            call getmem(itimes,1,timlen,'mod_ein:itimes')
+            call getmem(xtimes,1,timlen,'mod_ein:xtimes')
             istatus = nf90_get_var(ncfile(1,1),timid,xtimes)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error read time')
@@ -490,8 +490,8 @@ module mod_ein
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
               ccal = 'gregorian'
-              call getmem1d(itimes,1,timlen,'mod_ein:itimes')
-              call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
+              call getmem(itimes,1,timlen,'mod_ein:itimes')
+              call getmem(xtimes,1,timlen,'mod_ein:xtimes')
               istatus = nf90_get_var(ncfile(1,1),timid,xtimes)
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time')

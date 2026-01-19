@@ -201,10 +201,10 @@ module mod_wrtoxd
         write(stderr,*) 'Added more species without increasing maxaeout'
         call die('init_outoxd','INCRESE maxaeout AND RECOMPILE')
       end if
-      call getmem4d(aev4,1,jx,1,iy,1,kz,1,naesp,'mod_wrtoxd:aev4')
+      call getmem(aev4,1,jx,1,iy,1,kz,1,naesp,'mod_wrtoxd:aev4')
     end if
-    if ( dochem ) call getmem4d(chv4,1,jx,1,iy,1,kz,1,ncbmz,'mod_wrtoxd:chv4')
-    if ( dooxcl ) call getmem4d(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
+    if ( dochem ) call getmem(chv4,1,jx,1,iy,1,kz,1,ncbmz,'mod_wrtoxd:chv4')
+    if ( dooxcl ) call getmem(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
     if ( sum_soa_to_oc2 ) then
       ioc2 = -1
       isoa = -1

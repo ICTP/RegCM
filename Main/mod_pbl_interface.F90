@@ -59,8 +59,8 @@ module mod_pbl_interface
     use mod_atm_interface
     implicit none
     if ( ibltyp == 1 ) then
-      call getmem2d(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
-      call getmem2d(kmxpbl,jci1,jci2,ici1,ici2,'pbl_common:kmxpbl')
+      call getmem(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
+      call getmem(kmxpbl,jci1,jci2,ici1,ici2,'pbl_common:kmxpbl')
 !$acc enter data create(kmxpbl)
       call allocate_mod_pbl_holtbl
     else if ( ibltyp == 2 ) then
@@ -78,15 +78,15 @@ module mod_pbl_interface
     end if
     if ( ibltyp > 1 ) then
       if ( idynamic == 3 ) then
-        call getmem3d(utenx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'pbl_common:utenx')
-        call getmem3d(vtenx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'pbl_common:vtenx')
-        call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
+        call getmem(utenx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'pbl_common:utenx')
+        call getmem(vtenx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'pbl_common:vtenx')
+        call getmem(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
+        call getmem(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
       else
-        call getmem3d(utenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:utenx')
-        call getmem3d(vtenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:vtenx')
-        call getmem3d(utend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:vtend')
+        call getmem(utenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:utenx')
+        call getmem(vtenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:vtenx')
+        call getmem(utend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:utend')
+        call getmem(vtend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:vtend')
       end if
     end if
   end subroutine allocate_pblscheme

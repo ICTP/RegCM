@@ -92,9 +92,9 @@ module mod_pgw
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading plev dimelen in file '//trim(pgwfile))
 
-    call getmem1d(plevs,1,klev,'pgw:plevs')
-    call getmem1d(glat,1,jlat,'pgw:glat')
-    call getmem1d(glon,1,ilon,'pgw:glon')
+    call getmem(plevs,1,klev,'pgw:plevs')
+    call getmem(glat,1,jlat,'pgw:glat')
+    call getmem(glon,1,ilon,'pgw:glon')
 
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -123,19 +123,19 @@ module mod_pgw
       call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
     end if
 
-    call getmem3d(u2,1,ilon,1,jlat,1,klev,'pgw:u2')
-    call getmem3d(v2,1,ilon,1,jlat,1,klev,'pgw:v2')
-    call getmem3d(t2,1,ilon,1,jlat,1,klev,'pgw:t2')
-    call getmem3d(q2,1,ilon,1,jlat,1,klev,'pgw:q2')
-    call getmem3d(z2,1,ilon,1,jlat,1,klev,'pgw:z2')
-    call getmem2d(ps2,1,ilon,1,jlat,'pgw:ps2')
-    call getmem2d(ts2,1,ilon,1,jlat,'pgw:ts2')
+    call getmem(u2,1,ilon,1,jlat,1,klev,'pgw:u2')
+    call getmem(v2,1,ilon,1,jlat,1,klev,'pgw:v2')
+    call getmem(t2,1,ilon,1,jlat,1,klev,'pgw:t2')
+    call getmem(q2,1,ilon,1,jlat,1,klev,'pgw:q2')
+    call getmem(z2,1,ilon,1,jlat,1,klev,'pgw:z2')
+    call getmem(ps2,1,ilon,1,jlat,'pgw:ps2')
+    call getmem(ts2,1,ilon,1,jlat,'pgw:ts2')
 
-    call getmem3d(h3u,1,jx,1,iy,1,klev,'pgw:h3u')
-    call getmem3d(h3v,1,jx,1,iy,1,klev,'pgw:h3v')
+    call getmem(h3u,1,jx,1,iy,1,klev,'pgw:h3u')
+    call getmem(h3v,1,jx,1,iy,1,klev,'pgw:h3v')
     if ( idynamic == 3 ) then
-      call getmem3d(d3u,1,jx,1,iy,1,klev,'pgw:d3u')
-      call getmem3d(d3v,1,jx,1,iy,1,klev,'pgw:d3v')
+      call getmem(d3u,1,jx,1,iy,1,klev,'pgw:d3u')
+      call getmem(d3v,1,jx,1,iy,1,klev,'pgw:d3v')
     end if
 
     do kkrec = 1, ndelta

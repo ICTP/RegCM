@@ -57,16 +57,16 @@ module mod_vmodes
 
   subroutine allocate_mod_vmodes
     implicit none
-    call getmem2d(a0,1,kz,1,kz,'vmodes:a0')
-    call getmem1d(hbar,1,kz,'vmodes:hbar')
-    call getmem1d(sigmah,1,kzp1,'vmodes:sigmah')
-    call getmem1d(tbarh,1,kz,'vmodes:tbarh')
-    call getmem2d(zmatx,1,kz,1,kz,'vmodes:zmatx')
-    call getmem2d(zmatxr,1,kz,1,kz,'vmodes:zmatxr')
-    call getmem2d(tau,1,kz,1,kz,'vmodes:tau')
-    call getmem2d(varpa1,1,kz,1,kzp1,'vmodes:varpa1')
-    call getmem2d(hydroc,1,kz,1,kzp1,'vmodes:hydroc')
-    call getmem2d(hydros,1,kz,1,kz,'vmodes:hydros')
+    call getmem(a0,1,kz,1,kz,'vmodes:a0')
+    call getmem(hbar,1,kz,'vmodes:hbar')
+    call getmem(sigmah,1,kzp1,'vmodes:sigmah')
+    call getmem(tbarh,1,kz,'vmodes:tbarh')
+    call getmem(zmatx,1,kz,1,kz,'vmodes:zmatx')
+    call getmem(zmatxr,1,kz,1,kz,'vmodes:zmatxr')
+    call getmem(tau,1,kz,1,kz,'vmodes:tau')
+    call getmem(varpa1,1,kz,1,kzp1,'vmodes:varpa1')
+    call getmem(hydroc,1,kz,1,kzp1,'vmodes:hydroc')
+    call getmem(hydros,1,kz,1,kz,'vmodes:hydros')
   end subroutine allocate_mod_vmodes
   !
   ! This subroutine determines the vertical modes of the PSU/NCAR

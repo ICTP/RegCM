@@ -2163,7 +2163,7 @@ module mod_ipcc_scenario
           write (stderr, *) nf90_strerror(ierr), trim(filename)
           call fatal(__FILE__,__LINE__,'DIMENSION LAT READ ERROR')
         end if
-        call getmem2d(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
+        call getmem(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
       end if
       ierr = nf90_inq_varid(ncid,var_name(i),varid)
       if ( ierr /= nf90_noerr ) then

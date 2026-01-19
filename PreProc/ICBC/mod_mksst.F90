@@ -101,14 +101,14 @@ module mod_mksst
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error time var units '//trim(sstfile))
 
-      call getmem2d(work1,1,jx,1,iy,'mod_mksst:work1')
-      call getmem2d(work2,1,jx,1,iy,'mod_mksst:work2')
+      call getmem(work1,1,jx,1,iy,'mod_mksst:work1')
+      call getmem(work2,1,jx,1,iy,'mod_mksst:work2')
       if (lhasice) then
-        call getmem2d(work3,1,jx,1,iy,'mod_mksst:work3')
-        call getmem2d(work4,1,jx,1,iy,'mod_mksst:work4')
+        call getmem(work3,1,jx,1,iy,'mod_mksst:work3')
+        call getmem(work4,1,jx,1,iy,'mod_mksst:work4')
       end if
-      call getmem1d(xtime,1,ntime,'mod_mksst:xtime')
-      call getmem1d(itime,1,ntime,'mod_mksst:itime')
+      call getmem(xtime,1,ntime,'mod_mksst:xtime')
+      call getmem(itime,1,ntime,'mod_mksst:itime')
 
       istatus = nf90_get_var(ncst, itvar, xtime)
       call checkncerr(istatus,__FILE__,__LINE__, &

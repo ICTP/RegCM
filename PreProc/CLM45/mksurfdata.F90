@@ -319,7 +319,7 @@ program mksurfdata
     pftfile = 'mksrf_pft_crop.nc'
     laifile = 'mksrf_lai_crop.nc'
   end if
-  call getmem1d(pft_gt0,1,npft,'pft_gt0')
+  call getmem(pft_gt0,1,npft,'pft_gt0')
 
   call init_domain
   !
@@ -913,14 +913,14 @@ program mksurfdata
   istatus = nf90_put_var(ncid, iscvar, mxsoil_color)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write mxsoil_color')
 
-  call getmem2d(pctspec,1,jxsg,1,iysg,'mksurfdata: pctspec')
-  call getmem2d(pctslake,1,jxsg,1,iysg,'mksurfdata: pctslake')
-  call getmem2d(pctbare,1,jxsg,1,iysg,'mksurfdata: pctbare')
-  call getmem1d(gcvar,1,ngcells,'mksurfdata: gcvar')
-  call getmem1d(igcvar,1,ngcells,'mksurfdata: igcvar')
-  call getmem1d(iiy,1,ngcells,'mksurfdata: iiy')
-  call getmem1d(ijx,1,ngcells,'mksurfdata: ijx')
-  call getmem1d(landpoint,1,ngcells,'mksurfdata: landpoint')
+  call getmem(pctspec,1,jxsg,1,iysg,'mksurfdata: pctspec')
+  call getmem(pctslake,1,jxsg,1,iysg,'mksurfdata: pctslake')
+  call getmem(pctbare,1,jxsg,1,iysg,'mksurfdata: pctbare')
+  call getmem(gcvar,1,ngcells,'mksurfdata: gcvar')
+  call getmem(igcvar,1,ngcells,'mksurfdata: igcvar')
+  call getmem(iiy,1,ngcells,'mksurfdata: iiy')
+  call getmem(ijx,1,ngcells,'mksurfdata: ijx')
+  call getmem(landpoint,1,ngcells,'mksurfdata: landpoint')
   pctspec(:,:) = 0.0_rkx
   pctslake(:,:) = 0.0_rkx
   pctbare(:,:) = 0.0_rkx

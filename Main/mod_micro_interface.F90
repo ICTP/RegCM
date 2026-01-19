@@ -71,44 +71,44 @@ module mod_micro_interface
     real(rkx) :: cf
     if ( ipptls == 1 ) then
       call allocate_subex
-      call getmem3d(rh0adj,jci1,jci2,ici1,ici2,1,kz,'micro:rh0adj')
+      call getmem(rh0adj,jci1,jci2,ici1,ici2,1,kz,'micro:rh0adj')
     else if ( ipptls == 2 ) then
       call allocate_mod_nogtom
 #ifdef DEBUG
       if ( stats ) then
-        call getmem3d(ngs%statssupw,1,kz,jci1,jci2, &
+        call getmem(ngs%statssupw,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statssupw')
-        call getmem3d(ngs%statssupc,1,kz,jci1,jci2, &
+        call getmem(ngs%statssupc,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statssupc')
-        call getmem3d(ngs%statsdetrw,1,kz,jci1,jci2, &
+        call getmem(ngs%statsdetrw,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statsdetrw')
-        call getmem3d(ngs%statsdetrc,1,kz,jci1,jci2, &
+        call getmem(ngs%statsdetrc,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statsdetrc')
-        call getmem3d(ngs%statserosw,1,kz,jci1,jci2, &
+        call getmem(ngs%statserosw,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statserosw')
-        call getmem3d(ngs%statserosc,1,kz,jci1,jci2, &
+        call getmem(ngs%statserosc,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statserosc')
-        call getmem3d(ngs%statsevapw,1,kz,jci1,jci2, &
+        call getmem(ngs%statsevapw,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statsevapw')
-        call getmem3d(ngs%statsevapc,1,kz,jci1,jci2, &
+        call getmem(ngs%statsevapc,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statsevapc')
-        call getmem3d(ngs%statscond1w,1,kz,jci1,jci2, &
+        call getmem(ngs%statscond1w,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statscond1w')
-        call getmem3d(ngs%statscond1c,1,kz,jci1,jci2, &
+        call getmem(ngs%statscond1c,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statscond1c')
-        call getmem3d(ngs%statsdepos,1,kz,jci1,jci2, &
+        call getmem(ngs%statsdepos,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statsdepos')
-        call getmem3d(ngs%statsmelt,1,kz,jci1,jci2, &
+        call getmem(ngs%statsmelt,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statsmelt')
-        call getmem3d(ngs%statsfrz,1,kz,jci1,jci2, &
+        call getmem(ngs%statsfrz,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statsfrz')
-        call getmem3d(ngs%statsrainev,1,kz,jci1,jci2, &
+        call getmem(ngs%statsrainev,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statsrainev')
-        call getmem3d(ngs%statssnowev,1,kz,jci1,jci2, &
+        call getmem(ngs%statssnowev,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statssnowev')
-        call getmem3d(ngs%statsautocvw,1,kz,jci1,jci2, &
+        call getmem(ngs%statsautocvw,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statsautocvw')
-        call getmem3d(ngs%statsautocvc,1,kz,jci1,jci2, &
+        call getmem(ngs%statsautocvc,1,kz,jci1,jci2, &
                                     ici1,ici2,'micro:statsautocvc')
       end if
 #endif
@@ -119,9 +119,9 @@ module mod_micro_interface
     else if ( ipptls == 5 ) then
       call allocate_mod_wdm7
     end if
-    call getmem2d(rh0,jci1,jci2,ici1,ici2,'micro:rh0')
-    call getmem2d(qtcrit,jci1,jci2,ici1,ici2,'micro:qtcrit')
-    call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'micro:totc')
+    call getmem(rh0,jci1,jci2,ici1,ici2,'micro:rh0')
+    call getmem(qtcrit,jci1,jci2,ici1,ici2,'micro:qtcrit')
+    call getmem(totc,jci1,jci2,ici1,ici2,1,kz,'micro:totc')
     do i = 1, nchi
       cf = real(i-1,rkx)/real(nchi-1,rkx)
       chis(i-1) = 0.97_rkx*exp(-((cf-0.098_rkx)**2)/0.0365_rkx)+0.255_rkx

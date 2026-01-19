@@ -122,7 +122,7 @@ module mod_cu_tiedtke
   subroutine allocate_mod_cu_tiedtke
     implicit none
     integer(ik4) :: i, j, ii
-    call getmem1d(pmean,1,kz,'mod_cu_tiedtke:pmean')
+    call getmem(pmean,1,kz,'mod_cu_tiedtke:pmean')
     nipoi = 0
     do i = ici1, ici2
       do j = jci1, jci2
@@ -134,8 +134,8 @@ module mod_cu_tiedtke
     if ( nipoi == 0 ) then
       return
     end if
-    call getmem1d(imap,1,nipoi,'mod_cu_tiedtke:imap')
-    call getmem1d(jmap,1,nipoi,'mod_cu_tiedtke:jmap')
+    call getmem(imap,1,nipoi,'mod_cu_tiedtke:imap')
+    call getmem(jmap,1,nipoi,'mod_cu_tiedtke:jmap')
     ii = 1
     do i = ici1, ici2
       do j = jci1, jci2
@@ -146,42 +146,42 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    call getmem2d(ptte,1,nipoi,1,kz,'mod_cu_tiedtke:ptte')
-    call getmem2d(pvom,1,nipoi,1,kz,'mod_cu_tiedtke:pvom')
-    call getmem2d(pvol,1,nipoi,1,kz,'mod_cu_tiedtke:pvol')
-    call getmem2d(pqte,1,nipoi,1,kz,'mod_cu_tiedtke:pqte')
-    call getmem2d(pxlte,1,nipoi,1,kz,'mod_cu_tiedtke:pxlte')
-    call getmem2d(pverv,1,nipoi,1,kz,'mod_cu_tiedtke:pverv')
-    call getmem2d(pmfu,1,nipoi,1,kz,'mod_cu_tiedtke:pmfu')
-    call getmem2d(xpg,1,nipoi,1,kz,'mod_cu_tiedtke:xpg')
-    call getmem2d(xpgh,1,nipoi,1,kz+1,'mod_cu_tiedtke:xpgh')
-    call getmem3d(pxtm1,1,nipoi,1,kz,1,ntr,'mod_cu_tiedtke:pxtm1')
-    call getmem3d(pxtte,1,nipoi,1,kz,1,ntr,'mod_cu_tiedtke:pxtte')
-    call getmem2d(ilab,1,nipoi,1,kz,'mod_cu_tiedtke:ilab')
-    call getmem1d(ktype,1,nipoi,'mod_cu_tiedtke:ktype')
-    call getmem2d(ptm1,1,nipoi,1,kz,'mod_cu_tiedtke:ptm1')
-    call getmem2d(pqm1,1,nipoi,1,kz,'mod_cu_tiedtke:pqm1')
-    call getmem2d(pum1,1,nipoi,1,kz,'mod_cu_tiedtke:pum1')
-    call getmem2d(pvm1,1,nipoi,1,kz,'mod_cu_tiedtke:pvm1')
-    call getmem2d(pxlm1,1,nipoi,1,kz,'mod_cu_tiedtke:pxlm1')
-    call getmem2d(pxim1,1,nipoi,1,kz,'mod_cu_tiedtke:pxim1')
-    call getmem2d(pxite,1,nipoi,1,kz,'mod_cu_tiedtke:pxite')
-    call getmem2d(papp1,1,nipoi,1,kz,'mod_cu_tiedtke:papp1')
-    call getmem2d(zlude,1,nipoi,1,kz,'mod_cu_tiedtke:zlude')
-    call getmem2d(pxtec,1,nipoi,1,kz,'mod_cu_tiedtke:pxtec')
-    call getmem2d(pqtec,1,nipoi,1,kz,'mod_cu_tiedtke:pqtec')
-    call getmem2d(pccn,1,nipoi,1,kz,'mod_cu_tiedtke:pccn')
-    call getmem2d(zcvrout,1,nipoi,1,kz,'mod_cu_tiedtke:zcvrout')
-    call getmem2d(pmflxr,1,nipoi,1,kz+1,'mod_cu_tiedtke:pmflxr')
-    call getmem1d(kctop,1,nipoi,'mod_cu_tiedtke:kctop')
-    call getmem1d(kcbot,1,nipoi,'mod_cu_tiedtke:kcbot')
-    call getmem2d(paphp1,1,nipoi,1,kzp1,'mod_cu_tiedtke:paphp1')
-    call getmem1d(prsfc,1,nipoi,'mod_cu_tiedtke:prsfc')
-    call getmem1d(pssfc,1,nipoi,'mod_cu_tiedtke:pssfc')
-    call getmem1d(ptopmax,1,nipoi,'mod_cu_tiedtke:ptopmax')
-    call getmem1d(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
-    call getmem1d(xpqfx,1,nipoi,'mod_cu_tiedtke:xpqfx')
-    call getmem1d(ldland,1,nipoi,'mod_cu_tiedtke:ldland')
+    call getmem(ptte,1,nipoi,1,kz,'mod_cu_tiedtke:ptte')
+    call getmem(pvom,1,nipoi,1,kz,'mod_cu_tiedtke:pvom')
+    call getmem(pvol,1,nipoi,1,kz,'mod_cu_tiedtke:pvol')
+    call getmem(pqte,1,nipoi,1,kz,'mod_cu_tiedtke:pqte')
+    call getmem(pxlte,1,nipoi,1,kz,'mod_cu_tiedtke:pxlte')
+    call getmem(pverv,1,nipoi,1,kz,'mod_cu_tiedtke:pverv')
+    call getmem(pmfu,1,nipoi,1,kz,'mod_cu_tiedtke:pmfu')
+    call getmem(xpg,1,nipoi,1,kz,'mod_cu_tiedtke:xpg')
+    call getmem(xpgh,1,nipoi,1,kz+1,'mod_cu_tiedtke:xpgh')
+    call getmem(pxtm1,1,nipoi,1,kz,1,ntr,'mod_cu_tiedtke:pxtm1')
+    call getmem(pxtte,1,nipoi,1,kz,1,ntr,'mod_cu_tiedtke:pxtte')
+    call getmem(ilab,1,nipoi,1,kz,'mod_cu_tiedtke:ilab')
+    call getmem(ktype,1,nipoi,'mod_cu_tiedtke:ktype')
+    call getmem(ptm1,1,nipoi,1,kz,'mod_cu_tiedtke:ptm1')
+    call getmem(pqm1,1,nipoi,1,kz,'mod_cu_tiedtke:pqm1')
+    call getmem(pum1,1,nipoi,1,kz,'mod_cu_tiedtke:pum1')
+    call getmem(pvm1,1,nipoi,1,kz,'mod_cu_tiedtke:pvm1')
+    call getmem(pxlm1,1,nipoi,1,kz,'mod_cu_tiedtke:pxlm1')
+    call getmem(pxim1,1,nipoi,1,kz,'mod_cu_tiedtke:pxim1')
+    call getmem(pxite,1,nipoi,1,kz,'mod_cu_tiedtke:pxite')
+    call getmem(papp1,1,nipoi,1,kz,'mod_cu_tiedtke:papp1')
+    call getmem(zlude,1,nipoi,1,kz,'mod_cu_tiedtke:zlude')
+    call getmem(pxtec,1,nipoi,1,kz,'mod_cu_tiedtke:pxtec')
+    call getmem(pqtec,1,nipoi,1,kz,'mod_cu_tiedtke:pqtec')
+    call getmem(pccn,1,nipoi,1,kz,'mod_cu_tiedtke:pccn')
+    call getmem(zcvrout,1,nipoi,1,kz,'mod_cu_tiedtke:zcvrout')
+    call getmem(pmflxr,1,nipoi,1,kz+1,'mod_cu_tiedtke:pmflxr')
+    call getmem(kctop,1,nipoi,'mod_cu_tiedtke:kctop')
+    call getmem(kcbot,1,nipoi,'mod_cu_tiedtke:kcbot')
+    call getmem(paphp1,1,nipoi,1,kzp1,'mod_cu_tiedtke:paphp1')
+    call getmem(prsfc,1,nipoi,'mod_cu_tiedtke:prsfc')
+    call getmem(pssfc,1,nipoi,'mod_cu_tiedtke:pssfc')
+    call getmem(ptopmax,1,nipoi,'mod_cu_tiedtke:ptopmax')
+    call getmem(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
+    call getmem(xpqfx,1,nipoi,'mod_cu_tiedtke:xpqfx')
+    call getmem(ldland,1,nipoi,'mod_cu_tiedtke:ldland')
 
   end subroutine allocate_mod_cu_tiedtke
   !
@@ -208,7 +208,7 @@ module mod_cu_tiedtke
 
     dtc = dtcum
     do concurrent( ii = 1:nipoi, k = 1:kz )
-      ilab(n,k) = 2
+      ilab(ii,k) = 2
     end do
 
     if ( ichem == 1 ) then
@@ -6941,7 +6941,7 @@ module mod_cu_tiedtke
           ! passing a scalar to avoid a compiler bug with OpenACC/Stdpar
           tfl=tf(n,ikb)
           mfus(n,ik) = (mfus(n,ikb) - mlwt(tfl) * mful(n,ikb))*zp
-          !mfus(n,ik) = (mfus(n,ikb) - mlwt(tf(n,ikb)) * mful(n,ikb))*zp 
+          !mfus(n,ik) = (mfus(n,ikb) - mlwt(tf(n,ikb)) * mful(n,ikb))*zp
           mfuq(n,ik) = (mfuq(n,ikb)+mful(n,ikb))*zp
           mful(n,ik) = d_zero
         end if

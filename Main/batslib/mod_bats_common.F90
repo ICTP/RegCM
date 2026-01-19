@@ -67,7 +67,7 @@ module mod_bats_common
 #endif
 
     if ( nsg > 1 ) then
-      call getmem3d(xqs,1,nnsg,jci1,jci2,ici1,ici2,'bats:xqs')
+      call getmem(xqs,1,nnsg,jci1,jci2,ici1,ici2,'bats:xqs')
     end if
     if ( rcmtimer%start( ) ) then
       call c2l_gs(lndcomm,lm%ht,ht)

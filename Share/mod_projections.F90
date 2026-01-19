@@ -478,8 +478,8 @@ module mod_projections
     if ( pj%p%rlon0 < -deg180 ) pj%p%rlon0 = pj%p%rlon0 + deg360
     if ( luvrot ) then
       if ( .not. pj%p%skiprot ) then
-        call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
-        call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
+        call getmem(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
+        call getmem(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
         do j = 1, pj%p%nlat
           do i = 1, pj%p%nlon
             ri = i
@@ -626,9 +626,9 @@ module mod_projections
     pj%p%tchi1 = tan(pj%p%chi1)
     pj%p%schi1 = sin(pj%p%chi1)
     if ( luvrot ) then
-      call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
-      call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
-      call getmem2d(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
+      call getmem(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
+      call getmem(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
+      call getmem(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
       do j = 1, pj%p%nlat
         do i = 1, pj%p%nlon
           ri = i
@@ -719,9 +719,9 @@ module mod_projections
     pj%p%polei = ci - pj%p%rsw * cos(alo1)
     pj%p%polej = cj - pj%p%hemi * pj%p%rsw * sin(alo1)
     if ( luvrot ) then
-      call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
-      call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
-      call getmem2d(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
+      call getmem(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
+      call getmem(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
+      call getmem(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
       do j = 1, pj%p%nlat
         do i = 1, pj%p%nlon
           ri = i
@@ -863,9 +863,9 @@ module mod_projections
       end if
       pj%p%polcphi = cos(pphi)
       pj%p%polsphi = sin(pphi)
-      call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
-      call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
-      call getmem2d(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
+      call getmem(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
+      call getmem(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
+      call getmem(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
       do j = 1, pj%p%nlat
         rj = j
         do i = 1, pj%p%nlon

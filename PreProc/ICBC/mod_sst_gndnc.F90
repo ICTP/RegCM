@@ -163,7 +163,7 @@ module mod_sst_gndnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire dim time')
 
-    call getmem1d(work,1,timlen,'mod_gndnc_sst:work')
+    call getmem(work,1,timlen,'mod_gndnc_sst:work')
 
     istatus = nf90_inq_varid(inet1,'lat',latid)
     if ( istatus /= nf90_noerr ) then
@@ -197,8 +197,8 @@ module mod_sst_gndnc
                     'Error find var '//varname(2))
 
     if ( ssttyp(1:3) == 'NO_' ) then
-      call getmem2d(glat,1,ilon,1,jlat,'mod_gndnc_sst:glat')
-      call getmem2d(glon,1,ilon,1,jlat,'mod_gndnc_sst:glon')
+      call getmem(glat,1,ilon,1,jlat,'mod_gndnc_sst:glat')
+      call getmem(glon,1,ilon,1,jlat,'mod_gndnc_sst:glon')
       istatus = nf90_get_var(inet1,latid,glat)
       call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var lat')
@@ -224,9 +224,9 @@ module mod_sst_gndnc
         write(stdout,*) 'Add offset   = ',add_offset
         write(stdout,*) 'Scale factor = ',scale_factor
       end if
-      call getmem2d(worki,1,ilon,1,jlat,'mod_gndnc_sst:worki')
-      call getmem1d(glat1,1,jlat,'mod_gndnc_sst:glat')
-      call getmem1d(glon1,1,ilon,'mod_gndnc_sst:glon')
+      call getmem(worki,1,ilon,1,jlat,'mod_gndnc_sst:worki')
+      call getmem(glat1,1,jlat,'mod_gndnc_sst:glat')
+      call getmem(glon1,1,ilon,'mod_gndnc_sst:glon')
       istatus = nf90_get_var(inet1,latid,glat1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var lat')
@@ -235,8 +235,8 @@ module mod_sst_gndnc
                       'Error read var lon')
       call h_interpolator_create(hint,glat1,glon1,xlat,xlon)
     else
-      call getmem1d(glat1,1,jlat,'mod_gndnc_sst:glat')
-      call getmem1d(glon1,1,ilon,'mod_gndnc_sst:glon')
+      call getmem(glat1,1,jlat,'mod_gndnc_sst:glat')
+      call getmem(glon1,1,ilon,'mod_gndnc_sst:glon')
       istatus = nf90_get_var(inet1,latid,glat1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var lat')
@@ -246,8 +246,8 @@ module mod_sst_gndnc
       call h_interpolator_create(hint,glat1,glon1,xlat,xlon)
     end if
 
-    call getmem2d(workf,1,ilon,1,jlat,'mod_gndnc_sst:workf')
-    call getmem2d(sst,1,ilon,1,jlat,'mod_gndnc_sst:sst')
+    call getmem(workf,1,ilon,1,jlat,'mod_gndnc_sst:workf')
+    call getmem(sst,1,ilon,1,jlat,'mod_gndnc_sst:sst')
 
     istart(1) = 1
     icount(1) = timlen
@@ -355,7 +355,7 @@ module mod_sst_gndnc
         istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error inquire dim time')
-        call getmem1d(work,1,timlen,'mod_gndnc_sst:work')
+        call getmem(work,1,timlen,'mod_gndnc_sst:work')
         if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
           istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
           if ( istatus /= nf90_noerr ) then

@@ -194,7 +194,7 @@ program clm2rcm
     istatus = nf90_inquire_dimension(idin,idimid,len=nlat(ifld))
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot read dimension lat in file '//trim(inpfile))
-    call getmem1d(glat,1,nlat(ifld),'clm2rcm:glat')
+    call getmem(glat,1,nlat(ifld),'clm2rcm:glat')
     istatus = nf90_inq_varid(idin,'lat',ivarid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(idin,'LAT',ivarid)
@@ -211,7 +211,7 @@ program clm2rcm
     istatus = nf90_inquire_dimension(idin,idimid,len=nlon(ifld))
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot read dimension lon in file '//trim(inpfile))
-    call getmem1d(glon,1,nlon(ifld),'clm2rcm:glat')
+    call getmem(glon,1,nlon(ifld),'clm2rcm:glat')
     istatus = nf90_inq_varid(idin,'lon',ivarid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(idin,'LON',ivarid)
@@ -270,12 +270,12 @@ program clm2rcm
       icount(4) = 1
     end if
 
-    call getmem4d(zoom,1,icount(1),1,icount(2),1,icount(3),1,icount(4), &
+    call getmem(zoom,1,icount(1),1,icount(2),1,icount(3),1,icount(4), &
                   'clm2rcm:zoom')
-    call getmem1d(zlon,1,icount(1),'clm2rcm:zlon')
-    call getmem1d(zlat,1,icount(2),'clm2rcm:zlat')
-    if ( icount(3) > 0 ) call getmem1d(zlev,1,icount(3),'clm2rcm:zlev')
-    call getmem2d(landmask,1,icount(1),1,icount(2),'clm2rcm:landmask')
+    call getmem(zlon,1,icount(1),'clm2rcm:zlon')
+    call getmem(zlat,1,icount(2),'clm2rcm:zlat')
+    if ( icount(3) > 0 ) call getmem(zlev,1,icount(3),'clm2rcm:zlev')
+    call getmem(landmask,1,icount(1),1,icount(2),'clm2rcm:landmask')
 
     if ( ifld /= icol  .and. ifld /= iiso .and. ifld /= ibpin .and.  &
          ifld /= iapin .and. ifld /= imbo .and. ifld /= ilimo ) then
@@ -295,8 +295,8 @@ program clm2rcm
     !  180 degree longitiude shift.
     !    - Soil color and Orography do not have landmasks (must be made)
     if ( ifld==isnd .or. ifld==icly ) then
-      call getmem2d(sandclay,1,ntim(ifld),1,nlev(ifld),'clm2rcm:sandclay')
-      call getmem2d(mpu,1,icount(1),1,icount(2),'clm2rcm:mpu')
+      call getmem(sandclay,1,ntim(ifld),1,nlev(ifld),'clm2rcm:sandclay')
+      call getmem(mpu,1,icount(1),1,icount(2),'clm2rcm:mpu')
       call readcdfr4(idin,vnam(ifld),lnam(ifld),units(ifld),1,      &
                      ntim(ifld),1,nlev(ifld),1,1,1,1,sandclay)
       write(stdout,*) 'Read ', trim(lnam(ifld))
@@ -363,8 +363,8 @@ program clm2rcm
 
     ! Interpolate data to RegCM3 grid
 
-    call getmem4d(regyxzt,1,jx,1,iy,1,nlev(ifld),1,ntim(ifld),'clm2rcm:regyxzt')
-    call getmem3d(regxyz,1,jx,1,iy,1,nlev(ifld),'clm2rcm:regxyz')
+    call getmem(regyxzt,1,jx,1,iy,1,nlev(ifld),1,ntim(ifld),'clm2rcm:regyxzt')
+    call getmem(regxyz,1,jx,1,iy,1,nlev(ifld),'clm2rcm:regxyz')
 
     call bilinx4d(zoom,landmask,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
                   xlat,jx,iy,icount(3),icount(4),vmin(ifld),vmisdat)

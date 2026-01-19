@@ -80,8 +80,8 @@ module mod_slice
         jd1 = jde1gc
         jd2 = jde2gc
       end if
-      call getmem2d(rpsb,jx1,jx2,ix1,ix2,'slice:rpsb')
-      call getmem2d(rpsdotb,jd1,jd2,id1,id2,'slice:rpsdotb')
+      call getmem(rpsb,jx1,jx2,ix1,ix2,'slice:rpsb')
+      call getmem(rpsdotb,jd1,jd2,id1,id2,'slice:rpsdotb')
       if ( idynamic == 2 ) then
         call assignpnt(omega,atms%wpx3d)
       end if

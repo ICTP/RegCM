@@ -135,9 +135,9 @@ module mod_sst_gnmnc
 
     call open_input(inpfile)
 
-    call getmem2d(work2,1,ilon,1,jlat,'mod_gnmnc_sst:work2')
-    call getmem2d(work3,1,ilon,1,jlat,'mod_gnmnc_sst:work3')
-    call getmem2d(sst,1,ilon,1,jlat,'mod_gnmnc_sst:sst')
+    call getmem(work2,1,ilon,1,jlat,'mod_gnmnc_sst:work2')
+    call getmem(work3,1,ilon,1,jlat,'mod_gnmnc_sst:work3')
+    call getmem(sst,1,ilon,1,jlat,'mod_gnmnc_sst:sst')
 
     idateo = monfirst(globidate1)
     idatef = monfirst(globidate2)
@@ -260,8 +260,8 @@ module mod_sst_gnmnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'INQUIRE LAT ERROR')
       if ( ndims == 1 ) then
-        call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
-        call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
+        call getmem(glat,1,jlat,'mod_gnmnc_sst:glat')
+        call getmem(glon,1,ilon,'mod_gnmnc_sst:glon')
         istatus = nf90_get_var(inet1,latid,glat)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var lat')
@@ -278,8 +278,8 @@ module mod_sst_gnmnc
         istart(2) = 1
         icount(1) = ilon
         icount(2) = jlat
-        call getmem2d(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
-        call getmem2d(glon2,1,ilon,1,jlat,'mod_gnmnc_sst:glon2')
+        call getmem(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
+        call getmem(glon2,1,ilon,1,jlat,'mod_gnmnc_sst:glon2')
         istatus = nf90_get_var(inet1,latid,glat2,istart(1:2),icount(1:2))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var lat')
@@ -306,7 +306,7 @@ module mod_sst_gnmnc
     istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire dim time')
-    call getmem1d(work1,1,timlen,'mod_gnmnc_sst:work1')
+    call getmem(work1,1,timlen,'mod_gnmnc_sst:work1')
 
     istatus = nf90_get_var(inet1,ivar2(1),work1)
     call checkncerr(istatus,__FILE__,__LINE__, &

@@ -119,11 +119,11 @@ module mod_cams
     !
     ! Allocate working space
     !
-    call getmem1d(plevs,1,klev,'mod_cams:plevs')
-    call getmem1d(glat,1,jlat,'mod_cams:glat')
-    call getmem1d(glon,1,ilon,'mod_cams:glon')
-    call getmem1d(grev,1,max(jlat,ilon),'mod_cams:grev')
-    call getmem1d(sigmar,1,klev,'mod_cams:sigmar')
+    call getmem(plevs,1,klev,'mod_cams:plevs')
+    call getmem(glat,1,jlat,'mod_cams:glat')
+    call getmem(glon,1,ilon,'mod_cams:glon')
+    call getmem(grev,1,max(jlat,ilon),'mod_cams:grev')
+    call getmem(sigmar,1,klev,'mod_cams:sigmar')
 
     istatus = nf90_inq_varid(ncid,'latitude',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -161,11 +161,11 @@ module mod_cams
 
     grev(1:jlat) = glat
     jlat = gdomain%nj
-    call getmem1d(glat,1,jlat,'mod_cams:glat')
+    call getmem(glat,1,jlat,'mod_cams:glat')
     glat = grev(gdomain%jgstart:gdomain%jgstop)
     grev(1:ilon) = glon
     ilon = sum(gdomain%ni)
-    call getmem1d(glon,1,ilon,'mod_cams:glon')
+    call getmem(glon,1,ilon,'mod_cams:glon')
     glon(1:gdomain%ni(1)) = grev(gdomain%igstart(1):gdomain%igstop(1))
     if ( gdomain%ntiles == 2 ) then
       glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
@@ -174,9 +174,9 @@ module mod_cams
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
 
     if ( typ == 'CH' ) then
-      call getmem3d(b3,1,jx,1,iy,1,klev*15,'mod_cams:b3')
-      call getmem3d(b2,1,ilon,1,jlat,1,klev*15,'mod_cams:b2')
-      call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
+      call getmem(b3,1,jx,1,iy,1,klev*15,'mod_cams:b3')
+      call getmem(b2,1,ilon,1,jlat,1,klev*15,'mod_cams:b2')
+      call getmem(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
       !
       ! Set up pointers
       !
@@ -213,9 +213,9 @@ module mod_cams
       ch4var   => b2(:,:,14*klev+1:15*klev)
 
     else if ( typ =='AE' ) then
-      call getmem3d(b3a,1,jx,1,iy,1,klev*15,'mod_cams:b3a')
-      call getmem3d(b2a,1,ilon,1,jlat,1,klev*15,'mod_cams:b2a')
-      call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
+      call getmem(b3a,1,jx,1,iy,1,klev*15,'mod_cams:b3a')
+      call getmem(b2a,1,ilon,1,jlat,1,klev*15,'mod_cams:b2a')
+      call getmem(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
       !
       ! Set up pointers
       !
@@ -550,8 +550,8 @@ module mod_cams
           istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
-          call getmem1d(itimes,1,timlen,'mod_cams:itimes')
-          call getmem1d(xtimes,1,timlen,'mod_cams:xtimes')
+          call getmem(itimes,1,timlen,'mod_cams:itimes')
+          call getmem(xtimes,1,timlen,'mod_cams:xtimes')
           istatus = nf90_get_var(inet5(1),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')

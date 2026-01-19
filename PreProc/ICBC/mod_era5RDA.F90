@@ -55,7 +55,7 @@ module mod_era5rda
   real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u, h3u, h3v
   real(rkx), pointer, contiguous, dimension(:,:,:) :: uvar, vvar
   real(rkx), pointer, contiguous, dimension(:,:,:) :: hvar, qvar, tvar
-  real(rkx), pointer, contiguous, dimension(:,:) :: prvar, topou, topov
+  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
 
   real(rkx), pointer, contiguous, dimension(:) :: glat
   real(rkx), pointer, contiguous, dimension(:) :: grev
@@ -64,7 +64,6 @@ module mod_era5rda
   real(rkx), pointer, contiguous, dimension(:) :: sigmar
   real(rkx) :: pss, pst
   real(rkx), pointer, contiguous, dimension(:,:,:) :: work
-  real(rkx), pointer, contiguous, dimension(:,:) :: iwork
 
   integer(ik4), dimension(5) :: inet5
   integer(ik4), dimension(5) :: ivar5
@@ -132,21 +131,21 @@ module mod_era5rda
     !
     ! Allocate working space
     !
-    call getmem1d(plevs,1,klev,'mod_era5:plevs')
-    call getmem1d(glat,1,jlat,'mod_era5:glat')
-    call getmem1d(glon,1,ilon,'mod_era5:glon')
-    call getmem1d(grev,1,max(jlat,ilon),'mod_era5:grev')
-    call getmem1d(sigmar,1,klev,'mod_era5:sigmar')
-    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_era5:b3')
+    call getmem(plevs,1,klev,'mod_era5:plevs')
+    call getmem(glat,1,jlat,'mod_era5:glat')
+    call getmem(glon,1,ilon,'mod_era5:glon')
+    call getmem(grev,1,max(jlat,ilon),'mod_era5:grev')
+    call getmem(sigmar,1,klev,'mod_era5:sigmar')
+    call getmem(b3,1,jx,1,iy,1,klev*3,'mod_era5:b3')
     if ( idynamic == 3 ) then
-      call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_era5:d3u')
-      call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_era5:d3v')
-      call getmem3d(h3u,1,jx,1,iy,1,klev,'mod_era5:h3u')
-      call getmem3d(h3v,1,jx,1,iy,1,klev,'mod_era5:h3v')
-      call getmem2d(topou,1,jx,1,iy,'mod_era5:topou')
-      call getmem2d(topov,1,jx,1,iy,'mod_era5:topov')
+      call getmem(d3u,1,jx,1,iy,1,klev*2,'mod_era5:d3u')
+      call getmem(d3v,1,jx,1,iy,1,klev*2,'mod_era5:d3v')
+      call getmem(h3u,1,jx,1,iy,1,klev,'mod_era5:h3u')
+      call getmem(h3v,1,jx,1,iy,1,klev,'mod_era5:h3v')
+      call getmem(topou,1,jx,1,iy,'mod_era5:topou')
+      call getmem(topov,1,jx,1,iy,'mod_era5:topov')
     else
-      call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_era5:d3')
+      call getmem(d3,1,jx,1,iy,1,klev*2,'mod_era5:d3')
     end if
 
     istatus = nf90_inq_varid(ncid,'latitude',ivarid)
@@ -185,11 +184,11 @@ module mod_era5rda
 
     grev(1:jlat) = glat
     jlat = gdomain%nj
-    call getmem1d(glat,1,jlat,'mod_era5:glat')
+    call getmem(glat,1,jlat,'mod_era5:glat')
     glat = grev(gdomain%jgstart:gdomain%jgstop)
     grev(1:ilon) = glon
     ilon = sum(gdomain%ni)
-    call getmem1d(glon,1,ilon,'mod_era5:glon')
+    call getmem(glon,1,ilon,'mod_era5:glon')
     glon(1:gdomain%ni(1)) = grev(gdomain%igstart(1):gdomain%igstop(1))
     if ( gdomain%ntiles == 2 ) then
       glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
@@ -203,9 +202,9 @@ module mod_era5rda
       call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
     end if
 
-    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_era5:b2')
-    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_era5:d2')
-    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_era5:work')
+    call getmem(b2,1,ilon,1,jlat,1,klev*3,'mod_era5:b2')
+    call getmem(d2,1,ilon,1,jlat,1,klev*2,'mod_era5:d2')
+    call getmem(work,1,ilon,1,jlat,1,klev,'mod_era5:work')
     !
     ! Set up pointer
     !
@@ -415,7 +414,7 @@ module mod_era5rda
         if ( istatus /= 0 ) then
             xoff(kkrec) = 0.0
         end if
-        
+
         write (stdout,*) inet5(kkrec), trim(pathaddname),   &
                          xscl(kkrec), xoff(kkrec)
         ! if this is the first variable, get the time and metadata
@@ -438,8 +437,8 @@ module mod_era5rda
           istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
-          call getmem1d(itimes,1,timlen,'mod_era5:itimes')
-          call getmem1d(xtimes,1,timlen,'mod_era5:xtimes')
+          call getmem(itimes,1,timlen,'mod_era5:itimes')
+          call getmem(xtimes,1,timlen,'mod_era5:xtimes')
           istatus = nf90_get_var(inet5(1),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')

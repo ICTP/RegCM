@@ -3112,12 +3112,12 @@ module mod_ncout
         if ( lak_stream > 0 ) then
           kkz = max(ndpmax,kkz)
         end if
-        call getmem2d(io2d,jout1,jout2,iout1,iout2,'ncout:io2d')
-        call getmem3d(io3d,jout1,jout2,iout1,iout2,1,kkz,'ncout:io3d')
-        call getmem4d(io4d,jout1,jout2,iout1,iout2,1,kkz,1,n4dd,'ncout:io4d')
+        call getmem(io2d,jout1,jout2,iout1,iout2,'ncout:io2d')
+        call getmem(io3d,jout1,jout2,iout1,iout2,1,kkz,'ncout:io3d')
+        call getmem(io4d,jout1,jout2,iout1,iout2,1,kkz,1,n4dd,'ncout:io4d')
         if ( sub_stream > 0 ) then
-          call getmem2d(io2dsg,joutsg1,joutsg2,ioutsg1,ioutsg2,'ncout:io2dsg')
-          call getmem3d(io3dsg,joutsg1,joutsg2,ioutsg1,ioutsg2, &
+          call getmem(io2dsg,joutsg1,joutsg2,ioutsg1,ioutsg2,'ncout:io2dsg')
+          call getmem(io3dsg,joutsg1,joutsg2,ioutsg1,ioutsg2, &
                         1,kkz,'ncout:io3dsg')
         end if
       end if
@@ -4073,11 +4073,11 @@ module mod_ncout
     !
     if ( present(lgetspace) ) then
       if ( lgetspace ) then
-        call getmem2d(var(ivar)%rval,vsize%j1,vsize%j2, &
+        call getmem(var(ivar)%rval,vsize%j1,vsize%j2, &
               vsize%i1,vsize%i2,'ncout:setup_var:'//trim(var(ivar)%vname))
       end if
     else
-      call getmem2d(var(ivar)%rval,vsize%j1,vsize%j2, &
+      call getmem(var(ivar)%rval,vsize%j1,vsize%j2, &
             vsize%i1,vsize%i2,'ncout:setup_var:'//trim(var(ivar)%vname))
     end if
     if ( present(notes) ) then
@@ -4116,11 +4116,11 @@ module mod_ncout
     end if
     if ( present(lgetspace) ) then
       if ( lgetspace ) then
-        call getmem3d(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
+        call getmem(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
               vsize%k1,vsize%k2,'ncout:setup_var:'//trim(var(ivar)%vname))
       end if
     else
-      call getmem3d(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
+      call getmem(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
             vsize%k1,vsize%k2,'ncout:setup_var:'//trim(var(ivar)%vname))
     end if
     if ( present(notes) ) then
@@ -4161,11 +4161,11 @@ module mod_ncout
     end if
     if ( present(lgetspace) ) then
       if ( lgetspace ) then
-        call getmem4d(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
+        call getmem(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
               vsize%k1,vsize%k2,vsize%n1,vsize%n2,'ncout:setup_var:'//trim(var(ivar)%vname))
       end if
     else
-      call getmem4d(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
+      call getmem(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
             vsize%k1,vsize%k2,vsize%n1,vsize%n2,'ncout:setup_var:'//trim(var(ivar)%vname))
     end if
     if ( present(notes) ) then

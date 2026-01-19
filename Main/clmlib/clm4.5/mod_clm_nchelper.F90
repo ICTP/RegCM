@@ -281,9 +281,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
                     'Error creating NetCDF output '//trim(fname))
     ncid%fname = fname
-    call getmem2d(ncid%i4buf,jout1,jout2,iout1,iout2,'clm_createfile')
-    call getmem2d(ncid%r4buf,jout1,jout2,iout1,iout2,'clm_createfile')
-    call getmem2d(ncid%r8buf,jout1,jout2,iout1,iout2,'clm_createfile')
+    call getmem(ncid%i4buf,jout1,jout2,iout1,iout2,'clm_createfile')
+    call getmem(ncid%r4buf,jout1,jout2,iout1,iout2,'clm_createfile')
+    call getmem(ncid%r8buf,jout1,jout2,iout1,iout2,'clm_createfile')
 
     incstat = nf90_set_fill(ncid%ncid, nf90_nofill, iofmod)
     call clm_checkncerr(__FILE__,__LINE__, &
@@ -316,9 +316,9 @@ module mod_clm_nchelper
         incstat = nf90_open(fname, nf90_write, ncid%ncid)
         call clm_checkncerr(__FILE__,__LINE__, &
                     'Error open NetCDF '//trim(fname)//' in read/write')
-        call getmem2d(ncid%i4buf,jout1,jout2,iout1,iout2,'clm_openfile')
-        call getmem2d(ncid%r4buf,jout1,jout2,iout1,iout2,'clm_openfile')
-        call getmem2d(ncid%r8buf,jout1,jout2,iout1,iout2,'clm_openfile')
+        call getmem(ncid%i4buf,jout1,jout2,iout1,iout2,'clm_openfile')
+        call getmem(ncid%r4buf,jout1,jout2,iout1,iout2,'clm_openfile')
+        call getmem(ncid%r8buf,jout1,jout2,iout1,iout2,'clm_openfile')
         ! Fill variable list...
         incstat = nf90_inquire(ncid%ncid, nDimensions, nVariable)
         call clm_checkncerr(__FILE__,__LINE__, &
@@ -773,9 +773,9 @@ module mod_clm_nchelper
     ncid%idimlast = -1
     ncid%ivarlast = -1
     if ( associated(ncid%i4buf) ) then
-      call relmem2d(ncid%i4buf)
-      call relmem2d(ncid%r4buf)
-      call relmem2d(ncid%r8buf)
+      call relmem(ncid%i4buf)
+      call relmem(ncid%r4buf)
+      call relmem(ncid%r8buf)
     end if
   end subroutine clm_closefile
 

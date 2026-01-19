@@ -71,7 +71,7 @@ module mod_ensemble
       ! get the size of the seed array
       call random_seed(size = nseed)
       ! allocate a new seed array
-      call getmem1d(seed,1,nseed,'random_pick_1d_r8:seed')
+      call getmem(seed,1,nseed,'random_pick_1d_r8:seed')
       ! Get the system time
       call system_clock(sclock)
       ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
@@ -109,7 +109,7 @@ module mod_ensemble
       ! get the size of the seed array
       call random_seed(size = nseed)
       ! allocate a new seed array
-      call getmem1d(seed,1,nseed,'random_pick_1d_r8:seed')
+      call getmem(seed,1,nseed,'random_pick_1d_r8:seed')
       ! Get the system time
       call system_clock(sclock)
       ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
@@ -200,7 +200,7 @@ module mod_ensemble
 
       ! allocate a new seed array
 
-      call getmem1d(seed,1,nseed,'randify2D:seed')
+      call getmem(seed,1,nseed,'randify2D:seed')
 
       ! Get the system time
 
@@ -262,7 +262,7 @@ module mod_ensemble
 
       ! allocate a new seed array
 
-      call getmem1d(seed,1,nseed,'randify2D:seed')
+      call getmem(seed,1,nseed,'randify2D:seed')
 
       ! Get the system time
 

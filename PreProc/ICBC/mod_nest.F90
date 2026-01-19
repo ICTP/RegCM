@@ -151,8 +151,8 @@ module mod_nest
     istatus = nf90_get_att(ncinp, ivarid, 'calendar', timecal)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable time calendar missing')
-    call getmem1d(itimes,1,nrec,'mod:nest:itimes')
-    call getmem1d(xtimes,1,nrec,'mod:nest:xtimes')
+    call getmem(itimes,1,nrec,'mod:nest:itimes')
+    call getmem(xtimes,1,nrec,'mod:nest:xtimes')
     istatus = nf90_get_var(ncinp, ivarid, xtimes)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable time read error')
@@ -181,27 +181,27 @@ module mod_nest
 
     ! Reserve space for I/O
 
-    call getmem1d(sigma_in,1,kz_in,'mod_nest:sigma_in')
-    call getmem3d(q_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:q_in')
+    call getmem(sigma_in,1,kz_in,'mod_nest:sigma_in')
+    call getmem(q_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:q_in')
     if ( has_qc ) then
-      call getmem3d(qc_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:qc_in')
+      call getmem(qc_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:qc_in')
     end if
     if ( has_qi ) then
-      call getmem3d(qi_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:qi_in')
+      call getmem(qi_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:qi_in')
     end if
-    call getmem3d(t_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t_in')
-    call getmem3d(u_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:u_in')
-    call getmem3d(v_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v_in')
-    call getmem3d(z_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z_in')
-    call getmem3d(p_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p_in')
+    call getmem(t_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t_in')
+    call getmem(u_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:u_in')
+    call getmem(v_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v_in')
+    call getmem(z_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z_in')
+    call getmem(p_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p_in')
     if ( oidyn == 2 ) then
-      call getmem3d(pr0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pr0_in')
+      call getmem(pr0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pr0_in')
     end if
-    call getmem2d(ts_in,1,jx_in,1,iy_in,'mod_nest:ts_in')
-    call getmem2d(ps_in,1,jx_in,1,iy_in,'mod_nest:ps_in')
-    call getmem2d(xlat_in,1,jx_in,1,iy_in,'mod_nest:xlat_in')
-    call getmem2d(xlon_in,1,jx_in,1,iy_in,'mod_nest:xlon_in')
-    call getmem2d(ht_in,1,jx_in,1,iy_in,'mod_nest:ht_in')
+    call getmem(ts_in,1,jx_in,1,iy_in,'mod_nest:ts_in')
+    call getmem(ps_in,1,jx_in,1,iy_in,'mod_nest:ps_in')
+    call getmem(xlat_in,1,jx_in,1,iy_in,'mod_nest:xlat_in')
+    call getmem(xlon_in,1,jx_in,1,iy_in,'mod_nest:xlon_in')
+    call getmem(ht_in,1,jx_in,1,iy_in,'mod_nest:ht_in')
 
     istatus = nf90_inq_varid(ncinp, 'kz', ivarid)
     if ( istatus /= nf90_noerr ) then
@@ -305,9 +305,9 @@ module mod_nest
       call pj%initialize(pjparam)
     end if
 
-    call getmem2d(pstar_in,1,jx_in,1,iy_in,'mod_nest:pstar_in')
+    call getmem(pstar_in,1,jx_in,1,iy_in,'mod_nest:pstar_in')
     if ( oidyn == 2 ) then
-      call getmem2d(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
+      call getmem(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
     end if
 
     if ( oidyn == 2 ) then
@@ -324,8 +324,8 @@ module mod_nest
         write(stdout,*) 'Assuming base state pressure to be ', stdp
         bsp_in = stdp
       end if
-      call getmem3d(ppa_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:ppa_in')
-      call getmem3d(t0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t0_in')
+      call getmem(ppa_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:ppa_in')
+      call getmem(t0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t0_in')
       istatus = nf90_inq_varid(ncinp, 'p0', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable p0 error')
@@ -346,8 +346,8 @@ module mod_nest
         end do
       end do
     else if ( oidyn == 3 ) then
-      call getmem1d(ak_in,1,kz_in,'mod_nest:ak_in')
-      call getmem1d(bk_in,1,kz_in,'mod_nest:bk_in')
+      call getmem(ak_in,1,kz_in,'mod_nest:ak_in')
+      call getmem(bk_in,1,kz_in,'mod_nest:bk_in')
       istatus = nf90_inq_varid(ncinp, 'a', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable a error')
@@ -371,35 +371,35 @@ module mod_nest
     end if
 
     ! Fields on output horizontal grid
-    call getmem3d(t3,1,jx,1,iy,1,kz_in,'mod_nest:t3')
-    call getmem3d(u3,1,jx,1,iy,1,kz_in,'mod_nest:u3')
-    call getmem3d(v3,1,jx,1,iy,1,kz_in,'mod_nest:v3')
-    call getmem3d(q3,1,jx,1,iy,1,kz_in,'mod_nest:q3')
-    call getmem3d(z3,1,jx,1,iy,1,kz_in,'mod_nest:z3')
-    call getmem3d(p3,1,jx,1,iy,1,kz_in,'mod_nest:p3')
+    call getmem(t3,1,jx,1,iy,1,kz_in,'mod_nest:t3')
+    call getmem(u3,1,jx,1,iy,1,kz_in,'mod_nest:u3')
+    call getmem(v3,1,jx,1,iy,1,kz_in,'mod_nest:v3')
+    call getmem(q3,1,jx,1,iy,1,kz_in,'mod_nest:q3')
+    call getmem(z3,1,jx,1,iy,1,kz_in,'mod_nest:z3')
+    call getmem(p3,1,jx,1,iy,1,kz_in,'mod_nest:p3')
     if ( has_qc ) then
-      call getmem3d(qc3,1,jx,1,iy,1,kz_in,'mod_nest:qc3')
+      call getmem(qc3,1,jx,1,iy,1,kz_in,'mod_nest:qc3')
     end if
     if ( has_qi ) then
-      call getmem3d(qi3,1,jx,1,iy,1,kz_in,'mod_nest:qi3')
+      call getmem(qi3,1,jx,1,iy,1,kz_in,'mod_nest:qi3')
     end if
     if ( idynamic == 3 ) then
-      call getmem2d(topou,1,jx,1,iy,'mod_nest:topou')
-      call getmem2d(topov,1,jx,1,iy,'mod_nest:topov')
-      call getmem3d(zud3,1,jx,1,iy,1,kz_in,'mod_nest:zud3')
-      call getmem3d(zvd3,1,jx,1,iy,1,kz_in,'mod_nest:zvd3')
-      call getmem3d(u3v,1,jx,1,iy,1,kz_in,'mod_nest:u3v')
-      call getmem3d(v3u,1,jx,1,iy,1,kz_in,'mod_nest:v3u')
+      call getmem(topou,1,jx,1,iy,'mod_nest:topou')
+      call getmem(topov,1,jx,1,iy,'mod_nest:topov')
+      call getmem(zud3,1,jx,1,iy,1,kz_in,'mod_nest:zud3')
+      call getmem(zvd3,1,jx,1,iy,1,kz_in,'mod_nest:zvd3')
+      call getmem(u3v,1,jx,1,iy,1,kz_in,'mod_nest:u3v')
+      call getmem(v3u,1,jx,1,iy,1,kz_in,'mod_nest:v3u')
     else
-      call getmem3d(pd3,1,jx,1,iy,1,kz_in,'mod_nest:pd3')
+      call getmem(pd3,1,jx,1,iy,1,kz_in,'mod_nest:pd3')
     end if
-    call getmem2d(ts,1,jx,1,iy,'mod_nest:ts')
-    call getmem2d(ps,1,jx,1,iy,'mod_nest:ps')
-    call getmem2d(zs,1,jx,1,iy,'mod_nest:zs')
+    call getmem(ts,1,jx,1,iy,'mod_nest:ts')
+    call getmem(ps,1,jx,1,iy,'mod_nest:ps')
+    call getmem(zs,1,jx,1,iy,'mod_nest:zs')
 
     if ( idynamic /= 3 ) then
-      call getmem3d(p_out,1,jx,1,iy,1,kz,'mod_nest:p_out')
-      call getmem3d(pd_out,1,jx,1,iy,1,kz,'mod_nest:pd_out')
+      call getmem(p_out,1,jx,1,iy,1,kz,'mod_nest:p_out')
+      call getmem(pd_out,1,jx,1,iy,1,kz,'mod_nest:pd_out')
     end if
 
     if ( oidyn == 3 ) then
@@ -480,8 +480,8 @@ module mod_nest
       istatus = nf90_inq_varid(ncinp, 'time', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time missing')
-      call getmem1d(itimes,1,nrec,'mod_nest:itimes')
-      call getmem1d(xtimes,1,nrec,'mod_nest:xtimes')
+      call getmem(itimes,1,nrec,'mod_nest:itimes')
+      call getmem(xtimes,1,nrec,'mod_nest:xtimes')
       istatus = nf90_get_var(ncinp, ivarid, xtimes)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time read error')
@@ -517,8 +517,8 @@ module mod_nest
       istatus = nf90_inq_varid(ncinp, 'time', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time missing')
-      call getmem1d(itimes,1,nrec,'mod_nest:itimes')
-      call getmem1d(xtimes,1,nrec,'mod_nest:xtimes')
+      call getmem(itimes,1,nrec,'mod_nest:itimes')
+      call getmem(xtimes,1,nrec,'mod_nest:xtimes')
       istatus = nf90_get_var(ncinp, ivarid, xtimes)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time read error')

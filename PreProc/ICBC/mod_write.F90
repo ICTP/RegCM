@@ -60,15 +60,15 @@ module mod_write
     integer :: nplevs, ierr
 
     nplevs = size(plevs)
-    call getmem1d(pcoord,1,nplevs,'mod_write:pcoord')
+    call getmem(pcoord,1,nplevs,'mod_write:pcoord')
     pcoord = plevs
-    call getmem2d(ps4,1,jx,1,iy,'mod_write:ps4')
-    call getmem2d(ts4,1,jx,1,iy,'mod_write:ts4')
-    call getmem3d(z4,1,jx,1,iy,1,nplevs,'mod_write:z4')
-    call getmem3d(q4,1,jx,1,iy,1,nplevs,'mod_write:q4')
-    call getmem3d(t4,1,jx,1,iy,1,nplevs,'mod_write:t4')
-    call getmem3d(u4,1,jx,1,iy,1,nplevs,'mod_write:u4')
-    call getmem3d(v4,1,jx,1,iy,1,nplevs,'mod_write:v4')
+    call getmem(ps4,1,jx,1,iy,'mod_write:ps4')
+    call getmem(ts4,1,jx,1,iy,'mod_write:ts4')
+    call getmem(z4,1,jx,1,iy,1,nplevs,'mod_write:z4')
+    call getmem(q4,1,jx,1,iy,1,nplevs,'mod_write:q4')
+    call getmem(t4,1,jx,1,iy,1,nplevs,'mod_write:t4')
+    call getmem(u4,1,jx,1,iy,1,nplevs,'mod_write:u4')
+    call getmem(v4,1,jx,1,iy,1,nplevs,'mod_write:v4')
     if ( idynamic == 3 ) then
       nvar2d = 10
     else
@@ -163,10 +163,10 @@ module mod_write
   subroutine init_houtput
     implicit none
     integer(ik4) :: ierr
-    call getmem2d(pr,1,jx,1,iy,'mod_write:pr')
-    call getmem2d(ssr,1,jx,1,iy,'mod_write:ssr')
-    call getmem2d(strd,1,jx,1,iy,'mod_write:strd')
-    call getmem2d(clt,1,jx,1,iy,'mod_write:clt')
+    call getmem(pr,1,jx,1,iy,'mod_write:pr')
+    call getmem(ssr,1,jx,1,iy,'mod_write:ssr')
+    call getmem(strd,1,jx,1,iy,'mod_write:strd')
+    call getmem(clt,1,jx,1,iy,'mod_write:clt')
     nvar2d = 8
     allocate(v2dvar_icbc(nvar2d), stat=ierr)
     if ( ierr /= 0 ) then
@@ -219,37 +219,37 @@ module mod_write
     else
       qli_present = .false.
     end if
-    call getmem2d(ps4,1,jx,1,iy,'mod_write:ps4')
-    call getmem2d(ts4,1,jx,1,iy,'mod_write:ts4')
-    call getmem3d(q4,1,jx,1,iy,1,kz,'mod_write:q4')
+    call getmem(ps4,1,jx,1,iy,'mod_write:ps4')
+    call getmem(ts4,1,jx,1,iy,'mod_write:ts4')
+    call getmem(q4,1,jx,1,iy,1,kz,'mod_write:q4')
     if ( qli_present ) then
-      call getmem3d(qc4,1,jx,1,iy,1,kz,'mod_write:qc4')
-      call getmem3d(qi4,1,jx,1,iy,1,kz,'mod_write:qi4')
+      call getmem(qc4,1,jx,1,iy,1,kz,'mod_write:qc4')
+      call getmem(qi4,1,jx,1,iy,1,kz,'mod_write:qi4')
     end if
-    call getmem3d(t4,1,jx,1,iy,1,kz,'mod_write:t4')
-    call getmem3d(u4,1,jx,1,iy,1,kz,'mod_write:u4')
-    call getmem3d(v4,1,jx,1,iy,1,kz,'mod_write:v4')
+    call getmem(t4,1,jx,1,iy,1,kz,'mod_write:t4')
+    call getmem(u4,1,jx,1,iy,1,kz,'mod_write:u4')
+    call getmem(v4,1,jx,1,iy,1,kz,'mod_write:v4')
     if ( idynamic == 1 ) then
       nvar2d = 8
       nvar3d = 4
-      call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
+      call getmem(pd4,1,jx,1,iy,'mod_write:pd4')
     else if ( idynamic == 2 ) then
       nvar2d = 11
       nvar3d = 8
-      call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
-      call getmem2d(wtop4,1,jx,1,iy,'mod_write:wtop4')
-      call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
-      call getmem2d(topod,1,jx,1,iy,'mod_write:topod')
-      call getmem3d(pp4,1,jx,1,iy,1,kz,'mod_write:pp4')
-      call getmem3d(ww4,1,jx,1,iy,1,kz,'mod_write:ww4')
-      call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
-      call getmem3d(tvd4,1,jx,1,iy,1,kz,'mod_write:tvd4')
+      call getmem(pd4,1,jx,1,iy,'mod_write:pd4')
+      call getmem(wtop4,1,jx,1,iy,'mod_write:wtop4')
+      call getmem(psd0,1,jx,1,iy,'mod_write:psd0')
+      call getmem(topod,1,jx,1,iy,'mod_write:topod')
+      call getmem(pp4,1,jx,1,iy,1,kz,'mod_write:pp4')
+      call getmem(ww4,1,jx,1,iy,1,kz,'mod_write:ww4')
+      call getmem(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
+      call getmem(tvd4,1,jx,1,iy,1,kz,'mod_write:tvd4')
     else if ( idynamic == 3 ) then
       nvar2d = 10
       nvar3d = 4
-      call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
-      call getmem3d(zud4,1,jx,1,iy,1,kz,'mod_write:zud4')
-      call getmem3d(zvd4,1,jx,1,iy,1,kz,'mod_write:zvd4')
+      call getmem(psd0,1,jx,1,iy,'mod_write:psd0')
+      call getmem(zud4,1,jx,1,iy,1,kz,'mod_write:zud4')
+      call getmem(zvd4,1,jx,1,iy,1,kz,'mod_write:zvd4')
     end if
     if ( qli_present ) then
       nvar3d = nvar3d + 2

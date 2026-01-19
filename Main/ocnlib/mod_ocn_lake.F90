@@ -71,18 +71,18 @@ module mod_ocn_lake
     implicit none
     integer :: i, lp
     nlakep = 0
-    call getmem1d(lakmsk,1,nocnp,'ocn::initlake::lakmsk')
+    call getmem(lakmsk,1,nocnp,'ocn::initlake::lakmsk')
     lakmsk = (ilake == 1)
     nlakep = count(lakmsk)
 #ifdef DEBUG
     write(ndebug,*) 'NUMBER OF LAKE POINTS : ',nlakep
 #endif
     if ( nlakep == 0 ) return
-    call getmem1d(idep,1,nlakep,'ocn::initlake::idep')
-    call getmem1d(ilp,1,nlakep,'ocn::initlake::ilp')
-    call getmem1d(hi,1,nlakep,'ocn::initlake::hi')
-    call getmem1d(eta,1,nlakep,'ocn::initlake::eta')
-    call getmem2d(tlak,1,nlakep,1,ndpmax,'ocn::initlake::tlak')
+    call getmem(idep,1,nlakep,'ocn::initlake::idep')
+    call getmem(ilp,1,nlakep,'ocn::initlake::ilp')
+    call getmem(hi,1,nlakep,'ocn::initlake::hi')
+    call getmem(eta,1,nlakep,'ocn::initlake::eta')
+    call getmem(tlak,1,nlakep,1,ndpmax,'ocn::initlake::tlak')
     lp = 1
     do i = iocnbeg, iocnend
       if ( lakmsk(i) ) then

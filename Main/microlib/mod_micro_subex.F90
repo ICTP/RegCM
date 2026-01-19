@@ -58,17 +58,17 @@ module mod_micro_subex
   subroutine allocate_subex
     implicit none
     ! Those not. Note the external, internal change.
-    call getmem2d(qck1,jci1,jci2,ici1,ici2,'subex:qck1')
-    call getmem2d(cgul,jci1,jci2,ici1,ici2,'subex:cgul')
-    call getmem2d(cevap,jci1,jci2,ici1,ici2,'subex:cevap')
+    call getmem(qck1,jci1,jci2,ici1,ici2,'subex:qck1')
+    call getmem(cgul,jci1,jci2,ici1,ici2,'subex:cgul')
+    call getmem(cevap,jci1,jci2,ici1,ici2,'subex:cevap')
     if ( l_lat_hack ) then
-      call getmem2d(xcevap,jci1,jci2,ici1,ici2,'subex:xcevap')
+      call getmem(xcevap,jci1,jci2,ici1,ici2,'subex:xcevap')
     else
       call assignpnt(cevap,xcevap)
     end if
-    call getmem2d(caccr,jci1,jci2,ici1,ici2,'subex:caccr')
-    call getmem2d(pptsum,jci1,jci2,ici1,ici2,'subex:pptsum')
-    call getmem3d(dqc,jci1,jci2,ici1,ici2,1,kz,'subex:dqc')
+    call getmem(caccr,jci1,jci2,ici1,ici2,'subex:caccr')
+    call getmem(pptsum,jci1,jci2,ici1,ici2,'subex:pptsum')
+    call getmem(dqc,jci1,jci2,ici1,ici2,1,kz,'subex:dqc')
   end subroutine allocate_subex
 
   subroutine init_subex(xlat)

@@ -1208,87 +1208,87 @@ module mod_rad_aerosol
       npoints = nj*(ici2-ici1+1)
 
       if ( ichem == 1 .or. iclimaaer == 1 ) then
-        call getmem3d(aermmr,1,npoints,1,kz,1,ntr,'aerosol:aermmr')
+        call getmem(aermmr,1,npoints,1,kz,1,ntr,'aerosol:aermmr')
         if ( iclimaaer == 1 ) then
-          call getmem4d(aerm1,jce1,jce2,ice1,ice2,1,kz,1,ntr,'aerosol:aerm1')
-          call getmem4d(aerm2,jce1,jce2,ice1,ice2,1,kz,1,ntr,'aerosol:aerm2')
+          call getmem(aerm1,jce1,jce2,ice1,ice2,1,kz,1,ntr,'aerosol:aerm1')
+          call getmem(aerm2,jce1,jce2,ice1,ice2,1,kz,1,ntr,'aerosol:aerm2')
           if ( .not. do_parallel_netcdf_in ) then
             if ( myid == iocpu ) then
-              call getmem3d(aerio,jdot1,jdot2,idot1,idot2,1,kz,'aerosol:aerio')
+              call getmem(aerio,jdot1,jdot2,idot1,idot2,1,kz,'aerosol:aerio')
             end if
           end if
         end if
       end if
 
-      call getmem1d(gsbc_hb,1,nband,'aerosol:gsbc_hb')
-      call getmem1d(gsbc_hl,1,nband,'aerosol:gsbc_hl')
-      call getmem1d(gsoc_hb,1,nband,'aerosol:gsoc_hb')
-      call getmem1d(gsoc_hl,1,nband,'aerosol:gsoc_hl')
-      call getmem1d(gssm1,1,nband,'aerosol:gssm1')
-      call getmem1d(gssm2,1,nband,'aerosol:gssm2')
+      call getmem(gsbc_hb,1,nband,'aerosol:gsbc_hb')
+      call getmem(gsbc_hl,1,nband,'aerosol:gsbc_hl')
+      call getmem(gsoc_hb,1,nband,'aerosol:gsoc_hb')
+      call getmem(gsoc_hl,1,nband,'aerosol:gsoc_hl')
+      call getmem(gssm1,1,nband,'aerosol:gssm1')
+      call getmem(gssm2,1,nband,'aerosol:gssm2')
 
-      call getmem1d(ksbc_hb,1,nband,'aerosol:ksbc_hb')
-      call getmem1d(ksbc_hl,1,nband,'aerosol:ksbc_hl')
-      call getmem1d(ksoc_hb,1,nband,'aerosol:ksoc_hb')
-      call getmem1d(ksoc_hl,1,nband,'aerosol:ksoc_hl')
-      call getmem1d(kssm1,1,nband,'aerosol:kssm1')
-      call getmem1d(kssm2,1,nband,'aerosol:kssm2')
+      call getmem(ksbc_hb,1,nband,'aerosol:ksbc_hb')
+      call getmem(ksbc_hl,1,nband,'aerosol:ksbc_hl')
+      call getmem(ksoc_hb,1,nband,'aerosol:ksoc_hb')
+      call getmem(ksoc_hl,1,nband,'aerosol:ksoc_hl')
+      call getmem(kssm1,1,nband,'aerosol:kssm1')
+      call getmem(kssm2,1,nband,'aerosol:kssm2')
 
-      call getmem1d(wsbc_hb,1,nband,'aerosol:wsbc_hb')
-      call getmem1d(wsbc_hl,1,nband,'aerosol:wsbc_hl')
-      call getmem1d(wsoc_hb,1,nband,'aerosol:wsoc_hl')
-      call getmem1d(wsoc_hl,1,nband,'aerosol:wsoc_hl')
-      call getmem1d(wssm1,1,nband,'aerosol:wssm1')
-      call getmem1d(wssm2,1,nband,'aerosol:wssm2')
+      call getmem(wsbc_hb,1,nband,'aerosol:wsbc_hb')
+      call getmem(wsbc_hl,1,nband,'aerosol:wsbc_hl')
+      call getmem(wsoc_hb,1,nband,'aerosol:wsoc_hl')
+      call getmem(wsoc_hl,1,nband,'aerosol:wsoc_hl')
+      call getmem(wssm1,1,nband,'aerosol:wssm1')
+      call getmem(wssm2,1,nband,'aerosol:wssm2')
 
-      call getmem2d(gsdust,1,nband,1,nbin,'aerosol:gsdust')
-      call getmem2d(ksdust,1,nband,1,nbin,'aerosol:ksdust')
-      call getmem2d(wsdust,1,nband,1,nbin,'aerosol:wsdust')
+      call getmem(gsdust,1,nband,1,nbin,'aerosol:gsdust')
+      call getmem(ksdust,1,nband,1,nbin,'aerosol:ksdust')
+      call getmem(wsdust,1,nband,1,nbin,'aerosol:wsdust')
       ! op propert lw for rrtm
-      call getmem2d(ksdust_lw,1,nbndlw,1,nbin,'aerosol:ksdust_lw')
+      call getmem(ksdust_lw,1,nbndlw,1,nbin,'aerosol:ksdust_lw')
 
-      call getmem2d(path,1,npoints,1,kz,'aerosol:path')
+      call getmem(path,1,npoints,1,kz,'aerosol:path')
       ! these variables are defined on full rad grid including hat
       if ( irrtm == 1 ) then
-        call getmem3d(gtota3d,1,npoints,0,kth,1,nband,'aerosol:gtota3d')
-        call getmem3d(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
-        call getmem3d(tauasc3d,1,npoints,0,kth,1,nband,'aerosol:tauasc3d')
-        call getmem3d(tauxar3d,1,npoints,0,kth,1,nband,'aerosol:tauxar3d')
-        call getmem3d(tauxar3d_lw,1,npoints, &
+        call getmem(gtota3d,1,npoints,0,kth,1,nband,'aerosol:gtota3d')
+        call getmem(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
+        call getmem(tauasc3d,1,npoints,0,kth,1,nband,'aerosol:tauasc3d')
+        call getmem(tauxar3d,1,npoints,0,kth,1,nband,'aerosol:tauxar3d')
+        call getmem(tauxar3d_lw,1,npoints, &
                       0,kth,1,nbndlw,'aerosol:tauxar3d_lw')
       else ! standard scheme has one extra strato level at k = 0
-        call getmem3d(gtota3d,0,kz,1,npoints,1,nband,'aerosol:gtota3d')
-        call getmem3d(ftota3d,0,kz,1,npoints,1,nband,'aerosol:ftota3d')
-        call getmem3d(tauasc3d,0,kz,1,npoints,1,nband,'aerosol:tauasc3d')
-        call getmem3d(tauxar3d,0,kz,1,npoints,1,nband,'aerosol:tauxar3d')
-        call getmem3d(aertrlw,1,kzp1,1,kzp1,1,npoints,'aerosol:aertrlw')
+        call getmem(gtota3d,0,kz,1,npoints,1,nband,'aerosol:gtota3d')
+        call getmem(ftota3d,0,kz,1,npoints,1,nband,'aerosol:ftota3d')
+        call getmem(tauasc3d,0,kz,1,npoints,1,nband,'aerosol:tauasc3d')
+        call getmem(tauxar3d,0,kz,1,npoints,1,nband,'aerosol:tauxar3d')
+        call getmem(aertrlw,1,kzp1,1,kzp1,1,npoints,'aerosol:aertrlw')
       end if
 
-      call getmem2d(aermtot,1,npoints,1,kz,'aerosol:aermtot')
-      call getmem2d(aervtot,1,npoints,1,kz,'aerosol:aervtot')
+      call getmem(aermtot,1,npoints,1,kz,'aerosol:aermtot')
+      call getmem(aervtot,1,npoints,1,kz,'aerosol:aervtot')
       if ( ichem == 1 .or. iclimaaer == 1 ) then
-        call getmem3d(fa,1,npoints,0,kz,1,ntr,'aerosol:fa')
-        call getmem3d(ga,1,npoints,0,kz,1,ntr,'aerosol:ga')
-        call getmem3d(tx,1,npoints,0,kz,1,ntr,'aerosol:tx')
-        call getmem3d(uaer,1,npoints,0,kz,1,ntr,'aerosol:uaer')
-        call getmem3d(wa,1,npoints,0,kz,1,ntr,'aerosol:wa')
-        call getmem2d(faer,1,npoints,1,ntr,'aerosol:faer')
-        call getmem2d(gaer,1,npoints,1,ntr,'aerosol:gaer')
-        call getmem2d(tauaer,1,npoints,1,ntr,'aerosol:tauaer')
-        call getmem2d(utaer,1,npoints,1,ntr,'aerosol:utaer')
-        call getmem2d(waer,1,npoints,1,ntr,'aerosol:waer')
+        call getmem(fa,1,npoints,0,kz,1,ntr,'aerosol:fa')
+        call getmem(ga,1,npoints,0,kz,1,ntr,'aerosol:ga')
+        call getmem(tx,1,npoints,0,kz,1,ntr,'aerosol:tx')
+        call getmem(uaer,1,npoints,0,kz,1,ntr,'aerosol:uaer')
+        call getmem(wa,1,npoints,0,kz,1,ntr,'aerosol:wa')
+        call getmem(faer,1,npoints,1,ntr,'aerosol:faer')
+        call getmem(gaer,1,npoints,1,ntr,'aerosol:gaer')
+        call getmem(tauaer,1,npoints,1,ntr,'aerosol:tauaer')
+        call getmem(utaer,1,npoints,1,ntr,'aerosol:utaer')
+        call getmem(waer,1,npoints,1,ntr,'aerosol:waer')
       end if
 
       if ( iclimaaer == 2 ) then
         if ( myid == iocpu ) then
-          call getmem2d(alon,jcross1,jcross2,icross1,icross2,'aerosol:alon')
-          call getmem2d(alat,jcross1,jcross2,icross1,icross2,'aerosol:alat')
+          call getmem(alon,jcross1,jcross2,icross1,icross2,'aerosol:alon')
+          call getmem(alat,jcross1,jcross2,icross1,icross2,'aerosol:alat')
         end if
         ! FAB note that prof are always determined on kth level,
         ! even with standard scheme
-        call getmem4d(extprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:extprof')
-        call getmem4d(asyprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:asyprof')
-        call getmem4d(ssaprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:ssaprof')
+        call getmem(extprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:extprof')
+        call getmem(asyprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:asyprof')
+        call getmem(ssaprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:ssaprof')
       else if ( iclimaaer == 3 ) then
         macv2sp_hist = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
               'AEROSOL'//pthsep//'MACv2.0-SP_v1.nc'
@@ -1320,16 +1320,16 @@ module mod_rad_aerosol
           case default
             macv2sp_scen = macv2sp_hist
         end select
-        call getmem1d(dnovrnr4,1,npoints,'rad:dnovrnr4')
-        call getmem3d(extprofr4,1,npoints,1,kth,1,nband,'rad:extprofr4')
-        call getmem3d(asyprofr4,1,npoints,1,kth,1,nband,'rad:asyprofr4')
-        call getmem3d(ssaprofr4,1,npoints,1,kth,1,nband,'rad:ssaprofr4')
-        call getmem1d(lambdaw,1,nband,'rad:lambdaw')
-        call getmem1d(latr4,1,npoints,'aerosol:latr4')
-        call getmem1d(lonr4,1,npoints,'aerosol:lonr4')
-        call getmem1d(altr4,1,npoints,'aerosol:altr4')
-        call getmem2d(z,1,npoints,1,kth,'aerosol:z')
-        call getmem2d(dz,1,npoints,1,kth,'aerosol:dz')
+        call getmem(dnovrnr4,1,npoints,'rad:dnovrnr4')
+        call getmem(extprofr4,1,npoints,1,kth,1,nband,'rad:extprofr4')
+        call getmem(asyprofr4,1,npoints,1,kth,1,nband,'rad:asyprofr4')
+        call getmem(ssaprofr4,1,npoints,1,kth,1,nband,'rad:ssaprofr4')
+        call getmem(lambdaw,1,nband,'rad:lambdaw')
+        call getmem(latr4,1,npoints,'aerosol:latr4')
+        call getmem(lonr4,1,npoints,'aerosol:lonr4')
+        call getmem(altr4,1,npoints,'aerosol:altr4')
+        call getmem(z,1,npoints,1,kth,'aerosol:z')
+        call getmem(dz,1,npoints,1,kth,'aerosol:dz')
         do k = 1, kth-kz
           kk = n_prehlev-k+1
           kk1 = n_hreflev-k+1
@@ -1708,45 +1708,45 @@ module mod_rad_aerosol
         if ( myid == iocpu ) then
           call getfile(iyear,imon,ncid,3) ! open just clim vis for latlon
                                            ! reading
-          call getmem1d(lat,1,clnlat,'aeropp:lat')
-          call getmem1d(lon,1,clnlon,'aeropp:lon')
-          call getmem3d(rdvar,1,clnlon,1,clnlat,1,clnlev, 'aerosol:rdvar')
-          call getmem3d(hzivar,1,njcross,1,nicross,1,clnlev,'aerosol:hziext1')
+          call getmem(lat,1,clnlat,'aeropp:lat')
+          call getmem(lon,1,clnlon,'aeropp:lon')
+          call getmem(rdvar,1,clnlon,1,clnlat,1,clnlev, 'aerosol:rdvar')
+          call getmem(hzivar,1,njcross,1,nicross,1,clnlev,'aerosol:hziext1')
           call init_aeroppdata(ncid,lat,lon)
           call h_interpolator_create(hint,lat,lon,alat,alon)
           call bcast(clnlev)
         else
           call bcast(clnlev)
         end if
-        call getmem4d(plext1,jci1,jci2,ici1,ici2,1,clnlev, &
+        call getmem(plext1,jci1,jci2,ici1,ici2,1,clnlev, &
                       1,nacwb,'aerosol:plext1')
-        call getmem4d(plssa1,jci1,jci2,ici1,ici2,1,clnlev, &
+        call getmem(plssa1,jci1,jci2,ici1,ici2,1,clnlev, &
                       1,nacwb,'aerosol:plssa1')
-        call getmem4d(plasy1,jci1,jci2,ici1,ici2,1,clnlev, &
+        call getmem(plasy1,jci1,jci2,ici1,ici2,1,clnlev, &
                       1,nacwb,'aerosol:plasy1')
-        call getmem4d(pldp1,jci1,jci2,ici1,ici2,1,clnlev, &
+        call getmem(pldp1,jci1,jci2,ici1,ici2,1,clnlev, &
                       1,nacwb,'aerosol:pldp1')
-        call getmem4d(pl1,jci1,jci2,ici1,ici2,1,clnlev, &
+        call getmem(pl1,jci1,jci2,ici1,ici2,1,clnlev, &
                       1,nacwb,'aerosol:pl1')
-        call getmem4d(plext2,jci1,jci2,ici1,ici2,1,clnlev, &
+        call getmem(plext2,jci1,jci2,ici1,ici2,1,clnlev, &
                       1,nacwb,'aerosol:plext2')
-        call getmem4d(plssa2,jci1,jci2,ici1,ici2,1,clnlev, &
+        call getmem(plssa2,jci1,jci2,ici1,ici2,1,clnlev, &
                       1,nacwb,'aerosol:plssa2')
-        call getmem4d(plasy2,jci1,jci2,ici1,ici2,1,clnlev, &
+        call getmem(plasy2,jci1,jci2,ici1,ici2,1,clnlev, &
                       1,nacwb,'aerosol:plasy2')
-        call getmem4d(pldp2,jci1,jci2,ici1,ici2,1,clnlev, &
+        call getmem(pldp2,jci1,jci2,ici1,ici2,1,clnlev, &
                       1,nacwb,'aerosol:pldp2')
-        call getmem4d(pl2,jci1,jci2,ici1,ici2,1,clnlev, &
+        call getmem(pl2,jci1,jci2,ici1,ici2,1,clnlev, &
                       1,nacwb,'aerosol:pl2')
 
-        call getmem4d(sgext1,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgext1')
-        call getmem4d(sgext2,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgext2')
-        call getmem4d(sgssa1,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgssa1')
-        call getmem4d(sgssa2,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgssa2')
-        call getmem4d(sgasy1,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgasy1')
-        call getmem4d(sgasy2,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgasy2')
-        call getmem3d(zpr3d,jci1,jci2,ici1,ici2,1,kth,'aerosol:zpr3d')
-        call getmem3d(zdzr3d,jci1,jci2,ici1,ici2,1,kth,'aerosol:zdz3d')
+        call getmem(sgext1,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgext1')
+        call getmem(sgext2,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgext2')
+        call getmem(sgssa1,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgssa1')
+        call getmem(sgssa2,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgssa2')
+        call getmem(sgasy1,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgasy1')
+        call getmem(sgasy2,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgasy2')
+        call getmem(zpr3d,jci1,jci2,ici1,ici2,1,kth,'aerosol:zpr3d')
+        call getmem(zdzr3d,jci1,jci2,ici1,ici2,1,kth,'aerosol:zdz3d')
         !
         ! RRTMG radiative hat (up to kth)
         !
