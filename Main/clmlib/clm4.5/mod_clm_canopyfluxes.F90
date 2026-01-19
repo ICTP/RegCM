@@ -503,7 +503,6 @@ module mod_clm_canopyfluxes
    real(rk8) :: fsno_dl       ! effective snow cover over plant litter
    real(rk8) :: dayl          ! daylength (s)
    real(rk8) :: temp          ! temporary, for daylength calculation
-   real(rk8) :: fpeav         ! temporary, for avoid fpe
    ! scalar (0-1) for daylength effect on Vcmax
    real(rk8) :: dayl_factor(lbp:ubp)
    ! Rootfraction defined for unfrozen layers only.
@@ -1318,13 +1317,9 @@ module mod_clm_canopyfluxes
        else
          qflx_tran_veg(p) = 0._rk8
        end if
-       if ( h2ocan(p) > 1.0e-20_rk8 ) then
-         fpeav = h2ocan(p)/dtsrf
-       else
-         fpeav = 0.0_rk8
-       end if
-       ecidif = max(0._rk8, qflx_evap_veg(p)-qflx_tran_veg(p)-fpeav)
-       qflx_evap_veg(p) = min(qflx_evap_veg(p),qflx_tran_veg(p)+fpeav)
+       ecidif = max(0._rk8, qflx_evap_veg(p)-qflx_tran_veg(p)-h2ocan(p)/dtsrf)
+       qflx_evap_veg(p) = min(qflx_evap_veg(p), &
+                              qflx_tran_veg(p)+h2ocan(p)/dtsrf)
 
        ! The energy loss due to above two limits is added to
        ! the sensible heat flux.
