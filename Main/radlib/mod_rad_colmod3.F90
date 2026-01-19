@@ -40,6 +40,8 @@ module mod_rad_colmod3
 
   public :: allocate_mod_rad_colmod3, colmod3
 
+  real(rkx), pointer, contiguous, dimension(:,:) :: temp
+
   type(radtype) :: rt
 
   contains
@@ -129,6 +131,7 @@ module mod_rad_colmod3
     call getmem(rt%tauxci,0,kz,1,npr,1,nspi,'colmod3:tauxci')
     call getmem(rt%outtaucl,1,kzp1,1,4,1,npr,'colmod3:outtaucl')
     call getmem(rt%outtauci,1,kzp1,1,4,1,npr,'colmod3:outtauci')
+    call getmem(temp,1,kz,1,npr,'colmod3:temp')
     dosw = .true.
     dolw = .true.
     doabsems = .true.
@@ -215,7 +218,6 @@ module mod_rad_colmod3
     real(rkx) :: nc, aerc, lwc, kparam
     real(rkx) :: kabs, kabsi, kabsl, cldemis, arg
     real(rkx) :: iwc, tempc, tcels, fsr, aiwc, biwc, desr
-    real(rkx), dimension(kz,rt%n1:rt%n2) :: temp
     !real(rkx) :: tpara
     real(rkx), parameter :: minus20 = 253.15_rkx
 #ifdef DEBUG
@@ -462,6 +464,7 @@ module mod_rad_colmod3
         else
           rt%fice(k,n) = 0.0_rkx
         end if
+        rt%ql(k,n) = rt%ql(k,n) + rt%qi(k,n)
       end do
     else
       do concurrent ( k = 1:kz,  n = rt%n1:rt%n2 )
@@ -478,7 +481,6 @@ module mod_rad_colmod3
           rt%fice(k,n) = (tzero-rt%t(k,n))/20.0_rkx
         end if
         rt%qi(k,n) = rt%ql(k,n) * rt%fice(k,n)
-        rt%ql(k,n) = rt%ql(k,n) - rt%qi(k,n)
       end do
     end if
     !
