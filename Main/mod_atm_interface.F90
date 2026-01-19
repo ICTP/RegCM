@@ -389,11 +389,11 @@ module mod_atm_interface
       integer(ik4) :: jgbl1, jgbl2, jgbr1, jgbr2
       integer(ik4) :: i, j, i1, i2, j1, j2
 
-      call getmem2d(ba%ibnd,jde1,jde2,ide1,ide2,'setup_boundaries:ibnd')
-      call getmem2d(ba%bsouth,jde1,jde2,ide1,ide2,'setup_boundaries:bsouth')
-      call getmem2d(ba%bnorth,jde1,jde2,ide1,ide2,'setup_boundaries:bnorth')
-      call getmem2d(ba%beast,jde1,jde2,ide1,ide2,'setup_boundaries:beast')
-      call getmem2d(ba%bwest,jde1,jde2,ide1,ide2,'setup_boundaries:bwest')
+      call getmem(ba%ibnd,jde1,jde2,ide1,ide2,'setup_boundaries:ibnd')
+      call getmem(ba%bsouth,jde1,jde2,ide1,ide2,'setup_boundaries:bsouth')
+      call getmem(ba%bnorth,jde1,jde2,ide1,ide2,'setup_boundaries:bnorth')
+      call getmem(ba%beast,jde1,jde2,ide1,ide2,'setup_boundaries:beast')
+      call getmem(ba%bwest,jde1,jde2,ide1,ide2,'setup_boundaries:bwest')
 
       if ( ldotx ) then
         icx = 0
@@ -547,13 +547,13 @@ module mod_atm_interface
       integer(ik4), intent(in) :: ke
       logical, intent(in) :: ldot
       if ( ldot ) then
-        call getmem3d(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b0')
-        call getmem3d(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b1')
-        call getmem3d(xb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:bt')
+        call getmem(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b0')
+        call getmem(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b1')
+        call getmem(xb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:bt')
       else
-        call getmem3d(xb%b0,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:b0')
-        call getmem3d(xb%b1,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:b1')
-        call getmem3d(xb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:bt')
+        call getmem(xb%b0,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:b0')
+        call getmem(xb%b1,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:b1')
+        call getmem(xb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:bt')
       end if
     end subroutine allocate_v3dbound
 
@@ -562,82 +562,82 @@ module mod_atm_interface
       type(v2dbound), intent(inout) :: xb
       logical, intent(in) :: ldot
       if ( ldot ) then
-        call getmem2d(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:b0')
-        call getmem2d(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:b1')
-        call getmem2d(xb%bt,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:bt')
+        call getmem(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:b0')
+        call getmem(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:b1')
+        call getmem(xb%bt,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:bt')
       else
-        call getmem2d(xb%b0,jce1ga,jce2ga,ice1ga,ice2ga,'v2dbound:b0')
-        call getmem2d(xb%b1,jce1ga,jce2ga,ice1ga,ice2ga,'v2dbound:b1')
-        call getmem2d(xb%bt,jce1ga,jce2ga,ice1ga,ice2ga,'v2dbound:bt')
+        call getmem(xb%b0,jce1ga,jce2ga,ice1ga,ice2ga,'v2dbound:b0')
+        call getmem(xb%b1,jce1ga,jce2ga,ice1ga,ice2ga,'v2dbound:b1')
+        call getmem(xb%bt,jce1ga,jce2ga,ice1ga,ice2ga,'v2dbound:bt')
       end if
     end subroutine allocate_v2dbound
 
     subroutine allocate_atmosphere(atm)
       implicit none
       type(atmosphere), intent(inout) :: atm
-      call getmem3d(atm%u,jde1gb,jde2gb,ice1ga,ice2ga,1,kz,'atmstate:u')
-      call getmem3d(atm%v,jce1ga,jce2ga,ide1gb,ide2gb,1,kz,'atmstate:v')
+      call getmem(atm%u,jde1gb,jde2gb,ice1ga,ice2ga,1,kz,'atmstate:u')
+      call getmem(atm%v,jce1ga,jce2ga,ide1gb,ide2gb,1,kz,'atmstate:v')
 #ifdef RCEMIP
-      call getmem3d(atm%ux,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:ux')
-      call getmem3d(atm%vx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:vx')
+      call getmem(atm%ux,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:ux')
+      call getmem(atm%vx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:vx')
 #else
-      call getmem3d(atm%ux,jce1gb,jce2gb,ice1ga,ice2ga,1,kz,'atmstate:ux')
-      call getmem3d(atm%vx,jce1ga,jce2ga,ice1gb,ice2gb,1,kz,'atmstate:vx')
+      call getmem(atm%ux,jce1gb,jce2gb,ice1ga,ice2ga,1,kz,'atmstate:ux')
+      call getmem(atm%vx,jce1ga,jce2ga,ice1gb,ice2gb,1,kz,'atmstate:vx')
 #endif
-      call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
-      call getmem3d(atm%tetav,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tetav')
-      call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
-      call getmem3d(atm%pai,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pai')
-      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
-      call getmem3d(atm%zeta,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:zeta')
+      call getmem(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
+      call getmem(atm%tetav,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tetav')
+      call getmem(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
+      call getmem(atm%pai,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pai')
+      call getmem(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
+      call getmem(atm%zeta,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:zeta')
 
-      call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
-      call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:pf')
-      call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
-      call getmem3d(atm%tvirt,jce1,jce2,ice1,ice2,1,kz,'atmstate:tvirt')
-      call getmem3d(atm%zetaf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:zetaf')
-      call getmem3d(atm%dz,jce1,jce2,ice1,ice2,1,kz,'atmstate:dz')
-      call getmem3d(atm%qs,jce1,jce2,ice1,ice2,1,kz,'atmstate:qs')
+      call getmem(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
+      call getmem(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:pf')
+      call getmem(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
+      call getmem(atm%tvirt,jce1,jce2,ice1,ice2,1,kz,'atmstate:tvirt')
+      call getmem(atm%zetaf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:zetaf')
+      call getmem(atm%dz,jce1,jce2,ice1,ice2,1,kz,'atmstate:dz')
+      call getmem(atm%qs,jce1,jce2,ice1,ice2,1,kz,'atmstate:qs')
 
-      call getmem3d(atm%tten,jci1,jci2,ici1,ici2,1,kz,'atmstate:tten')
-      call getmem3d(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
-      call getmem3d(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:vten')
-      call getmem4d(atm%qxten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qxten')
+      call getmem(atm%tten,jci1,jci2,ici1,ici2,1,kz,'atmstate:tten')
+      call getmem(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
+      call getmem(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:vten')
+      call getmem(atm%qxten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qxten')
       if ( ibltyp == 2 ) then
-        call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
-        call getmem3d(atm%tketen,jci1,jci2,ici1,ici2,1,kzp1,'atmstate:tketen')
+        call getmem(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
+        call getmem(atm%tketen,jci1,jci2,ici1,ici2,1,kzp1,'atmstate:tketen')
       end if
       if ( ichem == 1 ) then
-        call getmem4d(atm%trac,jce1ga,jce2ga, &
+        call getmem(atm%trac,jce1ga,jce2ga, &
                                ice1ga,ice2ga,1,kz,1,ntr,'atmstate:trac')
-        call getmem4d(atm%chiten,jci1,jci2,   &
+        call getmem(atm%chiten,jci1,jci2,   &
                                  ici1,ici2,1,kz,1,ntr,'atmstate:chiten')
       end if
-      call getmem3d(atm%fmz,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:fmz')
-      call getmem3d(atm%fmzf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:fmzf')
+      call getmem(atm%fmz,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:fmz')
+      call getmem(atm%fmzf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:fmzf')
     end subroutine allocate_atmosphere
 
     subroutine allocate_atmstate_a(atm)
       implicit none
       type(atmstate_a), intent(inout) :: atm
-      call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
-      call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
-      call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
-      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
+      call getmem(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
+      call getmem(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
+      call getmem(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
+      call getmem(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       if ( ibltyp == 2 ) then
-        call getmem3d(atm%tke,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:tke')
+        call getmem(atm%tke,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
-        call getmem3d(atm%pr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pr')
-        call getmem3d(atm%rho,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:rho')
-        call getmem3d(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
-        call getmem3d(atm%w,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:w')
+        call getmem(atm%pr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pr')
+        call getmem(atm%rho,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:rho')
+        call getmem(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
+        call getmem(atm%w,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:w')
       else
-        call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
-        call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
+        call getmem(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
+        call getmem(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       end if
       if ( ichem == 1 ) then
-        call getmem4d(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
+        call getmem(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
                               1,kz,1,ntr,'atmstate:chi')
       end if
     end subroutine allocate_atmstate_a
@@ -646,53 +646,53 @@ module mod_atm_interface
       implicit none
       type(atmstate_b), intent(inout) :: atm
 
-      call getmem3d(atm%u,jd1,jd2,id1,id2,1,kz,'atmstate:u')
-      call getmem3d(atm%v,jd1,jd2,id1,id2,1,kz,'atmstate:v')
-      call getmem3d(atm%t,jx1,jx2,ix1,ix2,1,kz,'atmstate:t')
+      call getmem(atm%u,jd1,jd2,id1,id2,1,kz,'atmstate:u')
+      call getmem(atm%v,jd1,jd2,id1,id2,1,kz,'atmstate:v')
+      call getmem(atm%t,jx1,jx2,ix1,ix2,1,kz,'atmstate:t')
       if ( isladvec == 1 ) then
-        call getmem4d(atm%qx,jce1sl,jce2sl, &
+        call getmem(atm%qx,jce1sl,jce2sl, &
                              ice1sl,ice2sl,1,kz,1,nqx,'atmstate:qx')
       else
-        call getmem4d(atm%qx,jx1,jx2,ix1,ix2,1,kz,1,nqx,'atmstate:qx')
+        call getmem(atm%qx,jx1,jx2,ix1,ix2,1,kz,1,nqx,'atmstate:qx')
       end if
       if ( ibltyp == 2 ) then
-        call getmem3d(atm%tke,jx1,jx2,ix1,ix2,1,kzp1,'atmstate:tke')
+        call getmem(atm%tke,jx1,jx2,ix1,ix2,1,kzp1,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
-        call getmem3d(atm%pp,jx1,jx2,ix1,ix2,1,kz,'atmstate:pp')
-        call getmem3d(atm%w,jx1,jx2,ix1,ix2,1,kzp1,'atmstate:w')
+        call getmem(atm%pp,jx1,jx2,ix1,ix2,1,kz,'atmstate:pp')
+        call getmem(atm%w,jx1,jx2,ix1,ix2,1,kzp1,'atmstate:w')
       end if
       if ( ichem == 1 ) then
         if ( isladvec == 1 ) then
-          call getmem4d(atm%chi,jce1sl,jce2sl,ice1sl,ice2sl, &
+          call getmem(atm%chi,jce1sl,jce2sl,ice1sl,ice2sl, &
                                 1,kz,1,ntr,'atmstate:chi')
         else
-          call getmem4d(atm%chi,jx1,jx2,ix1,ix2,1,kz,1,ntr,'atmstate:chi')
+          call getmem(atm%chi,jx1,jx2,ix1,ix2,1,kz,1,ntr,'atmstate:chi')
         end if
       end if
-      call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
+      call getmem(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
     end subroutine allocate_atmstate_b
 
     subroutine allocate_atmstate_c(atm)
       implicit none
       type(atmstate_c), intent(inout) :: atm
       if ( ibltyp == 2 ) then
-        call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
+        call getmem(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
-        call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
-        call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
-        call getmem3d(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
-        call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
-        call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
+        call getmem(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
+        call getmem(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
+        call getmem(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
+        call getmem(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
+        call getmem(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       else
-        call getmem3d(atm%u,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:u')
-        call getmem3d(atm%v,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:v')
-        call getmem3d(atm%t,jci1,jci2,ici1,ici2,1,kz,'atmstate:t')
+        call getmem(atm%u,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:u')
+        call getmem(atm%v,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:v')
+        call getmem(atm%t,jci1,jci2,ici1,ici2,1,kz,'atmstate:t')
       end if
-      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
+      call getmem(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       if ( ichem == 1 ) then
-        call getmem4d(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
+        call getmem(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
                               1,kz,1,ntr,'atmstate:chi')
       end if
     end subroutine allocate_atmstate_c
@@ -700,31 +700,31 @@ module mod_atm_interface
     subroutine allocate_atmstate_decoupled(atm)
       implicit none
       type(atmstate_decoupled), intent(inout) :: atm
-      call getmem3d(atm%uc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:uc')
-      call getmem3d(atm%vc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vc')
-      call getmem3d(atm%umc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:umc')
-      call getmem3d(atm%vmc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vmc')
+      call getmem(atm%uc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:uc')
+      call getmem(atm%vc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vc')
+      call getmem(atm%umc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:umc')
+      call getmem(atm%vmc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vmc')
       if ( isladvec == 1 ) then
-        call getmem3d(atm%ud,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:ud')
-        call getmem3d(atm%vd,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:vd')
-        call getmem3d(atm%umd,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:umd')
-        call getmem3d(atm%vmd,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:vmd')
+        call getmem(atm%ud,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:ud')
+        call getmem(atm%vd,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:vd')
+        call getmem(atm%umd,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:umd')
+        call getmem(atm%vmd,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:vmd')
       else
-        call getmem3d(atm%ud,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:ud')
-        call getmem3d(atm%vd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vd')
-        call getmem3d(atm%umd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:umd')
-        call getmem3d(atm%vmd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vmd')
+        call getmem(atm%ud,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:ud')
+        call getmem(atm%vd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vd')
+        call getmem(atm%umd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:umd')
+        call getmem(atm%vmd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vmd')
       end if
-      call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
-      call getmem3d(atm%tv,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tv')
-      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
+      call getmem(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
+      call getmem(atm%tv,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tv')
+      call getmem(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       if ( idynamic == 2 ) then
-        call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
-        call getmem3d(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
-        call getmem3d(atm%w,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:w')
+        call getmem(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
+        call getmem(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
+        call getmem(atm%w,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:w')
       end if
       if ( ichem == 1 ) then
-        call getmem4d(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
+        call getmem(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
                               1,kz,1,ntr,'atmstate:chi')
       end if
     end subroutine allocate_atmstate_decoupled
@@ -732,26 +732,26 @@ module mod_atm_interface
     subroutine allocate_atmstate_tendency(atm)
       implicit none
       type(atmstate_tendency), intent(inout) :: atm
-      call getmem4d(atm%u,jdi1,jdi2,idi1,idi2, &
+      call getmem(atm%u,jdi1,jdi2,idi1,idi2, &
                     1,kz,1,number_of_prognostic_components,'atmstate:u')
-      call getmem4d(atm%v,jdi1,jdi2,idi1,idi2, &
+      call getmem(atm%v,jdi1,jdi2,idi1,idi2, &
                     1,kz,1,number_of_prognostic_components,'atmstate:v')
-      call getmem4d(atm%t,jci1,jci2,ici1,ici2, &
+      call getmem(atm%t,jci1,jci2,ici1,ici2, &
                     1,kz,1,number_of_prognostic_components,'atmstate:t')
-      call getmem5d(atm%qx,jci1,jci2,ici1,ici2, &
+      call getmem(atm%qx,jci1,jci2,ici1,ici2, &
                     1,kz,1,nqx,1,number_of_prognostic_components,'atmstate:qx')
       if ( ibltyp == 2 ) then
-        call getmem4d(atm%tke,jci1,jci2,ici1,ici2, &
+        call getmem(atm%tke,jci1,jci2,ici1,ici2, &
                   1,kzp1,1,number_of_prognostic_components,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
-        call getmem4d(atm%pp,jci1,jci2,ici1,ici2, &
+        call getmem(atm%pp,jci1,jci2,ici1,ici2, &
                       1,kz,1,number_of_prognostic_components,'atmstate:pp')
-        call getmem4d(atm%w,jci1,jci2,ici1,ici2, &
+        call getmem(atm%w,jci1,jci2,ici1,ici2, &
                       1,kzp1,1,number_of_prognostic_components,'atmstate:w')
       end if
       if ( ichem == 1 ) then
-        call getmem5d(atm%chi,jci1,jci2,ici1,ici2, &
+        call getmem(atm%chi,jci1,jci2,ici1,ici2, &
                       1,kz,1,ntr,1,number_of_prognostic_components, &
                       'atmstate:chi')
       end if
@@ -760,178 +760,178 @@ module mod_atm_interface
     subroutine allocate_reference_atmosphere(atm)
       implicit none
       type(reference_atmosphere), intent(inout) :: atm
-      call getmem2d(atm%ps,jce1ga,jce2ga,ice1ga,ice2ga,'reference:ps')
-      call getmem2d(atm%psdot,jde1ga,jde2ga,ide1ga,ide2ga,'reference:psdot')
-      call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:t')
-      call getmem3d(atm%pr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:pr')
-      call getmem3d(atm%rho,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:rho')
-      call getmem3d(atm%z,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:z')
-      call getmem3d(atm%zd,jdi1,jdi2,idi1,idi2,1,kz,'reference:zd')
-      call getmem3d(atm%tf,jce1,jce2,ice1,ice2,1,kzp1,'reference:tf')
-      call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'reference:pf')
-      call getmem3d(atm%rhof,jce1,jce2,ice1,ice2,1,kzp1,'reference:rhof')
-      call getmem3d(atm%zf,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'reference:zf')
-      call getmem3d(atm%dzf,jce1,jce2,ice1,ice2,1,kzp1,'reference:dzf')
-      call getmem3d(atm%dprddx,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddx')
-      call getmem3d(atm%dprddy,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddy')
+      call getmem(atm%ps,jce1ga,jce2ga,ice1ga,ice2ga,'reference:ps')
+      call getmem(atm%psdot,jde1ga,jde2ga,ide1ga,ide2ga,'reference:psdot')
+      call getmem(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:t')
+      call getmem(atm%pr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:pr')
+      call getmem(atm%rho,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:rho')
+      call getmem(atm%z,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:z')
+      call getmem(atm%zd,jdi1,jdi2,idi1,idi2,1,kz,'reference:zd')
+      call getmem(atm%tf,jce1,jce2,ice1,ice2,1,kzp1,'reference:tf')
+      call getmem(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'reference:pf')
+      call getmem(atm%rhof,jce1,jce2,ice1,ice2,1,kzp1,'reference:rhof')
+      call getmem(atm%zf,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'reference:zf')
+      call getmem(atm%dzf,jce1,jce2,ice1,ice2,1,kzp1,'reference:dzf')
+      call getmem(atm%dprddx,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddx')
+      call getmem(atm%dprddy,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddy')
     end subroutine allocate_reference_atmosphere
 
     subroutine allocate_mass_divergence(div)
       implicit none
       type(mass_divergence), intent(inout) :: div
-      call getmem3d(div%cr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'massdiv:cr')
+      call getmem(div%cr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'massdiv:cr')
     end subroutine allocate_mass_divergence
 
     subroutine allocate_tendiag(dia)
       implicit none
       type(tendiag), intent(inout) :: dia
-      call getmem3d(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
-      call getmem3d(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
-      call getmem3d(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
-      call getmem3d(dia%con,jci1,jci2,ici1,ici2,1,kz,'tendiag:con')
-      call getmem3d(dia%bdy,jci1,jci2,ici1,ici2,1,kz,'tendiag:bdy')
-      call getmem3d(dia%adi,jci1,jci2,ici1,ici2,1,kz,'tendiag:adi')
-      call getmem3d(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
-      call getmem3d(dia%rad,jci1,jci2,ici1,ici2,1,kz,'tendiag:rad')
-      call getmem3d(dia%lsc,jci1,jci2,ici1,ici2,1,kz,'tendiag:lsc')
+      call getmem(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
+      call getmem(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
+      call getmem(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
+      call getmem(dia%con,jci1,jci2,ici1,ici2,1,kz,'tendiag:con')
+      call getmem(dia%bdy,jci1,jci2,ici1,ici2,1,kz,'tendiag:bdy')
+      call getmem(dia%adi,jci1,jci2,ici1,ici2,1,kz,'tendiag:adi')
+      call getmem(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
+      call getmem(dia%rad,jci1,jci2,ici1,ici2,1,kz,'tendiag:rad')
+      call getmem(dia%lsc,jci1,jci2,ici1,ici2,1,kz,'tendiag:lsc')
     end subroutine allocate_tendiag
 
     subroutine allocate_qendiag(dia)
       implicit none
       type(qendiag), intent(inout) :: dia
-      call getmem3d(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
-      call getmem3d(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
-      call getmem3d(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
-      call getmem3d(dia%con,jci1,jci2,ici1,ici2,1,kz,'tendiag:con')
-      call getmem3d(dia%bdy,jci1,jci2,ici1,ici2,1,kz,'tendiag:bdy')
-      call getmem3d(dia%adi,jci1,jci2,ici1,ici2,1,kz,'tendiag:adi')
-      call getmem3d(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
-      call getmem3d(dia%rad,jci1,jci2,ici1,ici2,1,kz,'tendiag:rad')
-      call getmem3d(dia%lsc,jci1,jci2,ici1,ici2,1,kz,'tendiag:lsc')
+      call getmem(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
+      call getmem(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
+      call getmem(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
+      call getmem(dia%con,jci1,jci2,ici1,ici2,1,kz,'tendiag:con')
+      call getmem(dia%bdy,jci1,jci2,ici1,ici2,1,kz,'tendiag:bdy')
+      call getmem(dia%adi,jci1,jci2,ici1,ici2,1,kz,'tendiag:adi')
+      call getmem(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
+      call getmem(dia%rad,jci1,jci2,ici1,ici2,1,kz,'tendiag:rad')
+      call getmem(dia%lsc,jci1,jci2,ici1,ici2,1,kz,'tendiag:lsc')
       if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
-        call getmem3d(dia%qcl,jci1,jci2,ici1,ici2,1,kz,'tendiag:qcl')
-        call getmem3d(dia%qcr,jci1,jci2,ici1,ici2,1,kz,'tendiag:qcr')
-        call getmem3d(dia%acr,jci1,jci2,ici1,ici2,1,kz,'tendiag:acr')
+        call getmem(dia%qcl,jci1,jci2,ici1,ici2,1,kz,'tendiag:qcl')
+        call getmem(dia%qcr,jci1,jci2,ici1,ici2,1,kz,'tendiag:qcr')
+        call getmem(dia%acr,jci1,jci2,ici1,ici2,1,kz,'tendiag:acr')
       end if
     end subroutine allocate_qendiag
 
     subroutine allocate_domain(dom)
       implicit none
       type(domain), intent(inout) :: dom
-      call getmem2d(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
-      call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
-      call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
-      call getmem2d(dom%xlat,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlat')
-      call getmem2d(dom%xlon,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlon')
-      call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
-      call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
-      call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
-      call getmem2d(dom%area,jde1,jde2,ide1,ide2,'storage:area')
+      call getmem(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
+      call getmem(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
+      call getmem(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
+      call getmem(dom%xlat,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlat')
+      call getmem(dom%xlon,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlon')
+      call getmem(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
+      call getmem(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
+      call getmem(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
+      call getmem(dom%area,jde1,jde2,ide1,ide2,'storage:area')
       if ( idynamic == 3 ) then
-        call getmem2d(dom%msfx,jde1,jde2,ide1,ide2,'storage:msfx')
-        call getmem2d(dom%msfu,jde1ga,jde2ga,ide1,ide2,'storage:msfu')
-        call getmem2d(dom%msfv,jde1,jde2,ide1ga,ide2ga,'storage:msfv')
-        call getmem2d(dom%hx,jde1ga,jde2ga,ice1,ice2,'storage:hx')
-        call getmem2d(dom%hy,jce1,jce2,ide1ga,ide2ga,'storage:hy')
-        call getmem2d(dom%ulat,jde1,jde2,ide1,ide2,'storage:ulat')
-        call getmem2d(dom%ulon,jde1,jde2,ide1,ide2,'storage:ulon')
-        call getmem2d(dom%vlat,jde1,jde2,ide1,ide2,'storage:vlat')
-        call getmem2d(dom%vlon,jde1,jde2,ide1,ide2,'storage:vlon')
-        call getmem2d(dom%coriou,jde1,jde2,ice1,ice2,'storage:fu')
-        call getmem2d(dom%coriov,jce1,jce2,ide1,ide2,'storage:fv')
+        call getmem(dom%msfx,jde1,jde2,ide1,ide2,'storage:msfx')
+        call getmem(dom%msfu,jde1ga,jde2ga,ide1,ide2,'storage:msfu')
+        call getmem(dom%msfv,jde1,jde2,ide1ga,ide2ga,'storage:msfv')
+        call getmem(dom%hx,jde1ga,jde2ga,ice1,ice2,'storage:hx')
+        call getmem(dom%hy,jce1,jce2,ide1ga,ide2ga,'storage:hy')
+        call getmem(dom%ulat,jde1,jde2,ide1,ide2,'storage:ulat')
+        call getmem(dom%ulon,jde1,jde2,ide1,ide2,'storage:ulon')
+        call getmem(dom%vlat,jde1,jde2,ide1,ide2,'storage:vlat')
+        call getmem(dom%vlon,jde1,jde2,ide1,ide2,'storage:vlon')
+        call getmem(dom%coriou,jde1,jde2,ice1,ice2,'storage:fu')
+        call getmem(dom%coriov,jce1,jce2,ide1,ide2,'storage:fv')
       else
-        call getmem2d(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
-        call getmem2d(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')
+        call getmem(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
+        call getmem(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')
       end if
-      call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
-      call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'storage:snowam')
-      call getmem2d(dom%smoist,jde1,jde2,ide1,ide2,'storage:smoist')
-      call getmem3d(dom%rmoist,jde1,jde2,ide1,ide2, &
+      call getmem(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
+      call getmem(dom%snowam,jde1,jde2,ide1,ide2,'storage:snowam')
+      call getmem(dom%smoist,jde1,jde2,ide1,ide2,'storage:smoist')
+      call getmem(dom%rmoist,jde1,jde2,ide1,ide2, &
                     1,num_soil_layers,'storage:rmoist')
-      call getmem3d(dom%rts,jde1,jde2,ide1,ide2, &
+      call getmem(dom%rts,jde1,jde2,ide1,ide2, &
                     1,num_soil_layers,'storage:rts')
-      call getmem2d(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
-      call getmem2d(dom%iveg,jci1,jci2,ici1,ici2,'storage:iveg')
-      call getmem2d(dom%itex,jci1,jci2,ici1,ici2,'storage:itex')
-      call getmem2d(dom%xmsf,jdi1,jdi2,idi1,idi2,'storage:xmsf')
-      call getmem2d(dom%dmsf,jdi1,jdi2,idi1,idi2,'storage:dmsf')
+      call getmem(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
+      call getmem(dom%iveg,jci1,jci2,ici1,ici2,'storage:iveg')
+      call getmem(dom%itex,jci1,jci2,ici1,ici2,'storage:itex')
+      call getmem(dom%xmsf,jdi1,jdi2,idi1,idi2,'storage:xmsf')
+      call getmem(dom%dmsf,jdi1,jdi2,idi1,idi2,'storage:dmsf')
       if ( lakemod == 1 ) then
-        call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'storage:dhlake')
+        call getmem(dom%dhlake,jde1,jde2,ide1,ide2,'storage:dhlake')
       end if
       if ( idynamic == 2 ) then
-        call getmem2d(dom%ef,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ef')
-        call getmem2d(dom%ddx,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ddx')
-        call getmem2d(dom%ddy,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ddy')
-        call getmem2d(dom%ex,jci1,jci2,ici1,ici2,'storage:ex')
-        call getmem2d(dom%crx,jci1,jci2,ici1,ici2,'storage:crx')
-        call getmem2d(dom%cry,jci1,jci2,ici1,ici2,'storage:cry')
-        call getmem2d(dom%dmdy,jdi1,jdi2,idi1,idi2,'storage:dmdy')
-        call getmem2d(dom%dmdx,jdi1,jdi2,idi1,idi2,'storage:dmdx')
+        call getmem(dom%ef,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ef')
+        call getmem(dom%ddx,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ddx')
+        call getmem(dom%ddy,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ddy')
+        call getmem(dom%ex,jci1,jci2,ici1,ici2,'storage:ex')
+        call getmem(dom%crx,jci1,jci2,ici1,ici2,'storage:crx')
+        call getmem(dom%cry,jci1,jci2,ici1,ici2,'storage:cry')
+        call getmem(dom%dmdy,jdi1,jdi2,idi1,idi2,'storage:dmdy')
+        call getmem(dom%dmdx,jdi1,jdi2,idi1,idi2,'storage:dmdx')
       end if
     end subroutine allocate_domain
 
     subroutine allocate_domain_subgrid(sub)
       implicit none
       type(domain_subgrid), intent(inout) :: sub
-      call getmem3d(sub%ht,1,nnsg,jde1,jde2,ide1,ide2,'storage:ht')
-      call getmem3d(sub%lndcat,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndcat')
-      call getmem3d(sub%lndtex,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndtex')
-      call getmem3d(sub%xlat,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlat')
-      call getmem3d(sub%xlon,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
-      call getmem3d(sub%mask,1,nnsg,jde1,jde2,ide1,ide2,'storage:mask')
-      call getmem3d(sub%area,1,nnsg,jde1,jde2,ide1,ide2,'storage:area')
-      call getmem3d(sub%ldmsk,1,nnsg,jci1,jci2,ici1,ici2,'storage:ldmsk')
-      call getmem3d(sub%iveg,1,nnsg,jci1,jci2,ici1,ici2,'storage:iveg')
-      call getmem3d(sub%itex,1,nnsg,jci1,jci2,ici1,ici2,'storage:itex')
+      call getmem(sub%ht,1,nnsg,jde1,jde2,ide1,ide2,'storage:ht')
+      call getmem(sub%lndcat,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndcat')
+      call getmem(sub%lndtex,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndtex')
+      call getmem(sub%xlat,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlat')
+      call getmem(sub%xlon,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
+      call getmem(sub%mask,1,nnsg,jde1,jde2,ide1,ide2,'storage:mask')
+      call getmem(sub%area,1,nnsg,jde1,jde2,ide1,ide2,'storage:area')
+      call getmem(sub%ldmsk,1,nnsg,jci1,jci2,ici1,ici2,'storage:ldmsk')
+      call getmem(sub%iveg,1,nnsg,jci1,jci2,ici1,ici2,'storage:iveg')
+      call getmem(sub%itex,1,nnsg,jci1,jci2,ici1,ici2,'storage:itex')
       if ( lakemod == 1 ) then
-        call getmem3d(sub%dhlake,1,nnsg,jde1,jde2,ide1,ide2,'storage:dhlake')
+        call getmem(sub%dhlake,1,nnsg,jde1,jde2,ide1,ide2,'storage:dhlake')
       end if
     end subroutine allocate_domain_subgrid
 
     subroutine allocate_surfstate(sfs)
       implicit none
       type(surfstate), intent(inout) :: sfs
-      call getmem2d(sfs%psa,jce1ga,jce2ga,ice1ga,ice2ga,'surf:psa')
+      call getmem(sfs%psa,jce1ga,jce2ga,ice1ga,ice2ga,'surf:psa')
       if ( idynamic == 3 ) then
         call assignpnt(sfs%psa,sfs%psb)
         call assignpnt(sfs%psa,sfs%psc)
       else
-        call getmem2d(sfs%psdota,jde1ga,jde2ga,ide1ga,ide2ga,'surf:psdota')
-        call getmem2d(sfs%psb,jx1,jx2,ix1,ix2,'surf:psb')
-        call getmem2d(sfs%psdotb,jd1,jd2,id1,id2,'surf:psdotb')
-        call getmem2d(sfs%psc,jce1,jce2,ice1,ice2,'surf:psc')
+        call getmem(sfs%psdota,jde1ga,jde2ga,ide1ga,ide2ga,'surf:psdota')
+        call getmem(sfs%psb,jx1,jx2,ix1,ix2,'surf:psb')
+        call getmem(sfs%psdotb,jd1,jd2,id1,id2,'surf:psdotb')
+        call getmem(sfs%psc,jce1,jce2,ice1,ice2,'surf:psc')
       end if
-      call getmem2d(sfs%tg,jci1,jci2,ici1,ici2,'surf:tg')
-      call getmem2d(sfs%hfx,jci1,jci2,ici1,ici2,'surf:hfx')
-      call getmem2d(sfs%qfx,jci1,jci2,ici1,ici2,'surf:qfx')
-      call getmem2d(sfs%rainc,jci1,jci2,ici1,ici2,'surf:rainc')
-      call getmem2d(sfs%rainnc,jci1,jci2,ici1,ici2,'surf:rainnc')
+      call getmem(sfs%tg,jci1,jci2,ici1,ici2,'surf:tg')
+      call getmem(sfs%hfx,jci1,jci2,ici1,ici2,'surf:hfx')
+      call getmem(sfs%qfx,jci1,jci2,ici1,ici2,'surf:qfx')
+      call getmem(sfs%rainc,jci1,jci2,ici1,ici2,'surf:rainc')
+      call getmem(sfs%rainnc,jci1,jci2,ici1,ici2,'surf:rainnc')
       if ( ipptls > 1 ) then
-        call getmem2d(sfs%snownc,jci1,jci2,ici1,ici2,'surf:snownc')
+        call getmem(sfs%snownc,jci1,jci2,ici1,ici2,'surf:snownc')
       end if
       if ( ipptls > 3 ) then
-        call getmem2d(sfs%grplnc,jci1,jci2,ici1,ici2,'surf:grplnc')
-        call getmem2d(sfs%hailnc,jci1,jci2,ici1,ici2,'surf:hailnc')
+        call getmem(sfs%grplnc,jci1,jci2,ici1,ici2,'surf:grplnc')
+        call getmem(sfs%hailnc,jci1,jci2,ici1,ici2,'surf:hailnc')
       end if
-      call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
-      call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
-      call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
-      call getmem2d(sfs%ram1,jci1,jci2,ici1,ici2,'surf:ram1')
-      call getmem2d(sfs%rah1,jci1,jci2,ici1,ici2,'surf:rah1')
+      call getmem(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
+      call getmem(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
+      call getmem(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
+      call getmem(sfs%ram1,jci1,jci2,ici1,ici2,'surf:ram1')
+      call getmem(sfs%rah1,jci1,jci2,ici1,ici2,'surf:rah1')
       if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-        call getmem2d(sfs%dtrnof,jci1,jci2,ici1,ici2,'surf:dtrnof')
+        call getmem(sfs%dtrnof,jci1,jci2,ici1,ici2,'surf:dtrnof')
       end if
-      call getmem2d(sfs%br,jci1,jci2,ici1,ici2,'surf:br')
-      call getmem2d(sfs%q2m,jci1,jci2,ici1,ici2,'surf:q2m')
-      call getmem2d(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
-      call getmem2d(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
-      call getmem2d(sfs%u10m,jci1,jci2,ici1,ici2,'surf:u10m')
-      call getmem2d(sfs%v10m,jci1,jci2,ici1,ici2,'surf:v10m')
+      call getmem(sfs%br,jci1,jci2,ici1,ici2,'surf:br')
+      call getmem(sfs%q2m,jci1,jci2,ici1,ici2,'surf:q2m')
+      call getmem(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
+      call getmem(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
+      call getmem(sfs%u10m,jci1,jci2,ici1,ici2,'surf:u10m')
+      call getmem(sfs%v10m,jci1,jci2,ici1,ici2,'surf:v10m')
       if ( ibltyp == 4 ) then
-        call getmem2d(sfs%uz0,jci1,jci2,ici1,ici2,'surf:uz0')
-        call getmem2d(sfs%vz0,jci1,jci2,ici1,ici2,'surf:vz0')
-        call getmem2d(sfs%thz0,jci1,jci2,ici1,ici2,'surf:thz0')
-        call getmem2d(sfs%qz0,jci1,jci2,ici1,ici2,'surf:qz0')
+        call getmem(sfs%uz0,jci1,jci2,ici1,ici2,'surf:uz0')
+        call getmem(sfs%vz0,jci1,jci2,ici1,ici2,'surf:vz0')
+        call getmem(sfs%thz0,jci1,jci2,ici1,ici2,'surf:thz0')
+        call getmem(sfs%qz0,jci1,jci2,ici1,ici2,'surf:qz0')
       end if
     end subroutine allocate_surfstate
 
@@ -940,67 +940,67 @@ module mod_atm_interface
       type(slice), intent(inout) :: ax
       type(reference_atmosphere), intent(in) :: a0
       if ( idynamic == 3 ) then
-        call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
-        call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
-        call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
-        call getmem3d(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
+        call getmem(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
+        call getmem(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
+        call getmem(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
+        call getmem(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
         if ( icldmstrat == 1 ) then
-          call getmem2d(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
+          call getmem(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
         end if
         if ( ibltyp == 4 .or. ibltyp == 5 ) then
-          call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
+          call getmem(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
         end if
       else
-        call getmem3d(ax%ubx3d,jce1,jce2,ice1,ice2,1,kz,'slice:ubx3d')
-        call getmem3d(ax%vbx3d,jce1,jce2,ice1,ice2,1,kz,'slice:vbx3d')
-        call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
-        call getmem3d(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
-        call getmem3d(ax%rhob3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhob3d')
-        call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
-        call getmem3d(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
-        call getmem3d(ax%tv3d,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:tv3d')
+        call getmem(ax%ubx3d,jce1,jce2,ice1,ice2,1,kz,'slice:ubx3d')
+        call getmem(ax%vbx3d,jce1,jce2,ice1,ice2,1,kz,'slice:vbx3d')
+        call getmem(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
+        call getmem(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
+        call getmem(ax%rhob3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhob3d')
+        call getmem(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
+        call getmem(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
+        call getmem(ax%tv3d,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:tv3d')
         if ( icldmstrat == 1 ) then
-          call getmem2d(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
+          call getmem(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
         end if
-        call getmem3d(ax%ubd3d,jd1,jd2,id1,id2,1,kz,'slice:ubd3d')
-        call getmem3d(ax%vbd3d,jd1,jd2,id1,id2,1,kz,'slice:vbd3d')
-        call getmem3d(ax%tb3d,jx1,jx2,ix1,ix2,1,kz,'slice:tb3d')
-        call getmem4d(ax%qxb3d,jx1,jx2,ix1,ix2,1,kz,1,nqx,'slice:qxb3d')
+        call getmem(ax%ubd3d,jd1,jd2,id1,id2,1,kz,'slice:ubd3d')
+        call getmem(ax%vbd3d,jd1,jd2,id1,id2,1,kz,'slice:vbd3d')
+        call getmem(ax%tb3d,jx1,jx2,ix1,ix2,1,kz,'slice:tb3d')
+        call getmem(ax%qxb3d,jx1,jx2,ix1,ix2,1,kz,1,nqx,'slice:qxb3d')
         if ( idynamic == 2 ) then
-          call getmem3d(ax%ppb3d,jx1,jx2,ix1,ix2,1,kzp1,'slice:ppb3d')
-          call getmem3d(ax%wb3d,jx1,jx2,ix1,ix2,1,kzp1,'slice:wb3d')
+          call getmem(ax%ppb3d,jx1,jx2,ix1,ix2,1,kzp1,'slice:ppb3d')
+          call getmem(ax%wb3d,jx1,jx2,ix1,ix2,1,kzp1,'slice:wb3d')
         end if
         if ( ichem == 1 ) then
-          call getmem4d(ax%chib3d,jx1,jx2,ix1,ix2,1,kz,1,ntr,'slice:chib3d')
+          call getmem(ax%chib3d,jx1,jx2,ix1,ix2,1,kz,1,ntr,'slice:chib3d')
         end if
         if ( idynamic == 1 ) then
-          call getmem3d(ax%zq,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'slice:zq')
-          call getmem3d(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')
-          call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
-          call getmem3d(ax%wb3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:wb3d')
-          call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
+          call getmem(ax%zq,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'slice:zq')
+          call getmem(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')
+          call getmem(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
+          call getmem(ax%wb3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:wb3d')
+          call getmem(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
         else
           call assignpnt(a0%z,atms%za)
           call assignpnt(a0%zf,atms%zq)
           call assignpnt(a0%dzf,atms%dzq)
         end if
-        call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
+        call getmem(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
         if ( ibltyp == 4 .or. ibltyp == 5 ) then
-          call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
+          call getmem(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
         end if
       end if
-      call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
-      call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
-      call getmem2d(ax%tp2d,jci1,jci2,ici1,ici2,'slice:tp2d')
+      call getmem(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
+      call getmem(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
+      call getmem(ax%tp2d,jci1,jci2,ici1,ici2,'slice:tp2d')
     end subroutine allocate_slice
 
     subroutine allocate_nhbh(nhbh)
       implicit none
       type(nhboundhelp), intent(inout) :: nhbh
 
-      call getmem2d(nhbh%ps,jce1,jce2,ice1,ice2,'nhboundhelp:ps')
+      call getmem(nhbh%ps,jce1,jce2,ice1,ice2,'nhboundhelp:ps')
       if ( ichem == 1 .or. iclimaaer == 1 ) then
-        call getmem3d(nhbh%tvirt,jce1,jce2,ice1,ice2,1,kz,'nhboundhelp:tvirt')
+        call getmem(nhbh%tvirt,jce1,jce2,ice1,ice2,1,kz,'nhboundhelp:tvirt')
       end if
     end subroutine allocate_nhbh
 
@@ -1068,99 +1068,99 @@ module mod_atm_interface
       end if
 
       if ( idynamic == 1 ) then
-        call getmem3d(dstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:dstor')
-        call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:hstor')
+        call getmem(dstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:dstor')
+        call getmem(hstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:hstor')
       end if
 
-      call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'storage:omega')
-      call getmem3d(qdot,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'storage:qdot')
-      call getmem2d(ktrop,jci1,jci2,ici1,ici2,'storage:ktrop')
-      call getmem2d(coszrs,jci1,jci2,ici1,ici2,'storage:coszrs')
-      call getmem2d(prca,jci1,jci2,ici1,ici2,'storage:prca')
-      call getmem2d(pptc,jci1,jci2,ici1,ici2,'storage:pptc')
+      call getmem(omega,jci1,jci2,ici1,ici2,1,kz,'storage:omega')
+      call getmem(qdot,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'storage:qdot')
+      call getmem(ktrop,jci1,jci2,ici1,ici2,'storage:ktrop')
+      call getmem(coszrs,jci1,jci2,ici1,ici2,'storage:coszrs')
+      call getmem(prca,jci1,jci2,ici1,ici2,'storage:prca')
+      call getmem(pptc,jci1,jci2,ici1,ici2,'storage:pptc')
       if ( ipptls > 1 .and. any(icup == 5) ) then
-        call getmem2d(sptc,jci1,jci2,ici1,ici2,'storage:sptc')
+        call getmem(sptc,jci1,jci2,ici1,ici2,'storage:sptc')
       end if
-      call getmem2d(icumbot,jci1,jci2,ici1,ici2,'storage:icumbot')
-      call getmem2d(icumtop,jci1,jci2,ici1,ici2,'storage:icumtop')
+      call getmem(icumbot,jci1,jci2,ici1,ici2,'storage:icumbot')
+      call getmem(icumtop,jci1,jci2,ici1,ici2,'storage:icumtop')
 
       ! This needs to be saved in SAV file
-      call getmem3d(fcc,jci1,jci2,ici1,ici2,1,kz,'storage:fcc')
+      call getmem(fcc,jci1,jci2,ici1,ici2,1,kz,'storage:fcc')
       if ( ichem == 1 ) then
-        call getmem3d(rembc,jci1,jci2,ici1,ici2,1,kz,'storage:rembc')
-        call getmem3d(remrat,jci1,jci2,ici1,ici2,1,kz,'storage:remrat')
-        call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'storage:convpr')
-        call getmem2d(ssw2da,jci1,jci2,ici1,ici2,'storage:ssw2da')
-        call getmem2d(sfracv2d,jci1,jci2,ici1,ici2,'storage:sfracv2d')
-        call getmem2d(sfracb2d,jci1,jci2,ici1,ici2,'storage:sfracb2d')
-        call getmem2d(sfracs2d,jci1,jci2,ici1,ici2,'storage:sfracs2d')
-        call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'storage:svegfrac2d')
-        call getmem2d(sxlai2d,jci1,jci2,ici1,ici2,'storage:sxlai2d')
+        call getmem(rembc,jci1,jci2,ici1,ici2,1,kz,'storage:rembc')
+        call getmem(remrat,jci1,jci2,ici1,ici2,1,kz,'storage:remrat')
+        call getmem(convpr,jci1,jci2,ici1,ici2,1,kz,'storage:convpr')
+        call getmem(ssw2da,jci1,jci2,ici1,ici2,'storage:ssw2da')
+        call getmem(sfracv2d,jci1,jci2,ici1,ici2,'storage:sfracv2d')
+        call getmem(sfracb2d,jci1,jci2,ici1,ici2,'storage:sfracb2d')
+        call getmem(sfracs2d,jci1,jci2,ici1,ici2,'storage:sfracs2d')
+        call getmem(svegfrac2d,jci1,jci2,ici1,ici2,'storage:svegfrac2d')
+        call getmem(sxlai2d,jci1,jci2,ici1,ici2,'storage:sxlai2d')
 #ifdef CLM45
-        call getmem3d(voc_em_clm,jci1,jci2, &
+        call getmem(voc_em_clm,jci1,jci2, &
                                  ici1,ici2,1,ntr,'storage:voc_em_clm')
-        call getmem3d(dustflx_clm,jci1,jci2, &
+        call getmem(dustflx_clm,jci1,jci2, &
                                   ici1,ici2,1,4,'storage:dustflx_clm')
-        call getmem3d(ddepv_clm,jci1,jci2, &
+        call getmem(ddepv_clm,jci1,jci2, &
                                   ici1,ici2,1,ntr,'storage:ddepv_clm')
-        call getmem3d(sw_vol,jci1,jci2, &
+        call getmem(sw_vol,jci1,jci2, &
                              ici1,ici2,1,num_soil_layers,'storage:sw_vol')
-        call getmem3d(tsoi,jci1,jci2, &
+        call getmem(tsoi,jci1,jci2, &
                            ici1,ici2,1,num_soil_layers,'storage:tsoi')
 #endif
-        call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
-        call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
+        call getmem(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
+        call getmem(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
         if ( iindirect > 0 .and. iaerosol == 1 ) then
-          call getmem3d(ccn,jci1,jci2,ici1,ici2,1,kz,'storage:ccn')
+          call getmem(ccn,jci1,jci2,ici1,ici2,1,kz,'storage:ccn')
         end if
       end if
       if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-        call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')
+        call getmem(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')
         cplmsk(:,:) = 0
       end if
-      call getmem2d(pptnc,jci1,jci2,ici1,ici2,'storage:pptnc')
-      call getmem2d(prnca,jci1,jci2,ici1,ici2,'storage:prnca')
-      call getmem2d(ptrop,jci1,jci2,ici1,ici2,'storage:ptrop')
-      call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'storage:cldfra')
-      call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'storage:cldlwc')
-      call getmem3d(heatrt,jci1,jci2,ici1,ici2,1,kz,'storage:heatrt')
-      call getmem2d(totcf,jci1,jci2,ici1,ici2,'storage:totcf')
-      call getmem2d(flw,jci1,jci2,ici1,ici2,'storage:flw')
-      call getmem2d(flwd,jci1,jci2,ici1,ici2,'storage:flwd')
-      call getmem2d(fsw,jci1,jci2,ici1,ici2,'storage:fsw')
-      call getmem2d(sabveg,jci1,jci2,ici1,ici2,'storage:sabveg')
-      call getmem2d(solis,jci1,jci2,ici1,ici2,'storage:solis')
-      call getmem2d(dsol,jci1,jci2,ici1,ici2,'storage:dsol')
-      call getmem2d(solvs,jci1,jci2,ici1,ici2,'storage:solvs')
-      call getmem2d(solvsd,jci1,jci2,ici1,ici2,'storage:solvsd')
-      call getmem2d(solvl,jci1,jci2,ici1,ici2,'storage:solvl')
-      call getmem2d(solvld,jci1,jci2,ici1,ici2,'storage:solvld')
-      call getmem2d(albvl,jci1,jci2,ici1,ici2,'storage:albvl')
-      call getmem2d(albvs,jci1,jci2,ici1,ici2,'storage:albvs')
-      call getmem2d(aldirs,jci1,jci2,ici1,ici2,'storage:aldirs')
-      call getmem2d(aldifs,jci1,jci2,ici1,ici2,'storage:aldifs')
-      call getmem2d(aldirl,jci1,jci2,ici1,ici2,'storage:aldirl')
-      call getmem2d(aldifl,jci1,jci2,ici1,ici2,'storage:aldifl')
-      call getmem2d(emiss,jci1,jci2,ici1,ici2,'storage:emiss')
-      call getmem2d(sinc,jci1,jci2,ici1,ici2,'storage:sinc')
-      call getmem2d(sdelq,jci1,jci2,ici1,ici2,'storage:sdelq')
-      call getmem2d(sdelt,jci1,jci2,ici1,ici2,'storage:sdelt')
-      call getmem2d(zpbl,jci1,jci2,ici1,ici2,'storage:zpbl')
-      call getmem2d(kpbl,jci1,jci2,ici1,ici2,'storage:kpbl')
-      call getmem3d(q_detr,jci1,jci2,ici1,ici2,1,kz,'storage:q_detr')
+      call getmem(pptnc,jci1,jci2,ici1,ici2,'storage:pptnc')
+      call getmem(prnca,jci1,jci2,ici1,ici2,'storage:prnca')
+      call getmem(ptrop,jci1,jci2,ici1,ici2,'storage:ptrop')
+      call getmem(cldfra,jci1,jci2,ici1,ici2,1,kz,'storage:cldfra')
+      call getmem(cldlwc,jci1,jci2,ici1,ici2,1,kz,'storage:cldlwc')
+      call getmem(heatrt,jci1,jci2,ici1,ici2,1,kz,'storage:heatrt')
+      call getmem(totcf,jci1,jci2,ici1,ici2,'storage:totcf')
+      call getmem(flw,jci1,jci2,ici1,ici2,'storage:flw')
+      call getmem(flwd,jci1,jci2,ici1,ici2,'storage:flwd')
+      call getmem(fsw,jci1,jci2,ici1,ici2,'storage:fsw')
+      call getmem(sabveg,jci1,jci2,ici1,ici2,'storage:sabveg')
+      call getmem(solis,jci1,jci2,ici1,ici2,'storage:solis')
+      call getmem(dsol,jci1,jci2,ici1,ici2,'storage:dsol')
+      call getmem(solvs,jci1,jci2,ici1,ici2,'storage:solvs')
+      call getmem(solvsd,jci1,jci2,ici1,ici2,'storage:solvsd')
+      call getmem(solvl,jci1,jci2,ici1,ici2,'storage:solvl')
+      call getmem(solvld,jci1,jci2,ici1,ici2,'storage:solvld')
+      call getmem(albvl,jci1,jci2,ici1,ici2,'storage:albvl')
+      call getmem(albvs,jci1,jci2,ici1,ici2,'storage:albvs')
+      call getmem(aldirs,jci1,jci2,ici1,ici2,'storage:aldirs')
+      call getmem(aldifs,jci1,jci2,ici1,ici2,'storage:aldifs')
+      call getmem(aldirl,jci1,jci2,ici1,ici2,'storage:aldirl')
+      call getmem(aldifl,jci1,jci2,ici1,ici2,'storage:aldifl')
+      call getmem(emiss,jci1,jci2,ici1,ici2,'storage:emiss')
+      call getmem(sinc,jci1,jci2,ici1,ici2,'storage:sinc')
+      call getmem(sdelq,jci1,jci2,ici1,ici2,'storage:sdelq')
+      call getmem(sdelt,jci1,jci2,ici1,ici2,'storage:sdelt')
+      call getmem(zpbl,jci1,jci2,ici1,ici2,'storage:zpbl')
+      call getmem(kpbl,jci1,jci2,ici1,ici2,'storage:kpbl')
+      call getmem(q_detr,jci1,jci2,ici1,ici2,1,kz,'storage:q_detr')
       if ( any(icup == 5) ) then
-        call getmem3d(rain_cc,jci1,jci2,ici1,ici2,1,kz,'storage:rain_cc')
+        call getmem(rain_cc,jci1,jci2,ici1,ici2,1,kz,'storage:rain_cc')
       end if
 
       if ( ipptls == 2 ) then
-        call getmem3d(rain_ls,jci1,jci2,ici1,ici2,1,kz,'storage:rain_ls')
+        call getmem(rain_ls,jci1,jci2,ici1,ici2,1,kz,'storage:rain_ls')
       end if
       if ( idynamic == 2 ) then
-        call getmem2d(dpsdxm,jce1,jce2,ice1,ice2,'storage:dpsdxm')
-        call getmem2d(dpsdym,jce1,jce2,ice1,ice2,'storage:dpsdym')
+        call getmem(dpsdxm,jce1,jce2,ice1,ice2,'storage:dpsdxm')
+        call getmem(dpsdym,jce1,jce2,ice1,ice2,'storage:dpsdym')
       end if
-      call getmem2d(crrate,jci1,jci2,ici1,ici2,'storage:crrate')
-      call getmem2d(ncrrate,jci1,jci2,ici1,ici2,'storage:ncrrate')
+      call getmem(crrate,jci1,jci2,ici1,ici2,'storage:crrate')
+      call getmem(ncrrate,jci1,jci2,ici1,ici2,'storage:ncrrate')
     end subroutine allocate_mod_atm_interface
 
     subroutine export_data_from_atm(expfie)

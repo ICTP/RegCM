@@ -113,18 +113,18 @@ module mod_ch_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire dim lev')
 
-    call getmem2d(pchem_3,1,jx,1,iy,'mod_ch_icbc:pchem_3_1')
-    call getmem2d(xps3,1,jx,1,iy,'mod_ch_icbc:xps3')
-    call getmem4d(chv3,1,jx,1,iy,1,chilev,1,nchsp,'mod_ch_icbc:chv3')
-    call getmem4d(chv4_1,1,jx,1,iy,1,kz,1,nchsp,'mod_ch_icbc:chv4_1')
-    call getmem4d(chv4_2,1,jx,1,iy,1,kz,1,nchsp,'mod_ch_icbc:chv4_2')
+    call getmem(pchem_3,1,jx,1,iy,'mod_ch_icbc:pchem_3_1')
+    call getmem(xps3,1,jx,1,iy,'mod_ch_icbc:xps3')
+    call getmem(chv3,1,jx,1,iy,1,chilev,1,nchsp,'mod_ch_icbc:chv3')
+    call getmem(chv4_1,1,jx,1,iy,1,kz,1,nchsp,'mod_ch_icbc:chv4_1')
+    call getmem(chv4_2,1,jx,1,iy,1,kz,1,nchsp,'mod_ch_icbc:chv4_2')
 
-    call getmem1d(cht42lon,1,chilon,'mod_ch_icbc:cht42lon')
-    call getmem1d(cht42lat,1,chjlat,'mod_ch_icbc:cht42lat')
-    call getmem1d(cht42hyam,1,chilev,'mod_ch_icbc:cht42hyam')
-    call getmem1d(cht42hybm,1,chilev,'mod_ch_icbc:cht42hybm')
-    call getmem2d(xps,1,chilon,1,chjlat,'mod_ch_icbc:xps1')
-    call getmem3d(xinp,1,chilon,1,chjlat,1,chilev,'mod_ch_icbc:xinp')
+    call getmem(cht42lon,1,chilon,'mod_ch_icbc:cht42lon')
+    call getmem(cht42lat,1,chjlat,'mod_ch_icbc:cht42lat')
+    call getmem(cht42hyam,1,chilev,'mod_ch_icbc:cht42hyam')
+    call getmem(cht42hybm,1,chilev,'mod_ch_icbc:cht42hybm')
+    call getmem(xps,1,chilon,1,chjlat,'mod_ch_icbc:xps1')
+    call getmem(xinp,1,chilon,1,chjlat,1,chilev,'mod_ch_icbc:xinp')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -345,7 +345,7 @@ module mod_ch_icbc
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time units')
         ccal = 'gregorian'
-        call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
+        call getmem(xtimes,1,timlen,'mod_ein:xtimes')
         istatus = nf90_get_var(ncid,timid,xtimes)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time')
@@ -361,7 +361,7 @@ module mod_ch_icbc
     ccal = 'gregorian'
     cunit = "days since 1950-01-01 00:00:00"
     timlen = 124
-    call getmem1d(itimes,1,timlen,'mod_ein:itimes')
+    call getmem(itimes,1,timlen,'mod_ein:itimes')
     do i = 1, nfile
       do it = 1, 124
         itimes(it)=timeval2date(dble(timearray(i,it)),cunit,ccal)
@@ -410,8 +410,8 @@ module mod_ch_icbc
                     'Error read time units')
 
     ccal = 'gregorian'
-    call getmem1d(itimes,1,timlen,'mod_ein:itimes')
-    call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
+    call getmem(itimes,1,timlen,'mod_ein:itimes')
+    call getmem(xtimes,1,timlen,'mod_ein:xtimes')
     istatus = nf90_get_var(ncid,timid,xtimes)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read time')

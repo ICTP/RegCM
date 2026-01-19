@@ -68,32 +68,32 @@ module mod_cu_common
 
     if ( any(icup == 4) .or. any(icup == 5) ) then
       if ( idynamic == 3 ) then
-        call getmem3d(cu_uten,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'cumulus:uten')
-        call getmem3d(cu_vten,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'cumulus:vten')
+        call getmem(cu_uten,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'cumulus:uten')
+        call getmem(cu_vten,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'cumulus:vten')
       else
-        call getmem3d(cu_uten,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'cumulus:uten')
-        call getmem3d(cu_vten,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'cumulus:vten')
+        call getmem(cu_uten,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'cumulus:uten')
+        call getmem(cu_vten,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'cumulus:vten')
       end if
     end if
-    call getmem3d(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')
-    call getmem4d(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')
-    call getmem3d(cu_cldfrc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldfrc')
-    call getmem2d(cu_prate,jci1,jci2,ici1,ici2,'cumulus:prate')
+    call getmem(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')
+    call getmem(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')
+    call getmem(cu_cldfrc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldfrc')
+    call getmem(cu_prate,jci1,jci2,ici1,ici2,'cumulus:prate')
     if ( ipptls > 1 .and. any(icup == 5) ) then
-      call getmem2d(cu_srate,jci1,jci2,ici1,ici2,'cumulus:srate')
+      call getmem(cu_srate,jci1,jci2,ici1,ici2,'cumulus:srate')
     end if
-    call getmem2d(cu_ktop,jci1,jci2,ici1,ici2,'cumulus:ktop')
-    call getmem2d(cu_kbot,jci1,jci2,ici1,ici2,'cumulus:kbot')
+    call getmem(cu_ktop,jci1,jci2,ici1,ici2,'cumulus:ktop')
+    call getmem(cu_kbot,jci1,jci2,ici1,ici2,'cumulus:kbot')
     if ( ichem == 1 ) then
-      call getmem4d(cu_chiten,jci1,jci2,ici1,ici2,1,kz,1,ntr,'cumulus:chiten')
-      call getmem3d(cu_convpr,jci1,jci2,ici1,ici2,1,kz,'cumulus:convpr')
+      call getmem(cu_chiten,jci1,jci2,ici1,ici2,1,kz,1,ntr,'cumulus:chiten')
+      call getmem(cu_convpr,jci1,jci2,ici1,ici2,1,kz,'cumulus:convpr')
     end if
     if ( any(icup == 5) ) then
-      call getmem3d(cu_qdetr,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:qdetr')
-      call getmem3d(cu_raincc,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:raincc')
+      call getmem(cu_qdetr,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:qdetr')
+      call getmem(cu_raincc,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:raincc')
     end if
     if ( any(icup == 5) .or. any(icup == 6) ) then
-      call getmem3d(avg_ww,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_ww')
+      call getmem(avg_ww,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_ww')
     end if
 
     if ( icumcloud == 2 ) then

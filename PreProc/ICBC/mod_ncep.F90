@@ -120,10 +120,10 @@ module mod_ncep
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire dim level')
 
-    call getmem1d(glon,1,ilon,'mod_ncep:glon')
-    call getmem1d(glat,1,jlat,'mod_ncep:glat')
-    call getmem1d(sigmar,1,klev,'mod_ncep:sigmar')
-    call getmem1d(plevs,1,klev,'mod_ncep:plevs')
+    call getmem(glon,1,ilon,'mod_ncep:glon')
+    call getmem(glat,1,jlat,'mod_ncep:glat')
+    call getmem(sigmar,1,klev,'mod_ncep:sigmar')
+    call getmem(plevs,1,klev,'mod_ncep:plevs')
 
     istatus = nf90_inq_varid(inet,'level',idv)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -171,19 +171,19 @@ module mod_ncep
       call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
     end if
 
-    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ncep:work')
-    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ncep:b3')
-    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ncep:d3')
-    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ncep:b3')
+    call getmem(work,1,ilon,1,jlat,1,klev,'mod_ncep:work')
+    call getmem(b2,1,ilon,1,jlat,1,klev*3,'mod_ncep:b3')
+    call getmem(d2,1,ilon,1,jlat,1,klev*2,'mod_ncep:d3')
+    call getmem(b3,1,jx,1,iy,1,klev*3,'mod_ncep:b3')
     if ( idynamic == 3 ) then
-      call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ncep:d3u')
-      call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_ncep:d3v')
-      call getmem3d(h3u,1,jx,1,iy,1,klev,'mod_era5:h3u')
-      call getmem3d(h3v,1,jx,1,iy,1,klev,'mod_era5:h3v')
-      call getmem2d(topou,1,jx,1,iy,'mod_era5:topou')
-      call getmem2d(topov,1,jx,1,iy,'mod_era5:topov')
+      call getmem(d3u,1,jx,1,iy,1,klev*2,'mod_ncep:d3u')
+      call getmem(d3v,1,jx,1,iy,1,klev*2,'mod_ncep:d3v')
+      call getmem(h3u,1,jx,1,iy,1,klev,'mod_era5:h3u')
+      call getmem(h3v,1,jx,1,iy,1,klev,'mod_era5:h3v')
+      call getmem(topou,1,jx,1,iy,'mod_era5:topou')
+      call getmem(topov,1,jx,1,iy,'mod_era5:topov')
     else
-      call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ncep:d3')
+      call getmem(d3,1,jx,1,iy,1,klev*2,'mod_ncep:d3')
     end if
 
     ! Set up pointers

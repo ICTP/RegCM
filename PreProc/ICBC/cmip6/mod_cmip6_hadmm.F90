@@ -53,8 +53,8 @@ module mod_cmip6_hadmm
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lat dim')
-      call getmem1d(lon,1,nlon,'cmip6_mpi:lon')
-      call getmem1d(lat,1,nlat,'cmip6_mpi:lat')
+      call getmem(lon,1,nlon,'cmip6_mpi:lon')
+      call getmem(lat,1,nlat,'cmip6_mpi:lat')
       istatus = nf90_inq_varid(ncid,'lon',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon var')
       istatus = nf90_get_var(ncid,ivarid,lon)
@@ -79,8 +79,8 @@ module mod_cmip6_hadmm
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lat dim')
-      call getmem2d(lon,1,nlon,1,nlat,'cmip6_had:lon')
-      call getmem2d(lat,1,nlon,1,nlat,'cmip6_had:lat')
+      call getmem(lon,1,nlon,1,nlat,'cmip6_had:lon')
+      call getmem(lat,1,nlon,1,nlat,'cmip6_had:lat')
       istatus = nf90_inq_varid(ncid,'longitude',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find longitude var')
       istatus = nf90_get_var(ncid,ivarid,lon)
@@ -101,8 +101,8 @@ module mod_cmip6_hadmm
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlev)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lev dim')
-      call getmem1d(ap,1,nlev,'cmip6_mpi:lev')
-      call getmem1d(b,1,nlev,'cmip6_mpi:b')
+      call getmem(ap,1,nlev,'cmip6_mpi:lev')
+      call getmem(b,1,nlev,'cmip6_mpi:b')
       istatus = nf90_inq_varid(ncid,'lev',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev var')
       istatus = nf90_get_var(ncid,ivarid,ap)
@@ -167,7 +167,7 @@ module mod_cmip6_hadmm
         v%ni = size(v%hcoord%lon1d)
         v%nj = size(v%hcoord%lat1d)
         v%nk = size(v%vcoord%ak)
-        call getmem3d(v%var,1,v%ni,1,v%nj,1,v%nk,'cmip6:hadmm:'//trim(v%vname))
+        call getmem(v%var,1,v%ni,1,v%nj,1,v%nk,'cmip6:hadmm:'//trim(v%vname))
 #ifdef DEBUG
         write(stderr,*) 'Input shape for ',trim(v%vname),' = ', &
           v%ni,'x',v%nj,'x',v%nk
@@ -304,7 +304,7 @@ module mod_cmip6_hadmm
       if ( .not. associated(v%var) ) then
         v%ni = size(v%hcoord%lon1d)
         v%nj = size(v%hcoord%lat1d)
-        call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:hadmm:'//trim(v%vname))
+        call getmem(v%var,1,v%ni,1,v%nj,'cmip6:hadmm:'//trim(v%vname))
 #ifdef DEBUG
         write(stderr,*) 'Input shape for ',trim(v%vname),' = ',v%ni,'x',v%nj
 #endif
@@ -384,7 +384,7 @@ module mod_cmip6_hadmm
       call read_hcoord_hadmm(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
       v%ni = size(v%hcoord%lon1d)
       v%nj = size(v%hcoord%lat1d)
-      call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:hadmm:'//trim(v%vname))
+      call getmem(v%var,1,v%ni,1,v%nj,'cmip6:hadmm:'//trim(v%vname))
 #ifdef DEBUG
       write(stderr,*) 'Input shape for ',trim(v%vname),' = ',v%ni,'x',v%nj
 #endif
@@ -430,7 +430,7 @@ module mod_cmip6_hadmm
         call read_hcoord_sst_hadmm(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
         call h_interpolator_create(v%hint(1), &
                                    v%hcoord%lat2d,v%hcoord%lon2d,lat,lon)
-        call getmem2d(v%var,1,size(v%hcoord%lon2d,1), &
+        call getmem(v%var,1,size(v%hcoord%lon2d,1), &
                             1,size(v%hcoord%lat2d,2), &
                             'cmip6_had:'//trim(v%vname))
       end if

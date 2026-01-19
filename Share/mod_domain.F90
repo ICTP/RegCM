@@ -236,26 +236,26 @@ module mod_domain
 
   subroutine allocate_domain
     implicit none
-    call getmem1d(mddom_io%sigma,1,kz+1,'domain:sigma')
-    call getmem2d(mddom_io%xlat,1,jx,1,iy,'domain:xlat')
-    call getmem2d(mddom_io%xlon,1,jx,1,iy,'domain:xlon')
+    call getmem(mddom_io%sigma,1,kz+1,'domain:sigma')
+    call getmem(mddom_io%xlat,1,jx,1,iy,'domain:xlat')
+    call getmem(mddom_io%xlon,1,jx,1,iy,'domain:xlon')
     if ( idynamic == 3 ) then
-      call getmem2d(mddom_io%ulat,1,jx,1,iy,'domain:ulat')
-      call getmem2d(mddom_io%ulon,1,jx,1,iy,'domain:ulon')
-      call getmem2d(mddom_io%vlat,1,jx,1,iy,'domain:vlat')
-      call getmem2d(mddom_io%vlon,1,jx,1,iy,'domain:vlon')
+      call getmem(mddom_io%ulat,1,jx,1,iy,'domain:ulat')
+      call getmem(mddom_io%ulon,1,jx,1,iy,'domain:ulon')
+      call getmem(mddom_io%vlat,1,jx,1,iy,'domain:vlat')
+      call getmem(mddom_io%vlon,1,jx,1,iy,'domain:vlon')
     else
-      call getmem2d(mddom_io%dlat,1,jx,1,iy,'domain:dlat')
-      call getmem2d(mddom_io%dlon,1,jx,1,iy,'domain:dlon')
-      call getmem2d(mddom_io%msfx,1,jx,1,iy,'domain:msfx')
-      call getmem2d(mddom_io%msfd,1,jx,1,iy,'domain:msfd')
+      call getmem(mddom_io%dlat,1,jx,1,iy,'domain:dlat')
+      call getmem(mddom_io%dlon,1,jx,1,iy,'domain:dlon')
+      call getmem(mddom_io%msfx,1,jx,1,iy,'domain:msfx')
+      call getmem(mddom_io%msfd,1,jx,1,iy,'domain:msfd')
     end if
-    call getmem2d(mddom_io%ht,1,jx,1,iy,'domain:ht')
-    call getmem2d(mddom_io%mask,1,jx,1,iy,'domain:mask')
-    call getmem2d(mddom_io%lndcat,1,jx,1,iy,'domain:lndcat')
-    call getmem2d(mddom_io%coriol,1,jx,1,iy,'domain:coriol')
-    call getmem2d(mddom_io%snowam,1,jx,1,iy,'domain:snowam')
-    call getmem2d(mddom_io%hlake,1,jx,1,iy,'domain:hlake')
+    call getmem(mddom_io%ht,1,jx,1,iy,'domain:ht')
+    call getmem(mddom_io%mask,1,jx,1,iy,'domain:mask')
+    call getmem(mddom_io%lndcat,1,jx,1,iy,'domain:lndcat')
+    call getmem(mddom_io%coriol,1,jx,1,iy,'domain:coriol')
+    call getmem(mddom_io%snowam,1,jx,1,iy,'domain:snowam')
+    call getmem(mddom_io%hlake,1,jx,1,iy,'domain:hlake')
   end subroutine allocate_domain
 
   subroutine check_domain(ncid,lmod,linternal,lsubgrid)

@@ -100,8 +100,7 @@ module mod_interp
     real(rk4) :: spl, clin
 
     real(rk4), dimension(size(xi)) :: zi, zg
-    integer(ik4) :: npi, npo
-    integer(ik4) :: k, j, jj, ir
+    integer(ik4) :: npi, k, jj, ir
 
     npi = size(xi)
     if ( xi(1) >= xi(npi) ) then
@@ -320,8 +319,7 @@ module mod_interp
     real(rk8) :: spl, clin
 
     real(rk8), dimension(size(xi)) :: zi, zg
-    integer(ik4) :: npi, npo
-    integer(ik4) :: k, j, jj, ir
+    integer(ik4) :: npi, k, jj, ir
 
     npi = size(xi)
     if ( xi(1) >= xi(npi) ) then
@@ -819,18 +817,18 @@ module mod_interp
     if ( lcross == 0 ) then
       write (stdout,*) 'FIRST TIME in CRESSMCR'
       write (stdout,*) 'Calculating weights.... (will take long time)'
-      if (.not. associated(ic1dl)) call getmem2d(ic1dl,1,jx,1,iy,'ic1dl')
-      if (.not. associated(ic1dr)) call getmem2d(ic1dr,1,jx,1,iy,'ic1dr')
-      if (.not. associated(ic1ul)) call getmem2d(ic1ul,1,jx,1,iy,'ic1ul')
-      if (.not. associated(ic1ur)) call getmem2d(ic1ur,1,jx,1,iy,'ic1ur')
-      if (.not. associated(jc1dl)) call getmem2d(jc1dl,1,jx,1,iy,'jc1dl')
-      if (.not. associated(jc1dr)) call getmem2d(jc1dr,1,jx,1,iy,'jc1dr')
-      if (.not. associated(jc1ul)) call getmem2d(jc1ul,1,jx,1,iy,'jc1ul')
-      if (.not. associated(jc1ur)) call getmem2d(jc1ur,1,jx,1,iy,'jc1ur')
-      if (.not. associated(dc1xa)) call getmem2d(dc1xa,1,jx,1,iy,'dc1xa')
-      if (.not. associated(dc1xb)) call getmem2d(dc1xb,1,jx,1,iy,'dc1xb')
-      if (.not. associated(dc1xc)) call getmem2d(dc1xc,1,jx,1,iy,'dc1xc')
-      if (.not. associated(dc1xd)) call getmem2d(dc1xd,1,jx,1,iy,'dc1xd')
+      if (.not. associated(ic1dl)) call getmem(ic1dl,1,jx,1,iy,'ic1dl')
+      if (.not. associated(ic1dr)) call getmem(ic1dr,1,jx,1,iy,'ic1dr')
+      if (.not. associated(ic1ul)) call getmem(ic1ul,1,jx,1,iy,'ic1ul')
+      if (.not. associated(ic1ur)) call getmem(ic1ur,1,jx,1,iy,'ic1ur')
+      if (.not. associated(jc1dl)) call getmem(jc1dl,1,jx,1,iy,'jc1dl')
+      if (.not. associated(jc1dr)) call getmem(jc1dr,1,jx,1,iy,'jc1dr')
+      if (.not. associated(jc1ul)) call getmem(jc1ul,1,jx,1,iy,'jc1ul')
+      if (.not. associated(jc1ur)) call getmem(jc1ur,1,jx,1,iy,'jc1ur')
+      if (.not. associated(dc1xa)) call getmem(dc1xa,1,jx,1,iy,'dc1xa')
+      if (.not. associated(dc1xb)) call getmem(dc1xb,1,jx,1,iy,'dc1xb')
+      if (.not. associated(dc1xc)) call getmem(dc1xc,1,jx,1,iy,'dc1xc')
+      if (.not. associated(dc1xd)) call getmem(dc1xd,1,jx,1,iy,'dc1xd')
       call compwgt(alon,alat,glon,glat,dc1xa,dc1xb,dc1xc,dc1xd, &
                    ic1dl,ic1dr,ic1ul,ic1ur,jc1dl,jc1dr,jc1ul,jc1ur, &
                    jx,iy,nlon,nlat)
@@ -883,18 +881,18 @@ module mod_interp
     if ( ldot == 0 ) then
       write (stdout,*) 'FIRST TIME in CRESSMDT'
       write (stdout,*) 'Calculating weights.... (will take long time)'
-      if (.not. associated(id1dl)) call getmem2d(id1dl,1,jx,1,iy,'id1dl')
-      if (.not. associated(id1dr)) call getmem2d(id1dr,1,jx,1,iy,'id1dr')
-      if (.not. associated(id1ul)) call getmem2d(id1ul,1,jx,1,iy,'id1ul')
-      if (.not. associated(id1ur)) call getmem2d(id1ur,1,jx,1,iy,'id1ur')
-      if (.not. associated(jd1dl)) call getmem2d(jd1dl,1,jx,1,iy,'jd1dl')
-      if (.not. associated(jd1dr)) call getmem2d(jd1dr,1,jx,1,iy,'jd1dr')
-      if (.not. associated(jd1ul)) call getmem2d(jd1ul,1,jx,1,iy,'jd1ul')
-      if (.not. associated(jd1ur)) call getmem2d(jd1ur,1,jx,1,iy,'jd1ur')
-      if (.not. associated(dd1xa)) call getmem2d(dd1xa,1,jx,1,iy,'dd1xa')
-      if (.not. associated(dd1xb)) call getmem2d(dd1xb,1,jx,1,iy,'dd1xb')
-      if (.not. associated(dd1xc)) call getmem2d(dd1xc,1,jx,1,iy,'dd1xc')
-      if (.not. associated(dd1xd)) call getmem2d(dd1xd,1,jx,1,iy,'dd1xd')
+      if (.not. associated(id1dl)) call getmem(id1dl,1,jx,1,iy,'id1dl')
+      if (.not. associated(id1dr)) call getmem(id1dr,1,jx,1,iy,'id1dr')
+      if (.not. associated(id1ul)) call getmem(id1ul,1,jx,1,iy,'id1ul')
+      if (.not. associated(id1ur)) call getmem(id1ur,1,jx,1,iy,'id1ur')
+      if (.not. associated(jd1dl)) call getmem(jd1dl,1,jx,1,iy,'jd1dl')
+      if (.not. associated(jd1dr)) call getmem(jd1dr,1,jx,1,iy,'jd1dr')
+      if (.not. associated(jd1ul)) call getmem(jd1ul,1,jx,1,iy,'jd1ul')
+      if (.not. associated(jd1ur)) call getmem(jd1ur,1,jx,1,iy,'jd1ur')
+      if (.not. associated(dd1xa)) call getmem(dd1xa,1,jx,1,iy,'dd1xa')
+      if (.not. associated(dd1xb)) call getmem(dd1xb,1,jx,1,iy,'dd1xb')
+      if (.not. associated(dd1xc)) call getmem(dd1xc,1,jx,1,iy,'dd1xc')
+      if (.not. associated(dd1xd)) call getmem(dd1xd,1,jx,1,iy,'dd1xd')
       call compwgt(alon,alat,glon,glat,dd1xa,dd1xb,dd1xc,dd1xd, &
                    id1dl,id1dr,id1ul,id1ur,jd1dl,jd1dr,jd1ul,jd1ur, &
                    jx,iy,nlon,nlat)

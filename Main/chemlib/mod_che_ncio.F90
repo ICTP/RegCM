@@ -143,7 +143,7 @@ module mod_che_ncio
           aebcname => aeaero
       end select
       if ( n_aebcvar > 0 ) then
-        call getmem1d(aebc_ivar,1,n_aebcvar,'ncio:aebc_ivar')
+        call getmem(aebc_ivar,1,n_aebcvar,'ncio:aebc_ivar')
       end if
     end subroutine init_mod_che_ncio
 

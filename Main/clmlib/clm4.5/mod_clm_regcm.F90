@@ -54,9 +54,9 @@ module mod_clm_regcm
     real(rkx), pointer, contiguous, dimension(:,:) :: p2
     real(rk8), pointer, contiguous, dimension(:) :: p1
 
-    call getmem2d(temps,jci1,jci2,ici1,ici2,'initclm45:temps')
+    call getmem(temps,jci1,jci2,ici1,ici2,'initclm45:temps')
     if ( ichem == 1 ) then
-      call getmem3d(emis2d,1,nnsg,jci1,jci2,ici1,ici2,'initclm45:emis2d')
+      call getmem(emis2d,1,nnsg,jci1,jci2,ici1,ici2,'initclm45:emis2d')
     end if
 
     allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
@@ -138,9 +138,9 @@ module mod_clm_regcm
     real(rkx), pointer, contiguous, dimension(:,:) :: p2
     real(rk8), pointer, contiguous, dimension(:) :: p1
 
-    call getmem2d(temps,jci1,jci2,ici1,ici2,'initclm45:temps')
+    call getmem(temps,jci1,jci2,ici1,ici2,'initclm45:temps')
     if ( ichem == 1 ) then
-      call getmem3d(emis2d,1,nnsg,jci1,jci2,ici1,ici2,'initclm45:emis2d')
+      call getmem(emis2d,1,nnsg,jci1,jci2,ici1,ici2,'initclm45:emis2d')
     end if
 
     allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
@@ -891,9 +891,9 @@ module mod_clm_regcm
 
     if ( myid == iocpu ) then
       if ( ncid == -1 ) then
-        call getmem2d(alon,jcross1,jcross2,icross1,icross2,'clm45:alon')
-        call getmem2d(alat,jcross1,jcross2,icross1,icross2,'clm45:alat')
-        call getmem2d(rcp,jcross1,jcross2,icross1,icross2,'clm45:rcp')
+        call getmem(alon,jcross1,jcross2,icross1,icross2,'clm45:alon')
+        call getmem(alat,jcross1,jcross2,icross1,icross2,'clm45:alat')
+        call getmem(rcp,jcross1,jcross2,icross1,icross2,'clm45:rcp')
         call grid_collect(lm%xlon,alon,jci1,jci2,ici1,ici2)
         call grid_collect(lm%xlat,alat,jci1,jci2,ici1,ici2)
         fname = trim(inpglob)//pthsep//'CLM45'//pthsep// &
@@ -923,14 +923,14 @@ module mod_clm_regcm
           write (stderr, *) nf90_strerror(istatus)
           call fatal(__FILE__,__LINE__,'ERROR READ DIM LON IN CRU DATASET')
         end if
-        call getmem2d(crupre,1,nlon,1,nlat,'clm45:crupre')
-        call getmem1d(glon,1,nlon,'clm45:glon')
-        call getmem1d(glat,1,nlat,'clm45:glat')
-        call getmem2d(acp0,jci1,jci2,ici1,ici2,'clm45:acp0')
-        call getmem2d(acp1,jci1,jci2,ici1,ici2,'clm45:acp1')
-        call getmem2d(acp2,jci1,jci2,ici1,ici2,'clm45:acp2')
+        call getmem(crupre,1,nlon,1,nlat,'clm45:crupre')
+        call getmem(glon,1,nlon,'clm45:glon')
+        call getmem(glat,1,nlat,'clm45:glat')
+        call getmem(acp0,jci1,jci2,ici1,ici2,'clm45:acp0')
+        call getmem(acp1,jci1,jci2,ici1,ici2,'clm45:acp1')
+        call getmem(acp2,jci1,jci2,ici1,ici2,'clm45:acp2')
         if ( lcru_rand ) then
-          call getmem1d(ihfac,1,24,'clm45:ihfac')
+          call getmem(ihfac,1,24,'clm45:ihfac')
         end if
         istatus = nf90_inq_varid(ncid,'lat',ivar)
         if ( istatus /= nf90_noerr ) then
@@ -1041,11 +1041,11 @@ module mod_clm_regcm
       if ( ncid == -1 ) then
         call grid_collect(lm%xlon,alon,jci1,jci2,ici1,ici2)
         call grid_collect(lm%xlat,alat,jci1,jci2,ici1,ici2)
-        call getmem2d(acp0,jci1,jci2,ici1,ici2,'clm45:acp0')
-        call getmem2d(acp1,jci1,jci2,ici1,ici2,'clm45:acp1')
-        call getmem2d(acp2,jci1,jci2,ici1,ici2,'clm45:acp2')
+        call getmem(acp0,jci1,jci2,ici1,ici2,'clm45:acp0')
+        call getmem(acp1,jci1,jci2,ici1,ici2,'clm45:acp1')
+        call getmem(acp2,jci1,jci2,ici1,ici2,'clm45:acp2')
         if ( lcru_rand ) then
-          call getmem1d(ihfac,1,24,'clm45:ihfac')
+          call getmem(ihfac,1,24,'clm45:ihfac')
         end if
         call grid_distribute(rcp,acp0,jci1,jci2,ici1,ici2)
         call grid_distribute(rcp,acp1,jci1,jci2,ici1,ici2)

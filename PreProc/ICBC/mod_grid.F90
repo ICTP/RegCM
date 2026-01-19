@@ -56,11 +56,11 @@ module mod_grid
     use mod_dynparam
     implicit none
     integer(ik4), intent(in) :: nx, ny, nz
-    call getmem2d(xlat,1,nx,1,ny,'mod_grid:xlat')
-    call getmem2d(xlon,1,nx,1,ny,'mod_grid:xlon')
-    call getmem2d(topogm,1,nx,1,ny,'mod_grid:topogm')
-    call getmem2d(mask,1,nx,1,ny,'mod_grid:mask')
-    call getmem1d(sigmaf,1,nz+1,'mod_grid:sigmaf')
+    call getmem(xlat,1,nx,1,ny,'mod_grid:xlat')
+    call getmem(xlon,1,nx,1,ny,'mod_grid:xlon')
+    call getmem(topogm,1,nx,1,ny,'mod_grid:topogm')
+    call getmem(mask,1,nx,1,ny,'mod_grid:mask')
+    call getmem(sigmaf,1,nz+1,'mod_grid:sigmaf')
     call read_domain_hinfo
   end subroutine init_hgrid
 
@@ -68,36 +68,36 @@ module mod_grid
     use mod_dynparam
     implicit none
     integer(ik4), intent(in) :: nx, ny, nz
-    call getmem2d(xlat,1,nx,1,ny,'mod_grid:xlat')
-    call getmem2d(xlon,1,nx,1,ny,'mod_grid:xlon')
+    call getmem(xlat,1,nx,1,ny,'mod_grid:xlat')
+    call getmem(xlon,1,nx,1,ny,'mod_grid:xlon')
     if ( idynamic == 3 ) then
-      call getmem2d(ulat,1,nx,1,ny,'mod_grid:ulat')
-      call getmem2d(ulon,1,nx,1,ny,'mod_grid:ulon')
-      call getmem2d(vlat,1,nx,1,ny,'mod_grid:vlat')
-      call getmem2d(vlon,1,nx,1,ny,'mod_grid:vlon')
+      call getmem(ulat,1,nx,1,ny,'mod_grid:ulat')
+      call getmem(ulon,1,nx,1,ny,'mod_grid:ulon')
+      call getmem(vlat,1,nx,1,ny,'mod_grid:vlat')
+      call getmem(vlon,1,nx,1,ny,'mod_grid:vlon')
     else
-      call getmem2d(dlat,1,nx,1,ny,'mod_grid:dlat')
-      call getmem2d(dlon,1,nx,1,ny,'mod_grid:dlon')
+      call getmem(dlat,1,nx,1,ny,'mod_grid:dlat')
+      call getmem(dlon,1,nx,1,ny,'mod_grid:dlon')
     end if
-    call getmem2d(topogm,1,nx,1,ny,'mod_grid:topogm')
-    call getmem2d(mask,1,nx,1,ny,'mod_grid:mask')
-    call getmem2d(landuse,1,nx,1,ny,'mod_grid:landuse')
-    call getmem2d(pa,1,nx,1,ny,'mod_grid:pa')
-    call getmem2d(tlayer,1,nx,1,ny,'mod_grid:tlayer')
-    call getmem2d(za,1,nx,1,ny,'mod_grid:za')
-    call getmem1d(sigmah,1,nz,'mod_grid:sigmah')
-    call getmem1d(sigmaf,1,nz+1,'mod_grid:sigmaf')
-    call getmem1d(dsigma,1,nz,'mod_write:dsigma')
+    call getmem(topogm,1,nx,1,ny,'mod_grid:topogm')
+    call getmem(mask,1,nx,1,ny,'mod_grid:mask')
+    call getmem(landuse,1,nx,1,ny,'mod_grid:landuse')
+    call getmem(pa,1,nx,1,ny,'mod_grid:pa')
+    call getmem(tlayer,1,nx,1,ny,'mod_grid:tlayer')
+    call getmem(za,1,nx,1,ny,'mod_grid:za')
+    call getmem(sigmah,1,nz,'mod_grid:sigmah')
+    call getmem(sigmaf,1,nz+1,'mod_grid:sigmaf')
+    call getmem(dsigma,1,nz,'mod_write:dsigma')
     if ( idynamic == 2 ) then
-      call getmem2d(msfx,1,nx,1,ny,'mod_write:msfx')
-      call getmem2d(msfd,1,nx,1,ny,'mod_write:msfd')
-      call getmem2d(ps0,1,nx,1,ny,'mod_write:ps0')
-      call getmem3d(pr0,1,nx,1,ny,1,nz,'mod_write:pr0')
-      call getmem3d(rho0,1,nx,1,ny,1,nz,'mod_write:rho0')
-      call getmem3d(z0,1,nx,1,ny,1,nz,'mod_write:z0')
-      call getmem3d(t0,1,nx,1,ny,1,nz,'mod_write:t0')
+      call getmem(msfx,1,nx,1,ny,'mod_write:msfx')
+      call getmem(msfd,1,nx,1,ny,'mod_write:msfd')
+      call getmem(ps0,1,nx,1,ny,'mod_write:ps0')
+      call getmem(pr0,1,nx,1,ny,1,nz,'mod_write:pr0')
+      call getmem(rho0,1,nx,1,ny,1,nz,'mod_write:rho0')
+      call getmem(z0,1,nx,1,ny,1,nz,'mod_write:z0')
+      call getmem(t0,1,nx,1,ny,1,nz,'mod_write:t0')
     else if ( idynamic == 3 ) then
-      call getmem3d(z0,1,nx,1,ny,1,nz,'mod_write:z0')
+      call getmem(z0,1,nx,1,ny,1,nz,'mod_write:z0')
     end if
     call read_domain_info
   end subroutine init_grid

@@ -106,9 +106,9 @@ contains
   subroutine allocate_mod_che_bionit
     implicit none
     if ( ichem == 1 .and. ichbion == 1 ) then
-      call getmem2d(nfert,jci1,jci2,ici1,ici2,'che_bionit:nfert')
-      call getmem2d(nmanure,jci1,jci2,ici1,ici2,'che_bionit:nmanure')
-      call getmem2d(soilph,jci1,jci2,ici1,ici2,'che_bionit:soilph')
+      call getmem(nfert,jci1,jci2,ici1,ici2,'che_bionit:nfert')
+      call getmem(nmanure,jci1,jci2,ici1,ici2,'che_bionit:nmanure')
+      call getmem(soilph,jci1,jci2,ici1,ici2,'che_bionit:soilph')
     end if
   end subroutine allocate_mod_che_bionit
 

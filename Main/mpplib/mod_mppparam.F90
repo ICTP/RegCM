@@ -1566,23 +1566,23 @@ module mod_mppparam
     end if
     if ( nproc > 1 ) then
       if ( myid == ccio ) then
-        call getmem1d(windows,1,nproc*4,'set_nproc:windows')
+        call getmem(windows,1,nproc*4,'set_nproc:windows')
       else
         windows => ifake
       end if
-      call getmem1d(wincount,1,nproc*4,'set_nproc:wincount')
-      call getmem1d(windispl,1,nproc*4,'set_nproc:windispl')
+      call getmem(wincount,1,nproc*4,'set_nproc:wincount')
+      call getmem(windispl,1,nproc*4,'set_nproc:windispl')
       ! Allocate to something should fit all
       maximum_buffer_size = jxsg*iysg
       maximum_buffer_size = max(maximum_buffer_size,jxpsg*iypsg*kzp1)
-      call getmem1d(r8vector1,1,maximum_buffer_size,'set_nproc:r8vector1')
-      call getmem1d(r8vector2,1,maximum_buffer_size,'set_nproc:r8vector2')
-      call getmem1d(r4vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
-      call getmem1d(r4vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
-      call getmem1d(i4vector1,1,maximum_buffer_size,'set_nproc:i4vector1')
-      call getmem1d(i4vector2,1,maximum_buffer_size,'set_nproc:i4vector2')
-      call getmem1d(lvector1,1,maximum_buffer_size,'set_nproc:lvector1')
-      call getmem1d(lvector2,1,maximum_buffer_size,'set_nproc:lvector2')
+      call getmem(r8vector1,1,maximum_buffer_size,'set_nproc:r8vector1')
+      call getmem(r8vector2,1,maximum_buffer_size,'set_nproc:r8vector2')
+      call getmem(r4vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
+      call getmem(r4vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
+      call getmem(i4vector1,1,maximum_buffer_size,'set_nproc:i4vector1')
+      call getmem(i4vector2,1,maximum_buffer_size,'set_nproc:i4vector2')
+      call getmem(lvector1,1,maximum_buffer_size,'set_nproc:lvector1')
+      call getmem(lvector2,1,maximum_buffer_size,'set_nproc:lvector2')
     end if
   end subroutine set_nproc
 
@@ -6760,10 +6760,10 @@ module mod_mppparam
     ! jsize is the height of a block in the W-E direction
     ssize = nex * (4*nex+2*isize+2*jsize)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      call getmem(r8vector1,1,ssize,'real8_2d_exchange')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      call getmem(r8vector2,1,ssize,'real8_2d_exchange')
     end if
 
     if ( ma%bandflag ) then
@@ -7254,10 +7254,10 @@ module mod_mppparam
     ! ksize is the height of a block in the T-B direction
     ssize = nex * ksize * (4*nex+2*isize+2*jsize)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      call getmem(r8vector1,1,ssize,'real8_3d_exchange')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      call getmem(r8vector2,1,ssize,'real8_3d_exchange')
     end if
 
     if ( ma%bandflag ) then
@@ -7802,10 +7802,10 @@ module mod_mppparam
     ! nsize is the height of a block in the tracer direction
     ssize = nex * ksize * nsize * (4*nex+2*isize+2*jsize)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      call getmem(r8vector1,1,ssize,'real8_4d_exchange')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      call getmem(r8vector2,1,ssize,'real8_4d_exchange')
     end if
 
     if ( ma%bandflag ) then
@@ -8429,10 +8429,10 @@ module mod_mppparam
     ! jsize is the height of a block in the W-E direction
     ssize = nex * (4*nex+2*isize+2*jsize)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      call getmem(r4vector1,1,ssize,'real4_2d_exchange')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      call getmem(r4vector2,1,ssize,'real4_2d_exchange')
     end if
 
     if ( ma%bandflag ) then
@@ -8930,10 +8930,10 @@ module mod_mppparam
     ! ksize is the height of a block in the T-B direction
     ssize = nex * ksize * (4*nex+2*isize+2*jsize)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      call getmem(r4vector1,1,ssize,'real4_3d_exchange')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      call getmem(r4vector2,1,ssize,'real4_3d_exchange')
     end if
 
     if ( ma%bandflag ) then
@@ -9498,10 +9498,10 @@ module mod_mppparam
     ! nsize is the height of a block in the tracer direction
     ssize = nex * ksize * nsize * (4*nex+2*isize+2*jsize)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      call getmem(r4vector1,1,ssize,'real4_4d_exchange')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      call getmem(r4vector2,1,ssize,'real4_4d_exchange')
     end if
 
     if ( ma%bandflag ) then
@@ -10125,10 +10125,10 @@ module mod_mppparam
     ! jsize is the height of a block in the W-E direction
     ssize = nex * (2*isize+2*jsize)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_right_bottom_top')
+      call getmem(r8vector1,1,ssize,'real8_2d_exchange_left_right_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_right_bottom_top')
+      call getmem(r8vector2,1,ssize,'real8_2d_exchange_left_right_bottom_top')
     end if
 
     if ( ma%bandflag ) then
@@ -10385,10 +10385,10 @@ module mod_mppparam
     ! ksize is the height of a block in the T-B direction
     ssize = nex * ksize * (2*isize+2*jsize)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_right_bottom_top')
+      call getmem(r8vector1,1,ssize,'real8_3d_exchange_left_right_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_right_bottom_top')
+      call getmem(r8vector2,1,ssize,'real8_3d_exchange_left_right_bottom_top')
     end if
 
     if ( ma%bandflag ) then
@@ -10699,10 +10699,10 @@ module mod_mppparam
     ! nsize is the height of a block in the tracer direction
     ssize = nex * ksize * nsize * (2*isize+2*jsize)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_right_bottom_top')
+      call getmem(r8vector1,1,ssize,'real8_4d_exchange_left_right_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_right_bottom_top')
+      call getmem(r8vector2,1,ssize,'real8_4d_exchange_left_right_bottom_top')
     end if
 
     if ( ma%bandflag ) then
@@ -11043,10 +11043,10 @@ module mod_mppparam
     ! jsize is the height of a block in the W-E direction
     ssize = nex * (2*isize+2*jsize)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_right_bottom_top')
+      call getmem(r4vector1,1,ssize,'real4_2d_exchange_left_right_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_right_bottom_top')
+      call getmem(r4vector2,1,ssize,'real4_2d_exchange_left_right_bottom_top')
     end if
 
     if ( ma%bandflag ) then
@@ -11326,10 +11326,10 @@ module mod_mppparam
     ! ksize is the height of a block in the T-B direction
     ssize = nex * ksize * (2*isize+2*jsize)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_right_bottom_top')
+      call getmem(r4vector1,1,ssize,'real4_3d_exchange_left_right_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_right_bottom_top')
+      call getmem(r4vector2,1,ssize,'real4_3d_exchange_left_right_bottom_top')
     end if
 
     if ( ma%bandflag ) then
@@ -11644,10 +11644,10 @@ module mod_mppparam
     ! nsize is the height of a block in the tracer direction
     ssize = nex * ksize * nsize * (2*isize+2*jsize)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_right_bottom_top')
+      call getmem(r4vector1,1,ssize,'real4_4d_exchange_left_right_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_right_bottom_top')
+      call getmem(r4vector2,1,ssize,'real4_4d_exchange_left_right_bottom_top')
     end if
 
     if ( ma%bandflag ) then
@@ -11986,10 +11986,10 @@ module mod_mppparam
     ! isize is the height of a block in the N-S direction
     ssize = nex * 2*isize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_right')
+      call getmem(r8vector1,1,ssize,'real8_2d_exchange_left_right')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_right')
+      call getmem(r8vector2,1,ssize,'real8_2d_exchange_left_right')
     end if
 
     if ( ma%bandflag ) then
@@ -12141,10 +12141,10 @@ module mod_mppparam
     ! ksize is the height of a block in the T-B direction
     ssize = nex * ksize * 2*isize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_right')
+      call getmem(r8vector1,1,ssize,'real8_3d_exchange_left_right')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_right')
+      call getmem(r8vector2,1,ssize,'real8_3d_exchange_left_right')
     end if
 
     if ( ma%bandflag ) then
@@ -12315,10 +12315,10 @@ module mod_mppparam
     ! nsize is the height of a block in the tracer direction
     ssize = nex * ksize * nsize * 2*isize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_right')
+      call getmem(r8vector1,1,ssize,'real8_4d_exchange_left_right')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_right')
+      call getmem(r8vector2,1,ssize,'real8_4d_exchange_left_right')
     end if
 
     if ( ma%bandflag ) then
@@ -12504,10 +12504,10 @@ module mod_mppparam
     ! isize is the height of a block in the N-S direction
     ssize = nex * 2*isize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_right')
+      call getmem(r4vector1,1,ssize,'real4_2d_exchange_left_right')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_right')
+      call getmem(r4vector2,1,ssize,'real4_2d_exchange_left_right')
     end if
 
     if ( ma%bandflag ) then
@@ -12659,10 +12659,10 @@ module mod_mppparam
     ! ksize is the height of a block in the T-B direction
     ssize = nex * ksize * 2*isize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_right')
+      call getmem(r4vector1,1,ssize,'real4_3d_exchange_left_right')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_right')
+      call getmem(r4vector2,1,ssize,'real4_3d_exchange_left_right')
     end if
 
     if ( ma%bandflag ) then
@@ -12837,10 +12837,10 @@ module mod_mppparam
     ! nsize is the height of a block in the tracer direction
     ssize = nex * ksize * nsize * 2*isize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_right')
+      call getmem(r4vector1,1,ssize,'real4_4d_exchange_left_right')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_right')
+      call getmem(r4vector2,1,ssize,'real4_4d_exchange_left_right')
     end if
 
     if ( ma%bandflag ) then
@@ -13026,10 +13026,10 @@ module mod_mppparam
     ! jsize is the height of a block in the W-E direction
     ssize = nex * 2*jsize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_bottom_top')
+      call getmem(r8vector1,1,ssize,'real8_2d_exchange_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_bottom_top')
+      call getmem(r8vector2,1,ssize,'real8_2d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -13183,10 +13183,10 @@ module mod_mppparam
     ! ksize is the height of a block in the T-B direction
     ssize = nex * ksize * 2*jsize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_bottom_top')
+      call getmem(r8vector1,1,ssize,'real8_3d_exchange_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_bottom_top')
+      call getmem(r8vector2,1,ssize,'real8_3d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -13362,10 +13362,10 @@ module mod_mppparam
     ! nsize is the height of a block in the tracer direction
     ssize = nex * ksize * nsize * 2*jsize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_bottom_top')
+      call getmem(r8vector1,1,ssize,'real8_4d_exchange_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_bottom_top')
+      call getmem(r8vector2,1,ssize,'real8_4d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -13552,10 +13552,10 @@ module mod_mppparam
     ! jsize is the height of a block in the W-E direction
     ssize = nex * 2*jsize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_bottom_top')
+      call getmem(r4vector1,1,ssize,'real4_2d_exchange_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_bottom_top')
+      call getmem(r4vector2,1,ssize,'real4_2d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -13709,10 +13709,10 @@ module mod_mppparam
     ! ksize is the height of a block in the T-B direction
     ssize = nex * ksize * 2*jsize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_bottom_top')
+      call getmem(r4vector1,1,ssize,'real4_3d_exchange_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_bottom_top')
+      call getmem(r4vector2,1,ssize,'real4_3d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -13888,10 +13888,10 @@ module mod_mppparam
     ! nsize is the height of a block in the tracer direction
     ssize = nex * ksize * nsize * 2*jsize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_bottom_top')
+      call getmem(r4vector1,1,ssize,'real4_4d_exchange_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_bottom_top')
+      call getmem(r4vector2,1,ssize,'real4_4d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -14075,10 +14075,10 @@ module mod_mppparam
 
     ssize = nex*(isize+jsize+nex)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      call getmem(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
+      call getmem(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
     end if
 
     if ( ma%bandflag ) then
@@ -14295,10 +14295,10 @@ module mod_mppparam
 
     ssize = nex*ksize*(isize+jsize+nex)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      call getmem(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
+      call getmem(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
     end if
 
     if ( ma%bandflag ) then
@@ -14540,10 +14540,10 @@ module mod_mppparam
 
     ssize = nex*ksize*nsize*(isize+jsize+nex)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      call getmem(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
+      call getmem(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
     end if
 
     if ( ma%bandflag ) then
@@ -14798,10 +14798,10 @@ module mod_mppparam
 
     ssize = nex*(isize+jsize+nex)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+      call getmem(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
+      call getmem(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
     end if
 
     if ( ma%bandflag ) then
@@ -15017,10 +15017,10 @@ module mod_mppparam
 
     ssize = nex*ksize*(isize+jsize+nex)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+      call getmem(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
+      call getmem(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
     end if
 
     if ( ma%bandflag ) then
@@ -15261,10 +15261,10 @@ module mod_mppparam
 
     ssize = nex*ksize*nsize*(isize+jsize+nex)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+      call getmem(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
+      call getmem(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
     end if
 
     if ( ma%bandflag ) then
@@ -15520,10 +15520,10 @@ module mod_mppparam
 
     ssize = nex*(isize+jsize+nex)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
+      call getmem(r8vector1,1,ssize,'real8_2d_exchange_right_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
+      call getmem(r8vector2,1,ssize,'real8_2d_exchange_right_top')
     end if
 
     if ( ma%bandflag ) then
@@ -15737,10 +15737,10 @@ module mod_mppparam
 
     ssize = nex*ksize*(isize+jsize+nex)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
+      call getmem(r8vector1,1,ssize,'real8_3d_exchange_right_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
+      call getmem(r8vector2,1,ssize,'real8_3d_exchange_right_top')
     end if
 
     if ( ma%bandflag ) then
@@ -15976,10 +15976,10 @@ module mod_mppparam
 
     ssize = nex*ksize*nsize*(isize+jsize+nex)
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
+      call getmem(r8vector1,1,ssize,'real8_4d_exchange_right_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
+      call getmem(r8vector2,1,ssize,'real8_4d_exchange_right_top')
     end if
 
     if ( ma%bandflag ) then
@@ -16235,10 +16235,10 @@ module mod_mppparam
 
     ssize = nex*(isize+jsize+nex)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
+      call getmem(r4vector1,1,ssize,'real4_2d_exchange_right_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
+      call getmem(r4vector2,1,ssize,'real4_2d_exchange_right_top')
     end if
 
     if ( ma%bandflag ) then
@@ -16451,10 +16451,10 @@ module mod_mppparam
 
     ssize = nex*ksize*(isize+jsize+nex)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
+      call getmem(r4vector1,1,ssize,'real4_3d_exchange_right_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
+      call getmem(r4vector2,1,ssize,'real4_3d_exchange_right_top')
     end if
 
     if ( ma%bandflag ) then
@@ -16690,10 +16690,10 @@ module mod_mppparam
 
     ssize = nex*ksize*nsize*(isize+jsize+nex)
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
+      call getmem(r4vector1,1,ssize,'real4_4d_exchange_right_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
+      call getmem(r4vector2,1,ssize,'real4_4d_exchange_right_top')
     end if
 
     if ( ma%bandflag ) then
@@ -16945,10 +16945,10 @@ module mod_mppparam
     ipos = 1
     ssize = 2*ksize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_bdy_exchange_left_right')
+      call getmem(r8vector1,1,ssize,'real8_bdy_exchange_left_right')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_bdy_exchange_left_right')
+      call getmem(r8vector2,1,ssize,'real8_bdy_exchange_left_right')
     end if
     if ( ma%bandflag ) then
       ib = 1
@@ -17042,10 +17042,10 @@ module mod_mppparam
     ipos = 1
     ssize = 2*ksize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_bdy_exchange_left_right')
+      call getmem(r4vector1,1,ssize,'real4_bdy_exchange_left_right')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_bdy_exchange_left_right')
+      call getmem(r4vector2,1,ssize,'real4_bdy_exchange_left_right')
     end if
     if ( ma%bandflag ) then
       ib = 1
@@ -17137,10 +17137,10 @@ module mod_mppparam
     ksize = k2-k1+1
     ssize = 2*ksize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_bdy_exchange_bottom_top')
+      call getmem(r8vector1,1,ssize,'real8_bdy_exchange_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_bdy_exchange_bottom_top')
+      call getmem(r8vector2,1,ssize,'real8_bdy_exchange_bottom_top')
     end if
     irc = 0
     ipos = 1
@@ -17207,10 +17207,10 @@ module mod_mppparam
     ksize = k2-k1+1
     ssize = 2*ksize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_bdy_exchange_bottom_top')
+      call getmem(r4vector1,1,ssize,'real4_bdy_exchange_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_bdy_exchange_bottom_top')
+      call getmem(r4vector2,1,ssize,'real4_bdy_exchange_bottom_top')
     end if
     irc = 0
     ipos = 1
@@ -17719,7 +17719,7 @@ module mod_mppparam
       write(stderr, *) nf90_strerror(istat)
       return
     end if
-    call getmem2d(xvar%iobuf,1,xvar%nx,1,xvar%ny,'var2d:iobuf')
+    call getmem(xvar%iobuf,1,xvar%nx,1,xvar%ny,'var2d:iobuf')
   end subroutine grid_nc_create_var2d
 
   subroutine grid_nc_write_var2d(xvar)
@@ -17767,7 +17767,7 @@ module mod_mppparam
     xvar%ncid = -1
     xvar%irec = -1
     nullify(xvar%val)
-    call relmem2d(xvar%iobuf)
+    call relmem(xvar%iobuf)
   end subroutine grid_nc_destroy_var2d
 
   subroutine grid_nc_create_var3d(varname,ldot,val,xvar)
@@ -17843,7 +17843,7 @@ module mod_mppparam
       write(stderr, *) nf90_strerror(istat)
       return
     end if
-    call getmem3d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz,'var3d:iobuf')
+    call getmem(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz,'var3d:iobuf')
   end subroutine grid_nc_create_var3d
 
   subroutine grid_nc_write_var3d(xvar)
@@ -17893,7 +17893,7 @@ module mod_mppparam
     xvar%ncid = -1
     xvar%irec = -1
     nullify(xvar%val)
-    call relmem3d(xvar%iobuf)
+    call relmem(xvar%iobuf)
   end subroutine grid_nc_destroy_var3d
 
   subroutine grid_nc_create_var4d(varname,ldot,val,xvar)
@@ -17975,7 +17975,7 @@ module mod_mppparam
       write(stderr, *) nf90_strerror(istat)
       return
     end if
-    call getmem4d(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz, &
+    call getmem(xvar%iobuf,1,xvar%nx,1,xvar%ny,1,xvar%nz, &
                   1,xvar%nl,'var3d:iobuf')
   end subroutine grid_nc_create_var4d
 
@@ -18029,7 +18029,7 @@ module mod_mppparam
     xvar%ncid = -1
     xvar%irec = -1
     nullify(xvar%val)
-    call relmem4d(xvar%iobuf)
+    call relmem(xvar%iobuf)
   end subroutine grid_nc_destroy_var4d
 
   subroutine gather_r(f_collect,f_sub)
@@ -18805,22 +18805,22 @@ module mod_mppparam
       cl%linear_npoint_sg = cl%linear_npoint_g
       cl%linear_displ_sg = cl%linear_displ_g
     end if
-    call getmem3d(r8subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:r8subgrid')
-    call getmem3d(r4subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:r4subgrid')
-    call getmem3d(i4subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:i4subgrid')
-    call getmem3d(lsubgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:lsubgrid')
-    call getmem3d(global_r8subgrid,1,nnsg,jout1,jout2, &
+    call getmem(r8subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:r8subgrid')
+    call getmem(r4subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:r4subgrid')
+    call getmem(i4subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:i4subgrid')
+    call getmem(lsubgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:lsubgrid')
+    call getmem(global_r8subgrid,1,nnsg,jout1,jout2, &
             iout1,iout2,'mpp:global_r8subgrid')
-    call getmem3d(global_r4subgrid,1,nnsg,jout1,jout2, &
+    call getmem(global_r4subgrid,1,nnsg,jout1,jout2, &
             iout1,iout2,'mpp:global_r4subgrid')
-    call getmem3d(global_i4subgrid,1,nnsg,jout1,jout2, &
+    call getmem(global_i4subgrid,1,nnsg,jout1,jout2, &
             iout1,iout2,'mpp:global_i4subgrid')
-    call getmem3d(global_lsubgrid,1,nnsg,jout1,jout2, &
+    call getmem(global_lsubgrid,1,nnsg,jout1,jout2, &
             iout1,iout2,'mpp:global_lsubgrid')
-    call getmem2d(global_r8grid,jout1,jout2,iout1,iout2,'mpp:global_r8grid')
-    call getmem2d(global_r4grid,jout1,jout2,iout1,iout2,'mpp:global_r4grid')
-    call getmem2d(global_i4grid,jout1,jout2,iout1,iout2,'mpp:global_i4grid')
-    call getmem2d(global_lgrid,jout1,jout2,iout1,iout2,'mpp:global_lgrid')
+    call getmem(global_r8grid,jout1,jout2,iout1,iout2,'mpp:global_r8grid')
+    call getmem(global_r4grid,jout1,jout2,iout1,iout2,'mpp:global_r4grid')
+    call getmem(global_i4grid,jout1,jout2,iout1,iout2,'mpp:global_i4grid')
+    call getmem(global_lgrid,jout1,jout2,iout1,iout2,'mpp:global_lgrid')
   end subroutine clset
 
   subroutine cl_setup_real8(cl,gmask,sgmask,lrev)
@@ -18837,20 +18837,20 @@ module mod_mppparam
         call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
       end if
 #endif
-      call getmem1d(cl%linear_npoint_g,1,nproc,'cl:linear_npoint_g')
-      call getmem1d(cl%linear_displ_g,1,nproc,'cl:linear_displ_g')
-      call getmem1d(cl%cartesian_npoint_g,1,nproc,'cl:cartesian_npoint_g')
-      call getmem1d(cl%cartesian_displ_g,1,nproc,'cl:cartesian_displ_g')
-      call getmem1d(cl%linear_npoint_sg,1,nproc,'cl:linear_npoint_sg')
-      call getmem1d(cl%linear_displ_sg,1,nproc,'cl:linear_displ_sg')
-      call getmem1d(cl%cartesian_npoint_sg,1,nproc,'cl:cartesian_npoint_sg')
-      call getmem1d(cl%cartesian_displ_sg,1,nproc,'cl:cartesian_displ_sg')
-      call getmem2d(cl%gmask,jci1,jci2,ici1,ici2,'cl:gmask')
-      call getmem3d(cl%sgmask,1,nnsg,jci1,jci2,ici1,ici2,'cl:sgmask')
-      call getmem2d(cl%global_gmask,jout1,jout2,iout1,iout2,'cl:global_gmask')
-      call getmem3d(cl%global_sgmask,1,nnsg,jout1,jout2, &
+      call getmem(cl%linear_npoint_g,1,nproc,'cl:linear_npoint_g')
+      call getmem(cl%linear_displ_g,1,nproc,'cl:linear_displ_g')
+      call getmem(cl%cartesian_npoint_g,1,nproc,'cl:cartesian_npoint_g')
+      call getmem(cl%cartesian_displ_g,1,nproc,'cl:cartesian_displ_g')
+      call getmem(cl%linear_npoint_sg,1,nproc,'cl:linear_npoint_sg')
+      call getmem(cl%linear_displ_sg,1,nproc,'cl:linear_displ_sg')
+      call getmem(cl%cartesian_npoint_sg,1,nproc,'cl:cartesian_npoint_sg')
+      call getmem(cl%cartesian_displ_sg,1,nproc,'cl:cartesian_displ_sg')
+      call getmem(cl%gmask,jci1,jci2,ici1,ici2,'cl:gmask')
+      call getmem(cl%sgmask,1,nnsg,jci1,jci2,ici1,ici2,'cl:sgmask')
+      call getmem(cl%global_gmask,jout1,jout2,iout1,iout2,'cl:global_gmask')
+      call getmem(cl%global_sgmask,1,nnsg,jout1,jout2, &
                                             iout1,iout2,'cl:global_sgmask')
-      call getmem2d(cl%global_out_sgmask,joutsg1,joutsg2, &
+      call getmem(cl%global_out_sgmask,joutsg1,joutsg2, &
                                          ioutsg1,ioutsg2,'cl:global_out_sgmask')
     end if
     cl%gmask = gmask(jci1:jci2,ici1:ici2) > 0.0D0
@@ -18883,20 +18883,20 @@ module mod_mppparam
         call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
       end if
 #endif
-      call getmem1d(cl%linear_npoint_g,1,nproc,'cl:linear_npoint_g')
-      call getmem1d(cl%linear_displ_g,1,nproc,'cl:linear_displ_g')
-      call getmem1d(cl%cartesian_npoint_g,1,nproc,'cl:cartesian_npoint_g')
-      call getmem1d(cl%cartesian_displ_g,1,nproc,'cl:cartesian_displ_g')
-      call getmem1d(cl%linear_npoint_sg,1,nproc,'cl:linear_npoint_sg')
-      call getmem1d(cl%linear_displ_sg,1,nproc,'cl:linear_displ_sg')
-      call getmem1d(cl%cartesian_npoint_sg,1,nproc,'cl:cartesian_npoint_sg')
-      call getmem1d(cl%cartesian_displ_sg,1,nproc,'cl:cartesian_displ_sg')
-      call getmem2d(cl%gmask,jci1,jci2,ici1,ici2,'cl:gmask')
-      call getmem3d(cl%sgmask,1,nnsg,jci1,jci2,ici1,ici2,'cl:sgmask')
-      call getmem2d(cl%global_gmask,jout1,jout2,iout1,iout2,'cl:global_gmask')
-      call getmem3d(cl%global_sgmask,1,nnsg,jout1,jout2, &
+      call getmem(cl%linear_npoint_g,1,nproc,'cl:linear_npoint_g')
+      call getmem(cl%linear_displ_g,1,nproc,'cl:linear_displ_g')
+      call getmem(cl%cartesian_npoint_g,1,nproc,'cl:cartesian_npoint_g')
+      call getmem(cl%cartesian_displ_g,1,nproc,'cl:cartesian_displ_g')
+      call getmem(cl%linear_npoint_sg,1,nproc,'cl:linear_npoint_sg')
+      call getmem(cl%linear_displ_sg,1,nproc,'cl:linear_displ_sg')
+      call getmem(cl%cartesian_npoint_sg,1,nproc,'cl:cartesian_npoint_sg')
+      call getmem(cl%cartesian_displ_sg,1,nproc,'cl:cartesian_displ_sg')
+      call getmem(cl%gmask,jci1,jci2,ici1,ici2,'cl:gmask')
+      call getmem(cl%sgmask,1,nnsg,jci1,jci2,ici1,ici2,'cl:sgmask')
+      call getmem(cl%global_gmask,jout1,jout2,iout1,iout2,'cl:global_gmask')
+      call getmem(cl%global_sgmask,1,nnsg,jout1,jout2, &
                                             iout1,iout2,'cl:global_sgmask')
-      call getmem2d(cl%global_out_sgmask,joutsg1,joutsg2, &
+      call getmem(cl%global_out_sgmask,joutsg1,joutsg2, &
                                          ioutsg1,ioutsg2,'cl:global_out_sgmask')
     end if
     cl%gmask = gmask(jci1:jci2,ici1:ici2) > 0.0D0
@@ -19838,18 +19838,18 @@ module mod_mppparam
     implicit none
     type(masked_comm), intent(inout) :: cl
     if ( associated(cl%linear_npoint_g) ) then
-      call relmem1d(cl%linear_npoint_g)
-      call relmem1d(cl%linear_displ_g)
-      call relmem1d(cl%cartesian_npoint_g)
-      call relmem1d(cl%cartesian_displ_g)
-      call relmem1d(cl%linear_npoint_sg)
-      call relmem1d(cl%linear_displ_sg)
-      call relmem1d(cl%cartesian_npoint_sg)
-      call relmem1d(cl%cartesian_displ_sg)
-      call relmem2d(cl%gmask)
-      call relmem3d(cl%sgmask)
-      call relmem2d(cl%global_gmask)
-      call relmem3d(cl%global_sgmask)
+      call relmem(cl%linear_npoint_g)
+      call relmem(cl%linear_displ_g)
+      call relmem(cl%cartesian_npoint_g)
+      call relmem(cl%cartesian_displ_g)
+      call relmem(cl%linear_npoint_sg)
+      call relmem(cl%linear_displ_sg)
+      call relmem(cl%cartesian_npoint_sg)
+      call relmem(cl%cartesian_displ_sg)
+      call relmem(cl%gmask)
+      call relmem(cl%sgmask)
+      call relmem(cl%global_gmask)
+      call relmem(cl%global_sgmask)
       call mpi_comm_free(cl%linear_communicator,mpierr)
 #ifdef DEBUG
       if ( mpierr /= mpi_success ) then

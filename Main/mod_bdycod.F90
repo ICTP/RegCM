@@ -395,50 +395,50 @@ module mod_bdycod
   subroutine allocate_mod_bdycon
     implicit none
     if ( iboudy == 1 .or. idynamic == 2 ) then
-      call getmem1d(fcx,2,nspgx-1,'bdycon:fcx')
-      call getmem1d(gcx,2,nspgx-1,'bdycon:gcx')
-      call getmem1d(fcd,2,nspgd-1,'bdycon:fcd')
-      call getmem1d(gcd,2,nspgd-1,'bdycon:gcd')
+      call getmem(fcx,2,nspgx-1,'bdycon:fcx')
+      call getmem(gcx,2,nspgx-1,'bdycon:gcx')
+      call getmem(fcd,2,nspgd-1,'bdycon:fcd')
+      call getmem(gcd,2,nspgd-1,'bdycon:gcd')
     end if
     if ( iboudy == 4 ) then
-      call getmem1d(wgtd,2,nspgd-1,'bdycon:wgtd')
-      call getmem1d(wgtx,2,nspgx-1,'bdycon:wgtx')
+      call getmem(wgtd,2,nspgd-1,'bdycon:wgtd')
+      call getmem(wgtx,2,nspgx-1,'bdycon:wgtx')
     end if
     if ( iboudy >= 5 ) then
-      call getmem2d(hefc,2,nspgx-1,1,kz,'bdycon:hefc')
-      call getmem2d(hegc,2,nspgx-1,1,kz,'bdycon:hegc')
-      call getmem2d(hefd,2,nspgd-1,1,kz,'bdycon:hefd')
-      call getmem2d(hegd,2,nspgd-1,1,kz,'bdycon:hegd')
+      call getmem(hefc,2,nspgx-1,1,kz,'bdycon:hefc')
+      call getmem(hegc,2,nspgx-1,1,kz,'bdycon:hegc')
+      call getmem(hefd,2,nspgd-1,1,kz,'bdycon:hefd')
+      call getmem(hegd,2,nspgd-1,1,kz,'bdycon:hegd')
     end if
     if ( idynamic /= 3 ) then
       if ( ma%has_bdytop ) then
-        call getmem2d(nue,jde1ga,jde2ga,1,kz,'bdycon:nue')
-        call getmem2d(nui,jde1ga,jde2ga,1,kz,'bdycon:nui')
-        call getmem2d(nve,jde1ga,jde2ga,1,kz,'bdycon:nve')
-        call getmem2d(nvi,jde1ga,jde2ga,1,kz,'bdycon:nvi')
+        call getmem(nue,jde1ga,jde2ga,1,kz,'bdycon:nue')
+        call getmem(nui,jde1ga,jde2ga,1,kz,'bdycon:nui')
+        call getmem(nve,jde1ga,jde2ga,1,kz,'bdycon:nve')
+        call getmem(nvi,jde1ga,jde2ga,1,kz,'bdycon:nvi')
       end if
       if ( ma%has_bdybottom ) then
-        call getmem2d(sue,jde1ga,jde2ga,1,kz,'bdycon:sue')
-        call getmem2d(sui,jde1ga,jde2ga,1,kz,'bdycon:sui')
-        call getmem2d(sve,jde1ga,jde2ga,1,kz,'bdycon:sve')
-        call getmem2d(svi,jde1ga,jde2ga,1,kz,'bdycon:svi')
+        call getmem(sue,jde1ga,jde2ga,1,kz,'bdycon:sue')
+        call getmem(sui,jde1ga,jde2ga,1,kz,'bdycon:sui')
+        call getmem(sve,jde1ga,jde2ga,1,kz,'bdycon:sve')
+        call getmem(svi,jde1ga,jde2ga,1,kz,'bdycon:svi')
       end if
       if ( ma%has_bdyright ) then
-        call getmem2d(eue,ide1ga,ide2ga,1,kz,'bdycon:eue')
-        call getmem2d(eui,ide1ga,ide2ga,1,kz,'bdycon:eui')
-        call getmem2d(eve,ide1ga,ide2ga,1,kz,'bdycon:eve')
-        call getmem2d(evi,ide1ga,ide2ga,1,kz,'bdycon:evi')
+        call getmem(eue,ide1ga,ide2ga,1,kz,'bdycon:eue')
+        call getmem(eui,ide1ga,ide2ga,1,kz,'bdycon:eui')
+        call getmem(eve,ide1ga,ide2ga,1,kz,'bdycon:eve')
+        call getmem(evi,ide1ga,ide2ga,1,kz,'bdycon:evi')
       end if
       if ( ma%has_bdyleft ) then
-        call getmem2d(wue,ide1ga,ide2ga,1,kz,'bdycon:wue')
-        call getmem2d(wui,ide1ga,ide2ga,1,kz,'bdycon:wui')
-        call getmem2d(wve,ide1ga,ide2ga,1,kz,'bdycon:wve')
-        call getmem2d(wvi,ide1ga,ide2ga,1,kz,'bdycon:wvi')
+        call getmem(wue,ide1ga,ide2ga,1,kz,'bdycon:wue')
+        call getmem(wui,ide1ga,ide2ga,1,kz,'bdycon:wui')
+        call getmem(wve,ide1ga,ide2ga,1,kz,'bdycon:wve')
+        call getmem(wvi,ide1ga,ide2ga,1,kz,'bdycon:wvi')
       end if
-      call getmem2d(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
+      call getmem(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
     end if
-    call getmem3d(fg1,jde1ga,jde2ga,ide1ga,ide2ga,1,kzp1,'bdycon:fg1')
-    call getmem3d(fg2,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:fg2')
+    call getmem(fg1,jde1ga,jde2ga,ide1ga,ide2ga,1,kzp1,'bdycon:fg1')
+    call getmem(fg2,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:fg2')
 
   end subroutine allocate_mod_bdycon
 

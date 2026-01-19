@@ -291,7 +291,7 @@ program terrain
     write(stdout,*)'Static DEM data successfully read in'
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
                 values,topo_interp_method,rdem=roidem)
-    call relmem2d(values)
+    call relmem(values)
     write(stdout,*)'Interpolated DEM on SUBGRID'
 
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'//              &
@@ -303,7 +303,7 @@ program terrain
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,lndout_s,values, &
                 class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
     call filter1plakes(jxsg,iysg,lndout_s)
-    call relmem2d(values)
+    call relmem(values)
     write(stdout,*)'Interpolated landcover on SUBGRID'
 
     if ( lsmoist ) then
@@ -349,7 +349,7 @@ program terrain
       end do
       call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,smoist_s,values, &
                   moist_interp_method)
-      call relmem2d(values)
+      call relmem(values)
       write(stdout,*)'Interpolated soil moisture on SUBGRID'
     end if
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'//              &
@@ -366,7 +366,7 @@ program terrain
                   percent_interp_method,ival=i,rdem=roidem)
     end do
 !$OMP END PARALLEL DO
-    call relmem2d(values)
+    call relmem(values)
     write(stdout,*)'Interpolated texture on SUBGRID'
 
     if ( lakedpth ) then
@@ -378,7 +378,7 @@ program terrain
       write(stdout,*)'Static bathymetry data successfully read in'
       call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,dpth_s,values, &
                   topo_interp_method,rdem=roidem)
-      call relmem2d(values)
+      call relmem(values)
       write(stdout,*)'Interpolated bathymetry on SUBGRID'
     end if
 
@@ -500,7 +500,7 @@ program terrain
   write(stdout,*)'Static DEM data successfully read in'
   call interp(ds,jx,iy,xlat,xlon,htgrid,values, &
               topo_interp_method,rdem=roidem)
-  call relmem2d(values)
+  call relmem(values)
   write(stdout,*)'Interpolated DEM on model GRID'
 
   !call gfopen(gfile,trim(inpter)//pthsep//'SURFACE'//  &
@@ -517,7 +517,7 @@ program terrain
   call interp(ds,jx,iy,xlat,xlon,lndout,values, &
               class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
   call filter1plakes(jx,iy,lndout)
-  call relmem2d(values)
+  call relmem(values)
   write(stdout,*)'Interpolated landcover on model GRID'
 
   if ( lsmoist ) then
@@ -562,7 +562,7 @@ program terrain
       end do
     end do
     call interp(ds,jx,iy,xlat,xlon,smoist,values,moist_interp_method)
-    call relmem2d(values)
+    call relmem(values)
     write(stdout,*)'Interpolated soil moisture on model GRID'
   end if
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'//          &
@@ -579,7 +579,7 @@ program terrain
                 percent_interp_method,ival=i,rdem=roidem)
   end do
 !$OMP END PARALLEL DO
-  call relmem2d(values)
+  call relmem(values)
   write(stdout,*)'Interpolated texture on model GRID'
 
   if ( lakedpth ) then
@@ -591,7 +591,7 @@ program terrain
     write(stdout,*)'Static bathymetry data successfully read in'
     call interp(ds,jx,iy,xlat,xlon,dpth,values, &
                 topo_interp_method,rdem=roidem)
-    call relmem2d(values)
+    call relmem(values)
     write(stdout,*)'Interpolated bathymetry on model GRID'
   end if
 

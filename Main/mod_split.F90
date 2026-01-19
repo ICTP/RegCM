@@ -57,20 +57,20 @@ module mod_split
 
   subroutine allocate_mod_split
     implicit none
-    call getmem1d(aam,1,nsplit,'split:aam')
-    call getmem2d(am,1,kz,1,nsplit,'split:am')
-    call getmem2d(map,jce1,jce2,ice1,ice2,'split:map')
-    call getmem1d(an,1,nsplit,'split:naam')
-    call getmem3d(ddsum,jde1,jde2,ide1,ide2,1,nsplit,'split:ddsum')
-    call getmem4d(deld,jde1,jde2,ide1,ide2,1,nsplit,1,3,'split:deld')
-    call getmem4d(delh,jde1,jde2,ide1,ide2,1,nsplit,1,3,'split:delh')
-    call getmem2d(xdelh,jde1ga,jde2,ide1ga,ide2,'split:xdelh')
-    call getmem3d(dhsum,jde1ga,jde2,ide1ga,ide2,1,nsplit,'split:dhsum')
-    call getmem3d(work,jdi1,jdi2,idi1,idi2,1,3,'split:work')
-    call getmem2d(uu,jdi1,jdi2ga,idi1,idi2ga,'split:uu')
-    call getmem2d(vv,jdi1,jdi2ga,idi1,idi2ga,'split:vv')
-    call getmem3d(uuu,jde1,jde2ga,ide1,ide2ga,1,kz,'split:uuu')
-    call getmem3d(vvv,jde1,jde2ga,ide1,ide2ga,1,kz,'split:vvv')
+    call getmem(aam,1,nsplit,'split:aam')
+    call getmem(am,1,kz,1,nsplit,'split:am')
+    call getmem(map,jce1,jce2,ice1,ice2,'split:map')
+    call getmem(an,1,nsplit,'split:naam')
+    call getmem(ddsum,jde1,jde2,ide1,ide2,1,nsplit,'split:ddsum')
+    call getmem(deld,jde1,jde2,ide1,ide2,1,nsplit,1,3,'split:deld')
+    call getmem(delh,jde1,jde2,ide1,ide2,1,nsplit,1,3,'split:delh')
+    call getmem(xdelh,jde1ga,jde2,ide1ga,ide2,'split:xdelh')
+    call getmem(dhsum,jde1ga,jde2,ide1ga,ide2,1,nsplit,'split:dhsum')
+    call getmem(work,jdi1,jdi2,idi1,idi2,1,3,'split:work')
+    call getmem(uu,jdi1,jdi2ga,idi1,idi2ga,'split:uu')
+    call getmem(vv,jdi1,jdi2ga,idi1,idi2ga,'split:vv')
+    call getmem(uuu,jde1,jde2ga,ide1,ide2ga,1,kz,'split:uuu')
+    call getmem(vvv,jde1,jde2ga,ide1,ide2ga,1,kz,'split:vvv')
   end subroutine allocate_mod_split
   !
   ! Intial computation of vertical modes.

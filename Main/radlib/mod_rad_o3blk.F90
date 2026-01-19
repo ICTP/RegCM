@@ -209,8 +209,8 @@ module mod_rad_o3blk
     implicit none
     if ( iclimao3 == 1 ) then
       if ( myid == iocpu ) then
-        call getmem2d(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
-        call getmem2d(alat,jcross1,jcross2,icross1,icross2,'mod_o3blk:alat')
+        call getmem(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
+        call getmem(alat,jcross1,jcross2,icross1,icross2,'mod_o3blk:alat')
       end if
     end if
   end subroutine allocate_mod_rad_o3blk
@@ -299,22 +299,22 @@ module mod_rad_o3blk
         call bcast(np)
         call bcast(oplev)
         call bcast(mulfac)
-        call getmem3d(rdoz1,1,size(olon),1,size(olat),1,np,'ozone:rdoz1')
-        call getmem3d(rdoz2,1,size(olon),1,size(olat),1,np,'ozone:rdoz2')
-        call getmem3d(hzioz1,1,njcross,1,nicross,1,np,'ozone:hzioz1')
-        call getmem3d(hzioz2,1,njcross,1,nicross,1,np,'ozone:hzioz2')
+        call getmem(rdoz1,1,size(olon),1,size(olat),1,np,'ozone:rdoz1')
+        call getmem(rdoz2,1,size(olon),1,size(olat),1,np,'ozone:rdoz2')
+        call getmem(hzioz1,1,njcross,1,nicross,1,np,'ozone:hzioz1')
+        call getmem(hzioz2,1,njcross,1,nicross,1,np,'ozone:hzioz2')
         call h_interpolator_create(hint,olat,olon,alat,alon)
       else
         call bcast(np)
-        call getmem1d(oplev,1,np,'ozone:oplev')
+        call getmem(oplev,1,np,'ozone:oplev')
         call bcast(oplev)
         call bcast(mulfac)
       endif
-      call getmem1d(zsig,1,np,'mod_o3blk:zsig')
-      call getmem3d(ploz1,jci1,jci2,ici1,ici2,1,np,'mod_o3blk:ploz1')
-      call getmem3d(ploz2,jci1,jci2,ici1,ici2,1,np,'mod_o3blk:ploz2')
-      call getmem3d(sgoz1,jci1,jci2,ici1,ici2,1,kzp1,'mod_o3blk:sgoz1')
-      call getmem3d(sgoz2,jci1,jci2,ici1,ici2,1,kzp1,'mod_o3blk:sgoz2')
+      call getmem(zsig,1,np,'mod_o3blk:zsig')
+      call getmem(ploz1,jci1,jci2,ici1,ici2,1,np,'mod_o3blk:ploz1')
+      call getmem(ploz2,jci1,jci2,ici1,ici2,1,np,'mod_o3blk:ploz2')
+      call getmem(sgoz1,jci1,jci2,ici1,ici2,1,kzp1,'mod_o3blk:sgoz1')
+      call getmem(sgoz2,jci1,jci2,ici1,ici2,1,kzp1,'mod_o3blk:sgoz2')
     end if
 
     im1 = imon
@@ -413,9 +413,9 @@ module mod_rad_o3blk
       iret = nf90_inquire_dimension(ncid,idimid,len=nlat)
       iret = nf90_inq_dimid(ncid,'level',idimid)
       iret = nf90_inquire_dimension(ncid,idimid,len=nlev)
-      call getmem1d(lat,1,nlat,'init_o3data:lat')
-      call getmem1d(lon,1,nlon,'init_o3data:lon')
-      call getmem1d(lev,1,nlev,'init_o3data:lev')
+      call getmem(lat,1,nlat,'init_o3data:lat')
+      call getmem(lon,1,nlon,'init_o3data:lon')
+      call getmem(lev,1,nlev,'init_o3data:lev')
       call readvar1d(ncid,'latitude',lat)
       call readvar1d(ncid,'longitude',lon)
       call readvar1d(ncid,'level',lev)
@@ -426,9 +426,9 @@ module mod_rad_o3blk
       iret = nf90_inquire_dimension(ncid,idimid,len=nlat)
       iret = nf90_inq_dimid(ncid,'plev',idimid)
       iret = nf90_inquire_dimension(ncid,idimid,len=nlev)
-      call getmem1d(lat,1,nlat,'init_o3data:lat')
-      call getmem1d(lon,1,nlon,'init_o3data:lon')
-      call getmem1d(lev,1,nlev,'init_o3data:lev')
+      call getmem(lat,1,nlat,'init_o3data:lat')
+      call getmem(lon,1,nlon,'init_o3data:lon')
+      call getmem(lev,1,nlev,'init_o3data:lev')
       call readvar1d(ncid,'lat',lat)
       call readvar1d(ncid,'lon',lon)
       call readvar1d(ncid,'plev',lev)

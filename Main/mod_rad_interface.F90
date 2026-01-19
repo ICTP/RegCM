@@ -114,7 +114,7 @@ module mod_rad_interface
       end if
     end if
 
-    call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
+    call getmem(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
     call allocate_mod_rad_aerosol
     call allocate_mod_rad_o3blk
     call allocate_mod_rad_outrad
@@ -122,12 +122,12 @@ module mod_rad_interface
       call allocate_mod_rad_rrtmg
     else
       call allocate_mod_rad_colmod3
-      call getmem4d(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:gasabsnxt')
-      call getmem4d(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')
-      call getmem3d(gasemstot,jci1,jci2,ici1,ici2,1,kzp1,'rad:gasemstot')
+      call getmem(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:gasabsnxt')
+      call getmem(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')
+      call getmem(gasemstot,jci1,jci2,ici1,ici2,1,kzp1,'rad:gasemstot')
     end if
     if ( ichem == 1 .or. iclimaaer == 1 ) then
-      call getmem4d(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
+      call getmem(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
     end if
   end subroutine allocate_radiation
 

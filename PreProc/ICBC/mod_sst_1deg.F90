@@ -78,9 +78,9 @@ module mod_sst_1deg
     if ( ssttyp == 'GISST' ) then
       ilon = 360
       jlat = 180
-      call getmem1d(lati,1,jlat,'mod_sst_1deg:lati')
-      call getmem1d(loni,1,ilon,'mod_sst_1deg:loni')
-      call getmem2d(sst,1,ilon,1,jlat,'mod_sst_1deg:sst')
+      call getmem(lati,1,jlat,'mod_sst_1deg:lati')
+      call getmem(loni,1,ilon,'mod_sst_1deg:loni')
+      call getmem(sst,1,ilon,1,jlat,'mod_sst_1deg:sst')
       if ( globidate1 < 1947121512 .or. globidate2 > 2002091512 ) then
         write (stderr,*) 'GISST data required are not available'
         write (stderr,*) 'IDATE1, IDATE2 = ', globidate1, globidate2
@@ -314,10 +314,10 @@ module mod_sst_1deg
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find var lon')
       end if
-      call getmem1d(lati,1,jlat,'mod_sst_1deg:lati')
-      call getmem1d(loni,1,ilon,'mod_sst_1deg:loni')
-      call getmem2d(sst,1,ilon,1,jlat,'mod_sst_1deg:sst')
-      call getmem2d(work,1,ilon,1,jlat,'mod_sst_1deg:work')
+      call getmem(lati,1,jlat,'mod_sst_1deg:lati')
+      call getmem(loni,1,ilon,'mod_sst_1deg:loni')
+      call getmem(sst,1,ilon,1,jlat,'mod_sst_1deg:sst')
+      call getmem(work,1,ilon,1,jlat,'mod_sst_1deg:work')
       istatus = nf90_get_var(inet,latid,lati)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var lat')
@@ -387,7 +387,7 @@ module mod_sst_1deg
       istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find att add_offset')
-      call getmem2d(ice,1,ilon,1,jlat,'mod_sst_1deg:ice')
+      call getmem(ice,1,ilon,1,jlat,'mod_sst_1deg:ice')
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon
@@ -484,11 +484,11 @@ module mod_sst_1deg
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find var lon')
       end if
-      call getmem1d(lati,1,jlat,'mod_sst_1deg:lati')
-      call getmem1d(loni,1,ilon,'mod_sst_1deg:loni')
-      call getmem2d(sst,1,ilon,1,jlat,'mod_sst_1deg:sst')
-      call getmem2d(work,1,ilon,1,jlat,'mod_sst_1deg:work')
-      call getmem2d(work1,1,ilon,1,jlat,'mod_sst_1deg:work1')
+      call getmem(lati,1,jlat,'mod_sst_1deg:lati')
+      call getmem(loni,1,ilon,'mod_sst_1deg:loni')
+      call getmem(sst,1,ilon,1,jlat,'mod_sst_1deg:sst')
+      call getmem(work,1,ilon,1,jlat,'mod_sst_1deg:work')
+      call getmem(work1,1,ilon,1,jlat,'mod_sst_1deg:work1')
       istatus = nf90_get_var(inet,latid,lati)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var lat')
@@ -584,7 +584,7 @@ module mod_sst_1deg
       istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find att add_offset')
-      call getmem2d(ice,1,ilon,1,jlat,'mod_sst_1deg:ice')
+      call getmem(ice,1,ilon,1,jlat,'mod_sst_1deg:ice')
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon

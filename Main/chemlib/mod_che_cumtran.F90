@@ -43,9 +43,9 @@ module mod_che_cumtran
   subroutine init_cumtran
     implicit none
     integer(ik4) :: i, j
-    call getmem2d(dotran,jci1,jci2,ici1,ici2,'cumtran:dotran')
+    call getmem(dotran,jci1,jci2,ici1,ici2,'cumtran:dotran')
     if ( ichdiag > 0 ) then
-      call getmem4d(chiten0,jci1,jci2, &
+      call getmem(chiten0,jci1,jci2, &
                             ici1,ici2,1,kz,1,ntr,'che_common:chiten0')
     end if
     dotran(:,:) = .false.

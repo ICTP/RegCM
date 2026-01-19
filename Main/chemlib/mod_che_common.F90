@@ -120,83 +120,83 @@ module mod_che_common
 
     if ( ichem /= 1 ) return
 
-    call getmem1d(trac%index,1,ntr,'mod_che_common:trac%index')
-    call getmem1d(trac%indcbmz,1,ntr,'mod_che_common:trac%indcbmz')
-    call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')
-    call getmem1d(trac%indchbdy,1,ntr,'mod_che_common:trac%indchbdy')
+    call getmem(trac%index,1,ntr,'mod_che_common:trac%index')
+    call getmem(trac%indcbmz,1,ntr,'mod_che_common:trac%indcbmz')
+    call getmem(trac%mw,1,ntr,'mod_che_common:trac%mw')
+    call getmem(trac%indchbdy,1,ntr,'mod_che_common:trac%indchbdy')
 
     if ( igaschem == 1 .and. ichsolver > 0 ) then
-      call getmem4d(chemten,jci1,jci2, &
+      call getmem(chemten,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:chemten')
     end if
 
-    call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &
+    call getmem(chemsrc,jce1,jce2,ice1,ice2, &
                   1,ntr,'mod_che_common:chemsrc')
-    call getmem3d(chemsrcbb,jce1,jce2,ice1,ice2, &
+    call getmem(chemsrcbb,jce1,jce2,ice1,ice2, &
                   1,ntr,'mod_che_common:chemsrcbb')
-    call getmem3d(chemsrcan,jce1,jce2,ice1,ice2, &
+    call getmem(chemsrcan,jce1,jce2,ice1,ice2, &
                   1,ntr,'mod_che_common:chemsrcan')
-    call getmem3d(tmpsrc,jce1,jce2,ice1,ice2, &
+    call getmem(tmpsrc,jce1,jce2,ice1,ice2, &
                   1,ntr,'mod_che_common:tmpsrc')
-    call getmem3d(chifxuw,jci1,jci2,ici1,ici2, &
+    call getmem(chifxuw,jci1,jci2,ici1,ici2, &
                   1,ntr,'mod_che_common:chifxuw')
-    call getmem3d(convcldfra,jci1,jci2,ici1,ici2, &
+    call getmem(convcldfra,jci1,jci2,ici1,ici2, &
                   1,kz,'mod_che_common:convcldfra')
-    call getmem4d(rainout,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
+    call getmem(rainout,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
                   'che_common:rainout')
-    call getmem4d(washout,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
+    call getmem(washout,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
                   'che_common:washout')
-    call getmem3d(remdrd,jci1,jci2,ici1,ici2,1,ntr,'che_common:remdrd')
-    call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
-    call getmem1d(idust,1,nbin,'mod_che_common:idust')
-    call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
-    call getmem1d(icarb,1,cbin,'mod_che_common:icarb')
-    call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
+    call getmem(remdrd,jci1,jci2,ici1,ici2,1,ntr,'che_common:remdrd')
+    call getmem(chtrsol,1,ntr,'mod_che_common:chtrsol')
+    call getmem(idust,1,nbin,'mod_che_common:idust')
+    call getmem(isslt,1,sbin,'mod_che_common:isslt')
+    call getmem(icarb,1,cbin,'mod_che_common:icarb')
+    call getmem(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
 
     if ( nmine > 0 ) then
-      call getmem2d(imine,1,nbin,1,nmine,'mod_che_common:imine')
+      call getmem(imine,1,nbin,1,nmine,'mod_che_common:imine')
     end if
     if ( igaschem == 1 .and. ichsolver > 0 ) then
-      call getmem4d(chemall,jci1,jci2,ici1,ici2, &
+      call getmem(chemall,jci1,jci2,ici1,ici2, &
                     1,kz,1,totsp,'mod_che_common:chemall')
-      call getmem4d(jphoto,jci1,jci2,ici1,ici2,1,kz, &
+      call getmem(jphoto,jci1,jci2,ici1,ici2,1,kz, &
                     1,nphoto,'che_common:jphoto')
-      call getmem1d(xr,1,totsp,'che_common:xr')
-      call getmem1d(xrin,1,totsp,'che_common:xrin')
-      call getmem1d(xrout,1,totsp,'che_common:xrout')
-      call getmem1d(c,1,totsp+nfix,'che_common:c')
+      call getmem(xr,1,totsp,'che_common:xr')
+      call getmem(xrin,1,totsp,'che_common:xrin')
+      call getmem(xrout,1,totsp,'che_common:xrout')
+      call getmem(c,1,totsp+nfix,'che_common:c')
     end if
 
-    call getmem3d(dtrace,jci1,jci2,ici1,ici2,1,ntr,'che_common:dtrace')
-    call getmem3d(wdrout,jci1,jci2,ici1,ici2,1,ntr,'che_common:wdrout')
-    call getmem3d(wdwout,jci1,jci2,ici1,ici2,1,ntr,'che_common:wdwout')
+    call getmem(dtrace,jci1,jci2,ici1,ici2,1,ntr,'che_common:dtrace')
+    call getmem(wdrout,jci1,jci2,ici1,ici2,1,ntr,'che_common:wdrout')
+    call getmem(wdwout,jci1,jci2,ici1,ici2,1,ntr,'che_common:wdwout')
 
-    call getmem3d(cemtrac,jci1,jci2,ici1,ici2,1,ntr,'che_common:cemtrac')
-    call getmem3d(drydepv,jci1,jci2,ici1,ici2,1,ntr,'che_common:drydepv')
-    call getmem3d(ddv_out,jci1,jci2,ici1,ici2,1,ntr,'che_common:ddv_out')
+    call getmem(cemtrac,jci1,jci2,ici1,ici2,1,ntr,'che_common:cemtrac')
+    call getmem(drydepv,jci1,jci2,ici1,ici2,1,ntr,'che_common:drydepv')
+    call getmem(ddv_out,jci1,jci2,ici1,ici2,1,ntr,'che_common:ddv_out')
 
     if ( ichdiag > 0 ) then
-      call getmem4d(chemdiag,jci1,jci2, &
+      call getmem(chemdiag,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:chemdiag')
-      call getmem4d(cadvhdiag,jci1,jci2, &
+      call getmem(cadvhdiag,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:cadvhdiag')
-      call getmem4d(cadvvdiag,jci1,jci2, &
+      call getmem(cadvvdiag,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:cadvvdiag')
-      call getmem4d(cdifhdiag,jci1,jci2, &
+      call getmem(cdifhdiag,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:cdifhdiag')
-      call getmem4d(cconvdiag,jci1,jci2, &
+      call getmem(cconvdiag,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:cconvdiag')
-      call getmem4d(ctbldiag,jci1,jci2, &
+      call getmem(ctbldiag,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:ctbldiag')
-      call getmem4d(cbdydiag,jci1,jci2, &
+      call getmem(cbdydiag,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:cbdydiag')
-      call getmem4d(cseddpdiag,jci1,jci2, &
+      call getmem(cseddpdiag,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:cseddpdiag')
-      call getmem4d(cemisdiag,jci1,jci2, &
+      call getmem(cemisdiag,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:cemisdiag')
     end if
 #if defined CLM45 || (defined CLM && defined VOC)
-    call getmem1d(bvoc_trmask,1,ntr,'mod_che_common:bvoc_trmask')
+    call getmem(bvoc_trmask,1,ntr,'mod_che_common:bvoc_trmask')
 #endif
   end subroutine allocate_mod_che_common
 

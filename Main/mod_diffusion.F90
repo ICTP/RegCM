@@ -84,11 +84,11 @@ module mod_diffusion
   subroutine allocate_mod_diffusion
     implicit none
     if ( idiffu < 3 ) then
-      call getmem2d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'diffusion:hgfact')
+      call getmem(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'diffusion:hgfact')
     end if
-    call getmem3d(xkc,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'diffusion:xkc')
-    call getmem3d(xkd,jdi1,jdi2,idi1,idi2,1,kz,'diffusion:xkd')
-    call getmem3d(xkcf,jci1,jci2,ici1,ici2,1,kzp1,'diffusion:xkcf')
+    call getmem(xkc,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'diffusion:xkc')
+    call getmem(xkd,jdi1,jdi2,idi1,idi2,1,kz,'diffusion:xkd')
+    call getmem(xkcf,jci1,jci2,ici1,ici2,1,kzp1,'diffusion:xkcf')
   end subroutine allocate_mod_diffusion
 
   subroutine initialize_diffusion

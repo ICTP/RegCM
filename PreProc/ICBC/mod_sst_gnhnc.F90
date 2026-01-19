@@ -164,7 +164,7 @@ module mod_sst_gnhnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire dim time')
 
-    call getmem1d(work1,1,timlen,'mod_gnhnc_sst:work1')
+    call getmem(work1,1,timlen,'mod_gnhnc_sst:work1')
 
     istatus = nf90_inq_varid(inet1,'lat',latid)
     if ( istatus /= nf90_noerr ) then
@@ -188,9 +188,9 @@ module mod_sst_gnhnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var '//varname(2))
 
-    call getmem1d(glat,1,jlat,'mod_gnhnc_sst:glat')
-    call getmem1d(glon,1,ilon,'mod_gnhnc_sst:glon')
-    call getmem1d(grev,1,max(ilon,jlat),'mod_gnhnc_sst:glon')
+    call getmem(glat,1,jlat,'mod_gnhnc_sst:glat')
+    call getmem(glon,1,ilon,'mod_gnhnc_sst:glon')
+    call getmem(grev,1,max(ilon,jlat),'mod_gnhnc_sst:glon')
 
     istatus = nf90_get_var(inet1,latid,glat)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -204,11 +204,11 @@ module mod_sst_gnhnc
     call get_window(glat,glon,xlat,xlon,i_band,gdomain)
     grev(1:jlat) = glat
     jlat = gdomain%nj
-    call getmem1d(glat,1,jlat,'mod_gnhnc_sst:glat')
+    call getmem(glat,1,jlat,'mod_gnhnc_sst:glat')
     glat = grev(gdomain%jgstart:gdomain%jgstop)
     grev(1:ilon) = glon
     ilon = sum(gdomain%ni)
-    call getmem1d(glon,1,ilon,'mod_gnhnc_sst:glon')
+    call getmem(glon,1,ilon,'mod_gnhnc_sst:glon')
     glon(1:gdomain%ni(1)) = grev(gdomain%igstart(1):gdomain%igstop(1))
     if ( gdomain%ntiles == 2 ) then
       glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
@@ -216,8 +216,8 @@ module mod_sst_gnhnc
 
     call h_interpolator_create(hint,glat,glon,xlat,xlon)
 
-    call getmem2d(work2,1,ilon,1,jlat,'mod_gnhnc_sst:work2')
-    call getmem2d(sst,1,ilon,1,jlat,'mod_gnhnc_sst:sst')
+    call getmem(work2,1,ilon,1,jlat,'mod_gnhnc_sst:work2')
+    call getmem(sst,1,ilon,1,jlat,'mod_gnhnc_sst:sst')
 
     if (ssttyp(1:3) == 'LGM' ) then
       ccal = 'gregorian'
@@ -251,7 +251,7 @@ module mod_sst_gnhnc
         write(stdout,*) 'Add offset   = ',add_offset
         write(stdout,*) 'Scale factor = ',scale_factor
         write(stdout,*) 'Fill Value   = ',fillvalue
-        call getmem2d(work,1,ilon,1,jlat,'mod_gnhnc_sst:work')
+        call getmem(work,1,ilon,1,jlat,'mod_gnhnc_sst:work')
       end if
     end if
 
@@ -401,7 +401,7 @@ module mod_sst_gnhnc
         istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error inquire dim time')
-        call getmem1d(work1,1,timlen,'mod_gnhnc_sst:work1')
+        call getmem(work1,1,timlen,'mod_gnhnc_sst:work1')
         istart(1) = 1
         icount(1) = timlen
         istatus = nf90_get_var(inet1,ivar2(1),work1,istart(1:1),icount(1:1))

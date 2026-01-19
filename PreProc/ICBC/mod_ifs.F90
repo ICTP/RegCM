@@ -120,28 +120,28 @@ module mod_ifs
     !
     ! Allocate working space
     !
-    call getmem1d(slev,1,klev,'mod_ifs:slev')
-    call getmem1d(hyam,1,hynlev,'mod_ifs:hyam')
-    call getmem1d(hybm,1,hynlev,'mod_ifs:hybm')
-    call getmem1d(glat,1,jlat,'mod_ifs:glat')
-    call getmem1d(glon,1,ilon,'mod_ifs:glon')
-    call getmem3d(b3,1,jx,1,iy,1,klev*5,'mod_ifs:b3')
+    call getmem(slev,1,klev,'mod_ifs:slev')
+    call getmem(hyam,1,hynlev,'mod_ifs:hyam')
+    call getmem(hybm,1,hynlev,'mod_ifs:hybm')
+    call getmem(glat,1,jlat,'mod_ifs:glat')
+    call getmem(glon,1,ilon,'mod_ifs:glon')
+    call getmem(b3,1,jx,1,iy,1,klev*5,'mod_ifs:b3')
     if ( idynamic == 3 ) then
-      call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ifs:d3u')
-      call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_ifs:d3v')
-      call getmem3d(z3,1,jx,1,iy,1,klev,'mod_ifs:z3')
-      call getmem3d(z3u,1,jx,1,iy,1,klev,'mod_ifs:z3u')
-      call getmem3d(z3v,1,jx,1,iy,1,klev,'mod_ifs:z3v')
-      call getmem2d(topou,1,jx,1,iy,'mod_ifs:topou')
-      call getmem2d(topov,1,jx,1,iy,'mod_ifs:topov')
+      call getmem(d3u,1,jx,1,iy,1,klev*2,'mod_ifs:d3u')
+      call getmem(d3v,1,jx,1,iy,1,klev*2,'mod_ifs:d3v')
+      call getmem(z3,1,jx,1,iy,1,klev,'mod_ifs:z3')
+      call getmem(z3u,1,jx,1,iy,1,klev,'mod_ifs:z3u')
+      call getmem(z3v,1,jx,1,iy,1,klev,'mod_ifs:z3v')
+      call getmem(topou,1,jx,1,iy,'mod_ifs:topou')
+      call getmem(topov,1,jx,1,iy,'mod_ifs:topov')
     else
-      call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ifs:d3')
+      call getmem(d3,1,jx,1,iy,1,klev*2,'mod_ifs:d3')
     end if
-    call getmem2d(ps,1,jx,1,iy,'mod_ifs:ps')
-    call getmem2d(ts,1,jx,1,iy,'mod_ifs:ts')
-    call getmem2d(zs,1,jx,1,iy,'mod_ifs:zs')
-    call getmem2d(z1,1,jx,1,iy,'mod_ifs:z1')
-    call getmem2d(t1,1,jx,1,iy,'mod_ifs:t1')
+    call getmem(ps,1,jx,1,iy,'mod_ifs:ps')
+    call getmem(ts,1,jx,1,iy,'mod_ifs:ts')
+    call getmem(zs,1,jx,1,iy,'mod_ifs:zs')
+    call getmem(z1,1,jx,1,iy,'mod_ifs:z1')
+    call getmem(t1,1,jx,1,iy,'mod_ifs:t1')
 
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -185,17 +185,17 @@ module mod_ifs
       call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
     end if
 
-    call getmem3d(b2,1,ilon,1,jlat,1,klev*5,'mod_ifs:b2')
-    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ifs:d2')
-    call getmem2d(xps,1,ilon,1,jlat,'mod_ifs:xps')
-    call getmem2d(skt,1,ilon,1,jlat,'mod_ifs:skt')
-    call getmem2d(yts,1,ilon,1,jlat,'mod_ifs:yts')
-    call getmem2d(xzs,1,ilon,1,jlat,'mod_ifs:xzs')
-    call getmem2d(yzs,1,ilon,1,jlat,'mod_ifs:yzs')
+    call getmem(b2,1,ilon,1,jlat,1,klev*5,'mod_ifs:b2')
+    call getmem(d2,1,ilon,1,jlat,1,klev*2,'mod_ifs:d2')
+    call getmem(xps,1,ilon,1,jlat,'mod_ifs:xps')
+    call getmem(skt,1,ilon,1,jlat,'mod_ifs:skt')
+    call getmem(yts,1,ilon,1,jlat,'mod_ifs:yts')
+    call getmem(xzs,1,ilon,1,jlat,'mod_ifs:xzs')
+    call getmem(yzs,1,ilon,1,jlat,'mod_ifs:yzs')
     if ( idynamic /= 3 ) then
-      call getmem3d(pd3,1,jx,1,iy,1,klev,'mod_nest:pd3')
-      call getmem3d(p_out,1,jx,1,iy,1,kz,'mod_nest:p_out')
-      call getmem3d(pd_out,1,jx,1,iy,1,kz,'mod_nest:pd_out')
+      call getmem(pd3,1,jx,1,iy,1,klev,'mod_nest:pd3')
+      call getmem(p_out,1,jx,1,iy,1,kz,'mod_nest:p_out')
+      call getmem(pd_out,1,jx,1,iy,1,kz,'mod_nest:pd_out')
     end if
 
     !

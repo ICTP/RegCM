@@ -120,33 +120,33 @@ module mod_tendency
 
   subroutine allocate_mod_tend
     implicit none
-    call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
-    call getmem3d(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
+    call getmem(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
+    call getmem(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
     if ( ipptls > 1 ) then
-      call getmem3d(qcd,jce1,jce2,ice1,ice2,1,kz,'tendency:qcd')
+      call getmem(qcd,jce1,jce2,ice1,ice2,1,kz,'tendency:qcd')
     else
       call assignpnt(atmx%qx,qcd,iqc)
     end if
-    call getmem3d(tvfac,jce1,jce2,ice1,ice2,1,kz,'tendency:tvfac')
+    call getmem(tvfac,jce1,jce2,ice1,ice2,1,kz,'tendency:tvfac')
     call assignpnt(atmx%qx,qvd,iqv)
-    call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
-    call getmem2d(rpsa,jce1ga,jce2ga,ice1ga,ice2ga,'tendency:rpsa')
-    call getmem2d(rpsb,jce1,jce2,ice1,ice2,'tendency:rpsb')
-    call getmem2d(rpsda,jde1ga,jde2ga,ide1ga,ide2ga,'tendency:rpsda')
+    call getmem(pten,jce1,jce2,ice1,ice2,'tendency:pten')
+    call getmem(rpsa,jce1ga,jce2ga,ice1ga,ice2ga,'tendency:rpsa')
+    call getmem(rpsb,jce1,jce2,ice1,ice2,'tendency:rpsb')
+    call getmem(rpsda,jde1ga,jde2ga,ide1ga,ide2ga,'tendency:rpsda')
     if ( idynamic == 1 ) then
       ithadv = 0
-      call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
-      call getmem3d(td,jce1,jce2,ice1,ice2,1,kz,'tendency:td')
-      call getmem3d(phi,jce1ga,jce2,ice1ga,ice2,1,kz,'tendency:phi')
-      call getmem2d(rpsc,jce1,jce2,ice1,ice2,'tendency:rpsc')
+      call getmem(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
+      call getmem(td,jce1,jce2,ice1,ice2,1,kz,'tendency:td')
+      call getmem(phi,jce1ga,jce2,ice1ga,ice2,1,kz,'tendency:phi')
+      call getmem(rpsc,jce1,jce2,ice1,ice2,'tendency:rpsc')
       rptn = d_one/real((jout2-jout1+1)*(iout2-iout1+1),rkx)
     else if ( idynamic == 2 ) then
-      call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
-      call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
+      call getmem(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
+      call getmem(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
       if ( ithadv == 1 ) then
-        call getmem3d(thten,jci1,jci2,ici1,ici2,1,kz,'tendency:thten')
-        call getmem3d(th,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'tendency:th')
-        call getmem3d(tha,jce1,jce2,ice1,ice2,1,kz,'tendency:tha')
+        call getmem(thten,jci1,jci2,ici1,ici2,1,kz,'tendency:thten')
+        call getmem(th,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'tendency:th')
+        call getmem(tha,jce1,jce2,ice1,ice2,1,kz,'tendency:tha')
       end if
     end if
     !
@@ -160,18 +160,18 @@ module mod_tendency
         iqxvadv = 3
         itrvadv = 3
       end if
-      call getmem3d(tkeps,jce1,jce2,ice1,ice2,1,kzp1,'tendency:tkeps')
+      call getmem(tkeps,jce1,jce2,ice1,ice2,1,kzp1,'tendency:tkeps')
     end if
 
     if ( idiag > 0 ) then
       idgq = iqv
-      call getmem3d(ten0,jci1,jci2,ici1,ici2,1,kz,'tendency:ten0')
-      call getmem3d(qen0,jci1,jci2,ici1,ici2,1,kz,'tendency:qen0')
+      call getmem(ten0,jci1,jci2,ici1,ici2,1,kz,'tendency:ten0')
+      call getmem(qen0,jci1,jci2,ici1,ici2,1,kz,'tendency:qen0')
     end if
 
     if ( ichem == 1 ) then
       if ( ichdiag > 0 ) then
-        call getmem4d(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'tendency:chiten0')
+        call getmem(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'tendency:chiten0')
       end if
     end if
     call assignpnt(aten%t,tten,pc_total)

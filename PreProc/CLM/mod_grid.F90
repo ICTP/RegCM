@@ -36,15 +36,15 @@ module mod_grid
 
   subroutine init_domain
     implicit none
-    call getmem2d(xlat,1,jx,1,iy,'mod_read_domain:xlat')
-    call getmem2d(xlon,1,jx,1,iy,'mod_read_domain:xlon')
-    call getmem2d(xmask,1,jx,1,iy,'mod_read_domain:xmask')
-    call getmem1d(xlon1d,1,jx,'mod_read_domain:xlon1d')
-    call getmem1d(xlat1d,1,iy,'mod_read_domain:xlat1d')
-    call getmem1d(sigx,1,kzp1,'mod_read_domain:sigx')
-    call getmem1d(zita,1,kzp1,'mod_read_domain:zita')
-    call getmem1d(ax,1,kzp1,'mod_read_domain:ax')
-    call getmem1d(bx,1,kzp1,'mod_read_domain:bx')
+    call getmem(xlat,1,jx,1,iy,'mod_read_domain:xlat')
+    call getmem(xlon,1,jx,1,iy,'mod_read_domain:xlon')
+    call getmem(xmask,1,jx,1,iy,'mod_read_domain:xmask')
+    call getmem(xlon1d,1,jx,'mod_read_domain:xlon1d')
+    call getmem(xlat1d,1,iy,'mod_read_domain:xlat1d')
+    call getmem(sigx,1,kzp1,'mod_read_domain:sigx')
+    call getmem(zita,1,kzp1,'mod_read_domain:zita')
+    call getmem(ax,1,kzp1,'mod_read_domain:ax')
+    call getmem(bx,1,kzp1,'mod_read_domain:bx')
   end subroutine init_domain
 
 end module mod_grid

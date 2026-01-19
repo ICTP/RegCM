@@ -55,47 +55,47 @@ module mod_che_mppio
 
         if ( do_parallel_save ) then
           if ( idynamic == 3 ) then
-            call getmem4d(trac_io,jce1,jce2,ice1,ice2, &
+            call getmem(trac_io,jce1,jce2,ice1,ice2, &
                           1,kz,1,ntr,'che_mppio:trac_io')
           else
-            call getmem4d(chia_io,jce1,jce2,ice1,ice2, &
+            call getmem(chia_io,jce1,jce2,ice1,ice2, &
                           1,kz,1,ntr,'che_mppio:chia_io')
-            call getmem4d(chib_io,jce1,jce2,ice1,ice2, &
+            call getmem(chib_io,jce1,jce2,ice1,ice2, &
                           1,kz,1,ntr,'che_mppio:chib_io')
           end if
-          call getmem3d(convpr_io,jci1,jci2,ici1,ici2, &
+          call getmem(convpr_io,jci1,jci2,ici1,ici2, &
                         1,kz,'che_mppio:convpr_io')
-          call getmem4d(rainout_io,jci1,jci2,ici1,ici2, &
+          call getmem(rainout_io,jci1,jci2,ici1,ici2, &
                         1,kz,1,ntr,'che_mppio:rainout_io')
-          call getmem4d(washout_io,jci1,jci2,ici1,ici2, &
+          call getmem(washout_io,jci1,jci2,ici1,ici2, &
                         1,kz,1,ntr,'che_mppio:washout_io')
-          call getmem3d(remdrd_io,jci1,jci2,ici1,ici2, &
+          call getmem(remdrd_io,jci1,jci2,ici1,ici2, &
                         1,ntr,'che_mppio:remdrd_io')
-          call getmem2d(ssw2da_io,jci1,jci2,ici1,ici2, &
+          call getmem(ssw2da_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:ssw2da_io')
 #ifdef CLM45
-          call getmem3d(duflux_io,jci1,jci2,ici1,ici2, &
+          call getmem(duflux_io,jci1,jci2,ici1,ici2, &
                         1,4,'che_mppio:duflux_io')
-          call getmem3d(voflux_io,jci1,jci2,ici1,ici2, &
+          call getmem(voflux_io,jci1,jci2,ici1,ici2, &
                         1,ntr,'che_mppio:voflux_io')
 #else
-          call getmem2d(sdelq_io,jci1,jci2,ici1,ici2, &
+          call getmem(sdelq_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:sdelq_io')
-          call getmem2d(sdelt_io,jci1,jci2,ici1,ici2, &
+          call getmem(sdelt_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:sdelt_io')
-          call getmem2d(svegfrac2d_io,jci1,jci2,ici1,ici2, &
+          call getmem(svegfrac2d_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:svegfrac2d_io')
 #endif
-          call getmem2d(sfracb2d_io,jci1,jci2,ici1,ici2, &
+          call getmem(sfracb2d_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:sfracb2d_io')
-          call getmem2d(sfracs2d_io,jci1,jci2,ici1,ici2, &
+          call getmem(sfracs2d_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:sfracs2d_io')
-          call getmem2d(sfracv2d_io,jci1,jci2,ici1,ici2, &
+          call getmem(sfracv2d_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:sfracv2d_io')
           if ( igaschem == 1 .and. ichsolver > 0 ) then
-            call getmem4d(chemall_io,jci1,jci2,ici1,ici2, &
+            call getmem(chemall_io,jci1,jci2,ici1,ici2, &
                           1,kz,1,totsp,'che_mppio:chemall_io')
-            call getmem4d(taucldsp_io,jci1,jci2,ici1,ici2, &
+            call getmem(taucldsp_io,jci1,jci2,ici1,ici2, &
                           0,kz,1,nspi,'che_mppio:taucldsp_io')
           end if
 
@@ -104,50 +104,50 @@ module mod_che_mppio
         end if
 
         if ( myid == iocpu ) then
-          call getmem3d(convpr_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(convpr_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,'che_mppio:convpr_io')
-          call getmem4d(rainout_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(rainout_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:rainout_io')
-          call getmem4d(washout_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(washout_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:washout_io')
-          call getmem3d(remdrd_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(remdrd_io,jcross1,jcross2,icross1,icross2, &
                         1,ntr,'che_mppio:remdrd_io')
 
-          call getmem2d(ssw2da_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(ssw2da_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:ssw2da_io')
 #ifdef CLM45
-          call getmem3d(duflux_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(duflux_io,jcross1,jcross2,icross1,icross2, &
                         1,4,'che_mppio:duflux_io')
-          call getmem3d(voflux_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(voflux_io,jcross1,jcross2,icross1,icross2, &
                         1,ntr,'che_mppio:voflux_io')
 #else
-          call getmem2d(sdelq_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(sdelq_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sdelq_io')
-          call getmem2d(sdelt_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(sdelt_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sdelt_io')
-          call getmem2d(svegfrac2d_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(svegfrac2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:svegfrac2d_io')
 #endif
-          call getmem2d(sfracb2d_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(sfracb2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sfracb2d_io')
-          call getmem2d(sfracs2d_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(sfracs2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sfracs2d_io')
-          call getmem2d(sfracv2d_io,jcross1,jcross2,icross1,icross2, &
+          call getmem(sfracv2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sfracv2d_io')
 
           if ( idynamic == 3 ) then
-            call getmem4d(trac_io,jcross1,jcross2,icross1,icross2, &
+            call getmem(trac_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,ntr,'che_mppio:trac_io')
           else
-            call getmem4d(chia_io,jcross1,jcross2,icross1,icross2, &
+            call getmem(chia_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,ntr,'che_mppio:chia_io')
-            call getmem4d(chib_io,jcross1,jcross2,icross1,icross2, &
+            call getmem(chib_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,ntr,'che_mppio:chib_io')
           end if
           if ( igaschem == 1 .and. ichsolver > 0 ) then
-            call getmem4d(chemall_io,jcross1,jcross2,icross1,icross2, &
+            call getmem(chemall_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,totsp,'che_mppio:chemall_io')
-            call getmem4d(taucldsp_io,jcross1,jcross2,icross1,icross2, &
+            call getmem(taucldsp_io,jcross1,jcross2,icross1,icross2, &
                           0,kz,1,nspi,'che_mppio:taucldsp_io')
           end if
         end if

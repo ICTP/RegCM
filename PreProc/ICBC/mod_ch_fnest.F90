@@ -172,8 +172,8 @@ module mod_ch_fnest
     istatus = nf90_get_att(ncid(1), ivarid, 'calendar', timecal)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable time calendar missing')
-    call getmem1d(itimes,1,nrec,'mod:nest:itimes')
-    call getmem1d(xtimes,1,nrec,'mod:nest:xtimes')
+    call getmem(itimes,1,nrec,'mod:nest:itimes')
+    call getmem(xtimes,1,nrec,'mod:nest:xtimes')
     istatus = nf90_get_var(ncid(1), ivarid, xtimes)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable time read error')
@@ -182,7 +182,7 @@ module mod_ch_fnest
     end do
 
     if ( oidyn /= 3 ) then
-      call getmem1d(sigma_in,1,kz_in,'init_fnest:sigma_in')
+      call getmem(sigma_in,1,kz_in,'init_fnest:sigma_in')
       istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open ICBC file '//trim(icbcfilename))
@@ -192,10 +192,10 @@ module mod_ch_fnest
     end if
 
     irec = 1
-    call getmem2d(xlat_in,1,jx_in,1,iy_in,'init_fnest:xlat_in')
-    call getmem2d(xlon_in,1,jx_in,1,iy_in,'init_fnest:xlon_in')
-    call getmem2d(ht_in,1,jx_in,1,iy_in,'init_fnest:xlon_in')
-    call getmem3d(mxc,1,jx_in,1,iy_in,1,kz_in,'init_fnest:mxc')
+    call getmem(xlat_in,1,jx_in,1,iy_in,'init_fnest:xlat_in')
+    call getmem(xlon_in,1,jx_in,1,iy_in,'init_fnest:xlon_in')
+    call getmem(ht_in,1,jx_in,1,iy_in,'init_fnest:xlon_in')
+    call getmem(mxc,1,jx_in,1,iy_in,1,kz_in,'init_fnest:mxc')
 
     istatus = nf90_get_att(ncid(1), nf90_global, 'dynamical_core', oidyn)
     if ( istatus /= nf90_noerr ) then
@@ -291,11 +291,11 @@ module mod_ch_fnest
     call h_interpolator_create(hint,xlat_in,xlon_in,xlat,xlon,ds_in)
 
     if ( oidyn == 3 ) then
-      call getmem2d(h_zero,1,jx_in,1,iy_in,'init_fnest:h_zero')
-      call getmem3d(z_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z_in')
-      call getmem3d(z3,1,jx,1,iy,1,kz_in,'mod_nest:z3')
-      call getmem1d(ak_in,1,kz_in,'mod_nest:ak_in')
-      call getmem1d(bk_in,1,kz_in,'mod_nest:bk_in')
+      call getmem(h_zero,1,jx_in,1,iy_in,'init_fnest:h_zero')
+      call getmem(z_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z_in')
+      call getmem(z3,1,jx,1,iy,1,kz_in,'mod_nest:z3')
+      call getmem(ak_in,1,kz_in,'mod_nest:ak_in')
+      call getmem(bk_in,1,kz_in,'mod_nest:bk_in')
       istatus = nf90_inq_varid(ncid(1), 'a', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable a error')
@@ -317,20 +317,20 @@ module mod_ch_fnest
         end do
       end do
       call h_interpolate_cont(hint,z_in,z3)
-      call getmem3d(mxcp4,1,jx,1,iy,1,kz_in,'init_fnest:mxcp4')
+      call getmem(mxcp4,1,jx,1,iy,1,kz_in,'init_fnest:mxcp4')
     else
       ptop_in = ptop_in * d_100
       np = kz_in - 1
-      call getmem1d(plev,1,np,'mod_nest:plev')
-      call getmem1d(sigmar,1,np,'mod_nest:sigmar')
+      call getmem(plev,1,np,'mod_nest:plev')
+      call getmem(sigmar,1,np,'mod_nest:sigmar')
 
-      call getmem2d(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
-      call getmem2d(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
-      call getmem2d(ps,1,jx_in,1,iy_in,'mod_nest:ps')
+      call getmem(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
+      call getmem(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
+      call getmem(ps,1,jx_in,1,iy_in,'mod_nest:ps')
 
       if ( oidyn == 2 ) then
-        call getmem3d(pp3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pp3d')
-        call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
+        call getmem(pp3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pp3d')
+        call getmem(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
         istatus = nf90_inq_varid(ncid(1), 'p0', ivarid)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'variable p0 error')
@@ -362,12 +362,12 @@ module mod_ch_fnest
         sigmar(k) = plev(k)/plev(np)
       end do
       pss = plev(np)
-      call getmem2d(xps,1,jx,1,iy,'mod_nest:xps')
-      call getmem2d(xps3,1,jx,1,iy,'mod_nest:xps3')
-      call getmem3d(mxcp,1,jx_in,1,iy_in,1,np,'init_fnest:mxcp')
-      call getmem3d(mxcp4,1,jx,1,iy,1,np,'init_fnest:mxcp4')
+      call getmem(xps,1,jx,1,iy,'mod_nest:xps')
+      call getmem(xps3,1,jx,1,iy,'mod_nest:xps3')
+      call getmem(mxcp,1,jx_in,1,iy_in,1,np,'init_fnest:mxcp')
+      call getmem(mxcp4,1,jx,1,iy,1,np,'init_fnest:mxcp4')
     end if
-    call getmem4d(mxc4_1,1,jx,1,iy,1,kz,1,fchem,'init_fnest:mxc4_1')
+    call getmem(mxc4_1,1,jx,1,iy,1,kz,1,fchem,'init_fnest:mxc4_1')
   end subroutine init_fnest
 
   subroutine get_fnest(idate)
@@ -408,8 +408,8 @@ module mod_ch_fnest
       istatus = nf90_get_att(ncid(1), ivarid, 'calendar', timecal)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time calendar missing')
-      call getmem1d(itimes,1,nrec,'mod:nest:itimes')
-      call getmem1d(xtimes,1,nrec,'mod:nest:xtimes')
+      call getmem(itimes,1,nrec,'mod:nest:itimes')
+      call getmem(xtimes,1,nrec,'mod:nest:xtimes')
       istatus = nf90_get_var(ncid(1), ivarid, xtimes)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time read error')
@@ -442,8 +442,8 @@ module mod_ch_fnest
       istatus = nf90_get_att(ncid(1), ivarid, 'calendar', timecal)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time calendar missing')
-      call getmem1d(itimes,1,nrec,'mod:nest:itimes')
-      call getmem1d(xtimes,1,nrec,'mod:nest:xtimes')
+      call getmem(itimes,1,nrec,'mod:nest:itimes')
+      call getmem(xtimes,1,nrec,'mod:nest:xtimes')
       istatus = nf90_get_var(ncid(1), ivarid, xtimes)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable time read error')

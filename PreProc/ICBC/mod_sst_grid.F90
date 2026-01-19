@@ -45,13 +45,13 @@ module mod_sst_grid
 
   subroutine init_grid
     implicit none
-    call getmem2d(sstmm,1,jx,1,iy,'mod_sst_grid:sstmm')
-    call getmem2d(icemm,1,jx,1,iy,'mod_sst_grid:icemm')
-    call getmem2d(xlat,1,jx,1,iy,'mod_sst_grid:xlat')
-    call getmem2d(xlon,1,jx,1,iy,'mod_sst_grid:xlon')
-    call getmem2d(topo,1,jx,1,iy,'mod_sst_grid:topo')
-    call getmem2d(mask,1,jx,1,iy,'mod_sst_grid:mask')
-    call getmem1d(sigma,1,kzp1,'mod_sst_grid:sigma')
+    call getmem(sstmm,1,jx,1,iy,'mod_sst_grid:sstmm')
+    call getmem(icemm,1,jx,1,iy,'mod_sst_grid:icemm')
+    call getmem(xlat,1,jx,1,iy,'mod_sst_grid:xlat')
+    call getmem(xlon,1,jx,1,iy,'mod_sst_grid:xlon')
+    call getmem(topo,1,jx,1,iy,'mod_sst_grid:topo')
+    call getmem(mask,1,jx,1,iy,'mod_sst_grid:mask')
+    call getmem(sigma,1,kzp1,'mod_sst_grid:sigma')
   end subroutine init_grid
 
   subroutine read_domain_info(terfile)

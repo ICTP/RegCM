@@ -257,12 +257,12 @@ module mod_gn6hnc
 
     ! Input layer and pressure interpolated values
 
-    call getmem1d(glat,1,nlat,'mod_gn6hnc:glat')
-    call getmem1d(glon,1,nlon,'mod_gn6hnc:glon')
+    call getmem(glat,1,nlat,'mod_gn6hnc:glat')
+    call getmem(glon,1,nlon,'mod_gn6hnc:glon')
 
     if ( dattyp(1:3) == 'HA_' ) then
-      call getmem1d(ak1,1,klev,'mod_gn6hnc:ak1')
-      call getmem1d(bk1,1,klev,'mod_gn6hnc:bk1')
+      call getmem(ak1,1,klev,'mod_gn6hnc:ak1')
+      call getmem(bk1,1,klev,'mod_gn6hnc:bk1')
       call find_hadgem_ufile(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet2)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -303,35 +303,35 @@ module mod_gn6hnc
                       'Error read b var')
     end if
 
-    call getmem2d(zsvar,1,nlon,1,nlat,'mod_gn6hnc:zsvar')
-    call getmem2d(psvar,1,nlon,1,nlat,'mod_gn6hnc:psvar')
+    call getmem(zsvar,1,nlon,1,nlat,'mod_gn6hnc:zsvar')
+    call getmem(psvar,1,nlon,1,nlat,'mod_gn6hnc:psvar')
 
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
          dattyp(1:2) /= 'E5' .and. dattyp /= 'JRA55' .and. &
          dattyp(1:3) /= 'CN_' ) then
-      call getmem3d(qvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:qvar')
-      call getmem3d(tvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:tvar')
-      call getmem3d(hvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:hvar')
-      call getmem3d(uvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:uvar')
-      call getmem3d(vvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vvar')
-      call getmem3d(pp3d,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d')
+      call getmem(qvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:qvar')
+      call getmem(tvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:tvar')
+      call getmem(hvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:hvar')
+      call getmem(uvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:uvar')
+      call getmem(vvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vvar')
+      call getmem(pp3d,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d')
       if ( dattyp(1:3) == 'HA_' ) then
-        call getmem3d(vwork,1,nlon,1,nlat-1,1,klev,'mod_gn6hnc:vwork')
-        call getmem3d(hvar1,1,nlon,1,nlat,1,klev,'mod_gn6hnc:hvar1')
-        call getmem3d(pp3d1,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d1')
+        call getmem(vwork,1,nlon,1,nlat-1,1,klev,'mod_gn6hnc:vwork')
+        call getmem(hvar1,1,nlon,1,nlat,1,klev,'mod_gn6hnc:hvar1')
+        call getmem(pp3d1,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d1')
       end if
-      call getmem1d(ak,1,klev,'mod_gn6hnc:ak')
-      call getmem1d(bk,1,klev,'mod_gn6hnc:bk')
+      call getmem(ak,1,klev,'mod_gn6hnc:ak')
+      call getmem(bk,1,klev,'mod_gn6hnc:bk')
     else
       if ( dattyp == 'GFS11' ) then
-        call getmem1d(gltemp,1,nlat,'mod_gn6hnc:gltemp')
-        call getmem3d(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
+        call getmem(gltemp,1,nlat,'mod_gn6hnc:gltemp')
+        call getmem(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
       end if
       if ( dattyp == 'JRA55' ) then
-        call getmem3d(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
+        call getmem(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
       end if
-      call getmem3d(b2,1,nlon,1,nlat,1,klev*3,'mod_gn6hnc:b2')
-      call getmem3d(d2,1,nlon,1,nlat,1,klev*2,'mod_gn6hnc:d2')
+      call getmem(b2,1,nlon,1,nlat,1,klev*3,'mod_gn6hnc:b2')
+      call getmem(d2,1,nlon,1,nlat,1,klev*2,'mod_gn6hnc:d2')
       uvar => d2(:,:,1:klev)
       vvar => d2(:,:,klev+1:2*klev)
       tvar => b2(:,:,1:klev)
@@ -345,7 +345,7 @@ module mod_gn6hnc
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error inquire rhlev dim')
       else
-        call getmem3d(pp3d,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d')
+        call getmem(pp3d,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d')
       end if
     end if
 
@@ -362,8 +362,8 @@ module mod_gn6hnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read lon var')
     if ( dattyp(1:3) == 'HA_' ) then
-      call getmem3d(ha_d2_1,1,nulon,1,nlat,1,klev,'mod_gn6hnc:ha_d2_1')
-      call getmem3d(ha_d2_2,1,nlon,1,nvlat,1,klev,'mod_gn6hnc:ha_d2_2')
+      call getmem(ha_d2_1,1,nulon,1,nlat,1,klev,'mod_gn6hnc:ha_d2_1')
+      call getmem(ha_d2_2,1,nlon,1,nvlat,1,klev,'mod_gn6hnc:ha_d2_2')
     end if
 
     icount(1) = nlon
@@ -406,7 +406,7 @@ module mod_gn6hnc
       where (zsvar < 0.0) zsvar = 0.0
     else if ( dattyp == 'JRA55' ) then
       npl = klev ! Data are on pressure levels
-      call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
+      call getmem(pplev,1,klev,'mod_gn6hnc:pplev')
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find lev var')
@@ -440,10 +440,10 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
-      ! call getmem2d(pmslvar,1,nlon,1,nlat,'mod_gn6hnc:pmslvar')
+      ! call getmem(pmslvar,1,nlon,1,nlat,'mod_gn6hnc:pmslvar')
     else if ( dattyp(1:2) == 'E5' ) then
       npl = klev ! Data are on pressure levels
-      call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
+      call getmem(pplev,1,klev,'mod_gn6hnc:pplev')
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find lev var')
@@ -724,7 +724,7 @@ module mod_gn6hnc
                       'Error read orog var')
     else if ( dattyp(1:3) == 'CN_' ) then
       npl = klev ! Data are on pressure levels
-      call getmem1d(pplev,1,klev,'mod_gn6hnc:plev')
+      call getmem(pplev,1,klev,'mod_gn6hnc:plev')
       istatus = nf90_inq_varid(inet1,'plev',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find plev var')
@@ -781,8 +781,8 @@ module mod_gn6hnc
                       'Error read orog var')
     else if ( dattyp == 'GFS11' ) then
       npl = klev ! Data are on pressure levels
-      call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
-      call getmem1d(paplev,1,klev,'mod_gn6hnc:paplev')
+      call getmem(pplev,1,klev,'mod_gn6hnc:pplev')
+      call getmem(paplev,1,klev,'mod_gn6hnc:paplev')
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find lev var')
@@ -800,10 +800,10 @@ module mod_gn6hnc
         gltemp(nlat-j+1) = glat(j)
       end do
       glat(:) = gltemp(:)
-      call relmem1d(gltemp)
+      call relmem(gltemp)
     else if ( dattyp(1:3) == 'EC_' ) then
       npl = klev ! Data are on pressure levels
-      call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
+      call getmem(pplev,1,klev,'mod_gn6hnc:pplev')
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find lev var')
@@ -832,24 +832,24 @@ module mod_gn6hnc
       call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
     end if
 
-    call getmem1d(sigmar,1,npl,'mod_gn6hnc:sigmar')
-    call getmem3d(b3,1,jx,1,iy,1,npl*3,'mod_gn6hnc:b3')
+    call getmem(sigmar,1,npl,'mod_gn6hnc:sigmar')
+    call getmem(b3,1,jx,1,iy,1,npl*3,'mod_gn6hnc:b3')
     if ( idynamic == 3 ) then
-      call getmem3d(d3u,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3u')
-      call getmem3d(d3v,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3v')
-      call getmem3d(h3u,1,jx,1,iy,1,npl,'mod_era5:h3u')
-      call getmem3d(h3v,1,jx,1,iy,1,npl,'mod_era5:h3v')
-      call getmem2d(topou,1,jx,1,iy,'mod_era5:topou')
-      call getmem2d(topov,1,jx,1,iy,'mod_era5:topov')
+      call getmem(d3u,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3u')
+      call getmem(d3v,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3v')
+      call getmem(h3u,1,jx,1,iy,1,npl,'mod_era5:h3u')
+      call getmem(h3v,1,jx,1,iy,1,npl,'mod_era5:h3v')
+      call getmem(topou,1,jx,1,iy,'mod_era5:topou')
+      call getmem(topov,1,jx,1,iy,'mod_era5:topov')
     else
-      call getmem3d(d3,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3')
+      call getmem(d3,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3')
     end if
 
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
          dattyp(1:2) /= 'E5' .and. dattyp /= 'JRA55' .and. &
          dattyp(1:3) /= 'CN_' ) then
-      call getmem3d(b2,1,nlon,1,nlat,1,npl*3,'mod_gn6hnc:b2')
-      call getmem3d(d2,1,nlon,1,nlat,1,npl*2,'mod_gn6hnc:d2')
+      call getmem(b2,1,nlon,1,nlat,1,npl*3,'mod_gn6hnc:b2')
+      call getmem(d2,1,nlon,1,nlat,1,npl*2,'mod_gn6hnc:d2')
       up => d2(:,:,1:npl)
       vp => d2(:,:,npl+1:2*npl)
       tp => b2(:,:,1:npl)
@@ -878,12 +878,12 @@ module mod_gn6hnc
       call setcal(refdate,noleap)
     end if
     timlen = 1
-    call getmem1d(itimes,1,1,'mod_gn6hnc:itimes')
+    call getmem(itimes,1,1,'mod_gn6hnc:itimes')
     itimes(1) = 1500010100 ! This set to a "Prehistorical" date
     if ( dattyp(1:3) == 'HA_' ) then
       ! HadGEM datasets has different times for PS and vertical variables.
       pstimlen = 1
-      call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
+      call getmem(ipstimes,1,1,'mod_gn6hnc:ipstimes')
       ipstimes(1) = 1500010100 ! This set to a "Prehistorical" date
       call setcal(itimes(1), y360)
       call setcal(ipstimes(1), y360)
@@ -899,7 +899,7 @@ module mod_gn6hnc
       ! NorESM1-M, CCSM4, CSIRO and MIROC dataset have different times for PS
       ! and vertical variables.
       pstimlen = 1
-      call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
+      call getmem(ipstimes,1,1,'mod_gn6hnc:ipstimes')
       ipstimes(1) = 1500010100 ! This set to a "Prehistorical" date
       call setcal(itimes(1), noleap)
       call setcal(ipstimes(1), noleap)
@@ -1349,8 +1349,8 @@ module mod_gn6hnc
         istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time calendar')
-        call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
-        call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
+        call getmem(itimes,1,timlen,'mod_gn6hnc:itimes')
+        call getmem(xtimes,1,timlen,'mod_gn6hnc:xtimes')
         istatus = nf90_get_var(inet(1),timid,xtimes)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time')
@@ -1438,8 +1438,8 @@ module mod_gn6hnc
         istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time calendar')
-        call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
-        call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
+        call getmem(itimes,1,timlen,'mod_gn6hnc:itimes')
+        call getmem(xtimes,1,timlen,'mod_gn6hnc:xtimes')
         istatus = nf90_get_var(inet(1),timid,xtimes)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time')
@@ -1512,8 +1512,8 @@ module mod_gn6hnc
         istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time calendar')
-        call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
-        call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
+        call getmem(itimes,1,timlen,'mod_gn6hnc:itimes')
+        call getmem(xtimes,1,timlen,'mod_gn6hnc:xtimes')
         istatus = nf90_get_var(inet(1),timid,xtimes)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time')
@@ -1590,8 +1590,8 @@ module mod_gn6hnc
         istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time calendar')
-        call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
-        call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
+        call getmem(itimes,1,timlen,'mod_gn6hnc:itimes')
+        call getmem(xtimes,1,timlen,'mod_gn6hnc:xtimes')
         istatus = nf90_get_var(inet(1),timid,xtimes)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read time')
@@ -1673,8 +1673,8 @@ module mod_gn6hnc
           istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time calendar')
-          call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
-          call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
+          call getmem(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
+          call getmem(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
@@ -1714,8 +1714,8 @@ module mod_gn6hnc
           istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time calendar')
-          call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
-          call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
+          call getmem(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
+          call getmem(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
@@ -1755,8 +1755,8 @@ module mod_gn6hnc
           istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time calendar')
-          call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
-          call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
+          call getmem(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
+          call getmem(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
@@ -1796,8 +1796,8 @@ module mod_gn6hnc
           istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time calendar')
-          call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
-          call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
+          call getmem(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
+          call getmem(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
@@ -1837,8 +1837,8 @@ module mod_gn6hnc
           istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time calendar')
-          call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
-          call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
+          call getmem(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
+          call getmem(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
           istatus = nf90_get_var(inet(6),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
@@ -2075,8 +2075,8 @@ module mod_gn6hnc
       istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read time calendar')
-      call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
-      call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
+      call getmem(itimes,1,timlen,'mod_gn6hnc:itimes')
+      call getmem(xtimes,1,timlen,'mod_gn6hnc:xtimes')
       istatus = nf90_get_var(inet(1),timid,xtimes)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read time')

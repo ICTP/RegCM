@@ -180,28 +180,28 @@ module mod_che_dust
     subroutine allocate_mod_che_dust
       implicit none
       if ( ichem == 1 ) then
-        call getmem3d(dustsotex,jci1,jci2,ici1,ici2,1,nats,'che_dust:dustsotex')
-        call getmem1d(fclay,1,nats,'che_dust:fclay')
-        call getmem1d(fsand,1,nats,'che_dust:fsand')
-        call getmem2d(clayrow2,jci1,jci2,ici1,ici2,'che_dust:clayrow2')
-        call getmem4d(srel2d,1,nsoil,1,nats, &
+        call getmem(dustsotex,jci1,jci2,ici1,ici2,1,nats,'che_dust:dustsotex')
+        call getmem(fclay,1,nats,'che_dust:fclay')
+        call getmem(fsand,1,nats,'che_dust:fsand')
+        call getmem(clayrow2,jci1,jci2,ici1,ici2,'che_dust:clayrow2')
+        call getmem(srel2d,1,nsoil,1,nats, &
                       jci1,jci2,ici1,ici2,'che_dust:srel2d')
-        call getmem2d(dustbsiz,1,nbin,1,2,'che_dust:dustbsiz')
-        call getmem2d(erodfc,jci1,jci2,ici1,ici2,'che_dust:erodfc')
-        call getmem3d(aez0,jci1,jci2,ici1,ici2,1,12,'che_dust:aez0')
-        call getmem1d(dustbed,1,nbin,'che_dust:dustbed')
-        call getmem1d(soldust,1,nbin,'che_dust:soldust')
-        call getmem1d(frac1,1,nbin,'che_dust:frac1')
-        call getmem1d(frac2,1,nbin,'che_dust:frac2')
-        call getmem1d(frac3,1,nbin,'che_dust:frac3')
-        call getmem1d(frac,1,nbin,'che_dust:frac')
+        call getmem(dustbsiz,1,nbin,1,2,'che_dust:dustbsiz')
+        call getmem(erodfc,jci1,jci2,ici1,ici2,'che_dust:erodfc')
+        call getmem(aez0,jci1,jci2,ici1,ici2,1,12,'che_dust:aez0')
+        call getmem(dustbed,1,nbin,'che_dust:dustbed')
+        call getmem(soldust,1,nbin,'che_dust:soldust')
+        call getmem(frac1,1,nbin,'che_dust:frac1')
+        call getmem(frac2,1,nbin,'che_dust:frac2')
+        call getmem(frac3,1,nbin,'che_dust:frac3')
+        call getmem(frac,1,nbin,'che_dust:frac')
         if ( nmine > 0 ) then
-          call getmem3d(cminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:cminer')
-          call getmem3d(sminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:sminer')
+          call getmem(cminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:cminer')
+          call getmem(sminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:sminer')
         end if
 #ifdef CLM45
         if ( ichdustemd == 3 ) then
-          call getmem2d(sumdflux,jci1,jci2,ici1,ici2,'che_dust:sumdflux')
+          call getmem(sumdflux,jci1,jci2,ici1,ici2,'che_dust:sumdflux')
         end if
 #endif
       end if

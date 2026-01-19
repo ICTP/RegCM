@@ -61,18 +61,18 @@ module mod_slabocean
 !
     subroutine allocate_mod_slabocean
       implicit none
-      call getmem3d(slabmld,jci1,jci2,ici1,ici2,1,mpy,&
+      call getmem(slabmld,jci1,jci2,ici1,ici2,1,mpy,&
                     'slab_ocean:slabmld')
-      call getmem3d(qflux_restore_sst,jci1,jci2,ici1,ici2,1,mpy,&
+      call getmem(qflux_restore_sst,jci1,jci2,ici1,ici2,1,mpy,&
                     'slab_ocean:qflux_restore_sst')
-      call getmem2d(qflux_sst,jci1,jci2,ici1,ici2,'slab_ocean:qflux_sst')
-      call getmem2d(qflux_adj,jci1,jci2,ici1,ici2,'slab_ocean:qflux_adj')
-      call getmem2d(qflb0,jci1,jci2,ici1,ici2,'slab_ocean:qflb0')
-      call getmem2d(qflb1,jci1,jci2,ici1,ici2,'slab_ocean:qflb1')
-      call getmem2d(qflbt,jci1,jci2,ici1,ici2,'slab_ocean:qflbt')
-      call getmem2d(net_hflx,jci1,jci2,ici1,ici2,'slab_ocean:net_hflx')
-      call getmem2d(hflx,jci1,jci2,ici1,ici2,'slab_ocean:hflx')
-      call getmem2d(ocmask,jci1,jci2,ici1,ici2,'slab_ocean:ocmask')
+      call getmem(qflux_sst,jci1,jci2,ici1,ici2,'slab_ocean:qflux_sst')
+      call getmem(qflux_adj,jci1,jci2,ici1,ici2,'slab_ocean:qflux_adj')
+      call getmem(qflb0,jci1,jci2,ici1,ici2,'slab_ocean:qflb0')
+      call getmem(qflb1,jci1,jci2,ici1,ici2,'slab_ocean:qflb1')
+      call getmem(qflbt,jci1,jci2,ici1,ici2,'slab_ocean:qflbt')
+      call getmem(net_hflx,jci1,jci2,ici1,ici2,'slab_ocean:net_hflx')
+      call getmem(hflx,jci1,jci2,ici1,ici2,'slab_ocean:hflx')
+      call getmem(ocmask,jci1,jci2,ici1,ici2,'slab_ocean:ocmask')
       stepcount(:) = 0
       dtocean = dtsrf
     end subroutine allocate_mod_slabocean

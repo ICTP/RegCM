@@ -96,7 +96,7 @@ module mod_cu_interface
     use mod_atm_interface
     implicit none
     integer(ik4) :: i, j
-    call getmem2d(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
+    call getmem(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       if ( isocean(mddom%lndcat(j,i)) ) then
         cuscheme(j,i) = icup_ocn
@@ -115,11 +115,11 @@ module mod_cu_interface
     end if
     if ( any(icup == 4) .or. any(icup == 5) ) then
       if ( idynamic == 3 ) then
-        call getmem3d(utend,jdi1gb,jdi2gb,ici1,ici2,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jci1,jci2,idi1gb,idi2gb,1,kz,'pbl_common:vtend')
+        call getmem(utend,jdi1gb,jdi2gb,ici1,ici2,1,kz,'pbl_common:utend')
+        call getmem(vtend,jci1,jci2,idi1gb,idi2gb,1,kz,'pbl_common:vtend')
       else
-        call getmem3d(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
+        call getmem(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
+        call getmem(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
       end if
     end if
     if ( any(icup == 4) ) then
@@ -128,8 +128,8 @@ module mod_cu_interface
     if ( any(icup == 5) ) then
       if ( iconv /= 4 ) call init_convect_tables
       call allocate_mod_cu_tiedtke
-      call getmem3d(utenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:utenx')
-      call getmem3d(vtenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:vtenx')
+      call getmem(utenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:utenx')
+      call getmem(vtenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:vtenx')
     end if
     if ( any(icup == 6) ) then
       call allocate_mod_cu_kf

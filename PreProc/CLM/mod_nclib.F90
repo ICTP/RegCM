@@ -1134,8 +1134,8 @@ module mod_nclib
   icount(4) = ngtim
 !     /*get variable and attributes*/
   ilon5 = nglon/2
-  call getmem4d(vals1,1,nglon,1,nglat,1,nglev,1,ngtim,'mod_nclib:vals1')
-  call getmem4d(vals2,1,nglon,1,nglat,1,nglev,1,ngtim,'mod_nclib:vals2')
+  call getmem(vals1,1,nglon,1,nglat,1,nglev,1,ngtim,'mod_nclib:vals1')
+  call getmem(vals2,1,nglon,1,nglat,1,nglev,1,ngtim,'mod_nclib:vals2')
 
   iflag = nf90_inq_varid(idcdf,vnam,invarid)
   if (iflag /= nf90_noerr) go to 920

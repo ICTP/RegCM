@@ -85,11 +85,11 @@ module mod_sigma
       lcompute = .not. lpress .or. ( lpress .and. &
               .not. (nk == 2 .or. nk == 14 .or. nk == 18 .or. &
                      nk == 23 .or. nk == 41) )
-      call getmem1d(sigma_coordinate,1,nk+1, &
+      call getmem(sigma_coordinate,1,nk+1, &
         'init_sigma:sigma_coordinate')
-      call getmem1d(sigma_delta,1,nk, &
+      call getmem(sigma_delta,1,nk, &
         'init_sigma:sigma_delta')
-      call getmem1d(half_sigma_coordinate,1,nk, &
+      call getmem(half_sigma_coordinate,1,nk, &
         'init_sigma:half_sigma_coordinate')
       !
       ! Setup hardcoded sigma levels
