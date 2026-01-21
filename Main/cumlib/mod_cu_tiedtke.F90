@@ -174,9 +174,7 @@ module mod_cu_tiedtke
     call getmem2d(zlude,1,nipoi,1,kz,'mod_cu_tiedtke:zlude')
     call getmem2d(pxtec,1,nipoi,1,kz,'mod_cu_tiedtke:pxtec')
     call getmem2d(pqtec,1,nipoi,1,kz,'mod_cu_tiedtke:pqtec')
-    if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
-      call getmem2d(pccn,1,nipoi,1,kz,'mod_cu_tiedtke:pccn')
-    end if
+    call getmem2d(pccn,1,nipoi,1,kz,'mod_cu_tiedtke:pccn')
     call getmem2d(zcvrout,1,nipoi,1,kz,'mod_cu_tiedtke:zcvrout')
     call getmem2d(pmflxr,1,nipoi,1,kz+1,'mod_cu_tiedtke:pmflxr')
     call getmem1d(kctop,1,nipoi,'mod_cu_tiedtke:kctop')

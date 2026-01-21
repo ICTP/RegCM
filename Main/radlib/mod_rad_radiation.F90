@@ -4214,7 +4214,7 @@ module mod_rad_radiation
     real(rk8) :: w , f
     w = wi
     f = fi
-    omgs = real((1.0_rk8-f)*w/(1.0_rk8-w*f),rkx)
+    omgs = real(min((1.0_rk8-f)*w/(1.0_rk8-w*f),0.999999_rk8),rkx)
   end function omgs
   ! asys - Scaled asymmetry parameter
   pure real(rkx) function asys(gi,fi)

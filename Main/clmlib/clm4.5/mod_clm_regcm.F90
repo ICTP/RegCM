@@ -483,7 +483,7 @@ module mod_clm_regcm
     clm_a2l%forc_solai(:,2) = clm_a2l%notused
 
     ! Compute or alias
-    clm_a2l%forc_wind = sqrt(clm_a2l%forc_u**2 + clm_a2l%forc_v**2)
+    clm_a2l%forc_wind = max(sqrt(clm_a2l%forc_u**2+clm_a2l%forc_v**2),0.1_rkx)
     clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
