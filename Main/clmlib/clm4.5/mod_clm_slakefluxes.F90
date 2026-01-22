@@ -666,14 +666,14 @@ module mod_clm_slakefluxes
         ! Rebuild copy of pft filter for next pass through the ITERATION loop
         fnold = fncopy
         fncopy = 0
-        !$acc parallel loop copy(fncopy)
+        !!!$acc parallel loop copy(fncopy)
         do fp = 1, fnold
           p = fpcopy(fp)
           if (nmozsgn(p) < 3) then
-            !$acc atomic capture
+            !!!$acc atomic capture
             fncopy = fncopy + 1
             myfncopy = fncopy
-            !$acc end atomic
+            !!!$acc end atomic
             fpcopy(myfncopy) = p
           end if
         end do   ! end of filtered pft loop
