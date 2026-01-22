@@ -2000,7 +2000,6 @@ module mod_rad_radiation
         ! through the top ozone layer is less than trmin, then no
         ! delta-Eddington computation for the underlying column is done:
         !
-        !
         ! Initialize current layer properties to zero;only if total
         ! transmission to the top interface of the current layer exceeds
         ! the minimum, will these values be computed below:

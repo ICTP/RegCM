@@ -53,7 +53,7 @@ module mod_clm_initimeconst
 
   save
 
-  public :: iniTimeConst
+  public :: iniTimeConst, daylength
 
   contains
   !
@@ -210,7 +210,7 @@ module mod_clm_initimeconst
     real(rk8), pointer, contiguous :: dzsoifl(:)  ! original soil thickness
     real(rk8) :: clay,sand        ! temporaries
     ! real(rk8) :: slope,intercept  ! temporary, for rooting distribution
-    real(rk8) :: temp, max_decl   ! temporary, for calculation of max_dayl
+    real(rk8) :: max_decl   ! temporary, for calculation of max_dayl
     integer(ik4)  :: begp, endp  ! per-proc beginning and ending pft indices
     integer(ik4)  :: begc, endc  ! per-proc beginning and ending column indices
     integer(ik4)  :: begl, endl  ! per-proc beginning and ending ldunit indices
@@ -263,6 +263,7 @@ module mod_clm_initimeconst
     real(rk8), pointer, contiguous :: lakedepth_in(:) ! read in - lakedepth
     real(rk8), pointer, contiguous :: etal_in(:)     ! read in - etal
     real(rk8), pointer, contiguous :: lakefetch_in(:) ! read in - lakefetch
+
     real(rk8) :: om_frac                 ! organic matter fraction
     ! thermal conductivity of organic soil (Farouki, 1986) [W/m/K]
     real(rk8) :: om_tkm = 0.25_rk8
@@ -1031,11 +1032,9 @@ module mod_clm_initimeconst
       ! maximum declination hardwired for present-day orbital parameters,
       ! +/- 23.4667 degrees = +/- 0.409571 radians, use negative value
       ! for S. Hem
-      max_decl = 0.409571
+      max_decl = obliqr
       if (lat(g) < 0._rk8) max_decl = -max_decl
-      temp = -(sin(lat(g))*sin(max_decl))/(cos(lat(g)) * cos(max_decl))
-      temp = min(1._rk8,max(-1._rk8,temp))
-      max_dayl(c) = 2.0_rk8 * 13750.9871_rk8 * acos(temp)
+      max_dayl(c) = daylength(lat(g), max_decl)
 
       ! Initialize restriction for min of soil potential (mm)
       smpmin(c) = -1.e8_rk8
@@ -1629,6 +1628,22 @@ module mod_clm_initimeconst
       write(stdout,*) 'Successfully initialized time invariant variables'
     end if
   end subroutine iniTimeConst
+
+  pure elemental real(rk8) function daylength(lat, decl)
+    !$acc routine seq
+    implicit none
+    real(rk8), intent(in) :: lat    ! latitude (radians)
+    real(rk8), intent(in) :: decl   ! solar declination angle (radians)
+    real(rk8), parameter :: secs_per_radian = 13750.9871_rk8
+    real(rk8), parameter :: lat_epsilon = 10._rk8 * epsilon(1._rk8)
+    real(rk8), parameter :: pole = rpi/2.0_rk8
+    real(rk8), parameter :: offset_pole = pole - lat_epsilon
+    real(rk8) :: my_lat, temp
+    my_lat = min(offset_pole, max(-1._rk8 * offset_pole, lat))
+    temp = -(sin(my_lat)*sin(decl))/(cos(my_lat) * cos(decl))
+    temp = min(1._rk8,max(-1._rk8,temp))
+    daylength = 2.0_rk8 * secs_per_radian * acos(temp)
+  end function daylength
 
 end module mod_clm_initimeconst
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

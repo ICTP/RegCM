@@ -194,7 +194,7 @@ module mod_clm_frictionvelocity
       ! then set 10-m wind to um
       if (present(landunit_index)) then
         !$acc loop seq
-        do pp = pfti(n),pftf(n)
+        do pp = pfti(n), pftf(n)
           if (zldis(n)-z0m(n) <= 10._rk8) then
             u10_clm(pp) = um(n)
           else
@@ -495,11 +495,11 @@ module mod_clm_frictionvelocity
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(-zetam*obu(n)/(10._rk8+z0m(n)))))
           else if (zeta(n) < 0._rk8) then
-            u10_clm(n) = um(n) - ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n)))))
+            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n)))))
           else if (zeta(n) <=  1._rk8) then
-            u10_clm(n) = um(n) - ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n)))))
+            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n)))))
           else
-            u10_clm(n) = um(n) - ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n)))))
+            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n)))))
           end if
         end if
         va(n) = um(n)
@@ -618,6 +618,7 @@ module mod_clm_frictionvelocity
   ! Stability function for rib < 0.
   !
   real(rk8) pure function StabilityFunc1(zeta)
+    !$acc routine seq
     implicit none
     ! dimensionless height used in Monin-Obukhov theory
     real(rk8), intent(in) :: zeta
@@ -631,6 +632,7 @@ module mod_clm_frictionvelocity
   ! Stability function for rib < 0.
   !
   real(rk8) pure function StabilityFunc2(zeta)
+    !$acc routine seq
     implicit none
     ! dimensionless height used in Monin-Obukhov theory
     real(rk8), intent(in) :: zeta

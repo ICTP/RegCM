@@ -17,6 +17,7 @@ module mod_clm_canopyfluxes
                     denh2o, tfrz, tlsai_crit, alpha_aero, &
                     isecspday, degpsec, tfrz, c14ratio
   use mod_clm_qsat, only : QSat
+  use mod_clm_initimeconst, only : daylength
   use mod_clm_frictionvelocity, only : FrictionVelocity, MoninObukIni
   use mod_clm_pftvarcon, only : nbrdlf_dcd_tmp_shrub, irrigated
   use mod_clm_pftvarcon, only : nsoybean, nsoybeanirrig, npcropmin, &
@@ -502,7 +503,6 @@ module mod_clm_canopyfluxes
    real(rk8) :: elai_dl       ! exposed (dry) plant litter area index
    real(rk8) :: fsno_dl       ! effective snow cover over plant litter
    real(rk8) :: dayl          ! daylength (s)
-   real(rk8) :: temp          ! temporary, for daylength calculation
    ! scalar (0-1) for daylength effect on Vcmax
    real(rk8) :: dayl_factor(lbp:ubp)
    ! Rootfraction defined for unfrozen layers only.
@@ -782,10 +782,7 @@ module mod_clm_canopyfluxes
      p = filterp(f)
      c = pcolumn(p)
      g = pgridcell(p)
-     ! calculate daylength control for Vcmax
-     temp = -(sin(lat(g))*sin(decl(c))) / (cos(lat(g)) * cos(decl(c)))
-     temp = min(1.0_rk8, max(-1.0_rk8, temp))
-     dayl = 2.0_rk8 * 13750.9871_rk8 * acos(temp)
+     dayl = daylength(lat(g),decl(c))
      ! calculate dayl_factor as the ratio of (current:max dayl)^2
      ! set a minimum of 0.01 (1%) for the dayl_factor
      dayl_factor(p) = min(1.0_rk8, max(0.01_rk8, &
@@ -834,13 +831,10 @@ module mod_clm_canopyfluxes
      end do
 
      ! normalize rootfr to total unfrozen depth
-     do concurrent ( f = 1:fn )
+     do concurrent ( f = 1:fn, j = 1:nlevgrnd )
        p = filterp(f)
        if ( rootsum(p) > 0._rk8 ) then
-         !$acc loop seq
-         do j = 1, nlevgrnd
-           rootfr_unf(p,j) = rootfr_unf(p,j) / rootsum(p)
-         end do
+         rootfr_unf(p,j) = rootfr_unf(p,j) / rootsum(p)
        end if
      end do
    end if ! perchroot
@@ -962,8 +956,8 @@ module mod_clm_canopyfluxes
            irrig_rate(c) = irrig_rate(c)+deficit/(dtsrf*irrig_nsteps_per_day)
          end if  ! else if (rootfr(p,j) > 0)
        end if    ! if (check_for_irrig(p) .and. .not. frozen_soil(c))
-     end do      ! do f
-   end do        ! do j
+     end do      ! do j
+   end do        ! do f
 
    ! Modify aerodynamic parameters for sparse/dense canopy (X. Zeng)
    do concurrent ( f = 1:fn )
@@ -1081,6 +1075,10 @@ module mod_clm_canopyfluxes
                             displa_loc, z0mv_loc, z0hv_loc, z0qv_loc, &
                             obu, itlef+1, ur, um, ustar, &
                             temp1, temp2, temp12m, temp22m, fm)
+
+     do concurrent ( p = lbp:ubp )
+       err(p) = 0.0_rk8
+     end do
 
      do concurrent ( f = 1:fn )
        p = filterp(f)
@@ -1269,8 +1267,6 @@ module mod_clm_canopyfluxes
 
        erre = 0._rk8
 
-       if ( abs(efe(p)) < 1.e-20_rk8 ) efe(p)  = 0.0_rk8
-       if ( abs(efeb(p)) < 1.e-20_rk8 ) efeb(p) = 0.0_rk8
        if (efe(p)*efeb(p) < 0._rk8) then
          efeold = efe(p)
          efe(p) = 0.1_rk8*efeold
@@ -1286,15 +1282,15 @@ module mod_clm_canopyfluxes
               (- 4._rk8*bir(p)*t_veg(p)**3 +dc1*wtga +dc2*wtgaq*qsatldT(p))
        t_veg(p) = tlbef(p) + dt_veg(p)
        dels = dt_veg(p)
-       del(p)  = abs(dels)
-       err(p) = 0._rk8
+       del(p) = abs(dels)
        if (del(p) > delmax) then
          dt_veg(p) = delmax*dels/del(p)
          t_veg(p) = tlbef(p) + dt_veg(p)
-         err(p) = sabv(p) + air(p) + bir(p)*tlbef(p)**3*(tlbef(p) + &
-                 4._rk8*dt_veg(p)) + cir(p)*lw_grnd - &
-                 (efsh + dc1*wtga*dt_veg(p)) - (efe(p) + &
-                 dc2*wtgaq*qsatldT(p)*dt_veg(p))
+         err(p) = sabv(p) + air(p) +                                 &
+                  bir(p)*tlbef(p)**3*(tlbef(p) + 4._rk8*dt_veg(p)) + &
+                  cir(p)*lw_grnd -                                   &
+                  (efsh + dc1*wtga*dt_veg(p)) -                      &
+                  (efe(p) + dc2*wtgaq*qsatldT(p)*dt_veg(p))
        end if
 
        ! Fluxes from leaves to canopy space
@@ -1312,7 +1308,6 @@ module mod_clm_canopyfluxes
        ! during the timestep.  This energy is later added to the
        ! sensible heat flux.
 
-       ecidif = 0._rk8
        if (efpot > 0._rk8 .and. btran(p) > btran0) then
          qflx_tran_veg(p) = efpot*rppdry
        else
@@ -1407,14 +1402,17 @@ module mod_clm_canopyfluxes
 
      ! Energy balance check in canopy
 
-     lw_grnd=(frac_sno(c)*t_soisno(c,snl(c)+1)**4 &
-           +(1._rk8-frac_sno(c)-frac_h2osfc(c))*t_soisno(c,1)**4 &
-           +frac_h2osfc(c)*t_h2osfc(c)**4)
+     lw_grnd = frac_sno(c)*t_soisno(c,snl(c)+1)**4 +                  &
+               (1._rk8-frac_sno(c)-frac_h2osfc(c))*t_soisno(c,1)**4 + &
+               frac_h2osfc(c)*t_h2osfc(c)**4
 
-     err(p) = sabv(p) + air(p) + bir(p)*tlbef(p)**3*(tlbef(p) + &
-             4._rk8*dt_veg(p)) + cir(p)*lw_grnd - eflx_sh_veg(p) - &
-             hvap*qflx_evap_veg(p)
-!         + cir(p)*t_grnd(c)**4 - eflx_sh_veg(p) - hvap*qflx_evap_veg(p)
+     err(p) = sabv(p) +                                        &
+              air(p) +                                         &
+              bir(p)*tlbef(p)**3*(tlbef(p)+4._rk8*dt_veg(p)) + &
+              cir(p)*lw_grnd -                                 &
+              eflx_sh_veg(p) -                                 &
+              hvap*qflx_evap_veg(p)
+!           + cir(p)*t_grnd(c)**4 - eflx_sh_veg(p) - hvap*qflx_evap_veg(p)
 
      ! Fluxes from ground to canopy space
 
@@ -1445,17 +1443,19 @@ module mod_clm_canopyfluxes
 
      ! 2 m height air temperature
 
-     t_ref2m(p) = thm(p) + temp1(p)*dth(p)*(1._rk8/temp12m(p) - 1._rk8/temp1(p))
+     t_ref2m(p) = thm(p) + &
+       temp1(p)*dth(p)*(1._rk8/temp12m(p) - 1._rk8/temp1(p))
      t_ref2m_r(p) = t_ref2m(p)
 
      ! 2 m height specific humidity
 
-     q_ref2m(p) = forc_q(g) + temp2(p)*dqh(p)*(1._rk8/temp22m(p) - 1._rk8/temp2(p))
+     q_ref2m(p) = forc_q(g) + &
+       temp2(p)*dqh(p)*(1._rk8/temp22m(p) - 1._rk8/temp2(p))
 
      ! 2 m height relative humidity
 
      call QSat(t_ref2m(p), forc_pbot(g), e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT)
-     rh_ref2m(p) = min(100._rk8, q_ref2m(p) / qsat_ref2m * 100._rk8)
+     rh_ref2m(p) = min(100._rk8, (q_ref2m(p) / qsat_ref2m) * 100._rk8)
      rh_ref2m_r(p) = rh_ref2m(p)
 
      ! Downward longwave radiation below the canopy
@@ -2173,8 +2173,10 @@ module mod_clm_canopyfluxes
 
           ! Adjust for temperature
           !KO
-          vcmaxse = 668.39_rk8 - 1.07_rk8 * min(max((t10(p)-tfrz),11._rk8),35._rk8)
-          jmaxse  = 659.70_rk8 - 0.75_rk8 * min(max((t10(p)-tfrz),11._rk8),35._rk8)
+          vcmaxse = 668.39_rk8 - &
+            1.07_rk8 * min(max((t10(p)-tfrz),11._rk8),35._rk8)
+          jmaxse  = 659.70_rk8 - &
+            0.75_rk8 * min(max((t10(p)-tfrz),11._rk8),35._rk8)
           tpuse = vcmaxse
           vcmaxc = fth25 (vcmaxhd, vcmaxse)
           jmaxc  = fth25 (jmaxhd, jmaxse)
@@ -2188,7 +2190,8 @@ module mod_clm_canopyfluxes
             fth(t_veg(p), tpuhd, tpuse, tpuc)
 
           if ( .not. c3flag(p) ) then
-            vcmax_z(p,iv) = vcmax25 * 2._rk8**((t_veg(p)-(tfrz+25._rk8))/10._rk8)
+            vcmax_z(p,iv) = vcmax25 * &
+              (2._rk8**((t_veg(p)-(tfrz+25._rk8))/10._rk8))
             vcmax_z(p,iv) = vcmax_z(p,iv) / &
               (1._rk8 + exp( 0.2_rk8*((tfrz+15._rk8)-t_veg(p)) ))
             vcmax_z(p,iv) = vcmax_z(p,iv) / &
@@ -2215,7 +2218,7 @@ module mod_clm_canopyfluxes
 #ifdef STDPAR_FIXED
     do concurrent ( f = 1:fn )
 #else
-    !$acc parallel loop gang vector
+    !$acc parallel loop
     do f = 1, fn
 #endif
       p = filterp(f)
@@ -2382,55 +2385,54 @@ module mod_clm_canopyfluxes
         rs(p) = 0._rk8
       end if
     end do
-
-    contains
-    !
-    ! Temperature and soil water response functions
-    !
-    ! photosynthesis temperature response
-    !
-    pure real(rk8) function ft(tl,ha)
-      !$acc routine seq
-      use mod_clm_varcon, only : rgas, tfrz
-      implicit none
-      ! leaf temperature in photosynthesis temperature function (K)
-      real(rk8), intent(in) :: tl
-      ! activation energy in photosynthesis temperature function (J/mol)
-      real(rk8), intent(in) :: ha
-      ft = exp( ha / (rgas*1.e-3_rk8*(tfrz+25._rk8)) * (1._rk8 - (tfrz+25._rk8)/tl) )
-    end function ft
-    !
-    ! photosynthesis temperature inhibition
-    !
-    pure real(rk8) function fth(tl,hd,se,cc)
-      !$acc routine seq
-      use mod_clm_varcon, only : rgas
-      implicit none
-      ! leaf temperature in photosynthesis temperature function (K)
-      real(rk8), intent(in) :: tl
-      ! deactivation energy in photosynthesis temperature function (J/mol)
-      real(rk8), intent(in) :: hd
-      ! entropy term in photosynthesis temperature function (J/mol/K)
-      real(rk8), intent(in) :: se
-      ! scaling factor for high temperature inhibition (25 C = 1.0)
-      real(rk8), intent(in) :: cc
-      fth = cc / ( 1._rk8 + exp( (-hd+se*tl) / (rgas*1.e-3_rk8*tl) ) )
-    end function fth
-    !
-    ! scaling factor for photosynthesis temperature inhibition
-    !
-    pure real(rk8) function fth25(hd,se)
-      !$acc routine seq
-      use mod_clm_varcon, only : rgas, tfrz
-      implicit none
-      ! deactivation energy in photosynthesis temperature function (J/mol)
-      real(rk8), intent(in) :: hd
-      ! entropy term in photosynthesis temperature function (J/mol/K)
-      real(rk8), intent(in) :: se
-      fth25 = 1._rk8 + exp( (-hd+se*(tfrz+25._rk8)) / (rgas*1.e-3_rk8*(tfrz+25._rk8)))
-    end function fth25
-
   end subroutine Photosynthesis
+  !
+  ! Temperature and soil water response functions
+  !
+  ! photosynthesis temperature response
+  !
+  pure real(rk8) function ft(tl,ha)
+    !$acc routine seq
+    use mod_clm_varcon, only : rgas, tfrz
+    implicit none
+    ! leaf temperature in photosynthesis temperature function (K)
+    real(rk8), intent(in) :: tl
+    ! activation energy in photosynthesis temperature function (J/mol)
+    real(rk8), intent(in) :: ha
+    ft = exp( ha / &
+      (rgas*1.e-3_rk8*(tfrz+25._rk8)) * (1._rk8 - (tfrz+25._rk8)/tl) )
+  end function ft
+  !
+  ! photosynthesis temperature inhibition
+  !
+  pure real(rk8) function fth(tl,hd,se,cc)
+    !$acc routine seq
+    use mod_clm_varcon, only : rgas
+    implicit none
+    ! leaf temperature in photosynthesis temperature function (K)
+    real(rk8), intent(in) :: tl
+    ! deactivation energy in photosynthesis temperature function (J/mol)
+    real(rk8), intent(in) :: hd
+    ! entropy term in photosynthesis temperature function (J/mol/K)
+    real(rk8), intent(in) :: se
+    ! scaling factor for high temperature inhibition (25 C = 1.0)
+    real(rk8), intent(in) :: cc
+    fth = cc / ( 1._rk8 + exp( (-hd+se*tl) / (rgas*1.e-3_rk8*tl) ) )
+  end function fth
+  !
+  ! scaling factor for photosynthesis temperature inhibition
+  !
+  pure real(rk8) function fth25(hd,se)
+    !$acc routine seq
+    use mod_clm_varcon, only : rgas, tfrz
+    implicit none
+    ! deactivation energy in photosynthesis temperature function (J/mol)
+    real(rk8), intent(in) :: hd
+    ! entropy term in photosynthesis temperature function (J/mol/K)
+    real(rk8), intent(in) :: se
+    fth25 = 1._rk8 + &
+        exp( (-hd+se*(tfrz+25._rk8)) / (rgas*1.e-3_rk8*(tfrz+25._rk8)))
+  end function fth25
   !
   ! Evaluate the function
   ! f(ci) = ci - (ca - (1.37rb+1.65rs))*patm*an
@@ -2587,14 +2589,26 @@ module mod_clm_canopyfluxes
     implicit none
     real(rk8), intent(in)  :: a,b,c  ! Terms for quadratic equation
     real(rk8), intent(out) :: r1,r2  ! Roots of quadratic equation
-    real(rk8) :: q                   ! Temporary term for quadratic solution
-    if ( b >= 0._rk8 ) then
-      q = -0.5_rk8 * (b + sqrt(b*b - 4._rk8*a*c))
+    real(rk8) :: q, root             ! Temporary term for quadratic solution
+    root = b*b - 4._rk8*a*c
+    if ( root >= 0.0 ) then
+      if ( b >= 0._rk8 ) then
+        q = -0.5_rk8 * (b + sqrt(root))
+      else
+        q = -0.5_rk8 * (b - sqrt(root))
+      end if
     else
-      q = -0.5_rk8 * (b - sqrt(b*b - 4._rk8*a*c))
+      if ( -root < 3.0_rk8*epsilon(b) ) then
+        q = -0.5_rk8 * b
+      else
+        q = 1.0e-36_rk8
+      end if
     end if
-
-    r1 = q / a
+    if ( a /= 0.0_rk8 ) then
+      r1 = q / a
+    else
+      r1 = 1.0e36_rk8
+    end if
     if ( q /= 0._rk8 ) then
       r2 = c / q
     else
@@ -2679,7 +2693,7 @@ module mod_clm_canopyfluxes
                  rh_can, gs_mol, c3flag, ac, aj, ap, ag, an,     &
                  vcmax_z, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, &
                  forc_pbot, bbb, mbb)
-    if ( abs(f0) < 1.e-20_rk8 ) return
+    if ( f0 == 0.0_rk8 ) return
 
     minx = x0
     minf = f0
@@ -2689,7 +2703,7 @@ module mod_clm_canopyfluxes
                  vcmax_z, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, &
                  forc_pbot, bbb, mbb)
 
-    if ( abs(f1) < 1.e-20_rk8 ) then
+    if ( f1 == 0.0_rk8 ) then
       x0 = x1
       return
     end if

@@ -320,9 +320,9 @@ module mod_clm_balancecheck
     real(rk8), dimension(lbc:ubc) :: forc_snow_col
 
     character(len=*), parameter :: f99001 = &
-     "(1x,a,' step =',i10,' point =',i6,' imbalance =',f12.6,' W/m2')"
+     "(1x,a,' step =',i10,' point =',i10,' imbalance =',f12.6,' W/m2')"
     character(len=*), parameter :: f99002 = &
-     "(1x,a,' step =',i10,' point =',i6,' imbalance =',f12.6,' mm')"
+     "(1x,a,' step =',i10,' point =',i10,' imbalance =',f12.6,' mm')"
 
     ! Assign local pointers to derived type scalar members (gridcell-level)
 

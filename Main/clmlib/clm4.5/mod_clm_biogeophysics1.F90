@@ -9,16 +9,15 @@ module mod_clm_biogeophysics1
   use mod_realkinds
   use mod_clm_type
   use mod_clm_atmlnd, only : clm_a2l
-  use mod_clm_varcon, only : denh2o, denice, roverg, hvap, hsub, &
+  use mod_clm_varcon, only : denh2o, denice, roverg, hvap, hsub,  &
                        istice, istwet, istsoil, isturb, istdlak,  &
                        zlnd, zsno, tfrz, icol_roof, icol_sunwall, &
-                       icol_shadewall, icol_road_imperv,          &
+                       icol_shadewall, icol_road_imperv,rpi,      &
                        icol_road_perv, tfrz, spval, istdlak
   use mod_clm_varcon, only : istcrop
   use mod_clm_varpar, only : nlevgrnd, nlevurb, nlevsno, nlevsoi
   use mod_clm_varpar, only : max_pft_per_gcell
   use mod_clm_qsat, only : QSat
-  use mod_constants, only : mathpi
 
   implicit none
 
@@ -405,7 +404,7 @@ module mod_clm_biogeophysics1
             fac_fc  = max( fac_fc, 0.01_rk8 )
             ! modify soil beta by snow cover. soilbeta for snow surface is one
             soilbeta(c) = (1._rk8-frac_sno(c)-frac_h2osfc(c)) * &
-                     0.25_rk8*(1._rk8 - cos(mathpi*fac_fc))**2._rk8 + &
+                     0.25_rk8*(1._rk8 - cos(rpi*fac_fc))**2._rk8 + &
                               frac_sno(c)+ frac_h2osfc(c)
           else   !when water content of ths top layer is more than that at F.C.
             soilbeta(c) = 1._rk8
