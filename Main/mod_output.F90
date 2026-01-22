@@ -58,13 +58,14 @@ module mod_output
   contains
 
   subroutine output
+    !@acc use nvtx
     implicit none
     logical :: ldoatm, ldosrf, ldorad, ldoche, ldoopt
     logical :: ldosav, ldolak, ldosub, ldosts, ldoshf, lnewf
     logical :: ldoslab
     logical :: lstartup
     integer(ik4) :: i, j, k, n, kk, itr
-    real(rkx), dimension(kz) :: p1d, t1d, rh1d
+    real(rkx), dimension(kz) :: p1d, t1d, rh1d, td, pi, q, th, thv, z
     real(rkx) :: cell, srffac, radfac, lakfac, subfac, optfac, stsfac
     real(rkx) :: tsurf, t500
     real(rkx), dimension(:,:,:), pointer, contiguous :: qv
@@ -75,6 +76,7 @@ module mod_output
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    !@acc call nvtxStartRange("output")
 
     qv => null( )
     temp500 => null( )
@@ -297,7 +299,9 @@ module mod_output
             end do
           end if
           ! Specific humidity in the output, not mixing ratio
+          !$acc kernels
           atm_qv_out = atm_qv_out/(d_one+atm_qv_out)
+          !$acc end kernels
         end if
         if ( associated(atm_qc_out) ) then
           if ( idynamic == 3 ) then
@@ -1046,8 +1050,10 @@ module mod_output
         end if
         if ( associated(srf_cape_out) .and. associated(srf_cin_out) ) then
           if ( idynamic == 3 ) then
+            !$acc parallel loop collapse(2) gang vector private(p1d,t1d,rh1d,td,pi,q,th,thv,z)
             do i = ici1, ici2
               do j = jci1, jci2
+                !$acc loop seq
                 do k = 1, kz
                   kk = kzp1 - k
                   p1d(kk) = mo_atm%p(j,i,k)
@@ -1055,13 +1061,15 @@ module mod_output
                   rh1d(kk) = min(d_one,max(d_zero,(mo_atm%qx(j,i,k,iqv) / &
                       pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
                 end do
-                call getcape(kz,p1d,t1d,rh1d, &
-                  srf_cape_out(j,i),srf_cin_out(j,i))
+                call getcape_new(kz,p1d,t1d,rh1d, &
+                  srf_cape_out(j,i),srf_cin_out(j,i),td,pi,q,th,thv,z)
               end do
             end do
           else
+            !$acc parallel loop collapse(2) gang vector private(p1d,t1d,rh1d,td,pi,q,th,thv,z)
             do i = ici1, ici2
               do j = jci1, jci2
+                !$acc loop seq
                 do k = 1, kz
                   kk = kzp1 - k
                   p1d(kk) = atm1%pr(j,i,k)
@@ -1070,8 +1078,8 @@ module mod_output
                      (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
                      pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
                 end do
-                call getcape(kz,p1d,t1d,rh1d, &
-                  srf_cape_out(j,i),srf_cin_out(j,i))
+                call getcape_new(kz,p1d,t1d,rh1d, &
+                  srf_cape_out(j,i),srf_cin_out(j,i),td,pi,q,th,thv,z)
               end do
             end do
           end if
@@ -1885,6 +1893,7 @@ module mod_output
       end if
     end if
 
+    !@acc call nvtxEndRange
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
