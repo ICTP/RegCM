@@ -465,7 +465,7 @@ module mod_clm_accflds
     call update_accum_field  ('TREFAV', t_ref2m, kkincr)
     call extract_accum_field ('TREFAV', rbufslp, kkincr)
     end_cd = is_end_curr_day()
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       if (rbufslp(p) /= spval) then
         t_ref2m_max_inst(p) = max(rbufslp(p), t_ref2m_max_inst(p))
         t_ref2m_min_inst(p) = min(rbufslp(p), t_ref2m_min_inst(p))
@@ -490,7 +490,7 @@ module mod_clm_accflds
 
     call update_accum_field  ('TREFAV_U', t_ref2m_u, kkincr)
     call extract_accum_field ('TREFAV_U', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       l = plandunit(p)
       if (rbufslp(p) /= spval) then
         t_ref2m_max_inst_u(p) = max(rbufslp(p), t_ref2m_max_inst_u(p))
@@ -518,7 +518,7 @@ module mod_clm_accflds
 
     call update_accum_field  ('TREFAV_R', t_ref2m_r, kkincr)
     call extract_accum_field ('TREFAV_R', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       l = plandunit(p)
       if (rbufslp(p) /= spval) then
         t_ref2m_max_inst_r(p) = max(rbufslp(p), t_ref2m_max_inst_r(p))
@@ -538,7 +538,7 @@ module mod_clm_accflds
     end do
 
     ! Accumulate and extract T_VEG24 & T_VEG240 (heald 04/06)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       rbufslp(p) = t_veg(p)
     end do
     call update_accum_field  ('T_VEG24', rbufslp, kkincr)
@@ -547,7 +547,7 @@ module mod_clm_accflds
     call extract_accum_field ('T_VEG240', t_veg240, kkincr)
 
     ! Accumulate and extract forc_solad24 & forc_solad240 (heald 04/06)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       g = pgridcell(p)
       rbufslp(p) = forc_solad(g,1)
     end do
@@ -557,7 +557,7 @@ module mod_clm_accflds
     call extract_accum_field ('FSD24', fsd24, kkincr)
 
     ! Accumulate and extract forc_solai24 & forc_solai240 (heald 04/06)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       g = pgridcell(p)
       rbufslp(p) = forc_solai(g,1)
     end do
@@ -567,7 +567,7 @@ module mod_clm_accflds
     call extract_accum_field ('FSI240', fsi240, kkincr)
 
     ! Accumulate and extract fsun24 & fsun240 (heald 04/06)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       rbufslp(p) = fsun(p)
     end do
     call update_accum_field  ('FSUN24', rbufslp, kkincr)
@@ -576,7 +576,7 @@ module mod_clm_accflds
     call extract_accum_field ('FSUN240', fsun240, kkincr)
 
     ! Accumulate and extract elai_p (heald 04/06)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       rbufslp(p) = elai(p)
     end do
     call update_accum_field  ('LAIP', rbufslp, kkincr)
@@ -593,13 +593,13 @@ module mod_clm_accflds
     ! (accumulates TBOT as 30-day average)
     ! Also determine t_mo_min
 
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       g = pgridcell(p)
       rbufslp(p) = forc_t(g)
     end do
     call update_accum_field  ('TDA', rbufslp, kkincr)
     call extract_accum_field ('TDA', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       t_mo(p) = rbufslp(p)
       t_mo_min(p) = min(t_mo_min(p), rbufslp(p))
     end do
@@ -607,7 +607,7 @@ module mod_clm_accflds
     ! Accumulate and extract PREC365
     ! (accumulates total precipitation as 365-day running mean)
 
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       g = pgridcell(p)
       rbufslp(p) = forc_rain(g) + forc_snow(g)
     end do
@@ -620,11 +620,11 @@ module mod_clm_accflds
     ! Accumulate and extract AGDDTW (gdd base twmax, which is 23 deg C
     ! for boreal woody pfts)
     if ( is_end_curr_year( ) ) then
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         rbufslp(p) = -99999.0_rk8
       end do
     else
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         rbufslp(p) = max(0.0_rk8, (t10(p) - tfrz - twmax(ndllf_dcd_brl_tree)) &
                      * dtsrf/secspday)
       end do
@@ -635,7 +635,7 @@ module mod_clm_accflds
 
     ! Accumulate and extract AGDD
 
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       rbufslp(p) = max(0.0_rk8, (t_ref2m(p) - (tfrz + 5.0_rk8)) &
             * dtsrf/secspday)
     end do
@@ -643,7 +643,7 @@ module mod_clm_accflds
     call extract_accum_field ('AGDD', agdd, kkincr)
 #endif
 
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       g = pgridcell(p)
       rbufslp(p) = forc_rain(g) + forc_snow(g)
     end do
@@ -652,7 +652,7 @@ module mod_clm_accflds
 
     ! Accumulate and extract PREC10
     ! (accumulates total precipitation as 10-day running mean)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       g = pgridcell(p)
       rbufslp(p) = forc_rain(g) + forc_snow(g)
     end do
@@ -662,7 +662,7 @@ module mod_clm_accflds
     if ( crop_prog ) then
       ! Accumulate and extract TDM10
 
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         rbufslp(p) = min(t_ref2m_min(p),t_ref2m_min_inst(p)) !slevis: ok choice?
         if (rbufslp(p) > 1.e30_rk8) rbufslp(p) = tfrz !and were 'min'&
       end do                                       !'min_inst' not initialized?
@@ -671,7 +671,7 @@ module mod_clm_accflds
 
       ! Accumulate and extract TDM5
 
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         rbufslp(p) = min(t_ref2m_min(p),t_ref2m_min_inst(p)) !slevis: ok choice?
         if (rbufslp(p) > 1.e30_rk8) rbufslp(p) = tfrz !and were 'min'&
       end do    !'min_inst' not initialized?
@@ -681,11 +681,11 @@ module mod_clm_accflds
       ! Accumulate and extract GDD0
 
       if ( is_end_curr_year( ) ) then
-        do p = begp, endp
+        do concurrent ( p = begp:endp )
           rbufslp(p) = -99999.0_rk8
         end do
       else
-        do p = begp, endp
+        do concurrent ( p = begp:endp )
           g = pgridcell(p)
           if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.0_rk8) .or. &
                ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.0_rk8) ) then
@@ -703,11 +703,11 @@ module mod_clm_accflds
       ! Accumulate and extract GDD8
 
       if ( is_end_curr_year( ) ) then
-        do p = begp, endp
+        do concurrent ( p = begp:endp )
           rbufslp(p) = -99999.0_rk8
         end do
       else
-        do p = begp, endp
+        do concurrent ( p = begp:endp )
           g = pgridcell(p)
           if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.0_rk8) .or. &
                ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.0_rk8) ) then
@@ -725,11 +725,11 @@ module mod_clm_accflds
       ! Accumulate and extract GDD10
 
       if ( is_end_curr_year( ) ) then
-        do p = begp, endp
+        do concurrent ( p = begp:endp )
           rbufslp(p) = -99999.0_rk8
         end do
       else
-        do p = begp, endp
+        do concurrent ( p = begp:endp )
           g = pgridcell(p)
           if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.0_rk8) .or. &
                ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.0_rk8) ) then
@@ -746,7 +746,7 @@ module mod_clm_accflds
 
       ! Accumulate and extract GDDPLANT
 
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         if (croplive(p)) then ! relative to planting date
           itypveg = itype(p)
           rbufslp(p) = max(0.0_rk8, min(mxtmp(itypveg), &
@@ -766,7 +766,7 @@ module mod_clm_accflds
       ! In agroibis this variable is calculated
       ! to 0.05 m, so here we use the top two soil layers
 
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         if (croplive(p)) then ! relative to planting date
           itypveg = itype(p)
           c = pcolumn(p)

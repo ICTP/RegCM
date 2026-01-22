@@ -273,11 +273,11 @@ module mod_clm_accumul
     ! extract field
     if (accum(nf)%acctype == 'timeavg' .and. &
         mod(nstep,accum(nf)%period) /= 0) then
-      do k = ibeg, iend
+      do concurrent ( k = ibeg:iend )
         field(k) = spval  !assign absurd value when avg not ready
       end do
     else
-      do k = ibeg, iend
+      do concurrent ( k = ibeg:iend )
         field(k) = accum(nf)%val(k,1)
       end do
     end if
@@ -332,16 +332,12 @@ module mod_clm_accumul
 
     if ( accum(nf)%acctype == 'timeavg' .and. &
          mod(nstep,accum(nf)%period) /= 0 ) then
-      do j = 1, numlev
-        do k = ibeg, iend
-          field(k,j) = spval  !assign absurd value when avg not ready
-        end do
+      do concurrent ( k = ibeg:iend, j = 1:numlev )
+        field(k,j) = spval  !assign absurd value when avg not ready
       end do
     else
-      do j = 1, numlev
-        do k = ibeg, iend
-          field(k,j) = accum(nf)%val(k,j)
-        end do
+      do concurrent ( k = ibeg:iend, j = 1:numlev )
+        field(k,j) = accum(nf)%val(k,j)
       end do
     end if
   end subroutine extract_accum_field_ml
@@ -407,12 +403,18 @@ module mod_clm_accumul
 
       if ( (mod(nstep,accum(nf)%period) == 1 .or. &
             accum(nf)%period == 1) .and. (nstep /= 0) ) then
+        !$acc kernels
         accum(nf)%val(ibeg:iend,1) = 0._rk8
+        !$acc end kernels
       end if
+      !$acc kernels
       accum(nf)%val(ibeg:iend,1) = accum(nf)%val(ibeg:iend,1) + field(ibeg:iend)
+      !$acc end kernels
       if ( mod(nstep,accum(nf)%period) == 0 ) then
+        !$acc kernels
         accum(nf)%val(ibeg:iend,1) = &
                 accum(nf)%val(ibeg:iend,1) / accum(nf)%period
+        !$acc end kernels
       end if
 
     else if (accum(nf)%acctype == 'runmean') then
@@ -420,20 +422,24 @@ module mod_clm_accumul
       !running mean - reset accumulation period until greater than nstep
 
       accper = int(min (nstep,accum(nf)%period), ik4)
+      !$acc kernels
       accum(nf)%val(ibeg:iend,1) = &
            ((accper-1)*accum(nf)%val(ibeg:iend,1) + field(ibeg:iend)) / accper
+       !$acc end kernels
 
     else if (accum(nf)%acctype == 'runaccum') then
 
       !running accumulation field reset at trigger -99999
 
-      do k = ibeg, iend
+      do concurrent ( k = ibeg:iend )
         if ( nint(field(k)) == -99999 ) then
           accum(nf)%val(k,1) = 0._rk8
         end if
       end do
+      !$acc kernels
       accum(nf)%val(ibeg:iend,1) = &
         min(max(accum(nf)%val(ibeg:iend,1) + field(ibeg:iend), 0._rk8), 99999._rk8)
+      !$acc end kernels
     end if
   end subroutine update_accum_field_sl
   !
@@ -511,13 +517,19 @@ module mod_clm_accumul
 
       if (( mod(nstep,accum(nf)%period) == 1 .or. &
             accum(nf)%period == 1) .and. (nstep /= 0) ) then
+        !$acc kernels
         accum(nf)%val(ibeg:iend,1:numlev) = 0._rk8
+        !$acc end kernels
       end if
+      !$acc kernels
       accum(nf)%val(ibeg:iend,1:numlev) = &
               accum(nf)%val(ibeg:iend,1:numlev) + field(ibeg:iend,1:numlev)
+      !$acc end kernels
       if ( mod(nstep,accum(nf)%period) == 0 ) then
+        !$acc kernels
         accum(nf)%val(ibeg:iend,1:numlev) = &
                 accum(nf)%val(ibeg:iend,1:numlev) / accum(nf)%period
+        !$acc end kernels
       end if
 
     else if ( accum(nf)%acctype == 'runmean' ) then
@@ -525,24 +537,26 @@ module mod_clm_accumul
       !running mean - reset accumulation period until greater than nstep
 
       accper = int(min (nstep,accum(nf)%period), ik4)
+      !$acc kernels
       accum(nf)%val(ibeg:iend,1:numlev) = &
             ((accper-1)*accum(nf)%val(ibeg:iend,1:numlev) + &
               field(ibeg:iend,1:numlev)) / accper
+      !$acc end kernels
 
     else if ( accum(nf)%acctype == 'runaccum' ) then
 
       !running accumulation field reset at trigger -99999
 
-      do j = 1, numlev
-        do k = ibeg, iend
-          if (nint(field(k,j)) == -99999) then
-            accum(nf)%val(k,j) = 0._rk8
-          end if
-        end do
+      do concurrent ( k = ibeg:iend, j = 1:numlev )
+        if (nint(field(k,j)) == -99999) then
+          accum(nf)%val(k,j) = 0._rk8
+        end if
       end do
+      !$acc kernels
       accum(nf)%val(ibeg:iend,1:numlev) = &
             min(max(accum(nf)%val(ibeg:iend,1:numlev) + &
               field(ibeg:iend,1:numlev), 0._rk8), 99999._rk8)
+      !$acc end kernels
     end if
   end subroutine update_accum_field_ml
   !

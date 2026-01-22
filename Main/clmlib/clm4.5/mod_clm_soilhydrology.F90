@@ -538,7 +538,7 @@ module mod_clm_soilhydrology
       icefrac(c,j) = min(1.0_rk8,vol_ice(c,j)/watsat(c,j))
     end do
 
-    do fc = 1, num_hydrologyc
+    do concurrent ( fc = 1:num_hydrologyc )
       c = filter_hydrologyc(fc)
       l = clandunit(c)
       ! partition moisture fluxes between soil and h2osfc
@@ -1238,7 +1238,7 @@ module mod_clm_soilhydrology
     end do
 
     ! Solve for dwat
-
+    !$acc kernels
     jtop(:) = 1
     where ( abs(amx) < 1.e-20_rk8 )
       amx = sign(1.0e-20_rk8,amx)
@@ -1252,7 +1252,7 @@ module mod_clm_soilhydrology
     where ( abs(rmx) < 1.e-20_rk8 )
       rmx = sign(1.0e-20_rk8,rmx)
     end where
-
+    !$acc end kernels
     call Tridiagonal(lbc, ubc, 1, nlevsoi+1, jtop,      &
                      num_hydrologyc, filter_hydrologyc, &
                      amx, bmx, cmx, rmx, dwat2 )

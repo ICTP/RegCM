@@ -1236,7 +1236,7 @@ module mod_vertint
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: fccm, pccm
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: prcm
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: frcm
-    real(rkx), dimension(kccm) :: xc, fc
+    real(rkx), dimension(kccm) :: xc, fc, zi, zg
     real(rkx), dimension(krcm) :: xr, fr
     integer(ik4) :: i, j, k, kt, kb
     if ( pccm(i1,j1,1) > pccm(i1,j1,kccm) ) then
@@ -1246,16 +1246,20 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
+    !$acc parallel loop collapse(2) gang vector private(xc,fc,fr,zi,zg)
     do j = j1, j2
       do i = i1, i2
+        !$acc loop seq
         do k = 1 , kccm
           xc(k) = (pccm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
           fc(k) = fccm(i,j,k)
         end do
+        !$acc loop seq
         do k = 1 , krcm
           xr(k) = (prcm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
         end do
-        call interp1d(xc,fc,xr,fr,a,e1,e2)
+        call interp1d(xc,fc,xr,fr,a,e1,e2,zi,zg,kccm,krcm)
+        !$acc loop seq
         do k = 1 , krcm
           frcm(i,j,k) = fr(k)
         end do

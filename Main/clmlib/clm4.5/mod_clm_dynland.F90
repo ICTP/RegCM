@@ -112,7 +112,7 @@ module mod_clm_dynland
 
     ! Get relevant sizes
 
-    do g = begg, endg ! loop over grid cells
+    do concurrent ( g = begg:endg ) ! loop over grid cells
 
       gcell_liq  (g) = 0.0_rk8   ! sum for one grid cell
       gcell_ice  (g) = 0.0_rk8   ! sum for one grid cell
@@ -120,10 +120,12 @@ module mod_clm_dynland
 
       li = gptr%luni(g)
       lf = gptr%lunf(g)
+      !$acc loop seq
       do l = li, lf   ! loop over land units
 
         ci = lptr%coli(l)
         cf = lptr%colf(l)
+        !$acc loop seq
         do c = ci,cf   ! loop over columns
 
           liq   = 0.0_rk8 ! sum for one column
@@ -140,12 +142,13 @@ module mod_clm_dynland
           .or. (ltype(l) == isturb .and. ctype(c) == icol_road_perv  )) then
 
             if ( snl(c) < 0 ) then
+              !$acc loop seq
               do k = snl(c)+1, 0 ! loop over snow layers
-                liq   = liq   + clm3%g%l%c%cws%h2osoi_liq(c,k)
-                ice   = ice   + clm3%g%l%c%cws%h2osoi_ice(c,k)
+                liq   = liq   + h2osoi_liq(c,k)
+                ice   = ice   + h2osoi_ice(c,k)
               end do
             else                 ! no snow layers exist
-              ice = ice + cptr%cws%h2osno(c)
+              ice = ice + h2osno(c)
             end if
           end if
 
@@ -155,14 +158,16 @@ module mod_clm_dynland
           .or. (ltype(l) == istice                                   )  &
           .or. (ltype(l) == istdlak                                  )  &
           .or. (ltype(l) == isturb .and. ctype(c) == icol_road_perv  )) then
+            !$acc loop seq
             do k = 1, nlevgrnd
-              liq   = liq   + cptr%cws%h2osoi_liq(c,k)
-              ice   = ice   + cptr%cws%h2osoi_ice(c,k)
+              liq   = liq   + h2osoi_liq(c,k)
+              ice   = ice   + h2osoi_ice(c,k)
             end do
           end if
 
           !--- water & ice, below ground, for lakes ---
           if ( ltype(l) == istdlak ) then
+            !$acc loop seq
             do k = 1, nlevlak
               liq = liq + (1.0_rk8 - &
                       cptr%cws%lake_icefrac(c,k))*cptr%cps%dz_lake(c,k)*denh2o
@@ -187,6 +192,7 @@ module mod_clm_dynland
             ! note: soil specified at LU level
             pi = cptr%pfti(c)
             pf = cptr%pftf(c)
+            !$acc loop seq
             do p = pi, pf ! loop over pfts
               if (pactive(p)) then
                 wtcol = pptr%wtcol(p)
@@ -201,6 +207,7 @@ module mod_clm_dynland
 
             !--- heat content, below ground only ---
             if (nlevurb > 0) then
+              !$acc loop seq
               do k = 1,nlevurb
                 if (ctype(c)==icol_sunwall .or. ctype(c)==icol_shadewall) then
                   cv = cv_wall(l,k) * dz(c,k)
@@ -211,6 +218,7 @@ module mod_clm_dynland
                 end if
               end do
             end if
+            !$acc loop seq
             do k = 1,nlevgrnd
               if (ctype(c) /= icol_sunwall .and. ctype(c) /= icol_shadewall &
               .and. ctype(c) /= icol_roof) then
@@ -225,6 +233,7 @@ module mod_clm_dynland
             end do
 
             !--- heat content, below ground in lake water, for lakes ---
+            !$acc loop seq
             do k = 1, nlevlak
               if (ltype(l) == istdlak) then
                 cv = denh2o*cptr%cps%dz_lake(c,k) * &
@@ -236,6 +245,7 @@ module mod_clm_dynland
 
             !--- heat content, above ground only ---
             if ( snl(c) < 0 ) then
+              !$acc loop seq
               do k = snl(c)+1,0 ! loop over snow layers
                 cv = cpliq*h2osoi_liq(c,k) + cpice*h2osoi_ice(c,k)
                 heat = heat + cv*t_soisno(c,k) / 1.e6_rk8

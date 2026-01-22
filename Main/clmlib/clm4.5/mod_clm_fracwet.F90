@@ -60,7 +60,7 @@ module mod_clm_fracwet
 
     ! Compute fraction of canopy that is wet and dry
 
-    do fp = 1, numf
+    do concurrent ( fp = 1:numf )
       p = filter(fp)
       if ( frac_veg_nosno(p) == 1 ) then
         if ( h2ocan(p) > 0._rk8 ) then

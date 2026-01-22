@@ -441,6 +441,9 @@ module mod_clm_snicar
     real(rk8):: X(-2*nlevsno+1:0)
     ! tri-diag intermediate variable from Toon et al. (2*lyr)
     real(rk8):: Y(-2*nlevsno+1:0)
+#ifdef OPENACC
+    logical :: found ! terminate after the loop
+#endif
 
     ! Assign local pointers to derived subtypes components (column-level)
     ! (CLM-specific)
@@ -464,12 +467,40 @@ module mod_clm_snicar
 
     ! Loop over all non-urban columns
     ! (when called from CSIM, there is only one column)
-    do fc = 1,num_nourbanc
+#ifndef OPENACC
+    do fc = 1, num_nourbanc
+#else
+#ifdef STDPAR_FIXED
+    do concurrent ( fc = 1:num_nourbanc ) &
+      local(flx_abs_lcl,h2osno_liq_lcl,h2osno_ice_lcl,snw_rds_lcl, &
+            mss_cnc_aer_lcl,albsfc_lcl,flx_wgt,flx_slrd_lcl,       &
+            flx_slri_lcl,mss_cnc_aer_lcl,ss_alb_snw_lcl,           &
+            asm_prm_snw_lcl,ext_cff_mss_snw_lcl,ss_alb_aer_lcl,    &
+            asm_prm_aer_lcl,ext_cff_mss_aer_lcl,L_snw,tau_snw,     &
+            L_aer,tau_aer,tau,omega,g,g_star,omega_star,tau_star,  &
+            tau_clm,gamma1,gamma2,gamma3,gamma4,lambda,xgamma,e1,  &
+            e2,e3,e4,C_pls_btm,C_pls_top,C_mns_btm,C_mns_top,A,B,D,&
+            E,X,AS,DS,Y,F_direct,F_net,F_abs,albout_lcl)
+#else
+    found = .false.
+    !$acc parallel loop gang vector copy(found) private(flx_abs_lcl,     &
+    !$acc   h2osno_liq_lcl,h2osno_ice_lcl,snw_rds_lcl,mss_cnc_aer_lcl,   &
+    !$acc   albsfc_lcl,flx_wgt,flx_slrd_lcl,flx_slri_lcl,mss_cnc_aer_lcl,&
+    !$acc   ss_alb_snw_lcl,asm_prm_snw_lcl,ext_cff_mss_snw_lcl,          &
+    !$acc   ss_alb_aer_lcl,asm_prm_aer_lcl,ext_cff_mss_aer_lcl,L_snw,    &
+    !$acc   tau_snw,L_aer,tau_aer,tau,omega,g,g_star,omega_star,         &
+    !$acc   tau_star,tau_clm,gamma1,gamma2,gamma3,gamma4,lambda,xgamma,  &
+    !$acc   e1,e2,e3,e4,C_pls_btm,C_pls_top,C_mns_btm,C_mns_top,A,B,D,E, &
+    !$acc   X,AS,DS,Y,F_direct,F_net,F_abs,albout_lcl)
+    do fc = 1, num_nourbanc
+#endif
+#endif
       c_idx = filter_nourbanc(fc)
 
       ! Zero absorbed radiative fluxes:
+      !$acc loop seq
       do i=-nlevsno+1,1,1
-        flx_abs_lcl(:,:)   = 0._rk8
+        flx_abs_lcl(i,:)   = 0._rk8
         flx_abs(c_idx,i,:) = 0._rk8
       end do
 
@@ -531,6 +562,7 @@ module mod_clm_snicar
         end if
 
         ! Set local aerosol array
+        !$acc loop seq
         do j = 1, sno_nbr_aer
           mss_cnc_aer_lcl(:,j) = mss_cnc_aer_in(c_idx,:,j)
         end do
@@ -541,18 +573,28 @@ module mod_clm_snicar
         albsfc_lcl(nir_bnd_bgn:nir_bnd_end) = albsfc(c_idx,2)
 
         ! Error check for snow grain size:
+        !$acc loop seq
         do i = snl_top, snl_btm, 1
           if ( (snw_rds_lcl(i) < snw_rds_min_tbl) .or. &
                (snw_rds_lcl(i) > snw_rds_max_tbl) ) then
             write (stderr,*) "SNICAR ERROR: snow grain radius of ", &
                     snw_rds_lcl(i), " out of bounds."
+#ifdef OPENACC
+            !gpu does not allow "trim"
+            write (stderr,*) "date = ", rcmtimer%str( )
+#else
             write (stderr,*) "date = ", trim(rcmtimer%str( ))
+#endif
             write (stderr,*) "flg_snw_ice= ", flg_snw_ice
             write (stderr,*) "column: ", c_idx, " level: ", i, &
                     " snl(c)= ", snl_lcl
             write (stderr,*) "lat= ", lat_coord, " lon= ", lon_coord
             write (stderr,*) "h2osno(c)= ", h2osno_lcl
+#ifndef OPENACC
             call fatal(__FILE__,__LINE__,'clm now stopping')
+#else
+            found = .true.
+#endif
           end if
         end do
 
@@ -604,6 +646,7 @@ module mod_clm_snicar
         end if
 
         ! Loop over snow spectral bands
+        !$acc loop seq
         do bnd_idx = 1, numrad_snw
           mu_not = coszen(c_idx)  ! must set here, because of error handling
           flg_dover = 1           ! default is to redo
@@ -694,6 +737,7 @@ module mod_clm_snicar
             ! Define local Mie parameters based on snow grain size
             ! and aerosol species, retrieved from a lookup table.
             if ( flg_slr_in == 1 ) then
+              !$acc loop seq
               do i = snl_top, snl_btm, 1
                 rds_idx = snw_rds_lcl(i) - snw_rds_min_tbl + 1
                 ! snow optical properties (direct radiation)
@@ -702,6 +746,7 @@ module mod_clm_snicar
                 ext_cff_mss_snw_lcl(i) = ext_cff_mss_snw_drc(rds_idx,bnd_idx)
               end do
             else if ( flg_slr_in == 2 ) then
+              !$acc loop seq
               do i = snl_top, snl_btm, 1
                 rds_idx = snw_rds_lcl(i) - snw_rds_min_tbl + 1
                 ! snow optical properties (diffuse radiation)
@@ -756,10 +801,11 @@ module mod_clm_snicar
             ! 3. weighted Mie properties (tau, omega, g)
 
             ! Weighted Mie parameters of each layer
+            !$acc loop seq
             do i = snl_top, snl_btm, 1
               L_snw(i)   = h2osno_ice_lcl(i)+h2osno_liq_lcl(i)
               tau_snw(i) = L_snw(i)*ext_cff_mss_snw_lcl(i)
-
+              !$acc loop seq
               do j = 1, sno_nbr_aer
                 L_aer(i,j)   = L_snw(i)*mss_cnc_aer_lcl(i,j)
                 tau_aer(i,j) = L_aer(i,j)*ext_cff_mss_aer_lcl(j)
@@ -768,7 +814,7 @@ module mod_clm_snicar
               tau_sum   = 0._rk8
               omega_sum = 0._rk8
               g_sum     = 0._rk8
-
+              !$acc loop seq
               do j = 1, sno_nbr_aer
                 tau_sum    = tau_sum + tau_aer(i,j)
                 omega_sum  = omega_sum + (tau_aer(i,j)*ss_alb_aer_lcl(j))
@@ -785,6 +831,7 @@ module mod_clm_snicar
 
             ! delta transformations, if requested
             if ( delta == 1 ) then
+              !$acc loop seq
               do i = snl_top, snl_btm, 1
                 g_star(i) = g(i)/(1.0_rk8+g(i))
                 omega_star(i) = ((1.0_rk8-(g(i)**2))*omega(i)) / &
@@ -792,6 +839,7 @@ module mod_clm_snicar
                 tau_star(i)   = (1.0_rk8-(omega(i)*(g(i)**2)))*tau(i)
               end do
             else
+              !$acc loop seq
               do i = snl_top, snl_btm, 1
                 g_star(i)     = g(i)
                 omega_star(i) = omega(i)
@@ -802,6 +850,7 @@ module mod_clm_snicar
             ! Total column optical depth:
             ! tau_clm(i) = total optical depth above the bottom of layer i
             tau_clm(snl_top) = 0._rk8
+            !$acc loop seq
             do i = snl_top + 1, snl_btm, 1
               tau_clm(i) = tau_clm(i-1)+tau_star(i-1)
             end do
@@ -821,6 +870,7 @@ module mod_clm_snicar
 
             ! Eddington
             if ( aprx_typ == 1 ) then
+              !$acc loop seq
               do i = snl_top, snl_btm, 1
                 gamma1(i) = (7.0_rk8-(omega_star(i) * &
                         (4.0_rk8+(3.0_rk8*g_star(i)))))/4.0_rk8
@@ -832,6 +882,7 @@ module mod_clm_snicar
               end do
             ! Quadrature
             else if ( aprx_typ == 2 ) then
+              !$acc loop seq
               do i = snl_top, snl_btm, 1
                 gamma1(i) = (3.0_rk8**0.5_rk8)*(2.0_rk8-(omega_star(i) * &
                         (1.0_rk8+g_star(i))))/2.0_rk8
@@ -843,6 +894,7 @@ module mod_clm_snicar
               end do
             ! Hemispheric Mean
             else if ( aprx_typ == 3 ) then
+              !$acc loop seq
               do i = snl_top, snl_btm, 1
                 gamma1(i) = 2.0_rk8 - (omega_star(i)*(1.0_rk8+g_star(i)))
                 gamma2(i) = omega_star(i)*(1.0_rk8-g_star(i))
@@ -853,6 +905,7 @@ module mod_clm_snicar
             end if
 
             ! Intermediates for tri-diagonal solution
+            !$acc loop seq
             do i = snl_top, snl_btm, 1
               lambda(i) = sqrt(abs((gamma1(i)**2) - (gamma2(i)**2)))
               xgamma(i)  = gamma2(i)/(gamma1(i)+lambda(i))
@@ -870,6 +923,7 @@ module mod_clm_snicar
             end do !enddo over snow layers
 
             ! Intermediates for tri-diagonal solution
+            !$acc loop seq
             do i = snl_top, snl_btm, 1
               if ( flg_slr_in == 1 ) then
                 if ( (tau_clm(i)+tau_star(i))/mu_not > 21.0_rk8 ) then
@@ -909,6 +963,7 @@ module mod_clm_snicar
             end do
 
             ! Coefficients for tridiaganol matrix solution
+            !$acc loop seq
             do i = 2*snl_lcl+1, 0, 1
               ! Boundary values for i=1 and i=2*snl_lcl,
               ! specifics for i=odd and i=even
@@ -943,6 +998,7 @@ module mod_clm_snicar
             AS(0) = A(0)/B(0)
             DS(0) = E(0)/B(0)
 
+            !$acc loop seq
             do i = -1, (2*snl_lcl+1), -1
               X(i)  = 1.0_rk8/(B(i)-(D(i)*AS(i+1)))
               AS(i) = A(i)*X(i)
@@ -950,12 +1006,14 @@ module mod_clm_snicar
             end do
 
             Y(2*snl_lcl+1) = DS(2*snl_lcl+1)
+            !$acc loop seq
             do i = (2*snl_lcl+2), 0, 1
               Y(i) = DS(i)-(AS(i)*Y(i-1))
             end do
 
             ! Downward direct-beam and net flux (F_net) at the base
             ! of each layer:
+            !$acc loop seq
             do i = snl_top, snl_btm, 1
               if ( (tau_clm(i)+tau_star(i))/mu_not > 25.0_rk8 ) then
                 F_direct(i) = 0.0_rk8
@@ -991,6 +1049,7 @@ module mod_clm_snicar
 
             trip = 0
             ! Absorbed flux in each layer
+            !$acc loop seq
             do i = snl_top, snl_btm, 1
               if ( i == snl_top ) then
                 F_abs(i) = F_net(i)-F_sfc_net
@@ -1023,6 +1082,7 @@ module mod_clm_snicar
             end if
 
             !Underflow check (we've already tripped the error condition above)
+            !$acc loop seq
             do i = snl_top, 1, 1
               if ( flx_abs_lcl(i,bnd_idx) < 0._rk8 ) then
                 flx_abs_lcl(i,bnd_idx) = 0._rk8
@@ -1030,6 +1090,7 @@ module mod_clm_snicar
             end do
 
             F_abs_sum = 0._rk8
+            !$acc loop seq
             do i = snl_top, snl_btm, 1
               F_abs_sum = F_abs_sum + F_abs(i)
             end do
@@ -1076,7 +1137,11 @@ module mod_clm_snicar
               write(stderr,*) "column index: ", c_idx
               write(stderr,*) "landunit type", ltype(l_idx)
               write(stderr,*) "frac_sno: ", frac_sno(c_idx)
+#ifndef OPENACC
               call fatal(__FILE__,__LINE__,'clm now stopping')
+#else
+              found = .true.
+#endif
             else
               flg_dover = 0
             end if
@@ -1088,19 +1153,35 @@ module mod_clm_snicar
           energy_sum = (mu_not*rpi*flx_slrd_lcl(bnd_idx)) + &
                   flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls)
           if ( abs(energy_sum) > 0.00001_rk8 ) then
+#ifdef OPENACC
+            write (stderr,*) &
+               "SNICAR ERROR: Energy conservation error of : ", energy_sum, &
+               " at : ", rcmtimer%str( ), " at column: ", c_idx
+#else
             write (stderr,"(a,e14.7,a,i6,a,i6)") &
                "SNICAR ERROR: Energy conservation error of : ", energy_sum, &
                " at : ", trim(rcmtimer%str( )), " at column: ", c_idx
+#endif
+#ifndef OPENACC
             call fatal(__FILE__,__LINE__,'clm now stopping')
+#else
+            found = .true.
+#endif
           end if
 
           albout_lcl(bnd_idx) = albedo
 
           ! Check that albedo is less than 1
           if ( albout_lcl(bnd_idx) > 1.0 ) then
+#ifdef OPENACC
+            write (stderr,*) &
+                 "SNICAR ERROR: Albedo > 1.0 at c: ", c_idx, " at ", &
+                 rcmtimer%str( )
+#else
             write (stderr,*) &
                  "SNICAR ERROR: Albedo > 1.0 at c: ", c_idx, " at ", &
                  trim(rcmtimer%str( ))
+#endif
             write (stderr,*) "SNICAR STATS: bnd_idx= ",bnd_idx
             write (stderr,*) "SNICAR STATS: albout_lcl(bnd)= ", &
                     albout_lcl(bnd_idx), " albsfc_lcl(bnd_idx)= ", &
@@ -1125,13 +1206,18 @@ module mod_clm_snicar
             write (stderr,*) "SNICAR STATS: snw_rds(-2)= ", snw_rds(c_idx,-2)
             write (stderr,*) "SNICAR STATS: snw_rds(-1)= ", snw_rds(c_idx,-1)
             write (stderr,*) "SNICAR STATS: snw_rds(0)= ", snw_rds(c_idx,0)
+#ifndef OPENACC
             call fatal(__FILE__,__LINE__,'clm now stopping')
+#else
+            found = .true.
+#endif
           end if
         end do   ! loop over wvl bands
 
         ! Weight output NIR albedo appropriately
         albout(c_idx,1) = albout_lcl(1)
         flx_sum = 0._rk8
+        !$acc loop seq
         do bnd_idx= nir_bnd_bgn,nir_bnd_end
           flx_sum = flx_sum + flx_wgt(bnd_idx)*albout_lcl(bnd_idx)
         end do
@@ -1139,8 +1225,10 @@ module mod_clm_snicar
 
         ! Weight output NIR absorbed layer fluxes (flx_abs) appropriately
         flx_abs(c_idx,:,1) = flx_abs_lcl(:,1)
+        !$acc loop seq
         do i = snl_top, 1, 1
           flx_sum = 0._rk8
+          !$acc loop seq
           do bnd_idx= nir_bnd_bgn,nir_bnd_end
             flx_sum = flx_sum + flx_wgt(bnd_idx)*flx_abs_lcl(i,bnd_idx)
           end do
@@ -1158,6 +1246,9 @@ module mod_clm_snicar
         albout(c_idx,2) = 0._rk8
       end if    ! if column has snow and coszen > 0
     end do    ! loop over all columns
+#ifdef OPENACC
+    if ( found ) call fatal(__FILE__,__LINE__,'clm now stopping')
+#endif
   end subroutine SNICAR_RT
   !
   ! Updates the snow effective grain size (radius).

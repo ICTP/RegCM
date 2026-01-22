@@ -78,7 +78,7 @@ module mod_clm_activelayer
     ! on a set annual timestep, update annual maxima
     ! make this 1 January for NH columns, 1 July for SH columns
     if ( is_end_curr_year( ) ) then
-      do fc = 1, num_soilc
+      do concurrent ( fc = 1:num_soilc )
         c = filter_soilc(fc)
         g = cgridcell(c)
         if ( lat(g) > d_zero ) then
@@ -90,7 +90,7 @@ module mod_clm_activelayer
       end do
     end if
     if ( is_middle_curr_year( ) ) then
-      do fc = 1, num_soilc
+      do concurrent ( fc = 1:num_soilc )
         c = filter_soilc(fc)
         g = cgridcell(c)
         if ( lat(g) <= d_zero ) then
@@ -102,7 +102,7 @@ module mod_clm_activelayer
       end do
     end if
 
-    do fc = 1, num_soilc
+    do concurrent ( fc = 1:num_soilc )
       c = filter_soilc(fc)
       ! calculate alt for a given timestep
       ! start from base of soil and search upwards for first thawed layer.
@@ -116,6 +116,7 @@ module mod_clm_activelayer
       else
         k_frz = 0
         found_thawlayer = .false.
+        !$acc loop seq
         do j = nlevgrnd-1, 1, -1
           if ( ( t_soisno(c,j) > tzero ) .and. .not. found_thawlayer ) then
             k_frz = j

@@ -140,7 +140,7 @@ module mod_clm_staticecosysdyn
       frac_veg_nosno_alb => clm3%g%l%c%p%pps%frac_veg_nosno_alb
       ivt     => clm3%g%l%c%p%itype
 
-      do fp = 1, num_nolakep
+      do concurrent ( fp = 1:num_nolakep )
         p = filter_nolakep(fp)
         c = pcolumn(p)
 

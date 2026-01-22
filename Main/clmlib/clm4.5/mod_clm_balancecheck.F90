@@ -454,6 +454,7 @@ module mod_clm_balancecheck
     end do
 
     found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(indexc)
     do c = lbc, ubc
       if ( abs(errh2o(c)) > 1e-7_rk8 ) then
         found = .true.
@@ -462,6 +463,7 @@ module mod_clm_balancecheck
     end do
 
     if ( found ) then
+      !$acc update host(ctype,errh2o)
       write(stderr,*) 'WARNING:  CLM step     : ', syncro_srf%lcount
       write(stderr,*) 'WARNING:  indexc       : ', indexc
       write(stderr,*) 'WARNING:  ctype(indexc): ', ctype(indexc)
@@ -470,6 +472,7 @@ module mod_clm_balancecheck
             ctype(indexc) == icol_road_imperv .or. &
             ctype(indexc) == icol_road_perv) .and. &
             abs(errh2o(indexc)) > 0.10_rk8 .and. syncro_srf%lcount > 2 ) then
+        !$acc update host(forc_rain_col,forc_snow_col,endwb,begwb,qflx_evap_tot,qflx_irrig,qflx_surf,qflx_qrgwl,qflx_drain,qflx_snwcp_ice)
         write(stderr,*) &
               'clm urban model is stopping - error is greater than .10'
         write(stderr,*)'indexc= ',indexc,' errh2o= ',errh2o(indexc)
@@ -487,6 +490,7 @@ module mod_clm_balancecheck
         call fatal(__FILE__,__LINE__,'clm model is stopping')
       else if ( abs(errh2o(indexc)) > 0.10_rk8 .and. &
                 syncro_srf%lcount > 2 ) then
+        !$acc update host(forc_rain_col,forc_snow_col,endwb,begwb,qflx_evap_tot,qflx_irrig,qflx_surf,qflx_h2osfc_surf,qflx_qrgwl,qflx_drain,qflx_drain_perched,qflx_floodc,qflx_snwcp_ice)
         write(stderr,*)'clm model is stopping - error is greater than .10'
         write(stderr,*)'indexc= ',indexc,' errh2o= ',errh2o(indexc)
         write(stderr,*)'ctype(indexc): ',ctype(indexc)
@@ -570,6 +574,7 @@ module mod_clm_balancecheck
     end do
 
     found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(indexc)
     do c = lbc, ubc
       if ( cactive(c) .and. abs(errh2osno(c)) > 1.0e-3_rk8 ) then
         found = .true.
@@ -577,6 +582,7 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found ) then
+      !$acc update host(ctype,ltype,clandunit,errh2osno)
       write(stderr,*) 'WARNING:  snow balance error '
       write(stderr,*) ' CLM step  = ',syncro_srf%lcount
       write(stderr,*) ' indexc    = ',indexc
@@ -584,6 +590,7 @@ module mod_clm_balancecheck
       write(stderr,*) ' ltype     = ',ltype(clandunit(indexc))
       write(stderr,*) ' errh2osno = ',errh2osno(indexc)
       if ( abs(errh2osno(indexc)) > 0.1_rk8 .and. syncro_srf%lcount > 2 ) then
+        !$acc update host(snl,h2osno,h2osno_old,snow_sources,snow_sinks,qflx_prec_grnd,qflx_sub_snow,qflx_evap_grnd,qflx_top_soil,qflx_dew_snow,qflx_dew_grnd,qflx_snwcp_ice,qflx_snwcp_liq,qflx_sl_top_soil)
         write(stderr,*)'clm model is stopping - error is greater than .10'
         write(stderr,*)'snl: ',snl(indexc)
         write(stderr,*)'h2osno: ',h2osno(indexc)
@@ -661,8 +668,7 @@ module mod_clm_balancecheck
     ! Solar radiation energy balance check
 
     found = .false.
-    indexg = 0
-    indexp = 0
+    !$acc parallel loop gang vector copy(found) copyout(indexp,indexg)
     do p = lbp, ubp
       if (pactive(p)) then
         if ( (errsol(p) /= spval) .and. (abs(errsol(p)) > .10_rk8) ) then
@@ -673,6 +679,7 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found .and. syncro_srf%lcount > 2 ) then
+      !$acc update host(errsol,fsa,fsr,forc_solad,forc_solai)
       write(stderr,f99001) &
          'BalanceCheck: solar radiation balance error', &
          syncro_srf%lcount, indexp, errsol(indexp)
@@ -692,6 +699,7 @@ module mod_clm_balancecheck
     ! Longwave radiation energy balance check
 
     found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(indexp)
     do p = lbp, ubp
       if ( pactive(p) ) then
         if ( (errlon(p) /= spval) .and. (abs(errlon(p)) > .10_rk8) ) then
@@ -701,6 +709,7 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found  .and. syncro_srf%lcount > 2 ) then
+      !$acc update host(errlon)
       write(stderr,f99001) &
           'BalanceCheck: longwave enery balance error', &
           syncro_srf%lcount,indexp,errlon(indexp)
@@ -710,6 +719,7 @@ module mod_clm_balancecheck
     ! Surface energy balance check
 
     found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(indexp)
     do p = lbp, ubp
       if ( pactive(p) ) then
         if ( abs(errseb(p)) > 0.10_rk8 ) then
@@ -719,6 +729,7 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found  .and. syncro_srf%lcount > 2 ) then
+      !$acc update host(errseb,sabv,pcolumn,sabg,frac_sno,sabg_soil,sabg_snow,sabg_chk,eflx_lwrad_net,eflx_sh_tot,eflx_lh_tot,eflx_soil_grnd)
       write(stderr,f99001) &
          'BalanceCheck: surface flux energy balance error', &
          syncro_srf%lcount,indexp,errseb(indexp)
@@ -738,6 +749,7 @@ module mod_clm_balancecheck
     ! Soil energy balance check
 
     found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(indexc)
     do c = lbc, ubc
       if ( abs(errsoi_col(c)) > 1.0e-7_rk8 ) then
         found = .true.
@@ -745,6 +757,7 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found ) then
+      !$acc update host(errsoi_col)
       if (abs(errsoi_col(indexc)) > .10_rk8 .and. syncro_srf%lcount > 2 ) then
         write(stderr,f99001) &
           'BalanceCheck: soil balance error',syncro_srf%lcount, &

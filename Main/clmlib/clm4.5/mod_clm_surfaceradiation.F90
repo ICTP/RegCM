@@ -290,6 +290,8 @@ module mod_clm_surfaceradiation
     ! solar radiation absorbed by ground without dust [W/m2]
     real(rk8) :: sabg_dst(lbp:ubp)
     real(rk8) :: parveg(lbp:ubp)  ! absorbed par by vegetation (W/m**2)
+    logical :: found
+    integer(ik4) :: found_p, found_c
 
     ! Assign local pointers to multi-level derived type members (gridcell level)
     londeg        => clm3%g%londeg
@@ -411,7 +413,7 @@ module mod_clm_surfaceradiation
 
     ! Initialize fluxes
 
-    do fp = 1,num_nourbanp
+    do concurrent ( fp = 1:num_nourbanp )
       p = filter_nourbanp(fp)
       ! was redundant b/c filter already included wt>0;
       ! not redundant anymore with chg in filter definition
@@ -430,6 +432,7 @@ module mod_clm_surfaceradiation
         sabg_bc(p)    = 0._rk8
         sabg_oc(p)    = 0._rk8
         sabg_dst(p)   = 0._rk8
+        !$acc loop seq
         do iv = 1, nrad(p)
           parsun_z(p,iv) = 0._rk8
           parsha_z(p,iv) = 0._rk8
@@ -445,12 +448,13 @@ module mod_clm_surfaceradiation
     ! SurfaceAlbedo is canopy integrated so that layer value equals
     ! canopy value.
 
-    do fp = 1,num_nourbanp
+    do concurrent ( fp = 1:num_nourbanp )
       p = filter_nourbanp(fp)
       if (pactive(p)) then
 
         laisun(p) = 0._rk8
         laisha(p) = 0._rk8
+        !$acc loop seq
         do iv = 1, nrad(p)
           laisun_z(p,iv) = tlai_z(p,iv) * fsun_z(p,iv)
           laisha_z(p,iv) = tlai_z(p,iv) * (1._rk8 - fsun_z(p,iv))
@@ -467,13 +471,14 @@ module mod_clm_surfaceradiation
     end do
 
     ! Loop over nband wavebands
-    do ib = 1, nband
-      do fp = 1,num_nourbanp
-        p = filter_nourbanp(fp)
-        if (pactive(p)) then
-          c = pcolumn(p)
-          l = plandunit(p)
-          g = pgridcell(p)
+    do concurrent ( fp = 1:num_nourbanp )
+      p = filter_nourbanp(fp)
+      if (pactive(p)) then
+        c = pcolumn(p)
+        l = plandunit(p)
+        g = pgridcell(p)
+        !$acc loop seq
+        do ib = 1, nband
 
           ! Absorbed by canopy
 
@@ -555,14 +560,15 @@ module mod_clm_surfaceradiation
           sabg_pur(p) = sabg_pur(p) + absrad_pur
 #endif
 
-        end if
-      end do ! end of pft loop
-    end do ! end nbands loop
+        end do
+      end if
+    end do
 
     ! compute absorbed flux in each snow layer and top soil layer,
     ! based on flux factors computed in the radiative transfer portion
     ! of SNICAR.
-
+    found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(found_p,found_c)
     do fp = 1,num_nourbanp
       p = filter_nourbanp(fp)
       if (pactive(p)) then
@@ -579,6 +585,7 @@ module mod_clm_surfaceradiation
           ! CASE 2: Snow layers present: absorbed radiation is scaled
           ! according to flux factors computed by SNICAR
         else
+          !$acc loop seq
           do i = -nlevsno+1,1,1
             sabg_lyr(p,i) = flx_absdv(c,i)*trd(p,1) + &
                             flx_absdn(c,i)*trd(p,2) + &
@@ -638,24 +645,9 @@ module mod_clm_surfaceradiation
 
         ! This situation should not happen:
         if (abs(sum(sabg_lyr(p,:))-sabg_snow(p)) > 0.00001_rk8) then
-          write(stderr,*) "SNICAR ERROR: Absorbed ground radiation "// &
-                "not equal to summed snow layer radiation. pft = ",   &
-                p," Col= ", c, " Diff= ", &
-                sum(sabg_lyr(p,:))-sabg_snow(p), &
-                " sabg_snow(p)= ", sabg_snow(p), &
-                " sabg_sum(p)= ", &
-                sum(sabg_lyr(p,:)), " snl(c)= ", snl(c)
-          write(stderr,*) "flx_absdv1= ", trd(p,1)*(1.-albgrd(c,1)), &
-                   "flx_absdv2= ", sum(flx_absdv(c,:))*trd(p,1)
-          write(stderr,*) "flx_absiv1= ", tri(p,1)*(1.-albgri(c,1)), &
-                   " flx_absiv2= ", sum(flx_absiv(c,:))*tri(p,1)
-          write(stderr,*) "flx_absdn1= ", trd(p,2)*(1.-albgrd(c,2)), &
-                   " flx_absdn2= ", sum(flx_absdn(c,:))*trd(p,2)
-          write(stderr,*) "flx_absin1= ", tri(p,2)*(1.-albgri(c,2)), &
-                   " flx_absin2= ", sum(flx_absin(c,:))*tri(p,2)
-          write(stderr,*) "albgrd_nir= ", albgrd(c,2)
-          write(stderr,*) "coszen= ", coszen(c)
-          call fatal(__FILE__,__LINE__,'clm now stopping')
+          found = .true.
+          found_p = p
+          found_c = c
         end if
 
         ! Diagnostic: shortwave penetrating ground (e.g. top layer)
@@ -697,8 +689,30 @@ module mod_clm_surfaceradiation
       end if
     end do
 
+    if( found ) then
+      !$acc update host(sabg_lyr,sabg_snow,snl,trd,albgrd,flx_absdv,tri,albgri,flx_absiv,flx_absdn,flx_absin,coszen)
+      write(stderr,*) "SNICAR ERROR: Absorbed ground radiation "// &
+            "not equal to summed snow layer radiation. pft = ",   &
+            found_p," Col= ", found_c, " Diff= ", &
+            sum(sabg_lyr(found_p,:))-sabg_snow(found_p), &
+            " sabg_snow(p)= ", sabg_snow(found_p), &
+            " sabg_sum(p)= ", &
+            sum(sabg_lyr(found_p,:)), " snl(c)= ", snl(found_c)
+      write(stderr,*) "flx_absdv1= ", trd(found_p,1)*(1.-albgrd(found_c,1)), &
+               "flx_absdv2= ", sum(flx_absdv(found_c,:))*trd(found_p,1)
+      write(stderr,*) "flx_absiv1= ", tri(found_p,1)*(1.-albgri(found_c,1)), &
+               " flx_absiv2= ", sum(flx_absiv(found_c,:))*tri(found_p,1)
+      write(stderr,*) "flx_absdn1= ", trd(found_p,2)*(1.-albgrd(found_c,2)), &
+               " flx_absdn2= ", sum(flx_absdn(found_c,:))*trd(found_p,2)
+      write(stderr,*) "flx_absin1= ", tri(found_p,2)*(1.-albgri(found_c,2)), &
+               " flx_absin2= ", sum(flx_absin(found_c,:))*tri(found_p,2)
+      write(stderr,*) "albgrd_nir= ", albgrd(found_c,2)
+      write(stderr,*) "coszen= ", coszen(found_c)
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
+
     ! Radiation diagnostics
-    do fp = 1, num_nourbanp
+    do concurrent ( fp = 1:num_nourbanp )
       p = filter_nourbanp(fp)
       if (pactive(p)) then
         g = pgridcell(p)

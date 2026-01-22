@@ -1063,7 +1063,7 @@ module mod_clm_histfile
       ! note that in this case beg1d = begg and end1d=endg
       select case (avgflag)
         case ('I') ! Instantaneous
-          do k = begg, endg
+          do concurrent ( k = begg:endg )
             if ( field_gcell(k) /= spval ) then
               hbuf(k,1) = field_gcell(k)
             else
@@ -1072,7 +1072,7 @@ module mod_clm_histfile
             nacs(k,1) = 1
           end do
         case ('A') ! Time average
-          do k = begg, endg
+          do concurrent ( k = begg:endg )
             if ( field_gcell(k) /= spval ) then
               if ( nacs(k,1) == 0 ) hbuf(k,1) = 0._rk8
               hbuf(k,1) = hbuf(k,1) + field_gcell(k)
@@ -1082,7 +1082,7 @@ module mod_clm_histfile
             end if
           end do
         case ('X') ! Maximum over time
-          do k = begg, endg
+          do concurrent ( k = begg:endg )
             if ( field_gcell(k) /= spval ) then
               if ( nacs(k,1) == 0 ) hbuf(k,1) = -1.e50_rk8
               hbuf(k,1) = max( hbuf(k,1), field_gcell(k) )
@@ -1092,7 +1092,7 @@ module mod_clm_histfile
             nacs(k,1) = 1
           end do
         case ('M') ! Minimum over time
-          do k = begg, endg
+          do concurrent ( k = begg:endg )
             if ( field_gcell(k) /= spval ) then
               if ( nacs(k,1) == 0 ) hbuf(k,1) = +1.e50_rk8
               hbuf(k,1) = min( hbuf(k,1), field_gcell(k) )
@@ -1126,7 +1126,7 @@ module mod_clm_histfile
 
       select case (avgflag)
         case ('I') ! Instantaneous
-          do k = beg1d, end1d
+          do concurrent ( k = beg1d:end1d )
             valid = .true.
             if ( check_active ) then
               if ( .not. active(k) ) valid = .false.
@@ -1150,7 +1150,7 @@ module mod_clm_histfile
           else
             k_offset = 1 - beg1d
           end if
-          do k = beg1d, end1d
+          do concurrent ( k = beg1d:end1d )
             valid = .true.
             if ( check_active ) then
               if ( .not. active(k) ) valid = .false.
@@ -1168,7 +1168,7 @@ module mod_clm_histfile
             end if
           end do
         case ('X') ! Maximum over time
-          do k = beg1d, end1d
+          do concurrent ( k = beg1d:end1d )
             valid = .true.
             if ( check_active ) then
               if ( .not. active(k) ) valid = .false.
@@ -1186,7 +1186,7 @@ module mod_clm_histfile
             nacs(k,1) = 1
           end do
         case ('M') ! Minimum over time
-          do k = beg1d, end1d
+          do concurrent ( k = beg1d:end1d )
             valid = .true.
             if ( check_active ) then
               if ( .not. active(k) ) valid = .false.
@@ -1299,51 +1299,43 @@ module mod_clm_histfile
       ! note that in this case beg1d = begg and end1d=endg
       select case (avgflag)
         case ('I') ! Instantaneous
-          do j = 1, num2d
-            do k = begg, endg
-              if ( field_gcell(k,j) /= spval ) then
-                hbuf(k,j) = field_gcell(k,j)
-              else
-                hbuf(k,j) = spval
-              end if
-              nacs(k,j) = 1
-            end do
+          do concurrent ( k = begg:endg, j = 1:num2d )
+            if ( field_gcell(k,j) /= spval ) then
+              hbuf(k,j) = field_gcell(k,j)
+            else
+              hbuf(k,j) = spval
+            end if
+            nacs(k,j) = 1
           end do
         case ('A') ! Time average
-          do j = 1, num2d
-            do k = begg,endg
-              if ( field_gcell(k,j) /= spval ) then
-                if ( nacs(k,j) == 0 ) hbuf(k,j) = 0._rk8
-                hbuf(k,j) = hbuf(k,j) + field_gcell(k,j)
-                nacs(k,j) = nacs(k,j) + 1
-              else
-                if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
-              end if
-            end do
+          do concurrent ( k = begg:endg, j = 1:num2d )
+            if ( field_gcell(k,j) /= spval ) then
+              if ( nacs(k,j) == 0 ) hbuf(k,j) = 0._rk8
+              hbuf(k,j) = hbuf(k,j) + field_gcell(k,j)
+              nacs(k,j) = nacs(k,j) + 1
+            else
+              if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
+            end if
           end do
         case ('X') ! Maximum over time
-          do j = 1, num2d
-            do k = begg, endg
-              if ( field_gcell(k,j) /= spval ) then
-                if ( nacs(k,j) == 0 ) hbuf(k,j) = -1.e50_rk8
-                hbuf(k,j) = max( hbuf(k,j), field_gcell(k,j) )
-              else
-                hbuf(k,j) = spval
-              end if
-              nacs(k,j) = 1
-            end do
+          do concurrent ( k = begg:endg, j = 1:num2d )
+            if ( field_gcell(k,j) /= spval ) then
+              if ( nacs(k,j) == 0 ) hbuf(k,j) = -1.e50_rk8
+              hbuf(k,j) = max( hbuf(k,j), field_gcell(k,j) )
+            else
+              hbuf(k,j) = spval
+            end if
+            nacs(k,j) = 1
           end do
         case ('M') ! Minimum over time
-          do j = 1, num2d
-            do k = begg, endg
-              if ( field_gcell(k,j) /= spval ) then
-                if ( nacs(k,j) == 0 ) hbuf(k,j) = +1.e50_rk8
-                hbuf(k,j) = min( hbuf(k,j), field_gcell(k,j) )
-              else
-                hbuf(k,j) = spval
-              end if
-              nacs(k,j) = 1
-            end do
+          do concurrent ( k = begg:endg, j = 1:num2d )
+            if ( field_gcell(k,j) /= spval ) then
+              if ( nacs(k,j) == 0 ) hbuf(k,j) = +1.e50_rk8
+              hbuf(k,j) = min( hbuf(k,j), field_gcell(k,j) )
+            else
+              hbuf(k,j) = spval
+            end if
+            nacs(k,j) = 1
           end do
         case default
           write(stderr,*) trim(subname), &
@@ -1374,83 +1366,75 @@ module mod_clm_histfile
 
       select case (avgflag)
         case ('I') ! Instantaneous
-          do j = 1, num2d
-            do k = beg1d, end1d
-              valid = .true.
-              if ( check_active ) then
-                if ( .not. active(k) ) valid = .false.
-              end if
-              if ( valid ) then
-                if ( field(k-beg1d+1,j) /= spval ) then
-                  hbuf(k,j) = field(k-beg1d+1,j)
-                else
-                  hbuf(k,j) = spval
-                end if
+          do concurrent ( k = beg1d:end1d, j = 1:num2d )
+            valid = .true.
+            if ( check_active ) then
+              if ( .not. active(k) ) valid = .false.
+            end if
+            if ( valid ) then
+              if ( field(k-beg1d+1,j) /= spval ) then
+                hbuf(k,j) = field(k-beg1d+1,j)
               else
                 hbuf(k,j) = spval
               end if
-              nacs(k,j) = 1
-            end do
+            else
+              hbuf(k,j) = spval
+            end if
+            nacs(k,j) = 1
           end do
         case ('A') ! Time average
-          do j = 1, num2d
-            do k = beg1d, end1d
-              valid = .true.
-              if ( check_active ) then
-                if ( .not. active(k) ) valid = .false.
-              end if
-              if ( valid ) then
-                if ( field(k-beg1d+1,j) /= spval ) then
-                  if ( nacs(k,j) == 0 ) hbuf(k,j) = 0._rk8
-                  hbuf(k,j) = hbuf(k,j) + field(k-beg1d+1,j)
-                  nacs(k,j) = nacs(k,j) + 1
-                else
-                  if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
-                end if
+          do concurrent ( k = beg1d:end1d, j = 1:num2d )
+            valid = .true.
+            if ( check_active ) then
+              if ( .not. active(k) ) valid = .false.
+            end if
+            if ( valid ) then
+              if ( field(k-beg1d+1,j) /= spval ) then
+                if ( nacs(k,j) == 0 ) hbuf(k,j) = 0._rk8
+                hbuf(k,j) = hbuf(k,j) + field(k-beg1d+1,j)
+                nacs(k,j) = nacs(k,j) + 1
               else
                 if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
               end if
-            end do
+            else
+              if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
+            end if
           end do
         case ('X') ! Maximum over time
-          do j = 1, num2d
-            do k = beg1d, end1d
-              valid = .true.
-              if ( check_active ) then
-                if ( .not. active(k) ) valid = .false.
-              end if
-              if ( valid ) then
-                if ( field(k-beg1d+1,j) /= spval ) then
-                  if ( nacs(k,j) == 0 ) hbuf(k,j) = -1.e50_rk8
-                  hbuf(k,j) = max( hbuf(k,j), field(k-beg1d+1,j) )
-                else
-                  if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
-                end if
+          do concurrent ( k = beg1d:end1d, j = 1:num2d )
+            valid = .true.
+            if ( check_active ) then
+              if ( .not. active(k) ) valid = .false.
+            end if
+            if ( valid ) then
+              if ( field(k-beg1d+1,j) /= spval ) then
+                if ( nacs(k,j) == 0 ) hbuf(k,j) = -1.e50_rk8
+                hbuf(k,j) = max( hbuf(k,j), field(k-beg1d+1,j) )
               else
                 if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
               end if
-              nacs(k,j) = 1
-            end do
+            else
+              if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
+            end if
+            nacs(k,j) = 1
           end do
         case ('M') ! Minimum over time
-          do j = 1, num2d
-            do k = beg1d, end1d
-              valid = .true.
-              if ( check_active ) then
-                if ( .not. active(k) ) valid = .false.
-              end if
-              if ( valid ) then
-                if ( field(k-beg1d+1,j) /= spval ) then
-                  if ( nacs(k,j) == 0 ) hbuf(k,j) = +1.e50_rk8
-                  hbuf(k,j) = min( hbuf(k,j), field(k-beg1d+1,j))
-                else
-                  if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
-                end if
+          do concurrent ( k = beg1d:end1d, j = 1:num2d )
+            valid = .true.
+            if ( check_active ) then
+              if ( .not. active(k) ) valid = .false.
+            end if
+            if ( valid ) then
+              if ( field(k-beg1d+1,j) /= spval ) then
+                if ( nacs(k,j) == 0 ) hbuf(k,j) = +1.e50_rk8
+                hbuf(k,j) = min( hbuf(k,j), field(k-beg1d+1,j))
               else
                 if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
               end if
-              nacs(k,j) = 1
-            end do
+            else
+              if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
+            end if
+            nacs(k,j) = 1
           end do
         case default
           write(stderr,*) trim(subname), &
