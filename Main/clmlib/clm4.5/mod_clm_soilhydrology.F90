@@ -1238,21 +1238,10 @@ module mod_clm_soilhydrology
     end do
 
     ! Solve for dwat
-    !$acc kernels
-    jtop(:) = 1
-    where ( abs(amx) < 1.e-20_rk8 )
-      amx = sign(1.0e-20_rk8,amx)
-    end where
-    where ( abs(bmx) < 1.e-20_rk8 )
-      bmx = sign(1.0e-20_rk8,bmx)
-    end where
-    where ( abs(cmx) < 1.e-20_rk8 )
-      cmx = sign(1.0e-20_rk8,cmx)
-    end where
-    where ( abs(rmx) < 1.e-20_rk8 )
-      rmx = sign(1.0e-20_rk8,rmx)
-    end where
-    !$acc end kernels
+
+    do concurrent ( c = lbc:ubc )
+      jtop(c) = 1
+    end do
     call Tridiagonal(lbc, ubc, 1, nlevsoi+1, jtop,      &
                      num_hydrologyc, filter_hydrologyc, &
                      amx, bmx, cmx, rmx, dwat2 )

@@ -9,7 +9,7 @@ module mod_clm_cndvlight
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_constants, only : mathpi
+  use mod_varcon, only : rpi
 
   implicit none
 
@@ -124,7 +124,7 @@ module mod_clm_cndvlight
           ! CNVegStructUpdate and cn's assumption stemdiam=2*htop/taper
           ! this derivation neglects upper htop limit enforced elsewhere
           stemdiam = (24.0_rk8 * deadstemc(p) / &
-                (mathpi * stocking * dwood(ivt(p)) * taper))**(1.0_rk8/3.0_rk8)
+                (rpi * stocking * dwood(ivt(p)) * taper))**(1.0_rk8/3.0_rk8)
         else
           stemdiam = 0.0_rk8
         end if

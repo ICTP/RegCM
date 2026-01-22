@@ -8,7 +8,6 @@ module mod_clm_surfacealbedo
   use mod_stdio
   use mod_sunorbit
   use mod_dynparam
-  use mod_constants, only : mathpi
   use mod_clm_varcon, only : istsoil
   use mod_clm_varpar, only : numrad, nlevcan
   use mod_clm_varcon, only : istcrop
@@ -29,7 +28,6 @@ module mod_clm_surfacealbedo
 
   save
 
-  real(rk8), parameter :: pi                 = mathpi
   real(rk8), parameter :: SHR_ORB_ECCEN_MIN  =   0.0_rk8 ! min value for eccen
   real(rk8), parameter :: SHR_ORB_ECCEN_MAX  =   0.1_rk8 ! max value for eccen
   real(rk8), parameter :: SHR_ORB_OBLIQ_MIN  = -90.0_rk8 ! min value for obliq
