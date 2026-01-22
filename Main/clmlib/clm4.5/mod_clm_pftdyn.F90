@@ -377,7 +377,7 @@ module mod_clm_pftdyn
     ! set column-level canopy water mass balance correction flux
     ! term to 0 at the beginning of every timestep
 
-    do c = begc, endc
+    do concurrent ( c = begc:endc )
       cptr%cwf%h2ocan_loss(c) = 0._rk8
     end do
   end subroutine pftdyn_wbal_init

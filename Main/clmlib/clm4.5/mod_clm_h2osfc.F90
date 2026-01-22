@@ -61,7 +61,7 @@ module mod_clm_h2osfc
     frac_sno_eff        => clm3%g%l%c%cps%frac_sno_eff
     h2osno              => clm3%g%l%c%cws%h2osno
 
-    do f = 1, num_h2osfc
+    do concurrent ( f = 1:num_h2osfc )
       c = filter_h2osfc(f)
       l = clandunit(c)
       ! h2osfc only calculated for soil vegetated land units
@@ -75,6 +75,7 @@ module mod_clm_h2osfc
           ! (nonconvergence after 5 iterations)
           d = 0.0_rk8
           sigma = 1.0e3_rk8 * micro_sigma(c) ! convert to mm
+          !$acc loop seq
           do l = 1, 10
             if ( d**2/(2.0_rk8*sigma**2) < 25.0_rkx ) then
               fd = 0.5_rk8*d*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8)))) + &

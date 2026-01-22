@@ -330,7 +330,7 @@ module mod_clm_urban
     ! next time step
     ! --------------------------------------------------------------------
 
-    do fl = 1, num_urbanl
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
       g = lgridcell(l)
       ! Assumes coszen for each column are the same
@@ -338,7 +338,7 @@ module mod_clm_urban
       zen(fl)    = acos(coszen(fl))
     end do
 
-    do fp = 1, num_urbanp
+    do concurrent ( fp = 1:num_urbanp )
       p = filter_urbanp(fp)
       g = pgridcell(p)
       c = pcolumn(p)
@@ -349,40 +349,38 @@ module mod_clm_urban
     ! Initialize clmtype output since solar radiation is only done if coszen > 0
     ! --------------------------------------------------------------------------
 
-    do ib = 1, numrad
-      do fc = 1, num_urbanc
-        c = filter_urbanc(fc)
+    do concurrent ( fc = 1:num_urbanc, ib = 1:numrad )
+      c = filter_urbanc(fc)
 
-        albgrd(c,ib) = 0._rk8
-        albgri(c,ib) = 0._rk8
-      end do
+      albgrd(c,ib) = 0._rk8
+      albgri(c,ib) = 0._rk8
+    end do
 
-      do fp = 1, num_urbanp
-        p = filter_urbanp(fp)
-        g = pgridcell(p)
-        albd(p,ib) = 1._rk8
-        albi(p,ib) = 1._rk8
-        fabd(p,ib) = 0._rk8
-        fabd_sun(p,ib) = 0._rk8
-        fabd_sha(p,ib) = 0._rk8
-        fabi(p,ib) = 0._rk8
-        fabi_sun(p,ib) = 0._rk8
-        fabi_sha(p,ib) = 0._rk8
-        if ( coszen_pft(fp) > 0._rk8 ) then
-          ftdd(p,ib) = 1._rk8
-        else
-          ftdd(p,ib) = 0._rk8
-        end if
-        ftid(p,ib) = 0._rk8
-        if ( coszen_pft(fp) > 0._rk8 ) then
-          ftii(p,ib) = 1._rk8
-        else
-          ftii(p,ib) = 0._rk8
-        end if
-        if ( ib == 1 ) then
-          fsun(p) = 0._rk8
-        end if
-      end do
+    do concurrent ( fp = 1:num_urbanp, ib = 1:numrad )
+      p = filter_urbanp(fp)
+      g = pgridcell(p)
+      albd(p,ib) = 1._rk8
+      albi(p,ib) = 1._rk8
+      fabd(p,ib) = 0._rk8
+      fabd_sun(p,ib) = 0._rk8
+      fabd_sha(p,ib) = 0._rk8
+      fabi(p,ib) = 0._rk8
+      fabi_sun(p,ib) = 0._rk8
+      fabi_sha(p,ib) = 0._rk8
+      if ( coszen_pft(fp) > 0._rk8 ) then
+        ftdd(p,ib) = 1._rk8
+      else
+        ftdd(p,ib) = 0._rk8
+      end if
+      ftid(p,ib) = 0._rk8
+      if ( coszen_pft(fp) > 0._rk8 ) then
+        ftii(p,ib) = 1._rk8
+      else
+        ftii(p,ib) = 0._rk8
+      end if
+      if ( ib == 1 ) then
+        fsun(p) = 0._rk8
+      end if
     end do
 
     ! ------------
@@ -390,36 +388,40 @@ module mod_clm_urban
     ! ------------
 
     num_solar = 0
-    do fl = 1,num_urbanl
+#ifdef OPENACC
+    do concurrent ( fl = 1:num_urbanl ) reduce(+:num_solar)
       if ( coszen(fl) > 0._rk8 ) num_solar = num_solar + 1
     end do
+#else
+    do fl = 1, num_urbanl
+      if ( coszen(fl) > 0._rk8 ) num_solar = num_solar + 1
+    end do
+#endif
 
     ! Initialize urban components
 
-    do ib = 1,numrad
-      do fl = 1,num_urbanl
-        l = filter_urbanl(fl)
-        sabs_roof_dir(l,ib)      = 0._rk8
-        sabs_roof_dif(l,ib)      = 0._rk8
-        sabs_sunwall_dir(l,ib)   = 0._rk8
-        sabs_sunwall_dif(l,ib)   = 0._rk8
-        sabs_shadewall_dir(l,ib) = 0._rk8
-        sabs_shadewall_dif(l,ib) = 0._rk8
-        sabs_improad_dir(l,ib)   = 0._rk8
-        sabs_improad_dif(l,ib)   = 0._rk8
-        sabs_perroad_dir(l,ib)   = 0._rk8
-        sabs_perroad_dif(l,ib)   = 0._rk8
-        sref_roof_dir(fl,ib)      = 1._rk8
-        sref_roof_dif(fl,ib)      = 1._rk8
-        sref_sunwall_dir(fl,ib)   = 1._rk8
-        sref_sunwall_dif(fl,ib)   = 1._rk8
-        sref_shadewall_dir(fl,ib) = 1._rk8
-        sref_shadewall_dif(fl,ib) = 1._rk8
-        sref_improad_dir(fl,ib)   = 1._rk8
-        sref_improad_dif(fl,ib)   = 1._rk8
-        sref_perroad_dir(fl,ib)   = 1._rk8
-        sref_perroad_dif(fl,ib)   = 1._rk8
-      end do
+    do concurrent ( fl = 1:num_urbanl, ib = 1:numrad )
+      l = filter_urbanl(fl)
+      sabs_roof_dir(l,ib)      = 0._rk8
+      sabs_roof_dif(l,ib)      = 0._rk8
+      sabs_sunwall_dir(l,ib)   = 0._rk8
+      sabs_sunwall_dif(l,ib)   = 0._rk8
+      sabs_shadewall_dir(l,ib) = 0._rk8
+      sabs_shadewall_dif(l,ib) = 0._rk8
+      sabs_improad_dir(l,ib)   = 0._rk8
+      sabs_improad_dif(l,ib)   = 0._rk8
+      sabs_perroad_dir(l,ib)   = 0._rk8
+      sabs_perroad_dif(l,ib)   = 0._rk8
+      sref_roof_dir(fl,ib)      = 1._rk8
+      sref_roof_dif(fl,ib)      = 1._rk8
+      sref_sunwall_dir(fl,ib)   = 1._rk8
+      sref_sunwall_dif(fl,ib)   = 1._rk8
+      sref_shadewall_dir(fl,ib) = 1._rk8
+      sref_shadewall_dif(fl,ib) = 1._rk8
+      sref_improad_dir(fl,ib)   = 1._rk8
+      sref_improad_dif(fl,ib)   = 1._rk8
+      sref_perroad_dir(fl,ib)   = 1._rk8
+      sref_perroad_dif(fl,ib)   = 1._rk8
     end do
 
     ! View factors for road and one wall in urban canyon
@@ -437,11 +439,9 @@ module mod_clm_urban
 
       ! Set constants - solar fluxes are per unit incoming flux
 
-      do ib = 1, numrad
-        do fl = 1, num_urbanl
-          sdir(fl,ib) = 1._rk8
-          sdif(fl,ib) = 1._rk8
-        end do
+      do concurrent ( fl = 1:num_urbanl, ib = 1:numrad )
+        sdir(fl,ib) = 1._rk8
+        sdif(fl,ib) = 1._rk8
       end do
 
       ! Incident direct beam radiation for
@@ -472,31 +472,30 @@ module mod_clm_urban
       end if
 
       ! Combine snow-free and snow albedos
-      do ib = 1, numrad
-        do fl = 1, num_urbanl
-          l = filter_urbanl(fl)
-          do c = coli(l), colf(l)
-            if ( ctype(c) == icol_roof ) then
-              alb_roof_dir_s(fl,ib) = alb_roof_dir(fl,ib)*(1._rk8-frac_sno(c))  &
-                                    + albsnd_roof(fl,ib)*frac_sno(c)
-              alb_roof_dif_s(fl,ib) = alb_roof_dif(fl,ib)*(1._rk8-frac_sno(c))  &
-                                    + albsni_roof(fl,ib)*frac_sno(c)
-            else if ( ctype(c) == icol_road_imperv ) then
-              alb_improad_dir_s(fl,ib) = &
-                      alb_improad_dir(fl,ib)*(1._rk8-frac_sno(c)) + &
-                      albsnd_improad(fl,ib)*frac_sno(c)
-              alb_improad_dif_s(fl,ib) = &
-                      alb_improad_dif(fl,ib)*(1._rk8-frac_sno(c)) + &
-                      albsni_improad(fl,ib)*frac_sno(c)
-            else if ( ctype(c) == icol_road_perv ) then
-              alb_perroad_dir_s(fl,ib) = &
-                      alb_perroad_dir(fl,ib)*(1._rk8-frac_sno(c)) + &
-                      albsnd_perroad(fl,ib)*frac_sno(c)
-              alb_perroad_dif_s(fl,ib) = &
-                      alb_perroad_dif(fl,ib)*(1._rk8-frac_sno(c)) + &
-                      albsni_perroad(fl,ib)*frac_sno(c)
-            end if
-          end do
+      do concurrent ( fl = 1:num_urbanl, ib = 1:numrad )
+        l = filter_urbanl(fl)
+        !$acc loop seq
+        do c = coli(l), colf(l)
+          if ( ctype(c) == icol_roof ) then
+            alb_roof_dir_s(fl,ib) = alb_roof_dir(fl,ib)*(1._rk8-frac_sno(c))  &
+                                  + albsnd_roof(fl,ib)*frac_sno(c)
+            alb_roof_dif_s(fl,ib) = alb_roof_dif(fl,ib)*(1._rk8-frac_sno(c))  &
+                                  + albsni_roof(fl,ib)*frac_sno(c)
+          else if ( ctype(c) == icol_road_imperv ) then
+            alb_improad_dir_s(fl,ib) = &
+                    alb_improad_dir(fl,ib)*(1._rk8-frac_sno(c)) + &
+                    albsnd_improad(fl,ib)*frac_sno(c)
+            alb_improad_dif_s(fl,ib) = &
+                    alb_improad_dif(fl,ib)*(1._rk8-frac_sno(c)) + &
+                    albsni_improad(fl,ib)*frac_sno(c)
+          else if ( ctype(c) == icol_road_perv ) then
+            alb_perroad_dir_s(fl,ib) = &
+                    alb_perroad_dir(fl,ib)*(1._rk8-frac_sno(c)) + &
+                    albsnd_perroad(fl,ib)*frac_sno(c)
+            alb_perroad_dif_s(fl,ib) = &
+                    alb_perroad_dif(fl,ib)*(1._rk8-frac_sno(c)) + &
+                    albsni_perroad(fl,ib)*frac_sno(c)
+          end if
         end do
       end do
 
@@ -527,34 +526,33 @@ module mod_clm_urban
       !  Set albgrd and albgri (ground albedos) and albd and
       ! albi (surface albedos)
 
-      do ib = 1, numrad
-        do fl = 1, num_urbanl
-          l = filter_urbanl(fl)
-          do c = coli(l), colf(l)
-            if ( ctype(c) == icol_roof ) then
-              albgrd(c,ib) = sref_roof_dir(fl,ib)
-              albgri(c,ib) = sref_roof_dif(fl,ib)
-            else if ( ctype(c) == icol_sunwall ) then
-              albgrd(c,ib) = sref_sunwall_dir(fl,ib)
-              albgri(c,ib) = sref_sunwall_dif(fl,ib)
-            else if ( ctype(c) == icol_shadewall ) then
-              albgrd(c,ib) = sref_shadewall_dir(fl,ib)
-              albgri(c,ib) = sref_shadewall_dif(fl,ib)
-            else if ( ctype(c) == icol_road_perv ) then
-              albgrd(c,ib) = sref_perroad_dir(fl,ib)
-              albgri(c,ib) = sref_perroad_dif(fl,ib)
-            else if ( ctype(c) == icol_road_imperv ) then
-              albgrd(c,ib) = sref_improad_dir(fl,ib)
-              albgri(c,ib) = sref_improad_dif(fl,ib)
-            endif
-          end do
+      do concurrent ( fl = 1:num_urbanl, ib = 1:numrad )
+        l = filter_urbanl(fl)
+        !$acc loop seq
+        do c = coli(l), colf(l)
+          if ( ctype(c) == icol_roof ) then
+            albgrd(c,ib) = sref_roof_dir(fl,ib)
+            albgri(c,ib) = sref_roof_dif(fl,ib)
+          else if ( ctype(c) == icol_sunwall ) then
+            albgrd(c,ib) = sref_sunwall_dir(fl,ib)
+            albgri(c,ib) = sref_sunwall_dif(fl,ib)
+          else if ( ctype(c) == icol_shadewall ) then
+            albgrd(c,ib) = sref_shadewall_dir(fl,ib)
+            albgri(c,ib) = sref_shadewall_dif(fl,ib)
+          else if ( ctype(c) == icol_road_perv ) then
+            albgrd(c,ib) = sref_perroad_dir(fl,ib)
+            albgri(c,ib) = sref_perroad_dif(fl,ib)
+          else if ( ctype(c) == icol_road_imperv ) then
+            albgrd(c,ib) = sref_improad_dir(fl,ib)
+            albgri(c,ib) = sref_improad_dif(fl,ib)
+          endif
         end do
-        do fp = 1, num_urbanp
-          p = filter_urbanp(fp)
-          c = pcolumn(p)
-          albd(p,ib) = albgrd(c,ib)
-          albi(p,ib) = albgri(c,ib)
-        end do
+      end do
+      do concurrent ( fp = 1:num_urbanp, ib = 1:numrad )
+        p = filter_urbanp(fp)
+        c = pcolumn(p)
+        albd(p,ib) = albgrd(c,ib)
+        albi(p,ib) = albgri(c,ib)
       end do
     end if
   end subroutine UrbanAlbedo
@@ -900,7 +898,7 @@ module mod_clm_urban
 
     ! Define fields that appear on the restart file for non-urban landunits
 
-    do fl = 1, num_nourbanl
+    do concurrent ( fl = 1:num_nourbanl )
       l = filter_nourbanl(fl)
       sabs_roof_dir(l,:) = spval
       sabs_roof_dif(l,:) = spval
@@ -920,7 +918,7 @@ module mod_clm_urban
     end do
 
     ! Set input forcing fields
-    do fl = 1,num_urbanl
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
       g = lgridcell(l)
 
@@ -939,6 +937,7 @@ module mod_clm_urban
       em_perroad_s(fl) = em_perroad(fl)
 
       ! Set urban temperatures and emissivity including snow effects.
+      !$acc loop seq
       do c = coli(l),colf(l)
         if (ctype(c) == icol_roof       )  then
           t_roof(fl)      = t_grnd(c)
@@ -979,7 +978,7 @@ module mod_clm_urban
     ! communication with atm
     ! Loop over urban pfts
 
-    do fp = 1, num_urbanp
+    do concurrent ( fp = 1:num_urbanp )
       p = filter_urbanp(fp)
       g = pgridcell(p)
 
@@ -1027,7 +1026,7 @@ module mod_clm_urban
 
     ! Loop over urban landunits
 
-    do fl = 1, num_urbanl
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
       g = lgridcell(l)
 
@@ -1035,7 +1034,7 @@ module mod_clm_urban
       ! per unit ground area (roof, road) and per unit wall area
       ! (sunwall, shadewall)
       ! Each urban pft has its own column - this is used in the logic below
-
+      !$acc loop seq
       do p = pfti(l), pftf(l)
         c = pcolumn(p)
         if ( ctype(c) == icol_roof ) then
@@ -1133,7 +1132,8 @@ module mod_clm_urban
     real(rk8), pointer, contiguous :: vf_ww(:)  ! view factor of opposing wall for one wall
 
     integer(ik4) :: l, fl   ! indices
-    real(rk8) :: vsum    ! sum of view factors for wall or road
+    real(rk8) :: vsum, rwsum(2)    ! sum of view factors for wall or road
+    logical :: rwerr(2)
 
     ! Assign landunit level pointer
 
@@ -1163,21 +1163,31 @@ module mod_clm_urban
 
     ! error check -- make sure view factor sums to one for road and wall
 
+    rwerr = .false.
+    !$acc parallel loop gang vector copy(rwerr) copyout(rwsum)
     do fl = 1, num_urbanl
       l = filter_urbanl(fl)
       vsum = vf_sr(l) + 2._rk8*vf_wr(l)
       if ( abs(vsum-1._rk8) > 1.e-6_rk8 ) then
-        write (stderr,*) 'urban road view factor error',vsum
-        write (stderr,*) 'clm model is stopping'
-        call fatal(__FILE__,__LINE__,'clm now stopping')
+        rwerr(1) = .true.
+        rwsum(1) = vsum
       end if
       vsum = vf_sw(l) + vf_rw(l) + vf_ww(l)
       if ( abs(vsum-1._rk8) > 1.e-6_rk8 ) then
-        write (stderr,*) 'urban wall view factor error',vsum
-        write (stderr,*) 'clm model is stopping'
-        call fatal(__FILE__,__LINE__,'clm now stopping')
+        rwerr(2) = .true.
+        rwsum(2) = vsum
       end if
     end do
+    if ( rwerr(1) ) then
+      write (stderr,*) 'urban road view factor error',rwsum(1)
+      write (stderr,*) 'clm model is stopping'
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
+    if ( rwerr(2) ) then
+      write (stderr,*) 'urban wall view factor error',rwsum(2)
+      write (stderr,*) 'clm model is stopping'
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
   end subroutine view_factor
   !
   ! Direct beam solar radiation incident on walls and road in urban canyon
@@ -2366,6 +2376,8 @@ module mod_clm_urban
     real(rk8) :: err                    ! energy conservation error (W/m**2)
     ! weight of impervious road wrt total road
     real(rk8) :: wtroad_imperv(num_urbanl)
+    logical :: found(2)
+    real(rk8) :: found_err(2)
 
     ! Assign landunit level pointer
 
@@ -2377,10 +2389,12 @@ module mod_clm_urban
 
     ! Calculate impervious road
 
-    do l = 1, num_urbanl
+    do concurrent ( l = 1:num_urbanl )
       wtroad_imperv(l) = 1._rk8 - wtroad_perv(l)
     end do
 
+    found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(found_err)
     do fl = 1,num_urbanl
       l = filter_urbanl(fl)
       ! atmospheric longwave radiation incident on walls and road in
@@ -2394,13 +2408,17 @@ module mod_clm_urban
       err = lwdown(fl) - (lwdown_road(fl) + &
               (lwdown_shadewall(fl) + lwdown_sunwall(fl))*canyon_hwr(fl))
       if ( abs(err) > 0.10_rk8 ) then
-        write (stderr,*) &
-              'urban incident atmospheric longwave radiation balance error',err
-        call fatal(__FILE__,__LINE__,'clm now stopping')
+        found(1) = .true.
+        found_err(1) = err
       end if
     end do
+    if ( found(1) ) then
+      write (stderr,*) &
+            'urban incident atmospheric longwave radiation balance error',found_err(1)
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
 
-    do fl = 1,num_urbanl
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
 
       ! initial absorption, reflection, and emission for road and both walls.
@@ -2511,7 +2529,8 @@ module mod_clm_urban
     ! (5) stop iteration when absorption for ith reflection is less than some
     !    nominal amount.
     !    small convergence criteria is required to ensure radiation is conserved
-
+    found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(found_err)
     do fl = 1, num_urbanl
       l = filter_urbanl(fl)
       do iter = 1, niters
@@ -2606,9 +2625,8 @@ module mod_clm_urban
         if ( crit < .001_rk8 ) exit
       end do
       if ( iter >= niters ) then
-        write (stderr,*) 'urban net longwave radiation error: no convergence'
-        write (stderr,*) 'Critical = ',crit, ' > 0.001 !'
-        call fatal(__FILE__,__LINE__,'clm now stopping')
+        found(1) = .true.
+        found_err(1) = crit
       end if
 
       ! total net longwave radiation for canyon.
@@ -2645,14 +2663,24 @@ module mod_clm_urban
 
       err = lwnet_canyon(fl) - (lwup_canyon(fl) - lwdown(fl))
       if ( abs(err) > .10_rk8 ) then
-        write (stderr,*) 'urban net longwave radiation balance error',err
-        call fatal(__FILE__,__LINE__,'clm now stopping')
+        found(2) = .true.
+        found_err(2) = err
       end if
     end do
 
+    if( found(1) ) then
+      write (stderr,*) 'urban net longwave radiation error: no convergence'
+      write (stderr,*) 'Critical = ',found_err(1), ' > 0.001 !'
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
+    if( found(2) ) then
+      write (stderr,*) 'urban net longwave radiation balance error',found_err(2)
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
+
     ! Net longwave radiation for roof
 
-    do l = 1, num_urbanl
+    do concurrent ( l = 1:num_urbanl )
       lwup_roof(l) = em_roof(l)*sb*(t_roof(l)**4) + (1._rk8-em_roof(l))*lwdown(l)
       lwnet_roof(l) = lwup_roof(l) - lwdown(l)
     end do
@@ -3217,6 +3245,7 @@ module mod_clm_urban
 
     found_h = .false.
     found_r = .false.
+    !$acc parallel loop gang vector copy(found_h,found_r) copyout(flerr_r,lerr_r,lerr_h)
     do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
       g = lgridcell(l)
@@ -3262,6 +3291,7 @@ module mod_clm_urban
     end do
 
     if ( found_r ) then
+      !$acc update host(ht_roof,z_d_town,z_0_town)
       write (stderr,*) 'aerodynamic parameter error in UrbanFluxes'
       write (stderr,*) 'h_r - z_d <= z_0'
       write (stderr,*) 'ht_roof, z_d_town, z_0_town: ', &
@@ -3270,6 +3300,7 @@ module mod_clm_urban
     end if
 
     if ( found_h ) then
+      !$acc update host(forc_hgt_u_pft,pfti,z_d_town,z_0_town)
       write (stderr,*) 'aerodynamic parameter error in UrbanFluxes'
       write (stderr,*) 'h_u - z_d <= z_0'
       write (stderr,*) 'forc_hgt_u_pft, z_d_town, z_0_town: ', &
@@ -3394,7 +3425,12 @@ module mod_clm_urban
       if (trim(urban_hac) == urban_hac_on ) urb_hc_on = .true.
 
       loutofrange = .false.
-      do concurrent ( fl = 1:num_urbanl )
+#ifdef STDPAR
+      do concurrent ( fl = 1:num_urbanl ) shared(loutofrange,cerr)
+#else
+      !$acc parallel loop gang vector copy(loutofrange) copyout(cerr)
+      do fl = 1, num_urbanl
+#endif
         l = filter_urbanl(fl)
         !$acc loop seq
         do pi = 1, maxpatch_urb
@@ -3568,6 +3604,7 @@ module mod_clm_urban
       end do
 
       if ( loutofrange ) then
+        !$acc update host(ctype)
         write(stderr,*) 'c, ctype = ', cerr, ctype(cerr)
         write(stderr,*) 'Column indices for: '
         write(stderr,*) 'shadewall,sunwall,road_imperv,road_perv,roof: '
@@ -3782,6 +3819,7 @@ module mod_clm_urban
     end do
 
     found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(indexl)
     do fl = 1, num_urbanl
       l = filter_urbanl(fl)
       if (abs(eflx_err(l)) > 0.01_rk8) then
@@ -3792,6 +3830,7 @@ module mod_clm_urban
     end do
 
     if ( found ) then
+      !$acc update host(eflx_err,eflx_scale,eflx_sh_grnd_scale,pfti,pftf,eflx)
       write(stderr,*)'WARNING:  Total sensible heat does not equal &
               &sum of scaled heat fluxes for urban columns ',&
             ' at ',trim(rcmtimer%str( )),' indexl= ',indexl, &
@@ -3807,16 +3846,17 @@ module mod_clm_urban
     end if
 
     found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(indexl)
     do fl = 1, num_urbanl
       l = filter_urbanl(fl)
       ! 4.e-9 kg/m**2/s = 0.01 W/m**2
       if (abs(qflx_err(l)) > 4.e-9_rk8) then
         found = .true.
         indexl = l
-        exit
       end if
     end do
     if ( found ) then
+      !$acc update host(qflx_err,qflx_scale,qflx)
       write(stderr,*)'WARNING:  Total water vapor flux does not equal &
               &sum of scaled water vapor fluxes for urban columns ',&
             ' at ',trim(rcmtimer%str( )),' indexl= ',indexl, &

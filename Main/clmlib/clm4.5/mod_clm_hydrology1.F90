@@ -332,7 +332,7 @@ module mod_clm_hydrology1
 
     ! Start pft loop
 
-    do f = 1, num_nolakep
+    do concurrent ( f = 1:num_nolakep )
       p = filter_nolakep(f)
       g = pgridcell(p)
       l = plandunit(p)
@@ -484,7 +484,7 @@ module mod_clm_hydrology1
     call p2c(num_nolakec,filter_nolakec,qflx_snow_grnd_pft,qflx_snow_grnd_col)
 
     ! apply gridcell flood water flux to non-lake columns
-    do f = 1, num_nolakec
+    do concurrent ( f = 1:num_nolakec )
       c = filter_nolakec(f)
       g = cgridcell(c)
       if ( ctype(c) /= icol_sunwall .and. &
@@ -497,7 +497,7 @@ module mod_clm_hydrology1
 
     ! Determine snow height and snow water
 
-    do f = 1, num_nolakec
+    do concurrent ( f = 1:num_nolakec )
       c = filter_nolakec(f)
       l = clandunit(c)
       g = cgridcell(c)
@@ -711,7 +711,7 @@ module mod_clm_hydrology1
     ! The change of ice partial density of surface node due to precipitation.
     ! Only ice part of snowfall is added here, the liquid part will be added
     ! later.
-    do f = 1, num_nolakec
+    do concurrent ( f = 1:num_nolakec )
       c = filter_nolakec(f)
       if ( snl(c) < 0 .and. newnode(c) == 0 ) then
         h2osoi_ice(c,snl(c)+1) = h2osoi_ice(c,snl(c)+1)+newsnow(c)

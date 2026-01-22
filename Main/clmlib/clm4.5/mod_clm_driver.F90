@@ -233,7 +233,7 @@ module mod_clm_driver
     ! ========================================================================
 
     ! initialize heat and water content and dynamic balance fields to zero
-    do g = begg, endg
+    do concurrent ( g = begg:endg )
       clm3%g%gwf%qflx_liq_dynbal(g) = 0._rk8
       clm3%g%gws%gc_liq2(g)         = 0._rk8
       clm3%g%gws%gc_liq1(g)         = 0._rk8
@@ -286,7 +286,7 @@ module mod_clm_driver
                            clm3%g%gws%gc_liq2(begg:endg), &
                            clm3%g%gws%gc_ice2(begg:endg), &
                            clm3%g%ges%gc_heat2(begg:endg))
-    do g = begg, endg
+    do concurrent ( g = begg:endg )
       clm3%g%gwf%qflx_liq_dynbal(g) = &
               (clm3%g%gws%gc_liq2 (g) - clm3%g%gws%gc_liq1 (g))/dtsrf
       clm3%g%gwf%qflx_ice_dynbal(g) = &
@@ -363,11 +363,13 @@ module mod_clm_driver
 
     ! initialize intracellular CO2 (Pa) parameters each timestep for use
     ! in VOCEmission
+    !$acc kernels
     clm3%g%l%c%p%pcf%cisun_z(begp:endp,:) = -999._rk8
     clm3%g%l%c%p%pcf%cisha_z(begp:endp,:) = -999._rk8
+    !$acc end kernels
 
     ! initialize declination for current timestep
-    do c = begc, endc
+    do concurrent ( c = begc:endc )
       clm3%g%l%c%cps%decl(c) = declin
     end do
     !@acc call nvtxStartRange("clm_driverInit")
@@ -531,7 +533,7 @@ module mod_clm_driver
     ! Fraction of soil covered by snow (Z.-L. Yang U. Texas)
     ! =======================================================================
 
-    do c = begc, endc
+    do concurrent ( c = begc:endc )
       l = clandunit(c)
       if ( itypelun(l) == isturb ) then
         ! Urban landunit use Bonan 1996 (LSM Technical Note)

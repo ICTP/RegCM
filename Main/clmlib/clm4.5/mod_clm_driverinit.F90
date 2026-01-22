@@ -93,7 +93,7 @@ module mod_clm_driverinit
     pactive            => clm3%g%l%c%p%active
     plandunit          => clm3%g%l%c%p%landunit
 
-    do c = lbc, ubc
+    do concurrent ( c = lbc:ubc )
 
       l = clandunit(c)
       g = cgridcell(c)
@@ -120,7 +120,7 @@ module mod_clm_driverinit
 
     ! Initialize fraction of vegetation not covered by snow (pft-level)
 
-    do p = lbp, ubp
+    do concurrent ( p = lbp:ubp )
       if (pactive(p)) then
         frac_veg_nosno(p) = frac_veg_nosno_alb(p)
       else
@@ -131,13 +131,11 @@ module mod_clm_driverinit
     ! Initialize set of previous time-step variables
     ! Ice fraction of snow at previous time step
 
-    do j = -nlevsno+1, 0
-      do f = 1, num_nolakec
-        c = filter_nolakec(f)
-        if (j >= snl(c) + 1) then
-          frac_iceold(c,j) = h2osoi_ice(c,j)/(h2osoi_liq(c,j)+h2osoi_ice(c,j))
-        end if
-      end do
+    do concurrent ( f = 1:num_nolakec, j = -nlevsno+1:0 )
+      c = filter_nolakec(f)
+      if (j >= snl(c) + 1) then
+        frac_iceold(c,j) = h2osoi_ice(c,j)/(h2osoi_liq(c,j)+h2osoi_ice(c,j))
+      end if
     end do
 
   end subroutine clm_driverInit

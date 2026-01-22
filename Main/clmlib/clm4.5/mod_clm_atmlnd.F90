@@ -441,6 +441,7 @@ end subroutine init_atm2lnd_type
 
     allocate(tmpc(begc:endc,nlevsoi))
     allocate(tmp(begp:endp))
+    !$acc data create(tmpc,tmp)
 
     ! Compute gridcell averages.
 
@@ -449,8 +450,10 @@ end subroutine init_atm2lnd_type
                cptr%cws%h2osno,clm_l2a%h2osno, &
                c2l_scale_type='urbanf',        &
                l2g_scale_type='unity')
+      !$acc kernels
       tmpc = cptr%cws%h2osoi_liq(:,1:nlevsoi) + &
              cptr%cws%h2osoi_ice(:,1:nlevsoi)
+      !$acc end kernels
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                tmpc,clm_l2a%h2osoi, &
                c2l_scale_type='unity', &
@@ -474,7 +477,7 @@ end subroutine init_atm2lnd_type
                p2c_scale_type='unity',                         &
                c2l_scale_type='urbanf',                        &
                l2g_scale_type='unity')
-      do g = begg, endg
+      do concurrent ( g = begg:endg )
         clm_l2a%t_rad(g) = sqrt(sqrt(clm_l2a%eflx_lwrad_out(g)/sb))
       end do
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
@@ -487,19 +490,25 @@ end subroutine init_atm2lnd_type
                cptr%cws%h2osno,clm_l2a%h2osno, &
                c2l_scale_type='urbanf',        &
                l2g_scale_type='unity')
+      !$acc kernels
       tmpc = cptr%cws%h2osoi_liq(:,1:nlevsoi) + &
              cptr%cws%h2osoi_ice(:,1:nlevsoi)
+      !$acc end kernels
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                tmpc,clm_l2a%h2osoi, &
                c2l_scale_type='unity', &
                l2g_scale_type='unity')
       !FAB
+      !$acc kernels
       tmpc = cptr%cws%h2osoi_vol(:,1:nlevsoi)
+      !$acc end kernels
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                tmpc,clm_l2a%h2osoi_vol, &
                c2l_scale_type='unity', &
                l2g_scale_type='unity')
+      !$acc kernels
       tmpc = cptr%ces%t_soisno(:,1:nlevsoi)
+      !$acc end kernels
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                tmpc,clm_l2a%tsoi, &
                c2l_scale_type='unity', &
@@ -573,7 +582,9 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
 !FAB: for roughness lenght perform a ln averaging instead of linear
+      !$acc kernels
       tmp = pptr%pps%z0mv
+      !$acc end kernels
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%zom,               &
                p2c_scale_type='unity',                  &
@@ -598,7 +609,7 @@ end subroutine init_atm2lnd_type
                p2c_scale_type='unity',                   &
                c2l_scale_type='urbanf',                  &
                l2g_scale_type='unity')
-      do g = begg, endg
+      do concurrent ( g = begg:endg )
         clm_l2a%eflx_sh_tot(g) = gptr%gef%eflx_sh_totg(g)
       end do
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,      &
@@ -629,7 +640,7 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
       ! Note that fco2 in is umolC/m2/sec so units need to be
       ! changed to gC/m2/sec
-      do g = begg, endg
+      do concurrent ( g = begg:endg )
         clm_l2a%nee(g) = clm_l2a%nee(g)*12.011e-6_rk8
       end do
 #endif
@@ -637,7 +648,7 @@ end subroutine init_atm2lnd_type
 #if (defined LCH4)
       if ( .not. ch4offline ) then
         ! Adjust flux of CO2 by the net conversion of mineralizing C to CH4
-        do g = begg, endg
+        do concurrent ( g = begg:endg )
           ! nem is in g C/m2/sec nem is calculated in ch4Mod
           ! flux_ch4 is averaged there also.
           clm_l2a%nee(g) = clm_l2a%nee(g) + gptr%gch4%nem(g)
@@ -650,27 +661,33 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
 !FAB for resistance perform conductance linear average
+      !$acc kernels
       tmp = 1._rkx/pptr%pps%ram1
+      !$acc end kernels
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%ram1,              &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
+      !$acc kernels
       clm_l2a%ram1 = 1._rkx/clm_l2a%ram1
       tmp = 1._rkx/pptr%pps%rah1
+      !$acc end kernels
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%rah1,              &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
+      !$acc kernels
       clm_l2a%rah1 = 1._rkx/clm_l2a%rah1
+      !$acc end kernels
 !
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                pptr%pps%br1,clm_l2a%br1,                &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
-      do g = begg,endg
+      do concurrent ( g = begg:endg )
         clm_l2a%rofliq(g) = gptr%gwf%qflx_runoffg(g)
         clm_l2a%rofice(g) = gptr%gwf%qflx_snwcp_iceg(g)
       end do
@@ -695,10 +712,10 @@ end subroutine init_atm2lnd_type
                  l2g_scale_type='unity')
       end if
       ! Convert from gC/m2/s to kgCO2/m2/s
-      do g = begg,endg
+      do concurrent ( g = begg:endg )
         clm_l2a%nee(g) = clm_l2a%nee(g)*convertgC2kgCO2
       end do
-      do g = begg,endg
+      do concurrent ( g = begg:endg )
         clm_l2a%t_rad(g) = sqrt(sqrt(clm_l2a%eflx_lwrad_out(g)/sb))
       end do
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
@@ -707,6 +724,7 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='urbanf',                 &
                l2g_scale_type='unity')
     end if
+    !$acc end data
     deallocate(tmpc)
     deallocate(tmp)
   end subroutine clm_map2gcell

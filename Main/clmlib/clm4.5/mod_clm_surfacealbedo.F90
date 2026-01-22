@@ -329,6 +329,9 @@ module mod_clm_surfacealbedo
     ! mass concentration of all aerosol species for feedback calculation
     ! (col,lyr,aer) [kg kg-1]
     real(rk8) :: mss_cnc_aer_in_fdb(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
+    logical :: found(2)
+    integer(ik4) :: found_id(2)
+    real(rk8) :: found_laisum(2), found_saisum(2)
 
     ! Assign local pointers to derived subtypes components (gridcell-level)
 
@@ -416,7 +419,7 @@ module mod_clm_surfacealbedo
 
     ! Cosine solar zenith angle for next time step
 
-    do g = lbg, ubg
+    do concurrent ( g = lbg:ubg )
       coszen_gcell(g) = orb_cosz(nextsw_cday,lat(g),lon(g),declinp1)
       coszen_gcell(g) = min(max(0.0_rk8,coszen_gcell(g)),1.0_rk8)
     end do
@@ -424,14 +427,14 @@ module mod_clm_surfacealbedo
     ! Save coszen and declination values to  clm3 data structures for
     ! use in other places in the CN and urban code
 
-    do c = lbc, ubc
+    do concurrent ( c = lbc:ubc )
       g = cgridcell(c)
       coszen_col(c) = coszen_gcell(g)
       coszen(c) = coszen_col(c)
       decl(c) = declinp1
     end do
 
-    do fp = 1, num_nourbanp
+    do concurrent ( fp = 1:num_nourbanp )
       p = filter_nourbanp(fp)
       ! if (pwtgcell(p)>0._rk8) then ! "if" added due to chg in filter definition
       g = pgridcell(p)
@@ -441,61 +444,60 @@ module mod_clm_surfacealbedo
 
     ! Initialize output because solar radiation only done if coszen > 0
 
-    do ib = 1, numrad
-      do fc = 1, num_nourbanc
-        c = filter_nourbanc(fc)
-        albsod(c,ib)     = 0._rk8
-        albsoi(c,ib)     = 0._rk8
-        albgrd(c,ib)     = 0._rk8
-        albgri(c,ib)     = 0._rk8
-        albgrd_pur(c,ib) = 0._rk8
-        albgri_pur(c,ib) = 0._rk8
-        albgrd_bc(c,ib)  = 0._rk8
-        albgri_bc(c,ib)  = 0._rk8
-        albgrd_oc(c,ib)  = 0._rk8
-        albgri_oc(c,ib)  = 0._rk8
-        albgrd_dst(c,ib) = 0._rk8
-        albgri_dst(c,ib) = 0._rk8
-        albsni(c,ib) = 0.0_rk8
-        albsnd(c,ib) = 0.0_rk8
-        do i = -nlevsno+1, 1, 1
-          flx_absdv(c,i) = 0._rk8
-          flx_absdn(c,i) = 0._rk8
-          flx_absiv(c,i) = 0._rk8
-          flx_absin(c,i) = 0._rk8
-          flx_absd_snw(c,i,ib) = 0._rk8
-          flx_absi_snw(c,i,ib) = 0._rk8
-        end do
+    do concurrent ( fc = 1:num_nourbanc, ib = 1:numrad )
+      c = filter_nourbanc(fc)
+      albsod(c,ib)     = 0._rk8
+      albsoi(c,ib)     = 0._rk8
+      albgrd(c,ib)     = 0._rk8
+      albgri(c,ib)     = 0._rk8
+      albgrd_pur(c,ib) = 0._rk8
+      albgri_pur(c,ib) = 0._rk8
+      albgrd_bc(c,ib)  = 0._rk8
+      albgri_bc(c,ib)  = 0._rk8
+      albgrd_oc(c,ib)  = 0._rk8
+      albgri_oc(c,ib)  = 0._rk8
+      albgrd_dst(c,ib) = 0._rk8
+      albgri_dst(c,ib) = 0._rk8
+      albsni(c,ib) = 0.0_rk8
+      albsnd(c,ib) = 0.0_rk8
+      !$acc loop seq
+      do i = -nlevsno+1, 1, 1
+        flx_absdv(c,i) = 0._rk8
+        flx_absdn(c,i) = 0._rk8
+        flx_absiv(c,i) = 0._rk8
+        flx_absin(c,i) = 0._rk8
+        flx_absd_snw(c,i,ib) = 0._rk8
+        flx_absi_snw(c,i,ib) = 0._rk8
       end do
-      do fp = 1, num_nourbanp
-        p = filter_nourbanp(fp)
-!       if (pwtgcell(p)>0._rk8) then ! "if" added due to chg in filter definition
-        albd(p,ib) = 1._rk8
-        albi(p,ib) = 1._rk8
-        fabd(p,ib) = 0._rk8
-        fabd_sun(p,ib) = 0._rk8
-        fabd_sha(p,ib) = 0._rk8
-        fabi(p,ib) = 0._rk8
-        fabi_sun(p,ib) = 0._rk8
-        fabi_sha(p,ib) = 0._rk8
-        ftdd(p,ib) = 0._rk8
-        ftid(p,ib) = 0._rk8
-        ftii(p,ib) = 0._rk8
-!       if (ib==1) then
-!         ncan(p) = 0
-!         nrad(p) = 0
-!         do iv = 1, nlevcan
-!           fabd_sun_z(p,iv) = 0._rk8
-!           fabd_sha_z(p,iv) = 0._rk8
-!           fabi_sun_z(p,iv) = 0._rk8
-!           fabi_sha_z(p,iv) = 0._rk8
-!           fsun_z(p,iv) = 0._rk8
-!           tlai_z(p,iv) = 0._rk8
-!           tsai_z(p,iv) = 0._rk8
-!         end do
-!       end if
-!       end if ! then removed for CNDV (and dyn. landuse?) cases to work
-      end do
+    end do
+    do concurrent ( fp = 1:num_nourbanp, ib = 1:numrad )
+      p = filter_nourbanp(fp)
+!     if (pwtgcell(p)>0._rk8) then ! "if" added due to chg in filter definition
+      albd(p,ib) = 1._rk8
+      albi(p,ib) = 1._rk8
+      fabd(p,ib) = 0._rk8
+      fabd_sun(p,ib) = 0._rk8
+      fabd_sha(p,ib) = 0._rk8
+      fabi(p,ib) = 0._rk8
+      fabi_sun(p,ib) = 0._rk8
+      fabi_sha(p,ib) = 0._rk8
+      ftdd(p,ib) = 0._rk8
+      ftid(p,ib) = 0._rk8
+      ftii(p,ib) = 0._rk8
+!     if (ib==1) then
+!       ncan(p) = 0
+!       nrad(p) = 0
+!       do iv = 1, nlevcan
+!         fabd_sun_z(p,iv) = 0._rk8
+!         fabd_sha_z(p,iv) = 0._rk8
+!         fabi_sun_z(p,iv) = 0._rk8
+!         fabi_sha_z(p,iv) = 0._rk8
+!         fsun_z(p,iv) = 0._rk8
+!         tlai_z(p,iv) = 0._rk8
+!         tsai_z(p,iv) = 0._rk8
+!       end do
+!     end if
+!     end if ! then removed for CNDV (and dyn. landuse?) cases to work
     end do
 
     ! SoilAlbedo called before SNICAR_RT
@@ -515,7 +517,7 @@ module mod_clm_surfacealbedo
     ! set variables to pass to SNICAR.
 
     flg_snw_ice = 1   ! calling from CLM, not CSIM
-    do c = lbc, ubc
+    do concurrent ( c = lbc:ubc )
       albsfc(c,:)     = albsoi(c,:)
       h2osno_liq(c,:) = h2osoi_liq(c,-nlevsno+1:0)
       h2osno_ice(c,:) = h2osoi_ice(c,-nlevsno+1:0)
@@ -533,8 +535,10 @@ module mod_clm_surfacealbedo
     ! feedback input arrays have been zeroed
     ! set soot and dust aerosol concentrations:
     if ( DO_SNO_AER ) then
+      !$acc kernels
       mss_cnc_aer_in_fdb(lbc:ubc,:,1) = mss_cnc_bcphi(lbc:ubc,:)
       mss_cnc_aer_in_fdb(lbc:ubc,:,2) = mss_cnc_bcpho(lbc:ubc,:)
+      !$acc end kernels
 
       ! DO_SNO_OC is set in SNICAR_varpar.
       ! Default case is to ignore OC concentrations because:
@@ -542,14 +546,17 @@ module mod_clm_surfacealbedo
       !  2) When 'water-soluble' OPAC optical properties are applied to OC
       !     in snow, it has a negligible darkening effect.
       if ( DO_SNO_OC ) then
+        !$acc kernels
         mss_cnc_aer_in_fdb(lbc:ubc,:,3) = mss_cnc_ocphi(lbc:ubc,:)
         mss_cnc_aer_in_fdb(lbc:ubc,:,4) = mss_cnc_ocpho(lbc:ubc,:)
+        !$acc end kernels
       end if
-
+      !$acc kernels
       mss_cnc_aer_in_fdb(lbc:ubc,:,5) = mss_cnc_dst1(lbc:ubc,:)
       mss_cnc_aer_in_fdb(lbc:ubc,:,6) = mss_cnc_dst2(lbc:ubc,:)
       mss_cnc_aer_in_fdb(lbc:ubc,:,7) = mss_cnc_dst3(lbc:ubc,:)
       mss_cnc_aer_in_fdb(lbc:ubc,:,8) = mss_cnc_dst4(lbc:ubc,:)
+      !$acc end kernels
     end if
 
     ! If radiative forcing is being calculated, first estimate
@@ -558,13 +565,17 @@ module mod_clm_surfacealbedo
     ! 1. BC input array:
     !  set dust and (optionally) OC concentrations, so
     !       BC_FRC=[(BC+OC+dust)-(OC+dust)]
+    !$acc kernels
     mss_cnc_aer_in_frc_bc(lbc:ubc,:,5) = mss_cnc_dst1(lbc:ubc,:)
     mss_cnc_aer_in_frc_bc(lbc:ubc,:,6) = mss_cnc_dst2(lbc:ubc,:)
     mss_cnc_aer_in_frc_bc(lbc:ubc,:,7) = mss_cnc_dst3(lbc:ubc,:)
     mss_cnc_aer_in_frc_bc(lbc:ubc,:,8) = mss_cnc_dst4(lbc:ubc,:)
+    !$acc end kernels
     if ( DO_SNO_OC ) then
+      !$acc kernels
       mss_cnc_aer_in_frc_bc(lbc:ubc,:,3) = mss_cnc_ocphi(lbc:ubc,:)
       mss_cnc_aer_in_frc_bc(lbc:ubc,:,4) = mss_cnc_ocpho(lbc:ubc,:)
+      !$acc end kernels
     end if
 
     ! BC FORCING CALCULATIONS
@@ -581,12 +592,14 @@ module mod_clm_surfacealbedo
     ! 2. OC input array:
     !  set BC and dust concentrations, so OC_FRC=[(BC+OC+dust)-(BC+dust)]
     if ( DO_SNO_OC ) then
+      !$acc kernels
       mss_cnc_aer_in_frc_oc(lbc:ubc,:,1) = mss_cnc_bcphi(lbc:ubc,:)
       mss_cnc_aer_in_frc_oc(lbc:ubc,:,2) = mss_cnc_bcpho(lbc:ubc,:)
       mss_cnc_aer_in_frc_oc(lbc:ubc,:,5) = mss_cnc_dst1(lbc:ubc,:)
       mss_cnc_aer_in_frc_oc(lbc:ubc,:,6) = mss_cnc_dst2(lbc:ubc,:)
       mss_cnc_aer_in_frc_oc(lbc:ubc,:,7) = mss_cnc_dst3(lbc:ubc,:)
       mss_cnc_aer_in_frc_oc(lbc:ubc,:,8) = mss_cnc_dst4(lbc:ubc,:)
+      !$acc end kernels
 
       ! OC FORCING CALCULATIONS
       flg_slr = 1 ! direct-beam
@@ -602,11 +615,15 @@ module mod_clm_surfacealbedo
 
     ! 3. DUST input array:
     ! set BC and OC concentrations, so DST_FRC=[(BC+OC+dust)-(BC+OC)]
+    !$acc kernels
     mss_cnc_aer_in_frc_dst(lbc:ubc,:,1) = mss_cnc_bcphi(lbc:ubc,:)
     mss_cnc_aer_in_frc_dst(lbc:ubc,:,2) = mss_cnc_bcpho(lbc:ubc,:)
+    !$acc end kernels
     if ( DO_SNO_OC ) then
+      !$acc kernels
       mss_cnc_aer_in_frc_dst(lbc:ubc,:,3) = mss_cnc_ocphi(lbc:ubc,:)
       mss_cnc_aer_in_frc_dst(lbc:ubc,:,4) = mss_cnc_ocpho(lbc:ubc,:)
+      !$acc end kernels
     end if
 
     ! DUST FORCING CALCULATIONS
@@ -646,8 +663,7 @@ module mod_clm_surfacealbedo
                    mss_cnc_aer_in_fdb, albsfc, albsni, flx_absi_snw)
 
     ! ground albedos and snow-fraction weighting of snow absorption factors
-    do ib = 1, nband
-      do fc = 1, num_nourbanc
+    do concurrent ( fc = 1:num_nourbanc, ib = 1:nband )
         c = filter_nourbanc(fc)
         if (coszen(c) > 0._rk8) then
           ! ground albedo was originally computed in SoilAlbedo, but is now
@@ -690,6 +706,7 @@ module mod_clm_surfacealbedo
           ! vectorized code) weight snow layer radiative absorption factors
           ! based on snow fraction and soil albedo
           !  (NEEDED FOR ENERGY CONSERVATION)
+          !$acc loop seq
           do i = -nlevsno+1, 1, 1
             if ( subgridflag == 0 ) then
               if ( ib == 1 ) then
@@ -718,14 +735,12 @@ module mod_clm_surfacealbedo
             end if
           end do
         end if
-      end do
     end do
 
     ! for diagnostics, set snow albedo to spval over non-snow points
     ! so that it is not averaged in history buffer
     ! (OPTIONAL)
-    do ib = 1, nband
-      do fc = 1, num_nourbanc
+    do concurrent ( fc = 1:num_nourbanc, ib = 1:nband )
         c = filter_nourbanc(fc)
         if ( (coszen(c) > 0._rk8) .and. (h2osno(c) > 0._rk8) ) then
           albsnd_hst(c,ib) = albsnd(c,ib)
@@ -734,7 +749,6 @@ module mod_clm_surfacealbedo
           albsnd_hst(c,ib) = 0._rk8
           albsni_hst(c,ib) = 0._rk8
         end if
-      end do
     end do
 
     ! Create solar-vegetated filter for the following calculations
@@ -759,18 +773,16 @@ module mod_clm_surfacealbedo
     ! Weight reflectance/transmittance by lai and sai
     ! Only perform on vegetated pfts where coszen > 0
 
-    do fp = 1, num_vegsol
+    do concurrent ( fp = 1:num_vegsol )
       p = filter_vegsol(fp)
       wl(p) = elai(p) / max( elai(p)+esai(p), mpe )
       ws(p) = esai(p) / max( elai(p)+esai(p), mpe )
     end do
 
-    do ib = 1, numrad
-      do fp = 1, num_vegsol
+    do concurrent ( fp = 1:num_vegsol, ib = 1:numrad )
         p = filter_vegsol(fp)
         rho(p,ib) = max( rhol(ivt(p),ib)*wl(p) + rhos(ivt(p),ib)*ws(p), mpe )
         tau(p,ib) = max( taul(ivt(p),ib)*wl(p) + taus(ivt(p),ib)*ws(p), mpe )
-      end do
     end do
 
     ! Diagnose number of canopy layers for radiative transfer, in increments
@@ -800,6 +812,8 @@ module mod_clm_surfacealbedo
     ! by nlevcan = 1
 
     dincmax = 0.25_rk8
+    found = .false.
+    !$acc parallel loop gang vector copy(found) copyout(found_id,found_laisum,found_saisum)
     do fp = 1, num_nourbanp
       p = filter_nourbanp(fp)
 
@@ -813,6 +827,7 @@ module mod_clm_surfacealbedo
           nrad(p) = 0
         else
           dincmax_sum = 0._rk8
+          !$acc loop seq
           do iv = 1, nlevcan
             dincmax_sum = dincmax_sum + dincmax
             if ( ((elai(p)+esai(p))-dincmax_sum) > 1.e-6_rk8 ) then
@@ -833,6 +848,7 @@ module mod_clm_surfacealbedo
 
           if ( nrad(p) < 4 ) then
             nrad(p) = 4
+            !$acc loop seq
             do iv = 1, nrad(p)
               tlai_z(p,iv) = elai(p) / nrad(p)
               tsai_z(p,iv) = esai(p) / nrad(p)
@@ -845,16 +861,17 @@ module mod_clm_surfacealbedo
 
       laisum = 0._rk8
       saisum = 0._rk8
+      !$acc loop seq
       do iv = 1, nrad(p)
         laisum = laisum + tlai_z(p,iv)
         saisum = saisum + tsai_z(p,iv)
       end do
       if ( abs(laisum-elai(p)) > 1.e-6_rk8 .or. &
            abs(saisum-esai(p)) > 1.e-6_rk8) then
-        write (stderr,*) &
-                'multi-layer canopy error 01 in SurfaceAlbedo: ', &
-                nrad(p),elai(p),laisum,esai(p),saisum
-        call fatal(__FILE__,__LINE__,'clm now stopping')
+        found(1) = .true.
+        found_id(1) = p
+        found_laisum(1) = laisum
+        found_saisum(1) = saisum
       end if
 
       ! Repeat to find canopy layers buried by snow
@@ -866,6 +883,7 @@ module mod_clm_surfacealbedo
           ncan(p) = nrad(p)
         else
           dincmax_sum = 0._rk8
+          !$acc loop seq
           do iv = nrad(p)+1, nlevcan
             dincmax_sum = dincmax_sum + dincmax
             if ( ((blai(p)+bsai(p))-dincmax_sum) > 1.e-6_rk8 ) then
@@ -887,25 +905,42 @@ module mod_clm_surfacealbedo
 
         laisum = 0._rk8
         saisum = 0._rk8
+        !$acc loop seq
         do iv = 1, ncan(p)
           laisum = laisum + tlai_z(p,iv)
           saisum = saisum + tsai_z(p,iv)
         end do
         if ( abs(laisum-tlai(p)) > 1.e-6_rk8 .or. &
              abs(saisum-tsai(p)) > 1.e-6_rk8) then
-          write (stderr,*) 'multi-layer canopy error 02 in SurfaceAlbedo: ', &
-                  nrad(p),ncan(p)
-          write (stderr,*) tlai(p),elai(p),blai(p),laisum,tsai(p), &
-                  esai(p),bsai(p),saisum
-          call fatal(__FILE__,__LINE__,'clm now stopping')
+          found(2) = .true.
+          found_id(2) = p
+          found_laisum(2) = laisum
+          found_saisum(2) = saisum
         end if
       end if
     end do
 
+    if ( found(1) ) then
+      !$acc update host(nrad,elai,esai)
+      write (stderr,*) &
+              'multi-layer canopy error 01 in SurfaceAlbedo: ', &
+              nrad(found_id(1)),elai(found_id(1)),found_laisum(1),esai(found_id(1)),found_saisum(1)
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
+    if ( found(2) ) then
+      !$acc update host(nrad,ncan,tlai,elai,blai,tsai,esai,bsai)
+      write (stderr,*) 'multi-layer canopy error 02 in SurfaceAlbedo: ', &
+              nrad(found_id(2)),ncan(found_id(2))
+      write (stderr,*) tlai(found_id(2)),elai(found_id(2)),blai(found_id(2)),found_laisum(2),tsai(found_id(2)), &
+              esai(found_id(2)),bsai(found_id(2)),found_saisum(2)
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
+
     ! Zero fluxes for active canopy layers
 
-    do fp = 1, num_nourbanp
+    do concurrent ( fp = 1:num_nourbanp )
       p = filter_nourbanp(fp)
+      !$acc loop seq
       do iv = 1, nrad(p)
         fabd_sun_z(p,iv) = 0._rk8
         fabd_sha_z(p,iv) = 0._rk8
@@ -922,7 +957,7 @@ module mod_clm_surfacealbedo
     ! TwoStream for coszen > 0. So kn must be set here and in TwoStream.
 
     extkn = 0.30_rk8
-    do fp = 1, num_nourbanp
+    do concurrent ( fp = 1:num_nourbanp )
       p = filter_nourbanp(fp)
       if ( nlevcan == 1 ) then
         vcmaxcintsun(p) = 0._rk8
@@ -949,8 +984,7 @@ module mod_clm_surfacealbedo
 
     ! Determine values for non-vegetated pfts where coszen > 0
 
-    do ib = 1, numrad
-      do fp = 1, num_novegsol
+    do concurrent ( fp = 1:num_novegsol, ib = 1:numrad )
         p = filter_novegsol(fp)
         c = pcolumn(p)
         fabd(p,ib) = 0._rk8
@@ -973,7 +1007,6 @@ module mod_clm_surfacealbedo
 !           fsun_z(p,iv) = 0._rk8
 !         end do
 !       end if
-      end do
     end do
   end subroutine SurfaceAlbedo
   !
@@ -1059,8 +1092,7 @@ module mod_clm_surfacealbedo
 
     ! Compute soil albedos
 
-    do ib = 1, nband
-      do fc = 1, num_nourbanc
+    do concurrent ( fc = 1:num_nourbanc, ib = 1:nband )
         c = filter_nourbanc(fc)
         if ( coszen(c) > 0._rk8 ) then
           l = clandunit(c)
@@ -1137,7 +1169,6 @@ module mod_clm_surfacealbedo
           ! This had to be done, because SoilAlbedo is called before
           ! SNICAR_RT, so at this point, snow albedo is not yet known.
         end if
-      end do
     end do
   end subroutine SoilAlbedo
   !
@@ -1316,7 +1347,7 @@ module mod_clm_surfacealbedo
     ! Calculate two-stream parameters that are independent of waveband:
     ! chil, gdir, twostext, avmu, and temp0 and temp2 (used for asu)
 
-    do fp = 1, num_vegsol
+    do concurrent ( fp = 1:num_vegsol )
       p = filter_vegsol(fp)
 
       ! note that the following limit only acts on cosz values > 0 and
@@ -1372,8 +1403,7 @@ module mod_clm_surfacealbedo
     ! fabi_sha_z - absorbed shaded leaf diffuse PAR
     !               (per unit shaded lai+sai) for each canopy layer
     !
-    do ib = 1, numrad
-      do fp = 1, num_vegsol
+    do concurrent ( fp = 1:num_vegsol, ib = 1:numrad )
         p = filter_vegsol(fp)
         c = pcolumn(p)
         ! Calculate two-stream parameters omega, betad, and betai.
@@ -1728,8 +1758,7 @@ module mod_clm_surfacealbedo
             end do   ! end of canopy layer loop
           end if
         end if
-      end do   ! end of pft loop
-    end do   ! end of radiation band loop
+    end do
   end subroutine TwoStream
 
 end module mod_clm_surfacealbedo
