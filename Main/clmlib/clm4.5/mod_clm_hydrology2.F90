@@ -814,7 +814,7 @@ module mod_clm_hydrology2
         snw_rds(c,j)       = 0._rk8
         mss_bcpho(c,j)     = 0._rk8
         mss_bcphi(c,j)     = 0._rk8
-        mss_bctot(c,:)     = 0._rk8
+        mss_bctot(c,j)     = 0._rk8
         mss_cnc_bcphi(c,j) = 0._rk8
         mss_cnc_bcpho(c,j) = 0._rk8
         mss_ocpho(c,j)     = 0._rk8
