@@ -2170,7 +2170,6 @@ module mod_rad_aerosol
           ! tauxar3d(0,n,ns)
           if ( kth > kz ) then
 #ifdef STDPAR_FIXED
-            !$acc parallel loop collapse(2) gang vector
             do concurrent ( j = jci1:jci2, i = ici1:ici2 )
 #else
             !$acc parallel loop collapse(2) gang vector
