@@ -578,7 +578,7 @@ module mod_rad_radiation
   pure real(rkx) function trcab(tpnm,ds2c,duptyp,du1,du2,duch4,dbetac,  &
       du01,du11,dbeta01,dbeta11,duco11,duco12,duco13,duco21,duco22,     &
       duco23,dw,pnew,to3co2,dplh2o,tco2,th2o,to3,abplnk1) result(abstrc)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: tpnm, ds2c, duptyp, du1, du2
     real(rkx), intent(in) :: duch4, dbetac, du01, du11
@@ -746,7 +746,7 @@ module mod_rad_radiation
   pure real(rkx) function trcabn(tbar,dw,pnew,tco2,th2o,to3,up2,     &
       pinpl,winpl,ds2c,duptyp,du1,du2,duch4,du01,du11,duco11,duco12, &
       duco13,duco21,duco22,duco23,bplnk) result(abstrc)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: tbar, dw, pnew, tco2, th2o, to3, up2
     real(rkx), intent(in) :: winpl, pinpl, ds2c, duptyp, du1, du2
@@ -920,7 +920,7 @@ module mod_rad_radiation
   pure real(rkx) function trcems(co2t,pnm,ucfc11,ucfc12,un2o0,un2o1,  &
      bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223, &
      uptype,w,s2c,up2,emplnk,th2o,tco2,to3) result(emstrc)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: bn2o0, bn2o1
     real(rkx), intent(in) :: un2o0, un2o1
@@ -1060,7 +1060,7 @@ module mod_rad_radiation
   end function trcems
 
   pure real(rkx) function func(u,b)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: u, b
     func = u/sqrt(d_four+u*(d_one+d_one/b))
@@ -1068,7 +1068,7 @@ module mod_rad_radiation
 
   ! xalpha - Term in direct reflect and transmissivity
   pure real(rkx) function xalpha(wi,uui,gi,ei)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: wi, uui, gi, ei
     real(rk8) :: w, uu, g, e
@@ -1082,7 +1082,7 @@ module mod_rad_radiation
 
   ! xgamma - Term in direct reflect and transmissivity
   pure real(rkx) function xgamma(wi,uui,gi,ei)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: wi, uui, gi, ei
     real(rk8) :: w, uu, g, e
@@ -1096,7 +1096,7 @@ module mod_rad_radiation
 
   ! el - Term in xalpha,xgamma,f_n,f_u
   pure real(rkx) function el(wi,gi)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: wi, gi
     real(rk8) :: w, g
@@ -1107,7 +1107,7 @@ module mod_rad_radiation
 
   ! taus - Scaled extinction optical depth
   pure real(rkx) function taus(wi,fi,ti)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: wi, fi, ti
     real(rk8) :: w, f, t
@@ -1119,18 +1119,19 @@ module mod_rad_radiation
 
   ! omgs - Scaled single particle scattering albedo
   pure real(rkx) function omgs(wi,fi)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: wi, fi
     real(rk8) :: w, f
     w = wi
     f = fi
-    omgs = real((1.0_rk8-f)*w/(1.0_rk8-w*f),rkx)
+    ! Added here the limit for a quick fix for gfortran...
+    omgs = real(min(((1.0_rk8-f)*w)/(1.0_rk8-w*f),0.999999_rk8),rkx)
   end function omgs
 
   ! asys - Scaled asymmetry parameter
   pure real(rkx) function asys(gi,fi)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: gi, fi
     real(rk8) :: g, f
@@ -1141,7 +1142,7 @@ module mod_rad_radiation
 
   ! f_u - Term in diffuse reflect and transmissivity
   pure real(rkx) function f_u(wi,gi,ei)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: wi, gi, ei
     real(rk8) :: w, g, e
@@ -1153,7 +1154,7 @@ module mod_rad_radiation
 
   ! f_n - Term in diffuse reflect and transmissivity
   pure real(rkx) function f_n(uui,eti)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: uui, eti
     real(rk8) :: uu, et
@@ -1165,7 +1166,7 @@ module mod_rad_radiation
 
   ! dbvt - Planck fnctn tmp derivative for o3
   pure real(rkx) function dbvt(ti)
-!$acc routine seq
+    !$acc routine seq
     ! Derivative of planck function at 9.6 micro-meter wavelength
     implicit none
     real(rkx), intent(in) :: ti
@@ -1177,7 +1178,7 @@ module mod_rad_radiation
   end function dbvt
 
   pure real(rkx) function fo3(uxi,vxi)
-!$acc routine seq
+    !$acc routine seq
     ! an absorption function factor
     implicit none
     real(rkx), intent(in) :: uxi, vxi
@@ -1188,7 +1189,7 @@ module mod_rad_radiation
   end function fo3
 
   pure integer(ik4) function intmax(imax,is,ie)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     integer(ik4), intent(in) :: is, ie
     integer(ik4), dimension(is:ie), intent(in) :: imax
@@ -1999,101 +2000,98 @@ module mod_rad_radiation
         ! through the top ozone layer is less than trmin, then no
         ! delta-Eddington computation for the underlying column is done:
         !
-        do k = 1, 1
+        !
+        ! Initialize current layer properties to zero;only if total
+        ! transmission to the top interface of the current layer exceeds
+        ! the minimum, will these values be computed below:
+        !
+        rdir(1,n) = d_zero
+        rdif(1,n) = d_zero
+        tdir(1,n) = d_zero
+        tdif(1,n) = d_zero
+        explay(1,n) = d_zero
+        !
+        ! Calculates the solar beam transmission, total transmission,
+        ! and reflectivity for diffuse radiation from below at the
+        ! top of the current layer:
+        !
+        exptdn(1,n) = exptdn(0,n)*explay(0,n)
+        rdenom = d_one/(d_one-rdif(0,n)*rdndif(0,n))
+        rdirexp = rdir(0,n)*exptdn(0,n)
+        tdnmexp = tottrn(0,n) - exptdn(0,n)
+        tottrn(1,n) = exptdn(0,n)*tdir(0,n) + &
+                      tdif(0,n)*(tdnmexp+rdndif(0,n)*rdirexp)*rdenom
+        rdndif(1,n) = rdif(0,n) + &
+                      (rdndif(0,n)*tdif(0,n))*(tdif(0,n)*rdenom)
+        !
+        ! Compute next layer delta-Eddington solution only if total
+        ! transmission of radiation to the interface just above the layer
+        ! exceeds trmin.
+        !
+        if ( tottrn(1,n) > trmin ) then
           !
-          ! Initialize current layer properties to zero;only if total
-          ! transmission to the top interface of the current layer exceeds
-          ! the minimum, will these values be computed below:
+          ! Remember, no ozone absorption in this layer:
           !
-          rdir(k,n) = d_zero
-          rdif(k,n) = d_zero
-          tdir(k,n) = d_zero
-          tdif(k,n) = d_zero
-          explay(k,n) = d_zero
-          !
-          ! Calculates the solar beam transmission, total transmission,
-          ! and reflectivity for diffuse radiation from below at the
-          ! top of the current layer:
-          !
-          exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
-          rdenom = d_one/(d_one-rdif(k-1,n)*rdndif(k-1,n))
-          rdirexp = rdir(k-1,n)*exptdn(k-1,n)
-          tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
-          tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + &
-                        tdif(k-1,n)*(tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
-          rdndif(k,n) = rdif(k-1,n) + &
-                        (rdndif(k-1,n)*tdif(k-1,n))*(tdif(k-1,n)*rdenom)
-          !
-          ! Compute next layer delta-Eddington solution only if total
-          ! transmission of radiation to the interface just above the layer
-          ! exceeds trmin.
-          !
-          if ( tottrn(k,n) > trmin ) then
-            !
-            ! Remember, no ozone absorption in this layer:
-            !
-            tauray = trayoslp*pflx(kzp1,n)
-            taugab = abh2o*uth2o(n) + abco2*utco2(n) + abo2*uto2(n)
-            if ( lcls ) then
-              tautot = tauray + taugab
-              wtot = (wray*tauray)/tautot
-              gtot = (gray*wray*tauray)/(wtot*tautot)
-              ftot = (fray*wray*tauray/(wtot*tautot))
-            else
-              tautot = tauray + taugab + tauaer(n)
-              wtot = (wray*tauray + tauasc(n))/tautot
-              gtot = (gray*wray*tauray + gtota(n))/(wtot*tautot)
-              ftot = (fray*wray*tauray + ftota(n))/(wtot*tautot)
-            end if
-            ts = taus(wtot,ftot,tautot)
-            ws = omgs(wtot,ftot)
-            gs = asys(gtot,ftot)
-            lm = el(ws,gs)
-            alp = xalpha(ws,czen(n),gs,lm)
-            gam = xgamma(ws,czen(n),gs,lm)
-            ue = f_u(ws,gs,lm)
-            !
-            ! Limit argument of exponential, in case lm very large:
-            !
-            arg = min(lm*ts,mxarg)
-            extins = exp(-arg)
-            ne = f_n(ue,extins)
-            rdif(k,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-            tdif(k,n) = d_four*ue/ne
-            ! Limit argument of exponential, in case czen is very small:
-            arg = min(ts/czen(n),mxarg)
-            explay(k,n) = exp(-arg)
-            apg = alp + gam
-            amg = alp - gam
-            rdir(k,n) = amg*(tdif(k,n)*explay(k,n)-d_one)+apg*rdif(k,n)
-            tdir(k,n) = apg*tdif(k,n) + &
-                        (amg*rdif(k,n)-(apg-d_one))*explay(k,n)
-            !
-            ! Under rare conditions, reflectivies and transmissivities
-            ! can be negative; zero out any negative values
-            !
-            rdir(k,n) = max(rdir(k,n),d_zero)
-            tdir(k,n) = max(tdir(k,n),d_zero)
-            rdif(k,n) = max(rdif(k,n),d_zero)
-            tdif(k,n) = max(tdif(k,n),d_zero)
+          tauray = trayoslp*pflx(kzp1,n)
+          taugab = abh2o*uth2o(n) + abco2*utco2(n) + abo2*uto2(n)
+          if ( lcls ) then
+            tautot = tauray + taugab
+            wtot = (wray*tauray)/tautot
+            gtot = (gray*wray*tauray)/(wtot*tautot)
+            ftot = (fray*wray*tauray/(wtot*tautot))
+          else
+            tautot = tauray + taugab + tauaer(n)
+            wtot = (wray*tauray + tauasc(n))/tautot
+            gtot = (gray*wray*tauray + gtota(n))/(wtot*tautot)
+            ftot = (fray*wray*tauray + ftota(n))/(wtot*tautot)
           end if
-        end do
-        k = 2
-        exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
-        rdenom = d_one/(d_one-rdif(k-1,n)*rdndif(k-1,n))
-        rdirexp = rdir(k-1,n)*exptdn(k-1,n)
-        tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
-        tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + &
-                      tdif(k-1,n)*(tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
-        rdndif(k,n) = rdif(k-1,n) + &
-                      (rdndif(k-1,n)*tdif(k-1,n))*(tdif(k-1,n)*rdenom)
+          ts = taus(wtot,ftot,tautot)
+          ws = omgs(wtot,ftot)
+          gs = asys(gtot,ftot)
+          lm = el(ws,gs)
+          alp = xalpha(ws,czen(n),gs,lm)
+          gam = xgamma(ws,czen(n),gs,lm)
+          ue = f_u(ws,gs,lm)
+          !
+          ! Limit argument of exponential, in case lm very large:
+          !
+          arg = min(lm*ts,mxarg)
+          extins = exp(-arg)
+          ne = f_n(ue,extins)
+          rdif(1,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+          tdif(1,n) = d_four*ue/ne
+          ! Limit argument of exponential, in case czen is very small:
+          arg = min(ts/czen(n),mxarg)
+          explay(1,n) = exp(-arg)
+          apg = alp + gam
+          amg = alp - gam
+          rdir(1,n) = amg*(tdif(1,n)*explay(1,n)-d_one)+apg*rdif(1,n)
+          tdir(1,n) = apg*tdif(1,n) + &
+                    (amg*rdif(1,n)-(apg-d_one))*explay(1,n)
+          !
+          ! Under rare conditions, reflectivies and transmissivities
+          ! can be negative; zero out any negative values
+          !
+          rdir(1,n) = max(rdir(1,n),d_zero)
+          tdir(1,n) = max(tdir(1,n),d_zero)
+          rdif(1,n) = max(rdif(1,n),d_zero)
+          tdif(1,n) = max(tdif(1,n),d_zero)
+        end if
+        !
+        ! Compute total direct beam transmission, total transmission, and
+        ! reflectivity for diffuse radiation (from below) for both layers
+        ! above the surface:
+        !
+        exptdn(2,n) = exptdn(1,n)*explay(1,n)
+        rdenom = d_one/(d_one-rdif(1,n)*rdndif(1,n))
+        rdirexp = rdir(1,n)*exptdn(1,n)
+        tdnmexp = tottrn(1,n) - exptdn(1,n)
+        tottrn(2,n) = exptdn(1,n)*tdir(1,n) + &
+                      tdif(1,n)*(tdnmexp+rdndif(1,n)*rdirexp)*rdenom
+        rdndif(2,n) = rdif(1,n) + &
+                      (rdndif(1,n)*tdif(1,n))*(tdif(1,n)*rdenom)
       end if
     end do
-    !
-    ! Compute total direct beam transmission, total transmission, and
-    ! reflectivity for diffuse radiation (from below) for both layers
-    ! above the surface:
-    !
   end subroutine radclr
   !
   !-----------------------------------------------------------------------

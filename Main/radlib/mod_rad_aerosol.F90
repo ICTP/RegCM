@@ -2213,7 +2213,7 @@ module mod_rad_aerosol
           end do
 #endif
           end do
-          do concurrent ( k = 1:kz, n = 1:npoints )
+          do concurrent ( k = 0:kz, n = 1:npoints )
             ! here the standard scheme expect layer scaled quantity
             tauasc3d(k,n,ns) = tauasc3d(k,n,ns) * tauxar3d(k,n,ns)
             ftota3d(k,n,ns) = gtota3d(k,n,ns)**2 * tauasc3d(k,n,ns)
