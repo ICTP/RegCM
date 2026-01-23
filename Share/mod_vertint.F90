@@ -97,61 +97,53 @@ module mod_vertint
     real(rkx), pointer, contiguous, dimension(:), intent(inout) :: sig
     integer(ik4) :: i, j, k, kx, knx, n
     real(rkx) :: sigp, w1, w2
-
-    do k = 1, km
-      do j = jm1, jm2
-        do i = im1, im2
-          fp(i,j,k) = missl
-        end do
-      end do
+    do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
+      fp(i,j,k) = missl
     end do
-    if ( p(1) > p(kp) ) then
-      do j = jm1, jm2
-        do i = im1, im2
-          if ( ps(i,j) < 1.0_rkx ) cycle
-          do k = 1, kp
-            sig(k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
-          end do
-          do n = 1, km
-            sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
-            if ( sigp <= sig(kp) ) then
-              fp(i,j,n) = f(i,j,kp)
-            else if ( sigp >= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-            else
-              kx = find_from_top(sigp,sig)
-              knx = kx - 1
-              w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = d_one - w2
-              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
-            end if
-          end do
+    do concurrent ( i = im1:im2, j = jm1:jm2 )
+      if ( ps(i,j) < 1.0_rkx ) cycle
+      if ( p(1) > p(kp) ) then
+        !$acc loop seq
+        do k = 1, kp
+          sig(k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
         end do
-      end do
-    else
-      do j = jm1, jm2
-        do i = im1, im2
-          if ( ps(i,j) < 1.0_rkx ) cycle
-          do k = 1, kp
-            sig(k) = (p(k)-p(1))/(ps(i,j)-p(1))
-          end do
-          do n = 1, km
-            sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-            else if ( sigp >= sig(kp) ) then
-              fp(i,j,n) = f(i,j,kp)
-            else
-              kx = find_from_bottom(sigp,sig)
-              knx = kx - 1
-              w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-              w1 = d_one - w2
-              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
-            end if
-          end do
+        !$acc loop seq
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
+          if ( sigp <= sig(kp) ) then
+            fp(i,j,n) = f(i,j,kp)
+          else if ( sigp >= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else
+            kx = find_from_top(sigp,sig)
+            knx = kx - 1
+            w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = d_one - w2
+            fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+          end if
         end do
-      end do
-    end if
+      else
+        !$acc loop seq
+        do k = 1, kp
+          sig(k) = (p(k)-p(1))/(ps(i,j)-p(1))
+        end do
+        !$acc loop seq
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
+          if ( sigp <= sig(1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( sigp >= sig(kp) ) then
+            fp(i,j,n) = f(i,j,kp)
+          else
+            kx = find_from_bottom(sigp,sig)
+            knx = kx - 1
+            w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+            w1 = d_one - w2
+            fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+          end if
+        end do
+      end if
+    end do
   end subroutine intlinreg_p
 
   ! The subroutine vertically interpolates from regular grid of height
@@ -1661,6 +1653,7 @@ module mod_vertint
   end subroutine intzps2
 
   pure integer function find_from_top(v,vv) result(n)
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: v
     real(rkx), intent(in), dimension(:) :: vv
@@ -1675,6 +1668,7 @@ module mod_vertint
   end function find_from_top
 
   pure integer function find_from_bottom(v,vv) result(n)
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: v
     real(rkx), intent(in), dimension(:) :: vv
