@@ -7717,84 +7717,75 @@ module mod_cu_tiedtke
       deallocate (cen)
     end subroutine ctracer
 
-    pure real(rkx) function xmin(x,y)
-      !$acc routine seq
-      implicit none
-      real(rkx), intent(in) :: x, y
-      xmin = y - d_half*(abs(x-y)-(x-y))
-    end function xmin
-
-    pure real(rkx) function lwocp(t)
-      !$acc routine seq
-      implicit none
-      real(rkx), intent(in) :: t
-      real(rkx) :: gtzero
-      gtzero = max(d_zero,sign(d_one,t-tzero))
-      lwocp = gtzero*wlhvocp + (d_one-gtzero)*wlhsocp
-    end function lwocp
-
-    pure real(rkx) function xalpha(t)
-      !$acc routine seq
-      implicit none
-      real(rkx), intent(in) :: t
-      xalpha = min(d_one,((max(rtice,min(rtwat,t))-rtice)*rtwat_rtice_r)**2)
-    end function xalpha
-    !
-    ! Magnus Tetens formula
-    !
-    pure real(rkx) function fesat(t)
-      !$acc routine seq
-      implicit none
-      real(rkx), intent(in) :: t
-      real(rkx) :: xa
-      xa = xalpha(t)
-      fesat = c2es*(xa*exp((c3les*((t-tzero)/(t-c4les)))) + &
-            (d_one-xa)*exp((c3ies*((t-tzero)/(t-c4ies)))))
-    end function fesat
-
-    pure real(rkx) function fdqsat(t)
-      !$acc routine seq
-      implicit none
-      real(rkx), intent(in) :: t
-      real(rkx) :: xa
-      xa = xalpha(t)
-      fdqsat = xa*c5alvcp*(d_one/(t-c4les)**2) + &
-            (d_one-xa)*c5alscp*(d_one/(t-c4ies)**2)
-    end function fdqsat
-
-    pure real(rkx) function mlwocp(t)
-      !$acc routine seq
-      implicit none
-      real(rkx), intent(in) :: t
-      real(rkx) :: xa
-      xa = xalpha(t)
-      mlwocp = xa*wlhvocp+(d_one-xa)*wlhsocp
-    end function mlwocp
-
-    pure real(rkx) function esw(t)
-      !$acc routine seq
-      implicit none
-      real(rkx), intent(in) :: t
-      esw = c3les*(t-tzero)/(t-c4les)
-    end function esw
-
-    pure real(rkx) function esi(t)
-      !$acc routine seq
-      implicit none
-      real(rkx), intent(in) :: t
-      esi = c3ies*(t-tzero)/(t-c4ies)
-    end function esi
-
-    pure real(rkx) function mlwt(t)
-      !$acc routine seq
-      implicit none
-      real(rkx), intent(in) :: t
-      real(rkx) :: xa
-      xa = xalpha(t)
-      mlwt = xa*wlhv+(d_one-xa)*wlhs
-    end function mlwt
-
   end subroutine ntiedtke
+
+  pure real(rkx) function xmin(x,y)
+    implicit none
+    real(rkx), intent(in) :: x, y
+    xmin = y - d_half*(abs(x-y)-(x-y))
+  end function xmin
+
+  pure real(rkx) function lwocp(t)
+    implicit none
+    real(rkx), intent(in) :: t
+    real(rkx) :: gtzero
+    gtzero = max(d_zero,sign(d_one,t-tzero))
+    lwocp = gtzero*wlhvocp + (d_one-gtzero)*wlhsocp
+  end function lwocp
+
+  pure real(rkx) function xalpha(t)
+    implicit none
+    real(rkx), intent(in) :: t
+    xalpha = min(d_one,((max(rtice,min(rtwat,t))-rtice)*rtwat_rtice_r)**2)
+  end function xalpha
+  !
+  ! Magnus Tetens formula
+  !
+  pure real(rkx) function fesat(t)
+    implicit none
+    real(rkx), intent(in) :: t
+    real(rkx) :: xa
+    xa = xalpha(t)
+    fesat = c2es*(xa*exp((c3les*((t-tzero)/(t-c4les)))) + &
+          (d_one-xa)*exp((c3ies*((t-tzero)/(t-c4ies)))))
+  end function fesat
+
+  pure real(rkx) function fdqsat(t)
+    implicit none
+    real(rkx), intent(in) :: t
+    real(rkx) :: xa
+    xa = xalpha(t)
+    fdqsat = xa*c5alvcp*(d_one/(t-c4les)**2) + &
+          (d_one-xa)*c5alscp*(d_one/(t-c4ies)**2)
+  end function fdqsat
+
+  pure real(rkx) function mlwocp(t)
+    implicit none
+    real(rkx), intent(in) :: t
+    real(rkx) :: xa
+    xa = xalpha(t)
+    mlwocp = xa*wlhvocp+(d_one-xa)*wlhsocp
+  end function mlwocp
+
+  pure real(rkx) function esw(t)
+    implicit none
+    real(rkx), intent(in) :: t
+    esw = c3les*(t-tzero)/(t-c4les)
+  end function esw
+
+  pure real(rkx) function esi(t)
+    implicit none
+    real(rkx), intent(in) :: t
+    esi = c3ies*(t-tzero)/(t-c4ies)
+  end function esi
+
+  pure real(rkx) function mlwt(t)
+    implicit none
+    real(rkx), intent(in) :: t
+    real(rkx) :: xa
+    xa = xalpha(t)
+    mlwt = xa*wlhv+(d_one-xa)*wlhs
+  end function mlwt
 
 end module mod_cu_tiedtke
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
