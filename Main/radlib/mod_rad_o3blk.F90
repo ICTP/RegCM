@@ -366,7 +366,9 @@ module mod_rad_o3blk
     odist = xfac1 - xfac2
     xfac1 = xfac1/odist
     xfac2 = d_one-xfac1
+    !$acc kernels
     o3prof = (sgoz1*xfac2+sgoz2*xfac1)*mulfac
+    !$acc end kernels
     if ( myid == italk .and. dointerp ) then
       ozprnt = o3prof(jci1,ici1,:)
       call vprntv(ozprnt,kzp1,'Updated ozone profile')

@@ -188,7 +188,8 @@ module mod_clm_dust
     end do
 
     found = .false.
-    do concurrent ( l = lbl:ubl )
+    !$acc parallel loop gang vector copy(found) copyout(lerr)
+    do l = lbl, ubl
       if (sumwt(l) > 1.0_rk8 + 1.e-3_rk8) then
         found = .true.
         lerr = l
@@ -234,7 +235,8 @@ module mod_clm_dust
     end do
 
     found = .false.
-    do concurrent ( fp = 1:num_nolakep )
+    !$acc parallel loop gang vector copy(found) copyout(perr)
+    do fp = 1, num_nolakep
       p = filter_nolakep(fp)
       if (lnd_frc_mbl(p)>1.0_rk8 .or. lnd_frc_mbl(p)<0.0_rk8) then
         found = .true.

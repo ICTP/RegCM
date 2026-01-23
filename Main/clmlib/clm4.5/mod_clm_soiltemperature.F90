@@ -355,10 +355,17 @@ module mod_clm_soiltemperature
     ! Compute ground surface and soil temperatures
 
     ! Thermal conductivity and Heat capacity
-
+#ifdef OPENACC
+    allocate( tk_h2osfc(lbc:ubc) )
+    allocate( dhsdT(lbc:ubc) )
+    !$acc kernels
+    tk_h2osfc(lbc:ubc) = nan
+    dhsdT(lbc:ubc) = 0._rk8
+    !$acc end kernels
+#else
     allocate( tk_h2osfc(lbc:ubc), source=nan )
     allocate( dhsdT(lbc:ubc), source=0._rk8 )
-
+#endif
     call SoilThermProp(lbc, ubc, num_nolakec, filter_nolakec, tk, cv, tk_h2osfc)
 
     ! Net ground heat flux into the surface and its temperature derivative
@@ -721,10 +728,20 @@ module mod_clm_soiltemperature
     end do
 
     ! allocate matrices for BandDiagonal
+#ifdef OPENACC
+    allocate(bmatrix(lbc:ubc,nband,-nlevsno:nlevgrnd))
+    allocate(tvector(lbc:ubc,-nlevsno:nlevgrnd))
+    allocate(rvector(lbc:ubc,-nlevsno:nlevgrnd))
+    !$acc kernels
+    bmatrix(lbc:ubc,1:nband,-nlevsno:nlevgrnd) = 0.0_rk8
+    tvector(lbc:ubc,-nlevsno:nlevgrnd) = nan
+    rvector(lbc:ubc,-nlevsno:nlevgrnd) = nan
+    !$acc end kernels
+#else
     allocate(bmatrix(lbc:ubc,nband,-nlevsno:nlevgrnd), source=0.0_rk8)
     allocate(tvector(lbc:ubc,-nlevsno:nlevgrnd), source=nan)
     allocate(rvector(lbc:ubc,-nlevsno:nlevgrnd), source=nan)
-
+#endif
     ! the solution will be organized as (snow:h2osfc:soil) to minimize
     !     bandwidth; this requires a 5-element band instead of 3
     do concurrent ( fc = 1:num_nolakec )
@@ -879,7 +896,9 @@ module mod_clm_soiltemperature
       fn1_h2osfc(c)=tk_h2osfc(c)*(t_soisno(c,1)-t_h2osfc(c))/dzp
     end do
 
-    xmf_h2osfc = 0.0_rk8
+    !$acc kernels
+    xmf_h2osfc(lbc:ubc) = 0.0_rk8
+    !$acc end kernels
     ! compute phase change of h2osfc
     call PhaseChangeH2osfc (lbc, ubc, num_nolakec, &
       filter_nolakec, fact, dhsdT, c_h2osfc, xmf_h2osfc)

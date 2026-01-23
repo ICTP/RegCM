@@ -4721,16 +4721,14 @@ module mod_rad_radiation
       ! FAB radiative forcing sur fsul
       !
       if ( linteract .and. irad == 1 ) then
-        do concurrent ( n = n1:n2 )
-          do k1 = 1, kzp1
-            fsul0(k1,n) = fsul(k1,n) ! save fsul0 = no dust
-            fsdl0(k1,n) = fsdl(k1,n) !
-            ful0(k1,n) = ful(k1,n)
-            fdl0(k1,n) = fdl(k1,n)
-            do k2 = 1, kzp1
-              fis0(k2,k1,n) = fis(k2,k1,n)
-            end do
-          end do
+        do concurrent ( k1 = 1:kzp1, n = n1:n2 )
+          fsul0(k1,n) = fsul(k1,n) ! save fsul0 = no dust
+          fsdl0(k1,n) = fsdl(k1,n) !
+          ful0(k1,n) = ful(k1,n)
+          fdl0(k1,n) = fdl(k1,n)
+        end do
+        do concurrent ( k2 = 1:kzp1, k1 = 1:kzp1, n = n1:n2 )
+          fis0(k2,k1,n) = fis(k2,k1,n)
         end do
       end if
 
@@ -4747,16 +4745,14 @@ module mod_rad_radiation
       end do
       ! return to no aerosol LW effect situation if idirect == 1
       if ( lzero ) then
-        do concurrent ( n = n1:n2 )
-          do k1 = 1, kzp1
-            fsul(k1,n) = fsul0(k1,n)
-            fsdl(k1,n) = fsdl0(k1,n)
-            ful(k1,n) = ful0(k1,n)
-            fdl(k1,n) = fdl0(k1,n)
-            do k2 = 1, kzp1
-              fis(k2,k1,n) = fis0(k2,k1,n)
-            end do
-          end do
+        do concurrent ( k1 = 1:kzp1, n = n1:n2 )
+          fsul(k1,n) = fsul0(k1,n)
+          fsdl(k1,n) = fsdl0(k1,n)
+          ful(k1,n) = ful0(k1,n)
+          fdl(k1,n) = fdl0(k1,n)
+        end do
+        do concurrent ( k2 = 1:kzp1, k1 = 1:kzp1, n = n1:n2 )
+          fis(k2,k1,n) = fis0(k2,k1,n)
         end do
       end if
     end if ! end aersol rad diagnostic

@@ -3245,8 +3245,9 @@ module mod_clm_urban
 
     found_h = .false.
     found_r = .false.
-    !$acc parallel loop gang vector copy(found_h,found_r) copyout(flerr_r,lerr_r,lerr_h)
-    do concurrent ( fl = 1:num_urbanl )
+    !$acc parallel loop gang vector copy(found_h,found_r) &
+    !$acc          copyout(flerr_r,lerr_r,lerr_h)
+    do fl = 1, num_urbanl
       l = filter_urbanl(fl)
       g = lgridcell(l)
 
