@@ -1187,25 +1187,6 @@ module mod_rad_radiation
     vx = vxi
     fo3 = real(ux/sqrt(4.0_rk8+ux*(1.0_rk8+vx)),rkx)
   end function fo3
-
-  pure integer(ik4) function intmax(imax,is,ie)
-    !$acc routine seq
-    implicit none
-    integer(ik4), intent(in) :: is, ie
-    integer(ik4), dimension(is:ie), intent(in) :: imax
-    integer(ik4) :: i, n, mx
-    intmax = is
-    n = ie-is+1
-    if ( n > 1 ) then
-      mx = imax(is)
-      do i = is+1, ie
-        if ( imax(i) > mx ) then
-          mx = imax(i)
-          intmax = i
-        end if
-      end do
-    end if
-  end function intmax
   !
   !-----------------------------------------------------------------------
   !
