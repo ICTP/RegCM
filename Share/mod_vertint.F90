@@ -1653,7 +1653,6 @@ module mod_vertint
   end subroutine intzps2
 
   pure integer function find_from_top(v,vv) result(n)
-    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: v
     real(rkx), intent(in), dimension(:) :: vv
@@ -1668,7 +1667,6 @@ module mod_vertint
   end function find_from_top
 
   pure integer function find_from_bottom(v,vv) result(n)
-    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: v
     real(rkx), intent(in), dimension(:) :: vv
