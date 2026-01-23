@@ -1187,7 +1187,11 @@ module mod_rad_radiation
     vx = vxi
     fo3 = real(ux/sqrt(4.0_rk8+ux*(1.0_rk8+vx)),rkx)
   end function fo3
+<<<<<<< HEAD
 
+=======
+  !
+>>>>>>> 4194e13050716f52fe7c1088bfa4440719ccb2f9
   !-----------------------------------------------------------------------
   !
   ! Initialize various constants for radiation scheme; note that
