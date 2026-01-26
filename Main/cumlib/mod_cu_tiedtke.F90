@@ -4750,7 +4750,7 @@ module mod_cu_tiedtke
     ldcum(:) = .false.
     qs(:,:) = q(:,:)
     !$acc end kernels
-    call satur(nk060,ph,t,qs)
+    call satur(n1,n2,nk,nk060,ph,t,qs)
     !------------------------------------
     ! 1. Specify constants and parameters
     ! -----------------------------------
@@ -4765,801 +4765,13 @@ module mod_cu_tiedtke
       xtenu(n,k) = tenu(n,k)
       xtenv(n,k) = tenv(n,k)
     end do
-    call initcum
-    !---------------------------
-    ! 3. Cloud base calculations
-    ! --------------------------
-    ! ---------------------------------
-    !   (A) Determine cloud base values
-    ! ---------------------------------
-    call cloudbase
-    !-----------------------------------------------------------
-    !   (B) Determine total moisture convergence and
-    !       decide on type of cumulus convection on the basis of
-    !       the depth of the convection
-    !           deep    if cloud depth > 200mb
-    !           shallow if cloud depth < 200mb
-    ! ----------------------------------------------------------
-    ! Calculate column and sub cloud layer moisture convergence
-    ! and sub cloud layer moist static energy convergence
-    do concurrent ( n = n1:n2 )
-      dqcv(n) = d_zero
-      dhpbl(n) = d_zero
-      idtop(n) = 0
-    end do
-    do concurrent ( n = n1:n2 )
-      !$acc loop seq
-      do k = nk060, nk
-        dqcv(n) = dqcv(n) + max(d_zero,tenq(n,k)) * (pf(n,k+1)-pf(n,k))
-        if ( ldcum(n) .and. k >= kcbot(n) ) then
-          dhpbl(n) = dhpbl(n) + &
-            (wlhv*tenq(n,k)+cpd*tent(n,k))*(pf(n,k+1)-pf(n,k))
-        end if
-      end do
-    end do
-    !-----------------------------------------------------
-    ! Estimate cloud height for entrainment/detrainment
-    ! Calculations and initial determination of cloud type
-    ! ----------------------------------------------------
-    ! Specify initial cloud type
-    !
-    do concurrent ( n = n1:n2 )
-      if ( ldcum(n) ) then
-        ikb = kcbot(n)
-        itopm2 = ictop0(n)
-        pbmpt = pf(n,ikb) - pf(n,itopm2)
-        if ( pbmpt >= rdepths ) then
-          ktype(n) = 1
-        else
-          ktype(n) = 2
-        end if
-      else
-        ktype(n) = 0
-      end if
-    end do
-    !-----------------------------------------------------------------------
-    ! (C) calculate initial updraught mass flux and set lateral mixing rates
-    !     for deep convection assume it is 10% of maximum value
-    !     which is determined by the thickness of the layer and timestep
-    !     for shallow convection calculated assuming a balance of moist
-    !     static energy in the sub-cloud layer (ignores present of
-    !     downdraughts)
-    ! ----------------------------------------------------------------------
-    if ( lmfwstar ) then
-      do concurrent ( n = n1:n2 )
-        if ( ldcum(n) ) then
-          ikb = kcbot(n)
-          dz = max(d_zero,min(1.5e3_rkx,(geof(n,ikb)-geof(n,nk+1))*regrav))
-          mf_shal(n) = 0.07_rkx*(egrav/t(n,nk)*dz *      &
-                       max(d_zero,-ahfs(n,nk+1)*rcpd - &
-                       ep1*t(n,nk)*qhfl(n,nk+1)))**.3333_rkx
-          mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
-          mf_shal(n) = min(mf_shal(n),mfmax)
-        end if
-      end do
-    end if
-    do concurrent ( n = n1:n2 )
-      if ( ldcum(n) ) then
-        ikb = kcbot(n)
-        mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
-        !     deep convection
-        if ( ktype(n) == 1 ) then
-          mfub(n) = mfmax*0.1_rkx
-        else if ( ktype(n) == 2 ) then
-          !       shallow convection
-          qumqe = qu(n,ikb) + lu(n,ikb) - qf(n,ikb)
-          dqmin = max(0.01_rkx*qf(n,ikb),1.0e-10_rkx)
-          dh = cpd*(tu(n,ikb)-tf(n,ikb)) + wlhv*qumqe
-          dh = egrav*max(dh,1.e5_rkx*dqmin)
-          if ( dhpbl(n) > d_zero ) then
-            mfub(n) = dhpbl(n)/dh
-            mfub(n) = min(mfub(n),mfmax)
-          else
-            mfub(n) = mfmax*0.1_rkx
-            ldcum(n) = .false.
-          end if
-          if ( lmfwstar ) mfub(n) = mf_shal(n)
-        end if
-      else
-        ! No buoyancy cloud base from surface: set cloud base mass flux
-        ! and mixing rate to default value for safety
-        mfub(n) = d_zero
-      end if
-    end do
-    !-----------------------------------------------
-    ! 4. Determine cloud ascent for entraining plume
-    ! ----------------------------------------------
-    !  (B) Do ascent in absence of downdrafts
-    ! --------------------------------------------
-    call ascent
-    !  (C) Check cloud depth and change entrainment rate accordingly
-    !      Calculate precipitation rate (for downdraft calculation)
-    ! -----------------------------------------------------------------------
-    do concurrent ( n = n1:n2 )
-      if ( ldcum(n) ) then
-        ikb = kcbot(n)
-        itopm2 = kctop(n)
-        pbmpt = pf(n,ikb) - pf(n,itopm2)
-        if ( ktype(n) == 1 .and. pbmpt <  rdepths ) ktype(n) = 2
-        if ( ktype(n) == 2 .and. pbmpt >= rdepths ) ktype(n) = 1
-        ictop0(n) = kctop(n)
-      end if
-      rfl(n) = dmfup(n,1)
-    end do
-    do concurrent ( n = n1:n2 )
-      !$acc loop seq
-      do k = 2, nk
-        rfl(n) = rfl(n) + dmfup(n,k)
-      end do
-    end do
-    do concurrent ( n = n1:n2, k = 1:nk )
-      mfd(n,k) = d_zero
-      mfds(n,k) = d_zero
-      mfdq(n,k) = d_zero
-      dmfdp(n,k) = d_zero
-      dpmel(n,k) = d_zero
-    end do
-    !----------------------------------
-    ! 5. Cumulus downdraft calculations
-    ! ---------------------------------
-    if ( lmfdd ) then
-      !-------------------
-      ! (A) Determine lfs
-      ! --=---------------
-      call lfs
-      !---------------------------------------
-      ! (B) Determine downdraft t,q and fluxes
-      ! --------------------------------------
-      call ddrafdsc
-    end if
-    !-----------
-    ! 6. Closure
-    ! ----------
-    !   Recalculate cloud base massflux from a cape closure for deep
-    !   convection (ktype=1) and by PBL equilibrum taking downdrafts
-    !   into account for shallow convection (ktype=2)
-    ! --------------------------------------------------------------
-    ! Deep convection
-    do concurrent ( n = n1:n2 )
-      rheat(n) = d_zero
-      xcape(n) = d_zero
-      mfub1(n) = mfub(n)
-    end do
-    do concurrent ( n = n1:n2 )
-      !$acc loop seq
-      do k = 1, nk
-        llo1 = ldcum(n) .and. ktype(n) == 1
-        if ( llo1 .and. k <= kcbot(n) .and. k > kctop(n) ) then
-          ikb = kcbot(n)
-          xro = pf(n,k)/(rgas*tf(n,k)*(d_one+ep1*qf(n,k)))
-          dz = (geof(n,k-1)-geof(n,k))
-          rheat(n) = rheat(n) + ((t(n,k-1)-t(n,k)+dz*rcpd) / &
-                      tf(n,k)+ep1*(q(n,k-1)-q(n,k))) *       &
-                      (egrav*(mfu(n,k)+mfd(n,k)))/xro
-          xcape(n) = xcape(n) + ((tu(n,k)-tf(n,k))/tf(n,k) + &
-                      ep1*(qu(n,k)-qf(n,k))-lu(n,k))*dz
-        end if
-      end do
-    end do
-    do concurrent ( n = n1:n2 )
-      if ( ldcum(n) .and. ktype(n) == 1 ) then
-        ikb = kcbot(n)
-        ik = kctop(n)
-        xcape(n) = max(d_zero,min(xcape(n),5000.0_rkx))
-        rheat(n) = max(1.e-4_rkx,rheat(n))
-        tau(n) = (geof(n,ik)-geof(n,ikb)) / &
-                   ((d_two+min(15.0_rkx,wmean(n)))*egrav)*rtau
-        tau(n) = max(dtc,min(10800.0_rkx,tau(n)))
-        tau(n) = max(720.0_rkx,tau(n))
-        mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n))
-        mfub1(n) = max(mfub1(n),0.001_rkx)
-        mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
-        mfub1(n) = min(mfub1(n),mfmax)
-      end if
-    end do
-    ! Shallow convection and mid_level
-    do concurrent ( n = n1:n2 )
-      if ( ldcum(n) .and. (ktype(n) == 2 .or. ktype(n) == 3) ) then
-        ikb = kcbot(n)
-        if ( mfd(n,ikb) < d_zero ) then
-          eps = -mfd(n,ikb)/max(mfub(n),1.0e-10_rkx)
-        else
-          eps = 0.0_rkx
-        end if
-        qumqe = qu(n,ikb) + lu(n,ikb) - eps*qd(n,ikb) - (d_one-eps)*qf(n,ikb)
-        dqmin = max(0.01_rkx*qf(n,ikb),1.0e-10_rkx)
-        ! Maximum permisable value of ud base mass flux
-        mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
-        ! Shallow convection
-        if ( ktype(n) == 2 ) then
-          dh = cpd*(tu(n,ikb)-eps*td(n,ikb) - &
-                   (d_one-eps)*tf(n,ikb)) + wlhv*qumqe
-          dh = egrav*max(dh,p00*dqmin)
-          if ( dhpbl(n) > d_zero ) then
-            mfub1(n) = dhpbl(n)/dh
-          else
-            mfub1(n) = mfub(n)
-          end if
-          mfub1(n) = min(mfub1(n),mfmax)
-          if ( lmfwstar ) mfub1(n) = mf_shal(n)
-        end if
-        ! Mid-level convection
-        if ( ktype(n) == 3 ) then
-          mfub1(n) = mfub(n)*(d_one+eps)
-          mfub1(n) = min(mfub1(n),mfmax)
-        end if
-      end if
-    end do
-    ! Rescale DD fluxes if deep and shallow convection
-    do concurrent ( n = n1:n2, k = 1:nk )
-      if ( lddraf(n) .and. (ktype(n) == 1 .or. ktype(n) == 2) ) then
-        fac = mfub1(n)/max(mfub(n),1.0e-10_rkx)
-        mfd(n,k) = mfd(n,k)*fac
-        mfds(n,k) = mfds(n,k)*fac
-        mfdq(n,k) = mfdq(n,k)*fac
-        dmfdp(n,k) = dmfdp(n,k)*fac
-        ! also rescale detrainment flux for ERA pp
-        mfdde_rate(n,k) = mfdde_rate(n,k)*fac
-      end if
-    end do
-    !--------------------------
-    ! 6.1 Final closure=scaling
-    ! -------------------------
-    do concurrent ( n = n1:n2 )
-      if ( ldcum(n) ) mfs(n) = mfub1(n)/max(cmfcmin,mfub(n))
-    end do
-    do concurrent ( n = n1:n2 )
-      !$acc loop seq
-      do k = 2, nk
-        if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-          ikb = kcbot(n)
-          if ( k>ikb ) then
-            dz = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ikb)))
-            mfu(n,k) = mfu(n,ikb)*dz
-          end if
-          mfmax = (pf(n,k)-pf(n,k-1))*cons2*rmflic + rmflia
-          if ( mfu(n,k)*mfs(n) > mfmax ) then
-            mfs(n) = min(mfs(n),mfmax/mfu(n,k))
-          end if
-        end if
-      end do
-    end do
-    do concurrent ( n = n1:n2, k = 2:nk )
-      if ( ldcum(n) .and. k <= kcbot(n) .and. k >= kctop(n)-1 ) then
-        mfu(n,k) = mfu(n,k)*mfs(n)
-        mfus(n,k) = mfus(n,k)*mfs(n)
-        mfuq(n,k) = mfuq(n,k)*mfs(n)
-        mful(n,k) = mful(n,k)*mfs(n)
-        dmfup(n,k) = dmfup(n,k)*mfs(n)
-        dmfen(n,k) = dmfen(n,k)*mfs(n)
-        lude(n,k) = lude(n,k)*mfs(n)
-        mfude_rate(n,k) = mfude_rate(n,k)*mfs(n)
-      end if
-    end do
-    !--------------------------------------------------------
-    ! 6.2 In case that either deep or shallow is switched off
-    !      reset ldcum to false-> fluxes set to zero
-    ! -------------------------------------------------------
-    ! exclude pathological ktype=2 kcbot=kctop=nk-1
-    do concurrent ( n = n1:n2 )
-      if ( ktype(n) == 2 .and.        &
-           kcbot(n) == kctop(n) .and. &
-           kcbot(n) >= nk-1 ) then
-        ldcum(n) = .false.
-        ktype(n) = 0
-      end if
-    end do
-    if ( .not. lmfscv .or. .not. lmfpen ) then
-      do concurrent ( n = n1:n2 )
-        llo2(n) = .false.
-        if ( (.not. lmfscv .and. ktype(n) == 2) .or. &
-             (.not. lmfpen .and. ktype(n) == 1) ) then
-          llo2(n) = .true.
-          ldcum(n) = .false.
-        end if
-      end do
-    end if
-    !-------------------------------------
-    ! 7. Determine final convective fluxes
-    ! ------------------------------------
-    !- set DD mass fluxes to zero above cloud top
-    ! (because of inconsistency with second updraught)
-    do concurrent ( n = n1:n2 )
-      if ( lddraf(n) .and. idtop(n) <= kctop(n) ) then
-        idtop(n) = kctop(n) + 1
-      end if
-    end do
-    do concurrent ( n = n1:n2, k = 2:nk )
-      if ( lddraf(n) ) then
-        if ( k < idtop(n) ) then
-          mfd(n,k) = d_zero
-          mfds(n,k) = d_zero
-          mfdq(n,k) = d_zero
-          mfdde_rate(n,k) = d_zero
-          dmfdp(n,k) = d_zero
-        else if ( k == idtop(n) ) then
-          mfdde_rate(n,k) = d_zero
-        end if
-      end if
-    end do
-    call cfluxes
-    !- rescale DD fluxes if total mass flux becomes negative
-    !- correct DD detrainment rates if entrainment becomes negative
-    !- correct UD detrainment rates if entrainment becomes negative
-    !- conservation correction for precip
-    !$acc kernels
-    mfs(:) = d_one
-    !$acc end kernels
-    ! change for stability
-    do concurrent ( n = n1:n2 )
-      !$acc loop seq
-      do k = 2, nk
-        if ( lddraf(n) .and. k >= idtop(n)-1 ) then
-          mfmax = mfu(n,k)*0.98_rkx
-          if ( mfd(n,k)+mfmax+1.e-15_rkx < d_zero ) then
-            mfs(n) = min(mfs(n),-mfmax/mfd(n,k))
-          end if
-        end if
-      end do
-    end do
-    !$acc kernels
-    mfuub(:) = d_zero
-    !$acc end kernels
-    do concurrent ( n = n1:n2 )
-      !$acc loop seq
-      do k = 2, nk
-        if ( mfs(n) < d_one .and. k >= idtop(n)-1 ) then
-          mfd(n,k) = mfd(n,k)*mfs(n)
-          mfds(n,k) = mfds(n,k)*mfs(n)
-          mfdq(n,k) = mfdq(n,k)*mfs(n)
-          mfdde_rate(n,k) = mfdde_rate(n,k)*mfs(n)
-          mfuub(n) = mfuub(n) - (d_one-mfs(n))*dmfdp(n,k)
-          mflxr(n,k+1) = mflxr(n,k+1) + mfuub(n)
-          dmfdp(n,k) = dmfdp(n,k)*mfs(n)
-        end if
-      end do
-    end do
-    do concurrent ( n = n1:n2, k = 2:nk-1 )
-      if ( lddraf(n) .and. k >= idtop(n)-1 ) then
-        erate = -mfd(n,k) + mfd(n,k-1) + mfdde_rate(n,k)
-        if ( erate < d_zero ) then
-          mfdde_rate(n,k) = mfdde_rate(n,k) - erate
-        end if
-      end if
-      if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-        erate = mfu(n,k) - mfu(n,k+1) + mfude_rate(n,k)
-        if ( erate < d_zero ) then
-          mfude_rate(n,k) = mfude_rate(n,k) - erate
-        end if
-        dmfup(n,k) = mflxr(n,k+1) + mflxs(n,k+1) - mflxr(n,k) - mflxs(n,k)
-        dmfdp(n,k) = d_zero
-      end if
-    end do
-    ! Avoid negative humidities at ddraught top
-    do concurrent ( n = n1:n2 )
-      if ( lddraf(n) ) then
-        k = idtop(n)
-        ik = min(k+1,nk)
-        if ( mfdq(n,k) < 0.3_rkx*mfdq(n,ik) ) then
-          if ( abs(rmfsoltq) < almostzero ) then
-            mfdq(n,k) = 0.3_rkx*mfdq(n,ik)
-          else
-            mfd(n,k) = 0.3_rkx*mfd(n,ik)
-          end if
-        end if
-      end if
-    end do
-    ! Avoid negative humidities near cloud top because gradient of precip flux
-    ! and detrainment / liquid water flux too large
-    do concurrent ( n = n1:n2, k = 2:nk )
-      if ( ldcum(n) .and. k >= kctop(n)-1 .and. k < kcbot(n) ) then
-        dz = dtc*egrav/(pf(n,k+1)-pf(n,k))
-        mfa = mfuq(n,k+1) + mfdq(n,k+1) - mfuq(n,k) - mfdq(n,k) + &
-              mful(n,k+1) - mful(n,k) + dmfup(n,k)
-        mfa = (mfa-lude(n,k))*dz
-        if ( q(n,k)+mfa < d_zero ) then
-          lude(n,k) = lude(n,k) + d_two*(q(n,k)+mfa)/dz
-        end if
-        if ( lude(n,k) < d_zero ) lude(n,k) = d_zero
-      end if
-      if ( .not. ldcum(n) ) mfude_rate(n,k) = d_zero
-      if ( abs(mfd(n,k-1)) < almostzero ) mfdde_rate(n,k) = d_zero
-    end do
-    if ( llconscheck ) then
-      if ( lmftrac .and. ntrac > 0 ) then
-        allocate (xtenc(np,nk,ntrac))
-        allocate (xsumc(np,4+ntrac))
-        do concurrent ( n = n1:n2, k = 2:nk, nt = 1:ntrac )
-          if ( ldcum(n) ) xtenc(n,k,nt) = tenc(n,k,nt)
-        end do
-      else
-        allocate (xsumc(np,4))
-      end if
-    end if
-    !---------------------------------
-    ! 8. Update tendencies for t and q
-    ! --------------------------------
-    if ( rmfsoltq > d_zero ) then
-      !   derive draught properties for implicit
-      do concurrent ( n = n1:n2, k = nk:2:-1 )
-        if ( ldcum(n) ) then
-          if ( k > kcbot(n) ) then
-            mfa = d_one/max(1.e-15_rkx,mfu(n,k))
-            qu(n,k) = qf(n,k) + mfuq(n,k)*mfa
-            tu(n,k) = tf(n,k) + mfus(n,k)*mfa*rcpd
-            mfus(n,k) = mfu(n,k)*(cpd*tu(n,k)+geof(n,k))
-            mfuq(n,k) = mfu(n,k)*qu(n,k)
-            if ( lddraf(n) ) then
-              mfa = d_one/min(-1.e-15_rkx,mfd(n,k))
-              qd(n,k) = qf(n,k) + mfdq(n,k)*mfa
-              td(n,k) = tf(n,k) + mfds(n,k)*mfa*rcpd
-              mfdq(n,k) = mfd(n,k)*qd(n,k)
-              mfds(n,k) = mfd(n,k)*(cpd*td(n,k)+geof(n,k))
-            end if
-          else if ( k <= kcbot(n) .and. k >= kctop(n) ) then
-            mfus(n,k) = mfu(n,k)*(cpd*tu(n,k)+geof(n,k))
-            mfuq(n,k) = mfu(n,k)*qu(n,k)
-            mfds(n,k) = mfd(n,k)*(cpd*td(n,k)+geof(n,k))
-            mfdq(n,k) = mfd(n,k)*qd(n,k)
-          end if
-        end if
-      end do
-    end if
-    call dtdqc
-    !-------------------------------------------------
-    ! 9. Compute momentum in updraught and downdraught
-    ! ------------------------------------------------
-    if ( lmfdudv ) then
-      do concurrent ( n = n1:n2 )
-        !$acc loop seq
-        do k = nk - 1, 2, -1
-          ik = k + 1
-          if ( ldcum(n) ) then
-            if ( k == kcbot(n) .and. ktype(n) < 3 ) then
-              ikb = idpl(n)
-              uu(n,k) = u(n,ikb-1)
-              vu(n,k) = v(n,ikb-1)
-            else if ( k == kcbot(n) .and. ktype(n) == 3 ) then
-              uu(n,k) = u(n,k-1)
-              vu(n,k) = v(n,k-1)
-            end if
-            if ( k < kcbot(n) .and. k >= kctop(n) ) then
-              fac = d_zero
-              if ( ktype(n) == 1 .or. ktype(n) == 3 ) fac = d_two
-              if ( ktype(n) == 1 .and. k <= kctop(n)+2 ) fac = d_three
-              erate = mfu(n,k) - mfu(n,ik) + (d_one+fac)*mfude_rate(n,k)
-              derate = (d_one+fac)*mfude_rate(n,k)
-              mfa = d_one/max(cmfcmin,mfu(n,k))
-              uu(n,k) = (uu(n,ik)*mfu(n,ik) + erate*u(n,k)-derate*uu(n,ik))*mfa
-              vu(n,k) = (vu(n,ik)*mfu(n,ik) + erate*v(n,k)-derate*vu(n,ik))*mfa
-            end if
-          end if
-        end do
-      end do
-      do concurrent ( n = n1:n2 )
-        !$acc loop seq
-        do k = 3, nk
-          ik = k - 1
-          if ( ldcum(n) ) then
-            if ( k == idtop(n) ) then
-              ud(n,k) = d_half*(uu(n,k)+u(n,ik))
-              vd(n,k) = d_half*(vu(n,k)+v(n,ik))
-            else if ( k > idtop(n) ) then
-              erate = -mfd(n,k) + mfd(n,ik) + mfdde_rate(n,k)
-              mfa = d_one/min(-cmfcmin,mfd(n,k))
-              ud(n,k) = (ud(n,ik)*mfd(n,ik) - &
-                        erate*u(n,ik)+mfdde_rate(n,k)*ud(n,ik))*mfa
-              vd(n,k) = (vd(n,ik)*mfd(n,ik) - &
-                        erate*v(n,ik)+mfdde_rate(n,k)*vd(n,ik))*mfa
-            end if
-          end if
-        end do
-      end do
-      !----------------------------------
-      ! 9.1 Update tendencies for u and v
-      ! ---------------------------------
-      !---------------------------------------------------------------
-      ! For explicit/semi-implicit rescale massfluxes for stability in
-      ! momentum
-      !---------------------------------------------------------------
-      !$acc kernels
-      mfs(:) = d_one
-      !$acc end kernels
-      if ( rmfsoluv <= d_one ) then
-        do concurrent ( n = n1:n2 )
-          !$acc loop seq
-          do k = 2, nk
-            if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-              mfmax = (pf(n,k)-pf(n,k-1))*cons
-              if ( mfu(n,k) > mfmax .and. k >= kctop(n) ) then
-                mfs(n) = min(mfs(n),mfmax/mfu(n,k))
-              end if
-            end if
-          end do
-        end do
-      end if
-      do concurrent ( n = n1:n2, k = 1:nk )
-        mfuus(n,k) = mfu(n,k)
-        mfdus(n,k) = mfd(n,k)
-        if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-          mfuus(n,k) = mfu(n,k)*mfs(n)
-          mfdus(n,k) = mfd(n,k)*mfs(n)
-        end if
-      end do
-      ! Recompute Draught properties below for Implicit
-      ! based on linear flux profiles
-      if ( rmfsoluv > d_zero ) then
-        do concurrent ( n = n1:n2 )
-          if ( ldcum(n) ) then
-            k = kcbot(n)
-            ik = k - 1
-            mfuub(n) = mfuus(n,k)*(uu(n,k)-u(n,ik))
-            mfuvb(n) = mfuus(n,k)*(vu(n,k)-v(n,ik))
-          end if
-        end do
-        do concurrent ( n = n1:n2 )
-          !$acc loop seq
-          do k = 2, nk
-            ik = k - 1
-            if ( ldcum(n) .and. k > kcbot(n) ) then
-              ikb = kcbot(n)
-              dz = ((pf(n,nk+1)-pf(n,k)) / (pf(n,nk+1)-pf(n,ikb)))
-              if ( ktype(n) == 3 ) dz = dz*dz
-              mfa = d_one/max(cmfcmin,mfuus(n,k))
-              uu(n,k) = u(n,ik) + mfuub(n)*dz*mfa
-              vu(n,k) = v(n,ik) + mfuvb(n)*dz*mfa
-              mfdus(n,k) = mfdus(n,ikb)*dz
-              ud(n,k) = u(n,ik) + ud(n,ikb) - u(n,ikb-1)
-              vd(n,k) = v(n,ik) + vd(n,ikb) - v(n,ikb-1)
-            end if
-            ! add UV perturb to correct wind bias
-            if ( ldcum(n) .and. k >= kctop(n) ) then
-              uu(n,k) = uu(n,k) - ruvper*sign(d_one,uu(n,k))
-              vu(n,k) = vu(n,k) - ruvper*sign(d_one,vu(n,k))
-            end if
-          end do
-        end do
-      end if
-      !------------------------------------
-      ! End
-      ! Intermediate Solution for stability
-      !------------------------------------
-      call dudvx(mfuus,mfdus)
-      if ( lmfuvdis ) then
-        ! add KE dissipation
-        do concurrent ( n = n1:n2 )
-          xsum12(n) = d_zero
-          xsum22(n) = d_zero
-        end do
-        do concurrent ( n = n1:n2 )
-          !$acc loop seq
-          do k = 1, nk
-            uv2(n,k) = d_zero
-            if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-              dz = (pf(n,k+1)-pf(n,k))
-              duten = tenu(n,k) - xtenu(n,k)
-              dvten = tenv(n,k) - xtenv(n,k)
-              uv2(n,k) = sqrt(duten**2+dvten**2)
-              xsum22(n) = xsum22(n) + uv2(n,k)*dz
-              xsum12(n) = xsum12(n) - (u(n,k)*duten+v(n,k)*dvten)*dz
-            end if
-          end do
-        end do
-        do concurrent ( n = n1:n2, k = 1:nk )
-          if ( ldcum(n) .and. k>=kctop(n)-1 ) then
-            dz = (pf(n,k+1)-pf(n,k))
-            tdis = rcpd*xsum12(n)*uv2(n,k)/max(1.e-15_rkx,xsum22(n))
-            tent(n,k) = tent(n,k) + tdis
-          end if
-        end do
-      end if
-    end if
-    !--------------------------------------------------------
-    ! 10. In case that either deep or shallow is switched off
-    !     need to set some variables a posteriori to zero
-    !--------------------------------------------------------
-    if ( .not. lmfscv .or. .not. lmfpen ) then
-      do concurrent ( n = n1:n2, k = 2:nk )
-        if ( llo2(n) .and. k >= kctop(n)-1 ) then
-          tu(n,k) = t(n,k)
-          qu(n,k) = q(n,k)
-          lu(n,k) = d_zero
-          penth(n,k) = d_zero
-          mfude_rate(n,k) = d_zero
-          mfdde_rate(n,k) = d_zero
-        end if
-      end do
-      do concurrent ( n = n1:n2 )
-        if ( llo2(n) ) then
-          kctop(n) = nk - 1
-          kcbot(n) = nk - 1
-        end if
-      end do
-    end if
-    !------------------------------
-    ! 11. Chemical tracer transport
-    ! -----------------------------
-    if ( lmftrac .and. ntrac > 0 ) then
-      ! transport switched off for mid-level convection
-      do concurrent ( n = n1:n2 )
-        if ( ldcum(n) .and. ktype(n) /= 3 .and. kcbot(n)-kctop(n) >= 1 ) then
-          lldcum(n) = .true.
-          llddraf3(n) = lddraf(n)
-        else
-          lldcum(n) = .false.
-          llddraf3(n) = .false.
-        end if
-      end do
-      ! check and correct mass fluxes for CFL criterium
-      !$acc kernels
-      mfs(:) = d_one
-      !$acc end kernels
-      if ( rmfsolct <= d_three ) then
-        do concurrent ( n = n1:n2 )
-          !$acc loop seq
-          do k = 2, nk
-            if ( lldcum(n) .and. k >= kctop(n) ) then
-              mfmax = (pf(n,k)-pf(n,k-1))*0.8_rkx*cons
-              if ( mfu(n,k) > mfmax ) then
-                mfs(n) = min(mfs(n),mfmax/mfu(n,k))
-              end if
-            end if
-          end do
-        end do
-      end if
-      do concurrent ( n = n1:n2, k = 1:nk )
-        if ( lldcum(n) .and. k >= kctop(n)-1 ) then
-          mfuus(n,k) = mfu(n,k)*mfs(n)
-          mfudr(n,k) = mfude_rate(n,k)*mfs(n)
-        else
-          mfuus(n,k) = d_zero
-          mfudr(n,k) = d_zero
-        end if
-        if ( llddraf3(n) .and. k >= idtop(n)-1 ) then
-          mfdus(n,k) = mfd(n,k)*mfs(n)
-          mfddr(n,k) = mfdde_rate(n,k)*mfs(n)
-        else
-          mfdus(n,k) = d_zero
-          mfddr(n,k) = d_zero
-        end if
-      end do
-      if ( lmfsmooth ) then
-        ! smoothing of mass fluxes (gradients) at top and bottom of draughts
-        do concurrent ( n = n1:n2 )
-          !$acc loop seq
-          do k = 2, nk - 1
-            if ( llddraf3(n) .and. mfdus(n,k) < d_zero .and. &
-                 abs(mfdus(n,k+1)) < almostzero ) then
-              erate = min(d_zero,mfdus(n,k)-d_half*mfdus(n,k-1))
-              mfdus(n,k) = mfdus(n,k) - erate
-              mfddr(n,k) = mfddr(n,k) - erate
-              mfddr(n,k+1) = -mfdus(n,k)
-            end if
-            if ( lldcum(n) .and. k==kctop(n) ) then
-              erate = max(d_zero,mfuus(n,k)-d_half*mfuus(n,k+1))
-              mfuus(n,k) = mfuus(n,k) - erate
-              mfudr(n,k) = mfudr(n,k) + erate
-              mfudr(n,k-1) = mfuus(n,k)
-            end if
-          end do
-        end do
-        do concurrent ( n = n1:n2 )
-          !$acc loop seq
-          do k = nk - 1, 2, -1
-            if ( lldcum(n) ) then
-              if ( abs(mfudr(n,k)) < almostzero .and. &
-                       mfudr(n,k-1) > d_zero ) then
-                mfudr(n,k) = d_half*mfudr(n,k-1)
-              end if
-            end if
-          end do
-        end do
-      end if
-      call ctracer(lldcum,llddraf3,mfuus,mfdus,mfudr,mfddr)
-    end if
-    !----------------------------------------------------------
-    ! 12. Put detrainment rates from mflx units in units mflx/m
-    ! ---------------------------------------------------------
-    do concurrent ( n = n1:n2, k = 2:nk )
-      if ( ldcum(n) ) then
-        xro = egrav/(geof(n,k)-geof(n,k+1)) ! 1/dz
-        mfude_rate(n,k) = mfude_rate(n,k)*xro
-        mfdde_rate(n,k) = mfdde_rate(n,k)*xro
-        if ( k < kctop(n) ) then
-          lu(n,k) = d_zero
-          tu(n,k) = t(n,k)
-          qu(n,k) = q(n,k)
-        end if
-      end if
-    end do
-
-    if ( llconscheck ) then
-      !--------------------------------------
-      ! 13. Conservation check AND correction
-      ! -------------------------------------
-      do n = n1, n2
-        do k = 1, 4
-          xsumc(n,k) = d_zero
-        end do
-      end do
-      do n = n1, n2
-        do k = nk, 2, -1
-          xalv = mlwt(t(n,k))
-          if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-            dz = (pf(n,k+1)-pf(n,k))*regrav
-            xsumc(n,1) = xsumc(n,1) + &
-                         (tenq(n,k)-xtenq(n,k))*dz + lude(n,k)
-            xsumc(n,2) = xsumc(n,2) + &
-                         cpd*(tent(n,k)-xtent(n,k))*dz - xalv*lude(n,k)
-            xsumc(n,3) = xsumc(n,3) + (tenu(n,k)-xtenu(n,k))*dz
-            xsumc(n,4) = xsumc(n,4) + (tenv(n,k)-xtenv(n,k))*dz
-          end if
-        end do
-      end do
-      if ( lmftrac .and. ntrac > 0 ) then
-        do nt = 1, ntrac
-          do n = n1, n2
-            do k = nk, 2, -1
-              if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-                dz = (pf(n,k+1)-pf(n,k))*regrav
-                xsumc(n,4+nt) = xsumc(n,4+nt) + (tenc(n,k,nt)-xtenc(n,k,nt))*dz
-              end if
-            end do
-          end do
-        end do
-      end if
-      do n = n1, n2
-        xalv = mlwt(t(n,nk))
-        if ( ldcum(n) ) then
-          sfl(n) = mflxr(n,nk+1) + mflxs(n,nk+1)
-          write (61,'(i4,a9,2f15.8,i4,a9,f15.8,a10,2f15.8)')     &
-            n, ' CONS q: ', -xsumc(n,1)*xalv, sfl(n)*xalv,   &
-            ktype(n), ' CONS h: ', xsumc(n,2), ' CONS uv: ', &
-            xsumc(n,3), xsumc(n,4)
-          if ( lmftrac .and. ntrac > 0 ) then
-            write (61,*) ' Conserv Error Tracers 1-', ntrac, ' :'
-            do nt = 1, ntrac
-              write (61,'(i4,e12.4)') nt, xsumc(n,4+nt)
-            end do
-#ifndef TESTME
-            call fatal(__FILE__,__LINE__, &
-                       'ERROR IN TRACER CONSERVATION')
-#endif
-          end if
-          ikb = kctop(n)
-          dz = (pf(n,nk+1)-pf(n,ikb-1))*regrav
-          xsumc(n,1) = (xsumc(n,1)+sfl(n))/dz
-          xsumc(n,2) = (xsumc(n,2)-xalv*sfl(n))/(dz*cpd)
-        end if
-      end do
-      deallocate (xsumc)
-      if ( lmftrac .and. ntrac > 0 ) deallocate (xtenc)
-    end if
-    !-------------------------------------------------------
-    ! 14. Compute convective tendencies for liquid and solid
-    !     cloud condensate
-    ! ------------------------------------------------------
-    do concurrent ( n = n1:n2, k = 1:nk )
-      tenl(n,k) = lude(n,k)*egrav/(pf(n,k+1)-pf(n,k))
-      teni(n,k) = (d_one-xalpha(t(n,k)))*tenl(n,k)
-      tenl(n,k) = tenl(n,k) - teni(n,k)
-      mflxr(n,k) = mflxr(n,k)*1.e-3_rkx
-      mflxs(n,k) = mflxs(n,k)*1.e-3_rkx
-    end do
-    do concurrent ( n = n1:n2 )
-      mflxr(n,nk+1) = mflxr(n,nk+1)*1.e-3_rkx
-      mflxs(n,nk+1) = mflxs(n,nk+1)*1.e-3_rkx
-    end do
-
-    contains
     !
     ! This routine interpolates large-scale fields of t,q etc.
     ! to sigma levels (i.e. grid for massflux scheme), determines level
     ! of maximum vertical velocity and initializes values for updrafts
     ! and downdrafts interface
     !
-    subroutine initcum
-      implicit none
+    initcum: block
       real(rkx), dimension(np) :: wmax
       real(rkx), dimension(np) :: xph
       logical, dimension(np) :: llflag
@@ -5625,1440 +4837,13 @@ module mod_cu_tiedtke
         ilab(n,k) = 0
         cvrainout(n,k) = d_zero
       end do
-    end subroutine initcum
-    !
-    ! Solves bidiagonal system for implicit solution of advection equation
-    ! interface. It returns updated value of quantity.
-    !
-    ! Numerical Recipes (Cambridge Press)
-    ! Derived from tridiagonal algorihm with c=0, only one forward
-    ! substitution necessary.
-    !
-    !          M  x  U  = R
-    !          ELEMENTS OF MATRIX M ARE STORED IN VECTORS A, B, C
-    !          (  B(ktop-1)     C(ktop-1)     0          0        )
-    !          (  A(ktop)       B(ktop)       C(ktop)    0        )
-    !          (  0             A(k)          B(k)       C(k)     )
-    !          (  0             0             A(nk)      B(nk)    )
-    !
-    subroutine solver(ktop,wmask,a,b,r,u)
-      implicit none
-      integer(ik4), dimension(np), intent(in) :: ktop ! cloud top
-      logical, dimension(np,nk), intent(in) :: wmask  ! mask
-      real(rkx), dimension(np,nk), intent(in) :: a    ! lower diagonal
-      real(rkx), dimension(np,nk), intent(in) :: b    ! diagonal
-      real(rkx), dimension(np,nk), intent(in) :: r    ! right hand side
-      real(rkx), dimension(np,nk), intent(out) :: u   ! solution
-      integer(ik4) :: k, n
-      !$acc kernels
-      u(:,:) = d_zero
-      !$acc end kernels
-      do concurrent ( n = n1:n2 )
-        !$acc loop seq
-        do k = 2, nk
-          if ( wmask(n,k) ) then
-            if ( abs(b(n,k)) > almostzero ) then
-              if ( k == ktop(n)-1 ) then
-                u(n,k) = r(n,k)/b(n,k)
-              else if ( k > ktop(n)-1 ) then
-                u(n,k) = (r(n,k)-a(n,k)*u(n,k-1))/b(n,k)
-              end if
-            end if
-          end if
-        end do
-      end do
-    end subroutine solver
-    !
-    ! Computes specific humidity at saturation used by the diagnostic
-    ! cloud scheme to compute relative humidity and liquid water content
-    !
-    subroutine satur(kt,pr,t,qsat)
-      implicit none
-      integer(ik4), intent(in) :: kt                    ! top level
-      real(rkx), dimension(np,nk), intent(in) :: pr    ! Pressure Pa
-      real(rkx), dimension(np,nk), intent(in) :: t     ! Temperature K
-      real(rkx), dimension(np,nk), intent(out) :: qsat ! Satur. MXR kg/kg
-      integer(ik4) :: k, n
-      real(rkx) :: qs
-      do concurrent ( n = n1:n2, k = kt:nk )
-        qs = min(qsmax,fesat(t(n,k))/pr(n,k))
-        qsat(n,k) = qs/(d_one-ep1*qs)
-      end do
-    end subroutine satur
-    !
-    ! Produce adjusted t,q and l values
-    !
-    subroutine moistadj(kk,sp,t,q,ldflag,jcall)
-      implicit none
-      integer(ik4), intent(in) :: kk ! actual level
-      real(rkx), dimension(np), intent(in) :: sp ! Surface pressure Pa
-      real(rkx), dimension(np,nk), intent(inout) :: t
-      real(rkx), dimension(np,nk), intent(inout) :: q
-      logical, dimension(np), intent(in) :: ldflag ! Active convection flag
-      integer(ik4), intent(in) :: jcall ! Calling method
-      integer(ik4) :: jl
-      real(rkx) :: cond, cond1, cor, qs, rp
-      real(rkx) :: zl, zi, zf, za
-      !---------------------------------------------------------
-      ! 1. Calculate condensation and adjust t and q accordingly
-      ! --------------------------------------------------------
-      if ( jcall == 1 ) then
-        do concurrent ( jl = n1:n2 )
-          if ( ldflag(jl) ) then
-            rp = d_one/sp(jl)
-            zl = d_one/(t(jl,kk)-c4les)
-            zi = d_one/(t(jl,kk)-c4ies)
-            za = xalpha(t(jl,kk))
-            qs = c2es*(za*exp(c3les*(t(jl,kk)-tzero)*zl) + &
-                  (d_one-za)*exp(c3ies*(t(jl,kk)-tzero)*zi))
-            qs = qs*rp
-            qs = min(qsmax,qs)
-            cor = d_one - ep1*qs
-            zf = za*c5alvcp*zl**2 + (d_one-za)*c5alscp*zi**2
-            cond = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
-            if ( cond > d_zero ) then
-              t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
-              q(jl,kk) = q(jl,kk) - cond
-              zl = d_one/(t(jl,kk)-c4les)
-              zi = d_one/(t(jl,kk)-c4ies)
-              za = xalpha(t(jl,kk))
-              qs = c2es*(za*exp(c3les*(t(jl,kk)-tzero)*zl) + &
-                    (d_one-za)*exp(c3ies*(t(jl,kk)-tzero)*zi))
-              qs = qs*rp
-              qs = xmin(qsmax,qs)
-              cor = d_one - ep1*qs
-              zf = za*c5alvcp*zl**2 + (d_one-za)*c5alscp*zi**2
-              cond1 = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
-              if ( abs(cond) < almostzero ) cond1 = d_zero
-              t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-              q(jl,kk) = q(jl,kk) - cond1
-            end if
-          end if
-        end do
-      else if ( jcall == 2 ) then
-        do concurrent ( jl = n1:n2 )
-          if ( ldflag(jl) ) then
-            rp = d_one/sp(jl)
-            qs = fesat(t(jl,kk))*rp
-            qs = min(qsmax,qs)
-            cor = d_one/(d_one-ep1*qs)
-            qs = qs*cor
-            cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-            cond = min(cond,d_zero)
-            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
-            q(jl,kk) = q(jl,kk) - cond
-            qs = fesat(t(jl,kk))*rp
-            qs = min(qsmax,qs)
-            cor = d_one/(d_one-ep1*qs)
-            qs = qs*cor
-            cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-            if ( abs(cond) < almostzero ) cond1 = min(cond1,d_zero)
-            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-            q(jl,kk) = q(jl,kk) - cond1
-          end if
-        end do
-      else if ( jcall == 0 ) then
-        do concurrent ( jl = n1:n2 )
-          rp = d_one/sp(jl)
-          qs = fesat(t(jl,kk))*rp
-          qs = min(qsmax,qs)
-          cor = d_one/(d_one-ep1*qs)
-          qs = qs*cor
-          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-          q(jl,kk) = q(jl,kk) - cond1
-          qs = fesat(t(jl,kk))*rp
-          qs = min(qsmax,qs)
-          cor = d_one/(d_one-ep1*qs)
-          qs = qs*cor
-          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-          q(jl,kk) = q(jl,kk) - cond1
-        end do
-      else if ( jcall == 4 ) then
-        do concurrent ( jl = n1:n2 )
-          if ( ldflag(jl) ) then
-            rp = d_one/sp(jl)
-            qs = fesat(t(jl,kk))*rp
-            qs = min(qsmax,qs)
-            cor = d_one/(d_one-ep1*qs)
-            qs = qs*cor
-            cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
-            q(jl,kk) = q(jl,kk) - cond
-            qs = fesat(t(jl,kk))*rp
-            qs = min(qsmax,qs)
-            cor = d_one/(d_one-ep1*qs)
-            qs = qs*cor
-            cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-            q(jl,kk) = q(jl,kk) - cond1
-          end if
-        end do
-      else if ( jcall == 5 ) then ! Same as 4 but with LDFLAG all true
-        do concurrent ( jl = n1:n2 )
-          rp = d_one/sp(jl)
-          qs = fesat(t(jl,kk))*rp
-          qs = min(qsmax,qs)
-          cor = d_one/(d_one-ep1*qs)
-          qs = qs*cor
-          cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
-          q(jl,kk) = q(jl,kk) - cond
-          qs = fesat(t(jl,kk))*rp
-          qs = min(qsmax,qs)
-          cor = d_one/(d_one-ep1*qs)
-          qs = qs*cor
-          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-          q(jl,kk) = q(jl,kk) - cond1
-        end do
-      else if ( jcall == 3 ) then
-        do concurrent ( jl = n1:n2 )
-          rp = d_one/sp(jl)
-          qs = fesat(t(jl,kk))*rp
-          qs = min(qsmax,qs)
-          cor = d_one/(d_one-ep1*qs)
-          qs = qs*cor
-          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-          q(jl,kk) = q(jl,kk) - cond1
-          qs = fesat(t(jl,kk))*rp
-          qs = min(qsmax,qs)
-          cor = d_one/(d_one-ep1*qs)
-          qs = qs*cor
-          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-          q(jl,kk) = q(jl,kk) - cond1
-        end do
-      else
-#ifndef TESTME
-        call fatal(__FILE__,__LINE__, 'Unknown method jcall in moistadj')
-#endif
-      end if
-
-    end subroutine moistadj
-    !
-    ! This routine does the calculations for cloud ascents, i.e. produce
-    ! cloud ascents vertical profiles of T,Q,L,U AND V and corresponding
-    ! fluxes as well as precipitation rates.
-    ! Lift surface air dry-adiabatically to cloud base and then calculate
-    ! moist ascent for entraining/detraining plume.
-    ! Entrainment and detrainment rates differ for shallow and deep cumulus
-    ! convection. In case there is no penetrative or shallow convection
-    ! check for possibility of mid level convection.
-    !
-    subroutine ascent
-      implicit none
-      real(rkx), dimension(np,nk) :: buo
-      real(rkx), dimension(np) :: ndmfen, ndmfde, qold, luold, precip
-      real(rkx), dimension(np) :: dpmean
-      real(rkx), dimension(np) :: zoentr, xph
-      logical, dimension(np) :: llflag, llflaguv, llo1
-      logical :: llo3
-      integer(ik4) :: icall, ik, is, k, n, ikb
-      integer(ik4) :: nll, nlm, mynlm
-      integer(ik4), dimension(np) :: nlx
-      real(rkx) :: cldmax, cprc2, cwifrac, alfaw, bc,   &
-                   be, buoc, zc, cbf, cons2, zd, zdfi, dkbuo, &
-                   dken, dnoprc, zdt, fac, facbuo, zint,       &
-                   kedke, lcrit, leen, lnew, mfmax, mftest,     &
-                   mfulk, mfun, mfuqk, mfusk, prcdgw, prcon,    &
-                   qeen, qude, rnew, rold, scde, seen, &
-                   zvi, zvv, zvw, zwu, zco, arg, entrpen
-      real(rkx) :: change, zxs, zxe
-      logical, dimension(np) :: llklab
-      !----------------------
-      ! 1. Specify parameters
-      ! ---------------------
-      cons2 = rmfcfl/(egrav*dtc)
-      facbuo = d_half/(d_one+d_half)
-      cldmax = 5.e-3_rkx
-      cwifrac = d_half
-      cprc2 = d_half
-      !----------------------
-      ! 2. Set default values
-      ! ---------------------
-      llo3 = .false.
-      do concurrent ( n = n1:n2 )
-        luold(n) = d_zero
-        if ( .not. ldcum(n) ) then
-          kcbot(n) = -1
-          mfub(n) = d_zero
-          qu(n,nk) = d_zero
-          ktype(n) = 0
-        end if
-        wmean(n) = d_zero
-        dpmean(n) = d_zero
-        zoentr(n) = d_zero
-      end do
-      ! Initalize various quantities
-      ! Note that liquid water and kinetic energy at cloud base is preserved
-      do concurrent ( n = n1:n2 )
-        llklab(n) = .false.
-        if ( .not. ldcum(n) .or. ktype(n) == 3 ) llklab(n) = .true.
-      end do
-      do concurrent ( n = n1:n2, k = 1:nk )
-        if ( k /= kcbot(n) ) lu(n,k) = d_zero
-        kineu(n,k) = d_zero
-        mfu(n,k) = d_zero
-        mfus(n,k) = d_zero
-        mfuq(n,k) = d_zero
-        mful(n,k) = d_zero
-        lude(n,k) = d_zero
-        lglac(n,k) = d_zero
-        dmfup(n,k) = d_zero
-        xrain(n,k) = d_zero
-        buo(n,k) = d_zero
-        if ( llklab(n) ) ilab(n,k) = 0
-        dmfen(n,k) = d_zero
-        mfude_rate(n,k) = d_zero
-      end do
-      do concurrent ( n = n1:n2 )
-        !$acc loop seq
-        do k = 1, nk
-          if ( .not. ldcum(n) .and. ph(n,k) < 4.0e4_rkx ) ictop0(n) = k
-        end do
-      end do
-      do concurrent ( n = n1:n2 )
-        if ( ktype(n) == 3 ) ldcum(n) = .false.
-      end do
-      !-----------------------------------------
-      ! 3. Initialize values at cloud base level
-      ! ----------------------------------------
-      do concurrent ( n = n1:n2 )
-        kctop(n) = kcbot(n)
-        if ( ldcum(n) ) then
-          ikb = kcbot(n)
-          kineu(n,ikb) = d_half*wubase(n)**2
-          mfu(n,ikb) = mfub(n)
-          mfus(n,ikb) = mfub(n)*(cpd*tu(n,ikb)+geof(n,ikb))
-          mfuq(n,ikb) = mfub(n)*qu(n,ikb)
-          mful(n,ikb) = mfub(n)*lu(n,ikb)
-        end if
-      end do
-      !-------------------------------------------------------
-      ! 4. Do ascent: subcloud layer (ilab=1) ,clouds (ilab=2)
-      !    By doing first dry-adiabatic ascent and then
-      !    by adjusting t,q and l accordingly, then check for
-      !    buoyancy and set flags accordingly
-      ! ------------------------------------------------------
-      do k = nk - 1, 3, -1
-        ! Specify cloud base values for midlevel convection
-        ! in case there is not already convection
-        ! ----------------------------------------------------
-        ik = k
-        call mcbase(ik)
-        is = 0
-        nlm = 0
-        do concurrent ( n = n1:n2 )
-          llflag(n) = .false.
-          precip(n) = d_zero
-          llo1(n) = .false.
-          is = is + ilab(n,k+1)
-          if ( ilab(n,k+1) == 0 ) ilab(n,k) = 0
-          if ( (ldcum(n) .and. ilab(n,k+1) == 2) .or.   &
-               (ktype(n) == 3 .and. ilab(n,k+1) == 1) ) then
-            llflag(n) = .true.
-            !$acc atomic capture
-            nlm = nlm + 1
-            mynlm = nlm
-            !$acc end atomic
-            nlx(mynlm) = n
-          end if
-          if ( ilab(n,k+1) > 0 ) then
-            llflaguv(n) = .true.
-          else
-            llflaguv(n) = .false.
-          end if
-          xph(n) = ph(n,k)
-          if ( ktype(n) == 3 .and. k == kcbot(n) ) then
-            mfmax = (pf(n,k)-pf(n,k-1))*cons2*rmflic + rmflia
-            if ( mfub(n) > mfmax ) then
-              fac = mfmax/mfub(n)
-              mfu(n,k+1) = mfu(n,k+1)*fac
-              mfus(n,k+1) = mfus(n,k+1)*fac
-              mfuq(n,k+1) = mfuq(n,k+1)*fac
-              mfub(n) = mfmax
-            end if
-          end if
-        end do
-        if ( is > 0 ) llo3 = .true.
-        !--------------------------
-        ! Specify entrainment rates
-        ! -------------------------
-        ik = k
-        call entrainm(ik,llo3,ndmfen,ndmfde)
-        !----------------------------------------------------
-        ! Do adiabatic ascent for entraining/detraining plume
-        ! ---------------------------------------------------
-        if ( llo3 ) then
-          do concurrent ( n = n1:n2 )
-            qold(n) = d_zero
-          end do
-          do concurrent ( nll = 1:nlm )
-            n = nlx(nll)
-            ndmfde(n) = min(ndmfde(n),0.75_rkx*mfu(n,k+1))
-            if ( k == kcbot(n) ) then
-              entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(n))
-              zoentr(n) = -entrpen*(min(d_one,q(n,k)/qs(n,k)) - &
-                           d_one)*(geof(n,k)-geof(n,k+1))*regrav
-              zoentr(n) = min(0.4_rkx,zoentr(n))*mfu(n,k+1)
-            end if
-            if ( k < kcbot(n) ) then
-              mfmax = (pf(n,k)-pf(n,k-1))*cons2*rmflic + rmflia
-              zxs = max(mfu(n,k+1)-mfmax,d_zero)
-              wmean(n) = wmean(n) + kineu(n,k+1)*(ph(n,k+1)-ph(n,k))
-              dpmean(n) = dpmean(n) + ph(n,k+1) - ph(n,k)
-              ndmfen(n) = zoentr(n)
-              if ( ktype(n) >= 2 ) then
-                ndmfen(n) = entshalp*ndmfen(n)
-                ndmfde(n) = ndmfen(n)
-              end if
-              ndmfde(n) = ndmfde(n) * (1.6_rkx-min(d_one,q(n,k)/qs(n,k)))
-              mftest = mfu(n,k+1) + ndmfen(n) - ndmfde(n)
-              change = max(mftest-mfmax,d_zero)
-              zxe = max(change-zxs,d_zero)
-              ndmfen(n) = ndmfen(n) - zxe
-              change = change - zxe
-              ndmfde(n) = ndmfde(n) + change
-            end if
-            dmfen(n,k) = ndmfen(n) - ndmfde(n)
-            mfu(n,k) = mfu(n,k+1) + ndmfen(n) - ndmfde(n)
-            qeen = qf(n,k+1)*ndmfen(n)
-            seen = (cpd*tf(n,k+1)+geof(n,k+1))*ndmfen(n)
-            if ( qctot(n,k) > 1.0e-10_rkx ) then
-              leen = qctot(n,k)*ndmfen(n)
-            else
-              leen = d_zero
-            end if
-            scde = (cpd*tu(n,k+1)+geof(n,k+1))*ndmfde(n)
-            qude = qu(n,k+1)*ndmfde(n)
-            lude(n,k) = lu(n,k+1)*ndmfde(n)
-            mfusk = mfus(n,k+1) + seen - scde
-            mfuqk = mfuq(n,k+1) + qeen - qude
-            mfulk = mful(n,k+1) + leen - lude(n,k)
-            lu(n,k) = mfulk*(d_one/max(cmfcmin,mfu(n,k)))
-            qu(n,k) = mfuqk*(d_one/max(cmfcmin,mfu(n,k)))
-            tu(n,k) = (mfusk * &
-              (d_one/max(cmfcmin,mfu(n,k)))-geof(n,k))*rcpd
-            tu(n,k) = max(100.0_rkx,tu(n,k))
-            tu(n,k) = min(400.0_rkx,tu(n,k))
-            qold(n) = qu(n,k)
-            xrain(n,k) = xrain(n,k+1)*(mfu(n,k+1)-ndmfde(n)) * &
-                            (d_one/max(cmfcmin,mfu(n,k)))
-            luold(n) = lu(n,k)
-          end do
-          ! reset to environmental values if below departure level
-          do concurrent ( n = n1:n2 )
-            if ( k > idpl(n) ) then
-              tu(n,k) = tf(n,k)
-              qu(n,k) = qf(n,k)
-              lu(n,k) = d_zero
-              luold(n) = lu(n,k)
-            end if
-          end do
-          ! Do corrections for moist ascent by adjusting t,q and l
-          ! ------------------------------------------------------
-          ik = k
-          icall = 1
-          if ( nlm > 0 ) then
-            call moistadj(ik,xph,tu,qu,llflag,icall)
-          end if
-          do concurrent ( nll = 1:nlm )
-            n = nlx(nll)
-            if ( qu(n,k) /= qold(n) ) then
-              lglac(n,k) = lu(n,k) * ((d_one-xalpha(tu(n,k)))- &
-                                     (d_one-xalpha(tu(n,k+1))))
-              tu(n,k) = tu(n,k) + wlhfocp*lglac(n,k)
-            end if
-          end do
-          do concurrent ( nll = 1:nlm )
-            n = nlx(nll)
-            if ( qu(n,k) /= qold(n) ) then
-              ilab(n,k) = 2
-              lu(n,k) = lu(n,k) + qold(n) - qu(n,k)
-              bc = tu(n,k)*(d_one+ep1*qu(n,k)-lu(n,k+1) - xrain(n,k+1))
-              be = tf(n,k)*(d_one+ep1*qf(n,k))
-              buo(n,k) = bc - be
-              ! set flags in case of midlevel convection
-              if ( ktype(n) == 3 .and. ilab(n,k+1) == 1 ) then
-                if ( buo(n,k) > -d_half ) then
-                  ldcum(n) = .true.
-                  kctop(n) = k
-                  kineu(n,k) = d_half
-                else
-                  ilab(n,k) = 0
-                  mfu(n,k) = d_zero
-                  lude(n,k) = d_zero
-                  lu(n,k) = d_zero
-                end if
-              end if
-              if ( ilab(n,k+1) == 2 ) then
-                if ( buo(n,k) < d_zero .and. ilab(n,k+1) == 2 ) then
-                  tf(n,k) = d_half*(t(n,k)+t(n,k-1))
-                  qf(n,k) = d_half*(q(n,k)+q(n,k-1))
-                  buo(n,k) = bc - tf(n,k)*(d_one+ep1*qf(n,k))
-                end if
-                buoc = (buo(n,k) / (tf(n,k)*(d_one+ep1*qf(n,k)))+buo(n,k+1) / &
-                                   (tf(n,k+1)*(d_one+ep1*qf(n,k+1))))*d_half
-                dkbuo = (geof(n,k)-geof(n,k+1))*facbuo*buoc
-                ! mixing and "pressure" gradient term in upper
-                ! troposphere
-                if ( ndmfen(n) > d_zero ) then
-                  dken = min(d_one,(d_one+cwdrag)*ndmfen(n) / &
-                         max(cmfcmin,mfu(n,k+1)))
-                else
-                  dken = min(d_one,(d_one+cwdrag)*ndmfde(n) / &
-                         max(cmfcmin,mfu(n,k+1)))
-                end if
-                kineu(n,k) = (kineu(n,k+1)*(d_one-dken)+dkbuo) / (d_one+dken)
-                if ( buo(n,k) < d_zero .and. ilab(n,k+1) == 2 ) then
-                  kedke = kineu(n,k)/max(1.0e-10_rkx,kineu(n,k+1))
-                  kedke = max(d_zero,min(d_one,kedke))
-                  mfun = sqrt(kedke)*mfu(n,k+1)
-                  ndmfde(n) = max(ndmfde(n),mfu(n,k+1)-mfun)
-                  lude(n,k) = lu(n,k+1)*ndmfde(n)
-                  mfu(n,k) = mfu(n,k+1) + ndmfen(n) - ndmfde(n)
-                end if
-                if ( buo(n,k) >- 0.2_rkx .and. ilab(n,k+1) == 2 ) then
-                  ikb = kcbot(n)
-                  entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(n))
-                  zoentr(n) = entrpen*(0.3_rkx-(min(d_one,q(n,k-1) /    &
-                         qs(n,k-1))-d_one))*(geof(n,k-1)-geof(n,k)) * &
-                         regrav*min(d_one,qs(n,k)/qs(n,ikb))**3
-                  zoentr(n) = min(0.4_rkx,zoentr(n))*mfu(n,k)
-                else
-                  zoentr(n) = d_zero
-                end if
-               ! Erase values if below departure level
-                if ( k > idpl(n) ) then
-                  mfu(n,k) = mfu(n,k+1)
-                  kineu(n,k) = d_half
-                end if
-                if ( kineu(n,k) > d_zero .and. mfu(n,k) > d_zero ) then
-                  kctop(n) = k
-                  llo1(n) = .true.
-                else
-                  ilab(n,k) = 0
-                  mfu(n,k) = d_zero
-                  kineu(n,k) = d_zero
-                  ndmfde(n) = mfu(n,k+1)
-                  lude(n,k) = lu(n,k+1)*ndmfde(n)
-                end if
-                ! store detrainment rates for updraught
-                if ( mfu(n,k+1) > d_zero ) mfude_rate(n,k) = ndmfde(n)
-              end if
-            else if ( ktype(n) == 2 .and. qu(n,k) == qold(n) ) then
-              ilab(n,k) = 0
-              mfu(n,k) = d_zero
-              kineu(n,k) = d_zero
-              ndmfde(n) = mfu(n,k+1)
-              lude(n,k) = lu(n,k+1)*ndmfde(n)
-              mfude_rate(n,k) = ndmfde(n)
-            end if
-          end do
-          ! Calculate precipitation rate by analytic integration
-          ! of equation for l
-          do concurrent ( n = n1:n2 )
-            if ( llo1(n) ) then
-              if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
-                dnoprc = ccn(n,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                         ((rcrit*1e-6_rkx)**3)*rhow
-                if ( ldland(n) ) then
-                  prcdgw = rprc_lnd*regrav
-                else
-                  prcdgw = rprc_ocn*regrav
-                end if
-              else
-                if ( ldland(n) ) then
-                  dnoprc = 5.e-4_rkx
-                  prcdgw = rprc_lnd*regrav
-                else
-                  dnoprc = 3.e-4_rkx
-                  prcdgw = rprc_ocn*regrav
-                end if
-              end if
-              if ( lu(n,k) > dnoprc ) then
-                zwu = min(15.0_rkx,sqrt(d_two*max(0.1_rkx,kineu(n,k+1))))
-                prcon = prcdgw/(0.75_rkx*zwu)
-                ! Parameters for bergeron-findeisen process (T < -5C)
-                zdt = min(rtber-rtice,max(rtber-tu(n,k),d_zero))
-                cbf = d_one + cprc2*sqrt(zdt)
-                zco = prcon*cbf
-                lcrit = dnoprc/cbf
-                zdfi = geof(n,k) - geof(n,k+1)
-                zc = (lu(n,k)-luold(n))
-                arg = (lu(n,k)/lcrit)**2
-                if ( arg < 25.0_rkx ) then
-                  zd = zco*(d_one-exp(-arg))*zdfi
-                else
-                  zd = zco*zdfi
-                end if
-                zint = exp(-zd)
-                lnew = luold(n)*zint + zc/zd*(d_one-zint)
-                lnew = max(d_zero,min(lu(n,k),lnew))
-                lnew = min(cldmax,lnew)
-                precip(n) = max(d_zero,luold(n)+zc-lnew)
-                dmfup(n,k) = precip(n)*mfu(n,k)
-                xrain(n,k) = xrain(n,k) + precip(n)
-                lu(n,k) = lnew
-                !FAB  save precip water (kg/kg) created from autoconverson in updraft
-                if(ichem == 1) cvrainout(n,k) = precip(n)
-              end if
-            end if
-          end do
-          do concurrent ( n = n1:n2 )
-            if ( llo1(n) ) then
-              if ( xrain(n,k) > d_zero ) then
-                zvw = 21.18_rkx*xrain(n,k)**0.2_rkx
-                zvi = cwifrac*zvw
-                alfaw = xalpha(tu(n,k))
-                zvv = alfaw*zvw + (d_one-alfaw)*zvi
-                rold = xrain(n,k) - precip(n)
-                zc = precip(n)
-                zwu = min(15.0_rkx,sqrt(d_two*max(0.1_rkx,kineu(n,k))))
-                zd = zvv/zwu
-                zint = exp(-zd)
-                rnew = rold*zint + zc/zd*(d_one-zint)
-                rnew = max(d_zero,min(xrain(n,k),rnew))
-                xrain(n,k) = rnew
-              end if
-            end if
-          end do
-          do concurrent ( nll = 1:nlm )
-            n = nlx(nll)
-            mful(n,k) = lu(n,k)*mfu(n,k)
-            mfus(n,k) = (cpd*tu(n,k)+geof(n,k))*mfu(n,k)
-            mfuq(n,k) = qu(n,k)*mfu(n,k)
-          end do
-        end if
-      end do
-      !----------------------
-      ! 5. Final calculations
-      ! ---------------------
-      do concurrent ( n = n1:n2 )
-        if ( kctop(n) == -1 ) ldcum(n) = .false.
-        kcbot(n) = max(kcbot(n),kctop(n))
-        if ( ldcum(n) ) then
-          wmean(n) = max(1.e-2_rkx,wmean(n)/max(d_one,dpmean(n)))
-          wmean(n) = sqrt(d_two*wmean(n))
-        end if
-      end do
-    end subroutine ascent
-    !
-    ! This routine calculates entrainment/detrainment rates for updrafts
-    ! in cumulus parameterization. Input are environmental values t,q etc
-    ! and updraft values t,q etc. It returns entrainment/detrainment rates
-    ! Turbulent entrainment is simulated by a constant multiplied by a
-    ! vertical scaling function
-    !
-    subroutine entrainm(kk,ldwork,dmfen,dmfde)
-      implicit none
-      integer(ik4), intent(in) :: kk ! input level
-      logical, intent(in) :: ldwork                      ! enable/disable
-      real(rkx), dimension(np), intent(out) :: dmfen    ! Entrainment
-      real(rkx), dimension(np), intent(out) :: dmfde    ! Detrainment
-      integer(ik4) :: n
-      real(rkx) :: mf, entrpen, detrpen
-      !-----------------------------------------------
-      ! 1. Calculate entrainment and detrainment rates
-      ! ----------------------------------------------
-      if ( ldwork ) then
-        do concurrent ( n = n1:n2 )
-          dmfen(n) = d_zero
-          dmfde(n) = d_zero
-        end do
-        do concurrent ( n = n1:n2 )
-          if ( ldcum(n) ) then
-            if ( kk < kcbot(n) ) then
-              mf = mfu(n,kk+1)*(geof(n,kk)-geof(n,kk+1))*regrav
-              entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(n))
-              detrpen = merge(detrpen_lnd,detrpen_ocn,ldland(n))
-              dmfen(n) = entrpen*mf
-              dmfde(n) = detrpen*mf
-            end if
-          end if
-        end do
-      end if
-    end subroutine entrainm
-    !
-    ! This routine calculates cloud base values for midlevel convection
-    ! Input are environmental values t,q etc. It returns cloudbase values
-    ! for midlevel convection
-    !
-    subroutine mcbase(kk)
-      implicit none
-      integer(ik4), intent(in) :: kk                     ! current level
-      integer(ik4) :: n
-      !-----------------------------------------------
-      ! 1. Calculate entrainment and detrainment rates
-      ! ----------------------------------------------
-      do concurrent ( n = n1:n2 )
-        if ( .not.ldcum(n) .and. ilab(n,kk+1) == 0 ) then
-          if ( lmfmid .and. geo(n,kk) >  5000.0_rkx .and. &
-                            geo(n,kk) < 10000.0_rkx .and. &
-                            q(n,kk) > 0.80_rkx*qs(n,kk) ) then
-            tu(n,kk+1) = (cpd*t(n,kk)+geo(n,kk)-geof(n,kk+1))*rcpd
-            qu(n,kk+1) = q(n,kk)
-            lu(n,kk+1) = d_zero
-            mfub(n) = min(max(cmfcmin,-omega(n,kk)*regrav),cmfcmax)
-            mfu(n,kk+1) = mfub(n)
-            mfus(n,kk+1) = mfub(n)*(cpd*tu(n,kk+1)+geof(n,kk+1))
-            mfuq(n,kk+1) = mfub(n)*qu(n,kk+1)
-            mful(n,kk+1) = d_zero
-            dmfup(n,kk+1) = d_zero
-            xrain(n,kk+1) = d_zero
-            kcbot(n) = kk
-            ilab(n,kk+1) = 1
-            ktype(n) = 3
-          end if
-        end if
-      end do
-    end subroutine mcbase
-    !
-    ! This routine calculates level of free sinking for cumulus downdrafts
-    ! and specifies t,q,u and v values to produce lfs-values for cumulus
-    ! downdrafts for massflux cumulus parameterization interface
-    ! Check for negative buoyancy of air of equal parts of moist
-    ! environmental air and cloud air.
-    !
-    subroutine lfs
-      implicit none
-      integer(ik4), dimension(np) :: ikhsmin
-      real(rkx), dimension(np,nk) :: tenwb, qenwb
-      real(rkx), dimension(np) :: cond, xph, hsmin
-      logical, dimension(np) :: llo2
-      integer(ik4) :: icall, ik, ike, is, k, n
-      real(rkx) :: buo, hsk, mftop, qtest, ttest
-      !-------------------------------------
-      ! 1. Set default values for downdrafts
-      ! ------------------------------------
-      do concurrent ( n = n1:n2 )
-        lddraf(n) = .false.
-        idtop(n) = nk + 1
-        ikhsmin(n) = nk + 1
-        hsmin(n) = 1.e8_rkx
-      end do
-      if ( lmfdd ) then
-        !------------------------------------------------------------------
-        ! 2. Determine level of free sinking:
-        !    downdrafts shall start at model level of minimum of saturation
-        !    moist static energy or below respectively for every point and
-        !    proceed as follows:
-        !      (1) Determine level of minimum of hs
-        !      (2) Determine wet bulb environmental t and q
-        !      (3) Do mixing with cumulus cloud air
-        !      (4) Check for negative buoyancy
-        !      (5) If buoyancy>0 repeat (2) to (4) for next
-        !          level below
-        ! The assumption is that air of downdrafts is mixture of 50% cloud
-        ! air + 50% environmental air at wet bulb temperature (i.e. which
-        ! became saturated due to evaporation of rain and cloud water)
-        ! ----------------------------------------------------------------
-        do concurrent ( n = n1:n2 )
-          !$acc loop seq
-          do k = 3, nk - 2
-            hsk = cpd*t(n,k) + geo(n,k) + mlwt(t(n,k))*qs(n,k)
-            if ( hsk < hsmin(n) ) then
-              hsmin(n) = hsk
-              ikhsmin(n) = k
-            end if
-          end do
-        end do
-        ike = nk - 3
-        do k = 3, ike
-          ! -----------------------------------------------
-          ! 2.1 Calculate wet-bulb temperature and moisture
-          !     for environmental air
-          ! -----------------------------------------------
-          is = 0
-#ifdef STDPAR
-          do concurrent ( n = n1:n2 ) reduce(+:is)
-#else
-          do n = n1, n2
-#endif
-            tenwb(n,k) = tf(n,k)
-            qenwb(n,k) = qf(n,k)
-            xph(n) = pf(n,k)
-            llo2(n) = ldcum(n) .and.                     &
-              rfl(n) > d_zero .and. .not.lddraf(n) .and. &
-              (k < kcbot(n) .and. k > kctop(n)) .and.    &
-              k >= ikhsmin(n)
-            if ( llo2(n) ) is = is + 1
-          end do
-          if ( is == 0 ) cycle
-          ik = k
-          icall = 2
-          call moistadj(ik,xph,tenwb,qenwb,llo2,icall)
-          !-----------------------------------------------
-          ! 2.2 Do mixing of cumulus and environmental air
-          !     and check for negative buoyancy.
-          !     Then set values for downdraft at lfs.
-          ! ----------------------------------------------
-          do concurrent ( n = n1:n2 )
-            if ( llo2(n) ) then
-              ttest = d_half*(tu(n,k)+tenwb(n,k))
-              qtest = d_half*(qu(n,k)+qenwb(n,k))
-              buo = ttest*(d_one+ep1*qtest) - tf(n,k)*(d_one+ep1*qf(n,k))
-              cond(n) = qf(n,k) - qenwb(n,k)
-              mftop = -rmfdeps*mfub(n)
-              if ( buo < d_zero .and. rfl(n) > 10.0_rkx*mftop*cond(n) ) then
-                idtop(n) = k
-                lddraf(n) = .true.
-                td(n,k) = ttest
-                qd(n,k) = qtest
-                mfd(n,k) = mftop
-                mfds(n,k) = mfd(n,k)*(cpd*td(n,k)+geof(n,k))
-                mfdq(n,k) = mfd(n,k)*qd(n,k)
-                dmfdp(n,k-1) = -d_half*mfd(n,k)*cond(n)
-                rfl(n) = rfl(n) + dmfdp(n,k-1)
-              end if
-            end if
-          end do
-        end do
-      end if
-    end subroutine lfs
-    !
-    ! This routine calculates cumulus downdraft descent to produce the
-    ! vertical profiles for cumulus downdrafts (i.e. t,q,u and v and fluxes)
-    ! It calculates moist descent for entraining/detraining plume by
-    !   A) Moving air dry-adiabatically to next level below and
-    !   B) Correcting for evaporation to obtain saturated state.
-    !
-    subroutine ddrafdsc
-      implicit none
-      real(rkx), dimension(np) :: dmfen, xdmfde, cond, oentr, buoy
-      real(rkx), dimension(np) :: xph
-      logical, dimension(np) :: llo2
-      integer(ik4) :: icall, ik, is, itopde, k, n
-      real(rkx) :: buo, buoyz, buoyv, xdmfdp, dz, entr, mfdqk,  &
-                   mfdsk, qdde, qeen, rain, sdde, seen, zentr, &
-                   facbuo, dkbuo, dken
-      itopde = nk950
-      facbuo = d_half/(d_one+d_half)
-      !-------------------------------------------------------
-      ! 1. Calculate moist descent for cumulus downdraft by
-      !      (A) Calculating entrainment/detrainment rates,
-      !          including organized entrainment dependent on
-      !          negative buoyancy and assuming
-      !          linear decrease of massflux in PBL
-      !      (B) Doing moist descent - evaporative cooling
-      !          and moistening
-      !      (C) Checking for negative buoyancy and
-      !          specifying final t,q,u,v and downward fluxes
-      ! -----------------------------------------------------
-      do concurrent ( n = n1:n2 )
-        oentr(n) = d_zero
-        buoy(n) = d_zero
-        dmfen(n) = d_zero
-        xdmfde(n) = d_zero
-      end do
-      do concurrent ( n = n1:n2, k = 1:nk )
-        dmfde(n,k) = d_zero
-        mfdde_rate(n,k) = d_zero
-        kined(n,k) = d_zero
-      end do
-      do k = 3, nk
-        is = 0
-#ifdef STDPAR
-        do concurrent ( n = n1:n2 ) reduce(+:is)
-#else
-        do n = n1, n2
-#endif
-          xph(n) = pf(n,k)
-          llo2(n) = lddraf(n) .and. mfd(n,k-1) < d_zero
-          if ( llo2(n) ) is = is + 1
-        end do
-        if ( is == 0 ) cycle
-        do concurrent ( n = n1:n2 )
-          if ( llo2(n) ) then
-            entr = entrdd*mfd(n,k-1)*(geof(n,k-1)-geof(n,k))*regrav
-            dmfen(n) = entr
-            xdmfde(n) = entr
-          end if
-        end do
-        if ( k > itopde ) then
-          do concurrent ( n = n1:n2 )
-            if ( llo2(n) ) then
-              dmfen(n) = d_zero
-              xdmfde(n) = mfd(n,itopde)*(pf(n,k)-pf(n,k-1)) / &
-                (pf(n,nk+1)-pf(n,itopde))
-            end if
-          end do
-        end if
-        if ( k <= itopde ) then
-          do concurrent ( n = n1:n2 )
-            if ( llo2(n) ) then
-              dz = -(geof(n,k-1)-geof(n,k))*regrav
-              zentr = oentr(n)*dz*mfd(n,k-1)
-              dmfen(n) = dmfen(n) + zentr
-              dmfen(n) = max(dmfen(n),0.3_rkx*mfd(n,k-1))
-              dmfen(n) = max(dmfen(n), &
-                -0.75_rkx*mfu(n,k)-(mfd(n,k-1)-xdmfde(n)))
-              dmfen(n) = min(dmfen(n),d_zero)
-            end if
-            dmfde(n,k) = dmfen(n) - xdmfde(n)
-          end do
-        end if
-        do concurrent ( n = n1:n2 )
-          if ( llo2(n) ) then
-            mfd(n,k) = mfd(n,k-1) + dmfen(n) - xdmfde(n)
-            seen = (cpd*tf(n,k-1)+geof(n,k-1))*dmfen(n)
-            qeen = qf(n,k-1)*dmfen(n)
-            sdde = (cpd*td(n,k-1)+geof(n,k-1))*xdmfde(n)
-            qdde = qd(n,k-1)*xdmfde(n)
-            mfdsk = mfds(n,k-1) + seen - sdde
-            mfdqk = mfdq(n,k-1) + qeen - qdde
-            qd(n,k) = mfdqk*(d_one/min(-cmfcmin,mfd(n,k)))
-            td(n,k) = (mfdsk*(d_one/min(-cmfcmin,mfd(n,k)))-geof(n,k))*rcpd
-            td(n,k) = min(400.0_rkx,td(n,k))
-            td(n,k) = max(100.0_rkx,td(n,k))
-            cond(n) = qd(n,k)
-          end if
-        end do
-        ik = k
-        icall = 2
-        call moistadj(ik,xph,td,qd,llo2,icall)
-        do concurrent ( n = n1:n2 )
-          if ( llo2(n) ) then
-            cond(n) = cond(n) - qd(n,k)
-            buo = td(n,k)*(d_one+ep1*qd(n,k)) - tf(n,k)*(d_one+ep1*qf(n,k))
-            if ( rfl(n) > d_zero .and. mfu(n,k) > d_zero ) then
-              rain = rfl(n)/mfu(n,k)
-              buo = buo - td(n,k)*rain
-            end if
-            if ( buo >= d_zero .or. rfl(n)<=(mfd(n,k)*cond(n)) ) then
-              mfd(n,k) = d_zero
-              buo = d_zero
-            end if
-            mfds(n,k) = (cpd*td(n,k)+geof(n,k))*mfd(n,k)
-            mfdq(n,k) = qd(n,k)*mfd(n,k)
-            xdmfdp = -mfd(n,k)*cond(n)
-            dmfdp(n,k-1) = xdmfdp
-            rfl(n) = rfl(n) + xdmfdp
-            ! Compute organized entrainment for use at next level
-            buoyz = buo/tf(n,k)
-            buoyv = buoyz
-            buoyz = min(buoyz,d_zero)
-            dz = -(geo(n,k-1)-geo(n,k))
-            buoy(n) = buoy(n) + buoyz*dz
-            oentr(n) = egrav*buoyz*d_half/(d_one+buoy(n))
-            ! Store downdraught detrainment rates
-            mfdde_rate(n,k) = -xdmfde(n)
-            ! Compute kinetic energy
-            dkbuo = dz*buoyv*facbuo
-            if ( dmfen(n) < d_zero ) then
-              dken = min(d_one,(d_one+cwdrag)*dmfen(n) / &
-                     min(-cmfcmin,mfd(n,k-1)))
-            else
-              dken = min(d_one,(d_one+cwdrag)*xdmfde(n) / &
-                     min(-cmfcmin,mfd(n,k-1)))
-            end if
-            kined(n,k) = max(d_zero, &
-              (kined(n,k-1)*(d_one-dken)+dkbuo)/(d_one+dken))
-          end if
-        end do
-      end do
-    end subroutine ddrafdsc
-    !
-    ! Updates t and q tendencies, precipitation rates, global diagnostics
-    !
-    subroutine dtdqc
-      implicit none
-      logical :: lltest
-      integer(ik4) :: k, ik, n
-      real(rkx) :: ximp, xalv, zp, gq, gs, gh, zs, zq
-      real(rkx), dimension(np,nk) :: xmfus, xmfuq, xmfds, xmfdq
-      real(rkx), dimension(:,:), allocatable :: dtdt, dqdt, dp
-      real(rkx), dimension(:,:), allocatable :: bb, r1, r2
-      logical, dimension(:,:), allocatable :: llcumbas
-      !-----------------------------
-      ! 1. Setup and initializations
-      ! ----------------------------
-      ximp = d_one - rmfsoltq
-      allocate (dtdt(np,nk))
-      allocate (dqdt(np,nk))
-      allocate (dp(np,nk))
-      do concurrent ( n = n1:n2, k = 1:nk )
-        penth(n,k) = d_zero
-      end do
-      ! Zero detrained liquid water if diagnostic cloud scheme to be used
-      ! This means that detrained liquid water will be evaporated in the
-      ! cloud environment and not fed directly into a cloud liquid water
-      ! variable
-      lltest = .not. lepcld
-      if ( lltest ) then
-        do concurrent ( n = n1:n2, k = 1:nk )
-          lude(n,k) = d_zero
-        end do
-      end if
-      do concurrent ( n = n1:n2, k = 1:nk )
-        if ( ldcum(n) ) then
-          dp(n,k) = egrav/(pf(n,k+1)-pf(n,k))
-          xmfus(n,k) = mfus(n,k)
-          xmfds(n,k) = mfds(n,k)
-          xmfuq(n,k) = mfuq(n,k)
-          xmfdq(n,k) = mfdq(n,k)
-        end if
-      end do
-      if ( rmfsoltq > d_zero ) then
-        !-------------------------------------------
-        ! 2. Recompute convective fluxes if implicit
-        ! ------------------------------------------
-        do concurrent ( n = n1:n2, k = itopm2:nk )
-          ik = k - 1
-          if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-            ! Compute interpolating coefficients GS and GQ
-            ! for half-level values
-            gq = (qf(n,k)-q(n,ik))/qs(n,k)
-            gh = cpd*t(n,k) + geo(n,k)
-            gs = (cpd*(tf(n,k)-t(n,ik)) + geof(n,k)-geo(n,ik))/gh
-            ! Half-level environmental values for ZS and ZQ
-            zs = cpd*(ximp*t(n,ik)+gs*t(n,k)) + geo(n,ik) + gs*geo(n,k)
-            zq = ximp*q(n,ik) + gq*qs(n,k)
-            xmfus(n,k) = mfus(n,k) - mfu(n,k)*zs
-            xmfuq(n,k) = mfuq(n,k) - mfu(n,k)*zq
-            if ( lddraf(n) .and. k >= idtop(n) ) then
-              xmfds(n,k) = mfds(n,k) - mfd(n,k)*zs
-              xmfdq(n,k) = mfdq(n,k) - mfd(n,k)*zq
-            end if
-          end if
-        end do
-      end if
-      !----------------------
-      ! 3. Compute tendencies
-      ! ---------------------
-      do k = itopm2, nk
-        if ( k < nk ) then
-          do concurrent ( n = n1:n2 )
-            xalv = mlwt(t(n,k))
-            if ( ldcum(n) ) then
-              dtdt(n,k) = dp(n,k)*rcpd *                      &
-                (xmfus(n,k+1)-xmfus(n,k)+xmfds(n,k+1) -       &
-                 xmfds(n,k)+wlhf*lglac(n,k)-wlhf*dpmel(n,k) - &
-                 xalv*(mful(n,k+1)-mful(n,k)-lude(n,k)-dmfup(n,k)))
-              dqdt(n,k) = dp(n,k)*(xmfuq(n,k+1) -                &
-                xmfuq(n,k)+xmfdq(n,k+1)-xmfdq(n,k)+mful(n,k+1) - &
-                mful(n,k)-lude(n,k)-dmfup(n,k))
-            end if
-          end do
-        else
-          do concurrent ( n = n1:n2 )
-            xalv = mlwt(t(n,k))
-            if ( ldcum(n) ) then
-              dtdt(n,k) = -dp(n,k)*rcpd *                &
-                (xmfus(n,k)+xmfds(n,k)+wlhf*dpmel(n,k) - &
-                 xalv*(mful(n,k)+dmfup(n,k)))
-              dqdt(n,k) = -dp(n,k)*(xmfuq(n,k) + &
-                xmfdq(n,k)+(mful(n,k)+dmfup(n,k)))
-            end if
-          end do
-        end if
-      end do
-      if ( abs(rmfsoltq) < almostzero ) then
-        !----------------------
-        ! 3.1 Update tendencies
-        ! ---------------------
-        do concurrent ( n = n1:n2, k = itopm2:nk )
-          if ( ldcum(n) ) then
-            tent(n,k) = tent(n,k) + dtdt(n,k)
-            tenq(n,k) = tenq(n,k) + dqdt(n,k)
-            penth(n,k) = dtdt(n,k)*cpd
-          end if
-        end do
-      else
-        !----------------------
-        ! 3.2 Implicit solution
-        ! ---------------------
-        ! Fill bi-diagonal Matrix vectors A=k-1, B=k, C=k+1;
-        ! DTDT and DQDT correspond to the RHS ("constants") of the equation
-        ! The solution is in R1 and R2
-        allocate (bb(np,nk), source=1.0_rkx)
-        allocate (r1(np,nk), source=0.0_rkx)
-        allocate (r2(np,nk), source=0.0_rkx)
-        allocate (llcumbas(np,nk), source=.false.)
-        do concurrent ( n = n1:n2, k = 1:nk )
-          xmfus(n,k) = d_zero
-        end do
-        ! Fill vectors A, B and RHS
-        do concurrent ( n = n1:n2, k = itopm2:nk )
-          ik = k + 1
-          llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
-          if ( llcumbas(n,k) ) then
-            zp = rmfsoltq*dp(n,k)*dtc
-            xmfus(n,k) = -zp*(mfu(n,k)+mfd(n,k))
-            dtdt(n,k) = dtdt(n,k)*dtc + t(n,k)
-            dqdt(n,k) = dqdt(n,k)*dtc + q(n,k)
-            if ( k < nk ) then
-              bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
-            else
-              bb(n,k) = d_one
-            end if
-          end if
-        end do
-        call solver(kctop,llcumbas,xmfus,bb,dtdt,r1)
-        call solver(kctop,llcumbas,xmfus,bb,dqdt,r2)
-        ! Compute tendencies
-        do concurrent ( n = n1:n2, k = itopm2:nk )
-          if ( llcumbas(n,k) ) then
-            tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))/dtc
-            tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))/dtc
-            penth(n,k) = (r1(n,k)-t(n,k))/dtc
-          end if
-        end do
-        deallocate (llcumbas)
-        deallocate (r2)
-        deallocate (r1)
-        deallocate (bb)
-      end if
-      deallocate (dp)
-      deallocate (dqdt)
-      deallocate (dtdt)
-    end subroutine dtdqc
-    !
-    ! Updates u and v tendencies, with a global diagnostic of dissipation
-    ! Explicit upstream and implicit solution of vertical advection depending
-    ! on value of rmfsoluv:
-    !       0 = Explicit
-    !     0-1 = Semi-Implicit
-    !     >=1 = Implicit
-    !
-    ! For explicit solution: only one single iteration
-    ! For implicit solution: first implicit solver, then explicit solver
-    ! to correct tendencies below cloud base
-    !
-    subroutine dudvx(mfu,mfd)
-      implicit none
-      real(rkx), dimension(np,nk), intent(in) :: mfu   ! Mass Flux Updraft
-      real(rkx), dimension(np,nk), intent(in) :: mfd   ! Mass Flux Downdraft
-      real(rkx), dimension(np,nk) :: uen, ven, mfuu, mfdu, mfuv, mfdv
-      integer(ik4) :: ik, ikb, k, n
-      real(rkx) :: zp, ximp
-      real(rkx), dimension(:,:), allocatable :: dudt, dvdt, dp
-      real(rkx), dimension(:,:), allocatable :: bb, r1, r2
-      logical, dimension(:,:), allocatable :: llcumbas
-      ximp = d_one - rmfsoluv
-      allocate (dudt(np,nk))
-      allocate (dvdt(np,nk))
-      allocate (dp(np,nk))
-      do concurrent ( n = n1:n2, k = 1:nk )
-        if ( ldcum(n) ) then
-          uen(n,k) = u(n,k)
-          ven(n,k) = v(n,k)
-          dp(n,k) = egrav/(pf(n,k+1)-pf(n,k))
-        end if
-      end do
-      !--------------------------------------------------
-      ! 1. Calculate fluxes and update u and v tendencies
-      ! -------------------------------------------------
-      do concurrent ( n = n1:n2, k = itopm2:nk )
-        ik = k - 1
-        if ( ldcum(n) ) then
-          mfuu(n,k) = mfu(n,k) * (uu(n,k) - ximp*uen(n,ik))
-          mfuv(n,k) = mfu(n,k) * (vu(n,k) - ximp*ven(n,ik))
-          mfdu(n,k) = mfd(n,k) * (ud(n,k) - ximp*uen(n,ik))
-          mfdv(n,k) = mfd(n,k) * (vd(n,k) - ximp*ven(n,ik))
-        end if
-      end do
-      ! linear fluxes below cloud
-      if ( abs(rmfsoluv) < almostzero ) then
-        do concurrent ( n = n1:n2, k = itopm2:nk )
-          if ( ldcum(n) .and. k > kcbot(n) ) then
-            ikb = kcbot(n)
-            zp = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ikb)))
-            if ( ktype(n) == 3 ) zp = zp*zp
-            mfuu(n,k) = mfuu(n,ikb)*zp
-            mfuv(n,k) = mfuv(n,ikb)*zp
-            mfdu(n,k) = mfdu(n,ikb)*zp
-            mfdv(n,k) = mfdv(n,ikb)*zp
-          end if
-        end do
-      end if
-      ! ----------------------
-      ! 1.2 Compute tendencies
-      ! ----------------------
-      do concurrent ( n = n1:n2, k = itopm2:nk )
-        if ( k < nk ) then
-          ik = k + 1
-          if ( ldcum(n) ) then
-            dudt(n,k) = dp(n,k)*(mfuu(n,ik)-mfuu(n,k)+mfdu(n,ik)-mfdu(n,k))
-            dvdt(n,k) = dp(n,k)*(mfuv(n,ik)-mfuv(n,k)+mfdv(n,ik)-mfdv(n,k))
-          end if
-        else
-          if ( ldcum(n) ) then
-            dudt(n,k) = -dp(n,k)*(mfuu(n,k)+mfdu(n,k))
-            dvdt(n,k) = -dp(n,k)*(mfuv(n,k)+mfdv(n,k))
-          end if
-        end if
-      end do
-      if ( abs(rmfsoluv) < almostzero ) then
-        !----------------------
-        ! 1.3 Update tendencies
-        ! ---------------------
-        do concurrent ( n = n1:n2, k = itopm2:nk )
-          if ( ldcum(n) ) then
-            tenu(n,k) = tenu(n,k) + dudt(n,k)
-            tenv(n,k) = tenv(n,k) + dvdt(n,k)
-          end if
-        end do
-      else
-        !------------------------------------------------------------------
-        ! 1.4 Implicit solution
-        ! Fill bi-diagonal Matrix vectors A=k-1, B=k; reuse A and B
-        ! DUDT and DVDT correspond to the RHS ("constants") of the equation
-        ! The solution is in R1 and R2
-        ! -----------------------------------------------------------------
-        allocate (bb(np,nk), source=1.0_rkx)
-        allocate (r1(np,nk), source=0.0_rkx)
-        allocate (r2(np,nk), source=0.0_rkx)
-        allocate (llcumbas(np,nk), source=.false.)
-        do concurrent ( n = n1:n2, k = 1:nk )
-          mfuu(n,k) = d_zero
-        end do
-        ! Fill vectors A, B and RHS
-        do concurrent ( n = n1:n2, k = itopm2:nk )
-          ik = k + 1
-          llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
-          if ( llcumbas(n,k) ) then
-            zp = rmfsoluv*dp(n,k)*dtc
-            mfuu(n,k) = -zp*(mfu(n,k)+mfd(n,k))
-            dudt(n,k) = dudt(n,k)*dtc + uen(n,k)
-            dvdt(n,k) = dvdt(n,k)*dtc + ven(n,k)
-            if ( k < nk ) then
-              bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
-            else
-              bb(n,k) = d_one
-            end if
-          end if
-        end do
-        call solver(kctop,llcumbas,mfuu,bb,dudt,r1)
-        call solver(kctop,llcumbas,mfuu,bb,dvdt,r2)
-        do concurrent ( n = n1:n2, k = itopm2:nk )
-          if ( llcumbas(n,k) ) then
-            tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))/dtc
-            tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))/dtc
-          end if
-        end do
-        deallocate (llcumbas)
-        deallocate (r2)
-        deallocate (r1)
-        deallocate (bb)
-      end if
-      deallocate (dp)
-      deallocate (dvdt)
-      deallocate (dudt)
-    end subroutine dudvx
-    !
-    ! This routine does the final calculation of convective fluxes in the
-    ! cloud layer and in the subcloud layer
-    !
-    subroutine cfluxes
-      implicit none
-      real(rkx), dimension(np) :: rhebc
-      integer(ik4) :: ik, ikb, k, n
-      integer(ik4), dimension(np) :: idbas
-      logical :: llddraf
-      real(rkx) :: alfaw, cons1, cons1a, cons2, denom, drfl, &
-                   drfl1, fac, pdr, pds, xrfl, xrfln, rmin,  &
-                   rnew, snmlt, zp, rcpecons, rcucov
-      !-------------------
-      ! 0. Setup constants
-      ! ------------------
-      cons1a = cpd/(wlhf*egrav*rtaumel)
-      cons2 = rmfcfl/(egrav*dtc)
-      !-------------------------------------
-      ! 1. Determine final convective fluxes
-      ! ------------------------------------
-      do concurrent ( n = n1:n2 )
-        rain(n) = d_zero
-        if ( .not.ldcum(n) .or. idtop(n) < kctop(n) ) lddraf(n) = .false.
-        if ( .not.ldcum(n) ) ktype(n) = 0
-        idbas(n) = nk
-        if ( ldland(n) ) then
-          rhebc(n) = rhebc_lnd
-        else
-          rhebc(n) = rhebc_ocn
-        end if
-      end do
-      ! To get identical results force itopm2 to 2
-      itopm2 = 2
-      do k = itopm2, nk
-        ikb = min(k+1,nk)
-        do concurrent ( n = n1:n2 )
-          mflxr(n,k) = d_zero
-          mflxs(n,k) = d_zero
-          dpmel(n,k) = d_zero
-          if ( ldcum(n) .and. k >= kctop(n) ) then
-            mfus(n,k) = mfus(n,k) - mfu(n,k)*(cpd*tf(n,k)+geof(n,k))
-            mfuq(n,k) = mfuq(n,k) - mfu(n,k)*qf(n,k)
-            lglac(n,k) = mfu(n,k)*lglac(n,k)
-            llddraf = lddraf(n) .and. k >= idtop(n)
-            if ( llddraf ) then
-              mfds(n,k) = mfds(n,k) - mfd(n,k)*(cpd*tf(n,k)+geof(n,k))
-              mfdq(n,k) = mfdq(n,k) - mfd(n,k)*qf(n,k)
-            else
-              mfd(n,k) = d_zero
-              mfds(n,k) = d_zero
-              mfdq(n,k) = d_zero
-              dmfdp(n,k-1) = d_zero
-            end if
-            if ( llddraf .and.           &
-                 mfd(n,k) < d_zero .and. &
-                 abs(mfd(n,ikb)) < almostzero ) then
-              idbas(n) = k
-            end if
-          else
-            mfu(n,k) = d_zero
-            mfd(n,k) = d_zero
-            mfus(n,k) = d_zero
-            mfds(n,k) = d_zero
-            mfuq(n,k) = d_zero
-            mfdq(n,k) = d_zero
-            mful(n,k) = d_zero
-            lglac(n,k) = d_zero
-            dmfup(n,k-1) = d_zero
-            dmfdp(n,k-1) = d_zero
-            lude(n,k-1) = d_zero
-          end if
-        end do
-      end do
-      do concurrent( n = n1:n2 )
-        mflxr(n,nk+1) = d_zero
-        mflxs(n,nk+1) = d_zero
-      end do
-      !----------------------------------
-      ! 1.1 Scale fluxes below cloud base
-      !      linear dcrease
-      ! ---------------------------------
-      do n = n1, n2
-        if ( ldcum(n) ) then
-          ikb = kcbot(n)
-          ik = ikb + 1
-          zp = ((pf(n,nk+1)-pf(n,ik))/(pf(n,nk+1)-pf(n,ikb)))
-          if ( ktype(n) == 3 ) zp = zp*zp
-          mfu(n,ik) = mfu(n,ikb)*zp
-          ! passing a scalar to avoid a compiler bug with OpenACC/Stdpar
-          tfl=tf(n,ikb)
-          mfus(n,ik) = (mfus(n,ikb) - mlwt(tfl) * mful(n,ikb))*zp
-          !mfus(n,ik) = (mfus(n,ikb) - mlwt(tf(n,ikb)) * mful(n,ikb))*zp
-          mfuq(n,ik) = (mfuq(n,ikb)+mful(n,ikb))*zp
-          mful(n,ik) = d_zero
-        end if
-      end do
-      do k = itopm2, nk
-        do concurrent ( n = n1:n2 )
-          if ( ldcum(n) .and. k > kcbot(n)+1 ) then
-            ikb = kcbot(n) + 1
-            zp = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ikb)))
-            if ( ktype(n) == 3 ) zp = zp*zp
-            mfu(n,k) = mfu(n,ikb)*zp
-            mfus(n,k) = mfus(n,ikb)*zp
-            mfuq(n,k) = mfuq(n,ikb)*zp
-            mful(n,k) = d_zero
-          end if
-          ik = idbas(n)
-          llddraf = lddraf(n) .and. k > ik .and. ik < nk
-          if ( llddraf .and. ik == kcbot(n)+1 ) then
-            zp = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ik)))
-            if ( ktype(n) == 3 ) zp = zp*zp
-            mfd(n,k) = mfd(n,ik)*zp
-            mfds(n,k) = mfds(n,ik)*zp
-            mfdq(n,k) = mfdq(n,ik)*zp
-            mfdde_rate(n,k) = -(mfd(n,k-1)-mfd(n,k))
-          else if ( llddraf .and. ik /= kcbot(n)+1 .and. k == ik+1 ) then
-            mfdde_rate(n,k) = -(mfd(n,k-1)-mfd(n,k))
-          end if
-        end do
-      end do
-      !-----------------------------------
-      ! 2. Calculate rain/snow fall rates
-      !    Calculate melting of snow
-      !    Calculate evaporation of precip
-      ! ----------------------------------
-      do k = itopm2, nk
-        do concurrent ( n = n1:n2 )
-          if ( ldcum(n) .and. k >= kctop(n)-1 ) then
-            rain(n) = rain(n) + dmfup(n,k)
-            if ( mflxs(n,k) > d_zero .and. t(n,k) > tzero ) then
-              cons1 = cons1a*(d_one+d_half*(t(n,k)-tzero))
-              fac = cons1*(pf(n,k+1)-pf(n,k))
-              snmlt = min(mflxs(n,k),fac*(t(n,k)-tzero))
-              dpmel(n,k) = snmlt
-              qs(n,k) = fesat(t(n,k)-snmlt/fac)/ph(n,k)
-            end if
-            alfaw = xalpha(t(n,k))
-            ! no liquid precipitation above melting level
-            if ( t(n,k) < tzero .and. alfaw > d_zero ) then
-              lglac(n,k) = lglac(n,k)+alfaw*(dmfup(n,k)+dmfdp(n,k))
-              alfaw = d_zero
-            end if
-            mflxr(n,k+1) = mflxr(n,k) + alfaw*(dmfup(n,k)+dmfdp(n,k))+dpmel(n,k)
-            mflxs(n,k+1) = mflxs(n,k) + &
-                      (d_one-alfaw)*(dmfup(n,k)+dmfdp(n,k)) - dpmel(n,k)
-            if ( mflxr(n,k+1)+mflxs(n,k+1) < d_zero ) then
-              dmfdp(n,k) = -(mflxr(n,k)+mflxs(n,k)+dmfup(n,k))
-              mflxr(n,k+1) = d_zero
-              mflxs(n,k+1) = d_zero
-              dpmel(n,k) = d_zero
-            else if ( mflxr(n,k+1) < d_zero ) then
-              mflxs(n,k+1) = mflxs(n,k+1) + mflxr(n,k+1)
-              mflxr(n,k+1) = d_zero
-            else if ( mflxs(n,k+1) < d_zero ) then
-              mflxr(n,k+1) = mflxr(n,k+1) + mflxs(n,k+1)
-              mflxs(n,k+1) = d_zero
-            end if
-          end if
-        end do
-      end do
-      do k = itopm2, nk
-        do concurrent ( n = n1:n2 )
-          if ( ldcum(n) .and. k >= kcbot(n) ) then
-            xrfl = mflxr(n,k) + mflxs(n,k)
-            if ( xrfl > almostzero ) then
-              rcpecons = merge(rcpec_lnd,rcpec_ocn,ldland(n))
-              rcucov = merge(rcuc_lnd,rcuc_ocn,ldland(n))
-              drfl1 = rcpecons * max(d_zero,qs(n,k)-q(n,k))*rcucov * &
-                      (sqrt(pf(n,k)/pf(n,nk+1)) / &
-                      5.09e-3_rkx*xrfl/rcucov)**0.5777_rkx*(pf(n,k+1)-pf(n,k))
-              rnew = xrfl - drfl1
-              rmin = xrfl - rcucov*max(d_zero,rhebc(n)*qs(n,k) - &
-                      q(n,k))*cons2*(pf(n,k+1)-pf(n,k))
-              rnew = max(rnew,rmin)
-              xrfln = max(rnew,d_zero)
-              drfl = min(d_zero,xrfln-xrfl)
-              alfaw = xalpha(t(n,k))
-              if ( t(n,k) < tzero ) alfaw = d_zero
-              pdr = alfaw*dmfdp(n,k)
-              pds = (d_one-alfaw)*dmfdp(n,k)
-              denom = d_one/max(almostzero,mflxr(n,k)+mflxs(n,k))
-              mflxr(n,k+1) = mflxr(n,k) + pdr + dpmel(n,k) + &
-                             drfl*mflxr(n,k)*denom
-              mflxs(n,k+1) = mflxs(n,k) + pds - dpmel(n,k) + &
-                             drfl*mflxs(n,k)*denom
-              dmfup(n,k) = dmfup(n,k) + drfl
-              if ( mflxr(n,k+1)+mflxs(n,k+1) < d_zero ) then
-                dmfup(n,k) = dmfup(n,k)-(mflxr(n,k+1)+mflxs(n,k+1))
-                mflxr(n,k+1) = d_zero
-                mflxs(n,k+1) = d_zero
-                dpmel(n,k) = d_zero
-              else if ( mflxr(n,k+1) < d_zero ) then
-                mflxs(n,k+1) = mflxs(n,k+1) + mflxr(n,k+1)
-                mflxr(n,k+1) = d_zero
-              else if ( mflxs(n,k+1) < d_zero ) then
-                mflxr(n,k+1) = mflxr(n,k+1) + mflxs(n,k+1)
-                mflxs(n,k+1) = d_zero
-              end if
-            else
-              mflxr(n,k+1) = d_zero
-              mflxs(n,k+1) = d_zero
-              dmfdp(n,k) = d_zero
-              dpmel(n,k) = d_zero
-            end if
-          end if
-        end do
-      end do
-    end subroutine cfluxes
+    end block initcum
+    !---------------------------
+    ! 3. Cloud base calculations
+    ! --------------------------
+    ! ---------------------------------
+    !   (A) Determine cloud base values
+    ! ---------------------------------
     !
     ! This routine calculates cloud base fields, cloud base height and cloud
     ! top height. Produce cloud base and cloud top values for parametrization
@@ -7071,8 +4856,7 @@ module mod_cu_tiedtke
     ! Lift surface air dry-adiabatically to cloud top
     ! (entraining plume, with entrainment proportional to (1/z))
     !
-    subroutine cloudbase
-      implicit none
+    cloudbase: block
       integer(ik4), dimension(np) :: ictop, icbot, ibotsc, iidpl
       integer(ik4), dimension(np,nk) :: iilab
       logical, dimension(np) :: ll_ldbase, llgo_on, lldeep, lldcum, &
@@ -7521,7 +5305,2152 @@ module mod_cu_tiedtke
         end do
         cape(n) = mymax
       end do
-    end subroutine cloudbase
+    end block cloudbase
+    !-----------------------------------------------------------
+    !   (B) Determine total moisture convergence and
+    !       decide on type of cumulus convection on the basis of
+    !       the depth of the convection
+    !           deep    if cloud depth > 200mb
+    !           shallow if cloud depth < 200mb
+    ! ----------------------------------------------------------
+    ! Calculate column and sub cloud layer moisture convergence
+    ! and sub cloud layer moist static energy convergence
+    do concurrent ( n = n1:n2 )
+      dqcv(n) = d_zero
+      dhpbl(n) = d_zero
+      idtop(n) = 0
+    end do
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = nk060, nk
+        dqcv(n) = dqcv(n) + max(d_zero,tenq(n,k)) * (pf(n,k+1)-pf(n,k))
+        if ( ldcum(n) .and. k >= kcbot(n) ) then
+          dhpbl(n) = dhpbl(n) + &
+            (wlhv*tenq(n,k)+cpd*tent(n,k))*(pf(n,k+1)-pf(n,k))
+        end if
+      end do
+    end do
+    !-----------------------------------------------------
+    ! Estimate cloud height for entrainment/detrainment
+    ! Calculations and initial determination of cloud type
+    ! ----------------------------------------------------
+    ! Specify initial cloud type
+    !
+    do concurrent ( n = n1:n2 )
+      if ( ldcum(n) ) then
+        ikb = kcbot(n)
+        itopm2 = ictop0(n)
+        pbmpt = pf(n,ikb) - pf(n,itopm2)
+        if ( pbmpt >= rdepths ) then
+          ktype(n) = 1
+        else
+          ktype(n) = 2
+        end if
+      else
+        ktype(n) = 0
+      end if
+    end do
+    !-----------------------------------------------------------------------
+    ! (C) calculate initial updraught mass flux and set lateral mixing rates
+    !     for deep convection assume it is 10% of maximum value
+    !     which is determined by the thickness of the layer and timestep
+    !     for shallow convection calculated assuming a balance of moist
+    !     static energy in the sub-cloud layer (ignores present of
+    !     downdraughts)
+    ! ----------------------------------------------------------------------
+    if ( lmfwstar ) then
+      do concurrent ( n = n1:n2 )
+        if ( ldcum(n) ) then
+          ikb = kcbot(n)
+          dz = max(d_zero,min(1.5e3_rkx,(geof(n,ikb)-geof(n,nk+1))*regrav))
+          mf_shal(n) = 0.07_rkx*(egrav/t(n,nk)*dz *      &
+                       max(d_zero,-ahfs(n,nk+1)*rcpd - &
+                       ep1*t(n,nk)*qhfl(n,nk+1)))**.3333_rkx
+          mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
+          mf_shal(n) = min(mf_shal(n),mfmax)
+        end if
+      end do
+    end if
+    do concurrent ( n = n1:n2 )
+      if ( ldcum(n) ) then
+        ikb = kcbot(n)
+        mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
+        !     deep convection
+        if ( ktype(n) == 1 ) then
+          mfub(n) = mfmax*0.1_rkx
+        else if ( ktype(n) == 2 ) then
+          !       shallow convection
+          qumqe = qu(n,ikb) + lu(n,ikb) - qf(n,ikb)
+          dqmin = max(0.01_rkx*qf(n,ikb),1.0e-10_rkx)
+          dh = cpd*(tu(n,ikb)-tf(n,ikb)) + wlhv*qumqe
+          dh = egrav*max(dh,1.e5_rkx*dqmin)
+          if ( dhpbl(n) > d_zero ) then
+            mfub(n) = dhpbl(n)/dh
+            mfub(n) = min(mfub(n),mfmax)
+          else
+            mfub(n) = mfmax*0.1_rkx
+            ldcum(n) = .false.
+          end if
+          if ( lmfwstar ) mfub(n) = mf_shal(n)
+        end if
+      else
+        ! No buoyancy cloud base from surface: set cloud base mass flux
+        ! and mixing rate to default value for safety
+        mfub(n) = d_zero
+      end if
+    end do
+    !-----------------------------------------------
+    ! 4. Determine cloud ascent for entraining plume
+    ! ----------------------------------------------
+    !  (B) Do ascent in absence of downdrafts
+    ! --------------------------------------------
+    !
+    ! This routine does the calculations for cloud ascents, i.e. produce
+    ! cloud ascents vertical profiles of T,Q,L,U AND V and corresponding
+    ! fluxes as well as precipitation rates.
+    ! Lift surface air dry-adiabatically to cloud base and then calculate
+    ! moist ascent for entraining/detraining plume.
+    ! Entrainment and detrainment rates differ for shallow and deep cumulus
+    ! convection. In case there is no penetrative or shallow convection
+    ! check for possibility of mid level convection.
+    !
+    ascent: block
+      real(rkx), dimension(np,nk) :: buo
+      real(rkx), dimension(np) :: ndmfen, ndmfde, qold, luold, precip
+      real(rkx), dimension(np) :: dpmean
+      real(rkx), dimension(np) :: zoentr, xph
+      logical, dimension(np) :: llflag, llflaguv, llo1
+      logical :: llo3
+      integer(ik4) :: icall, ik, is, k, n, ikb
+      integer(ik4) :: nll, nlm, mynlm
+      integer(ik4), dimension(np) :: nlx
+      real(rkx) :: cldmax, cprc2, cwifrac, alfaw, bc,   &
+                   be, buoc, zc, cbf, cons2, zd, zdfi, dkbuo, &
+                   dken, dnoprc, zdt, fac, facbuo, zint,       &
+                   kedke, lcrit, leen, lnew, mfmax, mftest,     &
+                   mfulk, mfun, mfuqk, mfusk, prcdgw, prcon,    &
+                   qeen, qude, rnew, rold, scde, seen, &
+                   zvi, zvv, zvw, zwu, zco, arg, entrpen
+      real(rkx) :: change, zxs, zxe
+      logical, dimension(np) :: llklab
+      !----------------------
+      ! 1. Specify parameters
+      ! ---------------------
+      cons2 = rmfcfl/(egrav*dtc)
+      facbuo = d_half/(d_one+d_half)
+      cldmax = 5.e-3_rkx
+      cwifrac = d_half
+      cprc2 = d_half
+      !----------------------
+      ! 2. Set default values
+      ! ---------------------
+      llo3 = .false.
+      do concurrent ( n = n1:n2 )
+        luold(n) = d_zero
+        if ( .not. ldcum(n) ) then
+          kcbot(n) = -1
+          mfub(n) = d_zero
+          qu(n,nk) = d_zero
+          ktype(n) = 0
+        end if
+        wmean(n) = d_zero
+        dpmean(n) = d_zero
+        zoentr(n) = d_zero
+      end do
+      ! Initalize various quantities
+      ! Note that liquid water and kinetic energy at cloud base is preserved
+      do concurrent ( n = n1:n2 )
+        llklab(n) = .false.
+        if ( .not. ldcum(n) .or. ktype(n) == 3 ) llklab(n) = .true.
+      end do
+      do concurrent ( n = n1:n2, k = 1:nk )
+        if ( k /= kcbot(n) ) lu(n,k) = d_zero
+        kineu(n,k) = d_zero
+        mfu(n,k) = d_zero
+        mfus(n,k) = d_zero
+        mfuq(n,k) = d_zero
+        mful(n,k) = d_zero
+        lude(n,k) = d_zero
+        lglac(n,k) = d_zero
+        dmfup(n,k) = d_zero
+        xrain(n,k) = d_zero
+        buo(n,k) = d_zero
+        if ( llklab(n) ) ilab(n,k) = 0
+        dmfen(n,k) = d_zero
+        mfude_rate(n,k) = d_zero
+      end do
+      do concurrent ( n = n1:n2 )
+        !$acc loop seq
+        do k = 1, nk
+          if ( .not. ldcum(n) .and. ph(n,k) < 4.0e4_rkx ) ictop0(n) = k
+        end do
+      end do
+      do concurrent ( n = n1:n2 )
+        if ( ktype(n) == 3 ) ldcum(n) = .false.
+      end do
+      !-----------------------------------------
+      ! 3. Initialize values at cloud base level
+      ! ----------------------------------------
+      do concurrent ( n = n1:n2 )
+        kctop(n) = kcbot(n)
+        if ( ldcum(n) ) then
+          ikb = kcbot(n)
+          kineu(n,ikb) = d_half*wubase(n)**2
+          mfu(n,ikb) = mfub(n)
+          mfus(n,ikb) = mfub(n)*(cpd*tu(n,ikb)+geof(n,ikb))
+          mfuq(n,ikb) = mfub(n)*qu(n,ikb)
+          mful(n,ikb) = mfub(n)*lu(n,ikb)
+        end if
+      end do
+      !-------------------------------------------------------
+      ! 4. Do ascent: subcloud layer (ilab=1) ,clouds (ilab=2)
+      !    By doing first dry-adiabatic ascent and then
+      !    by adjusting t,q and l accordingly, then check for
+      !    buoyancy and set flags accordingly
+      ! ------------------------------------------------------
+      do k = nk - 1, 3, -1
+        ! Specify cloud base values for midlevel convection
+        ! in case there is not already convection
+        ! ----------------------------------------------------
+        ik = k
+        call mcbase(ik)
+        is = 0
+        nlm = 0
+        do concurrent ( n = n1:n2 )
+          llflag(n) = .false.
+          precip(n) = d_zero
+          llo1(n) = .false.
+          is = is + ilab(n,k+1)
+          if ( ilab(n,k+1) == 0 ) ilab(n,k) = 0
+          if ( (ldcum(n) .and. ilab(n,k+1) == 2) .or.   &
+               (ktype(n) == 3 .and. ilab(n,k+1) == 1) ) then
+            llflag(n) = .true.
+            !$acc atomic capture
+            nlm = nlm + 1
+            mynlm = nlm
+            !$acc end atomic
+            nlx(mynlm) = n
+          end if
+          if ( ilab(n,k+1) > 0 ) then
+            llflaguv(n) = .true.
+          else
+            llflaguv(n) = .false.
+          end if
+          xph(n) = ph(n,k)
+          if ( ktype(n) == 3 .and. k == kcbot(n) ) then
+            mfmax = (pf(n,k)-pf(n,k-1))*cons2*rmflic + rmflia
+            if ( mfub(n) > mfmax ) then
+              fac = mfmax/mfub(n)
+              mfu(n,k+1) = mfu(n,k+1)*fac
+              mfus(n,k+1) = mfus(n,k+1)*fac
+              mfuq(n,k+1) = mfuq(n,k+1)*fac
+              mfub(n) = mfmax
+            end if
+          end if
+        end do
+        if ( is > 0 ) llo3 = .true.
+        !--------------------------
+        ! Specify entrainment rates
+        ! -------------------------
+        ik = k
+        call entrainm(ik,llo3,ndmfen,ndmfde)
+        !----------------------------------------------------
+        ! Do adiabatic ascent for entraining/detraining plume
+        ! ---------------------------------------------------
+        if ( llo3 ) then
+          do concurrent ( n = n1:n2 )
+            qold(n) = d_zero
+          end do
+          do concurrent ( nll = 1:nlm )
+            n = nlx(nll)
+            ndmfde(n) = min(ndmfde(n),0.75_rkx*mfu(n,k+1))
+            if ( k == kcbot(n) ) then
+              entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(n))
+              zoentr(n) = -entrpen*(min(d_one,q(n,k)/qs(n,k)) - &
+                           d_one)*(geof(n,k)-geof(n,k+1))*regrav
+              zoentr(n) = min(0.4_rkx,zoentr(n))*mfu(n,k+1)
+            end if
+            if ( k < kcbot(n) ) then
+              mfmax = (pf(n,k)-pf(n,k-1))*cons2*rmflic + rmflia
+              zxs = max(mfu(n,k+1)-mfmax,d_zero)
+              wmean(n) = wmean(n) + kineu(n,k+1)*(ph(n,k+1)-ph(n,k))
+              dpmean(n) = dpmean(n) + ph(n,k+1) - ph(n,k)
+              ndmfen(n) = zoentr(n)
+              if ( ktype(n) >= 2 ) then
+                ndmfen(n) = entshalp*ndmfen(n)
+                ndmfde(n) = ndmfen(n)
+              end if
+              ndmfde(n) = ndmfde(n) * (1.6_rkx-min(d_one,q(n,k)/qs(n,k)))
+              mftest = mfu(n,k+1) + ndmfen(n) - ndmfde(n)
+              change = max(mftest-mfmax,d_zero)
+              zxe = max(change-zxs,d_zero)
+              ndmfen(n) = ndmfen(n) - zxe
+              change = change - zxe
+              ndmfde(n) = ndmfde(n) + change
+            end if
+            dmfen(n,k) = ndmfen(n) - ndmfde(n)
+            mfu(n,k) = mfu(n,k+1) + ndmfen(n) - ndmfde(n)
+            qeen = qf(n,k+1)*ndmfen(n)
+            seen = (cpd*tf(n,k+1)+geof(n,k+1))*ndmfen(n)
+            if ( qctot(n,k) > 1.0e-10_rkx ) then
+              leen = qctot(n,k)*ndmfen(n)
+            else
+              leen = d_zero
+            end if
+            scde = (cpd*tu(n,k+1)+geof(n,k+1))*ndmfde(n)
+            qude = qu(n,k+1)*ndmfde(n)
+            lude(n,k) = lu(n,k+1)*ndmfde(n)
+            mfusk = mfus(n,k+1) + seen - scde
+            mfuqk = mfuq(n,k+1) + qeen - qude
+            mfulk = mful(n,k+1) + leen - lude(n,k)
+            lu(n,k) = mfulk*(d_one/max(cmfcmin,mfu(n,k)))
+            qu(n,k) = mfuqk*(d_one/max(cmfcmin,mfu(n,k)))
+            tu(n,k) = (mfusk * &
+              (d_one/max(cmfcmin,mfu(n,k)))-geof(n,k))*rcpd
+            tu(n,k) = max(100.0_rkx,tu(n,k))
+            tu(n,k) = min(400.0_rkx,tu(n,k))
+            qold(n) = qu(n,k)
+            xrain(n,k) = xrain(n,k+1)*(mfu(n,k+1)-ndmfde(n)) * &
+                            (d_one/max(cmfcmin,mfu(n,k)))
+            luold(n) = lu(n,k)
+          end do
+          ! reset to environmental values if below departure level
+          do concurrent ( n = n1:n2 )
+            if ( k > idpl(n) ) then
+              tu(n,k) = tf(n,k)
+              qu(n,k) = qf(n,k)
+              lu(n,k) = d_zero
+              luold(n) = lu(n,k)
+            end if
+          end do
+          ! Do corrections for moist ascent by adjusting t,q and l
+          ! ------------------------------------------------------
+          ik = k
+          icall = 1
+          if ( nlm > 0 ) then
+            call moistadj(ik,xph,tu,qu,llflag,icall)
+          end if
+          do concurrent ( nll = 1:nlm )
+            n = nlx(nll)
+            if ( qu(n,k) /= qold(n) ) then
+              lglac(n,k) = lu(n,k) * ((d_one-xalpha(tu(n,k)))- &
+                                     (d_one-xalpha(tu(n,k+1))))
+              tu(n,k) = tu(n,k) + wlhfocp*lglac(n,k)
+            end if
+          end do
+          do concurrent ( nll = 1:nlm )
+            n = nlx(nll)
+            if ( qu(n,k) /= qold(n) ) then
+              ilab(n,k) = 2
+              lu(n,k) = lu(n,k) + qold(n) - qu(n,k)
+              bc = tu(n,k)*(d_one+ep1*qu(n,k)-lu(n,k+1) - xrain(n,k+1))
+              be = tf(n,k)*(d_one+ep1*qf(n,k))
+              buo(n,k) = bc - be
+              ! set flags in case of midlevel convection
+              if ( ktype(n) == 3 .and. ilab(n,k+1) == 1 ) then
+                if ( buo(n,k) > -d_half ) then
+                  ldcum(n) = .true.
+                  kctop(n) = k
+                  kineu(n,k) = d_half
+                else
+                  ilab(n,k) = 0
+                  mfu(n,k) = d_zero
+                  lude(n,k) = d_zero
+                  lu(n,k) = d_zero
+                end if
+              end if
+              if ( ilab(n,k+1) == 2 ) then
+                if ( buo(n,k) < d_zero .and. ilab(n,k+1) == 2 ) then
+                  tf(n,k) = d_half*(t(n,k)+t(n,k-1))
+                  qf(n,k) = d_half*(q(n,k)+q(n,k-1))
+                  buo(n,k) = bc - tf(n,k)*(d_one+ep1*qf(n,k))
+                end if
+                buoc = (buo(n,k) / (tf(n,k)*(d_one+ep1*qf(n,k)))+buo(n,k+1) / &
+                                   (tf(n,k+1)*(d_one+ep1*qf(n,k+1))))*d_half
+                dkbuo = (geof(n,k)-geof(n,k+1))*facbuo*buoc
+                ! mixing and "pressure" gradient term in upper
+                ! troposphere
+                if ( ndmfen(n) > d_zero ) then
+                  dken = min(d_one,(d_one+cwdrag)*ndmfen(n) / &
+                         max(cmfcmin,mfu(n,k+1)))
+                else
+                  dken = min(d_one,(d_one+cwdrag)*ndmfde(n) / &
+                         max(cmfcmin,mfu(n,k+1)))
+                end if
+                kineu(n,k) = (kineu(n,k+1)*(d_one-dken)+dkbuo) / (d_one+dken)
+                if ( buo(n,k) < d_zero .and. ilab(n,k+1) == 2 ) then
+                  kedke = kineu(n,k)/max(1.0e-10_rkx,kineu(n,k+1))
+                  kedke = max(d_zero,min(d_one,kedke))
+                  mfun = sqrt(kedke)*mfu(n,k+1)
+                  ndmfde(n) = max(ndmfde(n),mfu(n,k+1)-mfun)
+                  lude(n,k) = lu(n,k+1)*ndmfde(n)
+                  mfu(n,k) = mfu(n,k+1) + ndmfen(n) - ndmfde(n)
+                end if
+                if ( buo(n,k) >- 0.2_rkx .and. ilab(n,k+1) == 2 ) then
+                  ikb = kcbot(n)
+                  entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(n))
+                  zoentr(n) = entrpen*(0.3_rkx-(min(d_one,q(n,k-1) /    &
+                         qs(n,k-1))-d_one))*(geof(n,k-1)-geof(n,k)) * &
+                         regrav*min(d_one,qs(n,k)/qs(n,ikb))**3
+                  zoentr(n) = min(0.4_rkx,zoentr(n))*mfu(n,k)
+                else
+                  zoentr(n) = d_zero
+                end if
+               ! Erase values if below departure level
+                if ( k > idpl(n) ) then
+                  mfu(n,k) = mfu(n,k+1)
+                  kineu(n,k) = d_half
+                end if
+                if ( kineu(n,k) > d_zero .and. mfu(n,k) > d_zero ) then
+                  kctop(n) = k
+                  llo1(n) = .true.
+                else
+                  ilab(n,k) = 0
+                  mfu(n,k) = d_zero
+                  kineu(n,k) = d_zero
+                  ndmfde(n) = mfu(n,k+1)
+                  lude(n,k) = lu(n,k+1)*ndmfde(n)
+                end if
+                ! store detrainment rates for updraught
+                if ( mfu(n,k+1) > d_zero ) mfude_rate(n,k) = ndmfde(n)
+              end if
+            else if ( ktype(n) == 2 .and. qu(n,k) == qold(n) ) then
+              ilab(n,k) = 0
+              mfu(n,k) = d_zero
+              kineu(n,k) = d_zero
+              ndmfde(n) = mfu(n,k+1)
+              lude(n,k) = lu(n,k+1)*ndmfde(n)
+              mfude_rate(n,k) = ndmfde(n)
+            end if
+          end do
+          ! Calculate precipitation rate by analytic integration
+          ! of equation for l
+          do concurrent ( n = n1:n2 )
+            if ( llo1(n) ) then
+              if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
+                dnoprc = ccn(n,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                         ((rcrit*1e-6_rkx)**3)*rhow
+                if ( ldland(n) ) then
+                  prcdgw = rprc_lnd*regrav
+                else
+                  prcdgw = rprc_ocn*regrav
+                end if
+              else
+                if ( ldland(n) ) then
+                  dnoprc = 5.e-4_rkx
+                  prcdgw = rprc_lnd*regrav
+                else
+                  dnoprc = 3.e-4_rkx
+                  prcdgw = rprc_ocn*regrav
+                end if
+              end if
+              if ( lu(n,k) > dnoprc ) then
+                zwu = min(15.0_rkx,sqrt(d_two*max(0.1_rkx,kineu(n,k+1))))
+                prcon = prcdgw/(0.75_rkx*zwu)
+                ! Parameters for bergeron-findeisen process (T < -5C)
+                zdt = min(rtber-rtice,max(rtber-tu(n,k),d_zero))
+                cbf = d_one + cprc2*sqrt(zdt)
+                zco = prcon*cbf
+                lcrit = dnoprc/cbf
+                zdfi = geof(n,k) - geof(n,k+1)
+                zc = (lu(n,k)-luold(n))
+                arg = (lu(n,k)/lcrit)**2
+                if ( arg < 25.0_rkx ) then
+                  zd = zco*(d_one-exp(-arg))*zdfi
+                else
+                  zd = zco*zdfi
+                end if
+                zint = exp(-zd)
+                lnew = luold(n)*zint + zc/zd*(d_one-zint)
+                lnew = max(d_zero,min(lu(n,k),lnew))
+                lnew = min(cldmax,lnew)
+                precip(n) = max(d_zero,luold(n)+zc-lnew)
+                dmfup(n,k) = precip(n)*mfu(n,k)
+                xrain(n,k) = xrain(n,k) + precip(n)
+                lu(n,k) = lnew
+                !FAB save precip water (kg/kg) created from
+                ! autoconverson in updraft
+                if ( ichem == 1 ) cvrainout(n,k) = precip(n)
+              end if
+            end if
+          end do
+          do concurrent ( n = n1:n2 )
+            if ( llo1(n) ) then
+              if ( xrain(n,k) > d_zero ) then
+                zvw = 21.18_rkx*xrain(n,k)**0.2_rkx
+                zvi = cwifrac*zvw
+                alfaw = xalpha(tu(n,k))
+                zvv = alfaw*zvw + (d_one-alfaw)*zvi
+                rold = xrain(n,k) - precip(n)
+                zc = precip(n)
+                zwu = min(15.0_rkx,sqrt(d_two*max(0.1_rkx,kineu(n,k))))
+                zd = zvv/zwu
+                zint = exp(-zd)
+                rnew = rold*zint + zc/zd*(d_one-zint)
+                rnew = max(d_zero,min(xrain(n,k),rnew))
+                xrain(n,k) = rnew
+              end if
+            end if
+          end do
+          do concurrent ( nll = 1:nlm )
+            n = nlx(nll)
+            mful(n,k) = lu(n,k)*mfu(n,k)
+            mfus(n,k) = (cpd*tu(n,k)+geof(n,k))*mfu(n,k)
+            mfuq(n,k) = qu(n,k)*mfu(n,k)
+          end do
+        end if
+      end do
+      !----------------------
+      ! 5. Final calculations
+      ! ---------------------
+      do concurrent ( n = n1:n2 )
+        if ( kctop(n) == -1 ) ldcum(n) = .false.
+        kcbot(n) = max(kcbot(n),kctop(n))
+        if ( ldcum(n) ) then
+          wmean(n) = max(1.e-2_rkx,wmean(n)/max(d_one,dpmean(n)))
+          wmean(n) = sqrt(d_two*wmean(n))
+        end if
+      end do
+    end block ascent
+    !
+    !  (C) Check cloud depth and change entrainment rate accordingly
+    !      Calculate precipitation rate (for downdraft calculation)
+    ! -----------------------------------------------------------------------
+    do concurrent ( n = n1:n2 )
+      if ( ldcum(n) ) then
+        ikb = kcbot(n)
+        itopm2 = kctop(n)
+        pbmpt = pf(n,ikb) - pf(n,itopm2)
+        if ( ktype(n) == 1 .and. pbmpt <  rdepths ) ktype(n) = 2
+        if ( ktype(n) == 2 .and. pbmpt >= rdepths ) ktype(n) = 1
+        ictop0(n) = kctop(n)
+      end if
+      rfl(n) = dmfup(n,1)
+    end do
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 2, nk
+        rfl(n) = rfl(n) + dmfup(n,k)
+      end do
+    end do
+    do concurrent ( n = n1:n2, k = 1:nk )
+      mfd(n,k) = d_zero
+      mfds(n,k) = d_zero
+      mfdq(n,k) = d_zero
+      dmfdp(n,k) = d_zero
+      dpmel(n,k) = d_zero
+    end do
+    !----------------------------------
+    ! 5. Cumulus downdraft calculations
+    ! ---------------------------------
+    if ( lmfdd ) then
+      !-------------------
+      ! (A) Determine lfs
+      ! --=---------------
+      !
+      ! This routine calculates level of free sinking for cumulus downdrafts
+      ! and specifies t,q,u and v values to produce lfs-values for cumulus
+      ! downdrafts for massflux cumulus parameterization interface
+      ! Check for negative buoyancy of air of equal parts of moist
+      ! environmental air and cloud air.
+      !
+      lfs: block
+        integer(ik4), dimension(np) :: ikhsmin
+        real(rkx), dimension(np,nk) :: tenwb, qenwb
+        real(rkx), dimension(np) :: cond, xph, hsmin
+        logical, dimension(np) :: llo2
+        integer(ik4) :: icall, ik, ike, is, k, n
+        real(rkx) :: buo, hsk, mftop, qtest, ttest
+        !-------------------------------------
+        ! 1. Set default values for downdrafts
+        ! ------------------------------------
+        do concurrent ( n = n1:n2 )
+          lddraf(n) = .false.
+          idtop(n) = nk + 1
+          ikhsmin(n) = nk + 1
+          hsmin(n) = 1.e8_rkx
+        end do
+        if ( lmfdd ) then
+          !------------------------------------------------------------------
+          ! 2. Determine level of free sinking:
+          !    downdrafts shall start at model level of minimum of saturation
+          !    moist static energy or below respectively for every point and
+          !    proceed as follows:
+          !      (1) Determine level of minimum of hs
+          !      (2) Determine wet bulb environmental t and q
+          !      (3) Do mixing with cumulus cloud air
+          !      (4) Check for negative buoyancy
+          !      (5) If buoyancy>0 repeat (2) to (4) for next
+          !          level below
+          ! The assumption is that air of downdrafts is mixture of 50% cloud
+          ! air + 50% environmental air at wet bulb temperature (i.e. which
+          ! became saturated due to evaporation of rain and cloud water)
+          ! ----------------------------------------------------------------
+          do concurrent ( n = n1:n2 )
+            !$acc loop seq
+            do k = 3, nk - 2
+              hsk = cpd*t(n,k) + geo(n,k) + mlwt(t(n,k))*qs(n,k)
+              if ( hsk < hsmin(n) ) then
+                hsmin(n) = hsk
+                ikhsmin(n) = k
+              end if
+            end do
+          end do
+          ike = nk - 3
+          do k = 3, ike
+            ! -----------------------------------------------
+            ! 2.1 Calculate wet-bulb temperature and moisture
+            !     for environmental air
+            ! -----------------------------------------------
+            is = 0
+#ifdef STDPAR
+            do concurrent ( n = n1:n2 ) reduce(+:is)
+#else
+            do n = n1, n2
+#endif
+              tenwb(n,k) = tf(n,k)
+              qenwb(n,k) = qf(n,k)
+              xph(n) = pf(n,k)
+              llo2(n) = ldcum(n) .and.                     &
+                rfl(n) > d_zero .and. .not.lddraf(n) .and. &
+                (k < kcbot(n) .and. k > kctop(n)) .and.    &
+                k >= ikhsmin(n)
+              if ( llo2(n) ) is = is + 1
+            end do
+            if ( is == 0 ) cycle
+            ik = k
+            icall = 2
+            call moistadj(ik,xph,tenwb,qenwb,llo2,icall)
+            !-----------------------------------------------
+            ! 2.2 Do mixing of cumulus and environmental air
+            !     and check for negative buoyancy.
+            !     Then set values for downdraft at lfs.
+            ! ----------------------------------------------
+            do concurrent ( n = n1:n2 )
+              if ( llo2(n) ) then
+                ttest = d_half*(tu(n,k)+tenwb(n,k))
+                qtest = d_half*(qu(n,k)+qenwb(n,k))
+                buo = ttest*(d_one+ep1*qtest) - tf(n,k)*(d_one+ep1*qf(n,k))
+                cond(n) = qf(n,k) - qenwb(n,k)
+                mftop = -rmfdeps*mfub(n)
+                if ( buo < d_zero .and. rfl(n) > 10.0_rkx*mftop*cond(n) ) then
+                  idtop(n) = k
+                  lddraf(n) = .true.
+                  td(n,k) = ttest
+                  qd(n,k) = qtest
+                  mfd(n,k) = mftop
+                  mfds(n,k) = mfd(n,k)*(cpd*td(n,k)+geof(n,k))
+                  mfdq(n,k) = mfd(n,k)*qd(n,k)
+                  dmfdp(n,k-1) = -d_half*mfd(n,k)*cond(n)
+                  rfl(n) = rfl(n) + dmfdp(n,k-1)
+                end if
+              end if
+            end do
+          end do
+        end if
+      end block lfs
+      !---------------------------------------
+      ! (B) Determine downdraft t,q and fluxes
+      ! --------------------------------------
+      !
+      ! This routine calculates cumulus downdraft descent to produce the
+      ! vertical profiles for cumulus downdrafts (i.e. t,q,u and v and fluxes)
+      ! It calculates moist descent for entraining/detraining plume by
+      !   A) Moving air dry-adiabatically to next level below and
+      !   B) Correcting for evaporation to obtain saturated state.
+      !
+      ddrafdsc: block
+        real(rkx), dimension(np) :: dmfen, xdmfde, cond, oentr, buoy
+        real(rkx), dimension(np) :: xph
+        logical, dimension(np) :: llo2
+        integer(ik4) :: icall, ik, is, itopde, k, n
+        real(rkx) :: buo, buoyz, buoyv, xdmfdp, dz, entr, mfdqk,  &
+                     mfdsk, qdde, qeen, rain, sdde, seen, zentr, &
+                     facbuo, dkbuo, dken
+        itopde = nk950
+        facbuo = d_half/(d_one+d_half)
+        !-------------------------------------------------------
+        ! 1. Calculate moist descent for cumulus downdraft by
+        !      (A) Calculating entrainment/detrainment rates,
+        !          including organized entrainment dependent on
+        !          negative buoyancy and assuming
+        !          linear decrease of massflux in PBL
+        !      (B) Doing moist descent - evaporative cooling
+        !          and moistening
+        !      (C) Checking for negative buoyancy and
+        !          specifying final t,q,u,v and downward fluxes
+        ! -----------------------------------------------------
+        do concurrent ( n = n1:n2 )
+          oentr(n) = d_zero
+          buoy(n) = d_zero
+          dmfen(n) = d_zero
+          xdmfde(n) = d_zero
+        end do
+        do concurrent ( n = n1:n2, k = 1:nk )
+          dmfde(n,k) = d_zero
+          mfdde_rate(n,k) = d_zero
+          kined(n,k) = d_zero
+        end do
+        do k = 3, nk
+          is = 0
+#ifdef STDPAR
+          do concurrent ( n = n1:n2 ) reduce(+:is)
+#else
+          do n = n1, n2
+#endif
+            xph(n) = pf(n,k)
+            llo2(n) = lddraf(n) .and. mfd(n,k-1) < d_zero
+            if ( llo2(n) ) is = is + 1
+          end do
+          if ( is == 0 ) cycle
+          do concurrent ( n = n1:n2 )
+            if ( llo2(n) ) then
+              entr = entrdd*mfd(n,k-1)*(geof(n,k-1)-geof(n,k))*regrav
+              dmfen(n) = entr
+              xdmfde(n) = entr
+            end if
+          end do
+          if ( k > itopde ) then
+            do concurrent ( n = n1:n2 )
+              if ( llo2(n) ) then
+                dmfen(n) = d_zero
+                xdmfde(n) = mfd(n,itopde)*(pf(n,k)-pf(n,k-1)) / &
+                  (pf(n,nk+1)-pf(n,itopde))
+              end if
+            end do
+          end if
+          if ( k <= itopde ) then
+            do concurrent ( n = n1:n2 )
+              if ( llo2(n) ) then
+                dz = -(geof(n,k-1)-geof(n,k))*regrav
+                zentr = oentr(n)*dz*mfd(n,k-1)
+                dmfen(n) = dmfen(n) + zentr
+                dmfen(n) = max(dmfen(n),0.3_rkx*mfd(n,k-1))
+                dmfen(n) = max(dmfen(n), &
+                  -0.75_rkx*mfu(n,k)-(mfd(n,k-1)-xdmfde(n)))
+                dmfen(n) = min(dmfen(n),d_zero)
+              end if
+              dmfde(n,k) = dmfen(n) - xdmfde(n)
+            end do
+          end if
+          do concurrent ( n = n1:n2 )
+            if ( llo2(n) ) then
+              mfd(n,k) = mfd(n,k-1) + dmfen(n) - xdmfde(n)
+              seen = (cpd*tf(n,k-1)+geof(n,k-1))*dmfen(n)
+              qeen = qf(n,k-1)*dmfen(n)
+              sdde = (cpd*td(n,k-1)+geof(n,k-1))*xdmfde(n)
+              qdde = qd(n,k-1)*xdmfde(n)
+              mfdsk = mfds(n,k-1) + seen - sdde
+              mfdqk = mfdq(n,k-1) + qeen - qdde
+              qd(n,k) = mfdqk*(d_one/min(-cmfcmin,mfd(n,k)))
+              td(n,k) = (mfdsk*(d_one/min(-cmfcmin,mfd(n,k)))-geof(n,k))*rcpd
+              td(n,k) = min(400.0_rkx,td(n,k))
+              td(n,k) = max(100.0_rkx,td(n,k))
+              cond(n) = qd(n,k)
+            end if
+          end do
+          ik = k
+          icall = 2
+          call moistadj(ik,xph,td,qd,llo2,icall)
+          do concurrent ( n = n1:n2 )
+            if ( llo2(n) ) then
+              cond(n) = cond(n) - qd(n,k)
+              buo = td(n,k)*(d_one+ep1*qd(n,k)) - tf(n,k)*(d_one+ep1*qf(n,k))
+              if ( rfl(n) > d_zero .and. mfu(n,k) > d_zero ) then
+                rain = rfl(n)/mfu(n,k)
+                buo = buo - td(n,k)*rain
+              end if
+              if ( buo >= d_zero .or. rfl(n)<=(mfd(n,k)*cond(n)) ) then
+                mfd(n,k) = d_zero
+                buo = d_zero
+              end if
+              mfds(n,k) = (cpd*td(n,k)+geof(n,k))*mfd(n,k)
+              mfdq(n,k) = qd(n,k)*mfd(n,k)
+              xdmfdp = -mfd(n,k)*cond(n)
+              dmfdp(n,k-1) = xdmfdp
+              rfl(n) = rfl(n) + xdmfdp
+              ! Compute organized entrainment for use at next level
+              buoyz = buo/tf(n,k)
+              buoyv = buoyz
+              buoyz = min(buoyz,d_zero)
+              dz = -(geo(n,k-1)-geo(n,k))
+              buoy(n) = buoy(n) + buoyz*dz
+              oentr(n) = egrav*buoyz*d_half/(d_one+buoy(n))
+              ! Store downdraught detrainment rates
+              mfdde_rate(n,k) = -xdmfde(n)
+              ! Compute kinetic energy
+              dkbuo = dz*buoyv*facbuo
+              if ( dmfen(n) < d_zero ) then
+                dken = min(d_one,(d_one+cwdrag)*dmfen(n) / &
+                       min(-cmfcmin,mfd(n,k-1)))
+              else
+                dken = min(d_one,(d_one+cwdrag)*xdmfde(n) / &
+                       min(-cmfcmin,mfd(n,k-1)))
+              end if
+              kined(n,k) = max(d_zero, &
+                (kined(n,k-1)*(d_one-dken)+dkbuo)/(d_one+dken))
+            end if
+          end do
+        end do
+      end block ddrafdsc
+    end if
+    !-----------
+    ! 6. Closure
+    ! ----------
+    !   Recalculate cloud base massflux from a cape closure for deep
+    !   convection (ktype=1) and by PBL equilibrum taking downdrafts
+    !   into account for shallow convection (ktype=2)
+    ! --------------------------------------------------------------
+    ! Deep convection
+    do concurrent ( n = n1:n2 )
+      rheat(n) = d_zero
+      xcape(n) = d_zero
+      mfub1(n) = mfub(n)
+    end do
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 1, nk
+        llo1 = ldcum(n) .and. ktype(n) == 1
+        if ( llo1 .and. k <= kcbot(n) .and. k > kctop(n) ) then
+          ikb = kcbot(n)
+          xro = pf(n,k)/(rgas*tf(n,k)*(d_one+ep1*qf(n,k)))
+          dz = (geof(n,k-1)-geof(n,k))
+          rheat(n) = rheat(n) + ((t(n,k-1)-t(n,k)+dz*rcpd) / &
+                      tf(n,k)+ep1*(q(n,k-1)-q(n,k))) *       &
+                      (egrav*(mfu(n,k)+mfd(n,k)))/xro
+          xcape(n) = xcape(n) + ((tu(n,k)-tf(n,k))/tf(n,k) + &
+                      ep1*(qu(n,k)-qf(n,k))-lu(n,k))*dz
+        end if
+      end do
+    end do
+    do concurrent ( n = n1:n2 )
+      if ( ldcum(n) .and. ktype(n) == 1 ) then
+        ikb = kcbot(n)
+        ik = kctop(n)
+        xcape(n) = max(d_zero,min(xcape(n),5000.0_rkx))
+        rheat(n) = max(1.e-4_rkx,rheat(n))
+        tau(n) = (geof(n,ik)-geof(n,ikb)) / &
+                   ((d_two+min(15.0_rkx,wmean(n)))*egrav)*rtau
+        tau(n) = max(dtc,min(10800.0_rkx,tau(n)))
+        tau(n) = max(720.0_rkx,tau(n))
+        mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n))
+        mfub1(n) = max(mfub1(n),0.001_rkx)
+        mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
+        mfub1(n) = min(mfub1(n),mfmax)
+      end if
+    end do
+    ! Shallow convection and mid_level
+    do concurrent ( n = n1:n2 )
+      if ( ldcum(n) .and. (ktype(n) == 2 .or. ktype(n) == 3) ) then
+        ikb = kcbot(n)
+        if ( mfd(n,ikb) < d_zero ) then
+          eps = -mfd(n,ikb)/max(mfub(n),1.0e-10_rkx)
+        else
+          eps = 0.0_rkx
+        end if
+        qumqe = qu(n,ikb) + lu(n,ikb) - eps*qd(n,ikb) - (d_one-eps)*qf(n,ikb)
+        dqmin = max(0.01_rkx*qf(n,ikb),1.0e-10_rkx)
+        ! Maximum permisable value of ud base mass flux
+        mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
+        ! Shallow convection
+        if ( ktype(n) == 2 ) then
+          dh = cpd*(tu(n,ikb)-eps*td(n,ikb) - &
+                   (d_one-eps)*tf(n,ikb)) + wlhv*qumqe
+          dh = egrav*max(dh,p00*dqmin)
+          if ( dhpbl(n) > d_zero ) then
+            mfub1(n) = dhpbl(n)/dh
+          else
+            mfub1(n) = mfub(n)
+          end if
+          mfub1(n) = min(mfub1(n),mfmax)
+          if ( lmfwstar ) mfub1(n) = mf_shal(n)
+        end if
+        ! Mid-level convection
+        if ( ktype(n) == 3 ) then
+          mfub1(n) = mfub(n)*(d_one+eps)
+          mfub1(n) = min(mfub1(n),mfmax)
+        end if
+      end if
+    end do
+    ! Rescale DD fluxes if deep and shallow convection
+    do concurrent ( n = n1:n2, k = 1:nk )
+      if ( lddraf(n) .and. (ktype(n) == 1 .or. ktype(n) == 2) ) then
+        fac = mfub1(n)/max(mfub(n),1.0e-10_rkx)
+        mfd(n,k) = mfd(n,k)*fac
+        mfds(n,k) = mfds(n,k)*fac
+        mfdq(n,k) = mfdq(n,k)*fac
+        dmfdp(n,k) = dmfdp(n,k)*fac
+        ! also rescale detrainment flux for ERA pp
+        mfdde_rate(n,k) = mfdde_rate(n,k)*fac
+      end if
+    end do
+    !--------------------------
+    ! 6.1 Final closure=scaling
+    ! -------------------------
+    do concurrent ( n = n1:n2 )
+      if ( ldcum(n) ) mfs(n) = mfub1(n)/max(cmfcmin,mfub(n))
+    end do
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 2, nk
+        if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+          ikb = kcbot(n)
+          if ( k>ikb ) then
+            dz = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ikb)))
+            mfu(n,k) = mfu(n,ikb)*dz
+          end if
+          mfmax = (pf(n,k)-pf(n,k-1))*cons2*rmflic + rmflia
+          if ( mfu(n,k)*mfs(n) > mfmax ) then
+            mfs(n) = min(mfs(n),mfmax/mfu(n,k))
+          end if
+        end if
+      end do
+    end do
+    do concurrent ( n = n1:n2, k = 2:nk )
+      if ( ldcum(n) .and. k <= kcbot(n) .and. k >= kctop(n)-1 ) then
+        mfu(n,k) = mfu(n,k)*mfs(n)
+        mfus(n,k) = mfus(n,k)*mfs(n)
+        mfuq(n,k) = mfuq(n,k)*mfs(n)
+        mful(n,k) = mful(n,k)*mfs(n)
+        dmfup(n,k) = dmfup(n,k)*mfs(n)
+        dmfen(n,k) = dmfen(n,k)*mfs(n)
+        lude(n,k) = lude(n,k)*mfs(n)
+        mfude_rate(n,k) = mfude_rate(n,k)*mfs(n)
+      end if
+    end do
+    !--------------------------------------------------------
+    ! 6.2 In case that either deep or shallow is switched off
+    !      reset ldcum to false-> fluxes set to zero
+    ! -------------------------------------------------------
+    ! exclude pathological ktype=2 kcbot=kctop=nk-1
+    do concurrent ( n = n1:n2 )
+      if ( ktype(n) == 2 .and.        &
+           kcbot(n) == kctop(n) .and. &
+           kcbot(n) >= nk-1 ) then
+        ldcum(n) = .false.
+        ktype(n) = 0
+      end if
+    end do
+    if ( .not. lmfscv .or. .not. lmfpen ) then
+      do concurrent ( n = n1:n2 )
+        llo2(n) = .false.
+        if ( (.not. lmfscv .and. ktype(n) == 2) .or. &
+             (.not. lmfpen .and. ktype(n) == 1) ) then
+          llo2(n) = .true.
+          ldcum(n) = .false.
+        end if
+      end do
+    end if
+    !-------------------------------------
+    ! 7. Determine final convective fluxes
+    ! ------------------------------------
+    !- set DD mass fluxes to zero above cloud top
+    ! (because of inconsistency with second updraught)
+    do concurrent ( n = n1:n2 )
+      if ( lddraf(n) .and. idtop(n) <= kctop(n) ) then
+        idtop(n) = kctop(n) + 1
+      end if
+    end do
+    do concurrent ( n = n1:n2, k = 2:nk )
+      if ( lddraf(n) ) then
+        if ( k < idtop(n) ) then
+          mfd(n,k) = d_zero
+          mfds(n,k) = d_zero
+          mfdq(n,k) = d_zero
+          mfdde_rate(n,k) = d_zero
+          dmfdp(n,k) = d_zero
+        else if ( k == idtop(n) ) then
+          mfdde_rate(n,k) = d_zero
+        end if
+      end if
+    end do
+    !
+    ! This routine does the final calculation of convective fluxes in the
+    ! cloud layer and in the subcloud layer
+    !
+    cfluxes: block
+      real(rkx), dimension(np) :: rhebc
+      integer(ik4) :: ik, ikb, k, n
+      integer(ik4), dimension(np) :: idbas
+      logical :: llddraf
+      real(rkx) :: alfaw, cons1, cons1a, cons2, denom, drfl, &
+                   drfl1, fac, pdr, pds, xrfl, xrfln, rmin,  &
+                   rnew, snmlt, zp, rcpecons, rcucov
+      !-------------------
+      ! 0. Setup constants
+      ! ------------------
+      cons1a = cpd/(wlhf*egrav*rtaumel)
+      cons2 = rmfcfl/(egrav*dtc)
+      !-------------------------------------
+      ! 1. Determine final convective fluxes
+      ! ------------------------------------
+      do concurrent ( n = n1:n2 )
+        rain(n) = d_zero
+        if ( .not.ldcum(n) .or. idtop(n) < kctop(n) ) lddraf(n) = .false.
+        if ( .not.ldcum(n) ) ktype(n) = 0
+        idbas(n) = nk
+        if ( ldland(n) ) then
+          rhebc(n) = rhebc_lnd
+        else
+          rhebc(n) = rhebc_ocn
+        end if
+      end do
+      ! To get identical results force itopm2 to 2
+      itopm2 = 2
+      do k = itopm2, nk
+        ikb = min(k+1,nk)
+        do concurrent ( n = n1:n2 )
+          mflxr(n,k) = d_zero
+          mflxs(n,k) = d_zero
+          dpmel(n,k) = d_zero
+          if ( ldcum(n) .and. k >= kctop(n) ) then
+            mfus(n,k) = mfus(n,k) - mfu(n,k)*(cpd*tf(n,k)+geof(n,k))
+            mfuq(n,k) = mfuq(n,k) - mfu(n,k)*qf(n,k)
+            lglac(n,k) = mfu(n,k)*lglac(n,k)
+            llddraf = lddraf(n) .and. k >= idtop(n)
+            if ( llddraf ) then
+              mfds(n,k) = mfds(n,k) - mfd(n,k)*(cpd*tf(n,k)+geof(n,k))
+              mfdq(n,k) = mfdq(n,k) - mfd(n,k)*qf(n,k)
+            else
+              mfd(n,k) = d_zero
+              mfds(n,k) = d_zero
+              mfdq(n,k) = d_zero
+              dmfdp(n,k-1) = d_zero
+            end if
+            if ( llddraf .and.           &
+                 mfd(n,k) < d_zero .and. &
+                 abs(mfd(n,ikb)) < almostzero ) then
+              idbas(n) = k
+            end if
+          else
+            mfu(n,k) = d_zero
+            mfd(n,k) = d_zero
+            mfus(n,k) = d_zero
+            mfds(n,k) = d_zero
+            mfuq(n,k) = d_zero
+            mfdq(n,k) = d_zero
+            mful(n,k) = d_zero
+            lglac(n,k) = d_zero
+            dmfup(n,k-1) = d_zero
+            dmfdp(n,k-1) = d_zero
+            lude(n,k-1) = d_zero
+          end if
+        end do
+      end do
+      do concurrent( n = n1:n2 )
+        mflxr(n,nk+1) = d_zero
+        mflxs(n,nk+1) = d_zero
+      end do
+      !----------------------------------
+      ! 1.1 Scale fluxes below cloud base
+      !      linear dcrease
+      ! ---------------------------------
+      do n = n1, n2
+        if ( ldcum(n) ) then
+          ikb = kcbot(n)
+          ik = ikb + 1
+          zp = ((pf(n,nk+1)-pf(n,ik))/(pf(n,nk+1)-pf(n,ikb)))
+          if ( ktype(n) == 3 ) zp = zp*zp
+          mfu(n,ik) = mfu(n,ikb)*zp
+          ! passing a scalar to avoid a compiler bug with OpenACC/Stdpar
+          tfl=tf(n,ikb)
+          mfus(n,ik) = (mfus(n,ikb) - mlwt(tfl) * mful(n,ikb))*zp
+          !mfus(n,ik) = (mfus(n,ikb) - mlwt(tf(n,ikb)) * mful(n,ikb))*zp
+          mfuq(n,ik) = (mfuq(n,ikb)+mful(n,ikb))*zp
+          mful(n,ik) = d_zero
+        end if
+      end do
+      do k = itopm2, nk
+        do concurrent ( n = n1:n2 )
+          if ( ldcum(n) .and. k > kcbot(n)+1 ) then
+            ikb = kcbot(n) + 1
+            zp = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ikb)))
+            if ( ktype(n) == 3 ) zp = zp*zp
+            mfu(n,k) = mfu(n,ikb)*zp
+            mfus(n,k) = mfus(n,ikb)*zp
+            mfuq(n,k) = mfuq(n,ikb)*zp
+            mful(n,k) = d_zero
+          end if
+          ik = idbas(n)
+          llddraf = lddraf(n) .and. k > ik .and. ik < nk
+          if ( llddraf .and. ik == kcbot(n)+1 ) then
+            zp = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ik)))
+            if ( ktype(n) == 3 ) zp = zp*zp
+            mfd(n,k) = mfd(n,ik)*zp
+            mfds(n,k) = mfds(n,ik)*zp
+            mfdq(n,k) = mfdq(n,ik)*zp
+            mfdde_rate(n,k) = -(mfd(n,k-1)-mfd(n,k))
+          else if ( llddraf .and. ik /= kcbot(n)+1 .and. k == ik+1 ) then
+            mfdde_rate(n,k) = -(mfd(n,k-1)-mfd(n,k))
+          end if
+        end do
+      end do
+      !-----------------------------------
+      ! 2. Calculate rain/snow fall rates
+      !    Calculate melting of snow
+      !    Calculate evaporation of precip
+      ! ----------------------------------
+      do k = itopm2, nk
+        do concurrent ( n = n1:n2 )
+          if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+            rain(n) = rain(n) + dmfup(n,k)
+            if ( mflxs(n,k) > d_zero .and. t(n,k) > tzero ) then
+              cons1 = cons1a*(d_one+d_half*(t(n,k)-tzero))
+              fac = cons1*(pf(n,k+1)-pf(n,k))
+              snmlt = min(mflxs(n,k),fac*(t(n,k)-tzero))
+              dpmel(n,k) = snmlt
+              qs(n,k) = fesat(t(n,k)-snmlt/fac)/ph(n,k)
+            end if
+            alfaw = xalpha(t(n,k))
+            ! no liquid precipitation above melting level
+            if ( t(n,k) < tzero .and. alfaw > d_zero ) then
+              lglac(n,k) = lglac(n,k)+alfaw*(dmfup(n,k)+dmfdp(n,k))
+              alfaw = d_zero
+            end if
+            mflxr(n,k+1) = mflxr(n,k) + alfaw*(dmfup(n,k)+dmfdp(n,k))+dpmel(n,k)
+            mflxs(n,k+1) = mflxs(n,k) + &
+                      (d_one-alfaw)*(dmfup(n,k)+dmfdp(n,k)) - dpmel(n,k)
+            if ( mflxr(n,k+1)+mflxs(n,k+1) < d_zero ) then
+              dmfdp(n,k) = -(mflxr(n,k)+mflxs(n,k)+dmfup(n,k))
+              mflxr(n,k+1) = d_zero
+              mflxs(n,k+1) = d_zero
+              dpmel(n,k) = d_zero
+            else if ( mflxr(n,k+1) < d_zero ) then
+              mflxs(n,k+1) = mflxs(n,k+1) + mflxr(n,k+1)
+              mflxr(n,k+1) = d_zero
+            else if ( mflxs(n,k+1) < d_zero ) then
+              mflxr(n,k+1) = mflxr(n,k+1) + mflxs(n,k+1)
+              mflxs(n,k+1) = d_zero
+            end if
+          end if
+        end do
+      end do
+      do k = itopm2, nk
+        do concurrent ( n = n1:n2 )
+          if ( ldcum(n) .and. k >= kcbot(n) ) then
+            xrfl = mflxr(n,k) + mflxs(n,k)
+            if ( xrfl > almostzero ) then
+              rcpecons = merge(rcpec_lnd,rcpec_ocn,ldland(n))
+              rcucov = merge(rcuc_lnd,rcuc_ocn,ldland(n))
+              drfl1 = rcpecons * max(d_zero,qs(n,k)-q(n,k))*rcucov * &
+                      (sqrt(pf(n,k)/pf(n,nk+1)) / &
+                      5.09e-3_rkx*xrfl/rcucov)**0.5777_rkx*(pf(n,k+1)-pf(n,k))
+              rnew = xrfl - drfl1
+              rmin = xrfl - rcucov*max(d_zero,rhebc(n)*qs(n,k) - &
+                      q(n,k))*cons2*(pf(n,k+1)-pf(n,k))
+              rnew = max(rnew,rmin)
+              xrfln = max(rnew,d_zero)
+              drfl = min(d_zero,xrfln-xrfl)
+              alfaw = xalpha(t(n,k))
+              if ( t(n,k) < tzero ) alfaw = d_zero
+              pdr = alfaw*dmfdp(n,k)
+              pds = (d_one-alfaw)*dmfdp(n,k)
+              denom = d_one/max(almostzero,mflxr(n,k)+mflxs(n,k))
+              mflxr(n,k+1) = mflxr(n,k) + pdr + dpmel(n,k) + &
+                             drfl*mflxr(n,k)*denom
+              mflxs(n,k+1) = mflxs(n,k) + pds - dpmel(n,k) + &
+                             drfl*mflxs(n,k)*denom
+              dmfup(n,k) = dmfup(n,k) + drfl
+              if ( mflxr(n,k+1)+mflxs(n,k+1) < d_zero ) then
+                dmfup(n,k) = dmfup(n,k)-(mflxr(n,k+1)+mflxs(n,k+1))
+                mflxr(n,k+1) = d_zero
+                mflxs(n,k+1) = d_zero
+                dpmel(n,k) = d_zero
+              else if ( mflxr(n,k+1) < d_zero ) then
+                mflxs(n,k+1) = mflxs(n,k+1) + mflxr(n,k+1)
+                mflxr(n,k+1) = d_zero
+              else if ( mflxs(n,k+1) < d_zero ) then
+                mflxr(n,k+1) = mflxr(n,k+1) + mflxs(n,k+1)
+                mflxs(n,k+1) = d_zero
+              end if
+            else
+              mflxr(n,k+1) = d_zero
+              mflxs(n,k+1) = d_zero
+              dmfdp(n,k) = d_zero
+              dpmel(n,k) = d_zero
+            end if
+          end if
+        end do
+      end do
+    end block cfluxes
+    !- rescale DD fluxes if total mass flux becomes negative
+    !- correct DD detrainment rates if entrainment becomes negative
+    !- correct UD detrainment rates if entrainment becomes negative
+    !- conservation correction for precip
+    !$acc kernels
+    mfs(:) = d_one
+    !$acc end kernels
+    ! change for stability
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 2, nk
+        if ( lddraf(n) .and. k >= idtop(n)-1 ) then
+          mfmax = mfu(n,k)*0.98_rkx
+          if ( mfd(n,k)+mfmax+1.e-15_rkx < d_zero ) then
+            mfs(n) = min(mfs(n),-mfmax/mfd(n,k))
+          end if
+        end if
+      end do
+    end do
+    !$acc kernels
+    mfuub(:) = d_zero
+    !$acc end kernels
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 2, nk
+        if ( mfs(n) < d_one .and. k >= idtop(n)-1 ) then
+          mfd(n,k) = mfd(n,k)*mfs(n)
+          mfds(n,k) = mfds(n,k)*mfs(n)
+          mfdq(n,k) = mfdq(n,k)*mfs(n)
+          mfdde_rate(n,k) = mfdde_rate(n,k)*mfs(n)
+          mfuub(n) = mfuub(n) - (d_one-mfs(n))*dmfdp(n,k)
+          mflxr(n,k+1) = mflxr(n,k+1) + mfuub(n)
+          dmfdp(n,k) = dmfdp(n,k)*mfs(n)
+        end if
+      end do
+    end do
+    do concurrent ( n = n1:n2, k = 2:nk-1 )
+      if ( lddraf(n) .and. k >= idtop(n)-1 ) then
+        erate = -mfd(n,k) + mfd(n,k-1) + mfdde_rate(n,k)
+        if ( erate < d_zero ) then
+          mfdde_rate(n,k) = mfdde_rate(n,k) - erate
+        end if
+      end if
+      if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+        erate = mfu(n,k) - mfu(n,k+1) + mfude_rate(n,k)
+        if ( erate < d_zero ) then
+          mfude_rate(n,k) = mfude_rate(n,k) - erate
+        end if
+        dmfup(n,k) = mflxr(n,k+1) + mflxs(n,k+1) - mflxr(n,k) - mflxs(n,k)
+        dmfdp(n,k) = d_zero
+      end if
+    end do
+    ! Avoid negative humidities at ddraught top
+    do concurrent ( n = n1:n2 )
+      if ( lddraf(n) ) then
+        k = idtop(n)
+        ik = min(k+1,nk)
+        if ( mfdq(n,k) < 0.3_rkx*mfdq(n,ik) ) then
+          if ( abs(rmfsoltq) < almostzero ) then
+            mfdq(n,k) = 0.3_rkx*mfdq(n,ik)
+          else
+            mfd(n,k) = 0.3_rkx*mfd(n,ik)
+          end if
+        end if
+      end if
+    end do
+    ! Avoid negative humidities near cloud top because gradient of precip flux
+    ! and detrainment / liquid water flux too large
+    do concurrent ( n = n1:n2, k = 2:nk )
+      if ( ldcum(n) .and. k >= kctop(n)-1 .and. k < kcbot(n) ) then
+        dz = dtc*egrav/(pf(n,k+1)-pf(n,k))
+        mfa = mfuq(n,k+1) + mfdq(n,k+1) - mfuq(n,k) - mfdq(n,k) + &
+              mful(n,k+1) - mful(n,k) + dmfup(n,k)
+        mfa = (mfa-lude(n,k))*dz
+        if ( q(n,k)+mfa < d_zero ) then
+          lude(n,k) = lude(n,k) + d_two*(q(n,k)+mfa)/dz
+        end if
+        if ( lude(n,k) < d_zero ) lude(n,k) = d_zero
+      end if
+      if ( .not. ldcum(n) ) mfude_rate(n,k) = d_zero
+      if ( abs(mfd(n,k-1)) < almostzero ) mfdde_rate(n,k) = d_zero
+    end do
+    if ( llconscheck ) then
+      if ( lmftrac .and. ntrac > 0 ) then
+        allocate (xtenc(np,nk,ntrac))
+        allocate (xsumc(np,4+ntrac))
+        do concurrent ( n = n1:n2, k = 2:nk, nt = 1:ntrac )
+          if ( ldcum(n) ) xtenc(n,k,nt) = tenc(n,k,nt)
+        end do
+      else
+        allocate (xsumc(np,4))
+      end if
+    end if
+    !---------------------------------
+    ! 8. Update tendencies for t and q
+    ! --------------------------------
+    if ( rmfsoltq > d_zero ) then
+      !   derive draught properties for implicit
+      do concurrent ( n = n1:n2, k = nk:2:-1 )
+        if ( ldcum(n) ) then
+          if ( k > kcbot(n) ) then
+            mfa = d_one/max(1.e-15_rkx,mfu(n,k))
+            qu(n,k) = qf(n,k) + mfuq(n,k)*mfa
+            tu(n,k) = tf(n,k) + mfus(n,k)*mfa*rcpd
+            mfus(n,k) = mfu(n,k)*(cpd*tu(n,k)+geof(n,k))
+            mfuq(n,k) = mfu(n,k)*qu(n,k)
+            if ( lddraf(n) ) then
+              mfa = d_one/min(-1.e-15_rkx,mfd(n,k))
+              qd(n,k) = qf(n,k) + mfdq(n,k)*mfa
+              td(n,k) = tf(n,k) + mfds(n,k)*mfa*rcpd
+              mfdq(n,k) = mfd(n,k)*qd(n,k)
+              mfds(n,k) = mfd(n,k)*(cpd*td(n,k)+geof(n,k))
+            end if
+          else if ( k <= kcbot(n) .and. k >= kctop(n) ) then
+            mfus(n,k) = mfu(n,k)*(cpd*tu(n,k)+geof(n,k))
+            mfuq(n,k) = mfu(n,k)*qu(n,k)
+            mfds(n,k) = mfd(n,k)*(cpd*td(n,k)+geof(n,k))
+            mfdq(n,k) = mfd(n,k)*qd(n,k)
+          end if
+        end if
+      end do
+    end if
+    !
+    ! Updates t and q tendencies, precipitation rates, global diagnostics
+    !
+    dtdqc: block
+      logical :: lltest
+      integer(ik4) :: k, ik, n
+      real(rkx) :: ximp, xalv, zp, gq, gs, gh, zs, zq
+      real(rkx), dimension(np,nk) :: xmfus, xmfuq, xmfds, xmfdq
+      real(rkx), dimension(:,:), allocatable :: dtdt, dqdt, dp
+      real(rkx), dimension(:,:), allocatable :: bb, r1, r2
+      logical, dimension(:,:), allocatable :: llcumbas
+      !-----------------------------
+      ! 1. Setup and initializations
+      ! ----------------------------
+      ximp = d_one - rmfsoltq
+      allocate (dtdt(np,nk))
+      allocate (dqdt(np,nk))
+      allocate (dp(np,nk))
+      do concurrent ( n = n1:n2, k = 1:nk )
+        penth(n,k) = d_zero
+      end do
+      ! Zero detrained liquid water if diagnostic cloud scheme to be used
+      ! This means that detrained liquid water will be evaporated in the
+      ! cloud environment and not fed directly into a cloud liquid water
+      ! variable
+      lltest = .not. lepcld
+      if ( lltest ) then
+        do concurrent ( n = n1:n2, k = 1:nk )
+          lude(n,k) = d_zero
+        end do
+      end if
+      do concurrent ( n = n1:n2, k = 1:nk )
+        if ( ldcum(n) ) then
+          dp(n,k) = egrav/(pf(n,k+1)-pf(n,k))
+          xmfus(n,k) = mfus(n,k)
+          xmfds(n,k) = mfds(n,k)
+          xmfuq(n,k) = mfuq(n,k)
+          xmfdq(n,k) = mfdq(n,k)
+        end if
+      end do
+      if ( rmfsoltq > d_zero ) then
+        !-------------------------------------------
+        ! 2. Recompute convective fluxes if implicit
+        ! ------------------------------------------
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          ik = k - 1
+          if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+            ! Compute interpolating coefficients GS and GQ
+            ! for half-level values
+            gq = (qf(n,k)-q(n,ik))/qs(n,k)
+            gh = cpd*t(n,k) + geo(n,k)
+            gs = (cpd*(tf(n,k)-t(n,ik)) + geof(n,k)-geo(n,ik))/gh
+            ! Half-level environmental values for ZS and ZQ
+            zs = cpd*(ximp*t(n,ik)+gs*t(n,k)) + geo(n,ik) + gs*geo(n,k)
+            zq = ximp*q(n,ik) + gq*qs(n,k)
+            xmfus(n,k) = mfus(n,k) - mfu(n,k)*zs
+            xmfuq(n,k) = mfuq(n,k) - mfu(n,k)*zq
+            if ( lddraf(n) .and. k >= idtop(n) ) then
+              xmfds(n,k) = mfds(n,k) - mfd(n,k)*zs
+              xmfdq(n,k) = mfdq(n,k) - mfd(n,k)*zq
+            end if
+          end if
+        end do
+      end if
+      !----------------------
+      ! 3. Compute tendencies
+      ! ---------------------
+      do k = itopm2, nk
+        if ( k < nk ) then
+          do concurrent ( n = n1:n2 )
+            xalv = mlwt(t(n,k))
+            if ( ldcum(n) ) then
+              dtdt(n,k) = dp(n,k)*rcpd *                      &
+                (xmfus(n,k+1)-xmfus(n,k)+xmfds(n,k+1) -       &
+                 xmfds(n,k)+wlhf*lglac(n,k)-wlhf*dpmel(n,k) - &
+                 xalv*(mful(n,k+1)-mful(n,k)-lude(n,k)-dmfup(n,k)))
+              dqdt(n,k) = dp(n,k)*(xmfuq(n,k+1) -                &
+                xmfuq(n,k)+xmfdq(n,k+1)-xmfdq(n,k)+mful(n,k+1) - &
+                mful(n,k)-lude(n,k)-dmfup(n,k))
+            end if
+          end do
+        else
+          do concurrent ( n = n1:n2 )
+            xalv = mlwt(t(n,k))
+            if ( ldcum(n) ) then
+              dtdt(n,k) = -dp(n,k)*rcpd *                &
+                (xmfus(n,k)+xmfds(n,k)+wlhf*dpmel(n,k) - &
+                 xalv*(mful(n,k)+dmfup(n,k)))
+              dqdt(n,k) = -dp(n,k)*(xmfuq(n,k) + &
+                xmfdq(n,k)+(mful(n,k)+dmfup(n,k)))
+            end if
+          end do
+        end if
+      end do
+      if ( abs(rmfsoltq) < almostzero ) then
+        !----------------------
+        ! 3.1 Update tendencies
+        ! ---------------------
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          if ( ldcum(n) ) then
+            tent(n,k) = tent(n,k) + dtdt(n,k)
+            tenq(n,k) = tenq(n,k) + dqdt(n,k)
+            penth(n,k) = dtdt(n,k)*cpd
+          end if
+        end do
+      else
+        !----------------------
+        ! 3.2 Implicit solution
+        ! ---------------------
+        ! Fill bi-diagonal Matrix vectors A=k-1, B=k, C=k+1;
+        ! DTDT and DQDT correspond to the RHS ("constants") of the equation
+        ! The solution is in R1 and R2
+        allocate (bb(np,nk), source=1.0_rkx)
+        allocate (r1(np,nk), source=0.0_rkx)
+        allocate (r2(np,nk), source=0.0_rkx)
+        allocate (llcumbas(np,nk), source=.false.)
+        do concurrent ( n = n1:n2, k = 1:nk )
+          xmfus(n,k) = d_zero
+        end do
+        ! Fill vectors A, B and RHS
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          ik = k + 1
+          llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
+          if ( llcumbas(n,k) ) then
+            zp = rmfsoltq*dp(n,k)*dtc
+            xmfus(n,k) = -zp*(mfu(n,k)+mfd(n,k))
+            dtdt(n,k) = dtdt(n,k)*dtc + t(n,k)
+            dqdt(n,k) = dqdt(n,k)*dtc + q(n,k)
+            if ( k < nk ) then
+              bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
+            else
+              bb(n,k) = d_one
+            end if
+          end if
+        end do
+        call solver(n1,n2,nk,kctop,llcumbas,xmfus,bb,dtdt,r1)
+        call solver(n1,n2,nk,kctop,llcumbas,xmfus,bb,dqdt,r2)
+        ! Compute tendencies
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          if ( llcumbas(n,k) ) then
+            tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))/dtc
+            tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))/dtc
+            penth(n,k) = (r1(n,k)-t(n,k))/dtc
+          end if
+        end do
+        deallocate (llcumbas)
+        deallocate (r2)
+        deallocate (r1)
+        deallocate (bb)
+      end if
+      deallocate (dp)
+      deallocate (dqdt)
+      deallocate (dtdt)
+    end block dtdqc
+    !-------------------------------------------------
+    ! 9. Compute momentum in updraught and downdraught
+    ! ------------------------------------------------
+    if ( lmfdudv ) then
+      do concurrent ( n = n1:n2 )
+        !$acc loop seq
+        do k = nk - 1, 2, -1
+          ik = k + 1
+          if ( ldcum(n) ) then
+            if ( k == kcbot(n) .and. ktype(n) < 3 ) then
+              ikb = idpl(n)
+              uu(n,k) = u(n,ikb-1)
+              vu(n,k) = v(n,ikb-1)
+            else if ( k == kcbot(n) .and. ktype(n) == 3 ) then
+              uu(n,k) = u(n,k-1)
+              vu(n,k) = v(n,k-1)
+            end if
+            if ( k < kcbot(n) .and. k >= kctop(n) ) then
+              fac = d_zero
+              if ( ktype(n) == 1 .or. ktype(n) == 3 ) fac = d_two
+              if ( ktype(n) == 1 .and. k <= kctop(n)+2 ) fac = d_three
+              erate = mfu(n,k) - mfu(n,ik) + (d_one+fac)*mfude_rate(n,k)
+              derate = (d_one+fac)*mfude_rate(n,k)
+              mfa = d_one/max(cmfcmin,mfu(n,k))
+              uu(n,k) = (uu(n,ik)*mfu(n,ik) + erate*u(n,k)-derate*uu(n,ik))*mfa
+              vu(n,k) = (vu(n,ik)*mfu(n,ik) + erate*v(n,k)-derate*vu(n,ik))*mfa
+            end if
+          end if
+        end do
+      end do
+      do concurrent ( n = n1:n2 )
+        !$acc loop seq
+        do k = 3, nk
+          ik = k - 1
+          if ( ldcum(n) ) then
+            if ( k == idtop(n) ) then
+              ud(n,k) = d_half*(uu(n,k)+u(n,ik))
+              vd(n,k) = d_half*(vu(n,k)+v(n,ik))
+            else if ( k > idtop(n) ) then
+              erate = -mfd(n,k) + mfd(n,ik) + mfdde_rate(n,k)
+              mfa = d_one/min(-cmfcmin,mfd(n,k))
+              ud(n,k) = (ud(n,ik)*mfd(n,ik) - &
+                        erate*u(n,ik)+mfdde_rate(n,k)*ud(n,ik))*mfa
+              vd(n,k) = (vd(n,ik)*mfd(n,ik) - &
+                        erate*v(n,ik)+mfdde_rate(n,k)*vd(n,ik))*mfa
+            end if
+          end if
+        end do
+      end do
+      !----------------------------------
+      ! 9.1 Update tendencies for u and v
+      ! ---------------------------------
+      !---------------------------------------------------------------
+      ! For explicit/semi-implicit rescale massfluxes for stability in
+      ! momentum
+      !---------------------------------------------------------------
+      !$acc kernels
+      mfs(:) = d_one
+      !$acc end kernels
+      if ( rmfsoluv <= d_one ) then
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 2, nk
+            if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+              mfmax = (pf(n,k)-pf(n,k-1))*cons
+              if ( mfu(n,k) > mfmax .and. k >= kctop(n) ) then
+                mfs(n) = min(mfs(n),mfmax/mfu(n,k))
+              end if
+            end if
+          end do
+        end do
+      end if
+      do concurrent ( n = n1:n2, k = 1:nk )
+        mfuus(n,k) = mfu(n,k)
+        mfdus(n,k) = mfd(n,k)
+        if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+          mfuus(n,k) = mfu(n,k)*mfs(n)
+          mfdus(n,k) = mfd(n,k)*mfs(n)
+        end if
+      end do
+      ! Recompute Draught properties below for Implicit
+      ! based on linear flux profiles
+      if ( rmfsoluv > d_zero ) then
+        do concurrent ( n = n1:n2 )
+          if ( ldcum(n) ) then
+            k = kcbot(n)
+            ik = k - 1
+            mfuub(n) = mfuus(n,k)*(uu(n,k)-u(n,ik))
+            mfuvb(n) = mfuus(n,k)*(vu(n,k)-v(n,ik))
+          end if
+        end do
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 2, nk
+            ik = k - 1
+            if ( ldcum(n) .and. k > kcbot(n) ) then
+              ikb = kcbot(n)
+              dz = ((pf(n,nk+1)-pf(n,k)) / (pf(n,nk+1)-pf(n,ikb)))
+              if ( ktype(n) == 3 ) dz = dz*dz
+              mfa = d_one/max(cmfcmin,mfuus(n,k))
+              uu(n,k) = u(n,ik) + mfuub(n)*dz*mfa
+              vu(n,k) = v(n,ik) + mfuvb(n)*dz*mfa
+              mfdus(n,k) = mfdus(n,ikb)*dz
+              ud(n,k) = u(n,ik) + ud(n,ikb) - u(n,ikb-1)
+              vd(n,k) = v(n,ik) + vd(n,ikb) - v(n,ikb-1)
+            end if
+            ! add UV perturb to correct wind bias
+            if ( ldcum(n) .and. k >= kctop(n) ) then
+              uu(n,k) = uu(n,k) - ruvper*sign(d_one,uu(n,k))
+              vu(n,k) = vu(n,k) - ruvper*sign(d_one,vu(n,k))
+            end if
+          end do
+        end do
+      end if
+      !------------------------------------
+      ! End
+      ! Intermediate Solution for stability
+      !------------------------------------
+      call dudvx(mfuus,mfdus)
+      if ( lmfuvdis ) then
+        ! add KE dissipation
+        do concurrent ( n = n1:n2 )
+          xsum12(n) = d_zero
+          xsum22(n) = d_zero
+        end do
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 1, nk
+            uv2(n,k) = d_zero
+            if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+              dz = (pf(n,k+1)-pf(n,k))
+              duten = tenu(n,k) - xtenu(n,k)
+              dvten = tenv(n,k) - xtenv(n,k)
+              uv2(n,k) = sqrt(duten**2+dvten**2)
+              xsum22(n) = xsum22(n) + uv2(n,k)*dz
+              xsum12(n) = xsum12(n) - (u(n,k)*duten+v(n,k)*dvten)*dz
+            end if
+          end do
+        end do
+        do concurrent ( n = n1:n2, k = 1:nk )
+          if ( ldcum(n) .and. k>=kctop(n)-1 ) then
+            dz = (pf(n,k+1)-pf(n,k))
+            tdis = rcpd*xsum12(n)*uv2(n,k)/max(1.e-15_rkx,xsum22(n))
+            tent(n,k) = tent(n,k) + tdis
+          end if
+        end do
+      end if
+    end if
+    !--------------------------------------------------------
+    ! 10. In case that either deep or shallow is switched off
+    !     need to set some variables a posteriori to zero
+    !--------------------------------------------------------
+    if ( .not. lmfscv .or. .not. lmfpen ) then
+      do concurrent ( n = n1:n2, k = 2:nk )
+        if ( llo2(n) .and. k >= kctop(n)-1 ) then
+          tu(n,k) = t(n,k)
+          qu(n,k) = q(n,k)
+          lu(n,k) = d_zero
+          penth(n,k) = d_zero
+          mfude_rate(n,k) = d_zero
+          mfdde_rate(n,k) = d_zero
+        end if
+      end do
+      do concurrent ( n = n1:n2 )
+        if ( llo2(n) ) then
+          kctop(n) = nk - 1
+          kcbot(n) = nk - 1
+        end if
+      end do
+    end if
+    !------------------------------
+    ! 11. Chemical tracer transport
+    ! -----------------------------
+    if ( lmftrac .and. ntrac > 0 ) then
+      ! transport switched off for mid-level convection
+      do concurrent ( n = n1:n2 )
+        if ( ldcum(n) .and. ktype(n) /= 3 .and. kcbot(n)-kctop(n) >= 1 ) then
+          lldcum(n) = .true.
+          llddraf3(n) = lddraf(n)
+        else
+          lldcum(n) = .false.
+          llddraf3(n) = .false.
+        end if
+      end do
+      ! check and correct mass fluxes for CFL criterium
+      !$acc kernels
+      mfs(:) = d_one
+      !$acc end kernels
+      if ( rmfsolct <= d_three ) then
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 2, nk
+            if ( lldcum(n) .and. k >= kctop(n) ) then
+              mfmax = (pf(n,k)-pf(n,k-1))*0.8_rkx*cons
+              if ( mfu(n,k) > mfmax ) then
+                mfs(n) = min(mfs(n),mfmax/mfu(n,k))
+              end if
+            end if
+          end do
+        end do
+      end if
+      do concurrent ( n = n1:n2, k = 1:nk )
+        if ( lldcum(n) .and. k >= kctop(n)-1 ) then
+          mfuus(n,k) = mfu(n,k)*mfs(n)
+          mfudr(n,k) = mfude_rate(n,k)*mfs(n)
+        else
+          mfuus(n,k) = d_zero
+          mfudr(n,k) = d_zero
+        end if
+        if ( llddraf3(n) .and. k >= idtop(n)-1 ) then
+          mfdus(n,k) = mfd(n,k)*mfs(n)
+          mfddr(n,k) = mfdde_rate(n,k)*mfs(n)
+        else
+          mfdus(n,k) = d_zero
+          mfddr(n,k) = d_zero
+        end if
+      end do
+      if ( lmfsmooth ) then
+        ! smoothing of mass fluxes (gradients) at top and bottom of draughts
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = 2, nk - 1
+            if ( llddraf3(n) .and. mfdus(n,k) < d_zero .and. &
+                 abs(mfdus(n,k+1)) < almostzero ) then
+              erate = min(d_zero,mfdus(n,k)-d_half*mfdus(n,k-1))
+              mfdus(n,k) = mfdus(n,k) - erate
+              mfddr(n,k) = mfddr(n,k) - erate
+              mfddr(n,k+1) = -mfdus(n,k)
+            end if
+            if ( lldcum(n) .and. k==kctop(n) ) then
+              erate = max(d_zero,mfuus(n,k)-d_half*mfuus(n,k+1))
+              mfuus(n,k) = mfuus(n,k) - erate
+              mfudr(n,k) = mfudr(n,k) + erate
+              mfudr(n,k-1) = mfuus(n,k)
+            end if
+          end do
+        end do
+        do concurrent ( n = n1:n2 )
+          !$acc loop seq
+          do k = nk - 1, 2, -1
+            if ( lldcum(n) ) then
+              if ( abs(mfudr(n,k)) < almostzero .and. &
+                       mfudr(n,k-1) > d_zero ) then
+                mfudr(n,k) = d_half*mfudr(n,k-1)
+              end if
+            end if
+          end do
+        end do
+      end if
+      call ctracer(lldcum,llddraf3,mfuus,mfdus,mfudr,mfddr)
+    end if
+    !----------------------------------------------------------
+    ! 12. Put detrainment rates from mflx units in units mflx/m
+    ! ---------------------------------------------------------
+    do concurrent ( n = n1:n2, k = 2:nk )
+      if ( ldcum(n) ) then
+        xro = egrav/(geof(n,k)-geof(n,k+1)) ! 1/dz
+        mfude_rate(n,k) = mfude_rate(n,k)*xro
+        mfdde_rate(n,k) = mfdde_rate(n,k)*xro
+        if ( k < kctop(n) ) then
+          lu(n,k) = d_zero
+          tu(n,k) = t(n,k)
+          qu(n,k) = q(n,k)
+        end if
+      end if
+    end do
+
+    if ( llconscheck ) then
+      !--------------------------------------
+      ! 13. Conservation check AND correction
+      ! -------------------------------------
+      do n = n1, n2
+        do k = 1, 4
+          xsumc(n,k) = d_zero
+        end do
+      end do
+      do n = n1, n2
+        do k = nk, 2, -1
+          xalv = mlwt(t(n,k))
+          if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+            dz = (pf(n,k+1)-pf(n,k))*regrav
+            xsumc(n,1) = xsumc(n,1) + &
+                         (tenq(n,k)-xtenq(n,k))*dz + lude(n,k)
+            xsumc(n,2) = xsumc(n,2) + &
+                         cpd*(tent(n,k)-xtent(n,k))*dz - xalv*lude(n,k)
+            xsumc(n,3) = xsumc(n,3) + (tenu(n,k)-xtenu(n,k))*dz
+            xsumc(n,4) = xsumc(n,4) + (tenv(n,k)-xtenv(n,k))*dz
+          end if
+        end do
+      end do
+      if ( lmftrac .and. ntrac > 0 ) then
+        do nt = 1, ntrac
+          do n = n1, n2
+            do k = nk, 2, -1
+              if ( ldcum(n) .and. k >= kctop(n)-1 ) then
+                dz = (pf(n,k+1)-pf(n,k))*regrav
+                xsumc(n,4+nt) = xsumc(n,4+nt) + (tenc(n,k,nt)-xtenc(n,k,nt))*dz
+              end if
+            end do
+          end do
+        end do
+      end if
+      do n = n1, n2
+        xalv = mlwt(t(n,nk))
+        if ( ldcum(n) ) then
+          sfl(n) = mflxr(n,nk+1) + mflxs(n,nk+1)
+          write (61,'(i4,a9,2f15.8,i4,a9,f15.8,a10,2f15.8)')     &
+            n, ' CONS q: ', -xsumc(n,1)*xalv, sfl(n)*xalv,   &
+            ktype(n), ' CONS h: ', xsumc(n,2), ' CONS uv: ', &
+            xsumc(n,3), xsumc(n,4)
+          if ( lmftrac .and. ntrac > 0 ) then
+            write (61,*) ' Conserv Error Tracers 1-', ntrac, ' :'
+            do nt = 1, ntrac
+              write (61,'(i4,e12.4)') nt, xsumc(n,4+nt)
+            end do
+#ifndef TESTME
+            call fatal(__FILE__,__LINE__, &
+                       'ERROR IN TRACER CONSERVATION')
+#endif
+          end if
+          ikb = kctop(n)
+          dz = (pf(n,nk+1)-pf(n,ikb-1))*regrav
+          xsumc(n,1) = (xsumc(n,1)+sfl(n))/dz
+          xsumc(n,2) = (xsumc(n,2)-xalv*sfl(n))/(dz*cpd)
+        end if
+      end do
+      deallocate (xsumc)
+      if ( lmftrac .and. ntrac > 0 ) deallocate (xtenc)
+    end if
+    !-------------------------------------------------------
+    ! 14. Compute convective tendencies for liquid and solid
+    !     cloud condensate
+    ! ------------------------------------------------------
+    do concurrent ( n = n1:n2, k = 1:nk )
+      tenl(n,k) = lude(n,k)*egrav/(pf(n,k+1)-pf(n,k))
+      teni(n,k) = (d_one-xalpha(t(n,k)))*tenl(n,k)
+      tenl(n,k) = tenl(n,k) - teni(n,k)
+      mflxr(n,k) = mflxr(n,k)*1.e-3_rkx
+      mflxs(n,k) = mflxs(n,k)*1.e-3_rkx
+    end do
+    do concurrent ( n = n1:n2 )
+      mflxr(n,nk+1) = mflxr(n,nk+1)*1.e-3_rkx
+      mflxs(n,nk+1) = mflxs(n,nk+1)*1.e-3_rkx
+    end do
+
+    contains
+    !
+    ! Produce adjusted t,q and l values
+    !
+    subroutine moistadj(kk,sp,t,q,ldflag,jcall)
+      implicit none
+      integer(ik4), intent(in) :: kk ! actual level
+      real(rkx), dimension(np), intent(in) :: sp ! Surface pressure Pa
+      real(rkx), dimension(np,nk), intent(inout) :: t
+      real(rkx), dimension(np,nk), intent(inout) :: q
+      logical, dimension(np), intent(in) :: ldflag ! Active convection flag
+      integer(ik4), intent(in) :: jcall ! Calling method
+      integer(ik4) :: jl
+      real(rkx) :: cond, cond1, cor, qs, rp
+      real(rkx) :: zl, zi, zf, za
+      !---------------------------------------------------------
+      ! 1. Calculate condensation and adjust t and q accordingly
+      ! --------------------------------------------------------
+      if ( jcall == 1 ) then
+        do concurrent ( jl = n1:n2 )
+          if ( ldflag(jl) ) then
+            rp = d_one/sp(jl)
+            zl = d_one/(t(jl,kk)-c4les)
+            zi = d_one/(t(jl,kk)-c4ies)
+            za = xalpha(t(jl,kk))
+            qs = c2es*(za*exp(c3les*(t(jl,kk)-tzero)*zl) + &
+                  (d_one-za)*exp(c3ies*(t(jl,kk)-tzero)*zi))
+            qs = qs*rp
+            qs = min(qsmax,qs)
+            cor = d_one - ep1*qs
+            zf = za*c5alvcp*zl**2 + (d_one-za)*c5alscp*zi**2
+            cond = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
+            if ( cond > d_zero ) then
+              t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
+              q(jl,kk) = q(jl,kk) - cond
+              zl = d_one/(t(jl,kk)-c4les)
+              zi = d_one/(t(jl,kk)-c4ies)
+              za = xalpha(t(jl,kk))
+              qs = c2es*(za*exp(c3les*(t(jl,kk)-tzero)*zl) + &
+                    (d_one-za)*exp(c3ies*(t(jl,kk)-tzero)*zi))
+              qs = qs*rp
+              qs = xmin(qsmax,qs)
+              cor = d_one - ep1*qs
+              zf = za*c5alvcp*zl**2 + (d_one-za)*c5alscp*zi**2
+              cond1 = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
+              if ( abs(cond) < almostzero ) cond1 = d_zero
+              t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+              q(jl,kk) = q(jl,kk) - cond1
+            end if
+          end if
+        end do
+      else if ( jcall == 2 ) then
+        do concurrent ( jl = n1:n2 )
+          if ( ldflag(jl) ) then
+            rp = d_one/sp(jl)
+            qs = fesat(t(jl,kk))*rp
+            qs = min(qsmax,qs)
+            cor = d_one/(d_one-ep1*qs)
+            qs = qs*cor
+            cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+            cond = min(cond,d_zero)
+            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
+            q(jl,kk) = q(jl,kk) - cond
+            qs = fesat(t(jl,kk))*rp
+            qs = min(qsmax,qs)
+            cor = d_one/(d_one-ep1*qs)
+            qs = qs*cor
+            cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+            if ( abs(cond) < almostzero ) cond1 = min(cond1,d_zero)
+            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+            q(jl,kk) = q(jl,kk) - cond1
+          end if
+        end do
+      else if ( jcall == 0 ) then
+        do concurrent ( jl = n1:n2 )
+          rp = d_one/sp(jl)
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qsmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+          q(jl,kk) = q(jl,kk) - cond1
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qsmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+          q(jl,kk) = q(jl,kk) - cond1
+        end do
+      else if ( jcall == 4 ) then
+        do concurrent ( jl = n1:n2 )
+          if ( ldflag(jl) ) then
+            rp = d_one/sp(jl)
+            qs = fesat(t(jl,kk))*rp
+            qs = min(qsmax,qs)
+            cor = d_one/(d_one-ep1*qs)
+            qs = qs*cor
+            cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
+            q(jl,kk) = q(jl,kk) - cond
+            qs = fesat(t(jl,kk))*rp
+            qs = min(qsmax,qs)
+            cor = d_one/(d_one-ep1*qs)
+            qs = qs*cor
+            cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+            q(jl,kk) = q(jl,kk) - cond1
+          end if
+        end do
+      else if ( jcall == 5 ) then ! Same as 4 but with LDFLAG all true
+        do concurrent ( jl = n1:n2 )
+          rp = d_one/sp(jl)
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qsmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
+          q(jl,kk) = q(jl,kk) - cond
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qsmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+          q(jl,kk) = q(jl,kk) - cond1
+        end do
+      else if ( jcall == 3 ) then
+        do concurrent ( jl = n1:n2 )
+          rp = d_one/sp(jl)
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qsmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+          q(jl,kk) = q(jl,kk) - cond1
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qsmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+          q(jl,kk) = q(jl,kk) - cond1
+        end do
+      else
+#ifndef TESTME
+        call fatal(__FILE__,__LINE__, 'Unknown method jcall in moistadj')
+#endif
+      end if
+
+    end subroutine moistadj
+    !
+    ! This routine calculates entrainment/detrainment rates for updrafts
+    ! in cumulus parameterization. Input are environmental values t,q etc
+    ! and updraft values t,q etc. It returns entrainment/detrainment rates
+    ! Turbulent entrainment is simulated by a constant multiplied by a
+    ! vertical scaling function
+    !
+    subroutine entrainm(kk,ldwork,dmfen,dmfde)
+      implicit none
+      integer(ik4), intent(in) :: kk ! input level
+      logical, intent(in) :: ldwork                      ! enable/disable
+      real(rkx), dimension(np), intent(out) :: dmfen    ! Entrainment
+      real(rkx), dimension(np), intent(out) :: dmfde    ! Detrainment
+      integer(ik4) :: n
+      real(rkx) :: mf, entrpen, detrpen
+      !-----------------------------------------------
+      ! 1. Calculate entrainment and detrainment rates
+      ! ----------------------------------------------
+      if ( ldwork ) then
+        do concurrent ( n = n1:n2 )
+          dmfen(n) = d_zero
+          dmfde(n) = d_zero
+        end do
+        do concurrent ( n = n1:n2 )
+          if ( ldcum(n) ) then
+            if ( kk < kcbot(n) ) then
+              mf = mfu(n,kk+1)*(geof(n,kk)-geof(n,kk+1))*regrav
+              entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(n))
+              detrpen = merge(detrpen_lnd,detrpen_ocn,ldland(n))
+              dmfen(n) = entrpen*mf
+              dmfde(n) = detrpen*mf
+            end if
+          end if
+        end do
+      end if
+    end subroutine entrainm
+    !
+    ! This routine calculates cloud base values for midlevel convection
+    ! Input are environmental values t,q etc. It returns cloudbase values
+    ! for midlevel convection
+    !
+    subroutine mcbase(kk)
+      implicit none
+      integer(ik4), intent(in) :: kk                     ! current level
+      integer(ik4) :: n
+      !-----------------------------------------------
+      ! 1. Calculate entrainment and detrainment rates
+      ! ----------------------------------------------
+      do concurrent ( n = n1:n2 )
+        if ( .not.ldcum(n) .and. ilab(n,kk+1) == 0 ) then
+          if ( lmfmid .and. geo(n,kk) >  5000.0_rkx .and. &
+                            geo(n,kk) < 10000.0_rkx .and. &
+                            q(n,kk) > 0.80_rkx*qs(n,kk) ) then
+            tu(n,kk+1) = (cpd*t(n,kk)+geo(n,kk)-geof(n,kk+1))*rcpd
+            qu(n,kk+1) = q(n,kk)
+            lu(n,kk+1) = d_zero
+            mfub(n) = min(max(cmfcmin,-omega(n,kk)*regrav),cmfcmax)
+            mfu(n,kk+1) = mfub(n)
+            mfus(n,kk+1) = mfub(n)*(cpd*tu(n,kk+1)+geof(n,kk+1))
+            mfuq(n,kk+1) = mfub(n)*qu(n,kk+1)
+            mful(n,kk+1) = d_zero
+            dmfup(n,kk+1) = d_zero
+            xrain(n,kk+1) = d_zero
+            kcbot(n) = kk
+            ilab(n,kk+1) = 1
+            ktype(n) = 3
+          end if
+        end if
+      end do
+    end subroutine mcbase
+    !
+    ! Updates u and v tendencies, with a global diagnostic of dissipation
+    ! Explicit upstream and implicit solution of vertical advection depending
+    ! on value of rmfsoluv:
+    !       0 = Explicit
+    !     0-1 = Semi-Implicit
+    !     >=1 = Implicit
+    !
+    ! For explicit solution: only one single iteration
+    ! For implicit solution: first implicit solver, then explicit solver
+    ! to correct tendencies below cloud base
+    !
+    subroutine dudvx(mfu,mfd)
+      implicit none
+      real(rkx), dimension(np,nk), intent(in) :: mfu   ! Mass Flux Updraft
+      real(rkx), dimension(np,nk), intent(in) :: mfd   ! Mass Flux Downdraft
+      real(rkx), dimension(np,nk) :: uen, ven, mfuu, mfdu, mfuv, mfdv
+      integer(ik4) :: ik, ikb, k, n
+      real(rkx) :: zp, ximp
+      real(rkx), dimension(:,:), allocatable :: dudt, dvdt, dp
+      real(rkx), dimension(:,:), allocatable :: bb, r1, r2
+      logical, dimension(:,:), allocatable :: llcumbas
+      ximp = d_one - rmfsoluv
+      allocate (dudt(np,nk))
+      allocate (dvdt(np,nk))
+      allocate (dp(np,nk))
+      do concurrent ( n = n1:n2, k = 1:nk )
+        if ( ldcum(n) ) then
+          uen(n,k) = u(n,k)
+          ven(n,k) = v(n,k)
+          dp(n,k) = egrav/(pf(n,k+1)-pf(n,k))
+        end if
+      end do
+      !--------------------------------------------------
+      ! 1. Calculate fluxes and update u and v tendencies
+      ! -------------------------------------------------
+      do concurrent ( n = n1:n2, k = itopm2:nk )
+        ik = k - 1
+        if ( ldcum(n) ) then
+          mfuu(n,k) = mfu(n,k) * (uu(n,k) - ximp*uen(n,ik))
+          mfuv(n,k) = mfu(n,k) * (vu(n,k) - ximp*ven(n,ik))
+          mfdu(n,k) = mfd(n,k) * (ud(n,k) - ximp*uen(n,ik))
+          mfdv(n,k) = mfd(n,k) * (vd(n,k) - ximp*ven(n,ik))
+        end if
+      end do
+      ! linear fluxes below cloud
+      if ( abs(rmfsoluv) < almostzero ) then
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          if ( ldcum(n) .and. k > kcbot(n) ) then
+            ikb = kcbot(n)
+            zp = ((pf(n,nk+1)-pf(n,k))/(pf(n,nk+1)-pf(n,ikb)))
+            if ( ktype(n) == 3 ) zp = zp*zp
+            mfuu(n,k) = mfuu(n,ikb)*zp
+            mfuv(n,k) = mfuv(n,ikb)*zp
+            mfdu(n,k) = mfdu(n,ikb)*zp
+            mfdv(n,k) = mfdv(n,ikb)*zp
+          end if
+        end do
+      end if
+      ! ----------------------
+      ! 1.2 Compute tendencies
+      ! ----------------------
+      do concurrent ( n = n1:n2, k = itopm2:nk )
+        if ( k < nk ) then
+          ik = k + 1
+          if ( ldcum(n) ) then
+            dudt(n,k) = dp(n,k)*(mfuu(n,ik)-mfuu(n,k)+mfdu(n,ik)-mfdu(n,k))
+            dvdt(n,k) = dp(n,k)*(mfuv(n,ik)-mfuv(n,k)+mfdv(n,ik)-mfdv(n,k))
+          end if
+        else
+          if ( ldcum(n) ) then
+            dudt(n,k) = -dp(n,k)*(mfuu(n,k)+mfdu(n,k))
+            dvdt(n,k) = -dp(n,k)*(mfuv(n,k)+mfdv(n,k))
+          end if
+        end if
+      end do
+      if ( abs(rmfsoluv) < almostzero ) then
+        !----------------------
+        ! 1.3 Update tendencies
+        ! ---------------------
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          if ( ldcum(n) ) then
+            tenu(n,k) = tenu(n,k) + dudt(n,k)
+            tenv(n,k) = tenv(n,k) + dvdt(n,k)
+          end if
+        end do
+      else
+        !------------------------------------------------------------------
+        ! 1.4 Implicit solution
+        ! Fill bi-diagonal Matrix vectors A=k-1, B=k; reuse A and B
+        ! DUDT and DVDT correspond to the RHS ("constants") of the equation
+        ! The solution is in R1 and R2
+        ! -----------------------------------------------------------------
+        allocate (bb(np,nk), source=1.0_rkx)
+        allocate (r1(np,nk), source=0.0_rkx)
+        allocate (r2(np,nk), source=0.0_rkx)
+        allocate (llcumbas(np,nk), source=.false.)
+        do concurrent ( n = n1:n2, k = 1:nk )
+          mfuu(n,k) = d_zero
+        end do
+        ! Fill vectors A, B and RHS
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          ik = k + 1
+          llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
+          if ( llcumbas(n,k) ) then
+            zp = rmfsoluv*dp(n,k)*dtc
+            mfuu(n,k) = -zp*(mfu(n,k)+mfd(n,k))
+            dudt(n,k) = dudt(n,k)*dtc + uen(n,k)
+            dvdt(n,k) = dvdt(n,k)*dtc + ven(n,k)
+            if ( k < nk ) then
+              bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
+            else
+              bb(n,k) = d_one
+            end if
+          end if
+        end do
+        call solver(n1,n2,nk,kctop,llcumbas,mfuu,bb,dudt,r1)
+        call solver(n1,n2,nk,kctop,llcumbas,mfuu,bb,dvdt,r2)
+        do concurrent ( n = n1:n2, k = itopm2:nk )
+          if ( llcumbas(n,k) ) then
+            tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))/dtc
+            tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))/dtc
+          end if
+        end do
+        deallocate (llcumbas)
+        deallocate (r2)
+        deallocate (r1)
+        deallocate (bb)
+      end if
+      deallocate (dp)
+      deallocate (dvdt)
+      deallocate (dudt)
+    end subroutine dudvx
     !
     ! Compute convective transport of chemical tracers
     ! Explicit upstream and implicit solution of vertical advection
@@ -7693,7 +7622,7 @@ module mod_cu_tiedtke
               end if
             end if
           end do
-          call solver(kctop,llcumbas,mfc(:,:,nt),bb,xtenc(:,:,nt),r1)
+          call solver(n1,n2,nk,kctop,llcumbas,mfc(:,:,nt),bb,xtenc(:,:,nt),r1)
           ! Compute tendencies
           do concurrent ( n = n1:n2, k = 2:nk )
             !  for implicit solution including tendency source term
@@ -7718,6 +7647,67 @@ module mod_cu_tiedtke
     end subroutine ctracer
 
   end subroutine ntiedtke
+  !
+  ! Computes specific humidity at saturation used by the diagnostic
+  ! cloud scheme to compute relative humidity and liquid water content
+  !
+  subroutine satur(n1,n2,nk,kt,pr,t,qsat)
+    implicit none
+    integer(ik4), intent(in) :: n1, n2, nk              ! dimensions
+    integer(ik4), intent(in) :: kt                      ! top level
+    real(rkx), dimension(n1:n2,nk), intent(in) :: pr    ! Pressure Pa
+    real(rkx), dimension(n1:n2,nk), intent(in) :: t     ! Temperature K
+    real(rkx), dimension(n1:n2,nk), intent(out) :: qsat ! Satur. MXR kg/kg
+    integer(ik4) :: k, n
+    real(rkx) :: qs
+    do concurrent ( n = n1:n2, k = kt:nk )
+      qs = min(qsmax,fesat(t(n,k))/pr(n,k))
+      qsat(n,k) = qs/(d_one-ep1*qs)
+    end do
+  end subroutine satur
+  !
+  ! Solves bidiagonal system for implicit solution of advection equation
+  ! interface. It returns updated value of quantity.
+  !
+  ! Numerical Recipes (Cambridge Press)
+  ! Derived from tridiagonal algorihm with c=0, only one forward
+  ! substitution necessary.
+  !
+  !          M  x  U  = R
+  !          ELEMENTS OF MATRIX M ARE STORED IN VECTORS A, B, C
+  !          (  B(ktop-1)     C(ktop-1)     0          0        )
+  !          (  A(ktop)       B(ktop)       C(ktop)    0        )
+  !          (  0             A(k)          B(k)       C(k)     )
+  !          (  0             0             A(nk)      B(nk)    )
+  !
+  subroutine solver(n1,n2,nk,ktop,wmask,a,b,r,u)
+    implicit none
+    integer(ik4), intent(in) :: n1, n2, nk          ! dimensions
+    integer(ik4), dimension(n1:n2), intent(in) :: ktop ! cloud top
+    logical, dimension(n1:n2,nk), intent(in) :: wmask  ! mask
+    real(rkx), dimension(n1:n2,nk), intent(in) :: a    ! lower diagonal
+    real(rkx), dimension(n1:n2,nk), intent(in) :: b    ! diagonal
+    real(rkx), dimension(n1:n2,nk), intent(in) :: r    ! right hand side
+    real(rkx), dimension(n1:n2,nk), intent(out) :: u   ! solution
+    integer(ik4) :: k, n
+    !$acc kernels
+    u(:,:) = d_zero
+    !$acc end kernels
+    do concurrent ( n = n1:n2 )
+      !$acc loop seq
+      do k = 2, nk
+        if ( wmask(n,k) ) then
+          if ( abs(b(n,k)) > almostzero ) then
+            if ( k == ktop(n)-1 ) then
+              u(n,k) = r(n,k)/b(n,k)
+            else if ( k > ktop(n)-1 ) then
+              u(n,k) = (r(n,k)-a(n,k)*u(n,k-1))/b(n,k)
+            end if
+          end if
+        end if
+      end do
+    end do
+  end subroutine solver
 
   pure real(rkx) function xmin(x,y)
     implicit none
