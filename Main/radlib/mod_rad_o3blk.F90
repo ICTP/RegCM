@@ -43,7 +43,6 @@ module mod_rad_o3blk
   character(len=16) :: ozname
   integer(ik4) :: ystart, yend, moffset
   real(rkx) :: mulfac
-  real(rkx), pointer, contiguous, dimension(:) :: zsig => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: alon => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: alat => null( )
   real(rkx), pointer, contiguous, dimension(:) :: olat => null( )
@@ -310,7 +309,6 @@ module mod_rad_o3blk
         call bcast(oplev)
         call bcast(mulfac)
       endif
-      call getmem(zsig,1,np,'mod_o3blk:zsig')
       call getmem(ploz1,jci1,jci2,ici1,ici2,1,np,'mod_o3blk:ploz1')
       call getmem(ploz2,jci1,jci2,ici1,ici2,1,np,'mod_o3blk:ploz2')
       call getmem(sgoz1,jci1,jci2,ici1,ici2,1,kzp1,'mod_o3blk:sgoz1')
@@ -356,9 +354,9 @@ module mod_rad_o3blk
     end if
     ! We need pressure
     call intlinreg(sgoz1,ploz1,m2r%psatms,oplev, &
-                   jci1,jci2,ici1,ici2,np,m2r%pfatms,zsig,kzp1)
+                   jci1,jci2,ici1,ici2,np,m2r%pfatms,kzp1)
     call intlinreg(sgoz2,ploz2,m2r%psatms,oplev, &
-                   jci1,jci2,ici1,ici2,np,m2r%pfatms,zsig,kzp1)
+                   jci1,jci2,ici1,ici2,np,m2r%pfatms,kzp1)
     tdif = idatex-iref1
     xfac1 = real(tohours(tdif),rkx)
     tdif = idatex-iref2

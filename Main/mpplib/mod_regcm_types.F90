@@ -28,9 +28,13 @@ module mod_regcm_types
   type masked_comm
     integer(ik4) :: linear_communicator
     logical, pointer, contiguous, dimension(:,:) :: gmask => null( )
+    integer(ik4), pointer, contiguous, dimension(:,:) :: gmask_id => null( )
     logical, pointer, contiguous, dimension(:,:,:) :: sgmask => null( )
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: sgmask_id => null( )
     logical, pointer, contiguous, dimension(:,:) :: global_gmask => null( )
+    integer(ik4), pointer, contiguous, dimension(:,:) :: global_gmask_id => null( )
     logical, pointer, contiguous, dimension(:,:,:) :: global_sgmask => null( )
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: global_sgmask_id => null( )
     logical, pointer, contiguous, dimension(:,:) :: global_out_sgmask => null( )
     integer(ik4), pointer, contiguous, dimension(:) :: linear_npoint_g => null( )
     integer(ik4), pointer, contiguous, dimension(:) :: linear_displ_g => null( )
