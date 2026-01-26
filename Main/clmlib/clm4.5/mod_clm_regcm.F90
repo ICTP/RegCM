@@ -468,7 +468,7 @@ module mod_clm_regcm
   subroutine atmosphere_to_land(lm)
     implicit none
     type(lm_exchange), intent(inout) :: lm
-    integer(ik4) :: begg, endg, i, n
+    integer(ik4) :: begg, endg, i, j, n
     real(rkx) :: satq, lat
 
     call get_proc_bounds(begg,endg)
@@ -484,28 +484,41 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
     call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
     call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
+    !$acc kernels
     temps = (lm%cprate+lm%ncprate) * syncro_srf%rw
+    !$acc end kernels
     if ( luse_cru ) then
       call read_cru_pre(lm,temps)
     end if
     call glb_c2l_gs(lndcomm,temps,clm_a2l%rainf)
 
     call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
+    !$acc kernels
     clm_a2l%forc_solad(:,1) = clm_a2l%notused
+    !$acc end kernels
     call glb_c2l_gs(lndcomm,lm%lwdir,clm_a2l%notused)
+    !$acc kernels
     clm_a2l%forc_solad(:,2) = clm_a2l%notused
+    !$acc end kernels
     call glb_c2l_gs(lndcomm,lm%swdif,clm_a2l%notused)
+    !$acc kernels
     clm_a2l%forc_solai(:,1) = clm_a2l%notused
+    !$acc end kernels
     call glb_c2l_gs(lndcomm,lm%lwdif,clm_a2l%notused)
+    !$acc kernels
     clm_a2l%forc_solai(:,2) = clm_a2l%notused
+    !$acc end kernels
 
     ! Compute or alias
+    !these kernels cause illegal memory access
+    !!!$acc kernels
     clm_a2l%forc_wind = max(sqrt(clm_a2l%forc_u**2+clm_a2l%forc_v**2),0.1_rk8)
     clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
+    !!!$acc end kernels
 
-    do i = begg, endg
+    do concurrent ( i = begg:endg )
       clm_a2l%forc_rho(i) = clm_a2l%forc_pbot(i)/(rgas*clm_a2l%forc_t(i))
       satq = pfwsat(real(clm_a2l%forc_t(i),rkx), &
                     real(clm_a2l%forc_pbot(i),rkx))
@@ -522,7 +535,9 @@ module mod_clm_regcm
       end if
     end do
     ! Specific humidity
+    !$acc kernels
     clm_a2l%forc_q = clm_a2l%forc_q/(1.0_rk8+clm_a2l%forc_q)
+    !$acc end kernels
 
     ! interface chemistry / surface
 
@@ -540,11 +555,15 @@ module mod_clm_regcm
       end do
       !clm_a2l%forc_ndep = 6.34e-5_rk8
       if ( use_c13 ) then
+        !$acc kernels
         clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
+        !$acc end kernels
       end if
+      !$acc kernels
       clm_a2l%forc_po2 = o2_molar_const*clm_a2l%forc_psrf
       ! deposition of aerosol == zero
       clm_a2l%forc_aer(:,:) = d_zero !
+      !$acc end kernels
     else
       !
       ! interface with atmospheric chemistry
@@ -562,10 +581,14 @@ module mod_clm_regcm
       end do
       if ( use_c13 ) then
         ! C13O2 partial pressure (Pa)
+        !$acc kernels
         clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
+        !$acc end kernels
       end if
       ! O2 partial pressure (Pa)
+      !$acc kernels
       clm_a2l%forc_po2 = o2_molar_const*clm_a2l%forc_psrf
+      !$acc end kernels
       ! FAB: this is the interactive part
       ! a) snow ageing
       !    flux of species have to be consistent with snowhydrology use
@@ -576,118 +599,174 @@ module mod_clm_regcm
       if ( isnowdark == 1 ) then
         ! dry deposition BC HL
         if ( nbchl > 0 ) then
+          !$acc kernels
           temps = d_zero
-          do n = 1, nbchl
-            temps(:,:) = temps(:,:) + &
-              lm%drydepflx(jci1:jci2,ici1:ici2,ibchl(n)) * syncro_srf%rw
+          !$acc end kernels
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            !$acc loop seq
+            do n = 1, nbchl
+              temps(j,i) = temps(j,i) + &
+                lm%drydepflx(j,i,ibchl(n)) * syncro_srf%rw
+            end do
           end do
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,1) = clm_a2l%notused
+          !$acc end kernels
         end if
         ! drydeposition BC HB
         if ( ibchb > 0 ) then
+          !$acc kernels
           temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,ibchb) * syncro_srf%rw
+          !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,2) = clm_a2l%notused
+          !$acc end kernels
         end if
         ! wet dep BC (sum rainout and washout fluxes, sum hb amd hl)
         if ( ibchb > 0 .and. nbchl > 0 ) then
-          temps(:,:) = lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb) * syncro_srf%rw
-          do n = 1, nbchl
-            temps(:,:) = temps(:,:) + &
-                 lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl(n)) * syncro_srf%rw
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            temps(j,i) = lm%wetdepflx(j,i,ibchb) * syncro_srf%rw
+            !$acc loop seq
+            do n = 1, nbchl
+              temps(j,i) = temps(j,i) + &
+                   lm%wetdepflx(j,i,ibchl(n)) * syncro_srf%rw
+            end do
           end do
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,3) = clm_a2l%notused
+          !$acc end kernels
         end if
         ! drydeposition OC HL
         if ( nochl > 0 ) then
+          !$acc kernels
           temps = d_zero
-          do n = 1, nochl
-            temps(:,:) = temps(:,:) + &
-              lm%drydepflx(jci1:jci2,ici1:ici2,iochl(n)) * syncro_srf%rw
+          !$acc end kernels
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            !$acc loop seq
+            do n = 1, nochl
+              temps(j,i) = temps(j,i) + &
+                lm%drydepflx(j,i,iochl(n)) * syncro_srf%rw
+            end do
           end do
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,4) = clm_a2l%notused
+          !$acc end kernels
         end if
         ! drydeposition OC HB
         if ( iochb > 0 ) then
+          !$acc kernels
           temps(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,iochb) * syncro_srf%rw
+          !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,5) = clm_a2l%notused
+          !$acc end kernels
         end if
         ! wet dep OC (sum rainout and washout fluxes, sum hb and hl)
         if ( iochb > 0 .and. nochl > 0 ) then
-          temps(:,:) = lm%wetdepflx(jci1:jci2,ici1:ici2,iochb) * syncro_srf%rw
-          do n = 1, nochl
-            temps(:,:) = temps(:,:) + &
-                   lm%wetdepflx(jci1:jci2,ici1:ici2,iochl(n)) * syncro_srf%rw
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            temps(j,i) = lm%wetdepflx(j,i,iochb) * syncro_srf%rw
+            !$acc loop seq
+            do n = 1, nochl
+              temps(j,i) = temps(j,i) + &
+                     lm%wetdepflx(j,i,iochl(n)) * syncro_srf%rw
+            end do
           end do
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,6) = clm_a2l%notused
+          !$acc end kernels
         end if
         if ( size(lm%idust) == 4 ) then
           ! wet dep dust 1
+          !$acc kernels
           temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) + &
                 lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1))) * syncro_srf%rw
+          !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,7) = clm_a2l%notused
           ! dry dep dust 1
           temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(1)) * &
                        syncro_srf%rw
+          !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,8) = clm_a2l%notused
 
           ! wet dep dust 2
           temps(:,:) =(lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2)) + &
                  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2))) * syncro_srf%rw
+          !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,9) = clm_a2l%notused
           ! dry dep dust 2
           temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(2)) * &
                        syncro_srf%rw
+          !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,10) = clm_a2l%notused
 
           ! wet dep dust 3
           temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3)) + &
                  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3))) * syncro_srf%rw
+          !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,11) = clm_a2l%notused
           ! dry dep dust 3
           temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(3)) * &
                        syncro_srf%rw
+          !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,12) = clm_a2l%notused
 
           ! wet dep dust 4
           temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4)) + &
                   lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4))) * syncro_srf%rw
+          !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,13) = clm_a2l%notused
           ! dry dep dust 4
           temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(4)) * &
                        syncro_srf%rw
+          !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          !$acc kernels
           clm_a2l%forc_aer(:,14) = clm_a2l%notused
+          !$acc end kernels
         end if
       end if
       if ( ichsursrc == 1 .and. ino > 0 .and. ichbion == 1 ) then
         ndep_nochem = .false.
+        !$acc kernels
         temps(:,:) = (lm%drydepflx(jci1:jci2,ici1:ici2,ino) + &
                       lm%wetdepflx(jci1:jci2,ici1:ici2,ino)) * syncro_srf%rw
+        !$acc end kernels
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         ! to convert NO flux from mg/m2/day to g/m2/sec,
         ! we multiply by 1.15740741 * 10-8
+        !$acc kernels
         clm_a2l%forc_ndep(:) = clm_a2l%notused * 1.15740741e-8_rk8
+        !$acc end kernels
       end if
       ! FAB to do : treat the 12 bins case ..
       ! b : pass the nitrogen deposition flux
     end if ! end test on ichem
 
     if ( .true. ) then
+      !$acc kernels
       clm_a2l%forc_flood = 0.0_rk8
       clm_a2l%volr = 0.0_rk8
+      !$acc end kernels
     else
       ! Runoff in input ? Chym ?
       ! clm_a2l%forc_flood  ! flood (mm/s)
@@ -715,10 +794,14 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
 
     ! CLM gives just wind speed, assume directions are same as input.
+    !$acc kernels
     clm_a2l%notused = clm_l2a%u_ref10m/clm_a2l%forc_wind
     clm_l2a%notused = clm_a2l%forc_u*clm_a2l%notused
+    !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%u10m)
+    !$acc kernels
     clm_l2a%notused = clm_a2l%forc_v*clm_a2l%notused
+    !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%v10m)
 
     call glb_l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
@@ -726,7 +809,9 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%ram1,lms%ram1)
     call glb_l2c_ss(lndcomm,clm_l2a%rah1,lms%rah1)
     call glb_l2c_ss(lndcomm,clm_l2a%br1,lms%br)
+    !$acc kernels
     clm_l2a%notused = sqrt(clm_l2a%taux**2+clm_l2a%tauy**2)/clm_a2l%forc_wind
+    !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%drag)
 
     call glb_l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
@@ -734,45 +819,61 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%vdustfrac,lms%wt)
     call glb_l2c_ss(lndcomm,clm_l2a%taux,lms%taux)
     call glb_l2c_ss(lndcomm,clm_l2a%tauy,lms%tauy)
+    !$acc kernels
     clm_l2a%zom = max(clm_l2a%zom,1.0e-4_rk8)
+    !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%zom,lms%zo)
     call glb_l2c_ss(lndcomm,clm_l2a%t_veg,lms%tlef)
 
     ! soil temperature profile
     ! note tsw is used as a temporary table
+    !$acc kernels
     clm_l2a%notused = 0.0_rk8
+    !$acc end kernels
     do k = 1, nlevsoi
+      !$acc kernels
       clm_l2a%notused(:) = clm_l2a%tsoi(:,k)
+      !$acc end kernels
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
+      !$acc kernels
       lms%tsoi(:,:,:,k) = lms%tsw(:,:,:)
+      !$acc end kernels
     end do
 
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( lm%ldmsk1(n,j,i) == 1 ) then
-            lms%tgrd(n,j,i) = lms%tsoi(n,j,i,1)
-            lms%tgbrd(n,j,i) = lms%tsoi(n,j,i,1)
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) == 1 ) then
+        lms%tgrd(n,j,i) = lms%tsoi(n,j,i,1)
+        lms%tgbrd(n,j,i) = lms%tsoi(n,j,i,1)
+      end if
     end do
     call glb_l2c_ss(lndcomm,clm_l2a%eflx_gnet,lms%hfso)
 
+    !$acc kernels
     clm_l2a%notused = 0.0_rk8
+    !$acc end kernels
 
     do k = 1, nlevsoi
+      !$acc kernels
       clm_l2a%notused(:) = clm_l2a%h2osoi(:,k)
+      !$acc end kernels
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
+      !$acc kernels
       lms%sw(:,:,:,k) = lms%tsw(:,:,:)
+      !$acc end kernels
     end do
 
     ! volumetric soil water profile (m3/m3) is saved for chem
+    !$acc kernels
     clm_l2a%notused = 0.0_rk8
+    !$acc end kernels
     do k = 1, nlevsoi
+      !$acc kernels
       clm_l2a%notused(:) = clm_l2a%h2osoi_vol(:,k)
+      !$acc end kernels
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
+      !$acc kernels
       lms%sw_vol(:,:,:,k) = lms%tsw(:,:,:)
+      !$acc end kernels
     end do
     ! tsw is finally passed as the soil water in Kg/m2 in the first
     ! 10 cm of soil
@@ -783,7 +884,9 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_snow_melt,lms%snwm)
+    !$acc kernels
     lms%snwm = lms%snwm * dtsrf
+    !$acc end kernels
 
     ! From the input
     call glb_l2c_ss(lndcomm,clm_a2l%rainf,lms%prcp)

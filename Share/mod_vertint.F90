@@ -86,7 +86,7 @@ module mod_vertint
   ! Output:
   !   fp(im,jm,km)  - the field interpolate on target pressure grid p3d
   !
-  subroutine intlinreg_p(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,sig,km)
+  subroutine intlinreg_p(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,km)
     implicit none
     integer(ik4), intent(in) :: im1, im2, jm1, jm2, km, kp
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f
@@ -94,56 +94,56 @@ module mod_vertint
     real(rkx), pointer, contiguous, dimension(:), intent(in) :: p
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p3d
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fp
-    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: sig
+    real(rkx) :: sig(im1:im2,jm1:jm2,1:kp)
     integer(ik4) :: i, j, k, kx, knx, n
     real(rkx) :: sigp, w1, w2
     do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
       fp(i,j,k) = missl
     end do
-    do concurrent ( i = im1:im2, j = jm1:jm2 )
-      if ( ps(i,j) < 1.0_rkx ) cycle
-      if ( p(1) > p(kp) ) then
-        !$acc loop seq
-        do k = 1, kp
-          sig(k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
-        end do
+    if ( p(1) > p(kp) ) then
+      do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:kp )
+        sig(i,j,k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
+      end do
+      do concurrent ( i = im1:im2, j = jm1:jm2 )
+        if ( ps(i,j) < 1.0_rkx ) cycle
         !$acc loop seq
         do n = 1, km
           sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
-          if ( sigp <= sig(kp) ) then
+          if ( sigp <= sig(i,j,kp) ) then
             fp(i,j,n) = f(i,j,kp)
-          else if ( sigp >= sig(1) ) then
+          else if ( sigp >= sig(i,j,1) ) then
             fp(i,j,n) = f(i,j,1)
           else
-            kx = find_from_top(sigp,sig)
+            kx = find_from_top(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
             knx = kx - 1
-            w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w2 = (sigp-sig(i,j,kx))/(sig(i,j,knx)-sig(i,j,kx))
             w1 = d_one - w2
             fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
           end if
         end do
-      else
-        !$acc loop seq
-        do k = 1, kp
-          sig(k) = (p(k)-p(1))/(ps(i,j)-p(1))
-        end do
+      end do
+    else
+      do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:kp )
+        sig(i,j,k) = (p(k)-p(1))/(ps(i,j)-p(1))
+      end do
+      do concurrent ( i = im1:im2, j = jm1:jm2 )
         !$acc loop seq
         do n = 1, km
           sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
-          if ( sigp <= sig(1) ) then
+          if ( sigp <= sig(i,j,1) ) then
             fp(i,j,n) = f(i,j,1)
-          else if ( sigp >= sig(kp) ) then
+          else if ( sigp >= sig(i,j,kp) ) then
             fp(i,j,n) = f(i,j,kp)
           else
-            kx = find_from_bottom(sigp,sig)
+            kx = find_from_bottom(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
             knx = kx - 1
-            w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
+            w2 = (sig(i,j,kx)-sigp)/(sig(i,j,kx)-sig(i,j,knx))
             w1 = d_one - w2
             fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
           end if
         end do
-      end if
-    end do
+      end do
+    end if
   end subroutine intlinreg_p
 
   ! The subroutine vertically interpolates from regular grid of height
@@ -231,68 +231,64 @@ module mod_vertint
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p3d
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fp
     integer(ik4) :: i, j, k, kx, knx, n
-    real(rkx), dimension(kp) :: sig
+    real(rkx), dimension(im1:im2,jm1:jm2,kp) :: sig
     real(rkx) :: sigp, w1, w2
 
-    do k = 1, km
-      do j = jm1, jm2
-        do i = im1, im2
-          fp(i,j,k) = missl
-        end do
-      end do
+    do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
+      fp(i,j,k) = missl
     end do
     if ( p(1) > p(kp) ) then
-      do j = jm1, jm2
-        do i = im1, im2
-          if ( ps(i,j) < 1.0_rkx ) cycle
-          do k = 1, kp
-            sig(k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
-          end do
-          do n = 1, km
-            sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
-            if ( sigp <= sig(kp) ) then
-              fp(i,j,n) = f(kp)
-            else if ( sigp >= sig(1) ) then
-              fp(i,j,n) = f(1)
-            else
-              kx = 2
-              do k = 2, kp
-                if ( sig(k) < sigp ) exit
-                kx = kx+1
-              end do
-              knx = kx - 1
-              w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = d_one - w2
-              fp(i,j,n) = w1*f(kx) + w2*f(knx)
-            end if
-          end do
+      do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:kp )
+        sig(i,j,k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
+      end do
+      do concurrent ( i = im1:im2, j = jm1:jm2 )
+        if ( ps(i,j) < 1.0_rkx ) cycle
+        !$acc loop seq
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
+          if ( sigp <= sig(i,j,kp) ) then
+            fp(i,j,n) = f(kp)
+          else if ( sigp >= sig(i,j,1) ) then
+            fp(i,j,n) = f(1)
+          else
+            kx = 2
+            !$acc loop seq
+            do k = 2, kp
+              if ( sig(i,j,k) < sigp ) exit
+              kx = kx+1
+            end do
+            knx = kx - 1
+            w2 = (sigp-sig(i,j,kx))/(sig(i,j,knx)-sig(i,j,kx))
+            w1 = d_one - w2
+            fp(i,j,n) = w1*f(kx) + w2*f(knx)
+          end if
         end do
       end do
     else
-      do j = jm1, jm2
-        do i = im1, im2
-          if ( ps(i,j) < 1.0_rkx ) cycle
-          do k = 1, kp
-            sig(k) = (p(k)-p(1))/(ps(i,j)-p(1))
-          end do
-          do n = 1, km
-            sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
-            if ( sigp <= sig(1) ) then
-              fp(i,j,n) = f(1)
-            else if ( sigp >= sig(kp) ) then
-              fp(i,j,n) = f(kp)
-            else
-              kx = 2
-              do k = 2, kp
-                if ( sig(k) > sigp ) exit
-                kx = kx+1
-              end do
-              knx = kx - 1
-              w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
-              w1 = d_one - w2
-              fp(i,j,n) = w1*f(kx) + w2*f(knx)
-            end if
-          end do
+      do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:kp )
+        sig(i,j,k) = (p(k)-p(1))/(ps(i,j)-p(1))
+      end do
+      do concurrent ( i = im1:im2, j = jm1:jm2 )
+        if ( ps(i,j) < 1.0_rkx ) cycle
+        !$acc loop seq
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
+          if ( sigp <= sig(i,j,1) ) then
+            fp(i,j,n) = f(1)
+          else if ( sigp >= sig(i,j,kp) ) then
+            fp(i,j,n) = f(kp)
+          else
+            kx = 2
+            !$acc loop seq
+            do k = 2, kp
+              if ( sig(i,j,k) > sigp ) exit
+              kx = kx+1
+            end do
+            knx = kx - 1
+            w2 = (sig(i,j,kx)-sigp)/(sig(i,j,kx)-sig(i,j,knx))
+            w1 = d_one - w2
+            fp(i,j,n) = w1*f(kx) + w2*f(knx)
+          end if
         end do
       end do
     end if
@@ -1238,7 +1234,7 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
-    !$acc parallel loop collapse(2) gang vector private(xc,fc,fr,zi,zg)
+    !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr,zi,zg)
     do j = j1, j2
       do i = i1, i2
         !$acc loop seq
@@ -1652,28 +1648,26 @@ module mod_vertint
     end if
   end subroutine intzps2
 
-  pure integer function find_from_top(v,vv) result(n)
+  pure integer function find_from_top(v,vv,i,im1,im2,j,jm1,jm2,nx) result(n)
     implicit none
+    integer, intent(in) :: i, im1, im2, j, jm1, jm2, nx
     real(rkx), intent(in) :: v
-    real(rkx), intent(in), dimension(:) :: vv
-    integer(ik4) :: nx
-    nx = size(vv)
+    real(rkx), intent(in), dimension(im1:im2,jm1:jm2,1:nx) :: vv
     do n = 2, nx-1
-      if ( vv(n) < v ) then
+      if ( vv(i,j,n) < v ) then
         return
       end if
     end do
     return
   end function find_from_top
 
-  pure integer function find_from_bottom(v,vv) result(n)
+  pure integer function find_from_bottom(v,vv,i,im1,im2,j,jm1,jm2,nx) result(n)
     implicit none
+    integer, intent(in) :: i, im1, im2, j, jm1, jm2, nx
     real(rkx), intent(in) :: v
-    real(rkx), intent(in), dimension(:) :: vv
-    integer(ik4) :: nx
-    nx = size(vv)
+    real(rkx), intent(in), dimension(im1:im2,jm1:jm2,1:nx) :: vv
     do n = 2, nx-1
-      if ( vv(n) > v ) then
+      if ( vv(i,j,n) > v ) then
         return
       end if
     end do
