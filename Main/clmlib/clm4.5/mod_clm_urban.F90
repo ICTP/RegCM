@@ -3426,7 +3426,7 @@ module mod_clm_urban
       if (trim(urban_hac) == urban_hac_on ) urb_hc_on = .true.
 
       loutofrange = .false.
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
       do concurrent ( fl = 1:num_urbanl ) shared(loutofrange,cerr)
 #else
       !$acc parallel loop gang vector copy(loutofrange) copyout(cerr)
