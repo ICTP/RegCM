@@ -483,6 +483,7 @@ module mod_clm_canopyfluxes
    integer(ik4)  :: fnold      ! temporary copy of pft count
    integer(ik4)  :: f          ! filter index
    integer(ik4)  :: filterp(ubp-lbp+1)    ! temporary filter
+   integer(ik4)  :: filterp_temp(ubp-lbp+1)
    integer(ik4)  :: fporig(ubp-lbp+1)     ! temporary filter
    real(rk8) :: displa_loc(lbp:ubp)   ! temporary copy
    real(rk8) :: z0mv_loc(lbp:ubp)     ! temporary copy
@@ -751,14 +752,14 @@ module mod_clm_canopyfluxes
    ! Filter pfts where frac_veg_nosno is non-zero
 
    fn = 0
-   !!!$acc parallel loop copy(fn)
+   !$acc parallel loop copy(fn)
    do fp = 1, num_nolakep
      p = filter_nolakep(fp)
      if (frac_veg_nosno(p) /= 0) then
-       !!!$acc atomic capture
+       !$acc atomic capture
        fn = fn + 1
        myfn = fn
-       !!!$acc end atomic
+       !$acc end atomic
        filterp(myfn) = p
      end if
    end do
@@ -1376,14 +1377,17 @@ module mod_clm_canopyfluxes
        end do
        fnold = fn
        fn = 0
-       !!!$acc parallel loop copy(fn)
+       !$acc kernels
+       filterp_temp(1:fnold) = filterp(1:fnold)
+       !$acc end kernels
+       !$acc parallel loop copy(fn)
        do f = 1, fnold
-         p = filterp(f)
+         p = filterp_temp(f)
          if (.not. (det(p) < dtmin .and. dele(p) < dlemin)) then
-           !!!$acc atomic capture
+           !$acc atomic capture
            fn = fn + 1
            myfn = fn
-           !!!$acc end atomic
+           !$acc end atomic
            filterp(myfn) = p
          end if
        end do
@@ -1512,14 +1516,17 @@ module mod_clm_canopyfluxes
 
    fnold = fn
    fn = 0
-   !!!$acc parallel loop copy(fn)
+   !$acc kernels
+   filterp_temp(1:fnold) = filterp(1:fnold)
+   !$acc end kernels
+   !$acc parallel loop copy(fn)
    do f = 1, fnold
-     p = filterp(f)
+     p = filterp_temp(f)
      if (abs(err(p)) > 0.1_rk8) then
-       !!!$acc atomic capture
+       !$acc atomic capture
        fn = fn + 1
        myfn = fn
-       !!!$acc end atomic
+       !$acc end atomic
        filterp(myfn) = p
      end if
    end do

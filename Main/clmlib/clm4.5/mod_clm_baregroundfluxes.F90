@@ -329,14 +329,14 @@ module mod_clm_baregroundfluxes
     ! Filter pfts where frac_veg_nosno is zero
 
     fn = 0
-    !!!$acc parallel loop copy(fn)
+    !$acc parallel loop copy(fn)
     do fp = 1, num_nolakep
       p = filter_nolakep(fp)
       if ( frac_veg_nosno(p) == 0 ) then
-        !!!$acc atomic capture
+        !$acc atomic capture
         fn = fn + 1
         myfn = fn
-        !!!$acc end atomic
+        !$acc end atomic
         filterp(myfn) = p
       end if
     end do
