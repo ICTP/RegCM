@@ -265,11 +265,11 @@ module mod_clm_surfacealbedo
     ! cosine solar zenith angle for next time step (pft level)
     real(rk8), dimension(lbp:ubp) :: coszen_pft
     ! number of vegetated pfts where coszen>0
-    integer(ik4) :: num_vegsol
+    integer(ik4) :: num_vegsol, my_num_vegsol
     ! pft filter where vegetated and coszen>0
     integer(ik4), dimension(ubp-lbp+1) :: filter_vegsol
     ! number of vegetated pfts where coszen>0
-    integer(ik4) :: num_novegsol
+    integer(ik4) :: num_novegsol, my_num_novegsol
     ! pft filter where vegetated and coszen>0
     integer(ik4), dimension(ubp-lbp+1) :: filter_novegsol
     ! number of solar radiation waveband classes
@@ -753,17 +753,24 @@ module mod_clm_surfacealbedo
 
     num_vegsol = 0
     num_novegsol = 0
+    !$acc parallel loop gang vector copy(num_vegsol,num_novegsol)
     do fp = 1, num_nourbanp
       p = filter_nourbanp(fp)
       if ( coszen_pft(p) > 0._rk8 ) then
         if ( (itypelun(plandunit(p)) == istsoil .or.        &
               itypelun(plandunit(p)) == istcrop     ) .and. &
               (elai(p) + esai(p)) > 0._rk8 .and. pactive(p) ) then
+          !$acc atomic capture
           num_vegsol = num_vegsol + 1
-          filter_vegsol(num_vegsol) = p
+          my_num_vegsol = num_vegsol
+          !$acc end atomic
+          filter_vegsol(my_num_vegsol) = p
         else
+          !$acc atomic capture
           num_novegsol = num_novegsol + 1
-          filter_novegsol(num_novegsol) = p
+          my_num_novegsol = num_novegsol
+          !$acc end atomic
+          filter_novegsol(my_num_novegsol) = p
         end if
       end if
     end do

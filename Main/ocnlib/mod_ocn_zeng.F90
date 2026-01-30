@@ -82,6 +82,7 @@ module mod_ocn_zeng
             dts, tskin_new, fua, es, ws
 !     real(rkx) :: lwds, lwus
       integer(ik4) :: nconv
+      logical :: act_coupler = .false.
 
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'zengocndrv'
@@ -91,6 +92,7 @@ module mod_ocn_zeng
 
       wt1 = (threedays-dtocn)/threedays
       wt2 = 1.0_rkx-wt1
+      if ( iwavcpl == 1 ) act_coupler = syncro_cpl%act( )
 
       do concurrent ( i = iocnbeg:iocnend )
         if ( mask(i) /= 1 ) cycle
@@ -162,7 +164,7 @@ module mod_ocn_zeng
         flag1 = .true.
         if ( iwavcpl == 1 ) then
           if ( syncro_cpl%lcount > 1 ) then
-            if ( zoo(i) < tol .and. syncro_cpl%act( ) ) then
+            if ( zoo(i) < tol .and. act_coupler ) then
               zo = zoo(i)
               if ( zo > zomax ) zo = zomax
               flag1 = .false.
@@ -176,7 +178,7 @@ module mod_ocn_zeng
         flag2 = .true.
         if ( iwavcpl == 1 ) then
           if ( syncro_cpl%lcount > 1 ) then
-            if ( ustr(i) < tol .and. syncro_cpl%act( ) ) then
+            if ( ustr(i) < tol .and. act_coupler ) then
               ustar = ustr(i)
               if ( ustar > ustarmax ) ustar = ustarmax
               flag2 = .false.
