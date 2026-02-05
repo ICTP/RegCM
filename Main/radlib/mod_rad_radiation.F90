@@ -4402,106 +4402,83 @@ module mod_rad_radiation
     ! Local variables
     !
     ! bch4     - pressure factor for ch4
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: bch4 => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: bch4
     ! bn2o0    - pressure factor for n2o
     ! bn2o1    - pressure factor for n2o
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: bn2o0 => null( )
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: bn2o1 => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: bn2o0, bn2o1
     ! emplnk  - emissivity Planck factor
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: emplnk => null( )
-    ! Emissivity, absorption and temp for the effect
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: emstot => null( )
-    real(rkx), pointer, save, contiguous, dimension(:,:,:) :: abstot => null( )
-    real(rkx), pointer, save, contiguous, dimension(:,:,:) :: absnxt => null( )
-    real(rkx), pointer, save, contiguous, dimension(:,:,:) :: xuinpl => null( )
+    real(rkx), dimension(nlwspi,n1:n2) :: emplnk
+    real(rkx), dimension(kzp1,n1:n2) :: emstot
+    real(rkx), dimension(kzp1,kzp1,n1:n2) :: abstot
+    real(rkx), dimension(kz,4,n1:n2) :: absnxt
+    real(rkx), dimension(kz,4,n1:n2) :: xuinpl
     ! co2em   - Layer co2 normalized planck funct. derivative
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: co2em => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: co2em
     ! co2eml  - Interface co2 normalized planck funct. deriv.
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: co2eml => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: co2eml
     ! co2t    - Prs wghted temperature path
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: co2t => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: co2t
     ! h2otr   - H2o trnmsn for o3 overlap
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: h2otr => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: h2otr
     ! ucfc11  - CFC11 path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: ucfc11 => null( )
     ! ucfc12  - CFC12 path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: ucfc12 => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: ucfc11, ucfc12
     ! un2o0   - N2O path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: un2o0 => null( )
     ! un2o1   - N2O path length (hot band)
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: un2o1 => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: un2o0, un2o1
     ! uch4    - CH4 path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: uch4 => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: uch4
     ! uco211  - CO2 9.4 micron band path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: uco211 => null( )
     ! uco212  - CO2 9.4 micron band path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: uco212 => null( )
     ! uco213  - CO2 9.4 micron band path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: uco213 => null( )
     ! uco221  - CO2 10.4 micron band path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: uco221 => null( )
     ! uco222  - CO2 10.4 micron band path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: uco222 => null( )
     ! uco223  - CO2 10.4 micron band path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: uco223 => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: uco211, uco212,  uco213
+    real(rkx), dimension(kzp1,n1:n2) :: uco221, uco222,  uco223
     ! uptype   - continuum path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: uptype => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: uptype
     ! plol     - Ozone prs wghted path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: plol => null( )
     ! plos     - Ozone path length
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: plos => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: plol, plos
     ! tplnka   - Planck fnctn level temperature
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: tplnka => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: tplnka
     ! tint    - Interface temperature
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: tint => null( )
     ! tint4   - Interface temperature**4
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: tint4 => null( )
     ! tlayr   - Level temperature
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: tlayr => null( )
     ! tlayr4  - Level temperature**4
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: tlayr4 => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: tint, tint4, tlayr, tlayr4
     ! wh2op   - H2o path
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: wh2op => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: wh2op
     ! s2c     - H2o cont amount
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: s2c => null( )
     ! s2t     - H2o cont temperature
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: s2t => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: s2c, s2t
     ! ful     - Total upwards longwave flux
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: ful => null( )
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: ful0 => null( )
     ! fsul    - Clear sky upwards longwave flux
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: fsul => null( )
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: fsul0 => null( )
     ! fdl     - Total downwards longwave flux
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: fdl => null( )
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: fdl0 => null( )
     ! fsdl    - Clear sky downwards longwv flux
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: fsdl => null( )
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: fsdl0 => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: ful, ful0
+    real(rkx), dimension(kzp1,n1:n2) :: fdl, fdl0
+    real(rkx), dimension(kzp1,n1:n2) :: fsul, fsul0
+    real(rkx), dimension(kzp1,n1:n2) :: fsdl, fsdl0
     ! fis     - Flx integral sum
-    real(rkx), pointer, save, contiguous, dimension(:,:,:) :: fis => null( )
-    real(rkx), pointer, save, contiguous, dimension(:,:,:) :: fis0 => null( )
+    real(rkx), dimension(kzp1,kzp1,n1:n2) :: fis, fis0
     ! rtclrsf - d_one/tclrsf(k,n)
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: rtclrsf => null( )
+    real(rkx), dimension(kzp1,n1:n2) :: rtclrsf
     ! tplnke  - Planck fnctn temperature
-    real(rkx), pointer, save, contiguous, dimension(:) :: tplnke => null( )
+    real(rkx), dimension(n1:n2) :: tplnke
     ! fclb4   - Sig t**4 for cld bottom interfc
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: fclb4 => null( )
     ! fclt4   - Sig t**4 for cloud top interfc
-    real(rkx), pointer, save, contiguous, dimension(:,:) :: fclt4 => null( )
+    real(rkx), dimension(kz,n1:n2) :: fclb4, fclt4
     ! abplnk1 - non-nearest layer Plack factor
-    real(rkx), pointer, save, contiguous, dimension(:,:,:) :: abplnk1 => null( )
     ! abplnk2 - nearest layer factor
-    real(rkx), pointer, save, contiguous, dimension(:,:,:) :: abplnk2 => null( )
+    real(rkx), dimension(nlwspi,kzp1,n1:n2) :: abplnk1, abplnk2
     ! klov    - Cloud lowest level index
-    integer(ik4), pointer, save, contiguous, dimension(:) :: klov => null( )
     ! khiv    - Cloud highest level index
-    integer(ik4), pointer, save, contiguous, dimension(:) :: khiv => null( )
     ! khivm   - khiv(n) - 1
-    integer(ik4), pointer, save, contiguous, dimension(:) :: khivm => null( )
+    integer(ik4), dimension(n1:n2) :: klov, khiv, khivm
     ! Control logicals
-    logical, pointer, save, contiguous, dimension(:) :: skip => null( )
-    logical, pointer, save, contiguous, dimension(:) :: done => null( )
+    logical, dimension(n1:n2) :: skip, done
     logical :: lstart
     integer(ik4) :: n, khighest, irad, nradaer
     integer(ik4) :: k, km, k1, k2, k3
@@ -4512,64 +4489,6 @@ module mod_rad_radiation
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-
-    if ( .not. associated(bch4) ) then
-      call getmem(bch4,1,kzp1,n1,n2,'radclw:bch4')
-      call getmem(bn2o0,1,kzp1,n1,n2,'radclw:bn2o0')
-      call getmem(bn2o1,1,kzp1,n1,n2,'radclw:bn2o1')
-      call getmem(emplnk,1,nlwspi,n1,n2,'radclw:emplnk')
-      call getmem(emstot,1,kzp1,n1,n2,'radclw:emstot')
-      call getmem(abstot,1,kzp1,1,kzp1,n1,n2,'radclw:abstot')
-      call getmem(absnxt,1,kz,1,4,n1,n2,'radclw:absnxt')
-      call getmem(xuinpl,1,kz,1,4,n1,n2,'radclw:xuinpl')
-      call getmem(co2em,1,kzp1,n1,n2,'radclw:co2em')
-      call getmem(co2eml,1,kzp1,n1,n2,'radclw:co2eml')
-      call getmem(co2t,1,kzp1,n1,n2,'radclw:co2t')
-      call getmem(h2otr,1,kzp1,n1,n2,'radclw:h2otr')
-      call getmem(ucfc11,1,kzp1,n1,n2,'radclw:ucfc11')
-      call getmem(ucfc12,1,kzp1,n1,n2,'radclw:ucfc12')
-      call getmem(un2o0,1,kzp1,n1,n2,'radclw:un2o0')
-      call getmem(un2o1,1,kzp1,n1,n2,'radclw:un2o1')
-      call getmem(uch4,1,kzp1,n1,n2,'radclw:uch4')
-      call getmem(uco211,1,kzp1,n1,n2,'radclw:uco211')
-      call getmem(uco212,1,kzp1,n1,n2,'radclw:uco212')
-      call getmem(uco213,1,kzp1,n1,n2,'radclw:uco213')
-      call getmem(uco221,1,kzp1,n1,n2,'radclw:uco221')
-      call getmem(uco222,1,kzp1,n1,n2,'radclw:uco222')
-      call getmem(uco223,1,kzp1,n1,n2,'radclw:uco223')
-      call getmem(uptype,1,kzp1,n1,n2,'radclw:uptype')
-      call getmem(plol,1,kzp1,n1,n2,'radclw:plol')
-      call getmem(plos,1,kzp1,n1,n2,'radclw:plos')
-      call getmem(tplnka,1,kzp1,n1,n2,'radclw:tplnka')
-      call getmem(tint,1,kzp1,n1,n2,'radclw:tint')
-      call getmem(tint4,1,kzp1,n1,n2,'radclw:tint4')
-      call getmem(tlayr,1,kzp1,n1,n2,'radclw:tlayr')
-      call getmem(tlayr4,1,kzp1,n1,n2,'radclw:tlayr4')
-      call getmem(wh2op,1,kzp1,n1,n2,'radclw:wh2op')
-      call getmem(s2c,1,kzp1,n1,n2,'radclw:s2c')
-      call getmem(s2t,1,kzp1,n1,n2,'radclw:s2t')
-      call getmem(ful,1,kzp1,n1,n2,'radclw:ful')
-      call getmem(ful0,1,kzp1,n1,n2,'radclw:ful0')
-      call getmem(fdl,1,kzp1,n1,n2,'radclw:fdl')
-      call getmem(fdl0,1,kzp1,n1,n2,'radclw:fdl0')
-      call getmem(fsul,1,kzp1,n1,n2,'radclw:fsul')
-      call getmem(fsul0,1,kzp1,n1,n2,'radclw:fsul0')
-      call getmem(fsdl,1,kzp1,n1,n2,'radclw:fsdl')
-      call getmem(fsdl0,1,kzp1,n1,n2,'radclw:fsdl0')
-      call getmem(fis,1,kzp1,1,kzp1,n1,n2,'radclw:fis')
-      call getmem(fis0,1,kzp1,1,kzp1,n1,n2,'radclw:fis0')
-      call getmem(rtclrsf,1,kzp1,n1,n2,'radclw:rtclrsf')
-      call getmem(fclb4,1,kz,n1,n2,'radclw:fclb4')
-      call getmem(fclt4,1,kz,n1,n2,'radclw:fclt4')
-      call getmem(abplnk1,1,nlwspi,1,kzp1,n1,n2,'radclw:abplnk1')
-      call getmem(abplnk2,1,nlwspi,1,kzp1,n1,n2,'radclw:abplnk2')
-      call getmem(tplnke,n1,n2,'radclw:tplnke')
-      call getmem(klov,n1,n2,'radclw:klov')
-      call getmem(khiv,n1,n2,'radclw:khiv')
-      call getmem(khivm,n1,n2,'radclw:khivm')
-      call getmem(skip,n1,n2,'radclw:skip')
-      call getmem(done,n1,n2,'radclw:done')
-    end if
 
     do concurrent ( n = n1:n2 )
       rtclrsf(1,n) = d_one/tclrsf(1,n)
