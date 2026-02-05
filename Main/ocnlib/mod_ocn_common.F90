@@ -44,27 +44,48 @@ module mod_ocn_common
   contains
 
   subroutine vecocn(lm,lms)
+    !@acc use nvtx
     implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
+    !@acc call nvtxStartRange("ocn_interf")
     call ocn_interf(lm,lms,1)
+    !@acc call nvtxEndRange
     select case ( iocnflx )
       case (0)
+        !@acc call nvtxStartRange("ocn_interf2")
         call ocn_interf(lm,lms,2)
+        !@acc call nvtxEndRange
         return
       case (1)
+        !@acc call nvtxStartRange("ocnbats")
         call ocnbats
+        !@acc call nvtxEndRange
       case (2)
+        !@acc call nvtxStartRange("zengocndrv")
         call zengocndrv
+        !@acc call nvtxEndRange
       case (3)
+        !@acc call nvtxStartRange("coare3_drv")
         call coare3_drv
+        !@acc call nvtxEndRange
       case default
         call fatal(__FILE__,__LINE__, &
                     'Not implemented Ocean Surface Fluxes Scheme.')
     end select
-    if ( llake ) call lakedrv
-    if ( lseaice ) call seaice
+    if ( llake ) then
+      !@acc call nvtxStartRange("lakedrv")
+      call lakedrv
+      !@acc call nvtxEndRange
+    end if
+    if ( lseaice ) then
+      !@acc call nvtxStartRange("seaice")
+      call seaice
+      !@acc call nvtxEndRange
+    end if
+    !@acc call nvtxStartRange("ocn_interf2")
     call ocn_interf(lm,lms,2)
+    !@acc call nvtxEndRange
   end subroutine vecocn
 
   subroutine initocn(lm,lms)
@@ -198,7 +219,7 @@ module mod_ocn_common
       if ( llake .or. lseaice ) then
         call c2l_ss(ocncomm,lm%ldmsk1,mask)
         if ( llake ) then
-          do n = iocnbeg, iocnend
+          do concurrent ( n = iocnbeg:iocnend )
             if ( ilake(n) == 1 ) then
               if ( mask(n) == 2 ) then
                 mask(n) = 4
@@ -214,7 +235,7 @@ module mod_ocn_common
             end if
           end do
         else
-          do n = iocnbeg, iocnend
+          do concurrent ( n = iocnbeg:iocnend )
             if ( mask(n) == 2 ) then
               mask(n) = 2
             else
@@ -229,8 +250,10 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%hgt,ht)
       call c2l_gs(ocncomm,lm%uatm,usw)
       call c2l_gs(ocncomm,lm%vatm,vsw)
+      !$acc kernels
       usw = sign(1.0_rkx,usw)*max(abs(usw),0.001_rkx)
       vsw = sign(1.0_rkx,vsw)*max(abs(vsw),0.001_rkx)
+      !$acc end kernels
       call c2l_gs(ocncomm,lm%tatm,tatm)
       call c2l_gs(ocncomm,lm%patm,patm)
       call c2l_gs(ocncomm,lm%sfta,sfta)
@@ -248,7 +271,9 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%qfx,evpr)
       call c2l_gs(ocncomm,lm%cprate,cprate)
       call c2l_gs(ocncomm,lm%ncprate,ncprate)
+      !$acc kernels
       prcp = (cprate+ncprate) * syncro_srf%rw
+      !$acc end kernels
       if ( ldcsst ) then
         call c2l_ss(ocncomm,lms%sst,sst)
         call c2l_ss(ocncomm,lms%deltas,deltas)
@@ -289,7 +314,7 @@ module mod_ocn_common
         call l2c_ss(ocncomm,tskin,lms%tskin)
       end if
       if ( llake .or. lseaice ) then
-        do n = iocnbeg, iocnend
+        do concurrent ( n = iocnbeg:iocnend )
           if ( mask(n) == 2 .or. mask(n) == 4 ) then
             mask(n) = 2
           else
@@ -309,25 +334,33 @@ module mod_ocn_common
         call l2c_ss(ocncomm,snag,lms%snag)
         call l2c_ss(ocncomm,sncv,lms%sncv)
         call l2c_ss(ocncomm,sm,lms%snwm)
-        do i = ici1, ici2
-          do j = jci1, jci2
-            if ( lm%ldmsk(j,i) /= 1 ) then
-              i1 = count(lm%ldmsk1(:,j,i) == 0)
-              i2 = count(lm%ldmsk1(:,j,i) == 2)
-              if ( i1 > i2 ) then
-                lm%ldmsk(j,i) = 0
-              else
-                lm%ldmsk(j,i) = 2
-              end if
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          if ( lm%ldmsk(j,i) /= 1 ) then
+            i1 = count(lm%ldmsk1(:,j,i) == 0)
+            i2 = count(lm%ldmsk1(:,j,i) == 2)
+            if ( i1 > i2 ) then
+              lm%ldmsk(j,i) = 0
+            else
+              lm%ldmsk(j,i) = 2
             end if
-          end do
+          end if
         end do
       end if
+#if 1
+      do concurrent ( n = iocnbeg:iocnend )
+        if ( mask(n) == 2 ) then
+          emiss(n) = ice_sfcemiss
+        else
+          emiss(n) = ocean_emissivity(um10(n))
+        endif
+      end do
+#else
       emiss = ocean_emissivity(um10)
       ! emiss = ocn_sfcemiss
       where ( mask == 2 )
         emiss = ice_sfcemiss
       end where
+#endif
       call l2c_ss(ocncomm,emiss,lms%emisv)
     end if
   end subroutine ocn_interf

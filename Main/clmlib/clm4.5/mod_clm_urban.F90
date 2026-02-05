@@ -3826,7 +3826,9 @@ module mod_clm_urban
       if (abs(eflx_err(l)) > 0.01_rk8) then
         found = .true.
         indexl = l
+#ifndef OPENACC
         exit
+#endif
       end if
     end do
 

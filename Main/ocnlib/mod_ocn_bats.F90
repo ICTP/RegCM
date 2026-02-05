@@ -110,7 +110,7 @@ module mod_ocn_bats
     call time_begin(subroutine_name,idindx)
 #endif
 
-    do i = iocnbeg, iocnend
+    do concurrent ( i = iocnbeg:iocnend )
       if ( mask(i) /= 2 ) cycle
 
       ! Update surface temperature from the input SST

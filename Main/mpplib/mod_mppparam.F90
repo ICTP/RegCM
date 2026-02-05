@@ -19962,14 +19962,11 @@ module mod_mppparam
     integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
     integer(ik4) :: i, j, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        if ( cl%gmask(j,i) ) then
-          vector(iv) = matrix(j,i)
-          iv = iv + 1
-        end if
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%gmask_id(j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(j,i)
+      end if
     end do
   end subroutine mypack_integer_grid
 
@@ -19979,16 +19976,11 @@ module mod_mppparam
     integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( cl%sgmask(n,j,i) ) then
-            vector(iv) = matrix(n,j,i)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(n,j,i)
+      end if
     end do
   end subroutine mypack_integer_subgrid
 
@@ -20182,14 +20174,11 @@ module mod_mppparam
     integer(ik4), pointer, contiguous, dimension(:), intent(in) :: vector
     integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
     integer(ik4) :: i, j, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        if ( cl%gmask(j,i) ) then
-          matrix(j,i) = vector(iv)
-          iv = iv + 1
-        end if
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%gmask_id(j,i)
+      if ( iv > 0 ) then
+        matrix(j,i) = vector(iv)
+      end if
     end do
   end subroutine myunpack_integer_grid
 
@@ -20199,16 +20188,11 @@ module mod_mppparam
     integer(ik4), pointer, contiguous, dimension(:), intent(in) :: vector
     integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( cl%sgmask(n,j,i) ) then
-            matrix(n,j,i) = vector(iv)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i) = vector(iv)
+      end if
     end do
   end subroutine myunpack_integer_subgrid
 
