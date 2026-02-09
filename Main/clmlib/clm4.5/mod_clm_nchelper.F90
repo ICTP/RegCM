@@ -36,11 +36,6 @@ module mod_clm_nchelper
 
   save
 
-#ifdef __INTEL_COMPILER
-  ! Need to investigate why this happens....
-  external :: mpi_bcast, mpi_scatterv, mpi_gatherv
-#endif
-
   integer(ik4), parameter :: clm_maxdims = 64
   integer(ik4), parameter :: clm_maxvars = 1024
 
