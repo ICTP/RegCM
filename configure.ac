@@ -473,6 +473,7 @@ AM_CONDITIONAL(COMPILER_CRAY, [ test -z "${FCPROG##ftn*}" ] )
 AM_CONDITIONAL(COMPILER_GNU, [ test -z "${FCPROG##gfortran*}" -o \
                                     -z "${FCPROG##\/gfortran*}" -o \
                                     -z "${FCPROG##scorep}" ] )
+AM_CONDITIONAL(COMPILER_NAG, [ test -z "${FCPROG##nagfor}" ] )
 AM_CONDITIONAL(COMPILER_G95, [ test -z "${FCPROG##g95*}" ] )
 AM_CONDITIONAL(COMPILER_SUN, [ test -z "${FCPROG##sunf9*}" ] )
 AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
@@ -530,6 +531,13 @@ if test -z "$COMPILER_GNU_TRUE"; then
     FCFLAGS="$FCFLAGS -march=nehalem"
     AC_SUBST(FCFLAGS)
   fi
+fi
+if test -z "$COMPILER_NAG_TRUE"; then
+  FCFLAGS="$FCFLAGS -convert=big-endian -pic -f2018"
+  OMPFLAGS="-openmp"
+  CPRDEF="NAG"
+  AC_SUBST(FCFLAGS)
+  AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
   if eval "test x$DEBUG = x1"; then
@@ -640,6 +648,11 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
   fi
+  if test -z "$COMPILER_NAG_TRUE"; then
+    FCFLAGS="-O0 -g -pg -mtrace=all -gline -ieee=full -nan \
+	    -Warn=allocation -Warn=double_real_literal -Warn=subnormal \
+	    -Warn=unkind_real_literal -C=all"
+  fi
   if test -z "$COMPILER_GNU_TRUE"; then
     if test -z "${osname##Linux}"; then
       FCFLAGS="-O0 -g -pg -fbacktrace \
@@ -707,6 +720,10 @@ else
     FCFLAGS="-O3 $FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
+  fi
+  if test -z "$COMPILER_NAG_TRUE"; then
+    NOOPTFC="-O2 $FCFLAGS"
+    FCFLAGS="-O3 $FCFLAGS"
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
     # The GNU compiler works with -O2
