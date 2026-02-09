@@ -4216,6 +4216,7 @@ module mod_ncout
   end subroutine dispose_output_streams
 
   subroutine write_record_output_stream(istream,idate,ifile)
+    !@acc use nvtx
     implicit none
     integer(ik4), intent(in) :: istream
     type(rcm_time_and_date), intent(in) :: idate
@@ -4228,7 +4229,7 @@ module mod_ncout
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: pnt4d => null( )
     class(ncvariable_standard), pointer :: vp
     integer(ik4) :: ivar, jfile
-
+    !@acc call nvtxStartRange("write_record_output_stream")
     if ( .not. parallel_out .and. myid /= iocpu ) then
       do ivar = 1, outstream(istream)%nvar
         vp => outstream(istream)%ncvars%vlist(ivar)%vp
@@ -4397,7 +4398,7 @@ module mod_ncout
       call outstream_sync(outstream(istream)%ncout(jfile))
 
     end do
-
+    !@acc call nvtxEndRange
   end subroutine write_record_output_stream
 
   subroutine writevar2d_output_stream(istream,vp,ifile)
