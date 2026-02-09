@@ -179,16 +179,6 @@ if eval "test x"$USE_OPENACC" = x4"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-AC_ARG_ENABLE(openacc-multi,
-  AC_HELP_STRING([--enable-openacc-multi],
-                 [Compile OpenACC directives with stdpar (only for PGI fortran compilation)]),
-                 [USE_OPENACC="5"]
-)
-if eval "test x"$USE_OPENACC" = x5"; then
-  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS -DSTDPAR"
-  AC_SUBST(AM_CPPFLAGS)
-fi
-
 USE_PROF="0"
 AC_ARG_ENABLE(profile,
   AC_HELP_STRING([--enable-profile],
@@ -698,8 +688,8 @@ if eval "test x$DEBUG = x1"; then
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
     FCFLAGS="-Mbounds -Mcache_align -Mchkstk -Mdalign \
-             -Miomutex -Mrecursive -O0 -g \
-             -gopt -traceback $FCFLAGS" # -Ktrap=divz
+             -Miomutex -Mrecursive -Ktrap=divz -O0 -g \
+             -gopt -traceback $FCFLAGS"
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
@@ -820,11 +810,6 @@ if test -z "$COMPILER_PGI_TRUE"; then
     NOOPTFC="$NOOPTFC -stdpar=gpu \
         -gpu=$PGI_GPU_ARCH,lineinfo,mem:unified -Minfo=accel"
     LDFLAGS="$LDFLAGS -traceback -cudalib=nvtx,cusparse"
-  fi
-  if eval "test x"$USE_OPENACC" = x5"; then
-    FCFLAGS="$FCFLAGS -stdpar=multicore -Minfo=accel"
-    NOOPTFC="$NOOPTFC -stdpar=multicore -Minfo=accel"
-    LDFLAGS="$LDFLAGS -traceback -cudalib=nvtx"
   fi
   AC_SUBST(FCFLAGS)
   AC_SUBST(NOOPTFC)
