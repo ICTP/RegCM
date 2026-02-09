@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  implicit none (type, external)
+  implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 
@@ -88,7 +88,7 @@ program mksurfdata
   use mod_mkvic
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   integer(ik4) :: npft
   integer(ik4), parameter :: nsoil = 10
@@ -210,6 +210,9 @@ program mksurfdata
   character (len=128) :: directory='?'
   character (len=*), parameter :: f99001 = &
           '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
+#ifdef __INTEL_COMPILER
+  external :: hostnm, getlog, getcwd
+#endif
 
   write (stdout,  &
      "(/,2x,'This is mksurfdata part of RegCM package version 5')")
@@ -1718,7 +1721,7 @@ program mksurfdata
   contains
 
   recursive subroutine sortpatch(vals,svals,ird,lsub)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:), intent(in) :: vals
     real(rkx), dimension(:), intent(inout) :: svals
     integer(ik4), dimension(:), intent(inout) :: ird

@@ -27,7 +27,7 @@ module mod_clm_accumul
   use mod_clm_decomp
   use mod_clm_varcon, only : spval, secspday
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -96,7 +96,7 @@ module mod_clm_accumul
   !
   subroutine init_accum_field (fname, units, desc, &
        accum_type, accum_period, numlev, subgrid_type, init_value, type2d)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: fname             !field name
     character(len=*), intent(in) :: units            !field units
     character(len=*), intent(in) :: desc             !field description
@@ -199,7 +199,7 @@ module mod_clm_accumul
   ! Diagnostic printout of accumulated fields
   !
   subroutine print_accum_fields()
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, nf   !indices
     ! Do not bloat output !
     if ( debug_level > 3 ) then
@@ -239,7 +239,7 @@ module mod_clm_accumul
   ! is assigned to  indicate the time average is not yet valid.
   !
   subroutine extract_accum_field_sl (fname, field, nstep)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: fname     !field name
     !field values for current time step
     real(rk8), pointer, contiguous, dimension(:) :: field
@@ -290,7 +290,7 @@ module mod_clm_accumul
   ! is assigned to  indicate the time average is not yet valid.
   !
   subroutine extract_accum_field_ml (fname, field, nstep)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: fname       !field name
     !field values for current time step
     real(rk8), pointer, contiguous, dimension(:,:) :: field
@@ -346,7 +346,7 @@ module mod_clm_accumul
   ! The appropriate field is accumulated in the array [accval].
   !
   subroutine update_accum_field_sl (fname, field, nstep)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: fname     !field name
     !field values for current time step
     real(rk8), pointer, contiguous, dimension(:) :: field
@@ -446,7 +446,7 @@ module mod_clm_accumul
   ! Accumulate multi level field over specified time interval.
   !
   subroutine update_accum_field_ml (fname, field, nstep)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: fname        !field name
     !field values for current time step
     real(rk8), pointer, contiguous, dimension(:,:) :: field
@@ -563,7 +563,7 @@ module mod_clm_accumul
   ! Read/write accumulation restart data
   !
   subroutine accumulRest( ncid, flag )
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid   !netcdf unit
     character(len=*), intent(in) :: flag   !'define','read', or 'write'
     integer(ik4) :: nf, iper       ! indices

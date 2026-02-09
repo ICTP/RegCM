@@ -39,7 +39,7 @@ module mod_era5rda
   use mod_nchelper
   use mod_kdinterp
   use netcdf
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -80,7 +80,7 @@ module mod_era5rda
   contains
 
   subroutine init_era5rda
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: k
     integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
@@ -237,7 +237,7 @@ module mod_era5rda
   end subroutine init_era5rda
 
   subroutine get_era5rda(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     !
     ! Read data at idate
@@ -327,7 +327,7 @@ module mod_era5rda
   end subroutine get_era5rda
 
   subroutine read_era5rda(dattyp,idate,idate0)
-    implicit none (type, external)
+    implicit none
     character(len=5), intent(in) :: dattyp
     type(rcm_time_and_date), intent(in) :: idate, idate0
     integer(ik4) :: i, inet, it, j, kkrec, istatus, ivar
@@ -514,7 +514,7 @@ module mod_era5rda
     contains
 
       subroutine getwork(irec)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: irec
         integer(ik4) :: itile, iti, itf
         iti = 1
@@ -534,7 +534,7 @@ module mod_era5rda
   end subroutine read_era5rda
 
   subroutine conclude_era5rda
-    implicit none (type, external)
+    implicit none
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then

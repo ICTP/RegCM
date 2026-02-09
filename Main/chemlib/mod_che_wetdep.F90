@@ -25,7 +25,7 @@ module mod_che_wetdep
   use mod_che_indices
   use mod_che_drydep
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -55,7 +55,7 @@ module mod_che_wetdep
   !          25. ch3cho      26. isopno3
   !
   subroutine sethet(i,qin,delt,ps2)
-    implicit none (type, external)
+    implicit none
     integer, intent(in) :: i
     ! time step ( s )
     real(rkx), intent(in) :: delt
@@ -622,7 +622,7 @@ module mod_che_wetdep
 
   subroutine wetdepa(i,mbin,indp,beffdiam,rhoaer,t,wl,fracloud,fracum, &
                      pressg,shj,rho,strappt,convppt,pdepv)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: i, mbin
     integer(ik4), dimension(mbin), intent(in) :: indp
     real(rkx), dimension(mbin), intent(in) :: beffdiam
@@ -856,7 +856,7 @@ module mod_che_wetdep
 
   subroutine blcld(mbin,indp,rhsize,t,pressg,shj,rho,totppt,pdepv, &
                    rhop,wetdep,colef)
-    implicit none (type, external)
+    implicit none
 
     integer(ik4), intent(in) :: mbin
     real(rkx), dimension(jci1:jci2,kz,mbin), intent(in) :: rhsize, rhop
@@ -945,7 +945,7 @@ module mod_che_wetdep
     !  this is a module of calculating the collection efficiency of
     !  the aerosols of type n by collector droplets of radius rcol.
     !
-    implicit none (type, external)
+    implicit none
 
     integer(ik4), intent(in) :: mbin
     integer(ik4), dimension(mbin), intent(in) :: indp

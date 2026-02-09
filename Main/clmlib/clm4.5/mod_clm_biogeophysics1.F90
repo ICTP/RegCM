@@ -19,7 +19,7 @@ module mod_clm_biogeophysics1
   use mod_clm_varpar, only : max_pft_per_gcell
   use mod_clm_qsat, only : QSat
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -52,7 +52,7 @@ module mod_clm_biogeophysics1
   !
   subroutine Biogeophysics1(lbg, ubg, lbc, ubc, lbp, ubp, &
        num_nolakec, filter_nolakec, num_nolakep, filter_nolakep)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbg, ubg  ! gridcell-index bounds
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
     integer(ik4), intent(in) :: lbp, ubp  ! pft-index bounds

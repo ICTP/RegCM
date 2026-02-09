@@ -1,6 +1,6 @@
 
 	program test
-	implicit none (type, external)
+	implicit none
 	use mpi
 
 	integer :: ier

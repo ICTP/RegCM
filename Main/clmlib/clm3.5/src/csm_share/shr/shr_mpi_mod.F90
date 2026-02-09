@@ -9,6 +9,7 @@ Module shr_mpi_mod
 ! PURPOSE: general layer on MPI functions
 !-------------------------------------------------------------------------------
 
+   use mpi
    use shr_kind_mod
 
    implicit none
@@ -88,8 +89,6 @@ Module shr_mpi_mod
      shr_mpi_maxr0, &
      shr_mpi_maxr1
    end interface
-
-#include <mpif.h>         ! mpi library include file
 
 !===============================================================================
 CONTAINS
@@ -602,7 +601,7 @@ SUBROUTINE shr_mpi_bcasti1(vec,comm,string)
    IMPLICIT none
 
    !----- arguments ---
-   integer(SHR_KIND_IN), intent(inout):: vec(:)   ! vector 
+   integer(SHR_KIND_IN), intent(inout):: vec(:)   ! vector
    integer(SHR_KIND_IN), intent(in)   :: comm     ! mpi communicator
    character(*),optional,intent(in)   :: string   ! message
 
@@ -634,7 +633,7 @@ SUBROUTINE shr_mpi_bcastr1(vec,comm,string)
    IMPLICIT none
 
    !----- arguments ---
-   real(SHR_KIND_R8),    intent(inout):: vec(:)   ! vector 
+   real(SHR_KIND_R8),    intent(inout):: vec(:)   ! vector
    integer(SHR_KIND_IN), intent(in)   :: comm     ! mpi communicator
    character(*),optional,intent(in)   :: string   ! message
 
@@ -666,7 +665,7 @@ SUBROUTINE shr_mpi_bcastr2(arr,comm,string)
    IMPLICIT none
 
    !----- arguments -----
-   real(SHR_KIND_R8),    intent(inout):: arr(:,:) ! array, 2d 
+   real(SHR_KIND_R8),    intent(inout):: arr(:,:) ! array, 2d
    integer(SHR_KIND_IN), intent(in)   :: comm     ! mpi communicator
    character(*),optional,intent(in)   :: string   ! message
 
@@ -700,7 +699,7 @@ SUBROUTINE shr_mpi_bcasti2(arr,comm,string)
    IMPLICIT none
 
    !----- arguments -----
-   integer,              intent(inout):: arr(:,:) ! array, 2d 
+   integer,              intent(inout):: arr(:,:) ! array, 2d
    integer(SHR_KIND_IN), intent(in)   :: comm     ! mpi communicator
    character(*),optional,intent(in)   :: string   ! message
 
@@ -734,7 +733,7 @@ SUBROUTINE shr_mpi_bcastr3(arr,comm,string)
    IMPLICIT none
 
    !----- arguments -----
-   real(SHR_KIND_R8),    intent(inout):: arr(:,:,:) ! array, 3d 
+   real(SHR_KIND_R8),    intent(inout):: arr(:,:,:) ! array, 3d
    integer(SHR_KIND_IN), intent(in)   :: comm       ! mpi communicator
    character(*),optional,intent(in)   :: string     ! message
 
@@ -780,7 +779,7 @@ SUBROUTINE shr_mpi_gathScatvInitr1(comm, rootid, locArr, glob1DArr, globSize, &
    !----- local -----
    integer(SHR_KIND_IN)               :: npes          ! Number of MPI tasks
    integer(SHR_KIND_IN)               :: locSize       ! Size of local distributed data
-   integer(SHR_KIND_IN), pointer      :: sendSize(:)   ! Size to send for initial gather
+   integer(SHR_KIND_IN)               :: sendSize  ! Size to send for initial gather
    integer(SHR_KIND_IN)               :: i             ! Index
    integer(SHR_KIND_IN)               :: rank          ! Rank of this MPI task
    integer(SHR_KIND_IN)               :: nSize         ! Maximum size to send
@@ -802,8 +801,7 @@ SUBROUTINE shr_mpi_gathScatvInitr1(comm, rootid, locArr, glob1DArr, globSize, &
    !
    ! --- Gather the send global sizes from each MPI task -----------------------
    !
-   allocate( sendSize(npes) )
-   sendSize(:) = 1
+   sendSize = 1
    call MPI_GATHER( locSize, 1, MPI_INTEGER, globSize, sendSize, &
                     MPI_INTEGER, rootid, comm, ierr )
    if (present(string)) then
@@ -811,7 +809,6 @@ SUBROUTINE shr_mpi_gathScatvInitr1(comm, rootid, locArr, glob1DArr, globSize, &
    else
      call shr_mpi_chkerr(ierr,subName)
    endif
-   deallocate( sendSize )
    !
    ! --- Prepare the displacement and allocate arrays -------------------------
    !

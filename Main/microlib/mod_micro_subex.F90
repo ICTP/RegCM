@@ -30,7 +30,7 @@ module mod_micro_subex
   use mod_mpmessage
   use mod_regcm_types
 
-  implicit none (type, external)
+  implicit none
 
   private
   !
@@ -56,7 +56,7 @@ module mod_micro_subex
   contains
 
   subroutine allocate_subex
-    implicit none (type, external)
+    implicit none
     ! Those not. Note the external, internal change.
     call getmem(qck1,jci1,jci2,ici1,ici2,'subex:qck1')
     call getmem(cgul,jci1,jci2,ici1,ici2,'subex:cgul')
@@ -73,7 +73,7 @@ module mod_micro_subex
 
   subroutine init_subex(xlat)
     use mod_mppparam, only : maxall
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat
     call maxall(maxval(xlat),maxlat)
   end subroutine init_subex
@@ -94,7 +94,7 @@ module mod_micro_subex
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine subex(mo2mc,mc2mo)
-    implicit none (type, external)
+    implicit none
     type(mod_2_micro), intent(in) :: mo2mc
     type(micro_2_mod), intent(inout) :: mc2mo
     integer(ik4) :: i, j, k, kk
@@ -390,7 +390,7 @@ module mod_micro_subex
 
     pure real(rkx) function season_factor(lat,day,dpy) result(sf)
 !$acc routine seq
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: lat, day, dpy
       real(rkx) :: theta, delta
       ! Maximum abs value for the declination angle
@@ -411,7 +411,7 @@ module mod_micro_subex
     end function season_factor
 
     subroutine sun_cevap(lat,day)
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: i, j
       real(rkx), dimension(:,:), intent(in), pointer :: lat
       real(rkx), intent(in) :: day

@@ -37,7 +37,7 @@ module mod_rad_aerosol
   use parrrtm, only : nbndlw
   use netcdf
   use mo_simple_plumes
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -1195,7 +1195,7 @@ module mod_rad_aerosol
   contains
 
     subroutine allocate_mod_rad_aerosol
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: n, k, kk, kk1
 
       if ( irrtm == 1 ) then
@@ -1400,7 +1400,7 @@ module mod_rad_aerosol
     end subroutine allocate_mod_rad_aerosol
 
     subroutine init_aerclima
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: itr
       type (rcm_time_and_date) :: aedate
 
@@ -1424,7 +1424,7 @@ module mod_rad_aerosol
     end subroutine init_aerclima
 
     subroutine read_aerclima(idatex,m2r)
-      implicit none (type, external)
+      implicit none
       type (rcm_time_and_date), intent(in) :: idatex
       type(mod_2_rad), intent(in) :: m2r
       type(rcm_time_interval) :: tdif
@@ -1478,7 +1478,7 @@ module mod_rad_aerosol
     end subroutine read_aerclima
 
     integer(ik4) function findrec(idate) result(irec)
-      implicit none (type, external)
+      implicit none
       type (rcm_time_and_date), intent(in) :: idate
       type(rcm_time_interval) :: tdif
 
@@ -1490,7 +1490,7 @@ module mod_rad_aerosol
     end function findrec
 
     subroutine doread(idate,m2r,step,aerm)
-      implicit none (type, external)
+      implicit none
       type (rcm_time_and_date), intent(in) :: idate
       type(mod_2_rad), intent(in) :: m2r
       integer(ik4), intent(in) :: step
@@ -1574,7 +1574,7 @@ module mod_rad_aerosol
     end subroutine doread
 
     subroutine open_aerclima(idate)
-      implicit none (type, external)
+      implicit none
       type (rcm_time_and_date), intent(in) :: idate
       integer(ik4) :: nae, idtime, n
       character(len=256) :: aefile
@@ -1647,7 +1647,7 @@ module mod_rad_aerosol
     end subroutine open_aerclima
 
     subroutine close_aerclima
-      implicit none (type, external)
+      implicit none
       if ( .not. do_parallel_netcdf_in ) then
         if ( myid /= iocpu ) return
       end if
@@ -1663,7 +1663,7 @@ module mod_rad_aerosol
     end subroutine close_aerclima
 
     subroutine check_ok(f,l,m1,mf)
-      implicit none (type, external)
+      implicit none
       character(len=*), intent(in) :: f, m1, mf
       integer(ik4), intent(in) :: l
       if ( ncstatus /= nf90_noerr ) then
@@ -1677,7 +1677,7 @@ module mod_rad_aerosol
     !! (ext,ssa,asy)
 
     subroutine read_aeroppdata(idatex,m2r)
-      implicit none (type, external)
+      implicit none
       type (rcm_time_and_date), intent(in) :: idatex
       type(mod_2_rad), intent(in) :: m2r
       logical, save :: lfirst = .true.
@@ -2005,7 +2005,7 @@ module mod_rad_aerosol
     end subroutine read_aeroppdata
 
     subroutine inextmon(iyear,imon)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(inout) :: iyear, imon
       imon = imon + 1
       if ( imon > 12 ) then
@@ -2015,7 +2015,7 @@ module mod_rad_aerosol
     end subroutine inextmon
 
     subroutine iprevmon(iyear,imon)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(inout) :: iyear, imon
       imon = imon - 1
       if ( imon < 1 ) then
@@ -2025,7 +2025,7 @@ module mod_rad_aerosol
     end subroutine iprevmon
 
     subroutine init_aeroppdata(ncid,lat,lon)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), intent(inout), dimension(:) :: lat, lon
       call readvar1d(ncid,'lat',lat)
@@ -2033,7 +2033,7 @@ module mod_rad_aerosol
     end subroutine init_aeroppdata
 
     subroutine readvar1d(ncid,vname,val)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       character(len=*), intent(in) :: vname
       real(rkx), intent(out), dimension(:) :: val
@@ -2051,7 +2051,7 @@ module mod_rad_aerosol
     end subroutine readvar1d
 
     subroutine readvar3d(ncid,vname,val)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       character(len=*), intent(in) :: vname
       real(rkx), intent(out), dimension(:,:,:) :: val
@@ -2079,7 +2079,7 @@ module mod_rad_aerosol
     ! SUBROUTINE AEROPPT
     !
     subroutine aeroppt(rh,pint,n1,n2)
-      implicit none (type, external)
+      implicit none
       !
       ! Interface pressure, relative humidity
       !
@@ -2642,7 +2642,7 @@ module mod_rad_aerosol
     end subroutine aeroppt
 
     subroutine cmip6_plume_profile(x,m2r)
-      implicit none (type, external)
+      implicit none
       type (rcm_time_and_date), intent(in) :: x
       type(mod_2_rad), intent(in) :: m2r
       logical, save :: lfirst = .true.
@@ -2724,7 +2724,7 @@ module mod_rad_aerosol
     end subroutine cmip6_plume_profile
 
     subroutine getfile(year,month,ncid,wbclim)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: year,month,wbclim
       integer(ik4), intent(inout) ::  ncid
       character(len=256) :: infile
@@ -2782,7 +2782,7 @@ module mod_rad_aerosol
     end subroutine getfile
 
     subroutine remove_nans(val,set)
-      implicit none (type, external)
+      implicit none
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: val
       real(rkx), intent(in) :: set
       where ( is_nan(val) )

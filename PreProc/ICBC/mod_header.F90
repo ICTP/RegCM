@@ -17,14 +17,14 @@ module mod_header
 
   use mod_intkinds
   use mod_stdio
-  implicit none (type, external)
+  implicit none
 
   public
 
   contains
 
   subroutine header(myname)
-    implicit none (type, external)
+    implicit none
     character (len=*), intent(in) :: myname
     integer(ik4) :: ihost, idir
     integer(ik4) :: hostnm
@@ -40,6 +40,9 @@ module mod_header
            '(/,1x," This is ",A," part of the RegCM version 5")'
     character(len=*), parameter :: f99002 = &
            '(2x," SVN Revision: ",A," compiled at: data : ",A,"  time: ",A,/)'
+#ifdef __INTEL_COMPILER
+  external :: hostnm, getlog, getcwd
+#endif
 
     cdata = '?'
     czone = '?'
@@ -70,9 +73,12 @@ module mod_header
   end subroutine header
 
   subroutine finaltime(myid)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent (in) :: myid
     character (len=24) :: cdata
+#ifdef __INTEL_COMPILER
+    external :: fdate
+#endif
 
     cdata = '?'
     if ( myid ==  0 ) then

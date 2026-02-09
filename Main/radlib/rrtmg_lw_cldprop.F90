@@ -42,7 +42,7 @@
                           absice0, absice1, absice2, absice3
       use rrlw_vsn, only: hvrcld, hnamcld
 
-      implicit none (type, external)
+      implicit none
 
       contains
 

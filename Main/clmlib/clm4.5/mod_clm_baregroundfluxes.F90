@@ -14,7 +14,7 @@ module mod_clm_baregroundfluxes
   use mod_clm_qsat, only : QSat
   use mod_clm_varctl, only : use_c13, use_c14
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -28,7 +28,7 @@ module mod_clm_baregroundfluxes
   ! to ground temperature using ground temperatures from previous time step.
   !
   subroutine BareGroundFluxes(lbp, ubp, num_nolakep, filter_nolakep)
-    implicit none (type, external)
+    implicit none
     ! pft bounds
     integer(ik4), intent(in) :: lbp, ubp
     ! number of pft non-lake points in pft filter

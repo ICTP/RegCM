@@ -27,7 +27,7 @@ module mod_spline
   use mod_realkinds
   use mod_constants
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -46,7 +46,7 @@ module mod_spline
     ! Adapted from numerical recipes by press et al
     !
     subroutine spline1(x,y,yp1,ypn,y2)
-      implicit none (type, external)
+      implicit none
       ! Arrays of tabulated function in ascending order by x with y = f(x)
       real(rkx), dimension(:), intent(in)  :: x, y
       ! Specified derivatives at x(1) and x(n)
@@ -144,7 +144,7 @@ module mod_spline
       ! *  P, Q - AUXILIARY VECTORS OF THE LENGTH NOLD-2.                *
       ! *                                                                *
       ! ******************************************************************
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: jtb, nold, nnew
       real(rkx), dimension(jtb), intent(in) :: xold, yold, xnew
       real(rkx), dimension(jtb), intent(inout) :: p, q, y2
@@ -206,7 +206,7 @@ module mod_spline
     ! Integrate cubic spline function from xa(1) to x
     !
     subroutine splini(xa,ya,y2a,x,yi)
-      implicit none (type, external)
+      implicit none
       ! Arrays of tabulated function in ascending order by xa with ya = f(xa)
       real(rkx), dimension(:), intent(in) :: xa, ya
       ! Array of second derivatives
@@ -243,7 +243,7 @@ module mod_spline
     ! Adapted from numerical recipes by press et al.
     !
     subroutine splint(xa,ya,y2a,x,y)
-      implicit none (type, external)
+      implicit none
 
       ! Arrays of tabulated function values in ascending xa order
       real(rkx), dimension(:), intent(in) :: xa, ya
@@ -296,7 +296,7 @@ module mod_spline
     end subroutine splint
 
     subroutine splie2(x1a,x2a,ya,m,n,y2a)
-      implicit none (type, external)
+      implicit none
       !     SPLIE2 use: given an array of X1A data of length M, and an array
       !     of X2A data of length N, this routine computes the 2nd
       !     derivatives, Y2A, at each X1A,X2A data point.  Thus Y2A has
@@ -331,7 +331,7 @@ module mod_spline
     end subroutine splie2
 
     subroutine splin2(x1a,x2a,ya,y2a,x1,x2,y)
-      implicit none (type, external)
+      implicit none
       ! SPLIN2 use: given an array of X1A data of length M, an array of
       ! X2A data of length N, and an array of 2nd derivatives, Y2A at each
       ! X1A,X2A data point, dimensioned Y2A(M,N), this routine performs 2D
@@ -385,7 +385,7 @@ module mod_spline
     !  ynew - the values of the function to be calculated.
     !
     subroutine spline1d(nold,xold,yold,y2,nnew,xnew,ynew)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: nnew, nold
       real(rkx), intent(in), dimension(nold) :: xold, yold
       real(rkx), intent(in), dimension(nnew) :: xnew

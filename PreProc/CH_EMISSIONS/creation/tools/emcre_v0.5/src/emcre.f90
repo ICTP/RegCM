@@ -16,7 +16,7 @@ PROGRAM EMCRE
   USE emcre_tools
   USE emcre_netcdf
 
-  IMPLICIT NONE (type, external)
+  IMPLICIT NONE
 
   ! VERSION
   CHARACTER(LEN=*), PARAMETER :: VERSION = '0.4'
@@ -506,7 +506,7 @@ CONTAINS
   ! ------------------------------------------------------------------------
   SUBROUTINE read_nml(status, iou, fname)
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     ! I/O
     INTEGER,          INTENT(OUT) :: status
@@ -579,7 +579,7 @@ CONTAINS
 
     USE netcdf
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     INTRINSIC :: TRIM, ADJUSTL, NINT
 
@@ -673,7 +673,7 @@ CONTAINS
 
     USE netcdf
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     INTRINSIC :: TRIM, ADJUSTL, NINT
 
@@ -723,7 +723,7 @@ CONTAINS
 
     USE netcdf
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     INTRINSIC :: TRIM, ADJUSTL, NINT
 
@@ -875,7 +875,7 @@ CONTAINS
 
     USE netcdf
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     INTRINSIC :: DATE_AND_TIME, CHAR
 
@@ -1170,7 +1170,7 @@ CONTAINS
 
     USE netcdf, ONLY: NF90_NOERR, nf90_strerror
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     ! I/O
     INTEGER,          INTENT(OUT) :: status

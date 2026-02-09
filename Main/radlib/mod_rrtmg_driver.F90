@@ -43,7 +43,7 @@ module mod_rrtmg_driver
   use mod_mppparam, only : italk
   use mod_regcm_types
 
-  implicit none (type, external)
+  implicit none
 
   private
 !
@@ -209,7 +209,7 @@ module mod_rrtmg_driver
   contains
 
   subroutine allocate_mod_rad_rrtmg
-    implicit none (type, external)
+    implicit none
     npj = (jci2-jci1+1)
     npr = npj*(ici2-ici1+1)
     call getmem(frsa,1,npr,'rrtmg:frsa')
@@ -358,7 +358,7 @@ module mod_rrtmg_driver
   end subroutine allocate_mod_rad_rrtmg
 
   subroutine rrtmg_driver(iyear,imonth,iday,lout,m2r,r2m)
-    implicit none (type, external)
+    implicit none
     type(mod_2_rad), intent(in) :: m2r
     type(rad_2_mod), intent(inout) :: r2m
     integer(ik4), intent(in) :: iyear, imonth, iday
@@ -611,7 +611,7 @@ module mod_rrtmg_driver
   end subroutine rrtmg_driver
 
   subroutine prep_dat_rrtm(m2r,iyear,imonth)
-    implicit none (type, external)
+    implicit none
     type(mod_2_rad), intent(in) :: m2r
     integer(ik4), intent(in) :: iyear, imonth
     integer(ik4) :: i, j, k, kj, ns, n, itr
@@ -1196,7 +1196,7 @@ module mod_rrtmg_driver
   ! For now we use for RRTM the same param as in standard rad
   !
   subroutine cldefr_rrtm(t,pmid,rel,rei,fice)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: pmid, t
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: fice, rei, rel
     integer(ik4) :: k, n

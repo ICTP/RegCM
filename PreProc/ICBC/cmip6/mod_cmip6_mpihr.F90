@@ -25,7 +25,7 @@ module mod_cmip6_mpihr
   use mod_cmip6_helper
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -37,7 +37,7 @@ module mod_cmip6_mpihr
   contains
 
     subroutine read_hcoord_mpihr(ncid,lon,lat)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -63,7 +63,7 @@ module mod_cmip6_mpihr
     end subroutine read_hcoord_mpihr
 
     subroutine read_hcoord_sst_mpihr(ncid,lon,lat)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -89,7 +89,7 @@ module mod_cmip6_mpihr
     end subroutine read_hcoord_sst_mpihr
 
     subroutine read_vcoord_mpihr(ncid,ap,b)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:), intent(inout) :: ap, b
       integer(ik4) :: istatus, idimid, ivarid
@@ -111,7 +111,7 @@ module mod_cmip6_mpihr
     end subroutine read_vcoord_mpihr
 
     recursive subroutine read_3d_mpihr(idate,v,lonlyc)
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_3d_var), pointer, intent(inout) :: v
       logical, optional, intent(in) :: lonlyc
@@ -224,7 +224,7 @@ module mod_cmip6_mpihr
     end subroutine read_3d_mpihr
 
     recursive subroutine read_2d_mpihr(idate,v,lonlyc)
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), pointer, intent(inout) :: v
       logical, optional, intent(in) :: lonlyc
@@ -329,7 +329,7 @@ module mod_cmip6_mpihr
     end subroutine read_2d_mpihr
 
     recursive subroutine read_fx_mpihr(v)
-      implicit none (type, external)
+      implicit none
       type(cmip6_2d_var), pointer, intent(inout) :: v
       integer(ik4) :: istatus
 
@@ -361,7 +361,7 @@ module mod_cmip6_mpihr
     end subroutine read_fx_mpihr
 
     recursive subroutine read_sst_mpihr(idate,v,lat,lon)
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), intent(inout) :: v
       real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat, lon

@@ -17,14 +17,14 @@
 subroutine myabort
   use mod_stdio
   use mpi
-  implicit none (type, external)
+  implicit none
   integer :: ierr
   write(stderr,*) ' Execution terminated because of runtime error'
   call mpi_abort(mpi_comm_self,1,ierr)
 end subroutine myabort
 #else
 subroutine myabort
-  implicit none (type, external)
+  implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 #endif
@@ -49,7 +49,7 @@ program chem_icbc
   use mpi
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   type(rcm_time_and_date) :: idate, iodate
   type(rcm_time_interval) :: tdif, tbdy

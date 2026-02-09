@@ -31,7 +31,7 @@ module mod_cbmz_main1
   use mod_cbmz_model
   use mod_cbmz_global
   use mod_cbmz_parameters
-  implicit none (type, external)
+  implicit none
 
   public :: chemmain
 
@@ -43,7 +43,7 @@ module mod_cbmz_main1
     use mod_cbmz_parameters
     use mod_cbmz_jval1
     use mod_cbmz_hvread
-    implicit none (type, external)
+    implicit none
 
     real(kind=dp), intent(in) :: jday, dtche
     real(kind=dp) :: t

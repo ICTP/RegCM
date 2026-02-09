@@ -47,7 +47,7 @@ module mod_clm_initimeconst
 #endif
   use mod_clm_soilhydrology, only : h2osfcflag
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -64,7 +64,7 @@ module mod_clm_initimeconst
   ! 3) rootfr only initialized for soil points
   !
   subroutine iniTimeConst
-    implicit none (type, external)
+    implicit none
     ! gridcell elevation standard deviation
     real(rk8), pointer, contiguous :: topo_std(:)
     ! gridcell topographic slope
@@ -1631,7 +1631,7 @@ module mod_clm_initimeconst
 
   pure elemental real(rk8) function daylength(lat, decl)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: lat    ! latitude (radians)
     real(rk8), intent(in) :: decl   ! solar declination angle (radians)
     real(rk8), parameter :: secs_per_radian = 13750.9871_rk8

@@ -43,7 +43,7 @@
       use rrlw_wvn, only: ngb
       use rrlw_vsn, only: hvrclc, hnamclc
 
-      implicit none (type, external)
+      implicit none
 
       contains
 

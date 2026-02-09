@@ -29,7 +29,7 @@ module mod_ch_icbc
   use mod_nchelper
   use netcdf
   use mod_ch_param
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -66,7 +66,7 @@ module mod_ch_icbc
   contains
 
   subroutine init_ch_icbc(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivarid, idimid
     integer(ik4) :: nyear, month, nday, nhour
@@ -171,7 +171,7 @@ module mod_ch_icbc
   end subroutine init_ch_icbc
 
   subroutine get_ch_icbc(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     character(len=256) :: chfilename
     integer(ik4) :: year1, month1, day1, hour1
@@ -262,7 +262,7 @@ module mod_ch_icbc
   end subroutine get_ch_icbc
 
   subroutine readps
-    implicit none (type, external)
+    implicit none
     character(len=256) :: chfilename
     integer :: ncid, istatus, ivarid
 
@@ -282,7 +282,7 @@ module mod_ch_icbc
   end subroutine readps
 
   subroutine find_data(idate,idate0,chfilename)
-    implicit none (type, external)
+    implicit none
     integer, parameter                   ::nfile=127
     type(rcm_time_and_date), intent(in) :: idate
     type(rcm_time_and_date), intent(in) :: idate0
@@ -376,7 +376,7 @@ module mod_ch_icbc
   end subroutine find_data
 
   subroutine readmz4(idate,chfilename)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     character(len=256),intent(in) :: chfilename
     integer(ik4) :: i, is, j, k, l, k0,recc
@@ -487,7 +487,7 @@ module mod_ch_icbc
   end subroutine readmz4
 
   subroutine close_ch_icbc
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: istatus
     call h_interpolator_destroy(hint)
     if ( ncicbc > 0 ) then
@@ -499,14 +499,14 @@ module mod_ch_icbc
   end subroutine close_ch_icbc
 
   integer(ik4) function inextmon(im)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im
     inextmon = im+1
     if ( inextmon == 13 ) inextmon = 1
   end function inextmon
 
   integer(ik4) function iprevmon(im)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im
     iprevmon = im-1
     if ( iprevmon == 0 ) iprevmon = 12

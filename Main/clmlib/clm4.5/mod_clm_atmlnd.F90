@@ -12,7 +12,7 @@ module mod_clm_atmlnd
   use mod_clm_drydep, only : n_drydep, drydep_method, DD_XLND
   use mod_clm_megan, only : shr_megan_mechcomps_n
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -208,7 +208,7 @@ module mod_clm_atmlnd
   ! Initialize atmospheric variables required by the land
   !
   subroutine init_atm2lnd_type(ibeg, iend, a2l)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibeg, iend
     type (atm2lnd_type), intent(inout):: a2l
     real(rk8) :: ival   ! initial value
@@ -289,7 +289,7 @@ end subroutine init_atm2lnd_type
   ! Initialize land variables required by the atmosphere
   !
   subroutine init_lnd2atm_type(ibeg,iend,l2a)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibeg, iend
     type (lnd2atm_type), intent(inout) :: l2a
     real(rk8) :: ival   ! initial value
@@ -402,7 +402,7 @@ end subroutine init_atm2lnd_type
 #ifdef LCH4
     use mod_clm_ch4varcon  , only : ch4offline
 #endif
-    implicit none (type, external)
+    implicit none
     save
     ! if true=>only set a subset of arguments
     logical, optional, intent(in) :: init

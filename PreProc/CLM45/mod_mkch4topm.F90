@@ -22,7 +22,7 @@ module mod_mkch4topm
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -36,7 +36,7 @@ module mod_mkch4topm
   contains
 
   subroutine mkch4topm(ch4topmfile,mask,lch4)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: ch4topmfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: lch4
@@ -67,7 +67,7 @@ module mod_mkch4topm
 end module mod_mkch4topm
 #else
 module mod_mkch4topm
-  implicit none (type, external)
+  implicit none
   private
 end module mod_mkch4topm
 #endif

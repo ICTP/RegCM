@@ -22,7 +22,7 @@ module mod_che_bionit
   use mod_che_ncio
   use mod_dynparam
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -107,7 +107,7 @@ contains
   !       - Neisouma (Niger)
 
   subroutine allocate_mod_che_bionit
-    implicit none (type, external)
+    implicit none
     if ( ichem == 1 .and. ichbion == 1 ) then
       call getmem(nfert,jci1,jci2,ici1,ici2,'che_bionit:nfert')
       call getmem(nmanure,jci1,jci2,ici1,ici2,'che_bionit:nmanure')
@@ -116,12 +116,12 @@ contains
   end subroutine allocate_mod_che_bionit
 
   subroutine ini_bionit
-    implicit none (type, external)
+    implicit none
     if ( ichbion == 1 ) call read_bionem (nfert,nmanure,soilph)
   end subroutine ini_bionit
 
   subroutine soilnitro_emissions(ivegcov,wid10)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: wid10
     integer(ik4), dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
     ! local variables

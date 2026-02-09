@@ -23,7 +23,7 @@
 
 
 MODULE mod_cb6_JacobianSP
-implicit none (type, external)
+implicit none
 
   PUBLIC
   SAVE

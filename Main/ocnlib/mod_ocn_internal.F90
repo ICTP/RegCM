@@ -22,7 +22,7 @@ module mod_ocn_internal
   use mod_runparams, only : idcsst, lakemod, iseaice, dtsrf, iocnflx
   use mod_regcm_types
 
-  implicit none (type, external)
+  implicit none
 
   public
 
@@ -105,7 +105,7 @@ module mod_ocn_internal
   contains
 
   subroutine allocate_mod_ocn_internal(co)
-    implicit none (type, external)
+    implicit none
     type (masked_comm), intent(in) :: co
     nocnp = co%linear_npoint_sg(myid+1)
     iocnbeg = 1

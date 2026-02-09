@@ -39,7 +39,7 @@
       use parkind, only: im => kind_im, rb => kind_rb
 !      use parrrsw, only: ngptsw
 
-      implicit none (type, external)
+      implicit none
 
       contains
 

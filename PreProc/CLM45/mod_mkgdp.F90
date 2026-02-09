@@ -21,7 +21,7 @@ module mod_mkgdp
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -32,7 +32,7 @@ module mod_mkgdp
   contains
 
   subroutine mkgdp(gdpfile,mask,gdp)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: gdpfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: gdp

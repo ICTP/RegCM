@@ -6,7 +6,7 @@
 
 module bmif_2_0
 
-  implicit none (type, external)
+  implicit none
 
   integer, parameter :: BMI_MAX_COMPONENT_NAME = 2048
   integer, parameter :: BMI_MAX_VAR_NAME = 2048
@@ -103,7 +103,7 @@ module bmif_2_0
     ! Perform startup tasks for the model.
     function bmif_initialize(this, config_file) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(out) :: this
       character(len=*), intent(in) :: config_file
       integer :: bmi_status
@@ -112,7 +112,7 @@ module bmif_2_0
     ! Advance the model one time step.
     function bmif_update(this) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(inout) :: this
       integer :: bmi_status
     end function bmif_update
@@ -120,7 +120,7 @@ module bmif_2_0
     ! Advance the model until the given time.
     function bmif_update_until(this, time) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(inout) :: this
       double precision, intent(in) :: time
       integer :: bmi_status
@@ -129,7 +129,7 @@ module bmif_2_0
     ! Perform teardown tasks for the model.
     function bmif_finalize(this) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(inout) :: this
       integer :: bmi_status
     end function bmif_finalize
@@ -137,7 +137,7 @@ module bmif_2_0
     ! Get the name of the model.
     function bmif_get_component_name(this, name) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), pointer, intent(out) :: name
       integer :: bmi_status
@@ -146,7 +146,7 @@ module bmif_2_0
     ! Count a model's input variables.
     function bmif_get_input_item_count(this, count) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(out) :: count
       integer :: bmi_status
@@ -155,7 +155,7 @@ module bmif_2_0
     ! Count a model's output variables.
     function bmif_get_output_item_count(this, count) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(out) :: count
       integer :: bmi_status
@@ -164,7 +164,7 @@ module bmif_2_0
     ! List a model's input variables.
     function bmif_get_input_var_names(this, names) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), pointer, intent(out) :: names(:)
       integer :: bmi_status
@@ -173,7 +173,7 @@ module bmif_2_0
     ! List a model's output variables.
     function bmif_get_output_var_names(this, names) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), pointer, intent(out) :: names(:)
       integer :: bmi_status
@@ -182,7 +182,7 @@ module bmif_2_0
     ! Get the grid identifier for the given variable.
     function bmif_get_var_grid(this, name, grid) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       integer, intent(out) :: grid
@@ -192,7 +192,7 @@ module bmif_2_0
     ! Get the data type of the given variable as a string.
     function bmif_get_var_type(this, name, type) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       character(len=*), intent(out) :: type
@@ -202,7 +202,7 @@ module bmif_2_0
     ! Get the units of the given variable.
     function bmif_get_var_units(this, name, units) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       character(len=*), intent(out) :: units
@@ -212,7 +212,7 @@ module bmif_2_0
     ! Get memory use per array element, in bytes.
     function bmif_get_var_itemsize(this, name, size) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       integer, intent(out) :: size
@@ -222,7 +222,7 @@ module bmif_2_0
     ! Get size of the given variable, in bytes.
     function bmif_get_var_nbytes(this, name, nbytes) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       integer, intent(out) :: nbytes
@@ -232,7 +232,7 @@ module bmif_2_0
     ! Describe where a variable is located: node, edge, or face.
     function bmif_get_var_location(this, name, location) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       character(len=*), intent(out) :: location
@@ -242,7 +242,7 @@ module bmif_2_0
     ! Current time of the model.
     function bmif_get_current_time(this, time) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       double precision, intent(out) :: time
       integer :: bmi_status
@@ -251,7 +251,7 @@ module bmif_2_0
     ! Start time of the model.
     function bmif_get_start_time(this, time) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       double precision, intent(out) :: time
       integer :: bmi_status
@@ -260,7 +260,7 @@ module bmif_2_0
     ! End time of the model.
     function bmif_get_end_time(this, time) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       double precision, intent(out) :: time
       integer :: bmi_status
@@ -269,7 +269,7 @@ module bmif_2_0
     ! Time units of the model.
     function bmif_get_time_units(this, units) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(out) :: units
       integer :: bmi_status
@@ -278,7 +278,7 @@ module bmif_2_0
     ! Time step of the model.
     function bmif_get_time_step(this, time_step) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       double precision, intent(out) :: time_step
       integer :: bmi_status
@@ -287,7 +287,7 @@ module bmif_2_0
     ! Get a copy of values (flattened!) of the given integer variable.
     function bmif_get_value_int(this, name, dest) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       integer, intent(inout) :: dest(:)
@@ -297,7 +297,7 @@ module bmif_2_0
     ! Get a copy of values (flattened!) of the given real variable.
     function bmif_get_value_float(this, name, dest) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       real, intent(inout) :: dest(:)
@@ -307,7 +307,7 @@ module bmif_2_0
     ! Get a copy of values (flattened!) of the given double variable.
     function bmif_get_value_double(this, name, dest) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       double precision, intent(inout) :: dest(:)
@@ -317,7 +317,7 @@ module bmif_2_0
     ! Get a reference to the given integer variable.
     function bmif_get_value_ptr_int(this, name, dest_ptr) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       integer, pointer, intent(inout) :: dest_ptr(:)
@@ -327,7 +327,7 @@ module bmif_2_0
     ! Get a reference to the given real variable.
     function bmif_get_value_ptr_float(this, name, dest_ptr) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       real, pointer, intent(inout) :: dest_ptr(:)
@@ -337,7 +337,7 @@ module bmif_2_0
     ! Get a reference to the given double variable.
     function bmif_get_value_ptr_double(this, name, dest_ptr) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       double precision, pointer, intent(inout) :: dest_ptr(:)
@@ -348,7 +348,7 @@ module bmif_2_0
     function bmif_get_value_at_indices_int(this, name, dest, inds) &
       result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       integer, intent(inout) :: dest(:)
@@ -360,7 +360,7 @@ module bmif_2_0
     function bmif_get_value_at_indices_float(this, name, dest, inds) &
       result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       real, intent(inout) :: dest(:)
@@ -372,7 +372,7 @@ module bmif_2_0
     function bmif_get_value_at_indices_double(this, name, dest, inds) &
       result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       character(len=*), intent(in) :: name
       double precision, intent(inout) :: dest(:)
@@ -383,7 +383,7 @@ module bmif_2_0
     ! Set new values for an integer model variable.
     function bmif_set_value_int(this, name, src) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(inout) :: this
       character(len=*), intent(in) :: name
       integer, intent(in) :: src(:)
@@ -393,7 +393,7 @@ module bmif_2_0
     ! Set new values for a real model variable.
     function bmif_set_value_float(this, name, src) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(inout) :: this
       character(len=*), intent(in) :: name
       real, intent(in) :: src(:)
@@ -403,7 +403,7 @@ module bmif_2_0
     ! Set new values for a double model variable.
     function bmif_set_value_double(this, name, src) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(inout) :: this
       character(len=*), intent(in) :: name
       double precision, intent(in) :: src(:)
@@ -414,7 +414,7 @@ module bmif_2_0
     function bmif_set_value_at_indices_int(this, name, inds, src) &
       result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(inout) :: this
       character(len=*), intent(in) :: name
       integer, intent(in) :: inds(:)
@@ -426,7 +426,7 @@ module bmif_2_0
     function bmif_set_value_at_indices_float(this, name, inds, src) &
       result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(inout) :: this
       character(len=*), intent(in) :: name
       integer, intent(in) :: inds(:)
@@ -438,7 +438,7 @@ module bmif_2_0
     function bmif_set_value_at_indices_double(this, name, inds, src) &
       result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(inout) :: this
       character(len=*), intent(in) :: name
       integer, intent(in) :: inds(:)
@@ -449,7 +449,7 @@ module bmif_2_0
     ! Get number of dimensions of the computational grid.
     function bmif_get_grid_rank(this, grid, rank) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       integer, intent(out) :: rank
@@ -459,7 +459,7 @@ module bmif_2_0
     ! Get the total number of elements in the computational grid.
     function bmif_get_grid_size(this, grid, size) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       integer, intent(out) :: size
@@ -469,7 +469,7 @@ module bmif_2_0
     ! Get the grid type as a string.
     function bmif_get_grid_type(this, grid, type) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       character(len=*), intent(out) :: type
@@ -479,7 +479,7 @@ module bmif_2_0
     ! Get the dimensions of the computational grid.
     function bmif_get_grid_shape(this, grid, shape) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       integer, dimension(:), intent(out) :: shape
@@ -489,7 +489,7 @@ module bmif_2_0
     ! Get distance between nodes of the computational grid.
     function bmif_get_grid_spacing(this, grid, spacing) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       double precision, dimension(:), intent(out) :: spacing
@@ -499,7 +499,7 @@ module bmif_2_0
     ! Get coordinates of the origin of the computational grid.
     function bmif_get_grid_origin(this, grid, origin) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       double precision, dimension(:), intent(out) :: origin
@@ -509,7 +509,7 @@ module bmif_2_0
     ! Get the x-coordinates of the nodes of a computational grid.
     function bmif_get_grid_x(this, grid, x) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       double precision, dimension(:), intent(out) :: x
@@ -519,7 +519,7 @@ module bmif_2_0
     ! Get the y-coordinates of the nodes of a computational grid.
     function bmif_get_grid_y(this, grid, y) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       double precision, dimension(:), intent(out) :: y
@@ -529,7 +529,7 @@ module bmif_2_0
     ! Get the z-coordinates of the nodes of a computational grid.
     function bmif_get_grid_z(this, grid, z) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       double precision, dimension(:), intent(out) :: z
@@ -539,7 +539,7 @@ module bmif_2_0
     ! Get the number of nodes in an unstructured grid.
     function bmif_get_grid_node_count(this, grid, count) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       integer, intent(out) :: count
@@ -549,7 +549,7 @@ module bmif_2_0
     ! Get the number of edges in an unstructured grid.
     function bmif_get_grid_edge_count(this, grid, count) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       integer, intent(out) :: count
@@ -559,7 +559,7 @@ module bmif_2_0
     ! Get the number of faces in an unstructured grid.
     function bmif_get_grid_face_count(this, grid, count) result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       integer, intent(out) :: count
@@ -570,7 +570,7 @@ module bmif_2_0
     function bmif_get_grid_edge_nodes(this, grid, edge_nodes) &
       result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       integer, dimension(:), intent(out) :: edge_nodes
@@ -581,7 +581,7 @@ module bmif_2_0
     function bmif_get_grid_face_edges(this, grid, face_edges) &
       result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       integer, dimension(:), intent(out) :: face_edges
@@ -592,7 +592,7 @@ module bmif_2_0
     function bmif_get_grid_face_nodes(this, grid, face_nodes) &
       result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       integer, dimension(:), intent(out) :: face_nodes
@@ -603,7 +603,7 @@ module bmif_2_0
     function bmif_get_grid_nodes_per_face(this, grid, nodes_per_face) &
       result(bmi_status)
       import :: bmi
-      implicit none (type, external)
+      implicit none
       class(bmi), intent(in) :: this
       integer, intent(in) :: grid
       integer, dimension(:), intent(out) :: nodes_per_face

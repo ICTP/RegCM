@@ -18,7 +18,7 @@ module mod_che_indices
   use mod_intkinds
   use mod_cbmz_parameters, only : nvar
 
-  implicit none (type, external)
+  implicit none
 
   public
 

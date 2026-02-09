@@ -1,6 +1,6 @@
 
 module mod_clm_cndvestablishment
-implicit none (type, external)
+implicit none
 
 #if (defined CNDV)
   !
@@ -12,7 +12,7 @@ implicit none (type, external)
   use mod_mpmessage
   use mod_stdio
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -31,7 +31,7 @@ implicit none (type, external)
     use mod_clm_varcon  , only : istsoil
     use mod_clm_pftvarcon   , only : noveg, nc3_arctic_grass
     use mod_clm_varcon, only : secspday, rpi, tfrz
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbg, ubg         ! gridcell bounds
     integer(ik4), intent(in) :: lbp, ubp         ! pft bounds
 

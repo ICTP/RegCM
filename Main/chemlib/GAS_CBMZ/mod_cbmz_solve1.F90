@@ -23,7 +23,7 @@ module mod_cbmz_solve1
   use mod_cbmz_chemlocal
   use mod_cbmz_linslv
   use mod_cbmz_init1
-  implicit none (type, external)
+  implicit none
 
  private
 
@@ -318,7 +318,7 @@ module mod_cbmz_solve1
 !
     subroutine quadchem
 !
-      implicit none (type, external)
+      implicit none
       ! Chem index
       integer(ik4) :: ic, ic1, ic2, ic3
       ! Chem local index
@@ -598,7 +598,7 @@ module mod_cbmz_solve1
 !
     subroutine chemsolve(ncsol)
 !
-      implicit none (type, external)
+      implicit none
       ! Species list passed to chemsolve
       integer, intent(inout) :: ncsol(c_cdim)
       ! Chem index
@@ -1860,7 +1860,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
 
     subroutine brreac(nr)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: nr
       ! chem index - pair and multi
       integer(ik4) :: icr1, icr2
@@ -1932,7 +1932,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
       subroutine brpro(nr)
 !
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: nr
       ! Chem index
       integer(ik4) :: ic, ic1, ic2
@@ -2142,7 +2142,7 @@ module mod_cbmz_solve1
 !
      subroutine excorr(ic1)
 !
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ic1
       ! Chem index
       integer(ik4) :: ic, ics
@@ -2416,7 +2416,7 @@ module mod_cbmz_solve1
 
     subroutine noxsolve(ic1,ic2,ic3)
 !
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ic1, ic2, ic3
       ! Chem index
       integer(ik4) :: ic
@@ -2718,7 +2718,7 @@ module mod_cbmz_solve1
 !
     subroutine ohsolve(ic1,ic2,ic3)
 !
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ic1, ic2, ic3
       ! Chem index
       integer(ik4) :: ic , icc, ics
@@ -3397,7 +3397,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
     subroutine setgeom(ic)
 !
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ic
       ! Vectorization counters
       integer(ik4) :: kk
@@ -3515,7 +3515,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
      subroutine presolve
 !
-       implicit none (type, external)
+       implicit none
        ! chem index - pair and multi
        integer(ik4) :: icr
        ! Reaction counters
@@ -3743,7 +3743,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
      subroutine prelump
 !
-       implicit none (type, external)
+       implicit none
        ! Chem index
        integer(ik4) :: ic, ic1, ic2, iic, icc, ics
        ! Aqueous counters
@@ -3946,7 +3946,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
      subroutine midlump
 !
-       implicit none (type, external)
+       implicit none
        ! Chem index
        integer(ik4) :: ic, ic1, ic2, ics
        ! Vectorization counters
@@ -4075,7 +4075,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
      subroutine postlump
 !
-       implicit none (type, external)
+       implicit none
        ! Chem index
        integer(ik4) :: ic, ic1, ic2, ics
        ! Vectorization counters
@@ -4199,7 +4199,7 @@ module mod_cbmz_solve1
 !
      subroutine setro2
 !
-       implicit none (type, external)
+       implicit none
        ! Chem index
        integer(ik4) :: ic, ic1
        ! Reaction counters
@@ -4315,7 +4315,7 @@ module mod_cbmz_solve1
 
      subroutine aquasolve
 !
-       implicit none (type, external)
+       implicit none
        ! Chem index
        integer(ik4) :: ic
        ! Chem index

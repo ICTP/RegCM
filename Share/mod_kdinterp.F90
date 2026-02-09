@@ -24,7 +24,7 @@ module mod_kdinterp
   use mod_spbarcoord
   use mod_dynparam, only : idynamic
   use mod_kdtree2
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -114,7 +114,7 @@ module mod_kdinterp
   contains
 
   real(rk8) function maxedis1(lat,lon) result(maxdis)
-    implicit none (type, external)
+    implicit none
     real(rk8), dimension(:), intent(in) :: lat
     real(rk8), dimension(:), intent(in) :: lon
     integer(ik4) :: i, j
@@ -131,7 +131,7 @@ module mod_kdinterp
   end function maxedis1
 
   real(rk8) function maxedis2(lat,lon) result(maxdis)
-    implicit none (type, external)
+    implicit none
     real(rk8), dimension(:,:), intent(in) :: lat
     real(rk8), dimension(:,:), intent(in) :: lon
     integer(ik4) :: i, j
@@ -150,7 +150,7 @@ module mod_kdinterp
   end function maxedis2
 
   subroutine interp_create_ll_g(h_i,slat,slon,tlat,tlon,ds,roi,mxp)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(out) :: h_i
     real(rkx), dimension(:), intent(in) :: slat
     real(rkx), dimension(:), intent(in) :: slon
@@ -240,7 +240,7 @@ module mod_kdinterp
   end subroutine interp_create_ll_g
 
   subroutine interp_create_ll_ll(h_i,slat,slon,tlat,tlon,roi,mxp)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(out) :: h_i
     real(rkx), dimension(:), intent(in) :: slat
     real(rkx), dimension(:), intent(in) :: slon
@@ -327,7 +327,7 @@ module mod_kdinterp
   end subroutine interp_create_ll_ll
 
   subroutine interp_create_ll_ll_1d(h_i,ni,slat,slon,no,tlat,tlon)
-    implicit none (type, external)
+    implicit none
     integer, intent(in) :: ni, no
     type(h_interpolator), intent(out) :: h_i
     real(rkx), dimension(ni), intent(in) :: slat
@@ -366,7 +366,7 @@ module mod_kdinterp
   end subroutine interp_create_ll_ll_1d
 
   subroutine interp_create_g_g(h_i,slat,slon,tlat,tlon,ds,roi,mxp)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(out) :: h_i
     real(rkx), dimension(:,:), intent(in) :: slat
     real(rkx), dimension(:,:), intent(in) :: slon
@@ -459,7 +459,7 @@ module mod_kdinterp
   end subroutine interp_create_g_g
 
   subroutine interp_create_g_ll(h_i,slat,slon,tlat,tlon,roi,mxp)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(out) :: h_i
     real(rkx), dimension(:,:), intent(in) :: slat
     real(rkx), dimension(:,:), intent(in) :: slon
@@ -549,7 +549,7 @@ module mod_kdinterp
   end subroutine interp_create_g_ll
 
   subroutine h_interpolator_destroy(h_i)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(inout) :: h_i
     integer :: ni, nj, j, i
     if ( associated(h_i%tg%ft) ) then
@@ -567,7 +567,7 @@ module mod_kdinterp
   end subroutine h_interpolator_destroy
 
   subroutine interp_1d_nn(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:), intent(in) :: g
     real(rkx), dimension(:), intent(out) :: f
@@ -597,7 +597,7 @@ module mod_kdinterp
   end subroutine interp_1d_nn
 
   subroutine interp_1d(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:), intent(in) :: g
     real(rkx), dimension(:), intent(out) :: f
@@ -642,7 +642,7 @@ module mod_kdinterp
   end subroutine interp_1d
 
   subroutine interp_2d(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
@@ -701,7 +701,7 @@ module mod_kdinterp
   end subroutine interp_2d
 
   subroutine interp_2d_nn(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
@@ -736,7 +736,7 @@ module mod_kdinterp
   end subroutine interp_2d_nn
 
   subroutine interp_3d(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:,:), intent(in) :: g
     real(rkx), dimension(:,:,:), intent(out) :: f
@@ -755,7 +755,7 @@ module mod_kdinterp
   end subroutine interp_3d
 
   subroutine interp_4d(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:,:,:), intent(in) :: g
     real(rkx), dimension(:,:,:,:), intent(out) :: f
@@ -772,7 +772,7 @@ module mod_kdinterp
   end subroutine interp_4d
 
   subroutine interp_5d(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:,:,:,:), intent(in) :: g
     real(rkx), dimension(:,:,:,:,:), intent(out) :: f
@@ -789,7 +789,7 @@ module mod_kdinterp
   end subroutine interp_5d
 
   subroutine interp_class_2dr(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
@@ -828,7 +828,7 @@ module mod_kdinterp
   end subroutine interp_class_2dr
 
   subroutine interp_sum_2dr(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
@@ -861,7 +861,7 @@ module mod_kdinterp
   end subroutine interp_sum_2dr
 
   subroutine interp_sum_3dr(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:,:), intent(in) :: g
     real(rkx), dimension(:,:,:), intent(out) :: f
@@ -880,7 +880,7 @@ module mod_kdinterp
   end subroutine interp_sum_3dr
 
   subroutine interp_class_3dr(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:,:), intent(in) :: g
     real(rkx), dimension(:,:,:), intent(out) :: f
@@ -899,7 +899,7 @@ module mod_kdinterp
   end subroutine interp_class_3dr
 
   subroutine interp_class_4dr(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:,:,:), intent(in) :: g
     real(rkx), dimension(:,:,:,:), intent(out) :: f
@@ -916,7 +916,7 @@ module mod_kdinterp
   end subroutine interp_class_4dr
 
   subroutine interp_class_5dr(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:,:,:,:), intent(in) :: g
     real(rkx), dimension(:,:,:,:,:), intent(out) :: f
@@ -933,7 +933,7 @@ module mod_kdinterp
   end subroutine interp_class_5dr
 
   subroutine interp_class_i(h_i,g,f)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     integer(ik4), dimension(:,:), intent(in) :: g
     integer(ik4), dimension(:,:), intent(out) :: f
@@ -975,7 +975,7 @@ module mod_kdinterp
   end subroutine interp_class_i
 
   subroutine interp_class_ld(h_i,g,f,iw,pct)
-    implicit none (type, external)
+    implicit none
     type(h_interpolator), intent(in) :: h_i
     integer(ik4), dimension(:,:), intent(in) :: g
     integer(ik4), intent(in) :: iw
@@ -1027,7 +1027,7 @@ module mod_kdinterp
   end subroutine interp_class_ld
 
   subroutine smther(f)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(inout), dimension(:,:) :: f
     integer(ik4) :: i1, i2, j1, j2
     integer(ik4) :: i, is, ie, j, js, je
@@ -1087,7 +1087,7 @@ module mod_kdinterp
   end subroutine smther
 
   subroutine smtdsmt(f)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(inout), dimension(:,:) :: f
     real(rkx) :: aplus, asv, cell
     integer(ik4) :: i1, i2, j1, j2
@@ -1139,7 +1139,7 @@ module mod_kdinterp
   end subroutine smtdsmt
 
   subroutine compwgt_distwei(np,n2,r,w)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(inout) :: np
     integer(ik4), intent(in) :: n2
     type(kdtree2_result), pointer, contiguous, dimension(:), intent(in) :: r
@@ -1170,7 +1170,7 @@ module mod_kdinterp
   end subroutine compwgt_distwei
 
   subroutine compwgt_genlin_1d(np,p,xp,r,w)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(inout) :: np
     real(rk8), dimension(:,:), intent(in) :: xp
     real(rk8), dimension(3), intent(in) :: p
@@ -1207,7 +1207,7 @@ module mod_kdinterp
   end subroutine compwgt_genlin_1d
 
   subroutine compwgt_genlin_2d(np,n2,p,xp,r,w)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n2
     integer(ik4), intent(inout) :: np
     real(rk8), dimension(:,:), intent(in) :: xp

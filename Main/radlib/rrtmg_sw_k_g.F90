@@ -58,7 +58,7 @@
                             irradnceo, facbrghto, snsptdrko
       use rrsw_vsn, only: hvrkg
 
-      implicit none (type, external)
+      implicit none
       save
 
       hvrkg = '$Revision$'
@@ -4836,7 +4836,7 @@
       use rrsw_kg17, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -15707,7 +15707,7 @@
       use rrsw_kg18, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -20642,7 +20642,7 @@
       use rrsw_kg19, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -25578,7 +25578,7 @@
                             absch4o, rayl, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -27655,7 +27655,7 @@
       use rrsw_kg21, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -38606,7 +38606,7 @@
       use rrsw_kg22, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -43541,7 +43541,7 @@
       use rrsw_kg23, only : kao, selfrefo, forrefo, sfluxrefo, raylo, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -44098,7 +44098,7 @@
                             raylao, raylbo, abso3ao, abso3bo, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -49096,7 +49096,7 @@
                             raylo, abso3ao, abso3bo, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -49589,7 +49589,7 @@
       use rrsw_kg26, only : sfluxrefo, raylo, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -49636,7 +49636,7 @@
       use rrsw_kg27, only : kao, kbo, sfluxrefo, raylo, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -51641,7 +51641,7 @@
       use rrsw_kg28, only : kao, kbo, sfluxrefo, rayl, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       save
 
 ! Kurucz solar source function
@@ -62438,7 +62438,7 @@
                             absh2oo, absco2o, rayl, &
                             irradnceo, facbrghto, snsptdrko
 
-      implicit none (type, external)
+      implicit none
       real(rb) :: irradscl
       save
 

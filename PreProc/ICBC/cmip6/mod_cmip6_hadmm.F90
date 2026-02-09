@@ -25,7 +25,7 @@ module mod_cmip6_hadmm
   use mod_cmip6_helper
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -40,7 +40,7 @@ module mod_cmip6_hadmm
   contains
 
     subroutine read_hcoord_hadmm(ncid,lon,lat)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -66,7 +66,7 @@ module mod_cmip6_hadmm
     end subroutine read_hcoord_hadmm
 
     subroutine read_hcoord_sst_hadmm(ncid,lon,lat)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -92,7 +92,7 @@ module mod_cmip6_hadmm
     end subroutine read_hcoord_sst_hadmm
 
     subroutine read_vcoord_hadmm(ncid,ap,b)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:), intent(inout) :: ap, b
       integer(ik4) :: istatus, idimid, ivarid
@@ -114,7 +114,7 @@ module mod_cmip6_hadmm
     end subroutine read_vcoord_hadmm
 
     recursive subroutine read_3d_hadmm(idate,v,lonlyc)
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_3d_var), pointer, intent(inout) :: v
       logical, optional, intent(in) :: lonlyc
@@ -235,7 +235,7 @@ module mod_cmip6_hadmm
     end subroutine read_3d_hadmm
 
     recursive subroutine read_2d_hadmm(idate,v,lonlyc)
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), pointer, intent(inout) :: v
       logical, optional, intent(in) :: lonlyc
@@ -369,7 +369,7 @@ module mod_cmip6_hadmm
     end subroutine read_2d_hadmm
 
     recursive subroutine read_fx_hadmm(v)
-      implicit none (type, external)
+      implicit none
       type(cmip6_2d_var), pointer, intent(inout) :: v
       integer(ik4) :: istatus
 
@@ -401,7 +401,7 @@ module mod_cmip6_hadmm
     end subroutine read_fx_hadmm
 
     recursive subroutine read_sst_hadmm(idate,v,lat,lon)
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), intent(inout) :: v
       real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat, lon

@@ -1,5 +1,5 @@
 module mod_clm_cngapmortality
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! Module holding routines used in gap mortality for coupled carbon
@@ -9,7 +9,7 @@ implicit none (type, external)
   use mod_realkinds
   use mod_dynparam, only : dayspy
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -25,7 +25,7 @@ implicit none (type, external)
     use mod_clm_type
     use mod_clm_varcon   , only : secspday
     use mod_clm_pftvarcon, only : npcropmin
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! column filter for soil points
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -347,7 +347,7 @@ implicit none (type, external)
   subroutine CNGapPftToColumn (num_soilc, filter_soilc)
     use mod_clm_type
     use mod_clm_varpar, only : maxpatch_pft, nlevdecomp
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! soil column filter
 

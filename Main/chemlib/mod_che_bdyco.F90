@@ -35,7 +35,7 @@ module mod_che_bdyco
   use mod_mppparam
   use mod_zita
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -83,7 +83,7 @@ module mod_che_bdyco
   contains
 
   subroutine allocate_mod_che_bdyco
-    implicit none (type, external)
+    implicit none
     call getmem(ichbdy2trac,1,max_input_tracers,'che_bdyco:ichbdytrac')
     call getmem(chib0,jde1ga,jde2ga,ide1ga,ide2ga, &
                         1,kz,1,ntr,'mod_che_bdyco:chib0')
@@ -105,7 +105,7 @@ module mod_che_bdyco
   end subroutine allocate_mod_che_bdyco
 
   subroutine che_init_bdy
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: datefound, i, j, k, n, after
     character(len=32) :: appdat
     type (rcm_time_and_date) :: chbc_date
@@ -298,7 +298,7 @@ module mod_che_bdyco
   end subroutine che_init_bdy
 
   subroutine chem_bdyin
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k, n, datefound, after
     character(len=32) :: appdat
     integer(ik4) :: lyear, lmonth, lday, lhour
@@ -412,7 +412,7 @@ module mod_che_bdyco
   end subroutine chem_bdyin
 
   subroutine chem_bdyval_uncoupled(u,v)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
     real(rkx) :: xt, windavg, trint
     integer(ik4) :: itr, i, j, k, n
@@ -555,7 +555,7 @@ module mod_che_bdyco
   end subroutine chem_bdyval_uncoupled
 
   subroutine chem_bdyval_coupled(psa,wue,wui,eue,eui,nve,nvi,sve,svi)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: psa
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: wue, wui
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: eue, eui
@@ -782,7 +782,7 @@ module mod_che_bdyco
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine nudge_chiten(f,ften)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
 
@@ -978,7 +978,7 @@ module mod_che_bdyco
   end subroutine nudge_chiten
 
   subroutine monudgechi(f)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
 
     real(rkx) :: xt, xf, xg
@@ -1167,7 +1167,7 @@ module mod_che_bdyco
   end subroutine monudgechi
 
   subroutine setup_che_bdycon
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: n, k
     real(rkx) :: fnudge, gnudge
     real(rkx), dimension(kz) :: anudgh
@@ -1193,7 +1193,7 @@ module mod_che_bdyco
     end do
     contains
       pure real(rkx) function xfune(mm,an)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: mm
         real(rkx), intent(in) :: an
         xfune = exp(-real(mm-2,rkx)/an)

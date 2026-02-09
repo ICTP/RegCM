@@ -40,7 +40,7 @@
       use rrtmg_lw_setcoef, only: lwatmref, lwavplank, lwavplankderiv
       use rrtmg_lw_read_nc
 
-      implicit none (type, external)
+      implicit none
 
       contains
 

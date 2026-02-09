@@ -322,12 +322,13 @@ contains
 ! Read monthly vegetation data for two consec. months.
 !
 ! !USES:
+    use mpi
     use clmtype
     use decompMod  , only : get_proc_bounds, ldecomp, gsmap_lnd_gdc2glo, perm_lnd_gdc2glo
     use clm_varpar , only : lsmlon, lsmlat, maxpatch_pft, maxpatch, npatch_crop, numpft
     use pftvarcon  , only : noveg
     use fileutils  , only : getfil
-    use spmdMod    , only : masterproc, mpicom, MPI_REAL8
+    use spmdMod    , only : masterproc, mpicom
     use clm_time_manager, only : get_nstep
     use ncdio      , only : check_ret
 !

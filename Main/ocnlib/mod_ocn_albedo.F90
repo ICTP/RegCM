@@ -22,7 +22,7 @@ module mod_ocn_albedo
   use mod_service
   use mod_ocn_internal
 
-  implicit none (type, external)
+  implicit none
 
   private
   !
@@ -49,7 +49,7 @@ module mod_ocn_albedo
   ! wavelength regions split at 0.7um.
   !
   subroutine ocn_albedo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: age, albg, albgl, albgld, albgs, albgsd, &
                  cf1, cff, conn, cons, czeta, czf, sl2,  &
                  dfalbl, dfalbs, dralbl, dralbs, sl, sli, &

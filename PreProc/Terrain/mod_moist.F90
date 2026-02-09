@@ -20,7 +20,7 @@ module mod_moist
   use mod_constants
   use mod_stdio
   use netcdf
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -29,7 +29,7 @@ module mod_moist
   contains
 
   subroutine read_moist(fname,rmoist,tsl,snow,jx,iy,ns,lrmoist,ltsl)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(in) :: fname
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rmoist, tsl
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: snow

@@ -14,7 +14,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  implicit none (type, external)
+  implicit none
+#ifdef __INTEL_COMPILER
+  external :: abort
+#endif
   call abort
 end subroutine myabort
 
@@ -22,7 +25,7 @@ module mod_remap
   use mod_realkinds
   use mod_intkinds
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -40,7 +43,7 @@ module mod_remap
   contains
 
   subroutine remap_int4(nsg,iv,mask,var,ifill)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nsg, ifill
     integer(ik4), intent(inout), dimension(:) :: iv
     integer(ik4), intent(in), dimension(:,:) :: mask
@@ -81,7 +84,7 @@ module mod_remap
   end subroutine remap_int4
 
   subroutine remap_pft_int4(nsg,ipft,iv,ipt,igc,mask,var,ifill)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nsg, ipft, ifill
     integer(ik4), intent(inout), dimension(:) :: iv, ipt, igc
     integer(ik4), intent(in), dimension(:,:) :: mask
@@ -146,7 +149,7 @@ module mod_remap
   end subroutine remap_pft_int4
 
   subroutine remap_real4(nsg,iv,mask,var,rfill)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nsg
     real(rk4), intent(in) :: rfill
     real(rk4), intent(inout), dimension(:) :: iv
@@ -188,7 +191,7 @@ module mod_remap
   end subroutine remap_real4
 
   subroutine remap_pft_real4(nsg,ipft,iv,ipt,igc,mask,var,rfill)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nsg, ipft
     real(rk4), intent(in) :: rfill
     real(rk4), intent(inout), dimension(:) :: iv
@@ -255,7 +258,7 @@ module mod_remap
   end subroutine remap_pft_real4
 
   subroutine remap_real8(nsg,iv,mask,var,dfill)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nsg
     real(rk8), intent(in) :: dfill
     real(rk8), intent(inout), dimension(:) :: iv
@@ -297,7 +300,7 @@ module mod_remap
   end subroutine remap_real8
 
   subroutine remap_pft_real8(nsg,ipft,iv,ipt,igc,mask,var,dfill)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nsg, ipft
     real(rk8), intent(in) :: dfill
     real(rk8), intent(inout), dimension(:) :: iv
@@ -374,7 +377,7 @@ program clm45_1dto2d
   use mod_remap
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   character(len=256) :: prgname, ncfile, ncoutfile
   integer(ik4) :: numarg, istatus

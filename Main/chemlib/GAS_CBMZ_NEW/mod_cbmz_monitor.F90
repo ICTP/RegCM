@@ -21,7 +21,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 module mod_cbmz_monitor
-implicit none (type, external)
+implicit none
 
   private
 

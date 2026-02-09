@@ -22,7 +22,7 @@ module mod_mklightning
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -35,7 +35,7 @@ module mod_mklightning
   contains
 
   subroutine mklightning_init(lnfmfile)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: lnfmfile
     character(len=256) :: inpfile
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
@@ -44,7 +44,7 @@ module mod_mklightning
   end subroutine mklightning_init
 
   subroutine mklightning(lightning,mask,it)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: lightning
     integer(ik4), intent(in) :: it
@@ -63,14 +63,14 @@ module mod_mklightning
   end subroutine mklightning
 
   subroutine mklightning_close
-    implicit none (type, external)
+    implicit none
     call gfclose(gfile)
   end subroutine mklightning_close
 
 end module mod_mklightning
 #else
 module mod_mklightning
-  implicit none (type, external)
+  implicit none
   private
 end module mod_mklightning
 #endif

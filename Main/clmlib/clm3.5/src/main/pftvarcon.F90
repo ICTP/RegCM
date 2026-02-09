@@ -27,7 +27,7 @@ module pftvarcon
 
   integer ncorn                  !value for corn
   integer nwheat                 !value for wheat
-  integer noveg                  !value for not vegetated 
+  integer noveg                  !value for not vegetated
   integer ntree                  !value for last type of tree
 
   real(r8):: dleaf(0:numpft)       !characteristic leaf dimension (m)
@@ -59,7 +59,7 @@ module pftvarcon
   real(r8):: frootcn(0:numpft)      !fine root C:N (gC/gN)
   real(r8):: livewdcn(0:numpft)     !live wood (phloem and ray parenchyma) C:N (gC/gN)
   real(r8):: deadwdcn(0:numpft)     !dead wood (xylem and heartwood) C:N (gC/gN)
-  real(r8):: froot_leaf(0:numpft)   !allocation parameter: new fine root C per new leaf C (gC/gC) 
+  real(r8):: froot_leaf(0:numpft)   !allocation parameter: new fine root C per new leaf C (gC/gC)
   real(r8):: stem_leaf(0:numpft)    !allocation parameter: new stem c per new leaf C (gC/gC)
   real(r8):: croot_stem(0:numpft)   !allocation parameter: new coarse root C per new stem C (gC/gC)
   real(r8):: flivewd(0:numpft)      !allocation parameter: fraction of new wood that is live (phloem and ray parenchyma) (no units)
@@ -122,9 +122,10 @@ contains
 ! Read and initialize vegetation (PFT) constants
 !
 ! !USES:
+    use mpi
     use fileutils , only : opnfil, getfil, relavu, getavu
     use clm_varctl, only : fpftcon
-    use spmdMod   , only : masterproc, mpicom, MPI_REAL8
+    use spmdMod   , only : masterproc, mpicom
 !
 ! !ARGUMENTS:
     implicit none
@@ -184,7 +185,7 @@ contains
                roota_par(i), rootb_par(i), slatop(i), dsladlai(i), &
 					leafcn(i), flnr(i), &
                                         smpso(i), smpsc(i), fnitr(i)
-#endif 
+#endif
           if (ier /= 0) then
              write(6,*)'pftconrd: error in reading in pft data'
              call endrun()

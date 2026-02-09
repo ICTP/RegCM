@@ -2,7 +2,7 @@
 
 	subroutine mpi_init(ierror)
 
-        implicit none (type, external)
+        implicit none
         include 'mpif.h'
 
 	integer :: fint(2)
@@ -44,7 +44,7 @@
 
 
         subroutine mpi_init_thread(required,provided,ierror)
-          implicit none (type, external)
+          implicit none
           integer, intent(in) :: required
           integer, intent(out) :: provided, ierror
 

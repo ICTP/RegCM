@@ -79,7 +79,7 @@
 
   use parkind, only : im => kind_im, rb => kind_rb
 
-  implicit none (type, external)
+  implicit none
   private
 
   ! Algorithm parameters
@@ -321,7 +321,7 @@ contains
 
   use parkind, only : im => kind_im, rb => kind_rb
 
-  implicit none (type, external)
+  implicit none
   private
 
   type randomNumberStream

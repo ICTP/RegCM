@@ -14,10 +14,11 @@ module atmdrvMod
 ! Read and generate atmospheric grid data at model resolution
 !
 ! !USES:
+  use mpi
   use shr_kind_mod, only : r8 => shr_kind_r8
   use shr_const_mod, only : SHR_CONST_TKFRZ, SHR_CONST_PSTD
   use abortutils  , only : endrun
-  use spmdMod     , only : masterproc, mpicom, comp_id, MPI_REAL8, MPI_INTEGER, iam
+  use spmdMod     , only : masterproc, mpicom, comp_id, iam
   use clm_mct_mod
   use decompMod   , only : gsMap_atm_gdc2glo, perm_atm_gdc2glo
 !c abt rcm

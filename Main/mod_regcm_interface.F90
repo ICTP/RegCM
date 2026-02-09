@@ -49,7 +49,7 @@ module mod_regcm_interface
   use mod_oasis_interface
 #endif
   use mpi
-  implicit none (type, external)
+  implicit none
 
   private
   public :: RCM_initialize
@@ -68,7 +68,7 @@ module mod_regcm_interface
   contains
 
   subroutine RCM_initialize(mpiCommunicator)
-    implicit none (type, external)
+    implicit none
     integer, intent(in), optional :: mpiCommunicator
     real(rkx), allocatable, dimension(:,:) :: rcemip_noise
     integer(ik4) :: ierr, k
@@ -232,7 +232,7 @@ module mod_regcm_interface
   !=======================================================================
   !
   subroutine RCM_run(timestr, timeend)
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: timestr   ! starting time-step
     real(rk8), intent(in) :: timeend   ! ending   time-step
 
@@ -326,7 +326,7 @@ module mod_regcm_interface
   end subroutine RCM_run
 
   subroutine RCM_finalize
-    implicit none (type, external)
+    implicit none
 
     if ( myid == italk ) then
       write(stdout,*) 'Final time ', trim(rcmtimer%str( )), ' reached.'
@@ -373,7 +373,7 @@ module mod_regcm_interface
     use openacc, only: acc_device_default, acc_device_kind, &
                   acc_get_device_type, acc_get_num_devices, &
                   acc_set_device_num
-    implicit none (type, external)
+    implicit none
     integer, intent(in) :: mpi_rank
     integer(ik4) :: idev, ndev
     integer(acc_device_kind) :: dev_type

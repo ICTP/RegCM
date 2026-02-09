@@ -23,7 +23,7 @@
 module mod_cbmz_global
 
   use mod_cbmz_parameters, only: dp, nreact, nvar
-  implicit none (type, external)
+  implicit none
 
   public
 

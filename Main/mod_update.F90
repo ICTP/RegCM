@@ -25,7 +25,7 @@ module mod_update
   use mod_regcm_types, only : exp_data, imp_data, exp_data3d
   use mod_memutil
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -73,7 +73,7 @@ module mod_update
     use mod_dynparam, only : ice1, ice2, jce1, jce2
     use mod_dynparam, only : ici1, ici2, jci1, jci2
 
-    implicit none (type, external)
+    implicit none
     !
     !-----------------------------------------------------------------------
     !     Local variable declarations
@@ -188,7 +188,7 @@ module mod_update
     use mod_constants
     use mod_lm_interface, only : import_data_into_surface
 
-    implicit none (type, external)
+    implicit none
     !
     !-----------------------------------------------------------------------
     !     Imported variable declarations
@@ -215,7 +215,7 @@ module mod_update
     use mod_atm_interface, only : export_data_from_atm, sfs
     use mod_rad_interface, only : export_data_from_rad
 
-    implicit none (type, external)
+    implicit none
     !
     !-----------------------------------------------------------------------
     !     Imported variable declarations

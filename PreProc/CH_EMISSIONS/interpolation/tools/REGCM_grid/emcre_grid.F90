@@ -16,7 +16,7 @@ PROGRAM EMCRE
   USE emcre_netcdf
   USE netcdf
 
-  IMPLICIT NONE (type, external)
+  IMPLICIT NONE
 
   ! FOR COMMAND LINE
   CHARACTER(LEN=256) :: EXE          ! program name
@@ -341,7 +341,7 @@ CONTAINS
 
 !    USE netcdf
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     INTRINSIC :: DATE_AND_TIME, CHAR
 
@@ -528,7 +528,7 @@ CONTAINS
 
     USE netcdf, ONLY: NF90_NOERR, nf90_strerror
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     ! I/O
     INTEGER,          INTENT(OUT) :: status

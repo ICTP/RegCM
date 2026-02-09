@@ -24,7 +24,7 @@ PROGRAM MACv2SP
   USE mo_simple_plumes, ONLY: sp_aop_profile
   USE netcdf
 
-  IMPLICIT NONE (type, external)
+  IMPLICIT NONE
 
   INTEGER, PARAMETER :: nmon = 12
 

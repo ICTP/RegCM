@@ -8,6 +8,7 @@ module decompMod
 ! !MODULE: decompMod
 !
 ! !USES:
+  use mpi
   use shr_kind_mod, only : r8 => shr_kind_r8
   use spmdMod    , only : masterproc, iam, npes, mpicom, comp_id
   use clm_mct_mod

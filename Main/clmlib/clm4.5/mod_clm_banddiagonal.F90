@@ -8,7 +8,7 @@ module mod_clm_banddiagonal
   use mod_stdio
   use lapack_dgbsv
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -30,7 +30,7 @@ module mod_clm_banddiagonal
   !
   subroutine BandDiagonal_cpu(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
                           filter, nband, b, r, u)
-    implicit none (type, external)
+    implicit none
     ! lbinning and ubing column indices
     integer(ik4), intent(in)    :: lbc, ubc
     ! lbinning and ubing level indices
@@ -246,7 +246,7 @@ subroutine BandDiagonal_gpu(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
     use cusparse
     use cudafor
     use nvtx
-    implicit none (type, external)
+    implicit none
     ! lbinning and ubing column indices
     integer(ik4), intent(in)    :: lbc, ubc
     ! lbinning and ubing level indices

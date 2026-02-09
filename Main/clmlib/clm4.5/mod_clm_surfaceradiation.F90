@@ -9,7 +9,7 @@ module mod_clm_surfaceradiation
   use mod_mpmessage
   use mod_runparams
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -43,7 +43,7 @@ module mod_clm_surfaceradiation
     use mod_clm_varctl     , only : subgridflag, nextdate
     use mod_clm_varpar     , only : nlevsno
     use mod_clm_snicar     , only : DO_SNO_OC
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbp, ubp   ! pft upper and lower bounds
     ! number of pfts in non-urban points in pft filter
     integer(ik4), intent(in) :: num_nourbanp

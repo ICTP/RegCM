@@ -1,6 +1,6 @@
 
 MODULE mod_cb6_Precision
-implicit none (type, external)
+implicit none
 
 !
 ! Definition of different levels of accuracy

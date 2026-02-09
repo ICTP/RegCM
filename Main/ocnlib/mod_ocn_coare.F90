@@ -22,7 +22,7 @@ module mod_ocn_coare
   use mod_ocn_internal
   use mod_runparams, only : iocnrough
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -40,7 +40,7 @@ module mod_ocn_coare
     !-----------------------------------------------------------------------
     !
     subroutine coare3_drv()
-      implicit none (type, external)
+      implicit none
       real(rkx) :: ts, qs, us, uv995, t995, q995, z995, ta
       real(rkx) :: zu, zt, zq, zi, du, dt, dq, ut, dter
       real(rkx) :: ug, zogs, u10, cdhg, zo10, zot10
@@ -377,7 +377,7 @@ module mod_ocn_coare
 #include <cpmf.inc>
 
       pure real(rkx) function psiuo(zet)
-        implicit none (type, external)
+        implicit none
         real(rkx), intent (in) :: zet
         real(rkx) :: x, psik, f, psic, c
         if (zet < 0.0_rkx) then
@@ -398,7 +398,7 @@ module mod_ocn_coare
       end function psiuo
 
       pure real(rkx) function psit(zet)
-        implicit none (type, external)
+        implicit none
         real(rkx), intent (in) :: zet
         real(rkx) :: x, psik, f, psic, c
         if (zet < 0.0_rkx) then

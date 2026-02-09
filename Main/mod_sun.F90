@@ -31,7 +31,7 @@ module mod_sun
    use mod_sunorbit
    use netcdf
 
-   implicit none (type, external)
+   implicit none
 
    private
 
@@ -256,7 +256,7 @@ module mod_sun
   ! from the julian date.
   !
   subroutine solar1
-    implicit none (type, external)
+    implicit none
     real(rk8) :: decdeg, obliq, mvelp
     integer(ik4), save :: lyear = bigint
     integer(ik4) :: iyear
@@ -301,7 +301,7 @@ module mod_sun
   ! in the initialization procedure of RegCM
   !
   subroutine zenitm(xlat,xlon,coszrs)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: xlat, xlon
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: coszrs
     integer(ik4) :: i, j
@@ -360,7 +360,7 @@ module mod_sun
   end subroutine zenitm
 
   real(rkx) function solar_irradiance( )
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: iyear, iidate
     real(rkx) :: w1, w2
 #ifdef DEBUG
@@ -413,7 +413,7 @@ module mod_sun
   end function solar_irradiance
 
   subroutine read_solarforcing( )
-    implicit none (type, external)
+    implicit none
     character(len=256) :: heppafile
     integer(ik4) :: iret, ncid, idimid, ntime, ivar
 

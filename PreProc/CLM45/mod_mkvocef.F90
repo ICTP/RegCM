@@ -21,7 +21,7 @@ module mod_mkvocef
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -36,7 +36,7 @@ module mod_mkvocef
   contains
 
   subroutine mkvocef(vocfile,mask,vocef)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: vocfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: vocef

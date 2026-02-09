@@ -30,11 +30,16 @@ module mod_clm_nchelper
   use mod_clm_varcon
   use mpi
 
-  implicit none (type, external)
+  implicit none
 
   private
 
   save
+
+#ifdef __INTEL_COMPILER
+  ! Need to investigate why this happens....
+  external :: mpi_bcast, mpi_scatterv, mpi_gatherv
+#endif
 
   integer(ik4), parameter :: clm_maxdims = 64
   integer(ik4), parameter :: clm_maxvars = 1024
@@ -265,7 +270,7 @@ module mod_clm_nchelper
   contains
 !
   subroutine clm_createfile(fname,ncid)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: fname
     type(clm_filetype), intent(out) :: ncid
     integer(ik4) :: clm_iomode, iofmod
@@ -300,7 +305,7 @@ module mod_clm_nchelper
   end subroutine clm_createfile
 
   subroutine clm_openfile(fname,ncid,mode)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: fname
     type(clm_filetype), intent(out) :: ncid
     integer(ik4), intent(in), optional :: mode
@@ -366,7 +371,7 @@ module mod_clm_nchelper
   end subroutine clm_openfile
 
   subroutine clm_enddef(ncid)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     if ( myid /= iocpu ) return
     incstat =  nf90_enddef(ncid%ncid)
@@ -374,7 +379,7 @@ module mod_clm_nchelper
   end subroutine clm_enddef
 
   subroutine clm_inqdim(ncid,dname,dlen)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: dname
     integer(ik4), intent(out) :: dlen
@@ -397,7 +402,7 @@ module mod_clm_nchelper
   end subroutine clm_inqdim
 
   subroutine clm_addatt_text(ncid,aname,aval,ivar,cvar)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     character(len=*), intent(in) :: aval
@@ -422,7 +427,7 @@ module mod_clm_nchelper
   end subroutine clm_addatt_text
 
   subroutine clm_addatt_integer(ncid,aname,aval,ivar,cvar)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     integer(ik4), intent(in) :: aval
@@ -447,7 +452,7 @@ module mod_clm_nchelper
   end subroutine clm_addatt_integer
 
   subroutine clm_addatt_single(ncid,aname,aval,ivar,cvar)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     real(rk4), intent(in) :: aval
@@ -472,7 +477,7 @@ module mod_clm_nchelper
   end subroutine clm_addatt_single
 
   subroutine clm_addatt_double(ncid,aname,aval,ivar,cvar)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     integer(rk8), intent(in) :: aval
@@ -497,7 +502,7 @@ module mod_clm_nchelper
   end subroutine clm_addatt_double
 
   logical function clm_check_dimlen(ncid,dname,ival)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: dname
     integer(ik4), intent(in) :: ival
@@ -519,7 +524,7 @@ module mod_clm_nchelper
   end function clm_check_dimlen
 
   subroutine clm_check_dims(ncid,ni,nj)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     integer(ik4), intent(out) :: ni, nj
     call clm_inqdim(ncid,'lon',ni)
@@ -546,7 +551,7 @@ module mod_clm_nchelper
   end subroutine clm_check_dims
 
   subroutine clm_adddim(ncid,dnam,nd)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: dnam
     integer(ik4), intent(in) :: nd
@@ -565,7 +570,7 @@ module mod_clm_nchelper
   subroutine clm_addvar(ctype,ncid,varname,cdims,long_name,units, &
                         cell_method,comment,flag_meanings,missing_value,  &
                         fill_value,flag_values,valid_range,switchdim)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ctype
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: varname
@@ -728,7 +733,7 @@ module mod_clm_nchelper
   end subroutine clm_addvar
 
   logical function clm_check_dim(ncid,dname)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: dname
     integer(ik4) :: idimid, mpierr
@@ -745,7 +750,7 @@ module mod_clm_nchelper
   end function clm_check_dim
 
   logical function clm_check_var(ncid,vname)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4) :: ivarid, mpierr
@@ -762,7 +767,7 @@ module mod_clm_nchelper
   end function clm_check_var
 
   subroutine clm_closefile(ncid)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     if ( ncid%ncid < 0 ) return
     incstat = nf90_close(ncid%ncid)
@@ -780,7 +785,7 @@ module mod_clm_nchelper
   end subroutine clm_closefile
 
   subroutine clm_checkncerr(filename,line,arg)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: line
     character(len=8) :: cline
     character(*), intent(in) :: filename, arg
@@ -793,7 +798,7 @@ module mod_clm_nchelper
   end subroutine clm_checkncerr
 
   integer(ik4) function hash(text) result(hashed)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: text
     !integer(ik4), parameter :: magic_numb = z'5d7a9f43'
     integer(ik4), parameter :: magic_numb = 1568317251
@@ -808,7 +813,7 @@ module mod_clm_nchelper
   end function hash
 
   subroutine add_dimhash(ncid,dname)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: dname
     ncid%dimhash(ncid%idimlast) = hash(dname)
@@ -816,7 +821,7 @@ module mod_clm_nchelper
   end subroutine add_dimhash
 
   integer(ik4) function searchdim(ncid,dname)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: dname
     integer(ik4) :: i, hashed
@@ -831,7 +836,7 @@ module mod_clm_nchelper
   end function searchdim
 
   subroutine add_varhash(ncid,vname)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     ncid%varhash(ncid%ivarlast) = hash(vname)
@@ -839,7 +844,7 @@ module mod_clm_nchelper
   end subroutine add_varhash
 
   integer(ik4) function searchvar(ncid,vname)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4) :: i, hashed
@@ -854,7 +859,7 @@ module mod_clm_nchelper
   end function searchvar
 
   subroutine clm_readvar_text_0d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     character(len=*), intent(out) :: xval
@@ -876,7 +881,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_text_0d
 
   subroutine clm_readvar_text_1d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     character(len=*), dimension(:), intent(out) :: xval
@@ -899,7 +904,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_text_1d
 
   subroutine clm_readvar_logical_0d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4) :: rval
@@ -923,7 +928,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_logical_0d
 
   subroutine clm_readvar_logical_1d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(out) :: xval
@@ -949,7 +954,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_logical_1d
 
   subroutine clm_readvar_logical_2d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(out) :: xval
@@ -975,7 +980,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_logical_2d
 
   subroutine clm_readvar_logical_3d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(out) :: xval
@@ -1001,7 +1006,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_logical_3d
 
   subroutine clm_readvar_logical_4d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:,:), intent(out) :: xval
@@ -1027,7 +1032,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_logical_4d
 
   subroutine clm_readvar_integer_0d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), intent(out) :: xval
@@ -1049,7 +1054,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_integer_0d
 
   subroutine clm_readvar_integer_1d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(out) :: xval
@@ -1071,7 +1076,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_integer_1d
 
   subroutine clm_readvar_integer_2d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(out) :: xval
@@ -1093,7 +1098,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_integer_2d
 
   subroutine clm_readvar_integer_3d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(out) :: xval
@@ -1115,7 +1120,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_integer_3d
 
   subroutine clm_readvar_integer_4d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:,:), intent(out) :: xval
@@ -1137,7 +1142,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_integer_4d
 
   subroutine clm_readvar_real4_0d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), intent(out) :: xval
@@ -1159,7 +1164,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real4_0d
 
   subroutine clm_readvar_real4_1d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(out) :: xval
@@ -1181,7 +1186,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real4_1d
 
   subroutine clm_readvar_real4_2d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(out) :: xval
@@ -1203,7 +1208,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real4_2d
 
   subroutine clm_readvar_real4_3d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(out) :: xval
@@ -1225,7 +1230,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real4_3d
 
   subroutine clm_readvar_real4_4d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:,:), intent(out) :: xval
@@ -1247,7 +1252,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real4_4d
 
   subroutine clm_readvar_real8_0d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), intent(out) :: xval
@@ -1269,7 +1274,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real8_0d
 
   subroutine clm_readvar_real8_1d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(out) :: xval
@@ -1291,7 +1296,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real8_1d
 
   subroutine clm_readvar_real8_2d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(out) :: xval
@@ -1313,7 +1318,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real8_2d
 
   subroutine clm_readvar_real8_3d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(out) :: xval
@@ -1335,7 +1340,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real8_3d
 
   subroutine clm_readvar_real8_4d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:,:), intent(out) :: xval
@@ -1357,7 +1362,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real8_4d
 
   subroutine clm_readrec_text_0d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     character(len=*), intent(out) :: xval
@@ -1384,7 +1389,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_text_0d
 
   subroutine clm_readrec_logical_0d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, intent(out) :: xval
@@ -1411,7 +1416,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_logical_0d
 
   subroutine clm_readrec_logical_1d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(out) :: xval
@@ -1443,7 +1448,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_logical_1d
 
   subroutine clm_readrec_logical_2d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(out) :: xval
@@ -1478,7 +1483,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_logical_2d
 
   subroutine clm_readrec_logical_3d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(out) :: xval
@@ -1516,7 +1521,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_logical_3d
 
   subroutine clm_readrec_integer_0d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), intent(out) :: xval
@@ -1543,7 +1548,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_integer_0d
 
   subroutine clm_readrec_integer_1d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(out) :: xval
@@ -1571,7 +1576,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_integer_1d
 
   subroutine clm_readrec_integer_2d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(out) :: xval
@@ -1602,7 +1607,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_integer_2d
 
   subroutine clm_readrec_integer_3d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(out) :: xval
@@ -1636,7 +1641,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_integer_3d
 
   subroutine clm_readrec_real4_0d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), intent(out) :: xval
@@ -1663,7 +1668,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real4_0d
 
   subroutine clm_readrec_real4_1d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(out) :: xval
@@ -1691,7 +1696,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real4_1d
 
   subroutine clm_readrec_real4_2d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(out) :: xval
@@ -1722,7 +1727,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real4_2d
 
   subroutine clm_readrec_real4_3d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(out) :: xval
@@ -1756,7 +1761,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real4_3d
 
   subroutine clm_readrec_real8_0d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), intent(out) :: xval
@@ -1783,7 +1788,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real8_0d
 
   subroutine clm_readrec_real8_1d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(out) :: xval
@@ -1811,7 +1816,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real8_1d
 
   subroutine clm_readrec_real8_2d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(out) :: xval
@@ -1842,7 +1847,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real8_2d
 
   subroutine clm_readrec_real8_3d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(out) :: xval
@@ -1876,7 +1881,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real8_3d
 
   subroutine clm_readvar_logical_1d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(out) :: xval
@@ -1904,7 +1909,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_logical_1d_par_sg
 
   subroutine clm_readvar_logical_2d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(out) :: xval
@@ -1943,7 +1948,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_logical_2d_par_sg
 
   subroutine clm_readvar_logical_3d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(out) :: xval
@@ -1989,7 +1994,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_logical_3d_par_sg
 
   subroutine clm_readvar_logical_4d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:,:), intent(out) :: xval
@@ -2044,7 +2049,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_logical_4d_par_sg
 
   subroutine clm_readvar_integer_1d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     type(subgrid_type), intent(in) :: sg
@@ -2069,7 +2074,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_integer_1d_par_sg
 
   subroutine clm_readvar_integer_2d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(out) :: xval
@@ -2104,7 +2109,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_integer_2d_par_sg
 
   subroutine clm_readvar_integer_3d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(out) :: xval
@@ -2146,7 +2151,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_integer_3d_par_sg
 
   subroutine clm_readvar_integer_4d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:,:), intent(out) :: xval
@@ -2196,7 +2201,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_integer_4d_par_sg
 
   subroutine clm_readvar_real4_1d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(out) :: xval
@@ -2221,7 +2226,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real4_1d_par_sg
 
   subroutine clm_readvar_real4_2d_par_sg(ncid,vname,xval,sg,switchdim)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(out) :: xval
@@ -2280,7 +2285,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real4_2d_par_sg
 
   subroutine clm_readvar_real4_3d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(out) :: xval
@@ -2322,7 +2327,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real4_3d_par_sg
 
   subroutine clm_readvar_real4_4d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:,:), intent(out) :: xval
@@ -2372,7 +2377,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real4_4d_par_sg
 
   subroutine clm_readvar_real8_1d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(out) :: xval
@@ -2397,7 +2402,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real8_1d_par_sg
 
   subroutine clm_readvar_real8_2d_par_sg(ncid,vname,xval,sg,switchdim)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(out) :: xval
@@ -2456,7 +2461,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real8_2d_par_sg
 
   subroutine clm_readvar_real8_3d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(out) :: xval
@@ -2498,7 +2503,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real8_3d_par_sg
 
   subroutine clm_readvar_real8_4d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:,:), intent(out) :: xval
@@ -2548,7 +2553,7 @@ module mod_clm_nchelper
   end subroutine clm_readvar_real8_4d_par_sg
 
   subroutine clm_readrec_logical_1d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(out) :: xval
@@ -2581,7 +2586,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_logical_1d_par_sg
 
   subroutine clm_readrec_logical_2d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(out) :: xval
@@ -2625,7 +2630,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_logical_2d_par_sg
 
   subroutine clm_readrec_logical_3d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(out) :: xval
@@ -2676,7 +2681,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_logical_3d_par_sg
 
   subroutine clm_readrec_integer_1d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(out) :: xval
@@ -2706,7 +2711,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_integer_1d_par_sg
 
   subroutine clm_readrec_integer_2d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(out) :: xval
@@ -2748,7 +2753,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_integer_2d_par_sg
 
   subroutine clm_readrec_integer_3d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(out) :: xval
@@ -2799,7 +2804,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_integer_3d_par_sg
 
   subroutine clm_readrec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(out) :: xval
@@ -2829,7 +2834,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real4_1d_par_sg
 
   subroutine clm_readrec_real4_2d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(out) :: xval
@@ -2871,7 +2876,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real4_2d_par_sg
 
   subroutine clm_readrec_real4_3d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(out) :: xval
@@ -2922,7 +2927,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real4_3d_par_sg
 
   subroutine clm_readrec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(out) :: xval
@@ -2952,7 +2957,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real8_1d_par_sg
 
   subroutine clm_readrec_real8_2d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(out) :: xval
@@ -2994,7 +2999,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real8_2d_par_sg
 
   subroutine clm_readrec_real8_3d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(out) :: xval
@@ -3045,7 +3050,7 @@ module mod_clm_nchelper
   end subroutine clm_readrec_real8_3d_par_sg
 
   subroutine clm_writevar_text_0d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     character(len=*), intent(in) :: xval
@@ -3062,7 +3067,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_text_0d
 
   subroutine clm_writevar_text_1d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     character(len=*), dimension(:), intent(in) :: xval
@@ -3079,7 +3084,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_text_1d
 
   subroutine clm_writevar_logical_0d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, intent(in) :: xval
@@ -3099,7 +3104,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_0d
 
   subroutine clm_writevar_logical_1d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
@@ -3123,7 +3128,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_1d
 
   subroutine clm_writevar_logical_2d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
@@ -3147,7 +3152,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_2d
 
   subroutine clm_writevar_logical_3d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(in) :: xval
@@ -3171,7 +3176,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_3d
 
   subroutine clm_writevar_logical_4d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:,:), intent(in) :: xval
@@ -3195,7 +3200,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_4d
 
   subroutine clm_writevar_integer_0d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), intent(in) :: xval
@@ -3212,7 +3217,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_0d
 
   subroutine clm_writevar_integer_1d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(in) :: xval
@@ -3229,7 +3234,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_1d
 
   subroutine clm_writevar_integer_2d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(in) :: xval
@@ -3246,7 +3251,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_2d
 
   subroutine clm_writevar_integer_3d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(in) :: xval
@@ -3263,7 +3268,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_3d
 
   subroutine clm_writevar_integer_4d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:,:), intent(in) :: xval
@@ -3280,7 +3285,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_4d
 
   subroutine clm_writevar_real4_0d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), intent(in) :: xval
@@ -3297,7 +3302,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_0d
 
   subroutine clm_writevar_real4_1d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
@@ -3314,7 +3319,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_1d
 
   subroutine clm_writevar_real4_2d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
@@ -3331,7 +3336,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_2d
 
   subroutine clm_writevar_real4_3d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(in) :: xval
@@ -3348,7 +3353,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_3d
 
   subroutine clm_writevar_real4_4d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:,:), intent(in) :: xval
@@ -3365,7 +3370,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_4d
 
   subroutine clm_writevar_real8_0d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), intent(in) :: xval
@@ -3382,7 +3387,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_0d
 
   subroutine clm_writevar_real8_1d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
@@ -3399,7 +3404,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_1d
 
   subroutine clm_writevar_real8_2d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
@@ -3416,7 +3421,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_2d
 
   subroutine clm_writevar_real8_3d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(in) :: xval
@@ -3433,7 +3438,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_3d
 
   subroutine clm_writevar_real8_4d(ncid,vname,xval)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:,:), intent(in) :: xval
@@ -3450,7 +3455,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_4d
 
   subroutine clm_writerec_logical_0d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, intent(in) :: xval
@@ -3473,7 +3478,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_logical_0d
 
   subroutine clm_writerec_logical_1d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
@@ -3503,7 +3508,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_logical_1d
 
   subroutine clm_writerec_logical_2d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
@@ -3536,7 +3541,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_logical_2d
 
   subroutine clm_writerec_logical_3d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(in) :: xval
@@ -3572,7 +3577,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_logical_3d
 
   subroutine clm_writerec_integer_0d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), intent(in) :: xval
@@ -3594,7 +3599,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_integer_0d
 
   subroutine clm_writerec_integer_1d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(in) :: xval
@@ -3617,7 +3622,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_integer_1d
 
   subroutine clm_writerec_integer_2d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(in) :: xval
@@ -3643,7 +3648,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_integer_2d
 
   subroutine clm_writerec_integer_3d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(in) :: xval
@@ -3672,7 +3677,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_integer_3d
 
   subroutine clm_writerec_real4_0d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), intent(in) :: xval
@@ -3694,7 +3699,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real4_0d
 
   subroutine clm_writerec_real4_1d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
@@ -3717,7 +3722,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real4_1d
 
   subroutine clm_writerec_real4_2d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
@@ -3743,7 +3748,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real4_2d
 
   subroutine clm_writerec_real4_3d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(in) :: xval
@@ -3772,7 +3777,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real4_3d
 
   subroutine clm_writerec_real8_0d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), intent(in) :: xval
@@ -3794,7 +3799,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real8_0d
 
   subroutine clm_writerec_real8_1d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
@@ -3817,7 +3822,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real8_1d
 
   subroutine clm_writerec_real8_2d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
@@ -3843,7 +3848,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real8_2d
 
   subroutine clm_writerec_real8_3d(ncid,vname,xval,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(in) :: xval
@@ -3872,7 +3877,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real8_3d
 
   subroutine copy_filetype(ncid2,ncid1)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid1
     type(clm_filetype), intent(out) :: ncid2
     ncid2%ncid = ncid1%ncid
@@ -3888,7 +3893,7 @@ module mod_clm_nchelper
   end subroutine copy_filetype
 
   subroutine clm_writevar_logical_1d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
@@ -3923,7 +3928,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_1d_par_sg
 
   subroutine clm_writevar_logical_2d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
@@ -3964,7 +3969,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_2d_par_sg
 
   subroutine clm_writevar_logical_3d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(in) :: xval
@@ -4009,7 +4014,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_3d_par_sg
 
   subroutine clm_writevar_logical_4d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:,:), intent(in) :: xval
@@ -4059,7 +4064,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_4d_par_sg
 
   subroutine clm_writevar_integer_1d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(in) :: xval
@@ -4087,7 +4092,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_1d_par_sg
 
   subroutine clm_writevar_integer_2d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(in) :: xval
@@ -4126,7 +4131,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_2d_par_sg
 
   subroutine clm_writevar_integer_3d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(in) :: xval
@@ -4172,7 +4177,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_3d_par_sg
 
   subroutine clm_writevar_integer_4d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:,:), intent(in) :: xval
@@ -4226,7 +4231,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_4d_par_sg
 
   subroutine clm_writevar_real4_1d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
@@ -4254,7 +4259,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_1d_par_sg
 
   subroutine clm_writevar_real4_2d_par_sg(ncid,vname,xval,sg,switchdim)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
@@ -4311,7 +4316,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_2d_par_sg
 
   subroutine clm_writevar_real4_3d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(in) :: xval
@@ -4357,7 +4362,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_3d_par_sg
 
   subroutine clm_writevar_real4_4d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:,:), intent(in) :: xval
@@ -4411,7 +4416,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_4d_par_sg
 
   subroutine clm_writevar_real8_1d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
@@ -4439,7 +4444,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_1d_par_sg
 
   subroutine clm_writevar_real8_2d_par_sg(ncid,vname,xval,sg,switchdim)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
@@ -4496,7 +4501,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_2d_par_sg
 
   subroutine clm_writevar_real8_3d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(in) :: xval
@@ -4542,7 +4547,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_3d_par_sg
 
   subroutine clm_writevar_real8_4d_par_sg(ncid,vname,xval,sg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:,:), intent(in) :: xval
@@ -4596,7 +4601,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_4d_par_sg
 
   subroutine clm_writerec_logical_1d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
@@ -4637,7 +4642,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_logical_1d_par_sg
 
   subroutine clm_writerec_logical_2d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
@@ -4686,7 +4691,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_logical_2d_par_sg
 
   subroutine clm_writerec_logical_3d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(in) :: xval
@@ -4741,7 +4746,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_logical_3d_par_sg
 
   subroutine clm_writerec_integer_1d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(in) :: xval
@@ -4774,7 +4779,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_integer_1d_par_sg
 
   subroutine clm_writerec_integer_2d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(in) :: xval
@@ -4820,7 +4825,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_integer_2d_par_sg
 
   subroutine clm_writerec_integer_3d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(in) :: xval
@@ -4875,7 +4880,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_integer_3d_par_sg
 
   subroutine clm_writerec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
@@ -4913,7 +4918,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real4_1d_par_sg
 
   subroutine clm_writerec_real4_2d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
@@ -4964,7 +4969,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real4_2d_par_sg
 
   subroutine clm_writerec_real4_3d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(in) :: xval
@@ -5024,7 +5029,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real4_3d_par_sg
 
   subroutine clm_writerec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
@@ -5071,7 +5076,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real8_1d_par_sg
 
   subroutine clm_writerec_real8_2d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
@@ -5122,7 +5127,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real8_2d_par_sg
 
   subroutine clm_writerec_real8_3d_par_sg(ncid,vname,xval,sg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(in) :: xval
@@ -5182,7 +5187,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real8_3d_par_sg
 
   subroutine clm_writevar_logical_2d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
@@ -5228,7 +5233,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_2d_par_gg
 
   subroutine clm_writevar_logical_3d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
@@ -5280,7 +5285,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_3d_par_gg
 
   subroutine clm_writevar_logical_4d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(in) :: xval
@@ -5339,7 +5344,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_logical_4d_par_gg
 
   subroutine clm_writevar_integer_2d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(in) :: xval
@@ -5381,7 +5386,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_2d_par_gg
 
   subroutine clm_writevar_integer_3d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(in) :: xval
@@ -5429,7 +5434,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_3d_par_gg
 
   subroutine clm_writevar_integer_4d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(in) :: xval
@@ -5484,7 +5489,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_integer_4d_par_gg
 
   subroutine clm_writevar_real4_2d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
@@ -5526,7 +5531,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_2d_par_gg
 
   subroutine clm_writevar_real4_3d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
@@ -5574,7 +5579,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_3d_par_gg
 
   subroutine clm_writevar_real4_4d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(in) :: xval
@@ -5629,7 +5634,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real4_4d_par_gg
 
   subroutine clm_writevar_real8_2d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
@@ -5671,7 +5676,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_2d_par_gg
 
   subroutine clm_writevar_real8_3d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
@@ -5719,7 +5724,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_3d_par_gg
 
   subroutine clm_writevar_real8_4d_par_gg(ncid,vname,xval,gg)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(in) :: xval
@@ -5774,7 +5779,7 @@ module mod_clm_nchelper
   end subroutine clm_writevar_real8_4d_par_gg
 
   subroutine clm_writerec_logical_2d_par_gg(ncid,vname,xval,gg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
@@ -5823,7 +5828,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_logical_2d_par_gg
 
   subroutine clm_writerec_integer_2d_par_gg(ncid,vname,xval,gg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(in) :: xval
@@ -5868,7 +5873,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_integer_2d_par_gg
 
   subroutine clm_writerec_logical_3d_par_gg(ncid,vname,xval,gg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
@@ -5923,7 +5928,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_logical_3d_par_gg
 
   subroutine clm_writerec_integer_3d_par_gg(ncid,vname,xval,gg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(in) :: xval
@@ -5974,7 +5979,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_integer_3d_par_gg
 
   subroutine clm_writerec_real4_2d_par_gg(ncid,vname,xval,gg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
@@ -6019,7 +6024,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real4_2d_par_gg
 
   subroutine clm_writerec_real4_3d_par_gg(ncid,vname,xval,gg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
@@ -6070,7 +6075,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real4_3d_par_gg
 
   subroutine clm_writerec_real8_2d_par_gg(ncid,vname,xval,gg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
@@ -6115,7 +6120,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real8_2d_par_gg
 
   subroutine clm_writerec_real8_3d_par_gg(ncid,vname,xval,gg,nt)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
@@ -6166,7 +6171,7 @@ module mod_clm_nchelper
   end subroutine clm_writerec_real8_3d_par_gg
 
   subroutine clm_syncfile(ncid)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid
     if ( myid == iocpu ) then
       if ( lsync ) then
@@ -6177,7 +6182,7 @@ module mod_clm_nchelper
   end subroutine clm_syncfile
 
   subroutine test_clmhelper
-    implicit none (type, external)
+    implicit none
     type(clm_filetype) :: ncid
     logical, pointer, contiguous, dimension(:) :: xval
     integer(ik4), pointer, contiguous, dimension(:) :: ival

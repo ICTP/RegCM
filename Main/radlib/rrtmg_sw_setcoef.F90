@@ -41,7 +41,7 @@ module rrtmg_sw_setcoef
   use rrsw_ref, only : pref, preflog, tref
   use rrsw_vsn, only : hvrset, hnamset
 
-  implicit none (type, external)
+  implicit none
 
   contains
 

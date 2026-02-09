@@ -91,7 +91,7 @@ module mod_clm_control
   use mod_clm_soilhydrology, only : SoilHydrology_readnl
   use mod_clm_megan, only : shr_megan_readnl, shr_megan_mechcomps_n
   use mod_clm_drydep, only : seq_drydep_read, seq_drydep_init
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -107,21 +107,23 @@ module mod_clm_control
   ! Initialize CLM run control information
   !
   subroutine control_init( )
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i     ! loop indices
     integer(ik4) :: ierr                 ! error code
-    integer(ik4) :: ihost
     integer(ik4) :: unitn                ! unit for namelist file
     ! If want to override the startup type sent from driver
-    character(len=32) :: subname = 'control_init'  ! subroutine name
-    character(len=32) :: hostname = '?'
-    character(len=32) :: user = '?'
-    integer(ik4) :: hostnm
+    character(len=32) :: subname  ! subroutine name
+    character(len=64) :: hostname
+    character(len=32) :: user
+#ifdef __INTEL_COMPILER
+    external :: hostnm, getlog, getcwd
+#endif
+
+    ! CLM namelist settings
+
     ! ----------------------------------------------------------------------
     ! Namelist Variables
     ! ----------------------------------------------------------------------
-
-    ! CLM namelist settings
 
     namelist /clm_inparm / &
          fatmlndfrc, finidat, nrevsn
@@ -215,6 +217,10 @@ module mod_clm_control
 
     namelist /clm_inparm/ DoForceRestart, DoSurfaceSaturate
 
+    subname = 'control_init'
+    hostname = '?'
+    user = '?'
+
     ! ----------------------------------------------------------------------
     ! Default values
     ! ----------------------------------------------------------------------
@@ -274,7 +280,7 @@ module mod_clm_control
     hostname='ibm platform '
     user= 'Unknown'
 #else
-    ihost = hostnm(hostname)
+    call hostnm(hostname)
     call getlog(user)
 #endif
     if ( ifrest ) then
@@ -342,7 +348,7 @@ module mod_clm_control
   ! all processors and writes it to disk.
   !
   subroutine control_spmd()
-    implicit none (type, external)
+    implicit none
 
     ! run control variables
     call bcast(caseid,len(caseid))
@@ -501,7 +507,7 @@ module mod_clm_control
   ! Write out the clm namelist run control variables
   !
   subroutine control_print ()
-    implicit none (type, external)
+    implicit none
 #ifdef CN
     character(len=32) :: subname = 'control_print'  ! subroutine name
 #endif

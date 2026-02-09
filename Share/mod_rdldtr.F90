@@ -24,7 +24,7 @@ module mod_rdldtr
   use mod_message
   use mod_earth
   use mod_kdinterp
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -100,7 +100,7 @@ module mod_rdldtr
                            grdlnma,grdlnmn,grdltma,grdltmn,        &
                            nlatin,nlonin,values)
     use netcdf
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: cfile, cvar
     integer(ik4), intent(in) :: iband, iores, imeth
     real(rkx), dimension(:,:), intent(in) :: xlat, xlon
@@ -219,7 +219,7 @@ module mod_rdldtr
                            grdlnma,grdlnmn,grdltma,grdltmn,        &
                            nlatin,nlonin,values)
     use netcdf
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: cfile, cvar
     integer(ik4), intent(in) :: iband, iores, imeth
     real(rkx), dimension(:,:), intent(in) :: xlat, xlon
@@ -358,7 +358,7 @@ module mod_rdldtr
                              grdlnma,grdlnmn,grdltma,grdltmn,        &
                              nlatin,nlonin,values,isel)
     use netcdf
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: cfile, cvar
     integer(ik4), intent(in) :: iband, iores, imeth
     real(rkx), dimension(:,:), intent(in) :: xlat, xlon
@@ -485,7 +485,7 @@ module mod_rdldtr
 
   subroutine read_geolocation(cfile)
     use netcdf
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: cfile
     integer(ik4) :: idimid, idvar
     integer(ik4) :: jlat, ilon
@@ -572,7 +572,7 @@ module mod_rdldtr
 
   subroutine resampling(ifrac,imeth,iband,nlat,nlon,nlatin,nlonin, &
                         readbuf,values)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ifrac, imeth, iband
     integer(ik4), intent(in) :: nlat, nlon
     integer(ik4), intent(in) :: nlatin, nlonin
@@ -646,7 +646,7 @@ module mod_rdldtr
   end subroutine resampling
 
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,iband)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, isize, iband
     real(rkx), dimension(isize*isize), intent(out) :: copybuf
     real(rkx), dimension(ni,nj), intent(in) :: readbuf
@@ -680,7 +680,7 @@ module mod_rdldtr
   end subroutine fillbuf
 
   pure integer(ik4) function mpindex(x) result(res)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:), intent(in) :: x
     integer(ik4), dimension(32) :: cnt
     integer(ik4) :: i
@@ -692,7 +692,7 @@ module mod_rdldtr
   end function mpindex
 
   recursive subroutine qsort(a)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:), intent(in out) :: a
     integer(ik4) :: np, isplit
 
@@ -705,7 +705,7 @@ module mod_rdldtr
   end subroutine qsort
 
   subroutine partition(a, marker)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:), intent(inout) :: a
     integer(ik4), intent(out) :: marker
     integer(ik4) :: np, left, right
@@ -740,7 +740,7 @@ module mod_rdldtr
 
   subroutine gfopen(gfile,cfile,xlat,xlon,ds,roi,iband,mx)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(out) :: gfile
     character(len=*), intent(in) :: cfile
     real(rkx), dimension(:,:), intent(in) :: xlat, xlon
@@ -900,7 +900,7 @@ module mod_rdldtr
 
   subroutine gfread_2di(gfile,vname,var,idef)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     integer(ik4), intent(in) :: idef
@@ -945,7 +945,7 @@ module mod_rdldtr
 
   subroutine gfread_2d_landuse(gfile,vname,var,iw,h2opct,rdef)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     integer(ik4), intent(in) :: iw
@@ -982,7 +982,7 @@ module mod_rdldtr
 
   subroutine gfread_2d(gfile,vname,var,rdef)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     real(rkx), intent(in) :: rdef
@@ -1035,7 +1035,7 @@ module mod_rdldtr
 
   subroutine gfread_2d3d(gfile,vname,var,isel,rdef)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     integer(ik4), intent(in) :: isel
@@ -1106,7 +1106,7 @@ module mod_rdldtr
 
   subroutine gfread_3d_class(gfile,vname,var,rdef,lv,uv)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     real(rkx), intent(in) :: rdef, lv, uv
@@ -1172,7 +1172,7 @@ module mod_rdldtr
 
   subroutine gfread_3d(gfile,vname,var,rdef)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     real(rkx), intent(in) :: rdef
@@ -1236,7 +1236,7 @@ module mod_rdldtr
 
   subroutine gfread_3d_lookup(gfile,vname,lkdim,lkvar,var,lrev,rdef)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     character(len=*), intent(in) :: lkdim
@@ -1348,7 +1348,7 @@ module mod_rdldtr
 
   subroutine gfread_4d(gfile,vname,var,rdef)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     real(rkx), intent(in) :: rdef
@@ -1422,7 +1422,7 @@ module mod_rdldtr
 
   subroutine gfread_4d_lookup(gfile,vname,lkdim,lkvar,var,lrev,rdef)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     character(len=*), intent(in) :: lkdim
@@ -1544,7 +1544,7 @@ module mod_rdldtr
 
   subroutine gfread_5d(gfile,vname,var,rdef)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     real(rkx), intent(in) :: rdef
@@ -1628,7 +1628,7 @@ module mod_rdldtr
 
   subroutine gfread_5d_lookup(gfile,vname,lkdim,lkvar,var,lrev,rdef)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(in) :: gfile
     character(len=*), intent(in) :: vname
     character(len=*), intent(in) :: lkdim
@@ -1771,7 +1771,7 @@ module mod_rdldtr
 
   subroutine gfclose(gfile)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(globalfile), intent(inout) :: gfile
     integer(ik4) :: istatus
     call h_interpolator_destroy(gfile%hint)
@@ -1785,7 +1785,7 @@ module mod_rdldtr
   end subroutine gfclose
 
   subroutine bestaround2d(grid,flagval)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:,:), intent(inout) :: grid
     real(rkx), intent(in) :: flagval
     integer(ik4) :: i, j, ii, jj, js, is, il
@@ -1829,7 +1829,7 @@ module mod_rdldtr
   end subroutine bestaround2d
 
   subroutine bestaround3d(grid,flagval)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:,:,:), intent(inout) :: grid
     real(rkx), intent(in) :: flagval
     integer(ik4) :: i, j, k, ii, jj, js, is, il
@@ -1890,7 +1890,7 @@ module mod_rdldtr
   end subroutine bestaround3d
 
   subroutine bestaround4d(grid,flagval)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:,:,:,:), intent(inout) :: grid
     real(rkx), intent(in) :: flagval
     integer(ik4) :: i, j, k, n, ii, jj, js, is, il

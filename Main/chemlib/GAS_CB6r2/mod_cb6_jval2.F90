@@ -21,7 +21,7 @@ module mod_cb6_jval2
   use mod_dynparam
   use mod_mppparam
   use mod_stdio
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -30,7 +30,7 @@ module mod_cb6_jval2
   contains
 
     subroutine jvalpro(nhv,hvmat,jarray,jparam,jval)
-      implicit none (type, external)
+      implicit none
 !
       real(rk8), dimension(22,40) :: hvmat
       real(rk8), dimension(22) :: jparam
@@ -682,7 +682,7 @@ module mod_cb6_jval2
 ! -----------------------------------------------------------------
 
     subroutine readhv(lsin,nhv,hvmat,hvmatb,jarray)
-      implicit none (type, external)
+      implicit none
 !
       integer(ik4) :: lsin
       real(rk8), dimension(22,40) :: hvmat

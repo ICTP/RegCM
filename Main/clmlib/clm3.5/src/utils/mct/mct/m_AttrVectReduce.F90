@@ -2,19 +2,19 @@
 !    Math and Computer Science Division, Argonne National Laboratory   !
 !-----------------------------------------------------------------------
 ! CVS $Id: m_AttrVectReduce.F90 18 2005-12-12 17:49:42Z mvr $
-! CVS $Name$ 
+! CVS $Name$
 !BOP -------------------------------------------------------------------
 !
 ! !MODULE: m_AttrVectReduce - Local/Distributed AttrVect Reduction Ops.
 !
-! !DESCRIPTION:  This module provides routines to perform reductions on 
+! !DESCRIPTION:  This module provides routines to perform reductions on
 ! the {\tt AttrVect} datatype.  These reductions can either be the types
-! of operations supported by MPI (currently, summation, minimum and 
-! maximum are available) that are applied either to all the attributes 
+! of operations supported by MPI (currently, summation, minimum and
+! maximum are available) that are applied either to all the attributes
 ! (both integer and real), or specific reductions applicable only to the
-! real attributes of an {\tt AttrVect}.  This module provides services 
-! for both local (i.e., one address space) and global (distributed) 
-! reductions.  The type of reduction is defined through use of one of 
+! real attributes of an {\tt AttrVect}.  This module provides services
+! for both local (i.e., one address space) and global (distributed)
+! reductions.  The type of reduction is defined through use of one of
 ! the public data members of this module:
 !\begin{table}[htbp]
 !\begin{center}
@@ -40,6 +40,8 @@
 !
 !     No modules are used in the declaration section of this module.
 
+      use mpi
+
       implicit none
 
       private	! except
@@ -50,21 +52,21 @@
       public :: LocalReduceRAttr       ! Local reduction of REAL attributes
       public :: AllReduce              ! AllReduce for distributed AttrVect
       public :: GlobalReduce           ! Local Reduce followed by AllReduce
-      public :: LocalWeightedSumRAttr  ! Local weighted sum of 
+      public :: LocalWeightedSumRAttr  ! Local weighted sum of
                                        ! REAL attributes
-      public :: GlobalWeightedSumRAttr ! Global weighted sum of REAL 
-                                       ! attributes for a distrubuted 
+      public :: GlobalWeightedSumRAttr ! Global weighted sum of REAL
+                                       ! attributes for a distrubuted
                                        ! AttrVect
 
     interface LocalReduce ; module procedure LocalReduce_ ; end interface
     interface LocalReduceRAttr
-       module procedure LocalReduceRAttr_ 
+       module procedure LocalReduceRAttr_
     end interface
     interface AllReduce
-       module procedure AllReduce_ 
+       module procedure AllReduce_
     end interface
     interface GlobalReduce
-       module procedure GlobalReduce_ 
+       module procedure GlobalReduce_
     end interface
     interface LocalWeightedSumRAttr; module procedure &
        LocalWeightedSumRAttrSP_, &
@@ -87,7 +89,7 @@
 
 ! !REVISION HISTORY:
 !
-!  7May02 - J.W. Larson <larson@mcs.anl.gov> - Created module 
+!  7May02 - J.W. Larson <larson@mcs.anl.gov> - Created module
 !           using routines originally prototyped in m_AttrVect.
 !EOP ___________________________________________________________________
 
@@ -103,12 +105,12 @@
 !
 ! !DESCRIPTION:
 !
-! The subroutine {\tt LocalReduce\_()} takes the input {\tt AttrVect} 
-! argument {\tt inAV}, and reduces each of its integer and real 
-! attributes, returning them in the output {\tt AttrVect} argument 
-! {\tt outAV}  (which is created by this routine).  The type of 
+! The subroutine {\tt LocalReduce\_()} takes the input {\tt AttrVect}
+! argument {\tt inAV}, and reduces each of its integer and real
+! attributes, returning them in the output {\tt AttrVect} argument
+! {\tt outAV}  (which is created by this routine).  The type of
 ! reduction is defined by the input {\tt INTEGER} argument {\tt action}.
-!  Allowed values for action are defined as public data members to this 
+!  Allowed values for action are defined as public data members to this
 !  module, and are summarized below:
 !
 !\begin{table}[htbp]
@@ -128,13 +130,13 @@
 !\end{table}
 !
 ! {\bf N.B.}:  The output {\tt AttrVect} argument {\tt outAV} is
-! allocated memory, and must be destroyed by invoking the routine 
-! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to 
+! allocated memory, and must be destroyed by invoking the routine
+! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to
 ! do so will result in a memory leak.
 !
 ! !INTERFACE:
 
- subroutine LocalReduce_(inAV, outAV, action) 
+ subroutine LocalReduce_(inAV, outAV, action)
 !
 ! !USES:
 !
@@ -274,12 +276,12 @@
 !
 ! !DESCRIPTION:
 !
-! The subroutine {\tt LocalReduceRAttr\_()} takes the input 
+! The subroutine {\tt LocalReduceRAttr\_()} takes the input
 ! {\tt AttrVect} argument {\tt inAV}, and reduces each of its {\tt REAL}
-! attributes, returning them in the output {\tt AttrVect} argument 
-! {\tt outAV} (which is created by this routine).  The type of reduction 
-! is defined by the input {\tt INTEGER} argument {\tt action}.  Allowed 
-! values for action are defined as public data members to this module 
+! attributes, returning them in the output {\tt AttrVect} argument
+! {\tt outAV} (which is created by this routine).  The type of reduction
+! is defined by the input {\tt INTEGER} argument {\tt action}.  Allowed
+! values for action are defined as public data members to this module
 ! (see the declaration section of {\tt m\_AttrVect}, and are summarized below:
 !
 !\begin{table}[htbp]
@@ -299,13 +301,13 @@
 !\end{table}
 !
 ! {\bf N.B.}:  The output {\tt AttrVect} argument {\tt outAV} is
-! allocated memory, and must be destroyed by invoking the routine 
-! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to 
+! allocated memory, and must be destroyed by invoking the routine
+! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to
 ! do so will result in a memory leak.
 !
 ! !INTERFACE:
 !
- subroutine LocalReduceRAttr_(inAV, outAV, action) 
+ subroutine LocalReduceRAttr_(inAV, outAV, action)
 
 !
 ! !USES:
@@ -343,7 +345,7 @@
 !           argument weights(:)
 !  8May02 - J.W. Larson <larson@mcs.anl.gov> - modified interface
 !           to return it to being a pure reduction operation.
-!  9May02 - J.W. Larson <larson@mcs.anl.gov> - renamed from 
+!  9May02 - J.W. Larson <larson@mcs.anl.gov> - renamed from
 !           LocalReduceReals_() to LocalReduceRAttr_() to make
 !           the name more consistent with other module procedure
 !           names in this module.
@@ -356,7 +358,7 @@
 
 
         ! First Step:  create outAV from inAV (but with one element)
- 
+
         ! Superflous list copy circumvents SGI compiler bug
   call List_copy(rList_copy,inAV%rList)
   call AttrVect_init(outAV, rList=List_exportToChar(rList_copy), lsize=1)
@@ -432,13 +434,13 @@
 !
 ! !DESCRIPTION:
 !
-! The subroutine {\tt AllReduce\_()} takes the distributed input 
-! {\tt AttrVect} argument {\tt inAV}, and performs a global reduction 
-! of all its attributes across the MPI communicator associated with 
+! The subroutine {\tt AllReduce\_()} takes the distributed input
+! {\tt AttrVect} argument {\tt inAV}, and performs a global reduction
+! of all its attributes across the MPI communicator associated with
 ! the Fortran90 {\tt INTEGER} handle {\tt comm}, and returns these
-! reduced values to all processes in the {\tt AttrVect} argument 
-! {\tt outAV} (which is created by this routine).  The reduction 
-! operation is specified by the user, and must have one of the values 
+! reduced values to all processes in the {\tt AttrVect} argument
+! {\tt outAV} (which is created by this routine).  The reduction
+! operation is specified by the user, and must have one of the values
 ! listed in the table below:
 !\begin{table}[htbp]
 !\begin{center}
@@ -457,8 +459,8 @@
 !\end{table}
 !
 ! {\bf N.B.}:  The output {\tt AttrVect} argument {\tt outAV} is
-! allocated memory, and must be destroyed by invoking the routine 
-! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to 
+! allocated memory, and must be destroyed by invoking the routine
+! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to
 ! do so will result in a memory leak.
 !
 ! !INTERFACE:
@@ -550,7 +552,7 @@
 
   endif ! if(List_allocated(inAV%rList))...
 
-  if(List_allocated(inAV%iList)) then ! invoke MPI_AllReduce() for the 
+  if(List_allocated(inAV%iList)) then ! invoke MPI_AllReduce() for the
                                       ! integer attribute data.
 
      BufferSize = AttrVect_lsize(inAV) * AttrVect_nIAttr(inAV)
@@ -593,14 +595,14 @@
 !
 ! !DESCRIPTION:
 !
-! The subroutine {\tt GlobalReduce\_()} takes the distributed input 
-! {\tt AttrVect} argument {\tt inAV}, and performs a local reduction of 
+! The subroutine {\tt GlobalReduce\_()} takes the distributed input
+! {\tt AttrVect} argument {\tt inAV}, and performs a local reduction of
 ! all its integer and real attributes, followed by a an {\tt AllReduce}
-! of all the result of the local reduction across the MPI communicator 
-! associated with the Fortran90 {\tt INTEGER} handle {\tt comm}, and 
-! returns these reduced values to all processes in the {\tt AttrVect} 
-! argument {\tt outAV} (which is created by this routine).  The reduction 
-! operation is specified by the user, and must have one of the values 
+! of all the result of the local reduction across the MPI communicator
+! associated with the Fortran90 {\tt INTEGER} handle {\tt comm}, and
+! returns these reduced values to all processes in the {\tt AttrVect}
+! argument {\tt outAV} (which is created by this routine).  The reduction
+! operation is specified by the user, and must have one of the values
 ! listed in the table below:
 !\begin{table}[htbp]
 !\begin{center}
@@ -619,8 +621,8 @@
 !\end{table}
 !
 ! {\bf N.B.}:  The output {\tt AttrVect} argument {\tt outAV} is
-! allocated memory, and must be destroyed by invoking the routine 
-! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to 
+! allocated memory, and must be destroyed by invoking the routine
+! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to
 ! do so will result in a memory leak.
 !
 ! !INTERFACE:
@@ -684,28 +686,28 @@
 !
 ! !DESCRIPTION:
 !
-! The subroutine {\tt LocalWeightedSumRAttr\_()} takes the input 
+! The subroutine {\tt LocalWeightedSumRAttr\_()} takes the input
 ! {\tt AttrVect} argument {\tt inAV}, and performs a weighted sum
-! of  each of its {\tt REAL} attributes, returning them in the output 
+! of  each of its {\tt REAL} attributes, returning them in the output
 ! {\tt AttrVect} argument {\tt outAV} (which is created by this routine
-! and  will contain {\em no} integer attributes).  The weights used 
-! for the summation are provided by the user in the input argument 
-! {\tt Weights(:)}.  If the sum of the weights is desired, this can be 
-! returned as an attribute in {\tt outAV} if the optional {\tt CHARACTER} 
-! argument {\tt WeightSumAttr} is provided (which will be concatenated 
+! and  will contain {\em no} integer attributes).  The weights used
+! for the summation are provided by the user in the input argument
+! {\tt Weights(:)}.  If the sum of the weights is desired, this can be
+! returned as an attribute in {\tt outAV} if the optional {\tt CHARACTER}
+! argument {\tt WeightSumAttr} is provided (which will be concatenated
 ! onto the list of real attributes in {\tt inAV}).
 !
 ! {\bf N.B.}:  The argument {\tt WeightSumAttr} must not be identical
-! to any of the real attribute names in {\tt inAV}.  
+! to any of the real attribute names in {\tt inAV}.
 !
 ! {\bf N.B.}:  The output {\tt AttrVect} argument {\tt outAV} is
-! allocated memory, and must be destroyed by invoking the routine 
-! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to 
+! allocated memory, and must be destroyed by invoking the routine
+! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to
 ! do so will result in a memory leak.
 !
 ! !INTERFACE:
 !
- subroutine LocalWeightedSumRAttrSP_(inAV, outAV, Weights, WeightSumAttr) 
+ subroutine LocalWeightedSumRAttrSP_(inAV, outAV, Weights, WeightSumAttr)
 
 !
 ! !USES:
@@ -818,7 +820,7 @@
 !
 ! !INTERFACE:
 !
- subroutine LocalWeightedSumRAttrDP_(inAV, outAV, Weights, WeightSumAttr) 
+ subroutine LocalWeightedSumRAttrDP_(inAV, outAV, Weights, WeightSumAttr)
 
 !
 ! !USES:
@@ -928,32 +930,32 @@
 !
 ! !DESCRIPTION:
 !
-! The subroutine {\tt GlobalWeightedSumRAttr\_()} takes the 
-! distributed input {\tt AttrVect} argument {\tt inAV}, and performs 
-! a weighted global sum across the MPI communicator associated with 
-! the Fortran90 {\tt INTEGER} handle {\tt comm} of each of its 
+! The subroutine {\tt GlobalWeightedSumRAttr\_()} takes the
+! distributed input {\tt AttrVect} argument {\tt inAV}, and performs
+! a weighted global sum across the MPI communicator associated with
+! the Fortran90 {\tt INTEGER} handle {\tt comm} of each of its
 ! {\tt REAL} attributes, returning the sums to each process in the
 ! {\tt AttrVect} argument {\tt outAV} (which is created by this routine
-! and will contain {\em no} integer attributes).  The weights used for 
-! the summation are provided by the user in the input argument 
-! {\tt weights(:)}.  If the sum of the weights is desired, this can be 
-! returned as an attribute in {\tt outAV} if the optional {\tt CHARACTER} 
-! argument {\tt WeightSumAttr} is provided (which will be concatenated 
-! onto the list of real attributes in {\tt inAV} to form the list of 
+! and will contain {\em no} integer attributes).  The weights used for
+! the summation are provided by the user in the input argument
+! {\tt weights(:)}.  If the sum of the weights is desired, this can be
+! returned as an attribute in {\tt outAV} if the optional {\tt CHARACTER}
+! argument {\tt WeightSumAttr} is provided (which will be concatenated
+! onto the list of real attributes in {\tt inAV} to form the list of
 ! real attributes for {\tt outAV}).
 !
 ! {\bf N.B.}:  The argument {\tt WeightSumAttr} must not be identical
-! to any of the real attribute names in {\tt inAV}.  
+! to any of the real attribute names in {\tt inAV}.
 !
 ! {\bf N.B.}:  The output {\tt AttrVect} argument {\tt outAV} is
-! allocated memory, and must be destroyed by invoking the routine 
-! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to 
+! allocated memory, and must be destroyed by invoking the routine
+! {\tt AttrVect\_clean()} when it is no longer needed.  Failure to
 ! do so will result in a memory leak.
 !
 ! !INTERFACE:
 !
  subroutine GlobalWeightedSumRAttrSP_(inAV, outAV, Weights, comm, &
-                                    WeightSumAttr) 
+                                    WeightSumAttr)
 
 !
 ! !USES:
@@ -1040,7 +1042,7 @@
 ! !INTERFACE:
 !
  subroutine GlobalWeightedSumRAttrDP_(inAV, outAV, Weights, comm, &
-                                    WeightSumAttr) 
+                                    WeightSumAttr)
 
 !
 ! !USES:

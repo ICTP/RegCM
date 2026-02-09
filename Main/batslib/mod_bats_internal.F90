@@ -22,7 +22,7 @@ module mod_bats_internal
   use mod_dynparam
   use mod_regcm_types
 
-  implicit none (type, external)
+  implicit none
 
   public
 
@@ -199,7 +199,7 @@ module mod_bats_internal
   contains
 
   subroutine allocate_mod_bats_internal(cl)
-    implicit none (type, external)
+    implicit none
     type (masked_comm), intent(in) :: cl
     nlandp = cl%linear_npoint_sg(myid+1)
     ilndbeg = 1
@@ -369,7 +369,7 @@ module mod_bats_internal
   end subroutine allocate_mod_bats_internal
 
   subroutine bats_psat(t,e)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: t
     real(rkx), intent(out) :: e
     if ( t < tzero ) then
@@ -380,7 +380,7 @@ module mod_bats_internal
   end subroutine bats_psat
 
   subroutine bats_satur(t,p,e,qs)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: t, p
     real(rkx), intent(out) :: e, qs
     call bats_psat(t,e)
@@ -388,7 +388,7 @@ module mod_bats_internal
   end subroutine bats_satur
 
   subroutine bats_qsdt(t,qs,qsdt)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: t, qs
     real(rkx), intent(out) :: qsdt
     ! Eqn. 83 from BATS manual

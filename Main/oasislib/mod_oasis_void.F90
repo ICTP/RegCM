@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_oasis_void
-  implicit none (type, external)
+  implicit none
 
   private
 

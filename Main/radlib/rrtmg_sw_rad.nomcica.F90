@@ -81,7 +81,7 @@
       use rrtmg_sw_setcoef, only: setcoef_sw
       use rrtmg_sw_spcvrt, only: spcvrt_sw
 
-      implicit none (type, external)
+      implicit none
 
 ! public interfaces/functions/subroutines
       public :: rrtmg_sw_nomcica, inatm_sw_nomcica, earth_sun_nomcica

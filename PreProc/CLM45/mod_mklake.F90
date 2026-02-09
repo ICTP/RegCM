@@ -21,7 +21,7 @@ module mod_mklake
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -32,7 +32,7 @@ module mod_mklake
   contains
 
   subroutine mklake(lakefile,mask,lake)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: lakefile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: lake

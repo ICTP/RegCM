@@ -25,7 +25,7 @@ module mod_runparams
   use mod_timer
   use mod_spline
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -548,7 +548,7 @@ module mod_runparams
   contains
 
   subroutine allocate_mod_runparams
-    implicit none (type, external)
+    implicit none
     if ( idynamic < 3 ) then
       if ( idynamic == 1 ) then
         call getmem(dtau,1,nsplit,'mod_runparams:dtau')
@@ -591,7 +591,7 @@ module mod_runparams
   end function islake
 
   subroutine exponential_nudging(nudge)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(kz), intent(out) :: nudge
     real(rkx), dimension(3) :: ncin
     real(rkx), dimension(3) :: zcin
@@ -609,7 +609,7 @@ module mod_runparams
     end if
     contains
     integer(ik4) function findwhere(val) result(k)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: val
       do k = 2, kz
         if ( sigma(k) > val ) exit

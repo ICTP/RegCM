@@ -29,7 +29,7 @@ module mod_che_drydep
   use mod_che_mppio
   use mod_che_indices
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -359,7 +359,7 @@ module mod_che_drydep
     subroutine drydep_aero(i,mbin,indsp,rhop,ivegcov,throw,roarow, &
                            ph,temp2,sutemp,srad,rh10,      &
                            wind10,zeff,beffdiam,pdepv,ddepv,ustar,ra)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: i, mbin
       integer(ik4), intent(in), dimension(mbin) :: indsp
       integer(ik4), intent(in), dimension(jci1:jci2) :: ivegcov
@@ -787,7 +787,7 @@ module mod_che_drydep
     subroutine drydep_gas(i,lmonth,lday,ivegcov,rh10,srad,tsurf, &
                           prec,temp10,xlai,ustar,resa)
       use mod_che_indices
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: i
       integer(ik4), intent(in) :: lmonth, lday
       integer(ik4), intent(in), dimension(jci1:jci2) :: ivegcov
@@ -924,7 +924,7 @@ module mod_che_drydep
     end subroutine drydep_gas
 
     subroutine aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
-      implicit none (type, external)
+      implicit none
       integer(ik4), dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
       real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: temp2
       real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: wind10
@@ -1101,7 +1101,7 @@ module mod_che_drydep
 
     subroutine stomtresis(lai_f,laimin,laimax,ivegcov,igas, &
                           ustar,prec,sd,srad,ts,t2,rh,coszen,rc,rb)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: igas
       integer(ik4), intent(in), dimension(jci1:jci2) :: ivegcov
       real(rkx), dimension(jci1:jci2), intent(in) :: coszen, srad, &

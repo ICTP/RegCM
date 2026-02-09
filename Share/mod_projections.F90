@@ -24,7 +24,7 @@ module mod_projections
   use, intrinsic :: iso_fortran_env
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -93,7 +93,7 @@ module mod_projections
   abstract interface
     pure subroutine transform(pj,a,b,c,d)
       import
-      implicit none (type, external)
+      implicit none
       class(regcm_projection), intent(in) :: pj
 #ifdef SINGLE_PRECISION_REAL
 #ifdef F2008
@@ -118,7 +118,7 @@ module mod_projections
   abstract interface
     subroutine rotate3(pj,u,v)
       import
-      implicit none (type, external)
+      implicit none
       class(regcm_projection), intent(in) :: pj
 #ifdef SINGLE_PRECISION_REAL
 #ifdef F2008
@@ -142,7 +142,7 @@ module mod_projections
   abstract interface
     subroutine rotate2(pj,u,v)
       import
-      implicit none (type, external)
+      implicit none
       class(regcm_projection), intent(in) :: pj
 #ifdef SINGLE_PRECISION_REAL
 #ifdef F2008
@@ -166,7 +166,7 @@ module mod_projections
   abstract interface
     pure subroutine map_factor(pj,a,b,c)
       import
-      implicit none (type, external)
+      implicit none
       class(regcm_projection), intent(in) :: pj
 #ifdef SINGLE_PRECISION_REAL
 #ifdef F2008
@@ -193,7 +193,7 @@ module mod_projections
   contains
 
   subroutine rl00(pj,lat0,lon0)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(out) :: lat0, lon0
     lat0 = pj%p%rlat0
@@ -201,13 +201,13 @@ module mod_projections
   end subroutine rl00
 
   real(rk8) function conefac(pj)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     conefac = pj%p%conefac
   end function conefac
 
   subroutine wind_rotate(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: u, v
     select case(pj%p%code)
@@ -225,7 +225,7 @@ module mod_projections
   end subroutine wind_rotate
 
   subroutine wind_antirotate(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: u, v
     select case(pj%p%code)
@@ -243,7 +243,7 @@ module mod_projections
   end subroutine wind_antirotate
 
   subroutine wind2_rotate(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), dimension(:,:), pointer, contiguous, intent(inout) :: u, v
     select case(pj%p%code)
@@ -261,7 +261,7 @@ module mod_projections
   end subroutine wind2_rotate
 
   subroutine wind2_antirotate(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), dimension(:,:), pointer, contiguous, intent(inout) :: u, v
     select case(pj%p%code)
@@ -279,7 +279,7 @@ module mod_projections
   end subroutine wind2_antirotate
 
   subroutine rotation_angle(pj,lon,lat,p)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rk8), dimension(:), intent(in) :: lon
     real(rk8), dimension(:), intent(in) :: lat
@@ -317,13 +317,13 @@ module mod_projections
   end subroutine rotation_angle
 
   subroutine destruct(pj)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(inout) :: pj
     if ( associated(pj%p) ) deallocate(pj%p)
   end subroutine destruct
 
   subroutine initialize(pj,pjpara)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(out) :: pj
     type(anyprojparams), intent(in) :: pjpara
     real(rk8) :: ci, cj
@@ -401,7 +401,7 @@ module mod_projections
   end subroutine initialize
 
   subroutine setup_ll(pj,clon,clat,ci,cj,ds)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(inout) :: pj
     real(rk8), intent(in) :: ci, cj, clat, clon, ds
     pj%p%dlon = raddeg * ds / earthrad
@@ -415,7 +415,7 @@ module mod_projections
   end subroutine setup_ll
 
   pure subroutine ijll_ll(pj,i,j,lat,lon)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: i, j
     real(rkx), intent(out) :: lat, lon
@@ -428,7 +428,7 @@ module mod_projections
   end subroutine ijll_ll
 
   pure subroutine llij_ll(pj,lat,lon,i,j)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat, lon
     real(rkx), intent(out) :: i, j
@@ -437,7 +437,7 @@ module mod_projections
   end subroutine llij_ll
 
   subroutine setup_rll(pj,clon,clat,ci,cj,ds,plon,plat,luvrot)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(inout) :: pj
     real(rk8), intent(in) :: ci, cj, clat, clon, plon, plat, ds
     logical, intent(in) :: luvrot
@@ -547,7 +547,7 @@ module mod_projections
   end subroutine ijll_rl
 
   pure subroutine llij_rl(pj,lat,lon,i,j)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat, lon
     real(rkx), intent(out) :: i, j
@@ -581,7 +581,7 @@ module mod_projections
   end subroutine llij_rl
 
   subroutine setup_lcc(pj,clon,clat,ci,cj,ds,slon,trlat1,trlat2,luvrot)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(inout) :: pj
     real(rk8), intent(in) :: ci, cj, slon, clat, clon, ds, &
                               trlat1, trlat2
@@ -651,7 +651,7 @@ module mod_projections
   end subroutine setup_lcc
 
   pure subroutine ijll_lc(pj,i,j,lat,lon)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: i, j
     real(rkx), intent(out) :: lat, lon
@@ -684,7 +684,7 @@ module mod_projections
   end subroutine ijll_lc
 
   pure subroutine llij_lc(pj,lat,lon,i,j)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat, lon
     real(rkx), intent(out) :: i, j
@@ -701,7 +701,7 @@ module mod_projections
   end subroutine llij_lc
 
   subroutine setup_plr(pj,clon,clat,ci,cj,ds,slon,luvrot)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(inout) :: pj
     real(rk8), intent(in) :: clat, clon, cj, ci, ds, slon
     logical, intent(in) :: luvrot
@@ -744,7 +744,7 @@ module mod_projections
   end subroutine setup_plr
 
   pure subroutine llij_ps(pj,lat,lon,i,j)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat, lon
     real(rkx), intent(out) :: i, j
@@ -762,7 +762,7 @@ module mod_projections
   end subroutine llij_ps
 
   pure subroutine ijll_ps(pj,i,j,lat,lon)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: i, j
     real(rkx), intent(out) :: lat, lon
@@ -789,7 +789,7 @@ module mod_projections
   end subroutine ijll_ps
 
   subroutine setup_mrc(pj,clon,clat,ci,cj,ds)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(inout) :: pj
     real(rk8), intent(in) :: clat, clon, cj, ci, ds
     real(rk8) :: clain
@@ -806,7 +806,7 @@ module mod_projections
   end subroutine setup_mrc
 
   pure subroutine llij_mc(pj,lat,lon,i,j)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat, lon
     real(rkx), intent(out) :: i, j
@@ -821,7 +821,7 @@ module mod_projections
   end subroutine llij_mc
 
   pure subroutine ijll_mc(pj,i,j,lat,lon)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: i, j
     real(rkx), intent(out) :: lat, lon
@@ -834,7 +834,7 @@ module mod_projections
   end subroutine ijll_mc
 
   subroutine setup_rmc(pj,clon,clat,ci,cj,ds,plon,plat,luvrot)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(inout) :: pj
     real(rk8), intent(in) :: clat, clon, cj, ci, ds, plon, plat
     logical, intent(in) :: luvrot
@@ -887,7 +887,7 @@ module mod_projections
   end subroutine setup_rmc
 
   pure subroutine llij_rc(pj,lat,lon,i,j)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat, lon
     real(rkx), intent(out) :: i, j
@@ -919,7 +919,7 @@ module mod_projections
   end subroutine llij_rc
 
   pure subroutine ijll_rc(pj,i,j,lat,lon)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: i, j
     real(rkx), intent(out) :: lat, lon
@@ -950,7 +950,7 @@ module mod_projections
   end subroutine ijll_rc
 
   real(rkx) function rounder(xval,ltop)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: xval
     logical, intent(in) :: ltop
     integer(ik4) :: tmpval
@@ -965,7 +965,7 @@ module mod_projections
   ! Arguments in radiants
 
   subroutine get_equator(plat,plon,elat,elon)
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: plat, plon
     real(rk8), intent(out) :: elat, elon
 
@@ -986,7 +986,7 @@ module mod_projections
   end subroutine get_equator
 
   pure elemental real(rkx) function fac_rl(pj,xlat,xlon) result(xmap)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: xlat, xlon
     real(rkx) :: ri, rj
@@ -995,7 +995,7 @@ module mod_projections
   end function fac_rl
 
   pure elemental real(rkx) function fac_lc(pj,lat) result(xmap)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat
     real(rk8) :: colat
@@ -1010,21 +1010,21 @@ module mod_projections
   end function fac_lc
 
   pure elemental real(rkx) function fac_ps(pj,lat) result(xmap)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat
     xmap = real(pj%p%scale_top/(1.0_rk8 + pj%p%hemi * sin(lat*degrad)),rkx)
   end function fac_ps
 
   pure elemental real(rkx) function fac_mc(pj,lat) result(xmap)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat
     xmap = real(1.0_rk8/cos(lat*degrad),rkx)
   end function fac_mc
 
   pure elemental real(rkx) function fac_rc(pj,xlat,xlon) result(xmap)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: xlat, xlon
     real(rkx) :: ri, rj
@@ -1035,7 +1035,7 @@ module mod_projections
   end function fac_rc
 
   pure elemental real(rk8) function uvrot_lc(pj,lon) result(alpha)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lon
     real(rk8) :: deltalon
@@ -1046,7 +1046,7 @@ module mod_projections
   end function uvrot_lc
 
   pure elemental real(rk8) function uvrot_ps(pj,lon) result(alpha)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lon
     real(rk8) :: deltalon
@@ -1057,7 +1057,7 @@ module mod_projections
   end function uvrot_ps
 
   pure subroutine uvrot_rc(pj,lat,lon,cosdel,sindel)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lon, lat
     real(rk8), intent(out) :: cosdel, sindel
@@ -1074,7 +1074,7 @@ module mod_projections
   end subroutine uvrot_rc
 
   subroutine rotate2_lc(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, i, j
@@ -1103,7 +1103,7 @@ module mod_projections
   end subroutine rotate2_lc
 
   subroutine backrotate2_lc(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, i, j
@@ -1132,7 +1132,7 @@ module mod_projections
   end subroutine backrotate2_lc
 
   subroutine rotate3_lc(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
@@ -1167,7 +1167,7 @@ module mod_projections
   end subroutine rotate3_lc
 
   subroutine backrotate3_lc(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
@@ -1202,7 +1202,7 @@ module mod_projections
   end subroutine backrotate3_lc
 
   subroutine rotate2_ps(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, i, j
@@ -1231,7 +1231,7 @@ module mod_projections
   end subroutine rotate2_ps
 
   subroutine backrotate2_ps(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, i, j
@@ -1260,7 +1260,7 @@ module mod_projections
   end subroutine backrotate2_ps
 
   subroutine rotate3_ps(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
@@ -1295,7 +1295,7 @@ module mod_projections
   end subroutine rotate3_ps
 
   subroutine backrotate3_ps(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
@@ -1330,21 +1330,21 @@ module mod_projections
   end subroutine backrotate3_ps
 
   subroutine rotate2_mc(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     return
   end subroutine rotate2_mc
 
   subroutine rotate3_mc(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     return
   end subroutine rotate3_mc
 
   subroutine rotate2_rc(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, i, j
@@ -1363,7 +1363,7 @@ module mod_projections
   end subroutine rotate2_rc
 
   subroutine backrotate2_rc(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, i, j
@@ -1382,7 +1382,7 @@ module mod_projections
   end subroutine backrotate2_rc
 
   subroutine rotate3_rc(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
@@ -1405,7 +1405,7 @@ module mod_projections
   end subroutine rotate3_rc
 
   subroutine backrotate3_rc(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
@@ -1428,7 +1428,7 @@ module mod_projections
   end subroutine backrotate3_rc
 
   subroutine rotate2_rl(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, i, j
@@ -1448,7 +1448,7 @@ module mod_projections
   end subroutine rotate2_rl
 
   subroutine backrotate2_rl(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, i, j
@@ -1468,7 +1468,7 @@ module mod_projections
   end subroutine backrotate2_rl
 
   subroutine rotate3_rl(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
@@ -1492,7 +1492,7 @@ module mod_projections
   end subroutine rotate3_rl
 
   subroutine backrotate3_rl(pj,u,v)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     integer(ik4) :: i1, i2, j1, j2, k1, k2, i, j, k
@@ -1516,7 +1516,7 @@ module mod_projections
   end subroutine backrotate3_rl
 
   pure subroutine mapfac_rl(pj,xlat,xlon,xmap)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
@@ -1524,7 +1524,7 @@ module mod_projections
   end subroutine mapfac_rl
 
   pure subroutine mapfac_lc(pj,xlat,xlon,xmap)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
@@ -1532,7 +1532,7 @@ module mod_projections
   end subroutine mapfac_lc
 
   pure subroutine mapfac_ps(pj,xlat,xlon,xmap)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
@@ -1540,7 +1540,7 @@ module mod_projections
   end subroutine mapfac_ps
 
   pure subroutine mapfac_mc(pj,xlat,xlon,xmap)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
@@ -1548,7 +1548,7 @@ module mod_projections
   end subroutine mapfac_mc
 
   pure subroutine mapfac_ll(pj,xlat,xlon,xmap)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
@@ -1556,7 +1556,7 @@ module mod_projections
   end subroutine mapfac_ll
 
   pure subroutine mapfac_rc(pj,xlat,xlon,xmap)
-    implicit none (type, external)
+    implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap

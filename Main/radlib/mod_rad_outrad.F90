@@ -25,7 +25,7 @@ module mod_rad_outrad
   use mod_outvars
   use mod_regcm_types
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -36,7 +36,7 @@ module mod_rad_outrad
   contains
 
   subroutine allocate_mod_rad_outrad
-    implicit none (type, external)
+    implicit none
     nj = jci2-jci1+1
     npr = nj*(ici2-ici1+1)
   end subroutine allocate_mod_rad_outrad
@@ -47,7 +47,7 @@ module mod_rad_outrad
                     aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d, &
                     deltaz,o3,outtaucl,outtauci,asaeradfo,asaeradfos,    &
                     asaerlwfo,asaerlwfos,r2m,m2r)
-    implicit none (type, external)
+    implicit none
     !
     ! copy radiation output quantities to model buffer
     !
@@ -260,7 +260,7 @@ module mod_rad_outrad
   end subroutine radout
 
   subroutine copy2d(a,b)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     integer(ik4) :: i, j, n
@@ -273,7 +273,7 @@ module mod_rad_outrad
   end subroutine copy2d
 
   subroutine copy2d_integrate_from3(a,b,l,ki,kl)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     integer(ik4), intent(in) :: l, kl, ki
@@ -295,14 +295,14 @@ module mod_rad_outrad
   end subroutine copy2d_integrate_from3
 
   subroutine copy3d(a,b)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     call copy3d1(a,b,1,kz)
   end subroutine copy3d
 
   subroutine copy3d1(a,b,k1,k2)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4), intent(in) :: k1, k2
@@ -323,7 +323,7 @@ module mod_rad_outrad
   end subroutine copy3d1
 
   subroutine copy4d(a,b,l,ki,kl)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4), intent(in) :: l, ki, kl
@@ -346,7 +346,7 @@ module mod_rad_outrad
   end subroutine copy4d
 
   subroutine copy4d1(a,b,nl)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: b
     integer(ik4), intent(in) :: nl
@@ -367,7 +367,7 @@ module mod_rad_outrad
   end subroutine copy4d1
 
   subroutine copy4d2(a,b)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4) :: i, j, k, n
@@ -387,7 +387,7 @@ module mod_rad_outrad
   end subroutine copy4d2
 
   subroutine copy4d_mult(a,b,l,c)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: c
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
@@ -409,7 +409,7 @@ module mod_rad_outrad
   end subroutine copy4d_mult
 
   subroutine copy4d_div(a,b,l,c,ki,kl)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: c
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
@@ -433,7 +433,7 @@ module mod_rad_outrad
   end subroutine copy4d_div
 
   subroutine copy4d_div2(a,b,l,c,ki,kl)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: c
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
@@ -465,7 +465,7 @@ module mod_rad_outrad
   end subroutine copy4d_div2
 
   subroutine copy2d_add(a,b)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     integer(ik4) :: i, j, n
@@ -478,7 +478,7 @@ module mod_rad_outrad
   end subroutine copy2d_add
 
   subroutine copy3d_add(a,b)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4) :: i, j, k, n
@@ -498,7 +498,7 @@ module mod_rad_outrad
   end subroutine copy3d_add
 
   subroutine copy4d_add(a,b,l)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4), intent(in) :: l

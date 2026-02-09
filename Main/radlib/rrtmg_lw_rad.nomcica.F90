@@ -83,7 +83,7 @@
       use rrtmg_lw_setcoef, only: setcoef
       use rrtmg_lw_taumol, only: taumol
 
-      implicit none (type, external)
+      implicit none
 
 ! public interfaces/functions/subroutines
       public :: rrtmg_lw_nomcica, inatm_nomcica

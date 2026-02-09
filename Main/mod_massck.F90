@@ -28,7 +28,7 @@ module mod_massck
   use mod_mppparam
   use mod_atm_interface
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -55,7 +55,7 @@ module mod_massck
   contains
 
   subroutine massck
-    implicit none (type, external)
+    implicit none
     real(wrkp) :: tttmp
     real(wrkp) :: tdrym, tdadv, tqmass, tqadv
     real(wrkp) :: tcrai, tncrai, tqeva

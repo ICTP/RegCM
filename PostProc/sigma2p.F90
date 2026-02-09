@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  implicit none (type, external)
+  implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 
@@ -38,7 +38,7 @@ program sigma2p
   use mod_nchelper
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   character(256) :: prgname, ncsfile, ncpfile
   character(128) :: attname, dimname, varname, psunit
@@ -950,7 +950,7 @@ program sigma2p
   contains
 
   subroutine top2btm(x,nlon1,nlat1,nlev1)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nlat1, nlev1, nlon1
     real(rk4), intent(inout), dimension(nlon1,nlat1,nlev1) :: x
 
@@ -971,7 +971,7 @@ program sigma2p
   end subroutine top2btm
 
   subroutine get_np(iu)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: iu
     integer(ik4) :: nz ! Unused in sigma2p
     namelist /pp_param/ nz, np
@@ -985,7 +985,7 @@ program sigma2p
   end subroutine get_np
 
   subroutine get_plevs(iu)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: iu
     namelist /pressure/ plevs
     rewind(iu)
@@ -999,7 +999,7 @@ program sigma2p
 
 #ifdef NETCDF4_HDF5
   subroutine get_ncfilter(iu)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: iu
     namelist /ncfilters/ ncfilter, ncfilter_nparams, ncfilter_params
     rewind(iu)
@@ -1008,7 +1008,7 @@ program sigma2p
 #endif
 
   subroutine paicompute(ps,z,t,q,pai,fm,dzita,nx,ny,nz)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nx, ny, nz
     real(rkx), intent(in) :: dzita
     real(rk4), dimension(nx,ny), intent(in) :: ps

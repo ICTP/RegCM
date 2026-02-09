@@ -21,7 +21,7 @@ module mod_cloud_xuran
   use mod_dynparam
   use mod_runparams
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -33,7 +33,7 @@ module mod_cloud_xuran
   ! using the semi-empirical formula of Xu and Randall (1996, JAS)
   !
   subroutine xuran_cldfrac(p,qc,qs,rh,qcrit,fcc)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p, rh
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qc, qs
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: qcrit

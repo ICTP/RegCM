@@ -19,7 +19,7 @@ module mod_canesm_helper
   use mod_realkinds
   use mod_dynparam
   use mod_date
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -38,7 +38,7 @@ module mod_canesm_helper
   contains
 
   subroutine find_canesm_sst(fname,idate)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     type(rcm_time_and_date), intent(in) :: idate
     if ( .not. date_in_scenario(idate,5,.true.) ) then
@@ -53,7 +53,7 @@ module mod_canesm_helper
   end subroutine find_canesm_sst
 
   subroutine assemble_path(fname,scen,var,d1,d2)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     character(len=*), intent(in) :: scen
     character(len=*), intent(in) :: var
@@ -71,7 +71,7 @@ module mod_canesm_helper
   end subroutine assemble_path
 
   subroutine find_canesm_dim(dim_filename)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
@@ -79,14 +79,14 @@ module mod_canesm_helper
   end subroutine find_canesm_dim
 
   subroutine find_canesm_topo(topo_filename)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'CanESM2'//pthsep//'fixed'// &
               pthsep//'orog_fx_CanESM2_historical_r0i0p0.nc'
   end subroutine find_canesm_topo
 
   subroutine find_canesm_file(canesm_filename,var,idate)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: canesm_filename
     character(len=*), intent(in) :: var
     type(rcm_time_and_date), intent(in) :: idate

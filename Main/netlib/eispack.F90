@@ -110,7 +110,7 @@ module eispack
 
   use mod_realkinds
 
-  implicit none (type, external)
+  implicit none
 
 contains
 
@@ -171,7 +171,7 @@ function pythag ( a, b )
 !
 !    Output, real ( kind = rkx ) PYTHAG, the length of the hypotenuse.
 !
-  implicit none (type, external)
+  implicit none
 
   real    ( kind = rkx ) :: a
   real    ( kind = rkx ) :: b
@@ -280,7 +280,7 @@ subroutine bakvec ( n, t, e, m, z, ierr )
 !    to the original matrix, and the eigenvectors
 !    cannot be found by this program.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -393,7 +393,7 @@ subroutine balanc ( n, a, low, igh, xscale )
 !    Output, real ( kind = rkx ) SCALE(N), contains information determining the
 !    permutations and scaling factors used.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -636,7 +636,7 @@ subroutine balbak ( n, low, igh, xscale, m, z )
 !    Input/output, real ( kind = rkx ) Z(N,M), contains the real and imaginary parts
 !    of the eigenvectors, which, on return, have been back-transformed.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -763,7 +763,7 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 !    the reduction if MATZ has been set to TRUE.  Otherwise, Z is not
 !    referenced.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: mb
   integer ( kind = 4 ) :: n
@@ -1142,7 +1142,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !    -R, if the eigenvector corresponding to the R-th eigenvalue fails to
 !    converge, or if the R-th system of linear equations is nearly singular.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: mbw
   integer ( kind = 4 ) :: n
@@ -1584,7 +1584,7 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !    0, for normal return,
 !    3*N+1, if M exceeds MM.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: mm
   integer ( kind = 4 ) :: n
@@ -1998,7 +1998,7 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !    0, normal return.
 !    N, if the eigenvalue has not been determined after 30 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: mb
   integer ( kind = 4 ) :: n
@@ -2348,7 +2348,7 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
 !    parts, respectively, of the eigenvectors to be back transformed in
 !    their first M columns.  On output, the transformed eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -2478,7 +2478,7 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !    Output, real ( kind = rkx ) SCALE(N), information determining the
 !    permutations and scaling factors used.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -2712,7 +2712,7 @@ subroutine cdiv ( ar, ai, br, bi, cr, ci )
 !
 !    Output, real ( kind = rkx ) CR, CI, the real and imaginary parts of the result.
 !
-  implicit none (type, external)
+  implicit none
 
   real    ( kind = rkx ) :: ai
   real    ( kind = rkx ) :: ais
@@ -2803,7 +2803,7 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 !    Output, integer ( kind = 4 ) IERR, an error completion code described in the
 !    documentation for COMQR and COMQR2.  The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -2913,7 +2913,7 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 !    Output, integer ( kind = 4 ) IERR, an error completion code described in the
 !    documentation for TQLRAT and TQL2.  The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -3033,7 +3033,7 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !    -K, if the iteration corresponding to the K-th value fails,
 !    -(N+K), if both error situations occur.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: mm
   integer ( kind = 4 ) :: n
@@ -3371,7 +3371,7 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
 !    parts of the eigenvectors to be back transformed.  On output, the real
 !    and imaginary parts of the transformed eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: m
@@ -3493,7 +3493,7 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
 !    Output, integer ( kind = 4 ) INT(IGH), information on the rows and columns
 !    interchanged in the reduction.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: n
@@ -3646,7 +3646,7 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -3948,7 +3948,7 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -4434,7 +4434,7 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !       eigenvalue is being sought.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -4762,7 +4762,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: n
@@ -5315,7 +5315,7 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 !    parts of the eigenvectors to be back transformed.  On output, the real
 !    and imaginary parts of the transformed eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: m
@@ -5440,7 +5440,7 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 !    Output, real ( kind = rkx ) ORTR(IGH), ORTI(IGH), further information about the
 !    transformations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: n
@@ -5610,7 +5610,7 @@ subroutine csroot ( xr, xi, yr, yi )
 !
 !    Output, real ( kind = rkx ) YR, YI, the real and imaginary parts of the square root.
 !
-  implicit none (type, external)
+  implicit none
 
   real    ( kind = rkx ) :: s
   real    ( kind = rkx ) :: ti
@@ -5700,7 +5700,7 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
 !    of the eigenvectors to be back transformed.  On output, the real and
 !    imaginary parts of the transformed eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: m
@@ -5820,7 +5820,7 @@ subroutine elmhes ( n, low, igh, a, ind )
 !    Output, integer ( kind = 4 ) IND(N), contains information on the rows and columns
 !    interchanged in the reduction.  Only elements LOW through IGH are used.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: n
@@ -5957,7 +5957,7 @@ subroutine eltran ( n, low, igh, a, ind, z )
 !    Output, real ( kind = rkx ) Z(N,N), the transformation matrix produced in the
 !    reduction by ELMHES.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: n
@@ -6079,7 +6079,7 @@ subroutine figi ( n, t, d, e, e2, ierr )
 !      this case, the eigenvectors of the symmetric matrix are not simply
 !      related to those of T and should not be sought.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -6194,7 +6194,7 @@ subroutine figi2 ( n, t, d, e, z, ierr )
 !    N+I, if T(I,1) * T(I-1,3) is negative,
 !    2*N+I, if T(I,1) * T(I-1,3) is zero with one factor non-zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -6323,7 +6323,7 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 !    J, the limit of 30*N iterations was reached while searching for
 !      the J-th eigenvalue.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -6706,7 +6706,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -7369,7 +7369,7 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
 !    eigenvectors to be back transformed.  On output, ZR and ZI contain
 !    the real and imaginary parts of the transformed eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -7494,7 +7494,7 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
 !    eigenvectors to be back transformed.  On output, ZR and ZI contain
 !    the real and imaginary parts of the transformed eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -7625,7 +7625,7 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !    Output, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -7841,7 +7841,7 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !    Output, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -8053,7 +8053,7 @@ subroutine imtql1 ( n, d, e, ierr )
 !    0, normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -8256,7 +8256,7 @@ subroutine imtql2 ( n, d, e, z, ierr )
 !    0, for normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -8482,7 +8482,7 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 !    0, for normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -8715,7 +8715,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !    -K, if the iteration corresponding to the K-th value fails,
 !    -(N+K), if both error situations occur.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -9274,7 +9274,7 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !    0, for normal return,
 !    K, if the K-th singular value has not been determined after 30 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: ip
   integer ( kind = 4 ) :: n
@@ -9659,7 +9659,7 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
 !    the eigenvectors to be back transformed in the first M columns.  On
 !    output, the real and imaginary parts of the transformed eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: m
@@ -9751,7 +9751,7 @@ subroutine orthes ( n, low, igh, a, ort )
 !    Output, real ( kind = rkx ) ORT(IGH), contains further information about the
 !    transformations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: n
@@ -9903,7 +9903,7 @@ subroutine ortran ( n, low, igh, a, ort, z )
 !    Output, real ( kind = rkx ) Z(N,N), contains the transformation matrix produced in the
 !    reduction by ORTHES.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: igh
   integer ( kind = 4 ) :: n
@@ -10023,7 +10023,7 @@ subroutine qzhes ( n, a, b, matz, z )
 !    Output, real ( kind = rkx ) Z(N,N), contains the product of the right hand
 !    transformations if MATZ is TRUE.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -10281,7 +10281,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -10835,7 +10835,7 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 !    and QZIT, if performed, or else the identity matrix.  On output,
 !    the product of the right hand transformations for all three steps.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -11257,7 +11257,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !    Each eigenvector is normalized so that the modulus of its largest
 !    component is 1.0_rkx .
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -11609,7 +11609,7 @@ subroutine r8_swap ( x, y )
 !    Input/output, real ( kind = rkx ) X, Y.  On output, the values of X and
 !    Y have been interchanged.
 !
-  implicit none (type, external)
+  implicit none
 
   real    ( kind = rkx ) :: x
   real    ( kind = rkx ) :: y
@@ -11654,7 +11654,7 @@ subroutine r8mat_print ( m, n, a, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none (type, external)
+  implicit none
 
   integer   ( kind = 4 ) :: m
   integer   ( kind = 4 ) :: n
@@ -11701,7 +11701,7 @@ subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none (type, external)
+  implicit none
 
   integer   ( kind = 4 ), parameter :: incx = 5
   integer   ( kind = 4 ) :: m
@@ -11797,7 +11797,7 @@ subroutine r8vec_print ( n, a, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none (type, external)
+  implicit none
 
   integer   ( kind = 4 ) :: n
 
@@ -11842,7 +11842,7 @@ subroutine r8vec2_print ( n, a1, a2, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none (type, external)
+  implicit none
 
   integer   ( kind = 4 ) :: n
 
@@ -11977,7 +11977,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !    5*N+K, if successive iterates to the K-th eigenvalue are not monotone
 !      increasing, where K refers to the last such occurrence.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -12255,7 +12255,7 @@ subroutine rebak ( n, b, dl, m, z )
 !    transformed in its first M columns.  On output, the transformed
 !    eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -12334,7 +12334,7 @@ subroutine rebakb ( n, b, dl, m, z )
 !    transformed in its first M columns.  On output, the transformed
 !    eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -12427,7 +12427,7 @@ subroutine reduc ( n, a, b, dl, ierr )
 !    0, for normal return,
 !    7*N+1, if B is not positive definite.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -12593,7 +12593,7 @@ subroutine reduc2 ( n, a, b, dl, ierr )
 !    0, for normal return,
 !    7*N+1, if B is not positive definite.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -12759,7 +12759,7 @@ subroutine rg ( n, a, wr, wi, matz, z, ierr )
 !    Output, integer ( kind = 4 ) IERR, an error completion code described in the
 !    documentation for HQR and HQR2.  The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -12878,7 +12878,7 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 !    described in the documentation for QZIT.  The normal completion
 !    code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -12979,7 +12979,7 @@ subroutine rs ( n, a, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -13078,7 +13078,7 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: mb
   integer ( kind = 4 ) :: n
@@ -13190,7 +13190,7 @@ subroutine rsg ( n, a, b, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -13308,7 +13308,7 @@ subroutine rsgab ( n, a, b, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -13415,7 +13415,7 @@ subroutine rsgba ( n, a, b, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -13518,7 +13518,7 @@ subroutine rsm ( n, a, w, m, z, ierr )
 !    completion code described in the documentation for TQLRAT, IMTQLV and
 !    TINVIT.  The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -13618,7 +13618,7 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
   integer ( kind = 4 ) :: nv
@@ -13750,7 +13750,7 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 !    Input, logical TYPE, set to .true. if the smallest eigenvalues
 !    are to be found, or .false. if the largest ones are sought.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -13881,7 +13881,7 @@ subroutine rst ( n, w, e, matz, z, ierr )
 !    completion code described in the documentation for IMTQL1 and IMTQL2.
 !    The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -13990,7 +13990,7 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !    completion code described in the documentation for IMTQL1 and IMTQL2.
 !    The normal completion code is zero.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -14132,7 +14132,7 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !    0, for normal return,
 !    K, if the K-th singular value has not been determined after 30 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -14530,7 +14530,7 @@ subroutine timestamp ( )
 !
 !    None
 !
-  implicit none (type, external)
+  implicit none
 
   character ( len = 8 )  :: ampm
   integer   ( kind = 4 ) :: d
@@ -14660,7 +14660,7 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !    -R, if the eigenvector corresponding to the R-th eigenvalue fails to
 !      converge in 5 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -15011,7 +15011,7 @@ subroutine tql1 ( n, d, e, ierr )
 !    J, if the J-th eigenvalue has not been determined after
 !    30 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -15227,7 +15227,7 @@ subroutine tql2 ( n, d, e, z, ierr )
 !    J, if the J-th eigenvalue has not been determined after
 !    30 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -15460,7 +15460,7 @@ subroutine tqlrat ( n, d, e2, ierr )
 !    0, for no error,
 !    J, if the J-th eigenvalue could not be determined after 30 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -15653,7 +15653,7 @@ subroutine trbak1 ( n, a, e, m, z )
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -15757,7 +15757,7 @@ subroutine trbak3 ( n, nv, a, m, z )
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: nv
@@ -15880,7 +15880,7 @@ subroutine tred1 ( n, a, d, e, e2 )
 !    Output, real ( kind = rkx ) E2(N), contains the squares of the corresponding
 !    elements of E.  E2 may coincide with E if the squares are not needed.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -16069,7 +16069,7 @@ subroutine tred2 ( n, a, d, e, z )
 !    Output, real ( kind = rkx ) Z(N,N), the orthogonal transformation matrix produced
 !    in the reduction.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
 
@@ -16288,7 +16288,7 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
 !    Output, real ( kind = rkx ) E2(N),  the squares of the corresponding elements of E.
 !    E2 may coincide with E if the squares are not needed.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: n
   integer ( kind = 4 ) :: nv
@@ -16485,7 +16485,7 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !    3*N+2, if multiple eigenvalues at index M22 make unique selection
 !      impossible.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: m
   integer ( kind = 4 ) :: n
@@ -16954,7 +16954,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !    4*N+R, if the eigenvector corresponding to the R-th
 !      eigenvalue fails to converge in 5 iterations.
 !
-  implicit none (type, external)
+  implicit none
 
   integer ( kind = 4 ) :: mm
   integer ( kind = 4 ) :: n

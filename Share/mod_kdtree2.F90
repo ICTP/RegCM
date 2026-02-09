@@ -104,7 +104,7 @@ module mod_kdtree2
   use mod_message
   use mod_kdtree2_priority
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -246,7 +246,7 @@ module mod_kdtree2
   contains
 
   function kdtree2_create(input_data,indim,balanced,sort,rearrange) result (mr)
-    implicit none (type, external)
+    implicit none
     !
     ! create the actual tree structure, given an input array of data.
     !
@@ -339,7 +339,7 @@ module mod_kdtree2
   end function kdtree2_create
 
   subroutine build_tree(tp,lbal)
-    implicit none (type, external)
+    implicit none
     type (kdtree2), pointer, intent(inout) :: tp
     logical, intent(in) :: lbal
     ! ..
@@ -354,7 +354,7 @@ module mod_kdtree2
   end subroutine build_tree
 
   recursive function build_tree_for_range(tp,l,u,parent,lbal) result (res)
-    implicit none (type, external)
+    implicit none
     ! .. Function Return Cut_value ..
     type (tree_node), pointer :: res
     ! ..
@@ -484,7 +484,7 @@ module mod_kdtree2
     contains
 
     integer function select_on_coordinate_value(v,ind,c,alpha,li,ui) result(res)
-      implicit none (type, external)
+      implicit none
       ! Move elts of ind around between l and u, so that all points
       ! <= than alpha (in c cooordinate) are first, and then
       ! all points > alpha are second.
@@ -548,7 +548,7 @@ module mod_kdtree2
     end function select_on_coordinate_value
 
     subroutine select_on_coordinate(v,ind,c,k,li,ui)
-      implicit none (type, external)
+      implicit none
       ! Move elts of ind around between l and u, so that the kth
       ! element
       ! is >= those below, <= those above, in the coordinate c.
@@ -584,7 +584,7 @@ module mod_kdtree2
   end function build_tree_for_range
 
   subroutine spread_in_coordinate(tp,c,l,u,interv)
-    implicit none (type, external)
+    implicit none
     ! the spread in coordinate 'c', between l and u.
     !
     ! Return lower bound in 'smin', and upper in 'smax',
@@ -633,7 +633,7 @@ module mod_kdtree2
   end subroutine spread_in_coordinate
 
   subroutine kdtree2_destroy(tp)
-    implicit none (type, external)
+    implicit none
     ! Deallocates all memory for the tree, except input data matrix
     ! .. Structure Arguments ..
     type (kdtree2), pointer, intent(inout) :: tp
@@ -653,7 +653,7 @@ module mod_kdtree2
     contains
 
     recursive subroutine destroy_node(np)
-      implicit none (type, external)
+      implicit none
       ! .. Structure Arguments ..
       type (tree_node), pointer, intent(inout) :: np
       ! ..
@@ -673,7 +673,7 @@ module mod_kdtree2
   end subroutine kdtree2_destroy
 
   subroutine kdtree2_n_nearest(tp,qv,nn,results)
-    implicit none (type, external)
+    implicit none
     ! Find the 'nn' vectors in the tree nearest to 'qv' in euclidean norm
     ! returning their indexes and distances in 'indexes' and 'distances'
     ! arrays already allocated passed to this subroutine.
@@ -715,7 +715,7 @@ module mod_kdtree2
   end subroutine kdtree2_n_nearest
 
   subroutine kdtree2_n_nearest_around_point(tp,idxin,correltime,nn,results)
-    implicit none (type, external)
+    implicit none
     ! Find the 'nn' vectors in the tree nearest to point 'idxin',
     ! with correlation window 'correltime', returing results in
     ! results(:), which must be pre-allocated upon entry.
@@ -760,7 +760,7 @@ module mod_kdtree2
   end subroutine kdtree2_n_nearest_around_point
 
   subroutine kdtree2_r_nearest(tp,qv,r2,nfound,nalloc,results)
-    implicit none (type, external)
+    implicit none
     ! find the nearest neighbors to point 'idxin', within SQUARED
     ! Euclidean distance 'r2'.   Upon ENTRY, nalloc must be the
     ! size of memory allocated for results(1:nalloc).  Upon
@@ -825,7 +825,7 @@ module mod_kdtree2
 
   subroutine kdtree2_r_nearest_around_point(tp,idxin, &
                           correltime,r2,nfound,nalloc,results)
-    implicit none (type, external)
+    implicit none
     !
     ! Like kdtree2_r_nearest, but around a point 'idxin' already existing
     ! in the data set.
@@ -890,7 +890,7 @@ module mod_kdtree2
   end subroutine kdtree2_r_nearest_around_point
 
   integer function kdtree2_r_count(tp,qv,r2) result(nfound)
-    implicit none (type, external)
+    implicit none
     ! Count the number of neighbors within square distance 'r2'.
     type (kdtree2), pointer, intent(in) :: tp
     real(kdkind), dimension(:), target, intent(in) :: qv
@@ -929,7 +929,7 @@ module mod_kdtree2
 
   integer function kdtree2_r_count_around_point(tp,idxin, &
                           correltime,r2) result(nfound)
-    implicit none (type, external)
+    implicit none
     ! Count the number of neighbors within square distance 'r2' around
     ! point 'idxin' with decorrelation time 'correltime'.
     !
@@ -973,7 +973,7 @@ module mod_kdtree2
 
 
   subroutine validate_query_storage(n)
-    implicit none (type, external)
+    implicit none
     !
     ! make sure we have enough storage for n
     !
@@ -986,7 +986,7 @@ module mod_kdtree2
   end subroutine validate_query_storage
 
   real(kdkind) function square_distance(d,iv,qv) result (res)
-    implicit none (type, external)
+    implicit none
     ! distance between iv[1:n] and qv[1:n]
     ! .. Function Return Value ..
     ! re-implemented to improve vectorization.
@@ -1001,7 +1001,7 @@ module mod_kdtree2
   end function square_distance
 
   recursive subroutine search(node)
-    implicit none (type, external)
+    implicit none
     !
     ! This is the innermost core routine of the kd-tree search.  Along
     ! with "process_terminal_node", it is the performance bottleneck.
@@ -1079,7 +1079,7 @@ module mod_kdtree2
   end subroutine search
 
   real(kdkind) function dis2_from_bnd(x,amin,amax) result (res)
-    implicit none (type, external)
+    implicit none
     real(kdkind), intent(in) :: x, amin, amax
 
     if ( x > amax ) then
@@ -1128,7 +1128,7 @@ module mod_kdtree2
 !  end function box_in_search_range
 
   subroutine process_terminal_node(node)
-    implicit none (type, external)
+    implicit none
     !
     ! Look for actual near neighbors in 'node', and update
     ! the search results on the sr data structure.
@@ -1234,7 +1234,7 @@ module mod_kdtree2
   end subroutine process_terminal_node
 
   subroutine process_terminal_node_fixedball(node)
-    implicit none (type, external)
+    implicit none
     !
     ! Look for actual near neighbors in 'node', and update
     ! the search results on the sr data structure, i.e.
@@ -1326,7 +1326,7 @@ module mod_kdtree2
   end subroutine process_terminal_node_fixedball
 
   subroutine kdtree2_n_nearest_brute_force(tp,qv,nn,results)
-    implicit none (type, external)
+    implicit none
     ! find the 'n' nearest neighbors to 'qv' by exhaustive search.
     ! only use this subroutine for testing, as it is SLOW!  The
     ! whole point of a k-d tree is to avoid doing what this subroutine
@@ -1366,7 +1366,7 @@ module mod_kdtree2
   end subroutine kdtree2_n_nearest_brute_force
 
   subroutine kdtree2_r_nearest_brute_force(tp,qv,r2,nfound,results)
-    implicit none (type, external)
+    implicit none
     ! find the nearest neighbors to 'qv' with distance**2 <= r2 by
     ! exhaustive search.
     ! only use this subroutine for testing, as it is SLOW!  The
@@ -1404,7 +1404,7 @@ module mod_kdtree2
   end subroutine kdtree2_r_nearest_brute_force
 
   subroutine kdtree2_sort_results(nfound,results)
-    implicit none (type, external)
+    implicit none
     !  Use after search to sort results(1:nfound) in order of increasing
     !  distance.
     integer, intent(in) :: nfound
@@ -1478,7 +1478,7 @@ module mod_kdtree2
 !  end subroutine heapsort
 
   subroutine heapsort_struct(a,n)
-    implicit none (type, external)
+    implicit none
     !
     ! Sort a(1:n) in ascending order
     !

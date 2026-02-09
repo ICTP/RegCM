@@ -18,7 +18,7 @@ module mod_che_param
   use mod_intkinds
   use mod_realkinds
 
-  implicit none (type, external)
+  implicit none
 
   public
 

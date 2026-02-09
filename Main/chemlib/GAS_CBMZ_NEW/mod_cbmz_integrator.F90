@@ -31,7 +31,7 @@ module mod_cbmz_integrator
   use mod_cbmz_jacobiansp, only : lu_diag
   use mod_cbmz_linearalgebra, only : kppdecomp, kppsolve
 
-  implicit none (type, external)
+  implicit none
   public
   save
 
@@ -86,7 +86,7 @@ module mod_cbmz_integrator
   contains
 
   subroutine reset_integrate
-    implicit none (type, external)
+    implicit none
     conit = 0.0_dp
     crate = 0.0_dp
     hold = 0.0_dp
@@ -145,7 +145,7 @@ module mod_cbmz_integrator
   subroutine integrate(tin,tout,icntrl_u,rcntrl_u,istatus_u,rstatus_u,ierr_u)
     use mod_cbmz_parameters
     use mod_cbmz_global
-    implicit none (type, external)
+    implicit none
 
     real(kind=dp), intent(in) :: tin  ! start time
     real(kind=dp), intent(in) :: tout ! end time
@@ -240,7 +240,7 @@ module mod_cbmz_integrator
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   subroutine kpplsode(tin,tout,y,reltol,abstol, &
                       rcntrl,icntrl,rstatus,istatus,ierr)
-    implicit none (type, external)
+    implicit none
     real(kind=dp) :: y(nvar), abstol(nvar), reltol(nvar), tin, tout
     real(kind=dp) :: rcntrl(20), rstatus(20)
     integer       :: icntrl(20), istatus(20)
@@ -1385,11 +1385,11 @@ module mod_cbmz_integrator
 !**end
   subroutine dlsode(f, neq, y, t, tout, itol, reltol, abstol, itask,   &
                     istate, iopt, rwork, lrw, iwork, liw, jac, mf)
-    implicit none (type, external)
+    implicit none
     interface
       subroutine f(n,t,v,fct)
         use mod_cbmz_parameters
-        implicit none (type, external)
+        implicit none
         integer :: n
         real(kind=dp) :: v(nvar), fct(nvar), t
       end subroutine f
@@ -1397,7 +1397,7 @@ module mod_cbmz_integrator
     interface
       subroutine jac(n,t,v,jf)
         use mod_cbmz_parameters
-        implicit none (type, external)
+        implicit none
         integer :: n
         real(kind=dp) :: v(nvar), t
         real(kind=dp) :: jf(lu_nonzero)
@@ -1970,7 +1970,7 @@ module mod_cbmz_integrator
       contains
 
     real(kind=dp) function dumach ()
-      implicit none (type, external)
+      implicit none
       dumach = epsilon(1.0_dp)
     end function dumach
 
@@ -2391,7 +2391,7 @@ module mod_cbmz_integrator
       interface
         subroutine f(n,t,v,fct)
           use mod_cbmz_parameters
-          implicit none (type, external)
+          implicit none
           integer :: n
           real(kind=dp) :: v(nvar), fct(nvar), t
         end subroutine f
@@ -2399,7 +2399,7 @@ module mod_cbmz_integrator
       interface
         subroutine jac(n,t,v,jf)
           use mod_cbmz_parameters
-          implicit none (type, external)
+          implicit none
           integer :: n
           real(kind=dp) :: v(nvar), t
           real(kind=dp) :: jf(lu_nonzero)
@@ -3198,7 +3198,7 @@ module mod_cbmz_integrator
       use mod_cbmz_global
       use mod_cbmz_function, only: fun
       use mod_cbmz_rates
-      implicit none (type, external)
+      implicit none
       integer :: n
       real(kind=dp) :: v(nvar), fct(nvar), t
 !      told = time
@@ -3217,7 +3217,7 @@ module mod_cbmz_integrator
       use mod_cbmz_jacobiansp
       use mod_cbmz_jacobian, only: jac_sp
       use mod_cbmz_rates
-      implicit none (type, external)
+      implicit none
       real(kind=dp) :: v(nvar), t
       integer :: n
       real(kind=dp) :: jf(lu_nonzero)

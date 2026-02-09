@@ -40,7 +40,7 @@ module mod_sst_cmip6
   use mod_cmip6_normm
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -51,7 +51,7 @@ module mod_sst_cmip6
   abstract interface
     subroutine read_cmip6_sst(id,var,lat,lon)
       import
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: id
       type(cmip6_2d_var), intent(inout) :: var
       real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: lat, lon
@@ -61,7 +61,7 @@ module mod_sst_cmip6
   contains
 
     subroutine cmip6_sst
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date) :: idate, idatef, idateo
       type(rcm_time_interval) :: tdif, step
       procedure(read_cmip6_sst), pointer :: read_func => null( )

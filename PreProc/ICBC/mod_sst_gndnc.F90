@@ -28,7 +28,7 @@ module mod_sst_gndnc
   use mod_nchelper
   use mod_noresm_helper
   use netcdf
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -67,7 +67,7 @@ module mod_sst_gndnc
   !
   !**************************************************************************
   subroutine sst_gndnc
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:) :: glat
     real(rkx), pointer, contiguous, dimension(:,:) :: glon
     real(rkx), pointer, contiguous, dimension(:) :: glat1
@@ -289,7 +289,7 @@ module mod_sst_gndnc
   !     Subroutine to read required records from SST data file
   !
   subroutine gndnc_sst(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent (in) :: idate
     integer(ik4) :: it, i, j
     integer(ik4) :: year, month, day, hour
@@ -444,7 +444,7 @@ module mod_sst_gndnc
     contains
 
       subroutine getworki(irec,wk,wi)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: irec
         real(rkx), pointer, contiguous, dimension(:,:) :: wk
         integer(ik2), pointer, contiguous, dimension(:,:) :: wi
@@ -458,7 +458,7 @@ module mod_sst_gndnc
       end subroutine getworki
 
       subroutine getworkf(irec,wk)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: irec
         real(rkx), pointer, contiguous, dimension(:,:) :: wk
         istatus = nf90_get_var(inet1,ivar2(irec),wk(:,:),istart,icount)

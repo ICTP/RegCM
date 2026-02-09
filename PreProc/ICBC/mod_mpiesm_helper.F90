@@ -21,7 +21,7 @@ module mod_mpiesm_helper
   use mod_message
   use mod_date
   use mod_stdio
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -43,7 +43,7 @@ module mod_mpiesm_helper
   contains
 
   subroutine find_mpiesm_sst(fname,idate,res)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     type(rcm_time_and_date), intent(in) :: idate
     character(len=1), intent(in) :: res
@@ -89,7 +89,7 @@ module mod_mpiesm_helper
   end subroutine find_mpiesm_sst
 
   subroutine assemble_path(fname,scen,var,d1,d2,res)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     character(len=*), intent(in) :: scen
     character(len=*), intent(in) :: var
@@ -124,7 +124,7 @@ module mod_mpiesm_helper
   end subroutine assemble_path
 
   subroutine find_mpiesm_dim(dim_filename,res)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: dim_filename
     character(len=1), intent(in) :: res
     ! Just return the name of one file in the historical dataset
@@ -133,7 +133,7 @@ module mod_mpiesm_helper
   end subroutine find_mpiesm_dim
 
   subroutine find_mpiesm_topo(topo_filename,res)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: topo_filename
     character(len=1), intent(in) :: res
     if ( res == 'M' ) then
@@ -150,7 +150,7 @@ module mod_mpiesm_helper
   end subroutine find_mpiesm_topo
 
   subroutine find_mpiesm_file(mpiesm_filename,var,idate,res)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: mpiesm_filename
     character(len=*), intent(in) :: var
     type(rcm_time_and_date), intent(in) :: idate

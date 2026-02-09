@@ -1,5 +1,5 @@
 module mod_clm_cnphenology
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! Module holding routines used in phenology model for coupled carbon
@@ -15,7 +15,7 @@ implicit none (type, external)
   use mod_clm_varpar, only : numpft
   use mod_clm_varctl, only : nextdate
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -59,7 +59,7 @@ implicit none (type, external)
   !
   subroutine CNPhenology (num_soilc, filter_soilc, num_soilp, filter_soilp, &
                           num_pcropp, filter_pcropp, doalb)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -107,7 +107,7 @@ implicit none (type, external)
   subroutine CNPhenologyInit( begp, endp )
     use mod_clm_surfrd, only : crop_prog
     use mod_clm_varcon, only : secspday
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: begp, endp ! Beginning and ending PFT index
 
     !
@@ -1219,7 +1219,7 @@ implicit none (type, external)
             ncornirrig, nscerealirrig, lfemerg, grnfill, mxmat, &
             minplanttemp, planttemp
     use mod_clm_varcon, only : spval, secspday
-    implicit none (type, external)
+    implicit none
     ! number of prog crop pfts in filter
     integer(ik4), intent(in) :: num_pcropp
     ! filter for prognostic crop pfts
@@ -1725,7 +1725,7 @@ implicit none (type, external)
     use mod_clm_pftvarcon, only : npcropmin, npcropmax, mnNHplantdate,  &
             mnSHplantdate, mxNHplantdate, mxSHplantdate
     use mod_clm_time_manager, only : get_calday
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: begp, endp ! Beginning and ending PFT index
     real(rk8), pointer, contiguous :: latdeg(:)        ! latitude (radians)
     integer(ik4), pointer, contiguous :: pgridcell(:) ! pft's gridcell index
@@ -1787,7 +1787,7 @@ implicit none (type, external)
   ! development.
   !
   subroutine vernalization(p)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: p    ! PFT index running over
 
     real(rk8) :: tcrown        ! ?
@@ -1930,7 +1930,7 @@ implicit none (type, external)
   ! pools during the phenological onset period.
   !
   subroutine CNOnsetGrowth (num_soilp, filter_soilp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
@@ -2066,7 +2066,7 @@ implicit none (type, external)
   !
   subroutine CNOffsetLitterfall (num_soilp, filter_soilp)
     use mod_clm_pftvarcon, only : npcropmin
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     integer(ik4), pointer, contiguous :: ivt(:)            ! pft vegetation type
@@ -2191,7 +2191,7 @@ implicit none (type, external)
   ! pools as the result of background litter fall.
   !
   subroutine CNBackgroundLitterfall (num_soilp, filter_soilp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     ! pft level
@@ -2254,7 +2254,7 @@ implicit none (type, external)
   ! dead wood pools, for stem and coarse root.
   !
   subroutine CNLivewoodTurnover (num_soilp, filter_soilp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     ! pft level
@@ -2328,7 +2328,7 @@ implicit none (type, external)
   subroutine CNLitterToColumn (num_soilc, filter_soilc)
     use mod_clm_varpar, only : max_pft_per_col, nlevdecomp
     use mod_clm_pftvarcon, only : npcropmin
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
 

@@ -14,7 +14,7 @@ module mod_clm_filter
   use mod_clm_varcon, only : istsoil, isturb, icol_road_perv, istcrop
   use mod_dynparam
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -121,7 +121,7 @@ module mod_clm_filter
   ! Allocate CLM filters.
   !
   subroutine allocFilters()
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: begp, endp  ! per-proc beginning and ending pft indices
     integer(ik4) :: begc, endc  ! per-proc beginning and ending column indices
     integer(ik4) :: begl, endl  ! per-proc beginning and ending ldunit indices
@@ -188,7 +188,7 @@ module mod_clm_filter
   ! Set CLM filters.
   !
   subroutine setFilters( )
-    implicit none (type, external)
+    implicit none
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
     integer(ik4) :: c, l, p   ! column, landunit, pft indices
     integer(ik4) :: fl          ! lake filter index

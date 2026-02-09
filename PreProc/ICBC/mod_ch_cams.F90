@@ -35,7 +35,7 @@ module mod_cams
   use mod_kdinterp
   use mod_ch_param
   use netcdf
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -77,7 +77,7 @@ module mod_cams
   contains
 
   subroutine init_cams(typ)
-    implicit none (type, external)
+    implicit none
     character(len=2), intent(in) :: typ
     integer(ik4) :: k
     integer(ik4) :: year, month, day, hour
@@ -250,7 +250,7 @@ module mod_cams
   end subroutine init_cams
 
   subroutine get_cams(idate,typ)
-    implicit none (type, external)
+    implicit none
     character(len=2), intent(in) :: typ
     type(rcm_time_and_date), intent(in) :: idate
     !
@@ -444,7 +444,7 @@ module mod_cams
   end subroutine get_cams
 
   subroutine cams6hour(dattyp,idate,idate0,typ)
-    implicit none (type, external)
+    implicit none
     character(len=5), intent(in) :: dattyp
     character(len=2), intent(in) ::typ
     type(rcm_time_and_date), intent(in) :: idate, idate0
@@ -646,7 +646,7 @@ module mod_cams
     contains
 
       subroutine getwork(irec)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: irec
         integer(ik4) :: itile, iti, itf
         iti = 1
@@ -666,7 +666,7 @@ module mod_cams
   end subroutine cams6hour
 
   subroutine conclude_cams
-    implicit none (type, external)
+    implicit none
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then

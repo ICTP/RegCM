@@ -22,7 +22,7 @@ module mod_mkq10soil
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -35,7 +35,7 @@ module mod_mkq10soil
   contains
 
   subroutine mkq10soil(q10soilfile,mask,q10soil)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: q10soilfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: q10soil
@@ -63,7 +63,7 @@ module mod_mkq10soil
 end module mod_mkq10soil
 #else
 module mod_mkq10soil
-  implicit none (type, external)
+  implicit none
   private
 end module mod_mkq10soil
 #endif

@@ -25,7 +25,7 @@ module mod_service
   use mod_dynparam, only : mycomm, myid, nproc, debug_level
   use mpi
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -62,7 +62,7 @@ module mod_service
   contains
 
     subroutine activate_debug(level)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in), optional :: level
       character(len=3) :: np
       character(len=9) :: string
@@ -116,7 +116,7 @@ module mod_service
     end subroutine activate_debug
 
     subroutine start_debug(level,sub,line)
-      implicit none (type, external)
+      implicit none
       integer(ik4), optional, intent(in) :: level
       character(len=*), optional, intent(in) :: sub
       integer(ik4), optional, intent(in) :: line
@@ -141,7 +141,7 @@ module mod_service
     end subroutine start_debug
 
     subroutine stop_debug(level,sub,line)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in), optional :: level
       character(len=*), optional, intent(in) :: sub
       integer(ik4), optional, intent(in) :: line
@@ -163,7 +163,7 @@ module mod_service
     end subroutine stop_debug
 
     subroutine time_begin(name,indx)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(inout) :: indx
       character(len=dbgslen), intent(in) :: name
       if ( indx == 0 ) then
@@ -183,7 +183,7 @@ module mod_service
     end subroutine time_begin
 
     subroutine time_end(name_of_section,indx,isize)
-      implicit none (type, external)
+      implicit none
       character(len=dbgslen), intent(in) :: name_of_section
       integer(ik4), intent(in) :: indx
       integer(ik4), intent(in), optional :: isize
@@ -219,7 +219,7 @@ module mod_service
     end subroutine time_end
 
     subroutine time_print(iunit,name_of_section)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: iunit
       character(len=*), intent(in), optional :: name_of_section
       integer(ik4) :: nsubs, imin, imax, i, test, ilen, ierr
@@ -371,7 +371,7 @@ module mod_service
     end subroutine time_print
 
     subroutine time_reset
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: nsubs
       do nsubs = 1, maxnsubs
         info_serial(nsubs)%n_of_time = 0
@@ -384,7 +384,7 @@ module mod_service
     end subroutine time_reset
 
     subroutine av_max_min(array,avg,xmax,indx_max,xmin,indx_min)
-      implicit none (type, external)
+      implicit none
       real(rk8), dimension(:), intent(in) :: array
       integer(ik4), intent(out) :: indx_min, indx_max
       real(rk8), intent(out) :: xmax, xmin, avg
@@ -410,7 +410,7 @@ module mod_service
     end subroutine av_max_min
 
     integer(ik4) function len_strim (string) result (len_trim_result)
-      implicit none (type, external)
+      implicit none
       character (len=*), intent(in) :: string
       integer(ik4) :: k
       len_trim_result = 0
@@ -423,14 +423,14 @@ module mod_service
     end function len_strim
 
     real(rk8) function timer()
-      implicit none (type, external)
+      implicit none
       integer(ik8) :: c, r, m
       call system_clock(count=c,count_rate=r,count_max=m)
       timer = dble(c)/dble(r)
     end function timer
 
     subroutine flusha(lunit)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: lunit
       ! If whe have a FLUSH, use it
       ! On IBM, flush is flush_
@@ -444,7 +444,7 @@ end module mod_service
 
 #else
 module mod_service
-  implicit none (type, external)
+  implicit none
   private
   character(len=4), public :: unised_module
 end module mod_service

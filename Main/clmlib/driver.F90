@@ -775,10 +775,10 @@ subroutine write_diagnostic (wrtdia, nstep)
 ! timestep.
 !
 ! !USES:
+  use mpi
   use clm_atmlnd, only : clm_l2a
   use decompMod , only : get_proc_bounds, get_proc_global
-  use spmdMod   , only : masterproc, npes, MPI_REAL8, MPI_ANY_SOURCE, &
-                          MPI_STATUS_SIZE, mpicom
+  use spmdMod   , only : masterproc, npes, mpicom
   use shr_sys_mod, only : shr_sys_flush
   use abortutils, only : endrun
 !

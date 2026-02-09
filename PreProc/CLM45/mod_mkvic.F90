@@ -22,7 +22,7 @@ module mod_mkvic
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -36,7 +36,7 @@ module mod_mkvic
   contains
 
   subroutine mkvic(vicfile,mask,vic)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: vicfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: vic
@@ -77,7 +77,7 @@ module mod_mkvic
 end module mod_mkvic
 #else
 module mod_mkvic
-  implicit none (type, external)
+  implicit none
   private
 end module mod_mkvic
 #endif

@@ -11,7 +11,7 @@ module mod_clm_urbaninput
   use mod_clm_nchelper
   use mod_clm_decomp, only : get_proc_bounds, gcomm_gridcell
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -60,7 +60,7 @@ module mod_clm_urbaninput
   subroutine UrbanInput(mode)
     use mod_clm_varpar, only : numrad, nlevurb, numurbl
     use mod_clm_varctl, only : fsurdat
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: mode
     type(clm_filetype) :: ncid    ! netcdf id
     integer(ik4) :: begg, endg   ! start/stop gridcells

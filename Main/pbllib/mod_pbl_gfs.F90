@@ -24,7 +24,7 @@ module mod_pbl_gfs
   use mod_runparams, only : dt, dx, nqx, ichem, iqv
   use mod_regcm_types, only : mod_2_pbl, pbl_2_mod
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -53,7 +53,7 @@ module mod_pbl_gfs
   contains
 
     subroutine init_pbl_gfs
-      implicit none (type, external)
+      implicit none
 
       iblp = (jci2-jci1+1)*(ici2-ici1+1)
       ibnt = nqx+ntr
@@ -93,7 +93,7 @@ module mod_pbl_gfs
     end subroutine init_pbl_gfs
 
     subroutine pbl_gfs(m2p,p2m)
-      implicit none (type, external)
+      implicit none
       type(mod_2_pbl), intent(in) :: m2p
       type(pbl_2_mod), intent(inout) :: p2m
 
@@ -268,7 +268,7 @@ module mod_pbl_gfs
     end subroutine pbl_gfs
 
     subroutine moninq(im,km,ntrac)
-      implicit none (type, external)
+      implicit none
 
       integer(ik4), intent(in) :: im, km, ntrac
       integer(ik4) :: i, is, k, kk, km1, kmpbl
@@ -897,7 +897,7 @@ module mod_pbl_gfs
     end subroutine moninq
 
     subroutine tridi2(l,n,cl,cm,cu,r1,r2,au,a1,a2)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: l, n
       real(kind=rkx), dimension(l,2:n), intent(in) :: CL
       real(kind=rkx), dimension(l,n), intent(in) :: CM
@@ -938,7 +938,7 @@ module mod_pbl_gfs
     end subroutine tridi2
 
     subroutine tridin(l,n,nt,cl,cm,cu,r1,r2,au,a1,a2)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: l, n, nt
       real(kind=rkx), dimension(l,2:n), intent(in):: cl
       real(kind=rkx), dimension(l,n), intent(in) :: cm
@@ -1004,7 +1004,7 @@ module mod_pbl_gfs
     end subroutine tridin
 
     subroutine tridit(l,n,nt,cl,cm,cu,rt,au,at)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: l, n, nt
       real(kind=rkx), dimension(l,2:n), intent(in) :: cl
       real(kind=rkx), dimension(l,n), intent(in) :: cm

@@ -34,7 +34,7 @@ module mod_rad_colmod3
   use mod_service, only : time_begin, time_end, dbgslen
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -47,7 +47,7 @@ module mod_rad_colmod3
   contains
 
   subroutine allocate_mod_rad_colmod3
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: npr
     npr = (jci2-jci1+1)*(ici2-ici1+1)
     rt%n1 = 1
@@ -206,7 +206,7 @@ module mod_rad_colmod3
   !
   subroutine colmod3(iyear,imonth,lout,labsem,m2r,r2m)
     !@acc use nvtx
-    implicit none (type, external)
+    implicit none
     type(mod_2_rad), intent(in) :: m2r
     type(rad_2_mod), intent(inout) :: r2m
     integer(ik4), intent(in) :: iyear, imonth

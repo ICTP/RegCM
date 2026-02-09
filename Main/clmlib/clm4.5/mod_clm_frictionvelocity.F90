@@ -8,7 +8,7 @@ module mod_clm_frictionvelocity
   use mod_clm_type
   use mod_clm_varcon, only : vkc, rpi, grav
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -32,7 +32,7 @@ module mod_clm_frictionvelocity
   subroutine FrictionVelocity(lbn, ubn, fn, filtern, displa, z0m, z0h, z0q, &
                   obu, iter, ur, um, ustar, temp1, temp2, temp12m, temp22m, &
                   fm, landunit_index)
-    implicit none (type, external)
+    implicit none
     ! pft/landunit array bounds
     integer(ik4), intent(in) :: lbn, ubn
     ! number of filtered pft/landunit elements
@@ -619,7 +619,7 @@ module mod_clm_frictionvelocity
   !
   real(rk8) pure function StabilityFunc1(zeta)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     ! dimensionless height used in Monin-Obukhov theory
     real(rk8), intent(in) :: zeta
     real(rk8) :: chik, chik2
@@ -633,7 +633,7 @@ module mod_clm_frictionvelocity
   !
   real(rk8) pure function StabilityFunc2(zeta)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     ! dimensionless height used in Monin-Obukhov theory
     real(rk8), intent(in) :: zeta
     real(rk8) :: chik2
@@ -649,7 +649,7 @@ module mod_clm_frictionvelocity
   !
   pure subroutine MoninObukIni (ur, thv, dthv, zldis, z0m, um, rib, obu)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     ! wind speed at reference height [m/s]
     real(rk8), intent(in)  :: ur
     ! virtual potential temperature (kelvin)

@@ -19,6 +19,7 @@ module histFileMod
   use clm_varsur  , only : r2coutfrq
   use mod_runparams, only : dtsec
   use mod_dynparam, only : prestr, pthsep
+  use mpi
   implicit none
   save
   private
@@ -3016,7 +3017,7 @@ contains
 #endif
     use clm_varctl, only : archive_dir, nsrest, mss_irt
     use fileutils, only : set_filename, getfil
-    use spmdMod  , only : masterproc, mpicom, MPI_REAL8, MPI_INTEGER, MPI_CHARACTER
+    use spmdMod  , only : masterproc, mpicom
 !
 ! !ARGUMENTS:
     implicit none
@@ -3227,18 +3228,18 @@ contains
            do f = 1,tape(t)%nflds
               call mpi_bcast (tape(t)%hlist(f)%field%name         , max_namlen, MPI_CHARACTER, 0, mpicom, ier)
               call mpi_bcast (tape(t)%hlist(f)%field%units        , max_chars, MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%num2d        , 1        , MPI_INTEGER , 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%hpindex      , 1        , MPI_INTEGER , 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%type1d       , 8        , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%type1d_out   , 8        , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%type2d       , 8        , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%typexy       , 8        , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%nlonxy       , 1        , MPI_INTEGER , 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%p2c_scale_type, 8        , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%c2l_scale_type, 8        , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%l2g_scale_type, 8        , MPI_CHARACTER, 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%field%nlatxy       , 1        , MPI_INTEGER , 0, mpicom, ier)
-              call mpi_bcast (tape(t)%hlist(f)%avgflag            , 1        , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%num2d        , 1 , MPI_INTEGER , 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%hpindex      , 1 , MPI_INTEGER , 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%type1d       , 8 , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%type1d_out   , 8 , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%type2d       , 8 , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%typexy       , 8 , MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%nlonxy       , 1 , MPI_INTEGER , 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%p2c_scale_type, 8, MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%c2l_scale_type, 8, MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%l2g_scale_type, 8, MPI_CHARACTER, 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%field%nlatxy, 1, MPI_INTEGER , 0, mpicom, ier)
+              call mpi_bcast (tape(t)%hlist(f)%avgflag, 1, MPI_CHARACTER, 0, mpicom, ier)
            end do
         end do
      endif

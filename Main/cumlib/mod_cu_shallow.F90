@@ -23,7 +23,7 @@ module mod_cu_shallow
   use mod_runparams, only : iqv, dtcum, dt
   use mod_regcm_types
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -36,7 +36,7 @@ module mod_cu_shallow
   contains
 
   subroutine shallcu(m2c)
-    implicit none (type, external)
+    implicit none
     type(mod_2_cum), intent(in) :: m2c
 
     real(rkx), dimension(kz) :: t, q, p, outts, tns, qns, outqs
@@ -93,7 +93,7 @@ module mod_cu_shallow
 
   subroutine shallow(ti,qi,z1,tio,qio,pio,klev,pre,pi,outtem,outq, &
                   dtime,kbmax,pcut,c0,psur,ier,rads,xmb)
-    implicit none (type, external)
+    implicit none
       integer(ik4), intent(in) :: klev, kbmax
       real(rkx), intent(in) :: z1, dtime, pcut, c0, psur, rads
       real(rkx), intent(out) :: xmb
@@ -502,7 +502,7 @@ module mod_cu_shallow
   contains
 
     subroutine araouts(xmc,xmb,zu,delt,delq,kz,outtem,outq,ier,pre)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: kz
       real(rkx), intent(inout) :: xmb
       real(rkx), dimension(kz), intent(in) :: delt, delq, zu
@@ -547,7 +547,7 @@ module mod_cu_shallow
     end subroutine araouts
 
     subroutine cloudws(hc,qes,hes,zu,z,tempp,kz,ax,kbcon,ktop)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: kz, kbcon
       real(rkx), dimension(kz), intent(in) :: z, qes, hes, tempp
       real(rkx), dimension(kz), intent(in) :: hc, zu
@@ -577,7 +577,7 @@ module mod_cu_shallow
     ! This subroutine calculates incloud moist static energy
     !
     subroutine entrs(kbc,h,hc,hsat,ent,kz,p,hkb,ktop)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: kbc, kz
       real(rkx), dimension(kz), intent(in) :: h, hsat, p
       real(rkx), dimension(kz), intent(out) :: hc
@@ -616,7 +616,7 @@ module mod_cu_shallow
     !
     subroutine kerhels(var,r,zu,hkb,hc,della,p,z,kb,kz, &
                        xvar,kbeg,xhkb,ich,cd,psu,ktop)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: kz, kbeg, kb, ich
       real(rkx), intent(in) :: hkb, r, psu
       real(rkx), intent(out) :: xhkb
@@ -698,7 +698,7 @@ module mod_cu_shallow
     end subroutine kerhels
 
     subroutine heipre(p,z,t,z1,psurf)
-      implicit none (type, external)
+      implicit none
       real(rkx), dimension(kz), intent(in) :: p, t
       real(rkx), dimension(kz), intent(out) :: z
       real(rkx), intent(in) :: psurf, z1
@@ -713,7 +713,7 @@ module mod_cu_shallow
     end subroutine heipre
 
     subroutine moiene(t,q,z,h)
-      implicit none (type, external)
+      implicit none
       real(rkx), dimension(kz), intent(in) :: t, q, z
       real(rkx), dimension(kz), intent(out) :: h
       integer(ik4) :: k
@@ -723,7 +723,7 @@ module mod_cu_shallow
     end subroutine moiene
 
     subroutine minim(array,ks,kmin)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ks
       integer(ik4), intent(out) :: kmin
       real(rkx), dimension(kz) :: array
@@ -740,7 +740,7 @@ module mod_cu_shallow
     end subroutine minim
 
     subroutine maxim(array,ke,kmax)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ke
       integer(ik4), intent(out) :: kmax
       real(rkx), dimension(kz) :: array
@@ -759,7 +759,7 @@ module mod_cu_shallow
     ! Normalized updraft mass flux function
     !
     subroutine zunc(kbeg,zu,kb,r,z,kz,ktop)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: kz, kbeg, kb
       real(rkx), dimension(kz), intent(out) :: zu
       real(rkx), dimension(kz), intent(in) :: z
@@ -806,7 +806,7 @@ module mod_cu_shallow
     !
     subroutine precip(kb,kbcon,kz,r,hc,hes,t,qe, &
                       qes,pw,qc,qrc,z,p,qkb,pcut,c0,zu,ktop)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: kbcon, kz, kb
       real(rkx), dimension(kz), intent(in) :: hc, hes, t, z, p
       real(rkx), dimension(kz), intent(in) :: qe, qes

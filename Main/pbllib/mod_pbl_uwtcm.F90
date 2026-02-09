@@ -74,7 +74,7 @@ module mod_pbl_uwtcm
   use mod_regcm_types
   use mod_service
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -114,21 +114,21 @@ module mod_pbl_uwtcm
   contains
 
   subroutine allocate_tcm_state(tcmstate)
-    implicit none (type, external)
+    implicit none
     type(tcm_state), intent(inout) :: tcmstate
     call getmem(tcmstate%kzm,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kzm')
     call getmem(tcmstate%kth,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kth')
   end subroutine allocate_tcm_state
 
   subroutine init_mod_pbl_uwtcm
-    implicit none (type, external)
+    implicit none
     rczero = d_one/czero
     tkefac = czero**(2.0_rkx/3.0_rkx)
     b1 = czero*d_two**(3.0_rkx/2.0_rkx)
   end subroutine init_mod_pbl_uwtcm
 
   subroutine uwtcm(m2p,p2m)
-    implicit none (type, external)
+    implicit none
     type(mod_2_pbl), intent(in) :: m2p
     type(pbl_2_mod), intent(inout) :: p2m
     integer(ik4) ::  i, j
@@ -760,7 +760,7 @@ module mod_pbl_uwtcm
     ! solves tridiagonal matrix
     ! see http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
     ! Written and validated by Travis A. O'Brien 01/04/11
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n
     real(rkx), dimension(:), intent(in) :: a, b, c, v
     real(rkx), dimension(:), intent(inout) :: x
@@ -787,7 +787,7 @@ module mod_pbl_uwtcm
   pure subroutine n2(kz,thlxin,qwxin,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv, &
                      rdza,rcldb,nsquar)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kz
     real(rkx), intent(in), dimension(kz) :: thlxin, qwxin, rdza
     real(rkx), intent(in), dimension(kz+1) :: exnerfl, rexnerfl, presfl
@@ -843,7 +843,7 @@ module mod_pbl_uwtcm
                                thx,rexnerhl,ktop,kpbconv,kethl,kzm,kth,nuk, &
                                atwo,b1)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kpbconv, kz
     real(rkx), intent(in) :: nuk, atwo, b1
     real(rkx), intent(in), dimension(kz) :: thlxin, qwxin, ocp, rlv
@@ -956,7 +956,7 @@ module mod_pbl_uwtcm
                          thx,rttenx,uthvx,presfl,rhoxfl,exnerfl,rcldb,ustx, &
                          pfcor,kpbconv,ktop,kbot,kpbl2dx,bbls,pblx,rstbl,atwo)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kz
     real(rkx), intent(in), dimension(kz) :: thlxin, qwxin, qcx
     real(rkx), intent(in) :: pfcor, ustx, rstbl, atwo
@@ -1133,7 +1133,7 @@ module mod_pbl_uwtcm
   ! given the input pressure in cb and Temperature in K
   ! Modified from Buck (1981), J. App. Met. v 20
   !function esatw(p,t)
-  !  implicit none (type, external)
+  !  implicit none
   !  real(rkx), intent(in) :: p, t
   !  real(rkx) :: esatw
   !  real(rkx) :: dum, arg, tdum
@@ -1152,7 +1152,7 @@ module mod_pbl_uwtcm
   ! given the input pressure in cb and Temperature in K
   ! Modified from Buck (1981), J. App. Met. v 20
   !function esati(p,t)
-  !  implicit none (type, external)
+  !  implicit none
   !  real(rkx), intent(in) :: p, t
   !  real(rkx) :: esati
   !  real(rkx) :: dum, arg, tdum
@@ -1170,7 +1170,7 @@ module mod_pbl_uwtcm
   !pure subroutine pblhgt_tao(kz,zqx,richnum,rcldb,presfl,tke, &
   !                           kpbconv,kpbl2dx,kmix2dx,pblx, &
   !                           ktop,kbot,bbls,nsquar)
-  !  implicit none (type, external)
+  !  implicit none
   !  integer(ik4), intent(in) :: kz
   !  real(rkx), intent(in), dimension(kz) :: zqx
   !  real(rkx), intent(in), dimension(kz+1) :: richnum, rcldb, presfl

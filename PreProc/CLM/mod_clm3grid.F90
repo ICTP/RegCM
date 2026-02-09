@@ -18,7 +18,7 @@ module mod_clm3grid
   use mod_intkinds
   use mod_realkinds
   use mod_stdio
-  implicit none (type, external)
+  implicit none
 
   public
 
@@ -27,7 +27,7 @@ module mod_clm3grid
   subroutine clm3grid1(nlon,nlat,nlev,ntim, &
                        glon1,glon2,glat1,glat2,dlat,dlon, &
                        xlonmin,xlonmax,xlatmin,xlatmax,istart,icount)
-  implicit none (type, external)
+  implicit none
 !
   real(rk4), intent(in) :: glat1, glat2, glon1, glon2, dlat, dlon
   real(rk4), intent(inout) :: xlatmax, xlatmin, xlonmax, xlonmin
@@ -61,7 +61,7 @@ module mod_clm3grid
   subroutine clm3grid2(nlon,nlat,glon,glat,istart,icount,zlon,      &
                        zlat,zlev)
 
-  implicit none (type, external)
+  implicit none
 !
   integer(ik4), intent(in) :: nlat, nlon
   real(rk4), dimension(nlat), intent(in) :: glat
@@ -108,7 +108,7 @@ module mod_clm3grid
 !  IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
 !  IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
 
-  implicit none (type, external)
+  implicit none
   integer(ik4), intent(in) :: iy, jx, nlati, nloni, nt, nz
   real(rk4), intent(in) :: vmisdat, xming
   real(rk4), dimension(nloni,nlati,nz,nt), intent(in) :: mti
@@ -191,7 +191,7 @@ module mod_clm3grid
   end subroutine bilinx4d
 
   subroutine maskme(landmask,vals,vmisdat,nlon,nlat,nlev,ntim)
-  implicit none (type, external)
+  implicit none
   integer(ik4), intent(in) :: nlat, nlev, nlon, ntim
   real(rk4), intent(in) :: vmisdat
   real(rk4), dimension(nlon,nlat), intent(in) :: landmask

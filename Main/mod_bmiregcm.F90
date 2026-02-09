@@ -44,7 +44,7 @@ module bmiregcm
   use, intrinsic :: iso_c_binding, only: c_ptr, c_loc, c_f_pointer
   use mod_regcm_interface, only : atm_model
 
-  implicit none (type, external)
+  implicit none
   private
 
   type, extends (bmi) :: bmi_regcm
@@ -979,7 +979,7 @@ end module bmiregcm
 #else
 
 module bmiregcm
-  implicit none (type, external)
+  implicit none
   private
 end module bmiregcm
 

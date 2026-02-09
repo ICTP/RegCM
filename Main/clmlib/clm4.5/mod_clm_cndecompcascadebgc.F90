@@ -1,5 +1,5 @@
 module mod_clm_cndecompcascadebgc
-implicit none (type, external)
+implicit none
 #ifdef CN
 
 #ifndef CENTURY_DECOMP
@@ -21,7 +21,7 @@ implicit none (type, external)
   use mod_clm_ch4varcon, only : mino2lim
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -57,7 +57,7 @@ implicit none (type, external)
     !  written by C. Koven based on original CLM4 decomposition cascade
     ! by P. Thornton
     use mod_clm_type
-    implicit none (type, external)
+    implicit none
     ! column level
     integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
 
@@ -387,7 +387,7 @@ implicit none (type, external)
     !
     use mod_clm_type
     use mod_clm_varcon, only: secspday
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc   ! column bounds
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns

@@ -21,7 +21,7 @@ module mod_cloud_texeira
   use mod_dynparam
   use mod_runparams
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -36,7 +36,7 @@ module mod_cloud_texeira
   ! Fraction Scheme, João Teixeira,
   ! https://doi.org/10.1175/1520-0493(2001)129<1750:CFARHI>2.0.CO;2
   subroutine texeira_cldfrac(qc,qs,rh,rh0,qcrit,fcc)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qs, qc, rh
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: rh0, qcrit
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc

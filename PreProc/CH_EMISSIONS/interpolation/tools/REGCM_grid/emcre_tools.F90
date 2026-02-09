@@ -1,6 +1,6 @@
 
 MODULE EMCRE_TOOLS
-implicit none (type, external)
+implicit none
 
   ! CONSTANTS
   INTEGER,  PARAMETER :: dp       = SELECTED_REAL_KIND(12,307)
@@ -24,7 +24,7 @@ CONTAINS
   SUBROUTINE spline_interpolation_base(n,x,y,y2)
 
      ! From numerical recepies
-     IMPLICIT NONE (type, external)
+     IMPLICIT NONE
      INTRINSIC SIZE
 
      ! I/O
@@ -63,7 +63,7 @@ CONTAINS
   SUBROUTINE spline_cubic_val(n,xa,ya,y2a,x,y)
 
      ! From numerical recepies
-     IMPLICIT NONE (type, external)
+     IMPLICIT NONE
 
      ! I/O
      INTEGER,  INTENT(IN)  :: n
@@ -107,7 +107,7 @@ CONTAINS
 
   SUBROUTINE strcrack(str, ch, el, n)
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     INTRINSIC :: INDEX, LEN_TRIM
 
@@ -172,7 +172,7 @@ CONTAINS
   ! ------------------------------------------------------------------------
   FUNCTION is_numeric(string)
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     INTRINSIC :: INDEX, LEN_TRIM
 

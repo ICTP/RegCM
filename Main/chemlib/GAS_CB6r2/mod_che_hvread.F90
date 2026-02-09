@@ -1,6 +1,6 @@
 module mod_che_hvread
   use mod_cb6_jval2
-  implicit none (type, external)
+  implicit none
 
   contains
 
@@ -22,7 +22,7 @@ module mod_che_hvread
 !  12/06 Written by Sandy Sillman from boxchemv7.f
 !
 ! -------------------------------------------------------------------
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     integer :: c_hvin
     integer :: c_nhv(22)

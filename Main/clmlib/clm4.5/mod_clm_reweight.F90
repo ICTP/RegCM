@@ -9,7 +9,7 @@ module mod_clm_reweight
   use mod_clm_decomp, only : get_proc_bounds
   use mod_clm_domain, only : ldomain
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -133,7 +133,7 @@ module mod_clm_reweight
   !
   subroutine reweightWrapup
     use mod_clm_filter, only : setFilters
-    implicit none (type, external)
+    implicit none
     call setActive
     call checkWeights(active_only=.false.)
     call checkWeights(active_only=.true.)
@@ -151,7 +151,7 @@ module mod_clm_reweight
   ! to garbage data)
   !
   subroutine setActive( )
-    implicit none (type, external)
+    implicit none
     type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
     type(column_type), pointer :: cptr   ! pointer to column derived subtype
     type(pft_type), pointer :: pptr      ! pointer to pft derived subtype
@@ -210,7 +210,7 @@ module mod_clm_reweight
   ! Determine whether the given pft is active
   !
   logical function is_active_p(p)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: p   ! pft index
     integer(ik4) :: l  ! landunit index
     integer(ik4) :: g  ! grid cell index
@@ -227,7 +227,7 @@ module mod_clm_reweight
   ! Determine whether the given column is active
   !
   logical function is_active_c(c)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: c   ! column index
     integer(ik4) :: l  ! landunit index
     integer(ik4) :: g  ! grid cell index
@@ -244,7 +244,7 @@ module mod_clm_reweight
   ! Determine whether the given landunit is active
   !
   logical function is_active_l(l)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: l   ! landunit index
     integer(ik4) :: g  ! grid cell index
 
@@ -268,7 +268,7 @@ module mod_clm_reweight
   ! and once with active_only=true.
   !
   subroutine checkWeights (active_only)
-    implicit none (type, external)
+    implicit none
     ! true => check sum of weights just of ACTIVE children, grandchildren, etc.
     logical, intent(in) :: active_only
     integer(ik4) :: begp, endp  ! per-proc beginning and ending pft indices
@@ -416,7 +416,7 @@ module mod_clm_reweight
   !   active
   !
   logical function weightsOkay(sumwts,active_weights_only,i_am_active)
-    implicit none (type, external)
+    implicit none
     ! sum of weights of children, grandchildren or great-grandchildren
     real(rk8), intent(in) :: sumwts
     ! true if sumwts just includes active children, etc.

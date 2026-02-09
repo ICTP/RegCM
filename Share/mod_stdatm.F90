@@ -19,7 +19,7 @@ module mod_stdatm
   use mod_realkinds
   use mod_constants
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -262,7 +262,7 @@ module mod_stdatm
 
      pure real(rkx) function stdatm_val_noseason(lat,plev,ival)
 !$acc routine seq
-       implicit none (type, external)
+       implicit none
        real(rkx), intent(in) :: lat
        real(rkx), intent(in) :: plev
        integer(ik4), intent(in) :: ival
@@ -316,7 +316,7 @@ module mod_stdatm
 
      real(rkx) function stdatm_val_seasonal(jday,dayspy,lat,plev,ival)
 !$acc routine seq
-       implicit none (type, external)
+       implicit none
        real(rk8), intent(in) :: jday
        real(rk8), intent(in) :: dayspy
        real(rkx), intent(in) :: lat
@@ -376,7 +376,7 @@ module mod_stdatm
 
      pure real(rkx) function winter_wgt(jday,dayspy)
 !$acc routine seq
-       implicit none (type, external)
+       implicit none
        real(rkx), intent(in) :: jday, dayspy
        real(rk8) :: dis, half_dayspy, sixteenth_dayspy
        half_dayspy = dayspy * 0.5_rk8
@@ -387,7 +387,7 @@ module mod_stdatm
 
      pure integer(ik4) function find_klev(plev,izone)
 !$acc routine seq
-       implicit none (type, external)
+       implicit none
        integer(ik4), intent(in) :: izone
        real(rkx), intent(in) :: plev
        integer(ik4) :: k
@@ -400,7 +400,7 @@ module mod_stdatm
 
      pure integer(ik4) function find_zlev(z,izone)
 !$acc routine seq
-       implicit none (type, external)
+       implicit none
        integer(ik4), intent(in) :: izone
        real(rkx), intent(in) :: z
        integer(ik4) :: k
@@ -413,7 +413,7 @@ module mod_stdatm
 
      pure real(rkx) function plev_wgt(k,plev,izone)
 !$acc routine seq
-       implicit none (type, external)
+       implicit none
        integer(ik4), intent(in) :: k, izone
        real(rkx), intent(in) :: plev
        if ( plev >= stdatm(istdatm_prsmb,k,izone) ) then
@@ -428,7 +428,7 @@ module mod_stdatm
 
      pure real(rkx) function stdlrate(jday,dayspy,lat)
 !$acc routine seq
-       implicit none (type, external)
+       implicit none
        real(rkx), intent(in) :: jday
        real(rkx), intent(in) :: dayspy
        real(rkx), intent(in) :: lat

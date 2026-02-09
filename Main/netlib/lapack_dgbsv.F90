@@ -17,7 +17,7 @@ module lapack_dgbsv
 
   use mod_realkinds, only : rk8
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -188,7 +188,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     SUBROUTINE DGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, INFO )
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !
 !  -- LAPACK driver routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -393,7 +393,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     SUBROUTINE DGBTF2( M, N, KL, KU, AB, LDAB, IPIV, INFO )
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !
 !  -- LAPACK computational routine (version 3.4.2) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -663,7 +663,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     SUBROUTINE DGBTRF( M, N, KL, KU, AB, LDAB, IPIV, INFO )
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !
 !  -- LAPACK computational routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1166,7 +1166,7 @@ module lapack_dgbsv
 !  =====================================================================
     SUBROUTINE DGBTRS( TRANS, N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, &
                        INFO )
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !
 !  -- LAPACK computational routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1405,7 +1405,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     SUBROUTINE DLASWP( N, A, LDA, K1, K2, IPIV, INCX )
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !
 !  -- LAPACK auxiliary routine (version 3.4.2) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1565,7 +1565,7 @@ module lapack_dgbsv
 !
 !  =====================================================================
     INTEGER FUNCTION IEEECK( ISPEC, ZERO, ONE )
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1849,7 +1849,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     INTEGER FUNCTION ILAENV( ISPEC, NAME, N1, N2, N3, N4 )
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -2547,7 +2547,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     INTEGER FUNCTION IPARMQ( ISPEC, ILO, IHI )
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -2706,7 +2706,7 @@ module lapack_dgbsv
 !
 !  =====================================================================
     LOGICAL FUNCTION LSAME( CA, CB )
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -2851,7 +2851,7 @@ module lapack_dgbsv
 !
 !  =====================================================================
     SUBROUTINE XERBLA( SRNAME, INFO )
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -2882,7 +2882,7 @@ module lapack_dgbsv
     END SUBROUTINE XERBLA
 
     INTEGER FUNCTION IDAMAX(N,DX,INCX)
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !     .. Scalar Arguments ..
       INTEGER :: INCX,N
 !     ..
@@ -2945,7 +2945,7 @@ module lapack_dgbsv
     END FUNCTION IDAMAX
 
     SUBROUTINE DSWAP(N,DX,INCX,DY,INCY)
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !     .. Scalar Arguments ..
       INTEGER :: INCX,INCY,N
 !     ..
@@ -3024,7 +3024,7 @@ module lapack_dgbsv
     END SUBROUTINE DSWAP
 
     SUBROUTINE DSCAL(N,DA,DX,INCX)
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !     .. Scalar Arguments ..
       real(rk8) :: DA
       INTEGER :: INCX,N
@@ -3090,7 +3090,7 @@ module lapack_dgbsv
     END SUBROUTINE DSCAL
 
     SUBROUTINE DGER(M,N,ALPHA,X,INCX,Y,INCY,A,LDA)
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !     .. Scalar Arguments ..
       real(rk8) :: ALPHA
       INTEGER :: INCX,INCY,LDA,M,N
@@ -3251,7 +3251,7 @@ module lapack_dgbsv
     END SUBROUTINE DGER
 
     SUBROUTINE DCOPY(N,DX,INCX,DY,INCY)
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !     .. Scalar Arguments ..
       INTEGER :: INCX,INCY,N
 !     ..
@@ -3323,7 +3323,7 @@ module lapack_dgbsv
     END SUBROUTINE DCOPY
 
     SUBROUTINE DGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !     .. Scalar Arguments ..
       real(rk8) :: ALPHA,BETA
       INTEGER :: K,LDA,LDB,LDC,M,N
@@ -3634,7 +3634,7 @@ module lapack_dgbsv
     END SUBROUTINE DGEMM
 
     SUBROUTINE DTRSM(SIDE,UPLO,TRANSA,DIAG,M,N,ALPHA,A,LDA,B,LDB)
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !     .. Scalar Arguments ..
       real(rk8) :: ALPHA
       INTEGER :: LDA,LDB,M,N
@@ -4005,7 +4005,7 @@ module lapack_dgbsv
     END SUBROUTINE DTRSM
 
     SUBROUTINE DTBSV(UPLO,TRANS,DIAG,N,K,A,LDA,X,INCX)
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !     .. Scalar Arguments ..
       INTEGER :: INCX,K,LDA,N
       CHARACTER :: DIAG,TRANS,UPLO
@@ -4339,7 +4339,7 @@ module lapack_dgbsv
     END SUBROUTINE DTBSV
 
     SUBROUTINE DGEMV(TRANS,M,N,ALPHA,A,LDA,X,INCX,BETA,Y,INCY)
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 !     .. Scalar Arguments ..
       real(rk8) :: ALPHA,BETA
       INTEGER :: INCX,INCY,LDA,M,N

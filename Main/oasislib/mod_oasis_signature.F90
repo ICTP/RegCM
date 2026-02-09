@@ -21,7 +21,7 @@ module mod_oasis_signature
   use mod_stdio
   use mod_dynparam
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -30,7 +30,7 @@ module mod_oasis_signature
   contains
 
   subroutine oasisxregcm_header
-    implicit none (type, external)
+    implicit none
     !--------------------------------------------------------------------------
     if ( myid == italk ) then
       write(stdout,*) ''
@@ -45,7 +45,7 @@ module mod_oasis_signature
   end subroutine oasisxregcm_header
 
   subroutine oasisxregcm_endscreen
-    implicit none (type, external)
+    implicit none
     !--------------------------------------------------------------------------
     if ( myid == italk ) then
       write(stdout,*) '         _________________________________ '
@@ -74,7 +74,7 @@ module mod_oasis_signature
   end subroutine oasisxregcm_endscreen
 
   subroutine oasisxregcm_contacts
-    implicit none (type, external)
+    implicit none
     !--------------------------------------------------------------------------
     write(stdout,*) ''
     write(stdout,*) '       For any question, bug report, etc.'

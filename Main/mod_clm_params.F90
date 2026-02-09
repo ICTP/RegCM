@@ -36,7 +36,7 @@ module mod_clm_params
   use mod_ncio
   use mod_timer
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -49,7 +49,7 @@ module mod_clm_params
   ! This subroutine defines the various model parameters.
   !
   subroutine param
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: iretval
     integer(ik4) :: i, j, k
     integer(ik8) :: mdate0, mdate1, mdate2
@@ -549,11 +549,11 @@ module mod_clm_params
     contains
 
       subroutine init_surface_model
-        implicit none (type, external)
+        implicit none
       end subroutine init_surface_model
 
       recursive integer(ik4) function gcd_rec(u,v) result(gcd)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: u, v
         if ( mod(u,v) /= 0 ) then
           gcd = gcd_rec(v,mod(u,v))
@@ -563,7 +563,7 @@ module mod_clm_params
       end function gcd_rec
 
       real(rkx) function check_against_outparams(dt,dec) result(newdt)
-        implicit none (type, external)
+        implicit none
         real(rkx), intent(in) :: dt, dec
         newdt = int(dt/dec)*dec
         if ( ifshf ) then
@@ -586,7 +586,7 @@ module mod_clm_params
       end function check_against_outparams
 
       subroutine compute_moloch_static
-        implicit none (type, external)
+        implicit none
         integer(ik4) :: i, j
         real(rkx), dimension(kzp1) :: fak, fbk
         call model_zitaf(zita,mo_ztop)

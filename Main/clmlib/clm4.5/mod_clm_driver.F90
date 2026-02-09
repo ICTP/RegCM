@@ -132,7 +132,7 @@ module mod_clm_driver
   use mod_clm_snicar, only : SnowAge_grain
   use mod_clm_atmlnd, only : clm_map2gcell
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -147,7 +147,7 @@ module mod_clm_driver
   !
   subroutine clm_drv(doalb,nextsw_cday,declinp1,declin,rstwr,nlend,nlomon,rdate)
     !@acc use nvtx
-    implicit none (type, external)
+    implicit none
     logical, intent(in) :: doalb     ! true if time for surface albedo calc
     real(rk8), intent(in) :: nextsw_cday ! calendar day
     real(rk8), intent(in) :: declinp1 ! declination angle for next time step

@@ -27,7 +27,7 @@ module mod_sst_ersst
   use mod_nchelper
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -54,7 +54,7 @@ module mod_sst_ersst
   !          Monthly from January 1854 to the present
   !
   subroutine sst_ersst
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: it
     integer(ik4) :: istatus
     integer(ik4) :: year, month, day, hour
@@ -144,7 +144,7 @@ module mod_sst_ersst
 
   subroutine sst_readersst(idate,lfirst)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     logical, intent(inout) :: lfirst
     integer(ik4) :: i, j

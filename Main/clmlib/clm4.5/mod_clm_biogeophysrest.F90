@@ -26,7 +26,7 @@ module mod_clm_biogeophysrest
   use mod_clm_mkarbinit, only : perturbIC
   use mod_clm_atmlnd, only : clm_a2l
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -43,7 +43,7 @@ module mod_clm_biogeophysrest
   ! Read/Write biogeophysics information to/from restart file.
   !
   subroutine BiogeophysRest( ncid, flag )
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid ! netcdf id
     character(len=*), intent(in)    :: flag ! 'read' or 'write'
     real(rk8) :: maxwatsat                 !maximum porosity
@@ -2723,7 +2723,7 @@ module mod_clm_biogeophysrest
   ! from surface dataset
   !
   logical function weights_exactly_the_same(pptr,wtgcell,wtlunit,wtcol)
-    implicit none (type, external)
+    implicit none
     type(pft_type), pointer :: pptr     ! pointer to pft derived subtype
     real(rk8), intent(in) :: wtgcell(:) ! grid cell weights for each PFT
     real(rk8), intent(in) :: wtlunit(:) ! land-unit weights for each PFT
@@ -2741,7 +2741,7 @@ module mod_clm_biogeophysrest
   ! Determine if the weights are within roundoff different from each other
   !
   logical function weights_within_roundoff_different(pptr,wtgcell,wtlunit,wtcol)
-    implicit none (type, external)
+    implicit none
     type(pft_type), pointer :: pptr ! pointer to pft derived subtype
     real(rk8), intent(in) :: wtgcell(:) ! grid cell weights for each PFT
     real(rk8), intent(in) :: wtlunit(:) ! land-unit weights for each PFT
@@ -2762,7 +2762,7 @@ module mod_clm_biogeophysrest
   ! Determine if the weights read in are too different and should flag an error
   !
   logical function weights_tooDifferent(begp,endp,pptr,wtgcell,adiff,maxdiff)
-    implicit none (type, external)
+    implicit none
     ! per-proc beginning and ending pft indices
     integer(ik4), intent(in) :: begp, endp
     type(pft_type), pointer :: pptr ! pointer to pft derived subtype

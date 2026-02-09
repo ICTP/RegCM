@@ -24,7 +24,7 @@ module mod_clm_initsurfalb
 #endif
   use mod_clm_urban, only : UrbanAlbedo
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -43,7 +43,7 @@ contains
   ! dynamics and albedo subroutines.
   !
   subroutine initSurfalb(calday,declin,declinm1)
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: calday  ! calendar day for declin
     real(rk8), intent(in) :: declin  ! declination angle (radians) for calday
     ! declination angle (radians) for caldaym1

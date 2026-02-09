@@ -6,7 +6,7 @@ module mod_clm_hydrology2
   use mod_realkinds
   use mod_runparams
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -50,7 +50,7 @@ module mod_clm_hydrology2
 #if (defined VICHYDRO)
     use mod_clm_vicmap, only : CLMVICMap
 #endif
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc    ! column bounds
     ! number of column non-lake points in column filter
     integer(ik4), intent(in) :: num_nolakec

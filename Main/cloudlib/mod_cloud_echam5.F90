@@ -21,7 +21,7 @@ module mod_cloud_echam5
   use mod_dynparam
   use mod_runparams
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -38,7 +38,7 @@ module mod_cloud_echam5
   ! model cloud cover parameterizations using satellite data
   !
   subroutine echam5_cldfrac(qc,rh,p,ps,qcrit,fcc)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qc, rh, p
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps, qcrit
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc

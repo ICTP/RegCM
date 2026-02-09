@@ -23,7 +23,7 @@
 module mod_cbmz_function
 
   use mod_cbmz_parameters
-  implicit none (type, external)
+  implicit none
 
   ! a - rate for each equation
   real(kind=dp) :: a(nreact)

@@ -42,7 +42,7 @@ module rrtmg_sw_taumol
   use rrsw_wvn, only: nspa, nspb
   use rrsw_vsn, only: hvrtau, hnamtau
 
-  implicit none (type, external)
+  implicit none
 
   contains
 
@@ -770,7 +770,7 @@ module rrtmg_sw_taumol
                             irradnce, facbrght, snsptdrk
       use rrsw_wvn, only : ngb
 
-      implicit none (type, external)
+      implicit none
 
 ! ------- Declarations -------
 

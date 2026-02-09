@@ -23,7 +23,7 @@
 
 
 MODULE mod_cb6_Monitor
-implicit none (type, external)
+implicit none
 
 
   CHARACTER(LEN=15), PARAMETER, DIMENSION(82) :: SPC_NAMES = [ &

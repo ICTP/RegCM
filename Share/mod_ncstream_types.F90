@@ -25,7 +25,7 @@ module mod_ncstream_types
   use mpi, only: mpi_offset_kind
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   public
 

@@ -17,7 +17,7 @@ module mod_header
 
   use mod_intkinds
   use mod_stdio
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -26,7 +26,7 @@ module mod_header
   contains
 
   subroutine header(myid)
-  implicit none (type, external)
+  implicit none
 !
   integer(ik4), intent(in) :: myid
 !
@@ -41,6 +41,9 @@ module mod_header
   character (len=128) :: directory
   character (len=*), parameter :: f99001 = &
     '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
+#ifdef __INTEL_COMPILER
+  external :: hostnm, getlog, getcwd
+#endif
 
   cdata = '?'
   czone = '?'
@@ -53,8 +56,8 @@ module mod_header
     write (stdout,f99001)  GIT_VER, __DATE__, __TIME__
 
 #ifdef IBM
-    hostname='ibm platform '
-    user= 'Unknown'
+    hostname = 'ibm platform '
+    user = 'Unknown'
 #else
     ihost = hostnm(hostname)
     call getlog(user)

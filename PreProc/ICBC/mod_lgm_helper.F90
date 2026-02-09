@@ -20,7 +20,7 @@ module mod_lgm_helper
   use mod_dynparam
   use mod_message
   use mod_date
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -35,7 +35,7 @@ module mod_lgm_helper
   contains
 
   subroutine find_lgm_sst(fname,idate,res)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     type(rcm_time_and_date), intent(in) :: idate
     character(len=1), intent(in) :: res
@@ -61,7 +61,7 @@ module mod_lgm_helper
   end subroutine find_lgm_sst
 
   subroutine find_lgm_dim(fname,res)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     character(len=1), intent(in) :: res
     character(len=4), parameter :: cy = '1930'
@@ -79,7 +79,7 @@ module mod_lgm_helper
   end subroutine find_lgm_dim
 
   subroutine find_lgm_topo(topo_filename,res)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: topo_filename
     character(len=1), intent(in) :: res
     if ( res == 'P' ) then
@@ -92,7 +92,7 @@ module mod_lgm_helper
   end subroutine find_lgm_topo
 
   subroutine find_lgm_file(fname,idate,res)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     type(rcm_time_and_date), intent(in) :: idate
     character(len=1), intent(in) :: res

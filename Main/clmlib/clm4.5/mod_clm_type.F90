@@ -67,7 +67,7 @@ module mod_clm_type
   ! --------------------------------------------------------
   !
 
-  implicit none (type, external)
+  implicit none
 
   private
 

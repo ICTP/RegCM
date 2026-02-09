@@ -28,7 +28,7 @@ module mod_ncout
   use mod_stdio
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -507,7 +507,7 @@ module mod_ncout
   contains
 
   subroutine init_output_streams(lparallel)
-    implicit none (type, external)
+    implicit none
     logical, intent(in) :: lparallel
     integer(ik4) :: nstream, i, itr, vcount, kkz, n4dd
     type(varspan) :: vsize
@@ -3129,7 +3129,7 @@ module mod_ncout
   end subroutine init_output_streams
 
   integer(ik4) function countvars(eflags,ntot)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ntot
     logical, dimension(ntot), intent(in) :: eflags
     integer(ik4) :: i
@@ -3140,7 +3140,7 @@ module mod_ncout
   end function countvars
 
   subroutine newoutfiles(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     character(len=36) :: fbname
     character(len=36) :: cdate
@@ -3978,7 +3978,7 @@ module mod_ncout
   end subroutine newoutfiles
 
   subroutine setup_common_vars(vsize,var,xlon,xlat,topo,mask,area,ps,ps0)
-    implicit none (type, external)
+    implicit none
     type(varspan), intent(in) :: vsize
     type(ncvariable2d_mixed), dimension(:), intent(inout) :: var
     integer(ik4), intent(in) :: xlon, xlat, topo, mask, area, ps, ps0
@@ -4044,7 +4044,7 @@ module mod_ncout
 
   subroutine setup_var_2d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
                          l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
-    implicit none (type, external)
+    implicit none
     type(ncvariable2d_mixed), dimension(:), intent(inout) :: var
     integer(ik4), intent(in) :: ivar
     type(varspan), intent(in) :: vsize
@@ -4094,7 +4094,7 @@ module mod_ncout
 
   subroutine setup_var_3d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
                           l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
-    implicit none (type, external)
+    implicit none
     type(ncvariable3d_mixed), dimension(:), intent(inout) :: var
     integer(ik4), intent(in) :: ivar
     type(varspan), intent(in) :: vsize
@@ -4139,7 +4139,7 @@ module mod_ncout
 
   subroutine setup_var_4d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
                           l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
-    implicit none (type, external)
+    implicit none
     type(ncvariable4d_mixed), dimension(:), intent(inout) :: var
     integer(ik4), intent(in) :: ivar
     type(varspan), intent(in) :: vsize
@@ -4185,7 +4185,7 @@ module mod_ncout
   end subroutine setup_var_4d
 
  subroutine dispose_output_streams
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: nstream, nfile
     if ( associated(v2dvar_atm) ) deallocate(v2dvar_atm)
     if ( associated(v3dvar_atm) ) deallocate(v3dvar_atm)
@@ -4220,7 +4220,7 @@ module mod_ncout
 
   subroutine write_record_output_stream(istream,idate,ifile)
     !@acc use nvtx
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: istream
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4), intent(in), optional :: ifile
@@ -4405,13 +4405,13 @@ module mod_ncout
   end subroutine write_record_output_stream
 
   subroutine write_vars_slaboc_stream(istream)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: istream
     call writevar_output_stream(istream,v3dvar_slaboc(slab_qflx))
   end subroutine write_vars_slaboc_stream
 
   subroutine writevar2d_output_stream(istream,vp,ifile)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: istream
     integer(ik4), intent(in), optional :: ifile
     type(ncvariable2d_mixed), intent(inout) :: vp
@@ -4472,7 +4472,7 @@ module mod_ncout
   end subroutine writevar2d_output_stream
 
   subroutine writevar3d_output_stream(istream,vp,ifile)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: istream
     integer(ik4), intent(in), optional :: ifile
     type(ncvariable3d_mixed), intent(inout) :: vp
@@ -4532,7 +4532,7 @@ module mod_ncout
   end subroutine writevar3d_output_stream
 
   subroutine writevar4d_output_stream(istream,vp,ifile)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: istream
     integer(ik4), intent(in), optional :: ifile
     type(ncvariable4d_mixed), intent(inout) :: vp

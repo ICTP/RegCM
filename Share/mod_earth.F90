@@ -18,7 +18,7 @@ module mod_earth
   use mod_realkinds
   use mod_intkinds
   use mod_constants
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -57,7 +57,7 @@ module mod_earth
 
   pure real(rkx) function gcdist_simple(lat1,lon1,lat2,lon2)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: lat1, lon1, lat2, lon2
     real(rk8) :: clat1, slat1, clat2, slat2, cdlon, crd
     clat1 = cos(lat1*degrad)
@@ -72,7 +72,7 @@ module mod_earth
 
   pure real(rkx) function gcdist(ds,lat1,lon1,lat2,lon2)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: ds, lat1, lon1, lat2, lon2
     real(rk8) :: clat1, slat1, clat2, slat2, cdlon, sdlon
     real(rk8) :: y, x
@@ -88,7 +88,7 @@ module mod_earth
   end function gcdist
 
   subroutine ll2xyz_values(lat,lon,x,y,z)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: lat, lon
     real(rk8), intent(out) :: x, y, z
     real(rk8) :: rlat, rlon
@@ -100,7 +100,7 @@ module mod_earth
   end subroutine ll2xyz_values
 
   subroutine ll2xyz_array(lat,lon,x)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: lat
     real(rkx), intent(in) :: lon
     real(rk8), intent(out), dimension(3) :: x
@@ -113,7 +113,7 @@ module mod_earth
   end subroutine ll2xyz_array
 
   subroutine ll2xyz_1d(ni,lat,lon,x)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni
     real(rkx), intent(in), dimension(ni) :: lat
     real(rkx), intent(in), dimension(ni) :: lon
@@ -130,7 +130,7 @@ module mod_earth
   end subroutine ll2xyz_1d
 
   subroutine ll2xyz_arrays(lat,lon,x)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in), dimension(:) :: lat
     real(rkx), intent(in), dimension(:) :: lon
     real(rk8), intent(out), dimension(:,:) :: x
@@ -152,7 +152,7 @@ module mod_earth
   end subroutine ll2xyz_arrays
 
   subroutine ll2xyz_grid(lat,lon,x)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in), dimension(:,:) :: lat
     real(rkx), intent(in), dimension(:,:) :: lon
     real(rk8), intent(out), dimension(:,:) :: x
@@ -176,7 +176,7 @@ module mod_earth
 
   pure real(rk8) function longitude_circle(lat) result(er)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: lat
     er = d_two * mathpi * erkm * cos(lat*degrad)
   end function longitude_circle
@@ -188,7 +188,7 @@ module mod_earth
   !  XLON is local grid longitudes  going West to East
   ! ALL LONGITUDES ARE in the range -180.0 <-> 180.0
   subroutine get_window_r8(glat,glon,xlat,xlon,i_band,domain)
-    implicit none (type, external)
+    implicit none
     real(rk8), dimension(:), intent(in) :: glat
     real(rk8), dimension(:), intent(in) :: glon
     real(rkx), dimension(:,:), intent(in) :: xlat
@@ -401,7 +401,7 @@ module mod_earth
   end subroutine get_window_r8
 
   subroutine get_window_r4(glat,glon,xlat,xlon,i_band,domain)
-    implicit none (type, external)
+    implicit none
     real(rk4), dimension(:), intent(in) :: glat
     real(rk4), dimension(:), intent(in) :: glon
     real(rkx), dimension(:,:), intent(in) :: xlat

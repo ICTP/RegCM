@@ -22,7 +22,7 @@ module mod_nclib
   use mod_stdio
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   public
 
@@ -43,7 +43,7 @@ module mod_nclib
 !-----------------------------------------------------------------------
   subroutine crecdf (filnam, cdfid, phymin, phymax, ndim, ierr)
 
-  implicit none (type, external)
+  implicit none
 
   integer(ik4), intent (in) :: ndim
   character(len=256), intent(in) :: filnam
@@ -95,7 +95,7 @@ module mod_nclib
 
   subroutine rcrecdf (filnam,cdfid,varmin,varmax,ndim,ierr)
 
-  implicit none (type, external)
+  implicit none
 
   character(len=256), intent(in) :: filnam
   integer(ik4), intent(in) :: ndim
@@ -122,7 +122,7 @@ module mod_nclib
 
   subroutine clscdf (cdfid, ierr)
 
-  implicit none (type, external)
+  implicit none
 
 !     Argument declarations.
   integer(ik4), intent(in) :: cdfid
@@ -156,7 +156,7 @@ module mod_nclib
        lname,vunit,factor,offset,vvarmin,vvarmax,xlat1d,xlon1d,sigh,&
        izstag,vmisdat,iotype)
 
-  implicit none (type, external)
+  implicit none
 
   integer(ik4), intent(in) :: cdfid, ie, je, ke
   character(len=64), intent(in) :: varnam, lname, vunit
@@ -255,7 +255,7 @@ module mod_nclib
   subroutine putcoords(cdfid,ndim,vardim,ie,je,ke,xlat1d,xlon1d,    &
                        sigh,ierr)
 
-  implicit none (type, external)
+  implicit none
 
   integer(ik4), intent(in) :: cdfid, ie, je, ke, ndim
   integer(ik4), dimension(ndim), intent(in) :: vardim
@@ -348,7 +348,7 @@ module mod_nclib
                          ievar, jevar, arr, ie, je, ke,             &
                          vmisdat, rfac, offset, ierr)
 
-  implicit none (type, external)
+  implicit none
 
   integer(ik4), intent(in) :: cdfid, ievar, jevar, ie, je, ke, k ,&
                           level
@@ -495,13 +495,13 @@ module mod_nclib
                        clunits,offset,xscale,vardim,varmin,varmax,  &
                        iotype,ierr)
 
-  implicit none (type, external)
+  implicit none
 
   integer(ik4), parameter :: maxdim = 4
 
   integer(ik4), intent(in) :: cdfid, ndim, iotype
   character(len=64), intent(in) :: varnam, clname, clunits
-  integer(ik4), dimension(ndim), intent(in) :: vardim
+  integer(ik4), dimension(ndim), intent(inout) :: vardim
   real(rk4), dimension(ndim), intent(in) :: varmin, varmax
   real(rk4), intent(in) :: xscale, offset, misdat
   integer(ik4), intent(out) :: ierr
@@ -725,7 +725,7 @@ module mod_nclib
   subroutine putdatcdfr4(cdfid, varnam, time, k, level, ievar,      &
                          jevar, arr, ie, je, ke, ierr)
 
-  implicit none (type, external)
+  implicit none
 
   integer(ik4), intent(in) :: cdfid
   character(len=64), intent(in) :: varnam
@@ -860,7 +860,7 @@ module mod_nclib
 
   subroutine getdefi2 (cdfid, varnam, ndim, misdat, vardim, ierr)
 
-  implicit none (type, external)
+  implicit none
 
   integer(ik4), parameter :: maxdim = 4
 
@@ -968,7 +968,7 @@ module mod_nclib
 
   subroutine getdefcdfr4(cdfid, varnam, ndim, misdat, vardim, ierr)
 
-  implicit none (type, external)
+  implicit none
 
   integer(ik4), intent(in) :: cdfid
   character(len=64), intent(in) :: varnam
@@ -1066,7 +1066,7 @@ module mod_nclib
   subroutine readcdfr4(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,nlat, &
                        nlev1,nlev,ntim1,ntim,vals)
 
-  implicit none (type, external)
+  implicit none
   integer(ik4), intent(in) :: idcdf, nlat, nlat1, nlev, nlev1, &
                               nlon, nlon1, ntim, ntim1
   character(len=64), intent(in) :: vnam
@@ -1110,7 +1110,7 @@ module mod_nclib
                            nlat,nlev1,nlev,ntim1,ntim,nglon,nglat,  &
                            nglev,ngtim,vals)
 
-  implicit none (type, external)
+  implicit none
   integer(ik4), intent(in) :: idcdf, nlat, nlat1, nlev, nlev1, &
                 nlon, nlon1, ntim, ntim1, nglon, nglat, nglev, ngtim
   character(len=64), intent(in) :: vnam
@@ -1198,11 +1198,11 @@ module mod_nclib
   subroutine readcdfr4_iso(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,  &
                            nlat,nlev1,nlev,ntim1,ntim,vals)
 
-  implicit none (type, external)
+  implicit none
 !
   integer(ik4), intent(in) :: idcdf, nlat, nlat1, nlev, nlev1, &
             nlon, nlon1, ntim, ntim1
-  character(len=64), intent(in) :: lnam
+  character(len=64), intent(out) :: lnam
   character(len=64), intent(out) :: units
   character(len=64), intent(out) :: vnam
   real(rk4), dimension(nlon,nlat,nlev,ntim), intent(out) :: vals

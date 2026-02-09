@@ -1,5 +1,5 @@
 module mod_clm_cnnstateupdate2
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! Module for nitrogen state variable update, mortality fluxes.
@@ -9,7 +9,7 @@ implicit none (type, external)
   use mod_runparams, only : dtsrf
   use mod_clm_varpar, only : nlevsoi, nlevdecomp
 
-  implicit none (type, external)
+  implicit none
   save
   private
 
@@ -24,7 +24,7 @@ implicit none (type, external)
   subroutine NStateUpdate2(num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
     use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilc   ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -215,7 +215,7 @@ implicit none (type, external)
   subroutine NStateUpdate2h(num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
     use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter

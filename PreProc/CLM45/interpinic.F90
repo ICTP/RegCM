@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  implicit none (type, external)
+  implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 
@@ -29,7 +29,7 @@ program interpinic
   use mod_kdinterp
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   character (len=256) :: prgname
   character (len=256) :: inputfile
@@ -89,13 +89,22 @@ program interpinic
   integer(ik4) :: imaxcol, omaxcol, maxcol
 
   integer(ik4), dimension(8) :: tval
-  character (len=32) :: cdata='?'
-  character (len=5) :: czone='?'
-  character (len=32) :: hostname='?'
-  character (len=32) :: user='?'
-  character (len=128) :: directory='?'
+  character (len=32) :: cdata
+  character (len=5) :: czone
+  character (len=32) :: hostname
+  character (len=32) :: user
+  character (len=128) :: directory
   character (len=*), parameter :: f99001 = &
           '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
+#ifdef __INTEL_COMPILER
+  external :: hostnm, getlog, getcwd
+#endif
+
+  cdata = '?'
+  czone = '?'
+  hostname = '?'
+  user = '?'
+  directory = '?'
 
   write (stdout,  &
      "(/,2x,'This is interpinic part of RegCM package version 4')")
@@ -615,7 +624,7 @@ program interpinic
   contains
 
   integer(ik4) function dlen(ncid,dname)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: dname
     integer(ik4) :: idimid
@@ -633,7 +642,7 @@ program interpinic
   end function dlen
 
   logical function hasval(nc1,nc2,vname)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nc1, nc2
     character(len=*), intent(in) :: vname
     integer(ik4) :: ivarid
@@ -649,7 +658,7 @@ program interpinic
   end function hasval
 
   subroutine rval(ncid,vname,var)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rkx), dimension(:), intent(inout) :: var
@@ -668,7 +677,7 @@ program interpinic
   end subroutine rval
 
   subroutine rval2(ncid,vname,var)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rkx), dimension(:,:), intent(inout) :: var
@@ -687,7 +696,7 @@ program interpinic
   end subroutine rval2
 
   subroutine ival(ncid,vname,var)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(inout) :: var
@@ -706,7 +715,7 @@ program interpinic
   end subroutine ival
 
   subroutine wval(ncid,vname,var)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rkx), dimension(:), intent(in) :: var
@@ -725,7 +734,7 @@ program interpinic
   end subroutine wval
 
   subroutine wval2(ncid,vname,var)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rkx), dimension(:,:), intent(in) :: var
@@ -744,7 +753,7 @@ program interpinic
   end subroutine wval2
 
   subroutine makemap_pft(np,ng,mp,ltype,ptype,glat,glon,plat,plon,map)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: np, ng, mp
     integer(ik4), intent(in), dimension(np) :: ltype
     integer(ik4), intent(in), dimension(np) :: ptype
@@ -772,7 +781,7 @@ program interpinic
   end subroutine makemap_pft
 
   subroutine makemap_col(nc,ng,mc,ctype,glat,glon,clat,clon,map)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nc, ng, mc
     integer(ik4), intent(in), dimension(nc) :: ctype
     real(rkx), intent(in), dimension(ng) :: glat
@@ -797,7 +806,7 @@ program interpinic
   end subroutine makemap_col
 
   subroutine pft_interpolate(vname)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: vname
     integer(ik4) :: ip, ig
 
@@ -837,7 +846,7 @@ program interpinic
   end subroutine pft_interpolate
 
   subroutine col_interpolate_grnd(vname)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: vname
     integer(ik4) :: ic, ig, igr
 
@@ -888,7 +897,7 @@ program interpinic
   end subroutine col_interpolate_grnd
 
   subroutine col_interpolate(vname)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: vname
     integer(ik4) :: ic, ig
 
@@ -933,7 +942,7 @@ program interpinic
   end subroutine col_interpolate
 
   integer(ik4) function countcols(ctype) result(res)
-    implicit none (type, external)
+    implicit none
     integer(ik4), dimension(:), intent(in) :: ctype
     integer(ik4) :: i, mcol
     res = 0
@@ -947,7 +956,7 @@ program interpinic
   end function countcols
 
   subroutine set_colvals(c1,c2,cv)
-    implicit none (type, external)
+    implicit none
     integer(ik4), dimension(:), intent(in) :: c1, c2
     integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: cv
     integer(ik4) :: i, mcol, ic, ic1, ic2, imax, imin
@@ -994,7 +1003,7 @@ program interpinic
   end subroutine set_colvals
 
   pure integer(ik4) function myfindloc(ac,c) result(ip)
-    implicit none (type, external)
+    implicit none
     integer(ik4), dimension(:), intent(in) :: ac
     integer(ik4), intent(in) :: c
     integer(ik4) :: i
@@ -1013,7 +1022,7 @@ end program interpinic
 
 program interpinic
   use mod_stdio
-  implicit none (type, external)
+  implicit none
   write(stdout,*) 'RegCM built without CLM45 support.'
   write(stdout,*) 'Please recompile it using --enable-clm45 flag'
 end program interpinic

@@ -22,7 +22,7 @@
 
 module mod_cbmz_parameters
   use mod_cbmz_precision
-  implicit none (type, external)
+  implicit none
   public
   save
 

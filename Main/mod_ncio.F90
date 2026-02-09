@@ -30,7 +30,7 @@ module mod_ncio
   use mod_nchelper
   use mod_domain
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -71,24 +71,24 @@ module mod_ncio
   contains
 
   subroutine fixqcqi( )
-    implicit none (type, external)
+    implicit none
     call bcast(has_qc)
     call bcast(has_qi)
   end subroutine fixqcqi
 
   logical function we_have_qc( )
-    implicit none (type, external)
+    implicit none
     we_have_qc = has_qc
   end function we_have_qc
   logical function we_have_qi( )
-    implicit none (type, external)
+    implicit none
     we_have_qi = has_qi
   end function we_have_qi
 
   subroutine read_domain_info(ht,lnd,tex,mask,area,xlat,xlon,dlat,dlon, &
                               ulat,ulon,vlat,vlon,msfx,msfd,msfu,msfv,  &
                               coriol,snowam,smoist,rmoist,rts,hlake,ts0)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ht
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lnd
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: tex
@@ -448,7 +448,7 @@ module mod_ncio
   end subroutine read_domain_info
 
   subroutine read_subdomain_info(ht,lnd,tex,mask,area,xlat,xlon,hlake)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ht
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: lnd
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: tex
@@ -583,7 +583,7 @@ module mod_ncio
   end subroutine read_subdomain_info
 
   integer(ik4) function clmbc_search(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     type(rcm_time_interval) :: tdif
     character(len=32) :: appdat1, appdat2
@@ -611,7 +611,7 @@ module mod_ncio
   end function clmbc_search
 
   integer(ik4) function icbc_search(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     type(rcm_time_interval) :: tdif
     character(len=32) :: appdat1, appdat2
@@ -639,7 +639,7 @@ module mod_ncio
   end function icbc_search
 
   integer(ik4) function som_search(imon)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: imon
     if ( .not. do_parallel_netcdf_in ) then
       if ( myid /= iocpu ) then
@@ -846,7 +846,7 @@ module mod_ncio
   end subroutine open_som
 
   subroutine read_clmbc(pr,ssr,strd,clt)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: pr
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ssr
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: strd
@@ -910,7 +910,7 @@ module mod_ncio
   end subroutine read_clmbc
 
   subroutine read_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
     integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ilnd
@@ -1225,7 +1225,7 @@ module mod_ncio
   end subroutine read_icbc
 
   subroutine read_som(qflx)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: qflx
     integer(ik4), dimension(4) :: istart, icount
     character(len=3), dimension(12), parameter :: cmon = &
@@ -1266,7 +1266,7 @@ module mod_ncio
   end subroutine read_som
 
   subroutine close_icbc
-    implicit none (type, external)
+    implicit none
     if (ibcin >= 0) then
       istatus = nf90_close(ibcin)
       call check_ok(__FILE__,__LINE__,'Error Close ICBC file','ICBC FILE')
@@ -1278,7 +1278,7 @@ module mod_ncio
   end subroutine close_icbc
 
   subroutine close_clmbc
-    implicit none (type, external)
+    implicit none
     if (clmbcin >= 0) then
       istatus = nf90_close(clmbcin)
       call check_ok(__FILE__,__LINE__,'Error Close SFBC file','SFBC FILE')
@@ -1288,7 +1288,7 @@ module mod_ncio
   end subroutine close_clmbc
 
   subroutine close_som
-    implicit none (type, external)
+    implicit none
     if (somin >= 0) then
       istatus = nf90_close(somin)
       call check_ok(__FILE__,__LINE__,'Error Close SOM file','SOM FILE')
@@ -1298,7 +1298,7 @@ module mod_ncio
   end subroutine close_som
 
   subroutine check_ok(f,l,m1,mf)
-    implicit none (type, external)
+    implicit none
     character(*), intent(in) :: f, m1, mf
     integer(ik4), intent(in) :: l
     if (istatus /= nf90_noerr) then

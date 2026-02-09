@@ -17,7 +17,7 @@ module  mod_clm_subgridave
   use mod_clm_varcon, only : istsoil, istice, istdlak, istslak, istwet, &
                               isturb, istcrop, max_lunit, spval
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -77,7 +77,7 @@ module  mod_clm_subgridave
   ! Averaging is only done for points that are not equal to "spval".
   !
   subroutine p2c_1d(lbp,ubp,lbc,ubc,parr,carr,p2c_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbp, ubp  ! beginning and ending pft
     integer(ik4), intent(in) :: lbc, ubc  ! beginning and ending column
     real(rk8), intent(in), dimension(lbp:ubp) :: parr  ! pft array
@@ -145,7 +145,7 @@ module  mod_clm_subgridave
   ! Averaging is only done for points that are not equal to "spval".
   !
   subroutine p2c_2d(lbp,ubp,lbc,ubc,num2d,parr,carr,p2c_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbp, ubp  ! beginning and ending pft
     integer(ik4), intent(in) :: lbc, ubc  ! beginning and ending column
     integer(ik4), intent(in) :: num2d      ! size of second dimension
@@ -217,7 +217,7 @@ module  mod_clm_subgridave
   ! perform pft to column averaging for single level pft arrays
   !
   subroutine p2c_1d_filter(numfc,filterc,pftarr,colarr)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: numfc
     integer(ik4), intent(in), dimension(numfc) :: filterc
     real(rk8), pointer, contiguous, dimension(:) :: pftarr
@@ -249,7 +249,7 @@ module  mod_clm_subgridave
   ! perform pft to column averaging for multi level pft arrays
   !
   subroutine p2c_2d_filter(lev,numfc,filterc,pftarr,colarr)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lev
     integer(ik4), intent(in) :: numfc
     integer(ik4), intent(in), dimension(numfc) :: filterc
@@ -284,7 +284,7 @@ module  mod_clm_subgridave
   !
   subroutine p2l_1d(lbp,ubp,lbc,ubc,lbl,ubl,parr,larr, &
                     p2c_scale_type,c2l_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbp, ubp ! beginning and ending pft indices
     integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
     integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
@@ -418,7 +418,7 @@ module  mod_clm_subgridave
   !
   subroutine p2l_2d(lbp,ubp,lbc,ubc,lbl,ubl,num2d,parr,larr, &
                     p2c_scale_type,c2l_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbp, ubp ! beginning and ending pft indices
     integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
     integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
@@ -558,7 +558,7 @@ module  mod_clm_subgridave
   !
   subroutine p2g_1d(lbp,ubp,lbc,ubc,lbl,ubl,lbg,ubg,parr,garr, &
                     p2c_scale_type,c2l_scale_type,l2g_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbp, ubp ! beginning and ending pft indices
     integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
     integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
@@ -721,7 +721,7 @@ module  mod_clm_subgridave
   !
   subroutine p2g_2d(lbp,ubp,lbc,ubc,lbl,ubl,lbg,ubg,num2d,parr,garr, &
                     p2c_scale_type,c2l_scale_type,l2g_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbp, ubp ! beginning and ending pft indices
     integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
     integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
@@ -889,7 +889,7 @@ module  mod_clm_subgridave
   ! Averaging is only done for points that are not equal to "spval".
   !
   subroutine c2l_1d(lbc,ubc,lbl,ubl,carr,larr,c2l_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
     integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
     real(rk8), intent(in), dimension(lbc:ubc) :: carr  ! input column array
@@ -1001,7 +1001,7 @@ module  mod_clm_subgridave
   ! Averaging is only done for points that are not equal to "spval".
   !
   subroutine c2l_2d(lbc,ubc,lbl,ubl,num2d,carr,larr,c2l_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
     integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
     integer(ik4), intent(in) :: num2d     ! size of second dimension
@@ -1120,7 +1120,7 @@ module  mod_clm_subgridave
   !
   subroutine c2g_1d(lbc,ubc,lbl,ubl,lbg,ubg,carr,garr, &
                     c2l_scale_type,l2g_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
     integer(ik4), intent(in) :: lbl, ubl ! beginning and ending ldunit indices
     integer(ik4), intent(in) :: lbg, ubg ! beginning and ending ldunit indices
@@ -1258,7 +1258,7 @@ module  mod_clm_subgridave
   !
   subroutine c2g_2d(lbc,ubc,lbl,ubl,lbg,ubg,num2d,carr,garr, &
                     c2l_scale_type,l2g_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc ! beginning and ending column indices
     integer(ik4), intent(in) :: lbl, ubl ! beginning and ending launit indices
     integer(ik4), intent(in) :: lbg, ubg ! beginning and ending gdcell indices
@@ -1403,7 +1403,7 @@ module  mod_clm_subgridave
   ! Averaging is only done for points that are not equal to "spval".
   !
   subroutine l2g_1d(lbl,ubl,lbg,ubg,larr,garr,l2g_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbl, ubl ! sub landunit indices
     integer(ik4), intent(in) :: lbg, ubg ! gridcell indices
     real(rk8), intent(in), dimension(lbl:ubl) :: larr  ! input landunit array
@@ -1477,7 +1477,7 @@ module  mod_clm_subgridave
   ! Averaging is only done for points that are not equal to "spval".
   !
   subroutine l2g_2d(lbl,ubl,lbg,ubg,num2d,larr,garr,l2g_scale_type)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbl, ubl ! beginning and ending column indices
     integer(ik4), intent(in) :: lbg, ubg ! beginning and ending gdcell indices
     integer(ik4), intent(in) :: num2d     ! size of second dimension
@@ -1563,7 +1563,7 @@ module  mod_clm_subgridave
   ! grid cell averages.
   !
   subroutine build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
-     implicit none (type, external)
+     implicit none
      ! scale factor type for averaging
      character(len=*), intent(in) :: l2g_scale_type
      integer(ik4), intent(in) :: lbl, ubl ! column indices
@@ -1586,7 +1586,7 @@ module  mod_clm_subgridave
   ! scale factor for each landunit type depending on l2g_scale_type
   !
   subroutine create_scale_l2g_lookup(l2g_scale_type,scale_lookup)
-    implicit none (type, external)
+    implicit none
     ! scale factor type for averaging
     character(len=*), intent(in) :: l2g_scale_type
     ! scale factor for each landunit type

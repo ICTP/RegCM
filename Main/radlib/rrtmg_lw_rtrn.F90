@@ -43,7 +43,7 @@
       use rrlw_tbl, only: tblint, bpade, tau_tbl, exp_tbl, tfn_tbl
       use rrlw_vsn, only: hvrrtr, hnamrtr
 
-      implicit none (type, external)
+      implicit none
 
       contains
 

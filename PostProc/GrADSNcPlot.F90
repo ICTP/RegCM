@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  implicit none (type, external)
+  implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 
@@ -31,7 +31,7 @@ program ncplot
   use mod_stdio
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   character(256) :: prgname, ncfile, clmfile, tmpctl, tmpcoord
   character(512) :: command, levels
@@ -70,6 +70,9 @@ program ncplot
   logical :: lvarsplit, lsigma, ldepth, lu, lua, luas, lclm
   logical :: is_model_output = .false.
   logical :: uvrotate = .false.
+#ifdef __INTEL_COMPILER
+  external :: system, unlink
+#endif
 
   type(anyprojparams) :: pjpara
   type(regcm_projection) :: pj

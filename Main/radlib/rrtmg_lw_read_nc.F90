@@ -44,7 +44,7 @@
 !===============================================================================
 
 module rrtmg_lw_read_nc
-implicit none (type, external)
+implicit none
 
   contains
 
@@ -55,7 +55,7 @@ subroutine lw_kgb01(fname)
     use rrlw_ncpar
     use netcdf
 
-    implicit none (type, external)
+    implicit none
     save
 
     character(len=*), intent(in) :: fname
@@ -124,7 +124,7 @@ subroutine lw_kgb02(fname)
         use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
        character(len=*), intent(in) :: fname
@@ -183,7 +183,7 @@ subroutine lw_kgb03(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -254,7 +254,7 @@ subroutine lw_kgb04(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -313,7 +313,7 @@ subroutine lw_kgb05(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -387,7 +387,7 @@ subroutine lw_kgb06(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -458,7 +458,7 @@ subroutine lw_kgb07(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -531,7 +531,7 @@ subroutine lw_kgb08(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -636,7 +636,7 @@ subroutine lw_kgb09(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -707,7 +707,7 @@ subroutine lw_kgb10(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -766,7 +766,7 @@ subroutine lw_kgb11(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -837,7 +837,7 @@ subroutine lw_kgb12(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -886,7 +886,7 @@ subroutine lw_kgb13(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -961,7 +961,7 @@ subroutine lw_kgb14(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
         character(len=*), intent(in) :: fname
 
@@ -1019,7 +1019,7 @@ subroutine lw_kgb15(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname
@@ -1075,7 +1075,7 @@ subroutine lw_kgb16(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none (type, external)
+        implicit none
         save
 
         character(len=*), intent(in) :: fname

@@ -25,7 +25,7 @@ module mod_interp
   use mod_constants
   use mod_earth
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -87,7 +87,7 @@ module mod_interp
   ! input funtion g is defined
   pure subroutine single_interp1d_r4(xi,g,xo,f,alfa,ex1,ex2)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rk4), dimension(:), intent(in) :: xi, g
     real(rk4), intent(in) :: xo
     real(rk4), intent(out) :: f
@@ -187,7 +187,7 @@ module mod_interp
 
   pure subroutine interp1d_r4(xi,g,xo,f,alfa,ex1,ex2)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     !  Input:  function g defined at irregular but strictly monotonic xi
     !  Output: f interpolated values at arbitrary coordinates xo
     real(rk4), dimension(:), intent(in) :: xi, xo, g
@@ -306,7 +306,7 @@ module mod_interp
 
   pure subroutine single_interp1d_r8(xi,g,xo,f,alfa,ex1,ex2)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rk8), dimension(:), intent(in) :: xi, g
     real(rk8), intent(in) :: xo
     real(rk8), intent(out) :: f
@@ -406,7 +406,7 @@ module mod_interp
 
   pure subroutine interp1d_r8(xi,g,xo,f,alfa,ex1,ex2)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rk8), dimension(:), intent(in) :: xi, xo, g
     real(rk8), dimension(:), intent(out) :: f
     real(rk8), intent(in) :: alfa
@@ -509,7 +509,7 @@ module mod_interp
 
   pure subroutine interp1d_r8_new(xi,g,xo,f,alfa,ex1,ex2,zi,zg,sxi,sxo)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: sxi, sxo
     real(rk8), dimension(sxi), intent(in) :: xi, g
     real(rk8), dimension(sxo), intent(in) :: xo
@@ -613,7 +613,7 @@ module mod_interp
   end subroutine interp1d_r8_new
 
   subroutine bilinx_2d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: iy, jx, nlat, nlon
     real(rkx), dimension(jx,iy), intent(in) :: alat, alon
     real(rkx), dimension(nlon,nlat), intent(in) :: b2
@@ -664,7 +664,7 @@ module mod_interp
   end subroutine bilinx_2d
 
   subroutine bilinx_3d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: iy, jx, llev, nlat, nlon
     real(rkx), dimension(jx,iy), intent(in) :: alat, alon
     real(rkx), dimension(nlon,nlat,llev), intent(in) :: b2
@@ -804,7 +804,7 @@ module mod_interp
 
   subroutine dwgt(jx,iy,nlon,nlat,b2,b3,d1xa,d1xb,d1xc,d1xd, &
                   i1dl,i1dr,i1ul,i1ur,j1dl,j1dr,j1ul,j1ur)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nlon, nlat, jx, iy
     real(rkx), dimension(nlon,nlat), intent(in) :: b2
     real(rkx), dimension(jx,iy), intent(out) :: b3
@@ -884,7 +884,7 @@ module mod_interp
   end subroutine dwgt
 
   subroutine distwgtcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: iy, jx, nlat, nlon
     real(rkx), dimension(jx,iy), intent(in) :: alat, alon
     real(rkx), dimension(nlon,nlat), intent(in) :: glat, glon
@@ -946,7 +946,7 @@ module mod_interp
   end subroutine distwgtcr
 
   subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: iy, jx, nlat, nlon
     real(rkx), dimension(jx,iy), intent(in) :: alat, alon
     real(rkx), dimension(jx,iy), intent(out) :: b3
@@ -1008,7 +1008,7 @@ module mod_interp
   end subroutine distwgtdt
 
   subroutine cressmcr3d(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: iy, jx, nlat, nlev, nlon, nf
     real(rkx), dimension(jx,iy), intent(in) :: alat, alon
     real(rkx), dimension(jx,iy,nlev*nf), intent(out) :: b3
@@ -1025,7 +1025,7 @@ module mod_interp
   end subroutine cressmcr3d
 
   subroutine cressmcr2d(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: iy, jx, nlat, nlon
     real(rkx), dimension(jx,iy), intent(in) :: alat, alon
     real(rkx), dimension(jx,iy), intent(out) :: b3
@@ -1036,7 +1036,7 @@ module mod_interp
   end subroutine cressmcr2d
 
   subroutine cressmdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: iy, jx, nlat, nlev, nlon, nf
     real(rkx), dimension(jx,iy), intent(in) :: alat, alon
     real(rkx), dimension(jx,iy,nlev*nf), intent(out) :: b3
@@ -1053,7 +1053,7 @@ module mod_interp
   end subroutine cressmdt
 
   subroutine kernsmooth2(f,nx,ny,npass)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nx, ny, npass
     real(rkx), dimension(nx,ny), intent(inout) :: f
     integer(ik4) :: i, j, n
@@ -1085,7 +1085,7 @@ module mod_interp
   end subroutine kernsmooth2
 
   subroutine kernsmooth3(f,nx,ny,nz,npass)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nx, ny, nz, npass
     real(rkx), dimension(nx,ny,nz), intent(inout) :: f
     integer(ik4) :: i, j, k, n
@@ -1120,7 +1120,7 @@ module mod_interp
 
   pure integer(ik4) function whereislon(nlon,lon,lonarr) result(jj)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nlon
     real(rkx), intent(in) :: lon
     real(rkx), dimension(nlon), intent(in) :: lonarr
@@ -1147,7 +1147,7 @@ module mod_interp
 
   pure integer(ik4) function whereislat(nlat,lat,latarr) result(ii)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: lat
     integer(ik4), intent(in) :: nlat
     real(rkx), dimension(nlat), intent(in) :: latarr
@@ -1167,7 +1167,7 @@ module mod_interp
   end function whereislat
 
   pure logical function rightof(a,b,l360)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: a, b
     logical, intent(in) :: l360
     if ( l360 ) then
@@ -1186,7 +1186,7 @@ module mod_interp
   end function rightof
 
   pure logical function topof(a,b,lsouthnorth)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: a, b
     logical, intent(in) :: lsouthnorth
     if ( lsouthnorth ) then

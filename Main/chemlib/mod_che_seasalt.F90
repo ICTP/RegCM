@@ -21,7 +21,7 @@ module mod_che_seasalt
   use mod_constants
   use mod_che_common
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -61,7 +61,7 @@ module mod_che_seasalt
 
   subroutine sea_salt(wind10,ivegcov)
 
-    implicit none (type, external)
+    implicit none
 
     integer(ik4), dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
     real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: wind10
@@ -161,7 +161,7 @@ module mod_che_seasalt
 !
   subroutine seasalt_emit(ireduce_smallr_emit,dpdrylo_cm, &
                           dpdryhi_cm,emitfact_numb,emitfact_mass)
-    implicit none (type, external)
+    implicit none
 
     integer(ik4), intent(in) :: ireduce_smallr_emit
     real(rkx), intent(in) :: dpdrylo_cm, dpdryhi_cm
