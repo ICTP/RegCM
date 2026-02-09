@@ -119,6 +119,12 @@ module mod_clm_control
     external :: hostnm, getlog, getcwd
 #endif
 
+    ! CLM namelist settings
+
+    ! ----------------------------------------------------------------------
+    ! Namelist Variables
+    ! ----------------------------------------------------------------------
+
     namelist /clm_inparm / &
          fatmlndfrc, finidat, nrevsn
 
