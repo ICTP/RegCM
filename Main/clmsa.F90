@@ -13,9 +13,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-program clmsa
-
 #ifdef CLM45
+program clmsa
   use mod_realkinds
   use mod_intkinds
   use mod_date
@@ -37,7 +36,7 @@ program clmsa
 #ifndef MPI_SERIAL
   use mpi
 #endif
-  implicit none
+  implicit none (type, external)
 
   real(rk8) :: extime
   real(rk8) :: timestr, timeend
@@ -69,7 +68,7 @@ program clmsa
   contains
 
   subroutine CLM_initialize(mpiCommunicator)
-    implicit none
+    implicit none (type, external)
     integer, intent(in), optional :: mpiCommunicator
     integer(ik4) :: ierr
     if (present(mpiCommunicator)) then
@@ -169,7 +168,7 @@ program clmsa
   !=======================================================================
   !
   subroutine CLM_run(timestr, timeend)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: timestr   ! starting time-step
     real(rk8), intent(in) :: timeend   ! ending   time-step
 
@@ -216,7 +215,7 @@ program clmsa
   end subroutine CLM_run
 
   subroutine CLM_finalize
-    implicit none
+    implicit none (type, external)
 
     if ( myid == italk ) then
       write(stdout,*) 'Final time ', trim(rcmtimer%str( )), ' reached.'
@@ -235,10 +234,13 @@ program clmsa
       write(stdout,*) 'CLM45 simulation successfully reached end'
     end if
   end subroutine CLM_finalize
+end program clmsa
 
 #else
+program clmsa
+  implicit none (type, external)
   write(0,*) 'This programs is enabled only if CLM45 is compiled in.'
+end program clmsa
 #endif
 
-end program clmsa
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

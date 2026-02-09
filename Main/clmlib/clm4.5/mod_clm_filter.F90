@@ -14,7 +14,7 @@ module mod_clm_filter
   use mod_clm_varcon, only : istsoil, isturb, icol_road_perv, istcrop
   use mod_dynparam
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -28,83 +28,83 @@ module mod_clm_filter
     integer(ik4) :: num_natvegp
 #endif
     ! prognostic crop filter (pfts)
-    integer(ik4), pointer, contiguous, dimension(:) :: pcropp
+    integer(ik4), pointer, contiguous, dimension(:) :: pcropp => null()
     ! number of pfts in prognostic crop filter
     integer(ik4) :: num_pcropp
     ! soil w/o prog. crops (pfts)
-    integer(ik4), pointer, contiguous, dimension(:) :: soilnopcropp
+    integer(ik4), pointer, contiguous, dimension(:) :: soilnopcropp => null()
     ! number of pfts in soil w/o prog crops
     integer(ik4) :: num_soilnopcropp
 
     ! lake filter (pfts)
-    integer(ik4), pointer, contiguous, dimension(:) :: lakep
+    integer(ik4), pointer, contiguous, dimension(:) :: lakep => null()
     ! number of pfts in lake filter
     integer(ik4) :: num_lakep
     ! non-lake filter (pfts)
-    integer(ik4), pointer, contiguous, dimension(:) :: nolakep
+    integer(ik4), pointer, contiguous, dimension(:) :: nolakep => null()
     ! number of pfts in non-lake filter
     integer(ik4) :: num_nolakep
     ! lake filter (columns)
-    integer(ik4), pointer, contiguous, dimension(:) :: lakec
+    integer(ik4), pointer, contiguous, dimension(:) :: lakec => null()
     ! number of columns in lake filter
     integer(ik4) :: num_lakec
     ! non-lake filter (columns)
-    integer(ik4), pointer, contiguous, dimension(:) :: nolakec
+    integer(ik4), pointer, contiguous, dimension(:) :: nolakec => null()
     ! number of columns in non-lake filter
     integer(ik4) :: num_nolakec
 
     ! soil filter (columns)
-    integer(ik4), pointer, contiguous, dimension(:) :: soilc
+    integer(ik4), pointer, contiguous, dimension(:) :: soilc => null()
     ! number of columns in soil filter
     integer(ik4) :: num_soilc
     ! soil filter (pfts)
-    integer(ik4), pointer, contiguous, dimension(:) :: soilp
+    integer(ik4), pointer, contiguous, dimension(:) :: soilp => null()
     ! number of pfts in soil filter
     integer(ik4) :: num_soilp
 
     ! snow filter (columns)
-    integer(ik4), pointer, contiguous, dimension(:) :: snowc
+    integer(ik4), pointer, contiguous, dimension(:) :: snowc => null()
     ! number of columns in snow filter
     integer(ik4) :: num_snowc
     ! non-snow filter (columns)
-    integer(ik4), pointer, contiguous, dimension(:) :: nosnowc
+    integer(ik4), pointer, contiguous, dimension(:) :: nosnowc => null()
     ! number of columns in non-snow filter
     integer(ik4) :: num_nosnowc
 
     ! hydrology filter (columns)
-    integer(ik4), pointer, contiguous, dimension(:) :: hydrologyc
+    integer(ik4), pointer, contiguous, dimension(:) :: hydrologyc => null()
     ! number of columns in hydrology filter
     integer(ik4) :: num_hydrologyc
 
     ! urban filter (landunits)
-    integer(ik4), pointer, contiguous, dimension(:) :: urbanl
+    integer(ik4), pointer, contiguous, dimension(:) :: urbanl => null()
     ! number of landunits in urban filter
     integer(ik4) :: num_urbanl
     ! non-urban filter (landunits)
-    integer(ik4), pointer, contiguous, dimension(:) :: nourbanl
+    integer(ik4), pointer, contiguous, dimension(:) :: nourbanl => null()
     ! number of landunits in non-urban filter
     integer(ik4) :: num_nourbanl
 
     ! urban filter (columns)
-    integer(ik4), pointer, contiguous, dimension(:) :: urbanc
+    integer(ik4), pointer, contiguous, dimension(:) :: urbanc => null()
     ! number of columns in urban filter
     integer(ik4) :: num_urbanc
     ! non-urban filter (columns)
-    integer(ik4), pointer, contiguous, dimension(:) :: nourbanc
+    integer(ik4), pointer, contiguous, dimension(:) :: nourbanc => null()
     ! number of columns in non-urban filter
     integer(ik4) :: num_nourbanc
 
     ! urban filter (pfts)
-    integer(ik4), pointer, contiguous, dimension(:) :: urbanp
+    integer(ik4), pointer, contiguous, dimension(:) :: urbanp => null()
     ! number of pfts in urban filter
     integer(ik4) :: num_urbanp
     ! non-urban filter (pfts)
-    integer(ik4), pointer, contiguous, dimension(:) :: nourbanp
+    integer(ik4), pointer, contiguous, dimension(:) :: nourbanp => null()
     ! number of pfts in non-urban filter
     integer(ik4) :: num_nourbanp
 
     ! non-lake, non-urban filter (pfts)
-    integer(ik4), pointer, contiguous, dimension(:) :: nolakeurbanp
+    integer(ik4), pointer, contiguous, dimension(:) :: nolakeurbanp => null()
     ! number of pfts in non-lake, non-urban filter
     integer(ik4) :: num_nolakeurbanp
   end type procfilter
@@ -121,7 +121,7 @@ module mod_clm_filter
   ! Allocate CLM filters.
   !
   subroutine allocFilters()
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: begp, endp  ! per-proc beginning and ending pft indices
     integer(ik4) :: begc, endc  ! per-proc beginning and ending column indices
     integer(ik4) :: begl, endl  ! per-proc beginning and ending ldunit indices
@@ -188,7 +188,7 @@ module mod_clm_filter
   ! Set CLM filters.
   !
   subroutine setFilters( )
-    implicit none
+    implicit none (type, external)
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
     integer(ik4) :: c, l, p   ! column, landunit, pft indices
     integer(ik4) :: fl          ! lake filter index

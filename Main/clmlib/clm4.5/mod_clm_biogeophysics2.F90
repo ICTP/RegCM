@@ -16,7 +16,7 @@ module mod_clm_biogeophysics2
   use mod_clm_soiltemperature, only : SoilTemperature
   use mod_clm_subgridave, only : p2c
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -60,7 +60,7 @@ module mod_clm_biogeophysics2
   subroutine Biogeophysics2 (lbl, ubl, lbc, ubc, lbp, ubp, &
              num_urbanl, filter_urbanl, num_nolakec, filter_nolakec, &
              num_nolakep, filter_nolakep)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbp, ubp  ! pft bounds
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     integer(ik4), intent(in) :: lbl, ubl  ! landunit bounds

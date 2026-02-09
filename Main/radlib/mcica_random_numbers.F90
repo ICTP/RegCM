@@ -79,7 +79,7 @@
 
   use parkind, only : im => kind_im, rb => kind_rb
 
-  implicit none
+  implicit none (type, external)
   private
 
   ! Algorithm parameters
@@ -125,7 +125,7 @@ contains
     integer(kind=im)              :: twist
 
     ! Local variable
-    integer(kind=im), parameter, dimension(0:1) :: t_matrix = (/ 0_im, MATRIX_A /)
+    integer(kind=im), parameter, dimension(0:1) :: t_matrix = [ 0_im, MATRIX_A ]
 
     twist = ieor(ishft(mixbits(u, v), -1_im), t_matrix(iand(v, 1_im)))
     twist = ieor(ishft(mixbits(u, v), -1_im), t_matrix(iand(v, 1_im)))
@@ -321,7 +321,7 @@ contains
 
   use parkind, only : im => kind_im, rb => kind_rb
 
-  implicit none
+  implicit none (type, external)
   private
 
   type randomNumberStream

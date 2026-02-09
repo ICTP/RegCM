@@ -21,7 +21,7 @@ module mod_mksoitex
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -35,7 +35,7 @@ module mod_mksoitex
   contains
 
   subroutine mksoitex(soitexfile,mask,sand,clay)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: soitexfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: sand, clay

@@ -22,6 +22,7 @@ module mod_cbmz_rates1
   use mod_cbmz_chemmech
   use mod_cbmz_chemlocal
   use mod_cbmz_jval1
+  implicit none (type, external)
 !
   private
 !
@@ -116,7 +117,7 @@ module mod_cbmz_rates1
 !
     subroutine chemrates
 !
-      implicit none
+      implicit none (type, external)
       ! Reaction counters
       integer(ik4) :: nr1
       ! Vectorization counters
@@ -410,7 +411,7 @@ module mod_cbmz_rates1
 !
     subroutine hvrates
 !
-      implicit none
+      implicit none (type, external)
       ! Vectorization counters
       integer(ik4) :: kk
       ! General counters
@@ -563,7 +564,7 @@ module mod_cbmz_rates1
 !
     real(rkx) function bod(u,b,c,d,e,tempx,denx)
 !
-      implicit none
+      implicit none (type, external)
 !
       ! ko(300) = Low pressure limit at 300 K.
       real(rkx), intent(in) :: b
@@ -621,7 +622,7 @@ module mod_cbmz_rates1
 !
     real(rkx) function ytn(c,tempx,denx)
 !
-      implicit none
+      implicit none (type, external)
       ! Number of carbon atoms in RO2
       real(rkx), intent(in) :: c
       ! temperature K

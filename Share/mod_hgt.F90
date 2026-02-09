@@ -20,7 +20,7 @@ module mod_hgt
   use mod_constants
   use mod_message
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -65,7 +65,7 @@ module mod_hgt
   contains
 
   subroutine hydrost(h,t,topo,ps,ptop,sigmah,ni,nj,nk)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in) :: ptop
     real(rkx), intent(in), dimension(nk) :: sigmah
@@ -106,7 +106,7 @@ module mod_hgt
   end subroutine hydrost
 
   subroutine nonhydrost_double(h,t0,p0,ps,topo,ni,nj,nk)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ni, nj, nk
     real(rk8), intent(in), dimension(ni,nj,nk) :: t0, p0
     real(rk8), intent(in), dimension(ni,nj) :: ps, topo
@@ -130,7 +130,7 @@ module mod_hgt
   end subroutine nonhydrost_double
 
   subroutine nonhydrost_single(h,t0,p0,ps,topo,ni,nj,nk)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ni, nj, nk
     real(rk4), intent(in), dimension(ni,nj,nk) :: t0, p0
     real(rk4), intent(in), dimension(ni,nj) :: ps, topo
@@ -154,7 +154,7 @@ module mod_hgt
   end subroutine nonhydrost_single
 
   subroutine nonhydrost_single_2(h,t0,p0,ps,topo,i1,i2,j1,j2,nk)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: i1, i2, j1, j2, nk
     real(rk8), intent(in), dimension(i1:i2,j1:j2,nk) :: t0, p0
     real(rk8), intent(in), dimension(i1:i2,j1:j2) :: ps, topo
@@ -178,7 +178,7 @@ module mod_hgt
   end subroutine nonhydrost_single_2
 
   subroutine height(hp,h,t,ps,p3d,ht,im,jm,km,p,kp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rkx), intent(in), dimension(im,jm,km) :: h, p3d, t
     real(rkx), intent(in), dimension(im,jm) :: ht, ps
@@ -270,7 +270,7 @@ module mod_hgt
 !-----------------------------------------------------------------------
 !
   subroutine height_o_double(hp,h,t,ps,ht,sig,ptop,im,jm,km,p,kp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rkx), intent(in) :: ptop
     real(rk8), intent(in), dimension(im,jm,km) :: h, t
@@ -344,7 +344,7 @@ module mod_hgt
   end subroutine height_o_double
 
   subroutine height_o_double_nonhy(hp,h,t,ps,ht,p3,im,jm,km,p,kp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rk8), intent(in), dimension(im,jm,km) :: h, t, p3
     real(rk8), intent(out), dimension(im,jm,kp) :: hp
@@ -403,7 +403,7 @@ module mod_hgt
   end subroutine height_o_double_nonhy
 
   subroutine height_o_single(hp,h,t,ps,ht,sig,ptop,im,jm,km,p,kp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rkx), intent(in) :: ptop
     real(rk4), intent(in), dimension(im,jm,km) :: h, t
@@ -478,7 +478,7 @@ module mod_hgt
   end subroutine height_o_single
 
   subroutine height_o_single_nonhy(hp,h,t,ps,ht,p3,im,jm,km,p,kp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rk4), intent(in), dimension(im,jm,km) :: h, t, p3
     real(rk4), intent(out), dimension(im,jm,kp) :: hp
@@ -537,7 +537,7 @@ module mod_hgt
   end subroutine height_o_single_nonhy
 
   subroutine htsig_1(t,h,p3d,ps,ht,im,jm,km)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km
     real(rkx), intent(in), dimension(im,jm,km) :: p3d, t
     real(rkx), intent(out), dimension(im,jm,km) :: h
@@ -586,7 +586,7 @@ module mod_hgt
   end subroutine htsig_1
 
   subroutine htsig_2(t,h,pstar,ht,sig,ptop,i1,i2,j1,j2,km)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: i1, i2, j1, j2, km
     real(rk8), intent(in) :: ptop
     real(rk8), intent(in), dimension(i1:i2,j1:j2,km) :: t
@@ -610,7 +610,7 @@ module mod_hgt
   end subroutine htsig_2
 
   subroutine htsig_3(z,t,p,q,ps,ht)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: t, p, q
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ps, ht
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: z
@@ -652,7 +652,7 @@ module mod_hgt
   end subroutine htsig_3
 
   subroutine htsig_o_double(t,h,pstar,ht,sig,ptop,im,jm,km)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km
     real(rkx), intent(in) :: ptop
     real(rk8), intent(in), dimension(im,jm,km) :: t
@@ -676,7 +676,7 @@ module mod_hgt
   end subroutine htsig_o_double
 
   subroutine htsig_o_single(t,h,pstar,ht,sig,ptop,im,jm,km)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km
     real(rkx), intent(in) :: ptop
     real(rk4), intent(in), dimension(im,jm,km) :: t
@@ -701,19 +701,19 @@ module mod_hgt
   end subroutine htsig_o_single
 
   pure elemental real(rkx) function p2pai(p) result(pai)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: p
     pai = (p/p00)**rovcp
   end function p2pai
 
   pure elemental real(rkx) function pai2p(pai) result(p)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: pai
     p = (pai**cpovr) * p00
   end function pai2p
 
   subroutine mslp2ps(h,t,slp,ht,ps,im,jm,km)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km
     real(rkx), dimension(im,jm,km), intent(in) :: h, t
     real(rkx), dimension(im,jm), intent(in) :: ht, slp
@@ -739,7 +739,7 @@ module mod_hgt
   end subroutine mslp2ps
 
   subroutine mslp(t,ps,ht,slp,im,jm,kz)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, kz
     real(rk4), dimension(im,jm,kz), intent(in) :: t
     real(rk4), dimension(im,jm), intent(in) :: ht, ps
@@ -763,7 +763,7 @@ module mod_hgt
   end subroutine mslp
 
   subroutine psig(t,h,p3d,ps,ht,im,jm,km)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km
     real(rkx), intent(in), dimension(im,jm,km) :: h, t
     real(rkx), intent(in), dimension(im,jm) :: ht, ps
@@ -783,7 +783,7 @@ module mod_hgt
   end subroutine psig
 
   subroutine psig1(t,h,p3d,ps,ht,im,jm,km)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm, km
     real(rkx), intent(in), dimension(im,jm,km) :: h, t
     real(rkx), intent(in), dimension(im,jm) :: ht, ps
@@ -804,7 +804,7 @@ module mod_hgt
 
   ! Gauss Siedel Filtering
   subroutine gs_filter(v,vm,im,jm)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, jm
     real(rk4), dimension(im,jm), intent(in) :: vm
     real(rk4), dimension(im,jm), intent(inout) :: v
@@ -833,7 +833,7 @@ module mod_hgt
   end subroutine gs_filter
 
   pure real(rkx) function crc_zeta_from_p(p) result(z)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: p
     real(rk8), parameter :: a1 = 44330.8_rk8
     real(rk8), parameter :: a2 = 4946.54_rk8
@@ -845,7 +845,7 @@ module mod_hgt
   end function crc_zeta_from_p
 
   pure real(rkx) function crc_p_from_zeta(z) result(p)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: z
     real(rk8) :: p8, z8
     z8 = z

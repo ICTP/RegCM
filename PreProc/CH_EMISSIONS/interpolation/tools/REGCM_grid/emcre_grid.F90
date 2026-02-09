@@ -16,7 +16,7 @@ PROGRAM EMCRE
   USE emcre_netcdf
   USE netcdf
 
-  IMPLICIT NONE
+  IMPLICIT NONE (type, external)
 
   ! FOR COMMAND LINE
   CHARACTER(LEN=256) :: EXE          ! program name
@@ -341,7 +341,7 @@ CONTAINS
 
 !    USE netcdf
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     INTRINSIC :: DATE_AND_TIME, CHAR
 
@@ -408,7 +408,7 @@ CONTAINS
 
     ! DEFINE COORDINATE VARIABLES WITH ATTRIBUTES
     CALL NFERR(status, &
-         nf90_def_var(ncid, 'grid_center_lon', NF90_FLOAT, (/ dimid_lon, dimid_lat /), varid_lon) &
+         nf90_def_var(ncid, 'grid_center_lon', NF90_FLOAT, [ dimid_lon, dimid_lat ], varid_lon) &
          ,60)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_lon, 'long_name', 'longitude') &
@@ -421,7 +421,7 @@ CONTAINS
 !         ,63)
 
     CALL NFERR(status, &
-         nf90_def_var(ncid, 'grid_center_lat', NF90_FLOAT, (/ dimid_lon, dimid_lat /), varid_lat) &
+         nf90_def_var(ncid, 'grid_center_lat', NF90_FLOAT, [ dimid_lon, dimid_lat ], varid_lat) &
          ,63)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_lat, 'long_name', 'latitude') &
@@ -434,7 +434,7 @@ CONTAINS
          ,65)
 
     CALL NFERR(status, &
-         nf90_def_var(ncid, 'grid_corner_lon', NF90_FLOAT, (/ dimid_bounds, dimid_lon, dimid_lat /), varid_lonb) &
+         nf90_def_var(ncid, 'grid_corner_lon', NF90_FLOAT, [ dimid_bounds, dimid_lon, dimid_lat ], varid_lonb) &
          ,63)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_lonb, 'long_name', 'longitude_bounds') &
@@ -444,7 +444,7 @@ CONTAINS
          ,64)
 
     CALL NFERR(status, &
-         nf90_def_var(ncid, 'grid_corner_lat', NF90_FLOAT, (/ dimid_bounds, dimid_lon, dimid_lat /), varid_latb) &
+         nf90_def_var(ncid, 'grid_corner_lat', NF90_FLOAT, [ dimid_bounds, dimid_lon, dimid_lat ], varid_latb) &
          ,63)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_latb, 'long_name', 'latitude_bounds') &
@@ -454,7 +454,7 @@ CONTAINS
          ,64)
 
    CALL NFERR(status, &
-         nf90_def_var(ncid, 'grid_dims', NF90_FLOAT, (/ dimid_rank /), varid_rank) &
+         nf90_def_var(ncid, 'grid_dims', NF90_FLOAT, [ dimid_rank ], varid_rank) &
          ,65)
 
 !    CALL NFERR(status, &
@@ -474,7 +474,7 @@ CONTAINS
 !    ! - flux
     CALL NFERR(status, &
          nf90_def_var(ncid, 'fixed_value', NF90_FLOAT  &
-        , (/ dimid_lon, dimid_lat /), varid_var) &
+        , [ dimid_lon, dimid_lat ], varid_var) &
          ,78)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_var, 'units', ' ') &
@@ -528,7 +528,7 @@ CONTAINS
 
     USE netcdf, ONLY: NF90_NOERR, nf90_strerror
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     ! I/O
     INTEGER,          INTENT(OUT) :: status

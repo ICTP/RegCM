@@ -25,7 +25,7 @@ module mod_che_sox
   use mod_che_indices
   use mod_che_carbonaer
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -42,7 +42,7 @@ module mod_che_sox
   contains
 
     subroutine chemsox(i,wl,fracloud,fracum,rho,ttb)
-     implicit none
+     implicit none (type, external)
      integer(ik4), intent(in) :: i
      real(rkx), dimension(jci1:jci2,kz), intent(in) :: ttb, wl, rho
      real(rkx), dimension(jci1:jci2,kz), intent(in) :: fracloud, fracum
@@ -392,7 +392,7 @@ module mod_che_sox
      ! Only SO2 reaction rate
      !
      pure real(rkx) function rrate(cair,temp) result(rk)
-       implicit none
+       implicit none (type, external)
        real(rkx), intent(in) :: cair, temp
        real(rk8), parameter :: rk0 = 3.0e-31_rkx
        real(rk8), parameter :: rnn = 3.3_rkx

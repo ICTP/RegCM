@@ -18,6 +18,7 @@ module mod_grid
   use mod_realkinds
   use mod_dynparam
   use mod_memutil
+  implicit none (type, external)
 
   private
 
@@ -35,7 +36,7 @@ module mod_grid
   contains
 
   subroutine init_domain
-    implicit none
+    implicit none (type, external)
     call getmem(xlat,1,jx,1,iy,'mod_read_domain:xlat')
     call getmem(xlon,1,jx,1,iy,'mod_read_domain:xlon')
     call getmem(xmask,1,jx,1,iy,'mod_read_domain:xmask')

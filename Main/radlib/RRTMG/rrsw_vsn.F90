@@ -1,6 +1,6 @@
       module rrsw_vsn
 
-      implicit none
+      implicit none (type, external)
       save
 
 !------------------------------------------------------------------
@@ -44,13 +44,13 @@
 ! hvrkg  :character:
 !------------------------------------------------------------------
 
-      character(len=18) hvrrtm,hvrini,hvrcld,hvrclc,hvrrft,hvrspv, &
+      character(len=18) :: hvrrtm,hvrini,hvrcld,hvrclc,hvrrft,hvrspv, &
                    hvrspc,hvrset,hvrtau,hvrvqd,hvratm,hvrutl,hvrext
-      character(len=20) hnamrtm,hnamini,hnamcld,hnamclc,hnamrft,hnamspv, &
+      character(len=20) :: hnamrtm,hnamini,hnamcld,hnamclc,hnamrft,hnamspv, &
                    hnamspc,hnamset,hnamtau,hnamvqd,hnamatm,hnamutl,hnamext
 
-      character(len=18) hvrkg
-      character(len=20) hnamkg
+      character(len=18) :: hvrkg
+      character(len=20) :: hnamkg
 
       end module rrsw_vsn
 

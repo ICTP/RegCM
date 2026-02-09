@@ -19,7 +19,7 @@ module mod_message
   use mod_intkinds
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -28,8 +28,8 @@ module mod_message
 
   character, parameter :: esc = achar(27)
   integer(ik4), parameter :: maxplot = 10
-  character, parameter :: plot(0:maxplot) = [ &
-      ' ', '.', ',', ':', '=', '+', 'o', 'x', 'X', '#', '@' ]
+  character, parameter :: plot(0:maxplot) = &
+    [ ' ', '.', ',', ':', '=', '+', 'o', 'x', 'X', '#', '@' ]
 
   integer(ik4) :: rows = 24
   integer(ik4) :: cols = 48
@@ -50,32 +50,32 @@ module mod_message
 
   interface myabort
     subroutine myabort( )
-      implicit none
+      implicit none (type, external)
     end subroutine myabort
   end interface myabort
 
   contains
 
   subroutine setup_mesg(ipid)
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: ipid
     iprank = ipid
   end subroutine setup_mesg
 
   subroutine say
-    implicit none
+    implicit none (type, external)
     if ( iprank == 0 ) write (stdout,*) trim(aline)
   end subroutine say
 
   subroutine note
-    implicit none
+    implicit none (type, external)
     write (aline,*) '------------------ NOTICE -----------------'
     write (stderr,*) ' Processor ', iprank, ' : ', trim(aline)
     write (aline,*) '-------------------------------------------'
   end subroutine note
 
   subroutine cry
-    implicit none
+    implicit none (type, external)
     if ( iprank == 0 ) then
       write (aline,*) '------------- IMPORTANT NOTICE ------------'
       write (stderr,*) trim(aline)
@@ -84,7 +84,7 @@ module mod_message
   end subroutine cry
 
   subroutine fatal(filename,line,str)
-    implicit none
+    implicit none (type, external)
     character(*), intent(in) :: filename, str
     integer(ik4), intent(in) :: line
     write (cline,'(i8)') line
@@ -103,7 +103,7 @@ module mod_message
 #else
   pure subroutine checkalloc(ival,filename,line,arg)
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ival, line
     character(*), intent(in) :: filename, arg
 #ifdef DEBUG
@@ -118,21 +118,21 @@ module mod_message
   end subroutine checkalloc
 
   subroutine die0(msg)
-    implicit none
+    implicit none (type, external)
     character (len=*), intent(in) :: msg
     if ( iprank == 0 ) write (stderr,*) msg
     call myabort
   end subroutine die0
 
   subroutine die1(msg,msg1)
-    implicit none
+    implicit none (type, external)
     character (len=*), intent(in) :: msg, msg1
     if ( iprank == 0 ) write (stderr,*) msg, ' : ', msg1
     call myabort
   end subroutine die1
 
   subroutine die2(msg,msg1,ier1)
-    implicit none
+    implicit none (type, external)
     character (len=*), intent(in) :: msg, msg1
     integer(ik4), intent(in) :: ier1
     if ( iprank == 0 ) write (stderr,*) msg, ' : ', msg1, ': ', ier1
@@ -140,7 +140,7 @@ module mod_message
   end subroutine die2
 
   subroutine die4(msg,msg1,ier1,msg2,ier2)
-    implicit none
+    implicit none (type, external)
     character (len=*), intent(in) :: msg, msg1, msg2
     integer(ik4), intent(in) :: ier1, ier2
     if ( iprank == 0 ) write (stderr,*) msg, ' : ', msg1, &

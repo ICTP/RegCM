@@ -45,7 +45,7 @@ module mod_cmip6
   use mod_cmip6_mpilr
   use mod_cmip6_ipsllr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -97,7 +97,7 @@ module mod_cmip6
   contains
 
     subroutine init_cmip6(idate)
-      implicit none
+      implicit none (type, external)
       type(rcm_time_and_date), intent(in) :: idate
       integer(ik4) :: k
       if ( dattyp == 'PMIP4' ) then
@@ -931,7 +931,7 @@ module mod_cmip6
     end subroutine init_cmip6
 
     subroutine get_cmip6(idate)
-      implicit none
+      implicit none (type, external)
       type(rcm_time_and_date), intent(in) :: idate
       integer(ik4) :: i, j, k
 
@@ -1486,7 +1486,7 @@ module mod_cmip6
     end subroutine get_cmip6
 
     subroutine conclude_cmip6( )
-      implicit none
+      implicit none (type, external)
       if ( idynamic == 3 ) then
         call h_interpolator_destroy(orog%hint(1))
         call h_interpolator_destroy(orog%hint(2))

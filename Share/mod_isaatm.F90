@@ -17,7 +17,7 @@ module mod_isaatm
   use mod_realkinds
   use mod_constants
 
-  implicit none
+  implicit none (type, external)
   private
 
   public :: isaatm
@@ -25,7 +25,7 @@ module mod_isaatm
   contains
 
   subroutine isaatm(height,temperature,pressure,density)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: height       ! Height in meter
     real(rkx), intent(out) :: temperature ! Temperature in K
     real(rkx), intent(out) :: pressure    ! Pressure in Pa

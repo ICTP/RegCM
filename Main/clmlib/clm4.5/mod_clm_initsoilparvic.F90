@@ -1,4 +1,5 @@
 module mod_clm_initsoilparvic
+implicit none (type, external)
   !
   ! Performs mapping between VIC and CLM layers
   !
@@ -9,7 +10,7 @@ module mod_clm_initsoilparvic
   use mod_clm_varcon, only : denh2o, denice, pondmx
   use mod_clm_varpar, only : nlevsoi, nlayer, nlayert, nlevgrnd
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -25,7 +26,7 @@ module mod_clm_initsoilparvic
   !
   pure subroutine initSoilParVIC(c, claycol, sandcol, om_fraccol)
     !$acc routine seq
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in)  :: c ! column bounds
     ! read in - soil texture: percent sand
     real(rk8), pointer, contiguous :: sandcol(:,:)

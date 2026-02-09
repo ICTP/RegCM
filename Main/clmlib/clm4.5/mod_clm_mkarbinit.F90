@@ -32,7 +32,7 @@ module mod_clm_mkarbinit
   use mod_clm_decomp, only : get_proc_bounds
   use mod_clm_snicar, only : snw_rds_min
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -59,7 +59,7 @@ module mod_clm_mkarbinit
   ! temperature: t_soisno, t_veg, t_grnd
   !
   subroutine mkarbinit()
-    implicit none
+    implicit none (type, external)
     ! column index associated with each pft
     integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! column type
@@ -700,7 +700,7 @@ module mod_clm_mkarbinit
   ! temperature: t_soisno, t_veg, t_grnd
   !
   subroutine mkregcminit( adomain )
-    implicit none
+    implicit none (type, external)
     type(atm_domain), intent(in) :: adomain
     ! column index associated with each pft
     integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
@@ -1389,7 +1389,7 @@ module mod_clm_mkarbinit
   ! Perturbs initial conditions by the amount in the namelist variable pertlim.
   !
   subroutine perturbIC( landunit )
-    implicit none
+    implicit none (type, external)
     type(landunit_type), intent(inout) :: landunit
     integer(ik4) :: j, l, c   ! indices
     integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
@@ -1468,7 +1468,7 @@ module mod_clm_mkarbinit
   ! Note that cps%zi(0) is set in routine iniTimeConst.
   !
   subroutine snow_depth2lev(lbc, ubc)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc ! column bounds
     ! landunit index associated with each column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit

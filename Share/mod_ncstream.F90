@@ -31,7 +31,7 @@ module mod_ncstream
   use netcdf
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -98,14 +98,15 @@ module mod_ncstream
   contains
 
     subroutine instream_setup(ncin,params)
-      implicit none
+      implicit none (type, external)
       type(nc_input_stream), intent(inout) :: ncin
       type(ncinstream_params), intent(in) :: params
       type(ncinstream), pointer :: stream
-      integer(ik4) :: imode = nf90_nowrite
+      integer(ik4) :: imode
       integer(ik4) :: dimtime, i
       type(rcm_time_and_date) :: tt
 
+      imode = nf90_nowrite
       if ( associated(ncin%ncp%xs) ) call instream_dispose(ncin)
       allocate(ncin%ncp%xs)
       stream => ncin%ncp%xs
@@ -276,7 +277,7 @@ module mod_ncstream
     end subroutine instream_setup
 
     subroutine outstream_setup(ncout,params)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       type(ncoutstream_params), intent(in) :: params
       type(ncoutstream), pointer :: stream
@@ -423,7 +424,7 @@ module mod_ncstream
     end subroutine outstream_setup
 
     subroutine instream_dispose(ncin)
-      implicit none
+      implicit none (type, external)
       type(nc_input_stream), intent(inout) :: ncin
       type(ncinstream), pointer :: stream
 
@@ -451,7 +452,7 @@ module mod_ncstream
     end subroutine instream_dispose
 
     subroutine outstream_dispose(ncout)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       type(ncoutstream), pointer :: stream
 
@@ -480,11 +481,11 @@ module mod_ncstream
 
     subroutine deallocate_obuffer(xbf)
 #ifdef OPENACC
-      use iso_c_binding
+      use, intrinsic :: iso_c_binding
       use cudafor
 #endif
-      implicit none
-      type(internal_obuffer), pointer :: xbf
+      implicit none (type, external)
+      type(internal_obuffer), intent(inout), pointer :: xbf
 #ifdef OPENACC
       integer(c_int) :: istat
 #endif
@@ -509,8 +510,8 @@ module mod_ncstream
     end subroutine deallocate_obuffer
 
     subroutine deallocate_ibuffer(xbf)
-      implicit none
-      type(internal_ibuffer), pointer :: xbf
+      implicit none (type, external)
+      type(internal_ibuffer), intent(inout), pointer :: xbf
       if ( .not. associated(xbf) ) return
       if ( allocated(xbf%intbuff) )  deallocate(xbf%intbuff)
       if ( allocated(xbf%realbuff) ) deallocate(xbf%realbuff)
@@ -519,10 +520,10 @@ module mod_ncstream
 
     subroutine outstream_enable(ncout,sigma)
 #ifdef OPENACC
-      use iso_c_binding
+      use, intrinsic :: iso_c_binding
       use cudafor
 #endif
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       real(rkx), dimension(:), pointer, contiguous, intent(in) :: sigma
       real(rkx), dimension(size(sigma)) :: zita
@@ -1183,7 +1184,7 @@ module mod_ncstream
       contains
 
       subroutine compute_zero_rotated(rlat0,rlon0)
-        implicit none
+        implicit none (type, external)
         real(rk8), intent(out) :: rlat0, rlon0
         real(rk8) :: pphi, plam
         real(rk8) :: cphi, clam
@@ -1241,7 +1242,7 @@ module mod_ncstream
     end subroutine outstream_enable
 
     subroutine outstream_sync(ncout)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(in) :: ncout
       type(ncoutstream), pointer :: stream
       if ( .not. associated(ncout%ncp%xs) ) return
@@ -1263,7 +1264,7 @@ module mod_ncstream
     end subroutine outstream_sync
 
     subroutine instream_findrec(ncin,dtime,record)
-      implicit none
+      implicit none (type, external)
       type(nc_input_stream), intent(inout) :: ncin
       type(rcm_time_and_date), intent(in) :: dtime
       real(rk8), intent(out) :: record
@@ -1282,7 +1283,7 @@ module mod_ncstream
     end subroutine instream_findrec
 
     subroutine outstream_addrec_date(ncout,dtime)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       type(rcm_time_and_date), intent(in) :: dtime
       real(rk8) :: val
@@ -1291,7 +1292,7 @@ module mod_ncstream
     end subroutine outstream_addrec_date
 
     subroutine outstream_addrec_value(ncout,val)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       real(rk8), intent(in) :: val
       type(ncoutstream), pointer :: stream
@@ -1314,7 +1315,7 @@ module mod_ncstream
     end subroutine outstream_addrec_value
 
     subroutine add_dimension(stream,dname)
-      implicit none
+      implicit none (type, external)
       type(ncoutstream), pointer, intent(inout) :: stream
       character(len=*), intent(in) :: dname
       character(len=16) :: the_name, in_name
@@ -1455,7 +1456,7 @@ module mod_ncstream
     end subroutine add_dimension
 
     subroutine outstream_addatt(ncout,att)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       class(ncattribute_standard), intent(in) :: att
       if ( .not. associated(ncout%ncp%xs) ) return
@@ -1463,7 +1464,7 @@ module mod_ncstream
     end subroutine outstream_addatt
 
     subroutine outstream_addvaratt(ncout,var,att)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(in) :: ncout
       class(ncvariable_standard), intent(in) :: var
       class(ncattribute_standard), intent(in) :: att
@@ -1472,12 +1473,12 @@ module mod_ncstream
     end subroutine outstream_addvaratt
 
     subroutine add_attribute(stream,att,iloc,vname)
-      implicit none
+      implicit none (type, external)
       type(ncoutstream), pointer, intent(in) :: stream
       class(ncattribute_standard), intent(in) :: att
-      integer(ik4), optional :: iloc
+      integer(ik4), intent(in), optional :: iloc
       character(len=4) :: cdum
-      character(len=*), optional :: vname
+      character(len=*), intent(in), optional :: vname
       character(len=32) :: the_name
       integer(ik4) :: iv
       if ( stream%l_enabled ) return
@@ -1613,7 +1614,7 @@ module mod_ncstream
     end subroutine add_attribute
 
     subroutine add_varatts(stream,var)
-      implicit none
+      implicit none (type, external)
       type(ncoutstream), pointer, intent(inout) :: stream
       class(ncvariable_standard), intent(in) :: var
       character(len=*), parameter :: coords_cross = 'xlat xlon'
@@ -1701,7 +1702,7 @@ module mod_ncstream
     end subroutine add_varatts
 
     subroutine add_variable(ncout,var,ndims)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       class(ncvariable_standard), intent(inout) :: var
       integer(ik4), intent(in) :: ndims
@@ -1794,9 +1795,9 @@ module mod_ncstream
     end subroutine add_variable
 
     subroutine outstream_addvar(ncout,var)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
-      class(ncvariable_standard) :: var
+      class(ncvariable_standard) , intent(inout) :: var
       type(ncoutstream), pointer :: stream
       type(internal_obuffer), pointer :: buffer
       integer(ik4) :: nd
@@ -2081,7 +2082,7 @@ module mod_ncstream
     end subroutine outstream_addvar
 
     subroutine dimlist(stream,code)
-      implicit none
+      implicit none (type, external)
       type(ncoutstream), intent(inout), pointer :: stream
       character(len=*), intent(in) :: code
       character(len=ncmaxdims) :: safecode
@@ -2206,7 +2207,7 @@ module mod_ncstream
       use cudafor
 #endif
       !@acc use nvtx
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       class(ncvariable_standard), intent(inout) :: var
       logical, intent(in), optional :: lcopy
@@ -3590,8 +3591,8 @@ module mod_ncstream
     end subroutine outstream_writevar
 
     subroutine cdumlogical(cdum,yesno)
-      implicit none
-      character(len=*), intent(out) :: cdum
+      implicit none (type, external)
+      character(len=4), intent(out) :: cdum
       logical, intent(in) :: yesno
       if (yesno) then
         write(cdum,'(a)') 'Yes'
@@ -3601,7 +3602,7 @@ module mod_ncstream
     end subroutine cdumlogical
 
     subroutine add_common_global_params(ncout)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       type(ncoutstream), pointer :: stream
       type(basic_variables), pointer :: stvar
@@ -3805,7 +3806,7 @@ module mod_ncstream
     end subroutine add_common_global_params
 
     subroutine instream_readvar(ncin,var,irec,window)
-      implicit none
+      implicit none (type, external)
       type(nc_input_stream), intent(inout) :: ncin
       class(ncvariable_standard), intent(inout) :: var
       integer(ik4), intent(in), optional :: irec
@@ -5330,7 +5331,7 @@ module mod_ncstream
     end subroutine instream_readvar
 
     subroutine printerror
-      implicit none
+      implicit none (type, external)
 #ifdef PNETCDF
       write(stderr, *) nf90mpi_strerror(ncstat)
 #else
@@ -5339,7 +5340,7 @@ module mod_ncstream
     end subroutine printerror
 
     pure elemental real(rk4) function bitshave_nb(x,nb) result(y)
-      implicit none
+      implicit none (type, external)
       real(rk4), intent(in) :: x
       integer(ik4), intent(in) :: nb
       integer(ik4) :: mask
@@ -5349,7 +5350,7 @@ module mod_ncstream
     end function bitshave_nb
 
     pure elemental real(rk4) function bitshave_15(x) result(y)
-      implicit none
+      implicit none (type, external)
       real(rk4), intent(in) :: x
       integer(ik4), parameter :: mask = -256
       y = transfer(iand(transfer(x,0_ik4),mask),1.0_rk4)
@@ -5368,6 +5369,7 @@ end subroutine myabort
 program test
   use mod_ncstream
   use mod_dynparam
+  implicit none (type, external)
 
   type(nc_output_stream) :: ncout
   type(nc_input_stream) :: ncin

@@ -1,4 +1,5 @@
 module mod_clm_cnvegstructupdate
+implicit none (type, external)
 
 #ifdef CN
   !
@@ -8,7 +9,7 @@ module mod_clm_cnvegstructupdate
   use mod_realkinds
   use mod_runparams, only : dtsrf
 
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -31,7 +32,7 @@ module mod_clm_cnvegstructupdate
     use mod_clm_varcon, only : rpi
     !use mod_clm_pftvarcon, only : nbrdlf_evr_trp_tree, &
      ! nc4_grass, nc3_nonarctic_grass
-    implicit none
+    implicit none (type, external)
     ! number of column soil points in pft filter
     integer(ik4), intent(in) :: num_soilp
     ! pft filter for soil points
@@ -95,7 +96,7 @@ module mod_clm_cnvegstructupdate
     real(rk8) :: tsai_alpha  ! monthly decay rate of tsai
     ! samy : minimum leaf area index for pft retrieved from BATS scheme
     real(rk8) :: tlai_min
-    real(rk8) dt             ! radiation time step (sec)
+    real(rk8) :: dt             ! radiation time step (sec)
 
     ! number of seconds in a 30 day month (60x60x24x30)
     real(rk8), parameter :: dtsmonth = 2592000._rk8

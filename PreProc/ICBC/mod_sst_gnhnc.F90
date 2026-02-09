@@ -31,6 +31,7 @@ module mod_sst_gnhnc
   use mod_lgm_helper
   use mod_date
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -72,7 +73,7 @@ module mod_sst_gnhnc
   !
   !**************************************************************************
   subroutine sst_gnhnc
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:) :: glat
     real(rkx), pointer, contiguous, dimension(:) :: glon
     real(rkx), pointer, contiguous, dimension(:) :: grev
@@ -290,7 +291,7 @@ module mod_sst_gnhnc
   !     Subroutine to read required records from SST data file
   !
   subroutine gnhnc_sst(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent (in) :: idate
     integer(ik4) :: it, i, j
     integer(ik4) :: year, month, day, hour
@@ -458,7 +459,7 @@ module mod_sst_gnhnc
     contains
 
       subroutine getworkf(irec,wk)
-        implicit none
+        implicit none (type, external)
         integer(ik4), intent(in) :: irec
         real(rkx), pointer, contiguous, dimension(:,:) :: wk
         integer(ik4) :: itile, iti, itf
@@ -477,7 +478,7 @@ module mod_sst_gnhnc
       end subroutine getworkf
 
       subroutine getworki(irec,wk)
-        implicit none
+        implicit none (type, external)
         integer(ik4), intent(in) :: irec
         integer(ik2), pointer, contiguous, dimension(:,:) :: wk
         integer(ik4) :: itile, iti, itf

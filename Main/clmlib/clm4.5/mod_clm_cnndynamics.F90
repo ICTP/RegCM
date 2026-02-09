@@ -1,4 +1,5 @@
 module mod_clm_cnndynamics
+implicit none (type, external)
 #ifdef CN
   !
   ! Module for mineral nitrogen dynamics (deposition, fixation, leaching)
@@ -10,7 +11,7 @@ module mod_clm_cnndynamics
   use mod_runparams, only : dtsrf
   use mod_clm_varcon, only : dzsoi_decomp, zisoi
   use mod_clm_varctl, only : ndep_nochem
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -43,7 +44,7 @@ module mod_clm_cnndynamics
   subroutine CNNDeposition( lbc, ubc )
     use mod_clm_type
     use mod_clm_atmlnd, only : clm_a2l
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc        ! column bounds
     real(rk8), pointer, contiguous :: forc_ndep(:)  ! nitrogen deposition rate (gN/m2/s)
     real(rk8), pointer, contiguous :: ndep(:) !nitrogen deposition rate (gN/m2/year)
@@ -81,7 +82,7 @@ module mod_clm_cnndynamics
   subroutine CNNFixation(num_soilc, filter_soilc)
     use mod_clm_type
     use mod_clm_varcon     , only: secspday, spval
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     real(rk8), pointer, contiguous :: cannsum_npp(:) ! nitrogen deposition rate (gN/m2/s)
@@ -143,7 +144,7 @@ module mod_clm_cnndynamics
   subroutine CNNLeaching(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
     use mod_clm_varpar     , only : nlevdecomp, nlevsoi
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
@@ -368,7 +369,7 @@ module mod_clm_cnndynamics
   subroutine CNNFert(num_soilc, filter_soilc)
     use mod_clm_type
     use mod_clm_subgridave, only : p2c
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
 
@@ -395,7 +396,7 @@ module mod_clm_cnndynamics
     use mod_clm_pftvarcon, only : nsoybean
     use mod_clm_subgridave, only : p2c
 
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter

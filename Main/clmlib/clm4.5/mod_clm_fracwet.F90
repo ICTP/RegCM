@@ -7,7 +7,7 @@ module mod_clm_fracwet
   use mod_realkinds
   use mod_clm_type
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -25,7 +25,7 @@ module mod_clm_fracwet
   ! can transpire.  Adjusted for stem area which does not transpire.
   !
   subroutine FracWet(numf, filter)
-    implicit none
+    implicit none (type, external)
     ! number of filter non-lake points
     integer(ik4), intent(in) :: numf
     ! pft filter for non-lake points

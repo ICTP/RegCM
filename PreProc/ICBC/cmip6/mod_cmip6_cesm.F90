@@ -25,7 +25,7 @@ module mod_cmip6_cesm
   use mod_cmip6_helper
   use netcdf
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -38,7 +38,7 @@ module mod_cmip6_cesm
   contains
 
     subroutine read_hcoord_cesm(ncid,lon,lat)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -64,7 +64,7 @@ module mod_cmip6_cesm
     end subroutine read_hcoord_cesm
 
     subroutine read_hcoord_sst_cesm(ncid,lon,lat)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -90,7 +90,7 @@ module mod_cmip6_cesm
     end subroutine read_hcoord_sst_cesm
 
     subroutine read_vcoord_cesm(ncid,a,b,p0)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:), intent(inout) :: a, b
       real(rkx), intent(out) :: p0
@@ -117,7 +117,7 @@ module mod_cmip6_cesm
     end subroutine read_vcoord_cesm
 
     recursive subroutine read_3d_cesm(idate,v,lonlyc)
-      implicit none
+      implicit none (type, external)
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_3d_var), pointer, intent(inout) :: v
       logical, optional, intent(in) :: lonlyc
@@ -251,7 +251,7 @@ module mod_cmip6_cesm
     end subroutine read_3d_cesm
 
     recursive subroutine read_2d_cesm(idate,v,lonlyc)
-      implicit none
+      implicit none (type, external)
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), pointer, intent(inout) :: v
       logical, optional, intent(in) :: lonlyc
@@ -365,7 +365,7 @@ module mod_cmip6_cesm
     end subroutine read_2d_cesm
 
     recursive subroutine read_fx_cesm(v)
-      implicit none
+      implicit none (type, external)
       type(cmip6_2d_var), pointer, intent(inout) :: v
       integer(ik4) :: istatus
 
@@ -397,7 +397,7 @@ module mod_cmip6_cesm
     end subroutine read_fx_cesm
 
     recursive subroutine read_sst_cesm(idate,v,lat,lon)
-      implicit none
+      implicit none (type, external)
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), intent(inout) :: v
       real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lon, lat

@@ -83,7 +83,7 @@
       use rrtmg_lw_setcoef, only: setcoef
       use rrtmg_lw_taumol, only: taumol
 
-      implicit none
+      implicit none (type, external)
 
 ! public interfaces/functions/subroutines
       public :: rrtmg_lw_nomcica, inatm_nomcica
@@ -459,7 +459,7 @@
 ! icld = 1, with clouds using random cloud overlap
 ! icld = 2, with clouds using maximum/random cloud overlap
 ! icld = 3, with clouds using maximum cloud overlap (McICA only)
-      if (icld.lt.0.or.icld.gt.3) icld = 2
+      if (icld<0.or.icld>3) icld = 2
 
 ! Set iaer to select aerosol option
 ! iaer = 0, no aerosols
@@ -586,7 +586,7 @@
 ! are present, then select routine based on cloud overlap assumption
 ! to be used.  Clear sky calculation is done simultaneously.
 
-           if (icld .eq. 1) then
+           if (icld == 1) then
              call rtrn(nlayers, istart, iend, iout, pz, semiss, ncbands, &
                     cldfrac, taucloud, planklay, planklev, plankbnd, &
                     pwvcm, fracs, taut, &
@@ -662,7 +662,7 @@
 
 !  If idrv=1 option is active, transfer upward flux derivatives to output arrays.
 
-         if (idrv .eq. 1) then
+         if (idrv == 1) then
             do k = 0, nlayers
                duflx_dt(iplon,k+1) = dtotuflux_dt(k)
                duflxc_dt(iplon,k+1) = dtotuclfl_dt(k)
@@ -940,7 +940,7 @@
          amttl = amttl + coldry(l)+wkl(1,l)
          wvttl = wvttl + wkl(1,l)
          do ix = 1,maxxsec
-            if (ixindx(ix) .ne. 0) then
+            if (ixindx(ix) /= 0) then
                wx(ixindx(ix),l) = coldry(l) * wx(ix,l) * 1.e-20_rb
             endif
          enddo
@@ -959,7 +959,7 @@
 ! Transfer aerosol optical properties to RRTM variable;
 ! modify to reverse layer indexing here if necessary.
 
-     if (iaer .ge. 1) then
+     if (iaer >= 1) then
         do l = 1, nlayers
            do ib = 1, nbndlw
               taua(l,ib) = tauaer(iplon,l,ib)
@@ -970,7 +970,7 @@
 ! Transfer cloud fraction and cloud optical properties to RRTM variables,
 ! modify to reverse layer indexing here if necessary.
 
-      if (icld .ge. 1) then
+      if (icld >= 1) then
          inflag = inflglw
          iceflag = iceflglw
          liqflag = liqflglw

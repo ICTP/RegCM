@@ -37,7 +37,7 @@ module mod_che_start
   use mod_che_bionit
   use mod_cbmz_hvread
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -48,7 +48,7 @@ module mod_che_start
   !--------------------------------------------------------------------------
 
   subroutine start_chem
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i, j, k, n, itr, ibin, jbin, kbin, mmin, mbin
     integer(ik4) :: ipunit
     character(len=8) :: minamesav
@@ -131,7 +131,7 @@ module mod_che_start
 #endif
 
     trac%indcbmz(:) = -1
-    trac%mw(:) = d_zero
+    trac%mw(:) = 0.0_rkx
 
     ibin = 0
     jbin = 0
@@ -256,7 +256,7 @@ module mod_che_start
       ! max configuration : number of tracer = number of species
 
 !      trac%indcbmz(:) = -1
-!      trac%mw(:) = d_zero
+!      trac%mw(:) = 0.0_rkx
       do n = 1,totsp
         if ( chtrname(itr) == cbmzspec(n) )then
           ! index of the tracer in the CBMZ list of species
@@ -359,7 +359,7 @@ module mod_che_start
     !
     ! look also in aerosol bc and pile them after. (Expect when using DU12)
     !
-    if ( iaerosol == 1 .and. chemsimtype(1:4) .ne. 'DU12' ) then
+    if ( iaerosol == 1 .and. chemsimtype(1:4) /= 'DU12' ) then
       do n = 1, size(aeaero)
         do i = 1, ntr
           if ( aeaero(n) == chtrname(i) ) then
@@ -431,7 +431,7 @@ module mod_che_start
           do k = 1, kz
             do i = ice1, ice2
               do j = jce1, jce2
-                chemt(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
+                chemt(j,i,k,n) = max(chib0(j,i,k,n),0.0_rkx)
               end do
             end do
           end do
@@ -441,8 +441,8 @@ module mod_che_start
           do k = 1, kz
             do i = ice1, ice2
               do j = jce1, jce2
-                chia(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
-                chib(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
+                chia(j,i,k,n) = max(chib0(j,i,k,n),0.0_rkx)
+                chib(j,i,k,n) = max(chib0(j,i,k,n),0.0_rkx)
               end do
             end do
           end do

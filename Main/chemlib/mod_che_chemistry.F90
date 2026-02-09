@@ -29,7 +29,7 @@ module mod_che_chemistry
   use mod_cbmz_main1
   use mod_che_molwg
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -44,7 +44,7 @@ module mod_che_chemistry
   contains
 
   subroutine chemistry
-    implicit none
+    implicit none (type, external)
     real(rkx) :: cfactor, pfact
     real(rk8) :: change
     integer(ik4) :: i, j, k, ic, n

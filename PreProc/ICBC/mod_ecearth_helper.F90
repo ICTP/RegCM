@@ -19,6 +19,7 @@ module mod_ecearth_helper
   use mod_realkinds
   use mod_dynparam
   use mod_date
+  implicit none (type, external)
 
   private
 
@@ -35,7 +36,7 @@ module mod_ecearth_helper
   contains
 
   subroutine find_ecearth_sst(fname,idate,cmor)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: fname
     type(rcm_time_and_date), intent(in) :: idate
     logical, intent(in) :: cmor
@@ -81,7 +82,7 @@ module mod_ecearth_helper
   end subroutine find_ecearth_sst
 
   subroutine find_ecearth_topo(fname,cmor)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: fname
     logical, intent(in) :: cmor
     if ( cmor ) then
@@ -93,7 +94,7 @@ module mod_ecearth_helper
   end subroutine find_ecearth_topo
 
   subroutine find_ecearth_dim(dim_filename,cmor)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: dim_filename
     logical, intent(in) :: cmor
     ! Just return the name of one file in the historical dataset
@@ -108,7 +109,7 @@ module mod_ecearth_helper
   end subroutine find_ecearth_dim
 
   subroutine find_ecearth_file(ecearth_filename,var,idate,cmor)
-    implicit none
+    implicit none (type, external)
     logical, intent(in) :: cmor
     character(len=256), intent(out) :: ecearth_filename
     character(len=*), intent(in) :: var

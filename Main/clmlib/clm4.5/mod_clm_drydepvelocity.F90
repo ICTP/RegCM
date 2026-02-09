@@ -66,7 +66,7 @@ Module mod_clm_drydepvelocity
           index_co=>co_ndx, index_ch4=>ch4_ndx, index_pan=>pan_ndx, &
           index_xpan=>xpan_ndx
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -92,7 +92,7 @@ Module mod_clm_drydepvelocity
             nbrdlf_dcd_brl_shrub, nc3_arctic_grass, nc3_nonarctic_grass, &
             nc4_grass, nc3crop, nc3irrig, npcropmin, npcropmax
 
-    implicit none
+    implicit none (type, external)
 
     integer(ik4), intent(in) :: lbp, ubp                    ! pft bounds
 
@@ -302,7 +302,7 @@ Module mod_clm_drydepvelocity
         ! 5 - Transitional spring with partially green short annuals
 
         !mlaidiff=jan-feb
-         
+
         minlai = minval(annlai(:,pi))
         maxlai = maxval(annlai(:,pi))
 
@@ -397,7 +397,7 @@ Module mod_clm_drydepvelocity
         call seq_drydep_setHCoeff( sfc_temp, heff(:n_drydep) )
         !*********************************************************
         species_loop1: do ispec=1, n_drydep
-          if ( mapping(ispec) <= 0 ) cycle
+          if ( mapping(ispec) <= 0 ) cycle species_loop1
 
           if ( ispec == index_o3  .or. &
                ispec == index_o3a .or. &
@@ -514,7 +514,7 @@ Module mod_clm_drydepvelocity
               rlux(index_o3a) = cts + rlux(index_o3a)
             end if
             species_loop2: do ispec = 1, n_drydep
-              if ( mapping(ispec) <= 0 ) cycle
+              if ( mapping(ispec) <= 0 ) cycle species_loop2
               if ( ispec /= index_o3  .and. &
                    ispec /= index_o3a .and. &
                    ispec /= index_so2 ) then
@@ -543,7 +543,7 @@ Module mod_clm_drydepvelocity
         rds = 1._rk8/vds(pi)
 
         species_loop3: do ispec=1,n_drydep
-          if ( mapping(ispec) <= 0 ) cycle
+          if ( mapping(ispec) <= 0 ) cycle species_loop3
           !
           ! compute rc
           !

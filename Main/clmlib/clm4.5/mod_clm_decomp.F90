@@ -13,7 +13,7 @@ module mod_clm_decomp
   use mod_clm_type, only : nameg, namel, namec, namep
   use mod_clm_domain, only : ldomain
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -42,7 +42,7 @@ module mod_clm_decomp
 
   !---global information on each pe
   type processor_type
-    logical, dimension(:,:), pointer, contiguous :: gcmask
+    logical, dimension(:,:), pointer, contiguous :: gcmask => null()
     integer(ik4) :: icomm
     integer(ik4) :: ncells           ! number of gridcells in proc
     integer(ik4) :: nlunits          ! number of landunits in proc
@@ -52,21 +52,21 @@ module mod_clm_decomp
     integer(ik4) :: begl, endl      ! beginning and ending landunit index
     integer(ik4) :: begc, endc      ! beginning and ending column index
     integer(ik4) :: begp, endp      ! beginning and ending pft index
-    integer(ik4), pointer, contiguous, dimension(:) :: gc
-    integer(ik4), pointer, contiguous, dimension(:) :: gd
-    integer(ik4), pointer, contiguous, dimension(:) :: lc
-    integer(ik4), pointer, contiguous, dimension(:) :: ld
-    integer(ik4), pointer, contiguous, dimension(:) :: cc
-    integer(ik4), pointer, contiguous, dimension(:) :: cd
-    integer(ik4), pointer, contiguous, dimension(:) :: pc
-    integer(ik4), pointer, contiguous, dimension(:) :: pd
+    integer(ik4), pointer, contiguous, dimension(:) :: gc => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: gd => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: lc => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: ld => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: cc => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: cd => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: pc => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: pd => null()
   end type processor_type
 
   type subgrid_type
     integer(ik4) :: icomm
     integer(ik4) :: ns, is, ie
-    integer(ik4), pointer, contiguous, dimension(:) :: ic
-    integer(ik4), pointer, contiguous, dimension(:) :: id
+    integer(ik4), pointer, contiguous, dimension(:) :: ic => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: id => null()
   end type subgrid_type
 
   public processor_type, subgrid_type
@@ -79,9 +79,9 @@ module mod_clm_decomp
   type(subgrid_type), public, target :: gcomm_pft
 
   type decomp_type
-    integer, pointer, contiguous, dimension(:) :: lunxgdc ! Number of luns per gridcell
-    integer, pointer, contiguous, dimension(:) :: colxgdc ! Number of cols per gridcell
-    integer, pointer, contiguous, dimension(:) :: pftxgdc ! Number of pfts per gridcell
+    integer, pointer, contiguous, dimension(:) :: lunxgdc => null() ! Number of luns per gridcell
+    integer, pointer, contiguous, dimension(:) :: colxgdc => null() ! Number of cols per gridcell
+    integer, pointer, contiguous, dimension(:) :: pftxgdc => null() ! Number of pfts per gridcell
   end type decomp_type
 
   public decomp_type
@@ -93,7 +93,7 @@ module mod_clm_decomp
     ! Retrieve gridcell, landunit, column, and pft bounds for process.
     !
     subroutine get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
-      implicit none
+      implicit none (type, external)
       ! proc beg and end pft indices
       integer(ik4), optional, intent(out) :: begp, endp
       ! proc beg and end column indices
@@ -115,7 +115,7 @@ module mod_clm_decomp
     ! Count up gridcells, landunits, columns, and pfts on process.
     !
     subroutine get_proc_total(ncells, nlunits, ncols, npfts)
-      implicit none
+      implicit none (type, external)
       ! total number of gridcells on the processor
       integer(ik4), intent(out) :: ncells
       ! total number of landunits on the processor
@@ -134,7 +134,7 @@ module mod_clm_decomp
     ! processes.
     !
     subroutine get_proc_global(ng,nl,nc,np)
-      implicit none
+      implicit none (type, external)
       ! total number of gridcells across all processors
       integer(ik4), intent(out) :: ng
       ! total number of landunits across all processors
@@ -152,7 +152,7 @@ module mod_clm_decomp
     ! Determine 1d size from clmlevel
     !
     integer(ik4) function get_clmlevel_gsize(clmlevel)
-      implicit none
+      implicit none (type, external)
       character(len=*), intent(in) :: clmlevel ! type of clm 1d array
       select case (clmlevel)
         case(nameg)

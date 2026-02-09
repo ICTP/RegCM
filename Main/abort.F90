@@ -17,7 +17,7 @@
     use mod_dynparam, only : mycomm
     use mod_intkinds
     use mpi
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: ierr, myid
     character(len=8) :: date
     character(len=10) :: time

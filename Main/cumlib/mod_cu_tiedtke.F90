@@ -39,7 +39,7 @@ module mod_cu_tiedtke
           lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar
   use mod_regcm_types
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -120,7 +120,7 @@ module mod_cu_tiedtke
   ! This subroutines allocates space
   !
   subroutine allocate_mod_cu_tiedtke
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i, j, ii
     call getmem(pmean,1,kz,'mod_cu_tiedtke:pmean')
     nipoi = 0
@@ -188,7 +188,7 @@ module mod_cu_tiedtke
   ! This subroutines calls cucall
   !
   subroutine tiedtkedrv(m2c,uxten,vxten)
-    implicit none
+    implicit none (type, external)
     type(mod_2_cum), intent(in) :: m2c
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: uxten
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: vxten
@@ -528,7 +528,7 @@ module mod_cu_tiedtke
     ! This routine defines parameters for massflux scheme
     !
     subroutine setup(smax,pmean)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: smax
       real(rkx), dimension(kz), intent(in) :: pmean
       integer(ik4) :: k
@@ -566,24 +566,24 @@ module mod_cu_tiedtke
                     pqtec,pshfla,pqhfla,papp1,paphp1,pgeo,pgeoh, &
                     prsfc,pssfc,pmflxr,pmfu,zlude,ktype,ldland,  &
                     kctop,kcbot,ptopmax,pccn,zcvrout)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevm1, klevp1, kproma, ktrac
-    integer(ik4), dimension(kbdim,klev) :: ilab
-    integer(ik4), dimension(kbdim) :: ktype
-    logical, dimension(kbdim) :: ldland
-    real(rkx), dimension(kbdim,klevp1) :: paphp1, pgeoh
+    integer(ik4), dimension(kbdim,klev), intent(inout) :: ilab
+    integer(ik4), dimension(kbdim), intent(inout) :: ktype
+    logical, dimension(kbdim), intent(inout) :: ldland
+    real(rkx), dimension(kbdim,klevp1), intent(in) :: paphp1, pgeoh
     real(rkx), dimension(kbdim,klevp1), intent(out) :: pmflxr
-    real(rkx), dimension(kbdim,klev) :: papp1, pgeo, pqm1, pqte,   &
-           pqtec, ptm1, ptte, pum1, pverv, pvm1, pvol, pvom,  &
-           pxim1, pxite, pxlm1, pxlte, pxtec, pmfu, zlude, pccn
-    real(rkx), dimension(kbdim) :: pqhfla, pshfla, prsfc, &
-           pssfc, ptopmax
+    real(rkx), dimension(kbdim,klev), intent(inout) :: ptte, pxite, &
+           pxlte, pmfu, pqte, pvom, pvol
+    real(rkx), dimension(kbdim,klev), intent(in) :: papp1, pgeo,   &
+           pqm1, pqtec, ptm1, pum1, pverv, pvm1, pxim1, pxlm1, pxtec, pccn
+    real(rkx), dimension(kbdim,klev), intent(out) :: zlude
+    real(rkx), dimension(kbdim), intent(in) :: pqhfla, pshfla
+    real(rkx), dimension(kbdim), intent(inout) :: prsfc, pssfc
+    real(rkx), dimension(kbdim), intent(inout) :: ptopmax
     integer(ik4), dimension(kbdim), intent(out) :: kctop, kcbot
-    real(rkx), dimension(kbdim,klev,ktrac) :: pxtm1, pxtte
-    intent (in) papp1, pqm1, ptm1, pum1, pvm1, pxim1, &
-           pxlm1, pxtm1, pccn
-    intent(out) :: zlude
-    intent (inout) ptopmax
+    real(rkx), dimension(kbdim,klev,ktrac), intent(in) :: pxtm1
+    real(rkx), dimension(kbdim,klev,ktrac), intent(inout) :: pxtte
     integer(ik4), dimension(kbdim) :: itopec2
     integer(ik4) :: ilevmin, jk, jl, jt
     logical, dimension(kbdim) :: locum
@@ -866,7 +866,7 @@ module mod_cu_tiedtke
                      pxtte,pverv,pqsen,pqhfla,paphp1,pgeo,ptte,pqte,&
                      pvom,pvol,prsfc,pssfc,pxtec,pqtec,pqude,ldcum, &
                      ktype,kcbot,kctop,ptu,pqu,plu,plude,pmfu,pmfd,prain)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevm1, &
                                  klevp1, kproma, ktrac
     integer(ik4), dimension(kbdim,klev) :: ilab
@@ -1343,7 +1343,7 @@ module mod_cu_tiedtke
                       ptte,pqte,pvom,pvol,prsfc,pssfc,pxtec,pqtec,  &
                       pqude,ldcum,ktype,kcbot,kctop,ptu,pqu,plu,    &
                       plude,pmfu,pmfd,prain)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevm1, &
                                  klevp1, kproma, ktrac
     integer(ik4), dimension(kbdim,klev) :: ilab
@@ -1771,7 +1771,7 @@ module mod_cu_tiedtke
                       ptte,pqte,pvom,pvol,prsfc,pssfc,pxtec,pqtec,  &
                       pqude,ldcum,ktype,kcbot,kctop,ptu,pqu,plu,    &
                       plude,pmfu,pmfd,prain)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevm1, klevp1, kproma, ktrac
     integer(ik4), dimension(kbdim,klev) :: ilab
     integer(ik4), dimension(kbdim) :: kcbot, kctop, ktype
@@ -2092,7 +2092,7 @@ module mod_cu_tiedtke
                    pvu,pud,pvd,pmfu,pmfd,pmfus,pmfds,pmfuq,pmfdq,   &
                    pdmfup,pdmfdp,pcpen,pcpcu,pdpmel,plu,plude,pqude,&
                    klab)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, kproma, ktrac, klevm1, klevp1
     integer(ik4), dimension(kbdim,klev) :: klab
     integer(ik4), dimension(kbdim) :: klwmin
@@ -2290,7 +2290,7 @@ module mod_cu_tiedtke
                    pentr,pmfus,pmfuq,pmful,plude,pqude,pdmfup,khmin,&
                    phhatt,phcbase,pqsenh,pcpen,pcpcu,kcbot,kctop,   &
                    kctop0)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevp1, kproma, ktrac, &
                klevm1
     integer(ik4), dimension(kbdim) :: kcbot, kctop, kctop0, khmin,    &
@@ -2781,7 +2781,7 @@ module mod_cu_tiedtke
                     ldcum,ldland,ktype,klab,ptu,pqu,plu,puu,pvu,    &
                     pmfu,pmfub,pentr,pmfus,pmfuq,pmful,plude,pqude, &
                     pdmfup,pcpen,pcpcu,kcbot,kctop,kctop0)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevm1, &
                                  klevp1, kproma, ktrac
     integer(ik4), dimension(kbdim) :: kcbot, kctop, kctop0, klwmin,   &
@@ -3138,7 +3138,7 @@ module mod_cu_tiedtke
   subroutine cubase(kproma,kbdim,klev,klevp1,klevm1,ptenh,pqenh,    &
                     pgeoh,paph,ptu,pqu,plu,puen,pven,puu,pvu,pcpcu, &
                     ldcum,kcbot,klab)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevm1, klevp1, kproma
     integer(ik4), dimension(kbdim) :: kcbot
     integer(ik4), dimension(kbdim,klev) :: klab
@@ -3257,7 +3257,7 @@ module mod_cu_tiedtke
                      ldcum,ktype,pmfu,pmfub,pentr,kcbot,ptu,pqu,plu,&
                      puu,pvu,pmfus,pmfuq,pmful,pdmfup,pmfuu,pcpen,  &
                      pmfuv)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, kk, klev, kproma, ktrac
     integer(ik4), dimension(kbdim) :: kcbot, ktype
     integer(ik4), dimension(kbdim,klev) :: klab
@@ -3349,7 +3349,7 @@ module mod_cu_tiedtke
                      ktrac,pxtenh,pxtd,pmfdxt,pgeoh,paphp1,prfl,ptd,&
                      pqd,pud,pvd,pmfd,pmfds,pmfdq,pdmfdp,pcpcu,     &
                      lddraf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevp1, kproma, ktrac
     logical, dimension(kbdim) :: lddraf
     real(rkx), dimension(kbdim,klevp1) :: paphp1
@@ -3506,7 +3506,7 @@ module mod_cu_tiedtke
                     pqu,puu,pvu,ldcum,kcbot,kctop,pmfub,prfl,ptd,   &
                     pqd,pud,pvd,pmfd,pmfds,pmfdq,pdmfdp,pcpcu,kdtop,&
                     lddraf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevp1, kproma, ktrac
     integer(ik4), dimension(kbdim) :: kcbot, kctop, kdtop
     logical, dimension(kbdim) :: ldcum, lddraf
@@ -3648,7 +3648,7 @@ module mod_cu_tiedtke
                     pmfus,pmfds,pmfuq,pmfdq,pmful,pdmfup,pdmfdp,    &
                     plude,pdpmel,prfl,psfl,pcpen,pqtec,pqude,prsfc, &
                     pssfc)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevp1, kproma, ktopm2, ktrac
     logical, dimension(kbdim) :: ldcum
     real(rkx), dimension(kbdim,klevp1) :: paphp1
@@ -3773,7 +3773,7 @@ module mod_cu_tiedtke
   subroutine cududv(kproma,kbdim,klev,klevp1,ktopm2,ktype,kcbot,    &
                     paphp1,ldcum,puen,pven,pvom,pvol,puu,pud,pvu,   &
                     pvd,pmfu,pmfd)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevp1, kproma, ktopm2
     integer(ik4), dimension(kbdim) :: kcbot, ktype
     logical, dimension(kbdim) :: ldcum
@@ -3890,7 +3890,7 @@ module mod_cu_tiedtke
   subroutine cuentr(kproma,kbdim,klev,klevp1,kk,ptenh,pqenh,pqte,   &
                     paphp1,klwmin,ldcum,ktype,kcbot,kctop0,ppbase,  &
                     pmfu,pentr,podetr,khmin,pgeoh,pdmfen,pdmfde)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, kk, klev, klevp1, kproma
     integer(ik4), dimension(kbdim) :: kcbot, kctop0, khmin, klwmin,   &
                                   ktype
@@ -3988,7 +3988,7 @@ module mod_cu_tiedtke
   subroutine cuentrt(kproma,kbdim,klev,klevp1,kk,ptenh,pqenh,pqte,  &
                      paphp1,klwmin,ldcum,ktype,kcbot,kctop0,ppbase, &
                      pmfu,pentr,pdmfen,pdmfde)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, kk, klev, klevp1, kproma
     integer(ik4), dimension(kbdim) :: kcbot, kctop0, klwmin, ktype
     logical, dimension(kbdim) :: ldcum
@@ -4053,27 +4053,25 @@ module mod_cu_tiedtke
                    kctop,kdtop,ktype,lddraf,ldcum,pmfu,pmfd,pmfus,  &
                    pmfds,pmfuq,pmfdq,pmful,pdmfup,pdmfdp,prfl,prain,&
                    pcpcu,pten,psfl,pdpmel,ktopm2)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: kbdim, klev, klevp1, kproma, ktrac
     integer(ik4), intent(inout):: ktopm2
-    integer(ik4), dimension(kbdim) :: kcbot, kctop, kdtop, ktype
-    logical, dimension(kbdim) :: ldcum, lddraf
-    real(rkx), dimension(kbdim,klevp1) :: paphp1
-    real(rkx), dimension(kbdim,klev) :: pcpcu, pdmfdp, pdmfup,      &
-           pdpmel, pgeoh, pmfd, pmfdq, pmfds, pmfu, pmful,     &
-           pmfuq, pmfus, pqen, pqenh, pqsen, pten, ptenh
-    real(rkx), dimension(kbdim,klev,ktrac) :: pmfdxt, pmfuxt, pxtenh
-    real(rkx), dimension(kbdim) :: prain, prfl, psfl
-    intent (in) kcbot, kctop, kdtop, ldcum, paphp1, pcpcu, pgeoh, &
-                pqen, pqenh, pqsen, pten, ptenh, pxtenh
-    intent (out) pdpmel
-    intent (inout) ktype, lddraf, pdmfdp, pdmfup, pmfd, pmfdq, &
-                   pmfds, pmfdxt, pmfu, pmful, pmfuq, pmfus,   &
-                   pmfuxt, prain, prfl, psfl
+    integer(ik4), dimension(kbdim), intent(in) :: kcbot, kctop, kdtop
+    integer(ik4), dimension(kbdim), intent(inout) :: ktype
+    logical, dimension(kbdim), intent(in) :: ldcum
+    logical, dimension(kbdim), intent(inout) :: lddraf
+    real(rkx), dimension(kbdim,klevp1), intent(in) :: paphp1
+    real(rkx), dimension(kbdim,klev), intent(in) :: pcpcu, pgeoh, pqen, &
+           pqenh, pqsen, pten, ptenh
+    real(rkx), dimension(kbdim,klev), intent(inout) :: pdmfdp, pdmfup, &
+           pmfd, pmfdq, pmfds, pmfu, pmful, pmfuq, pmfus
+    real(rkx), dimension(kbdim,klev), intent(out) :: pdpmel
+    real(rkx), dimension(kbdim,klev,ktrac), intent(in) :: pxtenh
+    real(rkx), dimension(kbdim,klev,ktrac), intent(inout) :: pmfdxt, pmfuxt
+    real(rkx), dimension(kbdim), intent(inout) :: prain, prfl, psfl
     integer(ik4) :: ikb, jk, jl, jt
-    real(rkx) :: zcons1, zcons2, zcucov, zdpevap, zdrfl, zfac,    &
-               zrfl, zrfln, zrmin, zrnew, zrsum, zsnmlt,        &
-               ztmelp2, zzp
+    real(rkx) :: zcons1, zcons2, zcucov, zdpevap, zdrfl, zfac,  &
+            zrfl, zrfln, zrmin, zrnew, zrsum, zsnmlt, ztmelp2, zzp
     real(rkx), dimension(kbdim) :: zpsubcl
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuflx'
@@ -4254,7 +4252,7 @@ module mod_cu_tiedtke
   !     FOR CONDENSATION CALCULATIONS.
   !
   subroutine cuadjtq(kproma,kbdim,klev,kk,pp,pt,pq,ldflag,kcall)
-    implicit none
+    implicit none (type, external)
     integer, intent (in) :: kcall, kk, klev, kproma, kbdim
     real(rkx), intent (in) :: pp(kbdim)
     logical, intent (in) :: ldflag(kbdim)
@@ -4565,7 +4563,7 @@ module mod_cu_tiedtke
                       tu,qu,lu,mflxr,mflxs,rain,mfu,mfd,            &
                       lude,mfude_rate,mfdde_rate,cape,              &
                       ntrac,qtrac,tenc,ccn,cvrainout)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: np    ! number of points
     integer(ik4), intent(in) :: nk    ! number of levels
     integer(ik4), intent(in) :: n1    ! start point
@@ -7099,7 +7097,7 @@ module mod_cu_tiedtke
     ! Produce adjusted t,q and l values
     !
     subroutine moistadj(kk,sp,t,q,ldflag,jcall)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: kk ! actual level
       real(rkx), dimension(np), intent(in) :: sp ! Surface pressure Pa
       real(rkx), dimension(np,nk), intent(inout) :: t
@@ -7256,7 +7254,7 @@ module mod_cu_tiedtke
     ! vertical scaling function
     !
     subroutine entrainm(kk,ldwork,dmfen,dmfde)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: kk ! input level
       logical, intent(in) :: ldwork                      ! enable/disable
       real(rkx), dimension(np), intent(out) :: dmfen    ! Entrainment
@@ -7290,7 +7288,7 @@ module mod_cu_tiedtke
     ! for midlevel convection
     !
     subroutine mcbase(kk)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: kk                     ! current level
       integer(ik4) :: n
       !-----------------------------------------------
@@ -7331,7 +7329,7 @@ module mod_cu_tiedtke
     ! to correct tendencies below cloud base
     !
     subroutine dudvx(mfu,mfd)
-      implicit none
+      implicit none (type, external)
       real(rkx), dimension(np,nk), intent(in) :: mfu   ! Mass Flux Updraft
       real(rkx), dimension(np,nk), intent(in) :: mfd   ! Mass Flux Downdraft
       real(rkx), dimension(np,nk) :: uen, ven, mfuu, mfdu, mfuv, mfdv
@@ -7464,7 +7462,7 @@ module mod_cu_tiedtke
     !                        To correct tendencies below cloud base
     !
     subroutine ctracer(ldcum,lddraf,mfu,mfd,pudrate,pddrate)
-      implicit none
+      implicit none (type, external)
       logical, dimension(np), intent(in) :: ldcum
       logical, dimension(np), intent(in) :: lddraf
       real(rkx), dimension(np,nk), intent(in) :: mfu
@@ -7652,7 +7650,7 @@ module mod_cu_tiedtke
   ! cloud scheme to compute relative humidity and liquid water content
   !
   subroutine satur(n1,n2,nk,kt,pr,t,qsat)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: n1, n2, nk              ! dimensions
     integer(ik4), intent(in) :: kt                      ! top level
     real(rkx), dimension(n1:n2,nk), intent(in) :: pr    ! Pressure Pa
@@ -7681,7 +7679,7 @@ module mod_cu_tiedtke
   !          (  0             0             A(nk)      B(nk)    )
   !
   subroutine solver(n1,n2,nk,ktop,wmask,a,b,r,u)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: n1, n2, nk          ! dimensions
     integer(ik4), dimension(n1:n2), intent(in) :: ktop ! cloud top
     logical, dimension(n1:n2,nk), intent(in) :: wmask  ! mask
@@ -7710,13 +7708,13 @@ module mod_cu_tiedtke
   end subroutine solver
 
   pure real(rkx) function xmin(x,y)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: x, y
     xmin = y - d_half*(abs(x-y)-(x-y))
   end function xmin
 
   pure real(rkx) function lwocp(t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     real(rkx) :: gtzero
     gtzero = max(d_zero,sign(d_one,t-tzero))
@@ -7724,7 +7722,7 @@ module mod_cu_tiedtke
   end function lwocp
 
   pure real(rkx) function xalpha(t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     xalpha = min(d_one,((max(rtice,min(rtwat,t))-rtice)*rtwat_rtice_r)**2)
   end function xalpha
@@ -7732,7 +7730,7 @@ module mod_cu_tiedtke
   ! Magnus Tetens formula
   !
   pure real(rkx) function fesat(t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     real(rkx) :: xa
     xa = xalpha(t)
@@ -7741,7 +7739,7 @@ module mod_cu_tiedtke
   end function fesat
 
   pure real(rkx) function fdqsat(t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     real(rkx) :: xa
     xa = xalpha(t)
@@ -7750,7 +7748,7 @@ module mod_cu_tiedtke
   end function fdqsat
 
   pure real(rkx) function mlwocp(t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     real(rkx) :: xa
     xa = xalpha(t)
@@ -7758,19 +7756,19 @@ module mod_cu_tiedtke
   end function mlwocp
 
   pure real(rkx) function esw(t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     esw = c3les*(t-tzero)/(t-c4les)
   end function esw
 
   pure real(rkx) function esi(t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     esi = c3ies*(t-tzero)/(t-c4ies)
   end function esi
 
   pure real(rkx) function mlwt(t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     real(rkx) :: xa
     xa = xalpha(t)

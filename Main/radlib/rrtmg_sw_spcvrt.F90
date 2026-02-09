@@ -45,7 +45,7 @@ module rrtmg_sw_spcvrt
   use rrtmg_sw_taumol, only: taumol_sw
   use rrtmg_sw_vrtqdr, only: vrtqdr_sw
 
-  implicit none
+  implicit none (type, external)
 
   contains
 

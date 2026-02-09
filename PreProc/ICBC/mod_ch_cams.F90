@@ -35,6 +35,7 @@ module mod_cams
   use mod_kdinterp
   use mod_ch_param
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -58,7 +59,7 @@ module mod_cams
   real(rkx), pointer, contiguous, dimension(:) :: plevs
   real(rkx), pointer, contiguous, dimension(:) :: sigmar
   real(rkx) :: pss, pst
-  integer(2), pointer, contiguous, dimension(:,:,:) :: work
+  integer(ik2), pointer, contiguous, dimension(:,:,:) :: work
 
   integer(ik4), dimension(20) :: inet5 !care the first dimension must be
                                         !bigger than the number of species
@@ -76,9 +77,8 @@ module mod_cams
   contains
 
   subroutine init_cams(typ)
-
-    implicit none
-    character(len=2) :: typ
+    implicit none (type, external)
+    character(len=2), intent(in) :: typ
     integer(ik4) :: k
     integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
@@ -250,7 +250,7 @@ module mod_cams
   end subroutine init_cams
 
   subroutine get_cams(idate,typ)
-    implicit none
+    implicit none (type, external)
     character(len=2), intent(in) :: typ
     type(rcm_time_and_date), intent(in) :: idate
     !
@@ -444,7 +444,7 @@ module mod_cams
   end subroutine get_cams
 
   subroutine cams6hour(dattyp,idate,idate0,typ)
-    implicit none
+    implicit none (type, external)
     character(len=5), intent(in) :: dattyp
     character(len=2), intent(in) ::typ
     type(rcm_time_and_date), intent(in) :: idate, idate0
@@ -646,7 +646,7 @@ module mod_cams
     contains
 
       subroutine getwork(irec)
-        implicit none
+        implicit none (type, external)
         integer(ik4), intent(in) :: irec
         integer(ik4) :: itile, iti, itf
         iti = 1
@@ -666,7 +666,7 @@ module mod_cams
   end subroutine cams6hour
 
   subroutine conclude_cams
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then

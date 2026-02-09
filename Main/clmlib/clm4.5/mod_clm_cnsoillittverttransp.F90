@@ -1,4 +1,5 @@
 module mod_clm_cnsoillittverttransp
+implicit none (type, external)
 
 #ifdef CN
   !
@@ -12,7 +13,7 @@ module mod_clm_cnsoillittverttransp
   use mod_mpmessage
   use mod_stdio
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -43,7 +44,7 @@ module mod_clm_cnsoillittverttransp
     use mod_clm_varpar, only : nlevdecomp, ndecomp_pools, nlevdecomp_full
     use mod_clm_varcon, only : zsoi, dzsoi_decomp, zisoi
     use mod_clm_tridiagonal, only : Tridiagonal
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc   ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: lbc, ubc        ! column-index bounds
@@ -436,7 +437,7 @@ module mod_clm_cnsoillittverttransp
     contains
 
       pure real(rk8) function aaa(pe)
-        implicit none
+        implicit none (type, external)
         real(rk8), intent(in) :: pe
         ! A function from Patankar, Table 5.2, pg 95
         aaa = max (0._rk8, (1._rk8 - 0.1_rk8 * abs(pe))**5)

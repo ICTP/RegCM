@@ -25,7 +25,7 @@ module mod_cbmz_linearalgebra
   use mod_cbmz_parameters
   use mod_cbmz_jacobiansp
 
-  implicit none
+  implicit none (type, external)
 
   contains
 
@@ -33,7 +33,7 @@ module mod_cbmz_linearalgebra
   !        sparse lu factorization
   ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   subroutine kppdecomp( jvs, ier )
-    implicit none
+    implicit none (type, external)
     real(kind=dp), dimension(lu_nonzero), intent(inout) :: jvs
     real(kind=dp), dimension(nvar) ::  w
     real(kind=dp) :: a
@@ -76,7 +76,7 @@ module mod_cbmz_linearalgebra
   ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   subroutine kppsolve ( jvs, x )
-    implicit none
+    implicit none (type, external)
     ! jvs - sparse jacobian of variables
     real(kind=dp), dimension(lu_nonzero), intent(in) :: jvs
     ! x - vector for variables

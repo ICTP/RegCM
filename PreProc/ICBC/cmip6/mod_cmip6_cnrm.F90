@@ -25,7 +25,7 @@ module mod_cmip6_cnrm
   use mod_cmip6_helper
   use netcdf
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -38,7 +38,7 @@ module mod_cmip6_cnrm
   contains
 
     subroutine read_hcoord_cnrm(ncid,lon,lat)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -64,7 +64,7 @@ module mod_cmip6_cnrm
     end subroutine read_hcoord_cnrm
 
     subroutine read_hcoord_sst_cnrm(ncid,lon,lat)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -90,7 +90,7 @@ module mod_cmip6_cnrm
     end subroutine read_hcoord_sst_cnrm
 
     subroutine read_vcoord_cnrm(ncid,ap,b)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:), intent(inout) :: ap, b
       integer(ik4) :: istatus, idimid, ivarid
@@ -112,7 +112,7 @@ module mod_cmip6_cnrm
     end subroutine read_vcoord_cnrm
 
     recursive subroutine read_3d_cnrm(idate,v,lonlyc)
-      implicit none
+      implicit none (type, external)
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_3d_var), pointer, intent(inout) :: v
       logical, optional, intent(in) :: lonlyc
@@ -256,7 +256,7 @@ module mod_cmip6_cnrm
     end subroutine read_3d_cnrm
 
     recursive subroutine read_2d_cnrm(idate,v,lonlyc)
-      implicit none
+      implicit none (type, external)
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), pointer, intent(inout) :: v
       logical, optional, intent(in) :: lonlyc
@@ -386,7 +386,7 @@ module mod_cmip6_cnrm
     end subroutine read_2d_cnrm
 
     recursive subroutine read_fx_cnrm(v)
-      implicit none
+      implicit none (type, external)
       type(cmip6_2d_var), pointer, intent(inout) :: v
       integer(ik4) :: istatus
 
@@ -418,7 +418,7 @@ module mod_cmip6_cnrm
     end subroutine read_fx_cnrm
 
     recursive subroutine read_sst_cnrm(idate,v,lat,lon)
-      implicit none
+      implicit none (type, external)
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), intent(inout) :: v
       real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat, lon

@@ -26,6 +26,7 @@ module mod_sst_1deg
   use mod_nchelper
   use mod_message
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -38,7 +39,7 @@ module mod_sst_1deg
   real(rkx), pointer, contiguous, dimension(:) :: lati
   real(rkx), pointer, contiguous, dimension(:) :: loni
   real(rkx), pointer, contiguous, dimension(:,:) :: sst, ice
-  integer(2), pointer, contiguous, dimension(:,:) :: work, work1
+  integer(ik2), pointer, contiguous, dimension(:,:) :: work, work1
 
   type(h_interpolator) :: hint
 
@@ -67,7 +68,7 @@ module mod_sst_1deg
   ! OI2WK        weekly OISST and SeaIce in the original netCDF format.
   !
   subroutine sst_1deg
-    implicit none
+    implicit none (type, external)
     real(rk4), dimension(360,180) :: gisst
     integer(ik4) :: i, j, k, iwk, nrec
     integer(ik4) :: nsteps, ipunit, gireclen
@@ -250,8 +251,8 @@ module mod_sst_1deg
   end subroutine sst_1deg
 
   subroutine sst_mn(idate,idate0,pathaddname)
-    implicit none
-    type(rcm_time_and_date) :: idate, idate0
+    implicit none (type, external)
+    type(rcm_time_and_date), intent(in) :: idate, idate0
     character(len=256), intent(in) :: pathaddname
     integer(ik4) :: i, it, j
     character(len=5) :: varname
@@ -354,8 +355,8 @@ module mod_sst_1deg
   end subroutine sst_mn
 
   subroutine ice_mn(idate,idate0,pathaddname)
-    implicit none
-    type(rcm_time_and_date) :: idate, idate0
+    implicit none (type, external)
+    type(rcm_time_and_date), intent(in) :: idate, idate0
     character(len=256), intent(in) :: pathaddname
     integer(ik4) :: i, it, j
     character(len=5) :: varname
@@ -414,7 +415,7 @@ module mod_sst_1deg
   end subroutine ice_mn
 
   subroutine sst_wk(idate,kkk,pathaddname)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4), intent(in) :: kkk
     character(len=256), intent(in) :: pathaddname
@@ -542,13 +543,13 @@ module mod_sst_1deg
   end subroutine sst_wk
 
   subroutine ice_wk(idate,kkk,pathaddname)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4), intent(in) :: kkk
     character(len=256), intent(in) :: pathaddname
     integer(ik4) :: i, j
     character(len=4) :: varname
-    integer(2), dimension(ilon,jlat) :: work, work1
+    integer(ik2), dimension(ilon,jlat) :: work, work1
     integer(ik4), dimension(3), save :: icount, istart
     integer(ik4), save :: inet, ivar
     real(rkx), save :: xadd, xscale

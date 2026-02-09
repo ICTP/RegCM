@@ -17,7 +17,7 @@ module lapack_dgbsv
 
   use mod_realkinds, only : rk8
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -188,7 +188,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     SUBROUTINE DGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, INFO )
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !
 !  -- LAPACK driver routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -196,11 +196,11 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      INTEGER            INFO, KL, KU, LDAB, LDB, N, NRHS
+      INTEGER            :: INFO, KL, KU, LDAB, LDB, N, NRHS
 !     ..
 !     .. Array Arguments ..
-      INTEGER            IPIV( * )
-      real(rk8)   AB( LDAB, * ), B( LDB, * )
+      INTEGER            :: IPIV( * )
+      real(rk8)   :: AB( LDAB, * ), B( LDB, * )
 !     ..
 !
 !  =====================================================================
@@ -213,20 +213,20 @@ module lapack_dgbsv
 !     Test the input parameters.
 !
       INFO = 0
-      IF( N.LT.0 ) THEN
+      IF( N<0 ) THEN
          INFO = -1
-      ELSE IF( KL.LT.0 ) THEN
+      ELSE IF( KL<0 ) THEN
          INFO = -2
-      ELSE IF( KU.LT.0 ) THEN
+      ELSE IF( KU<0 ) THEN
          INFO = -3
-      ELSE IF( NRHS.LT.0 ) THEN
+      ELSE IF( NRHS<0 ) THEN
          INFO = -4
-      ELSE IF( LDAB.LT.2*KL+KU+1 ) THEN
+      ELSE IF( LDAB<2*KL+KU+1 ) THEN
          INFO = -6
-      ELSE IF( LDB.LT.MAX( N, 1 ) ) THEN
+      ELSE IF( LDB<MAX( N, 1 ) ) THEN
          INFO = -9
       END IF
-      IF( INFO.NE.0 ) THEN
+      IF( INFO/=0 ) THEN
          CALL XERBLA( 'DGBSV ', -INFO )
          RETURN
       END IF
@@ -234,7 +234,7 @@ module lapack_dgbsv
 !     Compute the LU factorization of the band matrix A.
 !
       CALL DGBTRF( N, N, KL, KU, AB, LDAB, IPIV, INFO )
-      IF( INFO.EQ.0 ) THEN
+      IF( INFO==0 ) THEN
 !
 !        Solve the system A*X = B, overwriting B with X.
 !
@@ -393,7 +393,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     SUBROUTINE DGBTF2( M, N, KL, KU, AB, LDAB, IPIV, INFO )
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !
 !  -- LAPACK computational routine (version 3.4.2) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -401,21 +401,21 @@ module lapack_dgbsv
 !     September 2012
 !
 !     .. Scalar Arguments ..
-      INTEGER            INFO, KL, KU, LDAB, M, N
+      INTEGER            :: INFO, KL, KU, LDAB, M, N
 !     ..
 !     .. Array Arguments ..
-      INTEGER            IPIV( * )
-      real(rk8)   AB( LDAB, * )
+      INTEGER            :: IPIV( * )
+      real(rk8)   :: AB( LDAB, * )
 !     ..
 !
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8)   ONE, ZERO
+      real(rk8)   :: ONE, ZERO
       PARAMETER          ( ONE = 1.0_rk8, ZERO = 0.0_rk8 )
 !     ..
 !     .. Local Scalars ..
-      INTEGER            I, J, JP, JU, KM, KV
+      INTEGER            :: I, J, JP, JU, KM, KV
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC          MAX, MIN
@@ -430,25 +430,25 @@ module lapack_dgbsv
 !     Test the input parameters.
 !
       INFO = 0
-      IF( M.LT.0 ) THEN
+      IF( M<0 ) THEN
          INFO = -1
-      ELSE IF( N.LT.0 ) THEN
+      ELSE IF( N<0 ) THEN
          INFO = -2
-      ELSE IF( KL.LT.0 ) THEN
+      ELSE IF( KL<0 ) THEN
          INFO = -3
-      ELSE IF( KU.LT.0 ) THEN
+      ELSE IF( KU<0 ) THEN
          INFO = -4
-      ELSE IF( LDAB.LT.KL+KV+1 ) THEN
+      ELSE IF( LDAB<KL+KV+1 ) THEN
          INFO = -6
       END IF
-      IF( INFO.NE.0 ) THEN
+      IF( INFO/=0 ) THEN
          CALL XERBLA( 'DGBTF2', -INFO )
          RETURN
       END IF
 !
 !     Quick return if possible
 !
-      IF( M.EQ.0 .OR. N.EQ.0 ) &
+      IF( M==0 .OR. N==0 ) &
          RETURN
 !
 !     Gaussian elimination with partial pivoting
@@ -470,7 +470,7 @@ module lapack_dgbsv
 !
 !        Set fill-in elements in column J+KV to zero.
 !
-         IF( J+KV.LE.N ) THEN
+         IF( J+KV<=N ) THEN
             DO 30 I = 1, KL
                AB( I, J+KV ) = ZERO
    30       CONTINUE
@@ -482,16 +482,16 @@ module lapack_dgbsv
          KM = MIN( KL, M-J )
          JP = IDAMAX( KM+1, AB( KV+1, J ), 1 )
          IPIV( J ) = JP + J - 1
-         IF( AB( KV+JP, J ).NE.ZERO ) THEN
+         IF( AB( KV+JP, J )/=ZERO ) THEN
             JU = MAX( JU, MIN( J+KU+JP-1, N ) )
 !
 !           Apply interchange to columns J to JU.
 !
-            IF( JP.NE.1 ) &
+            IF( JP/=1 ) &
                CALL DSWAP( JU-J+1, AB( KV+JP, J ), LDAB-1, &
                            AB( KV+1, J ), LDAB-1 )
 !
-            IF( KM.GT.0 ) THEN
+            IF( KM>0 ) THEN
 !
 !              Compute multipliers.
 !
@@ -499,7 +499,7 @@ module lapack_dgbsv
 !
 !              Update trailing submatrix within the band.
 !
-               IF( JU.GT.J )                                         &
+               IF( JU>J )                                         &
                   CALL DGER( KM, JU-J, -ONE, AB( KV+2, J ), 1,       &
                              AB( KV, J+1 ), LDAB-1, AB( KV+1, J+1 ), &
                              LDAB-1 )
@@ -509,7 +509,7 @@ module lapack_dgbsv
 !           If pivot is zero, set INFO to the index of the pivot
 !           unless a zero pivot has already been found.
 !
-            IF( INFO.EQ.0 ) &
+            IF( INFO==0 ) &
                INFO = J
          END IF
    40 CONTINUE
@@ -663,7 +663,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     SUBROUTINE DGBTRF( M, N, KL, KU, AB, LDAB, IPIV, INFO )
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !
 !  -- LAPACK computational routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -671,28 +671,28 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      INTEGER            INFO, KL, KU, LDAB, M, N
+      INTEGER            :: INFO, KL, KU, LDAB, M, N
 !     ..
 !     .. Array Arguments ..
-      INTEGER            IPIV( * )
-      real(rk8)   AB( LDAB, * )
+      INTEGER            :: IPIV( * )
+      real(rk8)   :: AB( LDAB, * )
 !     ..
 !
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8)   ONE, ZERO
+      real(rk8)   :: ONE, ZERO
       PARAMETER          ( ONE = 1.0_rk8, ZERO = 0.0_rk8 )
-      INTEGER            NBMAX, LDWORK
+      INTEGER            :: NBMAX, LDWORK
       PARAMETER          ( NBMAX = 64, LDWORK = NBMAX+1 )
 !     ..
 !     .. Local Scalars ..
-      INTEGER            I, I2, I3, II, IP, J, J2, J3, JB, JJ, JM, JP, &
+      INTEGER            :: I, I2, I3, II, IP, J, J2, J3, JB, JJ, JM, JP, &
                          JU, K2, KM, KV, NB, NW
-      real(rk8)   TEMP
+      real(rk8)   :: TEMP
 !     ..
 !     .. Local Arrays ..
-      real(rk8)   WORK13( LDWORK, NBMAX ), &
+      real(rk8)   :: WORK13( LDWORK, NBMAX ), &
                          WORK31( LDWORK, NBMAX )
 !     ..
 !     .. Intrinsic Functions ..
@@ -708,25 +708,25 @@ module lapack_dgbsv
 !     Test the input parameters.
 !
       INFO = 0
-      IF( M.LT.0 ) THEN
+      IF( M<0 ) THEN
          INFO = -1
-      ELSE IF( N.LT.0 ) THEN
+      ELSE IF( N<0 ) THEN
          INFO = -2
-      ELSE IF( KL.LT.0 ) THEN
+      ELSE IF( KL<0 ) THEN
          INFO = -3
-      ELSE IF( KU.LT.0 ) THEN
+      ELSE IF( KU<0 ) THEN
          INFO = -4
-      ELSE IF( LDAB.LT.KL+KV+1 ) THEN
+      ELSE IF( LDAB<KL+KV+1 ) THEN
          INFO = -6
       END IF
-      IF( INFO.NE.0 ) THEN
+      IF( INFO/=0 ) THEN
          CALL XERBLA( 'DGBTRF', -INFO )
          RETURN
       END IF
 !
 !     Quick return if possible
 !
-      IF( M.EQ.0 .OR. N.EQ.0 ) &
+      IF( M==0 .OR. N==0 ) &
          RETURN
 !
 !     Determine the block size for this environment
@@ -738,7 +738,7 @@ module lapack_dgbsv
 !
       NB = MIN( NB, NBMAX )
 !
-      IF( NB.LE.1 .OR. NB.GT.KL ) THEN
+      IF( NB<=1 .OR. NB>KL ) THEN
 !
 !        Use unblocked code
 !
@@ -804,7 +804,7 @@ module lapack_dgbsv
 !
 !              Set fill-in elements in column JJ+KV to zero
 !
-               IF( JJ+KV.LE.N ) THEN
+               IF( JJ+KV<=N ) THEN
                   DO 70 I = 1, KL
                      AB( I, JJ+KV ) = ZERO
    70             CONTINUE
@@ -816,13 +816,13 @@ module lapack_dgbsv
                KM = MIN( KL, M-JJ )
                JP = IDAMAX( KM+1, AB( KV+1, JJ ), 1 )
                IPIV( JJ ) = JP + JJ - J
-               IF( AB( KV+JP, JJ ).NE.ZERO ) THEN
+               IF( AB( KV+JP, JJ )/=ZERO ) THEN
                   JU = MAX( JU, MIN( JJ+KU+JP-1, N ) )
-                  IF( JP.NE.1 ) THEN
+                  IF( JP/=1 ) THEN
 !
 !                    Apply interchange to columns J to J+JB-1
 !
-                     IF( JP+JJ-1.LT.J+KL ) THEN
+                     IF( JP+JJ-1<J+KL ) THEN
 !
                         CALL DSWAP( JB, AB( KV+1+JJ-J, J ), LDAB-1, &
                                     AB( KV+JP+JJ-J, J ), LDAB-1 )
@@ -848,7 +848,7 @@ module lapack_dgbsv
 !                 which needs to be updated.
 !
                   JM = MIN( JU, J+JB-1 )
-                  IF( JM.GT.JJ ) &
+                  IF( JM>JJ ) &
                      CALL DGER( KM, JM-JJ, -ONE, AB( KV+2, JJ ), 1, &
                                 AB( KV, JJ+1 ), LDAB-1,             &
                                 AB( KV+1, JJ+1 ), LDAB-1 )
@@ -857,18 +857,18 @@ module lapack_dgbsv
 !                 If pivot is zero, set INFO to the index of the pivot
 !                 unless a zero pivot has already been found.
 !
-                  IF( INFO.EQ.0 ) &
+                  IF( INFO==0 ) &
                      INFO = JJ
                END IF
 !
 !              Copy current column of A31 into the work array WORK31
 !
                NW = MIN( JJ-J+1, I3 )
-               IF( NW.GT.0 ) &
+               IF( NW>0 ) &
                   CALL DCOPY( NW, AB( KV+KL+1-JJ+J, JJ ), 1, &
                               WORK31( 1, JJ-J+1 ), 1 )
    80       CONTINUE
-            IF( J+JB.LE.N ) THEN
+            IF( J+JB<=N ) THEN
 !
 !              Apply the row interchanges to the other blocks.
 !
@@ -895,7 +895,7 @@ module lapack_dgbsv
                   JJ = K2 + I
                   DO 100 II = J + I - 1, J + JB - 1
                      IP = IPIV( II )
-                     IF( IP.NE.II ) THEN
+                     IF( IP/=II ) THEN
                         TEMP = AB( KV+1+II-JJ, JJ )
                         AB( KV+1+II-JJ, JJ ) = AB( KV+1+IP-JJ, JJ )
                         AB( KV+1+IP-JJ, JJ ) = TEMP
@@ -905,7 +905,7 @@ module lapack_dgbsv
 !
 !              Update the relevant part of the trailing submatrix
 !
-               IF( J2.GT.0 ) THEN
+               IF( J2>0 ) THEN
 !
 !                 Update A12
 !
@@ -913,7 +913,7 @@ module lapack_dgbsv
                               JB, J2, ONE, AB( KV+1, J ), LDAB-1,      &
                               AB( KV+1-JB, J+JB ), LDAB-1 )
 !
-                  IF( I2.GT.0 ) THEN
+                  IF( I2>0 ) THEN
 !
 !                    Update A22
 !
@@ -923,7 +923,7 @@ module lapack_dgbsv
                                  AB( KV+1, J+JB ), LDAB-1 )
                   END IF
 !
-                  IF( I3.GT.0 ) THEN
+                  IF( I3>0 ) THEN
 !
 !                    Update A32
 !
@@ -934,7 +934,7 @@ module lapack_dgbsv
                   END IF
                END IF
 !
-               IF( J3.GT.0 ) THEN
+               IF( J3>0 ) THEN
 !
 !                 Copy the lower triangle of A13 into the work array
 !                 WORK13
@@ -951,7 +951,7 @@ module lapack_dgbsv
                               JB, J3, ONE, AB( KV+1, J ), LDAB-1,      &
                               WORK13, LDWORK )
 !
-                  IF( I2.GT.0 ) THEN
+                  IF( I2>0 ) THEN
 !
 !                    Update A23
 !
@@ -961,7 +961,7 @@ module lapack_dgbsv
                                  LDAB-1 )
                   END IF
 !
-                  IF( I3.GT.0 ) THEN
+                  IF( I3>0 ) THEN
 !
 !                    Update A33
 !
@@ -993,11 +993,11 @@ module lapack_dgbsv
 !
             DO 170 JJ = J + JB - 1, J, -1
                JP = IPIV( JJ ) - JJ + 1
-               IF( JP.NE.1 ) THEN
+               IF( JP/=1 ) THEN
 !
 !                 Apply interchange to columns J to JJ-1
 !
-                  IF( JP+JJ-1.LT.J+KL ) THEN
+                  IF( JP+JJ-1<J+KL ) THEN
 !
 !                    The interchange does not affect A31
 !
@@ -1015,7 +1015,7 @@ module lapack_dgbsv
 !              Copy the current column of A31 back into place
 !
                NW = MIN( I3, JJ-J+1 )
-               IF( NW.GT.0 ) &
+               IF( NW>0 ) &
                   CALL DCOPY( NW, WORK31( 1, JJ-J+1 ), 1, &
                               AB( KV+KL+1-JJ+J, JJ ), 1 )
   170       CONTINUE
@@ -1166,7 +1166,7 @@ module lapack_dgbsv
 !  =====================================================================
     SUBROUTINE DGBTRS( TRANS, N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, &
                        INFO )
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !
 !  -- LAPACK computational routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1174,23 +1174,23 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      CHARACTER          TRANS
-      INTEGER            INFO, KL, KU, LDAB, LDB, N, NRHS
+      CHARACTER          :: TRANS
+      INTEGER            :: INFO, KL, KU, LDAB, LDB, N, NRHS
 !     ..
 !     .. Array Arguments ..
-      INTEGER            IPIV( * )
-      real(rk8)   AB( LDAB, * ), B( LDB, * )
+      INTEGER            :: IPIV( * )
+      real(rk8)   :: AB( LDAB, * ), B( LDB, * )
 !     ..
 !
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8)   ONE
+      real(rk8)   :: ONE
       PARAMETER          ( ONE = 1.0_rk8 )
 !     ..
 !     .. Local Scalars ..
-      LOGICAL            LNOTI, NOTRAN
-      INTEGER            I, J, KD, L, LM
+      LOGICAL            :: LNOTI, NOTRAN
+      INTEGER            :: I, J, KD, L, LM
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC          MAX, MIN
@@ -1204,31 +1204,31 @@ module lapack_dgbsv
       IF( .NOT.NOTRAN .AND. .NOT.LSAME( TRANS, 'T' ) .AND. .NOT. &
           LSAME( TRANS, 'C' ) ) THEN
          INFO = -1
-      ELSE IF( N.LT.0 ) THEN
+      ELSE IF( N<0 ) THEN
          INFO = -2
-      ELSE IF( KL.LT.0 ) THEN
+      ELSE IF( KL<0 ) THEN
          INFO = -3
-      ELSE IF( KU.LT.0 ) THEN
+      ELSE IF( KU<0 ) THEN
          INFO = -4
-      ELSE IF( NRHS.LT.0 ) THEN
+      ELSE IF( NRHS<0 ) THEN
          INFO = -5
-      ELSE IF( LDAB.LT.( 2*KL+KU+1 ) ) THEN
+      ELSE IF( LDAB<( 2*KL+KU+1 ) ) THEN
          INFO = -7
-      ELSE IF( LDB.LT.MAX( 1, N ) ) THEN
+      ELSE IF( LDB<MAX( 1, N ) ) THEN
          INFO = -10
       END IF
-      IF( INFO.NE.0 ) THEN
+      IF( INFO/=0 ) THEN
          CALL XERBLA( 'DGBTRS', -INFO )
          RETURN
       END IF
 !
 !     Quick return if possible
 !
-      IF( N.EQ.0 .OR. NRHS.EQ.0 ) &
+      IF( N==0 .OR. NRHS==0 ) &
          RETURN
 !
       KD = KU + KL + 1
-      LNOTI = KL.GT.0
+      LNOTI = KL>0
 !
       IF( NOTRAN ) THEN
 !
@@ -1245,7 +1245,7 @@ module lapack_dgbsv
             DO 10 J = 1, N - 1
                LM = MIN( KL, N-J )
                L = IPIV( J )
-               IF( L.NE.J ) &
+               IF( L/=J ) &
                   CALL DSWAP( NRHS, B( L, 1 ), LDB, B( J, 1 ), LDB )
                CALL DGER( LM, NRHS, -ONE, AB( KD+1, J ), 1, B( J, 1 ), &
                           LDB, B( J+1, 1 ), LDB )
@@ -1280,7 +1280,7 @@ module lapack_dgbsv
                CALL DGEMV( 'Transpose', LM, NRHS, -ONE, B( J+1, 1 ), &
                            LDB, AB( KD+1, J ), 1, ONE, B( J, 1 ), LDB )
                L = IPIV( J )
-               IF( L.NE.J ) &
+               IF( L/=J ) &
                   CALL DSWAP( NRHS, B( L, 1 ), LDB, B( J, 1 ), LDB )
    40       CONTINUE
          END IF
@@ -1405,7 +1405,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     SUBROUTINE DLASWP( N, A, LDA, K1, K2, IPIV, INCX )
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !
 !  -- LAPACK auxiliary routine (version 3.4.2) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1413,29 +1413,29 @@ module lapack_dgbsv
 !     September 2012
 !
 !     .. Scalar Arguments ..
-      INTEGER            INCX, K1, K2, LDA, N
+      INTEGER            :: INCX, K1, K2, LDA, N
 !     ..
 !     .. Array Arguments ..
-      INTEGER            IPIV( * )
-      real(rk8)   A( LDA, * )
+      INTEGER            :: IPIV( * )
+      real(rk8)   :: A( LDA, * )
 !     ..
 !
 ! =====================================================================
 !
 !     .. Local Scalars ..
-      INTEGER            I, I1, I2, INC, IP, IX, IX0, J, K, N32
-      real(rk8)   TEMP
+      INTEGER            :: I, I1, I2, INC, IP, IX, IX0, J, K, N32
+      real(rk8)   :: TEMP
 !     ..
 !     .. Executable Statements ..
 !
 !     Interchange row I with row IPIV(I) for each of rows K1 through K2.
 !
-      IF( INCX.GT.0 ) THEN
+      IF( INCX>0 ) THEN
          IX0 = K1
          I1 = K1
          I2 = K2
          INC = 1
-      ELSE IF( INCX.LT.0 ) THEN
+      ELSE IF( INCX<0 ) THEN
          IX0 = 1 + ( 1-K2 )*INCX
          I1 = K2
          I2 = K1
@@ -1445,12 +1445,12 @@ module lapack_dgbsv
       END IF
 !
       N32 = ( N / 32 )*32
-      IF( N32.NE.0 ) THEN
+      IF( N32/=0 ) THEN
          DO 30 J = 1, N32, 32
             IX = IX0
             DO 20 I = I1, I2, INC
                IP = IPIV( IX )
-               IF( IP.NE.I ) THEN
+               IF( IP/=I ) THEN
                   DO 10 K = J, J + 31
                      TEMP = A( I, K )
                      A( I, K ) = A( IP, K )
@@ -1461,12 +1461,12 @@ module lapack_dgbsv
    20       CONTINUE
    30    CONTINUE
       END IF
-      IF( N32.NE.N ) THEN
+      IF( N32/=N ) THEN
          N32 = N32 + 1
          IX = IX0
          DO 50 I = I1, I2, INC
             IP = IPIV( IX )
-            IF( IP.NE.I ) THEN
+            IF( IP/=I ) THEN
                DO 40 K = N32, N
                   TEMP = A( I, K )
                   A( I, K ) = A( IP, K )
@@ -1565,7 +1565,7 @@ module lapack_dgbsv
 !
 !  =====================================================================
     INTEGER FUNCTION IEEECK( ISPEC, ZERO, ONE )
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1573,63 +1573,63 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      INTEGER            ISPEC
-      REAL               ONE, ZERO
+      INTEGER            :: ISPEC
+      REAL               :: ONE, ZERO
 !     ..
 !
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      REAL               NAN1, NAN2, NAN3, NAN4, NAN5, NAN6, NEGINF, &
+      REAL               :: NAN1, NAN2, NAN3, NAN4, NAN5, NAN6, NEGINF, &
                          NEGZRO, NEWZRO, POSINF
 !     ..
 !     .. Executable Statements ..
       IEEECK = 1
 !
       POSINF = ONE / ZERO
-      IF( POSINF.LE.ONE ) THEN
+      IF( POSINF<=ONE ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
       NEGINF = -ONE / ZERO
-      IF( NEGINF.GE.ZERO ) THEN
+      IF( NEGINF>=ZERO ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
       NEGZRO = ONE / ( NEGINF+ONE )
-      IF( NEGZRO.NE.ZERO ) THEN
+      IF( NEGZRO/=ZERO ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
       NEGINF = ONE / NEGZRO
-      IF( NEGINF.GE.ZERO ) THEN
+      IF( NEGINF>=ZERO ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
       NEWZRO = NEGZRO + ZERO
-      IF( NEWZRO.NE.ZERO ) THEN
+      IF( NEWZRO/=ZERO ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
       POSINF = ONE / NEWZRO
-      IF( POSINF.LE.ONE ) THEN
+      IF( POSINF<=ONE ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
       NEGINF = NEGINF*POSINF
-      IF( NEGINF.GE.ZERO ) THEN
+      IF( NEGINF>=ZERO ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
       POSINF = POSINF*POSINF
-      IF( POSINF.LE.ONE ) THEN
+      IF( POSINF<=ONE ) THEN
          IEEECK = 0
          RETURN
       END IF
@@ -1639,7 +1639,7 @@ module lapack_dgbsv
 !
 !     Return if we were only asked to check infinity arithmetic
 !
-      IF( ISPEC.EQ.0 ) &
+      IF( ISPEC==0 ) &
          RETURN
 !
       NAN1 = POSINF + NEGINF
@@ -1654,32 +1654,32 @@ module lapack_dgbsv
 !
       NAN6 = NAN5*ZERO
 !
-      IF( NAN1.EQ.NAN1 ) THEN
+      IF( NAN1==NAN1 ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
-      IF( NAN2.EQ.NAN2 ) THEN
+      IF( NAN2==NAN2 ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
-      IF( NAN3.EQ.NAN3 ) THEN
+      IF( NAN3==NAN3 ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
-      IF( NAN4.EQ.NAN4 ) THEN
+      IF( NAN4==NAN4 ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
-      IF( NAN5.EQ.NAN5 ) THEN
+      IF( NAN5==NAN5 ) THEN
          IEEECK = 0
          RETURN
       END IF
 !
-      IF( NAN6.EQ.NAN6 ) THEN
+      IF( NAN6==NAN6 ) THEN
          IEEECK = 0
          RETURN
       END IF
@@ -1849,7 +1849,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     INTEGER FUNCTION ILAENV( ISPEC, NAME, N1, N2, N3, N4 )
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1857,16 +1857,16 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      CHARACTER*( * )    NAME
-      INTEGER            ISPEC, N1, N2, N3, N4
+      CHARACTER(len=*)    :: NAME
+      INTEGER            :: ISPEC, N1, N2, N3, N4
 !     ..
 !
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      INTEGER            I, IC, IZ, NB, NBMIN, NX
-      LOGICAL            CNAME, SNAME
-      CHARACTER          C1*1, C2*2, C4*2, C3*3, SUBNAM*6
+      INTEGER            :: I, IC, IZ, NB, NBMIN, NX
+      LOGICAL            :: CNAME, SNAME
+      CHARACTER          :: C1*1, C2*2, C4*2, C3*3, SUBNAM*6
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC          CHAR, ICHAR, INT, MIN, REAL
@@ -1907,53 +1907,53 @@ module lapack_dgbsv
       SUBNAM = NAME
       IC = ICHAR( SUBNAM( 1: 1 ) )
       IZ = ICHAR( 'Z' )
-      IF( IZ.EQ.90 .OR. IZ.EQ.122 ) THEN
+      IF( IZ==90 .OR. IZ==122 ) THEN
 !
 !        ASCII character set
 !
-         IF( IC.GE.97 .AND. IC.LE.122 ) THEN
+         IF( IC>=97 .AND. IC<=122 ) THEN
             SUBNAM( 1: 1 ) = CHAR( IC-32 )
             DO 20 I = 2, 6
                IC = ICHAR( SUBNAM( I: I ) )
-               IF( IC.GE.97 .AND. IC.LE.122 ) &
+               IF( IC>=97 .AND. IC<=122 ) &
                   SUBNAM( I: I ) = CHAR( IC-32 )
    20       CONTINUE
          END IF
 !
-      ELSE IF( IZ.EQ.233 .OR. IZ.EQ.169 ) THEN
+      ELSE IF( IZ==233 .OR. IZ==169 ) THEN
 !
 !        EBCDIC character set
 !
-         IF( ( IC.GE.129 .AND. IC.LE.137 ) .OR. &
-             ( IC.GE.145 .AND. IC.LE.153 ) .OR. &
-             ( IC.GE.162 .AND. IC.LE.169 ) ) THEN
+         IF( ( IC>=129 .AND. IC<=137 ) .OR. &
+             ( IC>=145 .AND. IC<=153 ) .OR. &
+             ( IC>=162 .AND. IC<=169 ) ) THEN
             SUBNAM( 1: 1 ) = CHAR( IC+64 )
             DO 30 I = 2, 6
                IC = ICHAR( SUBNAM( I: I ) )
-               IF( ( IC.GE.129 .AND. IC.LE.137 ) .OR. &
-                   ( IC.GE.145 .AND. IC.LE.153 ) .OR. &
-                   ( IC.GE.162 .AND. IC.LE.169 ) )SUBNAM( I: &
+               IF( ( IC>=129 .AND. IC<=137 ) .OR. &
+                   ( IC>=145 .AND. IC<=153 ) .OR. &
+                   ( IC>=162 .AND. IC<=169 ) )SUBNAM( I: &
                    I ) = CHAR( IC+64 )
    30       CONTINUE
          END IF
 !
-      ELSE IF( IZ.EQ.218 .OR. IZ.EQ.250 ) THEN
+      ELSE IF( IZ==218 .OR. IZ==250 ) THEN
 !
 !        Prime machines:  ASCII+128
 !
-         IF( IC.GE.225 .AND. IC.LE.250 ) THEN
+         IF( IC>=225 .AND. IC<=250 ) THEN
             SUBNAM( 1: 1 ) = CHAR( IC-32 )
             DO 40 I = 2, 6
                IC = ICHAR( SUBNAM( I: I ) )
-               IF( IC.GE.225 .AND. IC.LE.250 ) &
+               IF( IC>=225 .AND. IC<=250 ) &
                   SUBNAM( I: I ) = CHAR( IC-32 )
    40       CONTINUE
          END IF
       END IF
 !
       C1 = SUBNAM( 1: 1 )
-      SNAME = C1.EQ.'S' .OR. C1.EQ.'D'
-      CNAME = C1.EQ.'C' .OR. C1.EQ.'Z'
+      SNAME = C1=='S' .OR. C1=='D'
+      CNAME = C1=='C' .OR. C1=='Z'
       IF( .NOT.( CNAME .OR. SNAME ) ) &
          RETURN
       C2 = SUBNAM( 2: 3 )
@@ -1979,145 +1979,145 @@ module lapack_dgbsv
 !
       NB = 1
 !
-      IF( C2.EQ.'GE' ) THEN
-         IF( C3.EQ.'TRF' ) THEN
+      IF( C2=='GE' ) THEN
+         IF( C3=='TRF' ) THEN
             IF( SNAME ) THEN
                NB = 64
             ELSE
                NB = 64
             END IF
-         ELSE IF( C3.EQ.'QRF' .OR. C3.EQ.'RQF' .OR. C3.EQ.'LQF' .OR. &
-                  C3.EQ.'QLF' ) THEN
+         ELSE IF( C3=='QRF' .OR. C3=='RQF' .OR. C3=='LQF' .OR. &
+                  C3=='QLF' ) THEN
             IF( SNAME ) THEN
                NB = 32
             ELSE
                NB = 32
             END IF
-         ELSE IF( C3.EQ.'HRD' ) THEN
+         ELSE IF( C3=='HRD' ) THEN
             IF( SNAME ) THEN
                NB = 32
             ELSE
                NB = 32
             END IF
-         ELSE IF( C3.EQ.'BRD' ) THEN
+         ELSE IF( C3=='BRD' ) THEN
             IF( SNAME ) THEN
                NB = 32
             ELSE
                NB = 32
             END IF
-         ELSE IF( C3.EQ.'TRI' ) THEN
+         ELSE IF( C3=='TRI' ) THEN
             IF( SNAME ) THEN
                NB = 64
             ELSE
                NB = 64
             END IF
          END IF
-      ELSE IF( C2.EQ.'PO' ) THEN
-         IF( C3.EQ.'TRF' ) THEN
+      ELSE IF( C2=='PO' ) THEN
+         IF( C3=='TRF' ) THEN
             IF( SNAME ) THEN
                NB = 64
             ELSE
                NB = 64
             END IF
          END IF
-      ELSE IF( C2.EQ.'SY' ) THEN
-         IF( C3.EQ.'TRF' ) THEN
+      ELSE IF( C2=='SY' ) THEN
+         IF( C3=='TRF' ) THEN
             IF( SNAME ) THEN
                NB = 64
             ELSE
                NB = 64
             END IF
-         ELSE IF( SNAME .AND. C3.EQ.'TRD' ) THEN
+         ELSE IF( SNAME .AND. C3=='TRD' ) THEN
             NB = 32
-         ELSE IF( SNAME .AND. C3.EQ.'GST' ) THEN
+         ELSE IF( SNAME .AND. C3=='GST' ) THEN
             NB = 64
          END IF
-      ELSE IF( CNAME .AND. C2.EQ.'HE' ) THEN
-         IF( C3.EQ.'TRF' ) THEN
+      ELSE IF( CNAME .AND. C2=='HE' ) THEN
+         IF( C3=='TRF' ) THEN
             NB = 64
-         ELSE IF( C3.EQ.'TRD' ) THEN
+         ELSE IF( C3=='TRD' ) THEN
             NB = 32
-         ELSE IF( C3.EQ.'GST' ) THEN
+         ELSE IF( C3=='GST' ) THEN
             NB = 64
          END IF
-      ELSE IF( SNAME .AND. C2.EQ.'OR' ) THEN
-         IF( C3( 1: 1 ).EQ.'G' ) THEN
-            IF( C4.EQ.'QR' .OR. C4.EQ.'RQ' .OR. C4.EQ.'LQ' .OR. C4.EQ. &
-                'QL' .OR. C4.EQ.'HR' .OR. C4.EQ.'TR' .OR. C4.EQ.'BR' ) &
+      ELSE IF( SNAME .AND. C2=='OR' ) THEN
+         IF( C3( 1: 1 )=='G' ) THEN
+            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
+                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
                  THEN
                NB = 32
             END IF
-         ELSE IF( C3( 1: 1 ).EQ.'M' ) THEN
-            IF( C4.EQ.'QR' .OR. C4.EQ.'RQ' .OR. C4.EQ.'LQ' .OR. C4.EQ. &
-                'QL' .OR. C4.EQ.'HR' .OR. C4.EQ.'TR' .OR. C4.EQ.'BR' ) &
-                 THEN
-               NB = 32
-            END IF
-         END IF
-      ELSE IF( CNAME .AND. C2.EQ.'UN' ) THEN
-         IF( C3( 1: 1 ).EQ.'G' ) THEN
-            IF( C4.EQ.'QR' .OR. C4.EQ.'RQ' .OR. C4.EQ.'LQ' .OR. C4.EQ. &
-                'QL' .OR. C4.EQ.'HR' .OR. C4.EQ.'TR' .OR. C4.EQ.'BR' ) &
-                 THEN
-               NB = 32
-            END IF
-         ELSE IF( C3( 1: 1 ).EQ.'M' ) THEN
-            IF( C4.EQ.'QR' .OR. C4.EQ.'RQ' .OR. C4.EQ.'LQ' .OR. C4.EQ. &
-                'QL' .OR. C4.EQ.'HR' .OR. C4.EQ.'TR' .OR. C4.EQ.'BR' ) &
+         ELSE IF( C3( 1: 1 )=='M' ) THEN
+            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
+                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
                  THEN
                NB = 32
             END IF
          END IF
-      ELSE IF( C2.EQ.'GB' ) THEN
-         IF( C3.EQ.'TRF' ) THEN
+      ELSE IF( CNAME .AND. C2=='UN' ) THEN
+         IF( C3( 1: 1 )=='G' ) THEN
+            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
+                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
+                 THEN
+               NB = 32
+            END IF
+         ELSE IF( C3( 1: 1 )=='M' ) THEN
+            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
+                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
+                 THEN
+               NB = 32
+            END IF
+         END IF
+      ELSE IF( C2=='GB' ) THEN
+         IF( C3=='TRF' ) THEN
             IF( SNAME ) THEN
-               IF( N4.LE.64 ) THEN
+               IF( N4<=64 ) THEN
                   NB = 1
                ELSE
                   NB = 32
                END IF
             ELSE
-               IF( N4.LE.64 ) THEN
-                  NB = 1
-               ELSE
-                  NB = 32
-               END IF
-            END IF
-         END IF
-      ELSE IF( C2.EQ.'PB' ) THEN
-         IF( C3.EQ.'TRF' ) THEN
-            IF( SNAME ) THEN
-               IF( N2.LE.64 ) THEN
-                  NB = 1
-               ELSE
-                  NB = 32
-               END IF
-            ELSE
-               IF( N2.LE.64 ) THEN
+               IF( N4<=64 ) THEN
                   NB = 1
                ELSE
                   NB = 32
                END IF
             END IF
          END IF
-      ELSE IF( C2.EQ.'TR' ) THEN
-         IF( C3.EQ.'TRI' ) THEN
+      ELSE IF( C2=='PB' ) THEN
+         IF( C3=='TRF' ) THEN
+            IF( SNAME ) THEN
+               IF( N2<=64 ) THEN
+                  NB = 1
+               ELSE
+                  NB = 32
+               END IF
+            ELSE
+               IF( N2<=64 ) THEN
+                  NB = 1
+               ELSE
+                  NB = 32
+               END IF
+            END IF
+         END IF
+      ELSE IF( C2=='TR' ) THEN
+         IF( C3=='TRI' ) THEN
             IF( SNAME ) THEN
                NB = 64
             ELSE
                NB = 64
             END IF
          END IF
-      ELSE IF( C2.EQ.'LA' ) THEN
-         IF( C3.EQ.'UUM' ) THEN
+      ELSE IF( C2=='LA' ) THEN
+         IF( C3=='UUM' ) THEN
             IF( SNAME ) THEN
                NB = 64
             ELSE
                NB = 64
             END IF
          END IF
-      ELSE IF( SNAME .AND. C2.EQ.'ST' ) THEN
-         IF( C3.EQ.'EBZ' ) THEN
+      ELSE IF( SNAME .AND. C2=='ST' ) THEN
+         IF( C3=='EBZ' ) THEN
             NB = 1
          END IF
       END IF
@@ -2129,71 +2129,71 @@ module lapack_dgbsv
 !     ISPEC = 2:  minimum block size
 !
       NBMIN = 2
-      IF( C2.EQ.'GE' ) THEN
-         IF( C3.EQ.'QRF' .OR. C3.EQ.'RQF' .OR. C3.EQ.'LQF' .OR. C3.EQ. &
+      IF( C2=='GE' ) THEN
+         IF( C3=='QRF' .OR. C3=='RQF' .OR. C3=='LQF' .OR. C3== &
              'QLF' ) THEN
             IF( SNAME ) THEN
                NBMIN = 2
             ELSE
                NBMIN = 2
             END IF
-         ELSE IF( C3.EQ.'HRD' ) THEN
+         ELSE IF( C3=='HRD' ) THEN
             IF( SNAME ) THEN
                NBMIN = 2
             ELSE
                NBMIN = 2
             END IF
-         ELSE IF( C3.EQ.'BRD' ) THEN
+         ELSE IF( C3=='BRD' ) THEN
             IF( SNAME ) THEN
                NBMIN = 2
             ELSE
                NBMIN = 2
             END IF
-         ELSE IF( C3.EQ.'TRI' ) THEN
+         ELSE IF( C3=='TRI' ) THEN
             IF( SNAME ) THEN
                NBMIN = 2
             ELSE
                NBMIN = 2
             END IF
          END IF
-      ELSE IF( C2.EQ.'SY' ) THEN
-         IF( C3.EQ.'TRF' ) THEN
+      ELSE IF( C2=='SY' ) THEN
+         IF( C3=='TRF' ) THEN
             IF( SNAME ) THEN
                NBMIN = 8
             ELSE
                NBMIN = 8
             END IF
-         ELSE IF( SNAME .AND. C3.EQ.'TRD' ) THEN
+         ELSE IF( SNAME .AND. C3=='TRD' ) THEN
             NBMIN = 2
          END IF
-      ELSE IF( CNAME .AND. C2.EQ.'HE' ) THEN
-         IF( C3.EQ.'TRD' ) THEN
+      ELSE IF( CNAME .AND. C2=='HE' ) THEN
+         IF( C3=='TRD' ) THEN
             NBMIN = 2
          END IF
-      ELSE IF( SNAME .AND. C2.EQ.'OR' ) THEN
-         IF( C3( 1: 1 ).EQ.'G' ) THEN
-            IF( C4.EQ.'QR' .OR. C4.EQ.'RQ' .OR. C4.EQ.'LQ' .OR. C4.EQ. &
-                'QL' .OR. C4.EQ.'HR' .OR. C4.EQ.'TR' .OR. C4.EQ.'BR' ) &
+      ELSE IF( SNAME .AND. C2=='OR' ) THEN
+         IF( C3( 1: 1 )=='G' ) THEN
+            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
+                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
                  THEN
                NBMIN = 2
             END IF
-         ELSE IF( C3( 1: 1 ).EQ.'M' ) THEN
-            IF( C4.EQ.'QR' .OR. C4.EQ.'RQ' .OR. C4.EQ.'LQ' .OR. C4.EQ. &
-                'QL' .OR. C4.EQ.'HR' .OR. C4.EQ.'TR' .OR. C4.EQ.'BR' ) &
+         ELSE IF( C3( 1: 1 )=='M' ) THEN
+            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
+                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
                  THEN
                NBMIN = 2
             END IF
          END IF
-      ELSE IF( CNAME .AND. C2.EQ.'UN' ) THEN
-         IF( C3( 1: 1 ).EQ.'G' ) THEN
-            IF( C4.EQ.'QR' .OR. C4.EQ.'RQ' .OR. C4.EQ.'LQ' .OR. C4.EQ. &
-                'QL' .OR. C4.EQ.'HR' .OR. C4.EQ.'TR' .OR. C4.EQ.'BR' ) &
+      ELSE IF( CNAME .AND. C2=='UN' ) THEN
+         IF( C3( 1: 1 )=='G' ) THEN
+            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
+                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
                  THEN
                NBMIN = 2
             END IF
-         ELSE IF( C3( 1: 1 ).EQ.'M' ) THEN
-            IF( C4.EQ.'QR' .OR. C4.EQ.'RQ' .OR. C4.EQ.'LQ' .OR. C4.EQ. &
-                'QL' .OR. C4.EQ.'HR' .OR. C4.EQ.'TR' .OR. C4.EQ.'BR' ) &
+         ELSE IF( C3( 1: 1 )=='M' ) THEN
+            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
+                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
                  THEN
                NBMIN = 2
             END IF
@@ -2207,47 +2207,47 @@ module lapack_dgbsv
 !     ISPEC = 3:  crossover point
 !
       NX = 0
-      IF( C2.EQ.'GE' ) THEN
-         IF( C3.EQ.'QRF' .OR. C3.EQ.'RQF' .OR. C3.EQ.'LQF' .OR. C3.EQ. &
+      IF( C2=='GE' ) THEN
+         IF( C3=='QRF' .OR. C3=='RQF' .OR. C3=='LQF' .OR. C3== &
              'QLF' ) THEN
             IF( SNAME ) THEN
                NX = 128
             ELSE
                NX = 128
             END IF
-         ELSE IF( C3.EQ.'HRD' ) THEN
+         ELSE IF( C3=='HRD' ) THEN
             IF( SNAME ) THEN
                NX = 128
             ELSE
                NX = 128
             END IF
-         ELSE IF( C3.EQ.'BRD' ) THEN
+         ELSE IF( C3=='BRD' ) THEN
             IF( SNAME ) THEN
                NX = 128
             ELSE
                NX = 128
             END IF
          END IF
-      ELSE IF( C2.EQ.'SY' ) THEN
-         IF( SNAME .AND. C3.EQ.'TRD' ) THEN
+      ELSE IF( C2=='SY' ) THEN
+         IF( SNAME .AND. C3=='TRD' ) THEN
             NX = 32
          END IF
-      ELSE IF( CNAME .AND. C2.EQ.'HE' ) THEN
-         IF( C3.EQ.'TRD' ) THEN
+      ELSE IF( CNAME .AND. C2=='HE' ) THEN
+         IF( C3=='TRD' ) THEN
             NX = 32
          END IF
-      ELSE IF( SNAME .AND. C2.EQ.'OR' ) THEN
-         IF( C3( 1: 1 ).EQ.'G' ) THEN
-            IF( C4.EQ.'QR' .OR. C4.EQ.'RQ' .OR. C4.EQ.'LQ' .OR. C4.EQ. &
-                'QL' .OR. C4.EQ.'HR' .OR. C4.EQ.'TR' .OR. C4.EQ.'BR' ) &
+      ELSE IF( SNAME .AND. C2=='OR' ) THEN
+         IF( C3( 1: 1 )=='G' ) THEN
+            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
+                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
                  THEN
                NX = 128
             END IF
          END IF
-      ELSE IF( CNAME .AND. C2.EQ.'UN' ) THEN
-         IF( C3( 1: 1 ).EQ.'G' ) THEN
-            IF( C4.EQ.'QR' .OR. C4.EQ.'RQ' .OR. C4.EQ.'LQ' .OR. C4.EQ. &
-                'QL' .OR. C4.EQ.'HR' .OR. C4.EQ.'TR' .OR. C4.EQ.'BR' ) &
+      ELSE IF( CNAME .AND. C2=='UN' ) THEN
+         IF( C3( 1: 1 )=='G' ) THEN
+            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
+                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
                  THEN
                NX = 128
             END IF
@@ -2306,7 +2306,7 @@ module lapack_dgbsv
 !
 !     ILAENV = 0
       ILAENV = 1
-      IF( ILAENV.EQ.1 ) THEN
+      IF( ILAENV==1 ) THEN
          ILAENV = IEEECK( 1, 0.0, 1.0 )
       END IF
       RETURN
@@ -2317,7 +2317,7 @@ module lapack_dgbsv
 !
 !     ILAENV = 0
       ILAENV = 1
-      IF( ILAENV.EQ.1 ) THEN
+      IF( ILAENV==1 ) THEN
          ILAENV = IEEECK( 0, 0.0, 1.0 )
       END IF
       RETURN
@@ -2547,7 +2547,7 @@ module lapack_dgbsv
 !>
 !  =====================================================================
     INTEGER FUNCTION IPARMQ( ISPEC, ILO, IHI )
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -2555,49 +2555,49 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      INTEGER            IHI, ILO, ISPEC
+      INTEGER            :: IHI, ILO, ISPEC
 !
 !  ================================================================
 !     .. Parameters ..
-      INTEGER            INMIN, INWIN, INIBL, ISHFTS, IACC22
+      INTEGER            :: INMIN, INWIN, INIBL, ISHFTS, IACC22
       PARAMETER          ( INMIN = 12, INWIN = 13, INIBL = 14, &
                          ISHFTS = 15, IACC22 = 16 )
-      INTEGER            NMIN, K22MIN, KACMIN, NIBBLE, KNWSWP
+      INTEGER            :: NMIN, K22MIN, KACMIN, NIBBLE, KNWSWP
       PARAMETER          ( NMIN = 75, K22MIN = 14, KACMIN = 14, &
                          NIBBLE = 14, KNWSWP = 500 )
-      REAL               TWO
+      REAL               :: TWO
       PARAMETER          ( TWO = 2.0 )
 !     ..
 !     .. Local Scalars ..
-      INTEGER            NH, NS
+      INTEGER            :: NH, NS
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC          LOG, MAX, MOD, NINT, REAL
 !     ..
 !     .. Executable Statements ..
-      IF( ( ISPEC.EQ.ISHFTS ) .OR. ( ISPEC.EQ.INWIN ) .OR. &
-          ( ISPEC.EQ.IACC22 ) ) THEN
+      IF( ( ISPEC==ISHFTS ) .OR. ( ISPEC==INWIN ) .OR. &
+          ( ISPEC==IACC22 ) ) THEN
 !
 !        ==== Set the number simultaneous shifts ====
 !
          NH = IHI - ILO + 1
          NS = 2
-         IF( NH.GE.30 ) &
+         IF( NH>=30 ) &
             NS = 4
-         IF( NH.GE.60 ) &
+         IF( NH>=60 ) &
             NS = 10
-         IF( NH.GE.150 ) &
+         IF( NH>=150 ) &
             NS = MAX( 10, NH / NINT( LOG( REAL( NH ) ) / LOG( TWO ) ) )
-         IF( NH.GE.590 ) &
+         IF( NH>=590 ) &
             NS = 64
-         IF( NH.GE.3000 ) &
+         IF( NH>=3000 ) &
             NS = 128
-         IF( NH.GE.6000 ) &
+         IF( NH>=6000 ) &
             NS = 256
          NS = MAX( 2, NS-MOD( NS, 2 ) )
       END IF
 !
-      IF( ISPEC.EQ.INMIN ) THEN
+      IF( ISPEC==INMIN ) THEN
 !
 !
 !        ===== Matrices of order smaller than NMIN get sent
@@ -2606,7 +2606,7 @@ module lapack_dgbsv
 !
          IPARMQ = NMIN
 !
-      ELSE IF( ISPEC.EQ.INIBL ) THEN
+      ELSE IF( ISPEC==INIBL ) THEN
 !
 !        ==== INIBL: skip a multi-shift qr iteration and
 !        .    whenever aggressive early deflation finds
@@ -2614,23 +2614,23 @@ module lapack_dgbsv
 !
          IPARMQ = NIBBLE
 !
-      ELSE IF( ISPEC.EQ.ISHFTS ) THEN
+      ELSE IF( ISPEC==ISHFTS ) THEN
 !
 !        ==== NSHFTS: The number of simultaneous shifts =====
 !
          IPARMQ = NS
 !
-      ELSE IF( ISPEC.EQ.INWIN ) THEN
+      ELSE IF( ISPEC==INWIN ) THEN
 !
 !        ==== NW: deflation window size.  ====
 !
-         IF( NH.LE.KNWSWP ) THEN
+         IF( NH<=KNWSWP ) THEN
             IPARMQ = NS
          ELSE
             IPARMQ = 3*NS / 2
          END IF
 !
-      ELSE IF( ISPEC.EQ.IACC22 ) THEN
+      ELSE IF( ISPEC==IACC22 ) THEN
 !
 !        ==== IACC22: Whether to accumulate reflections
 !        .     before updating the far-from-diagonal elements
@@ -2640,9 +2640,9 @@ module lapack_dgbsv
 !        .     NH=IHI-ILO+1.
 !
          IPARMQ = 0
-         IF( NS.GE.KACMIN ) &
+         IF( NS>=KACMIN ) &
             IPARMQ = 1
-         IF( NS.GE.K22MIN ) &
+         IF( NS>=K22MIN ) &
             IPARMQ = 2
 !
       ELSE
@@ -2706,7 +2706,7 @@ module lapack_dgbsv
 !
 !  =====================================================================
     LOGICAL FUNCTION LSAME( CA, CB )
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -2714,7 +2714,7 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      CHARACTER          CA, CB
+      CHARACTER          :: CA, CB
 !     ..
 !
 ! =====================================================================
@@ -2723,13 +2723,13 @@ module lapack_dgbsv
       INTRINSIC          ICHAR
 !     ..
 !     .. Local Scalars ..
-      INTEGER            INTA, INTB, ZCODE
+      INTEGER            :: INTA, INTB, ZCODE
 !     ..
 !     .. Executable Statements ..
 !
 !     Test if the characters are equal
 !
-      LSAME = CA.EQ.CB
+      LSAME = CA==CB
       IF( LSAME ) &
          RETURN
 !
@@ -2745,35 +2745,35 @@ module lapack_dgbsv
       INTA = ICHAR( CA )
       INTB = ICHAR( CB )
 !
-      IF( ZCODE.EQ.90 .OR. ZCODE.EQ.122 ) THEN
+      IF( ZCODE==90 .OR. ZCODE==122 ) THEN
 !
 !        ASCII is assumed - ZCODE is the ASCII code of either lower or
 !        upper case 'Z'.
 !
-         IF( INTA.GE.97 .AND. INTA.LE.122 ) INTA = INTA - 32
-         IF( INTB.GE.97 .AND. INTB.LE.122 ) INTB = INTB - 32
+         IF( INTA>=97 .AND. INTA<=122 ) INTA = INTA - 32
+         IF( INTB>=97 .AND. INTB<=122 ) INTB = INTB - 32
 !
-      ELSE IF( ZCODE.EQ.233 .OR. ZCODE.EQ.169 ) THEN
+      ELSE IF( ZCODE==233 .OR. ZCODE==169 ) THEN
 !
 !        EBCDIC is assumed - ZCODE is the EBCDIC code of either lower or
 !        upper case 'Z'.
 !
-         IF( INTA.GE.129 .AND. INTA.LE.137 .OR. &
-             INTA.GE.145 .AND. INTA.LE.153 .OR. &
-             INTA.GE.162 .AND. INTA.LE.169 ) INTA = INTA + 64
-         IF( INTB.GE.129 .AND. INTB.LE.137 .OR. &
-             INTB.GE.145 .AND. INTB.LE.153 .OR. &
-             INTB.GE.162 .AND. INTB.LE.169 ) INTB = INTB + 64
+         IF( INTA>=129 .AND. INTA<=137 .OR. &
+             INTA>=145 .AND. INTA<=153 .OR. &
+             INTA>=162 .AND. INTA<=169 ) INTA = INTA + 64
+         IF( INTB>=129 .AND. INTB<=137 .OR. &
+             INTB>=145 .AND. INTB<=153 .OR. &
+             INTB>=162 .AND. INTB<=169 ) INTB = INTB + 64
 !
-      ELSE IF( ZCODE.EQ.218 .OR. ZCODE.EQ.250 ) THEN
+      ELSE IF( ZCODE==218 .OR. ZCODE==250 ) THEN
 !
 !        ASCII is assumed, on Prime machines - ZCODE is the ASCII code
 !        plus 128 of either lower or upper case 'Z'.
 !
-         IF( INTA.GE.225 .AND. INTA.LE.250 ) INTA = INTA - 32
-         IF( INTB.GE.225 .AND. INTB.LE.250 ) INTB = INTB - 32
+         IF( INTA>=225 .AND. INTA<=250 ) INTA = INTA - 32
+         IF( INTB>=225 .AND. INTB<=250 ) INTB = INTB - 32
       END IF
-      LSAME = INTA.EQ.INTB
+      LSAME = INTA==INTB
 !
 !     RETURN
 !
@@ -2851,7 +2851,7 @@ module lapack_dgbsv
 !
 !  =====================================================================
     SUBROUTINE XERBLA( SRNAME, INFO )
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -2859,8 +2859,8 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      CHARACTER*(*)      SRNAME
-      INTEGER            INFO
+      CHARACTER(len=*)      :: SRNAME
+      INTEGER            :: INFO
 !     ..
 !
 ! =====================================================================
@@ -2882,12 +2882,12 @@ module lapack_dgbsv
     END SUBROUTINE XERBLA
 
     INTEGER FUNCTION IDAMAX(N,DX,INCX)
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !     .. Scalar Arguments ..
-      INTEGER INCX,N
+      INTEGER :: INCX,N
 !     ..
 !     .. Array Arguments ..
-      real(rk8) DX(*)
+      real(rk8) :: DX(*)
 !     ..
 !
 !  Purpose
@@ -2905,23 +2905,23 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      real(rk8) DMAX
-      INTEGER I,IX
+      real(rk8) :: DMAX
+      INTEGER :: I,IX
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC ABS
 !     ..
       IDAMAX = 0
-      IF (N.LT.1 .OR. INCX.LE.0) RETURN
+      IF (N<1 .OR. INCX<=0) RETURN
       IDAMAX = 1
-      IF (N.EQ.1) RETURN
-      IF (INCX.EQ.1) THEN
+      IF (N==1) RETURN
+      IF (INCX==1) THEN
 !
 !        code for increment equal to 1
 !
          DMAX = ABS(DX(1))
          DO I = 2,N
-            IF (ABS(DX(I)).GT.DMAX) THEN
+            IF (ABS(DX(I))>DMAX) THEN
                IDAMAX = I
                DMAX = ABS(DX(I))
             END IF
@@ -2934,7 +2934,7 @@ module lapack_dgbsv
          DMAX = ABS(DX(1))
          IX = IX + INCX
          DO I = 2,N
-            IF (ABS(DX(IX)).GT.DMAX) THEN
+            IF (ABS(DX(IX))>DMAX) THEN
                IDAMAX = I
                DMAX = ABS(DX(IX))
             END IF
@@ -2945,12 +2945,12 @@ module lapack_dgbsv
     END FUNCTION IDAMAX
 
     SUBROUTINE DSWAP(N,DX,INCX,DY,INCY)
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !     .. Scalar Arguments ..
-      INTEGER INCX,INCY,N
+      INTEGER :: INCX,INCY,N
 !     ..
 !     .. Array Arguments ..
-      real(rk8) DX(*),DY(*)
+      real(rk8) :: DX(*),DY(*)
 !     ..
 !
 !  Purpose
@@ -2968,14 +2968,14 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      real(rk8) DTEMP
-      INTEGER I,IX,IY,M,MP1
+      real(rk8) :: DTEMP
+      INTEGER :: I,IX,IY,M,MP1
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC MOD
 !     ..
-      IF (N.LE.0) RETURN
-      IF (INCX.EQ.1 .AND. INCY.EQ.1) THEN
+      IF (N<=0) RETURN
+      IF (INCX==1 .AND. INCY==1) THEN
 !
 !       code for both increments equal to 1
 !
@@ -2983,13 +2983,13 @@ module lapack_dgbsv
 !       clean-up loop
 !
          M = MOD(N,3)
-         IF (M.NE.0) THEN
+         IF (M/=0) THEN
             DO I = 1,M
                DTEMP = DX(I)
                DX(I) = DY(I)
                DY(I) = DTEMP
             END DO
-            IF (N.LT.3) RETURN
+            IF (N<3) RETURN
          END IF
          MP1 = M + 1
          DO I = MP1,N,3
@@ -3010,8 +3010,8 @@ module lapack_dgbsv
 !
          IX = 1
          IY = 1
-         IF (INCX.LT.0) IX = (-N+1)*INCX + 1
-         IF (INCY.LT.0) IY = (-N+1)*INCY + 1
+         IF (INCX<0) IX = (-N+1)*INCX + 1
+         IF (INCY<0) IY = (-N+1)*INCY + 1
          DO I = 1,N
             DTEMP = DX(IX)
             DX(IX) = DY(IY)
@@ -3024,13 +3024,13 @@ module lapack_dgbsv
     END SUBROUTINE DSWAP
 
     SUBROUTINE DSCAL(N,DA,DX,INCX)
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !     .. Scalar Arguments ..
-      real(rk8) DA
-      INTEGER INCX,N
+      real(rk8) :: DA
+      INTEGER :: INCX,N
 !     ..
 !     .. Array Arguments ..
-      real(rk8) DX(*)
+      real(rk8) :: DX(*)
 !     ..
 !
 !  Purpose
@@ -3049,13 +3049,13 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      INTEGER I,M,MP1,NINCX
+      INTEGER :: I,M,MP1,NINCX
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC MOD
 !     ..
-      IF (N.LE.0 .OR. INCX.LE.0) RETURN
-      IF (INCX.EQ.1) THEN
+      IF (N<=0 .OR. INCX<=0) RETURN
+      IF (INCX==1) THEN
 !
 !        code for increment equal to 1
 !
@@ -3063,11 +3063,11 @@ module lapack_dgbsv
 !        clean-up loop
 !
          M = MOD(N,5)
-         IF (M.NE.0) THEN
+         IF (M/=0) THEN
             DO I = 1,M
                DX(I) = DA*DX(I)
             END DO
-            IF (N.LT.5) RETURN
+            IF (N<5) RETURN
          END IF
          MP1 = M + 1
          DO I = MP1,N,5
@@ -3090,13 +3090,13 @@ module lapack_dgbsv
     END SUBROUTINE DSCAL
 
     SUBROUTINE DGER(M,N,ALPHA,X,INCX,Y,INCY,A,LDA)
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !     .. Scalar Arguments ..
-      real(rk8) ALPHA
-      INTEGER INCX,INCY,LDA,M,N
+      real(rk8) :: ALPHA
+      INTEGER :: INCX,INCY,LDA,M,N
 !     ..
 !     .. Array Arguments ..
-      real(rk8) A(LDA,*),X(*),Y(*)
+      real(rk8) :: A(LDA,*),X(*),Y(*)
 !     ..
 !
 !  Purpose
@@ -3173,12 +3173,12 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8) ZERO
+      real(rk8) :: ZERO
       PARAMETER (ZERO=0.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      real(rk8) TEMP
-      INTEGER I,INFO,IX,J,JY,KX
+      real(rk8) :: TEMP
+      INTEGER :: I,INFO,IX,J,JY,KX
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC MAX
@@ -3187,37 +3187,37 @@ module lapack_dgbsv
 !     Test the input parameters.
 !
       INFO = 0
-      IF (M.LT.0) THEN
+      IF (M<0) THEN
           INFO = 1
-      ELSE IF (N.LT.0) THEN
+      ELSE IF (N<0) THEN
           INFO = 2
-      ELSE IF (INCX.EQ.0) THEN
+      ELSE IF (INCX==0) THEN
           INFO = 5
-      ELSE IF (INCY.EQ.0) THEN
+      ELSE IF (INCY==0) THEN
           INFO = 7
-      ELSE IF (LDA.LT.MAX(1,M)) THEN
+      ELSE IF (LDA<MAX(1,M)) THEN
           INFO = 9
       END IF
-      IF (INFO.NE.0) THEN
+      IF (INFO/=0) THEN
           CALL XERBLA('DGER  ',INFO)
           RETURN
       END IF
 !
 !     Quick return if possible.
 !
-      IF ((M.EQ.0) .OR. (N.EQ.0) .OR. (ALPHA.EQ.ZERO)) RETURN
+      IF ((M==0) .OR. (N==0) .OR. (ALPHA==ZERO)) RETURN
 !
 !     Start the operations. In this version the elements of A are
 !     accessed sequentially with one pass through A.
 !
-      IF (INCY.GT.0) THEN
+      IF (INCY>0) THEN
           JY = 1
       ELSE
           JY = 1 - (N-1)*INCY
       END IF
-      IF (INCX.EQ.1) THEN
+      IF (INCX==1) THEN
           DO 20 J = 1,N
-              IF (Y(JY).NE.ZERO) THEN
+              IF (Y(JY)/=ZERO) THEN
                   TEMP = ALPHA*Y(JY)
                   DO 10 I = 1,M
                       A(I,J) = A(I,J) + X(I)*TEMP
@@ -3226,13 +3226,13 @@ module lapack_dgbsv
               JY = JY + INCY
    20     CONTINUE
       ELSE
-          IF (INCX.GT.0) THEN
+          IF (INCX>0) THEN
               KX = 1
           ELSE
               KX = 1 - (M-1)*INCX
           END IF
           DO 40 J = 1,N
-              IF (Y(JY).NE.ZERO) THEN
+              IF (Y(JY)/=ZERO) THEN
                   TEMP = ALPHA*Y(JY)
                   IX = KX
                   DO 30 I = 1,M
@@ -3251,12 +3251,12 @@ module lapack_dgbsv
     END SUBROUTINE DGER
 
     SUBROUTINE DCOPY(N,DX,INCX,DY,INCY)
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !     .. Scalar Arguments ..
-      INTEGER INCX,INCY,N
+      INTEGER :: INCX,INCY,N
 !     ..
 !     .. Array Arguments ..
-      real(rk8) DX(*),DY(*)
+      real(rk8) :: DX(*),DY(*)
 !     ..
 !
 !  Purpose
@@ -3274,13 +3274,13 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      INTEGER I,IX,IY,M,MP1
+      INTEGER :: I,IX,IY,M,MP1
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC MOD
 !     ..
-      IF (N.LE.0) RETURN
-      IF (INCX.EQ.1 .AND. INCY.EQ.1) THEN
+      IF (N<=0) RETURN
+      IF (INCX==1 .AND. INCY==1) THEN
 !
 !        code for both increments equal to 1
 !
@@ -3288,11 +3288,11 @@ module lapack_dgbsv
 !        clean-up loop
 !
          M = MOD(N,7)
-         IF (M.NE.0) THEN
+         IF (M/=0) THEN
             DO I = 1,M
                DY(I) = DX(I)
             END DO
-            IF (N.LT.7) RETURN
+            IF (N<7) RETURN
          END IF
          MP1 = M + 1
          DO I = MP1,N,7
@@ -3311,8 +3311,8 @@ module lapack_dgbsv
 !
          IX = 1
          IY = 1
-         IF (INCX.LT.0) IX = (-N+1)*INCX + 1
-         IF (INCY.LT.0) IY = (-N+1)*INCY + 1
+         IF (INCX<0) IX = (-N+1)*INCX + 1
+         IF (INCY<0) IY = (-N+1)*INCY + 1
          DO I = 1,N
             DY(IY) = DX(IX)
             IX = IX + INCX
@@ -3323,14 +3323,14 @@ module lapack_dgbsv
     END SUBROUTINE DCOPY
 
     SUBROUTINE DGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !     .. Scalar Arguments ..
-      real(rk8) ALPHA,BETA
-      INTEGER K,LDA,LDB,LDC,M,N
-      CHARACTER TRANSA,TRANSB
+      real(rk8) :: ALPHA,BETA
+      INTEGER :: K,LDA,LDB,LDC,M,N
+      CHARACTER :: TRANSA,TRANSB
 !     ..
 !     .. Array Arguments ..
-      real(rk8) A(LDA,*),B(LDB,*),C(LDC,*)
+      real(rk8) :: A(LDA,*),B(LDB,*),C(LDC,*)
 !     ..
 !
 !  Purpose
@@ -3460,12 +3460,12 @@ module lapack_dgbsv
       INTRINSIC MAX
 !     ..
 !     .. Local Scalars ..
-      real(rk8) TEMP
-      INTEGER I,INFO,J,L,NCOLA,NROWA,NROWB
-      LOGICAL NOTA,NOTB
+      real(rk8) :: TEMP
+      INTEGER :: I,INFO,J,L,NCOLA,NROWA,NROWB
+      LOGICAL :: NOTA,NOTB
 !     ..
 !     .. Parameters ..
-      real(rk8) ONE,ZERO
+      real(rk8) :: ONE,ZERO
       PARAMETER (ONE=1.0_rk8,ZERO=0.0_rk8)
 !     ..
 !
@@ -3497,33 +3497,33 @@ module lapack_dgbsv
       ELSE IF ((.NOT.NOTB) .AND. (.NOT.LSAME(TRANSB,'C')) .AND. &
                (.NOT.LSAME(TRANSB,'T'))) THEN
           INFO = 2
-      ELSE IF (M.LT.0) THEN
+      ELSE IF (M<0) THEN
           INFO = 3
-      ELSE IF (N.LT.0) THEN
+      ELSE IF (N<0) THEN
           INFO = 4
-      ELSE IF (K.LT.0) THEN
+      ELSE IF (K<0) THEN
           INFO = 5
-      ELSE IF (LDA.LT.MAX(1,NROWA)) THEN
+      ELSE IF (LDA<MAX(1,NROWA)) THEN
           INFO = 8
-      ELSE IF (LDB.LT.MAX(1,NROWB)) THEN
+      ELSE IF (LDB<MAX(1,NROWB)) THEN
           INFO = 10
-      ELSE IF (LDC.LT.MAX(1,M)) THEN
+      ELSE IF (LDC<MAX(1,M)) THEN
           INFO = 13
       END IF
-      IF (INFO.NE.0) THEN
+      IF (INFO/=0) THEN
           CALL XERBLA('DGEMM ',INFO)
           RETURN
       END IF
 !
 !     Quick return if possible.
 !
-      IF ((M.EQ.0) .OR. (N.EQ.0) .OR. &
-          (((ALPHA.EQ.ZERO).OR. (K.EQ.0)).AND. (BETA.EQ.ONE))) RETURN
+      IF ((M==0) .OR. (N==0) .OR. &
+          (((ALPHA==ZERO).OR. (K==0)).AND. (BETA==ONE))) RETURN
 !
 !     And if  alpha.eq.zero.
 !
-      IF (ALPHA.EQ.ZERO) THEN
-          IF (BETA.EQ.ZERO) THEN
+      IF (ALPHA==ZERO) THEN
+          IF (BETA==ZERO) THEN
               DO 20 J = 1,N
                   DO 10 I = 1,M
                       C(I,J) = ZERO
@@ -3547,17 +3547,17 @@ module lapack_dgbsv
 !           Form  C := alpha*A*B + beta*C.
 !
               DO 90 J = 1,N
-                  IF (BETA.EQ.ZERO) THEN
+                  IF (BETA==ZERO) THEN
                       DO 50 I = 1,M
                           C(I,J) = ZERO
    50                 CONTINUE
-                  ELSE IF (BETA.NE.ONE) THEN
+                  ELSE IF (BETA/=ONE) THEN
                       DO 60 I = 1,M
                           C(I,J) = BETA*C(I,J)
    60                 CONTINUE
                   END IF
                   DO 80 L = 1,K
-                      IF (B(L,J).NE.ZERO) THEN
+                      IF (B(L,J)/=ZERO) THEN
                           TEMP = ALPHA*B(L,J)
                           DO 70 I = 1,M
                               C(I,J) = C(I,J) + TEMP*A(I,L)
@@ -3575,7 +3575,7 @@ module lapack_dgbsv
                       DO 100 L = 1,K
                           TEMP = TEMP + A(L,I)*B(L,J)
   100                 CONTINUE
-                      IF (BETA.EQ.ZERO) THEN
+                      IF (BETA==ZERO) THEN
                           C(I,J) = ALPHA*TEMP
                       ELSE
                           C(I,J) = ALPHA*TEMP + BETA*C(I,J)
@@ -3589,17 +3589,17 @@ module lapack_dgbsv
 !           Form  C := alpha*A*B**T + beta*C
 !
               DO 170 J = 1,N
-                  IF (BETA.EQ.ZERO) THEN
+                  IF (BETA==ZERO) THEN
                       DO 130 I = 1,M
                           C(I,J) = ZERO
   130                 CONTINUE
-                  ELSE IF (BETA.NE.ONE) THEN
+                  ELSE IF (BETA/=ONE) THEN
                       DO 140 I = 1,M
                           C(I,J) = BETA*C(I,J)
   140                 CONTINUE
                   END IF
                   DO 160 L = 1,K
-                      IF (B(J,L).NE.ZERO) THEN
+                      IF (B(J,L)/=ZERO) THEN
                           TEMP = ALPHA*B(J,L)
                           DO 150 I = 1,M
                               C(I,J) = C(I,J) + TEMP*A(I,L)
@@ -3617,7 +3617,7 @@ module lapack_dgbsv
                       DO 180 L = 1,K
                           TEMP = TEMP + A(L,I)*B(J,L)
   180                 CONTINUE
-                      IF (BETA.EQ.ZERO) THEN
+                      IF (BETA==ZERO) THEN
                           C(I,J) = ALPHA*TEMP
                       ELSE
                           C(I,J) = ALPHA*TEMP + BETA*C(I,J)
@@ -3634,14 +3634,14 @@ module lapack_dgbsv
     END SUBROUTINE DGEMM
 
     SUBROUTINE DTRSM(SIDE,UPLO,TRANSA,DIAG,M,N,ALPHA,A,LDA,B,LDB)
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !     .. Scalar Arguments ..
-      real(rk8) ALPHA
-      INTEGER LDA,LDB,M,N
-      CHARACTER DIAG,SIDE,TRANSA,UPLO
+      real(rk8) :: ALPHA
+      INTEGER :: LDA,LDB,M,N
+      CHARACTER :: DIAG,SIDE,TRANSA,UPLO
 !     ..
 !     .. Array Arguments ..
-      real(rk8) A(LDA,*),B(LDB,*)
+      real(rk8) :: A(LDA,*),B(LDB,*)
 !     ..
 !
 !  Purpose
@@ -3770,12 +3770,12 @@ module lapack_dgbsv
       INTRINSIC MAX
 !     ..
 !     .. Local Scalars ..
-      real(rk8) TEMP
-      INTEGER I,INFO,J,K,NROWA
-      LOGICAL LSIDE,NOUNIT,UPPER
+      real(rk8) :: TEMP
+      INTEGER :: I,INFO,J,K,NROWA
+      LOGICAL :: LSIDE,NOUNIT,UPPER
 !     ..
 !     .. Parameters ..
-      real(rk8) ONE,ZERO
+      real(rk8) :: ONE,ZERO
       PARAMETER (ONE=1.0_rk8,ZERO=0.0_rk8)
 !     ..
 !
@@ -3801,27 +3801,27 @@ module lapack_dgbsv
           INFO = 3
       ELSE IF ((.NOT.LSAME(DIAG,'U')) .AND. (.NOT.LSAME(DIAG,'N'))) THEN
           INFO = 4
-      ELSE IF (M.LT.0) THEN
+      ELSE IF (M<0) THEN
           INFO = 5
-      ELSE IF (N.LT.0) THEN
+      ELSE IF (N<0) THEN
           INFO = 6
-      ELSE IF (LDA.LT.MAX(1,NROWA)) THEN
+      ELSE IF (LDA<MAX(1,NROWA)) THEN
           INFO = 9
-      ELSE IF (LDB.LT.MAX(1,M)) THEN
+      ELSE IF (LDB<MAX(1,M)) THEN
           INFO = 11
       END IF
-      IF (INFO.NE.0) THEN
+      IF (INFO/=0) THEN
           CALL XERBLA('DTRSM ',INFO)
           RETURN
       END IF
 !
 !     Quick return if possible.
 !
-      IF (M.EQ.0 .OR. N.EQ.0) RETURN
+      IF (M==0 .OR. N==0) RETURN
 !
 !     And when  alpha.eq.zero.
 !
-      IF (ALPHA.EQ.ZERO) THEN
+      IF (ALPHA==ZERO) THEN
           DO 20 J = 1,N
               DO 10 I = 1,M
                   B(I,J) = ZERO
@@ -3839,13 +3839,13 @@ module lapack_dgbsv
 !
               IF (UPPER) THEN
                   DO 60 J = 1,N
-                      IF (ALPHA.NE.ONE) THEN
+                      IF (ALPHA/=ONE) THEN
                           DO 30 I = 1,M
                               B(I,J) = ALPHA*B(I,J)
    30                     CONTINUE
                       END IF
                       DO 50 K = M,1,-1
-                          IF (B(K,J).NE.ZERO) THEN
+                          IF (B(K,J)/=ZERO) THEN
                               IF (NOUNIT) B(K,J) = B(K,J)/A(K,K)
                               DO 40 I = 1,K - 1
                                   B(I,J) = B(I,J) - B(K,J)*A(I,K)
@@ -3855,13 +3855,13 @@ module lapack_dgbsv
    60             CONTINUE
               ELSE
                   DO 100 J = 1,N
-                      IF (ALPHA.NE.ONE) THEN
+                      IF (ALPHA/=ONE) THEN
                           DO 70 I = 1,M
                               B(I,J) = ALPHA*B(I,J)
    70                     CONTINUE
                       END IF
                       DO 90 K = 1,M
-                          IF (B(K,J).NE.ZERO) THEN
+                          IF (B(K,J)/=ZERO) THEN
                               IF (NOUNIT) B(K,J) = B(K,J)/A(K,K)
                               DO 80 I = K + 1,M
                                   B(I,J) = B(I,J) - B(K,J)*A(I,K)
@@ -3905,13 +3905,13 @@ module lapack_dgbsv
 !
               IF (UPPER) THEN
                   DO 210 J = 1,N
-                      IF (ALPHA.NE.ONE) THEN
+                      IF (ALPHA/=ONE) THEN
                           DO 170 I = 1,M
                               B(I,J) = ALPHA*B(I,J)
   170                     CONTINUE
                       END IF
                       DO 190 K = 1,J - 1
-                          IF (A(K,J).NE.ZERO) THEN
+                          IF (A(K,J)/=ZERO) THEN
                               DO 180 I = 1,M
                                   B(I,J) = B(I,J) - A(K,J)*B(I,K)
   180                         CONTINUE
@@ -3926,13 +3926,13 @@ module lapack_dgbsv
   210             CONTINUE
               ELSE
                   DO 260 J = N,1,-1
-                      IF (ALPHA.NE.ONE) THEN
+                      IF (ALPHA/=ONE) THEN
                           DO 220 I = 1,M
                               B(I,J) = ALPHA*B(I,J)
   220                     CONTINUE
                       END IF
                       DO 240 K = J + 1,N
-                          IF (A(K,J).NE.ZERO) THEN
+                          IF (A(K,J)/=ZERO) THEN
                               DO 230 I = 1,M
                                   B(I,J) = B(I,J) - A(K,J)*B(I,K)
   230                         CONTINUE
@@ -3959,14 +3959,14 @@ module lapack_dgbsv
   270                     CONTINUE
                       END IF
                       DO 290 J = 1,K - 1
-                          IF (A(J,K).NE.ZERO) THEN
+                          IF (A(J,K)/=ZERO) THEN
                               TEMP = A(J,K)
                               DO 280 I = 1,M
                                   B(I,J) = B(I,J) - TEMP*B(I,K)
   280                         CONTINUE
                           END IF
   290                 CONTINUE
-                      IF (ALPHA.NE.ONE) THEN
+                      IF (ALPHA/=ONE) THEN
                           DO 300 I = 1,M
                               B(I,K) = ALPHA*B(I,K)
   300                     CONTINUE
@@ -3981,14 +3981,14 @@ module lapack_dgbsv
   320                     CONTINUE
                       END IF
                       DO 340 J = K + 1,N
-                          IF (A(J,K).NE.ZERO) THEN
+                          IF (A(J,K)/=ZERO) THEN
                               TEMP = A(J,K)
                               DO 330 I = 1,M
                                   B(I,J) = B(I,J) - TEMP*B(I,K)
   330                         CONTINUE
                           END IF
   340                 CONTINUE
-                      IF (ALPHA.NE.ONE) THEN
+                      IF (ALPHA/=ONE) THEN
                           DO 350 I = 1,M
                               B(I,K) = ALPHA*B(I,K)
   350                     CONTINUE
@@ -4005,13 +4005,13 @@ module lapack_dgbsv
     END SUBROUTINE DTRSM
 
     SUBROUTINE DTBSV(UPLO,TRANS,DIAG,N,K,A,LDA,X,INCX)
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !     .. Scalar Arguments ..
-      INTEGER INCX,K,LDA,N
-      CHARACTER DIAG,TRANS,UPLO
+      INTEGER :: INCX,K,LDA,N
+      CHARACTER :: DIAG,TRANS,UPLO
 !     ..
 !     .. Array Arguments ..
-      real(rk8) A(LDA,*),X(*)
+      real(rk8) :: A(LDA,*),X(*)
 !     ..
 !
 !  Purpose
@@ -4150,13 +4150,13 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8) ZERO
+      real(rk8) :: ZERO
       PARAMETER (ZERO=0.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      real(rk8) TEMP
-      INTEGER I,INFO,IX,J,JX,KPLUS1,KX,L
-      LOGICAL NOUNIT
+      real(rk8) :: TEMP
+      INTEGER :: I,INFO,IX,J,JX,KPLUS1,KX,L
+      LOGICAL :: NOUNIT
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC MAX,MIN
@@ -4172,32 +4172,32 @@ module lapack_dgbsv
           INFO = 2
       ELSE IF (.NOT.LSAME(DIAG,'U') .AND. .NOT.LSAME(DIAG,'N')) THEN
           INFO = 3
-      ELSE IF (N.LT.0) THEN
+      ELSE IF (N<0) THEN
           INFO = 4
-      ELSE IF (K.LT.0) THEN
+      ELSE IF (K<0) THEN
           INFO = 5
-      ELSE IF (LDA.LT. (K+1)) THEN
+      ELSE IF (LDA< (K+1)) THEN
           INFO = 7
-      ELSE IF (INCX.EQ.0) THEN
+      ELSE IF (INCX==0) THEN
           INFO = 9
       END IF
-      IF (INFO.NE.0) THEN
+      IF (INFO/=0) THEN
           CALL XERBLA('DTBSV ',INFO)
           RETURN
       END IF
 !
 !     Quick return if possible.
 !
-      IF (N.EQ.0) RETURN
+      IF (N==0) RETURN
 !
       NOUNIT = LSAME(DIAG,'N')
 !
 !     Set up the start point in X if the increment is not unity. This
 !     will be  ( N - 1 )*INCX  too small for descending loops.
 !
-      IF (INCX.LE.0) THEN
+      IF (INCX<=0) THEN
           KX = 1 - (N-1)*INCX
-      ELSE IF (INCX.NE.1) THEN
+      ELSE IF (INCX/=1) THEN
           KX = 1
       END IF
 !
@@ -4210,9 +4210,9 @@ module lapack_dgbsv
 !
           IF (LSAME(UPLO,'U')) THEN
               KPLUS1 = K + 1
-              IF (INCX.EQ.1) THEN
+              IF (INCX==1) THEN
                   DO 20 J = N,1,-1
-                      IF (X(J).NE.ZERO) THEN
+                      IF (X(J)/=ZERO) THEN
                           L = KPLUS1 - J
                           IF (NOUNIT) X(J) = X(J)/A(KPLUS1,J)
                           TEMP = X(J)
@@ -4226,7 +4226,7 @@ module lapack_dgbsv
                   JX = KX
                   DO 40 J = N,1,-1
                       KX = KX - INCX
-                      IF (X(JX).NE.ZERO) THEN
+                      IF (X(JX)/=ZERO) THEN
                           IX = KX
                           L = KPLUS1 - J
                           IF (NOUNIT) X(JX) = X(JX)/A(KPLUS1,J)
@@ -4240,9 +4240,9 @@ module lapack_dgbsv
    40             CONTINUE
               END IF
           ELSE
-              IF (INCX.EQ.1) THEN
+              IF (INCX==1) THEN
                   DO 60 J = 1,N
-                      IF (X(J).NE.ZERO) THEN
+                      IF (X(J)/=ZERO) THEN
                           L = 1 - J
                           IF (NOUNIT) X(J) = X(J)/A(1,J)
                           TEMP = X(J)
@@ -4255,7 +4255,7 @@ module lapack_dgbsv
                   JX = KX
                   DO 80 J = 1,N
                       KX = KX + INCX
-                      IF (X(JX).NE.ZERO) THEN
+                      IF (X(JX)/=ZERO) THEN
                           IX = KX
                           L = 1 - J
                           IF (NOUNIT) X(JX) = X(JX)/A(1,J)
@@ -4275,7 +4275,7 @@ module lapack_dgbsv
 !
           IF (LSAME(UPLO,'U')) THEN
               KPLUS1 = K + 1
-              IF (INCX.EQ.1) THEN
+              IF (INCX==1) THEN
                   DO 100 J = 1,N
                       TEMP = X(J)
                       L = KPLUS1 - J
@@ -4298,11 +4298,11 @@ module lapack_dgbsv
                       IF (NOUNIT) TEMP = TEMP/A(KPLUS1,J)
                       X(JX) = TEMP
                       JX = JX + INCX
-                      IF (J.GT.K) KX = KX + INCX
+                      IF (J>K) KX = KX + INCX
   120             CONTINUE
               END IF
           ELSE
-              IF (INCX.EQ.1) THEN
+              IF (INCX==1) THEN
                   DO 140 J = N,1,-1
                       TEMP = X(J)
                       L = 1 - J
@@ -4326,7 +4326,7 @@ module lapack_dgbsv
                       IF (NOUNIT) TEMP = TEMP/A(1,J)
                       X(JX) = TEMP
                       JX = JX - INCX
-                      IF ((N-J).GE.K) KX = KX - INCX
+                      IF ((N-J)>=K) KX = KX - INCX
   160             CONTINUE
               END IF
           END IF
@@ -4339,14 +4339,14 @@ module lapack_dgbsv
     END SUBROUTINE DTBSV
 
     SUBROUTINE DGEMV(TRANS,M,N,ALPHA,A,LDA,X,INCX,BETA,Y,INCY)
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 !     .. Scalar Arguments ..
-      real(rk8) ALPHA,BETA
-      INTEGER INCX,INCY,LDA,M,N
-      CHARACTER TRANS
+      real(rk8) :: ALPHA,BETA
+      INTEGER :: INCX,INCY,LDA,M,N
+      CHARACTER :: TRANS
 !     ..
 !     .. Array Arguments ..
-      real(rk8) A(LDA,*),X(*),Y(*)
+      real(rk8) :: A(LDA,*),X(*),Y(*)
 !     ..
 !
 !  Purpose
@@ -4445,12 +4445,12 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8) ONE,ZERO
+      real(rk8) :: ONE,ZERO
       PARAMETER (ONE=1.0_rk8,ZERO=0.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      real(rk8) TEMP
-      INTEGER I,INFO,IX,IY,J,JX,JY,KX,KY,LENX,LENY
+      real(rk8) :: TEMP
+      INTEGER :: I,INFO,IX,IY,J,JX,JY,KX,KY,LENX,LENY
 !     ..
 !     .. Intrinsic Functions ..
       INTRINSIC MAX
@@ -4462,26 +4462,26 @@ module lapack_dgbsv
       IF (.NOT.LSAME(TRANS,'N') .AND. .NOT.LSAME(TRANS,'T') .AND. &
           .NOT.LSAME(TRANS,'C')) THEN
           INFO = 1
-      ELSE IF (M.LT.0) THEN
+      ELSE IF (M<0) THEN
           INFO = 2
-      ELSE IF (N.LT.0) THEN
+      ELSE IF (N<0) THEN
           INFO = 3
-      ELSE IF (LDA.LT.MAX(1,M)) THEN
+      ELSE IF (LDA<MAX(1,M)) THEN
           INFO = 6
-      ELSE IF (INCX.EQ.0) THEN
+      ELSE IF (INCX==0) THEN
           INFO = 8
-      ELSE IF (INCY.EQ.0) THEN
+      ELSE IF (INCY==0) THEN
           INFO = 11
       END IF
-      IF (INFO.NE.0) THEN
+      IF (INFO/=0) THEN
           CALL XERBLA('DGEMV ',INFO)
           RETURN
       END IF
 !
 !     Quick return if possible.
 !
-      IF ((M.EQ.0) .OR. (N.EQ.0) .OR. &
-          ((ALPHA.EQ.ZERO).AND. (BETA.EQ.ONE))) RETURN
+      IF ((M==0) .OR. (N==0) .OR. &
+          ((ALPHA==ZERO).AND. (BETA==ONE))) RETURN
 !
 !     Set  LENX  and  LENY, the lengths of the vectors x and y, and set
 !     up the start points in  X  and  Y.
@@ -4493,12 +4493,12 @@ module lapack_dgbsv
           LENX = M
           LENY = N
       END IF
-      IF (INCX.GT.0) THEN
+      IF (INCX>0) THEN
           KX = 1
       ELSE
           KX = 1 - (LENX-1)*INCX
       END IF
-      IF (INCY.GT.0) THEN
+      IF (INCY>0) THEN
           KY = 1
       ELSE
           KY = 1 - (LENY-1)*INCY
@@ -4509,9 +4509,9 @@ module lapack_dgbsv
 !
 !     First form  y := beta*y.
 !
-      IF (BETA.NE.ONE) THEN
-          IF (INCY.EQ.1) THEN
-              IF (BETA.EQ.ZERO) THEN
+      IF (BETA/=ONE) THEN
+          IF (INCY==1) THEN
+              IF (BETA==ZERO) THEN
                   DO 10 I = 1,LENY
                       Y(I) = ZERO
    10             CONTINUE
@@ -4522,7 +4522,7 @@ module lapack_dgbsv
               END IF
           ELSE
               IY = KY
-              IF (BETA.EQ.ZERO) THEN
+              IF (BETA==ZERO) THEN
                   DO 30 I = 1,LENY
                       Y(IY) = ZERO
                       IY = IY + INCY
@@ -4535,15 +4535,15 @@ module lapack_dgbsv
               END IF
           END IF
       END IF
-      IF (ALPHA.EQ.ZERO) RETURN
+      IF (ALPHA==ZERO) RETURN
       IF (LSAME(TRANS,'N')) THEN
 !
 !        Form  y := alpha*A*x + y.
 !
           JX = KX
-          IF (INCY.EQ.1) THEN
+          IF (INCY==1) THEN
               DO 60 J = 1,N
-                  IF (X(JX).NE.ZERO) THEN
+                  IF (X(JX)/=ZERO) THEN
                       TEMP = ALPHA*X(JX)
                       DO 50 I = 1,M
                           Y(I) = Y(I) + TEMP*A(I,J)
@@ -4553,7 +4553,7 @@ module lapack_dgbsv
    60         CONTINUE
           ELSE
               DO 80 J = 1,N
-                  IF (X(JX).NE.ZERO) THEN
+                  IF (X(JX)/=ZERO) THEN
                       TEMP = ALPHA*X(JX)
                       IY = KY
                       DO 70 I = 1,M
@@ -4569,7 +4569,7 @@ module lapack_dgbsv
 !        Form  y := alpha*A**T*x + y.
 !
           JY = KY
-          IF (INCX.EQ.1) THEN
+          IF (INCX==1) THEN
               DO 100 J = 1,N
                   TEMP = ZERO
                   DO 90 I = 1,M

@@ -27,7 +27,7 @@ module mod_diffusion
   use mod_mppparam
   use mod_service
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -82,7 +82,7 @@ module mod_diffusion
   contains
 
   subroutine allocate_mod_diffusion
-    implicit none
+    implicit none (type, external)
     if ( idiffu < 3 ) then
       call getmem(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'diffusion:hgfact')
     end if
@@ -93,7 +93,7 @@ module mod_diffusion
 
   subroutine initialize_diffusion
     use mod_atm_interface, only : mddom, sfs, atms
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i, j
     real(rkx) :: xkhz, minxkh, maxxkh
     real(rkx) :: hg1, hg2, hg3, hg4, hgmax
@@ -164,7 +164,7 @@ module mod_diffusion
   end subroutine initialize_diffusion
 
   subroutine calc_coeff
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i, j, k
     real(rkx) :: dudx, dvdx, dudy, dvdy, dwdz, duv
 
@@ -261,7 +261,7 @@ module mod_diffusion
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine diffu_d(uten,vten,u,v)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten, vten
     integer(ik4) :: i, j, k
@@ -510,7 +510,7 @@ module mod_diffusion
   end subroutine diffu_d
 
   subroutine diffu_x3df(ften,f,fac)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ften
     real(rkx), intent(in) :: fac
@@ -637,7 +637,7 @@ module mod_diffusion
   end subroutine diffu_x3df
 
   subroutine diffu_x3d(ften,f)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ften
     integer(ik4) :: i, j, k
@@ -763,7 +763,7 @@ module mod_diffusion
   end subroutine diffu_x3d
 
   subroutine diffu_x4d(ften,f,n1,n2,fac)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: n1, n2
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: f
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ften
@@ -776,7 +776,7 @@ module mod_diffusion
   end subroutine diffu_x4d
 
   subroutine diffu_x4d3d(ften,f,n,fac)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: n
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: f
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ften

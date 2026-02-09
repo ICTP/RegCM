@@ -23,7 +23,7 @@ module mod_ocn_lake
   use mod_runparams, only : rcmtimer, iocnrough
   use mod_ocn_internal
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -68,7 +68,7 @@ module mod_ocn_lake
   contains
 
   subroutine allocate_mod_ocn_lake
-    implicit none
+    implicit none (type, external)
     integer :: i, lp
     nlakep = 0
     call getmem(lakmsk,1,nocnp,'ocn::initlake::lakmsk')
@@ -93,7 +93,7 @@ module mod_ocn_lake
   end subroutine allocate_mod_ocn_lake
 
   subroutine initlake
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i, k, lp, n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initlake'
@@ -200,7 +200,7 @@ module mod_ocn_lake
   end subroutine initlake
 
   subroutine lakedrv
-    implicit none
+    implicit none (type, external)
     real(rkx) :: flwx, fswx, hsen, prec, qs, tgl, tl, vl, zl
     real(rkx) :: xl, toth
     real(rkx) :: age, age1, age2, arg, arg2, cdr, cdrmin, cdrn
@@ -375,7 +375,7 @@ module mod_ocn_lake
     ! our formulation for zo
     !
     subroutine ocnrough(zo,ustar,um10,wc,visa)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent (in) :: ustar, um10, wc, visa
       real(rkx), intent (out) :: zo
       real(rkx) :: cp, charnockog, alph
@@ -422,7 +422,7 @@ module mod_ocn_lake
 
   subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,tgl,  &
                   prec,ndpt,eta,hi,aveice,hsnow,evl,tprof,ps,dens)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: dtlake, hsen, flw, &
                prec, ql, fsw, tl, vl, zl, eta, xl, ps, dens
     real(rkx), intent(out) :: tgl
@@ -505,7 +505,7 @@ module mod_ocn_lake
 
     ! Computes density and eddy diffusivity
 
-    implicit none
+    implicit none (type, external)
 
     integer(ik4), intent (in) :: ndpt
     real(rkx), intent (in) :: dtlake, u2, xl
@@ -590,7 +590,7 @@ module mod_ocn_lake
   end subroutine lakeeddy
 
   subroutine laketemp(ndpt,dtlake,fsw,flw,qe,qh,eta,tprof)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ndpt
     real(rkx), intent(in) :: dtlake, eta, flw, qe, qh, fsw
     real(rkx), dimension(ndpmax), intent(inout) :: tprof
@@ -628,7 +628,7 @@ module mod_ocn_lake
   end subroutine laketemp
 
   subroutine lakemixer(kmin,kmax,ndpt,tprof)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ndpt, kmin, kmax
     real(rkx), intent(inout), dimension(ndpmax) :: tprof
     real(rkx) :: avet, avev, tav, vol
@@ -667,7 +667,7 @@ module mod_ocn_lake
   end subroutine lakemixer
 
   subroutine lakeice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,ps,tprof,dens)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ea, ld, prec, tac, u2, dtx, ps, dens, fsw
     real(rkx), intent(out) :: evl
     real(rkx), intent(inout) :: hi, aveice, hs
@@ -800,14 +800,14 @@ module mod_ocn_lake
     contains
 
     pure real(rkx) function t4(x)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x
       t4 = (x+tzero)**4
     end function t4
 
     ! Computes air vapor pressure as a function of temp (in K)
     pure real(rkx) function eomb(x)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x
       real(rkx) :: tr1
       tr1 = d_one - (tboil/(x+tzero))
@@ -816,7 +816,7 @@ module mod_ocn_lake
      end function eomb
 
     pure real(rkx) function f(x)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x
       f = (-ld + emsw*sigm*t4(x) + psi*(eomb(x)-ea) + &
            theta*(x-tac)-fsw) - d_one/khat*(qpen+tf-x)
@@ -825,7 +825,7 @@ module mod_ocn_lake
   end subroutine lakeice
 
   subroutine lake_fillvar_real8_1d(ivar,rvar,idir)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ivar, idir
     real(rkx), intent(inout), pointer, contiguous, dimension(:) :: rvar
     real(rkx), pointer, contiguous, dimension(:) :: p
@@ -852,7 +852,7 @@ module mod_ocn_lake
   end subroutine lake_fillvar_real8_1d
 
   subroutine lake_fillvar_real8_2d(ivar,rvar,idir)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ivar, idir
     real(rkx), intent(inout), pointer, contiguous, dimension(:,:) :: rvar
     real(rkx), pointer, contiguous, dimension(:,:) :: p

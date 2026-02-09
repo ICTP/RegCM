@@ -15,7 +15,7 @@
 
 module mod_ncstream_types
 #ifdef OPENACC
-  use iso_c_binding
+  use, intrinsic :: iso_c_binding
 #endif
   use mod_intkinds
   use mod_realkinds
@@ -25,7 +25,7 @@ module mod_ncstream_types
   use mpi, only: mpi_offset_kind
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   public
 
@@ -481,7 +481,7 @@ module mod_ncstream_types
   end type nc_variable_p
 
   type nc_varlist
-    type(nc_variable_p), dimension(:), pointer :: vlist
+    type(nc_variable_p), dimension(:), pointer :: vlist => null()
   end type nc_varlist
 
 end module mod_ncstream_types

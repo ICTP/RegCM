@@ -21,7 +21,7 @@ module mod_pbl_thetal
   use mod_mpmessage
   use mod_stdio
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -36,7 +36,7 @@ module mod_pbl_thetal
   contains
 
   pure real(rkx) function zerofunc(t,bderiv)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     logical, intent(in) :: bderiv
     real(rkx) :: qc, qv, es
@@ -64,7 +64,7 @@ module mod_pbl_thetal
   real(rkx) function solve_for_t(thetal,qt,p,tprev,qtprev,   &
                                  qcprev,thlprev,imax,imethod, &
                                  outqv,outqc)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: thetal, qt, p, tprev, qtprev, &
                               qcprev, thlprev
     integer(ik4), intent(in) :: imethod
@@ -290,7 +290,7 @@ module mod_pbl_thetal
             cycle bigloop
           end if
         end if
-        exit
+        exit bigloop
       end do bigloop
 
     else
@@ -358,7 +358,7 @@ module mod_pbl_thetal
   ! given the input pressure in cb and temperature in k
   ! modified from buck (1981), j. app. met. v 20
   function esatw(p,t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: p, t
     real(rkx) :: esatw
     real(rkx) :: dum, arg, tdum
@@ -377,7 +377,7 @@ module mod_pbl_thetal
   ! given the input pressure in cb and temperature in k
   ! modified from buck (1981), j. app. met. v 20
   function esati(p,t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: p, t
     real(rkx) :: esati
     real(rkx) :: dum, arg, tdum
@@ -393,7 +393,7 @@ module mod_pbl_thetal
   end function esati
 
   subroutine swap(a,b)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(inout) :: a, b
     real(rkx) :: c
     c = a
@@ -402,7 +402,7 @@ module mod_pbl_thetal
   end subroutine swap
 
   subroutine getqvqc(t,es,qv,qc)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     real(rkx), intent(out) :: es, qv, qc
     es = pfesat(t,myp)

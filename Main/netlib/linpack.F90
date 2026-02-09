@@ -78,7 +78,7 @@ module linpack
 
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
 
 contains
 
@@ -102,11 +102,11 @@ subroutine i_swap ( i, j )
 !    Input/output, integer I, J.  On output, the values of I and
 !    J have been interchanged.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer i
-  integer j
-  integer k
+  integer :: i
+  integer :: j
+  integer :: k
 !
   k = i
   i = j
@@ -152,15 +152,15 @@ function isamax ( n, x, incx )
 !    Output, integer ISAMAX, the index of the element of SX of maximum
 !    absolute value.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer i
-  integer incx
-  integer isamax
-  integer ix
-  integer n
-  real(rkx) x(*)
-  real(rkx) samax
+  integer :: i
+  integer :: incx
+  integer :: isamax
+  integer :: ix
+  integer :: n
+  real(rkx) :: x(*)
+  real(rkx) :: samax
 !
   if ( n <= 0 ) then
 
@@ -230,11 +230,11 @@ subroutine r_swap ( x, y )
 !    Input/output, real(rkx) X, Y.  On output, the values of X and
 !    Y have been interchanged.
 !
-  implicit none
+  implicit none (type, external)
 !
-  real(rkx) x
-  real(rkx) y
-  real(rkx) z
+  real(rkx) :: x
+  real(rkx) :: y
+  real(rkx) :: z
 !
   z = x
   x = y
@@ -264,14 +264,14 @@ function samax ( n, x, incx )
 !
 !    Output, real(rkx) SAMAX, the maximum absolute value of an element of X.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer i
-  integer incx
-  integer ix
-  integer n
-  real(rkx) samax
-  real(rkx) x(*)
+  integer :: i
+  integer :: incx
+  integer :: ix
+  integer :: n
+  real(rkx) :: samax
+  real(rkx) :: x(*)
 !
   if ( n <= 0 ) then
 
@@ -351,12 +351,12 @@ function sasum ( n, x, incx )
 !
 !    Output, real(rkx) SASUM, the sum of the absolute values of X.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer incx
-  integer n
-  real(rkx) sasum
-  real(rkx) x(*)
+  integer :: incx
+  integer :: n
+  real(rkx) :: sasum
+  real(rkx) :: x(*)
 !
   sasum = sum ( abs ( x(1:1+(n-1)*incx:incx) ) )
 
@@ -404,17 +404,17 @@ subroutine saxpy ( n, sa, x, incx, y, incy )
 !
 !    Input, integer INCY, the increment between successive entries of Y.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer i
-  integer incx
-  integer incy
-  integer ix
-  integer iy
-  integer n
-  real(rkx) sa
-  real(rkx) x(*)
-  real(rkx) y(*)
+  integer :: i
+  integer :: incx
+  integer :: incy
+  integer :: ix
+  integer :: iy
+  integer :: n
+  real(rkx) :: sa
+  real(rkx) :: x(*)
+  real(rkx) :: y(*)
 !
   if ( n <= 0 ) then
 
@@ -527,26 +527,26 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 !    Output, integer INFO, contains the index of the last positive diagonal
 !    element of the Cholesky factor.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer p
+  integer :: lda
+  integer :: p
 !
-  real(rkx) a(lda,p)
-  integer info
-  integer j
-  integer job
-  integer ipvt(p)
-  integer k
-  integer l
-  real(rkx) maxdia
-  integer maxl
-  logical negk
-  integer pl
-  integer pu
-  logical swapk
-  real(rkx) temp
-  real(rkx) work(*)
+  real(rkx) :: a(lda,p)
+  integer :: info
+  integer :: j
+  integer :: job
+  integer :: ipvt(p)
+  integer :: k
+  integer :: l
+  real(rkx) :: maxdia
+  integer :: maxl
+  logical :: negk
+  integer :: pl
+  integer :: pu
+  logical :: swapk
+  real(rkx) :: temp
+  real(rkx) :: work(*)
 !
   pl = 1
   pu = 0
@@ -799,33 +799,33 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !     1, if some RHO could not be downdated.  The offending RHO's are
 !        set to -1.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer ldr
-  integer ldz
-  integer nz
-  integer p
+  integer :: ldr
+  integer :: ldz
+  integer :: nz
+  integer :: p
 !
-  real(rkx) a
-  real(rkx) alpha
-  real(rkx) azeta
-  real(rkx) b
-  real(rkx) c(p)
-  integer i
-  integer ii
-  integer info
-  integer j
-  real(rkx) norm
-  real(rkx) r(ldr,p)
-  real(rkx) rho(nz)
-  real(rkx) s(p)
-  real(rkx) scale
-  real(rkx) t
-  real(rkx) x(p)
-  real(rkx) xx
-  real(rkx) y(nz)
-  real(rkx) z(ldz,nz)
-  real(rkx) zeta
+  real(rkx) :: a
+  real(rkx) :: alpha
+  real(rkx) :: azeta
+  real(rkx) :: b
+  real(rkx) :: c(p)
+  integer :: i
+  integer :: ii
+  integer :: info
+  integer :: j
+  real(rkx) :: norm
+  real(rkx) :: r(ldr,p)
+  real(rkx) :: rho(nz)
+  real(rkx) :: s(p)
+  real(rkx) :: scale
+  real(rkx) :: t
+  real(rkx) :: x(p)
+  real(rkx) :: xx
+  real(rkx) :: y(nz)
+  real(rkx) :: z(ldz,nz)
+  real(rkx) :: zeta
 !
 !  Solve the system R'*A = X, placing the result in the array S.
 !
@@ -997,29 +997,29 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
 !    Output, real(rkx) C(P), S(P), the cosines and sines of the transforming
 !    rotations.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer ldr
-  integer ldz
-  integer p
-  integer nz
+  integer :: ldr
+  integer :: ldz
+  integer :: p
+  integer :: nz
 !
-  real(rkx) c(p)
-  integer job
-  integer i
-  integer ii
-  integer il
-  integer iu
-  integer j
-  integer jj
-  integer k
-  integer l
-  integer lm1
-  integer lmk
-  real(rkx) r(ldr,p)
-  real(rkx) s(p)
-  real(rkx) t
-  real(rkx) z(ldz,nz)
+  real(rkx) :: c(p)
+  integer :: job
+  integer :: i
+  integer :: ii
+  integer :: il
+  integer :: iu
+  integer :: j
+  integer :: jj
+  integer :: k
+  integer :: l
+  integer :: lm1
+  integer :: lmk
+  real(rkx) :: r(ldr,p)
+  real(rkx) :: s(p)
+  real(rkx) :: t
+  real(rkx) :: z(ldz,nz)
 !
 !  Initialize
 !
@@ -1229,27 +1229,27 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
 !    Output, real(rkx) C(P), S(P), the cosines and sines of the transforming
 !    rotations.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer ldr
-  integer ldz
-  integer nz
-  integer p
+  integer :: ldr
+  integer :: ldz
+  integer :: nz
+  integer :: p
 !
-  real(rkx) azeta
-  real(rkx) c(p)
-  integer i
-  integer j
-  real(rkx) r(ldr,p)
-  real(rkx) rho(nz)
-  real(rkx) s(p)
-  real(rkx) scale
-  real(rkx) t
-  real(rkx) x(p)
-  real(rkx) xj
-  real(rkx) y(nz)
-  real(rkx) z(ldz,nz)
-  real(rkx) zeta
+  real(rkx) :: azeta
+  real(rkx) :: c(p)
+  integer :: i
+  integer :: j
+  real(rkx) :: r(ldr,p)
+  real(rkx) :: rho(nz)
+  real(rkx) :: s(p)
+  real(rkx) :: scale
+  real(rkx) :: t
+  real(rkx) :: x(p)
+  real(rkx) :: xj
+  real(rkx) :: y(nz)
+  real(rkx) :: z(ldz,nz)
+  real(rkx) :: zeta
 !
 !  Update R.
 !
@@ -1333,16 +1333,16 @@ subroutine scopy ( n, x, incx, y, incy )
 !
 !    Input, integer INCY, the increment between successive elements of Y.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer i
-  integer incx
-  integer incy
-  integer ix
-  integer iy
-  integer n
-  real(rkx) x(*)
-  real(rkx) y(*)
+  integer :: i
+  integer :: incx
+  integer :: incy
+  integer :: ix
+  integer :: iy
+  integer :: n
+  real(rkx) :: x(*)
+  real(rkx) :: y(*)
 !
   if ( n <= 0 ) then
 
@@ -1420,18 +1420,18 @@ function sdot ( n, x, incx, y, incy )
 !
 !    Output, real(rkx) SDOT, the dot product of X and Y.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer i
-  integer incx
-  integer incy
-  integer ix
-  integer iy
-  integer n
-  real(rkx) sdot
-  real(rkx) stemp
-  real(rkx) x(*)
-  real(rkx) y(*)
+  integer :: i
+  integer :: incx
+  integer :: incy
+  integer :: ix
+  integer :: iy
+  integer :: n
+  real(rkx) :: sdot
+  real(rkx) :: stemp
+  real(rkx) :: x(*)
+  real(rkx) :: y(*)
 !
   if ( n <= 0 ) then
 
@@ -1575,36 +1575,36 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) abd(lda,n)
-  real(rkx) anorm
-  real(rkx) ek
-  integer info
-  integer ipvt(n)
-  integer is
-  integer j
-  integer ju
-  integer k
-  integer l
-  integer la
-  integer lm
-  integer lz
-  integer m
-  integer ml
-  integer mm
-  integer mu
-  real(rkx) rcond
-  real(rkx) s
-  real(rkx) sm
-  real(rkx) t
-  real(rkx) wk
-  real(rkx) wkm
-  real(rkx) ynorm
-  real(rkx) z(n)
+  real(rkx) :: abd(lda,n)
+  real(rkx) :: anorm
+  real(rkx) :: ek
+  integer :: info
+  integer :: ipvt(n)
+  integer :: is
+  integer :: j
+  integer :: ju
+  integer :: k
+  integer :: l
+  integer :: la
+  integer :: lm
+  integer :: lz
+  integer :: m
+  integer :: ml
+  integer :: mm
+  integer :: mu
+  real(rkx) :: rcond
+  real(rkx) :: s
+  real(rkx) :: sm
+  real(rkx) :: t
+  real(rkx) :: wk
+  real(rkx) :: wkm
+  real(rkx) :: ynorm
+  real(rkx) :: z(n)
 !
 !  Compute the 1-norm of A.
 !
@@ -1819,18 +1819,18 @@ subroutine sgbdi ( abd, lda, n, ml, mu, ipvt, det )
 !      determinant = DET(1) * 10.0**DET(2)
 !    with  1.0_rkx <= abs ( DET(1) ) < 10.0_rkx or DET(1) = 0.0_rkx.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) abd(lda,n)
-  real(rkx) det(2)
-  integer i
-  integer ipvt(n)
-  integer m
-  integer ml
-  integer mu
+  real(rkx) :: abd(lda,n)
+  real(rkx) :: det(2)
+  integer :: i
+  integer :: ipvt(n)
+  integer :: m
+  integer :: ml
+  integer :: mu
   real(rkx), parameter :: ten = 10.0_rkx
 !
   m = ml + mu + 1
@@ -1911,28 +1911,28 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !      subroutine, but it does indicate that SGBSL will divide by zero if
 !      called.  Use RCOND in SGBCO for a reliable indication of singularity.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) abd(lda,n)
-  integer i0
-  integer info
-  integer ipvt(n)
-  integer j
-  integer j0
-  integer j1
-  integer ju
-  integer jz
-  integer k
-  integer l
-  integer lm
-  integer m
-  integer ml
-  integer mm
-  integer mu
-  real(rkx) t
+  real(rkx) :: abd(lda,n)
+  integer :: i0
+  integer :: info
+  integer :: ipvt(n)
+  integer :: j
+  integer :: j0
+  integer :: j1
+  integer :: ju
+  integer :: jz
+  integer :: k
+  integer :: l
+  integer :: lm
+  integer :: m
+  integer :: ml
+  integer :: mm
+  integer :: mu
+  real(rkx) :: t
 !
   m = ml + mu + 1
   info = 0
@@ -2074,24 +2074,24 @@ subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
 !    0, solve A*X=B.
 !    nonzero, solve A'*X=B.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) abd(lda,n)
-  real(rkx) b(n)
-  integer ipvt(n)
-  integer job
-  integer k
-  integer l
-  integer la
-  integer lb
-  integer lm
-  integer m
-  integer ml
-  integer mu
-  real(rkx) t
+  real(rkx) :: abd(lda,n)
+  real(rkx) :: b(n)
+  integer :: ipvt(n)
+  integer :: job
+  integer :: k
+  integer :: l
+  integer :: la
+  integer :: lb
+  integer :: lm
+  integer :: m
+  integer :: ml
+  integer :: mu
+  real(rkx) :: t
 !
   m = mu + ml + 1
 !
@@ -2220,27 +2220,27 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !    in the sense that
 !      norm ( A * Z ) = RCOND * norm ( A ) * norm ( Z ).
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  real(rkx) anorm
-  real(rkx) ek
-  integer info
-  integer ipvt(n)
-  integer j
-  integer k
-  integer l
-  real(rkx) rcond
-  real(rkx) s
-  real(rkx) sm
-  real(rkx) t
-  real(rkx) wk
-  real(rkx) wkm
-  real(rkx) ynorm
-  real(rkx) z(n)
+  real(rkx) :: a(lda,n)
+  real(rkx) :: anorm
+  real(rkx) :: ek
+  integer :: info
+  integer :: ipvt(n)
+  integer :: j
+  integer :: k
+  integer :: l
+  real(rkx) :: rcond
+  real(rkx) :: s
+  real(rkx) :: sm
+  real(rkx) :: t
+  real(rkx) :: wk
+  real(rkx) :: wkm
+  real(rkx) :: ynorm
+  real(rkx) :: z(n)
 !
 !  Compute the L1 norm of A.
 !
@@ -2445,22 +2445,22 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
 !    01, inverse only.
 !    10, determinant only.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  real(rkx) det(2)
-  integer i
-  integer ipvt(n)
-  integer j
-  integer job
-  integer k
-  integer l
-  real(rkx) t
+  real(rkx) :: a(lda,n)
+  real(rkx) :: det(2)
+  integer :: i
+  integer :: ipvt(n)
+  integer :: j
+  integer :: job
+  integer :: k
+  integer :: l
+  real(rkx) :: t
   real(rkx), parameter :: ten = 10.0_rkx
-  real(rkx) work(n)
+  real(rkx) :: work(n)
 !
 !  Compute the determinant.
 !
@@ -2579,18 +2579,18 @@ subroutine sgefa ( a, lda, n, ipvt, info )
 !    but it does indicate that SGESL or SGEDI will divide by zero if called.
 !    Use RCOND in SGECO for a reliable indication of singularity.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  integer info
-  integer ipvt(n)
-  integer j
-  integer k
-  integer l
-  real(rkx) t
+  real(rkx) :: a(lda,n)
+  integer :: info
+  integer :: ipvt(n)
+  integer :: j
+  integer :: k
+  integer :: l
+  real(rkx) :: t
 !
 !  Gaussian elimination with partial pivoting.
 !
@@ -2693,18 +2693,18 @@ subroutine sgesl ( a, lda, n, ipvt, b, job )
 !    0, solve A * X = B;
 !    nonzero, solve A' * X = B.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  real(rkx) b(n)
-  integer ipvt(n)
-  integer job
-  integer k
-  integer l
-  real(rkx) t
+  real(rkx) :: a(lda,n)
+  real(rkx) :: b(n)
+  integer :: ipvt(n)
+  integer :: job
+  integer :: k
+  integer :: l
+  real(rkx) :: t
 !
 !  Solve A * X = B.
 !
@@ -2796,17 +2796,17 @@ subroutine sgtsl ( n, c, d, e, b, info )
 !    K, the K-th element of the diagonal becomes exactly zero.  The
 !       subroutine returns if this error condition is detected.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer n
+  integer :: n
 !
-  real(rkx) b(n)
-  real(rkx) c(n)
-  real(rkx) d(n)
-  real(rkx) e(n)
-  integer info
-  integer k
-  real(rkx) t
+  real(rkx) :: b(n)
+  real(rkx) :: c(n)
+  real(rkx) :: d(n)
+  real(rkx) :: e(n)
+  integer :: info
+  integer :: k
+  real(rkx) :: t
 !
   info = 0
   c(1) = d(1)
@@ -2899,16 +2899,16 @@ function snrm2 ( n, x, incx )
 !
 !    Output, real(rkx) SNRM2, the Euclidean norm of X.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer i
-  integer incx
-  integer ix
-  integer n
-  real(rkx) snrm2
-  real(rkx) stemp
-  real(rkx) x(*)
-  real(rkx) xmax
+  integer :: i
+  integer :: incx
+  integer :: ix
+  integer :: n
+  real(rkx) :: snrm2
+  real(rkx) :: stemp
+  real(rkx) :: x(*)
+  real(rkx) :: xmax
 !
   if ( n <= 0 ) then
 
@@ -3039,33 +3039,33 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !    K, signals an error condition.  The leading minor of order K is not
 !    positive definite.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) abd(lda,n)
-  real(rkx) anorm
-  real(rkx) ek
-  integer i
-  integer info
-  integer j
-  integer j2
-  integer k
-  integer l
-  integer la
-  integer lb
-  integer lm
-  integer m
-  integer mu
-  real(rkx) rcond
-  real(rkx) s
-  real(rkx) sm
-  real(rkx) t
-  real(rkx) wk
-  real(rkx) wkm
-  real(rkx) ynorm
-  real(rkx) z(n)
+  real(rkx) :: abd(lda,n)
+  real(rkx) :: anorm
+  real(rkx) :: ek
+  integer :: i
+  integer :: info
+  integer :: j
+  integer :: j2
+  integer :: k
+  integer :: l
+  integer :: la
+  integer :: lb
+  integer :: lm
+  integer :: m
+  integer :: mu
+  real(rkx) :: rcond
+  real(rkx) :: s
+  real(rkx) :: sm
+  real(rkx) :: t
+  real(rkx) :: wk
+  real(rkx) :: wkm
+  real(rkx) :: ynorm
+  real(rkx) :: z(n)
 !
 !  Find the norm of A.
 !
@@ -3271,16 +3271,16 @@ subroutine spbdi ( abd, lda, n, m, det )
 !      determinant = DET(1) * 10.0**DET(2)
 !    with 1.0_rkx <= DET(1) < 10.0_rkx or DET(1) == 0.0_rkx.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) abd(lda,n)
-  real(rkx) det(2)
-  integer i
-  integer m
-  real(rkx) s
+  real(rkx) :: abd(lda,n)
+  real(rkx) :: det(2)
+  integer :: i
+  integer :: m
+  real(rkx) :: s
 !
 !  Compute the determinant.
 !
@@ -3365,21 +3365,21 @@ subroutine spbfa ( abd, lda, n, m, info )
 !    0, for normal return.
 !    K, if the leading minor of order K is not positive definite.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) abd(lda,n)
-  integer ik
-  integer info
-  integer j
-  integer jk
-  integer k
-  integer m
-  integer mu
-  real(rkx) s
-  real(rkx) t
+  real(rkx) :: abd(lda,n)
+  integer :: ik
+  integer :: info
+  integer :: j
+  integer :: jk
+  integer :: k
+  integer :: m
+  integer :: mu
+  real(rkx) :: s
+  real(rkx) :: t
 !
   do j = 1, n
 
@@ -3460,19 +3460,19 @@ subroutine spbsl ( abd, lda, n, m, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) abd(lda,n)
-  real(rkx) b(n)
-  integer k
-  integer la
-  integer lb
-  integer lm
-  integer m
-  real(rkx) t
+  real(rkx) :: abd(lda,n)
+  real(rkx) :: b(n)
+  integer :: k
+  integer :: la
+  integer :: lb
+  integer :: lm
+  integer :: m
+  real(rkx) :: t
 !
 !  Solve R'*Y = B.
 !
@@ -3555,26 +3555,26 @@ subroutine spoco ( a, lda, n, rcond, z, info )
 !    K, signals an error condition.  The leading minor of order K is not
 !    positive definite.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 
-  real(rkx) a(lda,n)
-  real(rkx) anorm
-  real(rkx) ek
-  integer i
-  integer info
-  integer j
-  integer k
-  real(rkx) rcond
-  real(rkx) s
-  real(rkx) sm
-  real(rkx) t
-  real(rkx) wk
-  real(rkx) wkm
-  real(rkx) ynorm
-  real(rkx) z(n)
+  real(rkx) :: a(lda,n)
+  real(rkx) :: anorm
+  real(rkx) :: ek
+  integer :: i
+  integer :: info
+  integer :: j
+  integer :: k
+  real(rkx) :: rcond
+  real(rkx) :: s
+  real(rkx) :: sm
+  real(rkx) :: t
+  real(rkx) :: wk
+  real(rkx) :: wkm
+  real(rkx) :: ynorm
+  real(rkx) :: z(n)
 !
 !  Find norm of A using only upper half.
 !
@@ -3772,19 +3772,19 @@ subroutine spodi ( a, lda, n, det, job )
 !      determinant = DET(1) * 10.0**DET(2)
 !    with 1.0_rkx <= DET(1) < 10.0_rkx or DET(1) == 0.0_rkx.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  real(rkx) det(2)
-  integer i
-  integer j
-  integer job
-  integer k
-  real(rkx) s
-  real(rkx) t
+  real(rkx) :: a(lda,n)
+  real(rkx) :: det(2)
+  integer :: i
+  integer :: j
+  integer :: job
+  integer :: k
+  real(rkx) :: s
+  real(rkx) :: t
 !
 !  Compute the determinant.
 !
@@ -3892,17 +3892,17 @@ subroutine spofa ( a, lda, n, info )
 !    K, signals an error condition.  The leading minor of order K is not
 !    positive definite.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  integer info
-  integer j
-  integer k
-  real(rkx) s
-  real(rkx) t
+  real(rkx) :: a(lda,n)
+  integer :: info
+  integer :: j
+  integer :: k
+  real(rkx) :: s
+  real(rkx) :: t
 !
   do j = 1, n
 
@@ -3976,15 +3976,15 @@ subroutine sposl ( a, lda, n, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  real(rkx) b(n)
-  integer k
-  real(rkx) t
+  real(rkx) :: a(lda,n)
+  real(rkx) :: b(n)
+  integer :: k
+  real(rkx) :: t
 !
 !  Solve R'*Y = B.
 !
@@ -4076,29 +4076,29 @@ subroutine sppco ( ap, n, rcond, z, info )
 !    K, signals an error condition.  The leading minor of order K is
 !    not positive definite.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer n
+  integer :: n
 !
-  real(rkx) anorm
-  real(rkx) ap((n*(n+1))/2)
-  real(rkx) ek
-  integer i
-  integer ij
-  integer info
-  integer j
-  integer j1
-  integer k
-  integer kj
-  integer kk
-  real(rkx) rcond
-  real(rkx) s
-  real(rkx) sm
-  real(rkx) t
-  real(rkx) wk
-  real(rkx) wkm
-  real(rkx) ynorm
-  real(rkx) z(n)
+  real(rkx) :: anorm
+  real(rkx) :: ap((n*(n+1))/2)
+  real(rkx) :: ek
+  integer :: i
+  integer :: ij
+  integer :: info
+  integer :: j
+  integer :: j1
+  integer :: k
+  integer :: kj
+  integer :: kk
+  real(rkx) :: rcond
+  real(rkx) :: s
+  real(rkx) :: sm
+  real(rkx) :: t
+  real(rkx) :: wk
+  real(rkx) :: wkm
+  real(rkx) :: ynorm
+  real(rkx) :: z(n)
 !
 !  Find the norm of A.
 !
@@ -4304,24 +4304,24 @@ subroutine sppdi ( ap, n, det, job )
 !    01, inverse only.
 !    10, determinant only.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer n
+  integer :: n
 !
-  real(rkx) ap((n*(n+1))/2)
-  real(rkx) det(2)
-  integer i
-  integer ii
-  integer j
-  integer j1
-  integer jj
-  integer job
-  integer k
-  integer k1
-  integer kj
-  integer kk
-  real(rkx) s
-  real(rkx) t
+  real(rkx) :: ap((n*(n+1))/2)
+  real(rkx) :: det(2)
+  integer :: i
+  integer :: ii
+  integer :: j
+  integer :: j1
+  integer :: jj
+  integer :: job
+  integer :: k
+  integer :: k1
+  integer :: kj
+  integer :: kk
+  real(rkx) :: s
+  real(rkx) :: t
 !
 !  Compute the determinant.
 !
@@ -4457,19 +4457,19 @@ subroutine sppfa ( ap, n, info )
 !    0, for normal return.
 !    K, if the leading minor of order K is not positive definite.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer n
+  integer :: n
 !
-  real(rkx) ap((n*(n+1))/2)
-  integer info
-  integer j
-  integer jj
-  integer k
-  integer kj
-  integer kk
-  real(rkx) s
-  real(rkx) t
+  real(rkx) :: ap((n*(n+1))/2)
+  integer :: info
+  integer :: j
+  integer :: jj
+  integer :: k
+  integer :: kj
+  integer :: kk
+  real(rkx) :: s
+  real(rkx) :: t
 !
   info = 0
   jj = 0
@@ -4551,15 +4551,15 @@ subroutine sppsl ( ap, n, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer n
+  integer :: n
 !
-  real(rkx) ap((n*(n+1))/2)
-  real(rkx) b(n)
-  integer k
-  integer kk
-  real(rkx) t
+  real(rkx) :: ap((n*(n+1))/2)
+  real(rkx) :: b(n)
+  integer :: k
+  integer :: kk
+  real(rkx) :: t
 !
   kk = 0
 
@@ -4608,21 +4608,21 @@ subroutine sptsl ( n, d, e, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer n
+  integer :: n
 !
-  real(rkx) b(n)
-  real(rkx) d(n)
-  real(rkx) e(n)
-  integer k
-  integer kbm1
-  integer ke
-  integer kf
-  integer kp1
-  integer nm1d2
-  real(rkx) t1
-  real(rkx) t2
+  real(rkx) :: b(n)
+  real(rkx) :: d(n)
+  real(rkx) :: e(n)
+  integer :: k
+  integer :: kbm1
+  integer :: ke
+  integer :: kf
+  integer :: kp1
+  integer :: nm1d2
+  real(rkx) :: t1
+  real(rkx) :: t2
 !
 !  Check for 1 x 1 case.
 !
@@ -4752,28 +4752,28 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !    0, no pivoting is done.
 !    nonzero, pivoting is done.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
-  integer p
+  integer :: lda
+  integer :: n
+  integer :: p
 !
-  real(rkx) a(lda,p)
-  integer jpvt(p)
-  real(rkx) qraux(p)
-  real(rkx) work(p)
-  integer j
-  integer job
-  integer l
-  integer lup
-  integer maxj
-  real(rkx) maxnrm
-  real(rkx) nrmxl
-  integer pl
-  integer pu
-  logical swapj
-  real(rkx) t
-  real(rkx) tt
+  real(rkx) :: a(lda,p)
+  integer :: jpvt(p)
+  real(rkx) :: qraux(p)
+  real(rkx) :: work(p)
+  integer :: j
+  integer :: job
+  integer :: l
+  integer :: lup
+  integer :: maxj
+  real(rkx) :: maxnrm
+  real(rkx) :: nrmxl
+  integer :: pl
+  integer :: pu
+  logical :: swapj
+  real(rkx) :: t
+  real(rkx) :: tt
 !
   pl = 1
   pu = 0
@@ -5047,32 +5047,32 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 !    been requested and R is exactly singular.  In this case, INFO is the
 !    index of the first zero diagonal element of R, and B is left unaltered.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer k
-  integer lda
-  integer n
+  integer :: k
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,*)
-  real(rkx) ab(n)
-  real(rkx) b(k)
-  logical cab
-  logical cb
-  logical cqty
-  logical cqy
-  logical cr
-  integer info
-  integer j
-  integer jj
-  integer job
-  integer ju
-  real(rkx) qraux(*)
-  real(rkx) qty(n)
-  real(rkx) qy(n)
-  real(rkx) rsd(n)
-  real(rkx) t
-  real(rkx) temp
-  real(rkx) y(n)
+  real(rkx) :: a(lda,*)
+  real(rkx) :: ab(n)
+  real(rkx) :: b(k)
+  logical :: cab
+  logical :: cb
+  logical :: cqty
+  logical :: cqy
+  logical :: cr
+  integer :: info
+  integer :: j
+  integer :: jj
+  integer :: job
+  integer :: ju
+  real(rkx) :: qraux(*)
+  real(rkx) :: qty(n)
+  real(rkx) :: qy(n)
+  real(rkx) :: rsd(n)
+  real(rkx) :: t
+  real(rkx) :: temp
+  real(rkx) :: y(n)
 !
 !  set info flag.
 !
@@ -5282,19 +5282,19 @@ subroutine srot ( n, x, incx, y, incy, c, s )
 !    Input, real(rkx) C, S, parameters (presumably the cosine and sine of
 !    some angle) that define a plane rotation.
 !
-  implicit none
+  implicit none (type, external)
 !
-  real(rkx) c
-  integer i
-  integer incx
-  integer incy
-  integer ix
-  integer iy
-  integer n
-  real(rkx) s
-  real(rkx) stemp
-  real(rkx) x(*)
-  real(rkx) y(*)
+  real(rkx) :: c
+  integer :: i
+  integer :: incx
+  integer :: incy
+  integer :: ix
+  integer :: iy
+  integer :: n
+  real(rkx) :: s
+  real(rkx) :: stemp
+  real(rkx) :: x(*)
+  real(rkx) :: y(*)
 !
   if ( n <= 0 ) then
 
@@ -5358,16 +5358,16 @@ subroutine srotg ( sa, sb, c, s )
 !
 !    Output, real(rkx) C, S, ...
 !
-  implicit none
+  implicit none (type, external)
 !
-  real(rkx) c
-  real(rkx) r
-  real(rkx) roe
-  real(rkx) s
-  real(rkx) sa
-  real(rkx) sb
-  real(rkx) scale
-  real(rkx) z
+  real(rkx) :: c
+  real(rkx) :: r
+  real(rkx) :: roe
+  real(rkx) :: s
+  real(rkx) :: sa
+  real(rkx) :: sb
+  real(rkx) :: scale
+  real(rkx) :: z
 !
   if ( abs ( sa ) > abs ( sb ) ) then
     roe = sa
@@ -5429,15 +5429,15 @@ subroutine sscal ( n, sa, x, incx )
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer i
-  integer incx
-  integer ix
-  integer m
-  integer n
-  real(rkx) sa
-  real(rkx) x(*)
+  integer :: i
+  integer :: incx
+  integer :: ix
+  integer :: m
+  integer :: n
+  real(rkx) :: sa
+  real(rkx) :: x(*)
 !
   if ( n <= 0 ) then
 
@@ -5532,31 +5532,31 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  real(rkx) ak
-  real(rkx) akm1
-  real(rkx) anorm
-  real(rkx) bk
-  real(rkx) bkm1
-  real(rkx) denom
-  real(rkx) ek
-  integer i
-  integer info
-  integer j
-  integer k
-  integer kp
-  integer kps
-  integer kpvt(n)
-  integer ks
-  real(rkx) rcond
-  real(rkx) s
-  real(rkx) ynorm
-  real(rkx) z(n)
+  real(rkx) :: a(lda,n)
+  real(rkx) :: ak
+  real(rkx) :: akm1
+  real(rkx) :: anorm
+  real(rkx) :: bk
+  real(rkx) :: bkm1
+  real(rkx) :: denom
+  real(rkx) :: ek
+  integer :: i
+  integer :: info
+  integer :: j
+  integer :: k
+  integer :: kp
+  integer :: kps
+  integer :: kpvt(n)
+  integer :: ks
+  real(rkx) :: rcond
+  real(rkx) :: s
+  real(rkx) :: ynorm
+  real(rkx) :: z(n)
 !
 !  Find the norm of A, using only entries in the upper half of the matrix.
 !
@@ -5846,31 +5846,31 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 !    If A /= 0, the inertia is computed.
 !    For example, JOB = 111 gives all three.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  real(rkx) ak
-  real(rkx) akkp1
-  real(rkx) akp1
-  real(rkx) d
-  real(rkx) det(2)
-  logical dodet
-  logical doert
-  logical doinv
-  integer inert(3)
-  integer j
-  integer jb
-  integer job
-  integer k
-  integer kpvt(n)
-  integer ks
-  integer kstep
-  real(rkx) t
+  real(rkx) :: a(lda,n)
+  real(rkx) :: ak
+  real(rkx) :: akkp1
+  real(rkx) :: akp1
+  real(rkx) :: d
+  real(rkx) :: det(2)
+  logical :: dodet
+  logical :: doert
+  logical :: doinv
+  integer :: inert(3)
+  integer :: j
+  integer :: jb
+  integer :: job
+  integer :: k
+  integer :: kpvt(n)
+  integer :: ks
+  integer :: kstep
+  real(rkx) :: t
   real(rkx), parameter :: ten = 10.0_rkx
-  real(rkx) work(n)
+  real(rkx) :: work(n)
 !
   doinv = mod ( job,   10 )       /= 0
   dodet = mod ( job,  100 ) /  10 /= 0
@@ -6095,34 +6095,34 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 !    condition for this subroutine, but it does indicate that SSISL
 !    or SSIDI may divide by zero if called.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  real(rkx) absakk
-  real(rkx) ak
-  real(rkx) akm1
-  real(rkx) alpha
-  real(rkx) bk
-  real(rkx) bkm1
-  real(rkx) colmax
-  real(rkx) denom
-  integer imax
-  integer imaxp1
-  integer info
-  integer j
-  integer jj
-  integer jmax
-  integer k
-  integer kpvt(n)
-  integer kstep
-  real(rkx) mulk
-  real(rkx) mulkm1
-  real(rkx) rowmax
-  logical swap
-  real(rkx) t
+  real(rkx) :: a(lda,n)
+  real(rkx) :: absakk
+  real(rkx) :: ak
+  real(rkx) :: akm1
+  real(rkx) :: alpha
+  real(rkx) :: bk
+  real(rkx) :: bkm1
+  real(rkx) :: colmax
+  real(rkx) :: denom
+  integer :: imax
+  integer :: imaxp1
+  integer :: info
+  integer :: j
+  integer :: jj
+  integer :: jmax
+  integer :: k
+  integer :: kpvt(n)
+  integer :: kstep
+  real(rkx) :: mulk
+  real(rkx) :: mulkm1
+  real(rkx) :: rowmax
+  logical :: swap
+  real(rkx) :: t
 !
 !  ALPHA is used in choosing pivot block size.
 !
@@ -6341,21 +6341,21 @@ subroutine ssisl ( a, lda, n, kpvt, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer lda
-  integer n
+  integer :: lda
+  integer :: n
 !
-  real(rkx) a(lda,n)
-  real(rkx) ak
-  real(rkx) akm1
-  real(rkx) b(n)
-  real(rkx) bk
-  real(rkx) bkm1
-  real(rkx) denom
-  integer k
-  integer kp
-  integer kpvt(n)
+  real(rkx) :: a(lda,n)
+  real(rkx) :: ak
+  real(rkx) :: akm1
+  real(rkx) :: b(n)
+  real(rkx) :: bk
+  real(rkx) :: bkm1
+  real(rkx) :: denom
+  integer :: k
+  integer :: kp
+  integer :: kpvt(n)
 !
 !  Loop backward applying the transformations and D inverse to B.
 !
@@ -6554,39 +6554,39 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !    vector in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer n
+  integer :: n
 !
-  real(rkx) ak
-  real(rkx) akm1
-  real(rkx) anorm
-  real(rkx) ap((n*(n+1))/2)
-  real(rkx) bk
-  real(rkx) bkm1
-  real(rkx) denom
-  real(rkx) ek
-  integer i
-  integer ij
-  integer ik
-  integer ikm1
-  integer ikp1
-  integer info
-  integer j
-  integer j1
-  integer k
-  integer kk
-  integer km1k
-  integer km1km1
-  integer kp
-  integer kps
-  integer kpvt(n)
-  integer ks
-  real(rkx) rcond
-  real(rkx) s
-  real(rkx) t
-  real(rkx) ynorm
-  real(rkx) z(n)
+  real(rkx) :: ak
+  real(rkx) :: akm1
+  real(rkx) :: anorm
+  real(rkx) :: ap((n*(n+1))/2)
+  real(rkx) :: bk
+  real(rkx) :: bkm1
+  real(rkx) :: denom
+  real(rkx) :: ek
+  integer :: i
+  integer :: ij
+  integer :: ik
+  integer :: ikm1
+  integer :: ikp1
+  integer :: info
+  integer :: j
+  integer :: j1
+  integer :: k
+  integer :: kk
+  integer :: km1k
+  integer :: km1km1
+  integer :: kp
+  integer :: kps
+  integer :: kpvt(n)
+  integer :: ks
+  real(rkx) :: rcond
+  real(rkx) :: s
+  real(rkx) :: t
+  real(rkx) :: ynorm
+  real(rkx) :: z(n)
 !
 !  Find norm of A using only upper half.
 !
@@ -6912,41 +6912,41 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !      if C /= 0, the inverse is computed.
 !    For example, JOB = 111  gives all three.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer n
+  integer :: n
 !
-  real(rkx) ak
-  real(rkx) akkp1
-  real(rkx) akp1
-  real(rkx) ap((n*(n+1))/2)
-  real(rkx) d
-  real(rkx) det(2)
-  logical dodet
-  logical doert
-  logical doinv
-  integer ij
-  integer ik
-  integer ikp1
-  integer iks
-  integer inert(3)
-  integer j
-  integer jb
-  integer jk
-  integer jkp1
-  integer job
-  integer k
-  integer kk
-  integer kkp1
-  integer km1
-  integer kpvt(n)
-  integer ks
-  integer ksj
-  integer kskp1
-  integer kstep
-  real(rkx) t
+  real(rkx) :: ak
+  real(rkx) :: akkp1
+  real(rkx) :: akp1
+  real(rkx) :: ap((n*(n+1))/2)
+  real(rkx) :: d
+  real(rkx) :: det(2)
+  logical :: dodet
+  logical :: doert
+  logical :: doinv
+  integer :: ij
+  integer :: ik
+  integer :: ikp1
+  integer :: iks
+  integer :: inert(3)
+  integer :: j
+  integer :: jb
+  integer :: jk
+  integer :: jkp1
+  integer :: job
+  integer :: k
+  integer :: kk
+  integer :: kkp1
+  integer :: km1
+  integer :: kpvt(n)
+  integer :: ks
+  integer :: ksj
+  integer :: kskp1
+  integer :: kstep
+  real(rkx) :: t
   real(rkx), parameter :: ten = 10.0_rkx
-  real(rkx) work(n)
+  real(rkx) :: work(n)
 !
   doinv = mod ( job,   10 )       /= 0
   dodet = mod ( job,  100 ) /  10 /= 0
@@ -7209,47 +7209,47 @@ subroutine sspfa ( ap, n, kpvt, info )
 !    condition for this subroutine, but it does indicate that SSPSL or
 !    SSPDI may divide by zero if called.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer n
+  integer :: n
 !
-  real(rkx) absakk
-  real(rkx) ak
-  real(rkx) akm1
-  real(rkx) alpha
-  real(rkx) ap((n*(n+1))/2)
-  real(rkx) bk
-  real(rkx) bkm1
-  real(rkx) colmax
-  real(rkx) denom
-  integer ij
-  integer ik
-  integer ikm1
-  integer im
-  integer imax
-  integer imaxp1
-  integer imim
-  integer imj
-  integer imk
-  integer info
-  integer j
-  integer jj
-  integer jk
-  integer jkm1
-  integer jmax
-  integer jmim
-  integer k
-  integer kk
-  integer km1
-  integer km1k
-  integer km1km1
-  integer kpvt(n)
-  integer kstep
-  real(rkx) mulk
-  real(rkx) mulkm1
-  real(rkx) rowmax
-  logical swap
-  real(rkx) t
+  real(rkx) :: absakk
+  real(rkx) :: ak
+  real(rkx) :: akm1
+  real(rkx) :: alpha
+  real(rkx) :: ap((n*(n+1))/2)
+  real(rkx) :: bk
+  real(rkx) :: bkm1
+  real(rkx) :: colmax
+  real(rkx) :: denom
+  integer :: ij
+  integer :: ik
+  integer :: ikm1
+  integer :: im
+  integer :: imax
+  integer :: imaxp1
+  integer :: imim
+  integer :: imj
+  integer :: imk
+  integer :: info
+  integer :: j
+  integer :: jj
+  integer :: jk
+  integer :: jkm1
+  integer :: jmax
+  integer :: jmim
+  integer :: k
+  integer :: kk
+  integer :: km1
+  integer :: km1k
+  integer :: km1km1
+  integer :: kpvt(n)
+  integer :: kstep
+  real(rkx) :: mulk
+  real(rkx) :: mulkm1
+  real(rkx) :: rowmax
+  logical :: swap
+  real(rkx) :: t
 !
 !  ALPHA is used in choosing pivot block size.
 !
@@ -7504,26 +7504,26 @@ subroutine sspsl ( ap, n, kpvt, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer n
+  integer :: n
 !
-  real(rkx) ak
-  real(rkx) akm1
-  real(rkx) ap((n*(n+1))/2)
-  real(rkx) b(n)
-  real(rkx) bk
-  real(rkx) bkm1
-  real(rkx) denom
-  integer ik
-  integer ikm1
-  integer ikp1
-  integer k
-  integer kk
-  integer km1k
-  integer km1km1
-  integer kp
-  integer kpvt(n)
+  real(rkx) :: ak
+  real(rkx) :: akm1
+  real(rkx) :: ap((n*(n+1))/2)
+  real(rkx) :: b(n)
+  real(rkx) :: bk
+  real(rkx) :: bkm1
+  real(rkx) :: denom
+  integer :: ik
+  integer :: ikm1
+  integer :: ikp1
+  integer :: k
+  integer :: kk
+  integer :: km1k
+  integer :: km1km1
+  integer :: kp
+  integer :: kpvt(n)
 !
 !  Loop backward applying the transformations and D inverse to B.
 !
@@ -7740,61 +7740,61 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !    its super-diagonal (U' is the transpose of U).  Thus the singular
 !    values of X and B are the same.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer ldu
-  integer ldv
-  integer ldx
-  integer n
-  integer p
+  integer :: ldu
+  integer :: ldv
+  integer :: ldx
+  integer :: n
+  integer :: p
 !
-  real(rkx) b
-  real(rkx) c
-  real(rkx) cs
-  real(rkx) e(p)
-  real(rkx) el
-  real(rkx) emm1
-  real(rkx) f
-  real(rkx) g
-  integer info
-  integer iter
-  integer j
-  integer job
-  integer jobu
-  integer k
-  integer kase
-  integer kk
-  integer l
-  integer ll
-  integer lls
-  integer ls
-  integer lu
-  integer m
+  real(rkx) :: b
+  real(rkx) :: c
+  real(rkx) :: cs
+  real(rkx) :: e(p)
+  real(rkx) :: el
+  real(rkx) :: emm1
+  real(rkx) :: f
+  real(rkx) :: g
+  integer :: info
+  integer :: iter
+  integer :: j
+  integer :: job
+  integer :: jobu
+  integer :: k
+  integer :: kase
+  integer :: kk
+  integer :: l
+  integer :: ll
+  integer :: lls
+  integer :: ls
+  integer :: lu
+  integer :: m
   integer, parameter :: maxit = 30
-  integer mm
-  integer mm1
-  integer nct
-  integer nctp1
-  integer ncu
-  integer nrt
-  integer nrtp1
-  real(rkx) s(*)
-  real(rkx) scale
-  real(rkx) shift
-  real(rkx) sl
-  real(rkx) sm
-  real(rkx) smm1
-  real(rkx) sn
-  real(rkx) t
-  real(rkx) t1
-  real(rkx) test
-  real(rkx) u(ldu,*)
-  real(rkx) v(ldv,p)
-  logical wantu
-  logical wantv
-  real(rkx) work(n)
-  real(rkx) x(ldx,p)
-  real(rkx) ztest
+  integer :: mm
+  integer :: mm1
+  integer :: nct
+  integer :: nctp1
+  integer :: ncu
+  integer :: nrt
+  integer :: nrtp1
+  real(rkx) :: s(*)
+  real(rkx) :: scale
+  real(rkx) :: shift
+  real(rkx) :: sl
+  real(rkx) :: sm
+  real(rkx) :: smm1
+  real(rkx) :: sn
+  real(rkx) :: t
+  real(rkx) :: t1
+  real(rkx) :: test
+  real(rkx) :: u(ldu,*)
+  real(rkx) :: v(ldv,p)
+  logical :: wantu
+  logical :: wantv
+  real(rkx) :: work(n)
+  real(rkx) :: x(ldx,p)
+  real(rkx) :: ztest
 !
 !  Determine what is to be computed.
 !
@@ -8271,18 +8271,18 @@ subroutine sswap ( n, x, incx, y, incy )
 !
 !    Input, integer INCY, the increment between successive elements of Y.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer i
-  integer incx
-  integer incy
-  integer ix
-  integer iy
-  integer m
-  integer n
-  real(rkx) stemp
-  real(rkx) x(*)
-  real(rkx) y(*)
+  integer :: i
+  integer :: incx
+  integer :: incy
+  integer :: ix
+  integer :: iy
+  integer :: m
+  integer :: n
+  real(rkx) :: stemp
+  real(rkx) :: x(*)
+  real(rkx) :: y(*)
 !
   if ( n <= 0 ) then
 
@@ -8382,31 +8382,31 @@ subroutine strco ( t, ldt, n, rcond, z, job )
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer ldt
-  integer n
+  integer :: ldt
+  integer :: n
 !
-  real(rkx) ek
-  integer i1
-  integer j
-  integer j1
-  integer j2
-  integer job
-  integer k
-  integer kk
-  integer l
-  logical lower
-  real(rkx) rcond
-  real(rkx) s
-  real(rkx) sm
-  real(rkx) t(ldt,n)
-  real(rkx) tnorm
-  real(rkx) w
-  real(rkx) wk
-  real(rkx) wkm
-  real(rkx) ynorm
-  real(rkx) z(n)
+  real(rkx) :: ek
+  integer :: i1
+  integer :: j
+  integer :: j1
+  integer :: j2
+  integer :: job
+  integer :: k
+  integer :: kk
+  integer :: l
+  logical :: lower
+  real(rkx) :: rcond
+  real(rkx) :: s
+  real(rkx) :: sm
+  real(rkx) :: t(ldt,n)
+  real(rkx) :: tnorm
+  real(rkx) :: w
+  real(rkx) :: wk
+  real(rkx) :: wkm
+  real(rkx) :: ynorm
+  real(rkx) :: z(n)
 !
   lower = job == 0
 !
@@ -8605,19 +8605,19 @@ subroutine strdi ( t, ldt, n, det, job, info )
 !    0, if the system was nonsingular;
 !    nonzero, if the system was singular.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer ldt
-  integer n
+  integer :: ldt
+  integer :: n
 !
-  real(rkx) det(2)
-  integer i
-  integer info
-  integer j
-  integer job
-  integer k
-  real(rkx) t(ldt,n)
-  real(rkx) temp
+  real(rkx) :: det(2)
+  integer :: i
+  integer :: info
+  integer :: j
+  integer :: job
+  integer :: k
+  real(rkx) :: t(ldt,n)
+  real(rkx) :: temp
   real(rkx), parameter :: ten = 10.0_rkx
 !
 !  Determinant.
@@ -8758,19 +8758,19 @@ subroutine strsl ( t, ldt, n, b, job, info )
 !    0, the system is nonsingular.
 !    nonzero, the index of the first zero diagonal element of T.
 !
-  implicit none
+  implicit none (type, external)
 !
-  integer ldt
-  integer n
+  integer :: ldt
+  integer :: n
 !
-  real(rkx) b(n)
-  integer icase
-  integer info
-  integer j
-  integer jj
-  integer job
-  real(rkx) t(ldt,n)
-  real(rkx) temp
+  real(rkx) :: b(n)
+  integer :: icase
+  integer :: info
+  integer :: j
+  integer :: jj
+  integer :: job
+  real(rkx) :: t(ldt,n)
+  real(rkx) :: temp
 !
 !  Check for zero diagonal elements.
 !

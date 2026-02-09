@@ -27,7 +27,7 @@ module mod_bats_leaftemp
   use mod_bats_param
   use mod_service
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -87,7 +87,7 @@ module mod_bats_leaftemp
 !=======================================================================
 
   subroutine lftemp
-    implicit none
+    implicit none (type, external)
     real(rkx) :: dcn, delmax, efeb, eg1, epss, fbare, qbare, &
                qcan, qsatdg, rppdry, sf1, sf2, sgtg3, vakb,  &
                xxkb, efpot, tbef, dels
@@ -326,7 +326,7 @@ module mod_bats_leaftemp
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   subroutine stomat
-    implicit none
+    implicit none (type, external)
     real(rkx) :: difzen, g, radf, radfi, seas, vpdf, rilmax, &
                  rmini, fsol0, fsold, maxarg
     real(rkx) :: trup, trupd
@@ -419,7 +419,7 @@ module mod_bats_leaftemp
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   subroutine frawat
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'frawat'
@@ -469,7 +469,7 @@ module mod_bats_leaftemp
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   subroutine root
-    implicit none
+    implicit none (type, external)
     real(rkx) :: bneg, rotf, trsmx, wlttb, wltub, wmli
     integer(ik4) :: i
 #ifdef DEBUG
@@ -513,7 +513,7 @@ module mod_bats_leaftemp
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   subroutine satur(qsat,t,p)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:), intent(in) :: p, t
     real(rkx), pointer, contiguous, dimension(:), intent(inout) :: qsat
     integer(ik4) :: i
@@ -541,7 +541,7 @@ module mod_bats_leaftemp
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   subroutine lfdrag
-    implicit none
+    implicit none (type, external)
     real(rkx) :: dthdz, ribi, sqrtf, tkb, u1, u2, zatild, cdrmin
     real(rkx) :: dlstaf, rib1
     integer(ik4) :: i
@@ -603,7 +603,7 @@ module mod_bats_leaftemp
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   subroutine condch
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'condch'
@@ -652,7 +652,7 @@ module mod_bats_leaftemp
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   subroutine condcq
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'condcq'
@@ -701,7 +701,7 @@ module mod_bats_leaftemp
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   subroutine deriv
-    implicit none
+    implicit none (type, external)
     real(rkx) :: hfl, xkb, qsatld
     integer(ik4) :: i
 #ifdef DEBUG
@@ -733,7 +733,7 @@ module mod_bats_leaftemp
     ! If the temperature is greater than 298.0, it is 1
     ! If the temperature is less than 298.0, it is less than 1
     ! If the temperature is less than 273.0, it is zero
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:), intent(in) :: temp
     real(rkx), pointer, contiguous, dimension(:), intent(inout) :: ffsea
     integer(ik4) :: i

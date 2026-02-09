@@ -21,7 +21,7 @@ module mod_mkpeatf
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -32,7 +32,7 @@ module mod_mkpeatf
   contains
 
   subroutine mkpeatf(peatffile,mask,peatf)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: peatffile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: peatf

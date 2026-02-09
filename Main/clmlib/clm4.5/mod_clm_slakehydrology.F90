@@ -24,7 +24,7 @@ module mod_clm_slakehydrology
   ! Also frost / dew is prevented from being added to top snow layers that
   ! have already melted during the phase change step.
   !
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -67,7 +67,7 @@ module mod_clm_slakehydrology
                                  SnowWater, BuildSnowFilter
     use mod_clm_snowhydrology, only : DivideSnowLayers_Lake
     use mod_clm_snicar, only : SnowAge_grain, snw_rds_min
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc                  ! column bounds
     integer(ik4), intent(in) :: lbp, ubp                  ! pft bounds
     ! number of column lake points in column filter

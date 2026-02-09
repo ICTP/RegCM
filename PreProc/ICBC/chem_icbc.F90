@@ -17,14 +17,14 @@
 subroutine myabort
   use mod_stdio
   use mpi
-  implicit none
+  implicit none (type, external)
   integer :: ierr
   write(stderr,*) ' Execution terminated because of runtime error'
   call mpi_abort(mpi_comm_self,1,ierr)
 end subroutine myabort
 #else
 subroutine myabort
-  implicit none
+  implicit none (type, external)
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 #endif
@@ -49,7 +49,7 @@ program chem_icbc
   use mpi
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   type(rcm_time_and_date) :: idate, iodate
   type(rcm_time_interval) :: tdif, tbdy
@@ -64,7 +64,7 @@ program chem_icbc
         isnowdark, ichecold
   logical :: carb_aging_control
   integer(ik4) :: ichem, iclimaaer
-  integer(ik4) ibltyp, iboudy, isladvec, iqmsl, icup_lnd, icup_ocn,  &
+  integer(ik4) :: ibltyp, iboudy, isladvec, iqmsl, icup_lnd, icup_ocn,  &
     ipgf, iemiss, lakemod, ipptls, iocnflx, iocncpl, iwavcpl,       &
     iocnrough, iocnzoq, idcsst, iseaice, iconvlwp, ioasiscpl,        &
     icldmstrat, icldfrac, irrtm, iclimao3, isolconst, icumcloud,     &
@@ -146,7 +146,7 @@ program chem_icbc
     stop
   end if
 
-  if ( chemtyp .eq. 'FNEST' ) then
+  if ( chemtyp == 'FNEST' ) then
     call init_fnestparam(namelistfile,cdir,cname)
   end if
 

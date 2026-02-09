@@ -16,6 +16,7 @@
 module mod_hash
 
   use mod_intkinds
+  implicit none (type, external)
 
   private
 
@@ -30,7 +31,7 @@ module mod_hash
   ! Search in ordered list
   !
   recursive integer(ik4) function bsearch(l,v,n) result(k)
-    implicit none
+    implicit none (type, external)
     integer(ik4), dimension(:), intent(in) :: l
     integer(ik4), intent(in) :: v
     integer(ik4), intent(in) :: n
@@ -54,7 +55,7 @@ module mod_hash
   end function bsearch
 
   integer(ik4) function hash(text) result(hashed)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: text
     integer(ik4) :: i, j
     hashed = 0

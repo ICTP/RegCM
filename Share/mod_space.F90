@@ -19,7 +19,7 @@ module mod_space
   use mod_realkinds
   use mod_date, only : rcm_time_and_date
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -38,7 +38,7 @@ module mod_space
   end type bounds
 
   type sarr1d
-    integer(2), pointer, contiguous, dimension(:) :: space => null()
+    integer(ik2), pointer, contiguous, dimension(:) :: space => null()
   end type sarr1d
 
   type iarr1d
@@ -62,7 +62,7 @@ module mod_space
   end type rtarr1d
 
   type sarr2d
-    integer(2), pointer, contiguous, dimension(:,:) :: space => null()
+    integer(ik2), pointer, contiguous, dimension(:,:) :: space => null()
   end type sarr2d
 
   type iarr2d
@@ -82,7 +82,7 @@ module mod_space
   end type r8arr2d
 
   type sarr3d
-    integer(2), pointer, contiguous, dimension(:,:,:) :: space => null()
+    integer(ik2), pointer, contiguous, dimension(:,:,:) :: space => null()
   end type sarr3d
 
   type iarr3d
@@ -102,7 +102,7 @@ module mod_space
   end type r8arr3d
 
   type sarr4d
-    integer(2), pointer, contiguous, dimension(:,:,:,:) :: space => null()
+    integer(ik2), pointer, contiguous, dimension(:,:,:,:) :: space => null()
   end type sarr4d
 
   type iarr4d
@@ -122,7 +122,7 @@ module mod_space
   end type r8arr4d
 
   type sarr5d
-    integer(2), pointer, contiguous, dimension(:,:,:,:,:) :: space => null()
+    integer(ik2), pointer, contiguous, dimension(:,:,:,:,:) :: space => null()
   end type sarr5d
 
   type iarr5d
@@ -185,7 +185,7 @@ module mod_space
     type (bounds), intent(in) ::  b
     integer(ik4), intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
-    allocate(a%space(b%low:b%high), stat=istat, source=-1_2)
+    allocate(a%space(b%low:b%high), stat=istat, source=-1_ik2)
   end subroutine getspc1d_sarr
 
   subroutine getspc1d_iarr(a,b,istat)
@@ -235,7 +235,7 @@ module mod_space
     integer(ik4), intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high), &
-             stat=istat, source=-1_2)
+             stat=istat, source=-1_ik2)
   end subroutine getspc2d_sarr
 
   subroutine getspc2d_iarr(a,b,istat)
@@ -280,7 +280,7 @@ module mod_space
     integer(ik4), intent(out) :: istat
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
-                     b(3)%low:b(3)%high), stat=istat, source=-1_2)
+                     b(3)%low:b(3)%high), stat=istat, source=-1_ik2)
   end subroutine getspc3d_sarr
 
   subroutine getspc3d_iarr(a,b,istat)
@@ -327,7 +327,7 @@ module mod_space
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high), &
-                     stat=istat, source=-1_2)
+                     stat=istat, source=-1_ik2)
   end subroutine getspc4d_sarr
 
   subroutine getspc4d_iarr(a,b,istat)
@@ -377,7 +377,7 @@ module mod_space
     if ( associated(a%space) ) deallocate(a%space)
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high, &
-                     b(5)%low:b(5)%high), stat=istat, source=-1_2)
+                     b(5)%low:b(5)%high), stat=istat, source=-1_ik2)
   end subroutine getspc5d_sarr
 
   subroutine getspc5d_iarr(a,b,istat)

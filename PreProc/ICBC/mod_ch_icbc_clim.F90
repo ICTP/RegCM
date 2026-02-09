@@ -29,6 +29,7 @@ module mod_ch_icbc_clim
   use mod_nchelper
   use mod_ch_param
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -66,7 +67,7 @@ module mod_ch_icbc_clim
   contains
 
   subroutine init_ch_icbc_clim(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     type(rcm_time_interval) :: tdif
     integer(ik4) :: ivarid, idimid
@@ -174,7 +175,7 @@ module mod_ch_icbc_clim
   end subroutine init_ch_icbc_clim
 
   subroutine get_ch_icbc_clim(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: nyear, month, nday, nhour
     logical :: doread, lfuture
@@ -296,7 +297,7 @@ module mod_ch_icbc_clim
   end subroutine get_ch_icbc_clim
 
   subroutine read2m(im1,im2,doread,lfuture)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im1, im2
     logical, intent(in) :: doread, lfuture
     integer(ik4) :: i, is, j, k, l, k0
@@ -440,7 +441,7 @@ module mod_ch_icbc_clim
   end subroutine read2m
 
   subroutine close_ch_icbc_clim
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: istatus
     call h_interpolator_destroy(hint)
     if ( ncicbc > 0 ) then
@@ -452,14 +453,14 @@ module mod_ch_icbc_clim
   end subroutine close_ch_icbc_clim
 
   integer(ik4) function inextmon(im)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im
     inextmon = im+1
     if ( inextmon == 13 ) inextmon = 1
   end function inextmon
 
   integer(ik4) function iprevmon(im)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im
     iprevmon = im-1
     if ( iprevmon == 0 ) iprevmon = 12

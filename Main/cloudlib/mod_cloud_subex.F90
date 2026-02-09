@@ -21,7 +21,7 @@ module mod_cloud_subex
   use mod_dynparam
   use mod_runparams
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -41,7 +41,7 @@ module mod_cloud_subex
   ! See Pal et al (2000) for more info.
   !
   subroutine subex_cldfrac(t,p,qv,qc,rh,tc0,rh0,qcrit,fcc)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: t, p
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qv, qc, rh
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: rh0, qcrit

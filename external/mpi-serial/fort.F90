@@ -2,17 +2,17 @@
 
 	subroutine mpi_init(ierror)
 
-        implicit none
+        implicit none (type, external)
         include 'mpif.h'
 
-	integer fint(2)
-	logical flog(2)
-	real freal(2)
-	double precision fdub(2)
-	complex fcomp(2)
-	integer status(MPI_STATUS_SIZE)
+	integer :: fint(2)
+	logical :: flog(2)
+	real :: freal(2)
+	double precision :: fdub(2)
+	complex :: fcomp(2)
+	integer :: status(MPI_STATUS_SIZE)
 
-        integer ierror
+        integer :: ierror
 
 
         !!
@@ -40,18 +40,18 @@
 
 
         return
-	end
+	end subroutine mpi_init
 
 
         subroutine mpi_init_thread(required,provided,ierror)
-          implicit none
+          implicit none (type, external)
           integer, intent(in) :: required
           integer, intent(out) :: provided, ierror
 
           call mpi_init(ierror)
           provided = 0
           return
-        end
+        end subroutine mpi_init_thread
 
 
 

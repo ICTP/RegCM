@@ -6,7 +6,7 @@ module mod_clm_varpar
   use mod_realkinds
   use mod_dynparam, only : num_soil_layers
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -161,7 +161,7 @@ module mod_clm_varpar
   ! This subroutine initializes parameters in clm_varpar
   !
   subroutine clm_varpar_init()
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i
     maxpatch_urb   = 5
     npatch_urban_class(1) = maxpatch_pft + 1

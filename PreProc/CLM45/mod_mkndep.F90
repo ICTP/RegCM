@@ -13,8 +13,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_mkndep
 #if defined(CN)
+module mod_mkndep
   use mod_realkinds
   use mod_intkinds
   use mod_constants
@@ -22,7 +22,7 @@ module mod_mkndep
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -35,7 +35,7 @@ module mod_mkndep
   contains
 
   subroutine mkndep(ndepfile,mask,ndep)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: ndepfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: ndep
@@ -61,6 +61,11 @@ module mod_mkndep
       end do
     end do
   end subroutine mkndep
-#endif
 end module mod_mkndep
+#else
+module mod_mkndep
+  implicit none (type, external)
+  private
+end module mod_mkndep
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

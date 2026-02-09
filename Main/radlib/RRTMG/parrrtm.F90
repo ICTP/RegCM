@@ -3,7 +3,7 @@
 
       use parkind ,only : im => kind_im
 
-      implicit none
+      implicit none (type, external)
       save
 
 !------------------------------------------------------------------

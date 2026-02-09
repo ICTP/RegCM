@@ -2,6 +2,7 @@
 MODULE EMCRE_NETCDF
 
   USE emcre_tools
+  implicit none (type, external)
 
 
 

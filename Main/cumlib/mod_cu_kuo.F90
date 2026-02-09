@@ -29,7 +29,7 @@ module mod_cu_kuo
   use mod_runparams, only : iqv, dt, ichem, dsigma, hsigma, qcon
   use mod_regcm_types
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -62,14 +62,14 @@ module mod_cu_kuo
   contains
 
   subroutine allocate_mod_cu_kuo
-    implicit none
+    implicit none (type, external)
     call getmem(qwght,1,kz,'cu_kuo:qwght')
     call getmem(twght,1,kz,5,kz,1,kz-3,'cu_kuo:twght')
     call getmem(vqflx,1,kz,5,kz,1,kz-3,'cu_kuo:vqflx')
   end subroutine allocate_mod_cu_kuo
 
   subroutine cupara(m2c)
-    implicit none
+    implicit none (type, external)
     type(mod_2_cum), intent(in) :: m2c
     real(rkx) :: apcnt, arh, c301, dalr, deqt, dlnp, dplr, dsc,   &
             ee, eddyf, emax, eqt, eqtm, plcl, pmax, pratec, psg, &

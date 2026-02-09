@@ -21,7 +21,7 @@ module mod_bats_co2
   use mod_bats_leaftemp
   use mod_bats_internal
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -59,7 +59,7 @@ module mod_bats_co2
 !=======================================================================
 !
   subroutine co2
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i
     real(rkx) :: rap, resps, rsp, rt, rcar, cari, apbm
     real(rkx), parameter :: rmp = 800.0_rkx
@@ -99,7 +99,7 @@ module mod_bats_co2
 !====================================================================
 !
   pure real(rkx) function carbon(vf,t,rm,tg,xlai,xlsai)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: rm, t, tg, vf, xlai, xlsai
     real(rkx) :: ab, ac, al, alphtl, b, bc, betatl, cco2,   &
                cco2i, ccold, gt, p, pm, pml, rt, w, &
@@ -166,20 +166,20 @@ module mod_bats_co2
     contains
 
       pure real(rkx) function g(t,tmx,sl)
-        implicit none
+        implicit none (type, external)
         real(rkx), intent(in) :: t, tmx, sl
         g = exp(sl*(d_one/tmx-d_one/t)) / &
             (d_one+(exp(sl*(d_one/tmx-d_one/t)*6.0_rkx)))*5.0e-3_rkx*t
       end function g
       ! temperature dependence of dark respiration
       pure real(rkx) function r(t)
-        implicit none
+        implicit none (type, external)
         real(rkx), intent(in) :: t
         r = exp(30.0_rkx-9.0e3_rkx/t)
       end function r
       ! light dependence of photosynthesis
       pure real(rkx) function e(xl,a,pml)
-        implicit none
+        implicit none (type, external)
         real(rkx), intent(in) :: xl, a, pml
         e = a*xl/sqrt(d_one+(a*xl/pml)**2)
       end function e

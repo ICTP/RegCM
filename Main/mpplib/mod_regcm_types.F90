@@ -17,7 +17,7 @@ module mod_regcm_types
   use mod_realkinds
   use mod_intkinds
 
-  implicit none
+  implicit none (type, external)
 
   public
 

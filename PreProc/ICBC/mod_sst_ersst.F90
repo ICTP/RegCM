@@ -27,6 +27,8 @@ module mod_sst_ersst
   use mod_nchelper
   use netcdf
 
+  implicit none (type, external)
+
   private
 
   public :: sst_ersst
@@ -35,7 +37,7 @@ module mod_sst_ersst
   real(rkx), pointer, contiguous, dimension(:,:) :: sst
   real(rkx), pointer, contiguous, dimension(:) :: lati
   real(rkx), pointer, contiguous, dimension(:) :: loni
-  integer(2), pointer, contiguous, dimension(:,:,:) :: work
+  integer(ik2), pointer, contiguous, dimension(:,:,:) :: work
   real(rkx), dimension(2) :: xadd, xscale, xmiss
 
   integer(ik4) :: inet
@@ -52,7 +54,7 @@ module mod_sst_ersst
   !          Monthly from January 1854 to the present
   !
   subroutine sst_ersst
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: it
     integer(ik4) :: istatus
     integer(ik4) :: year, month, day, hour
@@ -78,11 +80,13 @@ module mod_sst_ersst
 
     idate = prevmon(globidate1)
     call split_idate(idate,year,month,day,hour)
+#ifdef USE_ERSST_V6
     write (inpfile,'(a,i0.4,i0.2,a)') &
       trim(inpglob)//pthsep//'SST'//pthsep//ssttyp// &
-#ifdef USE_ERSST_V6
       pthsep//'V6'//pthsep//'ersst.v6.',year, month, '.nc'
 #else
+    write (inpfile,'(a,i0.4,i0.2,a)') &
+      trim(inpglob)//pthsep//'SST'//pthsep//ssttyp// &
       pthsep//'ersst.v5.',year, month, '.nc'
 #endif
     istatus = nf90_open(inpfile,nf90_nowrite,inet)
@@ -140,7 +144,7 @@ module mod_sst_ersst
 
   subroutine sst_readersst(idate,lfirst)
     use netcdf
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     logical, intent(inout) :: lfirst
     integer(ik4) :: i, j
@@ -179,11 +183,13 @@ module mod_sst_ersst
     end if
 
     call split_idate(idate,year,month,day,hour)
+#ifdef USE_ERSST_V6
     write (inpfile,'(a,i0.4,i0.2,a)') &
       trim(inpglob)//pthsep//'SST'//pthsep//ssttyp// &
-#ifdef USE_ERSST_V6
       pthsep//'V6'//pthsep//'ersst.v6.',year, month, '.nc'
 #else
+    write (inpfile,'(a,i0.4,i0.2,a)') &
+      trim(inpglob)//pthsep//'SST'//pthsep//ssttyp// &
       pthsep//'ersst.v5.',year, month, '.nc'
 #endif
     istatus = nf90_open(inpfile,nf90_nowrite,inet)

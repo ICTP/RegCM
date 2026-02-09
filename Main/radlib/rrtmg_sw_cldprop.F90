@@ -45,7 +45,7 @@
       use rrsw_wvn, only : wavenum1, wavenum2
       use rrsw_vsn, only : hvrcld, hnamcld
 
-      implicit none
+      implicit none (type, external)
 
       contains
 
@@ -153,13 +153,13 @@
       do lay = 1, nlayers
 
          cwp = ciwp(lay) + clwp(lay)
-         if (cldfrac(lay) .ge. cldmin .and. &
-            (cwp .ge. cldmin .or. tauctot(lay) .ge. cldmin)) then
+         if (cldfrac(lay) >= cldmin .and. &
+            (cwp >= cldmin .or. tauctot(lay) >= cldmin)) then
 
 ! (inflag=0): Cloud optical properties input directly
 ! Cloud optical properties already defined in tauc, ssac, asmc are unscaled;
 ! Apply delta-M scaling here
-            if (inflag .eq. 0) then
+            if (inflag == 0) then
 
                do ib = ib1, ib2
                   taucldorig_a = tauc(ib-15,lay)
@@ -176,11 +176,11 @@
                enddo
 
 ! (inflag=2): Separate treatement of ice clouds and water clouds.
-            elseif (inflag .eq. 2) then
+            elseif (inflag == 2) then
                radice = rei(lay)
 
 ! Calculation of absorption coefficients due to ice clouds.
-               if (ciwp(lay) .eq. 0.0_rb) then
+               if (ciwp(lay) == 0.0_rb) then
                   do ib = ib1, ib2
                      extcoice(ib) = 0.0_rb
                      ssacoice(ib) = 0.0_rb
@@ -191,21 +191,21 @@
 ! (iceflag = 1):
 ! Note: This option uses Ebert and Curry approach for all particle sizes similar to
 ! CAM3 implementation, though this is somewhat ineffective for large ice particles
-               elseif (iceflag .eq. 1) then
+               elseif (iceflag == 1) then
 #ifdef DEBUG
-                  if (radice .lt. 13.0_rb .or. radice .gt. 130._rb) stop &
+                  if (radice < 13.0_rb .or. radice > 130._rb) stop &
                      'ICE RADIUS OUT OF BOUNDS'
 #endif
                   do ib = ib1, ib2
-                     if (wavenum2(ib) .gt. 1.43e04_rb) then
+                     if (wavenum2(ib) > 1.43e04_rb) then
                         icx = 1
-                     elseif (wavenum2(ib) .gt. 7.7e03_rb) then
+                     elseif (wavenum2(ib) > 7.7e03_rb) then
                         icx = 2
-                     elseif (wavenum2(ib) .gt. 5.3e03_rb) then
+                     elseif (wavenum2(ib) > 5.3e03_rb) then
                         icx = 3
-                     elseif (wavenum2(ib) .gt. 4.0e03_rb) then
+                     elseif (wavenum2(ib) > 4.0e03_rb) then
                         icx = 4
-                     elseif (wavenum2(ib) .ge. 2.5e03_rb) then
+                     elseif (wavenum2(ib) >= 2.5e03_rb) then
                         icx = 5
                      endif
                      extcoice(ib) = abari(icx) + bbari(icx)/radice
@@ -214,33 +214,33 @@
                      gice(ib) = ebari(icx) + fbari(icx) * radice
 
 ! Check to ensure upper limit of gice is within physical limits for large particles
-                     if (gice(ib) .ge. 1.0_rb) gice(ib) = 1.0_rb - eps
+                     if (gice(ib) >= 1.0_rb) gice(ib) = 1.0_rb - eps
                      forwice(ib) = gice(ib)*gice(ib)
 ! Check to ensure all calculated quantities are within physical limits.
 #ifdef DEBUG
-                     if (extcoice(ib) .lt. 0.0_rb) &
+                     if (extcoice(ib) < 0.0_rb) &
                         stop 'ICE EXTINCTION LESS THAN 0.0'
-                     if (ssacoice(ib) .gt. 1.0_rb) &
+                     if (ssacoice(ib) > 1.0_rb) &
                         stop 'ICE SSA GRTR THAN 1.0'
-                     if (ssacoice(ib) .lt. 0.0_rb) &
+                     if (ssacoice(ib) < 0.0_rb) &
                         stop 'ICE SSA LESS THAN 0.0'
-                     if (gice(ib) .gt. 1.0_rb) &
+                     if (gice(ib) > 1.0_rb) &
                         stop 'ICE ASYM GRTR THAN 1.0'
-                     if (gice(ib) .lt. 0.0_rb) &
+                     if (gice(ib) < 0.0_rb) &
                         stop 'ICE ASYM LESS THAN 0.0'
 #endif
                   enddo
 
 ! For iceflag=2 option, ice particle effective radius is limited to 5.0 to 131.0 microns
 
-               elseif (iceflag .eq. 2) then
+               elseif (iceflag == 2) then
 #ifdef DEBUG
-                  if (radice .lt. 5.0_rb .or. radice .gt. 131.0_rb) &
+                  if (radice < 5.0_rb .or. radice > 131.0_rb) &
                     stop 'ICE RADIUS OUT OF BOUNDS'
 #endif
                   factor = (radice - 2._rb)/3._rb
                   index = int(factor)
-                  if (index .eq. 43) index = 42
+                  if (index == 43) index = 42
                   fint = factor - real(index,kind=rb)
                   do ib = ib1, ib2
                      extcoice(ib) = extice2(index,ib) + fint * &
@@ -252,29 +252,29 @@
                      forwice(ib) = gice(ib)*gice(ib)
 ! Check to ensure all calculated quantities are within physical limits.
 #ifdef DEBUG
-                     if (extcoice(ib) .lt. 0.0_rb) &
+                     if (extcoice(ib) < 0.0_rb) &
                           stop 'ICE EXTINCTION LESS THAN 0.0'
-                     if (ssacoice(ib) .gt. 1.0_rb) &
+                     if (ssacoice(ib) > 1.0_rb) &
                           stop 'ICE SSA GRTR THAN 1.0'
-                     if (ssacoice(ib) .lt. 0.0_rb) &
+                     if (ssacoice(ib) < 0.0_rb) &
                           stop 'ICE SSA LESS THAN 0.0'
-                     if (gice(ib) .gt. 1.0_rb) &
+                     if (gice(ib) > 1.0_rb) &
                           stop 'ICE ASYM GRTR THAN 1.0'
-                     if (gice(ib) .lt. 0.0_rb) &
+                     if (gice(ib) < 0.0_rb) &
                           stop 'ICE ASYM LESS THAN 0.0'
 #endif
                   enddo
 
 ! For iceflag=3 option, ice particle generalized effective size is limited to 5.0 to 140.0 microns
 
-               elseif (iceflag .eq. 3) then
+               elseif (iceflag == 3) then
 #ifdef DEBUG
-                  if (radice .lt. 5.0_rb .or. radice .gt. 140.0_rb) &
+                  if (radice < 5.0_rb .or. radice > 140.0_rb) &
                     stop 'ICE GENERALIZED EFFECTIVE SIZE OUT OF BOUNDS'
 #endif
                   factor = (radice - 2._rb)/3._rb
                   index = int(factor)
-                  if (index .eq. 46) index = 45
+                  if (index == 46) index = 45
                   fint = factor - real(index,kind=rb)
                   do ib = ib1, ib2
                      extcoice(ib) = extice3(index,ib) + fint * &
@@ -286,26 +286,26 @@
                      fdelta(ib) = fdlice3(index,ib) + fint * &
                               (fdlice3(index+1,ib) - fdlice3(index,ib))
 #ifdef DEBUG
-                     if (fdelta(ib) .lt. 0.0_rb) &
+                     if (fdelta(ib) < 0.0_rb) &
                         stop 'FDELTA LESS THAN 0.0'
-                     if (fdelta(ib) .gt. 1.0_rb) &
+                     if (fdelta(ib) > 1.0_rb) &
                         stop 'FDELTA GT THAN 1.0'
 #endif
                      forwice(ib) = fdelta(ib) + 0.5_rb / ssacoice(ib)
 ! See Fu 1996 p. 2067
-                     if (forwice(ib) .gt. gice(ib)) &
+                     if (forwice(ib) > gice(ib)) &
                            forwice(ib) = gice(ib)
 ! Check to ensure all calculated quantities are within physical limits.
 #ifdef DEBUG
-                     if (extcoice(ib) .lt. 0.0_rb) &
+                     if (extcoice(ib) < 0.0_rb) &
                            stop 'ICE EXTINCTION LESS THAN 0.0'
-                     if (ssacoice(ib) .gt. 1.0_rb) &
+                     if (ssacoice(ib) > 1.0_rb) &
                            stop 'ICE SSA GRTR THAN 1.0'
-                     if (ssacoice(ib) .lt. 0.0_rb) &
+                     if (ssacoice(ib) < 0.0_rb) &
                            stop 'ICE SSA LESS THAN 0.0'
-                     if (gice(ib) .gt. 1.0_rb) &
+                     if (gice(ib) > 1.0_rb) &
                            stop 'ICE ASYM GRTR THAN 1.0'
-                     if (gice(ib) .lt. 0.0_rb) &
+                     if (gice(ib) < 0.0_rb) &
                            stop 'ICE ASYM LESS THAN 0.0'
 #endif
                   enddo
@@ -313,7 +313,7 @@
                endif
 
 ! Calculation of absorption coefficients due to water clouds.
-                if (clwp(lay) .eq. 0.0_rb) then
+                if (clwp(lay) == 0.0_rb) then
                    do ib = ib1, ib2
                       extcoliq(ib) = 0.0_rb
                       ssacoliq(ib) = 0.0_rb
@@ -321,36 +321,36 @@
                       forwliq(ib) = 0.0_rb
                    enddo
 
-                elseif (liqflag .eq. 1) then
+                elseif (liqflag == 1) then
                    radliq = rel(lay)
-                   if (radliq .lt. 2.5_rb .or. radliq .gt. 60._rb) stop &
+                   if (radliq < 2.5_rb .or. radliq > 60._rb) stop &
                       'LIQUID EFFECTIVE RADIUS OUT OF BOUNDS'
                    index = int(radliq - 1.5_rb)
-                   if (index .eq. 0) index = 1
-                   if (index .eq. 58) index = 57
+                   if (index == 0) index = 1
+                   if (index == 58) index = 57
                    fint = radliq - 1.5_rb - real(index,kind=rb)
                    do ib = ib1, ib2
                       extcoliq(ib) = extliq1(index,ib) + fint * &
                               (extliq1(index+1,ib) - extliq1(index,ib))
                       ssacoliq(ib) = ssaliq1(index,ib) + fint * &
                               (ssaliq1(index+1,ib) - ssaliq1(index,ib))
-                      if (fint .lt. 0._rb .and. &
-                          ssacoliq(ib) .gt. 1._rb) &
+                      if (fint < 0._rb .and. &
+                          ssacoliq(ib) > 1._rb) &
                         ssacoliq(ib) = ssaliq1(index,ib)
                       gliq(ib) = asyliq1(index,ib) + fint * &
                               (asyliq1(index+1,ib) - asyliq1(index,ib))
                       forwliq(ib) = gliq(ib)*gliq(ib)
 ! Check to ensure all calculated quantities are within physical limits.
 #ifdef DEBUG
-                      if (extcoliq(ib) .lt. 0.0_rb) &
+                      if (extcoliq(ib) < 0.0_rb) &
                           stop 'LIQUID EXTINCTION LESS THAN 0.0'
-                      if (ssacoliq(ib) .gt. 1.0_rb) &
+                      if (ssacoliq(ib) > 1.0_rb) &
                           stop 'LIQUID SSA GRTR THAN 1.0'
-                      if (ssacoliq(ib) .lt. 0.0_rb) &
+                      if (ssacoliq(ib) < 0.0_rb) &
                           stop 'LIQUID SSA LESS THAN 0.0'
-                      if (gliq(ib) .gt. 1.0_rb) &
+                      if (gliq(ib) > 1.0_rb) &
                           stop 'LIQUID ASYM GRTR THAN 1.0'
-                      if (gliq(ib) .lt. 0.0_rb) &
+                      if (gliq(ib) < 0.0_rb) &
                           stop 'LIQUID ASYM LESS THAN 0.0'
 #endif
                    enddo
@@ -376,14 +376,14 @@
                    taucloud(lay,ib) = tauliq + tauice
 
 ! Ensure non-zero taucmc and scatice
-                   if (taucloud(lay,ib).eq.0.0_rb) &
+                   if (taucloud(lay,ib)==0.0_rb) &
                        taucloud(lay,ib) = cldmin
-                   if (scatice.eq.0.0_rb) scatice = cldmin
+                   if (scatice==0.0_rb) scatice = cldmin
 
                    ssacloud(lay,ib) = &
                           (scatliq + scatice) / taucloud(lay,ib)
 
-                   if (iceflag .eq. 3) then
+                   if (iceflag == 3) then
 ! In accordance with the 1996 Fu paper, equation A.3,
 ! the moments for ice were calculated depending on whether using spheres
 ! or hexagonal ice crystals.

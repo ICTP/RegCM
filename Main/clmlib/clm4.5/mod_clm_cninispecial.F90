@@ -2,7 +2,7 @@ module mod_clm_cninispecial
   use mod_intkinds
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -24,7 +24,7 @@ module mod_clm_cninispecial
     use mod_clm_type
     use mod_clm_cnsetvalue
     use mod_clm_surfrd, only : crop_prog
-    implicit none
+    implicit none (type, external)
     ! landunit index of corresponding column
     integer(ik4), pointer, contiguous :: clandunit(:)
     ! landunit index of corresponding pft

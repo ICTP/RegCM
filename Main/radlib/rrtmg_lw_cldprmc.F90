@@ -43,7 +43,7 @@
       use rrlw_wvn, only: ngb
       use rrlw_vsn, only: hvrclc, hnamclc
 
-      implicit none
+      implicit none (type, external)
 
       contains
 
@@ -178,36 +178,36 @@
 
         do ig = 1, ngptlw
           cwp = ciwpmc(ig,lay) + clwpmc(ig,lay)
-          if (cldfmc(ig,lay) .ge. cldmin .and. &
-             (cwp .ge. cldmin .or. taucmc(ig,lay) .ge. cldmin)) then
+          if (cldfmc(ig,lay) >= cldmin .and. &
+             (cwp >= cldmin .or. taucmc(ig,lay) >= cldmin)) then
 
 ! Ice clouds and water clouds combined.
-            if (inflag .eq. 0) then
+            if (inflag == 0) then
 ! Cloud optical depth already defined in taucmc, return to main program
                return
 
-            elseif(inflag .eq. 1) then
+            elseif(inflag == 1) then
                 stop 'INFLAG = 1 OPTION NOT AVAILABLE WITH MCICA'
 !               cwp = ciwpmc(ig,lay) + clwpmc(ig,lay)
 !               taucmc(ig,lay) = abscld1 * cwp
 
 ! Separate treatement of ice clouds and water clouds.
-            elseif(inflag .eq. 2) then
+            elseif(inflag == 2) then
                radice = reicmc(lay)
 
 ! Calculation of absorption coefficients due to ice clouds.
-               if (ciwpmc(ig,lay) .eq. 0.0_rb) then
+               if (ciwpmc(ig,lay) == 0.0_rb) then
                   abscoice(ig) = 0.0_rb
 
-               elseif (iceflag .eq. 0) then
+               elseif (iceflag == 0) then
 #ifdef DEBUG
-                  if (radice .lt. 10.0_rb) stop 'ICE RADIUS TOO SMALL'
+                  if (radice < 10.0_rb) stop 'ICE RADIUS TOO SMALL'
 #endif
                   abscoice(ig) = absice0(1) + absice0(2)/radice
 
-               elseif (iceflag .eq. 1) then
+               elseif (iceflag == 1) then
 #ifdef DEBUG
-                  if (radice .lt. 13.0_rb .or. radice .gt. 130._rb) &
+                  if (radice < 13.0_rb .or. radice > 130._rb) &
                       stop 'ICE RADIUS OUT OF BOUNDS'
 #endif
                   ncbands = 5
@@ -216,15 +216,15 @@
 
 ! For iceflag=2 option, ice particle effective radius is limited to 5.0 to 131.0 microns
 
-               elseif (iceflag .eq. 2) then
+               elseif (iceflag == 2) then
 #ifdef DEBUG
-                  if (radice .lt. 5.0_rb .or. radice .gt. 131.0_rb) &
+                  if (radice < 5.0_rb .or. radice > 131.0_rb) &
                     stop 'ICE RADIUS OUT OF BOUNDS'
 #endif
                      ncbands = 16
                      factor = (radice - 2._rb)/3._rb
                      indx = int(factor)
-                     if (indx .eq. 43) indx = 42
+                     if (indx == 43) indx = 42
                      fint = factor - real(indx)
                      ib = ngb(ig)
                      abscoice(ig) = &
@@ -233,15 +233,15 @@
 
 ! For iceflag=3 option, ice particle generalized effective size is limited to 5.0 to 140.0 microns
 
-               elseif (iceflag .eq. 3) then
+               elseif (iceflag == 3) then
 #ifdef DEBUG
-                  if (radice .lt. 5.0_rb .or. radice .gt. 140.0_rb) &
+                  if (radice < 5.0_rb .or. radice > 140.0_rb) &
                     stop 'ICE GENERALIZED EFFECTIVE SIZE OUT OF BOUNDS'
 #endif
                      ncbands = 16
                      factor = (radice - 2._rb)/3._rb
                      indx = int(factor)
-                     if (indx .eq. 46) indx = 45
+                     if (indx == 46) indx = 45
                      fint = factor - real(indx)
                      ib = ngb(ig)
                      abscoice(ig) = &
@@ -251,21 +251,21 @@
                endif
 
 ! Calculation of absorption coefficients due to water clouds.
-               if (clwpmc(ig,lay) .eq. 0.0_rb) then
+               if (clwpmc(ig,lay) == 0.0_rb) then
                   abscoliq(ig) = 0.0_rb
 
-               elseif (liqflag .eq. 0) then
+               elseif (liqflag == 0) then
                    abscoliq(ig) = absliq0
 
-               elseif (liqflag .eq. 1) then
+               elseif (liqflag == 1) then
                   radliq = relqmc(lay)
 #ifdef DEBUG
-                  if (radliq .lt. 2.5_rb .or. radliq .gt. 60._rb) &
+                  if (radliq < 2.5_rb .or. radliq > 60._rb) &
                     stop 'LIQUID EFFECTIVE RADIUS OUT OF BOUNDS'
 #endif
                   indx = int(radliq - 1.5_rb)
-                  if (indx .eq. 0) indx = 1
-                  if (indx .eq. 58) indx = 57
+                  if (indx == 0) indx = 1
+                  if (indx == 58) indx = 57
                   fint = radliq - 1.5_rb - real(indx)
                   ib = ngb(ig)
                   abscoliq(ig) = &

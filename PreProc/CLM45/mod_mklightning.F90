@@ -13,8 +13,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_mklightning
 #ifdef CN
+module mod_mklightning
   use mod_realkinds
   use mod_intkinds
   use mod_constants
@@ -22,7 +22,7 @@ module mod_mklightning
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -35,7 +35,7 @@ module mod_mklightning
   contains
 
   subroutine mklightning_init(lnfmfile)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: lnfmfile
     character(len=256) :: inpfile
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
@@ -44,7 +44,7 @@ module mod_mklightning
   end subroutine mklightning_init
 
   subroutine mklightning(lightning,mask,it)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: lightning
     integer(ik4), intent(in) :: it
@@ -63,10 +63,15 @@ module mod_mklightning
   end subroutine mklightning
 
   subroutine mklightning_close
-    implicit none
+    implicit none (type, external)
     call gfclose(gfile)
   end subroutine mklightning_close
-#endif
 
 end module mod_mklightning
+#else
+module mod_mklightning
+  implicit none (type, external)
+  private
+end module mod_mklightning
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

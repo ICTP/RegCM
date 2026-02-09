@@ -41,7 +41,7 @@ module rrtmg_sw_setcoef
   use rrsw_ref, only : pref, preflog, tref
   use rrsw_vsn, only : hvrset, hnamset
 
-  implicit none
+  implicit none (type, external)
 
   contains
 
@@ -167,9 +167,9 @@ module rrtmg_sw_setcoef
 
          plog = log(pavel(lay))
          jp(lay) = int(36._rb - 5*(plog+0.04_rb))
-         if (jp(lay) .lt. 1) then
+         if (jp(lay) < 1) then
             jp(lay) = 1
-         elseif (jp(lay) .gt. 58) then
+         elseif (jp(lay) > 58) then
             jp(lay) = 58
          endif
          jp1 = jp(lay) + 1
@@ -184,16 +184,16 @@ module rrtmg_sw_setcoef
 ! layer temperature falls.
 
          jt(lay) = int(3._rb + (tavel(lay)-tref(jp(lay)))/15._rb)
-         if (jt(lay) .lt. 1) then
+         if (jt(lay) < 1) then
             jt(lay) = 1
-         elseif (jt(lay) .gt. 4) then
+         elseif (jt(lay) > 4) then
             jt(lay) = 4
          endif
          ft = ((tavel(lay)-tref(jp(lay)))/15._rb) - real((jt(lay)-3),kind=rb)
          jt1(lay) = int(3._rb + (tavel(lay)-tref(jp1))/15._rb)
-         if (jt1(lay) .lt. 1) then
+         if (jt1(lay) < 1) then
             jt1(lay) = 1
-         elseif (jt1(lay) .gt. 4) then
+         elseif (jt1(lay) > 4) then
             jt1(lay) = 4
          endif
          ft1 = ((tavel(lay)-tref(jp1))/15._rb) - real((jt1(lay)-3),kind=rb)
@@ -204,9 +204,9 @@ module rrtmg_sw_setcoef
 ! If the pressure is less than ~100mb, perform a different
 ! set of species interpolations.
 
-         if (plog .le. 4.56_rb) go to 5300
+         if (plog <= 4.56_rb) go to 5300
          laytrop =  laytrop + 1
-         if (plog .ge. 6.62_rb) laylow = laylow + 1
+         if (plog >= 6.62_rb) laylow = laylow + 1
 
 ! Set up factors needed to separately include the water vapor
 ! foreign-continuum in the calculation of absorption coefficient.
@@ -241,10 +241,10 @@ module rrtmg_sw_setcoef
 !           colch4(lay) = 0._rb
 !           colo2(lay) = 0._rb
 !           colmol(lay) = 0._rb
-         if (colco2(lay) .eq. 0._rb) colco2(lay) = 1.e-32_rb * coldry(lay)
-         if (coln2o(lay) .eq. 0._rb) coln2o(lay) = 1.e-32_rb * coldry(lay)
-         if (colch4(lay) .eq. 0._rb) colch4(lay) = 1.e-32_rb * coldry(lay)
-         if (colo2(lay) .eq. 0._rb) colo2(lay) = 1.e-32_rb * coldry(lay)
+         if (colco2(lay) == 0._rb) colco2(lay) = 1.e-32_rb * coldry(lay)
+         if (coln2o(lay) == 0._rb) coln2o(lay) = 1.e-32_rb * coldry(lay)
+         if (colch4(lay) == 0._rb) colch4(lay) = 1.e-32_rb * coldry(lay)
+         if (colo2(lay) == 0._rb) colo2(lay) = 1.e-32_rb * coldry(lay)
 ! Using E = 1334.2 cm-1.
          co2reg = 3.55e-24_rb * coldry(lay)
          co2mult(lay)= (colco2(lay) - co2reg) * &
@@ -271,10 +271,10 @@ module rrtmg_sw_setcoef
          colch4(lay) = 1.e-20_rb * wkl(6,lay)
          colo2(lay)  = 1.e-20_rb * wkl(7,lay)
          colmol(lay) = 1.e-20_rb * coldry(lay) + colh2o(lay)
-         if (colco2(lay) .eq. 0._rb) colco2(lay) = 1.e-32_rb * coldry(lay)
-         if (coln2o(lay) .eq. 0._rb) coln2o(lay) = 1.e-32_rb * coldry(lay)
-         if (colch4(lay) .eq. 0._rb) colch4(lay) = 1.e-32_rb * coldry(lay)
-         if (colo2(lay)  .eq. 0._rb) colo2(lay)  = 1.e-32_rb * coldry(lay)
+         if (colco2(lay) == 0._rb) colco2(lay) = 1.e-32_rb * coldry(lay)
+         if (coln2o(lay) == 0._rb) coln2o(lay) = 1.e-32_rb * coldry(lay)
+         if (colch4(lay) == 0._rb) colch4(lay) = 1.e-32_rb * coldry(lay)
+         if (colo2(lay)  == 0._rb) colo2(lay)  = 1.e-32_rb * coldry(lay)
          co2reg = 3.55e-24_rb * coldry(lay)
          co2mult(lay)= (colco2(lay) - co2reg) * &
                272.63_rb*exp(-1919.4_rb/tavel(lay))/(8.7604e-4_rb*tavel(lay))
@@ -313,7 +313,7 @@ module rrtmg_sw_setcoef
 ! has only a few non-zero digits (i.e. ln(PREF(1)) = 6.96000) and
 ! each subsequent ln(pressure) differs from the previous one by 0.2.
 
-      pref(:) = (/ &
+      pref(:) = [ &
           1.05363e+03_rb,8.62642e+02_rb,7.06272e+02_rb,5.78246e+02_rb,4.73428e+02_rb, &
           3.87610e+02_rb,3.17348e+02_rb,2.59823e+02_rb,2.12725e+02_rb,1.74164e+02_rb, &
           1.42594e+02_rb,1.16746e+02_rb,9.55835e+01_rb,7.82571e+01_rb,6.40715e+01_rb, &
@@ -325,9 +325,9 @@ module rrtmg_sw_setcoef
           3.53455e-01_rb,2.89384e-01_rb,2.36928e-01_rb,1.93980e-01_rb,1.58817e-01_rb, &
           1.30029e-01_rb,1.06458e-01_rb,8.71608e-02_rb,7.13612e-02_rb,5.84256e-02_rb, &
           4.78349e-02_rb,3.91639e-02_rb,3.20647e-02_rb,2.62523e-02_rb,2.14936e-02_rb, &
-          1.75975e-02_rb,1.44076e-02_rb,1.17959e-02_rb,9.65769e-03_rb /)
+          1.75975e-02_rb,1.44076e-02_rb,1.17959e-02_rb,9.65769e-03_rb ]
 
-      preflog(:) = (/ &
+      preflog(:) = [ &
            6.9600e+00_rb, 6.7600e+00_rb, 6.5600e+00_rb, 6.3600e+00_rb, 6.1600e+00_rb, &
            5.9600e+00_rb, 5.7600e+00_rb, 5.5600e+00_rb, 5.3600e+00_rb, 5.1600e+00_rb, &
            4.9600e+00_rb, 4.7600e+00_rb, 4.5600e+00_rb, 4.3600e+00_rb, 4.1600e+00_rb, &
@@ -339,12 +339,12 @@ module rrtmg_sw_setcoef
           -1.0400e+00_rb,-1.2400e+00_rb,-1.4400e+00_rb,-1.6400e+00_rb,-1.8400e+00_rb, &
           -2.0400e+00_rb,-2.2400e+00_rb,-2.4400e+00_rb,-2.6400e+00_rb,-2.8400e+00_rb, &
           -3.0400e+00_rb,-3.2400e+00_rb,-3.4400e+00_rb,-3.6400e+00_rb,-3.8400e+00_rb, &
-          -4.0400e+00_rb,-4.2400e+00_rb,-4.4400e+00_rb,-4.6400e+00_rb /)
+          -4.0400e+00_rb,-4.2400e+00_rb,-4.4400e+00_rb,-4.6400e+00_rb ]
 
 ! These are the temperatures associated with the respective
 ! pressures for the MLS standard atmosphere.
 
-      tref(:) = (/ &
+      tref(:) = [ &
            2.9420e+02_rb, 2.8799e+02_rb, 2.7894e+02_rb, 2.6925e+02_rb, 2.5983e+02_rb, &
            2.5017e+02_rb, 2.4077e+02_rb, 2.3179e+02_rb, 2.2306e+02_rb, 2.1578e+02_rb, &
            2.1570e+02_rb, 2.1570e+02_rb, 2.1570e+02_rb, 2.1706e+02_rb, 2.1858e+02_rb, &
@@ -356,7 +356,7 @@ module rrtmg_sw_setcoef
            2.6211e+02_rb, 2.5828e+02_rb, 2.5360e+02_rb, 2.4854e+02_rb, 2.4348e+02_rb, &
            2.3809e+02_rb, 2.3206e+02_rb, 2.2603e+02_rb, 2.2000e+02_rb, 2.1435e+02_rb, &
            2.0887e+02_rb, 2.0340e+02_rb, 1.9792e+02_rb, 1.9290e+02_rb, 1.8809e+02_rb, &
-           1.8329e+02_rb, 1.7849e+02_rb, 1.7394e+02_rb, 1.7212e+02_rb /)
+           1.8329e+02_rb, 1.7849e+02_rb, 1.7394e+02_rb, 1.7212e+02_rb ]
 
     end subroutine swatmref
 

@@ -13,8 +13,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_mkpopd
 #ifdef CN
+module mod_mkpopd
   use mod_realkinds
   use mod_intkinds
   use mod_constants
@@ -22,7 +22,7 @@ module mod_mkpopd
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -35,7 +35,7 @@ module mod_mkpopd
   contains
 
   subroutine mkpopd_init(popdfile)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: popdfile
     character(len=256) :: inpfile
 
@@ -45,7 +45,7 @@ module mod_mkpopd
   end subroutine mkpopd_init
 
   subroutine mkpopd(popd,mask,it)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: popd
     integer(ik4), intent(in) :: it
@@ -64,10 +64,15 @@ module mod_mkpopd
   end subroutine mkpopd
 
   subroutine mkpopd_close
-    implicit none
+    implicit none (type, external)
     call gfclose(gfile)
   end subroutine mkpopd_close
-#endif
 
 end module mod_mkpopd
+#else
+module mod_mkpopd
+  implicit none (type, external)
+  private
+end module mod_mkpopd
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

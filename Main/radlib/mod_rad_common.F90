@@ -19,7 +19,7 @@ module mod_rad_common
   use mod_realkinds
   use mod_dynparam, only : nspi
 
-  implicit none
+  implicit none (type, external)
 
   public
 

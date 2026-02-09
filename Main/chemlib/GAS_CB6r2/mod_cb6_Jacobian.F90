@@ -27,7 +27,7 @@ MODULE mod_cb6_Jacobian
   USE mod_cb6_Parameters
   USE mod_cb6_JacobianSP
 
-  IMPLICIT NONE
+  IMPLICIT NONE (type, external)
 
 CONTAINS
 

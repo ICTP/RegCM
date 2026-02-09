@@ -16,9 +16,9 @@
 module mod_posix
 
   use mod_stdio
-  use iso_c_binding
+  use, intrinsic :: iso_c_binding
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -28,36 +28,42 @@ module mod_posix
     integer(c_short) :: d_reclen
     character(len=1,kind=c_char) :: d_type
     character(len=1,kind=c_char) :: d_name(256)
-  end type
+  end type dirent
 
   interface
     function opendir(a) bind(C,name='opendir')
       import
+      implicit none (type, external)
       type(c_ptr) :: opendir
-      character(len=1, kind=c_char), intent(in) :: a(*)
+      character(len=*, kind=c_char), intent(in) :: a
     end function opendir
     function readdir(dir) bind(C,name='readdir')
       import
+      implicit none (type, external)
       type(c_ptr), value :: dir
       type(c_ptr) :: readdir
     end function readdir
     function closedir(dir) bind(C,name='closedir')
       import
+      implicit none (type, external)
       type(c_ptr), value :: dir
       integer(c_int) :: closedir
     end function closedir
     subroutine seekdir(dir,pos) bind(C,name='seekdir')
       import
+      implicit none (type, external)
       type(c_ptr), value :: dir
-      integer(c_long) :: pos
+      integer(c_long), intent(in) :: pos
     end subroutine seekdir
     function telldir(dir) bind(C,name='telldir')
       import
+      implicit none (type, external)
       type(c_ptr), value :: dir
       integer(c_long) :: telldir
     end function telldir
     subroutine rewinddir(dir) bind(C,name='rewinddir')
       import
+      implicit none (type, external)
       type(c_ptr), value :: dir
     end subroutine rewinddir
   end interface
@@ -72,10 +78,10 @@ module mod_posix
   contains
 
   subroutine dirlist(path,dire)
-    use iso_c_binding
-    implicit none
+    use, intrinsic :: iso_c_binding
+    implicit none (type, external)
     character(len=*), intent(in) :: path
-    type(direntry), dimension(:), pointer :: dire
+    type(direntry), dimension(:), pointer, intent(inout) :: dire
     type(c_ptr) :: dir, dc
     integer(c_int) :: ires
     type(dirent), pointer :: d
@@ -120,7 +126,7 @@ module mod_posix
   end subroutine dirlist
 
   pure recursive function replacestr(string,search,sub) result(mstring)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: string, search, sub
     character(len=:), allocatable :: mstring
     integer :: i, stringlen, searchlen
@@ -150,7 +156,7 @@ module mod_posix
   end function replacestr
 
   elemental pure function lower(str,istart,istop) result (string)
-    implicit none
+    implicit none (type, external)
     character(*), intent(in) :: str
     character(len(str)) :: string
     integer, intent(in), optional :: istart, istop
@@ -175,7 +181,7 @@ module mod_posix
   end function lower
 
   elemental pure function upper(str,istart,istop) result (string)
-    implicit none
+    implicit none (type, external)
     character(*), intent(in) :: str
     character(len(str)) :: string
     integer, intent(in), optional :: istart, istop
@@ -200,7 +206,7 @@ module mod_posix
   end function upper
 
   subroutine splitstr(input_line,array,delimiters,order,nulls)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: input_line
     character(len=*), optional, intent(in) :: delimiters
     character(len=*), optional, intent(in) :: order
@@ -317,7 +323,7 @@ module mod_posix
   end subroutine splitstr
 
   function basename(path,suffix) result(base)
-    implicit none
+    implicit none (type, external)
     character(*), intent(In) :: path
     logical, intent(in), optional :: suffix
     character(:), allocatable :: base

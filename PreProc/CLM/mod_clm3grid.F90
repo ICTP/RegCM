@@ -18,22 +18,22 @@ module mod_clm3grid
   use mod_intkinds
   use mod_realkinds
   use mod_stdio
+  implicit none (type, external)
+
+  public
 
   contains
 
   subroutine clm3grid1(nlon,nlat,nlev,ntim, &
                        glon1,glon2,glat1,glat2,dlat,dlon, &
                        xlonmin,xlonmax,xlatmin,xlatmax,istart,icount)
-  implicit none
+  implicit none (type, external)
 !
-  real(rk4) :: glat1, glat2, glon1, glon2, dlat, dlon
-  real(rk4) :: xlatmax, xlatmin, xlonmax, xlonmin
-  integer(ik4) :: nlat, nlev, nlon, ntim
-  integer(ik4), dimension(4) :: icount, istart
-  intent (in) glat1, glat2, nlat, nlev, nlon, ntim, dlat, dlon
-  intent (out) icount, istart
-  intent (inout) xlatmax, xlatmin, xlonmax, xlonmin
-!
+  real(rk4), intent(in) :: glat1, glat2, glon1, glon2, dlat, dlon
+  real(rk4), intent(inout) :: xlatmax, xlatmin, xlonmax, xlonmin
+  integer(ik4), intent(in) :: nlat, nlev, nlon, ntim
+  integer(ik4), dimension(4), intent(out) :: icount, istart
+
   integer(ik4) :: ilatmax, ilatmin, ilonmax, ilonmin
 
   xlonmin = max(xlonmin-dlon,glon1)
@@ -61,20 +61,18 @@ module mod_clm3grid
   subroutine clm3grid2(nlon,nlat,glon,glat,istart,icount,zlon,      &
                        zlat,zlev)
 
-  implicit none
+  implicit none (type, external)
 !
-  integer(ik4) :: nlat, nlon
-  real(rk4), dimension(nlat) :: glat
-  real(rk4), dimension(nlon) :: glon
-  integer(ik4), dimension(4) :: icount, istart
-  real(rk4), dimension(icount(2)) :: zlat
-  real(rk4), dimension(icount(3)) :: zlev
-  real(rk4), dimension(icount(1)) :: zlon
-  intent (in) glat, glon, icount, istart, nlat, nlon
-  intent (out) zlat, zlev, zlon
-!
+  integer(ik4), intent(in) :: nlat, nlon
+  real(rk4), dimension(nlat), intent(in) :: glat
+  real(rk4), dimension(nlon), intent(in) :: glon
+  integer(ik4), dimension(4), intent(in) :: icount, istart
+  real(rk4), dimension(icount(2)), intent(out) :: zlat
+  real(rk4), dimension(icount(3)), intent(out) :: zlev
+  real(rk4), dimension(icount(1)), intent(out) :: zlon
+
   integer(ik4) :: i, j, k
-!
+
   do i = 1, icount(1)
     zlon(i) = glon(i+istart(1)-1)
   end do
@@ -110,19 +108,15 @@ module mod_clm3grid
 !  IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
 !  IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
 
-  implicit none
-!
-  integer(ik4) :: iy, jx, nlati, nloni, nt, nz
-  real(rk4) :: vmisdat, xming
-  real(rk4), dimension(nloni,nlati,nz,nt) :: mti
-  real(rk4), dimension(nloni,nlati) :: lmsk
-  real(rk4), dimension(nlati) :: lati
-  real(rk4), dimension(jx,iy) :: lato, lono
-  real(rk4), dimension(nloni) :: loni
-  real(rk4), dimension(jx,iy,nz,nt) :: mto
-  intent (in) mti, iy, jx, lati, lato, loni, lono, nlati,   &
-              nloni, nt, nz, vmisdat, xming
-  intent (out) mto
+  implicit none (type, external)
+  integer(ik4), intent(in) :: iy, jx, nlati, nloni, nt, nz
+  real(rk4), intent(in) :: vmisdat, xming
+  real(rk4), dimension(nloni,nlati,nz,nt), intent(in) :: mti
+  real(rk4), dimension(nloni,nlati), intent(in) :: lmsk
+  real(rk4), dimension(nlati), intent(in) :: lati
+  real(rk4), dimension(nloni), intent(in) :: loni
+  real(rk4), dimension(jx,iy), intent(in) :: lato, lono
+  real(rk4), dimension(jx,iy,nz,nt), intent(out) :: mto
 !
   integer(ik4) :: i, ip, ipp1, j, jq, jqp1, k, l
   real(rk4) :: lon360, p, q, temp1, temp2, xind, yind
@@ -197,15 +191,12 @@ module mod_clm3grid
   end subroutine bilinx4d
 
   subroutine maskme(landmask,vals,vmisdat,nlon,nlat,nlev,ntim)
-  implicit none
-!
-  integer(ik4) :: nlat, nlev, nlon, ntim
-  real(rk4) :: vmisdat
-  real(rk4), dimension(nlon,nlat) :: landmask
-  real(rk4), dimension(nlon,nlat,nlev,ntim) :: vals
-  intent (in) landmask, nlat, nlev, nlon, ntim, vmisdat
-  intent (inout) vals
-!
+  implicit none (type, external)
+  integer(ik4), intent(in) :: nlat, nlev, nlon, ntim
+  real(rk4), intent(in) :: vmisdat
+  real(rk4), dimension(nlon,nlat), intent(in) :: landmask
+  real(rk4), dimension(nlon,nlat,nlev,ntim), intent(inout) :: vals
+
   integer(ik4) :: i, j, k, l
 !
   do l = 1, ntim

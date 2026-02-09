@@ -21,6 +21,7 @@ module mod_cbmz_jval1
   use mod_dynparam
   use mod_mppparam
   use mod_stdio
+  implicit none (type, external)
 
   private
 
@@ -29,7 +30,7 @@ module mod_cbmz_jval1
   contains
 
     subroutine jvalpro(nhv,hvmat,jarray,jparam,jval)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), dimension(22,40) :: hvmat
       real(rkx), dimension(22) :: jparam
@@ -139,7 +140,7 @@ module mod_cbmz_jval1
       jparamloop: &
       do i = 1, 19
         jfx(i) = d_zero
-        if ( nhv(i) <= 0 ) exit
+        if ( nhv(i) <= 0 ) exit jparamloop
         if ( nhv(i) /= 1 ) then
 
 !         SPECIAL TEMPERATURE:
@@ -693,7 +694,7 @@ module mod_cbmz_jval1
 ! -----------------------------------------------------------------
 
     subroutine readhv(lsin,nhv,hvmat,hvmatb,jarray)
-      implicit none
+      implicit none (type, external)
 !
       integer(ik4) :: lsin
       real(rkx), dimension(22,40) :: hvmat

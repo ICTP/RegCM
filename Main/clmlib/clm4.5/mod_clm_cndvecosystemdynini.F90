@@ -1,10 +1,11 @@
 module mod_clm_cndvecosystemdynini
+implicit none (type, external)
 
 #if (defined CNDV)
   use mod_intkinds
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -20,7 +21,7 @@ module mod_clm_cndvecosystemdynini
     use mod_clm_decomp, only : get_proc_bounds, get_proc_global
     use mod_constants, only : tzero
     use mod_clm_atmlnd, only : atm_domain
-    implicit none
+    implicit none (type, external)
     type(atm_domain), intent(in) :: adomain
     integer(ik4) :: g, p
     integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices

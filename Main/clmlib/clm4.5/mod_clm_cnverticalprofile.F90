@@ -1,4 +1,5 @@
 module mod_clm_cnverticalprofile
+implicit none (type, external)
 #ifdef CN
   !
   ! Module holding routines for vertical discretization of C and N
@@ -10,7 +11,7 @@ module mod_clm_cnverticalprofile
   use mod_mpmessage
   use mod_clm_varcon, only: dzsoi_decomp
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -39,7 +40,7 @@ module mod_clm_cnverticalprofile
     use mod_clm_varpar, only : nlevdecomp, nlevgrnd, &
             nlevdecomp_full, maxpatch_pft
     use mod_clm_pftvarcon, only : rootprof_beta, noveg
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbp, ubp   ! pft-index bounds
     integer(ik4), intent(in) :: lbc, ubc   ! column-index bounds
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter

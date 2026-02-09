@@ -44,6 +44,7 @@
 !===============================================================================
 
 module rrtmg_lw_read_nc
+implicit none (type, external)
 
   contains
 
@@ -54,7 +55,7 @@ subroutine lw_kgb01(fname)
     use rrlw_ncpar
     use netcdf
 
-    implicit none
+    implicit none (type, external)
     save
 
     character(len=*), intent(in) :: fname
@@ -68,45 +69,45 @@ subroutine lw_kgb01(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(4)   = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)   = nf90_get_var(ncid, varID, fracrefbo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)   = nf90_get_var(ncid, varID, kbo, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(12)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     !Get absorber index for N2
     call getAbsorberIndex('N2',ab)
     status(14)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(15)  = nf90_get_var(ncid, varID, kao_mn2, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     status(16)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsUpperAtmos",varID)
     status(17)  = nf90_get_var(ncid, varID, kbo_mn2, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
        stop  "Error reading variables from file"
@@ -123,7 +124,7 @@ subroutine lw_kgb02(fname)
         use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
        character(len=*), intent(in) :: fname
@@ -137,33 +138,33 @@ subroutine lw_kgb02(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(4)   = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)   = nf90_get_var(ncid, varID, fracrefbo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)   = nf90_get_var(ncid, varID, kbo, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(12)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -182,7 +183,7 @@ subroutine lw_kgb03(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -197,45 +198,45 @@ subroutine lw_kgb03(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,keylower,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,keylower,1_im,1_im])
 
     status(4)   = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)   = nf90_get_var(ncid, varID, fracrefbo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,keyupper,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,keyupper,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [keylower,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)   = nf90_get_var(ncid, varID, kbo, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/keyupper,Tdiff,pupper,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [keyupper,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(12)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     !Get absorber index for N2
     call getAbsorberIndex('N2O',ab)
     status(14)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(15)  = nf90_get_var(ncid, varID, kao_mn2o, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [keylower,T,numGPoints,1_im,1_im,1_im])
 
     status(16)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsUpperAtmos",varID)
     status(17)  = nf90_get_var(ncid, varID, kbo_mn2o, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/keyupper,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [keyupper,T,numGPoints,1_im,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -253,7 +254,7 @@ subroutine lw_kgb04(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -267,33 +268,33 @@ subroutine lw_kgb04(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,keylower,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,keylower,1_im,1_im])
 
     status(4)   = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)   = nf90_get_var(ncid, varID, fracrefbo(:,1:5), &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,keyupper,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,keyupper,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [keylower,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)   = nf90_get_var(ncid, varID, kbo, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/keyupper,Tdiff,pupper,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [keyupper,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(12)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -312,7 +313,7 @@ subroutine lw_kgb05(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -327,47 +328,47 @@ subroutine lw_kgb05(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,keylower,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,keylower,1_im,1_im])
 
     status(4)   = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)   = nf90_get_var(ncid, varID, fracrefbo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,keyupper,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,keyupper,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [keylower,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)   = nf90_get_var(ncid, varID, kbo, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/keyupper,Tdiff,pupper,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [keyupper,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(12)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     !Get absorber index for O3
     call getAbsorberIndex('O3',ab)
     status(14)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(15)  = nf90_get_var(ncid, varID, kao_mo3, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [keylower,T,numGPoints,1_im,1_im,1_im])
 
     !Get absorber index for CCL4
     call getAbsorberIndex('CCL4',ab)
     status(16)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(17)  = nf90_get_var(ncid, varID, ccl4o, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,1_im,numGPoints,1_im,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -386,7 +387,7 @@ subroutine lw_kgb06(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -401,44 +402,44 @@ subroutine lw_kgb06(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(9)   = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     !Get absorber index for CO2
     call getAbsorberIndex('CO2',ab)
     status(12)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(13)  = nf90_get_var(ncid, varID, kao_mco2, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     !Get absorber index for CFC11
     call getAbsorberIndex('CFC11',ab)
     status(14)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(15)  = nf90_get_var(ncid, varID, cfc11adjo, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,1_im,numGPoints,1_im,1_im,1_im])
 
     !Get absorber index for CFC12
     call getAbsorberIndex('CFC12',ab)
     status(16)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(17)  = nf90_get_var(ncid, varID, cfc12o, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,1_im,numGPoints,1_im,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -457,7 +458,7 @@ subroutine lw_kgb07(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -472,45 +473,45 @@ subroutine lw_kgb07(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,keylower,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,keylower,1_im,1_im])
 
     status(4)   = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)   = nf90_get_var(ncid, varID, fracrefbo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [keylower,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)   = nf90_get_var(ncid, varID, kbo, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(12)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     !Get absorber index for CO2
     call getAbsorberIndex('CO2',ab)
     status(14)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(15)  = nf90_get_var(ncid, varID, kao_mco2, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [keylower,T,numGPoints,1_im,1_im,1_im])
 
     status(16)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsUpperAtmos",varID)
     status(17)  = nf90_get_var(ncid, varID, kbo_mco2, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -530,7 +531,7 @@ subroutine lw_kgb08(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -545,78 +546,78 @@ subroutine lw_kgb08(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(4)   = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)   = nf90_get_var(ncid, varID, fracrefbo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)   = nf90_get_var(ncid, varID, kbo, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(12)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     !Get absorber index for O3
     call getAbsorberIndex('O3',ab)
     status(14)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(15)  = nf90_get_var(ncid, varID, kao_mo3, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     !Get absorber index for CO2
     call getAbsorberIndex('CO2',ab)
     status(16)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(17)  = nf90_get_var(ncid, varID, kao_mco2, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     status(18)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsUpperAtmos",varID)
     status(19)  = nf90_get_var(ncid, varID, kbo_mco2, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     !Get absorber index for N2O
     call getAbsorberIndex('N2O',ab)
     status(20)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(21)  = nf90_get_var(ncid, varID, kao_mn2o, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     status(22)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsUpperAtmos",varID)
     status(23)  = nf90_get_var(ncid, varID, kbo_mn2o, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     !Get absorber index for CFC12
     call getAbsorberIndex('CFC12',ab)
     status(24)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(25)  = nf90_get_var(ncid, varID, cfc12o, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,1_im,numGPoints,1_im,1_im,1_im])
 
     !Get absorber index for CFC22
     call getAbsorberIndex('CFC22',ab)
     status(26)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(27)  = nf90_get_var(ncid, varID, cfc22adjo, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,1_im,numGPoints,1_im,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -635,7 +636,7 @@ subroutine lw_kgb09(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -650,45 +651,45 @@ subroutine lw_kgb09(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,keylower,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,keylower,1_im,1_im])
 
     status(4)   = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)   = nf90_get_var(ncid, varID, fracrefbo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [keylower,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)   = nf90_get_var(ncid, varID, kbo, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(12)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     !Get absorber index for N2O
     call getAbsorberIndex('N2O',ab)
     status(14)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(15)  = nf90_get_var(ncid, varID, kao_mn2o, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [keylower,T,numGPoints,1_im,1_im,1_im])
 
     status(16)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsUpperAtmos",varID)
     status(17)  = nf90_get_var(ncid, varID, kbo_mn2o, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -706,7 +707,7 @@ subroutine lw_kgb10(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -720,33 +721,33 @@ subroutine lw_kgb10(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(4)   = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)   = nf90_get_var(ncid, varID, fracrefbo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)   = nf90_get_var(ncid, varID, kbo, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(12)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -765,7 +766,7 @@ subroutine lw_kgb11(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -780,45 +781,45 @@ subroutine lw_kgb11(fname)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(4)   = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)   = nf90_get_var(ncid, varID, fracrefbo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [numGPoints,1_im,1_im,1_im])
 
     status(6)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)   = nf90_get_var(ncid, varID, kao, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)   = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)   = nf90_get_var(ncid, varID, kbo, &
-                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [1_im,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11)  = nf90_get_var(ncid, varID, selfrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tself,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tself,numGPoints,1_im,1_im])
 
     status(12)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13)  = nf90_get_var(ncid, varID, forrefo, &
-                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                      count = (/Tforeign,numGPoints,1_im,1_im/))
+                      start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                      count = [Tforeign,numGPoints,1_im,1_im])
 
     !Get absorber index for O2
     call getAbsorberIndex('O2',ab)
     status(14)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(15)  = nf90_get_var(ncid, varID, kao_mo2, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     status(16)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsUpperAtmos",varID)
     status(17)  = nf90_get_var(ncid, varID, kbo_mo2, &
-                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                      start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                      count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -836,7 +837,7 @@ subroutine lw_kgb12(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -850,23 +851,23 @@ subroutine lw_kgb12(fname)
 
     status(2) = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3) = nf90_get_var(ncid, varID, fracrefao, &
-                    start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                    count = (/numGPoints,keylower,1_im,1_im/))
+                    start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                    count = [numGPoints,keylower,1_im,1_im])
 
     status(4) = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(5) = nf90_get_var(ncid, varID, kao, &
-                    start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                    count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
+                    start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                    count = [keylower,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(6) = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(7) = nf90_get_var(ncid, varID, selfrefo, &
-                    start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                    count = (/Tself,numGPoints,1_im,1_im/))
+                    start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                    count = [Tself,numGPoints,1_im,1_im])
 
     status(8) = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(9) = nf90_get_var(ncid, varID, forrefo, &
-                    start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                    count = (/Tforeign,numGPoints,1_im,1_im/))
+                    start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                    count = [Tforeign,numGPoints,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -885,7 +886,7 @@ subroutine lw_kgb13(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -900,49 +901,49 @@ subroutine lw_kgb13(fname)
 
     status(2)  = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, fracrefao, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keylower,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [numGPoints,keylower,1_im,1_im])
 
     status(4)  = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)  = nf90_get_var(ncid, varID, fracrefbo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/),  &
-                     count = (/numGPoints,1_im,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber],  &
+                     count = [numGPoints,1_im,1_im,1_im])
 
     status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [keylower,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(9)  = nf90_get_var(ncid, varID, selfrefo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [Tself,numGPoints,1_im,1_im])
 
     status(10) = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(11) = nf90_get_var(ncid, varID, forrefo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeign,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [Tforeign,numGPoints,1_im,1_im])
 
     !Get absorber index for O3
     call getAbsorberIndex('O3',ab)
     status(12) = nf90_inq_varid(ncid,"AbsorptionCoefficientsUpperAtmos",varID)
     status(13) = nf90_get_var(ncid, varID, kbo_mo3, &
-                     start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                     count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
+                     start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                     count = [1_im,T,numGPoints,1_im,1_im,1_im])
 
     !Get absorber index for CO2
     call getAbsorberIndex('CO2',ab)
     status(14) = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(15) = nf90_get_var(ncid, varID, kao_mco2, &
-                     start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
+                     start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                     count = [keylower,T,numGPoints,1_im,1_im,1_im])
 
     !Get absorber index for CO
     call getAbsorberIndex('CO',ab)
     status(16) = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
         status(17) = nf90_get_var(ncid, varID, kao_mco, &
-                     start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
+                     start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                     count = [keylower,T,numGPoints,1_im,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -960,7 +961,7 @@ subroutine lw_kgb14(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
         character(len=*), intent(in) :: fname
 
@@ -974,33 +975,33 @@ subroutine lw_kgb14(fname)
 
     status(2)  = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, fracrefao, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1_im,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [numGPoints,1_im,1_im,1_im])
 
     status(4)  = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)  = nf90_get_var(ncid, varID, fracrefbo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1_im,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [numGPoints,1_im,1_im,1_im])
 
     status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [1_im,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [1_im,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10) = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11) = nf90_get_var(ncid, varID, selfrefo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [Tself,numGPoints,1_im,1_im])
 
     status(12) = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13) = nf90_get_var(ncid, varID, forrefo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeign,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [Tforeign,numGPoints,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -1018,7 +1019,7 @@ subroutine lw_kgb15(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -1033,30 +1034,30 @@ subroutine lw_kgb15(fname)
 
     status(2)  = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, fracrefao, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keylower,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [numGPoints,keylower,1_im,1_im])
 
     status(4)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(5)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [keylower,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(6)  = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(7)  = nf90_get_var(ncid, varID, selfrefo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [Tself,numGPoints,1_im,1_im])
 
     status(8)  = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(9)  = nf90_get_var(ncid, varID, forrefo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeign,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [Tforeign,numGPoints,1_im,1_im])
 
     !Get absorber index for N2
     call getAbsorberIndex('N2',ab)
     status(10) = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
     status(11) = nf90_get_var(ncid, varID, kao_mn2, &
-                     start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
+                     start = [1_im,1_im,1_im,ab,bandNumber,gPointSetNumber], &
+                     count = [keylower,T,numGPoints,1_im,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
@@ -1074,7 +1075,7 @@ subroutine lw_kgb16(fname)
     use rrlw_ncpar
     use netcdf
 
-        implicit none
+        implicit none (type, external)
         save
 
         character(len=*), intent(in) :: fname
@@ -1088,33 +1089,33 @@ subroutine lw_kgb16(fname)
 
     status(2)  = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, fracrefao, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keylower,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [numGPoints,keylower,1_im,1_im])
 
     status(4)  = nf90_inq_varid(ncid,"PlanckFractionUpperAtmos",varID)
     status(5)  = nf90_get_var(ncid, varID, fracrefbo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1_im,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [numGPoints,1_im,1_im,1_im])
 
     status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
     status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [keylower,Tdiff,plower,numGPoints,1_im,1_im])
 
     status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
     status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [1_im,Tdiff,pupper,numGPoints,1_im,1_im])
 
     status(10) = nf90_inq_varid(ncid,"H20SelfAbsorptionCoefficients",varID)
     status(11) = nf90_get_var(ncid, varID, selfrefo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [Tself,numGPoints,1_im,1_im])
 
     status(12) = nf90_inq_varid(ncid,"H20ForeignAbsorptionCoefficients",varID)
     status(13) = nf90_get_var(ncid, varID, forrefo, &
-                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeign,numGPoints,1_im,1_im/))
+                     start = [1_im,1_im,bandNumber,gPointSetNumber], &
+                     count = [Tforeign,numGPoints,1_im,1_im])
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname

@@ -19,6 +19,7 @@ module mod_hadgem_helper
   use mod_realkinds
   use mod_dynparam
   use mod_date
+  implicit none (type, external)
 
   private
 
@@ -38,7 +39,7 @@ module mod_hadgem_helper
   contains
 
   subroutine find_hadgem_sst(fname,idate)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: fname
     type(rcm_time_and_date), intent(in) :: idate
     if ( .not. date_in_scenario(idate,5) ) then
@@ -65,7 +66,7 @@ module mod_hadgem_helper
   end subroutine find_hadgem_sst
 
   subroutine assemble_path(fname,scen,var,d1,d2)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: fname
     character(len=*), intent(in) :: scen
     character(len=*), intent(in) :: var
@@ -83,7 +84,7 @@ module mod_hadgem_helper
   end subroutine assemble_path
 
   subroutine find_hadgem_dim(dim_filename)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
@@ -91,7 +92,7 @@ module mod_hadgem_helper
   end subroutine find_hadgem_dim
 
   subroutine find_hadgem_ufile(ufile_filename)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: ufile_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
@@ -99,7 +100,7 @@ module mod_hadgem_helper
   end subroutine find_hadgem_ufile
 
   subroutine find_hadgem_vfile(vfile_filename)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: vfile_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
@@ -107,7 +108,7 @@ module mod_hadgem_helper
   end subroutine find_hadgem_vfile
 
   subroutine find_hadgem_file(hadgem_filename,var,idate)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: hadgem_filename
     character(len=*), intent(in) :: var
     type(rcm_time_and_date), intent(in) :: idate

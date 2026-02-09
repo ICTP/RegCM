@@ -26,7 +26,7 @@ MODULE mod_cb6_Rates
 
   USE mod_cb6_Parameters
   USE mod_cb6_Global
-  IMPLICIT NONE
+  IMPLICIT NONE (type, external)
 
   CONTAINS
 
@@ -39,29 +39,29 @@ MODULE mod_cb6_Rates
    ! Rate functions included by J. Ciarlo` (June 2016)
    ! General Temperature Dependence (no exponent)
    real(kind=dp) function gtde0(a0,t0,p0)
-     real(kind=dp) a0
-     real t0,p0
+     real(kind=dp) :: a0
+     real :: t0,p0
      gtde0 = a0 * (tempb/dble(t0))**dble(p0)
    end function gtde0
 
    ! General Temperature Dependence (no power)
    real(kind=dp) function gtdp0(a0,ea)
-     real(kind=dp) a0
-     real ea
+     real(kind=dp) :: a0
+     real :: ea
      gtdp0 = a0 * exp(dble(ea)/tempb)
    end function gtdp0
 
    ! General Temperature Dependence
    real(kind=dp) function gtd(a0,t0,p0,ea)
-     real(kind=dp) a0
-     real t0,p0,ea
+     real(kind=dp) :: a0
+     real :: t0,p0,ea
      gtd = a0 * (tempb/dble(t0))**dble(p0) * exp(dble(ea)/tempb)
    end function gtd
 
    ! Troe-type temp and pres denendence (falloff)
    real(kind=dp) function fall(k0,ki,n,f)
-     real(kind=dp) k0,ki,g,cb
-     real n,f
+     real(kind=dp) :: k0,ki,g,cb
+     real :: n,f
      real(kind=dp),parameter :: av=6.02214129D23
      cb = c_mb/av
      g = log10(k0*cb/ki)/dble(n)
@@ -72,7 +72,7 @@ MODULE mod_cb6_Rates
 
    ! Simple pressure dependence
    real(kind=dp) function spd(k1,k2)
-     real(kind=dp) k1,k2,cb
+     real(kind=dp) :: k1,k2,cb
      real(kind=dp),parameter :: av=6.02214129D23
      cb = c_mb/av
      spd = k1 + k2*cb
@@ -80,7 +80,7 @@ MODULE mod_cb6_Rates
 
    ! Lindemann - Hinshelwood
    real(kind=dp) function lihi(k1,k2,k3)
-     real(kind=dp) k1,k2,k3,cb
+     real(kind=dp) :: k1,k2,k3,cb
      real(kind=dp),parameter :: av=6.02214129D23
      cb = c_mb/av
      lihi = k1 + k3*cb/(1 + k3*cb/k2)
@@ -101,7 +101,7 @@ MODULE mod_cb6_Rates
       !USE cb6_Parameters
       !USE cb6_Global
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     REAL(kind=dp) :: SunRise, SunSet
     REAL(kind=dp) :: Thour, Tlocal, Ttmp
@@ -115,7 +115,7 @@ MODULE mod_cb6_Rates
 
     IF ((Tlocal>=SunRise).AND.(Tlocal<=SunSet)) THEN
        Ttmp = (2.0*Tlocal-SunRise-SunSet)/(SunSet-SunRise)
-       IF (Ttmp.GT.0) THEN
+       IF (Ttmp>0) THEN
           Ttmp =  Ttmp*Ttmp
        ELSE
           Ttmp = -Ttmp*Ttmp
@@ -135,8 +135,8 @@ MODULE mod_cb6_Rates
   ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   SUBROUTINE Update_rconst ( )
-    real(kind=dp) kk1,kk2,kk3
-    integer i
+    real(kind=dp) :: kk1,kk2,kk3
+    integer :: i
     kk1 = 0.0D0
     kk2 = 0.0D0
     kk3 = 0.0D0

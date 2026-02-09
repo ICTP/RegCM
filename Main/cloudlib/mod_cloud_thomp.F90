@@ -21,7 +21,7 @@ module mod_cloud_thomp
   use mod_dynparam
   use mod_runparams
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -40,7 +40,7 @@ module mod_cloud_thomp
   ! RH threshold, one each for land v. ocean points.
   !
   subroutine thomp_cldfrac(p,t,rho,qv,qc,qs,qi,iland,gridkm,cldfra)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p, t, rho
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qv, qc, qi, qs
     integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: iland
@@ -108,7 +108,7 @@ module mod_cloud_thomp
      !
      pure real(rkx) function rslf(p,t)
 !$acc routine seq
-       implicit none
+       implicit none (type, external)
        real(rkx), intent(in) :: p, t
        real(rkx) :: esl, x
        real(rkx), parameter :: c0 =  0.611583699e03_rkx
@@ -131,7 +131,7 @@ module mod_cloud_thomp
      !
      pure real(rkx) function rsif(p,t)
 !$acc routine seq
-       implicit none
+       implicit none (type, external)
        real(rkx), intent(in) :: p, t
        real(rkx) :: esi, x
        real(rkx), parameter :: c0 = 0.609868993e03_rkx

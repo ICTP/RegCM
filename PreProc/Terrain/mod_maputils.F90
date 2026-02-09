@@ -19,6 +19,7 @@ module mod_maputils
   use mod_intkinds
   use mod_realkinds
   use mod_projections
+  implicit none (type, external)
 
   private
 
@@ -27,7 +28,7 @@ module mod_maputils
   contains
 
   subroutine getcoord(pjpara,lon,lat,pj,jx,iy)
-    implicit none
+    implicit none (type, external)
     type(anyprojparams), intent(in) :: pjpara
     type(regcm_projection), intent(out) :: pj
     integer(ik4), intent(in) :: jx, iy
@@ -43,14 +44,14 @@ module mod_maputils
   end subroutine getcoord
 
   subroutine corpar(lat,coriol)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: coriol
     coriol = real(eomeg2*sin(lat*degrad),rkx)
   end subroutine corpar
 
   subroutine mappar(pj,xlat,xlon,mapf)
-    implicit none
+    implicit none (type, external)
     type(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: mapf

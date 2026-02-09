@@ -1,4 +1,5 @@
 module mod_clm_cnc14decay
+implicit none (type, external)
 #if (defined CN)
   !
   ! Module for 14-carbon flux variable update, non-mortality fluxes.
@@ -15,7 +16,7 @@ module mod_clm_cnc14decay
   use mod_clm_varpar, only : ndecomp_cascade_transitions, &
           nlevdecomp, ndecomp_pools
   use mod_clm_varctl, only : nextdate
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -41,7 +42,7 @@ module mod_clm_cnc14decay
     use mod_clm_type
     use mod_clm_varcon, only : secspday
     use mod_clm_varctl, only : spinup_state
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc       ! number of soil columns filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -190,7 +191,7 @@ module mod_clm_cnc14decay
   subroutine C14BombSpike(num_soilp, filter_soilp)
     use mod_clm_type
     use mod_clm_varcon, only : c14ratio,secspday
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
@@ -254,7 +255,7 @@ module mod_clm_cnc14decay
   ! values; save in module-level array
   !
   subroutine C14_init_BombSpike()
-    implicit none
+    implicit none (type, external)
     type(clm_filetype)  :: ncid   ! netcdf id
     integer(ik4) :: ntim          ! number of input data time samples
     integer(ik4) :: t

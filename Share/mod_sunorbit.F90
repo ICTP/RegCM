@@ -24,7 +24,7 @@ module mod_sunorbit
   use mod_constants, only : mathpi, degrad, d_zero, d_one, d_two, d_half
   use mod_dynparam, only : dayspy, vernal_equinox
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -50,7 +50,7 @@ module mod_sunorbit
   !
   pure real(rk8) function orb_cosz_r8(jday,lat,lon,declin)
 !$acc routine seq
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: jday   ! Julian cal day
     real(rk8), intent(in) :: lat    ! Centered latitude (radians)
     real(rk8), intent(in) :: lon    ! Centered longitude (radians)
@@ -61,7 +61,7 @@ module mod_sunorbit
   !
   pure real(rk4) function orb_cosz_r4(jday,lat,lon,declin)
 !$acc routine seq
-    implicit none
+    implicit none (type, external)
     real(rk4), intent(in) :: jday   ! Julian cal day
     real(rk4), intent(in) :: lat    ! Centered latitude (radians)
     real(rk4), intent(in) :: lon    ! Centered longitude (radians)
@@ -81,7 +81,7 @@ module mod_sunorbit
   !
   !
   subroutine orb_params(iyear_AD,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: iyear_AD  ! Year to calculate orbit for
     real(rk8), intent(inout) :: eccen   ! orbital eccentricity
     real(rk8), intent(inout) :: obliq   ! obliquity in degrees
@@ -486,7 +486,7 @@ module mod_sunorbit
   ! Duane Thresher.
   !
   subroutine orb_decl(calday,eccen,mvelpp,lambm0,obliqr,delta,eccf)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: calday ! Calendar day, including fraction
     real(rk8), intent(in) :: eccen  ! Eccentricity
     real(rk8), intent(in) :: obliqr ! Earths obliquity in radians

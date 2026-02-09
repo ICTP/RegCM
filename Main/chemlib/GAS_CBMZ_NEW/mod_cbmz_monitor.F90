@@ -21,12 +21,13 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 module mod_cbmz_monitor
+implicit none (type, external)
 
   private
 
   public :: lookat, spc_names
 
-  character(len=15), parameter, dimension(60) :: spc_names = (/ &
+  character(len=15), parameter, dimension(60) :: spc_names = [ &
      'CO2            ','H2SO4          ','HCOOH          ', &
      'RCOOH          ','MSA            ','DUMMY          ', &
      'PAN            ','TOL            ','O1D            ', &
@@ -46,14 +47,14 @@ module mod_cbmz_monitor
      'ROOH           ','RO2            ','ONIT           ', &
      'HO2            ','O3             ','OH             ', &
      'NO             ','NO2            ','NO3            ', &
-     'C2O3           ','O2             ','N2             ' /)
+     'C2O3           ','O2             ','N2             ' ]
 
-  integer, parameter, dimension(4) :: lookat = (/ 53,39, 55, 56 /)
+  integer, parameter, dimension(4) :: lookat = [ 53,39, 55, 56 ]
 
-  integer, parameter, dimension(2) :: monitor = (/ 55, 56 /)
+  integer, parameter, dimension(2) :: monitor = [ 55, 56 ]
 
   character(len=15), dimension(1) :: smass
-  character(len=100), parameter, dimension(30) :: eqn_names_0 = (/ &
+  character(len=100), parameter, dimension(30) :: eqn_names_0 = [ &
    '         NO2 --> O3P + NO                                                                           ', &
    '         NO3 --> 0.89 O3P + 0.11 NO + 0.89 NO2                                                      ', &
    '        HNO2 --> OH + NO                                                                            ', &
@@ -83,8 +84,8 @@ module mod_cbmz_monitor
    '   HNO4 + OH --> NO2                                                                                ', &
    '    HO2 + OH --> H2O + O2                                                                           ', &
    '   H2O2 + OH --> HO2                                                                                ', &
-   '       2 HO2 --> H2O2                                                                               ' /)
-  character(len=100), parameter, dimension(30) :: eqn_names_1 = (/ &
+   '       2 HO2 --> H2O2                                                                               ' ]
+  character(len=100), parameter, dimension(30) :: eqn_names_1 = [ &
    ' H2O + 2 HO2 --> H2O2                                                                               ', &
    '    HO2 + NO --> OH + NO2                                                                           ', &
    '   HO2 + NO2 --> HNO4                                                                               ', &
@@ -114,8 +115,8 @@ module mod_cbmz_monitor
    '        AONE --> CH3O2 + C2O3                                                                       ', &
    '   AONE + OH --> ANO2                                                                               ', &
    '        MGLY --> CO + HO2 + C2O3                                                                    ', &
-   '   MGLY + OH --> XO2 + C2O3                                                                         ' /)
-  character(len=100), parameter, dimension(30) :: eqn_names_2 = (/ &
+   '   MGLY + OH --> XO2 + C2O3                                                                         ' ]
+  character(len=100), parameter, dimension(30) :: eqn_names_2 = [ &
    '  MGLY + NO3 --> CO + HNO3 + C2O3                                                                   ', &
    '    ETH + O3 --> 0.24 CO2 + 0.52 HCOOH + 0.24 CO + HCHO + 0.2 HO2 + 0.12 OH ... etc.                ', &
    '    ETH + OH --> 1.56 HCHO + XO2 + 0.22 ALD2 + HO2                                                  ', &
@@ -145,8 +146,8 @@ module mod_cbmz_monitor
    '      ETHOOH --> ALD2 + HO2 + OH                                                                    ', &
    '        ROOH --> - -1.98 PAR + 0.74 AONE + 0.4 XO2 + 0.1 ETHP + 0.3 ALD2 ... etc.                   ', &
    ' CH3OOH + OH --> 0.3 HCHO + 0.7 CH3O2 + 0.3 OH                                                      ', &
-   ' ETHOOH + OH --> 0.7 ETHP + 0.3 ALD2 + 0.3 OH                                                       ' /)
-  character(len=100), parameter, dimension(30) :: EQN_NAMES_3 = (/ &
+   ' ETHOOH + OH --> 0.7 ETHP + 0.3 ALD2 + 0.3 OH                                                       ' ]
+  character(len=100), parameter, dimension(30) :: EQN_NAMES_3 = [ &
    '   ROOH + OH --> 0.42 PAR + 0.19 MGLY + 0.04 ALD2 + 0.77 RO2 + 0.23 OH ... etc.                     ', &
    '   ONIT + OH --> NAP                                                                                ', &
    '        ONIT --> - -1.98 PAR + 0.74 AONE + 0.41 XO2 + 0.1 ETHP + 0.3 ALD2 ... etc.                  ', &
@@ -176,14 +177,14 @@ module mod_cbmz_monitor
    '  ANO2 + HO2 --> ROOH                                                                               ', &
    '   NAP + HO2 --> ONIT                                                                               ', &
    ' ISOPP + HO2 --> ROOH                                                                               ', &
-   ' ISOPN + HO2 --> 2 PAR + ONIT                                                                       ' /)
-  character(len=100), parameter, dimension(4) :: eqn_names_4 = (/ &
+   ' ISOPN + HO2 --> 2 PAR + ONIT                                                                       ' ]
+  character(len=100), parameter, dimension(4) :: eqn_names_4 = [ &
    'ISOPO2 + HO2 --> ROOH                                                                               ', &
    '   XO2 + HO2 --> DUMMY                                                                              ', &
    '    DMS + OH --> 0.6 MSA + 0.4 SO2                                                                  ', &
-   '   DMS + NO3 --> SO2 + HNO3                                                                         ' /)
-  character(len=100), parameter, dimension(124) :: eqn_names = (/&
-    eqn_names_0, eqn_names_1, eqn_names_2, eqn_names_3, eqn_names_4 /)
+   '   DMS + NO3 --> SO2 + HNO3                                                                         ' ]
+  character(len=100), parameter, dimension(124) :: eqn_names = [&
+    eqn_names_0, eqn_names_1, eqn_names_2, eqn_names_3, eqn_names_4 ]
 
 end module mod_cbmz_monitor
 

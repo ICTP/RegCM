@@ -27,7 +27,7 @@ MODULE mod_cb6_LinearAlgebra
   USE mod_cb6_Parameters
   USE mod_cb6_JacobianSP
 
-  IMPLICIT NONE
+  IMPLICIT NONE (type, external)
 
 CONTAINS
 
@@ -182,16 +182,16 @@ SUBROUTINE KppSolveIndirect( JVS, X )
 
       DO i=1,NVAR_CB6
          DO j = LU_CROW(i), LU_DIAG(i)-1
-             X(i) = X(i) - JVS(j)*X(LU_ICOL(j));
+             X(i) = X(i) - JVS(j)*X(LU_ICOL(j))
          END DO
       END DO
 
       DO i=NVAR_CB6,1,-1
-        sum = X(i);
+        sum = X(i)
         DO j = LU_DIAG(i)+1, LU_CROW(i+1)-1
-          sum = sum - JVS(j)*X(LU_ICOL(j));
+          sum = sum - JVS(j)*X(LU_ICOL(j))
         END DO
-        X(i) = sum/JVS(LU_DIAG(i));
+        X(i) = sum/JVS(LU_DIAG(i))
       END DO
 
 END SUBROUTINE KppSolveIndirect
@@ -241,16 +241,16 @@ SUBROUTINE KppSolveCmplx( JVS, X )
 
       DO i=1,NVAR_CB6
          DO j = LU_CROW(i), LU_DIAG(i)-1
-             X(i) = X(i) - JVS(j)*X(LU_ICOL(j));
+             X(i) = X(i) - JVS(j)*X(LU_ICOL(j))
          END DO
       END DO
 
       DO i=NVAR_CB6,1,-1
-        sum = X(i);
+        sum = X(i)
         DO j = LU_DIAG(i)+1, LU_CROW(i+1)-1
-          sum = sum - JVS(j)*X(LU_ICOL(j));
+          sum = sum - JVS(j)*X(LU_ICOL(j))
         END DO
-        X(i) = sum/JVS(LU_DIAG(i));
+        X(i) = sum/JVS(LU_DIAG(i))
       END DO
 
 END SUBROUTINE KppSolveCmplx
@@ -1173,14 +1173,14 @@ END SUBROUTINE KppSolveTR
       INTEGER  :: i,incX,incY,M,MP1,N
       REAL(kind=dp) :: X(N),Y(N)
 
-      IF (N.LE.0) RETURN
+      IF (N<=0) RETURN
 
       M = MOD(N,8)
-      IF( M .NE. 0 ) THEN
+      IF( M /= 0 ) THEN
         DO i = 1,M
           Y(i) = X(i)
         END DO
-        IF( N .LT. 8 ) RETURN
+        IF( N < 8 ) RETURN
       END IF
       MP1 = M+1
       DO i = MP1,N,8
@@ -1211,15 +1211,15 @@ END SUBROUTINE KppSolveTR
       REAL(kind=dp) :: X(N),Y(N),Alpha
       REAL(kind=dp), PARAMETER :: ZERO = 0.0_dp
 
-      IF (Alpha .EQ. ZERO) RETURN
-      IF (N .LE. 0) RETURN
+      IF (Alpha == ZERO) RETURN
+      IF (N <= 0) RETURN
 
       M = MOD(N,4)
-      IF( M .NE. 0 ) THEN
+      IF( M /= 0 ) THEN
         DO i = 1,M
           Y(i) = Y(i) + Alpha*X(i)
         END DO
-        IF( N .LT. 4 ) RETURN
+        IF( N < 4 ) RETURN
       END IF
       MP1 = M + 1
       DO i = MP1,N,4
@@ -1247,16 +1247,16 @@ END SUBROUTINE KppSolveTR
       REAL(kind=dp)  :: X(N),Alpha
       REAL(kind=dp), PARAMETER  :: ZERO=0.0_dp, ONE=1.0_dp
 
-      IF (Alpha .EQ. ONE) RETURN
-      IF (N .LE. 0) RETURN
+      IF (Alpha == ONE) RETURN
+      IF (N <= 0) RETURN
 
       M = MOD(N,5)
-      IF( M .NE. 0 ) THEN
-        IF (Alpha .EQ. (-ONE)) THEN
+      IF( M /= 0 ) THEN
+        IF (Alpha == (-ONE)) THEN
           DO i = 1,M
             X(i) = -X(i)
           END DO
-        ELSEIF (Alpha .EQ. ZERO) THEN
+        ELSEIF (Alpha == ZERO) THEN
           DO i = 1,M
             X(i) = ZERO
           END DO
@@ -1265,10 +1265,10 @@ END SUBROUTINE KppSolveTR
             X(i) = Alpha*X(i)
           END DO
         END IF
-        IF( N .LT. 5 ) RETURN
+        IF( N < 5 ) RETURN
       END IF
       MP1 = M + 1
-      IF (Alpha .EQ. (-ONE)) THEN
+      IF (Alpha == (-ONE)) THEN
         DO i = MP1,N,5
           X(i)     = -X(i)
           X(i + 1) = -X(i + 1)
@@ -1276,7 +1276,7 @@ END SUBROUTINE KppSolveTR
           X(i + 3) = -X(i + 3)
           X(i + 4) = -X(i + 4)
         END DO
-      ELSEIF (Alpha .EQ. ZERO) THEN
+      ELSEIF (Alpha == ZERO) THEN
         DO i = MP1,N,5
           X(i)     = ZERO
           X(i + 1) = ZERO
@@ -1319,7 +1319,7 @@ END SUBROUTINE KppSolveTR
         DO i = 17, 80
           Eps = Eps*HALF
           CALL WLAMCH_ADD(ONE,Eps,Suma)
-          IF (Suma.LE.ONE) GOTO 10
+          IF (Suma<=ONE) GOTO 10
         END DO
         PRINT*,'ERROR IN WLAMCH. EPS < ',Eps
         RETURN
@@ -1334,7 +1334,7 @@ END SUBROUTINE KppSolveTR
       SUBROUTINE WLAMCH_ADD( A, B, Suma )
 !      USE cb6_Precision
 
-      REAL(kind=dp) A, B, Suma
+      REAL(kind=dp) :: A, B, Suma
       Suma = A + B
 
       END SUBROUTINE WLAMCH_ADD
@@ -1352,14 +1352,14 @@ END SUBROUTINE KppSolveTR
       REAL(kind=dp) ::  Y(N)
       REAL(kind=dp), PARAMETER :: ZERO = 0.0d0
 
-      IF (N.LE.0) RETURN
+      IF (N<=0) RETURN
 
       M = MOD(N,8)
-      IF( M .NE. 0 ) THEN
+      IF( M /= 0 ) THEN
         DO i = 1,M
           Y(i) = ZERO
         END DO
-        IF( N .LT. 8 ) RETURN
+        IF( N < 8 ) RETURN
       END IF
       MP1 = M+1
       DO i = MP1,N,8
@@ -1387,22 +1387,22 @@ END SUBROUTINE KppSolveTR
 !--------------------------------------------------------------
 !      USE messy_mecca_kpp_Precision
 !--------------------------------------------------------------
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
       INTEGER :: N, incX, incY
       REAL(kind=dp) :: DX(N), DY(N)
 
       INTEGER :: i, IX, IY, M, MP1, NS
 
       WDOT = 0.0D0
-      IF (N .LE. 0) RETURN
-      IF (incX .EQ. incY) IF (incX-1) 5,20,60
+      IF (N <= 0) RETURN
+      IF (incX == incY) IF (incX-1) 5,20,60
 !
 !     Code for unequal or nonpositive increments.
 !
     5 IX = 1
       IY = 1
-      IF (incX .LT. 0) IX = (-N+1)*incX + 1
-      IF (incY .LT. 0) IY = (-N+1)*incY + 1
+      IF (incX < 0) IX = (-N+1)*incX + 1
+      IF (incY < 0) IY = (-N+1)*incY + 1
       DO i = 1,N
         WDOT = WDOT + DX(IX)*DY(IY)
         IX = IX + incX
@@ -1415,11 +1415,11 @@ END SUBROUTINE KppSolveTR
 !     Clean-up loop so remaining vector length is a multiple of 5.
 !
    20 M = MOD(N,5)
-      IF (M .EQ. 0) GO TO 40
+      IF (M == 0) GO TO 40
       DO i = 1,M
          WDOT = WDOT + DX(i)*DY(i)
       END DO
-      IF (N .LT. 5) RETURN
+      IF (N < 5) RETURN
    40 MP1 = M + 1
       DO i = MP1,N,5
           WDOT = WDOT + DX(i)*DY(i) + DX(i+1)*DY(i+1) + DX(i+2)*DY(i+2) +  &
@@ -1448,7 +1448,7 @@ END SUBROUTINE KppSolveTR
       INTEGER :: i, M, MP1, N
       REAL(kind=dp) :: X(N),Y(N),Z(N)
 
-      IF (N.LE.0) RETURN
+      IF (N<=0) RETURN
 
       M = MOD(N,5)
       IF( M /= 0 ) THEN

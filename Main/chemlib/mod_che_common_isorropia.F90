@@ -49,7 +49,7 @@ module mod_che_common_isorropia
   use mod_realkinds
   use mod_intkinds
 
-  implicit none
+  implicit none (type, external)
 
   !=======================================================================
   ! *** ISORROPIA CODE II
@@ -102,7 +102,7 @@ module mod_che_common_isorropia
   ! Deliquescence relative humidities
   !=================================================================
 
-  integer(ik4) wftyp
+  integer(ik4) :: wftyp
   real(rkx) :: drh2so4,  drnh42s4, drnahso4, drnacl,   drnano3
   real(rkx) :: drna2so4, drnh4hs4, drlc,     drnh4no3, drnh4cl
   real(rkx) :: drcaso4,  drcano32, drcacl2,  drk2so4,  drkhso4
@@ -244,6 +244,7 @@ end module mod_che_common_isorropia
 module mod_che_common_solut
   use mod_realkinds
   use mod_intkinds
+  implicit none (type, external)
   real(rkx) :: chi1, chi2, chi3, chi4, chi5, chi6, chi7, chi8
   real(rkx) :: chi9, chi10, chi11, chi12, chi13, chi14, chi15
   real(rkx) :: chi16, chi17, psi1, psi2, psi3, psi4, psi5, psi6
@@ -255,6 +256,7 @@ end module mod_che_common_solut
 module mod_che_common_caseg
   use mod_realkinds
   use mod_intkinds
+  implicit none (type, external)
   real(rkx) :: chi1, chi2, chi3, chi4, chi5, chi6, lamda
   real(rkx) :: psi1, psi2, psi3, psi4, psi5, psi6, psi7
   real(rkx) :: a1, a2, a3, a4, a5, a6, a7
@@ -263,6 +265,7 @@ end module mod_che_common_caseg
 module mod_che_common_casej
   use mod_realkinds
   use mod_intkinds
+  implicit none (type, external)
   real(rkx) :: chi1, chi2, chi3, lamda, kapa, psi1, psi2, psi3
   real(rkx) :: a1, a2, a3
 end module mod_che_common_casej
@@ -270,6 +273,7 @@ end module mod_che_common_casej
 module mod_che_common_casek
   use mod_realkinds
   use mod_intkinds
+  implicit none (type, external)
   real(rkx) :: chi1, chi2, chi3, chi4, lamda, kapa, psi1, psi2, psi3
   real(rkx) :: a1, a2, a3, a4
 end module mod_che_common_casek
@@ -277,6 +281,7 @@ end module mod_che_common_casek
 module mod_che_common_caseo
   use mod_realkinds
   use mod_intkinds
+  implicit none (type, external)
   real(rkx) :: chi1, chi2, chi3, chi4, chi5, chi6, chi7, chi8
   real(rkx) :: chi9, lamda, psi1, psi2, psi3, psi4, psi5
   real(rkx) :: psi6, psi7, psi8, psi9, a1, a2, a3, a4

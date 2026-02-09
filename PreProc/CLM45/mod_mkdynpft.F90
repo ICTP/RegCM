@@ -13,8 +13,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_mkdynpft
 #ifdef DYNPFT
+module mod_mkdynpft
   use mod_realkinds
   use mod_intkinds
   use mod_dynparam
@@ -24,7 +24,7 @@ module mod_mkdynpft
   use mod_message
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -37,7 +37,7 @@ module mod_mkdynpft
   contains
 
   subroutine mkdynpft(mask,pft,year)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: pft
     integer(ik4), intent(in) :: year
@@ -47,8 +47,9 @@ module mod_mkdynpft
     character(len=4) :: cy
     type(globalfile) :: gfile
     character(len=256) :: inpfile
-    character(len=8) :: scenario = 'RCP4.5'
+    character(len=8) :: scenario
 
+    scenario = 'RCP4.5'
     iy = max(min(year,2100),1950)
     p1 = 'dynamic'
     p2 = '.'
@@ -126,7 +127,12 @@ module mod_mkdynpft
       end do
     end do
   end subroutine mkdynpft
-#endif
 
 end module mod_mkdynpft
+#else
+module mod_mkdynpft
+  implicit none (type, external)
+  private
+end module mod_mkdynpft
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -1,4 +1,5 @@
 module mod_clm_cnrest
+implicit none (type, external)
 
 #if (defined CN)
   !
@@ -23,7 +24,7 @@ module mod_clm_cnrest
   use mod_clm_varcon, only : c13ratio, c14ratio, spval
   use mod_constants, only : pdbratio
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -36,7 +37,7 @@ module mod_clm_cnrest
   ! Read/write CN restart data
   !
   subroutine CNRest ( ncid, flag )
-    implicit none
+    implicit none (type, external)
     type(clm_filetype)  :: ncid   ! netcdf id
     character(len=*), intent(in) :: flag   !'read' or 'write'
     ! typical del13C for C3 photosynthesis (permil, relative to PDB)
@@ -4010,7 +4011,7 @@ module mod_clm_cnrest
   !
   subroutine cnrest_addfld_decomp(ncid,varname,longname,units,flag,data_rl, &
                                   lstop)
-    implicit none
+    implicit none (type, external)
     type(clm_filetype)  :: ncid   ! netcdf id
     character(len=*), intent(in) :: varname
     character(len=*), intent(in) :: longname

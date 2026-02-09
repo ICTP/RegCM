@@ -15,6 +15,7 @@ MODULE mod_cb6_Model
   USE mod_cb6_LinearAlgebra
   USE mod_cb6_Monitor
   USE mod_cb6_Util
+  implicit none (type, external)
 
 END MODULE mod_cb6_Model
 

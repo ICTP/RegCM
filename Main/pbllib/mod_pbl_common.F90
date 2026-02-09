@@ -23,7 +23,7 @@ module mod_pbl_common
   use mod_memutil
   use mod_regcm_types
 
-  implicit none
+  implicit none (type, external)
 
   private
 

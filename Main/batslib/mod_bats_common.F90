@@ -36,7 +36,7 @@ module mod_bats_common
   use mod_bats_albedo
   use mod_regcm_types
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -55,7 +55,7 @@ module mod_bats_common
   ! units are si
   !
   subroutine initbats(lm,lms)
-    implicit none
+    implicit none (type, external)
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     integer(ik4) :: i, j, n
@@ -312,7 +312,7 @@ module mod_bats_common
   !=======================================================================
   !
   subroutine vecbats(lm,lms)
-    implicit none
+    implicit none (type, external)
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
 #ifdef DEBUG
@@ -342,7 +342,7 @@ module mod_bats_common
   !  ivers = 2,   bats --> regcm
   !
   subroutine interf(lm,lms,ivers)
-    implicit none
+    implicit none (type, external)
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     integer(ik4), intent (in) :: ivers
@@ -536,7 +536,7 @@ module mod_bats_common
   end subroutine interf
 
   subroutine albedobats(lm,lms)
-    implicit none
+    implicit none (type, external)
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     call albedo

@@ -1,4 +1,5 @@
 module mod_clm_cnprecisioncontrol
+implicit none (type, external)
 
 #ifdef CN
   !
@@ -9,7 +10,7 @@ module mod_clm_cnprecisioncontrol
   use mod_stdio
   use mod_clm_varpar, only : ndecomp_pools
 
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -28,7 +29,7 @@ module mod_clm_cnprecisioncontrol
     use mod_clm_varpar, only : nlevdecomp
     use mod_clm_pftvarcon, only : nc3crop
     use mod_clm_surfrd, only : crop_prog
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter

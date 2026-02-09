@@ -17,6 +17,7 @@ module mod_cbmz_molwg
 
   use mod_intkinds
   use mod_realkinds
+  implicit none (type, external)
 !
   public
 !

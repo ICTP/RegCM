@@ -31,7 +31,7 @@ module mod_cbmz_integrator
   use mod_cbmz_jacobiansp, only : lu_diag
   use mod_cbmz_linearalgebra, only : kppdecomp, kppsolve
 
-  implicit none
+  implicit none (type, external)
   public
   save
 
@@ -71,7 +71,7 @@ module mod_cbmz_integrator
 
   ! mz_rs_20050717: todo: use strings of ierr_names for error messages
   ! description of the error numbers ierr
-  character(len=50), parameter, dimension(-8:1) :: ierr_names = (/ &
+  character(len=50), parameter, dimension(-8:1) :: ierr_names = [ &
     'matrix is repeatedly singular                     ', & ! -8
     'step size too small                               ', & ! -7
     'no of steps exceeds maximum bound                 ', & ! -6
@@ -81,12 +81,12 @@ module mod_cbmz_integrator
     'improper value for maximal no of newton iterations', & ! -2
     'improper value for maximal no of steps            ', & ! -1
     '                                                  ', & !  0 (not used)
-    'success                                           ' /) !  1
+    'success                                           ' ] !  1
 
   contains
 
   subroutine reset_integrate
-    implicit none
+    implicit none (type, external)
     conit = 0.0_dp
     crate = 0.0_dp
     hold = 0.0_dp
@@ -145,7 +145,7 @@ module mod_cbmz_integrator
   subroutine integrate(tin,tout,icntrl_u,rcntrl_u,istatus_u,rstatus_u,ierr_u)
     use mod_cbmz_parameters
     use mod_cbmz_global
-    implicit none
+    implicit none (type, external)
 
     real(kind=dp), intent(in) :: tin  ! start time
     real(kind=dp), intent(in) :: tout ! end time
@@ -240,7 +240,7 @@ module mod_cbmz_integrator
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   subroutine kpplsode(tin,tout,y,reltol,abstol, &
                       rcntrl,icntrl,rstatus,istatus,ierr)
-    implicit none
+    implicit none (type, external)
     real(kind=dp) :: y(nvar), abstol(nvar), reltol(nvar), tin, tout
     real(kind=dp) :: rcntrl(20), rstatus(20)
     integer       :: icntrl(20), istatus(20)
@@ -1385,10 +1385,11 @@ module mod_cbmz_integrator
 !**end
   subroutine dlsode(f, neq, y, t, tout, itol, reltol, abstol, itask,   &
                     istate, iopt, rwork, lrw, iwork, liw, jac, mf)
-    implicit none
+    implicit none (type, external)
     interface
       subroutine f(n,t,v,fct)
         use mod_cbmz_parameters
+        implicit none (type, external)
         integer :: n
         real(kind=dp) :: v(nvar), fct(nvar), t
       end subroutine f
@@ -1396,6 +1397,7 @@ module mod_cbmz_integrator
     interface
       subroutine jac(n,t,v,jf)
         use mod_cbmz_parameters
+        implicit none (type, external)
         integer :: n
         real(kind=dp) :: v(nvar), t
         real(kind=dp) :: jf(lu_nonzero)
@@ -1408,8 +1410,8 @@ module mod_cbmz_integrator
     real(kind=dp) :: abstoli, ayi, big, ewti, h0, hmax, hmx, rh, reltoli, &
         tcrit, tdist, tnext, tol, tolsf, tp, size, sum, w0
 
-    logical ihit
-    character(len=80) msg
+    logical :: ihit
+    character(len=80) :: msg
     save mord, mxstp0, mxhnl0
     data  mord(1),mord(2)/12,5/, mxstp0/5000/, mxhnl0/10/
 !-----------------------------------------------------------------------
@@ -1422,14 +1424,14 @@ module mod_cbmz_integrator
 !-----------------------------------------------------------------------
 !
 !***first executable statement  dlsode
-    if (istate .lt. 1 .or. istate .gt. 3) go to 601
-    if (itask .lt. 1 .or. itask .gt. 5) go to 602
-    if (istate .eq. 1) go to 10
-    if (init .eq. 0) go to 603
-    if (istate .eq. 2) go to 200
+    if (istate < 1 .or. istate > 3) go to 601
+    if (itask < 1 .or. itask > 5) go to 602
+    if (istate == 1) go to 10
+    if (init == 0) go to 603
+    if (istate == 2) go to 200
     go to 20
    10 init = 0
-    if (tout .eq. t) return
+    if (tout == t) return
 !-----------------------------------------------------------------------
 ! block b.
 ! the next code block is executed for the initial call (istate = 1),
@@ -1439,50 +1441,50 @@ module mod_cbmz_integrator
 ! first check legality of the non-optional inputs neq, itol, iopt,
 ! mf, ml, and mu.
 !-----------------------------------------------------------------------
-   20 if (neq .le. 0) go to 604
-      if (istate .eq. 1) go to 25
-      if (neq .gt. n) go to 605
+   20 if (neq <= 0) go to 604
+      if (istate == 1) go to 25
+      if (neq > n) go to 605
    25 n = neq
-      if (itol .lt. 1 .or. itol .gt. 4) go to 606
-      if (iopt .lt. 0 .or. iopt .gt. 1) go to 607
+      if (itol < 1 .or. itol > 4) go to 606
+      if (iopt < 0 .or. iopt > 1) go to 607
       meth = mf/10
       miter = mf - 10*meth
-      if (meth .lt. 1 .or. meth .gt. 2) go to 608
-      if (miter .lt. 0 .or. miter .gt. 5) go to 608
-      if (miter .le. 3) go to 30
+      if (meth < 1 .or. meth > 2) go to 608
+      if (miter < 0 .or. miter > 5) go to 608
+      if (miter <= 3) go to 30
       ml = iwork(1)
       mu = iwork(2)
-      if (ml .lt. 0 .or. ml .ge. n) go to 609
-      if (mu .lt. 0 .or. mu .ge. n) go to 610
+      if (ml < 0 .or. ml >= n) go to 609
+      if (mu < 0 .or. mu >= n) go to 610
    30 continue
 ! next process and check the optional inputs. --------------------------
-      if (iopt .eq. 1) go to 40
+      if (iopt == 1) go to 40
       maxord = mord(meth)
       mxstep = mxstp0
       mxhnil = mxhnl0
-      if (istate .eq. 1) h0 = 0.0d0
+      if (istate == 1) h0 = 0.0d0
       hmxi = 0.0d0
       hmin = 0.0d0
       go to 60
    40 maxord = iwork(5)
-      if (maxord .lt. 0) go to 611
-      if (maxord .eq. 0) maxord = 100
+      if (maxord < 0) go to 611
+      if (maxord == 0) maxord = 100
       maxord = min(maxord,mord(meth))
       mxstep = iwork(6)
-      if (mxstep .lt. 0) go to 612
-      if (mxstep .eq. 0) mxstep = mxstp0
+      if (mxstep < 0) go to 612
+      if (mxstep == 0) mxstep = mxstp0
       mxhnil = iwork(7)
-      if (mxhnil .lt. 0) go to 613
-      if (mxhnil .eq. 0) mxhnil = mxhnl0
-      if (istate .ne. 1) go to 50
+      if (mxhnil < 0) go to 613
+      if (mxhnil == 0) mxhnil = mxhnl0
+      if (istate /= 1) go to 50
       h0 = rwork(5)
-      if ((tout - t)*h0 .lt. 0.0d0) go to 614
+      if ((tout - t)*h0 < 0.0d0) go to 614
    50 hmax = rwork(6)
-      if (hmax .lt. 0.0d0) go to 615
+      if (hmax < 0.0d0) go to 615
       hmxi = 0.0d0
-      if (hmax .gt. 0.0d0) hmxi = 1.0d0/hmax
+      if (hmax > 0.0d0) hmxi = 1.0d0/hmax
       hmin = rwork(7)
-      if (hmin .lt. 0.0d0) go to 616
+      if (hmin < 0.0d0) go to 616
 !-----------------------------------------------------------------------
 ! set work array pointers and check lengths lrw and liw.
 ! pointers to segments of rwork and iwork are named by prefixing l to
@@ -1490,12 +1492,12 @@ module mod_cbmz_integrator
 ! segments of rwork (in order) are denoted  yh, wm, ewt, savf, acor.
 !-----------------------------------------------------------------------
    60 lyh = 21
-      if (istate .eq. 1) nyh = n
+      if (istate == 1) nyh = n
       lwm = lyh + (maxord + 1)*nyh
-      if (miter .eq. 0) lenwm = 0
-      if (miter .eq. 1 .or. miter .eq. 2) lenwm = n*n + 2
-      if (miter .eq. 3) lenwm = n + 2
-      if (miter .ge. 4) lenwm = (2*ml + mu + 1)*n + 2
+      if (miter == 0) lenwm = 0
+      if (miter == 1 .or. miter == 2) lenwm = n*n + 2
+      if (miter == 3) lenwm = n + 2
+      if (miter >= 4) lenwm = (2*ml + mu + 1)*n + 2
       lewt = lwm + lenwm
       lsavf = lewt + n
       lacor = lsavf + n
@@ -1503,34 +1505,34 @@ module mod_cbmz_integrator
       iwork(17) = lenrw
       liwm = 1
       leniw = 20 + n
-      if (miter .eq. 0 .or. miter .eq. 3) leniw = 20
+      if (miter == 0 .or. miter == 3) leniw = 20
       iwork(18) = leniw
-      if (lenrw .gt. lrw) go to 617
-      if (leniw .gt. liw) go to 618
+      if (lenrw > lrw) go to 617
+      if (leniw > liw) go to 618
 ! check reltol and abstol for legality. ------------------------------------
       reltoli = reltol(1)
       abstoli = abstol(1)
       do 70 i = 1,n
-        if (itol .ge. 3) reltoli = reltol(i)
-        if (itol .eq. 2 .or. itol .eq. 4) abstoli = abstol(i)
-        if (reltoli .lt. 0.0d0) go to 619
-        if (abstoli .lt. 0.0d0) go to 620
+        if (itol >= 3) reltoli = reltol(i)
+        if (itol == 2 .or. itol == 4) abstoli = abstol(i)
+        if (reltoli < 0.0d0) go to 619
+        if (abstoli < 0.0d0) go to 620
    70   continue
-      if (istate .eq. 1) go to 100
+      if (istate == 1) go to 100
 ! if istate = 3, set flag to signal parameter changes to dstode. -------
       jstart = -1
-      if (nq .le. maxord) go to 90
+      if (nq <= maxord) go to 90
 ! maxord was reduced below nq.  copy yh(*,maxord+2) into savf. ---------
       do 80 i = 1,n
         rwork(i+lsavf-1) = rwork(i+lwm-1)
    80   continue
 ! reload wm(1) = rwork(lwm), since lwm may have changed. ---------------
-   90 if (miter .gt. 0) rwork(lwm) = sqrt(uround)
-      if (n .eq. nyh) go to 200
+   90 if (miter > 0) rwork(lwm) = sqrt(uround)
+      if (n == nyh) go to 200
 ! neq was reduced.  zero part of yh to avoid undefined references. -----
       i1 = lyh + l*nyh
       i2 = lyh + (maxord + 1)*nyh - 1
-      if (i1 .gt. i2) go to 200
+      if (i1 > i2) go to 200
       do 95 i = i1,i2
         rwork(i) = 0.0d0
    95   continue
@@ -1544,13 +1546,13 @@ module mod_cbmz_integrator
 !-----------------------------------------------------------------------
   100 uround = dumach()
       tn = t
-      if (itask .ne. 4 .and. itask .ne. 5) go to 110
+      if (itask /= 4 .and. itask /= 5) go to 110
       tcrit = rwork(1)
-      if ((tcrit - tout)*(tout - t) .lt. 0.0d0) go to 625
-      if (h0 .ne. 0.0d0 .and. (t + h0 - tcrit)*h0 .gt. 0.0d0)           &
+      if ((tcrit - tout)*(tout - t) < 0.0d0) go to 625
+      if (h0 /= 0.0d0 .and. (t + h0 - tcrit)*h0 > 0.0d0)           &
         h0 = tcrit - t
   110 jstart = 0
-      if (miter .gt. 0) rwork(lwm) = sqrt(uround)
+      if (miter > 0) rwork(lwm) = sqrt(uround)
       nhnil = 0
       nst = 0
       nje = 0
@@ -1574,7 +1576,7 @@ module mod_cbmz_integrator
       h = 1.0d0
       call dewset (n, itol, reltol, abstol, rwork(lyh), rwork(lewt))
       do 120 i = 1,n
-        if (rwork(i+lewt-1) .le. 0.0d0) go to 621
+        if (rwork(i+lewt-1) <= 0.0d0) go to 621
         rwork(i+lewt-1) = 1.0d0/rwork(i+lewt-1)
   120   continue
 !-----------------------------------------------------------------------
@@ -1593,21 +1595,21 @@ module mod_cbmz_integrator
 !         ywt(i) = ewt(i)/tol  (a weight for y(i)).
 ! the sign of h0 is inferred from the initial values of tout and t.
 !-----------------------------------------------------------------------
-      if (h0 .ne. 0.0d0) go to 180
+      if (h0 /= 0.0d0) go to 180
       tdist = abs(tout - t)
       w0 = max(abs(t),abs(tout))
-      if (tdist .lt. 2.0d0*uround*w0) go to 622
+      if (tdist < 2.0d0*uround*w0) go to 622
       tol = reltol(1)
-      if (itol .le. 2) go to 140
+      if (itol <= 2) go to 140
       do 130 i = 1,n
         tol = max(tol,reltol(i))
   130   continue
-  140 if (tol .gt. 0.0d0) go to 160
+  140 if (tol > 0.0d0) go to 160
       abstoli = abstol(1)
       do 150 i = 1,n
-        if (itol .eq. 2 .or. itol .eq. 4) abstoli = abstol(i)
+        if (itol == 2 .or. itol == 4) abstoli = abstol(i)
         ayi = abs(y(i))
-        if (ayi .ne. 0.0d0) tol = max(tol,abstoli/ayi)
+        if (ayi /= 0.0d0) tol = max(tol,abstoli/ayi)
   150   continue
   160 tol = max(tol,100.0d0*uround)
       tol = min(tol,0.001d0)
@@ -1618,7 +1620,7 @@ module mod_cbmz_integrator
       h0 = sign(h0,tout-t)
 ! adjust h0 if necessary to meet hmax bound. ---------------------------
   180 rh = abs(h0)*hmxi
-      if (rh .gt. 1.0d0) h0 = h0/rh
+      if (rh > 1.0d0) h0 = h0/rh
 ! load h with h0 and scale yh(*,2) by h0. ------------------------------
       h = h0
       do 190 i = 1,n
@@ -1643,32 +1645,32 @@ module mod_cbmz_integrator
         case (5)
           goto 240
       end select
-  210 if ((tn - tout)*h .lt. 0.0d0) go to 250
+  210 if ((tn - tout)*h < 0.0d0) go to 250
       call dintdy (tout, 0, rwork(lyh), nyh, y, iflag)
-      if (iflag .ne. 0) go to 627
+      if (iflag /= 0) go to 627
       t = tout
       go to 420
   220 tp = tn - hu*(1.0d0 + 100.0d0*uround)
-      if ((tp - tout)*h .gt. 0.0d0) go to 623
-      if ((tn - tout)*h .lt. 0.0d0) go to 250
+      if ((tp - tout)*h > 0.0d0) go to 623
+      if ((tn - tout)*h < 0.0d0) go to 250
       go to 400
   230 tcrit = rwork(1)
-      if ((tn - tcrit)*h .gt. 0.0d0) go to 624
-      if ((tcrit - tout)*h .lt. 0.0d0) go to 625
-      if ((tn - tout)*h .lt. 0.0d0) go to 245
+      if ((tn - tcrit)*h > 0.0d0) go to 624
+      if ((tcrit - tout)*h < 0.0d0) go to 625
+      if ((tn - tout)*h < 0.0d0) go to 245
       call dintdy (tout, 0, rwork(lyh), nyh, y, iflag)
-      if (iflag .ne. 0) go to 627
+      if (iflag /= 0) go to 627
       t = tout
       go to 420
   240 tcrit = rwork(1)
-      if ((tn - tcrit)*h .gt. 0.0d0) go to 624
+      if ((tn - tcrit)*h > 0.0d0) go to 624
   245 hmx = abs(tn) + abs(h)
-      ihit = abs(tn - tcrit) .le. 100.0d0*uround*hmx
+      ihit = abs(tn - tcrit) <= 100.0d0*uround*hmx
       if (ihit) go to 400
       tnext = tn + h*(1.0d0 + 4.0d0*uround)
-      if ((tnext - tcrit)*h .le. 0.0d0) go to 250
+      if ((tnext - tcrit)*h <= 0.0d0) go to 250
       h = (tcrit - tn)*(1.0d0 - 4.0d0*uround)
-      if (istate .eq. 2) jstart = -2
+      if (istate == 2) jstart = -2
 !-----------------------------------------------------------------------
 ! block e.
 ! the next block is normally executed for all calls and contains
@@ -1681,27 +1683,27 @@ module mod_cbmz_integrator
 ! check for h below the roundoff level in t.
 !-----------------------------------------------------------------------
   250 continue
-      if ((nst-nslast) .ge. mxstep) go to 500
+      if ((nst-nslast) >= mxstep) go to 500
       call dewset (n, itol, reltol, abstol, rwork(lyh), rwork(lewt))
       do 260 i = 1,n
-        if (rwork(i+lewt-1) .le. 0.0d0) go to 510
+        if (rwork(i+lewt-1) <= 0.0d0) go to 510
         rwork(i+lewt-1) = 1.0d0/rwork(i+lewt-1)
   260   continue
   270 tolsf = uround*dvnorm (n, rwork(lyh), rwork(lewt))
-      if (tolsf .le. 1.0d0) go to 280
+      if (tolsf <= 1.0d0) go to 280
       tolsf = tolsf*2.0d0
-      if (nst .eq. 0) go to 626
+      if (nst == 0) go to 626
       go to 520
-  280 if ((tn + h) .ne. tn) go to 290
+  280 if ((tn + h) /= tn) go to 290
       nhnil = nhnil + 1
-      if (nhnil .gt. mxhnil) go to 290
+      if (nhnil > mxhnil) go to 290
       msg = 'dlsode-  warning..internal t (=r1) and h (=r2) are'
       call xerrwd (msg, 50, 101, 0, 0, 0, 0, 0, 0.0d0, 0.0d0)
       msg='      such that in the machine, t + h = t on the next step  '
       call xerrwd (msg, 60, 101, 0, 0, 0, 0, 0, 0.0d0, 0.0d0)
       msg = '      (h = step size). solver will continue anyway'
       call xerrwd (msg, 50, 101, 0, 0, 0, 0, 2, tn, h)
-      if (nhnil .lt. mxhnil) go to 290
+      if (nhnil < mxhnil) go to 290
       msg = 'dlsode-  above warning has been issued i1 times.  '
       call xerrwd (msg, 50, 102, 0, 0, 0, 0, 0, 0.0d0, 0.0d0)
       msg = '      it will not be issued again for this problem'
@@ -1742,29 +1744,29 @@ module mod_cbmz_integrator
           goto 350
       end select
 ! itask = 1.  if tout has been reached, interpolate. -------------------
-  310 if ((tn - tout)*h .lt. 0.0d0) go to 250
+  310 if ((tn - tout)*h < 0.0d0) go to 250
       call dintdy (tout, 0, rwork(lyh), nyh, y, iflag)
       t = tout
       go to 420
 ! itask = 3.  jump to exit if tout was reached. ------------------------
-  330 if ((tn - tout)*h .ge. 0.0d0) go to 400
+  330 if ((tn - tout)*h >= 0.0d0) go to 400
       go to 250
 ! itask = 4.  see if tout or tcrit was reached.  adjust h if necessary.
-  340 if ((tn - tout)*h .lt. 0.0d0) go to 345
+  340 if ((tn - tout)*h < 0.0d0) go to 345
       call dintdy (tout, 0, rwork(lyh), nyh, y, iflag)
       t = tout
       go to 420
   345 hmx = abs(tn) + abs(h)
-      ihit = abs(tn - tcrit) .le. 100.0d0*uround*hmx
+      ihit = abs(tn - tcrit) <= 100.0d0*uround*hmx
       if (ihit) go to 400
       tnext = tn + h*(1.0d0 + 4.0d0*uround)
-      if ((tnext - tcrit)*h .le. 0.0d0) go to 250
+      if ((tnext - tcrit)*h <= 0.0d0) go to 250
       h = (tcrit - tn)*(1.0d0 - 4.0d0*uround)
       jstart = -2
       go to 250
 ! itask = 5.  see if tcrit was reached and jump to exit. ---------------
   350 hmx = abs(tn) + abs(h)
-      ihit = abs(tn - tcrit) .le. 100.0d0*uround*hmx
+      ihit = abs(tn - tcrit) <= 100.0d0*uround*hmx
 !-----------------------------------------------------------------------
 ! block g.
 ! the following block handles all successful returns from dlsode.
@@ -1776,7 +1778,7 @@ module mod_cbmz_integrator
         y(i) = rwork(i+lyh-1)
   410   continue
       t = tn
-      if (itask .ne. 4 .and. itask .ne. 5) go to 420
+      if (itask /= 4 .and. itask /= 5) go to 420
       if (ihit) t = tcrit
   420 istate = 2
       rwork(11) = hu
@@ -1837,7 +1839,7 @@ module mod_cbmz_integrator
       imxer = 1
       do 570 i = 1,n
         size = abs(rwork(i+lacor-1)*rwork(i+lewt-1))
-        if (big .ge. size) go to 570
+        if (big >= size) go to 570
         big = size
         imxer = i
   570   continue
@@ -1865,7 +1867,7 @@ module mod_cbmz_integrator
 !-----------------------------------------------------------------------
   601 msg = 'dlsode-  istate (=i1) illegal '
       call xerrwd (msg, 30, 1, 0, 1, istate, 0, 0, 0.0d0, 0.0d0)
-      if (istate .lt. 0) go to 800
+      if (istate < 0) go to 800
       go to 700
   602 msg = 'dlsode-  itask (=i1) illegal  '
       call xerrwd (msg, 30, 2, 0, 1, itask, 0, 0, 0.0d0, 0.0d0)
@@ -1968,7 +1970,7 @@ module mod_cbmz_integrator
       contains
 
     real(kind=dp) function dumach ()
-      implicit none
+      implicit none (type, external)
       dumach = epsilon(1.0_dp)
     end function dumach
 
@@ -2064,7 +2066,7 @@ module mod_cbmz_integrator
         agamq = rqfac*xpin
         ragq = 1.0d0/agamq
         tesco(2,nq) = ragq
-        if (nq .lt. 12) tesco(1,nqp1) = ragq*rqfac/nqp1
+        if (nq < 12) tesco(1,nqp1) = ragq*rqfac/nqp1
         tesco(3,nqm1) = ragq
   140   continue
       return
@@ -2128,21 +2130,21 @@ module mod_cbmz_integrator
 !***end prologue  dintdy
 !**end
     subroutine dintdy (t, k, yh, nyh, dky, iflag)
-      integer k, nyh, iflag
-      real(kind=dp) t, yh(nyh,*), dky(*)
-      integer i, ic, j, jb, jb2, jj, jj1, jp1
-      real(kind=dp) c, r, s, tp
-      character(len=80) msg
+      integer :: k, nyh, iflag
+      real(kind=dp) :: t, yh(nyh,*), dky(*)
+      integer :: i, ic, j, jb, jb2, jj, jj1, jp1
+      real(kind=dp) :: c, r, s, tp
+      character(len=80) :: msg
 !
 !***first executable statement  dintdy
       iflag = 0
-      if (k .lt. 0 .or. k .gt. nq) go to 80
+      if (k < 0 .or. k > nq) go to 80
       tp = tn - hu -  100.0d0*uround*sign(abs(tn) + abs(hu), hu)
-      if ((t-tp)*(t-tn) .gt. 0.0d0) go to 90
+      if ((t-tp)*(t-tn) > 0.0d0) go to 90
 !
       s = (t - tn)/h
       ic = 1
-      if (k .eq. 0) go to 15
+      if (k == 0) go to 15
       jj1 = l - k
       do 10 jj = jj1,nq
         ic = ic*jj
@@ -2151,13 +2153,13 @@ module mod_cbmz_integrator
       do 20 i = 1,n
         dky(i) = c*yh(i,l)
    20   continue
-      if (k .eq. nq) go to 55
+      if (k == nq) go to 55
       jb2 = nq - k
       do 50 jb = 1,jb2
         j = nq - jb
         jp1 = j + 1
         ic = 1
-        if (k .eq. 0) go to 35
+        if (k == 0) go to 35
         jj1 = jp1 - k
         do 30 jj = jj1,j
           ic = ic*jj
@@ -2167,7 +2169,7 @@ module mod_cbmz_integrator
           dky(i) = c*yh(i,jp1) + s*dky(i)
    40     continue
    50   continue
-      if (k .eq. 0) return
+      if (k == 0) return
    55 r = h**(-k)
       do 60 i = 1,n
         dky(i) = r*dky(i)
@@ -2230,10 +2232,10 @@ module mod_cbmz_integrator
 !***end prologue  dprepj
 !**end
       external f, jac
-      integer neq, nyh, iwm(*)
-      real(kind=dp) y(*), yh(nyh,*), ewt(*), ftem(*), savf(*), wm(*)
-      integer ier, i, j
-      real(kind=dp) con, hl0
+      integer :: neq, nyh, iwm(*)
+      real(kind=dp) :: y(*), yh(nyh,*), ewt(*), ftem(*), savf(*), wm(*)
+      integer :: ier, i, j
+      real(kind=dp) :: con, hl0
       !real(kind=dp)  dvnorm
 !
 !***first executable statement  dprepj
@@ -2254,7 +2256,7 @@ module mod_cbmz_integrator
       end do
       ! do lu decomposition on p
       call kppdecomp(wm(3),ier)
-      if (ier .ne. 0) ierpj = 1
+      if (ier /= 0) ierpj = 1
       return
  !----------------------- end of subroutine dprepj ----------------------
       end subroutine dprepj
@@ -2293,8 +2295,8 @@ module mod_cbmz_integrator
 !***routines called  dgbsl, dgesl
 !***end prologue  dsolsy
 !**end
-      integer iwm(*)
-      real(kind=dp) wm(*), x(*), tem(*)
+      integer :: iwm(*)
+      real(kind=dp) :: wm(*), x(*), tem(*)
 
       iersl = 0
       call kppsolve(wm(3),x)
@@ -2389,6 +2391,7 @@ module mod_cbmz_integrator
       interface
         subroutine f(n,t,v,fct)
           use mod_cbmz_parameters
+          implicit none (type, external)
           integer :: n
           real(kind=dp) :: v(nvar), fct(nvar), t
         end subroutine f
@@ -2396,16 +2399,17 @@ module mod_cbmz_integrator
       interface
         subroutine jac(n,t,v,jf)
           use mod_cbmz_parameters
+          implicit none (type, external)
           integer :: n
           real(kind=dp) :: v(nvar), t
           real(kind=dp) :: jf(lu_nonzero)
         end subroutine jac
       end interface
-      integer neq, nyh, iwm(*)
-      real(kind=dp) y(*), yh(nyh,*), yh1(*), ewt(*), savf(*),       &
+      integer :: neq, nyh, iwm(*)
+      real(kind=dp) :: y(*), yh(nyh,*), yh1(*), ewt(*), savf(*),       &
                        acor(*), wm(*)
-      integer i, i1, iredo, iret, j, jb, m, ncf, newq
-      real(kind=dp) dcon, ddn, del, delp, dsm, dup, exdn, exsm,     &
+      integer :: i, i1, iredo, iret, j, jb, m, ncf, newq
+      real(kind=dp) :: dcon, ddn, del, delp, dsm, dup, exdn, exsm,     &
               exup,r, rh, rhdn, rhsm, rhup, told
       !real(kind=dp) dvnorm
 !
@@ -2418,9 +2422,9 @@ module mod_cbmz_integrator
       jcur = 0
       icf = 0
       delp = 0.0d0
-      if (jstart .gt. 0) go to 200
-      if (jstart .eq. -1) go to 100
-      if (jstart .eq. -2) go to 160
+      if (jstart > 0) go to 200
+      if (jstart == -1) go to 100
+      if (jstart == -2) go to 160
 !-----------------------------------------------------------------------
 ! on the first call, the order is set to 1, and other variables are
 ! initialized.  rmax is the maximum ratio by which h can be increased
@@ -2458,15 +2462,15 @@ module mod_cbmz_integrator
 !-----------------------------------------------------------------------
   100 ipup = miter
       lmax = maxord + 1
-      if (ialth .eq. 1) ialth = 2
-      if (meth .eq. meo) go to 110
+      if (ialth == 1) ialth = 2
+      if (meth == meo) go to 110
       call dcfode
       meo = meth
-      if (nq .gt. maxord) go to 120
+      if (nq > maxord) go to 120
       ialth = l
       iret = 1
       go to 150
-  110 if (nq .le. maxord) go to 160
+  110 if (nq <= maxord) go to 160
   120 nq = maxord
       l = lmax
       do 125 i = 1,l
@@ -2481,7 +2485,7 @@ module mod_cbmz_integrator
       rhdn = 1.0d0/(1.3d0*ddn**exdn + 0.0000013d0)
       rh = min(rhdn,1.0d0)
       iredo = 3
-      if (h .eq. hold) go to 170
+      if (h == hold) go to 170
       rh = min(rh,abs(h/hold))
       h = hold
       go to 175
@@ -2512,7 +2516,7 @@ module mod_cbmz_integrator
 ! l = nq + 1 to prevent a change of h for that many steps, unless
 ! forced by a convergence or error test failure.
 !-----------------------------------------------------------------------
-  160 if (h .eq. hold) go to 200
+  160 if (h == hold) go to 200
       rh = h/hold
       h = hold
       iredo = 3
@@ -2530,7 +2534,7 @@ module mod_cbmz_integrator
       h = h*rh
       rc = rc*rh
       ialth = l
-      if (iredo .eq. 0) go to 690
+      if (iredo == 0) go to 690
 !-----------------------------------------------------------------------
 ! this section computes the predicted values by effectively
 ! multiplying the yh array by the pascal triangle matrix.
@@ -2539,8 +2543,8 @@ module mod_cbmz_integrator
 ! to force pjac to be called, if a jacobian is involved.
 ! in any case, pjac is called at least every msbp steps.
 !-----------------------------------------------------------------------
-  200 if (abs(rc-1.0d0) .gt. ccmax) ipup = miter
-      if (nst .ge. nslp+msbp) ipup = miter
+  200 if (abs(rc-1.0d0) > ccmax) ipup = miter
+      if (nst >= nslp+msbp) ipup = miter
       tn = tn + h
       i1 = nqnyh + 1
       do 215 jb = 1,nq
@@ -2562,7 +2566,7 @@ module mod_cbmz_integrator
   230   continue
       call f (neq, tn, y, savf)
       nfe = nfe + 1
-      if (ipup .le. 0) go to 250
+      if (ipup <= 0) go to 250
 !-----------------------------------------------------------------------
 ! if indicated, the matrix p = i - h*el(1)*j is reevaluated and
 ! preprocessed before starting the corrector iteration.  ipup is set
@@ -2574,11 +2578,11 @@ module mod_cbmz_integrator
       rc = 1.0d0
       nslp = nst
       crate = 0.7d0
-      if (ierpj .ne. 0) go to 430
+      if (ierpj /= 0) go to 430
   250 do 260 i = 1,n
         acor(i) = 0.0d0
   260   continue
-  270 if (miter .ne. 0) go to 350
+  270 if (miter /= 0) go to 350
 !-----------------------------------------------------------------------
 ! in the case of functional iteration, update y directly from
 ! the result of the last function evaluation.
@@ -2603,8 +2607,8 @@ module mod_cbmz_integrator
   360   continue
       !call slvs (wm, iwm, y, savf)
       call dsolsy(wm, iwm, y, savf)
-      if (iersl .lt. 0) go to 430
-      if (iersl .gt. 0) go to 410
+      if (iersl < 0) go to 430
+      if (iersl > 0) go to 410
       del = dvnorm (n, y, ewt)
       do 380 i = 1,n
         acor(i) = acor(i) + y(i)
@@ -2614,12 +2618,12 @@ module mod_cbmz_integrator
 ! test for convergence.  if m.gt.0, an estimate of the convergence
 ! rate constant is stored in crate, and this is used in the test.
 !-----------------------------------------------------------------------
-  400 if (m .ne. 0) crate = max(0.2d0*crate,del/delp)
+  400 if (m /= 0) crate = max(0.2d0*crate,del/delp)
       dcon = del*min(1.0d0,1.5d0*crate)/(tesco(2,nq)*conit)
-      if (dcon .le. 1.0d0) go to 450
+      if (dcon <= 1.0d0) go to 450
       m = m + 1
-      if (m .eq. maxcor) go to 410
-      if (m .ge. 2 .and. del .gt. 2.0d0*delp) go to 410
+      if (m == maxcor) go to 410
+      if (m >= 2 .and. del > 2.0d0*delp) go to 410
       delp = del
       call f (neq, tn, y, savf)
       nfe = nfe + 1
@@ -2631,7 +2635,7 @@ module mod_cbmz_integrator
 ! before prediction, and h is reduced, if possible.  if h cannot be
 ! reduced or mxncf failures have occurred, exit with kflag = -2.
 !-----------------------------------------------------------------------
-  410 if (miter .eq. 0 .or. jcur .eq. 1) go to 430
+  410 if (miter == 0 .or. jcur == 1) go to 430
       icf = 1
       ipup = miter
       go to 220
@@ -2647,9 +2651,9 @@ module mod_cbmz_integrator
           yh1(i) = yh1(i) - yh1(i+nyh)
   440     continue
   445   continue
-      if (ierpj .lt. 0 .or. iersl .lt. 0) go to 680
-      if (abs(h) .le. hmin*1.00001d0) go to 670
-      if (ncf .eq. mxncf) go to 670
+      if (ierpj < 0 .or. iersl < 0) go to 680
+      if (abs(h) <= hmin*1.00001d0) go to 670
+      if (ncf == mxncf) go to 670
       rh = 0.25d0
       ipup = miter
       iredo = 1
@@ -2661,9 +2665,9 @@ module mod_cbmz_integrator
 ! if it fails.
 !-----------------------------------------------------------------------
   450 jcur = 0
-      if (m .eq. 0) dsm = del/tesco(2,nq)
-      if (m .gt. 0) dsm = dvnorm (n, acor, ewt)/tesco(2,nq)
-      if (dsm .gt. 1.0d0) go to 500
+      if (m == 0) dsm = del/tesco(2,nq)
+      if (m > 0) dsm = dvnorm (n, acor, ewt)/tesco(2,nq)
+      if (dsm > 1.0d0) go to 500
 !-----------------------------------------------------------------------
 ! after a successful step, update the yh array.
 ! consider changing h if ialth = 1.  otherwise decrease ialth by 1.
@@ -2685,9 +2689,9 @@ module mod_cbmz_integrator
   471     continue
   470   continue
       ialth = ialth - 1
-      if (ialth .eq. 0) go to 520
-      if (ialth .gt. 1) go to 700
-      if (l .eq. lmax) go to 700
+      if (ialth == 0) go to 520
+      if (ialth > 1) go to 700
+      if (l == lmax) go to 700
       do 490 i = 1,n
         yh(i,lmax) = acor(i)
   490   continue
@@ -2710,8 +2714,8 @@ module mod_cbmz_integrator
   510     continue
   515   continue
       rmax = 2.0d0
-      if (abs(h) .le. hmin*1.00001d0) go to 660
-      if (kflag .le. -3) go to 640
+      if (abs(h) <= hmin*1.00001d0) go to 660
+      if (kflag <= -3) go to 640
       iredo = 2
       rhup = 0.0d0
       go to 540
@@ -2725,7 +2729,7 @@ module mod_cbmz_integrator
 ! additional scaled derivative.
 !-----------------------------------------------------------------------
   520 rhup = 0.0d0
-      if (l .eq. lmax) go to 540
+      if (l == lmax) go to 540
       do 530 i = 1,n
         savf(i) = acor(i) - yh(i,lmax)
   530   continue
@@ -2735,24 +2739,24 @@ module mod_cbmz_integrator
   540 exsm = 1.0d0/l
       rhsm = 1.0d0/(1.2d0*dsm**exsm + 0.0000012d0)
       rhdn = 0.0d0
-      if (nq .eq. 1) go to 560
+      if (nq == 1) go to 560
       ddn = dvnorm (n, yh(1,l), ewt)/tesco(1,nq)
       exdn = 1.0d0/nq
       rhdn = 1.0d0/(1.3d0*ddn**exdn + 0.0000013d0)
-  560 if (rhsm .ge. rhup) go to 570
-      if (rhup .gt. rhdn) go to 590
+  560 if (rhsm >= rhup) go to 570
+      if (rhup > rhdn) go to 590
       go to 580
-  570 if (rhsm .lt. rhdn) go to 580
+  570 if (rhsm < rhdn) go to 580
       newq = nq
       rh = rhsm
       go to 620
   580 newq = nq - 1
       rh = rhdn
-      if (kflag .lt. 0 .and. rh .gt. 1.0d0) rh = 1.0d0
+      if (kflag < 0 .and. rh > 1.0d0) rh = 1.0d0
       go to 620
   590 newq = l
       rh = rhup
-      if (rh .lt. 1.1d0) go to 610
+      if (rh < 1.1d0) go to 610
       r = el(l)/l
       do 600 i = 1,n
         yh(i,newq+1) = acor(i)*r
@@ -2760,14 +2764,14 @@ module mod_cbmz_integrator
       go to 630
   610 ialth = 3
       go to 700
-  620 if ((kflag .eq. 0) .and. (rh .lt. 1.1d0)) go to 610
-      if (kflag .le. -2) rh = min(rh,0.2d0)
+  620 if ((kflag == 0) .and. (rh < 1.1d0)) go to 610
+      if (kflag <= -2) rh = min(rh,0.2d0)
 !-----------------------------------------------------------------------
 ! if there is a change of order, reset nq, l, and the coefficients.
 ! in any case h is reset according to rh and the yh array is rescaled.
 ! then exit from 690 if the step was ok, or redo the step otherwise.
 !-----------------------------------------------------------------------
-      if (newq .eq. nq) go to 170
+      if (newq == nq) go to 170
   630 nq = newq
       l = nq + 1
       iret = 2
@@ -2781,7 +2785,7 @@ module mod_cbmz_integrator
 ! h is reduced by a factor of 10, and the step is retried,
 ! until it succeeds or h reaches hmin.
 !-----------------------------------------------------------------------
-  640 if (kflag .eq. -10) go to 660
+  640 if (kflag == -10) go to 660
       rh = 0.1d0
       rh = max(hmin/abs(h),rh)
       h = h*rh
@@ -2795,7 +2799,7 @@ module mod_cbmz_integrator
   650   continue
       ipup = miter
       ialth = 5
-      if (nq .eq. 1) go to 200
+      if (nq == 1) go to 200
       nq = 1
       l = 2
       iret = 3
@@ -2843,9 +2847,9 @@ module mod_cbmz_integrator
 !   930809  renamed to allow single/double precision versions. (ach)
 !***end prologue  dewset
 !**end
-      integer n, itol
-      integer i
-      real(kind=dp) reltol(*), abstol(*), ycur(n), ewt(n)
+      integer :: n, itol
+      integer :: i
+      real(kind=dp) :: reltol(*), abstol(*), ycur(n), ewt(n)
 !
 !***first executable statement  dewset
       select case (itol)
@@ -2903,8 +2907,8 @@ module mod_cbmz_integrator
 !   930809  renamed to allow single/double precision versions. (ach)
 !***end prologue  dvnorm
 !**end
-      integer n,   i
-      real(kind=dp) v(n), w(n)
+      integer :: n,   i
+      real(kind=dp) :: v(n), w(n)
       real(kind=qp) :: xsum
 !
 !***first executable statement  dvnorm
@@ -2977,37 +2981,37 @@ module mod_cbmz_integrator
 !
 !  declare arguments.
 !
-      real(kind=dp) r1, r2
-      integer nmes, nerr, level, ni, i1, i2, nr
-      character*(*) msg
+      real(kind=dp) :: r1, r2
+      integer :: nmes, nerr, level, ni, i1, i2, nr
+      character(len=*) :: msg
 !
 !  declare local variables.
 !
-      integer lunit, mesflg !, ixsav
+      integer :: lunit, mesflg !, ixsav
 !
 !  get logical unit number and message print flag.
 !
 !***first executable statement  xerrwd
       lunit = ixsav (1, 0, .false.)
       mesflg = ixsav (2, 0, .false.)
-      if (mesflg .eq. 0) go to 100
+      if (mesflg == 0) go to 100
 !
 !  write the message.
 !
       write (lunit,10)  msg
    10 format(1x,a)
-      if (ni .eq. 1) write (lunit, 20) i1
+      if (ni == 1) write (lunit, 20) i1
    20 format(6x,'in above message,  i1 =',i10)
-      if (ni .eq. 2) write (lunit, 30) i1,i2
+      if (ni == 2) write (lunit, 30) i1,i2
    30 format(6x,'in above message,  i1 =',i10,3x,'i2 =',i10)
-      if (nr .eq. 1) write (lunit, 40) r1
+      if (nr == 1) write (lunit, 40) r1
    40 format(6x,'in above message,  r1 =',d21.13)
-      if (nr .eq. 2) write (lunit, 50) r1,r2
+      if (nr == 2) write (lunit, 50) r1,r2
    50 format(6x,'in above,  r1 =',d21.13,3x,'r2 =',d21.13)
 !
 !  abort the run if level = 2.
 !
-  100 if (level .ne. 2) return
+  100 if (level /= 2) return
       stop
 !----------------------- end of subroutine xerrwd ----------------------
       end subroutine xerrwd
@@ -3039,10 +3043,10 @@ module mod_cbmz_integrator
 ! function routine called by xsetf.. ixsav
 !-----------------------------------------------------------------------
 !**end
-      integer mflag, junk !, ixsav
+      integer :: mflag, junk !, ixsav
 !
 !***first executable statement  xsetf
-      if (mflag .eq. 0 .or. mflag .eq. 1) junk = ixsav (2,mflag,.true.)
+      if (mflag == 0 .or. mflag == 1) junk = ixsav (2,mflag,.true.)
       return
 !----------------------- end of subroutine xsetf -----------------------
       end subroutine xsetf
@@ -3072,10 +3076,10 @@ module mod_cbmz_integrator
 ! function routine called by xsetun.. ixsav
 !-----------------------------------------------------------------------
 !**end
-      integer lun, junk !, ixsav
+      integer :: lun, junk !, ixsav
 !
 !***first executable statement  xsetun
-      if (lun .gt. 0) junk = ixsav (1,lun,.true.)
+      if (lun > 0) junk = ixsav (1,lun,.true.)
       return
 !----------------------- end of subroutine xsetun ----------------------
       end subroutine xsetun
@@ -3126,10 +3130,10 @@ module mod_cbmz_integrator
 ! function routine called by ixsav.. iumach
 !-----------------------------------------------------------------------
 !**end
-      logical iset
-      integer ipar, ivalue
+      logical :: iset
+      integer :: ipar, ivalue
 !-----------------------------------------------------------------------
-      integer lunit, mesflg!, iumach
+      integer :: lunit, mesflg!, iumach
 !-----------------------------------------------------------------------
 ! the following fortran-77 declaration is to cause the values of the
 ! listed (local) variables to be saved between calls to this routine.
@@ -3138,13 +3142,13 @@ module mod_cbmz_integrator
       data lunit/-1/, mesflg/1/
 !
 !***first executable statement  ixsav
-      if (ipar .eq. 1) then
-        if (lunit .eq. -1) lunit = iumach()
+      if (ipar == 1) then
+        if (lunit == -1) lunit = iumach()
         ixsav = lunit
         if (iset) lunit = ivalue
         endif
 !
-      if (ipar .eq. 2) then
+      if (ipar == 2) then
         ixsav = mesflg
         if (iset) mesflg = ivalue
         endif
@@ -3194,7 +3198,7 @@ module mod_cbmz_integrator
       use mod_cbmz_global
       use mod_cbmz_function, only: fun
       use mod_cbmz_rates
-      implicit none
+      implicit none (type, external)
       integer :: n
       real(kind=dp) :: v(nvar), fct(nvar), t
 !      told = time
@@ -3213,7 +3217,7 @@ module mod_cbmz_integrator
       use mod_cbmz_jacobiansp
       use mod_cbmz_jacobian, only: jac_sp
       use mod_cbmz_rates
-      implicit none
+      implicit none (type, external)
       real(kind=dp) :: v(nvar), t
       integer :: n
       real(kind=dp) :: jf(lu_nonzero)

@@ -31,7 +31,7 @@ module mod_rad_o3blk
   use mod_regcm_types
   use netcdf
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -96,7 +96,7 @@ module mod_rad_o3blk
   contains
 
   character(len=256) function o3filename(year)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: year
     if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' .or. &
          scenario(1:5) == 'CONST' ) then
@@ -205,7 +205,7 @@ module mod_rad_o3blk
   end function o3filename
 
   subroutine allocate_mod_rad_o3blk
-    implicit none
+    implicit none (type, external)
     if ( iclimao3 == 1 ) then
       if ( myid == iocpu ) then
         call getmem(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
@@ -215,7 +215,7 @@ module mod_rad_o3blk
   end subroutine allocate_mod_rad_o3blk
 
   subroutine o3data(m2r)
-    implicit none
+    implicit none (type, external)
     type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) :: k
     real(rkx) , dimension(kzp1) :: ozprnt
@@ -261,7 +261,7 @@ module mod_rad_o3blk
   end subroutine o3data
 
   subroutine read_o3data(idatex,m2r)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: idatex
     type(mod_2_rad), intent(in) :: m2r
     character(len=256) :: infile
@@ -375,7 +375,7 @@ module mod_rad_o3blk
   end subroutine read_o3data
 
   subroutine inextmon(iyear,imon)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(inout) :: iyear, imon
     imon = imon + 1
     if ( imon > 12 ) then
@@ -385,7 +385,7 @@ module mod_rad_o3blk
   end subroutine inextmon
 
   subroutine iprevmon(iyear,imon)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(inout) :: iyear, imon
     imon = imon - 1
     if ( imon < 1 ) then
@@ -395,7 +395,7 @@ module mod_rad_o3blk
   end subroutine iprevmon
 
   subroutine init_o3data(o3file,ncid,lat,lon,lev)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: o3file
     integer(ik4), intent(out) :: ncid
     real(rkx), intent(inout), dimension(:), pointer, contiguous :: lat, lon, lev
@@ -437,7 +437,7 @@ module mod_rad_o3blk
   end subroutine init_o3data
 
   subroutine readvar3d_pack(ncid,iyear,imon,vname,val)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(inout) :: ncid
     integer(ik4), intent(in) :: iyear, imon
     character(len=*), intent(in) :: vname
@@ -502,7 +502,7 @@ module mod_rad_o3blk
   end subroutine readvar3d_pack
 
   subroutine readvar1d(ncid,vname,val)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rkx), intent(out), dimension(:) :: val
@@ -520,7 +520,7 @@ module mod_rad_o3blk
   end subroutine readvar1d
 
   subroutine close_o3data
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: iret
     if ( myid == iocpu ) then
       call h_interpolator_destroy(hint)

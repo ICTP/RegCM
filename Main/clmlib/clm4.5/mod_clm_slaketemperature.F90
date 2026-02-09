@@ -6,7 +6,7 @@ module mod_clm_slaketemperature
   use mod_realkinds
   use mod_runparams
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -111,7 +111,7 @@ module mod_clm_slaketemperature
     use mod_clm_qsat, only : QSat
     use mod_clm_tridiagonal, only : Tridiagonal
     use mod_clm_slakecon, only : lakepuddling, lake_no_ed
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc ! column-index bounds
     integer(ik4), intent(in) :: lbp, ubp ! pft-index bounds
     ! number of column non-lake points in column filter
@@ -1205,7 +1205,7 @@ module mod_clm_slaketemperature
     use mod_clm_varcon , only : denh2o, denice, tfrz, tkwat, tkice, tkair, &
                              cpice,  cpliq, thk_bedrock
     use mod_clm_varpar , only : nlevsno, nlevsoi, nlevgrnd
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in)  :: lbc, ubc  ! column bounds
     ! number of column lake points in column filter
     integer(ik4), intent(in)  :: num_lakec
@@ -1402,7 +1402,7 @@ module mod_clm_slaketemperature
     use mod_clm_type
     use mod_clm_varcon , only : tfrz, hfus, denh2o, denice, cpliq, cpice
     use mod_clm_varpar , only : nlevsno, nlevgrnd, nlevlak
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc    ! column bounds
     integer(ik4), intent(in) :: num_lakec   ! number of lake columns
     ! column filter for lake points

@@ -6,7 +6,7 @@ module mod_clm_urbaninit
   use mod_realkinds
   use mod_clm_urban, only : urban_traffic, urban_hac, urban_hac_off
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -25,7 +25,7 @@ module mod_clm_urbaninit
     use mod_clm_type, only : clm3
     use mod_clm_varcon, only : isturb, vkc
     use mod_clm_decomp, only : get_proc_bounds
-    implicit none
+    implicit none (type, external)
     ! height of urban roof (m)
     real(rk8), pointer, contiguous :: ht_roof(:)
     ! ratio of building height to street width (-)
@@ -111,7 +111,7 @@ module mod_clm_urbaninit
             icol_shadewall, icol_road_perv, icol_road_imperv, spval, udens_base
     use mod_clm_decomp, only : get_proc_bounds
     use mod_clm_urbaninput, only : urbinp
-    implicit none
+    implicit none (type, external)
     integer(ik4), pointer, contiguous :: coli(:)   ! beginning column index for landunit
     integer(ik4), pointer, contiguous :: colf(:)   ! ending column index for landunit
     integer(ik4), pointer, contiguous :: ctype(:)  ! column type
@@ -254,7 +254,7 @@ module mod_clm_urbaninit
     use mod_clm_type, only : clm3
     use mod_clm_varcon, only : isturb, spval, icol_road_perv
     use mod_clm_decomp, only : get_proc_bounds
-    implicit none
+    implicit none (type, external)
     integer(ik4), pointer, contiguous :: ltype(:)      ! landunit type
     integer(ik4), pointer, contiguous :: lgridcell(:)  ! gridcell of corresponding landunit
     integer(ik4), pointer, contiguous :: clandunit(:)  ! landunit index of column

@@ -10,7 +10,7 @@ module mod_clm_vicmap
   use mod_intkinds
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -31,7 +31,7 @@ module mod_clm_vicmap
     use mod_clm_type
     use mod_clm_varcon, only : denh2o, denice, pondmx
     use mod_clm_varpar, only : nlevsoi, nlayer, nlayert, nlevgrnd
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in)  :: c
 
     real(rk8), pointer, contiguous :: dz(:,:)       ! layer depth (m)
@@ -105,7 +105,7 @@ module mod_clm_vicmap
     ! This subroutine provides linear interpolation
     pure real(rk8) function linear_interp(x,x0,x1,y0,y1) result (y)
       !$acc routine seq
-      implicit none
+      implicit none (type, external)
       real(rk8), intent(in) :: x, x0, y0, x1, y1
       y = y0 + (x - x0) * (y1 - y0) / (x1 - x0)
     end function linear_interp
@@ -118,7 +118,7 @@ module mod_clm_vicmap
     use mod_clm_type
     use mod_clm_varcon, only : denh2o, denice, pondmx, watmin
     use mod_clm_varpar, only : nlevsoi, nlayer, nlayert, nlevgrnd
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in)  :: lbc, ubc ! column bounds
     ! number of column soil points in column filter
     integer(ik4), intent(in)  :: numf

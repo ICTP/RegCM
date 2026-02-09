@@ -1,4 +1,5 @@
 module mod_clm_cngresp
+implicit none (type, external)
 #ifdef CN
   !
   ! Module for growth respiration fluxes,
@@ -7,7 +8,7 @@ module mod_clm_cngresp
   use mod_intkinds
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -23,7 +24,7 @@ module mod_clm_cngresp
   subroutine CNGResp(num_soilp, filter_soilp)
     use mod_clm_type
     use mod_clm_pftvarcon, only : npcropmin, grperc, grpnow
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 

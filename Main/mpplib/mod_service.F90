@@ -13,9 +13,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_service
 
 #ifdef DEBUG
+
+module mod_service
   use mod_intkinds
   use mod_realkinds
   use mod_mpmessage
@@ -24,7 +25,7 @@ module mod_service
   use mod_dynparam, only : mycomm, myid, nproc, debug_level
   use mpi
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -61,13 +62,15 @@ module mod_service
   contains
 
     subroutine activate_debug(level)
-      implicit none
-      integer(ik4), optional :: level
-      character(len=3) :: np = '   '
+      implicit none (type, external)
+      integer(ik4), intent(in), optional :: level
+      character(len=3) :: np
       character(len=9) :: string
-      character(len=dbgslen) :: sub = 'activate_debug'
+      character(len=dbgslen) :: sub
       integer(ik4) :: iretval
 
+      np = '   '
+      sub = 'activate_debug'
       ! Number of processes
       node = myid
       mxnode = nproc
@@ -80,7 +83,7 @@ module mod_service
       if ( mxnode < 10 ) then
         write(np(1:1),'(i1)') node
       else if ( mxnode < 100 ) then
-        if (node.LT.10) then
+        if (node<10) then
           np ='0'
           write(np(2:2),'(i1)') node
         else
@@ -113,13 +116,13 @@ module mod_service
     end subroutine activate_debug
 
     subroutine start_debug(level,sub,line)
-      implicit none
+      implicit none (type, external)
       integer(ik4), optional, intent(in) :: level
       character(len=*), optional, intent(in) :: sub
       integer(ik4), optional, intent(in) :: line
-      character(len=dbglinelen) :: string = '   '
-      character(len=dbgslen) :: substr = 'not specified'
-      character(len=8) :: sline = ' no spec'
+      character(len=dbglinelen) :: string
+      character(len=dbgslen) :: substr
+      character(len=8) :: sline
       string = ' '
       substr = 'not specified'
       sline = ' no spec'
@@ -138,13 +141,13 @@ module mod_service
     end subroutine start_debug
 
     subroutine stop_debug(level,sub,line)
-      implicit none
-      integer(ik4), optional :: level
+      implicit none (type, external)
+      integer(ik4), intent(in), optional :: level
       character(len=*), optional, intent(in) :: sub
       integer(ik4), optional, intent(in) :: line
-      character(len=dbglinelen) :: string = ' '
-      character(len=dbgslen) :: substr = ' not specified'
-      character(len=8) :: sline = ' no spec'
+      character(len=dbglinelen) :: string
+      character(len=dbgslen) :: substr
+      character(len=8) :: sline
       string = ' '
       substr = ' not specified'
       sline = ' no spec'
@@ -160,9 +163,9 @@ module mod_service
     end subroutine stop_debug
 
     subroutine time_begin(name,indx)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(inout) :: indx
-      character(len=dbgslen) :: name
+      character(len=dbgslen), intent(in) :: name
       if ( indx == 0 ) then
         n_of_nsubs = n_of_nsubs + 1
         indx = n_of_nsubs
@@ -180,10 +183,10 @@ module mod_service
     end subroutine time_begin
 
     subroutine time_end(name_of_section,indx,isize)
-      implicit none
-      character(len=dbgslen) :: name_of_section
+      implicit none (type, external)
+      character(len=dbgslen), intent(in) :: name_of_section
       integer(ik4), intent(in) :: indx
-      integer(ik4), optional :: isize
+      integer(ik4), intent(in), optional :: isize
       real(rk8) :: time_call
 
       ! check for indx: should not be less than zero
@@ -216,19 +219,25 @@ module mod_service
     end subroutine time_end
 
     subroutine time_print(iunit,name_of_section)
-      implicit none
-      character(len=*), optional :: name_of_section
-      integer(ik4) :: iunit
+      implicit none (type, external)
+      integer(ik4), intent(in) :: iunit
+      character(len=*), intent(in), optional :: name_of_section
       integer(ik4) :: nsubs, imin, imax, i, test, ilen, ierr
       real(rk8) :: avg, xmin, xmax
       real(rk8), allocatable :: array_tmp(:)
       integer(ik4), allocatable :: array_entries(:)
-      logical :: l_times_on_pe = .false.
-      logical :: l_nsubs = .true.
-      real(rk8) :: total_comm_time = 0.0D0
-      real(rk8) :: avg_value = 0.0D0
+      logical :: l_times_on_pe
+      logical :: l_nsubs
+      real(rk8) :: total_comm_time
+      real(rk8) :: avg_value
       character(len=128) :: cname
-      character(len=dbgslen) :: sub='time_print'
+      character(len=dbgslen) :: sub
+
+      sub = 'time_print'
+      l_times_on_pe = .false.
+      l_nsubs = .true.
+      total_comm_time = 0.0D0
+      avg_value = 0.0D0
 
       call mpi_barrier(mycomm,ierr)
 
@@ -362,7 +371,7 @@ module mod_service
     end subroutine time_print
 
     subroutine time_reset
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: nsubs
       do nsubs = 1, maxnsubs
         info_serial(nsubs)%n_of_time = 0
@@ -375,7 +384,7 @@ module mod_service
     end subroutine time_reset
 
     subroutine av_max_min(array,avg,xmax,indx_max,xmin,indx_min)
-      implicit none
+      implicit none (type, external)
       real(rk8), dimension(:), intent(in) :: array
       integer(ik4), intent(out) :: indx_min, indx_max
       real(rk8), intent(out) :: xmax, xmin, avg
@@ -401,7 +410,7 @@ module mod_service
     end subroutine av_max_min
 
     integer(ik4) function len_strim (string) result (len_trim_result)
-      implicit none
+      implicit none (type, external)
       character (len=*), intent(in) :: string
       integer(ik4) :: k
       len_trim_result = 0
@@ -414,14 +423,14 @@ module mod_service
     end function len_strim
 
     real(rk8) function timer()
-      implicit none
+      implicit none (type, external)
       integer(ik8) :: c, r, m
       call system_clock(count=c,count_rate=r,count_max=m)
       timer = dble(c)/dble(r)
-    end function
+    end function timer
 
     subroutine flusha(lunit)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: lunit
       ! If whe have a FLUSH, use it
       ! On IBM, flush is flush_
@@ -431,9 +440,14 @@ module mod_service
       call flush(lunit)
 #endif
     end subroutine flusha
+end module mod_service
+
 #else
-    character(len=4), public :: unised_module
+module mod_service
+  implicit none (type, external)
+  private
+  character(len=4), public :: unised_module
+end module mod_service
 #endif
 
-end module  mod_service
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -14,7 +14,7 @@ module mod_clm_surfacealbedo
   use mod_clm_varpar, only : nlevsno
   use mod_clm_snicar, only : sno_nbr_aer, SNICAR_RT, DO_SNO_AER, DO_SNO_OC
 
-  implicit none
+  implicit none (type, external)
 
   ! undefined real
   real(rk8), public, parameter :: SHR_ORB_UNDEF_REAL = 1.e36_rk8
@@ -70,7 +70,7 @@ module mod_clm_surfacealbedo
                            nextsw_cday, declinp1)
     use mod_clm_type
     use mod_clm_varctl, only : subgridflag
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbg, ubg  ! gridcell bounds
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     integer(ik4), intent(in) :: lbp, ubp  ! pft bounds
@@ -1024,7 +1024,7 @@ module mod_clm_surfacealbedo
     use mod_clm_varcon, only : istdlak
     use mod_clm_slakecon, only : alblak
     use mod_clm_slakecon, only : alblakwi, calb, lakepuddling
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc ! column bounds
     ! number of columns in non-urban points in column filter
     integer(ik4), intent(in) :: num_nourbanc
@@ -1192,7 +1192,7 @@ module mod_clm_surfacealbedo
     use mod_clm_type
     use mod_clm_varpar, only : numrad, nlevcan
     use mod_clm_varcon, only : omegas, tfrz, betads, betais
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in)  :: lbp, ubp ! pft bounds
     ! filter for vegetated pfts with coszen>0
     integer(ik4), dimension(ubp-lbp+1), intent(in)  :: filter_vegsol

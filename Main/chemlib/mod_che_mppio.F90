@@ -26,7 +26,7 @@ module mod_che_mppio
   use mod_che_common
   use mod_che_species
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -49,7 +49,7 @@ module mod_che_mppio
     ! This routines allocate all the arrays contained in the module
     !
     subroutine allocate_mod_che_mppio
-      implicit none
+      implicit none (type, external)
 
       if ( ichem == 1 ) then
 

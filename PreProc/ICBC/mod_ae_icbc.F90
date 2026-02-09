@@ -27,6 +27,7 @@ module mod_ae_icbc
   use mod_date
   use mod_nchelper
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -63,7 +64,7 @@ module mod_ae_icbc
   contains
 
   subroutine init_ae_icbc(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivarid, istatus, dimid, is
     integer(ik4) :: nyear, month, nday, nhour
@@ -200,7 +201,7 @@ module mod_ae_icbc
   end subroutine init_ae_icbc
 
   subroutine get_ae_icbc(idate)
-    implicit none
+    implicit none (type, external)
 
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: i, l, is, j, k, k0
@@ -334,7 +335,7 @@ module mod_ae_icbc
 
   subroutine close_ae_icbc
     use netcdf
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(hint)
     if ( ncid > 0 ) then
       istatus = nf90_close(ncid)

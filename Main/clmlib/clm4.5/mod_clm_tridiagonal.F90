@@ -5,7 +5,7 @@ module mod_clm_tridiagonal
   use mod_intkinds
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -25,12 +25,12 @@ module mod_clm_tridiagonal
   !
   ! Tridiagonal matrix solution
   !
-  
+
 #if defined(STDPAR) || defined(OPENACC) || defined(_OPENACC)
 
   subroutine Tridiagonal_dispatcher(lbc, ubc, lbj, ubj, jtop, numf, filter, &
                           a, b, c, r, u)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in)    :: lbc, ubc ! lbinning and ubing column indices
     integer(ik4), intent(in)    :: lbj, ubj ! lbinning and ubing level indices
     integer(ik4), intent(in)    :: jtop(lbc:ubc) ! top level for each column
@@ -47,11 +47,11 @@ module mod_clm_tridiagonal
     real(rk8), intent(inout) :: u(lbc:ubc, lbj:ubj)    ! solution
 
     if (numf < 0) then
-       ! Dispatch on CPU     
+       ! Dispatch on CPU
        call Tridiagonal_cpu (lbc, ubc, lbj, ubj, jtop, numf, filter, &
                              a, b, c, r, u)
     else
-       ! Dispatch on GPU     
+       ! Dispatch on GPU
        call Tridiagonal_gpu (lbc, ubc, lbj, ubj, jtop, numf, filter, &
                              a, b, c, r, u)
     endif
@@ -64,7 +64,7 @@ module mod_clm_tridiagonal
     use mod_clm_type
     use mod_clm_varpar, only : nlevurb
     use mod_clm_varcon, only : icol_roof, icol_sunwall, icol_shadewall
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in)    :: lbc, ubc ! lbinning and ubing column indices
     integer(ik4), intent(in)    :: lbj, ubj ! lbinning and ubing level indices
     integer(ik4), intent(in)    :: jtop(lbc:ubc) ! top level for each column
@@ -94,7 +94,7 @@ module mod_clm_tridiagonal
     do concurrent (fc = 1: numf)
       ci = filter(fc)
       bet(ci) = b(ci,jtop(ci))
-      !$acc loop seq 
+      !$acc loop seq
       do j = lbj, ubj
         if ( (ctype(ci) == icol_sunwall .or. &
               ctype(ci) == icol_shadewall .or. &
@@ -149,7 +149,7 @@ module mod_clm_tridiagonal
     use mod_clm_type
     use mod_clm_varpar, only : nlevurb
     use mod_clm_varcon, only : icol_roof, icol_sunwall, icol_shadewall
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in)    :: lbc, ubc ! lbinning and ubing column indices
     integer(ik4), intent(in)    :: lbj, ubj ! lbinning and ubing level indices
     integer(ik4), intent(in)    :: jtop(lbc:ubc) ! top level for each column
@@ -176,7 +176,7 @@ module mod_clm_tridiagonal
     ctype => clm3%g%l%c%itype
 
     ! Solve the matrix
-    
+
 
     do fc = 1, numf
       ci = filter(fc)
@@ -232,7 +232,7 @@ module mod_clm_tridiagonal
         end if
       end do
     end do
-    
+
   end subroutine Tridiagonal_cpu
 
 end module mod_clm_tridiagonal

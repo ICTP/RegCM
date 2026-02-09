@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  implicit none
+  implicit none (type, external)
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 
@@ -31,7 +31,7 @@ program ncplot
   use mod_stdio
   use netcdf
 
-  implicit none
+  implicit none (type, external)
 
   character(256) :: prgname, ncfile, clmfile, tmpctl, tmpcoord
   character(512) :: command, levels

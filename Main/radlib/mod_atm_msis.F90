@@ -20,7 +20,7 @@ module physics_msis
   use mod_constants
   use mod_spline
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -1068,7 +1068,7 @@ module physics_msis
 !   Chemistry/dissociation correction for msis models
 !
     real(rkx) function ccor(alt,r,h1,zh)
-      implicit none
+      implicit none (type, external)
       ! alt - Altitude
       ! r   - Target ratio
       ! h1  - Transition scale length
@@ -1091,7 +1091,7 @@ module physics_msis
 !   O&O2 Chemistry/dissociation correction for msis models
 !
     real(rkx) function ccor2(alt,r,h1,zh,h2)
-      implicit none
+      implicit none (type, external)
       ! alt - Altitude
       ! r   - Target ratio
       ! h1  - Transition scale length
@@ -1117,7 +1117,7 @@ module physics_msis
 ! Calculate Temperature and Density Profiles for lower atmos.
 !
     real(rkx) function densm(alt,d0,xm,tz)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), intent(in) :: alt, d0, xm
       real(rkx), intent(out) :: tz
@@ -1201,7 +1201,7 @@ module physics_msis
       if ( abs(xm) < nearzero ) densm = tz
       contains
         real(rkx) function zeta(zz,zl)
-          implicit none
+          implicit none (type, external)
           real(rkx), intent(in) :: zz, zl
           zeta = (zz-zl)*(re+zl)/(re+zz)
         end function zeta
@@ -1211,7 +1211,7 @@ module physics_msis
 !   New lower thermo polynomial 10/30/89
 !
     real(rkx) function densu(alt,dlb,t1,t2,xm,xalph,tz,zlb,s2)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), intent(in) :: xalph, alt, t1, t2, dlb, s2, xm, zlb
       real(rkx), intent(out) :: tz
@@ -1287,7 +1287,7 @@ module physics_msis
       end if
       contains
         real(rkx) function zeta(zz,zl)
-          implicit none
+          implicit none (type, external)
           real(rkx), intent(in) :: zz, zl
           zeta = (zz-zl)*(re+zl)/(re+zz)
         end function zeta
@@ -1296,7 +1296,7 @@ module physics_msis
 !   Turbopause correction for msis models
 !
     real(rkx) function dnet(dd,dm,zhm,xmm,xm)
-      implicit none
+      implicit none (type, external)
 !
 !     DD - diffusive density
 !     DM - full mixed density
@@ -1340,7 +1340,7 @@ module physics_msis
 !   To get current values of SW: CALL TRETRV(SW)
 !
     subroutine tselec(sv)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), dimension(25), intent(in) :: sv
 !
@@ -1361,7 +1361,7 @@ module physics_msis
     end subroutine tselec
 !
     subroutine tretrv(svv)
-      implicit none
+      implicit none (type, external)
       real(rkx), dimension(25), intent(out) :: svv
       integer(ik4) :: i
       do i = 1, 25
@@ -1372,7 +1372,7 @@ module physics_msis
 !   CALCULATE LATITUDE VARIABLE GRAVITY (GV) AND EFFECTIVE RADIUS (REFF)
 !
     subroutine glatf(lat)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: lat
       real(rkx)  :: c2
       c2 = cos(d_two*degrad*lat)
@@ -1381,7 +1381,7 @@ module physics_msis
     end subroutine glatf
 !
     real(rkx) function glob7s(glong,p)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), intent(in) :: glong
       real(rkx), dimension(:), intent(out) :: p
@@ -1516,7 +1516,7 @@ module physics_msis
 !     T(2) - TEMPERATURE AT ALT
 !
     subroutine ghp7(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,d,t,press)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), intent(in) :: f107, f107a, glat, glong, press, sec, stl
       real(rkx), intent(out) :: alt
@@ -1586,7 +1586,7 @@ module physics_msis
     end subroutine ghp7
 !
     real(rkx) function globe7(yrd,sec,lat,long,tloc,f107a,f107,ap,p)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), intent(in) :: f107, f107a, lat, long, sec, tloc, yrd
       real(rkx), dimension(:), intent(in) :: ap
@@ -1806,20 +1806,20 @@ module physics_msis
 !     3hr Magnetic activity functions
 !     Eq. A24d
       real(rkx) function g0(a)
-        implicit none
+        implicit none (type, external)
         real(rkx), intent(in) :: a
         g0 = (a-d_four+(p(26)-d_one)*(a-d_four + &
              (exp(-abs(p(25))*(a-d_four))-d_one)/abs(p(25))))
       end function g0
 !     Eq. A24c
       real(rkx) function sumex(ex)
-        implicit none
+        implicit none (type, external)
         real(rkx), intent(in) :: ex
         sumex = d_one + (d_one-ex**19)/(d_one-ex)*sqrt(ex)
       end function sumex
 !     Eq. A24a
       real(rkx) function sg0(ex)
-        implicit none
+        implicit none (type, external)
         real(rkx), intent(in) :: ex
         sg0 = (g0(ap(2))+(g0(ap(3))*ex+g0(ap(4))*ex*ex + &
                g0(ap(5))*ex**3+(g0(ap(6))*ex**4 +    &
@@ -1828,7 +1828,7 @@ module physics_msis
     end function globe7
 !
     subroutine gtd7d(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,mass,d,t)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), intent(in) :: alt, f107, f107a, glat, glong, sec, stl
       integer(ik4) :: iyd, mass
@@ -1907,7 +1907,7 @@ module physics_msis
     end subroutine gtd7d
 !
     subroutine gtd7(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,mass,d,t)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), intent(in) :: alt, f107, f107a, glat, glong, sec, stl
       integer(ik4), intent(in) :: iyd, mass
@@ -2181,7 +2181,7 @@ module physics_msis
     end subroutine gtd7
 !
     subroutine gts7(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,mass,d,t)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), intent(in) :: alt, f107, f107a, glat, glong, sec, stl
       integer(ik4), intent(in) :: iyd, mass
@@ -2625,7 +2625,7 @@ module physics_msis
       !   Calculate scale height (km)
       !
       real(rkx) function scalh(alt,xm,temp)
-        implicit none
+        implicit none (type, external)
         real(rkx), intent(in) :: alt, temp, xm
         real(rkx) :: g
         g = gsurf/(d_one+alt/re)**2
@@ -2634,7 +2634,7 @@ module physics_msis
     end subroutine gts7
 !
     real(rkx) function vtst7(iyd,sec,glat,glong,stl,f107a,f107,ap,ic)
-      implicit none
+      implicit none (type, external)
 !
       real(rkx), intent(in) :: f107, f107a, glat, glong, sec, stl
       integer(ik4), intent(in) :: ic, iyd

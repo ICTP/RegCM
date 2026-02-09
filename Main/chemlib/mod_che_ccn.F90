@@ -20,6 +20,7 @@ module mod_che_ccn
   use mod_realkinds
   use mod_che_common
   use mod_che_carbonaer
+  implicit none (type, external)
 
   private
 
@@ -42,7 +43,7 @@ module mod_che_ccn
   contains
 
   subroutine ccn
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i, j, k, n
     cccn(:,:,:) = d_zero
     if ( nbchl > 0 ) then
@@ -104,7 +105,7 @@ module mod_che_ccn
   end subroutine ccn
 
   pure elemental real(rkx) function calc_ccn(denx,mrat) result(res)
-    implicit none
+    implicit none (type, external)
     ! Calculate the particle number from the mass distriubution of
     ! hydrophilic particle
     ! coef_ccn is a coefficient detremined by assuming a lognormal mass

@@ -13,7 +13,7 @@ module mod_clm_dynland
                       icol_shadewall, cpice, cpliq, denh2o
   use mod_clm_varpar, only : nlevsno, nlevgrnd, nlevurb, nlevlak
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -26,7 +26,7 @@ module mod_clm_dynland
   ! Compute grid-level heat and water content
   !
   subroutine dynland_hwcontent(begg,endg,gcell_liq,gcell_ice,gcell_heat)
-    implicit none
+    implicit none (type, external)
 
     ! proc beg & end gridcell indices
     integer(ik4), intent(in)  :: begg, endg

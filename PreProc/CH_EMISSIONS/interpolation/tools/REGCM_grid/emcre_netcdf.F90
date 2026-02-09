@@ -2,6 +2,7 @@
 MODULE EMCRE_NETCDF
 
   USE emcre_tools
+  implicit none (type, external)
 
 
 
@@ -9,5 +10,5 @@ MODULE EMCRE_NETCDF
 
 
 
-END MODULE
+END MODULE EMCRE_NETCDF
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

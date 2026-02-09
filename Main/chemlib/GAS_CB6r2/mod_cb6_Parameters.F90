@@ -25,6 +25,7 @@
 MODULE mod_cb6_Parameters
 
   USE mod_cb6_Precision
+  implicit none (type, external)
   PUBLIC
   SAVE
 

@@ -29,7 +29,7 @@ module mod_sladvection
   use mod_mppparam
   use mod_service
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -56,7 +56,7 @@ module mod_sladvection
 
   subroutine init_sladvection
     use mod_atm_interface, only : atmx, mddom
-    implicit none
+    implicit none (type, external)
     call assignpnt(atmx%umd,ua)
     call assignpnt(atmx%vmd,va)
     call assignpnt(mddom%msfx,mapfx)
@@ -64,7 +64,7 @@ module mod_sladvection
   end subroutine init_sladvection
 
   subroutine adv_velocity(ldot)
-    implicit none
+    implicit none (type, external)
     logical, intent(in) :: ldot
     integer(ik4) :: i, j, k
 #ifdef DEBUG
@@ -118,7 +118,7 @@ module mod_sladvection
   end subroutine adv_velocity
 
   subroutine trajcalc_x
-    implicit none
+    implicit none (type, external)
     real(rkx) :: ux, uxx, xdis, xn, alfax, vy, vyy, ydis, &
                  yn, betay, ddx, ddy
     integer(ik4) :: i, j, k, xnp, xsn, ynp, ysn
@@ -228,7 +228,7 @@ module mod_sladvection
   end subroutine trajcalc_x
 
   subroutine trajcalc_d
-    implicit none
+    implicit none (type, external)
     real(rkx) :: ux, uxx, xdis, xn, alfax, vy, vyy, ydis, &
                  yn, betay, ddx, ddy
     integer(ik4) :: i, j, k, xnp, xsn, ynp, ysn
@@ -332,7 +332,7 @@ module mod_sladvection
   end subroutine trajcalc_d
 
   subroutine slhadv_x3d(ften,var)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: var
     real(rkx) :: tbadp, tbmax, tbmin, tsla, bl1, bl2, cb1, cb2
@@ -398,7 +398,7 @@ module mod_sladvection
   end subroutine slhadv_x3d
 
   subroutine slhadv_x4d(ften,var,m,p)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: var
     integer(ik4), optional, intent(in) :: m, p
@@ -478,7 +478,7 @@ module mod_sladvection
   end subroutine slhadv_x4d
 
   subroutine slhadv_d(ften,var)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: var
 
@@ -542,7 +542,7 @@ module mod_sladvection
   end subroutine slhadv_d
 
   subroutine hdvg_x3d(ften,var)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: var
 
@@ -593,7 +593,7 @@ module mod_sladvection
   end subroutine hdvg_x3d
 
   subroutine hdvg_x4d(ften,var,m,p)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: var
     integer(ik4), optional, intent(in) :: m, p
@@ -663,7 +663,7 @@ module mod_sladvection
   end subroutine hdvg_x4d
 
   subroutine hdvg_d(ften,var)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: var
     real(rkx) :: ucapf, ucapi, ducapdx, vcapf, vcapi,   &

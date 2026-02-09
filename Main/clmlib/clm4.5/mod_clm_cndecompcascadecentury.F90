@@ -1,4 +1,5 @@
 module mod_clm_cndecompcascadecentury
+implicit none (type, external)
 #ifdef CN
 
 #ifdef CENTURY_DECOMP
@@ -22,7 +23,7 @@ module mod_clm_cndecompcascadecentury
   use mod_clm_ch4varcon, only : mino2lim
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -65,7 +66,7 @@ module mod_clm_cndecompcascadecentury
   !
   subroutine init_decompcascade(begc, endc)
     use mod_clm_type
-    implicit none
+    implicit none (type, external)
     ! column level
     ! per-proc beginning and ending column indices
     integer(ik4)  :: begc, endc
@@ -405,7 +406,7 @@ module mod_clm_cndecompcascadecentury
   subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
     use mod_clm_varcon, only: secspday
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc        ! column bounds
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc
@@ -631,7 +632,7 @@ module mod_clm_cndecompcascadecentury
       ! Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
 
-      minpsi = -10.00_rk8;
+      minpsi = -10.00_rk8
 
       do j = 1, nlev_soildecomp_standard
         do fc = 1, num_soilc
@@ -736,7 +737,7 @@ module mod_clm_cndecompcascadecentury
       ! Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
 
-      minpsi = -10.00_rk8;
+      minpsi = -10.00_rk8
       do j = 1, nlevdecomp
         do fc = 1, num_soilc
           c = filter_soilc(fc)

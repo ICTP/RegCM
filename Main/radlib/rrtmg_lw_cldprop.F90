@@ -42,7 +42,7 @@
                           absice0, absice1, absice2, absice3
       use rrlw_vsn, only: hvrcld, hnamcld
 
-      implicit none
+      implicit none (type, external)
 
       contains
 
@@ -184,41 +184,41 @@
 ! Main layer loop
       do lay = 1, nlayers
          cwp = ciwp(lay) + clwp(lay)
-         if (cldfrac(lay) .ge. cldmin .and. &
-            (cwp .ge. cldmin .or. tauctot(lay) .ge. cldmin)) then
+         if (cldfrac(lay) >= cldmin .and. &
+            (cwp >= cldmin .or. tauctot(lay) >= cldmin)) then
 
 ! Ice clouds and water clouds combined.
-            if (inflag .eq. 0) then
+            if (inflag == 0) then
                ncbands = 16
                do ib = 1, ncbands
                   taucloud(lay,ib) = tauc(ib,lay)
                end do
 
-            elseif (inflag .eq. 1) then
+            elseif (inflag == 1) then
                ncbands = 16
                do ib = 1, ncbands
                   taucloud(lay,ib) = abscld1 * cwp
                end do
 
 ! Separate treatement of ice clouds and water clouds.
-            elseif (inflag .eq. 2) then
+            elseif (inflag == 2) then
                radice = rei(lay)
 
 ! Calculation of absorption coefficients due to ice clouds.
-               if (ciwp(lay) .eq. 0.0_rb) then
+               if (ciwp(lay) == 0.0_rb) then
                   abscoice(1) = 0.0_rb
                   iceind = 0
 
-               elseif (iceflag .eq. 0) then
+               elseif (iceflag == 0) then
 #ifdef DEBUG
-                  if (radice .lt. 10.0_rb) stop 'ICE RADIUS TOO SMALL'
+                  if (radice < 10.0_rb) stop 'ICE RADIUS TOO SMALL'
 #endif
                   abscoice(1) = absice0(1) + absice0(2)/radice
                   iceind = 0
 
-               elseif (iceflag .eq. 1) then
+               elseif (iceflag == 1) then
 #ifdef DEBUG
-                  if (radice .lt. 13.0_rb .or. radice .gt. 130._rb) &
+                  if (radice < 13.0_rb .or. radice > 130._rb) &
                        stop 'ICE RADIUS OUT OF BOUNDS'
 #endif
                   ncbands = 5
@@ -229,15 +229,15 @@
 
 ! For iceflag=2 option, ice particle effective radius is limited to 5.0 to 131.0 microns
 
-               elseif (iceflag .eq. 2) then
+               elseif (iceflag == 2) then
 #ifdef DEBUG
-                  if (radice .lt. 5.0_rb .or. radice .gt. 131.0_rb) &
+                  if (radice < 5.0_rb .or. radice > 131.0_rb) &
                      stop 'ICE RADIUS OUT OF BOUNDS'
 #endif
                      ncbands = 16
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
-                     if (index .eq. 43) index = 42
+                     if (index == 43) index = 42
                      fint = factor - real(index)
                      do ib = 1, ncbands
                         abscoice(ib) = &
@@ -248,15 +248,15 @@
 
 ! For iceflag=3 option, ice particle generalized effective size is limited to 5.0 to 140.0 microns
 
-               elseif (iceflag .eq. 3) then
+               elseif (iceflag == 3) then
 #ifdef DEBUG
-                  if (radice .lt. 5.0_rb .or. radice .gt. 140.0_rb) &
+                  if (radice < 5.0_rb .or. radice > 140.0_rb) &
                      stop 'ICE GENERALIZED EFFECTIVE SIZE OUT OF BOUNDS'
 #endif
                      ncbands = 16
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
-                     if (index .eq. 46) index = 45
+                     if (index == 46) index = 45
                      fint = factor - real(index)
                      do ib = 1, ncbands
                         abscoice(ib) = &
@@ -268,25 +268,25 @@
                endif
 
 ! Calculation of absorption coefficients due to water clouds.
-               if (clwp(lay) .eq. 0.0_rb) then
+               if (clwp(lay) == 0.0_rb) then
                   abscoliq(1) = 0.0_rb
                   liqind = 0
-                  if (iceind .eq. 1) iceind = 2
+                  if (iceind == 1) iceind = 2
 
-               elseif (liqflag .eq. 0) then
+               elseif (liqflag == 0) then
                   abscoliq(1) = absliq0
                   liqind = 0
-                  if (iceind .eq. 1) iceind = 2
+                  if (iceind == 1) iceind = 2
 
-               elseif (liqflag .eq. 1) then
+               elseif (liqflag == 1) then
                   radliq = rel(lay)
 #ifdef DEBUG
-                  if (radliq .lt. 2.5_rb .or. radliq .gt. 60._rb) &
+                  if (radliq < 2.5_rb .or. radliq > 60._rb) &
                     stop 'LIQUID EFFECTIVE RADIUS OUT OF BOUNDS'
 #endif
                   index = int(radliq - 1.5_rb)
-                  if (index .eq. 0) index = 1
-                  if (index .eq. 58) index = 57
+                  if (index == 0) index = 1
+                  if (index == 58) index = 57
                   fint = radliq - 1.5_rb - real(index)
                   ncbands = 16
                   do ib = 1, ncbands

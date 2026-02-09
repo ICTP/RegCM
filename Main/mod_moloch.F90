@@ -40,7 +40,7 @@ module mod_moloch
   use mod_stdatm
   use mod_zita
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -187,7 +187,7 @@ module mod_moloch
 #include <pfwsat.inc>
 
   subroutine allocate_moloch
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: k
     call getmem(gzitak,1,kzp1,'moloch:gzitak')
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
@@ -243,7 +243,7 @@ module mod_moloch
   end subroutine allocate_moloch
 
   subroutine init_moloch
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i, j
     call assignpnt(mddom%msfu,mu)
     call assignpnt(mddom%msfv,mv)
@@ -327,7 +327,7 @@ module mod_moloch
   !
   subroutine moloch
     !@acc use nvtx
-    implicit none
+    implicit none (type, external)
     real(rkx) :: dtsound, dtstepa
     real(rkx) :: maxps, minps, pmax, pmin
     real(rkx) :: fice, zdgz, lrt, tv
@@ -629,7 +629,7 @@ module mod_moloch
   end subroutine moloch
 
   subroutine boundary
-    implicit none
+    implicit none (type, external)
     logical :: do_nudge
     integer(ik4) :: i, j, k, n
     do_nudge = ( iboudy == 1 .or. iboudy >= 5 .or. iboudy == 4)
@@ -712,7 +712,7 @@ module mod_moloch
 
 #ifdef RCEMIP
     subroutine gkfilter2d(f,irep)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: irep
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: f
       real(rkx), allocatable, dimension(:,:) :: temp
@@ -745,7 +745,7 @@ module mod_moloch
     end subroutine gkfilter2d
 
     subroutine gkfilter3d(f,irep)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: irep
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: f
       real(rkx), allocatable, dimension(:,:,:) :: temp
@@ -778,7 +778,7 @@ module mod_moloch
     end subroutine gkfilter3d
 
     subroutine gkfilter4d(f,irep)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: irep
       real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: f
       real(rkx), allocatable, dimension(:,:,:,:) :: temp
@@ -810,7 +810,7 @@ module mod_moloch
     end subroutine gkfilter4d
 
     subroutine gkfilteruv(u,v,irep)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: irep
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
       real(rkx), allocatable, dimension(:,:,:) :: temp
@@ -867,7 +867,7 @@ module mod_moloch
     end subroutine gkfilteruv
 
     subroutine filt3d(p,nu)
-      implicit none
+      implicit none (type, external)
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: p
       real(rkx), intent(in) :: nu
       integer(ik4) :: j, i, k
@@ -883,7 +883,7 @@ module mod_moloch
     end subroutine filt3d
 
     subroutine filtuv(u,v,nu)
-      implicit none
+      implicit none (type, external)
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
       real(rkx), intent(in) :: nu
       integer(ik4) :: j, i, k
@@ -907,7 +907,7 @@ module mod_moloch
     end subroutine filtuv
 
     subroutine filt4d(p,nu,n1,n2)
-      implicit none
+      implicit none (type, external)
       real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: p
       real(rkx), intent(in) :: nu
       integer(ik4), intent(in) :: n1, n2
@@ -927,7 +927,7 @@ module mod_moloch
 #endif
 
     subroutine divergence_filter( )
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: j, i, k
       if ( ma%has_bdybottom ) then
         do concurrent ( j = jci1:jci2, k = 1:kz )
@@ -961,7 +961,7 @@ module mod_moloch
     end subroutine divergence_filter
 
     subroutine filtpai
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: j, i, k
 
       call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
@@ -977,7 +977,7 @@ module mod_moloch
     end subroutine filtpai
 
     subroutine filttheta
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: j, i, k
 
       call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
@@ -994,7 +994,7 @@ module mod_moloch
 
     subroutine sound(dts)
       !@acc use nvtx
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: dts
       integer(ik4) :: i, j, k, nsound
       real(rkx) :: dtrdx, dtrdy, dtrdz, zcs2
@@ -1247,7 +1247,7 @@ module mod_moloch
     end subroutine sound
 
     subroutine divdamp(dts)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: dts
       integer(ik4) :: i, j, k
       real(rkx) :: ddamp
@@ -1308,7 +1308,7 @@ module mod_moloch
 
     subroutine advection(dta)
       !@acc use nvtx
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: dta
       integer(ik4) :: n
       real(rkx), pointer, contiguous, dimension(:,:,:) :: ptr => null( )
@@ -1365,7 +1365,7 @@ module mod_moloch
     end subroutine advection
 
     subroutine wafone(pp,dta,pfac,pmin)
-      implicit none
+      implicit none (type, external)
       real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: pp
       real(rkx), intent(in) :: dta
       real(rkx), optional, intent(in) :: pfac, pmin
@@ -1643,7 +1643,7 @@ module mod_moloch
     end subroutine wafone
 
     subroutine reset_tendencies
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: i, j, k, n
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
         s(j,i,k) = d_zero
@@ -1693,7 +1693,7 @@ module mod_moloch
 
     subroutine physical_parametrizations
       !@acc use nvtx
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: i, j, k, n
       logical :: loutrad, labsem
       !@acc call nvtxStartRange("physical_parametrizations")
@@ -2018,7 +2018,7 @@ module mod_moloch
     end subroutine physical_parametrizations
 
   subroutine wstagtox(w,wx)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: w
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: wx
     integer(ik4) :: i, j, k
@@ -2034,7 +2034,7 @@ module mod_moloch
   end subroutine wstagtox
 
   subroutine xtowstag(wx,w)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: wx
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: w
     integer(ik4) :: i, j, k
@@ -2050,7 +2050,7 @@ module mod_moloch
   end subroutine xtowstag
 
   subroutine xtoustag(ux,u)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: ux
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u
     integer(ik4) :: i, j, k
@@ -2073,7 +2073,7 @@ module mod_moloch
   end subroutine xtoustag
 
   subroutine xtovstag(vx,v)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: vx
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: v
     integer(ik4) :: i, j, k
@@ -2095,7 +2095,7 @@ module mod_moloch
   end subroutine xtovstag
 
   subroutine xtouvstag(ux,vx,u,v)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
     integer(ik4) :: i, j, k
@@ -2139,7 +2139,7 @@ module mod_moloch
   end subroutine xtouvstag
 
   subroutine uvstagtox(u,v,ux,vx)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
     integer(ik4) :: i, j, k

@@ -2,7 +2,7 @@
 
       use parkind, only : im => kind_im, rb => kind_rb
 
-      implicit none
+      implicit none (type, external)
       save
 
 !------------------------------------------------------------------

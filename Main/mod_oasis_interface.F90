@@ -36,7 +36,7 @@ module mod_oasis_interface
   use mod_oasis_signature
   use mod_oasis_generic
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -151,7 +151,7 @@ module mod_oasis_interface
   contains
 
   subroutine oasisxregcm_params
-    implicit none
+    implicit none (type, external)
     !--------------------------------------------------------------------------
     oasis_lag = 0
     ! state which grids have to be defined,
@@ -204,43 +204,73 @@ module mod_oasis_interface
     if ( l_make_grdci )   call oasisxregcm_setup_grid(grdci, 'rcin', 'rcim', &
                                jci1, jci2, ici1, ici2, 2, jx-2, 2, iy-2, 4)
     !
-    ! initialize fields: field variable, name, grid, field array (optional), initialization value
-    !                                                                        (optional; 0 otherwise)
-    if ( l_cpl_im_sst )  call oasisxregcm_setup_field(im_sst,  'RCM_SST',  grdci, cpl_sst, init_sst)
-!    if ( l_cpl_im_sit )  call oasisxregcm_setup_field(im_sit,  'RCM_SIT',  grdci, cpl_sit)
-    if ( l_cpl_im_wz0 )  call oasisxregcm_setup_field(im_wz0,  'RCM_WZ0',  grdci, cpl_wz0)
-    if ( l_cpl_im_wust ) call oasisxregcm_setup_field(im_wust, 'RCM_WUST', grdci, cpl_wust)
-    if ( l_cpl_ex_u10m ) call oasisxregcm_setup_field(ex_u10m, 'RCM_U10M', grdci)
-    if ( l_cpl_ex_v10m ) call oasisxregcm_setup_field(ex_v10m, 'RCM_V10M', grdci)
-    if ( l_cpl_ex_wspd ) call oasisxregcm_setup_field(ex_wspd, 'RCM_WSPD', grdci)
-    if ( l_cpl_ex_wdir ) call oasisxregcm_setup_field(ex_wdir, 'RCM_WDIR', grdci, cpl_wdir)
-    if ( l_cpl_ex_t2m )  call oasisxregcm_setup_field(ex_t2m,  'RCM_T2M',  grdci)
-!    if ( l_cpl_ex_t10m ) call oasisxregcm_setup_field(ex_t10m, 'RCM_T10M', grdci)
-    if ( l_cpl_ex_q2m )  call oasisxregcm_setup_field(ex_q2m,  'RCM_Q2M',  grdci)
-!    if ( l_cpl_ex_q10m ) call oasisxregcm_setup_field(ex_q10m, 'RCM_Q10M', grdci)
-    if ( l_cpl_ex_slp )  call oasisxregcm_setup_field(ex_slp,  'RCM_SLP',  grdce)
-    if ( l_cpl_ex_taux ) call oasisxregcm_setup_field(ex_taux, 'RCM_TAUX', grdci)
-    if ( l_cpl_ex_tauy ) call oasisxregcm_setup_field(ex_tauy, 'RCM_TAUY', grdci)
-    if ( l_cpl_ex_z0 )   call oasisxregcm_setup_field(ex_z0,   'RCM_Z0',   grdci)
-    if ( l_cpl_ex_ustr ) call oasisxregcm_setup_field(ex_ustr, 'RCM_USTR', grdci)
-    if ( l_cpl_ex_evap ) call oasisxregcm_setup_field(ex_evap, 'RCM_EVAP', grdci)
-    if ( l_cpl_ex_prec ) call oasisxregcm_setup_field(ex_prec, 'RCM_PREC', grdci)
-    if ( l_cpl_ex_nuwa ) call oasisxregcm_setup_field(ex_nuwa, 'RCM_NUWA', grdci)
-    if ( l_cpl_ex_ulhf ) call oasisxregcm_setup_field(ex_ulhf, 'RCM_ULHF', grdci)
-    if ( l_cpl_ex_ushf ) call oasisxregcm_setup_field(ex_ushf, 'RCM_USHF', grdci)
-    if ( l_cpl_ex_uwlw ) call oasisxregcm_setup_field(ex_uwlw, 'RCM_UWLW', grdci)
-    if ( l_cpl_ex_dwlw ) call oasisxregcm_setup_field(ex_dwlw, 'RCM_DWLW', grdci)
-    if ( l_cpl_ex_nulw ) call oasisxregcm_setup_field(ex_nulw, 'RCM_NULW', grdci)
-    if ( l_cpl_ex_uwsw ) call oasisxregcm_setup_field(ex_uwsw, 'RCM_UWSW', grdci)
-    if ( l_cpl_ex_dwsw ) call oasisxregcm_setup_field(ex_dwsw, 'RCM_DWSW', grdci)
-    if ( l_cpl_ex_ndsw ) call oasisxregcm_setup_field(ex_ndsw, 'RCM_NDSW', grdci)
-    if ( l_cpl_ex_rhoa ) call oasisxregcm_setup_field(ex_rhoa, 'RCM_RHOA', grdci)
+    ! initialize fields: field variable, name, grid, field array (optional),
+    ! initialization value
+    !                     (optional; 0 otherwise)
+    if ( l_cpl_im_sst )  &
+      call oasisxregcm_setup_field(im_sst, 'RCM_SST',  grdci, cpl_sst, init_sst)
+!   if ( l_cpl_im_sit )  &
+!     call oasisxregcm_setup_field(im_sit, 'RCM_SIT',  grdci, cpl_sit)
+    if ( l_cpl_im_wz0 )  &
+      call oasisxregcm_setup_field(im_wz0, 'RCM_WZ0',  grdci, cpl_wz0)
+    if ( l_cpl_im_wust ) &
+      call oasisxregcm_setup_field(im_wust,'RCM_WUST', grdci, cpl_wust)
+    if ( l_cpl_ex_u10m ) &
+      call oasisxregcm_setup_field(ex_u10m,'RCM_U10M', grdci)
+    if ( l_cpl_ex_v10m ) &
+      call oasisxregcm_setup_field(ex_v10m,'RCM_V10M', grdci)
+    if ( l_cpl_ex_wspd ) &
+      call oasisxregcm_setup_field(ex_wspd,'RCM_WSPD', grdci)
+    if ( l_cpl_ex_wdir ) &
+      call oasisxregcm_setup_field(ex_wdir,'RCM_WDIR', grdci, cpl_wdir)
+    if ( l_cpl_ex_t2m )  &
+      call oasisxregcm_setup_field(ex_t2m, 'RCM_T2M',  grdci)
+!   if ( l_cpl_ex_t10m ) &
+!     call oasisxregcm_setup_field(ex_t10m,'RCM_T10M', grdci)
+    if ( l_cpl_ex_q2m )  &
+      call oasisxregcm_setup_field(ex_q2m, 'RCM_Q2M',  grdci)
+!   if ( l_cpl_ex_q10m ) &
+!     call oasisxregcm_setup_field(ex_q10m,'RCM_Q10M', grdci)
+    if ( l_cpl_ex_slp )  &
+      call oasisxregcm_setup_field(ex_slp, 'RCM_SLP',  grdce)
+    if ( l_cpl_ex_taux ) &
+      call oasisxregcm_setup_field(ex_taux,'RCM_TAUX', grdci)
+    if ( l_cpl_ex_tauy ) &
+      call oasisxregcm_setup_field(ex_tauy,'RCM_TAUY', grdci)
+    if ( l_cpl_ex_z0 )   &
+      call oasisxregcm_setup_field(ex_z0,  'RCM_Z0',   grdci)
+    if ( l_cpl_ex_ustr ) &
+      call oasisxregcm_setup_field(ex_ustr,'RCM_USTR', grdci)
+    if ( l_cpl_ex_evap ) &
+      call oasisxregcm_setup_field(ex_evap,'RCM_EVAP', grdci)
+    if ( l_cpl_ex_prec ) &
+      call oasisxregcm_setup_field(ex_prec,'RCM_PREC', grdci)
+    if ( l_cpl_ex_nuwa ) &
+      call oasisxregcm_setup_field(ex_nuwa,'RCM_NUWA', grdci)
+    if ( l_cpl_ex_ulhf ) &
+      call oasisxregcm_setup_field(ex_ulhf,'RCM_ULHF', grdci)
+    if ( l_cpl_ex_ushf ) &
+      call oasisxregcm_setup_field(ex_ushf,'RCM_USHF', grdci)
+    if ( l_cpl_ex_uwlw ) &
+      call oasisxregcm_setup_field(ex_uwlw,'RCM_UWLW', grdci)
+    if ( l_cpl_ex_dwlw ) &
+      call oasisxregcm_setup_field(ex_dwlw,'RCM_DWLW', grdci)
+    if ( l_cpl_ex_nulw ) &
+      call oasisxregcm_setup_field(ex_nulw,'RCM_NULW', grdci)
+    if ( l_cpl_ex_uwsw ) &
+      call oasisxregcm_setup_field(ex_uwsw,'RCM_UWSW', grdci)
+    if ( l_cpl_ex_dwsw ) &
+      call oasisxregcm_setup_field(ex_dwsw,'RCM_DWSW', grdci)
+    if ( l_cpl_ex_ndsw ) &
+      call oasisxregcm_setup_field(ex_ndsw,'RCM_NDSW', grdci)
+    if ( l_cpl_ex_rhoa ) &
+      call oasisxregcm_setup_field(ex_rhoa,'RCM_RHOA', grdci)
     ! OASIS field +++
   end subroutine oasisxregcm_params
 
   ! call all definition subroutines for setting up OASIS
   subroutine oasisxregcm_def
-    implicit none
+    implicit none (type, external)
     !--------------------------------------------------------------------------
     ! partition definition
 #ifdef DEBUG
@@ -309,7 +339,7 @@ module mod_oasis_interface
 
   ! define OASIS grids
   subroutine oasisxregcm_def_grid
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:) :: dlon, dlat ! dot degree coordinates
     real(rkx), pointer, contiguous, dimension(:,:) :: xlon, xlat ! cross degree coordinates
     real(rkx), pointer, contiguous, dimension(:,:) :: lndcat ! land category (15 for ocean)
@@ -368,34 +398,42 @@ module mod_oasis_interface
       if ( l_make_grdde .or. l_make_grddi) then ! dots
         !
         call oasisxregcm_make_oasisgrids_d( &
-             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat,oasisgrid_srf,oasisgrid_mask, &
+             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat, &
+             oasisgrid_srf,oasisgrid_mask, &
              dlon,dlat,xlon,xlat,lndcat) ! subroutine writen below
         !
         if ( l_make_grdde ) call oasisxregcm_write_oasisgrids(grdde, &
-             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat,oasisgrid_srf,oasisgrid_mask)
+             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat, &
+             oasisgrid_srf,oasisgrid_mask)
         !
         if ( l_make_grddi ) call oasisxregcm_write_oasisgrids(grddi, &
-             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat,oasisgrid_srf,oasisgrid_mask)
+             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat, &
+             oasisgrid_srf,oasisgrid_mask)
         !
         call oasisxregcm_deallocate_oasisgrids( &
-             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat,oasisgrid_srf,oasisgrid_mask)
+             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat, &
+             oasisgrid_srf,oasisgrid_mask)
         !
       end if
       !
       if ( l_make_grdce .or. l_make_grdci) then ! crosses
         !
         call oasisxregcm_make_oasisgrids_c( &
-             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat,oasisgrid_srf,oasisgrid_mask, &
+             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon, &
+             oasisgrid_clat,oasisgrid_srf,oasisgrid_mask, &
              dlon,dlat,xlon,xlat,lndcat) ! subroutine writen below
         !
         if ( l_make_grdce ) call oasisxregcm_write_oasisgrids(grdce, &
-             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat,oasisgrid_srf,oasisgrid_mask)
+             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat, &
+             oasisgrid_srf,oasisgrid_mask)
         !
         if ( l_make_grdci ) call oasisxregcm_write_oasisgrids(grdci, &
-             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat,oasisgrid_srf,oasisgrid_mask)
+             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat, &
+             oasisgrid_srf,oasisgrid_mask)
         !
         call oasisxregcm_deallocate_oasisgrids( &
-             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat,oasisgrid_srf,oasisgrid_mask)
+             oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat, &
+             oasisgrid_srf,oasisgrid_mask)
         !
       end if
       ! terminate the grid writing process
@@ -418,7 +456,7 @@ module mod_oasis_interface
 
   subroutine oasisxregcm_make_oasisgrids_d(lon,lat,clon,clat,srf,mask, &
                                            dlon,dlat,xlon,xlat,lndcat)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: dlon, dlat, &
                                                          xlon, xlat, lndcat
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat, srf
@@ -506,7 +544,7 @@ module mod_oasis_interface
 
   subroutine oasisxregcm_make_oasisgrids_c(lon,lat,clon,clat,srf,mask, &
                                            dlon,dlat,xlon,xlat,lndcat)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: dlon, dlat, &
                                                          xlon, xlat, lndcat
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat, srf
@@ -566,7 +604,7 @@ module mod_oasis_interface
   ! call all subroutines consisting of receiving OASIS fields
   ! and optionally reworking them
   subroutine oasisxregcm_rcv_all(time)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: time ! execution time
     logical :: l_act
     !--------------------------------------------------------------------------
@@ -662,7 +700,7 @@ module mod_oasis_interface
   ! call all subroutines consisting of sending OASIS fields
   ! with optional prior reworking
   subroutine oasisxregcm_snd_all(time)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: time ! execution time
     type(infogrd), pointer :: grd
     integer(ik4) :: i, j, ishift, jshift
@@ -913,7 +951,7 @@ module mod_oasis_interface
   ! update oasis_lag such that
   !   OASIS time = RegCM time + oasis_lag
   subroutine oasisxregcm_sync_wait(time)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: time ! execution time
     !--------------------------------------------------------------------------
     if ( oasis_lag /= 0 ) then
@@ -970,7 +1008,7 @@ module mod_oasis_interface
   ! call all subroutines linked with some deallocation of variables used in
   ! the OASIS coupling
   subroutine oasisxregcm_release
-    implicit none
+    implicit none (type, external)
     !--------------------------------------------------------------------------
     call oasisxregcm_deallocate_field(im_sst, cpl_sst)
 !    call oasisxregcm_deallocate_field(im_sit, cpl_sit)

@@ -42,7 +42,7 @@
       use rrlw_wvn, only: nspa, nspb
       use rrlw_vsn, only: hvrtau, hnamtau
 
-      implicit none
+      implicit none (type, external)
 
       contains
 
@@ -341,7 +341,7 @@
          indm = indminor(lay)
          pp = pavel(lay)
          corradj =  1.
-         if (pp .lt. 250._rb) then
+         if (pp < 250._rb) then
             corradj = 1._rb - 0.15_rb * (250._rb-pp) / 154.4_rb
          endif
 
@@ -522,21 +522,21 @@
 
          speccomb = colh2o(lay) + rat_h2oco2(lay)*colco2(lay)
          specparm = colh2o(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colh2o(lay) + rat_h2oco2_1(lay)*colco2(lay)
          specparm1 = colh2o(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 8._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
 
          speccomb_mn2o = colh2o(lay) + refrat_m_a*colco2(lay)
          specparm_mn2o = colh2o(lay)/speccomb_mn2o
-         if (specparm_mn2o .ge. oneminus) specparm_mn2o = oneminus
+         if (specparm_mn2o >= oneminus) specparm_mn2o = oneminus
          specmult_mn2o = 8._rb*specparm_mn2o
          jmn2o = 1 + int(specmult_mn2o)
          fmn2o = mod(specmult_mn2o,1.0_rb)
@@ -546,7 +546,7 @@
 !  to obtain the proper contribution.
          chi_n2o = coln2o(lay)/coldry(lay)
          ratn2o = 1.e20_rb*chi_n2o/chi_mls(4,jp(lay)+1)
-         if (ratn2o .gt. 1.5_rb) then
+         if (ratn2o > 1.5_rb) then
             adjfac = 0.5_rb+(ratn2o-0.5_rb)**0.65_rb
             adjcoln2o = adjfac*chi_mls(4,jp(lay)+1)*coldry(lay)*1.e-20_rb
          else
@@ -555,7 +555,7 @@
 
          speccomb_planck = colh2o(lay)+refrat_planck_a*colco2(lay)
          specparm_planck = colh2o(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 8._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -566,7 +566,7 @@
          indf = indfor(lay)
          indm = indminor(lay)
 
-         if (specparm .lt. 0.125_rb) then
+         if (specparm < 0.125_rb) then
             p = fs - 1
             p4 = p**4
             fk0 = p4
@@ -578,7 +578,7 @@
             fac010 = fk0*fac10(lay)
             fac110 = fk1*fac10(lay)
             fac210 = fk2*fac10(lay)
-         else if (specparm .gt. 0.875_rb) then
+         else if (specparm > 0.875_rb) then
             p = -fs
             p4 = p**4
             fk0 = p4
@@ -596,7 +596,7 @@
             fac100 = fs * fac00(lay)
             fac110 = fs * fac10(lay)
          endif
-         if (specparm1 .lt. 0.125_rb) then
+         if (specparm1 < 0.125_rb) then
             p = fs1 - 1
             p4 = p**4
             fk0 = p4
@@ -608,7 +608,7 @@
             fac011 = fk0*fac11(lay)
             fac111 = fk1*fac11(lay)
             fac211 = fk2*fac11(lay)
-         else if (specparm1 .gt. 0.875_rb) then
+         else if (specparm1 > 0.875_rb) then
             p = -fs1
             p4 = p**4
             fk0 = p4
@@ -638,7 +638,7 @@
                  (ka_mn2o(jmn2o+1,indm+1,ig) - ka_mn2o(jmn2o,indm+1,ig))
             absn2o = n2om1 + minorfrac(lay) * (n2om2 - n2om1)
 
-            if (specparm .lt. 0.125_rb) then
+            if (specparm < 0.125_rb) then
                tau_major = speccomb * &
                     (fac000 * absa(ind0,ig) + &
                     fac100 * absa(ind0+1,ig) + &
@@ -646,7 +646,7 @@
                     fac010 * absa(ind0+9,ig) + &
                     fac110 * absa(ind0+10,ig) + &
                     fac210 * absa(ind0+11,ig))
-            else if (specparm .gt. 0.875_rb) then
+            else if (specparm > 0.875_rb) then
                tau_major = speccomb * &
                     (fac200 * absa(ind0-1,ig) + &
                     fac100 * absa(ind0,ig) + &
@@ -662,7 +662,7 @@
                     fac110 * absa(ind0+10,ig))
             endif
 
-            if (specparm1 .lt. 0.125_rb) then
+            if (specparm1 < 0.125_rb) then
                tau_major1 = speccomb1 * &
                     (fac001 * absa(ind1,ig) + &
                     fac101 * absa(ind1+1,ig) + &
@@ -670,7 +670,7 @@
                     fac011 * absa(ind1+9,ig) + &
                     fac111 * absa(ind1+10,ig) + &
                     fac211 * absa(ind1+11,ig))
-            else if (specparm1 .gt. 0.875_rb) then
+            else if (specparm1 > 0.875_rb) then
                tau_major1 = speccomb1 * &
                     (fac201 * absa(ind1-1,ig) + &
                     fac101 * absa(ind1,ig) + &
@@ -699,14 +699,14 @@
 
          speccomb = colh2o(lay) + rat_h2oco2(lay)*colco2(lay)
          specparm = colh2o(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 4._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colh2o(lay) + rat_h2oco2_1(lay)*colco2(lay)
          specparm1 = colh2o(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 4._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
@@ -722,7 +722,7 @@
 
          speccomb_mn2o = colh2o(lay) + refrat_m_b*colco2(lay)
          specparm_mn2o = colh2o(lay)/speccomb_mn2o
-         if (specparm_mn2o .ge. oneminus) specparm_mn2o = oneminus
+         if (specparm_mn2o >= oneminus) specparm_mn2o = oneminus
          specmult_mn2o = 4._rb*specparm_mn2o
          jmn2o = 1 + int(specmult_mn2o)
          fmn2o = mod(specmult_mn2o,1.0_rb)
@@ -732,7 +732,7 @@
 !  to obtain the proper contribution.
          chi_n2o = coln2o(lay)/coldry(lay)
          ratn2o = 1.e20*chi_n2o/chi_mls(4,jp(lay)+1)
-         if (ratn2o .gt. 1.5_rb) then
+         if (ratn2o > 1.5_rb) then
             adjfac = 0.5_rb+(ratn2o-0.5_rb)**0.65_rb
             adjcoln2o = adjfac*chi_mls(4,jp(lay)+1)*coldry(lay)*1.e-20_rb
          else
@@ -741,7 +741,7 @@
 
          speccomb_planck = colh2o(lay)+refrat_planck_b*colco2(lay)
          specparm_planck = colh2o(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 4._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -824,21 +824,21 @@
 
          speccomb = colh2o(lay) + rat_h2oco2(lay)*colco2(lay)
          specparm = colh2o(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colh2o(lay) + rat_h2oco2_1(lay)*colco2(lay)
          specparm1 = colh2o(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 8._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
 
          speccomb_planck = colh2o(lay)+refrat_planck_a*colco2(lay)
          specparm_planck = colh2o(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 8._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -848,7 +848,7 @@
          inds = indself(lay)
          indf = indfor(lay)
 
-         if (specparm .lt. 0.125_rb) then
+         if (specparm < 0.125_rb) then
             p = fs - 1
             p4 = p**4
             fk0 = p4
@@ -860,7 +860,7 @@
             fac010 = fk0*fac10(lay)
             fac110 = fk1*fac10(lay)
             fac210 = fk2*fac10(lay)
-         else if (specparm .gt. 0.875_rb) then
+         else if (specparm > 0.875_rb) then
             p = -fs
             p4 = p**4
             fk0 = p4
@@ -879,7 +879,7 @@
             fac110 = fs * fac10(lay)
          endif
 
-         if (specparm1 .lt. 0.125_rb) then
+         if (specparm1 < 0.125_rb) then
             p = fs1 - 1
             p4 = p**4
             fk0 = p4
@@ -891,7 +891,7 @@
             fac011 = fk0*fac11(lay)
             fac111 = fk1*fac11(lay)
             fac211 = fk2*fac11(lay)
-         else if (specparm1 .gt. 0.875_rb) then
+         else if (specparm1 > 0.875_rb) then
             p = -fs1
             p4 = p**4
             fk0 = p4
@@ -916,7 +916,7 @@
             taufor =  forfac(lay) * (forref(indf,ig) + forfrac(lay) * &
                  (forref(indf+1,ig) - forref(indf,ig)))
 
-            if (specparm .lt. 0.125_rb) then
+            if (specparm < 0.125_rb) then
                tau_major = speccomb * &
                     (fac000 * absa(ind0,ig) + &
                     fac100 * absa(ind0+1,ig) + &
@@ -924,7 +924,7 @@
                     fac010 * absa(ind0+9,ig) + &
                     fac110 * absa(ind0+10,ig) + &
                     fac210 * absa(ind0+11,ig))
-            else if (specparm .gt. 0.875_rb) then
+            else if (specparm > 0.875_rb) then
                tau_major = speccomb * &
                     (fac200 * absa(ind0-1,ig) + &
                     fac100 * absa(ind0,ig) + &
@@ -940,7 +940,7 @@
                     fac110 * absa(ind0+10,ig))
             endif
 
-            if (specparm1 .lt. 0.125_rb) then
+            if (specparm1 < 0.125_rb) then
                tau_major1 = speccomb1 * &
                     (fac001 * absa(ind1,ig) +  &
                     fac101 * absa(ind1+1,ig) + &
@@ -948,7 +948,7 @@
                     fac011 * absa(ind1+9,ig) + &
                     fac111 * absa(ind1+10,ig) + &
                     fac211 * absa(ind1+11,ig))
-            else if (specparm1 .gt. 0.875_rb) then
+            else if (specparm1 > 0.875_rb) then
                tau_major1 = speccomb1 * &
                     (fac201 * absa(ind1-1,ig) + &
                     fac101 * absa(ind1,ig) + &
@@ -976,14 +976,14 @@
 
          speccomb = colo3(lay) + rat_o3co2(lay)*colco2(lay)
          specparm = colo3(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 4._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colo3(lay) + rat_o3co2_1(lay)*colco2(lay)
          specparm1 = colo3(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 4._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
@@ -999,7 +999,7 @@
 
          speccomb_planck = colo3(lay)+refrat_planck_b*colco2(lay)
          specparm_planck = colo3(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 4._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -1095,28 +1095,28 @@
 
          speccomb = colh2o(lay) + rat_h2oco2(lay)*colco2(lay)
          specparm = colh2o(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colh2o(lay) + rat_h2oco2_1(lay)*colco2(lay)
          specparm1 = colh2o(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 8._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
 
          speccomb_mo3 = colh2o(lay) + refrat_m_a*colco2(lay)
          specparm_mo3 = colh2o(lay)/speccomb_mo3
-         if (specparm_mo3 .ge. oneminus) specparm_mo3 = oneminus
+         if (specparm_mo3 >= oneminus) specparm_mo3 = oneminus
          specmult_mo3 = 8._rb*specparm_mo3
          jmo3 = 1 + int(specmult_mo3)
          fmo3 = mod(specmult_mo3,1.0_rb)
 
          speccomb_planck = colh2o(lay)+refrat_planck_a*colco2(lay)
          specparm_planck = colh2o(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 8._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -1127,7 +1127,7 @@
          indf = indfor(lay)
          indm = indminor(lay)
 
-         if (specparm .lt. 0.125_rb) then
+         if (specparm < 0.125_rb) then
             p = fs - 1
             p4 = p**4
             fk0 = p4
@@ -1139,7 +1139,7 @@
             fac010 = fk0*fac10(lay)
             fac110 = fk1*fac10(lay)
             fac210 = fk2*fac10(lay)
-         else if (specparm .gt. 0.875_rb) then
+         else if (specparm > 0.875_rb) then
             p = -fs
             p4 = p**4
             fk0 = p4
@@ -1158,7 +1158,7 @@
             fac110 = fs * fac10(lay)
          endif
 
-         if (specparm1 .lt. 0.125_rb) then
+         if (specparm1 < 0.125_rb) then
             p = fs1 - 1
             p4 = p**4
             fk0 = p4
@@ -1170,7 +1170,7 @@
             fac011 = fk0*fac11(lay)
             fac111 = fk1*fac11(lay)
             fac211 = fk2*fac11(lay)
-         else if (specparm1 .gt. 0.875_rb) then
+         else if (specparm1 > 0.875_rb) then
             p = -fs1
             p4 = p**4
             fk0 = p4
@@ -1200,7 +1200,7 @@
                  (ka_mo3(jmo3+1,indm+1,ig)-ka_mo3(jmo3,indm+1,ig))
             abso3 = o3m1 + minorfrac(lay)*(o3m2-o3m1)
 
-            if (specparm .lt. 0.125_rb) then
+            if (specparm < 0.125_rb) then
                tau_major = speccomb * &
                     (fac000 * absa(ind0,ig) + &
                     fac100 * absa(ind0+1,ig) + &
@@ -1208,7 +1208,7 @@
                     fac010 * absa(ind0+9,ig) + &
                     fac110 * absa(ind0+10,ig) + &
                     fac210 * absa(ind0+11,ig))
-            else if (specparm .gt. 0.875_rb) then
+            else if (specparm > 0.875_rb) then
                tau_major = speccomb * &
                     (fac200 * absa(ind0-1,ig) + &
                     fac100 * absa(ind0,ig) + &
@@ -1224,7 +1224,7 @@
                     fac110 * absa(ind0+10,ig))
             endif
 
-            if (specparm1 .lt. 0.125_rb) then
+            if (specparm1 < 0.125_rb) then
                tau_major1 = speccomb1 * &
                     (fac001 * absa(ind1,ig) + &
                     fac101 * absa(ind1+1,ig) + &
@@ -1232,7 +1232,7 @@
                     fac011 * absa(ind1+9,ig) + &
                     fac111 * absa(ind1+10,ig) + &
                     fac211 * absa(ind1+11,ig))
-            else if (specparm1 .gt. 0.875_rb) then
+            else if (specparm1 > 0.875_rb) then
                tau_major1 = speccomb1 * &
                     (fac201 * absa(ind1-1,ig) + &
                     fac101 * absa(ind1,ig) + &
@@ -1262,14 +1262,14 @@
 
          speccomb = colo3(lay) + rat_o3co2(lay)*colco2(lay)
          specparm = colo3(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 4._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colo3(lay) + rat_o3co2_1(lay)*colco2(lay)
          specparm1 = colo3(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 4._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
@@ -1285,7 +1285,7 @@
 
          speccomb_planck = colo3(lay)+refrat_planck_b*colco2(lay)
          specparm_planck = colo3(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 4._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -1351,7 +1351,7 @@
 ! to obtain the proper contribution.
          chi_co2 = colco2(lay)/(coldry(lay))
          ratco2 = 1.e20_rb*chi_co2/chi_mls(2,jp(lay)+1)
-         if (ratco2 .gt. 3.0_rb) then
+         if (ratco2 > 3.0_rb) then
             adjfac = 2.0_rb+(ratco2-2.0_rb)**0.77_rb
             adjcolco2 = adjfac*chi_mls(2,jp(lay)+1)*coldry(lay)*1.e-20_rb
          else
@@ -1454,21 +1454,21 @@
 
          speccomb = colh2o(lay) + rat_h2oo3(lay)*colo3(lay)
          specparm = colh2o(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colh2o(lay) + rat_h2oo3_1(lay)*colo3(lay)
          specparm1 = colh2o(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 8._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
 
          speccomb_mco2 = colh2o(lay) + refrat_m_a*colo3(lay)
          specparm_mco2 = colh2o(lay)/speccomb_mco2
-         if (specparm_mco2 .ge. oneminus) specparm_mco2 = oneminus
+         if (specparm_mco2 >= oneminus) specparm_mco2 = oneminus
          specmult_mco2 = 8._rb*specparm_mco2
 
          jmco2 = 1 + int(specmult_mco2)
@@ -1479,7 +1479,7 @@
 !  to obtain the proper contribution.
          chi_co2 = colco2(lay)/(coldry(lay))
          ratco2 = 1.e20*chi_co2/chi_mls(2,jp(lay)+1)
-         if (ratco2 .gt. 3.0_rb) then
+         if (ratco2 > 3.0_rb) then
             adjfac = 3.0_rb+(ratco2-3.0_rb)**0.79_rb
             adjcolco2 = adjfac*chi_mls(2,jp(lay)+1)*coldry(lay)*1.e-20_rb
          else
@@ -1488,7 +1488,7 @@
 
          speccomb_planck = colh2o(lay)+refrat_planck_a*colo3(lay)
          specparm_planck = colh2o(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 8._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -1499,7 +1499,7 @@
          indf = indfor(lay)
          indm = indminor(lay)
 
-         if (specparm .lt. 0.125_rb) then
+         if (specparm < 0.125_rb) then
             p = fs - 1
             p4 = p**4
             fk0 = p4
@@ -1511,7 +1511,7 @@
             fac010 = fk0*fac10(lay)
             fac110 = fk1*fac10(lay)
             fac210 = fk2*fac10(lay)
-         else if (specparm .gt. 0.875_rb) then
+         else if (specparm > 0.875_rb) then
             p = -fs
             p4 = p**4
             fk0 = p4
@@ -1529,7 +1529,7 @@
             fac100 = fs * fac00(lay)
             fac110 = fs * fac10(lay)
          endif
-         if (specparm1 .lt. 0.125_rb) then
+         if (specparm1 < 0.125_rb) then
             p = fs1 - 1
             p4 = p**4
             fk0 = p4
@@ -1541,7 +1541,7 @@
             fac011 = fk0*fac11(lay)
             fac111 = fk1*fac11(lay)
             fac211 = fk2*fac11(lay)
-         else if (specparm1 .gt. 0.875_rb) then
+         else if (specparm1 > 0.875_rb) then
             p = -fs1
             p4 = p**4
             fk0 = p4
@@ -1571,7 +1571,7 @@
                  (ka_mco2(jmco2+1,indm+1,ig) - ka_mco2(jmco2,indm+1,ig))
             absco2 = co2m1 + minorfrac(lay) * (co2m2 - co2m1)
 
-            if (specparm .lt. 0.125_rb) then
+            if (specparm < 0.125_rb) then
                tau_major = speccomb * &
                     (fac000 * absa(ind0,ig) + &
                     fac100 * absa(ind0+1,ig) + &
@@ -1579,7 +1579,7 @@
                     fac010 * absa(ind0+9,ig) + &
                     fac110 * absa(ind0+10,ig) + &
                     fac210 * absa(ind0+11,ig))
-            else if (specparm .gt. 0.875_rb) then
+            else if (specparm > 0.875_rb) then
                tau_major = speccomb * &
                     (fac200 * absa(ind0-1,ig) + &
                     fac100 * absa(ind0,ig) + &
@@ -1595,7 +1595,7 @@
                     fac110 * absa(ind0+10,ig))
             endif
 
-            if (specparm1 .lt. 0.125_rb) then
+            if (specparm1 < 0.125_rb) then
                tau_major1 = speccomb1 * &
                     (fac001 * absa(ind1,ig) + &
                     fac101 * absa(ind1+1,ig) + &
@@ -1603,7 +1603,7 @@
                     fac011 * absa(ind1+9,ig) + &
                     fac111 * absa(ind1+10,ig) + &
                     fac211 * absa(ind1+11,ig))
-            else if (specparm1 .gt. 0.875_rb) then
+            else if (specparm1 > 0.875_rb) then
                tau_major1 = speccomb1 * &
                     (fac201 * absa(ind1-1,ig) + &
                     fac101 * absa(ind1,ig) + &
@@ -1635,7 +1635,7 @@
 !  to obtain the proper contribution.
          chi_co2 = colco2(lay)/(coldry(lay))
          ratco2 = 1.e20*chi_co2/chi_mls(2,jp(lay)+1)
-         if (ratco2 .gt. 3.0_rb) then
+         if (ratco2 > 3.0_rb) then
             adjfac = 2.0_rb+(ratco2-2.0_rb)**0.79_rb
             adjcolco2 = adjfac*chi_mls(2,jp(lay)+1)*coldry(lay)*1.e-20_rb
          else
@@ -1717,7 +1717,7 @@
 !  to obtain the proper contribution.
          chi_co2 = colco2(lay)/(coldry(lay))
          ratco2 = 1.e20_rb*chi_co2/chi_mls(2,jp(lay)+1)
-         if (ratco2 .gt. 3.0_rb) then
+         if (ratco2 > 3.0_rb) then
             adjfac = 2.0_rb+(ratco2-2.0_rb)**0.65_rb
             adjcolco2 = adjfac*chi_mls(2,jp(lay)+1)*coldry(lay)*1.e-20_rb
          else
@@ -1764,7 +1764,7 @@
 !  to obtain the proper contribution.
          chi_co2 = colco2(lay)/coldry(lay)
          ratco2 = 1.e20_rb*chi_co2/chi_mls(2,jp(lay)+1)
-         if (ratco2 .gt. 3.0_rb) then
+         if (ratco2 > 3.0_rb) then
             adjfac = 2.0_rb+(ratco2-2.0_rb)**0.65_rb
             adjcolco2 = adjfac*chi_mls(2,jp(lay)+1) * coldry(lay)*1.e-20_rb
          else
@@ -1851,21 +1851,21 @@
 
          speccomb = colh2o(lay) + rat_h2och4(lay)*colch4(lay)
          specparm = colh2o(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colh2o(lay) + rat_h2och4_1(lay)*colch4(lay)
          specparm1 = colh2o(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 8._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
 
          speccomb_mn2o = colh2o(lay) + refrat_m_a*colch4(lay)
          specparm_mn2o = colh2o(lay)/speccomb_mn2o
-         if (specparm_mn2o .ge. oneminus) specparm_mn2o = oneminus
+         if (specparm_mn2o >= oneminus) specparm_mn2o = oneminus
          specmult_mn2o = 8._rb*specparm_mn2o
          jmn2o = 1 + int(specmult_mn2o)
          fmn2o = mod(specmult_mn2o,1.0_rb)
@@ -1875,7 +1875,7 @@
 !  to obtain the proper contribution.
          chi_n2o = coln2o(lay)/(coldry(lay))
          ratn2o = 1.e20_rb*chi_n2o/chi_mls(4,jp(lay)+1)
-         if (ratn2o .gt. 1.5_rb) then
+         if (ratn2o > 1.5_rb) then
             adjfac = 0.5_rb+(ratn2o-0.5_rb)**0.65_rb
             adjcoln2o = adjfac*chi_mls(4,jp(lay)+1)*coldry(lay)*1.e-20_rb
          else
@@ -1884,7 +1884,7 @@
 
          speccomb_planck = colh2o(lay)+refrat_planck_a*colch4(lay)
          specparm_planck = colh2o(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 8._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -1895,7 +1895,7 @@
          indf = indfor(lay)
          indm = indminor(lay)
 
-         if (specparm .lt. 0.125_rb) then
+         if (specparm < 0.125_rb) then
             p = fs - 1
             p4 = p**4
             fk0 = p4
@@ -1907,7 +1907,7 @@
             fac010 = fk0*fac10(lay)
             fac110 = fk1*fac10(lay)
             fac210 = fk2*fac10(lay)
-         else if (specparm .gt. 0.875_rb) then
+         else if (specparm > 0.875_rb) then
             p = -fs
             p4 = p**4
             fk0 = p4
@@ -1926,7 +1926,7 @@
             fac110 = fs * fac10(lay)
          endif
 
-         if (specparm1 .lt. 0.125_rb) then
+         if (specparm1 < 0.125_rb) then
             p = fs1 - 1
             p4 = p**4
             fk0 = p4
@@ -1938,7 +1938,7 @@
             fac011 = fk0*fac11(lay)
             fac111 = fk1*fac11(lay)
             fac211 = fk2*fac11(lay)
-         else if (specparm1 .gt. 0.875_rb) then
+         else if (specparm1 > 0.875_rb) then
             p = -fs1
             p4 = p**4
             fk0 = p4
@@ -1968,7 +1968,7 @@
                  (ka_mn2o(jmn2o+1,indm+1,ig) - ka_mn2o(jmn2o,indm+1,ig))
             absn2o = n2om1 + minorfrac(lay) * (n2om2 - n2om1)
 
-            if (specparm .lt. 0.125_rb) then
+            if (specparm < 0.125_rb) then
                tau_major = speccomb * &
                     (fac000 * absa(ind0,ig) + &
                     fac100 * absa(ind0+1,ig) + &
@@ -1976,7 +1976,7 @@
                     fac010 * absa(ind0+9,ig) + &
                     fac110 * absa(ind0+10,ig) + &
                     fac210 * absa(ind0+11,ig))
-            else if (specparm .gt. 0.875_rb) then
+            else if (specparm > 0.875_rb) then
                tau_major = speccomb * &
                     (fac200 * absa(ind0-1,ig) + &
                     fac100 * absa(ind0,ig) + &
@@ -1992,7 +1992,7 @@
                     fac110 * absa(ind0+10,ig))
             endif
 
-            if (specparm1 .lt. 0.125_rb) then
+            if (specparm1 < 0.125_rb) then
                tau_major1 = speccomb1 * &
                     (fac001 * absa(ind1,ig) + &
                     fac101 * absa(ind1+1,ig) + &
@@ -2000,7 +2000,7 @@
                     fac011 * absa(ind1+9,ig) + &
                     fac111 * absa(ind1+10,ig) + &
                     fac211 * absa(ind1+11,ig))
-            else if (specparm1 .gt. 0.875_rb) then
+            else if (specparm1 > 0.875_rb) then
                tau_major1 = speccomb1 * &
                     (fac201 * absa(ind1-1,ig) + &
                     fac101 * absa(ind1,ig) + &
@@ -2032,7 +2032,7 @@
 !  to obtain the proper contribution.
          chi_n2o = coln2o(lay)/(coldry(lay))
          ratn2o = 1.e20_rb*chi_n2o/chi_mls(4,jp(lay)+1)
-         if (ratn2o .gt. 1.5_rb) then
+         if (ratn2o > 1.5_rb) then
             adjfac = 0.5_rb+(ratn2o-0.5_rb)**0.65_rb
             adjcoln2o = adjfac*chi_mls(4,jp(lay)+1)*coldry(lay)*1.e-20_rb
          else
@@ -2250,21 +2250,21 @@
 
          speccomb = colh2o(lay) + rat_h2oco2(lay)*colco2(lay)
          specparm = colh2o(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colh2o(lay) + rat_h2oco2_1(lay)*colco2(lay)
          specparm1 = colh2o(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 8._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
 
          speccomb_planck = colh2o(lay)+refrat_planck_a*colco2(lay)
          specparm_planck = colh2o(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 8._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -2274,7 +2274,7 @@
          inds = indself(lay)
          indf = indfor(lay)
 
-         if (specparm .lt. 0.125_rb) then
+         if (specparm < 0.125_rb) then
             p = fs - 1
             p4 = p**4
             fk0 = p4
@@ -2286,7 +2286,7 @@
             fac010 = fk0*fac10(lay)
             fac110 = fk1*fac10(lay)
             fac210 = fk2*fac10(lay)
-         else if (specparm .gt. 0.875_rb) then
+         else if (specparm > 0.875_rb) then
             p = -fs
             p4 = p**4
             fk0 = p4
@@ -2305,7 +2305,7 @@
             fac110 = fs * fac10(lay)
          endif
 
-         if (specparm1 .lt. 0.125_rb) then
+         if (specparm1 < 0.125_rb) then
             p = fs1 - 1
             p4 = p**4
             fk0 = p4
@@ -2317,7 +2317,7 @@
             fac011 = fk0*fac11(lay)
             fac111 = fk1*fac11(lay)
             fac211 = fk2*fac11(lay)
-         else if (specparm1 .gt. 0.875_rb) then
+         else if (specparm1 > 0.875_rb) then
             p = -fs1
             p4 = p**4
             fk0 = p4
@@ -2342,7 +2342,7 @@
             taufor = forfac(lay) * (forref(indf,ig) + forfrac(lay) * &
                  (forref(indf+1,ig) - forref(indf,ig)))
 
-            if (specparm .lt. 0.125_rb) then
+            if (specparm < 0.125_rb) then
                tau_major = speccomb * &
                     (fac000 * absa(ind0,ig) + &
                     fac100 * absa(ind0+1,ig) + &
@@ -2350,7 +2350,7 @@
                     fac010 * absa(ind0+9,ig) + &
                     fac110 * absa(ind0+10,ig) + &
                     fac210 * absa(ind0+11,ig))
-            else if (specparm .gt. 0.875_rb) then
+            else if (specparm > 0.875_rb) then
                tau_major = speccomb * &
                     (fac200 * absa(ind0-1,ig) + &
                     fac100 * absa(ind0,ig) + &
@@ -2366,7 +2366,7 @@
                     fac110 * absa(ind0+10,ig))
             endif
 
-            if (specparm1 .lt. 0.125_rb) then
+            if (specparm1 < 0.125_rb) then
                tau_major1 = speccomb1 * &
                     (fac001 * absa(ind1,ig) + &
                     fac101 * absa(ind1+1,ig) + &
@@ -2374,7 +2374,7 @@
                     fac011 * absa(ind1+9,ig) + &
                     fac111 * absa(ind1+10,ig) + &
                     fac211 * absa(ind1+11,ig))
-            else if (specparm1 .gt. 0.875_rb) then
+            else if (specparm1 > 0.875_rb) then
                tau_major1 = speccomb1 * &
                     (fac201 * absa(ind1-1,ig) + &
                     fac101 * absa(ind1,ig) + &
@@ -2468,21 +2468,21 @@
 
          speccomb = colh2o(lay) + rat_h2on2o(lay)*coln2o(lay)
          specparm = colh2o(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colh2o(lay) + rat_h2on2o_1(lay)*coln2o(lay)
          specparm1 = colh2o(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 8._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
 
          speccomb_mco2 = colh2o(lay) + refrat_m_a*coln2o(lay)
          specparm_mco2 = colh2o(lay)/speccomb_mco2
-         if (specparm_mco2 .ge. oneminus) specparm_mco2 = oneminus
+         if (specparm_mco2 >= oneminus) specparm_mco2 = oneminus
          specmult_mco2 = 8._rb*specparm_mco2
          jmco2 = 1 + int(specmult_mco2)
          fmco2 = mod(specmult_mco2,1.0_rb)
@@ -2492,7 +2492,7 @@
 !  to obtain the proper contribution.
          chi_co2 = colco2(lay)/(coldry(lay))
          ratco2 = 1.e20_rb*chi_co2/3.55e-4_rb
-         if (ratco2 .gt. 3.0_rb) then
+         if (ratco2 > 3.0_rb) then
             adjfac = 2.0_rb+(ratco2-2.0_rb)**0.68_rb
             adjcolco2 = adjfac*3.55e-4*coldry(lay)*1.e-20_rb
          else
@@ -2501,14 +2501,14 @@
 
          speccomb_mco = colh2o(lay) + refrat_m_a3*coln2o(lay)
          specparm_mco = colh2o(lay)/speccomb_mco
-         if (specparm_mco .ge. oneminus) specparm_mco = oneminus
+         if (specparm_mco >= oneminus) specparm_mco = oneminus
          specmult_mco = 8._rb*specparm_mco
          jmco = 1 + int(specmult_mco)
          fmco = mod(specmult_mco,1.0_rb)
 
          speccomb_planck = colh2o(lay)+refrat_planck_a*coln2o(lay)
          specparm_planck = colh2o(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 8._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -2519,7 +2519,7 @@
          indf = indfor(lay)
          indm = indminor(lay)
 
-         if (specparm .lt. 0.125_rb) then
+         if (specparm < 0.125_rb) then
             p = fs - 1
             p4 = p**4
             fk0 = p4
@@ -2531,7 +2531,7 @@
             fac010 = fk0*fac10(lay)
             fac110 = fk1*fac10(lay)
             fac210 = fk2*fac10(lay)
-         else if (specparm .gt. 0.875_rb) then
+         else if (specparm > 0.875_rb) then
             p = -fs
             p4 = p**4
             fk0 = p4
@@ -2550,7 +2550,7 @@
             fac110 = fs * fac10(lay)
          endif
 
-         if (specparm1 .lt. 0.125_rb) then
+         if (specparm1 < 0.125_rb) then
             p = fs1 - 1
             p4 = p**4
             fk0 = p4
@@ -2562,7 +2562,7 @@
             fac011 = fk0*fac11(lay)
             fac111 = fk1*fac11(lay)
             fac211 = fk2*fac11(lay)
-         else if (specparm1 .gt. 0.875_rb) then
+         else if (specparm1 > 0.875_rb) then
             p = -fs1
             p4 = p**4
             fk0 = p4
@@ -2597,7 +2597,7 @@
                  (ka_mco(jmco+1,indm+1,ig) - ka_mco(jmco,indm+1,ig))
             absco = com1 + minorfrac(lay) * (com2 - com1)
 
-            if (specparm .lt. 0.125_rb) then
+            if (specparm < 0.125_rb) then
                tau_major = speccomb * &
                     (fac000 * absa(ind0,ig) + &
                     fac100 * absa(ind0+1,ig) + &
@@ -2605,7 +2605,7 @@
                     fac010 * absa(ind0+9,ig) + &
                     fac110 * absa(ind0+10,ig) + &
                     fac210 * absa(ind0+11,ig))
-            else if (specparm .gt. 0.875_rb) then
+            else if (specparm > 0.875_rb) then
                tau_major = speccomb * &
                     (fac200 * absa(ind0-1,ig) + &
                     fac100 * absa(ind0,ig) + &
@@ -2621,7 +2621,7 @@
                     fac110 * absa(ind0+10,ig))
             endif
 
-            if (specparm1 .lt. 0.125_rb) then
+            if (specparm1 < 0.125_rb) then
                tau_major1 = speccomb1 * &
                     (fac001 * absa(ind1,ig) + &
                     fac101 * absa(ind1+1,ig) + &
@@ -2629,7 +2629,7 @@
                     fac011 * absa(ind1+9,ig) + &
                     fac111 * absa(ind1+10,ig) + &
                     fac211 * absa(ind1+11,ig))
-            else if (specparm1 .gt. 0.875_rb) then
+            else if (specparm1 > 0.875_rb) then
                tau_major1 = speccomb1 * &
                     (fac201 * absa(ind1-1,ig) + &
                     fac101 * absa(ind1,ig) + &
@@ -2780,28 +2780,28 @@
 
          speccomb = coln2o(lay) + rat_n2oco2(lay)*colco2(lay)
          specparm = coln2o(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = coln2o(lay) + rat_n2oco2_1(lay)*colco2(lay)
          specparm1 = coln2o(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 8._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
 
          speccomb_mn2 = coln2o(lay) + refrat_m_a*colco2(lay)
          specparm_mn2 = coln2o(lay)/speccomb_mn2
-         if (specparm_mn2 .ge. oneminus) specparm_mn2 = oneminus
+         if (specparm_mn2 >= oneminus) specparm_mn2 = oneminus
          specmult_mn2 = 8._rb*specparm_mn2
          jmn2 = 1 + int(specmult_mn2)
          fmn2 = mod(specmult_mn2,1.0_rb)
 
          speccomb_planck = coln2o(lay)+refrat_planck_a*colco2(lay)
          specparm_planck = coln2o(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 8._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -2814,7 +2814,7 @@
 
          scalen2 = colbrd(lay)*scaleminor(lay)
 
-         if (specparm .lt. 0.125_rb) then
+         if (specparm < 0.125_rb) then
             p = fs - 1
             p4 = p**4
             fk0 = p4
@@ -2826,7 +2826,7 @@
             fac010 = fk0*fac10(lay)
             fac110 = fk1*fac10(lay)
             fac210 = fk2*fac10(lay)
-         else if (specparm .gt. 0.875_rb) then
+         else if (specparm > 0.875_rb) then
             p = -fs
             p4 = p**4
             fk0 = p4
@@ -2844,7 +2844,7 @@
             fac100 = fs * fac00(lay)
             fac110 = fs * fac10(lay)
          endif
-         if (specparm1 .lt. 0.125_rb) then
+         if (specparm1 < 0.125_rb) then
             p = fs1 - 1
             p4 = p**4
             fk0 = p4
@@ -2856,7 +2856,7 @@
             fac011 = fk0*fac11(lay)
             fac111 = fk1*fac11(lay)
             fac211 = fk2*fac11(lay)
-         else if (specparm1 .gt. 0.875_rb) then
+         else if (specparm1 > 0.875_rb) then
             p = -fs1
             p4 = p**4
             fk0 = p4
@@ -2886,7 +2886,7 @@
                  (ka_mn2(jmn2+1,indm+1,ig) - ka_mn2(jmn2,indm+1,ig))
             taun2 = scalen2 * (n2m1 + minorfrac(lay) * (n2m2 - n2m1))
 
-            if (specparm .lt. 0.125_rb) then
+            if (specparm < 0.125_rb) then
                tau_major = speccomb * &
                     (fac000 * absa(ind0,ig) + &
                     fac100 * absa(ind0+1,ig) + &
@@ -2894,7 +2894,7 @@
                     fac010 * absa(ind0+9,ig) + &
                     fac110 * absa(ind0+10,ig) + &
                     fac210 * absa(ind0+11,ig))
-            else if (specparm .gt. 0.875_rb) then
+            else if (specparm > 0.875_rb) then
                tau_major = speccomb * &
                     (fac200 * absa(ind0-1,ig) + &
                     fac100 * absa(ind0,ig) + &
@@ -2910,7 +2910,7 @@
                     fac110 * absa(ind0+10,ig))
             endif
 
-            if (specparm1 .lt. 0.125_rb) then
+            if (specparm1 < 0.125_rb) then
                tau_major1 = speccomb1 * &
                     (fac001 * absa(ind1,ig) + &
                     fac101 * absa(ind1+1,ig) + &
@@ -2918,7 +2918,7 @@
                     fac011 * absa(ind1+9,ig) + &
                     fac111 * absa(ind1+10,ig) + &
                     fac211 * absa(ind1+11,ig))
-            else if (specparm1 .gt. 0.875_rb) then
+            else if (specparm1 > 0.875_rb) then
                tau_major1 = speccomb1 * &
                     (fac201 * absa(ind1-1,ig) + &
                     fac101 * absa(ind1,ig) + &
@@ -2998,21 +2998,21 @@
 
          speccomb = colh2o(lay) + rat_h2och4(lay)*colch4(lay)
          specparm = colh2o(lay)/speccomb
-         if (specparm .ge. oneminus) specparm = oneminus
+         if (specparm >= oneminus) specparm = oneminus
          specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
          fs = mod(specmult,1.0_rb)
 
          speccomb1 = colh2o(lay) + rat_h2och4_1(lay)*colch4(lay)
          specparm1 = colh2o(lay)/speccomb1
-         if (specparm1 .ge. oneminus) specparm1 = oneminus
+         if (specparm1 >= oneminus) specparm1 = oneminus
          specmult1 = 8._rb*(specparm1)
          js1 = 1 + int(specmult1)
          fs1 = mod(specmult1,1.0_rb)
 
          speccomb_planck = colh2o(lay)+refrat_planck_a*colch4(lay)
          specparm_planck = colh2o(lay)/speccomb_planck
-         if (specparm_planck .ge. oneminus) specparm_planck=oneminus
+         if (specparm_planck >= oneminus) specparm_planck=oneminus
          specmult_planck = 8._rb*specparm_planck
          jpl= 1 + int(specmult_planck)
          fpl = mod(specmult_planck,1.0_rb)
@@ -3022,7 +3022,7 @@
          inds = indself(lay)
          indf = indfor(lay)
 
-         if (specparm .lt. 0.125_rb) then
+         if (specparm < 0.125_rb) then
             p = fs - 1
             p4 = p**4
             fk0 = p4
@@ -3034,7 +3034,7 @@
             fac010 = fk0*fac10(lay)
             fac110 = fk1*fac10(lay)
             fac210 = fk2*fac10(lay)
-         else if (specparm .gt. 0.875_rb) then
+         else if (specparm > 0.875_rb) then
             p = -fs
             p4 = p**4
             fk0 = p4
@@ -3053,7 +3053,7 @@
             fac110 = fs * fac10(lay)
          endif
 
-         if (specparm1 .lt. 0.125_rb) then
+         if (specparm1 < 0.125_rb) then
             p = fs1 - 1
             p4 = p**4
             fk0 = p4
@@ -3065,7 +3065,7 @@
             fac011 = fk0*fac11(lay)
             fac111 = fk1*fac11(lay)
             fac211 = fk2*fac11(lay)
-         else if (specparm1 .gt. 0.875_rb) then
+         else if (specparm1 > 0.875_rb) then
             p = -fs1
             p4 = p**4
             fk0 = p4
@@ -3090,7 +3090,7 @@
             taufor =  forfac(lay) * (forref(indf,ig) + forfrac(lay) * &
                  (forref(indf+1,ig) - forref(indf,ig)))
 
-            if (specparm .lt. 0.125_rb) then
+            if (specparm < 0.125_rb) then
                tau_major = speccomb * &
                     (fac000 * absa(ind0,ig) + &
                     fac100 * absa(ind0+1,ig) + &
@@ -3098,7 +3098,7 @@
                     fac010 * absa(ind0+9,ig) + &
                     fac110 * absa(ind0+10,ig) + &
                     fac210 * absa(ind0+11,ig))
-            else if (specparm .gt. 0.875_rb) then
+            else if (specparm > 0.875_rb) then
                tau_major = speccomb * &
                     (fac200 * absa(ind0-1,ig) + &
                     fac100 * absa(ind0,ig) + &
@@ -3114,7 +3114,7 @@
                     fac110 * absa(ind0+10,ig))
             endif
 
-            if (specparm1 .lt. 0.125_rb) then
+            if (specparm1 < 0.125_rb) then
                tau_major1 = speccomb1 * &
                     (fac001 * absa(ind1,ig) + &
                     fac101 * absa(ind1+1,ig) + &
@@ -3122,7 +3122,7 @@
                     fac011 * absa(ind1+9,ig) + &
                     fac111 * absa(ind1+10,ig) + &
                     fac211 * absa(ind1+11,ig))
-            else if (specparm1 .gt. 0.875_rb) then
+            else if (specparm1 > 0.875_rb) then
                tau_major1 = speccomb1 * &
                     (fac201 * absa(ind1-1,ig) + &
                     fac101 * absa(ind1,ig) + &

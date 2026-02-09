@@ -35,6 +35,7 @@ module mod_nest
   use mod_mksst
   use mod_nchelper
   use mod_domain, only : read_reference_surface_temp
+  implicit none (type, external)
 
   private
 
@@ -89,7 +90,7 @@ module mod_nest
 
   subroutine init_nest
     use netcdf
-    implicit none
+    implicit none (type, external)
 
     integer(ik4) :: i, j, k, istatus, idimid, ivarid
     type(rcm_time_and_date) :: imf
@@ -443,7 +444,7 @@ module mod_nest
 
   subroutine get_nest(idate)
     use netcdf
-    implicit none
+    implicit none (type, external)
 
     type(rcm_time_and_date), intent(in) :: idate
 
@@ -846,7 +847,7 @@ module mod_nest
   end subroutine get_nest
 
   subroutine conclude_nest
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then

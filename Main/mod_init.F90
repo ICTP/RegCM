@@ -49,7 +49,7 @@ module mod_init
   use mod_sound, only : init_sound
   use mod_moloch, only : init_moloch
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -71,7 +71,7 @@ module mod_init
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine init
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i, j, k, n
     real(rkx) :: rdnnsg
     real(rkx) :: zzi, zfilt

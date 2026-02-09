@@ -21,7 +21,7 @@ module mod_mklaisai
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -37,7 +37,7 @@ module mod_mklaisai
 
   subroutine mklaisai(laisaifile,mask, &
                   monthly_lai,monthly_sai,monthly_top,monthly_bot)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: laisaifile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:,:), intent(out) :: monthly_sai, monthly_lai
@@ -65,7 +65,7 @@ module mod_mklaisai
     contains
 
       subroutine inrange(f,mi,ma)
-        implicit none
+        implicit none (type, external)
         real(rkx), dimension(:,:,:,:), intent(inout) :: f
         real(rkx), intent(in) :: mi, ma
         integer :: i, j, p, n

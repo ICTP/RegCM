@@ -17,7 +17,7 @@ module mod_clm_soiltemperature
                     max_pft_per_col
   use mod_clm_banddiagonal, only : BandDiagonal
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -57,7 +57,7 @@ module mod_clm_soiltemperature
                              num_nolakec, filter_nolakec, xmf, fact,        &
                              c_h2osfc, xmf_h2osfc)
     !@acc use nvtx
-    implicit none
+    implicit none (type, external)
     ! column bounds
     integer(ik4), intent(in) :: lbc, ubc
     ! number of column non-lake points in column filter
@@ -987,7 +987,7 @@ module mod_clm_soiltemperature
   !
   subroutine SoilThermProp (lbc, ubc,  num_nolakec, filter_nolakec, &
                             tk, cv,tk_h2osfc)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in)  :: lbc, ubc  ! column bounds
     ! number of column non-lake points in column filter
     integer(ik4), intent(in)  :: num_nolakec
@@ -1232,7 +1232,7 @@ module mod_clm_soiltemperature
   !
   subroutine PhaseChangeH2osfc (lbc, ubc, num_nolakec, filter_nolakec, fact, &
                                 dhsdT,c_h2osfc,xmf_h2osfc)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of column non-lake points in column filter
     integer(ik4), intent(in) :: num_nolakec
@@ -1425,7 +1425,7 @@ module mod_clm_soiltemperature
   !
   subroutine Phasechange_beta (lbc, ubc, num_nolakec, filter_nolakec, fact, &
                                dhsdT, xmf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of column non-lake points in column filter
     integer(ik4), intent(in) :: num_nolakec

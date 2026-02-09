@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  implicit none
+  implicit none (type, external)
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 
@@ -36,7 +36,7 @@ program clm2rcm
   use mod_zita
   use netcdf
 
-  implicit none
+  implicit none (type, external)
 
   real(rk4), parameter :: vmisdat=-9999.0
   integer(ik4), parameter :: ndim = 3

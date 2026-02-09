@@ -1,4 +1,5 @@
 module mod_clm_cnphenology
+implicit none (type, external)
 #ifdef CN
   !
   ! Module holding routines used in phenology model for coupled carbon
@@ -14,7 +15,7 @@ module mod_clm_cnphenology
   use mod_clm_varpar, only : numpft
   use mod_clm_varctl, only : nextdate
 
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -58,7 +59,7 @@ module mod_clm_cnphenology
   !
   subroutine CNPhenology (num_soilc, filter_soilc, num_soilp, filter_soilp, &
                           num_pcropp, filter_pcropp, doalb)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -106,7 +107,7 @@ module mod_clm_cnphenology
   subroutine CNPhenologyInit( begp, endp )
     use mod_clm_surfrd, only : crop_prog
     use mod_clm_varcon, only : secspday
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: begp, endp ! Beginning and ending PFT index
 
     !
@@ -191,10 +192,10 @@ module mod_clm_cnphenology
     integer(ik4) :: fp                ! lake filter pft index
     integer(ik4), save :: nyrs = -999 ! number of years prognostic crop has run
     integer(ik4), save :: lyr = -999  ! Last valid year
-    integer(ik4) kyr        ! current year
-    integer(ik4) kmo        !       month of year  (1, ..., 12)
-    integer(ik4) kda        !       day of month   (1, ..., 31)
-    integer(ik4) mcsec      !       seconds of day (0, ..., seconds/day)
+    integer(ik4) :: kyr        ! current year
+    integer(ik4) :: kmo        !       month of year  (1, ..., 12)
+    integer(ik4) :: kda        !       day of month   (1, ..., 31)
+    integer(ik4) :: mcsec      !       seconds of day (0, ..., seconds/day)
     ! length of years to average for gdd
     real(rk8), parameter :: yravg   = 20.0_rk8
     real(rk8), parameter :: yravgm1 = yravg-1.0_rk8 ! minus 1 of above
@@ -1218,7 +1219,7 @@ module mod_clm_cnphenology
             ncornirrig, nscerealirrig, lfemerg, grnfill, mxmat, &
             minplanttemp, planttemp
     use mod_clm_varcon, only : spval, secspday
-    implicit none
+    implicit none (type, external)
     ! number of prog crop pfts in filter
     integer(ik4), intent(in) :: num_pcropp
     ! filter for prognostic crop pfts
@@ -1724,7 +1725,7 @@ module mod_clm_cnphenology
     use mod_clm_pftvarcon, only : npcropmin, npcropmax, mnNHplantdate,  &
             mnSHplantdate, mxNHplantdate, mxSHplantdate
     use mod_clm_time_manager, only : get_calday
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: begp, endp ! Beginning and ending PFT index
     real(rk8), pointer, contiguous :: latdeg(:)        ! latitude (radians)
     integer(ik4), pointer, contiguous :: pgridcell(:) ! pft's gridcell index
@@ -1786,7 +1787,7 @@ module mod_clm_cnphenology
   ! development.
   !
   subroutine vernalization(p)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: p    ! PFT index running over
 
     real(rk8) :: tcrown        ! ?
@@ -1929,7 +1930,7 @@ module mod_clm_cnphenology
   ! pools during the phenological onset period.
   !
   subroutine CNOnsetGrowth (num_soilp, filter_soilp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
@@ -2065,7 +2066,7 @@ module mod_clm_cnphenology
   !
   subroutine CNOffsetLitterfall (num_soilp, filter_soilp)
     use mod_clm_pftvarcon, only : npcropmin
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     integer(ik4), pointer, contiguous :: ivt(:)            ! pft vegetation type
@@ -2190,7 +2191,7 @@ module mod_clm_cnphenology
   ! pools as the result of background litter fall.
   !
   subroutine CNBackgroundLitterfall (num_soilp, filter_soilp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     ! pft level
@@ -2253,7 +2254,7 @@ module mod_clm_cnphenology
   ! dead wood pools, for stem and coarse root.
   !
   subroutine CNLivewoodTurnover (num_soilp, filter_soilp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     ! pft level
@@ -2327,7 +2328,7 @@ module mod_clm_cnphenology
   subroutine CNLitterToColumn (num_soilc, filter_soilc)
     use mod_clm_varpar, only : max_pft_per_col, nlevdecomp
     use mod_clm_pftvarcon, only : npcropmin
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
 

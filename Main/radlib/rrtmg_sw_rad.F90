@@ -83,7 +83,7 @@ module rrtmg_sw_rad
       use rrtmg_sw_setcoef, only: setcoef_sw
       use rrtmg_sw_spcvmc, only: spcvmc_sw
 
-      implicit none
+      implicit none (type, external)
 
 ! public interfaces/functions/subroutines
       public :: rrtmg_sw, inatm_sw, earth_sun
@@ -592,7 +592,7 @@ module rrtmg_sw_rad
 ! icld = 1, with clouds using random cloud overlap (McICA only)
 ! icld = 2, with clouds using maximum/random cloud overlap (McICA only)
 ! icld = 3, with clouds using maximum cloud overlap (McICA only)
-      if (icld.lt.0.or.icld.gt.3) icld = 2
+      if (icld<0.or.icld>3) icld = 2
 
 ! Set iaer to select aerosol option
 ! iaer = 0, no aerosols
@@ -669,7 +669,7 @@ module rrtmg_sw_rad
 !  is below horizon
 
          cossza = coszen(iplon)
-         if (cossza .lt. zepzen) cossza = zepzen
+         if (cossza < zepzen) cossza = zepzen
 
 
 ! Transfer albedo, cloud and aerosol properties into arrays for 2-stream radiative transfer
@@ -690,7 +690,7 @@ module rrtmg_sw_rad
 
 
 ! Clouds
-         if (icld.eq.0) then
+         if (icld==0) then
 
             zcldfmc(:,:) = 0._rb
             ztaucmc(:,:) = 0._rb
@@ -698,7 +698,7 @@ module rrtmg_sw_rad
             zasycmc(:,:) = 0._rb
             zomgcmc(:,:) = 1._rb
 
-         elseif (icld.ge.1) then
+         elseif (icld>=1) then
             do i=1,nlayers
                do ig=1,ngptsw
                   zcldfmc(i,ig) = cldfmc(ig,i)
@@ -713,7 +713,7 @@ module rrtmg_sw_rad
 
 ! Aerosol
 ! IAER = 0: no aerosols
-         if (iaer.eq.0) then
+         if (iaer==0) then
 
             ztaua(:,:) = 0._rb
             zasya(:,:) = 0._rb
@@ -722,7 +722,7 @@ module rrtmg_sw_rad
 ! IAER = 6: Use ECMWF six aerosol types. See rrsw_aer.f90 for details.
 ! Input aerosol optical thickness at 0.55 micron for each aerosol type (ecaer),
 ! or set manually here for each aerosol and layer.
-         elseif (iaer.eq.6) then
+         elseif (iaer==6) then
 
 !            do i = 1, nlayers
 !               do ia = 1, naerec
@@ -758,7 +758,7 @@ module rrtmg_sw_rad
             enddo
 
 ! IAER=10: Direct specification of aerosol optical properties from GCM
-         elseif (iaer.eq.10) then
+         elseif (iaer==10) then
             ! FAB
             ! initialise at zero before using interactive aerosol in function
             ! of rad.forcing options
@@ -1261,7 +1261,7 @@ module rrtmg_sw_rad
                                                         !  time-averaged over Solar Cycles 13-24
       real(kind=rb) :: sbavgcyc(nsolfrac)               ! Sunspot index from NRLSSI2 SB "SPOT67" index
                                                         !  time-averaged over Solar Cycles 13-24
-      mgavgcyc(:) = (/ &
+      mgavgcyc(:) = [ &
         &   0.150737_rb,  0.150746_rb,  0.150733_rb,  0.150718_rb,  0.150725_rb,  0.150762_rb, &
         &   0.150828_rb,  0.150918_rb,  0.151017_rb,  0.151113_rb,  0.151201_rb,  0.151292_rb, &
         &   0.151403_rb,  0.151557_rb,  0.151766_rb,  0.152023_rb,  0.152322_rb,  0.152646_rb, &
@@ -1284,8 +1284,8 @@ module rrtmg_sw_rad
         &   0.152282_rb,  0.152194_rb,  0.152099_rb,  0.151980_rb,  0.151844_rb,  0.151706_rb, &
         &   0.151585_rb,  0.151496_rb,  0.151437_rb,  0.151390_rb,  0.151347_rb,  0.151295_rb, &
         &   0.151220_rb,  0.151115_rb,  0.150993_rb,  0.150883_rb,  0.150802_rb,  0.150752_rb, &
-        &   0.150729_rb,  0.150737_rb/)
-      sbavgcyc(:) = (/ &
+        &   0.150729_rb,  0.150737_rb]
+      sbavgcyc(:) = [ &
         &    50.3550_rb,   44.1322_rb,   52.0179_rb,   59.2231_rb,   66.3702_rb,   71.7545_rb, &
         &    76.8671_rb,   83.4723_rb,   91.1574_rb,   98.4915_rb,  105.3173_rb,  115.1791_rb, &
         &   130.9432_rb,  155.0483_rb,  186.5379_rb,  221.5456_rb,  256.9212_rb,  291.5276_rb, &
@@ -1308,7 +1308,7 @@ module rrtmg_sw_rad
         &   287.4195_rb,  288.9029_rb,  282.7594_rb,  267.7211_rb,  246.6594_rb,  224.7318_rb, &
         &   209.2318_rb,  204.5217_rb,  204.1653_rb,  200.0440_rb,  191.0689_rb,  175.7699_rb, &
         &   153.9869_rb,  128.4389_rb,  103.8445_rb,   85.6083_rb,   73.6264_rb,   64.4393_rb, &
-        &    56.5779_rb,   50.3550_rb/)
+        &    56.5779_rb,   50.3550_rb]
 
 ! Add one to nlayers here to include extra model layer at top of atmosphere
       nlayers = nlay
@@ -1342,24 +1342,24 @@ module rrtmg_sw_rad
 ! Adjust amplitude scaling of mean solar cycle to be 1.0 at solar minimum (solcycfrac_min=0.0189),
 ! to be the requested indsolvar at solar maximum (solcycfrac_max=0.3750), and to vary between
 ! those values at intervening values of solcycfrac.
-      if (isolvar .eq. 1) then
+      if (isolvar == 1) then
 ! Check for presence of indsolvar and solcycfrac when isolvar = 1.
 ! Use a solar cycle fraction of 0.0 and no scaling by default unless both indsolvar and solcycfrac are present.
          indsolvar_scl(1:2) = 1.0_rb
          if (present(indsolvar) .and. present(solcycfrac)) then
             solcycfr = solcycfrac
-            if (indsolvar(1).ne.1.0_rb.or.indsolvar(2).ne.1.0_rb) then
-               if (solcycfrac .ge. 0.0_rb .and. solcycfrac .lt. solcycfrac_min) then
+            if (indsolvar(1)/=1.0_rb.or.indsolvar(2)/=1.0_rb) then
+               if (solcycfrac >= 0.0_rb .and. solcycfrac < solcycfrac_min) then
                   wgt = (solcycfrac+1.0_rb-solcycfrac_max)/fracdiff_max2min
                   indsolvar_scl(1) = indsolvar(1) + wgt * (1.0_rb-indsolvar(1))
                   indsolvar_scl(2) = indsolvar(2) + wgt * (1.0_rb-indsolvar(2))
                endif
-               if (solcycfrac .ge. solcycfrac_min .and. solcycfrac .le. solcycfrac_max) then
+               if (solcycfrac >= solcycfrac_min .and. solcycfrac <= solcycfrac_max) then
                   wgt = (solcycfrac-solcycfrac_min)/fracdiff_min2max
                   indsolvar_scl(1) = 1.0_rb + wgt * (indsolvar(1)-1.0_rb)
                   indsolvar_scl(2) = 1.0_rb + wgt * (indsolvar(2)-1.0_rb)
                endif
-               if (solcycfrac .gt. solcycfrac_max .and. solcycfrac .le. 1.0_rb) then
+               if (solcycfrac > solcycfrac_max .and. solcycfrac <= 1.0_rb) then
                   wgt = (solcycfrac-solcycfrac_max)/fracdiff_max2min
                   indsolvar_scl(1) = indsolvar(1) + wgt * (1.0_rb-indsolvar(1))
                   indsolvar_scl(2) = indsolvar(2) + wgt * (1.0_rb-indsolvar(2))
@@ -1367,7 +1367,7 @@ module rrtmg_sw_rad
             endif
          endif
 ! Check for presence of indsolvar when isolvar = 2.
-      else if (isolvar .eq. 2) then
+      else if (isolvar == 2) then
 ! Use mean solar cycle facular and sunspot indices by default unless indsolvar is present
          indsolvar_ndx(1) = svar_f_avg
          indsolvar_ndx(2) = svar_s_avg
@@ -1390,7 +1390,7 @@ module rrtmg_sw_rad
 !
 ! 2) Calculate Earth/Sun distance from DYOFYR, the cumulative day of the year.
 !    (Set adjflx to 1. to use constant Earth/Sun distance of 1 AU).
-      if (dyofyr .gt. 0) then
+      if (dyofyr > 0) then
          adjflx = earth_sun(dyofyr)
       endif
 
@@ -1402,11 +1402,11 @@ module rrtmg_sw_rad
 !
 ! SCON > 0
 ! Scale from internal TSI to externally specified TSI value (scon)
-      if (scon .gt. 0.0_rb) then
+      if (scon > 0.0_rb) then
 !   No solar cycle and no solar variability (Kurucz solar source function)
 !   Scale from internal solar constant to requested solar constant.
 !   Apply optional constant scaling by band if first element of bndsolvar > 0.0
-         if (isolvar .eq. -1) then
+         if (isolvar == -1) then
             if (.not. present(bndsolvar)) &
               solvar(jpb1:jpb2) = scon / rrsw_scon
             if (present(bndsolvar)) &
@@ -1420,7 +1420,7 @@ module rrtmg_sw_rad
 !!   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
          else
 
-            if (isolvar .eq. 0) then
+            if (isolvar == 0) then
                svar_cprim = Fint + Sint + Iint
                svar_r = scon / svar_cprim
                svar_f = svar_r
@@ -1434,32 +1434,32 @@ module rrtmg_sw_rad
 !   averaged Mg and SB terms to Mg and SB terms interpolated here.
 !   Scale internal solar constant to requested solar constant.
 !   (Includes optional facular and sunspot amplitude scale factors)
-            if (isolvar .eq. 1) then
+            if (isolvar == 1) then
 !   Interpolate svar_f_0 and svar_s_0 from lookup tables using provided solar cycle fraction
-               if (solcycfr .le. 0.0_rb) then
+               if (solcycfr <= 0.0_rb) then
                   tmp_f_0 = mgavgcyc(1)
                   tmp_s_0 = sbavgcyc(1)
-               elseif (solcycfr .ge. 1.0_rb) then
+               elseif (solcycfr >= 1.0_rb) then
                   tmp_f_0 = mgavgcyc(nsolfrac)
                   tmp_s_0 = sbavgcyc(nsolfrac)
                else
                   intrvl_len = 1.0_rb / (nsolfrac-2)
                   intrvl_len_hf = 0.5_rb * intrvl_len
 !   Initial half interval (1)
-                  if (solcycfr .le. intrvl_len_hf) then
+                  if (solcycfr <= intrvl_len_hf) then
                      sfid = 1
                      fraclo = 0.0_rb
                      frachi = intrvl_len_hf
                   endif
 !   Main whole intervals (131)
-                  if (solcycfr .gt. intrvl_len_hf .and. &
-                      solcycfr .lt. 1.0_rb-intrvl_len_hf) then
+                  if (solcycfr > intrvl_len_hf .and. &
+                      solcycfr < 1.0_rb-intrvl_len_hf) then
                      sfid = floor((solcycfr-intrvl_len_hf) * (nsolfrac-2)) + 2
                      fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
                      frachi = fraclo + intrvl_len
                   endif
 !   Final half interval (1)
-                  if (solcycfr .ge. 1.0_rb-intrvl_len_hf) then
+                  if (solcycfr >= 1.0_rb-intrvl_len_hf) then
                      sfid = (nsolfrac-2) + 1
                      fraclo = 1.0_rb - intrvl_len_hf
                      frachi = 1.0_rb
@@ -1502,7 +1502,7 @@ module rrtmg_sw_rad
 !   Scale internal solar constant (svar_cprim) to requested solar constant (scon)
 !   Fint is provided as the product of (svar_f_avg-Foffset) and Fint,
 !   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
-            if (isolvar .eq. 3) then
+            if (isolvar == 3) then
                svar_cprim = Fint + Sint + Iint
                if (.not. present(bndsolvar)) &
                  solvar(jpb1:jpb2) = scon / svar_cprim
@@ -1521,7 +1521,7 @@ module rrtmg_sw_rad
 
 !   No solar cycle and no solar variability (Kurucz solar source function)
 !   Apply constant scaling by band if first element of bndsolvar specified
-         if (isolvar .eq. -1) then
+         if (isolvar == -1) then
             solvar(jpb1:jpb2) = 1.0_rb
             if (present(bndsolvar)) solvar(jpb1:jpb2) = bndsolvar(:)
          endif
@@ -1529,7 +1529,7 @@ module rrtmg_sw_rad
 !   Mean solar cycle with no solar variability (NRLSSI2 model solar irradiance)
 !   Quiet sun, facular, and sunspot terms averaged over the mean solar cycle
 !   (defined as average of Solar Cycles 13-24).
-         if (isolvar .eq. 0) then
+         if (isolvar == 0) then
             svar_f = 1.0_rb
             svar_s = 1.0_rb
             svar_i = 1.0_rb
@@ -1540,32 +1540,32 @@ module rrtmg_sw_rad
 !   fraction for mean solar cycle. Scalings defined below to convert from
 !   averaged Mg and SB terms to Mg and SB terms interpolated here.
 !   (Includes optional facular and sunspot amplitude scale factors)
-         if (isolvar .eq. 1) then
+         if (isolvar == 1) then
 !   Interpolate svar_f_0 and svar_s_0 from lookup tables using provided solar cycle fraction
-            if (solcycfr .le. 0.0_rb) then
+            if (solcycfr <= 0.0_rb) then
                tmp_f_0 = mgavgcyc(1)
                tmp_s_0 = sbavgcyc(1)
-            elseif (solcycfr .ge. 1.0_rb) then
+            elseif (solcycfr >= 1.0_rb) then
                tmp_f_0 = mgavgcyc(nsolfrac)
                tmp_s_0 = sbavgcyc(nsolfrac)
             else
                intrvl_len = 1.0_rb / (nsolfrac-2)
                intrvl_len_hf = 0.5_rb * intrvl_len
 !   Initial half interval (1)
-               if (solcycfr .le. intrvl_len_hf) then
+               if (solcycfr <= intrvl_len_hf) then
                   sfid = 1
                   fraclo = 0.0_rb
                   frachi = intrvl_len_hf
                endif
 !   Main whole intervals (131)
-               if (solcycfr .gt. intrvl_len_hf .and. &
-                   solcycfr .lt. 1.0_rb-intrvl_len_hf) then
+               if (solcycfr > intrvl_len_hf .and. &
+                   solcycfr < 1.0_rb-intrvl_len_hf) then
                   sfid = floor((solcycfr-intrvl_len_hf) * (nsolfrac-2)) + 2
                   fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
                   frachi = fraclo + intrvl_len
                endif
 !   Final half interval (1)
-               if (solcycfr .ge. 1.0_rb-intrvl_len_hf) then
+               if (solcycfr >= 1.0_rb-intrvl_len_hf) then
                   sfid = (nsolfrac-2) + 1
                   fraclo = 1.0_rb - intrvl_len_hf
                   frachi = 1.0_rb
@@ -1585,7 +1585,7 @@ module rrtmg_sw_rad
 !   Facular and sunspot index terms input directly to model specific
 !   solar cycle.  Scalings defined below to convert from averaged
 !   Mg and SB terms to specified Mg and SB terms.
-         if (isolvar .eq. 2) then
+         if (isolvar == 2) then
             svar_f = (indsolvar_ndx(1) - Foffset) / (svar_f_avg - Foffset)
             svar_s = (indsolvar_ndx(2) - Soffset) / (svar_s_avg - Soffset)
             svar_i = 1.0_rb
@@ -1596,7 +1596,7 @@ module rrtmg_sw_rad
 !   (derived as average of Solar Cycles 13-24). This information is built
 !   into coefficient terms specified by g-point elsewhere. Separate
 !   scaling by spectral band is applied as defined by bndsolvar.
-         if (isolvar .eq. 3) then
+         if (isolvar == 3) then
             solvar(jpb1:jpb2) = 1.0_rb
             if (present(bndsolvar)) solvar(jpb1:jpb2) = bndsolvar(:)
             do ib = jpb1,jpb2
@@ -1610,7 +1610,7 @@ module rrtmg_sw_rad
 
 ! Combine Earth-Sun adjustment and solar constant scaling
 ! when no solar variability and no solar cycle requested
-      if (isolvar .lt. 0) then
+      if (isolvar < 0) then
          do ib = jpb1,jpb2
             adjflux(ib) = adjflx * solvar(ib)
          enddo
@@ -1698,7 +1698,7 @@ module rrtmg_sw_rad
 ! Transfer aerosol optical properties to RRTM variables;
 ! modify to reverse layer indexing here if necessary.
 
-      if (iaer .ge. 1) then
+      if (iaer >= 1) then
          do l = 1, nlayers
             do ib = 1, nbndsw
                taua(l,ib) = tauaer(iplon,l,ib)
@@ -1711,7 +1711,7 @@ module rrtmg_sw_rad
 ! Transfer cloud fraction and cloud optical properties to RRTM variables;
 ! modify to reverse layer indexing here if necessary.
 
-      if (icld .ge. 1) then
+      if (icld >= 1) then
          inflag = inflgsw
          iceflag = iceflgsw
          liqflag = liqflgsw

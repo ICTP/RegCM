@@ -91,7 +91,7 @@ module mod_clm_control
   use mod_clm_soilhydrology, only : SoilHydrology_readnl
   use mod_clm_megan, only : shr_megan_readnl, shr_megan_mechcomps_n
   use mod_clm_drydep, only : seq_drydep_read, seq_drydep_init
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -107,7 +107,7 @@ module mod_clm_control
   ! Initialize CLM run control information
   !
   subroutine control_init( )
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i     ! loop indices
     integer(ik4) :: ierr                 ! error code
     integer(ik4) :: ihost
@@ -342,7 +342,7 @@ module mod_clm_control
   ! all processors and writes it to disk.
   !
   subroutine control_spmd()
-    implicit none
+    implicit none (type, external)
 
     ! run control variables
     call bcast(caseid,len(caseid))
@@ -501,7 +501,7 @@ module mod_clm_control
   ! Write out the clm namelist run control variables
   !
   subroutine control_print ()
-    implicit none
+    implicit none (type, external)
 #ifdef CN
     character(len=32) :: subname = 'control_print'  ! subroutine name
 #endif

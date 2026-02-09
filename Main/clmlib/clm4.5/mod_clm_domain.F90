@@ -10,7 +10,7 @@ module mod_clm_domain
   use mod_runparams
   use mod_mpmessage
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -25,19 +25,19 @@ module mod_clm_domain
     integer(ik4) :: nbeg, nend  ! local beg/end indices
     character(len=8) :: clmlevel   ! grid type
     ! land mask: 1 = land, 0 = ocean
-    integer(ik4), pointer, contiguous, dimension(:) :: mask
+    integer(ik4), pointer, contiguous, dimension(:) :: mask => null()
     ! fractional land
-    real(rk8), pointer, contiguous, dimension(:) :: frac
+    real(rk8), pointer, contiguous, dimension(:) :: frac => null()
     ! topography
-    real(rk8), pointer, contiguous, dimension(:) :: topo
+    real(rk8), pointer, contiguous, dimension(:) :: topo => null()
     ! latitude of grid cell (deg)
-    real(rk8), pointer, contiguous, dimension(:) :: latc
+    real(rk8), pointer, contiguous, dimension(:) :: latc => null()
     ! longitude of grid cell (deg)
-    real(rk8), pointer, contiguous, dimension(:) :: lonc
+    real(rk8), pointer, contiguous, dimension(:) :: lonc => null()
     ! grid cell area (km**2)
-    real(rk8), pointer, contiguous, dimension(:) :: area
+    real(rk8), pointer, contiguous, dimension(:) :: area => null()
     ! pft mask: 1=real, 0=fake, -1=notset
-    integer(ik4), pointer, contiguous, dimension(:) :: pftm
+    integer(ik4), pointer, contiguous, dimension(:) :: pftm => null()
     character(len=16) :: set ! flag to check if domain is set
     logical :: decomped   ! decomposed locally or global copy
   end type domain_type
@@ -56,7 +56,7 @@ module mod_clm_domain
   ! This subroutine allocates and nans the domain type
   !
   subroutine domain_init(domain,ni,nj,nbeg,nend,clmlevel)
-    implicit none
+    implicit none (type, external)
     type(domain_type) :: domain           ! domain datatype
     integer(ik4), intent(in) :: ni, nj  ! grid size, 2d
     integer(ik4), intent(in), optional :: nbeg, nend  ! beg/end indices
@@ -115,7 +115,7 @@ module mod_clm_domain
   ! This subroutine deallocates the domain type
   !
   subroutine domain_clean(domain)
-    implicit none
+    implicit none (type, external)
     type(domain_type) :: domain        ! domain datatype
     integer(ik4) :: ier
     if ( domain%set == set ) then
@@ -147,7 +147,7 @@ module mod_clm_domain
   ! This subroutine write domain info
   !
   subroutine domain_check(domain)
-    implicit none
+    implicit none (type, external)
     type(domain_type), intent(in) :: domain        ! domain datatype
     if ( myid == italk ) then
       write(stdout,*) '  domain_check set       = ',trim(domain%set)

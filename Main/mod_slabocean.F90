@@ -29,7 +29,7 @@ module mod_slabocean
   use netcdf
   use mod_kdinterp
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -60,7 +60,7 @@ module mod_slabocean
   contains
 !
     subroutine allocate_mod_slabocean
-      implicit none
+      implicit none (type, external)
       call getmem(slabmld,jci1,jci2,ici1,ici2,1,mpy,&
                     'slab_ocean:slabmld')
       call getmem(qflux_restore_sst,jci1,jci2,ici1,ici2,1,mpy,&
@@ -78,7 +78,7 @@ module mod_slabocean
     end subroutine allocate_mod_slabocean
 
     subroutine init_slabocean(sfs,lndcat,fsw,flw,xlon,xlat)
-      implicit none
+      implicit none (type, external)
       ! interface for regcm variable / slab ocean
       type(surfstate), intent(in) :: sfs
       real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: lndcat
@@ -88,7 +88,7 @@ module mod_slabocean
       integer(ik4) :: i, j, nlon, nlat
       integer(ik4) ::  ncid
       integer(ik4) :: iret
-      integer(ik4)  icvar, idimid
+      integer(ik4)  :: icvar, idimid
       real(rkx), pointer, contiguous, dimension(:,:,:) :: climld => null( )
       real(rkx), pointer, contiguous, dimension(:) :: lat => null( )
       real(rkx), pointer, contiguous, dimension(:) :: lon => null( )
@@ -222,7 +222,7 @@ module mod_slabocean
     subroutine update_slabocean(xt,lms)
       ! FAB  : Slab ocean model based on Q flux correction,
       !        similar to FMS global model
-      implicit none
+      implicit none (type, external)
       real(rk8), intent(in) :: xt
       type(lm_state), intent(inout) :: lms
       ! mlcp is the heat capacity of the mixed layer [J / m3 / deg C] * m
@@ -302,7 +302,7 @@ module mod_slabocean
     end subroutine update_slabocean
 
     subroutine fill_slaboc_outvars
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: imon, i, j
       if ( associated(slab_qflx_out) ) then
         do imon = 1, mpy

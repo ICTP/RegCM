@@ -24,7 +24,7 @@ module mod_dynparam
   use netcdf
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   private
   !
@@ -484,7 +484,7 @@ module mod_dynparam
   contains
 
   subroutine initparam(filename, ierr)
-    implicit none
+    implicit none (type, external)
     character (len=*), intent(in) :: filename
     integer(ik4), intent(out) :: ierr
     integer(ik8) :: gdate1, gdate2
@@ -700,7 +700,7 @@ module mod_dynparam
         clon  = 180.0_rkx
       end if
     else
-      if ( i_band.eq.1 ) then
+      if ( i_band==1 ) then
         ds = real((twopi*erkm)/real(jx,rk8),rkx)
         if ( iproj == 'EQBAND' ) then
           iproj = 'NORMER'
@@ -850,7 +850,7 @@ module mod_dynparam
   end subroutine initparam
 
   subroutine init_fnestparam(filename,coarse_outdir,coarse_domname)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: filename
     character(len=256), intent(out) :: coarse_outdir, coarse_domname
     integer(ik4) :: iresult
@@ -873,7 +873,7 @@ module mod_dynparam
   end subroutine init_fnestparam
 
   subroutine init_globwindow(filename,lat0,lon0,lat1,lon1)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: filename
     real(rkx), intent(out) :: lat0, lat1, lon0, lon1
     integer(ik4) :: iresult

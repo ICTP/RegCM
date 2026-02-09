@@ -25,7 +25,7 @@ module mod_mkwetland
   use mod_memutil
   use netcdf
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -39,7 +39,7 @@ module mod_mkwetland
   contains
 
   subroutine mkwetland(wetfile,mask,wetland,lake)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: wetfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: wetland, lake

@@ -23,6 +23,7 @@ module mod_cbmz_solve1
   use mod_cbmz_chemlocal
   use mod_cbmz_linslv
   use mod_cbmz_init1
+  implicit none (type, external)
 
  private
 
@@ -317,7 +318,7 @@ module mod_cbmz_solve1
 !
     subroutine quadchem
 !
-      implicit none
+      implicit none (type, external)
       ! Chem index
       integer(ik4) :: ic, ic1, ic2, ic3
       ! Chem local index
@@ -328,7 +329,7 @@ module mod_cbmz_solve1
       integer(ik4) :: i, ii
 !
       ! Species list passed to chemsolve
-      integer ncsol(c_cdim)
+      integer :: ncsol(c_cdim)
 !
       kk=1
 
@@ -597,7 +598,7 @@ module mod_cbmz_solve1
 !
     subroutine chemsolve(ncsol)
 !
-      implicit none
+      implicit none (type, external)
       ! Species list passed to chemsolve
       integer, intent(inout) :: ncsol(c_cdim)
       ! Chem index
@@ -1859,7 +1860,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
 
     subroutine brreac(nr)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: nr
       ! chem index - pair and multi
       integer(ik4) :: icr1, icr2
@@ -1931,7 +1932,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
       subroutine brpro(nr)
 !
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: nr
       ! Chem index
       integer(ik4) :: ic, ic1, ic2
@@ -2141,7 +2142,7 @@ module mod_cbmz_solve1
 !
      subroutine excorr(ic1)
 !
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ic1
       ! Chem index
       integer(ik4) :: ic, ics
@@ -2415,7 +2416,7 @@ module mod_cbmz_solve1
 
     subroutine noxsolve(ic1,ic2,ic3)
 !
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ic1, ic2, ic3
       ! Chem index
       integer(ik4) :: ic
@@ -2717,7 +2718,7 @@ module mod_cbmz_solve1
 !
     subroutine ohsolve(ic1,ic2,ic3)
 !
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ic1, ic2, ic3
       ! Chem index
       integer(ik4) :: ic , icc, ics
@@ -3396,7 +3397,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
     subroutine setgeom(ic)
 !
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ic
       ! Vectorization counters
       integer(ik4) :: kk
@@ -3514,7 +3515,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
      subroutine presolve
 !
-       implicit none
+       implicit none (type, external)
        ! chem index - pair and multi
        integer(ik4) :: icr
        ! Reaction counters
@@ -3742,7 +3743,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
      subroutine prelump
 !
-       implicit none
+       implicit none (type, external)
        ! Chem index
        integer(ik4) :: ic, ic1, ic2, iic, icc, ics
        ! Aqueous counters
@@ -3945,7 +3946,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
      subroutine midlump
 !
-       implicit none
+       implicit none (type, external)
        ! Chem index
        integer(ik4) :: ic, ic1, ic2, ics
        ! Vectorization counters
@@ -4074,7 +4075,7 @@ module mod_cbmz_solve1
 ! -------------------------------------------------------------------
      subroutine postlump
 !
-       implicit none
+       implicit none (type, external)
        ! Chem index
        integer(ik4) :: ic, ic1, ic2, ics
        ! Vectorization counters
@@ -4198,7 +4199,7 @@ module mod_cbmz_solve1
 !
      subroutine setro2
 !
-       implicit none
+       implicit none (type, external)
        ! Chem index
        integer(ik4) :: ic, ic1
        ! Reaction counters
@@ -4314,7 +4315,7 @@ module mod_cbmz_solve1
 
      subroutine aquasolve
 !
-       implicit none
+       implicit none (type, external)
        ! Chem index
        integer(ik4) :: ic
        ! Chem index
@@ -4652,10 +4653,10 @@ module mod_cbmz_solve1
                  if ( c_h2oliq(kk) > d_zero ) then
                    if ( xc(kk,ic) > d_zero ) then
                      rpro(kk,3) = rpro(kk,3) + (rpro(kk,1)/xc(kk,ic)) * &
-                                  iabs(c_ion(icq))*c_h2oliq(kk)*avogadrl * &
+                                  abs(c_ion(icq))*c_h2oliq(kk)*avogadrl * &
                                   xc(kk,icq)
                    end if
-                   rpro(kk,2) = rpro(kk,2) + iabs(c_ion(icq)) * &
+                   rpro(kk,2) = rpro(kk,2) + abs(c_ion(icq)) * &
                                  c_h2oliq(kk)*avogadrl*xc(kk,icq)
                  end if
                end if

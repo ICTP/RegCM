@@ -1,21 +1,21 @@
 
 	program test
-	implicit none
+	implicit none (type, external)
 	use mpi
 
-	integer ier
+	integer :: ier
 
-	integer sreq(10), sreq2(10), rreq(10), rreq2(10)
-	integer sbuf(10), sbuf2(10), rbuf(10), rbuf2(10)
-	integer tag
-	integer status(MPI_STATUS_SIZE,10)
-	integer i
-	integer comm2;
-	logical flag;
-	character pname(MPI_MAX_PROCESSOR_NAME)
-	integer pnamesize
+	integer :: sreq(10), sreq2(10), rreq(10), rreq2(10)
+	integer :: sbuf(10), sbuf2(10), rbuf(10), rbuf2(10)
+	integer :: tag
+	integer :: status(MPI_STATUS_SIZE,10)
+	integer :: i
+	integer :: comm2
+	logical :: flag
+	character :: pname(MPI_MAX_PROCESSOR_NAME)
+	integer :: pnamesize
 
-        integer temp,position
+        integer :: temp,position
 
 
         print *, 'Time=',mpi_wtime()
@@ -131,6 +131,6 @@
           call sleep(1)
 	end do
 
- 	end
+ 	end program test
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

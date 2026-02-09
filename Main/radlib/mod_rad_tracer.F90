@@ -20,7 +20,7 @@ module mod_rad_tracer
   use mod_constants
   use mod_dynparam, only : kz
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -53,7 +53,7 @@ module mod_rad_tracer
   !
   pure subroutine trcmix(n1,n2,dlat,ptrop,pmid,n2o0,ch40,cfc110,cfc120, &
                          n2o,ch4,cfc11,cfc12)
-    implicit none
+    implicit none (type, external)
     !
     ! dlat   - latitude in degrees
     ! xn2o   - pressure scale height for n2o

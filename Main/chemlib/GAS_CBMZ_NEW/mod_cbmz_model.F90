@@ -14,6 +14,7 @@ module mod_cbmz_model
   use mod_cbmz_jacobian
   use mod_cbmz_linearalgebra
   use mod_cbmz_monitor
+  implicit none (type, external)
 
 end module mod_cbmz_model
 

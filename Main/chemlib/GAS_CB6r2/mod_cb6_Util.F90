@@ -25,7 +25,7 @@
 MODULE mod_cb6_Util
 
   USE mod_cb6_Parameters
-  IMPLICIT NONE
+  IMPLICIT NONE (type, external)
 
 CONTAINS
 
@@ -73,7 +73,7 @@ CONTAINS
       USE mod_cb6_Global
       USE mod_cb6_Monitor
 
-      INTEGER i
+      INTEGER :: i
 
       WRITE(10,999) (TIMEB-TSTART)/3600.D0,  &
                    (C_CB6(LOOKAT(i))/CFACTOR, i=1,NLOOKAT)
@@ -118,8 +118,8 @@ CONTAINS
       USE mod_cb6_Monitor
 
 
-      CHARACTER(LEN=8) PREFIX
-      INTEGER i
+      CHARACTER(LEN=8) :: PREFIX
+      INTEGER :: i
 
       open(20, file='mod_cb6.m')
       write(20,*) 'load mod_cb6.dat;'

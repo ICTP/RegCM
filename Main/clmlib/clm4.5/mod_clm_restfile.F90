@@ -33,7 +33,7 @@ module mod_clm_restfile
   use mod_clm_histfile, only : hist_restart_ncd
   use mod_clm_time_manager
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -56,7 +56,7 @@ module mod_clm_restfile
   ! Read/write CLM restart file.
   !
   subroutine restFile_write(rfile,noptr,rdate)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: rfile  ! output netcdf restart file
     character(len=*), intent(in) :: rdate ! restart file time stamp for name
     ! if should NOT write to the restart pointer file
@@ -139,7 +139,7 @@ module mod_clm_restfile
   ! Read a CLM restart file.
   !
   subroutine restFile_read( rfile, rdate )
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: rfile  ! output netcdf restart file
     character(len=*), intent(in) :: rdate  ! output netcdf restart date
     type(clm_filetype) :: ncid ! netcdf id
@@ -183,7 +183,7 @@ module mod_clm_restfile
   ! Determine and obtain netcdf restart file
   !
   subroutine restFile_getfile( rfile, rdate )
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(out) :: rfile  ! name of netcdf restart file
     character(len=*), intent(in) :: rdate ! input date for restart file name
 
@@ -196,7 +196,7 @@ module mod_clm_restfile
   end subroutine restFile_getfile
 
   subroutine restFile_open( flag, rfile, ncid )
-    implicit none
+    implicit none (type, external)
     character(len=*),  intent(in) :: flag ! flag to specify read or write
     character(len=*),  intent(in) :: rfile ! filename
     type(clm_filetype), intent(inout):: ncid ! netcdf id
@@ -217,7 +217,7 @@ module mod_clm_restfile
   end subroutine restFile_open
 
   character(len=256) function restFile_filename( rdate )
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: rdate ! input date for restart file name
     restFile_filename = trim(dirout)//trim(caseid)// &
                         ".clm."//trim(inst_suffix)//&
@@ -227,7 +227,7 @@ module mod_clm_restfile
   ! Read/Write initial data from/to netCDF instantaneous initial data file
   !
   subroutine restFile_dimset( ncid )
-    implicit none
+    implicit none (type, external)
     type(clm_filetype), intent(inout) :: ncid
     integer(ik4) :: numg   ! total number of gridcells across all processors
     integer(ik4) :: numl   ! total number of landunits across all processors
@@ -276,7 +276,7 @@ module mod_clm_restfile
   ! Check dimensions of restart file
   !
   subroutine restFile_dimcheck( ncid )
-    implicit none
+    implicit none (type, external)
     type(clm_filetype), intent(inout) :: ncid
     integer(ik4) :: numg  ! total number of gridcells across all processors
     integer(ik4) :: numl  ! total number of landunits across all processors
@@ -309,7 +309,7 @@ module mod_clm_restfile
   ! Read a CLM restart file.
   !
   subroutine restFile_enddef( ncid )
-    implicit none
+    implicit none (type, external)
     type(clm_filetype), intent(inout) :: ncid
     call clm_enddef(ncid)
   end subroutine restFile_enddef
@@ -317,7 +317,7 @@ module mod_clm_restfile
   ! Read a CLM restart file.
   !
   subroutine restFile_close( ncid )
-    implicit none
+    implicit none (type, external)
     type(clm_filetype), intent(inout) :: ncid
     call clm_closefile(ncid)
   end subroutine restFile_close

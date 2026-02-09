@@ -5,7 +5,7 @@ module mod_clm_varsur
   use mod_intkinds
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
 
   private
 

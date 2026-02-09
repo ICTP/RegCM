@@ -25,7 +25,7 @@ module mod_cbmz_jacobian
   use mod_cbmz_parameters
   use mod_cbmz_jacobiansp
 
-  implicit none
+  implicit none (type, external)
 
   contains
 
@@ -41,7 +41,7 @@ module mod_cbmz_jacobian
   ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   subroutine jac_sp ( v, f, rct, jvs )
-    implicit none
+    implicit none (type, external)
     ! v - concentrations of variable species (local)
     real(kind=dp), dimension(nvar), intent(in) :: v
     ! f - concentrations of fixed species (local)

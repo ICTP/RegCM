@@ -43,7 +43,7 @@
       use rrlw_tbl, only: tblint, bpade, tau_tbl, exp_tbl, tfn_tbl
       use rrlw_vsn, only: hvrrtx, hnamrtx
 
-      implicit none
+      implicit none (type, external)
 
       contains
 
@@ -286,12 +286,12 @@
                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16/
 
       do ibnd = 1,nbndlw
-         if (ibnd.eq.1 .or. ibnd.eq.4 .or. ibnd.ge.10) then
+         if (ibnd==1 .or. ibnd==4 .or. ibnd>=10) then
            secdiff(ibnd) = 1.66_rb
          else
            secdiff(ibnd) = a0(ibnd) + a1(ibnd)*exp(a2(ibnd)*pwvcm)
-           if (secdiff(ibnd) .gt. 1.80_rb) secdiff(ibnd) = 1.80_rb
-           if (secdiff(ibnd) .lt. 1.50_rb) secdiff(ibnd) = 1.50_rb
+           if (secdiff(ibnd) > 1.80_rb) secdiff(ibnd) = 1.80_rb
+           if (secdiff(ibnd) < 1.50_rb) secdiff(ibnd) = 1.50_rb
          endif
       enddo
 
@@ -314,7 +314,7 @@
       clrdrad(0) = 0.0_rb
       totuclfl(0) = 0.0_rb
       totdclfl(0) = 0.0_rb
-      if (idrv .eq. 1) then
+      if (idrv == 1) then
          d_urad_dt(0) = 0.0_rb
          d_clrurad_dt(0) = 0.0_rb
          dtotuflux_dt(0) = 0.0_rb
@@ -330,7 +330,7 @@
          clrdrad(lay) = 0.0_rb
          totuclfl(lay) = 0.0_rb
          totdclfl(lay) = 0.0_rb
-         if (idrv .eq. 1) then
+         if (idrv == 1) then
             d_urad_dt(lay) = 0.0_rb
             d_clrurad_dt(lay) = 0.0_rb
             dtotuflux_dt(lay) = 0.0_rb
@@ -338,7 +338,7 @@
          endif
 
          do ib = 1, ncbands
-            if (cldfrac(lay) .ge. 1.e-6_rb) then
+            if (cldfrac(lay) >= 1.e-6_rb) then
                odcld(lay,ib) = secdiff(ib) * taucloud(lay,ib)
                icldlyr(lay) = 1
             else
@@ -354,32 +354,32 @@
       istcldd(nlayers) = 1
       do lev = 1, nlayers
 
-         if (icldlyr(lev).eq.1) then
+         if (icldlyr(lev)==1) then
 ! Maximum/random cloud overlap
             istcld(lev+1) = 0
-            if (lev .eq. nlayers) then
+            if (lev == nlayers) then
                faccld1(lev+1) = 0._rb
                faccld2(lev+1) = 0._rb
                facclr1(lev+1) = 0._rb
                facclr2(lev+1) = 0._rb
                faccmb1(lev+1) = 0._rb
                faccmb2(lev+1) = 0._rb
-            elseif (cldfrac(lev+1) .ge. cldfrac(lev)) then
+            elseif (cldfrac(lev+1) >= cldfrac(lev)) then
                faccld1(lev+1) = 0._rb
                faccld2(lev+1) = 0._rb
-               if (istcld(lev) .eq. 1) then
+               if (istcld(lev) == 1) then
                   facclr1(lev+1) = 0._rb
                   facclr2(lev+1) = 0._rb
-                  if (cldfrac(lev) .lt. 1._rb) facclr2(lev+1) = &
+                  if (cldfrac(lev) < 1._rb) facclr2(lev+1) = &
                      (cldfrac(lev+1)-cldfrac(lev))/(1._rb-cldfrac(lev))
                   facclr2(lev) = 0._rb
                   faccld2(lev) = 0._rb
                else
                   fmax = max(cldfrac(lev),cldfrac(lev-1))
-                  if (cldfrac(lev+1) .gt. fmax) then
+                  if (cldfrac(lev+1) > fmax) then
                      facclr1(lev+1) = rat2
                      facclr2(lev+1) = (cldfrac(lev+1)-fmax)/(1._rb-fmax)
-                  elseif (cldfrac(lev+1) .lt. fmax) then
+                  elseif (cldfrac(lev+1) < fmax) then
                      facclr1(lev+1) = (cldfrac(lev+1)-cldfrac(lev))/ &
                         (cldfrac(lev-1)-cldfrac(lev))
                      facclr2(lev+1) = 0._rb
@@ -388,7 +388,7 @@
                      facclr2(lev+1) = 0._rb
                   endif
                endif
-               if (facclr1(lev+1).gt.0._rb .or. facclr2(lev+1).gt.0._rb) then
+               if (facclr1(lev+1)>0._rb .or. facclr2(lev+1)>0._rb) then
                   rat1 = 1._rb
                   rat2 = 0._rb
                else
@@ -398,7 +398,7 @@
             else
                facclr1(lev+1) = 0._rb
                facclr2(lev+1) = 0._rb
-               if (istcld(lev) .eq. 1) then
+               if (istcld(lev) == 1) then
                   faccld1(lev+1) = 0._rb
                   faccld2(lev+1) = (cldfrac(lev)-cldfrac(lev+1))/cldfrac(lev)
 
@@ -406,7 +406,7 @@
                   faccld2(lev) = 0._rb
                else
                   fmin = min(cldfrac(lev),cldfrac(lev-1))
-                  if (cldfrac(lev+1) .le. fmin) then
+                  if (cldfrac(lev+1) <= fmin) then
                      faccld1(lev+1) = rat1
                      faccld2(lev+1) = (fmin-cldfrac(lev+1))/fmin
                   else
@@ -414,7 +414,7 @@
                      faccld2(lev+1) = 0._rb
                   endif
                endif
-               if (faccld1(lev+1).gt.0._rb .or. faccld2(lev+1).gt.0._rb) then
+               if (faccld1(lev+1)>0._rb .or. faccld2(lev+1)>0._rb) then
                   rat1 = 0._rb
                   rat2 = 1._rb
                else
@@ -422,7 +422,7 @@
                   rat2 = 0._rb
                endif
             endif
-            if (istcld(lev).ne.1) then
+            if (istcld(lev)/=1) then
               faccmb1(lev+1) = max(0.0_rb,min(cldfrac(lev+1)-cldfrac(lev), &
                     cldfrac(lev-1)-cldfrac(lev)))
               faccmb2(lev+1) = max(0.0_rb,min(cldfrac(lev)-cldfrac(lev+1), &
@@ -434,31 +434,31 @@
       enddo
 
       do lev = nlayers, 1, -1
-         if (icldlyr(lev).eq.1) then
+         if (icldlyr(lev)==1) then
             istcldd(lev-1) = 0
-            if (lev .eq. 1) then
+            if (lev == 1) then
                faccld1d(lev-1) = 0._rb
                faccld2d(lev-1) = 0._rb
                facclr1d(lev-1) = 0._rb
                facclr2d(lev-1) = 0._rb
                faccmb1d(lev-1) = 0._rb
                faccmb2d(lev-1) = 0._rb
-            elseif (cldfrac(lev-1) .ge. cldfrac(lev)) then
+            elseif (cldfrac(lev-1) >= cldfrac(lev)) then
                faccld1d(lev-1) = 0._rb
                faccld2d(lev-1) = 0._rb
-               if (istcldd(lev) .eq. 1) then
+               if (istcldd(lev) == 1) then
                   facclr1d(lev-1) = 0._rb
                   facclr2d(lev-1) = 0._rb
-                  if (cldfrac(lev) .lt. 1._rb) facclr2d(lev-1) = &
+                  if (cldfrac(lev) < 1._rb) facclr2d(lev-1) = &
                      (cldfrac(lev-1)-cldfrac(lev))/(1._rb-cldfrac(lev))
                   facclr2d(lev) = 0._rb
                   faccld2d(lev) = 0._rb
                else
                   fmax = max(cldfrac(lev),cldfrac(lev+1))
-                  if (cldfrac(lev-1) .gt. fmax) then
+                  if (cldfrac(lev-1) > fmax) then
                      facclr1d(lev-1) = rat2
                      facclr2d(lev-1) = (cldfrac(lev-1)-fmax)/(1._rb-fmax)
-                  elseif (cldfrac(lev-1) .lt. fmax) then
+                  elseif (cldfrac(lev-1) < fmax) then
                      facclr1d(lev-1) = (cldfrac(lev-1)-cldfrac(lev))/ &
                         (cldfrac(lev+1)-cldfrac(lev))
                      facclr2d(lev-1) = 0.
@@ -467,7 +467,7 @@
                      facclr2d(lev-1) = 0._rb
                   endif
                endif
-               if (facclr1d(lev-1).gt.0._rb .or. facclr2d(lev-1).gt.0._rb)then
+               if (facclr1d(lev-1)>0._rb .or. facclr2d(lev-1)>0._rb)then
                   rat1 = 1._rb
                   rat2 = 0._rb
                else
@@ -477,14 +477,14 @@
             else
                facclr1d(lev-1) = 0._rb
                facclr2d(lev-1) = 0._rb
-               if (istcldd(lev) .eq. 1) then
+               if (istcldd(lev) == 1) then
                   faccld1d(lev-1) = 0._rb
                   faccld2d(lev-1) = (cldfrac(lev)-cldfrac(lev-1))/cldfrac(lev)
                   facclr2d(lev) = 0._rb
                   faccld2d(lev) = 0._rb
                else
                   fmin = min(cldfrac(lev),cldfrac(lev+1))
-                  if (cldfrac(lev-1) .le. fmin) then
+                  if (cldfrac(lev-1) <= fmin) then
                      faccld1d(lev-1) = rat1
                      faccld2d(lev-1) = (fmin-cldfrac(lev-1))/fmin
                   else
@@ -492,7 +492,7 @@
                      faccld2d(lev-1) = 0._rb
                   endif
                endif
-               if (faccld1d(lev-1).gt.0._rb .or. faccld2d(lev-1).gt.0._rb)then
+               if (faccld1d(lev-1)>0._rb .or. faccld2d(lev-1)>0._rb)then
                   rat1 = 0._rb
                   rat2 = 1._rb
                else
@@ -500,7 +500,7 @@
                   rat2 = 0._rb
                endif
             endif
-            if (istcldd(lev).ne.1) then
+            if (istcldd(lev)/=1) then
               faccmb1d(lev-1) = max(0.0_rb,min(cldfrac(lev+1)-cldfrac(lev), &
                 cldfrac(lev-1)-cldfrac(lev)))
               faccmb2d(lev-1) = max(0.0_rb,min(cldfrac(lev)-cldfrac(lev+1), &
@@ -516,13 +516,13 @@
       do iband = istart, iend
 
 ! Reinitialize g-point counter for each band if output for each band is requested.
-         if (iout.gt.0.and.iband.ge.2) igc = ngs(iband-1)+1
+         if (iout>0.and.iband>=2) igc = ngs(iband-1)+1
          ib = 0
-         if (ncbands .eq. 1) then
+         if (ncbands == 1) then
             ib = ipat(iband,0)
-         elseif (ncbands .eq.  5) then
+         elseif (ncbands ==  5) then
             ib = ipat(iband,1)
-         elseif (ncbands .eq. 16) then
+         elseif (ncbands == 16) then
             ib = ipat(iband,2)
          endif
 
@@ -543,12 +543,12 @@
                dplankdn = planklev(lev-1,iband) - blay
                odepth = secdiff(iband) * taut(lev,igc)
 
-               if (odepth .lt. 0.0_rb) odepth = 0.0_rb
+               if (odepth < 0.0_rb) odepth = 0.0_rb
 ! Cloudy layer
-               if (icldlyr(lev).eq.1) then
+               if (icldlyr(lev)==1) then
                   iclddn = 1
                   odtot = odepth + odcld(lev,ib)
-                  if (odtot .lt. 0.06_rb) then
+                  if (odtot < 0.06_rb) then
                      atrans(lev) = odepth - 0.5_rb*odepth*odepth
                      odepth_rec = rec_6*odepth
                      gassrc = plfrac*(blay+dplankdn*odepth_rec)*atrans(lev)
@@ -560,7 +560,7 @@
 
                      bbugas(lev) =  plfrac * (blay+dplankup*odepth_rec)
                      bbutot(lev) =  plfrac * (blay+dplankup*odtot_rec)
-                  elseif (odepth .le. 0.06_rb) then
+                  elseif (odepth <= 0.06_rb) then
                      atrans(lev) = odepth - 0.5_rb*odepth*odepth
                      odepth_rec = rec_6*odepth
                      gassrc = plfrac*(blay+dplankdn*odepth_rec)*atrans(lev)
@@ -595,7 +595,7 @@
                      bbutot(lev) = plfrac * (blay + tfactot * dplankup)
                   endif
 
-                  if (istcldd(lev) .eq. 1) then
+                  if (istcldd(lev) == 1) then
                      cldradd = cldfrac(lev) * radld
                      clrradd = radld - cldradd
                      oldcld = cldradd
@@ -622,7 +622,7 @@
                   clrradd = clrradd - rad
 ! Clear layer
                else
-                  if (odepth .le. 0.06_rb) then
+                  if (odepth <= 0.06_rb) then
                      atrans(lev) = odepth-0.5_rb*odepth*odepth
                      odepth = rec_6*odepth
                      bbd = plfrac*(blay+dplankdn*odepth)
@@ -642,7 +642,7 @@
 !  Set clear sky stream to total sky stream as long as layers
 !  remain clear.  Streams diverge when a cloud is reached (iclddn=1),
 !  and clear sky stream must be computed separately from that point.
-                 if (iclddn.eq.1) then
+                 if (iclddn==1) then
                      radclrd = radclrd + (bbd-radclrd) * atrans(lev)
                      clrdrad(lev-1) = clrdrad(lev-1) + radclrd
                   else
@@ -660,7 +660,7 @@
 !  they are defined in subroutine setcoef.
 
          rad0 = fracs(1,igc) * plankbnd(iband)
-         if (idrv .eq. 1) then
+         if (idrv == 1) then
             d_rad0_dt = fracs(1,igc) * dplankbnd_dt(iband)
          endif
 
@@ -673,7 +673,7 @@
 
          urad(0) = urad(0) + radlu
          clrurad(0) = clrurad(0) + radclru
-         if (idrv .eq. 1) then
+         if (idrv == 1) then
             d_radlu_dt = d_rad0_dt
             d_urad_dt(0) = d_urad_dt(0) + d_radlu_dt
             d_radclru_dt = d_rad0_dt
@@ -682,9 +682,9 @@
 
          do lev = 1, nlayers
 ! Cloudy layer
-            if (icldlyr(lev) .eq. 1) then
+            if (icldlyr(lev) == 1) then
                gassrc = bbugas(lev) * atrans(lev)
-               if (istcld(lev) .eq. 1) then
+               if (istcld(lev) == 1) then
                   cldradu = cldfrac(lev) * radlu
                   clrradu = radlu - cldradu
                   oldcld = cldradu
@@ -708,7 +708,7 @@
                rad = -radmod + facclr2(lev+1)*oldclr - faccld2(lev+1)*oldcld
                cldradu = cldradu + rad
                clrradu = clrradu - rad
-               if (idrv .eq. 1) then
+               if (idrv == 1) then
                   d_radlu_dt = d_radlu_dt * cldfrac(lev) * (1.0_rb - atot(lev)) + &
                          d_radlu_dt * (1.0_rb - cldfrac(lev)) * (1.0_rb - atrans(lev))
                   d_urad_dt(lev) = d_urad_dt(lev) + d_radlu_dt
@@ -717,7 +717,7 @@
             else
                radlu = radlu + (bbugas(lev)-radlu)*atrans(lev)
                urad(lev) = urad(lev) + radlu
-               if (idrv .eq. 1) then
+               if (idrv == 1) then
                   d_radlu_dt = d_radlu_dt * (1.0_rb - atrans(lev))
                   d_urad_dt(lev) = d_urad_dt(lev) + d_radlu_dt
                endif
@@ -726,15 +726,15 @@
 !  are clear (iclddn=0).  Streams must be calculated separately at
 !  all layers when a cloud is present (iclddn=1), because surface
 !  reflectance is different for each stream.
-               if (iclddn.eq.1) then
+               if (iclddn==1) then
                   radclru = radclru + (bbugas(lev)-radclru)*atrans(lev)
                   clrurad(lev) = clrurad(lev) + radclru
                else
                   radclru = radlu
                   clrurad(lev) = urad(lev)
                endif
-               if (idrv .eq. 1) then
-                  if (iclddn.eq.1) then
+               if (idrv == 1) then
+                  if (iclddn==1) then
                      d_radclru_dt = d_radclru_dt * (1.0_rb - atrans(lev))
                      d_clrurad_dt(lev) = d_clrurad_dt(lev) + d_radclru_dt
                   else
@@ -747,7 +747,7 @@
 ! Increment g-point counter
          igc = igc + 1
 ! Return to continue radiative transfer for all g-channels in present band
-         if (igc .le. ngs(iband)) go to 1000
+         if (igc <= ngs(iband)) go to 1000
 
 ! Process longwave output from band.
 ! Calculate upward, downward, and net flux.
@@ -767,7 +767,7 @@
          enddo
 
 ! Calculate total change in upward flux wrt surface temperature
-         if (idrv .eq. 1) then
+         if (idrv == 1) then
             do lev = nlayers, 0, -1
                duflux_dt(lev) = d_urad_dt(lev) * wtdiff
                d_urad_dt(lev) = 0.0_rb
