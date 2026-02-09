@@ -40,6 +40,9 @@ module mod_header
            '(/,1x," This is ",A," part of the RegCM version 5")'
     character(len=*), parameter :: f99002 = &
            '(2x," SVN Revision: ",A," compiled at: data : ",A,"  time: ",A,/)'
+#ifdef __INTEL_COMPILER
+  external :: hostnm, getlog, getcwd
+#endif
 
     cdata = '?'
     czone = '?'
@@ -73,6 +76,9 @@ module mod_header
     implicit none (type, external)
     integer(ik4), intent (in) :: myid
     character (len=24) :: cdata
+#ifdef __INTEL_COMPILER
+    external :: fdate
+#endif
 
     cdata = '?'
     if ( myid ==  0 ) then

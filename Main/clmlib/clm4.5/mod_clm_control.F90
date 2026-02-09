@@ -110,18 +110,22 @@ module mod_clm_control
     implicit none (type, external)
     integer(ik4) :: i     ! loop indices
     integer(ik4) :: ierr                 ! error code
-    integer(ik4) :: ihost
     integer(ik4) :: unitn                ! unit for namelist file
     ! If want to override the startup type sent from driver
-    character(len=32) :: subname = 'control_init'  ! subroutine name
-    character(len=32) :: hostname = '?'
-    character(len=32) :: user = '?'
-    integer(ik4) :: hostnm
+    character(len=32) :: subname  ! subroutine name
+    character(len=64) :: hostname
+    character(len=32) :: user
+#ifdef __INTEL_COMPILER
+    external :: hostnm, getlog, getcwd
+#endif
     ! ----------------------------------------------------------------------
     ! Namelist Variables
     ! ----------------------------------------------------------------------
 
     ! CLM namelist settings
+    subname = 'control_init'
+    hostname = '?'
+    user = '?'
 
     namelist /clm_inparm / &
          fatmlndfrc, finidat, nrevsn
@@ -274,7 +278,7 @@ module mod_clm_control
     hostname='ibm platform '
     user= 'Unknown'
 #else
-    ihost = hostnm(hostname)
+    call hostnm(hostname)
     call getlog(user)
 #endif
     if ( ifrest ) then

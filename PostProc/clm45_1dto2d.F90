@@ -15,6 +15,9 @@
 
 subroutine myabort
   implicit none (type, external)
+#ifdef __INTEL_COMPILER
+  external :: abort
+#endif
   call abort
 end subroutine myabort
 

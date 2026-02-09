@@ -70,6 +70,9 @@ program ncplot
   logical :: lvarsplit, lsigma, ldepth, lu, lua, luas, lclm
   logical :: is_model_output = .false.
   logical :: uvrotate = .false.
+#ifdef __INTEL_COMPILER
+  external :: system, unlink
+#endif
 
   type(anyprojparams) :: pjpara
   type(regcm_projection) :: pj

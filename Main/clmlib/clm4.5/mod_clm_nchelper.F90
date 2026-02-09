@@ -34,6 +34,8 @@ module mod_clm_nchelper
 
   private
 
+  external :: mpi_bcast, mpi_scatterv, mpi_gatherv
+
   save
 
   integer(ik4), parameter :: clm_maxdims = 64

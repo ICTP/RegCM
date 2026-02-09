@@ -54,12 +54,12 @@ module mod_header
   subroutine header(myid,nproc)
     implicit none (type, external)
     integer(ik4), intent(in) :: myid, nproc
-    integer(ik4) :: ihost, idir
-    integer(ik4) :: hostnm
-    integer(ik4) :: getcwd
     character (len=32) :: hostname
     character (len=32) :: user
     character (len=256) :: directory
+#ifdef __INTEL_COMPILER
+    external :: hostnm, getlog, getcwd
+#endif
 
     cdata = '?'
     czone = '?'
@@ -72,10 +72,10 @@ module mod_header
       hostname='ibm platform '
       user= 'Unknown'
 #else
-      ihost = hostnm(hostname)
+      call hostnm(hostname)
       call getlog(user)
 #endif
-      idir = getcwd(directory)
+      call getcwd(directory)
       call date_and_time(zone=czone,values=tval)
       write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
             tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone

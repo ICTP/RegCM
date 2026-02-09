@@ -89,13 +89,22 @@ program interpinic
   integer(ik4) :: imaxcol, omaxcol, maxcol
 
   integer(ik4), dimension(8) :: tval
-  character (len=32) :: cdata='?'
-  character (len=5) :: czone='?'
-  character (len=32) :: hostname='?'
-  character (len=32) :: user='?'
-  character (len=128) :: directory='?'
+  character (len=32) :: cdata
+  character (len=5) :: czone
+  character (len=32) :: hostname
+  character (len=32) :: user
+  character (len=128) :: directory
   character (len=*), parameter :: f99001 = &
           '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
+#ifdef __INTEL_COMPILER
+  external :: hostnm, getlog, getcwd
+#endif
+
+  cdata = '?'
+  czone = '?'
+  hostname = '?'
+  user = '?'
+  directory = '?'
 
   write (stdout,  &
      "(/,2x,'This is interpinic part of RegCM package version 4')")

@@ -210,6 +210,9 @@ program mksurfdata
   character (len=128) :: directory='?'
   character (len=*), parameter :: f99001 = &
           '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
+#ifdef __INTEL_COMPILER
+  external :: hostnm, getlog, getcwd
+#endif
 
   write (stdout,  &
      "(/,2x,'This is mksurfdata part of RegCM package version 5')")
