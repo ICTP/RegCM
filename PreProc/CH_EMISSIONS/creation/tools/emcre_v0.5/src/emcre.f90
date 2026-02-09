@@ -16,7 +16,7 @@ PROGRAM EMCRE
   USE emcre_tools
   USE emcre_netcdf
 
-  IMPLICIT NONE
+  IMPLICIT NONE (type, external)
 
   ! VERSION
   CHARACTER(LEN=*), PARAMETER :: VERSION = '0.4'
@@ -173,9 +173,9 @@ PROGRAM EMCRE
 
   ! (4) GET NUMBER OF EMISSION LEVELS
   DO jc = 1, MAX_HEIGHTS
-     if (HEIGHT(jc).ne.-999.0_dp) nlev = nlev+1
+     if (HEIGHT(jc)/=-999.0_dp) nlev = nlev+1
   ENDDO
-  IF (MINVAL(HEIGHT(1:nlev)).eq.-999.0_dp) THEN
+  IF (MINVAL(HEIGHT(1:nlev))==-999.0_dp) THEN
     WRITE(*,*) 'PROBLEM IN HEIGHT DEFINITION (missing levels?)'
     STOP
   ENDIF
@@ -217,7 +217,7 @@ PROGRAM EMCRE
   class_loop: DO jc = 1, MAX_NCLASS
 
      ! SKIP IF NAME IS EMPTY
-     IF (TRIM(source(jc)%name) == '') CYCLE
+     IF (TRIM(source(jc)%name) == '') CYCLE class_loop
 
      ! ALLOCATE EMISSIONS FLUXES FOR THIS CLASS
      ALLOCATE(emisflux_class(nlon, nlat, ntime))
@@ -232,24 +232,24 @@ PROGRAM EMCRE
 
      nlev_tmp=0
      DO jk=1, MAX_HEIGHTS
-       if (FRAC(jc)%scale(jk).ne.-999.0_dp) nlev_tmp = nlev_tmp+1
+       if (FRAC(jc)%scale(jk)/=-999.0_dp) nlev_tmp = nlev_tmp+1
      ENDDO
-     IF (nlev_tmp.ne.nlev) THEN
+     IF (nlev_tmp/=nlev) THEN
        WRITE(*,*) 'PROBLEM IN FRACTION DEFINITION (missing levels?)'
        WRITE(*,*) ' LEVELS DIFFERES FROM DEFINED HEIGHTS !!'
        STOP
      ENDIF
-     IF (SUM(FRAC(jc)%scale(1:nlev)).ne.1.0_dp) THEN
+     IF (SUM(FRAC(jc)%scale(1:nlev))/=1.0_dp) THEN
        WRITE(*,*) 'WARNING LEVEL FRACTION SUM <> 1 !!!'
      ENDIF
 
      file_loop: DO jf=1,MAX_SPEC
 
-        IF (YEAR(jc)%year(jf)==0.or.FILE_NAME(jc)%fname(jf)=="") CYCLE
+        IF (YEAR(jc)%year(jf)==0.or.FILE_NAME(jc)%fname(jf)=="") CYCLE file_loop
 
-        IF (YEAR(jc)%year(jf).lt.YEAR_START.or.YEAR(jc)%year(jf).gt.YEAR_END) THEN
+        IF (YEAR(jc)%year(jf)<YEAR_START.or.YEAR(jc)%year(jf)>YEAR_END) THEN
            WRITE(*,*) "YEAR NOT ADDED (OUTSIDE RANGE YEAR_START:YEAR_END)"
-           CYCLE
+           CYCLE file_loop
         ENDIF
 
         WRITE(*,*) '==========================================================='
@@ -506,7 +506,7 @@ CONTAINS
   ! ------------------------------------------------------------------------
   SUBROUTINE read_nml(status, iou, fname)
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     ! I/O
     INTEGER,          INTENT(OUT) :: status
@@ -579,7 +579,7 @@ CONTAINS
 
     USE netcdf
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     INTRINSIC :: TRIM, ADJUSTL, NINT
 
@@ -621,7 +621,7 @@ CONTAINS
     CALL  NFERR( status, &
          nf90_Inquire_Dimension(ncid, dimid, name_dim, nlat_file ) &
          ,3)
-    IF (nlat_file.ne.nlat) THEN
+    IF (nlat_file/=nlat) THEN
       WRITE (*,*) "LAT differs between grid definition and imported grid"
       write(*,*) nlat_file, nlat
       STOP
@@ -633,7 +633,7 @@ CONTAINS
     CALL  NFERR( status, &
          nf90_Inquire_Dimension(ncid, dimid, name_dim, nlon_file ) &
          ,5)
-    IF (nlon_file.ne.nlon) THEN
+    IF (nlon_file/=nlon) THEN
       WRITE (*,*) "LON differs between grid definition and imported grid"
       write(*,*) nlon_file, nlon
       STOP
@@ -645,9 +645,9 @@ CONTAINS
     CALL  NFERR( status, &
          nf90_Inquire_Dimension(ncid, dimid, name_dim, ntime_file ) &
          ,7)
-    IF (ntime_file.eq.12) THEN
+    IF (ntime_file==12) THEN
       freq_file = 'monthly'
-    ELSE IF (ntime_file.eq.1) THEN
+    ELSE IF (ntime_file==1) THEN
       freq_file = 'annual'
     ELSE
        WRITE(*,*) substr, &
@@ -673,7 +673,7 @@ CONTAINS
 
     USE netcdf
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     INTRINSIC :: TRIM, ADJUSTL, NINT
 
@@ -698,7 +698,7 @@ CONTAINS
     CALL  NFERR( status, &
          nf90_inq_varid(ncid, var, varid ) &
          ,22)
-    IF (status.ne.0) then
+    IF (status/=0) then
         write(*,*) "variable not found in NetCDF file, skipping"
         RETURN
     ENDIF
@@ -723,7 +723,7 @@ CONTAINS
 
     USE netcdf
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     INTRINSIC :: TRIM, ADJUSTL, NINT
 
@@ -748,7 +748,7 @@ CONTAINS
     CALL  NFERR( status, &
          nf90_inq_varid(ncid, var, varid ) &
          ,22)
-    IF (status.ne.0) then
+    IF (status/=0) then
         write(*,*) "variable not found in NetCDF file, skipping"
         RETURN
     ENDIF
@@ -775,7 +775,7 @@ CONTAINS
 
    SELECT CASE (TRIM(INTERPOLATION))
    CASE ('linear')
-       IF (nyears_added.le.1) then
+       IF (nyears_added<=1) then
          WRITE (*,*) "NO MULTIPLE YEAR: NO INTERPOLATION NEEDED!"
        ELSE
          SELECT CASE (TRIM(TIME_FREQUENCY))
@@ -786,7 +786,7 @@ CONTAINS
                 ! search closest added years
                 !DY/DX= (Y(x+1)-Y(x))/Dx
                 DO jl=1,nyears_added-1
-                  IF (years_location(jl).le.jt.and.years_location(jl+1).gt.jt) THEN
+                  IF (years_location(jl)<=jt.and.years_location(jl+1)>jt) THEN
                   slope(:,:)=(emisflux_class(:,:,years_location(jl+1)+month_offset) &
                              -emisflux_class(:,:,years_location(jl)+month_offset)) &
                              / (years_location(jl+1)-years_location(jl))
@@ -802,7 +802,7 @@ CONTAINS
                  ! search closest added years
                  !DY/DX= (Y(x+1)-Y(x))/Dx
                 DO jl=1,nyears_added-1
-                  IF (years_location(jl).le.jt.and.years_location(jl+1).ge.jt) THEN
+                  IF (years_location(jl)<=jt.and.years_location(jl+1)>=jt) THEN
                     slope=(emisflux_class(:,:,years_location(jl+1))-emisflux_class(:,:,years_location(jl))) &
                           / (years_location(jl+1)-years_location(jl))
                     emisflux_class(:,:,jt) = emisflux_class(:,:,years_location(jl))+slope(:,:)*(jt-years_location(jl))
@@ -814,7 +814,7 @@ CONTAINS
        ENDIF
    CASE ('spline')
        !INTERPOLATE THE EMISSION CLASS
-       IF (nyears_added.le.1) then
+       IF (nyears_added<=1) then
          WRITE (*,*) "NO MULTIPLE YEAR: NO INTERPOLATION NEEDED!"
        ELSE
          SELECT CASE (TRIM(TIME_FREQUENCY))
@@ -868,14 +868,14 @@ CONTAINS
    END SELECT
 
 
-  END SUBROUTINE
+  END SUBROUTINE interp
 
   ! ------------------------------------------------------------------------
   SUBROUTINE nc_dump
 
     USE netcdf
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     INTRINSIC :: DATE_AND_TIME, CHAR
 
@@ -951,7 +951,7 @@ CONTAINS
     class_loop: DO jc = 1, MAX_NCLASS
 
       ! SKIP IF NAME IS EMPTY
-      IF (TRIM(source(jc)%name) == '') CYCLE
+      IF (TRIM(source(jc)%name) == '') CYCLE class_loop
 
        WRITE(jcstr,'(i4)') jc
        nmlstr=TRIM(nmlstr)//'SOURCE('//jcstr//') : '''//', '//CHAR(10)
@@ -964,7 +964,7 @@ CONTAINS
 
        file_loop: DO jf=1,MAX_SPEC
           ! SKIP IF FILE WAS NOT PRESENT
-          IF (YEAR(jc)%year(jf)==0.or.FILE_NAME(jc)%fname(jf)=="") CYCLE
+          IF (YEAR(jc)%year(jf)==0.or.FILE_NAME(jc)%fname(jf)=="") CYCLE file_loop
           WRITE(yrstr,'(i4)') YEAR(jc)%year(jf)
           nmlstr=TRIM(nmlstr)//TRIM(yrstr)//''','//TRIM(FILE_NAME(jc)%fname(jf))&
                &//', '//CHAR(10)
@@ -999,7 +999,7 @@ CONTAINS
 
     ! DEFINE COORDINATE VARIABLES WITH ATTRIBUTES
     CALL NFERR(status, &
-         nf90_def_var(ncid, 'lon', NF90_FLOAT, (/ dimid_lon /), varid_lon) &
+         nf90_def_var(ncid, 'lon', NF90_FLOAT, [ dimid_lon ], varid_lon) &
          ,60)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_lon, 'long_name', 'longitude') &
@@ -1009,7 +1009,7 @@ CONTAINS
          ,62)
 
     CALL NFERR(status, &
-         nf90_def_var(ncid, 'lat', NF90_FLOAT, (/ dimid_lat /), varid_lat) &
+         nf90_def_var(ncid, 'lat', NF90_FLOAT, [ dimid_lat ], varid_lat) &
          ,63)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_lat, 'long_name', 'latitude') &
@@ -1019,7 +1019,7 @@ CONTAINS
          ,64)
 
     CALL NFERR(status, &
-         nf90_def_var(ncid, 'lev', NF90_FLOAT, (/ dimid_lev /), varid_lev) &
+         nf90_def_var(ncid, 'lev', NF90_FLOAT, [ dimid_lev ], varid_lev) &
          ,65)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_lev, 'long_name', 'level index') &
@@ -1030,7 +1030,7 @@ CONTAINS
     IF (L_AIRCRAFT) THEN
         ! interface values
        CALL NFERR(status, &
-            nf90_def_var(ncid, 'ilev', NF90_FLOAT, (/ dimid_ilev /), varid_ilev) &
+            nf90_def_var(ncid, 'ilev', NF90_FLOAT, [ dimid_ilev ], varid_ilev) &
             ,15)
        CALL NFERR(status, &
             nf90_put_att(ncid, varid_ilev, 'long_name', 'interface level index') &
@@ -1041,7 +1041,7 @@ CONTAINS
     ENDIF
 
     CALL NFERR(status, &
-         nf90_def_var(ncid, 'time', NF90_FLOAT, (/ dimid_time /), varid_time) &
+         nf90_def_var(ncid, 'time', NF90_FLOAT, [ dimid_time ], varid_time) &
          ,68)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_time, 'long_name', 'time') &
@@ -1067,7 +1067,7 @@ CONTAINS
        ! - emission pressure mid layer
        CALL NFERR(status, &
             nf90_def_var(ncid, 'press', NF90_FLOAT  &
-           , (/ dimid_lev /), varid_press) &
+           , [ dimid_lev ], varid_press) &
             ,71)
        CALL NFERR(status, &
             nf90_put_att(ncid, varid_press, 'long_name' &
@@ -1079,7 +1079,7 @@ CONTAINS
             ! - emission pressure interface layer
        CALL NFERR(status, &
             nf90_def_var(ncid, 'ipress', NF90_FLOAT  &
-           , (/ dimid_ilev /), varid_ipress) &
+           , [ dimid_ilev ], varid_ipress) &
             ,74)
        CALL NFERR(status, &
             nf90_put_att(ncid, varid_ipress, 'long_name' &
@@ -1092,7 +1092,7 @@ CONTAINS
         ! - emission height
         CALL NFERR(status, &
              nf90_def_var(ncid, 'height', NF90_FLOAT  &
-            , (/ dimid_lev /), varid_height) &
+            , [ dimid_lev ], varid_height) &
              ,71)
         CALL NFERR(status, &
              nf90_put_att(ncid, varid_height, 'long_name' &
@@ -1106,7 +1106,7 @@ CONTAINS
 !    ! - flux
     CALL NFERR(status, &
          nf90_def_var(ncid, TRIM(SPECIES)//'_flux', NF90_FLOAT  &
-        , (/ dimid_lon, dimid_lat, dimid_lev, dimid_time /), varid_flux) &
+        , [ dimid_lon, dimid_lat, dimid_lev, dimid_time ], varid_flux) &
          ,78)
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_flux, 'long_name' &
@@ -1170,7 +1170,7 @@ CONTAINS
 
     USE netcdf, ONLY: NF90_NOERR, nf90_strerror
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     ! I/O
     INTEGER,          INTENT(OUT) :: status

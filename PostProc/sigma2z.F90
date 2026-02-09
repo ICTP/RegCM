@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  implicit none
+  implicit none (type, external)
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 
@@ -36,7 +36,7 @@ program sigma2z
   use mod_sigma, only : init_sigma, half_sigma_coordinate
   use netcdf
 
-  implicit none
+  implicit none (type, external)
 
   character(256) :: prgname, ncsfile, ncpfile
   character(128) :: attname, dimname, varname
@@ -804,7 +804,7 @@ program sigma2z
   contains
 
   subroutine get_nz(iu)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: iu
     integer(ik4) :: np ! Unused in sigma2z
     namelist /pp_param/ nz, np
@@ -818,7 +818,7 @@ program sigma2z
   end subroutine get_nz
 
   subroutine get_zlevs(iu)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: iu
     namelist /height/ zlevs
     rewind(iu)
@@ -832,7 +832,7 @@ program sigma2z
 
 #ifdef NETCDF4_HDF5
   subroutine get_ncfilter(iu)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: iu
     namelist /ncfilters/ ncfilter, ncfilter_nparams, ncfilter_params
     rewind(iu)

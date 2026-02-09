@@ -17,7 +17,7 @@ module mod_sort
   use mod_realkinds
   use mod_intkinds
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -57,7 +57,7 @@ module mod_sort
   contains
 
   subroutine sort_int32(x)
-    implicit none
+    implicit none (type, external)
     integer(kind=ik4), dimension(:), intent(inout) :: x
     integer :: istart, istop
     istart = 1
@@ -66,7 +66,7 @@ module mod_sort
   end subroutine sort_int32
 
   subroutine sort_int64(x)
-    implicit none
+    implicit none (type, external)
     integer(kind=ik8), dimension(:), intent(inout) :: x
     integer :: istart, istop
     istart = 1
@@ -75,7 +75,7 @@ module mod_sort
   end subroutine sort_int64
 
   subroutine sort_real32(x)
-    implicit none
+    implicit none (type, external)
     real(kind=rk4), dimension(:), intent(inout) :: x
     integer :: istart, istop
     istart = 1
@@ -84,7 +84,7 @@ module mod_sort
   end subroutine sort_real32
 
   subroutine sort_real64(x)
-    implicit none
+    implicit none (type, external)
     real(kind=rk8), dimension(:), intent(inout) :: x
     integer :: istart, istop
     istart = 1
@@ -93,7 +93,7 @@ module mod_sort
   end subroutine sort_real64
 
    recursive subroutine quicksort_int32(x,first,last)
-    implicit none
+    implicit none (type, external)
     integer(kind=ik4), dimension(:), intent(inout) :: x
     integer, intent(in) :: first, last
     integer(kind=ik4) :: pivot, temp
@@ -124,7 +124,7 @@ module mod_sort
   end subroutine quicksort_int32
 
   recursive subroutine quicksort_int64(x,first,last)
-    implicit none
+    implicit none (type, external)
     integer(kind=ik8), dimension(:), intent(inout) :: x
     integer, intent(in) :: first, last
     integer(kind=ik8) :: pivot, temp
@@ -155,7 +155,7 @@ module mod_sort
   end subroutine quicksort_int64
 
   recursive subroutine quicksort_real32(x,first,last)
-    implicit none
+    implicit none (type, external)
     real(kind=rk4), dimension(:), intent(inout) :: x
     integer, intent(in) :: first, last
     real(kind=rk4) :: pivot, temp
@@ -186,7 +186,7 @@ module mod_sort
   end subroutine quicksort_real32
 
   recursive subroutine quicksort_real64(x,first,last)
-    implicit none
+    implicit none (type, external)
     real(kind=rk8), dimension(:), intent(inout) :: x
     integer, intent(in) :: first, last
     real(kind=rk8) :: pivot, temp
@@ -217,7 +217,7 @@ module mod_sort
   end subroutine quicksort_real64
 
   subroutine msi_r8(a,idx,jdx)
-    implicit none
+    implicit none (type, external)
     real(rk8), dimension(:,:), intent(in) :: a
     integer(ik4), dimension(:,:), intent(out) :: idx, jdx
     real(rk8), dimension(:), allocatable :: b
@@ -225,7 +225,7 @@ module mod_sort
     integer(ik4) :: nn, n, i, j, ii, jj, nx, ny
     integer(ik4) :: is, js
     nn = product(shape(a))
-    b = reshape(a,(/nn/))
+    b = reshape(a,[nn])
     iord = argsort(b)
     nx = size(a,1)
     ny = size(a,2)
@@ -242,7 +242,7 @@ module mod_sort
   end subroutine msi_r8
 
   subroutine msi_r4(a,idx,jdx)
-    implicit none
+    implicit none (type, external)
     real(rk4), dimension(:,:), intent(in) :: a
     integer(ik4), dimension(:,:), intent(out) :: idx, jdx
     real(rk4), dimension(:), allocatable :: b
@@ -250,7 +250,7 @@ module mod_sort
     integer(ik4) :: nn, n, i, j, ii, jj, nx, ny
     integer(ik4) :: is, js
     nn = product(shape(a))
-    b = reshape(a,(/nn/))
+    b = reshape(a,[nn])
     iord = argsort(b)
     nx = size(a,1)
     ny = size(a,2)
@@ -267,7 +267,7 @@ module mod_sort
   end subroutine msi_r4
 
   subroutine msi_i4(a,idx,jdx)
-    implicit none
+    implicit none (type, external)
     integer(ik4), dimension(:,:), intent(in) :: a
     integer(ik4), dimension(:,:), intent(out) :: idx, jdx
     integer(ik4), dimension(:), allocatable :: b
@@ -275,7 +275,7 @@ module mod_sort
     integer(ik4) :: nn, n, i, j, ii, jj, nx, ny
     integer(ik4) :: is, js
     nn = product(shape(a))
-    b = reshape(a,(/nn/))
+    b = reshape(a,[nn])
     iord = argsort(b)
     nx = size(a,1)
     ny = size(a,2)
@@ -292,7 +292,7 @@ module mod_sort
   end subroutine msi_i4
 
   function argsort_r8(a) result(b)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: a(:)
     integer(ik4), dimension(size(a)) :: b
     integer :: n, i, imin, temp1
@@ -318,7 +318,7 @@ module mod_sort
   end function argsort_r8
 
   function argsort_r4(a) result(b)
-    implicit none
+    implicit none (type, external)
     real(rk4), intent(in) :: a(:)
     integer(ik4), dimension(size(a)) :: b
     integer :: n, i, imin, temp1
@@ -344,7 +344,7 @@ module mod_sort
   end function argsort_r4
 
   function argsort_i4(a) result(b)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: a(:)
     integer(ik4), dimension(size(a)) :: b
     integer :: n, i, imin, temp1
@@ -370,7 +370,7 @@ module mod_sort
   end function argsort_i4
 
   real(rk4) function mostfrequent_r4(a,n)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: n
     real(rk4), dimension(n), intent(in) :: a
     integer :: i, j, n1
@@ -404,7 +404,7 @@ module mod_sort
   end function mostfrequent_r4
 
   real(rk8) function mostfrequent_r8(a,n)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: n
     real(rk8), dimension(n), intent(in) :: a
     integer :: i, j, n1

@@ -28,7 +28,7 @@ module mod_clm_histflds
   use mod_clm_megan, only : shr_megan_linkedlist
   use mod_clm_megan, only : shr_megan_megcomp_t, shr_megan_megcomps_n
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -44,7 +44,7 @@ module mod_clm_histflds
   ! called to add each field to the masterlist.
   !
   subroutine hist_initFlds()
-    implicit none
+    implicit none (type, external)
     type(shr_megan_megcomp_t), pointer :: meg_cmp
     integer(ik4) :: imeg
     ! temp. pointers for slicing larger arrays
@@ -6540,7 +6540,7 @@ module mod_clm_histflds
 
   subroutine hist_addfld_decomp(fname,type2d,units,avgflag,long_name, &
                   ptr_col,ptr_pft,default)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: fname     ! field name
     character(len=*), intent(in) :: type2d    ! 2d output type
     character(len=*), intent(in) :: units     ! units of field

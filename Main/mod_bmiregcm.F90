@@ -44,7 +44,7 @@ module bmiregcm
   use, intrinsic :: iso_c_binding, only: c_ptr, c_loc, c_f_pointer
   use mod_regcm_interface, only : atm_model
 
-  implicit none
+  implicit none (type, external)
   private
 
   type, extends (bmi) :: bmi_regcm
@@ -139,7 +139,7 @@ module bmiregcm
        dimension(input_item_count) :: input_items
   character (len=BMI_MAX_VAR_NAME), target, &
        dimension(output_item_count) :: &
-       output_items = (/'plate_surface__temperature'/)
+       output_items = ['plate_surface__temperature']
 
 contains
 
@@ -791,7 +791,7 @@ contains
     integer, intent(inout) :: dest(:)
     integer, intent(in) :: inds(:)
     integer :: bmi_status
-    type (c_ptr) src
+    type (c_ptr) :: src
     integer, pointer :: src_flattened(:)
     integer :: i, n_elements
 
@@ -809,7 +809,7 @@ contains
     real, intent(inout) :: dest(:)
     integer, intent(in) :: inds(:)
     integer :: bmi_status
-    type (c_ptr) src
+    type (c_ptr) :: src
     real, pointer :: src_flattened(:)
     integer :: i, n_elements
 
@@ -835,7 +835,7 @@ contains
     double precision, intent(inout) :: dest(:)
     integer, intent(in) :: inds(:)
     integer :: bmi_status
-    type (c_ptr) src
+    type (c_ptr) :: src
     double precision, pointer :: src_flattened(:)
     integer :: i, n_elements
 
@@ -901,7 +901,7 @@ contains
     integer, intent(in) :: inds(:)
     integer, intent(in) :: src(:)
     integer :: bmi_status
-    type (c_ptr) dest
+    type (c_ptr) :: dest
     integer, pointer :: dest_flattened(:)
     integer :: i
 
@@ -919,7 +919,7 @@ contains
     integer, intent(in) :: inds(:)
     real, intent(in) :: src(:)
     integer :: bmi_status
-    type (c_ptr) dest
+    type (c_ptr) :: dest
     real, pointer :: dest_flattened(:)
     integer :: i
 
@@ -944,7 +944,7 @@ contains
     integer, intent(in) :: inds(:)
     double precision, intent(in) :: src(:)
     integer :: bmi_status
-    type (c_ptr) dest
+    type (c_ptr) :: dest
     double precision, pointer :: dest_flattened(:)
     integer :: i
 
@@ -979,7 +979,7 @@ end module bmiregcm
 #else
 
 module bmiregcm
-  implicit none
+  implicit none (type, external)
   private
 end module bmiregcm
 

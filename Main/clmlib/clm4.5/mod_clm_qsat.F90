@@ -2,7 +2,7 @@ module mod_clm_qsat
   !
   ! Computes saturation specific humidity and the change in saturation
   !
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -22,7 +22,7 @@ module mod_clm_qsat
     !$acc routine seq
     use mod_realkinds
     use mod_constants
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in)  :: t     ! Temperature (K)
     real(rk8), intent(in)  :: p     ! surface atmospheric pressure (pa)
     real(rk8), intent(out) :: es    ! vapor pressure (pa)

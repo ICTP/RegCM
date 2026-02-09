@@ -23,21 +23,21 @@ module mod_header
   use mod_dynparam, only : nproc
   use mod_stdio
 
-  implicit none
+  implicit none (type, external)
 
   private
 
   public :: whoami, header, checktime, finaltime
 
-  character (len=32) :: cdata='?'
-  character (len=5) :: czone='?'
+  character (len=32) :: cdata
+  character (len=5) :: czone
   integer(ik4), dimension(8) :: tval
   real(rk4) :: start_time, last_time
 
   contains
 
   subroutine whoami(myid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: myid
     character(len=*), parameter :: f99001 = &
         '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
@@ -52,14 +52,20 @@ module mod_header
   end subroutine whoami
 
   subroutine header(myid,nproc)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: myid, nproc
     integer(ik4) :: ihost, idir
     integer(ik4) :: hostnm
     integer(ik4) :: getcwd
-    character (len=32) :: hostname='?'
-    character (len=32) :: user='?'
-    character (len=256) :: directory='?'
+    character (len=32) :: hostname
+    character (len=32) :: user
+    character (len=256) :: directory
+
+    cdata = '?'
+    czone = '?'
+    hostname = '?'
+    user = '?'
+    directory = '?'
 
     if ( myid == iocpu )  then
 #ifdef IBM
@@ -84,7 +90,7 @@ module mod_header
   end subroutine header
 
   subroutine checktime(myid,ctime,period)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: myid
     character(len=*), intent(in) :: ctime, period
     integer(ik4) :: iunit
@@ -103,7 +109,7 @@ module mod_header
   end subroutine checktime
 
   subroutine finaltime(myid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent (in) :: myid
     real(rkx) :: finish_time
 

@@ -20,20 +20,20 @@ module mod_date
   use mod_stdio
   use mod_message
 
-  implicit none
+  implicit none (type, external)
 
   private
 
-  integer(kind=ik8), parameter :: i8spw = 604800_8
-  integer(kind=ik8), parameter :: i8spd = 86400_8
-  integer(kind=ik8), parameter :: i8mpd = 1440_8
-  integer(kind=ik8), parameter :: i8hpd = 24_8
-  integer(kind=ik8), parameter :: i8sph = 3600_8
-  integer(kind=ik8), parameter :: i8spm = 60_8
-  integer(kind=ik8), parameter :: i8mph = 60_8
-  integer(kind=ik8), parameter :: i8mpy = 12_8
-  integer(kind=ik8), parameter :: i8mpc = 1200_8
-  integer(kind=ik8), parameter :: i8ypc = 100_8
+  integer(kind=ik8), parameter :: i8spw = 604800_ik8
+  integer(kind=ik8), parameter :: i8spd = 86400_ik8
+  integer(kind=ik8), parameter :: i8mpd = 1440_ik8
+  integer(kind=ik8), parameter :: i8hpd = 24_ik8
+  integer(kind=ik8), parameter :: i8sph = 3600_ik8
+  integer(kind=ik8), parameter :: i8spm = 60_ik8
+  integer(kind=ik8), parameter :: i8mph = 60_ik8
+  integer(kind=ik8), parameter :: i8mpy = 12_ik8
+  integer(kind=ik8), parameter :: i8mpc = 1200_ik8
+  integer(kind=ik8), parameter :: i8ypc = 100_ik8
 
   integer(ik4), public, parameter :: gregorian = 1
   integer(ik4), public, parameter :: noleap    = 2
@@ -196,7 +196,7 @@ module mod_date
   contains
 
   pure integer(ik4) function ndaypm(y,m,cal)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: y, m, cal
     select case (cal)
       case (gregorian)
@@ -211,7 +211,7 @@ module mod_date
   end function ndaypm
 
   pure logical function lleap(iyear)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: iyear
     if ( mod(iyear,400) == 0 .or.  &
         ( mod(iyear,4) == 0 .and. mod(iyear,100) /= 0 ) ) then
@@ -222,7 +222,7 @@ module mod_date
   end function lleap
 
   pure integer(ik4) function mdays_leap(iyear, imon) result(mdays)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: iyear, imon
     if (imon /= 2) then
       mdays = mlen(imon)
@@ -235,7 +235,7 @@ module mod_date
   end function mdays_leap
 
   pure integer(ik4) function yeardays(y,c) result(yd)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: y, c
     select case (c)
       case (noleap)
@@ -249,7 +249,7 @@ module mod_date
   end function yeardays
 
   pure subroutine idayofyear_to_monthdate(j,y,c,m,d)
-    implicit none
+    implicit none (type, external)
     integer(ik8), intent(in) :: j
     integer(ik4), intent(in) :: y, c
     integer(ik4), intent(out) :: m, d
@@ -280,7 +280,7 @@ module mod_date
   end subroutine idayofyear_to_monthdate
 
   pure integer(ik4) function idayofyear(x) result(id)
-    implicit none
+    implicit none (type, external)
     type (iadate), intent(in) :: x
     integer(ik4) :: i
     id = x%day
@@ -297,7 +297,7 @@ module mod_date
   end function idayofyear
 
   integer(ik4) function dayofyear(x) result(id)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: x
     type(iadate) :: d
     type(iatime) :: t
@@ -389,7 +389,7 @@ module mod_date
   end subroutine internal_to_date_time
 
   subroutine adjustpm(a,b,i)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(inout) :: a, b
     integer(ik4), intent(in) :: i
     if ( a > i ) then
@@ -399,7 +399,7 @@ module mod_date
   end subroutine adjustpm
 
   subroutine adjustmp(a,b,i)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(inout) :: a, b
     integer(ik4), intent(in) :: i
     if ( a < 1 ) then
@@ -409,7 +409,7 @@ module mod_date
   end subroutine adjustmp
 
   subroutine split_i10(idate, iy, im, id, ih)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: idate
     integer(ik4), intent(out) :: iy, im, id, ih
     integer(ik8) :: base, iidate
@@ -430,7 +430,7 @@ module mod_date
   end subroutine split_i10
 
   subroutine split_i10_8(idate, iy, im, id, ih)
-    implicit none
+    implicit none (type, external)
     integer(ik8), intent(in) :: idate
     integer(ik4), intent(out) :: iy, im, id, ih
     integer(ik8) :: base, iidate
@@ -451,7 +451,7 @@ module mod_date
   end subroutine split_i10_8
 
   subroutine initfromchar(x, cwc)
-    implicit none
+    implicit none (type, external)
     type(c10wcal), intent(in) :: cwc
     type (rcm_time_and_date), intent(out) :: x
     type(i8wcal) :: iwc
@@ -461,7 +461,7 @@ module mod_date
   end subroutine initfromchar
 
   subroutine initfromintdtwc(x, iwc)
-    implicit none
+    implicit none (type, external)
     type(i4wcal), intent(in) :: iwc
     type (rcm_time_and_date), intent(out) :: x
     type (iadate) :: d
@@ -500,7 +500,7 @@ module mod_date
   end subroutine initfromintdtwc
 
   subroutine initfromintdt(x, i)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: i
     type (rcm_time_and_date), intent(out) :: x
     type (iadate) :: d
@@ -539,7 +539,7 @@ module mod_date
   end subroutine initfromintdt
 
   subroutine initfromint8dt(x, i)
-    implicit none
+    implicit none (type, external)
     integer(ik8), intent(in) :: i
     type (rcm_time_and_date), intent(out) :: x
     type (iadate) :: d
@@ -562,7 +562,7 @@ module mod_date
   end subroutine initfromint8dt
 
   subroutine initfromint8dtwc(x, iwc)
-    implicit none
+    implicit none (type, external)
     type(i8wcal), intent(in) :: iwc
     type (rcm_time_and_date), intent(out) :: x
     type (iadate) :: d
@@ -585,7 +585,7 @@ module mod_date
   end subroutine initfromint8dtwc
 
   subroutine initfromintit(x, i)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_interval), intent(out) :: x
     integer(ik4), intent(in) :: i
     x%ival = i
@@ -593,7 +593,7 @@ module mod_date
   end subroutine initfromintit
 
   subroutine initfromsingleit(x, d)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_interval), intent(out) :: x
     real(rk4), intent(in) :: d
     x%ival = int(d,ik8)
@@ -601,7 +601,7 @@ module mod_date
   end subroutine initfromsingleit
 
   subroutine initfromdoubleit(x, d)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_interval), intent(out) :: x
     real(rk8), intent(in) :: d
     x%ival = int(d,ik8)
@@ -609,7 +609,7 @@ module mod_date
   end subroutine initfromdoubleit
 
   subroutine set_caltype(x, y)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(inout) :: x
     type (rcm_time_and_date), intent(in) :: y
     if ( y%calendar /= x%calendar) then
@@ -618,7 +618,7 @@ module mod_date
   end subroutine set_caltype
 
   pure subroutine set_calint(x, c)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(inout) :: x
     integer(ik4), intent(in) :: c
     type (iadate) :: d
@@ -639,7 +639,7 @@ module mod_date
   end subroutine set_calint
 
   subroutine set_calstring(x, c)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(inout) :: x
     character (len=*), intent(in) :: c
     integer(ik4) :: ic
@@ -665,7 +665,7 @@ module mod_date
   end subroutine set_calstring
 
   subroutine set_timeunit(x, u)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_interval), intent(inout) :: x
     integer(ik4), intent(in) :: u
     select case (u)
@@ -690,7 +690,7 @@ module mod_date
   end subroutine set_timeunit
 
   subroutine initfromtypedt(x, y)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(out) :: x
     type (rcm_time_and_date), intent(in) :: y
     x%calendar            = y%calendar
@@ -699,7 +699,7 @@ module mod_date
   end subroutine initfromtypedt
 
   subroutine initfromtypeit(x, y)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_interval), intent(out) :: x
     type (rcm_time_interval), intent(in) :: y
     x%iunit = y%iunit
@@ -707,7 +707,7 @@ module mod_date
   end subroutine initfromtypeit
 
   function tochar(x) result(cdat)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     character (len=32) :: cdat
     type (iadate) :: d
@@ -725,7 +725,7 @@ module mod_date
   end function tochar
 
   function toiso8601(x) result(cdat)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     character (len=21) :: cdat ! Accomodate for - sign
     type (iadate) :: d
@@ -743,19 +743,19 @@ module mod_date
   end function toiso8601
 
   subroutine print_rcm_time_and_date(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     write (stdout,*) tochar(x)
   end subroutine print_rcm_time_and_date
 
   subroutine print_rcm_time_interval(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_interval), intent(in) :: x
     write (stdout,'(i16," ",a)') x%ival, trim(cintstr(x%iunit))
   end subroutine print_rcm_time_interval
 
   logical function isequaldt(x, y)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date), intent(in) :: y
     call check_cal(x,y)
@@ -764,7 +764,7 @@ module mod_date
   end function isequaldt
 
   logical function isequalidt(x, y)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: y
     type (rcm_time_and_date) :: yy
@@ -774,7 +774,7 @@ module mod_date
   end function isequalidt
 
   pure logical function isequalit(x, y)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_interval), intent(in) :: x
     type (rcm_time_interval), intent(in) :: y
     select case (x%iunit)
@@ -933,7 +933,7 @@ module mod_date
   end subroutine sub_days_noleap
 
   function add_interval(x, y) result (z)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_interval), intent(in) :: y
     type (rcm_time_and_date) :: z
@@ -1011,7 +1011,7 @@ module mod_date
   end function add_interval
 
   real(rkx) function idate_julianday(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4) :: iy, im, id
     call split_rcm_date(x,iy,im,id)
@@ -1019,7 +1019,7 @@ module mod_date
   end function idate_julianday
 
   real(rk8) function ymd_julianday(iy, im, id)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: iy, im, id
     integer(ik4) :: ia, ib, iiy, iim
     iiy = iy
@@ -1039,7 +1039,7 @@ module mod_date
                 real(id + ib,rk8) - 1524.5_rk8
     contains
       logical function lcaltype(iy, im, id)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: iy, im, id
       integer(ik4) :: icaltype
       ! Standard Julian/Gregorian switch
@@ -1081,7 +1081,7 @@ module mod_date
   end function ymd_julianday
 
   subroutine check_cal(x,y)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date), intent(in) :: y
     if ( x%calendar /= y%calendar ) then
@@ -1157,7 +1157,7 @@ module mod_date
   end function sub_interval
 
   function tochar10(x) result(cdat)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     character (len=11) :: cdat
     integer(ik8) :: ival
@@ -1171,7 +1171,7 @@ module mod_date
   end function tochar10
 
   integer(ik8) function toint10(x) result(z)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iadate) :: d
     type (iatime) :: t
@@ -1184,39 +1184,39 @@ module mod_date
   end function toint10
 
   logical function lfdoyear(x) result(l11)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iadate) :: d
     call days_from_reference_to_date(x,d)
     l11 = (d%month == 1 .and. d%day == 1)
-  end function
+  end function lfdoyear
 
   logical function lfdomonth(x) result(l1)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iadate) :: d
     call days_from_reference_to_date(x,d)
     l1 = (d%day == 1)
-  end function
+  end function lfdomonth
 
   logical function lmidnight(x) result(lm)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     lm = (x%second_of_day == 0)
-  end function
+  end function lmidnight
 
   logical function lsamemonth(x,y) result(lm)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     type (iadate) :: d1, d2
     call check_cal(x,y)
     call days_from_reference_to_date(x,d1)
     call days_from_reference_to_date(y,d2)
     lm = (d1%month == d2%month)
-  end function
+  end function lsamemonth
 
   integer(ik4) function iyeardiff(x,y) result(z)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     type (iadate) :: d1, d2
     call check_cal(x,y)
@@ -1226,7 +1226,7 @@ module mod_date
   end function iyeardiff
 
   integer(ik4) function imondiff(x,y) result(z)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     type (iadate) :: d1, d2
     call check_cal(x,y)
@@ -1236,7 +1236,7 @@ module mod_date
   end function imondiff
 
   real(rk8) function hourdiff(x,y) result(z)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     call check_cal(x,y)
     z = real(x%days_from_reference-y%days_from_reference,rk8)*24.0_rk8 + &
@@ -1244,7 +1244,7 @@ module mod_date
   end function hourdiff
 
   logical function lfhomonth(x) result(lf)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date) :: mm
     mm = monmiddle(x)
@@ -1254,7 +1254,7 @@ module mod_date
   integer(ik4) function idayofweek(x) result(iday)
     ! Sun Mon Tue Wed Thu Fri Sat
     ! 1   2   3   4   5   6   7
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iadate) :: d
     real(rk8) :: jd
@@ -1275,7 +1275,7 @@ module mod_date
   end function setmidnight
 
   logical function lsameweek(x,y) result(ls)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     type (rcm_time_and_date) :: xx, x1, x2
     integer(ik4) :: idwk
@@ -1287,7 +1287,7 @@ module mod_date
   end function lsameweek
 
   function ifdoweek(x) result(ifd)
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: iwkday
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_interval) :: z
@@ -1298,7 +1298,7 @@ module mod_date
   end function ifdoweek
 
   function ildoweek(x) result(ild)
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: iwkday
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_interval) :: z
@@ -1309,7 +1309,7 @@ module mod_date
   end function ildoweek
 
   integer(ik4) function iwkdiff(x,y) result(iwk)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     type (rcm_time_interval) :: z
     call check_cal(x,y)
@@ -1318,7 +1318,7 @@ module mod_date
   end function iwkdiff
 
   function monfirst(x) result(mf)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date) :: mf
     type (iadate) :: d
@@ -1328,7 +1328,7 @@ module mod_date
   end function monfirst
 
   function yrfirst(x) result(yf)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date) :: yf
     type (iadate) :: d
@@ -1339,7 +1339,7 @@ module mod_date
   end function yrfirst
 
   function monlast(x) result(ml)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date) :: ml
     type (iadate) :: d
@@ -1356,7 +1356,7 @@ module mod_date
   end function monlast
 
   function monmiddle(x) result(mm)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date) :: mm
     integer(ik4) :: dm
@@ -1379,7 +1379,7 @@ module mod_date
   end function monmiddle
 
   function nextmon(x) result(nm)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date) :: nm
     type (rcm_time_interval) :: z
@@ -1388,7 +1388,7 @@ module mod_date
   end function nextmon
 
   function prevmon(x) result(pm)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date) :: pm
     type (rcm_time_interval) :: z
@@ -1397,7 +1397,7 @@ module mod_date
   end function prevmon
 
   function nextwk(x) result(nm)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date) :: nm
     type (rcm_time_interval) :: z
@@ -1406,7 +1406,7 @@ module mod_date
   end function nextwk
 
   function prevwk(x) result(pm)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (rcm_time_and_date) :: pm
     type (rcm_time_interval) :: z
@@ -1415,7 +1415,7 @@ module mod_date
   end function prevwk
 
   subroutine timeval2ym(xval,cunit,year,month)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: xval
     character(*), intent(in) :: cunit
     integer(ik4), intent(out) :: year, month
@@ -1456,7 +1456,7 @@ module mod_date
   end subroutine timeval2ym
 
   function timeval2date_single(xval,cunit,ccal) result(dd)
-    implicit none
+    implicit none (type, external)
     real(rk4), intent(in) :: xval
     character(*), intent(in) :: cunit
     character(*), intent(in) :: ccal
@@ -1545,7 +1545,7 @@ module mod_date
   end function timeval2date_single
 
   function timeval2date_double(xval,cunit,ccal) result(dd)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: xval
     character(*), intent(in) :: cunit
     character(*), intent(in) :: ccal
@@ -1634,7 +1634,7 @@ module mod_date
   end function timeval2date_double
 !
   logical function interval_greater(x, y)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_interval), intent(in) :: x
     type (rcm_time_interval), intent(in) :: y
     select case (x%iunit)
@@ -1729,7 +1729,7 @@ module mod_date
   end function interval_greater
 
   logical function interval_less(x, y)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_interval), intent(in) :: x
     type (rcm_time_interval), intent(in) :: y
     select case (x%iunit)
@@ -1824,7 +1824,7 @@ module mod_date
   end function interval_less
 
   logical function date_greater(x,y) result(gt)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     call check_cal(x,y)
     gt = (x%days_from_reference > y%days_from_reference)
@@ -1835,7 +1835,7 @@ module mod_date
   end function date_greater
 
   logical function idate_greater(x,y) result(gt)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: y
     type (rcm_time_and_date) :: yy
@@ -1845,7 +1845,7 @@ module mod_date
   end function idate_greater
 
   logical function date_less(x,y) result(lt)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     call check_cal(x,y)
     lt = (x%days_from_reference < y%days_from_reference)
@@ -1856,7 +1856,7 @@ module mod_date
   end function date_less
 
   logical function idate_less(x,y) result(lt)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: y
     type (rcm_time_and_date) :: yy
@@ -1866,7 +1866,7 @@ module mod_date
   end function idate_less
 
   logical function date_ge(x,y) result(gt)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     call check_cal(x,y)
     gt = (x%days_from_reference == y%days_from_reference .and. &
@@ -1876,7 +1876,7 @@ module mod_date
   end function date_ge
 
   logical function idate_ge(x,y) result(gt)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: y
     type (rcm_time_and_date) :: yy
@@ -1886,7 +1886,7 @@ module mod_date
   end function idate_ge
 
   logical function date_le(x,y) result(lt)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     call check_cal(x,y)
     lt = (x%days_from_reference == y%days_from_reference .and. &
@@ -1896,7 +1896,7 @@ module mod_date
   end function date_le
 
   logical function idate_le(x,y) result(lt)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: y
     type (rcm_time_and_date) :: yy
@@ -1906,7 +1906,7 @@ module mod_date
   end function idate_le
 
   logical function date_ne(x,y) result(ln)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x, y
     call check_cal(x,y)
     ln = (x%days_from_reference /= y%days_from_reference .or. &
@@ -1914,7 +1914,7 @@ module mod_date
   end function date_ne
 
   logical function idate_ne(x,y) result(ln)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: y
     type (rcm_time_and_date) :: yy
@@ -1924,7 +1924,7 @@ module mod_date
   end function idate_ne
 
   real(rk8) function tohours(x) result(hs)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_interval), intent(in) :: x
     select case (x%iunit)
       case (usec)
@@ -1942,7 +1942,7 @@ module mod_date
   end function tohours
 
   real(rk8) function yearpoint(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iadate) :: d
     type (iatime) :: t
@@ -1978,7 +1978,7 @@ module mod_date
   end function yearpoint
 
   real(rk8) function yeardayfrac(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iadate) :: d
     type (iatime) :: t
@@ -1990,7 +1990,7 @@ module mod_date
   end function yeardayfrac
 
   integer(ik4) function getyear(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iadate) :: d
     call days_from_reference_to_date(x,d)
@@ -1998,7 +1998,7 @@ module mod_date
   end function getyear
 
   integer(ik4) function getmonth(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iadate) :: d
     call days_from_reference_to_date(x,d)
@@ -2006,7 +2006,7 @@ module mod_date
   end function getmonth
 
   integer(ik4) function getday(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iadate) :: d
     call days_from_reference_to_date(x,d)
@@ -2014,7 +2014,7 @@ module mod_date
   end function getday
 
   integer(ik4) function gethour(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iatime) :: t
     call second_of_day_to_time(x,t)
@@ -2022,7 +2022,7 @@ module mod_date
   end function gethour
 
   integer(ik4) function getminute(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iatime) :: t
     call second_of_day_to_time(x,t)
@@ -2030,7 +2030,7 @@ module mod_date
   end function getminute
 
   integer(ik4) function getsecond(x)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     type (iatime) :: t
     call second_of_day_to_time(x,t)
@@ -2038,7 +2038,7 @@ module mod_date
   end function getsecond
 
   subroutine ref_date(iy,im,id,isec)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(out) :: iy, im, id, isec
     iy = 1950
     im = 1
@@ -2047,7 +2047,7 @@ module mod_date
   end subroutine ref_date
 
   subroutine curr_date(x,iy,im,id,isec,offset)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(out) :: iy, im, id, isec
     integer(ik4), intent(in), optional :: offset
@@ -2069,7 +2069,7 @@ module mod_date
 
   ! Returns days and seconds from cordex reference date
   subroutine curr_time(x,iday,isec)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(out) :: iday, isec
     type (rcm_time_and_date), save :: y
@@ -2089,7 +2089,7 @@ module mod_date
   end subroutine curr_time
 
   subroutine split_rcm_date(x,iy,im,id)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(out) :: iy, im, id
     type(iadate) :: d
@@ -2100,7 +2100,7 @@ module mod_date
   end subroutine split_rcm_date
 
   subroutine split_rcm_time_and_date(x,iy,im,id,ih)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(out) :: iy, im, id, ih
     type(iadate) :: d
@@ -2113,7 +2113,7 @@ module mod_date
   end subroutine split_rcm_time_and_date
 
   subroutine split_rcm_time_and_date_complete(x,iy,im,id,ih,imm,iss)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(out) :: iy, im, id, ih, imm, iss
     type(iadate) :: d
@@ -2128,7 +2128,7 @@ module mod_date
   end subroutine split_rcm_time_and_date_complete
 
   logical function full_date_is(x,y,m,d)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: y, m, d
     integer(ik4) :: iy, im, id
@@ -2137,7 +2137,7 @@ module mod_date
   end function full_date_is
 
   logical function daymon_is(x,m,d)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: m, d
     integer(ik4) :: iy, im, id
@@ -2146,7 +2146,7 @@ module mod_date
   end function daymon_is
 
   logical function time_complete_is(x,h,m,s,delta)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: h, m, s
     real(rkx), optional, intent(in) :: delta
@@ -2166,7 +2166,7 @@ module mod_date
   end function time_complete_is
 
   logical function time_of_day_is(x,s,delta)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: s
     real(rkx), optional, intent(in) :: delta
@@ -2180,7 +2180,7 @@ module mod_date
   end function time_of_day_is
 
   character(len=16) function calendar_str(x) result(calstr)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     select case (x%calendar)
       case(gregorian)
@@ -2195,7 +2195,7 @@ module mod_date
   end function calendar_str
 
   pure integer function calendar_int(calstr) result(calint)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: calstr
     select case (calstr)
       case('gregorian', 'standard')
@@ -2210,7 +2210,7 @@ module mod_date
   end function calendar_int
 
   logical function date_in_scenario(x,cmip_cycle,l2006)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: cmip_cycle
     logical, optional, intent(in) :: l2006
@@ -2233,8 +2233,8 @@ module mod_date
 
   integer(ik4) function parse_timestring(string,aunit, &
                                          y,m,d,h,minu,seco) result(ires)
-    implicit none
-    character(len=*) :: string
+    implicit none (type, external)
+    character(len=*), intent(in) :: string
     integer(ik4), intent(out) :: aunit
     integer(ik4), intent(out) :: y, m, d, h, minu, seco
     integer(ik4) :: ip, istat

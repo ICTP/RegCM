@@ -21,6 +21,7 @@ module mod_cb6_jval2
   use mod_dynparam
   use mod_mppparam
   use mod_stdio
+  implicit none (type, external)
 
   private
 
@@ -29,7 +30,7 @@ module mod_cb6_jval2
   contains
 
     subroutine jvalpro(nhv,hvmat,jarray,jparam,jval)
-      implicit none
+      implicit none (type, external)
 !
       real(rk8), dimension(22,40) :: hvmat
       real(rk8), dimension(22) :: jparam
@@ -139,7 +140,7 @@ module mod_cb6_jval2
       jparamloop: &
       do i = 1, 19
         jfx(i) = d_zero
-        if ( nhv(i) <= 0 ) exit
+        if ( nhv(i) <= 0 ) exit jparamloop
         if ( nhv(i) /= 1 ) then
 
 !         SPECIAL TEMPERATURE:
@@ -149,9 +150,9 @@ module mod_cb6_jval2
 !         Test to exit if matrix intervals are zero
 !         (note:  matrix must be monotonically increasing or decreasing)
 
-          if ( dabs(hvmat(i,1)-hvmat(i,nhv(i))) > dlowval ) then
+          if ( abs(hvmat(i,1)-hvmat(i,nhv(i))) > dlowval ) then
             do j = 1, (nhv(i)-1)
-              if ( dabs(hvmat(i,j)-hvmat(i,j+1)) < dlowval ) then
+              if ( abs(hvmat(i,j)-hvmat(i,j+1)) < dlowval ) then
                 exit jparamloop
               end if
             end do
@@ -597,8 +598,8 @@ module mod_cb6_jval2
           end do
 !         TEST J-VALUE  FINAL FRACTIONAL ADJUSTMENT
           if ( iwri == 1 .and. &
-               dabs(jfrac(i,1)-d_one) < dlowval .and. &
-               dabs(jfrac(i,2)-d_one) < dlowval ) then
+               abs(jfrac(i,1)-d_one) < dlowval .and. &
+               abs(jfrac(i,2)-d_one) < dlowval ) then
             write (57,99019) i, jfrac(i,2), jval(2), jfrac(i,4), jval(4)
           end if
         end if
@@ -608,7 +609,7 @@ module mod_cb6_jval2
 !     ASSUME THAT INPUT jparam(20) = DAY NUMBER (0-days_per_year)
 !     DAY FACTOR (X) IS cos(nd*2.*pi/days_per_year)
 
-      x = dcos(d_two*mathpi*(jparam(20)/dayspy))
+      x = cos(d_two*mathpi*(jparam(20)/dayspy))
 
 !     ADJUSTMENT:  x IS DAY FACTOR, -1. to +1.  NOW MAKE DAY ADJUSTMENT.
       x = d_one + 0.0344D0*x
@@ -681,7 +682,7 @@ module mod_cb6_jval2
 ! -----------------------------------------------------------------
 
     subroutine readhv(lsin,nhv,hvmat,hvmatb,jarray)
-      implicit none
+      implicit none (type, external)
 !
       integer(ik4) :: lsin
       real(rk8), dimension(22,40) :: hvmat
@@ -825,7 +826,7 @@ module mod_cb6_jval2
 !           SKIPS BASE CASE ADJUSTMENT FACTOR IN ALL SUBSEQUENT LOOPS
 !           BUT INCLUDES IT IN FIRST LOOP (m=2, k=2 was early error)
 !           if(k.eq.2.or.(hvmat(m,n).ne.hvmatb(m))) then
-            if ( m == 2 .or. dabs((hvmat(m,n)-hvmatb(m))) > dlowval ) then
+            if ( m == 2 .or. abs((hvmat(m,n)-hvmatb(m))) > dlowval ) then
 !             CASE HEADING
               read (lsin,99001) aaa
               if ( iwri == 1 ) write (57,*) k

@@ -2,7 +2,7 @@ module mod_clm_cninitimevar
   use mod_intkinds
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -28,7 +28,7 @@ module mod_clm_cninitimevar
     use mod_clm_decomp  , only: get_proc_bounds
     use mod_clm_surfrd  , only: crop_prog
 !
-    implicit none
+    implicit none (type, external)
 !
     real(rk8), pointer, contiguous :: evergreen(:) ! binary flag for evergreen leaf habit (0 or 1)
     real(rk8), pointer, contiguous :: woody(:)     ! binary flag for woody lifeform (1=woody, 0=not woody)

@@ -18,6 +18,7 @@ module mod_smooth
   use mod_intkinds
   use mod_realkinds
   use mod_constants
+  implicit none (type, external)
 
   private
 
@@ -26,7 +27,7 @@ module mod_smooth
   contains
 
   subroutine smth121(htgrid,jx,iy)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: jx, iy
     real(rkx), intent(inout), dimension(jx,iy) :: htgrid
     integer(ik4) :: n, i, j
@@ -54,7 +55,7 @@ module mod_smooth
   end subroutine smth121
 
   subroutine smtdsmt(slab,nj,ni)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ni, nj
     real(rkx), intent(inout), dimension(nj,ni) :: slab
     real(rkx) :: aplus, asv, cell
@@ -98,7 +99,7 @@ module mod_smooth
   end subroutine smtdsmt
 
   subroutine smther(slab,nj,ni,nsp,npass)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ni, nj, nsp, npass
     real(rkx), intent(inout), dimension(nj,ni) :: slab
     real(rkx) :: aplus, asv, cell
@@ -147,7 +148,7 @@ module mod_smooth
   end subroutine smther
 
   subroutine smthtr(slab1,nj,ni,nsp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: nj, ni, nsp
     real(rkx), intent(inout), dimension(nj,ni) :: slab1
     integer(ik4) :: i, j, k, n, npass

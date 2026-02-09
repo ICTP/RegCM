@@ -22,7 +22,7 @@ module mod_mkurban
   use mod_rdldtr
   use mod_message
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -97,7 +97,7 @@ module mod_mkurban
   contains
 
   subroutine mkurban_base(urbanfile,mask,urban)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: urbanfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: urban
@@ -149,7 +149,7 @@ module mod_mkurban
   end subroutine mkurban_base
 
   subroutine mkurban_param(urbanfile,mask,urban3d,urban4d,urban5d)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: urbanfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:,:), intent(out) :: urban3d
@@ -246,8 +246,8 @@ module mod_mkurban
   end subroutine mkurban_param
 
   integer(ik4) function ip2d(pname) result(ip)
-    implicit none
-    character(len=*) :: pname
+    implicit none (type, external)
+    character(len=*), intent(in) :: pname
     do ip = 1, npu2d
       if ( pname == parm2d(ip) ) then
         return
@@ -257,8 +257,8 @@ module mod_mkurban
   end function ip2d
 
   integer(ik4) function ip3d(pname) result(ip)
-    implicit none
-    character(len=*) :: pname
+    implicit none (type, external)
+    character(len=*), intent(in) :: pname
     do ip = 1, npu3d
       if ( pname == parm3d(ip) ) then
         return
@@ -268,8 +268,8 @@ module mod_mkurban
   end function ip3d
 
   integer(ik4) function ip4d(pname) result(ip)
-    implicit none
-    character(len=*) :: pname
+    implicit none (type, external)
+    character(len=*), intent(in) :: pname
     do ip = 1, npu4d
       if ( pname == parm4d(ip) ) then
         return

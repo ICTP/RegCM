@@ -23,6 +23,7 @@ module mod_cbmz_main1
   use mod_cbmz_chemvars
   use mod_cbmz_rates1
   use mod_cbmz_solve1
+  implicit none (type, external)
 !
   private
 !
@@ -115,7 +116,7 @@ module mod_cbmz_main1
 !
     subroutine chemmain
 !
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: kk, ic ! Standard counters
       !
       ! Index for vector arrays, =1 unless vector loop entered

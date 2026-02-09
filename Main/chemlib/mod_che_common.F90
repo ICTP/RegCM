@@ -29,7 +29,7 @@ module mod_che_common
   use mod_cbmz_global, only : xr, xrin, xrout, c
   use mod_cbmz_parameters, only : nfix
 
-  implicit none
+  implicit none (type, external)
 
   public
 
@@ -44,13 +44,13 @@ module mod_che_common
 
   ! tracer indices :
   type tracer
-    integer(ik4), pointer, contiguous, dimension(:) :: index
-    integer(ik4), pointer, contiguous, dimension(:) :: indcbmz
-    integer(ik4), pointer, contiguous, dimension(:) :: indchbdy
-    real(rkx)   , pointer, contiguous, dimension(:) :: mw
+    integer(ik4), pointer, contiguous, dimension(:) :: index => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: indcbmz => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: indchbdy => null()
+    real(rkx)   , pointer, contiguous, dimension(:) :: mw => null()
   end type tracer
 
-  type(tracer) trac
+  type(tracer) :: trac
 
   ! tracer variables
 
@@ -116,7 +116,7 @@ module mod_che_common
   contains
 
   subroutine allocate_mod_che_common
-    implicit none
+    implicit none (type, external)
 
     if ( ichem /= 1 ) return
 
@@ -201,7 +201,7 @@ module mod_che_common
   end subroutine allocate_mod_che_common
 
   subroutine chem_config
-    implicit none
+    implicit none (type, external)
     ! Define here the possible types of simulation and fix the dimension
     ! of relevant tracer dimension and parameters
     ntr = 0

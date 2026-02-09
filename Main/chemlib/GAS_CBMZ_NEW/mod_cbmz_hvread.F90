@@ -2,6 +2,7 @@ module mod_cbmz_hvread
 
   use mod_cbmz_precision
   use mod_cbmz_jval1
+  implicit none (type, external)
 
   integer, public :: c_hvin
   integer, public, dimension(22) :: c_nhv
@@ -18,7 +19,7 @@ module mod_cbmz_hvread
   !     c_hvin, c_nhv, c_hvmat, c_hvmatb, c_jarray
   !
   subroutine hvread(ip)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ip
     c_hvin = ip
     call readhv(c_hvin,c_nhv,c_hvmat,c_hvmatb,c_jarray)

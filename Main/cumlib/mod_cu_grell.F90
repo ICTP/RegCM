@@ -27,7 +27,7 @@ module mod_cu_grell
   use mod_runparams, only : kfac_deep, kfac_shal, k2_const
   use mod_regcm_types
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -70,7 +70,7 @@ module mod_cu_grell
   contains
 
   subroutine allocate_mod_cu_grell
-    implicit none
+    implicit none (type, external)
 
     call getmem(dtauc2d,jci1,jci2,ici1,ici2,'cu_grell:dtauc2d')
     call getmem(pbcmax2d,jci1,jci2,ici1,ici2,'cu_grell:pbcmax2d')
@@ -201,7 +201,7 @@ module mod_cu_grell
   end subroutine allocate_mod_cu_grell
 
   subroutine cuparan(m2c)
-    implicit none
+    implicit none (type, external)
     type(mod_2_cum), intent(in) :: m2c
     integer(ik4) :: i, j, k, kk, n
     ! gcr0   = conversion rate (cloud to rain)
@@ -438,7 +438,7 @@ module mod_cu_grell
   ! GRELL CUMULUS SCHEME
   !
   subroutine cup
-    implicit none
+    implicit none (type, external)
     real(rkx) :: adw, aup, detdo, detdoq, dg, dh,   &
                dhh, dp_s, dq, dt, dv1, dv1q, dv2, dv2q, &
                dv3, dv3q, dz, dz1, dz2, dzo, f,  &
@@ -1144,7 +1144,7 @@ module mod_cu_grell
 #include <pfwsat.inc>
 
      subroutine minimi1(array,ks,ke,kt)
-       implicit none
+       implicit none (type, external)
        integer(ik4), intent (in) :: ke
        real(rkx), intent(in), pointer, contiguous, dimension(:,:) :: array
        integer(ik4), intent(in), pointer, contiguous, dimension(:) :: ks
@@ -1164,7 +1164,7 @@ module mod_cu_grell
      end subroutine minimi1
 
      subroutine minimi2(array,ks,ke,kt)
-       implicit none
+       implicit none (type, external)
        real(rkx), intent(in), pointer, contiguous, dimension(:,:) :: array
        integer(ik4), intent(in), pointer, contiguous, dimension(:) :: ks, ke
        integer(ik4), intent(inout), pointer, contiguous, dimension(:) :: kt
@@ -1183,7 +1183,7 @@ module mod_cu_grell
      end subroutine minimi2
 
      subroutine maximi1(array,ks,ke,imax)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent (in) :: ks, ke
       real(rkx), intent(in), pointer, contiguous, dimension(:,:) :: array
       integer(ik4), intent(inout), pointer, contiguous, dimension(:) :: imax
@@ -1203,7 +1203,7 @@ module mod_cu_grell
     end subroutine maximi1
 
     subroutine maximi2(array,ks,ke,imax)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent (in) :: ks
       real(rkx), intent(in), pointer, contiguous, dimension(:,:) :: array
       integer(ik4), intent(in), pointer, contiguous, dimension(:) :: ke

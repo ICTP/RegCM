@@ -44,7 +44,7 @@ module mod_tendency
   use mod_timefilter
   use mod_massck
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -119,7 +119,7 @@ module mod_tendency
 #include <cpmf.inc>
 
   subroutine allocate_mod_tend
-    implicit none
+    implicit none (type, external)
     call getmem(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
     call getmem(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
     if ( ipptls > 1 ) then
@@ -218,7 +218,7 @@ module mod_tendency
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine tend
-    implicit none
+    implicit none (type, external)
     real(rkx) :: pt2bar, pt2tot, ptnbar, maxv, ptntot
     integer(ik4) :: i, itr, j, k, lev, n, ii, jj, kk, iconvec
     logical :: loutrad, labsem
@@ -658,7 +658,7 @@ module mod_tendency
     ! Check temperature tendency less than 10 K
 
     subroutine check_temperature_tendency(loc,ipc)
-      implicit none
+      implicit none (type, external)
       character(len=*), intent(in) :: loc
       integer(ik4), intent(in) :: ipc
       integer(ik4) :: i, j, k, kk, ierr
@@ -696,7 +696,7 @@ module mod_tendency
     ! Check wind speed tendency less than 10 m/s
 
     subroutine check_wind_tendency(loc,ipc)
-      implicit none
+      implicit none (type, external)
       character(len=*), intent(in) :: loc
       integer(ik4), intent(in) :: ipc
       integer(ik4) :: i, j, k, kk, ierr
@@ -736,7 +736,7 @@ module mod_tendency
 #endif
 
     subroutine surface_pressures( )
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: i, j
       logical, save :: linit = .false.
       !
@@ -773,7 +773,7 @@ module mod_tendency
     end subroutine surface_pressures
 
     subroutine decouple( )
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: i, j, k
       !
       ! Helper
@@ -1011,7 +1011,7 @@ module mod_tendency
     end subroutine decouple
 
     subroutine compute_omega
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: i, j, k
       real(rkx), dimension(jde1:jde2,ide1:ide2) :: dummy
 
@@ -1110,7 +1110,7 @@ module mod_tendency
     end subroutine compute_omega
 
     subroutine init_tendencies
-      implicit none
+      implicit none (type, external)
       aten%u(:,:,:,:) = d_zero
       aten%v(:,:,:,:) = d_zero
       aten%t(:,:,:,:) = d_zero
@@ -1153,7 +1153,7 @@ module mod_tendency
     end subroutine init_tendencies
 
     subroutine advection
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: i, j, k
 
       call start_advect
@@ -1311,7 +1311,7 @@ module mod_tendency
     end subroutine advection
 
     subroutine new_pressure
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: i, j
       !
       ! Surface pressure boundary conditions
@@ -1345,7 +1345,7 @@ module mod_tendency
     end subroutine new_pressure
 
     subroutine boundary
-      implicit none
+      implicit none (type, external)
       if ( iboudy == 1 .or. iboudy >= 5 ) then
         if ( idiag > 0 ) then
           ten0 = tdyn
@@ -1410,7 +1410,7 @@ module mod_tendency
     end subroutine boundary
 
     subroutine diffusion
-      implicit none
+      implicit none (type, external)
       !
       ! compute the diffusion term for t and qx
       !
@@ -1450,7 +1450,7 @@ module mod_tendency
     end subroutine diffusion
 
     subroutine adiabatic
-      implicit none
+      implicit none (type, external)
       real(rkx) :: rovcpm
       real(rkx) :: cpm, scr1
       real(rkx) :: rofac, uaq, vaq
@@ -1568,7 +1568,7 @@ module mod_tendency
     end subroutine adiabatic
 
     subroutine physical_parametrizations
-      implicit none
+      implicit none (type, external)
       !
       !------------------------------------------------
       !        Call cumulus parametrization
@@ -1709,7 +1709,7 @@ module mod_tendency
     end subroutine physical_parametrizations
 
     subroutine curvature
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: i, j, k
       real(rkx) :: wadot, wadotp1, wabar, amfac, duv
       !
@@ -1769,7 +1769,7 @@ module mod_tendency
     end subroutine curvature
 
     subroutine pressure_gradient_force
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: i, j, k
       real(rkx) :: tva, tvb, tvc
       real(rkx) :: rtbar
@@ -1985,7 +1985,7 @@ module mod_tendency
   end subroutine tend
 
   subroutine extracttent(ten,store,indx,ten0)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: indx
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ten
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: store
@@ -2004,7 +2004,7 @@ module mod_tendency
   end subroutine extracttent
 
   subroutine extracttenqv(qen,store,indx,qen0)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: indx
     real(rkx), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: qen
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: store
@@ -2023,7 +2023,7 @@ module mod_tendency
   end subroutine extracttenqv
 
   subroutine extracttenchi(chiten,store,indx,chiten0)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: indx
     real(rkx), pointer, contiguous, dimension(:,:,:,:,:), intent(in) :: chiten
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: store

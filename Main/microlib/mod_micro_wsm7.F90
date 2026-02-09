@@ -24,6 +24,7 @@ module mod_micro_wsm7
   use mod_runparams, only : iqi, iqc, iqr, iqg, iqh, iqs, iqv
   use mod_runparams, only : rdt
   use mod_regcm_types
+  implicit none (type, external)
 
   private
 
@@ -166,7 +167,7 @@ module mod_micro_wsm7
   contains
 
   subroutine allocate_mod_wsm7
-    implicit none
+    implicit none (type, external)
     is = 1
     ie = ((ici2-ici1) + 1) * ((jci2-jci1) + 1)
     call getmem(t,is,ie,1,kz,'wsm7::t')
@@ -190,7 +191,7 @@ module mod_micro_wsm7
   end subroutine allocate_mod_wsm7
 
   subroutine init_wsm7
-    implicit none
+    implicit none (type, external)
     !denr=rhoh2o. den0=stdrho
     qc0  = fourt*mathpi*rhoh2o*r0**3*xncr/stdrho  ! 0.419e-3 -- .61e-3
     qck1 = 0.104_rkx*egrav*peaut / &
@@ -281,7 +282,7 @@ module mod_micro_wsm7
     ! rgmma function:  use infinite product form
     !
     pure real(rkx) function rgmma(x)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x
       integer(ik4), parameter :: imax = 10000
       real(rkx) :: y
@@ -301,7 +302,7 @@ module mod_micro_wsm7
   end subroutine init_wsm7
 
   subroutine wsm7(mo2mc,mc2mo)
-    implicit none
+    implicit none (type, external)
     type(mod_2_micro), intent(in) :: mo2mc
     type(micro_2_mod), intent(inout) :: mc2mo
 
@@ -501,7 +502,7 @@ module mod_micro_wsm7
   !             Hong and Lim (hl, 2006) J. Korean Meteor. Soc.
   !
   subroutine wsm72d(delt,ims,ime)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: delt
     integer(ik4), intent(in) :: ims, ime
 
@@ -1719,47 +1720,47 @@ module mod_micro_wsm7
   contains
 
     pure real(rkx) function cpmcal(q)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: q
       cpmcal = cpd*(d_one-max(q,qvmin)) + cpv*max(q,qvmin)
     end function cpmcal
 
     ! diffus: diffusion coefficient of the water vapor
     pure real(rkx) function diffus(x,y)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y
       diffus = 8.794e-5_rkx * exp(log(x)*(1.81_rkx)) / y
     end function diffus
 
     ! viscos: kinematic viscosity(m2s-1)
     pure real(rkx) function viscos(x,y)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y
       viscos = 1.496e-6_rkx * (x*sqrt(x)) /(x+120.0_rkx)/y
       ! viscos = 1.496e-6_rkx *x**1.5_rkx / (x+120.0_rkx)/y
     end function viscos
 
     pure real(rkx) function xka(x,y)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y
       xka = 1.414e3_rkx * viscos(x,y) * y
     end function xka
 
     pure real(rkx) function diffac(a,b,c,d,e)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: a, b, c, d, e
       diffac = d*a*a/(xka(c,d)*rwat*c*c)+d_one/(e*diffus(c,b))
     end function diffac
 
     pure real(rkx) function venfac(a,b,c)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: a, b, c
       venfac = exp(log((viscos(b,c)/diffus(b,a)))*((onet))) / &
                    sqrt(viscos(b,c))*sqrt(sqrt(stdrho/c))
     end function venfac
 
     pure real(rkx) function conden(a,b,c,d,e)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: a, b, c, d, e
       conden = (max(b,qvmin)-c)/(d_one+d*d/(rwat*e)*c/(a*a))
     end function conden
@@ -1768,7 +1769,7 @@ module mod_micro_wsm7
 
   subroutine slope_wsm7(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt, &
                         ims,ime)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ims, ime
     real(rkx), dimension(ims:ime,kz,4), intent(in) :: qrs
     real(rkx), dimension(ims:ime,kz), intent(in) :: den, denfac, t
@@ -1842,25 +1843,25 @@ module mod_micro_wsm7
     contains
 
     pure real(rkx) function lamdar(x,y)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y
       lamdar = sqrt(sqrt(pidn0r/(x*y)))
     end function lamdar
 
     pure real(rkx) function lamdas(x,y,z)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y, z
       lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
     end function lamdas
 
     pure real(rkx) function lamdag(x,y)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y
       lamdag = sqrt(sqrt(pidn0g/(x*y)))
     end function lamdag
 
    pure real(rkx) function lamdah(x,y)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y
       lamdah = sqrt(sqrt(pidn0h/(x*y)))
    end function lamdah
@@ -1868,7 +1869,7 @@ module mod_micro_wsm7
   end subroutine slope_wsm7
 
   subroutine slope_rain(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(kz), intent(in) :: qrs, den, denfac
     real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
     real(rkx), dimension(kz), intent(out) :: rslope2, rslope3, vt
@@ -1896,7 +1897,7 @@ module mod_micro_wsm7
     ! valid for mixing ratio > 1.e-9 kg/kg.
     !
     pure real(rkx) function lamdar(x,y)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y
       lamdar = sqrt(sqrt(pidn0r/(x*y)))
     end function lamdar
@@ -1904,7 +1905,7 @@ module mod_micro_wsm7
   end subroutine slope_rain
 
   subroutine slope_snow(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(kz), intent(in) :: t, qrs, den, denfac
     real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
     real(rkx), dimension(kz), intent(out) :: rslope2, rslope3, vt
@@ -1938,7 +1939,7 @@ module mod_micro_wsm7
     ! valid for mixing ratio > 1.e-9 kg/kg.
     !
     pure real(rkx) function lamdas(x,y,z)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y, z
       lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
     end function lamdas
@@ -1946,7 +1947,7 @@ module mod_micro_wsm7
   end subroutine slope_snow
 
   subroutine slope_graup(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(kz), intent(in) :: qrs, den, denfac
     real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
     real(rkx), dimension(kz), intent(out) :: rslope2, rslope3, vt
@@ -1973,7 +1974,7 @@ module mod_micro_wsm7
     contains
     !
     pure real(rkx) function lamdag(x,y)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y
       lamdag = sqrt(sqrt(pidn0g/(x*y)))
     end function lamdag
@@ -1981,7 +1982,7 @@ module mod_micro_wsm7
   end subroutine slope_graup
 
   subroutine slope_hail(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(kz), intent(in) :: qrs, den, denfac
     real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
     real(rkx), dimension(kz), intent(out) :: rslope2, rslope3, vt
@@ -2008,7 +2009,7 @@ module mod_micro_wsm7
     contains
     !
     pure real(rkx) function lamdah(x,y)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x, y
       lamdah = sqrt(sqrt(pidn0h/(x*y)))
     end function lamdah
@@ -2037,7 +2038,7 @@ module mod_micro_wsm7
   !
   subroutine nislfv_rain_plm(im,denl,denfacl,tkl,dzl, &
                              wwl,rql,precip,dt,id,maxiter)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, id, maxiter
     real(rkx), dimension(im,kz), intent(in) :: denl
     real(rkx), dimension(im,kz), intent(in) :: denfacl
@@ -2270,7 +2271,7 @@ module mod_micro_wsm7
 
   subroutine nislfv_rain_plm6(im,denl,denfacl,tkl,dzl,wwl,rql, &
                               rql2,precip1,precip2,dt,maxiter)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im, maxiter
     real(rkx), dimension(im,kz), intent(in) :: denl
     real(rkx), dimension(im,kz), intent(in) :: denfacl

@@ -13,8 +13,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_mkq10soil
 #if defined(CN)
+module mod_mkq10soil
   use mod_realkinds
   use mod_intkinds
   use mod_constants
@@ -22,7 +22,7 @@ module mod_mkq10soil
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -35,7 +35,7 @@ module mod_mkq10soil
   contains
 
   subroutine mkq10soil(q10soilfile,mask,q10soil)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: q10soilfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: q10soil
@@ -60,6 +60,11 @@ module mod_mkq10soil
       end do
     end do
   end subroutine mkq10soil
-#endif
 end module mod_mkq10soil
+#else
+module mod_mkq10soil
+  implicit none (type, external)
+  private
+end module mod_mkq10soil
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

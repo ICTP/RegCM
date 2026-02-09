@@ -47,7 +47,7 @@ MODULE mod_cb6_Integrator
   USE mod_cb6_LinearAlgebra, ONLY: KppDecomp, KppSolve, &
                Set2zero, WLAMCH
 
-  IMPLICIT NONE
+  IMPLICIT NONE (type, external)
   PUBLIC
   SAVE
 
@@ -61,7 +61,7 @@ MODULE mod_cb6_Integrator
 
   ! mz_rs_20050717: TODO: use strings of IERR_NAMES for error messages
   ! description of the error numbers IERR
-  CHARACTER(LEN=50), PARAMETER, DIMENSION(-8:1) :: IERR_NAMES = (/ &
+  CHARACTER(LEN=50), PARAMETER, DIMENSION(-8:1) :: IERR_NAMES = [ &
     'Matrix is repeatedly singular                     ', & ! -8
     'Step size too small                               ', & ! -7
     'No of steps exceeds maximum bound                 ', & ! -6
@@ -71,7 +71,7 @@ MODULE mod_cb6_Integrator
     'Improper value for maximal no of Newton iterations', & ! -2
     'Improper value for maximal no of steps            ', & ! -1
     '                                                  ', & !  0 (not used)
-    'Success                                           ' /) !  1
+    'Success                                           ' ] !  1
 
 CONTAINS
 
@@ -80,7 +80,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    USE mod_cb6_Parameters
    USE mod_cb6_Global
-   IMPLICIT NONE
+   IMPLICIT NONE (type, external)
 
    REAL(kind=dp), INTENT(IN) :: TIN  ! Start Time
    REAL(kind=dp), INTENT(IN) :: TOUT ! End Time
@@ -195,7 +195,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
       REAL(kind=dp) :: Y(NVAR_CB6), AbsTol(NVAR_CB6), RelTol(NVAR_CB6), TIN, TOUT
       REAL(kind=dp) :: RCNTRL(20), RSTATUS(20)
       INTEGER       :: ICNTRL(20), ISTATUS(20)
@@ -246,8 +246,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       SUBROUTINE DLSODE (F, NEQ, Y, T, TOUT, ITOL, RelTol, AbsTol, ITASK,   &
                        ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, MF)
       EXTERNAL F, JAC
-      INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, LIW, IWORK(LIW), MF
-      REAL(kind=dp) Y(*), T, TOUT, RelTol(*), AbsTol(*), RWORK(LRW)
+      INTEGER :: NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, LIW, IWORK(LIW), MF
+      REAL(kind=dp) :: Y(*), T, TOUT, RelTol(*), AbsTol(*), RWORK(LRW)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !***BEGIN PROLOGUE  DLSODE
 !***PURPOSE  Livermore Solver for Ordinary Differential Equations.
@@ -1452,19 +1452,19 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       !REAL(kind=dp) DUMACH, DVNORM
 !
 !  Declare all other variables.
-      INTEGER INIT, MXSTEP, MXHNIL, NHNIL, NSLAST, NYH, IOWNS,          &
+      INTEGER :: INIT, MXSTEP, MXHNIL, NHNIL, NSLAST, NYH, IOWNS,          &
         ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                      &
         LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,                &
         MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
-      INTEGER I, I1, I2, IFLAG, IMXER, KGO, LF0,                        &
+      INTEGER :: I, I1, I2, IFLAG, IMXER, KGO, LF0,                        &
         LENIW, LENRW, LENWM, ML, MORD(2), MU, MXHNL0, MXSTP0
-      REAL(kind=dp) ROWNS,                                           &
+      REAL(kind=dp) :: ROWNS,                                           &
         CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND
-      REAL(kind=dp) AbsTolI, AYI, BIG, EWTI, H0, HMAX, HMX, RH, RelTolI, &
+      REAL(kind=dp) :: AbsTolI, AYI, BIG, EWTI, H0, HMAX, HMX, RH, RelTolI, &
         TCRIT, TDIST, TNEXT, TOL, TOLSF, TP, SIZE, SUM, W0
 
-      LOGICAL IHIT
-      CHARACTER*80 MSG
+      LOGICAL :: IHIT
+      CHARACTER(len=80) :: MSG
       SAVE MORD, MXSTP0, MXHNL0
 !-----------------------------------------------------------------------
 ! The following internal Common block contains
@@ -1494,14 +1494,14 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !-----------------------------------------------------------------------
 !
 !***FIRST EXECUTABLE STATEMENT  DLSODE
-      IF (ISTATE .LT. 1 .OR. ISTATE .GT. 3) GO TO 601
-      IF (ITASK .LT. 1 .OR. ITASK .GT. 5) GO TO 602
-      IF (ISTATE .EQ. 1) GO TO 10
-      IF (INIT .EQ. 0) GO TO 603
-      IF (ISTATE .EQ. 2) GO TO 200
+      IF (ISTATE < 1 .OR. ISTATE > 3) GO TO 601
+      IF (ITASK < 1 .OR. ITASK > 5) GO TO 602
+      IF (ISTATE == 1) GO TO 10
+      IF (INIT == 0) GO TO 603
+      IF (ISTATE == 2) GO TO 200
       GO TO 20
    10 INIT = 0
-      IF (TOUT .EQ. T) RETURN
+      IF (TOUT == T) RETURN
 !-----------------------------------------------------------------------
 ! Block B.
 ! The next code block is executed for the initial call (ISTATE = 1),
@@ -1511,50 +1511,50 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! First check legality of the non-optional inputs NEQ, ITOL, IOPT,
 ! MF, ML, and MU.
 !-----------------------------------------------------------------------
-   20 IF (NEQ .LE. 0) GO TO 604
-      IF (ISTATE .EQ. 1) GO TO 25
-      IF (NEQ .GT. N) GO TO 605
+   20 IF (NEQ <= 0) GO TO 604
+      IF (ISTATE == 1) GO TO 25
+      IF (NEQ > N) GO TO 605
    25 N = NEQ
-      IF (ITOL .LT. 1 .OR. ITOL .GT. 4) GO TO 606
-      IF (IOPT .LT. 0 .OR. IOPT .GT. 1) GO TO 607
+      IF (ITOL < 1 .OR. ITOL > 4) GO TO 606
+      IF (IOPT < 0 .OR. IOPT > 1) GO TO 607
       METH = MF/10
       MITER = MF - 10*METH
-      IF (METH .LT. 1 .OR. METH .GT. 2) GO TO 608
-      IF (MITER .LT. 0 .OR. MITER .GT. 5) GO TO 608
-      IF (MITER .LE. 3) GO TO 30
+      IF (METH < 1 .OR. METH > 2) GO TO 608
+      IF (MITER < 0 .OR. MITER > 5) GO TO 608
+      IF (MITER <= 3) GO TO 30
       ML = IWORK(1)
       MU = IWORK(2)
-      IF (ML .LT. 0 .OR. ML .GE. N) GO TO 609
-      IF (MU .LT. 0 .OR. MU .GE. N) GO TO 610
+      IF (ML < 0 .OR. ML >= N) GO TO 609
+      IF (MU < 0 .OR. MU >= N) GO TO 610
    30 CONTINUE
 ! Next process and check the optional inputs. --------------------------
-      IF (IOPT .EQ. 1) GO TO 40
+      IF (IOPT == 1) GO TO 40
       MAXORD = MORD(METH)
       MXSTEP = MXSTP0
       MXHNIL = MXHNL0
-      IF (ISTATE .EQ. 1) H0 = 0.0D0
+      IF (ISTATE == 1) H0 = 0.0D0
       HMXI = 0.0D0
       HMIN = 0.0D0
       GO TO 60
    40 MAXORD = IWORK(5)
-      IF (MAXORD .LT. 0) GO TO 611
-      IF (MAXORD .EQ. 0) MAXORD = 100
+      IF (MAXORD < 0) GO TO 611
+      IF (MAXORD == 0) MAXORD = 100
       MAXORD = MIN(MAXORD,MORD(METH))
       MXSTEP = IWORK(6)
-      IF (MXSTEP .LT. 0) GO TO 612
-      IF (MXSTEP .EQ. 0) MXSTEP = MXSTP0
+      IF (MXSTEP < 0) GO TO 612
+      IF (MXSTEP == 0) MXSTEP = MXSTP0
       MXHNIL = IWORK(7)
-      IF (MXHNIL .LT. 0) GO TO 613
-      IF (MXHNIL .EQ. 0) MXHNIL = MXHNL0
-      IF (ISTATE .NE. 1) GO TO 50
+      IF (MXHNIL < 0) GO TO 613
+      IF (MXHNIL == 0) MXHNIL = MXHNL0
+      IF (ISTATE /= 1) GO TO 50
       H0 = RWORK(5)
-      IF ((TOUT - T)*H0 .LT. 0.0D0) GO TO 614
+      IF ((TOUT - T)*H0 < 0.0D0) GO TO 614
    50 HMAX = RWORK(6)
-      IF (HMAX .LT. 0.0D0) GO TO 615
+      IF (HMAX < 0.0D0) GO TO 615
       HMXI = 0.0D0
-      IF (HMAX .GT. 0.0D0) HMXI = 1.0D0/HMAX
+      IF (HMAX > 0.0D0) HMXI = 1.0D0/HMAX
       HMIN = RWORK(7)
-      IF (HMIN .LT. 0.0D0) GO TO 616
+      IF (HMIN < 0.0D0) GO TO 616
 !-----------------------------------------------------------------------
 ! Set work array pointers and check lengths LRW and LIW.
 ! Pointers to segments of RWORK and IWORK are named by prefixing L to
@@ -1562,12 +1562,12 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! Segments of RWORK (in order) are denoted  YH, WM, EWT, SAVF, ACOR.
 !-----------------------------------------------------------------------
    60 LYH = 21
-      IF (ISTATE .EQ. 1) NYH = N
+      IF (ISTATE == 1) NYH = N
       LWM = LYH + (MAXORD + 1)*NYH
-      IF (MITER .EQ. 0) LENWM = 0
-      IF (MITER .EQ. 1 .OR. MITER .EQ. 2) LENWM = N*N + 2
-      IF (MITER .EQ. 3) LENWM = N + 2
-      IF (MITER .GE. 4) LENWM = (2*ML + MU + 1)*N + 2
+      IF (MITER == 0) LENWM = 0
+      IF (MITER == 1 .OR. MITER == 2) LENWM = N*N + 2
+      IF (MITER == 3) LENWM = N + 2
+      IF (MITER >= 4) LENWM = (2*ML + MU + 1)*N + 2
       LEWT = LWM + LENWM
       LSAVF = LEWT + N
       LACOR = LSAVF + N
@@ -1575,33 +1575,33 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       IWORK(17) = LENRW
       LIWM = 1
       LENIW = 20 + N
-      IF (MITER .EQ. 0 .OR. MITER .EQ. 3) LENIW = 20
+      IF (MITER == 0 .OR. MITER == 3) LENIW = 20
       IWORK(18) = LENIW
-      IF (LENRW .GT. LRW) GO TO 617
-      IF (LENIW .GT. LIW) GO TO 618
+      IF (LENRW > LRW) GO TO 617
+      IF (LENIW > LIW) GO TO 618
 ! Check RelTol and AbsTol for legality. ------------------------------------
       RelTolI = RelTol(1)
       AbsTolI = AbsTol(1)
       DO 70 I = 1,N
-        IF (ITOL .GE. 3) RelTolI = RelTol(I)
-        IF (ITOL .EQ. 2 .OR. ITOL .EQ. 4) AbsTolI = AbsTol(I)
-        IF (RelTolI .LT. 0.0D0) GO TO 619
-        IF (AbsTolI .LT. 0.0D0) GO TO 620
+        IF (ITOL >= 3) RelTolI = RelTol(I)
+        IF (ITOL == 2 .OR. ITOL == 4) AbsTolI = AbsTol(I)
+        IF (RelTolI < 0.0D0) GO TO 619
+        IF (AbsTolI < 0.0D0) GO TO 620
    70   CONTINUE
-      IF (ISTATE .EQ. 1) GO TO 100
+      IF (ISTATE == 1) GO TO 100
 ! If ISTATE = 3, set flag to signal parameter changes to DSTODE. -------
       JSTART = -1
-      IF (NQ .LE. MAXORD) GO TO 90
+      IF (NQ <= MAXORD) GO TO 90
 ! MAXORD was reduced below NQ.  Copy YH(*,MAXORD+2) into SAVF. ---------
       DO 80 I = 1,N
    80   RWORK(I+LSAVF-1) = RWORK(I+LWM-1)
 ! Reload WM(1) = RWORK(LWM), since LWM may have changed. ---------------
-   90 IF (MITER .GT. 0) RWORK(LWM) = SQRT(UROUND)
-      IF (N .EQ. NYH) GO TO 200
+   90 IF (MITER > 0) RWORK(LWM) = SQRT(UROUND)
+      IF (N == NYH) GO TO 200
 ! NEQ was reduced.  Zero part of YH to avoid undefined references. -----
       I1 = LYH + L*NYH
       I2 = LYH + (MAXORD + 1)*NYH - 1
-      IF (I1 .GT. I2) GO TO 200
+      IF (I1 > I2) GO TO 200
       DO 95 I = I1,I2
    95   RWORK(I) = 0.0D0
       GO TO 200
@@ -1614,13 +1614,13 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !-----------------------------------------------------------------------
   100 UROUND = DUMACH()
       TN = T
-      IF (ITASK .NE. 4 .AND. ITASK .NE. 5) GO TO 110
+      IF (ITASK /= 4 .AND. ITASK /= 5) GO TO 110
       TCRIT = RWORK(1)
-      IF ((TCRIT - TOUT)*(TOUT - T) .LT. 0.0D0) GO TO 625
-      IF (H0 .NE. 0.0D0 .AND. (T + H0 - TCRIT)*H0 .GT. 0.0D0)           &
+      IF ((TCRIT - TOUT)*(TOUT - T) < 0.0D0) GO TO 625
+      IF (H0 /= 0.0D0 .AND. (T + H0 - TCRIT)*H0 > 0.0D0)           &
         H0 = TCRIT - T
   110 JSTART = 0
-      IF (MITER .GT. 0) RWORK(LWM) = SQRT(UROUND)
+      IF (MITER > 0) RWORK(LWM) = SQRT(UROUND)
       NHNIL = 0
       NST = 0
       NJE = 0
@@ -1643,7 +1643,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       H = 1.0D0
       CALL DEWSET (N, ITOL, RelTol, AbsTol, RWORK(LYH), RWORK(LEWT))
       DO 120 I = 1,N
-        IF (RWORK(I+LEWT-1) .LE. 0.0D0) GO TO 621
+        IF (RWORK(I+LEWT-1) <= 0.0D0) GO TO 621
   120   RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
 !-----------------------------------------------------------------------
 ! The coding below computes the step size, H0, to be attempted on the
@@ -1661,20 +1661,20 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !         ywt(i) = EWT(i)/TOL  (a weight for y(i)).
 ! The sign of H0 is inferred from the initial values of TOUT and T.
 !-----------------------------------------------------------------------
-      IF (H0 .NE. 0.0D0) GO TO 180
+      IF (H0 /= 0.0D0) GO TO 180
       TDIST = ABS(TOUT - T)
       W0 = MAX(ABS(T),ABS(TOUT))
-      IF (TDIST .LT. 2.0D0*UROUND*W0) GO TO 622
+      IF (TDIST < 2.0D0*UROUND*W0) GO TO 622
       TOL = RelTol(1)
-      IF (ITOL .LE. 2) GO TO 140
+      IF (ITOL <= 2) GO TO 140
       DO 130 I = 1,N
   130   TOL = MAX(TOL,RelTol(I))
-  140 IF (TOL .GT. 0.0D0) GO TO 160
+  140 IF (TOL > 0.0D0) GO TO 160
       AbsTolI = AbsTol(1)
       DO 150 I = 1,N
-        IF (ITOL .EQ. 2 .OR. ITOL .EQ. 4) AbsTolI = AbsTol(I)
+        IF (ITOL == 2 .OR. ITOL == 4) AbsTolI = AbsTol(I)
         AYI = ABS(Y(I))
-        IF (AYI .NE. 0.0D0) TOL = MAX(TOL,AbsTolI/AYI)
+        IF (AYI /= 0.0D0) TOL = MAX(TOL,AbsTolI/AYI)
   150   CONTINUE
   160 TOL = MAX(TOL,100.0D0*UROUND)
       TOL = MIN(TOL,0.001D0)
@@ -1685,7 +1685,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       H0 = SIGN(H0,TOUT-T)
 ! Adjust H0 if necessary to meet HMAX bound. ---------------------------
   180 RH = ABS(H0)*HMXI
-      IF (RH .GT. 1.0D0) H0 = H0/RH
+      IF (RH > 1.0D0) H0 = H0/RH
 ! Load H with H0 and scale YH(*,2) by H0. ------------------------------
       H = H0
       DO 190 I = 1,N
@@ -1698,32 +1698,32 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !-----------------------------------------------------------------------
   200 NSLAST = NST
       GO TO (210, 250, 220, 230, 240), ITASK
-  210 IF ((TN - TOUT)*H .LT. 0.0D0) GO TO 250
+  210 IF ((TN - TOUT)*H < 0.0D0) GO TO 250
       CALL DINTDY (TOUT, 0, RWORK(LYH), NYH, Y, IFLAG)
-      IF (IFLAG .NE. 0) GO TO 627
+      IF (IFLAG /= 0) GO TO 627
       T = TOUT
       GO TO 420
   220 TP = TN - HU*(1.0D0 + 100.0D0*UROUND)
-      IF ((TP - TOUT)*H .GT. 0.0D0) GO TO 623
-      IF ((TN - TOUT)*H .LT. 0.0D0) GO TO 250
+      IF ((TP - TOUT)*H > 0.0D0) GO TO 623
+      IF ((TN - TOUT)*H < 0.0D0) GO TO 250
       GO TO 400
   230 TCRIT = RWORK(1)
-      IF ((TN - TCRIT)*H .GT. 0.0D0) GO TO 624
-      IF ((TCRIT - TOUT)*H .LT. 0.0D0) GO TO 625
-      IF ((TN - TOUT)*H .LT. 0.0D0) GO TO 245
+      IF ((TN - TCRIT)*H > 0.0D0) GO TO 624
+      IF ((TCRIT - TOUT)*H < 0.0D0) GO TO 625
+      IF ((TN - TOUT)*H < 0.0D0) GO TO 245
       CALL DINTDY (TOUT, 0, RWORK(LYH), NYH, Y, IFLAG)
-      IF (IFLAG .NE. 0) GO TO 627
+      IF (IFLAG /= 0) GO TO 627
       T = TOUT
       GO TO 420
   240 TCRIT = RWORK(1)
-      IF ((TN - TCRIT)*H .GT. 0.0D0) GO TO 624
+      IF ((TN - TCRIT)*H > 0.0D0) GO TO 624
   245 HMX = ABS(TN) + ABS(H)
-      IHIT = ABS(TN - TCRIT) .LE. 100.0D0*UROUND*HMX
+      IHIT = ABS(TN - TCRIT) <= 100.0D0*UROUND*HMX
       IF (IHIT) GO TO 400
       TNEXT = TN + H*(1.0D0 + 4.0D0*UROUND)
-      IF ((TNEXT - TCRIT)*H .LE. 0.0D0) GO TO 250
+      IF ((TNEXT - TCRIT)*H <= 0.0D0) GO TO 250
       H = (TCRIT - TN)*(1.0D0 - 4.0D0*UROUND)
-      IF (ISTATE .EQ. 2) JSTART = -2
+      IF (ISTATE == 2) JSTART = -2
 !-----------------------------------------------------------------------
 ! Block E.
 ! The next block is normally executed for all calls and contains
@@ -1736,26 +1736,26 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! check for H below the roundoff level in T.
 !-----------------------------------------------------------------------
   250 CONTINUE
-      IF ((NST-NSLAST) .GE. MXSTEP) GO TO 500
+      IF ((NST-NSLAST) >= MXSTEP) GO TO 500
       CALL DEWSET (N, ITOL, RelTol, AbsTol, RWORK(LYH), RWORK(LEWT))
       DO 260 I = 1,N
-        IF (RWORK(I+LEWT-1) .LE. 0.0D0) GO TO 510
+        IF (RWORK(I+LEWT-1) <= 0.0D0) GO TO 510
   260   RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
   270 TOLSF = UROUND*DVNORM (N, RWORK(LYH), RWORK(LEWT))
-      IF (TOLSF .LE. 1.0D0) GO TO 280
+      IF (TOLSF <= 1.0D0) GO TO 280
       TOLSF = TOLSF*2.0D0
-      IF (NST .EQ. 0) GO TO 626
+      IF (NST == 0) GO TO 626
       GO TO 520
-  280 IF ((TN + H) .NE. TN) GO TO 290
+  280 IF ((TN + H) /= TN) GO TO 290
       NHNIL = NHNIL + 1
-      IF (NHNIL .GT. MXHNIL) GO TO 290
+      IF (NHNIL > MXHNIL) GO TO 290
       MSG = 'DLSODE-  Warning..internal T (=R1) and H (=R2) are'
       CALL XERRWD (MSG, 50, 101, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
       MSG='      such that in the machine, T + H = T on the next step  '
       CALL XERRWD (MSG, 60, 101, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
       MSG = '      (H = step size). Solver will continue anyway'
       CALL XERRWD (MSG, 50, 101, 0, 0, 0, 0, 2, TN, H)
-      IF (NHNIL .LT. MXHNIL) GO TO 290
+      IF (NHNIL < MXHNIL) GO TO 290
       MSG = 'DLSODE-  Above warning has been issued I1 times.  '
       CALL XERRWD (MSG, 50, 102, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
       MSG = '      It will not be issued again for this problem'
@@ -1778,29 +1778,29 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   300 INIT = 1
       GO TO (310, 400, 330, 340, 350), ITASK
 ! ITASK = 1.  If TOUT has been reached, interpolate. -------------------
-  310 IF ((TN - TOUT)*H .LT. 0.0D0) GO TO 250
+  310 IF ((TN - TOUT)*H < 0.0D0) GO TO 250
       CALL DINTDY (TOUT, 0, RWORK(LYH), NYH, Y, IFLAG)
       T = TOUT
       GO TO 420
 ! ITASK = 3.  Jump to exit if TOUT was reached. ------------------------
-  330 IF ((TN - TOUT)*H .GE. 0.0D0) GO TO 400
+  330 IF ((TN - TOUT)*H >= 0.0D0) GO TO 400
       GO TO 250
 ! ITASK = 4.  See if TOUT or TCRIT was reached.  Adjust H if necessary.
-  340 IF ((TN - TOUT)*H .LT. 0.0D0) GO TO 345
+  340 IF ((TN - TOUT)*H < 0.0D0) GO TO 345
       CALL DINTDY (TOUT, 0, RWORK(LYH), NYH, Y, IFLAG)
       T = TOUT
       GO TO 420
   345 HMX = ABS(TN) + ABS(H)
-      IHIT = ABS(TN - TCRIT) .LE. 100.0D0*UROUND*HMX
+      IHIT = ABS(TN - TCRIT) <= 100.0D0*UROUND*HMX
       IF (IHIT) GO TO 400
       TNEXT = TN + H*(1.0D0 + 4.0D0*UROUND)
-      IF ((TNEXT - TCRIT)*H .LE. 0.0D0) GO TO 250
+      IF ((TNEXT - TCRIT)*H <= 0.0D0) GO TO 250
       H = (TCRIT - TN)*(1.0D0 - 4.0D0*UROUND)
       JSTART = -2
       GO TO 250
 ! ITASK = 5.  See if TCRIT was reached and jump to exit. ---------------
   350 HMX = ABS(TN) + ABS(H)
-      IHIT = ABS(TN - TCRIT) .LE. 100.0D0*UROUND*HMX
+      IHIT = ABS(TN - TCRIT) <= 100.0D0*UROUND*HMX
 !-----------------------------------------------------------------------
 ! Block G.
 ! The following block handles all successful returns from DLSODE.
@@ -1811,7 +1811,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   400 DO 410 I = 1,N
   410   Y(I) = RWORK(I+LYH-1)
       T = TN
-      IF (ITASK .NE. 4 .AND. ITASK .NE. 5) GO TO 420
+      IF (ITASK /= 4 .AND. ITASK /= 5) GO TO 420
       IF (IHIT) T = TCRIT
   420 ISTATE = 2
       RWORK(11) = HU
@@ -1872,7 +1872,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       IMXER = 1
       DO 570 I = 1,N
         SIZE = ABS(RWORK(I+LACOR-1)*RWORK(I+LEWT-1))
-        IF (BIG .GE. SIZE) GO TO 570
+        IF (BIG >= SIZE) GO TO 570
         BIG = SIZE
         IMXER = I
   570   CONTINUE
@@ -1899,7 +1899,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !-----------------------------------------------------------------------
   601 MSG = 'DLSODE-  ISTATE (=I1) illegal '
       CALL XERRWD (MSG, 30, 1, 0, 1, ISTATE, 0, 0, 0.0D0, 0.0D0)
-      IF (ISTATE .LT. 0) GO TO 800
+      IF (ISTATE < 0) GO TO 800
       GO TO 700
   602 MSG = 'DLSODE-  ITASK (=I1) illegal  '
       CALL XERRWD (MSG, 30, 2, 0, 1, ITASK, 0, 0, 0.0D0, 0.0D0)
@@ -2031,12 +2031,12 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !   20030707  Added DUMSUM to force normal storage of COMP.  (ACH)
 !***END PROLOGUE  DUMACH
 !
-      REAL(kind=dp) U, COMP
+      REAL(kind=dp) :: U, COMP
 !***FIRST EXECUTABLE STATEMENT  DUMACH
       U = 1.0D0
    10 U = U*0.5D0
       CALL DUMSUM(1.0D0, U, COMP)
-      IF (COMP .NE. 1.0D0) GO TO 10
+      IF (COMP /= 1.0D0) GO TO 10
       DUMACH = U*2.0D0
       RETURN
 !----------------------- End of Function DUMACH ------------------------
@@ -2044,7 +2044,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
       SUBROUTINE DUMSUM(A,B,C)
 !     Routine to force normal storing of A + B, for DUMACH.
-      REAL(kind=dp) A, B, C
+      REAL(kind=dp) :: A, B, C
       C = A + B
       RETURN
       END SUBROUTINE DUMSUM
@@ -2091,10 +2091,10 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !   930809  Renamed to allow single/double precision versions. (ACH)
 !***END PROLOGUE  DCFODE
 !**End
-      INTEGER METH
-      INTEGER I, IB, NQ, NQM1, NQP1
-      REAL(kind=dp) ELCO(13,12), TESCO(3,12), PC(12)
-      REAL(kind=dp) AGAMQ, FNQ, FNQM1, PINT, RAGQ, RQFAC, RQ1FAC, TSIGN, XPIN
+      INTEGER :: METH
+      INTEGER :: I, IB, NQ, NQM1, NQP1
+      REAL(kind=dp) :: ELCO(13,12), TESCO(3,12), PC(12)
+      REAL(kind=dp) :: AGAMQ, FNQ, FNQM1, PINT, RAGQ, RQFAC, RQ1FAC, TSIGN, XPIN
 !
 !***FIRST EXECUTABLE STATEMENT  DCFODE
       GO TO (100, 200), METH
@@ -2140,7 +2140,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         AGAMQ = RQFAC*XPIN
         RAGQ = 1.0D0/AGAMQ
         TESCO(2,NQ) = RAGQ
-        IF (NQ .LT. 12) TESCO(1,NQP1) = RAGQ*RQFAC/NQP1
+        IF (NQ < 12) TESCO(1,NQP1) = RAGQ*RQFAC/NQP1
         TESCO(3,NQM1) = RAGQ
   140   CONTINUE
       RETURN
@@ -2215,13 +2215,13 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !   050427  Corrected roundoff decrement in TP. (ACH)
 !***END PROLOGUE  DINTDY
 !**End
-      INTEGER K, NYH, IFLAG
-      REAL(kind=dp) T, YH(NYH,*), DKY(*)
-      INTEGER IOWND, IOWNS,                                            &
+      INTEGER :: K, NYH, IFLAG
+      REAL(kind=dp) :: T, YH(NYH,*), DKY(*)
+      INTEGER :: IOWND, IOWNS,                                            &
         ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
         LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
         MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
-      REAL(kind=dp) ROWNS,                                          &
+      REAL(kind=dp) :: ROWNS,                                          &
         CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND
       COMMON /DLS001/ ROWNS(209),                                      &
         CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND,                 &
@@ -2229,32 +2229,32 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
         LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
         MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
-      INTEGER I, IC, J, JB, JB2, JJ, JJ1, JP1
-      REAL(kind=dp) C, R, S, TP
-      CHARACTER*80 MSG
+      INTEGER :: I, IC, J, JB, JB2, JJ, JJ1, JP1
+      REAL(kind=dp) :: C, R, S, TP
+      CHARACTER(len=80) :: MSG
 !
 !***FIRST EXECUTABLE STATEMENT  DINTDY
       IFLAG = 0
-      IF (K .LT. 0 .OR. K .GT. NQ) GO TO 80
+      IF (K < 0 .OR. K > NQ) GO TO 80
       TP = TN - HU -  100.0D0*UROUND*SIGN(ABS(TN) + ABS(HU), HU)
-      IF ((T-TP)*(T-TN) .GT. 0.0D0) GO TO 90
+      IF ((T-TP)*(T-TN) > 0.0D0) GO TO 90
 !
       S = (T - TN)/H
       IC = 1
-      IF (K .EQ. 0) GO TO 15
+      IF (K == 0) GO TO 15
       JJ1 = L - K
       DO 10 JJ = JJ1,NQ
    10   IC = IC*JJ
    15 C = IC
       DO 20 I = 1,N
    20   DKY(I) = C*YH(I,L)
-      IF (K .EQ. NQ) GO TO 55
+      IF (K == NQ) GO TO 55
       JB2 = NQ - K
       DO 50 JB = 1,JB2
         J = NQ - JB
         JP1 = J + 1
         IC = 1
-        IF (K .EQ. 0) GO TO 35
+        IF (K == 0) GO TO 35
         JJ1 = JP1 - K
         DO 30 JJ = JJ1,J
    30     IC = IC*JJ
@@ -2262,7 +2262,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         DO 40 I = 1,N
    40     DKY(I) = C*YH(I,JP1) + S*DKY(I)
    50   CONTINUE
-      IF (K .EQ. 0) RETURN
+      IF (K == 0) RETURN
    55 R = H**(-K)
       DO 60 I = 1,N
    60   DKY(I) = R*DKY(I)
@@ -2336,13 +2336,13 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !***END PROLOGUE  DPREPJ
 !**End
       EXTERNAL F, JAC
-      INTEGER NEQ, NYH, IWM(*)
-      REAL(kind=dp) Y(*), YH(NYH,*), EWT(*), FTEM(*), SAVF(*), WM(*)
-      INTEGER IOWND, IOWNS, IER,                                           &
+      INTEGER :: NEQ, NYH, IWM(*)
+      REAL(kind=dp) :: Y(*), YH(NYH,*), EWT(*), FTEM(*), SAVF(*), WM(*)
+      INTEGER :: IOWND, IOWNS, IER,                                           &
         ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
         LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
         MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
-      REAL(kind=dp) ROWNS,                                          &
+      REAL(kind=dp) :: ROWNS,                                          &
         CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND
       COMMON /DLS001/ ROWNS(209),                                      &
         CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND,                 &
@@ -2350,9 +2350,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
         LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
         MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
-      INTEGER I, I1, I2, ISING, II, J, J1, JJ, LENP,                     &
+      INTEGER :: I, I1, I2, ISING, II, J, J1, JJ, LENP,                     &
               MBA, MBAND, MEB1, MEBAND, ML, ML3, MU, NP1
-      REAL(kind=dp) CON, DI, FAC, HL0, R, R0, SRUR, YI, YJ, YJJ
+      REAL(kind=dp) :: CON, DI, FAC, HL0, R, R0, SRUR, YI, YJ, YJJ
       !REAL(kind=dp)  DVNORM
 !
 !***FIRST EXECUTABLE STATEMENT  DPREPJ
@@ -2393,7 +2393,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       ! Do LU decomposition on P
       CALL KppDecomp(WM(3),IER)
 #endif
-      IF (IER .NE. 0) IERPJ = 1
+      IF (IER /= 0) IERPJ = 1
       RETURN
  !----------------------- END OF SUBROUTINE DPREPJ ----------------------
       END SUBROUTINE DPREPJ
@@ -2442,13 +2442,13 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !           enable interrupt/restart feature. (ACH)
 !***END PROLOGUE  DSOLSY
 !**End
-      INTEGER IWM(*)
-      REAL(kind=dp) WM(*), X(*), TEM(*)
-      INTEGER IOWND, IOWNS,                                            &
+      INTEGER :: IWM(*)
+      REAL(kind=dp) :: WM(*), X(*), TEM(*)
+      INTEGER :: IOWND, IOWNS,                                            &
         ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
         LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
         MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
-      REAL(kind=dp) ROWNS,                                          &
+      REAL(kind=dp) :: ROWNS,                                          &
         CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND
       COMMON /DLS001/ ROWNS(209),                                      &
         CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND,                 &
@@ -2456,10 +2456,10 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
         LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
         MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
-      INTEGER I, MEBAND, ML, MU
-      REAL(kind=dp) DI, HL0, PHL0, R
+      INTEGER :: I, MEBAND, ML, MU
+      REAL(kind=dp) :: DI, HL0, PHL0, R
 #ifdef FULL_ALGEBRA
-      INTEGER ISING
+      INTEGER :: ISING
 #endif
 !
 !***FIRST EXECUTABLE STATEMENT  DSOLSY
@@ -2508,16 +2508,16 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !   031112  Added SAVE statement for data-loaded constants.
 !***END PROLOGUE  DSRCOM
 !**End
-      INTEGER ISAV(*), JOB
-      INTEGER ILS
-      INTEGER I, LENILS, LENRLS
-      REAL(kind=dp) RSAV(*),   RLS
+      INTEGER :: ISAV(*), JOB
+      INTEGER :: ILS
+      INTEGER :: I, LENILS, LENRLS
+      REAL(kind=dp) :: RSAV(*),   RLS
       SAVE LENRLS, LENILS
       COMMON /DLS001/ RLS(218), ILS(37)
       DATA LENRLS/218/, LENILS/37/
 !
 !***FIRST EXECUTABLE STATEMENT  DSRCOM
-      IF (JOB .EQ. 2) GO TO 100
+      IF (JOB == 2) GO TO 100
 !
       DO 10 I = 1,LENRLS
    10   RSAV(I) = RLS(I)
@@ -2630,17 +2630,17 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !***END PROLOGUE  DSTODE
 !**End
       EXTERNAL F, JAC !, PJAC, SLVS
-      INTEGER NEQ, NYH, IWM(*)
-      REAL(kind=dp) Y(*), YH(NYH,*), YH1(*), EWT(*), SAVF(*),       &
+      INTEGER :: NEQ, NYH, IWM(*)
+      REAL(kind=dp) :: Y(*), YH(NYH,*), YH1(*), EWT(*), SAVF(*),       &
                        ACOR(*), WM(*)
-      INTEGER IOWND, IALTH, IPUP, LMAX, MEO, NQNYH, NSLP,              &
+      INTEGER :: IOWND, IALTH, IPUP, LMAX, MEO, NQNYH, NSLP,              &
         ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
         LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
         MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
-      INTEGER I, I1, IREDO, IRET, J, JB, M, NCF, NEWQ
-      REAL(kind=dp) CONIT, CRATE, EL, ELCO, HOLD, RMAX, TESCO,      &
+      INTEGER :: I, I1, IREDO, IRET, J, JB, M, NCF, NEWQ
+      REAL(kind=dp) :: CONIT, CRATE, EL, ELCO, HOLD, RMAX, TESCO,      &
         CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND
-      REAL(kind=dp) DCON, DDN, DEL, DELP, DSM, DUP, EXDN, EXSM,     &
+      REAL(kind=dp) :: DCON, DDN, DEL, DELP, DSM, DUP, EXDN, EXSM,     &
               EXUP,R, RH, RHDN, RHSM, RHUP, TOLD
       !REAL(kind=dp) DVNORM
       COMMON /DLS001/ CONIT, CRATE, EL(13), ELCO(13,12),               &
@@ -2660,9 +2660,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       JCUR = 0
       ICF = 0
       DELP = 0.0D0
-      IF (JSTART .GT. 0) GO TO 200
-      IF (JSTART .EQ. -1) GO TO 100
-      IF (JSTART .EQ. -2) GO TO 160
+      IF (JSTART > 0) GO TO 200
+      IF (JSTART == -1) GO TO 100
+      IF (JSTART == -2) GO TO 160
 !-----------------------------------------------------------------------
 ! On the first call, the order is set to 1, and other variables are
 ! initialized.  RMAX is the maximum ratio by which H can be increased
@@ -2700,15 +2700,15 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !-----------------------------------------------------------------------
   100 IPUP = MITER
       LMAX = MAXORD + 1
-      IF (IALTH .EQ. 1) IALTH = 2
-      IF (METH .EQ. MEO) GO TO 110
+      IF (IALTH == 1) IALTH = 2
+      IF (METH == MEO) GO TO 110
       CALL DCFODE (METH, ELCO, TESCO)
       MEO = METH
-      IF (NQ .GT. MAXORD) GO TO 120
+      IF (NQ > MAXORD) GO TO 120
       IALTH = L
       IRET = 1
       GO TO 150
-  110 IF (NQ .LE. MAXORD) GO TO 160
+  110 IF (NQ <= MAXORD) GO TO 160
   120 NQ = MAXORD
       L = LMAX
       DO 125 I = 1,L
@@ -2722,7 +2722,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       RHDN = 1.0D0/(1.3D0*DDN**EXDN + 0.0000013D0)
       RH = MIN(RHDN,1.0D0)
       IREDO = 3
-      IF (H .EQ. HOLD) GO TO 170
+      IF (H == HOLD) GO TO 170
       RH = MIN(RH,ABS(H/HOLD))
       H = HOLD
       GO TO 175
@@ -2745,7 +2745,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! L = NQ + 1 to prevent a change of H for that many steps, unless
 ! forced by a convergence or error test failure.
 !-----------------------------------------------------------------------
-  160 IF (H .EQ. HOLD) GO TO 200
+  160 IF (H == HOLD) GO TO 200
       RH = H/HOLD
       H = HOLD
       IREDO = 3
@@ -2761,7 +2761,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       H = H*RH
       RC = RC*RH
       IALTH = L
-      IF (IREDO .EQ. 0) GO TO 690
+      IF (IREDO == 0) GO TO 690
 !-----------------------------------------------------------------------
 ! This section computes the predicted values by effectively
 ! multiplying the YH array by the Pascal Triangle matrix.
@@ -2770,8 +2770,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! to force PJAC to be called, if a Jacobian is involved.
 ! In any case, PJAC is called at least every MSBP steps.
 !-----------------------------------------------------------------------
-  200 IF (ABS(RC-1.0D0) .GT. CCMAX) IPUP = MITER
-      IF (NST .GE. NSLP+MSBP) IPUP = MITER
+  200 IF (ABS(RC-1.0D0) > CCMAX) IPUP = MITER
+      IF (NST >= NSLP+MSBP) IPUP = MITER
       TN = TN + H
       I1 = NQNYH + 1
       DO 215 JB = 1,NQ
@@ -2791,7 +2791,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   230   Y(I) = YH(I,1)
       CALL F (NEQ, TN, Y, SAVF)
       NFE = NFE + 1
-      IF (IPUP .LE. 0) GO TO 250
+      IF (IPUP <= 0) GO TO 250
 !-----------------------------------------------------------------------
 ! If indicated, the matrix P = I - h*el(1)*J is reevaluated and
 ! preprocessed before starting the corrector iteration.  IPUP is set
@@ -2803,10 +2803,10 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       RC = 1.0D0
       NSLP = NST
       CRATE = 0.7D0
-      IF (IERPJ .NE. 0) GO TO 430
+      IF (IERPJ /= 0) GO TO 430
   250 DO 260 I = 1,N
   260   ACOR(I) = 0.0D0
-  270 IF (MITER .NE. 0) GO TO 350
+  270 IF (MITER /= 0) GO TO 350
 !-----------------------------------------------------------------------
 ! In the case of functional iteration, update Y directly from
 ! the result of the last function evaluation.
@@ -2828,8 +2828,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   360   Y(I) = H*SAVF(I) - (YH(I,2) + ACOR(I))
       !CALL SLVS (WM, IWM, Y, SAVF)
       CALL DSOLSY(WM, IWM, Y, SAVF)
-      IF (IERSL .LT. 0) GO TO 430
-      IF (IERSL .GT. 0) GO TO 410
+      IF (IERSL < 0) GO TO 430
+      IF (IERSL > 0) GO TO 410
       DEL = DVNORM (N, Y, EWT)
       DO 380 I = 1,N
         ACOR(I) = ACOR(I) + Y(I)
@@ -2838,12 +2838,12 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! Test for convergence.  If M.gt.0, an estimate of the convergence
 ! rate constant is stored in CRATE, and this is used in the test.
 !-----------------------------------------------------------------------
-  400 IF (M .NE. 0) CRATE = MAX(0.2D0*CRATE,DEL/DELP)
+  400 IF (M /= 0) CRATE = MAX(0.2D0*CRATE,DEL/DELP)
       DCON = DEL*MIN(1.0D0,1.5D0*CRATE)/(TESCO(2,NQ)*CONIT)
-      IF (DCON .LE. 1.0D0) GO TO 450
+      IF (DCON <= 1.0D0) GO TO 450
       M = M + 1
-      IF (M .EQ. MAXCOR) GO TO 410
-      IF (M .GE. 2 .AND. DEL .GT. 2.0D0*DELP) GO TO 410
+      IF (M == MAXCOR) GO TO 410
+      IF (M >= 2 .AND. DEL > 2.0D0*DELP) GO TO 410
       DELP = DEL
       CALL F (NEQ, TN, Y, SAVF)
       NFE = NFE + 1
@@ -2855,7 +2855,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! before prediction, and H is reduced, if possible.  If H cannot be
 ! reduced or MXNCF failures have occurred, exit with KFLAG = -2.
 !-----------------------------------------------------------------------
-  410 IF (MITER .EQ. 0 .OR. JCUR .EQ. 1) GO TO 430
+  410 IF (MITER == 0 .OR. JCUR == 1) GO TO 430
       ICF = 1
       IPUP = MITER
       GO TO 220
@@ -2870,9 +2870,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         DO 440 I = I1,NQNYH
   440     YH1(I) = YH1(I) - YH1(I+NYH)
   445   CONTINUE
-      IF (IERPJ .LT. 0 .OR. IERSL .LT. 0) GO TO 680
-      IF (ABS(H) .LE. HMIN*1.00001D0) GO TO 670
-      IF (NCF .EQ. MXNCF) GO TO 670
+      IF (IERPJ < 0 .OR. IERSL < 0) GO TO 680
+      IF (ABS(H) <= HMIN*1.00001D0) GO TO 670
+      IF (NCF == MXNCF) GO TO 670
       RH = 0.25D0
       IPUP = MITER
       IREDO = 1
@@ -2884,9 +2884,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! if it fails.
 !-----------------------------------------------------------------------
   450 JCUR = 0
-      IF (M .EQ. 0) DSM = DEL/TESCO(2,NQ)
-      IF (M .GT. 0) DSM = DVNORM (N, ACOR, EWT)/TESCO(2,NQ)
-      IF (DSM .GT. 1.0D0) GO TO 500
+      IF (M == 0) DSM = DEL/TESCO(2,NQ)
+      IF (M > 0) DSM = DVNORM (N, ACOR, EWT)/TESCO(2,NQ)
+      IF (DSM > 1.0D0) GO TO 500
 !-----------------------------------------------------------------------
 ! After a successful step, update the YH array.
 ! Consider changing H if IALTH = 1.  Otherwise decrease IALTH by 1.
@@ -2906,9 +2906,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         DO 470 I = 1,N
   470     YH(I,J) = YH(I,J) + EL(J)*ACOR(I)
       IALTH = IALTH - 1
-      IF (IALTH .EQ. 0) GO TO 520
-      IF (IALTH .GT. 1) GO TO 700
-      IF (L .EQ. LMAX) GO TO 700
+      IF (IALTH == 0) GO TO 520
+      IF (IALTH > 1) GO TO 700
+      IF (L == LMAX) GO TO 700
       DO 490 I = 1,N
   490   YH(I,LMAX) = ACOR(I)
       GO TO 700
@@ -2929,8 +2929,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   510     YH1(I) = YH1(I) - YH1(I+NYH)
   515   CONTINUE
       RMAX = 2.0D0
-      IF (ABS(H) .LE. HMIN*1.00001D0) GO TO 660
-      IF (KFLAG .LE. -3) GO TO 640
+      IF (ABS(H) <= HMIN*1.00001D0) GO TO 660
+      IF (KFLAG <= -3) GO TO 640
       IREDO = 2
       RHUP = 0.0D0
       GO TO 540
@@ -2944,7 +2944,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! additional scaled derivative.
 !-----------------------------------------------------------------------
   520 RHUP = 0.0D0
-      IF (L .EQ. LMAX) GO TO 540
+      IF (L == LMAX) GO TO 540
       DO 530 I = 1,N
   530   SAVF(I) = ACOR(I) - YH(I,LMAX)
       DUP = DVNORM (N, SAVF, EWT)/TESCO(3,NQ)
@@ -2953,38 +2953,38 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   540 EXSM = 1.0D0/L
       RHSM = 1.0D0/(1.2D0*DSM**EXSM + 0.0000012D0)
       RHDN = 0.0D0
-      IF (NQ .EQ. 1) GO TO 560
+      IF (NQ == 1) GO TO 560
       DDN = DVNORM (N, YH(1,L), EWT)/TESCO(1,NQ)
       EXDN = 1.0D0/NQ
       RHDN = 1.0D0/(1.3D0*DDN**EXDN + 0.0000013D0)
-  560 IF (RHSM .GE. RHUP) GO TO 570
-      IF (RHUP .GT. RHDN) GO TO 590
+  560 IF (RHSM >= RHUP) GO TO 570
+      IF (RHUP > RHDN) GO TO 590
       GO TO 580
-  570 IF (RHSM .LT. RHDN) GO TO 580
+  570 IF (RHSM < RHDN) GO TO 580
       NEWQ = NQ
       RH = RHSM
       GO TO 620
   580 NEWQ = NQ - 1
       RH = RHDN
-      IF (KFLAG .LT. 0 .AND. RH .GT. 1.0D0) RH = 1.0D0
+      IF (KFLAG < 0 .AND. RH > 1.0D0) RH = 1.0D0
       GO TO 620
   590 NEWQ = L
       RH = RHUP
-      IF (RH .LT. 1.1D0) GO TO 610
+      IF (RH < 1.1D0) GO TO 610
       R = EL(L)/L
       DO 600 I = 1,N
   600   YH(I,NEWQ+1) = ACOR(I)*R
       GO TO 630
   610 IALTH = 3
       GO TO 700
-  620 IF ((KFLAG .EQ. 0) .AND. (RH .LT. 1.1D0)) GO TO 610
-      IF (KFLAG .LE. -2) RH = MIN(RH,0.2D0)
+  620 IF ((KFLAG == 0) .AND. (RH < 1.1D0)) GO TO 610
+      IF (KFLAG <= -2) RH = MIN(RH,0.2D0)
 !-----------------------------------------------------------------------
 ! If there is a change of order, reset NQ, l, and the coefficients.
 ! In any case H is reset according to RH and the YH array is rescaled.
 ! Then exit from 690 if the step was OK, or redo the step otherwise.
 !-----------------------------------------------------------------------
-      IF (NEWQ .EQ. NQ) GO TO 170
+      IF (NEWQ == NQ) GO TO 170
   630 NQ = NEWQ
       L = NQ + 1
       IRET = 2
@@ -2998,7 +2998,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! H is reduced by a factor of 10, and the step is retried,
 ! until it succeeds or H reaches HMIN.
 !-----------------------------------------------------------------------
-  640 IF (KFLAG .EQ. -10) GO TO 660
+  640 IF (KFLAG == -10) GO TO 660
       RH = 0.1D0
       RH = MAX(HMIN/ABS(H),RH)
       H = H*RH
@@ -3010,7 +3010,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   650   YH(I,2) = H*SAVF(I)
       IPUP = MITER
       IALTH = 5
-      IF (NQ .EQ. 1) GO TO 200
+      IF (NQ == 1) GO TO 200
       NQ = 1
       L = 2
       IRET = 3
@@ -3057,9 +3057,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !   930809  Renamed to allow single/double precision versions. (ACH)
 !***END PROLOGUE  DEWSET
 !**End
-      INTEGER N, ITOL
-      INTEGER I
-      REAL(kind=dp) RelTol(*), AbsTol(*), YCUR(N), EWT(N)
+      INTEGER :: N, ITOL
+      INTEGER :: I
+      REAL(kind=dp) :: RelTol(*), AbsTol(*), YCUR(N), EWT(N)
 !
 !***FIRST EXECUTABLE STATEMENT  DEWSET
       GO TO (10, 20, 30, 40), ITOL
@@ -3104,8 +3104,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !   930809  Renamed to allow single/double precision versions. (ACH)
 !***END PROLOGUE  DVNORM
 !**End
-      INTEGER N,   I
-      REAL(kind=dp) V(N), W(N), SUM
+      INTEGER :: N,   I
+      REAL(kind=dp) :: V(N), W(N), SUM
 !
 !***FIRST EXECUTABLE STATEMENT  DVNORM
       SUM = 0.0D0
@@ -3176,37 +3176,37 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !
 !  Declare arguments.
 !
-      REAL(kind=dp) R1, R2
-      INTEGER NMES, NERR, LEVEL, NI, I1, I2, NR
-      CHARACTER*(*) MSG
+      REAL(kind=dp) :: R1, R2
+      INTEGER :: NMES, NERR, LEVEL, NI, I1, I2, NR
+      CHARACTER(len=*) :: MSG
 !
 !  Declare local variables.
 !
-      INTEGER LUNIT, MESFLG !, IXSAV
+      INTEGER :: LUNIT, MESFLG !, IXSAV
 !
 !  Get logical unit number and message print flag.
 !
 !***FIRST EXECUTABLE STATEMENT  XERRWD
       LUNIT = IXSAV (1, 0, .FALSE.)
       MESFLG = IXSAV (2, 0, .FALSE.)
-      IF (MESFLG .EQ. 0) GO TO 100
+      IF (MESFLG == 0) GO TO 100
 !
 !  Write the message.
 !
       WRITE (LUNIT,10)  MSG
    10 FORMAT(1X,A)
-      IF (NI .EQ. 1) WRITE (LUNIT, 20) I1
+      IF (NI == 1) WRITE (LUNIT, 20) I1
    20 FORMAT(6X,'In above message,  I1 =',I10)
-      IF (NI .EQ. 2) WRITE (LUNIT, 30) I1,I2
+      IF (NI == 2) WRITE (LUNIT, 30) I1,I2
    30 FORMAT(6X,'In above message,  I1 =',I10,3X,'I2 =',I10)
-      IF (NR .EQ. 1) WRITE (LUNIT, 40) R1
+      IF (NR == 1) WRITE (LUNIT, 40) R1
    40 FORMAT(6X,'In above message,  R1 =',D21.13)
-      IF (NR .EQ. 2) WRITE (LUNIT, 50) R1,R2
+      IF (NR == 2) WRITE (LUNIT, 50) R1,R2
    50 FORMAT(6X,'In above,  R1 =',D21.13,3X,'R2 =',D21.13)
 !
 !  Abort the run if LEVEL = 2.
 !
-  100 IF (LEVEL .NE. 2) RETURN
+  100 IF (LEVEL /= 2) RETURN
       STOP
 !----------------------- End of Subroutine XERRWD ----------------------
       END SUBROUTINE XERRWD
@@ -3238,10 +3238,10 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! Function routine called by XSETF.. IXSAV
 !-----------------------------------------------------------------------
 !**End
-      INTEGER MFLAG, JUNK !, IXSAV
+      INTEGER :: MFLAG, JUNK !, IXSAV
 !
 !***FIRST EXECUTABLE STATEMENT  XSETF
-      IF (MFLAG .EQ. 0 .OR. MFLAG .EQ. 1) JUNK = IXSAV (2,MFLAG,.TRUE.)
+      IF (MFLAG == 0 .OR. MFLAG == 1) JUNK = IXSAV (2,MFLAG,.TRUE.)
       RETURN
 !----------------------- End of Subroutine XSETF -----------------------
       END SUBROUTINE XSETF
@@ -3271,10 +3271,10 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! Function routine called by XSETUN.. IXSAV
 !-----------------------------------------------------------------------
 !**End
-      INTEGER LUN, JUNK !, IXSAV
+      INTEGER :: LUN, JUNK !, IXSAV
 !
 !***FIRST EXECUTABLE STATEMENT  XSETUN
-      IF (LUN .GT. 0) JUNK = IXSAV (1,LUN,.TRUE.)
+      IF (LUN > 0) JUNK = IXSAV (1,LUN,.TRUE.)
       RETURN
 !----------------------- End of Subroutine XSETUN ----------------------
       END SUBROUTINE XSETUN
@@ -3325,10 +3325,10 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! Function routine called by IXSAV.. IUMACH
 !-----------------------------------------------------------------------
 !**End
-      LOGICAL ISET
-      INTEGER IPAR, IVALUE
+      LOGICAL :: ISET
+      INTEGER :: IPAR, IVALUE
 !-----------------------------------------------------------------------
-      INTEGER LUNIT, MESFLG!, IUMACH
+      INTEGER :: LUNIT, MESFLG!, IUMACH
 !-----------------------------------------------------------------------
 ! The following Fortran-77 declaration is to cause the values of the
 ! listed (local) variables to be saved between calls to this routine.
@@ -3337,13 +3337,13 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       DATA LUNIT/-1/, MESFLG/1/
 !
 !***FIRST EXECUTABLE STATEMENT  IXSAV
-      IF (IPAR .EQ. 1) THEN
-        IF (LUNIT .EQ. -1) LUNIT = IUMACH()
+      IF (IPAR == 1) THEN
+        IF (LUNIT == -1) LUNIT = IUMACH()
         IXSAV = LUNIT
         IF (ISET) LUNIT = IVALUE
         ENDIF
 !
-      IF (IPAR .EQ. 2) THEN
+      IF (IPAR == 2) THEN
         IXSAV = MESFLG
         IF (ISET) MESFLG = IVALUE
         ENDIF
@@ -3396,7 +3396,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       USE mod_cb6_Function, ONLY: Fun
       USE mod_cb6_Rates
 
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 
       INTEGER :: N
       REAL(kind=dp) :: V(NVAR_CB6), FCT(NVAR_CB6), T
@@ -3425,7 +3425,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       USE mod_cb6_Jacobian, ONLY: Jac_SP
       USE mod_cb6_Rates
 
-      IMPLICIT NONE
+      IMPLICIT NONE (type, external)
 
       REAL(kind=dp) :: V(NVAR_CB6), T
       INTEGER :: N

@@ -23,7 +23,7 @@ module mod_che_linox
   use mod_che_common
   use mod_dynparam
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -32,7 +32,7 @@ module mod_che_linox
   contains
 
   subroutine linox_em(ivegcov)
-    implicit none
+    implicit none (type, external)
     integer(ik4), dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
     real(rkx), dimension(kz) :: amass, pic, pcg
     real(rkx), dimension(jci1:jci2,ici1:ici2,kz) :: znox_prod_ic

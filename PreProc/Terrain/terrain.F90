@@ -17,14 +17,14 @@
 subroutine myabort
   use mod_stdio
   use mpi
-  implicit none
+  implicit none (type, external)
   integer :: ierr
   write(stderr,*) ' Execution terminated because of runtime error'
   call mpi_abort(mpi_comm_self,1,ierr)
 end subroutine myabort
 #else
 subroutine myabort
-  implicit none
+  implicit none (type, external)
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 #endif
@@ -91,7 +91,7 @@ program terrain
   use mpi
 #endif
 
-  implicit none
+  implicit none (type, external)
   character(len=256) :: char_lnd, char_tex, char_lak
   character(len=256) :: namelistfile, prgname, outname
   integer(ik4) :: i, j, k, ierr, ism, mmx
@@ -955,7 +955,7 @@ program terrain
   contains
 
   subroutine findaround(xx,i,j,imax,jmax,mmx)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: i, j, imax, jmax, mmx
     real(rkx), dimension(:,:), intent(inout) :: xx
     real(rk8), dimension (mmx) :: vals

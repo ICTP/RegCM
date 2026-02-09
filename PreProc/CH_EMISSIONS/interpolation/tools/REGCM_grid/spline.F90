@@ -1,4 +1,5 @@
 module spline
+implicit none (type, external)
 
   public
 
@@ -43,13 +44,13 @@ subroutine r8vec_order_type ( n, a, order )
 !    3, descending order;
 !    4, strictly descending order.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) order
+  real    ( kind = 8 ) :: a(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: order
 !
 !  Search for the first value not equal to A(1).
 !
@@ -177,15 +178,15 @@ subroutine r8vec_bracket ( n, x, xval, left, right )
 !    or
 !      X(LEFT) <= XVAL <= X(RIGHT).
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) x(n)
-  real    ( kind = 8 ) xval
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: x(n)
+  real    ( kind = 8 ) :: xval
 
   do i = 2, n - 1
 
@@ -256,16 +257,16 @@ subroutine r8vec_bracket3 ( n, t, tval, left )
 !    is the closest to TVAL; it either contains TVAL, or else TVAL
 !    lies outside the interval [ T(1), T(N) ].
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) high
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) mid
-  real    ( kind = 8 ) t(n)
-  real    ( kind = 8 ) tval
+  integer ( kind = 4 ) :: high
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: mid
+  real    ( kind = 8 ) :: t(n)
+  real    ( kind = 8 ) :: tval
 !
 !  Check the input data.
 !
@@ -449,14 +450,14 @@ subroutine bp01 ( n, x, bern )
 !    Output, real ( kind = 8 ) BERN(0:N), the values of the N+1 Bernstein basis
 !    polynomials at X.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) bern(0:n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  real    ( kind = 8 ) x
+  real    ( kind = 8 ) :: bern(0:n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  real    ( kind = 8 ) :: x
 
   if ( n == 0 ) then
 
@@ -545,16 +546,16 @@ subroutine bpab ( n, a, b, x, bern )
 !    Output, real ( kind = 8 ) BERN(0:N), the values of the N+1 Bernstein basis
 !    polynomials at X.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) bern(0:n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  real    ( kind = 8 ) x
+  real    ( kind = 8 ) :: a
+  real    ( kind = 8 ) :: b
+  real    ( kind = 8 ) :: bern(0:n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  real    ( kind = 8 ) :: x
 
   if ( b == a ) then
     write ( *, '(a)' ) ' '
@@ -616,13 +617,13 @@ logical function r8vec_distinct ( n, x )
 !    Output, logical R8VEC_DISTINCT is TRUE if all N elements of X
 !    are distinct.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  real    ( kind = 8 ) x(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  real    ( kind = 8 ) :: x(n)
 
   r8vec_distinct = .false.
 
@@ -674,15 +675,15 @@ subroutine r8vec_unique_count ( n, a, tol, unique_num )
 !
 !    Output, integer ( kind = 4 ) UNIQUE_NUM, the number of unique elements.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) unique_num
-  real    ( kind = 8 ) tol
+  real    ( kind = 8 ) :: a(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: unique_num
+  real    ( kind = 8 ) :: tol
 
   unique_num = 0
 
@@ -753,14 +754,14 @@ subroutine r8vec_uniform_01 ( n, seed, r )
 !
 !    Output, real ( kind = 8 ) R(N), the vector of pseudorandom values.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) seed
-  real    ( kind = 8 ) r(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: seed
+  real    ( kind = 8 ) :: r(n)
 
   do i = 1, n
 
@@ -802,11 +803,11 @@ subroutine r8_swap ( x, y )
 !    Input/output, real ( kind = 8 ) X, Y.  On output, the values of X and
 !    Y have been interchanged.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
-  real    ( kind = 8 ) z
+  real    ( kind = 8 ) :: x
+  real    ( kind = 8 ) :: y
+  real    ( kind = 8 ) :: z
 
   z = x
   x = y
@@ -863,15 +864,15 @@ subroutine r83_np_fs ( n, a, b, x )
 !
 !    Output, real ( kind = 8 ) X(N), the solution of the linear system.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(3,n)
-  real    ( kind = 8 ) b(n)
-  integer ( kind = 4 ) i
-  real    ( kind = 8 ) x(n)
-  real    ( kind = 8 ) xmult
+  real    ( kind = 8 ) :: a(3,n)
+  real    ( kind = 8 ) :: b(n)
+  integer ( kind = 4 ) :: i
+  real    ( kind = 8 ) :: x(n)
+  real    ( kind = 8 ) :: xmult
 !
 !  The diagonal entries can't be zero.
 !
@@ -931,10 +932,10 @@ subroutine basis_matrix_overhauser_nul ( alpha, mbasis )
 !
 !    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) alpha
-  real    ( kind = 8 ) mbasis(3,3)
+  real    ( kind = 8 ) :: alpha
+  real    ( kind = 8 ) :: mbasis(3,3)
 
   mbasis(1,1) =   1.0D+00 / alpha
   mbasis(1,2) = - 1.0D+00 / ( alpha * ( 1.0D+00 - alpha ) )
@@ -983,11 +984,11 @@ subroutine basis_matrix_overhauser_nonuni ( alpha, beta, mbasis )
 !
 !    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) alpha
-  real    ( kind = 8 ) beta
-  real    ( kind = 8 ) mbasis(4,4)
+  real    ( kind = 8 ) :: alpha
+  real    ( kind = 8 ) :: beta
+  real    ( kind = 8 ) :: mbasis(4,4)
 
   mbasis(1,1) = - ( 1.0D+00 - alpha ) * ( 1.0D+00 - alpha ) / alpha
   mbasis(1,2) =   beta + ( 1.0D+00 - alpha ) / alpha
@@ -1045,10 +1046,10 @@ subroutine basis_matrix_overhauser_nur ( beta, mbasis )
 !
 !    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) beta
-  real    ( kind = 8 ) mbasis(3,3)
+  real    ( kind = 8 ) :: beta
+  real    ( kind = 8 ) :: mbasis(3,3)
 
   mbasis(1,1) =   1.0D+00 / beta
   mbasis(1,2) = - 1.0D+00 / ( beta * ( 1.0D+00 - beta ) )
@@ -1102,9 +1103,9 @@ subroutine basis_matrix_overhauser_uni ( mbasis )
 !
 !    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) mbasis(4,4)
+  real    ( kind = 8 ) :: mbasis(4,4)
 
   mbasis(1,1) = - 1.0D+00 / 2.0D+00
   mbasis(1,2) =   3.0D+00 / 2.0D+00
@@ -1157,9 +1158,9 @@ subroutine basis_matrix_overhauser_uni_l ( mbasis )
 !
 !    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) mbasis(3,3)
+  real    ( kind = 8 ) :: mbasis(3,3)
 
   mbasis(1,1) =   2.0D+00
   mbasis(1,2) = - 4.0D+00
@@ -1204,9 +1205,9 @@ subroutine basis_matrix_overhauser_uni_r ( mbasis )
 !
 !    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) mbasis(3,3)
+  real    ( kind = 8 ) :: mbasis(3,3)
 
   mbasis(1,1) =   2.0D+00
   mbasis(1,2) = - 4.0D+00
@@ -1276,23 +1277,23 @@ subroutine basis_matrix_tmp ( left, n, mbasis, ndata, tdata, ydata, tval, yval )
 !
 !    Output, real ( kind = 8 ) YVAL, the value of the spline at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
   integer ( kind = 4 ), parameter :: maxn = 4
-  integer ( kind = 4 ) n
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: n
+  integer ( kind = 4 ) :: ndata
 
-  real    ( kind = 8 ) arg
-  integer ( kind = 4 ) first
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) left
-  real    ( kind = 8 ) mbasis(n,n)
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) tvec(maxn)
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: arg
+  integer ( kind = 4 ) :: first
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: left
+  real    ( kind = 8 ) :: mbasis(n,n)
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: tvec(maxn)
+  real    ( kind = 8 ) :: ydata(ndata)
+  real    ( kind = 8 ) :: yval
 
   if ( left == 1 ) then
     arg = 0.5D+00 * ( tval - tdata(left) )
@@ -1370,16 +1371,16 @@ subroutine basis_function_b_val ( tdata, tval, yval )
 !
 !    Output, real ( kind = 8 ) YVAL, the value of the function at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
   integer ( kind = 4 ), parameter :: ndata = 5
 
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) u
-  real    ( kind = 8 ) yval
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: u
+  real    ( kind = 8 ) :: yval
 
   if ( tval <= tdata(1) .or. tdata(ndata) <= tval ) then
     yval = 0.0D+00
@@ -1473,22 +1474,22 @@ subroutine basis_function_beta_val ( beta1, beta2, tdata, tval, yval )
 !
 !    Output, real ( kind = 8 ) YVAL, the value of the function at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
   integer ( kind = 4 ), parameter :: ndata = 5
 
-  real    ( kind = 8 ) a
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) beta1
-  real    ( kind = 8 ) beta2
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) d
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) u
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: a
+  real    ( kind = 8 ) :: b
+  real    ( kind = 8 ) :: beta1
+  real    ( kind = 8 ) :: beta2
+  real    ( kind = 8 ) :: c
+  real    ( kind = 8 ) :: d
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: u
+  real    ( kind = 8 ) :: yval
 
   if ( tval <= tdata(1) .or. tdata(ndata) <= tval ) then
     yval = 0.0D+00
@@ -1582,19 +1583,19 @@ subroutine basis_matrix_b_uni ( mbasis )
 !
 !    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) mbasis(4,4)
+  real    ( kind = 8 ) :: mbasis(4,4)
 !
 !  In the following statement, the matrix appears as though it
 !  has been transposed.
 !
   mbasis(1:4,1:4) = real ( reshape ( &
-    (/ -1,  3, -3, 1,                &
+    [ -1,  3, -3, 1,                &
         3, -6,  0, 4,                &
        -3,  3,  3, 1,                &
-        1,  0,  0, 0 /),             &
-    (/ 4, 4 /) ), kind = 8 ) / 6.0D+00
+        1,  0,  0, 0 ],             &
+    [ 4, 4 ] ), kind = 8 ) / 6.0D+00
 
   return
 end subroutine basis_matrix_b_uni
@@ -1641,12 +1642,12 @@ subroutine basis_matrix_beta_uni ( beta1, beta2, mbasis )
 !
 !    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) beta1
-  real    ( kind = 8 ) beta2
-  real    ( kind = 8 ) delta
-  real    ( kind = 8 ) mbasis(4,4)
+  real    ( kind = 8 ) :: beta1
+  real    ( kind = 8 ) :: beta2
+  real    ( kind = 8 ) :: delta
+  real    ( kind = 8 ) :: mbasis(4,4)
 
   mbasis(1,1) = - 2.0D+00 * beta1 * beta1 * beta1
   mbasis(1,2) =   2.0D+00 * beta2 &
@@ -1720,9 +1721,9 @@ subroutine basis_matrix_bezier ( mbasis )
 !
 !    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) mbasis(4,4)
+  real    ( kind = 8 ) :: mbasis(4,4)
 
   mbasis(1,1) = -1.0D+00
   mbasis(1,2) =  3.0D+00
@@ -1784,9 +1785,9 @@ subroutine basis_matrix_hermite ( mbasis )
 !
 !    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) mbasis(4,4)
+  real    ( kind = 8 ) :: mbasis(4,4)
 
   mbasis(1,1) =  2.0D+00
   mbasis(1,2) = -2.0D+00
@@ -1870,16 +1871,16 @@ subroutine bc_val ( n, t, xcon, ycon, xval, yval )
 !    Output, real ( kind = 8 ) XVAL, YVAL, the X and Y coordinates of the point
 !    on the Bezier curve corresponding to the given T value.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) bval(0:n)
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) xcon(0:n)
-  real    ( kind = 8 ) xval
-  real    ( kind = 8 ) ycon(0:n)
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: bval(0:n)
+  real    ( kind = 8 ) :: t
+  real    ( kind = 8 ) :: xcon(0:n)
+  real    ( kind = 8 ) :: xval
+  real    ( kind = 8 ) :: ycon(0:n)
+  real    ( kind = 8 ) :: yval
 
   call bp01 ( n, t, bval )
 
@@ -1953,16 +1954,16 @@ real ( kind = 8 ) function bez_val ( n, x, a, b, y )
 !
 !    Output, real ( kind = 8 ) BEZ_VAL, the value of the Bezier function at X.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) bval(0:n)
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) x01
-  real    ( kind = 8 ) y(0:n)
+  real    ( kind = 8 ) :: a
+  real    ( kind = 8 ) :: b
+  real    ( kind = 8 ) :: bval(0:n)
+  real    ( kind = 8 ) :: x
+  real    ( kind = 8 ) :: x01
+  real    ( kind = 8 ) :: y(0:n)
 
   if ( b - a == 0.0D+00 ) then
     write ( *, '(a)' ) ' '
@@ -2049,16 +2050,16 @@ subroutine bpab_approx ( n, a, b, ydata, xval, yval )
 !    Output, real ( kind = 8 ) YVAL, the value of the Bernstein polynomial
 !    approximant for F, based in [A,B], evaluated at XVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) bvec(0:n)
-  real    ( kind = 8 ) xval
-  real    ( kind = 8 ) ydata(0:n)
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: a
+  real    ( kind = 8 ) :: b
+  real    ( kind = 8 ) :: bvec(0:n)
+  real    ( kind = 8 ) :: xval
+  real    ( kind = 8 ) :: ydata(0:n)
+  real    ( kind = 8 ) :: yval
 !
 !  Evaluate the Bernstein basis polynomials at XVAL.
 !
@@ -2144,30 +2145,30 @@ subroutine chfev ( x1, x2, f1, f2, d1, d2, ne, xe, fe, next, ierr )
 !    -1, NE < 1.
 !    -2, X1 == X2.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ne
+  integer ( kind = 4 ) :: ne
 
-  real    ( kind = 8 ) c2
-  real    ( kind = 8 ) c3
-  real    ( kind = 8 ) d1
-  real    ( kind = 8 ) d2
-  real    ( kind = 8 ) del1
-  real    ( kind = 8 ) del2
-  real    ( kind = 8 ) delta
-  real    ( kind = 8 ) f1
-  real    ( kind = 8 ) f2
-  real    ( kind = 8 ) fe(ne)
-  real    ( kind = 8 ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) next(2)
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) x1
-  real    ( kind = 8 ) x2
-  real    ( kind = 8 ) xe(ne)
-  real    ( kind = 8 ) xma
-  real    ( kind = 8 ) xmi
+  real    ( kind = 8 ) :: c2
+  real    ( kind = 8 ) :: c3
+  real    ( kind = 8 ) :: d1
+  real    ( kind = 8 ) :: d2
+  real    ( kind = 8 ) :: del1
+  real    ( kind = 8 ) :: del2
+  real    ( kind = 8 ) :: delta
+  real    ( kind = 8 ) :: f1
+  real    ( kind = 8 ) :: f2
+  real    ( kind = 8 ) :: fe(ne)
+  real    ( kind = 8 ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: next(2)
+  real    ( kind = 8 ) :: x
+  real    ( kind = 8 ) :: x1
+  real    ( kind = 8 ) :: x2
+  real    ( kind = 8 ) :: xe(ne)
+  real    ( kind = 8 ) :: xma
+  real    ( kind = 8 ) :: xmi
 
   if ( ne < 1 ) then
     ierr = -1
@@ -2271,15 +2272,15 @@ subroutine data_to_dif ( ntab, xtab, ytab, diftab )
 !    Output, real ( kind = 8 ) DIFTAB(NTAB), the divided difference coefficients
 !    corresponding to the input (XTAB,YTAB).
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ntab
+  integer ( kind = 4 ) :: ntab
 
-  real    ( kind = 8 ) diftab(ntab)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  real    ( kind = 8 ) xtab(ntab)
-  real    ( kind = 8 ) ytab(ntab)
+  real    ( kind = 8 ) :: diftab(ntab)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  real    ( kind = 8 ) :: xtab(ntab)
+  real    ( kind = 8 ) :: ytab(ntab)
 
   if ( .not. r8vec_distinct ( ntab, xtab ) ) then
     write ( *, '(a)' ) ' '
@@ -2346,15 +2347,15 @@ subroutine dif_val ( ntab, xtab, diftab, xval, yval )
 !
 !    Output, real ( kind = 8 ) YVAL, the value of the polynomial at XVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ntab
+  integer ( kind = 4 ) :: ntab
 
-  real    ( kind = 8 ) diftab(ntab)
-  integer ( kind = 4 ) i
-  real    ( kind = 8 ) xtab(ntab)
-  real    ( kind = 8 ) xval
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: diftab(ntab)
+  integer ( kind = 4 ) :: i
+  real    ( kind = 8 ) :: xtab(ntab)
+  real    ( kind = 8 ) :: xval
+  real    ( kind = 8 ) :: yval
 
   yval = diftab(ntab)
   do i = 1, ntab-1
@@ -2456,31 +2457,31 @@ subroutine least_set_old ( ntab, xtab, ytab, ndeg, ptab, b, c, d, eps, ierror )
 !    zero, no error occurred;
 !    nonzero, an error occurred, and the polynomial could not be computed.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndeg
-  integer ( kind = 4 ) ntab
+  integer ( kind = 4 ) :: ndeg
+  integer ( kind = 4 ) :: ntab
 
-  real    ( kind = 8 ) b(1:ndeg)
-  real    ( kind = 8 ) c(0:ndeg)
-  real    ( kind = 8 ) d(2:ndeg)
-  real    ( kind = 8 ) eps
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) i0l1
-  integer ( kind = 4 ) i1l1
-  integer ( kind = 4 ) ierror
-  integer ( kind = 4 ) it
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) mdeg
-  real    ( kind = 8 ) ptab(ntab)
-  real    ( kind = 8 ) rn0
-  real    ( kind = 8 ) rn1
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) sum2
-  real    ( kind = 8 ) xtab(ntab)
-  real    ( kind = 8 ) y_sum
-  real    ( kind = 8 ) ytab(ntab)
-  real    ( kind = 8 ) ztab(2*ntab)
+  real    ( kind = 8 ) :: b(1:ndeg)
+  real    ( kind = 8 ) :: c(0:ndeg)
+  real    ( kind = 8 ) :: d(2:ndeg)
+  real    ( kind = 8 ) :: eps
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: i0l1
+  integer ( kind = 4 ) :: i1l1
+  integer ( kind = 4 ) :: ierror
+  integer ( kind = 4 ) :: it
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: mdeg
+  real    ( kind = 8 ) :: ptab(ntab)
+  real    ( kind = 8 ) :: rn0
+  real    ( kind = 8 ) :: rn1
+  real    ( kind = 8 ) :: s
+  real    ( kind = 8 ) :: sum2
+  real    ( kind = 8 ) :: xtab(ntab)
+  real    ( kind = 8 ) :: y_sum
+  real    ( kind = 8 ) :: ytab(ntab)
+  real    ( kind = 8 ) :: ztab(2*ntab)
 
   ierror = 0
 !
@@ -2655,19 +2656,19 @@ subroutine least_val_old ( x, ndeg, b, c, d, value )
 !
 !    Output, real ( kind = 8 ) VALUE, the value of the polynomial at X.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndeg
+  integer ( kind = 4 ) :: ndeg
 
-  real    ( kind = 8 ) b(1:ndeg)
-  real    ( kind = 8 ) c(0:ndeg)
-  real    ( kind = 8 ) d(2:ndeg)
-  integer ( kind = 4 ) k
-  real    ( kind = 8 ) sk
-  real    ( kind = 8 ) skp1
-  real    ( kind = 8 ) skp2
-  real    ( kind = 8 ) value
-  real    ( kind = 8 ) x
+  real    ( kind = 8 ) :: b(1:ndeg)
+  real    ( kind = 8 ) :: c(0:ndeg)
+  real    ( kind = 8 ) :: d(2:ndeg)
+  integer ( kind = 4 ) :: k
+  real    ( kind = 8 ) :: sk
+  real    ( kind = 8 ) :: skp1
+  real    ( kind = 8 ) :: skp2
+  real    ( kind = 8 ) :: value
+  real    ( kind = 8 ) :: x
 
   if ( ndeg <= 0 ) then
 
@@ -2752,25 +2753,25 @@ subroutine least_set ( point_num, x, f, w, nterms, b, c, d )
 !    defining the least squares polynomial for the input data,
 !    which will be needed to evaluate the polynomial.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) point_num
-  integer ( kind = 4 ) nterms
+  integer ( kind = 4 ) :: point_num
+  integer ( kind = 4 ) :: nterms
 
-  real    ( kind = 8 ) b(nterms)
-  real    ( kind = 8 ) c(nterms)
-  real    ( kind = 8 ) d(nterms)
-  real    ( kind = 8 ) f(point_num)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) pj(point_num)
-  real    ( kind = 8 ) pjm1(point_num)
-  real    ( kind = 8 ) s(nterms)
+  real    ( kind = 8 ) :: b(nterms)
+  real    ( kind = 8 ) :: c(nterms)
+  real    ( kind = 8 ) :: d(nterms)
+  real    ( kind = 8 ) :: f(point_num)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  real    ( kind = 8 ) :: p
+  real    ( kind = 8 ) :: pj(point_num)
+  real    ( kind = 8 ) :: pjm1(point_num)
+  real    ( kind = 8 ) :: s(nterms)
   real    ( kind = 8 ), parameter :: tol = 0.0D+00
-  integer ( kind = 4 ) unique_num
-  real    ( kind = 8 ) w(point_num)
-  real    ( kind = 8 ) x(point_num)
+  integer ( kind = 4 ) :: unique_num
+  real    ( kind = 8 ) :: w(point_num)
+  real    ( kind = 8 ) :: x(point_num)
 !
 !  Make sure at least NTERMS X values are unique.
 !
@@ -2925,18 +2926,18 @@ subroutine least_val ( nterms, b, c, d, x, px )
 !    Output, real ( kind = 8 ) PX, the value of the least squares
 !    polynomial at X.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) nterms
+  integer ( kind = 4 ) :: nterms
 
-  real    ( kind = 8 ) b(nterms)
-  real    ( kind = 8 ) c(nterms)
-  real    ( kind = 8 ) d(nterms)
-  integer ( kind = 4 ) i
-  real    ( kind = 8 ) prev
-  real    ( kind = 8 ) prev2
-  real    ( kind = 8 ) px
-  real    ( kind = 8 ) x
+  real    ( kind = 8 ) :: b(nterms)
+  real    ( kind = 8 ) :: c(nterms)
+  real    ( kind = 8 ) :: d(nterms)
+  integer ( kind = 4 ) :: i
+  real    ( kind = 8 ) :: prev
+  real    ( kind = 8 ) :: prev2
+  real    ( kind = 8 ) :: px
+  real    ( kind = 8 ) :: x
 
   px = d(nterms)
   prev = 0.0D+00
@@ -3019,21 +3020,21 @@ subroutine least_val2 ( nterms, b, c, d, x, px, pxp )
 !    Output, real ( kind = 8 ) PX, PXP, the value and derivative of the least
 !    squares polynomial at X.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) nterms
+  integer ( kind = 4 ) :: nterms
 
-  real    ( kind = 8 ) b(nterms)
-  real    ( kind = 8 ) c(nterms)
-  real    ( kind = 8 ) d(nterms)
-  integer ( kind = 4 ) i
-  real    ( kind = 8 ) px
-  real    ( kind = 8 ) pxm1
-  real    ( kind = 8 ) pxm2
-  real    ( kind = 8 ) pxp
-  real    ( kind = 8 ) pxpm1
-  real    ( kind = 8 ) pxpm2
-  real    ( kind = 8 ) x
+  real    ( kind = 8 ) :: b(nterms)
+  real    ( kind = 8 ) :: c(nterms)
+  real    ( kind = 8 ) :: d(nterms)
+  integer ( kind = 4 ) :: i
+  real    ( kind = 8 ) :: px
+  real    ( kind = 8 ) :: pxm1
+  real    ( kind = 8 ) :: pxm2
+  real    ( kind = 8 ) :: pxp
+  real    ( kind = 8 ) :: pxpm1
+  real    ( kind = 8 ) :: pxpm2
+  real    ( kind = 8 ) :: x
 
   px = d(nterms)
   pxp = 0.0D+00
@@ -3111,25 +3112,25 @@ subroutine parabola_val2 ( dim_num, ndata, tdata, ydata, left, tval, yval )
 !    Output, real ( kind = 8 ) YVAL(DIM_NUM), the value of the parabolic
 !    interpolant at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
-  integer ( kind = 4 ) dim_num
+  integer ( kind = 4 ) :: ndata
+  integer ( kind = 4 ) :: dim_num
 
-  real    ( kind = 8 ) dif1
-  real    ( kind = 8 ) dif2
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) left
-  real    ( kind = 8 ) t1
-  real    ( kind = 8 ) t2
-  real    ( kind = 8 ) t3
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) ydata(dim_num,ndata)
-  real    ( kind = 8 ) y1
-  real    ( kind = 8 ) y2
-  real    ( kind = 8 ) y3
-  real    ( kind = 8 ) yval(dim_num)
+  real    ( kind = 8 ) :: dif1
+  real    ( kind = 8 ) :: dif2
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: left
+  real    ( kind = 8 ) :: t1
+  real    ( kind = 8 ) :: t2
+  real    ( kind = 8 ) :: t3
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: ydata(dim_num,ndata)
+  real    ( kind = 8 ) :: y1
+  real    ( kind = 8 ) :: y2
+  real    ( kind = 8 ) :: y3
+  real    ( kind = 8 ) :: yval(dim_num)
 !
 !  Check.
 !
@@ -3232,10 +3233,10 @@ real ( kind = 8 ) function pchst ( arg1, arg2 )
 !     0.0, if either argument is zero.
 !    +1.0, if ARG1 and ARG2 are of the same sign.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = 8 ) arg1
-  real    ( kind = 8 ) arg2
+  real    ( kind = 8 ) :: arg1
+  real    ( kind = 8 ) :: arg2
 
   pchst = sign ( 1.0D+00, arg1 ) * sign ( 1.0D+00, arg2 )
 
@@ -3296,10 +3297,10 @@ real ( kind = 8 ) function r8_uniform_01 ( seed )
 !    Output, real ( kind = 8 ) R8_UNIFORM_01, a new pseudorandom variate,
 !    strictly between 0 and 1.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) seed
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: seed
 
   k = seed / 127773
 
@@ -3360,13 +3361,13 @@ subroutine r83_mxv ( n, a, x, b )
 !
 !    Output, real ( kind = 8 ) B(N), the product A * x.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(3,n)
-  real    ( kind = 8 ) b(n)
-  real    ( kind = 8 ) x(n)
+  real    ( kind = 8 ) :: a(3,n)
+  real    ( kind = 8 ) :: b(n)
+  real    ( kind = 8 ) :: x(n)
 
   b(1:n)   =            a(2,1:n)   * x(1:n)
   b(1:n-1) = b(1:n-1) + a(1,2:n)   * x(2:n)
@@ -3415,12 +3416,12 @@ subroutine r83_uniform ( n, seed, a )
 !
 !    Output, real ( kind = 8 ) A(3,N), the R83 matrix.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(3,n)
-  integer ( kind = 4 ) seed
+  real    ( kind = 8 ) :: a(3,n)
+  integer ( kind = 4 ) :: seed
 
   a(1,1) = 0.0D+00
   call r8vec_uniform_01 ( n-1, seed, a(1,2:n) )
@@ -3465,14 +3466,14 @@ subroutine r8vec_even ( n, alo, ahi, a )
 !    Normally, A(1) = ALO and A(N) = AHI.
 !    However, if N = 1, then A(1) = 0.5*(ALO+AHI).
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(n)
-  real    ( kind = 8 ) ahi
-  real    ( kind = 8 ) alo
-  integer ( kind = 4 ) i
+  real    ( kind = 8 ) :: a(n)
+  real    ( kind = 8 ) :: ahi
+  real    ( kind = 8 ) :: alo
+  integer ( kind = 4 ) :: i
 
   if ( n == 1 ) then
 
@@ -3519,12 +3520,12 @@ subroutine r8vec_indicator ( n, a )
 !
 !    Output, real ( kind = 8 ) A(N), the array to be initialized.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(n)
-  integer ( kind = 4 ) i
+  real    ( kind = 8 ) :: a(n)
+  integer ( kind = 4 ) :: i
 
   do i = 1, n
     a(i) = real ( i, kind = 8 )
@@ -3564,13 +3565,13 @@ subroutine r8vec_print ( n, a, title )
 !    Input, character ( len = * ) TITLE, a title to be printed first.
 !    TITLE may be blank.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(n)
-  integer ( kind = 4 ) i
-  character ( len = * ) title
+  real    ( kind = 8 ) :: a(n)
+  integer ( kind = 4 ) :: i
+  character ( len = * ) :: title
 
   if ( title /= ' ' ) then
     write ( *, '(a)' ) ' '
@@ -3618,13 +3619,13 @@ subroutine r8vec_sort_bubble_a ( n, a )
 !    On input, an unsorted array.
 !    On output, the array has been sorted.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
+  real    ( kind = 8 ) :: a(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
 
   do i = 1, n-1
     do j = i+1, n
@@ -3683,18 +3684,18 @@ subroutine spline_b_val ( ndata, tdata, ydata, tval, yval )
 !
 !    Output, real ( kind = 8 ) YVAL, the value of the function at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: ndata
 
-  real    ( kind = 8 ) bval
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) u
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: bval
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: u
+  real    ( kind = 8 ) :: ydata(ndata)
+  real    ( kind = 8 ) :: yval
 !
 !  Find the nearest interval [ TDATA(LEFT), TDATA(RIGHT) ] to TVAL.
 !
@@ -3805,25 +3806,25 @@ subroutine spline_beta_val ( beta1, beta2, ndata, tdata, ydata, tval, yval )
 !
 !    Output, real ( kind = 8 ) YVAL, the value of the function at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: ndata
 
-  real    ( kind = 8 ) a
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) beta1
-  real    ( kind = 8 ) beta2
-  real    ( kind = 8 ) bval
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) d
-  real    ( kind = 8 ) delta
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) u
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: a
+  real    ( kind = 8 ) :: b
+  real    ( kind = 8 ) :: beta1
+  real    ( kind = 8 ) :: beta2
+  real    ( kind = 8 ) :: bval
+  real    ( kind = 8 ) :: c
+  real    ( kind = 8 ) :: d
+  real    ( kind = 8 ) :: delta
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: u
+  real    ( kind = 8 ) :: ydata(ndata)
+  real    ( kind = 8 ) :: yval
 !
 !  Find the nearest interval [ TDATA(LEFT), TDATA(RIGHT) ] to TVAL.
 !
@@ -3959,23 +3960,23 @@ subroutine spline_bezier_val ( dim_num, interval_num, data_val, point_num, &
 !    Output, real ( kind = 8 ) POINT_VAL(DIM_NUM,POINT_NUM), the value
 !    of the Bezier cubic spline at the sample points.
 !
-  implicit none
+  implicit none (type, external)
 
   integer ( kind = 4 ), parameter :: cubic = 3
-  integer ( kind = 4 ) interval_num
-  integer ( kind = 4 ) dim_num
-  integer ( kind = 4 ) point_num
+  integer ( kind = 4 ) :: interval_num
+  integer ( kind = 4 ) :: dim_num
+  integer ( kind = 4 ) :: point_num
 
-  real    ( kind = 8 ) bernstein_val(0:cubic)
-  real    ( kind = 8 ) data_val(dim_num,cubic*interval_num+1)
-  integer ( kind = 4 ) dim
-  integer ( kind = 4 ) interval
-  integer ( kind = 4 ) offset
-  integer ( kind = 4 ) point
-  real    ( kind = 8 ) point_t(point_num)
-  real    ( kind = 8 ) point_val(dim_num,point_num)
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) t_01
+  real    ( kind = 8 ) :: bernstein_val(0:cubic)
+  real    ( kind = 8 ) :: data_val(dim_num,cubic*interval_num+1)
+  integer ( kind = 4 ) :: dim
+  integer ( kind = 4 ) :: interval
+  integer ( kind = 4 ) :: offset
+  integer ( kind = 4 ) :: point
+  real    ( kind = 8 ) :: point_t(point_num)
+  real    ( kind = 8 ) :: point_val(dim_num,point_num)
+  real    ( kind = 8 ) :: t
+  real    ( kind = 8 ) :: t_01
 
   do point = 1, point_num
 
@@ -4043,15 +4044,15 @@ subroutine spline_constant_val ( ndata, tdata, ydata, tval, yval )
 !
 !    Output, real ( kind = 8 ) YVAL, the value of the spline at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: ndata
 
-  integer ( kind = 4 ) i
-  real    ( kind = 8 ) tdata(ndata-1)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) yval
+  integer ( kind = 4 ) :: i
+  real    ( kind = 8 ) :: tdata(ndata-1)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: ydata(ndata)
+  real    ( kind = 8 ) :: yval
 !
 !  Check NDATA.
 !
@@ -4194,19 +4195,19 @@ subroutine spline_cubic_set ( n, t, y, ibcbeg, ybcbeg, ibcend, ybcend, ypp )
 !    Output, real ( kind = 8 ) YPP(N), the second derivatives of
 !    the cubic spline.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(3,n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ibcbeg
-  integer ( kind = 4 ) ibcend
-  real    ( kind = 8 ) t(n)
-  real    ( kind = 8 ) y(n)
-  real    ( kind = 8 ) ybcbeg
-  real    ( kind = 8 ) ybcend
-  real    ( kind = 8 ) ypp(n)
+  real    ( kind = 8 ) :: a(3,n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ibcbeg
+  integer ( kind = 4 ) :: ibcend
+  real    ( kind = 8 ) :: t(n)
+  real    ( kind = 8 ) :: y(n)
+  real    ( kind = 8 ) :: ybcbeg
+  real    ( kind = 8 ) :: ybcend
+  real    ( kind = 8 ) :: ypp(n)
 !
 !  Check.
 !
@@ -4365,21 +4366,21 @@ subroutine spline_cubic_val ( n, t, y, ypp, tval, yval, ypval, yppval )
 !    Output, real ( kind = 8 ) YVAL, YPVAL, YPPVAL, the value of the spline, and
 !    its first two derivatives at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) dt
-  real    ( kind = 8 ) h
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) t(n)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) y(n)
-  real    ( kind = 8 ) ypp(n)
-  real    ( kind = 8 ) yppval
-  real    ( kind = 8 ) ypval
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: dt
+  real    ( kind = 8 ) :: h
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: t(n)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: y(n)
+  real    ( kind = 8 ) :: ypp(n)
+  real    ( kind = 8 ) :: yppval
+  real    ( kind = 8 ) :: ypval
+  real    ( kind = 8 ) :: yval
 !
 !  Determine the interval [T(LEFT), T(RIGHT)] that contains TVAL.
 !  Values below T(1) or above T(N) use extrapolation.
@@ -4479,21 +4480,21 @@ subroutine spline_cubic_val2 ( n, t, y, ypp, left, tval, yval, ypval, yppval )
 !    Output, real ( kind = 8 ) YVAL, YPVAL, YPPVAL, the value of the spline, and
 !    its first two derivatives at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) dt
-  real    ( kind = 8 ) h
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) t(n)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) y(n)
-  real    ( kind = 8 ) ypp(n)
-  real    ( kind = 8 ) yppval
-  real    ( kind = 8 ) ypval
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: dt
+  real    ( kind = 8 ) :: h
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: t(n)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: y(n)
+  real    ( kind = 8 ) :: ypp(n)
+  real    ( kind = 8 ) :: yppval
+  real    ( kind = 8 ) :: ypval
+  real    ( kind = 8 ) :: yval
 !
 !  Determine the interval [T(LEFT), T(RIGHT)] that contains TVAL.
 !
@@ -4581,18 +4582,18 @@ subroutine spline_hermite_set ( ndata, tdata, ydata, ypdata, c )
 !    C(3,1:NDATA-1) and C(4,1:NDATA-1) are the quadratic and cubic
 !    coefficients.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: ndata
 
-  real    ( kind = 8 ) c(4,ndata)
-  real    ( kind = 8 ) divdif1
-  real    ( kind = 8 ) divdif3
-  real    ( kind = 8 ) dt
-  integer ( kind = 4 ) i
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) ypdata(ndata)
+  real    ( kind = 8 ) :: c(4,ndata)
+  real    ( kind = 8 ) :: divdif1
+  real    ( kind = 8 ) :: divdif3
+  real    ( kind = 8 ) :: dt
+  integer ( kind = 4 ) :: i
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: ydata(ndata)
+  real    ( kind = 8 ) :: ypdata(ndata)
 !
 !  Check NDATA.
 !
@@ -4685,18 +4686,18 @@ subroutine spline_hermite_val ( ndata, tdata, c, tval, sval, spval )
 !    Output, real ( kind = 8 ) SVAL, SPVAL, the value of the interpolant
 !    and its derivative at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: ndata
 
-  real    ( kind = 8 ) c(4,ndata)
-  real    ( kind = 8 ) dt
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) spval
-  real    ( kind = 8 ) sval
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
+  real    ( kind = 8 ) :: c(4,ndata)
+  real    ( kind = 8 ) :: dt
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: spval
+  real    ( kind = 8 ) :: sval
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
 !
 !  Check NDATA.
 !
@@ -4755,25 +4756,25 @@ subroutine spline_linear_int ( ndata, tdata, ydata, a, b, int_val )
 !
 !    Output, real ( kind = 8 ) INT_VAL, the value of the integral.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: ndata
 
-  real    ( kind = 8 ) a
-  real    ( kind = 8 ) a_copy
-  integer ( kind = 4 ) a_left
-  integer ( kind = 4 ) a_right
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) b_copy
-  integer ( kind = 4 ) b_left
-  integer ( kind = 4 ) b_right
-  integer ( kind = 4 ) i_left
-  real    ( kind = 8 ) int_val
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) yp
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: a
+  real    ( kind = 8 ) :: a_copy
+  integer ( kind = 4 ) :: a_left
+  integer ( kind = 4 ) :: a_right
+  real    ( kind = 8 ) :: b
+  real    ( kind = 8 ) :: b_copy
+  integer ( kind = 4 ) :: b_left
+  integer ( kind = 4 ) :: b_right
+  integer ( kind = 4 ) :: i_left
+  real    ( kind = 8 ) :: int_val
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: ydata(ndata)
+  real    ( kind = 8 ) :: yp
+  real    ( kind = 8 ) :: yval
 !
 !  Check NDATA.
 !
@@ -4913,15 +4914,15 @@ subroutine spline_linear_intset ( n, int_x, int_v, data_x, data_y )
 !    determined in such a way that the exact integral of the linear
 !    spline over interval I is equal to INT_V(I).
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) a(3,n)
-  real    ( kind = 8 ) data_x(n)
-  real    ( kind = 8 ) data_y(n)
-  real    ( kind = 8 ) int_v(n)
-  real    ( kind = 8 ) int_x(n+1)
+  real    ( kind = 8 ) :: a(3,n)
+  real    ( kind = 8 ) :: data_x(n)
+  real    ( kind = 8 ) :: data_y(n)
+  real    ( kind = 8 ) :: int_v(n)
+  real    ( kind = 8 ) :: int_x(n+1)
 !
 !  Set up the easy stuff.
 !
@@ -5006,17 +5007,17 @@ subroutine spline_linear_val ( ndata, tdata, ydata, tval, yval, ypval )
 !    its first derivative dYdT at TVAL.  YPVAL is not reliable if TVAL
 !    is exactly equal to TDATA(I) for some I.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: ndata
 
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) ypval
-  real    ( kind = 8 ) yval
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: ydata(ndata)
+  real    ( kind = 8 ) :: ypval
+  real    ( kind = 8 ) :: yval
 !
 !  Check NDATA.
 !
@@ -5083,24 +5084,24 @@ subroutine spline_overhauser_nonuni_val ( ndata, tdata, ydata, tval, yval )
 !
 !    Output, real ( kind = 8 ) YVAL, the value of the spline at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: ndata
 
-  real    ( kind = 8 ) alpha
-  real    ( kind = 8 ) beta
-  real    ( kind = 8 ) d21
-  real    ( kind = 8 ) d32
-  real    ( kind = 8 ) d43
-  integer ( kind = 4 ) left
-  real    ( kind = 8 ) mbasis(4,4)
-  real    ( kind = 8 ) mbasis_l(3,3)
-  real    ( kind = 8 ) mbasis_r(3,3)
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) yval
+  real    ( kind = 8 ) :: alpha
+  real    ( kind = 8 ) :: beta
+  real    ( kind = 8 ) :: d21
+  real    ( kind = 8 ) :: d32
+  real    ( kind = 8 ) :: d43
+  integer ( kind = 4 ) :: left
+  real    ( kind = 8 ) :: mbasis(4,4)
+  real    ( kind = 8 ) :: mbasis_l(3,3)
+  real    ( kind = 8 ) :: mbasis_r(3,3)
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: ydata(ndata)
+  real    ( kind = 8 ) :: yval
 !
 !  Check NDATA.
 !
@@ -5212,19 +5213,19 @@ subroutine spline_overhauser_uni_val ( ndata, tdata, ydata, tval, yval )
 !
 !    Output, real ( kind = 8 ) YVAL, the value of the spline at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: ndata
 
-  integer ( kind = 4 ) left
-  real    ( kind = 8 ) mbasis(4,4)
-  real    ( kind = 8 ) mbasis_l(3,3)
-  real    ( kind = 8 ) mbasis_r(3,3)
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) yval
+  integer ( kind = 4 ) :: left
+  real    ( kind = 8 ) :: mbasis(4,4)
+  real    ( kind = 8 ) :: mbasis_l(3,3)
+  real    ( kind = 8 ) :: mbasis_r(3,3)
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: ydata(ndata)
+  real    ( kind = 8 ) :: yval
 !
 !  Check NDATA.
 !
@@ -5331,20 +5332,20 @@ subroutine spline_overhauser_val ( dim_num, ndata, tdata, ydata, tval, yval )
 !
 !    Output, real ( kind = 8 ) YVAL(DIM_NUM), the value of the spline at TVAL.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
-  integer ( kind = 4 ) dim_num
+  integer ( kind = 4 ) :: ndata
+  integer ( kind = 4 ) :: dim_num
 
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) order
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) ydata(dim_num,ndata)
-  real    ( kind = 8 ) yl(dim_num)
-  real    ( kind = 8 ) yr(dim_num)
-  real    ( kind = 8 ) yval(dim_num)
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: order
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: ydata(dim_num,ndata)
+  real    ( kind = 8 ) :: yl(dim_num)
+  real    ( kind = 8 ) :: yr(dim_num)
+  real    ( kind = 8 ) :: yval(dim_num)
 !
 !  Check.
 !
@@ -5475,30 +5476,30 @@ subroutine spline_pchip_set ( n, x, f, d )
 !    data points.  If the data are monotonic, these values will determine
 !    a monotone cubic Hermite function.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) del1
-  real    ( kind = 8 ) del2
-  real    ( kind = 8 ) dmax
-  real    ( kind = 8 ) dmin
-  real    ( kind = 8 ) drat1
-  real    ( kind = 8 ) drat2
-  real    ( kind = 8 ) dsave
-  real    ( kind = 8 ) f(n)
-  real    ( kind = 8 ) h1
-  real    ( kind = 8 ) h2
-  real    ( kind = 8 ) hsum
-  real    ( kind = 8 ) hsumt3
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) nless1
-  real    ( kind = 8 ) temp
-  real    ( kind = 8 ) w1
-  real    ( kind = 8 ) w2
-  real    ( kind = 8 ) x(n)
+  real    ( kind = 8 ) :: d(n)
+  real    ( kind = 8 ) :: del1
+  real    ( kind = 8 ) :: del2
+  real    ( kind = 8 ) :: dmax
+  real    ( kind = 8 ) :: dmin
+  real    ( kind = 8 ) :: drat1
+  real    ( kind = 8 ) :: drat2
+  real    ( kind = 8 ) :: dsave
+  real    ( kind = 8 ) :: f(n)
+  real    ( kind = 8 ) :: h1
+  real    ( kind = 8 ) :: h2
+  real    ( kind = 8 ) :: hsum
+  real    ( kind = 8 ) :: hsumt3
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: nless1
+  real    ( kind = 8 ) :: temp
+  real    ( kind = 8 ) :: w1
+  real    ( kind = 8 ) :: w2
+  real    ( kind = 8 ) :: x(n)
 !
 !  Check the arguments.
 !
@@ -5718,26 +5719,26 @@ subroutine spline_pchip_val ( n, x, f, d, ne, xe, fe )
 !    Output, real ( kind = 8 ) FE(NE), the values of the cubic Hermite
 !    function at XE.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
-  integer ( kind = 4 ) ne
+  integer ( kind = 4 ) :: n
+  integer ( kind = 4 ) :: ne
 
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) f(n)
-  real    ( kind = 8 ) fe(ne)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierc
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ir
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) j_first
-  integer ( kind = 4 ) j_new
-  integer ( kind = 4 ) j_save
-  integer ( kind = 4 ) next(2)
-  integer ( kind = 4 ) nj
-  real    ( kind = 8 ) x(n)
-  real    ( kind = 8 ) xe(ne)
+  real    ( kind = 8 ) :: d(n)
+  real    ( kind = 8 ) :: f(n)
+  real    ( kind = 8 ) :: fe(ne)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierc
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ir
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: j_first
+  integer ( kind = 4 ) :: j_new
+  integer ( kind = 4 ) :: j_save
+  integer ( kind = 4 ) :: next(2)
+  integer ( kind = 4 ) :: nj
+  real    ( kind = 8 ) :: x(n)
+  real    ( kind = 8 ) :: xe(ne)
 !
 !  Check arguments.
 !
@@ -5944,26 +5945,26 @@ subroutine spline_quadratic_val ( ndata, tdata, ydata, tval, yval, ypval )
 !    its first derivative dYdT at TVAL.  YPVAL is not reliable if TVAL
 !    is exactly equal to TDATA(I) for some I.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ndata
+  integer ( kind = 4 ) :: ndata
 
-  real    ( kind = 8 ) dif1
-  real    ( kind = 8 ) dif2
+  real    ( kind = 8 ) :: dif1
+  real    ( kind = 8 ) :: dif2
   integer ( kind = 4 ), parameter :: i4_2 = 2
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) t1
-  real    ( kind = 8 ) t2
-  real    ( kind = 8 ) t3
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) y1
-  real    ( kind = 8 ) y2
-  real    ( kind = 8 ) y3
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) ypval
-  real    ( kind = 8 ) yval
+  integer ( kind = 4 ) :: left
+  integer ( kind = 4 ) :: right
+  real    ( kind = 8 ) :: t1
+  real    ( kind = 8 ) :: t2
+  real    ( kind = 8 ) :: t3
+  real    ( kind = 8 ) :: tdata(ndata)
+  real    ( kind = 8 ) :: tval
+  real    ( kind = 8 ) :: y1
+  real    ( kind = 8 ) :: y2
+  real    ( kind = 8 ) :: y3
+  real    ( kind = 8 ) :: ydata(ndata)
+  real    ( kind = 8 ) :: ypval
+  real    ( kind = 8 ) :: yval
 
   if ( ndata < 3 ) then
     write ( *, '(a)' ) ' '
@@ -6047,21 +6048,21 @@ subroutine timestamp ( )
 !
 !    None
 !
-  implicit none
+  implicit none (type, external)
 
-  character ( len = 8 ) ampm
-  integer ( kind = 4 ) d
-  integer ( kind = 4 ) h
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mm
-  character ( len = 9 ), parameter, dimension(12) :: month = (/ &
+  character ( len = 8 ) :: ampm
+  integer ( kind = 4 ) :: d
+  integer ( kind = 4 ) :: h
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mm
+  character ( len = 9 ), parameter, dimension(12) :: month = [ &
     'January  ', 'February ', 'March    ', 'April    ', &
     'May      ', 'June     ', 'July     ', 'August   ', &
-    'September', 'October  ', 'November ', 'December ' /)
-  integer ( kind = 4 ) n
-  integer ( kind = 4 ) s
-  integer ( kind = 4 ) values(8)
-  integer ( kind = 4 ) y
+    'September', 'October  ', 'November ', 'December ' ]
+  integer ( kind = 4 ) :: n
+  integer ( kind = 4 ) :: s
+  integer ( kind = 4 ) :: values(8)
+  integer ( kind = 4 ) :: y
 
   call date_and_time ( values = values )
 

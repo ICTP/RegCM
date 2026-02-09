@@ -14,6 +14,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_oasis_void
+  implicit none (type, external)
+
+  private
 
 end module mod_oasis_void
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -1,4 +1,5 @@
 module mod_clm_cncstateupdate2
+implicit none (type, external)
 #ifdef CN
   !
   ! Module for carbon state variable update, mortality fluxes.
@@ -8,7 +9,7 @@ module mod_clm_cncstateupdate2
   use mod_runparams, only : dtsrf
   use mod_mpmessage
 
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -27,7 +28,7 @@ module mod_clm_cncstateupdate2
     use mod_clm_type
     use mod_clm_varpar, only : nlevdecomp
     use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
-    implicit none
+    implicit none (type, external)
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc
     ! filter for soil columns
@@ -245,7 +246,7 @@ module mod_clm_cncstateupdate2
     use mod_clm_type
     use mod_clm_varpar, only : nlevdecomp
     use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
-    implicit none
+    implicit none (type, external)
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns

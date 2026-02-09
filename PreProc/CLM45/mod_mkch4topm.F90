@@ -13,8 +13,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_mkch4topm
 #if defined(CN) && defined(LCH4)
+module mod_mkch4topm
   use mod_realkinds
   use mod_intkinds
   use mod_dynparam
@@ -22,7 +22,7 @@ module mod_mkch4topm
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -36,7 +36,7 @@ module mod_mkch4topm
   contains
 
   subroutine mkch4topm(ch4topmfile,mask,lch4)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: ch4topmfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: lch4
@@ -64,7 +64,12 @@ module mod_mkch4topm
     end do
     call gfclose(gfile)
   end subroutine mkch4topm
+end module mod_mkch4topm
+#else
+module mod_mkch4topm
+  implicit none (type, external)
+  private
+end module mod_mkch4topm
 #endif
 
-end module mod_mkch4topm
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

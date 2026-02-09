@@ -28,7 +28,7 @@ module mod_che_ncio
   use mod_domain
   use netcdf
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -115,7 +115,7 @@ module mod_che_ncio
   contains
 
     subroutine init_mod_che_ncio(chemsymtype)
-      implicit none
+      implicit none (type, external)
       character(len=8), intent(in) :: chemsymtype
 
       n_aebcvar = 0
@@ -148,7 +148,7 @@ module mod_che_ncio
     end subroutine init_mod_che_ncio
 
     subroutine read_texture(nats,rtex)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: nats
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rtex
       integer(ik4) :: idmin
@@ -200,7 +200,7 @@ module mod_che_ncio
 !for now : erod_dsfc = source function / erodibility mask
 !e.g. see  Zender et al., Laurent et al.
 !place holder for other relevant geographical data afecting dust ( e.g. non erodibe zo)
-      implicit none
+      implicit none (type, external)
 
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: erodfc
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: aez0
@@ -276,7 +276,7 @@ module mod_che_ncio
     end subroutine read_dust_param
 
     subroutine read_bionem(nfert,nmanure,soilph)
-      implicit none
+      implicit none (type, external)
 
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: nfert
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: nmanure
@@ -345,7 +345,7 @@ module mod_che_ncio
     end subroutine read_bionem
 
     subroutine read_miner(nmine,cminer,sminer)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: nmine
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: cminer, sminer
 
@@ -479,7 +479,7 @@ module mod_che_ncio
     end subroutine read_miner
 
     subroutine read_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: lyear, lmonth, lday, lhour
       integer(ik4), intent(out) :: ifreq
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: echemsrc
@@ -734,7 +734,7 @@ module mod_che_ncio
     end subroutine read_emission
 
     subroutine read_bioburn_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: lyear, lmonth, lday, lhour
       integer(ik4), intent(out) :: ifreq
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: echemsrc
@@ -962,18 +962,20 @@ module mod_che_ncio
     end subroutine read_bioburn_emission
 
     subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,sdim,cnb,cnc,cnd)
-      implicit none
+      implicit none (type, external)
 
       integer(ik4), intent(in) :: ncid,sdim
       integer(ik4), dimension(4), intent(in) :: istart, icount
-      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: echemsrc
+      real(rkx), pointer, contiguous, &
+        dimension(:,:,:), intent(inout) :: echemsrc
       logical, intent(in) :: lh
+      integer, intent(in) :: ind
       character(len=*), intent(in) :: cna
       character(len=*), intent(in), optional :: cnb
       character(len=*), intent(in), optional :: cnc
       character(len=*), intent(in), optional :: cnd
       integer(ik4) :: ivarid
-      integer(ik4) :: i, j, ind
+      integer(ik4) :: i, j
 
       if ( do_parallel_netcdf_in ) then
         istatus = nf90_inq_varid(ncid, cna, ivarid)
@@ -1150,7 +1152,7 @@ module mod_che_ncio
     end subroutine rvar
 
     integer(ik4) function chbc_search(idate)
-      implicit none
+      implicit none (type, external)
       type(rcm_time_and_date), intent(in) :: idate
       type(rcm_time_interval) :: tdif
       character(len=32) :: appdat1, appdat2
@@ -1177,7 +1179,7 @@ module mod_che_ncio
     end function chbc_search
 
     subroutine open_chbc(idate)
-      implicit none
+      implicit none (type, external)
       type(rcm_time_and_date), intent(in) :: idate
       character(len=11) :: ctime
       integer(ik4) :: ibcid, idimid, itvar, i, chkdiff
@@ -1294,7 +1296,7 @@ module mod_che_ncio
     end subroutine open_chbc
 
     subroutine read_chbc(chebdio)
-      implicit none
+      implicit none (type, external)
       real(rkx), dimension (:,:,:,:), pointer, contiguous, intent(inout) :: chebdio
       integer(ik4), dimension(4) :: istart, icount
       integer(ik4) :: i, j, k, n, iafter
@@ -1457,7 +1459,7 @@ module mod_che_ncio
     end subroutine read_chbc
 
     subroutine close_chbc
-      implicit none
+      implicit none (type, external)
       if ( ichin >= 0 ) then
         call closefile(ichin)
         ichin = -1
@@ -1476,7 +1478,7 @@ module mod_che_ncio
     end subroutine close_chbc
 
     subroutine check_ok(f,l,m1,mf)
-      implicit none
+      implicit none (type, external)
       character(*), intent(in) :: f, m1, mf
       integer(ik4), intent(in) :: l
       if (istatus /= nf90_noerr) then

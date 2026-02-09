@@ -17,26 +17,35 @@ module mod_header
 
   use mod_intkinds
   use mod_stdio
+  implicit none (type, external)
+
+  public
 
   contains
 
   subroutine header(myname)
-    implicit none
+    implicit none (type, external)
     character (len=*), intent(in) :: myname
     integer(ik4) :: ihost, idir
     integer(ik4) :: hostnm
     integer(ik4) :: getcwd
-    character (len=32) :: cdata = '?'
-    character (len=5) :: czone = '?'
-    character (len=32) :: hostname = '?'
-    character (len=32) :: user = '?'
-    character (len=256) :: directory = '?'
+    character (len=32) :: cdata
+    character (len=5) :: czone
+    character (len=32) :: hostname
+    character (len=32) :: user
+    character (len=256) :: directory
     integer(ik4), parameter :: nrite = stdout
     integer(ik4), dimension(8) :: tval
     character(len=*), parameter :: f99001 = &
            '(/,1x," This is ",A," part of the RegCM version 5")'
     character(len=*), parameter :: f99002 = &
            '(2x," SVN Revision: ",A," compiled at: data : ",A,"  time: ",A,/)'
+
+    cdata = '?'
+    czone = '?'
+    hostname = '?'
+    user = '?'
+    directory = '?'
 
     write (nrite,f99001)  myname
     write (nrite,f99002)  GIT_VER, __DATE__, __TIME__
@@ -61,10 +70,11 @@ module mod_header
   end subroutine header
 
   subroutine finaltime(myid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent (in) :: myid
-    character (len=24) :: cdata = '?'
+    character (len=24) :: cdata
 
+    cdata = '?'
     if ( myid ==  0 ) then
 #ifdef IBM
       call fdate_(cdata)

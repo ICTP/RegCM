@@ -13,8 +13,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_mksoilph
 #if defined(CN) && defined(LCH4)
+module mod_mksoilph
   use mod_realkinds
   use mod_intkinds
   use mod_constants
@@ -22,7 +22,7 @@ module mod_mksoilph
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -35,7 +35,7 @@ module mod_mksoilph
   contains
 
   subroutine mksoilph(soilphfile,mask,soilph)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: soilphfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: soilph
@@ -59,7 +59,12 @@ module mod_mksoilph
       end do
     end do
   end subroutine mksoilph
+end module mod_mksoilph
+#else
+module mod_mksoilph
+  implicit none (type, external)
+  private
+end module mod_mksoilph
 #endif
 
-end module mod_mksoilph
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

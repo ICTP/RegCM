@@ -35,6 +35,7 @@ module mod_era5
   use mod_nchelper
   use mod_kdinterp
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -58,9 +59,9 @@ module mod_era5
   real(rkx), pointer, contiguous, dimension(:) :: plevs
   real(rkx), pointer, contiguous, dimension(:) :: sigmar
   real(rkx) :: pss, pst
-  integer(2), pointer, contiguous, dimension(:,:,:) :: iwork3
+  integer(ik2), pointer, contiguous, dimension(:,:,:) :: iwork3
   real(rkx), pointer, contiguous, dimension(:,:,:) :: rwork3
-  integer(2), pointer, contiguous, dimension(:,:) :: iwork
+  integer(ik2), pointer, contiguous, dimension(:,:) :: iwork
   real(rkx), pointer, contiguous, dimension(:,:) :: rwork
 
   integer(ik4), dimension(5) :: inet5
@@ -78,7 +79,7 @@ module mod_era5
   contains
 
   subroutine init_era5h
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
     integer(ik4) :: istatus, ncid, ivarid, idimid
@@ -157,7 +158,7 @@ module mod_era5
   end subroutine init_era5h
 
   subroutine init_era5
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: k
     integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
@@ -319,7 +320,7 @@ module mod_era5
   end subroutine init_era5
 
   subroutine get_era5h(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     call era5hour(idate,globidate1)
     write (stdout,*) 'READ IN fields at DATE:', tochar(idate)
@@ -332,7 +333,7 @@ module mod_era5
   end subroutine get_era5h
 
   subroutine get_era5(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     !
     ! Read data at idate
@@ -424,7 +425,7 @@ module mod_era5
   end subroutine get_era5
 
   subroutine era5hour(idate,idate0)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate, idate0
     integer(ik4) :: i, inet, it, j, kkrec, istatus, ivar
     integer(ik4) :: timid
@@ -584,7 +585,7 @@ module mod_era5
     contains
 
       subroutine igetwork(irec)
-        implicit none
+        implicit none (type, external)
         integer(ik4), intent(in) :: irec
         integer(ik4) :: itile, iti, itf
         iti = 1
@@ -603,7 +604,7 @@ module mod_era5
       end subroutine igetwork
 
       subroutine rgetwork(irec)
-        implicit none
+        implicit none (type, external)
         integer(ik4), intent(in) :: irec
         integer(ik4) :: itile, iti, itf
         iti = 1
@@ -624,7 +625,7 @@ module mod_era5
   end subroutine era5hour
 
   subroutine era56hour(dattyp,idate,idate0)
-    implicit none
+    implicit none (type, external)
     character(len=5), intent(in) :: dattyp
     type(rcm_time_and_date), intent(in) :: idate, idate0
     integer(ik4) :: i, inet, it, j, kkrec, istatus, ivar
@@ -810,7 +811,7 @@ module mod_era5
     contains
 
       subroutine igetwork(irec)
-        implicit none
+        implicit none (type, external)
         integer(ik4), intent(in) :: irec
         integer(ik4) :: itile, iti, itf
         iti = 1
@@ -829,7 +830,7 @@ module mod_era5
       end subroutine igetwork
 
       subroutine rgetwork(irec)
-        implicit none
+        implicit none (type, external)
         integer(ik4), intent(in) :: irec
         integer(ik4) :: itile, iti, itf
         iti = 1
@@ -850,7 +851,7 @@ module mod_era5
   end subroutine era56hour
 
   subroutine conclude_era5
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then
@@ -859,7 +860,7 @@ module mod_era5
   end subroutine conclude_era5
 
   subroutine conclude_era5h
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(cross_hint)
   end subroutine conclude_era5h
 

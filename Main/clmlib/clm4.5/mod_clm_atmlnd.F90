@@ -12,24 +12,24 @@ module mod_clm_atmlnd
   use mod_clm_drydep, only : n_drydep, drydep_method, DD_XLND
   use mod_clm_megan, only : shr_megan_mechcomps_n
 
-  implicit none
+  implicit none (type, external)
 
   private
 
   save
 
   type atm_domain
-    real(rk8), pointer, contiguous, dimension(:) :: xlat
-    real(rk8), pointer, contiguous, dimension(:) :: xlon
-    real(rk8), pointer, contiguous, dimension(:) :: topo
-    real(rk8), pointer, contiguous, dimension(:) :: area
-    integer(ik4), pointer, contiguous, dimension(:) :: iveg
-    integer(ik4), pointer, contiguous, dimension(:) :: itex
-    real(rk8), pointer, contiguous, dimension(:) :: snow
-    real(rk8), pointer, contiguous, dimension(:) :: smoist
-    real(rk8), pointer, contiguous, dimension(:,:) :: rmoist
-    real(rk8), pointer, contiguous, dimension(:,:) :: rts
-    real(rk8), pointer, contiguous, dimension(:) :: tgrd
+    real(rk8), pointer, contiguous, dimension(:) :: xlat => null()
+    real(rk8), pointer, contiguous, dimension(:) :: xlon => null()
+    real(rk8), pointer, contiguous, dimension(:) :: topo => null()
+    real(rk8), pointer, contiguous, dimension(:) :: area => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: iveg => null()
+    integer(ik4), pointer, contiguous, dimension(:) :: itex => null()
+    real(rk8), pointer, contiguous, dimension(:) :: snow => null()
+    real(rk8), pointer, contiguous, dimension(:) :: smoist => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: rmoist => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: rts => null()
+    real(rk8), pointer, contiguous, dimension(:) :: tgrd => null()
   end type atm_domain
 
   public :: atm_domain
@@ -39,66 +39,66 @@ module mod_clm_atmlnd
   !----------------------------------------------------
   type atm2lnd_type
     !atmospheric temperature (Kelvin)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_t
+    real(rk8), pointer, contiguous, dimension(:) :: forc_t => null()
     !atm wind speed, east direction (m/s)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_u
+    real(rk8), pointer, contiguous, dimension(:) :: forc_u => null()
     !atm wind speed, north direction (m/s)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_v
+    real(rk8), pointer, contiguous, dimension(:) :: forc_v => null()
     !atmospheric wind speed
-    real(rk8), pointer, contiguous, dimension(:) :: forc_wind
+    real(rk8), pointer, contiguous, dimension(:) :: forc_wind => null()
     !atmospheric specific humidity (kg/kg)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_q
+    real(rk8), pointer, contiguous, dimension(:) :: forc_q => null()
     !atmospheric reference height (m)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_hgt
+    real(rk8), pointer, contiguous, dimension(:) :: forc_hgt => null()
     !obs height of wind [m] (new)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_hgt_u
+    real(rk8), pointer, contiguous, dimension(:) :: forc_hgt_u => null()
     !obs height of temperature [m] (new)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_hgt_t
+    real(rk8), pointer, contiguous, dimension(:) :: forc_hgt_t => null()
     !obs height of humidity [m] (new)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_hgt_q
+    real(rk8), pointer, contiguous, dimension(:) :: forc_hgt_q => null()
     !atmospheric pressure (Pa)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_pbot
+    real(rk8), pointer, contiguous, dimension(:) :: forc_pbot => null()
     !atm potential temperature (Kelvin)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_th
+    real(rk8), pointer, contiguous, dimension(:) :: forc_th => null()
     !density (kg/m**3)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_rho
+    real(rk8), pointer, contiguous, dimension(:) :: forc_rho => null()
     !atmospheric relative humidity (%)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_rh
+    real(rk8), pointer, contiguous, dimension(:) :: forc_rh => null()
     !surface pressure (Pa)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_psrf
+    real(rk8), pointer, contiguous, dimension(:) :: forc_psrf => null()
     !CO2 partial pressure (Pa)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_pco2
+    real(rk8), pointer, contiguous, dimension(:) :: forc_pco2 => null()
     !downwrd IR longwave radiation (W/m**2)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_lwrad
+    real(rk8), pointer, contiguous, dimension(:) :: forc_lwrad => null()
     !direct beam radiation (numrad) (vis=forc_sols, nir=forc_soll )
-    real(rk8), pointer, contiguous, dimension(:,:) :: forc_solad
+    real(rk8), pointer, contiguous, dimension(:,:) :: forc_solad => null()
     !diffuse radiation (numrad) (vis=forc_solsd, nir=forc_solld)
-    real(rk8), pointer, contiguous, dimension(:,:) :: forc_solai
+    real(rk8), pointer, contiguous, dimension(:,:) :: forc_solai => null()
     !incident solar radiation
-    real(rk8), pointer, contiguous, dimension(:) :: forc_solar
+    real(rk8), pointer, contiguous, dimension(:) :: forc_solar => null()
     !rain rate [mm/s]
-    real(rk8), pointer, contiguous, dimension(:) :: forc_rain
+    real(rk8), pointer, contiguous, dimension(:) :: forc_rain => null()
     !snow rate [mm/s]
-    real(rk8), pointer, contiguous, dimension(:) :: forc_snow
+    real(rk8), pointer, contiguous, dimension(:) :: forc_snow => null()
     !nitrogen deposition rate (gN/m2/s)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_ndep
+    real(rk8), pointer, contiguous, dimension(:) :: forc_ndep => null()
     !ALMA rain+snow [mm/s]
-    real(rk8), pointer, contiguous, dimension(:) :: rainf
+    real(rk8), pointer, contiguous, dimension(:) :: rainf => null()
     !C13O2 partial pressure (Pa)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_pc13o2
+    real(rk8), pointer, contiguous, dimension(:) :: forc_pc13o2 => null()
     !O2 partial pressure (Pa)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_po2
+    real(rk8), pointer, contiguous, dimension(:) :: forc_po2 => null()
     ! rof flood (mm/s)
-    real(rk8), pointer, contiguous, dimension(:) :: forc_flood
+    real(rk8), pointer, contiguous, dimension(:) :: forc_flood => null()
     ! rof volr (m3)
-    real(rk8), pointer, contiguous, dimension(:) :: volr
+    real(rk8), pointer, contiguous, dimension(:) :: volr => null()
     ! aerosol deposition array
-    real(rk8), pointer, contiguous, dimension(:,:) :: forc_aer
+    real(rk8), pointer, contiguous, dimension(:,:) :: forc_aer => null()
 #ifdef LCH4
     !CH4 partial pressure (Pa)
     real(rk8), pointer, contiguous, dimension(:) :: forc_pch4
 #endif
-    real(rk8), pointer, contiguous, dimension(:) :: notused
+    real(rk8), pointer, contiguous, dimension(:) :: notused => null()
   end type atm2lnd_type
 
   public :: atm2lnd_type
@@ -108,88 +108,88 @@ module mod_clm_atmlnd
   !----------------------------------------------------
   type lnd2atm_type
     !radiative temperature (Kelvin)
-    real(rk8), pointer, contiguous, dimension(:) :: t_rad
+    real(rk8), pointer, contiguous, dimension(:) :: t_rad => null()
     !vegetation temperature (Kelvin)
-    real(rk8), pointer, contiguous, dimension(:) :: t_veg
+    real(rk8), pointer, contiguous, dimension(:) :: t_veg => null()
     !2m surface air temperature (Kelvin)
-    real(rk8), pointer, contiguous, dimension(:) :: t_ref2m
+    real(rk8), pointer, contiguous, dimension(:) :: t_ref2m => null()
     !2m surface specific humidity (kg/kg)
-    real(rk8), pointer, contiguous, dimension(:) :: q_ref2m
+    real(rk8), pointer, contiguous, dimension(:) :: q_ref2m => null()
     !10m surface wind speed (m/sec)
-    real(rk8), pointer, contiguous, dimension(:) :: u_ref10m
+    real(rk8), pointer, contiguous, dimension(:) :: u_ref10m => null()
     !snow water (mm H2O)
-    real(rk8), pointer, contiguous, dimension(:) :: h2osno
+    real(rk8), pointer, contiguous, dimension(:) :: h2osno => null()
     !(numrad) surface albedo (direct)
-    real(rk8), pointer, contiguous, dimension(:,:) :: albd
+    real(rk8), pointer, contiguous, dimension(:,:) :: albd => null()
     !(numrad) surface albedo (diffuse)
-    real(rk8), pointer, contiguous, dimension(:,:) :: albi
+    real(rk8), pointer, contiguous, dimension(:,:) :: albi => null()
     !wind stress: e-w (kg/m/s**2)
-    real(rk8), pointer, contiguous, dimension(:) :: taux
+    real(rk8), pointer, contiguous, dimension(:) :: taux => null()
     !wind stress: n-s (kg/m/s**2)
-    real(rk8), pointer, contiguous, dimension(:) :: tauy
+    real(rk8), pointer, contiguous, dimension(:) :: tauy => null()
     !roughness length over vegetation, momentum
-    real(rk8), pointer, contiguous, dimension(:) :: zom
+    real(rk8), pointer, contiguous, dimension(:) :: zom => null()
     !roughness length over vegetation, heat
-    real(rk8), pointer, contiguous, dimension(:) :: zoh
+    real(rk8), pointer, contiguous, dimension(:) :: zoh => null()
     !net ground heat flux into ground (W/m**2)
-    real(rk8), pointer, contiguous, dimension(:) :: eflx_gnet
+    real(rk8), pointer, contiguous, dimension(:) :: eflx_gnet => null()
     !total latent HF (W/m**2)  [+ to atm]
-    real(rk8), pointer, contiguous, dimension(:) :: eflx_lh_tot
+    real(rk8), pointer, contiguous, dimension(:) :: eflx_lh_tot => null()
     !total sensible HF (W/m**2) [+ to atm]
-    real(rk8), pointer, contiguous, dimension(:) :: eflx_sh_tot
+    real(rk8), pointer, contiguous, dimension(:) :: eflx_sh_tot => null()
     !IR (longwave) radiation (W/m**2)
-    real(rk8), pointer, contiguous, dimension(:) :: eflx_lwrad_out
+    real(rk8), pointer, contiguous, dimension(:) :: eflx_lwrad_out => null()
     !qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-    real(rk8), pointer, contiguous, dimension(:) :: qflx_evap_tot
+    real(rk8), pointer, contiguous, dimension(:) :: qflx_evap_tot => null()
     !solar rad absorbed (total) (W/m**2)
-    real(rk8), pointer, contiguous, dimension(:) :: fsa
+    real(rk8), pointer, contiguous, dimension(:) :: fsa => null()
     !net CO2 flux (kg CO2/m**2/s) [+ to atm]
-    real(rk8), pointer, contiguous, dimension(:) :: nee
+    real(rk8), pointer, contiguous, dimension(:) :: nee => null()
     !aerodynamical resistance (s/m)
-    real(rk8), pointer, contiguous, dimension(:) :: ram1
+    real(rk8), pointer, contiguous, dimension(:) :: ram1 => null()
     !thermal resistance (s/m)
-    real(rk8), pointer, contiguous, dimension(:) :: rah1
+    real(rk8), pointer, contiguous, dimension(:) :: rah1 => null()
     !bulk Richardson number
-    real(rk8), pointer, contiguous, dimension(:) :: br1
+    real(rk8), pointer, contiguous, dimension(:) :: br1 => null()
     !friction velocity (m/s) (for dust model)
-    real(rk8), pointer, contiguous, dimension(:) :: fv
+    real(rk8), pointer, contiguous, dimension(:) :: fv => null()
     !Surface ground emissivity
-    real(rk8), pointer, contiguous, dimension(:) :: emg
+    real(rk8), pointer, contiguous, dimension(:) :: emg => null()
     !vegrtation emissivity
-    real(rk8), pointer, contiguous, dimension(:) :: emv
+    real(rk8), pointer, contiguous, dimension(:) :: emv => null()
     !fraction of ground emittimg dust (not vegetated and not snow covered)
-    real(rk8), pointer, contiguous, dimension(:) :: vdustfrac
+    real(rk8), pointer, contiguous, dimension(:) :: vdustfrac => null()
     ! soil water kg/m^2 (water + ice)
-    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi => null()
     ! soil water in first 10 cm
-    real(rk8), pointer, contiguous, dimension(:) :: h2o10cm
+    real(rk8), pointer, contiguous, dimension(:) :: h2o10cm => null()
     ! FAB  soil volumetric water content (m3/m3)
-    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_vol
+    real(rk8), pointer, contiguous, dimension(:,:) :: h2osoi_vol => null()
     ! soil/snow temperaure profils
-    real(rk8), pointer, contiguous, dimension(:,:) :: tsoi
+    real(rk8), pointer, contiguous, dimension(:,:) :: tsoi => null()
     ! Surface runoff
-    real(rk8), pointer, contiguous, dimension(:) :: qflx_surf
+    real(rk8), pointer, contiguous, dimension(:) :: qflx_surf => null()
     ! Total runoff
-    real(rk8), pointer, contiguous, dimension(:) :: qflx_tot
+    real(rk8), pointer, contiguous, dimension(:) :: qflx_tot => null()
     ! Snow melt
-    real(rk8), pointer, contiguous, dimension(:) :: qflx_snow_melt
+    real(rk8), pointer, contiguous, dimension(:) :: qflx_snow_melt => null()
     ! rof liq forcing
-    real(rk8), pointer, contiguous, dimension(:) :: rofliq
+    real(rk8), pointer, contiguous, dimension(:) :: rofliq => null()
     ! rof ice forcing
-    real(rk8), pointer, contiguous, dimension(:) :: rofice
+    real(rk8), pointer, contiguous, dimension(:) :: rofice => null()
     !dust flux (size bins)
-    real(rk8), pointer, contiguous, dimension(:,:) :: flxdst
+    real(rk8), pointer, contiguous, dimension(:,:) :: flxdst => null()
     !dry deposition velocities
-    real(rk8), pointer, contiguous, dimension(:,:) :: ddvel
+    real(rk8), pointer, contiguous, dimension(:,:) :: ddvel => null()
     ! VOC flux (size bins)
-    real(rk8), pointer, contiguous, dimension(:,:) :: flxvoc
+    real(rk8), pointer, contiguous, dimension(:,:) :: flxvoc => null()
     ! Total leaf area index at grid level
-    real(rk8), pointer, contiguous, dimension(:) :: tlai
+    real(rk8), pointer, contiguous, dimension(:) :: tlai => null()
 #ifdef LCH4
     !net CH4 flux (kg C/m**2/s) [+ to atm]
     real(rk8), pointer, contiguous, dimension(:) :: flux_ch4
 #endif
-    real(rk8), pointer, contiguous, dimension(:) :: notused
+    real(rk8), pointer, contiguous, dimension(:) :: notused => null()
   end type lnd2atm_type
 
   public :: lnd2atm_type
@@ -208,7 +208,7 @@ module mod_clm_atmlnd
   ! Initialize atmospheric variables required by the land
   !
   subroutine init_atm2lnd_type(ibeg, iend, a2l)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (atm2lnd_type), intent(inout):: a2l
     real(rk8) :: ival   ! initial value
@@ -289,7 +289,7 @@ end subroutine init_atm2lnd_type
   ! Initialize land variables required by the atmosphere
   !
   subroutine init_lnd2atm_type(ibeg,iend,l2a)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (lnd2atm_type), intent(inout) :: l2a
     real(rk8) :: ival   ! initial value
@@ -402,7 +402,7 @@ end subroutine init_atm2lnd_type
 #ifdef LCH4
     use mod_clm_ch4varcon  , only : ch4offline
 #endif
-    implicit none
+    implicit none (type, external)
     save
     ! if true=>only set a subset of arguments
     logical, optional, intent(in) :: init

@@ -10,7 +10,7 @@ module mod_clm_subgridrest
   use mod_clm_varctl, only : nextdate
   use mod_clm_decomp
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -21,7 +21,7 @@ module mod_clm_subgridrest
   contains
 
   subroutine subgridRest( ncid, flag )
-    implicit none
+    implicit none (type, external)
     ! netCDF dataset id
     type(clm_filetype), intent(inout) :: ncid
     ! flag to determine if define, write or read data

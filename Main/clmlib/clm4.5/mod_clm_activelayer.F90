@@ -13,7 +13,7 @@ module mod_clm_activelayer
   use mod_clm_varctl, only : nextdate
   use mod_clm_time_manager, only : is_middle_curr_year, is_end_curr_year
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -28,7 +28,7 @@ module mod_clm_activelayer
   ! also update annual maxima, and keep track of prior year for
   ! rooting memory
   subroutine alt_calc(num_soilc,filter_soilc)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     ! filter for soil columns
     integer(ik4), intent(in), dimension(:) :: filter_soilc

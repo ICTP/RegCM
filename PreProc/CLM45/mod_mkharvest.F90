@@ -13,8 +13,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_mkharvest
 #ifdef CN
+module mod_mkharvest
   use mod_realkinds
   use mod_intkinds
   use mod_dynparam
@@ -23,7 +23,7 @@ module mod_mkharvest
   use mod_message
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -38,7 +38,7 @@ module mod_mkharvest
   contains
 
   subroutine mkharvest(mask,harvest,iyear)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: harvest
     integer(ik4), intent(in) :: iyear
@@ -95,7 +95,12 @@ module mod_mkharvest
     end do
     call gfclose(gfile)
   end subroutine mkharvest
-#endif
 
 end module mod_mkharvest
+#else
+module mod_mkharvest
+  implicit none (type, external)
+  private
+end module mod_mkharvest
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

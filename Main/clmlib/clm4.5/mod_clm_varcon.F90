@@ -14,7 +14,7 @@ module mod_clm_varcon
   use mod_clm_varpar  , only: nlayer
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -305,7 +305,7 @@ module mod_clm_varcon
   ! after the clm_varpar_init.
   !
   subroutine clm_varcon_init()
-    implicit none
+    implicit none (type, external)
     allocate( zlak(1:nlevlak) )
     allocate( dzlak(1:nlevlak) )
     allocate( zsoi(1:nlevgrnd) )

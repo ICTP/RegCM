@@ -31,7 +31,7 @@ module mod_ncstream
   use netcdf
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -98,14 +98,15 @@ module mod_ncstream
   contains
 
     subroutine instream_setup(ncin,params)
-      implicit none
+      implicit none (type, external)
       type(nc_input_stream), intent(inout) :: ncin
       type(ncinstream_params), intent(in) :: params
       type(ncinstream), pointer :: stream
-      integer(ik4) :: imode = nf90_nowrite
+      integer(ik4) :: imode
       integer(ik4) :: dimtime, i
       type(rcm_time_and_date) :: tt
 
+      imode = nf90_nowrite
       if ( associated(ncin%ncp%xs) ) call instream_dispose(ncin)
       allocate(ncin%ncp%xs)
       stream => ncin%ncp%xs
@@ -276,7 +277,7 @@ module mod_ncstream
     end subroutine instream_setup
 
     subroutine outstream_setup(ncout,params)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       type(ncoutstream_params), intent(in) :: params
       type(ncoutstream), pointer :: stream
@@ -423,7 +424,7 @@ module mod_ncstream
     end subroutine outstream_setup
 
     subroutine instream_dispose(ncin)
-      implicit none
+      implicit none (type, external)
       type(nc_input_stream), intent(inout) :: ncin
       type(ncinstream), pointer :: stream
 
@@ -451,7 +452,7 @@ module mod_ncstream
     end subroutine instream_dispose
 
     subroutine outstream_dispose(ncout)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       type(ncoutstream), pointer :: stream
 
@@ -479,17 +480,38 @@ module mod_ncstream
     end subroutine outstream_dispose
 
     subroutine deallocate_obuffer(xbf)
-      implicit none
-      type(internal_obuffer), pointer :: xbf
+#ifdef OPENACC
+      use, intrinsic :: iso_c_binding
+      use cudafor
+#endif
+      implicit none (type, external)
+      type(internal_obuffer), intent(inout), pointer :: xbf
+#ifdef OPENACC
+      integer(c_int) :: istat
+#endif
       if ( .not. associated(xbf) ) return
+#ifdef OPENACC
+      if ( associated(xbf%intbuff) .or. associated(xbf%realbuff) &
+        .or. associated(xbf%doublebuff) ) then
+        istat = cudaFreeHost(xbf%cptr)
+        if ( istat /= cudaSuccess ) then
+          write(*,*) 'cudaFreeHost failed with status: ',istat
+          stop
+        end if
+        xbf%intbuff => null()
+        xbf%realbuff => null()
+        xbf%doublebuff => null()
+      end if
+#else
       if ( allocated(xbf%intbuff) )  deallocate(xbf%intbuff)
       if ( allocated(xbf%realbuff) ) deallocate(xbf%realbuff)
       if ( allocated(xbf%doublebuff) ) deallocate(xbf%doublebuff)
+#endif
     end subroutine deallocate_obuffer
 
     subroutine deallocate_ibuffer(xbf)
-      implicit none
-      type(internal_ibuffer), pointer :: xbf
+      implicit none (type, external)
+      type(internal_ibuffer), intent(inout), pointer :: xbf
       if ( .not. associated(xbf) ) return
       if ( allocated(xbf%intbuff) )  deallocate(xbf%intbuff)
       if ( allocated(xbf%realbuff) ) deallocate(xbf%realbuff)
@@ -497,7 +519,11 @@ module mod_ncstream
     end subroutine deallocate_ibuffer
 
     subroutine outstream_enable(ncout,sigma)
-      implicit none
+#ifdef OPENACC
+      use, intrinsic :: iso_c_binding
+      use cudafor
+#endif
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       real(rkx), dimension(:), pointer, contiguous, intent(in) :: sigma
       real(rkx), dimension(size(sigma)) :: zita
@@ -515,6 +541,10 @@ module mod_ncstream
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
       type(ncattribute_real8_array) :: attra
+#ifdef OPENACC
+      integer(c_int) :: istat
+      integer(c_size_t) :: size_bytes
+#endif
 
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
@@ -989,9 +1019,26 @@ module mod_ncstream
       if ( buffer%lhas4ddouble ) then
         maxnum_double = max(product(buffer%max4d_double),maxnum_double)
       end if
+#ifdef OPENACC
+      size_bytes = 0
+      size_bytes = max(size_bytes,maxnum_int*4)
+      size_bytes = max(size_bytes,maxnum_real*4)
+      size_bytes = max(size_bytes,maxnum_double*8)
+      if ( size_bytes > 0 ) then
+        istat = cudaMallocHost(buffer%cptr, size_bytes)
+        if ( istat /= cudaSuccess ) then
+          write(*,*) 'cudaMallocHost failed with status: ',istat
+          stop
+        end if
+        if ( maxnum_int > 0 ) call c_f_pointer(buffer%cptr, buffer%intbuff, [maxnum_int])
+        if ( maxnum_real > 0 ) call c_f_pointer(buffer%cptr, buffer%realbuff, [maxnum_real])
+        if ( maxnum_double > 0 ) call c_f_pointer(buffer%cptr, buffer%doublebuff, [maxnum_double])
+      end if
+#else
       if ( maxnum_int > 0 ) allocate(buffer%intbuff(maxnum_int))
       if ( maxnum_real > 0 ) allocate(buffer%realbuff(maxnum_real))
       if ( maxnum_double > 0 ) allocate(buffer%doublebuff(maxnum_double))
+#endif
       stream%l_enabled = .true.
 #ifdef DEBUG
       if ( myid == 0 ) then
@@ -1137,7 +1184,7 @@ module mod_ncstream
       contains
 
       subroutine compute_zero_rotated(rlat0,rlon0)
-        implicit none
+        implicit none (type, external)
         real(rk8), intent(out) :: rlat0, rlon0
         real(rk8) :: pphi, plam
         real(rk8) :: cphi, clam
@@ -1195,7 +1242,7 @@ module mod_ncstream
     end subroutine outstream_enable
 
     subroutine outstream_sync(ncout)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(in) :: ncout
       type(ncoutstream), pointer :: stream
       if ( .not. associated(ncout%ncp%xs) ) return
@@ -1217,7 +1264,7 @@ module mod_ncstream
     end subroutine outstream_sync
 
     subroutine instream_findrec(ncin,dtime,record)
-      implicit none
+      implicit none (type, external)
       type(nc_input_stream), intent(inout) :: ncin
       type(rcm_time_and_date), intent(in) :: dtime
       real(rk8), intent(out) :: record
@@ -1236,7 +1283,7 @@ module mod_ncstream
     end subroutine instream_findrec
 
     subroutine outstream_addrec_date(ncout,dtime)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       type(rcm_time_and_date), intent(in) :: dtime
       real(rk8) :: val
@@ -1245,7 +1292,7 @@ module mod_ncstream
     end subroutine outstream_addrec_date
 
     subroutine outstream_addrec_value(ncout,val)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       real(rk8), intent(in) :: val
       type(ncoutstream), pointer :: stream
@@ -1268,7 +1315,7 @@ module mod_ncstream
     end subroutine outstream_addrec_value
 
     subroutine add_dimension(stream,dname)
-      implicit none
+      implicit none (type, external)
       type(ncoutstream), pointer, intent(inout) :: stream
       character(len=*), intent(in) :: dname
       character(len=16) :: the_name, in_name
@@ -1409,7 +1456,7 @@ module mod_ncstream
     end subroutine add_dimension
 
     subroutine outstream_addatt(ncout,att)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       class(ncattribute_standard), intent(in) :: att
       if ( .not. associated(ncout%ncp%xs) ) return
@@ -1417,7 +1464,7 @@ module mod_ncstream
     end subroutine outstream_addatt
 
     subroutine outstream_addvaratt(ncout,var,att)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(in) :: ncout
       class(ncvariable_standard), intent(in) :: var
       class(ncattribute_standard), intent(in) :: att
@@ -1426,12 +1473,12 @@ module mod_ncstream
     end subroutine outstream_addvaratt
 
     subroutine add_attribute(stream,att,iloc,vname)
-      implicit none
+      implicit none (type, external)
       type(ncoutstream), pointer, intent(in) :: stream
       class(ncattribute_standard), intent(in) :: att
-      integer(ik4), optional :: iloc
+      integer(ik4), intent(in), optional :: iloc
       character(len=4) :: cdum
-      character(len=*), optional :: vname
+      character(len=*), intent(in), optional :: vname
       character(len=32) :: the_name
       integer(ik4) :: iv
       if ( stream%l_enabled ) return
@@ -1567,7 +1614,7 @@ module mod_ncstream
     end subroutine add_attribute
 
     subroutine add_varatts(stream,var)
-      implicit none
+      implicit none (type, external)
       type(ncoutstream), pointer, intent(inout) :: stream
       class(ncvariable_standard), intent(in) :: var
       character(len=*), parameter :: coords_cross = 'xlat xlon'
@@ -1655,7 +1702,7 @@ module mod_ncstream
     end subroutine add_varatts
 
     subroutine add_variable(ncout,var,ndims)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       class(ncvariable_standard), intent(inout) :: var
       integer(ik4), intent(in) :: ndims
@@ -1748,9 +1795,9 @@ module mod_ncstream
     end subroutine add_variable
 
     subroutine outstream_addvar(ncout,var)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
-      class(ncvariable_standard) :: var
+      class(ncvariable_standard) , intent(inout) :: var
       type(ncoutstream), pointer :: stream
       type(internal_obuffer), pointer :: buffer
       integer(ik4) :: nd
@@ -2035,7 +2082,7 @@ module mod_ncstream
     end subroutine outstream_addvar
 
     subroutine dimlist(stream,code)
-      implicit none
+      implicit none (type, external)
       type(ncoutstream), intent(inout), pointer :: stream
       character(len=*), intent(in) :: code
       character(len=ncmaxdims) :: safecode
@@ -2156,13 +2203,22 @@ module mod_ncstream
     end subroutine dimlist
 
     subroutine outstream_writevar(ncout,var,lcopy,is)
-      implicit none
+#ifdef OPENACC
+      use cudafor
+#endif
+      !@acc use nvtx
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       class(ncvariable_standard), intent(inout) :: var
       logical, intent(in), optional :: lcopy
       integer(ik4), intent(in), optional :: is
       type(ncoutstream), pointer :: stream
       type(internal_obuffer), pointer :: buffer
+#ifdef OPENACC
+      real(rk4), pointer, contiguous, dimension(:) :: real_1d => null( )
+      real(rk8), pointer, contiguous, dimension(:) :: double_1d => null( )
+      integer :: istat
+#endif
       integer(ik4) :: nd, totsize
       logical :: docopy
       if ( .not. associated(ncout%ncp%xs) ) return
@@ -2172,6 +2228,7 @@ module mod_ncstream
       stream => ncout%ncp%xs
       if ( .not. stream%l_enabled ) return
       if ( stream%id < 0 ) return
+      !@acc call nvtxStartRange("outstream_writevar")
       buffer => ncout%obp%xb
       select type(var)
         class is (ncvariable0d_double)
@@ -2194,6 +2251,7 @@ module mod_ncstream
 #endif
           end if
         class is (ncvariable1d_double)
+          !@acc call nvtxStartRange("1d_double")
           if ( docopy ) then
             if ( .not. associated(var%rval) ) then
               write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -2201,7 +2259,16 @@ module mod_ncstream
               call die('nc_stream','Cannot write variable '//trim(var%vname)// &
                 ' in file '//trim(stream%filename), 1)
             end if
+#ifdef OPENACC
+            double_1d(1:var%nval(1)) => var%rval(1:var%nval(1))
+            istat = cudaMemcpy(buffer%doublebuff, double_1d, var%nval(1), cudaMemcpyDeviceToHost)
+            if ( istat /= cudaSuccess ) then
+              write(*,*) 'cudaMemcpy failed with status: ',istat
+              stop
+            end if
+#else
             buffer%doublebuff(1:var%nval(1)) = var%rval(1:var%nval(1))
+#endif
           end if
           stream%istart(1) = 1
           stream%icount(1) = var%nval(1)
@@ -2218,7 +2285,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable2d_double)
+          !@acc call nvtxStartRange("2d_double")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -2271,12 +2340,30 @@ module mod_ncstream
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
+#ifdef OPENACC
+              double_1d(1:totsize) => var%rval_slice(:,:,is)
+              istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, cudaMemcpyDeviceToHost)
+              if ( istat /= cudaSuccess ) then
+                write(*,*) 'cudaMemcpy failed with status: ',istat
+                stop
+              end if
+#else
               buffer%doublebuff(1:totsize) =  &
                 reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2,is), &
                 [totsize])
+#endif
             else
+#ifdef OPENACC
+              double_1d(1:totsize) => var%rval(:,:)
+              istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, cudaMemcpyDeviceToHost)
+              if ( istat /= cudaSuccess ) then
+                write(*,*) 'cudaMemcpy failed with status: ',istat
+                stop
+              end if
+#else
               buffer%doublebuff(1:totsize) =  &
                 reshape(var%rval(var%j1:var%j2,var%i1:var%i2),[totsize])
+#endif
             end if
           end if
           nd = 2
@@ -2292,7 +2379,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable3d_double)
+          !@acc call nvtxStartRange("3d_double")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -2357,13 +2446,31 @@ module mod_ncstream
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
+#ifdef OPENACC
+              double_1d(1:totsize) => var%rval_slice(:,:,:,is)
+              istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, cudaMemcpyDeviceToHost)
+              if ( istat /= cudaSuccess ) then
+                write(*,*) 'cudaMemcpy failed with status: ',istat
+                stop
+              end if
+#else
               buffer%doublebuff(1:totsize) = &
                 reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2,is), [totsize])
+#endif
             else
+#ifdef OPENACC
+              double_1d(1:totsize) => var%rval(:,:,:)
+              istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, cudaMemcpyDeviceToHost)
+              if ( istat /= cudaSuccess ) then
+                write(*,*) 'cudaMemcpy failed with status: ',istat
+                stop
+              end if
+#else
               buffer%doublebuff(1:totsize) = &
                 reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2),[totsize])
+#endif
             end if
           end if
           nd = 3
@@ -2379,7 +2486,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable4d_double)
+          !@acc call nvtxStartRange("4d_double")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -2454,9 +2563,18 @@ module mod_ncstream
               call die('nc_stream','Cannot write variable '//trim(var%vname)// &
                 ' in file '//trim(stream%filename), 1)
             end if
+#ifdef OPENACC
+            double_1d(1:totsize) => var%rval(:,:,:,:)
+            istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, cudaMemcpyDeviceToHost)
+            if ( istat /= cudaSuccess ) then
+              write(*,*) 'cudaMemcpy failed with status: ',istat
+              stop
+            end if
+#else
             buffer%doublebuff(1:totsize) = &
               reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                 var%k1:var%k2,var%n1:var%n2),[totsize])
+#endif
           end if
           nd = 4
           if ( var%lrecords ) then
@@ -2471,6 +2589,7 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable0d_real)
           if ( var%lrecords ) then
             stream%istart(1) = stream%irec
@@ -2508,6 +2627,7 @@ module mod_ncstream
 #endif
           end if
         class is (ncvariable1d_real)
+          !@acc call nvtxStartRange("1d_real")
           if ( docopy ) then
             if ( .not. associated(var%rval) ) then
               write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -2532,7 +2652,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable1d_mixed)
+          !@acc call nvtxStartRange("1d_mixed")
           if ( docopy ) then
             if ( .not. associated(var%rval) ) then
               write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -2540,7 +2662,15 @@ module mod_ncstream
               call die('nc_stream','Cannot write variable '//trim(var%vname)// &
                 ' in file '//trim(stream%filename), 1)
             end if
+#ifdef OPENACC
+            double_1d(1:var%nval(1)) => var%rval(1:var%nval(1))
+            real_1d(1:var%nval(1)) => buffer%realbuff(1:var%nval(1))
+            !$acc kernels deviceptr(real_1d(1:var%nval(1)))
+            real_1d(1:var%nval(1)) = real(double_1d(1:var%nval(1)),rk4)
+            !$acc end kernels
+#else
             buffer%realbuff(1:var%nval(1)) = real(var%rval(1:var%nval(1)),rk4)
+#endif
           end if
           stream%istart(1) = 1
           stream%icount(1) = var%nval(1)
@@ -2557,7 +2687,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable2d_real)
+          !@acc call nvtxStartRange("2d_real")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -2636,7 +2768,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable2d_mixed)
+          !@acc call nvtxStartRange("2d_mixed")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -2689,13 +2823,29 @@ module mod_ncstream
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
+#ifdef OPENACC
+              double_1d(1:totsize) => var%rval_slice(:,:,is)
+              real_1d(1:totsize) => buffer%realbuff(1:totsize)
+              !$acc kernels deviceptr(real_1d(1:totsize))
+              real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
+              !$acc end kernels
+#else
               buffer%realbuff(1:totsize) =                                   &
                 real(reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2,is), &
                 [totsize]),rk4)
+#endif
             else
+#ifdef OPENACC
+              double_1d(1:totsize) => var%rval(:,:)
+              real_1d(1:totsize) => buffer%realbuff(1:totsize)
+              !$acc kernels deviceptr(real_1d(1:totsize))
+              real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
+              !$acc end kernels
+#else
               buffer%realbuff(1:totsize) =                          &
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
                 [totsize]),rk4)
+#endif
             end if
 #ifdef BITSHAVE
             buffer%realbuff(1:totsize) = &
@@ -2715,7 +2865,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable3d_real)
+          !@acc call nvtxStartRange("3d_real")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -2806,7 +2958,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable3d_mixed)
+          !@acc call nvtxStartRange("3d_mixed")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -2871,13 +3025,29 @@ module mod_ncstream
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
+#ifdef OPENACC
+              double_1d(1:totsize) => var%rval_slice(:,:,:,is)
+              real_1d(1:totsize) =>  buffer%realbuff(1:totsize)
+              !$acc kernels deviceptr(real_1d(1:totsize))
+              real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
+              !$acc end kernels
+#else
               buffer%realbuff(1:totsize) = &
                 real(reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2,is), [totsize]),rk4)
+#endif
             else
+#ifdef OPENACC
+              double_1d(1:totsize) => var%rval(:,:,:)
+              real_1d(1:totsize) => buffer%realbuff(1:totsize)
+              !$acc kernels deviceptr(real_1d(1:totsize))
+              real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
+              !$acc end kernels
+#else
               buffer%realbuff(1:totsize) = &
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2),[totsize]),rk4)
+#endif
             end if
 #ifdef BITSHAVE
             buffer%realbuff(1:totsize) = &
@@ -2897,7 +3067,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable4d_real)
+          !@acc call nvtxStartRange("4d_real")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -2993,7 +3165,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable4d_mixed)
+          !@acc call nvtxStartRange("4d_mixed")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -3068,9 +3242,17 @@ module mod_ncstream
               call die('nc_stream','Cannot write variable '//trim(var%vname)// &
                 ' in file '//trim(stream%filename), 1)
             end if
+#ifdef OPENACC
+            double_1d(1:totsize) => var%rval(:,:,:,:)
+            real_1d(1:totsize) => buffer%realbuff(1:totsize)
+            !$acc kernels deviceptr(real_1d(1:totsize))
+            real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
+            !$acc end kernels
+#else
             buffer%realbuff(1:totsize) = &
               real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                 var%k1:var%k2,var%n1:var%n2),[totsize]),rk4)
+#endif
 #ifdef BITSHAVE
             buffer%realbuff(1:totsize) = &
               bitshave_15(buffer%realbuff(1:totsize))
@@ -3089,6 +3271,7 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable0d_integer)
           if ( var%lrecords ) then
             stream%istart(1) = stream%irec
@@ -3108,6 +3291,7 @@ module mod_ncstream
 #endif
           end if
         class is (ncvariable1d_integer)
+          !@acc call nvtxStartRange("1d_int")
           if ( docopy ) then
             if ( .not. associated(var%ival) ) then
               write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -3132,7 +3316,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable2d_integer)
+          !@acc call nvtxStartRange("2d_int")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -3204,7 +3390,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable3d_integer)
+          !@acc call nvtxStartRange("3d_int")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -3291,7 +3479,9 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class is (ncvariable4d_integer)
+          !@acc call nvtxStartRange("4d_int")
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
             stream%istart(2) = stream%iparbound(1)
@@ -3383,6 +3573,7 @@ module mod_ncstream
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
+          !@acc call nvtxEndRange
         class default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', 'Cannot write variable of unknown type',1)
@@ -3396,11 +3587,12 @@ module mod_ncstream
         call die('nc_stream','Cannot write variable '//trim(var%vname)// &
           ' in file '//trim(stream%filename), 1)
       end if
+      !@acc call nvtxEndRange
     end subroutine outstream_writevar
 
     subroutine cdumlogical(cdum,yesno)
-      implicit none
-      character(len=*), intent(out) :: cdum
+      implicit none (type, external)
+      character(len=4), intent(out) :: cdum
       logical, intent(in) :: yesno
       if (yesno) then
         write(cdum,'(a)') 'Yes'
@@ -3410,7 +3602,7 @@ module mod_ncstream
     end subroutine cdumlogical
 
     subroutine add_common_global_params(ncout)
-      implicit none
+      implicit none (type, external)
       type(nc_output_stream), intent(inout) :: ncout
       type(ncoutstream), pointer :: stream
       type(basic_variables), pointer :: stvar
@@ -3614,7 +3806,7 @@ module mod_ncstream
     end subroutine add_common_global_params
 
     subroutine instream_readvar(ncin,var,irec,window)
-      implicit none
+      implicit none (type, external)
       type(nc_input_stream), intent(inout) :: ncin
       class(ncvariable_standard), intent(inout) :: var
       integer(ik4), intent(in), optional :: irec
@@ -5139,7 +5331,7 @@ module mod_ncstream
     end subroutine instream_readvar
 
     subroutine printerror
-      implicit none
+      implicit none (type, external)
 #ifdef PNETCDF
       write(stderr, *) nf90mpi_strerror(ncstat)
 #else
@@ -5148,7 +5340,7 @@ module mod_ncstream
     end subroutine printerror
 
     pure elemental real(rk4) function bitshave_nb(x,nb) result(y)
-      implicit none
+      implicit none (type, external)
       real(rk4), intent(in) :: x
       integer(ik4), intent(in) :: nb
       integer(ik4) :: mask
@@ -5158,7 +5350,7 @@ module mod_ncstream
     end function bitshave_nb
 
     pure elemental real(rk4) function bitshave_15(x) result(y)
-      implicit none
+      implicit none (type, external)
       real(rk4), intent(in) :: x
       integer(ik4), parameter :: mask = -256
       y = transfer(iand(transfer(x,0_ik4),mask),1.0_rk4)
@@ -5177,6 +5369,7 @@ end subroutine myabort
 program test
   use mod_ncstream
   use mod_dynparam
+  implicit none (type, external)
 
   type(nc_output_stream) :: ncout
   type(nc_input_stream) :: ncin

@@ -37,7 +37,7 @@ module mod_clm_accflds
   use mod_clm_pftvarcon, only : ndllf_dcd_brl_tree
   use mod_clm_varctl, only : nsrest, DoForceRestart, nsrStartup, nextdate
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -55,7 +55,7 @@ module mod_clm_accflds
   ! Initializes accumulator and sets up array of accumulated fields
   !
   subroutine initAccFlds()
-    implicit none
+    implicit none (type, external)
     integer(ik4), parameter :: not_used = bigint
 
     ! Hourly average of 2m temperature.
@@ -236,7 +236,7 @@ module mod_clm_accflds
   ! Update and/or extract accumulated fields
   !
   subroutine updateAccFlds()
-    implicit none
+    implicit none (type, external)
     integer(ik4), pointer, contiguous :: itype(:)      ! pft vegetation
     ! index into gridcell level quantities
     integer(ik4), pointer, contiguous :: pgridcell(:)
@@ -799,7 +799,7 @@ module mod_clm_accflds
   ! and the accumulated fields are obtained.
   !
   subroutine initAccClmtype
-    implicit none
+    implicit none (type, external)
     ! daily minimum of average 2 m height surface air temperature (K)
     real(rk8), pointer, contiguous :: t_ref2m_min(:)
     ! daily maximum of average 2 m height surface air temperature (K)

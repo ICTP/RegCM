@@ -40,7 +40,7 @@
       use rrsw_tbl, only : tblint, bpade, od_lo, exp_tbl
       use rrsw_vsn, only : hvrrft, hnamrft
 
-      implicit none
+      implicit none (type, external)
 
       contains
 
@@ -182,10 +182,10 @@
 
             zwo = 0._rb
             denom = 1._rb
-            if (zg .ne. 1._rb) then
+            if (zg /= 1._rb) then
                denom = (1._rb - (1._rb - zw) * (zg / (1._rb - zg))**2)
             end if
-            if (zw .gt. 0._rb .and. denom .ne. 0._rb) then
+            if (zw > 0._rb .and. denom /= 0._rb) then
                zwo = zw / denom
             end if
 
@@ -204,7 +204,7 @@
 
 ! Use exponential lookup table for transmittance, or expansion of
 ! exponential for low tau
-               if (ze1 .le. od_lo) then
+               if (ze1 <= od_lo) then
                   ze2 = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
@@ -277,7 +277,7 @@
 !
 ! Use exponential lookup table for transmittance, or expansion of
 ! exponential for low tau
-               if (ze1 .le. od_lo) then
+               if (ze1 <= od_lo) then
                   zem1 = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   zep1 = 1._rb / zem1
                else
@@ -287,7 +287,7 @@
                   zep1 = 1._rb / zem1
                endif
 
-               if (ze2 .le. od_lo) then
+               if (ze2 <= od_lo) then
                   zem2 = 1._rb - ze2 + 0.5_rb * ze2 * ze2
                   zep2 = 1._rb / zem2
                else
@@ -307,7 +307,7 @@
 
                zdenr = zr4*zep1 + zr5*zem1
                zdent = zt4*zep1 + zt5*zem1
-               if (zdenr .ge. -eps .and. zdenr .le. eps) then
+               if (zdenr >= -eps .and. zdenr <= eps) then
                   pref(jk) = eps
                   ptra(jk) = zem2
                else

@@ -38,7 +38,7 @@ module mod_heatindex
   use mod_stdio
   use mod_message
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -117,7 +117,7 @@ module mod_heatindex
   contains
 
   pure real(rkx) function pvstar(t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: t
     if ( t <= 0.0_rkx ) then
       pvstar = 0.0_rkx
@@ -131,20 +131,20 @@ module mod_heatindex
   end function pvstar
 
   pure real(rkx) function le(t)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in):: t
     le = (e0v + (cvv-cvl)*(t-ttrip) + rgasv*t)
   end function le
 
   pure real(rkx) function qv(ta,pa) ! respiratory heat loss, w/m^2
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ta, pa
     qv = eta * q *(cpa*(tc-ta) + le(tc)*rgasa/(p*rgasv) * ( pc-pa ) )
   end function qv
 
   ! mass transfer resistance through skin, pa m^2/w
   pure real(rkx) function zs(rs)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: rs
     if ( rs == 0.0387_rkx ) then
       zs = 52.1_rkx
@@ -155,7 +155,7 @@ module mod_heatindex
 
   ! heat transfer resistance through air, exposed part of skin, k m^2/w
   pure real(rkx) function ra(ts,ta)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ts, ta
     real(rkx) :: hc, phi_rad, hr
     hc      = 17.4_rkx
@@ -166,7 +166,7 @@ module mod_heatindex
 
   ! heat transfer resistance through air, clothed part of skin, k m^2/w
   pure real(rkx) function ra_bar(tf,ta)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: tf, ta
     real(rkx) :: hc, phi_rad, hr
     hc      = 11.6_rkx
@@ -177,7 +177,7 @@ module mod_heatindex
 
   ! heat transfer resistance through air, when being naked, k m^2/w
   pure real(rkx) function ra_un(ts,ta)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ts, ta
     real(rkx) :: hc, phi_rad, hr
     hc      = 12.3_rkx
@@ -191,7 +191,7 @@ module mod_heatindex
 #else
   pure type(eqvar) function initial_find_eqvar(ta,rh) result(res)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ta, rh
     real(rkx) :: pa, phi, rf, rs, dtcdt, ts, ts_bar
     real(rkx) :: tf, ps, flux1, flux2, flux3, m, m_bar
@@ -239,7 +239,7 @@ module mod_heatindex
         res%indx = eqvar_indx_5
       end if
     end if
-    res%var = (/ phi,rf,rs,dtcdt /)
+    res%var = [ phi,rf,rs,dtcdt ]
   end function initial_find_eqvar
 
 #ifdef DEBUG
@@ -247,7 +247,7 @@ module mod_heatindex
 #else
   pure function find_eqvar(ta,rh)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(4) :: find_eqvar
     real(rkx), intent(in) :: ta, rh
     real(rkx) :: pa, phi, rf, rs, dtcdt, ts, ts_bar
@@ -291,7 +291,7 @@ module mod_heatindex
         dtcdt = (1.0_rkx/c)* flux3
       end if
     end if
-    find_eqvar = (/ phi,rf,rs,dtcdt /)
+    find_eqvar = [ phi,rf,rs,dtcdt ]
   end function find_eqvar
 
 #ifdef DEBUG
@@ -299,7 +299,7 @@ module mod_heatindex
 #else
   pure real(rkx) function find_t(eqvar_indx, eqvar)
 #endif
-    implicit none
+    implicit none (type, external)
     integer, intent(in) :: eqvar_indx
     real(rkx), intent(in) :: eqvar
     real(rkx) :: t
@@ -331,7 +331,7 @@ module mod_heatindex
   pure real(rkx) function heatindex(ta,rh)
 #endif
     !$acc routine seq
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ta, rh
     type(eqvar) :: initial
 
@@ -359,7 +359,7 @@ module mod_heatindex
 #else
   pure real(rkx) function solve1(ta,pa,rs,x1,x2,err,maxiter)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ta, pa, rs, x1, x2, err
     integer, intent(in) :: maxiter
     integer :: iter
@@ -398,7 +398,7 @@ module mod_heatindex
 #else
   pure real(rkx) function solve2(ta,pa,rs,x1,x2,err,maxiter)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ta, pa, rs, x1, x2, err
     integer, intent(in) :: maxiter
     integer :: iter
@@ -437,7 +437,7 @@ module mod_heatindex
 #else
   pure real(rkx) function solve3(ta,pa,rs,ts_bar,x1,x2,err,maxiter)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ta, pa, rs, ts_bar, x1, x2, err
     integer, intent(in) :: maxiter
     integer :: iter
@@ -482,7 +482,7 @@ module mod_heatindex
 #else
   pure real(rkx) function solve4(ta,pa,x1,x2,err,maxiter)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ta, pa, x1, x2, err
     integer, intent(in) :: maxiter
     integer :: iter
@@ -524,7 +524,7 @@ module mod_heatindex
 #else
   pure real(rkx) function solve5(ta,pa,x1,x2,err,maxiter)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: ta, pa, x1, x2, err
     integer, intent(in) :: maxiter
     integer :: iter
@@ -563,7 +563,7 @@ module mod_heatindex
 #else
   pure real(rkx) function solvei(eqvar)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: eqvar
     integer :: iter
     real(rkx) :: a, b, c, fa, fb, fc
@@ -605,7 +605,7 @@ module mod_heatindex
 #else
   pure real(rkx) function solveii(eqvar)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: eqvar
     integer :: iter
     real(rkx) :: a, b, c, fa, fb, fc
@@ -648,7 +648,7 @@ module mod_heatindex
 #else
   pure real(rkx) function solveiii(eqvar)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: eqvar
     integer :: iter
     real(rkx) :: a, b, c, fa, fb, fc
@@ -690,7 +690,7 @@ module mod_heatindex
 #else
   pure real(rkx) function solveiv(eqvar)
 #endif
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: eqvar
     integer :: iter
     real(rkx) :: a, b, c, fa, fb, fc

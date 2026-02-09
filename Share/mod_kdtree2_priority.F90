@@ -102,7 +102,7 @@ module mod_kdtree2_priority
   use mod_realkinds
   use mod_message
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -161,7 +161,7 @@ module mod_kdtree2_priority
     ! Assumes the allocation is always sufficient.  Will NOT increase it
     ! to match.
     integer :: heap_size = 0
-    type(kdtree2_result), pointer, contiguous, dimension(:) :: elems
+    type(kdtree2_result), pointer, contiguous, dimension(:) :: elems => null()
   end type pq
 
   public :: kdtree2_result
@@ -174,7 +174,7 @@ module mod_kdtree2_priority
   contains
 
   type(pq) function pq_create(results_in) result(res)
-    implicit none
+    implicit none (type, external)
     !
     ! Create a priority queue from ALREADY allocated
     ! array pointers for storage.  NOTE! It will NOT
@@ -188,7 +188,7 @@ module mod_kdtree2_priority
     !    allocate(x(1000),k(1000))
     !    pq => pq_create(x,k)
     !
-    type(kdtree2_result), target, dimension(:) :: results_in
+    type(kdtree2_result), target, dimension(:), intent(in) :: results_in
     !
     !
     integer :: nalloc
@@ -236,13 +236,13 @@ module mod_kdtree2_priority
 !  end function compare_priority
 
   subroutine heapify(a,i_in)
-    implicit none
+    implicit none (type, external)
     !
     ! take a heap rooted at 'i' and force it to be in the
     ! heap canonical form.   This is performance critical
     ! and has been tweaked a little to reflect this.
     !
-    type(pq), pointer :: a
+    type(pq), pointer, intent(in) :: a
     integer, intent(in) :: i_in
     integer :: i, l, r, largest
     real(kdkind) :: pri_i, pri_l, pri_r, pri_largest
@@ -264,7 +264,7 @@ module mod_kdtree2_priority
       ! does left child have higher priority?
       if (l > a%heap_size) then
         ! we know that i is the largest as both l and r are invalid.
-        exit
+        exit bigloop
       else
         pri_i = a%elems(i)%dis
         pri_l = a%elems(l)%dis
@@ -308,13 +308,13 @@ module mod_kdtree2_priority
   end subroutine heapify
 
   subroutine pq_max(a,e)
-    implicit none
+    implicit none (type, external)
     !
     ! return the priority and its payload of the maximum priority element
     ! on the queue, which should be the first one, if it is
     ! in heapified form.
     !
-    type(pq), pointer :: a
+    type(pq), pointer, intent(inout) :: a
     type(kdtree2_result), intent(out) :: e
     if ( a%heap_size > 0 ) then
       e = a%elems(1)
@@ -324,8 +324,8 @@ module mod_kdtree2_priority
   end subroutine pq_max
 
   real(kdkind) function pq_maxpri(a)
-    implicit none
-    type(pq), pointer :: a
+    implicit none (type, external)
+    type(pq), pointer, intent(inout) :: a
     pq_maxpri = -1
     if ( a%heap_size > 0 ) then
       pq_maxpri = a%elems(1)%dis
@@ -335,13 +335,13 @@ module mod_kdtree2_priority
   end function pq_maxpri
 
   subroutine pq_extract_max(a,e)
-    implicit none
+    implicit none (type, external)
     !
     ! return the priority and payload of maximum priority
     ! element, and remove it from the queue.
     ! (equivalent to 'pop()' on a stack)
     !
-    type(pq), pointer :: a
+    type(pq), pointer, intent(inout) :: a
     type(kdtree2_result), intent(out) :: e
 
     if ( a%heap_size >= 1 ) then
@@ -362,12 +362,12 @@ module mod_kdtree2_priority
   end subroutine pq_extract_max
 
   real(kdkind) function pq_insert(a,dis,idx)
-    implicit none
+    implicit none (type, external)
     !
     ! Insert a new element and return the new maximum priority,
     ! which may or may not be the same as the old maximum priority.
     !
-    type(pq), pointer :: a
+    type(pq), pointer, intent(inout) :: a
     real(kdkind), intent(in) :: dis
     integer, intent(in) :: idx
     ! type(kdtree2_result), intent(in) :: e
@@ -445,14 +445,14 @@ module mod_kdtree2_priority
 !  end subroutine pq_adjust_heap
 
   real(kdkind) function pq_replace_max(a,dis,idx)
-    implicit none
+    implicit none (type, external)
     !
     ! Replace the extant maximum priority element
     ! in the PQ with (dis,idx).  Return
     ! the new maximum priority, which may be larger
     ! or smaller than the old one.
     !
-    type(pq),pointer         :: a
+    type(pq), pointer, intent(inout) :: a
     real(kdkind), intent(in) :: dis
     integer, intent(in) :: idx
     ! type(kdtree2_result), intent(in) :: e
@@ -515,12 +515,12 @@ module mod_kdtree2_priority
   end function pq_replace_max
 
   subroutine pq_delete(a,i)
-    implicit none
+    implicit none (type, external)
     !
     ! delete item with index 'i'
     !
-    type(pq), pointer :: a
-    integer :: i
+    type(pq), pointer, intent(inout) :: a
+    integer, intent(in) :: i
 
     if ( (i < 1) .or. (i > a%heap_size) ) then
       call die('PQ_DELETE','error, attempt to remove out of bounds element.',1)

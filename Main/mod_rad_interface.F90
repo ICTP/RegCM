@@ -39,7 +39,7 @@ module mod_rad_interface
   use mod_rad_aerosol, only : aerclima_ntr, aerclima_nbin
   use mod_rad_outrad, only : allocate_mod_rad_outrad
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -73,7 +73,7 @@ module mod_rad_interface
   contains
 
   subroutine allocate_radiation
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: k
 
     ! Define here the total number of vertical levels, including standard
@@ -133,7 +133,7 @@ module mod_rad_interface
 
   subroutine init_radiation
     use mod_atm_interface
-    implicit none
+    implicit none (type, external)
     ! Set pipings from atm_interface to radiation I/O data types
 
     ! INPUT
@@ -196,7 +196,7 @@ module mod_rad_interface
   end subroutine init_radiation
 
   subroutine radiation(iyear,imonth,iday,loutrad,labsem)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: iyear, imonth, iday
     logical, intent(in) :: loutrad
     logical, intent(in) :: labsem
@@ -208,47 +208,47 @@ module mod_rad_interface
   end subroutine radiation
 
   subroutine inito3
-    implicit none
+    implicit none (type, external)
     call o3data(m2r)
   end subroutine inito3
 
   subroutine updateaerosol(idatex)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: idatex
     call read_aerclima(idatex,m2r)
   end subroutine updateaerosol
 
   subroutine closeaerosol
-    implicit none
+    implicit none (type, external)
     call close_aerclima
   end subroutine closeaerosol
 
   subroutine updateo3(idatex,scenario)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: idatex
     character(len=8), intent(in) :: scenario
     call read_o3data(idatex,m2r)
   end subroutine updateo3
 
   subroutine updateaeropp(idatex)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: idatex
     call read_aeroppdata(idatex,m2r)
   end subroutine updateaeropp
 
   subroutine updateaeropp_cmip6(idatex)
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: idatex
     call cmip6_plume_profile(idatex,m2r)
   end subroutine updateaeropp_cmip6
 
   subroutine closeo3
-    implicit none
+    implicit none (type, external)
     call close_o3data
   end subroutine closeo3
 
   subroutine export_data_from_rad(expfie)
-    implicit none
+    implicit none (type, external)
     type(exp_data3d), intent(inout) :: expfie
     integer(ik4) :: k, j, i
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )

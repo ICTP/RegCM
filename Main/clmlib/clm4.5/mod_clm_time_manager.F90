@@ -9,7 +9,7 @@ module mod_clm_time_manager
    use mod_runparams, only : idate0
    use mod_clm_varctl, only : nextdate
 
-   implicit none
+   implicit none (type, external)
 
    private
 
@@ -41,7 +41,7 @@ module mod_clm_time_manager
   contains
 
   subroutine get_start_date(yr, mon, day, tod)
-    implicit none
+    implicit none (type, external)
     ! Return date components valid at beginning of initial run.
     integer(ik4), intent(out) ::&
        yr,    &! year
@@ -55,7 +55,7 @@ module mod_clm_time_manager
   end subroutine get_start_date
 
   integer(ik4) function get_driver_start_ymd( tod )
-    implicit none
+    implicit none (type, external)
     ! Return date of start of simulation from driver
     ! (i.e. NOT from restart file)
     ! Note: get_start_date gets you the date from the beginning of
@@ -72,7 +72,7 @@ module mod_clm_time_manager
   end function get_driver_start_ymd
 
   real(rk8) function get_curr_calday( )
-    implicit none
+    implicit none (type, external)
     ! Return calendar day at end of current timestep with optional offset.
     ! Calendar day 1.0 = 0Z on Jan 1.
     ! Offset from current time in seconds.
@@ -81,7 +81,7 @@ module mod_clm_time_manager
   end function get_curr_calday
 
   real(rk8) function get_curr_yearpoint(offset)
-   implicit none
+   implicit none (type, external)
    ! Return calendar day at end of current timestep with optional offset.
    ! Calendar day 1.0 = 0Z on Jan 1.
     ! Offset from current time in seconds.
@@ -99,7 +99,7 @@ module mod_clm_time_manager
   end function get_curr_yearpoint
 
   real(rk8) function get_calday(ymd, tod)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ymd, tod
     ! Return calendar day corresponding to specified time instant.
     ! Calendar day 1.0 = 0Z on Jan 1.
@@ -111,13 +111,13 @@ module mod_clm_time_manager
   end function get_calday
 
   logical function is_end_curr_day()
-    implicit none
+    implicit none (type, external)
     ! Return true if current timestep is last timestep in current day.
     is_end_curr_day = (nextdate%second_of_day == int(0, ik8))
   end function is_end_curr_day
 
   logical function is_end_curr_month()
-    implicit none
+    implicit none (type, external)
     ! Return true if current timestep is last timestep in current month.
     integer(ik4) :: iy, im, id, ih, imm, iss
     call split_idate(nextdate,iy,im,id,ih,imm,iss)
@@ -126,18 +126,18 @@ module mod_clm_time_manager
   end function is_end_curr_month
 
   logical function is_end_curr_year( )
-    implicit none
+    implicit none (type, external)
     is_end_curr_year = date_is(nextdate,1,1) .and. time_is(nextdate,0)
   end function is_end_curr_year
 
   logical function is_middle_curr_year( )
-    implicit none
+    implicit none (type, external)
     is_middle_curr_year = date_is(nextdate,7,1) .and. time_is(nextdate,0)
   end function is_middle_curr_year
 
   logical function is_restart( )
     use mod_clm_varctl, only : nsrest, nsrContinue, nsrStartup, DoForceRestart
-    implicit none
+    implicit none (type, external)
     if (nsrest == nsrContinue .or. &
         (nsrest == nsrStartup .and. DoForceRestart) ) then
       is_restart = .true.
@@ -147,7 +147,7 @@ module mod_clm_time_manager
   end function is_restart
 
   subroutine getdatetime(currdate,currtime)
-    implicit none
+    implicit none (type, external)
     character(len=8), intent(out) :: currdate
     character(len=8), intent(out) :: currtime
     integer(ik4), dimension(8) :: tval

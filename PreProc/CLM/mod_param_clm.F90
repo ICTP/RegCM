@@ -20,8 +20,10 @@ module mod_param_clm
   use mod_message
   use mod_stdio
 
-  implicit none
-!
+  implicit none (type, external)
+
+  public
+
   integer, private :: k
 
   integer(ik4), parameter :: nfld = 19
@@ -153,19 +155,15 @@ module mod_param_clm
   subroutine param(nx,ny,kz,xlat,xlon,varmin,varmax,xlat1d,xlon1d,  &
                    xlonmin,xlonmax,xlatmin,xlatmax,iadim,ndim)
 
-  implicit none
+  implicit none (type, external)
 !
-  real(rk4) :: xlatmax, xlatmin, xlonmax, xlonmin
-  integer(ik4) :: kz, ndim, nx, ny
-  integer(ik4), dimension(ndim) :: iadim
-  real(rk4), dimension(ndim) :: varmax, varmin
-  real(rk4), dimension(nx,ny) :: xlat, xlon
-  real(rk4), dimension(nx) :: xlon1d
-  real(rk4), dimension(ny) :: xlat1d
-  intent (in) kz, ndim, nx, ny, xlat, xlon
-  intent (out) iadim, varmax, varmin, xlat1d, xlatmax, xlatmin ,&
-               xlon1d, xlonmax, xlonmin
-!
+  real(rk4), intent(out) :: xlatmax, xlatmin, xlonmax, xlonmin
+  integer(ik4), intent(in) :: kz, ndim, nx, ny
+  integer(ik4), dimension(ndim), intent(out) :: iadim
+  real(rk4), dimension(ndim), intent(out) :: varmax, varmin
+  real(rk4), dimension(nx,ny), intent(in) :: xlat, xlon
+  real(rk4), dimension(nx), intent(out) :: xlon1d
+  real(rk4), dimension(ny), intent(out) :: xlat1d
   integer(ik4) :: i, j
 !
   varmin(1) = minval(xlon)
@@ -191,13 +189,9 @@ module mod_param_clm
   end subroutine param
 
   subroutine comp(fields,bvoc)
-  implicit none
-!
-  integer(ik4) :: fields
-  logical :: bvoc
-  intent (in) bvoc
-  intent (out) fields
-!
+  implicit none (type, external)
+  integer(ik4), intent(out) :: fields
+  logical, intent(in) :: bvoc
   integer(ik4) :: numcompounds
 
   if ( bvoc ) then

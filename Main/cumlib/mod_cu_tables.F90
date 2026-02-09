@@ -19,7 +19,7 @@ module mod_cu_tables
   use mod_realkinds
   use mod_constants
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -48,7 +48,7 @@ module mod_cu_tables
   contains
 
   subroutine init_convect_tables
-    implicit none
+    implicit none (type, external)
     real(rkx), parameter :: zavl1 = -6096.9385_rkx
     real(rkx), parameter :: zavl2 =    21.2409642_rkx
     real(rkx), parameter :: zavl3 =    -2.711193_rkx

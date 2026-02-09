@@ -24,7 +24,7 @@ module mod_nchelper
   use mod_dynparam
   use mod_message
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -111,8 +111,8 @@ module mod_nchelper
   contains
 !
   subroutine cdumlogical(cdum,yesno)
-    implicit none
-    character(len=*), intent(out) :: cdum
+    implicit none (type, external)
+    character(len=4), intent(out) :: cdum
     logical, intent(in) :: yesno
     if (yesno) then
       write (cdum,'(a)') 'Yes'
@@ -122,7 +122,7 @@ module mod_nchelper
   end subroutine cdumlogical
 
   subroutine add_common_global_params(ncid,prgname,lsub)
-    implicit none
+    implicit none (type, external)
 
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: prgname
@@ -172,7 +172,7 @@ module mod_nchelper
                              'grid_size_in_meters', (ds*1000.0)/real(nsg,rkx))
       call checkncerr(incstat,__FILE__,__LINE__, &
                       'Error adding global gridsize')
-      incstat = nf90_put_att(ncid, nf90_global, 'model_subgrid', 'Yes');
+      incstat = nf90_put_att(ncid, nf90_global, 'model_subgrid', 'Yes')
       call checkncerr(incstat,__FILE__,__LINE__, &
                       'Error adding global subgrid flag')
     else
@@ -209,7 +209,7 @@ module mod_nchelper
   end subroutine add_common_global_params
 
   subroutine define_horizontal_coord(ncid,nx,ny,xjx,yiy,idims,ihvar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     integer(ik4), intent(in) :: nx, ny
     integer(ik4), intent(in), dimension(:) :: idims
@@ -260,7 +260,7 @@ module mod_nchelper
   end subroutine define_horizontal_coord
 
   subroutine define_vertical_coord(ncid,idims,izvar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     integer(ik4), intent(in), dimension(:) :: idims
     integer(ik4), intent(out), dimension(3) :: izvar
@@ -337,7 +337,7 @@ module mod_nchelper
   end subroutine define_vertical_coord
 
   subroutine define_cross_geolocation_coord(ncid,idims,ipnt,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     integer(ik4), dimension(:), intent(in) :: idims
     integer(ik4), intent(inout) :: ipnt
@@ -395,7 +395,7 @@ module mod_nchelper
   end subroutine define_cross_geolocation_coord
 
   subroutine write_vertical_coord(ncid,sigma,ptop,izvar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     real(rk4), dimension(:), intent(in) :: sigma
     real(rk4), intent(in) :: ptop
@@ -410,7 +410,7 @@ module mod_nchelper
   end subroutine write_vertical_coord
 
   subroutine write_vertical_coord_zita(ncid,sigma,a,b,izvar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     real(rk4), dimension(:), intent(in) :: sigma
     real(rk4), dimension(:), intent(in) :: a
@@ -429,7 +429,7 @@ module mod_nchelper
   end subroutine write_vertical_coord_zita
 
   subroutine write_horizontal_coord(ncid,xjx,yiy,ihvar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     real(rk4), dimension(:), intent(in) :: xjx, yiy
     integer(ik4), intent(in), dimension(2) :: ihvar
@@ -443,9 +443,9 @@ module mod_nchelper
   end subroutine write_horizontal_coord
 
   subroutine write_var1d_static_single(ncid,vnam,values,ipnt,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
-    character(len=*) :: vnam
+    character(len=*), intent(in) :: vnam
     real(rk4), dimension(:), intent(in) :: values
     integer(ik4), intent(inout) :: ipnt
     integer(ik4), intent(in), dimension(:) :: ivar
@@ -462,9 +462,9 @@ module mod_nchelper
   end subroutine write_var1d_static_single
 
   subroutine write_var1d_static_double(ncid,vnam,values,ipnt,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
-    character(len=*) :: vnam
+    character(len=*), intent(in) :: vnam
     real(rk8), dimension(:), intent(in) :: values
     integer(ik4), intent(inout) :: ipnt
     integer(ik4), intent(in), dimension(:) :: ivar
@@ -481,9 +481,9 @@ module mod_nchelper
   end subroutine write_var1d_static_double
 
   subroutine write_var1d_static_integer(ncid,vnam,values,ipnt,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
-    character(len=*) :: vnam
+    character(len=*), intent(in) :: vnam
     integer(ik4), dimension(:), intent(in) :: values
     integer(ik4), intent(inout) :: ipnt
     integer(ik4), intent(in), dimension(:) :: ivar
@@ -500,9 +500,9 @@ module mod_nchelper
   end subroutine write_var1d_static_integer
 
   subroutine write_var1d_static_text(ncid,vnam,values,ipnt,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
-    character(len=*) :: vnam
+    character(len=*), intent(in) :: vnam
     character(len=*), intent(in) :: values
     integer(ik4), intent(inout) :: ipnt
     integer(ik4), intent(in), dimension(:) :: ivar
@@ -519,9 +519,9 @@ module mod_nchelper
   end subroutine write_var1d_static_text
 
   subroutine write_var2d_static(ncid,vnam,values,ipnt,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
-    character(len=*) :: vnam
+    character(len=*), intent(in) :: vnam
     real(rk4), dimension(:,:), intent(in) :: values
     integer(ik4), intent(inout) :: ipnt
     integer(ik4), intent(in), dimension(:) :: ivar
@@ -538,7 +538,7 @@ module mod_nchelper
   end subroutine write_var2d_static
 
   subroutine write_var3d_static(ncid,vnam,values,ipnt,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
     real(rk4), dimension(:,:,:), intent(in) :: values
@@ -563,10 +563,10 @@ module mod_nchelper
   end subroutine write_var3d_static
 
   subroutine read_var1d_static_text(ncid,vnam,values)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
-    character(len=*), dimension(:) :: values
+    character(len=*), dimension(:), intent(inout) :: values
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
@@ -578,10 +578,10 @@ module mod_nchelper
   end subroutine read_var1d_static_text
 
   subroutine read_var1d_static_single(ncid,vnam,values,lerror)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
-    real(rk4), pointer, contiguous, dimension(:) :: values
+    real(rk4), pointer, contiguous, intent(inout), dimension(:) :: values
     logical, intent(inout), optional :: lerror
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
@@ -602,10 +602,10 @@ module mod_nchelper
   end subroutine read_var1d_static_single
 
   subroutine read_var1d_static_double(ncid,vnam,values,lerror)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
-    real(rk8), pointer, contiguous, dimension(:) :: values
+    real(rk8), pointer, contiguous, intent(inout), dimension(:) :: values
     logical, intent(inout), optional :: lerror
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
@@ -626,10 +626,10 @@ module mod_nchelper
   end subroutine read_var1d_static_double
 
   subroutine read_var1d_static_integer(ncid,vnam,values,lerror)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
-    integer(ik4), pointer, contiguous, dimension(:) :: values
+    integer(ik4), pointer, contiguous, intent(inout), dimension(:) :: values
     logical, intent(inout), optional :: lerror
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
@@ -650,11 +650,11 @@ module mod_nchelper
   end subroutine read_var1d_static_integer
 
   subroutine read_var1d_static_double_fix(ncid,vnam,n,values,lerror)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
     integer(ik4), intent(in) :: n
-    real(rk8), dimension(n) :: values
+    real(rk8), dimension(n), intent(inout) :: values
     logical, optional, intent(inout) :: lerror
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
@@ -675,11 +675,11 @@ module mod_nchelper
   end subroutine read_var1d_static_double_fix
 
   subroutine read_var1d_static_single_fix(ncid,vnam,n,values,lerror)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
     integer(ik4), intent(in) :: n
-    real(rk4), dimension(n) :: values
+    real(rk4), dimension(n), intent(inout) :: values
     logical, optional, intent(inout) :: lerror
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
@@ -700,11 +700,11 @@ module mod_nchelper
   end subroutine read_var1d_static_single_fix
 
   subroutine read_var1d_static_integer_fix(ncid,vnam,n,values,lerror)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
     integer(ik4), intent(in) :: n
-    integer(ik4), dimension(n) :: values
+    integer(ik4), dimension(n), intent(inout) :: values
     logical, optional, intent(inout) :: lerror
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
@@ -725,12 +725,12 @@ module mod_nchelper
   end subroutine read_var1d_static_integer_fix
 
   subroutine read_var2d_static_double(ncid,vnam,values,lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
-    real(rk8), dimension(:,:) :: values
+    real(rk8), dimension(:,:), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -758,12 +758,12 @@ module mod_nchelper
   end subroutine read_var2d_static_double
 
   subroutine read_var2d_static_single(ncid,vnam,values,lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
-    real(rk4), dimension(:,:) :: values
+    real(rk4), dimension(:,:), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -791,12 +791,12 @@ module mod_nchelper
   end subroutine read_var2d_static_single
 
   subroutine read_var2d_static_integer(ncid,vnam,values,lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
-    integer(ik4), dimension(:,:) :: values
+    integer(ik4), dimension(:,:), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -825,13 +825,13 @@ module mod_nchelper
 
   subroutine read_var2d_static_double_fix(ncid,vnam,n,m,values, &
                                           lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
     integer(ik4), intent(in) :: n, m
-    real(rk8), dimension(n,m) :: values
+    real(rk8), dimension(n,m), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -860,13 +860,13 @@ module mod_nchelper
 
   subroutine read_var2d_static_single_fix(ncid,vnam,n,m,values, &
                                           lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
     integer(ik4), intent(in) :: n, m
-    real(rk4), dimension(n,m) :: values
+    real(rk4), dimension(n,m), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -895,13 +895,13 @@ module mod_nchelper
 
   subroutine read_var2d_static_integer_fix(ncid,vnam,n,m,values, &
                                           lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
     integer(ik4), intent(in) :: n, m
-    integer(ik4), dimension(n,m) :: values
+    integer(ik4), dimension(n,m), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -929,12 +929,12 @@ module mod_nchelper
   end subroutine read_var2d_static_integer_fix
 
   subroutine read_var3d_static_double(ncid,vnam,values,lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
-    real(rk8), dimension(:,:,:) :: values
+    real(rk8), dimension(:,:,:), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -962,12 +962,12 @@ module mod_nchelper
   end subroutine read_var3d_static_double
 
   subroutine read_var3d_static_single(ncid,vnam,values,lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
-    real(rk4), dimension(:,:,:) :: values
+    real(rk4), dimension(:,:,:), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -995,12 +995,12 @@ module mod_nchelper
   end subroutine read_var3d_static_single
 
   subroutine read_var3d_static_integer(ncid,vnam,values,lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
-    integer(ik4), dimension(:,:,:) :: values
+    integer(ik4), dimension(:,:,:), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -1029,13 +1029,13 @@ module mod_nchelper
 
   subroutine read_var3d_static_double_fix(ncid,vnam,n,m,l,values, &
                                           lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
     integer, intent(in) :: n, m, l
-    real(rk8), dimension(n,m,l) :: values
+    real(rk8), dimension(n,m,l), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -1064,13 +1064,13 @@ module mod_nchelper
 
   subroutine read_var3d_static_single_fix(ncid,vnam,n,m,l,values, &
                                           lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
     integer, intent(in) :: n, m, l
-    real(rk4), dimension(n,m,l) :: values
+    real(rk4), dimension(n,m,l), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -1099,13 +1099,13 @@ module mod_nchelper
 
   subroutine read_var3d_static_integer_fix(ncid,vnam,n,m,l,values, &
                                            lerror,istart,icount)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vnam
     integer, intent(in) :: n, m, l
-    integer(ik4), dimension(n,m,l) :: values
+    integer(ik4), dimension(n,m,l), intent(inout) :: values
     logical, intent(inout), optional :: lerror
-    integer(ik4), dimension(:), optional :: istart, icount
+    integer(ik4), dimension(:), intent(in), optional :: istart, icount
     integer(ik4) :: ivarid
     integer(ik4)  :: incstat
     if ( present(lerror) ) then
@@ -1133,7 +1133,7 @@ module mod_nchelper
   end subroutine read_var3d_static_integer_fix
 
   subroutine define_basic_dimensions(ncid,nx,ny,nz,ipnt,idims)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     integer(ik4), intent(in) :: nx, ny, nz
     integer(ik4), intent(inout), dimension(:) :: idims
@@ -1152,7 +1152,7 @@ module mod_nchelper
   end subroutine define_basic_dimensions
 
   subroutine add_dimension(ncid,dnam,nd,ipnt,idims)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: dnam
     integer(ik4), intent(in) :: nd
@@ -1168,7 +1168,7 @@ module mod_nchelper
   end subroutine add_dimension
 
   subroutine createfile_withname(fname,ncid)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: fname
     integer(ik4), intent(out) :: ncid
     integer(ik4)  :: incstat, iofmod
@@ -1181,7 +1181,7 @@ module mod_nchelper
   end subroutine createfile_withname
 
   subroutine openfile_withname(fname,ncid)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: fname
     integer(ik4), intent(out) :: ncid
     integer(ik4) :: incstat
@@ -1191,7 +1191,7 @@ module mod_nchelper
   end subroutine openfile_withname
 
   subroutine ncd_inqdim(ncid,dname,dlen,lerror,lexist)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: dname
     integer(ik4), intent(out), optional :: dlen
@@ -1229,7 +1229,7 @@ module mod_nchelper
   end subroutine ncd_inqdim
 
   subroutine add_attribute(ncid,aname,aval,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     character(len=*), intent(in) :: aval
@@ -1246,14 +1246,16 @@ module mod_nchelper
 
   integer function nf90_myget_att_text(ncid,ivar,aname,aval) result(istat)
     use, intrinsic :: iso_c_binding, only: c_ptr, c_size_t, c_f_pointer, c_int
-    implicit none
+    use, intrinsic :: iso_c_binding, only: c_loc
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     character(len=*), intent(out) :: aval
     integer(ik4), intent(in) :: ivar
     interface
       integer(c_int) function nc_get_att_string(ncid, varid, name, pp) bind(c)
-        use iso_c_binding, only : c_int, c_char, c_ptr
+        use, intrinsic :: iso_c_binding, only : c_int, c_char, c_ptr
+        implicit none (type, external)
         integer(c_int), value :: ncid, varid
         character(kind=c_char), intent(in) :: name
         type(c_ptr), intent(out) :: pp
@@ -1262,7 +1264,7 @@ module mod_nchelper
     interface
       integer(c_size_t) function strlen(cs) bind(c, name='strlen')
          use, intrinsic :: iso_c_binding, only : c_size_t, c_ptr
-         implicit none
+         implicit none (type, external)
          type(c_ptr), intent(in), value :: cs
       end function strlen
     end interface
@@ -1282,7 +1284,7 @@ module mod_nchelper
         if ( istat == nf90_noerr ) then
           call c_f_pointer(c_str,f_str,[strlen(c_str)])
           aval = adjustl("")
-          do i = 1, size(f_str)
+          do i = 1, max(size(f_str),len(aval))
             aval(i:i) = f_str(i)
           end do
         end if
@@ -1294,7 +1296,7 @@ module mod_nchelper
 
   subroutine get_attribute_char(ncid,aname,aval,ivar)
     use, intrinsic :: iso_c_binding, only: c_ptr, c_size_t, c_f_pointer, c_int
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     character(len=*), intent(out) :: aval
@@ -1302,7 +1304,8 @@ module mod_nchelper
     integer :: istat, varid
     interface
       integer(c_int) function nc_get_att_string(ncid, varid, name, pp) bind(c)
-        use iso_c_binding, only : c_int, c_char, c_ptr
+        use, intrinsic :: iso_c_binding, only : c_int, c_char, c_ptr
+        implicit none (type, external)
         integer(c_int), value :: ncid, varid
         character(kind=c_char), intent(in) :: name
         type(c_ptr), intent(out) :: pp
@@ -1311,7 +1314,7 @@ module mod_nchelper
     interface
       integer(c_size_t) function strlen(cs) bind(c, name='strlen')
          use, intrinsic :: iso_c_binding, only : c_size_t, c_ptr
-         implicit none
+         implicit none (type, external)
          type(c_ptr), intent(in), value :: cs
       end function strlen
     end interface
@@ -1336,7 +1339,7 @@ module mod_nchelper
         if ( istat == nf90_noerr ) then
           call c_f_pointer(c_str,f_str,[strlen(c_str)])
           aval = adjustl("")
-          do i = 1, size(f_str)
+          do i = 1, max(size(f_str),len(aval))
             aval(i:i) = f_str(i)
           end do
         end if
@@ -1349,7 +1352,7 @@ module mod_nchelper
   end subroutine get_attribute_char
 
   subroutine get_attribute_real4(ncid,aname,aval,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     real(rk4), intent(out) :: aval
@@ -1365,7 +1368,7 @@ module mod_nchelper
   end subroutine get_attribute_real4
 
   subroutine get_attribute_real8(ncid,aname,aval,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     real(rk8), intent(out) :: aval
@@ -1381,7 +1384,7 @@ module mod_nchelper
   end subroutine get_attribute_real8
 
   subroutine get_attribute_int4(ncid,aname,aval,ivar)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     integer(ik4), intent(out) :: aval
@@ -1397,7 +1400,7 @@ module mod_nchelper
   end subroutine get_attribute_int4
 
   logical function check_dimlen(ncid,dname,ival)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: dname
     integer(ik4), intent(in) :: ival
@@ -1412,7 +1415,7 @@ module mod_nchelper
   end function check_dimlen
 
   subroutine check_dims(ncid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     integer(ik4) :: istatus
     integer(ik4) :: idimid
@@ -1453,7 +1456,7 @@ module mod_nchelper
   end subroutine check_dims
 
   subroutine add_variable(ncid,varname,long_name,units,idims,ipnt,ivars)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: varname
     character(len=*), intent(in) :: long_name
@@ -1485,7 +1488,7 @@ module mod_nchelper
   end subroutine add_variable
 
   subroutine check_var(ncid,vname,lerror)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, intent(inout), optional :: lerror
@@ -1505,7 +1508,7 @@ module mod_nchelper
   end subroutine check_var
 
   subroutine closefile(ncid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     integer(ik4) :: istatus
     istatus = nf90_close(ncid)
@@ -1514,7 +1517,7 @@ module mod_nchelper
   end subroutine closefile
 
   subroutine checkncerr(ival,filename,line,arg)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ival, line
     character(len=8) :: cline
     character(*), intent(in) :: filename, arg

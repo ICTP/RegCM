@@ -19,7 +19,7 @@ module mod_oasis_params
 
   use mod_intkinds
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -37,7 +37,7 @@ module mod_oasis_params
   type infofld
     character(len=:), allocatable :: na ! field name
     integer :: id                       ! field identificator
-    type(infogrd), pointer :: grd       ! field related definition indexes
+    type(infogrd), pointer :: grd => null()       ! field related definition indexes
   end type infofld
   public :: infofld
 
@@ -56,9 +56,9 @@ module mod_oasis_params
                                           ! (parameter)
 
   character(len=11), dimension(-2:14), parameter, public :: getput_status = & ! getput kinf string
-  (/'NotDef', 'VarUncpl', 'Ok', '', '', 'Recvd', 'Sent', 'LocTrans', &
+  ['NotDef', 'VarUncpl', 'Ok', '', '', 'Recvd', 'Sent', 'LocTrans', &
     'ToRest', 'Output', 'SentOut', 'ToRestOut', &
-    'FromRest', 'Input', 'RecvOut', 'FromRestOut', 'WaitGroup'/)
+    'FromRest', 'Input', 'RecvOut', 'FromRestOut', 'WaitGroup']
 
 end module mod_oasis_params
 !

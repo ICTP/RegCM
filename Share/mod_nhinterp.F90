@@ -21,7 +21,7 @@ module mod_nhinterp
   use mod_stdio
   use mod_stdatm
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -41,7 +41,7 @@ module mod_nhinterp
   contains
 
     real(rkx) function base_state_temperature(i1,i2,j1,j2,xlat)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: i1, i2, j1, j2
       real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: xlat    ! Latitude
       real(rkx), dimension(j1:j2,i1:i2) :: ts0
@@ -55,7 +55,7 @@ module mod_nhinterp
     end function base_state_temperature
 
     subroutine nhsetup(ptp,pbase,lp,ts0)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: ptp, pbase, lp, ts0
       ptop = ptp
       p0 = pbase
@@ -67,7 +67,7 @@ module mod_nhinterp
     ! Compute the nonhydrostatic base state.
     !
     subroutine nhbase(i1,i2,j1,j2,kx,sig,ter,ps0,pr0,t0,rho0,z0)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: i1, i2, j1, j2, kx
       real(rkx), pointer, contiguous, intent(in), dimension(:) :: sig       ! Adim 0-1
       real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ter     ! Meters
@@ -100,7 +100,7 @@ module mod_nhinterp
     ! Interpolate the hydrostatic input to nonhydrostatic coordinate.
     !
     subroutine nhinterp3d(i1,i2,j1,j2,kxs,sigmah,sigma,f,tv,ps,ps0,intmeth)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: i1, i2, j1, j2, kxs, intmeth
       real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigmah
       real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma
@@ -219,7 +219,7 @@ module mod_nhinterp
     end subroutine nhinterp3d
 
     subroutine nhinterp4d(i1,i2,j1,j2,kxs,nn,sigmah,sigma,f,tv,ps,ps0)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: i1, i2, j1, j2, kxs, nn
       real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigmah
       real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma
@@ -311,7 +311,7 @@ module mod_nhinterp
     ! Compute the pressure perturbation pp.
     !
     subroutine nhpp(i1,i2,j1,j2,kxs,sigma,t,pr0,t0,tv,ps,ps0,pp)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: i1, i2, j1, j2, kxs
       integer(ik4) :: i, j, k
       real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma
@@ -384,7 +384,7 @@ module mod_nhinterp
     !
     subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,u,v,tv, &
                    ps,psdot,ps0,xmsfx,w,wtop,ds,iband,icrm)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: i1, i2, j1, j2, kxs, iband, icrm
       real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma, dsigma
       real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: xmsfx
@@ -559,7 +559,7 @@ module mod_nhinterp
     end subroutine nhw
 
     subroutine smtdsmt(slab,i1,i2,j1,j2,k1,k2)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: i1, i2, j1, j2, k1, k2
       real(rkx), intent(inout), dimension(j1:j2,i1:i2,k1:k2) :: slab
       real(rkx) :: aplus, asv, cell

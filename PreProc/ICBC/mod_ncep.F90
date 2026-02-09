@@ -33,6 +33,7 @@ module mod_ncep
   use mod_message
   use mod_memutil
   use mod_nchelper
+  implicit none (type, external)
 
   private
 
@@ -57,7 +58,7 @@ module mod_ncep
   ! The data are packed into short integers (INTEGER*2).  The array
   ! work will be used to hold the packed integers.
   !
-  integer(2), pointer, contiguous, dimension(:,:,:) :: work
+  integer(ik2), pointer, contiguous, dimension(:,:,:) :: work
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: u3, v3
   real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u
@@ -77,7 +78,7 @@ module mod_ncep
 
   subroutine init_ncep
     use netcdf
-    implicit none
+    implicit none (type, external)
 
     integer(ik4) :: k, year, month, day, hour
     integer(ik4) :: istatus, inet, iddim, idv
@@ -214,7 +215,7 @@ module mod_ncep
   end subroutine init_ncep
 
   subroutine get_ncep(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
 
     call split_idate(idate,year,month,day,hour)
@@ -294,7 +295,7 @@ module mod_ncep
 
   subroutine cfs6hour
     use netcdf
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i, j, k, inet, it, kkrec, istatus
     character(len=256), save :: pathaddname
     character(len=5), dimension(5) :: varname
@@ -302,7 +303,7 @@ module mod_ncep
     integer(ik4), dimension(4) :: icount, istart
     integer(ik4), dimension(5), save :: inet5, ivar5
     real(rkx), dimension(5), save :: xoff, xscl
-    integer(2), dimension(5), save :: xfil
+    integer(ik2), dimension(5), save :: xfil
     logical, dimension(5), save :: lpacked, lfill
     data varname/'air', 'hgt', 'rhum', 'uwnd', 'vwnd'/
     !
@@ -437,7 +438,7 @@ module mod_ncep
 
   subroutine cdc6hour(idate)
     use netcdf
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent (in) :: idate
     integer(ik4) :: i, ilev, inet, it, j, kkrec, k, nlev, istatus
     character(len=256), save :: pathaddname
@@ -582,7 +583,7 @@ module mod_ncep
   end subroutine cdc6hour
 
   subroutine conclude_ncep
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then

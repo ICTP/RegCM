@@ -110,7 +110,7 @@ module eispack
 
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
 
 contains
 
@@ -171,16 +171,16 @@ function pythag ( a, b )
 !
 !    Output, real ( kind = rkx ) PYTHAG, the length of the hypotenuse.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = rkx ) a
-  real    ( kind = rkx ) b
-  real    ( kind = rkx ) p
-  real    ( kind = rkx ) pythag
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) t
-  real    ( kind = rkx ) u
+  real    ( kind = rkx ) :: a
+  real    ( kind = rkx ) :: b
+  real    ( kind = rkx ) :: p
+  real    ( kind = rkx ) :: pythag
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: t
+  real    ( kind = rkx ) :: u
 
   p = max ( abs ( a ), abs ( b ) )
 
@@ -280,17 +280,17 @@ subroutine bakvec ( n, t, e, m, z, ierr )
 !    to the original matrix, and the eigenvectors
 !    cannot be found by this program.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) e(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) j
-  real    ( kind = rkx ) t(n,3)
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: e(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: j
+  real    ( kind = rkx ) :: t(n,3)
+  real    ( kind = rkx ) :: z(n,m)
 
   ierr = 0
 
@@ -393,28 +393,28 @@ subroutine balanc ( n, a, low, igh, xscale )
 !    Output, real ( kind = rkx ) SCALE(N), contains information determining the
 !    permutations and scaling factors used.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) b2
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) iexc
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) m
-  logical              noconv
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) rdx
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) xscale(n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: b2
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: iexc
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: m
+  logical              :: noconv
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: rdx
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: xscale(n)
 
   rdx = 16.0_rkx
 
@@ -636,19 +636,19 @@ subroutine balbak ( n, low, igh, xscale, m, z )
 !    Input/output, real ( kind = rkx ) Z(N,M), contains the real and imaginary parts
 !    of the eigenvectors, which, on return, have been back-transformed.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) low
-  real    ( kind = rkx ) xscale(n)
-  real    ( kind = rkx ) z(n,m)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: low
+  real    ( kind = rkx ) :: xscale(n)
+  real    ( kind = rkx ) :: z(n,m)
 
   if ( m <= 0 ) then
     return
@@ -763,43 +763,43 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 !    the reduction if MATZ has been set to TRUE.  Otherwise, Z is not
 !    referenced.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) mb
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: mb
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,mb)
-  real    ( kind = rkx ) b1
-  real    ( kind = rkx ) b2
-  real    ( kind = rkx ) c2
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) dmin
-  real    ( kind = rkx ) dminrt
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) f1
-  real    ( kind = rkx ) f2
-  real    ( kind = rkx ) g
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) i1
-  integer ( kind = 4 ) i2
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) j1
-  integer ( kind = 4 ) j2
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) kr
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) m1
-  logical              matz
-  integer ( kind = 4 ) maxl
-  integer ( kind = 4 ) maxr
-  integer ( kind = 4 ) mr
-  integer ( kind = 4 ) r
-  integer ( kind = 4 ) r1
-  real    ( kind = rkx ) s2
-  real    ( kind = rkx ) u
-  integer ( kind = 4 ) ugl
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,mb)
+  real    ( kind = rkx ) :: b1
+  real    ( kind = rkx ) :: b2
+  real    ( kind = rkx ) :: c2
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: dmin
+  real    ( kind = rkx ) :: dminrt
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: f1
+  real    ( kind = rkx ) :: f2
+  real    ( kind = rkx ) :: g
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: i1
+  integer ( kind = 4 ) :: i2
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: j1
+  integer ( kind = 4 ) :: j2
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: kr
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: m1
+  logical              :: matz
+  integer ( kind = 4 ) :: maxl
+  integer ( kind = 4 ) :: maxr
+  integer ( kind = 4 ) :: mr
+  integer ( kind = 4 ) :: r
+  integer ( kind = 4 ) :: r1
+  real    ( kind = rkx ) :: s2
+  real    ( kind = rkx ) :: u
+  integer ( kind = 4 ) :: ugl
+  real    ( kind = rkx ) :: z(n,n)
 
   dmin = epsilon ( dmin )
   dminrt = sqrt ( dmin )
@@ -1142,47 +1142,47 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !    -R, if the eigenvector corresponding to the R-th eigenvalue fails to
 !    converge, or if the R-th system of linear equations is nearly singular.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) mbw
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: mbw
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,mbw)
-  real    ( kind = rkx ) e21
-  real    ( kind = rkx ) eps2
-  real    ( kind = rkx ) eps3
-  real    ( kind = rkx ) eps4
-  integer ( kind = 4 ) group
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) ij
-  integer ( kind = 4 ) ij1
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jj
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) kj
-  integer ( kind = 4 ) kj1
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) m1
-  integer ( kind = 4 ) m21
-  integer ( kind = 4 ) maxj
-  integer ( kind = 4 ) maxk
-  integer ( kind = 4 ) mb
-  real    ( kind = rkx ) norm
-  real    ( kind = rkx ) order
-  integer ( kind = 4 ) r
-  real    ( kind = rkx ) rv(n*(2*mbw-1))
-  real    ( kind = rkx ) rv6(n)
-  real    ( kind = rkx ) u
-  real    ( kind = rkx ) uk
-  real    ( kind = rkx ) v
-  real    ( kind = rkx ) w(m)
-  real    ( kind = rkx ) x0
-  real    ( kind = rkx ) x1
-  real    ( kind = rkx ) xu
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: a(n,mbw)
+  real    ( kind = rkx ) :: e21
+  real    ( kind = rkx ) :: eps2
+  real    ( kind = rkx ) :: eps3
+  real    ( kind = rkx ) :: eps4
+  integer ( kind = 4 ) :: group
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: ij
+  integer ( kind = 4 ) :: ij1
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jj
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: kj
+  integer ( kind = 4 ) :: kj1
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: m1
+  integer ( kind = 4 ) :: m21
+  integer ( kind = 4 ) :: maxj
+  integer ( kind = 4 ) :: maxk
+  integer ( kind = 4 ) :: mb
+  real    ( kind = rkx ) :: norm
+  real    ( kind = rkx ) :: order
+  integer ( kind = 4 ) :: r
+  real    ( kind = rkx ) :: rv(n*(2*mbw-1))
+  real    ( kind = rkx ) :: rv6(n)
+  real    ( kind = rkx ) :: u
+  real    ( kind = rkx ) :: uk
+  real    ( kind = rkx ) :: v
+  real    ( kind = rkx ) :: w(m)
+  real    ( kind = rkx ) :: x0
+  real    ( kind = rkx ) :: x1
+  real    ( kind = rkx ) :: xu
+  real    ( kind = rkx ) :: z(n,m)
 
   ierr = 0
 
@@ -1584,45 +1584,45 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !    0, for normal return,
 !    3*N+1, if M exceeds MM.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) eps1
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) ind(mm)
-  integer ( kind = 4 ) isturm
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  real    ( kind = rkx ) lb
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) m1
-  integer ( kind = 4 ) m2
-  integer ( kind = 4 ) p
-  integer ( kind = 4 ) q
-  integer ( kind = 4 ) r
-  real    ( kind = rkx ) rv4(n)
-  real    ( kind = rkx ) rv5(n)
-  integer ( kind = 4 ) s
-  real    ( kind = rkx ) t1
-  real    ( kind = rkx ) t2
-  integer ( kind = 4 ) tag
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) u
-  real    ( kind = rkx ) ub
-  real    ( kind = rkx ) v
-  real    ( kind = rkx ) w(mm)
-  real    ( kind = rkx ) x0
-  real    ( kind = rkx ) x1
-  real    ( kind = rkx ) xu
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: eps1
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: ind(mm)
+  integer ( kind = 4 ) :: isturm
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  real    ( kind = rkx ) :: lb
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: m1
+  integer ( kind = 4 ) :: m2
+  integer ( kind = 4 ) :: p
+  integer ( kind = 4 ) :: q
+  integer ( kind = 4 ) :: r
+  real    ( kind = rkx ) :: rv4(n)
+  real    ( kind = rkx ) :: rv5(n)
+  integer ( kind = 4 ) :: s
+  real    ( kind = rkx ) :: t1
+  real    ( kind = rkx ) :: t2
+  integer ( kind = 4 ) :: tag
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: u
+  real    ( kind = rkx ) :: ub
+  real    ( kind = rkx ) :: v
+  real    ( kind = rkx ) :: w(mm)
+  real    ( kind = rkx ) :: x0
+  real    ( kind = rkx ) :: x1
+  real    ( kind = rkx ) :: xu
 
   ierr = 0
   s = 0
@@ -1998,49 +1998,49 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !    0, normal return.
 !    N, if the eigenvalue has not been determined after 30 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) mb
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: mb
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,mb)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) ik
-  integer ( kind = 4 ) imult
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jk
-  integer ( kind = 4 ) jm
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) kj
-  integer ( kind = 4 ) kj1
-  integer ( kind = 4 ) kk
-  integer ( kind = 4 ) km
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) ll
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) m1
-  integer ( kind = 4 ) m2
-  integer ( kind = 4 ) m21
-  integer ( kind = 4 ) m3
-  integer ( kind = 4 ) m31
-  integer ( kind = 4 ) m4
-  integer ( kind = 4 ) mk
-  integer ( kind = 4 ) mn
-  integer ( kind = 4 ) mz
-  integer ( kind = 4 ) ni
-  real    ( kind = rkx ) q
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) rv(2*mb*mb+4*mb-3)
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) xscale
-  real    ( kind = rkx ) t
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) :: a(n,mb)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: ik
+  integer ( kind = 4 ) :: imult
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jk
+  integer ( kind = 4 ) :: jm
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: kj
+  integer ( kind = 4 ) :: kj1
+  integer ( kind = 4 ) :: kk
+  integer ( kind = 4 ) :: km
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: ll
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: m1
+  integer ( kind = 4 ) :: m2
+  integer ( kind = 4 ) :: m21
+  integer ( kind = 4 ) :: m3
+  integer ( kind = 4 ) :: m31
+  integer ( kind = 4 ) :: m4
+  integer ( kind = 4 ) :: mk
+  integer ( kind = 4 ) :: mn
+  integer ( kind = 4 ) :: mz
+  integer ( kind = 4 ) :: ni
+  real    ( kind = rkx ) :: q
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: rv(2*mb*mb+4*mb-3)
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: xscale
+  real    ( kind = rkx ) :: t
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
 
   ierr = 0
   m1 = min ( mb, n )
@@ -2348,21 +2348,21 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
 !    parts, respectively, of the eigenvectors to be back transformed in
 !    their first M columns.  On output, the transformed eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) low
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) xscale(n)
-  real    ( kind = rkx ) zi(n,m)
-  real    ( kind = rkx ) zr(n,m)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: low
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: xscale(n)
+  real    ( kind = rkx ) :: zi(n,m)
+  real    ( kind = rkx ) :: zr(n,m)
 
   if ( m == 0 ) then
     return
@@ -2478,30 +2478,30 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !    Output, real ( kind = rkx ) SCALE(N), information determining the
 !    permutations and scaling factors used.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) ai(n,n)
-  real    ( kind = rkx ) ar(n,n)
-  real    ( kind = rkx ) b2
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) iexc
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jj
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) m
-  logical              noconv
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) rdx
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) xscale(n)
+  real    ( kind = rkx ) :: ai(n,n)
+  real    ( kind = rkx ) :: ar(n,n)
+  real    ( kind = rkx ) :: b2
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: iexc
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jj
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: m
+  logical              :: noconv
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: rdx
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: xscale(n)
 
   rdx = 16.0_rkx
 
@@ -2712,19 +2712,19 @@ subroutine cdiv ( ar, ai, br, bi, cr, ci )
 !
 !    Output, real ( kind = rkx ) CR, CI, the real and imaginary parts of the result.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = rkx ) ai
-  real    ( kind = rkx ) ais
-  real    ( kind = rkx ) ar
-  real    ( kind = rkx ) ars
-  real    ( kind = rkx ) bi
-  real    ( kind = rkx ) bis
-  real    ( kind = rkx ) br
-  real    ( kind = rkx ) brs
-  real    ( kind = rkx ) ci
-  real    ( kind = rkx ) cr
-  real    ( kind = rkx ) s
+  real    ( kind = rkx ) :: ai
+  real    ( kind = rkx ) :: ais
+  real    ( kind = rkx ) :: ar
+  real    ( kind = rkx ) :: ars
+  real    ( kind = rkx ) :: bi
+  real    ( kind = rkx ) :: bis
+  real    ( kind = rkx ) :: br
+  real    ( kind = rkx ) :: brs
+  real    ( kind = rkx ) :: ci
+  real    ( kind = rkx ) :: cr
+  real    ( kind = rkx ) :: s
 
   s = abs ( br ) + abs ( bi )
 
@@ -2803,23 +2803,23 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 !    Output, integer ( kind = 4 ) IERR, an error completion code described in the
 !    documentation for COMQR and COMQR2.  The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) ai(n,n)
-  real    ( kind = rkx ) ar(n,n)
-  real    ( kind = rkx ) fv1(n)
-  real    ( kind = rkx ) fv2(n)
-  real    ( kind = rkx ) fv3(n)
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) is1
-  integer ( kind = 4 ) is2
-  integer ( kind = 4 ) matz
-  real    ( kind = rkx ) wi(n)
-  real    ( kind = rkx ) wr(n)
-  real    ( kind = rkx ) zi(n,n)
-  real    ( kind = rkx ) zr(n,n)
+  real    ( kind = rkx ) :: ai(n,n)
+  real    ( kind = rkx ) :: ar(n,n)
+  real    ( kind = rkx ) :: fv1(n)
+  real    ( kind = rkx ) :: fv2(n)
+  real    ( kind = rkx ) :: fv3(n)
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: is1
+  integer ( kind = 4 ) :: is2
+  integer ( kind = 4 ) :: matz
+  real    ( kind = rkx ) :: wi(n)
+  real    ( kind = rkx ) :: wr(n)
+  real    ( kind = rkx ) :: zi(n,n)
+  real    ( kind = rkx ) :: zr(n,n)
 
   call cbal ( n, ar, ai, is1, is2, fv1 )
 
@@ -2913,21 +2913,21 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 !    Output, integer ( kind = 4 ) IERR, an error completion code described in the
 !    documentation for TQLRAT and TQL2.  The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) ai(n,n)
-  real    ( kind = rkx ) ar(n,n)
-  real    ( kind = rkx ) fm1(2,n)
-  real    ( kind = rkx ) fv1(n)
-  real    ( kind = rkx ) fv2(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) matz
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) zi(n,n)
-  real    ( kind = rkx ) zr(n,n)
+  real    ( kind = rkx ) :: ai(n,n)
+  real    ( kind = rkx ) :: ar(n,n)
+  real    ( kind = rkx ) :: fm1(2,n)
+  real    ( kind = rkx ) :: fv1(n)
+  real    ( kind = rkx ) :: fv2(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: matz
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: zi(n,n)
+  real    ( kind = rkx ) :: zr(n,n)
 
   call htridi ( n, ar, ai, w, fv1, fv2, fm1 )
 
@@ -3033,42 +3033,42 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !    -K, if the iteration corresponding to the K-th value fails,
 !    -(N+K), if both error situations occur.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) ai(n,n)
-  real    ( kind = rkx ) ar(n,n)
-  real    ( kind = rkx ) eps3
-  real    ( kind = rkx ) growto
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  real    ( kind = rkx ) ilambd
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) km1
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mp
-  real    ( kind = rkx ) norm
-  real    ( kind = rkx ) normv
-  real    ( kind = rkx ) rlambd
-  real    ( kind = rkx ) rm1(n,n)
-  real    ( kind = rkx ) rm2(n,n)
-  real    ( kind = rkx ) rv1(n)
-  real    ( kind = rkx ) rv2(n)
-  integer ( kind = 4 ) s
-  logical              select(n)
-  integer ( kind = 4 ) uk
-  real    ( kind = rkx ) ukroot
-  real    ( kind = rkx ) wi(n)
-  real    ( kind = rkx ) wr(n)
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) y
-  real    ( kind = rkx ) zi(n,mm)
-  real    ( kind = rkx ) zr(n,mm)
+  real    ( kind = rkx ) :: ai(n,n)
+  real    ( kind = rkx ) :: ar(n,n)
+  real    ( kind = rkx ) :: eps3
+  real    ( kind = rkx ) :: growto
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  real    ( kind = rkx ) :: ilambd
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: km1
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mp
+  real    ( kind = rkx ) :: norm
+  real    ( kind = rkx ) :: normv
+  real    ( kind = rkx ) :: rlambd
+  real    ( kind = rkx ) :: rm1(n,n)
+  real    ( kind = rkx ) :: rm2(n,n)
+  real    ( kind = rkx ) :: rv1(n)
+  real    ( kind = rkx ) :: rv2(n)
+  integer ( kind = 4 ) :: s
+  logical              :: select(n)
+  integer ( kind = 4 ) :: uk
+  real    ( kind = rkx ) :: ukroot
+  real    ( kind = rkx ) :: wi(n)
+  real    ( kind = rkx ) :: wr(n)
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: y
+  real    ( kind = rkx ) :: zi(n,mm)
+  real    ( kind = rkx ) :: zr(n,mm)
 
   ierr = 0
   uk = 0
@@ -3371,25 +3371,25 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
 !    parts of the eigenvectors to be back transformed.  On output, the real
 !    and imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) ai(n,igh)
-  real    ( kind = rkx ) ar(n,igh)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ia(igh)
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) la
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) mp
-  real    ( kind = rkx ) xi
-  real    ( kind = rkx ) xr
-  real    ( kind = rkx ) zi(n,m)
-  real    ( kind = rkx ) zr(n,m)
+  real    ( kind = rkx ) :: ai(n,igh)
+  real    ( kind = rkx ) :: ar(n,igh)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ia(igh)
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: la
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: mp
+  real    ( kind = rkx ) :: xi
+  real    ( kind = rkx ) :: xr
+  real    ( kind = rkx ) :: zi(n,m)
+  real    ( kind = rkx ) :: zr(n,m)
 
   if ( m == 0 ) then
     return
@@ -3493,23 +3493,23 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
 !    Output, integer ( kind = 4 ) INT(IGH), information on the rows and columns
 !    interchanged in the reduction.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) ai(n,n)
-  real    ( kind = rkx ) ar(n,n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ia(igh)
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) la
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) m
-  real    ( kind = rkx ) xi
-  real    ( kind = rkx ) xr
-  real    ( kind = rkx ) yi
-  real    ( kind = rkx ) yr
+  real    ( kind = rkx ) :: ai(n,n)
+  real    ( kind = rkx ) :: ar(n,n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ia(igh)
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: la
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: m
+  real    ( kind = rkx ) :: xi
+  real    ( kind = rkx ) :: xr
+  real    ( kind = rkx ) :: yi
+  real    ( kind = rkx ) :: yr
 
   la = igh - 1
 
@@ -3646,39 +3646,39 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) en
-  integer ( kind = 4 ) enm1
-  real    ( kind = rkx ) hi(n,n)
-  real    ( kind = rkx ) hr(n,n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) itn
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) ll
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mm
-  real    ( kind = rkx ) si
-  real    ( kind = rkx ) sr
-  real    ( kind = rkx ) ti
-  real    ( kind = rkx ) tr
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) wi(n)
-  real    ( kind = rkx ) wr(n)
-  real    ( kind = rkx ) xi
-  real    ( kind = rkx ) xr
-  real    ( kind = rkx ) yi
-  real    ( kind = rkx ) yr
-  real    ( kind = rkx ) zzi
-  real    ( kind = rkx ) zzr
+  integer ( kind = 4 ) :: en
+  integer ( kind = 4 ) :: enm1
+  real    ( kind = rkx ) :: hi(n,n)
+  real    ( kind = rkx ) :: hr(n,n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: itn
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: ll
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mm
+  real    ( kind = rkx ) :: si
+  real    ( kind = rkx ) :: sr
+  real    ( kind = rkx ) :: ti
+  real    ( kind = rkx ) :: tr
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: wi(n)
+  real    ( kind = rkx ) :: wr(n)
+  real    ( kind = rkx ) :: xi
+  real    ( kind = rkx ) :: xr
+  real    ( kind = rkx ) :: yi
+  real    ( kind = rkx ) :: yr
+  real    ( kind = rkx ) :: zzi
+  real    ( kind = rkx ) :: zzr
 
   ierr = 0
 !
@@ -3948,48 +3948,48 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) en
-  integer ( kind = 4 ) enm1
-  real    ( kind = rkx ) hi(n,n)
-  real    ( kind = rkx ) hr(n,n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) iend
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) ia(igh)
-  integer ( kind = 4 ) itn
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jj
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) ll
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) nn
-  real    ( kind = rkx ) norm
-  real    ( kind = rkx ) si
-  real    ( kind = rkx ) sr
-  real    ( kind = rkx ) ti
-  real    ( kind = rkx ) tr
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) wi(n)
-  real    ( kind = rkx ) wr(n)
-  real    ( kind = rkx ) xi
-  real    ( kind = rkx ) xr
-  real    ( kind = rkx ) yi
-  real    ( kind = rkx ) yr
-  real    ( kind = rkx ) zi(n,n)
-  real    ( kind = rkx ) zr(n,n)
-  real    ( kind = rkx ) zzi
-  real    ( kind = rkx ) zzr
+  integer ( kind = 4 ) :: en
+  integer ( kind = 4 ) :: enm1
+  real    ( kind = rkx ) :: hi(n,n)
+  real    ( kind = rkx ) :: hr(n,n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: iend
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: ia(igh)
+  integer ( kind = 4 ) :: itn
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jj
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: ll
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: nn
+  real    ( kind = rkx ) :: norm
+  real    ( kind = rkx ) :: si
+  real    ( kind = rkx ) :: sr
+  real    ( kind = rkx ) :: ti
+  real    ( kind = rkx ) :: tr
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: wi(n)
+  real    ( kind = rkx ) :: wr(n)
+  real    ( kind = rkx ) :: xi
+  real    ( kind = rkx ) :: xr
+  real    ( kind = rkx ) :: yi
+  real    ( kind = rkx ) :: yr
+  real    ( kind = rkx ) :: zi(n,n)
+  real    ( kind = rkx ) :: zr(n,n)
+  real    ( kind = rkx ) :: zzi
+  real    ( kind = rkx ) :: zzr
 
   ierr = 0
 !
@@ -4434,38 +4434,38 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !       eigenvalue is being sought.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) en
-  integer ( kind = 4 ) enm1
-  real    ( kind = rkx ) hi(n,n)
-  real    ( kind = rkx ) hr(n,n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) itn
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) ll
-  integer ( kind = 4 ) low
-  real    ( kind = rkx ) norm
-  real    ( kind = rkx ) si
-  real    ( kind = rkx ) sr
-  real    ( kind = rkx ) ti
-  real    ( kind = rkx ) tr
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) wi(n)
-  real    ( kind = rkx ) wr(n)
-  real    ( kind = rkx ) xi
-  real    ( kind = rkx ) xr
-  real    ( kind = rkx ) yi
-  real    ( kind = rkx ) yr
-  real    ( kind = rkx ) zzi
-  real    ( kind = rkx ) zzr
+  integer ( kind = 4 ) :: en
+  integer ( kind = 4 ) :: enm1
+  real    ( kind = rkx ) :: hi(n,n)
+  real    ( kind = rkx ) :: hr(n,n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: itn
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: ll
+  integer ( kind = 4 ) :: low
+  real    ( kind = rkx ) :: norm
+  real    ( kind = rkx ) :: si
+  real    ( kind = rkx ) :: sr
+  real    ( kind = rkx ) :: ti
+  real    ( kind = rkx ) :: tr
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: wi(n)
+  real    ( kind = rkx ) :: wr(n)
+  real    ( kind = rkx ) :: xi
+  real    ( kind = rkx ) :: xr
+  real    ( kind = rkx ) :: yi
+  real    ( kind = rkx ) :: yr
+  real    ( kind = rkx ) :: zzi
+  real    ( kind = rkx ) :: zzr
 
   ierr = 0
 !
@@ -4762,48 +4762,48 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) en
-  integer ( kind = 4 ) enm1
-  real    ( kind = rkx ) hi(n,n)
-  real    ( kind = rkx ) hr(n,n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) iend
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) itn
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jj
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) ll
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) nn
-  real    ( kind = rkx ) norm
-  real    ( kind = rkx ) orti(igh)
-  real    ( kind = rkx ) ortr(igh)
-  real    ( kind = rkx ) si
-  real    ( kind = rkx ) sr
-  real    ( kind = rkx ) ti
-  real    ( kind = rkx ) tr
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) wi(n)
-  real    ( kind = rkx ) wr(n)
-  real    ( kind = rkx ) xi
-  real    ( kind = rkx ) xr
-  real    ( kind = rkx ) yi
-  real    ( kind = rkx ) yr
-  real    ( kind = rkx ) zi(n,n)
-  real    ( kind = rkx ) zr(n,n)
-  real    ( kind = rkx ) zzi
-  real    ( kind = rkx ) zzr
+  integer ( kind = 4 ) :: en
+  integer ( kind = 4 ) :: enm1
+  real    ( kind = rkx ) :: hi(n,n)
+  real    ( kind = rkx ) :: hr(n,n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: iend
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: itn
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jj
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: ll
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: nn
+  real    ( kind = rkx ) :: norm
+  real    ( kind = rkx ) :: orti(igh)
+  real    ( kind = rkx ) :: ortr(igh)
+  real    ( kind = rkx ) :: si
+  real    ( kind = rkx ) :: sr
+  real    ( kind = rkx ) :: ti
+  real    ( kind = rkx ) :: tr
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: wi(n)
+  real    ( kind = rkx ) :: wr(n)
+  real    ( kind = rkx ) :: xi
+  real    ( kind = rkx ) :: xr
+  real    ( kind = rkx ) :: yi
+  real    ( kind = rkx ) :: yr
+  real    ( kind = rkx ) :: zi(n,n)
+  real    ( kind = rkx ) :: zr(n,n)
+  real    ( kind = rkx ) :: zzi
+  real    ( kind = rkx ) :: zzr
 
   ierr = 0
 !
@@ -5315,27 +5315,27 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 !    parts of the eigenvectors to be back transformed.  On output, the real
 !    and imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) ai(n,igh)
-  real    ( kind = rkx ) ar(n,igh)
-  real    ( kind = rkx ) gi
-  real    ( kind = rkx ) gr
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) la
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) mp
-  real    ( kind = rkx ) orti(igh)
-  real    ( kind = rkx ) ortr(igh)
-  real    ( kind = rkx ) zi(n,m)
-  real    ( kind = rkx ) zr(n,m)
+  real    ( kind = rkx ) :: ai(n,igh)
+  real    ( kind = rkx ) :: ar(n,igh)
+  real    ( kind = rkx ) :: gi
+  real    ( kind = rkx ) :: gr
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: la
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: mp
+  real    ( kind = rkx ) :: orti(igh)
+  real    ( kind = rkx ) :: ortr(igh)
+  real    ( kind = rkx ) :: zi(n,m)
+  real    ( kind = rkx ) :: zr(n,m)
 
   if ( m == 0 ) then
     return
@@ -5440,27 +5440,27 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 !    Output, real ( kind = rkx ) ORTR(IGH), ORTI(IGH), further information about the
 !    transformations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) ai(n,n)
-  real    ( kind = rkx ) ar(n,n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) fi
-  real    ( kind = rkx ) fr
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jj
-  integer ( kind = 4 ) la
-  integer ( kind = 4 ) m,mp,low
-  real    ( kind = rkx ) orti(igh)
-  real    ( kind = rkx ) ortr(igh)
-  real    ( kind = rkx ) xscale
+  real    ( kind = rkx ) :: ai(n,n)
+  real    ( kind = rkx ) :: ar(n,n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: fi
+  real    ( kind = rkx ) :: fr
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jj
+  integer ( kind = 4 ) :: la
+  integer ( kind = 4 ) :: m,mp,low
+  real    ( kind = rkx ) :: orti(igh)
+  real    ( kind = rkx ) :: ortr(igh)
+  real    ( kind = rkx ) :: xscale
 
   la = igh - 1
 
@@ -5610,15 +5610,15 @@ subroutine csroot ( xr, xi, yr, yi )
 !
 !    Output, real ( kind = rkx ) YR, YI, the real and imaginary parts of the square root.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) ti
-  real    ( kind = rkx ) tr
-  real    ( kind = rkx ) xi
-  real    ( kind = rkx ) xr
-  real    ( kind = rkx ) yi
-  real    ( kind = rkx ) yr
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: ti
+  real    ( kind = rkx ) :: tr
+  real    ( kind = rkx ) :: xi
+  real    ( kind = rkx ) :: xr
+  real    ( kind = rkx ) :: yi
+  real    ( kind = rkx ) :: yr
 
   tr = xr
   ti = xi
@@ -5700,22 +5700,22 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
 !    of the eigenvectors to be back transformed.  On output, the real and
 !    imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,igh)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ind(igh)
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) la
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) mp
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: a(n,igh)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ind(igh)
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: la
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: mp
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: z(n,m)
 
   if ( m == 0 ) then
     return
@@ -5820,20 +5820,20 @@ subroutine elmhes ( n, low, igh, a, ind )
 !    Output, integer ( kind = 4 ) IND(N), contains information on the rows and columns
 !    interchanged in the reduction.  Only elements LOW through IGH are used.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ind(igh)
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) la
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) m
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) y
+  real    ( kind = rkx ) :: a(n,n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ind(igh)
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: la
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: m
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: y
 
   la = igh - 1
 
@@ -5957,19 +5957,19 @@ subroutine eltran ( n, low, igh, a, ind, z )
 !    Output, real ( kind = rkx ) Z(N,N), the transformation matrix produced in the
 !    reduction by ELMHES.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,igh)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ind(igh)
-  integer ( kind = 4 ) kl
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) mp
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,igh)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ind(igh)
+  integer ( kind = 4 ) :: kl
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: mp
+  real    ( kind = rkx ) :: z(n,n)
 !
 !  Initialize Z to the identity matrix.
 !
@@ -6079,16 +6079,16 @@ subroutine figi ( n, t, d, e, e2, ierr )
 !      this case, the eigenvectors of the symmetric matrix are not simply
 !      related to those of T and should not be sought.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  real    ( kind = rkx ) t(n,3)
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  real    ( kind = rkx ) :: t(n,3)
 
   ierr = 0
 
@@ -6194,17 +6194,17 @@ subroutine figi2 ( n, t, d, e, z, ierr )
 !    N+I, if T(I,1) * T(I-1,3) is negative,
 !    2*N+I, if T(I,1) * T(I-1,3) is zero with one factor non-zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  real    ( kind = rkx ) t(n,3)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  real    ( kind = rkx ) :: t(n,3)
+  real    ( kind = rkx ) :: z(n,n)
 
   ierr = 0
 
@@ -6323,41 +6323,41 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 !    J, the limit of 30*N iterations was reached while searching for
 !      the J-th eigenvalue.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) en
-  integer ( kind = 4 ) enm2
-  real    ( kind = rkx ) h(n,n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) itn
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) ll
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) na
-  real    ( kind = rkx ) norm
-  logical              notlas
-  real    ( kind = rkx ) p
-  real    ( kind = rkx ) q
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) t
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) w
-  real    ( kind = rkx ) wi(n)
-  real    ( kind = rkx ) wr(n)
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) y
-  real    ( kind = rkx ) zz
+  integer ( kind = 4 ) :: en
+  integer ( kind = 4 ) :: enm2
+  real    ( kind = rkx ) :: h(n,n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: itn
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: ll
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: na
+  real    ( kind = rkx ) :: norm
+  logical              :: notlas
+  real    ( kind = rkx ) :: p
+  real    ( kind = rkx ) :: q
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: t
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: w
+  real    ( kind = rkx ) :: wi(n)
+  real    ( kind = rkx ) :: wr(n)
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: y
+  real    ( kind = rkx ) :: zz
 
   ierr = 0
   norm = 0.0_rkx
@@ -6706,49 +6706,49 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  integer ( kind = 4 ) en
-  integer ( kind = 4 ) enm2
-  real    ( kind = rkx ) h(n,n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) itn
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jj
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) ll
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) na
-  integer ( kind = 4 ) nn
-  real    ( kind = rkx ) norm
-  logical              notlas
-  real    ( kind = rkx ) p
-  real    ( kind = rkx ) q
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) ra
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) sa
-  real    ( kind = rkx ) t
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) vi
-  real    ( kind = rkx ) vr
-  real    ( kind = rkx ) w
-  real    ( kind = rkx ) wi(n)
-  real    ( kind = rkx ) wr(n)
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) y
-  real    ( kind = rkx ) z(n,n)
-  real    ( kind = rkx ) zz
+  integer ( kind = 4 ) :: en
+  integer ( kind = 4 ) :: enm2
+  real    ( kind = rkx ) :: h(n,n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: itn
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jj
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: ll
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: na
+  integer ( kind = 4 ) :: nn
+  real    ( kind = rkx ) :: norm
+  logical              :: notlas
+  real    ( kind = rkx ) :: p
+  real    ( kind = rkx ) :: q
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: ra
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: sa
+  real    ( kind = rkx ) :: t
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: vi
+  real    ( kind = rkx ) :: vr
+  real    ( kind = rkx ) :: w
+  real    ( kind = rkx ) :: wi(n)
+  real    ( kind = rkx ) :: wr(n)
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: y
+  real    ( kind = rkx ) :: z(n,n)
+  real    ( kind = rkx ) :: zz
 
   ierr = 0
   norm = 0.0_rkx
@@ -7369,22 +7369,22 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
 !    eigenvectors to be back transformed.  On output, ZR and ZI contain
 !    the real and imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) si
-  real    ( kind = rkx ) tau(2,n)
-  real    ( kind = rkx ) zi(n,m)
-  real    ( kind = rkx ) zr(n,m)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: si
+  real    ( kind = rkx ) :: tau(2,n)
+  real    ( kind = rkx ) :: zi(n,m)
+  real    ( kind = rkx ) :: zr(n,m)
 
   if ( m == 0 ) then
     return
@@ -7494,23 +7494,23 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
 !    eigenvectors to be back transformed.  On output, ZR and ZI contain
 !    the real and imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) ai(n,n)
-  real    ( kind = rkx ) ar(n,n)
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) si
-  real    ( kind = rkx ) tau(2,n)
-  real    ( kind = rkx ) zi(n,m)
-  real    ( kind = rkx ) zr(n,m)
+  real    ( kind = rkx ) :: ai(n,n)
+  real    ( kind = rkx ) :: ar(n,n)
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: si
+  real    ( kind = rkx ) :: tau(2,n)
+  real    ( kind = rkx ) :: zi(n,m)
+  real    ( kind = rkx ) :: zr(n,m)
 
   if ( m == 0 ) then
     return
@@ -7625,28 +7625,28 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !    Output, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) fi
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) gi
-  real    ( kind = rkx ) h
-  real    ( kind = rkx ) hh
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  real    ( kind = rkx ) xscale
-  real    ( kind = rkx ) si
-  real    ( kind = rkx ) tau(2,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: fi
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: gi
+  real    ( kind = rkx ) :: h
+  real    ( kind = rkx ) :: hh
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  real    ( kind = rkx ) :: xscale
+  real    ( kind = rkx ) :: si
+  real    ( kind = rkx ) :: tau(2,n)
 
   tau(1,n) = 1.0_rkx
   tau(2,n) = 0.0_rkx
@@ -7841,29 +7841,29 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !    Output, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) ai(n,n)
-  real    ( kind = rkx ) ar(n,n)
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) fi
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) gi
-  real    ( kind = rkx ) h
-  real    ( kind = rkx ) hh
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  real    ( kind = rkx ) xscale
-  real    ( kind = rkx ) si
-  real    ( kind = rkx ) tau(2,n)
+  real    ( kind = rkx ) :: ai(n,n)
+  real    ( kind = rkx ) :: ar(n,n)
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: fi
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: gi
+  real    ( kind = rkx ) :: h
+  real    ( kind = rkx ) :: hh
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  real    ( kind = rkx ) :: xscale
+  real    ( kind = rkx ) :: si
+  real    ( kind = rkx ) :: tau(2,n)
 
   tau(1,n) = 1.0_rkx
   tau(2,n) = 0.0_rkx
@@ -8053,28 +8053,28 @@ subroutine imtql1 ( n, d, e, ierr )
 !    0, normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) b
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mml
-  real    ( kind = rkx ) p
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) :: b
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mml
+  real    ( kind = rkx ) :: p
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
 
   ierr = 0
 
@@ -8256,31 +8256,31 @@ subroutine imtql2 ( n, d, e, z, ierr )
 !    0, for normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) b
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mml
-  real    ( kind = rkx ) p
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) t(n)
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: b
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mml
+  real    ( kind = rkx ) :: p
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: t(n)
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: z(n,n)
 
   ierr = 0
 
@@ -8482,34 +8482,34 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 !    0, for normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) b
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) ind(n)
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mml
-  real    ( kind = rkx ) p
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) rv1(n)
-  real    ( kind = rkx ) s
-  integer ( kind = 4 ) tag
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) :: b
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: ind(n)
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mml
+  real    ( kind = rkx ) :: p
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: rv1(n)
+  real    ( kind = rkx ) :: s
+  integer ( kind = 4 ) :: tag
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: w(n)
 
   ierr = 0
   k = 0
@@ -8715,45 +8715,45 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !    -K, if the iteration corresponding to the K-th value fails,
 !    -(N+K), if both error situations occur.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) eps3
-  real    ( kind = rkx ) growto
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  real    ( kind = rkx ) ilambd
-  integer ( kind = 4 ) ip
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) km1
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) mp
-  integer ( kind = 4 ) n1
-  real    ( kind = rkx ) norm
-  real    ( kind = rkx ) normv
-  integer ( kind = 4 ) ns
-  real    ( kind = rkx ) rlambd
-  real    ( kind = rkx ) rm1(n,n)
-  real    ( kind = rkx ) rv1(n)
-  real    ( kind = rkx ) rv2(n)
-  integer ( kind = 4 ) s
-  logical              select(n)
-  real    ( kind = rkx ) t
-  integer ( kind = 4 ) uk
-  real    ( kind = rkx ) ukroot
-  real    ( kind = rkx ) w
-  real    ( kind = rkx ) wi(n)
-  real    ( kind = rkx ) wr(n)
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) y
-  real    ( kind = rkx ) z(n,mm)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: eps3
+  real    ( kind = rkx ) :: growto
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  real    ( kind = rkx ) :: ilambd
+  integer ( kind = 4 ) :: ip
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: km1
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: mp
+  integer ( kind = 4 ) :: n1
+  real    ( kind = rkx ) :: norm
+  real    ( kind = rkx ) :: normv
+  integer ( kind = 4 ) :: ns
+  real    ( kind = rkx ) :: rlambd
+  real    ( kind = rkx ) :: rm1(n,n)
+  real    ( kind = rkx ) :: rv1(n)
+  real    ( kind = rkx ) :: rv2(n)
+  integer ( kind = 4 ) :: s
+  logical              :: select(n)
+  real    ( kind = rkx ) :: t
+  integer ( kind = 4 ) :: uk
+  real    ( kind = rkx ) :: ukroot
+  real    ( kind = rkx ) :: w
+  real    ( kind = rkx ) :: wi(n)
+  real    ( kind = rkx ) :: wr(n)
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: y
+  real    ( kind = rkx ) :: z(n,mm)
 
   ierr = 0
   uk = 0
@@ -9274,40 +9274,40 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !    0, for normal return,
 !    K, if the K-th singular value has not been determined after 30 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) ip
-  integer ( kind = 4 ) n
-  integer ( kind = 4 ) nm
+  integer ( kind = 4 ) :: ip
+  integer ( kind = 4 ) :: n
+  integer ( kind = 4 ) :: nm
 
-  real    ( kind = rkx ) a(nm,n)
-  real    ( kind = rkx ) b(nm,ip)
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) i1
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) k1
-  integer ( kind = 4 ) kk
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) l1
-  integer ( kind = 4 ) ll
-  integer ( kind = 4 ) m
-  real    ( kind = rkx ) rv1(n)
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) xscale
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) y
-  real    ( kind = rkx ) z
+  real    ( kind = rkx ) :: a(nm,n)
+  real    ( kind = rkx ) :: b(nm,ip)
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: i1
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: k1
+  integer ( kind = 4 ) :: kk
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: l1
+  integer ( kind = 4 ) :: ll
+  integer ( kind = 4 ) :: m
+  real    ( kind = rkx ) :: rv1(n)
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: xscale
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: y
+  real    ( kind = rkx ) :: z
 
   ierr = 0
 !
@@ -9659,20 +9659,20 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
 !    the eigenvectors to be back transformed in the first M columns.  On
 !    output, the real and imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,igh)
-  real    ( kind = rkx ) g
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) mp
-  real    ( kind = rkx ) ort(igh)
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: a(n,igh)
+  real    ( kind = rkx ) :: g
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: mp
+  real    ( kind = rkx ) :: ort(igh)
+  real    ( kind = rkx ) :: z(n,m)
 
   if ( m == 0 ) then
     return
@@ -9751,25 +9751,25 @@ subroutine orthes ( n, low, igh, a, ort )
 !    Output, real ( kind = rkx ) ORT(IGH), contains further information about the
 !    transformations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jj
-  integer ( kind = 4 ) la
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mp
-  real    ( kind = rkx ) ort(igh)
-  real    ( kind = rkx ) xscale
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jj
+  integer ( kind = 4 ) :: la
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mp
+  real    ( kind = rkx ) :: ort(igh)
+  real    ( kind = rkx ) :: xscale
 
   la = igh - 1
 
@@ -9903,21 +9903,21 @@ subroutine ortran ( n, low, igh, a, ort, z )
 !    Output, real ( kind = rkx ) Z(N,N), contains the transformation matrix produced in the
 !    reduction by ORTHES.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) igh
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: igh
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,igh)
-  real    ( kind = rkx ) g
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) kl
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) mp
-  real    ( kind = rkx ) ort(igh)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,igh)
+  real    ( kind = rkx ) :: g
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: kl
+  integer ( kind = 4 ) :: low
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: mp
+  real    ( kind = rkx ) :: ort(igh)
+  real    ( kind = rkx ) :: z(n,n)
 !
 !  Initialize Z to the identity matrix.
 !
@@ -10023,30 +10023,30 @@ subroutine qzhes ( n, a, b, matz, z )
 !    Output, real ( kind = rkx ) Z(N,N), contains the product of the right hand
 !    transformations if MATZ is TRUE.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) b(n,n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) l1
-  integer ( kind = 4 ) lb
-  logical              matz
-  integer ( kind = 4 ) nk1
-  integer ( kind = 4 ) nm1
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) rho
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) t
-  real    ( kind = rkx ) u1
-  real    ( kind = rkx ) u2
-  real    ( kind = rkx ) v1
-  real    ( kind = rkx ) v2
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: b(n,n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: l1
+  integer ( kind = 4 ) :: lb
+  logical              :: matz
+  integer ( kind = 4 ) :: nk1
+  integer ( kind = 4 ) :: nm1
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: rho
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: t
+  real    ( kind = rkx ) :: u1
+  real    ( kind = rkx ) :: u2
+  real    ( kind = rkx ) :: v1
+  real    ( kind = rkx ) :: v2
+  real    ( kind = rkx ) :: z(n,n)
 !
 !  Set Z to the identity matrix.
 !
@@ -10281,70 +10281,70 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) a1
-  real    ( kind = rkx ) a11
-  real    ( kind = rkx ) a12
-  real    ( kind = rkx ) a2
-  real    ( kind = rkx ) a21
-  real    ( kind = rkx ) a22
-  real    ( kind = rkx ) a3
-  real    ( kind = rkx ) a33
-  real    ( kind = rkx ) a34
-  real    ( kind = rkx ) a43
-  real    ( kind = rkx ) a44
-  real    ( kind = rkx ) ani
-  real    ( kind = rkx ) anorm
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) b11
-  real    ( kind = rkx ) b12
-  real    ( kind = rkx ) b22
-  real    ( kind = rkx ) b33
-  real    ( kind = rkx ) b34
-  real    ( kind = rkx ) b44
-  real    ( kind = rkx ) bni
-  real    ( kind = rkx ) bnorm
-  integer ( kind = 4 ) en
-  integer ( kind = 4 ) enm2
-  integer ( kind = 4 ) enorn
-  real    ( kind = rkx ) ep
-  real    ( kind = rkx ) eps1
-  real    ( kind = rkx ) epsa
-  real    ( kind = rkx ) epsb
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ish
-  integer ( kind = 4 ) itn
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) k1
-  integer ( kind = 4 ) k2
-  integer ( kind = 4 ) km1
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) l1
-  integer ( kind = 4 ) ld
-  integer ( kind = 4 ) ll
-  integer ( kind = 4 ) lm1
-  integer ( kind = 4 ) lor1
-  logical              matz
-  integer ( kind = 4 ) na
-  logical              notlas
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) sh
-  real    ( kind = rkx ) t
-  real    ( kind = rkx ) u1
-  real    ( kind = rkx ) u2
-  real    ( kind = rkx ) u3
-  real    ( kind = rkx ) v1
-  real    ( kind = rkx ) v2
-  real    ( kind = rkx ) v3
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: a1
+  real    ( kind = rkx ) :: a11
+  real    ( kind = rkx ) :: a12
+  real    ( kind = rkx ) :: a2
+  real    ( kind = rkx ) :: a21
+  real    ( kind = rkx ) :: a22
+  real    ( kind = rkx ) :: a3
+  real    ( kind = rkx ) :: a33
+  real    ( kind = rkx ) :: a34
+  real    ( kind = rkx ) :: a43
+  real    ( kind = rkx ) :: a44
+  real    ( kind = rkx ) :: ani
+  real    ( kind = rkx ) :: anorm
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: b11
+  real    ( kind = rkx ) :: b12
+  real    ( kind = rkx ) :: b22
+  real    ( kind = rkx ) :: b33
+  real    ( kind = rkx ) :: b34
+  real    ( kind = rkx ) :: b44
+  real    ( kind = rkx ) :: bni
+  real    ( kind = rkx ) :: bnorm
+  integer ( kind = 4 ) :: en
+  integer ( kind = 4 ) :: enm2
+  integer ( kind = 4 ) :: enorn
+  real    ( kind = rkx ) :: ep
+  real    ( kind = rkx ) :: eps1
+  real    ( kind = rkx ) :: epsa
+  real    ( kind = rkx ) :: epsb
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ish
+  integer ( kind = 4 ) :: itn
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: k1
+  integer ( kind = 4 ) :: k2
+  integer ( kind = 4 ) :: km1
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: l1
+  integer ( kind = 4 ) :: ld
+  integer ( kind = 4 ) :: ll
+  integer ( kind = 4 ) :: lm1
+  integer ( kind = 4 ) :: lor1
+  logical              :: matz
+  integer ( kind = 4 ) :: na
+  logical              :: notlas
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: sh
+  real    ( kind = rkx ) :: t
+  real    ( kind = rkx ) :: u1
+  real    ( kind = rkx ) :: u2
+  real    ( kind = rkx ) :: u3
+  real    ( kind = rkx ) :: v1
+  real    ( kind = rkx ) :: v2
+  real    ( kind = rkx ) :: v3
+  real    ( kind = rkx ) :: z(n,n)
 
   ierr = 0
 !
@@ -10835,66 +10835,66 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 !    and QZIT, if performed, or else the identity matrix.  On output,
 !    the product of the right hand transformations for all three steps.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) a1
-  real    ( kind = rkx ) a11
-  real    ( kind = rkx ) a11i
-  real    ( kind = rkx ) a11r
-  real    ( kind = rkx ) a12
-  real    ( kind = rkx ) a12i
-  real    ( kind = rkx ) a12r
-  real    ( kind = rkx ) a1i
-  real    ( kind = rkx ) a2
-  real    ( kind = rkx ) a21
-  real    ( kind = rkx ) a22
-  real    ( kind = rkx ) a22i
-  real    ( kind = rkx ) a22r
-  real    ( kind = rkx ) a2i
-  real    ( kind = rkx ) an
-  real    ( kind = rkx ) alfi(n)
-  real    ( kind = rkx ) alfr(n)
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) b11
-  real    ( kind = rkx ) b12
-  real    ( kind = rkx ) b22
-  real    ( kind = rkx ) beta(n)
-  real    ( kind = rkx ) bn
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) cq
-  real    ( kind = rkx ) cz
-  real    ( kind = rkx ) d
-  real    ( kind = rkx ) di
-  real    ( kind = rkx ) dr
-  real    ( kind = rkx ) e
-  real    ( kind = rkx ) ei
-  integer ( kind = 4 ) en
-  real    ( kind = rkx ) epsb
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) isw
-  integer ( kind = 4 ) j
-  logical              matz
-  integer ( kind = 4 ) na
-  integer ( kind = 4 ) nn
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) sqi
-  real    ( kind = rkx ) sqr
-  real    ( kind = rkx ) ssi
-  real    ( kind = rkx ) ssr
-  real    ( kind = rkx ) szi
-  real    ( kind = rkx ) szr
-  real    ( kind = rkx ) t
-  real    ( kind = rkx ) ti
-  real    ( kind = rkx ) tr
-  real    ( kind = rkx ) u1
-  real    ( kind = rkx ) u2
-  real    ( kind = rkx ) v1
-  real    ( kind = rkx ) v2
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: a1
+  real    ( kind = rkx ) :: a11
+  real    ( kind = rkx ) :: a11i
+  real    ( kind = rkx ) :: a11r
+  real    ( kind = rkx ) :: a12
+  real    ( kind = rkx ) :: a12i
+  real    ( kind = rkx ) :: a12r
+  real    ( kind = rkx ) :: a1i
+  real    ( kind = rkx ) :: a2
+  real    ( kind = rkx ) :: a21
+  real    ( kind = rkx ) :: a22
+  real    ( kind = rkx ) :: a22i
+  real    ( kind = rkx ) :: a22r
+  real    ( kind = rkx ) :: a2i
+  real    ( kind = rkx ) :: an
+  real    ( kind = rkx ) :: alfi(n)
+  real    ( kind = rkx ) :: alfr(n)
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: b11
+  real    ( kind = rkx ) :: b12
+  real    ( kind = rkx ) :: b22
+  real    ( kind = rkx ) :: beta(n)
+  real    ( kind = rkx ) :: bn
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: cq
+  real    ( kind = rkx ) :: cz
+  real    ( kind = rkx ) :: d
+  real    ( kind = rkx ) :: di
+  real    ( kind = rkx ) :: dr
+  real    ( kind = rkx ) :: e
+  real    ( kind = rkx ) :: ei
+  integer ( kind = 4 ) :: en
+  real    ( kind = rkx ) :: epsb
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: isw
+  integer ( kind = 4 ) :: j
+  logical              :: matz
+  integer ( kind = 4 ) :: na
+  integer ( kind = 4 ) :: nn
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: sqi
+  real    ( kind = rkx ) :: sqr
+  real    ( kind = rkx ) :: ssi
+  real    ( kind = rkx ) :: ssr
+  real    ( kind = rkx ) :: szi
+  real    ( kind = rkx ) :: szr
+  real    ( kind = rkx ) :: t
+  real    ( kind = rkx ) :: ti
+  real    ( kind = rkx ) :: tr
+  real    ( kind = rkx ) :: u1
+  real    ( kind = rkx ) :: u2
+  real    ( kind = rkx ) :: v1
+  real    ( kind = rkx ) :: v2
+  real    ( kind = rkx ) :: z(n,n)
 
   epsb = b(n,1)
   isw = 1
@@ -11257,53 +11257,53 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !    Each eigenvector is normalized so that the modulus of its largest
 !    component is 1.0_rkx .
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) alfi(n)
-  real    ( kind = rkx ) alfm
-  real    ( kind = rkx ) alfr(n)
-  real    ( kind = rkx ) almi
-  real    ( kind = rkx ) almr
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) beta(n)
-  real    ( kind = rkx ) betm
-  real    ( kind = rkx ) d
-  real    ( kind = rkx ) di
-  real    ( kind = rkx ) dr
-  integer ( kind = 4 ) en
-  integer ( kind = 4 ) enm2
-  real    ( kind = rkx ) epsb
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) isw
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jj
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) na
-  integer ( kind = 4 ) nn
-  real    ( kind = rkx ) q
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) ra
-  real    ( kind = rkx ) rr
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) sa
-  real    ( kind = rkx ) t
-  real    ( kind = rkx ) t1
-  real    ( kind = rkx ) t2
-  real    ( kind = rkx ) ti
-  real    ( kind = rkx ) tr
-  real    ( kind = rkx ) w
-  real    ( kind = rkx ) w1
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) x1
-  real    ( kind = rkx ) y
-  real    ( kind = rkx ) z(n,n)
-  real    ( kind = rkx ) z1
-  real    ( kind = rkx ) zz
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: alfi(n)
+  real    ( kind = rkx ) :: alfm
+  real    ( kind = rkx ) :: alfr(n)
+  real    ( kind = rkx ) :: almi
+  real    ( kind = rkx ) :: almr
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: beta(n)
+  real    ( kind = rkx ) :: betm
+  real    ( kind = rkx ) :: d
+  real    ( kind = rkx ) :: di
+  real    ( kind = rkx ) :: dr
+  integer ( kind = 4 ) :: en
+  integer ( kind = 4 ) :: enm2
+  real    ( kind = rkx ) :: epsb
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: isw
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jj
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: na
+  integer ( kind = 4 ) :: nn
+  real    ( kind = rkx ) :: q
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: ra
+  real    ( kind = rkx ) :: rr
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: sa
+  real    ( kind = rkx ) :: t
+  real    ( kind = rkx ) :: t1
+  real    ( kind = rkx ) :: t2
+  real    ( kind = rkx ) :: ti
+  real    ( kind = rkx ) :: tr
+  real    ( kind = rkx ) :: w
+  real    ( kind = rkx ) :: w1
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: x1
+  real    ( kind = rkx ) :: y
+  real    ( kind = rkx ) :: z(n,n)
+  real    ( kind = rkx ) :: z1
+  real    ( kind = rkx ) :: zz
 
   epsb = b(n,1)
   isw = 1
@@ -11609,11 +11609,11 @@ subroutine r8_swap ( x, y )
 !    Input/output, real ( kind = rkx ) X, Y.  On output, the values of X and
 !    Y have been interchanged.
 !
-  implicit none
+  implicit none (type, external)
 
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) y
-  real    ( kind = rkx ) z
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: y
+  real    ( kind = rkx ) :: z
 
   z = x
   x = y
@@ -11654,13 +11654,13 @@ subroutine r8mat_print ( m, n, a, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer   ( kind = 4 ) m
-  integer   ( kind = 4 ) n
+  integer   ( kind = 4 ) :: m
+  integer   ( kind = 4 ) :: n
 
-  real      ( kind = rkx ) a(m,n)
-  character ( len = * )  title
+  real      ( kind = rkx ) :: a(m,n)
+  character ( len = * )  :: title
 
   call r8mat_print_some ( m, n, a, 1, 1, m, n, title )
 
@@ -11701,27 +11701,27 @@ subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none
+  implicit none (type, external)
 
   integer   ( kind = 4 ), parameter :: incx = 5
-  integer   ( kind = 4 ) m
-  integer   ( kind = 4 ) n
+  integer   ( kind = 4 ) :: m
+  integer   ( kind = 4 ) :: n
 
-  real      ( kind = rkx ) a(m,n)
-  character ( len = 14 ) ctemp(incx)
-  integer   ( kind = 4 ) i
-  integer   ( kind = 4 ) i2hi
-  integer   ( kind = 4 ) i2lo
-  integer   ( kind = 4 ) ihi
-  integer   ( kind = 4 ) ilo
-  integer   ( kind = 4 ) inc
-  integer   ( kind = 4 ) j
-  integer   ( kind = 4 ) j2
-  integer   ( kind = 4 ) j2hi
-  integer   ( kind = 4 ) j2lo
-  integer   ( kind = 4 ) jhi
-  integer   ( kind = 4 ) jlo
-  character ( len = * )  title
+  real      ( kind = rkx ) :: a(m,n)
+  character ( len = 14 ) :: ctemp(incx)
+  integer   ( kind = 4 ) :: i
+  integer   ( kind = 4 ) :: i2hi
+  integer   ( kind = 4 ) :: i2lo
+  integer   ( kind = 4 ) :: ihi
+  integer   ( kind = 4 ) :: ilo
+  integer   ( kind = 4 ) :: inc
+  integer   ( kind = 4 ) :: j
+  integer   ( kind = 4 ) :: j2
+  integer   ( kind = 4 ) :: j2hi
+  integer   ( kind = 4 ) :: j2lo
+  integer   ( kind = 4 ) :: jhi
+  integer   ( kind = 4 ) :: jlo
+  character ( len = * )  :: title
 
   write ( *, '(a)' ) ' '
   write ( *, '(a)' ) trim ( title )
@@ -11797,13 +11797,13 @@ subroutine r8vec_print ( n, a, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer   ( kind = 4 ) n
+  integer   ( kind = 4 ) :: n
 
-  real      ( kind = rkx ) a(n)
-  integer   ( kind = 4 ) i
-  character ( len = * ) title
+  real      ( kind = rkx ) :: a(n)
+  integer   ( kind = 4 ) :: i
+  character ( len = * ) :: title
 
   write ( *, '(a)' ) ' '
   write ( *, '(a)' ) trim ( title )
@@ -11842,14 +11842,14 @@ subroutine r8vec2_print ( n, a1, a2, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer   ( kind = 4 ) n
+  integer   ( kind = 4 ) :: n
 
-  real      ( kind = rkx ) a1(n)
-  real      ( kind = rkx ) a2(n)
-  integer   ( kind = 4 ) i
-  character ( len = * )  title
+  real      ( kind = rkx ) :: a1(n)
+  real      ( kind = rkx ) :: a2(n)
+  integer   ( kind = 4 ) :: i
+  character ( len = * )  :: title
 
   write ( *, '(a)' ) ' '
   write ( *, '(a)' ) trim ( title )
@@ -11977,37 +11977,37 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !    5*N+K, if successive iterates to the K-th eigenvalue are not monotone
 !      increasing, where K refers to the last such occurrence.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) bd(n)
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) delta
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) ep
-  real    ( kind = rkx ) eps1
-  real    ( kind = rkx ) err
-  real    ( kind = rkx ) f
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) idef
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) ind(n)
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jdef
-  integer ( kind = 4 ) jj
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) m
-  real    ( kind = rkx ) p
-  real    ( kind = rkx ) q
-  real    ( kind = rkx ) qp
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) tot
-  logical              type
-  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) :: bd(n)
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: delta
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: ep
+  real    ( kind = rkx ) :: eps1
+  real    ( kind = rkx ) :: err
+  real    ( kind = rkx ) :: f
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: idef
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: ind(n)
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jdef
+  integer ( kind = 4 ) :: jj
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: m
+  real    ( kind = rkx ) :: p
+  real    ( kind = rkx ) :: q
+  real    ( kind = rkx ) :: qp
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: tot
+  logical              :: type
+  real    ( kind = rkx ) :: w(n)
 
   ierr = 0
   jdef = idef
@@ -12255,16 +12255,16 @@ subroutine rebak ( n, b, dl, m, z )
 !    transformed in its first M columns.  On output, the transformed
 !    eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) dl(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: dl(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  real    ( kind = rkx ) :: z(n,m)
 
   do j = 1, m
     do i = n, 1, -1
@@ -12334,16 +12334,16 @@ subroutine rebakb ( n, b, dl, m, z )
 !    transformed in its first M columns.  On output, the transformed
 !    eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) dl(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: dl(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  real    ( kind = rkx ) :: z(n,m)
 
   do j = 1, m
 
@@ -12427,20 +12427,20 @@ subroutine reduc ( n, a, b, dl, ierr )
 !    0, for normal return,
 !    7*N+1, if B is not positive definite.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) dl(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) nn
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) y
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: dl(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: nn
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: y
 
   ierr = 0
   nn = abs ( n )
@@ -12593,20 +12593,20 @@ subroutine reduc2 ( n, a, b, dl, ierr )
 !    0, for normal return,
 !    7*N+1, if B is not positive definite.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) dl(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) nn
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) y
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: dl(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: nn
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: y
 
   ierr = 0
   nn = abs ( n )
@@ -12759,20 +12759,20 @@ subroutine rg ( n, a, wr, wi, matz, z, ierr )
 !    Output, integer ( kind = 4 ) IERR, an error completion code described in the
 !    documentation for HQR and HQR2.  The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) fv1(n)
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) is1
-  integer ( kind = 4 ) is2
-  integer ( kind = 4 ) iv1(n)
-  integer ( kind = 4 ) matz
-  real    ( kind = rkx ) wi(n)
-  real    ( kind = rkx ) wr(n)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: fv1(n)
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: is1
+  integer ( kind = 4 ) :: is2
+  integer ( kind = 4 ) :: iv1(n)
+  integer ( kind = 4 ) :: matz
+  real    ( kind = rkx ) :: wi(n)
+  real    ( kind = rkx ) :: wr(n)
+  real    ( kind = rkx ) :: z(n,n)
 
   call balanc ( n, a, is1, is2, fv1 )
 
@@ -12878,20 +12878,20 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 !    described in the documentation for QZIT.  The normal completion
 !    code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) alfi(n)
-  real    ( kind = rkx ) alfr(n)
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) beta(n)
-  real    ( kind = rkx ) eps1
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) matz
-  logical              tf
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: alfi(n)
+  real    ( kind = rkx ) :: alfr(n)
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: beta(n)
+  real    ( kind = rkx ) :: eps1
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: matz
+  logical              :: tf
+  real    ( kind = rkx ) :: z(n,n)
 
   eps1 = 0.0_rkx
 
@@ -12979,17 +12979,17 @@ subroutine rs ( n, a, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) fv1(n)
-  real    ( kind = rkx ) fv2(n)
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) matz
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: fv1(n)
+  real    ( kind = rkx ) :: fv2(n)
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: matz
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: z(n,n)
 
   if ( matz == 0 ) then
 
@@ -13078,19 +13078,19 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) mb
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: mb
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,mb)
-  real    ( kind = rkx ) fv1(n)
-  real    ( kind = rkx ) fv2(n)
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) matz
-  logical              tf
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,mb)
+  real    ( kind = rkx ) :: fv1(n)
+  real    ( kind = rkx ) :: fv2(n)
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: matz
+  logical              :: tf
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: z(n,n)
 
   if ( mb <= 0 ) then
     ierr = 12 * n
@@ -13190,18 +13190,18 @@ subroutine rsg ( n, a, b, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) fv1(n)
-  real    ( kind = rkx ) fv2(n)
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) matz
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: fv1(n)
+  real    ( kind = rkx ) :: fv2(n)
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: matz
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: z(n,n)
 
   call reduc ( n, a, b, fv2, ierr )
 
@@ -13308,18 +13308,18 @@ subroutine rsgab ( n, a, b, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) fv1(n)
-  real    ( kind = rkx ) fv2(n)
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) matz
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: fv1(n)
+  real    ( kind = rkx ) :: fv2(n)
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: matz
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: z(n,n)
 
   call reduc2 ( n, a, b, fv2, ierr )
 
@@ -13415,18 +13415,18 @@ subroutine rsgba ( n, a, b, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) b(n,n)
-  real    ( kind = rkx ) fv1(n)
-  real    ( kind = rkx ) fv2(n)
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) matz
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: b(n,n)
+  real    ( kind = rkx ) :: fv1(n)
+  real    ( kind = rkx ) :: fv2(n)
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: matz
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: z(n,n)
 
   call reduc2 ( n, a, b, fv2, ierr )
 
@@ -13518,19 +13518,19 @@ subroutine rsm ( n, a, w, m, z, ierr )
 !    completion code described in the documentation for TQLRAT, IMTQLV and
 !    TINVIT.  The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) fwork1(n)
-  real    ( kind = rkx ) fwork2(n)
-  real    ( kind = rkx ) fwork3(n)
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) iwork(n)
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: fwork1(n)
+  real    ( kind = rkx ) :: fwork2(n)
+  real    ( kind = rkx ) :: fwork3(n)
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: iwork(n)
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: z(n,m)
 
   if ( m <= 0 ) then
 
@@ -13618,19 +13618,19 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
-  integer ( kind = 4 ) nv
+  integer ( kind = 4 ) :: n
+  integer ( kind = 4 ) :: nv
 
-  real    ( kind = rkx ) a(nv)
-  real    ( kind = rkx ) fv1(n)
-  real    ( kind = rkx ) fv2(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) matz
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(nv)
+  real    ( kind = rkx ) :: fv1(n)
+  real    ( kind = rkx ) :: fv2(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: matz
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: z(n,n)
 
   if ( ( n * ( n + 1 ) ) / 2 > nv ) then
     ierr = 20 * n
@@ -13750,25 +13750,25 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 !    Input, logical TYPE, set to .true. if the smallest eigenvalues
 !    are to be found, or .false. if the largest ones are sought.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
-  integer ( kind = 4 ) nv
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
+  integer ( kind = 4 ) :: nv
 
-  real    ( kind = rkx ) a(nv)
-  real    ( kind = rkx ) bd(n)
-  real    ( kind = rkx ) eps1
-  integer ( kind = 4 ) idef
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) iwork(n)
-  integer ( kind = 4 ) matz
-  logical              type
-  real    ( kind = rkx ) w(m)
-  real    ( kind = rkx ) work1(n)
-  real    ( kind = rkx ) work2(n)
-  real    ( kind = rkx ) work3(n)
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: a(nv)
+  real    ( kind = rkx ) :: bd(n)
+  real    ( kind = rkx ) :: eps1
+  integer ( kind = 4 ) :: idef
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: iwork(n)
+  integer ( kind = 4 ) :: matz
+  logical              :: type
+  real    ( kind = rkx ) :: w(m)
+  real    ( kind = rkx ) :: work1(n)
+  real    ( kind = rkx ) :: work2(n)
+  real    ( kind = rkx ) :: work3(n)
+  real    ( kind = rkx ) :: z(n,m)
 !
 !  IDEF =
 !    -1 if the matrix is known to be negative definite,
@@ -13881,16 +13881,16 @@ subroutine rst ( n, w, e, matz, z, ierr )
 !    completion code described in the documentation for IMTQL1 and IMTQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) e(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) matz
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: e(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: matz
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: z(n,n)
 
   if ( matz == 0 ) then
 
@@ -13990,16 +13990,16 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !    completion code described in the documentation for IMTQL1 and IMTQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) fv1(n)
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) matz
-  real    ( kind = rkx ) a(n,3)
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: fv1(n)
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: matz
+  real    ( kind = rkx ) :: a(n,3)
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: z(n,n)
 
   if ( matz == 0 ) then
 
@@ -14132,41 +14132,41 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !    0, for normal return,
 !    K, if the K-th singular value has not been determined after 30 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(m,n)
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) i1
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) kk
-  integer ( kind = 4 ) k1
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) ll
-  integer ( kind = 4 ) l1
-  logical              matu
-  logical              matv
-  integer ( kind = 4 ) mn
-  real    ( kind = rkx ) rv1(n)
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) xscale
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) u(m,n)
-  real    ( kind = rkx ) v(n,n)
-  real    ( kind = rkx ) w(n)
-  real    ( kind = rkx ) x
-  real    ( kind = rkx ) y
-  real    ( kind = rkx ) z
+  real    ( kind = rkx ) :: a(m,n)
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: i1
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: kk
+  integer ( kind = 4 ) :: k1
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: ll
+  integer ( kind = 4 ) :: l1
+  logical              :: matu
+  logical              :: matv
+  integer ( kind = 4 ) :: mn
+  real    ( kind = rkx ) :: rv1(n)
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: xscale
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: u(m,n)
+  real    ( kind = rkx ) :: v(n,n)
+  real    ( kind = rkx ) :: w(n)
+  real    ( kind = rkx ) :: x
+  real    ( kind = rkx ) :: y
+  real    ( kind = rkx ) :: z
 
   ierr = 0
   u(1:m,1:n) = a(1:m,1:n)
@@ -14530,24 +14530,24 @@ subroutine timestamp ( )
 !
 !    None
 !
-  implicit none
+  implicit none (type, external)
 
-  character ( len = 8 )  ampm
-  integer   ( kind = 4 ) d
-  character ( len = 8 )  date
-  integer   ( kind = 4 ) h
-  integer   ( kind = 4 ) m
-  integer   ( kind = 4 ) mm
-  character ( len = 9 ), parameter, dimension(12) :: month = (/ &
+  character ( len = 8 )  :: ampm
+  integer   ( kind = 4 ) :: d
+  character ( len = 8 )  :: date
+  integer   ( kind = 4 ) :: h
+  integer   ( kind = 4 ) :: m
+  integer   ( kind = 4 ) :: mm
+  character ( len = 9 ), parameter, dimension(12) :: month = [ &
     'January  ', 'February ', 'March    ', 'April    ', &
     'May      ', 'June     ', 'July     ', 'August   ', &
-    'September', 'October  ', 'November ', 'December ' /)
-  integer   ( kind = 4 ) n
-  integer   ( kind = 4 ) s
-  character ( len = 10 ) time
-  integer   ( kind = 4 ) values(8)
-  integer   ( kind = 4 ) y
-  character ( len = 5 )  zone
+    'September', 'October  ', 'November ', 'December ' ]
+  integer   ( kind = 4 ) :: n
+  integer   ( kind = 4 ) :: s
+  character ( len = 10 ) :: time
+  integer   ( kind = 4 ) :: values(8)
+  integer   ( kind = 4 ) :: y
+  character ( len = 5 )  :: zone
 
   call date_and_time ( date, time, zone, values )
 
@@ -14660,46 +14660,46 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !    -R, if the eigenvector corresponding to the R-th eigenvalue fails to
 !      converge in 5 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) eps2
-  real    ( kind = rkx ) eps3
-  real    ( kind = rkx ) eps4
-  integer ( kind = 4 ) group
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) ind(m)
-  integer ( kind = 4 ) ip
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jj
-  real    ( kind = rkx ) norm
-  real    ( kind = rkx ) order
-  integer ( kind = 4 ) p
-  integer ( kind = 4 ) q
-  integer ( kind = 4 ) r
-  real    ( kind = rkx ) rv1(n)
-  real    ( kind = rkx ) rv2(n)
-  real    ( kind = rkx ) rv3(n)
-  real    ( kind = rkx ) rv4(n)
-  real    ( kind = rkx ) rv6(n)
-  integer ( kind = 4 ) s
-  integer ( kind = 4 ) tag
-  real    ( kind = rkx ) u
-  real    ( kind = rkx ) uk
-  real    ( kind = rkx ) v
-  real    ( kind = rkx ) w(m)
-  real    ( kind = rkx ) x0
-  real    ( kind = rkx ) x1
-  real    ( kind = rkx ) xu
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: eps2
+  real    ( kind = rkx ) :: eps3
+  real    ( kind = rkx ) :: eps4
+  integer ( kind = 4 ) :: group
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: ind(m)
+  integer ( kind = 4 ) :: ip
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jj
+  real    ( kind = rkx ) :: norm
+  real    ( kind = rkx ) :: order
+  integer ( kind = 4 ) :: p
+  integer ( kind = 4 ) :: q
+  integer ( kind = 4 ) :: r
+  real    ( kind = rkx ) :: rv1(n)
+  real    ( kind = rkx ) :: rv2(n)
+  real    ( kind = rkx ) :: rv3(n)
+  real    ( kind = rkx ) :: rv4(n)
+  real    ( kind = rkx ) :: rv6(n)
+  integer ( kind = 4 ) :: s
+  integer ( kind = 4 ) :: tag
+  real    ( kind = rkx ) :: u
+  real    ( kind = rkx ) :: uk
+  real    ( kind = rkx ) :: v
+  real    ( kind = rkx ) :: w(m)
+  real    ( kind = rkx ) :: x0
+  real    ( kind = rkx ) :: x1
+  real    ( kind = rkx ) :: xu
+  real    ( kind = rkx ) :: z(n,m)
 
   ierr = 0
 
@@ -15011,35 +15011,35 @@ subroutine tql1 ( n, d, e, ierr )
 !    J, if the J-th eigenvalue has not been determined after
 !    30 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) c2
-  real    ( kind = rkx ) c3
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) dl1
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) el1
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) l1
-  integer ( kind = 4 ) l2
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mml
-  real    ( kind = rkx ) p
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) s2
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: c2
+  real    ( kind = rkx ) :: c3
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: dl1
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: el1
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: l1
+  integer ( kind = 4 ) :: l2
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mml
+  real    ( kind = rkx ) :: p
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: s2
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
 
   ierr = 0
   if ( n == 1 ) then
@@ -15227,37 +15227,37 @@ subroutine tql2 ( n, d, e, z, ierr )
 !    J, if the J-th eigenvalue has not been determined after
 !    30 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) c2
-  real    ( kind = rkx ) c3
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) dl1
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) el1
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) l1
-  integer ( kind = 4 ) l2
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mml
-  real    ( kind = rkx ) p
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) s2
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: c2
+  real    ( kind = rkx ) :: c3
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: dl1
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: el1
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: l1
+  integer ( kind = 4 ) :: l2
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mml
+  real    ( kind = rkx ) :: p
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: s2
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: z(n,n)
 !
   ierr = 0
 
@@ -15460,29 +15460,29 @@ subroutine tqlrat ( n, d, e2, ierr )
 !    0, for no error,
 !    J, if the J-th eigenvalue could not be determined after 30 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) b
-  real    ( kind = rkx ) c
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) l1
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mml
-  real    ( kind = rkx ) p
-  real    ( kind = rkx ) r
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) t
+  real    ( kind = rkx ) :: b
+  real    ( kind = rkx ) :: c
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: l1
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: mml
+  real    ( kind = rkx ) :: p
+  real    ( kind = rkx ) :: r
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: t
 
   ierr = 0
 
@@ -15653,18 +15653,18 @@ subroutine trbak1 ( n, a, e, m, z )
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) e(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) l
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: e(n)
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: l
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: z(n,m)
 
   if ( m <= 0 ) then
     return
@@ -15757,22 +15757,22 @@ subroutine trbak3 ( n, nv, a, m, z )
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) nv
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: nv
 
-  real    ( kind = rkx ) a(nv)
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ik
-  integer ( kind = 4 ) iz
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) n
-  real    ( kind = rkx ) s
-  real    ( kind = rkx ) z(n,m)
+  real    ( kind = rkx ) :: a(nv)
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ik
+  integer ( kind = 4 ) :: iz
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  integer ( kind = 4 ) :: n
+  real    ( kind = rkx ) :: s
+  real    ( kind = rkx ) :: z(n,m)
 
   if ( m == 0 ) then
     return
@@ -15880,23 +15880,23 @@ subroutine tred1 ( n, a, d, e, e2 )
 !    Output, real ( kind = rkx ) E2(N), contains the squares of the corresponding
 !    elements of E.  E2 may coincide with E if the squares are not needed.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  real    ( kind = rkx ) xscale
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: h
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  real    ( kind = rkx ) :: xscale
 
   d(1:n) = a(n,1:n)
 
@@ -16069,24 +16069,24 @@ subroutine tred2 ( n, a, d, e, z )
 !    Output, real ( kind = rkx ) Z(N,N), the orthogonal transformation matrix produced
 !    in the reduction.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) a(n,n)
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) h
-  real    ( kind = rkx ) hh
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  real    ( kind = rkx ) xscale
-  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) :: a(n,n)
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: h
+  real    ( kind = rkx ) :: hh
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  real    ( kind = rkx ) :: xscale
+  real    ( kind = rkx ) :: z(n,n)
 
   do i = 1, n
     z(i:n,i) = a(i:n,i)
@@ -16288,27 +16288,27 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
 !    Output, real ( kind = rkx ) E2(N),  the squares of the corresponding elements of E.
 !    E2 may coincide with E if the squares are not needed.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) n
-  integer ( kind = 4 ) nv
+  integer ( kind = 4 ) :: n
+  integer ( kind = 4 ) :: nv
 
-  real    ( kind = rkx ) a(nv)
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) f
-  real    ( kind = rkx ) g
-  real    ( kind = rkx ) h
-  real    ( kind = rkx ) hh
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) iz
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jk
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  real    ( kind = rkx ) xscale
+  real    ( kind = rkx ) :: a(nv)
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: f
+  real    ( kind = rkx ) :: g
+  real    ( kind = rkx ) :: h
+  real    ( kind = rkx ) :: hh
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: iz
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jk
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  real    ( kind = rkx ) :: xscale
 
   do ii = 1, n
 
@@ -16485,46 +16485,46 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !    3*N+2, if multiple eigenvalues at index M22 make unique selection
 !      impossible.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) eps1
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) ind(m)
-  integer ( kind = 4 ) isturm
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  real    ( kind = rkx ) lb
-  integer ( kind = 4 ) m1
-  integer ( kind = 4 ) m11
-  integer ( kind = 4 ) m2
-  integer ( kind = 4 ) m22
-  integer ( kind = 4 ) p
-  integer ( kind = 4 ) q
-  integer ( kind = 4 ) r
-  real    ( kind = rkx ) rv4(n)
-  real    ( kind = rkx ) rv5(n)
-  integer ( kind = 4 ) s
-  real    ( kind = rkx ) t1
-  real    ( kind = rkx ) t2
-  integer ( kind = 4 ) tag
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) u
-  real    ( kind = rkx ) ub
-  real    ( kind = rkx ) v
-  real    ( kind = rkx ) w(m)
-  real    ( kind = rkx ) x0
-  real    ( kind = rkx ) x1
-  real    ( kind = rkx ) xu
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: eps1
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: ind(m)
+  integer ( kind = 4 ) :: isturm
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: k
+  integer ( kind = 4 ) :: l
+  real    ( kind = rkx ) :: lb
+  integer ( kind = 4 ) :: m1
+  integer ( kind = 4 ) :: m11
+  integer ( kind = 4 ) :: m2
+  integer ( kind = 4 ) :: m22
+  integer ( kind = 4 ) :: p
+  integer ( kind = 4 ) :: q
+  integer ( kind = 4 ) :: r
+  real    ( kind = rkx ) :: rv4(n)
+  real    ( kind = rkx ) :: rv5(n)
+  integer ( kind = 4 ) :: s
+  real    ( kind = rkx ) :: t1
+  real    ( kind = rkx ) :: t2
+  integer ( kind = 4 ) :: tag
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: u
+  real    ( kind = rkx ) :: ub
+  real    ( kind = rkx ) :: v
+  real    ( kind = rkx ) :: w(m)
+  real    ( kind = rkx ) :: x0
+  real    ( kind = rkx ) :: x1
+  real    ( kind = rkx ) :: xu
 
   ierr = 0
   tag = 0
@@ -16954,56 +16954,56 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !    4*N+R, if the eigenvector corresponding to the R-th
 !      eigenvalue fails to converge in 5 iterations.
 !
-  implicit none
+  implicit none (type, external)
 
-  integer ( kind = 4 ) mm
-  integer ( kind = 4 ) n
+  integer ( kind = 4 ) :: mm
+  integer ( kind = 4 ) :: n
 
-  real    ( kind = rkx ) d(n)
-  real    ( kind = rkx ) e(n)
-  real    ( kind = rkx ) e2(n)
-  real    ( kind = rkx ) eps1
-  real    ( kind = rkx ) eps2
-  real    ( kind = rkx ) eps3
-  real    ( kind = rkx ) eps4
-  integer ( kind = 4 ) group
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) ierr
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) ip
-  integer ( kind = 4 ) isturm
-  integer ( kind = 4 ) its
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jj
-  integer ( kind = 4 ) k
-  real    ( kind = rkx ) lb
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) m1
-  integer ( kind = 4 ) m2
-  real    ( kind = rkx ) norm
-  integer ( kind = 4 ) p
-  integer ( kind = 4 ) q
-  integer ( kind = 4 ) r
-  real    ( kind = rkx ) rv1(n)
-  real    ( kind = rkx ) rv2(n)
-  real    ( kind = rkx ) rv3(n)
-  real    ( kind = rkx ) rv4(n)
-  real    ( kind = rkx ) rv5(n)
-  real    ( kind = rkx ) rv6(n)
-  integer ( kind = 4 ) s
-  real    ( kind = rkx ) t1
-  real    ( kind = rkx ) t2
-  real    ( kind = rkx ) tst1
-  real    ( kind = rkx ) tst2
-  real    ( kind = rkx ) u
-  real    ( kind = rkx ) ub
-  real    ( kind = rkx ) uk
-  real    ( kind = rkx ) v
-  real    ( kind = rkx ) w(mm)
-  real    ( kind = rkx ) x0
-  real    ( kind = rkx ) x1
-  real    ( kind = rkx ) xu
-  real    ( kind = rkx ) z(n,mm)
+  real    ( kind = rkx ) :: d(n)
+  real    ( kind = rkx ) :: e(n)
+  real    ( kind = rkx ) :: e2(n)
+  real    ( kind = rkx ) :: eps1
+  real    ( kind = rkx ) :: eps2
+  real    ( kind = rkx ) :: eps3
+  real    ( kind = rkx ) :: eps4
+  integer ( kind = 4 ) :: group
+  integer ( kind = 4 ) :: i
+  integer ( kind = 4 ) :: ierr
+  integer ( kind = 4 ) :: ii
+  integer ( kind = 4 ) :: ip
+  integer ( kind = 4 ) :: isturm
+  integer ( kind = 4 ) :: its
+  integer ( kind = 4 ) :: j
+  integer ( kind = 4 ) :: jj
+  integer ( kind = 4 ) :: k
+  real    ( kind = rkx ) :: lb
+  integer ( kind = 4 ) :: m
+  integer ( kind = 4 ) :: m1
+  integer ( kind = 4 ) :: m2
+  real    ( kind = rkx ) :: norm
+  integer ( kind = 4 ) :: p
+  integer ( kind = 4 ) :: q
+  integer ( kind = 4 ) :: r
+  real    ( kind = rkx ) :: rv1(n)
+  real    ( kind = rkx ) :: rv2(n)
+  real    ( kind = rkx ) :: rv3(n)
+  real    ( kind = rkx ) :: rv4(n)
+  real    ( kind = rkx ) :: rv5(n)
+  real    ( kind = rkx ) :: rv6(n)
+  integer ( kind = 4 ) :: s
+  real    ( kind = rkx ) :: t1
+  real    ( kind = rkx ) :: t2
+  real    ( kind = rkx ) :: tst1
+  real    ( kind = rkx ) :: tst2
+  real    ( kind = rkx ) :: u
+  real    ( kind = rkx ) :: ub
+  real    ( kind = rkx ) :: uk
+  real    ( kind = rkx ) :: v
+  real    ( kind = rkx ) :: w(mm)
+  real    ( kind = rkx ) :: x0
+  real    ( kind = rkx ) :: x1
+  real    ( kind = rkx ) :: xu
+  real    ( kind = rkx ) :: z(n,mm)
 
   ierr = 0
   s = 0

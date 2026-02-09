@@ -35,6 +35,7 @@ module mod_ein
   use mod_nchelper
   use mod_kdinterp
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -60,7 +61,7 @@ module mod_ein
   real(rkx), pointer, contiguous, dimension(:) :: plevs
   real(rkx), pointer, contiguous, dimension(:) :: sigmar
   real(rkx) :: pss, pst
-  integer(2), pointer, contiguous, dimension(:,:,:) :: work
+  integer(ik2), pointer, contiguous, dimension(:,:,:) :: work
 
   integer, parameter :: numvars = 7
   integer, parameter :: numruns = 4
@@ -80,7 +81,7 @@ module mod_ein
   contains
 
   subroutine init_ein
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: k
     integer(ik4) :: year, month, monthp1, day, hour
     character(len=256) :: pathaddname
@@ -233,7 +234,7 @@ module mod_ein
   end subroutine init_ein
 
   subroutine get_ein(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     !
     ! Read data at idate
@@ -327,7 +328,7 @@ module mod_ein
   end subroutine get_ein
 
   subroutine ein6hour(dattyp,idate,idate0)
-    implicit none
+    implicit none (type, external)
     character(len=5), intent(in) :: dattyp
     type(rcm_time_and_date), intent(in) :: idate, idate0
     integer(ik4) :: i, ifile, it, j, irun, inet, istatus, ivar
@@ -562,7 +563,7 @@ module mod_ein
     contains
 
       subroutine getwork(irec)
-        implicit none
+        implicit none (type, external)
         integer(ik4), intent(in) :: irec
         integer(ik4) :: itile, iti, itf
         iti = 1
@@ -582,7 +583,7 @@ module mod_ein
   end subroutine ein6hour
 
   subroutine conclude_ein
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then

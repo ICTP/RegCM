@@ -53,7 +53,7 @@
       use rrlw_wvn, only: ngb
       use rrlw_vsn
 
-      implicit none
+      implicit none (type, external)
 
 ! public interfaces/functions/subroutines
       public :: get_alpha, mcica_subcol_lw, generate_stochastic_clouds
@@ -129,9 +129,9 @@
 ! Derive latitude-varying decorrelation length if requested;
 ! otherwise use the provided constant decorrelation length, decorr_con
       decorr_inv(:ncol) = f_one
-      if (icld .eq. 4 .or. icld .eq. 5) then
-         if (idcor .eq. 1) then
-            if (juldat .gt. 181) then
+      if (icld == 4 .or. icld == 5) then
+         if (idcor == 1) then
+            if (juldat > 181) then
                am3 = -4._rb * amr / 365._rb * (juldat - 272)
             else
                am3 = 4._rb * amr / 365._rb * (juldat - 91)
@@ -145,7 +145,7 @@
             decorr_len(:ncol) = decorr_con
          endif
          do i = 1, ncol
-            if (decorr_len(i) .ge. 0.0_rb) then
+            if (decorr_len(i) >= 0.0_rb) then
                decorr_inv(i) = f_one / decorr_len(i)
             endif
          enddo
@@ -153,7 +153,7 @@
 
 ! Atmosphere data defined from sfc to toa; define alpha from sfc to toa
 ! Exponential cloud overlap
-      if (icld .eq. 4) then
+      if (icld == 4) then
          alpha(:ncol,1) = 0.0_rb
          do i = 1, ncol
             do k = 2, nlayers
@@ -162,14 +162,14 @@
          enddo
       endif
 ! Exponential-random cloud overlap
-      if (icld .eq. 5) then
+      if (icld == 5) then
          alpha(:ncol,1) = 0.0_rb
          do i = 1, ncol
             do k = 2, nlayers
                alpha(i,k) = exp( -(0.5_rb * (dz(i,k) + dz(i,k-1))) * decorr_inv(i))
       ! Decorrelate layers when a clear layer follows a cloudy layer to enforce
       ! random correlation between non-adjacent blocks of cloudy layers
-               if (cldfrac(i,k) .eq. 0.0_rb .and. cldfrac(i,k-1) .gt. 0.0_rb) then
+               if (cldfrac(i,k) == 0.0_rb .and. cldfrac(i,k-1) > 0.0_rb) then
                   alpha(i,k) = 0.0_rb
                endif
             enddo
@@ -268,8 +268,8 @@
 
 
 ! Return if clear sky; or stop if icld out of range
-      if (icld.eq.0) return
-      if (icld.lt.0.or.icld.gt.5) then
+      if (icld==0) return
+      if (icld<0.or.icld>5) then
          stop 'MCICA_SUBCOL_LW: INVALID ICLD'
       endif
 
@@ -465,7 +465,7 @@
 !------------------------------------------------------------------------------------------
 
 ! Check that irng is in bounds; if not, set to default
-      if (irng .ne. 0) irng = 1
+      if (irng /= 0) irng = 1
 
 ! Pass input cloud overlap setting to local variable
       overlap = icld
@@ -483,11 +483,11 @@
 ! ----- Create seed  --------
 
 ! Advance randum number generator by changeseed values
-      if (irng.eq.0) then
+      if (irng==0) then
 ! For kissvec, create a seed that depends on the state of the columns. Maybe not the best way, but it works.
 ! Must use pmid from bottom four layers.
          do i=1,ncol
-            if (pmid(i,1).lt.pmid(i,2)) then
+            if (pmid(i,1)<pmid(i,2)) then
                stop 'MCICA_SUBCOL: KISSVEC SEED GENERATOR REQUIRES PMID FROM BOTTOM FOUR LAYERS.'
             endif
             seed1(i) = int(pmid(i,1) - int(pmid(i,1)),im)  * 1000000000_im
@@ -498,7 +498,7 @@
          !do i=1,changeSeed
             call kissvec(seed1, seed2, seed3, seed4, rand_num)
          !enddo
-      elseif (irng.eq.1) then
+      elseif (irng==1) then
          randomNumbers = new_RandomNumberSequence(seed = changeSeed)
       endif
 
@@ -513,14 +513,14 @@
 ! Random overlap
 ! i) pick a random value at every level
 
-         if (irng.eq.0) then
+         if (irng==0) then
             do isubcol = 1,nsubcol
                do ilev = 1,nlayers
                   call kissvec(seed1, seed2, seed3, seed4, rand_num)  ! we get different random number for each level
                   CDF(isubcol,:,ilev) = rand_num
                enddo
             enddo
-         elseif (irng.eq.1) then
+         elseif (irng==1) then
             do isubcol = 1, nsubcol
                do i = 1, ncol
                   do ilev = 1, nlayers
@@ -538,14 +538,14 @@
 !    - if the layer above is cloudy, we use the same random number than in the layer above
 !    - if the layer above is clear, we use a new random number
 
-         if (irng.eq.0) then
+         if (irng==0) then
             do isubcol = 1,nsubcol
                do ilev = 1,nlayers
                   call kissvec(seed1, seed2, seed3, seed4, rand_num)
                   CDF(isubcol,:,ilev) = rand_num
                enddo
             enddo
-         elseif (irng.eq.1) then
+         elseif (irng==1) then
             do isubcol = 1, nsubcol
                do i = 1, ncol
                   do ilev = 1, nlayers
@@ -572,14 +572,14 @@
 ! Maximum overlap
 ! i) pick the same random numebr at every level
 
-         if (irng.eq.0) then
+         if (irng==0) then
             do isubcol = 1,nsubcol
                call kissvec(seed1, seed2, seed3, seed4, rand_num)
                do ilev = 1,nlayers
                   CDF(isubcol,:,ilev) = rand_num
                enddo
             enddo
-         elseif (irng.eq.1) then
+         elseif (irng==1) then
             do isubcol = 1, nsubcol
                do i = 1, ncol
                   rand_num_mt = getRandomReal(randomNumbers)
@@ -597,7 +597,7 @@
        ! generate 2 streams of random numbers
        ! CDF2 is used to select which sub-columns are vertically correlated relative to alpha
        ! CDF  is used to select which sub-columns are treated as cloudy relative to cloud fraction
-       if (irng.eq.0) then
+       if (irng==0) then
           do isubcol = 1,nsubcol
              do i = 1, ncol
                 do ilev = 1,nlayers
@@ -608,7 +608,7 @@
                 end do
              end do
           end do
-       elseif (irng.eq.1) then
+       elseif (irng==1) then
           do isubcol = 1, nsubcol
              do i = 1, ncol
                 do ilev = 1,nlayers
@@ -637,7 +637,7 @@
        ! generate 2 streams of random numbers
        ! CDF2 is used to select which sub-columns are vertically correlated relative to alpha
        ! CDF  is used to select which sub-columns are treated as cloudy relative to cloud fraction
-       if (irng.eq.0) then
+       if (irng==0) then
           do isubcol = 1,nsubcol
              do i = 1, ncol
                 do ilev = 1,nlayers
@@ -648,7 +648,7 @@
                 end do
              end do
           end do
-       elseif (irng.eq.1) then
+       elseif (irng==1) then
           do isubcol = 1, nsubcol
              do i = 1, ncol
                 do ilev = 1,nlayers
@@ -765,7 +765,7 @@
       contains
 
         pure integer(kind=im) function m(k,n)
-          implicit none
+          implicit none (type, external)
           integer (kind=im), intent(in) :: k, n
           m = ieor (k, ishft (k, n) )
         end function m

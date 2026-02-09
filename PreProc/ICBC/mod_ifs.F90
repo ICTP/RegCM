@@ -34,6 +34,7 @@ module mod_ifs
   use mod_nchelper
   use mod_kdinterp
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -79,7 +80,7 @@ module mod_ifs
   contains
 
   subroutine init_ifs
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
     integer(ik4) :: istatus, ncid, ivarid, idimid
@@ -240,7 +241,7 @@ module mod_ifs
   end subroutine init_ifs
 
   subroutine get_ifs(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: i, j, k
     !
@@ -355,7 +356,7 @@ module mod_ifs
   end subroutine get_ifs
 
   subroutine ifs6hour(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: k, it, iv, istatus
     character(len=64) :: inname
@@ -419,7 +420,7 @@ module mod_ifs
     contains
 
       subroutine getwork3(vid,var)
-        implicit none
+        implicit none (type, external)
         real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: var
         integer(ik4), intent(in) :: vid
         integer(ik4), dimension(4) :: icount, istart
@@ -437,7 +438,7 @@ module mod_ifs
       end subroutine getwork3
 
       subroutine getwork2(vid,var)
-        implicit none
+        implicit none (type, external)
         real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: var
         integer(ik4), intent(in) :: vid
         integer(ik4), dimension(3) :: icount, istart
@@ -453,7 +454,7 @@ module mod_ifs
       end subroutine getwork2
 
       subroutine getwork23(vid,var)
-        implicit none
+        implicit none (type, external)
         real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: var
         integer(ik4), intent(in) :: vid
         integer(ik4), dimension(4) :: icount, istart
@@ -473,7 +474,7 @@ module mod_ifs
     end subroutine ifs6hour
 
   subroutine conclude_ifs
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then

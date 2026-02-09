@@ -1,4 +1,5 @@
 module mod_clm_cnecosystemdyn
+implicit none (type, external)
 #ifdef CN
   !
   ! Ecosystem dynamics: phenology, vegetation
@@ -36,7 +37,7 @@ module mod_clm_cnecosystemdyn
   use mod_clm_cnwoodproducts, only : CNWoodProducts
   use mod_clm_cnsoillittverttransp, only : CNSoilLittVertTransp
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -50,7 +51,7 @@ module mod_clm_cnecosystemdyn
   ! Initialzation of the CN Ecosystem dynamics.
   !
   subroutine CNEcosystemDynInit(lbg, ubg, lbc, ubc, lbp, ubp )
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbg, ubg        ! gridcell bounds
     integer(ik4), intent(in) :: lbc, ubc        ! column bounds
     integer(ik4), intent(in) :: lbp, ubp        ! pft bounds
@@ -67,7 +68,7 @@ module mod_clm_cnecosystemdyn
   !
   subroutine CNEcosystemDyn(lbc, ubc, lbp, ubp, num_soilc, filter_soilc, &
                      num_soilp, filter_soilp, num_pcropp, filter_pcropp, doalb)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc ! column bounds
     integer(ik4), intent(in) :: lbp, ubp ! pft bounds
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter

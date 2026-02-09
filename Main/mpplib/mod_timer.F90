@@ -20,7 +20,7 @@ module mod_timer
   use mod_constants
   use mod_date
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -33,11 +33,11 @@ module mod_timer
   integer(ik4), parameter :: maxsyncro = 8
 
   type alarmp
-    type(rcm_alarm), pointer :: ap
+    type(rcm_alarm), pointer :: ap => null()
   end type alarmp
 
   type syncrop
-    type (rcm_syncro), pointer :: sp
+    type (rcm_syncro), pointer :: sp => null()
   end type syncrop
 
   type rcm_timer
@@ -76,7 +76,7 @@ module mod_timer
     integer(ik8) :: frq
     integer(ik8) :: lcount
     real(rkx) :: rw
-    class(rcm_timer), pointer :: timer
+    class(rcm_timer), pointer :: timer => null()
   contains
     procedure :: check => syncro_check
     procedure :: act => syncro_act
@@ -103,7 +103,7 @@ module mod_timer
     real(rkx) :: rw
     real(rkx), dimension(2) :: wt
     logical :: triggered
-    class(rcm_timer), pointer :: timer
+    class(rcm_timer), pointer :: timer => null()
     type(rcm_time_and_date) :: idate
     type(rcm_time_interval) :: intalm
   contains
@@ -119,7 +119,7 @@ module mod_timer
   contains
 
   function init_timer(mdate0,mdate1,mdate2,mdt)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: mdate0, mdate1, mdate2
     type(rcm_timer), pointer :: init_timer
     real(rkx), intent(in) :: mdt
@@ -146,7 +146,7 @@ module mod_timer
   end function init_timer
 
   subroutine step_timer(t)
-    implicit none
+    implicit none (type, external)
     class(rcm_timer), intent(inout) :: t
     integer(ik4) :: i
     t%model_internal_time = t%model_internal_time + t%model_timestep
@@ -173,7 +173,7 @@ module mod_timer
   end subroutine step_timer
 
   subroutine cleanup(t)
-    implicit none
+    implicit none (type, external)
     class(rcm_timer), intent(inout) :: t
     integer(ik4) :: i
     do i = 1, t%nalarm
@@ -189,19 +189,19 @@ module mod_timer
   end subroutine cleanup
 
   pure logical function is_start(t)
-    implicit none
+    implicit none (type, external)
     class(rcm_timer), intent(in) :: t
     is_start = t%lcount == 0
   end function is_start
 
   pure logical function is_integrating(t)
-    implicit none
+    implicit none (type, external)
     class(rcm_timer), intent(in) :: t
     is_integrating = t%lcount > 0
   end function is_integrating
 
   character (len=32) function nowstring(t) result(ns)
-    implicit none
+    implicit none (type, external)
     class(rcm_timer), intent(inout) :: t
     integer(ik8), save :: last
     if ( t%model_internal_time /= last ) then
@@ -212,19 +212,19 @@ module mod_timer
   end function nowstring
 
   pure integer(ik8) function step_from_start(t)
-    implicit none
+    implicit none (type, external)
     class(rcm_timer), intent(in) :: t
     step_from_start = t%model_internal_time/t%model_timestep
   end function step_from_start
 
   pure integer(ik8) function time_from_start(t)
-    implicit none
+    implicit none (type, external)
     class(rcm_timer), intent(in) :: t
     time_from_start = t%model_internal_time
   end function time_from_start
 
   function init_syncro(t,dt)
-    implicit none
+    implicit none (type, external)
     type(rcm_syncro), pointer :: init_syncro
     type(rcm_timer), pointer, intent(inout) :: t
     real(rkx), intent(in) :: dt
@@ -243,7 +243,7 @@ module mod_timer
   end function init_syncro
 
   subroutine syncro_check(s)
-    implicit none
+    implicit none (type, external)
     class(rcm_syncro), intent(inout) :: s
     if ( mod(s%timer%model_internal_time,s%frq) == 0 ) then
       s%lcount = s%lcount + 1
@@ -251,13 +251,13 @@ module mod_timer
   end subroutine syncro_check
 
   pure logical function syncro_act(s) result(res)
-    implicit none
+    implicit none (type, external)
     class(rcm_syncro), intent(in) :: s
     res = (mod(s%timer%model_internal_time,s%frq) == 0)
   end function syncro_act
 
   pure logical function syncro_willact(s,dt) result(res)
-    implicit none
+    implicit none (type, external)
     class(rcm_syncro), intent(in) :: s
     real(rkx), optional, intent(in) :: dt
     integer(ik8) :: idt
@@ -271,7 +271,7 @@ module mod_timer
   end function syncro_willact
 
   function init_alarm(t,dt,act0)
-    implicit none
+    implicit none (type, external)
     type(rcm_alarm), pointer :: init_alarm
     type(rcm_timer), pointer, intent(inout) :: t
     real(rkx), intent(in) :: dt
@@ -323,7 +323,7 @@ module mod_timer
   end subroutine alarm_check
 
   logical function alarm_act(alarm) result(res)
-    implicit none
+    implicit none (type, external)
     class(rcm_alarm), intent(in) :: alarm
     res = .false.
     if ( alarm%now == alarm%timer%model_internal_time ) then
@@ -333,7 +333,7 @@ module mod_timer
   end function alarm_act
 
   logical function alarm_willact(alarm,dt) result(res)
-    implicit none
+    implicit none (type, external)
     class(rcm_alarm), intent(in) :: alarm
     real(rkx), intent(in) :: dt
     integer(ik8) :: t1, t2, idt
@@ -347,26 +347,26 @@ module mod_timer
   end function alarm_willact
 
   real(rkx) function ratio_freq_syncro(s1,s2) result(res)
-    implicit none
+    implicit none (type, external)
     type(rcm_syncro), intent(in) :: s1, s2
     res = real(s1%frq,rkx)/real(s2%frq,rkx)
   end function ratio_freq_syncro
 
   real(rkx) function ratio_freq_alarm(a1,a2) result(res)
-    implicit none
+    implicit none (type, external)
     type(rcm_alarm), intent(in) :: a1, a2
     res = real(a1%actint,rkx)/real(a2%actint,rkx)
   end function ratio_freq_alarm
 
   real(rkx) function ratio_freq_syncro_alarm(s1,a2) result(res)
-    implicit none
+    implicit none (type, external)
     type(rcm_syncro), intent(in) :: s1
     type(rcm_alarm), intent(in) :: a2
     res = real(s1%frq,rkx)/real(a2%actint,rkx)
   end function ratio_freq_syncro_alarm
 
   real(rkx) function ratio_freq_alarm_syncro(a1,s2) result(res)
-    implicit none
+    implicit none (type, external)
     type(rcm_alarm), intent(in) :: a1
     type(rcm_syncro), intent(in) :: s2
     res = real(a1%actint,rkx)/real(s2%frq,rkx)
@@ -377,7 +377,7 @@ end module mod_timer
 #ifdef TESTME
 
 subroutine myabort
-  implicit none
+  implicit none (type, external)
   call abort
 end subroutine myabort
 
@@ -386,7 +386,7 @@ program test_timing
   use mod_realkinds
   use mod_date
   use mod_timer
-  implicit none
+  implicit none (type, external)
 
   integer(ik8), dimension(3) :: idates = [ 1950010100_ik8, &
                                             1950010100_ik8, &

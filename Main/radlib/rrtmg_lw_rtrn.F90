@@ -43,7 +43,7 @@
       use rrlw_tbl, only: tblint, bpade, tau_tbl, exp_tbl, tfn_tbl
       use rrlw_vsn, only: hvrrtr, hnamrtr
 
-      implicit none
+      implicit none (type, external)
 
       contains
 
@@ -279,12 +279,12 @@
       hvrrtr = '$Revision$'
 
       do ibnd = 1,nbndlw
-         if (ibnd.eq.1 .or. ibnd.eq.4 .or. ibnd.ge.10) then
+         if (ibnd==1 .or. ibnd==4 .or. ibnd>=10) then
            secdiff(ibnd) = 1.66_rb
          else
            secdiff(ibnd) = a0(ibnd) + a1(ibnd)*exp(a2(ibnd)*pwvcm)
-           if (secdiff(ibnd) .gt. 1.80_rb) secdiff(ibnd) = 1.80_rb
-           if (secdiff(ibnd) .lt. 1.50_rb) secdiff(ibnd) = 1.50_rb
+           if (secdiff(ibnd) > 1.80_rb) secdiff(ibnd) = 1.80_rb
+           if (secdiff(ibnd) < 1.50_rb) secdiff(ibnd) = 1.50_rb
          endif
       enddo
 
@@ -298,7 +298,7 @@
       clrdrad(0) = 0.0_rb
       totuclfl(0) = 0.0_rb
       totdclfl(0) = 0.0_rb
-      if (idrv .eq. 1) then
+      if (idrv == 1) then
          d_urad_dt(0) = 0.0_rb
          d_clrurad_dt(0) = 0.0_rb
          dtotuflux_dt(0) = 0.0_rb
@@ -314,7 +314,7 @@
          clrdrad(lay) = 0.0_rb
          totuclfl(lay) = 0.0_rb
          totdclfl(lay) = 0.0_rb
-         if (idrv .eq. 1) then
+         if (idrv == 1) then
             d_urad_dt(lay) = 0.0_rb
             d_clrurad_dt(lay) = 0.0_rb
             dtotuflux_dt(lay) = 0.0_rb
@@ -322,7 +322,7 @@
          endif
 
          do ib = 1, ncbands
-            if (cldfrac(lay) .ge. 1.e-6_rb) then
+            if (cldfrac(lay) >= 1.e-6_rb) then
                odcld(lay,ib) = secdiff(ib) * taucloud(lay,ib)
                transcld = exp(-odcld(lay,ib))
                abscld(lay,ib) = 1. - transcld
@@ -342,13 +342,13 @@
       do iband = istart, iend
 
 ! Reinitialize g-point counter for each band if output for each band is requested.
-         if (iout.gt.0.and.iband.ge.2) igc = ngs(iband-1)+1
+         if (iout>0.and.iband>=2) igc = ngs(iband-1)+1
          ib = 0
-         if (ncbands .eq. 1) then
+         if (ncbands == 1) then
             ib = ipat(iband,0)
-         elseif (ncbands .eq.  5) then
+         elseif (ncbands ==  5) then
             ib = ipat(iband,1)
-         elseif (ncbands .eq. 16) then
+         elseif (ncbands == 16) then
             ib = ipat(iband,2)
          endif
 
@@ -368,12 +368,12 @@
                dplankup = planklev(lev,iband) - blay
                dplankdn = planklev(lev-1,iband) - blay
                odepth = secdiff(iband) * taut(lev,igc)
-               if (odepth .lt. 0.0_rb) odepth = 0.0_rb
+               if (odepth < 0.0_rb) odepth = 0.0_rb
 ! Cloudy layer
-               if (icldlyr(lev).eq.1) then
+               if (icldlyr(lev)==1) then
                   iclddn = 1
                   odtot = odepth + odcld(lev,ib)
-                  if (odtot .lt. 0.06_rb) then
+                  if (odtot < 0.06_rb) then
                      atrans(lev) = odepth - 0.5_rb*odepth*odepth
                      odepth_rec = rec_6*odepth
                      gassrc = plfrac*(blay+dplankdn*odepth_rec)*atrans(lev)
@@ -391,7 +391,7 @@
                      bbugas(lev) =  plfrac * (blay+dplankup*odepth_rec)
                      bbutot(lev) =  plfrac * (blay+dplankup*odtot_rec)
 
-                  elseif (odepth .le. 0.06_rb) then
+                  elseif (odepth <= 0.06_rb) then
                      atrans(lev) = odepth - 0.5_rb*odepth*odepth
                      odepth_rec = rec_6*odepth
                      gassrc = plfrac*(blay+dplankdn*odepth_rec)*atrans(lev)
@@ -440,7 +440,7 @@
                   endif
 ! Clear layer
                else
-                  if (odepth .le. 0.06_rb) then
+                  if (odepth <= 0.06_rb) then
                      atrans(lev) = odepth-0.5_rb*odepth*odepth
                      odepth = rec_6*odepth
                      bbd = plfrac*(blay+dplankdn*odepth)
@@ -460,7 +460,7 @@
 !  Set clear sky stream to total sky stream as long as layers
 !  remain clear.  Streams diverge when a cloud is reached (iclddn=1),
 !  and clear sky stream must be computed separately from that point.
-                  if (iclddn.eq.1) then
+                  if (iclddn==1) then
                      radclrd = radclrd + (bbd-radclrd) * atrans(lev)
                      clrdrad(lev-1) = clrdrad(lev-1) + radclrd
                   else
@@ -478,7 +478,7 @@
 !  they are defined in subroutine setcoef.
 
          rad0 = fracs(1,igc) * plankbnd(iband)
-         if (idrv .eq. 1) then
+         if (idrv == 1) then
             d_rad0_dt = fracs(1,igc) * dplankbnd_dt(iband)
          endif
 
@@ -491,7 +491,7 @@
 ! Upward radiative transfer loop.
          urad(0) = urad(0) + radlu
          clrurad(0) = clrurad(0) + radclru
-         if (idrv .eq. 1) then
+         if (idrv == 1) then
             d_radlu_dt = d_rad0_dt
             d_urad_dt(0) = d_urad_dt(0) + d_radlu_dt
             d_radclru_dt = d_rad0_dt
@@ -500,14 +500,14 @@
 
          do lev = 1, nlayers
 ! Cloudy layer
-            if (icldlyr(lev) .eq. 1) then
+            if (icldlyr(lev) == 1) then
                gassrc = bbugas(lev) * atrans(lev)
                radlu = radlu - radlu * (atrans(lev) + &
                    efclfrac(lev,ib) * (1._rb - atrans(lev))) + &
                    gassrc + cldfrac(lev) * &
                    (bbutot(lev) * atot(lev) - gassrc)
                urad(lev) = urad(lev) + radlu
-               if (idrv .eq. 1) then
+               if (idrv == 1) then
                   d_radlu_dt = d_radlu_dt * cldfrac(lev) * (1.0_rb - atot(lev)) + &
                          d_radlu_dt * (1.0_rb - cldfrac(lev)) * (1.0_rb - atrans(lev))
                   d_urad_dt(lev) = d_urad_dt(lev) + d_radlu_dt
@@ -516,7 +516,7 @@
             else
                radlu = radlu + (bbugas(lev)-radlu)*atrans(lev)
                urad(lev) = urad(lev) + radlu
-               if (idrv .eq. 1) then
+               if (idrv == 1) then
                   d_radlu_dt = d_radlu_dt * (1.0_rb - atrans(lev))
                   d_urad_dt(lev) = d_urad_dt(lev) + d_radlu_dt
                endif
@@ -525,15 +525,15 @@
 !  are clear (iclddn=0).  Streams must be calculated separately at
 !  all layers when a cloud is present (iclddn=1), because surface
 !  reflectance is different for each stream.
-               if (iclddn.eq.1) then
+               if (iclddn==1) then
                   radclru = radclru + (bbugas(lev)-radclru)*atrans(lev)
                   clrurad(lev) = clrurad(lev) + radclru
                else
                   radclru = radlu
                   clrurad(lev) = urad(lev)
                endif
-               if (idrv .eq. 1) then
-                  if (iclddn.eq.1) then
+               if (idrv == 1) then
+                  if (iclddn==1) then
                      d_radclru_dt = d_radclru_dt * (1.0_rb - atrans(lev))
                      d_clrurad_dt(lev) = d_clrurad_dt(lev) + d_radclru_dt
                   else
@@ -546,7 +546,7 @@
 ! Increment g-point counter
          igc = igc + 1
 ! Return to continue radiative transfer for all g-channels in present band
-         if (igc .le. ngs(iband)) go to 1000
+         if (igc <= ngs(iband)) go to 1000
 
 ! Process longwave output from band for total and clear streams.
 ! Calculate upward, downward, and net flux.
@@ -566,7 +566,7 @@
          enddo
 
 ! Calculate total change in upward flux wrt surface temperature
-         if (idrv .eq. 1) then
+         if (idrv == 1) then
             do lev = nlayers, 0, -1
                duflux_dt(lev) = d_urad_dt(lev) * wtdiff
                d_urad_dt(lev) = 0.0_rb

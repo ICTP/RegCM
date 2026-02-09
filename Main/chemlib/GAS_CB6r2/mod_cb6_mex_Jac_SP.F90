@@ -5,21 +5,22 @@
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  USE mod_cb6_Model
+ implicit none (type, external)
 
-      INTEGER nlhs, nrhs
-      INTEGER plhs(*), prhs(*)
-      INTEGER mxGetPr, mxCreateFull, mxGetM, mxgetN
-      INTEGER VPtr, FPtr, RPtr, JVSPtr
-      REAL(kind=dp) V(76), F(6), RCT(216)
-      REAL(kind=dp) JVS(1061)
+      INTEGER :: nlhs, nrhs
+      INTEGER :: plhs(*), prhs(*)
+      INTEGER :: mxGetPr, mxCreateFull, mxGetM, mxgetN
+      INTEGER :: VPtr, FPtr, RPtr, JVSPtr
+      REAL(kind=dp) :: V(76), F(6), RCT(216)
+      REAL(kind=dp) :: JVS(1061)
 
 ! Check for the right number of input arguments
-      IF ( nrhs .ne. 3 ) THEN
+      IF ( nrhs /= 3 ) THEN
          CALL mexErrMsgTxt('Jac_SP requires 3 input vectors: &
      &V(76), F(6), RCT(216)')
       END IF
 ! Check for the right number of output arguments
-      IF ( nlhs .ne. 1 ) THEN
+      IF ( nlhs /= 1 ) THEN
          CALL mexErrMsgTxt('Jac_SP requires 1 output vector: &
      &JVS(1061)')
       END IF

@@ -8,7 +8,7 @@ module mod_clm_pft2col
   use mod_clm_subgridave
   use mod_clm_type
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -23,7 +23,7 @@ module mod_clm_pft2col
   ! defined at the pft level.
   !
   subroutine pft2col (lbc, ubc, num_nolakec, filter_nolakec)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc     ! column bounds
     ! number of column non-lake points in column filter
     integer(ik4), intent(in) :: num_nolakec

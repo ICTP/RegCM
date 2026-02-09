@@ -1,4 +1,5 @@
 module mod_clm_cnsetvalue
+implicit none (type, external)
 #if (defined CN)
   !
   ! contains code to set all CN variables to specified value
@@ -15,7 +16,7 @@ module mod_clm_cnsetvalue
   use mod_clm_varctl, only : use_c13, use_c14
   use mod_clm_type
 
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -38,7 +39,7 @@ module mod_clm_cnsetvalue
   contains
 
   subroutine CNZeroFluxes(num_filterc, filterc, num_filterp, filterp)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_filterc ! number of good values in filterc
     integer(ik4), intent(in) :: filterc(:)  ! column filter
     integer(ik4), intent(in) :: num_filterp ! number of good values in filterp
@@ -68,7 +69,7 @@ module mod_clm_cnsetvalue
   end subroutine CNZeroFluxes
 
   subroutine CNZeroFluxes_dwt( begc, endc, begp, endp )
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(IN)  :: begc, endc  ! proc beginning and ending column
     integer(ik4), intent(IN)  :: begp, endp  ! proc beginning and ending pft
 
@@ -187,7 +188,7 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetPps(num, filter, val, pps)
     use mod_clm_varpar, only : numrad
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
@@ -199,7 +200,7 @@ module mod_clm_cnsetvalue
   ! Set pft ecophysiological variables
   !
   subroutine CNSetPepv (num, filter, val, pepv)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
@@ -269,7 +270,7 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetPcs (num, filter, val, pcs)
     use mod_clm_surfrd, only : crop_prog
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
@@ -321,7 +322,7 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetPns(num, filter, val, pns)
     use mod_clm_surfrd, only : crop_prog
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
@@ -370,7 +371,7 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetPcf(num, filter, val, pcf)
     use mod_clm_surfrd, only : crop_prog
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
@@ -578,7 +579,7 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetPnf(num, filter, val, pnf)
     use mod_clm_surfrd, only : crop_prog
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
@@ -727,7 +728,7 @@ module mod_clm_cnsetvalue
   ! Set column physical state variables
   !
   subroutine CNSetCps(num, filter, val, cps)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
@@ -773,7 +774,7 @@ module mod_clm_cnsetvalue
   ! Set column carbon state variables
   !
   subroutine CNSetCcs(num, filter, val, ccs)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
@@ -829,7 +830,7 @@ module mod_clm_cnsetvalue
   ! Set column nitrogen state variables
   !
   subroutine CNSetCns(num, filter, val, cns)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
@@ -891,7 +892,7 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetCcf(num, filter, val, ccf)
     use mod_clm_surfrd, only : crop_prog
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val
@@ -996,7 +997,7 @@ module mod_clm_cnsetvalue
   !
   subroutine CNSetCnf(num, filter, val, cnf)
     use mod_clm_surfrd, only : crop_prog
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num
     integer(ik4), intent(in) :: filter(:)
     real(rk8), intent(in) :: val

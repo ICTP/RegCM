@@ -17,14 +17,14 @@
 subroutine myabort
   use mod_stdio
   use mpi
-  implicit none
+  implicit none (type, external)
   integer :: ierr
   write(stderr,*) ' Execution terminated because of runtime error'
   call mpi_abort(mpi_comm_self,1,ierr)
 end subroutine myabort
 #else
 subroutine myabort
-  implicit none
+  implicit none (type, external)
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 #endif
@@ -47,7 +47,7 @@ program pgw_icbc
   use mpi
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   integer(ik4) :: ierr, idynamic
   integer(ik4) :: jx, iy, kz, icheck, jcheck
@@ -431,7 +431,7 @@ program pgw_icbc
   end subroutine usage
 
   subroutine check_ok(f,l,m1,mf)
-    implicit none
+    implicit none (type, external)
     character(*), intent(in) :: f, m1, mf
     integer(ik4), intent(in) :: l
     if (ierr /= nf90_noerr) then
@@ -442,7 +442,7 @@ program pgw_icbc
   end subroutine check_ok
 
   subroutine read_pgw(irec,ps,ts,u,v,t,q)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: irec
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
@@ -484,7 +484,7 @@ program pgw_icbc
   end subroutine read_pgw
 
   subroutine read_icbc(irec,ps,ts,u,v,t,q,pp,ww)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: irec
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
@@ -531,7 +531,7 @@ program pgw_icbc
   end subroutine read_icbc
 
   subroutine write_icbc(irec,ps,ts,u,v,t,q,pp,ww)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: irec
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
@@ -578,7 +578,7 @@ program pgw_icbc
   end subroutine write_icbc
 
   subroutine compute_w(dx,pd,ps,xm,p,u,v,t,w)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: dx
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ps, pd, xm
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: p, u, v, t
@@ -644,7 +644,7 @@ program pgw_icbc
   end subroutine compute_w
 
   subroutine smtdsmt(slab,i1,i2,j1,j2,k1,k2)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: i1, i2, j1, j2, k1, k2
     real(rkx), intent(inout), dimension(j1:j2,i1:i2,k1:k2) :: slab
     real(rkx) :: aplus, asv, cell
@@ -696,7 +696,7 @@ program pgw_icbc
   end subroutine smtdsmt
 
   subroutine compute_pp(sigma,t,q,ps,ps0,p0,t0,pp)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma
     real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps, ps0
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: p0, t0

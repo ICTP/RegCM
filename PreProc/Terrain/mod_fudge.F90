@@ -19,6 +19,7 @@ module mod_fudge
   use mod_realkinds
   use mod_stdio
   use mod_message
+  implicit none (type, external)
 
   private
 
@@ -29,13 +30,12 @@ module mod_fudge
   contains
 
   subroutine lndfudge(fudge,lndout,jx,iy,char_lnd)
-    implicit none
-    character(len=*) :: char_lnd
-    logical :: fudge, there
-    integer(ik4) :: iy, jx
-    real(rkx), dimension(jx,iy) :: lndout
-    intent (in) char_lnd, fudge, iy, jx
-    intent (inout) lndout
+    implicit none (type, external)
+    character(len=*), intent(in) :: char_lnd
+    logical, intent(in) :: fudge
+    integer(ik4), intent(in) :: iy, jx
+    real(rkx), dimension(jx,iy), intent(inout) :: lndout
+    logical :: there
     integer(ik4) :: iunit
     integer(ik4) :: i, j
     character(len=1), dimension(jx,iy) :: ch
@@ -178,13 +178,12 @@ module mod_fudge
   end subroutine lndfudge
 
   subroutine texfudge(fudge,texout,lnduse,jx,iy,char_tex)
-    implicit none
-    character(len=*) :: char_tex
-    logical :: fudge, there
-    integer(ik4) :: iy, jx
-    real(rkx), dimension(jx,iy) :: texout, lnduse
-    intent (in) char_tex, fudge, iy, jx
-    intent (inout) texout, lnduse
+    implicit none (type, external)
+    character(len=*), intent(in) :: char_tex
+    logical, intent(in) :: fudge
+    integer(ik4), intent(in) :: iy, jx
+    real(rkx), dimension(jx,iy), intent(inout) :: texout, lnduse
+    logical :: there
     integer(ik4) :: i, j
     integer(ik4) :: iunit
     real(rkx) :: oval
@@ -320,7 +319,7 @@ module mod_fudge
   end subroutine texfudge
 
   subroutine lakfudge(fudge,dpth,lnd,jx,iy,char_lak)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: char_lak
     logical, intent(in) :: fudge
     integer(ik4), intent(in) :: iy, jx

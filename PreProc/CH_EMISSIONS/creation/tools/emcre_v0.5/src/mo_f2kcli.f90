@@ -14,6 +14,7 @@
 ! Date        : February 2001
 !
      MODULE MO_F2KCLI
+     implicit none (type, external)
 #if defined (NAG)
         USE f90_unix
 !#else

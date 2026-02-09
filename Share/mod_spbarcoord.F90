@@ -25,9 +25,9 @@ module mod_spbarcoord
   use mod_realkinds
   use mod_intkinds
   use mod_constants
-  use iso_c_binding
+  use, intrinsic :: iso_c_binding
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -44,6 +44,7 @@ module mod_spbarcoord
   interface
     subroutine qsort(array,elem_count,elem_size,compare) bind(C,name="qsort")
       import
+      implicit none (type, external)
       type(c_ptr), value       :: array
       integer(c_size_t), value :: elem_count
       integer(c_size_t), value :: elem_size
@@ -54,7 +55,7 @@ module mod_spbarcoord
   contains
 
   subroutine spherical_barycentric(np,p,v,lambda)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: np
     real(rk8), intent(in), dimension(3) :: p
     real(rk8), intent(in), dimension(3,np) :: v
@@ -104,7 +105,7 @@ module mod_spbarcoord
     contains
 
       subroutine set_clockwise_order
-        implicit none
+        implicit none (type, external)
         integer(c_size_t) :: lnp, lsize
         integer(ik4) :: n
         do n = 1, np
@@ -117,25 +118,25 @@ module mod_spbarcoord
       end subroutine set_clockwise_order
 
       pure real(rk8) function norma2(x) result(a)
-        implicit none
+        implicit none (type, external)
         real(rk8), dimension(3), intent(in) :: x
         a = (x(1)*x(1)+x(2)*x(2)+x(3)*x(3))
       end function norma2
 
       pure real(rk8) function norma(x) result(a)
-        implicit none
+        implicit none (type, external)
         real(rk8), dimension(3), intent(in) :: x
         a = sqrt(norma2(x))
       end function norma
 
       pure real(rk8) function dotprod(x,y) result(a)
-        implicit none
+        implicit none (type, external)
         real(rk8), dimension(3), intent(in) :: x, y
         a = (x(1)*y(1) + x(2)*y(2) + x(3)*y(3))
       end function dotprod
 
       pure real(rk8) function angle_between(x,y) result(a)
-        implicit none
+        implicit none (type, external)
         real(rk8), dimension(3), intent(in) :: x, y
         a = max(-1.0_rk8,min(1.0_rk8,dotprod(x,y) / &
                   max((norma(x)*norma(y)),notzero)))
@@ -143,7 +144,7 @@ module mod_spbarcoord
       end function angle_between
 
       subroutine vecprod(x,y,z)
-        implicit none
+        implicit none (type, external)
         real(rk8), dimension(3), intent(in) :: x, y
         real(rk8), dimension(3), intent(out) :: z
         z(1) = x(2)*y(3) - x(3)*y(2)
@@ -152,7 +153,7 @@ module mod_spbarcoord
       end subroutine vecprod
 
       subroutine compute_angles
-        implicit none
+        implicit none (type, external)
         real(rk8), dimension(3) :: vp1, vp2
         do i = 1, np
           theta(i) = angle_between(p,voc(i)%v)
@@ -170,7 +171,7 @@ module mod_spbarcoord
   end subroutine spherical_barycentric
 
   integer(c_int) function spcompare(x1,x2) result(res) bind(C)
-    implicit none
+    implicit none (type, external)
     type(vpoint), intent(in) :: x1, x2
     real(rk8), dimension(3) :: p1, p2, n
     real(rk8) :: xres
@@ -195,7 +196,7 @@ module mod_spbarcoord
     contains
 
     subroutine vecdiff(a,b,c)
-      implicit none
+      implicit none (type, external)
       real(rk8), dimension(3), intent(in) :: a, b
       real(rk8), dimension(3), intent(out) :: c
       c(1) = a(1) - b(1)

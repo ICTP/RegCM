@@ -31,7 +31,7 @@ module mod_split
   use mod_memutil
   use mod_service
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -56,7 +56,7 @@ module mod_split
   contains
 
   subroutine allocate_mod_split
-    implicit none
+    implicit none (type, external)
     call getmem(aam,1,nsplit,'split:aam')
     call getmem(am,1,kz,1,nsplit,'split:am')
     call getmem(map,jce1,jce2,ice1,ice2,'split:map')
@@ -76,7 +76,7 @@ module mod_split
   ! Intial computation of vertical modes.
   !
   subroutine spinit
-    implicit none
+    implicit none (type, external)
     real(rkx) :: eps1, fac, pdlog
     integer(ik4) :: i, j, k, l, n, ns
     real(rkx) :: rnpts, lxps, ltbark, lxms, xmsf, rdx2
@@ -235,7 +235,7 @@ module mod_split
   ! Compute deld, delh, integrate in time and add correction terms appropriately
   !
   subroutine splitf
-    implicit none
+    implicit none (type, external)
     real(rkx) :: rdx2, eps1, gnuam, gnuan, gnuzm, pdlog
     real(rkx) :: eps, fac, x, y
     integer(ik4) :: i, j, k, l, n
@@ -415,7 +415,7 @@ module mod_split
   end subroutine splitf
 
   subroutine spstep
-    implicit none
+    implicit none (type, external)
     real(rkx) :: rdx2, dtau2, fac
     integer(ik4) :: i, j, m2, n, n0, n1, n2, ns, nw
 #ifdef DEBUG

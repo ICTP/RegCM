@@ -25,28 +25,28 @@ module mod_domain
   use mod_stdio
   use mod_message
 
-  implicit none
+  implicit none (type, external)
 
   private
 
   type domain_io
-    real(rkx), pointer, contiguous, dimension(:) :: sigma
-    real(rkx), pointer, contiguous, dimension(:,:) :: xlat
-    real(rkx), pointer, contiguous, dimension(:,:) :: xlon
-    real(rkx), pointer, contiguous, dimension(:,:) :: dlat
-    real(rkx), pointer, contiguous, dimension(:,:) :: dlon
-    real(rkx), pointer, contiguous, dimension(:,:) :: ulat
-    real(rkx), pointer, contiguous, dimension(:,:) :: ulon
-    real(rkx), pointer, contiguous, dimension(:,:) :: vlat
-    real(rkx), pointer, contiguous, dimension(:,:) :: vlon
-    real(rkx), pointer, contiguous, dimension(:,:) :: ht
-    real(rkx), pointer, contiguous, dimension(:,:) :: mask
-    real(rkx), pointer, contiguous, dimension(:,:) :: lndcat
-    real(rkx), pointer, contiguous, dimension(:,:) :: msfx
-    real(rkx), pointer, contiguous, dimension(:,:) :: msfd
-    real(rkx), pointer, contiguous, dimension(:,:) :: coriol
-    real(rkx), pointer, contiguous, dimension(:,:) :: snowam
-    real(rkx), pointer, contiguous, dimension(:,:) :: hlake
+    real(rkx), pointer, contiguous, dimension(:) :: sigma => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: xlat => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: xlon => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: dlat => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: dlon => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: ulat => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: ulon => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: vlat => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: vlon => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: ht => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: mask => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: lndcat => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: msfx => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: msfd => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: coriol => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: snowam => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: hlake => null()
   end type domain_io
 
   type (domain_io) :: mddom_io
@@ -63,7 +63,7 @@ module mod_domain
   contains
 
   subroutine read_domain_type(ncid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     logical :: has_snow, has_dhlake, has_kz
     has_snow = .true.
@@ -100,7 +100,7 @@ module mod_domain
                                       ulat,ulon,vlat,vlon,ht,mask,    &
                                       lndcat,msfx,msfd,coriol,snowam, &
                                       hlake,lsubgrid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     real(rk8), pointer, contiguous, dimension(:), intent(inout) :: sigma
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: xlat
@@ -158,7 +158,7 @@ module mod_domain
                                       ulat,ulon,vlat,vlon,ht,mask,    &
                                       lndcat,msfx,msfd,coriol,snowam, &
                                       hlake,lsubgrid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: sigma
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: xlat
@@ -213,7 +213,7 @@ module mod_domain
   end subroutine read_domain_array_single
 
   subroutine read_reference_state(ncid,ps0,pr0,t0,rho0,ts0)
-    implicit none
+    implicit none (type, external)
     integer, intent(in) :: ncid
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout), optional :: ps0
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout), optional :: pr0
@@ -228,14 +228,14 @@ module mod_domain
   end subroutine read_reference_state
 
   subroutine read_reference_surface_temp(ncid,ts0)
-    implicit none
+    implicit none (type, external)
     integer, intent(in) :: ncid
     real(rkx), intent(out) :: ts0
     call get_attribute(ncid,'base_state_surface_temperature',ts0)
   end subroutine read_reference_surface_temp
 
   subroutine allocate_domain
-    implicit none
+    implicit none (type, external)
     call getmem(mddom_io%sigma,1,kz+1,'domain:sigma')
     call getmem(mddom_io%xlat,1,jx,1,iy,'domain:xlat')
     call getmem(mddom_io%xlon,1,jx,1,iy,'domain:xlon')
@@ -259,9 +259,9 @@ module mod_domain
   end subroutine allocate_domain
 
   subroutine check_domain(ncid,lmod,linternal,lsubgrid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
-    logical, optional :: lmod, linternal, lsubgrid
+    logical, intent(in), optional :: lmod, linternal, lsubgrid
     integer(ik4) :: istatus
     integer(ik4) :: idimid, ivarid
     integer(ik4) :: iyy, jxx, kzz, kcheck, jcheck, icheck

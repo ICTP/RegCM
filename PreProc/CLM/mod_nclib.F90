@@ -22,6 +22,10 @@ module mod_nclib
   use mod_stdio
   use netcdf
 
+  implicit none (type, external)
+
+  public
+
   contains
 
 !-----------------------------------------------------------------------
@@ -39,11 +43,11 @@ module mod_nclib
 !-----------------------------------------------------------------------
   subroutine crecdf (filnam, cdfid, phymin, phymax, ndim, ierr)
 
-  implicit none
+  implicit none (type, external)
 
   integer(ik4), intent (in) :: ndim
   character(len=256), intent(in) :: filnam
-  real(rk4), dimension(ndim) :: phymin, phymax
+  real(rk4), dimension(ndim), intent(in) :: phymin, phymax
   integer(ik4), intent (out) :: ierr, cdfid
 
   integer(ik4), parameter :: maxdim = 4
@@ -91,7 +95,7 @@ module mod_nclib
 
   subroutine rcrecdf (filnam,cdfid,varmin,varmax,ndim,ierr)
 
-  implicit none
+  implicit none (type, external)
 
   character(len=256), intent(in) :: filnam
   integer(ik4), intent(in) :: ndim
@@ -118,7 +122,7 @@ module mod_nclib
 
   subroutine clscdf (cdfid, ierr)
 
-  implicit none
+  implicit none (type, external)
 
 !     Argument declarations.
   integer(ik4), intent(in) :: cdfid
@@ -152,10 +156,10 @@ module mod_nclib
        lname,vunit,factor,offset,vvarmin,vvarmax,xlat1d,xlon1d,sigh,&
        izstag,vmisdat,iotype)
 
-  implicit none
+  implicit none (type, external)
 
   integer(ik4), intent(in) :: cdfid, ie, je, ke
-  character(len=64) :: varnam, lname, vunit
+  character(len=64), intent(in) :: varnam, lname, vunit
   real(rk4), dimension(ie,je,ke), intent(in) :: arr
   real(rk4), dimension(ie), intent(in) :: xlon1d
   real(rk4), dimension(je), intent(in) :: xlat1d
@@ -251,13 +255,13 @@ module mod_nclib
   subroutine putcoords(cdfid,ndim,vardim,ie,je,ke,xlat1d,xlon1d,    &
                        sigh,ierr)
 
-  implicit none
+  implicit none (type, external)
 
   integer(ik4), intent(in) :: cdfid, ie, je, ke, ndim
   integer(ik4), dimension(ndim), intent(in) :: vardim
-  real(rk4), dimension(ie) :: xlon1d
-  real(rk4), dimension(je) :: xlat1d
-  real(rk4), dimension(ke) :: sigh
+  real(rk4), dimension(ie), intent(in) :: xlon1d
+  real(rk4), dimension(je), intent(in) :: xlat1d
+  real(rk4), dimension(ke), intent(in) :: sigh
   integer(ik4), intent(out) :: ierr
 
   integer(ik4) :: ncvid
@@ -344,7 +348,7 @@ module mod_nclib
                          ievar, jevar, arr, ie, je, ke,             &
                          vmisdat, rfac, offset, ierr)
 
-  implicit none
+  implicit none (type, external)
 
   integer(ik4), intent(in) :: cdfid, ievar, jevar, ie, je, ke, k ,&
                           level
@@ -354,7 +358,7 @@ module mod_nclib
   integer(ik4), intent(out) :: ierr
   real(rk8), intent(in) :: time
 
-  integer(2), dimension(ie*je*ke) :: dat
+  integer(ik2), dimension(ie*je*ke) :: dat
   real(rk4) :: misdat
   real(rk8) :: timeval
   real(rk8), dimension(2) :: dvrange
@@ -364,7 +368,7 @@ module mod_nclib
   integer(ik4) :: i, j, ik, ij
   integer(ik4), dimension(1) :: istart
 
-  integer(2), parameter :: shfill = -32767_2
+  integer(ik2), parameter :: shfill = -32767_ik2
   ierr = 0
 
   ij = 0
@@ -491,14 +495,14 @@ module mod_nclib
                        clunits,offset,xscale,vardim,varmin,varmax,  &
                        iotype,ierr)
 
-  implicit none
+  implicit none (type, external)
 
   integer(ik4), parameter :: maxdim = 4
 
   integer(ik4), intent(in) :: cdfid, ndim, iotype
   character(len=64), intent(in) :: varnam, clname, clunits
-  integer(ik4), dimension(ndim) :: vardim
-  real(rk4), dimension(ndim) :: varmin, varmax
+  integer(ik4), dimension(ndim), intent(in) :: vardim
+  real(rk4), dimension(ndim), intent(in) :: varmin, varmax
   real(rk4), intent(in) :: xscale, offset, misdat
   integer(ik4), intent(out) :: ierr
 
@@ -514,7 +518,7 @@ module mod_nclib
   real(rk8), dimension(2) :: dvrange
   character(len=64), dimension(maxdim) :: long_name
   character(len=64), dimension(maxdim) :: units
-  integer(2), parameter :: shfill = -32767_2
+  integer(ik2), parameter :: shfill = -32767_ik2
 
   data rdim /'lon','lat','level','time'/
   data long_name /'Longitude','Latitude','Height_Index','Time'/
@@ -721,7 +725,7 @@ module mod_nclib
   subroutine putdatcdfr4(cdfid, varnam, time, k, level, ievar,      &
                          jevar, arr, ie, je, ke, ierr)
 
-  implicit none
+  implicit none (type, external)
 
   integer(ik4), intent(in) :: cdfid
   character(len=64), intent(in) :: varnam
@@ -856,7 +860,7 @@ module mod_nclib
 
   subroutine getdefi2 (cdfid, varnam, ndim, misdat, vardim, ierr)
 
-  implicit none
+  implicit none (type, external)
 
   integer(ik4), parameter :: maxdim = 4
 
@@ -964,7 +968,7 @@ module mod_nclib
 
   subroutine getdefcdfr4(cdfid, varnam, ndim, misdat, vardim, ierr)
 
-  implicit none
+  implicit none (type, external)
 
   integer(ik4), intent(in) :: cdfid
   character(len=64), intent(in) :: varnam
@@ -1062,15 +1066,12 @@ module mod_nclib
   subroutine readcdfr4(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,nlat, &
                        nlev1,nlev,ntim1,ntim,vals)
 
-  implicit none
-!
-  integer(ik4) :: idcdf, nlat, nlat1, nlev, nlev1, nlon, nlon1,   &
-             ntim, ntim1
-  character(len=64) :: lnam, units, vnam
-  real(rk4), dimension(nlon,nlat,nlev,ntim) :: vals
-  intent (in) nlat, nlat1, nlev, nlev1, nlon, nlon1, ntim,   &
-              ntim1
-!
+  implicit none (type, external)
+  integer(ik4), intent(in) :: idcdf, nlat, nlat1, nlev, nlev1, &
+                              nlon, nlon1, ntim, ntim1
+  character(len=64), intent(in) :: vnam
+  character(len=64), intent(out) :: lnam, units
+  real(rk4), dimension(nlon,nlat,nlev,ntim), intent(out) :: vals
   integer(ik4), dimension(4) :: icount, istart
   integer(ik4) :: iflag, invarid
 !
@@ -1109,21 +1110,17 @@ module mod_nclib
                            nlat,nlev1,nlev,ntim1,ntim,nglon,nglat,  &
                            nglev,ngtim,vals)
 
-  implicit none
-!
-  integer(ik4) :: idcdf, nglat, nglev, nglon, ngtim, nlat, nlat1, &
-             nlev, nlev1, nlon, nlon1, ntim, ntim1
-  character(len=64) :: lnam, units, vnam
-  real(rk4), dimension(nlon,nlat,nlev,ntim) :: vals
-  intent (in) nglat, nglev, nglon, ngtim, nlat, nlat1, nlev, &
-              nlev1, nlon, nlon1, ntim, ntim1
-  intent (out) vals
-!
+  implicit none (type, external)
+  integer(ik4), intent(in) :: idcdf, nlat, nlat1, nlev, nlev1, &
+                nlon, nlon1, ntim, ntim1, nglon, nglat, nglev, ngtim
+  character(len=64), intent(in) :: vnam
+  character(len=64), intent(out) :: lnam, units
+  real(rk4), dimension(nlon,nlat,nlev,ntim), intent(out) :: vals
   integer(ik4) :: i, iflag, ii, ilon5, invarid, j, jj, k, kk,   &
              l, ll, nlat2, nlev2, nlon2, ntim2
   integer(ik4), dimension(4) :: icount, istart
   real(rk4), pointer, contiguous, dimension(:,:,:,:) :: vals1, vals2
-!
+
   istart(1) = 1
   icount(1) = nglon
   istart(2) = 1
@@ -1201,17 +1198,14 @@ module mod_nclib
   subroutine readcdfr4_iso(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,  &
                            nlat,nlev1,nlev,ntim1,ntim,vals)
 
-  implicit none
+  implicit none (type, external)
 !
-  integer(ik4) :: idcdf, nlat, nlat1, nlev, nlev1, nlon, nlon1,   &
-             ntim, ntim1
-  character(len=64) :: lnam
-  character(len=64) :: units
-  character(len=64) :: vnam
-  real(rk4), dimension(nlon,nlat,nlev,ntim) :: vals
-  intent (in) nlat, nlat1, nlev, nlev1, nlon, nlon1, ntim,   &
-              ntim1
-  intent (out) vals
+  integer(ik4), intent(in) :: idcdf, nlat, nlat1, nlev, nlev1, &
+            nlon, nlon1, ntim, ntim1
+  character(len=64), intent(in) :: lnam
+  character(len=64), intent(out) :: units
+  character(len=64), intent(out) :: vnam
+  real(rk4), dimension(nlon,nlat,nlev,ntim), intent(out) :: vals
 !
   integer(ik4), dimension(4) :: icount, istart
   integer(ik4), dimension(2) :: icount1, istart1

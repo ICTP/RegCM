@@ -1,4 +1,5 @@
 module mod_clm_cncisoflux
+implicit none (type, external)
 #if (defined CN)
   !
   ! Module for carbon isotopic flux variable update, non-mortality fluxes.
@@ -8,7 +9,7 @@ module mod_clm_cncisoflux
   use mod_mpmessage
   use mod_clm_varpar, only: ndecomp_cascade_transitions, &
           nlevdecomp, ndecomp_pools
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -30,7 +31,7 @@ module mod_clm_cncisoflux
   !
   subroutine CIsoFlux1(num_soilc,filter_soilc,num_soilp,filter_soilp,isotope)
     use mod_clm_type
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc     ! number of soil columns filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -373,7 +374,7 @@ module mod_clm_cncisoflux
   !
   subroutine CIsoFlux2(num_soilc,filter_soilc,num_soilp,filter_soilp,isotope)
     use mod_clm_type
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc     ! number of soil columns filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -508,7 +509,7 @@ module mod_clm_cncisoflux
   !
   subroutine CIsoFlux2h(num_soilc,filter_soilc,num_soilp,filter_soilp,isotope)
     use mod_clm_type
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc        ! number of soil columns filter
     integer(ik4), intent(in) :: filter_soilc(:)  ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp        ! number of soil pfts in filter
@@ -656,7 +657,7 @@ module mod_clm_cncisoflux
   subroutine CIsoFlux3(num_soilc,filter_soilc,num_soilp,filter_soilp,isotope)
     use mod_clm_type
     use mod_clm_varpar, only : max_pft_per_col
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc    ! number of soil columns filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -857,7 +858,7 @@ module mod_clm_cncisoflux
   subroutine CNCIsoLitterToColumn (num_soilc, filter_soilc, isotope)
     use mod_clm_type
     use mod_clm_varpar, only : max_pft_per_col
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:)  ! filter for soil columns
     character(len=*), intent(in) :: isotope ! 'c13' or 'c14'
@@ -979,7 +980,7 @@ module mod_clm_cncisoflux
   subroutine CNCIsoGapPftToColumn (num_soilc, filter_soilc, isotope)
     use mod_clm_type
     use mod_clm_varpar, only : max_pft_per_col, maxpatch_pft
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:)   ! soil column filter
     character(len=*), intent(in) :: isotope ! 'c13' or 'c14'
@@ -1201,7 +1202,7 @@ module mod_clm_cncisoflux
   subroutine CNCIsoHarvestPftToColumn (num_soilc, filter_soilc, isotope)
     use mod_clm_type
     use mod_clm_varpar, only : max_pft_per_col, maxpatch_pft
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:)   ! soil column filter
     character(len=*), intent(in) :: isotope ! 'c13' or 'c14'
@@ -1426,7 +1427,7 @@ module mod_clm_cncisoflux
   subroutine CIsoFluxCalc(ciso_flux, ctot_flux, ciso_state, ctot_state, &
                           num, filter, frax_c13, diag, isotope)
     use mod_clm_type
-    implicit none
+    implicit none (type, external)
     real(rk8), pointer   :: ciso_flux(:)      !OUTPUT isoC flux
     real(rk8), pointer   :: ctot_flux(:)      !INPUT  totC flux
     real(rk8), pointer   :: ciso_state(:)     !INPUT  isoC state, upstream pool

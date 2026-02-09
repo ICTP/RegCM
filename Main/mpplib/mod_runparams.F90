@@ -25,7 +25,7 @@ module mod_runparams
   use mod_timer
   use mod_spline
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -548,7 +548,7 @@ module mod_runparams
   contains
 
   subroutine allocate_mod_runparams
-    implicit none
+    implicit none (type, external)
     if ( idynamic < 3 ) then
       if ( idynamic == 1 ) then
         call getmem(dtau,1,nsplit,'mod_runparams:dtau')
@@ -574,24 +574,24 @@ module mod_runparams
     real(rkx), intent(in) :: a
     iswater = .false.
     if (a > 13.5_rkx .and. a < 15.5_rkx) iswater = .true.
-  end function
+  end function iswater
 
   pure logical function isocean(a)
 !$acc routine seq
     real(rkx), intent(in) :: a
     isocean = .false.
     if (a > 14.5_rkx .and. a < 15.5_rkx) isocean = .true.
-  end function
+  end function isocean
 
   pure logical function islake(a)
 !$acc routine seq
     real(rkx), intent(in) :: a
     islake = .false.
     if (a > 13.5_rkx .and. a < 14.5_rkx) islake = .true.
-  end function
+  end function islake
 
   subroutine exponential_nudging(nudge)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(kz), intent(out) :: nudge
     real(rkx), dimension(3) :: ncin
     real(rkx), dimension(3) :: zcin
@@ -609,7 +609,7 @@ module mod_runparams
     end if
     contains
     integer(ik4) function findwhere(val) result(k)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: val
       do k = 2, kz
         if ( sigma(k) > val ) exit

@@ -18,7 +18,7 @@ module mod_intkinds
   use, intrinsic :: iso_fortran_env
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   public
 

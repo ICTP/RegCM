@@ -57,7 +57,7 @@ module mod_cu_bm
 !                                                                *
 !*****************************************************************
 !
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -79,7 +79,7 @@ module mod_cu_bm
   contains
 
   subroutine allocate_mod_cu_bm
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: intall
     call getmem(cldefi,jci1,jci2,ici1,ici2,'cu_bm:cldefi')
     call getmem(apek,1,kz,'cu_bm:apek')
@@ -129,7 +129,7 @@ module mod_cu_bm
   end subroutine allocate_mod_cu_bm
 
   subroutine bmpara(m2c)
-    implicit none
+    implicit none (type, external)
     type(mod_2_cum), intent(in) :: m2c
     real(rkx), parameter :: h3000 = 3000.0_rkx
     real(rkx), parameter :: stresh = 1.10_rkx
@@ -718,7 +718,7 @@ module mod_cu_bm
       ! if cloud is not at least 90 mb or 3 sigma layers deep, then no cloud
       if ( cldhgt(j,i) < zno .or. cu_ktop(j,i) > cu_kbot(j,i)-2 ) then
         cu_ktop(j,i) = cu_kbot(j,i)
-        cycle
+        cycle shallow
       end if
       ! scaling potential temperature & table index at top
       thtpk = t(j,i,ltp1)*ape(j,i,ltp1)
@@ -789,7 +789,7 @@ module mod_cu_bm
       if ( dst > d_zero ) then
         cu_ktop(j,i) = cu_kbot(j,i)
         ndstp = ndstp + 1
-        cycle
+        cycle shallow
       else
         dstq = dst*epsdn
       end if
@@ -799,7 +799,7 @@ module mod_cu_bm
       den = potsum - psum
       if ( -den/psum < 0.00005_rkx ) then
         cu_ktop(j,i) = cu_kbot(j,i)
-        cycle
+        cycle shallow
       else
         !
         ! slope of the reference humidity profile
@@ -811,7 +811,7 @@ module mod_cu_bm
       !
       if ( dqref < d_zero ) then
         cu_ktop(j,i) = cu_kbot(j,i)
-        cycle
+        cycle shallow
       end if
       !
       ! humidity at the cloud top
@@ -881,7 +881,7 @@ module mod_cu_bm
       ! Calculates tpfc
       !
       pure real(rkx) function tpfc(press,thetae,tgs,pi)
-        implicit none
+        implicit none (type, external)
         real(rkx), intent(in) :: pi, press, tgs, thetae
         real(rkx) :: qs, dtx, f1, fo, rp, t1, tguess
         real(rkx) :: es

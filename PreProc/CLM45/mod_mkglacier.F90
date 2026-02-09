@@ -21,7 +21,7 @@ module mod_mkglacier
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -34,7 +34,7 @@ module mod_mkglacier
   contains
 
   subroutine mkglacier(glcfile,mask,glc)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: glcfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: glc

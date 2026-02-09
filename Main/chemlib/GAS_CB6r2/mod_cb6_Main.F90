@@ -32,6 +32,7 @@ module mod_cb6_main1
   use mod_cb6_Model
   use mod_cb6_Global
   use mod_cb6_Parameters
+  implicit none (type, external)
 
   public :: chemmain_cb6
 
@@ -42,7 +43,7 @@ module mod_cb6_main1
     use mod_cb6_Global
     use mod_cb6_Parameters
     use mod_cb6_jval2
-    implicit none
+    implicit none (type, external)
     real(kind=dp), intent(in) :: jday, dtche
 
     real(kind=dp) :: t
@@ -221,7 +222,7 @@ module mod_cb6_main1
     do while (t < tend)
       call update_rconst()
       call integrate( tin = t, tout = t+dt, rstatus_u = rstate, &
-               icntrl_u = (/ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /))
+               icntrl_u = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ])
       t = rstate(1)
     end do kron
 

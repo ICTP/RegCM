@@ -1,4 +1,5 @@
 module mod_clm_cnsummary
+implicit none (type, external)
 #ifdef CN
   !
   ! Module for carbon and nitrogen summary calculations
@@ -12,7 +13,7 @@ module mod_clm_cnsummary
   use mod_clm_pftvarcon  , only: npcropmin
   use mod_clm_surfrd  , only: crop_prog
 
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -33,7 +34,7 @@ module mod_clm_cnsummary
             ndecomp_cascade_transitions
     use mod_clm_cnndynamics, only : nfix_timeconst
     use mod_clm_varcon, only : secspday, spval
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -1421,7 +1422,7 @@ module mod_clm_cnsummary
     use mod_clm_subgridave, only : p2c
     use mod_clm_varpar, only : nlevdecomp, ndecomp_cascade_transitions, &
             ndecomp_pools
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter

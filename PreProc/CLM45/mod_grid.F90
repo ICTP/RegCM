@@ -22,7 +22,7 @@ module mod_grid
   use mod_message
   use mod_stdio
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -57,7 +57,7 @@ module mod_grid
   contains
 
   subroutine init_domain
-    implicit none
+    implicit none (type, external)
     call getmem(xlat,1,jxsg,1,iysg,'mod_read_domain:xlat')
     call getmem(xlon,1,jxsg,1,iysg,'mod_read_domain:xlon')
     call getmem(rxlat,1,jxsg,1,iysg,'mod_read_domain:rxlat')
@@ -76,9 +76,9 @@ module mod_grid
   end subroutine init_domain
 
   subroutine g2s_i(m2,m3)
-    implicit none
-    integer(ik4), dimension(:,:) :: m2
-    integer(ik4), dimension(:,:,:) :: m3
+    implicit none (type, external)
+    integer(ik4), dimension(:,:), intent(in) :: m2
+    integer(ik4), dimension(:,:,:), intent(inout) :: m3
     integer(ik4) :: n1, n2, j, i, ii, jj
     do i = 1, iy
       do j = 1, jx
@@ -94,9 +94,9 @@ module mod_grid
   end subroutine g2s_i
 
   subroutine g2s_r4(m2,m3)
-    implicit none
-    real(rk4), dimension(:,:) :: m2
-    real(rk4), dimension(:,:,:) :: m3
+    implicit none (type, external)
+    real(rk4), dimension(:,:), intent(in) :: m2
+    real(rk4), dimension(:,:,:), intent(inout) :: m3
     integer(ik4) :: n1, n2, j, i, ii, jj
     do i = 1, iy
       do j = 1, jx
@@ -112,9 +112,9 @@ module mod_grid
   end subroutine g2s_r4
 
   subroutine g2s_r8(m2,m3)
-    implicit none
-    real(rk8), dimension(:,:) :: m2
-    real(rk8), dimension(:,:,:) :: m3
+    implicit none (type, external)
+    real(rk8), dimension(:,:), intent(in) :: m2
+    real(rk8), dimension(:,:,:), intent(inout) :: m3
     integer(ik4) :: n1, n2, j, i, ii, jj
     do i = 1, iy
       do j = 1, jx
@@ -130,7 +130,7 @@ module mod_grid
   end subroutine g2s_r8
 
   subroutine setup_pack(j1,j2,i1,i2)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: n1, n2, j, i, ii, jj
     js = j1
@@ -152,9 +152,9 @@ module mod_grid
   end subroutine setup_pack
 
   subroutine pack_integer(matrix,vector)
-    implicit none
-    integer(ik4), dimension(:,:) :: matrix
-    integer(ik4), dimension(:) :: vector
+    implicit none (type, external)
+    integer(ik4), dimension(:,:), intent(in) :: matrix
+    integer(ik4), dimension(:), intent(inout) :: vector
     integer(ik4) :: i, j, n, ip
     call g2s(matrix,xtrans_i4)
     ip = 1
@@ -171,9 +171,9 @@ module mod_grid
   end subroutine pack_integer
 
   subroutine pack_real4(matrix,vector)
-    implicit none
-    real(rk4), dimension(:,:) :: matrix
-    real(rk4), dimension(:) :: vector
+    implicit none (type, external)
+    real(rk4), dimension(:,:), intent(in) :: matrix
+    real(rk4), dimension(:), intent(inout) :: vector
     integer(ik4) :: i, j, n, ip
     call g2s(matrix,xtrans_r4)
     ip = 1
@@ -190,9 +190,9 @@ module mod_grid
   end subroutine pack_real4
 
   subroutine pack_real8(matrix,vector)
-    implicit none
-    real(rk8), dimension(:,:) :: matrix
-    real(rk8), dimension(:) :: vector
+    implicit none (type, external)
+    real(rk8), dimension(:,:), intent(in) :: matrix
+    real(rk8), dimension(:), intent(inout) :: vector
     integer(ik4) :: i, j, n, ip
     call g2s(matrix,xtrans_r8)
     ip = 1

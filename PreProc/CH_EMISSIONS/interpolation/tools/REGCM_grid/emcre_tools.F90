@@ -1,5 +1,6 @@
 
 MODULE EMCRE_TOOLS
+implicit none (type, external)
 
   ! CONSTANTS
   INTEGER,  PARAMETER :: dp       = SELECTED_REAL_KIND(12,307)
@@ -23,7 +24,7 @@ CONTAINS
   SUBROUTINE spline_interpolation_base(n,x,y,y2)
 
      ! From numerical recepies
-     IMPLICIT NONE
+     IMPLICIT NONE (type, external)
      INTRINSIC SIZE
 
      ! I/O
@@ -62,7 +63,7 @@ CONTAINS
   SUBROUTINE spline_cubic_val(n,xa,ya,y2a,x,y)
 
      ! From numerical recepies
-     IMPLICIT NONE
+     IMPLICIT NONE (type, external)
 
      ! I/O
      INTEGER,  INTENT(IN)  :: n
@@ -81,7 +82,7 @@ CONTAINS
      khi=n
 
      k=2
-     do while (xa(k).lt.x)
+     do while (xa(k)<x)
         k=k+1
      enddo
      klo=k-1
@@ -89,7 +90,7 @@ CONTAINS
 
      h=xa(khi)-xa(klo)
 
-     if (h.eq.0) then
+     if (h==0) then
         write(*,*) " BAD XA INPUT SPLINE"
         STOP
      endif
@@ -106,7 +107,7 @@ CONTAINS
 
   SUBROUTINE strcrack(str, ch, el, n)
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     INTRINSIC :: INDEX, LEN_TRIM
 
@@ -171,7 +172,7 @@ CONTAINS
   ! ------------------------------------------------------------------------
   FUNCTION is_numeric(string)
 
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
 
     INTRINSIC :: INDEX, LEN_TRIM
 

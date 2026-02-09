@@ -1,4 +1,5 @@
 module mod_clm_cnallocation
+implicit none (type, external)
 #ifdef CN
   !
   ! Module holding routines used in allocation model for coupled carbon
@@ -12,7 +13,7 @@ module mod_clm_cnallocation
   use mod_mpmessage
   use mod_clm_varctl, only : use_c13, use_c14
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -54,7 +55,7 @@ module mod_clm_cnallocation
   subroutine CNAllocationInit ( lbc, ubc, lbp, ubp )
     use mod_clm_varcon, only : secspday
     use mod_clm_surfrd, only : crop_prog
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc        ! column-index bounds
     integer(ik4), intent(in) :: lbp, ubp        ! pft-index bounds
     character(len=32) :: subname = 'CNAllocationInit'
@@ -104,7 +105,7 @@ module mod_clm_cnallocation
     use mod_clm_varpar, only : max_pft_per_col
     !use mod_clm_pftvarcon, only : nbrdlf_evr_trp_tree
 
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbp, ubp  ! pft-index bounds
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
     ! number of soil columns in filter
@@ -362,10 +363,10 @@ module mod_clm_cnallocation
     integer(ik4) :: j     ! level index
     real(rk8):: nuptake_prof(lbc:ubc, 1:nlevdecomp)
     real(rk8):: sminn_tot(lbc:ubc)
-    real(rk8) f5          !grain allocation parameter
-    real(rk8) cng         !C:N ratio for grain (= cnlw for now; slevis)
-    real(rk8) fleaf       !fraction allocated to leaf
-    real(rk8) t1          !temporary variable
+    real(rk8) :: f5          !grain allocation parameter
+    real(rk8) :: cng         !C:N ratio for grain (= cnlw for now; slevis)
+    real(rk8) :: fleaf       !fraction allocated to leaf
+    real(rk8) :: t1          !temporary variable
 
 #ifndef NITRIF_DENITRIF
     !flag for N limitation

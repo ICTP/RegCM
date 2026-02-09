@@ -14,7 +14,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_ncstream_types
-
+#ifdef OPENACC
+  use, intrinsic :: iso_c_binding
+#endif
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -23,7 +25,7 @@ module mod_ncstream_types
   use mpi, only: mpi_offset_kind
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   public
 
@@ -126,9 +128,16 @@ module mod_ncstream_types
     integer(ik4), dimension(2) :: max2d_double = 0
     integer(ik4), dimension(3) :: max3d_double = 0
     integer(ik4), dimension(4) :: max4d_double = 0
+#ifdef OPENACC
+    integer(ik4), pointer, contiguous, dimension(:) :: intbuff => null()
+    real(rk4), pointer, contiguous, dimension(:) :: realbuff => null()
+    real(rk8), pointer, contiguous, dimension(:) :: doublebuff => null()
+    type(c_ptr) :: cptr
+#else
     integer(ik4), dimension(:), allocatable :: intbuff
     real(rk4), dimension(:), allocatable :: realbuff
     real(rk8), dimension(:), allocatable :: doublebuff
+#endif
   end type internal_obuffer
 
   type internal_ibuffer
@@ -472,7 +481,7 @@ module mod_ncstream_types
   end type nc_variable_p
 
   type nc_varlist
-    type(nc_variable_p), dimension(:), pointer :: vlist
+    type(nc_variable_p), dimension(:), pointer :: vlist => null()
   end type nc_varlist
 
 end module mod_ncstream_types

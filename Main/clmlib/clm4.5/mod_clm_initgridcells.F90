@@ -11,7 +11,7 @@ module mod_clm_initgridcells
   use mod_clm_varsur, only : wtxy, vegxy
   use mod_clm_varcon, only : rpi
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -36,7 +36,7 @@ module mod_clm_initgridcells
     use mod_clm_subgrid, only : subgrid_get_gcellinfo
     use mod_clm_surfrd, only : crop_prog
 
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i, li, ci, pi, gdc ! indices
     integer(ik4) :: ltype ! landunit type
     integer(ik4) :: numg    ! total number of gridcells across all processors
@@ -185,7 +185,7 @@ module mod_clm_initgridcells
     use mod_clm_type, only : clm3, gridcell_type, landunit_type, &
                         column_type, pft_type
     use mod_clm_decomp, only : get_proc_bounds
-    implicit none
+    implicit none (type, external)
     ! beg/end glcp
     integer(ik4) :: begg, endg, begl, endl, begc, endc, begp, endp
     integer(ik4) :: l, c, p  ! loop counters
@@ -302,7 +302,7 @@ module mod_clm_initgridcells
     use mod_clm_type, only : clm3, gridcell_type, landunit_type, &
                         column_type, pft_type
     use mod_clm_decomp, only : get_proc_bounds
-    implicit none
+    implicit none (type, external)
     type(gridcell_type), pointer :: gptr ! pointer to gridcell derived subtype
     type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
     type(column_type), pointer :: cptr   ! pointer to column derived subtype
@@ -468,7 +468,7 @@ module mod_clm_initgridcells
     use mod_clm_subgrid, only : subgrid_get_gcellinfo
     use mod_clm_varpar, only : numpft, maxpatch_pft, numcft
     use mod_clm_varctl, only : allocate_all_vegpfts, create_crop_landunit
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ltype        ! landunit type
     integer(ik4), intent(in) :: nw           ! cell index
     integer(ik4), intent(in) :: gi           ! gridcell index
@@ -608,7 +608,7 @@ module mod_clm_initgridcells
     use mod_clm_subgrid, only : subgrid_get_gcellinfo
     use mod_clm_varcon, only : istice, istwet, istdlak
     use mod_clm_varpar, only : npatch_lake, npatch_glacier, npatch_wet
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ltype ! landunit type
     integer(ik4), intent(in) :: nw    ! cell index
     integer(ik4), intent(in) :: gi    ! gridcell index
@@ -719,7 +719,7 @@ module mod_clm_initgridcells
     use mod_clm_subgrid, only : subgrid_get_gcellinfo
     use mod_clm_varctl, only : create_crop_landunit
     use mod_clm_varpar, only : maxpatch_pft, numcft
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ltype       ! landunit type
     integer(ik4), intent(in) :: nw          ! cell index
     integer(ik4), intent(in) :: gi          ! gridcell index
@@ -812,7 +812,7 @@ module mod_clm_initgridcells
             landunit_type, column_type, pft_type
     use mod_clm_subgrid, only : subgrid_get_gcellinfo
     use mod_clm_urbaninput, only : urbinp
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ltype        ! landunit type
     integer(ik4), intent(in) :: udenstype    ! urban density type
     integer(ik4), intent(in) :: nw           ! cell index

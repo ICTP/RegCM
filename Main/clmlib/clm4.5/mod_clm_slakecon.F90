@@ -6,7 +6,7 @@ module mod_clm_slakecon
   use mod_realkinds
   use mod_clm_varpar, only : numrad
 
-  implicit none
+  implicit none (type, external)
 
   private
 

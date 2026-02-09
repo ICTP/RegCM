@@ -25,7 +25,7 @@ module mod_pbl_shinhong
   use mod_constants, only : vonkar, ep1, wlhv, p00, rovcp, d_one
   use mod_memutil, only : getmem, getmem
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -55,7 +55,7 @@ module mod_pbl_shinhong
   contains
 
   subroutine init_shinhong_pbl( )
-    implicit none
+    implicit none (type, external)
     nj = jci2-jci1+1
     ni = ici2-ici1+1
     numbl = nj * ni
@@ -112,7 +112,7 @@ module mod_pbl_shinhong
   end subroutine init_shinhong_pbl
 
   subroutine shinhong_pbl(m2p,p2m)
-    implicit none
+    implicit none (type, external)
     type(mod_2_pbl), intent(in) :: m2p
     type(pbl_2_mod), intent(inout) :: p2m
     !
@@ -307,7 +307,7 @@ module mod_pbl_shinhong
          dz8w2d,psfcpa,znt,ust,hpbl,psim,psih,xland,hfx,qfx,wspd,br,dusfc, &
          dvsfc,dtsfc,dqsfc,dt,rcl,kpbl1d,wstar,delta,tke,corf,wspd10,      &
          dx,dy)
-    implicit none
+    implicit none (type, external)
     !
     !-----------------------------------------------------------------------
     !
@@ -363,6 +363,7 @@ module mod_pbl_shinhong
     real(rkx), dimension(nbl), intent(in) :: ust, znt
     real(rkx), dimension(nbl), intent(in) :: wspd
     real(rkx), dimension(nbl), intent(out) :: hpbl, wstar, delta
+    real(rkx), dimension(nbl), intent(out) :: dtsfc, dqsfc, dusfc, dvsfc
     integer :: i, k, ic, is, nwmass
     integer :: klpbl, kqc, kqi
     integer :: lmh
@@ -385,8 +386,8 @@ module mod_pbl_shinhong
     real(rkx), dimension(nbl) :: rigs, enlfrac2, cslen, deltaoh
     real(rkx), dimension(nbl) :: rhox, govrth, zl1, thermal
     real(rkx), dimension(nbl) :: wscale, hgamt, hgamq, brdn, brup
-    real(rkx), dimension(nbl) :: phim, phih, dusfc, dvsfc
-    real(rkx), dimension(nbl) :: dtsfc, dqsfc, prpbl, wspd1
+    real(rkx), dimension(nbl) :: phim, phih
+    real(rkx), dimension(nbl) :: prpbl, wspd1
     real(rkx), dimension(nbl) :: ust3, wstar3, hgamu, hgamv
     real(rkx), dimension(nbl) :: wm2, we, bfxpbl, hfxpbl, qfxpbl
     real(rkx), dimension(nbl) :: ufxpbl, vfxpbl, dthvx
@@ -1512,7 +1513,7 @@ module mod_pbl_shinhong
   end subroutine shinhong2d
 
   subroutine tridi1(cl,cm,cu,r1,au,f1,nbl)
-    implicit none
+    implicit none (type, external)
     integer, intent(in) :: nbl
     real(rkx), dimension(nbl,2:kzp1), intent(in) :: cl
     real(rkx), dimension(nbl,kz), intent(in) :: cm
@@ -1546,7 +1547,7 @@ module mod_pbl_shinhong
   end subroutine tridi1
 
   subroutine tridi2(cl,cm,cu,r1,r2,au,f1,f2,nbl)
-    implicit none
+    implicit none (type, external)
     integer, intent(in) :: nbl
     real(rkx), dimension(nbl,2:kzp1), intent(in) :: cl
     real(rkx), dimension(nbl,kz), intent(in) :: cm, cu, r1, r2
@@ -1582,7 +1583,7 @@ module mod_pbl_shinhong
   end subroutine tridi2
 
   subroutine tridin_ysu(cl,cm,cu,rn,au,fn,nbl,nt)
-    implicit none
+    implicit none (type, external)
     integer, intent(in) :: nbl, nt
     real(rkx), dimension(nbl,2:kzp1), intent(in) :: cl
     real(rkx), dimension(nbl,kz), intent(in) :: cm
@@ -1626,7 +1627,7 @@ module mod_pbl_shinhong
   subroutine mixlen(lmh,u,v,t,the,q,cwm,q2,z,ustar,corf,epshol, &
                     s2,gh,ri,el,hpbl,lpbl,ct,hgamu,hgamv,hgamq, &
                     pblflg,mf,ufxpbl,vfxpbl,qfxpbl)
-    implicit none
+    implicit none (type, external)
     integer, intent(in) :: lmh, lpbl
     real(rkx), intent(in) :: hpbl, corf, ustar, hgamu  ,hgamv  ,hgamq
     real(rkx), intent(inout) :: ct, epshol
@@ -1832,7 +1833,7 @@ module mod_pbl_shinhong
   subroutine prodq2(dtturbl,ustar,s2,ri,q2,el,z,akm,akh,    &
                     uxk,vxk,thxk,thvxk,hgamu,hgamv,hgamq,delxy, &
                     hpbl,pblflg,kpbl,mf,ufxpbl,vfxpbl,qfxpbl)
-    implicit none
+    implicit none (type, external)
     integer, intent(in) :: kpbl
     real(rkx), intent(in) :: dtturbl, ustar
     real(rkx), intent(in) :: hgamu, hgamv, hgamq, delxy, hpbl
@@ -1906,7 +1907,7 @@ module mod_pbl_shinhong
 
   subroutine vdifq(lmh,dtdif,q2,z,akhk,ptke1,hgame,hpbl, &
                    pblflg,kpbl,efxpbl)
-    implicit none
+    implicit none (type, external)
     integer, intent(in) :: lmh, kpbl
     real(rkx), intent(in) :: dtdif, hpbl, efxpbl
     logical, intent(in) :: pblflg
@@ -1969,7 +1970,7 @@ module mod_pbl_shinhong
   end subroutine vdifq
 
   real(rkx) function pu(d,h)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: d, h
     real(rkx), parameter :: pmin = 0.0_rkx
     real(rkx), parameter :: pmax = 1.0_rkx
@@ -1995,7 +1996,7 @@ module mod_pbl_shinhong
   end function pu
 
   real(rkx) function pq(d,h)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: d, h
     real(rkx), parameter :: pmin = 0.0_rkx
     real(rkx), parameter :: pmax = 1.0_rkx
@@ -2020,7 +2021,7 @@ module mod_pbl_shinhong
   end function pq
 
   real(rkx) function pthnl(d,h)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: d, h
     real(rkx), parameter :: pmin = 0.0_rkx
     real(rkx), parameter :: pmax = 1.0_rkx
@@ -2048,7 +2049,7 @@ module mod_pbl_shinhong
   end function pthnl
 
   real(rkx) function pthl(d,h)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: d, h
     real(rkx), parameter :: pmin = 0.0_rkx
     real(rkx), parameter :: pmax = 1.0_rkx
@@ -2076,7 +2077,7 @@ module mod_pbl_shinhong
   end function pthl
 
   real(rkx) function ptke(d,h)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: d, h
     real(rkx), parameter :: pmin = 0.0_rkx
     real(rkx), parameter :: pmax = 1.0_rkx
@@ -2102,7 +2103,7 @@ module mod_pbl_shinhong
   end function ptke
 
   subroutine sfclay(nbl,br,znt,za,ust,govrth,dtg,rah,psim,psih)
-    implicit none
+    implicit none (type, external)
     integer, intent(in) :: nbl
     real(rkx), dimension(nbl), intent(in) :: br, znt, za, ust
     real(rkx), dimension(nbl), intent(in) :: govrth, rah, dtg
@@ -2175,7 +2176,7 @@ module mod_pbl_shinhong
   end subroutine sfclay
 
   subroutine sfclayinit
-    implicit none
+    implicit none (type, external)
     integer :: n
     real(rkx) :: zoln, x, y
     do n = 0, 1000

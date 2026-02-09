@@ -17,7 +17,9 @@ module mod_constants
 
   use mod_realkinds
 
-  implicit none
+  implicit none (type, external)
+
+  public
 
   ! numbers
   real(rkx), parameter :: d_zero = 0.0_rkx

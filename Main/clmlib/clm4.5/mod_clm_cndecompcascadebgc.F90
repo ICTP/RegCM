@@ -1,4 +1,5 @@
 module mod_clm_cndecompcascadebgc
+implicit none (type, external)
 #ifdef CN
 
 #ifndef CENTURY_DECOMP
@@ -20,7 +21,7 @@ module mod_clm_cndecompcascadebgc
   use mod_clm_ch4varcon, only : mino2lim
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -56,7 +57,7 @@ module mod_clm_cndecompcascadebgc
     !  written by C. Koven based on original CLM4 decomposition cascade
     ! by P. Thornton
     use mod_clm_type
-    implicit none
+    implicit none (type, external)
     ! column level
     integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
 
@@ -386,7 +387,7 @@ module mod_clm_cndecompcascadebgc
     !
     use mod_clm_type
     use mod_clm_varcon, only: secspday
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc   ! column bounds
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
@@ -604,7 +605,7 @@ module mod_clm_cndecompcascadebgc
       ! Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
 
-      minpsi = -10.0_rk8;
+      minpsi = -10.0_rk8
 
       do j = 1, nlev_soildecomp_standard
         do fc = 1, num_soilc
@@ -693,7 +694,7 @@ module mod_clm_cndecompcascadebgc
       ! Orchard, V.A., and F.J. Cook, 1983.
       ! Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
-      minpsi = -10.0_rk8;
+      minpsi = -10.0_rk8
       do j = 1, nlevdecomp
         do fc = 1, num_soilc
           c = filter_soilc(fc)

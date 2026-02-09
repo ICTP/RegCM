@@ -28,7 +28,7 @@ module mod_che_dust
   use mod_che_ncio
   use mod_che_mppio
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -178,7 +178,7 @@ module mod_che_dust
   contains
 
     subroutine allocate_mod_che_dust
-      implicit none
+      implicit none (type, external)
       if ( ichem == 1 ) then
         call getmem(dustsotex,jci1,jci2,ici1,ici2,1,nats,'che_dust:dustsotex')
         call getmem(fclay,1,nats,'che_dust:fclay')
@@ -228,7 +228,7 @@ module mod_che_dust
     !  ***********************************************************
     !
     subroutine inidust
-      implicit none
+      implicit none (type, external)
       real(rkx) :: deldp, stotal, xk, xl, xm, xn
       integer(ik4) :: i, j, n, nm, ns, nt, itr, ndi
       real(rkx), dimension(mode,nats) :: mmd, pcent, sigma
@@ -481,7 +481,7 @@ module mod_che_dust
     !   *****************************************************************
     !
     real(rkx) function ustart01(rhodust,dum,rhair)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: dum, rhair, rhodust
       real(rkx), parameter :: a2 = 0.129_rkx
       real(rkx), parameter :: c1 = 0.006_rkx
@@ -504,7 +504,7 @@ module mod_che_dust
     contains
 
       real(rkx) function cvmgt(val1,val2,cond)
-        implicit none
+        implicit none (type, external)
         logical, intent(in) :: cond
         real(rkx), intent(in) :: val1, val2
         if ( cond ) then
@@ -526,7 +526,7 @@ module mod_che_dust
     !   *****************************************************************
     !
     real(rkx) function ustart0(rhodust,dum,rhoa)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: dum, rhoa, rhodust
       real(rkx), parameter :: agamma = 3.0e-4_rkx
       real(rkx), parameter :: f = 0.0123_rkx
@@ -548,7 +548,7 @@ module mod_che_dust
     !
     subroutine sfflux(lmonth,ivegcov,vegfrac,snowfrac,ustarnd,z0,soilw, &
                       surfwd,roarow,trsize)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: lmonth
       integer(ik4), intent(in), dimension(jci1:jci2,ici1:ici2) :: ivegcov
       real(rkx), intent(in), dimension(jci1:jci2,ici1:ici2) :: roarow
@@ -682,7 +682,7 @@ module mod_che_dust
 
     subroutine dust_module(jl1,jl2,trsize,soilw,vegfrac,snowfrac,surfwd,ftex, &
                            clayrow,roarow,fclay,z0,aez0,srel,ustarnd,rsfrow)
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: jl1, jl2
       real(rkx), dimension(ilg) :: clayrow, roarow, soilw, surfwd,   &
                             vegfrac, z0, ustarnd, snowfrac, aez0
@@ -767,7 +767,7 @@ module mod_che_dust
     end subroutine dust_module
 
     subroutine uthefft(jl1,jl2,ust,nsoil,roarow,utheff,rhodust)
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: jl1, jl2, nsoil, ust
       real(rkx) :: rhodust
       real(rkx), dimension(ilg) :: roarow
@@ -785,7 +785,7 @@ module mod_che_dust
 
     subroutine emission(jl1,jl2,rhodust,ftex,fclay,uth,roarow,rc, &
                         utheff,ustar,srel,rsfrow,vegfrac,snowfrac)
-      implicit none
+      implicit none (type, external)
       integer(ik4) :: jl1, jl2
       real(rkx) :: rhodust, uth
       real(rkx), dimension(ilg) :: rc, ustar, roarow, vegfrac, snowfrac
@@ -964,7 +964,7 @@ module mod_che_dust
     end subroutine emission
 
     subroutine clm_dust_tend
-      implicit none
+      implicit none (type, external)
 #ifdef CLM45
       integer(ik4) :: i, j, n, ib
       ! real(rkx) :: cdsfrq

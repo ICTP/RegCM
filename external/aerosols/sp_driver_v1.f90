@@ -24,11 +24,11 @@ PROGRAM MACv2SP
   USE mo_simple_plumes, ONLY: sp_aop_profile
   USE netcdf
 
-  IMPLICIT NONE
+  IMPLICIT NONE (type, external)
 
   INTEGER, PARAMETER :: nlev = 80, nmon = 12
 
-  REAL, PARAMETER    :: mons(nmon) = (/1., 2., 3., 4., 5., 6., 7., 8., 9.,10.,11.,12./)
+  REAL, PARAMETER    :: mons(nmon) = [1., 2., 3., 4., 5., 6., 7., 8., 9.,10.,11.,12.]
   REAL, PARAMETER    :: lambda     = 550.0
 
   INTEGER ::           &
@@ -112,13 +112,13 @@ PROGRAM MACv2SP
   ALLOCATE (asy_prof(nlon,nlev))
 
   iret = nf90_inq_varid(ncid, "lat", VarID)
-  iret = nf90_get_var(ncid, VarID, lat(:) , start=(/1/)  ,count=(/nlat/))
+  iret = nf90_get_var(ncid, VarID, lat(:) , start=[1]  ,count=[nlat])
   IF (iret /= NF90_NOERR) STOP 'Error in reading latitudes'
   iret = nf90_inq_varid(ncid, "lon", VarID)
-  iret = nf90_get_var(ncid, VarID, lon(:) , start=(/1/)  ,count=(/nlon/))
+  iret = nf90_get_var(ncid, VarID, lon(:) , start=[1]  ,count=[nlon])
   IF (iret /= NF90_NOERR) STOP 'Error in reading longitudes'
   iret = nf90_inq_varid(ncid, "asl", VarID)
-  iret = nf90_get_var(ncid, VarID, oro(:,:), start=(/1,1/),count=(/nlon,nlat/))
+  iret = nf90_get_var(ncid, VarID, oro(:,:), start=[1,1],count=[nlon,nlat])
   IF (iret /= NF90_NOERR) STOP 'Error in reading orographic height'
   iret = nf90_close  (ncid)
   !
@@ -202,13 +202,13 @@ PROGRAM MACv2SP
       iret = iret + nf90_def_var(ncid, 'lat'         , NF90_FLOAT, latID, var_lat_ID)
       iret = iret + nf90_def_var(ncid, 'lon'         , NF90_FLOAT, lonID, var_lon_ID)
       iret = iret + nf90_def_var(ncid, 'z'           , NF90_FLOAT, levID, var_z_ID)
-      iret = iret + nf90_def_var(ncid, 'aod'         , NF90_FLOAT, (/lonID,latID,levID,monID/), var_aod_ID)
-      iret = iret + nf90_def_var(ncid, 'ssa'         , NF90_FLOAT, (/lonID,latID,levID,monID/), var_ssa_ID)
-      iret = iret + nf90_def_var(ncid, 'asy'         , NF90_FLOAT, (/lonID,latID,levID,monID/), var_asy_ID)
-      iret = iret + nf90_def_var(ncid, 'dNovrN'      , NF90_FLOAT, (/lonID,latID,monID/), var_dNovrN_ID)
-      iret = iret + nf90_def_var(ncid, 'aod_2D'      , NF90_FLOAT, (/lonID,latID,monID/), var_aod_ID_2d)
-      iret = iret + nf90_def_var(ncid, 'ssa_2D'      , NF90_FLOAT, (/lonID,latID,monID/), var_ssa_ID_2d)
-      iret = iret + nf90_def_var(ncid, 'asy_2D'      , NF90_FLOAT, (/lonID,latID,monID/), var_asy_ID_2d)
+      iret = iret + nf90_def_var(ncid, 'aod'         , NF90_FLOAT, [lonID,latID,levID,monID], var_aod_ID)
+      iret = iret + nf90_def_var(ncid, 'ssa'         , NF90_FLOAT, [lonID,latID,levID,monID], var_ssa_ID)
+      iret = iret + nf90_def_var(ncid, 'asy'         , NF90_FLOAT, [lonID,latID,levID,monID], var_asy_ID)
+      iret = iret + nf90_def_var(ncid, 'dNovrN'      , NF90_FLOAT, [lonID,latID,monID], var_dNovrN_ID)
+      iret = iret + nf90_def_var(ncid, 'aod_2D'      , NF90_FLOAT, [lonID,latID,monID], var_aod_ID_2d)
+      iret = iret + nf90_def_var(ncid, 'ssa_2D'      , NF90_FLOAT, [lonID,latID,monID], var_ssa_ID_2d)
+      iret = iret + nf90_def_var(ncid, 'asy_2D'      , NF90_FLOAT, [lonID,latID,monID], var_asy_ID_2d)
 
       iret = iret + nf90_put_att(ncid, var_t_ID      , "long_name", "month of year")
       iret = iret + nf90_put_att(ncid, var_t_ID      , "units"   , "month")

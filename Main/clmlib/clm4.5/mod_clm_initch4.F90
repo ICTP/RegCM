@@ -1,4 +1,5 @@
 module mod_clm_initch4
+implicit none (type, external)
 #ifdef LCH4
   use mod_intkinds
   use mod_realkinds
@@ -15,7 +16,7 @@ module mod_clm_initch4
   ! Contains time constant (and flux / diagnostic vars) and time-varying
   ! (state vars) initialization code for CH4 scheme.
   !
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -37,7 +38,7 @@ module mod_clm_initch4
   ! In future versions, this could be phased out.
   !
   subroutine initch4( arbinit )
-    implicit none
+    implicit none (type, external)
     logical, intent(in) :: arbinit ! Whether mkarbinit has been called.
     call initTimeConst_ch4()
     ! Attn EK
@@ -55,7 +56,7 @@ module mod_clm_initch4
   ! o2stress, finunduated
   !
   subroutine makearbinit_ch4( arbinit )
-    implicit none
+    implicit none (type, external)
     logical, intent(in) :: arbinit ! Whether mkarbinit has been called.
     ! landunit index associated with each column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
@@ -187,7 +188,7 @@ module mod_clm_initch4
   ! restart/inic file. Also set values for inactive CH4 columns to
   ! spval so that they will not be averaged in history file.
   subroutine initTimeConst_ch4
-    implicit none
+    implicit none (type, external)
     ! landunit index of column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! gridcell index of column

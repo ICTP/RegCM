@@ -39,6 +39,7 @@ module mod_era5rda
   use mod_nchelper
   use mod_kdinterp
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -79,7 +80,7 @@ module mod_era5rda
   contains
 
   subroutine init_era5rda
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: k
     integer(ik4) :: year, month, day, hour
     character(len=256) :: pathaddname
@@ -87,7 +88,8 @@ module mod_era5rda
     character(len=64) :: inname
 
     ! set the subdirectory path to 3D data: ds633.0/e5.oper.an.pl
-    character(len=21) :: subdir_plev = 'ds633.0' // pthsep // 'e5.oper.an.pl'
+    character(len=21), parameter :: subdir_plev = &
+         'ds633.0' // pthsep // 'e5.oper.an.pl'
     character(len=6) :: yyyymm
 
     call split_idate(globidate1,year,month,day,hour)
@@ -102,7 +104,8 @@ module mod_era5rda
          year, month, day, '23.nc'
 
     ! set the path to the file to be read
-    pathaddname = trim(inpglob)//pthsep//trim(dattyp)//pthsep//subdir_plev//pthsep//yyyymm//pthsep//inname
+    pathaddname = trim(inpglob)//pthsep//trim(dattyp)//pthsep//&
+       subdir_plev//pthsep//yyyymm//pthsep//inname
 
     istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -234,7 +237,7 @@ module mod_era5rda
   end subroutine init_era5rda
 
   subroutine get_era5rda(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     !
     ! Read data at idate
@@ -324,7 +327,7 @@ module mod_era5rda
   end subroutine get_era5rda
 
   subroutine read_era5rda(dattyp,idate,idate0)
-    implicit none
+    implicit none (type, external)
     character(len=5), intent(in) :: dattyp
     type(rcm_time_and_date), intent(in) :: idate, idate0
     integer(ik4) :: i, inet, it, j, kkrec, istatus, ivar
@@ -338,7 +341,8 @@ module mod_era5rda
     integer(ik4), dimension(4) :: icount, istart
     integer(ik4) :: year, month, day, hour
     integer(ik4), save :: lastday
-    character(len=21) :: subdir_plev = 'ds633.0' // pthsep // 'e5.oper.an.pl'
+    character(len=21), parameter :: subdir_plev = &
+                  'ds633.0' // pthsep // 'e5.oper.an.pl'
     character(len=6) :: yyyymm
     !
     ! This is the latitude, longitude dimension of the grid to be read.
@@ -386,7 +390,8 @@ module mod_era5rda
         year, month, day, '23.nc'
 
         ! set the path to the file to be read
-        pathaddname = trim(inpglob)//pthsep//trim(dattyp)//pthsep//subdir_plev//pthsep//yyyymm//pthsep//inname
+        pathaddname = trim(inpglob)//pthsep//trim(dattyp)//pthsep//&
+          subdir_plev//pthsep//yyyymm//pthsep//inname
 
         ! open the file
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
@@ -509,7 +514,7 @@ module mod_era5rda
     contains
 
       subroutine getwork(irec)
-        implicit none
+        implicit none (type, external)
         integer(ik4), intent(in) :: irec
         integer(ik4) :: itile, iti, itf
         iti = 1
@@ -529,7 +534,7 @@ module mod_era5rda
   end subroutine read_era5rda
 
   subroutine conclude_era5rda
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then

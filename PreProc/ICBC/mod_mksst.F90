@@ -28,6 +28,7 @@ module mod_mksst
   use mod_nchelper
   use mod_earth
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -48,7 +49,7 @@ module mod_mksst
   contains
 
   subroutine readsst(tsccm, idate)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(jx,iy), intent(inout) :: tsccm
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: istatus, idimid, itvar
@@ -216,7 +217,7 @@ module mod_mksst
   end subroutine readsst
 
   real(rkx) function nearn(jp,ip,sst)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: jp, ip
     real(rkx), dimension(:,:), intent(in) :: sst
     real(rkx) :: wt, wtsum
@@ -266,7 +267,7 @@ module mod_mksst
   end function nearn
 
   subroutine closesst
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: istatus
     istatus = nf90_close(ncst)
   end subroutine closesst

@@ -19,7 +19,7 @@ module mod_clm_typeinit
   use mod_clm_drydep, only : n_drydep, drydep_method, DD_XLND
   use mod_clm_varpar
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -40,7 +40,7 @@ module mod_clm_typeinit
   !    *%luni, *%lunf, *%lunn
   !
   subroutine initClmtype()
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
@@ -315,7 +315,7 @@ module mod_clm_typeinit
   ! Initialize components of pft_type structure
   !
   subroutine init_pft_type (ibeg,iend,p)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type(pft_type), intent(inout) :: p
 
@@ -332,7 +332,7 @@ module mod_clm_typeinit
   !
   subroutine init_column_type (ibeg,iend,c)
 ! !ARGUMENTS:
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type(column_type), intent(inout) :: c
 
@@ -348,7 +348,7 @@ module mod_clm_typeinit
   ! Initialize components of landunit_type structure
   !
   subroutine init_landunit_type (ibeg,iend,l)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type(landunit_type), intent(inout) :: l
 
@@ -377,7 +377,7 @@ module mod_clm_typeinit
   ! Initialize components of gridcell_type structure
   !
   subroutine init_gridcell_type (ibeg,iend,g)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type(gridcell_type), intent(inout) :: g
 
@@ -407,7 +407,7 @@ module mod_clm_typeinit
   ! Initialize energy balance variables
   !
   subroutine init_energy_balance_type(ibeg,iend,ebal)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type(energy_balance_type), intent(inout) :: ebal
 
@@ -420,7 +420,7 @@ module mod_clm_typeinit
   ! Initialize water balance variables
   !
   subroutine init_water_balance_type(ibeg,iend,wbal)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type(water_balance_type), intent(inout) :: wbal
 
@@ -432,7 +432,7 @@ module mod_clm_typeinit
   ! Initialize carbon balance variables
   !
   subroutine init_carbon_balance_type(ibeg,iend,cbal)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type(carbon_balance_type), intent(inout) :: cbal
 
@@ -444,7 +444,7 @@ module mod_clm_typeinit
   ! Initialize nitrogen balance variables
   !
   subroutine init_nitrogen_balance_type(ibeg,iend,nbal)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type(nitrogen_balance_type), intent(inout) :: nbal
 
@@ -456,7 +456,7 @@ module mod_clm_typeinit
   ! Initialize pft physical state
   !
   subroutine init_pft_ecophys_constants()
-    implicit none
+    implicit none (type, external)
 
     allocate(pftcon%noveg(0:numpft), source=bigint)
     allocate(pftcon%tree(0:numpft), source=bigint)
@@ -511,7 +511,7 @@ module mod_clm_typeinit
   ! Initialize decomposition cascade state
   !
   subroutine init_decomp_cascade_constants()
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: nct, np
     nct = ndecomp_cascade_transitions
     np = ndecomp_pools
@@ -549,7 +549,7 @@ module mod_clm_typeinit
   ! Initialize pft physical state
   !
   subroutine init_pft_DGVMecophys_constants()
-    implicit none
+    implicit none (type, external)
 
     allocate(dgv_pftcon%crownarea_max(0:numpft), source=nan)
     allocate(dgv_pftcon%tcmin(0:numpft), source=nan)
@@ -567,7 +567,7 @@ module mod_clm_typeinit
   ! Initialize pft physical state
   !
   subroutine init_pft_pstate_type(ibeg,iend,pps)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_pstate_type), intent(inout) :: pps
 
@@ -707,7 +707,7 @@ module mod_clm_typeinit
   ! Initialize pft ecophysiological variables
   !
   subroutine init_pft_epv_type(ibeg,iend,pepv)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_epv_type), intent(inout) :: pepv
 
@@ -778,7 +778,7 @@ module mod_clm_typeinit
   ! Initialize pft DGVM state variables
   !
   subroutine init_pft_pdgvstate_type(ibeg,iend,pdgvs)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_dgvstate_type), intent(inout) :: pdgvs
 
@@ -804,7 +804,7 @@ module mod_clm_typeinit
   ! Initialize pft VOC variables
   !
   subroutine init_pft_vstate_type(ibeg,iend,pvs)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_vstate_type), intent(inout) :: pvs
 
@@ -822,7 +822,7 @@ module mod_clm_typeinit
   ! Initialize pft energy state
   !
   subroutine init_pft_psynstate_type(ibeg,iend,ppsyns)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_psynstate_type), intent(inout) :: ppsyns
 
@@ -849,7 +849,7 @@ module mod_clm_typeinit
   ! Initialize pft energy state
   !
   subroutine init_pft_estate_type(ibeg,iend,pes)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_estate_type), intent(inout) :: pes
 
@@ -885,7 +885,7 @@ module mod_clm_typeinit
   ! Initialize pft water state
   !
   subroutine init_pft_wstate_type(ibeg,iend,pws)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_wstate_type), intent(inout) :: pws !pft water state
 
@@ -895,7 +895,7 @@ module mod_clm_typeinit
   ! Initialize pft carbon state
   !
   subroutine init_pft_cstate_type(ibeg,iend,pcs)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_cstate_type), intent(inout) :: pcs !pft carbon state
 
@@ -940,7 +940,7 @@ module mod_clm_typeinit
   ! Initialize pft nitrogen state
   !
   subroutine init_pft_nstate_type(ibeg,iend,pns)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_nstate_type), intent(inout) :: pns !pft nitrogen state
 
@@ -979,7 +979,7 @@ module mod_clm_typeinit
   ! Initialize pft energy flux variables
   !
   subroutine init_pft_eflux_type(ibeg,iend,pef)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_eflux_type), intent(inout) :: pef
 
@@ -1067,7 +1067,7 @@ module mod_clm_typeinit
   ! Initialize pft momentum flux variables
   !
   subroutine init_pft_mflux_type(ibeg,iend,pmf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_mflux_type), intent(inout) :: pmf
 
@@ -1078,7 +1078,7 @@ module mod_clm_typeinit
   ! Initialize pft water flux variables
   !
   subroutine init_pft_wflux_type(ibeg,iend,pwf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_wflux_type), intent(inout) :: pwf
 
@@ -1106,7 +1106,7 @@ module mod_clm_typeinit
   ! Initialize pft carbon flux variables
   !
   subroutine init_pft_cflux_type(ibeg,iend,pcf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_cflux_type), intent(inout) :: pcf
 
@@ -1338,7 +1338,7 @@ module mod_clm_typeinit
   ! Initialize pft nitrogen flux variables
   !
   subroutine init_pft_nflux_type(ibeg,iend,pnf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_nflux_type), intent(inout) :: pnf
 
@@ -1482,7 +1482,7 @@ module mod_clm_typeinit
   ! Initialize pft VOC flux variables
   !
   subroutine init_pft_vflux_type(ibeg,iend,pvf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_vflux_type), intent(inout) :: pvf
     integer(ik4) :: i
@@ -1519,7 +1519,7 @@ module mod_clm_typeinit
   ! Initialize pft dust flux variables
   !
   subroutine init_pft_dflux_type(ibeg,iend,pdf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_dflux_type), intent(inout) :: pdf
 
@@ -1536,7 +1536,7 @@ module mod_clm_typeinit
   ! Initialize pft dep velocity variables
   !
   subroutine init_pft_depvd_type(ibeg,iend,pdd)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_depvd_type), intent(inout) :: pdd
 
@@ -1548,7 +1548,7 @@ module mod_clm_typeinit
   ! Initialize column physical state variables
   !
   subroutine init_column_pstate_type(ibeg,iend,cps)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (column_pstate_type), intent(inout) :: cps
 
@@ -1774,7 +1774,7 @@ module mod_clm_typeinit
   ! Initialize column energy state variables
   !
   subroutine init_column_estate_type(ibeg,iend,ces)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (column_estate_type), intent(inout) :: ces
 
@@ -1800,7 +1800,7 @@ module mod_clm_typeinit
   ! Initialize column water state variables
   !
   subroutine init_column_wstate_type(ibeg,iend,cws)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (column_wstate_type), intent(inout) :: cws !column water state
 
@@ -1860,7 +1860,7 @@ module mod_clm_typeinit
   ! Initialize column carbon state variables
   !
   subroutine init_column_cstate_type(ibeg,iend,ccs)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (column_cstate_type), intent(inout) :: ccs
 
@@ -1894,7 +1894,7 @@ module mod_clm_typeinit
   ! Initialize column nitrogen state variables
   !
   subroutine init_column_nstate_type(ibeg,iend,cns)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (column_nstate_type), intent(inout) :: cns
 
@@ -1928,7 +1928,7 @@ module mod_clm_typeinit
   ! Initialize column energy flux variables
   !
   subroutine init_column_eflux_type(ibeg,iend,cef)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (column_eflux_type), intent(inout) :: cef
 
@@ -1947,7 +1947,7 @@ module mod_clm_typeinit
   ! Initialize column water flux variables
   !
   subroutine init_column_wflux_type(ibeg,iend,cwf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (column_wflux_type), intent(inout) :: cwf
 
@@ -2000,7 +2000,7 @@ module mod_clm_typeinit
   ! Initialize column carbon flux variables
   !
   subroutine init_column_cflux_type(ibeg,iend,ccf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (column_cflux_type), intent(inout) :: ccf
 
@@ -2116,7 +2116,7 @@ module mod_clm_typeinit
   ! Initialize column methane flux variables
   !
   subroutine init_column_ch4_type(ibeg,iend,cch4)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (column_ch4_type), intent(inout) :: cch4
 
@@ -2192,7 +2192,7 @@ module mod_clm_typeinit
   ! Initialize column nitrogen flux variables
   !
   subroutine init_column_nflux_type(ibeg,iend,cnf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (column_nflux_type), intent(inout) :: cnf
 
@@ -2345,7 +2345,7 @@ module mod_clm_typeinit
   ! Initialize landunit physical state variables
   !
   subroutine init_landunit_pstate_type(ibeg,iend,lps)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (landunit_pstate_type), intent(inout) :: lps
 
@@ -2385,7 +2385,7 @@ module mod_clm_typeinit
   ! Initialize landunit energy flux variables
   !
   subroutine init_landunit_eflux_type(ibeg,iend,lef)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (landunit_eflux_type), intent(inout) :: lef
 
@@ -2400,7 +2400,7 @@ module mod_clm_typeinit
   ! Initialize gridcell DGVM variables
   !
   subroutine init_gridcell_dgvstate_type(ibeg,iend,gps)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (gridcell_dgvstate_type), intent(inout) :: gps
 
@@ -2413,7 +2413,7 @@ module mod_clm_typeinit
   ! Initialize gridcell isoprene emission factor variables
   !
   subroutine init_gridcell_efstate_type(ibeg,iend,gve)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (gridcell_efstate_type), intent(inout) :: gve
 
@@ -2423,7 +2423,7 @@ module mod_clm_typeinit
   ! Initialize gridcell water flux variables
   !
   subroutine init_gridcell_wflux_type(ibeg,iend,gwf)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (gridcell_wflux_type), intent(inout) :: gwf
 
@@ -2436,7 +2436,7 @@ module mod_clm_typeinit
   ! Initialize gridcell energy flux variables
   !
   subroutine init_gridcell_eflux_type(ibeg,iend,gef)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (gridcell_eflux_type), intent(inout) :: gef
 
@@ -2447,7 +2447,7 @@ module mod_clm_typeinit
   ! Initialize gridcell water state variables
   !
   subroutine init_gridcell_wstate_type(ibeg,iend,gws)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (gridcell_wstate_type), intent(inout) :: gws
 
@@ -2460,7 +2460,7 @@ module mod_clm_typeinit
   ! Initialize gridcell energy state variables
   !
   subroutine init_gridcell_estate_type(ibeg,iend,ges)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (gridcell_estate_type), intent(inout) :: ges
 
@@ -2472,7 +2472,7 @@ module mod_clm_typeinit
   ! Initialize gridcell ch4 variables
   !
   subroutine init_gridcell_ch4_type(ibeg,iend,gch4)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ibeg, iend
     type (gridcell_ch4_type), intent(inout) :: gch4
 

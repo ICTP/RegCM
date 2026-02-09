@@ -20,7 +20,7 @@ module mod_che_species
   use mod_dynparam
   use mod_memutil
 
-  implicit none
+  implicit none (type, external)
 
   public
 

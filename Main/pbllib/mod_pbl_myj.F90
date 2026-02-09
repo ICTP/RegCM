@@ -36,7 +36,7 @@ module mod_pbl_myj
   use mod_regcm_types
   use mod_runparams
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -153,7 +153,7 @@ module mod_pbl_myj
   contains
 
   subroutine init_myjpbl
-    implicit none
+    implicit none (type, external)
     if ( ipptls > 1 ) then
       nspec = 4
     else
@@ -166,7 +166,7 @@ module mod_pbl_myj
   end subroutine init_myjpbl
 
   subroutine myjpbl(m2p,p2m)
-    implicit none
+    implicit none (type, external)
     type(mod_2_pbl), intent(in) :: m2p
     type(pbl_2_mod), intent(inout) :: p2m
     !
@@ -491,7 +491,7 @@ module mod_pbl_myj
   ! Level 2.5 Mixing Length
   !
   subroutine mixlen(u,v,t,the,q,cwm,q2,z,gm,gh,el,pblh,lpbl,lmxl,ct)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(out) :: lmxl, lpbl
     real(rkx), dimension(kz), intent(in) :: cwm, q, q2, t, the, u, v
     real(rkx), dimension(kzp1), intent(in) :: z
@@ -624,7 +624,7 @@ module mod_pbl_myj
   ! Level 2.5 Q2 Production/Dissipation
   !
   subroutine prodq2(dtturbl,ustar,gm,gh,el,q2)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: dtturbl, ustar
     real(rkx), dimension(kzm1), intent(in) :: gh, gm
     real(rkx), dimension(kzm1), intent(inout) :: el
@@ -752,7 +752,7 @@ module mod_pbl_myj
   ! Level 2.5 Diffusion Coefficients
   !
   subroutine difcof(gm,gh,el,q2,z,akm,akh)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(kz), intent(in) :: q2
     real(rkx), dimension(kzm1), intent(in) :: el, gh, gm
     real(rkx), dimension(kzp1), intent(in) :: z
@@ -805,7 +805,7 @@ module mod_pbl_myj
   ! Vertical turbulent diffusion of q2 (tke)
   !
   subroutine vdifq(dtdif,q2,el,z)
-    implicit none
+    implicit none (type, external)
     real(rkx) ,intent(in) :: dtdif
     real(rkx) ,dimension(kzm1),intent(in) :: el
     real(rkx) ,dimension(kzp1),intent(in) :: z
@@ -851,7 +851,7 @@ module mod_pbl_myj
   !
   subroutine vdifh(dtdif,lpbl,sz0,rkhs,clow,cts, &
                    species,ns,rkh,zhk,rho)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lpbl, ns
     real(rkx), intent(in) :: dtdif, rkhs
     real(rkx), dimension(nspec), intent(in) :: clow, cts, sz0
@@ -921,7 +921,7 @@ module mod_pbl_myj
   ! Vertical diffusion of velocity components
   !
   subroutine vdifv(dtdif,uz0,vz0,rkms,u,v,rkm,z,rho)
-    implicit none
+    implicit none (type, external)
     real(rkx), intent(in) :: rkms, dtdif, uz0, vz0
     real(rkx), dimension(kzm1), intent(in) :: rkm
     real(rkx), dimension(kz), intent(in) :: rho

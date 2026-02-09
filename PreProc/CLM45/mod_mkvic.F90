@@ -13,8 +13,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_mkvic
 #ifdef VICHYDRO
+module mod_mkvic
   use mod_realkinds
   use mod_intkinds
   use mod_dynparam
@@ -22,7 +22,7 @@ module mod_mkvic
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -36,7 +36,7 @@ module mod_mkvic
   contains
 
   subroutine mkvic(vicfile,mask,vic)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: vicfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: vic
@@ -73,7 +73,12 @@ module mod_mkvic
       end do
     end do
   end subroutine mkvic
-#endif
 
 end module mod_mkvic
+#else
+module mod_mkvic
+  implicit none (type, external)
+  private
+end module mod_mkvic
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

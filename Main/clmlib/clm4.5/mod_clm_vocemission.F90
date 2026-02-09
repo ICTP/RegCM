@@ -27,7 +27,7 @@ module mod_clm_vocemission
   use mod_clm_meganfactors, only : Agro, Amat, Anew, Aold
   use mod_clm_meganfactors, only : betaT, ct1, ct2, LDF, Ceo
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -70,7 +70,7 @@ module mod_clm_vocemission
   ! Output: vocflx(shr_megan_mechcomps_n) !VOC flux [kg/m2/sec]
   !
   subroutine VOCEmission (lbp, ubp, num_soilp, filter_soilp )
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbp, ubp  ! pft bounds
     integer(ik4), intent(in) :: num_soilp ! number of columns in soil pft filter
     integer(ik4), intent(in) :: filter_soilp(num_soilp) ! pft filter for soil
@@ -439,7 +439,7 @@ module mod_clm_vocemission
   subroutine VOCEmission_init(  )
     use mod_clm_megan, only : shr_megan_factors_file
     use mod_clm_meganfactors, only : megan_factors_init, megan_factors_get
-    implicit none
+    implicit none (type, external)
     type(shr_megan_megcomp_t), pointer :: meg_cmp
     integer(ik4)  :: class_num
     real(rk8) :: factors(numpft)
@@ -466,7 +466,7 @@ module mod_clm_vocemission
   !
   function get_map_EF(ivt_in,g_in)
     use mod_clm_type
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ivt_in
     integer(ik4), intent(in) :: g_in
     real(rk8) :: get_map_EF
@@ -515,7 +515,7 @@ module mod_clm_vocemission
   real(rk8) function get_gamma_P(par_sun_in,par24_sun_in,par240_sun_in, &
                   par_sha_in,par240_sha_in,fsun_in,fsun240_in, &
                   forc_solad240_in,forc_solai240_in,LDF_in,cp,alpha)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: par_sun_in
     real(rk8), intent(in) :: par24_sun_in
     real(rk8), intent(in) :: par240_sun_in
@@ -575,7 +575,7 @@ module mod_clm_vocemission
   !
   function get_gamma_L(fsun240_in,elai_in)
     use mod_clm_varcon, only : denice
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: fsun240_in
     real(rk8), intent(in) :: elai_in
     real(rk8) :: get_gamma_L             ! return value
@@ -604,7 +604,7 @@ module mod_clm_vocemission
                   dz_in,bsw_in,watsat_in,sucsat_in,root_depth_in)
     use mod_clm_varcon, only : denice
     use mod_clm_varpar, only : nlevsoi
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: clayfrac_in
     real(rk8), intent(in) :: sandfrac_in
     real(rk8), intent(in) :: h2osoi_vol_in(nlevsoi)
@@ -669,7 +669,7 @@ module mod_clm_vocemission
   !
   function get_gamma_T(t_veg240_in,t_veg24_in,t_veg_in,ct1_in,ct2_in, &
                        betaT_in,LDF_in,Ceo_in,Eopt,topt)
-    implicit none
+    implicit none (type, external)
     ! varibles in
     real(rk8), intent(in) :: t_veg240_in
     real(rk8), intent(in) :: t_veg24_in
@@ -728,7 +728,7 @@ module mod_clm_vocemission
   ! the number of days after budbreak to reach peak emission (tm=28 days)
   !
   function get_gamma_A(ivt_in, elai_p_in,elai_in,nclass_in)
-    implicit none
+    implicit none (type, external)
     ! varibles in
     integer(ik4), intent(in)  :: ivt_in
     integer(ik4), intent(in)  :: nclass_in
@@ -778,7 +778,7 @@ module mod_clm_vocemission
   function get_gamma_C(cisun_in,cisha_in,forc_pbot_in,fsun_in)
     ! corresponds to CCSM_CO2_PPMV set in env_conf.xml
     use mod_clm_varctl, only : co2_ppmv
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: cisun_in
     real(rk8), intent(in) :: cisha_in
     real(rk8), intent(in) :: forc_pbot_in

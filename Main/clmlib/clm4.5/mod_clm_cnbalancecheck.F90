@@ -1,4 +1,5 @@
 module mod_clm_cnbalancecheck
+implicit none (type, external)
 #ifdef CN
 
   !
@@ -10,7 +11,7 @@ module mod_clm_cnbalancecheck
   use mod_mpmessage
   use mod_stdio
 
-  implicit none
+  implicit none (type, external)
 
   save
 
@@ -28,7 +29,7 @@ module mod_clm_cnbalancecheck
   !
   subroutine BeginCBalance(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of soil columns filter
     integer(ik4), intent(in) :: num_soilc
@@ -61,7 +62,7 @@ module mod_clm_cnbalancecheck
   !
   subroutine BeginNBalance(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of soil columns filter
     integer(ik4), intent(in) :: num_soilc
@@ -95,7 +96,7 @@ module mod_clm_cnbalancecheck
   !
   subroutine CBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc
@@ -209,7 +210,7 @@ module mod_clm_cnbalancecheck
   subroutine NBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
     use mod_clm_surfrd, only : crop_prog
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc ! column bounds
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc

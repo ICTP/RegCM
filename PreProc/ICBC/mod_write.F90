@@ -27,6 +27,7 @@ module mod_write
   use mod_vectutil
   use mod_stdio
   use mod_zita
+  implicit none (type, external)
 
   private
 
@@ -55,7 +56,7 @@ module mod_write
   contains
 
   subroutine init_outpgw(plevs)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:), intent(in) :: plevs
     integer :: nplevs, ierr
 
@@ -161,7 +162,7 @@ module mod_write
   end subroutine init_outpgw
 
   subroutine init_houtput
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: ierr
     call getmem(pr,1,jx,1,iy,'mod_write:pr')
     call getmem(ssr,1,jx,1,iy,'mod_write:ssr')
@@ -212,7 +213,7 @@ module mod_write
   end subroutine init_houtput
 
   subroutine init_output
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: ierr, i3i
     if ( dattyp == 'FNEST' .or. dattyp == 'IFSXX' ) then
       qli_present = .true.
@@ -393,18 +394,18 @@ module mod_write
   end subroutine init_output
 
   subroutine close_output
-    implicit none
+    implicit none (type, external)
     call outstream_dispose(ncout)
   end subroutine close_output
 
   subroutine dispose_output
-    implicit none
+    implicit none (type, external)
     if ( allocated(v2dvar_icbc) ) deallocate(v2dvar_icbc)
     if ( allocated(v3dvar_icbc) ) deallocate(v3dvar_icbc)
   end subroutine dispose_output
 
   subroutine newhfile(idate1)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate1
 
     type(ncoutstream_params) :: opar
@@ -438,7 +439,7 @@ module mod_write
   end subroutine newhfile
 
   subroutine newpgwfile(idate1)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar
@@ -490,7 +491,7 @@ module mod_write
   end subroutine newpgwfile
 
   subroutine newfile(idate1)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate1
 
     type(ncoutstream_params) :: opar
@@ -577,7 +578,7 @@ module mod_write
   end subroutine newfile
 
   subroutine writehf(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivar
 
@@ -588,7 +589,7 @@ module mod_write
   end subroutine writehf
 
   subroutine writepgwf(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivar
     call outstream_addrec(ncout,idate)
@@ -603,7 +604,7 @@ module mod_write
   end subroutine writepgwf
 
   subroutine writef(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivar, k
     real(rkx) :: dx

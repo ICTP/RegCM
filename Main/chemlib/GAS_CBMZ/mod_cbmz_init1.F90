@@ -23,6 +23,7 @@ module mod_cbmz_init1
   use mod_cbmz_chemlocal
   use mod_cbmz_chemvars
   use mod_cbmz_jval1
+  implicit none (type, external)
 !
   private
 !
@@ -119,7 +120,7 @@ module mod_cbmz_init1
 !
     subroutine chemread
 !
-      implicit none
+      implicit none (type, external)
       ! Chem index
       integer(ik4) :: ic, ic1, ic2, ic3, icc, ics, icc1, icc2, icc3
       ! Chem index
@@ -1290,7 +1291,7 @@ module mod_cbmz_init1
           !
           !  H+ SPECIAL here: for H+, OH-  skip equilibrium index assignment
           !
-          if ( c_aqueous(nrq,1) == 0 ) cycle
+          if ( c_aqueous(nrq,1) == 0 ) cycle loopreaq
           if ( c_npequil(c_aqueous(nrq,1)) == ic ) then
             ic1 = c_aqueous (nrq,2)
             c_npequil(ic1) = ic
@@ -1987,7 +1988,7 @@ module mod_cbmz_init1
 ! -------------------------------------------------------------------
 !
     integer function namechem(titl)
-      implicit none
+      implicit none (type, external)
       character(len=8), intent(in) :: titl
       integer(ik4) :: i
       namechem = 0
@@ -2022,7 +2023,7 @@ module mod_cbmz_init1
 !
 ! -------------------------------------------------------------------
     subroutine hvread(ip)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: ip
       c_hvin = ip
       call readhv(c_hvin,c_nhv,c_hvmat,c_hvmatb,c_jarray)
@@ -2083,7 +2084,7 @@ module mod_cbmz_init1
 !
     subroutine cheminit
 !
-      implicit none
+      implicit none (type, external)
       ! Chem index
       integer(ik4) :: ic, ic1, ic2, icc
       ! Chem local index
@@ -2118,7 +2119,7 @@ module mod_cbmz_init1
       ! Counter for odd nitrogen
       real(rkx) :: xpronox
       ! Counter for product reactions
-      integer nrp
+      integer :: nrp
       !
       ! -----------------------------------------
       !  ANALYZE CHEMICAL MECHANISM:
@@ -2214,8 +2215,8 @@ module mod_cbmz_init1
         !
         ! RESTORE CATEGORY OF REDUNDANT REACTIONS (RCO3+RO2)
         !
-        icat1 = iabs(icat1)
-        icat2 = iabs(icat2)
+        icat1 = abs(icat1)
+        icat2 = abs(icat2)
         !
         ! (PRIOR:  Look for NO3-N2O5 reactants before non-special products.
         !  Now, Look for nonspecial products first, then NO3-N2O5 reactants.)
@@ -3176,7 +3177,7 @@ module mod_cbmz_init1
 ! -------------------------------------------------------------------
 
     subroutine chemwrit(kw)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: kw
 
       ! Chem index
@@ -3386,7 +3387,7 @@ module mod_cbmz_init1
 !
     subroutine analyze(titl, kw)
 !
-      implicit none
+      implicit none (type, external)
 
       ! Name of specified chem species
       character(len=8), intent(in) :: titl

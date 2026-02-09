@@ -11,7 +11,7 @@ module mod_clm_urbaninput
   use mod_clm_nchelper
   use mod_clm_decomp, only : get_proc_bounds, gcomm_gridcell
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -19,34 +19,34 @@ module mod_clm_urbaninput
   public :: UrbanInput ! Read in urban input data
 
   type urbinp_t
-    real(rk8), pointer, contiguous, dimension(:,:) :: canyon_hwr
-    real(rk8), pointer, contiguous, dimension(:,:) :: wtlunit_roof
-    real(rk8), pointer, contiguous, dimension(:,:) :: wtroad_perv
-    real(rk8), pointer, contiguous, dimension(:,:) :: em_roof
-    real(rk8), pointer, contiguous, dimension(:,:) :: em_improad
-    real(rk8), pointer, contiguous, dimension(:,:) :: em_perroad
-    real(rk8), pointer, contiguous, dimension(:,:) :: em_wall
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_roof_dir
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_roof_dif
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_improad_dir
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_improad_dif
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_perroad_dir
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_perroad_dif
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_wall_dir
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_wall_dif
-    real(rk8), pointer, contiguous, dimension(:,:) :: ht_roof
-    real(rk8), pointer, contiguous, dimension(:,:) :: wind_hgt_canyon
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: tk_wall
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: tk_roof
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: tk_improad
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: cv_wall
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: cv_roof
-    real(rk8), pointer, contiguous, dimension(:,:,:) :: cv_improad
-    real(rk8), pointer, contiguous, dimension(:,:) :: thick_wall
-    real(rk8), pointer, contiguous, dimension(:,:) :: thick_roof
-    integer(ik4), pointer, contiguous, dimension(:,:) :: nlev_improad
-    real(rk8), pointer, contiguous, dimension(:,:) :: t_building_min
-    real(rk8), pointer, contiguous, dimension(:,:) :: t_building_max
+    real(rk8), pointer, contiguous, dimension(:,:) :: canyon_hwr => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: wtlunit_roof => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: wtroad_perv => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: em_roof => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: em_improad => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: em_perroad => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: em_wall => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_roof_dir => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_roof_dif => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_improad_dir => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_improad_dif => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_perroad_dir => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_perroad_dif => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_wall_dir => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: alb_wall_dif => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: ht_roof => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: wind_hgt_canyon => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: tk_wall => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: tk_roof => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: tk_improad => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: cv_wall => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: cv_roof => null()
+    real(rk8), pointer, contiguous, dimension(:,:,:) :: cv_improad => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: thick_wall => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: thick_roof => null()
+    integer(ik4), pointer, contiguous, dimension(:,:) :: nlev_improad => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_building_min => null()
+    real(rk8), pointer, contiguous, dimension(:,:) :: t_building_max => null()
   end type urbinp_t
 
   public urbinp_t
@@ -60,7 +60,7 @@ module mod_clm_urbaninput
   subroutine UrbanInput(mode)
     use mod_clm_varpar, only : numrad, nlevurb, numurbl
     use mod_clm_varctl, only : fsurdat
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: mode
     type(clm_filetype) :: ncid    ! netcdf id
     integer(ik4) :: begg, endg   ! start/stop gridcells

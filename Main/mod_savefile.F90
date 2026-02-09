@@ -32,7 +32,7 @@ module mod_savefile
   use mod_massck
   use netcdf
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -221,7 +221,7 @@ module mod_savefile
   contains
 
   subroutine allocate_mod_savefile
-    implicit none
+    implicit none (type, external)
 
     if ( do_parallel_save ) then
       if ( idynamic == 3 ) then
@@ -589,7 +589,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     type (rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ncid
     character(256) :: ffin
@@ -792,7 +792,7 @@ module mod_savefile
 
   subroutine write_savefile(idate)
     use netcdf
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ncid, ivcc
     integer(ik4), dimension(maxdims) :: dimids
@@ -1318,7 +1318,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     character(*), intent(in) :: f, m1
     integer(ik4), intent(in) :: l
     if ( ncstatus /= nf90_noerr ) then
@@ -1338,9 +1338,9 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
-    character(len=*) :: vname
+    character(len=*) , intent(in) :: vname
 #ifdef PNETCDF
     ncstatus = nf90mpi_inq_varid(ncid,vname,varid)
 #else
@@ -1355,7 +1355,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid, ityp, i1, i2
     integer(ik4), intent(inout) :: iivar
     integer(ik4), dimension(:), intent(in) :: idims
@@ -1386,7 +1386,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: var
@@ -1417,11 +1417,11 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: var
-    logical, optional :: skippable
+    logical, intent(in), optional :: skippable
 #ifdef PNETCDF
     integer(kind=mpi_offset_kind), dimension(2) :: istart, icount
 #else
@@ -1456,7 +1456,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid, nx, ny
     character(len=*), intent(in) :: str
     real(rkx), dimension(nx,ny), intent(inout) :: var
@@ -1477,7 +1477,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     real(rkx), dimension(:,:), intent(inout) :: var
@@ -1497,7 +1497,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: var
@@ -1531,7 +1531,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: var
@@ -1561,7 +1561,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var
@@ -1596,7 +1596,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: var
@@ -1627,7 +1627,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid, nx
     character(len=*), intent(in) :: str
     integer(ik4), dimension(nx), intent(inout) :: var
@@ -1648,7 +1648,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     integer(ik4), dimension(:), intent(inout) :: var
@@ -1668,7 +1668,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: var
@@ -1699,7 +1699,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: var
@@ -1727,7 +1727,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: var
@@ -1760,7 +1760,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
     integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: var
@@ -1790,7 +1790,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: sname
     integer(ik4), intent(out) :: ncid
     integer(ik4) :: imode
@@ -1899,7 +1899,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: sname
     integer(ik4), intent(out) :: ncid
     integer(ik4) :: imode, iofmod
@@ -1956,7 +1956,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: sname
     type (rcm_time_and_date), intent(in) :: idate
     integer(ik4), intent(in) :: ncid
@@ -2029,7 +2029,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: ncid, dlen
     character(len=*), intent(in) :: dname
 #ifdef PNETCDF
@@ -2048,7 +2048,7 @@ module mod_savefile
 #else
     use netcdf
 #endif
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: sname
     integer(ik4), intent(inout) :: ncid
 #ifdef PNETCDF

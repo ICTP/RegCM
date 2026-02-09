@@ -41,7 +41,7 @@ module mod_che_tend
   use mod_che_bionit
   use mod_che_ccn
   use mod_che_linox
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -57,7 +57,7 @@ module mod_che_tend
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     subroutine tractend2(lmonth,lday,declin)
-      implicit none
+      implicit none (type, external)
       integer(ik4), intent(in) :: lmonth, lday
       real(rk8), intent(in) :: declin
 
@@ -243,12 +243,13 @@ module mod_che_tend
         call aging_carb
       end if
       !
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ! if ( ivegcov(j,i) == 8) print*, 'HE desert',custar(j,i),ustar(j,i), wid10(j,i), cw10m(j,i)
-     !FAB TEST
-        end do
-      end do
+      !FAB TEST
+      !do i = ici1, ici2
+      !  do j = jci1, jci2
+      !    if ( ivegcov(j,i) == 8) print*, &
+      !      'HE desert',custar(j,i),ustar(j,i), wid10(j,i), cw10m(j,i)
+      !  end do
+      !end do
       !
       ! Before emission and deposition routine set the surfecae netflux
       ! used by BL schems to zero

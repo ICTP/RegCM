@@ -21,6 +21,7 @@ module mod_intldtr
   use mod_stdio
   use mod_message
   use mod_earth
+  implicit none (type, external)
 
   private
 
@@ -68,7 +69,7 @@ module mod_intldtr
   contains
 
   integer(ik4) function inear(x,m)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: x
     integer(ik4), intent(in) :: m
     if (.not. lonwrap) then
@@ -85,14 +86,14 @@ module mod_intldtr
   end function inear
 
   integer(ik4) function jnear(y,n)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: y
     integer(ik4), intent(in) :: n
     jnear = min(max(nint(y),1),n)
   end function jnear
 
   integer(ik4) function ifloor(x,m)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: x
     integer(ik4), intent(in) :: m
     if (.not. lonwrap) then
@@ -109,14 +110,14 @@ module mod_intldtr
   end function ifloor
 
   integer(ik4) function jfloor(y,n)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: y
     integer(ik4), intent(in) :: n
     jfloor = min(max(floor(y),1),n)
   end function jfloor
 
   real(rkx) function nearpoint(x,y,m,n,grid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: m, n
     real(rk8), intent(in) :: x, y
     real(rkx), intent(in), dimension(m,n) :: grid
@@ -124,7 +125,7 @@ module mod_intldtr
   end function nearpoint
 
   real(rkx) function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: m, n, nbox, ibnty
     real(rk8), intent(in) :: x, y
     real(rkx), intent(in), dimension(m,n) :: grid
@@ -187,7 +188,7 @@ module mod_intldtr
   end function mostaround
 
   real(rkx) function pctaround(x,y,m,n,grid,nbox,ival)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: m, n, ival, nbox
     real(rk8), intent(in) :: x, y
     real(rkx), intent(in), dimension(m,n) :: grid
@@ -214,7 +215,7 @@ module mod_intldtr
   end function pctaround
 
   real(rkx) function bilinear(x,y,m,n,grid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: m, n
     real(rk8), intent(in) :: x, y
     real(rkx), intent(in), dimension(m,n) :: grid
@@ -262,7 +263,7 @@ module mod_intldtr
   end function bilinear
 
   real(rkx) function dwgt(x,y,m,n,grid,nb)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: m, n, nb
     real(rk8), intent(in) :: x, y
     real(rkx), intent(in), dimension(m,n) :: grid
@@ -318,7 +319,7 @@ module mod_intldtr
   end function dwgt
 
   real(rkx) function bicubic(x,y,m,n,grid)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: m, n
     real(rk8), intent(in) :: x, y
     real(rkx), intent(in), dimension(m,n) :: grid
@@ -367,7 +368,7 @@ module mod_intldtr
   end function bicubic
 
   subroutine bcuint(y,y1,y2,y12,x1l,x1u,x2l,x2u,x1,x2,a)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: x1, x1l, x1u, x2, x2l, x2u
     real(rkx), intent(out) :: a
     real(rk8), intent(in), dimension(4) :: y, y1, y12, y2
@@ -384,7 +385,7 @@ module mod_intldtr
   end subroutine bcuint
 
   subroutine bcucof(y,y1,y2,y12,d1,d2)
-    implicit none
+    implicit none (type, external)
     real(rk8), intent(in) :: d1, d2
     real(rk8), intent(in), dimension(4) :: y, y1, y12, y2
     real(rk8), dimension(16) :: cl, x
@@ -417,7 +418,7 @@ module mod_intldtr
   !
   subroutine interp(ds,jx,iy,xlat,xlon,omt, &
                     imt,itype,ival,ibnty,h2opct,rdem)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: iy, jx, itype
     real(rkx), intent(in), dimension(jx,iy) :: xlat, xlon
     real(rkx), intent(out), dimension(jx,iy) :: omt
@@ -537,7 +538,7 @@ module mod_intldtr
   end subroutine interp
 
   subroutine filter1plakes(jx,iy,omt)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: jx, iy
     real(rkx), intent(inout), dimension(jx,iy) :: omt
     integer(ik4), dimension(maxbins) :: cnt
@@ -559,7 +560,7 @@ module mod_intldtr
               k = k + 1
             end do
           end do
-          if (sum(around, around==ilake) .lt. minlak) then
+          if (sum(around, around==ilake) < minlak) then
             do k = 1, maxbins
               cnt(k) = sum(around/k,around==k)
             end do
@@ -578,7 +579,7 @@ module mod_intldtr
   end subroutine filter1plakes
 
   subroutine mxmnll(jx,iy,xlon,xlat,iband)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: iy, jx, iband
     real(rkx), dimension(jx,iy), intent(in) :: xlat, xlon
 
@@ -590,7 +591,7 @@ module mod_intldtr
     xminlat = floor(minval(xlat))
     xmaxlat = ceiling(maxval(xlat))
 
-    if ( iband.eq.1 ) then
+    if ( iband==1 ) then
       xminlon  = -deg180
       xmaxlon  =  deg180
       xtstlon1 = xminlon

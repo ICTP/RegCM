@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  implicit none
+  implicit none (type, external)
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 
@@ -88,7 +88,7 @@ program mksurfdata
   use mod_mkvic
 #endif
 
-  implicit none
+  implicit none (type, external)
 
   integer(ik4) :: npft
   integer(ik4), parameter :: nsoil = 10
@@ -1718,11 +1718,11 @@ program mksurfdata
   contains
 
   recursive subroutine sortpatch(vals,svals,ird,lsub)
-    implicit none
+    implicit none (type, external)
     real(rkx), dimension(:), intent(in) :: vals
     real(rkx), dimension(:), intent(inout) :: svals
     integer(ik4), dimension(:), intent(inout) :: ird
-    logical, optional :: lsub
+    logical, intent(in), optional :: lsub
     integer(ik4) :: i, iswap
     real(rkx) :: rswap
     if ( .not. present(lsub) ) then

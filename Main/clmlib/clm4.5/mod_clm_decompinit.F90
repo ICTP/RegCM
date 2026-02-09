@@ -17,7 +17,7 @@ module mod_clm_decompinit
   use mod_clm_subgrid, only : subgrid_get_gcellinfo
   use mpi
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -34,7 +34,7 @@ module mod_clm_decompinit
   ! processor_type data structure.
   !
   subroutine decompInit_lnd
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: mpierr
 
     allocate(procinfo%gc(nproc))
@@ -111,7 +111,7 @@ module mod_clm_decompinit
   ! data structure.
   !
   subroutine decompInit_glcp
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: begg, endg  ! beg, end gridcells
     integer(ik4) :: ln           ! lnd num gridcells
     integer(ik4) :: mynumc, mynump, mynuml

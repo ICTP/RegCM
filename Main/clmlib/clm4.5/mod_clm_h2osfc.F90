@@ -4,7 +4,7 @@ module mod_clm_h2osfc
   !
   ! Calculate surface water hydrology
   !
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -24,7 +24,7 @@ module mod_clm_h2osfc
   subroutine FracH2oSfc(lbc,ubc,num_h2osfc,filter_h2osfc,frac_h2osfc)
     use mod_clm_type
     use mod_clm_varcon, only : rpi, istsoil, istcrop
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc   ! column bounds
     ! number of column points in column filter
     integer(ik4), intent(in) :: num_h2osfc
@@ -117,7 +117,7 @@ module mod_clm_h2osfc
     !$acc routine seq
     use mod_clm_type
     use mod_clm_varcon, only : rpi, istsoil, istcrop
-    implicit none
+    implicit none (type, external)
 
     ! fractional surface water (mm)
     real(rk8), intent(inout) :: frac_h2osfc

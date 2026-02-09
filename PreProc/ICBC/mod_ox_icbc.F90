@@ -27,6 +27,7 @@ module mod_ox_icbc
   use mod_date
   use mod_nchelper
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -61,8 +62,8 @@ module mod_ox_icbc
   contains
 
   subroutine init_ox_icbc(idate)
-    implicit none
-    type(rcm_time_and_date) :: idate
+    implicit none (type, external)
+    type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivarid, istatus, dimid, is
     character(len=256) :: oxifile, icbcfilename
 
@@ -177,7 +178,7 @@ module mod_ox_icbc
   end subroutine init_ox_icbc
 
   subroutine get_ox_icbc(idate)
-    implicit none
+    implicit none (type, external)
 
     integer(ik4) :: i, is, j, k, k0
     type(rcm_time_and_date), intent(in) :: idate
@@ -280,7 +281,7 @@ module mod_ox_icbc
 
   subroutine close_ox_icbc
     use netcdf
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(hint)
     if ( ncid > 0 ) then
       istatus = nf90_close(ncid)

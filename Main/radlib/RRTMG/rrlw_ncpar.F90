@@ -1,7 +1,7 @@
 module rrlw_ncpar
     use parkind ,only : im => kind_im, rb => kind_rb
 
-    implicit none
+    implicit none (type, external)
         save
 
         real(kind=rb), parameter :: cpdair = 1003.5  ! Specific heat capacity of dry air
@@ -12,7 +12,7 @@ module rrlw_ncpar
     integer(kind=im), parameter :: maxAbsorberNameLength = 5, &
                           Absorber              = 12
     character(len = maxAbsorberNameLength), dimension(Absorber), parameter :: &
-    AbsorberNames = (/        &
+    AbsorberNames = [        &
                      'N2   ',  &
                      'CCL4 ',  &
                      'CFC11',  &
@@ -24,7 +24,7 @@ module rrlw_ncpar
                      'N2O  ',  &
                      'CO   ',  &
                      'CH4  ',  &
-                     'O2   '  /)
+                     'O2   '  ]
 
     integer(kind=im), dimension(40) :: status
     integer(kind=im) :: i

@@ -19,6 +19,7 @@ module mod_gfdl_helper
   use mod_realkinds
   use mod_dynparam
   use mod_date
+  implicit none (type, external)
 
   private
 
@@ -37,7 +38,7 @@ module mod_gfdl_helper
   contains
 
   subroutine find_gfdl_sst(fname,idate)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: fname
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: y1, y2
@@ -60,7 +61,7 @@ module mod_gfdl_helper
   end subroutine find_gfdl_sst
 
   subroutine assemble_path(fname,scen,var,d1,d2)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: fname
     character(len=*), intent(in) :: scen
     character(len=*), intent(in) :: var
@@ -78,7 +79,7 @@ module mod_gfdl_helper
   end subroutine assemble_path
 
   subroutine find_gfdl_dim(dim_filename)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
@@ -86,14 +87,14 @@ module mod_gfdl_helper
   end subroutine find_gfdl_dim
 
   subroutine find_gfdl_topo(topo_filename)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'GFDL-ESM2M'//pthsep//'fixed'// &
               pthsep//'orog_fx_GFDL-ESM2M_historical_r0i0p0.nc'
   end subroutine find_gfdl_topo
 
   subroutine find_gfdl_file(gfdl_filename,var,idate)
-    implicit none
+    implicit none (type, external)
     character(len=256), intent(out) :: gfdl_filename
     character(len=*), intent(in) :: var
     type(rcm_time_and_date), intent(in) :: idate

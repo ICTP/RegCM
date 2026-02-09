@@ -29,6 +29,7 @@ module mod_ch_icbc
   use mod_nchelper
   use netcdf
   use mod_ch_param
+  implicit none (type, external)
 
   private
 
@@ -65,7 +66,7 @@ module mod_ch_icbc
   contains
 
   subroutine init_ch_icbc(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivarid, idimid
     integer(ik4) :: nyear, month, nday, nhour
@@ -170,7 +171,7 @@ module mod_ch_icbc
   end subroutine init_ch_icbc
 
   subroutine get_ch_icbc(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     character(len=256) :: chfilename
     integer(ik4) :: year1, month1, day1, hour1
@@ -261,7 +262,7 @@ module mod_ch_icbc
   end subroutine get_ch_icbc
 
   subroutine readps
-    implicit none
+    implicit none (type, external)
     character(len=256) :: chfilename
     integer :: ncid, istatus, ivarid
 
@@ -281,7 +282,7 @@ module mod_ch_icbc
   end subroutine readps
 
   subroutine find_data(idate,idate0,chfilename)
-    implicit none
+    implicit none (type, external)
     integer, parameter                   ::nfile=127
     type(rcm_time_and_date), intent(in) :: idate
     type(rcm_time_and_date), intent(in) :: idate0
@@ -319,7 +320,7 @@ module mod_ch_icbc
 
     call split_idate(idate0,year1,month1,day1,hour1)
     call split_idate(idate,nyear,nmonth,nday,nhour)
-    if ( nyear .eq. year1 .and. nmonth .eq. month1 .and. nhour .eq. hour1 ) then
+    if ( nyear == year1 .and. nmonth == month1 .and. nhour == hour1 ) then
       do i = 1, nfile
         read(ipunit,*) filename(i)
       end do
@@ -375,7 +376,7 @@ module mod_ch_icbc
   end subroutine find_data
 
   subroutine readmz4(idate,chfilename)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     character(len=256),intent(in) :: chfilename
     integer(ik4) :: i, is, j, k, l, k0,recc
@@ -486,7 +487,7 @@ module mod_ch_icbc
   end subroutine readmz4
 
   subroutine close_ch_icbc
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: istatus
     call h_interpolator_destroy(hint)
     if ( ncicbc > 0 ) then
@@ -498,14 +499,14 @@ module mod_ch_icbc
   end subroutine close_ch_icbc
 
   integer(ik4) function inextmon(im)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im
     inextmon = im+1
     if ( inextmon == 13 ) inextmon = 1
   end function inextmon
 
   integer(ik4) function iprevmon(im)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: im
     iprevmon = im-1
     if ( iprevmon == 0 ) iprevmon = 12

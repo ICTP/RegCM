@@ -54,6 +54,8 @@ module mod_gn6hnc
   use mod_ccsm4_helper
   use mod_lgm_helper
 
+  implicit none (type, external)
+
   private
 
   public :: get_gn6hnc, init_gn6hnc, conclude_gn6hnc
@@ -156,7 +158,7 @@ module mod_gn6hnc
 
   subroutine init_gn6hnc
     use netcdf
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: istatus, ivar1, inet1, inet2, inet3, jdim, i, j, k
     character(len=256) :: pathaddname
     real(8) :: dp0
@@ -941,7 +943,7 @@ module mod_gn6hnc
 
   subroutine get_gn6hnc(idate)
     use netcdf
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
 
     call readgn6hnc(idate)
@@ -1144,7 +1146,7 @@ module mod_gn6hnc
   !
   subroutine readgn6hnc(idate)
     use netcdf
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: istatus
     integer(ik4) :: i, it, itps, j, k, timid
@@ -2268,7 +2270,7 @@ module mod_gn6hnc
   end subroutine readgn6hnc
 
   subroutine conclude_gn6hnc
-    implicit none
+    implicit none (type, external)
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then

@@ -28,7 +28,7 @@ module mod_timefilter
   use mod_dynparam
   use mod_runparams, only : iqv
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -52,7 +52,7 @@ module mod_timefilter
   contains
 
   subroutine filter_ra_2d(phin,phinm1,phinp1,alpha)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: phinm1
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: phin
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: phinp1
@@ -67,7 +67,7 @@ module mod_timefilter
   end subroutine filter_ra_2d
 
   subroutine filter_raw_2d(phin,phinm1,phinp1,alpha,beta)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: phinm1
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: phin
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: phinp1
@@ -82,7 +82,7 @@ module mod_timefilter
   end subroutine filter_raw_2d
 
   subroutine filter_ra_3d(phin,phinm1,phinp1,alpha)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: phinm1
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: phin
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: phinp1
@@ -98,7 +98,7 @@ module mod_timefilter
   end subroutine filter_ra_3d
 
   subroutine filter_raw_3d(phin,phinm1,phinp1,alpha,beta)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: phinm1
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: phin
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: phinp1
@@ -114,7 +114,7 @@ module mod_timefilter
   end subroutine filter_raw_3d
 
   subroutine filter_ra_uv(un,unm1,unp1,vn,vnm1,vnp1,alpha)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: unm1
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: un
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: unp1
@@ -136,7 +136,7 @@ module mod_timefilter
   end subroutine filter_ra_uv
 
   subroutine filter_raw_uv(un,unm1,unp1,vn,vnm1,vnp1,alpha,beta)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: unm1
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: un
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: unp1
@@ -158,7 +158,7 @@ module mod_timefilter
   end subroutine filter_raw_uv
 
   subroutine filter_ra_4d(phin,phinm1,phinp1,alpha,n1,n2,low)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phinm1
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phin
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: phinp1
@@ -177,7 +177,7 @@ module mod_timefilter
   end subroutine filter_ra_4d
 
   subroutine filter_ra_qv(phin,phinm1,phinp1,alpha,ps)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phinm1
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phin
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: phinp1
@@ -195,7 +195,7 @@ module mod_timefilter
   end subroutine filter_ra_qv
 
   subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2,low)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phinm1
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phin
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: phinp1
@@ -215,7 +215,7 @@ module mod_timefilter
   end subroutine filter_raw_4d
 
   subroutine filter_raw_qv(phin,phinm1,phinp1,alpha,beta,psa,psb)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phinm1
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: phin
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: phinp1

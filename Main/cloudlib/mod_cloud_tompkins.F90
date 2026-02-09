@@ -21,7 +21,7 @@ module mod_cloud_tompkins
   use mod_dynparam
   use mod_runparams
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -35,7 +35,7 @@ module mod_cloud_tompkins
   ! See A cloud scheme for data assimilation purposes
   ! ECMWF Technical Memorandum 410
   subroutine tompkins_cldfrac(rh,qc,p,ps,qcrit,fcc)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: rh, qc, p
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps, qcrit
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc

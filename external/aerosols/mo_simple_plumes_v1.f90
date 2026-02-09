@@ -25,7 +25,7 @@ MODULE MO_SIMPLE_PLUMES
 
   USE netcdf
 
-  IMPLICIT NONE
+  IMPLICIT NONE (type, external)
 
   integer, parameter :: wp  = selected_real_kind(2*precision(1.0))
 
@@ -68,7 +68,7 @@ CONTAINS
   ! climatology.  The information needs to be either read by each processor or distributed to processors.
   !
   SUBROUTINE sp_setup(history,scenario)
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
     CHARACTER(LEN=*), INTENT(IN) :: history, scenario
     !
     ! ----------
@@ -105,57 +105,57 @@ CONTAINS
     ! read variables that define the simple plume climatology
     !
     iret = nf90_inq_varid(ncid, "plume_lat", VarId)
-    iret = nf90_get_var(ncid, VarID, plume_lat(:), start=(/1/),count=(/nplumes/))
+    iret = nf90_get_var(ncid, VarID, plume_lat(:), start=[1],count=[nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lat'
     iret = nf90_inq_varid(ncid, "plume_lon", VarId)
-    iret = nf90_get_var(ncid, VarID, plume_lon(:), start=(/1/),count=(/nplumes/))
+    iret = nf90_get_var(ncid, VarID, plume_lon(:), start=[1],count=[nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lon'
     iret = nf90_inq_varid(ncid, "beta_a"  , VarId)
-    iret = nf90_get_var(ncid, VarID, beta_a(:)  , start=(/1/),count=(/nplumes/))
+    iret = nf90_get_var(ncid, VarID, beta_a(:)  , start=[1],count=[nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading beta_a'
     iret = nf90_inq_varid(ncid, "beta_b"  , VarId)
-    iret = nf90_get_var(ncid, VarID, beta_b(:)  , start=(/1/),count=(/nplumes/))
+    iret = nf90_get_var(ncid, VarID, beta_b(:)  , start=[1],count=[nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading beta_b'
     iret = nf90_inq_varid(ncid, "aod_spmx", VarId)
-    iret = nf90_get_var(ncid, VarID, aod_spmx(:) , start=(/1/),count=(/nplumes/))
+    iret = nf90_get_var(ncid, VarID, aod_spmx(:) , start=[1],count=[nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading aod_spmx'
     iret = nf90_inq_varid(ncid, "aod_fmbg", VarId)
-    iret = nf90_get_var(ncid, VarID, aod_fmbg(:) , start=(/1/),count=(/nplumes/))
+    iret = nf90_get_var(ncid, VarID, aod_fmbg(:) , start=[1],count=[nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading aod_fmbg'
     iret = nf90_inq_varid(ncid, "ssa550"  , VarId)
-    iret = nf90_get_var(ncid, VarID, ssa550(:) , start=(/1/),count=(/nplumes/))
+    iret = nf90_get_var(ncid, VarID, ssa550(:) , start=[1],count=[nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading ssa550'
     iret = nf90_inq_varid(ncid, "asy550"  , VarId)
-    iret = nf90_get_var(ncid, VarID, asy550(:) , start=(/1/),count=(/nplumes/))
+    iret = nf90_get_var(ncid, VarID, asy550(:) , start=[1],count=[nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading asy550'
     iret = nf90_inq_varid(ncid, "angstrom", VarId)
-    iret = nf90_get_var(ncid, VarID, angstrom(:), start=(/1/),count=(/nplumes/))
+    iret = nf90_get_var(ncid, VarID, angstrom(:), start=[1],count=[nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading angstrom'
 
     iret = nf90_inq_varid(ncid, "sig_lat_W"    , VarId)
-    iret = nf90_get_var(ncid, VarID, sig_lat_W(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_get_var(ncid, VarID, sig_lat_W(:,:)   , start=[1,1],count=[nfeatures,nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lat_W'
     iret = nf90_inq_varid(ncid, "sig_lat_E"    , VarId)
-    iret = nf90_get_var(ncid, VarID, sig_lat_E(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_get_var(ncid, VarID, sig_lat_E(:,:)   , start=[1,1],count=[nfeatures,nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lat_E'
     iret = nf90_inq_varid(ncid, "sig_lon_E"    , VarId)
-    iret = nf90_get_var(ncid, VarID, sig_lon_E(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_get_var(ncid, VarID, sig_lon_E(:,:)   , start=[1,1],count=[nfeatures,nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lon_E'
     iret = nf90_inq_varid(ncid, "sig_lon_W"    , VarId)
-    iret = nf90_get_var(ncid, VarID, sig_lon_W(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_get_var(ncid, VarID, sig_lon_W(:,:)   , start=[1,1],count=[nfeatures,nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lon_W'
     iret = nf90_inq_varid(ncid, "theta"        , VarId)
-    iret = nf90_get_var(ncid, VarID, theta(:,:)       , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_get_var(ncid, VarID, theta(:,:)       , start=[1,1],count=[nfeatures,nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading theta'
     iret = nf90_inq_varid(ncid, "ftr_weight"   , VarId)
-    iret = nf90_get_var(ncid, VarID, ftr_weight(:,:)  , start=(/1,1/),count=(/nfeatures,nplumes/))
+    iret = nf90_get_var(ncid, VarID, ftr_weight(:,:)  , start=[1,1],count=[nfeatures,nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lat'
     iret = nf90_inq_varid(ncid, "year_weight"  , VarId)
-    iret = nf90_get_var(ncid, VarID, temp, start=(/1,1/),count=(/nyears,nplumes/))
+    iret = nf90_get_var(ncid, VarID, temp, start=[1,1],count=[nyears,nplumes])
     year_weight(1:165,1:nplumes) = temp(1:165,1:nplumes)
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
     iret = nf90_inq_varid(ncid, "ann_cycle"    , VarId)
-    iret = nf90_get_var(ncid, VarID, ann_cycle(:,:,:) , start=(/1,1,1/),count=(/nfeatures,ntimes,nplumes/))
+    iret = nf90_get_var(ncid, VarID, ann_cycle(:,:,:) , start=[1,1,1],count=[nfeatures,ntimes,nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading ann_cycle'
 
     iret = nf90_close(ncid)
@@ -166,7 +166,7 @@ CONTAINS
       STOP 'NetCDF File not opened'
     END IF
     iret = nf90_inq_varid(ncid, "year_weight"  , VarId)
-    iret = nf90_get_var(ncid, VarID, temp, start=(/1,1/),count=(/nyears,nplumes/))
+    iret = nf90_get_var(ncid, VarID, temp, start=[1,1],count=[nyears,nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
     year_weight(166:nyears,1:nplumes) = temp(166:nyears,1:nplumes)
 
@@ -222,7 +222,7 @@ CONTAINS
        lambda         ,oro            ,lon            ,lat           , &
        year_fr        ,z              ,dz             ,dNovrN        , &
        aod_prof       ,ssa_prof       ,asy_prof       )
-    IMPLICIT NONE
+    IMPLICIT NONE (type, external)
     !
     ! ----------
     !

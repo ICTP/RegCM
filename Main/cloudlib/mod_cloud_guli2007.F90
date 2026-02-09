@@ -20,7 +20,7 @@ module mod_cloud_guli2007
   use mod_constants
   use mod_dynparam
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -38,7 +38,7 @@ module mod_cloud_guli2007
   !   GRL vol 34, L07801, 2007
   !
   subroutine gulisa_cldfrac(qt,z,fcc)
-    implicit none
+    implicit none (type, external)
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qt
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc

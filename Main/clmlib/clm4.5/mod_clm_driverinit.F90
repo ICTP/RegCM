@@ -12,7 +12,7 @@ module mod_clm_driverinit
   use mod_clm_domain, only : ldomain
   use mod_clm_qsat, only : Qsat
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -26,7 +26,7 @@ module mod_clm_driverinit
   !
   subroutine clm_driverInit(lbc, ubc, lbp, ubp, &
              num_nolakec, filter_nolakec)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
     integer(ik4), intent(in) :: lbp, ubp  ! pft-index bounds
     ! number of column non-lake points in column filter

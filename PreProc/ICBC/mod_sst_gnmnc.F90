@@ -35,6 +35,7 @@ module mod_sst_gnmnc
   use mod_ecearth_helper
   use mod_ccsm4_helper
   use netcdf
+  implicit none (type, external)
 
   private
 
@@ -81,7 +82,7 @@ module mod_sst_gnmnc
   !****************************************************************************
   !
   subroutine sst_gnmnc
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date) :: idate, idatef, idateo, imm1
     integer(ik4) :: i, j, k, nsteps
     real(rkx) :: ufac
@@ -172,7 +173,7 @@ module mod_sst_gnmnc
   ! Subroutine to read required records from SST data file
   !
   subroutine gnmnc_sst(idate)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent (in) :: idate
     real(rkx) :: wt1, wt2
     type(rcm_time_and_date) :: prev, next
@@ -212,7 +213,7 @@ module mod_sst_gnmnc
   end subroutine gnmnc_sst
 
   subroutine open_input(fname)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: fname
     integer(ik4) :: istatus
     integer(ik4) :: latid, lonid, ndims
@@ -326,7 +327,7 @@ module mod_sst_gnmnc
   end subroutine open_input
 
   subroutine read_month(idate,it,vv)
-    implicit none
+    implicit none (type, external)
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4), intent(inout) :: it
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: vv

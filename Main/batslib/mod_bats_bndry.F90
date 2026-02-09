@@ -25,7 +25,7 @@ module mod_bats_bndry
   use mod_bats_internal
   use mod_constants
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -45,7 +45,7 @@ module mod_bats_bndry
   !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   !
   subroutine soilbc
-    implicit none
+    implicit none (type, external)
     real(rkx) :: ck, dmax, dmin, dmnor, phi0, tweak1
     integer(ik4) :: i
     !
@@ -138,7 +138,7 @@ module mod_bats_bndry
   !  ** note: water and soil parameters are in mm
   !
   subroutine bndry
-    implicit none
+    implicit none (type, external)
     real(rkx) :: qsatd, rai
     integer(ik4) :: i
 #ifdef DEBUG
@@ -283,7 +283,7 @@ module mod_bats_bndry
   !=======================================================================
   !
   subroutine vcover
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'vcover'
@@ -312,7 +312,7 @@ module mod_bats_bndry
   !=======================================================================
   !
   subroutine drip
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: i
     real(rkx) :: xrun
 #ifdef DEBUG
@@ -373,7 +373,7 @@ module mod_bats_bndry
   !=======================================================================
   !
   subroutine water
-    implicit none
+    implicit none (type, external)
     real(rkx) :: b, bfac, bfac2, delwat, est0, evmax, evmxr, &
                evmxt, rap, vakb, wtg2c, xxkb, gwatr, rsubsr, &
                rsubss, xkmx1, xkmx2, xkmxr, wata, b1, b2, b3
@@ -587,7 +587,7 @@ module mod_bats_bndry
   !=======================================================================
   !
   subroutine snow
-    implicit none
+    implicit none (type, external)
     real(rkx) :: age1, age2, arg, arg2, dela, dela0, &
                  dels, tage, sold!, fsnts, tpw
     integer(ik4) :: i
@@ -708,7 +708,7 @@ module mod_bats_bndry
   !=======================================================================
   !
   subroutine tgrund
-    implicit none
+    implicit none (type, external)
     real(rkx) :: bcoefd, bcoefs, c31, c3t, c41, c4t, cder, depr, &
              depu, xdt2, xdtime, dtimea, froze2, frozen, rscss,   &
              tbef, tg, tinc, wtas, wtax, wtd, wtds, hs, depann, &
@@ -865,18 +865,18 @@ module mod_bats_bndry
   contains
 
     pure real(rkx) function fsk(x)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x
       fsk = (2.9e-7_rkx*x+4.0e-9_rkx) / &
            (((d_one-0.6_rkx*x)*x+0.09_rkx)*(0.23_rkx+x))
     end function fsk
     pure real(rkx) function fsc(x)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x
       fsc = (0.23_rkx+x)*4.186e6_rkx
     end function fsc
     pure real(rkx) function fct1(x)
-      implicit none
+      implicit none (type, external)
       real(rkx), intent(in) :: x
       fct1 = wlhf*d_rfour*1.414_rkx/x
     end function fct1

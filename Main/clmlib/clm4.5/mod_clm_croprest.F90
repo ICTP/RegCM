@@ -1,4 +1,5 @@
 module mod_clm_croprest
+implicit none (type, external)
 
 #if (defined CN)
   !
@@ -12,7 +13,7 @@ module mod_clm_croprest
   use mod_mpmessage
   use mod_clm_nchelper
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -38,7 +39,7 @@ module mod_clm_croprest
     use mod_clm_decomp, only : get_proc_bounds, gcomm_pft
     use mod_clm_time_manager, only : is_restart
 
-    implicit none
+    implicit none (type, external)
     type(clm_filetype) :: ncid             ! netcdf id
     character(len=*), intent(in) :: flag   !'read' or 'write'
 
@@ -712,7 +713,7 @@ module mod_clm_croprest
   ! Return the restart year for prognostic crop
   !
   integer(ik4) function CropRestYear ( )
-    implicit none
+    implicit none (type, external)
     CropRestYear = restyear
     if ( CropRestYear == unset )then
       CropRestYear = 0
@@ -722,7 +723,7 @@ module mod_clm_croprest
   ! Increment the crop restart year
   !
   subroutine CropRestIncYear ( nyrs )
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(out) :: nyrs ! Number of years crop has run
     if ( restyear == unset ) restyear = 0
     restyear = restyear + 1

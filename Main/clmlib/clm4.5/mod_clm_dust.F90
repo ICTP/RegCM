@@ -23,7 +23,7 @@ module mod_clm_dust
   use mod_clm_varcon, only: spval, denh2o
   use mod_clm_atmlnd  , only : clm_a2l
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -48,7 +48,7 @@ module mod_clm_dust
   ! Source: C. Zender's dust model
   !
   subroutine DustEmission(lbp,ubp,lbl,ubl,num_nolakep,filter_nolakep)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbp,ubp,ubl,lbl ! pft bounds
     ! number of column non-lake points in pft filter
     integer(ik4), intent(in) :: num_nolakep
@@ -421,7 +421,7 @@ module mod_clm_dust
     use mod_constants, only : boltzk
     use mod_clm_varcon, only : rpi, rair
     use mod_clm_atmlnd, only : clm_a2l
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lbp, ubp     ! pft bounds
     ! true=>do computations on this pft (see reweightMod for details)
     logical, pointer, contiguous :: pactive(:)
@@ -573,7 +573,7 @@ module mod_clm_dust
   subroutine Dustini()
     use mod_clm_varcon, only : rpi, rair
     use mod_clm_decomp, only : get_proc_bounds
-    implicit none
+    implicit none (type, external)
     real(rk8), pointer, contiguous :: mbl_bsn_fct(:) !basin factor
     integer(ik4)  :: c,l,m,n              ! indices
     real(rk8) :: ovr_src_snk_frc

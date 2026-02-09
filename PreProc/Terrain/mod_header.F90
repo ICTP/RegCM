@@ -17,11 +17,16 @@ module mod_header
 
   use mod_intkinds
   use mod_stdio
+  implicit none (type, external)
+
+  private
+
+  public :: header
 
   contains
 
   subroutine header(myid)
-  implicit none
+  implicit none (type, external)
 !
   integer(ik4), intent(in) :: myid
 !
@@ -29,15 +34,21 @@ module mod_header
   integer(ik4) :: ihost, idir
   integer(ik4) :: getcwd
   integer(ik4), dimension(8) :: tval
-  character (len=32) :: cdata='?'
-  character (len=5) :: czone='?'
-  character (len=32) :: hostname='?'
-  character (len=32) :: user='?'
-  character (len=128) :: directory='?'
+  character (len=32) :: cdata
+  character (len=5) :: czone
+  character (len=32) :: hostname
+  character (len=32) :: user
+  character (len=128) :: directory
   character (len=*), parameter :: f99001 = &
     '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
-  if (myid.eq.1)  then
+  cdata = '?'
+  czone = '?'
+  hostname = '?'
+  user = '?'
+  directory = '?'
+
+  if (myid==1)  then
     write (stdout, "(/,2x,'This is Terrain part of RegCM package version 5 ')")
     write (stdout,f99001)  GIT_VER, __DATE__, __TIME__
 

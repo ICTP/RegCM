@@ -12,7 +12,7 @@ module mod_clm_varctl
   use mod_mppparam
   use mod_runparams
 
-  implicit none
+  implicit none (type, external)
   public :: set_clmvarctl   ! Set variables
   public :: clmvarctl_init  ! Initialize and check values after namelist input
 

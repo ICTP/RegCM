@@ -21,7 +21,7 @@ module mod_mkorganic
   use mod_grid
   use mod_rdldtr
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -32,7 +32,7 @@ module mod_mkorganic
   contains
 
   subroutine mkorganic(orgfile,mask,organic)
-    implicit none
+    implicit none (type, external)
     character(len=*), intent(in) :: orgfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: organic

@@ -25,7 +25,7 @@ module mod_bats_albedo
   use mod_bats_drag
   use mod_bats_leaftemp
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -68,7 +68,7 @@ module mod_bats_albedo
 ! Used to compute "wet" for soil albedo
 !
   subroutine albedo
-    implicit none
+    implicit none (type, external)
     real(rkx) :: age, albg, albgl, albgld, albgs, albgsd, albl,  &
                  albld, albs, albsd, alwet, cf1, cff,     &
                  conn, cons, czeta, czf, dfalbl, dfalbs, dralbl, &

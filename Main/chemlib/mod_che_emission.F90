@@ -34,7 +34,7 @@ module mod_che_emission
   use mod_che_indices
   use netcdf
   !
-  implicit none
+  implicit none (type, external)
 
   private
   !
@@ -45,7 +45,7 @@ module mod_che_emission
   ! SURFACE EMIOSSION flux
   !
   subroutine chem_emission(lyear,lmonth,lday,lhour)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: lyear, lmonth, lday, lhour
     integer(ik4), save :: curry = -1
     integer(ik4), save :: currm = -1
@@ -163,7 +163,7 @@ module mod_che_emission
   ! Calculation of emission tendency
   !
   subroutine emis_tend(i,declin)
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: i
     real(rk8), intent(in) :: declin
 

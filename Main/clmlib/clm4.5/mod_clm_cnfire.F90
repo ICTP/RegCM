@@ -1,4 +1,5 @@
 module mod_clm_cnfire
+implicit none (type, external)
 #ifdef CN
   !
   ! module for fire dynamics
@@ -42,7 +43,7 @@ module mod_clm_cnfire
   use mod_clm_varctl, only : inst_name
   use mod_clm_histfile, only : hist_addfld1d
 
-  implicit none
+  implicit none (type, external)
 
   private
 
@@ -82,7 +83,7 @@ module mod_clm_cnfire
   ! Initialize CN Fire module
   !
   subroutine CNFireInit( begg, endg )
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: begg, endg   ! gridcell index bounds
     call hdm_init(   begg, endg )
     call lnfm_init(  begg, endg )
@@ -92,7 +93,7 @@ module mod_clm_cnfire
   ! Interpolate CN Fire datasets
   !
   subroutine CNFireInterp()
-    implicit none
+    implicit none (type, external)
     call hdm_interp()
     call lnfm_interp()
   end subroutine CNFireInterp
@@ -100,7 +101,7 @@ module mod_clm_cnfire
   ! Computes column-level burned area in each timestep
   !
   subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
-    implicit none
+    implicit none (type, external)
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc
     ! filter for soil columns
@@ -747,7 +748,7 @@ module mod_clm_cnfire
   ! in a year seconds_per_year is the number of seconds in a year.
   !
   subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
-    implicit none
+    implicit none (type, external)
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc
     ! filter for soil columns
@@ -1588,7 +1589,7 @@ module mod_clm_cnfire
   ! Initialize data stream information for population density.
   !
   subroutine hdm_init( begg, endg )
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: begg, endg ! gridcell index bounds
     integer(ik4) :: yr, mon, day, ih
 
@@ -1612,7 +1613,7 @@ module mod_clm_cnfire
   ! Interpolate data stream information for population density.
   !
   subroutine hdm_interp( )
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: yr, mon, day, ih, ip
     real(rk8) :: w1, w2, ndpy
 
@@ -1632,7 +1633,7 @@ module mod_clm_cnfire
   ! Initialize data stream information for Lightning.
   !
   subroutine lnfm_init( begg, endg )
-    implicit none
+    implicit none (type, external)
     integer(ik4), intent(in) :: begg, endg   ! gridcell index bounds
     integer(ik4) :: yr, mon, day, ih
     real(rk8) :: ndpy
@@ -1663,7 +1664,7 @@ module mod_clm_cnfire
   ! Interpolate data stream information for Lightning.
   !
   subroutine lnfm_interp( )
-    implicit none
+    implicit none (type, external)
     integer(ik4) :: ip
     real(rk8) :: w1, w2, ndpy
     integer(ik4) :: yr, mon, day, ih

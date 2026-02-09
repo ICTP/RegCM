@@ -23,9 +23,10 @@
 
 
 MODULE mod_cb6_Monitor
+implicit none (type, external)
 
 
-  CHARACTER(LEN=15), PARAMETER, DIMENSION(82) :: SPC_NAMES = (/ &
+  CHARACTER(LEN=15), PARAMETER, DIMENSION(82) :: SPC_NAMES = [ &
      'NTR            ','SULF           ','SDIO           ', &
      'OSNG           ','ECH4           ','ETHA           ', &
      'ETHY           ','DNPO           ','BENZ           ', &
@@ -53,16 +54,16 @@ MODULE mod_cb6_Monitor
      'ACOO           ','O              ','NMOX           ', &
      'NDOX           ','WTR            ','DIHY           ', &
      'O2             ','METH           ','M              ', &
-     'DUMMY2         ' /)
+     'DUMMY2         ' ]
 
-  INTEGER, PARAMETER, DIMENSION(1) :: LOOKAT = (/ &
-      67 /)
+  INTEGER, PARAMETER, DIMENSION(1) :: LOOKAT = [ &
+      67 ]
 
-  INTEGER, PARAMETER, DIMENSION(1) :: MONITOR = (/ &
-      67 /)
+  INTEGER, PARAMETER, DIMENSION(1) :: MONITOR = [ &
+      67 ]
 
   CHARACTER(LEN=15), DIMENSION(1) :: SMASS
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_0 = (/ &
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_0 = [ &
      '             NDOX --> O + NMOX                                                                      ', &
      '       O + O2 + M --> OZN + M                                                                       ', &
      '       OZN + NMOX --> NDOX                                                                          ', &
@@ -92,8 +93,8 @@ MODULE mod_cb6_Monitor
      '             NTOX --> O + NDOX                                                                      ', &
      '             NTOX --> NMOX                                                                          ', &
      '      NTOX + NMOX --> 2 NDOX                                                                        ', &
-     '      NTOX + NDOX --> NMOX + NDOX                                                                   ' /)
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_1 = (/ &
+     '      NTOX + NDOX --> NMOX + NDOX                                                                   ' ]
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_1 = [ &
      '         NTOX + O --> NDOX                                                                          ', &
      '       HOX + NTOX --> POX + NDOX                                                                    ', &
      '       POX + NTOX --> HOX + NDOX                                                                    ', &
@@ -123,8 +124,8 @@ MODULE mod_cb6_Monitor
      '       POX + ACOO --> 0.41 PACD + 0.15 AACD + 0.44 MEO2 + 0.15 OZN + 0.44 ROO ... etc.              ', &
      '       ROO + ACOO --> ACOO                                                                          ', &
      '           2 ACOO --> 2 MEO2 + 2 ROO                                                                ', &
-     '      CXO3 + ACOO --> AALD + XO2H + MEO2 + 2 ROO                                                    ' /)
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_2 = (/ &
+     '      CXO3 + ACOO --> AALD + XO2H + MEO2 + 2 ROO                                                    ' ]
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_2 = [ &
      '      CXO3 + NMOX --> AALD + XO2H + ROO + NDOX                                                      ', &
      '      CXO3 + NDOX --> PANX                                                                          ', &
      '             PANX --> CXO3 + NDOX                                                                   ', &
@@ -154,8 +155,8 @@ MODULE mod_cb6_Monitor
      '       MEPX + HOX --> 0.4 FORM + 0.6 MEO2 + 0.6 ROO + 0.4 HOX                                       ', &
      '             MEPX --> MEO2 + ROO + HOX                                                              ', &
      '       RPOX + HOX --> 0.06 XO2N + 0.54 XO2H + 0.6 ROO + 0.4 HOX                                     ', &
-     '             RPOX --> HOX + POX                                                                     ' /)
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_3 = (/ &
+     '             RPOX --> HOX + POX                                                                     ' ]
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_3 = [ &
      '       NTR1 + HOX --> NTR2                                                                          ', &
      '             NTR1 --> NDOX                                                                          ', &
      '       FACD + HOX --> POX                                                                           ', &
@@ -185,8 +186,8 @@ MODULE mod_cb6_Monitor
      '              GLY --> 2 CMON + 2 POX                                                                ', &
      '       GLY + NTOX --> 1.5 CMON + NTRC + 0.5 XYLR + 0.5 ROO + POX                                    ', &
      '             MEGY --> CMON + POX + ACOO                                                             ', &
-     '      MEGY + NTOX --> NTRC + XYLR + ROO + ACOO                                                      ' /)
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_4 = (/ &
+     '      MEGY + NTOX --> NTRC + XYLR + ROO + ACOO                                                      ' ]
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_4 = [ &
      '       MEGY + HOX --> CMON + ACOO                                                                   ', &
      '       HOX + DIHY --> POX                                                                           ', &
      '       CMON + HOX --> POX                                                                           ', &
@@ -216,8 +217,8 @@ MODULE mod_cb6_Monitor
      '       IOLE + OZN --> 0.08 HPOX + 0.08 AACD + 0.245 CMON + 0.24 GLY + 0.06 MEGY ... etc.            ', &
      '      IOLE + NTOX --> 0.5 NTR1 + 0.5 AALD + 0.48 XYLR + 0.04 XO2N + 0.48 XO2H ... etc.              ', &
      '       ISPR + HOX --> ISO2 + ROO                                                                    ', &
-     '         ISPR + O --> 0.5 FORM + 0.25 XYLR + 0.75 ISPD + 0.25 ALKA + 0.25 ROO ... etc.              ' /)
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_5 = (/ &
+     '         ISPR + O --> 0.5 FORM + 0.25 XYLR + 0.75 ISPD + 0.25 ALKA + 0.25 ROO ... etc.              ' ]
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_5 = [ &
      '      ISO2 + NMOX --> 0.1 INTR + 0.673 FORM + 0.082 XO2H + 0.9 ISPD + 0.082 ROO ... etc.            ', &
      '       ISO2 + POX --> 0.88 ISPX + 0.12 FORM + 0.12 ISPD + 0.12 HOX + 0.12 POX ... etc.              ', &
      '      ISO2 + ACOO --> 0.2 AACD + 0.598 FORM + 0.072 XO2H + ISPD + 0.8 MEO2 ... etc.                 ', &
@@ -247,8 +248,8 @@ MODULE mod_cb6_Monitor
      '      BZO2 + ACOO --> GLY + ROPN + MEO2 + ROO + POX                                                 ', &
      '       BZO2 + POX --> DUMMY2                                                                        ', &
      '       BZO2 + ROO --> GLY + ROPN + ROO + POX                                                        ', &
-     '       TOLN + HOX --> 0.65 TOLR + 0.18 CRSL + 0.1 ROPN + 0.07 XO2H + 0.72 ROO ... etc.              ' /)
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_6 = (/ &
+     '       TOLN + HOX --> 0.65 TOLR + 0.18 CRSL + 0.1 ROPN + 0.07 XO2H + 0.72 ROO ... etc.              ' ]
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_6 = [ &
      '      TOLR + NMOX --> 0.14 NTR + 0.417 GLY + 0.2 XOPN + 0.443 MEGY + 0.66 ROPN ... etc.             ', &
      '      TOLR + ACOO --> 0.48 GLY + 0.23 XOPN + 0.52 MEGY + 0.77 ROPN + MEO2 ... etc.                  ', &
      '       TOLR + POX --> DUMMY2                                                                        ', &
@@ -278,17 +279,17 @@ MODULE mod_cb6_Monitor
      '      OPO3 + NMOX --> 0.5 CMON + 0.5 GLY + 0.8 POX + 0.2 CXO3 + NDOX                                ', &
      '      OPO3 + NDOX --> OPAN                                                                          ', &
      '             OPAN --> OPO3 + NDOX                                                                   ', &
-     '       OPO3 + POX --> 0.41 PACD + 0.15 AACD + 0.44 XO2H + 0.44 ALDX + 0.15 OZN ... etc.             ' /)
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(6) :: EQN_NAMES_7 = (/ &
+     '       OPO3 + POX --> 0.41 PACD + 0.15 AACD + 0.44 XO2H + 0.44 ALDX + 0.15 OZN ... etc.             ' ]
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(6) :: EQN_NAMES_7 = [ &
      '      OPO3 + ACOO --> XYLR + MEO2 + ALDX + 2 ROO                                                    ', &
      '       OPO3 + ROO --> 0.2 AACD + 0.8 XO2H + 0.8 ALDX + 1.8 ROO                                      ', &
      '       OPAN + HOX --> 0.5 NTR2 + CMON + 0.5 GLY + 0.5 NDOX                                          ', &
      '       PANX + HOX --> AALD + NDOX                                                                   ', &
      '             NTR2 --> NTRC                                                                          ', &
-     '       ECH4 + HOX --> MEO2 + ROO                                                                    ' /)
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(216) :: EQN_NAMES = (/&
+     '       ECH4 + HOX --> MEO2 + ROO                                                                    ' ]
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(216) :: EQN_NAMES = [&
     EQN_NAMES_0, EQN_NAMES_1, EQN_NAMES_2, EQN_NAMES_3, EQN_NAMES_4, &
-    EQN_NAMES_5, EQN_NAMES_6, EQN_NAMES_7 /)
+    EQN_NAMES_5, EQN_NAMES_6, EQN_NAMES_7 ]
 
 ! INLINED global variables
 

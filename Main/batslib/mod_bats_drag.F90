@@ -22,7 +22,7 @@ module mod_bats_drag
   use mod_bats_internal
   use mod_bats_param
 
-  implicit none
+  implicit none (type, external)
 !
   private
 !
@@ -46,7 +46,7 @@ module mod_bats_drag
 !=======================================================================
 !
   subroutine dragc
-    implicit none
+    implicit none (type, external)
     real(rkx) :: dthdz, u1, ribn, zatild, cdrmin
     integer(ik4) :: i
 #ifdef DEBUG
@@ -130,7 +130,7 @@ module mod_bats_drag
 !=======================================================================
 !
   subroutine dragdn
-    implicit none
+    implicit none (type, external)
     real(rkx) :: asigf, cdb, cds, cdv, frab, fras, frav
     integer(ik4) :: i
 #ifdef DEBUG
@@ -175,7 +175,7 @@ module mod_bats_drag
 !=======================================================================
 !
   subroutine depth
-    implicit none
+    implicit none (type, external)
     real(rkx) :: age, densi
     integer(ik4) :: i
 #ifdef DEBUG
