@@ -23,7 +23,7 @@ module mod_cbmz_init1
   use mod_cbmz_chemlocal
   use mod_cbmz_chemvars
   use mod_cbmz_jval1
-  implicit none (type, external)
+  implicit none
 !
   private
 !
@@ -120,7 +120,7 @@ module mod_cbmz_init1
 !
     subroutine chemread
 !
-      implicit none (type, external)
+      implicit none
       ! Chem index
       integer(ik4) :: ic, ic1, ic2, ic3, icc, ics, icc1, icc2, icc3
       ! Chem index
@@ -1988,7 +1988,7 @@ module mod_cbmz_init1
 ! -------------------------------------------------------------------
 !
     integer function namechem(titl)
-      implicit none (type, external)
+      implicit none
       character(len=8), intent(in) :: titl
       integer(ik4) :: i
       namechem = 0
@@ -2023,7 +2023,7 @@ module mod_cbmz_init1
 !
 ! -------------------------------------------------------------------
     subroutine hvread(ip)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ip
       c_hvin = ip
       call readhv(c_hvin,c_nhv,c_hvmat,c_hvmatb,c_jarray)
@@ -2084,7 +2084,7 @@ module mod_cbmz_init1
 !
     subroutine cheminit
 !
-      implicit none (type, external)
+      implicit none
       ! Chem index
       integer(ik4) :: ic, ic1, ic2, icc
       ! Chem local index
@@ -3177,7 +3177,7 @@ module mod_cbmz_init1
 ! -------------------------------------------------------------------
 
     subroutine chemwrit(kw)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: kw
 
       ! Chem index
@@ -3387,7 +3387,7 @@ module mod_cbmz_init1
 !
     subroutine analyze(titl, kw)
 !
-      implicit none (type, external)
+      implicit none
 
       ! Name of specified chem species
       character(len=8), intent(in) :: titl

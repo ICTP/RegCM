@@ -28,7 +28,7 @@ module mod_sound
   use mod_atm_interface
   use mod_timefilter
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -85,7 +85,7 @@ module mod_sound
   contains
 
   subroutine allocate_mod_sound
-    implicit none (type, external)
+    implicit none
     call getmem(aa,jci1,jci2,ici1,ici2,2,kz,'sound:aa')
     call getmem(b,jci1,jci2,ici1,ici2,2,kz,'sound:b')
     call getmem(c,jci1,jci2,ici1,ici2,2,kz,'sound:c')
@@ -118,7 +118,7 @@ module mod_sound
   end subroutine allocate_mod_sound
 
   subroutine init_sound
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
     real(rkx) :: maxt, loc_maxt, loc_xmsf
 
@@ -174,7 +174,7 @@ module mod_sound
   end subroutine init_sound
 
   subroutine sound
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cfl, check, dts, maxcfl, rll, rkk, ri, rj
     integer(ik4) :: i, j, k, km1, kp1, istep, it, iconvec
     logical, save :: cfl_error = .false.
@@ -714,7 +714,7 @@ module mod_sound
 
     pure integer(ik4) function inrange(i,i1,i2,lper)
 !$acc routine seq
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: i, i1, i2
       logical, intent(in) :: lper
       inrange = i

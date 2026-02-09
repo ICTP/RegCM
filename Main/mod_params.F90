@@ -54,7 +54,7 @@ module mod_params
   use mod_oasis_interface
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -67,7 +67,7 @@ module mod_params
   ! This subroutine defines the various model parameters.
   !
   subroutine param
-    implicit none (type, external)
+    implicit none
     real(rkx) :: afracl, afracs, bb, cc, dlargc, dsmalc, dxtemc, &
                qk, qkp1, sig700, ssum, vqmax, wk, wkp1, xbot,   &
                xtop, xx, yy, mo_c1, mo_c2, dl, minfrq
@@ -2971,7 +2971,7 @@ module mod_params
 
       subroutine make_reference_atmosphere
         use mod_nhinterp
-        implicit none (type, external)
+        implicit none
         integer(ik4) :: i, j, k
         real(rkx) :: ztop
         call nhsetup(ptop,base_state_pressure,logp_lrate,base_state_ts0)
@@ -3046,7 +3046,7 @@ module mod_params
       end subroutine make_reference_atmosphere
 
       subroutine compute_full_coriolis_coefficients
-        implicit none (type, external)
+        implicit none
         integer(ik4) :: i, j
         real(rkx) :: rotang, dlat, dlatdy, dlondy
         do i = idi1, idi2
@@ -3093,7 +3093,7 @@ module mod_params
       end subroutine compute_full_coriolis_coefficients
 
       subroutine compute_moloch_static
-        implicit none (type, external)
+        implicit none
         integer(ik4) :: i, j
         call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
@@ -3146,7 +3146,7 @@ module mod_params
       end subroutine compute_moloch_static
 
       recursive integer(ik4) function gcd_rec(u,v) result(gcd)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: u, v
         if ( mod(u,v) /= 0 ) then
           gcd = gcd_rec(v,mod(u,v))
@@ -3156,7 +3156,7 @@ module mod_params
       end function gcd_rec
 
       real(rkx) function check_against_outparams(dt,dec) result(newdt)
-        implicit none (type, external)
+        implicit none
         real(rkx), intent(in) :: dt, dec
         newdt = int(dt/dec)*dec
         if ( ifshf ) then

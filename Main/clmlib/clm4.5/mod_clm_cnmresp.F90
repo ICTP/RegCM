@@ -1,5 +1,5 @@
 module mod_clm_cnmresp
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! Module holding maintenance respiration routines for coupled carbon
@@ -10,7 +10,7 @@ implicit none (type, external)
   use mod_clm_varpar, only : nlevgrnd
   use mod_clm_varcon, only : tfrz
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -25,7 +25,7 @@ implicit none (type, external)
     use mod_clm_pftvarcon, only : npcropmin
     use mod_clm_subgridave, only : p2c
     use mod_clm_varctl, only : q10_maintenance
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
     integer(ik4), intent(in) :: num_soilc ! number of soil points in col filter
     integer(ik4), intent(in) :: filter_soilc(:) ! column filter for soil points

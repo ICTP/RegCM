@@ -1,5 +1,5 @@
 module mod_clm_cndecompcascadecentury
-implicit none (type, external)
+implicit none
 #ifdef CN
 
 #ifdef CENTURY_DECOMP
@@ -23,7 +23,7 @@ implicit none (type, external)
   use mod_clm_ch4varcon, only : mino2lim
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -66,7 +66,7 @@ implicit none (type, external)
   !
   subroutine init_decompcascade(begc, endc)
     use mod_clm_type
-    implicit none (type, external)
+    implicit none
     ! column level
     ! per-proc beginning and ending column indices
     integer(ik4)  :: begc, endc
@@ -406,7 +406,7 @@ implicit none (type, external)
   subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
     use mod_clm_type
     use mod_clm_varcon, only: secspday
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc        ! column bounds
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc

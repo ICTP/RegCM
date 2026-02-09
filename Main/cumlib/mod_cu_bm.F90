@@ -57,7 +57,7 @@ module mod_cu_bm
 !                                                                *
 !*****************************************************************
 !
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -79,7 +79,7 @@ module mod_cu_bm
   contains
 
   subroutine allocate_mod_cu_bm
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: intall
     call getmem(cldefi,jci1,jci2,ici1,ici2,'cu_bm:cldefi')
     call getmem(apek,1,kz,'cu_bm:apek')
@@ -129,7 +129,7 @@ module mod_cu_bm
   end subroutine allocate_mod_cu_bm
 
   subroutine bmpara(m2c)
-    implicit none (type, external)
+    implicit none
     type(mod_2_cum), intent(in) :: m2c
     real(rkx), parameter :: h3000 = 3000.0_rkx
     real(rkx), parameter :: stresh = 1.10_rkx
@@ -881,7 +881,7 @@ module mod_cu_bm
       ! Calculates tpfc
       !
       pure real(rkx) function tpfc(press,thetae,tgs,pi)
-        implicit none (type, external)
+        implicit none
         real(rkx), intent(in) :: pi, press, tgs, thetae
         real(rkx) :: qs, dtx, f1, fo, rp, t1, tguess
         real(rkx) :: es

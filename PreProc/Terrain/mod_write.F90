@@ -21,7 +21,7 @@ module mod_write
   use mod_ncstream_types
   use mod_ncstream
   use mod_memutil
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -90,7 +90,7 @@ module mod_write
   contains
 
   subroutine setup_outvars
-    implicit none (type, external)
+    implicit none
 
     lrmoist = .false.
     lrts = .false.
@@ -271,7 +271,7 @@ module mod_write
                           umap,vmap,coriol,mask,htgrid,lndout,snowam,smoist, &
                           rmoist,rts,dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,&
                           ts0,zeta,fmz)
-    implicit none (type, external)
+    implicit none
     character (len=*), intent(in) :: fname
     logical, intent(in) :: lsub, lndfudge, texfudge, lakfudge
     integer(ik4), intent(in) :: ntype

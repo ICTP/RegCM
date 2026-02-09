@@ -11,7 +11,7 @@ module mod_clm_drydep
   use mod_stdio
   use mod_mpmessage
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -472,7 +472,7 @@ module mod_clm_drydep
   !FAB
   !subroutine seq_drydep_read(NLFilename, seq_drydep_fields)
   subroutine seq_drydep_read(NLFilename)
-    implicit none (type, external)
+    implicit none
 
     character(len=*), intent(in)  :: NLFilename ! Namelist filename
   ! character(len=*), intent(out) :: seq_drydep_fields
@@ -563,7 +563,7 @@ module mod_clm_drydep
   ! land-atmosphere communications.
   !
   subroutine seq_drydep_init( )
-    implicit none (type, external)
+    implicit none
 
     integer(ik4) :: i, l                      ! Indices
     character(len=32) :: test_name       ! field test name
@@ -735,7 +735,7 @@ module mod_clm_drydep
   ! rather than an array (multiple columns).
   !
   subroutine set_hcoeff_scalar( sfc_temp, heff )
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: sfc_temp        ! Input surface temperature
     real(rk8), intent(out) :: heff(n_drydep) ! Output Henry's law coefficients
 
@@ -750,7 +750,7 @@ module mod_clm_drydep
   ! sets dry depositions coefficients -- used by both land and atmosphere models
   !
   subroutine set_hcoeff_vector( ncol, sfc_temp, heff )
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ncol ! Input size of surface-temp vector
     real(rk8), intent(in) :: sfc_temp(ncol)        ! Surface temperature
     real(rk8), intent(out) :: heff(ncol,n_drydep)  ! Henry's law coefficients

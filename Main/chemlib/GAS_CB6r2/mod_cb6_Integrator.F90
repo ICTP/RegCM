@@ -47,7 +47,7 @@ MODULE mod_cb6_Integrator
   USE mod_cb6_LinearAlgebra, ONLY: KppDecomp, KppSolve, &
                Set2zero, WLAMCH
 
-  IMPLICIT NONE (type, external)
+  IMPLICIT NONE
   PUBLIC
   SAVE
 
@@ -80,7 +80,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    USE mod_cb6_Parameters
    USE mod_cb6_Global
-   IMPLICIT NONE (type, external)
+   IMPLICIT NONE
 
    REAL(kind=dp), INTENT(IN) :: TIN  ! Start Time
    REAL(kind=dp), INTENT(IN) :: TOUT ! End Time
@@ -195,7 +195,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
       REAL(kind=dp) :: Y(NVAR_CB6), AbsTol(NVAR_CB6), RelTol(NVAR_CB6), TIN, TOUT
       REAL(kind=dp) :: RCNTRL(20), RSTATUS(20)
       INTEGER       :: ICNTRL(20), ISTATUS(20)
@@ -3396,7 +3396,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       USE mod_cb6_Function, ONLY: Fun
       USE mod_cb6_Rates
 
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 
       INTEGER :: N
       REAL(kind=dp) :: V(NVAR_CB6), FCT(NVAR_CB6), T
@@ -3425,7 +3425,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       USE mod_cb6_Jacobian, ONLY: Jac_SP
       USE mod_cb6_Rates
 
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
 
       REAL(kind=dp) :: V(NVAR_CB6), T
       INTEGER :: N

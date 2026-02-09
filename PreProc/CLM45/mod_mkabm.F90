@@ -21,7 +21,7 @@ module mod_mkabm
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -32,7 +32,7 @@ module mod_mkabm
   contains
 
   subroutine mkabm(abmfile,mask,abm)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: abmfile
     real(rkx), dimension(:,:), intent(in) :: mask
     integer(ik4), dimension(:,:), intent(out) :: abm

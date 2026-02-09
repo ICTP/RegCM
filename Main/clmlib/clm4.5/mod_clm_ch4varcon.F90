@@ -1,5 +1,5 @@
 module mod_clm_ch4varcon
-implicit none (type, external)
+implicit none
 
 #ifdef LCH4
   !
@@ -14,7 +14,7 @@ implicit none (type, external)
   use mod_mppparam
   use mod_runparams, only : namelistfile
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -219,7 +219,7 @@ implicit none (type, external)
   ! Read and initialize CH4 constants
   !
   subroutine ch4conrd ()
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i,j,n                ! loop indices
     integer(ik4) :: ierr                 ! error code
     integer(ik4) :: unitn                ! unit for namelist file

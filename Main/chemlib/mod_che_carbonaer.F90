@@ -24,7 +24,7 @@ module mod_che_carbonaer
   use mod_che_indices
   use mod_runparams, only : chechgact
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -99,7 +99,7 @@ module mod_che_carbonaer
   contains
 
     subroutine carb_init( )
-      implicit none (type, external)
+      implicit none
       if ( carb_aging_control ) then
         call getmem(ncon,jci1,jci2,ici1,ici2,1,kz,'carbonaer:ncon')
         call getmem(surf,jci1,jci2,ici1,ici2,1,kz,'carbonaer:surf')
@@ -120,7 +120,7 @@ module mod_che_carbonaer
     end subroutine carb_init
 
     subroutine carb_prepare( )
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: n
       ncon(:,:,:) = d_zero
       surf(:,:,:) = d_zero
@@ -149,7 +149,7 @@ module mod_che_carbonaer
     end subroutine carb_prepare
 
     subroutine aging_carb
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: n
       integer(ik4), dimension(nchlmax+1) :: ids
       !
@@ -186,7 +186,7 @@ module mod_che_carbonaer
     end subroutine aging_carb
 
     subroutine addto_ncon_surf(refx,rhox,id)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: refx, rhox
       integer(ik4), intent(in) :: id
       integer(ik4) :: i, j, k
@@ -227,7 +227,7 @@ module mod_che_carbonaer
       end subroutine addto_ncon_surf
 
       subroutine doagingdyn(ids)
-        implicit none (type, external)
+        implicit none
         integer(ik4), dimension(:), intent(in) :: ids
         integer(ik4) :: i, j, k, n, b1, b2
         real(rkx), dimension(jci1:jci2,ici1:ici2) :: agingtend
@@ -274,7 +274,7 @@ module mod_che_carbonaer
       end subroutine doagingdyn
 
       subroutine doaging(ids,sm)
-        implicit none (type, external)
+        implicit none
         integer(ik4), dimension(:), intent(in) :: ids
         real(rkx), intent(in) :: sm
         integer(ik4) :: i, j, k, n, b1, b2

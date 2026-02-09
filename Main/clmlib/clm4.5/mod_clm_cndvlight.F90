@@ -1,6 +1,6 @@
 
 module mod_clm_cndvlight
-implicit none (type, external)
+implicit none
 
 #if (defined CNDV)
   !
@@ -12,7 +12,7 @@ implicit none (type, external)
   use mod_realkinds
   use mod_varcon, only : rpi
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -27,7 +27,7 @@ implicit none (type, external)
   ! Called once per year
   subroutine Light(lbg, ubg, lbp, ubp, num_natvegp, filter_natvegp)
     use mod_clm_type
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbg, ubg     ! gridcell bounds
     integer(ik4), intent(in) :: lbp, ubp     ! pft bounds
     ! number of naturally-vegetated pfts in filter

@@ -23,7 +23,7 @@ module mod_vertint
   use mod_stdatm
   use mod_interp, only : interp1d
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -87,7 +87,7 @@ module mod_vertint
   !   fp(im,jm,km)  - the field interpolate on target pressure grid p3d
   !
   subroutine intlinreg_p(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,km)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im1, im2, jm1, jm2, km, kp
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps
@@ -156,7 +156,7 @@ module mod_vertint
   !   fz(kz,jm,im)  - the field interpolate on regular pressure grid p
   !
   subroutine intlinreg_z(fz,f,z,i1,i2,j1,j2,km,hz,kz)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: i1, i2, j1, j2, km, kz
     real(rkx), dimension(i1:i2,j1:j2,km), intent(in) ::  f
     real(rkx), dimension(i1:i2,j1:j2,kz), intent(in) ::  hz
@@ -223,7 +223,7 @@ module mod_vertint
   !   fp(im,jm,km)  - the field interpolate on regular pressure grid p3d
   !
   subroutine intlinprof(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,km)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im1, im2, jm1, jm2, km, kp
     real(rkx), pointer, contiguous, dimension(:), intent(in) :: f
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps
@@ -305,7 +305,7 @@ module mod_vertint
   !   fp(im,jm,kp)  - the field interpolate on regular pressure grid p
   !
   subroutine intlin_double(fp,f,p3d,im,jm,km,p,kp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rk8), dimension(im,jm,km), intent(in) :: f, p3d
     real(rk8), dimension(im,jm,kp), intent(out) :: fp
@@ -373,7 +373,7 @@ module mod_vertint
   end subroutine intlin_double
 
   subroutine intlin_single(fp,f,p3d,im,jm,km,p,kp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rk4), dimension(im,jm,km), intent(in) :: f, p3d
     real(rk4), dimension(im,jm,kp), intent(out) :: fp
@@ -453,7 +453,7 @@ module mod_vertint
   !   fp(im,jm,kp)  - the field interpolate on regular pressure grid p
   !
   subroutine intlin_o_double(fp,f,ps,sig,ptop,im,jm,km,p,kp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rk8), intent(in) :: ptop
     real(rk8), dimension(im,jm,km), intent(in) :: f
@@ -514,7 +514,7 @@ module mod_vertint
   end subroutine intlin_o_double
 
   subroutine intlin_o_single(fp,f,ps,sig,ptop,im,jm,km,p,kp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rkx), intent(in) :: ptop
     real(rk4), dimension(im,jm,km), intent(in) :: f
@@ -584,7 +584,7 @@ module mod_vertint
   !   fz(kz,jm,im)  - the field interpolate on regular pressure grid p
   !
   subroutine intlin_z_o_single(fz,f,hz,im,jm,km,z,kz)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km, kz
     real(rk4), dimension(im,jm,km), intent(in) :: f, hz
     real(rk4), dimension(kz), intent(in) :: z
@@ -639,7 +639,7 @@ module mod_vertint
   end subroutine intlin_z_o_single
 
   subroutine intlin_z_o_double(fz,f,hz,im,jm,km,z,kz)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km, kz
     real(rk8), dimension(im,jm,km), intent(in) :: f, hz
     real(rk8), dimension(kz), intent(in) :: z
@@ -715,7 +715,7 @@ module mod_vertint
   !        Lowermost level is 1
   !
   subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,pss,sccm,pst,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in) :: pss, pst
     real(rkx), dimension(ni,nj), intent(in) :: zrcm
@@ -773,7 +773,7 @@ module mod_vertint
   !   fp(im,jm,kp)  - the field interpolate on regular pressure grid p
   !
   subroutine intlog_double(fp,f,p3d,im,jm,km,p,kp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rk8), dimension(im,jm,km), intent(in) :: f, p3d
     real(rk8), dimension(kp), intent(in) :: p
@@ -844,7 +844,7 @@ module mod_vertint
   end subroutine intlog_double
 
   subroutine intlog_single(fp,f,p3d,im,jm,km,p,kp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rk4), dimension(im,jm,km), intent(in) :: f, p3d
     real(rk4), dimension(kp), intent(in) :: p
@@ -930,7 +930,7 @@ module mod_vertint
   !   fp(im,jm,kp)  - the field interpolate on regular pressure grid p
   !
   subroutine intlog_o_double(fp,f,ps,sig,ptop,im,jm,km,p,kp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rk8), intent(in) :: ptop
     real(rk8), dimension(im,jm,km), intent(in) :: f
@@ -992,7 +992,7 @@ module mod_vertint
   end subroutine intlog_o_double
 
   subroutine intlog_o_single(fp,f,ps,sig,ptop,im,jm,km,p,kp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km, kp
     real(rkx), intent(in) :: ptop
     real(rk4), dimension(im,jm,km), intent(in) :: f
@@ -1059,7 +1059,7 @@ module mod_vertint
   ! Output is pstar = surface pressure - ptop
   !
   subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj
     real(rkx), intent(in) :: pt
     real(rkx), dimension(ni,nj), intent(in) :: pa, tlayer, za, zrcm
@@ -1079,7 +1079,7 @@ module mod_vertint
   ! is necessary, fields are considered to have 0 vertical derivative.
   !
   subroutine intv0(frcm,fccm,psrcm,srcm,pss,sccm,pt,pst,ni,nj,krcm,kccm)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kccm, krcm, ni, nj
     real(rkx), intent(in) :: pt, pss, pst
     real(rkx), dimension(ni,nj,kccm), intent(in) :: fccm
@@ -1119,7 +1119,7 @@ module mod_vertint
   ! For a particular sigma value only.
   !
   subroutine intvp(frcm,fccm,psrcm,srcm,pss,sccm,pt,pst,ni,nj,kccm)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kccm, ni, nj
     real(rkx), intent(in) :: pt, pss, pst
     real(rkx), dimension(ni,nj,kccm), intent(in) :: fccm
@@ -1154,7 +1154,7 @@ module mod_vertint
   ! Vertical interpolation to Z levels.
   !
   subroutine intz1(frcm,fccm,zrcm,zccm,trcm,ni,nj,krcm,kccm,a,e1,e2)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kccm, krcm, ni, nj
     real(rkx), intent(in) :: a, e1, e2
     real(rkx), dimension(ni,nj,kccm), intent(in) :: fccm, zccm
@@ -1184,7 +1184,7 @@ module mod_vertint
   ! Vertical interpolation to P levels.
   !
   subroutine intp1_fixed(frcm,fccm,prcm,pccm,ni,nj,krcm,kccm,a,e1,e2)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kccm, krcm, ni, nj
     real(rkx), intent(in) :: a, e1, e2
     real(rkx), dimension(ni,nj,kccm), intent(in) :: fccm, pccm
@@ -1218,7 +1218,7 @@ module mod_vertint
   end subroutine intp1_fixed
 
   subroutine intp1_pointer(frcm,fccm,prcm,pccm,i1,i2,j1,j2,krcm,kccm,a,e1,e2)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kccm, krcm, i1, i2, j1, j2
     real(rkx), intent(in) :: a, e1, e2
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: fccm, pccm
@@ -1269,7 +1269,7 @@ module mod_vertint
   !        Lowermost input level is 1
   !
   subroutine intv1(frcm,fccm,psrcm,srcm,pss,sccm,pt,pst,ni,nj,krcm,kccm,imeth)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kccm, krcm, ni, nj, imeth
     real(rkx), intent(in) :: pt, pss, pst
     real(rkx), dimension(ni,nj,kccm), intent(in) :: fccm
@@ -1331,7 +1331,7 @@ module mod_vertint
   end subroutine intv1
 
   subroutine intv2(frcm,fccm,psrcm,srcm,pss,sccm,pt,pst,ni,nj,krcm,kccm)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kccm, krcm, ni, nj
     real(rkx), intent(in) :: pt, pss, pst
     real(rkx), dimension(ni,nj,kccm), intent(in) :: fccm
@@ -1368,7 +1368,7 @@ module mod_vertint
   end subroutine intv2
 
   subroutine intz3(fsrcm,fccm,zccm,zrcm,a,e1,e2,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in) :: a, e1, e2
     real(rkx), intent(in), dimension(ni,nj,nk) :: fccm, zccm
@@ -1391,7 +1391,7 @@ module mod_vertint
   end subroutine intz3
 
   subroutine intp3(fsrcm,fccm,pccm,psrcm,a,e1,e2,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in) :: a, e1, e2
     real(rkx), contiguous, pointer, dimension(:,:,:), intent(in) :: fccm, pccm
@@ -1436,7 +1436,7 @@ module mod_vertint
   !        Lowermost level is 1
   !
   subroutine intv3(fsccm,fccm,psrccm,pss,sccm,ptop,pst,ni,nj,kccm)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: kccm, ni, nj
     real(rkx), intent(in) :: ptop, pss, pst
     real(rkx), dimension(ni,nj,kccm), intent(in) :: fccm
@@ -1472,7 +1472,7 @@ module mod_vertint
   end subroutine intv3
 
   subroutine intzps1(psrcm,zrcm,tp,zp,pss,sccm,pst,lat,jday,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in) :: pss, jday, pst
     real(rkx), contiguous, pointer, dimension(:,:), intent(in) :: zrcm, lat
@@ -1576,7 +1576,7 @@ module mod_vertint
   end subroutine intzps1
 
   subroutine intzps2(psrcm,zrcm,tp,zp,pp,lat,jday,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in) :: jday
     real(rkx), dimension(ni,nj), intent(in) :: zrcm, lat
@@ -1649,7 +1649,7 @@ module mod_vertint
   end subroutine intzps2
 
   pure integer function find_from_top(v,vv,i,im1,im2,j,jm1,jm2,nx) result(n)
-    implicit none (type, external)
+    implicit none
     integer, intent(in) :: i, im1, im2, j, jm1, jm2, nx
     real(rkx), intent(in) :: v
     real(rkx), intent(in), dimension(im1:im2,jm1:jm2,1:nx) :: vv
@@ -1662,7 +1662,7 @@ module mod_vertint
   end function find_from_top
 
   pure integer function find_from_bottom(v,vv,i,im1,im2,j,jm1,jm2,nx) result(n)
-    implicit none (type, external)
+    implicit none
     integer, intent(in) :: i, im1, im2, j, jm1, jm2, nx
     real(rkx), intent(in) :: v
     real(rkx), intent(in), dimension(im1:im2,jm1:jm2,1:nx) :: vv

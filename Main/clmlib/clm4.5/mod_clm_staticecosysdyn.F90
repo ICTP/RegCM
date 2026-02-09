@@ -23,7 +23,7 @@ module mod_clm_staticecosysdyn
   use mod_clm_varpar, only : numpft
   use mod_clm_domain, only : ldomain
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -59,7 +59,7 @@ module mod_clm_staticecosysdyn
   ! Dynamically allocate memory and set to signaling NaN.
   !
   subroutine EcosystemDynIni()
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ier          ! error code
     integer(ik4) :: begp, endp  ! local beg and end p index
 
@@ -86,7 +86,7 @@ module mod_clm_staticecosysdyn
   ! height (htop).
   !
   subroutine EcosystemDyn(lbp, ubp, num_nolakep, filter_nolakep, doalb)
-    implicit none (type, external)
+    implicit none
     ! pft bounds
     integer(ik4), intent(in) :: lbp, ubp
     ! number of column non-lake points in pft filter
@@ -208,7 +208,7 @@ module mod_clm_staticecosysdyn
   ! Determine if 2 new months of data are to be read.
   !
   subroutine interpMonthlyVeg()
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: kyr   ! year (0, ...) for nstep+1
     integer(ik4) :: kmo   ! month (1, ..., 12)
     integer(ik4) :: kda   ! day of month (1, ..., 31)
@@ -267,7 +267,7 @@ module mod_clm_staticecosysdyn
   !-----------------------------------------------------------------------
   !
   subroutine readAnnualVegetation ( )
-    implicit none (type, external)
+    implicit none
     type(clm_filetype) :: ncid  ! netcdf id
     ! 12 months of monthly lai from input data set
     real(rk8), pointer, contiguous, dimension(:,:) :: annlai
@@ -340,7 +340,7 @@ module mod_clm_staticecosysdyn
   ! Read monthly vegetation data for two consec. months.
   !
   subroutine readMonthlyVegetation (fveg, months)
-    implicit none (type, external)
+    implicit none
     ! file with monthly vegetation data
     character(len=*), intent(in) :: fveg
     ! months to be interpolated (1 to 12)

@@ -22,7 +22,7 @@ module mod_mkpopd
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -35,7 +35,7 @@ module mod_mkpopd
   contains
 
   subroutine mkpopd_init(popdfile)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: popdfile
     character(len=256) :: inpfile
 
@@ -45,7 +45,7 @@ module mod_mkpopd
   end subroutine mkpopd_init
 
   subroutine mkpopd(popd,mask,it)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: popd
     integer(ik4), intent(in) :: it
@@ -64,14 +64,14 @@ module mod_mkpopd
   end subroutine mkpopd
 
   subroutine mkpopd_close
-    implicit none (type, external)
+    implicit none
     call gfclose(gfile)
   end subroutine mkpopd_close
 
 end module mod_mkpopd
 #else
 module mod_mkpopd
-  implicit none (type, external)
+  implicit none
   private
 end module mod_mkpopd
 #endif

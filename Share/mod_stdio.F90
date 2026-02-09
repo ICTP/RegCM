@@ -18,7 +18,7 @@ module mod_stdio
   use mod_intkinds
   use, intrinsic :: iso_fortran_env
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -36,7 +36,7 @@ module mod_stdio
   contains
 
     integer(ik4) function file_getunit(unitn)
-      implicit none (type, external)
+      implicit none
       integer(ik4), optional, intent(in) :: unitn
       integer(ik4) :: n
       logical :: isopened
@@ -81,7 +81,7 @@ module mod_stdio
     end function file_getunit
 
     subroutine file_freeunit(unitn)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: unitn
       if ( unit_tag(unitn) ) then
         close(unitn)

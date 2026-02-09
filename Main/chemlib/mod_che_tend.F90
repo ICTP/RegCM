@@ -41,7 +41,7 @@ module mod_che_tend
   use mod_che_bionit
   use mod_che_ccn
   use mod_che_linox
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -57,7 +57,7 @@ module mod_che_tend
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     subroutine tractend2(lmonth,lday,declin)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: lmonth, lday
       real(rk8), intent(in) :: declin
 

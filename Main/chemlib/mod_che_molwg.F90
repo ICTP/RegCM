@@ -19,7 +19,7 @@ module mod_che_molwg
   use mod_realkinds
   use mod_che_indices
 
-  implicit none (type, external)
+  implicit none
 
   public
 

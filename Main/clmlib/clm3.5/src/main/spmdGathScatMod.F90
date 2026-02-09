@@ -13,9 +13,10 @@ module spmdGathScatMod
 !
 ! !USES:
   use shr_kind_mod, only: r8 => shr_kind_r8
-  use spmdMod
+  use spmdMod, only : iam, mpicom, masterproc, npes
   use clm_mct_mod
   use abortutils, only : endrun
+  use mpi
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -358,7 +359,7 @@ contains
 !
 ! !LOCAL VARIABLES:
     integer :: ier                    !return code
-    integer :: beg                    !temporary
+    integer :: beg, inul              !temporary
     integer :: numsendv(0:npes-1)     !vector of items to be sent
     integer :: displsv(0:npes-1)      !displacement vector
     integer :: numrecv                !number of items to be received
@@ -368,7 +369,8 @@ contains
        call mpi_scatterv (iglobal, numsendv, displsv, MPI_INTEGER, &
             ilocal(beg), numrecv , MPI_INTEGER , 0, mpicom, ier)
     else
-       call mpi_scatterv (0, numsendv, displsv, MPI_INTEGER, &
+       inul = 0
+       call mpi_scatterv (inul, numsendv, displsv, MPI_INTEGER, &
             ilocal(beg), numrecv , MPI_INTEGER , 0, mpicom, ier)
     endif
     if (ier /= 0) then
@@ -402,6 +404,7 @@ contains
 ! !LOCAL VARIABLES:
     integer :: ier                             !return code
     integer :: beg                             !temporaries
+    real(r8) :: rnul
     integer :: numsendv(0:npes-1)              !vector of items to be sent
     integer :: displsv(0:npes-1)               !displacement vector
     integer :: numrecv                         !number of items to be received
@@ -411,7 +414,8 @@ contains
        call mpi_scatterv (rglobal, numsendv, displsv, MPI_REAL8, &
             rlocal(beg), numrecv , MPI_REAL8 , 0, mpicom, ier)
     else
-       call mpi_scatterv (0._r8, numsendv, displsv, MPI_REAL8, &
+       rnul = 0._r8
+       call mpi_scatterv (rnul, numsendv, displsv, MPI_REAL8, &
             rlocal(beg), numrecv , MPI_REAL8 , 0, mpicom, ier)
     endif
     if (ier/=0 ) then
@@ -446,7 +450,7 @@ contains
     integer :: ier                   !error status
     integer :: ndim1                 !size of first dimension
     integer :: l1                    !lower bound of first dimension
-    integer :: beg                   !temporaries
+    integer :: beg, inul             !temporaries
     integer :: numsendv(0:npes-1)    !vector of items to be sent
     integer :: displsv(0:npes-1)     !displacement vector
     integer :: numrecv               !number of items to be received
@@ -466,7 +470,8 @@ contains
        call mpi_scatterv (iglobal(l1,1), numsendv, displsv, MPI_INTEGER, &
             ilocal(l1,beg), numrecv ,  MPI_INTEGER, 0, mpicom, ier)
     else
-       call mpi_scatterv (0, numsendv, displsv, MPI_INTEGER, &
+       inul = 0
+       call mpi_scatterv (inul, numsendv, displsv, MPI_INTEGER, &
             ilocal(l1,beg), numrecv ,  MPI_INTEGER, 0, mpicom, ier)
     endif
     if (ier /= 0) then
@@ -501,6 +506,7 @@ contains
     integer :: ier                            !return code
     integer :: ndim1                          !size of second dimension
     integer :: l1                             !lower,upper bounds of input arrays
+    real(r8) :: rnul
     integer :: beg                            !temporaries
     integer :: numsendv(0:npes-1)             !vector of items to be sent
     integer :: displsv(0:npes-1)              !displacement vector
@@ -521,7 +527,8 @@ contains
        call mpi_scatterv (rglobal(l1,1), numsendv, displsv, MPI_REAL8, &
             rlocal(l1,beg), numrecv ,  MPI_REAL8, 0, mpicom, ier)
     else
-       call mpi_scatterv (0._r8, numsendv, displsv, MPI_REAL8, &
+       rnul = 0._r8
+       call mpi_scatterv (rnul, numsendv, displsv, MPI_REAL8, &
             rlocal(l1,beg), numrecv ,  MPI_REAL8, 0, mpicom, ier)
     endif
     if (ier /= 0) then

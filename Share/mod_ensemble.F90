@@ -20,7 +20,7 @@ module mod_ensemble
   use mod_memutil
   use mod_constants
 
-  implicit none (type, external)
+  implicit none
 !
 !------------------------------------------------------------------------------
 !
@@ -51,7 +51,7 @@ module mod_ensemble
   contains
 
   subroutine random_pick_1d_r4(thesum,values,nv)
-    implicit none (type, external)
+    implicit none
     real(rk4), intent(in) :: thesum
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: values
     integer(ik4), intent(in) :: nv
@@ -89,7 +89,7 @@ module mod_ensemble
   end subroutine random_pick_1d_r4
 
   subroutine random_pick_1d_r8(thesum,values,nv)
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: thesum
     real(rk8), pointer, contiguous, dimension(:), intent(inout) :: values
     integer(ik4), intent(in) :: nv
@@ -127,7 +127,7 @@ module mod_ensemble
   end subroutine random_pick_1d_r8
 
   subroutine random_pick_2d_r4(thesum,values,nv)
-    implicit none (type, external)
+    implicit none
     real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: thesum
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: values
     integer(ik4), intent(in) :: nv
@@ -149,7 +149,7 @@ module mod_ensemble
   end subroutine random_pick_2d_r4
 
   subroutine random_pick_2d_r8(thesum,values,nv)
-    implicit none (type, external)
+    implicit none
     real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: thesum
     real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: values
     integer(ik4), intent(in) :: nv
@@ -180,7 +180,7 @@ module mod_ensemble
 ! dFrac        -  Maximum fraction by which to vary any value in dVariable3D
 !
   subroutine randify3D(dVariable3D,dFrac,imax,jmax,kmax)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: imax, jmax, kmax
     real(rkx), dimension(imax,kmax,jmax), intent(inout) :: dVariable3D
     real(rkx), intent(in) :: dFrac
@@ -242,7 +242,7 @@ module mod_ensemble
 ! dFrac        -  Maximum fraction by which to vary any value in dVariable2D
 !
   subroutine randify2D(dVariable2D,dFrac,imax,jmax)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: imax, jmax
     real(rkx), dimension(imax,jmax), intent(inout) :: dVariable2D
     real(rkx), intent(in) :: dFrac

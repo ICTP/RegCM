@@ -17,7 +17,7 @@ module mod_header
 
   use mod_intkinds
   use mod_stdio
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -26,7 +26,7 @@ module mod_header
   contains
 
   subroutine header(myid)
-  implicit none (type, external)
+  implicit none
 !
   integer(ik4), intent(in) :: myid
 !

@@ -27,7 +27,7 @@ MODULE mod_cb6_LinearAlgebra
   USE mod_cb6_Parameters
   USE mod_cb6_JacobianSP
 
-  IMPLICIT NONE (type, external)
+  IMPLICIT NONE
 
 CONTAINS
 
@@ -1387,7 +1387,7 @@ END SUBROUTINE KppSolveTR
 !--------------------------------------------------------------
 !      USE messy_mecca_kpp_Precision
 !--------------------------------------------------------------
-      IMPLICIT NONE (type, external)
+      IMPLICIT NONE
       INTEGER :: N, incX, incY
       REAL(kind=dp) :: DX(N), DY(N)
 

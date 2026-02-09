@@ -25,7 +25,7 @@ module mod_cmip6_gfdl
   use mod_cmip6_helper
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -36,7 +36,7 @@ module mod_cmip6_gfdl
   contains
 
     subroutine read_hcoord_sst_gfdl(ncid,lon,lat)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -62,7 +62,7 @@ module mod_cmip6_gfdl
     end subroutine read_hcoord_sst_gfdl
 
     recursive subroutine read_sst_gfdl(idate,v,lat,lon)
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), intent(inout) :: v
       real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat, lon

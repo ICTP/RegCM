@@ -41,7 +41,7 @@ module mod_bdycod
   use mod_vertint, only : intz1
   use mod_humid, only : rh2mxr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -146,7 +146,7 @@ module mod_bdycod
   contains
 
   subroutine initideal
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: iunit, ierr
     integer(ik4) :: k
     real(rkx) :: ps, ts
@@ -383,17 +383,17 @@ module mod_bdycod
   end subroutine initideal
 
   logical function is_present_qc( )
-    implicit none (type, external)
+    implicit none
     is_present_qc = present_qc
   end function is_present_qc
 
   logical function is_present_qi( )
-    implicit none (type, external)
+    implicit none
     is_present_qi = present_qi
   end function is_present_qi
 
   subroutine allocate_mod_bdycon
-    implicit none (type, external)
+    implicit none
     if ( iboudy == 1 .or. idynamic == 2 ) then
       call getmem(fcx,2,nspgx-1,'bdycon:fcx')
       call getmem(gcx,2,nspgx-1,'bdycon:gcx')
@@ -443,7 +443,7 @@ module mod_bdycod
   end subroutine allocate_mod_bdycon
 
   subroutine setup_bdycon
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(kz) :: anudge
     real(rkx) :: xfun, nb2
     integer(ik4) :: n, k
@@ -550,7 +550,7 @@ module mod_bdycod
   end subroutine setup_bdycon
 
   subroutine init_bdy
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: datefound, i, j, k, n
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
@@ -909,7 +909,7 @@ module mod_bdycod
   ! this subroutine reads in the boundary conditions.
   !
   subroutine bdyin
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k, n, datefound
     character(len=32) :: appdat
     logical :: update_slabocn
@@ -1145,7 +1145,7 @@ module mod_bdycod
   !     xt : elapsed time from the initial boundary values.
   !
   subroutine bdyuv(xt)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: xt
     integer(ik4) :: i, j, k
 #ifdef DEBUG
@@ -1333,7 +1333,7 @@ module mod_bdycod
   !     xt     : is the time in seconds the variables xxa represent.
   !
   subroutine bdyval
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k, n
     real(rkx) :: qext, qint, qxint, qrat, windavg, tkeint
     real(rkx) :: xt
@@ -2701,7 +2701,7 @@ module mod_bdycod
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine sponge4d(bnd,ften,m)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: m
     type(v3dbound), intent(in) :: bnd
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
@@ -2758,7 +2758,7 @@ module mod_bdycod
   end subroutine sponge4d
 
   subroutine mosponge4d(f,bnd,m)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: m
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
@@ -2811,7 +2811,7 @@ module mod_bdycod
   end subroutine mosponge4d
 
   subroutine spongeuv(bndu,bndv,ftenu,ftenv)
-    implicit none (type, external)
+    implicit none
     type(v3dbound), intent(in) :: bndu, bndv
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ftenu, ftenv
     integer(ik4) :: i, j, k, ib
@@ -2874,7 +2874,7 @@ module mod_bdycod
   end subroutine spongeuv
 
   subroutine mospongeuv(fu,fv,bndu,bndv)
-    implicit none (type, external)
+    implicit none
     type(v3dbound), intent(in) :: bndu, bndv
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: fu, fv
     integer(ik4) :: i, j, k, ib
@@ -2953,7 +2953,7 @@ module mod_bdycod
   end subroutine mospongeuv
 
   subroutine sponge3d(bnd,ften)
-    implicit none (type, external)
+    implicit none
     type(v3dbound), intent(in) :: bnd
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
     integer(ik4) :: i, j, k, ib
@@ -3006,7 +3006,7 @@ module mod_bdycod
   end subroutine sponge3d
 
   subroutine mosponge3d(f,bnd)
-    implicit none (type, external)
+    implicit none
     type(v3dbound), intent(in) :: bnd
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
     integer(ik4) :: i, j, k, ib
@@ -3059,7 +3059,7 @@ module mod_bdycod
   end subroutine mosponge3d
 
   subroutine sponge2d(bnd,ften)
-    implicit none (type, external)
+    implicit none
     type(v2dbound), intent(in) :: bnd
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: ften
     integer(ik4) :: i, j, ib
@@ -3109,7 +3109,7 @@ module mod_bdycod
   end subroutine sponge2d
 
   subroutine mosponge2d(f,bnd)
-    implicit none (type, external)
+    implicit none
     type(v2dbound), intent(in) :: bnd
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: f
     integer(ik4) :: i, j, ib
@@ -3182,7 +3182,7 @@ module mod_bdycod
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine nudge4d3d(ibdy,f,bnd,ften,n)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibdy, n
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
@@ -3337,7 +3337,7 @@ module mod_bdycod
   end subroutine nudge4d3d
 
   subroutine monudge4d3d(ibdy,f,bnd,n)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibdy, n
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
@@ -3491,7 +3491,7 @@ module mod_bdycod
   end subroutine monudge4d3d
 
   subroutine nudgeuv(ibdy,fu,fv,bndu,bndv,ftenu,ftenv)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibdy
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: fu, fv
     type(v3dbound), intent(in) :: bndu, bndv
@@ -3704,7 +3704,7 @@ module mod_bdycod
   end subroutine nudgeuv
 
   subroutine monudgeuv(ibdy,fu,fv,bndu,bndv)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibdy
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: fu, fv
     type(v3dbound), intent(in) :: bndu, bndv
@@ -3983,7 +3983,7 @@ module mod_bdycod
   end subroutine monudgeuv
 
   subroutine monudge4d(ibdy,f,bnd,n1,n2)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibdy, n1, n2
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
@@ -4008,7 +4008,7 @@ module mod_bdycod
   end subroutine monudge4d
 
   subroutine nudge4d(ibdy,f,bnd,ften,n1,n2)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibdy, n1, n2
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
@@ -4034,7 +4034,7 @@ module mod_bdycod
   end subroutine nudge4d
 
   subroutine nudge3d(ibdy,f,bnd,ften)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibdy
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
@@ -4193,7 +4193,7 @@ module mod_bdycod
   end subroutine nudge3d
 
   subroutine monudge3d(ibdy,f,bnd)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibdy
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
@@ -4351,7 +4351,7 @@ module mod_bdycod
   end subroutine monudge3d
 
   subroutine nudge2d(ibdy,f,bnd,ften)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibdy
     real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: f
     type(v2dbound), intent(in) :: bnd
@@ -4507,7 +4507,7 @@ module mod_bdycod
   end subroutine nudge2d
 
   subroutine monudge2d(ibdy,f,bnd)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ibdy
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: f
     type(v2dbound), intent(in) :: bnd
@@ -4654,7 +4654,7 @@ module mod_bdycod
   end subroutine monudge2d
 
   subroutine couple(a,c,j1,j2,i1,i2,k1,k2)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: a
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: c
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
@@ -4665,7 +4665,7 @@ module mod_bdycod
   end subroutine couple
 
   subroutine raydampuv(z,u,v,uten,vten,ubnd,vbnd)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten, vten
@@ -4688,7 +4688,7 @@ module mod_bdycod
   end subroutine raydampuv
 
   subroutine raydampuv_c(z,u,v,uten,vten,sval)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten, vten
@@ -4706,7 +4706,7 @@ module mod_bdycod
   end subroutine raydampuv_c
 
   subroutine raydamp3f(z,var,vten,sval)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: var
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vten
@@ -4720,7 +4720,7 @@ module mod_bdycod
   end subroutine raydamp3f
 
   subroutine raydamp3(z,var,vten,bnd)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: var
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vten
@@ -4738,7 +4738,7 @@ module mod_bdycod
   end subroutine raydamp3
 
   subroutine moraydamp(z,var,bnd,j1,j2,i1,i2,k1,k2)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: var
     type(v3dbound), intent(in) :: bnd
@@ -4756,7 +4756,7 @@ module mod_bdycod
   end subroutine moraydamp
 
   subroutine raydampqv(z,var,vten,bnd)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: vten
@@ -4774,7 +4774,7 @@ module mod_bdycod
   end subroutine raydampqv
 
   subroutine timeint2(a,b,c,j1,j2,i1,i2,rdtb)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: a, b
     real(rkx), intent(in) :: rdtb
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: c
@@ -4786,7 +4786,7 @@ module mod_bdycod
   end subroutine timeint2
 
   subroutine timeint3(a,b,c,j1,j2,i1,i2,k1,k2,rdtb)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: a, b
     real(rkx), intent(in) :: rdtb
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: c
@@ -4799,7 +4799,7 @@ module mod_bdycod
 
   pure real(rkx) function tau(z,zmax,r0,rhd)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: z, zmax, r0, rhd
     if ( z > zmax-rhd ) then
       tau = r0 * (sin(halfpi*(d_one-(zmax-z)/rhd)))**2
@@ -4809,7 +4809,7 @@ module mod_bdycod
   end function tau
 
   subroutine paicompute(ps,z,t,q,pai)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z, t, q
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pai
@@ -4840,7 +4840,7 @@ module mod_bdycod
   end subroutine paicompute
 
   subroutine moloch_static_test1(xt,xq,xu,xv,xps,xts)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xps, xts
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xt, xq, xu, xv
     integer(ik4) :: i, j, k
@@ -4859,7 +4859,7 @@ module mod_bdycod
   end subroutine moloch_static_test1
 
   subroutine moloch_static_test2(xt,xq,xu,xv,xps,xts)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xps, xts
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xt, xq, xu, xv
     integer(ik4) :: i, j, k
@@ -4893,7 +4893,7 @@ module mod_bdycod
   !  Output: alpha()  weight of externally specified values in the boundary
   !                   zone (corresponding to optimal relax. coefficients)
   subroutine relax(is, gammin, gammax, alpha)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: is
     real(rkx), intent(in) :: gammin, gammax
     real(rkx), dimension(is), intent(out) :: alpha
@@ -4944,7 +4944,7 @@ module mod_bdycod
   end subroutine relax
 
   subroutine invert_top_bottom(v)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:), intent(inout) :: v
     real(rkx), dimension(size(v)) :: swap
     integer(ik4) :: nk, k, kk

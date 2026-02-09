@@ -24,7 +24,7 @@ module mod_mkdynpft
   use mod_message
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -37,7 +37,7 @@ module mod_mkdynpft
   contains
 
   subroutine mkdynpft(mask,pft,year)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: pft
     integer(ik4), intent(in) :: year
@@ -131,7 +131,7 @@ module mod_mkdynpft
 end module mod_mkdynpft
 #else
 module mod_mkdynpft
-  implicit none (type, external)
+  implicit none
   private
 end module mod_mkdynpft
 #endif

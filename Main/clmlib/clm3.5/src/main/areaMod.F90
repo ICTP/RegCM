@@ -20,7 +20,8 @@ module areaMod
   use shr_const_mod, only : SHR_CONST_PI
   use shr_kind_mod , only : r8 => shr_kind_r8
   use spmdMod      , only : iam,masterproc
-  use nanMod      
+  use mpi
+  use nanMod
   use abortutils   , only : endrun
 !
 ! !PUBLIC TYPES:
@@ -61,9 +62,9 @@ module areaMod
 !  public :: map_setgatm_UNITY
   interface celledge
      module procedure domain_celledge_regional
-     module procedure domain_celledge_global  
+     module procedure domain_celledge_global
      module procedure latlon_celledge_regional
-     module procedure latlon_celledge_global  
+     module procedure latlon_celledge_global
   end interface
   public :: celledge
   public :: cellarea
@@ -158,7 +159,7 @@ end subroutine map_init
 ! !ARGUMENTS:
     implicit none
     type(map_type)   ,intent(in)        :: map
-    character(len=*) ,optional          :: name     
+    character(len=*) ,optional          :: name
     character(len=*) ,optional          :: type
     integer          ,optional          :: ni_i,nj_i
     integer          ,optional          :: ni_o,nj_o
@@ -398,7 +399,7 @@ end subroutine map_maparrayg
     integer          :: noffset=1    !noffset
     real(r8)         :: doffset =360_r8 !offset value
     real(r8)         :: offset       !offset*n_offset
-    logical          :: found        !local logical 
+    logical          :: found        !local logical
     logical          :: overlapgrid  !are atm and lnd grids 1:1
     logical          :: latlongrid   !are atm and lnd grids regular lat/lon
     real(r8),parameter :: relerr = 1.0e-6    ! error limit
@@ -442,7 +443,7 @@ end subroutine map_maparrayg
 
     !--- search for the overlap, input to output, 1:1 "disaggregation" ---
     !--- this is the coarse to fine map where there should be exactly
-    !--- one coarse overlap point for each fine point 
+    !--- one coarse overlap point for each fine point
     !--- three possible search algorithms, overlapgrid, latlongrid, neither
     !--- figure out which search scheme to use
 
@@ -700,7 +701,7 @@ end subroutine map_setgatm
     integer          :: noffset=1    !noffset
     real(r8)         :: doffset =360_r8 !offset value
     real(r8)         :: offset       !offset*n_offset
-    logical          :: found        !local logical 
+    logical          :: found        !local logical
     logical          :: overlapgrid  !are atm and lnd grids 1:1
     logical          :: latlongrid   !are atm and lnd grids regular lat/lon
     real(r8),parameter :: relerr = 1.0e-6    ! error limit
@@ -727,7 +728,7 @@ end subroutine map_setgatm
 
     !--- search for the overlap, input to output, 1:1 "disaggregation" ---
     !--- this is the coarse to fine map where there should be exactly
-    !--- one coarse overlap point for each fine point 
+    !--- one coarse overlap point for each fine point
     !--- three possible search algorithms, overlapgrid, latlongrid, neither
     !--- figure out which search scheme to use
 
@@ -1218,7 +1219,7 @@ end subroutine map_setgatm_UNITY
        if (frac_l(nlg) > 0.0_r8) then
           ntop_l(nlg) = topo_l(nlg)                      ! set topo ovr lnd
        else
-          ntop_l(nlg) = max(0.0_r8,topo_l(nlg))          ! set topo ovr ocn 
+          ntop_l(nlg) = max(0.0_r8,topo_l(nlg))          ! set topo ovr ocn
        endif
        if (nag > 0) then
           tsum(nag) = tsum(nag) + ntop_l(nlg)*area_l(nlg)   ! area wt topo avg
@@ -1487,7 +1488,7 @@ end subroutine map_setmapsFM_global
        if (frac_l(nl) > 0.0_r8) then
           ntop_l(nl) = topo_l(nl)                      ! set topo ovr lnd
        else
-          ntop_l(nl) = max(0.0_r8,topo_l(nl))          ! set topo ovr ocn 
+          ntop_l(nl) = max(0.0_r8,topo_l(nl))          ! set topo ovr ocn
        endif
        tsum(na) = tsum(na) + ntop_l(nl)*area_l(nl)   ! area wt topo avg
     enddo
@@ -1752,7 +1753,7 @@ end subroutine map_setmapsFM
                 if (k == 1) then
                    if (lonw_i(ii)+offset < lone_o(io) .and. &
                        lone_i(ii)+offset > lonw_o(io)) then
-                       
+
                       !------- found overlap ------
                       if (fland_i(ni) > 0._r8 .and. fland_o(no) > 0._r8 ) then
                          nw = nw + 1
@@ -1763,11 +1764,11 @@ end subroutine map_setmapsFM
                        lone_i(ii)+offset > lonw_o(io)) then
 
                       ! determine area of overlap
-                      lone = min(lone_o(io),lone_i(ii)+offset)*deg2rad 
-                      lonw = max(lonw_o(io),lonw_i(ii)+offset)*deg2rad 
+                      lone = min(lone_o(io),lone_i(ii)+offset)*deg2rad
+                      lonw = max(lonw_o(io),lonw_i(ii)+offset)*deg2rad
                       dx = max(0.0_r8,(lone-lonw))
-                      latn = min(latn_o(jo),latn_i(ji))*deg2rad 
-                      lats = max(lats_o(jo),lats_i(ji))*deg2rad 
+                      latn = min(latn_o(jo),latn_i(ji))*deg2rad
+                      lats = max(lats_o(jo),lats_i(ji))*deg2rad
                       dy = max(0.0_r8,(sin(latn)-sin(lats)))
                       a_ovr = dx*dy*re*re
 
@@ -1801,7 +1802,7 @@ end subroutine map_setmapsFM
              do n = ns,nw
                 if (sum > 0._r8) then
                    sMat%data%rAttr(iwgt,n) = sMat%data%rAttr(iwgt,n) / sum
-                else 
+                else
                    sMat%data%rAttr(iwgt,n) = 0._r8
                 endif
              enddo
@@ -2085,7 +2086,7 @@ end subroutine map_setmapsFM
                 if (k == 1) then
                    if (lonw_i(ni)+offset < lone_o(no) .and. &
                        lone_i(ni)+offset > lonw_o(no)) then
-                       
+
                       !------- found overlap ------
                       if (fland_i(ni) > 0._r8 .and. fland_o(no) > 0._r8 ) then
                          nw = nw + 1
@@ -2096,11 +2097,11 @@ end subroutine map_setmapsFM
                        lone_i(ni)+offset > lonw_o(no)) then
 
                       ! determine area of overlap
-                      lone = min(lone_o(no),lone_i(ni)+offset)*deg2rad 
-                      lonw = max(lonw_o(no),lonw_i(ni)+offset)*deg2rad 
+                      lone = min(lone_o(no),lone_i(ni)+offset)*deg2rad
+                      lonw = max(lonw_o(no),lonw_i(ni)+offset)*deg2rad
                       dx = max(0.0_r8,(lone-lonw))
-                      latn = min(latn_o(no),latn_i(ni))*deg2rad 
-                      lats = max(lats_o(no),lats_i(ni))*deg2rad 
+                      latn = min(latn_o(no),latn_i(ni))*deg2rad
+                      lats = max(lats_o(no),lats_i(ni))*deg2rad
                       dy = max(0.0_r8,(sin(latn)-sin(lats)))
                       a_ovr = dx*dy*re*re
 
@@ -2134,7 +2135,7 @@ end subroutine map_setmapsFM
              do n = ns,nw
                 if (sum > 0._r8) then
                    sMat%data%rAttr(iwgt,n) = sMat%data%rAttr(iwgt,n) / sum
-                else 
+                else
                    sMat%data%rAttr(iwgt,n) = 0._r8
                 endif
              enddo
@@ -2414,10 +2415,11 @@ end subroutine map_checkmap
     real(r8), pointer :: latn(:)
     real(r8), pointer :: lonw(:)
     real(r8), pointer :: lone(:)
-    real(r8), pointer :: area(:)  
+    real(r8), pointer :: area(:)
     integer i,j,n               !indices
     real(r8) deg2rad            !pi/180
     real(r8) lsum,gsum          !summed area
+    real(r8) rlsum(1),rgsum(1)  !summed area
     real(r8) dx                 !cell width: E-W
     real(r8) dy                 !cell width: N-S
     real(r8) garea              !true area for error check
@@ -2434,7 +2436,7 @@ end subroutine map_checkmap
     lsum = 0._r8
     do n = nbeg,nend
        dx = (lone(n) - lonw(n)) * deg2rad
-       dy = sin(latn(n)*deg2rad) - sin(lats(n)*deg2rad) 
+       dy = sin(latn(n)*deg2rad) - sin(lats(n)*deg2rad)
        area(n) = dx*dy*re*re
        lsum = lsum + area(n)
     end do
@@ -2447,8 +2449,9 @@ end subroutine map_checkmap
 
        gsum = lsum
        if (domain%decomped) then
-          call mpi_reduce(lsum,gsum,1,MPI_REAL8,MPI_SUM,masterproc, &
-                          mpicom,ier)
+          rlsum(1) = lsum
+          call mpi_reduce(rlsum,rgsum,1,MPI_REAL8,MPI_SUM,0,mpicom,ier)
+          gsum = rgsum(1)
        endif
 
        if (masterproc) then
@@ -2520,14 +2523,14 @@ end subroutine map_checkmap
 !EOP
 !
 ! LOCAL VARIABLES:
-    integer  :: nlon              
-    integer  :: nlat              
-    real(r8),pointer :: lonc(:) 
-    real(r8),pointer :: latc(:) 
-    real(r8),pointer :: lats(:)   
-    real(r8),pointer :: latn(:)   
-    real(r8),pointer :: lonw(:)   
-    real(r8),pointer :: lone(:)   
+    integer  :: nlon
+    integer  :: nlat
+    real(r8),pointer :: lonc(:)
+    real(r8),pointer :: latc(:)
+    real(r8),pointer :: lats(:)
+    real(r8),pointer :: latn(:)
+    real(r8),pointer :: lonw(:)
+    real(r8),pointer :: lone(:)
     integer i,j,n,nim1,njm1 !indices
     real(r8) dx             !cell width
 !------------------------------------------------------------------------
@@ -2626,14 +2629,14 @@ end subroutine map_checkmap
 !EOP
 !
 ! LOCAL VARIABLES:
-    integer  :: nlon              
-    integer  :: nlat              
-    real(r8),pointer :: lonc(:) 
-    real(r8),pointer :: latc(:) 
-    real(r8),pointer :: lats(:)   
-    real(r8),pointer :: latn(:)   
-    real(r8),pointer :: lonw(:)   
-    real(r8),pointer :: lone(:)   
+    integer  :: nlon
+    integer  :: nlat
+    real(r8),pointer :: lonc(:)
+    real(r8),pointer :: latc(:)
+    real(r8),pointer :: lats(:)
+    real(r8),pointer :: latn(:)
+    real(r8),pointer :: lonw(:)
+    real(r8),pointer :: lone(:)
     integer i,j,n,nim1,njm1 !indices
     real(r8) dx             !cell width
 !------------------------------------------------------------------------
@@ -2655,7 +2658,7 @@ end subroutine map_checkmap
     ! Latitudes
     lats(:) = -90._r8
     latn(:) =  90._r8
-    do j = 2, nlat   
+    do j = 2, nlat
     do i = 1, nlon
        n    = (j-1)*nlon + i
        njm1 = (j-2)*nlon + i
@@ -2740,14 +2743,14 @@ end subroutine map_checkmap
 !EOP
 !
 ! LOCAL VARIABLES:
-    integer  :: nlon              
-    integer  :: nlat              
-    real(r8),pointer :: lonc(:) 
-    real(r8),pointer :: latc(:) 
-    real(r8),pointer :: lats(:)   
-    real(r8),pointer :: latn(:)   
-    real(r8),pointer :: lonw(:)   
-    real(r8),pointer :: lone(:)   
+    integer  :: nlon
+    integer  :: nlat
+    real(r8),pointer :: lonc(:)
+    real(r8),pointer :: latc(:)
+    real(r8),pointer :: lats(:)
+    real(r8),pointer :: latn(:)
+    real(r8),pointer :: lonw(:)
+    real(r8),pointer :: lone(:)
     integer i,j             !indices
     real(r8) dx             !cell width
 !------------------------------------------------------------------------
@@ -2829,14 +2832,14 @@ end subroutine map_checkmap
 !EOP
 !
 ! LOCAL VARIABLES:
-    integer  :: nlon              
-    integer  :: nlat              
-    real(r8),pointer :: lonc(:) 
-    real(r8),pointer :: latc(:) 
-    real(r8),pointer :: lats(:)   
-    real(r8),pointer :: latn(:)   
-    real(r8),pointer :: lonw(:)   
-    real(r8),pointer :: lone(:)   
+    integer  :: nlon
+    integer  :: nlat
+    real(r8),pointer :: lonc(:)
+    real(r8),pointer :: latc(:)
+    real(r8),pointer :: lats(:)
+    real(r8),pointer :: latn(:)
+    real(r8),pointer :: lonw(:)
+    real(r8),pointer :: lone(:)
     integer i,j             !indices
     real(r8) dx             !cell width
 !------------------------------------------------------------------------
@@ -2853,7 +2856,7 @@ end subroutine map_checkmap
     ! Latitudes
     lats(:) = -90._r8
     latn(:) =  90._r8
-    do j = 2, nlat   
+    do j = 2, nlat
        lats(j) = (latc(j-1) + latc(j)) / 2._r8
        latn(j-1) = lats(j)
     end do

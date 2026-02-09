@@ -21,7 +21,7 @@ module mod_mksoilcol
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -32,7 +32,7 @@ module mod_mksoilcol
   contains
 
   subroutine mksoilcol(soilcolfile,mask,soilcol)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: soilcolfile
     real(rkx), dimension(:,:), intent(in) :: mask
     integer(ik4), dimension(:,:), intent(out) :: soilcol

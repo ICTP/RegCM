@@ -37,7 +37,7 @@ module mod_che_start
   use mod_che_bionit
   use mod_cbmz_hvread
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -48,7 +48,7 @@ module mod_che_start
   !--------------------------------------------------------------------------
 
   subroutine start_chem
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k, n, itr, ibin, jbin, kbin, mmin, mbin
     integer(ik4) :: ipunit
     character(len=8) :: minamesav

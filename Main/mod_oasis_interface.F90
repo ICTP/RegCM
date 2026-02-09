@@ -36,7 +36,7 @@ module mod_oasis_interface
   use mod_oasis_signature
   use mod_oasis_generic
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -151,7 +151,7 @@ module mod_oasis_interface
   contains
 
   subroutine oasisxregcm_params
-    implicit none (type, external)
+    implicit none
     !--------------------------------------------------------------------------
     oasis_lag = 0
     ! state which grids have to be defined,
@@ -270,7 +270,7 @@ module mod_oasis_interface
 
   ! call all definition subroutines for setting up OASIS
   subroutine oasisxregcm_def
-    implicit none (type, external)
+    implicit none
     !--------------------------------------------------------------------------
     ! partition definition
 #ifdef DEBUG
@@ -339,7 +339,7 @@ module mod_oasis_interface
 
   ! define OASIS grids
   subroutine oasisxregcm_def_grid
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:) :: dlon, dlat ! dot degree coordinates
     real(rkx), pointer, contiguous, dimension(:,:) :: xlon, xlat ! cross degree coordinates
     real(rkx), pointer, contiguous, dimension(:,:) :: lndcat ! land category (15 for ocean)
@@ -456,7 +456,7 @@ module mod_oasis_interface
 
   subroutine oasisxregcm_make_oasisgrids_d(lon,lat,clon,clat,srf,mask, &
                                            dlon,dlat,xlon,xlat,lndcat)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: dlon, dlat, &
                                                          xlon, xlat, lndcat
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat, srf
@@ -544,7 +544,7 @@ module mod_oasis_interface
 
   subroutine oasisxregcm_make_oasisgrids_c(lon,lat,clon,clat,srf,mask, &
                                            dlon,dlat,xlon,xlat,lndcat)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: dlon, dlat, &
                                                          xlon, xlat, lndcat
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat, srf
@@ -604,7 +604,7 @@ module mod_oasis_interface
   ! call all subroutines consisting of receiving OASIS fields
   ! and optionally reworking them
   subroutine oasisxregcm_rcv_all(time)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: time ! execution time
     logical :: l_act
     !--------------------------------------------------------------------------
@@ -700,7 +700,7 @@ module mod_oasis_interface
   ! call all subroutines consisting of sending OASIS fields
   ! with optional prior reworking
   subroutine oasisxregcm_snd_all(time)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: time ! execution time
     type(infogrd), pointer :: grd
     integer(ik4) :: i, j, ishift, jshift
@@ -951,7 +951,7 @@ module mod_oasis_interface
   ! update oasis_lag such that
   !   OASIS time = RegCM time + oasis_lag
   subroutine oasisxregcm_sync_wait(time)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: time ! execution time
     !--------------------------------------------------------------------------
     if ( oasis_lag /= 0 ) then
@@ -1008,7 +1008,7 @@ module mod_oasis_interface
   ! call all subroutines linked with some deallocation of variables used in
   ! the OASIS coupling
   subroutine oasisxregcm_release
-    implicit none (type, external)
+    implicit none
     !--------------------------------------------------------------------------
     call oasisxregcm_deallocate_field(im_sst, cpl_sst)
 !    call oasisxregcm_deallocate_field(im_sit, cpl_sit)

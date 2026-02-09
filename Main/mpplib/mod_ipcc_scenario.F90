@@ -29,7 +29,7 @@ module mod_ipcc_scenario
   use mod_stdio
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -227,7 +227,7 @@ module mod_ipcc_scenario
   contains
 !
   subroutine set_scenario(csc,year,month)
-    implicit none (type, external)
+    implicit none
     character(len=8), intent(in) :: csc
     integer(ik4) :: year, month
     integer(ik4) :: jj
@@ -2057,7 +2057,7 @@ module mod_ipcc_scenario
   end subroutine set_scenario
 
   subroutine load_scenario(sname,year,month,ghgmf)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: sname
     integer(ik4), intent(in) :: year, month
     type(ghg_mf), intent(inout) :: ghgmf
@@ -2193,7 +2193,7 @@ module mod_ipcc_scenario
   end subroutine load_scenario
 
   real(rkx) function ghgval(igas,year,month,lat)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: igas, year, month
     real(rkx), intent(in) :: lat
     integer(ik4) :: ilat

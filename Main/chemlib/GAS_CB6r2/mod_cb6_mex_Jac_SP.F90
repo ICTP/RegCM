@@ -5,7 +5,7 @@
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  USE mod_cb6_Model
- implicit none (type, external)
+ implicit none
 
       INTEGER :: nlhs, nrhs
       INTEGER :: plhs(*), prhs(*)

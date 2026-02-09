@@ -26,7 +26,7 @@ module mod_cmip6_miresl
   use mod_cmip6_helper
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -40,7 +40,7 @@ module mod_cmip6_miresl
   contains
 
     subroutine read_hcoord_miresl(ncid,lon,lat)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -66,7 +66,7 @@ module mod_cmip6_miresl
     end subroutine read_hcoord_miresl
 
     subroutine read_hcoord_sst_miresl(ncid,lon,lat)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lon, lat
       integer(ik4) :: istatus, idimid, ivarid
@@ -92,7 +92,7 @@ module mod_cmip6_miresl
     end subroutine read_hcoord_sst_miresl
 
     subroutine read_vcoord_miresl(ncid,a,b,p0)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ncid
       real(rkx), pointer, contiguous, dimension(:), intent(inout) :: a, b
       real(rkx), intent(out) :: p0
@@ -129,7 +129,7 @@ module mod_cmip6_miresl
     end subroutine read_vcoord_miresl
 
     recursive subroutine read_3d_miresl(idate,v,lonlyc)
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_3d_var), pointer, intent(inout) :: v
       logical, optional, intent(in) :: lonlyc
@@ -244,7 +244,7 @@ module mod_cmip6_miresl
     end subroutine read_3d_miresl
 
     recursive subroutine read_2d_miresl(idate,v,lonlyc)
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), pointer, intent(inout) :: v
       logical, optional, intent(in) :: lonlyc
@@ -351,7 +351,7 @@ module mod_cmip6_miresl
     end subroutine read_2d_miresl
 
     recursive subroutine read_fx_miresl(v)
-      implicit none (type, external)
+      implicit none
       type(cmip6_2d_var), pointer, intent(inout) :: v
       integer(ik4) :: istatus
 
@@ -383,7 +383,7 @@ module mod_cmip6_miresl
     end subroutine read_fx_miresl
 
     recursive subroutine read_sst_miresl(idate,v,lat,lon)
-      implicit none (type, external)
+      implicit none
       type(rcm_time_and_date), intent(in) :: idate
       type(cmip6_2d_var), intent(inout) :: v
       real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: lat, lon

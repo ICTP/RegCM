@@ -18,7 +18,7 @@ module mod_posix
   use mod_stdio
   use, intrinsic :: iso_c_binding
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -33,37 +33,37 @@ module mod_posix
   interface
     function opendir(a) bind(C,name='opendir')
       import
-      implicit none (type, external)
+      implicit none
       type(c_ptr) :: opendir
       character(len=*, kind=c_char), intent(in) :: a
     end function opendir
     function readdir(dir) bind(C,name='readdir')
       import
-      implicit none (type, external)
+      implicit none
       type(c_ptr), value :: dir
       type(c_ptr) :: readdir
     end function readdir
     function closedir(dir) bind(C,name='closedir')
       import
-      implicit none (type, external)
+      implicit none
       type(c_ptr), value :: dir
       integer(c_int) :: closedir
     end function closedir
     subroutine seekdir(dir,pos) bind(C,name='seekdir')
       import
-      implicit none (type, external)
+      implicit none
       type(c_ptr), value :: dir
       integer(c_long), intent(in) :: pos
     end subroutine seekdir
     function telldir(dir) bind(C,name='telldir')
       import
-      implicit none (type, external)
+      implicit none
       type(c_ptr), value :: dir
       integer(c_long) :: telldir
     end function telldir
     subroutine rewinddir(dir) bind(C,name='rewinddir')
       import
-      implicit none (type, external)
+      implicit none
       type(c_ptr), value :: dir
     end subroutine rewinddir
   end interface
@@ -79,7 +79,7 @@ module mod_posix
 
   subroutine dirlist(path,dire)
     use, intrinsic :: iso_c_binding
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: path
     type(direntry), dimension(:), pointer, intent(inout) :: dire
     type(c_ptr) :: dir, dc
@@ -126,7 +126,7 @@ module mod_posix
   end subroutine dirlist
 
   pure recursive function replacestr(string,search,sub) result(mstring)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: string, search, sub
     character(len=:), allocatable :: mstring
     integer :: i, stringlen, searchlen
@@ -156,7 +156,7 @@ module mod_posix
   end function replacestr
 
   elemental pure function lower(str,istart,istop) result (string)
-    implicit none (type, external)
+    implicit none
     character(*), intent(in) :: str
     character(len(str)) :: string
     integer, intent(in), optional :: istart, istop
@@ -181,7 +181,7 @@ module mod_posix
   end function lower
 
   elemental pure function upper(str,istart,istop) result (string)
-    implicit none (type, external)
+    implicit none
     character(*), intent(in) :: str
     character(len(str)) :: string
     integer, intent(in), optional :: istart, istop
@@ -206,7 +206,7 @@ module mod_posix
   end function upper
 
   subroutine splitstr(input_line,array,delimiters,order,nulls)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: input_line
     character(len=*), optional, intent(in) :: delimiters
     character(len=*), optional, intent(in) :: order
@@ -323,7 +323,7 @@ module mod_posix
   end subroutine splitstr
 
   function basename(path,suffix) result(base)
-    implicit none (type, external)
+    implicit none
     character(*), intent(In) :: path
     logical, intent(in), optional :: suffix
     character(:), allocatable :: base

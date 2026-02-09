@@ -25,7 +25,7 @@ module mod_cu_common
   use mod_memutil
   use mod_regcm_types
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -61,7 +61,7 @@ module mod_cu_common
   contains
 
   subroutine init_mod_cumulus
-    implicit none (type, external)
+    implicit none
     integer(ik4), dimension(:), allocatable:: iseed
     integer(ik4) :: k, nseed
     real(rk4) :: cputime
@@ -124,7 +124,7 @@ module mod_cu_common
   end subroutine init_mod_cumulus
 
   subroutine model_cumulus_cloud(m2c)
-    implicit none (type, external)
+    implicit none
     type(mod_2_cum), intent(in) :: m2c
     real(rkx) :: akclth, scalep, scalef
     integer(ik4):: i, j, k, ktop, kbot, kclth, ikh

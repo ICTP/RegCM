@@ -40,7 +40,7 @@
       use rrtmg_sw_setcoef, only: swatmref
       use rrtmg_sw_read_nc
 
-      implicit none (type, external)
+      implicit none
 
       contains
 

@@ -47,7 +47,7 @@ module mod_realkinds
 #define __SYSTEM_NAN_64__   -2251799813685248_int64
 #define __SYSTEM_INF_64__ 9218868437227405312_int64
 
-  implicit none (type, external)
+  implicit none
 
   public
 
@@ -97,28 +97,28 @@ module mod_realkinds
 #ifdef F2008
 
   logical elemental function is_nan_double(x)
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: x
     is_nan_double = (ieee_class(x) == ieee_quiet_nan .or. &
                      ieee_class(x) == ieee_signaling_nan)
   end function is_nan_double
 
   logical elemental function is_inf_double(x)
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: x
     is_inf_double = (ieee_class(x) == ieee_negative_inf .or. &
                      ieee_class(x) == ieee_positive_inf)
   end function is_inf_double
 
   logical elemental function is_nan_single(x)
-    implicit none (type, external)
+    implicit none
     real(rk4), intent(in) :: x
     is_nan_single = (ieee_class(x) == ieee_quiet_nan .or. &
                      ieee_class(x) == ieee_signaling_nan)
   end function is_nan_single
 
   logical elemental function is_inf_single(x)
-    implicit none (type, external)
+    implicit none
     real(rk4), intent(in) :: x
     is_inf_single = (ieee_class(x) == ieee_negative_inf .or. &
                      ieee_class(x) == ieee_positive_inf)
@@ -127,25 +127,25 @@ module mod_realkinds
 #else
 
   logical elemental function is_nan_double(x)
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: x
     is_nan_double = ( (x /= x) .or. ((x > 0.0D0) .eqv. (x <= 0.0D0)) )
   end function is_nan_double
 
   logical elemental function is_inf_double(x)
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: x
     is_inf_double = ( x > huge(x) )
   end function is_inf_double
 
   logical elemental function is_nan_single(x)
-    implicit none (type, external)
+    implicit none
     real(rk4), intent(in) :: x
     is_nan_single = ( (x /= x) .or. ((x > 0.0) .eqv. (x <= 0.0)) )
   end function is_nan_single
 
   logical elemental function is_inf_single(x)
-    implicit none (type, external)
+    implicit none
     real(rk4), intent(in) :: x
     is_inf_single = ( x > huge(x) )
   end function is_inf_single

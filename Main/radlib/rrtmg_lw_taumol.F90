@@ -42,7 +42,7 @@
       use rrlw_wvn, only: nspa, nspb
       use rrlw_vsn, only: hvrtau, hnamtau
 
-      implicit none (type, external)
+      implicit none
 
       contains
 

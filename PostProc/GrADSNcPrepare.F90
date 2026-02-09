@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 subroutine myabort
-  implicit none (type, external)
+  implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
 
@@ -31,7 +31,7 @@ program ncprepare
   use mod_memutil
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   character(256) :: prgname, ncfile, tmpctl, tmpcoord, experiment, &
                     clmfile

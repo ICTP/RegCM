@@ -28,7 +28,7 @@ module mod_vmodes
   use linpack
   use eispack
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -56,7 +56,7 @@ module mod_vmodes
   contains
 
   subroutine allocate_mod_vmodes
-    implicit none (type, external)
+    implicit none
     call getmem(a0,1,kz,1,kz,'vmodes:a0')
     call getmem(hbar,1,kz,'vmodes:hbar')
     call getmem(sigmah,1,kzp1,'vmodes:sigmah')
@@ -86,7 +86,7 @@ module mod_vmodes
   ! Adapted to be used in RegCM
   !
   subroutine vmodes
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ier, k, k1, k2, l, mm, numerr
     logical :: lhydro, lprint, lsigma
     real(rkx) :: ps2, x
@@ -471,7 +471,7 @@ module mod_vmodes
     ! consistent with the model finite differences.
     !
     subroutine vchekt
-      implicit none (type, external)
+      implicit none
       real(rkx) :: ds1, ds2, g1, g2, tb
       integer(ik4) :: k
       logical :: lstab
@@ -494,7 +494,7 @@ module mod_vmodes
     ! standard atmosphere (see text by hess). Units of p are cb.
     !
     subroutine vtlaps
-      implicit none (type, external)
+      implicit none
       real(rkx), parameter :: tstrat = 218.15_rkx
       real(rkx), parameter :: zstrat = 10769.0_rkx
       real(rkx) :: p0, fac, p, z
@@ -514,7 +514,7 @@ module mod_vmodes
     ! correspond to the same (but reordered) components of hbar.
     !
     subroutine vorder
-      implicit none (type, external)
+      implicit none
       real(rkx) :: hmax
       integer(ik4) :: k, kmax, l
       kmax = 1
@@ -546,7 +546,7 @@ module mod_vmodes
     ! mass-weighted squares equals one.
     !
     subroutine vnorml
-      implicit none (type, external)
+      implicit none
       real(rkx) :: a, v, zmax
       integer(ik4) :: k, kmax, l
       kmax = 1
@@ -571,7 +571,7 @@ module mod_vmodes
     ! Check that eigenvalues are real and positive valued.
     !
     subroutine vcheke
-      implicit none (type, external)
+      implicit none
       real(rkx), parameter :: tol = epsilon(d_one)
       real(rkx) :: emax
       integer(ik4) :: n, nimag, numneg
@@ -598,7 +598,7 @@ module mod_vmodes
   ! Flag of detected errors in linear algebra routines
   !
   subroutine vcheki(ier,numerr,aname)
-    implicit none (type, external)
+    implicit none
     character(8), intent(in) :: aname
     integer(ik4), intent(in) :: ier
     integer(ik4), intent(inout) :: numerr
@@ -612,7 +612,7 @@ module mod_vmodes
   ! Matrix inversion using linpack
   !
   subroutine invmtrx(a,v,n,ier)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n, ier
     real(rkx), intent(in), dimension(n,n) :: a
     real(rkx), intent(out), dimension(n,n) :: v

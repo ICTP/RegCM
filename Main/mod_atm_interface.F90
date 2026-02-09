@@ -25,7 +25,7 @@ module mod_atm_interface
   use mod_memutil
   use mod_regcm_types
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -179,7 +179,7 @@ module mod_atm_interface
   contains
 
     subroutine setup_model_indexes
-      implicit none (type, external)
+      implicit none
       ma%jbl1 = 1
       ma%jbl2 = 2
       ma%jbl3 = 3
@@ -381,7 +381,7 @@ module mod_atm_interface
     end subroutine setup_model_indexes
 
     subroutine setup_boundaries(ldotx,ldoty,ba)
-      implicit none (type, external)
+      implicit none
       logical, intent(in) :: ldotx, ldoty
       type(bound_area), intent(inout) :: ba
       integer(ik4) :: icx, icy
@@ -542,7 +542,7 @@ module mod_atm_interface
     end subroutine setup_boundaries
 
     subroutine allocate_v3dbound(xb,ke,ldot)
-      implicit none (type, external)
+      implicit none
       type(v3dbound), intent(inout) :: xb
       integer(ik4), intent(in) :: ke
       logical, intent(in) :: ldot
@@ -558,7 +558,7 @@ module mod_atm_interface
     end subroutine allocate_v3dbound
 
     subroutine allocate_v2dbound(xb,ldot)
-      implicit none (type, external)
+      implicit none
       type(v2dbound), intent(inout) :: xb
       logical, intent(in) :: ldot
       if ( ldot ) then
@@ -573,7 +573,7 @@ module mod_atm_interface
     end subroutine allocate_v2dbound
 
     subroutine allocate_atmosphere(atm)
-      implicit none (type, external)
+      implicit none
       type(atmosphere), intent(inout) :: atm
       call getmem(atm%u,jde1gb,jde2gb,ice1ga,ice2ga,1,kz,'atmstate:u')
       call getmem(atm%v,jce1ga,jce2ga,ide1gb,ide2gb,1,kz,'atmstate:v')
@@ -618,7 +618,7 @@ module mod_atm_interface
     end subroutine allocate_atmosphere
 
     subroutine allocate_atmstate_a(atm)
-      implicit none (type, external)
+      implicit none
       type(atmstate_a), intent(inout) :: atm
       call getmem(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
       call getmem(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
@@ -643,7 +643,7 @@ module mod_atm_interface
     end subroutine allocate_atmstate_a
 
     subroutine allocate_atmstate_b(atm)
-      implicit none (type, external)
+      implicit none
       type(atmstate_b), intent(inout) :: atm
 
       call getmem(atm%u,jd1,jd2,id1,id2,1,kz,'atmstate:u')
@@ -674,7 +674,7 @@ module mod_atm_interface
     end subroutine allocate_atmstate_b
 
     subroutine allocate_atmstate_c(atm)
-      implicit none (type, external)
+      implicit none
       type(atmstate_c), intent(inout) :: atm
       if ( ibltyp == 2 ) then
         call getmem(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
@@ -698,7 +698,7 @@ module mod_atm_interface
     end subroutine allocate_atmstate_c
 
     subroutine allocate_atmstate_decoupled(atm)
-      implicit none (type, external)
+      implicit none
       type(atmstate_decoupled), intent(inout) :: atm
       call getmem(atm%uc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:uc')
       call getmem(atm%vc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vc')
@@ -730,7 +730,7 @@ module mod_atm_interface
     end subroutine allocate_atmstate_decoupled
 
     subroutine allocate_atmstate_tendency(atm)
-      implicit none (type, external)
+      implicit none
       type(atmstate_tendency), intent(inout) :: atm
       call getmem(atm%u,jdi1,jdi2,idi1,idi2, &
                     1,kz,1,number_of_prognostic_components,'atmstate:u')
@@ -758,7 +758,7 @@ module mod_atm_interface
     end subroutine allocate_atmstate_tendency
 
     subroutine allocate_reference_atmosphere(atm)
-      implicit none (type, external)
+      implicit none
       type(reference_atmosphere), intent(inout) :: atm
       call getmem(atm%ps,jce1ga,jce2ga,ice1ga,ice2ga,'reference:ps')
       call getmem(atm%psdot,jde1ga,jde2ga,ide1ga,ide2ga,'reference:psdot')
@@ -777,13 +777,13 @@ module mod_atm_interface
     end subroutine allocate_reference_atmosphere
 
     subroutine allocate_mass_divergence(div)
-      implicit none (type, external)
+      implicit none
       type(mass_divergence), intent(inout) :: div
       call getmem(div%cr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'massdiv:cr')
     end subroutine allocate_mass_divergence
 
     subroutine allocate_tendiag(dia)
-      implicit none (type, external)
+      implicit none
       type(tendiag), intent(inout) :: dia
       call getmem(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
       call getmem(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
@@ -797,7 +797,7 @@ module mod_atm_interface
     end subroutine allocate_tendiag
 
     subroutine allocate_qendiag(dia)
-      implicit none (type, external)
+      implicit none
       type(qendiag), intent(inout) :: dia
       call getmem(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
       call getmem(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
@@ -816,7 +816,7 @@ module mod_atm_interface
     end subroutine allocate_qendiag
 
     subroutine allocate_domain(dom)
-      implicit none (type, external)
+      implicit none
       type(domain), intent(inout) :: dom
       call getmem(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
       call getmem(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
@@ -871,7 +871,7 @@ module mod_atm_interface
     end subroutine allocate_domain
 
     subroutine allocate_domain_subgrid(sub)
-      implicit none (type, external)
+      implicit none
       type(domain_subgrid), intent(inout) :: sub
       call getmem(sub%ht,1,nnsg,jde1,jde2,ide1,ide2,'storage:ht')
       call getmem(sub%lndcat,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndcat')
@@ -889,7 +889,7 @@ module mod_atm_interface
     end subroutine allocate_domain_subgrid
 
     subroutine allocate_surfstate(sfs)
-      implicit none (type, external)
+      implicit none
       type(surfstate), intent(inout) :: sfs
       call getmem(sfs%psa,jce1ga,jce2ga,ice1ga,ice2ga,'surf:psa')
       if ( idynamic == 3 ) then
@@ -936,7 +936,7 @@ module mod_atm_interface
     end subroutine allocate_surfstate
 
     subroutine allocate_slice(ax,a0)
-      implicit none (type, external)
+      implicit none
       type(slice), intent(inout) :: ax
       type(reference_atmosphere), intent(in) :: a0
       if ( idynamic == 3 ) then
@@ -995,7 +995,7 @@ module mod_atm_interface
     end subroutine allocate_slice
 
     subroutine allocate_nhbh(nhbh)
-      implicit none (type, external)
+      implicit none
       type(nhboundhelp), intent(inout) :: nhbh
 
       call getmem(nhbh%ps,jce1,jce2,ice1,ice2,'nhboundhelp:ps')
@@ -1005,7 +1005,7 @@ module mod_atm_interface
     end subroutine allocate_nhbh
 
     subroutine allocate_mod_atm_interface
-      implicit none (type, external)
+      implicit none
 
       if ( idiffu == 1 ) then
         id1 = ide1gb
@@ -1164,7 +1164,7 @@ module mod_atm_interface
     end subroutine allocate_mod_atm_interface
 
     subroutine export_data_from_atm(expfie)
-      implicit none (type, external)
+      implicit none
       type(exp_data3d), intent(inout) :: expfie
       integer(ik4) :: k, j, i
 

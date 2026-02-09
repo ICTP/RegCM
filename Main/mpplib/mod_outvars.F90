@@ -17,7 +17,7 @@ module mod_outvars
 
   use mod_realkinds
 
-  implicit none (type, external)
+  implicit none
 
   public
 

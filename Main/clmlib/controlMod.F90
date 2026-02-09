@@ -135,6 +135,7 @@ module controlMod
 ! are not used.
 !
 ! !USES:
+  use mpi
   use shr_kind_mod, only : r8 => shr_kind_r8, SHR_KIND_CL
   use shr_sys_mod , only : shr_sys_getenv
   use clm_varpar  , only : maxpatch_pft, numpft

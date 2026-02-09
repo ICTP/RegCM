@@ -22,7 +22,7 @@ module mod_mkndep
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -35,7 +35,7 @@ module mod_mkndep
   contains
 
   subroutine mkndep(ndepfile,mask,ndep)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: ndepfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: ndep
@@ -64,7 +64,7 @@ module mod_mkndep
 end module mod_mkndep
 #else
 module mod_mkndep
-  implicit none (type, external)
+  implicit none
   private
 end module mod_mkndep
 #endif

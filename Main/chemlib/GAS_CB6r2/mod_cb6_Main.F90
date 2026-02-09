@@ -32,7 +32,7 @@ module mod_cb6_main1
   use mod_cb6_Model
   use mod_cb6_Global
   use mod_cb6_Parameters
-  implicit none (type, external)
+  implicit none
 
   public :: chemmain_cb6
 
@@ -43,7 +43,7 @@ module mod_cb6_main1
     use mod_cb6_Global
     use mod_cb6_Parameters
     use mod_cb6_jval2
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: jday, dtche
 
     real(kind=dp) :: t

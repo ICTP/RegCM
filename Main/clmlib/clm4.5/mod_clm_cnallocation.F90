@@ -1,5 +1,5 @@
 module mod_clm_cnallocation
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! Module holding routines used in allocation model for coupled carbon
@@ -13,7 +13,7 @@ implicit none (type, external)
   use mod_mpmessage
   use mod_clm_varctl, only : use_c13, use_c14
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -55,7 +55,7 @@ implicit none (type, external)
   subroutine CNAllocationInit ( lbc, ubc, lbp, ubp )
     use mod_clm_varcon, only : secspday
     use mod_clm_surfrd, only : crop_prog
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc        ! column-index bounds
     integer(ik4), intent(in) :: lbp, ubp        ! pft-index bounds
     character(len=32) :: subname = 'CNAllocationInit'
@@ -105,7 +105,7 @@ implicit none (type, external)
     use mod_clm_varpar, only : max_pft_per_col
     !use mod_clm_pftvarcon, only : nbrdlf_evr_trp_tree
 
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbp, ubp  ! pft-index bounds
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
     ! number of soil columns in filter

@@ -25,7 +25,7 @@ module mod_advection
   use mod_constants
   use mod_service
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -85,7 +85,7 @@ module mod_advection
     subroutine init_advection
       use mod_atm_interface, only : mddom, sfs, atms, atmx
       use mod_atm_interface, only : mdv, qdot, kpbl
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: k
       call assignpnt(atmx%umc,ua)
       call assignpnt(atmx%vmc,va)
@@ -117,7 +117,7 @@ module mod_advection
     ! Pre-compute
     !
     subroutine start_advect
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: i, j, k
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         uavg1(j,i,k) = ua(j,i+1,k)   + ua(j,i,k)
@@ -130,7 +130,7 @@ module mod_advection
     ! UV advection
     !
     subroutine hadvuv(uten,vten,u,v)
-      implicit none (type, external)
+      implicit none
       real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: u, v
       real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: uten, vten
 
@@ -277,7 +277,7 @@ module mod_advection
     end subroutine hadvuv
 
     subroutine vadvuv(uten,vten,ud,vd)
-      implicit none (type, external)
+      implicit none
       real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: ud, vd
       real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: uten, vten
 
@@ -317,7 +317,7 @@ module mod_advection
     !     f      : is p*f.
     !
     subroutine hadvt(ften,f)
-      implicit none (type, external)
+      implicit none
       real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: f
       real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: ften
       integer(ik4) :: i, j, k
@@ -401,7 +401,7 @@ module mod_advection
     end subroutine hadvt
 
     subroutine hadv3d(ften,f,ind)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent (in) :: ind
       real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: f
       real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: ften
@@ -523,7 +523,7 @@ module mod_advection
     end subroutine hadv3d
 
     subroutine hadvqv(ften,f,iv)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: iv
       real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
       real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
@@ -613,7 +613,7 @@ module mod_advection
     ! Up-wind values are used for non-hydrostatic
     !
     subroutine hadvqx(ften,f,n1,n2)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: n1, n2
       real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
       real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
@@ -672,7 +672,7 @@ module mod_advection
     ! Up-wind values are used
     !
     subroutine hadvtr(ften,f)
-      implicit none (type, external)
+      implicit none
       real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
       real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
 
@@ -736,7 +736,7 @@ module mod_advection
     !           2 : Use pbl information
     !
     subroutine vadv3d(ften,f,nk,ind)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ind, nk
       real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: f
       real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: ften
@@ -817,7 +817,7 @@ module mod_advection
     end subroutine vadv3d
 
     subroutine vadvqv(ften,f,n)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: n
       real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
       real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
@@ -855,7 +855,7 @@ module mod_advection
     !           4 : use pbl information
     !
     subroutine vadv4d(ften,f,n1,n2,ind)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ind, n1, n2
       real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
       real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften

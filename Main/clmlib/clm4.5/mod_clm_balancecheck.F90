@@ -16,7 +16,7 @@ module mod_clm_balancecheck
   use mod_clm_varcon, only : istslak, istsoil, istcrop, istwet
   use mod_clm_subgridave
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -31,7 +31,7 @@ module mod_clm_balancecheck
   !
   subroutine BeginWaterBalance(lbc,ubc,num_nolakec,filter_nolakec, &
                   num_lakec,filter_lakec,num_hydrologyc,filter_hydrologyc)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc ! column-index bounds
     ! number of column non-lake points in column filter
     integer(ik4), intent(in) :: num_nolakec
@@ -150,7 +150,7 @@ module mod_clm_balancecheck
   ! error = abs(precipitation - change of water storage - evaporation - runoff)
   !
   subroutine BalanceCheck(lbp,ubp,lbc,ubc,lbl,ubl,lbg,ubg)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: lbp, ubp ! pft-index bounds
     integer(ik4) :: lbc, ubc ! column-index bounds
     integer(ik4) :: lbl, ubl ! landunit-index bounds

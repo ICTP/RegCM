@@ -13,7 +13,7 @@ module mod_clm_decomp
   use mod_clm_type, only : nameg, namel, namec, namep
   use mod_clm_domain, only : ldomain
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -93,7 +93,7 @@ module mod_clm_decomp
     ! Retrieve gridcell, landunit, column, and pft bounds for process.
     !
     subroutine get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
-      implicit none (type, external)
+      implicit none
       ! proc beg and end pft indices
       integer(ik4), optional, intent(out) :: begp, endp
       ! proc beg and end column indices
@@ -115,7 +115,7 @@ module mod_clm_decomp
     ! Count up gridcells, landunits, columns, and pfts on process.
     !
     subroutine get_proc_total(ncells, nlunits, ncols, npfts)
-      implicit none (type, external)
+      implicit none
       ! total number of gridcells on the processor
       integer(ik4), intent(out) :: ncells
       ! total number of landunits on the processor
@@ -134,7 +134,7 @@ module mod_clm_decomp
     ! processes.
     !
     subroutine get_proc_global(ng,nl,nc,np)
-      implicit none (type, external)
+      implicit none
       ! total number of gridcells across all processors
       integer(ik4), intent(out) :: ng
       ! total number of landunits across all processors
@@ -152,7 +152,7 @@ module mod_clm_decomp
     ! Determine 1d size from clmlevel
     !
     integer(ik4) function get_clmlevel_gsize(clmlevel)
-      implicit none (type, external)
+      implicit none
       character(len=*), intent(in) :: clmlevel ! type of clm 1d array
       select case (clmlevel)
         case(nameg)

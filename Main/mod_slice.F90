@@ -28,7 +28,7 @@ module mod_slice
   use mod_pbl_interface
   use mod_rad_interface
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -50,7 +50,7 @@ module mod_slice
   contains
 
   subroutine init_slice
-    implicit none (type, external)
+    implicit none
     if ( idynamic /= 3 ) then
       if ( idiffu == 1 ) then
         ix1 = ice1gb
@@ -108,7 +108,7 @@ module mod_slice
   end subroutine init_slice
 
   subroutine mkslice
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k, n
     real(rkx) :: w1, w2, cell, ztrop
 

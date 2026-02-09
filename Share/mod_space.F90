@@ -19,7 +19,7 @@ module mod_space
   use mod_realkinds
   use mod_date, only : rcm_time_and_date
 
-  implicit none (type, external)
+  implicit none
 
   private
 

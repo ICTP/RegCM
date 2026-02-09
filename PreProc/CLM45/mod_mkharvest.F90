@@ -23,7 +23,7 @@ module mod_mkharvest
   use mod_message
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -38,7 +38,7 @@ module mod_mkharvest
   contains
 
   subroutine mkharvest(mask,harvest,iyear)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: harvest
     integer(ik4), intent(in) :: iyear
@@ -99,7 +99,7 @@ module mod_mkharvest
 end module mod_mkharvest
 #else
 module mod_mkharvest
-  implicit none (type, external)
+  implicit none
   private
 end module mod_mkharvest
 #endif

@@ -22,7 +22,7 @@ module mod_sldepparam
   use mod_dynparam
   use mod_memutil
 
-  implicit none (type, external)
+  implicit none
 
   public
 
@@ -88,7 +88,7 @@ module mod_sldepparam
   contains
 
   subroutine allocate_mod_sldepparam
-    implicit none (type, external)
+    implicit none
     call getmem(xndp_x,jci1,jci2,ici1,ici2,1,kz,'sldepparam:xndp_x')
     call getmem(xnnm1dp_x,jci1,jci2,ici1,ici2,1,kz,'sldepparam:xnnm1dp_x')
     call getmem(xnnm2dp_x,jci1,jci2,ici1,ici2,1,kz,'sldepparam:xnnm2dp_x')

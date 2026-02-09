@@ -26,7 +26,7 @@ module mod_che_output
   use mod_che_carbonaer
   use mod_outvars
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -37,7 +37,7 @@ module mod_che_output
   contains
 
     subroutine fill_chem_outvars(itr)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: itr
       integer(ik4) :: k
 

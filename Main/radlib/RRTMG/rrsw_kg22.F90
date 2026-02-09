@@ -3,7 +3,7 @@
       use parkind ,only : im => kind_im, rb => kind_rb
       use parrrsw, only : ng22
 
-      implicit none (type, external)
+      implicit none
       save
 
 !-----------------------------------------------------------------

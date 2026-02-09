@@ -12,9 +12,9 @@ module iobinary
 ! Set of wrappers to write binary I/O
 !
 ! !USES:
+  use mpi
   use shr_kind_mod, only: r8 => shr_kind_r8
-  use spmdMod        , only : masterproc, mpicom, MPI_REAL8, MPI_INTEGER, &
-                              MPI_LOGICAL
+  use spmdMod        , only : masterproc, mpicom
   use spmdGathScatMod, only : scatter_data_from_master, gather_data_to_master
   use decompMod      , only : map_sn2dc, map_dc2sn
 #if (defined RTM)

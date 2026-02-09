@@ -37,7 +37,7 @@ module mod_micro_interface
   use mod_cloud_tompkins
   use mod_cloud_echam5
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -66,7 +66,7 @@ module mod_micro_interface
   contains
 
   subroutine allocate_micro
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
     real(rkx) :: cf
     if ( ipptls == 1 ) then
@@ -131,7 +131,7 @@ module mod_micro_interface
   subroutine init_micro
     use mod_atm_interface
     use mod_che_interface
-    implicit none (type, external)
+    implicit none
 
     call assignpnt(mddom%ldmsk,mo2mc%ldmsk)
     call assignpnt(mddom%iveg,mo2mc%iveg)
@@ -207,7 +207,7 @@ module mod_micro_interface
   end subroutine init_micro
 
   subroutine microscheme
-    implicit none (type, external)
+    implicit none
     select case ( ipptls )
       case (1)
         call subex(mo2mc,mc2mo)
@@ -234,7 +234,7 @@ module mod_micro_interface
   !
   subroutine cldfrac(cldlwc,cldfra)
     use mod_atm_interface, only : atms
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, &
       dimension(:,:,:), intent(inout) :: cldlwc, cldfra
     integer(ik4) :: i, j, k
@@ -431,25 +431,25 @@ module mod_micro_interface
   end subroutine cldfrac
 
   pure real(rkx) function max_overlap(a)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:), intent(in) :: a
     max_overlap = maxval(a)
   end function max_overlap
 
   pure real(rkx) function min_overlap(a)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:), intent(in) :: a
     min_overlap = minval(a)
   end function min_overlap
 
   pure real(rkx) function mean_overlap(a)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:), intent(in) :: a
     mean_overlap = sum(a)/size(a)
   end function mean_overlap
 
   pure real(rkx) function random_overlap(a)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:), intent(in) :: a
     real(rkx) :: fac
     integer :: i
@@ -462,7 +462,7 @@ module mod_micro_interface
 
   pure real(rkx) function max_random_overlap(a)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:), intent(in) :: a
     real(rkx) :: fac
     integer :: i
@@ -475,7 +475,7 @@ module mod_micro_interface
 
   elemental real(rkx) function rov2(a,b)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: a, b
     rov2 = max_random_overlap([a,b])
   end function rov2
@@ -500,7 +500,7 @@ module mod_micro_interface
   !
   subroutine condtq
     use mod_atm_interface, only : mo_atm, atm0, atm2, sfs, aten
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k
     real(rkx) :: qccs, qvcs, tmp1, tmp2, tmp3
     real(rkx) :: dqv, exces, pres, qvc_cld, qvs, fccc, &

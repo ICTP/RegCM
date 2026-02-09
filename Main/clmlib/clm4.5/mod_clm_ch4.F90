@@ -1,5 +1,5 @@
 module mod_clm_ch4
-implicit none (type, external)
+implicit none
 #ifdef LCH4
   !
   ! Module holding routines to calculate methane fluxes
@@ -36,7 +36,7 @@ implicit none (type, external)
   use mod_clm_cndecompcascadebgc, only : nlev_soildecomp_standard
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -66,7 +66,7 @@ implicit none (type, external)
   !
   subroutine ch4 (lbg,ubg,lbl,ubl,lbc,ubc,lbp,ubp,num_soilc,filter_soilc, &
                   num_lakec,filter_lakec,num_soilp,filter_soilp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbg, ubg  ! grid-index bounds
     integer(ik4), intent(in) :: lbl, ubl  ! landunit-level index bounds
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
@@ -729,7 +729,7 @@ implicit none (type, external)
   !
   subroutine ch4_prod (lbc,ubc,lbp,ubp,num_methc,filter_methc,num_methp, &
                       filter_methp,jwt,sat,lake)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc        ! column-index bounds
     integer(ik4), intent(in) :: lbp, ubp        ! pft-index bounds
     ! number of column soil points in column filter
@@ -1119,7 +1119,7 @@ implicit none (type, external)
   ! Oxidation will be limited by available oxygen in ch4_tran.
   !
   subroutine ch4_oxid(lbc,ubc,num_methc,filter_methc,jwt,sat,lake)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
     ! number of column soil points in column filter
     integer(ik4), intent(in) :: num_methc
@@ -1265,7 +1265,7 @@ implicit none (type, external)
   !
   subroutine ch4_aere (lbc,ubc,lbp,ubp,num_methc,filter_methc,num_methp, &
                        filter_methp,jwt,sat,lake)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc ! column-index bounds
     integer(ik4), intent(in) :: lbp, ubp ! pft-index bounds
     ! number of column soil points in column filter
@@ -1553,7 +1553,7 @@ implicit none (type, external)
   ! Bubbles are released to the water table surface in ch4_tran.
   !
   subroutine ch4_ebul(lbc,ubc,num_methc,filter_methc,jwt,sat,lake)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc ! column-index bounds
     ! number of column soil points in column filter
     integer(ik4), intent(in) :: num_methc
@@ -1712,7 +1712,7 @@ implicit none (type, external)
   ! Then CH4 diffusive flux is calculated and consistency is checked.
   !
   subroutine ch4_tran(lbc,ubc,num_methc,filter_methc,jwt,dtime_ch4,sat,lake)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc ! column-index bounds
     ! number of column soil points in column filter
     integer(ik4), intent(in) :: num_methc
@@ -2646,7 +2646,7 @@ implicit none (type, external)
   ! water table over ice.
   !
   subroutine get_jwt (lbc, ubc, num_methc, filter_methc, jwt)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
     ! number of column soil points in column filter
     integer(ik4), intent(in) :: num_methc
@@ -2705,7 +2705,7 @@ implicit none (type, external)
   !
   subroutine ch4annualupdate(lbc,ubc,lbp,ubp,num_methc,filter_methc, &
                              num_methp,filter_methp)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc ! column bounds
     integer(ik4), intent(in) :: lbp, ubp ! pft bounds
     integer(ik4), intent(in) :: num_methc ! number of soil columns in filter

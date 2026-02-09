@@ -5,7 +5,7 @@ module mod_clm_tridiagonal
   use mod_intkinds
   use mod_realkinds
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -30,7 +30,7 @@ module mod_clm_tridiagonal
 
   subroutine Tridiagonal_dispatcher(lbc, ubc, lbj, ubj, jtop, numf, filter, &
                           a, b, c, r, u)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in)    :: lbc, ubc ! lbinning and ubing column indices
     integer(ik4), intent(in)    :: lbj, ubj ! lbinning and ubing level indices
     integer(ik4), intent(in)    :: jtop(lbc:ubc) ! top level for each column
@@ -64,7 +64,7 @@ module mod_clm_tridiagonal
     use mod_clm_type
     use mod_clm_varpar, only : nlevurb
     use mod_clm_varcon, only : icol_roof, icol_sunwall, icol_shadewall
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in)    :: lbc, ubc ! lbinning and ubing column indices
     integer(ik4), intent(in)    :: lbj, ubj ! lbinning and ubing level indices
     integer(ik4), intent(in)    :: jtop(lbc:ubc) ! top level for each column
@@ -149,7 +149,7 @@ module mod_clm_tridiagonal
     use mod_clm_type
     use mod_clm_varpar, only : nlevurb
     use mod_clm_varcon, only : icol_roof, icol_sunwall, icol_shadewall
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in)    :: lbc, ubc ! lbinning and ubing column indices
     integer(ik4), intent(in)    :: lbj, ubj ! lbinning and ubing level indices
     integer(ik4), intent(in)    :: jtop(lbc:ubc) ! top level for each column

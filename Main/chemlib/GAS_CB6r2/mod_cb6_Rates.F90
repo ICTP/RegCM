@@ -26,7 +26,7 @@ MODULE mod_cb6_Rates
 
   USE mod_cb6_Parameters
   USE mod_cb6_Global
-  IMPLICIT NONE (type, external)
+  IMPLICIT NONE
 
   CONTAINS
 
@@ -101,7 +101,7 @@ MODULE mod_cb6_Rates
       !USE cb6_Parameters
       !USE cb6_Global
 
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
 
     REAL(kind=dp) :: SunRise, SunSet
     REAL(kind=dp) :: Thour, Tlocal, Ttmp

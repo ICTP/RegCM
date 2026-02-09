@@ -22,7 +22,7 @@ module mod_mksoilph
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -35,7 +35,7 @@ module mod_mksoilph
   contains
 
   subroutine mksoilph(soilphfile,mask,soilph)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: soilphfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:), intent(out) :: soilph
@@ -62,7 +62,7 @@ module mod_mksoilph
 end module mod_mksoilph
 #else
 module mod_mksoilph
-  implicit none (type, external)
+  implicit none
   private
 end module mod_mksoilph
 #endif

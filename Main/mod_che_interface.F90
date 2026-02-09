@@ -35,7 +35,7 @@ module mod_che_interface
   use mod_che_bionit
   use mod_che_linox
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -78,7 +78,7 @@ module mod_che_interface
 
     use mod_atm_interface
     use mod_rad_interface
-    implicit none (type, external)
+    implicit none
 
     call assignpnt(icumtop,kcumtop)
     call assignpnt(icumbot,kcumbot)

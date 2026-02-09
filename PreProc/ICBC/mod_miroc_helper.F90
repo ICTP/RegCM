@@ -19,7 +19,7 @@ module mod_miroc_helper
   use mod_realkinds
   use mod_dynparam
   use mod_date
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -42,7 +42,7 @@ module mod_miroc_helper
   contains
 
   subroutine find_miroc_sst(fname,idate)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     type(rcm_time_and_date), intent(in) :: idate
     if ( .not. date_in_scenario(idate,5) ) then
@@ -57,7 +57,7 @@ module mod_miroc_helper
   end subroutine find_miroc_sst
 
   subroutine assemble_path(fname,scen,var,d1,d2)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     character(len=*), intent(in) :: scen
     character(len=*), intent(in) :: var
@@ -75,7 +75,7 @@ module mod_miroc_helper
   end subroutine assemble_path
 
   subroutine find_miroc_dim(dim_filename)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
@@ -83,14 +83,14 @@ module mod_miroc_helper
   end subroutine find_miroc_dim
 
   subroutine find_miroc_topo(topo_filename)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'MIROC5'//pthsep//'fixed'// &
               pthsep//'orog_fx_MIROC5_historical_r0i0p0.nc'
   end subroutine find_miroc_topo
 
   subroutine find_miroc_file(miroc_filename,var,idate)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: miroc_filename
     character(len=*), intent(in) :: var
     type(rcm_time_and_date), intent(in) :: idate

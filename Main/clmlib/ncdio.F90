@@ -13,18 +13,18 @@ module ncdio
 !
 ! !USES:
   use shr_kind_mod  , only : r8 => shr_kind_r8
-  use spmdMod       , only : masterproc, mpicom, MPI_REAL8, MPI_INTEGER, &
-                              MPI_LOGICAL
+  use spmdMod       , only : masterproc, mpicom
   use clm_varcon    , only : spval,ispval
   use shr_sys_mod   , only : shr_sys_flush
   use abortutils    , only : endrun
   use clm_varctl    , only : scmlon,scmlat, single_column
   use clm_mct_mod
   use spmdGathScatMod
+  use mpi
 !
 ! !PUBLIC TYPES:
   implicit none
-  include 'netcdf.inc'
+  include "netcdf.inc"
   save
   public :: check_ret   ! checks return status of netcdf calls
   public :: check_var   ! determine if variable is on netcdf file
@@ -265,7 +265,7 @@ contains
        end do
        call check_ret(nf_def_var(ncid, trim(varname), xtype, ndims, dimid(1:ndims), varid), subname)
     else
-       call check_ret(nf_def_var(ncid, varname, xtype, 0, 0, varid), subname)
+       call check_ret(nf_def_var(ncid, varname, xtype, 0, dimid(1), varid), subname)
     end if
     if (present(long_name)) then
        call check_ret(nf_put_att_text(ncid, varid, 'long_name', len_trim(long_name), trim(long_name)), subname)
@@ -1201,6 +1201,7 @@ contains
     integer :: dimid(1)                       ! dimension id
     integer :: start(1), count(1)             ! output bounds
     integer :: varid                          ! variable id
+    integer :: rdata(1)
     logical :: varpresent                     ! if true, variable is on tape
     character(len=32) :: subname='NCD_IOGLOBAL_INT_VAR' ! subroutine name
 !-----------------------------------------------------------------------
@@ -1211,9 +1212,11 @@ contains
           call check_ret(nf_inq_varid(ncid, varname, varid), subname)
           if (present(nt)) then
              start(1) = nt; count(1) = 1
-             call check_ret(nf_put_vara_int(ncid, varid, start, count, data), subname)
+             rdata(1) = data
+             call check_ret(nf_put_vara_int(ncid, varid, start, count, rdata), subname)
           else
-             call check_ret(nf_put_var_int(ncid, varid, data), subname)
+             rdata(1) = data
+             call check_ret(nf_put_var_int(ncid, varid, rdata), subname)
           end if
        end if
 
@@ -1221,7 +1224,8 @@ contains
 
        if (masterproc) then
           call check_var(ncid, varname, varid, varpresent)
-          if (varpresent) call check_ret(nf_get_var_int(ncid, varid, data), subname)
+          if (varpresent) call check_ret(nf_get_var_int(ncid, varid, rdata), subname)
+          data = rdata(1)
        end if
        call mpi_bcast(varpresent, 1, MPI_LOGICAL, 0, mpicom, ier)
        if (ier /= 0) then
@@ -1270,6 +1274,7 @@ contains
     integer :: start(1), count(1)             ! output bounds
     integer :: varid                          ! variable id
     logical :: varpresent                     ! if true, variable is on tape
+    real(r8) :: rdata(1)
     character(len=32) :: subname='NCD_IOGLOBAL_REAL_VAR' ! subroutine name
 !-----------------------------------------------------------------------
 
@@ -1279,9 +1284,11 @@ contains
           call check_ret(nf_inq_varid(ncid, varname, varid), subname)
           if (present(nt)) then
              start(1) = nt; count(1) = 1
-             call check_ret(nf_put_vara_double(ncid, varid, start, count, data), subname)
+             rdata(1) = data
+             call check_ret(nf_put_vara_double(ncid, varid, start, count, rdata), subname)
           else
-             call check_ret(nf_put_var_double(ncid, varid, data), subname)
+             rdata(1) = data
+             call check_ret(nf_put_var_double(ncid, varid, rdata), subname)
           end if
        end if
 
@@ -1289,7 +1296,8 @@ contains
 
        if (masterproc) then
           call check_var(ncid, varname, varid, varpresent)
-          if (varpresent) call check_ret(nf_get_var_double(ncid, varid, data), subname)
+          if (varpresent) call check_ret(nf_get_var_double(ncid, varid, rdata), subname)
+          data = rdata(1)
        end if
        call mpi_bcast(varpresent, 1, MPI_LOGICAL, 0, mpicom, ier)
        if (ier /= 0) then

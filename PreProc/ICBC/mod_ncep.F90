@@ -33,7 +33,7 @@ module mod_ncep
   use mod_message
   use mod_memutil
   use mod_nchelper
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -78,7 +78,7 @@ module mod_ncep
 
   subroutine init_ncep
     use netcdf
-    implicit none (type, external)
+    implicit none
 
     integer(ik4) :: k, year, month, day, hour
     integer(ik4) :: istatus, inet, iddim, idv
@@ -215,7 +215,7 @@ module mod_ncep
   end subroutine init_ncep
 
   subroutine get_ncep(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
 
     call split_idate(idate,year,month,day,hour)
@@ -295,7 +295,7 @@ module mod_ncep
 
   subroutine cfs6hour
     use netcdf
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k, inet, it, kkrec, istatus
     character(len=256), save :: pathaddname
     character(len=5), dimension(5) :: varname
@@ -438,7 +438,7 @@ module mod_ncep
 
   subroutine cdc6hour(idate)
     use netcdf
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent (in) :: idate
     integer(ik4) :: i, ilev, inet, it, j, kkrec, k, nlev, istatus
     character(len=256), save :: pathaddname
@@ -583,7 +583,7 @@ module mod_ncep
   end subroutine cdc6hour
 
   subroutine conclude_ncep
-    implicit none (type, external)
+    implicit none
     call h_interpolator_destroy(cross_hint)
     call h_interpolator_destroy(udot_hint)
     if ( idynamic == 3 ) then

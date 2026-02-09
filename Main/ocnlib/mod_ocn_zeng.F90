@@ -27,7 +27,7 @@ module mod_ocn_zeng
     use mod_runparams, only : iocncpl, iwavcpl
     use mod_runparams, only : zomax, ustarmax
 
-    implicit none (type, external)
+    implicit none
 
     private
 
@@ -69,7 +69,7 @@ module mod_ocn_zeng
     ! Account for SST diurnal evoluation warm layer/ skin temperature scheme
     !
     subroutine zengocndrv
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: i
       real(rkx) :: wt1, wt2
       real(rkx) :: t995, q995, uv995, z995
@@ -493,7 +493,7 @@ module mod_ocn_zeng
     !
     pure real(rkx) function psi(k,zeta)
 !$acc routine seq
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: k
       real(rkx), intent(in) :: zeta
       real(rkx) :: chik
@@ -511,7 +511,7 @@ module mod_ocn_zeng
     !
     pure subroutine roughness(zo,ustar,visa,zot,zoq,izoq)
 !$acc routine seq
-      implicit none (type, external)
+      implicit none
       real(rkx), intent (in) :: zo, ustar, visa
       integer(ik4), intent(in) :: izoq
       real(rkx), intent (out) :: zoq, zot
@@ -563,7 +563,7 @@ module mod_ocn_zeng
 
     pure real(rkx) function ocnrough(ustar,u3d,wc,visa,irough) result(zo)
 !$acc routine seq
-      implicit none (type, external)
+      implicit none
       real(rkx), intent (in) :: u3d, wc, visa, ustar
       integer(ik4), intent(in) :: irough
       real(rkx) :: wage, charnockog, alph
@@ -610,7 +610,7 @@ module mod_ocn_zeng
 
     pure real(rkx) function szo(visa,ustar)
 !$acc routine seq
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: visa, ustar
       real(rkx), parameter :: alpham = 0.11_rkx
       real(rkx), parameter :: alphch = 0.018_rkx
@@ -626,7 +626,7 @@ module mod_ocn_zeng
     ! Journal of Physical Oceanography 41.1 (2011): 247-251.
     pure subroutine zocd(visa,u,z,zo,cd)
 !$acc routine seq
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: visa, u, z
       real(rkx), intent(out) :: zo, cd
       integer(ik4), parameter :: p = -12

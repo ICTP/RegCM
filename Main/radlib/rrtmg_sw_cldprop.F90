@@ -45,7 +45,7 @@
       use rrsw_wvn, only : wavenum1, wavenum2
       use rrsw_vsn, only : hvrcld, hnamcld
 
-      implicit none (type, external)
+      implicit none
 
       contains
 

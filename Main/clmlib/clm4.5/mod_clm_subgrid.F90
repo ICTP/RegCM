@@ -8,7 +8,7 @@ module mod_clm_subgrid
   use mod_clm_varctl
   use mod_clm_varsur
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -28,7 +28,7 @@ module mod_clm_subgrid
                              nlake, wtlake,               &
                              nwetland, wtwetland,         &
                              nglacier, wtglacier)
-    implicit none (type, external)
+    implicit none
     ! wtxy cell index
     integer(ik4), intent(in)  :: nw
     ! number of landunits

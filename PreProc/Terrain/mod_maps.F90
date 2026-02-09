@@ -18,7 +18,7 @@ module mod_maps
   use mod_intkinds
   use mod_realkinds
   use mod_memutil
-  implicit none (type, external)
+  implicit none
 
   public
 
@@ -48,7 +48,7 @@ module mod_maps
   contains
 
   subroutine prepare_grid(jx,iy,kz,ntex,nsoil,idyn)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: jx, iy, kz, ntex, nsoil, idyn
     call getmem(sigma,1,kz+1,'maps:sigma')
     call getmem(coriol,1,jx,1,iy,'maps:coriol')
@@ -93,7 +93,7 @@ module mod_maps
   end subroutine prepare_grid
 
   subroutine prepare_subgrid(jxsg,iysg,kz,ntex,nsoil,idyn)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: jxsg, iysg, kz, ntex, nsoil, idyn
     call getmem(coriol_s,1,jxsg,1,iysg,'maps:coriol_s')
     call getmem(xlat_s,1,jxsg,1,iysg,'maps:xlat_s')

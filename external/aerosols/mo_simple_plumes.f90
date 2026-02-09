@@ -25,7 +25,7 @@ MODULE MO_SIMPLE_PLUMES
 
   USE netcdf
 
-  IMPLICIT NONE (type, external)
+  IMPLICIT NONE
 
   integer, parameter :: wp  = selected_real_kind(2*precision(1.0))
 
@@ -68,7 +68,7 @@ CONTAINS
   ! climatology.  The information needs to be either read by each processor or distributed to processors.
   !
   SUBROUTINE sp_setup(history,scenario)
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
     CHARACTER(LEN=*), INTENT(IN) :: history, scenario
     !
     ! ----------
@@ -222,7 +222,7 @@ CONTAINS
        lambda         ,oro            ,lon            ,lat           , &
        year_fr        ,z              ,dz             ,dNovrN        , &
        aod_prof       ,ssa_prof       ,asy_prof       )
-    IMPLICIT NONE (type, external)
+    IMPLICIT NONE
     !
     ! ----------
     !

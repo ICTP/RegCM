@@ -32,7 +32,7 @@ module mod_pbl_holtbl
   use mod_pbl_common
   use mod_regcm_types
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -82,7 +82,7 @@ module mod_pbl_holtbl
   contains
 
   subroutine allocate_mod_pbl_holtbl
-    implicit none (type, external)
+    implicit none
     call getmem(cfac,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cfac')
     call getmem(vv,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:vv')
     call getmem(ri,1,kz,jci1,jci2,ici1,ici2,'mod_holtbl:ri')
@@ -128,7 +128,7 @@ module mod_pbl_holtbl
 
   subroutine holtbl(m2p,p2m)
     !@acc use nvtx
-    implicit none (type, external)
+    implicit none
     type(mod_2_pbl), intent(in) :: m2p
     type(pbl_2_mod), intent(inout) :: p2m
     integer(ik4) :: i, j, k, n
@@ -1199,13 +1199,13 @@ module mod_pbl_holtbl
 
   pure real(rkx) function comp_obklen(thvs,ustar,bfs) result(obk)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: thvs, ustar, bfs
     obk = -(thvs*ustar**3) / (gvk*bfs+sign(1.0e-10_rkx,bfs))
   end function comp_obklen
 
   subroutine force_water_conserve(tendv,tendc,tendi,start,sflux,ps)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: tendv
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: tendc
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: tendi

@@ -20,7 +20,7 @@ module mod_capecin
   use mod_constants
   use mod_spline
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -91,7 +91,7 @@ module mod_capecin
   !
   pure subroutine getcape_new(nk,p,t,rh,cape,cin,td,pi,q,th,thv,z)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
 
     integer(ik4), intent(in) :: nk
     real(rkx), dimension(nk), intent(in) :: p, t, rh
@@ -357,7 +357,7 @@ module mod_capecin
     contains
 
     pure real(rkx) function getdewp_new(tc,rh)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: tc, rh
       real(rkx), parameter :: b = 18.678_rkx
       real(rkx), parameter :: c = 257.14_rkx ! [C]
@@ -368,7 +368,7 @@ module mod_capecin
     end function getdewp_new
 
     pure real(rkx) function getqvs_new(p,t)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: p, t
       real(rkx) :: es
       es = 611.2_rkx*exp(17.67_rkx*(t-273.15_rkx)/(t-29.65_rkx))
@@ -376,7 +376,7 @@ module mod_capecin
     end function getqvs_new
 
     pure real(rkx) function getqvi_new(p,t)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: p, t
       real(rkx) :: es
       es = 611.2_rkx*exp(21.8745584_rkx*(t-273.15_rkx)/(t-7.66_rkx))
@@ -384,7 +384,7 @@ module mod_capecin
     end function getqvi_new
 
     pure real(rkx) function getthe_new(p,t,td,q)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: p, t, td, q
       real(rkx) :: tlcl
       if ( (td-t) >= -0.1_rkx ) then
@@ -400,7 +400,7 @@ module mod_capecin
   end subroutine getcape_new
 
   subroutine getcape(nk,p,t,rh,cape,cin)
-    implicit none (type, external)
+    implicit none
 
     integer(ik4), intent(in) :: nk
     real(rkx), dimension(nk), intent(in) :: p, t, rh
@@ -666,7 +666,7 @@ module mod_capecin
     contains
 
     pure real(rkx) function getdewp(tc,rh)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: tc, rh
       real(rkx), parameter :: b = 18.678_rkx
       real(rkx), parameter :: c = 257.14_rkx ! [C]
@@ -677,7 +677,7 @@ module mod_capecin
     end function getdewp
 
     pure real(rkx) function getqvs(p,t)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: p, t
       real(rkx) :: es
       es = 611.2_rkx*exp(17.67_rkx*(t-273.15_rkx)/(t-29.65_rkx))
@@ -685,7 +685,7 @@ module mod_capecin
     end function getqvs
 
     pure real(rkx) function getqvi(p,t)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: p, t
       real(rkx) :: es
       es = 611.2_rkx*exp(21.8745584_rkx*(t-273.15_rkx)/(t-7.66_rkx))
@@ -693,7 +693,7 @@ module mod_capecin
     end function getqvi
 
     pure real(rkx) function getthe(p,t,td,q)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: p, t, td, q
       real(rkx) :: tlcl
       if ( (td-t) >= -0.1_rkx ) then
@@ -716,7 +716,7 @@ module mod_capecin
     ! Russ Treadon W/NP2 @date 1993-03-10
 
     subroutine otlift(slindx,t,q,p,t500,ista,iend,jsta,jend,kk)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ista, iend, jsta, jend, kk
       real(rkx), dimension(:,:), pointer, contiguous, intent(inout) :: slindx
       real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: t500
@@ -876,7 +876,7 @@ module mod_capecin
 #include <pfesat.inc>
 
       subroutine table_fill( )
-        implicit none (type, external)
+        implicit none
         ! ****************************************************************
         ! *                                                              *
         ! *             GENERATE VALUES FOR LOOK-UP TABLES               *

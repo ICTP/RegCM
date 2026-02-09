@@ -20,7 +20,7 @@ module mod_ccsm3_helper
   use mod_dynparam
   use mod_stdio
   use mod_message
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -34,13 +34,13 @@ module mod_ccsm3_helper
   contains
 
   subroutine find_ccsm3_topo(topo_filename)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//'/CCSM3/'//trim(ccsm3_init)
   end subroutine find_ccsm3_topo
 
   subroutine find_ccsm3_file(ccsm3_filename,y,m,d,h)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: ccsm3_filename
     integer(ik4), intent(in) :: y,m,d,h
     integer(ik4)  :: yy, mm, dd, hh, icheck, inow, ii
@@ -87,7 +87,7 @@ module mod_ccsm3_helper
   end subroutine find_ccsm3_file
 !
   subroutine getbackoneday(y,m,d)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(inout) :: y, m, d
     integer(ik4), dimension(12), parameter :: dpm = &
             [31,28,31,30,31,30,31,31,30,31,30,31]

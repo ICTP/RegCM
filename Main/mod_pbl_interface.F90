@@ -32,7 +32,7 @@ module mod_pbl_interface
   use mod_runparams, only : ibltyp, pc_physic
   use mod_runparams, only : iqc, iqv, dt, rdt, ichem, hsigma, dsigma
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -57,7 +57,7 @@ module mod_pbl_interface
 
   subroutine allocate_pblscheme
     use mod_atm_interface
-    implicit none (type, external)
+    implicit none
     if ( ibltyp == 1 ) then
       call getmem(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
       call getmem(kmxpbl,jci1,jci2,ici1,ici2,'pbl_common:kmxpbl')
@@ -95,7 +95,7 @@ module mod_pbl_interface
     use mod_atm_interface
     use mod_che_interface
     use mod_che_common
-    implicit none (type, external)
+    implicit none
 
     ! INPUT to PBL
     call assignpnt(mddom%coriol,m2p%coriol)
@@ -188,7 +188,7 @@ module mod_pbl_interface
 
   subroutine pblscheme
     use mod_atm_interface
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k
     select case ( ibltyp )
       case (1)

@@ -2,7 +2,7 @@ module mod_cbmz_precision
 
   use mod_realkinds, only : rk4, rk8, rk16
   use mod_intkinds, only : ik4
-  implicit none (type, external)
+  implicit none
   !
   ! definition of different levels of accuracy
   ! for real variables using kind parameterization

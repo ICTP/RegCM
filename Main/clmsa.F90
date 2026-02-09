@@ -36,7 +36,7 @@ program clmsa
 #ifndef MPI_SERIAL
   use mpi
 #endif
-  implicit none (type, external)
+  implicit none
 
   real(rk8) :: extime
   real(rk8) :: timestr, timeend
@@ -68,7 +68,7 @@ program clmsa
   contains
 
   subroutine CLM_initialize(mpiCommunicator)
-    implicit none (type, external)
+    implicit none
     integer, intent(in), optional :: mpiCommunicator
     integer(ik4) :: ierr
     if (present(mpiCommunicator)) then
@@ -168,7 +168,7 @@ program clmsa
   !=======================================================================
   !
   subroutine CLM_run(timestr, timeend)
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: timestr   ! starting time-step
     real(rk8), intent(in) :: timeend   ! ending   time-step
 
@@ -215,7 +215,7 @@ program clmsa
   end subroutine CLM_run
 
   subroutine CLM_finalize
-    implicit none (type, external)
+    implicit none
 
     if ( myid == italk ) then
       write(stdout,*) 'Final time ', trim(rcmtimer%str( )), ' reached.'
@@ -238,7 +238,7 @@ end program clmsa
 
 #else
 program clmsa
-  implicit none (type, external)
+  implicit none
   write(0,*) 'This programs is enabled only if CLM45 is compiled in.'
 end program clmsa
 #endif

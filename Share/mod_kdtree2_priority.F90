@@ -102,7 +102,7 @@ module mod_kdtree2_priority
   use mod_realkinds
   use mod_message
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -174,7 +174,7 @@ module mod_kdtree2_priority
   contains
 
   type(pq) function pq_create(results_in) result(res)
-    implicit none (type, external)
+    implicit none
     !
     ! Create a priority queue from ALREADY allocated
     ! array pointers for storage.  NOTE! It will NOT
@@ -236,7 +236,7 @@ module mod_kdtree2_priority
 !  end function compare_priority
 
   subroutine heapify(a,i_in)
-    implicit none (type, external)
+    implicit none
     !
     ! take a heap rooted at 'i' and force it to be in the
     ! heap canonical form.   This is performance critical
@@ -308,7 +308,7 @@ module mod_kdtree2_priority
   end subroutine heapify
 
   subroutine pq_max(a,e)
-    implicit none (type, external)
+    implicit none
     !
     ! return the priority and its payload of the maximum priority element
     ! on the queue, which should be the first one, if it is
@@ -324,7 +324,7 @@ module mod_kdtree2_priority
   end subroutine pq_max
 
   real(kdkind) function pq_maxpri(a)
-    implicit none (type, external)
+    implicit none
     type(pq), pointer, intent(inout) :: a
     pq_maxpri = -1
     if ( a%heap_size > 0 ) then
@@ -335,7 +335,7 @@ module mod_kdtree2_priority
   end function pq_maxpri
 
   subroutine pq_extract_max(a,e)
-    implicit none (type, external)
+    implicit none
     !
     ! return the priority and payload of maximum priority
     ! element, and remove it from the queue.
@@ -362,7 +362,7 @@ module mod_kdtree2_priority
   end subroutine pq_extract_max
 
   real(kdkind) function pq_insert(a,dis,idx)
-    implicit none (type, external)
+    implicit none
     !
     ! Insert a new element and return the new maximum priority,
     ! which may or may not be the same as the old maximum priority.
@@ -445,7 +445,7 @@ module mod_kdtree2_priority
 !  end subroutine pq_adjust_heap
 
   real(kdkind) function pq_replace_max(a,dis,idx)
-    implicit none (type, external)
+    implicit none
     !
     ! Replace the extant maximum priority element
     ! in the PQ with (dis,idx).  Return
@@ -515,7 +515,7 @@ module mod_kdtree2_priority
   end function pq_replace_max
 
   subroutine pq_delete(a,i)
-    implicit none (type, external)
+    implicit none
     !
     ! delete item with index 'i'
     !

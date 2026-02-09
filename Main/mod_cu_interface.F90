@@ -46,7 +46,7 @@ module mod_cu_interface
   use mod_cu_kf
   use mod_cu_shallow
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -94,7 +94,7 @@ module mod_cu_interface
 
   subroutine allocate_cumulus
     use mod_atm_interface
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j
     call getmem(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -140,7 +140,7 @@ module mod_cu_interface
   subroutine init_cumulus
     use mod_atm_interface
     use mod_che_interface
-    implicit none (type, external)
+    implicit none
     ! INPUT
     call assignpnt(mddom%ht,m2c%ht)
     call assignpnt(mddom%ldmsk,m2c%ldmsk)
@@ -215,7 +215,7 @@ module mod_cu_interface
   end subroutine init_cumulus
 
   subroutine cucloud
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k
     if ( all(icup == 0) ) return
     if ( any(icup == 1) .or. any(icup == 3) ) then
@@ -228,7 +228,7 @@ module mod_cu_interface
 
   subroutine cumulus
     use mod_atm_interface
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k, n
     integer(ik4) :: iplmlc, mintop, maxtop
     real(rkx) :: ijs, w1, mymean(kz), mymean_tmp
@@ -510,7 +510,7 @@ module mod_cu_interface
 
   subroutine shallow_convection
     use mod_atm_interface, only : aten, mo_atm
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, k
 
     if ( rcmtimer%integrating( ) ) then

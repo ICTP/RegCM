@@ -23,7 +23,7 @@ module mod_ocn_bats
   use mod_runparams, only : icetriggert
   use mod_constants
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -32,7 +32,7 @@ module mod_ocn_bats
   contains
 
   subroutine ocnbats
-    implicit none (type, external)
+    implicit none
     real(rkx) :: ribd, cdrn, qgrd
     real(rkx) :: qs, delq, delt, fact, factuv
     real(rkx) :: cdrmin, cdrx, ribn, vspda
@@ -93,7 +93,7 @@ module mod_ocn_bats
   end subroutine ocnbats
 
   subroutine seaice
-    implicit none (type, external)
+    implicit none
     real(rkx) :: age, u1, ribd
     real(rkx) :: cdrn, cdr, qgrd
     real(rkx) :: ps, qs, delq, delt, rhosw, ribl

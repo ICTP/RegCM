@@ -10,7 +10,7 @@ module mod_clm_organicfile
   use mod_clm_varctl, only : fsurdat
   use mod_clm_decomp, only : gcomm_gridcell
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -23,7 +23,7 @@ module mod_clm_organicfile
   ! Read the organic matter dataset.
   !
   subroutine organicrd(organic)
-    implicit none (type, external)
+    implicit none
     real(rk8), pointer, contiguous :: organic(:,:)  ! organic matter density (kg/m3)
     type(clm_filetype) :: ncid                  ! netcdf id
     character(len=32)  :: subname = 'organicrd' ! subroutine name

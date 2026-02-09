@@ -19,7 +19,7 @@ module mod_noresm_helper
   use mod_realkinds
   use mod_dynparam
   use mod_date
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -38,7 +38,7 @@ module mod_noresm_helper
   contains
 
   subroutine find_noresm_sst(fname,idate)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     type(rcm_time_and_date), intent(in) :: idate
     character(len=8) :: d1, d2
@@ -64,7 +64,7 @@ module mod_noresm_helper
   end subroutine find_noresm_sst
 
   subroutine assemble_path(fname,scen,var,d1,d2)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: fname
     character(len=*), intent(in) :: scen
     character(len=*), intent(in) :: var
@@ -82,7 +82,7 @@ module mod_noresm_helper
   end subroutine assemble_path
 
   subroutine find_noresm_dim(dim_filename)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
@@ -90,14 +90,14 @@ module mod_noresm_helper
   end subroutine find_noresm_dim
 
   subroutine find_noresm_topo(topo_filename)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: topo_filename
     topo_filename = trim(inpglob)//pthsep//'NorESM1-M'//pthsep//'fixed'// &
               pthsep//'orog_fx_NorESM1-M_historical_r0i0p0.nc'
   end subroutine find_noresm_topo
 
   subroutine find_noresm_file(noresm_filename,var,idate)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(out) :: noresm_filename
     character(len=*), intent(in) :: var
     type(rcm_time_and_date), intent(in) :: idate

@@ -17,7 +17,7 @@ module mod_cbmz_linslv
 
   use mod_intkinds
   use mod_realkinds
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -62,7 +62,7 @@ module mod_cbmz_linslv
 !  ***     REDUCED AND JUST SOLVES FOR X(N).  THIS OPTION SAVES TIME
 !  ***     WHEN THE SYSTEM IS TO BE RESOLVED WITH A NEW B-VECTOR..  (Pra
 
-      implicit none (type, external)
+      implicit none
 !
       integer(ik4) :: n
       real(rkx), dimension(100,100) :: a
@@ -114,7 +114,7 @@ module mod_cbmz_linslv
 
     subroutine resolv(a,b,x,ipa,n)
 
-      implicit none (type, external)
+      implicit none
 !
       integer(ik4) :: n
       real(rkx), dimension(100,100) :: a

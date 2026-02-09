@@ -22,7 +22,7 @@ module mod_sigma
   use mod_message
   use mod_stdio
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -66,7 +66,7 @@ module mod_sigma
     ! For the RegCM the sigma coordinate is terrain following
     !
     subroutine init_sigma(nk,dmax,dmin,lzeta)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: nk
       real(rkx), intent(in), optional :: dmax, dmin
       logical, intent(in), optional :: lzeta
@@ -304,7 +304,7 @@ module mod_sigma
     end subroutine init_sigma
 
     subroutine init_hydrostatic(ptin,psin,lpstar)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: ptin
       real(rkx), pointer, contiguous, dimension(:,:) :: psin
       logical, optional, intent(in) :: lpstar
@@ -314,13 +314,13 @@ module mod_sigma
     end subroutine init_hydrostatic
 
     real(rkx) elemental function pstar(surface_pressure)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: surface_pressure
       pstar = surface_pressure - ptop
     end function pstar
 
     pure real(rkx) function hydrostatic_pressure_full_sigma(j,i,k) result(p)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: j, i, k
       if ( is_pstar ) then
         p = ps(j,i) * sigma_coordinate(k) + ptop
@@ -330,7 +330,7 @@ module mod_sigma
     end function hydrostatic_pressure_full_sigma
 
     pure real(rkx) function hydrostatic_pressure_half_sigma(j,i,k) result(p)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: j, i, k
       if ( is_pstar ) then
         p = ps(j,i) * half_sigma_coordinate(k) + ptop
@@ -340,7 +340,7 @@ module mod_sigma
     end function hydrostatic_pressure_half_sigma
 
     pure real(rkx) function hydrostatic_deltap_full_sigma(j,i,k) result(p)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: j, i, k
       if ( is_pstar ) then
         p = ps(j,i) * sigma_delta(k)
@@ -350,7 +350,7 @@ module mod_sigma
     end function hydrostatic_deltap_full_sigma
 
     subroutine init_non_hydrostatic(ptin,psin,ppin,lpstar)
-      implicit none (type, external)
+      implicit none
       real(rkx), intent(in) :: ptin
       real(rkx), pointer, contiguous, dimension(:,:) :: psin
       real(rkx), pointer, contiguous, dimension(:,:,:) :: ppin
@@ -362,7 +362,7 @@ module mod_sigma
     end subroutine init_non_hydrostatic
 
     pure real(rkx) function non_hydrostatic_pressure_full_sigma(j,i,k) result(p)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: j, i, k
       if ( k == 1 ) then
          p = ptop
@@ -378,7 +378,7 @@ module mod_sigma
     end function non_hydrostatic_pressure_full_sigma
 
     pure real(rkx) function non_hydrostatic_pressure_half_sigma(j,i,k) result(p)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: j, i, k
       if ( is_pstar ) then
         p = ps(j,i) * half_sigma_coordinate(k) + ptop + pprime(j,i,k)
@@ -388,7 +388,7 @@ module mod_sigma
     end function non_hydrostatic_pressure_half_sigma
 
     pure real(rkx) function non_hydrostatic_deltap_full_sigma(j,i,k) result(p)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: j, i, k
       if ( is_pstar ) then
         p = ps(j,i) * sigma_delta(k) + pprime(j,i,k)

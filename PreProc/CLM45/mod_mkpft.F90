@@ -24,7 +24,7 @@ module mod_mkpft
   use mod_message
   use mod_memutil
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -37,7 +37,7 @@ module mod_mkpft
   contains
 
   subroutine mkpft(pftfile,mask,pft)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: pftfile
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: pft

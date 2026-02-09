@@ -23,7 +23,7 @@ module mod_header
   use mod_dynparam, only : nproc
   use mod_stdio
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -37,7 +37,7 @@ module mod_header
   contains
 
   subroutine whoami(myid)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: myid
     character(len=*), parameter :: f99001 = &
         '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
@@ -52,7 +52,7 @@ module mod_header
   end subroutine whoami
 
   subroutine header(myid,nproc)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: myid, nproc
     character (len=32) :: hostname
     character (len=32) :: user
@@ -90,7 +90,7 @@ module mod_header
   end subroutine header
 
   subroutine checktime(myid,ctime,period)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: myid
     character(len=*), intent(in) :: ctime, period
     integer(ik4) :: iunit
@@ -109,7 +109,7 @@ module mod_header
   end subroutine checktime
 
   subroutine finaltime(myid)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent (in) :: myid
     real(rkx) :: finish_time
 

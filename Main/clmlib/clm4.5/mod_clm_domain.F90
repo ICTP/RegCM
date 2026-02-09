@@ -10,7 +10,7 @@ module mod_clm_domain
   use mod_runparams
   use mod_mpmessage
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -56,7 +56,7 @@ module mod_clm_domain
   ! This subroutine allocates and nans the domain type
   !
   subroutine domain_init(domain,ni,nj,nbeg,nend,clmlevel)
-    implicit none (type, external)
+    implicit none
     type(domain_type) :: domain           ! domain datatype
     integer(ik4), intent(in) :: ni, nj  ! grid size, 2d
     integer(ik4), intent(in), optional :: nbeg, nend  ! beg/end indices
@@ -115,7 +115,7 @@ module mod_clm_domain
   ! This subroutine deallocates the domain type
   !
   subroutine domain_clean(domain)
-    implicit none (type, external)
+    implicit none
     type(domain_type) :: domain        ! domain datatype
     integer(ik4) :: ier
     if ( domain%set == set ) then
@@ -147,7 +147,7 @@ module mod_clm_domain
   ! This subroutine write domain info
   !
   subroutine domain_check(domain)
-    implicit none (type, external)
+    implicit none
     type(domain_type), intent(in) :: domain        ! domain datatype
     if ( myid == italk ) then
       write(stdout,*) '  domain_check set       = ',trim(domain%set)

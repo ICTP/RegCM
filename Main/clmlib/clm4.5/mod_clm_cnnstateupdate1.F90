@@ -1,5 +1,5 @@
 module mod_clm_cnnstateupdate1
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! Module for nitrogen state variable updates, non-mortality fluxes.
@@ -8,7 +8,7 @@ implicit none (type, external)
   use mod_realkinds
   use mod_runparams, only : dtsrf
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -31,7 +31,7 @@ implicit none (type, external)
 #endif
     use mod_clm_pftvarcon, only : npcropmin, nc3crop
     use mod_clm_surfrd, only : crop_prog
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter

@@ -21,7 +21,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 module mod_cbmz_jacobiansp
-implicit none (type, external)
+implicit none
 
   public
   save

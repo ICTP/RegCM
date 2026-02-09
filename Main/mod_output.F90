@@ -45,7 +45,7 @@ module mod_output
   use mod_moloch
   use mod_capecin
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -64,7 +64,7 @@ module mod_output
 
   subroutine output
     !@acc use nvtx
-    implicit none (type, external)
+    implicit none
     logical :: ldoatm, ldosrf, ldorad, ldoche, ldoopt
     logical :: ldosav, ldolak, ldosub, ldosts, ldoshf, lnewf
     logical :: ldoslab
@@ -1910,7 +1910,7 @@ module mod_output
   end subroutine output
 
   subroutine vertint(f3,p3,ps,f2,plev)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f3
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p3
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps
@@ -1946,7 +1946,7 @@ module mod_output
     contains
 
     integer(ik4) function findlev(p,plev) result(kk)
-      implicit none (type, external)
+      implicit none
       real(rkx), dimension(kz), intent(in) :: p
       real(rkx), intent(in) :: plev
       integer(ik4) :: k
@@ -1964,7 +1964,7 @@ module mod_output
   ! Change U and V from map values (X,Y) to true (N,E)
   !
   subroutine uvrot2d(pj,u,v)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     call pj%wind2_antirotate(u,v)
@@ -1974,14 +1974,14 @@ module mod_output
   ! Change U and V from map values (X,Y) to true (N,E)
   !
   subroutine uvrot3d(pj,u,v)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     call pj%wind_antirotate(u,v)
   end subroutine uvrot3d
 
   subroutine alpharot_compute(pj)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(inout) :: pj
     type(anyprojparams) :: pjpara
     if ( debug_level > 3 ) then
@@ -2011,7 +2011,7 @@ module mod_output
   end subroutine alpharot_compute
 
   subroutine wstagtox(w,wx)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: w
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: wx
     integer(ik4) :: i, j, k
@@ -2027,7 +2027,7 @@ module mod_output
   end subroutine wstagtox
 
   subroutine uvstagtox(u,v,ux,vx)
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
     integer(ik4) :: i, j, k
@@ -2071,7 +2071,7 @@ module mod_output
   end subroutine uvstagtox
 
   subroutine windcompute(pj,u,v,h)
-    implicit none (type, external)
+    implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: u, v
     real(rkx), intent(in) :: h
@@ -2194,7 +2194,7 @@ module mod_output
   end subroutine windcompute
 
   subroutine vinterz(v,vv,h)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: v
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: vv
     real(rkx), intent(in) :: h

@@ -1,6 +1,6 @@
       module parkind
 
-      implicit none (type, external)
+      implicit none
       save
 
 !------------------------------------------------------------------

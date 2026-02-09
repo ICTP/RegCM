@@ -83,7 +83,7 @@ module rrtmg_sw_rad
       use rrtmg_sw_setcoef, only: setcoef_sw
       use rrtmg_sw_spcvmc, only: spcvmc_sw
 
-      implicit none (type, external)
+      implicit none
 
 ! public interfaces/functions/subroutines
       public :: rrtmg_sw, inatm_sw, earth_sun

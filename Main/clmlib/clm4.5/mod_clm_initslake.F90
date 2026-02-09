@@ -30,7 +30,7 @@ module mod_clm_initslake
   use mod_clm_decomp, only : get_proc_bounds, get_proc_global
   use mod_clm_atmlnd, only : clm_a2l
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -52,7 +52,7 @@ module mod_clm_initslake
   ! lake code. In future versions, this could be phased out.
   !
   subroutine initSLake( arbinit )
-    implicit none (type, external)
+    implicit none
     logical, intent(in) :: arbinit ! Whether mkarbinit has been called.
     call initTimeConst()
     ! Attn EK
@@ -72,7 +72,7 @@ module mod_clm_initslake
   ! initialized already from regular mkarbinit.
   !
   subroutine makearbinit( arbinit )
-    implicit none (type, external)
+    implicit none
     logical, intent(in) :: arbinit ! Whether mkarbinit has been called.
     ! landunit index associated with each column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
@@ -288,7 +288,7 @@ module mod_clm_initslake
   ! Note that cps%zi(0) is set in routine iniTimeConst.
   !
   subroutine snow_depth2levLake(lbc,ubc,arbinit)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc ! column bounds
     logical, intent(in) :: arbinit
     ! landunit index associated with each column
@@ -412,7 +412,7 @@ module mod_clm_initslake
   ! Initialize time invariant clm variables for S Lake code (and h2osoi_vol).
   !
   subroutine initTimeConst
-    implicit none (type, external)
+    implicit none
     ! landunit index of column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! gridcell index of column

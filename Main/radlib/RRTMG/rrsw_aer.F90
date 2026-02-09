@@ -3,7 +3,7 @@
       use parkind, only : im => kind_im, rb => kind_rb
       use parrrsw, only : nbndsw, naerec
 
-      implicit none (type, external)
+      implicit none
       save
 
 !------------------------------------------------------------------

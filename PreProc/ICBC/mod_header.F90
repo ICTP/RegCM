@@ -17,14 +17,14 @@ module mod_header
 
   use mod_intkinds
   use mod_stdio
-  implicit none (type, external)
+  implicit none
 
   public
 
   contains
 
   subroutine header(myname)
-    implicit none (type, external)
+    implicit none
     character (len=*), intent(in) :: myname
     integer(ik4) :: ihost, idir
     integer(ik4) :: hostnm
@@ -73,7 +73,7 @@ module mod_header
   end subroutine header
 
   subroutine finaltime(myid)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent (in) :: myid
     character (len=24) :: cdata
 #ifdef __INTEL_COMPILER

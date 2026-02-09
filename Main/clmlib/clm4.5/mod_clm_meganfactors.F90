@@ -8,7 +8,7 @@ module mod_clm_meganfactors
   use mod_mpmessage
   use mod_clm_nchelper
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -53,7 +53,7 @@ module mod_clm_meganfactors
   ! Method for getting MEGAN information for a named compound
   !
   subroutine megan_factors_get( comp_name, factors, class_n, molecwght )
-    implicit none (type, external)
+    implicit none
     character(len=*),intent(in)  :: comp_name      ! MEGAN compound name
     ! vegitation type factors for the compound of intrest
     real(rk8), intent(out) :: factors(npfts)
@@ -83,7 +83,7 @@ module mod_clm_meganfactors
   ! Initializes the MEGAN factors using data from input file
   !
   subroutine megan_factors_init( filename )
-    implicit none (type, external)
+    implicit none
     character(len=*),intent(in) :: filename ! MEGAN factors input file
     type(clm_filetype) :: ncid  ! netcdf id
 
@@ -158,7 +158,7 @@ module mod_clm_meganfactors
   endsubroutine megan_factors_init
 
   subroutine bld_hash_table_indices( names )
-    implicit none (type, external)
+    implicit none
     character(len=*),intent(in) :: names(:)
     integer(ik4) :: n, i, hashkey
 
@@ -171,7 +171,7 @@ module mod_clm_meganfactors
   endsubroutine bld_hash_table_indices
 
   subroutine enter_hash_data( name, data, class_n, molec_wght )
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: name
     real(rk8), intent(in) :: data(:)
     integer(ik4),  intent(in) :: class_n
@@ -198,7 +198,7 @@ module mod_clm_meganfactors
   !
   !-----------------------------------------------------------------------
   integer(ik4) function gen_hashkey(string)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: string
     integer(ik4) :: hash
     integer(ik4) :: i

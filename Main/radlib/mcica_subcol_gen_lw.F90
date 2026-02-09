@@ -53,7 +53,7 @@
       use rrlw_wvn, only: ngb
       use rrlw_vsn
 
-      implicit none (type, external)
+      implicit none
 
 ! public interfaces/functions/subroutines
       public :: get_alpha, mcica_subcol_lw, generate_stochastic_clouds
@@ -765,7 +765,7 @@
       contains
 
         pure integer(kind=im) function m(k,n)
-          implicit none (type, external)
+          implicit none
           integer (kind=im), intent(in) :: k, n
           m = ieor (k, ishft (k, n) )
         end function m

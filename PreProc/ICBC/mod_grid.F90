@@ -28,7 +28,7 @@ module mod_grid
   use mod_dynparam, only : idynamic, base_state_pressure, logp_lrate
   use mod_dynparam, only : mo_ztop
   use mod_projections
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -55,7 +55,7 @@ module mod_grid
 
   subroutine init_hgrid(nx,ny,nz)
     use mod_dynparam
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nx, ny, nz
     call getmem(xlat,1,nx,1,ny,'mod_grid:xlat')
     call getmem(xlon,1,nx,1,ny,'mod_grid:xlon')
@@ -67,7 +67,7 @@ module mod_grid
 
   subroutine init_grid(nx,ny,nz)
     use mod_dynparam
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nx, ny, nz
     call getmem(xlat,1,nx,1,ny,'mod_grid:xlat')
     call getmem(xlon,1,nx,1,ny,'mod_grid:xlon')
@@ -105,7 +105,7 @@ module mod_grid
 
   subroutine read_domain_hinfo
     use mod_dynparam
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: incin
     character(len=256) :: fname
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
@@ -116,7 +116,7 @@ module mod_grid
 
   subroutine read_domain_info
     use mod_dynparam
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: incin
     character(len=256) :: fname
     integer(ik4) :: i, j, k

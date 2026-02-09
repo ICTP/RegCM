@@ -66,7 +66,7 @@ Module mod_clm_drydepvelocity
           index_co=>co_ndx, index_ch4=>ch4_ndx, index_pan=>pan_ndx, &
           index_xpan=>xpan_ndx
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -92,7 +92,7 @@ Module mod_clm_drydepvelocity
             nbrdlf_dcd_brl_shrub, nc3_arctic_grass, nc3_nonarctic_grass, &
             nc4_grass, nc3crop, nc3irrig, npcropmin, npcropmax
 
-    implicit none (type, external)
+    implicit none
 
     integer(ik4), intent(in) :: lbp, ubp                    ! pft bounds
 

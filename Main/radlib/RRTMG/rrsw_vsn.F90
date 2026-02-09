@@ -1,6 +1,6 @@
       module rrsw_vsn
 
-      implicit none (type, external)
+      implicit none
       save
 
 !------------------------------------------------------------------

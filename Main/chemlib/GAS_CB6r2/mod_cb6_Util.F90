@@ -25,7 +25,7 @@
 MODULE mod_cb6_Util
 
   USE mod_cb6_Parameters
-  IMPLICIT NONE (type, external)
+  IMPLICIT NONE
 
 CONTAINS
 

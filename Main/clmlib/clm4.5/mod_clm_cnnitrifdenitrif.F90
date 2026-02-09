@@ -1,5 +1,5 @@
 module mod_clm_cnnitrifdenitrif
-implicit none (type, external)
+implicit none
 #ifdef CN
 #ifdef NITRIF_DENITRIF
   !
@@ -10,7 +10,7 @@ implicit none (type, external)
   use mod_date
   use mod_clm_varcon, only: secspday, tfrz
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -38,7 +38,7 @@ implicit none (type, external)
 #endif
 #endif
     use mod_clm_varcon, only : spval
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc   ! column bounds
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns

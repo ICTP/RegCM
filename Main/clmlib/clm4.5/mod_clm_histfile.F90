@@ -27,7 +27,7 @@ module mod_clm_histfile
   use mod_clm_domain, only : ldomain
   use mod_clm_time_manager, only : getdatetime
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -312,7 +312,7 @@ module mod_clm_histfile
   ! Print summary of master field list.
   !
   subroutine hist_printflds()
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: nf
     character(len=*) ,parameter :: subname = 'CLM_hist_printflds'
 
@@ -339,7 +339,7 @@ module mod_clm_histfile
   subroutine masterlist_addfld (fname, type1d, type1d_out, &
         type2d, num2d, units, avgflag, long_name, hpindex, &
         p2c_scale_type, c2l_scale_type, l2g_scale_type)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: fname        ! field name
     character(len=*), intent(in) :: type1d       ! 1d data type
     character(len=*), intent(in) :: type1d_out   ! 1d output type
@@ -461,7 +461,7 @@ module mod_clm_histfile
   ! appropriate variables and calling appropriate routines
   !
   subroutine hist_htapes_build ()
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: t
     integer(ik4) :: day, sec  ! day and seconds from base date
 
@@ -516,7 +516,7 @@ module mod_clm_histfile
   ! Also change the default time averaging flag if requested.
   !
   subroutine masterlist_make_active (name, tape_index, avgflag)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: name          ! field name
     integer(ik4), intent(in) :: tape_index        ! history tape index
     character(len=1), intent(in), optional :: avgflag  ! time averaging flag
@@ -567,7 +567,7 @@ module mod_clm_histfile
   ! Copy the flag into the master field list.
   !
   subroutine masterlist_change_timeavg (t)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t  ! history tape index
     integer(ik4) :: f               ! field index
     character(len=1) :: avgflag     ! lcl equiv of hist_avgflag_pertape(t)
@@ -598,7 +598,7 @@ module mod_clm_histfile
   ! Then sort the result alphanumerically.
   !
   subroutine htapes_fieldlist()
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: t, f   ! tape, field indices
     integer(ik4) :: ff      ! index into include, exclude and fprec list
     ! field name portion of fincl (i.e. no avgflag separator)
@@ -808,7 +808,7 @@ module mod_clm_histfile
   ! the master field list to the active list for the tape.
   !
   subroutine htape_addfld (t, f, avgflag)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t  ! history tape index
     integer(ik4), intent(in) :: f  ! field index from master field list
     character(len=1), intent(in) :: avgflag  ! time averaging flag
@@ -951,7 +951,7 @@ module mod_clm_histfile
   ! into its history buffer for appropriate tapes.
   !
   subroutine hist_update_hbuf()
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: t           ! tape index
     integer(ik4) :: f           ! field index
     integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
@@ -982,7 +982,7 @@ module mod_clm_histfile
   !
   subroutine hist_update_hbuf_field_1d (t,f,begp,endp,begc,endc, &
                                             begl,endl,begg,endg)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t   ! tape index
     integer(ik4), intent(in) :: f   ! field index
     ! per-proc beginning and ending pft indices
@@ -1216,7 +1216,7 @@ module mod_clm_histfile
   !
   subroutine hist_update_hbuf_field_2d(t,f,begp,endp,begc,endc, &
                                            begl,endl,begg,endg,num2d)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t   ! tape index
     integer(ik4), intent(in) :: f   ! field index
     ! per-proc beginning and ending pft indices
@@ -1449,7 +1449,7 @@ module mod_clm_histfile
   ! accumulations to perform normalization.
   !
   subroutine hfields_normalize (t)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t ! tape index
     integer(ik4) :: f              ! field index
     integer(ik4) :: k              ! 1d index
@@ -1493,7 +1493,7 @@ module mod_clm_histfile
   ! Loop through fields on the tape.
   !
   subroutine hfields_zero (t)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t    ! tape index
     integer(ik4) :: f                 ! field index
     do f = 1, tape(t)%nflds
@@ -1506,7 +1506,7 @@ module mod_clm_histfile
   ! wrapper calls to define the history file contents.
   !
   subroutine htape_create (t, histrest)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t    ! tape index
     ! if creating the history restart file
     logical, intent(in), optional :: histrest
@@ -1622,7 +1622,7 @@ module mod_clm_histfile
   ! contents.
   !
   subroutine htape_timeconst3D(t, mode)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t  ! tape index
     character(len=*), intent(in) :: mode  ! 'define' or 'write'
     integer(ik4) :: c, l, lev, ifld ! indices
@@ -1868,7 +1868,7 @@ module mod_clm_histfile
   ! contents.
   !
   subroutine htape_timeconst(t, mode)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t          ! tape index
     character(len=*), intent(in) :: mode   ! 'define' or 'write'
     integer(ik4) :: mdcur                   ! current day
@@ -2003,7 +2003,7 @@ module mod_clm_histfile
   ! Write history tape.  Issue the call to write the variable.
   !
   subroutine hfields_write(t, mode)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t        ! tape index
     character(len=*), intent(in) :: mode ! 'define' or 'write'
     integer(ik4) :: f         ! field index
@@ -2136,7 +2136,7 @@ module mod_clm_histfile
   ! Write/define 1d info for history tape.
   !
   subroutine hfields_1dinfo(t, mode)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: t         ! tape index
     character(len=*), intent(in) :: mode  ! 'define' or 'write'
     integer(ik4) :: c, l, p   ! indices
@@ -2331,7 +2331,7 @@ module mod_clm_histfile
   !   date = yyyy/mm+1/01 with mscur = 0.
   !
   subroutine hist_htapes_wrapup( rstwr, nlend ,nlomon )
-    implicit none (type, external)
+    implicit none
     logical, intent(in) :: rstwr    ! true => write restart file this step
     logical, intent(in) :: nlend    ! true => end of run on this step
     logical, intent(in) :: nlomon   ! true => end of month on this step
@@ -2472,7 +2472,7 @@ module mod_clm_histfile
   ! so that subsequent time samples are added until the file is full.
   !
   subroutine hist_restart_ncd (ncid, flag, rdate)
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid  ! netcdf file
     character(len=*), intent(in) :: flag      !'read' or 'write'
     ! restart file time stamp for name
@@ -3128,7 +3128,7 @@ module mod_clm_histfile
                         p2c_scale_type, c2l_scale_type, &
                         l2g_scale_type, set_lake, set_nolake, set_urb, &
                         set_nourb, set_spec, default)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: fname       ! field name
     character(len=*), intent(in) :: units       ! units of field
     character(len=1), intent(in) :: avgflag     ! time averaging flag
@@ -3329,7 +3329,7 @@ module mod_clm_histfile
                         ptr_gcell,ptr_lunit,ptr_col,ptr_pft,ptr_lnd, &
                         p2c_scale_type,c2l_scale_type,l2g_scale_type, &
                         set_lake,set_nolake,set_urb,set_nourb,set_spec,default)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: fname   ! field name
     character(len=*), intent(in) :: type2d  ! 2d output type
     character(len=*), intent(in) :: units   ! units of field
@@ -3542,7 +3542,7 @@ module mod_clm_histfile
   ! Get the maximum number of fields on all tapes.
   !
   integer(ik4) function max_nFields()
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: t  ! index
     max_nFields = 0
     do t = 1, ntapes
@@ -3554,7 +3554,7 @@ module mod_clm_histfile
   ! is present (:) in inname, lop it off.
   !
    character(len=max_namlen) function getname (inname)
-     implicit none (type, external)
+     implicit none
      character(len=*), intent(in) :: inname
      integer(ik4) :: length
      integer(ik4) :: i
@@ -3578,7 +3578,7 @@ module mod_clm_histfile
    ! is present (:) in inname, return the character after it as the flag
    !
    character(len=1) function getflag (inname)
-     implicit none (type, external)
+     implicit none
      character(len=*) :: inname ! character string
      integer(ik4) :: length     ! length of inname
      integer(ik4) :: i          ! loop index
@@ -3598,7 +3598,7 @@ module mod_clm_histfile
   end function getflag
 
   subroutine list_index (list, sname, iindex)
-    implicit none (type, external)
+    implicit none
     ! input list of names, possibly ":" delimited
     character(len=*), intent(in) :: list(max_flds)
     ! name to be searched for
@@ -3623,7 +3623,7 @@ module mod_clm_histfile
   ! Determine history dataset filenames.
   !
   character(len=256) function set_hist_filename(hist_freq,nlomon,hist_file)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: hist_freq  !history file frequency
     integer(ik4), intent(in) :: hist_file  !history file index
     logical, intent(in) :: nlomon
@@ -3649,7 +3649,7 @@ module mod_clm_histfile
   ! Set the current pointer index and increment the value of the index.
   !
   integer(ik4) function pointer_index ()
-    implicit none (type, external)
+    implicit none
     integer(ik4), save :: lastindex = 1
     character(len=*), parameter :: subname = 'pointer_index'
     pointer_index = lastindex
@@ -3664,7 +3664,7 @@ module mod_clm_histfile
   ! Add a history variable to the output history tape.
   !
   subroutine hist_add_subscript(name, dim)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: name ! name of subscript
     integer(ik4), intent(in) :: dim      ! dimension of subscript
     character(len=*), parameter :: subname = 'hist_add_subscript'
@@ -3679,7 +3679,7 @@ module mod_clm_histfile
   end subroutine hist_add_subscript
 
   subroutine strip_null(str)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(inout) :: str
     integer(ik4) :: i
     do i = 1, len(str)
@@ -3693,7 +3693,7 @@ module mod_clm_histfile
   ! history file is not full.
   !
   subroutine hist_do_disp(ntapes,nlomon,if_stop,if_disphist,rstwr,nlend)
-    implicit none (type, external)
+    implicit none
     !actual number of history tapes
     integer(ik4), intent(in) :: ntapes
     ! Is end of month

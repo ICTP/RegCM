@@ -49,7 +49,7 @@ module mod_che_isorropia
   use mod_intkinds
   use mod_realkinds
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -64,7 +64,7 @@ module mod_che_isorropia
     use mod_che_indices
     use mod_che_species
     use mod_che_molwg
-    implicit none (type, external)
+    implicit none
     character(len = 15) :: scasi
     integer(ik4), parameter :: nctrl = 2
     integer(ik4), parameter :: nother = 9
@@ -312,7 +312,7 @@ module mod_che_isorropia
   subroutine isoropia(wi,rhi,tempi,cntrl,wt,gas,aerliq,aersld,scasi,    &
                         other)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
     real(rkx) :: rhi, tempi
     integer(ik4), parameter :: nctrl = 2
@@ -819,7 +819,7 @@ module mod_che_isorropia
   subroutine setparm(wftypi,iacalci,epsi,maxiti,nsweepi,epsacti,ndivi,  &
                        nadji)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: epsacti, epsi
     integer(ik4) :: iacalci, maxiti, nadji, ndivi, nsweepi
     integer(ik4) :: wftypi
@@ -857,7 +857,7 @@ module mod_che_isorropia
   subroutine getparm(wftypi,iacalci,epsi,maxiti,nsweepi,epsacti,ndivi,  &
                        nadji)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: epsacti, epsi
     integer(ik4) :: iacalci, maxiti, nadji, ndivi, nsweepi
     integer(ik4) :: wftypi
@@ -890,7 +890,7 @@ module mod_che_isorropia
 !
   subroutine init1(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
     integer(ik4) :: i, irh
     real(rkx), dimension(ncomp) :: wi
@@ -1167,7 +1167,7 @@ module mod_che_isorropia
 !
   subroutine init2(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
     integer(ik4) :: i, irh
     real(rkx), dimension(ncomp) :: wi
@@ -1461,7 +1461,7 @@ module mod_che_isorropia
 !
   subroutine isoinit3(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
     integer(ik4) :: i, irh
     real(rkx), dimension(ncomp) :: wi
@@ -1830,7 +1830,7 @@ module mod_che_isorropia
 !
   subroutine init4(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
     integer(ik4) :: i, irh
     real(rkx), dimension(ncomp) :: wi
@@ -2369,7 +2369,7 @@ module mod_che_isorropia
 !
   subroutine adjust(wi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: excl, exnh4, exno3, exs4
     real(rkx), dimension(:) :: wi
 !
@@ -2563,7 +2563,7 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function getasr(so4i,rhi)
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1, rat, wf
     integer(ik4) :: ia1, indr, inds, indsh, indsl, iposh, iposl
     integer, parameter :: nso4s = 14
@@ -2684,7 +2684,7 @@ module mod_che_isorropia
 !
   subroutine calcha
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: alfa, delt, diak, x
     real(rkx) :: kapa
 ! character errinf*40
@@ -2737,7 +2737,7 @@ module mod_che_isorropia
 !
   subroutine calchap
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: alfa, delt
 !
 ! *** is there a liquid phase?
@@ -2774,7 +2774,7 @@ module mod_che_isorropia
 !
   subroutine calcna
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: alfa, delt, diak, x
     real(rkx) :: kapa
 ! character errinf*40
@@ -2826,7 +2826,7 @@ module mod_che_isorropia
 !
   subroutine calcnap
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: alfa, delt
 !
 ! *** is there a liquid phase?
@@ -2867,7 +2867,7 @@ module mod_che_isorropia
 !
   subroutine calcnh3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1, bb, cc, chi1, chi2, diak, psi
 !
 ! *** is there a liquid phase?
@@ -2916,7 +2916,7 @@ module mod_che_isorropia
 !
   subroutine calcnh3p
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1
 !
 ! *** is there a liquid phase?
@@ -2947,7 +2947,7 @@ module mod_che_isorropia
 !
   subroutine calcnha
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a3, a4, c1, c2, c3, chi3, chi4, delcl, delno, omega
     integer(ik4) :: islv
     real(rkx) :: m1, m2, m3
@@ -3056,7 +3056,7 @@ module mod_che_isorropia
 !
   subroutine calcnhp
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a3, a4, delt
 !
 ! *** is there a liquid phase?
@@ -3171,7 +3171,7 @@ module mod_che_isorropia
 !
   subroutine calcamaq(nh4i,ohi,delt)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a22, akw, bb, cc, dd, del1, del2, delt
     real(rkx) :: ohi, om1, om2
     real(rkx) :: nh4i
@@ -3227,7 +3227,7 @@ module mod_che_isorropia
 !
   subroutine calcamaq2(ggnh3,nh4i,ohi,nh3aq)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a22, akw, alf1, alf2, bb, cc, del, ggnh3, ohi
     real(rkx) :: nh4i, nh3aq
 !
@@ -3269,7 +3269,7 @@ module mod_che_isorropia
 !
   subroutine calcclaq(cli,hi,delt)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a32, bb, cc, dd, del1, del2, delt, hi, om1, om2
     real(rkx) :: cli
 !
@@ -3315,7 +3315,7 @@ module mod_che_isorropia
 !
   subroutine calcclaq2(ggcl,cli,hi,claq)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a32, akw, alf1, alf2, claq, coef, del1, ggcl, hi
     real(rkx) :: cli
 !
@@ -3355,7 +3355,7 @@ module mod_che_isorropia
 !
   subroutine calcniaq(no3i,hi,delt)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a42, bb, cc, dd, del1, del2, om1, om2
     real(rkx) :: no3i, hi, delt
 !
@@ -3407,7 +3407,7 @@ module mod_che_isorropia
 !
   subroutine calcniaq2(ggno3,no3i,hi,no3aq)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a42, akw, alf1, alf2, alf3, bb, cc, del1, ggno3, hi
     real(rkx) :: no3i, no3aq
 !
@@ -3451,7 +3451,7 @@ module mod_che_isorropia
   subroutine calcmr
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aml5, frcl, frnh4, frno3, hso4i, so4i, tots4
     integer(ik4) :: i
     character(len=1) :: sc
@@ -3728,15 +3728,15 @@ module mod_che_isorropia
 !
   subroutine calcmdrh(rhi,rhdry,rhliq,drycase,liqcase)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     interface
       subroutine drycase
-      implicit none (type, external)
+      implicit none
       end subroutine drycase
     end interface
     interface
       subroutine liqcase
-      implicit none (type, external)
+      implicit none
       end subroutine liqcase
     end interface
     real(rkx) :: clco, cna2so, cnaclo, cnahso, cnano, cnh42so, cnh4clo, &
@@ -3885,15 +3885,15 @@ module mod_che_isorropia
 !
   subroutine calcmdrh2(rhi,rhdry,rhliq,drycase,liqcase)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     interface
       subroutine drycase
-      implicit none (type, external)
+      implicit none
       end subroutine drycase
     end interface
     interface
       subroutine liqcase
-      implicit none (type, external)
+      implicit none
       end subroutine liqcase
     end interface
     real(rkx) :: ccac2l, ccan32o, ccaso, ck2so, ckclo, ckhso, ckn3o, &
@@ -4108,15 +4108,15 @@ module mod_che_isorropia
 !
   subroutine calcmdrp(rhi,rhdry,rhliq,drycase,liqcase)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     interface
       subroutine drycase
-      implicit none (type, external)
+      implicit none
       end subroutine drycase
     end interface
     interface
       subroutine liqcase
-      implicit none (type, external)
+      implicit none
       end subroutine liqcase
     end interface
     real(rkx) :: a2, a3, a4, a8, clco, cna2so, cnaclo, cnahso, cnano, &
@@ -4252,15 +4252,15 @@ module mod_che_isorropia
 !
   subroutine calcmdrpii(rhi,rhdry,rhliq,drycase,liqcase)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     interface
       subroutine drycase
-      implicit none (type, external)
+      implicit none
       end subroutine drycase
     end interface
     interface
       subroutine liqcase
-      implicit none (type, external)
+      implicit none
       end subroutine liqcase
     end interface
     real(rkx) :: a2, a3, a4, a8, ccac2l, ccan32o, ccaso, ck2so, ckclo ,&
@@ -4432,7 +4432,7 @@ module mod_che_isorropia
 !
   subroutine calchs4(hi,so4i,hso4i,delta)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a8, bb, cc, dd, delta, delta1, delta2, hi, &
          hso4i, so4i, sqdd
 !
@@ -4494,7 +4494,7 @@ module mod_che_isorropia
 !
   subroutine calcph(gg,hi,ohi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cn, dd, gg, hi, ohi
 !
     akw = xkw*rh*water*water
@@ -4534,7 +4534,7 @@ module mod_che_isorropia
 !
   subroutine calcact
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     if ( w(1)+w(4)+w(5)+w(6)+w(7)+w(8)<=tiny1 ) then
          !a ,k ,mg ,na ,cl ,no3 = 0
       call calcact1
@@ -4567,7 +4567,7 @@ module mod_che_isorropia
 !
   subroutine calcact4
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: errin, errou
     integer(ik4) :: i, j
     real(rkx), dimension(6,4) :: g0
@@ -4719,12 +4719,12 @@ module mod_che_isorropia
 
     contains
       real(rkx) function ga(i,j)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: i, j
         ga = (f1(i)/z(i)+f2a(j)/z(j+3))/(z(i)+z(j+3)) - h
       end function ga
       real(rkx) function gb(i,j)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: i, j
         gb = (f1(i)/z(i+4)+f2b(j)/z(j+3))/(z(i+4)+z(j+3)) - h
       end function gb
@@ -4748,7 +4748,7 @@ module mod_che_isorropia
 !
   subroutine calcact3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: errin, errou
     integer(ik4) :: i, j
     real(rkx), dimension(6,4) :: g0
@@ -4870,7 +4870,7 @@ module mod_che_isorropia
     iclact = iclact + 1                  ! increment activity call counter
     contains
       real(rkx) function g(i,j)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: i, j
         g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
       end function g
@@ -4894,7 +4894,7 @@ module mod_che_isorropia
 !
   subroutine calcact2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: errin, errou
     integer(ik4) :: i, j
     real(rkx), dimension(6,4) :: g0
@@ -5048,7 +5048,7 @@ module mod_che_isorropia
     iclact = iclact + 1                  ! increment activity call counter
     contains
       real(rkx) function g(i,j)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: i, j
         g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
       end function g
@@ -5072,7 +5072,7 @@ module mod_che_isorropia
 !
   subroutine calcact1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: errin, errou
     integer(ik4) :: i, j
     real(rkx), dimension(6,4) :: g0
@@ -5246,7 +5246,7 @@ module mod_che_isorropia
 !
   subroutine rstgam
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
     do i = 1, npair
       gama(i) = 0.1_rkx
@@ -5270,7 +5270,7 @@ module mod_che_isorropia
 !
   subroutine kmful4(ionic,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10, &
                     g11,g12,g15,g16,g17,g18,g19,g20,g21,g22,g23)
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cf1, cf2, g01, g02, g03, g04, g05, g06, g07, g08, &
          g09, g10, g11, g12, g15, g16, g17, g18, g19, g20
     real(rkx) :: g21, g22, g23, sion, tc, ti, z01, z02, z03, z04, &
@@ -5354,7 +5354,7 @@ module mod_che_isorropia
 !
   subroutine kmful3(ionic,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10, &
                       g11,g12)
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cf1, cf2, g01, g02, g03, g04, g05, g06, g07, g08, &
          g09, g10, g11, g12, sion, tc, ti, z01, z02, z03
     real(rkx) :: z04, z05, z06, z07, z08, z10, z11
@@ -5416,7 +5416,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine kmful2(ionic,temp,g04,g05,g07,g08,g09,g10)
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cf1, cf2, g04, g05, g07, g08, g09, g10, sion, &
          tc, ti, z01, z02, z03, z04, z05, z06, z07, z08, z10
     real(rkx) :: z11
@@ -5478,7 +5478,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine kmful1(ionic,temp,g04,g07,g08)
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cf1, cf2, g04, g07, g08, sion, tc, ti, &
          z01, z02, z03, z04, z05, z06, z07, z08, z10, z11
     real(rkx) :: ionic, temp
@@ -5538,7 +5538,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine mkbi(q,ionic,sion,zip,bi)
-    implicit none (type, external)
+    implicit none
     real(rkx) :: b, bi, c, q, sion, xx, zip
     real(rkx) :: ionic
     b = 0.75_rkx - .065_rkx*q
@@ -5567,7 +5567,7 @@ module mod_che_isorropia
 !
   subroutine kmtab(ino,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10,g11, &
                      g12,g15,g16,g17,g18,g19,g20,g21,g22,g23)
-    implicit none (type, external)
+    implicit none
     real(rkx) :: g01, g02, g03, g04, g05, g06, g07, g08, g09, &
                  g10, g11, g12, g13, g14, g15, g16, g17, g18, &
                  g19, g20, g21, g22, g23
@@ -5657,7 +5657,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine km198(ionic,binarr)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ipos
     real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
@@ -7485,7 +7485,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine km223(ionic,binarr)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ipos
     real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
@@ -9318,7 +9318,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine km248(ionic,binarr)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ipos
     real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
@@ -11148,7 +11148,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine km273(ionic,binarr)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ipos
     real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
@@ -12969,7 +12969,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine km298(ionic,binarr)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ipos
     real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
@@ -14784,7 +14784,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine km323(ionic,binarr)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ipos
     real(rkx), dimension(23) :: binarr
     real(rkx) :: ionic
@@ -16603,7 +16603,7 @@ module mod_che_isorropia
 !**********************************************************************
 !
   subroutine chrbln(str,iblk)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, ilen
     character(len=*) :: str
     integer(ik4) :: iblk
@@ -16639,7 +16639,7 @@ module mod_che_isorropia
 !************************************************************************
 !
   subroutine shftrght(chr)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, i1, i2
     character(len=*) :: chr
     i1 = len(chr)                ! total length of string
@@ -16679,7 +16679,7 @@ module mod_che_isorropia
 !************************************************************************
 !
   subroutine rplstr(string,old,new,ierr)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ilo, ip
     character(len=*) :: string, old, new
     integer(ik4) :: ierr
@@ -16740,7 +16740,7 @@ module mod_che_isorropia
 !**********************************************************************
 !
   subroutine inptd(var,def,prompt,prfmt,ierr)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: iend
     character(len=*) :: prompt, prfmt
     character(len=128) :: buffer
@@ -16804,7 +16804,7 @@ module mod_che_isorropia
 !**********************************************************************
 !
   subroutine pushend(iunit)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: iunit, ierr
 !
 !**********************************************************************
@@ -16854,7 +16854,7 @@ module mod_che_isorropia
 !**********************************************************************
 !
   subroutine appendext(filename,defext,overwrite)
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: idot, iend
     character(len=*) :: filename, defext
     logical :: overwrite
@@ -16898,7 +16898,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine poly3(a1,a2,a3,root,islv)
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1, a2, a3, coef, d, eps, expon, pi, q, r, &
          root, s, sqd, ssig, t, thet, thet1, thet2, tsig, zero
     integer(ik4) :: i, islv, ix
@@ -16997,7 +16997,7 @@ module mod_che_isorropia
 !
   subroutine poly3b(a1,a2,a3,rtlw,rthi,root,islv)
 !
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1, a2, a3, dx, root, rthi, &
          rtlw, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i, islv
@@ -17060,7 +17060,7 @@ module mod_che_isorropia
     islv = 0
     contains
       real(rkx) function func(x)
-        implicit none (type, external)
+        implicit none
         real(rkx), intent(in) :: x
         func = x**30 + a1*x**2 + a2*x + a3
       end function func
@@ -17104,7 +17104,7 @@ module mod_che_isorropia
 !======================================================================
 !
     function ex10(x,k)
-    implicit none (type, external)
+    implicit none
     real(rkx) :: x, ex10, y, k
     real(rkx), dimension(20) :: aint10
     real(rkx), dimension(200) :: adec10
@@ -17202,7 +17202,7 @@ module mod_che_isorropia
 !
   subroutine pusherr(ierr,errinf)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ierr
     character(len=*) :: errinf
 !
@@ -17233,7 +17233,7 @@ module mod_che_isorropia
 !
   subroutine iserrinf(errstki,errmsgi,noferi,stkofli)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, noferi
     character(len=40), dimension(nerrmx) :: errmsgi
     integer(ik4), dimension(nerrmx) :: errstki
@@ -17264,7 +17264,7 @@ module mod_che_isorropia
 !
   subroutine errstat(io,ierr,errinf)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: iend, ierr, io, iok
     character(len=4) :: cer
     character(len=29) :: ncis
@@ -17448,7 +17448,7 @@ module mod_che_isorropia
 !
   subroutine isorinf(versi,ncmp,nion,naqgas,nsol,nerr,tin,grt)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: grt, tin
     integer(ik4) :: naqgas, ncmp, nerr, nion, nsol
     character(len=*) :: versi
@@ -17483,7 +17483,7 @@ module mod_che_isorropia
 !
   subroutine isrp1f(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dc, rhi, tempi
     real(rkx), dimension(ncomp) :: wi
 !
@@ -17581,7 +17581,7 @@ module mod_che_isorropia
 !
   subroutine isrp2f(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: rhi, tempi
     real(rkx), dimension(ncomp) :: wi
 !
@@ -17698,7 +17698,7 @@ module mod_che_isorropia
 !
   subroutine isrp3f(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: rest, rhi, tempi
     real(rkx), dimension(ncomp) :: wi
 !
@@ -17875,7 +17875,7 @@ module mod_che_isorropia
 !
   subroutine isrp4f(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafri, ccacl2i, ccano32i, ccaso4i, clfri, cmgcl2i, &
          cmgno32i, cmgso4i, cna2so4i, cnacli, cnano3i, frmgi,       &
          frso4i, rest, rest1, rest2, rest3, rhi, tempi
@@ -18219,7 +18219,7 @@ module mod_che_isorropia
 !
   subroutine calca2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, omehi, omelo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
 !
@@ -18294,7 +18294,7 @@ module mod_che_isorropia
 !
   real(rkx) function funca2(omegi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1, a2, a3, denom, omegi, psi, zeta
     integer(ik4) :: i
     real(rkx) :: lamda
@@ -18360,7 +18360,7 @@ module mod_che_isorropia
 !
   subroutine calca1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     cnh42s4 = w(2)
     gnh3 = max(w(3)-2.0*cnh42s4,zero)
   end subroutine calca1
@@ -18388,7 +18388,7 @@ module mod_che_isorropia
 !
   subroutine calcb4
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: ak1, bb, bet, cc, dd, gam
     integer(ik4) :: i
 !
@@ -18454,7 +18454,7 @@ module mod_che_isorropia
 !
   subroutine calcb3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: tlc, tnh42s4, tnh4hs4, x, y
 !
 ! *** calculate equivalent amount of hso4 and so4
@@ -18504,7 +18504,7 @@ module mod_che_isorropia
 !
   subroutine calcb3a(tlc,tnh42s4)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dz, tlc, tnh42s4, y1, y2, y3, &
          yhi, ylo, z1, z2, z3, zhi, zk, zlo
     integer(ik4) :: i
@@ -18592,7 +18592,7 @@ module mod_che_isorropia
 !
   real(rkx) function funcb3a(zk,y,x)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dd, grat1, x, y, zk
     integer(ik4) :: i
     real(rkx) :: kk
@@ -18649,7 +18649,7 @@ module mod_che_isorropia
 !
   subroutine calcb3b(y,x)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dd, grat1, x, y
     integer(ik4) :: i
     real(rkx) :: kk
@@ -18704,7 +18704,7 @@ module mod_che_isorropia
 !
   subroutine calcb2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: x, y
 !
 ! *** calculate equivalent amount of hso4 and so4
@@ -18751,7 +18751,7 @@ module mod_che_isorropia
 !
   subroutine calcb2a(tlc,tnh42s4)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: tlc, tnh42s4
 !
 ! *** regime depends upon the ambient relative humidity
@@ -18793,7 +18793,7 @@ module mod_che_isorropia
 !
   subroutine calcb2a2(tlc,tnh42s4)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: clco, cnh42so, onemwf, tlc, tnh42s4, wf
 !
 ! *** find weight factor **********************************************
@@ -18858,7 +18858,7 @@ module mod_che_isorropia
 !
   subroutine calcb2b(tlc,tnh4hs4)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, tlc, tnh4hs4, x1, x2, x3, &
          y1, y2, y3, yhi, ylo, zhi, zlo
     integer(ik4) :: i
@@ -18946,7 +18946,7 @@ module mod_che_isorropia
 !
   real(rkx) function funcb2b(x,tnh4hs4,tlc)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, grat2, omega, parm, tlc, tnh4hs4, x
     integer(ik4) :: i
 !
@@ -19006,7 +19006,7 @@ module mod_che_isorropia
 !
   subroutine calcb1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -19047,7 +19047,7 @@ module mod_che_isorropia
 !
   subroutine calcb1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: x, y
 !
 ! *** setup parameters ************************************************
@@ -19094,7 +19094,7 @@ module mod_che_isorropia
 !
   subroutine calcb1b
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: clco, cnh42so, cnh4hso, onemwf, wf
 !
 ! *** find weight factor **********************************************
@@ -19156,7 +19156,7 @@ module mod_che_isorropia
 !
   subroutine calcc2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, parm, psi
     integer(ik4) :: i
     real(rkx) :: lamda, kapa
@@ -19212,7 +19212,7 @@ module mod_che_isorropia
 !
   subroutine calcc1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, x1, x2, x3, y1, y2, y3, yhi, ylo
     integer(ik4) :: i
     real(rkx) :: klo, khi
@@ -19304,7 +19304,7 @@ module mod_che_isorropia
 !
   real(rkx) function funcc1(kapa)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, par1, par2, psi
     integer(ik4) :: i
     real(rkx) :: kapa, lamda
@@ -19365,7 +19365,7 @@ module mod_che_isorropia
   subroutine calcd3
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, p4, psi4hi, psi4lo, &
          x1, x2, x3, y1, y2, y3, yhi, ylo, yy
     integer(ik4) :: i
@@ -19499,7 +19499,7 @@ module mod_che_isorropia
   real(rkx) function funcd3(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: abb, ahi, bb, denm, p4
     integer(ik4) :: i
 !
@@ -19606,7 +19606,7 @@ module mod_che_isorropia
   subroutine calcd2
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, p4, psi4hi, psi4lo, &
          x1, x2, x3, y1, y2, y3, yhi, ylo, yy
     integer(ik4) :: i
@@ -19745,7 +19745,7 @@ module mod_che_isorropia
   real(rkx) function funcd2(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: abb, ahi, bb, denm, p4
     integer(ik4) :: i, islv
 !
@@ -19839,7 +19839,7 @@ module mod_che_isorropia
 !
   subroutine calcd1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -19879,7 +19879,7 @@ module mod_che_isorropia
 !
   subroutine calcd1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: diak, om, omps, parm, ps, x, ze
 !
 ! *** setup parameters ************************************************
@@ -19926,7 +19926,7 @@ module mod_che_isorropia
   subroutine calcg5
     use mod_che_common_isorropia
     use mod_che_common_caseg
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -20029,7 +20029,7 @@ module mod_che_isorropia
   real(rkx) function funcg5a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseg
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akk, bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
 !
@@ -20124,7 +20124,7 @@ module mod_che_isorropia
   subroutine calcg4
     use mod_che_common_isorropia
     use mod_che_common_caseg
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -20226,7 +20226,7 @@ module mod_che_isorropia
   real(rkx) function funcg4a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseg
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, cli, dd, hi, ohi, so4i, x
     integer(ik4) :: i, islv
     real(rkx) :: nai, nh4i, no3i
@@ -20346,7 +20346,7 @@ module mod_che_isorropia
 !
   subroutine calcg3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of water and of the rh
@@ -20398,7 +20398,7 @@ module mod_che_isorropia
   subroutine calcg3a
     use mod_che_common_isorropia
     use mod_che_common_caseg
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
     integer(ik4) :: i, islv
@@ -20519,7 +20519,7 @@ module mod_che_isorropia
   real(rkx) function funcg3a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseg
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, psi20, smin, x
     integer(ik4) :: i, islv
 !
@@ -20618,7 +20618,7 @@ module mod_che_isorropia
 !
   subroutine calcg2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of nitrates
@@ -20686,7 +20686,7 @@ module mod_che_isorropia
   subroutine calcg2a
     use mod_che_common_isorropia
     use mod_che_common_caseg
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
     integer(ik4) :: i, islv
@@ -20810,7 +20810,7 @@ module mod_che_isorropia
   real(rkx) function funcg2a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseg
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, delt, deno, hi, ohi, &
          psi20, psi31, psi32, smin, x
     integer(ik4) :: i, islv
@@ -20936,7 +20936,7 @@ module mod_che_isorropia
 !
   subroutine calcg1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -20976,7 +20976,7 @@ module mod_che_isorropia
 !
   subroutine calcg1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1, a2, alf, bb, bet, cc, dd, &
          dd1, dd2, frna, gam, rtsq, so4fr, sqdd, &
          sqdd1, sqdd2, theta1, theta2
@@ -21117,7 +21117,7 @@ module mod_che_isorropia
   subroutine calch6
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -21217,7 +21217,7 @@ module mod_che_isorropia
   real(rkx) function funch6a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
 !
@@ -21317,7 +21317,7 @@ module mod_che_isorropia
   subroutine calch5
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -21426,7 +21426,7 @@ module mod_che_isorropia
   real(rkx) function funch5a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i, islv
 !
@@ -21538,7 +21538,7 @@ module mod_che_isorropia
   subroutine calch4
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -21647,7 +21647,7 @@ module mod_che_isorropia
   real(rkx) function funch4a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, cc, dd, delt, hi, ohi, psi31, psi32, smin, x
     integer(ik4) :: i, islv
 !
@@ -21784,7 +21784,7 @@ module mod_che_isorropia
   subroutine calch3
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -21890,7 +21890,7 @@ module mod_che_isorropia
   real(rkx) function funch3a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, cc, dd, delt, diak, hi, ohi, &
          psi31, psi32, smin, x
     integer(ik4) :: i, islv
@@ -22041,7 +22041,7 @@ module mod_che_isorropia
 !
   subroutine calch2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends on the existance of nitrates
 ! ***********************
@@ -22084,7 +22084,7 @@ module mod_che_isorropia
   subroutine calch2a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -22181,7 +22181,7 @@ module mod_che_isorropia
   real(rkx) function funch2a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a64, aa, bb, cc, dd, delt, diak, hi, ohi, psi31, &
          psi32, smin, x
     integer(ik4) :: i, islv
@@ -22335,7 +22335,7 @@ module mod_che_isorropia
 !
   subroutine calch1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -22370,7 +22370,7 @@ module mod_che_isorropia
 !
   subroutine calch1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1, a2, alf, bb, bet, cc, clfr, dd, dd1, dd2, &
          gam, rtsq, sqdd, sqdd1, sqdd2, theta1, theta2
     real(rkx) :: lamda, lamda1, lamda2, kapa, kapa1, kapa2, nafr, &
@@ -22513,7 +22513,7 @@ module mod_che_isorropia
   subroutine calci6
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd
     integer(ik4) :: i
 !
@@ -22594,7 +22594,7 @@ module mod_che_isorropia
   subroutine calci5
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -22705,7 +22705,7 @@ module mod_che_isorropia
   real(rkx) function funci5a(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, p4
     integer(ik4) :: i
 !
@@ -22777,7 +22777,7 @@ module mod_che_isorropia
   subroutine calci4
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -22887,7 +22887,7 @@ module mod_che_isorropia
   real(rkx) function funci4a(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, p4
     integer(ik4) :: i
 !
@@ -22970,7 +22970,7 @@ module mod_che_isorropia
 !
   subroutine calci3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -23021,7 +23021,7 @@ module mod_che_isorropia
   subroutine calci3a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
          y1, y2, y3, yhi
     integer(ik4) :: i
@@ -23119,7 +23119,7 @@ module mod_che_isorropia
   real(rkx) function funci3a(p2)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, p2, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi
     integer(ik4) :: i
@@ -23212,7 +23212,7 @@ module mod_che_isorropia
   real(rkx) function funci3b(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, p4
     integer(ik4) :: i
 !
@@ -23298,7 +23298,7 @@ module mod_che_isorropia
 !
   subroutine calci2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -23349,7 +23349,7 @@ module mod_che_isorropia
   subroutine calci2a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
          y1, y2, y3, yhi
     integer(ik4) :: i
@@ -23447,7 +23447,7 @@ module mod_che_isorropia
   real(rkx) function funci2a(p2)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, cc, dd, p2
     integer(ik4) :: i, islv
 !
@@ -23557,7 +23557,7 @@ module mod_che_isorropia
 !
   subroutine calci1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -23596,7 +23596,7 @@ module mod_che_isorropia
 !
   subroutine calci1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: frnh4, frso4
 !
 ! *** calculate non volatile solids ***********************************
@@ -23651,7 +23651,7 @@ module mod_che_isorropia
 !
   subroutine calcj3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a3, bb, cc, chi1, chi2, dd, psi1, psi2
     integer(ik4) :: i
     real(rkx) :: lamda, kapa
@@ -23724,7 +23724,7 @@ module mod_che_isorropia
   subroutine calcj2
     use mod_che_common_isorropia
     use mod_che_common_casej
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi1hi, psi1lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -23813,7 +23813,7 @@ module mod_che_isorropia
   real(rkx) function funcj2(p1)
     use mod_che_common_isorropia
     use mod_che_common_casej
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, p1
     integer(ik4) :: i
 !
@@ -23887,7 +23887,7 @@ module mod_che_isorropia
   subroutine calcj1
     use mod_che_common_isorropia
     use mod_che_common_casej
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi1hi, psi1lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -23976,7 +23976,7 @@ module mod_che_isorropia
   real(rkx) function funcj1(p1)
     use mod_che_common_isorropia
     use mod_che_common_casej
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, p1
     integer(ik4) :: i
 !
@@ -24050,7 +24050,7 @@ module mod_che_isorropia
   subroutine calco7
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
     integer(ik4) :: i
@@ -24167,7 +24167,7 @@ module mod_che_isorropia
   real(rkx) function funco7(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
 !
@@ -24273,7 +24273,7 @@ module mod_che_isorropia
   subroutine calco6
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
     integer(ik4) :: i
@@ -24388,7 +24388,7 @@ module mod_che_isorropia
   real(rkx) function funco6(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i, islv
 !
@@ -24506,7 +24506,7 @@ module mod_che_isorropia
   subroutine calco5
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
     integer(ik4) :: i
@@ -24620,7 +24620,7 @@ module mod_che_isorropia
   real(rkx) function funco5(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i, islv
 !
@@ -24746,7 +24746,7 @@ module mod_che_isorropia
   subroutine calco4
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
     integer(ik4) :: i, islv
@@ -24878,7 +24878,7 @@ module mod_che_isorropia
   real(rkx) function funco4(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i, islv
 !
@@ -24997,7 +24997,7 @@ module mod_che_isorropia
 !
   subroutine calco3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of water and of the rh
@@ -25049,7 +25049,7 @@ module mod_che_isorropia
   subroutine calco3a
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
     integer(ik4) :: i, islv
@@ -25178,7 +25178,7 @@ module mod_che_isorropia
   real(rkx) function funco3a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a65, bb, cc, dd, deno, hi, ohi, psi20, smin, x
     integer(ik4) :: i, islv
 !
@@ -25307,7 +25307,7 @@ module mod_che_isorropia
 !
   subroutine calco2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of nitrates
@@ -25375,7 +25375,7 @@ module mod_che_isorropia
   subroutine calco2a
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, nafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i, islv
@@ -25507,7 +25507,7 @@ module mod_che_isorropia
   real(rkx) function funco2a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a65, bb, cc, dd, delt, deno, hi, ohi, psi20, &
          psi31, psi32, smin, x
     integer(ik4) :: i, islv
@@ -25662,7 +25662,7 @@ module mod_che_isorropia
 !
   subroutine calco1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -25700,7 +25700,7 @@ module mod_che_isorropia
 !
   subroutine calco1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1, a2, alf, bb, bet, cafr, cc, dd, dd1, dd2, &
          frk, frmg, frna, gam, rtsq, so4fr, sqdd, sqdd1, sqdd2, &
          theta1, theta2
@@ -25851,7 +25851,7 @@ module mod_che_isorropia
   subroutine calcm8
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -25956,7 +25956,7 @@ module mod_che_isorropia
   real(rkx) function funcm8(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
 !
@@ -26066,7 +26066,7 @@ module mod_che_isorropia
   subroutine calcm7
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -26171,7 +26171,7 @@ module mod_che_isorropia
   real(rkx) function funcm7(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i, islv
 !
@@ -26291,7 +26291,7 @@ module mod_che_isorropia
   subroutine calcm6
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -26396,7 +26396,7 @@ module mod_che_isorropia
   real(rkx) function funcm6(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, cc, dd, hi, ohi, riz, smin, x
     integer(ik4) :: i, islv
 !
@@ -26543,7 +26543,7 @@ module mod_che_isorropia
   subroutine calcm5
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -26648,7 +26648,7 @@ module mod_che_isorropia
   real(rkx) function funcm5(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, cc, dd, hi, ohi, riz, smin, x
     integer(ik4) :: i, islv
 !
@@ -26795,7 +26795,7 @@ module mod_che_isorropia
   subroutine calcm4
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -26909,7 +26909,7 @@ module mod_che_isorropia
   real(rkx) function funcm4(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, cc, dd, delt, hi, ohi, psi31, psi32, riz, &
          smin, x
     integer(ik4) :: i, islv
@@ -27086,7 +27086,7 @@ module mod_che_isorropia
   subroutine calcm3
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -27200,7 +27200,7 @@ module mod_che_isorropia
   real(rkx) function funcm3(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, cc, dd, delt, diak, hi, ohi, psi31, psi32, &
          riz, smin, x
     integer(ik4) :: i, islv
@@ -27399,7 +27399,7 @@ module mod_che_isorropia
 !
   subroutine calcm2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends on the existance of nitrates
 ! ***********************
@@ -27442,7 +27442,7 @@ module mod_che_isorropia
   subroutine calcm2a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -27547,7 +27547,7 @@ module mod_che_isorropia
   real(rkx) function funcm2a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a64, aa, bb, cc, dd, delt, diak, hi, ohi, psi31, &
          psi32, riz, smin, x
     integer(ik4) :: i, islv
@@ -27759,7 +27759,7 @@ module mod_che_isorropia
 !
   subroutine calcm1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -27792,7 +27792,7 @@ module mod_che_isorropia
 
   subroutine calcm1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1, a2, alf, bb, bet, cafr, cc, clfr, dd, &
          dd1, dd2, frk, frmg, gam, rtsq, so4fr, sqdd, sqdd1, &
          sqdd2, theta1, theta2
@@ -27945,7 +27945,7 @@ module mod_che_isorropia
   subroutine calcp13
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -28075,7 +28075,7 @@ module mod_che_isorropia
   real(rkx) function funcp13(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
 !
@@ -28223,7 +28223,7 @@ module mod_che_isorropia
   subroutine calcp12
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -28352,7 +28352,7 @@ module mod_che_isorropia
   real(rkx) function funcp12(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, hi, ohi, smin, x
     integer(ik4) :: i, islv
 !
@@ -28513,7 +28513,7 @@ module mod_che_isorropia
   subroutine calcp11
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -28642,7 +28642,7 @@ module mod_che_isorropia
   real(rkx) function funcp11(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delta, gkama, hi, &
          ohi, smin, vhta, x
     integer(ik4) :: i, islv
@@ -28813,7 +28813,7 @@ module mod_che_isorropia
   subroutine calcp10
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -28942,7 +28942,7 @@ module mod_che_isorropia
   real(rkx) function funcp10(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delta, gkama, hi, &
          ohi, smin, vhta, x
     integer(ik4) :: i, islv
@@ -29113,7 +29113,7 @@ module mod_che_isorropia
   subroutine calcp9
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -29242,7 +29242,7 @@ module mod_che_isorropia
   real(rkx) function funcp9(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delta, gkama, hi, &
          ohi, smin, vhta, x
     integer(ik4) :: i, islv
@@ -29420,7 +29420,7 @@ module mod_che_isorropia
   subroutine calcp8
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -29549,7 +29549,7 @@ module mod_che_isorropia
   real(rkx) function funcp8(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, gkama, &
          hi, ohi, psi31, psi32, smin, vhta, x
     integer(ik4) :: i, islv
@@ -29755,7 +29755,7 @@ module mod_che_isorropia
   subroutine calcp7
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -29884,7 +29884,7 @@ module mod_che_isorropia
   real(rkx) function funcp7(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi31, psi32, smin, vhta, vita, x
     integer(ik4) :: i, islv
@@ -30099,7 +30099,7 @@ module mod_che_isorropia
   subroutine calcp6
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -30228,7 +30228,7 @@ module mod_che_isorropia
   real(rkx) function funcp6(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi31, psi32, smin, vhta, vita, x
     integer(ik4) :: i, islv
@@ -30452,7 +30452,7 @@ module mod_che_isorropia
 !
   subroutine calcp5
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of water and of the rh
@@ -30506,7 +30506,7 @@ module mod_che_isorropia
   subroutine calcp5a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -30635,7 +30635,7 @@ module mod_che_isorropia
   real(rkx) function funcp5(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, &
          vhta, vita, x
@@ -30888,7 +30888,7 @@ module mod_che_isorropia
 !
   subroutine calcp4
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of water and of the rh
@@ -30942,7 +30942,7 @@ module mod_che_isorropia
   subroutine calcp4a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -31070,7 +31070,7 @@ module mod_che_isorropia
   real(rkx) function funcp4(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, vhta, &
          vita, x
@@ -31323,7 +31323,7 @@ module mod_che_isorropia
 !
   subroutine calcp3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of water and of the rh
@@ -31377,7 +31377,7 @@ module mod_che_isorropia
   subroutine calcp3a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -31506,7 +31506,7 @@ module mod_che_isorropia
   real(rkx) function funcp3(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, vhta, &
          vita, x
@@ -31767,7 +31767,7 @@ module mod_che_isorropia
 !
   subroutine calcp2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -31847,7 +31847,7 @@ module mod_che_isorropia
   subroutine calcp2a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, &
          frno3, frso4, psi6hi, psi6lo, x1, x2,  &
          x3, y1, y2, y3
@@ -31977,7 +31977,7 @@ module mod_che_isorropia
   real(rkx) function funcp2a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, vhta, &
          vita, x
@@ -32234,7 +32234,7 @@ module mod_che_isorropia
 !
   subroutine calcp1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -32269,7 +32269,7 @@ module mod_che_isorropia
 
   subroutine calcp1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a1, a2, alf, bb, bet, cafr, cc, clfr, dd, &
          dd1, dd2, frk, frmg, gam, rtsq, so4fr, sqdd, sqdd1, &
          sqdd2, theta1, theta2
@@ -32438,7 +32438,7 @@ module mod_che_isorropia
   subroutine calcl9
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd
     integer(ik4) :: i
     real(rkx) :: lamda
@@ -32535,7 +32535,7 @@ module mod_che_isorropia
   subroutine calcl8
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi6hi, psi6lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -32649,7 +32649,7 @@ module mod_che_isorropia
   real(rkx) function funcl8(p6)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, p6
     integer(ik4) :: i
     real(rkx) :: lamda
@@ -32730,7 +32730,7 @@ module mod_che_isorropia
   subroutine calcl7
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -32844,7 +32844,7 @@ module mod_che_isorropia
   real(rkx) function funcl7(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, cc, dd, p4
     integer(ik4) :: i, islv
     real(rkx) :: lamda
@@ -32944,7 +32944,7 @@ module mod_che_isorropia
   subroutine calcl6
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -33058,7 +33058,7 @@ module mod_che_isorropia
   real(rkx) function funcl6(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, cc, dd, p4
     integer(ik4) :: i, islv
     real(rkx) :: lamda
@@ -33159,7 +33159,7 @@ module mod_che_isorropia
   subroutine calcl5
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -33276,7 +33276,7 @@ module mod_che_isorropia
   real(rkx) function funcl5(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
     integer(ik4) :: i, islv
     real(rkx) :: lamda
@@ -33386,7 +33386,7 @@ module mod_che_isorropia
   subroutine calcl4
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -33501,7 +33501,7 @@ module mod_che_isorropia
   real(rkx) function funcl4(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
     integer(ik4) :: i, islv
     real(rkx) :: lamda
@@ -33619,7 +33619,7 @@ module mod_che_isorropia
 !
   subroutine calcl3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** find dry composition *********************************************
@@ -33670,7 +33670,7 @@ module mod_che_isorropia
   subroutine calcl3a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
          y1, y2, y3, yhi
     integer(ik4) :: i
@@ -33774,7 +33774,7 @@ module mod_che_isorropia
   real(rkx) function funcl3a(p2)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, p2, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi
     integer(ik4) :: i
@@ -33872,7 +33872,7 @@ module mod_che_isorropia
   real(rkx) function funcl3b(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
     integer(ik4) :: i, islv
     real(rkx) :: lamda
@@ -33988,7 +33988,7 @@ module mod_che_isorropia
 !
   subroutine calcl2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -34041,7 +34041,7 @@ module mod_che_isorropia
   subroutine calcl2a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
          y1, y2, y3, yhi
     integer(ik4) :: i
@@ -34142,7 +34142,7 @@ module mod_che_isorropia
   real(rkx) function funcl2a(p2)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, p2, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi
     integer(ik4) :: i
@@ -34242,7 +34242,7 @@ module mod_che_isorropia
   real(rkx) function funcl2b(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
     integer(ik4) :: i, islv
     real(rkx) :: lamda
@@ -34374,7 +34374,7 @@ module mod_che_isorropia
 !
   subroutine calcl1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -34413,7 +34413,7 @@ module mod_che_isorropia
 !
   subroutine calcl1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, frk, frmg, frna, frnh4, frso4
 !
 ! *** calculate non volatile solids ***********************************
@@ -34497,7 +34497,7 @@ module mod_che_isorropia
   subroutine calck4
     use mod_che_common_isorropia
     use mod_che_common_casek
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, psi4
     integer(ik4) :: i
 !
@@ -34574,7 +34574,7 @@ module mod_che_isorropia
   subroutine calck3
     use mod_che_common_isorropia
     use mod_che_common_casek
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi3hi, psi3lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -34665,7 +34665,7 @@ module mod_che_isorropia
   real(rkx) function funck3(p1)
     use mod_che_common_isorropia
     use mod_che_common_casek
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, p1, psi4
     integer(ik4) :: i
 !
@@ -34746,7 +34746,7 @@ module mod_che_isorropia
   subroutine calck2
     use mod_che_common_isorropia
     use mod_che_common_casek
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi3hi, psi3lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -34837,7 +34837,7 @@ module mod_che_isorropia
   real(rkx) function funck2(p1)
     use mod_che_common_isorropia
     use mod_che_common_casek
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, p1, psi4
     integer(ik4) :: i
 !
@@ -34919,7 +34919,7 @@ module mod_che_isorropia
   subroutine calck1
     use mod_che_common_isorropia
     use mod_che_common_casek
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, psi3hi, psi3lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -35010,7 +35010,7 @@ module mod_che_isorropia
   real(rkx) function funck1(p1)
     use mod_che_common_isorropia
     use mod_che_common_casek
-    implicit none (type, external)
+    implicit none
     real(rkx) :: bb, cc, dd, p1, psi4
     integer(ik4) :: i
 !
@@ -35092,7 +35092,7 @@ module mod_che_isorropia
 !
   subroutine isrp1r(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: rhi, tempi
     real(rkx), dimension(ncomp) :: wi
 !
@@ -35202,7 +35202,7 @@ module mod_che_isorropia
 !
   subroutine isrp2r(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: rhi, tempi
     real(rkx), dimension(ncomp) :: wi
     logical :: tryliq
@@ -35350,7 +35350,7 @@ module mod_che_isorropia
 !
   subroutine isrp3r(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: frso4, rhi, sri, tempi
     integer(ik4) :: i
     real(rkx), dimension(ncomp) :: wi
@@ -35564,7 +35564,7 @@ module mod_che_isorropia
 !
   subroutine isrp4r(wi,rhi,tempi)
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: frso4, rhi, sri, tempi
     integer(ik4) :: i
     real(rkx), dimension(ncomp) :: wi
@@ -35869,7 +35869,7 @@ module mod_che_isorropia
 !
   subroutine calcs2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: a2, akw, del, hi, hso4i, ohi, so4i
     integer(ik4) :: i
     real(rkx) :: nh4i, nh3gi, nh3aq
@@ -35954,7 +35954,7 @@ module mod_che_isorropia
 !
   subroutine calcs1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
     cnh42s4 = min(waer(2),0.5_rkx*waer(3))    ! for bad input problems
     gnh3 = zero
@@ -35982,7 +35982,7 @@ module mod_che_isorropia
   subroutine calcn3
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, aml5, del, gg, hi, hso4i, ohi, so4i
     integer(ik4) :: i
     real(rkx) :: nh4i, no3i, nh3aq, no3aq
@@ -36085,7 +36085,7 @@ module mod_che_isorropia
   subroutine calcn2
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: dx, p4, psi1hi, psi1lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo, yy
     integer(ik4) :: i
@@ -36181,7 +36181,7 @@ module mod_che_isorropia
   real(rkx) function funcn2(p1)
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, del, gg, hi, hso4i, ohi, p1, so4i
     integer(ik4) :: i
     real(rkx) :: nh4i, no3i, nh3aq, no3aq
@@ -36287,7 +36287,7 @@ module mod_che_isorropia
 !
   subroutine calcn1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -36321,7 +36321,7 @@ module mod_che_isorropia
 !
   subroutine calcn1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: psi1, psi2
 !
 ! *** setup parameters *************************************************
@@ -36370,7 +36370,7 @@ module mod_che_isorropia
   subroutine calcq5
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, so4i
     integer(ik4) :: i
@@ -36509,7 +36509,7 @@ module mod_che_isorropia
   subroutine calcq4
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psi1o, root3, so4i
     integer(ik4) :: i, islv
@@ -36684,7 +36684,7 @@ module mod_che_isorropia
 !
   subroutine calcq3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
@@ -36727,7 +36727,7 @@ module mod_che_isorropia
   subroutine calcq3a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psi1o, psi6o, root1, root3, so4i
     integer(ik4) :: i, islv
@@ -36925,7 +36925,7 @@ module mod_che_isorropia
 !
   subroutine calcq2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
@@ -36979,7 +36979,7 @@ module mod_che_isorropia
   subroutine calcq2a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psi1o, psi4o, psi6o, root1, root2,   &
          root2a, root2b, root3
@@ -37208,7 +37208,7 @@ module mod_che_isorropia
 !
   subroutine calcq1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
@@ -37279,7 +37279,7 @@ module mod_che_isorropia
 !
   subroutine calcq1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: frnh3, frso4
 !
 ! *** calculate solids
@@ -37326,7 +37326,7 @@ module mod_che_isorropia
   subroutine calcr6
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, so4i
     integer(ik4) :: i
@@ -37466,7 +37466,7 @@ module mod_che_isorropia
   subroutine calcr5
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psio, root, so4i
     integer(ik4) :: i, islv
@@ -37650,7 +37650,7 @@ module mod_che_isorropia
 !
   subroutine calcr4
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
@@ -37701,7 +37701,7 @@ module mod_che_isorropia
   subroutine calcr4a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psio1, psio4, root, so4i
     integer(ik4) :: i, islv
@@ -37892,7 +37892,7 @@ module mod_che_isorropia
 !
   subroutine calcr3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
@@ -37959,7 +37959,7 @@ module mod_che_isorropia
   subroutine calcr3a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psi1o, psi3o, psi4o, root1, root2,   &
          root2a, root2b, root3
@@ -38202,7 +38202,7 @@ module mod_che_isorropia
 !
   subroutine calcr2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
@@ -38297,7 +38297,7 @@ module mod_che_isorropia
   subroutine calcr2a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psi1o, psi2o, psi3o, psi4o, root1,   &
          root2, root2a, root2b
@@ -38572,7 +38572,7 @@ module mod_che_isorropia
 !
   subroutine calcr1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
@@ -38723,7 +38723,7 @@ module mod_che_isorropia
 !
   subroutine calcr1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: frcl, frna, frnh3, frno3
 !
 ! *** calculate solids
@@ -38776,7 +38776,7 @@ module mod_che_isorropia
   subroutine calcv7
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, ohi, so4i
     integer(ik4) :: i
     real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
@@ -38942,7 +38942,7 @@ module mod_che_isorropia
   subroutine calcv6
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi70, root7, so4i
     integer(ik4) :: i, islv
@@ -39144,7 +39144,7 @@ module mod_che_isorropia
   subroutine calcv5
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi70, root1, root7, so4i
     integer(ik4) :: i, islv
@@ -39370,7 +39370,7 @@ module mod_che_isorropia
   subroutine calcv4
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi70, root1, root7, so4i
     integer(ik4) :: i, islv
@@ -39595,7 +39595,7 @@ module mod_che_isorropia
 !
   subroutine calcv3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
@@ -39638,7 +39638,7 @@ module mod_che_isorropia
   subroutine calcv3a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi60, psi70, root1, root6, root7, so4i
     integer(ik4) :: i, islv
@@ -39886,7 +39886,7 @@ module mod_che_isorropia
 !
   subroutine calcv2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
@@ -39942,7 +39942,7 @@ module mod_che_isorropia
   subroutine calcv2a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi40, psi60, psi70, root1, root4, root4a, &
          root4b, root6, root7
@@ -40225,7 +40225,7 @@ module mod_che_isorropia
 !
   subroutine calcv1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exno, excl
 !
 ! *** regime depends on ambient relative humidity & possible species ***
@@ -40307,7 +40307,7 @@ module mod_che_isorropia
 !
   subroutine calcv1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, frk, frmg, frnh3, so4fr, nafr
 !
 ! *** calculate solids
@@ -40363,7 +40363,7 @@ module mod_che_isorropia
   subroutine calcu8
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, ohi, so4i
     integer(ik4) :: i
     real(rkx) :: nh4i, nai, no3i, nh3aq, no3aq, claq, cai, ki, mgi
@@ -40535,7 +40535,7 @@ module mod_che_isorropia
   subroutine calcu7
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi70, root7, so4i
     integer(ik4) :: i, islv
@@ -40756,7 +40756,7 @@ module mod_che_isorropia
   subroutine calcu6
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi70, root1, root7, so4i
     integer(ik4) :: i, islv
@@ -41001,7 +41001,7 @@ module mod_che_isorropia
   subroutine calcu5
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi70, root1, root7, so4i
     integer(ik4) :: i, islv
@@ -41243,7 +41243,7 @@ module mod_che_isorropia
 !
   subroutine calcu4
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
@@ -41294,7 +41294,7 @@ module mod_che_isorropia
   subroutine calcu4a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi40, psi70, root1, root4, root7, so4i
     integer(ik4) :: i, islv
@@ -41557,7 +41557,7 @@ module mod_che_isorropia
 !
   subroutine calcu3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
@@ -41626,7 +41626,7 @@ module mod_che_isorropia
   subroutine calcu3a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi30, psi40, psi70, root1, root3, root3a, &
          root3b, root4, root4a
@@ -41929,7 +41929,7 @@ module mod_che_isorropia
 !
   subroutine calcu2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
@@ -42050,7 +42050,7 @@ module mod_che_isorropia
   subroutine calcu2a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi20, psi30, psi40, psi50, psi70, root1, &
          root3, root3a, root3b
@@ -42382,7 +42382,7 @@ module mod_che_isorropia
 !
   subroutine calcu1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     logical :: exan, exac, exsn, exsc
 !
 ! *** solve for dry case and see which solids are possible
@@ -42526,7 +42526,7 @@ module mod_che_isorropia
 !
   subroutine calcu1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, frcl, frk, frmg, frna, frnh3, frno3, so4fr
 !
 ! *** calculate solids *************************************************
@@ -42592,7 +42592,7 @@ module mod_che_isorropia
   subroutine calcw13
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, so4i, kcl
     integer(ik4) :: i
@@ -42773,7 +42773,7 @@ module mod_che_isorropia
   subroutine calcw12
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi9o, root9, so4i, kcl
     integer(ik4) :: i, islv
@@ -42990,7 +42990,7 @@ module mod_che_isorropia
   subroutine calcw11
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi9o, root13, root13a, root13b, root9, &
          so4i, kcl
@@ -43235,7 +43235,7 @@ module mod_che_isorropia
   subroutine calcw10
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi9o, root13, root13a, root13b, root9, &
          so4i, kcl
@@ -43482,7 +43482,7 @@ module mod_che_isorropia
   subroutine calcw9
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi9o, root13, root13a, root13b, &
          root14, root14a, root14b, root9, so4i, kcl
@@ -43753,7 +43753,7 @@ module mod_che_isorropia
   subroutine calcw8
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi9o, root13, root13a, &
          root13b, root14, root14a, root14b
@@ -44049,7 +44049,7 @@ module mod_che_isorropia
   subroutine calcw7
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi9o, root13, &
          root13a, root13b, root14, root14a
@@ -44371,7 +44371,7 @@ module mod_che_isorropia
   subroutine calcw6
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, &
          root13, root13a, root13b, root14
@@ -44716,7 +44716,7 @@ module mod_che_isorropia
 !
   subroutine calcw5
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of water and of the rh
@@ -44770,7 +44770,7 @@ module mod_che_isorropia
   subroutine calcw5a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, root13, &
          root13a, root13b, root14
@@ -45115,7 +45115,7 @@ module mod_che_isorropia
 !
   subroutine calcw4
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of water and of the rh
@@ -45169,7 +45169,7 @@ module mod_che_isorropia
   subroutine calcw4a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, root13, &
          root13a, root13b, root14
@@ -45515,7 +45515,7 @@ module mod_che_isorropia
 !
   subroutine calcw3
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** regime depends on the existance of water and of the rh
@@ -45573,7 +45573,7 @@ module mod_che_isorropia
   subroutine calcw3a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, &
          root13, root13a, root13b, root14
@@ -45928,7 +45928,7 @@ module mod_che_isorropia
 !
   subroutine calcw2
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -46008,7 +46008,7 @@ module mod_che_isorropia
   subroutine calcw2a
     use mod_che_common_isorropia
     use mod_che_common_solut
-    implicit none (type, external)
+    implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, root13, &
          root13a, root13b, root14
@@ -46360,7 +46360,7 @@ module mod_che_isorropia
 !
   subroutine calcw1
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -46395,7 +46395,7 @@ module mod_che_isorropia
 !
   subroutine calcw1a
     use mod_che_common_isorropia
-    implicit none (type, external)
+    implicit none
     real(rkx) :: cafr, clfr, frk, frmg, frna, frno3, so4fr
 !
 ! *** calculate solids

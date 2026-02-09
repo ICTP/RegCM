@@ -53,7 +53,7 @@ module mod_vectutil
   contains
 
   subroutine ucrs2dot_3d(pd,px,ni,nj,nk,iband)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     integer(ik4), intent(in) :: iband
     real(rkx), intent(in), dimension(ni,nj,nk) :: px
@@ -92,7 +92,7 @@ module mod_vectutil
   end subroutine ucrs2dot_3d
 
   subroutine vcrs2dot_3d(pd,px,ni,nj,nk,icrs)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     integer(ik4), intent(in) :: icrs
     real(rkx), intent(in), dimension(ni,nj,nk) :: px
@@ -131,7 +131,7 @@ module mod_vectutil
   end subroutine vcrs2dot_3d
 
   subroutine ucrs2dot_2d(pd,px,ni,nj,iband)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj
     integer(ik4), intent(in) :: iband
     real(rkx), intent(in), dimension(ni,nj) :: px
@@ -170,7 +170,7 @@ module mod_vectutil
   end subroutine ucrs2dot_2d
 
   subroutine vcrs2dot_2d(pd,px,ni,nj,icrs)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj
     integer(ik4), intent(in) :: icrs
     real(rkx), intent(in), dimension(ni,nj) :: px
@@ -209,7 +209,7 @@ module mod_vectutil
   end subroutine vcrs2dot_2d
 
   subroutine crs2dot_2d(pd,px,ni,nj,iband,icrm)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj
     integer(ik4), intent(in) :: iband, icrm
     real(rkx), intent(in), dimension(ni,nj) :: px
@@ -264,7 +264,7 @@ module mod_vectutil
   end subroutine crs2dot_2d
 
   subroutine crs2dot_3d(pd,px,ni,nj,nk,iband,icrm)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     integer(ik4), intent(in) :: iband, icrm
     real(rkx), intent(in), dimension(ni,nj,nk) :: px
@@ -324,7 +324,7 @@ module mod_vectutil
   end subroutine crs2dot_3d
 
   subroutine dot2crs(px,pd,ni,nj,iband,icrm)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj
     real(rkx), intent(in), dimension(ni,nj) :: pd
     real(rkx), intent(out), dimension(ni,nj) :: px
@@ -365,7 +365,7 @@ module mod_vectutil
   !-----------------------------------------------------------------------
   !
   subroutine top2btm_3d(x)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: x
     integer(ik4) :: i1, i2, j1, j2, k1, k2
     integer(ik4) :: i, j, k, kr
@@ -402,7 +402,7 @@ module mod_vectutil
   !-----------------------------------------------------------------------
   !
   subroutine top2btm_4d(x)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: x
     integer(ik4) :: i1, i2, j1, j2, k1, k2, n1, n2
     integer(ik4) :: i, j, k, n, kr
@@ -443,7 +443,7 @@ module mod_vectutil
   !-----------------------------------------------------------------------
   !
   subroutine btm2top_3d(x)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: x
     call top2btm_3d(x)
   end subroutine btm2top_3d
@@ -451,7 +451,7 @@ module mod_vectutil
   !-----------------------------------------------------------------------
   !
   subroutine btm2top_4d(x)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: x
     call top2btm_4d(x)
   end subroutine btm2top_4d
@@ -459,7 +459,7 @@ module mod_vectutil
   !-----------------------------------------------------------------------
   !
   subroutine relax(chi,ff,imx,jmx,ie,je,ds)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: imx, jmx, ie, je
     real(rkx), intent(out), dimension(imx,jmx) :: chi
     real(rkx), intent(inout), dimension(imx,jmx) :: ff
@@ -506,7 +506,7 @@ module mod_vectutil
   !-----------------------------------------------------------------------
   !
   subroutine fill(f,ix,jx,imx,jmx,ifirst,ilast,jfirst,jlast)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ix, jx, imx, jmx, &
                                  ifirst, ilast, jfirst, jlast
     real(rkx), intent(inout), dimension(ix,jx) :: f
@@ -534,7 +534,7 @@ module mod_vectutil
   !-----------------------------------------------------------------------
   !
   subroutine meandivf(u,v,psd,dm,sigf,dsg,imx,jmx,kxs,ds,imxm,jmxm)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: imx, jmx, kxs, imxm, jmxm
     real(rkx), intent(inout), dimension(imx,jmx,kxs) :: u, v
     real(rkx), intent(in), dimension(imx,jmx) :: psd
@@ -613,7 +613,7 @@ module mod_vectutil
   !-----------------------------------------------------------------------
   !
   subroutine meandiv(u,v,psd,dm,sigh,dsg,imx,jmx,kxs,ds,imxm,jmxm)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: imx, jmx, kxs, imxm, jmxm
     real(rkx), intent(inout), dimension(imx,jmx,kxs) :: u, v
     real(rkx), intent(in), dimension(imx,jmx) :: psd

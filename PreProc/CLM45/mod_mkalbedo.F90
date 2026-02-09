@@ -21,7 +21,7 @@ module mod_mkalbedo
   use mod_grid
   use mod_rdldtr
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -32,7 +32,7 @@ module mod_mkalbedo
   contains
 
   subroutine mkalbedo(albedo_file,mask,albedo)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: albedo_file
     real(rkx), dimension(:,:), intent(in) :: mask
     real(rkx), dimension(:,:,:), intent(out) :: albedo
@@ -50,7 +50,7 @@ module mod_mkalbedo
     contains
 
       subroutine inrange(f,mi,ma)
-        implicit none (type, external)
+        implicit none
         real(rkx), dimension(:,:,:), intent(inout) :: f
         real(rkx), intent(in) :: mi, ma
         integer :: i, j, n

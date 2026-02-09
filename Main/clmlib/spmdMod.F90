@@ -35,21 +35,6 @@ module spmdMod
   !
   public :: spmd_init                ! Initialization
 
-  !
-  ! Values from mpif.h that can be used
-  !
-  public :: MPI_INTEGER
-  public :: MPI_REAL8
-  public :: MPI_LOGICAL
-  public :: MPI_SUM
-  public :: MPI_MIN
-  public :: MPI_MAX
-  public :: MPI_STATUS_SIZE
-  public :: MPI_ANY_SOURCE
-  public :: MPI_CHARACTER
-  public :: MPI_COMM_WORLD
-  public :: MPI_MAX_PROCESSOR_NAME
-
 #include <mpif.h>
 
 contains

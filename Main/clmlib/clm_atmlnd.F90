@@ -12,6 +12,7 @@ module clm_atmlnd
 ! Handle atm2lnd, lnd2atm mapping/downscaling/upscaling/data
 !
 ! !USES:
+  use mpi
   use clm_varpar , only : numrad, ndst   !ndst = number of dust bins.
                                           !only used # ifdef DUST
   use clm_varcon , only : rair, grav, cpair

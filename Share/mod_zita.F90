@@ -20,7 +20,7 @@ module mod_zita
   use mod_constants
   use mod_dynparam, only : mo_a0, mo_h, mo_ztop
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -38,21 +38,21 @@ module mod_zita
 
   pure real(rkx) elemental function sigmazita(zita,ztop)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, ztop
     sigmazita = 1.0_rkx - zita/ztop
   end function sigmazita
 
   pure real(rkx) elemental function zitasigma(sigma,ztop)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: sigma, ztop
     zitasigma = ztop * (1.0_rkx - sigma)
   end function zitasigma
 
   subroutine model_zitaf(zitaf,ztop)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: ztop
     real(rkx), intent(out), dimension(:) :: zitaf
     real(rkx) :: dz
@@ -84,28 +84,28 @@ module mod_zita
 
   pure real(rkx) elemental function zfz(ztop,zh)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: ztop, zh
     zfz = ztop/(exp(ztop/zh)-1.0_rkx)
   end function zfz
 
   pure real(rkx) elemental function bzita(zita,ztop,zh)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, ztop, zh
     bzita = zfz(ztop,zh)*(exp(zita/zh)-1.0_rkx)
   end function bzita
 
   pure real(rkx) elemental function bzitap(zita,ztop,zh)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, ztop, zh
     bzitap = zfz(ztop,zh)*exp(zita/zh)/zh
   end function bzitap
 
   pure real(rkx) elemental function gzita(zita,ztop,a0)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, ztop, a0
     real(rkx) :: ratio
     ratio = zita/ztop
@@ -118,7 +118,7 @@ module mod_zita
   ! Derivative of decay function
   pure real(rkx) elemental function gzitap(zita,ztop,a0)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, ztop, a0
     real(rkx) :: ratio
     ratio = zita/ztop
@@ -131,7 +131,7 @@ module mod_zita
   ! Factor used to transform the vertical derivatives in zeta
   pure real(rkx) function md_fmz_h(zita,orog,ztop,zh,a0)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, orog, ztop, zh, a0
     ! Equation 9
     md_fmz_h = 1.0_rkx/(gzitap(zita,ztop,a0)*orog + bzitap(zita,ztop,zh))
@@ -140,28 +140,28 @@ module mod_zita
   ! Elevation above orography as function of zita
   pure real(rkx) function md_zeta_h(zita,orog,ztop,zh,a0)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, orog, ztop, zh, a0
     md_zeta_h = orog*(gzita(zita,ztop,a0)-1.0_rkx) + bzita(zita,ztop,zh)
   end function md_zeta_h
 
   pure real(rkx) elemental function md_ak(zita,ztop,zh)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, ztop, zh
     md_ak = bzita(zita,ztop,zh)
   end function md_ak
 
   pure real(rkx) elemental function md_bk(zita,ztop,a0)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, ztop, a0
     md_bk = gzita(zita,ztop,a0)
   end function md_bk
 
   pure real(rkx) function md_fmz(zita,geopot,ztop,zh,a0)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, geopot, ztop, zh, a0
     md_fmz = md_fmz_h(zita,geopot*regrav,ztop,zh,a0)
   end function md_fmz
@@ -169,13 +169,13 @@ module mod_zita
   ! Elevation above orography as function of zita
   pure real(rkx) function md_zeta(zita,geopot,ztop,zh,a0)
 !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: zita, geopot, ztop, zh, a0
     md_zeta = md_zeta_h(zita,geopot*regrav,ztop,zh,a0)
   end function md_zeta
 
   subroutine zh3d(nx1,nx2,ny1,ny2,nz,f,zeta,tvirt,sigmah,ps,imet)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nx1, nx2, ny1, ny2, nz, imet
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: f
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zeta
@@ -244,7 +244,7 @@ module mod_zita
   end subroutine zh3d
 
   subroutine zh4d(nx1,nx2,ny1,ny2,nz,nn,f,zeta,tvirt,sigmah,ps,imet)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nx1, nx2, ny1, ny2, nz, nn, imet
     real(rkx), dimension(:,:,:,:), pointer, contiguous, intent(inout) :: f
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zeta

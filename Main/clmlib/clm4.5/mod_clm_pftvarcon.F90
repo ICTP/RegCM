@@ -10,7 +10,7 @@ module mod_clm_pftvarcon
   use mod_clm_varctl, only : fpftcon
   use mod_clm_varcon, only : tfrz
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -285,7 +285,7 @@ module mod_clm_pftvarcon
   ! Read and initialize vegetation (PFT) constants
   !
   subroutine pftconrd
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i           ! loop indices
     type(clm_filetype) :: ncid  ! file handler
     integer(ik4) :: npft        ! number of pfts on pft-physiology file

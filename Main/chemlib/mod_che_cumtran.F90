@@ -24,7 +24,7 @@ module mod_che_cumtran
   use mod_runparams
   use mod_che_common
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -41,7 +41,7 @@ module mod_che_cumtran
   contains
 
   subroutine init_cumtran
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j
     call getmem(dotran,jci1,jci2,ici1,ici2,'cumtran:dotran')
     if ( ichdiag > 0 ) then
@@ -66,7 +66,7 @@ module mod_che_cumtran
   end subroutine init_cumtran
 
   subroutine cumtran1(mxc)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mxc
     real(rkx) :: chibar, deltas, cumfrc
     integer(ik4) :: i, j, k, kctop, n
@@ -113,7 +113,7 @@ module mod_che_cumtran
   end subroutine cumtran1
 
   subroutine cumtran2(amxc,bmxc)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: amxc, bmxc
     real(rkx) :: chiabar, chibbar, deltas, cumfrc
     integer(ik4) :: i, j, k, kctop, n

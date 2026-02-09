@@ -43,7 +43,7 @@ module mod_bats_param
   !     21 = Urban                    ( added class )
   !     22 = Sub-Urban                ( added class )
   !
-  implicit none (type, external)
+  implicit none
 
   public
 

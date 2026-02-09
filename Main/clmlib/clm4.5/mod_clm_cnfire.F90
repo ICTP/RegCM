@@ -1,5 +1,5 @@
 module mod_clm_cnfire
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! module for fire dynamics
@@ -43,7 +43,7 @@ implicit none (type, external)
   use mod_clm_varctl, only : inst_name
   use mod_clm_histfile, only : hist_addfld1d
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -83,7 +83,7 @@ implicit none (type, external)
   ! Initialize CN Fire module
   !
   subroutine CNFireInit( begg, endg )
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: begg, endg   ! gridcell index bounds
     call hdm_init(   begg, endg )
     call lnfm_init(  begg, endg )
@@ -93,7 +93,7 @@ implicit none (type, external)
   ! Interpolate CN Fire datasets
   !
   subroutine CNFireInterp()
-    implicit none (type, external)
+    implicit none
     call hdm_interp()
     call lnfm_interp()
   end subroutine CNFireInterp
@@ -101,7 +101,7 @@ implicit none (type, external)
   ! Computes column-level burned area in each timestep
   !
   subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
-    implicit none (type, external)
+    implicit none
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc
     ! filter for soil columns
@@ -748,7 +748,7 @@ implicit none (type, external)
   ! in a year seconds_per_year is the number of seconds in a year.
   !
   subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
-    implicit none (type, external)
+    implicit none
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc
     ! filter for soil columns
@@ -1589,7 +1589,7 @@ implicit none (type, external)
   ! Initialize data stream information for population density.
   !
   subroutine hdm_init( begg, endg )
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: begg, endg ! gridcell index bounds
     integer(ik4) :: yr, mon, day, ih
 
@@ -1613,7 +1613,7 @@ implicit none (type, external)
   ! Interpolate data stream information for population density.
   !
   subroutine hdm_interp( )
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: yr, mon, day, ih, ip
     real(rk8) :: w1, w2, ndpy
 
@@ -1633,7 +1633,7 @@ implicit none (type, external)
   ! Initialize data stream information for Lightning.
   !
   subroutine lnfm_init( begg, endg )
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: begg, endg   ! gridcell index bounds
     integer(ik4) :: yr, mon, day, ih
     real(rk8) :: ndpy
@@ -1664,7 +1664,7 @@ implicit none (type, external)
   ! Interpolate data stream information for Lightning.
   !
   subroutine lnfm_interp( )
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: ip
     real(rk8) :: w1, w2, ndpy
     integer(ik4) :: yr, mon, day, ih

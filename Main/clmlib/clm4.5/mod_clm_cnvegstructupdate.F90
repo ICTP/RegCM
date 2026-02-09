@@ -1,5 +1,5 @@
 module mod_clm_cnvegstructupdate
-implicit none (type, external)
+implicit none
 
 #ifdef CN
   !
@@ -9,7 +9,7 @@ implicit none (type, external)
   use mod_realkinds
   use mod_runparams, only : dtsrf
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -32,7 +32,7 @@ implicit none (type, external)
     use mod_clm_varcon, only : rpi
     !use mod_clm_pftvarcon, only : nbrdlf_evr_trp_tree, &
      ! nc4_grass, nc3_nonarctic_grass
-    implicit none (type, external)
+    implicit none
     ! number of column soil points in pft filter
     integer(ik4), intent(in) :: num_soilp
     ! pft filter for soil points

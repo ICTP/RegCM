@@ -32,7 +32,7 @@ module mod_rad_radiation
   use mod_rad_common
   use mod_rad_aerosol
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -579,7 +579,7 @@ module mod_rad_radiation
       du01,du11,dbeta01,dbeta11,duco11,duco12,duco13,duco21,duco22,     &
       duco23,dw,pnew,to3co2,dplh2o,tco2,th2o,to3,abplnk1) result(abstrc)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: tpnm, ds2c, duptyp, du1, du2
     real(rkx), intent(in) :: duch4, dbetac, du01, du11
     real(rkx), intent(in) :: dbeta01, dbeta11
@@ -747,7 +747,7 @@ module mod_rad_radiation
       pinpl,winpl,ds2c,duptyp,du1,du2,duch4,du01,du11,duco11,duco12, &
       duco13,duco21,duco22,duco23,bplnk) result(abstrc)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: tbar, dw, pnew, tco2, th2o, to3, up2
     real(rkx), intent(in) :: winpl, pinpl, ds2c, duptyp, du1, du2
     real(rkx), intent(in) :: duch4, du01, du11, duco11, duco12
@@ -921,7 +921,7 @@ module mod_rad_radiation
      bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223, &
      uptype,w,s2c,up2,emplnk,th2o,tco2,to3) result(emstrc)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: bn2o0, bn2o1
     real(rkx), intent(in) :: un2o0, un2o1
     real(rkx), intent(in) :: bch4, uch4, co2t
@@ -1061,7 +1061,7 @@ module mod_rad_radiation
 
   pure real(rkx) function func(u,b)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: u, b
     func = u/sqrt(d_four+u*(d_one+d_one/b))
   end function func
@@ -1069,7 +1069,7 @@ module mod_rad_radiation
   ! xalpha - Term in direct reflect and transmissivity
   pure real(rkx) function xalpha(wi,uui,gi,ei)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: wi, uui, gi, ei
     real(rk8) :: w, uu, g, e
     w = wi
@@ -1083,7 +1083,7 @@ module mod_rad_radiation
   ! xgamma - Term in direct reflect and transmissivity
   pure real(rkx) function xgamma(wi,uui,gi,ei)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: wi, uui, gi, ei
     real(rk8) :: w, uu, g, e
     w = wi
@@ -1097,7 +1097,7 @@ module mod_rad_radiation
   ! el - Term in xalpha,xgamma,f_n,f_u
   pure real(rkx) function el(wi,gi)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: wi, gi
     real(rk8) :: w, g
     w = wi
@@ -1108,7 +1108,7 @@ module mod_rad_radiation
   ! taus - Scaled extinction optical depth
   pure real(rkx) function taus(wi,fi,ti)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: wi, fi, ti
     real(rk8) :: w, f, t
     w = wi
@@ -1120,7 +1120,7 @@ module mod_rad_radiation
   ! omgs - Scaled single particle scattering albedo
   pure real(rkx) function omgs(wi,fi)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: wi, fi
     real(rk8) :: w, f
     w = wi
@@ -1132,7 +1132,7 @@ module mod_rad_radiation
   ! asys - Scaled asymmetry parameter
   pure real(rkx) function asys(gi,fi)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: gi, fi
     real(rk8) :: g, f
     g = gi
@@ -1143,7 +1143,7 @@ module mod_rad_radiation
   ! f_u - Term in diffuse reflect and transmissivity
   pure real(rkx) function f_u(wi,gi,ei)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: wi, gi, ei
     real(rk8) :: w, g, e
     w = wi
@@ -1155,7 +1155,7 @@ module mod_rad_radiation
   ! f_n - Term in diffuse reflect and transmissivity
   pure real(rkx) function f_n(uui,eti)
     !$acc routine seq
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: uui, eti
     real(rk8) :: uu, et
     uu = uui
@@ -1168,7 +1168,7 @@ module mod_rad_radiation
   pure real(rkx) function dbvt(ti)
     !$acc routine seq
     ! Derivative of planck function at 9.6 micro-meter wavelength
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: ti
     real(rk8) :: t
     t = ti
@@ -1180,7 +1180,7 @@ module mod_rad_radiation
   pure real(rkx) function fo3(uxi,vxi)
     !$acc routine seq
     ! an absorption function factor
-    implicit none (type, external)
+    implicit none
     real(rkx), intent(in) :: uxi, vxi
     real(rk8) :: ux, vx
     ux = uxi
@@ -1214,7 +1214,7 @@ module mod_rad_radiation
   !
   subroutine radini(n1,n2,iyear,imonth,lat, &
                     co2vmr,co2mmr,ch4mmr,n2ommr,cfc11mmr,cfc12mmr)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2, iyear, imonth
     real(rkx), dimension(n1:n2), intent(in) :: lat
     real(rkx), dimension(n1:n2), intent(out) :: co2vmr, co2mmr
@@ -1282,7 +1282,7 @@ module mod_rad_radiation
   ! RegCM : Removed the dependency on relative humidity
   !
   subroutine aermix(n1,n2,pnm,aermmb)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rkx), intent(in), dimension(kzp1,n1:n2) :: pnm
     real(rkx), intent(out), dimension(kz,n1:n2) :: aermmb
@@ -1362,7 +1362,7 @@ module mod_rad_radiation
   ! abplnk2 - nearest layer factor
   !
   subroutine trcplk(n1,n2,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rkx), dimension(n1:n2), intent(in) :: tplnke
     real(rkx), dimension(kzp1,n1:n2), intent(in) :: tint, tlayr
@@ -1414,7 +1414,7 @@ module mod_rad_radiation
   !-----------------------------------------------------------------------
   !
   subroutine radoz2(n1,n2,o3vmr,pnm,plos,plol)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rkx), dimension(kz,n1:n2), intent(in) :: o3vmr
     real(rkx), dimension(kzp1,n1:n2), intent(in) :: pnm
@@ -1465,7 +1465,7 @@ module mod_rad_radiation
   !
   subroutine radtpl(n1,n2,ts,tnm,pnm,h2ommr,pmln,piln,plh2o, &
                     tint,tint4,tlayr,tlayr4,tplnka,s2t,s2c,wh2op,tplnke)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rkx), dimension(n1:n2), intent(in) :: ts
     real(rkx), dimension(kz,n1:n2), intent(in) :: tnm, h2ommr, pmln
@@ -1603,7 +1603,7 @@ module mod_rad_radiation
                     wcl,gcl,fcl,tauxci,wci,gci,fci,tauaer,    &
                     tauasc,gtota,ftota,tottrn,exptdn,rdndif,  &
                     rdif,tdif,rdir,tdir,explay)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rkx), dimension(n1:n2), intent(in) :: czen
     real(rkx), dimension(0:kzp1,n1:n2), intent(in) :: pflx
@@ -1896,7 +1896,7 @@ module mod_rad_radiation
                     abh2o,abco2,abo2,abo3,uth2o,uto3,utco2, &
                     uto2,tauaer,tauasc,gtota,ftota,tottrn,  &
                     exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     logical, intent(in) :: lcls
     real(rkx), intent(in) :: trayoslp
@@ -2165,7 +2165,7 @@ module mod_rad_radiation
                     plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
                     bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
                     uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rkx), dimension(kzp1,n1:n2), intent(in) :: tint, tlayr
     real(rkx), dimension(kzp1,n1:n2), intent(in) :: pnm, piln
@@ -2945,7 +2945,7 @@ module mod_rad_radiation
                     uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223,   &
                     uptype,wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,h2otr,   &
                     emsgastot)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rkx), dimension(kzp1,n1:n2), intent(in) :: pnm
     real(rkx), dimension(kzp1,n1:n2), intent(in) :: tint, tint4
@@ -3346,7 +3346,7 @@ module mod_rad_radiation
   !
   subroutine radinp(n1,n2,pmid,pint,h2ommr,co2vmr,cld,o3vmr, &
                     pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rkx), dimension(n1:n2), intent(in) :: co2vmr
     real(rkx), dimension(kzp1,n1:n2), intent(in) :: pint, cld
@@ -3452,7 +3452,7 @@ module mod_rad_radiation
                     ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,    &
                     uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,    &
                     uptype)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rkx), dimension(n1:n2), intent(in) :: co2mmr
     real(rkx), dimension(kz,n1:n2), intent(in) :: tnm, h2ommr
@@ -3608,7 +3608,7 @@ module mod_rad_radiation
                     fsnsc,fsntc,sols,soll,solsd,solld,fsnirt,fsnrtc,    &
                     fsnirtsq,abv,sol,aeradfo,aeradfos,tauxcl,tauxci,    &
                     outtaucl,outtauci)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rkx), intent(in) :: eccf
     real(rkx), dimension(kzp1,n1:n2), intent(in) :: pnm
@@ -4378,7 +4378,7 @@ module mod_rad_radiation
                     plco2,plh2o,tclrsf,flns,flnt,lwout,lwin,flnsc,   &
                     flntc,flwds,fslwdcs,aerlwfo,aerlwfos,absgasnxt,  &
                     absgastot,emsgastot,qrl)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n1, n2
     logical, intent(in) :: labsem
     real(rkx), dimension(n1:n2), intent(in) :: ts, emiss
@@ -4920,7 +4920,7 @@ module mod_rad_radiation
   !-----------------------------------------------------------------------
   !
   subroutine radctl(rt,iyear,imonth)
-    implicit none (type, external)
+    implicit none
     !
     ! Input arguments
     !

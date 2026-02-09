@@ -25,7 +25,7 @@
 MODULE mod_cb6_Function
 
   USE mod_cb6_Parameters
-  IMPLICIT NONE (type, external)
+  IMPLICIT NONE
 
 ! A - Rate for each equation
   REAL(kind=dp) :: A(NREACT)

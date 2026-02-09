@@ -25,7 +25,7 @@
 MODULE mod_cb6_Global
 
   USE mod_cb6_Parameters, ONLY: dp, NVAR_CB6, NREACT
-  implicit none (type, external)
+  implicit none
   PUBLIC
   SAVE
 

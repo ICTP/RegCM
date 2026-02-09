@@ -31,7 +31,7 @@ module mod_ch_fnest
   use mod_vectutil
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -74,7 +74,7 @@ module mod_ch_fnest
   contains
 
   subroutine init_fnest(idate,cdir,cname,dochem,dooxcl,doaero)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     character(len=*), intent(in) :: cdir, cname
     logical, intent(in) :: dochem, dooxcl, doaero
@@ -371,7 +371,7 @@ module mod_ch_fnest
   end subroutine init_fnest
 
   subroutine get_fnest(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     character(len=11) :: cdate
     character(len=256) :: fname, icbcfilename
@@ -623,7 +623,7 @@ module mod_ch_fnest
   end subroutine get_fnest
 
   integer(ik4) function findex(sname) result(i)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: sname
     integer(ik4) :: nf
     i = -1
@@ -640,7 +640,7 @@ module mod_ch_fnest
 
   subroutine close_fnest
     use netcdf
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: istatus, fid
     if ( allocated(ncid) ) then
       do fid = 1, size(ncid)

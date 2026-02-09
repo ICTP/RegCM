@@ -20,7 +20,7 @@ module mod_param_clm
   use mod_message
   use mod_stdio
 
-  implicit none (type, external)
+  implicit none
 
   public
 
@@ -155,7 +155,7 @@ module mod_param_clm
   subroutine param(nx,ny,kz,xlat,xlon,varmin,varmax,xlat1d,xlon1d,  &
                    xlonmin,xlonmax,xlatmin,xlatmax,iadim,ndim)
 
-  implicit none (type, external)
+  implicit none
 !
   real(rk4), intent(out) :: xlatmax, xlatmin, xlonmax, xlonmin
   integer(ik4), intent(in) :: kz, ndim, nx, ny
@@ -189,7 +189,7 @@ module mod_param_clm
   end subroutine param
 
   subroutine comp(fields,bvoc)
-  implicit none (type, external)
+  implicit none
   integer(ik4), intent(out) :: fields
   logical, intent(in) :: bvoc
   integer(ik4) :: numcompounds

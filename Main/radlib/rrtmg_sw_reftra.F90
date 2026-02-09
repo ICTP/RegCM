@@ -40,7 +40,7 @@
       use rrsw_tbl, only : tblint, bpade, od_lo, exp_tbl
       use rrsw_vsn, only : hvrrft, hnamrft
 
-      implicit none (type, external)
+      implicit none
 
       contains
 

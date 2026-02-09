@@ -29,7 +29,7 @@ module mod_clm_surfrd
   use mod_clm_decomp, only : gcomm_gridcell
   use mod_clm_type
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -62,7 +62,7 @@ module mod_clm_surfrd
     use mod_clm_domain, only : domain_type, domain_init, domain_clean
     use mod_clm_decomp, only : get_proc_bounds
     use mod_clm_atmlnd, only : adomain
-    implicit none (type, external)
+    implicit none
     type(domain_type), intent(inout) :: ldomain   ! domain to init
     character(len=*), intent(in)    :: filename  ! grid filename
     type(clm_filetype) :: ncid     ! netcdf id
@@ -152,7 +152,7 @@ module mod_clm_surfrd
 #endif
     use mod_clm_pftvarcon, only : noveg
     use mod_clm_domain, only : domain_type, domain_init, domain_clean
-    implicit none (type, external)
+    implicit none
     ! land domain associated with wtxy
     type(domain_type), intent(inout) :: ldomain
     character(len=*), intent(inout) :: lfsurdat ! surface dataset filename
@@ -245,7 +245,7 @@ module mod_clm_surfrd
     use mod_clm_varpar, only : nlevurb
     use mod_clm_varcon, only : udens_base, udens_class
     use mod_clm_domain, only : domain_type
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid  ! netcdf id
     type(domain_type), intent(inout) :: ldomain
     integer(ik4)  :: i, n, nl, nurb, nn  ! indices
@@ -524,7 +524,7 @@ module mod_clm_surfrd
     use mod_clm_pftvarcon, only : noveg
 #endif
     use mod_clm_domain, only : domain_type
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid   ! netcdf id
     type(domain_type), intent(inout) :: ldomain
     integer(ik4) :: m, nl         ! indices
@@ -673,7 +673,7 @@ module mod_clm_surfrd
   subroutine surfrd_wtxy_veg_dgvm()
     use mod_clm_pftvarcon, only : noveg, crop
     use mod_clm_varctl, only : create_crop_landunit
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: m, nl        ! indices
     integer(ik4) :: begg, endg   ! beg/end gcell index
 

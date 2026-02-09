@@ -1,5 +1,5 @@
 module mod_clm_ch4rest
-implicit none (type, external)
+implicit none
 #ifdef LCH4
   !
   ! Reads from or writes restart data
@@ -14,7 +14,7 @@ implicit none (type, external)
   use mod_clm_nchelper
   use mod_clm_varctl, only : nsrest
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -27,7 +27,7 @@ implicit none (type, external)
   ! Read/Write biogeophysics information to/from restart file.
   !
   subroutine ch4Rest( ncid, flag )
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid ! netcdf id
     character(len=*), intent(in) :: flag     ! 'read' or 'write'
     integer(ik4) :: c, l, g, j ! indices

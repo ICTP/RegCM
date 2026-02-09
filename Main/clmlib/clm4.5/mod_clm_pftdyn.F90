@@ -19,7 +19,7 @@ module mod_clm_pftdyn
   use mod_clm_varpar, only : max_pft_per_col
   use mod_clm_varctl, only : use_c13, use_c14, nextdate
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -59,7 +59,7 @@ module mod_clm_pftdyn
   !
   subroutine pftdyn_init()
     use mod_clm_varpar, only : numpft, maxpatch_pft, numurbl
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: m, g ! indices
     integer(ik4) :: year  ! year (0, ...) for nstep+1
     integer(ik4) :: mon   ! month (1, ..., 12) for nstep+1
@@ -189,7 +189,7 @@ module mod_clm_pftdyn
     use mod_clm_varcon, only : istsoil
     use mod_clm_varcon, only : istcrop
     use mod_clm_varpar, only : numpft
-    implicit none (type, external)
+    implicit none
     integer(ik4)  :: begg, endg  ! beg/end indices for land gridcells
     integer(ik4)  :: begl, endl  ! beg/end indices for land landunits
     integer(ik4)  :: begc, endc  ! beg/end indices for land columns
@@ -332,7 +332,7 @@ module mod_clm_pftdyn
   ! Obtain harvest data
   !
   subroutine pftdyn_getharvest(begg, endg)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in)  :: begg     ! beg indices for land gridcells
     integer(ik4), intent(in)  :: endg     ! end indices for land gridcells
 
@@ -364,7 +364,7 @@ module mod_clm_pftdyn
   ! Called in every timestep.
   !
   subroutine pftdyn_wbal_init( begc, endc )
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: begc, endc ! proc column indices
 
     integer(ik4)  :: c  ! indices
@@ -390,7 +390,7 @@ module mod_clm_pftdyn
   subroutine pftdyn_wbal( begc, endc, begp, endp )
     use mod_clm_varcon, only : istsoil
     use mod_clm_varcon, only : istcrop
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in)  :: begc ! beg indices for land columns
     integer(ik4), intent(in)  :: endc ! end indices for land columns
     integer(ik4), intent(in)  :: begp ! beg indices for land plant func types
@@ -496,7 +496,7 @@ module mod_clm_pftdyn
     use mod_clm_varcon, only : istcrop
     use mod_clm_pftvarcon, only : pconv, pprod10, pprod100
     use mod_clm_varcon, only : c13ratio, c14ratio
-    implicit none (type, external)
+    implicit none
     ! proc beginning and ending pft indices
     integer(ik4), intent(in)  :: begp, endp
     ! proc beginning and ending column indices
@@ -2811,7 +2811,7 @@ module mod_clm_pftdyn
     use mod_clm_varctl, only : nsrest, nsrStartup, DoForceRestart
     use mod_clm_pftvarcon, only : noveg
     use mod_clm_varcon, only : istsoil, istcrop
-    implicit none (type, external)
+    implicit none
     integer(ik4)  :: ier, p, l    ! error status, do-loop index
     integer(ik4)  :: begp,endp    ! beg/end indices for land pfts
     character(len=32) :: subname='pftwt_init' ! subroutine name
@@ -2897,7 +2897,7 @@ module mod_clm_pftdyn
     use mod_clm_time_manager, only : get_curr_calday
     use mod_clm_varcon     , only : istsoil ! CNDV incompatible with dynLU
     use mod_clm_varctl     , only : finidat
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in)  :: begp,endp ! beg/end indices for land pfts
     integer(ik4)  :: c,g,l,p       ! indices
     real(rk8) :: cday               ! current calendar day (1.0 = 0Z on Jan 1)
@@ -2955,7 +2955,7 @@ module mod_clm_pftdyn
    use mod_clm_type
    use mod_clm_pftvarcon, only : noveg, nbrdlf_evr_shrub, pprodharv10
    use mod_clm_varcon, only : secspday
-   implicit none (type, external)
+   implicit none
    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
    integer(ik4), intent(in) :: filter_soilc(:) ! column filter for soil points
    integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -3258,7 +3258,7 @@ module mod_clm_pftdyn
   subroutine CNHarvestPftToColumn (num_soilc, filter_soilc)
     use mod_clm_type
     use mod_clm_varpar, only : max_pft_per_col, maxpatch_pft, nlevdecomp
-    implicit none (type, external)
+    implicit none
     ! number of soil columns in filter
     integer(ik4), intent(in) :: num_soilc
     ! soil column filter

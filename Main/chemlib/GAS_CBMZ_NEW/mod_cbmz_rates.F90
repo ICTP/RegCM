@@ -25,7 +25,7 @@ module mod_cbmz_rates
   use mod_cbmz_parameters
   use mod_cbmz_global
 
-  implicit none (type, external)
+  implicit none
 
   contains
 
@@ -40,7 +40,7 @@ module mod_cbmz_rates
 
   !~~~>  arrhenius
   pure real(kind=dp) function arr( a0,b0,c0 )
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: a0, b0, c0
     arr = a0 * exp(-b0/temp) * (temp/300.0_dp)**c0
   end function arr
@@ -48,14 +48,14 @@ module mod_cbmz_rates
   !~~~> simplified arrhenius, with two arguments
   !~~~> note: the argument b0 has a changed sign when compared to arr
   pure real(kind=dp) function arr2( a0,b0 )
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: a0, b0
     arr2 = a0 * exp( b0/temp )
   end function arr2
 
   !~~~~~~~~~~~~~~>     added by a. shalaby june 2007 --------------------
   pure real(kind=dp) function arr3fc( a0,b0,a1,b1,fc )
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: a0, b0, a1, b1, fc
     real(kind=dp) :: k1, k2, ex
     k1 = a0 * (300._dp/temp)**b0
@@ -66,7 +66,7 @@ module mod_cbmz_rates
 
   !~~~~~~~~~~~~~~>     added by a. shalaby june 2007 --------------------
   pure real(kind=dp) function arr4( a0,b0,c0,a1,b1,c1,fc )
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: a0, b0, c0, a1, b1, c1, fc
     real(kind=dp) :: k1, k2, ex
     k1 = a0*((300._dp/temp)**b0)*exp(c0/temp)
@@ -76,7 +76,7 @@ module mod_cbmz_rates
   end function arr4
 
   pure real(kind=dp) function ep2(a0,c0,a2,c2,a3,c3)
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: a0, c0, a2, c2, a3, c3
     real(kind=dp) :: k0, k2, k3
     k0 = a0 * exp(-c0/temp)
@@ -87,7 +87,7 @@ module mod_cbmz_rates
   end function ep2
 
   pure real(kind=dp) function ep3(a1,c1,a2,c2)
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: a1, c1, a2, c2
     real(kind=dp) :: k1, k2
     k1 = a1 * exp(-c1/temp)
@@ -96,7 +96,7 @@ module mod_cbmz_rates
   end function ep3
 
   pure real(kind=dp) function fall ( a0,b0,c0,a1,b1,c1,cf)
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: a0, b0, c0, a1, b1, c1, cf
     real(kind=dp) :: k0, k1
     k0 = a0 * exp(-b0/temp)* (temp/300.0_dp)**c0
@@ -109,7 +109,7 @@ module mod_cbmz_rates
   !---------------------------------------------------------------------------
 
   elemental real(kind=dp) function k_3rd(temp,cair,k0_300k,n,kinf_300k,m,fc)
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: temp ! temperature [k]
     real(kind=dp), intent(in) :: cair ! air concentration [molecules/cm3]
     real(kind=dp), intent(in) :: k0_300k   ! low pressure limit at 300 k
@@ -126,7 +126,7 @@ module mod_cbmz_rates
   end function k_3rd
 
   elemental real(kind=dp) function k_arr (k_298,tdep,temp)
-    implicit none (type, external)
+    implicit none
     ! arrhenius function
     real(kind=dp), intent(in) :: k_298 ! k at t = 298.15k
     real(kind=dp), intent(in) :: tdep  ! temperature dependence
@@ -135,7 +135,7 @@ module mod_cbmz_rates
   end function k_arr
 
   pure real(kind=dp) function arr3( a0,b0,a1,b1)
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: a0, b0, a1, b1
     real(kind=dp) :: k1, k2, ex
     k1 = a0*c_m*(300._dp/temp)**(b0)
@@ -162,7 +162,7 @@ module mod_cbmz_rates
   end function cbz2
 
   subroutine loadperoxyparameters
-    implicit none (type, external)
+    implicit none
     integer :: i, j
 
     aperox(jch3o2,jch3o2)   = 2.5e-13_dp
@@ -200,7 +200,7 @@ module mod_cbmz_rates
   end subroutine loadperoxyparameters
 
   subroutine peroxyrateconstants
-    implicit none (type, external)
+    implicit none
     integer :: i, j
     real(kind=dp), dimension(nperox) :: sperox(nperox)
     real(kind=dp), dimension(nperox,nperox) :: rk_perox
@@ -236,7 +236,7 @@ module mod_cbmz_rates
   !end function react
 
   pure real(kind=dp) function kdms(temp)
-    implicit none (type, external)
+    implicit none
     real(kind=dp), intent(in) :: temp
     real(kind=dp) :: k0, k1, k2, k3, k4
     k0 = temp * exp(-234._dp/temp)
@@ -253,7 +253,7 @@ module mod_cbmz_rates
   !
   ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   subroutine update_rconst ( )
-    implicit none (type, external)
+    implicit none
     rconst(1) = (jval_no2)
     rconst(2) = (jval_no3a)
     rconst(3) = (jval_hno2)

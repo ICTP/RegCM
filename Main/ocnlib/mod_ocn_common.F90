@@ -31,7 +31,7 @@ module mod_ocn_common
   use mod_runparams, only : rcmtimer, syncro_srf, iwavcpl
   use mod_mppparam
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -45,7 +45,7 @@ module mod_ocn_common
 
   subroutine vecocn(lm,lms)
     !@acc use nvtx
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     !@acc call nvtxStartRange("ocn_interf")
@@ -89,7 +89,7 @@ module mod_ocn_common
   end subroutine vecocn
 
   subroutine initocn(lm,lms)
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     integer(ik4) :: n
@@ -209,7 +209,7 @@ module mod_ocn_common
   end subroutine initocn
 
   subroutine ocn_interf(lm,lms,ivers)
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     integer(ik4), intent(in) :: ivers
@@ -366,7 +366,7 @@ module mod_ocn_common
   end subroutine ocn_interf
 
   subroutine albedoocn(lm,lms)
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     integer(ik4) :: i, j, n
@@ -392,7 +392,7 @@ module mod_ocn_common
   ! Vol. 30, No. 6, 20 March 2009, 1603–1619
   !
   pure elemental real(rk8) function ocean_emissivity(speed)
-    implicit none (type, external)
+    implicit none
     real(rk8), intent(in) :: speed
     real(rk8), parameter :: em0 = 0.99176_rk8    ! Seviri Channel 9
     real(rk8), parameter :: cpaper = -0.037_rk8

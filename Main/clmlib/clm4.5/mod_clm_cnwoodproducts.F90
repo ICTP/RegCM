@@ -1,5 +1,5 @@
 module mod_clm_cnwoodproducts
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! Calculate loss fluxes from wood products pools, and update product
@@ -11,7 +11,7 @@ implicit none (type, external)
   use mod_clm_decomp, only : get_proc_bounds
   use mod_clm_varcon, only : istsoil
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -30,7 +30,7 @@ implicit none (type, external)
   subroutine CNWoodProducts(num_soilc, filter_soilc)
     use mod_clm_type
     use mod_clm_varctl, only : use_c13, use_c14
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
 

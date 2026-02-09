@@ -42,7 +42,7 @@
       use rrlw_ref
       use rrlw_vsn, only: hvrset, hnamset
 
-      implicit none (type, external)
+      implicit none
 
       contains
 

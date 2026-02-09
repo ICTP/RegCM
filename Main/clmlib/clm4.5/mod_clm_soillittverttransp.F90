@@ -1,5 +1,5 @@
 module mod_clm_soillittverttransp
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! calculate vertical mixing of all decomposing C and N pools
@@ -15,7 +15,7 @@ implicit none (type, external)
   use mod_clm_varcon, only : secspday, zsoi, dzsoi_decomp, zisoi
   use mod_clm_tridiagonal, only : Tridiagonal
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -43,7 +43,7 @@ implicit none (type, external)
   !
 
   subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: lbc, ubc ! column-index bounds
@@ -414,7 +414,7 @@ implicit none (type, external)
 
       ! A function from Patankar, Table 5.2, pg 95
       pure real(rk8) function aaa(pe)
-        implicit none (type, external)
+        implicit none
         real(rk8), intent(in) :: pe
         aaa = max (0._rk8, (1._rk8 - 0.1_rk8 * abs(pe))**5)
       end function aaa

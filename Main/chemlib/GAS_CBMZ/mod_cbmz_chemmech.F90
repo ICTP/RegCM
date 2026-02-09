@@ -17,7 +17,7 @@ module mod_cbmz_chemmech
 
   use mod_intkinds
   use mod_realkinds
-  implicit none (type, external)
+  implicit none
 
   public
 !

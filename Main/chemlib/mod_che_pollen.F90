@@ -23,7 +23,7 @@ module mod_che_pollen
   use mod_che_species
   use mod_che_indices
 
-  implicit none (type, external)
+  implicit none
 
   private
   !
@@ -52,7 +52,7 @@ module mod_che_pollen
   contains
 
     subroutine pollen_emission(ustar, wind10, rh10, prec, convprec)
-      implicit none (type, external)
+      implicit none
       real(rkx), dimension(luc,jci1:jci2,ici1:ici2), intent(in) :: ustar
       real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: wind10, rh10
       real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: prec, convprec

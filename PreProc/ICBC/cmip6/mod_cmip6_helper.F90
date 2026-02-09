@@ -24,7 +24,7 @@ module mod_cmip6_helper
   use mod_stdio
   use netcdf
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -75,7 +75,7 @@ module mod_cmip6_helper
   contains
 
     character(len=1024) function cmip6_fxpath(ver,var) result(fpath)
-      implicit none (type, external)
+      implicit none
       character(len=*), intent(in) :: var, ver
       character(len=24) :: fx_variant, fx_experiment, fx_model
       if ( dattyp == 'CMIP6' ) then
@@ -235,7 +235,7 @@ module mod_cmip6_helper
     end function cmip6_fxpath
 
     character(len=1024) function cmip6_path(year,freq,ver,var) result(fpath)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: year
       character(len=*), intent(in) :: var, freq, ver
       character(len=12) :: experiment
@@ -489,7 +489,7 @@ module mod_cmip6_helper
     end function cmip6_path
 
     subroutine cmip6_error(ival,filename,line,arg)
-      implicit none (type, external)
+      implicit none
       integer(ik4), intent(in) :: ival, line
       character(len=8) :: cline
       character(*), intent(in) :: filename, arg

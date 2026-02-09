@@ -36,7 +36,7 @@ program regcm
   use mod_oasis_interface
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif

@@ -20,7 +20,7 @@ module mod_clm_megan
   use mod_dynparam
   use mod_stdio
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -137,7 +137,7 @@ module mod_clm_megan
   !-------------------------------------------------------------------------
 !  subroutine shr_megan_readnl( NLFileName, megan_fields )
   subroutine shr_megan_readnl( NLFileName )
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in)  :: NLFileName
 !    character(len=*), intent(out) :: megan_fields
     character(len=256) ::       megan_fields
@@ -193,7 +193,7 @@ module mod_clm_megan
   ! module data initializer
   !-------------------------------------------------------------------------
   subroutine shr_megan_init( specifier, megan_fields )
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: specifier(:)
     character(len=*), intent(out) :: megan_fields
     integer(ik4) :: n_entries
@@ -253,7 +253,7 @@ module mod_clm_megan
   ! private methods...
   !-------------------------------------------------------------------------
   function get_parser_items( spec_entry ) result(items)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: spec_entry
     type(parser_items_t), pointer :: items ! items returned
     integer(ik4) :: ndxs(512)
@@ -286,7 +286,7 @@ module mod_clm_megan
   end function get_parser_items
 
   subroutine destroy_parser_items( items )
-    implicit none (type, external)
+    implicit none
     type(parser_items_t), pointer :: items
 
     deallocate( items%megan_comp_names )
@@ -295,7 +295,7 @@ module mod_clm_megan
   end subroutine destroy_parser_items
 
   function add_megan_comp( name ) result(megan_comp)
-    implicit none (type, external)
+    implicit none
     character(len=16), intent(in) :: name
     type(shr_megan_megcomp_t), pointer :: megan_comp
 
@@ -321,7 +321,7 @@ module mod_clm_megan
   end function add_megan_comp
 
   recursive function get_megan_comp_by_name(list_comp, name) result(megan_comp)
-    implicit none (type, external)
+    implicit none
     type(shr_megan_megcomp_t), pointer  :: list_comp
     character(len=*), intent(in) :: name  ! variable name
     type(shr_megan_megcomp_t), pointer  :: megan_comp ! returned object
@@ -338,7 +338,7 @@ module mod_clm_megan
   end function get_megan_comp_by_name
 
   subroutine add_megan_comp_to_list( new_megan_comp )
-    implicit none (type, external)
+    implicit none
     type(shr_megan_megcomp_t), target, intent(in) :: new_megan_comp
     type(shr_megan_megcomp_t), pointer :: list_comp
 

@@ -67,7 +67,7 @@ module mod_clm_initialize
   use mod_clm_vocemission, only : VOCEmission_init
   use mod_clm_initimeconst, only : iniTimeConst
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -94,7 +94,7 @@ module mod_clm_initialize
   ! o Initializes accumulation variables.
   !
   subroutine initialize1
-    implicit none (type, external)
+    implicit none
     integer(ik4)  :: ier              ! error status
     integer(ik4)  :: begg, endg      ! beg and ending gridcell indices
 
@@ -205,7 +205,7 @@ module mod_clm_initialize
   ! o Initializes accumulation variables.
   !
   subroutine initialize2(rdate)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: rdate
     integer(ik4) :: begp, endp   ! beg and ending pft indices
     integer(ik4) :: begc, endc   ! beg and ending column indices

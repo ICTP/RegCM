@@ -15,7 +15,7 @@ module mod_clm_hydrology1
   use mod_mppparam
   use mod_stdio
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -84,7 +84,7 @@ module mod_clm_hydrology1
     use mod_clm_fracwet, only : FracWet
     use mod_clm_subgridave, only : p2c
     use mod_clm_snicar, only : snw_rds_min
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbp, ubp    ! pft bounds
     integer(ik4), intent(in) :: lbc, ubc    ! column bounds
     ! number of column non-lake points in column filter

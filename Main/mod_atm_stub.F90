@@ -29,7 +29,7 @@ module mod_atm_stub
   use mod_zita
   use mod_ncio
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -87,7 +87,7 @@ module mod_atm_stub
   contains
 
     subroutine setup_model_indexes
-      implicit none (type, external)
+      implicit none
       ma%jbl1 = 1
       ma%jbl2 = 2
       ma%jbl3 = 3
@@ -289,7 +289,7 @@ module mod_atm_stub
     end subroutine setup_model_indexes
 
     subroutine allocate_v3dbound(xb,ke,ldot)
-      implicit none (type, external)
+      implicit none
       type(v3dbound), intent(inout) :: xb
       integer(ik4), intent(in) :: ke
       logical, intent(in) :: ldot
@@ -305,7 +305,7 @@ module mod_atm_stub
     end subroutine allocate_v3dbound
 
     subroutine allocate_v2dbound(xb,ldot)
-      implicit none (type, external)
+      implicit none
       type(v2dbound), intent(inout) :: xb
       logical, intent(in) :: ldot
       if ( ldot ) then
@@ -320,7 +320,7 @@ module mod_atm_stub
     end subroutine allocate_v2dbound
 
     subroutine allocate_domain(dom)
-      implicit none (type, external)
+      implicit none
       type(domain), intent(inout) :: dom
       call getmem(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
       call getmem(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
@@ -375,7 +375,7 @@ module mod_atm_stub
     end subroutine allocate_domain
 
     subroutine allocate_domain_subgrid(sub)
-      implicit none (type, external)
+      implicit none
       type(domain_subgrid), intent(inout) :: sub
       call getmem(sub%ht,1,nnsg,jde1,jde2,ide1,ide2,'storage:ht')
       call getmem(sub%lndcat,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndcat')
@@ -393,7 +393,7 @@ module mod_atm_stub
     end subroutine allocate_domain_subgrid
 
     subroutine allocate_surfstate(sfs)
-      implicit none (type, external)
+      implicit none
       type(surfstate), intent(inout) :: sfs
       call getmem(sfs%psa,jce1,jce2,ice1,ice2,'surf:psa')
       call getmem(sfs%psdota,jde1,jde2,ide1,ide2,'surf:psdota')
@@ -419,7 +419,7 @@ module mod_atm_stub
     end subroutine allocate_surfstate
 
     subroutine allocate_mod_atm_interface
-      implicit none (type, external)
+      implicit none
 
       id1 = ide1ga
       id2 = ide2ga
@@ -451,7 +451,7 @@ module mod_atm_stub
     end subroutine allocate_mod_atm_interface
 
     subroutine allocate_surface_model
-      implicit none (type, external)
+      implicit none
 
       rdnnsg = d_one/real(nnsg,rkx)
 
@@ -624,7 +624,7 @@ module mod_atm_stub
     end subroutine allocate_surface_model
 
     subroutine init_bdy
-      implicit none (type, external)
+      implicit none
       character(len=32) :: appdat
       type (rcm_time_and_date) :: icbc_date
       integer(ik4) :: i, j, datefound
@@ -751,7 +751,7 @@ module mod_atm_stub
     end subroutine init_bdy
 
     subroutine bdyin
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: datefound
       character(len=32) :: appdat
 #ifdef DEBUG
@@ -832,7 +832,7 @@ module mod_atm_stub
     end subroutine bdyin
 
     subroutine atmval
-      implicit none (type, external)
+      implicit none
       integer(ik4) :: i, j
       real(rkx) :: psb, cell, zq, xt
 
@@ -879,7 +879,7 @@ module mod_atm_stub
     end subroutine atmval
 
     subroutine timeint2(a,b,c,j1,j2,i1,i2)
-      implicit none (type, external)
+      implicit none
       real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: a, b
       real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: c
       integer(ik4), intent(in) :: j1, j2, i1, i2
@@ -892,7 +892,7 @@ module mod_atm_stub
     end subroutine timeint2
 
     subroutine timeint3(a,b,c,j1,j2,i1,i2,k1,k2)
-      implicit none (type, external)
+      implicit none
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: a, b
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: c
       integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
@@ -907,7 +907,7 @@ module mod_atm_stub
     end subroutine timeint3
 
   subroutine paicompute(xpsb,xtb,xqb,xpaib)
-    implicit none (type, external)
+    implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xpsb
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xtb, xqb
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xpaib

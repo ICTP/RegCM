@@ -2,7 +2,7 @@
 
       use parkind, only : rb => kind_rb
 
-      implicit none (type, external)
+      implicit none
       save
 
 !------------------------------------------------------------------

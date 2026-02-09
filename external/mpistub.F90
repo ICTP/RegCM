@@ -14,7 +14,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mpi
-implicit none (type, external)
+implicit none
 
   include 'mpif.h'
 
@@ -26,7 +26,7 @@ end module mpi
 subroutine mpi_sendrecv(sendbuf, sendcount, sendtype, dest, sendtag, &
              recvbuf, recvcount, recvtype, source, recvtag, &
              comm, status, ierror)
-  implicit none (type, external)
+  implicit none
 
   include 'mpif.h'
 
@@ -39,7 +39,7 @@ end subroutine mpi_sendrecv
 
 subroutine mpi_cart_create(comm_old,ndims,dims,periods,reorder, &
                            comm_cart,ierror)
-  implicit none (type, external)
+  implicit none
   integer :: comm_old, ndims, comm_cart, ierror
   integer, dimension(:) :: dims
   logical :: reorder
@@ -47,13 +47,13 @@ subroutine mpi_cart_create(comm_old,ndims,dims,periods,reorder, &
 end subroutine mpi_cart_create
 
 subroutine mpi_cart_coords(comm,rank,maxdims,coords,ierror)
-  implicit none (type, external)
+  implicit none
   integer :: comm, rank, maxdims, ierror
   integer, dimension(:) :: coords
 end subroutine mpi_cart_coords
 
 subroutine mpi_cart_rank(comm,coords,rank,ierror)
-  implicit none (type, external)
+  implicit none
   integer :: comm, rank, ierror
   integer, dimension(:) :: coords
 end subroutine mpi_cart_rank

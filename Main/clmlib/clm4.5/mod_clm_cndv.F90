@@ -1,5 +1,5 @@
 module mod_clm_cndv
-implicit none (type, external)
+implicit none
 
 #if (defined CNDV)
   !
@@ -30,7 +30,7 @@ implicit none (type, external)
   use mod_clm_varcon, only : spval
   use mod_clm_varcon , only : secspday
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -45,7 +45,7 @@ implicit none (type, external)
   ! Drives the annual dynamic vegetation that works with CN
   !
   subroutine dv(lbg, ubg, lbp, ubp, num_natvegp, filter_natvegp, kyr)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbg, ubg  ! gridcell bounds
     integer(ik4), intent(in) :: lbp, ubp  ! pft bounds
     ! number of naturally-vegetated pfts in filter
@@ -148,7 +148,7 @@ implicit none (type, external)
   ! Create CNDV history file
   !
   subroutine histCNDV()
-    implicit none (type, external)
+    implicit none
     ! true=>landunit is not vegetated (landunit-level)
     logical, pointer, contiguous :: ifspecial(:)
     ! gridcell index of corresponding pft (pft-level)
@@ -431,7 +431,7 @@ implicit none (type, external)
   ! Determine initial dataset filenames
   !
   character(len=256) function set_dgvm_filename ()
-    implicit none (type, external)
+    implicit none
     character(len=4) :: cdate  !date char string
     integer(ik4) :: day        !day (1 -> 31)
     integer(ik4) :: mon        !month (1 -> 12)
@@ -447,7 +447,7 @@ implicit none (type, external)
   ! Reconstruct a filter of naturally-vegetated PFTs for use in DGVM
   !
   subroutine BuildNatVegFilter(lbp, ubp, num_natvegp, filter_natvegp)
-    implicit none (type, external)
+    implicit none
     ! pft bounds
     integer(ik4), intent(in)  :: lbp, ubp
     ! number of pfts in naturally-vegetated filter

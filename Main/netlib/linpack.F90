@@ -78,7 +78,7 @@ module linpack
 
   use mod_realkinds
 
-  implicit none (type, external)
+  implicit none
 
 contains
 
@@ -102,7 +102,7 @@ subroutine i_swap ( i, j )
 !    Input/output, integer I, J.  On output, the values of I and
 !    J have been interchanged.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: i
   integer :: j
@@ -152,7 +152,7 @@ function isamax ( n, x, incx )
 !    Output, integer ISAMAX, the index of the element of SX of maximum
 !    absolute value.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: i
   integer :: incx
@@ -230,7 +230,7 @@ subroutine r_swap ( x, y )
 !    Input/output, real(rkx) X, Y.  On output, the values of X and
 !    Y have been interchanged.
 !
-  implicit none (type, external)
+  implicit none
 !
   real(rkx) :: x
   real(rkx) :: y
@@ -264,7 +264,7 @@ function samax ( n, x, incx )
 !
 !    Output, real(rkx) SAMAX, the maximum absolute value of an element of X.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: i
   integer :: incx
@@ -351,7 +351,7 @@ function sasum ( n, x, incx )
 !
 !    Output, real(rkx) SASUM, the sum of the absolute values of X.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: incx
   integer :: n
@@ -404,7 +404,7 @@ subroutine saxpy ( n, sa, x, incx, y, incy )
 !
 !    Input, integer INCY, the increment between successive entries of Y.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: i
   integer :: incx
@@ -527,7 +527,7 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 !    Output, integer INFO, contains the index of the last positive diagonal
 !    element of the Cholesky factor.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: p
@@ -799,7 +799,7 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !     1, if some RHO could not be downdated.  The offending RHO's are
 !        set to -1.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: ldr
   integer :: ldz
@@ -997,7 +997,7 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
 !    Output, real(rkx) C(P), S(P), the cosines and sines of the transforming
 !    rotations.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: ldr
   integer :: ldz
@@ -1229,7 +1229,7 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
 !    Output, real(rkx) C(P), S(P), the cosines and sines of the transforming
 !    rotations.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: ldr
   integer :: ldz
@@ -1333,7 +1333,7 @@ subroutine scopy ( n, x, incx, y, incy )
 !
 !    Input, integer INCY, the increment between successive elements of Y.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: i
   integer :: incx
@@ -1420,7 +1420,7 @@ function sdot ( n, x, incx, y, incy )
 !
 !    Output, real(rkx) SDOT, the dot product of X and Y.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: i
   integer :: incx
@@ -1575,7 +1575,7 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -1819,7 +1819,7 @@ subroutine sgbdi ( abd, lda, n, ml, mu, ipvt, det )
 !      determinant = DET(1) * 10.0**DET(2)
 !    with  1.0_rkx <= abs ( DET(1) ) < 10.0_rkx or DET(1) = 0.0_rkx.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -1911,7 +1911,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !      subroutine, but it does indicate that SGBSL will divide by zero if
 !      called.  Use RCOND in SGBCO for a reliable indication of singularity.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -2074,7 +2074,7 @@ subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
 !    0, solve A*X=B.
 !    nonzero, solve A'*X=B.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -2220,7 +2220,7 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !    in the sense that
 !      norm ( A * Z ) = RCOND * norm ( A ) * norm ( Z ).
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -2445,7 +2445,7 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
 !    01, inverse only.
 !    10, determinant only.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -2579,7 +2579,7 @@ subroutine sgefa ( a, lda, n, ipvt, info )
 !    but it does indicate that SGESL or SGEDI will divide by zero if called.
 !    Use RCOND in SGECO for a reliable indication of singularity.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -2693,7 +2693,7 @@ subroutine sgesl ( a, lda, n, ipvt, b, job )
 !    0, solve A * X = B;
 !    nonzero, solve A' * X = B.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -2796,7 +2796,7 @@ subroutine sgtsl ( n, c, d, e, b, info )
 !    K, the K-th element of the diagonal becomes exactly zero.  The
 !       subroutine returns if this error condition is detected.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: n
 !
@@ -2899,7 +2899,7 @@ function snrm2 ( n, x, incx )
 !
 !    Output, real(rkx) SNRM2, the Euclidean norm of X.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: i
   integer :: incx
@@ -3039,7 +3039,7 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !    K, signals an error condition.  The leading minor of order K is not
 !    positive definite.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -3271,7 +3271,7 @@ subroutine spbdi ( abd, lda, n, m, det )
 !      determinant = DET(1) * 10.0**DET(2)
 !    with 1.0_rkx <= DET(1) < 10.0_rkx or DET(1) == 0.0_rkx.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -3365,7 +3365,7 @@ subroutine spbfa ( abd, lda, n, m, info )
 !    0, for normal return.
 !    K, if the leading minor of order K is not positive definite.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -3460,7 +3460,7 @@ subroutine spbsl ( abd, lda, n, m, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -3555,7 +3555,7 @@ subroutine spoco ( a, lda, n, rcond, z, info )
 !    K, signals an error condition.  The leading minor of order K is not
 !    positive definite.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -3772,7 +3772,7 @@ subroutine spodi ( a, lda, n, det, job )
 !      determinant = DET(1) * 10.0**DET(2)
 !    with 1.0_rkx <= DET(1) < 10.0_rkx or DET(1) == 0.0_rkx.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -3892,7 +3892,7 @@ subroutine spofa ( a, lda, n, info )
 !    K, signals an error condition.  The leading minor of order K is not
 !    positive definite.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -3976,7 +3976,7 @@ subroutine sposl ( a, lda, n, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -4076,7 +4076,7 @@ subroutine sppco ( ap, n, rcond, z, info )
 !    K, signals an error condition.  The leading minor of order K is
 !    not positive definite.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: n
 !
@@ -4304,7 +4304,7 @@ subroutine sppdi ( ap, n, det, job )
 !    01, inverse only.
 !    10, determinant only.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: n
 !
@@ -4457,7 +4457,7 @@ subroutine sppfa ( ap, n, info )
 !    0, for normal return.
 !    K, if the leading minor of order K is not positive definite.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: n
 !
@@ -4551,7 +4551,7 @@ subroutine sppsl ( ap, n, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: n
 !
@@ -4608,7 +4608,7 @@ subroutine sptsl ( n, d, e, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: n
 !
@@ -4752,7 +4752,7 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !    0, no pivoting is done.
 !    nonzero, pivoting is done.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -5047,7 +5047,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 !    been requested and R is exactly singular.  In this case, INFO is the
 !    index of the first zero diagonal element of R, and B is left unaltered.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: k
   integer :: lda
@@ -5282,7 +5282,7 @@ subroutine srot ( n, x, incx, y, incy, c, s )
 !    Input, real(rkx) C, S, parameters (presumably the cosine and sine of
 !    some angle) that define a plane rotation.
 !
-  implicit none (type, external)
+  implicit none
 !
   real(rkx) :: c
   integer :: i
@@ -5358,7 +5358,7 @@ subroutine srotg ( sa, sb, c, s )
 !
 !    Output, real(rkx) C, S, ...
 !
-  implicit none (type, external)
+  implicit none
 !
   real(rkx) :: c
   real(rkx) :: r
@@ -5429,7 +5429,7 @@ subroutine sscal ( n, sa, x, incx )
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: i
   integer :: incx
@@ -5532,7 +5532,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -5846,7 +5846,7 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 !    If A /= 0, the inertia is computed.
 !    For example, JOB = 111 gives all three.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -6095,7 +6095,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 !    condition for this subroutine, but it does indicate that SSISL
 !    or SSIDI may divide by zero if called.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -6341,7 +6341,7 @@ subroutine ssisl ( a, lda, n, kpvt, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: lda
   integer :: n
@@ -6554,7 +6554,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !    vector in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: n
 !
@@ -6912,7 +6912,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !      if C /= 0, the inverse is computed.
 !    For example, JOB = 111  gives all three.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: n
 !
@@ -7209,7 +7209,7 @@ subroutine sspfa ( ap, n, kpvt, info )
 !    condition for this subroutine, but it does indicate that SSPSL or
 !    SSPDI may divide by zero if called.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: n
 !
@@ -7504,7 +7504,7 @@ subroutine sspsl ( ap, n, kpvt, b )
 !    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: n
 !
@@ -7740,7 +7740,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !    its super-diagonal (U' is the transpose of U).  Thus the singular
 !    values of X and B are the same.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: ldu
   integer :: ldv
@@ -8271,7 +8271,7 @@ subroutine sswap ( n, x, incx, y, incy )
 !
 !    Input, integer INCY, the increment between successive elements of Y.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: i
   integer :: incx
@@ -8382,7 +8382,7 @@ subroutine strco ( t, ldt, n, rcond, z, job )
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: ldt
   integer :: n
@@ -8605,7 +8605,7 @@ subroutine strdi ( t, ldt, n, det, job, info )
 !    0, if the system was nonsingular;
 !    nonzero, if the system was singular.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: ldt
   integer :: n
@@ -8758,7 +8758,7 @@ subroutine strsl ( t, ldt, n, b, job, info )
 !    0, the system is nonsingular.
 !    nonzero, the index of the first zero diagonal element of T.
 !
-  implicit none (type, external)
+  implicit none
 !
   integer :: ldt
   integer :: n

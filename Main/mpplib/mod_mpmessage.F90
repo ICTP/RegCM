@@ -20,7 +20,7 @@ module mod_mpmessage
   use mod_stdio
   use mod_message
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -42,7 +42,7 @@ module mod_mpmessage
   ! Printout helper
   !
   subroutine vprntv_r8(a,n,nam)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n
     character(len=*), intent(in) :: nam
     real(rk8), intent(in), dimension(n) :: a
@@ -68,7 +68,7 @@ module mod_mpmessage
   end subroutine vprntv_r8
 
   subroutine vprntv_r4(a,n,nam)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n
     character(len=*), intent(in) :: nam
     real(rk4), intent(in), dimension(n) :: a
@@ -94,7 +94,7 @@ module mod_mpmessage
   end subroutine vprntv_r4
 
   subroutine iprntv(a,n,nam)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: n
     character(len=*), intent(in) :: nam
     integer(ik4), intent(in), dimension(n) :: a
@@ -120,7 +120,7 @@ module mod_mpmessage
   end subroutine iprntv
 !
   subroutine vprntm_r8(a,n1,n2,nam)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent (in) :: n1, n2
     character(len=*), intent (in) :: nam
     real(rk8), intent (in), dimension(n1,n2) :: a
@@ -150,7 +150,7 @@ module mod_mpmessage
   end subroutine vprntm_r8
 
   subroutine vprntm_r4(a,n1,n2,nam)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent (in) :: n1, n2
     character(len=*), intent (in) :: nam
     real(rk4), intent (in), dimension(n1,n2) :: a

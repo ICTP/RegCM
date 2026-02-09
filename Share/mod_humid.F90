@@ -19,7 +19,7 @@ module mod_humid
   use mod_realkinds
   use mod_constants
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -51,7 +51,7 @@ module mod_humid
 #include <pfwsat.inc>
 
   subroutine sph2mxr_double(q,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rk8), intent(inout), dimension(ni,nj,nk) :: q
     integer(ik4) :: i, j, k
@@ -61,7 +61,7 @@ module mod_humid
   end subroutine sph2mxr_double
 
   subroutine sph2mxr_single(q,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rk4), intent(inout), dimension(ni,nj,nk) :: q
     integer(ik4) :: i, j, k
@@ -71,7 +71,7 @@ module mod_humid
   end subroutine sph2mxr_single
 
   subroutine mxr2sph(q,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(inout), dimension(ni,nj,nk) :: q
     integer(ik4) :: i, j, k
@@ -81,7 +81,7 @@ module mod_humid
   end subroutine mxr2sph
 
   subroutine mxr2rh(t,q,ps,ptop,sigma,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in) :: ps, ptop
     real(rkx), intent(in), dimension(ni,nj,nk) :: t
@@ -101,7 +101,7 @@ module mod_humid
   end subroutine mxr2rh
 
   subroutine mxr2rh_o_double(t,q,ps,sigma,ptop,im,jm,km)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km
     real(rk8), intent(in) :: ptop
     real(rk8), intent(in), dimension(im,jm) :: ps
@@ -127,7 +127,7 @@ module mod_humid
   end subroutine mxr2rh_o_double
 
   subroutine mxr2rh_o_single(t,q,ps,sigma,ptop,im,jm,km)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: im, jm, km
     real(rkx), intent(in) :: ptop
     real(rk4), intent(in), dimension(im,jm) :: ps
@@ -154,7 +154,7 @@ module mod_humid
   end subroutine mxr2rh_o_single
 
   subroutine mxr2rh_o_double_nonhydro(t,q,p3d,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rk8), intent(in), dimension(ni,nj,nk) :: p3d, t
     real(rk8), intent(inout), dimension(ni,nj,nk) :: q
@@ -172,7 +172,7 @@ module mod_humid
   end subroutine mxr2rh_o_double_nonhydro
 
   subroutine mxr2rh_o_single_nonhydro(t,q,p3d,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rk4), intent(in), dimension(ni,nj,nk) :: p3d, t
     real(rk4), intent(inout), dimension(ni,nj,nk) :: q
@@ -190,7 +190,7 @@ module mod_humid
   end subroutine mxr2rh_o_single_nonhydro
 
   subroutine rh2mxr_p1(t,q,p,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: nk
     real(rkx), intent(in), dimension(nk) :: p ! Pa
     real(rkx), intent(in), dimension(nk) :: t ! K
@@ -208,7 +208,7 @@ module mod_humid
   end subroutine rh2mxr_p1
 
   subroutine rh2mxr_p1d(t,q,p,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in), dimension(nk) :: p ! Pa
     real(rkx), intent(in), dimension(ni,nj,nk) :: t ! K
@@ -227,7 +227,7 @@ module mod_humid
   end subroutine rh2mxr_p1d
 
   subroutine rh2mxr_p3d(t,q,ps,ptop,sigma,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in) :: ptop
     real(rkx), intent(in), dimension(ni,nj) :: ps
@@ -249,7 +249,7 @@ module mod_humid
   end subroutine rh2mxr_p3d
 
   subroutine ecmwf_rh2mxr(t,q,ps,ptop,sigma,ni,nj,nk)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: ni, nj, nk
     real(rkx), intent(in) :: ptop
     real(rkx), intent(in), dimension(ni,nj) :: ps

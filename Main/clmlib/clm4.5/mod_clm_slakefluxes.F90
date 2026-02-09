@@ -5,7 +5,7 @@ module mod_clm_slakefluxes
   use mod_intkinds
   use mod_realkinds
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -34,7 +34,7 @@ module mod_clm_slakefluxes
     use mod_clm_qsat, only : QSat
     use mod_clm_frictionvelocity, only : FrictionVelocity, MoninObukIni
     use mod_clm_slakecon, only : lake_use_old_fcrit_minz0
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc     ! column-index bounds
     integer(ik4), intent(in) :: lbp, ubp     ! pft-index bounds
     ! number of column non-lake points in pft filter

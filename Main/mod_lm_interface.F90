@@ -47,7 +47,7 @@ module mod_lm_interface
   use mod_clm_regcm
 #endif
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -89,7 +89,7 @@ module mod_lm_interface
   contains
 
   subroutine allocate_surface_model
-    implicit none (type, external)
+    implicit none
 
     rdnnsg = d_one/real(nnsg,rkx)
 
@@ -253,7 +253,7 @@ module mod_lm_interface
   subroutine init_surface_model
     use mod_atm_interface
     use mod_che_interface
-    implicit none (type, external)
+    implicit none
 
     call cl_setup(lndcomm,mddom%mask,mdsub%mask)
     call cl_setup(ocncomm,mddom%mask,mdsub%mask,.true.)
@@ -387,7 +387,7 @@ module mod_lm_interface
   end subroutine init_surface_model
 
   subroutine initialize_surface_model
-    implicit none (type, external)
+    implicit none
 #ifdef CLM
     integer(ik4) :: i, j, n
 #endif
@@ -427,7 +427,7 @@ module mod_lm_interface
     use mod_atm_interface, only : voc_em_clm, dustflx_clm, ddepv_clm
 #endif
     !@acc use nvtx
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, n, nn, ierr
 #ifdef CLM
     if ( rcmtimer%start( ) .or. syncro_rad%will_act(dtsrf) ) then
@@ -567,7 +567,7 @@ module mod_lm_interface
   end subroutine surface_model
 
   subroutine surface_albedo
-    implicit none (type, external)
+    implicit none
 #ifdef CLM
     logical :: do_call_albedo_bats_for_clm = .false.
     if ( do_call_albedo_bats_for_clm ) then
@@ -592,7 +592,7 @@ module mod_lm_interface
   end subroutine surface_albedo
 
   subroutine export_data_from_surface(expfie)
-    implicit none (type, external)
+    implicit none
     type(exp_data), intent(inout) :: expfie
     integer(ik4) :: j, i
 
@@ -632,7 +632,7 @@ module mod_lm_interface
 !
   subroutine import_data_into_surface(impfie,ldmskb,wetdry,tol)
     use mod_atm_interface
-    implicit none (type, external)
+    implicit none
     type(imp_data), intent(in) :: impfie
     real(rkx), intent(in) :: tol
     integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ldmskb, wetdry
@@ -819,7 +819,7 @@ module mod_lm_interface
   end subroutine import_data_into_surface
 
   subroutine collect_output
-    implicit none (type, external)
+    implicit none
 #ifndef CLM
     integer(ik4) :: k
 #endif
@@ -1221,7 +1221,7 @@ module mod_lm_interface
   end subroutine collect_output
 
   subroutine mslp
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, j, n
     integer(ik4), parameter :: niter = 20
     real(rkx), dimension(jci1:jci2,ici1:ici2) :: mask
@@ -1290,7 +1290,7 @@ module mod_lm_interface
   end subroutine mslp
 
   subroutine compute_maxgust(u10,v10,ua,va,zpbl,gust)
-    implicit none (type, external)
+    implicit none
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: u10, v10
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ua, va
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: zpbl

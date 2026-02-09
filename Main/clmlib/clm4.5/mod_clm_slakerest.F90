@@ -10,7 +10,7 @@ module mod_clm_slakerest
   use mod_clm_decomp
   use mod_runparams
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -23,7 +23,7 @@ module mod_clm_slakerest
   ! Read/Write biogeophysics information to/from restart file.
   !
   subroutine SLakeRest( ncid, flag )
-    implicit none (type, external)
+    implicit none
     type(clm_filetype), intent(inout) :: ncid ! netcdf id
     character(len=*), intent(in) :: flag      ! 'read' or 'write'
     type(gridcell_type), pointer :: gptr ! pointer to gridcell derived subtype

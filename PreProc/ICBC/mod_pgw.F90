@@ -33,7 +33,7 @@ module mod_pgw
   use mod_nchelper
   use mod_kdinterp
   use netcdf
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -66,7 +66,7 @@ module mod_pgw
   contains
 
   subroutine init_pgw(filename)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: filename
     integer :: istatus, idimid, ivarid, kkrec
 
@@ -147,7 +147,7 @@ module mod_pgw
   end subroutine init_pgw
 
   subroutine get_pgw(month)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: month
     integer(ik4) :: istatus, it
     integer(ik4), dimension(4) :: icount, istart
@@ -208,7 +208,7 @@ module mod_pgw
   end subroutine get_pgw
 
   subroutine conclude_pgw
-    implicit none (type, external)
+    implicit none
     integer :: istatus
     if ( ncid >= 0 ) then
       istatus = nf90_close(ncid)

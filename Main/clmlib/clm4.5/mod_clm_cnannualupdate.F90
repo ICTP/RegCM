@@ -1,5 +1,5 @@
 module mod_clm_cnannualupdate
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! Module for updating annual summation variables
@@ -9,7 +9,7 @@ implicit none (type, external)
   use mod_runparams, only : dtsrf
   use mod_clm_time_manager, only : is_end_curr_year
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -26,7 +26,7 @@ implicit none (type, external)
     use mod_clm_type
     use mod_clm_varcon , only: secspday
     use mod_clm_subgridave, only: p2c
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: lbc, ubc   ! column bounds
     integer(ik4), intent(in) :: lbp, ubp   ! pft bounds
     ! number of soil columns in filter

@@ -38,7 +38,7 @@ module mod_cu_em
   use mod_service
   use mod_regcm_types
 
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -65,7 +65,7 @@ module mod_cu_em
   contains
 
   subroutine allocate_mod_cu_em
-    implicit none (type, external)
+    implicit none
     integer(ik4) :: i, nseed
     integer(ik4), dimension(:), allocatable :: seed
     integer(ik8) :: sclock
@@ -119,7 +119,7 @@ module mod_cu_em
   ! **********************************************
   !
   subroutine cupemandrv(m2c)
-    implicit none (type, external)
+    implicit none
     type(mod_2_cum), intent(in) :: m2c
     integer(ik4) :: i, j, k, n, kk
     real(rkx), dimension(4) :: rfacs
@@ -445,7 +445,7 @@ module mod_cu_em
   subroutine cupeman(np,nd,ntra,t,q,qs,u,v,tra,p,ph,iflag,ft,fq,fu,fv,  &
                      ftra,precip,ppcp,wd,tprime,qprime,cbmf,cldfra,kcb, &
                      kct,elcrit,epmax)
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: np, nd, ntra
     real(rkx), pointer, contiguous, dimension(:), intent(inout) :: cbmf
     real(rkx), pointer, contiguous, dimension(:), intent(in) :: elcrit, epmax
@@ -1215,7 +1215,7 @@ module mod_cu_em
       ! Calculate lifting level temperature
       !
       subroutine tlift(n,p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
-        implicit none (type, external)
+        implicit none
         integer(ik4), intent(in) :: n, nd, nk, nl, kk
         integer(ik4), intent(in) :: icb
         real(rkx), dimension(:,:), intent(in) :: p, q, qs, t

@@ -1,5 +1,5 @@
 module mod_clm_cncstateupdate1
-implicit none (type, external)
+implicit none
 #ifdef CN
   !
   ! Module for carbon state variable update, non-mortality fluxes.
@@ -10,7 +10,7 @@ implicit none (type, external)
   use mod_runparams, only : dtsrf
   use mod_clm_varpar, only : ndecomp_cascade_transitions, nlevdecomp
 
-  implicit none (type, external)
+  implicit none
 
   save
 
@@ -25,7 +25,7 @@ implicit none (type, external)
   !
   subroutine CStateUpdate0(num_soilp, filter_soilp, isotope)
     use mod_clm_type
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     character(len=*), intent(in) :: isotope     ! 'bulk', 'c13' or 'c14'
@@ -82,7 +82,7 @@ implicit none (type, external)
     use mod_clm_type
     use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
     use mod_clm_pftvarcon, only : npcropmin
-    implicit none (type, external)
+    implicit none
     integer(ik4), intent(in) :: num_soilc       ! number of soil columns filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter

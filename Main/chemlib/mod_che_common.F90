@@ -29,7 +29,7 @@ module mod_che_common
   use mod_cbmz_global, only : xr, xrin, xrout, c
   use mod_cbmz_parameters, only : nfix
 
-  implicit none (type, external)
+  implicit none
 
   public
 
@@ -116,7 +116,7 @@ module mod_che_common
   contains
 
   subroutine allocate_mod_che_common
-    implicit none (type, external)
+    implicit none
 
     if ( ichem /= 1 ) return
 
@@ -201,7 +201,7 @@ module mod_che_common
   end subroutine allocate_mod_che_common
 
   subroutine chem_config
-    implicit none (type, external)
+    implicit none
     ! Define here the possible types of simulation and fix the dimension
     ! of relevant tracer dimension and parameters
     ntr = 0

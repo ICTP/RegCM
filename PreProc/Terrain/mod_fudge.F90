@@ -19,7 +19,7 @@ module mod_fudge
   use mod_realkinds
   use mod_stdio
   use mod_message
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -30,7 +30,7 @@ module mod_fudge
   contains
 
   subroutine lndfudge(fudge,lndout,jx,iy,char_lnd)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: char_lnd
     logical, intent(in) :: fudge
     integer(ik4), intent(in) :: iy, jx
@@ -178,7 +178,7 @@ module mod_fudge
   end subroutine lndfudge
 
   subroutine texfudge(fudge,texout,lnduse,jx,iy,char_tex)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: char_tex
     logical, intent(in) :: fudge
     integer(ik4), intent(in) :: iy, jx
@@ -319,7 +319,7 @@ module mod_fudge
   end subroutine texfudge
 
   subroutine lakfudge(fudge,dpth,lnd,jx,iy,char_lak)
-    implicit none (type, external)
+    implicit none
     character(len=*), intent(in) :: char_lak
     logical, intent(in) :: fudge
     integer(ik4), intent(in) :: iy, jx

@@ -24,7 +24,7 @@ module mod_wrtoxd
   use mod_stdio
   use mod_ncstream_types
   use mod_ncstream
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -134,7 +134,7 @@ module mod_wrtoxd
   contains
 
   subroutine init_outoxd(chemsimtype)
-    implicit none (type, external)
+    implicit none
     character(len=8), intent(in) :: chemsimtype
     logical :: doaero, dochem, dooxcl
     integer(ik4) :: i
@@ -247,14 +247,14 @@ module mod_wrtoxd
   end subroutine init_outoxd
 
   subroutine close_outoxd
-    implicit none (type, external)
+    implicit none
     call outstream_dispose(ncoutch)
     call outstream_dispose(ncoutox)
     call outstream_dispose(ncoutae)
   end subroutine close_outoxd
 
   subroutine newfile_ch_icbc(idate1)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar
@@ -288,7 +288,7 @@ module mod_wrtoxd
   end subroutine newfile_ch_icbc
 
   subroutine newfile_ox_icbc(idate1)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar
@@ -322,7 +322,7 @@ module mod_wrtoxd
   end subroutine newfile_ox_icbc
 
   subroutine newfile_ae_icbc(idate1)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar
@@ -356,7 +356,7 @@ module mod_wrtoxd
   end subroutine newfile_ae_icbc
 
   subroutine newfile_ae_icbc1(idate1)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate1
     type(ncoutstream_params) :: opar
     character(len=8) :: specname
@@ -409,7 +409,7 @@ module mod_wrtoxd
   end subroutine newfile_ae_icbc1
 
   subroutine write_ch_icbc(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4):: ivar
     call outstream_addrec(ncoutch,idate)
@@ -420,7 +420,7 @@ module mod_wrtoxd
   end subroutine write_ch_icbc
 
   subroutine write_ae_icbc(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4):: ivar
     call outstream_addrec(ncoutae,idate)
@@ -431,7 +431,7 @@ module mod_wrtoxd
   end subroutine write_ae_icbc
 
   subroutine write_ox_icbc(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivar
     call outstream_addrec(ncoutox,idate)
@@ -442,7 +442,7 @@ module mod_wrtoxd
   end subroutine write_ox_icbc
 
   subroutine write_ae_icbc1(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivar
 

@@ -25,7 +25,7 @@ module mod_sst_grid
   use mod_ncstream_types
   use mod_ncstream
   use mod_domain
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -45,7 +45,7 @@ module mod_sst_grid
   contains
 
   subroutine init_grid
-    implicit none (type, external)
+    implicit none
     call getmem(sstmm,1,jx,1,iy,'mod_sst_grid:sstmm')
     call getmem(icemm,1,jx,1,iy,'mod_sst_grid:icemm')
     call getmem(xlat,1,jx,1,iy,'mod_sst_grid:xlat')
@@ -56,7 +56,7 @@ module mod_sst_grid
   end subroutine init_grid
 
   subroutine read_domain_info(terfile)
-    implicit none (type, external)
+    implicit none
     character(len=256), intent(in) :: terfile
     integer(ik4) :: incin
     call openfile_withname(terfile,incin)
@@ -65,7 +65,7 @@ module mod_sst_grid
   end subroutine read_domain_info
 
   subroutine setup_outvars
-    implicit none (type, external)
+    implicit none
     v2dvar_base(1)%vname = 'xlon'
     v2dvar_base(1)%vunit = 'degrees_east'
     v2dvar_base(1)%long_name = 'Longitude on Cross Points'
@@ -93,7 +93,7 @@ module mod_sst_grid
   end subroutine setup_outvars
 
   subroutine open_sstfile(idate1)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate1
     character(len=256) :: sstname
     type(ncoutstream_params) :: opar
@@ -122,12 +122,12 @@ module mod_sst_grid
   end subroutine open_sstfile
 
   subroutine close_sstfile
-    implicit none (type, external)
+    implicit none
     call outstream_dispose(ncout)
   end subroutine close_sstfile
 
   subroutine writerec(idate)
-    implicit none (type, external)
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     call outstream_addrec(ncout,idate)
     call outstream_writevar(ncout,v2dvar_sst)

@@ -26,7 +26,7 @@ module mod_clm_regcm
   use mod_clm_megan
   use mod_clm_drydep, only : n_drydep
   use netcdf
-  implicit none (type, external)
+  implicit none
 
   private
 
@@ -48,7 +48,7 @@ module mod_clm_regcm
   contains
 
   subroutine initsaclm45(lm)
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     integer(ik4) :: begg, endg, ilev
     character(len=64) :: rdate
@@ -131,7 +131,7 @@ module mod_clm_regcm
   end subroutine initsaclm45
 
   subroutine initclm45(lm,lms)
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     integer(ik4) :: i, j, n, begg, endg, ilev
@@ -233,7 +233,7 @@ module mod_clm_regcm
   end subroutine initclm45
 
   subroutine runsaclm45(lm)
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     real(rk8) :: caldayp1, declinp1, eccfp1, declinp
     logical :: doalb, rstwr, nlend, nlomon
@@ -310,7 +310,7 @@ module mod_clm_regcm
 
   subroutine runclm45(lm,lms)
     !@acc use nvtx
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     real(rk8) :: caldayp1, declinp1, eccfp1, declinp
@@ -391,7 +391,7 @@ module mod_clm_regcm
   end subroutine runclm45
 
   subroutine albedoclm45(lm,lms)
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     real(rkx), dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
@@ -467,7 +467,7 @@ module mod_clm_regcm
   end subroutine albedoclm45
 
   subroutine atmosphere_to_land(lm)
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     integer(ik4) :: begg, endg, i, j, n
     real(rkx) :: satq, lat
@@ -781,7 +781,7 @@ module mod_clm_regcm
   end subroutine atmosphere_to_land
 
   subroutine land_to_atmosphere(lm,lms)
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     integer(ik4) :: i, j, n, k, begg, endg
@@ -975,7 +975,7 @@ module mod_clm_regcm
   end subroutine land_to_atmosphere
 
   subroutine read_cru_pre(lm,temps)
-    implicit none (type, external)
+    implicit none
     type(lm_exchange), intent(inout) :: lm
     real(rkx), dimension(:,:), pointer, contiguous, intent(inout) :: temps
     integer(ik4), save :: ncid = -1

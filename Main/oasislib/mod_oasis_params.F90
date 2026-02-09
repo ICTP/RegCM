@@ -19,7 +19,7 @@ module mod_oasis_params
 
   use mod_intkinds
 
-  implicit none (type, external)
+  implicit none
 
   private
 
