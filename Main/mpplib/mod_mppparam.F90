@@ -1753,8 +1753,8 @@ module mod_mppparam
 
   subroutine real8_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: mg
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
@@ -1794,8 +1794,8 @@ module mod_mppparam
 
   subroutine real4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: mg
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
@@ -1834,8 +1834,8 @@ module mod_mppparam
 
   subroutine integer4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
-    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: mg
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
@@ -1874,8 +1874,8 @@ module mod_mppparam
 
   subroutine logical_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
-    logical, pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
-    logical, pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: mg
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
@@ -1914,8 +1914,8 @@ module mod_mppparam
 
   subroutine real8_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: mg
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
@@ -1924,8 +1924,8 @@ module mod_mppparam
 
   subroutine real8_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     real(rk8), pointer, contiguous, dimension(:,:) :: mg2 => null()
     real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null()
@@ -1940,8 +1940,8 @@ module mod_mppparam
 
   subroutine real8_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model global
-    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
     real(rk8), pointer, contiguous, dimension(:,:) :: mg2 => null()
     real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null()
@@ -1958,8 +1958,8 @@ module mod_mppparam
 
   subroutine real4_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: mg
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
@@ -1968,8 +1968,8 @@ module mod_mppparam
 
   subroutine real4_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     real(rk4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
     real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
@@ -1984,8 +1984,8 @@ module mod_mppparam
 
   subroutine real4_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model global
-    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
     real(rk4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
     real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
@@ -2002,8 +2002,8 @@ module mod_mppparam
 
   subroutine integer_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
-    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: mg
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
@@ -2012,8 +2012,8 @@ module mod_mppparam
 
   subroutine integer_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
-    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml !model local
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     integer(ik4), pointer, contiguous, dimension(:,:) :: mg2 => null()
     integer(ik4), pointer, contiguous, dimension(:,:) :: ml2 => null()
@@ -2028,8 +2028,8 @@ module mod_mppparam
 
   subroutine integer_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model glob
-    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml !model loc
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
     integer(ik4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
     integer(ik4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
@@ -2046,8 +2046,8 @@ module mod_mppparam
 
   subroutine logical_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
-    logical, pointer, contiguous, dimension(:,:), intent(in) :: mg  ! model global
-    logical, pointer, contiguous, dimension(:,:), intent(inout) :: ml ! model local
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: mg
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
@@ -2056,8 +2056,8 @@ module mod_mppparam
 
   subroutine logical_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
-    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
-    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: ml !model local
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     logical, pointer, contiguous, dimension(:,:) :: mg2 => null()
     logical, pointer, contiguous, dimension(:,:) :: ml2 => null()
@@ -2072,8 +2072,8 @@ module mod_mppparam
 
   subroutine logical_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    logical, pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model glob
-    logical, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml !model loc
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg
+    logical, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
     logical, pointer, contiguous, dimension(:,:) :: mg2 => null( )
     logical, pointer, contiguous, dimension(:,:) :: ml2 => null( )
@@ -2090,8 +2090,8 @@ module mod_mppparam
 
   subroutine real8_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
@@ -2145,8 +2145,8 @@ module mod_mppparam
 
   subroutine real4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
@@ -2207,8 +2207,8 @@ module mod_mppparam
 
   subroutine integer4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
-    integer(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model glb
-    integer(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model loc
+    integer(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    integer(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
@@ -2269,8 +2269,8 @@ module mod_mppparam
 
   subroutine logical_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
-    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model glb
-    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model loc
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
@@ -2331,8 +2331,8 @@ module mod_mppparam
 
   subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
@@ -2342,8 +2342,8 @@ module mod_mppparam
 
   subroutine real4_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
@@ -2353,8 +2353,8 @@ module mod_mppparam
 
   subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model global
-    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml ! model local
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     real(rk8), pointer, contiguous, dimension(:,:,:) :: mg2 => null()
@@ -2370,8 +2370,8 @@ module mod_mppparam
 
   subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model global
-    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml ! model local
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     real(rk4), pointer, contiguous, dimension(:,:,:) :: mg2 => null()
@@ -2387,8 +2387,8 @@ module mod_mppparam
 
   subroutine logical_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
-    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
-    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model local
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
@@ -2398,8 +2398,8 @@ module mod_mppparam
 
   subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg  ! model global
-    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml ! model locl
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
@@ -2409,8 +2409,8 @@ module mod_mppparam
 
   subroutine integer_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg  ! model glob
-    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml ! modl loc
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg
+    integer(ik4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     integer(ik4), pointer, contiguous, dimension(:,:,:) :: mg2 => null()
@@ -2426,8 +2426,8 @@ module mod_mppparam
 
   subroutine real8_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: ml
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, icpu, ibstart, w1, w2, w3, w4
     if ( nproc == 1 ) then
@@ -2471,8 +2471,8 @@ module mod_mppparam
 
   subroutine real4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ml
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
@@ -2512,8 +2512,8 @@ module mod_mppparam
 
   subroutine integer4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
-    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ml
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
@@ -2553,8 +2553,8 @@ module mod_mppparam
 
   subroutine logical_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    logical, pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
-    logical, pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: ml
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, icpu
     if ( nproc == 1 ) then
@@ -2594,8 +2594,8 @@ module mod_mppparam
 
   subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: ml
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
@@ -2604,8 +2604,8 @@ module mod_mppparam
 
   subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: ml    ! model local
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: ml
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4), intent(in), optional :: k
     real(rk8), pointer, contiguous, dimension(:,:) :: mg2 => null( )
@@ -2620,8 +2620,8 @@ module mod_mppparam
 
   subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     real(rk8), pointer, contiguous, dimension(:,:) :: mg2 => null( )
@@ -2636,8 +2636,8 @@ module mod_mppparam
 
   subroutine real8_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg   ! model global
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k
     real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     integer(ik4) :: tsize
@@ -2648,8 +2648,8 @@ module mod_mppparam
 
   subroutine real8_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! model local
-    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! model glob
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
     real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     real(rk8), pointer, contiguous, dimension(:,:) :: mg2 => null( )
@@ -2666,8 +2666,8 @@ module mod_mppparam
 
   subroutine real8_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml ! model local
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k, n
     real(rk8), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     integer(ik4) :: tsize
@@ -2678,8 +2678,8 @@ module mod_mppparam
 
   subroutine real4_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ml
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
@@ -2688,8 +2688,8 @@ module mod_mppparam
 
   subroutine real4_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ml    ! model local
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ml
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4), intent(in), optional :: k
     real(rk4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
@@ -2704,8 +2704,8 @@ module mod_mppparam
 
   subroutine real4_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     real(rk4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
@@ -2720,8 +2720,8 @@ module mod_mppparam
 
   subroutine real4_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg   ! model global
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k
     real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     integer(ik4) :: tsize
@@ -2732,8 +2732,8 @@ module mod_mppparam
 
   subroutine real4_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! model local
-    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! model glob
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
     real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     real(rk4), pointer, contiguous, dimension(:,:) :: mg2 => null( )
@@ -2750,8 +2750,8 @@ module mod_mppparam
 
   subroutine real4_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml ! model local
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k, n
     real(rk4), pointer, contiguous, dimension(:,:) :: ml2 => null( )
     integer(ik4) :: tsize
@@ -2762,8 +2762,8 @@ module mod_mppparam
 
   subroutine logical_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    logical, pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
-    logical, pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    logical, pointer, contiguous, dimension(:,:), intent(in) :: ml
+    logical, pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
@@ -2772,8 +2772,8 @@ module mod_mppparam
 
   subroutine integer_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ml  ! model local
-    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: mg ! model global
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ml
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2)
@@ -2782,8 +2782,8 @@ module mod_mppparam
 
   subroutine integer_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model glbl
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     integer(ik4), pointer, contiguous, dimension(:,:) :: ml2 => null()
     integer(ik4), pointer, contiguous, dimension(:,:) :: mg2 => null()
@@ -2816,8 +2816,8 @@ module mod_mppparam
 
   subroutine real8_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
     integer(ik4) :: w1, w2, w3, w4, iboffset
@@ -2858,8 +2858,8 @@ module mod_mppparam
 
   subroutine real4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
@@ -2903,8 +2903,8 @@ module mod_mppparam
 
   subroutine integer4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model loc
-    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model glb
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
@@ -2948,8 +2948,8 @@ module mod_mppparam
 
   subroutine logical_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model loc
-    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model glb
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
     if ( nproc == 1 ) then
@@ -2993,8 +2993,8 @@ module mod_mppparam
 
   subroutine real8_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
@@ -3003,8 +3003,8 @@ module mod_mppparam
 
   subroutine real8_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! model local
-    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! model globl
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     real(rk8), pointer, contiguous, dimension(:,:,:) :: ml2 => null( )
     real(rk8), pointer, contiguous, dimension(:,:,:) :: mg2 => null( )
@@ -3019,8 +3019,8 @@ module mod_mppparam
 
   subroutine real4_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model global
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
@@ -3029,8 +3029,8 @@ module mod_mppparam
 
   subroutine real4_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml  ! model local
-    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg ! model globl
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
     real(rk4), pointer, contiguous, dimension(:,:,:) :: ml2 => null( )
     real(rk4), pointer, contiguous, dimension(:,:,:) :: mg2 => null( )
@@ -3045,8 +3045,8 @@ module mod_mppparam
 
   subroutine integer_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model glob
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)
@@ -3071,8 +3071,8 @@ module mod_mppparam
 
   subroutine logical_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: ml  ! model local
-    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: mg ! model glob
+    logical, pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2
     integer(ik4) :: tsize
     tsize = glosplitw(j1,j2,i1,i2,.true.)

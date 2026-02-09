@@ -3161,7 +3161,8 @@ module mod_ncout
             select type(vp)
               type is (ncvariable2d_mixed)
                 if ( vp%lrecords ) cycle var_loop
-                call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
+                tmp2d => vp%rval
+                call grid_collect(tmp2d,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
               class default
                 cycle var_loop
             end select
@@ -3937,12 +3938,12 @@ module mod_ncout
             select type(vp)
               type is (ncvariable2d_mixed)
                 if ( vp%lrecords ) cycle var_loop_par
-                call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
+                tmp2d => vp%rval
+                call grid_collect(tmp2d,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
                 vp%j1 = outstream(i)%jg1
                 vp%j2 = outstream(i)%jg2
                 vp%i1 = outstream(i)%ig1
                 vp%i2 = outstream(i)%ig2
-                tmp2d => vp%rval
                 vp%rval => pnt2d
               class default
                 cycle var_loop_par
@@ -4239,13 +4240,16 @@ module mod_ncout
         select type(vp)
           type is (ncvariable2d_mixed)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
+            tmp2d => vp%rval
+            call grid_collect(tmp2d,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
           type is (ncvariable3d_mixed)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
+            tmp3d => vp%rval
+            call grid_collect(tmp3d,pnt3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
           type is (ncvariable4d_mixed)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,pnt4d,vp%j1,vp%j2, &
+            tmp4d => vp%rval
+            call grid_collect(tmp4d,pnt4d,vp%j1,vp%j2, &
                               vp%i1,vp%i2,vp%k1,vp%k2,vp%n1,vp%n2)
           class default
             cycle
@@ -4294,31 +4298,31 @@ module mod_ncout
         select type(vp)
           type is (ncvariable2d_mixed)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
+            tmp2d => vp%rval
+            call grid_collect(tmp2d,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
             vp%j1 = outstream(istream)%jg1
             vp%j2 = outstream(istream)%jg2
             vp%i1 = outstream(istream)%ig1
             vp%i2 = outstream(istream)%ig2
-            tmp2d => vp%rval
             vp%rval => pnt2d
           type is (ncvariable3d_mixed)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
+            tmp3d => vp%rval
+            call grid_collect(tmp3d,pnt3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
             vp%j1 = outstream(istream)%jg1
             vp%j2 = outstream(istream)%jg2
             vp%i1 = outstream(istream)%ig1
             vp%i2 = outstream(istream)%ig2
-            tmp3d => vp%rval
             vp%rval => pnt3d
           type is (ncvariable4d_mixed)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,pnt4d,vp%j1,vp%j2, &
+            tmp4d => vp%rval
+            call grid_collect(tmp4d,pnt4d,vp%j1,vp%j2, &
                               vp%i1,vp%i2,vp%k1,vp%k2,vp%n1,vp%n2)
             vp%j1 = outstream(istream)%jg1
             vp%j2 = outstream(istream)%jg2
             vp%i1 = outstream(istream)%ig1
             vp%i2 = outstream(istream)%ig2
-            tmp4d => vp%rval
             vp%rval => pnt4d
           class default
             cycle
