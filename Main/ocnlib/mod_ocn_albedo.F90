@@ -61,7 +61,7 @@ module mod_ocn_albedo
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    do i = iocnbeg, iocnend
+    do concurrent ( i = iocnbeg:iocnend )
 #ifdef RCEMIP
       wspd = um10(i)
       wfac = 2.95e-6_rkx * wspd**3.52_rkx

@@ -567,6 +567,7 @@ module mod_lm_interface
   end subroutine surface_model
 
   subroutine surface_albedo
+    !@acc use nvtx
     implicit none
 #ifdef CLM
     logical :: do_call_albedo_bats_for_clm = .false.
@@ -577,18 +578,24 @@ module mod_lm_interface
     end if
 #else
 #ifdef CLM45
+    !@acc call nvtxStartRange("albedoclm45")
     if ( irceideal == 0 ) call albedoclm45(lm,lms)
+    !@acc call nvtxEndRange
 #else
     if ( irceideal == 0 ) call albedobats(lm,lms)
 #endif
 #endif
+    !@acc call nvtxStartRange("albedoocn")
     call albedoocn(lm,lms)
+    !@acc call nvtxEndRange
+    !$acc kernels
     lm%swalb = sum(lms%swalb,1)*rdnnsg
     lm%lwalb = sum(lms%lwalb,1)*rdnnsg
     lm%swdiralb = sum(lms%swdiralb,1)*rdnnsg
     lm%lwdiralb = sum(lms%lwdiralb,1)*rdnnsg
     lm%swdifalb = sum(lms%swdifalb,1)*rdnnsg
     lm%lwdifalb = sum(lms%lwdifalb,1)*rdnnsg
+    !$acc end kernels
   end subroutine surface_albedo
 
   subroutine export_data_from_surface(expfie)

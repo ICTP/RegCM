@@ -3905,28 +3905,27 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx+ndy) :: sdata
     real(rk8), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: ib1, ib2, iex
+    integer(ik4) :: ib1, ib2, iex, i, j, id, offset
 
-    ib2 = 0
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+    offset = 0
+    do concurrent ( i = i1:i2, iex = 1:nex )
+      id = (iex-1)*tx + 1 + (i-i1) + offset
+      sdata(id) = ml(j1+(iex-1),i)
     end do
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+    offset = offset + sizex
+    do concurrent ( i = i1:i2, iex = 1:nex )
+      id = (iex-1)*tx + 1 + (i-i1) + offset
+      sdata(id) = ml(j2-(iex-1),i)
     end do
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
+    offset = offset + sizex
+    do concurrent ( j = j1:j2, iex = 1:nex )
+      id = (iex-1)*ty + 1 + (j-j1) + offset
+      sdata(id) = ml(j,i1+(iex-1))
     end do
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
+    offset = offset + sizey
+    do concurrent ( j = j1:j2, iex = 1:nex )
+      id = (iex-1)*ty + 1 + (j-j1) + offset
+      sdata(id) = ml(j,i2-(iex-1))
     end do
 
     counts = [ sizex, sizex, sizey, sizey ]
@@ -3939,42 +3938,33 @@ module mod_mppparam
     end if
 #endif
 
-    ib2 = 0
+    offset = 0
     if ( ma%left /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        ml(j1-iex,i1:i2) = rdata(ib1:ib2)
+      do concurrent ( i = i1:i2, iex = 1:nex )
+        id = (iex-1)*tx + 1 + (i-i1) + offset
+        ml(j1-iex,i) = rdata(id)
       end do
-    else
-      ib2 = ib2 + sizex
     end if
+    offset = offset + sizex
     if ( ma%right /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        ml(j2+iex,i1:i2) = rdata(ib1:ib2)
+      do concurrent ( i = i1:i2, iex = 1:nex )
+        id = (iex-1)*tx + 1 + (i-i1) + offset
+        ml(j2+iex,i) = rdata(id)
       end do
-    else
-      ib2 = ib2 + sizex
     end if
+    offset = offset + sizex
     if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        ml(j1:j2,i1-iex) = rdata(ib1:ib2)
+      do concurrent ( j = j1:j2, iex = 1:nex )
+        id = (iex-1)*ty + 1 + (j-j1) + offset
+        ml(j,i1-iex) = rdata(id)
       end do
-    else
-      ib2 = ib2 + sizey
     end if
+    offset = offset + sizey
     if ( ma%top /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        ml(j1:j2,i2+iex) = rdata(ib1:ib2)
+      do concurrent ( j = j1:j2, iex = 1:nex )
+        id = (iex-1)*ty + 1 + (j-j1) + offset
+        ml(j,i2+iex) = rdata(id)
       end do
-    else
-      ib2 = ib2 + sizey
     end if
 
     end block exchange
@@ -4002,33 +3992,28 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx+ndy) :: sdata
     real(rk8), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: id, ib1, ib2, iex, k
+    integer(ik4) :: id, ib1, ib2, iex, i, j, k, offset
 
     !$acc data copy(ml) create(sdata,rdata)
-
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(tx)
-      ib2 = ib1 + tx - 1
-      sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+    offset = 0
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1) + offset
+      sdata(id) = ml(j1+(iex-1),i,k)
     end do
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(tx) + sizex
-      ib2 = ib1 + tx - 1
-      sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    offset = offset + sizex
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1) + offset
+      sdata(id) = ml(j2-(iex-1),i,k)
     end do
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(ty) + sizex + sizex
-      ib2 = ib1 + ty - 1
-      sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+    offset = offset + sizex
+    do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1) + offset
+      sdata(id) = ml(j,i1+(iex-1),k)
     end do
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(ty) + sizex + sizex + sizey
-      ib2 = ib1 + ty - 1
-      sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+    offset = offset + sizey
+    do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1) + offset
+      sdata(id) = ml(j,i2-(iex-1),k)
     end do
 
     counts = [ sizex, sizex, sizey, sizey ]
@@ -4042,37 +4027,32 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
-
+    offset = 0
     if ( ma%left /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(tx)
-        ib2 = ib1 + tx - 1
-        ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+      do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
+        id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1) + offset
+        ml(j1-iex,i,k) = rdata(id)
       end do
     end if
+    offset = offset + sizex
     if ( ma%right /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(tx) + sizex
-        ib2 = ib1 + tx - 1
-        ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+      do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
+        id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1) + offset
+        ml(j2+iex,i,k) = rdata(id)
       end do
     end if
+    offset = offset + sizex
     if ( ma%bottom /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(ty) + sizex + sizex
-        ib2 = ib1 + ty - 1
-        ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+      do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
+        id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1) + offset
+        ml(j,i1-iex,k) = rdata(id)
       end do
     end if
+    offset = offset + sizey
     if ( ma%top /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(ty) + sizex + sizex + sizey
-        ib2 = ib1 + ty - 1
-        ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+      do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
+        id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1) + offset
+        ml(j,i2+iex,k) = rdata(id)
       end do
     end if
     !$acc end data

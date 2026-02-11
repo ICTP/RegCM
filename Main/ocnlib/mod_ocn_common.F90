@@ -375,15 +375,11 @@ module mod_ocn_common
     call l2c_ss(ocncomm,lwdiral,lms%lwdiralb)
     call l2c_ss(ocncomm,swdifal,lms%swdifalb)
     call l2c_ss(ocncomm,lwdifal,lms%lwdifalb)
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( lm%ldmsk1(n,j,i) /= 1 ) then
-            lms%swalb(n,j,i) = max(lms%swdiralb(n,j,i),lms%swdifalb(n,j,i))
-            lms%lwalb(n,j,i) = max(lms%lwdiralb(n,j,i),lms%lwdifalb(n,j,i))
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) /= 1 ) then
+        lms%swalb(n,j,i) = max(lms%swdiralb(n,j,i),lms%swdifalb(n,j,i))
+        lms%lwalb(n,j,i) = max(lms%lwdiralb(n,j,i),lms%lwdifalb(n,j,i))
+      end if
     end do
   end subroutine albedoocn
   !

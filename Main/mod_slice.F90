@@ -362,7 +362,9 @@ module mod_slice
     !
     ! Find tropopause hgt.
     !
+    !$acc kernels
     ktrop(:,:) = kz
+    !$acc end kernels
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       do k = kzm1, 2, -1
         ktrop(j,i) = k
@@ -370,7 +372,9 @@ module mod_slice
       end do
     end do
     if ( ibltyp == 1 ) then
+      !$acc kernels
       kmxpbl(:,:) = kz
+      !$acc end kernels
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         do k = kzm1, 2, -1
           if ( atms%za(j,i,k) > 4000.0 ) exit
