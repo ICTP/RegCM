@@ -397,72 +397,60 @@ module mod_clm_regcm
     real(rkx), dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
     integer(ik4) :: i, j, n
     ! Just get albedoes from clm_l2a
+    !$acc kernels
     lastgood = lms%swdiralb
     clm_l2a%notused = clm_l2a%albd(:,1)
+    !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( lm%ldmsk1(n,j,i) == 1 ) then
-            if ( lms%swdiralb(n,j,i) > 0.9999_rkx ) then
-              lms%swdiralb(n,j,i) = lastgood(n,j,i)
-            end if
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) == 1 ) then
+        if ( lms%swdiralb(n,j,i) > 0.9999_rkx ) then
+          lms%swdiralb(n,j,i) = lastgood(n,j,i)
+        end if
+      end if
     end do
+    !$acc kernels
     lastgood = lms%lwdiralb
     clm_l2a%notused = clm_l2a%albd(:,2)
+    !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( lm%ldmsk1(n,j,i) == 1 ) then
-            if ( lms%lwdiralb(n,j,i) > 0.9999_rkx ) then
-              lms%lwdiralb(n,j,i) = lastgood(n,j,i)
-            end if
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) == 1 ) then
+        if ( lms%lwdiralb(n,j,i) > 0.9999_rkx ) then
+          lms%lwdiralb(n,j,i) = lastgood(n,j,i)
+        end if
+      end if
     end do
+    !$acc kernels
     lastgood = lms%swdifalb
     clm_l2a%notused = clm_l2a%albi(:,1)
+    !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( lm%ldmsk1(n,j,i) == 1 ) then
-            if ( lms%swdifalb(n,j,i) > 0.9999_rkx ) then
-              lms%swdifalb(n,j,i) = lastgood(n,j,i)
-            end if
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) == 1 ) then
+        if ( lms%swdifalb(n,j,i) > 0.9999_rkx ) then
+          lms%swdifalb(n,j,i) = lastgood(n,j,i)
+        end if
+      end if
     end do
+    !$acc kernels
     lastgood = lms%lwdifalb
     clm_l2a%notused = clm_l2a%albi(:,2)
+    !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( lm%ldmsk1(n,j,i) == 1 ) then
-            if ( lms%lwdifalb(n,j,i) > 0.9999_rkx ) then
-              lms%lwdifalb(n,j,i) = lastgood(n,j,i)
-            end if
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) == 1 ) then
+        if ( lms%lwdifalb(n,j,i) > 0.9999_rkx ) then
+          lms%lwdifalb(n,j,i) = lastgood(n,j,i)
+        end if
+      end if
     end do
     ! This should be the vegetation albedo!
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( lm%ldmsk1(n,j,i) == 1 ) then
-            lms%swalb(n,j,i) = max(lms%swdiralb(n,j,i),lms%swdifalb(n,j,i))
-            lms%lwalb(n,j,i) = max(lms%lwdiralb(n,j,i),lms%lwdifalb(n,j,i))
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) == 1 ) then
+        lms%swalb(n,j,i) = max(lms%swdiralb(n,j,i),lms%swdifalb(n,j,i))
+        lms%lwalb(n,j,i) = max(lms%lwdiralb(n,j,i),lms%lwdifalb(n,j,i))
+      end if
     end do
   end subroutine albedoclm45
 
