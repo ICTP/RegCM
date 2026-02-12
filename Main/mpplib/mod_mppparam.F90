@@ -1756,7 +1756,7 @@ module mod_mppparam
     real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: mg
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
-    integer(ik4) :: ib, i, j, icpu
+    integer(ik4) :: ib, iboffset, i, j, icpu, w1, w2, w3, w4
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         ml(j,i) = mg(j,i)
@@ -1764,15 +1764,18 @@ module mod_mppparam
       return
     end if
     if ( ccid == ccio ) then
-      ib = 1
+      iboffset = 0
       do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1), window(2)
-          do j = window(3), window(4)
-            r8vector1(ib) = mg(j,i)
-            ib = ib + 1
-          end do
+        w1 = window(1)
+        w2 = window(2)
+        w3 = window(3)
+        w4 = window(4)
+        do concurrent ( j = w3:w4, i = w1:w2 )
+          ib = iboffset + (i-w1)*(w4-w3+1) + (j-w3) + 1
+          r8vector1(ib) = mg(j,i)
         end do
+        iboffset = iboffset + (w4-w3+1)*(w2-w1+1)
       end do
     end if
     call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
@@ -1783,12 +1786,9 @@ module mod_mppparam
     end if
 #endif
     !ml(j1:j2,i1:i2) = reshape(r8vector2,shape(ml(j1:j2,i1:i2)))
-    ib = 1
-    do i = i1, i2
-      do j = j1, j2
-        ml(j,i) = r8vector2(ib)
-        ib = ib + 1
-      end do
+    do concurrent ( j = j1:j2, i = i1:i2 )
+      ib = (i-i1)*(j2-j1+1) + (j-j1) + 1
+      ml(j,i) = r8vector2(ib)
     end do
   end subroutine real8_2d_do_distribute
 
@@ -3097,13 +3097,14 @@ module mod_mppparam
 
 #ifdef USE_MPI3
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
     integer(ik4) :: nx, ny
     integer(ik4) :: lb, rb
     integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
-
+    !@acc call nvtxStartRange("real8_2d_exchange")
     nx = j2-j1+1
     ny = i2-i1+1
     lb = nex
@@ -3210,16 +3211,27 @@ module mod_mppparam
     end if
 
     end block exchange
+    !@acc call nvtxEndRange
   end subroutine real8_2d_exchange
 
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
     integer(ik4) :: nx, ny, nk
     integer(ik4) :: lb, rb
     integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
-
+    logical :: do_lt, do_rt, do_bt, do_tp
+    !@acc call nvtxStartRange("real8_3d_exchange")
+    do_lt = .true.
+    do_rt = .true.
+    do_bt = .true.
+    do_tp = .true.
+    if ( ma%left   == mpi_proc_null ) do_lt = .false.
+    if ( ma%right  == mpi_proc_null ) do_rt = .false.
+    if ( ma%bottom == mpi_proc_null ) do_bt = .false.
+    if ( ma%top    == mpi_proc_null ) do_tp = .false.
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
@@ -3241,21 +3253,13 @@ module mod_mppparam
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: id, ib1, ib2, iex, k
+    integer(ik4) :: id, iex, i, j, k
 
     !$acc data copy(ml) create(sdatax,sdatay,rdatax,rdatay)
-
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(tx)
-      ib2 = ib1 + tx - 1
-      sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
-    end do
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(tx) + sizex
-      ib2 = ib1 + tx - 1
-      sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      sdatax(id      ) = ml(j1+(iex-1),i,k)
+      sdatax(id+sizex) = ml(j2-(iex-1),i,k)
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
@@ -3269,36 +3273,18 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
-
-    if ( ma%left /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(tx)
-        ib2 = ib1 + tx - 1
-        ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
-      end do
-    end if
-    if ( ma%right /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(tx) + sizex
-        ib2 = ib1 + tx - 1
-        ml(j2+iex,i1:i2,k) = rdatax(ib1:ib2)
-      end do
-    end if
-
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(ty)
-      ib2 = ib1 + ty - 1
-      sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k)
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      if ( do_lt ) ml(j1-iex,i,k) = rdatax(id      )
+      if ( do_rt ) ml(j2+iex,i,k) = rdatax(id+sizex)
     end do
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(ty) + sizey
-      ib2 = ib1 + ty - 1
-      sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k)
+
+    do concurrent ( j = j1-lb:j2+rb, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1+lb)
+      sdatay(id      ) = ml(j,i1+(iex-1),k)
+      sdatay(id+sizey) = ml(j,i2-(iex-1),k)
     end do
+
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     !$acc host_data use_device(sdatay,rdatay)
@@ -3310,36 +3296,25 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
-
-    if ( ma%bottom /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(ty)
-        ib2 = ib1 + ty - 1
-        ml(j1-lb:j2+rb,i1-iex,k) = rdatay(ib1:ib2)
-      end do
-    end if
-    if ( ma%top /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(ty) + sizey
-        ib2 = ib1 + ty - 1
-        ml(j1-lb:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
-      end do
-    end if
+    do concurrent ( j = j1-lb:j2+rb, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1+lb)
+      if ( do_bt ) ml(j,i1-iex,k) = rdatay(id      )
+      if ( do_tp ) ml(j,i2+iex,k) = rdatay(id+sizey)
+    end do
     !$acc end data
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_3d_exchange
 
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
     integer(ik4) :: nx, ny, nk, nn
     integer(ik4) :: lb, rb
     integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
-
+    !@acc call nvtxStartRange("real8_4d_exchange")
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
@@ -3480,7 +3455,7 @@ module mod_mppparam
     end if
 
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_4d_exchange
 
   subroutine real4_2d_exchange(ml,nex,j1,j2,i1,i2)
@@ -3886,11 +3861,12 @@ module mod_mppparam
   end subroutine real4_4d_exchange
 
   subroutine real8_2d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
     integer(ik4) :: ndx, ndy, nx, ny, tx, ty, sizex, sizey
-
+    !@acc call nvtxStartRange("real8_2d_exchange_left_right_bottom_top")
     nx = j2-j1+1
     ny = i2-i1+1
     tx = ny
@@ -3968,15 +3944,25 @@ module mod_mppparam
     end if
 
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_2d_exchange_left_right_bottom_top
 
   subroutine real8_3d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
     integer(ik4) :: ndx, ndy, nx, ny, nk, tx, ty, sizex, sizey
-
+    logical :: do_lt, do_rt, do_bt, do_tp
+    !@acc call nvtxStartRange("real8_3d_exchange_left_right_bottom_top")
+    do_lt = .true.
+    do_rt = .true.
+    do_bt = .true.
+    do_tp = .true.
+    if ( ma%left   == mpi_proc_null ) do_lt = .false.
+    if ( ma%right  == mpi_proc_null ) do_rt = .false.
+    if ( ma%bottom == mpi_proc_null ) do_bt = .false.
+    if ( ma%top    == mpi_proc_null ) do_tp = .false.
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
@@ -3992,28 +3978,18 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx+ndy) :: sdata
     real(rk8), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: id, ib1, ib2, iex, i, j, k, offset
+    integer(ik4) :: id, iex, i, j, k
 
     !$acc data copy(ml) create(sdata,rdata)
-    offset = 0
     do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
-      id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1) + offset
-      sdata(id) = ml(j1+(iex-1),i,k)
+      id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      sdata(id      ) = ml(j1+(iex-1),i,k)
+      sdata(id+sizex) = ml(j2-(iex-1),i,k)
     end do
-    offset = offset + sizex
-    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
-      id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1) + offset
-      sdata(id) = ml(j2-(iex-1),i,k)
-    end do
-    offset = offset + sizex
     do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
-      id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1) + offset
-      sdata(id) = ml(j,i1+(iex-1),k)
-    end do
-    offset = offset + sizey
-    do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
-      id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1) + offset
-      sdata(id) = ml(j,i2-(iex-1),k)
+      id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1) + sizex + sizex
+      sdata(id      ) = ml(j,i1+(iex-1),k)
+      sdata(id+sizey) = ml(j,i2-(iex-1),k)
     end do
 
     counts = [ sizex, sizex, sizey, sizey ]
@@ -4027,46 +4003,29 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
-    offset = 0
-    if ( ma%left /= mpi_proc_null ) then
-      do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
-        id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1) + offset
-        ml(j1-iex,i,k) = rdata(id)
-      end do
-    end if
-    offset = offset + sizex
-    if ( ma%right /= mpi_proc_null ) then
-      do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
-        id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1) + offset
-        ml(j2+iex,i,k) = rdata(id)
-      end do
-    end if
-    offset = offset + sizex
-    if ( ma%bottom /= mpi_proc_null ) then
-      do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
-        id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1) + offset
-        ml(j,i1-iex,k) = rdata(id)
-      end do
-    end if
-    offset = offset + sizey
-    if ( ma%top /= mpi_proc_null ) then
-      do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
-        id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1) + offset
-        ml(j,i2+iex,k) = rdata(id)
-      end do
-    end if
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      if ( do_lt ) ml(j1-iex,i,k) = rdata(id      )
+      if ( do_rt ) ml(j2+iex,i,k) = rdata(id+sizex)
+    end do
+    do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1) + sizex + sizex
+      if ( do_bt ) ml(j,i1-iex,k) = rdata(id      )
+      if ( do_tp ) ml(j,i2+iex,k) = rdata(id+sizey)
+    end do
     !$acc end data
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_3d_exchange_left_right_bottom_top
 
   subroutine real8_4d_exchange_left_right_bottom_top(ml,nex,j1,j2, &
                                                      i1,i2,k1,k2,n1,n2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
     integer(ik4) :: ndx, ndy, nx, ny, nk, nn, tx, ty, sizex, sizey
-
+    !@acc call nvtxStartRange("real8_4d_exchange_left_right_bottom_top")
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
@@ -4188,7 +4147,7 @@ module mod_mppparam
     end if
 
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_4d_exchange_left_right_bottom_top
 
   subroutine real4_2d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2)
@@ -4532,11 +4491,12 @@ module mod_mppparam
   end subroutine real4_4d_exchange_left_right_bottom_top
 
   subroutine real8_2d_exchange_left_right(ml,nex,j1,j2,i1,i2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
     integer(ik4) :: ndx, ny, tx, sizex
-
+    !@acc call nvtxStartRange("real8_2d_exchange_left_right")
     ny = i2-i1+1
     tx = ny
     sizex = nex*tx
@@ -4592,15 +4552,21 @@ module mod_mppparam
     end if
 
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_2d_exchange_left_right
 
   subroutine real8_3d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
     integer(ik4) :: ndx, ny, nk, tx, sizex
-
+    logical :: do_lt, do_rt
+    !@acc call nvtxStartRange("real8_3d_exchange_left_right")
+    do_lt = .true.
+    do_rt = .true.
+    if ( ma%left   == mpi_proc_null ) do_lt = .false.
+    if ( ma%right  == mpi_proc_null ) do_rt = .false.
     ny = i2-i1+1
     nk = k2-k1+1
     tx = ny
@@ -4612,21 +4578,13 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx) :: sdata
     real(rk8), dimension(ndx), volatile :: rdata
-    integer(ik4) :: id, ib1, ib2, iex, k
+    integer(ik4) :: id, iex, i, k
 
     !$acc data copy(ml) create(sdata,rdata)
-
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(tx)
-      ib2 = ib1 + tx - 1
-      sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
-    end do
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(tx) + sizex
-      ib2 = ib1 + tx - 1
-      sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      sdata(id      ) = ml(j1+(iex-1),i,k)
+      sdata(id+sizex) = ml(j2-(iex-1),i,k)
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
@@ -4641,33 +4599,23 @@ module mod_mppparam
     end if
 #endif
 
-    if ( ma%left /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(tx)
-        ib2 = ib1 + tx - 1
-        ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
-      end do
-    end if
-    if ( ma%right /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(tx) + sizex
-        ib2 = ib1 + tx - 1
-        ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
-      end do
-    end if
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      if ( do_lt ) ml(j1-iex,i,k) = rdata(id      )
+      if ( do_rt ) ml(j2+iex,i,k) = rdata(id+sizex)
+    end do
     !$acc end data
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_3d_exchange_left_right
 
   subroutine real8_4d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
     integer(ik4) :: ndx, ny, nk, nn, tx, sizex
-
+    !@acc call nvtxStartRange("real8_4d_exchange_left_right")
     ny = i2-i1+1
     nk = k2-k1+1
     nn = n2-n1+1
@@ -4741,7 +4689,7 @@ module mod_mppparam
     end if
 
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_4d_exchange_left_right
 
   subroutine real4_2d_exchange_left_right(ml,nex,j1,j2,i1,i2)
@@ -4964,11 +4912,12 @@ module mod_mppparam
   end subroutine real4_4d_exchange_left_right
 
   subroutine real8_2d_exchange_bottom_top(ml,nex,j1,j2,i1,i2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2
     integer(ik4) :: ndy, nx, ty, sizey
-
+    !@acc call nvtxStartRange("real8_2d_exchange_bottom_top")
     nx = j2-j1+1
     ty = nx
     sizey = nex*ty
@@ -5024,15 +4973,21 @@ module mod_mppparam
     end if
 
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_2d_exchange_bottom_top
 
   subroutine real8_3d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2
     integer(ik4) :: ndy, nx, nk, ty, sizey
-
+    logical :: do_bt, do_tp
+    !@acc call nvtxStartRange("real8_3d_exchange_bottom_top")
+    do_bt = .true.
+    do_tp = .true.
+    if ( ma%bottom == mpi_proc_null ) do_bt = .false.
+    if ( ma%top    == mpi_proc_null ) do_tp = .false.
     nx = j2-j1+1
     nk = k2-k1+1
     ty = nx
@@ -5044,21 +4999,13 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndy) :: sdata
     real(rk8), dimension(ndy), volatile :: rdata
-    integer(ik4) :: id, ib1, ib2, iex, k
+    integer(ik4) :: id, iex, j, k
 
     !$acc data copy(ml) create(sdata,rdata)
-
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(ty)
-      ib2 = ib1 + ty - 1
-      sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
-    end do
-    do concurrent ( iex = 1:nex, k = k1:k2 )
-      id = (k-k1)*nex + iex
-      ib1 = 1 + (id-1)*(ty) + sizey
-      ib2 = ib1 + ty - 1
-      sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+    do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1)
+      sdata(id      ) = ml(j,i1+(iex-1),k)
+      sdata(id+sizey) = ml(j,i2-(iex-1),k)
     end do
 
     counts = [ 0, 0, sizey, sizey ]
@@ -5072,34 +5019,23 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
-
-    if ( ma%bottom /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(ty)
-        ib2 = ib1 + ty - 1
-        ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
-      end do
-    end if
-    if ( ma%top /= mpi_proc_null ) then
-      do concurrent ( iex = 1:nex, k = k1:k2 )
-        id = (k-k1)*nex + iex
-        ib1 = 1 + (id-1)*(ty) + sizey
-        ib2 = ib1 + ty - 1
-        ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
-      end do
-    end if
+    do concurrent ( j = j1:j2, iex = 1:nex, k = k1:k2 )
+      id = ((k-k1)*nex+iex-1)*ty + 1 + (j-j1)
+      if ( do_bt ) ml(j,i1-iex,k) = rdata(id      )
+      if ( do_tp ) ml(j,i2+iex,k) = rdata(id+sizey)
+    end do
     !$acc end data
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_3d_exchange_bottom_top
 
   subroutine real8_4d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
     integer(ik4) :: ndy, nx, nk, nn, ty, sizey
-
+    !@acc call nvtxStartRange("real8_4d_exchange_bottom_top")
     nx = j2-j1+1
     nk = k2-k1+1
     nn = n2-n1+1
@@ -5173,7 +5109,7 @@ module mod_mppparam
     end if
 
     end block exchange
-
+    !@acc call nvtxEndRange
   end subroutine real8_4d_exchange_bottom_top
 
   subroutine real4_2d_exchange_bottom_top(ml,nex,j1,j2,i1,i2)

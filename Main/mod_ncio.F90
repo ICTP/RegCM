@@ -29,7 +29,9 @@ module mod_ncio
   use mod_memutil
   use mod_nchelper
   use mod_domain
-
+#ifdef OPENACC
+  use, intrinsic :: iso_c_binding
+#endif
   implicit none
 
   private
@@ -64,7 +66,13 @@ module mod_ncio
   real(rkx), dimension(:,:), pointer, contiguous :: rspacesom => null()
   real(rkx), dimension(:,:), pointer, contiguous :: rspace2 => null()
   real(rkx), dimension(:,:,:), pointer, contiguous :: rspace3 => null()
-
+#ifdef OPENACC
+  real(rkx), dimension(:,:), pointer, contiguous :: rspace2_raw => null()
+  real(rkx), dimension(:,:,:), pointer, contiguous :: rspace3_raw => null()
+  type(c_ptr) :: cptr
+  integer(c_int) :: istat
+  integer(c_size_t) :: size_bytes
+#endif
   real(rkx), dimension(:,:,:), pointer, contiguous :: tempw => null()
   real(rkx), dimension(:,:), pointer, contiguous :: tempwtop => null()
 
@@ -662,6 +670,10 @@ module mod_ncio
   end function som_search
 
   subroutine open_icbc(idate)
+#ifdef OPENACC
+    use cudafor
+#endif
+    implicit none
     type(rcm_time_and_date), intent(in) :: idate
     character(len=11) :: ctime
     integer(ik4) :: idimid, itvar, i, chkdiff
@@ -755,8 +767,23 @@ module mod_ncio
       end if
     end if
     if ( do_parallel_netcdf_in ) then
+#ifdef OPENACC
+      size_bytes = (jde2-jde1+1)*(ide2-ide1+1)*kz*8
+      if ( size_bytes > 0 ) then
+        istat = cudaMallocHost(cptr, size_bytes)
+        if ( istat /= cudaSuccess ) then
+          write(*,*) 'cudaMallocHost failed with status: ',istat
+          stop
+        end if
+        call c_f_pointer(cptr, rspace2_raw, [jde2-jde1+1,ide2-ide1+1])
+        call c_f_pointer(cptr, rspace3_raw, [jde2-jde1+1,ide2-ide1+1,kz])
+        rspace2(jde1:jde2,ide1:ide2) => rspace2_raw(:,:)
+        rspace3(jde1:jde2,ide1:ide2,1:kz) => rspace3_raw(:,:,:)
+      end if
+#else
       allocate(rspace2(jde1:jde2,ide1:ide2))
       allocate(rspace3(jde1:jde2,ide1:ide2,kz))
+#endif
     else
       allocate(rspace2(jx,iy))
       allocate(rspace3(jx,iy,kz))
@@ -910,6 +937,7 @@ module mod_ncio
   end subroutine read_clmbc
 
   subroutine read_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww)
+    !@acc use nvtx
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
@@ -926,8 +954,9 @@ module mod_ncio
     integer(ik4), dimension(4) :: istart, icount
     integer(ik4) :: i, j, k
     real(rkx) :: told, pold, rhold, satvp, tnew, pnew
-
+    !@acc call nvtxStartRange("read_icbc")
     if ( do_parallel_netcdf_in ) then
+      !@acc call nvtxStartRange("do_parallel_netcdf_in")
       istart(1) = jde1
       istart(2) = ide1
       istart(3) = ibcrec
@@ -945,7 +974,9 @@ module mod_ncio
           call randify(rspace2,perturb_frac_ps,icount(1),icount(2))
         end if
       end if
+      !acc kernels deviceptr(rspace2)
       ps(jce1:jce2,ice1:ice2) = rspace2(jce1:jce2,ice1:ice2)
+      !acc end kernels
       istatus = nf90_get_var(ibcin,icbc_ivar(2),rspace2,istart(1:3),icount(1:3))
       call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
       if ( ensemble_run ) then
@@ -960,7 +991,9 @@ module mod_ncio
           call randify(rspace2,perturb_frac_ts,icount(1),icount(2))
         end if
       end if
+      !$acc kernels deviceptr(rspace2)
       ts(jce1:jce2,ice1:ice2) = rspace2(jce1:jce2,ice1:ice2)
+      !$acc end kernels
       istart(1) = jde1
       istart(2) = ide1
       istart(3) = 1
@@ -979,7 +1012,9 @@ module mod_ncio
           call randify(rspace3,perturb_frac_u,icount(1),icount(2),icount(3))
         end if
       end if
+      !$acc kernels deviceptr(rspace3)
       u(jde1:jde2,ide1:ide2,1:kz) = rspace3
+      !$acc end kernels
       istatus = nf90_get_var(ibcin,icbc_ivar(4),rspace3,istart,icount)
       call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
       if ( ensemble_run ) then
@@ -990,7 +1025,9 @@ module mod_ncio
           call randify(rspace3,perturb_frac_v,icount(1),icount(2),icount(3))
         end if
       end if
+      !$acc kernels deviceptr(rspace3)
       v(jde1:jde2,ide1:ide2,1:kz) = rspace3
+      !$acc end kernels
       istatus = nf90_get_var(ibcin,icbc_ivar(5),rspace3,istart,icount)
       call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
       if ( ensemble_run ) then
@@ -1001,7 +1038,9 @@ module mod_ncio
           call randify(rspace3,perturb_frac_t,icount(1),icount(2),icount(3))
         end if
       end if
+      !$acc kernels deviceptr(rspace3)
       t(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+      !$acc end kernels
       istatus = nf90_get_var(ibcin,icbc_ivar(6),rspace3,istart,icount)
       call check_ok(__FILE__,__LINE__,'variable qx read error', 'ICBC FILE')
       if ( ensemble_run ) then
@@ -1013,7 +1052,9 @@ module mod_ncio
           where ( rspace3 < 1.0e-8_rkx ) rspace3 = 1.0e-8_rkx
         end if
       end if
+      !$acc kernels deviceptr(rspace3)
       qv(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+      !$acc end kernels
       if ( has_qc ) then
         istatus = nf90_get_var(ibcin,icbc_ivar(10),rspace3,istart,icount)
         call check_ok(__FILE__,__LINE__,'variable qc read error', 'ICBC FILE')
@@ -1027,10 +1068,14 @@ module mod_ncio
       if ( idynamic == 2 ) then
         istatus = nf90_get_var(ibcin,icbc_ivar(7),rspace3,istart,icount)
         call check_ok(__FILE__,__LINE__,'variable pp read error', 'ICBC FILE')
+        !$acc kernels deviceptr(rspace3)
         pp(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+        !$acc end kernels
         istatus = nf90_get_var(ibcin,icbc_ivar(8),rspace3,istart,icount)
         call check_ok(__FILE__,__LINE__,'variable w read error', 'ICBC FILE')
+        !$acc kernels deviceptr(rspace3)
         ww(jce1:jce2,ice1:ice2,2:kzp1) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+        !$acc end kernels
         istart(1) = jde1
         istart(2) = ide1
         istart(3) = ibcrec
@@ -1041,8 +1086,11 @@ module mod_ncio
                                istart(1:3),icount(1:3))
         call check_ok(__FILE__,__LINE__, &
                       'variable wtop read error', 'ICBC FILE')
+        !$acc kernels deviceptr(rspace2)
         ww(jce1:jce2,ice1:ice2,1) = rspace2(jce1:jce2,ice1:ice2)
+        !$acc end kernels
       end if
+      !@acc call nvtxEndRange
     else
       if ( myid == iocpu ) then
         istart(1) = 1
@@ -1217,7 +1265,7 @@ module mod_ncio
         end do
       end if
     end if
-
+    !@acc call nvtxEndRange
     contains
 
 #include <pfesat.inc>
@@ -1266,6 +1314,9 @@ module mod_ncio
   end subroutine read_som
 
   subroutine close_icbc
+#ifdef OPENACC
+    use cudafor
+#endif
     implicit none
     if (ibcin >= 0) then
       istatus = nf90_close(ibcin)
@@ -1273,8 +1324,20 @@ module mod_ncio
       if ( allocated(icbc_idate) ) deallocate(icbc_idate)
       ibcin = -1
     end if
+#ifdef OPENACC
+    if ( associated(rspace2) .or. associated(rspace3) ) then
+      istat = cudaFreeHost(cptr)
+      if ( istat /= cudaSuccess ) then
+        write(*,*) 'cudaFreeHost failed with status: ',istat
+        stop
+      end if
+      rspace2 => null()
+      rspace3 => null()
+    end if
+#else
     if ( associated(rspace2) ) deallocate(rspace2)
     if ( associated(rspace3) ) deallocate(rspace3)
+#endif
   end subroutine close_icbc
 
   subroutine close_clmbc

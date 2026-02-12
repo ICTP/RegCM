@@ -663,40 +663,43 @@ module mod_kdinterp
     gni = size(g,2)
     gmax = -1e20_rkx
     gmin = 1e20_rkx
+#ifdef OPENACC
+    do concurrent ( j = 1:gnj, i = 1:gni ) reduce(max: gmax) reduce(min: gmin)
+#else
     do i = 1, gni
-      do j = 1, gnj
-        if ( g(j,i) > missc ) then
-          if ( gmax < g(j,i) ) gmax = g(j,i)
-          if ( gmin > g(j,i) ) gmin = g(j,i)
-        end if
-      end do
+    do j = 1, gnj
+#endif
+      if ( g(j,i) > missc ) then
+        gmax = max(gmax,g(j,i))
+        gmin = min(gmin,g(j,i))
+      end if
+#ifndef OPENACC
     end do
-    do i = 1, ni
-      do j = 1, nj
-        gsum = d_zero
-        gwgt = d_zero
-        do n = 1, h_i%tg%ft(j,i)%np
-          si = h_i%tg%ft(j,i)%wgt(n)%i
-          sj = h_i%tg%ft(j,i)%wgt(n)%j
-          if ( g(sj,si) > missc ) then
-            gsum = gsum + g(sj,si) * h_i%tg%ft(j,i)%wgt(n)%wgt
-            gwgt = gwgt + h_i%tg%ft(j,i)%wgt(n)%wgt
-          end if
-        end do
-        if ( gwgt > d_zero ) then
-          f(j,i) = real(gsum / gwgt,rkx)
-        else
-          f(j,i) = missl
+#endif
+    end do
+    do concurrent ( j = 1:nj, i = 1:ni )
+      gsum = d_zero
+      gwgt = d_zero
+      !$acc loop seq
+      do n = 1, h_i%tg%ft(j,i)%np
+        si = h_i%tg%ft(j,i)%wgt(n)%i
+        sj = h_i%tg%ft(j,i)%wgt(n)%j
+        if ( g(sj,si) > missc ) then
+          gsum = gsum + g(sj,si) * h_i%tg%ft(j,i)%wgt(n)%wgt
+          gwgt = gwgt + h_i%tg%ft(j,i)%wgt(n)%wgt
         end if
       end do
+      if ( gwgt > d_zero ) then
+        f(j,i) = real(gsum / gwgt,rkx)
+      else
+        f(j,i) = missl
+      end if
     end do
     call smtdsmt(f)
-    do i = 1, ni
-      do j = 1, nj
-        if ( f(j,i) > missc ) then
-          f(j,i) = max(gmin,min(gmax,f(j,i)))
-        end if
-      end do
+    do concurrent ( j = 1:nj, i = 1:ni )
+      if ( f(j,i) > missc ) then
+        f(j,i) = max(gmin,min(gmax,f(j,i)))
+      end if
     end do
   end subroutine interp_2d
 
@@ -1111,8 +1114,9 @@ module mod_kdinterp
     do np = 1, npass
       do kp = 1, 2
         ! first smooth in the ni direction
-        do i = i1, i2
+        do concurrent ( i = i1:i2 )
           asv = f(j1,i)
+          !$acc loop seq
           do j = js, je
             cell = f(j,i)
             aplus = f(j+1,i)
@@ -1123,8 +1127,9 @@ module mod_kdinterp
           end do
         end do
         ! smooth in the nj direction
-        do j = j1, j2
+        do concurrent ( j = j1:j2 )
           asv = f(j,i1)
+          !$acc loop seq
           do i = is, ie
             cell = f(j,i)
             aplus = f(j,i+1)
