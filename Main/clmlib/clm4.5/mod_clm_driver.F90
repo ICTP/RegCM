@@ -697,9 +697,9 @@ module mod_clm_driver
     ! =======================================================================
 
 #ifndef _NOIO
-
+    !@acc call nvtxStartRange("hist_htapes_wrapup")
     call hist_htapes_wrapup(rstwr,nlend,nlomon)
-
+    !@acc call nvtxEndRange
     ! =======================================================================
     ! Write to CNDV history buffer if appropriate
     ! =======================================================================
@@ -718,8 +718,10 @@ module mod_clm_driver
     ! =======================================================================
 
     if ( rstwr ) then
+      !@acc call nvtxStartRange("restFile_write")
       filer = restFile_filename(rdate=rdate)
       call restFile_write( filer, rdate=rdate )
+      !@acc call nvtxEndRange
     end if
 #endif
   !@acc call nvtxEndRange

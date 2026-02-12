@@ -909,40 +909,80 @@ module mod_bdycod
   ! this subroutine reads in the boundary conditions.
   !
   subroutine bdyin
+    !@acc use nvtx
     implicit none
     integer(ik4) :: i, j, k, n, datefound
     character(len=32) :: appdat
     logical :: update_slabocn
     type (rcm_time_interval) :: tdif
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: u0, u1, &
+      v0, v1, t0, t1, q0, q1, l0, l1, i0, i1, pp0, pp1, ww0, ww1, pai0, pai1
+    real(rkx), pointer, contiguous, dimension(:,:) :: ts0, ts1, ps0, ps1
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    !@acc call nvtxStartRange("bdyin")
+    u0 => xub%b0
+    u1 => xub%b1
+    v0 => xvb%b0
+    v1 => xvb%b1
+    t0 => xtb%b0
+    t1 => xtb%b1
+    q0 => xqb%b0
+    q1 => xqb%b1
+    l0 => xlb%b0
+    l1 => xlb%b1
+    i0 => xib%b0
+    i1 => xib%b1
+    pp0 => xppb%b0
+    pp1 => xppb%b1
+    ww0 => xwwb%b0
+    ww1 => xwwb%b1
+    pai0 => xpaib%b0
+    pai1 => xpaib%b1
+    ts0 => xtsb%b0
+    ts1 => xtsb%b1
+    ps0 => xpsb%b0
+    ps1 => xpsb%b1
 
     update_slabocn = ( islab_ocean == 1 .and. &
       do_qflux_adj .and. som_month /= rcmtimer%month )
 
     xbctime = d_zero
-
-    xub%b0(:,:,:) = xub%b1(:,:,:)
-    xvb%b0(:,:,:) = xvb%b1(:,:,:)
-    xtb%b0(:,:,:) = xtb%b1(:,:,:)
-    xqb%b0(:,:,:) = xqb%b1(:,:,:)
+    !$acc kernels
+    u0(:,:,:) = u1(:,:,:)
+    v0(:,:,:) = v1(:,:,:)
+    t0(:,:,:) = t1(:,:,:)
+    q0(:,:,:) = q1(:,:,:)
+    !$acc end kernels
     if ( present_qc ) then
-      xlb%b0(:,:,:) = xlb%b1(:,:,:)
+      !$acc kernels
+      l0(:,:,:) = l1(:,:,:)
+      !$acc end kernels
     end if
     if ( present_qi ) then
-      xib%b0(:,:,:) = xib%b1(:,:,:)
+      !$acc kernels
+      i0(:,:,:) = i1(:,:,:)
+      !$acc end kernels
     end if
-    xtsb%b0(:,:) = xtsb%b1(:,:)
+    !$acc kernels
+    ts0(:,:) = ts1(:,:)
+    !$acc end kernels
     if ( idynamic == 2 ) then
-      xppb%b0(:,:,:) = xppb%b1(:,:,:)
-      xwwb%b0(:,:,:) = xwwb%b1(:,:,:)
+      !$acc kernels
+      pp0(:,:,:) = pp1(:,:,:)
+      ww0(:,:,:) = ww1(:,:,:)
+      !$acc end kernels
     else
-      xpsb%b0(:,:) = xpsb%b1(:,:)
+      !$acc kernels
+      ps0(:,:) = ps1(:,:)
+      !$acc end kernels
       if ( idynamic == 3 ) then
-        xpaib%b0(:,:,:) = xpaib%b1(:,:,:)
+        !$acc kernels
+        pai0(:,:,:) = pai1(:,:,:)
+        !$acc end kernels
       end if
     end if
 
@@ -976,7 +1016,7 @@ module mod_bdycod
           nhbh1%ps(j,i) = nhbh1%ps(j,i) * d_r10 - ptop
         end do
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          nhbh1%tvirt(j,i,k) = xtb%b1(j,i,k)*(d_one+ep1*xqb%b1(j,i,k))
+          nhbh1%tvirt(j,i,k) = t1(j,i,k)*(d_one+ep1*q1(j,i,k))
         end do
       end if
     else if ( idynamic == 3 ) then
@@ -991,10 +1031,10 @@ module mod_bdycod
 
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-          nhbh1%ps(j,i) = xpsb%b1(j,i)
+          nhbh1%ps(j,i) = ps1(j,i)
         end do
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          nhbh1%tvirt(j,i,k) = xtb%b1(j,i,k)*(d_one+ep1*xqb%b1(j,i,k))
+          nhbh1%tvirt(j,i,k) = t1(j,i,k)*(d_one+ep1*q1(j,i,k))
         end do
       end if
     else
@@ -1017,11 +1057,15 @@ module mod_bdycod
     ! Convert surface pressure to pstar
     !
     if ( idynamic == 1 ) then
-      xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+      !$acc kernels
+      ps1(:,:) = (ps1(:,:)*d_r10)-ptop
+      !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
     else if ( idynamic == 3 ) then
-      xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
+      !$acc kernels
+      ps1(:,:) = ps1(:,:)*d_100
+      !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
     end if
     !
@@ -1133,7 +1177,7 @@ module mod_bdycod
     if ( ichem == 1 ) then
       call chem_bdyin
     end if
-
+    !@acc call nvtxEndRange
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -2017,20 +2061,18 @@ module mod_bdycod
       end if
     end if
 
-    do i = ici1, ici2
-      do j = jci1, jci2
-        ! Update temperatures over ocean water only
-        if ( mddom%ldmsk(j,i) /= 0 ) cycle
-        ! Skip lake points if lake model active
-        if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-        ! Do not update if coupling and ocean active here
-        if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-          if ( cplmsk(j,i) /= 0 ) cycle
-        end if
-        ! FAB do not update if slaboc / adjust or restore run
-        if ( islab_ocean == 1 ) cycle
-        sfs%tg(j,i) = xtsb%b0(j,i) + xt*xtsb%bt(j,i)
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      ! Update temperatures over ocean water only
+      if ( mddom%ldmsk(j,i) /= 0 ) cycle
+      ! Skip lake points if lake model active
+      if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+      ! Do not update if coupling and ocean active here
+      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+        if ( cplmsk(j,i) /= 0 ) cycle
+      end if
+      ! FAB do not update if slaboc / adjust or restore run
+      if ( islab_ocean == 1 ) cycle
+      sfs%tg(j,i) = xtsb%b0(j,i) + xt*xtsb%bt(j,i)
     end do
 
     if ( iboudy == 3 .or. iboudy == 4 ) then
@@ -2172,126 +2214,110 @@ module mod_bdycod
     if ( idynamic == 3 ) then
       if ( bdyflow ) then
         if ( ma%has_bdyleft ) then
-          do n = iqfrst, nqx
+          do concurrent ( i = ici1:ici2, k = 1:kz, n = iqfrst:nqx )
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-            do concurrent ( i = ici1:ici2, k = 1:kz )
-              qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
-              windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
-              if ( windavg > d_zero ) then
-                mo_atm%qx(jce1,i,k,n) = qxbval(n)
-              else
-                mo_atm%qx(jce1,i,k,n) = qxint
-              end if
-            end do
+            qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
+            windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
+            if ( windavg > d_zero ) then
+              mo_atm%qx(jce1,i,k,n) = qxbval(n)
+            else
+              mo_atm%qx(jce1,i,k,n) = qxint
+            end if
           end do
         end if
         !
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-          do n = iqfrst, nqx
+          do concurrent ( i = ici1:ici2, k = 1:kz, n = iqfrst:nqx )
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-            do concurrent ( i = ici1:ici2, k = 1:kz )
-              qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
-              windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
-              if ( windavg < d_zero ) then
-                mo_atm%qx(jce2,i,k,n) = qxbval(n)
-              else
-                mo_atm%qx(jce2,i,k,n) = qxint
-              end if
-            end do
+            qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
+            windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
+            if ( windavg < d_zero ) then
+              mo_atm%qx(jce2,i,k,n) = qxbval(n)
+            else
+              mo_atm%qx(jce2,i,k,n) = qxint
+            end if
           end do
         end if
         !
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-          do n = iqfrst, nqx
+          do concurrent ( j = jce1:jce2, k = 1:kz, n = iqfrst:nqx )
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-            do concurrent ( j = jce1:jce2, k = 1:kz )
-              qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
-              windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
-              if ( windavg > d_zero ) then
-                mo_atm%qx(j,ice1,k,n) = qxbval(n)
-              else
-                mo_atm%qx(j,ice1,k,n) = qxint
-              end if
-            end do
+            qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
+            windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
+            if ( windavg > d_zero ) then
+              mo_atm%qx(j,ice1,k,n) = qxbval(n)
+            else
+              mo_atm%qx(j,ice1,k,n) = qxint
+            end if
           end do
         end if
         !
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-          do n = iqfrst, nqx
+          do concurrent ( j = jce1:jce2, k = 1:kz, n = iqfrst:nqx )
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-            do concurrent ( j = jce1:jce2, k = 1:kz )
-              qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
-              windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
-              if ( windavg < d_zero ) then
-                mo_atm%qx(j,ice2,k,n) = qxbval(n)
-              else
-                mo_atm%qx(j,ice2,k,n) = qxint
-              end if
-            end do
+            qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
+            windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
+            if ( windavg < d_zero ) then
+              mo_atm%qx(j,ice2,k,n) = qxbval(n)
+            else
+              mo_atm%qx(j,ice2,k,n) = qxint
+            end if
           end do
         end if
       else
         if ( ma%has_bdyleft ) then
-          do n = iqfrst, nqx
+          do concurrent ( i = ici1:ici2, k = 1:kz, n = iqfrst:nqx )
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-            do concurrent ( i = ici1:ici2, k = 1:kz )
-              qxint = mo_atm%qx(jci1,i,k,n)
-              qrat  = mo_atm%qx(jce1,i,k,iqv)/mo_atm%qx(jci1,i,k,iqv)
-              mo_atm%qx(jce1,i,k,n) = qxint*qrat
-            end do
+            qxint = mo_atm%qx(jci1,i,k,n)
+            qrat  = mo_atm%qx(jce1,i,k,iqv)/mo_atm%qx(jci1,i,k,iqv)
+            mo_atm%qx(jce1,i,k,n) = qxint*qrat
           end do
         end if
         !
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-          do n = iqfrst, nqx
+          do concurrent ( i = ici1:ici2, k = 1:kz, n = iqfrst:nqx )
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-            do concurrent ( i = ici1:ici2, k = 1:kz )
-              qxint = mo_atm%qx(jci2,i,k,n)
-              qrat  = mo_atm%qx(jce2,i,k,iqv)/mo_atm%qx(jci2,i,k,iqv)
-              mo_atm%qx(jce2,i,k,n) = qxint*qrat
-            end do
+            qxint = mo_atm%qx(jci2,i,k,n)
+            qrat  = mo_atm%qx(jce2,i,k,iqv)/mo_atm%qx(jci2,i,k,iqv)
+            mo_atm%qx(jce2,i,k,n) = qxint*qrat
           end do
         end if
         !
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-          do n = iqfrst, nqx
+          do concurrent ( j = jce1:jce2, k = 1:kz, n = iqfrst:nqx )
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-            do concurrent ( j = jce1:jce2, k = 1:kz )
-              qxint = mo_atm%qx(j,ici1,k,n)
-              qrat  = mo_atm%qx(j,ice1,k,iqv)/mo_atm%qx(j,ici1,k,iqv)
-              mo_atm%qx(j,ice1,k,n) = qxint*qrat
-            end do
+            qxint = mo_atm%qx(j,ici1,k,n)
+            qrat  = mo_atm%qx(j,ice1,k,iqv)/mo_atm%qx(j,ici1,k,iqv)
+            mo_atm%qx(j,ice1,k,n) = qxint*qrat
           end do
         end if
         !
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-          do n = iqfrst, nqx
+          do concurrent ( j = jce1:jce2, k = 1:kz, n = iqfrst:nqx )
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-            do concurrent ( j = jce1:jce2, k = 1:kz )
-              qxint = mo_atm%qx(j,ici2,k,n)
-              qrat  = mo_atm%qx(j,ice2,k,iqv)/mo_atm%qx(j,ici2,k,iqv)
-              mo_atm%qx(j,ice2,k,n) = qxint*qrat
-            end do
+            qxint = mo_atm%qx(j,ici2,k,n)
+            qrat  = mo_atm%qx(j,ice2,k,iqv)/mo_atm%qx(j,ici2,k,iqv)
+            mo_atm%qx(j,ice2,k,n) = qxint*qrat
           end do
         end if
       end if

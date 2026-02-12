@@ -97,6 +97,7 @@ module mod_realkinds
 #ifdef F2008
 
   logical elemental function is_nan_double(x)
+    !$acc routine seq
     implicit none
     real(rk8), intent(in) :: x
     is_nan_double = (ieee_class(x) == ieee_quiet_nan .or. &
