@@ -656,7 +656,7 @@ module mod_mppparam
 
   subroutine bcast_int8(ival)
     implicit none
-    integer(rk8), intent(inout) :: ival
+    integer(ik8), intent(inout) :: ival
     call mpi_bcast(ival,1,mpi_integer8,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -2207,8 +2207,8 @@ module mod_mppparam
 
   subroutine integer4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
-    integer(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
-    integer(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(in) :: mg
+    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: ml
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
@@ -3881,7 +3881,7 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts, displs
     real(rk8), dimension(ndx+ndy) :: sdata
     real(rk8), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: ib1, ib2, iex, i, j, id, offset
+    integer(ik4) :: iex, i, j, id, offset
 
     offset = 0
     do concurrent ( i = i1:i2, iex = 1:nex )
@@ -5540,8 +5540,8 @@ module mod_mppparam
     if ( ma%left == mpi_proc_null ) lb = 0
     tx = ny
     ty = nx+lb
-    sizex = nex*tx*nk
-    sizey = nex*ty*nk
+    sizex = nex*tx*nk*nn
+    sizey = nex*ty*nk*nn
     ndx = 2*sizex
     ndy = 2*sizey
 
@@ -5873,8 +5873,8 @@ module mod_mppparam
     if ( ma%left == mpi_proc_null ) lb = 0
     tx = ny
     ty = nx+lb
-    sizex = nex*tx*nk
-    sizey = nex*ty*nk
+    sizex = nex*tx*nk*nn
+    sizey = nex*ty*nk*nn
     ndx = 2*sizex
     ndy = 2*sizey
 
