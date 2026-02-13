@@ -1471,10 +1471,10 @@ module mod_vertint
     end do
   end subroutine intv3
 
-  subroutine intzps1(psrcm,zrcm,tp,zp,pss,sccm,pst,lat,jday,ni,nj,nk)
+  subroutine intzps1(psrcm,zrcm,tp,zp,pss,sccm,pst,lat,jday,dayspy,ni,nj,nk)
     implicit none
     integer(ik4), intent(in) :: ni, nj, nk
-    real(rkx), intent(in) :: pss, jday, pst
+    real(rkx), intent(in) :: pss, jday, dayspy, pst
     real(rkx), contiguous, pointer, dimension(:,:), intent(in) :: zrcm, lat
     real(rkx), contiguous, pointer, dimension(:,:), intent(inout) :: psrcm
     real(rkx), contiguous, pointer, dimension(:), intent(in) :: sccm
@@ -1498,8 +1498,11 @@ module mod_vertint
             tvb = tp(i,j,1)
             dz = zb - zrcm(i,j)
             lrt = (tva-tvb)/(za-zb)
-            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
-            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+            if ( .false. ) then
+              lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,lat(i,j))
+            else
+              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+            end if
             tlayer = tvb - dz*lrt
             tlayer = (tvb + tlayer) * 0.5_rkx
             psrcm(i,j) = pb * exp(govr*dz/tlayer)
@@ -1543,8 +1546,11 @@ module mod_vertint
             tvb = tp(i,j,nk)
             dz = za - zrcm(i,j)
             lrt = (tva-tvb)/(za-zb)
-            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
-            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+            if ( .false. ) then
+              lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,lat(i,j))
+            else
+              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+            end if
             tlayer = tvb - dz*lrt
             tlayer = (tvb + tlayer) * 0.5_rkx
             psrcm(i,j) = pb * exp(govr*dz/tlayer)
@@ -1575,10 +1581,10 @@ module mod_vertint
     end if
   end subroutine intzps1
 
-  subroutine intzps2(psrcm,zrcm,tp,zp,pp,lat,jday,ni,nj,nk)
+  subroutine intzps2(psrcm,zrcm,tp,zp,pp,lat,jday,dayspy,ni,nj,nk)
     implicit none
     integer(ik4), intent(in) :: ni, nj, nk
-    real(rkx), intent(in) :: jday
+    real(rkx), intent(in) :: jday, dayspy
     real(rkx), dimension(ni,nj), intent(in) :: zrcm, lat
     real(rkx), dimension(ni,nj), intent(out) :: psrcm
     real(rkx), dimension(ni,nj,nk), intent(in) :: tp, zp, pp
@@ -1608,8 +1614,11 @@ module mod_vertint
             za = zp(i,j,1)
             dz = zrcm(i,j)-za
             lrt = (tp(i,j,2)-tp(i,j,1))/(zp(i,j,2)-zp(i,j,1))
-            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
-            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+            if ( .false. ) then
+              lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,lat(i,j))
+            else
+              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+            end if
             tlayer = tp(i,j,1) - 0.5_rkx*dz*lrt
           end if
           psrcm(i,j) = pa * exp(-govr*dz/tlayer)
@@ -1638,8 +1647,11 @@ module mod_vertint
             za = zp(i,j,nk)
             dz = zrcm(i,j)-za
             lrt = (tp(i,j,nk-1)-tp(i,j,nk))/(zp(i,j,nk-1)-zp(i,j,nk))
-            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
-            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+            if ( .false. ) then
+              lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,lat(i,j))
+            else
+              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+            end if
             tlayer = tp(i,j,nk) - 0.5_rkx*dz*lrt
           end if
           psrcm(i,j) = pa * exp(-govr*dz/tlayer)

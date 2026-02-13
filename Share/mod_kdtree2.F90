@@ -1248,7 +1248,7 @@ module mod_kdtree2
     !
     integer :: nfound
     integer :: dimen, i, indexofi, k
-    integer :: centeridx, correltime, nn
+    integer :: centeridx, correltime
     real(kdkind) :: ballsize, sd
     logical :: rearrange
     !
@@ -1262,7 +1262,6 @@ module mod_kdtree2
     rdata => sr%rdata
     centeridx = sr%centeridx
     correltime = sr%correltime
-    nn = sr%nn ! number to search for
     nfound = sr%nfound
 
     ! search through terminal bucket.

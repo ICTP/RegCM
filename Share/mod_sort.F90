@@ -222,13 +222,12 @@ module mod_sort
     integer(ik4), dimension(:,:), intent(out) :: idx, jdx
     real(rk8), dimension(:), allocatable :: b
     integer(ik4), dimension(product(shape(a))) :: iord
-    integer(ik4) :: nn, n, i, j, ii, jj, nx, ny
+    integer(ik4) :: nn, n, i, j, ii, jj, nx
     integer(ik4) :: is, js
     nn = product(shape(a))
     b = reshape(a,[nn])
     iord = argsort(b)
     nx = size(a,1)
-    ny = size(a,2)
     is = lbound(a,1)
     js = lbound(a,2)
     do n = 1, nn
@@ -247,13 +246,12 @@ module mod_sort
     integer(ik4), dimension(:,:), intent(out) :: idx, jdx
     real(rk4), dimension(:), allocatable :: b
     integer(ik4), dimension(product(shape(a))) :: iord
-    integer(ik4) :: nn, n, i, j, ii, jj, nx, ny
+    integer(ik4) :: nn, n, i, j, ii, jj, nx
     integer(ik4) :: is, js
     nn = product(shape(a))
     b = reshape(a,[nn])
     iord = argsort(b)
     nx = size(a,1)
-    ny = size(a,2)
     is = lbound(a,1)
     js = lbound(a,2)
     do n = 1, nn
@@ -272,13 +270,12 @@ module mod_sort
     integer(ik4), dimension(:,:), intent(out) :: idx, jdx
     integer(ik4), dimension(:), allocatable :: b
     integer(ik4), dimension(product(shape(a))) :: iord
-    integer(ik4) :: nn, n, i, j, ii, jj, nx, ny
+    integer(ik4) :: nn, n, i, j, ii, jj, nx
     integer(ik4) :: is, js
     nn = product(shape(a))
     b = reshape(a,[nn])
     iord = argsort(b)
     nx = size(a,1)
-    ny = size(a,2)
     is = lbound(a,1)
     js = lbound(a,2)
     do n = 1, nn
@@ -376,14 +373,12 @@ module mod_sort
     integer :: i, j, n1
     integer :: imax, nmax
     real(rk4), dimension(n) :: b
-    real(rk4) :: check
 
     b(:) = a(:)
     call sort_real32(b)
     n1 = 1
     imax = 1
     nmax = 1
-    check = b(1)
     i = 1
     do
       j = i+1
@@ -410,14 +405,12 @@ module mod_sort
     integer :: i, j, n1
     integer :: imax, nmax
     real(rk8), dimension(n) :: b
-    real(rk8) :: check
 
     b(:) = a(:)
     call sort_real64(b)
     n1 = 1
     imax = 1
     nmax = 1
-    check = b(1)
     i = 1
     do
       j = i+1

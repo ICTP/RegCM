@@ -1449,7 +1449,7 @@ module mod_cmip6
         call ucrs2dot(hu,zgh,jx,iy,nkin,i_band)
         call vcrs2dot(hv,zgh,jx,iy,nkin,i_crm)
         call intzps(ps4,topogm,tah,zgh,pss,sigmar,pst, &
-                    xlat,yeardayfrac(idate),jx,iy,nkin)
+                    xlat,yeardayfrac(idate),dayspy,jx,iy,nkin)
         call intz3(ts4,tah,zgh,topogm,0.6_rkx,0.5_rkx,0.85_rkx,jx,iy,nkin)
       else
         call intgtb(pa,za,tlayer,topogm,tah,zgh,pss,sigmar,pst,jx,iy,nkin)

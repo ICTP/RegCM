@@ -179,11 +179,11 @@ module mod_spline
       if ( k > 1 ) go to 200
       k1 = 1
  300  xk = xnew(k1)
-      do 400 k2 = 2, nold
-      if ( xold(k2) <= xk ) go to 400
+      do k2 = 2, nold
+      if ( xold(k2) <= xk ) cycle
       kold = k2-1
       go to 450
- 400  continue
+      end do
       ynew(k1) = yold(nold)
       go to 600
  450  if ( k1 == 1 )   go to 500
