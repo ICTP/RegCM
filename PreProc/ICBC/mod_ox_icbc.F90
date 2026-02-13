@@ -31,8 +31,6 @@ module mod_ox_icbc
 
   private
 
-  integer(ik4) :: l
-
   integer(ik4) :: oxilon, oxjlat, oxilev, oxitime
   real(rkx), pointer, contiguous, dimension(:) :: oxt42lon
   real(rkx), pointer, contiguous, dimension(:) :: oxt42lat
@@ -180,7 +178,7 @@ module mod_ox_icbc
   subroutine get_ox_icbc(idate)
     implicit none
 
-    integer(ik4) :: i, is, j, k, k0
+    integer(ik4) :: i, is, j, l, k, k0
     type(rcm_time_and_date), intent(in) :: idate
     real(rkx) :: wt1, wt2
     character(len=256) :: icbcfilename

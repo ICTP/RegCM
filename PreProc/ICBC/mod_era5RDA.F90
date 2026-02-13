@@ -66,9 +66,6 @@ module mod_era5rda
   real(rkx) :: pss, pst
   real(rkx), pointer, contiguous, dimension(:,:,:) :: work
 
-  integer(ik4), dimension(5) :: inet5
-  integer(ik4), dimension(5) :: ivar5
-  real(rkx), dimension(5) :: xoff, xscl
   type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
   integer(ik4), pointer, contiguous, dimension(:) :: xtimes
 
@@ -336,6 +333,9 @@ module mod_era5rda
     character(len=256) :: pathaddname
     character(len=1), dimension(5) :: varname
     character(len=33), dimension(5) :: fname
+    integer(ik4), save, dimension(5) :: inet5
+    integer(ik4), save, dimension(5) :: ivar5
+    real(rkx), save, dimension(5) :: xoff, xscl
     character(len=64) :: cunit, ccal
     real(rkx) :: xadd, xscale
     integer(ik4), dimension(4) :: icount, istart

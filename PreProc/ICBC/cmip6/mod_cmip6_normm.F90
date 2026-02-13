@@ -78,21 +78,21 @@ module mod_cmip6_normm
         hdate = idate
       end if
       call split_idate(hdate, year, month, day, hour)
-      icode = int(year,8)*100000000 + int(month,8)*1000000 + &
-              int(day,8)*10000 + int(hour,8)*100
+      icode = int(year,ik8)*100000000_ik8 + int(month,ik8)*1000000_ik8 + &
+              int(day,ik8)*10000_ik8 + int(hour,ik8)*100_ik8
       iseq = isequence(icode)
-      if ( idate < 2015010112 ) then
+      if ( idate < 2015010112_ik8 ) then
         write(fname,'(a,i12,a,i12,a)') &
-              trim(cmip6_path(int(nrmm_start(iseq)/100000000),&
+              trim(cmip6_path(int(nrmm_start(iseq)/100000000_ik8),&
                               '6hrLev',normm_version,vname)), &
               nrmm_start(iseq), '-', nrmm_end(iseq), '.nc'
       else
         !write(fname,'(a,i12,a,i12,a)') &
-        !      trim(cmip6_path(int(nrmm_start(iseq)/100000000),&
+        !      trim(cmip6_path(int(nrmm_start(iseq)/100000000_ik8),&
         !                      '6hrLev',normm_version1,vname)), &
         !      nrmm_start(iseq), '-', nrmm_end(iseq), '.nc'
         write(fname,'(a,i12,a,i12,a)') &
-              trim(cmip6_path(int(nrmm_start(iseq)/100000000),&
+              trim(cmip6_path(int(nrmm_start(iseq)/100000000_ik8),&
                               '6hrLev',normm_version2,vname)), &
               nrmm_start(iseq), '-', nrmm_end(iseq), '.nc'
       end if

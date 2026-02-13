@@ -16,7 +16,6 @@
 module mod_cmip6_ipsllr
 
   use mod_intkinds
-  use mod_dynparam, only : dattyp
   use mod_realkinds
   use mod_message
   use mod_date

@@ -1426,6 +1426,7 @@ module mod_cmip6
 !$OMP END SECTIONS
       if ( idynamic == 3 ) then
 !$OMP SECTIONS
+!$OMP SECTION
         call h_interpolate_cont(ua%hint(2),uvar,uah)
 !$OMP SECTION
         call h_interpolate_cont(ua%hint(2),vvar,dv)
@@ -1438,6 +1439,7 @@ module mod_cmip6
 !$OMP END SECTIONS
       else
 !$OMP SECTIONS
+!$OMP SECTION
         call h_interpolate_cont(ua%hint(2),uvar,uah)
 !$OMP SECTION
         call h_interpolate_cont(ua%hint(2),vvar,vah)

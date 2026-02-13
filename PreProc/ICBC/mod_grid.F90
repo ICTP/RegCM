@@ -25,8 +25,6 @@ module mod_grid
   use mod_domain
   use mod_nhinterp
   use mod_zita
-  use mod_dynparam, only : idynamic, base_state_pressure, logp_lrate
-  use mod_dynparam, only : mo_ztop
   use mod_projections
   implicit none
 

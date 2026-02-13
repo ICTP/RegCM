@@ -58,14 +58,8 @@ module mod_cams
   real(rkx), pointer, contiguous, dimension(:) :: glon
   real(rkx), pointer, contiguous, dimension(:) :: plevs
   real(rkx), pointer, contiguous, dimension(:) :: sigmar
-  real(rkx) :: pss, pst
   integer(ik2), pointer, contiguous, dimension(:,:,:) :: work
 
-  integer(ik4), dimension(20) :: inet5 !care the first dimension must be
-                                        !bigger than the number of species
-                                        !for gas or aer
-  integer(ik4), dimension(20) :: ivar5
-  real(rkx), dimension(20) :: xoff, xscl
   type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
   integer(ik4), pointer, contiguous, dimension(:) :: xtimes
 
@@ -152,8 +146,6 @@ module mod_cams
     do k = 1, klev
       sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
     end do
-    pss = (plevs(klev)-plevs(1))/10.0_rkx ! mb -> cb
-    pst = plevs(1)/10.0_rkx ! mb -> cb
     !
     ! Find window to read
     !
@@ -258,7 +250,7 @@ module mod_cams
     !
     if ( typ == 'CH' ) then
 
-      call cams6hour(dattyp,idate,globidate1,'CH')
+      call cams6hour(idate,globidate1,'CH')
       write (stdout,*) 'READ IN CAMS fields at DATE:', tochar(idate)
       !
       ! Horizontal interpolation of both the scalar and vector fields
@@ -299,7 +291,7 @@ module mod_cams
       call top2btm(ch4)
 !$OMP END SECTIONS
     else if ( typ == 'AE' ) then
-      call cams6hour(dattyp,idate,globidate1,'AE')
+      call cams6hour(idate,globidate1,'AE')
       write (stdout,*) 'READ IN CAMS AER fields at DATE:', tochar(idate)
       !
       ! Horizontal interpolation of both the scalar and vector fields
@@ -387,6 +379,7 @@ module mod_cams
 
     else if ( typ == 'AE' ) then
 !$OMP SECTIONS
+!$OMP SECTION
       call intz1(aev4(:,:,:,ae_dust1),dust1,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
@@ -443,9 +436,8 @@ module mod_cams
 
   end subroutine get_cams
 
-  subroutine cams6hour(dattyp,idate,idate0,typ)
+  subroutine cams6hour(idate,idate0,typ)
     implicit none
-    character(len=5), intent(in) :: dattyp
     character(len=2), intent(in) ::typ
     type(rcm_time_and_date), intent(in) :: idate, idate0
     integer(ik4) :: inet, it, kkrec, istatus, ivar
@@ -464,6 +456,11 @@ module mod_cams
     integer(ik4) :: year, month, day, hour, nsp
     integer(ik4), save :: lastmonth
     type(rcm_time_interval) :: tdif
+    integer(ik4), dimension(20) :: ivar5
+    real(rkx), dimension(20) :: xoff, xscl
+    integer(ik4), dimension(20) :: inet5 !care the first dimension must be
+                                         !bigger than the number of species
+                                         !for gas or aer
 
     data gasname /'z','go3','co','c2h6','hcho','c3h8','no', &
                   'no2','h2o2','c5h8' ,'so2','hno3','ch4','pan' /
@@ -570,6 +567,7 @@ module mod_cams
     icount(4) = 1
 
     if ( typ == 'CH' ) then
+      ohvar = 0.0
       do kkrec = 1, nsp ! loop on number variables
         inet = inet5(kkrec)
         ivar = ivar5(kkrec)

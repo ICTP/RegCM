@@ -73,18 +73,14 @@ module mod_header
   subroutine finaltime(myid)
     implicit none
     integer(ik4), intent (in) :: myid
-    character (len=24) :: cdata
-#ifdef __INTEL_COMPILER
-    external :: fdate
-#endif
+    character (len=5) :: czone
+    character (len=32) :: cdata
+    integer(ik4), dimension(8) :: tval
 
-    cdata = '?'
     if ( myid ==  0 ) then
-#ifdef IBM
-      call fdate_(cdata)
-#else
-      call fdate(cdata)
-#endif
+      call date_and_time(zone=czone,values=tval)
+      write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
+          tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
       write ( stdout,* ) 'Input ready at : ', cdata
     end if
 

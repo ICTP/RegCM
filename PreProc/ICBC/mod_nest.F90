@@ -34,7 +34,6 @@ module mod_nest
   use mod_memutil
   use mod_mksst
   use mod_nchelper
-  use mod_domain, only : read_reference_surface_temp
   implicit none
 
   private

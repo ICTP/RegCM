@@ -53,11 +53,10 @@ module mod_ch_fnest
   real(rkx), dimension(:,:), pointer, contiguous :: p0_in, pstar0, ps, xps, xps3
   real(rkx), dimension(:), pointer, contiguous :: sigma_in, plev, sigmar
   real(rkx), dimension(:), pointer, contiguous :: ak_in, bk_in
-  real(rkx) :: pss
   integer(ik4) :: oidyn
   character(len=6) :: iproj_in
   real(rkx) :: clat_in, clon_in, ds_in
-  real(rkx) :: plat_in, plon_in, ptop_in, xcone_in
+  real(rkx) :: plat_in, plon_in, ptop_in
   type(rcm_time_and_date), dimension(:), pointer, contiguous :: itimes
   real(rkx), dimension(:), pointer, contiguous :: xtimes
   character(len=64) :: timeunits, timecal
@@ -84,7 +83,6 @@ module mod_ch_fnest
     character(len=256) :: fname, icbcfilename
     integer(ik4) :: fnum, nf, is, ie, ip, i, j, k
     real(rkx), dimension(2) :: trlat
-    real(rkx) :: xsign
     integer(ik4) :: istatus, idimid, ivarid
     integer(ik4), dimension(3) :: istart, icount
 
@@ -259,23 +257,6 @@ module mod_ch_fnest
       istatus = nf90_get_att(ncid(1), nf90_global, 'standard_parallel', trlat)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'attribure truelat read error')
-      if ( clat_in < 0. ) then
-        xsign = -1.0_rkx       ! SOUTH HEMESPHERE
-      else
-        xsign = 1.0_rkx        ! NORTH HEMESPHERE
-      end if
-      if ( abs(trlat(1)-trlat(2)) > 1.E-1 ) then
-        xcone_in = real((log10(cos(trlat(1)*degrad))                       &
-                    -log10(cos(trlat(2)*degrad))) /                        &
-                    (log10(tan((45.0_rk8-xsign*trlat(1)/2.0_rk8)*degrad))  &
-                    -log10(tan((45.0_rk8-xsign*trlat(2)/2.0_rk8)*degrad))),rkx)
-      else
-        xcone_in = real(xsign*sin(real(trlat(1),rk8)*degrad),rkx)
-      end if
-    else if ( iproj_in == 'POLSTR' ) then
-      xcone_in = 1.0_rkx
-    else if ( iproj_in == 'NORMER' ) then
-      xcone_in = 0.0_rkx
     else
       istatus = nf90_get_att(ncid(1), nf90_global, &
                       'grid_north_pole_latitude', plat_in)
@@ -285,7 +266,6 @@ module mod_ch_fnest
                       'grid_north_pole_longitude', plon_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'attribure plon read error')
-      xcone_in = 0.0_rkx
     end if
 
     call h_interpolator_create(hint,xlat_in,xlon_in,xlat,xlon,ds_in)
@@ -361,7 +341,6 @@ module mod_ch_fnest
       do k = 1, np
         sigmar(k) = plev(k)/plev(np)
       end do
-      pss = plev(np)
       call getmem(xps,1,jx,1,iy,'mod_nest:xps')
       call getmem(xps3,1,jx,1,iy,'mod_nest:xps3')
       call getmem(mxcp,1,jx_in,1,iy_in,1,np,'init_fnest:mxcp')

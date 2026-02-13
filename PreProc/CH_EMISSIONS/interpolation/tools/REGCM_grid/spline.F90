@@ -3,6 +3,10 @@ implicit none
 
   public
 
+  integer, private, parameter :: i4 = selected_int_kind(R=9)
+  integer, private, parameter :: r4 = selected_real_kind(precision(1.0))
+  integer, private, parameter :: r8 = selected_real_kind(precision(1.0d0))
+
   contains
 
 subroutine r8vec_order_type ( n, a, order )
@@ -32,11 +36,11 @@ subroutine r8vec_order_type ( n, a, order )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of entries of the array.
+!    Input, integer ( kind = i4 ) N, the number of entries of the array.
 !
-!    Input, real ( kind = 8 ) A(N), the array to be checked.
+!    Input, real ( kind = r8 ) A(N), the array to be checked.
 !
-!    Output, integer ( kind = 4 ) ORDER, order indicator:
+!    Output, integer ( kind = i4 ) ORDER, order indicator:
 !    -1, no discernable order;
 !    0, all entries are equal;
 !    1, ascending order;
@@ -46,11 +50,11 @@ subroutine r8vec_order_type ( n, a, order )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: order
+  real    ( kind = r8 ) :: a(n)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: order
 !
 !  Search for the first value not equal to A(1).
 !
@@ -165,13 +169,13 @@ subroutine r8vec_bracket ( n, x, xval, left, right )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, length of input array.
+!    Input, integer ( kind = i4 ) N, length of input array.
 !
-!    Input, real ( kind = 8 ) X(N), an array sorted into ascending order.
+!    Input, real ( kind = r8 ) X(N), an array sorted into ascending order.
 !
-!    Input, real ( kind = 8 ) XVAL, a value to be bracketed.
+!    Input, real ( kind = r8 ) XVAL, a value to be bracketed.
 !
-!    Output, integer ( kind = 4 ) LEFT, RIGHT, the results of the search.
+!    Output, integer ( kind = i4 ) LEFT, RIGHT, the results of the search.
 !    Either:
 !      XVAL < X(1), when LEFT = 1, RIGHT = 2;
 !      X(N) < XVAL, when LEFT = N-1, RIGHT = N;
@@ -180,13 +184,13 @@ subroutine r8vec_bracket ( n, x, xval, left, right )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: x(n)
-  real    ( kind = 8 ) :: xval
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: x(n)
+  real    ( kind = r8 ) :: xval
 
   do i = 2, n - 1
 
@@ -240,13 +244,13 @@ subroutine r8vec_bracket3 ( n, t, tval, left )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, length of the input array.
+!    Input, integer ( kind = i4 ) N, length of the input array.
 !
-!    Input, real ( kind = 8 ) T(N), an array sorted into ascending order.
+!    Input, real ( kind = r8 ) T(N), an array sorted into ascending order.
 !
-!    Input, real ( kind = 8 ) TVAL, a value to be bracketed by entries of T.
+!    Input, real ( kind = r8 ) TVAL, a value to be bracketed by entries of T.
 !
-!    Input/output, integer ( kind = 4 ) LEFT.
+!    Input/output, integer ( kind = i4 ) LEFT.
 !
 !    On input, if 1 <= LEFT <= N-1, LEFT is taken as a suggestion for the
 !    interval [ T(LEFT), T(LEFT+1) ] in which TVAL lies.  This interval
@@ -259,14 +263,14 @@ subroutine r8vec_bracket3 ( n, t, tval, left )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  integer ( kind = 4 ) :: high
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: mid
-  real    ( kind = 8 ) :: t(n)
-  real    ( kind = 8 ) :: tval
+  integer ( kind = i4 ) :: high
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: low
+  integer ( kind = i4 ) :: mid
+  real    ( kind = r8 ) :: t(n)
+  real    ( kind = r8 ) :: tval
 !
 !  Check the input data.
 !
@@ -442,22 +446,22 @@ subroutine bp01 ( n, x, bern )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the degree of the Bernstein basis
+!    Input, integer ( kind = i4 ) N, the degree of the Bernstein basis
 !    polynomials.  N must be at least 0.
 !
-!    Input, real ( kind = 8 ) X, the evaluation point.
+!    Input, real ( kind = r8 ) X, the evaluation point.
 !
-!    Output, real ( kind = 8 ) BERN(0:N), the values of the N+1 Bernstein basis
+!    Output, real ( kind = r8 ) BERN(0:N), the values of the N+1 Bernstein basis
 !    polynomials at X.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: bern(0:n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  real    ( kind = 8 ) :: x
+  real    ( kind = r8 ) :: bern(0:n)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: j
+  real    ( kind = r8 ) :: x
 
   if ( n == 0 ) then
 
@@ -533,29 +537,29 @@ subroutine bpab ( n, a, b, x, bern )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the degree of the Bernstein basis
+!    Input, integer ( kind = i4 ) N, the degree of the Bernstein basis
 !    polynomials.  There is a set of N+1 Bernstein basis polynomials, each
 !    of degree N, which form a basis for polynomials of degree N on [A,B].
 !    N must be at least 0.
 !
-!    Input, real ( kind = 8 ) A, B, the endpoints of the interval on which the
+!    Input, real ( kind = r8 ) A, B, the endpoints of the interval on which the
 !    polynomials are to be based.  A and B should not be equal.
-!    Input, real ( kind = 8 ) X, the point at which the polynomials are to be
+!    Input, real ( kind = r8 ) X, the point at which the polynomials are to be
 !    evaluated.  X need not lie in the interval [A,B].
 !
-!    Output, real ( kind = 8 ) BERN(0:N), the values of the N+1 Bernstein basis
+!    Output, real ( kind = r8 ) BERN(0:N), the values of the N+1 Bernstein basis
 !    polynomials at X.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a
-  real    ( kind = 8 ) :: b
-  real    ( kind = 8 ) :: bern(0:n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  real    ( kind = 8 ) :: x
+  real    ( kind = r8 ) :: a
+  real    ( kind = r8 ) :: b
+  real    ( kind = r8 ) :: bern(0:n)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: j
+  real    ( kind = r8 ) :: x
 
   if ( b == a ) then
     write ( *, '(a)' ) ' '
@@ -610,20 +614,20 @@ logical function r8vec_distinct ( n, x )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of entries in the vector.
+!    Input, integer ( kind = i4 ) N, the number of entries in the vector.
 !
-!    Input, real ( kind = 8 ) X(N), the vector to be checked.
+!    Input, real ( kind = r8 ) X(N), the vector to be checked.
 !
 !    Output, logical R8VEC_DISTINCT is TRUE if all N elements of X
 !    are distinct.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  real    ( kind = 8 ) :: x(n)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: j
+  real    ( kind = r8 ) :: x(n)
 
   r8vec_distinct = .false.
 
@@ -666,24 +670,24 @@ subroutine r8vec_unique_count ( n, a, tol, unique_num )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of elements of A.
+!    Input, integer ( kind = i4 ) N, the number of elements of A.
 !
-!    Input, real ( kind = 8 ) A(N), the unsorted array to examine.
+!    Input, real ( kind = r8 ) A(N), the unsorted array to examine.
 !
-!    Input, real ( kind = 8 ) TOL, a nonnegative tolerance for equality.
+!    Input, real ( kind = r8 ) TOL, a nonnegative tolerance for equality.
 !    Set it to 0.0 for the strictest test.
 !
-!    Output, integer ( kind = 4 ) UNIQUE_NUM, the number of unique elements.
+!    Output, integer ( kind = i4 ) UNIQUE_NUM, the number of unique elements.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: unique_num
-  real    ( kind = 8 ) :: tol
+  real    ( kind = r8 ) :: a(n)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: j
+  integer ( kind = i4 ) :: unique_num
+  real    ( kind = r8 ) :: tol
 
   unique_num = 0
 
@@ -747,21 +751,21 @@ subroutine r8vec_uniform_01 ( n, seed, r )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) M, the number of entries in the vector.
+!    Input, integer ( kind = i4 ) M, the number of entries in the vector.
 !
-!    Input/output, integer ( kind = 4 ) SEED, the "seed" value, which should
+!    Input/output, integer ( kind = i4 ) SEED, the "seed" value, which should
 !    NOT be 0.  On output, SEED has been updated.
 !
-!    Output, real ( kind = 8 ) R(N), the vector of pseudorandom values.
+!    Output, real ( kind = r8 ) R(N), the vector of pseudorandom values.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: seed
-  real    ( kind = 8 ) :: r(n)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: k
+  integer ( kind = i4 ) :: seed
+  real    ( kind = r8 ) :: r(n)
 
   do i = 1, n
 
@@ -773,7 +777,7 @@ subroutine r8vec_uniform_01 ( n, seed, r )
       seed = seed + 2147483647
     end if
 
-    r(i) = real ( seed, kind = 8 ) * 4.656612875D-10
+    r(i) = real ( seed, kind = r8 ) * 4.656612875D-10
 
   end do
 
@@ -800,14 +804,14 @@ subroutine r8_swap ( x, y )
 !
 !  Parameters:
 !
-!    Input/output, real ( kind = 8 ) X, Y.  On output, the values of X and
+!    Input/output, real ( kind = r8 ) X, Y.  On output, the values of X and
 !    Y have been interchanged.
 !
   implicit none
 
-  real    ( kind = 8 ) :: x
-  real    ( kind = 8 ) :: y
-  real    ( kind = 8 ) :: z
+  real    ( kind = r8 ) :: x
+  real    ( kind = r8 ) :: y
+  real    ( kind = r8 ) :: z
 
   z = x
   x = y
@@ -853,26 +857,26 @@ subroutine r83_np_fs ( n, a, b, x )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the linear system.
+!    Input, integer ( kind = i4 ) N, the order of the linear system.
 !
-!    Input/output, real ( kind = 8 ) A(3,N).
+!    Input/output, real ( kind = r8 ) A(3,N).
 !    On input, the tridiagonal matrix.
 !    On output, the data in these vectors has been overwritten
 !    by factorization information.
 !
-!    Input, real ( kind = 8 ) B(N), the right hand side of the linear system.
+!    Input, real ( kind = r8 ) B(N), the right hand side of the linear system.
 !
-!    Output, real ( kind = 8 ) X(N), the solution of the linear system.
+!    Output, real ( kind = r8 ) X(N), the solution of the linear system.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(3,n)
-  real    ( kind = 8 ) :: b(n)
-  integer ( kind = 4 ) :: i
-  real    ( kind = 8 ) :: x(n)
-  real    ( kind = 8 ) :: xmult
+  real    ( kind = r8 ) :: a(3,n)
+  real    ( kind = r8 ) :: b(n)
+  integer ( kind = i4 ) :: i
+  real    ( kind = r8 ) :: x(n)
+  real    ( kind = r8 ) :: xmult
 !
 !  The diagonal entries can't be zero.
 !
@@ -927,15 +931,15 @@ subroutine basis_matrix_overhauser_nul ( alpha, mbasis )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) ALPHA.
+!    Input, real ( kind = r8 ) ALPHA.
 !    ALPHA = || P2 - P1 || / ( || P3 - P2 || + || P2 - P1 || )
 !
-!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
+!    Output, real ( kind = r8 ) MBASIS(3,3), the basis matrix.
 !
   implicit none
 
-  real    ( kind = 8 ) :: alpha
-  real    ( kind = 8 ) :: mbasis(3,3)
+  real    ( kind = r8 ) :: alpha
+  real    ( kind = r8 ) :: mbasis(3,3)
 
   mbasis(1,1) =   1.0D+00 / alpha
   mbasis(1,2) = - 1.0D+00 / ( alpha * ( 1.0D+00 - alpha ) )
@@ -978,17 +982,17 @@ subroutine basis_matrix_overhauser_nonuni ( alpha, beta, mbasis )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) ALPHA, BETA.
+!    Input, real ( kind = r8 ) ALPHA, BETA.
 !    ALPHA = || P2 - P1 || / ( || P3 - P2 || + || P2 - P1 || )
 !    BETA  = || P3 - P2 || / ( || P4 - P3 || + || P3 - P2 || ).
 !
-!    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
+!    Output, real ( kind = r8 ) MBASIS(4,4), the basis matrix.
 !
   implicit none
 
-  real    ( kind = 8 ) :: alpha
-  real    ( kind = 8 ) :: beta
-  real    ( kind = 8 ) :: mbasis(4,4)
+  real    ( kind = r8 ) :: alpha
+  real    ( kind = r8 ) :: beta
+  real    ( kind = r8 ) :: mbasis(4,4)
 
   mbasis(1,1) = - ( 1.0D+00 - alpha ) * ( 1.0D+00 - alpha ) / alpha
   mbasis(1,2) =   beta + ( 1.0D+00 - alpha ) / alpha
@@ -1040,16 +1044,16 @@ subroutine basis_matrix_overhauser_nur ( beta, mbasis )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) BETA.
+!    Input, real ( kind = r8 ) BETA.
 !    BETA = || P(N) - P(N-1) ||
 !         / ( || P(N) - P(N-1) || + || P(N-1) - P(N-2) || )
 !
-!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
+!    Output, real ( kind = r8 ) MBASIS(3,3), the basis matrix.
 !
   implicit none
 
-  real    ( kind = 8 ) :: beta
-  real    ( kind = 8 ) :: mbasis(3,3)
+  real    ( kind = r8 ) :: beta
+  real    ( kind = r8 ) :: mbasis(3,3)
 
   mbasis(1,1) =   1.0D+00 / beta
   mbasis(1,2) = - 1.0D+00 / ( beta * ( 1.0D+00 - beta ) )
@@ -1101,11 +1105,11 @@ subroutine basis_matrix_overhauser_uni ( mbasis )
 !
 !  Parameters:
 !
-!    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
+!    Output, real ( kind = r8 ) MBASIS(4,4), the basis matrix.
 !
   implicit none
 
-  real    ( kind = 8 ) :: mbasis(4,4)
+  real    ( kind = r8 ) :: mbasis(4,4)
 
   mbasis(1,1) = - 1.0D+00 / 2.0D+00
   mbasis(1,2) =   3.0D+00 / 2.0D+00
@@ -1156,11 +1160,11 @@ subroutine basis_matrix_overhauser_uni_l ( mbasis )
 !
 !  Parameters:
 !
-!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
+!    Output, real ( kind = r8 ) MBASIS(3,3), the basis matrix.
 !
   implicit none
 
-  real    ( kind = 8 ) :: mbasis(3,3)
+  real    ( kind = r8 ) :: mbasis(3,3)
 
   mbasis(1,1) =   2.0D+00
   mbasis(1,2) = - 4.0D+00
@@ -1203,11 +1207,11 @@ subroutine basis_matrix_overhauser_uni_r ( mbasis )
 !
 !  Parameters:
 !
-!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
+!    Output, real ( kind = r8 ) MBASIS(3,3), the basis matrix.
 !
   implicit none
 
-  real    ( kind = 8 ) :: mbasis(3,3)
+  real    ( kind = r8 ) :: mbasis(3,3)
 
   mbasis(1,1) =   2.0D+00
   mbasis(1,2) = - 4.0D+00
@@ -1252,48 +1256,48 @@ subroutine basis_matrix_tmp ( left, n, mbasis, ndata, tdata, ydata, tval, yval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) LEFT, indicats that TVAL is in the interval
+!    Input, integer ( kind = i4 ) LEFT, indicats that TVAL is in the interval
 !    [ TDATA(LEFT), TDATA(LEFT+1) ], or that this is the "nearest"
 !    interval to TVAL.
 !    For TVAL < TDATA(1), use LEFT = 1.
 !    For TDATA(NDATA) < TVAL, use LEFT = NDATA - 1.
 !
-!    Input, integer ( kind = 4 ) N, the order of the basis matrix.
+!    Input, integer ( kind = i4 ) N, the order of the basis matrix.
 !
-!    Input, real ( kind = 8 ) MBASIS(N,N), the basis matrix.
+!    Input, real ( kind = r8 ) MBASIS(N,N), the basis matrix.
 !
-!    Input, integer ( kind = 4 ) NDATA, the dimension of the vectors TDATA
+!    Input, integer ( kind = i4 ) NDATA, the dimension of the vectors TDATA
 !    and YDATA.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissa values.  This routine
+!    Input, real ( kind = r8 ) TDATA(NDATA), the abscissa values.  This routine
 !    assumes that the TDATA values are uniformly spaced, with an
 !    increment of 1.0.
 !
-!    Input, real ( kind = 8 ) YDATA(NDATA), the data values to be
+!    Input, real ( kind = r8 ) YDATA(NDATA), the data values to be
 !    interpolated or approximated.
 !
-!    Input, real ( kind = 8 ) TVAL, the value of T at which the spline is to be
+!    Input, real ( kind = r8 ) TVAL, the value of T at which the spline is to be
 !    evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, the value of the spline at TVAL.
+!    Output, real ( kind = r8 ) YVAL, the value of the spline at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ), parameter :: maxn = 4
-  integer ( kind = 4 ) :: n
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ), parameter :: maxn = 4
+  integer ( kind = i4 ) :: n
+  integer ( kind = i4 ) :: ndata
 
-  real    ( kind = 8 ) :: arg
-  integer ( kind = 4 ) :: first
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: left
-  real    ( kind = 8 ) :: mbasis(n,n)
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: tvec(maxn)
-  real    ( kind = 8 ) :: ydata(ndata)
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: arg
+  integer ( kind = i4 ) :: first
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: j
+  integer ( kind = i4 ) :: left
+  real    ( kind = r8 ) :: mbasis(n,n)
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: tvec(maxn)
+  real    ( kind = r8 ) :: ydata(ndata)
+  real    ( kind = r8 ) :: yval
 
   if ( left == 1 ) then
     arg = 0.5D+00 * ( tval - tdata(left) )
@@ -1362,25 +1366,25 @@ subroutine basis_function_b_val ( tdata, tval, yval )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) TDATA(5), the nodes associated with the
+!    Input, real ( kind = r8 ) TDATA(5), the nodes associated with the
 !    basis function.  The entries of TDATA are assumed to be distinct
 !    and increasing.
 !
-!    Input, real ( kind = 8 ) TVAL, a point at which the B spline basis
+!    Input, real ( kind = r8 ) TVAL, a point at which the B spline basis
 !    function is to be evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, the value of the function at TVAL.
+!    Output, real ( kind = r8 ) YVAL, the value of the function at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ), parameter :: ndata = 5
+  integer ( kind = i4 ), parameter :: ndata = 5
 
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: u
-  real    ( kind = 8 ) :: yval
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: u
+  real    ( kind = r8 ) :: yval
 
   if ( tval <= tdata(1) .or. tdata(ndata) <= tval ) then
     yval = 0.0D+00
@@ -1459,37 +1463,37 @@ subroutine basis_function_beta_val ( beta1, beta2, tdata, tval, yval )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) BETA1, the skew or bias parameter.
+!    Input, real ( kind = r8 ) BETA1, the skew or bias parameter.
 !    BETA1 = 1 for no skew or bias.
 !
-!    Input, real ( kind = 8 ) BETA2, the tension parameter.
+!    Input, real ( kind = r8 ) BETA2, the tension parameter.
 !    BETA2 = 0 for no tension.
 !
-!    Input, real ( kind = 8 ) TDATA(5), the nodes associated with the
+!    Input, real ( kind = r8 ) TDATA(5), the nodes associated with the
 !    basis function.  The entries of TDATA are assumed to be distinct
 !    and increasing.
 !
-!    Input, real ( kind = 8 ) TVAL, a point at which the B spline
+!    Input, real ( kind = r8 ) TVAL, a point at which the B spline
 !    basis function is to be evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, the value of the function at TVAL.
+!    Output, real ( kind = r8 ) YVAL, the value of the function at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ), parameter :: ndata = 5
+  integer ( kind = i4 ), parameter :: ndata = 5
 
-  real    ( kind = 8 ) :: a
-  real    ( kind = 8 ) :: b
-  real    ( kind = 8 ) :: beta1
-  real    ( kind = 8 ) :: beta2
-  real    ( kind = 8 ) :: c
-  real    ( kind = 8 ) :: d
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: u
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: a
+  real    ( kind = r8 ) :: b
+  real    ( kind = r8 ) :: beta1
+  real    ( kind = r8 ) :: beta2
+  real    ( kind = r8 ) :: c
+  real    ( kind = r8 ) :: d
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: u
+  real    ( kind = r8 ) :: yval
 
   if ( tval <= tdata(1) .or. tdata(ndata) <= tval ) then
     yval = 0.0D+00
@@ -1581,11 +1585,11 @@ subroutine basis_matrix_b_uni ( mbasis )
 !
 !  Parameters:
 !
-!    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
+!    Output, real ( kind = r8 ) MBASIS(4,4), the basis matrix.
 !
   implicit none
 
-  real    ( kind = 8 ) :: mbasis(4,4)
+  real    ( kind = r8 ) :: mbasis(4,4)
 !
 !  In the following statement, the matrix appears as though it
 !  has been transposed.
@@ -1595,7 +1599,7 @@ subroutine basis_matrix_b_uni ( mbasis )
         3, -6,  0, 4,                &
        -3,  3,  3, 1,                &
         1,  0,  0, 0 ],             &
-    [ 4, 4 ] ), kind = 8 ) / 6.0D+00
+    [ 4, 4 ] ), kind = r8 ) / 6.0D+00
 
   return
 end subroutine basis_matrix_b_uni
@@ -1634,20 +1638,20 @@ subroutine basis_matrix_beta_uni ( beta1, beta2, mbasis )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) BETA1, the skew or bias parameter.
+!    Input, real ( kind = r8 ) BETA1, the skew or bias parameter.
 !    BETA1 = 1 for no skew or bias.
 !
-!    Input, real ( kind = 8 ) BETA2, the tension parameter.
+!    Input, real ( kind = r8 ) BETA2, the tension parameter.
 !    BETA2 = 0 for no tension.
 !
-!    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
+!    Output, real ( kind = r8 ) MBASIS(4,4), the basis matrix.
 !
   implicit none
 
-  real    ( kind = 8 ) :: beta1
-  real    ( kind = 8 ) :: beta2
-  real    ( kind = 8 ) :: delta
-  real    ( kind = 8 ) :: mbasis(4,4)
+  real    ( kind = r8 ) :: beta1
+  real    ( kind = r8 ) :: beta2
+  real    ( kind = r8 ) :: delta
+  real    ( kind = r8 ) :: mbasis(4,4)
 
   mbasis(1,1) = - 2.0D+00 * beta1 * beta1 * beta1
   mbasis(1,2) =   2.0D+00 * beta2 &
@@ -1719,11 +1723,11 @@ subroutine basis_matrix_bezier ( mbasis )
 !
 !  Parameters:
 !
-!    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
+!    Output, real ( kind = r8 ) MBASIS(4,4), the basis matrix.
 !
   implicit none
 
-  real    ( kind = 8 ) :: mbasis(4,4)
+  real    ( kind = r8 ) :: mbasis(4,4)
 
   mbasis(1,1) = -1.0D+00
   mbasis(1,2) =  3.0D+00
@@ -1783,11 +1787,11 @@ subroutine basis_matrix_hermite ( mbasis )
 !
 !  Parameters:
 !
-!    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
+!    Output, real ( kind = r8 ) MBASIS(4,4), the basis matrix.
 !
   implicit none
 
-  real    ( kind = 8 ) :: mbasis(4,4)
+  real    ( kind = r8 ) :: mbasis(4,4)
 
   mbasis(1,1) =  2.0D+00
   mbasis(1,2) = -2.0D+00
@@ -1856,31 +1860,31 @@ subroutine bc_val ( n, t, xcon, ycon, xval, yval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the degree of the Bezier curve.
+!    Input, integer ( kind = i4 ) N, the degree of the Bezier curve.
 !    N must be at least 0.
 !
-!    Input, real ( kind = 8 ) T, the point at which the Bezier curve should
+!    Input, real ( kind = r8 ) T, the point at which the Bezier curve should
 !    be evaluated.  The best results are obtained within the interval
 !    [0,1] but T may be anywhere.
 !
-!    Input, real ( kind = 8 ) XCON(0:N), YCON(0:N), the X and Y coordinates
+!    Input, real ( kind = r8 ) XCON(0:N), YCON(0:N), the X and Y coordinates
 !    of the control points.  The Bezier curve will pass through
 !    the points ( XCON(0), YCON(0) ) and ( XCON(N), YCON(N) ), but
 !    generally NOT through the other control points.
 !
-!    Output, real ( kind = 8 ) XVAL, YVAL, the X and Y coordinates of the point
+!    Output, real ( kind = r8 ) XVAL, YVAL, the X and Y coordinates of the point
 !    on the Bezier curve corresponding to the given T value.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: bval(0:n)
-  real    ( kind = 8 ) :: t
-  real    ( kind = 8 ) :: xcon(0:n)
-  real    ( kind = 8 ) :: xval
-  real    ( kind = 8 ) :: ycon(0:n)
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: bval(0:n)
+  real    ( kind = r8 ) :: t
+  real    ( kind = r8 ) :: xcon(0:n)
+  real    ( kind = r8 ) :: xval
+  real    ( kind = r8 ) :: ycon(0:n)
+  real    ( kind = r8 ) :: yval
 
   call bp01 ( n, t, bval )
 
@@ -1890,7 +1894,7 @@ subroutine bc_val ( n, t, xcon, ycon, xval, yval )
   return
 end subroutine bc_val
 
-real ( kind = 8 ) function bez_val ( n, x, a, b, y )
+real ( kind = r8 ) function bez_val ( n, x, a, b, y )
 
 !*****************************************************************************80
 !
@@ -1936,34 +1940,34 @@ real ( kind = 8 ) function bez_val ( n, x, a, b, y )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the degree of the Bezier function.
+!    Input, integer ( kind = i4 ) N, the degree of the Bezier function.
 !    N must be at least 0.
 !
-!    Input, real ( kind = 8 ) X, the point at which the Bezier function should
+!    Input, real ( kind = r8 ) X, the point at which the Bezier function should
 !    be evaluated.  The best results are obtained within the interval
 !    [A,B] but X may be anywhere.
 !
-!    Input, real ( kind = 8 ) A, B, the interval over which the Bezier function
+!    Input, real ( kind = r8 ) A, B, the interval over which the Bezier function
 !    has been defined.  This is the interval in which the control
 !    points have been set up.  Note BEZ(A) = Y(0) and BEZ(B) = Y(N),
 !    although BEZ will not, in general pass through the other
 !    control points.  A and B must not be equal.
 !
-!    Input, real ( kind = 8 ) Y(0:N), a set of data defining the Y coordinates
+!    Input, real ( kind = r8 ) Y(0:N), a set of data defining the Y coordinates
 !    of the control points.
 !
-!    Output, real ( kind = 8 ) BEZ_VAL, the value of the Bezier function at X.
+!    Output, real ( kind = r8 ) BEZ_VAL, the value of the Bezier function at X.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a
-  real    ( kind = 8 ) :: b
-  real    ( kind = 8 ) :: bval(0:n)
-  real    ( kind = 8 ) :: x
-  real    ( kind = 8 ) :: x01
-  real    ( kind = 8 ) :: y(0:n)
+  real    ( kind = r8 ) :: a
+  real    ( kind = r8 ) :: b
+  real    ( kind = r8 ) :: bval(0:n)
+  real    ( kind = r8 ) :: x
+  real    ( kind = r8 ) :: x01
+  real    ( kind = r8 ) :: y(0:n)
 
   if ( b - a == 0.0D+00 ) then
     write ( *, '(a)' ) ' '
@@ -2032,34 +2036,34 @@ subroutine bpab_approx ( n, a, b, ydata, xval, yval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the degree of the Bernstein polynomial
+!    Input, integer ( kind = i4 ) N, the degree of the Bernstein polynomial
 !    to be used.  N must be at least 0.
 !
-!    Input, real ( kind = 8 ) A, B, the endpoints of the interval on which the
+!    Input, real ( kind = r8 ) A, B, the endpoints of the interval on which the
 !    approximant is based.  A and B should not be equal.
 !
-!    Input, real ( kind = 8 ) YDATA(0:N), the data values at N+1 equally
+!    Input, real ( kind = r8 ) YDATA(0:N), the data values at N+1 equally
 !    spaced points in [A,B].  If N = 0, then the evaluation point should
 !    be 0.5 * ( A + B).  Otherwise, evaluation point I should be
 !    ( (N-I)*A + I*B ) / N ).
 !
-!    Input, real ( kind = 8 ) XVAL, the point at which the Bernstein polynomial
+!    Input, real ( kind = r8 ) XVAL, the point at which the Bernstein polynomial
 !    approximant is to be evaluated.  XVAL does not have to lie in the
 !    interval [A,B].
 !
-!    Output, real ( kind = 8 ) YVAL, the value of the Bernstein polynomial
+!    Output, real ( kind = r8 ) YVAL, the value of the Bernstein polynomial
 !    approximant for F, based in [A,B], evaluated at XVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a
-  real    ( kind = 8 ) :: b
-  real    ( kind = 8 ) :: bvec(0:n)
-  real    ( kind = 8 ) :: xval
-  real    ( kind = 8 ) :: ydata(0:n)
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: a
+  real    ( kind = r8 ) :: b
+  real    ( kind = r8 ) :: bvec(0:n)
+  real    ( kind = r8 ) :: xval
+  real    ( kind = r8 ) :: ydata(0:n)
+  real    ( kind = r8 ) :: yval
 !
 !  Evaluate the Bernstein basis polynomials at XVAL.
 !
@@ -2117,58 +2121,58 @@ subroutine chfev ( x1, x2, f1, f2, d1, d2, ne, xe, fe, next, ierr )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X1, X2, the endpoints of the interval of
+!    Input, real ( kind = r8 ) X1, X2, the endpoints of the interval of
 !    definition of the cubic.  X1 and X2 must be distinct.
 !
-!    Input, real ( kind = 8 ) F1, F2, the values of the function at X1 and
+!    Input, real ( kind = r8 ) F1, F2, the values of the function at X1 and
 !    X2, respectively.
 !
-!    Input, real ( kind = 8 ) D1, D2, the derivative values at X1 and
+!    Input, real ( kind = r8 ) D1, D2, the derivative values at X1 and
 !    X2, respectively.
 !
-!    Input, integer ( kind = 4 ) NE, the number of evaluation points.
+!    Input, integer ( kind = i4 ) NE, the number of evaluation points.
 !
-!    Input, real ( kind = 8 ) XE(NE), the points at which the function is to
+!    Input, real ( kind = r8 ) XE(NE), the points at which the function is to
 !    be evaluated.  If any of the XE are outside the interval
 !    [X1,X2], a warning error is returned in NEXT.
 !
-!    Output, real ( kind = 8 ) FE(NE), the value of the cubic function
+!    Output, real ( kind = r8 ) FE(NE), the value of the cubic function
 !    at the points XE.
 !
-!    Output, integer ( kind = 4 ) NEXT(2), indicates the number of
+!    Output, integer ( kind = i4 ) NEXT(2), indicates the number of
 !    extrapolation points:
 !    NEXT(1) = number of evaluation points to the left of interval.
 !    NEXT(2) = number of evaluation points to the right of interval.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = i4 ) IERR, error flag.
 !    0, no errors.
 !    -1, NE < 1.
 !    -2, X1 == X2.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ne
+  integer ( kind = i4 ) :: ne
 
-  real    ( kind = 8 ) :: c2
-  real    ( kind = 8 ) :: c3
-  real    ( kind = 8 ) :: d1
-  real    ( kind = 8 ) :: d2
-  real    ( kind = 8 ) :: del1
-  real    ( kind = 8 ) :: del2
-  real    ( kind = 8 ) :: delta
-  real    ( kind = 8 ) :: f1
-  real    ( kind = 8 ) :: f2
-  real    ( kind = 8 ) :: fe(ne)
-  real    ( kind = 8 ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: next(2)
-  real    ( kind = 8 ) :: x
-  real    ( kind = 8 ) :: x1
-  real    ( kind = 8 ) :: x2
-  real    ( kind = 8 ) :: xe(ne)
-  real    ( kind = 8 ) :: xma
-  real    ( kind = 8 ) :: xmi
+  real    ( kind = r8 ) :: c2
+  real    ( kind = r8 ) :: c3
+  real    ( kind = r8 ) :: d1
+  real    ( kind = r8 ) :: d2
+  real    ( kind = r8 ) :: del1
+  real    ( kind = r8 ) :: del2
+  real    ( kind = r8 ) :: delta
+  real    ( kind = r8 ) :: f1
+  real    ( kind = r8 ) :: f2
+  real    ( kind = r8 ) :: fe(ne)
+  real    ( kind = r8 ) :: h
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: ierr
+  integer ( kind = i4 ) :: next(2)
+  real    ( kind = r8 ) :: x
+  real    ( kind = r8 ) :: x1
+  real    ( kind = r8 ) :: x2
+  real    ( kind = r8 ) :: xe(ne)
+  real    ( kind = r8 ) :: xma
+  real    ( kind = r8 ) :: xmi
 
   if ( ne < 1 ) then
     ierr = -1
@@ -2260,27 +2264,27 @@ subroutine data_to_dif ( ntab, xtab, ytab, diftab )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NTAB, the number of pairs of points
+!    Input, integer ( kind = i4 ) NTAB, the number of pairs of points
 !    (XTAB(I),YTAB(I)) which are to be used as data.  The
 !    number of entries to be used in DIFTAB, XTAB and YTAB.
 !
-!    Input, real ( kind = 8 ) XTAB(NTAB), the X values at which data was taken.
+!    Input, real ( kind = r8 ) XTAB(NTAB), the X values at which data was taken.
 !    These values must be distinct.
 !
-!    Input, real ( kind = 8 ) YTAB(NTAB), the corresponding Y values.
+!    Input, real ( kind = r8 ) YTAB(NTAB), the corresponding Y values.
 !
-!    Output, real ( kind = 8 ) DIFTAB(NTAB), the divided difference coefficients
+!    Output, real ( kind = r8 ) DIFTAB(NTAB), the divided difference coefficients
 !    corresponding to the input (XTAB,YTAB).
 !
   implicit none
 
-  integer ( kind = 4 ) :: ntab
+  integer ( kind = i4 ) :: ntab
 
-  real    ( kind = 8 ) :: diftab(ntab)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  real    ( kind = 8 ) :: xtab(ntab)
-  real    ( kind = 8 ) :: ytab(ntab)
+  real    ( kind = r8 ) :: diftab(ntab)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: j
+  real    ( kind = r8 ) :: xtab(ntab)
+  real    ( kind = r8 ) :: ytab(ntab)
 
   if ( .not. r8vec_distinct ( ntab, xtab ) ) then
     write ( *, '(a)' ) ' '
@@ -2333,29 +2337,29 @@ subroutine dif_val ( ntab, xtab, diftab, xval, yval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NTAB, the number of divided difference
+!    Input, integer ( kind = i4 ) NTAB, the number of divided difference
 !    coefficients in DIFTAB, and the number of points XTAB.
 !
-!    Input, real ( kind = 8 ) XTAB(NTAB), the X values upon which the
+!    Input, real ( kind = r8 ) XTAB(NTAB), the X values upon which the
 !    divided difference polynomial is based.
 !
-!    Input, real ( kind = 8 ) DIFTAB(NTAB), the divided difference
+!    Input, real ( kind = r8 ) DIFTAB(NTAB), the divided difference
 !    polynomial coefficients.
 !
-!    Input, real ( kind = 8 ) XVAL, the value where the polynomial
+!    Input, real ( kind = r8 ) XVAL, the value where the polynomial
 !    is to be evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, the value of the polynomial at XVAL.
+!    Output, real ( kind = r8 ) YVAL, the value of the polynomial at XVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ntab
+  integer ( kind = i4 ) :: ntab
 
-  real    ( kind = 8 ) :: diftab(ntab)
-  integer ( kind = 4 ) :: i
-  real    ( kind = 8 ) :: xtab(ntab)
-  real    ( kind = 8 ) :: xval
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: diftab(ntab)
+  integer ( kind = i4 ) :: i
+  real    ( kind = r8 ) :: xtab(ntab)
+  real    ( kind = r8 ) :: xval
+  real    ( kind = r8 ) :: yval
 
   yval = diftab(ntab)
   do i = 1, ntab-1
@@ -2432,56 +2436,56 @@ subroutine least_set_old ( ntab, xtab, ytab, ndeg, ptab, b, c, d, eps, ierror )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NTAB, the number of data points.
+!    Input, integer ( kind = i4 ) NTAB, the number of data points.
 !
-!    Input, real ( kind = 8 ) XTAB(NTAB), the X data.  The values in XTAB
+!    Input, real ( kind = r8 ) XTAB(NTAB), the X data.  The values in XTAB
 !    should be distinct, and in increasing order.
 !
-!    Input, real ( kind = 8 ) YTAB(NTAB), the Y data values corresponding
+!    Input, real ( kind = r8 ) YTAB(NTAB), the Y data values corresponding
 !    to the X data in XTAB.
 !
-!    Input, integer ( kind = 4 ) NDEG, the degree of the polynomial which the
+!    Input, integer ( kind = i4 ) NDEG, the degree of the polynomial which the
 !    program is to use.  NDEG must be at least 0, and less than or
 !    equal to NTAB-1.
 !
-!    Output, real ( kind = 8 ) PTAB(NTAB), the value of the least
+!    Output, real ( kind = r8 ) PTAB(NTAB), the value of the least
 !    squares polynomial at the points XTAB(1:NTAB).
 !
-!    Output, real ( kind = 8 ) B(1:NDEG), C(0:NDEG), D(2:NDEG), arrays
+!    Output, real ( kind = r8 ) B(1:NDEG), C(0:NDEG), D(2:NDEG), arrays
 !    needed to evaluate the polynomial.
 !
-!    Output, real ( kind = 8 ) EPS, the root-mean-square discrepancy of the
+!    Output, real ( kind = r8 ) EPS, the root-mean-square discrepancy of the
 !    polynomial fit.
 !
-!    Output, integer ( kind = 4 ) IERROR, error flag.
+!    Output, integer ( kind = i4 ) IERROR, error flag.
 !    zero, no error occurred;
 !    nonzero, an error occurred, and the polynomial could not be computed.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndeg
-  integer ( kind = 4 ) :: ntab
+  integer ( kind = i4 ) :: ndeg
+  integer ( kind = i4 ) :: ntab
 
-  real    ( kind = 8 ) :: b(1:ndeg)
-  real    ( kind = 8 ) :: c(0:ndeg)
-  real    ( kind = 8 ) :: d(2:ndeg)
-  real    ( kind = 8 ) :: eps
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: i0l1
-  integer ( kind = 4 ) :: i1l1
-  integer ( kind = 4 ) :: ierror
-  integer ( kind = 4 ) :: it
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: mdeg
-  real    ( kind = 8 ) :: ptab(ntab)
-  real    ( kind = 8 ) :: rn0
-  real    ( kind = 8 ) :: rn1
-  real    ( kind = 8 ) :: s
-  real    ( kind = 8 ) :: sum2
-  real    ( kind = 8 ) :: xtab(ntab)
-  real    ( kind = 8 ) :: y_sum
-  real    ( kind = 8 ) :: ytab(ntab)
-  real    ( kind = 8 ) :: ztab(2*ntab)
+  real    ( kind = r8 ) :: b(1:ndeg)
+  real    ( kind = r8 ) :: c(0:ndeg)
+  real    ( kind = r8 ) :: d(2:ndeg)
+  real    ( kind = r8 ) :: eps
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: i0l1
+  integer ( kind = i4 ) :: i1l1
+  integer ( kind = i4 ) :: ierror
+  integer ( kind = i4 ) :: it
+  integer ( kind = i4 ) :: k
+  integer ( kind = i4 ) :: mdeg
+  real    ( kind = r8 ) :: ptab(ntab)
+  real    ( kind = r8 ) :: rn0
+  real    ( kind = r8 ) :: rn1
+  real    ( kind = r8 ) :: s
+  real    ( kind = r8 ) :: sum2
+  real    ( kind = r8 ) :: xtab(ntab)
+  real    ( kind = r8 ) :: y_sum
+  real    ( kind = r8 ) :: ytab(ntab)
+  real    ( kind = r8 ) :: ztab(2*ntab)
 
   ierror = 0
 !
@@ -2524,19 +2528,19 @@ subroutine least_set_old ( ntab, xtab, ytab, ndeg, ptab, b, c, d, eps, ierror )
 !
   y_sum = sum ( ytab(1:ntab) )
   rn0 = ntab
-  c(0) = y_sum / real ( ntab, kind = 8 )
+  c(0) = y_sum / real ( ntab, kind = r8 )
 
-  ptab(1:ntab) = y_sum / real ( ntab, kind = 8 )
+  ptab(1:ntab) = y_sum / real ( ntab, kind = r8 )
 
   if ( ndeg == 0 ) then
     eps = sum ( ptab(1:ntab) - ytab(1:ntab) )**2
-    eps = sqrt ( eps / real ( ntab, kind = 8 ) )
+    eps = sqrt ( eps / real ( ntab, kind = r8 ) )
     return
   end if
 !
 !  The polynomial is of degree at least 1.
 !
-  b(1) = sum ( xtab(1:ntab) ) / real ( ntab, kind = 8 )
+  b(1) = sum ( xtab(1:ntab) ) / real ( ntab, kind = r8 )
 
   s = 0.0D+00
   sum2 = 0.0D+00
@@ -2555,7 +2559,7 @@ subroutine least_set_old ( ntab, xtab, ytab, ndeg, ptab, b, c, d, eps, ierror )
 
   if ( ndeg == 1 ) then
     eps = sum ( ( ptab(1:ntab) - ytab(1:ntab) )**2 )
-    eps = sqrt ( eps / real ( ntab, kind = 8 ) )
+    eps = sqrt ( eps / real ( ntab, kind = r8 ) )
     return
   end if
 
@@ -2609,7 +2613,7 @@ subroutine least_set_old ( ntab, xtab, ytab, ndeg, ptab, b, c, d, eps, ierror )
 !  Compute the RMS error.
 !
   eps = sum ( ( ptab(1:ntab) - ytab(1:ntab) )**2 )
-  eps = sqrt ( eps / real ( ntab, kind = 8 ) )
+  eps = sqrt ( eps / real ( ntab, kind = r8 ) )
 
   return
 end subroutine least_set_old
@@ -2645,30 +2649,30 @@ subroutine least_val_old ( x, ndeg, b, c, d, value )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X, the point at which the polynomial is
+!    Input, real ( kind = r8 ) X, the point at which the polynomial is
 !    to be evaluated.
 !
-!    Input, integer ( kind = 4 ) NDEG, the degree of the least squares
+!    Input, integer ( kind = i4 ) NDEG, the degree of the least squares
 !    polynomial.
 !
-!    Input, real ( kind = 8 ) B(1:NDEG), C(0:NDEG), D(2:NDEG), arrays
+!    Input, real ( kind = r8 ) B(1:NDEG), C(0:NDEG), D(2:NDEG), arrays
 !    defined by LEAST_SET_OLD, and needed to evaluate the polynomial.
 !
-!    Output, real ( kind = 8 ) VALUE, the value of the polynomial at X.
+!    Output, real ( kind = r8 ) VALUE, the value of the polynomial at X.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndeg
+  integer ( kind = i4 ) :: ndeg
 
-  real    ( kind = 8 ) :: b(1:ndeg)
-  real    ( kind = 8 ) :: c(0:ndeg)
-  real    ( kind = 8 ) :: d(2:ndeg)
-  integer ( kind = 4 ) :: k
-  real    ( kind = 8 ) :: sk
-  real    ( kind = 8 ) :: skp1
-  real    ( kind = 8 ) :: skp2
-  real    ( kind = 8 ) :: value
-  real    ( kind = 8 ) :: x
+  real    ( kind = r8 ) :: b(1:ndeg)
+  real    ( kind = r8 ) :: c(0:ndeg)
+  real    ( kind = r8 ) :: d(2:ndeg)
+  integer ( kind = i4 ) :: k
+  real    ( kind = r8 ) :: sk
+  real    ( kind = r8 ) :: skp1
+  real    ( kind = r8 ) :: skp2
+  real    ( kind = r8 ) :: value
+  real    ( kind = r8 ) :: x
 
   if ( ndeg <= 0 ) then
 
@@ -2735,43 +2739,43 @@ subroutine least_set ( point_num, x, f, w, nterms, b, c, d )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) POINT_NUM, the number of data values.
+!    Input, integer ( kind = i4 ) POINT_NUM, the number of data values.
 !
-!    Input, real ( kind = 8 ) X(POINT_NUM), the abscissas of the data points.
+!    Input, real ( kind = r8 ) X(POINT_NUM), the abscissas of the data points.
 !    At least NTERMS of the values in X must be distinct.
 !
-!    Input, real ( kind = 8 ) F(POINT_NUM), the data values at the points X(*).
+!    Input, real ( kind = r8 ) F(POINT_NUM), the data values at the points X(*).
 !
-!    Input, real ( kind = 8 ) W(POINT_NUM), the weights associated with
+!    Input, real ( kind = r8 ) W(POINT_NUM), the weights associated with
 !    the data points.  Each entry of W should be positive.
 !
-!    Input, integer ( kind = 4 ) NTERMS, the number of terms to use in the
+!    Input, integer ( kind = i4 ) NTERMS, the number of terms to use in the
 !    approximating polynomial.  NTERMS must be at least 1.
 !    The degree of the polynomial is NTERMS-1.
 !
-!    Output, real ( kind = 8 ) B(NTERMS), C(NTERMS), D(NTERMS), are quantities
+!    Output, real ( kind = r8 ) B(NTERMS), C(NTERMS), D(NTERMS), are quantities
 !    defining the least squares polynomial for the input data,
 !    which will be needed to evaluate the polynomial.
 !
   implicit none
 
-  integer ( kind = 4 ) :: point_num
-  integer ( kind = 4 ) :: nterms
+  integer ( kind = i4 ) :: point_num
+  integer ( kind = i4 ) :: nterms
 
-  real    ( kind = 8 ) :: b(nterms)
-  real    ( kind = 8 ) :: c(nterms)
-  real    ( kind = 8 ) :: d(nterms)
-  real    ( kind = 8 ) :: f(point_num)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  real    ( kind = 8 ) :: p
-  real    ( kind = 8 ) :: pj(point_num)
-  real    ( kind = 8 ) :: pjm1(point_num)
-  real    ( kind = 8 ) :: s(nterms)
-  real    ( kind = 8 ), parameter :: tol = 0.0D+00
-  integer ( kind = 4 ) :: unique_num
-  real    ( kind = 8 ) :: w(point_num)
-  real    ( kind = 8 ) :: x(point_num)
+  real    ( kind = r8 ) :: b(nterms)
+  real    ( kind = r8 ) :: c(nterms)
+  real    ( kind = r8 ) :: d(nterms)
+  real    ( kind = r8 ) :: f(point_num)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: j
+  real    ( kind = r8 ) :: p
+  real    ( kind = r8 ) :: pj(point_num)
+  real    ( kind = r8 ) :: pjm1(point_num)
+  real    ( kind = r8 ) :: s(nterms)
+  real    ( kind = r8 ), parameter :: tol = 0.0D+00
+  integer ( kind = i4 ) :: unique_num
+  real    ( kind = r8 ) :: w(point_num)
+  real    ( kind = r8 ) :: x(point_num)
 !
 !  Make sure at least NTERMS X values are unique.
 !
@@ -2912,32 +2916,32 @@ subroutine least_val ( nterms, b, c, d, x, px )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NTERMS, the number of terms in the least
+!    Input, integer ( kind = i4 ) NTERMS, the number of terms in the least
 !    squares polynomial.  NTERMS must be at least 1.  The input value of NTERMS
 !    may be reduced from the value given to LEAST_SET.  This will
 !    evaluate the least squares polynomial of the lower degree specified.
 !
-!    Input, real ( kind = 8 ) B(NTERMS), C(NTERMS), D(NTERMS), the information
+!    Input, real ( kind = r8 ) B(NTERMS), C(NTERMS), D(NTERMS), the information
 !    computed by LEAST_SET.
 !
-!    Input, real ( kind = 8 ) X, the point at which the least squares polynomial
+!    Input, real ( kind = r8 ) X, the point at which the least squares polynomial
 !    is to be evaluated.
 !
-!    Output, real ( kind = 8 ) PX, the value of the least squares
+!    Output, real ( kind = r8 ) PX, the value of the least squares
 !    polynomial at X.
 !
   implicit none
 
-  integer ( kind = 4 ) :: nterms
+  integer ( kind = i4 ) :: nterms
 
-  real    ( kind = 8 ) :: b(nterms)
-  real    ( kind = 8 ) :: c(nterms)
-  real    ( kind = 8 ) :: d(nterms)
-  integer ( kind = 4 ) :: i
-  real    ( kind = 8 ) :: prev
-  real    ( kind = 8 ) :: prev2
-  real    ( kind = 8 ) :: px
-  real    ( kind = 8 ) :: x
+  real    ( kind = r8 ) :: b(nterms)
+  real    ( kind = r8 ) :: c(nterms)
+  real    ( kind = r8 ) :: d(nterms)
+  integer ( kind = i4 ) :: i
+  real    ( kind = r8 ) :: prev
+  real    ( kind = r8 ) :: prev2
+  real    ( kind = r8 ) :: px
+  real    ( kind = r8 ) :: x
 
   px = d(nterms)
   prev = 0.0D+00
@@ -3005,36 +3009,36 @@ subroutine least_val2 ( nterms, b, c, d, x, px, pxp )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NTERMS, the number of terms in the least
+!    Input, integer ( kind = i4 ) NTERMS, the number of terms in the least
 !    squares polynomial.  NTERMS must be at least 1.  The value of NTERMS
 !    may be reduced from the value given to LEAST_SET.
 !    This will cause LEAST_VAL to evaluate the least squares polynomial
 !    of the lower degree specified.
 !
-!    Input, real ( kind = 8 ) B(NTERMS), C(NTERMS), D(NTERMS), the information
+!    Input, real ( kind = r8 ) B(NTERMS), C(NTERMS), D(NTERMS), the information
 !    computed by LEAST_SET.
 !
-!    Input, real ( kind = 8 ) X, the point at which the least squares polynomial
+!    Input, real ( kind = r8 ) X, the point at which the least squares polynomial
 !    is to be evaluated.
 !
-!    Output, real ( kind = 8 ) PX, PXP, the value and derivative of the least
+!    Output, real ( kind = r8 ) PX, PXP, the value and derivative of the least
 !    squares polynomial at X.
 !
   implicit none
 
-  integer ( kind = 4 ) :: nterms
+  integer ( kind = i4 ) :: nterms
 
-  real    ( kind = 8 ) :: b(nterms)
-  real    ( kind = 8 ) :: c(nterms)
-  real    ( kind = 8 ) :: d(nterms)
-  integer ( kind = 4 ) :: i
-  real    ( kind = 8 ) :: px
-  real    ( kind = 8 ) :: pxm1
-  real    ( kind = 8 ) :: pxm2
-  real    ( kind = 8 ) :: pxp
-  real    ( kind = 8 ) :: pxpm1
-  real    ( kind = 8 ) :: pxpm2
-  real    ( kind = 8 ) :: x
+  real    ( kind = r8 ) :: b(nterms)
+  real    ( kind = r8 ) :: c(nterms)
+  real    ( kind = r8 ) :: d(nterms)
+  integer ( kind = i4 ) :: i
+  real    ( kind = r8 ) :: px
+  real    ( kind = r8 ) :: pxm1
+  real    ( kind = r8 ) :: pxm2
+  real    ( kind = r8 ) :: pxp
+  real    ( kind = r8 ) :: pxpm1
+  real    ( kind = r8 ) :: pxpm2
+  real    ( kind = r8 ) :: x
 
   px = d(nterms)
   pxp = 0.0D+00
@@ -3088,49 +3092,49 @@ subroutine parabola_val2 ( dim_num, ndata, tdata, ydata, left, tval, yval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) DIM_NUM, the dimension of a single data point.
+!    Input, integer ( kind = i4 ) DIM_NUM, the dimension of a single data point.
 !    DIM_NUM must be at least 1.
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data points.
+!    Input, integer ( kind = i4 ) NDATA, the number of data points.
 !    NDATA must be at least 3.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissas of the data
+!    Input, real ( kind = r8 ) TDATA(NDATA), the abscissas of the data
 !    points.  The values in TDATA must be in strictly ascending order.
 !
-!    Input, real ( kind = 8 ) YDATA(DIM_NUM,NDATA), the data points
+!    Input, real ( kind = r8 ) YDATA(DIM_NUM,NDATA), the data points
 !    corresponding to the abscissas.
 !
-!    Input, integer ( kind = 4 ) LEFT, the location of the first of the three
+!    Input, integer ( kind = i4 ) LEFT, the location of the first of the three
 !    consecutive data points through which the parabolic interpolant
 !    must pass.  1 <= LEFT <= NDATA - 2.
 !
-!    Input, real ( kind = 8 ) TVAL, the value of T at which the parabolic
+!    Input, real ( kind = r8 ) TVAL, the value of T at which the parabolic
 !    interpolant is to be evaluated.  Normally, TDATA(1) <= TVAL <= T(NDATA),
 !    and the data will be interpolated.  For TVAL outside this range,
 !    extrapolation will be used.
 !
-!    Output, real ( kind = 8 ) YVAL(DIM_NUM), the value of the parabolic
+!    Output, real ( kind = r8 ) YVAL(DIM_NUM), the value of the parabolic
 !    interpolant at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
-  integer ( kind = 4 ) :: dim_num
+  integer ( kind = i4 ) :: ndata
+  integer ( kind = i4 ) :: dim_num
 
-  real    ( kind = 8 ) :: dif1
-  real    ( kind = 8 ) :: dif2
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: left
-  real    ( kind = 8 ) :: t1
-  real    ( kind = 8 ) :: t2
-  real    ( kind = 8 ) :: t3
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: ydata(dim_num,ndata)
-  real    ( kind = 8 ) :: y1
-  real    ( kind = 8 ) :: y2
-  real    ( kind = 8 ) :: y3
-  real    ( kind = 8 ) :: yval(dim_num)
+  real    ( kind = r8 ) :: dif1
+  real    ( kind = r8 ) :: dif2
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: left
+  real    ( kind = r8 ) :: t1
+  real    ( kind = r8 ) :: t2
+  real    ( kind = r8 ) :: t3
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: ydata(dim_num,ndata)
+  real    ( kind = r8 ) :: y1
+  real    ( kind = r8 ) :: y2
+  real    ( kind = r8 ) :: y3
+  real    ( kind = r8 ) :: yval(dim_num)
 !
 !  Check.
 !
@@ -3191,7 +3195,7 @@ subroutine parabola_val2 ( dim_num, ndata, tdata, ydata, left, tval, yval )
   return
 end subroutine parabola_val2
 
-real ( kind = 8 ) function pchst ( arg1, arg2 )
+real ( kind = r8 ) function pchst ( arg1, arg2 )
 
 !*****************************************************************************80
 !
@@ -3226,17 +3230,17 @@ real ( kind = 8 ) function pchst ( arg1, arg2 )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) ARG1, ARG2, two values to check.
+!    Input, real ( kind = r8 ) ARG1, ARG2, two values to check.
 !
-!    Output, real ( kind = 8 ) PCHST,
+!    Output, real ( kind = r8 ) PCHST,
 !    -1.0, if ARG1 and ARG2 are of opposite sign.
 !     0.0, if either argument is zero.
 !    +1.0, if ARG1 and ARG2 are of the same sign.
 !
   implicit none
 
-  real    ( kind = 8 ) :: arg1
-  real    ( kind = 8 ) :: arg2
+  real    ( kind = r8 ) :: arg1
+  real    ( kind = r8 ) :: arg2
 
   pchst = sign ( 1.0D+00, arg1 ) * sign ( 1.0D+00, arg2 )
 
@@ -3247,7 +3251,7 @@ real ( kind = 8 ) function pchst ( arg1, arg2 )
   return
 end function pchst
 
-real ( kind = 8 ) function r8_uniform_01 ( seed )
+real ( kind = r8 ) function r8_uniform_01 ( seed )
 
 !*****************************************************************************80
 !
@@ -3290,17 +3294,17 @@ real ( kind = 8 ) function r8_uniform_01 ( seed )
 !
 !  Parameters:
 !
-!    Input/output, integer ( kind = 4 ) SEED, the "seed" value, which should
+!    Input/output, integer ( kind = i4 ) SEED, the "seed" value, which should
 !    NOT be 0. (Otherwise, the output values of SEED and UNIFORM will be zero.)
 !    On output, SEED has been updated.
 !
-!    Output, real ( kind = 8 ) R8_UNIFORM_01, a new pseudorandom variate,
+!    Output, real ( kind = r8 ) R8_UNIFORM_01, a new pseudorandom variate,
 !    strictly between 0 and 1.
 !
   implicit none
 
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: seed
+  integer ( kind = i4 ) :: k
+  integer ( kind = i4 ) :: seed
 
   k = seed / 127773
 
@@ -3313,7 +3317,7 @@ real ( kind = 8 ) function r8_uniform_01 ( seed )
 !  Although SEED can be represented exactly as a 32 bit integer,
 !  it generally cannot be represented exactly as a 32 bit real number!
 !
-  r8_uniform_01 = real ( seed, kind = 8 ) * 4.656612875E-10
+  r8_uniform_01 = real ( seed, kind = r8 ) * 4.656612875E-10
 
   return
 end function r8_uniform_01
@@ -3353,21 +3357,21 @@ subroutine r83_mxv ( n, a, x, b )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the linear system.
+!    Input, integer ( kind = i4 ) N, the order of the linear system.
 !
-!    Input, real ( kind = 8 ) A(3,N), the R83 matrix.
+!    Input, real ( kind = r8 ) A(3,N), the R83 matrix.
 !
-!    Input, real ( kind = 8 ) X(N), the vector to be multiplied by A.
+!    Input, real ( kind = r8 ) X(N), the vector to be multiplied by A.
 !
-!    Output, real ( kind = 8 ) B(N), the product A * x.
+!    Output, real ( kind = r8 ) B(N), the product A * x.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(3,n)
-  real    ( kind = 8 ) :: b(n)
-  real    ( kind = 8 ) :: x(n)
+  real    ( kind = r8 ) :: a(3,n)
+  real    ( kind = r8 ) :: b(n)
+  real    ( kind = r8 ) :: x(n)
 
   b(1:n)   =            a(2,1:n)   * x(1:n)
   b(1:n-1) = b(1:n-1) + a(1,2:n)   * x(2:n)
@@ -3409,19 +3413,19 @@ subroutine r83_uniform ( n, seed, a )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the linear system.
+!    Input, integer ( kind = i4 ) N, the order of the linear system.
 !
-!    Input/output, integer ( kind = 4 ) SEED, a seed for the random number
+!    Input/output, integer ( kind = i4 ) SEED, a seed for the random number
 !    generator.
 !
-!    Output, real ( kind = 8 ) A(3,N), the R83 matrix.
+!    Output, real ( kind = r8 ) A(3,N), the R83 matrix.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(3,n)
-  integer ( kind = 4 ) :: seed
+  real    ( kind = r8 ) :: a(3,n)
+  integer ( kind = i4 ) :: seed
 
   a(1,1) = 0.0D+00
   call r8vec_uniform_01 ( n-1, seed, a(1,2:n) )
@@ -3458,22 +3462,22 @@ subroutine r8vec_even ( n, alo, ahi, a )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of values.
+!    Input, integer ( kind = i4 ) N, the number of values.
 !
-!    Input, real ( kind = 8 ) ALO, AHI, the low and high values.
+!    Input, real ( kind = r8 ) ALO, AHI, the low and high values.
 !
-!    Output, real ( kind = 8 ) A(N), N evenly spaced values.
+!    Output, real ( kind = r8 ) A(N), N evenly spaced values.
 !    Normally, A(1) = ALO and A(N) = AHI.
 !    However, if N = 1, then A(1) = 0.5*(ALO+AHI).
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(n)
-  real    ( kind = 8 ) :: ahi
-  real    ( kind = 8 ) :: alo
-  integer ( kind = 4 ) :: i
+  real    ( kind = r8 ) :: a(n)
+  real    ( kind = r8 ) :: ahi
+  real    ( kind = r8 ) :: alo
+  integer ( kind = i4 ) :: i
 
   if ( n == 1 ) then
 
@@ -3482,9 +3486,9 @@ subroutine r8vec_even ( n, alo, ahi, a )
   else
 
     do i = 1, n
-      a(i) = ( real ( n - i,     kind = 8 ) * alo   &
-             + real (     i - 1, kind = 8 ) * ahi ) &
-             / real ( n     - 1, kind = 8 )
+      a(i) = ( real ( n - i,     kind = r8 ) * alo   &
+             + real (     i - 1, kind = r8 ) * ahi ) &
+             / real ( n     - 1, kind = r8 )
     end do
 
   end if
@@ -3516,19 +3520,19 @@ subroutine r8vec_indicator ( n, a )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of elements of A.
+!    Input, integer ( kind = i4 ) N, the number of elements of A.
 !
-!    Output, real ( kind = 8 ) A(N), the array to be initialized.
+!    Output, real ( kind = r8 ) A(N), the array to be initialized.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(n)
-  integer ( kind = 4 ) :: i
+  real    ( kind = r8 ) :: a(n)
+  integer ( kind = i4 ) :: i
 
   do i = 1, n
-    a(i) = real ( i, kind = 8 )
+    a(i) = real ( i, kind = r8 )
   end do
 
   return
@@ -3558,19 +3562,19 @@ subroutine r8vec_print ( n, a, title )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of components of the vector.
+!    Input, integer ( kind = i4 ) N, the number of components of the vector.
 !
-!    Input, real ( kind = 8 ) A(N), the vector to be printed.
+!    Input, real ( kind = r8 ) A(N), the vector to be printed.
 !
 !    Input, character ( len = * ) TITLE, a title to be printed first.
 !    TITLE may be blank.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(n)
-  integer ( kind = 4 ) :: i
+  real    ( kind = r8 ) :: a(n)
+  integer ( kind = i4 ) :: i
   character ( len = * ) :: title
 
   if ( title /= ' ' ) then
@@ -3613,19 +3617,19 @@ subroutine r8vec_sort_bubble_a ( n, a )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of entries in the array.
+!    Input, integer ( kind = i4 ) N, the number of entries in the array.
 !
-!    Input/output, real ( kind = 8 ) A(N).
+!    Input/output, real ( kind = r8 ) A(N).
 !    On input, an unsorted array.
 !    On output, the array has been sorted.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
+  real    ( kind = r8 ) :: a(n)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: j
 
   do i = 1, n-1
     do j = i+1, n
@@ -3673,29 +3677,29 @@ subroutine spline_b_val ( ndata, tdata, ydata, tval, yval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data values.
+!    Input, integer ( kind = i4 ) NDATA, the number of data values.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissas of the data.
+!    Input, real ( kind = r8 ) TDATA(NDATA), the abscissas of the data.
 !
-!    Input, real ( kind = 8 ) YDATA(NDATA), the data values.
+!    Input, real ( kind = r8 ) YDATA(NDATA), the data values.
 !
-!    Input, real ( kind = 8 ) TVAL, a point at which the spline is
+!    Input, real ( kind = r8 ) TVAL, a point at which the spline is
 !    to be evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, the value of the function at TVAL.
+!    Output, real ( kind = r8 ) YVAL, the value of the function at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ) :: ndata
 
-  real    ( kind = 8 ) :: bval
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: u
-  real    ( kind = 8 ) :: ydata(ndata)
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: bval
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: u
+  real    ( kind = r8 ) :: ydata(ndata)
+  real    ( kind = r8 ) :: yval
 !
 !  Find the nearest interval [ TDATA(LEFT), TDATA(RIGHT) ] to TVAL.
 !
@@ -3789,42 +3793,42 @@ subroutine spline_beta_val ( beta1, beta2, ndata, tdata, ydata, tval, yval )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) BETA1, the skew or bias parameter.
+!    Input, real ( kind = r8 ) BETA1, the skew or bias parameter.
 !    BETA1 = 1 for no skew or bias.
 !
-!    Input, real ( kind = 8 ) BETA2, the tension parameter.
+!    Input, real ( kind = r8 ) BETA2, the tension parameter.
 !    BETA2 = 0 for no tension.
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data values.
+!    Input, integer ( kind = i4 ) NDATA, the number of data values.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissas of the data.
+!    Input, real ( kind = r8 ) TDATA(NDATA), the abscissas of the data.
 !
-!    Input, real ( kind = 8 ) YDATA(NDATA), the data values.
+!    Input, real ( kind = r8 ) YDATA(NDATA), the data values.
 !
-!    Input, real ( kind = 8 ) TVAL, a point at which the spline is
+!    Input, real ( kind = r8 ) TVAL, a point at which the spline is
 !    to be evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, the value of the function at TVAL.
+!    Output, real ( kind = r8 ) YVAL, the value of the function at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ) :: ndata
 
-  real    ( kind = 8 ) :: a
-  real    ( kind = 8 ) :: b
-  real    ( kind = 8 ) :: beta1
-  real    ( kind = 8 ) :: beta2
-  real    ( kind = 8 ) :: bval
-  real    ( kind = 8 ) :: c
-  real    ( kind = 8 ) :: d
-  real    ( kind = 8 ) :: delta
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: u
-  real    ( kind = 8 ) :: ydata(ndata)
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: a
+  real    ( kind = r8 ) :: b
+  real    ( kind = r8 ) :: beta1
+  real    ( kind = r8 ) :: beta2
+  real    ( kind = r8 ) :: bval
+  real    ( kind = r8 ) :: c
+  real    ( kind = r8 ) :: d
+  real    ( kind = r8 ) :: delta
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: u
+  real    ( kind = r8 ) :: ydata(ndata)
+  real    ( kind = r8 ) :: yval
 !
 !  Find the nearest interval [ TDATA(LEFT), TDATA(RIGHT) ] to TVAL.
 !
@@ -3942,41 +3946,41 @@ subroutine spline_bezier_val ( dim_num, interval_num, data_val, point_num, &
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) DIM_NUM, the spatial dimension.
+!    Input, integer ( kind = i4 ) DIM_NUM, the spatial dimension.
 !
-!    Input, integer ( kind = 4 ) INTERVAL_NUM, the number of intervals.
+!    Input, integer ( kind = i4 ) INTERVAL_NUM, the number of intervals.
 !
-!    Input, real ( kind = 8 ) DATA_VAL(DIM_NUM,3*INTERVAL_NUM+1), the control
+!    Input, real ( kind = r8 ) DATA_VAL(DIM_NUM,3*INTERVAL_NUM+1), the control
 !    values.
 !
-!    Input, integer ( kind = 4 ) POINT_NUM, the number of sample points at
+!    Input, integer ( kind = i4 ) POINT_NUM, the number of sample points at
 !    which the Bezier cubic spline is to be evaluated.
 !
-!    Input, real ( kind = 8 ) POINT_T(POINT_NUM), the "T" values associated
+!    Input, real ( kind = r8 ) POINT_T(POINT_NUM), the "T" values associated
 !    with the points.  A value of T between 0 and 1, for instance,
 !    is associated with the first interval, and a value of T between
 !    INTERVAL_NUM-1 and INTERVAL_NUM is in the last interval.
 !
-!    Output, real ( kind = 8 ) POINT_VAL(DIM_NUM,POINT_NUM), the value
+!    Output, real ( kind = r8 ) POINT_VAL(DIM_NUM,POINT_NUM), the value
 !    of the Bezier cubic spline at the sample points.
 !
   implicit none
 
-  integer ( kind = 4 ), parameter :: cubic = 3
-  integer ( kind = 4 ) :: interval_num
-  integer ( kind = 4 ) :: dim_num
-  integer ( kind = 4 ) :: point_num
+  integer ( kind = i4 ), parameter :: cubic = 3
+  integer ( kind = i4 ) :: interval_num
+  integer ( kind = i4 ) :: dim_num
+  integer ( kind = i4 ) :: point_num
 
-  real    ( kind = 8 ) :: bernstein_val(0:cubic)
-  real    ( kind = 8 ) :: data_val(dim_num,cubic*interval_num+1)
-  integer ( kind = 4 ) :: dim
-  integer ( kind = 4 ) :: interval
-  integer ( kind = 4 ) :: offset
-  integer ( kind = 4 ) :: point
-  real    ( kind = 8 ) :: point_t(point_num)
-  real    ( kind = 8 ) :: point_val(dim_num,point_num)
-  real    ( kind = 8 ) :: t
-  real    ( kind = 8 ) :: t_01
+  real    ( kind = r8 ) :: bernstein_val(0:cubic)
+  real    ( kind = r8 ) :: data_val(dim_num,cubic*interval_num+1)
+  integer ( kind = i4 ) :: dim
+  integer ( kind = i4 ) :: interval
+  integer ( kind = i4 ) :: offset
+  integer ( kind = i4 ) :: point
+  real    ( kind = r8 ) :: point_t(point_num)
+  real    ( kind = r8 ) :: point_val(dim_num,point_num)
+  real    ( kind = r8 ) :: t
+  real    ( kind = r8 ) :: t_01
 
   do point = 1, point_num
 
@@ -3989,7 +3993,7 @@ subroutine spline_bezier_val ( dim_num, interval_num, data_val, point_num, &
 
     offset = 1 + ( interval - 1 ) * cubic
 
-    t_01 = t - real ( interval - 1, kind = 8 )
+    t_01 = t - real ( interval - 1, kind = r8 )
 
     call bp01 ( cubic, t_01, bernstein_val )
 
@@ -4030,29 +4034,29 @@ subroutine spline_constant_val ( ndata, tdata, ydata, tval, yval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data points defining
+!    Input, integer ( kind = i4 ) NDATA, the number of data points defining
 !    the spline.  NDATA must be at least 1.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA-1), the breakpoints.  The values
+!    Input, real ( kind = r8 ) TDATA(NDATA-1), the breakpoints.  The values
 !    of TDATA should be distinct and increasing.
 !
-!    Input, real ( kind = 8 ) YDATA(NDATA), the values of the spline in
+!    Input, real ( kind = r8 ) YDATA(NDATA), the values of the spline in
 !    the intervals defined by the breakpoints.
 !
-!    Input, real ( kind = 8 ) TVAL, the point at which the spline is
+!    Input, real ( kind = r8 ) TVAL, the point at which the spline is
 !    to be evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, the value of the spline at TVAL.
+!    Output, real ( kind = r8 ) YVAL, the value of the spline at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ) :: ndata
 
-  integer ( kind = 4 ) :: i
-  real    ( kind = 8 ) :: tdata(ndata-1)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: ydata(ndata)
-  real    ( kind = 8 ) :: yval
+  integer ( kind = i4 ) :: i
+  real    ( kind = r8 ) :: tdata(ndata-1)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: ydata(ndata)
+  real    ( kind = r8 ) :: yval
 !
 !  Check NDATA.
 !
@@ -4168,46 +4172,46 @@ subroutine spline_cubic_set ( n, t, y, ibcbeg, ybcbeg, ibcend, ybcend, ypp )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of data points; N must be
+!    Input, integer ( kind = i4 ) N, the number of data points; N must be
 !    at least 2.
 !
-!    Input, real ( kind = 8 ) T(N), the points where data is specified.
+!    Input, real ( kind = r8 ) T(N), the points where data is specified.
 !    The values should be distinct, and increasing.
 !
-!    Input, real ( kind = 8 ) Y(N), the data values to be interpolated.
+!    Input, real ( kind = r8 ) Y(N), the data values to be interpolated.
 !
-!    Input, integer ( kind = 4 ) IBCBEG, the left boundary condition flag:
+!    Input, integer ( kind = i4 ) IBCBEG, the left boundary condition flag:
 !
 !      0: the spline should be a quadratic over the first interval;
 !      1: the first derivative at the left endpoint should be YBCBEG;
 !      2: the second derivative at the left endpoint should be YBCBEG.
 !
-!    Input, real ( kind = 8 ) YBCBEG, the left boundary value, if needed.
+!    Input, real ( kind = r8 ) YBCBEG, the left boundary value, if needed.
 !
-!    Input, integer ( kind = 4 ) IBCEND, the right boundary condition flag:
+!    Input, integer ( kind = i4 ) IBCEND, the right boundary condition flag:
 !
 !      0: the spline should be a quadratic over the last interval;
 !      1: the first derivative at the right endpoint should be YBCEND;
 !      2: the second derivative at the right endpoint should be YBCEND.
 !
-!    Input, real ( kind = 8 ) YBCEND, the right boundary value, if needed.
+!    Input, real ( kind = r8 ) YBCEND, the right boundary value, if needed.
 !
-!    Output, real ( kind = 8 ) YPP(N), the second derivatives of
+!    Output, real ( kind = r8 ) YPP(N), the second derivatives of
 !    the cubic spline.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(3,n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ibcbeg
-  integer ( kind = 4 ) :: ibcend
-  real    ( kind = 8 ) :: t(n)
-  real    ( kind = 8 ) :: y(n)
-  real    ( kind = 8 ) :: ybcbeg
-  real    ( kind = 8 ) :: ybcend
-  real    ( kind = 8 ) :: ypp(n)
+  real    ( kind = r8 ) :: a(3,n)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: ibcbeg
+  integer ( kind = i4 ) :: ibcend
+  real    ( kind = r8 ) :: t(n)
+  real    ( kind = r8 ) :: y(n)
+  real    ( kind = r8 ) :: ybcbeg
+  real    ( kind = r8 ) :: ybcend
+  real    ( kind = r8 ) :: ypp(n)
 !
 !  Check.
 !
@@ -4350,37 +4354,37 @@ subroutine spline_cubic_val ( n, t, y, ypp, tval, yval, ypval, yppval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of data values.
+!    Input, integer ( kind = i4 ) N, the number of data values.
 !
-!    Input, real ( kind = 8 ) T(N), the knot values.
+!    Input, real ( kind = r8 ) T(N), the knot values.
 !
-!    Input, real ( kind = 8 ) Y(N), the data values at the knots.
+!    Input, real ( kind = r8 ) Y(N), the data values at the knots.
 !
-!    Input, real ( kind = 8 ) YPP(N), the second derivatives of the
+!    Input, real ( kind = r8 ) YPP(N), the second derivatives of the
 !    spline at the knots.
 !
-!    Input, real ( kind = 8 ) TVAL, a point, typically between T(1) and
+!    Input, real ( kind = r8 ) TVAL, a point, typically between T(1) and
 !    T(N), at which the spline is to be evalulated.  If TVAL lies outside
 !    this range, extrapolation is used.
 !
-!    Output, real ( kind = 8 ) YVAL, YPVAL, YPPVAL, the value of the spline, and
+!    Output, real ( kind = r8 ) YVAL, YPVAL, YPPVAL, the value of the spline, and
 !    its first two derivatives at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: dt
-  real    ( kind = 8 ) :: h
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: t(n)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: y(n)
-  real    ( kind = 8 ) :: ypp(n)
-  real    ( kind = 8 ) :: yppval
-  real    ( kind = 8 ) :: ypval
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: dt
+  real    ( kind = r8 ) :: h
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: t(n)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: y(n)
+  real    ( kind = r8 ) :: ypp(n)
+  real    ( kind = r8 ) :: yppval
+  real    ( kind = r8 ) :: ypval
+  real    ( kind = r8 ) :: yval
 !
 !  Determine the interval [T(LEFT), T(RIGHT)] that contains TVAL.
 !  Values below T(1) or above T(N) use extrapolation.
@@ -4459,42 +4463,42 @@ subroutine spline_cubic_val2 ( n, t, y, ypp, left, tval, yval, ypval, yppval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of knots.
+!    Input, integer ( kind = i4 ) N, the number of knots.
 !
-!    Input, real ( kind = 8 ) T(N), the knot values.
+!    Input, real ( kind = r8 ) T(N), the knot values.
 !
-!    Input, real ( kind = 8 ) Y(N), the data values at the knots.
+!    Input, real ( kind = r8 ) Y(N), the data values at the knots.
 !
-!    Input, real ( kind = 8 ) YPP(N), the second derivatives of the spline at
+!    Input, real ( kind = r8 ) YPP(N), the second derivatives of the spline at
 !    the knots.
 !
-!    Input/output, integer ( kind = 4 ) LEFT, the suggested T interval to
+!    Input/output, integer ( kind = i4 ) LEFT, the suggested T interval to
 !    search.  LEFT should be between 1 and N-1.  If LEFT is not in this range,
 !    then its value will be ignored.  On output, LEFT is set to the
 !    actual interval in which TVAL lies.
 !
-!    Input, real ( kind = 8 ) TVAL, a point, typically between T(1) and T(N), at
+!    Input, real ( kind = r8 ) TVAL, a point, typically between T(1) and T(N), at
 !    which the spline is to be evalulated.  If TVAL lies outside
 !    this range, extrapolation is used.
 !
-!    Output, real ( kind = 8 ) YVAL, YPVAL, YPPVAL, the value of the spline, and
+!    Output, real ( kind = r8 ) YVAL, YPVAL, YPPVAL, the value of the spline, and
 !    its first two derivatives at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: dt
-  real    ( kind = 8 ) :: h
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: t(n)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: y(n)
-  real    ( kind = 8 ) :: ypp(n)
-  real    ( kind = 8 ) :: yppval
-  real    ( kind = 8 ) :: ypval
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: dt
+  real    ( kind = r8 ) :: h
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: t(n)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: y(n)
+  real    ( kind = r8 ) :: ypp(n)
+  real    ( kind = r8 ) :: yppval
+  real    ( kind = r8 ) :: ypval
+  real    ( kind = r8 ) :: yval
 !
 !  Determine the interval [T(LEFT), T(RIGHT)] that contains TVAL.
 !
@@ -4567,16 +4571,16 @@ subroutine spline_hermite_set ( ndata, tdata, ydata, ypdata, c )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data points.
+!    Input, integer ( kind = i4 ) NDATA, the number of data points.
 !    NDATA must be at least 2.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissas of the data points.
+!    Input, real ( kind = r8 ) TDATA(NDATA), the abscissas of the data points.
 !    The entries of TDATA are assumed to be strictly increasing.
 !
-!    Input, real ( kind = 8 ) Y(NDATA), YP(NDATA), the value of the
+!    Input, real ( kind = r8 ) Y(NDATA), YP(NDATA), the value of the
 !    function and its derivative at TDATA(1:NDATA).
 !
-!    Output, real ( kind = 8 ) C(4,NDATA), the coefficients of the
+!    Output, real ( kind = r8 ) C(4,NDATA), the coefficients of the
 !    Hermite polynomial.
 !    C(1,1:NDATA) = Y(1:NDATA) and C(2,1:NDATA) = YP(1:NDATA).
 !    C(3,1:NDATA-1) and C(4,1:NDATA-1) are the quadratic and cubic
@@ -4584,16 +4588,16 @@ subroutine spline_hermite_set ( ndata, tdata, ydata, ypdata, c )
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ) :: ndata
 
-  real    ( kind = 8 ) :: c(4,ndata)
-  real    ( kind = 8 ) :: divdif1
-  real    ( kind = 8 ) :: divdif3
-  real    ( kind = 8 ) :: dt
-  integer ( kind = 4 ) :: i
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: ydata(ndata)
-  real    ( kind = 8 ) :: ypdata(ndata)
+  real    ( kind = r8 ) :: c(4,ndata)
+  real    ( kind = r8 ) :: divdif1
+  real    ( kind = r8 ) :: divdif3
+  real    ( kind = r8 ) :: dt
+  integer ( kind = i4 ) :: i
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: ydata(ndata)
+  real    ( kind = r8 ) :: ypdata(ndata)
 !
 !  Check NDATA.
 !
@@ -4671,33 +4675,33 @@ subroutine spline_hermite_val ( ndata, tdata, c, tval, sval, spval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data points.
+!    Input, integer ( kind = i4 ) NDATA, the number of data points.
 !    NDATA must be at least 2.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissas of the data points.
+!    Input, real ( kind = r8 ) TDATA(NDATA), the abscissas of the data points.
 !    The entries of TDATA are assumed to be strictly increasing.
 !
-!    Input, real ( kind = 8 ) C(4,NDATA), the coefficient data computed by
+!    Input, real ( kind = r8 ) C(4,NDATA), the coefficient data computed by
 !    SPLINE_HERMITE_SET.
 !
-!    Input, real ( kind = 8 ) TVAL, the point where the interpolant is to
+!    Input, real ( kind = r8 ) TVAL, the point where the interpolant is to
 !    be evaluated.
 !
-!    Output, real ( kind = 8 ) SVAL, SPVAL, the value of the interpolant
+!    Output, real ( kind = r8 ) SVAL, SPVAL, the value of the interpolant
 !    and its derivative at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ) :: ndata
 
-  real    ( kind = 8 ) :: c(4,ndata)
-  real    ( kind = 8 ) :: dt
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: spval
-  real    ( kind = 8 ) :: sval
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
+  real    ( kind = r8 ) :: c(4,ndata)
+  real    ( kind = r8 ) :: dt
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: spval
+  real    ( kind = r8 ) :: sval
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
 !
 !  Check NDATA.
 !
@@ -4744,37 +4748,37 @@ subroutine spline_linear_int ( ndata, tdata, ydata, a, b, int_val )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data points defining
+!    Input, integer ( kind = i4 ) NDATA, the number of data points defining
 !    the spline.  NDATA must be at least 2.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), YDATA(NDATA), the values of
+!    Input, real ( kind = r8 ) TDATA(NDATA), YDATA(NDATA), the values of
 !    the independent and dependent variables at the data points.  The
 !    values of TDATA should be distinct and increasing.
 !
-!    Input, real ( kind = 8 ) A, B, the interval over which the
+!    Input, real ( kind = r8 ) A, B, the interval over which the
 !    integral is desired.
 !
-!    Output, real ( kind = 8 ) INT_VAL, the value of the integral.
+!    Output, real ( kind = r8 ) INT_VAL, the value of the integral.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ) :: ndata
 
-  real    ( kind = 8 ) :: a
-  real    ( kind = 8 ) :: a_copy
-  integer ( kind = 4 ) :: a_left
-  integer ( kind = 4 ) :: a_right
-  real    ( kind = 8 ) :: b
-  real    ( kind = 8 ) :: b_copy
-  integer ( kind = 4 ) :: b_left
-  integer ( kind = 4 ) :: b_right
-  integer ( kind = 4 ) :: i_left
-  real    ( kind = 8 ) :: int_val
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: ydata(ndata)
-  real    ( kind = 8 ) :: yp
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: a
+  real    ( kind = r8 ) :: a_copy
+  integer ( kind = i4 ) :: a_left
+  integer ( kind = i4 ) :: a_right
+  real    ( kind = r8 ) :: b
+  real    ( kind = r8 ) :: b_copy
+  integer ( kind = i4 ) :: b_left
+  integer ( kind = i4 ) :: b_right
+  integer ( kind = i4 ) :: i_left
+  real    ( kind = r8 ) :: int_val
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: ydata(ndata)
+  real    ( kind = r8 ) :: yp
+  real    ( kind = r8 ) :: yval
 !
 !  Check NDATA.
 !
@@ -4900,15 +4904,15 @@ subroutine spline_linear_intset ( n, int_x, int_v, data_x, data_y )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of intervals.
+!    Input, integer ( kind = i4 ) N, the number of intervals.
 !
-!    Input, real ( kind = 8 ) INT_X(N+1), the points that define the intervals.
+!    Input, real ( kind = r8 ) INT_X(N+1), the points that define the intervals.
 !    Interval I lies between INT_X(I) and INT_X(I+1).
 !
-!    Input, real ( kind = 8 ) INT_V(N), the desired value of the integral of the
+!    Input, real ( kind = r8 ) INT_V(N), the desired value of the integral of the
 !    linear spline over each interval.
 !
-!    Output, real ( kind = 8 ) DATA_X(N), DATA_Y(N), the values of the
+!    Output, real ( kind = r8 ) DATA_X(N), DATA_Y(N), the values of the
 !    independent and dependent variables at the data points.  The values
 !    of DATA_X are the interval midpoints.  The values of DATA_Y are
 !    determined in such a way that the exact integral of the linear
@@ -4916,13 +4920,13 @@ subroutine spline_linear_intset ( n, int_x, int_v, data_x, data_y )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: a(3,n)
-  real    ( kind = 8 ) :: data_x(n)
-  real    ( kind = 8 ) :: data_y(n)
-  real    ( kind = 8 ) :: int_v(n)
-  real    ( kind = 8 ) :: int_x(n+1)
+  real    ( kind = r8 ) :: a(3,n)
+  real    ( kind = r8 ) :: data_x(n)
+  real    ( kind = r8 ) :: data_y(n)
+  real    ( kind = r8 ) :: int_v(n)
+  real    ( kind = r8 ) :: int_x(n+1)
 !
 !  Set up the easy stuff.
 !
@@ -4993,31 +4997,31 @@ subroutine spline_linear_val ( ndata, tdata, ydata, tval, yval, ypval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data points defining
+!    Input, integer ( kind = i4 ) NDATA, the number of data points defining
 !    the spline.  NDATA must be at least 2.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), YDATA(NDATA), the values of
+!    Input, real ( kind = r8 ) TDATA(NDATA), YDATA(NDATA), the values of
 !    the independent and dependent variables at the data points.  The
 !    values of TDATA should be distinct and increasing.
 !
-!    Input, real ( kind = 8 ) TVAL, the point at which the spline is
+!    Input, real ( kind = r8 ) TVAL, the point at which the spline is
 !    to be evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, YPVAL, the value of the spline and
+!    Output, real ( kind = r8 ) YVAL, YPVAL, the value of the spline and
 !    its first derivative dYdT at TVAL.  YPVAL is not reliable if TVAL
 !    is exactly equal to TDATA(I) for some I.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ) :: ndata
 
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: ydata(ndata)
-  real    ( kind = 8 ) :: ypval
-  real    ( kind = 8 ) :: yval
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: ydata(ndata)
+  real    ( kind = r8 ) :: ypval
+  real    ( kind = r8 ) :: yval
 !
 !  Check NDATA.
 !
@@ -5071,37 +5075,37 @@ subroutine spline_overhauser_nonuni_val ( ndata, tdata, ydata, tval, yval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data points.
+!    Input, integer ( kind = i4 ) NDATA, the number of data points.
 !    3 <= NDATA is required.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissas of the data points.
+!    Input, real ( kind = r8 ) TDATA(NDATA), the abscissas of the data points.
 !    The values of TDATA are assumed to be distinct and increasing.
 !
-!    Input, real ( kind = 8 ) YDATA(NDATA), the data values.
+!    Input, real ( kind = r8 ) YDATA(NDATA), the data values.
 !
-!    Input, real ( kind = 8 ) TVAL, the value where the spline is to
+!    Input, real ( kind = r8 ) TVAL, the value where the spline is to
 !    be evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, the value of the spline at TVAL.
+!    Output, real ( kind = r8 ) YVAL, the value of the spline at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ) :: ndata
 
-  real    ( kind = 8 ) :: alpha
-  real    ( kind = 8 ) :: beta
-  real    ( kind = 8 ) :: d21
-  real    ( kind = 8 ) :: d32
-  real    ( kind = 8 ) :: d43
-  integer ( kind = 4 ) :: left
-  real    ( kind = 8 ) :: mbasis(4,4)
-  real    ( kind = 8 ) :: mbasis_l(3,3)
-  real    ( kind = 8 ) :: mbasis_r(3,3)
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: ydata(ndata)
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: alpha
+  real    ( kind = r8 ) :: beta
+  real    ( kind = r8 ) :: d21
+  real    ( kind = r8 ) :: d32
+  real    ( kind = r8 ) :: d43
+  integer ( kind = i4 ) :: left
+  real    ( kind = r8 ) :: mbasis(4,4)
+  real    ( kind = r8 ) :: mbasis_l(3,3)
+  real    ( kind = r8 ) :: mbasis_r(3,3)
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: ydata(ndata)
+  real    ( kind = r8 ) :: yval
 !
 !  Check NDATA.
 !
@@ -5198,34 +5202,34 @@ subroutine spline_overhauser_uni_val ( ndata, tdata, ydata, tval, yval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data points.
+!    Input, integer ( kind = i4 ) NDATA, the number of data points.
 !    NDATA must be at least 3.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissas of the data points.
+!    Input, real ( kind = r8 ) TDATA(NDATA), the abscissas of the data points.
 !    The values of TDATA are assumed to be distinct and increasing.
 !    This routine also assumes that the values of TDATA are uniformly
 !    spaced; for instance, TDATA(1) = 10, TDATA(2) = 11, TDATA(3) = 12...
 !
-!    Input, real ( kind = 8 ) YDATA(NDATA), the data values.
+!    Input, real ( kind = r8 ) YDATA(NDATA), the data values.
 !
-!    Input, real ( kind = 8 ) TVAL, the value where the spline is to
+!    Input, real ( kind = r8 ) TVAL, the value where the spline is to
 !    be evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, the value of the spline at TVAL.
+!    Output, real ( kind = r8 ) YVAL, the value of the spline at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ) :: ndata
 
-  integer ( kind = 4 ) :: left
-  real    ( kind = 8 ) :: mbasis(4,4)
-  real    ( kind = 8 ) :: mbasis_l(3,3)
-  real    ( kind = 8 ) :: mbasis_r(3,3)
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: ydata(ndata)
-  real    ( kind = 8 ) :: yval
+  integer ( kind = i4 ) :: left
+  real    ( kind = r8 ) :: mbasis(4,4)
+  real    ( kind = r8 ) :: mbasis_l(3,3)
+  real    ( kind = r8 ) :: mbasis_r(3,3)
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: ydata(ndata)
+  real    ( kind = r8 ) :: yval
 !
 !  Check NDATA.
 !
@@ -5313,39 +5317,39 @@ subroutine spline_overhauser_val ( dim_num, ndata, tdata, ydata, tval, yval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) DIM_NUM, the dimension of a single data point.
+!    Input, integer ( kind = i4 ) DIM_NUM, the dimension of a single data point.
 !    DIM_NUM must be at least 1.
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data points.
+!    Input, integer ( kind = i4 ) NDATA, the number of data points.
 !    NDATA must be at least 3.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissas of the data
+!    Input, real ( kind = r8 ) TDATA(NDATA), the abscissas of the data
 !    points.  The values in TDATA must be in strictly ascending order.
 !
-!    Input, real ( kind = 8 ) YDATA(DIM_NUM,NDATA), the data points
+!    Input, real ( kind = r8 ) YDATA(DIM_NUM,NDATA), the data points
 !    corresponding to the abscissas.
 !
-!    Input, real ( kind = 8 ) TVAL, the abscissa value at which the spline
+!    Input, real ( kind = r8 ) TVAL, the abscissa value at which the spline
 !    is to be evaluated.  Normally, TDATA(1) <= TVAL <= T(NDATA), and
 !    the data will be interpolated.  For TVAL outside this range,
 !    extrapolation will be used.
 !
-!    Output, real ( kind = 8 ) YVAL(DIM_NUM), the value of the spline at TVAL.
+!    Output, real ( kind = r8 ) YVAL(DIM_NUM), the value of the spline at TVAL.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
-  integer ( kind = 4 ) :: dim_num
+  integer ( kind = i4 ) :: ndata
+  integer ( kind = i4 ) :: dim_num
 
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: order
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: ydata(dim_num,ndata)
-  real    ( kind = 8 ) :: yl(dim_num)
-  real    ( kind = 8 ) :: yr(dim_num)
-  real    ( kind = 8 ) :: yval(dim_num)
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: order
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: ydata(dim_num,ndata)
+  real    ( kind = r8 ) :: yl(dim_num)
+  real    ( kind = r8 ) :: yr(dim_num)
+  real    ( kind = r8 ) :: yval(dim_num)
 !
 !  Check.
 !
@@ -5460,46 +5464,46 @@ subroutine spline_pchip_set ( n, x, f, d )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of data points.  N must be
+!    Input, integer ( kind = i4 ) N, the number of data points.  N must be
 !    at least 2.
 !
-!    Input, real ( kind = 8 ) X(N), the strictly increasing independent
+!    Input, real ( kind = r8 ) X(N), the strictly increasing independent
 !    variable values.
 !
-!    Input, real ( kind = 8 ) F(N), dependent variable values to be
+!    Input, real ( kind = r8 ) F(N), dependent variable values to be
 !    interpolated.  F(I) is the value corresponding to X(I).
 !    This routine is designed for monotonic data, but it will work for any
 !    F array.  It will force extrema at points where monotonicity switches
 !    direction.
 !
-!    Output, real ( kind = 8 ) D(N), the derivative values at the
+!    Output, real ( kind = r8 ) D(N), the derivative values at the
 !    data points.  If the data are monotonic, these values will determine
 !    a monotone cubic Hermite function.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = i4 ) :: n
 
-  real    ( kind = 8 ) :: d(n)
-  real    ( kind = 8 ) :: del1
-  real    ( kind = 8 ) :: del2
-  real    ( kind = 8 ) :: dmax
-  real    ( kind = 8 ) :: dmin
-  real    ( kind = 8 ) :: drat1
-  real    ( kind = 8 ) :: drat2
-  real    ( kind = 8 ) :: dsave
-  real    ( kind = 8 ) :: f(n)
-  real    ( kind = 8 ) :: h1
-  real    ( kind = 8 ) :: h2
-  real    ( kind = 8 ) :: hsum
-  real    ( kind = 8 ) :: hsumt3
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: nless1
-  real    ( kind = 8 ) :: temp
-  real    ( kind = 8 ) :: w1
-  real    ( kind = 8 ) :: w2
-  real    ( kind = 8 ) :: x(n)
+  real    ( kind = r8 ) :: d(n)
+  real    ( kind = r8 ) :: del1
+  real    ( kind = r8 ) :: del2
+  real    ( kind = r8 ) :: dmax
+  real    ( kind = r8 ) :: dmin
+  real    ( kind = r8 ) :: drat1
+  real    ( kind = r8 ) :: drat2
+  real    ( kind = r8 ) :: dsave
+  real    ( kind = r8 ) :: f(n)
+  real    ( kind = r8 ) :: h1
+  real    ( kind = r8 ) :: h2
+  real    ( kind = r8 ) :: hsum
+  real    ( kind = r8 ) :: hsumt3
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: ierr
+  integer ( kind = i4 ) :: nless1
+  real    ( kind = r8 ) :: temp
+  real    ( kind = r8 ) :: w1
+  real    ( kind = r8 ) :: w2
+  real    ( kind = r8 ) :: x(n)
 !
 !  Check the arguments.
 !
@@ -5701,44 +5705,44 @@ subroutine spline_pchip_val ( n, x, f, d, ne, xe, fe )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of data points.  N must be
+!    Input, integer ( kind = i4 ) N, the number of data points.  N must be
 !    at least 2.
 !
-!    Input, real ( kind = 8 ) X(N), the strictly increasing independent
+!    Input, real ( kind = r8 ) X(N), the strictly increasing independent
 !    variable values.
 !
-!    Input, real ( kind = 8 ) F(N), the function values.
+!    Input, real ( kind = r8 ) F(N), the function values.
 !
-!    Input, real ( kind = 8 ) D(N), the derivative values.
+!    Input, real ( kind = r8 ) D(N), the derivative values.
 !
-!    Input, integer ( kind = 4 ) NE, the number of evaluation points.
+!    Input, integer ( kind = i4 ) NE, the number of evaluation points.
 !
-!    Input, real ( kind = 8 ) XE(NE), points at which the function is to
+!    Input, real ( kind = r8 ) XE(NE), points at which the function is to
 !    be evaluated.
 !
-!    Output, real ( kind = 8 ) FE(NE), the values of the cubic Hermite
+!    Output, real ( kind = r8 ) FE(NE), the values of the cubic Hermite
 !    function at XE.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
-  integer ( kind = 4 ) :: ne
+  integer ( kind = i4 ) :: n
+  integer ( kind = i4 ) :: ne
 
-  real    ( kind = 8 ) :: d(n)
-  real    ( kind = 8 ) :: f(n)
-  real    ( kind = 8 ) :: fe(ne)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierc
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ir
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: j_first
-  integer ( kind = 4 ) :: j_new
-  integer ( kind = 4 ) :: j_save
-  integer ( kind = 4 ) :: next(2)
-  integer ( kind = 4 ) :: nj
-  real    ( kind = 8 ) :: x(n)
-  real    ( kind = 8 ) :: xe(ne)
+  real    ( kind = r8 ) :: d(n)
+  real    ( kind = r8 ) :: f(n)
+  real    ( kind = r8 ) :: fe(ne)
+  integer ( kind = i4 ) :: i
+  integer ( kind = i4 ) :: ierc
+  integer ( kind = i4 ) :: ierr
+  integer ( kind = i4 ) :: ir
+  integer ( kind = i4 ) :: j
+  integer ( kind = i4 ) :: j_first
+  integer ( kind = i4 ) :: j_new
+  integer ( kind = i4 ) :: j_save
+  integer ( kind = i4 ) :: next(2)
+  integer ( kind = i4 ) :: nj
+  real    ( kind = r8 ) :: x(n)
+  real    ( kind = r8 ) :: xe(ne)
 !
 !  Check arguments.
 !
@@ -5931,40 +5935,40 @@ subroutine spline_quadratic_val ( ndata, tdata, ydata, tval, yval, ypval )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NDATA, the number of data points defining
+!    Input, integer ( kind = i4 ) NDATA, the number of data points defining
 !    the spline.  NDATA should be odd and at least 3.
 !
-!    Input, real ( kind = 8 ) TDATA(NDATA), YDATA(NDATA), the values of
+!    Input, real ( kind = r8 ) TDATA(NDATA), YDATA(NDATA), the values of
 !    the independent and dependent variables at the data points.  The
 !    values of TDATA should be distinct and increasing.
 !
-!    Input, real ( kind = 8 ) TVAL, the point at which the spline is to
+!    Input, real ( kind = r8 ) TVAL, the point at which the spline is to
 !    be evaluated.
 !
-!    Output, real ( kind = 8 ) YVAL, YPVAL, the value of the spline and
+!    Output, real ( kind = r8 ) YVAL, YPVAL, the value of the spline and
 !    its first derivative dYdT at TVAL.  YPVAL is not reliable if TVAL
 !    is exactly equal to TDATA(I) for some I.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ndata
+  integer ( kind = i4 ) :: ndata
 
-  real    ( kind = 8 ) :: dif1
-  real    ( kind = 8 ) :: dif2
-  integer ( kind = 4 ), parameter :: i4_2 = 2
-  integer ( kind = 4 ) :: left
-  integer ( kind = 4 ) :: right
-  real    ( kind = 8 ) :: t1
-  real    ( kind = 8 ) :: t2
-  real    ( kind = 8 ) :: t3
-  real    ( kind = 8 ) :: tdata(ndata)
-  real    ( kind = 8 ) :: tval
-  real    ( kind = 8 ) :: y1
-  real    ( kind = 8 ) :: y2
-  real    ( kind = 8 ) :: y3
-  real    ( kind = 8 ) :: ydata(ndata)
-  real    ( kind = 8 ) :: ypval
-  real    ( kind = 8 ) :: yval
+  real    ( kind = r8 ) :: dif1
+  real    ( kind = r8 ) :: dif2
+  integer ( kind = i4 ), parameter :: i4_2 = 2
+  integer ( kind = i4 ) :: left
+  integer ( kind = i4 ) :: right
+  real    ( kind = r8 ) :: t1
+  real    ( kind = r8 ) :: t2
+  real    ( kind = r8 ) :: t3
+  real    ( kind = r8 ) :: tdata(ndata)
+  real    ( kind = r8 ) :: tval
+  real    ( kind = r8 ) :: y1
+  real    ( kind = r8 ) :: y2
+  real    ( kind = r8 ) :: y3
+  real    ( kind = r8 ) :: ydata(ndata)
+  real    ( kind = r8 ) :: ypval
+  real    ( kind = r8 ) :: yval
 
   if ( ndata < 3 ) then
     write ( *, '(a)' ) ' '
@@ -6051,18 +6055,18 @@ subroutine timestamp ( )
   implicit none
 
   character ( len = 8 ) :: ampm
-  integer ( kind = 4 ) :: d
-  integer ( kind = 4 ) :: h
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mm
+  integer ( kind = i4 ) :: d
+  integer ( kind = i4 ) :: h
+  integer ( kind = i4 ) :: m
+  integer ( kind = i4 ) :: mm
   character ( len = 9 ), parameter, dimension(12) :: month = [ &
     'January  ', 'February ', 'March    ', 'April    ', &
     'May      ', 'June     ', 'July     ', 'August   ', &
     'September', 'October  ', 'November ', 'December ' ]
-  integer ( kind = 4 ) :: n
-  integer ( kind = 4 ) :: s
-  integer ( kind = 4 ) :: values(8)
-  integer ( kind = 4 ) :: y
+  integer ( kind = i4 ) :: n
+  integer ( kind = i4 ) :: s
+  integer ( kind = i4 ) :: values(8)
+  integer ( kind = i4 ) :: y
 
   call date_and_time ( values = values )
 

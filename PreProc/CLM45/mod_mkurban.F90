@@ -130,7 +130,7 @@ module mod_mkurban
     end do
 
     allocate(usum(jxsg,iysg))
-    usum = sum(urban,3)
+    usum(:,:) = sum(urban,3)
     do n  = 1, nurban
       do i = 1, iysg
         do j = 1, jxsg

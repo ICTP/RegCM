@@ -64,9 +64,6 @@ module mod_era5
   integer(ik2), pointer, contiguous, dimension(:,:) :: iwork
   real(rkx), pointer, contiguous, dimension(:,:) :: rwork
 
-  integer(ik4), dimension(5) :: inet5
-  integer(ik4), dimension(5) :: ivar5
-  real(rkx), dimension(5) :: xoff, xscl
   type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
   integer(ik4), pointer, contiguous, dimension(:) :: xtimes
 
@@ -440,6 +437,9 @@ module mod_era5
     integer(ik4), save :: lastmonth
     type(rcm_time_interval) :: tdif
     logical, save :: has_offset = .false.
+    real(rkx), save, dimension(5) :: xoff, xscl
+    integer(ik4), save, dimension(5) :: inet5
+    integer(ik4), save, dimension(5) :: ivar5
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -634,6 +634,9 @@ module mod_era5
     character(len=256) :: pathaddname
     character(len=1), dimension(5) :: varname
     character(len=4), dimension(5) :: fname
+    integer(ik4), save, dimension(5) :: inet5
+    integer(ik4), save, dimension(5) :: ivar5
+    real(rkx), save, dimension(5) :: xoff, xscl
     character(len=64) :: cunit, ccal
     real(rkx) :: xadd, xscale
     integer(ik4), dimension(4) :: icount, istart
