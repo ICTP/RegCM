@@ -63,7 +63,7 @@ program sigma2z
   integer(ik4), allocatable, dimension(:) :: outvarid
   integer(ik4) :: ndims, nvars, natts, udimid, nvatts
   integer(ik4) :: ivarid, idimid, xtype
-  integer(ik4) :: jxdimid, iydimid, kzdimid, itdimid, itvarid, ikvarid
+  integer(ik4) :: kzdimid, itdimid, itvarid, ikvarid
   integer(ik4) :: ipsvarid, ishvarid, ppvarid, ip0varid
   integer(ik4) :: avarid, bvarid, paivarid
   integer(ik4) :: jx, iy, kz, nt
@@ -72,7 +72,7 @@ program sigma2z
   integer(ik4), dimension(3) :: psdimids
   integer(ik4) :: i, j, k, it, iv, iid1, iid2, ii, i3d, p3d, ich
   integer(ik4) :: tvarid, qvarid, irhvar, imslzvar, ircm_map
-  logical :: has_t, has_q, has_rh, has_sph, is_icbc
+  logical :: has_t, has_q, has_rh, has_sph
   logical :: make_rh, make_mslp
   integer(ik4) :: n3d, iz3d, iodyn, nz, ipunit, iresult
   real(rk4), allocatable, dimension(:) :: zlevs
@@ -124,16 +124,14 @@ program sigma2z
            'Error Opening Input file '//trim(ncsfile))
     nz = 14
     allocate(zlevs(nz))
-    zlevs = [ 20.0,50.0,80.0,100.0,150.0,200.0,500.0,750.0,1000.0, &
-              1500.0,2000.0,5000.0,7000.0,10000.0 ]
+    zlevs(:) = [ 20.0,50.0,80.0,100.0,150.0,200.0,500.0,750.0,1000.0, &
+                 1500.0,2000.0,5000.0,7000.0,10000.0 ]
   end if
 
   iid1 = scan(ncsfile, '/', .true.)
   iid2 = scan(ncsfile, '.', .true.)
   ncpfile = trim(ncsfile(iid1+1:iid2-1))//'_hgt.nc'
 
-  jxdimid = -1
-  iydimid = -1
   kzdimid = -1
   itdimid = -1
   itvarid = -1
@@ -173,10 +171,8 @@ program sigma2z
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading dimension info')
     if (dimname == 'iy' .or. dimname == 'y') then
       iy = dimlen(i)
-      iydimid = i
     else if (dimname == 'jx' .or. dimname == 'x') then
       jx = dimlen(i)
-      jxdimid = i
     else if (dimname == 'kz' .or. dimname == 'z' .or. dimname == 'lev') then
       kz = dimlen(i)
       kzdimid = i
@@ -272,7 +268,6 @@ program sigma2z
   outvarid = -1
 
   has_sph = .false.
-  is_icbc = .false.
 
   do i = 1, nvars
     lkvarflag(i) = .false.
@@ -323,7 +318,6 @@ program sigma2z
       intscheme(i) = 2
       tvarid = i
       tdimids = dimids(1:4)
-      if ( varname == 't' ) is_icbc = .true.
     else if (varname == 'qas' .or. &
              varname == 'hus' .or. &
              varname == 'qv') then
@@ -495,7 +489,7 @@ program sigma2z
   if ( iodyn == 2 ) then
     istatus = nf90_get_var(ncid, ip0varid, ps0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable p0.')
-    ps0 = ps0 - real(ptop)
+    ps0(:,:) = ps0(:,:) - real(ptop)
   end if
 
   istatus = nf90_inq_varid(ncid, "time", ivarid)
@@ -597,7 +591,7 @@ program sigma2z
       icount(4) = 1
       istatus = nf90_get_var(ncid, paivarid, pai, istart(1:4), icount(1:4))
       call checkncerr(istatus,__FILE__,__LINE__,'Error reading pai.')
-      press = p00 * (pai**cpovr)
+      press(:,:,:) = p00 * (pai(:,:,:)**cpovr)
     end if
     if ( iodyn /= 3 ) then
       istart(1) = 1
@@ -646,13 +640,13 @@ program sigma2z
           call checkalloc(istatus,__FILE__,__LINE__,'azvar')
 !$OMP PARALLEL DO
           do ii = 1, n3d
-            xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),[jx,iy,kz])
+            xvar(:,:,:) = reshape(avar((ii-1)*i3d+1:ii*i3d),[jx,iy,kz])
             call intlinz(zvar,xvar,hzvar,jx,iy,kz,zlevs,nz)
             azvar((ii-1)*iz3d+1:ii*iz3d) = reshape(zvar,[iz3d])
           end do
 !$OMP END PARALLEL DO
           if ( i == qvarid .and. make_rh ) then
-            qazvar = xvar
+            qazvar(:,:,:) = xvar(:,:,:)
             if ( has_sph ) then
               call sph2mxr(qazvar,jx,iy,kz)
             end if
@@ -689,8 +683,8 @@ program sigma2z
             call checkalloc(istatus,__FILE__,__LINE__,'azvar')
 !$OMP PARALLEL DO
             do ii = 1, n3d
-              xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
-                             [jx,iy,kz])
+              xvar(:,:,:) = reshape(avar((ii-1)*i3d + &
+                  (ich-1)*i3d+1:(ii+ich-1)*i3d), [jx,iy,kz])
               call intlinz(zvar,xvar,hzvar,jx,iy,kz,zlevs,nz)
               azvar((ii-1)*iz3d+1:ii*iz3d) = reshape(zvar,[iz3d])
             end do
@@ -736,7 +730,7 @@ program sigma2z
         call mxr2rh(tazvar,qazvar,ps,sigma,ptop,jx,iy,kz)
       end if
       call intlinz(zvar,qazvar,hzvar,jx,iy,kz,zlevs,nz)
-      zvar = zvar * 100.0 ! Put in %
+      zvar(:,:,:) = zvar(:,:,:) * 100.0 ! Put in %
       iv = 4
       istart(iv) = it
       icount(iv) = 1

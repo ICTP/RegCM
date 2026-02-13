@@ -15,10 +15,7 @@
 
 subroutine myabort
   implicit none
-#ifdef __INTEL_COMPILER
-  external :: abort
-#endif
-  call abort
+  stop 1
 end subroutine myabort
 
 module mod_remap
@@ -392,7 +389,7 @@ program clm45_1dto2d
   integer(ik4), allocatable, dimension(:,:) :: vshape
   integer(ik4) :: iy, jx
   integer(ik4) :: id, iv, iid1, iid2, ip
-  integer(ik4) :: n, m, npft, ngridcell, ia, numpft
+  integer(ik4) :: n, m, npft, ia, numpft
   integer(ik4) :: lndgrid, iydim, jxdim, pftgrid
   integer(ik4), allocatable, dimension(:,:) :: mask
   real(rk4), allocatable, dimension(:, :) :: var2d_single
@@ -493,7 +490,6 @@ program clm45_1dto2d
   lndgrid = -1
   pftgrid = -1
   npft = -1
-  ngridcell = -1
   do id = 1, ndims
     istatus = nf90_inquire_dimension(ncid, id, dname, dsize(id))
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension')
@@ -528,7 +524,6 @@ program clm45_1dto2d
     else
       if ( dname == 'gridcell' ) then
         lndgrid = id
-        ngridcell = dsize(id)
       end if
     end if
   end do

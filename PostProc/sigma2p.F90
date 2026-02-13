@@ -23,7 +23,7 @@ program sigma2p
   use mod_intkinds
   use mod_realkinds
   use mod_constants
-  use mod_dynparam, only : iomode, dsmax, dsmin
+  use mod_dynparam, only : iomode
   use mod_stdio, only : stderr
 #ifdef NETCDF4_HDF5
   use mod_dynparam, only : ncfilter, ncfilter_nparams, ncfilter_params
@@ -66,7 +66,7 @@ program sigma2p
   integer(ik4), allocatable, dimension(:) :: istart, icount
   integer(ik4) :: ndims, nvars, natts, udimid, nvatts
   integer(ik4) :: ivarid, idimid, xtype
-  integer(ik4) :: jxdimid, iydimid, kzdimid, itdimid, itvarid, ikvarid
+  integer(ik4) :: kzdimid, itdimid, itvarid, ikvarid
   integer(ik4) :: avarid, bvarid, ipsvarid, ishvarid, ppvarid, ip0varid
   integer(ik4) :: paivarid
   integer(ik4) :: jx, iy, kz, nt
@@ -128,15 +128,13 @@ program sigma2p
            'Error Opening Input file '//trim(ncsfile))
     np = 12
     allocate(plevs(np))
-    plevs = [1000.,925.,850.,700.,600.,500.,400.,300.,250.,200.,150.,100.]
+    plevs(:) = [1000.,925.,850.,700.,600.,500.,400.,300.,250.,200.,150.,100.]
   end if
 
   iid1 = scan(ncsfile, '/', .true.)
   iid2 = scan(ncsfile, '.', .true.)
   ncpfile = trim(ncsfile(iid1+1:iid2-1))//'_pressure.nc'
 
-  jxdimid = -1
-  iydimid = -1
   kzdimid = -1
   itdimid = -1
   itvarid = -1
@@ -176,10 +174,8 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading dimension info')
     if (dimname == 'iy' .or. dimname == 'y') then
       iy = dimlen(i)
-      iydimid = i
     else if (dimname == 'jx' .or. dimname == 'x') then
       jx = dimlen(i)
-      jxdimid = i
     else if (dimname == 'kz' .or. dimname == 'z' .or. dimname == 'lev') then
       kz = dimlen(i)
       kzdimid = i
@@ -569,7 +565,7 @@ program sigma2p
   if ( iodyn == 2 ) then
     istatus = nf90_get_var(ncid, ip0varid, ps0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable p0.')
-    ps0 = ps0 - real(ptop)
+    ps0(:,:) = ps0(:,:) - real(ptop)
   end if
 
   istatus = nf90_inq_varid(ncid, "time", ivarid)
@@ -626,7 +622,7 @@ program sigma2p
     end if
   end do
 
-  plevs = plevs * 100.0
+  plevs(:) = plevs(:) * 100.0
 
   ! Write time dependent variables
 
@@ -650,7 +646,7 @@ program sigma2p
     istatus = nf90_get_att(ncid, ipsvarid, 'units', psunit)
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
     if ( psunit == 'hPa' .or. psunit == 'mb' ) then
-      ps = ps * d_100
+      ps(:,:) = ps(:,:) * d_100
     end if
     if ( iodyn == 2 .and. ppvarid >= 0 ) then
       istart(1) = 1
@@ -693,7 +689,7 @@ program sigma2p
         call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
         call paicompute(ps,z0,tvar,qvvar,pai,fm,dzita,jx,iy,kz)
       end if
-      press = p00 * (pai**cpovr)
+      press(:,:,:) = p00 * (pai(:,:,:)**cpovr)
     end if
     do i = 1, nvars
       if (.not. ltvarflag(i)) cycle
@@ -727,7 +723,7 @@ program sigma2p
           call checkalloc(istatus,__FILE__,__LINE__,'apvar')
 !$OMP PARALLEL DO
           do ii = 1, n3d
-            xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),[jx,iy,kz])
+            xvar(:,:,:) = reshape(avar((ii-1)*i3d+1:ii*i3d),[jx,iy,kz])
             if ( iodyn == 2 ) then
               if (intscheme(i) == 1) then
                 call intlin(pvar,xvar,press,jx,iy,kz,plevs,np)
@@ -751,9 +747,9 @@ program sigma2p
           end do
 !$OMP END PARALLEL DO
           if ( i == tvarid ) then
-            tmpvar = xvar
+            tmpvar(:,:,:) = xvar(:,:,:)
           else if ( i == qvarid .and. ( make_rh .or. iodyn == 3 ) ) then
-            qvar = xvar
+            qvar(:,:,:) = xvar(:,:,:)
             if ( has_sph ) then
               call sph2mxr(qvar,jx,iy,kz)
             end if
@@ -790,8 +786,8 @@ program sigma2p
             call checkalloc(istatus,__FILE__,__LINE__,'apvar')
 !$OMP PARALLEL DO
             do ii = 1, n3d
-              xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
-                             [jx,iy,kz])
+              xvar(:,:,:) = reshape(avar((ii-1)*i3d+ &
+                  (ich-1)*i3d+1:(ii+ich-1)*i3d), [jx,iy,kz])
               if ( iodyn == 2 ) then
                 if (intscheme(i) == 1) then
                   call intlin(pvar,xvar,press,jx,iy,kz,plevs,np)
@@ -855,7 +851,7 @@ program sigma2p
         call mxr2rh(tmpvar,qvar,ps,sigma,ptop,jx,iy,kz)
         call intlin(pvar,qvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
       end if
-      pvar = pvar * 100.0 ! Put in %
+      pvar(:,:,:) = pvar(:,:,:) * 100.0 ! Put in %
       iv = 4
       istart(iv) = it
       icount(iv) = 1

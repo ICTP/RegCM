@@ -70,9 +70,6 @@ program ncplot
   logical :: lvarsplit, lsigma, ldepth, lu, lua, luas, lclm
   logical :: is_model_output = .false.
   logical :: uvrotate = .false.
-#ifdef __INTEL_COMPILER
-  external :: system, unlink
-#endif
 
   type(anyprojparams) :: pjpara
   type(regcm_projection) :: pj
@@ -432,9 +429,9 @@ program ncplot
     if ( iproj /= 'ROTLLR' ) then
       call pj%rotation_angle(alon,alat,ruv)
     end if
-    r4in = real(rin)
-    r4jn = real(rjn)
-    r4uv = real(ruv)
+    r4in(:,:) = real(rin(:,:))
+    r4jn(:,:) = real(rjn(:,:))
+    r4uv(:,:) = real(ruv(:,:))
     tmpcoord = trim(ncfile)//'.coord'
     open(newunit=ip2, file=tmpcoord, form='unformatted', status='replace')
     write(ip2) r4in
@@ -475,7 +472,7 @@ program ncplot
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Read Z var')
 
-    if (lsigma) level = level * 1000.0
+    if (lsigma) level(:) = level(:) * 1000.0
     write (lvformat, '(a,i4,a)') '(a,i4,a,',kz,'f9.2)'
     write (levels, lvformat) 'zdef ', kz, ' levels ', level
     write (ip1, '(a)') trim(levels)
@@ -809,13 +806,23 @@ program ncplot
   command = 'grads -l -c temp.gs'
 
   deallocate(alon,alat)
-  call system(command)
+  call execute_command_line(command)
 
   call memory_destroy( )
 
-  call unlink('temp.gs')
-  call unlink(tmpctl)
-  call unlink(tmpcoord)
+  call portable_unlink('temp.gs')
+  call portable_unlink(tmpctl)
+  call portable_unlink(tmpcoord)
+
+  contains
+
+    subroutine portable_unlink(fname)
+      implicit none
+      character(len=*), intent(in) :: fname
+      integer :: iunit, istat
+      open(newunit=iunit, iostat=istat, file=fname, status='old')
+      if ( istat == 0 ) close(iunit, status='delete')
+    end subroutine portable_unlink
 
 end program ncplot
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
