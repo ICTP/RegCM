@@ -2077,7 +2077,6 @@ module mod_ncstream
           buffer%max4d_int(3) = max(buffer%max4d_int(3),len_dim(3))
           buffer%max4d_int(4) = max(buffer%max4d_int(4),len_dim(4))
         class default
-          continue
       end select
     end subroutine outstream_addvar
 
@@ -3625,7 +3624,11 @@ module mod_ncstream
       attc%theval = 'RegCM Model output file'
       call add_attribute(stream,attc)
       attc%aname = 'executable_date'
+#ifdef NAGFOR
+      attc%theval = '1900-01-01'
+#else
       attc%theval = __DATE__
+#endif
       call add_attribute(stream,attc)
       attc%aname = 'Conventions'
       attc%theval = 'CF-1.10'
@@ -5345,7 +5348,11 @@ module mod_ncstream
       integer(ik4), intent(in) :: nb
       integer(ik4) :: mask
       integer(ik4), parameter :: all_on = not(0_ik4)
+#ifdef NAGFOR
+      mask = ishft(all_on,23-nb)
+#else
       mask = lshift(all_on,23-nb)
+#endif
       y = transfer(iand(transfer(x,0_ik4),mask),1.0_rk4)
     end function bitshave_nb
 

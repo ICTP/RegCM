@@ -18,7 +18,6 @@ module mod_zita
   use mod_realkinds
   use mod_intkinds
   use mod_constants
-  use mod_dynparam, only : mo_a0, mo_h, mo_ztop
 
   implicit none
 

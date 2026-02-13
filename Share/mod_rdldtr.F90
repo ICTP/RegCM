@@ -651,14 +651,11 @@ module mod_rdldtr
     real(rkx), dimension(isize*isize), intent(out) :: copybuf
     real(rkx), dimension(ni,nj), intent(in) :: readbuf
     integer(ik4), intent(in) :: i, j
-    integer(ik4) :: imin, imax, jmin, jmax, icnt, jcnt, ip
+    integer(ik4) :: imin, jmin, icnt, jcnt, ip
     integer(ik4) :: ib, jb
 
     imin = i
-    imax = i + isize
     jmin = j
-    jmax = j + isize
-
     ip = 1
     do icnt = 1, isize
       do jcnt = 1, isize
@@ -954,18 +951,17 @@ module mod_rdldtr
     integer(ik4), dimension(:,:), allocatable :: vread
     integer(ik4) :: nlat, nlon, itile, ivar, iti, itf
     integer(ik4), dimension(2) :: istart, icount
-    real(rkx) :: unused
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
     allocate(vread(nlon,nlat))
-    unused = rdef
+    if ( .false. ) vread(:,:) = rdef
 
     istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
 
     iti = 1
-    vread = -1000000000
+    vread (:,:) = -1000000000
     do itile = 1, gfile%gdomain%ntiles
       istart(1) = gfile%gdomain%igstart(itile)
       icount(1) = gfile%gdomain%ni(itile)
@@ -1799,7 +1795,7 @@ module mod_rdldtr
     iie = ubound(grid,2)
 
     allocate(destgrid(jjs:jje,iis:iie))
-    destgrid = grid
+    destgrid(:,:) = grid(:,:)
     do i = iis, iie
       do j = jjs, jje
         il = 1

@@ -22,7 +22,7 @@ module mod_earth
 
   private
 
-  real(rk8), parameter :: mindist = 1.0e-6_rk8
+  real(rk8), parameter :: mindist = 1.0e-10_rk8
 
   public :: gcdist_simple, gcdist
   public :: ll2xyz, longitude_circle
@@ -56,7 +56,7 @@ module mod_earth
   contains
 
   pure real(rkx) function gcdist_simple(lat1,lon1,lat2,lon2)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: lat1, lon1, lat2, lon2
     real(rk8) :: clat1, slat1, clat2, slat2, cdlon, crd
@@ -67,11 +67,11 @@ module mod_earth
     cdlon = cos((lon1-lon2)*degrad)
     crd   = slat1*slat2+clat1*clat2*cdlon
     ! Have it in km to avoid numerical problems :)
-    gcdist_simple = sngl(erkm*acos(crd))
+    gcdist_simple = real(erkm*acos(crd), rkx)
   end function gcdist_simple
 
   pure real(rkx) function gcdist(ds,lat1,lon1,lat2,lon2)
-!$acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: ds, lat1, lon1, lat2, lon2
     real(rk8) :: clat1, slat1, clat2, slat2, cdlon, sdlon
@@ -84,7 +84,7 @@ module mod_earth
     sdlon = sin((lon1-lon2)*degrad)
     y = sqrt((clat2*sdlon)**2+(clat1*slat2-slat1*clat2*cdlon)**2)
     x = slat1*slat2+clat1*clat2*cdlon
-    gcdist = sngl(max(erkm*atan2(y,x)/ds,mindist))
+    gcdist = real(max(erkm*atan2(y,x)/ds,mindist),rkx)
   end function gcdist
 
   subroutine ll2xyz_values(lat,lon,x,y,z)
@@ -238,7 +238,7 @@ module mod_earth
         domain%igstop(2) = int((maxlon-glon(1))/dlon) + 3
       else
         allocate(xlon360(xi,xj))
-        xlon360 = xlon
+        xlon360(:,:) = xlon(:,:)
         where ( xlon < 0.0_rk8 )
           xlon360 = 360.0_rk8 + xlon
         end where
@@ -451,7 +451,7 @@ module mod_earth
         domain%igstop(2) = int((maxlon-glon(1))/dlon) + 3
       else
         allocate(xlon360(xi,xj))
-        xlon360 = xlon
+        xlon360(:,:) = xlon(:,:)
         where ( xlon < 0.0_rk8 )
           xlon360 = 360.0_rk8 + xlon
         end where

@@ -102,6 +102,7 @@ module mod_interp
 
     real(rk4), dimension(size(xi)) :: zi, zg
     integer(ik4) :: npi, k, jj, ir
+    logical :: interlace
 
     npi = size(xi)
     if ( xi(1) >= xi(npi) ) then
@@ -115,8 +116,9 @@ module mod_interp
     end if
 
     zeps = (zi(npi) - zi(1)) * 1.e-6_rk4
+    interlace = .true.
     deinterlace: &
-    do
+    do while ( interlace )
       do k = 2, npi
         if ( zi(k) <= zi(k-1) ) then
           ximed = 0.5_rk4 * (zi(k) + zi(k-1))
@@ -133,7 +135,7 @@ module mod_interp
           cycle deinterlace
         end if
       end do
-      exit deinterlace
+      interlace = .false.
     end do deinterlace
 
     if ( xo < zi(1) ) then
@@ -211,6 +213,7 @@ module mod_interp
     real(rk4), dimension(size(xi)) :: zi, zg
     integer(ik4) :: npi, npo
     integer(ik4) :: k, j, jj, ir
+    logical :: interlace
 
     npi = size(xi)
     npo = size(xo)
@@ -226,8 +229,9 @@ module mod_interp
 
     ! small deviation used to set apart interlaced coordinates
     zeps = (zi(npi) - zi(1)) * 1.e-6_rk4
+    interlace = .true.
     deinterlace: &
-    do
+    do while ( interlace )
       do k = 2, npi
         if ( zi(k) <= zi(k-1) ) then
           ximed = 0.5_rk4 * (zi(k) + zi(k-1))
@@ -244,7 +248,7 @@ module mod_interp
           cycle deinterlace
         end if
       end do
-      exit deinterlace
+      interlace = .false.
     end do deinterlace
 
     do j = 1, npo
@@ -321,6 +325,7 @@ module mod_interp
 
     real(rk8), dimension(size(xi)) :: zi, zg
     integer(ik4) :: npi, k, jj, ir
+    logical :: interlace
 
     npi = size(xi)
     if ( xi(1) >= xi(npi) ) then
@@ -334,8 +339,9 @@ module mod_interp
     end if
 
     zeps = (zi(npi) - zi(1)) * 1.e-6_rk8
+    interlace = .true.
     deinterlace: &
-    do
+    do while ( interlace )
       do k = 2, npi
         if ( zi(k) <= zi(k-1) ) then
           ximed = 0.5_rk8 * (zi(k) + zi(k-1))
@@ -352,7 +358,7 @@ module mod_interp
           cycle deinterlace
         end if
       end do
-      exit deinterlace
+      interlace = .false.
     end do deinterlace
 
     if ( xo < zi(1) ) then
@@ -421,6 +427,7 @@ module mod_interp
     real(rk8), dimension(size(xi)) :: zi, zg
     integer(ik4) :: npi, npo
     integer(ik4) :: k, j, jj, ir
+    logical :: interlace
 
     npi = size(xi)
     npo = size(xo)
@@ -435,8 +442,9 @@ module mod_interp
     end if
 
     zeps = (zi(npi) - zi(1)) * 1.e-6_rk8
+    interlace = .true.
     deinterlace: &
-    do
+    do while ( interlace )
       do k = 2, npi
         if ( zi(k) <= zi(k-1) ) then
           ximed = 0.5_rk8 * (zi(k) + zi(k-1))
@@ -453,7 +461,7 @@ module mod_interp
           cycle deinterlace
         end if
       end do
-      exit deinterlace
+      interlace = .false.
     end do deinterlace
 
     do j = 1, npo
@@ -526,6 +534,7 @@ module mod_interp
 
     integer(ik4) :: npi, npo
     integer(ik4) :: k, j, jj, ir
+    logical :: interlace
 
     npi = sxi
     npo = sxo
@@ -540,8 +549,9 @@ module mod_interp
     end if
 
     zeps = (zi(npi) - zi(1)) * 1.e-6_rk8
+    interlace = .true.
     deinterlace: &
-    do
+    do while ( interlace )
       do k = 2, npi
         if ( zi(k) <= zi(k-1) ) then
           ximed = 0.5_rk8 * (zi(k) + zi(k-1))
@@ -558,7 +568,7 @@ module mod_interp
           cycle deinterlace
         end if
       end do
-      exit deinterlace
+      interlace = .false.
     end do deinterlace
 
     do j = 1, npo

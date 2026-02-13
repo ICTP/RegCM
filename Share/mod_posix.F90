@@ -72,6 +72,7 @@ module mod_posix
     character(len=256) :: ename
   end type direntry
 
+  public :: seekdir, telldir
   public :: dirlist, direntry
   public :: replacestr, lower, upper, splitstr, basename
 
@@ -151,7 +152,6 @@ module mod_posix
         exit
       end if
       i = i + 1
-      cycle
     end do
   end function replacestr
 

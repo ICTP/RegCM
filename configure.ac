@@ -649,9 +649,8 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_NAG_TRUE"; then
-    FCFLAGS="-O0 -g -pg -mtrace=all -gline -ieee=full -nan \
-	    -Warn=allocation -Warn=double_real_literal -Warn=subnormal \
-	    -Warn=unkind_real_literal -C=all"
+    FCFLAGS="-O0 -g -pg -mtrace=all -gline -ieee=nonstd -nan \
+	    -Warn=allocation -C=all"
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
     if test -z "${osname##Linux}"; then

@@ -319,8 +319,9 @@ module mod_nhinterp
       real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: pr0
       real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps, ps0
       real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: pp
-      real(rkx) :: aa, bb, cc, check, checkl, checkr, delp0, p0surf
+      real(rkx) :: aa, bb, cc, checkl, checkr, delp0, p0surf
       real(rkx) :: psp, tk, tkp1, tvk, tvkp1, tvpot, wtl, wtu
+      real(rkx), dimension(j1:j2, i1:i2) :: check
       !
       !  Calculate p' at bottom and integrate upwards (hydrostatic balance).
       !
@@ -366,16 +367,12 @@ module mod_nhinterp
           checkr = tvpot - &
                wtl * t0(j,i,k+1)/t(j,i,k+1) * pp(j,i,k+1)/pr0(j,i,k+1) - &
                wtu * t0(j,i,k)  /t(j,i,k)   * pp(j,i,k)  /pr0(j,i,k)
-          check = checkl + checkr
-#ifndef OPENACC
-#ifdef DEBUG
-          if ( abs(check) > 1.e-2_rkx ) then
-            write(stderr,'(A,3I4,3g14.6)') &
-              'NHPP vert gradient check error at ',i,j,k,check,checkl,checkr
-          end if
-#endif
-#endif
+          check(j,i) = checkl + checkr
         end do
+        if ( any(abs(check) > 1.e-2_rkx) ) then
+          write(stderr,'(A,3I4,3g14.6)') &
+              'NHPP vert gradient check error at ',i,j,k,check,checkl,checkr
+        end if
       end do
     end subroutine nhpp
     !

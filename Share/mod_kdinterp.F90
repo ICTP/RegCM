@@ -22,7 +22,6 @@ module mod_kdinterp
   use mod_message
   use mod_earth
   use mod_spbarcoord
-  use mod_dynparam, only : idynamic
   use mod_kdtree2
   implicit none
 
@@ -47,6 +46,7 @@ module mod_kdinterp
     module procedure interp_1d
     module procedure interp_2d
     module procedure interp_3d
+    module procedure interp_3d_new
     module procedure interp_4d
     module procedure interp_5d
   end interface h_interpolate_cont
@@ -571,7 +571,7 @@ module mod_kdinterp
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:), intent(in) :: g
     real(rkx), dimension(:), intent(out) :: f
-    integer(ik4) :: i, ni, n, si, gni
+    integer(ik4) :: i, ni, n, si
     real(rk8) :: gmax
     if ( size(g) /= h_i%sshape(1) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
@@ -582,7 +582,6 @@ module mod_kdinterp
       call die('interp_1d_nn','Non conforming shape for target',1)
     end if
     ni = size(f)
-    gni = size(g)
     do i = 1, ni
       gmax = -1.0_rkx
       f(i) = missl
@@ -663,43 +662,40 @@ module mod_kdinterp
     gni = size(g,2)
     gmax = -1e20_rkx
     gmin = 1e20_rkx
-#ifdef OPENACC
-    do concurrent ( j = 1:gnj, i = 1:gni ) reduce(max: gmax) reduce(min: gmin)
-#else
     do i = 1, gni
-    do j = 1, gnj
-#endif
-      if ( g(j,i) > missc ) then
-        gmax = max(gmax,g(j,i))
-        gmin = min(gmin,g(j,i))
-      end if
-#ifndef OPENACC
-    end do
-#endif
-    end do
-    do concurrent ( j = 1:nj, i = 1:ni )
-      gsum = d_zero
-      gwgt = d_zero
-      !$acc loop seq
-      do n = 1, h_i%tg%ft(j,i)%np
-        si = h_i%tg%ft(j,i)%wgt(n)%i
-        sj = h_i%tg%ft(j,i)%wgt(n)%j
-        if ( g(sj,si) > missc ) then
-          gsum = gsum + g(sj,si) * h_i%tg%ft(j,i)%wgt(n)%wgt
-          gwgt = gwgt + h_i%tg%ft(j,i)%wgt(n)%wgt
+      do j = 1, gnj
+        if ( g(j,i) > missc ) then
+          if ( gmax < g(j,i) ) gmax = g(j,i)
+          if ( gmin > g(j,i) ) gmin = g(j,i)
         end if
       end do
-      if ( gwgt > d_zero ) then
-        f(j,i) = real(gsum / gwgt,rkx)
-      else
-        f(j,i) = missl
-      end if
+    end do
+    do i = 1, ni
+      do j = 1, nj
+        gsum = d_zero
+        gwgt = d_zero
+        do n = 1, h_i%tg%ft(j,i)%np
+          si = h_i%tg%ft(j,i)%wgt(n)%i
+          sj = h_i%tg%ft(j,i)%wgt(n)%j
+          if ( g(sj,si) > missc ) then
+            gsum = gsum + g(sj,si) * h_i%tg%ft(j,i)%wgt(n)%wgt
+            gwgt = gwgt + h_i%tg%ft(j,i)%wgt(n)%wgt
+          end if
+        end do
+        if ( gwgt > d_zero ) then
+          f(j,i) = real(gsum / gwgt,rkx)
+        else
+          f(j,i) = missl
+        end if
+      end do
     end do
     call smtdsmt(f)
-    do concurrent ( j = 1:nj, i = 1:ni )
-      if ( f(j,i) > missc ) then
-        f(j,i) = max(gmin,min(gmax,f(j,i)))
-      end if
+    do i = 1, ni
+      do j = 1, nj
+        if ( f(j,i) > missc ) then
+          f(j,i) = max(gmin,min(gmax,f(j,i)))
+        end if
+      end do
     end do
   end subroutine interp_2d
 
@@ -708,7 +704,7 @@ module mod_kdinterp
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
-    integer(ik4) :: i, j, ni, nj, n, si, sj, gni, gnj
+    integer(ik4) :: i, j, ni, nj, n, si, sj
     real(rk8) :: gmax
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
@@ -720,8 +716,6 @@ module mod_kdinterp
     end if
     nj = size(f,1)
     ni = size(f,2)
-    gnj = size(g,1)
-    gni = size(g,2)
     do i = 1, ni
       do j = 1, nj
         gmax = -1.0_rkx
@@ -756,6 +750,127 @@ module mod_kdinterp
     end do
 !$OMP END PARALLEL DO
   end subroutine interp_3d
+
+  subroutine interp_3d_new(h_i,g,f,f_temp,gnj,gni,nj,ni,n3)
+    implicit none
+    type(h_interpolator), intent(in) :: h_i
+    integer(ik4), intent(in) :: gnj, gni, nj, ni, n3
+    real(rkx), intent(in) :: g(gnj,gni,n3)
+    real(rkx), intent(out) :: f(nj,ni,n3)
+    real(rkx), intent(out) :: f_temp(nj,ni,n3)
+    integer(ik4) :: i, j, n, m, si, sj, np
+    real(rkx) :: gsum, gwgt
+    real(rkx) :: gmax(n3), gmin(n3)
+    real(rkx) :: aplus, asv, cell, fout
+    real(rkx) :: xnu1, xnu2
+    integer(ik4), parameter :: npass = 4
+    if ( size(g,3) /= size(f,3) ) then
+      write(stderr,*) 'DIMENSION 3 g = ',size(g,3)
+      write(stderr,*) 'DIMENSION 3 f = ',size(f,3)
+      call die('interp_3d','Non conforming shapes',1)
+    end if
+    !$acc kernels
+    gmax(:) = -1e20_rkx
+    gmin(:) = 1e20_rkx
+    !$acc end kernels
+    !$acc parallel loop collapse(3) gang vector
+    do n = 1, n3
+    do i = 1, gni
+    do j = 1, gnj
+      if ( g(j,i,n) > missc ) then
+        !$acc atomic
+        gmax(n) = max(gmax(n),g(j,i,n))
+        !$acc atomic
+        gmin(n) = min(gmin(n),g(j,i,n))
+      end if
+    end do
+    end do
+    end do
+    !$acc parallel loop collapse(3) gang vector
+    do n = 1, n3
+    do i = 1, ni
+    do j = 1, nj
+      gsum = d_zero
+      gwgt = d_zero
+      !$acc loop seq
+      do m = 1, h_i%tg%ft(j,i)%np
+        si = h_i%tg%ft(j,i)%wgt(m)%i
+        sj = h_i%tg%ft(j,i)%wgt(m)%j
+        if ( g(sj,si,n) > missc ) then
+          gsum = gsum + g(sj,si,n) * h_i%tg%ft(j,i)%wgt(m)%wgt
+          gwgt = gwgt +              h_i%tg%ft(j,i)%wgt(m)%wgt
+        end if
+      end do
+      if ( gwgt > d_zero ) then
+        f(j,i,n) = real(gsum / gwgt,rkx)
+      else
+        f(j,i,n) = missl
+      end if
+    end do
+    end do
+    end do
+    xnu1 =  0.50_rkx
+    xnu2 = -0.52_rkx
+    do np = 1, npass
+      !smooth in j direction (kp=1)
+      do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
+        cell = f(j,i,n)
+        fout = cell
+        if ( j > 1 .and. j < nj ) then
+          asv   = f(j-1,i,n)
+          aplus = f(j+1,i,n)
+          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+            fout = cell + xnu1*( (asv+aplus)/d_two - cell)
+          end if
+        end if
+        f_temp(j,i,n) = fout
+      end do
+      !smooth in i direction (kp=1)
+      do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
+        cell = f_temp(j,i,n)
+        fout = cell
+        if ( i > 1 .and. i < ni ) then
+          asv   = f_temp(j,i-1,n)
+          aplus = f_temp(j,i+1,n)
+          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+            fout = cell + xnu1*((asv+aplus)/d_two - cell)
+          end if
+        end if
+        f(j,i,n) = fout
+      end do
+      !smooth in j direction (kp=2)
+      do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
+        cell = f(j,i,n)
+        fout = cell
+        if ( j > 1 .and. j < nj ) then
+          asv   = f(j-1,i,n)
+          aplus = f(j+1,i,n)
+          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+            fout = cell + xnu2*( (asv+aplus)/d_two - cell)
+          end if
+        end if
+        f_temp(j,i,n) = fout
+      end do
+      !smooth in i direction (kp=2)
+      do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
+        cell = f_temp(j,i,n)
+        fout = cell
+        if ( i > 1 .and. i < ni ) then
+          asv   = f_temp(j,i-1,n)
+          aplus = f_temp(j,i+1,n)
+          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+            fout = cell + xnu2*((asv+aplus)/d_two - cell)
+          end if
+        end if
+        f(j,i,n) = fout
+      end do
+    end do
+    do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
+      if ( f(j,i,n) > missc ) then
+        f(j,i,n) = max(gmin(n),min(gmax(n),f(j,i,n)))
+      end if
+    end do
+  end subroutine interp_3d_new
 
   subroutine interp_4d(h_i,g,f)
     implicit none
@@ -1114,9 +1229,8 @@ module mod_kdinterp
     do np = 1, npass
       do kp = 1, 2
         ! first smooth in the ni direction
-        do concurrent ( i = i1:i2 )
+        do i = i1, i2
           asv = f(j1,i)
-          !$acc loop seq
           do j = js, je
             cell = f(j,i)
             aplus = f(j+1,i)
@@ -1127,9 +1241,8 @@ module mod_kdinterp
           end do
         end do
         ! smooth in the nj direction
-        do concurrent ( j = j1:j2 )
+        do j = j1, j2
           asv = f(j,i1)
-          !$acc loop seq
           do i = is, ie
             cell = f(j,i)
             aplus = f(j,i+1)

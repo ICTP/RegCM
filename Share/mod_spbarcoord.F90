@@ -31,7 +31,7 @@ module mod_spbarcoord
 
   private
 
-  public :: spherical_barycentric
+  public :: spherical_barycentric, spcompare
 
   type, bind(C) :: vpoint
     integer(c_int) :: idx
@@ -113,7 +113,7 @@ module mod_spbarcoord
           voc(n)%v(:) = v(:,n)
         end do
         lnp = np
-        lsize = sizeof(voc(1))
+        lsize = storage_size(voc(1))/8
         call qsort(c_loc(voc(1)),lnp,lsize,c_funloc(spcompare))
       end subroutine set_clockwise_order
 
@@ -155,6 +155,7 @@ module mod_spbarcoord
       subroutine compute_angles
         implicit none
         real(rk8), dimension(3) :: vp1, vp2
+        integer(ik4) :: i
         do i = 1, np
           theta(i) = angle_between(p,voc(i)%v)
         end do

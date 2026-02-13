@@ -1020,6 +1020,7 @@ module mod_projections
     implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat
+    if ( .false. ) xmap = pj%p%stdlat ! Avoid unused argument warning
     xmap = real(1.0_rk8/cos(lat*degrad),rkx)
   end function fac_mc
 
@@ -1334,6 +1335,10 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     return
+    if ( .false. ) then
+      u(:,:) = pj%p%stdlat ! Avoid unused argument warning
+      v(:,:) = pj%p%stdlat ! Avoid unused argument warning
+    end if
   end subroutine rotate2_mc
 
   subroutine rotate3_mc(pj,u,v)
@@ -1341,6 +1346,10 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     return
+    if ( .false. ) then
+      u(:,:,:) = pj%p%stdlat ! Avoid unused argument warning
+      v(:,:,:) = pj%p%stdlat ! Avoid unused argument warning
+    end if
   end subroutine rotate3_mc
 
   subroutine rotate2_rc(pj,u,v)
@@ -1528,6 +1537,9 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
+    if ( .false. ) then
+      xmap(:,:) = xlon(:,:) ! Avoid unused argument warning
+    end if
     xmap = fac_lc(pj,xlat)
   end subroutine mapfac_lc
 
@@ -1536,6 +1548,9 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
+    if ( .false. ) then
+      xmap(:,:) = xlon(:,:) ! Avoid unused argument warning
+    end if
     xmap = fac_ps(pj,xlat)
   end subroutine mapfac_ps
 
@@ -1544,6 +1559,9 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
+    if ( .false. ) then
+      xmap(:,:) = xlon(:,:) ! Avoid unused argument warning
+    end if
     xmap = fac_mc(pj,xlat)
   end subroutine mapfac_mc
 
@@ -1552,6 +1570,11 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
+    if ( .false. ) then
+      xmap(:,:) = pj%p%stdlat ! Avoid unused argument warning
+      xmap(:,:) = xlon(:,:)   ! Avoid unused argument warning
+      xmap(:,:) = xlat(:,:)   ! Avoid unused argument warning
+    end if
     xmap = d_one
   end subroutine mapfac_ll
 
