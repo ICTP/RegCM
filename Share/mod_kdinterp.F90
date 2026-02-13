@@ -22,7 +22,6 @@ module mod_kdinterp
   use mod_message
   use mod_earth
   use mod_spbarcoord
-  use mod_dynparam, only : idynamic
   use mod_kdtree2
   implicit none
 
@@ -571,7 +570,7 @@ module mod_kdinterp
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:), intent(in) :: g
     real(rkx), dimension(:), intent(out) :: f
-    integer(ik4) :: i, ni, n, si, gni
+    integer(ik4) :: i, ni, n, si
     real(rk8) :: gmax
     if ( size(g) /= h_i%sshape(1) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
@@ -582,7 +581,6 @@ module mod_kdinterp
       call die('interp_1d_nn','Non conforming shape for target',1)
     end if
     ni = size(f)
-    gni = size(g)
     do i = 1, ni
       gmax = -1.0_rkx
       f(i) = missl
@@ -705,7 +703,7 @@ module mod_kdinterp
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
-    integer(ik4) :: i, j, ni, nj, n, si, sj, gni, gnj
+    integer(ik4) :: i, j, ni, nj, n, si, sj
     real(rk8) :: gmax
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
@@ -717,8 +715,6 @@ module mod_kdinterp
     end if
     nj = size(f,1)
     ni = size(f,2)
-    gnj = size(g,1)
-    gni = size(g,2)
     do i = 1, ni
       do j = 1, nj
         gmax = -1.0_rkx

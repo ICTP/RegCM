@@ -82,7 +82,7 @@ module mod_ensemble
       call random_seed(put = seed)
     end if
     call random_number(yi)
-    yi = -log(yi)
+    yi(:) = -log(yi(:))
     rsum = sum(yi)
     values = yi/rsum * thesum
     deallocate(yi)
@@ -120,7 +120,7 @@ module mod_ensemble
       call random_seed(put = seed)
     end if
     call random_number(yi)
-    yi = -log(yi)
+    yi(:) = -log(yi(:))
     rsum = sum(yi)
     values = yi/rsum * thesum
     deallocate(yi)

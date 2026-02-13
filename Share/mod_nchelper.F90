@@ -549,9 +549,11 @@ module mod_nchelper
     integer(ik4)  :: incstat
     istart(1) = 1
     istart(2) = 1
+    istart(3) = 1
     icount(1) = ubound(values,1)
     icount(2) = ubound(values,2)
-    incstat = nf90_put_var(ncid,ivar(ipnt),values)
+    icount(3) = ubound(values,3)
+    incstat = nf90_put_var(ncid,ivar(ipnt),values,istart,icount)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable '//vnam//' write')
     if ( debug_level > 2 ) then
@@ -1245,8 +1247,7 @@ module mod_nchelper
   end subroutine add_attribute
 
   integer function nf90_myget_att_text(ncid,ivar,aname,aval) result(istat)
-    use, intrinsic :: iso_c_binding, only: c_ptr, c_size_t, c_f_pointer, c_int
-    use, intrinsic :: iso_c_binding, only: c_loc
+    use, intrinsic :: iso_c_binding, only: c_ptr, c_f_pointer, c_int
     implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: aname
@@ -1263,7 +1264,7 @@ module mod_nchelper
     end interface
     interface
       integer(c_size_t) function strlen(cs) bind(c, name='strlen')
-         use, intrinsic :: iso_c_binding, only : c_size_t, c_ptr
+         use, intrinsic :: iso_c_binding, only : c_ptr, c_size_t
          implicit none
          type(c_ptr), intent(in), value :: cs
       end function strlen
@@ -1295,7 +1296,7 @@ module mod_nchelper
   end function nf90_myget_att_text
 
   subroutine get_attribute_char(ncid,aname,aval,ivar)
-    use, intrinsic :: iso_c_binding, only: c_ptr, c_size_t, c_f_pointer, c_int
+    use, intrinsic :: iso_c_binding, only: c_ptr, c_f_pointer, c_int
     implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: aname

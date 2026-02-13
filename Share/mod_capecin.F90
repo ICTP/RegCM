@@ -47,16 +47,8 @@ module mod_capecin
                                           ! 3 = pseudoadiabatic, with ice
                                           ! 4 = reversible, with ice
 
-  logical :: table_empty = .true.
-
   integer(ik4), parameter :: itb = 076
   integer(ik4), parameter :: jtb = 134
-
-  real(rkx) :: pl, thl, rdq, rdth, rdp, rdthe, plq, rdpq, rdtheq
-  real(rkx), dimension(jtb) :: qs0, sqs
-  real(rkx), dimension(itb) :: the0, sthe
-  real(rkx), dimension(itb,jtb) :: ptbl
-  real(rkx), dimension(jtb,itb) :: ttbl
 
   contains
   !
@@ -97,16 +89,16 @@ module mod_capecin
     real(rkx), dimension(nk), intent(in) :: p, t, rh
     real(rkx), intent(out) :: cape, cin
 
-    logical :: doit, ice, cloud, not_converged
+    logical :: doit, ice, not_converged
     integer(ik4) :: k, kmax, n, nloop, i
     real(rkx), dimension(nk), intent(out) :: td, pi, q, th, thv, z
 
-    real(rkx) :: the, maxthe, parea, narea, lfc
-    real(rkx) :: th1, p1, t1, qv1, ql1, qi1, b1, pi1
-    real(rkx) :: thv1, qt, dp, dz, ps, frac
+    real(rkx) :: the, maxthe, parea, narea
+    real(rkx) :: th1, p1, t1, qv1, ql1, qi1, b1
+    real(rkx) :: qt, dp, dz, frac
     real(rkx) :: th2, p2, t2, qv2, ql2, qi2, b2, pi2, thv2
     real(rkx) :: thlast, fliq, fice, tbar, qvbar, qlbar, qibar
-    real(rkx) :: lhv, lhs, lhf, rm, cpm
+    real(rkx) :: lhv, lhs, rm, cpm
     real(rkx) :: avgth, avgqv
 
     real(rkx), parameter :: lv1   = wlhv+(cpw-cpv)*tzero
@@ -227,10 +219,7 @@ module mod_capecin
 
     cape = d_zero
     cin  = d_zero
-    lfc  = d_zero
-
     doit = .true.
-    cloud = .false.
 
     if ( adiabat == 1 .or. adiabat == 2 ) then
       ice = .false.
@@ -255,12 +244,10 @@ module mod_capecin
       do n = 1, nloop
         p1 =  p2
         t1 =  t2
-        pi1 = pi2
         th1 = th2
         qv1 = qv2
         ql1 = ql2
         qi1 = qi2
-        thv1 = thv2
         p2 = p2 - dp
         pi2 = (p2*rp00)**rddcp
         thlast = th1
@@ -286,7 +273,6 @@ module mod_capecin
 
           lhv = lv1-lv2*tbar
           lhs = ls1-ls2*tbar
-          lhf = lhs-lhv
 
           rm = rgas+rwat*qvbar
           cpm = cpd+cpv*qvbar+cpw*qlbar+cpi*qibar
@@ -302,8 +288,6 @@ module mod_capecin
 
         ! Latest pressure increment is complete.  Calculate some
         ! important stuff:
-
-        if ( ql2 > 1.0e-10_rkx ) cloud = .true.
 
         if ( adiabat == 1 .or. adiabat == 3 ) then
           ! pseudoadiabat
@@ -323,7 +307,6 @@ module mod_capecin
 
       if ( (b2 >= d_zero) .and. (b1 <= d_zero) ) then
         ! first trip into positive area
-        ps = p(k-1)+(p(k)-p(k-1))*(d_zero-b1)/(b2-b1)
         frac = b2/(b2-b1)
         parea = d_half*b2*dz*frac
         narea = narea-d_half*b1*dz*(d_one-frac)
@@ -331,7 +314,6 @@ module mod_capecin
         narea = d_zero
       else if ( (b2 < d_zero) .and. (b1 > d_zero) ) then
         ! first trip into neg area
-        ps = p(k-1)+(p(k)-p(k-1))*(d_zero-b1)/(b2-b1)
         frac = b1/(b1-b2)
         parea = d_half*b1*dz*frac
         narea = -d_half*b2*dz*(d_one-frac)
@@ -393,7 +375,7 @@ module mod_capecin
         tlcl = 56.0_rkx + ( (td-56.0_rkx)**(-1.0_rkx) + &
                0.00125_rkx * log(t/td) )**(-1.0_rkx)
       end if
-      getthe_new = t * ( (100000.0_rkx/p)**(0.2854_rkx*(1.0_rkx-0.28_rkx*q)) ) * &
+      getthe_new = t*((100000.0_rkx/p)**(0.2854_rkx*(1.0_rkx-0.28_rkx*q))) * &
                exp( ((3376.0_rkx/tlcl)-2.54_rkx)*q*(1.0_rkx+0.81_rkx*q) )
     end function getthe_new
 
@@ -406,16 +388,16 @@ module mod_capecin
     real(rkx), dimension(nk), intent(in) :: p, t, rh
     real(rkx), intent(out) :: cape, cin
 
-    logical :: doit, ice, cloud, not_converged
+    logical :: doit, ice, not_converged
     integer(ik4) :: k, kmax, n, nloop, i
     real(rkx), dimension(nk) :: td, pi, q, th, thv, z
 
-    real(rkx) :: the, maxthe, parea, narea, lfc
-    real(rkx) :: th1, p1, t1, qv1, ql1, qi1, b1, pi1
-    real(rkx) :: thv1, qt, dp, dz, ps, frac
+    real(rkx) :: the, maxthe, parea, narea
+    real(rkx) :: th1, p1, t1, qv1, ql1, qi1, b1
+    real(rkx) :: qt, dp, dz, frac
     real(rkx) :: th2, p2, t2, qv2, ql2, qi2, b2, pi2, thv2
     real(rkx) :: thlast, fliq, fice, tbar, qvbar, qlbar, qibar
-    real(rkx) :: lhv, lhs, lhf, rm, cpm
+    real(rkx) :: lhv, lhs, rm, cpm
     real(rkx) :: avgth, avgqv
 
     real(rkx), parameter :: lv1   = wlhv+(cpw-cpv)*tzero
@@ -536,10 +518,8 @@ module mod_capecin
 
     cape = d_zero
     cin  = d_zero
-    lfc  = d_zero
 
     doit = .true.
-    cloud = .false.
 
     if ( adiabat == 1 .or. adiabat == 2 ) then
       ice = .false.
@@ -564,12 +544,10 @@ module mod_capecin
       do n = 1, nloop
         p1 =  p2
         t1 =  t2
-        pi1 = pi2
         th1 = th2
         qv1 = qv2
         ql1 = ql2
         qi1 = qi2
-        thv1 = thv2
         p2 = p2 - dp
         pi2 = (p2*rp00)**rddcp
         thlast = th1
@@ -595,7 +573,6 @@ module mod_capecin
 
           lhv = lv1-lv2*tbar
           lhs = ls1-ls2*tbar
-          lhf = lhs-lhv
 
           rm = rgas+rwat*qvbar
           cpm = cpd+cpv*qvbar+cpw*qlbar+cpi*qibar
@@ -611,8 +588,6 @@ module mod_capecin
 
         ! Latest pressure increment is complete.  Calculate some
         ! important stuff:
-
-        if ( ql2 > 1.0e-10_rkx ) cloud = .true.
 
         if ( adiabat == 1 .or. adiabat == 3 ) then
           ! pseudoadiabat
@@ -632,7 +607,6 @@ module mod_capecin
 
       if ( (b2 >= d_zero) .and. (b1 <= d_zero) ) then
         ! first trip into positive area
-        ps = p(k-1)+(p(k)-p(k-1))*(d_zero-b1)/(b2-b1)
         frac = b2/(b2-b1)
         parea = d_half*b2*dz*frac
         narea = narea-d_half*b1*dz*(d_one-frac)
@@ -640,7 +614,6 @@ module mod_capecin
         narea = d_zero
       else if ( (b2 < d_zero) .and. (b1 > d_zero) ) then
         ! first trip into neg area
-        ps = p(k-1)+(p(k)-p(k-1))*(d_zero-b1)/(b2-b1)
         frac = b1/(b1-b2)
         parea = d_half*b1*dz*frac
         narea = -d_half*b2*dz*(d_one-frac)
@@ -740,6 +713,13 @@ module mod_capecin
       integer(ik4) :: i, j, ittbk, iq, it, iptbk
       integer(ik4) :: ith, ip, iqtb
       integer(ik4) :: ittb, iptb, ithtb
+      logical, save :: table_empty = .true.
+      real(rkx), save :: pl, rdq, rdth, rdp, rdthe
+      real(rkx), save, dimension(jtb) :: qs0, sqs
+      real(rkx), save, dimension(itb) :: the0, sthe
+      real(rkx), save, dimension(itb,jtb) :: ptbl
+      real(rkx), save, dimension(jtb,itb) :: ttbl
+
       !
       if ( table_empty ) then
         call table_fill( )

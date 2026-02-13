@@ -55,6 +55,17 @@ module mod_realkinds
   integer, parameter :: rk4  = real32
   integer, parameter :: rk8  = real64
   integer, parameter :: rk16 = real128
+#ifdef NAGFOR
+#ifdef SINGLE_PRECISION_REAL
+  integer, parameter :: rkx = rk4
+  real(rk4) :: nan
+  real(rk4) :: inf
+#else
+  integer, parameter :: rkx = rk8
+  real(rk8) :: nan
+  real(rk8) :: inf
+#endif
+#else
 #ifdef SINGLE_PRECISION_REAL
   integer, parameter :: rkx = rk4
   real(rk4), parameter :: nan = transfer(__SYSTEM_NAN_32__, 1._real32)
@@ -64,6 +75,7 @@ module mod_realkinds
   real(rk8), parameter :: nan = transfer(__SYSTEM_NAN_64__, 1._real64)
   real(rk8), parameter :: inf = transfer(__SYSTEM_INF_64__, 1._real64)
 #endif
+#endif
 #else
   ! Kind helpers as suggested by
   !   Metcalf, M., J. Reid, and M. Cohen
@@ -71,14 +83,18 @@ module mod_realkinds
   integer, parameter :: rk4  = kind(1.0)
   integer, parameter :: rk8  = selected_real_kind(2*precision(1.0_rk4))
   integer, parameter :: rk16 = selected_real_kind(2*precision(1.0_rk8))
+  real(rk4), parameter :: inf_r4 = O'07760000000'
+  real(rk4), parameter :: nan_r4 = O'07770000000'
+  real(rk8), parameter :: inf_r8 = O'0777600000000000000000'
+  real(rk8), parameter :: nan_r8 = O'0777700000000000000000'
 #ifdef SINGLE_PRECISION_REAL
   integer, parameter :: rkx = rk4
-  real(rk4), parameter :: inf = O'07760000000'
-  real(rk4), parameter :: nan = O'07770000000'
+  real(rk4), parameter :: inf = inf_r4
+  real(rk4), parameter :: nan = nan_r4
 #else
   integer, parameter :: rkx = rk8
-  real(rk8), parameter :: inf = O'0777600000000000000000'
-  real(rk8), parameter :: nan = O'0777700000000000000000'
+  real(rk8), parameter :: inf = inf_r8
+  real(rk8), parameter :: nan = nan_r8
 #endif
 #endif
 
@@ -95,6 +111,19 @@ module mod_realkinds
   contains
 
 #ifdef F2008
+
+#ifdef NAGFOR
+  subroutine init_realkinds( )
+    implicit none
+#ifdef SINGLE_PRECISION_REAL
+    nan = 1.0_rk4/0.0_rk4
+    inf = 2.0_rk4 * huge(1.0_rk4)
+#else
+    nan = tiny(1.0_rk8)
+    inf = huge(1.0_rk8)
+#endif
+  end subroutine init_realkinds
+#endif
 
   logical elemental function is_nan_double(x)
     implicit none

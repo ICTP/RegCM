@@ -849,7 +849,7 @@ module mod_hgt
     real(rkx), intent(in) :: z
     real(rk8) :: p8, z8
     z8 = z
-    p8 = 100.0_rk8*((44331.514_rk8-z)/11880.516_rk8)**(1.0_rk8/0.1902632_rk8)
+    p8 = 100.0_rk8*((44331.514_rk8-z8)/11880.516_rk8)**(1.0_rk8/0.1902632_rk8)
     p = real(p8,rkx)
   end function crc_p_from_zeta
 

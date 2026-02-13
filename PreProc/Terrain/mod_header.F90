@@ -17,6 +17,10 @@ module mod_header
 
   use mod_intkinds
   use mod_stdio
+
+#ifdef NAGFOR
+  use f90_unix_env, only : gethostname
+#endif
   implicit none
 
   private
@@ -32,7 +36,6 @@ module mod_header
 !
   integer(ik4) :: hostnm
   integer(ik4) :: ihost, idir
-  integer(ik4) :: getcwd
   integer(ik4), dimension(8) :: tval
   character (len=32) :: cdata
   character (len=5) :: czone
@@ -42,7 +45,7 @@ module mod_header
   character (len=*), parameter :: f99001 = &
     '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 #ifdef __INTEL_COMPILER
-  external :: hostnm, getlog, getcwd
+  external :: hostnm
 #endif
 
   cdata = '?'
@@ -53,17 +56,26 @@ module mod_header
 
   if (myid==1)  then
     write (stdout, "(/,2x,'This is Terrain part of RegCM package version 5 ')")
+#ifdef NAGFOR
+    write (stdout,f99001)  GIT_VER, '1900-01-01', '00:00:00'
+#else
     write (stdout,f99001)  GIT_VER, __DATE__, __TIME__
+#endif
+
 
 #ifdef IBM
     hostname = 'ibm platform '
     user = 'Unknown'
 #else
+#ifdef NAGFOR
+    call gethostname(hostname)
+#else
     ihost = hostnm(hostname)
-    call getlog(user)
+#endif
 #endif
     call date_and_time(zone=czone,values=tval)
-    idir = getcwd(directory)
+    call get_environment_variable('PWD',directory)
+    call get_environment_variable('USER',user)
 
     write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
        tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone

@@ -738,7 +738,6 @@ module mod_dynparam
     read(ipunit, nml=debugparam, iostat=iresult)
     if ( iresult /= 0 ) then
       ! We have defaults
-      continue
     end if
 
     ! We assume 12 points is "OK" for a resolution of 50 km.
@@ -752,7 +751,6 @@ module mod_dynparam
     read(ipunit, nml=boundaryparam, iostat=iresult)
     if ( iresult /= 0 ) then
       ! We have defaults
-      continue
     end if
     ! Just double check ;)
     nspgx = max(nspgx,3)
@@ -840,7 +838,6 @@ module mod_dynparam
     read(ipunit, nml=clm_regcm, iostat=iresult)
     if ( iresult /= 0 ) then
       ! No error here. we have defualts. ;)
-      continue
     end if
 #endif
 

@@ -307,8 +307,8 @@ module mod_stdatm
          wtp2 = plev_wgt(kp1,plev,imidlatsummer)
          vs1 = stdatm(ival,kp1,imidlatwinter)*wtp1 + &
                stdatm(ival,kp1+1,imidlatwinter)*(d_one-wtp1)
-         vs2 = stdatm(ival,kp1,imidlatsummer)*wtp1 + &
-               stdatm(ival,kp1+1,imidlatsummer)*(d_one-wtp1)
+         vs2 = stdatm(ival,kp2,imidlatsummer)*wtp2 + &
+               stdatm(ival,kp2+1,imidlatsummer)*(d_one-wtp2)
          stdatm_val_noseason = wtl2*stdatm_val_noseason + &
                                wtl1*(vs1*wts1+vs2*wts2)
        end if
@@ -339,8 +339,8 @@ module mod_stdatm
          wtp2 = plev_wgt(kp1,plev,ipolarsummer)
          vs1 = stdatm(ival,kp1,ipolarwinter)*wtp1 + &
                stdatm(ival,kp1+1,ipolarwinter)*(d_one-wtp1)
-         vs2 = stdatm(ival,kp1,ipolarsummer)*wtp1 + &
-               stdatm(ival,kp1+1,ipolarsummer)*(d_one-wtp1)
+         vs2 = stdatm(ival,kp1,ipolarsummer)*wtp2 + &
+               stdatm(ival,kp1+1,ipolarsummer)*(d_one-wtp2)
          stdatm_val_seasonal = vs1*wts1+vs2*wts2
          kp1 = find_klev(plev,imidlatwinter)
          kp2 = find_klev(plev,imidlatsummer)
@@ -348,8 +348,8 @@ module mod_stdatm
          wtp2 = plev_wgt(kp1,plev,imidlatsummer)
          vs1 = stdatm(ival,kp1,imidlatwinter)*wtp1 + &
                stdatm(ival,kp1+1,imidlatwinter)*(d_one-wtp1)
-         vs2 = stdatm(ival,kp1,imidlatsummer)*wtp1 + &
-               stdatm(ival,kp1+1,imidlatsummer)*(d_one-wtp1)
+         vs2 = stdatm(ival,kp1,imidlatsummer)*wtp2 + &
+               stdatm(ival,kp1+1,imidlatsummer)*(d_one-wtp2)
          stdatm_val_seasonal = wtl2*stdatm_val_seasonal + &
                                wtl1*(vs1*wts1+vs2*wts2)
        else
@@ -367,8 +367,8 @@ module mod_stdatm
          wtp2 = plev_wgt(kp1,plev,imidlatsummer)
          vs1 = stdatm(ival,kp1,imidlatwinter)*wtp1 + &
                stdatm(ival,kp1+1,imidlatwinter)*(d_one-wtp1)
-         vs2 = stdatm(ival,kp1,imidlatsummer)*wtp1 + &
-               stdatm(ival,kp1+1,imidlatsummer)*(d_one-wtp1)
+         vs2 = stdatm(ival,kp2,imidlatsummer)*wtp2 + &
+               stdatm(ival,kp2+1,imidlatsummer)*(d_one-wtp2)
          stdatm_val_seasonal = wtl2*stdatm_val_seasonal + &
                                wtl1*(vs1*wts1+vs2*wts2)
        end if
@@ -447,14 +447,14 @@ module mod_stdatm
          wtp2 = plev_wgt(kp1,300.0_rkx,ipolarsummer)
          vs1 = stdatm(istdatm_tempk,kp1,ipolarwinter)*wtp1 + &
                stdatm(istdatm_tempk,kp1+1,ipolarwinter)*(d_one-wtp1)
-         vs2 = stdatm(istdatm_tempk,kp1,ipolarsummer)*wtp1 + &
-               stdatm(istdatm_tempk,kp1+1,ipolarsummer)*(d_one-wtp1)
+         vs2 = stdatm(istdatm_tempk,kp2,ipolarsummer)*wtp2 + &
+               stdatm(istdatm_tempk,kp2+1,ipolarsummer)*(d_one-wtp2)
          vs3 = stdatm(istdatm_tempk,1,ipolarwinter)
          vs4 = stdatm(istdatm_tempk,1,ipolarsummer)
          vz1 = stdatm(istdatm_hgtkm,kp1,ipolarwinter)*wtp1 + &
                stdatm(istdatm_hgtkm,kp1+1,ipolarwinter)*(d_one-wtp1)
-         vz2 = stdatm(istdatm_hgtkm,kp1,ipolarsummer)*wtp1 + &
-               stdatm(istdatm_hgtkm,kp1+1,ipolarsummer)*(d_one-wtp1)
+         vz2 = stdatm(istdatm_hgtkm,kp2,ipolarsummer)*wtp2 + &
+               stdatm(istdatm_hgtkm,kp2+1,ipolarsummer)*(d_one-wtp2)
          polar = ((vs1*wts1+vs2*wts2) - (vs3*wts1+vs4*wts2)) / &
                  (d_1000*(vz1*wts1+vz2*wts2))
          kp1 = find_klev(300.0_rkx,imidlatwinter)
@@ -463,14 +463,14 @@ module mod_stdatm
          wtp2 = plev_wgt(kp1,300.0_rkx,imidlatsummer)
          vs1 = stdatm(istdatm_tempk,kp1,imidlatwinter)*wtp1 + &
                stdatm(istdatm_tempk,kp1+1,imidlatwinter)*(d_one-wtp1)
-         vs2 = stdatm(istdatm_tempk,kp1,imidlatsummer)*wtp1 + &
-               stdatm(istdatm_tempk,kp1+1,imidlatsummer)*(d_one-wtp1)
+         vs2 = stdatm(istdatm_tempk,kp2,imidlatsummer)*wtp2 + &
+               stdatm(istdatm_tempk,kp2+1,imidlatsummer)*(d_one-wtp2)
          vs3 = stdatm(istdatm_tempk,1,imidlatwinter)
          vs4 = stdatm(istdatm_tempk,1,imidlatsummer)
          vz1 = stdatm(istdatm_hgtkm,kp1,imidlatwinter)*wtp1 + &
                stdatm(istdatm_hgtkm,kp1+1,imidlatwinter)*(d_one-wtp1)
-         vz2 = stdatm(istdatm_hgtkm,kp1,imidlatsummer)*wtp1 + &
-               stdatm(istdatm_hgtkm,kp1+1,imidlatsummer)*(d_one-wtp1)
+         vz2 = stdatm(istdatm_hgtkm,kp2,imidlatsummer)*wtp2 + &
+               stdatm(istdatm_hgtkm,kp2+1,imidlatsummer)*(d_one-wtp2)
          midlat = ((vs1*wts1+vs2*wts2) - (vs3*wts1+vs4*wts2)) / &
                   (d_1000*(vz1*wts1+vz2*wts2))
          stdlrate = wtl2 * polar + wtl1 * midlat
@@ -493,14 +493,14 @@ module mod_stdatm
          wtp2 = plev_wgt(kp1,300.0_rkx,imidlatsummer)
          vs1 = stdatm(istdatm_tempk,kp1,imidlatwinter)*wtp1 + &
                stdatm(istdatm_tempk,kp1+1,imidlatwinter)*(d_one-wtp1)
-         vs2 = stdatm(istdatm_tempk,kp1,imidlatsummer)*wtp1 + &
-               stdatm(istdatm_tempk,kp1+1,imidlatsummer)*(d_one-wtp1)
+         vs2 = stdatm(istdatm_tempk,kp1,imidlatsummer)*wtp2 + &
+               stdatm(istdatm_tempk,kp1+1,imidlatsummer)*(d_one-wtp2)
          vs3 = stdatm(istdatm_tempk,1,imidlatwinter)
          vs4 = stdatm(istdatm_tempk,1,imidlatsummer)
          vz1 = stdatm(istdatm_hgtkm,kp1,imidlatwinter)*wtp1 + &
                stdatm(istdatm_hgtkm,kp1+1,imidlatwinter)*(d_one-wtp1)
-         vz2 = stdatm(istdatm_hgtkm,kp1,imidlatsummer)*wtp1 + &
-               stdatm(istdatm_hgtkm,kp1+1,imidlatsummer)*(d_one-wtp1)
+         vz2 = stdatm(istdatm_hgtkm,kp1,imidlatsummer)*wtp2 + &
+               stdatm(istdatm_hgtkm,kp1+1,imidlatsummer)*(d_one-wtp2)
          midlat = ((vs1*wts1+vs2*wts2) - (vs3*wts1+vs4*wts2)) / &
                   (d_1000*(vz1*wts1+vz2*wts2))
          stdlrate = wtl2 * midlat + wtl1 * tropical
