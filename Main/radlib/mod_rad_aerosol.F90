@@ -71,6 +71,9 @@ module mod_rad_aerosol
   real(rkx), pointer, contiguous, dimension(:,:,:) :: zdzr3d => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: rdvar => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: hzivar => null( )
+#ifdef OPENACC
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: temp => null( )
+#endif
   real(rkx), pointer, contiguous, dimension(:,:,:) :: plvar => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: p1 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: p2 => null( )
@@ -1710,8 +1713,6 @@ module mod_rad_aerosol
                                            ! reading
           call getmem(lat,1,clnlat,'aeropp:lat')
           call getmem(lon,1,clnlon,'aeropp:lon')
-          call getmem(rdvar,1,clnlon,1,clnlat,1,clnlev, 'aerosol:rdvar')
-          call getmem(hzivar,1,njcross,1,nicross,1,clnlev,'aerosol:hziext1')
           call init_aeroppdata(ncid,lat,lon)
           call h_interpolator_create(hint,lat,lon,alat,alon)
           call bcast(clnlev)
@@ -1781,47 +1782,92 @@ module mod_rad_aerosol
           if ( myid == italk ) then
             write (stdout,*) 'Reading EXT,SSA,ASY Data...'
           end if
+          call getmem(rdvar,1,clnlon,1,clnlat,1,clnlev, 'aerosol:rdvar')
+          call getmem(hzivar,1,njcross,1,nicross,1,clnlev,'aerosol:hziext1')
+#ifdef OPENACC
+          call getmem(temp,1,njcross,1,nicross,1,clnlev,'aerosol:temp')
+#endif
           if ( lfirst ) then
             do wn = 1, nacwb
               call getfile(iy1,im1,ncid,wn)
               call readvar3d(ncid,'EXTTOT',rdvar)
               call remove_nans(rdvar,d_zero)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(plext1,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call readvar3d(ncid,'SSATOT',rdvar)
               call remove_nans(rdvar,d_one)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(plssa1,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call readvar3d(ncid,'GTOT',rdvar)
               call remove_nans(rdvar,0.2_rkx)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(plasy1,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call readvar3d(ncid,'DELP',rdvar)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(pldp1,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
 
               call getfile(iy2,im2,ncid,wn)
               call readvar3d(ncid,'EXTTOT',rdvar)
               call remove_nans(rdvar,d_zero)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(plext2,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call readvar3d(ncid,'SSATOT',rdvar)
               call remove_nans(rdvar,d_one)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(plssa2,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call readvar3d(ncid,'GTOT',rdvar)
               call remove_nans(rdvar,0.2_rkx)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(plasy2,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call readvar3d(ncid,'DELP',rdvar)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(pldp2,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
             end do ! clim wav band loop
@@ -1833,25 +1879,50 @@ module mod_rad_aerosol
               call getfile(iy2,im2,ncid,wn)
               call readvar3d(ncid,'EXTTOT',rdvar)
               call remove_nans(rdvar,d_zero)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                            clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(plext2,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call readvar3d(ncid,'SSATOT',rdvar)
               call remove_nans(rdvar,d_one)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(plssa2,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call readvar3d(ncid,'GTOT',rdvar)
               call remove_nans(rdvar,0.2_rkx)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(plasy2,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
               call readvar3d(ncid,'DELP',rdvar)
+#ifdef OPENACC
+              call h_interpolate_cont(hint,rdvar,hzivar,temp, &
+                    clnlon,clnlat,njcross,nicross,clnlev)
+#else
               call h_interpolate_cont(hint,rdvar,hzivar)
+#endif
               call assignpnt(pldp2,plvar,wn)
               call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
             end do ! clim wav band loop
           end if
+          call relmem(rdvar)
+          call relmem(hzivar)
+#ifdef OPENACC
+          call relmem(temp)
+#endif
         else
           if ( lfirst ) then
             do wn = 1, nacwb
@@ -2060,7 +2131,7 @@ module mod_rad_aerosol
       integer(ik4) :: iret
       data icvar /-1/
       data istart  /  1,  1,  1/
-
+      !$acc update host(val)
       icount(1) = clnlon
       icount(2) = clnlat
       icount(3) = clnlev
@@ -2074,6 +2145,7 @@ module mod_rad_aerosol
         write (stderr, *) nf90_strerror(iret)
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
       end if
+      !$acc update device(val)
     end subroutine readvar3d
     !
     ! SUBROUTINE AEROPPT
@@ -2785,11 +2857,22 @@ module mod_rad_aerosol
       implicit none
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: val
       real(rkx), intent(in) :: set
-      !$acc kernels
+#ifdef OPENACC
+      integer(ik4) :: j,i,k,j1,j2,i1,i2,k1,k2
+      j1 = lbound(val,1)
+      j2 = ubound(val,1)
+      i1 = lbound(val,2)
+      i2 = ubound(val,2)
+      k1 = lbound(val,3)
+      k2 = ubound(val,3)
+      do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
+        if ( is_nan(val(j,i,k)) ) val(j,i,k) = set
+      end do
+#else
       where ( is_nan(val) )
         val = set
       end where
-      !$acc end kernels
+#endif
     end subroutine remove_nans
 
 end module mod_rad_aerosol
