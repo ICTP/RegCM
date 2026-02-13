@@ -108,6 +108,7 @@
 !
 module eispack
 
+  use mod_intkinds
   use mod_realkinds
 
   implicit none
@@ -255,7 +256,7 @@ subroutine bakvec ( n, t, e, m, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) T(N,3), contains the nonsymmetric matrix.  Its
 !    subdiagonal is stored in the positions 2:N of the first column,
@@ -267,13 +268,13 @@ subroutine bakvec ( n, t, e, m, z, ierr )
 !    subdiagonal elements of the symmetric matrix.  E(1) is arbitrary.
 !    On output, the contents of E have been destroyed.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back
+!    Input, integer ( kind = ik4 ) M, the number of eigenvectors to be back
 !    transformed.
 !
 !    Input/output, real ( kind = rkx ) Z(N,M), contains the eigenvectors.
 !    On output, they have been transformed as requested.
 !
-!    Output, integer ( kind = 4 ) IERR, an error flag.
+!    Output, integer ( kind = ik4 ) IERR, an error flag.
 !    0, for normal return,
 !    2*N+I, if E(I) is zero with T(I,1) or T(I-1,3) non-zero.
 !    In this case, the symmetric matrix is not similar
@@ -282,13 +283,13 @@ subroutine bakvec ( n, t, e, m, z, ierr )
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: e(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: j
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: j
   real    ( kind = rkx ) :: t(n,3)
   real    ( kind = rkx ) :: z(n,m)
 
@@ -380,12 +381,12 @@ subroutine balanc ( n, a, low, igh, xscale )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) A(N,N), the N by N matrix.  On output,
 !    the matrix has been balanced.
 !
-!    Output, integer ( kind = 4 ) LOW, IGH, indicate that A(I,J) is equal to
+!    Output, integer ( kind = ik4 ) LOW, IGH, indicate that A(I,J) is equal to
 !    zero if
 !    (1) I is greater than J and
 !    (2) J=1,...,LOW-1 or I=IGH+1,...,N.
@@ -395,21 +396,21 @@ subroutine balanc ( n, a, low, igh, xscale )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: b2
   real    ( kind = rkx ) :: c
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: iexc
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: m
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: iexc
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: m
   logical              :: noconv
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: rdx
@@ -623,14 +624,14 @@ subroutine balbak ( n, low, igh, xscale, m, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, column indices determined by BALANC.
+!    Input, integer ( kind = ik4 ) LOW, IGH, column indices determined by BALANC.
 !
 !    Input, real ( kind = rkx ) SCALE(N), contains information determining
 !    the permutations and scaling factors used by BALANC.
 !
-!    Input, integer ( kind = 4 ) M, the number of columns of Z to be
+!    Input, integer ( kind = ik4 ) M, the number of columns of Z to be
 !    back-transformed.
 !
 !    Input/output, real ( kind = rkx ) Z(N,M), contains the real and imaginary parts
@@ -638,15 +639,15 @@ subroutine balbak ( n, low, igh, xscale, m, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: low
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: low
   real    ( kind = rkx ) :: xscale(n)
   real    ( kind = rkx ) :: z(n,m)
 
@@ -732,9 +733,9 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) MB, is the (half) band width of the matrix,
+!    Input, integer ( kind = ik4 ) MB, is the (half) band width of the matrix,
 !    defined as the number of adjacent diagonals, including the principal
 !    diagonal, required to specify the non-zero portion of the
 !    lower triangle of the matrix.
@@ -765,8 +766,8 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: mb
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: mb
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,mb)
   real    ( kind = rkx ) :: b1
@@ -780,25 +781,25 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
   real    ( kind = rkx ) :: f1
   real    ( kind = rkx ) :: f2
   real    ( kind = rkx ) :: g
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: i1
-  integer ( kind = 4 ) :: i2
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: j1
-  integer ( kind = 4 ) :: j2
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: kr
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: m1
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: i1
+  integer ( kind = ik4 ) :: i2
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: j1
+  integer ( kind = ik4 ) :: j2
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: kr
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: m1
   logical              :: matz
-  integer ( kind = 4 ) :: maxl
-  integer ( kind = 4 ) :: maxr
-  integer ( kind = 4 ) :: mr
-  integer ( kind = 4 ) :: r
-  integer ( kind = 4 ) :: r1
+  integer ( kind = ik4 ) :: maxl
+  integer ( kind = ik4 ) :: maxr
+  integer ( kind = ik4 ) :: mr
+  integer ( kind = ik4 ) :: r
+  integer ( kind = ik4 ) :: r1
   real    ( kind = rkx ) :: s2
   real    ( kind = rkx ) :: u
-  integer ( kind = 4 ) :: ugl
+  integer ( kind = ik4 ) :: ugl
   real    ( kind = rkx ) :: z(n,n)
 
   dmin = epsilon ( dmin )
@@ -1089,9 +1090,9 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) MBW, the number of columns of the array A used
+!    Input, integer ( kind = ik4 ) MBW, the number of columns of the array A used
 !    to store the band matrix.  If the matrix is symmetric, MBW is its (half)
 !    band width, denoted MB and defined as the number of adjacent
 !    diagonals, including the principal diagonal, required to
@@ -1122,7 +1123,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !    to solve systems of linear equations, E21 should be set to 1.0_rkx
 !    if the coefficient matrix is symmetric and to -1.0_rkx if not.
 !
-!    Input, integer ( kind = 4 ) M, the number of specified eigenvalues or the number of
+!    Input, integer ( kind = ik4 ) M, the number of specified eigenvalues or the number of
 !    systems of linear equations.
 !
 !    Input, real ( kind = rkx ) W(M), contains the M eigenvalues in ascending or descending
@@ -1137,42 +1138,42 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !    routine is used to solve systems of linear equations,
 !    Z contains the solution matrix columns X(1:M).
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    -R, if the eigenvector corresponding to the R-th eigenvalue fails to
 !    converge, or if the R-th system of linear equations is nearly singular.
 !
   implicit none
 
-  integer ( kind = 4 ) :: mbw
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: mbw
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,mbw)
   real    ( kind = rkx ) :: e21
   real    ( kind = rkx ) :: eps2
   real    ( kind = rkx ) :: eps3
   real    ( kind = rkx ) :: eps4
-  integer ( kind = 4 ) :: group
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: ij
-  integer ( kind = 4 ) :: ij1
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jj
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: kj
-  integer ( kind = 4 ) :: kj1
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: m1
-  integer ( kind = 4 ) :: m21
-  integer ( kind = 4 ) :: maxj
-  integer ( kind = 4 ) :: maxk
-  integer ( kind = 4 ) :: mb
+  integer ( kind = ik4 ) :: group
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: ij
+  integer ( kind = ik4 ) :: ij1
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jj
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: kj
+  integer ( kind = ik4 ) :: kj1
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: m1
+  integer ( kind = ik4 ) :: m21
+  integer ( kind = ik4 ) :: maxj
+  integer ( kind = ik4 ) :: maxk
+  integer ( kind = ik4 ) :: mb
   real    ( kind = rkx ) :: norm
   real    ( kind = rkx ) :: order
-  integer ( kind = 4 ) :: r
+  integer ( kind = ik4 ) :: r
   real    ( kind = rkx ) :: rv(n*(2*mbw-1))
   real    ( kind = rkx ) :: rv6(n)
   real    ( kind = rkx ) :: u
@@ -1545,7 +1546,7 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) EPS1, is an absolute error tolerance for the computed
 !    eigenvalues.  If the input EPS1 is non-positive, it is reset for each
@@ -1566,54 +1567,54 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !    Input, real ( kind = rkx ) LB, UB, define the interval to be searched for eigenvalues.
 !    If LB is not less than UB, no eigenvalues will be found.
 !
-!    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvalues in the
+!    Input, integer ( kind = ik4 ) MM, an upper bound for the number of eigenvalues in the
 !    interval.  Warning: if more than MM eigenvalues are determined to lie
 !    in the interval, an error return is made with no eigenvalues found.
 !
-!    Output, integer ( kind = 4 ) M, the number of eigenvalues determined to lie
+!    Output, integer ( kind = ik4 ) M, the number of eigenvalues determined to lie
 !    in (LB,UB).
 !
 !    Output, real ( kind = rkx ) W(M), the eigenvalues in ascending order.
 !
-!    Output, integer ( kind = 4 ) IND(MM), contains in its first M positions the submatrix
+!    Output, integer ( kind = ik4 ) IND(MM), contains in its first M positions the submatrix
 !    indices associated with the corresponding eigenvalues in W:
 !    1 for eigenvalues belonging to the first submatrix from the top, 2 for
 !    those belonging to the second submatrix, and so on.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    3*N+1, if M exceeds MM.
 !
   implicit none
 
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: d(n)
   real    ( kind = rkx ) :: e(n)
   real    ( kind = rkx ) :: e2(n)
   real    ( kind = rkx ) :: eps1
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: ind(mm)
-  integer ( kind = 4 ) :: isturm
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: ind(mm)
+  integer ( kind = ik4 ) :: isturm
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
   real    ( kind = rkx ) :: lb
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: m1
-  integer ( kind = 4 ) :: m2
-  integer ( kind = 4 ) :: p
-  integer ( kind = 4 ) :: q
-  integer ( kind = 4 ) :: r
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: m1
+  integer ( kind = ik4 ) :: m2
+  integer ( kind = ik4 ) :: p
+  integer ( kind = ik4 ) :: q
+  integer ( kind = ik4 ) :: r
   real    ( kind = rkx ) :: rv4(n)
   real    ( kind = rkx ) :: rv5(n)
-  integer ( kind = 4 ) :: s
+  integer ( kind = ik4 ) :: s
   real    ( kind = rkx ) :: t1
   real    ( kind = rkx ) :: t2
-  integer ( kind = 4 ) :: tag
+  integer ( kind = ik4 ) :: tag
   real    ( kind = rkx ) :: tst1
   real    ( kind = rkx ) :: tst2
   real    ( kind = rkx ) :: u
@@ -1960,9 +1961,9 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) MB, the (half) band width of the matrix, defined as the
+!    Input, integer ( kind = ik4 ) MB, the (half) band width of the matrix, defined as the
 !    number of adjacent diagonals, including the principal
 !    diagonal, required to specify the non-zero portion of the
 !    lower triangle of the matrix.
@@ -1994,45 +1995,45 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !    On output, R contains the maximum of its input value and the norm of the
 !    last column of the input matrix A.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, normal return.
 !    N, if the eigenvalue has not been determined after 30 iterations.
 !
   implicit none
 
-  integer ( kind = 4 ) :: mb
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: mb
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,mb)
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: ik
-  integer ( kind = 4 ) :: imult
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jk
-  integer ( kind = 4 ) :: jm
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: kj
-  integer ( kind = 4 ) :: kj1
-  integer ( kind = 4 ) :: kk
-  integer ( kind = 4 ) :: km
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: ll
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: m1
-  integer ( kind = 4 ) :: m2
-  integer ( kind = 4 ) :: m21
-  integer ( kind = 4 ) :: m3
-  integer ( kind = 4 ) :: m31
-  integer ( kind = 4 ) :: m4
-  integer ( kind = 4 ) :: mk
-  integer ( kind = 4 ) :: mn
-  integer ( kind = 4 ) :: mz
-  integer ( kind = 4 ) :: ni
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: ik
+  integer ( kind = ik4 ) :: imult
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jk
+  integer ( kind = ik4 ) :: jm
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: kj
+  integer ( kind = ik4 ) :: kj1
+  integer ( kind = ik4 ) :: kk
+  integer ( kind = ik4 ) :: km
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: ll
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: m1
+  integer ( kind = ik4 ) :: m2
+  integer ( kind = ik4 ) :: m21
+  integer ( kind = ik4 ) :: m3
+  integer ( kind = ik4 ) :: m31
+  integer ( kind = ik4 ) :: m4
+  integer ( kind = ik4 ) :: mk
+  integer ( kind = ik4 ) :: mn
+  integer ( kind = ik4 ) :: mz
+  integer ( kind = ik4 ) :: ni
   real    ( kind = rkx ) :: q
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: rv(2*mb*mb+4*mb-3)
@@ -2335,14 +2336,14 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, values determined by CBAL.
+!    Input, integer ( kind = ik4 ) LOW, IGH, values determined by CBAL.
 !
 !    Input, real ( kind = rkx ) SCALE(N), information determining the permutations
 !    and scaling factors used by CBAL.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
+!    Input, integer ( kind = ik4 ) M, the number of eigenvectors to be back transformed.
 !
 !    Input/output, real ( kind = rkx ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
 !    parts, respectively, of the eigenvectors to be back transformed in
@@ -2350,15 +2351,15 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: low
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: low
   real    ( kind = rkx ) :: s
   real    ( kind = rkx ) :: xscale(n)
   real    ( kind = rkx ) :: zi(n,m)
@@ -2465,13 +2466,13 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real and
 !    imaginary parts of the complex matrix to be balanced.  On output,
 !    the real and imaginary parts of the balanced matrix.
 !
-!    Output, integer ( kind = 4 ) LOW, IGH, are values such that AR(I,J) and AI(I,J)
+!    Output, integer ( kind = ik4 ) LOW, IGH, are values such that AR(I,J) and AI(I,J)
 !    are zero if I is greater than J and either J=1,...,LOW-1 or
 !    I=IGH+1,...,N.
 !
@@ -2480,7 +2481,7 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: ai(n,n)
   real    ( kind = rkx ) :: ar(n,n)
@@ -2488,15 +2489,15 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
   real    ( kind = rkx ) :: c
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: iexc
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jj
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: m
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: iexc
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jj
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: m
   logical              :: noconv
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: rdx
@@ -2785,7 +2786,7 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real and
 !    imaginary parts of the complex matrix.  On output, AR and AI
@@ -2794,28 +2795,28 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 !    Output, real ( kind = rkx ) WR(N), WI(N), the real and imaginary parts
 !    of the eigenvalues.
 !
-!    Input, integer ( kind = 4 ) MATZ, is 0 if only eigenvalues are desired, and
+!    Input, integer ( kind = ik4 ) MATZ, is 0 if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are to be computed.
 !
 !    Output, real ( kind = rkx ) ZR(N,N), ZI(N,N), the real and imaginary parts,
 !    respectively, of the eigenvectors, if MATZ is not zero.
 !
-!    Output, integer ( kind = 4 ) IERR, an error completion code described in the
+!    Output, integer ( kind = ik4 ) IERR, an error completion code described in the
 !    documentation for COMQR and COMQR2.  The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: ai(n,n)
   real    ( kind = rkx ) :: ar(n,n)
   real    ( kind = rkx ) :: fv1(n)
   real    ( kind = rkx ) :: fv2(n)
   real    ( kind = rkx ) :: fv3(n)
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: is1
-  integer ( kind = 4 ) :: is2
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: is1
+  integer ( kind = ik4 ) :: is2
+  integer ( kind = ik4 ) :: matz
   real    ( kind = rkx ) :: wi(n)
   real    ( kind = rkx ) :: wr(n)
   real    ( kind = rkx ) :: zi(n,n)
@@ -2896,7 +2897,7 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real and
 !    imaginary parts of the complex matrix.  On output, AR and AI
@@ -2904,27 +2905,27 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 !
 !    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
-!    Input, integer ( kind = 4 ) MATZ, is 0 if only eigenvalues are desired, and
+!    Input, integer ( kind = ik4 ) MATZ, is 0 if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are to be computed.
 !
 !    Output, real ( kind = rkx ) ZR(N,N), ZI(N,N), the real and imaginary parts,
 !    respectively, of the eigenvectors, if MATZ is not zero.
 !
-!    Output, integer ( kind = 4 ) IERR, an error completion code described in the
+!    Output, integer ( kind = ik4 ) IERR, an error completion code described in the
 !    documentation for TQLRAT and TQL2.  The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: ai(n,n)
   real    ( kind = rkx ) :: ar(n,n)
   real    ( kind = rkx ) :: fm1(2,n)
   real    ( kind = rkx ) :: fv1(n)
   real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: matz
   real    ( kind = rkx ) :: w(n)
   real    ( kind = rkx ) :: zi(n,n)
   real    ( kind = rkx ) :: zr(n,n)
@@ -3001,7 +3002,7 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) AR(N,N), AI(N,N), the real and imaginary parts of
 !    the complex Hessenberg matrix.
@@ -3017,17 +3018,17 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !    eigenvector corresponding to the J-th eigenvalue is specified by
 !    setting SELECT(J) to TRUE.
 !
-!    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvectors
+!    Input, integer ( kind = ik4 ) MM, an upper bound for the number of eigenvectors
 !    to be found.
 !
-!    Output, integer ( kind = 4 ) M, the number of eigenvectors actually found.
+!    Output, integer ( kind = ik4 ) M, the number of eigenvectors actually found.
 !
 !    Output, real ( kind = rkx ) ZR(N,MM), ZI(N,MM), the real and imaginary parts
 !    of the eigenvectors.  The eigenvectors are normalized so that the
 !    component of largest magnitude is 1.
 !    Any vector which fails the acceptance test is set to zero.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    -(2*N+1), if more than MM eigenvectors have been specified,
 !    -K, if the iteration corresponding to the K-th value fails,
@@ -3035,23 +3036,23 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !
   implicit none
 
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: ai(n,n)
   real    ( kind = rkx ) :: ar(n,n)
   real    ( kind = rkx ) :: eps3
   real    ( kind = rkx ) :: growto
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
   real    ( kind = rkx ) :: ilambd
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: km1
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mp
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: km1
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mp
   real    ( kind = rkx ) :: norm
   real    ( kind = rkx ) :: normv
   real    ( kind = rkx ) :: rlambd
@@ -3059,9 +3060,9 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
   real    ( kind = rkx ) :: rm2(n,n)
   real    ( kind = rkx ) :: rv1(n)
   real    ( kind = rkx ) :: rv2(n)
-  integer ( kind = 4 ) :: s
+  integer ( kind = ik4 ) :: s
   logical              :: select(n)
-  integer ( kind = 4 ) :: uk
+  integer ( kind = ik4 ) :: uk
   real    ( kind = rkx ) :: ukroot
   real    ( kind = rkx ) :: wi(n)
   real    ( kind = rkx ) :: wr(n)
@@ -3354,18 +3355,18 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = to the order of the matrix.
 !
 !    Input, real ( kind = rkx ) AR(N,IGH), AI(N,IGH), the multipliers which were used in the
 !    reduction by COMHES in their lower triangles below the subdiagonal.
 !
-!    Input, integer ( kind = 4 ) INT(IGH), information on the rows and columns interchanged
+!    Input, integer ( kind = ik4 ) INT(IGH), information on the rows and columns interchanged
 !    in the reduction by COMHES.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
+!    Input, integer ( kind = ik4 ) M, the number of eigenvectors to be back transformed.
 !
 !    Input/output, real ( kind = rkx ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
 !    parts of the eigenvectors to be back transformed.  On output, the real
@@ -3373,19 +3374,19 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: ai(n,igh)
   real    ( kind = rkx ) :: ar(n,igh)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ia(igh)
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: la
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: mp
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ia(igh)
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: la
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: mp
   real    ( kind = rkx ) :: xi
   real    ( kind = rkx ) :: xr
   real    ( kind = rkx ) :: zi(n,m)
@@ -3479,9 +3480,9 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
 !    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real and imaginary
@@ -3490,22 +3491,22 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
 !    reduction are stored in the remaining triangles under the
 !    Hessenberg matrix.
 !
-!    Output, integer ( kind = 4 ) INT(IGH), information on the rows and columns
+!    Output, integer ( kind = ik4 ) INT(IGH), information on the rows and columns
 !    interchanged in the reduction.
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: ai(n,n)
   real    ( kind = rkx ) :: ar(n,n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ia(igh)
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: la
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: m
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ia(igh)
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: la
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: m
   real    ( kind = rkx ) :: xi
   real    ( kind = rkx ) :: xr
   real    ( kind = rkx ) :: yi
@@ -3624,9 +3625,9 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
 !    Input/output, real ( kind = rkx ) HR(N,N), HI(N,N).  On input, the real and imaginary
@@ -3641,30 +3642,30 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    eigenvalues.  If an error exit is made, the eigenvalues should be correct
 !    for indices IERR+1,...,N.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
-  integer ( kind = 4 ) :: en
-  integer ( kind = 4 ) :: enm1
+  integer ( kind = ik4 ) :: en
+  integer ( kind = ik4 ) :: enm1
   real    ( kind = rkx ) :: hi(n,n)
   real    ( kind = rkx ) :: hr(n,n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: itn
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: ll
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mm
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: itn
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: ll
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mm
   real    ( kind = rkx ) :: si
   real    ( kind = rkx ) :: sr
   real    ( kind = rkx ) :: ti
@@ -3918,12 +3919,12 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input, integer ( kind = 4 ) INT(IGH), information on the rows and columns interchanged
+!    Input, integer ( kind = ik4 ) INT(IGH), information on the rows and columns interchanged
 !    in the reduction by COMHES, if performed.  If the eigenvectors of the
 !    Hessenberg matrix are desired, set INT(J)=J for these elements.
 !
@@ -3943,36 +3944,36 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !    eigenvectors.  The eigenvectors are unnormalized.  If an error exit
 !    is made, none of the eigenvectors has been found.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
-  integer ( kind = 4 ) :: en
-  integer ( kind = 4 ) :: enm1
+  integer ( kind = ik4 ) :: en
+  integer ( kind = ik4 ) :: enm1
   real    ( kind = rkx ) :: hi(n,n)
   real    ( kind = rkx ) :: hr(n,n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: iend
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: ia(igh)
-  integer ( kind = 4 ) :: itn
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jj
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: ll
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: nn
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: iend
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: ia(igh)
+  integer ( kind = ik4 ) :: itn
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jj
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: ll
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: nn
   real    ( kind = rkx ) :: norm
   real    ( kind = rkx ) :: si
   real    ( kind = rkx ) :: sr
@@ -4412,9 +4413,9 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
 !    Input/output, real ( kind = rkx ) HR(N,N), HI(N,N).  On input, the real and imaginary
@@ -4429,28 +4430,28 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    eigenvalues.  If an error exit is made, the eigenvalues should be
 !    correct for indices IERR+1,...,N.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !       eigenvalue is being sought.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
-  integer ( kind = 4 ) :: en
-  integer ( kind = 4 ) :: enm1
+  integer ( kind = ik4 ) :: en
+  integer ( kind = ik4 ) :: enm1
   real    ( kind = rkx ) :: hi(n,n)
   real    ( kind = rkx ) :: hr(n,n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: itn
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: ll
-  integer ( kind = 4 ) :: low
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: itn
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: ll
+  integer ( kind = ik4 ) :: low
   real    ( kind = rkx ) :: norm
   real    ( kind = rkx ) :: si
   real    ( kind = rkx ) :: sr
@@ -4731,9 +4732,9 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
 !    Input/output, real ( kind = rkx ) ORTR(N), ORTI(N).  On input, information about the
@@ -4757,34 +4758,34 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 !    eigenvectors.  The eigenvectors are unnormalized.  If an error exit
 !    is made, none of the eigenvectors has been found.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: n
 
-  integer ( kind = 4 ) :: en
-  integer ( kind = 4 ) :: enm1
+  integer ( kind = ik4 ) :: en
+  integer ( kind = ik4 ) :: enm1
   real    ( kind = rkx ) :: hi(n,n)
   real    ( kind = rkx ) :: hr(n,n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: iend
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: itn
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jj
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: ll
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: nn
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: iend
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: itn
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jj
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: ll
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: nn
   real    ( kind = rkx ) :: norm
   real    ( kind = rkx ) :: orti(igh)
   real    ( kind = rkx ) :: ortr(igh)
@@ -5295,9 +5296,9 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH to the order of the matrix.
 !
 !    Input, real ( kind = rkx ) AR(N,IGH), AI(N,IGH), information about the unitary
@@ -5308,7 +5309,7 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 !    about the transformations used in the reduction by CORTH.  On output,
 !    ORTR and ORTI have been further altered.
 !
-!    Input, integer ( kind = 4 ) M, the number of columns of ZR and ZI to be back
+!    Input, integer ( kind = ik4 ) M, the number of columns of ZR and ZI to be back
 !    transformed.
 !
 !    Input/output, real ( kind = rkx ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
@@ -5317,21 +5318,21 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: ai(n,igh)
   real    ( kind = rkx ) :: ar(n,igh)
   real    ( kind = rkx ) :: gi
   real    ( kind = rkx ) :: gr
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: la
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: mp
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: la
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: mp
   real    ( kind = rkx ) :: orti(igh)
   real    ( kind = rkx ) :: ortr(igh)
   real    ( kind = rkx ) :: zi(n,m)
@@ -5426,9 +5427,9 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
 !    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real and imaginary
@@ -5442,8 +5443,8 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: ai(n,n)
   real    ( kind = rkx ) :: ar(n,n)
@@ -5452,12 +5453,12 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
   real    ( kind = rkx ) :: fr
   real    ( kind = rkx ) :: g
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jj
-  integer ( kind = 4 ) :: la
-  integer ( kind = 4 ) :: m,mp,low
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jj
+  integer ( kind = ik4 ) :: la
+  integer ( kind = ik4 ) :: m,mp,low
   real    ( kind = rkx ) :: orti(igh)
   real    ( kind = rkx ) :: ortr(igh)
   real    ( kind = rkx ) :: xscale
@@ -5682,19 +5683,19 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, integers determined by the balancing
+!    Input, integer ( kind = ik4 ) LOW, IGH, integers determined by the balancing
 !    routine BALANC.  If BALANC has not been used, set LOW = 1 and
 !    IGH equal to the order of the matrix.
 !
 !    Input, real ( kind = rkx ) A(N,IGH), the multipliers which were used in the
 !    reduction by ELMHES in its lower triangle below the subdiagonal.
 !
-!    Input, integer ( kind = 4 ) IND(IGH), information on the rows and columns
+!    Input, integer ( kind = ik4 ) IND(IGH), information on the rows and columns
 !    interchanged in the reduction by ELMHES.
 !
-!    Input, integer ( kind = 4 ) M, the number of columns of Z to be back transformed.
+!    Input, integer ( kind = ik4 ) M, the number of columns of Z to be back transformed.
 !
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the real and imaginary parts
 !    of the eigenvectors to be back transformed.  On output, the real and
@@ -5702,18 +5703,18 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,igh)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ind(igh)
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: la
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: mp
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ind(igh)
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: la
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: mp
   real    ( kind = rkx ) :: x
   real    ( kind = rkx ) :: z(n,m)
 
@@ -5807,9 +5808,9 @@ subroutine elmhes ( n, low, igh, a, ind )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine
 !    BALANC.  If BALANC has not been used, set LOW = 1, IGH = N.
 !
 !    Input/output, real ( kind = rkx ) A(N,N).  On input, the matrix to be reduced.
@@ -5817,21 +5818,21 @@ subroutine elmhes ( n, low, igh, a, ind )
 !    which were used in the reduction are stored in the
 !    remaining triangle under the Hessenberg matrix.
 !
-!    Output, integer ( kind = 4 ) IND(N), contains information on the rows and columns
+!    Output, integer ( kind = ik4 ) IND(N), contains information on the rows and columns
 !    interchanged in the reduction.  Only elements LOW through IGH are used.
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ind(igh)
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: la
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: m
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ind(igh)
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: la
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: m
   real    ( kind = rkx ) :: x
   real    ( kind = rkx ) :: y
 
@@ -5943,15 +5944,15 @@ subroutine eltran ( n, low, igh, a, ind, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine
 !    BALANC.  If BALANC has not been used, set LOW = 1, IGH = N.
 !
 !    Input, real ( kind = rkx ) A(N,IGH), the multipliers which were used in the
 !    reduction by ELMHES in its lower triangle below the subdiagonal.
 !
-!    Input, integer ( kind = 4 ) IND(IGH), information on the rows and columns
+!    Input, integer ( kind = ik4 ) IND(IGH), information on the rows and columns
 !    interchanged in the reduction by ELMHES.
 !
 !    Output, real ( kind = rkx ) Z(N,N), the transformation matrix produced in the
@@ -5959,16 +5960,16 @@ subroutine eltran ( n, low, igh, a, ind, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,igh)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ind(igh)
-  integer ( kind = 4 ) :: kl
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: mp
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ind(igh)
+  integer ( kind = ik4 ) :: kl
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: mp
   real    ( kind = rkx ) :: z(n,n)
 !
 !  Initialize Z to the identity matrix.
@@ -6057,7 +6058,7 @@ subroutine figi ( n, t, d, e, e2, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) T(N,3) contains the input matrix.  Its subdiagonal is
 !    stored in the last N-1 positions of the first column, its diagonal in
@@ -6072,7 +6073,7 @@ subroutine figi ( n, t, d, e, e2, ierr )
 !    Output, real ( kind = rkx ) E2(N), the squares of the corresponding elements of E.
 !    E2 may coincide with E if the squares are not needed.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    N+I, if T(I,1) * T(I-1,3) is negative,
 !    -(3*N+I), if T(I,1) * T(I-1,3) is zero with one factor non-zero.  In
@@ -6081,13 +6082,13 @@ subroutine figi ( n, t, d, e, e2, ierr )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: d(n)
   real    ( kind = rkx ) :: e(n)
   real    ( kind = rkx ) :: e2(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
   real    ( kind = rkx ) :: t(n,3)
 
   ierr = 0
@@ -6174,7 +6175,7 @@ subroutine figi2 ( n, t, d, e, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) T(N,3) contains the input matrix.  Its subdiagonal is
 !    stored in the last N-1 positions of the first column, its diagonal in
@@ -6189,20 +6190,20 @@ subroutine figi2 ( n, t, d, e, z, ierr )
 !    Output, real ( kind = rkx ) Z(N,N), contains the transformation matrix produced in
 !    the reduction.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    N+I, if T(I,1) * T(I-1,3) is negative,
 !    2*N+I, if T(I,1) * T(I-1,3) is zero with one factor non-zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: d(n)
   real    ( kind = rkx ) :: e(n)
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
   real    ( kind = rkx ) :: t(n,3)
   real    ( kind = rkx ) :: z(n,n)
 
@@ -6300,9 +6301,9 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, two integers determined by the routine
+!    Input, integer ( kind = ik4 ) LOW, IGH, two integers determined by the routine
 !    BALANC.  If BALANC is not used, set LOW=1, IGH=N.
 !
 !    Input/output, real ( kind = rkx ) H(N,N), the N by N upper Hessenberg matrix.
@@ -6318,31 +6319,31 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 !    occurred, then the eigenvalues should be correct for indices
 !    IERR+1 through N.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, no error.
 !    J, the limit of 30*N iterations was reached while searching for
 !      the J-th eigenvalue.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
-  integer ( kind = 4 ) :: en
-  integer ( kind = 4 ) :: enm2
+  integer ( kind = ik4 ) :: en
+  integer ( kind = ik4 ) :: enm2
   real    ( kind = rkx ) :: h(n,n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: itn
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: ll
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: na
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: itn
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: ll
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: na
   real    ( kind = rkx ) :: norm
   logical              :: notlas
   real    ( kind = rkx ) :: p
@@ -6675,9 +6676,9 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, determined by the balancing routine BALANC.
+!    Input, integer ( kind = ik4 ) LOW, IGH, determined by the balancing routine BALANC.
 !    If BALANC has not been used, set LOW = 1, IGH = N.
 !
 !    Input/output, real ( kind = rkx ) H(N,N), the N by N upper Hessenberg matrix.
@@ -6701,34 +6702,34 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !    parts of its eigenvector.  The eigenvectors are unnormalized.  If an
 !    error exit is made, none of the eigenvectors has been found.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
-  integer ( kind = 4 ) :: en
-  integer ( kind = 4 ) :: enm2
+  integer ( kind = ik4 ) :: en
+  integer ( kind = ik4 ) :: enm2
   real    ( kind = rkx ) :: h(n,n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: itn
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jj
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: ll
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: na
-  integer ( kind = 4 ) :: nn
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: itn
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jj
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: ll
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: na
+  integer ( kind = ik4 ) :: nn
   real    ( kind = rkx ) :: norm
   logical              :: notlas
   real    ( kind = rkx ) :: p
@@ -7355,7 +7356,7 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, is the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, is the order of the matrix.
 !
 !    Input, real ( kind = rkx ) A(N,N), contains information about the unitary
 !    transformations used in the reduction by HTRID3.
@@ -7363,7 +7364,7 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
 !    Input, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
+!    Input, integer ( kind = ik4 ) M, the number of eigenvectors to be back transformed.
 !
 !    Input/output, real ( kind = rkx ) ZR(N,M), ZI(N,M).  On input, ZR contains the
 !    eigenvectors to be back transformed.  On output, ZR and ZI contain
@@ -7371,15 +7372,15 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
   real    ( kind = rkx ) :: s
   real    ( kind = rkx ) :: si
   real    ( kind = rkx ) :: tau(2,n)
@@ -7479,7 +7480,7 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) AR(N,N), AI(N,N), contain information about
 !    the unitary transformations used in the reduction by HTRIDI in their
@@ -7488,7 +7489,7 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
 !    Input, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
+!    Input, integer ( kind = ik4 ) M, the number of eigenvectors to be back transformed.
 !
 !    Input/output, real ( kind = rkx ) ZR(N,M), ZI(N,M).  On input, ZR contains the
 !    eigenvectors to be back transformed.  On output, ZR and ZI contain
@@ -7496,16 +7497,16 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: ai(n,n)
   real    ( kind = rkx ) :: ar(n,n)
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
   real    ( kind = rkx ) :: s
   real    ( kind = rkx ) :: si
   real    ( kind = rkx ) :: tau(2,n)
@@ -7604,7 +7605,7 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) A(N,N).  On input, the lower triangle of the complex
 !    hermitian input matrix.  The real parts of the matrix elements are stored
@@ -7627,7 +7628,7 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: d(n)
@@ -7639,11 +7640,11 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
   real    ( kind = rkx ) :: gi
   real    ( kind = rkx ) :: h
   real    ( kind = rkx ) :: hh
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
   real    ( kind = rkx ) :: xscale
   real    ( kind = rkx ) :: si
   real    ( kind = rkx ) :: tau(2,n)
@@ -7821,7 +7822,7 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real
 !    and imaginary parts, respectively, of the complex hermitian input matrix.
@@ -7843,7 +7844,7 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: ai(n,n)
   real    ( kind = rkx ) :: ar(n,n)
@@ -7856,11 +7857,11 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
   real    ( kind = rkx ) :: gi
   real    ( kind = rkx ) :: h
   real    ( kind = rkx ) :: hh
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
   real    ( kind = rkx ) :: xscale
   real    ( kind = rkx ) :: si
   real    ( kind = rkx ) :: tau(2,n)
@@ -8038,7 +8039,7 @@ subroutine imtql1 ( n, d, e, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) D(N).  On input, the diagonal elements of
 !    the matrix.  On output, the eigenvalues in ascending order.  If an error
@@ -8049,13 +8050,13 @@ subroutine imtql1 ( n, d, e, ierr )
 !    of the matrix in its last N-1 positions.  E(1) is arbitrary.  On output,
 !    E has been overwritten.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: b
   real    ( kind = rkx ) :: c
@@ -8063,13 +8064,13 @@ subroutine imtql1 ( n, d, e, ierr )
   real    ( kind = rkx ) :: e(n)
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mml
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mml
   real    ( kind = rkx ) :: p
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: s
@@ -8234,7 +8235,7 @@ subroutine imtql2 ( n, d, e, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) D(N).  On input, the diagonal elements of
 !    the input matrix.  On output, the eigenvalues in ascending order.  If an
@@ -8252,13 +8253,13 @@ subroutine imtql2 ( n, d, e, z, ierr )
 !    symmetric tridiagonal (or full) matrix.  If an error exit is made, Z
 !    contains the eigenvectors associated with the stored eigenvalues.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: b
   real    ( kind = rkx ) :: c
@@ -8266,14 +8267,14 @@ subroutine imtql2 ( n, d, e, z, ierr )
   real    ( kind = rkx ) :: e(n)
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mml
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mml
   real    ( kind = rkx ) :: p
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: s
@@ -8456,7 +8457,7 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) D(N), the diagonal elements of the input matrix.
 !
@@ -8473,18 +8474,18 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 !    error exit is made, the eigenvalues are correct and ordered for
 !    indices 1,2,...IERR-1, but may not be the smallest eigenvalues.
 !
-!    Output, integer ( kind = 4 ) IND(N), the submatrix indices associated with the
+!    Output, integer ( kind = ik4 ) IND(N), the submatrix indices associated with the
 !    corresponding eigenvalues in W: 1 for eigenvalues belonging to the
 !    first submatrix from the top, 2 for those belonging to the second
 !    submatrix, and so on.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: b
   real    ( kind = rkx ) :: c
@@ -8493,20 +8494,20 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
   real    ( kind = rkx ) :: e2(n)
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: ind(n)
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mml
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: ind(n)
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mml
   real    ( kind = rkx ) :: p
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: rv1(n)
   real    ( kind = rkx ) :: s
-  integer ( kind = 4 ) :: tag
+  integer ( kind = ik4 ) :: tag
   real    ( kind = rkx ) :: tst1
   real    ( kind = rkx ) :: tst2
   real    ( kind = rkx ) :: w(n)
@@ -8676,7 +8677,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) A(N,N), the Hessenberg matrix.
 !
@@ -8694,11 +8695,11 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !    eigenvalues were each initially set to TRUE, the program resets the
 !    second of the two elements to FALSE.
 !
-!    Input, integer ( kind = 4 ) MM, an upper bound for the number of columns required
+!    Input, integer ( kind = ik4 ) MM, an upper bound for the number of columns required
 !    to store the eigenvectors to be found.  Note that two columns are
 !    required to store the eigenvector corresponding to a complex eigenvalue.
 !
-!    Input, integer ( kind = 4 ) M, the number of columns actually used to store
+!    Input, integer ( kind = ik4 ) M, the number of columns actually used to store
 !    the eigenvectors.
 !
 !    Output, real ( kind = rkx ) Z(N,MM), the real and imaginary parts of the eigenvectors.
@@ -8708,7 +8709,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !    The eigenvectors are normalized so that the component of largest
 !    magnitude is 1.  Any vector which fails the acceptance test is set to zero.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    -(2*N+1), if more than MM columns of Z are necessary to store the
 !      eigenvectors corresponding to the specified eigenvalues.
@@ -8717,36 +8718,36 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: eps3
   real    ( kind = rkx ) :: growto
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
   real    ( kind = rkx ) :: ilambd
-  integer ( kind = 4 ) :: ip
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: km1
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: mp
-  integer ( kind = 4 ) :: n1
+  integer ( kind = ik4 ) :: ip
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: km1
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: mp
+  integer ( kind = ik4 ) :: n1
   real    ( kind = rkx ) :: norm
   real    ( kind = rkx ) :: normv
-  integer ( kind = 4 ) :: ns
+  integer ( kind = ik4 ) :: ns
   real    ( kind = rkx ) :: rlambd
   real    ( kind = rkx ) :: rm1(n,n)
   real    ( kind = rkx ) :: rv1(n)
   real    ( kind = rkx ) :: rv2(n)
-  integer ( kind = 4 ) :: s
+  integer ( kind = ik4 ) :: s
   logical              :: select(n)
   real    ( kind = rkx ) :: t
-  integer ( kind = 4 ) :: uk
+  integer ( kind = ik4 ) :: uk
   real    ( kind = rkx ) :: ukroot
   real    ( kind = rkx ) :: w
   real    ( kind = rkx ) :: wi(n)
@@ -9246,12 +9247,12 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NM, the leading dimension of the two-dimensional arrays.
+!    Input, integer ( kind = ik4 ) NM, the leading dimension of the two-dimensional arrays.
 !    NM must be at least as large as the maximum of M and N.
 !
-!    Input, integer ( kind = 4 ) M, the number of rows of A and B.
+!    Input, integer ( kind = ik4 ) M, the number of rows of A and B.
 !
-!    Input, integer ( kind = 4 ) N, the number of columns of A, and the order of V.
+!    Input, integer ( kind = ik4 ) N, the number of columns of A, and the order of V.
 !
 !    Input/output, real ( kind = rkx ) A(NM,N). On input, the rectangular coefficient matrix.
 !    On output, A has been overwritten by the orthogonal matrix V of the
@@ -9263,22 +9264,22 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !    elements of S.  They are unordered.  If an error exit is made, the
 !    singular values should be correct for indices IERR+1, IERR+2,...,N.
 !
-!    Input, integer ( kind = 4 ) IP, is the number of columns of B.  IP can be zero.
+!    Input, integer ( kind = ik4 ) IP, is the number of columns of B.  IP can be zero.
 !
 !    Input/output, real ( kind = rkx ) B(NM,IP).  On input, the constant column matrix,
 !    On output, B has been overwritten by U'*B.  If an error exit is made,
 !    the rows of U'*B corresponding to indices of correct singular values
 !    should be correct.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    K, if the K-th singular value has not been determined after 30 iterations.
 !
   implicit none
 
-  integer ( kind = 4 ) :: ip
-  integer ( kind = 4 ) :: n
-  integer ( kind = 4 ) :: nm
+  integer ( kind = ik4 ) :: ip
+  integer ( kind = ik4 ) :: n
+  integer ( kind = ik4 ) :: nm
 
   real    ( kind = rkx ) :: a(nm,n)
   real    ( kind = rkx ) :: b(nm,ip)
@@ -9286,19 +9287,19 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: i1
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: k1
-  integer ( kind = 4 ) :: kk
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: l1
-  integer ( kind = 4 ) :: ll
-  integer ( kind = 4 ) :: m
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: i1
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: k1
+  integer ( kind = ik4 ) :: kk
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: l1
+  integer ( kind = ik4 ) :: ll
+  integer ( kind = ik4 ) :: m
   real    ( kind = rkx ) :: rv1(n)
   real    ( kind = rkx ) :: s
   real    ( kind = rkx ) :: xscale
@@ -9639,9 +9640,9 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine BALANC.
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine BALANC.
 !    If BALANC has not been used, set LOW = 1 and IGH equal to the order of
 !    the matrix.
 !
@@ -9653,7 +9654,7 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
 !    transformations used in the reduction by ORTHES.  On output, ORT
 !    has been altered.
 !
-!    Input, integer ( kind = 4 ) M, the number of columns of Z to be back transformed.
+!    Input, integer ( kind = ik4 ) M, the number of columns of Z to be back transformed.
 !
 !    Input/output, real ( kind = rkx ) Z(N,N).  On input, the real and imaginary parts of
 !    the eigenvectors to be back transformed in the first M columns.  On
@@ -9661,16 +9662,16 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,igh)
   real    ( kind = rkx ) :: g
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: mp
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: mp
   real    ( kind = rkx ) :: ort(igh)
   real    ( kind = rkx ) :: z(n,m)
 
@@ -9738,9 +9739,9 @@ subroutine orthes ( n, low, igh, a, ort )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine BALANC.
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing routine BALANC.
 !    If BALANC has not been used, set LOW = 1 and IGH = N.
 !
 !    Input/output, real ( kind = rkx ) A(N,N).  On input, the matrix.  On output,
@@ -9753,21 +9754,21 @@ subroutine orthes ( n, low, igh, a, ort )
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jj
-  integer ( kind = 4 ) :: la
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mp
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jj
+  integer ( kind = ik4 ) :: la
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mp
   real    ( kind = rkx ) :: ort(igh)
   real    ( kind = rkx ) :: xscale
 
@@ -9887,9 +9888,9 @@ subroutine ortran ( n, low, igh, a, ort, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing
+!    Input, integer ( kind = ik4 ) LOW, IGH, are determined by the balancing
 !    routine BALANC.  If BALANC has not been used, set LOW = 1, IGH = N.
 !
 !    Input, real ( kind = rkx ) A(N,IGH), contains information about the orthogonal
@@ -9905,17 +9906,17 @@ subroutine ortran ( n, low, igh, a, ort, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: igh
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: igh
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,igh)
   real    ( kind = rkx ) :: g
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: kl
-  integer ( kind = 4 ) :: low
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: mp
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: kl
+  integer ( kind = ik4 ) :: low
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: mp
   real    ( kind = rkx ) :: ort(igh)
   real    ( kind = rkx ) :: z(n,n)
 !
@@ -10007,7 +10008,7 @@ subroutine qzhes ( n, a, b, matz, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrices.
+!    Input, integer ( kind = ik4 ) N, the order of the matrices.
 !
 !    Input/output, real ( kind = rkx ) A(N,N).  On input, the first real general matrix.
 !    On output, A has been reduced to upper Hessenberg form.  The elements
@@ -10025,19 +10026,19 @@ subroutine qzhes ( n, a, b, matz, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: b(n,n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: l1
-  integer ( kind = 4 ) :: lb
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: l1
+  integer ( kind = ik4 ) :: lb
   logical              :: matz
-  integer ( kind = 4 ) :: nk1
-  integer ( kind = 4 ) :: nm1
+  integer ( kind = ik4 ) :: nk1
+  integer ( kind = ik4 ) :: nm1
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: rho
   real    ( kind = rkx ) :: s
@@ -10248,7 +10249,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrices.
+!    Input, integer ( kind = ik4 ) N, the order of the matrices.
 !
 !    Input/output, real ( kind = rkx ) A(N,N).  On input, a real upper Hessenberg matrix.
 !    On output, A has been reduced to quasi-triangular form.  The elements
@@ -10276,14 +10277,14 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !    by QZHES, if performed, or else the identity matrix.  On output, Z
 !    contains the product of the right hand transformations for both steps.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: a1
@@ -10308,31 +10309,31 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
   real    ( kind = rkx ) :: b44
   real    ( kind = rkx ) :: bni
   real    ( kind = rkx ) :: bnorm
-  integer ( kind = 4 ) :: en
-  integer ( kind = 4 ) :: enm2
-  integer ( kind = 4 ) :: enorn
+  integer ( kind = ik4 ) :: en
+  integer ( kind = ik4 ) :: enm2
+  integer ( kind = ik4 ) :: enorn
   real    ( kind = rkx ) :: ep
   real    ( kind = rkx ) :: eps1
   real    ( kind = rkx ) :: epsa
   real    ( kind = rkx ) :: epsb
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ish
-  integer ( kind = 4 ) :: itn
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: k1
-  integer ( kind = 4 ) :: k2
-  integer ( kind = 4 ) :: km1
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: l1
-  integer ( kind = 4 ) :: ld
-  integer ( kind = 4 ) :: ll
-  integer ( kind = 4 ) :: lm1
-  integer ( kind = 4 ) :: lor1
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ish
+  integer ( kind = ik4 ) :: itn
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: k1
+  integer ( kind = ik4 ) :: k2
+  integer ( kind = ik4 ) :: km1
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: l1
+  integer ( kind = ik4 ) :: ld
+  integer ( kind = ik4 ) :: ll
+  integer ( kind = ik4 ) :: lm1
+  integer ( kind = ik4 ) :: lor1
   logical              :: matz
-  integer ( kind = 4 ) :: na
+  integer ( kind = ik4 ) :: na
   logical              :: notlas
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: s
@@ -10804,7 +10805,7 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrices.
+!    Input, integer ( kind = ik4 ) N, the order of the matrices.
 !
 !    Input/output, real ( kind = rkx ) A(N,N).  On input, a real upper quasi-triangular
 !    matrix.  On output, A has been reduced further to a quasi-triangular
@@ -10837,7 +10838,7 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: a1
@@ -10871,14 +10872,14 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
   real    ( kind = rkx ) :: dr
   real    ( kind = rkx ) :: e
   real    ( kind = rkx ) :: ei
-  integer ( kind = 4 ) :: en
+  integer ( kind = ik4 ) :: en
   real    ( kind = rkx ) :: epsb
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: isw
-  integer ( kind = 4 ) :: j
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: isw
+  integer ( kind = ik4 ) :: j
   logical              :: matz
-  integer ( kind = 4 ) :: na
-  integer ( kind = 4 ) :: nn
+  integer ( kind = ik4 ) :: na
+  integer ( kind = ik4 ) :: nn
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: s
   real    ( kind = rkx ) :: sqi
@@ -11229,7 +11230,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrices.
+!    Input, integer ( kind = ik4 ) N, the order of the matrices.
 !
 !    Input, real ( kind = rkx ) A(N,N), contains a real upper quasi-triangular matrix.
 !    Its subdiagonal elements provide information about the storage of
@@ -11259,7 +11260,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: alfi(n)
@@ -11273,18 +11274,18 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
   real    ( kind = rkx ) :: d
   real    ( kind = rkx ) :: di
   real    ( kind = rkx ) :: dr
-  integer ( kind = 4 ) :: en
-  integer ( kind = 4 ) :: enm2
+  integer ( kind = ik4 ) :: en
+  integer ( kind = ik4 ) :: enm2
   real    ( kind = rkx ) :: epsb
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: isw
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jj
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: na
-  integer ( kind = 4 ) :: nn
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: isw
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jj
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: na
+  integer ( kind = ik4 ) :: nn
   real    ( kind = rkx ) :: q
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: ra
@@ -11646,9 +11647,9 @@ subroutine r8mat_print ( m, n, a, title )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) M, the number of rows in A.
+!    Input, integer ( kind = ik4 ) M, the number of rows in A.
 !
-!    Input, integer ( kind = 4 ) N, the number of columns in A.
+!    Input, integer ( kind = ik4 ) N, the number of columns in A.
 !
 !    Input, real ( kind = rkx ) A(M,N), the matrix.
 !
@@ -11656,8 +11657,8 @@ subroutine r8mat_print ( m, n, a, title )
 !
   implicit none
 
-  integer   ( kind = 4 ) :: m
-  integer   ( kind = 4 ) :: n
+  integer   ( kind = ik4 ) :: m
+  integer   ( kind = ik4 ) :: n
 
   real      ( kind = rkx ) :: a(m,n)
   character ( len = * )  :: title
@@ -11691,36 +11692,36 @@ subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) M, N, the number of rows and columns.
+!    Input, integer ( kind = ik4 ) M, N, the number of rows and columns.
 !
 !    Input, real ( kind = rkx ) A(M,N), an M by N matrix to be printed.
 !
-!    Input, integer ( kind = 4 ) ILO, JLO, the first row and column to print.
+!    Input, integer ( kind = ik4 ) ILO, JLO, the first row and column to print.
 !
-!    Input, integer ( kind = 4 ) IHI, JHI, the last row and column to print.
+!    Input, integer ( kind = ik4 ) IHI, JHI, the last row and column to print.
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
   implicit none
 
-  integer   ( kind = 4 ), parameter :: incx = 5
-  integer   ( kind = 4 ) :: m
-  integer   ( kind = 4 ) :: n
+  integer   ( kind = ik4 ), parameter :: incx = 5
+  integer   ( kind = ik4 ) :: m
+  integer   ( kind = ik4 ) :: n
 
   real      ( kind = rkx ) :: a(m,n)
   character ( len = 14 ) :: ctemp(incx)
-  integer   ( kind = 4 ) :: i
-  integer   ( kind = 4 ) :: i2hi
-  integer   ( kind = 4 ) :: i2lo
-  integer   ( kind = 4 ) :: ihi
-  integer   ( kind = 4 ) :: ilo
-  integer   ( kind = 4 ) :: inc
-  integer   ( kind = 4 ) :: j
-  integer   ( kind = 4 ) :: j2
-  integer   ( kind = 4 ) :: j2hi
-  integer   ( kind = 4 ) :: j2lo
-  integer   ( kind = 4 ) :: jhi
-  integer   ( kind = 4 ) :: jlo
+  integer   ( kind = ik4 ) :: i
+  integer   ( kind = ik4 ) :: i2hi
+  integer   ( kind = ik4 ) :: i2lo
+  integer   ( kind = ik4 ) :: ihi
+  integer   ( kind = ik4 ) :: ilo
+  integer   ( kind = ik4 ) :: inc
+  integer   ( kind = ik4 ) :: j
+  integer   ( kind = ik4 ) :: j2
+  integer   ( kind = ik4 ) :: j2hi
+  integer   ( kind = ik4 ) :: j2lo
+  integer   ( kind = ik4 ) :: jhi
+  integer   ( kind = ik4 ) :: jlo
   character ( len = * )  :: title
 
   write ( *, '(a)' ) ' '
@@ -11791,7 +11792,7 @@ subroutine r8vec_print ( n, a, title )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of components of the vector.
+!    Input, integer ( kind = ik4 ) N, the number of components of the vector.
 !
 !    Input, real ( kind = rkx ) A(N), the vector to be printed.
 !
@@ -11799,10 +11800,10 @@ subroutine r8vec_print ( n, a, title )
 !
   implicit none
 
-  integer   ( kind = 4 ) :: n
+  integer   ( kind = ik4 ) :: n
 
   real      ( kind = rkx ) :: a(n)
-  integer   ( kind = 4 ) :: i
+  integer   ( kind = ik4 ) :: i
   character ( len = * ) :: title
 
   write ( *, '(a)' ) ' '
@@ -11836,7 +11837,7 @@ subroutine r8vec2_print ( n, a1, a2, title )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the number of components of the vector.
+!    Input, integer ( kind = ik4 ) N, the number of components of the vector.
 !
 !    Input, real ( kind = rkx ) A1(N), A2(N), the vectors to be printed.
 !
@@ -11844,11 +11845,11 @@ subroutine r8vec2_print ( n, a1, a2, title )
 !
   implicit none
 
-  integer   ( kind = 4 ) :: n
+  integer   ( kind = ik4 ) :: n
 
   real      ( kind = rkx ) :: a1(n)
   real      ( kind = rkx ) :: a2(n)
-  integer   ( kind = 4 ) :: i
+  integer   ( kind = ik4 ) :: i
   character ( len = * )  :: title
 
   write ( *, '(a)' ) ' '
@@ -11919,7 +11920,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) EPS1.  On input, a theoretical absolute
 !    error tolerance for the computed eigenvalues.  If the input EPS1 is
@@ -11943,7 +11944,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !    eigenvalues have been found, and to 2.0_rkx if the largest eigenvalues
 !    have been found.  E2 is otherwise unaltered (unless overwritten by BD).
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvalues to be found.
+!    Input, integer ( kind = ik4 ) M, the number of eigenvalues to be found.
 !
 !    Output, real ( kind = rkx ) W(M), the M algebraically smallest eigenvalues in
 !    ascending order, or the M largest eigenvalues in descending order.
@@ -11962,14 +11963,14 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !    are usually within the tolerance specified by EPS1.  BD may coincide
 !    with E2.
 !
-!    Input, integer ( kind = 4 ) IDEF, should be set to 1 if the input matrix
+!    Input, integer ( kind = ik4 ) IDEF, should be set to 1 if the input matrix
 !    is known to be positive definite, to -1 if the input matrix is known to
 !    be negative  definite, and to 0 otherwise.
 !
 !    Input, logical TYPE, should be set to TRUE if the smallest eigenvalues
 !    are to be found, and to FALSE if the largest eigenvalues are to be found.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    6*N+1, if IDEF is set to 1 and TYPE to .true. when the matrix is not
 !      positive definite, or if IDEF is set to -1 and TYPE to .false.
@@ -11979,7 +11980,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: bd(n)
   real    ( kind = rkx ) :: d(n)
@@ -11990,16 +11991,16 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
   real    ( kind = rkx ) :: eps1
   real    ( kind = rkx ) :: err
   real    ( kind = rkx ) :: f
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: idef
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: ind(n)
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jdef
-  integer ( kind = 4 ) :: jj
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: m
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: idef
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: ind(n)
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jdef
+  integer ( kind = ik4 ) :: jj
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: m
   real    ( kind = rkx ) :: p
   real    ( kind = rkx ) :: q
   real    ( kind = rkx ) :: qp
@@ -12241,7 +12242,7 @@ subroutine rebak ( n, b, dl, m, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) B(N,N), contains information about the similarity
 !    transformation (Cholesky decomposition) used in the reduction by REDUC
@@ -12249,7 +12250,7 @@ subroutine rebak ( n, b, dl, m, z )
 !
 !    Input, real ( kind = rkx ) DL(N), further information about the transformation.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
+!    Input, integer ( kind = ik4 ) M, the number of eigenvectors to be back transformed.
 !
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed in its first M columns.  On output, the transformed
@@ -12257,13 +12258,13 @@ subroutine rebak ( n, b, dl, m, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: b(n,n)
   real    ( kind = rkx ) :: dl(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: j
   real    ( kind = rkx ) :: z(n,m)
 
   do j = 1, m
@@ -12320,7 +12321,7 @@ subroutine rebakb ( n, b, dl, m, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) B(N,N), contains information about the similarity
 !    transformation (Cholesky decomposition) used in the reduction by REDUC2
@@ -12328,7 +12329,7 @@ subroutine rebakb ( n, b, dl, m, z )
 !
 !    Input, real ( kind = rkx ) DL(N), further information about the transformation.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
+!    Input, integer ( kind = ik4 ) M, the number of eigenvectors to be back transformed.
 !
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed in its first M columns.  On output, the transformed
@@ -12336,13 +12337,13 @@ subroutine rebakb ( n, b, dl, m, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: b(n,n)
   real    ( kind = rkx ) :: dl(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: j
   real    ( kind = rkx ) :: z(n,m)
 
   do j = 1, m
@@ -12403,7 +12404,7 @@ subroutine reduc ( n, a, b, dl, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrices A and B.  If the Cholesky
+!    Input, integer ( kind = ik4 ) N, the order of the matrices A and B.  If the Cholesky
 !    factor L of B is already available, N should be prefixed with a minus sign.
 !
 !    Input/output, real ( kind = rkx ) A(N,N).  On input, A contains a real symmetric matrix.
@@ -12423,22 +12424,22 @@ subroutine reduc ( n, a, b, dl, ierr )
 !    the diagonal elements of L on input.  In any case, DL will contain
 !    the diagonal elements of L on output,
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    7*N+1, if B is not positive definite.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: b(n,n)
   real    ( kind = rkx ) :: dl(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: nn
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: nn
   real    ( kind = rkx ) :: x
   real    ( kind = rkx ) :: y
 
@@ -12569,7 +12570,7 @@ subroutine reduc2 ( n, a, b, dl, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrices A and B.  If the Cholesky
+!    Input, integer ( kind = ik4 ) N, the order of the matrices A and B.  If the Cholesky
 !    factor L of B is already available, N should be prefixed with a minus sign.
 !
 !    Input/output, real ( kind = rkx ) A(N,N).  On input, A contains a real symmetric matrix.
@@ -12589,22 +12590,22 @@ subroutine reduc2 ( n, a, b, dl, ierr )
 !    the diagonal elements of L on input.  In any case, DL will contain
 !    the diagonal elements of L on output,
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    7*N+1, if B is not positive definite.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: b(n,n)
   real    ( kind = rkx ) :: dl(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: nn
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: nn
   real    ( kind = rkx ) :: x
   real    ( kind = rkx ) :: y
 
@@ -12737,12 +12738,12 @@ subroutine rg ( n, a, wr, wi, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) A(N,N), the real general matrix.  On output,
 !    A has been overwritten.
 !
-!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
+!    Input, integer ( kind = ik4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = rkx ) WR(N), WI(N), the real and imaginary parts, respectively,
@@ -12756,20 +12757,20 @@ subroutine rg ( n, a, wr, wi, matz, z, ierr )
 !    Z contain the real and imaginary parts of its eigenvector.  The
 !    conjugate of this vector is the eigenvector for the conjugate eigenvalue.
 !
-!    Output, integer ( kind = 4 ) IERR, an error completion code described in the
+!    Output, integer ( kind = ik4 ) IERR, an error completion code described in the
 !    documentation for HQR and HQR2.  The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: fv1(n)
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: is1
-  integer ( kind = 4 ) :: is2
-  integer ( kind = 4 ) :: iv1(n)
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: is1
+  integer ( kind = ik4 ) :: is2
+  integer ( kind = ik4 ) :: iv1(n)
+  integer ( kind = ik4 ) :: matz
   real    ( kind = rkx ) :: wi(n)
   real    ( kind = rkx ) :: wr(n)
   real    ( kind = rkx ) :: z(n,n)
@@ -12851,12 +12852,12 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrices A and B.
+!    Input, integer ( kind = ik4 ) N, the order of the matrices A and B.
 !
 !    Input/output, real ( kind = rkx ) A(N,N), B(N,N), the two real general matrices.
 !    On output, A and B have been overwritten.
 !
-!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
+!    Input, integer ( kind = ik4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = rkx ) ALFR(N), ALFI(N), the real and imaginary parts,
@@ -12874,13 +12875,13 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 !    Z contain the real and imaginary parts of its eigenvector.  The
 !    conjugate of this vector is the eigenvector for the conjugate eigenvalue.
 !
-!    Output, integer ( kind = 4 ) IERR, is set equal to an error completion code
+!    Output, integer ( kind = ik4 ) IERR, is set equal to an error completion code
 !    described in the documentation for QZIT.  The normal completion
 !    code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: alfi(n)
@@ -12888,8 +12889,8 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
   real    ( kind = rkx ) :: b(n,n)
   real    ( kind = rkx ) :: beta(n)
   real    ( kind = rkx ) :: eps1
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: matz
   logical              :: tf
   real    ( kind = rkx ) :: z(n,n)
 
@@ -12964,30 +12965,30 @@ subroutine rs ( n, a, w, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) A(N,N), the real symmetric matrix.
 !
-!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
+!    Input, integer ( kind = ik4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
 !    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
-!    Output, integer ( kind = 4 ) IERR, is set equal to an error
+!    Output, integer ( kind = ik4 ) IERR, is set equal to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: fv1(n)
   real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: matz
   real    ( kind = rkx ) :: w(n)
   real    ( kind = rkx ) :: z(n,n)
 
@@ -13054,9 +13055,9 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) MB, the half band width of the matrix, defined as the
+!    Input, integer ( kind = ik4 ) MB, the half band width of the matrix, defined as the
 !    number of adjacent diagonals, including the principal diagonal, required
 !    to specify the non-zero portion of the lower triangle of the matrix.
 !
@@ -13067,27 +13068,27 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
 !    and finally its principal diagonal in the N positions of the last
 !    column.  Contents of storages not part of the matrix are arbitrary.
 !
-!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
+!    Input, integer ( kind = ik4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
 !    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
-!    Output, integer ( kind = 4 ) IERR, is set to an error
+!    Output, integer ( kind = ik4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: mb
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: mb
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,mb)
   real    ( kind = rkx ) :: fv1(n)
   real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: matz
   logical              :: tf
   real    ( kind = rkx ) :: w(n)
   real    ( kind = rkx ) :: z(n,n)
@@ -13173,33 +13174,33 @@ subroutine rsg ( n, a, b, w, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrices A and B.
+!    Input, integer ( kind = ik4 ) N, the order of the matrices A and B.
 !
 !    Input, real ( kind = rkx ) A(N,N), contains a real symmetric matrix.
 !
 !    Input, real ( kind = rkx ) B(N,N), contains a positive definite real symmetric matrix.
 !
-!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
+!    Input, integer ( kind = ik4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
 !    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
-!    Output, integer ( kind = 4 ) IERR, is set to an error
+!    Output, integer ( kind = ik4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: b(n,n)
   real    ( kind = rkx ) :: fv1(n)
   real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: matz
   real    ( kind = rkx ) :: w(n)
   real    ( kind = rkx ) :: z(n,n)
 
@@ -13291,33 +13292,33 @@ subroutine rsgab ( n, a, b, w, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrices A and B.
+!    Input, integer ( kind = ik4 ) N, the order of the matrices A and B.
 !
 !    Input, real ( kind = rkx ) A(N,N), contains a real symmetric matrix.
 !
 !    Input, real ( kind = rkx ) B(N,N), contains a positive definite real symmetric matrix.
 !
-!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
+!    Input, integer ( kind = ik4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
 !    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
-!    Output, integer ( kind = 4 ) IERR, is set to an error
+!    Output, integer ( kind = ik4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: b(n,n)
   real    ( kind = rkx ) :: fv1(n)
   real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: matz
   real    ( kind = rkx ) :: w(n)
   real    ( kind = rkx ) :: z(n,n)
 
@@ -13398,33 +13399,33 @@ subroutine rsgba ( n, a, b, w, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrices A and B.
+!    Input, integer ( kind = ik4 ) N, the order of the matrices A and B.
 !
 !    Input, real ( kind = rkx ) A(N,N), a real symmetric matrix.
 !
 !    Input, real ( kind = rkx ) B(N,N), a positive definite symmetric matrix.
 !
-!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
+!    Input, integer ( kind = ik4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
 !    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
-!    Output, integer ( kind = 4 ) IERR, is set to an error
+!    Output, integer ( kind = ik4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: b(n,n)
   real    ( kind = rkx ) :: fv1(n)
   real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: matz
   real    ( kind = rkx ) :: w(n)
   real    ( kind = rkx ) :: z(n,n)
 
@@ -13503,32 +13504,32 @@ subroutine rsm ( n, a, w, m, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) A(N,N), the symmetric matrix.
 !
-!    Input, integer ( kind = 4 ) M, specifies the number of eigenvectors to compute.
+!    Input, integer ( kind = ik4 ) M, specifies the number of eigenvectors to compute.
 !
 !    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
 !    Output, real ( kind = rkx ) Z(N,M), contains the orthonormal eigenvectors associated
 !    with the first M eigenvalues.
 !
-!    Output, integer ( kind = 4 ) IERR, is set to an error
+!    Output, integer ( kind = ik4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT, IMTQLV and
 !    TINVIT.  The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: fwork1(n)
   real    ( kind = rkx ) :: fwork2(n)
   real    ( kind = rkx ) :: fwork3(n)
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: iwork(n)
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: iwork(n)
   real    ( kind = rkx ) :: w(n)
   real    ( kind = rkx ) :: z(n,m)
 
@@ -13599,36 +13600,36 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) NV, the dimension of the array A, which
+!    Input, integer ( kind = ik4 ) NV, the dimension of the array A, which
 !    must be at least (N*(N+1))/2.
 !
 !    Input, real ( kind = rkx ) A(NV), contains the lower triangle of the real symmetric
 !    packed matrix stored row-wise.
 !
-!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
+!    Input, integer ( kind = ik4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
 !    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
-!    Output, integer ( kind = 4 ) IERR, is set to an error
+!    Output, integer ( kind = ik4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
-  integer ( kind = 4 ) :: nv
+  integer ( kind = ik4 ) :: n
+  integer ( kind = ik4 ) :: nv
 
   real    ( kind = rkx ) :: a(nv)
   real    ( kind = rkx ) :: fv1(n)
   real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: matz
   real    ( kind = rkx ) :: w(n)
   real    ( kind = rkx ) :: z(n,n)
 
@@ -13722,10 +13723,10 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of A, the number of rows and
+!    Input, integer ( kind = ik4 ) N, the order of A, the number of rows and
 !    columns in the original matrix.
 !
-!    Input, integer ( kind = 4 ) NV, is the of the array A as specified in the
+!    Input, integer ( kind = ik4 ) NV, is the of the array A as specified in the
 !    calling program.  NV must not be less than N*(N+1)/2.
 !
 !    Input, real ( kind = rkx ) A((N*(N+1))/2), on input the lower triangle of the
@@ -13735,34 +13736,34 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 !
 !    Output, real ( kind = rkx ) W(M), the eigenvalues requested.
 !
-!    Input, integer ( kind = 4 ) MATZ, is set to 0 if only eigenvalues are
+!    Input, integer ( kind = ik4 ) MATZ, is set to 0 if only eigenvalues are
 !    desired.  Otherwise it is set to any non-zero integer for both eigenvalues
 !    and eigenvectors.
 !
 !    Output, real ( kind = rkx ) Z(N,M), the eigenvectors.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag from RATQR.  IERR=0 on
+!    Output, integer ( kind = ik4 ) IERR, error flag from RATQR.  IERR=0 on
 !    normal return.  IERR nonzero, in this case, means that the algorithm broke
 !    down while computing an eigenvalue.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvalues to be found.
+!    Input, integer ( kind = ik4 ) M, the number of eigenvalues to be found.
 !
 !    Input, logical TYPE, set to .true. if the smallest eigenvalues
 !    are to be found, or .false. if the largest ones are sought.
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
-  integer ( kind = 4 ) :: nv
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
+  integer ( kind = ik4 ) :: nv
 
   real    ( kind = rkx ) :: a(nv)
   real    ( kind = rkx ) :: bd(n)
   real    ( kind = rkx ) :: eps1
-  integer ( kind = 4 ) :: idef
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: iwork(n)
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: idef
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: iwork(n)
+  integer ( kind = ik4 ) :: matz
   logical              :: type
   real    ( kind = rkx ) :: w(m)
   real    ( kind = rkx ) :: work1(n)
@@ -13862,7 +13863,7 @@ subroutine rst ( n, w, e, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) W(N).  On input, the diagonal elements
 !    of the real symmetric tridiagonal matrix.  On output, the eigenvalues in
@@ -13871,24 +13872,24 @@ subroutine rst ( n, w, e, matz, z, ierr )
 !    Input, real ( kind = rkx ) E(N), the subdiagonal elements of the matrix in
 !    E(2:N).  E(1) is arbitrary.
 !
-!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired,
+!    Input, integer ( kind = ik4 ) MATZ, is zero if only eigenvalues are desired,
 !    and nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ
 !    is nonzero.
 !
-!    Output, integer ( kind = 4 ) IERR, is set to an error
+!    Output, integer ( kind = ik4 ) IERR, is set to an error
 !    completion code described in the documentation for IMTQL1 and IMTQL2.
 !    The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: e(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: matz
   real    ( kind = rkx ) :: w(n)
   real    ( kind = rkx ) :: z(n,n)
 
@@ -13970,7 +13971,7 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) A(N,N), contains the special real tridiagonal
 !    matrix in its first three columns.  The subdiagonal elements are stored
@@ -13978,7 +13979,7 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !    in the second column, and the superdiagonal elements in the first N-1
 !    positions of the third column.  Elements A(1,1) and A(N,3) are arbitrary.
 !
-!    Input, integer ( kind = 4 ) MATZ, is 0 if only eigenvalues are desired,
+!    Input, integer ( kind = ik4 ) MATZ, is 0 if only eigenvalues are desired,
 !    and nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
@@ -13986,17 +13987,17 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ
 !    is nonzero.
 !
-!    Output, integer ( kind = 4 ) IERR, is set to an error
+!    Output, integer ( kind = ik4 ) IERR, is set to an error
 !    completion code described in the documentation for IMTQL1 and IMTQL2.
 !    The normal completion code is zero.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: fv1(n)
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: matz
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: matz
   real    ( kind = rkx ) :: a(n,3)
   real    ( kind = rkx ) :: w(n)
   real    ( kind = rkx ) :: z(n,n)
@@ -14098,9 +14099,9 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) M, the number of rows of A and U.
+!    Input, integer ( kind = ik4 ) M, the number of rows of A and U.
 !
-!    Input, integer ( kind = 4 ) N, the number of columns of A and U, and
+!    Input, integer ( kind = ik4 ) N, the number of columns of A and U, and
 !    the order of V.
 !
 !    Input, real ( kind = rkx ) A(M,N), the M by N matrix to be decomposed.
@@ -14128,34 +14129,34 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !    exit is made, the columns of V corresponding to indices of
 !    correct singular values should be correct.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    K, if the K-th singular value has not been determined after 30 iterations.
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(m,n)
   real    ( kind = rkx ) :: c
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: i1
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: kk
-  integer ( kind = 4 ) :: k1
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: ll
-  integer ( kind = 4 ) :: l1
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: i1
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: kk
+  integer ( kind = ik4 ) :: k1
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: ll
+  integer ( kind = ik4 ) :: l1
   logical              :: matu
   logical              :: matv
-  integer ( kind = 4 ) :: mn
+  integer ( kind = ik4 ) :: mn
   real    ( kind = rkx ) :: rv1(n)
   real    ( kind = rkx ) :: s
   real    ( kind = rkx ) :: xscale
@@ -14533,20 +14534,20 @@ subroutine timestamp ( )
   implicit none
 
   character ( len = 8 )  :: ampm
-  integer   ( kind = 4 ) :: d
+  integer   ( kind = ik4 ) :: d
   character ( len = 8 )  :: date
-  integer   ( kind = 4 ) :: h
-  integer   ( kind = 4 ) :: m
-  integer   ( kind = 4 ) :: mm
+  integer   ( kind = ik4 ) :: h
+  integer   ( kind = ik4 ) :: m
+  integer   ( kind = ik4 ) :: mm
   character ( len = 9 ), parameter, dimension(12) :: month = [ &
     'January  ', 'February ', 'March    ', 'April    ', &
     'May      ', 'June     ', 'July     ', 'August   ', &
     'September', 'October  ', 'November ', 'December ' ]
-  integer   ( kind = 4 ) :: n
-  integer   ( kind = 4 ) :: s
+  integer   ( kind = ik4 ) :: n
+  integer   ( kind = ik4 ) :: s
   character ( len = 10 ) :: time
-  integer   ( kind = 4 ) :: values(8)
-  integer   ( kind = 4 ) :: y
+  integer   ( kind = ik4 ) :: values(8)
+  integer   ( kind = ik4 ) :: y
   character ( len = 5 )  :: zone
 
   call date_and_time ( date, time, zone, values )
@@ -14627,7 +14628,7 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) D(N), the diagonal elements of the matrix.
 !
@@ -14643,11 +14644,11 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !    If BISECT, TRIDIB, or IMTQLV has been used to find the eigenvalues,
 !    their output E2 array is exactly what is expected here.
 !
-!    Input, integer ( kind = 4 ) M, the number of specified eigenvalues.
+!    Input, integer ( kind = ik4 ) M, the number of specified eigenvalues.
 !
 !    Input, real ( kind = rkx ) W(M), the eigenvalues.
 !
-!    Input, integer ( kind = 4 ) IND(M), the submatrix indices associated with the
+!    Input, integer ( kind = ik4 ) IND(M), the submatrix indices associated with the
 !    corresponding eigenvalues in W: 1 for eigenvalues belonging to the
 !    first submatrix from the top, 2 for those belonging to the second
 !    submatrix, and so on.
@@ -14655,15 +14656,15 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !    Output, real ( kind = rkx ) Z(N,M), the associated set of orthonormal eigenvectors.
 !    Any vector which fails to converge is set to zero.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    -R, if the eigenvector corresponding to the R-th eigenvalue fails to
 !      converge in 5 iterations.
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: d(n)
   real    ( kind = rkx ) :: e(n)
@@ -14671,27 +14672,27 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
   real    ( kind = rkx ) :: eps2
   real    ( kind = rkx ) :: eps3
   real    ( kind = rkx ) :: eps4
-  integer ( kind = 4 ) :: group
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: ind(m)
-  integer ( kind = 4 ) :: ip
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jj
+  integer ( kind = ik4 ) :: group
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: ind(m)
+  integer ( kind = ik4 ) :: ip
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jj
   real    ( kind = rkx ) :: norm
   real    ( kind = rkx ) :: order
-  integer ( kind = 4 ) :: p
-  integer ( kind = 4 ) :: q
-  integer ( kind = 4 ) :: r
+  integer ( kind = ik4 ) :: p
+  integer ( kind = ik4 ) :: q
+  integer ( kind = ik4 ) :: r
   real    ( kind = rkx ) :: rv1(n)
   real    ( kind = rkx ) :: rv2(n)
   real    ( kind = rkx ) :: rv3(n)
   real    ( kind = rkx ) :: rv4(n)
   real    ( kind = rkx ) :: rv6(n)
-  integer ( kind = 4 ) :: s
-  integer ( kind = 4 ) :: tag
+  integer ( kind = ik4 ) :: s
+  integer ( kind = ik4 ) :: tag
   real    ( kind = rkx ) :: u
   real    ( kind = rkx ) :: uk
   real    ( kind = rkx ) :: v
@@ -14993,7 +14994,7 @@ subroutine tql1 ( n, d, e, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, is the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, is the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) D(N).
 !    On input, the diagonal elements of the matrix.
@@ -15006,14 +15007,14 @@ subroutine tql1 ( n, d, e, ierr )
 !    elements of the input matrix, and E(1) is arbitrary.
 !    On output, E has been destroyed.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, normal return,
 !    J, if the J-th eigenvalue has not been determined after
 !    30 iterations.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: c
   real    ( kind = rkx ) :: c2
@@ -15025,15 +15026,15 @@ subroutine tql1 ( n, d, e, ierr )
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: l1
-  integer ( kind = 4 ) :: l2
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mml
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: l1
+  integer ( kind = ik4 ) :: l2
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mml
   real    ( kind = rkx ) :: p
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: s
@@ -15205,7 +15206,7 @@ subroutine tql2 ( n, d, e, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) D(N).  On input, the diagonal elements of the matrix.
 !    On output, the eigenvalues in ascending order.  If an error exit is
@@ -15222,14 +15223,14 @@ subroutine tql2 ( n, d, e, z, ierr )
 !    tridiagonal (or full) matrix.  If an error exit is made, Z contains
 !    the eigenvectors associated with the stored eigenvalues.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, normal return,
 !    J, if the J-th eigenvalue has not been determined after
 !    30 iterations.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: c
   real    ( kind = rkx ) :: c2
@@ -15241,16 +15242,16 @@ subroutine tql2 ( n, d, e, z, ierr )
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: l1
-  integer ( kind = 4 ) :: l2
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mml
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: l1
+  integer ( kind = ik4 ) :: l2
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mml
   real    ( kind = rkx ) :: p
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: s
@@ -15444,7 +15445,7 @@ subroutine tqlrat ( n, d, e2, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) D(N).  On input, D contains the diagonal elements
 !    of the matrix.  On output, D contains the eigenvalues in ascending
@@ -15456,13 +15457,13 @@ subroutine tqlrat ( n, d, e2, ierr )
 !    arbitrary.  On output, E2 has been overwritten by workspace
 !    information.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for no error,
 !    J, if the J-th eigenvalue could not be determined after 30 iterations.
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: b
   real    ( kind = rkx ) :: c
@@ -15471,14 +15472,14 @@ subroutine tqlrat ( n, d, e2, ierr )
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: l1
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: mml
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: l1
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: mml
   real    ( kind = rkx ) :: p
   real    ( kind = rkx ) :: r
   real    ( kind = rkx ) :: s
@@ -15639,7 +15640,7 @@ subroutine trbak1 ( n, a, e, m, z )
 !    LC: QA193.M37.
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) A(N,N), contains information about the orthogonal
 !    transformations used in the reduction by TRED1 in its strict lower
@@ -15648,21 +15649,21 @@ subroutine trbak1 ( n, a, e, m, z )
 !    Input, real ( kind = rkx ) E(N), the subdiagonal elements of the tridiagonal
 !    matrix in E(2:N).  E(1) is arbitrary.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
+!    Input, integer ( kind = ik4 ) M, the number of eigenvectors to be back transformed.
 !
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: e(n)
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: l
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: l
   real    ( kind = rkx ) :: s
   real    ( kind = rkx ) :: z(n,m)
 
@@ -15693,8 +15694,6 @@ subroutine trbak1 ( n, a, e, m, z )
     end if
 
   end do
-
-  continue
 
   return
 end subroutine trbak1
@@ -15744,33 +15743,33 @@ subroutine trbak3 ( n, nv, a, m, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) NV, the dimension of the array paramater A,
+!    Input, integer ( kind = ik4 ) NV, the dimension of the array paramater A,
 !    which must be at least N*(N+1)/2.
 !
 !    Input, real ( kind = rkx ) A(NV), information about the orthogonal transformations
 !    used in the reduction by TRED3.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
+!    Input, integer ( kind = ik4 ) M, the number of eigenvectors to be back transformed.
 !
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: nv
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: nv
 
   real    ( kind = rkx ) :: a(nv)
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ik
-  integer ( kind = 4 ) :: iz
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ik
+  integer ( kind = ik4 ) :: iz
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
+  integer ( kind = ik4 ) :: n
   real    ( kind = rkx ) :: s
   real    ( kind = rkx ) :: z(n,m)
 
@@ -15863,7 +15862,7 @@ subroutine tred1 ( n, a, d, e, e2 )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix A.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix A.
 !
 !    Input/output, real ( kind = rkx ) A(N,N), on input, contains the real symmetric matrix.
 !    Only the lower triangle of the matrix need be supplied.
@@ -15882,7 +15881,7 @@ subroutine tred1 ( n, a, d, e, e2 )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: d(n)
@@ -15891,11 +15890,11 @@ subroutine tred1 ( n, a, d, e, e2 )
   real    ( kind = rkx ) :: f
   real    ( kind = rkx ) :: g
   real    ( kind = rkx ) :: h
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
   real    ( kind = rkx ) :: xscale
 
   d(1:n) = a(n,1:n)
@@ -16056,7 +16055,7 @@ subroutine tred2 ( n, a, d, e, z )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = rkx ) A(N,N), the real symmetric input matrix.  Only the
 !    lower triangle of the matrix need be supplied.
@@ -16071,7 +16070,7 @@ subroutine tred2 ( n, a, d, e, z )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: a(n,n)
   real    ( kind = rkx ) :: d(n)
@@ -16080,11 +16079,11 @@ subroutine tred2 ( n, a, d, e, z )
   real    ( kind = rkx ) :: g
   real    ( kind = rkx ) :: h
   real    ( kind = rkx ) :: hh
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
   real    ( kind = rkx ) :: xscale
   real    ( kind = rkx ) :: z(n,n)
 
@@ -16271,9 +16270,9 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) NV, the dimension of A, which must be at least
+!    Input, integer ( kind = ik4 ) NV, the dimension of A, which must be at least
 !    (N*(N+1))/2.
 !
 !    Input/output, real ( kind = rkx ) A(NV).  On input, the lower triangle of the real
@@ -16290,8 +16289,8 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
 !
   implicit none
 
-  integer ( kind = 4 ) :: n
-  integer ( kind = 4 ) :: nv
+  integer ( kind = ik4 ) :: n
+  integer ( kind = ik4 ) :: nv
 
   real    ( kind = rkx ) :: a(nv)
   real    ( kind = rkx ) :: d(n)
@@ -16301,13 +16300,13 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
   real    ( kind = rkx ) :: g
   real    ( kind = rkx ) :: h
   real    ( kind = rkx ) :: hh
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: iz
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jk
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: iz
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jk
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
   real    ( kind = rkx ) :: xscale
 
   do ii = 1, n
@@ -16442,7 +16441,7 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) EPS1.  On input, an absolute error tolerance for
 !    the computed eigenvalues.  It should be chosen commensurate with
@@ -16462,9 +16461,9 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !    replaced by zero, causing the matrix to split into a direct sum of
 !    submatrices.  E2(1) is also set to zero.
 !
-!    Input, integer ( kind = 4 ) M11, the lower boundary index for the desired eigenvalues.
+!    Input, integer ( kind = ik4 ) M11, the lower boundary index for the desired eigenvalues.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvalues desired.  The upper
+!    Input, integer ( kind = ik4 ) M, the number of eigenvalues desired.  The upper
 !    boundary index M22 is then obtained as M22 = M11 + M - 1.
 !
 !    Output, real ( kind = rkx ) LB, UB, define an interval containing exactly the desired
@@ -16473,12 +16472,12 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !    Output, real ( kind = rkx ) W(M), the eigenvalues between indices M11 and M22
 !    in ascending order.
 !
-!    Output, integer ( kind = 4 ) IND(M), the submatrix indices associated with the
+!    Output, integer ( kind = ik4 ) IND(M), the submatrix indices associated with the
 !    corresponding eigenvalues in W: 1 for eigenvalues belonging to the
 !    first submatrix from the top, 2 for those belonging to the second
 !    submatrix, and so on.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, for normal return,
 !    3*N+1, if multiple eigenvalues at index M11 make unique selection
 !      impossible,
@@ -16487,35 +16486,35 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !
   implicit none
 
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: d(n)
   real    ( kind = rkx ) :: e(n)
   real    ( kind = rkx ) :: e2(n)
   real    ( kind = rkx ) :: eps1
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: ind(m)
-  integer ( kind = 4 ) :: isturm
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: k
-  integer ( kind = 4 ) :: l
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: ind(m)
+  integer ( kind = ik4 ) :: isturm
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: k
+  integer ( kind = ik4 ) :: l
   real    ( kind = rkx ) :: lb
-  integer ( kind = 4 ) :: m1
-  integer ( kind = 4 ) :: m11
-  integer ( kind = 4 ) :: m2
-  integer ( kind = 4 ) :: m22
-  integer ( kind = 4 ) :: p
-  integer ( kind = 4 ) :: q
-  integer ( kind = 4 ) :: r
+  integer ( kind = ik4 ) :: m1
+  integer ( kind = ik4 ) :: m11
+  integer ( kind = ik4 ) :: m2
+  integer ( kind = ik4 ) :: m22
+  integer ( kind = ik4 ) :: p
+  integer ( kind = ik4 ) :: q
+  integer ( kind = ik4 ) :: r
   real    ( kind = rkx ) :: rv4(n)
   real    ( kind = rkx ) :: rv5(n)
-  integer ( kind = 4 ) :: s
+  integer ( kind = ik4 ) :: s
   real    ( kind = rkx ) :: t1
   real    ( kind = rkx ) :: t2
-  integer ( kind = 4 ) :: tag
+  integer ( kind = ik4 ) :: tag
   real    ( kind = rkx ) :: tst1
   real    ( kind = rkx ) :: tst2
   real    ( kind = rkx ) :: u
@@ -16910,7 +16909,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of the matrix.
+!    Input, integer ( kind = ik4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = rkx ) EPS1.  On input, an absolute error tolerance for
 !    the computed eigenvalues.  It should be chosen commensurate with
@@ -16933,11 +16932,11 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !    Input, real ( kind = rkx ) LB, UB, define the interval to be searched for eigenvalues.
 !    If LB is not less than UB, no eigenvalues will be found.
 !
-!    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvalues in
+!    Input, integer ( kind = ik4 ) MM, an upper bound for the number of eigenvalues in
 !    the interval.  If more than MM eigenvalues are determined to lie in
 !    the interval, an error return is made with no values or vectors found.
 !
-!    Output, integer ( kind = 4 ) M, the number of eigenvalues determined to lie
+!    Output, integer ( kind = ik4 ) M, the number of eigenvalues determined to lie
 !    in (LB, UB).
 !
 !    Output, real ( kind = rkx ) W(M), the eigenvalues in ascending order if the matrix
@@ -16948,7 +16947,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !    Output, real ( kind = rkx ) Z(N,MM), the associated set of orthonormal eigenvectors.
 !    If an error exit is made, Z contains those vectors already found.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag.
+!    Output, integer ( kind = ik4 ) IERR, error flag.
 !    0, normal return.
 !    3*N+1, if M exceeds MM.
 !    4*N+R, if the eigenvector corresponding to the R-th
@@ -16956,8 +16955,8 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !
   implicit none
 
-  integer ( kind = 4 ) :: mm
-  integer ( kind = 4 ) :: n
+  integer ( kind = ik4 ) :: mm
+  integer ( kind = ik4 ) :: n
 
   real    ( kind = rkx ) :: d(n)
   real    ( kind = rkx ) :: e(n)
@@ -16966,31 +16965,31 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
   real    ( kind = rkx ) :: eps2
   real    ( kind = rkx ) :: eps3
   real    ( kind = rkx ) :: eps4
-  integer ( kind = 4 ) :: group
-  integer ( kind = 4 ) :: i
-  integer ( kind = 4 ) :: ierr
-  integer ( kind = 4 ) :: ii
-  integer ( kind = 4 ) :: ip
-  integer ( kind = 4 ) :: isturm
-  integer ( kind = 4 ) :: its
-  integer ( kind = 4 ) :: j
-  integer ( kind = 4 ) :: jj
-  integer ( kind = 4 ) :: k
+  integer ( kind = ik4 ) :: group
+  integer ( kind = ik4 ) :: i
+  integer ( kind = ik4 ) :: ierr
+  integer ( kind = ik4 ) :: ii
+  integer ( kind = ik4 ) :: ip
+  integer ( kind = ik4 ) :: isturm
+  integer ( kind = ik4 ) :: its
+  integer ( kind = ik4 ) :: j
+  integer ( kind = ik4 ) :: jj
+  integer ( kind = ik4 ) :: k
   real    ( kind = rkx ) :: lb
-  integer ( kind = 4 ) :: m
-  integer ( kind = 4 ) :: m1
-  integer ( kind = 4 ) :: m2
+  integer ( kind = ik4 ) :: m
+  integer ( kind = ik4 ) :: m1
+  integer ( kind = ik4 ) :: m2
   real    ( kind = rkx ) :: norm
-  integer ( kind = 4 ) :: p
-  integer ( kind = 4 ) :: q
-  integer ( kind = 4 ) :: r
+  integer ( kind = ik4 ) :: p
+  integer ( kind = ik4 ) :: q
+  integer ( kind = ik4 ) :: r
   real    ( kind = rkx ) :: rv1(n)
   real    ( kind = rkx ) :: rv2(n)
   real    ( kind = rkx ) :: rv3(n)
   real    ( kind = rkx ) :: rv4(n)
   real    ( kind = rkx ) :: rv5(n)
   real    ( kind = rkx ) :: rv6(n)
-  integer ( kind = 4 ) :: s
+  integer ( kind = ik4 ) :: s
   real    ( kind = rkx ) :: t1
   real    ( kind = rkx ) :: t2
   real    ( kind = rkx ) :: tst1
