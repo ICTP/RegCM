@@ -1750,11 +1750,11 @@ module mod_rad_aerosol
         !
         ! RRTMG radiative hat (up to kth)
         !
-        do k = 1, kth-kz
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kth-kz )
           kk = n_prehlev-k+1
-          zpr3d(:,:,k) = stdplevh(kk)*d_100
+          zpr3d(j,i,k) = stdplevh(kk)*d_100
           kk = n_hreflev-k+1
-          zdzr3d(:,:,k) = (stdhlevf(kk)-stdhlevf(kk-1))*d_1000
+          zdzr3d(j,i,k) = (stdhlevf(kk)-stdhlevf(kk-1))*d_1000
         end do
       end if
       im1 = imon
@@ -2785,9 +2785,11 @@ module mod_rad_aerosol
       implicit none
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: val
       real(rkx), intent(in) :: set
+      !$acc kernels
       where ( is_nan(val) )
         val = set
       end where
+      !$acc end kernels
     end subroutine remove_nans
 
 end module mod_rad_aerosol
