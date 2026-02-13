@@ -229,7 +229,6 @@ module mod_service
       logical :: l_times_on_pe
       logical :: l_nsubs
       real(rk8) :: total_comm_time
-      real(rk8) :: avg_value
       character(len=128) :: cname
       character(len=dbgslen) :: sub
 
@@ -237,7 +236,6 @@ module mod_service
       l_times_on_pe = .false.
       l_nsubs = .true.
       total_comm_time = 0.0D0
-      avg_value = 0.0D0
 
       call mpi_barrier(mycomm,ierr)
 
@@ -281,7 +279,6 @@ module mod_service
           call allgather_i(a_tmp,info_serial(nsubs)%n_of_time)
           ! check the number of time
           test = a_tmp(0)
-          avg_value = sum(a_tmp)/mxnode
           do i = 0, mxnode-1
             if ( a_tmp(i) /= test ) then
               l_times_on_pe = .true.

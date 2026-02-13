@@ -144,7 +144,7 @@ module mod_pbl_shinhong
     ! v10         v-wind speed at 10 m (m/s)
     !
     integer :: i, j, k, kk, it, ibin
-    real(rkx) :: corfac, rrho, hfxv, uflxsfx, vflxsfx, thv10, wind
+    real(rkx) :: rrho, hfxv, uflxsfx, vflxsfx, thv10
 
     if ( idynamic == 3 ) then
       rpfac = 1.0
@@ -160,7 +160,6 @@ module mod_pbl_shinhong
     do i = ici1, ici2
       do j = jci1, jci2
         ibin = (i-ici1)*nj+(j-jci1+1)
-        corfac = 1.0_rkx + ep1*m2p%qxatm(j,i,kz,iqv)
         psfc(ibin) = m2p%patmf(j,i,kzp1)
         hfx(ibin) = m2p%hfx(j,i)
         qfx(ibin) = m2p%qfx(j,i)
@@ -377,9 +376,9 @@ module mod_pbl_shinhong
     real(rkx) :: delxy, pu1, pth1, pq1
     real(rkx) :: zfacdx, dex, hgame_c
     real(rkx) :: amf1, amf2, bmf2, amf3, bmf3
-    real(rkx) :: mlfrac, ezfrac, sfcfracn, sflux0, snlflux0
+    real(rkx) :: mlfrac, sfcfracn, sflux0, snlflux0
     real(rkx) :: uwst, uwstx, csfac
-    real(rkx) :: prnumfac, bfx0, hfx0, qfx0, delb, dux, dvx,    &
+    real(rkx) :: prnumfac, bfx0, delb, dux, dvx,    &
       dsdzu, dsdzv, wm3, dthx, dqx, ross, tem1, dsig, tvcon,  &
       conpr, prfac, prfac2, phim8z, cenlfrac
     integer, dimension(nbl) :: kpbl
@@ -392,10 +391,10 @@ module mod_pbl_shinhong
     real(rkx), dimension(nbl) :: wm2, we, bfxpbl, hfxpbl, qfxpbl
     real(rkx), dimension(nbl) :: ufxpbl, vfxpbl, dthvx
     real(rkx), dimension(nbl) :: brcr, sflux, zol1, brcr_sbro
-    real(rkx), dimension(nbl) :: efxpbl, hpbl_cbl, epshol, ct
+    real(rkx), dimension(nbl) :: efxpbl, epshol, ct
     real(rkx), dimension(nbl,kz) :: xkzm, xkzh, f1, f2, r1, r2
     real(rkx), dimension(nbl,kz) :: ad, au, cu, al, xkzq, zfac
-    real(rkx), dimension(nbl,kz) :: thx, thvx, del, dza, dzq
+    real(rkx), dimension(nbl,kz) :: thx, thvx, del, dza
     real(rkx), dimension(nbl,kz) :: xkzom, xkzoh, za
     real(rkx), dimension(nbl,kz) :: wscalek
     real(rkx), dimension(nbl,kz) :: xkzml, xkzhl, zfacent, entfac
@@ -406,8 +405,7 @@ module mod_pbl_shinhong
     real(rkx), dimension(nbl,kz,ndiff) :: r3, f3
     real(rkx), dimension(kz) :: uxk, vxk, txk, thxk, thvxk
     real(rkx), dimension(kz) :: q2xk, hgame
-    real(rkx), dimension(kz) :: ps1d, pb1d, eps1d, pt1d
-    real(rkx), dimension(kz) :: xkze1d, eflx_l1d, eflx_nl1d, ptke1
+    real(rkx), dimension(kz) :: ptke1
     real(rkx), dimension(2:kz) :: s2, gh, rig, el
     real(rkx), dimension(2:kz) :: akmk, akhk, mfk
     real(rkx), dimension(2:kz) :: ufxpblk, vfxpblk, qfxpblk
@@ -515,7 +513,6 @@ module mod_pbl_shinhong
     do k = 1, kz
       do i = 1, nbl
         za(i,k) = 0.5_rkx*(zq(i,k)+zq(i,k+1))
-        dzq(i,k) = zq(i,k+1)-zq(i,k)
         del(i,k) = p2di(i,k)-p2di(i,k+1)
       end do
     end do
@@ -573,7 +570,6 @@ module mod_pbl_shinhong
 
     do i = 1, nbl
       efxpbl(i)   = 0.0_rkx
-      hpbl_cbl(i) = 0.0_rkx
       epshol(i)   = 0.0_rkx
       ct(i)       = 0.0_rkx
     end do
@@ -639,7 +635,6 @@ module mod_pbl_shinhong
       wscale(i) = 0.0_rkx
       kpbl(i)   = 1
       hpbl(i)   = zq(i,1)
-      hpbl_cbl(i) = zq(i,1)
       zl1(i)    = za(i,1)
       thermal(i)= thvx(i,1)
       pblflg(i) = .true.
@@ -697,8 +692,6 @@ module mod_pbl_shinhong
         phim(i) = (1.0_rkx-aphi16*hol1)**(-0.25_rkx)
         phih(i) = (1.0_rkx-aphi16*hol1)**(-0.5_rkx)
         bfx0  = max(sflux(i),0.0_rkx)
-        hfx0 = max(hfx(i)/rhox(i)*rcpd,0.0_rkx)
-        qfx0 = max(ep1*thx(i,1)*qfx(i)/rhox(i),0.0_rkx)
         wstar3(i) = (govrth(i)*bfx0*hpbl(i))
         wstar(i) = (wstar3(i))**h1
       else
@@ -790,7 +783,6 @@ module mod_pbl_shinhong
     ! stable boundary layer
     !
     do i = 1, nbl
-      hpbl_cbl(i) = hpbl(i)
       if ( (.not. sfcflg(i)) .and. hpbl(i) < zq(i,2) ) then
         brup(i) = br(i)
         stable(i) = .false.
@@ -1029,7 +1021,6 @@ module mod_pbl_shinhong
     delxy = sqrt(dx*dy)
     do i = 1, nbl
       mlfrac      = mltop-deltaoh(i)
-      ezfrac      = mltop+deltaoh(i)
       zfacmf(i,1) = min(max((zq(i,2)/hpbl(i)),zfmin),1.0_rkx)
       sfcfracn    = max(sfcfracn1,zfacmf(i,1))
       sflux0      = (a11+a12*sfcfracn)*sflux(i)
@@ -1427,14 +1418,7 @@ module mod_pbl_shinhong
         thvxk(k) = 0.0_rkx
         q2xk(k)  = 0.0_rkx
         hgame(k) = 0.0_rkx
-        ps1d(k)  = 0.0_rkx
-        pb1d(k)  = 0.0_rkx
-        eps1d(k) = 0.0_rkx
-        pt1d(k)  = 0.0_rkx
-        xkze1d(k)    = 0.0_rkx
-        eflx_l1d(k)  = 0.0_rkx
-        eflx_nl1d(k) = 0.0_rkx
-        ptke1(k)     = 1.0_rkx
+        ptke1(k) = 1.0_rkx
       end do
       do k = 1, kzp1
         zqk(k)   = 0.0_rkx
@@ -1846,7 +1830,7 @@ module mod_pbl_shinhong
     real(rkx), dimension(kzp1), intent(in) :: z
     real(rkx), dimension(kz), intent(inout) :: q2
     integer :: k
-    real(rkx) :: s2l, q2l, deltaz, akml, akhl, en2, pr, bpr
+    real(rkx) :: s2l, q2l, deltaz, akml, akhl, pr, bpr
     real(rkx) :: dis, suk, svk, gthvk, govrthvk, pru, prv
     real(rkx) :: thm, disel
     real(rkx), parameter :: epsq2l = 0.01_rkx
@@ -1867,7 +1851,6 @@ module mod_pbl_shinhong
       govrthvk = egrav/(0.5_rkx*(thvxk(k)+thvxk(k-1)))
       akml = akm(k)
       akhl = akh(k)
-      en2 = ri(k)*s2l !n**2
       thm = (thxk(k)+thxk(k-1))*0.5_rkx
       !
       !  turbulence production term
@@ -1918,14 +1901,13 @@ module mod_pbl_shinhong
     real(rkx), parameter :: c_k = 1.0_rkx
     real(rkx), parameter :: esq = 5.0_rkx
     real(rkx) :: akqs, cf, dtozs
-    real(rkx) :: esqhf, zak
+    real(rkx) :: zak
     real(rkx), dimension(2:kz) :: zfacentk
     real(rkx), dimension(3:kz) :: akq, cm, cr, dtoz, rsq2
     integer :: k
     !
     !  vertical turbulent diffusion
     !
-    esqhf = 0.5_rkx*esq
     do k = 2, kz
       zak = 0.5_rkx*(z(k)+z(k-1)) !zak of vdifq = za(k-1) of shinhong2d
       zfacentk(k) = (zak/hpbl)**3

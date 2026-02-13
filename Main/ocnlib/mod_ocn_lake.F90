@@ -205,7 +205,7 @@ module mod_ocn_lake
     real(rkx) :: xl, toth
     real(rkx) :: age, age1, age2, arg, arg2, cdr, cdrmin, cdrn
     real(rkx) :: cdrx, clead, dela, dela0, delq, dels, delt
-    real(rkx) :: fact, factuv, qgrd, qgrnd, qice, rhosw, rhosw3
+    real(rkx) :: fact, factuv, qgrd, qgrnd, qice
     real(rkx) :: ribd, ribl, ribn
     real(rkx) :: sold, vspda, u1, tc, visa, rho
     real(rkx) :: wt1, wt2
@@ -321,8 +321,6 @@ module mod_ocn_lake
         end if
         cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
         if ( cdr < cdrmin ) cdr = cdrmin
-        rhosw = 0.10_rkx*(d_one+d_three*age)
-        rhosw3 = rhosw**3
         cdrn = (vonkar/log(ht(i)/zsno))**2
         ribl = (d_one-271.5_rkx/tatm(i))*ht(i)*egrav/ribd
         if ( ribl < d_zero ) then

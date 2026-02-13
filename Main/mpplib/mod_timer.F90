@@ -157,9 +157,9 @@ module mod_timer
       call split_idate(t%idate,t%year,t%month,t%day,t%hour,t%minute,t%second)
       t%nowinday = t%idate%second_of_day
     else
-      t%hour = t%nowinday/3600
-      t%minute = mod(t%nowinday,3600)/60
-      t%second = mod(t%nowinday,60)
+      t%hour = t%nowinday/3600_ik8
+      t%minute = mod(t%nowinday,3600_ik8)/60_ik8
+      t%second = mod(t%nowinday,60_ik8)
     end if
     t%reached_endtime = t%model_internal_time >= t%model_stop_time
     t%next_is_endtime = (t%model_internal_time + &

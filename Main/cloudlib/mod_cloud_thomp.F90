@@ -39,9 +39,9 @@ module mod_cloud_thomp
   ! Sundqvist et al (1989) scheme but using a grid-scale dependent
   ! RH threshold, one each for land v. ocean points.
   !
-  subroutine thomp_cldfrac(p,t,rho,qv,qc,qs,qi,iland,gridkm,cldfra)
+  subroutine thomp_cldfrac(p,t,qv,qc,qs,qi,iland,gridkm,cldfra)
     implicit none
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p, t, rho
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p, t
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qv, qc, qi, qs
     integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: iland
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: cldfra

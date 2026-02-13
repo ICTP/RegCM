@@ -32,9 +32,9 @@ module mod_cloud_xuran
   ! This subroutine computes the fractional cloud fraction
   ! using the semi-empirical formula of Xu and Randall (1996, JAS)
   !
-  subroutine xuran_cldfrac(p,qc,qs,rh,qcrit,fcc)
+  subroutine xuran_cldfrac(qc,qs,rh,qcrit,fcc)
     implicit none
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p, rh
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: rh
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qc, qs
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: qcrit
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc

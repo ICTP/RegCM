@@ -271,11 +271,10 @@ module mod_micro_interface
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
                            totc,mo2mc%rh,tc0,rh0,qtcrit,mc2mo%fcc)
       case (1)
-        call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qs,mo2mc%rh, &
-                           qtcrit,mc2mo%fcc)
+        call xuran_cldfrac(totc,mo2mc%qs,mo2mc%rh,qtcrit,mc2mo%fcc)
       case (2)
-        call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%rho,mo2mc%qvn, &
-                           totc,mo2mc%qsn,mo2mc%qin,mo2mc%ldmsk,  &
+        call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%qvn,totc, &
+                           mo2mc%qsn,mo2mc%qin,mo2mc%ldmsk,  &
                            ds,mc2mo%fcc)
       case (3)
         call gulisa_cldfrac(totc,mo2mc%z,mc2mo%fcc)

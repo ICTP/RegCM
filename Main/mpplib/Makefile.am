@@ -36,6 +36,7 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_mpmessage.o : mod_mpmessage.F90 mod_intkinds.o mod_message.o mod_realkinds.o mod_stdio.o
 mod_ipcc_scenario.o : mod_ipcc_scenario.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_runparams.o mod_memutil.o mod_stdio.o mod_mppparam.o
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_mppparam.o : mod_mppparam.F90 mod_date.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_stdio.o mod_constants.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_mpi_regcm.o : mod_mpi_regcm.F90 mod_date.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_stdio.o mod_constants.o
