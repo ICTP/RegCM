@@ -22,7 +22,7 @@ module mod_clm_histfile
   use mod_clm_varpar, only : nlevgrnd, nlevlak, nlevurb, numrad, &
          nlevdecomp_full, maxpatch_pft
   use mod_clm_varctl, only : caseid, ctitle, fsurdat, finidat, fpftcon, &
-         version, hostname, username, conventions, source, inst_suffix, &
+         version, hostnm, username, conventions, source, inst_suffix, &
          nsrest, nsrStartup, nextdate, DoForceRestart
   use mod_clm_domain, only : ldomain
   use mod_clm_time_manager, only : getdatetime
@@ -1564,7 +1564,7 @@ module mod_clm_histfile
     str = 'created on ' // curdate // ' ' // curtime
     call clm_addatt(lnfid, 'history', trim(str))
     call clm_addatt(lnfid, 'source' , trim(source))
-    call clm_addatt(lnfid, 'hostname', trim(hostname))
+    call clm_addatt(lnfid, 'hostname', trim(hostnm))
     call clm_addatt(lnfid, 'username', trim(username))
     call clm_addatt(lnfid, 'version', trim(version))
 

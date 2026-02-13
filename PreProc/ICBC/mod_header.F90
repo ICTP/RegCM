@@ -17,6 +17,8 @@ module mod_header
 
   use mod_intkinds
   use mod_stdio
+  use mod_posix, only : hostname
+
   implicit none
 
   public
@@ -26,50 +28,46 @@ module mod_header
   subroutine header(myname)
     implicit none
     character (len=*), intent(in) :: myname
-    integer(ik4) :: ihost, idir
-    integer(ik4) :: hostnm
-    integer(ik4) :: getcwd
     character (len=32) :: cdata
     character (len=5) :: czone
-    character (len=32) :: hostname
+    character (len=32) :: hostnm
     character (len=32) :: user
     character (len=256) :: directory
-    integer(ik4), parameter :: nrite = stdout
     integer(ik4), dimension(8) :: tval
     character(len=*), parameter :: f99001 = &
            '(/,1x," This is ",A," part of the RegCM version 5")'
     character(len=*), parameter :: f99002 = &
            '(2x," SVN Revision: ",A," compiled at: data : ",A,"  time: ",A,/)'
-#ifdef __INTEL_COMPILER
-  external :: hostnm, getlog, getcwd
-#endif
 
     cdata = '?'
     czone = '?'
-    hostname = '?'
+    hostnm = '?'
     user = '?'
     directory = '?'
 
-    write (nrite,f99001)  myname
-    write (nrite,f99002)  GIT_VER, __DATE__, __TIME__
+    write (stdout,f99001)  myname
+#ifdef NAGFOR
+    write (stdout,f99001)  GIT_VER, '1900-01-01', '00:00:00'
+#else
+    write (stdout,f99002)  GIT_VER, __DATE__, __TIME__
+#endif
 
 #ifdef IBM
-    hostname = 'ibm platform '
-    user = 'Unknown'
+    hostnm = 'ibm platform '
 #else
-    ihost = hostnm(hostname)
-    call getlog(user)
+    call hostname(hostnm)
 #endif
     call date_and_time(zone=czone,values=tval)
-    idir = getcwd(directory)
+    call get_environment_variable('PWD',directory)
+    call get_environment_variable('USER',user)
 
     write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
           tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
-    write (nrite,*) ": this run start at    : ",trim(cdata)
-    write (nrite,*) ": it is submitted by   : ",trim(user)
-    write (nrite,*) ": it is running on     : ",trim(hostname)
-    write (nrite,*) ": in directory         : ",trim(directory)
-    write (nrite,*) "                      "
+    write (stdout,*) ": this run start at    : ",trim(cdata)
+    write (stdout,*) ": it is submitted by   : ",trim(user)
+    write (stdout,*) ": it is running on     : ",trim(hostnm)
+    write (stdout,*) ": in directory         : ",trim(directory)
+    write (stdout,*) "                      "
   end subroutine header
 
   subroutine finaltime(myid)
