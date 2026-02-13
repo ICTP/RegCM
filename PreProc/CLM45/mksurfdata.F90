@@ -39,9 +39,10 @@ program mksurfdata
 #endif
 
   use mod_intkinds
-  use mod_constants, only : raddeg, dlowval
   use mod_realkinds
+  use mod_constants, only : raddeg, dlowval
   use mod_dynparam
+  use mod_posix, only : hostname
   use mod_message
   use mod_grid
   use mod_date
@@ -199,40 +200,43 @@ program mksurfdata
   integer(ik4), pointer, contiguous, dimension(:) :: landpoint => null( )
   logical, pointer, contiguous, dimension(:) :: pft_gt0 => null( )
   logical :: subgrid
-  integer(ik4) :: hostnm
-  integer(ik4) :: ihost, idir
-  integer(ik4) :: getcwd
   integer(ik4), dimension(8) :: tval
-  character (len=32) :: cdata='?'
-  character (len=5) :: czone='?'
-  character (len=32) :: hostname='?'
-  character (len=32) :: user='?'
-  character (len=128) :: directory='?'
+  character (len=32) :: cdata
+  character (len=5) :: czone
+  character (len=32) :: hostnm
+  character (len=32) :: user
+  character (len=128) :: directory
   character (len=*), parameter :: f99001 = &
           '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
-#ifdef __INTEL_COMPILER
-  external :: hostnm, getlog, getcwd
-#endif
+
+  cdata = '?'
+  czone = '?'
+  hostnm = '?'
+  user = '?'
+  directory = '?'
 
   write (stdout,  &
      "(/,2x,'This is mksurfdata part of RegCM package version 5')")
+#ifdef NAGFOR
+  write (stdout,f99001)  GIT_VER, '1900-01-01', '00:00:00'
+#else
   write (stdout,f99001)  GIT_VER, __DATE__, __TIME__
+#endif
 
 #ifdef IBM
-  hostname='ibm platform '
-  user= 'Unknown'
+  hostnm = 'ibm platform '
 #else
-  ihost = hostnm(hostname)
-  call getlog(user)
+  call hostname(hostnm)
 #endif
   call date_and_time(zone=czone,values=tval)
-  idir = getcwd(directory)
+  call get_environment_variable('PWD',directory)
+  call get_environment_variable('USER',user)
 
   write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
      tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
   write(stdout,*) ": this run start at  : ",trim(cdata)
   write(stdout,*) ": it is submitted by : ",trim(user)
-  write(stdout,*) ": it is running on   : ",trim(hostname)
+  write(stdout,*) ": it is running on   : ",trim(hostnm)
   write(stdout,*) ": in directory       : ",trim(directory)
   write(stdout,*) "                     "
 

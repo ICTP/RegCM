@@ -38,7 +38,7 @@ distclean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_fudge.o : mod_fudge.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_message.o
-mod_header.o : mod_header.F90 mod_intkinds.o mod_stdio.o $(REGCM_ROOT)/version
+mod_header.o : mod_header.F90 mod_intkinds.o mod_posix.o mod_stdio.o $(REGCM_ROOT)/version
 mod_maps.o : mod_maps.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o
 mod_maputils.o : mod_maputils.F90 mod_constants.o mod_intkinds.o mod_realkinds.o mod_projections.o
 mod_smooth.o : mod_smooth.F90 mod_intkinds.o mod_realkinds.o mod_constants.o

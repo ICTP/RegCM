@@ -14,6 +14,7 @@ implicit none
   use mod_mpmessage
   use mod_stdio
   use mod_date
+  use mod_posix, only : hostname
   use mod_mppparam
   use mod_clm_type
   use mod_clm_nchelper
@@ -184,9 +185,11 @@ implicit none
     character(len= 10) :: basedate     ! base date (yyyymmdd)
     character(len=  8) :: basesec      ! base seconds
     integer(ik4) :: hostnm
-    character (len=32) :: hostname='?'
-    character (len=32) :: user='?'
+    character (len=32) :: hostnm
+    character (len=32) :: user
 
+    hostnm = '?'
+    user = '?'
     ! Assign local pointers to derived type members (gridcell-level)
 
     ! NONE
@@ -235,15 +238,14 @@ implicit none
     call clm_addatt(ncid, 'history', trim(str))
 
 #ifdef IBM
-    hostname='ibm platform '
-    user= 'Unknown'
+    hostnm = 'ibm platform '
 #else
-    ihost = hostnm(hostname)
-    call getlog(user)
+    call hostname(hostnm)
 #endif
 
+    call get_environment_variable('USER',user)
     call clm_addatt(ncid, 'logname', trim(user))
-    call clm_addatt(ncid, 'host', trim(hostname))
+    call clm_addatt(ncid, 'host', trim(hostnm))
 
     str = 'Community Land Model: CLM3'
     call clm_addatt(ncid, 'source',  trim(str))
