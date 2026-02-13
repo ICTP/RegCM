@@ -440,9 +440,9 @@ program ncprepare
       if ( iproj /= 'ROTLLR' ) then
         call pj%rotation_angle(alon,alat,ruv)
       end if
-      r4in = real(rin)
-      r4jn = real(rjn)
-      r4uv = real(ruv)
+      r4in(:,:) = real(rin(:,:))
+      r4jn(:,:) = real(rjn(:,:))
+      r4uv(:,:) = real(ruv(:,:))
       open(newunit=ip2, file=tmpcoord, form='unformatted', status='replace')
       write(ip2) r4in
       write(ip2) r4jn
@@ -488,7 +488,7 @@ program ncprepare
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Read Z var')
 
-    if (lsigma) level = level * 1000.0
+    if (lsigma) level(:) = level(:) * 1000.0
     write (lvformat, '(a,i4,a)') '(a,i4,a,',kz,'f9.2)'
     write (levels, lvformat) 'zdef ', kz, ' levels ', level
     write (ip1, '(a)') trim(levels)
