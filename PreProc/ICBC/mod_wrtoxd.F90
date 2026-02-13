@@ -46,72 +46,67 @@ module mod_wrtoxd
   integer(ik4), parameter :: noxsp = 5
   !aero species in chemistry lateral boundaries
   integer(ik4), parameter :: naero = 12
+  integer(ik4), parameter :: maxaeout = 16
 
   integer(ik4) :: naesp = -1
-
-  character(len=8), dimension(nchsp) :: chspec   ! Names of Mozart species
-  character(len=8), dimension(ncbmz) :: cbmzspec ! Name of CBMZ species
-  character(len=8), dimension(noxsp) :: oxspec
-  character(len=8), dimension(naero) :: aerospec
 
   real(rkx), dimension(nchsp) :: mw
 
   character(len=8), pointer, contiguous, dimension(:) :: aespec
-  character(len=8), target, dimension(4) :: aedust
-  character(len=8), target, dimension(12) :: aedu12
-  character(len=8), target, dimension(8) :: aedccb
-  character(len=8), target, dimension(4) :: aesslt
-  character(len=8), target, dimension(8) :: aeduss
-  character(len=8), target, dimension(5) :: aecarb
-  character(len=8), target, dimension(2) :: aesulf
-  character(len=8), target, dimension(7) :: aesuca
-  character(len=8), target, dimension(15) :: aeaero
 
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chv4
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: oxv4
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: aev4
 
-  data oxspec / 'OH', 'HO2', 'O3', 'NO3', 'H2O2' /
-
-  data chspec / 'NO      ','NO2     ','N2O5    ','HNO3    ','HO2NO2  ',  &
-                'O3      ','H2O2    ','SO2     ','SO4     ','CH4     ',  &
-                'CH2O    ','CH3OH   ','PAN     ','C2H6    ','C3H8    ',  &
-                'BIGALK  ','C2H4    ','C3H6    ','BIGENE  ','TOLUENE ',  &
-                'ISOP    ','CH3CHO  ','CH3COOH ','GLYALD  ','CH3OOH  ',  &
-                'C2H5OOH ','CH3COCH3','HYAC    ','CH3COCHO','ONIT    ',  &
-                'MEK     ','MVK     ','MACR    ','HYDRALD ','BIGALD  ',  &
-                'ISOPNO3 ','ONITR   ','CRESOL  ','CO      ','DMS     ' /
-
-  data cbmzspec / 'O3      ','NO      ','NO2     ','HNO3    ','HNO4    ', &
-                  'N2O5    ','H2O2    ','CH4     ','CO      ','SO2     ', &
-                  'H2SO4   ','DMS     ','PAR     ','C2H6    ','ETH     ', &
-                  'OLET    ','OLEI    ','TOL     ','XYL     ','ISOP    ', &
-                  'CRES    ','OPEN    ','ISOPN   ','ISOPRD  ','ONIT    ', &
-                  'MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ', &
-                  'ALD2    ','HCHO    ','CH3OH   '/
-
+  character(len=8), dimension(noxsp), parameter :: oxspec =        &
+        [ 'OH      ','HO2     ','O3      ','NO3     ','H2O2    ' ]
+  ! Names of Mozart species
+  character(len=8), dimension(nchsp), parameter :: chspec =        &
+        [ 'NO      ','NO2     ','N2O5    ','HNO3    ','HO2NO2  ',  &
+          'O3      ','H2O2    ','SO2     ','SO4     ','CH4     ',  &
+          'CH2O    ','CH3OH   ','PAN     ','C2H6    ','C3H8    ',  &
+          'BIGALK  ','C2H4    ','C3H6    ','BIGENE  ','TOLUENE ',  &
+          'ISOP    ','CH3CHO  ','CH3COOH ','GLYALD  ','CH3OOH  ',  &
+          'C2H5OOH ','CH3COCH3','HYAC    ','CH3COCHO','ONIT    ',  &
+          'MEK     ','MVK     ','MACR    ','HYDRALD ','BIGALD  ',  &
+          'ISOPNO3 ','ONITR   ','CRESOL  ','CO      ','DMS     ' ]
+  ! Name of CBMZ species
+  character(len=8), dimension(ncbmz), parameter :: cbmzspec =      &
+        [ 'O3      ','NO      ','NO2     ','HNO3    ','HNO4    ',  &
+          'N2O5    ','H2O2    ','CH4     ','CO      ','SO2     ',  &
+          'H2SO4   ','DMS     ','PAR     ','C2H6    ','ETH     ',  &
+          'OLET    ','OLEI    ','TOL     ','XYL     ','ISOP    ',  &
+          'CRES    ','OPEN    ','ISOPN   ','ISOPRD  ','ONIT    ',  &
+          'MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ',  &
+          'ALD2    ','HCHO    ','CH3OH   ' ]
   ! This is usedi only for CAMS preproc, in the future try to harmonize..
-  data aerospec /'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
-                 'SO2   ','SO4   ','DUST01','DUST02', &
-                 'DUST03','DUST04','SSLT01','SSLT02'/
+  character(len=8), dimension(naero), parameter :: aerospec =      &
+        [ 'BC_HL   ','BC_HB   ','OC_HL   ','OC_HB   ','SO2     ',  &
+          'SO4     ','DUST01  ','DUST02  ','DUST03  ','DUST04  ',  &
+          'SSLT01  ','SSLT02  ' ]
 
-  integer, parameter :: maxaeout = 16
-
-  data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
-  data aedu12 / 'D1201', 'D1202', 'D1203', 'D1204', &
-                'D1205', 'D1206', 'D1207', 'D1208', &
-                'D1209', 'D1210', 'D1211', 'D1212' /
-  data aesslt / 'SSLT01', 'SSLT02', 'SSLT03', 'SSLT04' /
-  data aeduss / 'DST01', 'DST02', 'DST03', 'DST04', &
-                'SSLT01', 'SSLT02', 'SSLT03', 'SSLT04' /
-  data aecarb / 'CB1', 'CB2', 'OC1', 'SOA', 'OC2' /
-  data aesulf / 'SO2', 'SO4' /
-  data aesuca / 'CB1', 'CB2', 'OC1', 'SOA', 'OC2', 'SO2', 'SO4' /
-  data aeaero / 'CB1', 'CB2', 'OC1', 'OC2', 'SO2', 'SO4',     &
-                'DST01', 'DST02', 'DST03', 'DST04',           &
-                'SSLT01', 'SSLT02', 'SSLT03', 'SSLT04', 'SOA' /
-  data aedccb / 'CB1', 'CB2', 'OC1', 'OC2' ,'DST01', 'DST02',  &
-                'DST03', 'DST04' /
+  character(len=8), target, dimension(4) :: aedust =    &
+        [ 'DST01   ','DST02   ','DST03   ','DST04   ' ]
+  character(len=8), target, dimension(12) :: aedu12 =   &
+        [ 'D1201   ','D1202   ','D1203   ','D1204   ','D1205   ',  &
+          'D1206   ','D1207   ','D1208   ','D1209   ','D1210   ',  &
+          'D1211   ','D1212   ' ]
+  character(len=8), target, dimension(4) :: aesslt =    &
+        [ 'SSLT01  ','SSLT02  ','SSLT03  ','SSLT04  ' ]
+  character(len=8), target, dimension(8) :: aeduss =    &
+        [ 'DST01   ','DST02   ','DST03   ','DST04   ','SSLT01  ',  &
+          'SSLT02  ','SSLT03  ','SSLT04  ' ]
+  character(len=8), target, dimension(5) :: aecarb =    &
+        [ 'CB1     ','CB2     ','OC1     ','SOA     ','OC2     ' ]
+  character(len=8), target, dimension(2) :: aesulf =    &
+        [ 'SO2     ','SO4     ' ]
+  character(len=8), target, dimension(7) :: aesuca =    &
+        [ 'CB1     ','CB2     ','OC1     ','SOA     ','OC2     ',  &
+          'SO2     ','SO4     ' ]
+  character(len=8), target, dimension(15) :: aeaero =   &
+        [ 'CB1     ','CB2     ','OC1     ','OC2     ','SO2     ',  &
+          'SO4     ','DST01   ','DST02   ','DST03   ','DST04   ',  &
+          'SSLT01  ','SSLT02  ','SSLT03  ','SSLT04  ','SOA     ' ]
 
   integer(ik4) :: ioc2, isoa
   integer(ik4) :: isslt1, isslt2, isslt3, isslt4

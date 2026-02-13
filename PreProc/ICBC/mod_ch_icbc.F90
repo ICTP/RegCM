@@ -290,14 +290,9 @@ module mod_ch_icbc
 
     character(len=256),intent(out) :: chfilename
     character(len=44),dimension(nfile),save:: filename
-    integer(ik4) :: i, recc, it
+    integer(ik4) :: i, it
     integer(ik4) :: timid, timlen
-    character(len=32) :: chfilemm,chfilemmm1,chfilemmp1
     character(len=64) :: cunit, ccal
-    character(len=32) :: datename,datenamem1,datenamep1
-    character(len=4)  :: yyyy
-    character(len=2)  :: mm
-    character(len=7)  :: yyyy_mm,yyyy_mmm1,yyyy_mmp1
     integer(ik4) :: year, month, day, hour
     integer(ik4) :: year1, month1, day1, hour1
     integer(ik4) :: nyear, nmonth, nday, nhour
@@ -305,17 +300,6 @@ module mod_ch_icbc
     type (rcm_time_interval) :: tdif
 
     call split_idate(idate,year,month,day,hour)
-    datename   = tochar(idate)
-    datenamem1 = tochar(prevmon(idate))
-    datenamep1 = tochar(nextmon(idate))
-    yyyy     = datename(1:4)
-    mm       = datename(6:7)
-    yyyy_mm  = datename(1:7)
-    yyyy_mmm1  = datenamem1(1:7)
-    yyyy_mmp1  = datenamep1(1:7)
-    chfilemm='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mm
-    chfilemmm1='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mmm1
-    chfilemmp1='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mmp1
     open(newunit=ipunit,file=trim(inpglob)//pthsep//'OXIGLOB'//pthsep//'list')
 
     call split_idate(idate0,year1,month1,day1,hour1)
@@ -324,7 +308,6 @@ module mod_ch_icbc
       do i = 1, nfile
         read(ipunit,*) filename(i)
       end do
-      recc=0
       do i = 1, nfile
         chfilename=trim(trim(inpglob)//pthsep//'OXIGLOB'//pthsep//filename(i))
         istatus = nf90_open(chfilename,nf90_nowrite,ncid)
@@ -379,7 +362,7 @@ module mod_ch_icbc
     implicit none
     type(rcm_time_and_date), intent(in) :: idate
     character(len=256),intent(in) :: chfilename
-    integer(ik4) :: i, is, j, k, l, k0,recc
+    integer(ik4) :: i, is, j, k, l, k0, recc
     integer(ik4) :: timid, timlen
     character(len=64) :: cunit, ccal
     real(rkx) :: wt1, wt2

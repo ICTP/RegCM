@@ -115,7 +115,6 @@ module mod_gn6hnc
   integer(ik4), parameter :: nvars = 6
   integer(ik4), parameter :: nfiles = nvars
   integer(ik4), dimension(nvars) :: inet
-  integer(ik4), dimension(nvars) :: ivar
   integer(ik4) :: lyear
 
   character(len=256) :: pathaddname
@@ -161,7 +160,7 @@ module mod_gn6hnc
     implicit none
     integer(ik4) :: istatus, ivar1, inet1, inet2, inet3, jdim, i, j, k
     character(len=256) :: pathaddname
-    real(8) :: dp0
+    real(rk8) :: dp0
 
     if ( dattyp == 'CAM4N' ) then
       pathaddname = trim(inpglob)// &
@@ -1158,6 +1157,7 @@ module mod_gn6hnc
     type(rcm_time_and_date) :: pdate
     integer(ik4) :: year, month, day, hour, y1, y2, m1
     integer(ik4) :: fyear, fmonth, fday, fhour
+    integer(ik4), dimension(nvars) :: ivar
 
     character(len=*), parameter :: f99001 = &
                              '(i0.4,a,a,i0.4,i0.2,i0.2,a,i0.2,a)'
@@ -1414,7 +1414,7 @@ module mod_gn6hnc
           if ( ec5vars(i) /= 'XXX' ) then
             write (inname,f99004) dattyp(4:5),pthsep, &
                'EH5_OM_'//dattyp(4:5)//'_1_', &
-               trim(ec5name(i)), '_', y1, '010100-',y1+1,'010100.nc'
+               trim(ec5name(i)), '_', y1, '010100-',y2,'010100.nc'
             pathaddname = trim(inpglob)//'/ECHAM5/'//inname
             istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
             call checkncerr(istatus,__FILE__,__LINE__, &

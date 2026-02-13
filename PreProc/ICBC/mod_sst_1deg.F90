@@ -89,10 +89,10 @@ module mod_sst_1deg
       end if
       ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
       do i = 1, ilon
-        loni(i) = .5 + float(i-1)
+        loni(i) = .5 + real(i-1)
       end do
       do j = 1, jlat
-        lati(j) = -89.5 + 1.*float(j-1)
+        lati(j) = -89.5 + 1.*real(j-1)
       end do
       inpfile = trim(inpglob)//'/SST/GISST_194712_200209'
       inquire (file=inpfile,exist=there)

@@ -126,7 +126,7 @@ module mod_date
   end interface
 
   interface operator(<)
-    module procedure date_less, interval_less, idate_less
+    module procedure date_less, interval_less, idate_less_i4, idate_less_i8
   end interface
 
   interface operator(>=)
@@ -1855,7 +1855,7 @@ module mod_date
     end if
   end function date_less
 
-  logical function idate_less(x,y) result(lt)
+  logical function idate_less_i4(x,y) result(lt)
     implicit none
     type (rcm_time_and_date), intent(in) :: x
     integer(ik4), intent(in) :: y
@@ -1863,7 +1863,17 @@ module mod_date
     yy = y
     call set_calint(yy,x%calendar)
     lt = date_less(x,yy)
-  end function idate_less
+  end function idate_less_i4
+
+  logical function idate_less_i8(x,y) result(lt)
+    implicit none
+    type (rcm_time_and_date), intent(in) :: x
+    integer(ik8), intent(in) :: y
+    type (rcm_time_and_date) :: yy
+    yy = y
+    call set_calint(yy,x%calendar)
+    lt = date_less(x,yy)
+  end function idate_less_i8
 
   logical function date_ge(x,y) result(gt)
     implicit none

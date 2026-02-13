@@ -228,7 +228,7 @@ CONTAINS
 
   ! ------------------------------------------------------------------------
   SUBROUTINE nc_read_dim
-    INTRINSIC :: TRIM, ADJUSTL, NINT
+    INTRINSIC :: TRIM
 
 
     ! LOCAL
@@ -276,7 +276,7 @@ CONTAINS
   END SUBROUTINE nc_read_dim
   ! ------------------------------------------------------------------------
   SUBROUTINE nc_read
-    INTRINSIC :: TRIM, ADJUSTL, NINT
+    INTRINSIC :: TRIM
 
 
     ! LOCAL
@@ -343,7 +343,7 @@ CONTAINS
 
     IMPLICIT NONE
 
-    INTRINSIC :: DATE_AND_TIME, CHAR
+    INTRINSIC :: DATE_AND_TIME
 
     ! LOCAL
     INTEGER :: ncid      ! netCDF-ID

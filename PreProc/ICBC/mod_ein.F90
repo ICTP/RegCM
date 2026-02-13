@@ -66,9 +66,6 @@ module mod_ein
   integer, parameter :: numvars = 7
   integer, parameter :: numruns = 4
 
-  integer(ik4), dimension(numvars,numruns) :: ncfile
-  integer(ik4), dimension(numvars,numruns) :: varid
-  real(rkx), dimension(numvars,numruns) :: xoff, xscl
   type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
   integer(ik4), pointer, contiguous, dimension(:) :: xtimes
   logical :: lqas = .false.
@@ -345,6 +342,9 @@ module mod_ein
     integer(ik4), save :: lastmonth, lastyear
     type(rcm_time_and_date) :: xdate
     type(rcm_time_interval) :: tdif
+    real(rkx), save, dimension(numvars,numruns) :: xoff, xscl
+    integer(ik4), save, dimension(numvars,numruns) :: ncfile
+    integer(ik4), save, dimension(numvars,numruns) :: varid
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
