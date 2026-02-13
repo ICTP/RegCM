@@ -24,7 +24,7 @@ module mod_ocn_zeng
     use mod_service
     use mod_ocn_internal
     use mod_runparams, only : iocnrough, iocnzoq, syncro_cpl
-    use mod_runparams, only : iocncpl, iwavcpl
+    use mod_runparams, only : iwavcpl
     use mod_runparams, only : zomax, ustarmax
 
     implicit none
@@ -76,9 +76,9 @@ module mod_ocn_zeng
       real(rkx) :: dqh, dth, facttq, lh, qs, sh, zo,     &
             tau, tsurf, ustar, uv10, zi, cd, dthv, zq,   &
             zh, zu, obu, qstar, xdens, th, thv, thvstar, &
-            tstar, um, visa, zot, wc, zeta, zoq, tha,    &
-            cpm, rlv, rs, rd, td, tdelta, delta, q, fd, &
-            ustarw, l, phidl, aa, bb, lamb, dtstend, fs, &
+            tstar, um, visa, zot, wc, zeta, zoq, cpm,    &
+            rlv, rs, rd, td, tdelta, delta, q, fd, fs,   &
+            ustarw, l, phidl, aa, bb, lamb, dtstend,     &
             dts, tskin_new, fua, es, ws
 !     real(rkx) :: lwds, lwus
       integer(ik4) :: nconv
@@ -121,7 +121,6 @@ module mod_ocn_zeng
         dth = tatm(i)+0.0098*zh-tsurf
         ! potential T
         th = tsurf*(p00/sfps(i))**rovcp
-        tha = tatm(i)*(p00/patm(i))**rovcp
         ! the saturation vapor pressure for salty water is on average 2% lower
         es = pfesat(tsurf,sfps(i))*0.98_rkx
         ws = ep2*(es/(sfps(i)-es))

@@ -77,7 +77,7 @@ module mod_pbl_thetal
     real(rkx) :: dthetal, dqt, qvprev, deltat, es, qcthresh
     real(rkx) :: tempqv, tempqc, tempt, tempes, ddq
     real(rkx) :: mylovcp, mycpovl, mywlhv
-    logical :: mflag
+    logical :: mflag, condensing
     integer(ik4) :: iteration, itqt, itqtsupp, maxiter
     integer(ik4), parameter :: itmax = 6
     integer(ik4), parameter :: itmin = 3
@@ -241,8 +241,9 @@ module mod_pbl_thetal
       !*******************************************************
 
       itqtsupp = 0
+      condensing = .true.
       bigloop : &
-      do
+      do while ( condensing )
         ! calculate the saturation mixing ratio
         rvls = pfwsat(temps,p)
         ! go through 3 iterations of calculating the saturation
@@ -290,7 +291,7 @@ module mod_pbl_thetal
             cycle bigloop
           end if
         end if
-        exit bigloop
+        condensing = .false.
       end do bigloop
 
     else

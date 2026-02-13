@@ -21,7 +21,7 @@ module mod_pbl_gfs
   use mod_memutil
   use mod_dynparam, only : kz, kzp1, kzm1, ntr, idynamic
   use mod_dynparam, only : ici1, ici2, jci1, jci2
-  use mod_runparams, only : dt, dx, nqx, ichem, iqv
+  use mod_runparams, only : dt, nqx, ichem, iqv
   use mod_regcm_types, only : mod_2_pbl, pbl_2_mod
 
   implicit none
@@ -99,17 +99,14 @@ module mod_pbl_gfs
 
       integer(ik4) :: i, j, k, kk, km, n
       integer(ik4) :: iq, it, iit
-      real(rkx) :: ps, ta, qa, pa, ua, va
+      real(rkx) :: ps, ua, va
 
       n = 1
       do i = ici1, ici2
         do j = jci1, jci2
-          ua = m2p%u10m(j,i)
-          va = m2p%v10m(j,i)
-          ta = m2p%tatm(j,i,kz)
-          qa = m2p%qxatm(j,i,kz,iqv)
+          ua = max(m2p%u10m(j,i),0.05_rkx)
+          va = max(m2p%v10m(j,i),0.05_rkx)
           ps = m2p%patmf(j,i,kzp1)
-          pa = m2p%patm(j,i,kz)
           fm(n) = m2p%ram1(j,i)
           fh(n) = m2p%rah1(j,i)
           rbsoil(n) = m2p%br(j,i)
@@ -287,7 +284,7 @@ module mod_pbl_gfs
       real(rkx), dimension(im) :: radmin, vrad, zd, zdd, thlvx1
       real(rkx), dimension(im) :: hgamt, hgamq, tx1, tx2
 
-      real(rkx), dimension(im,km-1) :: rdzt, dktx, dkux, xkzo, xkzmo
+      real(rkx), dimension(im,km-1) :: rdzt, dktx, xkzo, xkzmo
       real(rkx), dimension(im,km+1) :: zi
       real(rkx), dimension(im,km-1) :: dku, dkt, cku, ckt, al, au
       real(rkx), dimension(im,km) :: zl, ad, a1, theta
@@ -435,7 +432,6 @@ module mod_pbl_gfs
           dku(i,k)  = d_zero
           dkt(i,k)  = d_zero
           dktx(i,k) = d_zero
-          dkux(i,k) = d_zero
           cku(i,k)  = d_zero
           ckt(i,k)  = d_zero
           tem       = zi(i,k+1)-zi(i,k)
@@ -685,7 +681,6 @@ module mod_pbl_gfs
             dku(i,k) = min(dku(i,k),dkmax)
             dkt(i,k) = min(dkt(i,k),dkmax)
             dktx(i,k)= dkt(i,k)
-            dkux(i,k)= dku(i,k)
           end if
         end do
       end do

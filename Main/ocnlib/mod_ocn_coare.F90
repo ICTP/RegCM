@@ -20,7 +20,6 @@ module mod_ocn_coare
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
-  use mod_runparams, only : iocnrough
 
   implicit none
 
@@ -42,13 +41,13 @@ module mod_ocn_coare
     subroutine coare3_drv()
       implicit none
       real(rkx) :: ts, qs, us, uv995, t995, q995, z995, ta
-      real(rkx) :: zu, zt, zq, zi, du, dt, dq, ut, dter
+      real(rkx) :: zu, zt, zq, zi, du, dt, dq, ut, dter, dqer
       real(rkx) :: ug, zogs, u10, cdhg, zo10, zot10
       real(rkx) :: usr, qsr, tsr, zetu, l10, wetc, zet
       real(rkx) :: cd10, ch10, ct10, cc, cd, ct, ribcu
       real(rkx) :: rr, rt, rq, zo, zot, zoq, dels, bigc, Al
-      real(rkx) :: l, Bf, tkt, qout, qcol, alq, xlamx, dqer
-      real(rkx) :: le, visa, rhoa, cpv, Rns, Rnl
+      real(rkx) :: l, Bf, tkt, qout, qcol, alq, xlamx
+      real(rkx) :: le, visa, rhoa, Rns, Rnl
       real(rkx) :: hsb, hlb, tau, uv10, facttq
       real(rkx) :: charnock
       integer(ik4) :: i, k, niter
@@ -96,9 +95,6 @@ module mod_ocn_coare
         ! Air constants
         !---------------------------------------
         !
-        ! specific heat of moist air
-        cpv = cpmf(q995)
-
         ! latent heat of vaporization (J/kg) at sea surface
         le = wlh(tgrd(i))
 
@@ -286,7 +282,7 @@ module mod_ocn_coare
           rah1(i) = (log(zt/zot)-psit(zt/L))
           usr = ut*vonkar/ram1(i)
           tsr = -(dt-dter)*vonkar*fdg/rah1(i)
-          qsr = -(dq-wetc*dter)*vonkar*fdg/(log(zq/zoq)-psit(zq/L))
+          qsr = -(dq-dqer)*vonkar*fdg/(log(zq/zoq)-psit(zq/L))
 
           ! compute gustiness in wind speed
           Bf = -egrav/ta*usr*(tsr+ep1*ta*qsr)

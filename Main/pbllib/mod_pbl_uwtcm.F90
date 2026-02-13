@@ -132,11 +132,11 @@ module mod_pbl_uwtcm
     type(mod_2_pbl), intent(in) :: m2p
     type(pbl_2_mod), intent(inout) :: p2m
     integer(ik4) ::  i, j
-    real(rkx) :: temps, templ, deltat, rvls, pfac, rpfac, tbbls
+    real(rkx) :: temps, templ, deltat, rvls, rpfac, tbbls
     real(rkx) :: uflxp, vflxp, rhoxsf, tskx, tvcon, fracz, dudz, &
                  dvdz, thgb, pblx, ustxsq, qfxx, hfxx, uvdragx, &
-                 thvflx, q0s, tvfac, svs, cpoxlv, pfcor, ustx
-    ! real(rkx) :: kh0
+                 q0s, tvfac, svs, cpoxlv, pfcor, ustx
+    ! real(rkx) :: kh0, thvflx
     real(rkx) :: thv0, thx_t, thvx_t, dthv, dthv_t
     integer(ik4) :: kpbl2dx  ! Top of PBL
     real(rkx), dimension(kzp2) :: zqx
@@ -146,10 +146,11 @@ module mod_pbl_uwtcm
     integer(ik4) ::  k, itr !, ibnd
     integer(ik4) :: ilay, kpbconv, iteration
     real(rkx), dimension(kz) :: ux, vx, qx, thx, uthvx, zax, &
-         kethl, thlx, thlxs, thxs, tx, tvx, rttenx, preshl, &
-         qcx, qwx, qwxs, rrhoxhl, uxs, qxs, rhoxhl, exnerhl, &
-         rexnerhl, rdzq, vxs, qcxs, aimp, bimp, cimp, uimp1,  &
+         kethl, thlx, thxs, tx, tvx, rttenx, preshl, qcx,    &
+         qwx, rrhoxhl, uxs, qxs, rhoxhl, exnerhl, rexnerhl,  &
+         rdzq, vxs, qcxs, aimp, bimp, cimp, uimp1, &
          rimp1, uimp2, rimp2, rlv, orlv, cp, ocp
+    !real(rkx), dimension(kz) :: qwxs, thlxs
     real(rkx), dimension(kz) :: qix, qixs
     real(rkx), dimension(kz,ntr) :: chix, chixs
     real(rkx), dimension(ntr) :: chifxx
@@ -165,19 +166,19 @@ module mod_pbl_uwtcm
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(zqx,kth,kzm,rhoxfl,rcldb,tke,tkes,bbls,nsquar,presfl,exnerfl, &
             rexnerfl,shear,buoyan,rdza,rrhoxfl,ux,vx,qx,thx,uthvx,zax,    &
-            kethl,thlx,thlxs,thxs,tx,tvx,rttenx,preshl,qcx,qwx,qwxs,      &
-            rrhoxhl,uxs,qxs,rhoxhl,exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,   &
-            bimp,cimp,uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,   &
-            chix,chixs,chifxx,ktop,kbot)
+            kethl,thlx,thxs,tx,tvx,rttenx,preshl,qcx,qwx,rrhoxhl,uxs,qxs, &
+            rhoxhl,exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,bimp,cimp,uimp1,   &
+            rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,chix,chixs,chifxx, &
+            ktop,kbot) ! qwxs, thlxs
 #else
     !$acc parallel loop collapse(2) gang vector &
     !$acc     private(zqx,kth,kzm,rhoxfl,rcldb,tke,tkes,bbls,nsquar,     &
     !$acc             presfl,exnerfl,rexnerfl,shear,buoyan,rdza,rrhoxfl, &
-    !$acc             ux,vx,qx,thx,uthvx,zax,kethl,thlx,thlxs,thxs,tx,   &
-    !$acc             tvx,rttenx,preshl,qcx,qwx,qwxs,rrhoxhl,uxs,qxs,    &
-    !$acc             rhoxhl,exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,bimp,   &
-    !$acc             cimp,uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,  &
-    !$acc             qixs,chix,chixs,chifxx,ktop,kbot)
+    !$acc             ux,vx,qx,thx,uthvx,zax,kethl,thlx,thxs,tx,tvx,     &
+    !$acc             rttenx,preshl,qcx,qwx,rrhoxhl,uxs,qxs,rhoxhl,      &
+    !$acc             exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,bimp,cimp,     &
+    !$acc             uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,  &
+    !$acc             chix,chixs,chifxx,ktop,kbot) ! qwxs, thlxs
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
@@ -190,10 +191,8 @@ module mod_pbl_uwtcm
 
       ! Copy in local versions of necessary variables
       if ( idynamic == 3 ) then
-        pfac = dt
         rpfac = rdt
       else
-        pfac = dt / m2p%psb(j,i)
         rpfac = rdt * m2p%psb(j,i)
       end if
       tskx = m2p%tg(j,i)
@@ -270,9 +269,9 @@ module mod_pbl_uwtcm
         vxs(k)  = vx(k)
         thxs(k) = thx(k)
         qxs(k) = qx(k)
-        qwxs(k) = qwx(k)
         qcxs(k) = qcx(k)
-        thlxs(k) = thlx(k)
+        !thlxs(k) = thlx(k)
+        !qwxs(k) = qwx(k)
       end do
       do k = 1, kzp1
         tkes(k) = tke(k)
@@ -354,7 +353,7 @@ module mod_pbl_uwtcm
       uflxp = -uvdragx*ux(kz)/rhoxsf
       vflxp = -uvdragx*vx(kz)/rhoxsf
       ! Estimate of the surface virtual heat flux
-      thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
+      ! thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
       ! Estimate of surface eddy diffusivity, for estimating the
       ! surface N^2 from the surface virtual heat flux
       ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
