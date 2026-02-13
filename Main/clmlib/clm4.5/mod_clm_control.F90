@@ -10,6 +10,7 @@ module mod_clm_control
   use mod_intkinds
   use mod_realkinds
   use mod_stdio
+  use mod_posix, only : hostname
   use mod_mpmessage
   use mod_dynparam
   use mod_mppparam
@@ -17,7 +18,7 @@ module mod_clm_control
   use mod_clm_varctl, only : clmvarctl_init, set_clmvarctl, &
           nsrStartup, nsrContinue
   use mod_clm_varpar, only : maxpatch_pft, more_vertlayers
-  use mod_clm_varctl, only : hostname, model_version=>version,&
+  use mod_clm_varctl, only : hostnm, model_version=>version,&
           outnc_large_files, finidat, fsurdat, fatmlndfrc,    &
           fpftcon, nrevsn,  create_crop_landunit,             &
           allocate_all_vegpfts, co2_type, wrtdia, co2_ppmv,   &
@@ -113,11 +114,8 @@ module mod_clm_control
     integer(ik4) :: unitn                ! unit for namelist file
     ! If want to override the startup type sent from driver
     character(len=32) :: subname  ! subroutine name
-    character(len=64) :: hostname
+    character(len=64) :: hostnm
     character(len=32) :: user
-#ifdef __INTEL_COMPILER
-    external :: hostnm, getlog, getcwd
-#endif
 
     ! CLM namelist settings
 
@@ -218,7 +216,7 @@ module mod_clm_control
     namelist /clm_inparm/ DoForceRestart, DoSurfaceSaturate
 
     subname = 'control_init'
-    hostname = '?'
+    hostnm = '?'
     user = '?'
 
     ! ----------------------------------------------------------------------
@@ -277,20 +275,18 @@ module mod_clm_control
     end if   ! end if-block
 
 #ifdef IBM
-    hostname='ibm platform '
-    user= 'Unknown'
+    hostnm = 'ibm platform '
 #else
-    call hostnm(hostname)
-    call getlog(user)
+    call hostname(hostnm)
 #endif
     if ( ifrest ) then
       call set_clmvarctl(trim(prestr)//trim(domname), &
                          'RegCM driven CLM4.5', nsrContinue, &
-                         GIT_VER, hostname, user)
+                         GIT_VER, hostnm, user)
     else
       call set_clmvarctl(trim(prestr)//trim(domname), &
                          'RegCM driven CLM4.5', nsrStartup, &
-                         GIT_VER, hostname, user)
+                         GIT_VER, hostnm, user)
     end if
 
     call clmvarctl_init
@@ -354,7 +350,7 @@ module mod_clm_control
     call bcast(caseid,len(caseid))
     call bcast(ctitle,len(ctitle))
     call bcast(model_version,len(model_version))
-    call bcast(hostname,len(hostname))
+    call bcast(hostnm,len(hostnm))
     call bcast(username,len(username))
     call bcast(nsrest)
     call bcast(DoForceRestart)
@@ -520,7 +516,7 @@ module mod_clm_control
     write(stdout,*) '   run type              = ',runtyp(nsrest+1)
     write(stdout,*) '   case title            = ',trim(ctitle)
     write(stdout,*) '   username              = ',trim(username)
-    write(stdout,*) '   hostname              = ',trim(hostname)
+    write(stdout,*) '   hostname              = ',trim(hostnm)
     write(stdout,*) 'input data files:'
     write(stdout,*) '   PFT physiology = ',trim(fpftcon)
     if (fsurdat == ' ') then

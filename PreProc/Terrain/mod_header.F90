@@ -17,10 +17,8 @@ module mod_header
 
   use mod_intkinds
   use mod_stdio
+  use mod_posix, only : hostname
 
-#ifdef NAGFOR
-  use f90_unix_env, only : gethostname
-#endif
   implicit none
 
   private
@@ -34,23 +32,18 @@ module mod_header
 !
   integer(ik4), intent(in) :: myid
 !
-  integer(ik4) :: hostnm
-  integer(ik4) :: ihost, idir
   integer(ik4), dimension(8) :: tval
   character (len=32) :: cdata
   character (len=5) :: czone
-  character (len=32) :: hostname
+  character (len=32) :: hostnm
   character (len=32) :: user
   character (len=128) :: directory
   character (len=*), parameter :: f99001 = &
     '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
-#ifdef __INTEL_COMPILER
-  external :: hostnm
-#endif
 
   cdata = '?'
   czone = '?'
-  hostname = '?'
+  hostnm = '?'
   user = '?'
   directory = '?'
 
@@ -62,16 +55,10 @@ module mod_header
     write (stdout,f99001)  GIT_VER, __DATE__, __TIME__
 #endif
 
-
 #ifdef IBM
-    hostname = 'ibm platform '
-    user = 'Unknown'
+    hostnm = 'ibm platform '
 #else
-#ifdef NAGFOR
-    call gethostname(hostname)
-#else
-    ihost = hostnm(hostname)
-#endif
+    call hostname(hostnm)
 #endif
     call date_and_time(zone=czone,values=tval)
     call get_environment_variable('PWD',directory)
@@ -81,7 +68,7 @@ module mod_header
        tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
     write(stdout,*) ": this run start at  : ",trim(cdata)
     write(stdout,*) ": it is submitted by : ",trim(user)
-    write(stdout,*) ": it is running on   : ",trim(hostname)
+    write(stdout,*) ": it is running on   : ",trim(hostnm)
     write(stdout,*) ": in directory       : ",trim(directory)
     write(stdout,*) "                     "
   end if

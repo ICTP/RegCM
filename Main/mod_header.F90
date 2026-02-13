@@ -21,6 +21,7 @@ module mod_header
   use mod_mppparam
   use mod_date
   use mod_dynparam, only : nproc
+  use mod_posix, only : hostname
   use mod_stdio
 
   implicit none
@@ -54,34 +55,31 @@ module mod_header
   subroutine header(myid,nproc)
     implicit none
     integer(ik4), intent(in) :: myid, nproc
-    character (len=32) :: hostname
+    character (len=32) :: hostnm
     character (len=32) :: user
     character (len=256) :: directory
-#ifdef __INTEL_COMPILER
-    external :: hostnm, getlog, getcwd
-#endif
 
     cdata = '?'
     czone = '?'
-    hostname = '?'
+    hostnm = '?'
     user = '?'
     directory = '?'
 
     if ( myid == iocpu )  then
 #ifdef IBM
-      hostname='ibm platform '
-      user= 'Unknown'
+      hostnm='ibm platform '
 #else
-      call hostnm(hostname)
-      call getlog(user)
+      call hostname(hostnm)
 #endif
-      call getcwd(directory)
       call date_and_time(zone=czone,values=tval)
+      call get_environment_variable('PWD',directory)
+      call get_environment_variable('USER',user)
+
       write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
             tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
       write (stdout,*) ": this run start at  : ",trim(cdata)
       write (stdout,*) ": it is submitted by : ",trim(user)
-      write (stdout,*) ": it is running on   : ",trim(hostname)
+      write (stdout,*) ": it is running on   : ",trim(hostnm)
       write (stdout,*) ": it is using        : ",nproc, &
                        '  processors'
       write (stdout,*) ": in directory       : ",trim(directory)

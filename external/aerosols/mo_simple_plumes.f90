@@ -44,7 +44,8 @@ MODULE MO_SIMPLE_PLUMES
        beta_a         (nplumes)               ,& !< parameter a for beta function vertical profile
        beta_b         (nplumes)               ,& !< parameter b for beta function vertical profile
        aod_spmx       (nplumes)               ,& !< anthropogenic AOD maximum at 550 for plumes
-       aod_fmbg       (nplumes)               ,& !< anthropogenic AOD at 550 for fine-mode natural background (idealized to mimic Twomey effect)
+       aod_fmbg       (nplumes)               ,& !< anthropogenic AOD at 550 for fine-mode natural
+                                                 !  background (idealized to mimic Twomey effect)
        asy550         (nplumes)               ,& !< asymmetry parameter at 550nm for plume
        ssa550         (nplumes)               ,& !< single scattering albedo at 550nm for plume
        angstrom       (nplumes)               ,& !< Angstrom parameter for plume
@@ -305,12 +306,17 @@ CONTAINS
         aod_prof(icol,k) = 0.0_wp
         ssa_prof(icol,k) = 0.0_wp
         asy_prof(icol,k) = 0.0_wp
-!        z_beta(icol,k)   = MERGE(1.0_wp, 0.0_wp, z(icol,k) >= oro(icol))
-!FAB in sigma-coordinates the first atm level altitude should always be above
-!topography !
         z_beta(icol,k) = 1._wp!
         eta(icol,k)      = MAX(0.0_wp,MIN(1.0_wp,z(icol,k)/15000.0_wp))
     end do
+
+    !FAB In terrain following coordinates the first atm level altitude should
+    !    always be above topography !
+    if ( .false. ) then
+      do concurrent (k=1:nlevels, icol=1:ncol)
+        z_beta(icol,k)   = MERGE(1.0_wp, 0.0_wp, z(icol,k) >= oro(icol))
+      end do
+    end if
 
     do concurrent (icol=1:ncol)
       dNovrN(icol)   = 1.0_wp

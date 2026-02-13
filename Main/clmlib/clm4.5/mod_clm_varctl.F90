@@ -40,7 +40,7 @@ module mod_clm_varctl
   ! true => no valid land points -- do NOT run
   logical, public :: noland = .false.
   ! Hostname of machine running on
-  character(len=256), public :: hostname = ' '
+  character(len=256), public :: hostnm = ' '
   ! username of user running program
   character(len=256), public :: username = ' '
   ! description of this source
@@ -172,7 +172,7 @@ module mod_clm_varctl
     if ( present(nsrest_in       ) ) nsrest        = nsrest_in
     if ( present(version_in      ) ) version       = version_in
     if ( present(username_in     ) ) username      = username_in
-    if ( present(hostname_in     ) ) hostname      = hostname_in
+    if ( present(hostname_in     ) ) hostnm        = hostname_in
   end subroutine set_clmvarctl
   !
   ! Check that values are correct, and finish setting variables based on

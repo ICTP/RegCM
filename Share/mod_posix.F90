@@ -72,11 +72,40 @@ module mod_posix
     character(len=256) :: ename
   end type direntry
 
+  interface
+    integer(kind=c_int) function gethostname(a,i) bind(C,name='gethostname')
+      import
+      implicit none
+      type(c_ptr), value :: a
+      integer(kind=c_size_t), intent(in), value :: i
+    end function gethostname
+  end interface
+
   public :: seekdir, telldir
   public :: dirlist, direntry
   public :: replacestr, lower, upper, splitstr, basename
+  public :: hostname
 
   contains
+
+  subroutine hostname(hname)
+    use, intrinsic :: iso_c_binding
+    implicit none
+    character(len=*), intent(inout) :: hname
+    integer(kind=c_size_t) :: ilen
+    integer(kind=c_int) :: iret
+    character(kind=c_char), target :: cname(256)
+    type(c_ptr) :: a
+    integer :: i
+    a = c_loc(cname)
+    ilen = 256
+    cname(1:256) = ' '
+    iret = gethostname(a,ilen)
+    hname = adjustl("")
+    do i = 1, min(256,len(hname))
+      hname(i:i) = cname(i)
+    end do
+  end subroutine hostname
 
   subroutine dirlist(path,dire)
     use, intrinsic :: iso_c_binding

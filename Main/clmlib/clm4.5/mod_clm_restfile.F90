@@ -19,7 +19,7 @@ module mod_clm_restfile
   use mod_clm_varpar, only : nlevsno, nlevlak, nlevgrnd, nlevurb
   use mod_clm_varpar, only : numrad, nlevcan
   use mod_clm_varctl, only : caseid, ctitle, version, username, &
-          hostname, finidat, fsurdat, nsrest, DoForceRestart,    &
+          hostnm, finidat, fsurdat, nsrest, DoForceRestart,    &
           nrevsn, nsrStartup, nsrContinue, inst_suffix,         &
           conventions, source
   use mod_clm_varctl, only : inst_suffix
@@ -263,7 +263,7 @@ module mod_clm_restfile
     str = 'created on ' // curdate // ' ' // curtime
     call clm_addatt(ncid, 'history',trim(str))
     call clm_addatt(ncid, 'username',trim(username))
-    call clm_addatt(ncid, 'host',trim(hostname))
+    call clm_addatt(ncid, 'host',trim(hostnm))
     call clm_addatt(ncid, 'version',trim(version))
     call clm_addatt(ncid, 'source',trim(source))
     call clm_addatt(ncid, 'case_title',trim(ctitle))

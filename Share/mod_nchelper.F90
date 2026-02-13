@@ -1285,7 +1285,7 @@ module mod_nchelper
         if ( istat == nf90_noerr ) then
           call c_f_pointer(c_str,f_str,[strlen(c_str)])
           aval = adjustl("")
-          do i = 1, max(size(f_str),len(aval))
+          do i = 1, min(size(f_str),len(aval))
             aval(i:i) = f_str(i)
           end do
         end if
@@ -1340,7 +1340,7 @@ module mod_nchelper
         if ( istat == nf90_noerr ) then
           call c_f_pointer(c_str,f_str,[strlen(c_str)])
           aval = adjustl("")
-          do i = 1, max(size(f_str),len(aval))
+          do i = 1, min(size(f_str),len(aval))
             aval(i:i) = f_str(i)
           end do
         end if
