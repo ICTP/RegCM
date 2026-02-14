@@ -35,7 +35,7 @@ module mod_cu_kf
   use mod_runparams, only : kf_dpp, kf_min_dtcape, kf_max_dtcape
   use mod_runparams, only : kf_tkemax, kf_wthreshold
   use mod_runparams, only : k2_const, kfac_shal, kfac_deep
-  use mod_runparams, only : ichem, clfrcv
+  use mod_runparams, only : ichem
   use mod_service
 
   implicit none
@@ -353,15 +353,14 @@ module mod_cu_kf
     logical, intent(in) :: f_qi, f_qs
     logical, intent(in) :: warm_rain
 
-    real(rkx), dimension(kts:kte) :: tv0, tu, tvu, qu, tz, tvd, &
-            qd, tg, tvg, qg, wu, wd, ems, emsd, umf, uer,    &
-            udr, dmf, der, ddr, umf2, uer2, udr2, dmf2, der2, &
-            ddr2, dza, thta0, thetee, thtau, theteu, thtad,     &
-            theted, qliq, qice, qlqout, qicout, detlq, detic,   &
-            detlq2, detic2, ratio2
+    real(rkx), dimension(kts:kte) :: tv0, tu, tvu, qu, tz, tvd,  &
+            qd, tg, tvg, qg, ems, emsd, umf, uer, udr, dmf, der, &
+            ddr, umf2, uer2, udr2, dmf2, der2, ddr2, dza, thta0, &
+            thetee, thtau, theteu, thtad, theted, qliq, qice,    &
+            qlqout, qicout, detlq, detic, detlq2, detic2, ratio2
     real(rkx), dimension(kts:kte) :: domgdp, exn, tvqu, dp, rh, &
-            eqfrc, wspd, qdt, fxm, thtag, thpa, thfxout,       &
-            thfxin, qpa, qfxout, qfxin, qlpa, qlfxin, qlfxout, &
+            eqfrc, wspd, qdt, fxm, thtag, thpa, thfxout,        &
+            thfxin, qpa, qfxout, qfxin, qlpa, qlfxin, qlfxout,  &
             qipa, qifxin, qifxout, qrpa, qrfxin, qrfxout,       &
             qspa, qsfxin, qsfxout, qlg, qig, qrg, qsg
 
@@ -371,20 +370,20 @@ module mod_cu_kf
             tgu, qgu, thteeg
 
     real(rkx) :: fbfrc, p300, dpthmx, qmix, zmix, pmix, tmix, emix, &
-            tlog, tdpt, tlcl, tvlcl, plcl, es, dlp, tenv, qenv,    &
+            tlog, tdpt, tlcl, tvlcl, plcl, es, dlp, tenv, qenv,     &
             tven, zlcl, wkl, trppt, dtlcl, gdt, wlcl, wtw,          &
             rholcl, au0, vmflcl, upold, upnew, abe, wklcl, ttemp,   &
-            frc1, qnewic, rl, be, boterm, enterm, dzz, rei, ee2,   &
+            frc1, qnewic, rl, be, boterm, enterm, dzz, rei, ee2,    &
             ud2, ttmp, f1, f2, thttmp, qtmp, tmpliq, tmpice,        &
             tu95, tu10, ee1, ud1, dptt, qnewlq, dumfdp, vconv,      &
             timec, shsign, vws, pef, cbh, rcbh, pefcbh, peff,       &
-            peff2, tder, dpdd, rdd, a1, dssdt, dtmp, t1rh,          &
-            qsrh, pptflx, cpr, cndtnf, updinc, ddinc, aincmx,        &
-            aincm1, ainc, tder2, pptfl2, fabe, stab, dtt, dtt1,     &
-            dtime, tma, tmb, tmm, bcoeff, acoeff, topomg, cpm, dq, &
-            abeg, dabe, dfda, frc2, dr, udfrc, tuc, qgs, rh0,      &
-            rhg, qinit, qfnl, err2, relerr, fabeold, aincold,        &
-            uefrc, ddfrc, tdc, defrc, rhbar, dmffrc, dilbe
+            tder, dpdd, rdd, a1, dssdt, dtmp, t1rh,          &
+            qsrh, pptflx, cpr, ddinc, aincmx, aincm1, ainc, &
+            tder2, pptfl2, fabe, stab, dtt, dtt1, dtime, tma, tmb,  &
+            tmm, bcoeff, acoeff, topomg, cpm, dq, abeg, dabe, dfda, &
+            frc2, dr, udfrc, tuc, qgs, rh0, rhg, qinit, qfnl, err2, &
+            relerr, fabeold, aincold, uefrc, ddfrc, tdc, defrc,     &
+            rhbar, dmffrc, dilbe
     real(rkx) :: tp, avalue, aintrp, qfrz, qss, pptmlt, dtmelt, &
             rhh, evac, binc
     integer(ik4) :: indlu, nu, nuchm, nnn, klfs
@@ -682,7 +681,6 @@ module mod_cu_kf
           !
           ! Estimate initial updraft mass flux (umf(k)).
           !
-          wu(k) = wlcl
           au0 = 0.01_rkx*dxsq
           umf(k) = rholcl*au0
           vmflcl = umf(k)
@@ -794,8 +792,6 @@ module mod_cu_kf
             !
             if ( wtw < 1.0e-3_rkx ) then
               exit updraft
-            else
-              wu(nk1) = sqrt(wtw)
             end if
             !
             ! Calculate value of theta-e in environment to entrain into updraft
@@ -1104,12 +1100,10 @@ module mod_cu_kf
           end if
           tu(nk) = tmix + (z0(nk,np)-zmix)*gdry
           qu(nk) = qmix
-          wu(nk) = wlcl
         else
           tu(nk) = d_zero
           qu(nk) = d_zero
           umf(nk) = d_zero
-          wu(nk) = d_zero
           uer(nk) = d_zero
           cldfra_dp_kf(nk,np) = d_zero
           cldfra_sh_kf(nk,np) = d_zero
@@ -1151,7 +1145,6 @@ module mod_cu_kf
         if ( nk > ltop1 ) then
           tu(nk) = d_zero
           qu(nk) = d_zero
-          wu(nk) = d_zero
           cldfra_dp_kf(nk,np) = d_zero
           cldfra_sh_kf(nk,np) = d_zero
           qc_kf(nk,np) = d_zero
@@ -1232,7 +1225,6 @@ module mod_cu_kf
       ! mean pef. is used to compute rainfall.
       !
       peff = d_half*(pef+pefcbh)
-      peff2 = peff   ! jsk mods
       if ( iprnt ) then
         write(stdout,1035) pef,pefcbh,lc,let,wkl,vwS
       end if
@@ -1388,21 +1380,17 @@ module mod_cu_kf
         pptflx = trppt
         cpr = trppt
         tder = d_zero
-        cndtnf = d_zero
-        updinc = d_one
         ldb = lfs
         do ndk = 1, ltop
           dmf(ndk) = d_zero
           der(ndk) = d_zero
           ddr(ndk) = d_zero
           thtad(ndk) = d_zero
-          wd(ndk) = d_zero
           tz(ndk) = d_zero
           qd(ndk) = d_zero
         end do
       else
         ddinc = -dmffrc*umf(klcl)/dmf(kstart)
-        updinc = d_one
         if ( tder*ddinc > trppt ) then
           ddinc = trppt/tder
         end if
@@ -1428,7 +1416,6 @@ module mod_cu_kf
             dmf(nk) = d_zero
             der(nk) = d_zero
             ddr(nk) = d_zero
-            wd(nk) = d_zero
             tz(nk) = d_zero
             qd(nk) = d_zero
             thtad(nk) = d_zero
@@ -1438,7 +1425,6 @@ module mod_cu_kf
           dmf(nk) = d_zero
           der(nk) = d_zero
           ddr(nk) = d_zero
-          wd(nk) = d_zero
           tz(nk) = d_zero
           qd(nk) = d_zero
           thtad(nk) = d_zero
@@ -1977,7 +1963,6 @@ module mod_cu_kf
           call fatal(__FILE__,__LINE__,'KAIN-FRITSCH, istop=1, diags')
         end if
       end if
-      cndtnf = (d_one-eqfrc(lfs))*(qliq(lfs)+qice(lfs))*dmf(lfs)
       !
       ! Evaluate moisture budget
       !
@@ -2334,7 +2319,7 @@ module mod_cu_kf
       implicit none
       real(rkx), intent(in) :: eq
       real(rkx), intent(inout) :: ee, ud
-      real(rkx) :: x, y, ey, e45, t1, t2, c1, c2
+      real(rkx) :: y, ey, e45, t1, t2, c1, c2
 
       real(rkx), parameter :: sqrt2p = 2.506628_rkx
       real(rkx), parameter :: a1 = 0.4361836_rkx
@@ -2343,7 +2328,6 @@ module mod_cu_kf
       real(rkx), parameter :: p = 0.33267_rkx
       real(rkx), parameter :: sigma = 0.166666667_rkx
       real(rkx), parameter :: fe = 0.202765151_rkx
-      x = (eq-d_half)/sigma
       y = 6.0_rkx*eq - 3.0_rkx
       ey = exp(y*y/(-d_two))
       e45 = exp(-4.5_rkx)

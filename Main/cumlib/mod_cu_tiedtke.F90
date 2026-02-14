@@ -25,9 +25,9 @@ module mod_cu_tiedtke
   use mod_cu_tables
   use mod_service
   use mod_runparams, only : iqc, iqv, iqi, entrmax, dx,      &
-         entrdd, entrmid, cprcon, entrpen_lnd, entrpen_ocn,   &
+         entrdd, entrmid, cprcon, entrpen_lnd, entrpen_ocn,  &
          entrscv, iconv, ichem, iaerosol, iindirect, ipptls, &
-         hsigma, sigma, ichcumtra, rcmtimer, icup, dtcum, io3
+         ichcumtra, rcmtimer, icup, dtcum, io3
   use mod_runparams, only : k2_const, kfac_deep, kfac_shal
   use mod_mpmessage
   use mod_runparams, only : rcrit
@@ -2318,7 +2318,7 @@ module mod_cu_tiedtke
                zga, zlnew, zmfmax, zmftest, zmfulk, zmfuqk,     &
                zmfusk, zmfuxtk, zmse, znevn, zodmax, zprcon,    &
                zqcod, zqeen, zqude, zscde, zscod, zseen,        &
-               ztglace, zxteen, zxtude, zz, zzdmf
+               zxteen, zxtude, zz, zzdmf
     real(rkx), dimension(kbdim) :: zbuoy, zdmfde, zdmfen, zmfuu,   &
                                   zmfuv, zpbase, zph, zqold
     real(rkx), dimension(kbdim,klev) :: zodetr, zoentr
@@ -2333,7 +2333,6 @@ module mod_cu_tiedtke
     ! ---------------------
     !
     zcons2 = d_one/(egrav*dtc)
-    ztglace = tzero - 13.0_rkx
     zqold(1:kproma) = d_zero
     !
     ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
@@ -2806,7 +2805,7 @@ module mod_cu_tiedtke
     real(rkx) :: zbuo, zcons2, zdmfdu, zdmfeu, zdnoprc,    &
                zfac, zlnew, zmfmax, zmftest, zmfulk, zmfuqk,    &
                zmfusk, zmfuxtk, zprcon, zqeen, zqude, zscde,    &
-               zseen, ztglace, zxteen, zxtude, zz, zzdmf
+               zseen, zxteen, zxtude, zz, zzdmf
     real(rkx), dimension(kbdim) :: zdmfde, zdmfen, zmfuu, zmfuv,   &
                                   zpbase, zph, zqold
 #ifdef DEBUG
@@ -2820,7 +2819,6 @@ module mod_cu_tiedtke
     ! ---------------------
     !
     zcons2 = d_one/(egrav*dtc)
-    ztglace = tzero - 13.0_rkx
     !
     ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
     ! below a certain pressure (from the surface) is hard wired according
@@ -3903,7 +3901,7 @@ module mod_cu_tiedtke
                 paphp1, pentr, pgeoh, pqenh, pqte, ptenh
     intent (out) pdmfde, pdmfen, podetr
     intent (inout) pmfu, ppbase
-    integer(ik4) :: ikb, ikh, iklwmin, ikt, jl
+    integer(ik4) :: ikh, iklwmin, ikt, jl
     logical :: llo1, llo2
     real(rkx) :: zarg, zdprho, zentest, zentr, zorgde, zpmid,     &
                zrrho, ztmzk, zzmzk
@@ -3953,7 +3951,6 @@ module mod_cu_tiedtke
       ! organized detrainment, detrainment starts at khmin
       !
       llo2 = llo1 .and. ktype(jl) == 1
-      ikb = kcbot(jl)
       podetr(jl,kk) = d_zero
 
       if ( llo2 .and. kk <= khmin(jl) .and. kk >= kctop0(jl) ) then
@@ -4662,8 +4659,6 @@ module mod_cu_tiedtke
     !-----------------------------------------------------
     ! Vertically averaged updraught velocity m/s
     real(rkx), dimension(np) :: wmean
-    ! Increment of dry static energy J/(kg*s)
-    real(rkx), dimension(np,nk) :: penth
     ! Saturation mixing ratio kg/kg
     real(rkx), dimension(np,nk) :: qs
     ! Temperature on full sigma levels (where massfluxes are computed) K
@@ -4861,7 +4856,7 @@ module mod_cu_tiedtke
                 lldsc, llfirst, llresetn
       logical :: llreset
       integer(ik4) :: icall, ik, is, k, n, kk, kt1, kt2, kt, kb
-      real(rkx), dimension(np,nk) :: xs, suh, wu2h, buoh
+      real(rkx), dimension(np,nk) :: suh, wu2h, buoh
       real(rkx), dimension(np,nk+1) :: xsenh, xqenh
       real(rkx), dimension(np) :: qold, xph
       real(rkx), dimension(np) :: zmix
@@ -4884,7 +4879,6 @@ module mod_cu_tiedtke
                    sf, xqf, xaw, xbw
       real(rkx), dimension(np) :: tven1, tvu1
       real(rkx) :: tven2, tvu2 ! pseudoadiabatic T_v
-      real(rkx), dimension(np) :: dtvtrig ! virtual temperatures
       real(rkx) :: work1, work2 ! work for T and w perturbations
       real(rkx) :: xtmp, entrpen, mymax
       !-----------------------------------
@@ -4917,7 +4911,6 @@ module mod_cu_tiedtke
       ! ------------------------------------------
       do concurrent ( n = n1:n2, k = 1:nk )
         wu2h(n,k) = d_zero
-        xs(n,k) = cpd*t(n,k) + geo(n,k)
         xqenh(n,k) = qf(n,k)
         xsenh(n,k) = cpd*tf(n,k) + geof(n,k)
       end do
@@ -4952,7 +4945,6 @@ module mod_cu_tiedtke
                             ! on exit: true if cloudbase=found
             ll_ldbase(n) = .false.
                             ! on exit: true if cloudbase=found
-            dtvtrig(n) = d_zero
             xuu(n,kk) = u(n,kk)*(pf(n,kk+1)-pf(n,kk))
             xvu(n,kk) = v(n,kk)*(pf(n,kk+1)-pf(n,kk))
           end if
@@ -5417,7 +5409,7 @@ module mod_cu_tiedtke
       real(rkx), dimension(np) :: ndmfen, ndmfde, qold, luold, precip
       real(rkx), dimension(np) :: dpmean
       real(rkx), dimension(np) :: zoentr, xph
-      logical, dimension(np) :: llflag, llflaguv, llo1
+      logical, dimension(np) :: llflag, llo1
       logical :: llo3
       integer(ik4) :: icall, ik, is, k, n, ikb
       integer(ik4) :: nll, nlm, mynlm
@@ -5528,11 +5520,6 @@ module mod_cu_tiedtke
             mynlm = nlm
             !$acc end atomic
             nlx(mynlm) = n
-          end if
-          if ( ilab(n,k+1) > 0 ) then
-            llflaguv(n) = .true.
-          else
-            llflaguv(n) = .false.
           end if
           xph(n) = ph(n,k)
           if ( ktype(n) == 3 .and. k == kcbot(n) ) then
@@ -6611,9 +6598,6 @@ module mod_cu_tiedtke
       allocate (dtdt(np,nk))
       allocate (dqdt(np,nk))
       allocate (dp(np,nk))
-      do concurrent ( n = n1:n2, k = 1:nk )
-        penth(n,k) = d_zero
-      end do
       ! Zero detrained liquid water if diagnostic cloud scheme to be used
       ! This means that detrained liquid water will be evaporated in the
       ! cloud environment and not fed directly into a cloud liquid water
@@ -6695,7 +6679,6 @@ module mod_cu_tiedtke
           if ( ldcum(n) ) then
             tent(n,k) = tent(n,k) + dtdt(n,k)
             tenq(n,k) = tenq(n,k) + dqdt(n,k)
-            penth(n,k) = dtdt(n,k)*cpd
           end if
         end do
       else
@@ -6735,7 +6718,6 @@ module mod_cu_tiedtke
           if ( llcumbas(n,k) ) then
             tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))/dtc
             tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))/dtc
-            penth(n,k) = (r1(n,k)-t(n,k))/dtc
           end if
         end do
         deallocate (llcumbas)
@@ -6905,7 +6887,6 @@ module mod_cu_tiedtke
           tu(n,k) = t(n,k)
           qu(n,k) = q(n,k)
           lu(n,k) = d_zero
-          penth(n,k) = d_zero
           mfude_rate(n,k) = d_zero
           mfdde_rate(n,k) = d_zero
         end if
