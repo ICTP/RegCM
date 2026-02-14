@@ -88,14 +88,14 @@ module mod_micro_wsm5
                                         exp(xb*(1.0_rkx-wattp/tzero))
   real(rkx), parameter :: lv1 = cpw-cpv
 
-  real(rkx), save :: qc0, qck1, pidnc, bvtr1, bvtr2, bvtr3,  &
-          bvtr4, g1pbr, g3pbr, g4pbr, g5pbro2, pvtr, eacrr,  &
-          pacrr, precr1, precr2, xmmax, roqimax, bvts1,       &
-          bvts2, bvts3, bvts4, g1pbs, g3pbs, g4pbs, g5pbso2, &
-          pvts, pacrs, precs1, precs2, pidn0r, pidn0s,        &
+  real(rkx), save :: qc0, qck1, bvtr2, bvtr3,  &
+          bvtr4, g3pbr, g4pbr, g5pbro2, pvtr, eacrr,  &
+          pacrr, precr1, precr2, roqimax, &
+          bvts2, bvts3, bvts4, g3pbs, g4pbs, g5pbso2, &
+          pvts, precs1, precs2, pidn0r, pidn0s,        &
           pacrc, rslopermax, rslopesmax, rsloperbmax,           &
           rslopesbmax, rsloper2max,  rslopes2max, rsloper3max,  &
-          rslopes3max
+          rslopes3max !, pidnc
 
   public :: allocate_mod_wsm5, init_wsm5, wsm5
 
@@ -147,12 +147,10 @@ module mod_micro_wsm5
     qc0  = fourt*mathpi*rhoh2o*r0**3*xncr/stdrho  ! 0.419e-3 -- .61e-3
     qck1 = 0.104_rkx*egrav*peaut / &
                   (xncr*rhoh2o)**(onet)/xmyu*stdrho**(fourt) ! 7.03
-    pidnc = mathpi*rhoh2o/d_six        ! syb
-    bvtr1 = d_one+bvtr
+    !pidnc = mathpi*rhoh2o/d_six        ! syb
     bvtr2 = 2.5_rkx+d_half*bvtr
     bvtr3 = 3.0_rkx+bvtr
     bvtr4 = 4.0_rkx+bvtr
-    g1pbr = rgmma(bvtr1)
     g3pbr = rgmma(bvtr3)
     g4pbr = rgmma(bvtr4)            ! 17.837825
     g5pbro2 = rgmma(bvtr2)          ! 1.8273
@@ -161,18 +159,14 @@ module mod_micro_wsm5
     pacrr = mathpi*n0r*avtr*g3pbr*0.25_rkx*eacrr
     precr1 = twopi*n0r*0.78_rkx
     precr2 = twopi*n0r*0.31_rkx*avtr**d_half*g5pbro2
-    xmmax = (dimax/dicon)**2
     roqimax = 2.08e22_rkx*dimax**8
-    bvts1 = d_one+bvts
     bvts2 = 2.5_rkx+d_half*bvts
     bvts3 = 3.0_rkx+bvts
     bvts4 = 4.0_rkx+bvts
-    g1pbs = rgmma(bvts1)    !.8875
     g3pbs = rgmma(bvts3)
     g4pbs = rgmma(bvts4)    ! 12.0786
     g5pbso2 = rgmma(bvts2)
     pvts = avts*g4pbs/d_six
-    pacrs = mathpi*n0s*avts*g3pbs*0.25_rkx
     precs1 = 4.0_rkx*n0s*0.65_rkx
     precs2 = 4.0_rkx*n0s*0.44_rkx*avts**d_half*g5pbso2
     pidn0r =  mathpi*rhoh2o*n0r
@@ -1436,8 +1430,9 @@ module mod_micro_wsm5
         else if ( za(k) < d_zero .and. za(k+1) >= d_zero ) then
           precip(i) = precip(i) + qa(k)*(d_zero-za(k))
           exit sum_precip
+        else
+          exit sum_precip
         end if
-        exit sum_precip
       end do sum_precip
       !
       ! replace the new values
