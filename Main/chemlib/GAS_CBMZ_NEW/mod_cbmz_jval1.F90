@@ -209,10 +209,10 @@ module mod_cbmz_jval1
 !     NOTE:  TO VECTORIZE:  fzen, falt, izen, ialt, ig11, etc
 !     must all be vectors.  Skip.
 
-      izen = idint(jfx(1))
+      izen = int(jfx(1))
       if ( izen == nhv(1) ) izen = izen - 1
       fzen = d_one + dble(izen) - jfx(1)
-      ialt = idint(jfx(2))
+      ialt = int(jfx(2))
       if ( ialt == nhv(2) ) ialt = ialt - 1
       falt = d_one + dble(ialt) - jfx(2)
 
@@ -294,8 +294,8 @@ module mod_cbmz_jval1
 
 !         value. Establish adjustment factor and k-index for jarray
 !         (VECTORIZE)
-          kn = k + idint(jfx(i))
-          if ( idint(jfx(i)) == nhv(i) ) kn = kn - 1
+          kn = k + int(jfx(i))
+          if ( int(jfx(i)) == nhv(i) ) kn = kn - 1
           fkn = d_one + dble(kn-k) - jfx(i)
 !
 !         TEST WRITE:
@@ -692,7 +692,7 @@ module mod_cbmz_jval1
 !
       character(4) :: aaa
       real(rk8), dimension(22) :: hvmatz
-      integer(ik4) :: i, ig, iwri, iz, j, jaer, jalb, jc, jcld,     &
+      integer(ik4) :: i, ig, iwri, iz, j, jc, jcld,     &
                  jct, jtem, k, m, n, nmax
       real(rk8) :: x, y
 !
@@ -727,9 +727,7 @@ module mod_cbmz_jval1
       jct = 26
 
 !     INDEX OPTION:  jaer (=6), jcld (originally =9) jalb (=8)
-      jaer = 6
       jcld = 9
-      jalb = 8
       jtem = 13
 !
 !     ZERO INPUT MATRIX

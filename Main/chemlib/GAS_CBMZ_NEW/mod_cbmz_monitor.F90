@@ -53,7 +53,6 @@ implicit none
 
   integer, parameter, dimension(2) :: monitor = [ 55, 56 ]
 
-  character(len=15), dimension(1) :: smass
   character(len=100), parameter, dimension(30) :: eqn_names_0 = [ &
    '         NO2 --> O3P + NO                                                                           ', &
    '         NO3 --> 0.89 O3P + 0.11 NO + 0.89 NO2                                                      ', &

@@ -21,8 +21,7 @@ module mod_che_tend
   use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_runparams, only : iqv, iqc, syncro_che
-  !use mod_runparams, only : rcmtimer, syncro_srf
+  use mod_runparams, only : iqc, syncro_che
   use mod_mppparam
   use mod_che_common
   use mod_che_indices
@@ -66,13 +65,13 @@ module mod_che_tend
 #endif
       real(rkx), dimension(jci1:jci2,kz,ici1:ici2) :: rho, ttb,  wl, prec, &
                                                       convprec
-      real(rkx), dimension(jci1:jci2,kz,ici1:ici2) :: hgt, ph
+      real(rkx), dimension(jci1:jci2,kz,ici1:ici2) :: ph
       real(rkx), dimension(jci1:jci2,kz,ici1:ici2) :: fracloud, fracum
       integer(ik4), dimension(jci1:jci2,ici1:ici2) :: ivegcov
       real(rkx), dimension(jci1:jci2,kz,ntr,ici1:ici2) :: pdepv
       real(rkx), dimension(jci1:jci2,ntr,ici1:ici2) :: ddepa !, ddepg
       real(rkx), dimension(jci1:jci2,ici1:ici2) :: psurf, rh10, soilw, &
-       srad, temp10, tsurf, vegfrac, snowfrac, wid10, zeff, hsurf
+       srad, temp10, tsurf, vegfrac, snowfrac, wid10, zeff
       real(rkx), dimension(jci1:jci2,ici1:ici2,kz) :: ncpc
       real(rkx), dimension(jci1:jci2,kz,ntr,ici1:ici2) :: bchi
       real(rkx), dimension(jci1:jci2,ici1:ici2) :: ustar
@@ -110,7 +109,6 @@ module mod_che_tend
           do j = jci1, jci2
             ! rho(j,i,k) = (sfs%psb(j,i)*a(k)+r8pt)* &
             ! what the hell   1000./287./atm2%t(j,k,i)*sfs%psb(j,i)
-            hgt(j,k,i)  = cza(j,i,k)
             ph(j,k,i)   = cpb3d(j,i,k)
             rho(j,k,i)  = crhob3d(j,i,k)
             wl(j,k,i)   = cqxb3d(j,i,k,iqc)*crhob3d(j,i,k)*d_1000
@@ -171,7 +169,6 @@ module mod_che_tend
           ! incoming solar radiation (for stb criteria used to calculate
           ! aerodynamic resistance)
           srad(j,i) = csol2d(j,i)
-          hsurf(j,i) = cht(j,i)
           if ( idynamic == 3 ) then
             bchi(j,:,:,i) = chemt(j,i,:,:)
           else
