@@ -26,7 +26,7 @@ module mod_clm_vicmap
   ! added by AWang
   ! modified by M.Huang for CLM4
   !
-  pure subroutine initCLMVICMap(c)
+  subroutine initCLMVICMap(c)
     !$acc routine seq
     use mod_clm_type
     use mod_clm_varcon, only : denh2o, denice, pondmx

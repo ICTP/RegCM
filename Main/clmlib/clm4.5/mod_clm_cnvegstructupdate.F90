@@ -1,7 +1,5 @@
-module mod_clm_cnvegstructupdate
-implicit none
-
 #ifdef CN
+module mod_clm_cnvegstructupdate
   !
   ! Module for vegetation structure updates (LAI, SAI, htop, hbot)
   !
@@ -338,7 +336,11 @@ implicit none
 
   end subroutine CNVegStructUpdate
 
-#endif
-
 end module mod_clm_cnvegstructupdate
+#else
+module mod_clm_cnvegstructupdate
+  implicit none
+  private
+end module mod_clm_cnvegstructupdate
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

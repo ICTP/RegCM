@@ -1,6 +1,5 @@
-module mod_clm_cnnstateupdate3
-implicit none
 #ifdef CN
+module mod_clm_cnnstateupdate3
   !
   ! Module for nitrogen state variable update, mortality fluxes.
   ! Also, sminn leaching flux.
@@ -344,7 +343,13 @@ implicit none
     end do
   end subroutine NStateUpdate3
 
-#endif
-
 end module mod_clm_cnnstateupdate3
+#else
+
+module mod_clm_cnnstateupdate3
+  implicit none
+  private
+end module mod_clm_cnnstateupdate3
+
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

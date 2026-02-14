@@ -69,7 +69,6 @@ module mod_clm_frictionvelocity
     ! diagnose 10m wind (DUST only)
     real(rk8), intent(inout) :: fm(lbn:ubn)
 
-    integer(ik4), pointer, contiguous :: ngridcell(:) !pft/landunit gridcell index
     !observational height of wind at pft level [m]
     real(rk8), pointer, contiguous :: forc_hgt_u_pft(:)
     !observational height of temperature at pft level [m]
@@ -93,7 +92,6 @@ module mod_clm_frictionvelocity
     real(rk8), parameter :: zetat = 0.465_rk8
     integer(ik4) :: f  ! pft/landunit filter index
     integer(ik4) :: n  ! pft/landunit index
-    integer(ik4) :: g  ! gridcell index
     integer(ik4) :: pp ! pfti,pftf index
     ! reference height "minus" zero displacement heght [m]
     real(rk8):: zldis(lbn:ubn)
@@ -107,12 +105,6 @@ module mod_clm_frictionvelocity
     real(rk8) :: vds_tmp  ! Temporary for dry deposition velocity
 
     ! Assign local pointers to derived type members (gridcell-level)
-
-    if (present(landunit_index)) then
-      ngridcell => clm3%g%l%gridcell
-    else
-      ngridcell => clm3%g%l%c%p%gridcell
-    end if
 
     vds     => clm3%g%l%c%p%pps%vds
     u10     => clm3%g%l%c%p%pps%u10
@@ -136,7 +128,6 @@ module mod_clm_frictionvelocity
 #if (!defined PERGRO)
     do concurrent ( f = 1:fn )
       n = filtern(f)
-      g = ngridcell(n)
 
       ! Wind profile
 
@@ -434,7 +425,6 @@ module mod_clm_frictionvelocity
     !
     do concurrent ( f = 1:fn )
       n = filtern(f)
-      g = ngridcell(n)
 
       if (present(landunit_index)) then
         zldis(n) = forc_hgt_u_pft(pfti(n))-displa(n)
@@ -669,11 +659,9 @@ module mod_clm_frictionvelocity
 
     real(rk8) :: wc    ! convective velocity [m/s]
     real(rk8) :: zeta  ! dimensionless height used in Monin-Obukhov theory
-    real(rk8) :: ustar ! friction velocity [m/s]
 
     ! Initial values of u* and convective velocity
 
-    ustar = 0.06_rk8
     wc = 0.5_rk8
     if ( dthv >= 0._rk8 ) then
       um = max(ur,0.1_rk8)

@@ -6,8 +6,7 @@ module mod_clm_varcon
   use mod_intkinds
   use mod_constants, only : cpd, pdbratio, secpd, earthrad, tzero, &
     rgasmol, rhoice, rhoh2o, wlhf, wlhs, wlhv, spcpice, spcpfw,  &
-    egrav, rwat, vonkar, sigm, mathpi, regrav, rdry,              &
-    lnd_sfcemiss, ocn_sfcemiss
+    egrav, rwat, vonkar, sigm, mathpi, regrav, rdry
   use mod_clm_varpar, only : numrad, nlevgrnd, nlevlak, &
      nlevdecomp_full, ngases
 #if (defined VICHYDRO)

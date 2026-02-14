@@ -1,6 +1,5 @@
-module mod_clm_cngapmortality
-implicit none
 #ifdef CN
+module mod_clm_cngapmortality
   !
   ! Module holding routines used in gap mortality for coupled carbon
   ! nitrogen code.
@@ -671,7 +670,11 @@ implicit none
     end do
   end subroutine CNGapPftToColumn
 
-#endif
-
 end module mod_clm_cngapmortality
+#else
+module mod_clm_cngapmortality
+  implicit none
+  private
+end module mod_clm_cngapmortality
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

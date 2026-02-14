@@ -1,6 +1,5 @@
-module mod_clm_cnmresp
-implicit none
 #ifdef CN
+module mod_clm_cnmresp
   !
   ! Module holding maintenance respiration routines for coupled carbon
   ! nitrogen code.
@@ -206,7 +205,12 @@ implicit none
     end do
   end subroutine CNMResp
 
+end module mod_clm_cnmresp
+#else
+module mod_clm_cnmresp
+  implicit none
+  private
+end module mod_clm_cnmresp
 #endif
 
-end module mod_clm_cnmresp
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

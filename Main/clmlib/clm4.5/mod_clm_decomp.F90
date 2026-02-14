@@ -11,7 +11,6 @@ module mod_clm_decomp
   use mod_mpmessage
   use mod_regcm_types
   use mod_clm_type, only : nameg, namel, namec, namep
-  use mod_clm_domain, only : ldomain
 
   implicit none
 

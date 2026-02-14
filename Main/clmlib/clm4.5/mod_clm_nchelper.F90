@@ -24,7 +24,7 @@ module mod_clm_nchelper
   use mod_mppparam
   use mod_dynparam
   use mod_runparams, only : lsync
-  use mod_runparams, only : do_parallel_netcdf_in, do_parallel_netcdf_out
+  use mod_runparams, only : do_parallel_netcdf_in
   use mod_regcm_types
   use mod_clm_decomp
   use mod_clm_varcon
@@ -451,7 +451,7 @@ module mod_clm_nchelper
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     real(rk4), intent(in) :: aval
-    integer(rk4), intent(in), optional :: ivar
+    integer(ik4), intent(in), optional :: ivar
     character(len=*), intent(in), optional :: cvar
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
@@ -2254,7 +2254,7 @@ module mod_clm_nchelper
         'Error search '//vname//' in file '//trim(ncid%fname))
       if ( doswitch ) then
         incstat = nf90_get_var(ncid%ncid,ivarid,sval)
-        rval = transpose(sval)
+        rval(:,:) = transpose(sval)
         deallocate(sval)
       else
         incstat = nf90_get_var(ncid%ncid,ivarid,rval)
@@ -2430,7 +2430,7 @@ module mod_clm_nchelper
         'Error search '//vname//' in file '//trim(ncid%fname))
       if ( doswitch ) then
         incstat = nf90_get_var(ncid%ncid,ivarid,sval)
-        rval = transpose(sval)
+        rval(:,:) = transpose(sval)
         deallocate(sval)
       else
         incstat = nf90_get_var(ncid%ncid,ivarid,rval)
@@ -4287,7 +4287,7 @@ module mod_clm_nchelper
         end if
       end do
       if ( doswitch ) then
-        sval = transpose(rval)
+        sval(:,:) = transpose(rval)
         incstat = nf90_put_var(ncid%ncid,ivarid,sval)
         deallocate(sval)
       else
@@ -4472,7 +4472,7 @@ module mod_clm_nchelper
         end if
       end do
       if ( doswitch ) then
-        sval = transpose(rval)
+        sval(:,:) = transpose(rval)
         incstat = nf90_put_var(ncid%ncid,ivarid,sval)
         deallocate(sval)
       else

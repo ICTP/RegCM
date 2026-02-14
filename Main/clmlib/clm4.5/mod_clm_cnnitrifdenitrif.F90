@@ -1,6 +1,5 @@
-module mod_clm_cnnitrifdenitrif
-implicit none
 #ifdef CN
+module mod_clm_cnnitrifdenitrif
 #ifdef NITRIF_DENITRIF
   !
   ! Calculate nitrification and denitrification rates
@@ -412,7 +411,14 @@ implicit none
     end do
   end subroutine nitrif_denitrif
 #endif
-#endif
 
 end module mod_clm_cnnitrifdenitrif
+#else
+
+module mod_clm_cnnitrifdenitrif
+  implicit none
+  private
+end module mod_clm_cnnitrifdenitrif
+
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

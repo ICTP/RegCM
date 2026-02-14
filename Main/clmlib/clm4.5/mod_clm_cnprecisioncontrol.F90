@@ -1,7 +1,5 @@
-module mod_clm_cnprecisioncontrol
-implicit none
-
 #ifdef CN
+module mod_clm_cnprecisioncontrol
   !
   ! controls on very low values in critical state variables
   !
@@ -813,7 +811,11 @@ implicit none
 #endif
   end subroutine CNPrecisionControl
 
-#endif
-
 end module mod_clm_cnprecisioncontrol
+#else
+module mod_clm_cnprecisioncontrol
+  implicit none
+  private
+end module mod_clm_cnprecisioncontrol
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

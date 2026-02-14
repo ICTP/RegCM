@@ -1,8 +1,5 @@
-
-module mod_clm_cndvlight
-implicit none
-
 #if (defined CNDV)
+module mod_clm_cndvlight
   !
   ! Calculate light competition
   ! Update fpc for establishment routine
@@ -10,7 +7,7 @@ implicit none
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_varcon, only : rpi
+  use mod_clm_varcon, only : rpi
 
   implicit none
 
@@ -233,7 +230,12 @@ implicit none
       end if   ! end of if-tree
     end do
   end subroutine Light
-#endif
 
 end module mod_clm_cndvlight
+#else
+module mod_clm_cndvlight
+  implicit none
+  private
+end module mod_clm_cndvlight
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

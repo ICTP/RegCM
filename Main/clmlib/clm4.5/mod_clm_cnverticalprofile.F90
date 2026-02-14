@@ -1,6 +1,5 @@
-module mod_clm_cnverticalprofile
-implicit none
 #ifdef CN
+module mod_clm_cnverticalprofile
   !
   ! Module holding routines for vertical discretization of C and N
   ! inputs into deocmposing pools
@@ -297,7 +296,12 @@ implicit none
     end do
   end subroutine decomp_vertprofiles
 
-#endif
-
 end module mod_clm_cnverticalprofile
+#else
+
+module mod_clm_cnverticalprofile
+  implicit none
+  private
+end module mod_clm_cnverticalprofile
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

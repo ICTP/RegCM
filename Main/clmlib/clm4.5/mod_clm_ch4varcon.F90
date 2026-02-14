@@ -1,7 +1,5 @@
-module mod_clm_ch4varcon
-implicit none
-
 #ifdef LCH4
+module mod_clm_ch4varcon
   !
   ! Module containing CH4 parameters and logical switches and routine to
   ! read constants from CLM namelist.
@@ -379,8 +377,14 @@ implicit none
     end if
   end subroutine ch4conrd
 
-#endif
 ! defined LCH4
 
 end module mod_clm_ch4varcon
+
+#else
+module mod_clm_ch4varcon
+  implicit none
+  private
+end module mod_clm_ch4varcon
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

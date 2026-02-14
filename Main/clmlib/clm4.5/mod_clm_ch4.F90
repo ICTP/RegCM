@@ -1,6 +1,5 @@
-module mod_clm_ch4
-implicit none
 #ifdef LCH4
+module mod_clm_ch4
   !
   ! Module holding routines to calculate methane fluxes
   ! The driver averages up to gridcell, weighting by finundated, and
@@ -2843,8 +2842,11 @@ implicit none
     end do
   end subroutine ch4annualupdate
 
-#endif
-!defined LCH4
-
 end module mod_clm_ch4
+#else
+module mod_clm_ch4
+  implicit none
+  private
+end module mod_clm_ch4
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

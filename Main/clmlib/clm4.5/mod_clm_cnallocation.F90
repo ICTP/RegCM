@@ -1,6 +1,6 @@
-module mod_clm_cnallocation
-implicit none
 #ifdef CN
+
+module mod_clm_cnallocation
   !
   ! Module holding routines used in allocation model for coupled carbon
   ! nitrogen code.
@@ -1568,7 +1568,14 @@ implicit none
 
   end subroutine CNAllocation
 
-#endif
 
 end module mod_clm_cnallocation
+#else
+
+module mod_clm_cnallocation
+  implicit none
+  private
+end module mod_clm_cnallocation
+
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

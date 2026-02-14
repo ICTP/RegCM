@@ -1,6 +1,5 @@
-module mod_clm_cnsetvalue
-implicit none
 #if (defined CN)
+module mod_clm_cnsetvalue
   !
   ! contains code to set all CN variables to specified value
   ! Used for both initialization of special landunit values, and
@@ -1157,7 +1156,12 @@ implicit none
     end do
   end subroutine CNSetCnf
 
-#endif
 
 end module mod_clm_cnsetvalue
+#else
+module mod_clm_cnsetvalue
+  implicit none
+  private
+end module mod_clm_cnsetvalue
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

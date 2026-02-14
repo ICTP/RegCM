@@ -2811,7 +2811,7 @@ module mod_clm_type
   ! column dust state variables structure
   !----------------------------------------------------
   type, public :: column_dstate_type
-    real(rk8), pointer, contiguous, dimension(:) :: dummy_entry(:)
+    real(rk8), pointer, contiguous, dimension(:) :: dummy_entry
   end type column_dstate_type
 
   !----------------------------------------------------

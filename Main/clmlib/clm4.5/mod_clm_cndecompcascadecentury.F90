@@ -1,6 +1,5 @@
-module mod_clm_cndecompcascadecentury
-implicit none
 #ifdef CN
+module mod_clm_cndecompcascadecentury
 
 #ifdef CENTURY_DECOMP
   !
@@ -852,7 +851,13 @@ implicit none
 
 #endif
 
-#endif
-
 end module mod_clm_cndecompcascadecentury
+#else
+
+module mod_clm_cndecompcascadecentury
+  implicit none
+  private
+end module mod_clm_cndecompcascadecentury
+
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

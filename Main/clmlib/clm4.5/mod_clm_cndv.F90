@@ -1,7 +1,5 @@
-module mod_clm_cndv
-implicit none
-
 #if (defined CNDV)
+module mod_clm_cndv
   !
   ! Module containing routines to drive the annual dynamic vegetation
   ! that works with CN, reset related variables,
@@ -184,7 +182,6 @@ implicit none
     character(len=  8) :: curtime      ! current time
     character(len= 10) :: basedate     ! base date (yyyymmdd)
     character(len=  8) :: basesec      ! base seconds
-    integer(ik4) :: hostnm
     character (len=32) :: hostnm
     character (len=32) :: user
 
@@ -471,7 +468,11 @@ implicit none
     end do
   end subroutine BuildNatVegFilter
 
-#endif
-
 end module mod_clm_cndv
+#else
+module mod_clm_cndv
+  implicit none
+  private
+end module mod_clm_cndv
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

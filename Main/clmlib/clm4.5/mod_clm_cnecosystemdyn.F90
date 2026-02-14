@@ -1,6 +1,5 @@
-module mod_clm_cnecosystemdyn
-implicit none
 #ifdef CN
+module mod_clm_cnecosystemdyn
   !
   ! Ecosystem dynamics: phenology, vegetation
   !
@@ -230,7 +229,12 @@ implicit none
     call NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
   end subroutine CNEcosystemDyn
-#endif
 
 end module mod_clm_cnecosystemdyn
+#else
+module mod_clm_cnecosystemdyn
+  implicit none
+  private
+end module mod_clm_cnecosystemdyn
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

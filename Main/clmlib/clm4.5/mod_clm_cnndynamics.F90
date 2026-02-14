@@ -1,6 +1,5 @@
-module mod_clm_cnndynamics
-implicit none
 #ifdef CN
+module mod_clm_cnndynamics
   !
   ! Module for mineral nitrogen dynamics (deposition, fixation, leaching)
   ! for coupled carbon-nitrogen code.
@@ -517,7 +516,11 @@ implicit none
 
   end subroutine CNSoyfix
 
-#endif
-
 end module mod_clm_cnndynamics
+#else
+module mod_clm_cnndynamics
+  implicit none
+  private
+end module mod_clm_cnndynamics
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
