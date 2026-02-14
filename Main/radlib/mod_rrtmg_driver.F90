@@ -40,7 +40,6 @@ module mod_rrtmg_driver
   use mod_rad_outrad
   use mod_mpmessage
   use mod_runparams
-  use mod_mppparam, only : italk
   use mod_regcm_types
 
   implicit none

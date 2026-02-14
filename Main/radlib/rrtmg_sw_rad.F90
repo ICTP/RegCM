@@ -206,7 +206,7 @@ module rrtmg_sw_rad
 
 ! --------- Modules ---------
 
-      use parrrsw, only : nbndsw, ngptsw, naerec, nstr, nmol, mxmol, &
+      use parrrsw, only : nbndsw, ngptsw, naerec, mxmol, &
                           jpband, jpb1, jpb2
       use rrsw_aer, only : rsrtaua, rsrpiza, rsrasya
       use rrsw_con, only : heatfac, oneminus, pi
@@ -416,7 +416,6 @@ module rrtmg_sw_rad
       integer(kind=im) :: ib                  ! band loop index                        ! jsw
       integer(kind=im) :: ia, ig              ! indices
       !integer(kind=im) :: k                   ! layer loop index
-      integer(kind=im) :: ims                 ! value for changing mcica permute seed
       integer(kind=im) :: n, nsswcall        ! number of sw call for rad for. calculation (RegCM option)
       real(kind=rb) :: zepsec, zepzen         ! epsilon
       real(kind=rb) :: zdpgcp                 ! flux to heating conversion ratio
@@ -531,10 +530,10 @@ module rrtmg_sw_rad
 ! Optional output fields
       real(kind=rb) :: swnflx(nlay+2)         ! Total sky shortwave net flux (W/m2)
       real(kind=rb) :: swnflxc(nlay+2)        ! Clear sky shortwave net flux (W/m2)
-      real(kind=rb) :: dirdflux(nlay+2)       ! Direct downward shortwave surface flux
-      real(kind=rb) :: difdflux(nlay+2)       ! Diffuse downward shortwave surface flux
-      real(kind=rb) :: uvdflx(nlay+2)         ! Total sky downward shortwave flux, UV/vis
-      real(kind=rb) :: nidflx(nlay+2)         ! Total sky downward shortwave flux, near-IR
+!     real(kind=rb) :: dirdflux(nlay+2)       ! Direct downward shortwave surface flux
+!     real(kind=rb) :: difdflux(nlay+2)       ! Diffuse downward shortwave surface flux
+!     real(kind=rb) :: uvdflx(nlay+2)         ! Total sky downward shortwave flux, UV/vis
+!     real(kind=rb) :: nidflx(nlay+2)         ! Total sky downward shortwave flux, near-IR
       real(kind=rb) :: dirdnuv(nlay+2)        ! Direct downward shortwave flux, UV/vis
       real(kind=rb) :: difdnuv(nlay+2)        ! Diffuse downward shortwave flux, UV/vis
       real(kind=rb) :: dirdnir(nlay+2)        ! Direct downward shortwave flux, near-IR
@@ -575,7 +574,6 @@ module rrtmg_sw_rad
       iend = jpb2
       iout = 0
       icpr = 0
-      ims = 2
 
 ! In a GCM with or without McICA, set nlon to the longitude dimension
 !
@@ -898,11 +896,11 @@ module rrtmg_sw_rad
             swdflxc(iplon,i) = zbbcd(i)
             swuflx(iplon,i) = zbbfu(i)
             swdflx(iplon,i) = zbbfd(i)
-            uvdflx(i) = zuvfd(i)
-            nidflx(i) = znifd(i)
+!           uvdflx(i) = zuvfd(i)
+!           nidflx(i) = znifd(i)
 !  Direct/diffuse fluxes
-            dirdflux(i) = zbbfddir(i)
-            difdflux(i) = swdflx(iplon,i) - dirdflux(i)
+!           dirdflux(i) = zbbfddir(i)
+!           difdflux(i) = swdflx(iplon,i) - dirdflux(i)
 !  UV/visible direct/diffuse fluxes
             dirdnuv(i) = zuvfddir(i)
             difdnuv(i) = zuvfd(i) - dirdnuv(i)
@@ -989,8 +987,7 @@ module rrtmg_sw_rad
 
 ! --------- Modules ----------
 
-      use parrrsw, only : nbndsw, ngptsw, nstr, nmol, mxmol, &
-                          jpband, jpb1, jpb2, rrsw_scon
+      use parrrsw, only : nbndsw, ngptsw, nmol, jpband, jpb1, jpb2, rrsw_scon
       use rrsw_con, only : grav, avogad
 
 ! ------- Declarations -------

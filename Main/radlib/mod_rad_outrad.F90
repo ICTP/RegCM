@@ -31,14 +31,13 @@ module mod_rad_outrad
 
   public :: allocate_mod_rad_outrad, radout
 
-  integer(ik4) :: npr, nj
+  integer(ik4) :: nj
 
   contains
 
   subroutine allocate_mod_rad_outrad
     implicit none
     nj = jci2-jci1+1
-    npr = nj*(ici2-ici1+1)
   end subroutine allocate_mod_rad_outrad
 
   subroutine radout(lout,solin,solout,frsa,clrst,clrss,qrs,lwout,        &

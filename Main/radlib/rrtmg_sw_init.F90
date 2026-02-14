@@ -57,8 +57,8 @@
 !  spectral band are reduced from 224 g-point intervals to 112.
 ! **************************************************************************
 
-      use parrrsw, only : mg, nbndsw, ngptsw
-      use rrsw_tbl, only: ntbl, tblint, pade, bpade, tau_tbl, exp_tbl
+      use parrrsw, only : mg, nbndsw
+      use rrsw_tbl, only: ntbl, pade, bpade, tau_tbl, exp_tbl
       use rrsw_vsn, only: hvrini
 
       character(len=*), intent(in) :: fname

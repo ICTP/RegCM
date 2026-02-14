@@ -692,7 +692,7 @@
 
 ! --------- Modules ----------
 
-      use parrrtm, only : nbndlw, ngptlw, nmol, maxxsec, mxmol
+      use parrrtm, only : nbndlw, nmol, maxxsec
       use rrlw_con, only: grav, avogad
       use rrlw_wvn, only: ixindx
 

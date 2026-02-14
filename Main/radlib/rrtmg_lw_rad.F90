@@ -347,7 +347,6 @@
       integer(kind=im) :: iaer                ! aerosol option flag
       integer(kind=im) :: iplon               ! column loop index
       !integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
-      integer(kind=im) :: ims                 ! value for changing mcica permute seed
       integer(kind=im) :: k                   ! layer loop index
       integer(kind=im) :: ig                  ! g-point loop index
       integer(kind=im) :: n, nlwcall          ! added for rad calculation double call in regcm
@@ -461,7 +460,6 @@
       istart = 1
       iend = 16
       iout = 0
-      ims = 1
 
 ! Set imca to select calculation type:
 !  imca = 0, use standard forward model calculation
@@ -697,7 +695,7 @@
 
 ! --------- Modules ----------
 
-      use parrrtm, only : nbndlw, ngptlw, nmol, maxxsec, mxmol
+      use parrrtm, only : nbndlw, ngptlw, nmol, maxxsec
       use rrlw_con, only: grav, avogad
       use rrlw_wvn, only: ixindx
 
