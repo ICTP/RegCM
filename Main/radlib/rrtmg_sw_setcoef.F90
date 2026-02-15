@@ -128,13 +128,9 @@ module rrtmg_sw_setcoef
 
 ! ----- Local -----
 
-      integer(kind=im) :: indbound
-      integer(kind=im) :: indlev0
       integer(kind=im) :: lay
       integer(kind=im) :: jp1
 
-      real(kind=rb) :: tbndfrac
-      real(kind=rb) :: t0frac
       real(kind=rb) :: plog
       real(kind=rb) :: fp
       real(kind=rb) :: ft
@@ -148,11 +144,6 @@ module rrtmg_sw_setcoef
       real(kind=rb), parameter :: stpfac = 296._rb/1013._rb
 
 ! Initializations
-
-      indbound = int(tbound - 159._rb,im)
-      tbndfrac = tbound - int(tbound,im)
-      indlev0  = int(tz(0) - 159._rb,im)
-      t0frac   = tz(0) - int(tz(0),im)
 
       laytrop  = 0
       layswtch = 0

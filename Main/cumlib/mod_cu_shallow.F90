@@ -41,12 +41,11 @@ module mod_cu_shallow
 
     real(rkx), dimension(kz) :: t, q, p, outts, tns, qns, outqs
     real(rkx) :: xmb
-    real(rkx) :: dtime, ter11, pret, psur
+    real(rkx) :: ter11, pret, psur
 
     integer(ik4) :: i, j, kbmax, k, kk, ier
 
     kbmax = ((kz*3)/4-3)
-    dtime = dtcum
 
     do i = ici1, ici2
       do j = jci1, jci2
@@ -119,7 +118,7 @@ module mod_cu_shallow
       ! Cloud updraft properties, which are calculated for
       ! every cloud (i) and stored. kz clouds are possible.
       !
-      real(rkx), dimension(kz) :: hc, zu, qrc, pw, zuo, pwo, qsc
+      real(rkx), dimension(kz) :: hc, zu, qrc, pw, zuo, qsc
       !
       ! Changed properties after simulated cloud influence,
       ! necessary for kernel calculations!
@@ -139,10 +138,6 @@ module mod_cu_shallow
       !
       ! Downdraft dimensions
       !
-      real(rkx) :: edt
-      real(rkx), dimension(kz) :: zd, qrcd, hcd, pwd
-      real(rkx), dimension(kz) :: zdo, pwdo
-      integer(ik4) :: kmin, itest
       integer(ik4) :: ktop, ktopx
       !
       ! DIMENSIONS FOR FEEDBACK ROUTINE, INCLUDING FEEDBACK
@@ -157,13 +152,14 @@ module mod_cu_shallow
       real(rkx) :: psurf, pbcdif, qkb
       integer(ik4) :: k, lloop, iph
       integer(ik4) :: kbhe, k22, kb, kbcon, kbxx
+      logical :: lfindbase, lkbloop
 
       real(rkx), parameter :: ht1 = wlhv/cpd
       real(rkx), parameter :: ht2 = wlhs/cpd
-      real(rkx), parameter, dimension(2) :: be = [ ep2*ht1/c287, &
-                                                      ep2*ht2/c287 ]
-      real(rkx), parameter, dimension(2) :: ae = [ be(1)/tzero+log(c1es), &
-                                                      be(2)/tzero+log(c1es) ]
+      real(rkx), parameter, dimension(2) :: be = &
+                      [ ep2*ht1/c287, ep2*ht2/c287 ]
+      real(rkx), parameter, dimension(2) :: ae = &
+                      [ be(1)/tzero+log(c1es), be(2)/tzero+log(c1es) ]
 
       rad = rads
       xx = 0.2_rkx/rad
@@ -181,9 +177,6 @@ module mod_cu_shallow
           aa = d_zero
           xmb = d_zero
           f = d_zero
-          edt = d_zero
-          kmin = -1
-          itest = -1
           do k = 1, kz
             xmflux(k) = d_zero
             z(k) = d_zero
@@ -193,9 +186,6 @@ module mod_cu_shallow
           end do
           do k = 1, kz
             zu(k) = d_zero
-            zd(k) = d_zero
-            hcd(k) = d_zero
-            qrcd(k) = d_zero
             hc(k) = d_zero
             qrc(k) = d_zero
           end do
@@ -204,7 +194,6 @@ module mod_cu_shallow
           aa = d_zero
           f = d_zero
           xmb = d_zero
-          edt = d_zero
           xk = d_zero
 
           do k = 1, kz
@@ -219,18 +208,11 @@ module mod_cu_shallow
           end do
 
           do k = 1, kz
-            pwd(k) = d_zero
             pw(k) = d_zero
             dellt(k) = d_zero
             dellq(k) = d_zero
             zuo(k) = d_zero
-            pwo(k) = d_zero
-            pwdo(k) = d_zero
-            zdo(k) = d_zero
             zu(k) = d_zero
-            zd(k) = d_zero
-            hcd(k) = d_zero
-            qrcd(k) = d_zero
             hc(k) = d_zero
             qrc(k) = d_zero
           end do
@@ -273,12 +255,14 @@ module mod_cu_shallow
         !
         ! Decide for convective cloud base
         !
-        kbloop: do
+        lkbloop = .true.
+        kbloop: do while ( lkbloop )
           hkb = d_half*(he(k22)+he(k22+1))
           qkb = d_half*(qe(k22)+qe(k22+1))
           kb = k22
           kbcon = kb
-          findbase: do
+          lfindbase = .true.
+          findbase: do while ( lfindbase )
             dh = d_half * (hes(kbcon)+hes(kbcon+1))
             if ( hkb < dh ) then
               kbcon = kbcon+1
@@ -293,9 +277,9 @@ module mod_cu_shallow
               end if
               cycle findbase
             end if
-            exit findbase
+            lfindbase = .false.
           end do findbase
-          exit kbloop
+          lkbloop = .false.
         end do kbloop
         !
         ! Static control
@@ -334,7 +318,6 @@ module mod_cu_shallow
         if ( lloop == 1 ) then
           do k = 1, kz
             zuo(k) = zu(k)
-            pwo(k) = pw(k)
           end do
         end if
 
@@ -657,7 +640,7 @@ module mod_cu_shallow
           dv3 = d_half*(var(k)+var(k-1))
           !
           ! Specifiy detrainment of downdraft, has to be consistent
-          ! with zd calculations in soundd.
+          ! with z calculations in soundd.
           !
           dz = d_half*(z(k+1)-z(k-1))
           !

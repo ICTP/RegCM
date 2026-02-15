@@ -1,9 +1,8 @@
+#if (defined VICHYDRO)
 module mod_clm_initsoilparvic
-implicit none
   !
   ! Performs mapping between VIC and CLM layers
   !
-#if (defined VICHYDRO)
   use mod_realkinds
   use mod_intkinds
   use mod_clm_type
@@ -14,8 +13,6 @@ implicit none
 
   private
 
-  save
-
   public :: initSoilParVIC      ! map clm soil parameters to vic parameters
 
   contains
@@ -24,7 +21,7 @@ implicit none
   ! parameters to be used for runoff simulations
   ! added by M. Huang
   !
-  pure subroutine initSoilParVIC(c, claycol, sandcol, om_fraccol)
+  subroutine initSoilParVIC(c, claycol, sandcol, om_fraccol)
     !$acc routine seq
     implicit none
     integer(ik4), intent(in)  :: c ! column bounds
@@ -186,7 +183,15 @@ implicit none
                0.0063_rk8*(100.0_rk8-sandvic(i)-clayvic(i)))*log(10.0_rk8))*9.8e-5_rk8)
     end do
   end subroutine initSoilParVIC
-#endif
 
 end module mod_clm_initsoilparvic
+
+#else
+
+module mod_clm_initsoilparvic
+  implicit none
+  private
+end module mod_clm_initsoilparvic
+
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

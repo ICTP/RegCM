@@ -130,7 +130,6 @@ contains
     real(rkx) :: &
       canred        ,&    ! canopy reduction factor
       fracnox       ,&  ! fraction emitted as NOx
-      fracnh3       ,&  ! fraction emitted as NH3
       norm_sm       ,&    ! normalised soil moisture
       norm_wi       ,&    ! normalised wind speed
       norm_fe       ,&    ! normalised fertilisation rate
@@ -142,17 +141,15 @@ contains
       nsum1         ,&    ! normalised sum 1
       nsum2         ,&    ! normalised sum 2
       nsum3               ! normalised sum 3
+      !fracnh3       ,&  ! fraction emitted as NH3
     real(rkx), dimension(jci1:jci2,ici1:ici2) :: &
          soiltemp_surf ,&    ! surface soil temperature (C)
          soiltemp_deep ,&    ! deep soil temperature (C)
          sandper       ,&    ! sand percentage (%)
          porewater     ,&    ! pore space water content (%)
-         windsp        ,&    ! wind speed (m/s)
-         soilfert      ,&    ! soil fertilisation rate (kg/m2/hr)
          lai_int       ,&    ! manure/fertiliser app. rate + pH
          noxflux       ,&    ! calculated soil NOx flux
          totn                ! total N app. rate
-
     ! convert from kg/ha/year to kg/ha/hr needed by the neural network
 
     totn = (nmanure + nfert)/(24._rkx * 365._rkx)
@@ -165,8 +162,6 @@ contains
     sandper       = d_zero
     porewater     = d_zero
     canred        = d_zero
-    windsp        = d_zero
-    soilfert      = d_zero
     norm_sm       = d_zero
     norm_wi       = d_zero
     norm_fe       = d_zero
@@ -255,7 +250,7 @@ contains
         ! calculating what percentage volatilised N gets incorporated
         ! into NH3 and NOx
 
-        fracnh3 = totn(j,i)*0.3_rkx
+        !fracnh3 = totn(j,i)*0.3_rkx
         fracnox = totn(j,i)*0.7_rkx
 
         ! calculation of NOx flux from soil

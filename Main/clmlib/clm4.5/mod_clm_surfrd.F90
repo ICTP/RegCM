@@ -22,10 +22,10 @@ module mod_clm_surfrd
   use mod_mppparam
   use mod_clm_nchelper
   use mod_clm_varpar, only : nlevsoifl, numpft, maxpatch_pft, &
-         maxpatch, npatch_urban_class, numurbl, npatch_lake,  &
-         npatch_wet, npatch_glacier, maxpatch_urb
+         npatch_urban_class, numurbl, npatch_lake,  &
+         npatch_wet, npatch_glacier
   use mod_clm_varsur, only : wtxy, vegxy, pctspec
-  use mod_clm_decomp, only : get_proc_bounds, procinfo, numg
+  use mod_clm_decomp, only : get_proc_bounds, procinfo
   use mod_clm_decomp, only : gcomm_gridcell
   use mod_clm_type
 
@@ -58,8 +58,7 @@ module mod_clm_surfrd
   ! o real longitude of grid cell (degrees)
   !
   subroutine surfrd_get_grid(ldomain, filename)
-    use mod_clm_varcon, only : spval, re
-    use mod_clm_domain, only : domain_type, domain_init, domain_clean
+    use mod_clm_domain, only : domain_type, domain_init
     use mod_clm_decomp, only : get_proc_bounds
     use mod_clm_atmlnd, only : adomain
     implicit none
@@ -68,8 +67,8 @@ module mod_clm_surfrd
     type(clm_filetype) :: ncid     ! netcdf id
     integer(ik4) :: ibeg           ! local beg index
     integer(ik4) :: iend           ! local end index
-    integer(ik4) :: ni, nj, ns   ! size of grid on file
-    integer(ik4) :: inni, innj    ! size of grid on file
+    integer(ik4) :: ni, nj         ! size of grid on file
+    integer(ik4) :: inni, innj     ! size of grid on file
     real(rk4), allocatable, dimension(:,:) :: mask
     character(len=32) :: subname = 'surfrd_get_grid'     ! subroutine name
 
@@ -94,7 +93,6 @@ module mod_clm_surfrd
 
     ni = inni - 3
     nj = innj - 3
-    ns = ni*nj
 
     call get_proc_bounds(ibeg,iend)
     call domain_init(ldomain,ni=ni,nj=nj,nbeg=ibeg,nend=iend)
@@ -151,7 +149,7 @@ module mod_clm_surfrd
     use mod_clm_varctl, only : create_crop_landunit
 #endif
     use mod_clm_pftvarcon, only : noveg
-    use mod_clm_domain, only : domain_type, domain_init, domain_clean
+    use mod_clm_domain, only : domain_type
     implicit none
     ! land domain associated with wtxy
     type(domain_type), intent(inout) :: ldomain
@@ -341,7 +339,7 @@ module mod_clm_surfrd
       pcturb_tot = 0.0_rk8
     end where
 
-    pctspec = pctwet + pctlak + pcturb_tot + pctgla
+    pctspec(:) = pctwet(:) + pctlak(:) + pcturb_tot(:) + pctgla(:)
 
     ! Error check: glacier, lake, wetland, urban sum must be less than 100
 

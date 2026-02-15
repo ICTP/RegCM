@@ -72,7 +72,7 @@ module mod_micro_nogtom
   use mod_runparams, only : iqqi => iqi !ice
   use mod_runparams, only : iqqs => iqs !snow
   use mod_runparams, only : dt, rdt
-  use mod_runparams, only : ipptls, ichem, iaerosol, iindirect, rcrit
+  use mod_runparams, only : ichem, iaerosol, iindirect, rcrit
   use mod_runparams, only : budget_compute, nssopt, iautoconv
   use mod_runparams, only : auto_rate_khair, auto_rate_kessl, &
                              auto_rate_klepi, rcldiff
@@ -2282,13 +2282,8 @@ module mod_micro_nogtom
                     j, jj, jz, l, mda, npp1, nsetp
     real(rkx), dimension(1) :: dummy
     real(rkx), parameter :: factor = 0.01_rkx
-    real(rkx) :: alpha, asave, cc, sm, ss, t, temp, unorm, up, wmax, ztest
+    real(rkx) :: alpha, asave, cc, ss, t, temp, unorm, up, wmax, ztest
 
-    ! The below would have been in output
-    integer(ik4) :: mode
-    real(rkx) :: rnorm
-
-    mode = 1
     iter = 0
     itmax = 3*n
     ! Initialize the arrays indx() and x().
@@ -2396,7 +2391,6 @@ module mod_micro_nogtom
 
 210 iter = iter+1
     if ( iter > itmax ) then
-      mode = 3
       goto 350
     end if
     !                SEE IF ALL NEW CONSTRAINED COEFFS ARE FEASIBLE.
@@ -2490,13 +2484,10 @@ module mod_micro_nogtom
     !               COME TO HERE FOR TERMINATION.
     !               COMPUTE THE NORM OF THE FINAL RESIDUAL VECTOR.
 
-350 sm = d_zero
-    if ( npp1 <= n ) then
-      sm = sum( b(npp1:n)**2 )
-    else
+350 continue
+    if ( npp1 > n ) then
       w(1:n) = d_zero
     end if
-    rnorm = sqrt(sm)
   end subroutine nnls
   !
   ! THE FOLLOWING BLOCK OF CODE WAS USED AS AN INTERNAL SUBROUTINE

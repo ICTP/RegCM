@@ -1,6 +1,5 @@
-module mod_clm_ch4rest
-implicit none
 #ifdef LCH4
+module mod_clm_ch4rest
   !
   ! Reads from or writes restart data
   !
@@ -481,7 +480,11 @@ implicit none
 
   end subroutine ch4Rest
 
-#endif
-
 end module mod_clm_ch4rest
+#else
+module mod_clm_ch4rest
+  implicit none
+  private
+end module mod_clm_ch4rest
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

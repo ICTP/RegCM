@@ -1,7 +1,5 @@
-module mod_clm_cnrest
-implicit none
-
 #if (defined CN)
+module mod_clm_cnrest
   !
   ! Read/Write to/from CN info to CLM restart file.
   !
@@ -4076,7 +4074,11 @@ implicit none
 #endif
   end subroutine cnrest_addfld_decomp
 
-#endif
-
 end module mod_clm_cnrest
+#else
+module mod_clm_cnrest
+  implicit none
+  private
+end module mod_clm_cnrest
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

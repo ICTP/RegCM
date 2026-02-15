@@ -1,6 +1,5 @@
-module mod_clm_cnc14decay
-implicit none
 #if (defined CN)
+module mod_clm_cnc14decay
   !
   ! Module for 14-carbon flux variable update, non-mortality fluxes.
   !
@@ -289,7 +288,14 @@ implicit none
     endif
   end subroutine C14_init_BombSpike
 
-#endif
 
 end module mod_clm_cnc14decay
+#else
+
+module mod_clm_cnc14decay
+  implicit none
+  private
+end module mod_clm_cnc14decay
+
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

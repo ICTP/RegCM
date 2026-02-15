@@ -1,6 +1,5 @@
-module mod_clm_cnbalancecheck
-implicit none
 #ifdef CN
+module mod_clm_cnbalancecheck
 
   !
   ! Module for carbon mass balance checking.
@@ -356,7 +355,11 @@ implicit none
     end if
   end subroutine NBalanceCheck
 
-#endif
-
 end module mod_clm_cnbalancecheck
+#else
+module mod_clm_cnbalancecheck
+  implicit none
+  private
+end module mod_clm_cnbalancecheck
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

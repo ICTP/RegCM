@@ -1,7 +1,5 @@
-module mod_clm_cndvecosystemdynini
-implicit none
-
 #if (defined CNDV)
+module mod_clm_cndvecosystemdynini
   use mod_intkinds
   use mod_realkinds
 
@@ -60,7 +58,12 @@ implicit none
     end do
   end subroutine CNDVEcosystemDynini
 
+end module mod_clm_cndvecosystemdynini
+#else
+module mod_clm_cndvecosystemdynini
+  implicit none
+  private
+end module mod_clm_cndvecosystemdynini
 #endif
 
-end module mod_clm_cndvecosystemdynini
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

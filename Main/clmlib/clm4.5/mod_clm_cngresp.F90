@@ -1,6 +1,5 @@
-module mod_clm_cngresp
-implicit none
 #ifdef CN
+module mod_clm_cngresp
   !
   ! Module for growth respiration fluxes,
   ! for coupled carbon-nitrogen code.
@@ -194,7 +193,11 @@ implicit none
     end do
   end subroutine CNGResp
 
-#endif
-
 end module mod_clm_cngresp
+#else
+module mod_clm_cngresp
+  implicit none
+  private
+end module mod_clm_cngresp
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

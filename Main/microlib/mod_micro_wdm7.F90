@@ -156,25 +156,19 @@ module mod_micro_wdm7
                                         exp(xb*(1.0_rkx-wattp/tzero))
   real(rkx), parameter :: lv1 = cpw-cpv
 
-  real(rkx),  save :: qc0, qc1, qck1, pidnc, bvtr1, bvtr2,       &
-             bvtr3, bvtr4, bvtr5,                                    &
-             bvtr6, bvtr7,  bvtr2o5, bvtr3o5,                       &
-             g1pbr, g2pbr, g3pbr, g4pbr, g5pbr, g6pbr, g7pbr,    &
-             g5pbro2, g7pbro2, pvtr, pvtrn, eacrr, pacrr,         &
-             pidn0r, pidnr, precr1, precr2, xmmax, roqimax,       &
-             bvts1, bvts2, bvts3, bvts4, g1pbs, g3pbs, g4pbs,    &
-             g5pbso2, pvts, pacrs, precs1, precs2, pidn0s,        &
-             pacrc, bvtg1, bvtg2, bvtg3, bvtg4, g1pbg, g3pbg,    &
-             g4pbg, g5pbgo2, g6pbgh, pvtg, pacrg,                  &
-             precg1, precg2, precg3, pidn0g,                        &
-             bvth2, bvth3, bvth4,                                    &
-             g3pbh, g4pbh, g5pbho2, pvth, pacrh,                   &
-             prech1, prech2, prech3, pidn0h,                        &
-             rslopecmax, rslopec2max, rslopec3max,                   &
-             rslopermax, rslopesmax, rslopegmax, rslopehmax,        &
-             rsloperbmax, rslopesbmax, rslopegbmax, rslopehbmax,    &
-             rsloper2max, rslopes2max, rslopeg2max, rslopeh2max,    &
-             rsloper3max, rslopes3max, rslopeg3max, rslopeh3max
+  real(rkx),  save :: qc0, qc1, qck1, pidnc, bvtr2, bvtr4, bvtr5,  &
+             bvtr7, bvtr3o5, g2pbr, g4pbr, g5pbr, g7pbr, g7pbro2,  &
+             pvtr, pvtrn, pidnr, precr1, precr2, roqimax, bvts2,   &
+             bvts3, bvts4, g3pbs, g4pbs, g5pbso2, pvts, precs1,    &
+             precs2, pidn0s, pacrc, bvtg2, bvtg3, bvtg4, g3pbg,    &
+             g4pbg, g5pbgo2, g6pbgh, pvtg, pacrg, precg1, precg2,  &
+             precg3, pidn0g, bvth2, bvth3, bvth4, g3pbh, g4pbh,    &
+             g5pbho2, pvth, pacrh, prech1, prech2, prech3, pidn0h, &
+             rslopecmax, rslopec2max, rslopec3max, rslopermax,     &
+             rslopesmax, rslopegmax, rslopehmax, rsloperbmax,      &
+             rslopesbmax, rslopegbmax, rslopehbmax, rsloper2max,   &
+             rslopes2max, rslopeg2max, rslopeh2max, rsloper3max,   &
+             rslopes3max, rslopeg3max, rslopeh3max
 
   public :: allocate_mod_wdm7, init_wdm7, wdm7
 
@@ -238,57 +232,38 @@ module mod_micro_wdm7
     pidnc = mathpi*rhoh2o/d_six        ! syb
     !cpv = 1885.0       ! specific heat of water vapor
     !n
-    bvtr1 = 1.0_rkx+bvtr
     bvtr2 = 2.0_rkx+bvtr
-    bvtr3 = 3.0_rkx+bvtr
     bvtr4 = 4.0_rkx+bvtr
     bvtr5 = 5.0_rkx+bvtr
-    bvtr6 = 6.0_rkx+bvtr
     bvtr7 = 7.0_rkx+bvtr
-    bvtr2o5 = 2.5_rkx+0.5_rkx*bvtr
     bvtr3o5 = 3.5_rkx+0.5_rkx*bvtr
-    g1pbr = rgmma(bvtr1)
     g2pbr = rgmma(bvtr2)
-    g3pbr = rgmma(bvtr3)
     g4pbr = rgmma(bvtr4)            ! 17.837825
     g5pbr = rgmma(bvtr5)
-    g6pbr = rgmma(bvtr6)
     g7pbr = rgmma(bvtr7)
-    g5pbro2 = rgmma(bvtr2o5)
     g7pbro2 = rgmma(bvtr3o5)
     pvtr = avtr*g5pbr/24.0_rkx
     pvtrn = avtr*g2pbr
-    eacrr = 1.0_rkx
-    pacrr = mathpi*n0r*avtr*g3pbr*0.25_rkx*eacrr
     precr1 = 2.0_rkx*mathpi*1.56_rkx
     precr2 = 2.0_rkx*mathpi*0.31_rkx*avtr**0.5_rkx*g7pbro2
-    pidn0r =  mathpi*rhoh2o*n0r
     pidnr = 4.0_rkx*mathpi*rhoh2o
-    !
-    xmmax = (dimax/dicon)**2
     roqimax = 2.08e22_rkx*dimax**8
-    !
-    bvts1 = 1.0_rkx+bvts
     bvts2 = 2.5_rkx+0.5_rkx*bvts
     bvts3 = 3.0_rkx+bvts
     bvts4 = 4.0_rkx+bvts
-    g1pbs = rgmma(bvts1)    !.8875
     g3pbs = rgmma(bvts3)
     g4pbs = rgmma(bvts4)    ! 12.0786
     g5pbso2 = rgmma(bvts2)
     pvts = avts*g4pbs/6.0_rkx
-    pacrs = mathpi*n0s*avts*g3pbs*0.25_rkx
     precs1 = 4.0_rkx*n0s*0.65_rkx
     precs2 = 4.0_rkx*n0s*0.44_rkx*avts**0.5*g5pbso2
     pidn0s =  mathpi*rhosnow*n0s
     !
     pacrc = mathpi*n0s*avts*g3pbs*0.25_rkx*eacrc
     !
-    bvtg1 = 1.0_rkx+bvtg
     bvtg2 = 2.5_rkx+0.5_rkx*bvtg
     bvtg3 = 3.0_rkx+bvtg
     bvtg4 = 4.0_rkx+bvtg
-    g1pbg = rgmma(bvtg1)
     g3pbg = rgmma(bvtg3)
     g4pbg = rgmma(bvtg4)
     g5pbgo2 = rgmma(bvtg2)
@@ -601,13 +576,13 @@ module mod_micro_wdm7
     real(rkx), dimension(ims:ime,kz,2) :: avedia
     real(rkx), dimension(ims:ime,kz) :: denfac, xni, denqrs2
     real(rkx), dimension(ims:ime,kz) :: denqci, n0sfac
-    real(rkx), dimension(ims:ime,kz) :: falkc, work1c, workr, workh, worka
-    real(rkx), dimension(ims:ime,kz) :: work2, works, workn, falln, falkn
-    real(rkx), dimension(ims:ime,kz) :: nraut, nracw, ncevp, nccol, &
+    real(rkx), dimension(ims:ime,kz) :: work1c, workh, worka
+    real(rkx), dimension(ims:ime,kz) :: work2, workn, falln, falkn
+    real(rkx), dimension(ims:ime,kz) :: nraut, nracw, nccol, &
       nrcol, nsacw, ngacw, nhacw, niacr, nsacr, ngacr,  &
       nhacr, naacw, nseml, ngeml, nheml, ncact
     real(rkx), dimension(ims:ime,kz) :: lamdr_tmp, lamdc_tmp
-    real(rkx), dimension(ims:ime) :: delqrs1, delqrs2, delqrs3, &
+    real(rkx), dimension(ims:ime) :: delqrs2, delqrs3, &
       delqrs4, delqi
     integer(ik4), dimension(ims:ime) :: mstep
     real(rkx), dimension(ims:ime,kz) :: pigen, pidep, psdep, praut
@@ -752,7 +727,6 @@ module mod_micro_wdm7
           fall(i,k,3) = d_zero
           fall(i,k,4) = d_zero
           fallc(i,k) = d_zero
-          falkc(i,k) = d_zero
           falln(i,k) = d_zero
           falkn(i,k) = d_zero
           xni(i,k) = 1.e3_rkx
@@ -772,8 +746,6 @@ module mod_micro_wdm7
           nrcol(i,k) = d_zero
           ncact(i,k) = d_zero
           nraut(i,k) = d_zero
-          ncevp(i,k) = d_zero
-          delqrs1(i) = d_zero
           delqrs2(i) = d_zero
           delqrs3(i) = d_zero
           delqrs4(i) = d_zero
@@ -873,16 +845,16 @@ module mod_micro_wdm7
       end do
       call nislfv_rain_plm6(nval,den,denfac,t,delz,worka, &
                             denqrs2,denqrs3,delqrs2,delqrs3,dtcld,1)
-      call nislfv_rain_plmr(nval,den,denfac,t,delz,workh, &
+      call nislfv_rain_plmr(nval,den,denfac,delz,workh, &
                             denqrs4,denqrs4,delqrs4,dtcld,2,1,0)
       do k = 1, kz
         do i = ims, ime
           qrs(i,k,2) = max(denqrs2(i,k)/den(i,k),d_zero)
           qrs(i,k,3) = max(denqrs3(i,k)/den(i,k),d_zero)
           qrs(i,k,4) = max(denqrs4(i,k)/den(i,k),d_zero)
-          fall(i,k,2) = denqrs2(i,k)*works(i,k)/delz(i,k)
-          fall(i,k,3) = denqrs3(i,k)*workr(i,k)/delz(i,k)
-          fall(i,k,4) = denqrs4(i,k)*works(i,k)/delz(i,k)
+          fall(i,k,2) = denqrs2(i,k)*worka(i,k)/delz(i,k)
+          fall(i,k,3) = denqrs3(i,k)*worka(i,k)/delz(i,k)
+          fall(i,k,4) = denqrs4(i,k)*workh(i,k)/delz(i,k)
         end do
       end do
       do i = ims, ime
@@ -989,7 +961,7 @@ module mod_micro_wdm7
           denqci(i,k) = den(i,k)*qci(i,k,2)
         end do
       end do
-      call nislfv_rain_plmr(nval,den,denfac,t, &
+      call nislfv_rain_plmr(nval,den,denfac, &
                            delz,work1c,denqci,denqci,delqi,dtcld,1,0,0)
       do k = 1, kz
         do i = ims, ime
@@ -2237,7 +2209,7 @@ module mod_micro_wdm7
             pcond(i,k) = max(work1(i,k,1),-qci(i,k,1))*rdtcld
           end if
           !
-          ! ncevp: evpration of Cloud number concentration  [LH A3]
+          ! evapration of Cloud number concentration  [LH A3]
           ! (NC->NCCN)
           !
           if ( abs(pcond(i,k)+qci(i,k,1)*rdtcld) < dlowval ) then
@@ -2691,13 +2663,12 @@ module mod_micro_wdm7
   ! Author: Hann-Ming Henry Juang <henry.juang@noaa.gov>
   !         implemented by Song-You Hong
   !
-  subroutine nislfv_rain_plmr(im,denl,denfacl,tkl,dzl, &
+  subroutine nislfv_rain_plmr(im,denl,denfacl,dzl, &
                              wwl,rql,rnl,precip,dt,id,maxiter,rid)
     implicit none
     integer(ik4), intent(in) :: im, id, maxiter
     real(rkx), dimension(im,kz), intent(in) :: denl
     real(rkx), dimension(im,kz), intent(in) :: denfacl
-    real(rkx), dimension(im,kz), intent(in) :: tkl
     real(rkx), dimension(im,kz), intent(in) :: dzl
     real(rkx), dimension(im,kz), intent(in) :: wwl
     real(rkx), dimension(im,kz), intent(inout) :: rql, rnl
@@ -2710,7 +2681,7 @@ module mod_micro_wdm7
     real(rkx) :: zsum, qsum, xdim, xdip, con1
     real(rkx) :: allold, decfl
     real(rkx), dimension(kz) :: dz, ww, qq, wd, wa, wa2, was, nr
-    real(rkx), dimension(kz) :: den, denfac, tk
+    real(rkx), dimension(kz) :: den, denfac
     real(rkx), dimension(kzp1) :: wi, zi, za
     real(rkx), dimension(kz) :: qn, qr ,tmp, tmp1, tmp2, tmp3
     real(rkx), dimension(kzp1) :: dza, qa, qmi, qpi
@@ -2728,7 +2699,6 @@ module mod_micro_wdm7
       ww(:) = wwl(i,:)
       den(:) = denl(i,:)
       denfac(:) = denfacl(i,:)
-      tk(:) = tkl(i,:)
       ! skip for no precipitation for all layers
       allold = d_zero
       do k = 1, kz
@@ -2919,8 +2889,9 @@ module mod_micro_wdm7
         else if ( za(k) < d_zero .and. za(k+1) >= d_zero ) then
           precip(i) = precip(i) + qa(k)*(d_zero-za(k))
           exit sum_precip3
+        else
+          exit sum_precip3
         end if
-        exit sum_precip3
       end do sum_precip3
       !
       ! replace the new values
@@ -2949,7 +2920,7 @@ module mod_micro_wdm7
     real(rkx) :: allold, decfl
     real(rkx), dimension(im) :: precip
     real(rkx), dimension(kz) :: dz, ww, qq, wd, wa, wa2, was
-    real(rkx), dimension(kz) :: den, denfac, tk
+    real(rkx), dimension(kz) :: den, denfac
     real(rkx), dimension(kzp1) :: wi, zi, za
     real(rkx), dimension(kz) :: qn, qr, qr2, qq2, tmp, tmp1, tmp2, tmp3
     real(rkx), dimension(kzp1) :: dza, qa, qa2, qmi, qpi
@@ -2968,7 +2939,6 @@ module mod_micro_wdm7
       ww(:) = wwl(i,:)
       den(:) = denl(i,:)
       denfac(:) = denfacl(i,:)
-      tk(:) = tkl(i,:)
       ! skip for no precipitation for all layers
       allold = d_zero
       do k=1, kz
@@ -3037,7 +3007,7 @@ module mod_micro_wdm7
         ! terminal velocity then back to use mean terminal velocity
         !
         if ( n > maxiter ) exit
-        call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
+        call slope_snow(qr,den,denfac,tkl,tmp,tmp1,tmp2,tmp3,wa)
         call slope_graup(qr2,den,denfac,tmp,tmp1,tmp2,tmp3,wa2)
         do k = 1, kz
           tmp(k) = max((qr(k)+qr2(k)), 1.e-15_rkx)

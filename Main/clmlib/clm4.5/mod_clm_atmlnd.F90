@@ -5,7 +5,6 @@ module mod_clm_atmlnd
   use mod_intkinds
   use mod_realkinds
   use mod_clm_varpar, only : numrad, ndst, nlevsoi
-  use mod_clm_varcon, only : rair, grav, cpair, hfus, tfrz
   use mod_clm_varctl, only : use_c13
   use mod_clm_decomp, only : get_proc_bounds
 
@@ -416,7 +415,6 @@ end subroutine init_atm2lnd_type
     integer(ik4) :: begg, endg
     integer(ik4) :: g ! indices
     type(gridcell_type), pointer :: gptr  ! pointer to gridcell derived subtype
-    type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
     type(column_type), pointer :: cptr    ! pointer to column derived subtype
     type(pft_type), pointer :: pptr       ! pointer to pft derived subtype
     real(rk8), parameter :: amC = 12.0_rk8  ! Atomic mass number for Carbon
@@ -431,7 +429,6 @@ end subroutine init_atm2lnd_type
     ! Set pointers into derived type
 
     gptr => clm3%g
-    lptr => clm3%g%l
     cptr => clm3%g%l%c
     pptr => clm3%g%l%c%p
 
@@ -451,8 +448,8 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='urbanf',        &
                l2g_scale_type='unity')
       !$acc kernels
-      tmpc = cptr%cws%h2osoi_liq(:,1:nlevsoi) + &
-             cptr%cws%h2osoi_ice(:,1:nlevsoi)
+      tmpc(:,:) = cptr%cws%h2osoi_liq(:,1:nlevsoi) + &
+                  cptr%cws%h2osoi_ice(:,1:nlevsoi)
       !$acc end kernels
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                tmpc,clm_l2a%h2osoi, &
@@ -491,8 +488,8 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='urbanf',        &
                l2g_scale_type='unity')
       !$acc kernels
-      tmpc = cptr%cws%h2osoi_liq(:,1:nlevsoi) + &
-             cptr%cws%h2osoi_ice(:,1:nlevsoi)
+      tmpc(:,:) = cptr%cws%h2osoi_liq(:,1:nlevsoi) + &
+                  cptr%cws%h2osoi_ice(:,1:nlevsoi)
       !$acc end kernels
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                tmpc,clm_l2a%h2osoi, &
@@ -500,14 +497,14 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
       !FAB
       !$acc kernels
-      tmpc = cptr%cws%h2osoi_vol(:,1:nlevsoi)
+      tmpc(:,:) = cptr%cws%h2osoi_vol(:,1:nlevsoi)
       !$acc end kernels
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                tmpc,clm_l2a%h2osoi_vol, &
                c2l_scale_type='unity', &
                l2g_scale_type='unity')
       !$acc kernels
-      tmpc = cptr%ces%t_soisno(:,1:nlevsoi)
+      tmpc(:,:) = cptr%ces%t_soisno(:,1:nlevsoi)
       !$acc end kernels
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                tmpc,clm_l2a%tsoi, &
@@ -583,7 +580,7 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
 !FAB: for roughness lenght perform a ln averaging instead of linear
       !$acc kernels
-      tmp = pptr%pps%z0mv
+      tmp(:) = pptr%pps%z0mv
       !$acc end kernels
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%zom,               &
@@ -591,7 +588,7 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
       !clm_l2a%zom = exp(clm_l2a%zom)
-      !tmp = log(pptr%pps%z0hv)
+      !tmp(:) = log(pptr%pps%z0hv)
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%zoh,               &
                p2c_scale_type='unity',                  &
@@ -662,7 +659,7 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
 !FAB for resistance perform conductance linear average
       !$acc kernels
-      tmp = 1._rkx/pptr%pps%ram1
+      tmp(:) = 1._rkx/pptr%pps%ram1
       !$acc end kernels
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%ram1,              &
@@ -671,7 +668,7 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
       !$acc kernels
       clm_l2a%ram1 = 1._rkx/clm_l2a%ram1
-      tmp = 1._rkx/pptr%pps%rah1
+      tmp(:) = 1._rkx/pptr%pps%rah1
       !$acc end kernels
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%rah1,              &

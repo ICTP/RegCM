@@ -25,7 +25,7 @@ module mod_cu_em
   use mod_mppparam
   use mod_runparams, only : alphae, betae, coeffr, coeffs, cu,   &
     damp, dtmax, entp, minorig, omtrain, omtsnow, tlcrit, iqv, &
-    ichem, clfrcv, ichcumtra, icup, dt
+    ichem, ichcumtra, icup, dt
   use mod_runparams, only : elcrit_ocn, elcrit_lnd, epmax_ocn, epmax_lnd
   use mod_runparams, only : sigs, sigd
   use mod_runparams, only : k2_const, kfac_shal, kfac_deep
@@ -109,7 +109,7 @@ module mod_cu_em
       call random_seed(size = nseed)
       allocate(seed(nseed))
       call system_clock(sclock)
-      seed = int(sclock) + 37*[(i-1,i=1,nseed)]
+      seed(:) = int(sclock) + 37*[(i-1,i=1,nseed)]
       call random_seed(put = seed)
     end if
   end subroutine allocate_mod_cu_em

@@ -17017,7 +17017,7 @@ module mod_che_isorropia
 !
 ! *** root tracking ; for the range of hi and lo ***********************
 !
-    dx = (rthi-rtlw)/float(ndiv)
+    dx = (rthi-rtlw)/real(ndiv)
     do i = 1, ndiv
       x2 = x1 + dx
       y2 = func(x2)
@@ -18244,7 +18244,7 @@ module mod_che_isorropia
 !
 ! *** root tracking ; for the range of hi and lo **********************
 !
-    dx = (omehi-omelo)/float(ndiv)
+    dx = (omehi-omelo)/real(ndiv)
     do i = 1, ndiv
       x2 = max(x1-dx,omelo)
       y2 = funca2(x2)
@@ -18523,7 +18523,7 @@ module mod_che_isorropia
 !
 ! *** root tracking ; for the range of hi and lo ***********************
 !
-    dz = (zhi-zlo)/float(ndiv)
+    dz = (zhi-zlo)/real(ndiv)
     do i = 1, ndiv
       z2 = z1 + dz
       y2 = funcb3a(z2,tlc,tnh42s4)
@@ -19231,7 +19231,7 @@ module mod_che_isorropia
 !
 ! *** root tracking ; for the range of hi and lo ***********************
 !
-    dx = (khi-klo)/float(ndiv)
+    dx = (khi-klo)/real(ndiv)
     do i = 1, ndiv
       x2 = x1 + dx
       y2 = funcc1(x2)
@@ -19406,7 +19406,7 @@ module mod_che_isorropia
 !
 ! *** root tracking ; for the range of hi and lo **********************
 !
-    dx = (psi4hi-psi4lo)/float(ndiv)
+    dx = (psi4hi-psi4lo)/real(ndiv)
     do i = 1, ndiv
       x2 = x1 + dx
       y2 = funcd3(x2)
@@ -19647,7 +19647,7 @@ module mod_che_isorropia
 !
 ! *** root tracking ; for the range of hi and lo **********************
 !
-    dx = (psi4hi-psi4lo)/float(ndiv)
+    dx = (psi4hi-psi4lo)/real(ndiv)
     do i = 1, ndiv
       x2 = x1 + dx
       y2 = funcd2(x2)
@@ -19959,7 +19959,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcg5a(x2)
@@ -20156,7 +20156,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcg4a(x2)
@@ -20429,7 +20429,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcg3a(x2)
@@ -20717,7 +20717,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcg2a(x2)
@@ -21147,7 +21147,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funch6a(x2)
@@ -21356,7 +21356,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funch5a(x2)
@@ -21577,7 +21577,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funch4a(x2)
@@ -21823,7 +21823,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funch3a(x2)
@@ -22114,7 +22114,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funch2a(x2)
@@ -22641,7 +22641,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi4hi-psi4lo)/float(ndiv)
+      dx = (psi4hi-psi4lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funci5a(x2)
@@ -22824,7 +22824,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi4hi-psi4lo)/float(ndiv)
+      dx = (psi4hi-psi4lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funci4a(x2)
@@ -23061,7 +23061,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi2hi-psi2lo)/float(ndiv)
+      dx = (psi2hi-psi2lo)/real(ndiv)
       do i = 1, ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funci3a(x2)
@@ -23151,7 +23151,7 @@ module mod_che_isorropia
 !
 !     *** root tracking ; for the range of hi and lo
 !     **********************
-        dx = (psi4hi-psi4lo)/float(ndiv)
+        dx = (psi4hi-psi4lo)/real(ndiv)
         do i = 1, ndiv
           x2 = max(x1-dx,psi4lo)
           y2 = funci3b(x2)
@@ -23389,7 +23389,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi2hi-psi2lo)/float(ndiv)
+      dx = (psi2hi-psi2lo)/real(ndiv)
       do i = 1, ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funci2a(x2)
@@ -23750,7 +23750,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi1hi-psi1lo)/float(ndiv)
+      dx = (psi1hi-psi1lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcj2(x2)
@@ -23914,7 +23914,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi1hi-psi1lo)/float(ndiv)
+      dx = (psi1hi-psi1lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcj1(x2)
@@ -24101,7 +24101,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco7(x2)
@@ -24322,7 +24322,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco6(x2)
@@ -24554,7 +24554,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco5(x2)
@@ -24793,7 +24793,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco4(x2)
@@ -25092,7 +25092,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco3a(x2)
@@ -25418,7 +25418,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   ***********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funco2a(x2)
@@ -25890,7 +25890,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm8(x2)
@@ -26105,7 +26105,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm7(x2)
@@ -26330,7 +26330,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm6(x2)
@@ -26582,7 +26582,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm5(x2)
@@ -26843,7 +26843,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm4(x2)
@@ -27134,7 +27134,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm3(x2)
@@ -27481,7 +27481,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcm2a(x2)
@@ -28006,7 +28006,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp13(x2)
@@ -28284,7 +28284,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp12(x2)
@@ -28574,7 +28574,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp11(x2)
@@ -28874,7 +28874,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp10(x2)
@@ -29174,7 +29174,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp9(x2)
@@ -29481,7 +29481,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp8(x2)
@@ -29816,7 +29816,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp7(x2)
@@ -30160,7 +30160,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp6(x2)
@@ -30567,7 +30567,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp5(x2)
@@ -31003,7 +31003,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp4(x2)
@@ -31438,7 +31438,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp3(x2)
@@ -31909,7 +31909,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 + dx
         y2 = funcp2a(x2)
@@ -32586,7 +32586,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi6hi-psi6lo)/float(ndiv)
+      dx = (psi6hi-psi6lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcl8(x2)
@@ -32781,7 +32781,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi4hi-psi4lo)/float(ndiv)
+      dx = (psi4hi-psi4lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcl7(x2)
@@ -32995,7 +32995,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi4hi-psi4lo)/float(ndiv)
+      dx = (psi4hi-psi4lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcl6(x2)
@@ -33212,7 +33212,7 @@ module mod_che_isorropia
 !   *** root tracking ; for the range of hi and lo
 !   **********************
 
-      dx = (psi4hi-psi4lo)/float(ndiv)
+      dx = (psi4hi-psi4lo)/real(ndiv)
       do i = 1, ndiv
         x2 = max(x1-dx,psi4lo)
         y2 = funcl5(x2)
@@ -33437,7 +33437,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi4hi-psi4lo)/float(ndiv)
+      dx = (psi4hi-psi4lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funcl4(x2)
@@ -33716,7 +33716,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi2hi-psi2lo)/float(ndiv)
+      dx = (psi2hi-psi2lo)/real(ndiv)
       do i = 1, ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funcl3a(x2)
@@ -33807,7 +33807,7 @@ module mod_che_isorropia
 !
 !     *** root tracking ; for the range of hi and lo
 !     **********************
-        dx = (psi4hi-psi4lo)/float(ndiv)
+        dx = (psi4hi-psi4lo)/real(ndiv)
         do i = 1, ndiv
           x2 = max(x1-dx,psi4lo)
           y2 = funcl3b(x2)
@@ -34084,7 +34084,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi2hi-psi2lo)/float(ndiv)
+      dx = (psi2hi-psi2lo)/real(ndiv)
       do i = 1, ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funcl2a(x2)
@@ -34178,7 +34178,7 @@ module mod_che_isorropia
 !
 !     *** root tracking ; for the range of hi and lo
 !     **********************
-        dx = (psi4hi-psi4lo)/float(ndiv)
+        dx = (psi4hi-psi4lo)/real(ndiv)
         do i = 1, ndiv
           x2 = max(x1-dx,psi4lo)
           y2 = funcl2b(x2)
@@ -34603,7 +34603,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi3hi-psi3lo)/float(ndiv)
+      dx = (psi3hi-psi3lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funck3(x2)
@@ -34775,7 +34775,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi3hi-psi3lo)/float(ndiv)
+      dx = (psi3hi-psi3lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funck2(x2)
@@ -34948,7 +34948,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
-      dx = (psi3hi-psi3lo)/float(ndiv)
+      dx = (psi3hi-psi3lo)/real(ndiv)
       do i = 1, ndiv
         x2 = x1 - dx
         y2 = funck1(x2)
@@ -36113,7 +36113,7 @@ module mod_che_isorropia
 !
 ! *** root tracking ; for the range of hi and lo **********************
 !
-    dx = (psi1hi-psi1lo)/float(ndiv)
+    dx = (psi1hi-psi1lo)/real(ndiv)
     do i = 1, ndiv
       x2 = max(x1-dx,zero)
       y2 = funcn2(x2)

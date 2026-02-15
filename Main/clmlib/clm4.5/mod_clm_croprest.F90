@@ -1,7 +1,5 @@
-module mod_clm_croprest
-implicit none
-
 #if (defined CN)
+module mod_clm_croprest
   !
   ! Read/Write to/from Crop info to CLM restart file.
   !
@@ -777,7 +775,11 @@ implicit none
     end if
   end subroutine checkDates
 
-#endif
-
 end module mod_clm_croprest
+#else
+module mod_clm_croprest
+  implicit none
+  private
+end module mod_clm_croprest
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

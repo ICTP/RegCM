@@ -63,7 +63,7 @@ module mod_cu_tables
 
     real(rkx) :: z5alvcp, z5alscp, zalvdcp, zalsdcp
     real(rkx) :: ztt, zldcp
-    real(rkx) :: zcvm3, zcvm4, zcvm5
+    real(rkx) :: zcvm4, zcvm5
     real(rkx) :: zavm1, zavm2, zavm3, zavm4, zavm5
 
     integer(ik4) :: it
@@ -77,7 +77,6 @@ module mod_cu_tables
     do it = jptlucu1, jptlucu2
       ztt = 0.001_rkx*it
       if ((ztt-tzero) > 0.0_rkx) then
-        zcvm3 = c3les
         zcvm4 = c4les
         zcvm5 = z5alvcp
         zldcp = zalvdcp
@@ -87,7 +86,6 @@ module mod_cu_tables
         zavm4 = zavl4
         zavm5 = zavl5
       else
-        zcvm3 = c3ies
         zcvm4 = c4ies
         zcvm5 = z5alscp
         zldcp = zalsdcp

@@ -1,6 +1,5 @@
-module mod_clm_cnfire
-implicit none
 #ifdef CN
+module mod_clm_cnfire
   !
   ! module for fire dynamics
   ! created in Nov, 2012  and revised in Apr, 2013 by F. Li and S. Levis
@@ -1690,7 +1689,13 @@ implicit none
     w2 = 1.0_rk8 - w1
     forc_lnfm(:) = lnfm_p1(:)*w1 + lnfm_p2(:)*w2
   end subroutine lnfm_interp
-#endif
 
 end module mod_clm_cnfire
+#else
+module mod_clm_cnfire
+  implicit none
+  private
+end module mod_clm_cnfire
+
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -1,8 +1,6 @@
+#if (defined CNDV)
 
 module mod_clm_cndvestablishment
-implicit none
-
-#if (defined CNDV)
   !
   ! Calculates establishment of new pfts
   ! Called once per year
@@ -527,7 +525,11 @@ implicit none
 
   end subroutine Establishment
 
-#endif
-
 end module mod_clm_cndvestablishment
+#else
+module mod_clm_cndvestablishment
+  implicit none
+  private
+end module mod_clm_cndvestablishment
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

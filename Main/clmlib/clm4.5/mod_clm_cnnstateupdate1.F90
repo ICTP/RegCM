@@ -1,6 +1,5 @@
-module mod_clm_cnnstateupdate1
-implicit none
 #ifdef CN
+module mod_clm_cnnstateupdate1
   !
   ! Module for nitrogen state variable updates, non-mortality fluxes.
   !
@@ -656,7 +655,11 @@ implicit none
     end do
   end subroutine NStateUpdate1
 
-#endif
-
 end module mod_clm_cnnstateupdate1
+#else
+module mod_clm_cnnstateupdate1
+  implicit none
+  private
+end module mod_clm_cnnstateupdate1
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

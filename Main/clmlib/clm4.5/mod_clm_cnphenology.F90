@@ -1,6 +1,5 @@
-module mod_clm_cnphenology
-implicit none
 #ifdef CN
+module mod_clm_cnphenology
   !
   ! Module holding routines used in phenology model for coupled carbon
   ! nitrogen code.
@@ -2544,7 +2543,12 @@ implicit none
     end do
   end subroutine CNLitterToColumn
 
-#endif
-
 end module mod_clm_cnphenology
+#else
+module mod_clm_cnphenology
+  implicit none
+  private
+end module mod_clm_cnphenology
+
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

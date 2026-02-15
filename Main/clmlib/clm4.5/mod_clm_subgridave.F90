@@ -10,11 +10,8 @@ module  mod_clm_subgridave
   use mod_clm_varcon, only : spval, isturb
   use mod_clm_varcon, only : icol_roof, icol_sunwall, icol_shadewall
   use mod_clm_varcon, only : icol_road_perv, icol_road_imperv
-  use mod_clm_varpar, only : max_pft_per_col
-  use mod_clm_varpar, only : max_pft_per_lu
-  use mod_clm_varpar,  only : max_pft_per_gcell
   use mod_clm_varcon, only : max_lunit
-  use mod_clm_varcon, only : istsoil, istice, istdlak, istslak, istwet, &
+  use mod_clm_varcon, only : istsoil, istice, istdlak, &
                               isturb, istcrop, max_lunit, spval
 
   implicit none
@@ -94,16 +91,10 @@ module  mod_clm_subgridave
     real(rk8), pointer, contiguous, dimension(:) :: wtcol
     ! column index of corresponding pft
     integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
-    ! number of pfts in column
-    integer(ik4), pointer, contiguous, dimension(:) :: npfts
-    ! initial pft index in column
-    integer(ik4), pointer, contiguous, dimension(:) :: pfti
 
     pactive  => clm3%g%l%c%p%active
     wtcol    => clm3%g%l%c%p%wtcol
     pcolumn  => clm3%g%l%c%p%column
-    npfts    => clm3%g%l%c%npfts
-    pfti     => clm3%g%l%c%pfti
 
     if (p2c_scale_type == 'unity') then
       do p = lbp,ubp
@@ -157,23 +148,18 @@ module  mod_clm_subgridave
     real(rk8), dimension(lbp:ubp) :: scale_p2c
     logical :: found                  ! temporary for error check
     ! sum of weights
-    real(rk8), dimension(lbc:ubc) :: sumwt(lbc:ubc)
+    real(rk8), dimension(lbc:ubc) :: sumwt
     ! true=>do computations on this pft (see reweightMod for details)
     logical, pointer, contiguous, dimension(:) :: pactive
     ! weight of pft relative to column
     real(rk8), pointer, contiguous, dimension(:) :: wtcol
     ! column index of corresponding pft
     integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
-    ! number of pfts in column
-    integer(ik4), pointer, contiguous, dimension(:) :: npfts
     ! initial pft index in column
-    integer(ik4), pointer, contiguous, dimension(:) :: pfti
 
     pactive  => clm3%g%l%c%p%active
     wtcol    => clm3%g%l%c%p%wtcol
     pcolumn  => clm3%g%l%c%p%column
-    npfts    => clm3%g%l%c%npfts
-    pfti     => clm3%g%l%c%pfti
 
     if (p2c_scale_type == 'unity') then
       do p = lbp,ubp
@@ -225,13 +211,11 @@ module  mod_clm_subgridave
     integer(ik4) :: fc, c, p  ! indices
     ! true=>do computations on this pft (see reweightMod for details)
     logical, pointer, contiguous, dimension(:) :: pactive
-    integer(ik4), pointer, contiguous, dimension(:) :: npfts
     integer(ik4), pointer, contiguous, dimension(:) :: pfti
     integer(ik4), pointer, contiguous, dimension(:) :: pftf
     real(rk8), pointer, contiguous, dimension(:) :: wtcol
 
     pactive => clm3%g%l%c%p%active
-    npfts   => clm3%g%l%c%npfts
     pfti    => clm3%g%l%c%pfti
     pftf    => clm3%g%l%c%pftf
     wtcol   => clm3%g%l%c%p%wtcol
@@ -258,13 +242,11 @@ module  mod_clm_subgridave
     integer(ik4) :: fc, c, p, j    ! indices
     ! true=>do computations on this pft (see reweightMod for details)
     logical, pointer, contiguous, dimension(:) :: pactive
-    integer(ik4), pointer, contiguous, dimension(:) :: npfts
     integer(ik4), pointer, contiguous, dimension(:) :: pfti
     integer(ik4), pointer, contiguous, dimension(:) :: pftf
     real(rk8), pointer, contiguous, dimension(:) :: wtcol
 
     pactive => clm3%g%l%c%p%active
-    npfts   => clm3%g%l%c%npfts
     pfti    => clm3%g%l%c%pfti
     pftf    => clm3%g%l%c%pftf
     wtcol   => clm3%g%l%c%p%wtcol
@@ -309,10 +291,6 @@ module  mod_clm_subgridave
     integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! landunit of corresponding pft
     integer(ik4), pointer, contiguous, dimension(:) :: plandunit
-    ! number of pfts in landunit
-    integer(ik4), pointer, contiguous, dimension(:) :: npfts
-    ! initial pft index in landunit
-    integer(ik4), pointer, contiguous, dimension(:) :: pfti
     ! landunit of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     integer(ik4), pointer, contiguous, dimension(:) :: ctype      ! column type
@@ -328,8 +306,6 @@ module  mod_clm_subgridave
     wtlunit    => clm3%g%l%c%p%wtlunit
     pcolumn    => clm3%g%l%c%p%column
     plandunit  => clm3%g%l%c%p%landunit
-    npfts      => clm3%g%l%npfts
-    pfti       => clm3%g%l%pfti
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc, ubc
@@ -445,10 +421,6 @@ module  mod_clm_subgridave
     integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! landunit of corresponding pft
     integer(ik4), pointer, contiguous, dimension(:) :: plandunit
-    ! number of pfts in landunit
-    integer(ik4), pointer, contiguous, dimension(:) :: npfts
-    ! initial pft index in landunit
-    integer(ik4), pointer, contiguous, dimension(:) :: pfti
     ! landunit of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
@@ -464,8 +436,6 @@ module  mod_clm_subgridave
     wtlunit   => clm3%g%l%c%p%wtlunit
     pcolumn   => clm3%g%l%c%p%column
     plandunit => clm3%g%l%c%p%landunit
-    npfts     => clm3%g%l%npfts
-    pfti      => clm3%g%l%pfti
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc, ubc
@@ -587,10 +557,6 @@ module  mod_clm_subgridave
     integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! gridcell of corresponding pft
     integer(ik4), pointer, contiguous, dimension(:) :: pgridcell
-    ! number of pfts in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: npfts
-    ! initial pft index in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: pfti
     ! column type
     integer(ik4), pointer, contiguous, dimension(:) :: ctype
     ! landunit of corresponding column
@@ -609,8 +575,6 @@ module  mod_clm_subgridave
     pcolumn   => clm3%g%l%c%p%column
     pgridcell => clm3%g%l%c%p%gridcell
     plandunit => clm3%g%l%c%p%landunit
-    npfts     => clm3%g%npfts
-    pfti      => clm3%g%pfti
 
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
@@ -752,10 +716,6 @@ module  mod_clm_subgridave
     integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! gridcell of corresponding pft
     integer(ik4), pointer, contiguous, dimension(:) :: pgridcell
-    ! number of pfts in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: npfts
-    ! initial pft index in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: pfti
     ! landunit of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
@@ -772,8 +732,6 @@ module  mod_clm_subgridave
     pcolumn      => clm3%g%l%c%p%column
     pgridcell    => clm3%g%l%c%p%gridcell
     plandunit    => clm3%g%l%c%p%landunit
-    npfts        => clm3%g%npfts
-    pfti         => clm3%g%pfti
 
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
@@ -907,10 +865,7 @@ module  mod_clm_subgridave
     real(rk8), pointer, contiguous, dimension(:) :: wtlunit
     ! gridcell of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
-    ! number of columns in landunit
-    integer(ik4), pointer, contiguous, dimension(:) :: ncolumns
     ! initial column index in landunit
-    integer(ik4), pointer, contiguous, dimension(:) :: coli
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
     integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
@@ -922,8 +877,6 @@ module  mod_clm_subgridave
     canyon_hwr => clm3%g%l%canyon_hwr
     wtlunit    => clm3%g%l%c%wtlunit
     clandunit  => clm3%g%l%c%landunit
-    ncolumns   => clm3%g%l%ncolumns
-    coli       => clm3%g%l%coli
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc, ubc
@@ -1022,10 +975,7 @@ module  mod_clm_subgridave
     real(rk8), pointer, contiguous, dimension(:) :: wtlunit
     ! landunit of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
-    ! number of columns in landunit
-    integer(ik4), pointer, contiguous, dimension(:) :: ncolumns
     ! initial column index in landunit
-    integer(ik4), pointer, contiguous, dimension(:) :: coli
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
     integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
@@ -1037,8 +987,6 @@ module  mod_clm_subgridave
     canyon_hwr => clm3%g%l%canyon_hwr
     wtlunit    => clm3%g%l%c%wtlunit
     clandunit  => clm3%g%l%c%landunit
-    ncolumns   => clm3%g%l%ncolumns
-    coli       => clm3%g%l%coli
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc, ubc
@@ -1143,10 +1091,7 @@ module  mod_clm_subgridave
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! gridcell of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
-    ! number of columns in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: ncolumns
     ! initial column index in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: coli
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
     integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
@@ -1159,8 +1104,6 @@ module  mod_clm_subgridave
     wtgcell    => clm3%g%l%c%wtgcell
     clandunit  => clm3%g%l%c%landunit
     cgridcell  => clm3%g%l%c%gridcell
-    ncolumns   => clm3%g%ncolumns
-    coli       => clm3%g%coli
 
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
@@ -1284,10 +1227,7 @@ module  mod_clm_subgridave
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! gridcell of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
-    ! number of columns in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: ncolumns
     ! initial column index in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: coli
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
     integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
@@ -1300,8 +1240,6 @@ module  mod_clm_subgridave
     wtgcell    => clm3%g%l%c%wtgcell
     clandunit  => clm3%g%l%c%landunit
     cgridcell  => clm3%g%l%c%gridcell
-    ncolumns   => clm3%g%ncolumns
-    coli       => clm3%g%coli
 
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
@@ -1420,16 +1358,10 @@ module  mod_clm_subgridave
     real(rk8), pointer, contiguous, dimension(:) :: wtgcell
     ! gridcell of corresponding landunit
     integer(ik4), pointer, contiguous, dimension(:) :: lgridcell
-    ! number of landunits in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: nlandunits
-    ! initial landunit index in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: luni
 
     lactive    => clm3%g%l%active
     wtgcell    => clm3%g%l%wtgcell
     lgridcell  => clm3%g%l%gridcell
-    nlandunits => clm3%g%nlandunits
-    luni       => clm3%g%luni
 
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
@@ -1497,16 +1429,10 @@ module  mod_clm_subgridave
     real(rk8), pointer, contiguous, dimension(:) :: wtgcell
     ! gridcell of corresponding landunit
     integer(ik4), pointer, contiguous, dimension(:) :: lgridcell
-    ! number of landunits in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: nlandunits
-    ! initial landunit index in gridcell
-    integer(ik4), pointer, contiguous, dimension(:) :: luni
 
     lactive   => clm3%g%l%active
     wtgcell   => clm3%g%l%wtgcell
     lgridcell => clm3%g%l%gridcell
-    nlandunits => clm3%g%nlandunits
-    luni       => clm3%g%luni
 
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 

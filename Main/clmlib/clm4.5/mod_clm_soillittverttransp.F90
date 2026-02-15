@@ -1,6 +1,5 @@
-module mod_clm_soillittverttransp
-implicit none
 #ifdef CN
+module mod_clm_soillittverttransp
   !
   ! calculate vertical mixing of all decomposing C and N pools
   !
@@ -421,7 +420,14 @@ implicit none
 
   end subroutine CNSoilLittVertTransp
 
+end module mod_clm_soillittverttransp
+#else
+
+module mod_clm_soillittverttransp
+  implicit none
+  private
+end module mod_clm_soillittverttransp
+
 #endif
 
-end module mod_clm_soillittverttransp
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

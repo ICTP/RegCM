@@ -26,7 +26,7 @@ module mod_cu_kuo
   use mod_cu_common
   use mod_constants
   use mod_service
-  use mod_runparams, only : iqv, dt, ichem, dsigma, hsigma, qcon
+  use mod_runparams, only : iqv, ichem, dsigma, hsigma, qcon
   use mod_regcm_types
 
   implicit none

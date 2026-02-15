@@ -132,10 +132,57 @@ module mod_rad_aerosol
 
   ! optical properties for dust and org / for rrtm and standard scheme
 
-  real(rkx), dimension(nbndsw) :: gsbc_hb_rrtm, gsbc_hl_rrtm, &
-    gsoc_hb_rrtm, gsoc_hl_rrtm, ksbc_hb_rrtm, ksbc_hl_rrtm,  &
-    ksoc_hb_rrtm, ksoc_hl_rrtm, wsbc_hb_rrtm, wsbc_hl_rrtm,  &
-    wsoc_hb_rrtm, wsoc_hl_rrtm
+  ! THE BELOW IS COPYING FROM SALT!!!!
+  ! We do not have tabulated the properties for OC/BC for rrtm !!
+
+  real(rkx), parameter, dimension(nbndsw) :: gsbc_hb_rrtm =       &
+    [ 0.0180_rkx, 0.0270_rkx, 0.0390_rkx, 0.0510_rkx, 0.0680_rkx, &
+      0.0990_rkx, 0.1260_rkx, 0.2160_rkx, 0.3830_rkx, 0.5310_rkx, &
+      0.6290_rkx, 0.6930_rkx, 0.7270_rkx, 0.0046_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: gsbc_hl_rrtm =       &
+    [ 0.0180_rkx, 0.0270_rkx, 0.0390_rkx, 0.0510_rkx, 0.0680_rkx, &
+      0.0990_rkx, 0.1260_rkx, 0.2160_rkx, 0.3830_rkx, 0.5310_rkx, &
+      0.6290_rkx, 0.6930_rkx, 0.7270_rkx, 0.0046_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: gsoc_hb_rrtm =       &
+    [ 0.0180_rkx, 0.0270_rkx, 0.0390_rkx, 0.0510_rkx, 0.0680_rkx, &
+      0.0990_rkx, 0.1260_rkx, 0.2160_rkx, 0.3830_rkx, 0.5310_rkx, &
+      0.6290_rkx, 0.6930_rkx, 0.7270_rkx, 0.0046_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: gsoc_hl_rrtm =       &
+    [ 0.0180_rkx, 0.0270_rkx, 0.0390_rkx, 0.0510_rkx, 0.0680_rkx, &
+      0.0990_rkx, 0.1260_rkx, 0.2160_rkx, 0.3830_rkx, 0.5310_rkx, &
+      0.6290_rkx, 0.6930_rkx, 0.7270_rkx, 0.0046_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: ksbc_hb_rrtm =         &
+    [ 0.0600_rkx,  0.0840_rkx,  0.1110_rkx, 0.1420_rkx, 0.1940_rkx, &
+      0.3010_rkx,  0.4110_rkx,  0.9340_rkx, 2.3400_rkx, 4.8800_rkx, &
+      8.5250_rkx, 12.8970_rkx, 15.9180_rkx, 0.0281_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: ksbc_hl_rrtm =         &
+    [ 0.0600_rkx,  0.0840_rkx,  0.1110_rkx, 0.1420_rkx, 0.1940_rkx, &
+      0.3010_rkx,  0.4110_rkx,  0.9340_rkx, 2.3400_rkx, 4.8800_rkx, &
+      8.5250_rkx, 12.8970_rkx, 15.9180_rkx, 0.0281_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: ksoc_hb_rrtm =         &
+    [ 0.0600_rkx,  0.0840_rkx,  0.1110_rkx, 0.1420_rkx, 0.1940_rkx, &
+      0.3010_rkx,  0.4110_rkx,  0.9340_rkx, 2.3400_rkx, 4.8800_rkx, &
+      8.5250_rkx, 12.8970_rkx, 15.9180_rkx, 0.0281_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: ksoc_hl_rrtm =         &
+    [ 0.0600_rkx,  0.0840_rkx,  0.1110_rkx, 0.1420_rkx, 0.1940_rkx, &
+      0.3010_rkx,  0.4110_rkx,  0.9340_rkx, 2.3400_rkx, 4.8800_rkx, &
+      8.5250_rkx, 12.8970_rkx, 15.9180_rkx, 0.0281_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: wsbc_hb_rrtm =       &
+    [ 0.0710_rkx, 0.1230_rkx, 0.1880_rkx, 0.2550_rkx, 0.3400_rkx, &
+      0.4610_rkx, 0.5410_rkx, 0.6710_rkx, 0.7970_rkx, 0.8480_rkx, &
+      0.8750_rkx, 0.8840_rkx, 0.8750_rkx, 0.0114_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: wsbc_hl_rrtm =       &
+    [ 0.0710_rkx, 0.1230_rkx, 0.1880_rkx, 0.2550_rkx, 0.3400_rkx, &
+      0.4610_rkx, 0.5410_rkx, 0.6710_rkx, 0.7970_rkx, 0.8480_rkx, &
+      0.8750_rkx, 0.8840_rkx, 0.8750_rkx, 0.0114_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: wsoc_hb_rrtm =       &
+    [ 0.0710_rkx, 0.1230_rkx, 0.1880_rkx, 0.2550_rkx, 0.3400_rkx, &
+      0.4610_rkx, 0.5410_rkx, 0.6710_rkx, 0.7970_rkx, 0.8480_rkx, &
+      0.8750_rkx, 0.8840_rkx, 0.8750_rkx, 0.0114_rkx ]
+  real(rkx), parameter, dimension(nbndsw) :: wsoc_hl_rrtm =       &
+    [ 0.0710_rkx, 0.1230_rkx, 0.1880_rkx, 0.2550_rkx, 0.3400_rkx, &
+      0.4610_rkx, 0.5410_rkx, 0.6710_rkx, 0.7970_rkx, 0.8480_rkx, &
+      0.8750_rkx, 0.8840_rkx, 0.8750_rkx, 0.0114_rkx ]
 
   real(rkx), dimension(nspi,2) :: gssslt, kssslt, wssslt
   !
@@ -2397,7 +2444,7 @@ module mod_rad_aerosol
         jbin = 0
         do itr = 1, ntr
           if ( chtrname(itr) == 'XXXXX') then
-            continue
+            cycle
           end if
           if ( chtrname(itr)(1:4) == 'DUST') then
             ibin = ibin + 1

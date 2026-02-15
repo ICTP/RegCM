@@ -19,11 +19,12 @@ module mod_rad_colmod3
   use mod_constants, only : amd, amo3, mathpi
   use mod_constants, only : rgas, rhoh2o, tzero
   use mod_dynparam, only : jci1, jci2, ici1, ici2, kz, kzp1
-  use mod_dynparam, only : ntr, nspi, myid
+  use mod_dynparam, only : ntr, nspi
   use mod_memutil, only : getmem, getmem, getmem
-  use mod_runparams, only : ipptls, eccf, ichem, idirect, iindirect
+  use mod_runparams, only : ipptls, eccf, ichem, iindirect
   use mod_runparams, only : iqv, iqc, iqi, ncld, chtrname
-  use mod_runparams, only : cftotmax, iclimaaer
+  use mod_runparams, only : iclimaaer
+  ! use mod_runparams, only : cftotmax
   use mod_rad_radiation, only : radctl, radtype
   use mod_rad_common, only : gasabsnxt, gasabstot, gasemstot
   use mod_rad_common, only : o3prof, taucldsp, dosw, dolw, doabsems
@@ -213,7 +214,7 @@ module mod_rad_colmod3
     logical, intent(in) :: lout, labsem
 
     integer(ik4) :: n, m, i, j, k, k2, itr
-    integer(ik4) :: ni, nj, npr
+    integer(ik4) :: nj, npr
     real(rkx) :: totci_l, totcl_l, totwv_l
     real(rkx) :: nc, aerc, lwc, kparam
     real(rkx) :: kabs, kabsi, kabsl, cldemis, arg
@@ -360,7 +361,6 @@ module mod_rad_colmod3
     !
     ! Dimensions
     !
-    ni = 1+(ici2-ici1)
     nj = 1+(jci2-jci1)
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )

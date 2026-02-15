@@ -19,9 +19,8 @@ module mod_cu_common
   use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_runparams, only : clfrcv, dt, nqx
+  use mod_runparams, only : clfrcv, nqx
   use mod_runparams, only : icup, ipptls, icumcloud, ichem
-  use mod_mppparam, only : ma
   use mod_memutil
   use mod_regcm_types
 
@@ -114,7 +113,7 @@ module mod_cu_common
         call random_seed(size=nseed)
         call cpu_time(cputime)
         allocate(iseed(nseed))
-        iseed = int(cputime) + 37*[(k-1,k=1,nseed)]
+        iseed(:) = int(cputime) + 37*[(k-1,k=1,nseed)]
         call random_seed(put=iseed)
         deallocate(iseed)
       else

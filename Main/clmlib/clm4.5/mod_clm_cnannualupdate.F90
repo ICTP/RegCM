@@ -1,6 +1,5 @@
-module mod_clm_cnannualupdate
-implicit none
 #ifdef CN
+module mod_clm_cnannualupdate
   !
   ! Module for updating annual summation variables
   !
@@ -142,8 +141,13 @@ implicit none
     end do
   end subroutine CNAnnualUpdate
 
-#endif
-
 end module mod_clm_cnannualupdate
+#else
+
+module mod_clm_cnannualupdate
+  implicit none
+  private
+end module mod_clm_cnannualupdate
+#endif
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

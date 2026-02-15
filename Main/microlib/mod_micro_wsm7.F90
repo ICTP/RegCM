@@ -123,23 +123,20 @@ module mod_micro_wsm7
                                         exp(xb*(1.0_rkx-wattp/tzero))
   real(rkx), parameter :: lv1 = cpw-cpv
 
-  real(rkx), save :: qc0, qck1, pidnc,                            &
-             bvtr1, bvtr2, bvtr3, bvtr4, g1pbr,                  &
-             g3pbr, g4pbr, g5pbro2, pvtr, eacrr, pacrr,         &
-             bvtr6, g6pbr,                                          &
-             precr1, precr2, roqimax, bvts1,                      &
-             bvts2, bvts3, bvts4, g1pbs, g3pbs, g4pbs,          &
-             g5pbso2, pvts, pacrs, precs1, precs2, pidn0r,      &
-             pidn0s, pacrc, bvtg1, bvtg2, bvtg3, bvtg4, g1pbg, &
-             g3pbg, g4pbg, g5pbgo2, g6pbgh, pvtg, pacrg,        &
-             precg1, precg2, precg3, pidn0g,                      &
-             bvth2, bvth3, bvth4,                                  &
-             g3pbh, g4pbh, g5pbho2, pvth, pacrh,                 &
-             prech1, prech2, prech3, pidn0h,                      &
+  real(rkx), save :: qc0, qck1, bvtr2, bvtr3, bvtr4, pvth,  &
+             g3pbr, g4pbr, g5pbro2, pvtr, eacrr, pacrc,     &
+             g6pbr, precr1, precr2, roqimax, bvtr6,         &
+             bvts3, bvts4, g3pbs, g4pbs, g5pbso2, pvts,     &
+             precs1, precs2, pidn0r, pidn0s, bvtg2, bvts2,  &
+             bvtg3, bvtg4, g3pbg, g4pbg, g5pbgo2, g6pbgh,   &
+             pvtg, pacrg, precg1, precg2, precg3, pidn0g,   &
+             bvth2, bvth3, bvth4, g3pbh, g4pbh, g5pbho2,    &
+             pacrh, prech1, prech2, prech3, pidn0h, pacrr,  &
              rslopermax, rslopesmax, rslopegmax, rslopehmax,      &
              rsloperbmax, rslopesbmax, rslopegbmax, rslopehbmax,  &
              rsloper2max, rslopes2max, rslopeg2max, rslopeh2max,  &
              rsloper3max, rslopes3max, rslopeg3max, rslopeh3max
+  ! real(rkx) , save :: pidnc
 
   public :: allocate_mod_wsm7, init_wsm7, wsm7
 
@@ -196,15 +193,13 @@ module mod_micro_wsm7
     qc0  = fourt*mathpi*rhoh2o*r0**3*xncr/stdrho  ! 0.419e-3 -- .61e-3
     qck1 = 0.104_rkx*egrav*peaut / &
                   (xncr*rhoh2o)**(onet)/xmyu*stdrho**(fourt) ! 7.03
-    pidnc = mathpi*rhoh2o/d_six        ! syb
+    !pidnc = mathpi*rhoh2o/d_six        ! syb
     !cpv = 1885.0       ! specific heat of water vapor
     !n
-    bvtr1 = d_one+bvtr
     bvtr2 = 2.5_rkx+d_half*bvtr
     bvtr3 = 3.0_rkx+bvtr
     bvtr4 = 4.0_rkx+bvtr
     bvtr6 = 6.0_rkx+bvtr
-    g1pbr = rgmma(bvtr1)
     g3pbr = rgmma(bvtr3)
     g4pbr = rgmma(bvtr4)            ! 17.837825
     g6pbr = rgmma(bvtr6)
@@ -215,27 +210,22 @@ module mod_micro_wsm7
     precr1 = twopi*n0r*0.78_rkx
     precr2 = twopi*n0r*0.31_rkx*avtr**d_half*g5pbro2
     roqimax = 2.08e22_rkx*dimax**8
-    bvts1 = d_one+bvts
     bvts2 = 2.5_rkx+d_half*bvts
     bvts3 = 3.0_rkx+bvts
     bvts4 = 4.0_rkx+bvts
-    g1pbs = rgmma(bvts1)    !.8875
     g3pbs = rgmma(bvts3)
     g4pbs = rgmma(bvts4)    ! 12.0786
     g5pbso2 = rgmma(bvts2)
     pvts = avts*g4pbs/d_six
-    pacrs = mathpi*n0s*avts*g3pbs*0.25_rkx
     precs1 = 4.0_rkx*n0s*0.65_rkx
     precs2 = 4.0_rkx*n0s*0.44_rkx*avts**d_half*g5pbso2
     pidn0r =  mathpi*rhoh2o*n0r
     pidn0s =  mathpi*rhosnow*n0s
     pacrc = mathpi*n0s*avts*g3pbs*0.25_rkx*eacrc
 
-    bvtg1 = d_one+bvtg
     bvtg2 = 2.5_rkx+d_half*bvtg
     bvtg3 = 3.0_rkx+bvtg
     bvtg4 = 4.0_rkx+bvtg
-    g1pbg = rgmma(bvtg1)
     g3pbg = rgmma(bvtg3)
     g4pbg = rgmma(bvtg4)
     pacrg = mathpi*n0g*avtg*g3pbg*0.25_rkx
@@ -506,13 +496,13 @@ module mod_micro_wsm7
     real(rkx), intent(in) :: delt
     integer(ik4), intent(in) :: ims, ime
 
-    real(rkx), dimension(ims:ime,kz,4) :: falk, fall, work1, &
+    real(rkx), dimension(ims:ime,kz,4) :: fall, work1, &
       rslope2, rslopeb, rslope, rslope3
     real(rkx), dimension(ims:ime,kz) :: fallc, xl, cpm
     real(rkx), dimension(ims:ime,kz) :: denfac, xni, denqrs1, denqrs2
     real(rkx), dimension(ims:ime,kz) :: denqci, n0sfac
-    real(rkx), dimension(ims:ime,kz) :: falkc, work1c, workr, workh, worka
-    real(rkx), dimension(ims:ime,kz) :: work2, works
+    real(rkx), dimension(ims:ime,kz) :: work1c, workr, workh, worka
+    real(rkx), dimension(ims:ime,kz) :: work2
     real(rkx), dimension(ims:ime) :: delqrs1, delqrs2, delqrs3, &
       delqrs4, delqi
     real(rkx), dimension(ims:ime,kz) :: pigen, pidep, psdep, praut
@@ -645,16 +635,11 @@ module mod_micro_wsm7
           phevp(i,k) = d_zero
           pgaci_w(i,k) = d_zero
           phaci_w(i,k) = d_zero
-          falk(i,k,1) = d_zero
-          falk(i,k,2) = d_zero
-          falk(i,k,3) = d_zero
-          falk(i,k,4) = d_zero
           fall(i,k,1) = d_zero
           fall(i,k,2) = d_zero
           fall(i,k,3) = d_zero
           fall(i,k,4) = d_zero
           fallc(i,k) = d_zero
-          falkc(i,k) = d_zero
           xni(i,k) = 1.e3_rkx
         end do
       end do
@@ -707,9 +692,9 @@ module mod_micro_wsm7
           qrs(i,k,3) = max(denqrs3(i,k)/den(i,k),d_zero)
           qrs(i,k,4) = max(denqrs4(i,k)/den(i,k),d_zero)
           fall(i,k,1) = denqrs1(i,k)*workr(i,k)/delz(i,k)
-          fall(i,k,2) = denqrs2(i,k)*works(i,k)/delz(i,k)
-          fall(i,k,3) = denqrs3(i,k)*workr(i,k)/delz(i,k)
-          fall(i,k,4) = denqrs4(i,k)*works(i,k)/delz(i,k)
+          fall(i,k,2) = denqrs2(i,k)*worka(i,k)/delz(i,k)
+          fall(i,k,3) = denqrs3(i,k)*worka(i,k)/delz(i,k)
+          fall(i,k,4) = denqrs4(i,k)*workh(i,k)/delz(i,k)
         end do
       end do
       do i = ims, ime
@@ -2259,8 +2244,9 @@ module mod_micro_wsm7
         else if ( za(k) < d_zero .and. za(k+1) >= d_zero ) then
           precip(i) = precip(i) + qa(k)*(d_zero-za(k))
           exit sum_precip
+        else
+          exit sum_precip
         end if
-        exit sum_precip
       end do sum_precip
       !
       ! replace the new values

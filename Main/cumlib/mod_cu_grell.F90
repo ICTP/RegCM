@@ -23,7 +23,7 @@ module mod_cu_grell
   use mod_cu_common
   use mod_constants
   use mod_mpmessage
-  use mod_runparams, only : iqv, igcc, ichem, clfrcv
+  use mod_runparams, only : iqv, igcc, ichem
   use mod_runparams, only : kfac_deep, kfac_shal, k2_const
   use mod_regcm_types
 
@@ -439,14 +439,13 @@ module mod_cu_grell
   !
   subroutine cup
     implicit none
-    real(rkx) :: adw, aup, detdo, detdoq, dg, dh,   &
-               dhh, dp_s, dq, dt, dv1, dv1q, dv2, dv2q, &
-               dv3, dv3q, dz, dz1, dz2, dzo, f,  &
-               agamma, agamma0, agamma1, agamma2, agammo,   &
-               agammo0, mbdt, outtes, pbcdif, qrch, qrcho, &
-               tvbar, tvbaro, xk, mflx
+    real(rkx) :: adw, aup, detdo, detdoq, dg, dh, dhh, dp_s, &
+               dq, dt, dv1, dv1q, dv2, dv2q, dv3, dv3q, dz,  &
+               dz1, dz2, agamma, agamma0, agamma1, agamma2,  &
+               agammo, agammo0, mbdt, outtes, pbcdif, qrch,  &
+               qrcho, tvbar, tvbaro, xk, mflx, f !, dzo
     integer(ik4) :: n, k, kbcono, kk
-    logical :: foundtop
+    logical :: foundtop, lnext, lremlid, lcbase
 
     ! Variable names carry an "o"-ending (z becomes zo), if they are the
     ! forced variables. They are preceded by x (z becomes xz) to indicate
@@ -559,10 +558,12 @@ module mod_cu_grell
           kk = kdet(n) - k + 1
           dkk(n,k) = d_one - real(kk,rkx)/real(kdet(n),rkx)
         end do
-        cloudbase: do
+        lcbase = .true.
+        cloudbase: do while ( lcbase )
           kb(n) = k22(n)
           kbcon(n) = kb(n)
-          gotonext: do
+          lnext = .true.
+          gotonext: do while ( lnext )
             dh = d_half*(hes(n,kbcon(n))+hes(n,kbcon(n)+1))
             if ( hkb(n) < dh ) then
               kbcon(n) = kbcon(n) + 1
@@ -572,14 +573,15 @@ module mod_cu_grell
               end if
               cycle gotonext
             end if
-            exit gotonext
+            lnext = .true.
           end do gotonext
           !
           ! after large-scale forcing is applied, possible lid should
           ! be removed!!!
           !
           kbcono = kbcon(n)
-          removelid: do
+          lremlid = .true.
+          removelid: do while ( lremlid )
             if ( kbcono > kbmax(n) ) then
               xac(n) = -d_one
               cycle pointloop
@@ -589,7 +591,7 @@ module mod_cu_grell
               kbcono = kbcono + 1
               cycle removelid
             end if
-            exit removelid
+            lremlid = .false.
           end do removelid
           kbcon(n) = kbcono
           pbcdif = -p(n,kbcon(n)) + p(n,kb(n))
@@ -607,7 +609,7 @@ module mod_cu_grell
             qcko(n) = qkbo(n)
             cycle cloudbase
           end if
-          exit cloudbase
+          lcbase = .false.
         end do cloudbase
       end if
     end do pointloop
@@ -682,7 +684,7 @@ module mod_cu_grell
               dz1 = z(n,k) - z(n,k-1)
               xac(n) = xac(n) + dz1*(egrav/(cpd*(d_half*(t(n,k)+t(n,k-1))))) * &
                      dby(n,k-1)/(d_one+d_half*(agamma+agamma0))
-              dzo = d_half*(zo(n,k+1)-zo(n,k-1))
+!              dzo = d_half*(zo(n,k+1)-zo(n,k-1))
               dz2 = zo(n,k) - zo(n,k-1)
               agammo = wlhvocp*(wlhv/(rwat*(tn(n,k)**2)))*qeso(n,k)
               agammo0 = wlhvocp*(wlhv/(rwat*(tn(n,k-1)**2)))*qeso(n,k-1)

@@ -8,7 +8,6 @@ module mod_clm_pftvarcon
   use mod_stdio
   use mod_clm_varpar, only : mxpft, numrad, ivis, inir
   use mod_clm_varctl, only : fpftcon
-  use mod_clm_varcon, only : tfrz
 
   implicit none
 

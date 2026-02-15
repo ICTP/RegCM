@@ -1,6 +1,5 @@
-module mod_clm_cncisoflux
-implicit none
 #if (defined CN)
+module mod_clm_cncisoflux
   !
   ! Module for carbon isotopic flux variable update, non-mortality fluxes.
   !
@@ -1467,7 +1466,11 @@ implicit none
     end do
   end subroutine CIsoFluxCalc
 
-#endif
-
 end module mod_clm_cncisoflux
+#else
+module mod_clm_cncisoflux
+  implicit none
+  private
+end module mod_clm_cncisoflux
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

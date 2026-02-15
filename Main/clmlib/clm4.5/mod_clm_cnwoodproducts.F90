@@ -1,6 +1,5 @@
-module mod_clm_cnwoodproducts
-implicit none
 #ifdef CN
+module mod_clm_cnwoodproducts
   !
   ! Calculate loss fluxes from wood products pools, and update product
   ! pool state variables
@@ -160,7 +159,12 @@ implicit none
 
   end subroutine CNWoodProducts
 
+end module mod_clm_cnwoodproducts
+#else
+module mod_clm_cnwoodproducts
+  implicit none
+  private
+end module mod_clm_cnwoodproducts
 #endif
 
-end module mod_clm_cnwoodproducts
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

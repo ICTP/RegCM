@@ -1,6 +1,5 @@
-module mod_clm_cncstateupdate2
-implicit none
 #ifdef CN
+module mod_clm_cncstateupdate2
   !
   ! Module for carbon state variable update, mortality fluxes.
   !
@@ -469,7 +468,12 @@ implicit none
     end do ! end of pft loop
   end subroutine CStateUpdate2h
 
-#endif
-
 end module mod_clm_cncstateupdate2
+#else
+module mod_clm_cncstateupdate2
+  implicit none
+  private
+end module mod_clm_cncstateupdate2
+
+#endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -1009,7 +1009,7 @@ module mod_clm_initimeconst
       ! Set gridcell and landunit indices
       efisop(1,g)=efisop2d(1,g)
       efisop(2,g)=efisop2d(2,g)
-      efisop(3,g)=efisop2d(3,g)
+       efisop(3,g)=efisop2d(3,g)
       efisop(4,g)=efisop2d(4,g)
       efisop(5,g)=efisop2d(5,g)
       efisop(6,g)=efisop2d(6,g)
@@ -1022,6 +1022,9 @@ module mod_clm_initimeconst
 
     nzero_slope = 0
     ! Column level initialization
+    ! NOTE : VIC is expected to fail: we need to solve the fact that the
+    ! subroutine in there are NOT PURE!
+
     do concurrent ( c = begc:endc )
 
       ! Set gridcell and landunit indices
@@ -1449,11 +1452,6 @@ module mod_clm_initimeconst
           do j = 1, nlayert-nlayer
             depth(c,nlayer+j) = dz(c, nlevsoi+j)
           end do
-          ! Column level initialization
-          ! create weights to map soil moisture profiles (10 layer) to
-          ! 3 layers for VIC hydrology, M.Huang
-          call initCLMVICMap(c)
-          call initSoilParVIC(c, claycol, sandcol, om_fraccol)
 #endif
         end if
       else if (ltype(l) /= istdlak) then
@@ -1485,11 +1483,6 @@ module mod_clm_initimeconst
         do j = 1, nlayert-nlayer
           depth(c,nlayer+j) = dz(c, nlevsoi+j)
         end do
-        ! Column level initialization
-        ! create weights to map soil moisture profiles (10 layer) to
-        ! 3 layers for VIC hydrology, M.Huang
-        call initCLMVICMap(c)
-        call initSoilParVIC(c, claycol, sandcol, om_fraccol)
 #endif
       end if
 
@@ -1498,6 +1491,31 @@ module mod_clm_initimeconst
       gwc_thr(c) = 0.17_rk8 + 0.14_rk8*clay*0.01_rk8
       mss_frc_cly_vld(c) = min(clay*0.01_rk8, 0.20_rk8)
     end do
+
+#if (defined VICHYDRO)
+    do c = begc, endc
+      l = clandunit(c)
+      if (ltype(l) == isturb) then
+        if (ctype(c)/=icol_sunwall .and. &
+            ctype(c)/=icol_shadewall .and. &
+            ctype(c)/=icol_roof) then
+          ! Column level initialization
+          ! create weights to map soil moisture profiles (10 layer) to
+          ! 3 layers for VIC hydrology, M.Huang
+          call initCLMVICMap(c)
+          call initSoilParVIC(c, claycol, sandcol, om_fraccol)
+        end if
+      else
+        if (ltype(l) /= istdlak) then
+          ! Column level initialization
+          ! create weights to map soil moisture profiles (10 layer) to
+          ! 3 layers for VIC hydrology, M.Huang
+          call initCLMVICMap(c)
+          call initSoilParVIC(c, claycol, sandcol, om_fraccol)
+        end if
+      end if
+    end do
+#endif
 
     if ( nzero_slope > 0 )then
       write(stdout,'(A,I6,A)') " Set", nzero_slope, &

@@ -1,6 +1,5 @@
-module mod_clm_initch4
-implicit none
 #ifdef LCH4
+module mod_clm_initch4
   use mod_intkinds
   use mod_realkinds
   use mod_stdio
@@ -519,7 +518,12 @@ implicit none
     end if
   end subroutine initTimeConst_ch4
 
+end module mod_clm_initch4
+#else
+module mod_clm_initch4
+  implicit none
+  private
+end module mod_clm_initch4
 #endif
 
-end module mod_clm_initch4
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

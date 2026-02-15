@@ -21,9 +21,8 @@ module mod_rad_radiation
   use mod_constants
   use mod_mpmessage
   use mod_service
-  use mod_runparams, only : idirect, ichem, iclimaaer, rcmtimer
-  use mod_runparams, only : scon, cftotmax, lsrfhack, scenario, mincld
-  use mod_mppparam, only : italk
+  use mod_runparams, only : idirect, ichem, iclimaaer
+  use mod_runparams, only : scon, lsrfhack
   use mod_memutil
   use mod_ipcc_scenario
 
@@ -4842,7 +4841,7 @@ module mod_rad_radiation
           km2 = kzp2 - km
           km4 = kzp4 - km
           if ( k <= khiv(n) .and. &
-               km >= max0(k+1,klov(n)) .and. km <= khiv(n) ) then
+               km >= max(k+1,klov(n)) .and. km <= khiv(n) ) then
             fdl(k2,n) = fdl(k2,n)+(cld(km2,n)*tclrsf(k1,n)*rtclrsf(km2,n)) * &
                     (fclb4(km1,n)-fis(k2,km4,n)+fis(k2,k3,n))
           end if

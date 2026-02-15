@@ -195,7 +195,7 @@
 
 ! --------- Modules ---------
 
-      use parrrsw, only : nbndsw, ngptsw, naerec, nstr, nmol, mxmol, &
+      use parrrsw, only : nbndsw, naerec, mxmol, &
                           jpband, jpb1, jpb2
       use rrsw_aer, only : rsrtaua, rsrpiza, rsrasya
       use rrsw_con, only : heatfac, oneminus, pi
@@ -508,10 +508,10 @@
 ! Optional output fields
       real(kind=rb) :: swnflx(nlay+2)         ! Total sky shortwave net flux (W/m2)
       real(kind=rb) :: swnflxc(nlay+2)        ! Clear sky shortwave net flux (W/m2)
-      real(kind=rb) :: dirdflux(nlay+2)       ! Direct downward shortwave surface flux
-      real(kind=rb) :: difdflux(nlay+2)       ! Diffuse downward shortwave surface flux
-      real(kind=rb) :: uvdflx(nlay+2)         ! Total sky downward shortwave flux, UV/vis
-      real(kind=rb) :: nidflx(nlay+2)         ! Total sky downward shortwave flux, near-IR
+!     real(kind=rb) :: dirdflux(nlay+2)       ! Direct downward shortwave surface flux
+!     real(kind=rb) :: difdflux(nlay+2)       ! Diffuse downward shortwave surface flux
+!     real(kind=rb) :: uvdflx(nlay+2)         ! Total sky downward shortwave flux, UV/vis
+!     real(kind=rb) :: nidflx(nlay+2)         ! Total sky downward shortwave flux, near-IR
       real(kind=rb) :: dirdnuv(nlay+2)        ! Direct downward shortwave flux, UV/vis
       real(kind=rb) :: difdnuv(nlay+2)        ! Diffuse downward shortwave flux, UV/vis
       real(kind=rb) :: dirdnir(nlay+2)        ! Direct downward shortwave flux, near-IR
@@ -881,11 +881,11 @@
             swdflxc(iplon,i) = zbbcd(i)
             swuflx(iplon,i) = zbbfu(i)
             swdflx(iplon,i) = zbbfd(i)
-            uvdflx(i) = zuvfd(i)
-            nidflx(i) = znifd(i)
+!           uvdflx(i) = zuvfd(i)
+!           nidflx(i) = znifd(i)
 !  Direct/diffuse fluxes
-            dirdflux(i) = zbbfddir(i)
-            difdflux(i) = swdflx(iplon,i) - dirdflux(i)
+!           dirdflux(i) = zbbfddir(i)
+!           difdflux(i) = swdflx(iplon,i) - dirdflux(i)
 !  UV/visible direct/diffuse fluxes
             dirdnuv(i) = zuvfddir(i)
             difdnuv(i) = zuvfd(i) - dirdnuv(i)
@@ -971,8 +971,7 @@
 
 ! --------- Modules ----------
 
-      use parrrsw, only : nbndsw, ngptsw, nstr, nmol, mxmol, &
-                          jpband, jpb1, jpb2, rrsw_scon
+      use parrrsw, only : nbndsw, nmol, jpband, jpb1, jpb2, rrsw_scon
       use rrsw_con, only : grav, avogad
 
 ! ------- Declarations -------

@@ -1,6 +1,5 @@
-module mod_clm_cnsummary
-implicit none
 #ifdef CN
+module mod_clm_cnsummary
   !
   ! Module for carbon and nitrogen summary calculations
   !
@@ -2149,7 +2148,13 @@ implicit none
     end do
   end subroutine NSummary
 
+end module mod_clm_cnsummary
+#else
+
+module mod_clm_cnsummary
+  implicit none
+  private
+end module mod_clm_cnsummary
 #endif
 
-end module mod_clm_cnsummary
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

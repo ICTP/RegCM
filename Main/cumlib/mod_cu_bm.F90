@@ -61,7 +61,6 @@ module mod_cu_bm
 
   private
 
-  real(rkx) :: mxarg
   real(rkx), pointer, contiguous, dimension(:,:) :: cldefi
   real(rkx), pointer, contiguous, dimension(:,:,:) :: ape, q, qqmod, t
   real(rkx), pointer, contiguous, dimension(:,:,:) :: tmod, tref, z0
@@ -125,7 +124,6 @@ module mod_cu_bm
     call getmem(ishal,1,intall,'cu_bm:ishal')
     call getmem(jdeep,1,intall,'cu_bm:jdeep')
     call getmem(jshal,1,intall,'cu_bm:jshal')
-    mxarg = -log(epsilon(d_one))
   end subroutine allocate_mod_cu_bm
 
   subroutine bmpara(m2c)
@@ -673,7 +671,7 @@ module mod_cu_bm
             end if
           end if
         end do
-        kdp(kk) = max0(1,kdp(kk))
+        kdp(kk) = max(1,kdp(kk))
       end do
       !
       ! search for shallow cloud top

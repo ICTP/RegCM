@@ -127,7 +127,8 @@ module mod_che_wetdep
     real(rkx) :: xxx1, xxx2, yhno3, yh2o2
     real(rkx), dimension(jci1:jci2) :: xk0, work1, work2, work3, zsurf
     real(rkx), dimension(kz) :: xgas1, xgas2
-    real(rkx), dimension(jci1:jci2) :: tmp0_rates, tmp1_rates
+    !real(rkx), dimension(jci1:jci2) :: tmp0_rates
+    real(rkx), dimension(jci1:jci2) :: tmp1_rates
     ! layer depth about interfaces (cm)
     real(rkx), dimension(jci1:jci2,kz) :: delz
     ! hno3 concentration (molecules/cm^3)
@@ -453,7 +454,7 @@ module mod_che_wetdep
       work3(:) = tmp_hetrates(:,k,2) + satf_hno3 * &
            max(rain(:,k)/(h2o_mol*(work1(:) +    &
            d_one/(xhen_hno3(:,k)*work2(:)))),d_zero)
-      tmp0_rates(:) = work3(:)
+      !tmp0_rates(:) = work3(:)
       tmp1_rates(:) = 0.2_rkx*work3(:)
       if ( ihno3 > 0 ) then
         het_rates(:,k,ihno3) = work3(:)
@@ -961,8 +962,8 @@ module mod_che_wetdep
     real(rkx) :: amu, anu !dynamic viscosity of air
     real(rkx) :: amfp   ! mean molecular free path
     real(rkx) :: schm   ! schmidt number
-    real(rkx) :: prii
-    real(rkx) :: priiv
+    ! real(rkx) :: prii
+    ! real(rkx) :: priiv
     ! real(rkx) :: cfac
     real(rkx) :: cfaca
     real(rkx) :: re ! reynolds number
@@ -1032,14 +1033,14 @@ module mod_che_wetdep
               rrm = 0.35_rkx*(totppt(j,k)*3600.0_rkx)**0.25_rkx*1.e-3_rkx
               ! what empirical parametization is that ?
               ! needs apparently rain rate in mm/hr
-              prii = 2.0_rkx/9.0_rkx*egrav/amu
-              priiv = prii*(rhorain-rho(j,k))
+              ! prii = 2.0_rkx/9.0_rkx*egrav/amu
+              ! priiv = prii*(rhorain-rho(j,k))
               ! cunningham settling slip-correction factor
               ! settling velocity
               ! FAB : wrong this formulation apply only for small
               ! particles settling but not for big rain drops (high reynolds)!!
               ! cf Seinfeld / Vpr would be overestimated
-              !  cfac = d_one+amfp/rrm*(aa1r+aa2r*exp(-aa3r*rrm/amfp))
+              ! cfac = d_one+amfp/rrm*(aa1r+aa2r*exp(-aa3r*rrm/amfp))
               ! vpr = priiv*rrm**2*cfac
               ! try with a mean rainfall velcoity of 3 m/s
               vpr = 3._rkx
