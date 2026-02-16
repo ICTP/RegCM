@@ -609,7 +609,7 @@ module mod_clm_urban
     ! this code assumes that numrad = 2, with the following
     ! index values: 1 = visible, 2 = NIR
 
-    do fl = 1, num_urbanl
+    do concurrent ( fl = 1:num_urbanl )
       l = filter_urbanl(fl)
       do c = coli(l), colf(l)
         if ( coszen(fl) > 0._rk8 .and. h2osno(c) > 0._rk8 ) then
@@ -1257,17 +1257,18 @@ module mod_clm_urban
     real(rk8) :: tanzen(num_urbanl) ! tan(zenith angle)
     ! direct beam solar radiation (per unit ground area) incident on wall
     real(rk8) :: swall_projected
-    real(rk8) :: err1(num_urbanl)   ! energy conservation error
-    real(rk8) :: err2(num_urbanl)   ! energy conservation error
-    real(rk8) :: err3(num_urbanl)   ! energy conservation error
+    real(rk8) :: err    ! energy conservation error
+    real(rk8) :: err1   ! energy conservation error
+    real(rk8) :: err2   ! energy conservation error
     real(rk8) :: sumr ! sum of sroad for each orientation (0 <= theta <= pi/2)
     real(rk8) :: sumw ! sum of swall for each orientation (0 <= theta <= pi/2)
     real(rk8) :: num  ! number of orientations
     real(rk8) :: theta ! canyon orientation relative to sun (0 <= theta <= pi/2)
     ! critical solar zenith angle for which sun begins to illuminate road
     real(rk8) :: zen0
+    logical :: found1, found2
 
-    do l = 1, num_urbanl
+    do concurrent ( l = 1:num_urbanl )
       if ( coszen(l) > 0._rk8 ) then
         theta0(l) = asin(min( (1._rk8/(canyon_hwr(l) * &
                 tan(max(zen(l),0.000001_rk8)))), 1._rk8 ))
@@ -1275,7 +1276,11 @@ module mod_clm_urban
       end if
     end do
 
+    found1 = .false.
+    found2 = .false.
+
     do ib = 1, numrad
+      !$acc parallel loop gang vector copy(found1) copyout(err1)
       do l = 1, num_urbanl
         if ( coszen(l) > 0._rk8 ) then
           sdir_shadewall(l,ib) = 0._rk8
@@ -1295,7 +1300,11 @@ module mod_clm_urban
 
           swall_projected = (sdir_shadewall(l,ib) + &
                              sdir_sunwall(l,ib)) * canyon_hwr(l)
-          err1(l) = sdir(l,ib) - (sdir_road(l,ib) + swall_projected)
+          err = sdir(l,ib) - (sdir_road(l,ib) + swall_projected)
+          if ( abs(err) > 0.001_rk8 ) then
+            found1 = .true.
+            err1 = err
+          end if
         else
           sdir_road(l,ib) = 0._rk8
           sdir_sunwall(l,ib) = 0._rk8
@@ -1303,22 +1312,18 @@ module mod_clm_urban
         end if
       end do
 
-      do l = 1, num_urbanl
-        if ( coszen(l) > 0._rk8 ) then
-          if ( abs(err1(l)) > 0.001_rk8 ) then
-            write (stderr,*) &
-                    'urban direct beam solar radiation balance error',err1(l)
-            write (stderr,*) 'clm model is stopping'
-            call fatal(__FILE__,__LINE__,'clm now stopping')
-          endif
-
-        end if
-      end do
+      if ( found1 ) then
+        write (stderr,*) &
+                'urban direct beam solar radiation balance error',err1
+        write (stderr,*) 'clm model is stopping'
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      end if
 
       ! numerical check of analytical solution
       ! sum sroad and swall over all canyon orientations (0 <= theta <= pi/2)
 
       if ( numchk ) then
+        !$acc parallel loop gang vector copy(found1,found2) copyout(err1,err2)
         do l = 1, num_urbanl
           if ( coszen(l) > 0._rk8 ) then
             sumr = 0._rk8
@@ -1337,26 +1342,31 @@ module mod_clm_urban
               end if
               num = num + 1._rk8
             end do
-            err2(l) = sumr/num - sdir_road(l,ib)
-            err3(l) = sumw/num - sdir_sunwall(l,ib)
-          end if
-        end do
-        do l = 1, num_urbanl
-          if ( coszen(l) > 0._rk8 ) then
-            if ( abs(err2(l)) > 0.0006_rk8 ) then
-              write (stderr,*) &
-                   'urban road incident direct beam solar radiation error', &
-                   err2(l)
-              call fatal(__FILE__,__LINE__,'clm now stopping')
+            err = sumr/num - sdir_road(l,ib)
+            if ( abs(err) > 0.0006_rk8 ) then
+              found1 = .true.
+              err1 = err
             end if
-            if ( abs(err3(l)) > 0.0006_rk8 ) then
-              write (stderr,*) &
-                  'urban wall incident direct beam solar radiation error', &
-                  err3(l)
-              call fatal(__FILE__,__LINE__,'clm now stopping')
+            err = sumw/num - sdir_sunwall(l,ib)
+            if ( abs(err) > 0.0006_rk8 ) then
+              found2 = .true.
+              err2 = err
             end if
           end if
         end do
+
+        if ( found1 ) then
+          write (stderr,*) &
+              'urban road incident direct beam solar radiation error', &
+              err1
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        end if
+        if ( found2 ) then
+          write (stderr,*) &
+              'urban wall incident direct beam solar radiation error', &
+              err2
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        end if
       end if
     end do
   end subroutine incident_direct
@@ -1696,6 +1706,9 @@ module mod_clm_urban
     real(rk8) :: err                    ! energy conservation error
     integer(ik4), parameter :: niters = 50  ! number of interations
     real(rk8), parameter :: errcrit  = 0.00001_rk8     ! error criteria
+    logical :: fnd1, fnd2, fnd3
+    integer(ik4) :: f_l, f_fl, f_ib
+    real(rk8) :: f_err
 
     ! Assign landunit level pointer
 
@@ -1717,12 +1730,16 @@ module mod_clm_urban
 
     ! Calculate impervious road
 
-    do l = 1, num_urbanl
+    do concurrent ( l = 1:num_urbanl )
       wtroad_imperv(l) = 1._rk8 - wtroad_perv(l)
     end do
 
+    fnd1 = .false.
+    fnd2 = .false.
+    fnd3 = .false.
+
     do ib = 1, numrad
-      do fl = 1, num_urbanl
+      do concurrent ( fl = 1:num_urbanl )
         if ( coszen(fl) > 0._rk8 ) then
           l = filter_urbanl(fl)
 
@@ -1880,6 +1897,7 @@ module mod_clm_urban
       !
       ! do separately for direct beam and diffuse
 
+      !$acc parallel loop gang vector copy(fnd1,fnd2,fnd3) copyout(f_l,f_fl,f_ib,f_err)
       do fl = 1, num_urbanl
         if ( coszen(fl) > 0._rk8 ) then
           l = filter_urbanl(fl)
@@ -1982,9 +2000,7 @@ module mod_clm_urban
             if (crit < errcrit) exit
           end do
           if ( iter_dir >= niters ) then
-            write (stderr,*) 'urban net solar radiation error:'
-            write (stderr,*) '            no convergence, direct beam'
-            call fatal(__FILE__,__LINE__,'clm now stopping')
+            fnd1 = .true.
           endif
 
           ! reflected diffuse
@@ -2082,9 +2098,7 @@ module mod_clm_urban
             if ( crit < errcrit ) exit
           end do
           if ( iter_dif >= niters ) then
-            write (stderr,*) 'urban net solar radiation error: '
-            write (stderr,*) '             no convergence, diffuse'
-            call fatal(__FILE__,__LINE__,'clm now stopping')
+            fnd2 = .true.
           endif
 
           ! total reflected by canyon - sum of solar reflection to sky
@@ -2152,16 +2166,11 @@ module mod_clm_urban
                   (sabs_canyon_dir(fl) + sabs_canyon_dif(fl) + &
                    sref_canyon_dir(fl) + sref_canyon_dif(fl))
           if ( abs(err) > 0.001_rk8 ) then
-            write(stderr,*) &
-              'urban net solar radiation balance error for ib=',ib,' err= ',err
-            write(stderr,*)' l= ',l,' ib= ',ib
-            write(stderr,*)' stot_dir        = ',stot_dir(fl)
-            write(stderr,*)' stot_dif        = ',stot_dif(fl)
-            write(stderr,*)' sabs_canyon_dir = ',sabs_canyon_dir(fl)
-            write(stderr,*)' sabs_canyon_dif = ',sabs_canyon_dif(fl)
-            write(stderr,*)' sref_canyon_dir = ',sref_canyon_dir(fl)
-            write(stderr,*)' sref_canyon_dif = ',sref_canyon_dir(fl)
-            call fatal(__FILE__,__LINE__,'clm now stopping')
+            fnd3 = .true.
+            f_l = l
+            f_fl = fl
+            f_ib = ib
+            f_err = err
           end if
 
           ! canyon albedo
@@ -2171,10 +2180,33 @@ module mod_clm_urban
         end if
       end do   ! end of landunit loop
 
+      if ( fnd1 ) then
+        write (stderr,*) 'urban net solar radiation error:'
+        write (stderr,*) '            no convergence, direct beam'
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      end if
+      if ( fnd2 ) then
+        write (stderr,*) 'urban net solar radiation error: '
+        write (stderr,*) '             no convergence, diffuse'
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      end if
+      if ( fnd3 ) then
+        write(stderr,*) &
+          'urban net solar radiation balance error for ib=',f_ib,' err= ',f_err
+        write(stderr,*)' l= ',f_l,' ib= ',f_ib
+        write(stderr,*)' stot_dir        = ',stot_dir(f_fl)
+        write(stderr,*)' stot_dif        = ',stot_dif(f_fl)
+        write(stderr,*)' sabs_canyon_dir = ',sabs_canyon_dir(f_fl)
+        write(stderr,*)' sabs_canyon_dif = ',sabs_canyon_dif(f_fl)
+        write(stderr,*)' sref_canyon_dir = ',sref_canyon_dir(f_fl)
+        write(stderr,*)' sref_canyon_dif = ',sref_canyon_dir(f_fl)
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      end if
+
       ! Refected and absorbed solar radiation per unit incident
       ! radiation for roof
 
-      do fl = 1, num_urbanl
+      do concurrent ( fl = 1:num_urbanl )
         if (coszen(fl) > 0._rk8) then
           l = filter_urbanl(fl)
           sref_roof_dir(fl,ib) = alb_roof_dir(fl,ib) * sdir(fl,ib)
