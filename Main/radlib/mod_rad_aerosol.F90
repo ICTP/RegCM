@@ -2905,6 +2905,7 @@ module mod_rad_aerosol
       real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: val
       real(rkx), intent(in) :: set
 #ifdef OPENACC
+      real(rkx) :: x
       integer(ik4) :: j,i,k,j1,j2,i1,i2,k1,k2
       j1 = lbound(val,1)
       j2 = ubound(val,1)
@@ -2913,7 +2914,10 @@ module mod_rad_aerosol
       k1 = lbound(val,3)
       k2 = ubound(val,3)
       do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
-        if ( is_nan(val(j,i,k)) ) val(j,i,k) = set
+        x = val(j,i,k)
+        if ( (x /= x) .or. ((x > 0.0_rkx) .eqv. (x <= 0.0_rkx)) ) then
+          val(j,i,k) = set
+        end if
       end do
 #else
       where ( is_nan(val) )
