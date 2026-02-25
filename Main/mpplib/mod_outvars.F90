@@ -115,6 +115,7 @@ module mod_outvars
   real(rkx), dimension(:,:), pointer, contiguous :: shf_twetb_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: shf_pcpavg_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: shf_pcprcv_out => null()
+  real(rkx), dimension(:,:,:), pointer, contiguous :: shf_t2m_out => null()
 
   real(rkx), dimension(:,:), pointer, contiguous :: srf_uvdrag_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: srf_taux_out => null()
