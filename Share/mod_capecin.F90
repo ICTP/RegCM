@@ -50,6 +50,13 @@ module mod_capecin
   integer(ik4), parameter :: itb = 076
   integer(ik4), parameter :: jtb = 134
 
+  logical :: table_empty = .true.
+  real(rkx) :: pl, rdq, rdth, rdp, rdthe
+  real(rkx) , dimension(jtb) :: qs0, sqs
+  real(rkx) , dimension(itb) :: the0, sthe
+  real(rkx) , dimension(itb,jtb) :: ptbl
+  real(rkx) , dimension(jtb,itb) :: ttbl
+
   contains
   !
   !
@@ -713,13 +720,6 @@ module mod_capecin
       integer(ik4) :: i, j, ittbk, iq, it, iptbk
       integer(ik4) :: ith, ip, iqtb
       integer(ik4) :: ittb, iptb, ithtb
-      logical, save :: table_empty = .true.
-      real(rkx), save :: pl, rdq, rdth, rdp, rdthe
-      real(rkx), save, dimension(jtb) :: qs0, sqs
-      real(rkx), save, dimension(itb) :: the0, sthe
-      real(rkx), save, dimension(itb,jtb) :: ptbl
-      real(rkx), save, dimension(jtb,itb) :: ttbl
-
       !
       if ( table_empty ) then
         call table_fill( )
