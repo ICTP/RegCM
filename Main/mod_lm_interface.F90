@@ -949,6 +949,8 @@ module mod_lm_interface
                     atan(0.023101_rkx * rh) - 4.686035_rkx)
           end do
         end if
+        if ( associated(shf_t2m_out) ) &
+          shf_t2m_out(:,:,1) = sum(lms%t2m,1)*rdnnsg
       else
         if ( ifsrf ) then
           if ( associated(srf_pcpmax_out) ) &

@@ -60,7 +60,9 @@ module mod_ncout
   integer(ik4), parameter :: natm3dvars = 69
   integer(ik4), parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4), parameter :: nshfvars = 4 + nbase
+  integer(ik4), parameter :: nshf2dvars = 4 + nbase
+  integer(ik4), parameter :: nshf3dvars = 1
+  integer(ik4), parameter :: nshfvars = nshf2dvars+nshf3dvars
 
   integer(ik4), parameter :: nsrf2dvars = 45 + nbase
   integer(ik4), parameter :: nsrf3dvars = 15
@@ -101,6 +103,8 @@ module mod_ncout
     dimension(:) :: v3dvar_atm => null()
   type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_shf => null()
+  type(ncvariable3d_mixed), save, pointer, contiguous, &
+    dimension(:) :: v3dvar_shf => null()
   type(ncvariable2d_mixed), save, pointer, contiguous, &
     dimension(:) :: v2dvar_srf => null()
   type(ncvariable3d_mixed), save, pointer, contiguous, &
@@ -254,6 +258,7 @@ module mod_ncout
   integer(ik4), parameter :: shf_pcpmax = 8
   integer(ik4), parameter :: shf_pcprcv = 9
   integer(ik4), parameter :: shf_twetb  = 10
+  integer(ik4), parameter :: shf_t2m    = 1
 
   integer(ik4), parameter :: srf_xlon     = 1
   integer(ik4), parameter :: srf_xlat     = 2
@@ -513,6 +518,8 @@ module mod_ncout
     type(varspan) :: vsize
     logical, dimension(natm2dvars) :: enable_atm2d_vars
     logical, dimension(natm3dvars) :: enable_atm3d_vars
+    logical, dimension(nshf2dvars) :: enable_shf2d_vars
+    logical, dimension(nshf3dvars) :: enable_shf3d_vars
     logical, dimension(nsrf2dvars) :: enable_srf2d_vars
     logical, dimension(nsrf3dvars) :: enable_srf3d_vars
     logical, dimension(nsts2dvars) :: enable_sts2d_vars
@@ -1325,7 +1332,10 @@ module mod_ncout
 
       if ( nstream == shf_stream ) then
 
-        allocate(v2dvar_shf(nshfvars))
+        allocate(v2dvar_shf(nshf2dvars))
+        allocate(v3dvar_shf(nshf3dvars))
+        enable_shf2d_vars = enable_shf_vars(1:nshf2dvars)
+        enable_shf3d_vars = enable_shf_vars(nshf2dvars+1:nshfvars)
 
         ! This variables are always present
 
@@ -1360,6 +1370,16 @@ module mod_ncout
           enable_shf_vars(shf_pcprcv) = .false.
         end if
 
+        vsize%k2 = 1
+        v3dvar_shf(shf_t2m)%axis = 'xy2'
+        if ( enable_shf3d_vars(shf_t2m) ) then
+          call setup_var(v3dvar_shf,shf_t2m,vsize,'tas','K', &
+            'Near-Surface Air Temperature','air_temperature',.true.)
+          shf_t2m_out => v3dvar_shf(shf_t2m)%rval
+        end if
+
+        enable_shf_vars(1:nshf2dvars) = enable_shf2d_vars
+        enable_shf_vars(nshf2dvars+1:nshfvars) = enable_shf3d_vars
         outstream(shf_stream)%nvar = countvars(enable_shf_vars,nshfvars)
         allocate(outstream(shf_stream)%ncvars%vlist(outstream(shf_stream)%nvar))
         outstream(shf_stream)%nfiles = 1
@@ -1368,9 +1388,15 @@ module mod_ncout
         outstream(shf_stream)%cname_base(1) = 'SHF'
 
         vcount = 1
-        do i = 1, nshfvars
+        do i = 1, nshf2dvars
           if ( enable_shf_vars(i) ) then
             outstream(shf_stream)%ncvars%vlist(vcount)%vp => v2dvar_shf(i)
+            vcount = vcount + 1
+          end if
+        end do
+        do i = 1, nshf3dvars
+          if ( enable_shf_vars(i+nshf2dvars) ) then
+            outstream(shf_stream)%ncvars%vlist(vcount)%vp => v3dvar_shf(i)
             vcount = vcount + 1
           end if
         end do
