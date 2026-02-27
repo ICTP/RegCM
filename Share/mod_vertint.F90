@@ -1227,6 +1227,7 @@ module mod_vertint
     real(rkx), dimension(kccm) :: xc, fc, zi, zg
     real(rkx), dimension(krcm) :: xr, fr
     integer(ik4) :: i, j, k, kt, kb
+#ifndef OPENACC
     if ( pccm(i1,j1,1) > pccm(i1,j1,kccm) ) then
       kt = kccm
       kb = 1
@@ -1234,9 +1235,19 @@ module mod_vertint
       kt = 1
       kb = kccm
     end if
+#endif
     !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr,zi,zg)
     do j = j1, j2
       do i = i1, i2
+#ifdef OPENACC
+        if ( pccm(i1,j1,1) > pccm(i1,j1,kccm) ) then
+          kt = kccm
+          kb = 1
+        else
+          kt = 1
+          kb = kccm
+        end if
+#endif
         !$acc loop seq
         do k = 1 , kccm
           xc(k) = (pccm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))

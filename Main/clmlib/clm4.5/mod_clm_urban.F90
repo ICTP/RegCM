@@ -1279,8 +1279,8 @@ module mod_clm_urban
     found1 = .false.
     found2 = .false.
 
+    !$acc parallel loop collapse(2) gang vector copy(found1) copyout(err1)
     do ib = 1, numrad
-      !$acc parallel loop gang vector copy(found1) copyout(err1)
       do l = 1, num_urbanl
         if ( coszen(l) > 0._rk8 ) then
           sdir_shadewall(l,ib) = 0._rk8
@@ -1311,24 +1311,27 @@ module mod_clm_urban
           sdir_shadewall(l,ib) = 0._rk8
         end if
       end do
+    end do
 
-      if ( found1 ) then
-        write (stderr,*) &
-                'urban direct beam solar radiation balance error',err1
-        write (stderr,*) 'clm model is stopping'
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      end if
+    if ( found1 ) then
+      write (stderr,*) &
+              'urban direct beam solar radiation balance error',err1
+      write (stderr,*) 'clm model is stopping'
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
 
       ! numerical check of analytical solution
       ! sum sroad and swall over all canyon orientations (0 <= theta <= pi/2)
 
-      if ( numchk ) then
-        !$acc parallel loop gang vector copy(found1,found2) copyout(err1,err2)
+    if ( numchk ) then
+      !$acc parallel loop collapse(2) gang vector copy(found1,found2) copyout(err1,err2)
+      do ib = 1, numrad
         do l = 1, num_urbanl
           if ( coszen(l) > 0._rk8 ) then
             sumr = 0._rk8
             sumw = 0._rk8
             num  = 0._rk8
+            !$acc loop seq
             do i = 1, 9000
               theta = i/100._rk8 * rpi/180._rk8
               zen0 = atan(1._rk8/(canyon_hwr(l)*sin(theta)))
@@ -1354,21 +1357,21 @@ module mod_clm_urban
             end if
           end if
         end do
+      end do
 
-        if ( found1 ) then
-          write (stderr,*) &
-              'urban road incident direct beam solar radiation error', &
-              err1
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-        end if
-        if ( found2 ) then
-          write (stderr,*) &
-              'urban wall incident direct beam solar radiation error', &
-              err2
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-        end if
+      if ( found1 ) then
+        write (stderr,*) &
+            'urban road incident direct beam solar radiation error', &
+            err1
+        call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
-    end do
+      if ( found2 ) then
+        write (stderr,*) &
+            'urban wall incident direct beam solar radiation error', &
+            err2
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      end if
+    end if
   end subroutine incident_direct
   !
   ! Diffuse solar radiation incident on walls and road in urban canyon
@@ -1400,20 +1403,22 @@ module mod_clm_urban
     real(rk8), pointer, contiguous :: vf_sw(:)     ! view factor of sky for one wall
 
     integer(ik4)  :: l, fl, ib       ! indices
-    real(rk8) :: err(num_urbanl) ! energy conservation error (W/m**2)
+    real(rk8) :: err ! energy conservation error (W/m**2)
+    real(rk8) :: fnd_err
     ! diffuse solar radiation (per unit ground area) incident on wall (W/m**2)
     real(rk8) :: swall_projected
+    logical :: found
 
     ! Assign landunit level pointer
 
     vf_sr              => clm3%g%l%lps%vf_sr
     vf_sw              => clm3%g%l%lps%vf_sw
 
+    found = .false.
+    !$acc parallel loop collapse(2) gang vector copy(found) copyout(fnd_err)
     do ib = 1, numrad
-
       ! diffuse solar and conservation check.
       ! need to convert wall fluxes to ground area
-
       do fl = 1, num_urbanl
         l = filter_urbanl(fl)
         sdif_road(fl,ib)      = sdif(fl,ib) * vf_sr(l)
@@ -1422,18 +1427,19 @@ module mod_clm_urban
 
         swall_projected = (sdif_shadewall(fl,ib) + &
                            sdif_sunwall(fl,ib)) * canyon_hwr(fl)
-        err(fl) = sdif(fl,ib) - (sdif_road(fl,ib) + swall_projected)
-      end do
-
-      ! error check
-
-      do l = 1, num_urbanl
-        if ( abs(err(l)) > 0.001_rk8 ) then
-          write (stderr,*) 'urban diffuse solar radiation balance error',err(l)
-          call fatal(__FILE__,__LINE__,'clm now stopping')
+        err = sdif(fl,ib) - (sdif_road(fl,ib) + swall_projected)
+        if ( abs(err) > 0.001_rk8 ) then
+          found = .true.
+          fnd_err = err
         end if
       end do
     end do
+
+    ! error check
+    if ( found ) then
+      write (stderr,*) 'urban diffuse solar radiation balance error',fnd_err
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
   end subroutine incident_diffuse
   !
   ! Solar radiation absorbed by road and both walls in urban canyon allowing
