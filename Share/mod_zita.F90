@@ -24,8 +24,10 @@ module mod_zita
   private
 
   interface zita_interp
-    module procedure zh3d
-    module procedure zh4d
+    module procedure zh3d_r8
+    module procedure zh3d_r4
+    module procedure zh4d_r8
+    module procedure zh4d_r4
   end interface zita_interp
 
   public :: model_zitaf, model_zitah, zitasigma, sigmazita
@@ -173,18 +175,18 @@ module mod_zita
     md_zeta = md_zeta_h(zita,geopot*regrav,ztop,zh,a0)
   end function md_zeta
 
-  subroutine zh3d(nx1,nx2,ny1,ny2,nz,f,zeta,tvirt,sigmah,ps,imet)
+  subroutine zh3d_r8(nx1,nx2,ny1,ny2,nz,f,zeta,tvirt,sigmah,ps,imet)
     implicit none
     integer(ik4), intent(in) :: nx1, nx2, ny1, ny2, nz, imet
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: f
+    real(rk8), dimension(:,:,:), pointer, contiguous, intent(inout) :: f
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zeta
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: tvirt
     real(rkx), dimension(:), pointer, contiguous, intent(in) :: sigmah
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ps
-    real(rkx), dimension(nz) :: psigma, pz
-    real(rkx), dimension(nz) :: fz
+    real(rk8), dimension(nz) :: psigma, pz
+    real(rk8), dimension(nz) :: fz
     integer(ik4) :: i, j, k, kk, ik
-    real(rkx) :: iw1, iw2
+    real(rk8) :: iw1, iw2
     if ( imet == 1 ) then
       do j = ny1, ny2
         do i = nx1, nx2
@@ -209,7 +211,9 @@ module mod_zita
               fz(k) = iw1 * f(i,j,ik) + iw2 * f(i,j,ik-1)
             end if
           end do
-          f(i,j,:) = fz
+          do k = 1, nz
+            f(i,j,k) = fz(k)
+          end do
         end do
       end do
     else
@@ -236,24 +240,99 @@ module mod_zita
               fz(k) = iw1 * f(i,j,ik) + iw2 * f(i,j,ik-1)
             end if
           end do
-          f(i,j,:) = fz
+          do k = 1, nz
+            f(i,j,k) = fz(k)
+          end do
         end do
       end do
     end if
-  end subroutine zh3d
+  end subroutine zh3d_r8
 
-  subroutine zh4d(nx1,nx2,ny1,ny2,nz,nn,f,zeta,tvirt,sigmah,ps,imet)
+  subroutine zh3d_r4(nx1,nx2,ny1,ny2,nz,f,zeta,tvirt,sigmah,ps,imet)
     implicit none
-    integer(ik4), intent(in) :: nx1, nx2, ny1, ny2, nz, nn, imet
-    real(rkx), dimension(:,:,:,:), pointer, contiguous, intent(inout) :: f
+    integer(ik4), intent(in) :: nx1, nx2, ny1, ny2, nz, imet
+    real(rk4), dimension(:,:,:), pointer, contiguous, intent(inout) :: f
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zeta
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: tvirt
     real(rkx), dimension(:), pointer, contiguous, intent(in) :: sigmah
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ps
-    real(rkx), dimension(nz) :: psigma, pz
-    real(rkx), dimension(nz) :: fz
+    real(rk8), dimension(nz) :: psigma, pz
+    real(rk8), dimension(nz) :: fz
+    integer(ik4) :: i, j, k, kk, ik
+    real(rk8) :: iw1, iw2
+    if ( imet == 1 ) then
+      do j = ny1, ny2
+        do i = nx1, nx2
+          psigma = ps(i,j) * sigmah
+          pz = ps(i,j)*exp(-egrav*zeta(i,j,:)/rgas/tvirt(i,j,:))
+          do k = 1, nz
+            if ( pz(k) < psigma(1) ) then
+              fz(k) = f(i,j,1)
+            else if ( pz(k) > psigma(nz) ) then
+              fz(k) = f(i,j,nz)
+            else
+              ! Find requested pressure level
+              ik = 1
+              do kk = 2, nz
+                if ( pz(k) < psigma(kk) ) then
+                  ik = kk
+                  exit
+                end if
+              end do
+              iw1 = log(pz(k)/psigma(ik-1))/log(psigma(ik)/psigma(ik-1))
+              iw2 = 1.0_rkx - iw1
+              fz(k) = iw1 * f(i,j,ik) + iw2 * f(i,j,ik-1)
+            end if
+          end do
+          do k = 1, nz
+            f(i,j,k) = real(fz(k),rk4)
+          end do
+        end do
+      end do
+    else
+      do j = ny1, ny2
+        do i = nx1, nx2
+          psigma = ps(i,j) * sigmah
+          pz = ps(i,j)*exp(-egrav*zeta(i,j,:)/rgas/tvirt(i,j,:))
+          do k = 1, nz
+            if ( pz(k) < psigma(1) ) then
+              fz(k) = f(i,j,1)
+            else if ( pz(k) > psigma(nz) ) then
+              fz(k) = f(i,j,nz)
+            else
+              ! Find requested pressure level
+              ik = 1
+              do kk = 2, nz
+                if ( pz(k) < psigma(kk) ) then
+                  ik = kk
+                  exit
+                end if
+              end do
+              iw1 = (pz(k)/psigma(ik-1))/(psigma(ik)/psigma(ik-1))
+              iw2 = 1.0_rkx - iw1
+              fz(k) = iw1 * f(i,j,ik) + iw2 * f(i,j,ik-1)
+            end if
+          end do
+          do k = 1, nz
+            f(i,j,k) = real(fz(k),rk4)
+          end do
+        end do
+      end do
+    end if
+  end subroutine zh3d_r4
+
+  subroutine zh4d_r8(nx1,nx2,ny1,ny2,nz,nn,f,zeta,tvirt,sigmah,ps,imet)
+    implicit none
+    integer(ik4), intent(in) :: nx1, nx2, ny1, ny2, nz, nn, imet
+    real(rk8), dimension(:,:,:,:), pointer, contiguous, intent(inout) :: f
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zeta
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: tvirt
+    real(rkx), dimension(:), pointer, contiguous, intent(in) :: sigmah
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ps
+    real(rk8), dimension(nz) :: psigma, pz
+    real(rk8), dimension(nz) :: fz
     integer(ik4) :: i, j, k, n, kk, ik
-    real(rkx) :: iw1, iw2
+    real(rk8) :: iw1, iw2
     if ( imet == 1 ) then
       do n = 1, nn
         do j = ny1, ny2
@@ -279,7 +358,9 @@ module mod_zita
                 fz(k) = iw1 * f(i,j,ik,n) + iw2 * f(i,j,ik-1,n)
               end if
             end do
-            f(i,j,:,n) = fz
+            do k = 1, nz
+              f(i,j,k,n) = fz(k)
+            end do
           end do
         end do
       end do
@@ -308,12 +389,91 @@ module mod_zita
                 fz(k) = iw1 * f(i,j,ik,n) + iw2 * f(i,j,ik-1,n)
               end if
             end do
-            f(i,j,:,n) = fz
+            do k = 1, nz
+              f(i,j,k,n) = fz(k)
+            end do
           end do
         end do
       end do
     end if
-  end subroutine zh4d
+  end subroutine zh4d_r8
+
+  subroutine zh4d_r4(nx1,nx2,ny1,ny2,nz,nn,f,zeta,tvirt,sigmah,ps,imet)
+    implicit none
+    integer(ik4), intent(in) :: nx1, nx2, ny1, ny2, nz, nn, imet
+    real(rk4), dimension(:,:,:,:), pointer, contiguous, intent(inout) :: f
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zeta
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: tvirt
+    real(rkx), dimension(:), pointer, contiguous, intent(in) :: sigmah
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ps
+    real(rk8), dimension(nz) :: psigma, pz
+    real(rk8), dimension(nz) :: fz
+    integer(ik4) :: i, j, k, n, kk, ik
+    real(rk8) :: iw1, iw2
+    if ( imet == 1 ) then
+      do n = 1, nn
+        do j = ny1, ny2
+          do i = nx1, nx2
+            psigma = ps(i,j) * sigmah
+            pz = ps(i,j)*exp(-egrav*zeta(i,j,:)/rgas/tvirt(i,j,:))
+            do k = 1, nz
+              if ( pz(k) < psigma(1) ) then
+                fz(k) = f(i,j,1,n)
+              else if ( pz(k) > psigma(nz) ) then
+                fz(k) = f(i,j,nz,n)
+              else
+                ! Find requested pressure level
+                ik = 1
+                do kk = 2, nz
+                  if ( pz(k) < psigma(kk) ) then
+                    ik = kk
+                    exit
+                  end if
+                end do
+                iw1 = log(pz(k)/psigma(ik-1))/log(psigma(ik)/psigma(ik-1))
+                iw2 = 1.0_rkx - iw1
+                fz(k) = iw1 * f(i,j,ik,n) + iw2 * f(i,j,ik-1,n)
+              end if
+            end do
+            do k = 1, nz
+              f(i,j,k,n) = real(fz(k),rk4)
+            end do
+          end do
+        end do
+      end do
+    else
+      do n = 1, nn
+        do j = ny1, ny2
+          do i = nx1, nx2
+            psigma = ps(i,j) * sigmah
+            pz = ps(i,j)*exp(-egrav*zeta(i,j,:)/rgas/tvirt(i,j,:))
+            do k = 1, nz
+              if ( pz(k) < psigma(1) ) then
+                fz(k) = f(i,j,1,n)
+              else if ( pz(k) > psigma(nz) ) then
+                fz(k) = f(i,j,nz,n)
+              else
+                ! Find requested pressure level
+                ik = 1
+                do kk = 2, nz
+                  if ( pz(k) < psigma(kk) ) then
+                    ik = kk
+                    exit
+                  end if
+                end do
+                iw1 = (pz(k)/psigma(ik-1))/(psigma(ik)/psigma(ik-1))
+                iw2 = 1.0_rkx - iw1
+                fz(k) = iw1 * f(i,j,ik,n) + iw2 * f(i,j,ik-1,n)
+              end if
+            end do
+            do k = 1, nz
+              f(i,j,k,n) = real(fz(k),rk4)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine zh4d_r4
 
 end module mod_zita
 

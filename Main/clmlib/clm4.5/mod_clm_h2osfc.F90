@@ -77,7 +77,7 @@ module mod_clm_h2osfc
           sigma = 1.0e3_rk8 * micro_sigma(c) ! convert to mm
           !$acc loop seq
           do l = 1, 10
-            if ( d**2/(2.0_rk8*sigma**2) < 25.0_rkx ) then
+            if ( d**2/(2.0_rk8*sigma**2) < 25.0_rk8 ) then
               fd = 0.5_rk8*d*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8)))) + &
                     sigma/sqrt(2.0_rk8*rpi)*exp(-d**2/(2.0_rk8*sigma**2)) - &
                     h2osfc(c)
@@ -149,7 +149,7 @@ module mod_clm_h2osfc
         d = 0.0_rk8
         sigma = 1.0e3_rk8 * micro_sigma ! convert to mm
         do l = 1, 10
-          if ( d**2/(2.0_rk8*sigma**2) < 25.0_rkx ) then
+          if ( d**2/(2.0_rk8*sigma**2) < 25.0_rk8 ) then
             fd = 0.5_rk8*d*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8)))) + &
                   sigma/sqrt(2.0_rk8*rpi)*exp(-d**2/(2.0_rk8*sigma**2)) - &
                   h2osfc

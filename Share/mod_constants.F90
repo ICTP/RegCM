@@ -68,12 +68,26 @@ module mod_constants
   real(rkx), parameter :: minqx   = 1.0e-16_rkx
 
   ! Low/Hi values
-  real(rkx), parameter :: dlowval = 1.0e-20_rkx
-  real(rkx), parameter :: dhival  = 1.0e+20_rkx
-  real(rk4), parameter :: slowval = 1.0e-20_rk4
-  real(rk4), parameter :: shival  = 1.0e+20_rk4
-  real(rkx), parameter :: dmissval = 1.0e+20_rkx
-  real(rk4), parameter :: smissval = 1.0e+20_rk4
+  real(rk8), parameter :: dlowval_r8 = 1.0e-20_rk8
+  real(rk8), parameter :: dhival_r8  = 1.0e+20_rk8
+  real(rk8), parameter :: slowval_r8 = 1.0e-20_rk8
+  real(rk8), parameter :: shival_r8  = 1.0e+20_rk8
+  real(rk8), parameter :: dmissval_r8 = 1.0e+20_rk8
+  real(rk8), parameter :: smissval_r8 = 1.0e+20_rk8
+
+  real(rk4), parameter :: dlowval_r4 = 1.0e-20_rk4
+  real(rk4), parameter :: dhival_r4  = 1.0e+20_rk4
+  real(rk4), parameter :: slowval_r4 = 1.0e-20_rk4
+  real(rk4), parameter :: shival_r4  = 1.0e+20_rk4
+  real(rk4), parameter :: dmissval_r4 = 1.0e+20_rk4
+  real(rk4), parameter :: smissval_r4 = 1.0e+20_rk4
+
+  real(rkx), parameter :: dlowval = real(dlowval_r8,rkx)
+  real(rkx), parameter :: dhival  = real(dhival_r8,rkx)
+  real(rkx), parameter :: slowval = real(slowval_r8,rkx)
+  real(rkx), parameter :: shival  = real(shival_r8,rkx)
+  real(rkx), parameter :: dmissval = real(dmissval_r8,rkx)
+  real(rkx), parameter :: smissval = real(smissval_r8,rkx)
 
   ! time conversion
   real(rkx), parameter :: secpm = 60.0_rkx
@@ -276,18 +290,37 @@ module mod_constants
   ! Gas-phase diffusion coeff. Lelieveld and Crutzen, 1991 cm2/s
   real(rkx), parameter :: difgas = 0.1_rkx
 
-  real(rk8), parameter :: m_euler = 0.577215664901532860606512090082402431_rk8
+  real(rk8), parameter :: m_euler_r8 = 0.57721566490153286060_rk8
+  real(rk4), parameter :: m_euler_r4 = 0.57721566490_rk4
+  real(rkx), parameter :: m_euler = real(m_euler_r8,rkx)
 
   ! Trigonometric constants.
-  real(rk8), parameter :: mathpi =                                   &
-                      &   3.1415926535897932384626433832795029_rk8
-  real(rk8), parameter :: invpi = d_one/mathpi
-  real(rk8), parameter :: halfpi = mathpi*d_half
-  real(rk8), parameter :: quartpi = halfpi*d_half
-  real(rk8), parameter :: twopi = mathpi*d_two
-  real(rk8), parameter :: pisqr = mathpi*mathpi
-  real(rk8), parameter :: degrad = mathpi/180.0_rk8
-  real(rk8), parameter :: raddeg = 180.0_rk8/mathpi
+  real(rk8), parameter :: mathpi_r8 = 3.14159265358979323846_rk8
+  real(rk8), parameter :: invpi_r8 = 1.0_rk8/mathpi_r8
+  real(rk8), parameter :: halfpi_r8 = mathpi_r8*0.5_rk8
+  real(rk8), parameter :: quartpi_r8 = halfpi_r8*0.5_rk8
+  real(rk8), parameter :: twopi_r8 = mathpi_r8*2.0_rk8
+  real(rk8), parameter :: pisqr_r8 = mathpi_r8*mathpi_r8
+  real(rk8), parameter :: degrad_r8 = mathpi_r8/180.0_rk8
+  real(rk8), parameter :: raddeg_r8 = 180.0_rk8/mathpi_r8
+
+  real(rk4), parameter :: mathpi_r4 = 3.14159265359_rk4
+  real(rk4), parameter :: invpi_r4 = d_one/mathpi_r4
+  real(rk4), parameter :: halfpi_r4 = mathpi_r4*0.5_rk4
+  real(rk4), parameter :: quartpi_r4 = halfpi_r4*0.5_rk4
+  real(rk4), parameter :: twopi_r4 = mathpi_r4*2.0_rk4
+  real(rk4), parameter :: pisqr_r4 = mathpi_r4*mathpi_r4
+  real(rk4), parameter :: degrad_r4 = mathpi_r4/180.0_rk4
+  real(rk4), parameter :: raddeg_r4 = 180.0_rk4/mathpi_r4
+
+  real(rkx), parameter :: mathpi = real(mathpi_r8,rkx)
+  real(rkx), parameter :: invpi = real(invpi_r8,rkx)
+  real(rkx), parameter :: halfpi = real(halfpi_r8,rkx)
+  real(rkx), parameter :: quartpi = real(quartpi_r8,rkx)
+  real(rkx), parameter :: twopi = real(twopi_r8,rkx)
+  real(rkx), parameter :: pisqr = real(pisqr_r8,rkx)
+  real(rkx), parameter :: degrad = real(degrad_r8,rkx)
+  real(rkx), parameter :: raddeg = real(raddeg_r8,rkx)
 
   ! Maximum stomatl resistance (s/m)
   real(rkx), parameter :: rmax0 = 2.0e4_rkx
@@ -308,15 +341,27 @@ module mod_constants
 
   ! Earth radius in meters
 #ifdef RCEMIP
-  real(rk8), parameter :: earthrad = 6.371e6_rk8
+  real(rk8), parameter :: earthrad_r8 = 6.371e6_rk8
+  real(rk4), parameter :: earthrad_r4 = 6.371e6_rk4
 #else
-  real(rk8), parameter :: earthrad = 6.371229e6_rk8
+  real(rk8), parameter :: earthrad_r8 = 6.371229e6_rk8
+  real(rk4), parameter :: earthrad_r4 = 6.371229e6_rk4
 #endif
-  real(rk8), parameter :: erkm = earthrad/1000.0_rk8
-  real(rk8), parameter :: rearthrad = d_one/earthrad
+  real(rk8), parameter :: erkm_r8 = earthrad_r8/1000.0_rk8
+  real(rk4), parameter :: erkm_r4 = earthrad_r4/1000.0_rk4
+  real(rk8), parameter :: rearthrad_r8 = 1.0_rk8/earthrad_r8
+  real(rk4), parameter :: rearthrad_r4 = 1.0_rk4/earthrad_r4
   ! Angular velocity of rotation of Earth
-  real(rk8), parameter :: eomeg = 7.2921159e-5_rk8
-  real(rk8), parameter :: eomeg2 = d_two*eomeg
+  real(rk8), parameter :: eomeg_r8 = 7.2921159e-5_rk8
+  real(rk4), parameter :: eomeg_r4 = 7.2921159e-5_rk4
+  real(rk8), parameter :: eomeg2_r8 = 2.0_rk8*eomeg_r8
+  real(rk4), parameter :: eomeg2_r4 = 2.0_rk4*eomeg_r4
+
+  real(rkx), parameter :: earthrad = real(earthrad_r8,rkx)
+  real(rkx), parameter :: erkm = real(erkm_r8,rkx)
+  real(rkx), parameter :: rearthrad = real(rearthrad_r8,rkx)
+  real(rkx), parameter :: eomeg = real(eomeg_r8,rkx)
+  real(rkx), parameter :: eomeg2 = real(eomeg2_r8,rkx)
 
   ! Soil roughness length
   real(rkx), parameter :: zlnd = 0.01_rkx

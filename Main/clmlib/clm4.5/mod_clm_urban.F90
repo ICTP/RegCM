@@ -3846,8 +3846,8 @@ module mod_clm_urban
       g = lgridcell(l)
       eflx(l)       = -(forc_rho(g)*cpair/rahu(l))*(thm_g(l) - taf(l))
       qflx(l)       = -(forc_rho(g)/rawu(l))*(forc_q(g) - qaf(l))
-      eflx_scale(l) = 0.0_rkx
-      qflx_scale(l) = 0.0_rkx
+      eflx_scale(l) = 0.0_rk8
+      qflx_scale(l) = 0.0_rk8
       !$acc loop seq
       do p = pfti(l), pftf(l)
         eflx_scale(l) = eflx_scale(l) + eflx_sh_grnd_scale(p)

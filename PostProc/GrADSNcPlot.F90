@@ -63,7 +63,7 @@ program ncplot
   integer(ik4) :: ivarid, idimid, xtype, ip1, ip2
   integer(ik4) :: jxdimid, iydimid, kzdimid, itdimid, dptdimid
   integer(ik4) :: jx, iy, kz, nd, nt, nlat, nlon, ilat, ilon, isplit
-  real(rk8), dimension(:), allocatable :: alon, alat
+  real(rkx), dimension(:), allocatable :: alon, alat
   real(rkx) :: flon, flat
   integer(ik4) :: i, j
   integer(ik4) :: year, month, day, hour

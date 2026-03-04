@@ -363,7 +363,7 @@ module mod_clm_soiltemperature
     dhsdT(lbc:ubc) = 0._rk8
     !$acc end kernels
 #else
-    allocate( tk_h2osfc(lbc:ubc), source=nan )
+    allocate( tk_h2osfc(lbc:ubc), source=nan_r8 )
     allocate( dhsdT(lbc:ubc), source=0._rk8 )
 #endif
     call SoilThermProp(lbc, ubc, num_nolakec, filter_nolakec, tk, cv, tk_h2osfc)
@@ -739,8 +739,8 @@ module mod_clm_soiltemperature
     !$acc end kernels
 #else
     allocate(bmatrix(lbc:ubc,nband,-nlevsno:nlevgrnd), source=0.0_rk8)
-    allocate(tvector(lbc:ubc,-nlevsno:nlevgrnd), source=nan)
-    allocate(rvector(lbc:ubc,-nlevsno:nlevgrnd), source=nan)
+    allocate(tvector(lbc:ubc,-nlevsno:nlevgrnd), source=nan_r8)
+    allocate(rvector(lbc:ubc,-nlevsno:nlevgrnd), source=nan_r8)
 #endif
     ! the solution will be organized as (snow:h2osfc:soil) to minimize
     !     bandwidth; this requires a 5-element band instead of 3

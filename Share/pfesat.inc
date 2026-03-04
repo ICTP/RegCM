@@ -8,7 +8,7 @@
 !$acc routine seq
     implicit none
     real(rkx) , intent(in) :: t , p ! Temperature (K) , Pressure (Pa)
-    real(rk8) :: td
+    real(rk8) :: td, t_limit
     !
     ! For water vapor (temperature range 0C-100C)
     !
@@ -34,13 +34,14 @@
     real(rk8) , parameter :: c7 =  0.149436277e-09_rk8
     real(rk8) , parameter :: c8 =  0.262655803e-12_rk8
 
-    td = min(max(t - tzero,-75.0_rk8),100.0_rk8)
+    t_limit = t-tzero
+    td = min(max(t_limit,-75.0_rk8),100.0_rk8)
     if ( td >= 0.0_rk8 ) then
-      es = min(a0 + td*(a1 + td*(a2 + td*(a3 + td*(a4 &
-         + td*(a5 + td*(a6 + td*(a7 + td*a8))))))),0.15_rk8*p)
+      es = real(min(a0 + td*(a1 + td*(a2 + td*(a3 + td*(a4 &
+         + td*(a5 + td*(a6 + td*(a7 + td*a8))))))),0.15_rk8*p),rkx)
     else
-      es = min(c0 + td*(c1 + td*(c2 + td*(c3 + td*(c4 &
-         + td*(c5 + td*(c6 + td*(c7 + td*c8))))))),0.15_rk8*p)
+      es = real(min(c0 + td*(c1 + td*(c2 + td*(c3 + td*(c4 &
+         + td*(c5 + td*(c6 + td*(c7 + td*c8))))))),0.15_rk8*p),rkx)
     end if
   end function pfesat
 

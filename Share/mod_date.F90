@@ -1987,16 +1987,16 @@ module mod_date
     end select
   end function yearpoint
 
-  real(rk8) function yeardayfrac(x)
+  real(rkx) function yeardayfrac(x)
     implicit none
     type (rcm_time_and_date), intent(in) :: x
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    yeardayfrac = real(idayofyear(d),rk8) + &
-                  real(t%hour,rk8)/24.0_rk8 + &
-                  real(t%minute/1440.0_rk8,rk8) + &
-                  real(t%second/86400.0_rk8,rk8) - 1.0_rk8
+    yeardayfrac = real(real(idayofyear(d),rk8) + &
+                       real(t%hour,rk8)/24.0_rk8 + &
+                       real(t%minute/1440.0_rk8,rk8) + &
+                       real(t%second/86400.0_rk8,rk8) - 1.0_rk8,rkx)
   end function yeardayfrac
 
   integer(ik4) function getyear(x)

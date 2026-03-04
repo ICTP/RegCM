@@ -802,7 +802,7 @@ module mod_dynparam
       dayspy = 365.2422_rkx
       ical = gregorian
     end if
-    vernal_equinox = (80.50_rk8/dayspy)*365.0_rk8
+    vernal_equinox = real((80.50_rk8/dayspy)*365.0_rk8,rkx)
     dpd = 360.0_rkx/dayspy
     half_dayspy = dayspy/2.0_rkx
     sixteenth_dayspy = dayspy/16.0_rkx

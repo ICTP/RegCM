@@ -102,7 +102,7 @@ module mod_runparams
   real(rkx), public :: calday, twodt
   real(rk8), public :: xslabtime
 
-  real(rkx), public :: solcon, scon
+  real(rk8), public :: solcon, scon
 
   logical, public :: uvrotate
 
@@ -464,7 +464,7 @@ module mod_runparams
   real(rkx), public :: tc0       ! Temperature at which cloud are high (SUBEX)
   real(rkx), public :: cllwcv    ! Cloud liquid water content (Kuo, Grell)
   real(rkx), public :: clfrcvmax ! Maximum non-scaled convetive cloud fraction
-  real(rkx), public :: cftotmax  ! Maximum total cloud fraction for radiation
+  real(rk8), public :: cftotmax  ! Maximum total cloud fraction for radiation
   real(rkx), public :: kfac_shal ! Convective cloud fraction factor for
                                   ! empirical relationship with mass flux
   real(rkx), public :: kfac_deep ! Convective cloud fraction factor for

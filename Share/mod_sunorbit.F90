@@ -52,23 +52,24 @@ module mod_sunorbit
 !$acc routine seq
     implicit none
     real(rk8), intent(in) :: jday   ! Julian cal day
-    real(rk8), intent(in) :: lat    ! Centered latitude (radians)
-    real(rk8), intent(in) :: lon    ! Centered longitude (radians)
+    real(rk8), intent(in) :: lat    ! Centered latitude (degrees)
+    real(rk8), intent(in) :: lon    ! Centered longitude (degrees)
     real(rk8), intent(in) :: declin ! Solar declination (radians)
-    orb_cosz_r8 = sin(lat)*sin(declin) - &
-                  cos(lat)*cos(declin)*cos(jday*2.0_rk8*mathpi + lon)
+    orb_cosz_r8 = sin(lat*degrad)*sin(declin) - &
+                  cos(lat*degrad)*cos(declin) * &
+                  cos(jday*2.0_rk8*mathpi + lon*degrad)
   end function orb_cosz_r8
   !
   pure real(rk4) function orb_cosz_r4(jday,lat,lon,declin)
 !$acc routine seq
     implicit none
     real(rk4), intent(in) :: jday   ! Julian cal day
-    real(rk4), intent(in) :: lat    ! Centered latitude (radians)
-    real(rk4), intent(in) :: lon    ! Centered longitude (radians)
+    real(rk4), intent(in) :: lat    ! Centered latitude (degrees)
+    real(rk4), intent(in) :: lon    ! Centered longitude (degrees)
     real(rk8), intent(in) :: declin ! Solar declination (radians)
     real(rk8) :: dlat, dlon, djday
-    dlat = lat
-    dlon = lon
+    dlat = lat*degrad
+    dlon = lon*degrad
     djday = jday
     orb_cosz_r4 = real(sin(dlat)*sin(declin) - &
                    cos(dlat)*cos(declin)*cos(djday*2.0_rk8*mathpi + dlon),rk4)

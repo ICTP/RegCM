@@ -64,36 +64,36 @@ module mod_rad_tracer
     ! pratio - pressure divided by ptrop
     !
     integer(ik4), intent(in) :: n1, n2
-    real(rkx), dimension(n1:n2), intent(in) :: dlat, ptrop
-    real(rkx), dimension(n1:n2,kz), intent(in) :: pmid
-    real(rkx), dimension(n1:n2), intent(in) :: n2o0, ch40, cfc110, cfc120
-    real(rkx), dimension(n1:n2,kz), intent(out) :: cfc11, cfc12, ch4, n2o
+    real(rk8), dimension(n1:n2), intent(in) :: dlat, ptrop
+    real(rk8), dimension(n1:n2,kz), intent(in) :: pmid
+    real(rk8), dimension(n1:n2), intent(in) :: n2o0, ch40, cfc110, cfc120
+    real(rk8), dimension(n1:n2,kz), intent(out) :: cfc11, cfc12, ch4, n2o
 #ifndef RCEMIP
-    real(rkx) :: alat
+    real(rk8) :: alat
 #endif
-    real(rkx) :: pratio, xcfc11, xcfc12, xch4, xn2o
+    real(rk8) :: pratio, xcfc11, xcfc12, xch4, xn2o
     integer(ik4) :: n, k
 
 #ifdef RCEMIP
-    xn2o = 0.3478_rkx
-    xch4 = 0.2353_rkx
-    xcfc11 = 0.7273_rkx
-    xcfc12 = 0.4000_rkx
+    xn2o = 0.3478_rk8
+    xch4 = 0.2353_rk8
+    xcfc11 = 0.7273_rk8
+    xcfc12 = 0.4000_rk8
 #endif
     do k = 1, kz
       do concurrent ( n = n1:n2 )
 #ifndef RCEMIP
         alat = abs(dlat(n))
-        if ( alat <= 45.0_rkx ) then
-          xn2o = 0.3478_rkx + 0.00116_rkx*alat
-          xch4 = 0.2353_rkx
-          xcfc11 = 0.7273_rkx + 0.00606_rkx*alat
-          xcfc12 = 0.4000_rkx + 0.00222_rkx*alat
+        if ( alat <= 45.0_rk8 ) then
+          xn2o = 0.3478_rk8 + 0.00116_rk8*alat
+          xch4 = 0.2353_rk8
+          xcfc11 = 0.7273_rk8 + 0.00606_rk8*alat
+          xcfc12 = 0.4000_rk8 + 0.00222_rk8*alat
         else
-          xn2o = 0.4000_rkx + 0.013333_rkx*(alat-45.0_rkx)
-          xch4 = 0.2353_rkx + 0.0225489_rkx*(alat-45.0_rkx)
-          xcfc11 = 1.00_rkx + 0.013333_rkx*(alat-45.0_rkx)
-          xcfc12 = 0.50_rkx + 0.024444_rkx*(alat-45.0_rkx)
+          xn2o = 0.4000_rk8 + 0.013333_rk8*(alat-45.0_rk8)
+          xch4 = 0.2353_rk8 + 0.0225489_rk8*(alat-45.0_rk8)
+          xcfc11 = 1.00_rk8 + 0.013333_rk8*(alat-45.0_rk8)
+          xcfc12 = 0.50_rk8 + 0.024444_rk8*(alat-45.0_rk8)
         end if
 #endif
         !  set stratospheric scale height factor for gases

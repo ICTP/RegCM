@@ -4,7 +4,7 @@
     implicit none
     real(rkx) , intent(in) :: t             ! Temperature (K)
     real(rkx) , intent(in) :: p             ! Pressure (Pa)
-    real(rk8) :: es, ws, td
+    real(rk8) :: es, ws, td, t_limit
     !
     ! For water vapor (temperature range 0C-100C)
     !
@@ -30,7 +30,8 @@
     real(rk8) , parameter :: c7 =  0.149436277e-09_rk8
     real(rk8) , parameter :: c8 =  0.262655803e-12_rk8
 
-    td = min(max(t - tzero,-75.0_rk8),100.0_rk8)
+    t_limit = t-tzero
+    td = min(max(t_limit,-75.0_rk8),100.0_rk8)
     if ( td >= 0.0_rk8 ) then
       es = min(a0 + td*(a1 + td*(a2 + td*(a3 + td*(a4 &
          + td*(a5 + td*(a6 + td*(a7 + td*a8))))))),0.15_rk8*p)
@@ -39,5 +40,5 @@
          + td*(c5 + td*(c6 + td*(c7 + td*c8))))))),0.15_rk8*p)
     end if
     ws = ep2 * (es / (p - es))
-    qs = ws / ( d_one + ws )
+    qs = real(ws / ( 1.0_rk8 + ws ),rkx)
   end function pfqsat

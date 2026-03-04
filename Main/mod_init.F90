@@ -1000,9 +1000,9 @@ module mod_init
     ! RRTM_SW gas / abs constant initialisation
     !
     if ( irrtm == 1 ) then
-      call rrtmg_sw_ini(cpd, &
+      call rrtmg_sw_ini(real(cpd,rk8), &
         trim(inpglob)//pthsep//'RRTM'//pthsep//'rrtmg_sw.nc')
-      call rrtmg_lw_ini(cpd, &
+      call rrtmg_lw_ini(real(cpd,rk8), &
         trim(inpglob)//pthsep//'RRTM'//pthsep//'rrtmg_lw.nc')
     end if
     !

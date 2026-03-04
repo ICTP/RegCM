@@ -2195,7 +2195,7 @@ module mod_ipcc_scenario
   real(rkx) function ghgval(igas,year,month,lat)
     implicit none
     integer(ik4), intent(in) :: igas, year, month
-    real(rkx), intent(in) :: lat
+    real(rk8), intent(in) :: lat
     integer(ik4) :: ilat
     if ( lcmip6 ) then
       if ( local_ghgc%year /= year .or. local_ghgc%month /= month ) then

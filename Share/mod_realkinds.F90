@@ -66,14 +66,18 @@ module mod_realkinds
   real(rk8) :: inf
 #endif
 #else
+  real(rk4), parameter :: nan_r4 = transfer(__SYSTEM_NAN_32__, 1._real32)
+  real(rk4), parameter :: inf_r4 = transfer(__SYSTEM_INF_32__, 1._real32)
+  real(rk8), parameter :: nan_r8 = transfer(__SYSTEM_NAN_64__, 1._real64)
+  real(rk8), parameter :: inf_r8 = transfer(__SYSTEM_INF_64__, 1._real64)
 #ifdef SINGLE_PRECISION_REAL
   integer, parameter :: rkx = rk4
-  real(rk4), parameter :: nan = transfer(__SYSTEM_NAN_32__, 1._real32)
-  real(rk4), parameter :: inf = transfer(__SYSTEM_INF_32__, 1._real32)
+  real(rk4), parameter :: nan = nan_r4
+  real(rk4), parameter :: inf = inf_r4
 #else
   integer, parameter :: rkx = rk8
-  real(rk8), parameter :: nan = transfer(__SYSTEM_NAN_64__, 1._real64)
-  real(rk8), parameter :: inf = transfer(__SYSTEM_INF_64__, 1._real64)
+  real(rk8), parameter :: nan = nan_r8
+  real(rk8), parameter :: inf = inf_r8
 #endif
 #endif
 #else

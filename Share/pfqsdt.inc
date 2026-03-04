@@ -4,7 +4,7 @@
     implicit none
     real(rkx) , intent(in) :: t             ! Temperature (K)
     real(rkx) , intent(in) :: p             ! Pressure (Pa)
-    real(rkx) :: td, es, esdt, vp, vp1, vp2
+    real(rk8) :: td, es, esdt, vp, vp1, vp2, t_limit
     !
     ! For liquid water (temperature range 0C-100C)
     !
@@ -48,7 +48,8 @@
     real(rk8), parameter :: d7 =  0.394116744e-11_rk8
     real(rk8), parameter :: d8 =  0.498070196e-14_rk8
 
-    td = min(max(t - tzero,-75.0_rk8),100.0_rk8)
+    t_limit = t-tzero
+    td = min(max(t_limit,-75.0_rk8),100.0_rk8)
     if ( td >= 0.0_rk8 ) then
       es = min(a0 + td*(a1 + td*(a2 + td*(a3 + td*(a4 &
          + td*(a5 + td*(a6 + td*(a7 + td*a8))))))),0.15_rk8*p)
@@ -60,11 +61,10 @@
       esdt = d0 + td*(d1 + td*(d2 + td*(d3 + td*(d4 &
            + td*(d5 + td*(d6 + td*(d7 + td*d8)))))))
     end if
-
-    vp  = 1.0_rkx / (p - 0.378_rkx*es)
+    vp  = 1.0_rk8 / (p - 0.378_rk8*es)
     vp1 = ep2 * vp
     vp2 = vp1 * vp
-    qsdt = esdt * vp2 * p ! 1 / K
+    qsdt = real(esdt * vp2 * p,rkx) ! 1 / K
   end function pfqsdt
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

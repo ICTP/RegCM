@@ -196,8 +196,8 @@ module mod_projections
     implicit none
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(out) :: lat0, lon0
-    lat0 = pj%p%rlat0
-    lon0 = pj%p%rlon0
+    lat0 = real(pj%p%rlat0,rkx)
+    lon0 = real(pj%p%rlon0,rkx)
   end subroutine rl00
 
   real(rk8) function conefac(pj)
@@ -281,9 +281,9 @@ module mod_projections
   subroutine rotation_angle(pj,lon,lat,p)
     implicit none
     class(regcm_projection), intent(in) :: pj
-    real(rk8), dimension(:), intent(in) :: lon
-    real(rk8), dimension(:), intent(in) :: lat
-    real(rk8), dimension(:,:), intent(out) :: p
+    real(rkx), dimension(:), intent(in) :: lon
+    real(rkx), dimension(:), intent(in) :: lat
+    real(rkx), dimension(:,:), intent(out) :: p
     integer(ik4) :: i, j, nlon, nlat
     real(rk8) :: f1, f2
     nlon = size(lon)
@@ -295,24 +295,24 @@ module mod_projections
       case ('LAMCON')
         do i = 1, nlat
           do j = 1, nlon
-            p(j,i) = uvrot_lc(pj,lon(j))
+            p(j,i) = real(uvrot_lc(pj,lon(j)),rkx)
           end do
         end do
       case ('ROTMER')
         do i = 1, nlat
           do j = 1, nlon
             call uvrot_rc(pj,lat(i),lon(j),f1,f2)
-            p(j,i) = acos(f1)
+            p(j,i) = real(acos(f1),rkx)
           end do
         end do
       case ('POLSTR')
         do i = 1, nlat
           do j = 1, nlon
-            p(j,i) = uvrot_ps(pj,lon(j))
+            p(j,i) = real(uvrot_ps(pj,lon(j)),rkx)
           end do
         end do
       case default
-        p(:,:) = 1.0_rk8
+        p(:,:) = 1.0_rkx
     end select
   end subroutine rotation_angle
 
@@ -404,7 +404,7 @@ module mod_projections
     implicit none
     type(regcm_projection), intent(inout) :: pj
     real(rk8), intent(in) :: ci, cj, clat, clon, ds
-    pj%p%dlon = raddeg * ds / earthrad
+    pj%p%dlon = raddeg_r8 * ds / earthrad_r8
     pj%p%dlat = pj%p%dlon
     pj%p%rlat0 = clat - cj*pj%p%dlat
     pj%p%rlon0 = clon - ci*pj%p%dlon
@@ -419,8 +419,8 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: i, j
     real(rkx), intent(out) :: lat, lon
-    lat = pj%p%rlat0 + (j-1.0_rk8) * pj%p%dlat
-    lon = pj%p%rlon0 + (i-1.0_rk8) * pj%p%dlon
+    lat = real(pj%p%rlat0 + (j-1.0_rk8) * pj%p%dlat,rkx)
+    lon = real(pj%p%rlon0 + (i-1.0_rk8) * pj%p%dlon,rkx)
     if ( lat >  90.0_rkx ) lat = 90.0_rkx - lat
     if ( lat < -90.0_rkx ) lat = lat + 90.0_rkx
     if ( lon >  180.0_rkx ) lon = lon - 360.0_rkx
@@ -447,10 +447,10 @@ module mod_projections
     integer(ik4) :: i, j
     pj%p%skiprot = .false.
     if ( abs(plat-90.0_rk8) < 0.001 ) pj%p%skiprot = .true.
-    pj%p%dlon = raddeg * ds / earthrad
+    pj%p%dlon = raddeg_r8 * ds / earthrad_r8
     pj%p%dlat = pj%p%dlon
-    pphi = degrad*plat
-    plam = degrad*plon
+    pphi = degrad_r8*plat
+    plam = degrad_r8*plon
     call get_equator(pphi,plam,pj%p%phi0,pj%p%lam0)
     cphi = clat
     clam = clon
@@ -458,11 +458,11 @@ module mod_projections
     if ( cphi < -deg90 )  cphi = cphi + deg90
     if ( clam >  deg180 ) clam = clam - deg360
     if ( clam < -deg180 ) clam = clam + deg360
-    cphi = degrad * cphi
-    clam = degrad * clam
+    cphi = degrad_r8 * cphi
+    clam = degrad_r8 * clam
     pj%p%rlat0 = asin(-cos(cphi)*sin(pj%p%phi0)*cos(clam-pj%p%lam0) + &
                     sin(cphi)*cos(pj%p%phi0))
-    if ( abs(abs(pj%p%rlat0)-halfpi) > 1.0e-7_rk8 .and. &
+    if ( abs(abs(pj%p%rlat0)-halfpi_r8) > 1.0e-7_rk8 .and. &
          abs(pj%p%phi0) > 1.0e-7_rk8 ) then
       pj%p%rlon0 = (sin(cphi)-cos(pj%p%phi0)*sin(pj%p%rlat0)) / &
                  (sin(pj%p%phi0)*cos(pj%p%rlat0))
@@ -477,8 +477,8 @@ module mod_projections
     else
       pj%p%rlon0 = clam
     end if
-    pj%p%rlat0 = raddeg*pj%p%rlat0 - cj*pj%p%dlat
-    pj%p%rlon0 = raddeg*pj%p%rlon0 - ci*pj%p%dlon
+    pj%p%rlat0 = raddeg_r8*pj%p%rlat0 - cj*pj%p%dlat
+    pj%p%rlon0 = raddeg_r8*pj%p%rlon0 - ci*pj%p%dlon
     if ( pj%p%rlat0 >  deg90 )  pj%p%rlat0 = deg90 - pj%p%rlat0
     if ( pj%p%rlat0 < -deg90 )  pj%p%rlat0 = pj%p%rlat0 + deg90
     if ( pj%p%rlon0 >  deg180 ) pj%p%rlon0 = pj%p%rlon0 - deg360
@@ -492,8 +492,8 @@ module mod_projections
             ri = i
             rj = j
             call ijll_rl(pj,ri,rj,lat,lon)
-            lam = degrad*lon
-            phi = degrad*lat
+            lam = degrad_r8*lon
+            phi = degrad_r8*lat
             dlam = plam - lam
             arg1 = cos(pphi)*sin(dlam)
             arg2 = cos(phi)*sin(pphi) - sin(phi)*cos(pphi)*cos(dlam)
@@ -517,29 +517,31 @@ module mod_projections
     if ( phi < -deg90 )  phi = phi + deg90
     if ( lam >  deg180 ) lam = lam - deg360
     if ( lam < -deg180 ) lam = lam + deg360
-    phi = degrad * phi
-    lam = degrad * lam
+    phi = degrad_r8 * phi
+    lam = degrad_r8 * lam
     if ( abs(pj%p%phi0) > 1.0e-7_rk8 ) then
-      lat = asin(cos(phi)*sin(pj%p%phi0)*cos(lam) + sin(phi)*cos(pj%p%phi0))
-      if ( abs(abs(lat)-halfpi) > 1.0e-7_rk8 ) then
-        lon = (-sin(phi)*sin(pj%p%phi0) +  &
-               cos(pj%p%phi0)*cos(lam)*cos(phi))/cos(lat)
+      lat = real(asin(cos(phi)*sin(pj%p%phi0)*cos(lam) + &
+                 sin(phi)*cos(pj%p%phi0)),rkx)
+      if ( abs(abs(lat)-halfpi_r8) > 1.0e-7_rk8 ) then
+        lon = real((-sin(phi)*sin(pj%p%phi0) +  &
+                   cos(pj%p%phi0)*cos(lam)*cos(phi))/cos(lat),rkx)
         if ( lon < -1.0_rk8 .and. lon > -1.00001_rk8 ) lon = -1.0_rk8
         if ( lon >  1.0_rk8 .and. lon <  1.00001_rk8 ) lon =  1.0_rk8
         if ( lam < 0.0_rk8 ) then
-          lon = pj%p%lam0 - acos(lon)
+          lon = real(pj%p%lam0 - acos(lon),rkx)
         else
-          lon = pj%p%lam0 + acos(lon)
+          lon = real(pj%p%lam0 + acos(lon),rkx)
         end if
       else
-        lon = lam
+        lon = real(lam,rkx)
       end if
     else
-      lat = asin(cos(phi)*sin(pj%p%phi0)*cos(lam) + sin(phi)*cos(pj%p%phi0))
-      lon = lam
+      lat = real(asin(cos(phi)*sin(pj%p%phi0)*cos(lam) + &
+                 sin(phi)*cos(pj%p%phi0)),rkx)
+      lon = real(lam,rkx)
     end if
-    lat = raddeg*lat
-    lon = raddeg*lon
+    lat = real(raddeg_r8*lat)
+    lon = real(raddeg_r8*lon)
     if ( lat >  90.0_rkx ) lat = 90.0_rkx - lat
     if ( lat < -90.0_rkx ) lat = lat + 90.0_rkx
     if ( lon >  180.0_rkx ) lon = lon - 360.0_rkx
@@ -558,11 +560,11 @@ module mod_projections
     if ( lam < -deg180 ) lam = lam + deg360
     if ( phi >  deg90 )  phi = deg90 - phi
     if ( phi < -deg90 )  phi = phi + deg90
-    phi = degrad * phi
-    lam = degrad * lam
+    phi = degrad_r8 * phi
+    lam = degrad_r8 * lam
     rlat = asin(-cos(phi)*sin(pj%p%phi0)*cos(lam-pj%p%lam0) + &
            sin(phi)*cos(pj%p%phi0))
-    if ( abs(abs(rlat)-halfpi) > 1.0e-7_rk8 .and. &
+    if ( abs(abs(rlat)-halfpi_r8) > 1.0e-7_rk8 .and. &
          abs(pj%p%phi0) > 1.0e-7_rk8 ) then
       rlon = (sin(phi)-cos(pj%p%phi0)*sin(rlat))/(sin(pj%p%phi0)*cos(rlat))
       if ( rlon < -1.0_rk8 .and. rlon > -1.00001_rk8 ) rlon = -1.0_rk8
@@ -574,8 +576,8 @@ module mod_projections
     else
       rlon = lam
     end if
-    rlon = raddeg*rlon
-    rlat = raddeg*rlat
+    rlon = raddeg_r8*rlon
+    rlat = raddeg_r8*rlat
     i = real(( rlon - pj%p%rlon0 ) / pj%p%dlon + 1.0_rk8,rkx)
     j = real(( rlat - pj%p%rlat0 ) / pj%p%dlat + 1.0_rk8,rkx)
   end subroutine llij_rl
@@ -594,10 +596,10 @@ module mod_projections
     pj%p%stdlat = clat
     pj%p%truelat1 = trlat1
     pj%p%truelat2 = trlat2
-    tl1r = pj%p%truelat1*degrad
-    tl2r = pj%p%truelat2*degrad
-    pj%p%colat1  = degrad*(deg90 - pj%p%truelat1)
-    pj%p%colat2  = degrad*(deg90 - pj%p%truelat2)
+    tl1r = pj%p%truelat1*degrad_r8
+    tl2r = pj%p%truelat2*degrad_r8
+    pj%p%colat1  = degrad_r8*(deg90 - pj%p%truelat1)
+    pj%p%colat2  = degrad_r8*(deg90 - pj%p%truelat2)
     pj%p%nfac = (log(sin(pj%p%colat1))         - log(sin(pj%p%colat2))) / &
                 (log(tan(pj%p%colat1*0.5_rk8)) - log(tan(pj%p%colat2*0.5_rk8)))
     if ( pj%p%stdlat > 0.0_rk8 ) then
@@ -605,12 +607,12 @@ module mod_projections
     else
       pj%p%hemi = -1.0_rk8
     end if
-    pj%p%rebydx = earthrad / ds
+    pj%p%rebydx = earthrad_r8 / ds
     if ( abs(pj%p%truelat1-pj%p%truelat2) > 0.1_rk8 ) then
       pj%p%conefac = log10(cos(tl1r)) - log10(cos(tl2r))
       pj%p%conefac = pj%p%conefac / &
-                (log10(tan((deg45-abs(pj%p%truelat1)/2.0_rk8)*degrad)) - &
-                 log10(tan((deg45-abs(pj%p%truelat2)/2.0_rk8)*degrad)))
+                (log10(tan((deg45-abs(pj%p%truelat1)/2.0_rk8)*degrad_r8)) - &
+                 log10(tan((deg45-abs(pj%p%truelat2)/2.0_rk8)*degrad_r8)))
       pj%p%lamtan = .false.
     else
       pj%p%conefac = sin(abs(tl1r))
@@ -621,14 +623,14 @@ module mod_projections
     if ( deltalon1 >  deg180 ) deltalon1 = deltalon1 - deg360
     if ( deltalon1 < -deg180 ) deltalon1 = deltalon1 + deg360
     pj%p%ctl1r = cos(tl1r)
-    pj%p%xct1 = tan((deg90*pj%p%hemi-pj%p%truelat1)*degrad*0.5_rk8)
+    pj%p%xct1 = tan((deg90*pj%p%hemi-pj%p%truelat1)*degrad_r8*0.5_rk8)
     pj%p%rsw = pj%p%rebydx * pj%p%ctl1r*pj%p%rconefac * &
-           (tan((deg90*pj%p%hemi-clat)*degrad*0.5_rk8)/pj%p%xct1)**pj%p%conefac
-    arg = pj%p%conefac*(deltalon1*degrad)
+        (tan((deg90*pj%p%hemi-clat)*degrad_r8*0.5_rk8)/pj%p%xct1)**pj%p%conefac
+    arg = pj%p%conefac*(deltalon1*degrad_r8)
     pj%p%polei = pj%p%hemi*ci - pj%p%hemi * pj%p%rsw * sin(arg)
     pj%p%polej = pj%p%hemi*cj + pj%p%rsw * cos(arg)
-    pj%p%chi1 = (deg90 - pj%p%hemi*pj%p%truelat1)*degrad
-    pj%p%chi2 = (deg90 - pj%p%hemi*pj%p%truelat2)*degrad
+    pj%p%chi1 = (deg90 - pj%p%hemi*pj%p%truelat1)*degrad_r8
+    pj%p%chi2 = (deg90 - pj%p%hemi*pj%p%truelat2)*degrad_r8
     pj%p%tanchi1h = tan(pj%p%chi1*0.5_rk8)
     pj%p%tchi1 = tan(pj%p%chi1)
     pj%p%schi1 = sin(pj%p%chi1)
@@ -664,12 +666,12 @@ module mod_projections
     yy = pj%p%polej - jnew
     r2 = (xx*xx + yy*yy)
     r = sqrt(r2)/pj%p%rebydx
-    if ( abs(r2) < dlowval ) then
+    if ( abs(r2) < dlowval_r8 ) then
       lat = real(pj%p%hemi*deg90,rkx)
       lon = real(pj%p%stdlon,rkx)
     else
       lon = real(pj%p%stdlon + &
-           raddeg * atan2(pj%p%hemi*xx,yy)*pj%p%rconefac,rkx)
+           raddeg_r8 * atan2(pj%p%hemi*xx,yy)*pj%p%rconefac,rkx)
       if ( pj%p%lamtan ) then
         chi = 2.0_rk8 * &
           atan(((r/pj%p%tchi1)**pj%p%rconefac)*pj%p%tanchi1h)
@@ -677,7 +679,7 @@ module mod_projections
         chi = 2.0_rk8 * &
           atan(((r*pj%p%conefac/pj%p%schi1)**pj%p%rconefac)*pj%p%tanchi1h)
       end if
-      lat = real((deg90-chi*raddeg)*pj%p%hemi,rkx)
+      lat = real((deg90-chi*raddeg_r8)*pj%p%hemi,rkx)
     end if
     if ( lon >  180.0_rkx ) lon = lon - 360.0_rkx
     if ( lon < -180.0_rkx ) lon = lon + 360.0_rkx
@@ -694,8 +696,8 @@ module mod_projections
     if ( deltalon > +deg180 ) deltalon = deltalon - deg360
     if ( deltalon < -deg180 ) deltalon = deltalon + deg360
     rm = pj%p%rebydx * pj%p%ctl1r * pj%p%rconefac * &
-           (tan((deg90*pj%p%hemi-lat)*degrad*0.5_rk8)/pj%p%xct1)**pj%p%conefac
-    arg = pj%p%conefac*(deltalon*degrad)
+        (tan((deg90*pj%p%hemi-lat)*degrad_r8*0.5_rk8)/pj%p%xct1)**pj%p%conefac
+    arg = pj%p%conefac*(deltalon*degrad_r8)
     i = real(pj%p%hemi*(pj%p%polei + pj%p%hemi * rm * sin(arg)),rkx)
     j = real(pj%p%hemi*(pj%p%polej - rm * cos(arg)),rkx)
   end subroutine llij_lc
@@ -716,10 +718,10 @@ module mod_projections
     else
       pj%p%hemi = -1.0_rk8
     end if
-    pj%p%rebydx = earthrad / ds
+    pj%p%rebydx = earthrad_r8 / ds
     pj%p%reflon = pj%p%stdlon + deg90
-    ala1 = clat*degrad
-    alo1 = (clon-pj%p%reflon)*degrad
+    ala1 = clat*degrad_r8
+    alo1 = (clon-pj%p%reflon)*degrad_r8
     pj%p%scale_top = 1.0_rk8 + pj%p%hemi * sin(ala1)
     pj%p%rsw = pj%p%rebydx * &
          cos(ala1)*pj%p%scale_top/(1.0_rk8+pj%p%hemi*sin(ala1))
@@ -753,8 +755,8 @@ module mod_projections
     deltalon = lon - pj%p%reflon
     if ( deltalon > +deg180 ) deltalon = deltalon - deg360
     if ( deltalon < -deg180 ) deltalon = deltalon + deg360
-    alo = deltalon * degrad
-    ala = lat * degrad
+    alo = deltalon * degrad_r8
+    ala = lat * degrad_r8
     rm = pj%p%rebydx * cos(ala) * &
          pj%p%scale_top/(1.0_rk8 + pj%p%hemi * sin(ala))
     i = real(pj%p%polei + rm * cos(alo),rkx)
@@ -771,17 +773,17 @@ module mod_projections
     xx = i - pj%p%polei
     yy = (j - pj%p%polej) * pj%p%hemi
     r2 = xx*xx + yy*yy
-    if ( abs(r2) < dlowval ) then
+    if ( abs(r2) < dlowval_r8 ) then
       lat = real(pj%p%hemi*deg90,rkx)
       lon = real(pj%p%reflon,rkx)
     else
       gi2 = (pj%p%rebydx * pj%p%scale_top)**2
-      lat = real(raddeg * pj%p%hemi * asin((gi2-r2)/(gi2+r2)),rkx)
+      lat = real(raddeg_r8 * pj%p%hemi * asin((gi2-r2)/(gi2+r2)),rkx)
       arcc = acos(xx/sqrt(r2))
       if ( yy > 0.0_rk8 ) then
-        lon = real(pj%p%reflon + raddeg * arcc,rkx)
+        lon = real(pj%p%reflon + raddeg_r8 * arcc,rkx)
       else
-        lon = real(pj%p%reflon - raddeg * arcc,rkx)
+        lon = real(pj%p%reflon - raddeg_r8 * arcc,rkx)
       end if
     end if
     if ( lon >  180.0_rkx ) lon = lon - 360.0_rkx
@@ -795,11 +797,11 @@ module mod_projections
     real(rk8) :: clain
 
     pj%p%stdlon = clon
-    clain = cos(clat*degrad)
-    pj%p%dlon = ds / (earthrad * clain)
+    clain = cos(clat*degrad_r8)
+    pj%p%dlon = ds / (earthrad_r8 * clain)
     pj%p%rsw = 0.0_rk8
-    if ( abs(clat) > dlowval ) then
-      pj%p%rsw = (log(tan(0.5_rk8*((clat+deg90)*degrad))))/pj%p%dlon
+    if ( abs(clat) > dlowval_r8 ) then
+      pj%p%rsw = (log(tan(0.5_rk8*((clat+deg90)*degrad_r8))))/pj%p%dlon
     end if
     pj%p%polei = ci
     pj%p%polej = cj
@@ -815,9 +817,9 @@ module mod_projections
     deltalon = lon - pj%p%stdlon
     if ( deltalon > +deg180 ) deltalon = deltalon - deg360
     if ( deltalon < -deg180 ) deltalon = deltalon + deg360
-    i = real(pj%p%polei + (deltalon/(pj%p%dlon*raddeg)),rkx)
+    i = real(pj%p%polei + (deltalon/(pj%p%dlon*raddeg_r8)),rkx)
     j = real(pj%p%polej + &
-         (log(tan(0.5_rk8*((lat+deg90)*degrad)))) / pj%p%dlon - pj%p%rsw,rkx)
+         (log(tan(0.5_rk8*((lat+deg90)*degrad_r8)))) / pj%p%dlon - pj%p%rsw,rkx)
   end subroutine llij_mc
 
   pure subroutine ijll_mc(pj,i,j,lat,lon)
@@ -827,8 +829,8 @@ module mod_projections
     real(rkx), intent(out) :: lat, lon
 
     lat = real(2.0_rk8 * &
-        atan(exp(pj%p%dlon*(pj%p%rsw + j-pj%p%polej)))*raddeg-deg90,rkx)
-    lon = real((i-pj%p%polei)*pj%p%dlon*raddeg + pj%p%stdlon,rkx)
+        atan(exp(pj%p%dlon*(pj%p%rsw + j-pj%p%polej)))*raddeg_r8-deg90,rkx)
+    lon = real((i-pj%p%polei)*pj%p%dlon*raddeg_r8 + pj%p%stdlon,rkx)
     if ( lon >  180.0_rkx ) lon = lon - 360.0_rkx
     if ( lon < -180.0_rkx ) lon = lon + 360.0_rkx
   end subroutine ijll_mc
@@ -841,8 +843,8 @@ module mod_projections
     real(rk8) :: plam, pphi, zphipol, pf3
     real(rkx) :: lat, lon, ri, rj
     integer(ik4) :: i, j
-    pj%p%dlon = ds*raddeg/earthrad
-    pj%p%dlat = ds*raddeg/earthrad
+    pj%p%dlon = ds*raddeg_r8/earthrad_r8
+    pj%p%dlat = ds*raddeg_r8/earthrad_r8
     pj%p%xoff = clon - plon
     pj%p%yoff = clat - plat
     pj%p%polei = ci
@@ -850,16 +852,16 @@ module mod_projections
     pphi = deg90 - plat
     plam = plon + deg180
     if ( plam > deg180 ) plam = plam - deg360
-    pj%p%zlampol = degrad*plam
-    zphipol = degrad*pphi
+    pj%p%zlampol = degrad_r8*plam
+    zphipol = degrad_r8*pphi
     pj%p%zsinpol = sin(zphipol)
     pj%p%zcospol = cos(zphipol)
     if ( luvrot ) then
       if ( plat > 0.0_rk8 ) then
-        pphi = (deg90 - plat) * degrad
+        pphi = (deg90 - plat) * degrad_r8
         pj%p%pollam = plon + deg180
       else
-        pphi = (deg90 + plat) * degrad
+        pphi = (deg90 + plat) * degrad_r8
         pj%p%pollam = plon
       end if
       if ( pj%p%pollam > deg180 ) then
@@ -894,20 +896,20 @@ module mod_projections
     real(rk8) :: zarg, zarg1, zarg2, zlam, zphi
     real(rk8) :: lams, phis
 
-    zphi = degrad*lat
+    zphi = degrad_r8*lat
     zlam = lon
     if ( zlam > deg180 ) zlam = zlam - deg360
-    zlam = degrad*zlam
+    zlam = degrad_r8*zlam
     zarg = pj%p%zcospol*cos(zphi)*cos(zlam-pj%p%zlampol) + &
            pj%p%zsinpol*sin(zphi)
     phis = asin(zarg)
-    phis = log(tan(phis*0.5_rk8+atan(1.0_rk8)))*raddeg
+    phis = log(tan(phis*0.5_rk8+atan(1.0_rk8)))*raddeg_r8
     zarg1 = -sin(zlam-pj%p%zlampol)*cos(zphi)
     zarg2 = -pj%p%zsinpol*cos(zphi)*cos(zlam-pj%p%zlampol) + &
             pj%p%zcospol*sin(zphi)
-    if ( abs(zarg2) >= dlowval ) then
-      lams = raddeg*atan2(zarg1,zarg2)
-    else if ( abs(zarg1) < dlowval ) then
+    if ( abs(zarg2) >= dlowval_r8 ) then
+      lams = raddeg_r8*atan2(zarg1,zarg2)
+    else if ( abs(zarg1) < dlowval_r8 ) then
       lams = deg00
     else if ( zarg1 > 0.0_rk8 ) then
       lams = deg90
@@ -927,20 +929,20 @@ module mod_projections
 
     xr = pj%p%xoff + (i-pj%p%polei)*pj%p%dlon
     if ( xr > deg180 ) xr = xr - deg360
-    xr = degrad*xr
+    xr = degrad_r8*xr
     yr = pj%p%yoff + (j-pj%p%polej)*pj%p%dlat
-    yr = 2.0_rk8*atan(exp(degrad*yr)) - atan(1.0_rk8)*2.0_rk8
+    yr = 2.0_rk8*atan(exp(degrad_r8*yr)) - atan(1.0_rk8)*2.0_rk8
     arg = pj%p%zcospol*cos(yr)*cos(xr) + pj%p%zsinpol*sin(yr)
-    lat = real(raddeg*asin(arg),rkx)
+    lat = real(raddeg_r8*asin(arg),rkx)
     zarg1 = sin(pj%p%zlampol)*(-pj%p%zsinpol*cos(xr)*cos(yr)+ &
             pj%p%zcospol*sin(yr))-cos(pj%p%zlampol)*sin(xr)*cos(yr)
     zarg2 = cos(pj%p%zlampol)*(-pj%p%zsinpol*cos(xr)*cos(yr)+ &
             pj%p%zcospol*sin(yr))+sin(pj%p%zlampol)*sin(xr)*cos(yr)
-    if ( abs(zarg2) >= dlowval ) then
-      lon = real(raddeg*atan2(zarg1,zarg2),rkx)
+    if ( abs(zarg2) >= dlowval_r8 ) then
+      lon = real(raddeg_r8*atan2(zarg1,zarg2),rkx)
       if ( lon >  180.0_rkx ) lon = lon - 360.0_rkx
       if ( lon < -180.0_rkx ) lon = lon + 360.0_rkx
-    else if ( abs(zarg1) < dlowval ) then
+    else if ( abs(zarg1) < dlowval_r8 ) then
       lon = deg00
     else if ( zarg1 > 0.0_rk8 ) then
       lon = deg90
@@ -970,16 +972,16 @@ module mod_projections
     real(rk8), intent(out) :: elat, elon
 
     if ( plon < 0.0_rk8 ) then
-      elon = plon + mathpi
+      elon = plon + mathpi_r8
     else if ( plon > 0.0_rk8 ) then
-      elon = plon - mathpi
+      elon = plon - mathpi_r8
     else
       elon = 0.0_rk8
     end if
     if ( plat > 0.0_rk8 ) then
-      elat = halfpi-plat
+      elat = halfpi_r8-plat
     else if ( plat < 0.0_rk8 ) then
-      elat = -(halfpi+plat)
+      elat = -(halfpi_r8+plat)
     else
       elat = 0.0_rk8
     end if
@@ -991,7 +993,7 @@ module mod_projections
     real(rkx), intent(in) :: xlat, xlon
     real(rkx) :: ri, rj
     call llij_rl(pj,xlat,xlon,ri,rj)
-    xmap = real(d_one/cos(degrad*(pj%p%rlat0+(rj-1)*pj%p%dlat)),rkx)
+    xmap = real(1.0_rk8/cos(degrad_r8*(pj%p%rlat0+(rj-1)*pj%p%dlat)),rkx)
   end function fac_rl
 
   pure elemental real(rkx) function fac_lc(pj,lat) result(xmap)
@@ -999,7 +1001,7 @@ module mod_projections
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat
     real(rk8) :: colat
-    colat = degrad*(deg90-lat)
+    colat = degrad_r8*(deg90-lat)
     if ( .not. pj%p%lamtan ) then
       xmap = real(sin(pj%p%colat2)/sin(colat) * &
           (tan(colat*0.5_rk8)/tan(pj%p%colat2*0.5_rk8))**pj%p%nfac,rkx)
@@ -1013,15 +1015,14 @@ module mod_projections
     implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat
-    xmap = real(pj%p%scale_top/(1.0_rk8 + pj%p%hemi * sin(lat*degrad)),rkx)
+    xmap = real(pj%p%scale_top/(1.0_rk8 + pj%p%hemi * sin(lat*degrad_r8)),rkx)
   end function fac_ps
 
   pure elemental real(rkx) function fac_mc(pj,lat) result(xmap)
     implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat
-    if ( .false. ) xmap = pj%p%stdlat ! Avoid unused argument warning
-    xmap = real(1.0_rk8/cos(lat*degrad),rkx)
+    xmap = real(1.0_rk8/cos(lat*degrad_r8),rkx)
   end function fac_mc
 
   pure elemental real(rkx) function fac_rc(pj,xlat,xlon) result(xmap)
@@ -1032,7 +1033,7 @@ module mod_projections
     real(rk8) :: yr
     call llij_rc(pj,xlat,xlon,ri,rj)
     yr = pj%p%yoff + (rj-pj%p%polej)*pj%p%dlon
-    xmap = real(1.0_rk8/cos(yr*degrad),rkx)
+    xmap = real(1.0_rk8/cos(yr*degrad_r8),rkx)
   end function fac_rc
 
   pure elemental real(rk8) function uvrot_lc(pj,lon) result(alpha)
@@ -1043,7 +1044,7 @@ module mod_projections
     deltalon = pj%p%stdlon - lon
     if ( deltalon > +deg180 ) deltalon = deltalon - deg360
     if ( deltalon < -deg180 ) deltalon = deltalon + deg360
-    alpha = deltalon*degrad*pj%p%conefac
+    alpha = deltalon*degrad_r8*pj%p%conefac
   end function uvrot_lc
 
   pure elemental real(rk8) function uvrot_ps(pj,lon) result(alpha)
@@ -1054,7 +1055,7 @@ module mod_projections
     deltalon = pj%p%stdlon - lon
     if ( deltalon > +deg180 ) deltalon = deltalon - deg360
     if ( deltalon < -deg180 ) deltalon = deltalon + deg360
-    alpha = real(deltalon*degrad*pj%p%hemi,rkx)
+    alpha = real(deltalon*degrad_r8*pj%p%hemi,rkx)
   end function uvrot_ps
 
   pure subroutine uvrot_rc(pj,lat,lon,cosdel,sindel)
@@ -1065,8 +1066,8 @@ module mod_projections
     real(rk8) :: zphi, zrla, zrlap, zarg1, zarg2, znorm
     zrla = lon
     if ( lat > deg90-0.00001_rk8 ) zrla = 0.0_rk8
-    zrlap = (pj%p%pollam - zrla)*degrad
-    zphi = lat*degrad
+    zrlap = (pj%p%pollam - zrla)*degrad_r8
+    zphi = lat*degrad_r8
     zarg1 = pj%p%polcphi*sin(zrlap)
     zarg2 = pj%p%polsphi*cos(zphi) - pj%p%polcphi*sin(zphi)*cos(zrlap)
     znorm = 1.0_rk8/sqrt(zarg1*zarg1 + zarg2*zarg2)
@@ -1084,7 +1085,7 @@ module mod_projections
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
-    if ( pj%p%stdlat >= d_zero ) then
+    if ( pj%p%stdlat >= 0.0_rk8 ) then
       do j = j1, j2
         do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) + v(i,j)*pj%f2(i,j)
@@ -1113,7 +1114,7 @@ module mod_projections
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
-    if ( pj%p%stdlat >= d_zero ) then
+    if ( pj%p%stdlat >= 0.0_rk8 ) then
       do j = j1, j2
         do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) - v(i,j)*pj%f2(i,j)
@@ -1144,7 +1145,7 @@ module mod_projections
     j2 = ubound(u,2)
     k1 = lbound(u,3)
     k2 = ubound(u,3)
-    if ( pj%p%stdlat >= d_zero ) then
+    if ( pj%p%stdlat >= 0.0_rk8 ) then
       do k = k1, k2
         do j = j1, j2
           do i = i1, i2
@@ -1179,7 +1180,7 @@ module mod_projections
     j2 = ubound(u,2)
     k1 = lbound(u,3)
     k2 = ubound(u,3)
-    if ( pj%p%stdlat >= d_zero ) then
+    if ( pj%p%stdlat >= 0.0_rk8 ) then
       do k = k1, k2
         do j = j1, j2
           do i = i1, i2
@@ -1212,7 +1213,7 @@ module mod_projections
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
-    if ( pj%p%stdlat >= d_zero ) then
+    if ( pj%p%stdlat >= 0.0_rk8 ) then
       do j = j1, j2
         do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) + v(i,j)*pj%f2(i,j)
@@ -1241,7 +1242,7 @@ module mod_projections
     i2 = ubound(u,1)
     j1 = lbound(u,2)
     j2 = ubound(u,2)
-    if ( pj%p%stdlat >= d_zero ) then
+    if ( pj%p%stdlat >= 0.0_rk8 ) then
       do j = j1, j2
         do i = i1, i2
           tmp = u(i,j)*pj%f1(i,j) - v(i,j)*pj%f2(i,j)
@@ -1272,7 +1273,7 @@ module mod_projections
     j2 = ubound(u,2)
     k1 = lbound(u,3)
     k2 = ubound(u,3)
-    if ( pj%p%stdlat >= d_zero ) then
+    if ( pj%p%stdlat >= 0.0_rk8 ) then
       do k = k1, k2
         do j = j1, j2
           do i = i1, i2
@@ -1307,7 +1308,7 @@ module mod_projections
     j2 = ubound(u,2)
     k1 = lbound(u,3)
     k2 = ubound(u,3)
-    if ( pj%p%stdlat >= d_zero ) then
+    if ( pj%p%stdlat >= 0.0_rk8 ) then
       do k = k1, k2
         do j = j1, j2
           do i = i1, i2
@@ -1335,10 +1336,6 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: u, v
     return
-    if ( .false. ) then
-      u(:,:) = pj%p%stdlat ! Avoid unused argument warning
-      v(:,:) = pj%p%stdlat ! Avoid unused argument warning
-    end if
   end subroutine rotate2_mc
 
   subroutine rotate3_mc(pj,u,v)
@@ -1346,10 +1343,6 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
     return
-    if ( .false. ) then
-      u(:,:,:) = pj%p%stdlat ! Avoid unused argument warning
-      v(:,:,:) = pj%p%stdlat ! Avoid unused argument warning
-    end if
   end subroutine rotate3_mc
 
   subroutine rotate2_rc(pj,u,v)
@@ -1570,12 +1563,7 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xlat, xlon
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xmap
-    if ( .false. ) then
-      xmap(:,:) = pj%p%stdlat ! Avoid unused argument warning
-      xmap(:,:) = xlon(:,:)   ! Avoid unused argument warning
-      xmap(:,:) = xlat(:,:)   ! Avoid unused argument warning
-    end if
-    xmap = d_one
+    xmap = 1.0_rkx
   end subroutine mapfac_ll
 
   pure subroutine mapfac_rc(pj,xlat,xlon,xmap)

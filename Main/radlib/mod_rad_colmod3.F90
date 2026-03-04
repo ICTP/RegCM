@@ -15,7 +15,7 @@
 
 module mod_rad_colmod3
   use mod_intkinds, only : ik4
-  use mod_realkinds, only : rkx
+  use mod_realkinds, only : rk8, rkx
   use mod_constants, only : amd, amo3, mathpi
   use mod_constants, only : rgas, rhoh2o, tzero
   use mod_dynparam, only : jci1, jci2, ici1, ici2, kz, kzp1
@@ -41,7 +41,7 @@ module mod_rad_colmod3
 
   public :: allocate_mod_rad_colmod3, colmod3
 
-  real(rkx), pointer, contiguous, dimension(:,:) :: temp
+  real(rk8), pointer, contiguous, dimension(:,:) :: temp
 
   type(radtype) :: rt
 
@@ -215,12 +215,12 @@ module mod_rad_colmod3
 
     integer(ik4) :: n, m, i, j, k, k2, itr
     integer(ik4) :: nj, npr
-    real(rkx) :: totci_l, totcl_l, totwv_l
-    real(rkx) :: nc, aerc, lwc, kparam
-    real(rkx) :: kabs, kabsi, kabsl, cldemis, arg
-    real(rkx) :: iwc, tempc, tcels, fsr, aiwc, biwc, desr
-    !real(rkx) :: tpara
-    real(rkx), parameter :: minus20 = 253.15_rkx
+    real(rk8) :: totci_l, totcl_l, totwv_l
+    real(rk8) :: nc, aerc, lwc, kparam
+    real(rk8) :: kabs, kabsi, kabsl, cldemis, arg
+    real(rk8) :: iwc, tempc, tcels, fsr, aiwc, biwc, desr
+    !real(rk8) :: tpara
+    real(rk8), parameter :: minus20 = 253.15_rk8
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'colmod3'
     integer(ik4) :: indx = 0
@@ -300,62 +300,62 @@ module mod_rad_colmod3
     !@acc call nvtxStartRange("colmod3")
 #if 0
     !$acc kernels
-    rt%alb(:) = 0.0_rkx
-    rt%albc(:) = 0.0_rkx
-    rt%flns(:) = 0.0_rkx
-    rt%flnsc(:) = 0.0_rkx
-    rt%flnt(:) = 0.0_rkx
-    rt%lwout(:) = 0.0_rkx
-    rt%lwin(:) = 0.0_rkx
-    rt%flntc(:) = 0.0_rkx
-    rt%flwds(:) = 0.0_rkx
-    rt%fsds(:) = 0.0_rkx
-    rt%fsnirt(:) = 0.0_rkx
-    rt%fsnirtsq(:) = 0.0_rkx
-    rt%fsnrtc(:) = 0.0_rkx
-    rt%fsns(:) = 0.0_rkx
-    rt%fsnsc(:) = 0.0_rkx
-    rt%fsnt(:) = 0.0_rkx
-    rt%fsntc(:) = 0.0_rkx
-    rt%solin(:) = 0.0_rkx
-    rt%solout(:) = 0.0_rkx
-    rt%soll(:) = 0.0_rkx
-    rt%solld(:) = 0.0_rkx
-    rt%sols(:) = 0.0_rkx
-    rt%solsd(:) = 0.0_rkx
-    rt%qrl(:,:) = 0.0_rkx
-    rt%qrs(:,:) = 0.0_rkx
+    rt%alb(:) = 0.0_rk8
+    rt%albc(:) = 0.0_rk8
+    rt%flns(:) = 0.0_rk8
+    rt%flnsc(:) = 0.0_rk8
+    rt%flnt(:) = 0.0_rk8
+    rt%lwout(:) = 0.0_rk8
+    rt%lwin(:) = 0.0_rk8
+    rt%flntc(:) = 0.0_rk8
+    rt%flwds(:) = 0.0_rk8
+    rt%fsds(:) = 0.0_rk8
+    rt%fsnirt(:) = 0.0_rk8
+    rt%fsnirtsq(:) = 0.0_rk8
+    rt%fsnrtc(:) = 0.0_rk8
+    rt%fsns(:) = 0.0_rk8
+    rt%fsnsc(:) = 0.0_rk8
+    rt%fsnt(:) = 0.0_rk8
+    rt%fsntc(:) = 0.0_rk8
+    rt%solin(:) = 0.0_rk8
+    rt%solout(:) = 0.0_rk8
+    rt%soll(:) = 0.0_rk8
+    rt%solld(:) = 0.0_rk8
+    rt%sols(:) = 0.0_rk8
+    rt%solsd(:) = 0.0_rk8
+    rt%qrl(:,:) = 0.0_rk8
+    rt%qrs(:,:) = 0.0_rk8
     !$acc end kernels
 #else
     npr = (jci2-jci1+1)*(ici2-ici1+1)
     do concurrent ( n = 1:npr )
-     rt%alb(n) = 0.0_rkx
-     rt%albc(n) = 0.0_rkx
-     rt%flns(n) = 0.0_rkx
-     rt%flnsc(n) = 0.0_rkx
-     rt%flnt(n) = 0.0_rkx
-     rt%lwout(n) = 0.0_rkx
-     rt%lwin(n) = 0.0_rkx
-     rt%flntc(n) = 0.0_rkx
-     rt%flwds(n) = 0.0_rkx
-     rt%fsds(n) = 0.0_rkx
-     rt%fsnirt(n) = 0.0_rkx
-     rt%fsnirtsq(n) = 0.0_rkx
-     rt%fsnrtc(n) = 0.0_rkx
-     rt%fsns(n) = 0.0_rkx
-     rt%fsnsc(n) = 0.0_rkx
-     rt%fsnt(n) = 0.0_rkx
-     rt%fsntc(n) = 0.0_rkx
-     rt%solin(n) = 0.0_rkx
-     rt%solout(n) = 0.0_rkx
-     rt%soll(n) = 0.0_rkx
-     rt%solld(n) = 0.0_rkx
-     rt%sols(n) = 0.0_rkx
-     rt%solsd(n) = 0.0_rkx
+     rt%alb(n) = 0.0_rk8
+     rt%albc(n) = 0.0_rk8
+     rt%flns(n) = 0.0_rk8
+     rt%flnsc(n) = 0.0_rk8
+     rt%flnt(n) = 0.0_rk8
+     rt%lwout(n) = 0.0_rk8
+     rt%lwin(n) = 0.0_rk8
+     rt%flntc(n) = 0.0_rk8
+     rt%flwds(n) = 0.0_rk8
+     rt%fsds(n) = 0.0_rk8
+     rt%fsnirt(n) = 0.0_rk8
+     rt%fsnirtsq(n) = 0.0_rk8
+     rt%fsnrtc(n) = 0.0_rk8
+     rt%fsns(n) = 0.0_rk8
+     rt%fsnsc(n) = 0.0_rk8
+     rt%fsnt(n) = 0.0_rk8
+     rt%fsntc(n) = 0.0_rk8
+     rt%solin(n) = 0.0_rk8
+     rt%solout(n) = 0.0_rk8
+     rt%soll(n) = 0.0_rk8
+     rt%solld(n) = 0.0_rk8
+     rt%sols(n) = 0.0_rk8
+     rt%solsd(n) = 0.0_rk8
     end do
     do concurrent ( k = 1:kz, n = 1:npr)
-     rt%qrl(k,n) = 0.0_rkx
-     rt%qrs(k,n) = 0.0_rkx
+     rt%qrl(k,n) = 0.0_rk8
+     rt%qrs(k,n) = 0.0_rk8
     end do
 #endif
     !
@@ -393,10 +393,10 @@ module mod_rad_colmod3
       rt%czen(n) = m2r%coszrs(j,i)
     end do
     do concurrent ( n = rt%n1:rt%n2 )
-      if ( rt%czen(n) < 1.e-3_rkx ) then
-        rt%czen(n) = 0.0_rkx
+      if ( rt%czen(n) < 1.e-3_rk8 ) then
+        rt%czen(n) = 0.0_rk8
       end if
-      if ( rt%czen(n) > 0.0_rkx ) then
+      if ( rt%czen(n) > 0.0_rk8 ) then
         rt%czengt0(n) = .true.
       else
         rt%czengt0(n) = .false.
@@ -455,14 +455,14 @@ module mod_rad_colmod3
         rt%qi(k,n) = m2r%qxatms(j,i,k,iqi)
       end do
       do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
-        if ( rt%qi(k,n) > 1.0e-11_rkx ) then
-          if ( rt%ql(k,n) > 1.0e-11_rkx ) then
+        if ( rt%qi(k,n) > 1.0e-11_rk8 ) then
+          if ( rt%ql(k,n) > 1.0e-11_rk8 ) then
             rt%fice(k,n) = rt%qi(k,n) / (rt%ql(k,n)+rt%qi(k,n))
           else
-            rt%fice(k,n) = 1.0_rkx
+            rt%fice(k,n) = 1.0_rk8
           end if
         else
-          rt%fice(k,n) = 0.0_rkx
+          rt%fice(k,n) = 0.0_rk8
         end if
       end do
     else
@@ -470,14 +470,14 @@ module mod_rad_colmod3
         ! Define fractional amount of cloud that is ice
         ! if warmer than -10 degrees C then water phase
         if ( rt%t(k,n) >= tzero ) then
-          rt%fice(k,n) = 0.0_rkx
+          rt%fice(k,n) = 0.0_rk8
         else if ( rt%t(k,n) <= minus20 ) then
           !  if colder than -20 degrees C then ice phase
-           rt%fice(k,n) = 1.0_rkx
+           rt%fice(k,n) = 1.0_rk8
         else
           ! if colder than 0 degrees C but warmer than -20 C mixed phase
           ! fice : fractional ice content within cloud
-          rt%fice(k,n) = (tzero-rt%t(k,n))/20.0_rkx
+          rt%fice(k,n) = (tzero-rt%t(k,n))/20.0_rk8
         end if
         rt%qi(k,n) = rt%ql(k,n) * rt%fice(k,n)
         rt%ql(k,n) = rt%ql(k,n) - rt%qi(k,n)
@@ -494,13 +494,13 @@ module mod_rad_colmod3
       ! Convert liquid water content into liquid water path
       rt%clwp(k,n) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
       ! O3 mass and volume mixing ratios
-      rt%o3vmr(k,n) = 0.5_rkx*(o3prof(j,i,k+1)+o3prof(j,i,k))*(amd/amo3)
+      rt%o3vmr(k,n) = 0.5_rk8*(o3prof(j,i,k+1)+o3prof(j,i,k))*(amd/amo3)
       ! Set a minimum clwp in the cloud of of 0.01 mm
-      if ( rt%clwp(k,n) > 0.01_rkx ) then
+      if ( rt%clwp(k,n) > 0.01_rk8 ) then
         temp(k,n) = m2r%cldfrc(j,i,k)
       else
-        rt%clwp(k,n) = 0.0_rkx
-        temp(k,n) = 0.0_rkx
+        rt%clwp(k,n) = 0.0_rk8
+        temp(k,n) = 0.0_rk8
       end if
     end do
     do concurrent ( n = rt%n1:rt%n2 )
@@ -511,11 +511,11 @@ module mod_rad_colmod3
       rt%cld(k,n) = temp(k-1,n)+temp(k,n) - (temp(k-1,n)*temp(k,n))
     end do
     do concurrent ( n = rt%n1:rt%n2 )
-      rt%cld(1,n) = 0.0_rkx
+      rt%cld(1,n) = 0.0_rk8
     end do
     if ( ncld > 0 ) then
       do concurrent ( k = kzp1-ncld:kzp1,  n = rt%n1:rt%n2 )
-        rt%cld(k,n) = 0.0_rkx
+        rt%cld(k,n) = 0.0_rk8
       end do
     end if
     !
@@ -523,8 +523,8 @@ module mod_rad_colmod3
     !
     !   do n = rt%n1, rt%n2
     !     do k = 1, kz
-    !       if ( rt%pint(k+1,n) < 40000.0_rkx ) then
-    !         rt%cld(k,n) = min(rt%cld(k,n),0.25_rkx)
+    !       if ( rt%pint(k+1,n) < 40000.0_rk8 ) then
+    !         rt%cld(k,n) = min(rt%cld(k,n),0.25_rk8)
     !       else
     !         rt%cld(k,n) = min(rt%cld(k,n),cftotmax)
     !       end if
@@ -557,51 +557,51 @@ module mod_rad_colmod3
       ! Toward the poles, for colder temperature, large droplets freeze
       ! and only the smaller ones are kept liquid.
       !
-      ! tpara = min(1.0_rkx,max(0.0_rkx,(minus10-rt%t(k,n))*0.05_rkx))
+      ! tpara = min(1.0_rk8,max(0.0_rk8,(minus10-rt%t(k,n))*0.05_rk8))
       ! if ( rt%ioro(n) == 1 ) then
-      !   rt%rel(k,n) = 6.0_rkx + 3.0_rkx * tpara
+      !   rt%rel(k,n) = 6.0_rk8 + 3.0_rk8 * tpara
       ! else
-      !   rt%rel(k,n) = 11.0_rkx
+      !   rt%rel(k,n) = 11.0_rk8
       ! end if
       !
       ! if ( rt%ioro(n) == 1 ) then
-      !   rt%rel(k,n) = 8.5_rkx
+      !   rt%rel(k,n) = 8.5_rk8
       ! else
-      !   rt%rel(k,n) = 11.0_rkx
+      !   rt%rel(k,n) = 11.0_rk8
       ! end if
       !
       ! Long-wave optical properties of water clouds and rain
       ! Savijarvi,Raisanene (Tellus 1998)
       !
       ! g/m3, already account for cum and ls clouds
-      if ( temp(k,n) > 0.0_rkx ) then
-        lwc = (rt%ql(k,n) * rt%rho(k,n) * 1000.0_rkx)/temp(k,n)
+      if ( temp(k,n) > 0.0_rk8 ) then
+        lwc = (rt%ql(k,n) * rt%rho(k,n) * 1000.0_rk8)/temp(k,n)
         if ( rt%ioro(n) == 1 ) then
           ! Effective liquid radius over land
-          rt%rel(k,n) = min(4.0_rkx + 7.0_rkx*lwc,15.0_rkx)
+          rt%rel(k,n) = min(4.0_rk8 + 7.0_rk8*lwc,15.0_rk8)
         else
           ! Effective liquid radius over ocean and sea ice
-          rt%rel(k,n) = min(5.5_rkx + 9.5_rkx*lwc,18.0_rkx)
+          rt%rel(k,n) = min(5.5_rk8 + 9.5_rk8*lwc,18.0_rk8)
         end if
         !
         ! Stengel, Fokke Meirink, Eliasson (2023)
         ! On the Temperature Dependence of the Cloud Ice Particle Effective
         ! Radius - A Satellite Perspective
         !
-        iwc = (rt%qi(k,n) * rt%rho(k,n) * 1000.0_rkx)/temp(k,n)
-        tempc = rt%t(k,n) - 83.15_rkx
+        iwc = (rt%qi(k,n) * rt%rho(k,n) * 1000.0_rk8)/temp(k,n)
+        tempc = rt%t(k,n) - 83.15_rk8
         tcels = tempc - tzero
-        fsr = 1.2351_rkx + 0.0105_rkx * tcels
-        aiwc = 45.8966_rkx * iwc**0.2214_rkx
-        biwc = 0.7957_rkx * iwc**0.2535_rkx
+        fsr = 1.2351_rk8 + 0.0105_rk8 * tcels
+        aiwc = 45.8966_rk8 * iwc**0.2214_rk8
+        biwc = 0.7957_rk8 * iwc**0.2535_rk8
         desr = fsr*(aiwc+biwc*tempc)
-        desr = max(30.0_rkx,min(155.0_rkx,desr))
+        desr = max(30.0_rk8,min(155.0_rk8,desr))
         ! rei : ice effective drop size (microns)
-        rt%rei(k,n) = 0.64952_rkx*desr
+        rt%rei(k,n) = 0.64952_rk8*desr
       else
         ! filler for no clouds
-        rt%rel(k,n) = 8.5_rkx
-        rt%rei(k,n) = 20.0_rkx
+        rt%rel(k,n) = 8.5_rk8
+        rt%rei(k,n) = 20.0_rk8
       end if
     end do
     ! Reset now or add all water
@@ -610,15 +610,15 @@ module mod_rad_colmod3
     end do
 #if 0
     !$acc kernels
-    rt%totci(rt%n1:rt%n2) = 0.0_rkx
-    rt%totcl(rt%n1:rt%n2) = 0.0_rkx
-    rt%totwv(rt%n1:rt%n2) = 0.0_rkx
+    rt%totci(rt%n1:rt%n2) = 0.0_rk8
+    rt%totcl(rt%n1:rt%n2) = 0.0_rk8
+    rt%totwv(rt%n1:rt%n2) = 0.0_rk8
     !$acc end kernels
 #else
     do concurrent ( n = rt%n1:rt%n2 )
-      rt%totci(n) = 0.0_rkx
-      rt%totcl(n) = 0.0_rkx
-      rt%totwv(n) = 0.0_rkx
+      rt%totci(n) = 0.0_rk8
+      rt%totcl(n) = 0.0_rk8
+      rt%totwv(n) = 0.0_rk8
     end do
 #endif
 #ifdef STDPAR_FIXED
@@ -628,17 +628,17 @@ module mod_rad_colmod3
     !$acc parallel loop gang vector
     do n = rt%n1, rt%n2
 #endif
-      totci_l = 0.0_rkx
-      totcl_l = 0.0_rkx
-      totwv_l = 0.0_rkx
+      totci_l = 0.0_rk8
+      totcl_l = 0.0_rk8
+      totwv_l = 0.0_rk8
       !$acc loop seq
       do k = 1, kz
         ! Turn off ice radiative properties by setting fice = 0.0
-        ! rt%fice(k,n) = 0.0_rkx
+        ! rt%fice(k,n) = 0.0_rk8
         totcl_l = totcl_l + &
-             (rt%clwp(k,n)*rt%cld(k,n)*(1.0_rkx-rt%fice(k,n)))*0.001_rkx
+             (rt%clwp(k,n)*rt%cld(k,n)*(1.0_rk8-rt%fice(k,n)))*0.001_rk8
         totci_l = totci_l + &
-             (rt%clwp(k,n)*rt%cld(k,n)*rt%fice(k,n))*0.001_rkx
+             (rt%clwp(k,n)*rt%cld(k,n)*rt%fice(k,n))*0.001_rk8
         totwv_l = totwv_l + rt%q(k,n)*rt%rho(k,n)*rt%dz(k,n)
       end do
       rt%totci(n)= totci_l
@@ -653,45 +653,45 @@ module mod_rad_colmod3
       do itr = 1, ntr
         if ( chtrname(itr) /= 'SO4' ) cycle
         do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
-          aerc = rt%rho(k,n) * aermmr(k,n,itr) * 1.e9_rkx !microg/m3
+          aerc = rt%rho(k,n) * aermmr(k,n,itr) * 1.e9_rk8 !microg/m3
           ! thershold of 0.1 microg/m3 for activation of indirect effect
-          if ( aerc > 0.1_rkx ) then
+          if ( aerc > 0.1_rk8 ) then
             ! ccn number concentration in cm-3
-            nc = 90.7_rkx * aerc**0.45_rkx + 23.0_rkx
+            nc = 90.7_rk8 * aerc**0.45_rk8 + 23.0_rk8
             ! kg/m3, already account for cum and ls clouds
-            lwc = (rt%clwp(k,n) / rt%dz(k,n)) * 0.001_rkx
-            if ( lwc < 1.e-6_rkx ) cycle
+            lwc = (rt%clwp(k,n) / rt%dz(k,n)) * 0.001_rk8
+            if ( lwc < 1.e-6_rk8 ) cycle
             if ( rt%ioro(n) == 1 ) then
               ! Martin et al.(1994) parameter over land
-              kparam = 0.67_rkx
+              kparam = 0.67_rk8
             else
               ! Martin et al.(1994) parameter over ocean and sea ice
-              kparam = 0.80_rkx
+              kparam = 0.80_rk8
             end if
             !finally modify effective radius
             !(1.e6 to convert to rel to microm,
             ! 1.e6 to convert nc in m-3)
-            rt%rel(k,n) = 1.e6_rkx * ( 3.0_rkx*lwc / &
-              (4.0_rkx*mathpi*rhoh2o*kparam*nc*1.e6_rkx ) )**(1.0_rkx/3.0_rkx)
+            rt%rel(k,n) = 1.e6_rk8 * ( 3.0_rk8*lwc / &
+              (4.0_rk8*mathpi*rhoh2o*kparam*nc*1.e6_rk8 ) )**(1.0_rk8/3.0_rk8)
           end if
         end do
       end do
     end if
     do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
       ! ice absorption coefficient
-      kabsi = 0.005_rkx + (1.0_rkx/rt%rei(k,n))
+      kabsi = 0.005_rk8 + (1.0_rk8/rt%rei(k,n))
       ! liquid water absorption coefficient for broadband long wave
       ! (Hannu Savijärvi & Petri Räisänen)
-      kabsl = 0.31_rkx * exp(-0.08_rkx*rt%rel(k,n))
+      kabsl = 0.31_rk8 * exp(-0.08_rk8*rt%rel(k,n))
       ! longwave absorption coeff (m**2/g)
-      kabs = kabsl*(1.0_rkx-rt%fice(k,n)) + (kabsi*rt%fice(k,n))
+      kabs = kabsl*(1.0_rk8-rt%fice(k,n)) + (kabsi*rt%fice(k,n))
       ! cloud emissivity (fraction)
-      arg = min(kabs*rt%clwp(k,n),25.0_rkx)
-      cldemis = max(1.0_rkx - exp(-arg),0.00_rkx)
+      arg = min(kabs*rt%clwp(k,n),25.0_rk8)
+      cldemis = max(1.0_rk8 - exp(-arg),0.00_rk8)
       ! Effective cloud cover
       rt%effcld(k,n) = rt%cld(k,n)*cldemis
     end do
-    rt%eccf = real(eccf,rkx)
+    rt%eccf = real(eccf,rk8)
     rt%labsem = labsem
     !
     ! Main radiation driving routine.
